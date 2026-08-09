@@ -4,7 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat, fromYawPitchRoll } from '@carbonenginejs/runtime-utils/quat';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
-import { Tr2CurveScalar as _Tr2CurveScalar } from '../../curves/Tr2CurveScalar.js';
+import { Tr2CurveScalar as _Tr2CurveScalar } from '../../curves/curves/Tr2CurveScalar.js';
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from '../../curves/enums.js';
 import { TriProjection as _TriProjection } from '../../core/view/TriProjection.js';
 import { TriView as _TriView } from '../../core/view/TriView.js';

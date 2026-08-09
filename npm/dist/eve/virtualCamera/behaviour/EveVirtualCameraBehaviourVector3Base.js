@@ -3,7 +3,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2CurveScalar as _Tr2CurveScalar } from '../../../curves/Tr2CurveScalar.js';
+import { Tr2CurveScalar as _Tr2CurveScalar } from '../../../curves/curves/Tr2CurveScalar.js';
 import { Tr2CurveExtrapolation } from '../../../curves/enums.js';
 
 let _initProto, _initClass, _init_active, _init_extra_active, _init_name, _init_extra_name;

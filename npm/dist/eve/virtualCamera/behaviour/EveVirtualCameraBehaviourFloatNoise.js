@@ -1,8 +1,8 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2CurveScalar as _Tr2CurveScalar } from '../../../curves/Tr2CurveScalar.js';
+import { Tr2CurveScalar as _Tr2CurveScalar } from '../../../curves/curves/Tr2CurveScalar.js';
 import { Tr2CurveExtrapolation } from '../../../curves/enums.js';
-import { TriPerlinCurve as _TriPerlinCurve } from '../../../curves/TriPerlinCurve.js';
+import { TriPerlinCurve as _TriPerlinCurve } from '../../../curves/curves/TriPerlinCurve.js';
 import { EveVirtualCameraBehaviourFloatBase as _EveVirtualCameraBeha$1 } from './EveVirtualCameraBehaviourFloatBase.js';
 
 let _initProto, _initClass, _init_octaves, _init_extra_octaves, _init_magnitudeCurve, _init_extra_magnitudeCurve, _init_magnitude, _init_extra_magnitude, _init_perlineScale, _init_extra_perlineScale;

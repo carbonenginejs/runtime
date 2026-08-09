@@ -2,9 +2,9 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\VirtualCamera\EveVirtualCameraBehaviour.cpp
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2CurveScalar } from "../../../curves/Tr2CurveScalar.js";
+import { Tr2CurveScalar } from "../../../curves/curves/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
-import { TriPerlinCurve } from "../../../curves/TriPerlinCurve.js";
+import { TriPerlinCurve } from "../../../curves/curves/TriPerlinCurve.js";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 

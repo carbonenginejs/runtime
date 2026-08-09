@@ -4,7 +4,7 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
-import { Tr2CurveScalar } from "../curves/Tr2CurveScalar.js";
+import { Tr2CurveScalar } from "../curves/curves/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
 
 
