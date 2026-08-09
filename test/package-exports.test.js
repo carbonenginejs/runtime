@@ -14,13 +14,15 @@ test("published package resolves root, family, and deep generated exports", () =
     const packageRoot = await import("@carbonenginejs/runtime-trinity");
     const eve = await import("@carbonenginejs/runtime-trinity/generated/eve");
     const child = await import("@carbonenginejs/runtime-trinity/generated/eve/child/EveChildLineSet.js");
-    const renderStep = await import("@carbonenginejs/runtime-trinity/generated/renderJob/TriStepFilterVisibilityResults.js");
+    const renderStep = await import("@carbonenginejs/runtime-trinity/generated/renderJob/TriStepRemoteUpdate.js");
+    const promoted = await import("@carbonenginejs/runtime-trinity/renderJob");
     const perFrame = await import("@carbonenginejs/runtime-trinity/perframe");
     const perObject = await import("@carbonenginejs/runtime-trinity/perobject");
 
     if (!packageRoot.Tr2Effect || !packageRoot.TriVectorSequencer || !packageRoot.TriColorSequencer ||
         !packageRoot.Tr2PostProcess || !packageRoot.EveSprite2dBracket || !eve.EveChildRef ||
-        !child.EveChildLineSet || !renderStep.TriStepFilterVisibilityResults ||
+        !child.EveChildLineSet || !renderStep.TriStepRemoteUpdate ||
+        !promoted.TriStepFilterVisibilityResults || !promoted.TriStepRenderScene ||
         !perFrame.CjsPerFrameLayouts || !perObject.CjsPerObjectLayouts)
     {
       throw new Error("Published package exports did not expose the expected classes");
