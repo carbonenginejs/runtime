@@ -46,3 +46,6 @@ export * from "./TriStepRenderAtlas.js";
 export * from "./TriStepFilterVisibilityResults.js";
 export * from "./TriStepClearUav.js";
 export * from "./Tr2RenderNodeEffect.js";
+export * from "./TriStepRenderFps.js";
+export * from "./TriStepTestBlocking.js";
+export * from "./Tr2RenderNodeSprite2dScene.js";

@@ -46,4 +46,7 @@ export { TriStepRenderAtlas } from './TriStepRenderAtlas.js';
 export { TriStepFilterVisibilityResults } from './TriStepFilterVisibilityResults.js';
 export { TriStepClearUav } from './TriStepClearUav.js';
 export { Tr2RenderNodeEffect } from './Tr2RenderNodeEffect.js';
+export { TriStepRenderFps } from './TriStepRenderFps.js';
+export { TriStepTestBlocking } from './TriStepTestBlocking.js';
+export { Tr2RenderNodeSprite2dScene } from './Tr2RenderNodeSprite2dScene.js';
 //# sourceMappingURL=index.js.map

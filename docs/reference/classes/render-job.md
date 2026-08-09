@@ -484,3 +484,33 @@ A render step that ticks one updateable object with the frame times.
 - Source: src/renderJob/TriStepUpdate.js
 - Visibility: Public
 - Kind: CarbonEngineJS
+
+<!-- class:Tr2RenderNodeSprite2dScene -->
+## `Tr2RenderNodeSprite2dScene`
+
+A render-graph node that draws a sprite scene into a destination texture, over an optional background node.
+
+- Export: @carbonenginejs/runtime-trinity/renderJob
+- Source: src/renderJob/Tr2RenderNodeSprite2dScene.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:TriStepRenderFps -->
+## `TriStepRenderFps`
+
+A step that averages the frame rate over a quarter second and reports it as text with a threshold colour.
+
+- Export: @carbonenginejs/runtime-trinity/renderJob
+- Source: src/renderJob/TriStepRenderFps.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:TriStepTestBlocking -->
+## `TriStepTestBlocking`
+
+A test step that reports itself in progress until its flag is cleared, so a job's resume path can be exercised.
+
+- Export: @carbonenginejs/runtime-trinity/renderJob
+- Source: src/renderJob/TriStepTestBlocking.js
+- Visibility: Public
+- Kind: CarbonEngineJS
