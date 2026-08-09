@@ -393,9 +393,9 @@ test("EveStretch3 supplies dynamic parameter roots and binding ownership", () =>
 test("dynamic graph classes live only in maintained human-readable trees", () =>
 {
   for (const path of [
-    "../src/trinityCore/binding/Tr2DynamicBinding.js",
-    "../src/trinityCore/binding/Tr2ExternalParameter.js",
-    "../src/trinityCore/binding/TriValueBinding.js",
+    "../src/core/binding/Tr2DynamicBinding.js",
+    "../src/core/binding/Tr2ExternalParameter.js",
+    "../src/core/binding/TriValueBinding.js",
     "../src/eve/effect/multiEffect/EveMultiEffect.js"
   ])
   {

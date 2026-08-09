@@ -5,7 +5,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
+import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
@@ -15,8 +15,8 @@ import { ReflectionMode } from "../../generated/eve/enums.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
-import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
-import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../trinityCore/Tr2PickType.js";
+import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import {
   createChildPerObjectRecords,
   inheritParentPerObjectData,

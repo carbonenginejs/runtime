@@ -9,7 +9,7 @@ import test from "node:test";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 
 import { RawData, RawDataType } from "../npm/dist/index.js";
-import { CjsPerObjectLayouts } from "../src/trinityCore/rawData/CjsPerObjectLayouts.js";
+import { CjsPerObjectLayouts } from "../src/core/rawData/CjsPerObjectLayouts.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 

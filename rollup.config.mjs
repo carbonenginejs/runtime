@@ -23,7 +23,7 @@ export default {
     "src/postProcess/index.js",
     "src/renderJob/index.js",
     "src/shader/index.js",
-    "src/trinityCore/index.js",
+    "src/core/index.js",
     "src/ui/index.js",
     "src/utilities/index.js",
     ...collectIndexInputs("src/generated")

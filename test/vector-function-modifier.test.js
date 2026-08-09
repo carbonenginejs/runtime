@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { Tr2VectorFunctionModifier } from "../npm/dist/curves/index.js";
-import { Tr2RenderContext } from "../npm/dist/trinityCore/index.js";
+import { Tr2RenderContext } from "../npm/dist/core/index.js";
 
 // A position source: Carbon calls it the client ball. Each accessor writes a
 // distinct value so the test can tell which one the modifier called.

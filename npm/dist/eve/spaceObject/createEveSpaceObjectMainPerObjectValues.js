@@ -1,4 +1,4 @@
-import { RawData } from '../../trinityCore/rawData/RawData.js';
+import { RawData } from '../../core/rawData/RawData.js';
 
 const VS_FIELDS = Object.freeze(new Set(["worldTransform", "worldTransformLast", "invWorldTransform", "shipData", "clipData", "ellpsoidRadii", "ellpsoidCenter", "customMaskMatrix", "customMaskData", "boneOffsets", "morphTargetVertexDataOffset", "morphTargetAnimationDataOffset", "activeMorphTargetsCount", "bakedMorphTargetVertexDataOffset", "customData"]));
 const PS_FIELDS = Object.freeze(new Set(["worldTransform", "worldTransformLast", "invWorldTransform", "shipData", "clipSphereCenter", "clipRadiusSq", "clipRadius2Sq", "impactDataOffset", "clipSphereFactor2", "clipSphereFactor", "shLightingCoefficients", "customMaskMaterialIDs", "customMaskTargets", "customMaskClamps", "screenSize", "customData"]));

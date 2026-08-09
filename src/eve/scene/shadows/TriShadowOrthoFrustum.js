@@ -8,7 +8,7 @@
 // TriFrustumOrtho held by reference (Carbon copies by value into the
 // transient).
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { PlaneDotCoord, PlaneDotNormal } from "../../../trinityCore/TriFrustum.js";
+import { PlaneDotCoord, PlaneDotNormal } from "../../../core/view/TriFrustum.js";
 import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
 
 /** Carbon's native orthographic-shadow frustum adapter. */

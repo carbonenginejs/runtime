@@ -10,8 +10,8 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
-import { Tr2PerObjectData } from "../../../trinityCore/Tr2PerObjectData.js";
-import { Tr2RenderBatch } from "../../../trinityCore/Tr2RenderBatch.js";
+import { Tr2PerObjectData } from "../../../core/rawData/Tr2PerObjectData.js";
+import { Tr2RenderBatch } from "../../../core/batch/Tr2RenderBatch.js";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths

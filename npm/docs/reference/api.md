@@ -31,7 +31,7 @@ focused `./sprite2d` package export in the current manifest.
 | `@carbonenginejs/runtime-trinity/postProcess` | Device-free post-process graph and attribute models. |
 | `@carbonenginejs/runtime-trinity/renderJob` | Ordered render-job and render-step graph classes. |
 | `@carbonenginejs/runtime-trinity/shader` | Mutable effect/material facade, parameters, options, sampler overrides, shader buffers, and identity-preserving compatibility reexports of resource-owned reflection classes. |
-| `@carbonenginejs/runtime-trinity/trinityCore` | Core Trinity resources, batches, views, projections, bindings, and graph records. |
+| `@carbonenginejs/runtime-trinity/core` | Core Trinity resources, batches, views, projections, bindings, and graph records. |
 | `@carbonenginejs/runtime-trinity/ui` | Maintained Trinity UI graph classes. |
 | `@carbonenginejs/runtime-trinity/utilities` | Package-specific portable runtime helpers. |
 
@@ -43,7 +43,7 @@ import { EveCamera } from "@carbonenginejs/runtime-trinity/eve";
 import {
     Tr2DynamicBinding,
     TriValueBinding
-} from "@carbonenginejs/runtime-trinity/trinityCore";
+} from "@carbonenginejs/runtime-trinity/core";
 ```
 
 ## Schema and enum metadata

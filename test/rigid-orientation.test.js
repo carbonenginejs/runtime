@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { TriRigidOrientation, TriTorque } from "../npm/dist/trinityCore/index.js";
+import { TriRigidOrientation, TriTorque } from "../npm/dist/core/index.js";
 
 function key({ time = 0, rot0 = quat.create(), omega0 = [ 0, 0, 0 ], torque = [ 0, 0, 0 ] } = {})
 {

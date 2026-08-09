@@ -6,9 +6,9 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { RenderingMode } from '@carbonenginejs/runtime-utils/graphics';
 import { EveComponentType, ShouldReflect } from '../EveComponentTypes.js';
-import { Tr2PerObjectData } from '../../trinityCore/Tr2PerObjectData.js';
-import { Tr2RenderBatch } from '../../trinityCore/Tr2RenderBatch.js';
-import { TriFrustumOrtho } from '../../trinityCore/TriFrustumOrtho.js';
+import { Tr2PerObjectData } from '../../core/rawData/Tr2PerObjectData.js';
+import { Tr2RenderBatch } from '../../core/batch/Tr2RenderBatch.js';
+import { TriFrustumOrtho } from '../../core/view/TriFrustumOrtho.js';
 import { Tr2RenderReason, TriBatchType } from '../../generated/trinityCore/enums.js';
 
 let _initProto, _initClass, _init_reflectionMode, _init_extra_reflectionMode, _init_minVisibleQuality, _init_extra_minVisibleQuality, _init_sortingModifier, _init_extra_sortingModifier, _init_animation, _init_extra_animation, _init_shadowMapDS, _init_extra_shadowMapDS, _init_lightmap, _init_extra_lightmap, _init_lightmapSizeScale, _init_extra_lightmapSizeScale, _init_lights, _init_extra_lights, _init_minScreenSize, _init_extra_minScreenSize, _init_rotation, _init_extra_rotation, _init_translation, _init_extra_translation, _init_scaling, _init_extra_scaling, _init_reflectionEffect, _init_extra_reflectionEffect, _init_effect, _init_extra_effect, _init_noiseTextureSize, _init_extra_noiseTextureSize, _init_mapOffset, _init_extra_mapOffset, _init_mapOffset2, _init_extra_mapOffset2, _init_mapOffset3, _init_extra_mapOffset3, _init_castShadows, _init_extra_castShadows, _init_receiveShadows, _init_extra_receiveShadows, _init_name, _init_extra_name, _init_detailTiling, _init_extra_detailTiling, _init_detailTiling2, _init_extra_detailTiling2, _init_textureTiling, _init_extra_textureTiling, _init_display, _init_extra_display;

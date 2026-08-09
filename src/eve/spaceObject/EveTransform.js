@@ -9,7 +9,7 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { Tr2Transform } from "../../generated/trinityCore/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
-import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../trinityCore/Tr2PickType.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).

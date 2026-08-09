@@ -3,7 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderStep } from "./TriRenderStep.js";
-import { TriLineSet } from "../trinityCore/TriLineSet.js";
+import { TriLineSet } from "../core/line/TriLineSet.js";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
 /** A render step that accumulates debug lines, boxes and 2D/3D text for one frame and hands them to the executor to draw. */

@@ -17,11 +17,11 @@ import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
-import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
-import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
-import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../trinityCore/Tr2RenderBatch.js";
-import { RawData } from "../../trinityCore/rawData/RawData.js";
-import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../trinityCore/Tr2PickType.js";
+import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
+import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
+import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/Tr2RenderBatch.js";
+import { RawData } from "../../core/rawData/RawData.js";
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { EveCustomMask } from "../EveCustomMask.js";
 

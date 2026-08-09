@@ -1,7 +1,7 @@
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults } from "../npm/dist/trinityCore/index.js";
+import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults } from "../npm/dist/core/index.js";
 import { Tr2RenderJobs, TriRenderJob, TriRenderStep, TriStepClear, TriStepCopyRenderTarget, TriStepEnableWireframeMode, TriStepGenerateMipMaps, TriStepPopDepthStencil, TriStepPopRenderTarget, TriStepPresentSwapChain, TriStepPushDepthStencil, TriStepPushRenderTarget, TriStepRemoteSync, TriStepResolve, TriStepRunJob, TriStepSetDepthStencil, TriStepSetProjection, TriStepSetRenderState, TriStepSetRenderTarget, TriStepSetStdRndStates, TriStepSetView, TriStepSetViewport, TriStepSetVisualizationMode } from "../npm/dist/renderJob/index.js";
 import { TriStepFilterVisibilityResults } from "../npm/dist/renderJob/index.js";
 import { TriStepPythonCB } from "../npm/dist/renderJob/index.js";
@@ -22,7 +22,7 @@ import { TriStepRenderLineGraph } from "../npm/dist/renderJob/index.js";
 import { TriStepRenderTexture } from "../npm/dist/renderJob/index.js";
 import { TriStepRenderDebug } from "../npm/dist/renderJob/index.js";
 import { TriStepToggleCubemap } from "../npm/dist/renderJob/index.js";
-import { Tr2LineGraph } from "../npm/dist/trinityCore/Tr2LineGraph.js";
+import { Tr2LineGraph } from "../npm/dist/core/line/Tr2LineGraph.js";
 
 
 function assertEquals(actual, expected, message)

@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2GrannyAnimation } from "../npm/dist/trinityCore/Tr2GrannyAnimation.js";
-import { GrannyBoneOffset } from "../npm/dist/trinityCore/index.js";
+import { Tr2GrannyAnimation } from "../npm/dist/core/animation/Tr2GrannyAnimation.js";
+import { GrannyBoneOffset } from "../npm/dist/core/index.js";
 
 
 const identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];

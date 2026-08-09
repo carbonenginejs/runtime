@@ -8,7 +8,7 @@ import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/sc
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
 import { Tr2Transform as _Tr2Transform } from '../../generated/trinityCore/Tr2Transform.js';
 import { EveLODHelper } from '../EveLODHelper.js';
-import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from '../../trinityCore/Tr2PickType.js';
+import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from '../../core/view/Tr2PickType.js';
 import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 
 let _initProto, _initClass, _init_meshLod, _init_extra_meshLod, _init_children, _init_extra_children, _init_overrideBoundsMin, _init_extra_overrideBoundsMin, _init_overrideBoundsMax, _init_extra_overrideBoundsMax, _init_particleEmitters, _init_extra_particleEmitters, _init_particleSystems, _init_extra_particleSystems, _init_lodLevel, _init_extra_lodLevel, _init_hideOnLowQuality, _init_extra_hideOnLowQuality, _init_visibilityThreshold, _init_extra_visibilityThreshold, _init_observers, _init_extra_observers, _init_useLodLevel, _init_extra_useLodLevel;

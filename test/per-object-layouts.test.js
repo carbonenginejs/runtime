@@ -6,7 +6,7 @@
 // means a failure points at the source line.
 import test from "node:test";
 
-import { CjsPerObjectLayouts } from "../src/trinityCore/rawData/CjsPerObjectLayouts.js";
+import { CjsPerObjectLayouts } from "../src/core/rawData/CjsPerObjectLayouts.js";
 import { TEST_PER_OBJECT_STRUCTS } from "./helpers/perObjectStore.js";
 
 

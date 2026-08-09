@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2VertexDefinition } from "../npm/dist/trinityCore/index.js";
+import { Tr2VertexDefinition } from "../npm/dist/core/index.js";
 
 const Usage = Tr2VertexDefinition.UsageCode;
 

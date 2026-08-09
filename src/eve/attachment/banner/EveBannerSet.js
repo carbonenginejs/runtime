@@ -12,7 +12,7 @@ import { EveBannerLight } from "./EveBannerLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Saturate } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
-import { FLOAT_MAX } from "../../../trinityCore/TriFrustum.js";
+import { FLOAT_MAX } from "../../../core/view/TriFrustum.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import {
   AsPerPointLightData,

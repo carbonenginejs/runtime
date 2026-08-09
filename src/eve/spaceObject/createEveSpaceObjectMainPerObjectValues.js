@@ -1,4 +1,4 @@
-import { RawData } from "../../trinityCore/rawData/RawData.js";
+import { RawData } from "../../core/rawData/RawData.js";
 
 
 const VS_FIELDS = Object.freeze(new Set([

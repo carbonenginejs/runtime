@@ -6,7 +6,7 @@ import {
   Tr2MeshArea,
   TriRenderBatchAccumulator,
   Tr2PerObjectData
-} from "../npm/dist/trinityCore/index.js";
+} from "../npm/dist/core/index.js";
 
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 

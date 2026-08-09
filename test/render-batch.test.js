@@ -10,7 +10,7 @@ import {
   TriRenderBatchAccumulator,
   DefaultKeyGenerator,
   EffectKeyGenerator
-} from "../npm/dist/trinityCore/index.js";
+} from "../npm/dist/core/index.js";
 
 import { RenderingMode } from "@carbonenginejs/runtime-utils/graphics";
 import { D3dPrimitiveTopology } from "@carbonenginejs/runtime-utils/d3d";

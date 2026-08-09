@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2KelvinColor } from "../npm/dist/trinityCore/index.js";
+import { Tr2KelvinColor } from "../npm/dist/core/index.js";
 
 const Illuminant = Tr2KelvinColor.Tr2StandardIlluminant;
 

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsFrameDriver, Tr2RenderContext } from "../npm/dist/trinityCore/index.js";
-import { Tr2VariableStore } from "../npm/dist/trinityCore/index.js";
+import { CjsFrameDriver, Tr2RenderContext } from "../npm/dist/core/index.js";
+import { Tr2VariableStore } from "../npm/dist/core/index.js";
 
 // Records every frame step in the order it happened, so the test asserts the
 // SEQUENCE rather than that each step merely ran.

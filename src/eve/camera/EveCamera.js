@@ -9,8 +9,8 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { Tr2CurveScalar } from "../../curves/Tr2CurveScalar.js";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../../curves/enums.js";
-import { TriProjection } from "../../trinityCore/TriProjection.js";
-import { TriView } from "../../trinityCore/TriView.js";
+import { TriProjection } from "../../core/view/TriProjection.js";
+import { TriView } from "../../core/view/TriView.js";
 
 
 function createDefaultZoomCurve()

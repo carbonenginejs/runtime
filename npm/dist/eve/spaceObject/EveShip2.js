@@ -3,7 +3,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveMobile as _EveMobile } from './EveMobile.js';
-import { TriFloat as _TriFloat } from '../../trinityCore/TriFloat.js';
+import { TriFloat as _TriFloat } from '../../core/variable/TriFloat.js';
 
 let _initProto, _initClass, _init_boosters, _init_extra_boosters, _init_displayKillCounterValue, _init_extra_displayKillCounterValue, _init_maxSpeed, _init_extra_maxSpeed, _init_speed, _init_extra_speed;
 

@@ -6,7 +6,7 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveMobile } from "./EveMobile.js";
-import { TriFloat } from "../../trinityCore/TriFloat.js";
+import { TriFloat } from "../../core/variable/TriFloat.js";
 
 /** A ship space object: booster drive, speed state, and ship shader data. */
 @type.define({ className: "EveShip2", family: "eve/spaceObject" })

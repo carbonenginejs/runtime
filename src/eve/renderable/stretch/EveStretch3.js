@@ -12,7 +12,7 @@ import {
   BELIST_UNLOADSTART
 } from "../../../controllers/contracts.js";
 import { EveEntity } from "../../EveEntity.js";
-import { TriFloat } from "../../../trinityCore/TriFloat.js";
+import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { EveChildUpdateParams } from "../../EveChildUpdateParams.js";
 import {
   collectRenderables,

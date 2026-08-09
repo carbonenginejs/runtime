@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { EveChildMesh } from "../npm/dist/eve/child/EveChildMesh.js";
-import { Tr2Mesh } from "../npm/dist/trinityCore/Tr2Mesh.js";
-import { Tr2SerializedMorphAnimation } from "../npm/dist/trinityCore/Tr2SerializedMorphAnimation.js";
+import { Tr2Mesh } from "../npm/dist/core/mesh/Tr2Mesh.js";
+import { Tr2SerializedMorphAnimation } from "../npm/dist/core/mesh/Tr2SerializedMorphAnimation.js";
 
 function CreateGeometry(names, baked = names.map(() => false))
 {

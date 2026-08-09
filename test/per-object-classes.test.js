@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2PerObjectData, TriPoolAllocator } from "../npm/dist/trinityCore/index.js";
+import { Tr2PerObjectData, TriPoolAllocator } from "../npm/dist/core/index.js";
 
 // The mask join: Carbon's RenderBatchGroup hoists GetShaderTypeMask(technique)
 // once per group and passes it to every batch's SetPerObjectDataToDevice.

@@ -5,7 +5,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { BELIST_LOADING, BELIST_INSERTED, BELIST_REMOVED, BELIST_UNLOADSTART, BELIST_EVENTMASK } from '../../../controllers/contracts.js';
 import { EveEntity as _EveEntity } from '../../EveEntity.js';
-import { TriFloat as _TriFloat } from '../../../trinityCore/TriFloat.js';
+import { TriFloat as _TriFloat } from '../../../core/variable/TriFloat.js';
 import { EveChildUpdateParams as _EveChildUpdateParams } from '../../EveChildUpdateParams.js';
 import { getTime, sampleVector, updateChildSync, translationMatrix, updateCurveSet, makeEndpointTransforms, updateChildAsync, makeStretchTransform, updateChildVisibility, collectRenderables, mergeSphere, getCurveDuration } from './CjsStretchRuntime.js';
 

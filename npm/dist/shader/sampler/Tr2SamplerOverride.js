@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { Tr2RenderContext as _Tr2RenderContext } from '../../trinityCore/Tr2RenderContext.js';
+import { Tr2RenderContext as _Tr2RenderContext } from '../../core/context/Tr2RenderContext.js';
 
 let _initClass, _init_name, _init_extra_name, _init_addressU, _init_extra_addressU, _init_addressV, _init_extra_addressV, _init_addressW, _init_extra_addressW, _init_filter, _init_extra_filter, _init_mipFilter, _init_extra_mipFilter, _init_lodBias, _init_extra_lodBias, _init_maxMipLevel, _init_extra_maxMipLevel, _init_maxAnisotropy, _init_extra_maxAnisotropy;
 

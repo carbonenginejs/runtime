@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2PrimitiveSet as _Tr2PrimitiveSet } from '../../trinityCore/Tr2PrimitiveSet.js';
+import { Tr2PrimitiveSet as _Tr2PrimitiveSet } from '../../core/line/Tr2PrimitiveSet.js';
 
 let _initClass, _init_grannyResPath, _init_extra_grannyResPath, _init_renderSolid, _init_extra_renderSolid, _init_grannyRes, _init_extra_grannyRes;
 

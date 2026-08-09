@@ -3,7 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderStep } from "./TriRenderStep.js";
-import { Tr2VariableStore } from "../trinityCore/Tr2VariableStore.js";
+import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 
 /** A render step that writes one named value into the variable store shaders read. */
 @type.define({ className: "TriStepSetVariableStore", family: "renderJob" })

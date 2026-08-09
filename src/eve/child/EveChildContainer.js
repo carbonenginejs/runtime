@@ -5,7 +5,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { getBoneList } from "../../trinityCore/Tr2GrannyAnimation.js";
+import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
@@ -15,7 +15,7 @@ import { EveComponentType } from "../EveComponentTypes.js";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason, TR2SHADERMODEL } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
-import { Tr2PerObjectData } from "../../trinityCore/Tr2PerObjectData.js";
+import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
 import {
   createChildPerObjectRecords,
   inheritParentPerObjectData,

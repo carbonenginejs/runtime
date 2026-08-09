@@ -3,7 +3,7 @@
 // Hand-maintained from Tr2Effect.cpp's Blue structure definition and defaults.
 import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { Tr2RenderContext } from "../../trinityCore/Tr2RenderContext.js";
+import { Tr2RenderContext } from "../../core/context/Tr2RenderContext.js";
 
 /** Tr2SamplerOverride (shader) - generated from schema shapeHash b3478476.... */
 @type.define({ className: "Tr2SamplerOverride", family: "shader" })

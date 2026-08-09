@@ -1,5 +1,5 @@
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
-import { PlaneDotNormal, PlaneDotCoord } from '../../../trinityCore/TriFrustum.js';
+import { PlaneDotNormal, PlaneDotCoord } from '../../../core/view/TriFrustum.js';
 import { TriFrustumTestResult } from '../../../generated/trinityCore/enums.js';
 
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity

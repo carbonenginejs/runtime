@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2ManipulationTool as _Tr2ManipulationTool } from '../../trinityCore/Tr2ManipulationTool.js';
+import { Tr2ManipulationTool as _Tr2ManipulationTool } from '../../core/tool/Tr2ManipulationTool.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
 let _initClass, _init_translation, _init_extra_translation;

@@ -2,7 +2,7 @@
   "license": "MIT",
   "exports": {
     "./particle": "./dist/particle/index.js",
-    "./trinityCore": "./dist/trinityCore/index.js",
+    "./core": "./dist/core/index.js",
     "./ui": "./dist/ui/index.js",
     "./renderJob": "./dist/renderJob/index.js",
     "./shader": "./dist/shader/index.js",
@@ -15,8 +15,8 @@
     "./generated/*": "./dist/generated/*/index.js",
     "./generated": "./dist/generated/index.js",
     "./eve": "./dist/eve/index.js",
-    "./perobject": "./dist/trinityCore/rawData/CjsPerObjectLayouts.js",
-    "./perframe": "./dist/trinityCore/rawData/CjsPerFrameLayouts.js"
+    "./perobject": "./dist/core/rawData/CjsPerObjectLayouts.js",
+    "./perframe": "./dist/core/rawData/CjsPerFrameLayouts.js"
   },
   "engines": {
     "node": ">=18"
@@ -26,7 +26,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.9.0",
+  "version": "0.10.0",
   "files": [
     "dist",
     "docs",

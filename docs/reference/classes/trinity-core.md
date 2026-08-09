@@ -1,7 +1,7 @@
 # Trinity core classes
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-trinity/trinityCore`
+Scope: `@carbonenginejs/runtime-trinity/core`
 Audience: Engine authors and integrators
 Summary: Catalogs the GPU-free constant-data classes an engine binds when it realizes the Trinity graph.
 
@@ -10,8 +10,8 @@ Summary: Catalogs the GPU-free constant-data classes an engine binds when it rea
 
 A packed constant-data slice bound to a resolved layout.
 
-- Export: `@carbonenginejs/runtime-trinity/trinityCore`
-- Source: `src/trinityCore/rawData/RawData.js`
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/rawData/RawData.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -20,8 +20,8 @@ A packed constant-data slice bound to a resolved layout.
 
 Registers constant-data struct shapes and leases packed payloads from a per-engine arena.
 
-- Export: `@carbonenginejs/runtime-trinity/trinityCore`
-- Source: `src/trinityCore/rawData/TriPoolAllocator.js`
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/rawData/TriPoolAllocator.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -30,8 +30,8 @@ Registers constant-data struct shapes and leases packed payloads from a per-engi
 
 Runs Carbon's backend-neutral frame body in order, against injected engine hooks.
 
-- Export: `@carbonenginejs/runtime-trinity/trinityCore`
-- Source: `src/trinityCore/CjsFrameDriver.js`
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/context/CjsFrameDriver.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -40,8 +40,8 @@ Runs Carbon's backend-neutral frame body in order, against injected engine hooks
 
 A mesh's vertex element list, and the matching of it to a shader's inputs.
 
-- Export: `@carbonenginejs/runtime-trinity/trinityCore`
-- Source: `src/trinityCore/Tr2VertexDefinition.js`
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/vertex/Tr2VertexDefinition.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -50,8 +50,8 @@ A mesh's vertex element list, and the matching of it to a shader's inputs.
 
 Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/binding/Tr2BindingVector3.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/binding/Tr2BindingVector3.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -60,8 +60,8 @@ Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406....
 
 A value binding described by object paths: it resolves both endpoints against its owner's parameter map, builds a weak TriValueBinding and starts copying after a configured delay.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/binding/Tr2DynamicBinding.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/binding/Tr2DynamicBinding.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -70,8 +70,8 @@ A value binding described by object paths: it resolves both endpoints against it
 
 A named handle onto one attribute - optionally one vector component - of another object, exposing it for type-checked reads and writes.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/binding/Tr2ExternalParameter.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/binding/Tr2ExternalParameter.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -80,8 +80,8 @@ A named handle onto one attribute - optionally one vector component - of another
 
 Tr2PyValueBinding (trinityCore) - generated from schema shapeHash 435f9fdc....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/binding/Tr2PyValueBinding.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/binding/Tr2PyValueBinding.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -90,8 +90,8 @@ Tr2PyValueBinding (trinityCore) - generated from schema shapeHash 435f9fdc....
 
 Copies one attribute of a source object onto an attribute of a destination object, applying a scale and per-component offset through a type-checked copy plan built when the endpoints resolve.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/binding/TriValueBinding.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/binding/TriValueBinding.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -100,8 +100,8 @@ Copies one attribute of a source object onto an attribute of a destination objec
 
 Owns the per-library render-batch producer and collector registry and drives the GPU-free per-frame flow of realize, build, finalize into one accumulator per batch type.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/CjsBatchManager.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/batch/CjsBatchManager.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -110,8 +110,8 @@ Owns the per-library render-batch producer and collector registry and drives the
 
 Per-bone rotation and translation offsets layered on top of an animated rig, keyed by bone name until bound into the rig's joint order.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/GrannyBoneOffset.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/animation/GrannyBoneOffset.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -120,8 +120,8 @@ Per-bone rotation and translation offsets layered on top of an animated rig, key
 
 Abstract base for render-batch accumulators: holds the shared rendering mode, user data and per-object-data store, and declares the collect and sort contract concrete accumulators implement.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/ITriRenderBatchAccumulator.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/batch/ITriRenderBatchAccumulator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -131,7 +131,7 @@ Abstract base for render-batch accumulators: holds the shared rendering mode, us
 Resolved per-frame layouts, keyed by struct name.
 
 - Export: @carbonenginejs/runtime-trinity/perframe
-- Source: src/trinityCore/rawData/CjsPerFrameLayouts.js
+- Source: src/core/rawData/CjsPerFrameLayouts.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -141,7 +141,7 @@ Resolved per-frame layouts, keyed by struct name.
 Resolved per-object layouts, keyed by struct name.
 
 - Export: @carbonenginejs/runtime-trinity/perobject
-- Source: src/trinityCore/rawData/CjsPerObjectLayouts.js
+- Source: src/core/rawData/CjsPerObjectLayouts.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -150,8 +150,8 @@ Resolved per-object layouts, keyed by struct name.
 
 A line set that draws an axis-aligned bounding box and its picking volume.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2BoundingLineSet.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/Tr2BoundingLineSet.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -160,8 +160,8 @@ A line set that draws an axis-aligned bounding box and its picking volume.
 
 A line set that draws curved and sphere-projected lines by tessellating them into straight segments.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2CurveLineSet.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/Tr2CurveLineSet.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -170,8 +170,8 @@ A line set that draws curved and sphere-projected lines by tessellating them int
 
 Resolves which debug visualisations an object draws, from per-owner options over a default set.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2DebugRenderer.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/Tr2DebugRenderer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -180,8 +180,8 @@ Resolves which debug visualisations an object draws, from per-owner options over
 
 Tr2DepthStencil (trinityCore) - generated from schema shapeHash 9acb2c99....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2DepthStencil.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/device/Tr2DepthStencil.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -190,8 +190,8 @@ Tr2DepthStencil (trinityCore) - generated from schema shapeHash 9acb2c99....
 
 Instance data whose buffer lives entirely on the GPU: Trinity keeps only the CPU-side layout metadata, stride, instance count and bounds.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2DirectInstanceData.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/mesh/Tr2DirectInstanceData.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -200,8 +200,8 @@ Instance data whose buffer lives entirely on the GPU: Trinity keeps only the CPU
 
 Describes one term the expression language exposes - a variable, a function or a string function - with its category, argument names and help text.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2ExpressionTermInfo.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/variable/Tr2ExpressionTermInfo.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -210,8 +210,8 @@ Describes one term the expression language exposes - a variable, a function or a
 
 Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2GpuBuffer.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/device/Tr2GpuBuffer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -220,8 +220,8 @@ Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45....
 
 Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2GrannyAnimation.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/animation/Tr2GrannyAnimation.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -230,8 +230,8 @@ Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a.
 
 A mesh drawn once per entry of a separate instance-data stream, with static bounds or bounds expanded by the per-instance size.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2InstancedMesh.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/mesh/Tr2InstancedMesh.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -240,8 +240,8 @@ A mesh drawn once per entry of a separate instance-data stream, with static boun
 
 A rolling sample history with named markers and running statistics, drawn as a line graph.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2LineGraph.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/Tr2LineGraph.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -250,8 +250,8 @@ A rolling sample history with named markers and running statistics, drawn as a l
 
 A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2LineSet.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/Tr2LineSet.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -260,8 +260,8 @@ A set of coloured lines with an accompanying picking-triangle list, submitted as
 
 The interactive manipulator base: axis selection, drag handling and the callback a move reports through.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2ManipulationTool.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/tool/Tr2ManipulationTool.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -270,8 +270,8 @@ The interactive manipulator base: axis selection, drag handling and the callback
 
 Tr2MaterialParameterStore (trinityCore) - generated from schema shapeHash 119f32c2....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2MaterialParameterStore.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/Tr2MaterialParameterStore.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -280,8 +280,8 @@ Tr2MaterialParameterStore (trinityCore) - generated from schema shapeHash 119f32
 
 A mesh backed by a geometry resource, adding the resource path plus the morph-target weights and baked-morph state on top of Tr2MeshBase.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2Mesh.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/mesh/Tr2Mesh.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -290,8 +290,8 @@ A mesh backed by a geometry resource, adding the resource path plus the morph-ta
 
 One drawable range of a mesh: the index and count of geometry groups plus the effect, shadow, depth and LOD state that decide how the range is batched.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2MeshArea.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/mesh/Tr2MeshArea.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -300,8 +300,8 @@ One drawable range of a mesh: the index and count of geometry groups plus the ef
 
 Base mesh: owns one mesh-area list per batch type and turns the displayed areas into GPU-free render batches and shadow area blocks.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2MeshBase.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/mesh/Tr2MeshBase.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -310,8 +310,8 @@ Base mesh: owns one mesh-area list per batch type and turns the displayed areas 
 
 GPU-free base for per-object render data, carrying the object id a batch is picked and identified by; the GPU upload path is engine-owned.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2PerObjectData.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/rawData/Tr2PerObjectData.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -320,8 +320,8 @@ GPU-free base for per-object render data, carrying the object id a batch is pick
 
 Tr2PrimaryRenderContext (trinityCore) - generated from schema shapeHash 92b87061....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2PrimaryRenderContext.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/context/Tr2PrimaryRenderContext.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -330,8 +330,8 @@ Tr2PrimaryRenderContext (trinityCore) - generated from schema shapeHash 92b87061
 
 A drawable set of primitives with a world transform, sort value and bounding sphere.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2PrimitiveSet.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/Tr2PrimitiveSet.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -340,8 +340,8 @@ A drawable set of primitives with a world transform, sort value and bounding sph
 
 Collects quads from every registered effect into one merged instance buffer and emits them as batches.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2QuadRenderer.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/Tr2QuadRenderer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -350,8 +350,8 @@ Collects quads from every registered effect into one merged instance buffer and 
 
 One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord).
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2QuadRenderer.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/Tr2QuadRenderer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -360,8 +360,8 @@ One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord).
 
 One draw's worth of CPU descriptor state - material and shader key, geometry binding, draw arguments and sort keys - holding no device resources.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2RenderBatch.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/batch/Tr2RenderBatch.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -370,8 +370,8 @@ One draw's worth of CPU descriptor state - material and shader key, geometry bin
 
 A contiguous (startIndex, count) run of mesh groups, as consumed by the shadow and overlay area-block paths.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2RenderBatch.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/batch/Tr2RenderBatch.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -380,8 +380,8 @@ A contiguous (startIndex, count) run of mesh groups, as consumed by the shadow a
 
 Groups the area blocks that draw with one shared shader material on the shadow and overlay path.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2RenderBatch.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/batch/Tr2RenderBatch.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -390,8 +390,8 @@ Groups the area blocks that draw with one shared shader material on the shadow a
 
 Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2RenderContext.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/context/Tr2RenderContext.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -400,8 +400,8 @@ Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7....
 
 Tr2RenderTarget (trinityCore) - generated from schema shapeHash dc39c914....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2RenderTarget.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/device/Tr2RenderTarget.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -410,8 +410,8 @@ Tr2RenderTarget (trinityCore) - generated from schema shapeHash dc39c914....
 
 Tr2RuntimeGpuBuffer (trinityCore) - generated from schema shapeHash 0cb23744....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2RuntimeGpuBuffer.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/device/Tr2RuntimeGpuBuffer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -420,8 +420,8 @@ Tr2RuntimeGpuBuffer (trinityCore) - generated from schema shapeHash 0cb23744....
 
 Owns a CPU-side instance stream - a vertex element layout, the packed per-instance rows and their bounding box - and can spawn the same rows into a particle system on demand.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2RuntimeInstanceData.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/mesh/Tr2RuntimeInstanceData.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -430,8 +430,8 @@ Owns a CPU-side instance stream - a vertex element layout, the packed per-instan
 
 An interactive scaling manipulator that turns pointer drags along a selected axis into a scale.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2ScalingTool.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/tool/Tr2ScalingTool.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -440,8 +440,8 @@ An interactive scaling manipulator that turns pointer drags along a selected axi
 
 Tr2SerializedMorphAnimation (trinityCore) - generated from schema shapeHash 58cefc7b....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2SerializedMorphAnimation.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/mesh/Tr2SerializedMorphAnimation.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -450,8 +450,8 @@ Tr2SerializedMorphAnimation (trinityCore) - generated from schema shapeHash 58ce
 
 Computes the spherical-harmonic coefficients that approximate secondary lighting - a primary light reflected off nearby spheres - for any receiver position in the scene.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2ShLightingManager.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/lighting/Tr2ShLightingManager.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -460,8 +460,8 @@ Computes the spherical-harmonic coefficients that approximate secondary lighting
 
 A set of coloured triangles with a running centre of mass, submitted as one buffer.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2SolidSet.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/Tr2SolidSet.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -470,8 +470,8 @@ A set of coloured triangles with a running centre of mass, submitted as one buff
 
 Tr2SwapChain (trinityCore) - generated from schema shapeHash 955529ab....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2SwapChain.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/device/Tr2SwapChain.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -480,8 +480,8 @@ Tr2SwapChain (trinityCore) - generated from schema shapeHash 955529ab....
 
 Advances a multi-channel texture flipbook, tracking frame and restart state per channel.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2TextureAnimation.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/animation/Tr2TextureAnimation.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -490,8 +490,8 @@ Advances a multi-channel texture flipbook, tracking frame and restart state per 
 
 Named-variable collection used by the shader system for binding.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2VariableStore.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/variable/Tr2VariableStore.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -500,8 +500,8 @@ Named-variable collection used by the shader system for binding.
 
 Carbon's Tr2VisibilityEvent struct - the shared shape producers push into Tr2VisibilityResults and the interior/portal visibility consumers read.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2VisibilityResults.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/context/Tr2VisibilityResults.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -510,8 +510,8 @@ Carbon's Tr2VisibilityEvent struct - the shared shape producers push into Tr2Vis
 
 Collects the visibility events a visibility executor emits, for the interior and portal consumers to read back.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2VisibilityResults.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/context/Tr2VisibilityResults.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -520,8 +520,8 @@ Collects the visibility events a visibility executor emits, for the interior and
 
 TriDevice (trinityCore) - generated from schema shapeHash 1db3a492....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriDevice.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/device/TriDevice.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -530,8 +530,8 @@ TriDevice (trinityCore) - generated from schema shapeHash 1db3a492....
 
 TriFloat (trinityCore) - generated from schema shapeHash b5384f79....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriFloat.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/variable/TriFloat.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -540,8 +540,8 @@ TriFloat (trinityCore) - generated from schema shapeHash b5384f79....
 
 Carbon TriFrustum (TriFrustum.h:16-77): world-space frustum planes extracted from a composed view*projection matrix, plus the cached projection data used for on-screen pixel-coverage estimates.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriFrustum.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/view/TriFrustum.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -550,8 +550,8 @@ Carbon TriFrustum (TriFrustum.h:16-77): world-space frustum planes extracted fro
 
 Carbon TriFrustumOrtho (TriFrustumOrtho.h:9-27): orthographic shadow frustum as view matrix + view-space bounds.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriFrustumOrtho.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/view/TriFrustumOrtho.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -560,8 +560,8 @@ Carbon TriFrustumOrtho (TriFrustumOrtho.h:9-27): orthographic shadow frustum as 
 
 A debug line set that builds boxes, spheres, cylinders and cones out of coloured line segments.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriLineSet.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/line/TriLineSet.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -570,8 +570,8 @@ A debug line set that builds boxes, spheres, cylinders and cones out of coloured
 
 Holds an audio or placement observer at a fixed local position and facing inside an object, and republishes it in world space as the object moves.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriObserverLocal.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/variable/TriObserverLocal.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -580,8 +580,8 @@ Holds an audio or placement observer at a fixed local position and facing inside
 
 The camera projection: the selected projection mode with its parameters, plus the 4x4 matrix built from them.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriProjection.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/view/TriProjection.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -590,8 +590,8 @@ The camera projection: the selected projection mode with its parameters, plus th
 
 An integer screen rectangle given by its left, top, right and bottom edges.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriRect.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/view/TriRect.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -600,8 +600,8 @@ An integer screen rectangle given by its left, top, right and bottom edges.
 
 Concrete GPU-free batch accumulator: collects committed batches into a GDPR-eligible and a plain vector, then sorts and group-counts them on Finalize.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriRenderBatchAccumulator.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/batch/TriRenderBatchAccumulator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -610,8 +610,8 @@ Concrete GPU-free batch accumulator: collects committed batches into a GDPR-elig
 
 One render-batch accumulator per TriBatchType, with the scene-level collect, finalize and clear flow over them.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriRenderBatchMap.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/batch/TriRenderBatchMap.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -620,8 +620,8 @@ One render-batch accumulator per TriBatchType, with the scene-level collect, fin
 
 Integrates torque into an orientation over time, sampling the result at a given moment.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriRigidOrientation.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/animation/TriRigidOrientation.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -630,8 +630,8 @@ Integrates torque into an orientation over time, sampling the result at a given 
 
 A registry of named boolean, number and string settings with type-checked reads and writes and a Python-style repr.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriSettings.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/TriSettings.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -640,8 +640,8 @@ A registry of named boolean, number and string settings with type-checked reads 
 
 TriTorque (trinityCore) - generated from schema shapeHash 10c5e0d6....
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriTorque.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/animation/TriTorque.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -650,8 +650,8 @@ TriTorque (trinityCore) - generated from schema shapeHash 10c5e0d6....
 
 One named shader-binding variable: the content type fixed when it was registered, plus the value payload standing in for Carbon's typed union.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriVariable.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/variable/TriVariable.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -660,8 +660,8 @@ One named shader-binding variable: the content type fixed when it was registered
 
 The camera view matrix, together with the look-at helper that builds it.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriView.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/view/TriView.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -670,8 +670,8 @@ The camera view matrix, together with the look-at helper that builds it.
 
 A screen viewport rectangle in pixels together with its minimum and maximum depth.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/TriViewport.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/view/TriViewport.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 <!-- class:Tr2KelvinColor -->
@@ -679,7 +679,7 @@ A screen viewport rectangle in pixels together with its minimum and maximum dept
 
 A light colour authored as a temperature in kelvin, a tint, and a white-balance illuminant.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
-- Source: src/trinityCore/Tr2KelvinColor.js
+- Export: @carbonenginejs/runtime-trinity/core
+- Source: src/core/lighting/Tr2KelvinColor.js
 - Visibility: Public
 - Kind: CarbonEngineJS

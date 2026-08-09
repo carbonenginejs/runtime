@@ -7,7 +7,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../EveEntity.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
-import { RawData } from "../../trinityCore/rawData/RawData.js";
+import { RawData } from "../../core/rawData/RawData.js";
 
 /** Carbon EveInstancedMeshManager::InstanceFlags (EveInstancedMeshManager.h:
  * 13-26, cpp:998-1048): a uint32 bitfield - bit (1 << batchType) per present

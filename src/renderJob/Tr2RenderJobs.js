@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\RenderJob\Tr2RenderJobs.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2RenderContext } from "../trinityCore/Tr2RenderContext.js";
+import { Tr2RenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
 

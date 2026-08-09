@@ -7,7 +7,7 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
-import { TriFloat } from "../../../trinityCore/TriFloat.js";
+import { TriFloat } from "../../../core/variable/TriFloat.js";
 import {
   collectRenderables,
   getCurveDuration,

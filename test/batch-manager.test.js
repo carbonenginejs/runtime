@@ -5,7 +5,7 @@ import {
   CjsBatchManager,
   Tr2RenderBatch,
   TriRenderBatchMap
-} from "../npm/dist/trinityCore/index.js";
+} from "../npm/dist/core/index.js";
 
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 

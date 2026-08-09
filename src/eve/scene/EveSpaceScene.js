@@ -20,9 +20,9 @@ import { EveComponentType } from "../EveComponentTypes.js";
 import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
-import { CjsPerFrameLayouts } from "../../trinityCore/rawData/CjsPerFrameLayouts.js";
-import { RawData } from "../../trinityCore/rawData/RawData.js";
-import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../trinityCore/pickRay.js";
+import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
+import { RawData } from "../../core/rawData/RawData.js";
+import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 
 
 // Module scratch for the per-frame sun-direction read (assume-dirty).

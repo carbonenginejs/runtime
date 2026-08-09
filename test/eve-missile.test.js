@@ -1,5 +1,5 @@
 import test from "node:test";
-import { CjsPerObjectLayouts } from "../src/trinityCore/rawData/CjsPerObjectLayouts.js";
+import { CjsPerObjectLayouts } from "../src/core/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";

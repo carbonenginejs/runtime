@@ -49,7 +49,7 @@ Examples of maintained homes include:
 - `src/eve/attachment/decal` for space-object decals;
 - `src/eve/child/behaviors/lifecycle` and `tunnels` for cohesive behaviors;
 - `src/eve/effect/multiEffect` for multi-effect graphs; and
-- `src/trinityCore/binding` for dynamic and value binding classes.
+- `src/core/binding` for dynamic and value binding classes.
 
 ## Enum ownership
 

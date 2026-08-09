@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 
-import { CjsPerFrameLayouts } from "../src/trinityCore/rawData/CjsPerFrameLayouts.js";
+import { CjsPerFrameLayouts } from "../src/core/rawData/CjsPerFrameLayouts.js";
 import { EveSpaceScene, Tr2RenderContext } from "../npm/dist/index.js";
 
 

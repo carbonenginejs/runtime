@@ -2,7 +2,7 @@
   "license": "MIT",
   "exports": {
     "./particle": "./src/particle/index.js",
-    "./trinityCore": "./src/trinityCore/index.js",
+    "./core": "./src/core/index.js",
     "./ui": "./src/ui/index.js",
     "./renderJob": "./src/renderJob/index.js",
     "./shader": "./src/shader/index.js",
@@ -15,8 +15,8 @@
     "./generated/*": "./src/generated/*/index.js",
     "./generated": "./src/generated/index.js",
     "./eve": "./src/eve/index.js",
-    "./perobject": "./src/trinityCore/rawData/CjsPerObjectLayouts.js",
-    "./perframe": "./src/trinityCore/rawData/CjsPerFrameLayouts.js"
+    "./perobject": "./src/core/rawData/CjsPerObjectLayouts.js",
+    "./perframe": "./src/core/rawData/CjsPerFrameLayouts.js"
   },
   "engines": {
     "node": ">=18"
@@ -24,7 +24,7 @@
   "name": "@carbonenginejs/runtime-trinity",
   "sideEffects": false,
   "private": true,
-  "version": "0.9.0",
+  "version": "0.10.0",
   "files": [
     "src",
     "docs",

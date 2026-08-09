@@ -6,7 +6,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { EveComponentType } from '../../EveComponentTypes.js';
-import { TriFloat as _TriFloat } from '../../../trinityCore/TriFloat.js';
+import { TriFloat as _TriFloat } from '../../../core/variable/TriFloat.js';
 import { getTime, sampleVector, updateChildAsync, updateCurveSet, makeEndpointTransforms, updateChildVisibility, makeStretchTransform, translationMatrix, collectRenderables, getCurveDuration, mergeSphere } from './CjsStretchRuntime.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_source, _init_extra_source, _init_dest, _init_extra_dest, _init_stretchAudio, _init_extra_stretchAudio, _init_lodLevel, _init_extra_lodLevel, _init_progressCurve, _init_extra_progressCurve, _init_moveCompletion, _init_extra_moveCompletion, _init_curveSets, _init_extra_curveSets, _init_length, _init_extra_length, _init_moving, _init_extra_moving, _init_moveCompleted, _init_extra_moveCompleted, _init_display, _init_extra_display, _init_update, _init_extra_update, _init_destLights, _init_extra_destLights, _init_sourceLights, _init_extra_sourceLights, _init_destObject, _init_extra_destObject, _init_sourceObject, _init_extra_sourceObject, _init_stretchObject, _init_extra_stretchObject, _init_useCurveLod, _init_extra_useCurveLod, _init_startTime, _init_extra_startTime, _init_audio, _init_extra_audio, _init_moveObject, _init_extra_moveObject;
