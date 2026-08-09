@@ -11,7 +11,7 @@ Summary: Catalogs the curve, sequencer and modifier vocabulary that drives anima
 Decodes Granny's 19 compressed animation-curve formats into explicit knots and controls, and samples them at a time, without depending on a GR2 container reader.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/CjsGrannyCurves.js
+- Source: src/curves/track/CjsGrannyCurves.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -31,7 +31,7 @@ Matrix function that tracks a named bone on a skinned object, returning the auth
 Key of a camera follow curve, holding the camera offset and its tangents plus the field-of-view multiplier and framing angles used to place the camera box at that point in time.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CameraFollowCurveKey.js
+- Source: src/curves/key/Tr2CameraFollowCurveKey.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -51,7 +51,7 @@ Color curve composed of four independent scalar curves for r, g, b and a, sample
 Color function that blends two authored colors by a fixed lerp factor and applies saturation and brightness, exposing both the mixed color and its linear-space conversion.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CurveColorMixer.js
+- Source: src/curves/modifier/Tr2CurveColorMixer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -61,7 +61,7 @@ Color function that blends two authored colors by a fixed lerp factor and applie
 Vector function returning the component-wise sum of every child vector function sampled at the same time; its length is the longest child's length.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CurveCombiner.js
+- Source: src/curves/modifier/Tr2CurveCombiner.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -91,7 +91,7 @@ Quaternion curve built from three scalar curves supplying yaw, pitch and roll in
 Quaternion curve built from three independently compiled expressions producing yaw, pitch and roll in radians at time divided by timeScale.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CurveEulerRotationExpression.js
+- Source: src/curves/expression/Tr2CurveEulerRotationExpression.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -111,7 +111,7 @@ Keyed quaternion curve evaluated in seconds, with per-key interpolation and inde
 One key of a Tr2CurveQuaternion: a time in seconds, the quaternion value at that time, and the interpolation used to reach the next key.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CurveQuaternionKey.js
+- Source: src/curves/key/Tr2CurveQuaternionKey.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -151,7 +151,7 @@ Keyed scalar curve evaluated in seconds, with per-key constant, linear or Hermit
 Scalar curve whose value is produced by a compiled expression evaluated at time divided by timeScale, with input1..input4 and a stable per-instance random constant available as terms.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CurveScalarExpression.js
+- Source: src/curves/expression/Tr2CurveScalarExpression.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -161,7 +161,7 @@ Scalar curve whose value is produced by a compiled expression evaluated at time 
 One key of a Tr2CurveScalar: a time in seconds, a value, its left and right tangents in value units per unit time, the interpolation used to reach the next key, and the tangent-type rule that maintains the tangents.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CurveScalarKey.js
+- Source: src/curves/key/Tr2CurveScalarKey.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -201,7 +201,7 @@ Three-component vector curve composed of independent scalar curves for x, y and 
 Vector curve whose x, y and z components are each produced by an independently compiled expression evaluated at time divided by timeScale.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2CurveVector3Expression.js
+- Source: src/curves/expression/Tr2CurveVector3Expression.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -221,7 +221,7 @@ Vector curve that eases from a fixed initial value into a child vector curve, bl
 Scalar function reporting the distance between two tracked positions, either the full separation or its projection onto a fixed direction, and optionally signed by which side of that direction the target lies.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2DistanceTracker.js
+- Source: src/curves/modifier/Tr2DistanceTracker.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -241,7 +241,7 @@ Vector curve interpolated through an ordered list of follow-curve keys, each sup
 Granny track that replays a text track's timed entries as engine events, firing each entry once as the playhead crosses it.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2GrannyEventTrack.js
+- Source: src/curves/track/Tr2GrannyEventTrack.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -251,7 +251,7 @@ Granny track that replays a text track's timed entries as engine events, firing 
 Base for curves sampled out of a Granny animation resource, owning the resource path, group and track name plus the cycle flag and resolved duration; subclasses supply the track binding and sampling.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2GrannyTrack.js
+- Source: src/curves/track/Tr2GrannyTrack.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -261,7 +261,7 @@ Base for curves sampled out of a Granny animation resource, owning the resource 
 Granny track that samples a bone's position, orientation and scale-shear curves together, exposing them as a translation vector, rotation quaternion and scale vector.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2GrannyTransformTrack.js
+- Source: src/curves/track/Tr2GrannyTransformTrack.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -271,7 +271,7 @@ Granny track that samples a bone's position, orientation and scale-shear curves 
 Granny track that samples a named one-dimensional vector track and exposes it as a scalar value.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2GrannyVectorTrack.js
+- Source: src/curves/track/Tr2GrannyVectorTrack.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -281,7 +281,7 @@ Granny track that samples a named one-dimensional vector track and exposes it as
 One key of a matrix curve: a time in seconds and the 4x4 matrix value at that time.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2MatrixKey.js
+- Source: src/curves/key/Tr2MatrixKey.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -291,7 +291,7 @@ One key of a matrix curve: a time in seconds and the 4x4 matrix value at that ti
 Follow-curve key positioned by another object rather than a fixed point, taking its place from that object's locator or offset and optionally rotating its tangents with the object.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2ObjectFollowCurveKey.js
+- Source: src/curves/key/Tr2ObjectFollowCurveKey.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -311,7 +311,7 @@ Quaternion curve that spherically interpolates between two child quaternion curv
 Quaternion function wrapping a child quaternion curve behind its own time remapping, falling back to a fixed authored quaternion when no child curve is attached.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2RotationAdapter.js
+- Source: src/curves/modifier/Tr2RotationAdapter.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -321,7 +321,7 @@ Quaternion function wrapping a child quaternion curve behind its own time remapp
 One key of a Tr2ScalarExprKeyCurve whose time, value and tangents can each be produced by an expression over the key's inputs, its random constant and the previous key.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2ScalarExprKey.js
+- Source: src/curves/key/Tr2ScalarExprKey.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -331,7 +331,7 @@ One key of a Tr2ScalarExprKeyCurve whose time, value and tangents can each be pr
 Keyed scalar curve whose key times, values and tangents are themselves expressions re-evaluated on every sample, with optional cycling and reversed playback over the key range.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2ScalarExprKeyCurve.js
+- Source: src/curves/expression/Tr2ScalarExprKeyCurve.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -341,7 +341,7 @@ Keyed scalar curve whose key times, values and tangents are themselves expressio
 Scalar fade envelope that ramps linearly between 0 and 1 over an authored fade length, and also exposes a separate non-linear kick-in pulse that runs once per fade-in.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2ScalarFader.js
+- Source: src/curves/modifier/Tr2ScalarFader.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -351,7 +351,7 @@ Scalar fade envelope that ramps linearly between 0 and 1 over an authored fade l
 Vector function wrapping a child vector curve behind its own time remapping and rotating the sampled offset by a fixed rotation, falling back to a fixed authored vector when no child curve is attached.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2TranslationAdapter.js
+- Source: src/curves/modifier/Tr2TranslationAdapter.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -361,7 +361,7 @@ Vector function wrapping a child vector curve behind its own time remapping and 
 Wraps a position source, offsetting and scaling what it reports, optionally in view space.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/Tr2VectorFunctionModifier.js
+- Source: src/curves/modifier/Tr2VectorFunctionModifier.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -371,7 +371,7 @@ Wraps a position source, offsetting and scaling what it reports, optionally in v
 Color function combining its child color functions with Carbon's multiply or add operator; both paths start from opaque white, so an additive sequencer is offset by white.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/TriColorSequencer.js
+- Source: src/curves/sequencer/TriColorSequencer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -401,7 +401,7 @@ Time-keyed event track that fires each key once as the playhead passes it, dispa
 One key of a TriEventCurve: a time in seconds plus either a named event string or a callable and its arguments to invoke when the playhead crosses it.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/TriEventKey.js
+- Source: src/curves/key/TriEventKey.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -421,7 +421,7 @@ Scalar curve driven by fractal Perlin noise, mapping the noise band to [offset, 
 Vector function combining its child vector functions with Carbon's multiply, add or average operator; multiply starts from ones and the additive paths from zero.
 
 - Export: @carbonenginejs/runtime-trinity/curves
-- Source: src/curves/TriVectorSequencer.js
+- Source: src/curves/sequencer/TriVectorSequencer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 

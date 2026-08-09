@@ -4,7 +4,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { num } from "@carbonenginejs/runtime-utils/num";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "./enums.js";
-import { Tr2CurveScalarKey } from "./Tr2CurveScalarKey.js";
+import { Tr2CurveScalarKey } from "./key/Tr2CurveScalarKey.js";
 
 
 /**

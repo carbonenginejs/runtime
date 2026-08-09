@@ -4,7 +4,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "./enums.js";
-import { Tr2CurveQuaternionKey } from "./Tr2CurveQuaternionKey.js";
+import { Tr2CurveQuaternionKey } from "./key/Tr2CurveQuaternionKey.js";
 
 
 /**

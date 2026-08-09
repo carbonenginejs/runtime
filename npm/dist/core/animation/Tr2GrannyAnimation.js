@@ -5,7 +5,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { io, type, impl, carbon } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { CjsGrannyCurves } from '../../curves/CjsGrannyCurves.js';
+import { CjsGrannyCurves } from '../../curves/track/CjsGrannyCurves.js';
 import { GrannyBoneOffset as _GrannyBoneOffset } from './GrannyBoneOffset.js';
 
 let _initProto, _initClass, _init_resPath_, _init_extra_resPath_, _init_model_, _init_extra_model_, _init_grannyRes, _init_extra_grannyRes, _init_eventListener, _init_extra_eventListener, _init_animationEnabled, _init_extra_animationEnabled, _init_debugRenderJointNames, _init_extra_debugRenderJointNames, _init_debugRenderSkeleton, _init_extra_debugRenderSkeleton, _init_boneOffset, _init_extra_boneOffset;

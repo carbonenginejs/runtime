@@ -3,7 +3,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from './enums.js';
-import { Tr2CurveQuaternionKey as _Tr2CurveQuaternionKe } from './Tr2CurveQuaternionKey.js';
+import { Tr2CurveQuaternionKey as _Tr2CurveQuaternionKe } from './key/Tr2CurveQuaternionKey.js';
 
 let _initProto, _initClass, _init_keys, _init_extra_keys, _init_name, _init_extra_name, _init_currentValue, _init_extra_currentValue, _init_extrapolationBefore, _init_extra_extrapolationBefore, _init_extrapolationAfter, _init_extra_extrapolationAfter;
 

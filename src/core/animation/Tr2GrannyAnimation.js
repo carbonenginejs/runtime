@@ -10,7 +10,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { CjsGrannyCurves } from "../../curves/CjsGrannyCurves.js";
+import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { GrannyBoneOffset } from "./GrannyBoneOffset.js";
 
 

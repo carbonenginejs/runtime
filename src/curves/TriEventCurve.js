@@ -3,7 +3,7 @@
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { TRIEXTRAPOLATION } from "./enums.js";
-import { TriEventKey } from "./TriEventKey.js";
+import { TriEventKey } from "./key/TriEventKey.js";
 
 
 /**

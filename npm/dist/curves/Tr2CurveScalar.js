@@ -3,7 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { num } from '@carbonenginejs/runtime-utils/num';
 import { Tr2CurveInterpolation, Tr2CurveExtrapolation, Tr2CurveTangentType } from './enums.js';
-import { Tr2CurveScalarKey as _Tr2CurveScalarKey } from './Tr2CurveScalarKey.js';
+import { Tr2CurveScalarKey as _Tr2CurveScalarKey } from './key/Tr2CurveScalarKey.js';
 
 let _initProto, _initStatic, _initClass, _init_keys, _init_extra_keys, _init_name, _init_extra_name, _init_timeOffset, _init_extra_timeOffset, _init_timeScale, _init_extra_timeScale, _init_currentValue, _init_extra_currentValue, _init_extrapolationBefore, _init_extra_extrapolationBefore, _init_extrapolationAfter, _init_extra_extrapolationAfter;
 

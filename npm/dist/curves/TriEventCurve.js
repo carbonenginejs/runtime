@@ -2,7 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virt
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { TRIEXTRAPOLATION } from './enums.js';
-import { TriEventKey as _TriEventKey } from './TriEventKey.js';
+import { TriEventKey as _TriEventKey } from './key/TriEventKey.js';
 
 let _initProto, _initClass, _init_extrapolation, _init_extra_extrapolation, _init_name, _init_extra_name, _init_eventListener, _init_extra_eventListener, _init_time, _init_extra_time, _init_length, _init_extra_length, _init_localTime, _init_extra_localTime, _init_value, _init_extra_value, _init_keys, _init_extra_keys;
 

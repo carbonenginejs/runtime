@@ -3,7 +3,7 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { isArrayLike } from '@carbonenginejs/runtime-utils/is';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2MatrixKey as _Tr2MatrixKey } from './Tr2MatrixKey.js';
+import { Tr2MatrixKey as _Tr2MatrixKey } from './key/Tr2MatrixKey.js';
 
 let _initProto, _initClass, _init_currentValue, _init_extra_currentValue, _init_name, _init_extra_name, _init_length, _init_extra_length, _init_cycle, _init_extra_cycle, _init_reversed, _init_extra_reversed, _init_startValue, _init_extra_startValue, _init_endValue, _init_extra_endValue, _init_skinnedObject, _init_extra_skinnedObject, _init_transform, _init_extra_transform, _init_keys, _init_extra_keys;
 const SPHERICAL_LINEAR = 4;

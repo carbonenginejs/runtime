@@ -4,7 +4,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { isArrayLike } from "@carbonenginejs/runtime-utils/is";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2MatrixKey } from "./Tr2MatrixKey.js";
+import { Tr2MatrixKey } from "./key/Tr2MatrixKey.js";
 
 
 const SPHERICAL_LINEAR = 4;
