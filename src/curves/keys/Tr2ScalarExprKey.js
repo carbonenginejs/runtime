@@ -3,7 +3,7 @@
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
 import { noise } from "@carbonenginejs/runtime-utils/noise";
-import { CjsControllerExpressionProgram } from "../../controllers/CjsControllerExpressionProgram.js";
+import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 import { Tr2CurveInterpolation } from "../enums.js";
 
 

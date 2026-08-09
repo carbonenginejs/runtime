@@ -1,7 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { ITr2ControllerAction } from './ITr2ControllerAction.js';
+import { ITr2ControllerAction } from './action/ITr2ControllerAction.js';
 
 let _initProto, _initClass, _init_mask, _init_extra_mask;
 

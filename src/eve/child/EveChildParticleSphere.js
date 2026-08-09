@@ -7,8 +7,8 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import {
   bindParticleElement,
   hasUnboundParticleElements
-} from "../../particle/particleElementBinding.js";
-import { Tr2ParticleElementDeclaration } from "../../particle/Tr2ParticleElementDeclaration.js";
+} from "../../particle/element/particleElementBinding.js";
+import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 
 
 const BIND_PENDING = 0;

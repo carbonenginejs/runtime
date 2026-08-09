@@ -2,8 +2,8 @@ import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBab
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
-import { bindParticleElement, hasUnboundParticleElements } from '../../particle/particleElementBinding.js';
-import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from '../../particle/Tr2ParticleElementDeclaration.js';
+import { bindParticleElement, hasUnboundParticleElements } from '../../particle/element/particleElementBinding.js';
+import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from '../../particle/element/Tr2ParticleElementDeclaration.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_particleSystem, _init_extra_particleSystem, _init_mesh, _init_extra_mesh, _init_useSpaceObjectData, _init_extra_useSpaceObjectData, _init_maxSpeed, _init_extra_maxSpeed, _init_radius, _init_extra_radius, _init_egoSpeed, _init_extra_egoSpeed, _init_positionShiftDecreaseSpeed, _init_extra_positionShiftDecreaseSpeed, _init_positionShiftIncreaseSpeed, _init_extra_positionShiftIncreaseSpeed, _init_generators, _init_extra_generators, _init_movementScale, _init_extra_movementScale, _init_positionShift, _init_extra_positionShift, _init_display, _init_extra_display, _init_positionShiftMin, _init_extra_positionShiftMin, _init_positionShiftMax, _init_extra_positionShiftMax;
 const BIND_PENDING = 0;

@@ -1,7 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\EveParticleSpringAttractor.h
 // Source: E:\carbonengine\trinity\trinity\Eve\EveParticleSpringAttractor_Blue.cpp
 import { type } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2ParticleSpring } from "../../../particle/Tr2ParticleSpring.js";
+import { Tr2ParticleSpring } from "../../../particle/force/Tr2ParticleSpring.js";
 
 
 /**

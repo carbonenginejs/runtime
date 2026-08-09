@@ -2,7 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_v
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { noise } from '@carbonenginejs/runtime-utils/noise';
-import { CjsControllerExpressionProgram } from '../../controllers/CjsControllerExpressionProgram.js';
+import { CjsControllerExpressionProgram } from '../../controllers/expression/CjsControllerExpressionProgram.js';
 import { Tr2CurveInterpolation } from '../enums.js';
 
 let _initProto, _initClass, _init_interpolation, _init_extra_interpolation, _init_input, _init_extra_input, _init_input2, _init_extra_input2, _init_input3, _init_extra_input3, _init_input4, _init_extra_input4, _init_time, _init_extra_time, _init_value, _init_extra_value, _init_left, _init_extra_left, _init_leftTangentExpression, _init_extra_leftTangentExpression, _init_rightTangentExpression, _init_extra_rightTangentExpression, _init_timeExpression, _init_extra_timeExpression, _init_valueExpression, _init_extra_valueExpression, _init_randomMax, _init_extra_randomMax, _init_randomMin, _init_extra_randomMin, _init_randomConstant, _init_extra_randomConstant, _init_right, _init_extra_right, _init_prevKeyTime, _init_extra_prevKeyTime, _init_prevKeyValue, _init_extra_prevKeyValue;

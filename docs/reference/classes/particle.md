@@ -11,7 +11,7 @@ Summary: Catalogs the CPU particle simulation - systems, emitters, attribute gen
 Generates particle position and velocity offsets sampled within a capsule volume interpolated between a start and end transform.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2CapsuleShapeAttributeGenerator.js
+- Source: src/particle/attribute/Tr2CapsuleShapeAttributeGenerator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -21,7 +21,7 @@ Generates particle position and velocity offsets sampled within a capsule volume
 Generates a per-particle attribute as a cycling, wrapped incrementing integer counter within a range.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ConsecutiveIntegerAttributeGenerator.js
+- Source: src/particle/attribute/Tr2ConsecutiveIntegerAttributeGenerator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -31,7 +31,7 @@ Generates a per-particle attribute as a cycling, wrapped incrementing integer co
 A continuous-rate particle emitter that binds attribute generators to a particle system and spawns particles over time from an accumulated emission rate.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2DynamicEmitter.js
+- Source: src/particle/emitter/Tr2DynamicEmitter.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -41,7 +41,7 @@ A continuous-rate particle emitter that binds attribute generators to a particle
 A constraint that rescales and offsets a single bound particle element by a constant factor and value each frame.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ElementBlendConstraint.js
+- Source: src/particle/constraint/Tr2ElementBlendConstraint.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -51,7 +51,7 @@ A constraint that rescales and offsets a single bound particle element by a cons
 Aggregates child forces within a spherical region, scaling their combined contribution by a falloff toward the sphere's edge.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ForceSphereVolume.js
+- Source: src/particle/force/Tr2ForceSphereVolume.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -61,7 +61,7 @@ Aggregates child forces within a spherical region, scaling their combined contri
 Authored parameters of a GPU particle emitter: emission cone and rate, particle lifetime and speed range, size and colour ramp, and the drag, turbulence and gravity terms the simulation applies.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2GpuSharedEmitter.js
+- Source: src/particle/emitter/Tr2GpuSharedEmitter.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -71,7 +71,7 @@ Authored parameters of a GPU particle emitter: emission cone and rate, particle 
 GPU emitter owned by a single instance, adding parent scaling and a per-instance attractor on top of the shared emitter parameters.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2GpuUniqueEmitter.js
+- Source: src/particle/emitter/Tr2GpuUniqueEmitter.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -81,7 +81,7 @@ GPU emitter owned by a single instance, adding parent scaling and a per-instance
 Particle force of constant magnitude pointing at a fixed position, regardless of distance.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleAttractorForce.js
+- Source: src/particle/force/Tr2ParticleAttractorForce.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -91,7 +91,7 @@ Particle force of constant magnitude pointing at a fixed position, regardless of
 Constant particle force vector, applied identically to every particle.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleDirectForce.js
+- Source: src/particle/force/Tr2ParticleDirectForce.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -101,7 +101,7 @@ Constant particle force vector, applied identically to every particle.
 Linear particle drag: a force proportional to velocity and opposing it.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleDragForce.js
+- Source: src/particle/force/Tr2ParticleDragForce.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -111,7 +111,7 @@ Linear particle drag: a force proportional to velocity and opposing it.
 Tr2ParticleElementData (particle) - generated from schema shapeHash ca640653....
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleElementData.js
+- Source: src/particle/element/Tr2ParticleElementData.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -121,7 +121,7 @@ Tr2ParticleElementData (particle) - generated from schema shapeHash ca640653....
 Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639....
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleElementDeclaration.js
+- Source: src/particle/element/Tr2ParticleElementDeclaration.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -131,7 +131,7 @@ Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6
 Tr2ParticleElementDeclarationName (particle) - generated from schema shapeHash 115c80e5....
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleElementDeclarationName.js
+- Source: src/particle/element/Tr2ParticleElementDeclarationName.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -141,7 +141,7 @@ Tr2ParticleElementDeclarationName (particle) - generated from schema shapeHash 1
 Quadratic fluid drag on particles, clamped so a single integration step can never push a particle's velocity past zero into a reversal.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleFluidDragForce.js
+- Source: src/particle/force/Tr2ParticleFluidDragForce.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -151,7 +151,7 @@ Quadratic fluid drag on particles, clamped so a single integration step can neve
 Linear spring pulling particles toward a fixed position with a force proportional to displacement.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleSpring.js
+- Source: src/particle/force/Tr2ParticleSpring.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -171,7 +171,7 @@ Owns a particle system's element declaration, CPU-side attribute buffers, and pe
 A time-evolving four-dimensional Perlin turbulence force applied to particle motion.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleTurbulenceForce.js
+- Source: src/particle/force/Tr2ParticleTurbulenceForce.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -181,7 +181,7 @@ A time-evolving four-dimensional Perlin turbulence force applied to particle mot
 Particle force of constant magnitude directed tangentially around an axis through a fixed position, swirling particles about it.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2ParticleVortexForce.js
+- Source: src/particle/force/Tr2ParticleVortexForce.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -191,7 +191,7 @@ Particle force of constant magnitude directed tangentially around an axis throug
 A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2PlaneConstraint.js
+- Source: src/particle/constraint/Tr2PlaneConstraint.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -201,7 +201,7 @@ A collision constraint that keeps particles on one side of a plane, reflecting v
 Generates a per-particle attribute as a random unit vector spanning the bound element's dimension.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2RandomDirectionAttributeGenerator.js
+- Source: src/particle/attribute/Tr2RandomDirectionAttributeGenerator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -211,7 +211,7 @@ Generates a per-particle attribute as a random unit vector spanning the bound el
 Generates a per-particle attribute by sampling each component to a rounded integer within a minimum and maximum range.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2RandomIntegerAttributeGenerator.js
+- Source: src/particle/attribute/Tr2RandomIntegerAttributeGenerator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -221,7 +221,7 @@ Generates a per-particle attribute by sampling each component to a rounded integ
 Generates a per-particle attribute by sampling each component uniformly between a minimum and maximum range.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2RandomUniformAttributeGenerator.js
+- Source: src/particle/attribute/Tr2RandomUniformAttributeGenerator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -231,7 +231,7 @@ Generates a per-particle attribute by sampling each component uniformly between 
 A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2SphereConstraint.js
+- Source: src/particle/constraint/Tr2SphereConstraint.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -241,7 +241,7 @@ A collision constraint that keeps particles outside or inside a sphere, reflecti
 Generates particle position and velocity offsets sampled within a rotated spherical cone and radius range.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2SphereShapeAttributeGenerator.js
+- Source: src/particle/attribute/Tr2SphereShapeAttributeGenerator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -251,6 +251,6 @@ Generates particle position and velocity offsets sampled within a rotated spheri
 A one-shot particle emitter that spawns particles from a geometry resource's baked emission points on first update.
 
 - Export: @carbonenginejs/runtime-trinity/particle
-- Source: src/particle/Tr2StaticEmitter.js
+- Source: src/particle/emitter/Tr2StaticEmitter.js
 - Visibility: Public
 - Kind: CarbonEngineJS

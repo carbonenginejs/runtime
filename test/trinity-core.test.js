@@ -9,7 +9,7 @@ import { GrannyBoneOffset, Tr2DepthStencil, Tr2DirectInstanceData, Tr2Expression
 import { Tr2PresentParameters } from "../npm/dist/ui/index.js";
 import { TriBatchType } from "../npm/dist/generated/trinityCore/enums.js";
 import { Tr2DebugRenderer } from "../npm/dist/core/line/Tr2DebugRenderer.js";
-import { Tr2ParticleElementDeclaration } from "../npm/dist/particle/Tr2ParticleElementDeclaration.js";
+import { Tr2ParticleElementDeclaration } from "../npm/dist/particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2ParticleSystem } from "../npm/dist/particle/Tr2ParticleSystem.js";
 import { Tr2HostBitmap } from "../npm/dist/generated/trinityCore/Tr2HostBitmap.js";
 import { Tr2SSAO } from "../npm/dist/generated/trinityCore/Tr2SSAO.js";

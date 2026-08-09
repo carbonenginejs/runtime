@@ -1,7 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { CjsControllerExpressionProgram } from '../../controllers/CjsControllerExpressionProgram.js';
+import { CjsControllerExpressionProgram } from '../../controllers/expression/CjsControllerExpressionProgram.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_expression, _init_extra_expression, _init_currentValue, _init_extra_currentValue, _init_input, _init_extra_input, _init_input2, _init_extra_input2, _init_input3, _init_extra_input3, _init_input4, _init_extra_input4, _init_inputs, _init_extra_inputs;
 

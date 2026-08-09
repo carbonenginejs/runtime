@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Controllers\Finalizers\Tr2SyncToAnimation.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 
 
 /**

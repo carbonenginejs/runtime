@@ -3,7 +3,7 @@
 import { fromYawPitchRoll, quat } from "@carbonenginejs/runtime-utils/quat";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { CjsControllerExpressionProgram } from "../../controllers/CjsControllerExpressionProgram.js";
+import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
 /**

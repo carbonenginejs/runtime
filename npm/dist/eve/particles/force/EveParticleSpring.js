@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2ParticleSpring as _Tr2ParticleSpring } from '../../../particle/Tr2ParticleSpring.js';
+import { Tr2ParticleSpring as _Tr2ParticleSpring } from '../../../particle/force/Tr2ParticleSpring.js';
 
 let _initClass;
 

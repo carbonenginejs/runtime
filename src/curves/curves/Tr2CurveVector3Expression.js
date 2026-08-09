@@ -3,7 +3,7 @@
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { CjsControllerExpressionProgram } from "../../controllers/CjsControllerExpressionProgram.js";
+import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
 /**

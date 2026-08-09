@@ -2,7 +2,7 @@ import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelH
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
-import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from './Tr2ParticleElementDeclaration.js';
+import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from './element/Tr2ParticleElementDeclaration.js';
 
 let _initProto, _initClass, _init_elements, _init_extra_elements, _init_isValid, _init_extra_isValid, _init_name, _init_extra_name, _init_constraints, _init_extra_constraints, _init_forces, _init_extra_forces, _init_emitParticleOnDeathEmitter, _init_extra_emitParticleOnDeathEmitter, _init_emitParticleDuringLifeEmitter, _init_extra_emitParticleDuringLifeEmitter, _init_applyForce, _init_extra_applyForce, _init_applyAging, _init_extra_applyAging, _init_isGlobal, _init_extra_isGlobal, _init_updateSimulation, _init_extra_updateSimulation, _init_requiresSorting, _init_extra_requiresSorting, _init_aabbMax, _init_extra_aabbMax, _init_aabbMin, _init_extra_aabbMin, _init_peakAliveCount, _init_extra_peakAliveCount, _init_useSimTimeRebase, _init_extra_useSimTimeRebase, _init_maxParticleCount, _init_extra_maxParticleCount, _init_aliveCount, _init_extra_aliveCount, _init_originalMaxParticles, _init_extra_originalMaxParticles;
 

@@ -2,7 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_v
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from '../../particle/Tr2ParticleElementDeclaration.js';
+import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from '../../particle/element/Tr2ParticleElementDeclaration.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_particleSystem, _init_extra_particleSystem, _init_layout, _init_extra_layout, _init_rows, _init_extra_rows, _init_explicitBoundingBox, _init_extra_explicitBoundingBox, _init_count, _init_extra_count, _init_aabbMin, _init_extra_aabbMin, _init_aabbMax, _init_extra_aabbMax;
 
