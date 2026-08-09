@@ -2207,6 +2207,212 @@ test("Step containers ignore Continuous-only transition and reset policies", () 
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("SFX node cycles are diagnosed instead of recursing", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 5,
+                    id: 201,
+                    payload: randomSequencePayload({ childID: 202 }),
+                },
+                {
+                    type: 5,
+                    id: 202,
+                    payload: randomSequencePayload({ childID: 201 }),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 201,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: { cyclic_play: { eventID: 100 } },
+        },
+        media: {},
+    });
+
+    assert.deepEqual(result.events, {});
+    assert.deepEqual(result.nodes, {});
+    assert.match(
+        result.diagnostics.omittedEvents[0].reason,
+        /cycle at node (201|202)/u,
+    );
+});
+
+test("SFX node lowering reuses shared DAG summaries and output nodes", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 5,
+                    id: 203,
+                    payload: randomSequencePayload({
+                        childID: 200,
+                        flags: 0x08,
+                    }),
+                },
+                {
+                    type: 5,
+                    id: 201,
+                    payload: randomSequencePayload({ childID: 203 }),
+                },
+                {
+                    type: 5,
+                    id: 202,
+                    payload: randomSequencePayload({ childID: 203 }),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 201,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 301,
+                    actionType: 0x0403,
+                    targetId: 202,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300, 301 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: { shared_play: { eventID: 100 } },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(result.events.shared_play, [
+        { nodeId: "201" },
+        { nodeId: "202" },
+    ]);
+    assert.equal(result.nodes["201"].children[0].nodeId, "203");
+    assert.equal(result.nodes["202"].children[0].nodeId, "203");
+    assert.deepEqual(Object.keys(result.nodes), [ "200", "201", "202", "203" ]);
+    assert.deepEqual(result.diagnostics.omittedEvents, []);
+});
+
+test("SFX node lowering preserves descending synthetic allocation order", () =>
+{
+    const sound = (id, sourceId) => ({
+        type: 2,
+        id,
+        pluginId: 0x00040001,
+        pluginType: 1,
+        streamType: 0,
+        sourceId,
+        inMemoryMediaSize: 64,
+        payload: new Uint8Array(),
+    });
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                sound(200, 9001),
+                sound(202, 9002),
+                {
+                    type: 6,
+                    id: 201,
+                    payload: switchPayload({
+                        children: [ 200, 202 ],
+                        assignments: [ {
+                            valueId: 501,
+                            childIds: [ 200, 202 ],
+                        } ],
+                        defaultValueId: 502,
+                        parameters: [],
+                    }),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 201,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: { switched_play: { eventID: 100 } },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "1",
+                    ShortName: "common",
+                    SwitchGroups: [ {
+                        Id: "500",
+                        Name: "variant",
+                        Switches: [
+                            { Id: "501", Name: "shared" },
+                            { Id: "502", Name: "missing" },
+                        ],
+                    } ],
+                } ],
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+            "9002": { resPath: "res:/audio/9002.wem" },
+        },
+    });
+
+    assert.deepEqual(result.nodes["4294967295"], {
+        type: "parallel",
+        children: [ { nodeId: "200" }, { nodeId: "202" } ],
+    });
+    assert.deepEqual(result.nodes["4294967294"], { type: "silence" });
+    assert.deepEqual(result.nodes["201"].cases.shared, {
+        nodeId: "4294967295",
+    });
+    assert.deepEqual(result.nodes["201"].default, {
+        nodeId: "4294967294",
+    });
+});
+
 test("Continuous Random and Sequence containers preserve supported scheduling", () =>
 {
     const build = payload => CjsAudioLibraryBuilder.createSfxGraph({

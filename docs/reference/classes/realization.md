@@ -105,6 +105,16 @@ Builds a deterministic schema-v2 audio-library document from caller-supplied val
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsAudioLibraryBuilderSfxNodeLoweringSession -->
+## `CjsAudioLibraryBuilderSfxNodeLoweringSession`
+
+Owns recursive SFX node lowering, memoized summaries, and synthetic IDs.
+
+- Export: None
+- Source: `src/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioSystem -->
 ## `CjsAudioSystem`
 

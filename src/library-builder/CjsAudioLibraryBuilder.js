@@ -986,71 +986,176 @@ function MarkBusGraphVolumeActionControls(busGraph, sfx)
     return { ...busGraph, buses };
 }
 
-function LowerSfxGraph({
-    parsed,
-    effects,
-    buses,
-    eventNames,
-    musicNodeIds,
-    names,
-    media,
-    embeddedMedia,
-})
+/** Owns recursive SFX node lowering, memoized summaries, and synthetic IDs. */
+class CjsAudioLibraryBuilderSfxNodeLoweringSession
 {
-    const nodes = {};
-    const events = {};
-    const programs = {};
-    const lowered = new Map();
-    const leavesByNode = new Map();
-    const containsContinuousByNode = new Map();
-    const containsNonSwitchContinuousByNode = new Map();
-    const neverCompletesByNode = new Map();
-    const leavesByEvent = new Map();
-    const stopTargetsByEvent = new Map();
-    const active = new Set();
-    const crossfadeFiniteSounds = new Set();
-    const omittedEvents = [];
-    const approximatedEvents = [];
-    const usedIDs = new Set(
-        [ ...parsed.nodes.keys() ].map(value => String(value >>> 0)),
-    );
-    let syntheticID = 0xffffffff;
+    #active = new Set();
 
-    const allocate = (node) =>
+    #buses = null;
+
+    #crossfadeFiniteSounds = new Set();
+
+    #effects = null;
+
+    #embeddedMedia = null;
+
+    #media = null;
+
+    #names = null;
+
+    #nodes = {};
+
+    #parsed = null;
+
+    #projections = new Map();
+
+    #syntheticID = 0xffffffff;
+
+    #usedIDs = new Set();
+
+    /** Creates one lowering session for a parsed Wwise SFX node graph. */
+    constructor({ parsed, effects, buses, names, media, embeddedMedia })
     {
-        while (syntheticID > 0 && usedIDs.has(String(syntheticID)))
-        {
-            syntheticID--;
-        }
-        if (syntheticID === 0)
-        {
-            throw new Error("Audio SFX construction exhausted node identities");
-        }
+        this.#parsed = parsed;
+        this.#effects = effects;
+        this.#buses = buses;
+        this.#names = names;
+        this.#media = media;
+        this.#embeddedMedia = embeddedMedia;
+        this.#usedIDs = new Set(
+            [ ...parsed.nodes.keys() ].map(value => String(value >>> 0)),
+        );
+    }
 
-        const id = String(syntheticID--);
-
-        usedIDs.add(id);
-        nodes[id] = node;
-        return id;
-    };
-
-    const aggregate = (childIDs) =>
+    /** Lowers one raw node once and returns its node and traversal summary. */
+    Lower(rawID)
     {
-        if (!childIDs.length)
-        {
-            return allocate({ type: "silence" });
-        }
-        if (childIDs.length === 1)
-        {
-            return childIDs[0];
-        }
-        return allocate({
-            type: "parallel",
-            children: childIDs.map(nodeId => ({ nodeId })),
-        });
-    };
+        const id = String(Number(rawID) >>> 0);
+        const existing = this.#projections.get(id);
 
-    const aggregateRoots = (roots, force = false) =>
+        if (existing)
+        {
+            return existing;
+        }
+        if (this.#active.has(id))
+        {
+            throw new Error(`cycle at node ${id}`);
+        }
+
+        const source = this.#parsed.nodes.get(Number(id));
+
+        if (!source)
+        {
+            throw new Error(`missing typed node ${id}`);
+        }
+
+        this.#active.add(id);
+
+        try
+        {
+            const summary = {
+                leaves: new Set(),
+                childContainsContinuous: false,
+                childContainsNonSwitchContinuous: false,
+            };
+            const lowerChild = childID =>
+            {
+                const child = this.Lower(childID);
+
+                AddSet(summary.leaves, child.leaves);
+                summary.childContainsContinuous ||=
+                    child.containsContinuous;
+                summary.childContainsNonSwitchContinuous ||=
+                    child.containsNonSwitchContinuous;
+                return child.nodeId;
+            };
+            let lowered;
+
+            if (source.type === "sound")
+            {
+                lowered = this.#LowerSound(id, source, summary);
+            }
+            else if (source.type === "random"
+                || source.type === "sequence")
+            {
+                lowered = this.#LowerRandomSequence(
+                    id,
+                    source,
+                    lowerChild,
+                    summary,
+                );
+            }
+            else if (source.type === "switch")
+            {
+                lowered = this.#LowerSwitch(
+                    id,
+                    source,
+                    lowerChild,
+                    summary,
+                );
+            }
+            else if (source.type === "layer")
+            {
+                lowered = this.#LowerLayer(
+                    id,
+                    source,
+                    lowerChild,
+                );
+            }
+            else
+            {
+                throw new Error(`unsupported node type ${source.type}`);
+            }
+
+            const { node, neverCompletes = false } = lowered;
+
+            Object.assign(
+                node,
+                CreateSfxNodeBasePlaybackProjection(
+                    this.#parsed,
+                    id,
+                    this.#names,
+                ),
+                source.type === "sound"
+                    ? CreateSfxSoundVoiceLimitProjection(
+                        this.#parsed,
+                        id,
+                        this.#buses,
+                    )
+                    : {},
+            );
+            this.#nodes[id] = node;
+
+            const projection = {
+                nodeId: id,
+                leaves: summary.leaves,
+                containsContinuous:
+                    summary.childContainsContinuous
+                    || node.continuous !== undefined
+                    || (source.type === "layer"
+                        && source.continuousValidation
+                        && neverCompletes),
+                containsNonSwitchContinuous:
+                    summary.childContainsNonSwitchContinuous
+                    || (node.continuous !== undefined
+                        && node.type !== "switch")
+                    || (source.type === "layer"
+                        && source.continuousValidation
+                        && neverCompletes),
+                neverCompletes,
+            };
+
+            this.#projections.set(id, projection);
+            return projection;
+        }
+        finally
+        {
+            this.#active.delete(id);
+        }
+    }
+
+    /** Aggregates event roots through this session's synthetic-ID allocator. */
+    AggregateRoots(roots, force = false)
     {
         if (roots.length === 1 && !force)
         {
@@ -1058,14 +1163,661 @@ function LowerSfxGraph({
         }
 
         return {
-            nodeId: allocate({
+            nodeId: this.#Allocate({
                 type: "parallel",
                 children: roots,
             }),
         };
-    };
+    }
 
-    const qualifyCrossfadeChildren = (rawIDs, containerID) =>
+    /** Returns the still-plain serialized node table owned by this session. */
+    GetPlainNodes()
+    {
+        return this.#nodes;
+    }
+
+    /** Lowers one codec or qualified Wwise Silence source. */
+    #LowerSound(id, source, summary)
+    {
+        const mediaID = String(source.sourceId >>> 0);
+        const loopCount = this.#parsed.nodeBases
+            ?.get(Number(id))
+            ?.loopCount;
+        const matchIds = CreateSfxMatchIds(this.#parsed, id);
+        const routing = CreateSfxBusRouting(
+            this.#parsed,
+            id,
+            this.#buses,
+        );
+
+        if (source.pluginType === 1
+            && !this.#media[mediaID]
+            && !this.#embeddedMedia[mediaID])
+        {
+            throw new Error(
+                `sound ${id} references unavailable media ${mediaID}`,
+            );
+        }
+        const identity = {
+            ...(matchIds.length > 1
+                ? { matchIds }
+                : {}),
+            ...(routing ?? {}),
+        };
+        let node;
+
+        if (source.pluginType === 1)
+        {
+            node = {
+                type: "sound",
+                mediaId: mediaID,
+                ...identity,
+                ...CreateSfxSoundEffectProjection(
+                    this.#parsed,
+                    this.#effects,
+                    id,
+                ),
+                ...(loopCount === 0
+                    ? { loop: true }
+                    : Number.isSafeInteger(loopCount) && loopCount > 0
+                        ? {
+                            loop: false,
+                            playCount: loopCount,
+                        }
+                        : this.#crossfadeFiniteSounds.has(id)
+                            ? { loop: false }
+                            : {}),
+            };
+        }
+        else if (source.pluginType === 2
+            && source.pluginId === WWISE_SILENCE_SOURCE_PLUGIN_ID)
+        {
+            if (loopCount !== null && loopCount !== undefined)
+            {
+                throw new Error(`looping silence source ${id}`);
+            }
+            node = {
+                type: "timed-silence",
+                durationMs: ParseStaticWwiseSilenceDuration(
+                    this.#effects,
+                    source,
+                    id,
+                ),
+                ...identity,
+            };
+        }
+        else
+        {
+            throw new Error(`source plug-in sound ${id}`);
+        }
+        summary.leaves.add(Number(id) >>> 0);
+        return {
+            node,
+            neverCompletes: node.loop === true,
+        };
+    }
+
+    /** Lowers one Random or Sequence container and its Continuous contract. */
+    #LowerRandomSequence(id, source, lowerChild, summary)
+    {
+        if (source.restartBackward)
+        {
+            throw new Error(`reverse sequence ${id}`);
+        }
+        if (source.continuous
+            && (source.loopModMin !== 0
+                || source.loopModMax !== 0))
+        {
+            throw new Error(
+                `randomized continuous loop count ${id}`,
+            );
+        }
+        if (source.continuous && source.loopCount > 32767)
+        {
+            throw new Error(
+                `continuous loop count exceeds 32767 at ${id}`,
+            );
+        }
+        if (source.continuous
+            && source.transitionMode !== 0
+            && source.transitionMode !== 1
+            && source.transitionMode !== 2
+            && source.transitionMode !== 3
+            && source.transitionMode !== 5)
+        {
+            throw new Error(
+                `unsupported continuous transition ${source.transitionMode} at ${id}`,
+            );
+        }
+        if (source.continuous
+            && (source.transitionMode === 1
+                || source.transitionMode === 2))
+        {
+            this.#QualifyCrossfadeChildren(
+                source.playlist.length
+                    ? source.playlist.map(item => item.playId)
+                    : source.children,
+                id,
+            );
+        }
+        if (source.continuous
+            && source.transitionMode === 5
+            && source.transitionTime
+                + source.transitionTimeModMin < 21)
+        {
+            throw new Error(
+                `continuous trigger rate below 21ms at ${id}`,
+            );
+        }
+
+        const playlist = source.playlist.length
+            ? source.playlist
+            : source.children.map(playId => ({
+                playId,
+                weight: 1,
+            }));
+        const children = [];
+
+        for (const item of playlist)
+        {
+            if (source.type === "random"
+                && source.usingWeight
+                && item.weight <= 0)
+            {
+                continue;
+            }
+
+            children.push({
+                nodeId: lowerChild(item.playId),
+                ...(source.type === "random" && source.usingWeight
+                    ? { weight: item.weight }
+                    : {}),
+            });
+        }
+
+        if (!children.length)
+        {
+            throw new Error(`empty ${source.type} ${id}`);
+        }
+        // A Continuous Random cannot reach another selection when every
+        // candidate is infinite. Wwiser applies the same all-looping-children
+        // reduction: retain one authored Random choice and let its selected
+        // child own the only live Continuous clock.
+        const absorbsInfiniteChildren = source.type === "random"
+            && source.continuous
+            && source.loopCount === 0
+            && source.transitionMode === 0
+            && summary.childContainsContinuous
+            && children.every(child =>
+                this.#projections.get(String(child.nodeId))
+                    ?.neverCompletes === true);
+        const nestedChild = children.length === 1
+            ? this.#nodes[String(children[0].nodeId)]
+            : null;
+        // Wwise hangar warnings use one bounded nested clock: an infinite
+        // outer Sequence waits after physical completion of a finite,
+        // reset-on-play Trigger Rate Sequence.
+        const supportsNestedTriggerRateDelay =
+            source.type === "sequence"
+            && source.continuous
+            && source.loopCount === 0
+            && source.transitionMode === 3
+            && Object.keys(children[0]).length === 1
+            && nestedChild?.type === "sequence"
+            && Object.keys(nestedChild).every(key => [
+                "type",
+                "scope",
+                "children",
+                "continuous",
+            ].includes(key))
+            && nestedChild.continuous?.loopCount === 1
+            && nestedChild.continuous.transition === "trigger-rate"
+            && nestedChild.continuous.resetPlaylistEachPlay !== false
+            && nestedChild.children.every(child =>
+                !this.#projections.get(String(child.nodeId))
+                    ?.containsContinuous);
+        // Jita's level-three incidental branch uses the second bounded form:
+        // an infinite single-child Random/Delay around a two-choice amplitude
+        // Crossfade Sequence. Dynamic inner terms remain unsupported.
+        const supportsNestedCrossfadeDelay =
+            source.type === "random"
+            && source.continuous
+            && source.loopCount === 0
+            && source.transitionMode === 3
+            && source.randomMode === 0
+            && source.resetPlaylistEachPlay
+            && Object.keys(children[0]).length === 1
+            && nestedChild?.type === "sequence"
+            && Object.keys(nestedChild).every(key => [
+                "type",
+                "scope",
+                "children",
+                "continuous",
+                "gainDb",
+                "pitchCents",
+                "lowPass",
+                "highPass",
+                "initialDelayMs",
+            ].includes(key))
+            && nestedChild.children.length === 2
+            && nestedChild.continuous?.loopCount === 1
+            && nestedChild.continuous.transition === "crossfade-amplitude"
+            && nestedChild.continuous.resetPlaylistEachPlay === false
+            && nestedChild.children.every(child =>
+                !this.#projections.get(String(child.nodeId))
+                    ?.containsContinuous);
+
+        if (source.continuous
+            && summary.childContainsContinuous
+            && !absorbsInfiniteChildren
+            && !supportsNestedTriggerRateDelay
+            && !supportsNestedCrossfadeDelay)
+        {
+            throw new Error(`nested continuous container ${id}`);
+        }
+
+        const neverCompletes = absorbsInfiniteChildren
+            || (source.continuous && source.loopCount === 0);
+        const node = {
+            type: source.type,
+            // Wwise applies Continuous playback per game object even when the
+            // serialized container scope flag is global.
+            scope: source.continuous
+                ? "object"
+                : source.global
+                    ? "global"
+                    : "object",
+            children,
+            ...(source.type === "random"
+                ? {
+                    mode: source.randomMode === 1
+                        ? "shuffle"
+                        : "random",
+                    avoidRepeat: source.avoidRepeatCount,
+                }
+                : {}),
+            ...(source.continuous && !absorbsInfiniteChildren
+                ? {
+                    continuous: {
+                        loopCount: source.loopCount,
+                        transition: source.transitionMode === 1
+                            ? "crossfade-amplitude"
+                            : source.transitionMode === 2
+                                ? "crossfade-power"
+                                : source.transitionMode === 3
+                                    ? "delay"
+                                    : source.transitionMode === 5
+                                        ? "trigger-rate"
+                                        : "disabled",
+                        ...(source.transitionMode === 1
+                            || source.transitionMode === 2
+                            || source.transitionMode === 3
+                            || source.transitionMode === 5
+                            ? {
+                                transitionMs: source.transitionTime,
+                                ...(source.transitionTimeModMin !== 0
+                                    || source.transitionTimeModMax !== 0
+                                    ? {
+                                        transitionRangeMs: {
+                                            min: source.transitionTimeModMin,
+                                            max: source.transitionTimeModMax,
+                                        },
+                                    }
+                                    : {}),
+                            }
+                            : {}),
+                        ...(source.type === "sequence"
+                            ? {
+                                resetPlaylistEachPlay:
+                                    source.resetPlaylistEachPlay,
+                            }
+                            : {}),
+                    },
+                }
+                : {}),
+        };
+
+        return { node, neverCompletes };
+    }
+
+    /** Lowers one Step or qualified Continuous Switch container. */
+    #LowerSwitch(id, source, lowerChild, summary)
+    {
+        const empty = source.groupType === 0
+            && source.groupId === 0
+            && source.defaultValueId === 0
+            && !source.continuousValidation
+            && !source.children.length
+            && !source.assignments.length;
+
+        if (empty)
+        {
+            // Wwise builds no playable gvalue map when Children and SwitchList
+            // are both empty. Stale parameter records alone select no audio.
+            return { node: { type: "silence" } };
+        }
+        if (source.continuousValidation
+            && source.parameters.some(parameter =>
+                parameter.firstOnly
+                || parameter.continuePlayback
+                || parameter.onSwitchMode !== 1))
+        {
+            throw new Error(`unsupported continuous switch ${id}`);
+        }
+        // Step switches choose once per post, so their default Stop mode is
+        // dormant; only live-continuation flags or fades require the
+        // unsupported continuous-switch scheduler.
+        if (!source.continuousValidation
+            && source.parameters.some(parameter =>
+                parameter.firstOnly
+                || parameter.continuePlayback
+                || parameter.fadeOutMs !== 0
+                || parameter.fadeInMs !== 0))
+        {
+            throw new Error(`transitioned switch ${id}`);
+        }
+
+        const scope = source.groupType === 1 ? "state" : "switch";
+        const group = this.#names.groups.get(
+            `${scope}:${source.groupId}`,
+        );
+
+        if (!group?.name)
+        {
+            throw new Error(
+                `unnamed ${scope} group ${source.groupId}`,
+            );
+        }
+
+        const cases = {};
+        let defaultChild = null;
+        const transitions = {};
+        const parameters = new Map(source.parameters.map(
+            parameter => [
+                Number(parameter.childId) >>> 0,
+                parameter,
+            ],
+        ));
+
+        for (const assignment of source.assignments)
+        {
+            const valueName = group.values.get(assignment.valueId);
+
+            if (!valueName)
+            {
+                throw new Error(
+                    `unnamed ${scope} value ${assignment.valueId}`,
+                );
+            }
+            const childIDs = assignment.childIds.map(childID =>
+            {
+                const child = lowerChild(childID);
+
+                if (source.continuousValidation)
+                {
+                    const parameter = parameters.get(
+                        Number(childID) >>> 0,
+                    );
+
+                    if (!parameter)
+                    {
+                        throw new Error(
+                            `missing continuous switch parameter ${childID} at ${id}`,
+                        );
+                    }
+                    transitions[child] = {
+                        fadeOutMs: parameter.fadeOutMs,
+                        fadeInMs: parameter.fadeInMs,
+                    };
+                }
+                return child;
+            });
+            const child = this.#Aggregate(childIDs);
+
+            cases[valueName] = { nodeId: child };
+            if (assignment.valueId === source.defaultValueId)
+            {
+                defaultChild = child;
+            }
+        }
+
+        if (!Object.keys(cases).length)
+        {
+            throw new Error(`empty switch ${id}`);
+        }
+        if (defaultChild === null)
+        {
+            defaultChild = this.#Aggregate([]);
+        }
+        if (source.continuousValidation
+            && summary.childContainsNonSwitchContinuous)
+        {
+            throw new Error(
+                `nested non-switch continuous container ${id}`,
+            );
+        }
+
+        return {
+            node: {
+                type: "switch",
+                scope,
+                group: group.name,
+                cases,
+                default: { nodeId: defaultChild },
+                ...(source.continuousValidation
+                    ? { continuous: { transitions } }
+                    : {}),
+            },
+        };
+    }
+
+    /** Lowers one Layer container and its qualified gain/RTPC associations. */
+    #LowerLayer(id, source, lowerChild)
+    {
+        // A Layer controls only children named by its association list. An
+        // associated Continuous Layer is approximated only when every direct
+        // child is proven infinite.
+        const associatedContinuous = source.continuousValidation
+            && source.layers.some(layer => layer.associations.length);
+        const children = source.children.map(nodeId => ({
+            nodeId: lowerChild(nodeId),
+        }));
+        const associatedChildIDs = new Set(source.layers.flatMap(
+            layer => layer.associations
+                .filter(association => association.points.length)
+                .map(association =>
+                    Number(association.childId) >>> 0),
+        ));
+
+        if (associatedContinuous
+            && (source.layers.some(layer =>
+                layer.associations.some(association =>
+                    !association.points.length))
+                || source.children.some(childID =>
+                    !associatedChildIDs.has(
+                        Number(childID) >>> 0,
+                    ))))
+        {
+            throw new Error(
+                `continuous layer ${id} has incomplete associations`,
+            );
+        }
+
+        const finiteChildren = associatedContinuous
+            ? source.children.filter(childID =>
+                this.#projections.get(
+                    String(Number(childID) >>> 0),
+                )?.neverCompletes !== true)
+            : [];
+
+        if (finiteChildren.length)
+        {
+            throw new Error(
+                `continuous layer ${id} has finite child `
+                + finiteChildren.map(value =>
+                    Number(value) >>> 0).join(","),
+            );
+        }
+        const childByID = new Map(
+            source.children.map((childID, index) => [
+                Number(childID) >>> 0,
+                children[index],
+            ]),
+        );
+        let curveCount = 0;
+
+        for (const layer of source.layers)
+        {
+            const associations = layer.associations;
+
+            if (!associations.length)
+            {
+                continue;
+            }
+            if (layer.controlType !== 0
+                && associations.some(association =>
+                    association.points.length))
+            {
+                throw new Error(
+                    `unsupported layer control type ${layer.controlType}`,
+                );
+            }
+
+            const parameter = associations.some(association =>
+                association.points.length)
+                ? this.#names.parameters.get(
+                    Number(layer.controlId) >>> 0,
+                )
+                : null;
+
+            if (associations.some(association =>
+                association.points.length) && !parameter)
+            {
+                throw new Error(
+                    `unnamed game parameter ${layer.controlId}`,
+                );
+            }
+
+            for (const association of associations)
+            {
+                const child = childByID.get(
+                    Number(association.childId) >>> 0,
+                );
+
+                if (!child)
+                {
+                    throw new Error(
+                        `missing layer child ${association.childId}`,
+                    );
+                }
+
+                if (association.points.length)
+                {
+                    const points = association.points.map(point =>
+                    {
+                        if (point.to < 0 || point.to > 1)
+                        {
+                            throw new Error(
+                                `invalid layer gain ${point.to}`,
+                            );
+                        }
+                        return {
+                            x: point.from,
+                            gain: point.to,
+                            interpolation: point.interpolation,
+                        };
+                    });
+
+                    (child.gainCurves ??= []).push({
+                        rtpc: parameter,
+                        scope: "object",
+                        points,
+                    });
+                    curveCount++;
+                }
+
+                for (const rtpc of layer.initialRtpcs)
+                {
+                    if (associatedContinuous
+                        && Number(rtpc.parameterId)
+                            === SFX_INITIAL_DELAY_PROPERTY)
+                    {
+                        throw new Error(
+                            "continuous layer InitialDelay RTPC",
+                        );
+                    }
+                    const curve = CreateSfxRtpcCurve(
+                        rtpc,
+                        this.#names,
+                    );
+
+                    if (!curve)
+                    {
+                        throw new Error(
+                            "unsupported layer RTPC property "
+                            + `${rtpc.parameterId}`,
+                        );
+                    }
+                    (child.rtpcCurves ??= []).push(curve);
+                }
+            }
+        }
+
+        if (!children.length)
+        {
+            throw new Error(`empty layer ${id}`);
+        }
+
+        return {
+            node: {
+                type: curveCount ? "blend" : "parallel",
+                children,
+            },
+            // The approximation owns a persistent object-scoped session and
+            // is stopped through ordinary ancestor match identities.
+            neverCompletes: associatedContinuous,
+        };
+    }
+
+    /** Allocates one collision-free synthetic node identity. */
+    #Allocate(node)
+    {
+        while (this.#syntheticID > 0
+            && this.#usedIDs.has(String(this.#syntheticID)))
+        {
+            this.#syntheticID--;
+        }
+        if (this.#syntheticID === 0)
+        {
+            throw new Error("Audio SFX construction exhausted node identities");
+        }
+
+        const id = String(this.#syntheticID--);
+
+        this.#usedIDs.add(id);
+        this.#nodes[id] = node;
+        return id;
+    }
+
+    /** Aggregates zero, one, or several lowered child node identities. */
+    #Aggregate(childIDs)
+    {
+        if (!childIDs.length)
+        {
+            return this.#Allocate({ type: "silence" });
+        }
+        if (childIDs.length === 1)
+        {
+            return childIDs[0];
+        }
+        return this.#Allocate({
+            type: "parallel",
+            children: childIDs.map(nodeId => ({ nodeId })),
+        });
+    }
+
+    /** Qualifies every finite Sound reachable by one Crossfade container. */
+    #QualifyCrossfadeChildren(rawIDs, containerID)
     {
         const pending = [ ...rawIDs ];
         const visited = new Set();
@@ -1082,7 +1834,7 @@ function LowerSfxGraph({
             }
             visited.add(id);
 
-            const source = parsed.nodes.get(id);
+            const source = this.#parsed.nodes.get(id);
 
             if (!source)
             {
@@ -1104,7 +1856,7 @@ function LowerSfxGraph({
                 );
             }
             if (source.type === "sound"
-                && parsed.nodeBases?.get(id)?.loopCount === 0)
+                && this.#parsed.nodeBases?.get(id)?.loopCount === 0)
             {
                 throw new Error(
                     `crossfade container ${containerID} reaches `
@@ -1122,802 +1874,41 @@ function LowerSfxGraph({
         }
         for (const key of qualifiedSounds)
         {
-            crossfadeFiniteSounds.add(key);
-            if (nodes[key]?.type === "sound"
-                && nodes[key].loop === undefined)
+            this.#crossfadeFiniteSounds.add(key);
+            if (this.#nodes[key]?.type === "sound"
+                && this.#nodes[key].loop === undefined)
             {
-                nodes[key].loop = false;
+                this.#nodes[key].loop = false;
             }
         }
-    };
+    }
+}
 
-    const isPlainPlayAction = (action) =>
-    {
-        const details = action?.action ?? action;
-
-        return action?.actionType === SFX_PLAY_ACTION
-            && details?.targetIsBus !== true
-            && (details?.targetFlags ?? 0) === 0
-            && !(details?.properties?.length)
-            && !(details?.ranges?.length)
-            && !HasSfxPlayActionTiming(action, true);
-    };
-
-    // EVE contains one invalid Wwise topology: an infinite, single-child
-    // amplitude Crossfade whose only child is a trackless Layer. Wwise does
-    // not support Blend children under Xfade. When that action has one wholly
-    // independent codec-Sound sibling, retain only the sibling rather than
-    // dropping the complete event or inventing multi-voice crossfade rules.
-    const isBoundedCrossfadeLayerSiblingFallback = (
-        event,
-        blockedActionID,
-        action,
-    ) =>
-    {
-        if (event.actionIds.length !== 2 || !isPlainPlayAction(action))
-        {
-            return false;
-        }
-
-        const source = parsed.nodes.get(Number(action.targetId) >>> 0);
-        const children = source?.children ?? [];
-        const playlist = source?.playlist ?? [];
-        const layer = children.length === 1
-            ? parsed.nodes.get(Number(children[0]) >>> 0)
-            : null;
-
-        if (source?.type !== "random"
-            || !source.continuous
-            || !source.global
-            || source.loopCount !== 0
-            || source.loopModMin !== 0
-            || source.loopModMax !== 0
-            || source.transitionMode !== 1
-            || source.transitionTime !== 7000
-            || source.transitionTimeModMin !== 0
-            || source.transitionTimeModMax !== 0
-            || source.avoidRepeatCount !== 1
-            || source.randomMode !== 0
-            || source.usingWeight
-            || !source.resetPlaylistEachPlay
-            || children.length !== 1
-            || playlist.length !== 1
-            || (Number(playlist[0]?.playId) >>> 0)
-                !== (Number(children[0]) >>> 0)
-            || layer?.type !== "layer"
-            || layer.continuousValidation
-            || layer.layers.length
-            || !layer.children.length
-            || !layer.children.every(childID =>
-            {
-                const childID32 = Number(childID) >>> 0;
-                const child = parsed.nodes.get(childID32);
-                const childNodeBase = parsed.nodeBases?.get(childID32);
-
-                return child?.type === "sound"
-                    && child.pluginType === 1
-                    && childNodeBase
-                    && childNodeBase.loopCount !== 0;
-            }))
-        {
-            return false;
-        }
-
-        const siblingActionID = event.actionIds.find(candidateID =>
-            (Number(candidateID) >>> 0)
-                !== (Number(blockedActionID) >>> 0));
-        const sibling = parsed.actions.get(Number(siblingActionID) >>> 0);
-        const siblingSource = parsed.nodes.get(
-            Number(sibling?.targetId) >>> 0,
-        );
-        const siblingNodeBase = parsed.nodeBases?.get(
-            Number(sibling?.targetId) >>> 0,
-        );
-
-        return isPlainPlayAction(sibling)
-            && siblingSource?.type === "sound"
-            && siblingSource.pluginType === 1
-            && siblingNodeBase
-            && siblingNodeBase.loopCount !== 0
-            && !layer.children.some(childID =>
-                (Number(childID) >>> 0)
-                    === (Number(sibling.targetId) >>> 0));
-    };
-
-    const lower = (rawID) =>
-    {
-        const id = String(Number(rawID) >>> 0);
-
-        if (lowered.has(id))
-        {
-            return lowered.get(id);
-        }
-        if (active.has(id))
-        {
-            throw new Error(`cycle at node ${id}`);
-        }
-
-        const source = parsed.nodes.get(Number(id));
-
-        if (!source)
-        {
-            throw new Error(`missing typed node ${id}`);
-        }
-
-        active.add(id);
-
-        try
-        {
-            let node;
-            let neverCompletes = false;
-            const leaves = new Set();
-            let childContainsContinuous = false;
-            let childContainsNonSwitchContinuous = false;
-            const lowerChild = (childID) =>
-            {
-                const loweredID = lower(childID);
-                const childKey = String(Number(childID) >>> 0);
-
-                AddSet(leaves, leavesByNode.get(childKey));
-                childContainsContinuous ||= Boolean(
-                    containsContinuousByNode.get(childKey),
-                );
-                childContainsNonSwitchContinuous ||= Boolean(
-                    containsNonSwitchContinuousByNode.get(childKey),
-                );
-                return loweredID;
-            };
-
-            if (source.type === "sound")
-            {
-                const mediaID = String(source.sourceId >>> 0);
-                const loopCount = parsed.nodeBases
-                    ?.get(Number(id))
-                    ?.loopCount;
-                const matchIds = CreateSfxMatchIds(parsed, id);
-                const routing = CreateSfxBusRouting(parsed, id, buses);
-
-                if (source.pluginType === 1
-                    && !media[mediaID]
-                    && !embeddedMedia[mediaID])
-                {
-                    throw new Error(
-                        `sound ${id} references unavailable media ${mediaID}`,
-                    );
-                }
-                const identity = {
-                    ...(matchIds.length > 1
-                        ? { matchIds }
-                        : {}),
-                    ...(routing ?? {}),
-                };
-
-                if (source.pluginType === 1)
-                {
-                    node = {
-                        type: "sound",
-                        mediaId: mediaID,
-                        ...identity,
-                        ...CreateSfxSoundEffectProjection(
-                            parsed,
-                            effects,
-                            id,
-                        ),
-                        ...(loopCount === 0
-                            ? { loop: true }
-                            : Number.isSafeInteger(loopCount) && loopCount > 0
-                                ? {
-                                    loop: false,
-                                    playCount: loopCount,
-                                }
-                                : crossfadeFiniteSounds.has(id)
-                                    ? { loop: false }
-                                    : {}),
-                    };
-                    neverCompletes = node.loop === true;
-                }
-                else if (source.pluginType === 2
-                    && source.pluginId === WWISE_SILENCE_SOURCE_PLUGIN_ID)
-                {
-                    if (loopCount !== null && loopCount !== undefined)
-                    {
-                        throw new Error(`looping silence source ${id}`);
-                    }
-                    node = {
-                        type: "timed-silence",
-                        durationMs: ParseStaticWwiseSilenceDuration(
-                            effects,
-                            source,
-                            id,
-                        ),
-                        ...identity,
-                    };
-                }
-                else
-                {
-                    throw new Error(`source plug-in sound ${id}`);
-                }
-                leaves.add(Number(id) >>> 0);
-            }
-            else if (source.type === "random"
-                || source.type === "sequence")
-            {
-                if (source.restartBackward)
-                {
-                    throw new Error(`reverse sequence ${id}`);
-                }
-                if (source.continuous
-                    && (source.loopModMin !== 0
-                        || source.loopModMax !== 0))
-                {
-                    throw new Error(
-                        `randomized continuous loop count ${id}`,
-                    );
-                }
-                if (source.continuous && source.loopCount > 32767)
-                {
-                    throw new Error(
-                        `continuous loop count exceeds 32767 at ${id}`,
-                    );
-                }
-                if (source.continuous
-                    && source.transitionMode !== 0
-                    && source.transitionMode !== 1
-                    && source.transitionMode !== 2
-                    && source.transitionMode !== 3
-                    && source.transitionMode !== 5)
-                {
-                    throw new Error(
-                        `unsupported continuous transition ${source.transitionMode} at ${id}`,
-                    );
-                }
-                if (source.continuous
-                    && (source.transitionMode === 1
-                        || source.transitionMode === 2))
-                {
-                    qualifyCrossfadeChildren(
-                        source.playlist.length
-                            ? source.playlist.map(item => item.playId)
-                            : source.children,
-                        id,
-                    );
-                }
-                if (source.continuous
-                    && source.transitionMode === 5
-                    && source.transitionTime
-                        + source.transitionTimeModMin < 21)
-                {
-                    throw new Error(
-                        `continuous trigger rate below 21ms at ${id}`,
-                    );
-                }
-
-                const playlist = source.playlist.length
-                    ? source.playlist
-                    : source.children.map(playId => ({
-                        playId,
-                        weight: 1,
-                    }));
-                const children = [];
-
-                for (const item of playlist)
-                {
-                    if (source.type === "random"
-                        && source.usingWeight
-                        && item.weight <= 0)
-                    {
-                        continue;
-                    }
-
-                    children.push({
-                        nodeId: lowerChild(item.playId),
-                        ...(source.type === "random" && source.usingWeight
-                            ? { weight: item.weight }
-                            : {}),
-                    });
-                }
-
-                if (!children.length)
-                {
-                    throw new Error(`empty ${source.type} ${id}`);
-                }
-                // A Continuous Random cannot reach another selection when
-                // every candidate is infinite. Wwiser applies the same
-                // all-looping-children reduction: retain the one authored
-                // Random choice and let its selected child own the only live
-                // Continuous clock.
-                const absorbsInfiniteChildren = source.type === "random"
-                    && source.continuous
-                    && source.loopCount === 0
-                    && source.transitionMode === 0
-                    && childContainsContinuous
-                    && children.every(child =>
-                        neverCompletesByNode.get(String(child.nodeId))
-                            === true);
-                const nestedChild = children.length === 1
-                    ? nodes[String(children[0].nodeId)]
-                    : null;
-                // Wwise hangar warnings use one bounded nested clock: an
-                // infinite outer Sequence waits after physical completion of
-                // a finite, reset-on-play Trigger Rate Sequence. Keeping this
-                // qualification structural prevents deeper or mixed nested
-                // schedulers from entering the runtime accidentally.
-                const supportsNestedTriggerRateDelay =
-                    source.type === "sequence"
-                    && source.continuous
-                    && source.loopCount === 0
-                    && source.transitionMode === 3
-                    && Object.keys(children[0]).length === 1
-                    && nestedChild?.type === "sequence"
-                    && Object.keys(nestedChild).every(key => [
-                        "type",
-                        "scope",
-                        "children",
-                        "continuous",
-                    ].includes(key))
-                    && nestedChild.continuous?.loopCount === 1
-                    && nestedChild.continuous.transition === "trigger-rate"
-                    && nestedChild.continuous.resetPlaylistEachPlay !== false
-                    && nestedChild.children.every(child =>
-                        !containsContinuousByNode.get(
-                            String(child.nodeId),
-                        ));
-                // Jita's level-three incidental branch uses the second
-                // bounded form: an infinite single-child Random/Delay around
-                // a two-choice amplitude-Crossfade Sequence. Admit only its
-                // static inner playback terms; dynamic terms would need to be
-                // resampled each time the parent replays the child.
-                const supportsNestedCrossfadeDelay =
-                    source.type === "random"
-                    && source.continuous
-                    && source.loopCount === 0
-                    && source.transitionMode === 3
-                    && source.randomMode === 0
-                    && source.resetPlaylistEachPlay
-                    && Object.keys(children[0]).length === 1
-                    && nestedChild?.type === "sequence"
-                    && Object.keys(nestedChild).every(key => [
-                        "type",
-                        "scope",
-                        "children",
-                        "continuous",
-                        "gainDb",
-                        "pitchCents",
-                        "lowPass",
-                        "highPass",
-                        "initialDelayMs",
-                    ].includes(key))
-                    && nestedChild.children.length === 2
-                    && nestedChild.continuous?.loopCount === 1
-                    && nestedChild.continuous.transition
-                        === "crossfade-amplitude"
-                    && nestedChild.continuous.resetPlaylistEachPlay === false
-                    && nestedChild.children.every(child =>
-                        !containsContinuousByNode.get(
-                            String(child.nodeId),
-                        ));
-
-                if (source.continuous
-                    && childContainsContinuous
-                    && !absorbsInfiniteChildren
-                    && !supportsNestedTriggerRateDelay
-                    && !supportsNestedCrossfadeDelay)
-                {
-                    throw new Error(`nested continuous container ${id}`);
-                }
-
-                neverCompletes = absorbsInfiniteChildren
-                    || (source.continuous && source.loopCount === 0);
-
-                node = {
-                    type: source.type,
-                    // Wwise applies Continuous playback per game object even
-                    // when the serialized container scope flag is global.
-                    scope: source.continuous
-                        ? "object"
-                        : source.global
-                            ? "global"
-                            : "object",
-                    children,
-                    ...(source.type === "random"
-                        ? {
-                            mode: source.randomMode === 1
-                                ? "shuffle"
-                                : "random",
-                            avoidRepeat: source.avoidRepeatCount,
-                        }
-                        : {}),
-                    ...(source.continuous && !absorbsInfiniteChildren
-                        ? {
-                            continuous: {
-                                loopCount: source.loopCount,
-                                transition: source.transitionMode === 1
-                                    ? "crossfade-amplitude"
-                                    : source.transitionMode === 2
-                                        ? "crossfade-power"
-                                        : source.transitionMode === 3
-                                            ? "delay"
-                                            : source.transitionMode === 5
-                                                ? "trigger-rate"
-                                                : "disabled",
-                                ...(source.transitionMode === 1
-                                    || source.transitionMode === 2
-                                    || source.transitionMode === 3
-                                    || source.transitionMode === 5
-                                    ? {
-                                        transitionMs:
-                                            source.transitionTime,
-                                        ...(
-                                            source.transitionTimeModMin !== 0
-                                            || source.transitionTimeModMax !== 0
-                                                ? {
-                                                    transitionRangeMs: {
-                                                        min: source.transitionTimeModMin,
-                                                        max: source.transitionTimeModMax,
-                                                    },
-                                                }
-                                                : {}
-                                        ),
-                                    }
-                                    : {}),
-                                ...(source.type === "sequence"
-                                    ? {
-                                        resetPlaylistEachPlay:
-                                            source.resetPlaylistEachPlay,
-                                    }
-                                    : {}),
-                            },
-                        }
-                        : {}),
-                };
-            }
-            else if (source.type === "switch")
-            {
-                const empty = source.groupType === 0
-                    && source.groupId === 0
-                    && source.defaultValueId === 0
-                    && !source.continuousValidation
-                    && !source.children.length
-                    && !source.assignments.length;
-
-                if (empty)
-                {
-                    // Wwise builds no playable gvalue map when the authored
-                    // Children and SwitchList are both empty. Some EVE banks
-                    // retain stale AkSwitchNodeParams after stripping those
-                    // lists; the parameter records alone never select audio.
-                    node = { type: "silence" };
-                }
-                else if (source.continuousValidation
-                    && source.parameters.some(parameter =>
-                        parameter.firstOnly
-                        || parameter.continuePlayback
-                        || parameter.onSwitchMode !== 1))
-                {
-                    throw new Error(`unsupported continuous switch ${id}`);
-                }
-                // Step switches choose once per post, so their default Stop
-                // mode is dormant; only live-continuation flags or fades
-                // require the unsupported continuous-switch scheduler.
-                else if (!source.continuousValidation
-                    && source.parameters.some(parameter =>
-                    parameter.firstOnly
-                    || parameter.continuePlayback
-                    || parameter.fadeOutMs !== 0
-                    || parameter.fadeInMs !== 0))
-                {
-                    throw new Error(`transitioned switch ${id}`);
-                }
-                else
-                {
-                    const scope = source.groupType === 1 ? "state" : "switch";
-                    const group = names.groups.get(
-                        `${scope}:${source.groupId}`,
-                    );
-
-                    if (!group?.name)
-                    {
-                        throw new Error(
-                            `unnamed ${scope} group ${source.groupId}`,
-                        );
-                    }
-
-                    const cases = {};
-                    let defaultChild = null;
-                    const transitions = {};
-                    const parameters = new Map(source.parameters.map(
-                        parameter => [
-                            Number(parameter.childId) >>> 0,
-                            parameter,
-                        ],
-                    ));
-
-                    for (const assignment of source.assignments)
-                    {
-                        const valueName = group.values.get(assignment.valueId);
-
-                        if (!valueName)
-                        {
-                            throw new Error(
-                                `unnamed ${scope} value ${assignment.valueId}`,
-                            );
-                        }
-                        const childIDs = assignment.childIds.map(childID =>
-                        {
-                            const child = lowerChild(childID);
-
-                            if (source.continuousValidation)
-                            {
-                                const parameter = parameters.get(
-                                    Number(childID) >>> 0,
-                                );
-
-                                if (!parameter)
-                                {
-                                    throw new Error(
-                                        `missing continuous switch parameter ${childID} at ${id}`,
-                                    );
-                                }
-                                transitions[child] = {
-                                    fadeOutMs: parameter.fadeOutMs,
-                                    fadeInMs: parameter.fadeInMs,
-                                };
-                            }
-                            return child;
-                        });
-                        const child = aggregate(childIDs);
-
-                        cases[valueName] = { nodeId: child };
-                        if (assignment.valueId === source.defaultValueId)
-                        {
-                            defaultChild = child;
-                        }
-                    }
-
-                    if (!Object.keys(cases).length)
-                    {
-                        throw new Error(`empty switch ${id}`);
-                    }
-                    if (defaultChild === null)
-                    {
-                        defaultChild = aggregate([]);
-                    }
-                    if (source.continuousValidation
-                        && childContainsNonSwitchContinuous)
-                    {
-                        throw new Error(
-                            `nested non-switch continuous container ${id}`,
-                        );
-                    }
-
-                    node = {
-                        type: "switch",
-                        scope,
-                        group: group.name,
-                        cases,
-                        default: { nodeId: defaultChild },
-                        ...(source.continuousValidation
-                            ? { continuous: { transitions } }
-                            : {}),
-                    };
-                }
-            }
-            else if (source.type === "layer")
-            {
-                // A Layer record only controls children named by its explicit
-                // association list. With no associations there is no live
-                // child-admission region to validate, so the children retain
-                // their ordinary parallel lifetime. An associated Continuous
-                // Layer may use the browser's pre-started approximation only
-                // when every direct child is proven infinite. Finite children
-                // still require Wwise's live RTPC admission scheduler: merely
-                // muting them would consume or exhaust content before its
-                // authored region became active.
-                const associatedContinuous = source.continuousValidation
-                    && source.layers.some(layer => layer.associations.length);
-                const children = source.children.map(nodeId => ({
-                    nodeId: lowerChild(nodeId),
-                }));
-                const associatedChildIDs = new Set(source.layers.flatMap(
-                    layer => layer.associations
-                        .filter(association => association.points.length)
-                        .map(association =>
-                            Number(association.childId) >>> 0),
-                ));
-
-                if (associatedContinuous
-                    && (source.layers.some(layer =>
-                        layer.associations.some(association =>
-                            !association.points.length))
-                        || source.children.some(childID =>
-                            !associatedChildIDs.has(
-                                Number(childID) >>> 0,
-                            ))))
-                {
-                    throw new Error(
-                        `continuous layer ${id} has incomplete associations`,
-                    );
-                }
-
-                const finiteChildren = associatedContinuous
-                    ? source.children.filter(childID =>
-                        neverCompletesByNode.get(
-                            String(Number(childID) >>> 0),
-                        ) !== true)
-                    : [];
-
-                if (finiteChildren.length)
-                {
-                    throw new Error(
-                        `continuous layer ${id} has finite child `
-                        + finiteChildren.map(value =>
-                            Number(value) >>> 0).join(","),
-                    );
-                }
-                const childByID = new Map(
-                    source.children.map((childID, index) => [
-                        Number(childID) >>> 0,
-                        children[index],
-                    ]),
-                );
-                let curveCount = 0;
-
-                for (const layer of source.layers)
-                {
-                    const associations = layer.associations;
-
-                    if (!associations.length)
-                    {
-                        continue;
-                    }
-                    if (layer.controlType !== 0
-                        && associations.some(association =>
-                            association.points.length))
-                    {
-                        throw new Error(
-                            `unsupported layer control type ${layer.controlType}`,
-                        );
-                    }
-
-                    const parameter = associations.some(association =>
-                        association.points.length)
-                        ? names.parameters.get(
-                            Number(layer.controlId) >>> 0,
-                        )
-                        : null;
-
-                    if (associations.some(association =>
-                        association.points.length) && !parameter)
-                    {
-                        throw new Error(
-                            `unnamed game parameter ${layer.controlId}`,
-                        );
-                    }
-
-                    for (const association of associations)
-                    {
-                        const child = childByID.get(
-                            Number(association.childId) >>> 0,
-                        );
-
-                        if (!child)
-                        {
-                            throw new Error(
-                                `missing layer child ${association.childId}`,
-                            );
-                        }
-
-                        if (association.points.length)
-                        {
-                            const points = association.points.map(point =>
-                            {
-                                if (point.to < 0 || point.to > 1)
-                                {
-                                    throw new Error(
-                                        `invalid layer gain ${point.to}`,
-                                    );
-                                }
-                                return {
-                                    x: point.from,
-                                    gain: point.to,
-                                    interpolation: point.interpolation,
-                                };
-                            });
-
-                            (child.gainCurves ??= []).push({
-                                rtpc: parameter,
-                                scope: "object",
-                                points,
-                            });
-                            curveCount++;
-                        }
-
-                        for (const rtpc of layer.initialRtpcs)
-                        {
-                            if (associatedContinuous
-                                && Number(rtpc.parameterId)
-                                    === SFX_INITIAL_DELAY_PROPERTY)
-                            {
-                                throw new Error(
-                                    "continuous layer InitialDelay RTPC",
-                                );
-                            }
-                            const curve = CreateSfxRtpcCurve(
-                                rtpc,
-                                names,
-                            );
-
-                            if (!curve)
-                            {
-                                throw new Error(
-                                    "unsupported layer RTPC property "
-                                    + `${rtpc.parameterId}`,
-                                );
-                            }
-                            (child.rtpcCurves ??= []).push(curve);
-                        }
-                    }
-                }
-
-                if (!children.length)
-                {
-                    throw new Error(`empty layer ${id}`);
-                }
-
-                node = {
-                    type: curveCount ? "blend" : "parallel",
-                    children,
-                };
-                // The approximation owns a persistent object-scoped session
-                // and is stopped through ordinary ancestor match identities.
-                // Keeping this true also permits another qualified Continuous
-                // Layer to use it as an indefinitely running direct child.
-                neverCompletes = associatedContinuous;
-            }
-            else
-            {
-                throw new Error(`unsupported node type ${source.type}`);
-            }
-
-            Object.assign(
-                node,
-                CreateSfxNodeBasePlaybackProjection(parsed, id, names),
-                source.type === "sound"
-                    ? CreateSfxSoundVoiceLimitProjection(
-                        parsed,
-                        id,
-                        buses,
-                    )
-                    : {},
-            );
-            nodes[id] = node;
-            lowered.set(id, id);
-            leavesByNode.set(id, leaves);
-            containsContinuousByNode.set(
-                id,
-                childContainsContinuous
-                    || node.continuous !== undefined
-                    || (source.type === "layer"
-                        && source.continuousValidation
-                        && neverCompletes),
-            );
-            containsNonSwitchContinuousByNode.set(
-                id,
-                childContainsNonSwitchContinuous
-                    || (node.continuous !== undefined
-                        && node.type !== "switch")
-                    || (source.type === "layer"
-                        && source.continuousValidation
-                        && neverCompletes),
-            );
-            neverCompletesByNode.set(id, neverCompletes);
-            return id;
-        }
-        finally
-        {
-            active.delete(id);
-        }
-    };
+function LowerSfxGraph({
+    parsed,
+    effects,
+    buses,
+    eventNames,
+    musicNodeIds,
+    names,
+    media,
+    embeddedMedia,
+})
+{
+    const events = {};
+    const programs = {};
+    const leavesByEvent = new Map();
+    const stopTargetsByEvent = new Map();
+    const omittedEvents = [];
+    const approximatedEvents = [];
+    const nodeSession = new CjsAudioLibraryBuilderSfxNodeLoweringSession({
+        parsed,
+        effects,
+        buses,
+        names,
+        media,
+        embeddedMedia,
+    });
 
     const loweredEvents = new Map();
     const activeEvents = new Set();
@@ -1975,7 +1966,8 @@ function LowerSfxGraph({
                     {
                         continue;
                     }
-                    if (isBoundedCrossfadeLayerSiblingFallback(
+                    if (IsBoundedCrossfadeLayerSiblingFallback(
+                        parsed,
                         event,
                         actionID,
                         action,
@@ -1987,8 +1979,9 @@ function LowerSfxGraph({
                         });
                         continue;
                     }
+                    const projection = nodeSession.Lower(action.targetId);
                     const child = ReadSfxPlayActionChild(
-                        { nodeId: lower(action.targetId) },
+                        { nodeId: projection.nodeId },
                         action,
                         true,
                     );
@@ -1998,12 +1991,7 @@ function LowerSfxGraph({
                         kind: "play",
                         child,
                     });
-                    AddSet(
-                        result.leaves,
-                        leavesByNode.get(
-                            String(Number(action.targetId) >>> 0),
-                        ),
-                    );
+                    AddSet(result.leaves, projection.leaves);
                 }
                 else if (action.actionType === SFX_PLAY_EVENT_ACTION)
                 {
@@ -2023,7 +2011,10 @@ function LowerSfxGraph({
                     }
                     const actionChild = ReadSfxPlayActionChild(
                         nested.roots.length
-                            ? aggregateRoots(nested.roots, hasTiming)
+                            ? nodeSession.AggregateRoots(
+                                nested.roots,
+                                hasTiming,
+                            )
                             : null,
                         action,
                         false,
@@ -2267,6 +2258,7 @@ function LowerSfxGraph({
         }
     }
 
+    const nodes = nodeSession.GetPlainNodes();
     const spatial = CreateSfxSpatialProjection(
         parsed,
         leavesByEvent,
@@ -2315,6 +2307,100 @@ function HasSfxPlayActionTiming(action, includeFade)
         || (includeFade
             && (details.transitionTimeMs !== undefined
                 || details.transitionRangeMs !== undefined));
+}
+
+function IsPlainSfxPlayAction(action)
+{
+    const details = action?.action ?? action;
+
+    return action?.actionType === SFX_PLAY_ACTION
+        && details?.targetIsBus !== true
+        && (details?.targetFlags ?? 0) === 0
+        && !(details?.properties?.length)
+        && !(details?.ranges?.length)
+        && !HasSfxPlayActionTiming(action, true);
+}
+
+// EVE contains one invalid Wwise topology: an infinite, single-child
+// amplitude Crossfade whose only child is a trackless Layer. Wwise does not
+// support Blend children under Xfade. When that action has one wholly
+// independent codec-Sound sibling, retain only the sibling rather than
+// dropping the complete event or inventing multi-voice crossfade rules.
+function IsBoundedCrossfadeLayerSiblingFallback(
+    parsed,
+    event,
+    blockedActionID,
+    action,
+)
+{
+    if (event.actionIds.length !== 2 || !IsPlainSfxPlayAction(action))
+    {
+        return false;
+    }
+
+    const source = parsed.nodes.get(Number(action.targetId) >>> 0);
+    const children = source?.children ?? [];
+    const playlist = source?.playlist ?? [];
+    const layer = children.length === 1
+        ? parsed.nodes.get(Number(children[0]) >>> 0)
+        : null;
+
+    if (source?.type !== "random"
+        || !source.continuous
+        || !source.global
+        || source.loopCount !== 0
+        || source.loopModMin !== 0
+        || source.loopModMax !== 0
+        || source.transitionMode !== 1
+        || source.transitionTime !== 7000
+        || source.transitionTimeModMin !== 0
+        || source.transitionTimeModMax !== 0
+        || source.avoidRepeatCount !== 1
+        || source.randomMode !== 0
+        || source.usingWeight
+        || !source.resetPlaylistEachPlay
+        || children.length !== 1
+        || playlist.length !== 1
+        || (Number(playlist[0]?.playId) >>> 0)
+            !== (Number(children[0]) >>> 0)
+        || layer?.type !== "layer"
+        || layer.continuousValidation
+        || layer.layers.length
+        || !layer.children.length
+        || !layer.children.every(childID =>
+        {
+            const childID32 = Number(childID) >>> 0;
+            const child = parsed.nodes.get(childID32);
+            const childNodeBase = parsed.nodeBases?.get(childID32);
+
+            return child?.type === "sound"
+                && child.pluginType === 1
+                && childNodeBase
+                && childNodeBase.loopCount !== 0;
+        }))
+    {
+        return false;
+    }
+
+    const siblingActionID = event.actionIds.find(candidateID =>
+        (Number(candidateID) >>> 0)
+            !== (Number(blockedActionID) >>> 0));
+    const sibling = parsed.actions.get(Number(siblingActionID) >>> 0);
+    const siblingSource = parsed.nodes.get(
+        Number(sibling?.targetId) >>> 0,
+    );
+    const siblingNodeBase = parsed.nodeBases?.get(
+        Number(sibling?.targetId) >>> 0,
+    );
+
+    return IsPlainSfxPlayAction(sibling)
+        && siblingSource?.type === "sound"
+        && siblingSource.pluginType === 1
+        && siblingNodeBase
+        && siblingNodeBase.loopCount !== 0
+        && !layer.children.some(childID =>
+            (Number(childID) >>> 0)
+                === (Number(sibling.targetId) >>> 0));
 }
 
 // Playback limiting is evaluated when Wwise starts the pending Sound, not when
