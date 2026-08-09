@@ -1224,6 +1224,8 @@ test("speculative Crossfade selection commits only at the audible boundary", () 
 
     assert.equal(prepared.program[0].selections[0].mediaID, "200");
     prepared.rollback();
+    prepared.rollback();
+    prepared.commit();
     assert.equal(
         rollbackEngine.ResolveProgram(
             "ambience",
@@ -1244,6 +1246,8 @@ test("speculative Crossfade selection commits only at the audible boundary", () 
     );
 
     committed.commit();
+    committed.commit();
+    committed.rollback();
     assert.equal(
         commitEngine.ResolveProgram(
             "ambience",
@@ -1251,6 +1255,57 @@ test("speculative Crossfade selection commits only at the audible boundary", () 
         )[0].selections[0].mediaID,
         "100",
         "audible prefetch commits the persistent next position",
+    );
+});
+
+test("failed speculative selection restores state and releases its lease", () =>
+{
+    const graph = Graph(
+        { ambience: [ 1 ] },
+        {
+            1: {
+                type: "random",
+                mode: "shuffle",
+                children: [ 10 ],
+                continuous: {
+                    loopCount: 0,
+                    transition: "crossfade-amplitude",
+                    transitionMs: 500,
+                },
+            },
+            10: { type: "sound", mediaId: 100 },
+        },
+    );
+    let fail = false;
+    const engine = new CjsSfxEngine({
+        graph,
+        random()
+        {
+            if (fail) throw new Error("selection failed");
+            return 0;
+        },
+    });
+    const initial = engine.ResolveProgram(
+        "ambience",
+        { gameObjID: 9 },
+    )[0];
+    const token = initial.continuations[0].token;
+
+    fail = true;
+    assert.throws(
+        () => engine.PrepareProgram(token, { gameObjID: 9 }),
+        /selection failed/u,
+    );
+    fail = false;
+
+    const retried = engine.PrepareProgram(token, { gameObjID: 9 });
+
+    assert.equal(retried.program[0].selections[0].mediaID, "100");
+    retried.rollback();
+    assert.equal(
+        engine.ContinueProgram(token, { gameObjID: 9 })[0]
+            .selections[0].mediaID,
+        "100",
     );
 });
 

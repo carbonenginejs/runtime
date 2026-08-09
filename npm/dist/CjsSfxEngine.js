@@ -29,6 +29,237 @@ function PreserveAuthoredPitch(source, target) {
   return target;
 }
 
+/** Owns speculative SFX selection leases, snapshots, and settlement. */
+class CjsSfxEngineSelectionTransactionLedger {
+  #activeTransaction = null;
+  #continuousSequencePositions = null;
+  #leasedTokens = new WeakMap();
+  #preparingToken = null;
+  #randomHistory = null;
+  #selectionReservations = new Map();
+  #sequencePositions = null;
+  #shufflePools = null;
+
+  /** Creates a ledger over the engine's mutable selection state maps. */
+  constructor({
+    randomHistory,
+    shufflePools,
+    sequencePositions,
+    continuousSequencePositions
+  }) {
+    this.#randomHistory = randomHistory;
+    this.#shufflePools = shufflePools;
+    this.#sequencePositions = sequencePositions;
+    this.#continuousSequencePositions = continuousSequencePositions;
+  }
+
+  /** Rejects nested preparations and duplicate leases in historical order. */
+  AssertCanPrepare(token) {
+    if (this.#activeTransaction) {
+      throw new Error("CjsSfxEngine cannot nest speculative continuation selection");
+    }
+    if (this.#leasedTokens.has(token)) {
+      throw new Error("CjsSfxEngine continuation token is already being prepared");
+    }
+  }
+
+  /** Rejects use of an unsettled token outside its synchronous preparation. */
+  AssertContinuationAvailable(token) {
+    if (this.#leasedTokens.has(token) && this.#preparingToken !== token) {
+      throw new Error("CjsSfxEngine continuation token is being prepared");
+    }
+  }
+
+  /** Resolves and returns one frozen speculative preparation facade. */
+  Prepare({
+    token,
+    resolve,
+    isCurrent
+  }) {
+    const beforeToken = CaptureContinuationToken(token);
+    const transaction = {
+      snapshots: new Map(),
+      operations: [],
+      ownerGameObjID: String(token.gameObjID),
+      reservations: [],
+      invalidated: false,
+      token
+    };
+    let program;
+    let afterToken;
+    this.#leasedTokens.set(token, transaction);
+    this.#activeTransaction = transaction;
+    this.#preparingToken = token;
+    try {
+      program = resolve();
+      afterToken = CaptureContinuationToken(token);
+    } catch (error) {
+      this.#leasedTokens.delete(token);
+      throw error;
+    } finally {
+      this.#preparingToken = null;
+      this.#activeTransaction = null;
+      RestoreContinuationToken(token, beforeToken);
+      RestoreSelectionChanges(transaction.snapshots);
+    }
+    this.#ReserveSelectionOperations(transaction);
+    let settled = false;
+    return Object.freeze({
+      program,
+      commit: () => {
+        if (!settled) {
+          settled = true;
+          this.#leasedTokens.delete(token);
+          this.#ReleaseSelectionReservations(transaction);
+          if (!isCurrent() || transaction.invalidated) {
+            return;
+          }
+          CommitContinuationToken(token, beforeToken, afterToken);
+          this.#CommitSelectionOperations(transaction.operations);
+        }
+      },
+      rollback: () => {
+        settled = true;
+        this.#leasedTokens.delete(token);
+        this.#ReleaseSelectionReservations(transaction);
+      }
+    });
+  }
+
+  /** Captures one selection-state key before speculative mutation. */
+  TrackMutation(map, key) {
+    if (!this.#activeTransaction) {
+      return;
+    }
+    let mutations = this.#activeTransaction.snapshots.get(map);
+    if (!mutations) {
+      mutations = new Map();
+      this.#activeTransaction.snapshots.set(map, mutations);
+    }
+    if (!mutations.has(key)) {
+      mutations.set(key, CaptureSelectionValue(map, key));
+    }
+  }
+
+  /** Records one mergeable selection effect for speculative commit. */
+  RecordOperation(operation) {
+    this.#activeTransaction?.operations.push(operation);
+  }
+
+  /** Returns speculative random children reserved on one state key. */
+  ReservedRandomSelections(key) {
+    return new Set((this.#selectionReservations.get(`random\0${key}`) ?? []).map(value => value.selected));
+  }
+
+  /** Clears reservations and every selection-state map for engine Reset. */
+  Reset() {
+    this.#selectionReservations.clear();
+    this.#randomHistory.clear();
+    this.#shufflePools.clear();
+    this.#sequencePositions.clear();
+    this.#continuousSequencePositions.clear();
+  }
+
+  /** Invalidates reserved work and clears one game object's selection state. */
+  ReleaseGameObj(gameObjID) {
+    const id = String(gameObjID);
+    const prefix = `o:${id}\0`;
+    const invalidated = new Set();
+    for (const reservations of this.#selectionReservations.values()) {
+      for (const {
+        transaction
+      } of reservations) {
+        if (transaction.ownerGameObjID === id) {
+          invalidated.add(transaction);
+        }
+      }
+    }
+    for (const transaction of invalidated) {
+      transaction.invalidated = true;
+      this.#leasedTokens.delete(transaction.token);
+      this.#ReleaseSelectionReservations(transaction);
+    }
+    DeleteKeysWithPrefix(this.#randomHistory, prefix);
+    DeleteKeysWithPrefix(this.#shufflePools, prefix);
+    DeleteKeysWithPrefix(this.#sequencePositions, prefix);
+    DeleteKeysWithPrefix(this.#continuousSequencePositions, prefix);
+  }
+
+  /** Reserves speculative random choices against concurrent preparations. */
+  #ReserveSelectionOperations(transaction) {
+    for (const operation of transaction.operations) {
+      if (operation.kind !== "random") {
+        continue;
+      }
+      const key = `random\0${operation.key}`;
+      const reservation = {
+        transaction,
+        selected: operation.selected,
+        advance: operation.advance ?? 0
+      };
+      const reservations = this.#selectionReservations.get(key) ?? [];
+      reservations.push(reservation);
+      this.#selectionReservations.set(key, reservations);
+      transaction.reservations.push({
+        key,
+        reservation
+      });
+    }
+  }
+
+  /** Removes every pending choice owned by one settled transaction. */
+  #ReleaseSelectionReservations(transaction) {
+    for (const {
+      key,
+      reservation
+    } of transaction.reservations) {
+      const reservations = this.#selectionReservations.get(key)?.filter(value => value !== reservation) ?? [];
+      if (reservations.length) {
+        this.#selectionReservations.set(key, reservations);
+      } else {
+        this.#selectionReservations.delete(key);
+      }
+    }
+    transaction.reservations.length = 0;
+  }
+
+  /** Merges heard speculative choices into current shared selection state. */
+  #CommitSelectionOperations(operations) {
+    for (const operation of operations) {
+      if (operation.kind === "random") {
+        if (operation.historyLength > 0) {
+          const history = [...(this.#randomHistory.get(operation.key) ?? []), operation.selected].slice(-operation.historyLength);
+          this.#randomHistory.set(operation.key, history);
+        }
+        if (operation.shuffle) {
+          let pool = this.#shufflePools.get(operation.key);
+          if (!pool?.length) {
+            pool = operation.children.map((child, index) => ({
+              child,
+              index
+            }));
+          } else {
+            pool = pool.map(value => ({
+              ...value
+            }));
+          }
+          const index = pool.findIndex(value => value.index === operation.selected);
+          if (index !== -1) {
+            pool.splice(index, 1);
+          }
+          this.#shufflePools.set(operation.key, pool);
+        }
+      } else if (operation.kind === "sequence") {
+        const position = this.#sequencePositions.get(operation.key) ?? 0;
+        this.#sequencePositions.set(operation.key, position + operation.advance);
+      } else if (operation.kind === "continuous-sequence") {
+        const position = this.#continuousSequencePositions.get(operation.key) ?? 0;
+        this.#continuousSequencePositions.set(operation.key, position + operation.advance);
+      }
+    }
+  }
+}
+
 /**
  * Resolves authored SFX containers into one or more playable media selections.
  */
@@ -40,13 +271,10 @@ class CjsSfxEngine {
   #sequencePositions = new Map();
   #continuousSequencePositions = new Map();
   #continuousSessions = new WeakSet();
-  #selectionTransaction = null;
   #selectionGeneration = 0;
+  #selectionLedger = null;
   #releasedGameObjGenerations = new Map();
   #tokenGenerations = new WeakMap();
-  #leasedTokens = new WeakMap();
-  #preparingToken = null;
-  #selectionReservations = new Map();
   #voiceLowPassTargets = new Set();
   #voiceHighPassTargets = new Set();
   #busVoiceVolumeTargets = new Set();
@@ -66,6 +294,12 @@ class CjsSfxEngine {
     }
     this.#graph = graph;
     this.#random = random;
+    this.#selectionLedger = new CjsSfxEngineSelectionTransactionLedger({
+      randomHistory: this.#randomHistory,
+      shufflePools: this.#shufflePools,
+      sequencePositions: this.#sequencePositions,
+      continuousSequencePositions: this.#continuousSequencePositions
+    });
     for (const program of Object.values(graph.programs ?? {})) {
       for (const action of program ?? []) {
         if (action.kind === "set-voice-low-pass") {
@@ -274,9 +508,7 @@ class CjsSfxEngine {
     if (!generation || generation.selection !== this.#selectionGeneration || generation.gameObj !== currentGameObjGeneration) {
       throw new TypeError("CjsSfxEngine continuation token has been invalidated");
     }
-    if (this.#leasedTokens.has(token) && this.#preparingToken !== token) {
-      throw new Error("CjsSfxEngine continuation token is being prepared");
-    }
+    this.#selectionLedger.AssertContinuationAvailable(token);
     if (token.done) {
       return Object.freeze([]);
     }
@@ -354,167 +586,35 @@ class CjsSfxEngine {
     if (!token || typeof token !== "object" || !this.#continuousSessions.has(token)) {
       throw new TypeError("CjsSfxEngine continuation token is invalid");
     }
-    if (this.#selectionTransaction) {
-      throw new Error("CjsSfxEngine cannot nest speculative continuation selection");
-    }
-    if (this.#leasedTokens.has(token)) {
-      throw new Error("CjsSfxEngine continuation token is already being prepared");
-    }
+    this.#selectionLedger.AssertCanPrepare(token);
     if (token.kind === "switch") {
       throw new TypeError("CjsSfxEngine Continuous Switch sessions cannot be prepared");
     }
     if (token.kind === "nested-trigger-rate-delay") {
       throw new TypeError("CjsSfxEngine nested Trigger Rate sessions cannot be prepared");
     }
-    const beforeToken = CaptureContinuationToken(token);
-    const transaction = {
-      snapshots: new Map(),
-      operations: [],
-      ownerGameObjID: String(token.gameObjID),
-      reservations: [],
-      invalidated: false,
-      token
-    };
     const selectionGeneration = this.#selectionGeneration;
     const gameObjGeneration = this.#releasedGameObjGenerations.get(String(token.gameObjID)) ?? 0;
-    let program;
-    let afterToken;
-    this.#leasedTokens.set(token, transaction);
-    this.#selectionTransaction = transaction;
-    this.#preparingToken = token;
-    try {
-      program = this.ContinueProgram(token, controls);
-      afterToken = CaptureContinuationToken(token);
-    } catch (error) {
-      this.#leasedTokens.delete(token);
-      throw error;
-    } finally {
-      this.#preparingToken = null;
-      this.#selectionTransaction = null;
-      RestoreContinuationToken(token, beforeToken);
-      RestoreSelectionChanges(transaction.snapshots);
-    }
-    this.#ReserveSelectionOperations(transaction);
-    let settled = false;
-    return Object.freeze({
-      program,
-      commit: () => {
-        if (!settled) {
-          settled = true;
-          this.#leasedTokens.delete(token);
-          this.#ReleaseSelectionReservations(transaction);
-          if (selectionGeneration !== this.#selectionGeneration || transaction.invalidated || gameObjGeneration !== (this.#releasedGameObjGenerations.get(String(token.gameObjID)) ?? 0)) {
-            return;
-          }
-          CommitContinuationToken(token, beforeToken, afterToken);
-          this.#CommitSelectionOperations(transaction.operations);
-        }
-      },
-      rollback: () => {
-        settled = true;
-        this.#leasedTokens.delete(token);
-        this.#ReleaseSelectionReservations(transaction);
-      }
+    return this.#selectionLedger.Prepare({
+      token,
+      resolve: () => this.ContinueProgram(token, controls),
+      isCurrent: () => selectionGeneration === this.#selectionGeneration && gameObjGeneration === (this.#releasedGameObjGenerations.get(String(token.gameObjID)) ?? 0)
     });
   }
 
   /** Captures one selection-state key before speculative mutation. */
   #TrackSelectionMutation(map, key) {
-    if (!this.#selectionTransaction) {
-      return;
-    }
-    let mutations = this.#selectionTransaction.snapshots.get(map);
-    if (!mutations) {
-      mutations = new Map();
-      this.#selectionTransaction.snapshots.set(map, mutations);
-    }
-    if (!mutations.has(key)) {
-      mutations.set(key, CaptureSelectionValue(map, key));
-    }
+    this.#selectionLedger.TrackMutation(map, key);
   }
 
   /** Records one mergeable selection effect for speculative commit. */
   #RecordSelectionOperation(operation) {
-    this.#selectionTransaction?.operations.push(operation);
-  }
-
-  /** Reserves speculative choices so later posts select around them. */
-  #ReserveSelectionOperations(transaction) {
-    for (const operation of transaction.operations) {
-      if (operation.kind !== "random") {
-        continue;
-      }
-      const key = `random\0${operation.key}`;
-      const reservation = {
-        transaction,
-        selected: operation.selected,
-        advance: operation.advance ?? 0
-      };
-      const reservations = this.#selectionReservations.get(key) ?? [];
-      reservations.push(reservation);
-      this.#selectionReservations.set(key, reservations);
-      transaction.reservations.push({
-        key,
-        reservation
-      });
-    }
-  }
-
-  /** Removes every pending choice owned by one settled transaction. */
-  #ReleaseSelectionReservations(transaction) {
-    for (const {
-      key,
-      reservation
-    } of transaction.reservations) {
-      const reservations = this.#selectionReservations.get(key)?.filter(value => value !== reservation) ?? [];
-      if (reservations.length) {
-        this.#selectionReservations.set(key, reservations);
-      } else {
-        this.#selectionReservations.delete(key);
-      }
-    }
-    transaction.reservations.length = 0;
+    this.#selectionLedger.RecordOperation(operation);
   }
 
   /** Returns speculative random children reserved on one state key. */
   #ReservedRandomSelections(key) {
-    return new Set((this.#selectionReservations.get(`random\0${key}`) ?? []).map(value => value.selected));
-  }
-
-  /** Merges heard speculative choices into the current shared state. */
-  #CommitSelectionOperations(operations) {
-    for (const operation of operations) {
-      if (operation.kind === "random") {
-        if (operation.historyLength > 0) {
-          const history = [...(this.#randomHistory.get(operation.key) ?? []), operation.selected].slice(-operation.historyLength);
-          this.#randomHistory.set(operation.key, history);
-        }
-        if (operation.shuffle) {
-          let pool = this.#shufflePools.get(operation.key);
-          if (!pool?.length) {
-            pool = operation.children.map((child, index) => ({
-              child,
-              index
-            }));
-          } else {
-            pool = pool.map(value => ({
-              ...value
-            }));
-          }
-          const index = pool.findIndex(value => value.index === operation.selected);
-          if (index !== -1) {
-            pool.splice(index, 1);
-          }
-          this.#shufflePools.set(operation.key, pool);
-        }
-      } else if (operation.kind === "sequence") {
-        const position = this.#sequencePositions.get(operation.key) ?? 0;
-        this.#sequencePositions.set(operation.key, position + operation.advance);
-      } else if (operation.kind === "continuous-sequence") {
-        const position = this.#continuousSequencePositions.get(operation.key) ?? 0;
-        this.#continuousSequencePositions.set(operation.key, position + operation.advance);
-      }
-    }
+    return this.#selectionLedger.ReservedRandomSelections(key);
   }
 
   /** Samples one authored Continuous transition duration. */
@@ -585,37 +685,14 @@ class CjsSfxEngine {
   Reset() {
     this.#selectionGeneration++;
     this.#releasedGameObjGenerations.clear();
-    this.#selectionReservations.clear();
-    this.#randomHistory.clear();
-    this.#shufflePools.clear();
-    this.#sequencePositions.clear();
-    this.#continuousSequencePositions.clear();
+    this.#selectionLedger.Reset();
   }
 
   /** Releases object-scoped container state for one unregistered game object. */
   ReleaseGameObj(gameObjID) {
     const id = String(gameObjID);
-    const prefix = `o:${id}\0`;
     this.#releasedGameObjGenerations.set(id, (this.#releasedGameObjGenerations.get(id) ?? 0) + 1);
-    const invalidated = new Set();
-    for (const reservations of this.#selectionReservations.values()) {
-      for (const {
-        transaction
-      } of reservations) {
-        if (transaction.ownerGameObjID === id) {
-          invalidated.add(transaction);
-        }
-      }
-    }
-    for (const transaction of invalidated) {
-      transaction.invalidated = true;
-      this.#leasedTokens.delete(transaction.token);
-      this.#ReleaseSelectionReservations(transaction);
-    }
-    DeleteKeysWithPrefix(this.#randomHistory, prefix);
-    DeleteKeysWithPrefix(this.#shufflePools, prefix);
-    DeleteKeysWithPrefix(this.#sequencePositions, prefix);
-    DeleteKeysWithPrefix(this.#continuousSequencePositions, prefix);
+    this.#selectionLedger.ReleaseGameObj(id);
   }
 
   /** Resolves one child edge and its target node. */

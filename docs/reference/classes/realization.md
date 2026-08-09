@@ -195,6 +195,16 @@ Resolves an optional authored SFX program into media voices and live RTPC gains.
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsSfxEngineSelectionTransactionLedger -->
+## `CjsSfxEngineSelectionTransactionLedger`
+
+Owns speculative SFX selection leases, snapshots, and settlement.
+
+- Export: None
+- Source: `src/CjsSfxEngine.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:MusicInstance -->
 ## `MusicInstance`
 
