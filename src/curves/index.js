@@ -40,3 +40,4 @@ export * from "./TriColorSequencer.js";
 export * from "./TriVectorSequencer.js";
 export * from "./contracts.js";
 export * from "./enums.js";
+export * from "./Tr2VectorFunctionModifier.js";

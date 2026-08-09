@@ -39,4 +39,5 @@ export { TriPerlinCurve } from './TriPerlinCurve.js';
 export { TriColorSequencer } from './TriColorSequencer.js';
 export { TriVectorSequencer } from './TriVectorSequencer.js';
 export { RotationSetting, TRIEXTRAPOLATION, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting, TriExtrapolation } from './enums.js';
+export { Tr2VectorFunctionModifier } from './Tr2VectorFunctionModifier.js';
 //# sourceMappingURL=index.js.map

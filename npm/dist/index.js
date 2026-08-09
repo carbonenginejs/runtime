@@ -73,6 +73,7 @@ export { TriPerlinCurve } from './curves/TriPerlinCurve.js';
 export { TriColorSequencer } from './curves/TriColorSequencer.js';
 export { TriVectorSequencer } from './curves/TriVectorSequencer.js';
 export { RotationSetting, TRIEXTRAPOLATION, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting, TriExtrapolation } from './curves/enums.js';
+export { Tr2VectorFunctionModifier } from './curves/Tr2VectorFunctionModifier.js';
 export { BackAndForthData } from './eve/BackAndForthData.js';
 export { CjsEveThrottleableState } from './eve/CjsEveThrottleableState.js';
 export { EveChildUpdateParams } from './eve/EveChildUpdateParams.js';
@@ -451,6 +452,8 @@ export { Tr2EffectStateManager } from './shader/support/Tr2EffectStateManager.js
 export { Tr2ShaderBuffer } from './shader/support/Tr2ShaderBuffer.js';
 export { PROJECTION_TYPE, RenderingMode } from './generated/shader/enums.js';
 export { Range } from './utilities/Range.js';
+export { Tr2MaterialBoundsAdjustment } from './utilities/Tr2MaterialBoundsAdjustment.js';
+export { Float4x3 } from './utilities/Float4x3.js';
 export { CjsBatchManager } from './trinityCore/CjsBatchManager.js';
 export { CjsFrameDriver } from './trinityCore/CjsFrameDriver.js';
 export { GrannyBoneOffset } from './trinityCore/GrannyBoneOffset.js';
@@ -515,7 +518,6 @@ export { Tr2PrimitiveSet } from './trinityCore/Tr2PrimitiveSet.js';
 export { Tr2BoundingLineSet } from './trinityCore/Tr2BoundingLineSet.js';
 export { Tr2ManipulationTool } from './trinityCore/Tr2ManipulationTool.js';
 export { Tr2PresentParameters } from './ui/Tr2PresentParameters.js';
-export { Tr2VectorFunctionModifier } from './generated/curves/Tr2VectorFunctionModifier.js';
 export { EveChildCloud } from './generated/eve/child/EveChildCloud.js';
 export { EveChildInstanceMeshRenderer } from './generated/eve/child/EveChildInstanceMeshRenderer.js';
 export { EveCloudEditableVolume } from './generated/eve/child/EveCloudEditableVolume.js';
@@ -609,8 +611,6 @@ export { Tr2TranslationTool } from './generated/trinityCore/Tr2TranslationTool.j
 export { Tr2VolumetricsRenderer } from './generated/trinityCore/Tr2VolumetricsRenderer.js';
 export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriBatchType, TriFrustumTestResult, TriVariableContentType } from './generated/trinityCore/enums.js';
 export { INPUTTYPE, UIALIGN, UIANCHOR, UIBOX, UICONTROLTYPE, UICURSOR, UID, UIFONTSIZE, UIFONTSTYLE, UIHITAREA, UIINITPOS, UIMESSAGE, UISTATE, UITRAVERSE } from './generated/ui/enums.js';
-export { Float4x3 } from './generated/utilities/Float4x3.js';
 export { Obb } from './generated/utilities/Obb.js';
-export { Tr2MaterialBoundsAdjustment } from './generated/utilities/Tr2MaterialBoundsAdjustment.js';
 export { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 //# sourceMappingURL=index.js.map

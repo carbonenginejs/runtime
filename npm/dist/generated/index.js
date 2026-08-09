@@ -1,4 +1,3 @@
-export { Tr2VectorFunctionModifier } from './curves/Tr2VectorFunctionModifier.js';
 export { EveChildCloud } from './eve/child/EveChildCloud.js';
 export { EveChildInstanceMeshRenderer } from './eve/child/EveChildInstanceMeshRenderer.js';
 export { EveCloudEditableVolume } from './eve/child/EveCloudEditableVolume.js';
@@ -96,7 +95,5 @@ export { Tr2TranslationTool } from './trinityCore/Tr2TranslationTool.js';
 export { Tr2VolumetricsRenderer } from './trinityCore/Tr2VolumetricsRenderer.js';
 export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriBatchType, TriFrustumTestResult, TriVariableContentType } from './trinityCore/enums.js';
 export { INPUTTYPE, UIALIGN, UIANCHOR, UIBOX, UICONTROLTYPE, UICURSOR, UID, UIFONTSIZE, UIFONTSTYLE, UIHITAREA, UIINITPOS, UIMESSAGE, UISTATE, UITRAVERSE } from './ui/enums.js';
-export { Float4x3 } from './utilities/Float4x3.js';
 export { Obb } from './utilities/Obb.js';
-export { Tr2MaterialBoundsAdjustment } from './utilities/Tr2MaterialBoundsAdjustment.js';
 //# sourceMappingURL=index.js.map
