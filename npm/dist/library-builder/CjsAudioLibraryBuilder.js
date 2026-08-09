@@ -2701,96 +2701,199 @@ function CreateBusEffectCatalog(inspections, buses, routedBusIds) {
     buses: result
   };
 }
-function CreateBusGraphCatalog(inspections, musicInspections, buses) {
-  const effectsResult = CjsBnkFormat.wwise.effectNodesFromBanks(inspections);
-  const sfxResult = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
-  const musicResult = musicInspections.length ? CjsBnkFormat.wwise.musicNodesFromBanks(musicInspections) : {
-    nodes: new Map(),
-    diagnostics: {
-      failed: [],
-      unsupportedVersions: []
-    }
-  };
-  if (effectsResult.diagnostics.failed.length || effectsResult.diagnostics.unsupportedVersions.length || sfxResult.diagnostics.failed.length || sfxResult.diagnostics.unsupportedVersions?.length || musicResult.diagnostics.failed.length || musicResult.diagnostics.unsupportedVersions?.length) {
-    throw new Error("Audio Bus graph qualification failed");
+
+/** Owns Wwise Bus graph qualification, route interning, and projection. */
+class CjsAudioLibraryBuilderBusGraphConstructionSession {
+  #buses = null;
+  #candidates = [];
+  #effectsResult = null;
+  #graphBuses = {};
+  #graphEffects = {};
+  #inspections = null;
+  #musicAncestry = null;
+  #musicInspections = null;
+  #musicResult = null;
+  #musicRoutes = {};
+  #reachable = new Set();
+  #routes = [];
+  #sfxAncestry = null;
+  #sfxResult = null;
+  #sfxRoutes = {};
+
+  /** Creates one construction session for already parsed Audio Buses. */
+  constructor({
+    inspections,
+    musicInspections,
+    buses
+  }) {
+    this.#inspections = inspections;
+    this.#musicInspections = musicInspections;
+    this.#buses = buses;
   }
-  const candidates = [];
-  const sfxAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(id => sfxResult.nodeBases.get(id));
-  const musicAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(id => musicResult.nodes.get(id)?.nodeBase);
-  for (const [id, node] of sfxResult.nodes) {
-    if (node.type !== "sound") continue;
-    const routing = CreateSfxBusRouting(sfxAncestry, id, buses);
-    if (!routing) continue;
-    candidates.push({
-      kind: "sfx",
-      nodeId: String(id),
-      route: {
-        ...routing,
-        ...CreateEffectiveNodeAuxRouting(id, sfxAncestry)
+
+  /** Builds one deterministic plain Bus graph catalog. */
+  Build() {
+    this.#ParseSources();
+    this.#CollectCandidates();
+    this.#InternRoutes();
+    this.#CollectReachableBuses();
+    this.#ProjectBuses();
+    return {
+      schemaVersion: 1,
+      buses: this.#graphBuses,
+      effects: Object.fromEntries(Object.entries(this.#graphEffects).sort(([left], [right]) => Number(left) - Number(right))),
+      routes: this.#routes,
+      sfxRoutes: this.#sfxRoutes,
+      musicRoutes: this.#musicRoutes
+    };
+  }
+
+  /** Parses and qualifies every source catalog used by Bus routing. */
+  #ParseSources() {
+    this.#effectsResult = CjsBnkFormat.wwise.effectNodesFromBanks(this.#inspections);
+    this.#sfxResult = CjsBnkFormat.wwise.sfxNodesFromBanks(this.#inspections);
+    this.#musicResult = this.#musicInspections.length ? CjsBnkFormat.wwise.musicNodesFromBanks(this.#musicInspections) : {
+      nodes: new Map(),
+      diagnostics: {
+        failed: [],
+        unsupportedVersions: []
       }
-    });
+    };
+    if (this.#effectsResult.diagnostics.failed.length || this.#effectsResult.diagnostics.unsupportedVersions.length || this.#sfxResult.diagnostics.failed.length || this.#sfxResult.diagnostics.unsupportedVersions?.length || this.#musicResult.diagnostics.failed.length || this.#musicResult.diagnostics.unsupportedVersions?.length) {
+      throw new Error("Audio Bus graph qualification failed");
+    }
+    this.#sfxAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(id => this.#sfxResult.nodeBases.get(id));
+    this.#musicAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(id => this.#musicResult.nodes.get(id)?.nodeBase);
   }
-  for (const [id, node] of musicResult.nodes) {
-    if (node.type !== "music-track") continue;
-    const routing = CreateMusicBusRouting(musicAncestry, id, buses);
-    if (!routing) continue;
-    candidates.push({
-      kind: "music",
-      nodeId: String(id),
-      route: {
-        ...routing,
-        ...CreateEffectiveNodeAuxRouting(id, musicAncestry)
+
+  /** Collects every routed SFX Sound and Music Track candidate. */
+  #CollectCandidates() {
+    for (const [id, node] of this.#sfxResult.nodes) {
+      if (node.type !== "sound") continue;
+      const routing = CreateSfxBusRouting(this.#sfxAncestry, id, this.#buses);
+      if (!routing) continue;
+      this.#candidates.push({
+        kind: "sfx",
+        nodeId: String(id),
+        route: {
+          ...routing,
+          ...CreateEffectiveNodeAuxRouting(id, this.#sfxAncestry)
+        }
+      });
+    }
+    for (const [id, node] of this.#musicResult.nodes) {
+      if (node.type !== "music-track") continue;
+      const routing = CreateMusicBusRouting(this.#musicAncestry, id, this.#buses);
+      if (!routing) continue;
+      this.#candidates.push({
+        kind: "music",
+        nodeId: String(id),
+        route: {
+          ...routing,
+          ...CreateEffectiveNodeAuxRouting(id, this.#musicAncestry)
+        }
+      });
+    }
+  }
+
+  /** Interns identical routes and assigns stable indices by signature. */
+  #InternRoutes() {
+    const routesBySignature = new Map();
+    for (const candidate of this.#candidates) {
+      const signature = JSON.stringify(candidate.route);
+      if (!routesBySignature.has(signature)) {
+        routesBySignature.set(signature, candidate.route);
       }
-    });
-  }
-  const routesBySignature = new Map();
-  for (const candidate of candidates) {
-    const signature = JSON.stringify(candidate.route);
-    if (!routesBySignature.has(signature)) {
-      routesBySignature.set(signature, candidate.route);
+      candidate.signature = signature;
     }
-    candidate.signature = signature;
-  }
-  const signatures = [...routesBySignature.keys()].sort();
-  const routeIndices = new Map(signatures.map((signature, index) => [signature, index]));
-  const routes = signatures.map(signature => routesBySignature.get(signature));
-  const sfxRoutes = {};
-  const musicRoutes = {};
-  for (const candidate of candidates.sort((left, right) => Number(left.nodeId) - Number(right.nodeId))) {
-    const target = candidate.kind === "sfx" ? sfxRoutes : musicRoutes;
-    target[candidate.nodeId] = routeIndices.get(candidate.signature);
-  }
-  const reachable = new Set();
-  const pending = routes.flatMap(route => [...route.busPathIds, ...(route.userAuxSends ?? []).map(send => send.targetBusId), route.reflectionsAuxSend?.targetBusId].filter(Boolean).map(Number));
-  while (pending.length) {
-    const busId = Number(pending.pop()) >>> 0;
-    if (!busId || reachable.has(busId)) continue;
-    const bus = buses.get(busId);
-    if (!bus) {
-      throw new Error(`Audio Bus graph references missing bus ${busId}`);
+    const signatures = [...routesBySignature.keys()].sort();
+    const routeIndices = new Map(signatures.map((signature, index) => [signature, index]));
+    this.#routes = signatures.map(signature => routesBySignature.get(signature));
+    for (const candidate of this.#candidates.sort((left, right) => Number(left.nodeId) - Number(right.nodeId))) {
+      const target = candidate.kind === "sfx" ? this.#sfxRoutes : this.#musicRoutes;
+      target[candidate.nodeId] = routeIndices.get(candidate.signature);
     }
-    reachable.add(busId);
-    const busAux = CreateAuthoredAuxRouting(bus, `Audio Bus ${busId}`);
-    pending.push(Number(bus.overrideBusId) >>> 0, ...(busAux.userAuxSends ?? []).map(send => Number(send.targetBusId)), Number(busAux.reflectionsAuxSend?.targetBusId) >>> 0);
   }
-  const graphBuses = {};
-  const graphEffects = {};
-  for (const busId of [...reachable].sort((left, right) => left - right)) {
-    const bus = buses.get(busId);
-    const aux = CreateAuthoredAuxRouting(bus, `Audio Bus ${busId}`);
-    const slots = [...(bus.fx?.slots ?? [])].sort((left, right) => left.index - right.index).map(slot => {
+
+  /** Finds the complete parent and auxiliary Bus closure for every route. */
+  #CollectReachableBuses() {
+    const pending = this.#routes.flatMap(route => [...route.busPathIds, ...(route.userAuxSends ?? []).map(send => send.targetBusId), route.reflectionsAuxSend?.targetBusId].filter(Boolean).map(Number));
+    while (pending.length) {
+      const busId = Number(pending.pop()) >>> 0;
+      if (!busId || this.#reachable.has(busId)) continue;
+      const bus = this.#buses.get(busId);
+      if (!bus) {
+        throw new Error(`Audio Bus graph references missing bus ${busId}`);
+      }
+      this.#reachable.add(busId);
+      const busAux = CreateAuthoredAuxRouting(bus, `Audio Bus ${busId}`);
+      pending.push(Number(bus.overrideBusId) >>> 0, ...(busAux.userAuxSends ?? []).map(send => Number(send.targetBusId)), Number(busAux.reflectionsAuxSend?.targetBusId) >>> 0);
+    }
+  }
+
+  /** Projects every reachable Bus and its qualified effect slots. */
+  #ProjectBuses() {
+    for (const busId of [...this.#reachable].sort((left, right) => left - right)) {
+      const bus = this.#buses.get(busId);
+      const aux = CreateAuthoredAuxRouting(bus, `Audio Bus ${busId}`);
+      const slots = this.#ProjectEffectSlots(busId, bus);
+      this.#graphBuses[String(busId)] = {
+        type: bus.type,
+        ...(Number(bus.overrideBusId) >>> 0 ? {
+          parentBusId: String(Number(bus.overrideBusId) >>> 0)
+        } : {}),
+        channelConfig: {
+          ...bus.channelConfig
+        },
+        properties: [...(bus.properties ?? [])].map(property => ({
+          id: Number(property.id),
+          rawValue: Number(property.rawValue) >>> 0
+        })).sort((left, right) => left.id - right.id),
+        positioning: {
+          flags: Number(bus.positioning?.flags) || 0,
+          overrideParent: Boolean(bus.positioning?.overrideParent),
+          listenerRelative: Boolean(bus.positioning?.listenerRelative),
+          pannerType: Number(bus.positioning?.pannerType) || 0,
+          positionType: Number(bus.positioning?.positionType) || 0
+        },
+        hdr: {
+          flags: Number(bus.hdr?.flags) || 0,
+          enabled: Boolean(bus.hdr?.enabled),
+          exponentialRelease: Boolean(bus.hdr?.exponentialRelease)
+        },
+        auxFlags: Number(bus.aux?.flags) || 0,
+        bypassAllEffects: Boolean(bus.fx?.bypassAll),
+        ...(bus.busVolume === null || bus.busVolume === undefined ? {} : {
+          busVolumeDb: Number(bus.busVolume)
+        }),
+        ...(bus.makeUpGain === null || bus.makeUpGain === undefined ? {} : {
+          makeUpGainDb: Number(bus.makeUpGain)
+        }),
+        ...(bus.outputBusVolume === null || bus.outputBusVolume === undefined ? {} : {
+          outputBusVolumeDb: Number(bus.outputBusVolume)
+        }),
+        ...aux,
+        effects: slots,
+        requiresProcessing: this.#CreateProcessingReasons(bus, aux, slots)
+      };
+    }
+  }
+
+  /** Projects and registers one Bus's ordered effect slots. */
+  #ProjectEffectSlots(busId, bus) {
+    return [...(bus.fx?.slots ?? [])].sort((left, right) => left.index - right.index).map(slot => {
       if ((Number(slot.flags) & -8) !== 0) {
-        throw new Error(`Audio Bus ${busId} effect ${slot.fxId} has unsupported slot flags`);
+        throw new Error(`Audio Bus ${busId} effect ${slot.fxId}` + " has unsupported slot flags");
       }
-      const effect = effectsResult.effects.get(slot.fxId);
+      const effect = this.#effectsResult.effects.get(slot.fxId);
       if (!effect) {
         throw new Error(`Audio Bus ${busId} effect ${slot.fxId} is missing`);
       }
       const expectsShareSet = effect.type === "effect-share-set";
       if (slot.shareSet !== expectsShareSet) {
-        throw new Error(`Audio Bus ${busId} effect ${slot.fxId} has a mismatched ShareSet flag`);
+        throw new Error(`Audio Bus ${busId} effect ${slot.fxId}` + " has a mismatched ShareSet flag");
       }
-      graphEffects[String(effect.id)] = CreatePortableEffect(effect);
+      this.#graphEffects[String(effect.id)] = CreatePortableEffect(effect);
       return {
         slotIndex: Number(slot.index),
         effectId: String(effect.id),
@@ -2799,6 +2902,10 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses) {
         rendered: Boolean(slot.rendered)
       };
     });
+  }
+
+  /** Classifies which authored Bus features require runtime processing. */
+  #CreateProcessingReasons(bus, aux, slots) {
     const reasons = [];
     if (bus.type === "auxiliary-bus") reasons.push("auxiliary-bus");
     if (aux.userAuxSends?.length || aux.reflectionsAuxSend) {
@@ -2828,54 +2935,15 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses) {
       reasons.push("state");
     }
     if (bus.ducks?.length) reasons.push("ducking");
-    graphBuses[String(busId)] = {
-      type: bus.type,
-      ...(Number(bus.overrideBusId) >>> 0 ? {
-        parentBusId: String(Number(bus.overrideBusId) >>> 0)
-      } : {}),
-      channelConfig: {
-        ...bus.channelConfig
-      },
-      properties: [...(bus.properties ?? [])].map(property => ({
-        id: Number(property.id),
-        rawValue: Number(property.rawValue) >>> 0
-      })).sort((left, right) => left.id - right.id),
-      positioning: {
-        flags: Number(bus.positioning?.flags) || 0,
-        overrideParent: Boolean(bus.positioning?.overrideParent),
-        listenerRelative: Boolean(bus.positioning?.listenerRelative),
-        pannerType: Number(bus.positioning?.pannerType) || 0,
-        positionType: Number(bus.positioning?.positionType) || 0
-      },
-      hdr: {
-        flags: Number(bus.hdr?.flags) || 0,
-        enabled: Boolean(bus.hdr?.enabled),
-        exponentialRelease: Boolean(bus.hdr?.exponentialRelease)
-      },
-      auxFlags: Number(bus.aux?.flags) || 0,
-      bypassAllEffects: Boolean(bus.fx?.bypassAll),
-      ...(bus.busVolume === null || bus.busVolume === undefined ? {} : {
-        busVolumeDb: Number(bus.busVolume)
-      }),
-      ...(bus.makeUpGain === null || bus.makeUpGain === undefined ? {} : {
-        makeUpGainDb: Number(bus.makeUpGain)
-      }),
-      ...(bus.outputBusVolume === null || bus.outputBusVolume === undefined ? {} : {
-        outputBusVolumeDb: Number(bus.outputBusVolume)
-      }),
-      ...aux,
-      effects: slots,
-      requiresProcessing: reasons.sort()
-    };
+    return reasons.sort();
   }
-  return {
-    schemaVersion: 1,
-    buses: graphBuses,
-    effects: Object.fromEntries(Object.entries(graphEffects).sort(([left], [right]) => Number(left) - Number(right))),
-    routes,
-    sfxRoutes,
-    musicRoutes
-  };
+}
+function CreateBusGraphCatalog(inspections, musicInspections, buses) {
+  return new CjsAudioLibraryBuilderBusGraphConstructionSession({
+    inspections,
+    musicInspections,
+    buses
+  }).Build();
 }
 function CreateEffectiveNodeAuxRouting(rawId, ancestry) {
   let userAuxSends;

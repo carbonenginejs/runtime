@@ -6251,6 +6251,14 @@ test("routed Parametric EQ qualification rejects unsupported static forms", asyn
         /mismatched ShareSet flag/,
     );
     await assert.rejects(
+        BuildRoutedEffectLibrary({ effectFlags: 10 }),
+        /effect 900 has unsupported slot flags/,
+    );
+    await assert.rejects(
+        BuildRoutedEffectLibrary({ includeEffect: false }),
+        /effect 900 is missing/,
+    );
+    await assert.rejects(
         BuildRoutedEffectLibrary({
             effectPayload: parametricEqEffectPayload({
                 bands,
@@ -6267,6 +6275,10 @@ test("routed Parametric EQ qualification rejects unsupported static forms", asyn
         unsupportedEffectFlags: 1,
     });
 
+    assert.deepEqual(
+        blocked.busGraph.buses["500"].effects.map(slot => slot.slotIndex),
+        [ 0, 1 ],
+    );
     assert.equal(
         blocked.busEffects,
         undefined,
@@ -6363,6 +6375,22 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
                             }),
                         },
                         {
+                            type: 2,
+                            id: 302,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideBusId: 500,
+                                directParentId: 400,
+                                properties: [ { id: 0x08, value: -12 } ],
+                                auxIds: [ 999 ],
+                                overrideUserAux: false,
+                            }),
+                        },
+                        {
                             type: 7,
                             id: 400,
                             payload: actorMixerPayload({
@@ -6373,7 +6401,7 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
                                     propertyId: 0x27,
                                     accumulation: 0,
                                 } ],
-                                children: [ 300 ],
+                                children: [ 300, 302 ],
                             }),
                         },
                         {
@@ -6435,12 +6463,20 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
                         {
                             type: 18,
                             id: 600,
-                            payload: busPayload({ parentId: 1 }),
+                            payload: busPayload({
+                                parentId: 1,
+                                auxIds: [ 700 ],
+                                overrideUserAux: true,
+                            }),
                         },
                         {
                             type: 18,
                             id: 700,
-                            payload: busPayload({ parentId: 1 }),
+                            payload: busPayload({
+                                parentId: 1,
+                                auxIds: [ 600 ],
+                                overrideUserAux: true,
+                            }),
                         },
                         {
                             type: 18,
@@ -6479,6 +6515,7 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
     } ]);
     assert.equal(library.busGraph.sfxRoutes["300"], 0);
     assert.equal(library.busGraph.sfxRoutes["301"], 1);
+    assert.equal(library.busGraph.sfxRoutes["302"], 0);
     assert.deepEqual(library.busGraph.buses["500"].userAuxSends, [ {
         slotIndex: 0,
         targetBusId: "700",
@@ -6500,6 +6537,10 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
         gainDb: 0,
         dynamic: false,
     });
+    assert.equal(
+        library.busGraph.buses["700"].userAuxSends[0].targetBusId,
+        "600",
+    );
     assert.deepEqual(Object.keys(library.busGraph.buses), [
         "1",
         "500",
@@ -9947,6 +9988,7 @@ function BuildRoutedEffectLibrary({
     effectType = 16,
     effectFlags = 2,
     effectPayload = null,
+    includeEffect = true,
     unsupportedEffectFlags = null,
 } = {})
 {
@@ -10022,13 +10064,16 @@ function BuildRoutedEffectLibrary({
                                     pluginId: 0x006c0003,
                                 }),
                             } ]),
-                        {
-                            type: effectType,
-                            id: 900,
-                            payload: effectPayload ?? parametricEqEffectPayload({
-                                bands: defaultBands,
-                            }),
-                        },
+                        ...(includeEffect
+                            ? [ {
+                                type: effectType,
+                                id: 900,
+                                payload: effectPayload
+                                    ?? parametricEqEffectPayload({
+                                        bands: defaultBands,
+                                    }),
+                            } ]
+                            : []),
                     ],
                     media: [],
                 },
