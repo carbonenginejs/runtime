@@ -8,18 +8,18 @@ import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { GrannyBoneOffset, Tr2DepthStencil, Tr2DirectInstanceData, Tr2ExpressionTermInfo, Tr2GpuBuffer, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2MeshBase, Tr2PrimaryRenderContext, Tr2RenderContext, Tr2RenderTarget, Tr2RuntimeGpuBuffer, Tr2RuntimeInstanceData, Tr2SwapChain, Tr2VariableStore, Tr2VisibilityResults, TriDevice, TriObserverLocal, TriProjection, TriRect, TriSettings, TriVariable, TriView, TriViewport } from "../npm/dist/trinityCore/index.js";
 import { Tr2PresentParameters } from "../npm/dist/ui/index.js";
 import { TriBatchType } from "../npm/dist/generated/trinityCore/enums.js";
-import { Tr2DebugRenderer } from "../npm/dist/generated/trinityCore/Tr2DebugRenderer.js";
+import { Tr2DebugRenderer } from "../npm/dist/trinityCore/Tr2DebugRenderer.js";
 import { Tr2ParticleElementDeclaration } from "../npm/dist/particle/Tr2ParticleElementDeclaration.js";
 import { Tr2ParticleSystem } from "../npm/dist/generated/particle/Tr2ParticleSystem.js";
 import { Tr2HostBitmap } from "../npm/dist/generated/trinityCore/Tr2HostBitmap.js";
 import { Tr2SSAO } from "../npm/dist/generated/trinityCore/Tr2SSAO.js";
-import { Tr2BoundingLineSet } from "../npm/dist/generated/trinityCore/Tr2BoundingLineSet.js";
-import { Tr2LineSet } from "../npm/dist/generated/trinityCore/Tr2LineSet.js";
-import { Tr2LineGraph } from "../npm/dist/generated/trinityCore/Tr2LineGraph.js";
-import { Tr2SolidSet } from "../npm/dist/generated/trinityCore/Tr2SolidSet.js";
-import { TriRigidOrientation } from "../npm/dist/generated/trinityCore/TriRigidOrientation.js";
+import { Tr2BoundingLineSet } from "../npm/dist/trinityCore/Tr2BoundingLineSet.js";
+import { Tr2LineSet } from "../npm/dist/trinityCore/Tr2LineSet.js";
+import { Tr2LineGraph } from "../npm/dist/trinityCore/Tr2LineGraph.js";
+import { Tr2SolidSet } from "../npm/dist/trinityCore/Tr2SolidSet.js";
+import { TriRigidOrientation } from "../npm/dist/trinityCore/TriRigidOrientation.js";
 import { TriTorque } from "../npm/dist/trinityCore/TriTorque.js";
-import { TriLineSet } from "../npm/dist/generated/trinityCore/TriLineSet.js";
+import { TriLineSet } from "../npm/dist/trinityCore/TriLineSet.js";
 
 
 const { TermType } = Tr2ExpressionTermInfo;

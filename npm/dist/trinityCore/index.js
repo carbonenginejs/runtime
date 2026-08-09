@@ -48,4 +48,17 @@ export { TriValueBinding } from './binding/TriValueBinding.js';
 export { convertProjectionCoordToWorldPickRay, screenToProjection } from './pickRay.js';
 export { RawData, RawDataEncoders, RawDataType } from './rawData/RawData.js';
 export { TriPoolAllocator } from './rawData/TriPoolAllocator.js';
+export { Tr2CurveLineSet } from './Tr2CurveLineSet.js';
+export { TriLineSet } from './TriLineSet.js';
+export { Tr2DebugRenderer } from './Tr2DebugRenderer.js';
+export { Tr2QuadRenderer, Tr2QuadRendererEffectRecord } from './Tr2QuadRenderer.js';
+export { Tr2LineSet } from './Tr2LineSet.js';
+export { Tr2SolidSet } from './Tr2SolidSet.js';
+export { Tr2LineGraph } from './Tr2LineGraph.js';
+export { Tr2TextureAnimation } from './Tr2TextureAnimation.js';
+export { TriRigidOrientation } from './TriRigidOrientation.js';
+export { Tr2ScalingTool } from './Tr2ScalingTool.js';
+export { Tr2PrimitiveSet } from './Tr2PrimitiveSet.js';
+export { Tr2BoundingLineSet } from './Tr2BoundingLineSet.js';
+export { Tr2ManipulationTool } from './Tr2ManipulationTool.js';
 //# sourceMappingURL=index.js.map

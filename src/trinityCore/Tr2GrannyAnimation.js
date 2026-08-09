@@ -11,7 +11,7 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { CjsGrannyCurves } from "../curves/CjsGrannyCurves.js";
-import { GrannyBoneOffset } from "../trinityCore/GrannyBoneOffset.js";
+import { GrannyBoneOffset } from "./GrannyBoneOffset.js";
 
 
 function createLayer(name = "", weight = 1, allBones = false)

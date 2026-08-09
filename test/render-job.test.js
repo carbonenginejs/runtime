@@ -22,7 +22,7 @@ import { TriStepRenderLineGraph } from "../npm/dist/renderJob/index.js";
 import { TriStepRenderTexture } from "../npm/dist/renderJob/index.js";
 import { TriStepRenderDebug } from "../npm/dist/renderJob/index.js";
 import { TriStepToggleCubemap } from "../npm/dist/renderJob/index.js";
-import { Tr2LineGraph } from "../npm/dist/generated/trinityCore/Tr2LineGraph.js";
+import { Tr2LineGraph } from "../npm/dist/trinityCore/Tr2LineGraph.js";
 
 
 function assertEquals(actual, expected, message)
