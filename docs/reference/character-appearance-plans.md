@@ -243,8 +243,8 @@ or channel registration result.
 | --- | --- | --- |
 | A lower-body selection that authors a standard tuck requests waist coordination, tuck support, tuck-mask, and fitting-shape dependencies. | **Proven authored relationship.** Decoded modifier metadata names the dependency and occlusion edges. | The requesting lower-body selection is the dependency owner. |
 | Waist-coordination records suppress or orient tuck, drape, mask, and fitting-shape behavior without supplying visible material. | **Proven for the reviewed decoded records.** Their retained metadata carries coordination and occlusion meaning without a renderable contribution. | Represent coordination separately from a visible layer. |
-| The basic tuck dependency supplies support configuration and geometry, while the authored mask dependency resolves to texture candidates. | **Proven decoded resource inventory.** Treating the resolved mask texture as cut coverage is implemented and structurally tested adapter policy, not yet visual proof. | The support mesh is a decoded contributor. Retain the mask candidate with its lower-body owner and label the eventual cut operation as policy until stronger proof is available. |
-| The selected top supplies the visible material and alpha for the tuck support mesh. | **Derived policy only; not yet realized or visually proved in the isolated demo.** The relationship is not an authored field in the current source document, and current plan instances do not populate the corresponding final binding or coverage record. | Record the top as contributor and the lower-body selection as owner, with a `policy` origin until stronger evidence is available. |
+| The basic tuck dependency supplies support configuration and geometry, while the authored mask dependency resolves to texture candidates. | **Proven decoded resource inventory; exact adapter policy exercised live.** The reviewed female fixture applies the retained mask to support alpha and retains required waist coverage, but the comparison does not isolate the mask pixels or prove a general cut rule. | The support mesh is a decoded contributor. Retain the mask candidate with its lower-body owner and keep the cut operation labelled as fixture-bounded policy. |
+| The selected top supplies the visible material and alpha for the tuck support mesh. | **Derived policy realized for one exact female fixture.** A normal/isolation comparison proves the selected-top alpha target retains the support's required waist and belly coverage. The relationship is not an authored source-document field, is not generalized to other resource combinations, and current plan instances still do not populate a final binding or coverage record. | Record the top as contributor and the lower-body selection as owner, with a `policy` origin until stronger evidence is available. |
 | Standard and middle-only coordination across both sexes, top-only, bottom-only, paired garments, cut coverage, and independent diffuse/normal/specular registration all produce correct pixels. | **Not yet proven.** | Keep the full realization matrix and its visual fixtures open without reopening the ownership split. |
 
 The schema-v8 resolver preserves every dependency and occlusion string and
@@ -252,8 +252,10 @@ follows only an adjacent exact typed `partSource` relationship. A dependency
 source with one version becomes a requester-owned layer; all of that version's
 texture paths remain on its contributor. Coordination sources with no unique
 resource version, modifier-location occlusions, suffixed strings, selected-top
-material transfer, and mask-cut realization remain diagnosed or deferred. The
-resolver does not recover those roles by parsing a resource name.
+material transfer, and mask-cut realization remain diagnosed or deferred. One
+exact demo adapter applies the reviewed female tuck combination after resource
+readiness; the resolver does not infer or serialize that fixture policy and
+does not recover roles by parsing a resource name.
 
 ## Decisions that are closed
 
