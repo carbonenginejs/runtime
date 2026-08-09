@@ -3011,3 +3011,88 @@ test("different outcomes use distinct resources while sharing source bytes", asy
   assert.equal(resMan.Delete("res:/data/value.test"), true);
   assert.equal(resMan.motherLode.GetCount(), 0);
 });
+
+// LOD selection and the primitive-count sum belong to the geometry resource
+// (Carbon declares both beside TriGeometryRes); the mesh draw path in
+// runtime-trinity consumes them to complete a batch's draw arguments.
+test("TriGeometryRes selects a LOD by screen size, lowest quality first", () => {
+  const geometry = new TriGeometryRes().Initialize("res:/geometry/ship.gr2");
+  geometry.SetPayload({
+    version: 1,
+    sourceFormat: "gr2",
+    meshes: [ {
+      name: "hull",
+      lods: [
+        { maxScreenSize: 1000, areas: [ { firstIndex: 0, primitiveCount: 100 } ] },
+        { maxScreenSize: 200, areas: [ { firstIndex: 0, primitiveCount: 40 } ] },
+        { maxScreenSize: 50, areas: [ { firstIndex: 0, primitiveCount: 10 } ] }
+      ]
+    } ]
+  });
+
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 20), 2, "the cheapest LOD that still covers it");
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 150), 1);
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 900), 0);
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 99999), 0,
+    "a request larger than the best LOD falls back to the highest quality one");
+  assert.equal(geometry.GetMeshLod(0, 20).maxScreenSize, 50);
+  assert.equal(geometry.GetMeshLod(0, 900).maxScreenSize, 1000);
+  assert.equal(geometry.GetLodIndexForScreenSize(9, 10), -1, "no such mesh");
+  assert.equal(geometry.GetMeshLod(9, 10), null);
+
+  geometry.forceLod = true;
+  geometry.forcedLodIndex = 1;
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 99999), 1, "forceLod pins the index");
+  geometry.forcedLodIndex = 99;
+  assert.equal(geometry.GetLodIndexForScreenSize(0, 10), 2, "clamped to the last LOD");
+});
+
+test("TriGeometryRes treats a flattened single-LOD mesh as its own LOD", () => {
+  const geometry = new TriGeometryRes().Initialize("res:/geometry/rock.cmf");
+  geometry.SetPayload({
+    version: 1,
+    sourceFormat: "cmf",
+    meshes: [ { name: "rock", areas: [ { firstIndex: 0, primitiveCount: 12 } ] } ]
+  });
+
+  assert.equal(geometry.GetMeshLod(0, 100)?.name, "rock");
+  assert.equal(geometry.GetMeshLodByIndex(0, 1), null, "there is only one");
+});
+
+test("TriGeometryRes.getPrimitiveCount sums an area run and clamps it", () => {
+  const lod = { areas: [
+    { primitiveCount: 10 },
+    { primitiveCount: 12 },
+    { primitiveCount: 8 }
+  ] };
+
+  assert.equal(TriGeometryRes.getPrimitiveCount(lod, 0, 1), 10);
+  assert.equal(TriGeometryRes.getPrimitiveCount(lod, 1, 2), 20, "12 + 8");
+  assert.equal(TriGeometryRes.getPrimitiveCount(lod, 1, 99), 20, "run clamped to the list");
+  assert.equal(TriGeometryRes.getPrimitiveCount(lod, 3, 1), 0, "index out of range");
+  assert.equal(TriGeometryRes.getPrimitiveCount(null, 0, 1), 0);
+});
+
+test("GetMeshVertexElements reads the element list the readers actually emit", () => {
+  const geometry = new TriGeometryRes().Initialize("res:/geometry/ship.cmf");
+
+  // The CMF reader names this `decl`, after the CMF struct field.
+  geometry.SetPayload({
+    version: 1,
+    sourceFormat: "cmf",
+    meshes: [ {
+      name: "hull",
+      decl: [
+        { usage: "POSITION", usageIndex: 0, type: "FLOAT3", elementCount: 3, offset: 0 },
+        { usage: "TEXCOORD", usageIndex: 0, type: "FLOAT2", elementCount: 2, offset: 12 }
+      ],
+      areas: [ { firstIndex: 0, primitiveCount: 4 } ]
+    } ]
+  });
+
+  const elements = geometry.GetMeshVertexElements(0);
+  assert.equal(elements.length, 2, "an empty list here means nothing can bind geometry");
+  assert.equal(elements[0].usage, "POSITION");
+  assert.equal(elements[1].offset, 12);
+  assert.deepEqual(geometry.GetMeshVertexElements(9), [], "no such mesh");
+});

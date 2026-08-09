@@ -111,6 +111,73 @@ class TriGeometryRes extends CjsResource {
     return mesh?.areas?.length || 0;
   }
 
+  // Carbon TriGeometryRes.cpp:294-319. Walks LODs from the LOWEST quality up
+  // and takes the first whose authored maxScreenSize still covers the requested
+  // size; a request larger than the best LOD falls back to LOD 0, which Carbon
+  // comments explicitly. forceLod pins the index instead, clamped to the last
+  // LOD.
+
+  /**
+   * The LOD index this mesh should be drawn at for a screen size, or -1 when the
+   * mesh does not exist.
+   *
+   * @param {number} meshIndex
+   * @param {number} screenSize
+   * @returns {number}
+   */
+  GetLodIndexForScreenSize(meshIndex = 0, screenSize = Infinity) {
+    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    if (!mesh) return -1;
+
+    // A decoder may flatten a single-LOD mesh, putting the areas on the mesh
+    // itself; that mesh IS its own only LOD (see getMeshAreas).
+    const lods = mesh.lods?.length ? mesh.lods : null;
+    const lastLod = lods ? lods.length - 1 : 0;
+    if (this.forceLod && this.forcedLodIndex >= 0) {
+      return Math.min(this.forcedLodIndex, lastLod);
+    }
+    for (let index = lastLod; index >= 0; index--) {
+      const maxScreenSize = (lods ? lods[index]?.maxScreenSize : mesh.maxScreenSize) ?? 0;
+      if (maxScreenSize >= screenSize) return index;
+    }
+    return 0;
+  }
+
+  // Carbon TriGeometryRes.cpp:268-279. Carbon overloads this on float
+  // screenSize versus int lodIndex; JavaScript cannot, so the index form is
+  // GetMeshLodByIndex. Carbon indexes m_lods with the result unguarded, so a
+  // mesh with an EMPTY lod list reads out of bounds there; this port returns
+  // null (docs/research/carbon-known-defects.md).
+
+  /**
+   * The LOD data this mesh should be drawn at for a screen size, or null when
+   * the mesh has no LODs.
+   *
+   * @param {number} meshIndex
+   * @param {number} screenSize
+   * @returns {object|null}
+   */
+  GetMeshLod(meshIndex = 0, screenSize = Infinity) {
+    return this.GetMeshLodByIndex(meshIndex, this.GetLodIndexForScreenSize(meshIndex, screenSize));
+  }
+
+  /**
+   * The LOD data at an explicit index, or null when the mesh or index does not
+   * exist (Carbon TriGeometryRes.cpp:281-292).
+   *
+   * @param {number} meshIndex
+   * @param {number} lodIndex
+   * @returns {object|null}
+   */
+  GetMeshLodByIndex(meshIndex = 0, lodIndex = 0) {
+    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    if (!mesh || lodIndex < 0) return null;
+    if (mesh.lods?.length) {
+      return lodIndex < mesh.lods.length ? mesh.lods[lodIndex] : null;
+    }
+    return lodIndex === 0 && mesh.areas ? mesh : null;
+  }
+
   /**
    * Get mesh name from a CPU geometry payload.
    *
@@ -277,7 +344,12 @@ class TriGeometryRes extends CjsResource {
    * @returns {Array<*>}
    */
   GetMeshVertexElements(meshIndex = 0) {
-    return this.GetPayload()?.meshes?.[meshIndex]?.vertexElements || [];
+    // The CMF reader emits the element list as `decl`, matching the CMF struct
+    // field; this accessor read only `vertexElements`, which no reader in this
+    // package populates, so it returned an empty list for every real decoded
+    // payload. Both names are accepted because the name is the producer's.
+    const mesh = this.GetPayload()?.meshes?.[meshIndex];
+    return mesh?.decl || mesh?.vertexElements || [];
   }
 
   /**
@@ -289,6 +361,34 @@ class TriGeometryRes extends CjsResource {
     throw resourceBoundaryError("TriGeometryRes", "SaveMesh", "Use a geometry format writer with the resource payload and a caller-owned destination.");
   }
   static payload = "geometry";
+
+  // Carbon TriGeometryRes.cpp:158-178, declared beside the class
+  // (TriGeometryRes.h:202) because it reads LOD data rather than resource
+  // state - which is why it is static here. It returns a PLAIN SUM and does not
+  // multiply by three: the *3 belongs to the caller, so triangles-only is a
+  // property of the mesh draw path rather than of the geometry layer.
+
+  /**
+   * The summed primitive count over `count` areas of a LOD starting at `index`,
+   * with the run clamped to the area list as Carbon clamps it; zero when the
+   * index is out of range, which callers treat as "emit no draw".
+   *
+   * @param {object|null} lod
+   * @param {number} index
+   * @param {number} count
+   * @returns {number}
+   */
+  static getPrimitiveCount(lod, index, count) {
+    const areas = lod?.areas ?? null;
+    const areaCount = areas?.length ?? 0;
+    if (!areaCount || index >= areaCount) return 0;
+    const run = index + count > areaCount ? areaCount - index : count;
+    let primitiveCount = 0;
+    for (let offset = 0; offset < run; offset++) {
+      primitiveCount += areas[index + offset]?.primitiveCount ?? 0;
+    }
+    return primitiveCount;
+  }
 
   /**
    * Gets the canonical area list from a mesh or its first LOD.
@@ -656,6 +756,9 @@ CjsSchema.define(TriGeometryRes, {
     GetSkeletonCount: [carbon.method, impl.adapted],
     GetSkeletonData: [carbon.method, impl.adapted],
     GetMeshAreaCount: [carbon.method, impl.adapted],
+    GetLodIndexForScreenSize: [carbon.method, impl.adapted],
+    GetMeshLod: [carbon.method, impl.adapted],
+    GetMeshLodByIndex: [carbon.method, impl.adapted],
     GetMeshName: [carbon.method, impl.adapted],
     GetMeshAreaName: [carbon.method, impl.adapted],
     GetAreaBoundingBox: [carbon.method, impl.adapted],
