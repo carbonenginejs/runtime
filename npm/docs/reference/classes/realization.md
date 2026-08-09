@@ -115,6 +115,16 @@ Owns recursive SFX event lowering, publication, and diagnostics.
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CjsAudioLibraryBuilderSfxNameCatalogAccumulator -->
+## `CjsAudioLibraryBuilderSfxNameCatalogAccumulator`
+
+Owns ordered Wwise name and default-value catalog accumulation.
+
+- Export: None
+- Source: `src/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioLibraryBuilderSfxNodeLoweringSession -->
 ## `CjsAudioLibraryBuilderSfxNodeLoweringSession`
 

@@ -3880,201 +3880,268 @@ function CreateMusicRtpcCurves(nodeBase, names) {
     };
   });
 }
-function CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections) {
-  const groups = new Map();
-  const parameters = new Map();
-  const parameterDefaults = new Map();
-  const stateTransitionSettings = new Map();
-  let stateFilterBehavior;
-  if (soundbanksInfo) {
+
+/** Owns ordered Wwise name and default-value catalog accumulation. */
+class CjsAudioLibraryBuilderSfxNameCatalogAccumulator {
+  #groups = new Map();
+  #parameters = new Map();
+  #parameterDefaults = new Map();
+  #stateFilterBehavior;
+  #stateTransitionSettings = new Map();
+
+  /** Adds authored names from parsed SoundbanksInfo metadata. */
+  AddSoundbanksInfo(soundbanksInfo) {
+    if (!soundbanksInfo) {
+      return this;
+    }
     const parsed = CjsBnkFormat.wwise.parseSoundbanksInfo(soundbanksInfo);
     for (const bank of parsed.banks) {
       for (const [scope, entries, valuesField] of [["switch", bank.switchGroups, "switches"], ["state", bank.stateGroups, "states"]]) {
         for (const entry of entries) {
-          const key = `${scope}:${Number(entry.id) >>> 0}`;
-          const entryName = NormalizeOptionalCatalogName(entry.name);
-          const group = groups.get(key) ?? {
-            ...(entryName ? {
-              name: entryName
-            } : {}),
-            values: new Map()
-          };
-          if (entryName && group.name && group.name !== entryName) {
-            throw new TypeError(`Audio ${scope} group ${entry.id}` + ` name conflicts between ${group.name}` + ` and ${entryName}`);
-          }
-          if (entryName) {
-            for (const [otherKey, otherGroup] of groups) {
-              if (otherKey !== key && otherKey.startsWith(`${scope}:`) && otherGroup.name?.toLowerCase() === entryName.toLowerCase()) {
-                throw new TypeError(`Audio ${scope} group ${entryName}` + ` conflicts between ${otherKey}` + ` and ${key}`);
-              }
-            }
-            group.name = entryName;
-          }
-          for (const value of entry[valuesField]) {
-            AddCatalogValueName(group.values, Number(value.id) >>> 0, value.name, `Audio ${scope} group ${entry.id}`);
-          }
-          groups.set(key, group);
+          this.#AddGroup(scope, entry, valuesField);
         }
       }
+
+      // SoundbanksInfo is an ordered authored catalog. Preserve its
+      // historical later-bank-wins rule for duplicate parameter IDs.
       for (const parameter of bank.gameParameters) {
-        parameters.set(Number(parameter.id) >>> 0, parameter.name);
+        this.#parameters.set(Number(parameter.id) >>> 0, parameter.name);
       }
     }
+    return this;
   }
-  for (const inspection of inspections) {
-    const globalSettings = inspection?.globalSettings;
-    if (globalSettings === null || globalSettings === undefined) {
-      continue;
+
+  /** Adds STMG state-transition and Game Parameter defaults in bank order. */
+  AddInspections(inspections) {
+    for (const inspection of inspections) {
+      this.#AddGlobalSettings(inspection?.globalSettings);
     }
-    if (!globalSettings || typeof globalSettings !== "object" || !Array.isArray(globalSettings.rtpcParameters) || !Array.isArray(globalSettings.stateGroups)) {
-      throw new TypeError("Audio STMG globalSettings must contain" + " stateGroups and rtpcParameters");
-    }
-    const stateGroups = globalSettings.stateGroups;
-    const filterBehavior = globalSettings.filterBehavior === undefined ? undefined : Number(globalSettings.filterBehavior);
-    if (filterBehavior !== undefined && (!Number.isSafeInteger(filterBehavior) || filterBehavior < 0 || filterBehavior > 1)) {
-      throw new TypeError(`Audio STMG filterBehavior ${globalSettings.filterBehavior} is invalid`);
-    }
-    if (filterBehavior !== undefined && stateFilterBehavior !== undefined && stateFilterBehavior !== filterBehavior) {
-      throw new TypeError("Audio STMG filterBehavior conflicts between banks");
-    }
-    if (filterBehavior !== undefined) {
-      stateFilterBehavior = filterBehavior;
-    }
-    for (const rawGroup of stateGroups) {
-      if (!rawGroup || typeof rawGroup !== "object" || Array.isArray(rawGroup) || !Array.isArray(rawGroup.transitions)) {
-        throw new TypeError("Audio STMG State group must contain transitions");
-      }
-      const id = NormalizeWwiseUint32(rawGroup.id, "Audio STMG State group id");
-      const defaultTransitionMs = NormalizeWwiseUint32(rawGroup.defaultTransitionTimeMs, `Audio STMG State group ${id} defaultTransitionTimeMs`);
-      const routes = new Set();
-      const transitions = rawGroup.transitions.map((raw, index) => {
-        if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-          throw new TypeError(`Audio STMG State group ${id}` + ` transition ${index} must be an object`);
-        }
-        const fromId = NormalizeWwiseUint32(raw.fromId, `Audio STMG State group ${id} transition ${index} fromId`);
-        const toId = NormalizeWwiseUint32(raw.toId, `Audio STMG State group ${id} transition ${index} toId`);
-        const route = `${fromId}:${toId}`;
-        if (routes.has(route)) {
-          throw new TypeError(`Audio STMG State group ${id}` + ` has duplicate transition ${route}`);
-        }
-        routes.add(route);
-        return {
-          fromId,
-          toId,
-          transitionMs: NormalizeWwiseUint32(raw.transitionTimeMs, `Audio STMG State group ${id}` + ` transition ${index} transitionTimeMs`)
-        };
-      }).sort((left, right) => left.fromId - right.fromId || left.toId - right.toId);
-      const normalized = {
-        id,
-        defaultTransitionMs,
-        transitions
-      };
-      const existing = stateTransitionSettings.get(id);
-      if (existing && JSON.stringify(existing) !== JSON.stringify(normalized)) {
-        throw new TypeError(`Audio STMG State group ${id} has conflicting settings`);
-      }
-      stateTransitionSettings.set(id, normalized);
-    }
-    for (const parameter of globalSettings.rtpcParameters) {
-      if (!parameter || typeof parameter !== "object" || Array.isArray(parameter)) {
-        throw new TypeError("Audio STMG RTPC parameter must be an object");
-      }
-      const id = NormalizeGameParameterID(parameter.id);
-      const defaultValue = Number(parameter.defaultValue);
-      if (!Number.isFinite(defaultValue)) {
-        throw new TypeError(`Audio STMG game parameter ${id}` + " defaultValue must be finite");
-      }
-      const existing = parameterDefaults.get(id);
-      if (existing !== undefined && existing !== defaultValue) {
-        throw new TypeError(`Audio STMG game parameter ${id}` + ` defaultValue conflicts with ${existing}`);
-      }
-      parameterDefaults.set(id, defaultValue);
-    }
+    return this;
   }
-  if (enrichment?.gameParameters !== undefined) {
+
+  /** Adds optional external Game Parameter names and defaults last. */
+  AddEnrichment(enrichment) {
+    if (enrichment?.gameParameters === undefined) {
+      return this;
+    }
     for (const [rawID, value] of metadataEntries(enrichment.gameParameters, "Audio enrichment gameParameters")) {
       const id = NormalizeGameParameterID(rawID);
       if (!value || typeof value !== "object" || Array.isArray(value)) {
         throw new TypeError(`Audio enrichment gameParameters.${rawID}` + " must be an object");
       }
-      if (value.name !== undefined) {
-        const name = String(value.name).trim();
-        if (!name) {
-          throw new TypeError(`Audio enrichment gameParameters.${rawID}` + " name must be non-empty");
-        }
-        const existing = parameters.get(id);
-        if (existing && existing !== name) {
-          throw new TypeError(`Audio enrichment gameParameters.${rawID}` + ` name conflicts with ${existing}`);
-        }
-        parameters.set(id, name);
-      }
-      if (value.defaultValue !== undefined) {
-        const defaultValue = Number(value.defaultValue);
-        if (!Number.isFinite(defaultValue)) {
-          throw new TypeError(`Audio enrichment gameParameters.${rawID}` + " defaultValue must be finite");
-        }
-        const existing = parameterDefaults.get(id);
-        if (existing !== undefined && existing !== defaultValue) {
-          throw new TypeError(`Audio enrichment gameParameters.${rawID}` + ` defaultValue conflicts with ${existing}`);
-        }
-        parameterDefaults.set(id, defaultValue);
-      }
+      this.#AddEnrichedParameterName(rawID, id, value);
+      this.#AddEnrichedParameterDefault(rawID, id, value);
     }
+    return this;
   }
-  const stateTransitions = [...stateTransitionSettings.values()].sort((left, right) => left.id - right.id).map(settings => {
-    const named = groups.get(`state:${settings.id}`);
+
+  /** Builds the unchanged plain catalog consumed by graph projection. */
+  Build() {
     return {
-      groupId: String(settings.id),
-      ...(named?.name ? {
-        group: named.name
-      } : {}),
-      defaultTransitionMs: settings.defaultTransitionMs,
-      ...(named?.values.size ? {
-        states: [...named.values].sort((left, right) => left[0] - right[0]).map(([stateId, state]) => ({
-          stateId: String(stateId),
-          state
-        }))
-      } : {}),
-      transitions: settings.transitions.map(transition => ({
-        fromId: String(transition.fromId),
-        ...(named?.values.has(transition.fromId) ? {
-          from: named.values.get(transition.fromId)
-        } : {}),
-        toId: String(transition.toId),
-        ...(named?.values.has(transition.toId) ? {
-          to: named.values.get(transition.toId)
-        } : {}),
-        transitionMs: transition.transitionMs
-      }))
+      groups: this.#groups,
+      parameters: this.#parameters,
+      parameterDefaults: this.#parameterDefaults,
+      stateTransitions: this.#CreateStateTransitions(),
+      stateFilterBehavior: this.#stateFilterBehavior
     };
-  });
-  return {
-    groups,
-    parameters,
-    parameterDefaults,
-    stateTransitions,
-    stateFilterBehavior
-  };
-}
-function NormalizeOptionalCatalogName(value) {
-  const name = String(value ?? "").trim();
-  return name || undefined;
-}
-function AddCatalogValueName(values, id, rawName, label) {
-  const name = NormalizeOptionalCatalogName(rawName);
-  if (!name) {
-    return;
   }
-  const existing = values.get(id);
-  if (existing !== undefined && existing !== name) {
-    throw new TypeError(`${label} value ${id} name conflicts between` + ` ${existing} and ${name}`);
+
+  /** Merges one named Switch or State group and its values. */
+  #AddGroup(scope, entry, valuesField) {
+    const key = `${scope}:${Number(entry.id) >>> 0}`;
+    const entryName = this.#NormalizeOptionalName(entry.name);
+    const group = this.#groups.get(key) ?? {
+      ...(entryName ? {
+        name: entryName
+      } : {}),
+      values: new Map()
+    };
+    if (entryName && group.name && group.name !== entryName) {
+      throw new TypeError(`Audio ${scope} group ${entry.id}` + ` name conflicts between ${group.name}` + ` and ${entryName}`);
+    }
+    if (entryName) {
+      for (const [otherKey, otherGroup] of this.#groups) {
+        if (otherKey !== key && otherKey.startsWith(`${scope}:`) && otherGroup.name?.toLowerCase() === entryName.toLowerCase()) {
+          throw new TypeError(`Audio ${scope} group ${entryName}` + ` conflicts between ${otherKey} and ${key}`);
+        }
+      }
+      group.name = entryName;
+    }
+    for (const value of entry[valuesField]) {
+      this.#AddValueName(group.values, Number(value.id) >>> 0, value.name, `Audio ${scope} group ${entry.id}`);
+    }
+    this.#groups.set(key, group);
   }
-  for (const [otherId, otherName] of values) {
-    if (otherId !== id && otherName.toLowerCase() === name.toLowerCase()) {
-      throw new TypeError(`${label} value ${name} conflicts between` + ` ${otherId} and ${id}`);
+
+  /** Validates and merges one inspection's optional STMG settings. */
+  #AddGlobalSettings(globalSettings) {
+    if (globalSettings === null || globalSettings === undefined) {
+      return;
+    }
+    if (!globalSettings || typeof globalSettings !== "object" || !Array.isArray(globalSettings.rtpcParameters) || !Array.isArray(globalSettings.stateGroups)) {
+      throw new TypeError("Audio STMG globalSettings must contain" + " stateGroups and rtpcParameters");
+    }
+    const filterBehavior = globalSettings.filterBehavior === undefined ? undefined : Number(globalSettings.filterBehavior);
+    if (filterBehavior !== undefined && (!Number.isSafeInteger(filterBehavior) || filterBehavior < 0 || filterBehavior > 1)) {
+      throw new TypeError(`Audio STMG filterBehavior ${globalSettings.filterBehavior} is invalid`);
+    }
+    if (filterBehavior !== undefined && this.#stateFilterBehavior !== undefined && this.#stateFilterBehavior !== filterBehavior) {
+      throw new TypeError("Audio STMG filterBehavior conflicts between banks");
+    }
+    if (filterBehavior !== undefined) {
+      this.#stateFilterBehavior = filterBehavior;
+    }
+    for (const rawGroup of globalSettings.stateGroups) {
+      this.#AddStateTransitionSettings(rawGroup);
+    }
+    for (const parameter of globalSettings.rtpcParameters) {
+      this.#AddParameterDefault(parameter);
     }
   }
-  values.set(id, name);
+
+  /** Validates and merges one STMG State group's transition settings. */
+  #AddStateTransitionSettings(rawGroup) {
+    if (!rawGroup || typeof rawGroup !== "object" || Array.isArray(rawGroup) || !Array.isArray(rawGroup.transitions)) {
+      throw new TypeError("Audio STMG State group must contain transitions");
+    }
+    const id = NormalizeWwiseUint32(rawGroup.id, "Audio STMG State group id");
+    const defaultTransitionMs = NormalizeWwiseUint32(rawGroup.defaultTransitionTimeMs, `Audio STMG State group ${id} defaultTransitionTimeMs`);
+    const routes = new Set();
+    const transitions = rawGroup.transitions.map((raw, index) => {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+        throw new TypeError(`Audio STMG State group ${id}` + ` transition ${index} must be an object`);
+      }
+      const fromId = NormalizeWwiseUint32(raw.fromId, `Audio STMG State group ${id} transition ${index} fromId`);
+      const toId = NormalizeWwiseUint32(raw.toId, `Audio STMG State group ${id} transition ${index} toId`);
+      const route = `${fromId}:${toId}`;
+      if (routes.has(route)) {
+        throw new TypeError(`Audio STMG State group ${id}` + ` has duplicate transition ${route}`);
+      }
+      routes.add(route);
+      return {
+        fromId,
+        toId,
+        transitionMs: NormalizeWwiseUint32(raw.transitionTimeMs, `Audio STMG State group ${id}` + ` transition ${index} transitionTimeMs`)
+      };
+    }).sort((left, right) => left.fromId - right.fromId || left.toId - right.toId);
+    const normalized = {
+      id,
+      defaultTransitionMs,
+      transitions
+    };
+    const existing = this.#stateTransitionSettings.get(id);
+    if (existing && JSON.stringify(existing) !== JSON.stringify(normalized)) {
+      throw new TypeError(`Audio STMG State group ${id} has conflicting settings`);
+    }
+    this.#stateTransitionSettings.set(id, normalized);
+  }
+
+  /** Validates and merges one STMG Game Parameter default. */
+  #AddParameterDefault(parameter) {
+    if (!parameter || typeof parameter !== "object" || Array.isArray(parameter)) {
+      throw new TypeError("Audio STMG RTPC parameter must be an object");
+    }
+    const id = NormalizeGameParameterID(parameter.id);
+    const defaultValue = Number(parameter.defaultValue);
+    if (!Number.isFinite(defaultValue)) {
+      throw new TypeError(`Audio STMG game parameter ${id}` + " defaultValue must be finite");
+    }
+    const existing = this.#parameterDefaults.get(id);
+    if (existing !== undefined && existing !== defaultValue) {
+      throw new TypeError(`Audio STMG game parameter ${id}` + ` defaultValue conflicts with ${existing}`);
+    }
+    this.#parameterDefaults.set(id, defaultValue);
+  }
+
+  /** Merges one optional enrichment Game Parameter name. */
+  #AddEnrichedParameterName(rawID, id, value) {
+    if (value.name === undefined) {
+      return;
+    }
+    const name = String(value.name).trim();
+    if (!name) {
+      throw new TypeError(`Audio enrichment gameParameters.${rawID}` + " name must be non-empty");
+    }
+    const existing = this.#parameters.get(id);
+    if (existing && existing !== name) {
+      throw new TypeError(`Audio enrichment gameParameters.${rawID}` + ` name conflicts with ${existing}`);
+    }
+    this.#parameters.set(id, name);
+  }
+
+  /** Merges one optional enrichment Game Parameter default. */
+  #AddEnrichedParameterDefault(rawID, id, value) {
+    if (value.defaultValue === undefined) {
+      return;
+    }
+    const defaultValue = Number(value.defaultValue);
+    if (!Number.isFinite(defaultValue)) {
+      throw new TypeError(`Audio enrichment gameParameters.${rawID}` + " defaultValue must be finite");
+    }
+    const existing = this.#parameterDefaults.get(id);
+    if (existing !== undefined && existing !== defaultValue) {
+      throw new TypeError(`Audio enrichment gameParameters.${rawID}` + ` defaultValue conflicts with ${existing}`);
+    }
+    this.#parameterDefaults.set(id, defaultValue);
+  }
+
+  /** Projects normalized State settings with any known authored names. */
+  #CreateStateTransitions() {
+    return [...this.#stateTransitionSettings.values()].sort((left, right) => left.id - right.id).map(settings => {
+      const named = this.#groups.get(`state:${settings.id}`);
+      return {
+        groupId: String(settings.id),
+        ...(named?.name ? {
+          group: named.name
+        } : {}),
+        defaultTransitionMs: settings.defaultTransitionMs,
+        ...(named?.values.size ? {
+          states: [...named.values].sort((left, right) => left[0] - right[0]).map(([stateId, state]) => ({
+            stateId: String(stateId),
+            state
+          }))
+        } : {}),
+        transitions: settings.transitions.map(transition => ({
+          fromId: String(transition.fromId),
+          ...(named?.values.has(transition.fromId) ? {
+            from: named.values.get(transition.fromId)
+          } : {}),
+          toId: String(transition.toId),
+          ...(named?.values.has(transition.toId) ? {
+            to: named.values.get(transition.toId)
+          } : {}),
+          transitionMs: transition.transitionMs
+        }))
+      };
+    });
+  }
+
+  /** Adds one optional value name while enforcing per-group uniqueness. */
+  #AddValueName(values, id, rawName, label) {
+    const name = this.#NormalizeOptionalName(rawName);
+    if (!name) {
+      return;
+    }
+    const existing = values.get(id);
+    if (existing !== undefined && existing !== name) {
+      throw new TypeError(`${label} value ${id} name conflicts between` + ` ${existing} and ${name}`);
+    }
+    for (const [otherId, otherName] of values) {
+      if (otherId !== id && otherName.toLowerCase() === name.toLowerCase()) {
+        throw new TypeError(`${label} value ${name} conflicts between` + ` ${otherId} and ${id}`);
+      }
+    }
+    values.set(id, name);
+  }
+
+  /** Trims one optional authored catalog name. */
+  #NormalizeOptionalName(value) {
+    const name = String(value ?? "").trim();
+    return name || undefined;
+  }
+}
+function CreateSfxNameCatalog(soundbanksInfo, enrichment, inspections) {
+  return new CjsAudioLibraryBuilderSfxNameCatalogAccumulator().AddSoundbanksInfo(soundbanksInfo).AddInspections(inspections).AddEnrichment(enrichment).Build();
 }
 function NormalizeWwiseUint32(value, label) {
   const text = String(value);

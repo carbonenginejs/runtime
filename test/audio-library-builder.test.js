@@ -6957,6 +6957,190 @@ test("SFX State catalogs fail closed on malformed or conflicting names", () =>
     } ]);
 });
 
+test("SFX name catalogs preserve authored uniqueness and source precedence", () =>
+{
+    const request = soundbanks => ({
+        inspections: [],
+        metadata: { Events: {} },
+        soundbanksInfo: {
+            SoundBanksInfo: { SoundBanks: soundbanks },
+        },
+    });
+    const namedState = (id, name, states = []) => ({
+        Id: String(id),
+        ShortName: `bank_${id}`,
+        StateGroups: [ {
+            Id: String(id),
+            Name: name,
+            States: states,
+        } ],
+    });
+
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(request([
+            namedState(600, "Ship_State"),
+            namedState(700, "ship_state"),
+        ])),
+        /group ship_state conflicts between state:600 and state:700/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(request([
+            namedState(600, "ship_state", [
+                { Id: "601", Name: "Idle" },
+                { Id: "602", Name: "idle" },
+            ]),
+        ])),
+        /value idle conflicts between 601 and 602/u,
+    );
+
+    const parameterRequest = request([
+        {
+            Id: "1",
+            ShortName: "first",
+            GameParameters: [ { Id: "800", Name: "first_name" } ],
+        },
+        {
+            Id: "2",
+            ShortName: "second",
+            GameParameters: [ { Id: "800", Name: "later_name" } ],
+        },
+    ]);
+
+    assert.doesNotThrow(() => CjsAudioLibraryBuilder.createSfxGraph({
+        ...parameterRequest,
+        enrichment: {
+            gameParameters: {
+                800: { name: "later_name", defaultValue: 0.5 },
+            },
+        },
+    }));
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph({
+            ...parameterRequest,
+            enrichment: {
+                gameParameters: { 800: { name: "first_name" } },
+            },
+        }),
+        /name conflicts with later_name/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph({
+            ...parameterRequest,
+            enrichment: {
+                gameParameters: { 800: { name: " " } },
+            },
+        }),
+        /name must be non-empty/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph({
+            ...parameterRequest,
+            enrichment: {
+                gameParameters: { 800: { defaultValue: "invalid" } },
+            },
+        }),
+        /defaultValue must be finite/u,
+    );
+
+    assert.doesNotThrow(() => CjsAudioLibraryBuilder.createSfxGraph({
+        ...request([ {
+            Id: "1",
+            ShortName: "unnamed",
+            GameParameters: [ { Id: "800", Name: "" } ],
+        } ]),
+        enrichment: {
+            gameParameters: { 800: { name: "enriched_name" } },
+        },
+    }));
+});
+
+test("SFX name catalogs merge equivalent STMG settings deterministically", () =>
+{
+    const transition = (fromId, toId, transitionTimeMs) => ({
+        fromId,
+        toId,
+        transitionTimeMs,
+    });
+    const globalSettings = ({
+        filterBehavior = 1,
+        defaultTransitionTimeMs = 1000,
+        transitions = [
+            transition(602, 603, 200),
+            transition(601, 602, 100),
+        ],
+        defaultValue = 0.5,
+    } = {}) => ({
+        filterBehavior,
+        stateGroups: [ {
+            id: 600,
+            defaultTransitionTimeMs,
+            transitions,
+        } ],
+        rtpcParameters: [ { id: 800, defaultValue } ],
+    });
+    const inspection = settings => ({
+        source: "init.bnk",
+        bankVersion: 150,
+        globalSettings: settings,
+        hirc: [],
+    });
+    const request = settings => ({
+        inspections: settings.map(inspection),
+        metadata: { Events: {} },
+    });
+
+    const result = CjsAudioLibraryBuilder.createSfxGraph(request([
+        globalSettings(),
+        globalSettings({
+            transitions: [
+                transition(601, 602, 100),
+                transition(602, 603, 200),
+            ],
+        }),
+    ]));
+
+    assert.deepEqual(result.stateTransitions, [ {
+        groupId: "600",
+        defaultTransitionMs: 1000,
+        transitions: [
+            { fromId: "601", toId: "602", transitionMs: 100 },
+            { fromId: "602", toId: "603", transitionMs: 200 },
+        ],
+    } ]);
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(request([
+            globalSettings(),
+            globalSettings({ defaultTransitionTimeMs: 2000 }),
+        ])),
+        /State group 600 has conflicting settings/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(request([
+            globalSettings({
+                transitions: [
+                    transition(601, 602, 100),
+                    transition(601, 602, 200),
+                ],
+            }),
+        ])),
+        /duplicate transition 601:602/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(request([
+            globalSettings(),
+            globalSettings({ filterBehavior: 0 }),
+        ])),
+        /filterBehavior conflicts between banks/u,
+    );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createSfxGraph(request([
+            globalSettings(),
+            globalSettings({ defaultValue: 0.25 }),
+        ])),
+        /defaultValue conflicts with 0.5/u,
+    );
+});
+
 test("SFX Play-Event cycles are diagnosed instead of recursing", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({
