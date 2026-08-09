@@ -360,6 +360,9 @@ export class CjsAudioLibraryBuilder
             enrichment,
             eventInspections,
         );
+        const ancestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+            id => parsed.nodes.get(id)?.nodeBase,
+        );
         const nodes = {};
 
         for (const [ id, value ] of [ ...parsed.nodes.entries() ]
@@ -377,7 +380,7 @@ export class CjsAudioLibraryBuilder
             }
 
             const routing = node.type === "music-track"
-                ? CreateMusicBusRouting(parsed.nodes, id, buses)
+                ? CreateMusicBusRouting(ancestry, id, buses)
                 : null;
             const rtpcCurves = node.type === "music-track"
                 ? CreateMusicRtpcCurves(nodeBase, names)
@@ -986,10 +989,74 @@ function MarkBusGraphVolumeActionControls(busGraph, sfx)
     return { ...busGraph, buses };
 }
 
+/** Traces and caches mechanical Wwise NodeBase parent ancestry. */
+class CjsAudioLibraryBuilderWwiseNodeBaseAncestry
+{
+    #cache = new Map();
+
+    #getNodeBase = null;
+
+    /** Creates a tracer over one immutable parsed NodeBase catalog. */
+    constructor(getNodeBase)
+    {
+        this.#getNodeBase = getNodeBase;
+    }
+
+    /** Returns one leaf-to-root trace with an explicit terminal condition. */
+    Trace(rawID)
+    {
+        const startId = Number(rawID) >>> 0;
+        const cached = this.#cache.get(startId);
+
+        if (cached)
+        {
+            return cached;
+        }
+
+        const entries = [];
+        const visited = new Set();
+        let current = startId;
+        let terminal = "root";
+        let terminalId = 0;
+
+        while (current)
+        {
+            if (visited.has(current))
+            {
+                terminal = "cycle";
+                terminalId = current;
+                break;
+            }
+            visited.add(current);
+
+            const nodeBase = this.#getNodeBase(current);
+
+            if (!nodeBase)
+            {
+                terminal = "missing";
+                terminalId = current;
+                break;
+            }
+
+            const parentId = Number(nodeBase.directParentId) >>> 0;
+
+            entries.push({ id: current, nodeBase, parentId });
+            current = parentId;
+        }
+
+        const result = { startId, entries, terminal, terminalId };
+
+        this.#cache.set(startId, result);
+        return result;
+    }
+}
+
 /** Owns recursive SFX node lowering, memoized summaries, and synthetic IDs. */
 class CjsAudioLibraryBuilderSfxNodeLoweringSession
 {
     #active = new Set();
+
+    #ancestry = null;
 
     #buses = null;
 
@@ -1014,7 +1081,15 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     #usedIDs = new Set();
 
     /** Creates one lowering session for a parsed Wwise SFX node graph. */
-    constructor({ parsed, effects, buses, names, media, embeddedMedia })
+    constructor({
+        parsed,
+        effects,
+        buses,
+        names,
+        media,
+        embeddedMedia,
+        ancestry,
+    })
     {
         this.#parsed = parsed;
         this.#effects = effects;
@@ -1022,6 +1097,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
         this.#names = names;
         this.#media = media;
         this.#embeddedMedia = embeddedMedia;
+        this.#ancestry = ancestry;
         this.#usedIDs = new Set(
             [ ...parsed.nodes.keys() ].map(value => String(value >>> 0)),
         );
@@ -1112,13 +1188,14 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             Object.assign(
                 node,
                 CreateSfxNodeBasePlaybackProjection(
-                    this.#parsed,
+                    this.#ancestry,
+                    this.#parsed.nodes,
                     id,
                     this.#names,
                 ),
                 source.type === "sound"
                     ? CreateSfxSoundVoiceLimitProjection(
-                        this.#parsed,
+                        this.#ancestry,
                         id,
                         this.#buses,
                     )
@@ -1183,9 +1260,9 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
         const loopCount = this.#parsed.nodeBases
             ?.get(Number(id))
             ?.loopCount;
-        const matchIds = CreateSfxMatchIds(this.#parsed, id);
+        const matchIds = CreateSfxMatchIds(this.#ancestry, id);
         const routing = CreateSfxBusRouting(
-            this.#parsed,
+            this.#ancestry,
             id,
             this.#buses,
         );
@@ -1213,7 +1290,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
                 mediaId: mediaID,
                 ...identity,
                 ...CreateSfxSoundEffectProjection(
-                    this.#parsed,
+                    this.#ancestry,
                     this.#effects,
                     id,
                 ),
@@ -1901,6 +1978,9 @@ function LowerSfxGraph({
     const stopTargetsByEvent = new Map();
     const omittedEvents = [];
     const approximatedEvents = [];
+    const ancestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+        id => parsed.nodeBases?.get(id),
+    );
     const nodeSession = new CjsAudioLibraryBuilderSfxNodeLoweringSession({
         parsed,
         effects,
@@ -1908,6 +1988,7 @@ function LowerSfxGraph({
         names,
         media,
         embeddedMedia,
+        ancestry,
     });
 
     const loweredEvents = new Map();
@@ -2265,7 +2346,7 @@ function LowerSfxGraph({
         nodes,
     );
     const stopRelationships = CreateSfxStopRelationships(
-        parsed,
+        ancestry,
         leavesByEvent,
         stopTargetsByEvent,
     );
@@ -2671,12 +2752,15 @@ function ReadSfxVoiceVolumeAction(action, parsed, buses)
 function BusVoiceTargetIsOutputOnly(parsed, buses, targetId)
 {
     let used = false;
+    const ancestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+        id => parsed.nodeBases?.get(id),
+    );
 
     for (const [ nodeId, node ] of parsed.nodes ?? [])
     {
         if (node.type !== "sound") continue;
         const path = CreateSfxBusRouting(
-            parsed,
+            ancestry,
             nodeId,
             buses,
         )?.busPathIds ?? [];
@@ -2686,7 +2770,7 @@ function BusVoiceTargetIsOutputOnly(parsed, buses, targetId)
         if (path[0] !== String(targetId)) return false;
         const nodeAux = CreateEffectiveNodeAuxRouting(
             nodeId,
-            id => parsed.nodeBases?.get(id),
+            ancestry,
         );
 
         if (nodeAux.userAuxSends?.length || nodeAux.reflectionsAuxSend)
@@ -3585,19 +3669,16 @@ function SfxActionScope(value)
     return "unknown";
 }
 
-function CreateSfxMatchIds(parsed, rawID)
+function CreateSfxMatchIds(ancestry, rawID)
 {
-    const result = [];
-    const active = new Set();
-    let current = Number(rawID) >>> 0;
+    const trace = ancestry.Trace(rawID);
+    const result = trace.entries.map(entry => String(entry.id));
 
-    while (current && !active.has(current))
+    // Match/Stop targeting intentionally keeps one unresolved parent ID so
+    // authored hierarchy controls can still match a partially parsed graph.
+    if (trace.terminal === "missing")
     {
-        active.add(current);
-        result.push(String(current));
-        current = Number(
-            parsed.nodeBases?.get(current)?.directParentId,
-        ) >>> 0;
+        result.push(String(trace.terminalId));
     }
 
     return result;
@@ -4275,11 +4356,17 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
         throw new Error("Audio Bus graph qualification failed");
     }
     const candidates = [];
+    const sfxAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+        id => sfxResult.nodeBases.get(id),
+    );
+    const musicAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+        id => musicResult.nodes.get(id)?.nodeBase,
+    );
 
     for (const [ id, node ] of sfxResult.nodes)
     {
         if (node.type !== "sound") continue;
-        const routing = CreateSfxBusRouting(sfxResult, id, buses);
+        const routing = CreateSfxBusRouting(sfxAncestry, id, buses);
 
         if (!routing) continue;
         candidates.push({
@@ -4289,7 +4376,7 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
                 ...routing,
                 ...CreateEffectiveNodeAuxRouting(
                     id,
-                    current => sfxResult.nodeBases.get(current),
+                    sfxAncestry,
                 ),
             },
         });
@@ -4297,7 +4384,7 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
     for (const [ id, node ] of musicResult.nodes)
     {
         if (node.type !== "music-track") continue;
-        const routing = CreateMusicBusRouting(musicResult.nodes, id, buses);
+        const routing = CreateMusicBusRouting(musicAncestry, id, buses);
 
         if (!routing) continue;
         candidates.push({
@@ -4307,7 +4394,7 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
                 ...routing,
                 ...CreateEffectiveNodeAuxRouting(
                     id,
-                    current => musicResult.nodes.get(current)?.nodeBase,
+                    musicAncestry,
                 ),
             },
         });
@@ -4507,26 +4594,16 @@ function CreateBusGraphCatalog(inspections, musicInspections, buses)
     };
 }
 
-function CreateEffectiveNodeAuxRouting(rawId, getNodeBase)
+function CreateEffectiveNodeAuxRouting(rawId, ancestry)
 {
-    const active = new Set();
-    let current = Number(rawId) >>> 0;
     let userAuxSends;
     let reflectionsAuxSend;
     let userResolved = false;
     let reflectionsResolved = false;
+    const trace = ancestry.Trace(rawId);
 
-    while (current)
+    for (const { id, nodeBase, parentId } of trace.entries)
     {
-        if (active.has(current))
-        {
-            throw new Error(`Wwise NodeBase aux ancestry cycle at ${current}`);
-        }
-        active.add(current);
-        const nodeBase = getNodeBase(current);
-
-        if (!nodeBase) break;
-        const parentId = Number(nodeBase.directParentId) >>> 0;
         const root = parentId === 0;
 
         // wwiser's AkAuxList applies a root object's authored list even when
@@ -4534,7 +4611,7 @@ function CreateEffectiveNodeAuxRouting(rawId, getNodeBase)
         // a non-root child with override=0 defers to its parent.
         if (!userResolved && (nodeBase.aux?.overrideUserAux || root))
         {
-            userAuxSends = CreateAuxSends(nodeBase, `Wwise NodeBase ${current}`);
+            userAuxSends = CreateAuxSends(nodeBase, `Wwise NodeBase ${id}`);
             userResolved = true;
         }
         if (!reflectionsResolved
@@ -4542,12 +4619,18 @@ function CreateEffectiveNodeAuxRouting(rawId, getNodeBase)
         {
             reflectionsAuxSend = CreateReflectionsAuxSend(
                 nodeBase,
-                `Wwise NodeBase ${current}`,
+                `Wwise NodeBase ${id}`,
             );
             reflectionsResolved = true;
         }
         if (userResolved && reflectionsResolved) break;
-        current = parentId;
+    }
+    if ((!userResolved || !reflectionsResolved)
+        && trace.terminal === "cycle")
+    {
+        throw new Error(
+            `Wwise NodeBase aux ancestry cycle at ${trace.terminalId}`,
+        );
     }
 
     return {
@@ -4827,21 +4910,15 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId)
  * empty override clears the chain. Dynamic controls, unsupported plug-ins,
  * and independent LFE routing keep the documented dry-playback approximation.
  */
-function CreateSfxSoundEffectProjection(parsed, effects, rawId)
+function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
 {
     const soundId = Number(rawId) >>> 0;
-    const visited = new Set();
-    let currentId = soundId;
     let ownerId = 0;
     let fx = null;
 
-    while (currentId)
+    for (const { id: currentId, nodeBase, parentId } of ancestry
+        .Trace(soundId).entries)
     {
-        if (visited.has(currentId)) return {};
-        visited.add(currentId);
-        const nodeBase = parsed.nodeBases.get(currentId);
-
-        if (!nodeBase) return {};
         const candidate = nodeBase.fx;
 
         if (!candidate
@@ -4853,15 +4930,12 @@ function CreateSfxSoundEffectProjection(parsed, effects, rawId)
         {
             return {};
         }
-        const parentId = Number(nodeBase.directParentId) >>> 0;
-
         if (candidate.overrideParentRaw === 1 || parentId === 0)
         {
             ownerId = currentId;
             fx = candidate;
             break;
         }
-        currentId = parentId;
     }
     if (!fx) return {};
     const slots = [ ...(fx.slots ?? []) ]
@@ -4973,20 +5047,10 @@ function NormalizeBusEffectCatalog(value)
     return { schemaVersion: 1, buses };
 }
 
-function CreateSfxBusRouting(parsed, rawID, buses)
+function CreateSfxBusRouting(ancestry, rawID, buses)
 {
-    const active = new Set();
-    let current = Number(rawID) >>> 0;
-
-    while (current && !active.has(current))
+    for (const { id, nodeBase } of ancestry.Trace(rawID).entries)
     {
-        active.add(current);
-        const nodeBase = parsed.nodeBases?.get(current);
-
-        if (!nodeBase)
-        {
-            return null;
-        }
         const outputBusId = Number(nodeBase.overrideBusId) >>> 0;
 
         if (outputBusId)
@@ -4994,29 +5058,17 @@ function CreateSfxBusRouting(parsed, rawID, buses)
             return CreateBusRouting(
                 outputBusId,
                 buses,
-                ReadOutputBusVolume(nodeBase, current),
+                ReadOutputBusVolume(nodeBase, id),
             );
         }
-        current = Number(nodeBase.directParentId) >>> 0;
     }
     return null;
 }
 
-function CreateMusicBusRouting(nodes, rawID, buses)
+function CreateMusicBusRouting(ancestry, rawID, buses)
 {
-    const active = new Set();
-    let current = Number(rawID) >>> 0;
-
-    while (current && !active.has(current))
+    for (const { id, nodeBase } of ancestry.Trace(rawID).entries)
     {
-        active.add(current);
-        const nodeBase = nodes.get(current)?.nodeBase;
-
-        if (!nodeBase)
-        {
-            return null;
-        }
-
         const outputBusId = Number(nodeBase.overrideBusId) >>> 0;
 
         if (outputBusId)
@@ -5024,10 +5076,9 @@ function CreateMusicBusRouting(nodes, rawID, buses)
             return CreateBusRouting(
                 outputBusId,
                 buses,
-                ReadOutputBusVolume(nodeBase, current),
+                ReadOutputBusVolume(nodeBase, id),
             );
         }
-        current = Number(nodeBase.directParentId) >>> 0;
     }
     return null;
 }
@@ -5044,12 +5095,15 @@ function CreateMusicRouteBusIds(inspections, buses)
     }
 
     const result = new Set();
+    const ancestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+        id => parsed.nodes.get(id)?.nodeBase,
+    );
 
     for (const [ id, node ] of parsed.nodes)
     {
         if (node.type !== "music-track") continue;
 
-        const routing = CreateMusicBusRouting(parsed.nodes, id, buses);
+        const routing = CreateMusicBusRouting(ancestry, id, buses);
 
         for (const busId of routing?.busPathIds ?? [])
         {
@@ -5070,12 +5124,15 @@ function CreateSfxRouteBusIds(inspections, buses)
         throw new Error("SFX bus-route qualification failed");
     }
     const result = new Set();
+    const ancestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+        id => parsed.nodeBases?.get(id),
+    );
 
     for (const [ id, node ] of parsed.nodes)
     {
         if (node.type !== "sound") continue;
 
-        const routing = CreateSfxBusRouting(parsed, id, buses);
+        const routing = CreateSfxBusRouting(ancestry, id, buses);
 
         for (const busId of routing?.busPathIds ?? [])
         {
@@ -5199,7 +5256,7 @@ function CreateBusRouting(
 }
 
 function CreateSfxStopRelationships(
-    parsed,
+    ancestry,
     leavesByEvent,
     stopTargetsByEvent,
 )
@@ -5207,34 +5264,26 @@ function CreateSfxStopRelationships(
     const events = {};
     const projected = [];
     const unresolved = [];
-    const ancestry = new Map();
+    const ancestorsByLeaf = new Map();
 
     const ancestors = (leafID) =>
     {
         const leaf = Number(leafID) >>> 0;
 
-        if (ancestry.has(leaf))
+        if (ancestorsByLeaf.has(leaf))
         {
-            return ancestry.get(leaf);
+            return ancestorsByLeaf.get(leaf);
         }
 
-        const result = new Set();
-        const active = new Set();
-        let current = leaf;
+        const trace = ancestry.Trace(leaf);
+        const result = new Set(trace.entries.map(entry => entry.id));
 
-        while (current && !active.has(current))
+        if (trace.terminal === "missing")
         {
-            active.add(current);
-            result.add(current);
-
-            const parent = Number(
-                parsed.nodeBases?.get(current)?.directParentId,
-            ) >>> 0;
-
-            current = parent;
+            result.add(trace.terminalId);
         }
 
-        ancestry.set(leaf, result);
+        ancestorsByLeaf.set(leaf, result);
         return result;
     };
 
@@ -5630,44 +5679,23 @@ function AddSet(target, source)
 // and virtual-voice policy. Project only the one EVE Sound shape whose local
 // reject-newest result remains determinate after resolving those authored
 // ancestors. Everything broader stays absent from the portable graph.
-function CreateSfxSoundVoiceLimitProjection(parsed, rawID, buses)
+function CreateSfxSoundVoiceLimitProjection(ancestry, rawID, buses)
 {
     const id = Number(rawID) >>> 0;
-    const nodeBase = parsed.nodeBases?.get(id);
+    const trace = ancestry.Trace(id);
+    const nodeBase = trace.entries[0]?.nodeBase;
     const advanced = nodeBase?.advanced;
 
     if (!nodeBase
         || advanced?.flags !== 0x09
         || advanced.maxInstances !== 1
-        || !(buses instanceof Map))
+        || !(buses instanceof Map)
+        || trace.terminal !== "root")
     {
         return {};
     }
 
-    const chain = [];
-    const visited = new Set();
-    let currentID = id;
-
-    while (currentID)
-    {
-        if (visited.has(currentID))
-        {
-            return {};
-        }
-        visited.add(currentID);
-        const current = parsed.nodeBases?.get(currentID);
-
-        if (!current)
-        {
-            return {};
-        }
-        chain.push(current);
-        if (!Number(current.directParentId))
-        {
-            break;
-        }
-        currentID = Number(current.directParentId) >>> 0;
-    }
+    const chain = trace.entries.map(entry => entry.nodeBase);
 
     const virtualOwner = chain.find(value =>
         value.advanced?.overrideVirtualVoiceBehavior)
@@ -5701,7 +5729,7 @@ function CreateSfxSoundVoiceLimitProjection(parsed, rawID, buses)
         return {};
     }
 
-    const routing = CreateSfxBusRouting(parsed, id, buses);
+    const routing = CreateSfxBusRouting(ancestry, id, buses);
 
     if (!routing?.busPathIds?.length
         || routing.busPathIds.some(rawBusID =>
@@ -5728,31 +5756,24 @@ function CreateSfxSoundVoiceLimitProjection(parsed, rawID, buses)
     };
 }
 
-function CreateSfxNodeBasePlaybackProjection(parsed, rawID, names)
+function CreateSfxNodeBasePlaybackProjection(
+    ancestry,
+    playableNodes,
+    rawID,
+    names,
+)
 {
     const chain = [];
-    const visited = new Set();
-    let currentID = Number(rawID) >>> 0;
+    const trace = ancestry.Trace(rawID);
 
-    while (currentID && !visited.has(currentID))
+    for (const { nodeBase, parentId } of trace.entries)
     {
-        visited.add(currentID);
-
-        const nodeBase = parsed.nodeBases?.get(currentID);
-
-        if (!nodeBase)
-        {
-            break;
-        }
         chain.push(nodeBase);
 
-        const parentID = Number(nodeBase.directParentId) >>> 0;
-
-        if (!parentID || parsed.nodes.has(parentID))
+        if (!parentId || playableNodes.has(parentId))
         {
             break;
         }
-        currentID = parentID;
     }
 
     let gainDb = 0;

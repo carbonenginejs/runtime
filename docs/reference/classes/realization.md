@@ -115,6 +115,16 @@ Owns recursive SFX node lowering, memoized summaries, and synthetic IDs.
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CjsAudioLibraryBuilderWwiseNodeBaseAncestry -->
+## `CjsAudioLibraryBuilderWwiseNodeBaseAncestry`
+
+Traces and caches mechanical Wwise NodeBase parent ancestry.
+
+- Export: None
+- Source: `src/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioSystem -->
 ## `CjsAudioSystem`
 

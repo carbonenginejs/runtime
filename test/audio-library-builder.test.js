@@ -1114,6 +1114,245 @@ test("SFX lowering preserves inherited NodeBase playback properties", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("NodeBase ancestry keeps missing-parent policy differences", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: soundPayload({
+                        directParentId: 700,
+                        overrideBusId: 500,
+                        properties: [ { id: 0, value: -2 } ],
+                        advancedFlags: 0x09,
+                        maxInstances: 1,
+                    }),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 200,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 301,
+                    actionType: 0x0103,
+                    targetId: 700,
+                    action: {
+                        actionMode: "element",
+                        actionScope: "game-object",
+                        targetId: 700,
+                        targetFlags: 0,
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ 301 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                missing_parent_play: { eventID: 100 },
+                missing_parent_stop: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+        buses: new Map([ [ 500, {
+            overrideBusId: 0,
+            policy: { maxInstances: 0 },
+            rtpcs: [],
+            busVolume: null,
+            makeUpGain: null,
+        } ] ]),
+    });
+
+    assert.deepEqual(result.nodes["200"].matchIds, [ "200", "700" ]);
+    assert.equal(result.nodes["200"].gainDb, -2,
+        "playback keeps the valid ancestry prefix");
+    assert.equal(result.nodes["200"].outputBusId, "500",
+        "a nearer routing owner remains usable");
+    assert.equal(result.nodes["200"].voiceLimit, undefined,
+        "voice limits require a complete root-reaching ancestry");
+    assert.equal(result.nodes["200"].sourceEffects, undefined,
+        "an inherited effect without an owner remains absent");
+    assert.deepEqual(
+        result.metadataProjection.Events.missing_parent_play,
+        { eventsStoppedBy: [ "missing_parent_stop" ] },
+        "Stop matching retains one unresolved parent ID",
+    );
+});
+
+test("NodeBase ancestry keeps nearest owners across a parent cycle", () =>
+{
+    const bands = [
+        { filterTypeId: 3, gainDb: -6, frequencyHz: 240, q: 8, enabled: true },
+        { filterTypeId: 4, gainDb: 0, frequencyHz: 120, q: 1, enabled: false },
+        { filterTypeId: 5, gainDb: 0, frequencyHz: 12000, q: 1, enabled: false },
+    ];
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: soundPayload({
+                        directParentId: 700,
+                        overrideBusId: 500,
+                        properties: [ { id: 0, value: -2 } ],
+                        advancedFlags: 0x09,
+                        maxInstances: 1,
+                        overrideEffects: true,
+                        effects: [ {
+                            slotIndex: 1,
+                            effectId: 900,
+                            flags: 2,
+                        } ],
+                    }),
+                },
+                {
+                    type: 7,
+                    id: 700,
+                    payload: actorMixerPayload({
+                        directParentId: 200,
+                        properties: [ { id: 0, value: -3 } ],
+                        children: [ 200 ],
+                    }),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 200,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 16,
+                    id: 900,
+                    payload: parametricEqEffectPayload({ bands }),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: { cyclic_parent_play: { eventID: 100 } },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+        buses: new Map([ [ 500, {
+            overrideBusId: 0,
+            policy: { maxInstances: 0 },
+            rtpcs: [],
+            busVolume: null,
+            makeUpGain: null,
+        } ] ]),
+    });
+
+    assert.deepEqual(result.nodes["200"].matchIds, [ "200", "700" ],
+        "cycle matching does not repeat the cycle entry");
+    assert.equal(result.nodes["200"].gainDb, -5,
+        "playback keeps its bounded valid prefix");
+    assert.equal(result.nodes["200"].outputBusId, "500",
+        "a nearer routing owner wins before the cycle");
+    assert.equal(result.nodes["200"].sourceEffects[0].effectId, "900",
+        "a nearer effect owner wins before the cycle");
+    assert.equal(result.nodes["200"].voiceLimit, undefined,
+        "voice limits fail closed on cyclic ancestry");
+});
+
+test("NodeBase playback ancestry stops at the next playable parent", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: soundPayload({
+                        directParentId: 201,
+                        properties: [ { id: 0, value: -2 } ],
+                    }),
+                },
+                {
+                    type: 5,
+                    id: 201,
+                    payload: randomSequencePayload({
+                        childID: 200,
+                        nodeBase: nodeBasePayload({
+                            properties: [ { id: 0, value: -3 } ],
+                        }),
+                    }),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 201,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: { playable_parent: { eventID: 100 } },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.equal(result.nodes["200"].gainDb, -2);
+    assert.equal(result.nodes["201"].gainDb, -3);
+});
+
 test("SFX lowering projects only route-qualified cap-one Sound limits", () =>
 {
     const openBus = {
@@ -5906,6 +6145,99 @@ test("portable Bus graph resolves NodeBase inheritance and authored bus sends", 
         "700",
         "800",
     ]);
+});
+
+test("NodeBase aux owners resolve before a later ancestry cycle", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "init.bnk": {
+                    name: "init",
+                    path: "\\SoundBanks\\init.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/init.bnk",
+            storagePath: "banks/init.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    globalSettings: {
+                        filterBehavior: 0,
+                        stateGroups: [],
+                        switchGroups: [],
+                        rtpcParameters: [],
+                        acousticTextures: [],
+                    },
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideBusId: 500,
+                                directParentId: 400,
+                                properties: [
+                                    { id: 0x08, value: -6 },
+                                    { id: 0x1a, value: -3 },
+                                ],
+                                auxIds: [ 600 ],
+                                overrideUserAux: true,
+                                overrideReflectionsAux: true,
+                                reflectionsAuxBusId: 800,
+                            }),
+                        },
+                        {
+                            type: 7,
+                            id: 400,
+                            payload: actorMixerPayload({
+                                directParentId: 300,
+                                children: [ 300 ],
+                            }),
+                        },
+                        { type: 8, id: 500, payload: busPayload() },
+                        { type: 18, id: 600, payload: busPayload() },
+                        { type: 18, id: 800, payload: busPayload() },
+                    ],
+                    media: [],
+                },
+            };
+        },
+    });
+
+    const route = library.busGraph.routes[
+        library.busGraph.sfxRoutes["300"]
+    ];
+
+    assert.deepEqual(route.userAuxSends, [ {
+        slotIndex: 0,
+        targetBusId: "600",
+        gainDb: -6,
+        lowPass: 0,
+        highPass: 0,
+        dynamic: false,
+    } ]);
+    assert.deepEqual(route.reflectionsAuxSend, {
+        targetBusId: "800",
+        gainDb: -3,
+        dynamic: false,
+    });
 });
 
 test("complete construction projects multi-property effective-Immediate Bus States", async () =>
