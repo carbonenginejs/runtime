@@ -455,7 +455,240 @@ function RouteSelection(route, containerId) {
   return (route ?? []).find(entry => entry.containerId === containerId)?.selectedTargetId ?? null;
 }
 
-/** One playing music instance: a posted event's active graph playback. */
+/**
+ * Owns the Web Audio sources, fade state, and route nodes for one scheduled
+ * music segment.
+ */
+class CjsMusicEngineScheduledSegment {
+  #context;
+
+  /** Initializes one scheduled segment around its connected gain lane. */
+  constructor({
+    context,
+    gain,
+    segmentId,
+    scheduleId,
+    targetId,
+    startCtx,
+    endCtx,
+    timeline
+  }) {
+    this.#context = context;
+    this.sources = [];
+    this.routeGains = new Map();
+    this.subTracks = new Map();
+    this.segmentId = segmentId;
+    this.scheduleId = scheduleId;
+    this.targetId = targetId;
+    this.gain = gain;
+    this.startCtx = startCtx;
+    this.endCtx = endCtx;
+    this.audibleEndCtx = endCtx;
+    this.timeline = timeline;
+    this.fading = false;
+    this.fadeEndCtx = null;
+    this.disposed = false;
+  }
+
+  /** Retains and asynchronously realizes one already-windowed clip. */
+  ScheduleClip({
+    sourceId,
+    startCtx,
+    offsetMs,
+    initialOffsetMs,
+    audibleStartMs,
+    audibleEndMs,
+    isPrepared,
+    resolveDestination,
+    acquireBuffer,
+    scheduleDuck
+  }) {
+    const entry = {
+      sourceId,
+      source: null,
+      startCtx,
+      endCtx: startCtx + (audibleEndMs - audibleStartMs - (offsetMs - initialOffsetMs)) / 1000,
+      cancelled: false,
+      failed: false,
+      missed: false,
+      ended: false,
+      duckActivity: null
+    };
+    this.sources.push(entry);
+    // Route resolution deliberately follows insertion: callers may inspect
+    // the retained failed scheduling attempt when a dependency throws.
+    const destination = resolveDestination();
+    const {
+      prepared,
+      isLive
+    } = acquireBuffer();
+    const scheduleBuffer = buffer => {
+      if (!buffer) {
+        entry.cancelled = true;
+        entry.failed = true;
+        return;
+      }
+      if (entry.cancelled || !isLive()) {
+        return;
+      }
+      let resolvedWhen = startCtx;
+      let resolvedOffsetMs = offsetMs;
+      if (!isPrepared && resolvedWhen < this.#context.currentTime) {
+        const loadedAt = this.#context.currentTime;
+        resolvedOffsetMs += (loadedAt - resolvedWhen) * 1000;
+        resolvedWhen = loadedAt;
+      }
+      const resolvedDurationMs = audibleEndMs - audibleStartMs - (resolvedOffsetMs - initialOffsetMs);
+      if (resolvedDurationMs <= 0) {
+        entry.cancelled = true;
+        entry.missed = true;
+        return;
+      }
+      if (this.fading && this.fadeEndCtx <= this.#context.currentTime) {
+        entry.cancelled = true;
+        return;
+      }
+      this.audibleEndCtx = Math.max(this.audibleEndCtx, resolvedWhen + resolvedDurationMs / 1000);
+      const source = this.#context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(destination ?? this.gain);
+      source.onended = () => {
+        const endedAt = Number(this.#context.currentTime) || entry.endCtx;
+        if (endedAt <= entry.startCtx) {
+          entry.duckActivity?.Cancel?.(endedAt);
+        } else {
+          entry.duckActivity?.End?.(endedAt);
+        }
+        entry.duckActivity = null;
+        entry.ended = true;
+        source.onended = null;
+        source.disconnect?.();
+      };
+      try {
+        source.start(resolvedWhen, Math.max(0, resolvedOffsetMs) / 1000, resolvedDurationMs / 1000);
+      } catch {
+        source.onended = null;
+        source.disconnect?.();
+        entry.cancelled = true;
+        entry.failed = true;
+        return;
+      }
+      entry.source = source;
+      entry.startCtx = resolvedWhen;
+      entry.endCtx = resolvedWhen + resolvedDurationMs / 1000;
+      entry.duckActivity = scheduleDuck(entry.startCtx, entry.endCtx);
+      if (this.fading) {
+        source.stop(this.fadeEndCtx);
+      }
+    };
+    const failed = () => {
+      entry.cancelled = true;
+      entry.failed = true;
+    };
+    if (isPrepared) {
+      scheduleBuffer(prepared);
+    } else {
+      Promise.resolve(prepared).then(scheduleBuffer).catch(failed);
+    }
+    return entry;
+  }
+
+  /** Returns each gain parameter participating in synchronized fades. */
+  GetGainParams() {
+    const params = [];
+    const legacy = this.gain?.gain;
+    if (legacy) params.push(legacy);
+    for (const route of this.routeGains.values()) {
+      const param = route.transitionGain?.gain;
+      if (param) params.push(param);
+    }
+    return params;
+  }
+
+  /** Fades this segment and stops loaded or future sources. */
+  FadeOut({
+    when,
+    duration,
+    startValue = null,
+    fadeCurve = LINEAR_FADE_CURVE,
+    progress = 0,
+    override = false
+  }) {
+    // Authored fades are first-wins. Explicit browser transport may only
+    // shorten one, never extend its already scheduled audible lifetime.
+    if (this.fading && !override) return;
+    if (override && this.fadeEndCtx !== null) {
+      duration = Math.max(0, Math.min(when + duration, this.fadeEndCtx) - when);
+      for (const param of this.GetGainParams()) {
+        if (typeof param.cancelAndHoldAtTime === "function") {
+          param.cancelAndHoldAtTime(when);
+        } else {
+          param.cancelScheduledValues?.(0);
+          param.setValueAtTime?.(param.value ?? 1, when);
+        }
+      }
+    }
+    this.fading = true;
+    this.fadeEndCtx = when + duration;
+    if (duration > 0) {
+      for (const param of this.GetGainParams()) {
+        const authored = startValue !== null;
+        ScheduleFade(param, authored ? 1 : param.value ?? 1, 0, when, duration, authored ? fadeCurve : LINEAR_FADE_CURVE, authored ? progress : 0);
+      }
+    }
+    for (const entry of this.sources) {
+      if (entry.source) {
+        const stopAt = when + duration;
+        if (stopAt <= entry.startCtx) {
+          entry.duckActivity?.Cancel?.(stopAt);
+          entry.duckActivity = null;
+        } else {
+          entry.duckActivity?.End?.(stopAt);
+        }
+        try {
+          entry.source.stop(stopAt);
+        } catch {
+          // already stopped
+        }
+      } else if (when + duration <= (this.#context?.currentTime ?? 0)) {
+        entry.cancelled = true;
+      }
+    }
+  }
+
+  /** Cancels and disconnects every Web Audio node owned by this segment. */
+  Dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    for (const entry of this.sources) {
+      entry.cancelled = true;
+      const now = Number(this.#context?.currentTime) || 0;
+      if (now <= entry.startCtx) {
+        entry.duckActivity?.Cancel?.(now);
+      } else {
+        entry.duckActivity?.End?.(now);
+      }
+      entry.duckActivity = null;
+      if (entry.source) {
+        entry.source.onended = null;
+        entry.source.disconnect?.();
+      }
+    }
+    for (const route of this.routeGains.values()) {
+      route.lowPassFilter?.disconnect?.();
+      route.highPassFilter?.disconnect?.();
+      route.gain?.disconnect?.();
+      route.transitionGain?.disconnect?.();
+      for (const node of route.busEffectNodes ?? []) {
+        node.disconnect?.();
+      }
+    }
+    this.routeGains.clear();
+    this.gain?.disconnect?.();
+  }
+}
+
+/** One posted music event's selection, scheduling, and transport state. */
 class MusicInstance {
   /** Creates the scheduling state for one posted music event. */
   constructor({
@@ -800,7 +1033,11 @@ class CjsMusicEngine {
       instance.transportChoice = state.choice;
       instance.transportPaused = true;
       for (const scheduled of instance.active) {
-        this.#FadeOutSources(scheduled, this.#context.currentTime, seconds, null, LINEAR_FADE_CURVE, 0, true);
+        scheduled.FadeOut({
+          when: this.#context.currentTime,
+          duration: seconds,
+          override: true
+        });
       }
       changed = true;
     }
@@ -1007,7 +1244,7 @@ class CjsMusicEngine {
       const effectiveEnd = scheduled.fading ? Math.min(scheduled.fadeEndCtx ?? naturalEnd, naturalEnd) : naturalEnd;
       const live = effectiveEnd === undefined || effectiveEnd + 2 > now;
       if (!live) {
-        this.#DisposeScheduledSegment(scheduled);
+        scheduled.Dispose();
       }
       return live;
     });
@@ -1331,7 +1568,10 @@ class CjsMusicEngine {
       const when = Math.max(this.#TransitionTime(instance, rule) ?? this.#CurrentSegmentBoundary(instance), this.#context.currentTime);
       const fadeSeconds = Math.max(0, rule?.src.transitionTime ?? 0) / 1000;
       for (const active of instance.active) {
-        this.#FadeOutSources(active, when, fadeSeconds);
+        active.FadeOut({
+          when,
+          duration: fadeSeconds
+        });
       }
       instance.resolvedTargetId = null;
       instance.resolvedRoute = route;
@@ -1736,7 +1976,11 @@ class CjsMusicEngine {
     instance.pendingRoute = null;
     instance.unavailableTargetId = null;
     for (const scheduled of instance.active) {
-      this.#FadeOutSources(scheduled, now, 0.03, null, LINEAR_FADE_CURVE, 0, true);
+      scheduled.FadeOut({
+        when: now,
+        duration: 0.03,
+        override: true
+      });
     }
     this.#ResolveInstanceTo(instance, targetId, now);
     if (target.type === "music-segment") {
@@ -1985,24 +2229,20 @@ class CjsMusicEngine {
     // out without touching the incoming segment on the same instance.
     const gain = this.#context.createGain();
     gain.connect(instance.gain);
-    const scheduled = {
-      sources: [],
-      routeGains: new Map(),
-      subTracks: new Map(),
+    const endCtx = boundary + Math.max(0.001, (exitCueMs - entryCueMs) / 1000);
+    const scheduled = new CjsMusicEngineScheduledSegment({
+      context: this.#context,
+      gain,
       segmentId,
       scheduleId: this.#nextScheduleId++,
       targetId,
-      gain,
       startCtx: boundary,
-      endCtx: boundary + Math.max(0.001, (exitCueMs - entryCueMs) / 1000),
-      audibleEndCtx: boundary + Math.max(0.001, (exitCueMs - entryCueMs) / 1000),
+      endCtx,
       timeline: {
         startCtx: boundary - entryCueMs / 1000,
         meter
-      },
-      fading: false,
-      fadeEndCtx: null
-    };
+      }
+    });
     instance.active.push(scheduled);
     for (const trackId of segment.children) {
       const track = this.#graph.nodes[trackId];
@@ -2064,92 +2304,27 @@ class CjsMusicEngine {
     }
     const durationMs = audibleEndMs - audibleStartMs - (offsetMs - initialOffsetMs);
     if (durationMs <= 0) return;
-    const entry = {
+    scheduled.ScheduleClip({
       sourceId: clip.sourceId,
-      source: null,
       startCtx: when,
-      endCtx: when + durationMs / 1000,
-      cancelled: false,
-      failed: false,
-      missed: false,
-      ended: false,
-      duckActivity: null
-    };
-    scheduled.sources.push(entry);
-    // Resolve the route before loading starts. Qualified routes own
-    // segment-local fade lanes, which must exist before the caller can
-    // schedule an authored transition on this segment.
-    const routeGain = this.#GetRouteGain(instance, scheduled, trackId, track);
-    const epoch = this.#epoch;
-    const prepared = isPrepared ? preparedBuffers.get(clip.sourceId) : this.#LoadBuffer(clip.sourceId, track);
-    const scheduleBuffer = buffer => {
-      if (!buffer) {
-        entry.cancelled = true;
-        entry.failed = true;
-        return;
-      }
-      if (entry.cancelled || instance.stopped || epoch !== this.#epoch) {
-        return;
-      }
-      let resolvedWhen = when;
-      let resolvedOffsetMs = offsetMs;
-      if (!isPrepared && resolvedWhen < context.currentTime) {
-        const loadedAt = context.currentTime;
-        resolvedOffsetMs += (loadedAt - resolvedWhen) * 1000;
-        resolvedWhen = loadedAt;
-      }
-      const resolvedDurationMs = audibleEndMs - audibleStartMs - (resolvedOffsetMs - initialOffsetMs);
-      if (resolvedDurationMs <= 0) {
-        entry.cancelled = true;
-        entry.missed = true;
-        return;
-      }
-      if (scheduled.fading && scheduled.fadeEndCtx <= context.currentTime) {
-        entry.cancelled = true;
-        return;
-      }
-      scheduled.audibleEndCtx = Math.max(scheduled.audibleEndCtx, resolvedWhen + resolvedDurationMs / 1000);
-      const source = context.createBufferSource();
-      source.buffer = buffer;
-      source.connect(routeGain ?? scheduled.gain);
-      source.onended = () => {
-        const endedAt = Number(context.currentTime) || entry.endCtx;
-        if (endedAt <= entry.startCtx) {
-          entry.duckActivity?.Cancel?.(endedAt);
-        } else {
-          entry.duckActivity?.End?.(endedAt);
-        }
-        entry.duckActivity = null;
-        entry.ended = true;
-        source.onended = null;
-        source.disconnect?.();
-      };
-      try {
-        source.start(resolvedWhen, Math.max(0, resolvedOffsetMs) / 1000, resolvedDurationMs / 1000);
-      } catch {
-        source.onended = null;
-        source.disconnect?.();
-        entry.cancelled = true;
-        entry.failed = true;
-        return;
-      }
-      entry.source = source;
-      entry.startCtx = resolvedWhen;
-      entry.endCtx = resolvedWhen + resolvedDurationMs / 1000;
-      entry.duckActivity = this.#busDuckingController?.ScheduleActivity?.(track.busPathIds, entry.startCtx, entry.endCtx) ?? null;
-      if (scheduled.fading) {
-        source.stop(scheduled.fadeEndCtx);
-      }
-    };
-    const failed = () => {
-      entry.cancelled = true;
-      entry.failed = true;
-    };
-    if (isPrepared) {
-      scheduleBuffer(prepared);
-    } else {
-      Promise.resolve(prepared).then(scheduleBuffer).catch(failed);
-    }
+      offsetMs,
+      initialOffsetMs,
+      audibleStartMs,
+      audibleEndMs,
+      isPrepared,
+      // Qualified routes own segment-local fade lanes, which must exist
+      // before loading starts and before a transition can target them.
+      resolveDestination: () => this.#GetRouteGain(instance, scheduled, trackId, track),
+      acquireBuffer: () => {
+        const epoch = this.#epoch;
+        const prepared = isPrepared ? preparedBuffers.get(clip.sourceId) : this.#LoadBuffer(clip.sourceId, track);
+        return {
+          prepared,
+          isLive: () => !instance.stopped && epoch === this.#epoch
+        };
+      },
+      scheduleDuck: (startCtx, endCtx) => this.#busDuckingController?.ScheduleActivity?.(track.busPathIds, startCtx, endCtx) ?? null
+    });
   }
 
   /** Gets or creates one scheduled track's pre-bus gain route. */
@@ -2270,18 +2445,6 @@ class CjsMusicEngine {
     return gain;
   }
 
-  /** Returns every synchronized transition parameter for one segment. */
-  #GetSegmentGainParams(scheduledSegment) {
-    const params = [];
-    const legacy = scheduledSegment?.gain?.gain;
-    if (legacy) params.push(legacy);
-    for (const route of scheduledSegment?.routeGains?.values?.() ?? []) {
-      const param = route.transitionGain?.gain;
-      if (param) params.push(param);
-    }
-    return params;
-  }
-
   /** Loads and retains one decoded music source, evicting failed results. */
   #LoadBuffer(sourceId, track) {
     if (this.#buffers.has(sourceId)) return this.#buffers.get(sourceId);
@@ -2298,7 +2461,7 @@ class CjsMusicEngine {
   /** Applies an authored fade-in relative to a segment's entry cue. */
   #ApplyFadeIn(scheduledSegment, entryTime, fade) {
     const duration = FadeDuration(fade);
-    const params = this.#GetSegmentGainParams(scheduledSegment);
+    const params = scheduledSegment.GetGainParams();
     if (!(duration > 0) || !params.length) {
       return;
     }
@@ -2328,64 +2491,32 @@ class CjsMusicEngine {
         return;
       }
       const stopAt = exitTime + effectiveOffset;
-      this.#FadeOutSources(scheduledSegment, Math.max(stopAt, this.#context?.currentTime ?? 0), 0);
+      scheduledSegment.FadeOut({
+        when: Math.max(stopAt, this.#context?.currentTime ?? 0),
+        duration: 0
+      });
       return;
     }
     const end = exitTime + effectiveOffset;
     const start = end - duration;
     const now = this.#context?.currentTime ?? 0;
     if (end <= now) {
-      this.#FadeOutSources(scheduledSegment, now, 0);
+      scheduledSegment.FadeOut({
+        when: now,
+        duration: 0
+      });
       return;
     }
     const effectiveStart = Math.max(start, now);
     const progress = Math.max(0, Math.min(1, (effectiveStart - start) / duration));
     const startValue = 1 - FadeCurveValue(fade?.fadeCurve, progress);
-    this.#FadeOutSources(scheduledSegment, effectiveStart, end - effectiveStart, startValue, fade?.fadeCurve, progress);
-  }
-
-  /** Fades a scheduled segment gain and stops loaded or future sources. */
-  #FadeOutSources(scheduledSegment, when, fadeSeconds, startValue = null, fadeCurve = LINEAR_FADE_CURVE, progress = 0, override = false) {
-    // Authored fades are first-wins. Explicit browser transport may only
-    // shorten one, never extend its already scheduled audible lifetime.
-    if (scheduledSegment.fading && !override) return;
-    if (override && scheduledSegment.fadeEndCtx !== null) {
-      fadeSeconds = Math.max(0, Math.min(when + fadeSeconds, scheduledSegment.fadeEndCtx) - when);
-      for (const param of this.#GetSegmentGainParams(scheduledSegment)) {
-        if (typeof param.cancelAndHoldAtTime === "function") {
-          param.cancelAndHoldAtTime(when);
-        } else {
-          param.cancelScheduledValues?.(0);
-          param.setValueAtTime?.(param.value ?? 1, when);
-        }
-      }
-    }
-    scheduledSegment.fading = true;
-    scheduledSegment.fadeEndCtx = when + fadeSeconds;
-    if (fadeSeconds > 0) {
-      for (const param of this.#GetSegmentGainParams(scheduledSegment)) {
-        const authored = startValue !== null;
-        ScheduleFade(param, authored ? 1 : param.value ?? 1, 0, when, fadeSeconds, authored ? fadeCurve : LINEAR_FADE_CURVE, authored ? progress : 0);
-      }
-    }
-    for (const entry of scheduledSegment.sources) {
-      if (entry.source) {
-        const stopAt = when + fadeSeconds;
-        if (stopAt <= entry.startCtx) {
-          entry.duckActivity?.Cancel?.(stopAt);
-          entry.duckActivity = null;
-        } else {
-          entry.duckActivity?.End?.(stopAt);
-        }
-        try {
-          entry.source.stop(stopAt);
-        } catch {
-          // already stopped
-        }
-      } else if (when + fadeSeconds <= (this.#context?.currentTime ?? 0)) {
-        entry.cancelled = true;
-      }
-    }
+    scheduledSegment.FadeOut({
+      when: effectiveStart,
+      duration: end - effectiveStart,
+      startValue,
+      fadeCurve: fade?.fadeCurve,
+      progress
+    });
   }
 
   /** Stops one live instance immediately or after an audible fade. */
@@ -2407,7 +2538,10 @@ class CjsMusicEngine {
       }
     }
     for (const active of instance.active) {
-      this.#FadeOutSources(active, now, fadeSeconds);
+      active.FadeOut({
+        when: now,
+        duration: fadeSeconds
+      });
     }
     if (fadeSeconds > 0) {
       instance.stopAt = now + fadeSeconds;
@@ -2424,44 +2558,13 @@ class CjsMusicEngine {
     this.#FinalizeInstance(instance);
   }
 
-  /** Cancels and disconnects every node owned by one scheduled segment. */
-  #DisposeScheduledSegment(scheduled) {
-    if (scheduled.disposed) return;
-    scheduled.disposed = true;
-    for (const entry of scheduled.sources) {
-      entry.cancelled = true;
-      const now = Number(this.#context?.currentTime) || 0;
-      if (now <= entry.startCtx) {
-        entry.duckActivity?.Cancel?.(now);
-      } else {
-        entry.duckActivity?.End?.(now);
-      }
-      entry.duckActivity = null;
-      if (entry.source) {
-        entry.source.onended = null;
-        entry.source.disconnect?.();
-      }
-    }
-    for (const route of scheduled.routeGains?.values?.() ?? []) {
-      route.lowPassFilter?.disconnect?.();
-      route.highPassFilter?.disconnect?.();
-      route.gain?.disconnect?.();
-      route.transitionGain?.disconnect?.();
-      for (const node of route.busEffectNodes ?? []) {
-        node.disconnect?.();
-      }
-    }
-    scheduled.routeGains?.clear?.();
-    scheduled.gain?.disconnect?.();
-  }
-
   /** Removes one instance, disconnects its gain, and fires completion once. */
   #FinalizeInstance(instance) {
     if (instance.finished) return;
     instance.finished = true;
     this.#instances.delete(instance.key);
     for (const scheduled of instance.active) {
-      this.#DisposeScheduledSegment(scheduled);
+      scheduled.Dispose();
     }
     instance.active = [];
     instance.gain?.disconnect?.();

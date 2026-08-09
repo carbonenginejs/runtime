@@ -175,6 +175,16 @@ Schedules an authored interactive-music graph against decoded Web Audio buffers.
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsMusicEngineScheduledSegment -->
+## `CjsMusicEngineScheduledSegment`
+
+Owns the Web Audio sources, fades, routes, and cleanup for one scheduled music segment.
+
+- Export: None
+- Source: `src/CjsMusicEngine.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsJukebox -->
 ## `CjsJukebox`
 
@@ -208,7 +218,7 @@ Owns speculative SFX selection leases, snapshots, and settlement.
 <!-- class:MusicInstance -->
 ## `MusicInstance`
 
-Tracks the scheduling, playlist, source, and fade state of one active music event.
+Tracks selection, scheduling-frontier, and browser-transport state for one active music event.
 
 - Export: None
 - Source: `src/CjsMusicEngine.js`
