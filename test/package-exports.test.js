@@ -13,15 +13,17 @@ test("published package resolves root, family, and deep generated exports", () =
   const source = `
     const packageRoot = await import("@carbonenginejs/runtime-trinity");
     const eve = await import("@carbonenginejs/runtime-trinity/generated/eve");
-    const child = await import("@carbonenginejs/runtime-trinity/generated/eve/child/EveChildLineSet.js");
+    const child = await import("@carbonenginejs/runtime-trinity/generated/eve/child/EveChildCloud.js");
+    const eveFamily = await import("@carbonenginejs/runtime-trinity/eve");
     const renderStep = await import("@carbonenginejs/runtime-trinity/generated/renderJob/TriStepRemoteUpdate.js");
     const promoted = await import("@carbonenginejs/runtime-trinity/renderJob");
     const perFrame = await import("@carbonenginejs/runtime-trinity/perframe");
     const perObject = await import("@carbonenginejs/runtime-trinity/perobject");
 
     if (!packageRoot.Tr2Effect || !packageRoot.TriVectorSequencer || !packageRoot.TriColorSequencer ||
-        !packageRoot.Tr2PostProcess || !packageRoot.EveSprite2dBracket || !eve.EveChildRef ||
-        !child.EveChildLineSet || !renderStep.TriStepRemoteUpdate ||
+        !packageRoot.Tr2PostProcess || !packageRoot.EveSprite2dBracket ||
+        !eve.EveChildInstanceMeshRenderer || !eveFamily.EveChildRef || !eveFamily.EveChildLineSet ||
+        !child.EveChildCloud || !renderStep.TriStepRemoteUpdate ||
         !promoted.TriStepFilterVisibilityResults || !promoted.TriStepRenderScene ||
         !perFrame.CjsPerFrameLayouts || !perObject.CjsPerObjectLayouts)
     {

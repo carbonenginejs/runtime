@@ -20,7 +20,7 @@ import {
   EveChildTransform,
   IEveSpaceObjectChild
 } from "../npm/dist/index.js";
-import { EveChildLineSet } from "../npm/dist/generated/eve/child/EveChildLineSet.js";
+import { EveChildLineSet } from "../npm/dist/eve/child/EveChildLineSet.js";
 
 
 test("generated Eve children inherit maintained local-transform rebuilding", () =>

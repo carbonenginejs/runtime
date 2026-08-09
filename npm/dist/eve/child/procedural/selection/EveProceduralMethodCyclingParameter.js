@@ -1,7 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { EveChildRef as _EveChildRef } from '../../../../generated/eve/child/EveChildRef.js';
+import { EveChildRef as _EveChildRef } from '../../EveChildRef.js';
 
 let _initProto, _initClass, _init_child, _init_extra_child, _init_name, _init_extra_name, _init_playDuration, _init_extra_playDuration, _init_reloadRequired, _init_extra_reloadRequired, _init_restartRequired, _init_extra_restartRequired;
 

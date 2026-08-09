@@ -9,4 +9,18 @@ export { Tr2ParticleElementDeclarationName } from './Tr2ParticleElementDeclarati
 export { Tr2ParticleFluidDragForce } from './Tr2ParticleFluidDragForce.js';
 export { Tr2ParticleSpring } from './Tr2ParticleSpring.js';
 export { Tr2ParticleVortexForce } from './Tr2ParticleVortexForce.js';
+export { Tr2StaticEmitter } from './Tr2StaticEmitter.js';
+export { Tr2SphereShapeAttributeGenerator } from './Tr2SphereShapeAttributeGenerator.js';
+export { Tr2SphereConstraint } from './Tr2SphereConstraint.js';
+export { Tr2RandomUniformAttributeGenerator } from './Tr2RandomUniformAttributeGenerator.js';
+export { Tr2RandomIntegerAttributeGenerator } from './Tr2RandomIntegerAttributeGenerator.js';
+export { Tr2RandomDirectionAttributeGenerator } from './Tr2RandomDirectionAttributeGenerator.js';
+export { Tr2PlaneConstraint } from './Tr2PlaneConstraint.js';
+export { Tr2ParticleTurbulenceForce } from './Tr2ParticleTurbulenceForce.js';
+export { Tr2ParticleSystem } from './Tr2ParticleSystem.js';
+export { Tr2ForceSphereVolume } from './Tr2ForceSphereVolume.js';
+export { Tr2ElementBlendConstraint } from './Tr2ElementBlendConstraint.js';
+export { Tr2DynamicEmitter } from './Tr2DynamicEmitter.js';
+export { Tr2ConsecutiveIntegerAttributeGenerator } from './Tr2ConsecutiveIntegerAttributeGenerator.js';
+export { Tr2CapsuleShapeAttributeGenerator } from './Tr2CapsuleShapeAttributeGenerator.js';
 //# sourceMappingURL=index.js.map

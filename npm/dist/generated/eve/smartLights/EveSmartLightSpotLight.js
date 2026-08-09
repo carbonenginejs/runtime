@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2Light as _Tr2Light } from '../../../eve/lights/Tr2Light.js';
-import { EveSmartLightPointLight as _EveSmartLightPointLi } from './EveSmartLightPointLight.js';
+import { EveSmartLightPointLight as _EveSmartLightPointLi } from '../../../eve/smartLights/EveSmartLightPointLight.js';
 
 let _initProto, _initClass, _init_innerAngle, _init_extra_innerAngle, _init_outerAngle, _init_extra_outerAngle;
 

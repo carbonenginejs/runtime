@@ -130,7 +130,7 @@ Abstract base for render-batch accumulators: holds the shared rendering mode, us
 
 Resolved per-frame layouts, keyed by struct name.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
+- Export: @carbonenginejs/runtime-trinity/perframe
 - Source: src/trinityCore/rawData/CjsPerFrameLayouts.js
 - Visibility: Public
 - Kind: CarbonEngineJS
@@ -140,7 +140,7 @@ Resolved per-frame layouts, keyed by struct name.
 
 Resolved per-object layouts, keyed by struct name.
 
-- Export: @carbonenginejs/runtime-trinity/trinityCore
+- Export: @carbonenginejs/runtime-trinity/perobject
 - Source: src/trinityCore/rawData/CjsPerObjectLayouts.js
 - Visibility: Public
 - Kind: CarbonEngineJS

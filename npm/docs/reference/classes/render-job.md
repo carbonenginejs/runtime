@@ -484,4 +484,3 @@ A render step that ticks one updateable object with the frame times.
 - Source: src/renderJob/TriStepUpdate.js
 - Visibility: Public
 - Kind: CarbonEngineJS
-
