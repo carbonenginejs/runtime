@@ -424,7 +424,7 @@ export class EveMissileWarhead extends EveTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Constant-buffer layout/packing is engine-owned; Trinity Allocs the record from the accumulator's store and Sets logical values by name (the store transposes the matrix per the engine layout).")
+  @impl.reason("Trinity allocates the catalogued record and encodes its fields into the canonical stored layout; the engine owns GPU allocation, upload, and binding.")
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveMissileWarheadPerObjectData");

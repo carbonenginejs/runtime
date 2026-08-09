@@ -242,7 +242,7 @@ export class EveSceneStaticParticles extends CjsModel
    * composition). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Constant-buffer layout/packing is engine-owned; Trinity Allocs the record from the accumulator's store and Sets the logical world/lastWorld by name (the store transposes per the engine layout). Both fields are fully CPU-filled, so no object backref is needed.")
+  @impl.reason("Trinity allocates the catalogued record and encodes world/lastWorld into the canonical stored layout. Both fields are CPU-filled; the engine only realizes and binds the packed payload.")
   GetPerObjectData(accumulator)
   {
     const data = accumulator?.Alloc?.("EveSceneStaticParticlesPerObjectData");

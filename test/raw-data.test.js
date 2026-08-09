@@ -42,7 +42,7 @@ function MakeWorld()
   return m;
 }
 
-// A store with one struct registered against the tight packer.
+// A store with one ad hoc struct resolved by Trinity's tight-layout fallback.
 function MakeStore(name, def, options)
 {
   const store = new TriPoolAllocator(options);

@@ -27,7 +27,9 @@ turrets and missiles.
 launch, eject, and tracking state, fixed-seed Perlin path offsets, target
 switching, impacts, explosion callbacks, particles, visibility, and dynamic
 MIRV bounds. Per-object records expose the world transform and missile size;
-an engine packs and uploads those logical values.
+Trinity resolves their canonical field layout and encodes the logical values
+into packed `RawData`. An engine owns GPU allocation, upload, and binding of
+those bytes.
 
 `EveEffectRoot2` and `EveRootTransform` own detached effect placement,
 controller and curve propagation, targetable-sphere behavior, child update and

@@ -259,9 +259,9 @@ export class RawData
   }
 
   /**
-   * Write a LOGICAL value, encoded per the field's kind (MATRIX transposes,
-   * UINT/INT bit-cast, MATRIX_3X4 column-stride packs, VECTOR copies). Pass
-   * `element` to write one slot of an array field.
+   * Write a non-matrix LOGICAL value, encoded per the field's kind (UINT/INT
+   * bit-cast, MATRIX_3X4 column-stride packs, VECTOR copies). Matrix fields
+   * must use `SetAndTranspose*`. Pass `element` to write one array slot.
    */
   Set(name, value, element)
   {

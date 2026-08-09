@@ -85,11 +85,11 @@ investigated on 2026-07-17 during the trinity CPU-completion pass:
 - They are Blue/Python SCRIPTING WRAPPERS (`IPythonMethods`, `Py*` thunks)
   around Carbon's native math, fully redundant with `@carbonenginejs/runtime-utils`
   (gl-matrix based), which every runtime class already uses.
-- Carbon's `Matrix` is row-major while core-math/gl-matrix is column-major;
-  delegating these wrappers to core-math would silently transpose. The
-  engine-wide rule is: the CPU graph stores matrices column-major and the
-  transpose happens ONLY at shader-upload/pack time in the engine adapter
-  (reference: ccpwgl `Tr2PerObjectData.PackMatrix`).
+- Carbon composes row vectors while core-math/gl-matrix composes column
+  vectors; delegating these wrappers to core-math without reversing composed
+  operands would be wrong. The CPU graph keeps logical gl-matrix values.
+  Trinity's `RawData.SetAndTranspose*` methods encode matrix fields into the
+  canonical stored representation; an engine uploads those lanes unchanged.
 - The concrete `TriMatrix` wrapper is referenced only by runtime-character's
   interior/skinned-object schemas. Its quarantine and full disposition moved
   to `runtime-character/src/dropped`; only the unused `ITriMatrix` interface
@@ -101,12 +101,14 @@ investigated on 2026-07-17 during the trinity CPU-completion pass:
 
 Unlike the rest of this folder (native shapes never ported), these three were
 FULLY-PORTED `CjsModel` per-object-data payload classes that the RawData
-per-object-data system replaced. Payloads now flow through the engine-packed
-`TriPoolAllocator` (`src/trinityCore/rawData/`): a renderable's `GetPerObjectData`
-calls `accumulator.Alloc("<StructName>").Set(name, logicalValue)` and the store
-transposes/packs per the engine layout, so the CjsModel payload class is no
-longer the vehicle. They are quarantined here (not deleted) as shape reference
-in case the packing contract must be re-derived.
+per-object-data system replaced. Payloads now flow through Trinity's
+`TriPoolAllocator` (`src/trinityCore/rawData/`): a renderable's
+`GetPerObjectData` allocates a catalogued record and writes fields with `Set`,
+`SetIndex`, or `SetAndTranspose*`. Trinity resolves the offsets and encodes the
+canonical stored lanes; an engine later allocates, uploads, and binds those
+bytes. The CjsModel payload class is therefore no longer the vehicle. These
+files are quarantined here (not deleted) as shape reference in case the
+contract must be re-derived.
 
 | File | Was | Replaced by |
 |---|---|---|
@@ -114,12 +116,13 @@ in case the packing contract must be re-derived.
 | `EveMissileWarheadPerObjectData.js` | Warhead world + missileSize record | `Alloc("EveMissileWarheadPerObjectData")` in `EveMissileWarhead.GetPerObjectData` |
 | `EveSceneStaticParticlesPerObjectData.js` | Static-particles world/lastWorld record (generator-emitted) | `Alloc("EveSceneStaticParticlesPerObjectData")` in `EveSceneStaticParticles.GetPerObjectData` |
 
-The struct DEFS (names/sizes/encodings) these classes documented now live
-engine-side, keyed by the SAME struct names (a stand-in packer for tests is in
-`test/helpers/perObjectStore.js`) — so the logical shape is preserved there, not
-here. These three keep their `export class` text like every other file in this
-folder, which is also what makes the generator skip re-emitting the one
-generated basename (`EveSceneStaticParticlesPerObjectData`).
+The maintained struct definitions (names, sizes, encodings, stages, and
+offsets) live in Trinity's `CjsPerObjectLayouts.js`, keyed by the same struct
+names. `test/helpers/perObjectStore.js` supplies additional test-only
+definitions for records not yet in that production catalog. These three keep
+their `export class` text like every other file in this folder, which is also
+what makes the generator skip re-emitting the one generated basename
+(`EveSceneStaticParticlesPerObjectData`).
 
 ## Superseded per-object-data payloads, wave 2 (producer port, 2026-07-29)
 

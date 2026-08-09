@@ -229,10 +229,10 @@ export class EveTransform extends Tr2Transform
   }
 
   // Carbon EveTransform::GetPerObjectData (EveTransform.cpp:49-77): fills the
-  // EveBasicPerObjectData constant record. Trinity writes LOGICAL matrices by
-  // name; the store (engine-supplied layout) transposes them on Set. Carbon's
-  // worldInverse = Inverse(transposed world) == Transpose(Inverse(world)), so
-  // it is just Set("worldInverse", Inverse(world)) - the store transposes.
+  // EveBasicPerObjectData constant record. Trinity owns the catalogued layout;
+  // SetAndTranspose writes each LOGICAL matrix into its canonical stored form.
+  // Carbon's worldInverse = Inverse(transposed world) equals the transpose of
+  // the logical inverse, so the port passes Inverse(world) to that encoder.
 
   /**
    * Allocates an EveBasicPerObjectData record from the accumulator and fills it with the world, previous-world and inverse-world matrices, patching the first all-zero basis of a singular world matrix with a 0.1 diagonal before inverting, as Carbon does.
@@ -240,7 +240,7 @@ export class EveTransform extends Tr2Transform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Constant-buffer layout/packing is engine-owned; Trinity Allocs the record from the accumulator's store and Sets logical values by name (the store transposes per the engine layout).")
+  @impl.reason("Trinity allocates the catalogued record and encodes its matrix fields into the canonical stored layout; the engine owns GPU allocation, upload, and binding.")
   GetPerObjectData(accumulator)
   {
     const data = accumulator.Alloc("EveBasicPerObjectData");

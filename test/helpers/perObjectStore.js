@@ -1,14 +1,13 @@
-// Test stand-in for the engine's per-object-data layout. In production the
-// engine registers these structs on the store from its shader reflection
-// (fields, sizes, encodings, offsets) and supplies the packer. There is no
-// packer or struct def in runtime-trinity src - tests provide both here.
+// Test definitions for per-object records that are not yet in Trinity's
+// production CjsPerObjectLayouts catalog. Catalogued records resolve their
+// fields, encodings, offsets, and stages directly from runtime-trinity.
 import { TriPoolAllocator } from "../../npm/dist/index.js";
 
 
 const Type = TriPoolAllocator.Type;
 
-// The per-object struct shapes (logical), as an engine's reflection would yield
-// them. Grouping mirrors Carbon's per-object structs; grows as payloads migrate.
+// Additional per-object struct shapes used by tests. Grouping mirrors Carbon's
+// declarations and grows as payloads migrate into the production catalog.
 export const TEST_PER_OBJECT_STRUCTS = {
   EveBasicPerObjectData: [
     { name: "world",        size: 16, encoding: Type.MATRIX },

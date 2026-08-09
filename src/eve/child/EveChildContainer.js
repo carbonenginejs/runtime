@@ -637,9 +637,9 @@ export class EveChildContainer extends EveChildTransform
     this.#activationStrength = Number(params?.activationStrength ?? 1);
 
     // Carbon (cpp:568-590): when attachments exist the per-object VS/PS
-    // structs are refreshed from the parent - GPU constant-buffer seam; the
-    // per-object record carries the live object reference instead
-    // (GetPerObjectData).
+    // structs are refreshed from the parent. This port retains persistent
+    // RawData and returns it from GetPerObjectData; no live-object serializer
+    // indirection is involved.
 
     const newParams = EveChildContainer.#DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;

@@ -1125,14 +1125,13 @@ export class EveTurretSet extends EveEntity
    * missing/bad geometry resource RETURN NULL - and the cascade path stores
    * that null and still calls GetShadowBatches with it (EveSpaceScene.cpp:
    * 717/727), so a null per-object record on a batch is legal. The
-   * EveTurretSetPerObjectData fill (ship matrices, compacted per-visible
-   * turret SRT arrays, the bone palette - whose invBind * world composition
-   * swaps operands in gl-matrix - and the SH/clip PS block, cpp:2300-2511)
-   * is GPU ring-buffer work; the GPU-free record carries the live object
-   * reference for the engine serializer (EveChildMesh precedent). */
+   * EveTurretSetPerObjectData fill includes the ship matrices, compacted
+   * per-visible turret SRT arrays, and the SH/clip PS block (cpp:2300-2511).
+   * Trinity fills every CPU-known field in canonical RawData. Only the bone
+   * palette's GPU ring-buffer offsets remain engine-supplied. */
   @carbon.method
   @impl.adapted
-  @impl.reason("The EveTurretSetPerObjectData constant-block fill and bone-palette ring upload are engine-owned; the record carries the object reference the engine serializer consumes. IsGood/GetMeshCount realization gates are engine-side - the CPU gate is geometry presence.")
+  @impl.reason("Trinity fills the CPU-known EveTurretSet VS/PS RawData fields; bone-palette ring offsets and IsGood/GetMeshCount realization gates remain engine-owned, while the CPU gate is geometry presence.")
   GetPerObjectData(accumulator = null)
   {
     if (!this.geometryResource || typeof accumulator?.Alloc !== "function")

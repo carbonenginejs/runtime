@@ -344,7 +344,7 @@ export class EveChildInstancedMeshes extends EveEntity
    * (cpp:272-278), and the hasUpdated stamp (cpp:281). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The EveSpaceObjectVS/PSData per-object constant copy (cpp:204-238) and the raytracing mesh build (cpp:283-327) are engine-owned; mesh bounds come from a GetMeshData duck ({minBounds, maxBounds}) and meshes without one are skipped fail-closed.")
+  @impl.reason("Trinity owns the CPU per-object field copy; the raytracing mesh build (cpp:283-327) remains engine-owned. Mesh bounds come from a GetMeshData duck ({minBounds, maxBounds}) and meshes without one are skipped fail-closed.")
   UpdateAsyncronous(_updateContext, _params)
   {
     const w = this.worldTransform;
