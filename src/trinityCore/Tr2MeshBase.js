@@ -5,6 +5,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "./Tr2RenderBatch.js";
+import { Tr2VertexDefinition } from "./Tr2VertexDefinition.js";
 
 
 /**
@@ -263,7 +264,7 @@ export class Tr2MeshBase extends CjsModel
   @carbon.method
   @impl.adapted
   @impl.reason("GPU-free descriptor batches: geometry buffers and final draw args are resolved by the engine at dispatch")
-  GetBatches(accumulator, areas, perObjectData, _reason)
+  GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false)
   {
     if (this.display === false) return false;
 
@@ -272,9 +273,16 @@ export class Tr2MeshBase extends CjsModel
 
     let committed = false;
     const geometry = this.GetGeometryResource?.() ?? null;
+
+    // Carbon resolves the LOD once for the whole area list from the caller's
+    // screen size (Tr2MeshBase.cpp:381) and passes it to every area. A resource
+    // that cannot select a LOD yet yields null, and the batch then carries its
+    // geometry-source descriptor with no draw arguments.
+    const lod = geometry?.GetMeshLod?.(this.meshIndex, screenSize) ?? null;
+
     for (const area of areaList)
     {
-      const batch = this.CreateGeometryBatch(geometry, area, perObjectData);
+      const batch = this.CreateGeometryBatch(geometry, area, perObjectData, reverseWinding, lod);
       if (batch) committed = accumulator.Commit(batch) || committed;
     }
     return committed;
@@ -294,7 +302,7 @@ export class Tr2MeshBase extends CjsModel
   @carbon.method
   @impl.adapted
   @impl.reason("GPU-free: emits a geometry source descriptor instead of realized Tr2BufferAL allocations")
-  CreateGeometryBatch(geometry, area, perObjectData)
+  CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null)
   {
     if (!area || area.GetDisplay() === false) return null;
 
@@ -305,7 +313,39 @@ export class Tr2MeshBase extends CjsModel
     batch.SetMaterial(effect);
     if (!batch.IsValid()) return null;
 
-    batch.SetGeometrySource(geometry, this.meshIndex, area.GetIndex(), area.GetCount(), area.GetReversed());
+    // Carbon XORs the area's authored winding with the caller's request
+    // (Tr2MeshBase.cpp:373); it is not a property of the area alone. The
+    // EveSpaceObject2 path always passes false, but EveChildMesh and the
+    // reflection reason pass a live value.
+    const reversed = area.GetReversed() !== reverseWinding;
+
+    batch.SetGeometrySource(geometry, this.meshIndex, area.GetIndex(), area.GetCount(), reversed);
+
+    // Carbon binds lod->m_mesh->m_vertexDeclarationHandle onto the batch
+    // (Tr2MeshBase.cpp:371). The handle is what binning and sorting compare, so
+    // leaving it zero makes every mesh look like one declaration.
+    const elements = geometry?.GetMeshVertexElements?.(this.meshIndex);
+
+    if (elements?.length)
+    {
+      batch.SetVertexDeclaration(Tr2VertexDefinition.getHandle(elements));
+    }
+
+    // Carbon computes the draw arguments here, from the resolved LOD. Without a
+    // LOD the batch still carries its descriptor and the arguments stay zero,
+    // which is what every mesh batch did before this seam existed.
+    const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);
+
+    if (draw)
+    {
+      batch.SetDrawIndexedInstanced(
+        draw.indexCountPerInstance,
+        draw.instanceCount,
+        draw.startIndexLocation,
+        draw.baseVertexLocation,
+        draw.startInstanceLocation);
+    }
+
     batch.SetPerObjectData(perObjectData ?? null);
     batch.SetPickingData(this.meshIndex, area.GetIndex());
     return batch;

@@ -341,3 +341,38 @@ test("EveChildInstancedMeshes follows Carbon child update semantics", () =>
   assert.equal(child.GetBoundingSphere(), false);
   assert.deepEqual(child.GetRenderables([]), []);
 });
+
+const TRIBATCHTYPE_OPAQUE = 1;
+
+test("EveChildMesh passes Carbon's LOD screen size and mirrored-winding flag", () =>
+{
+  const child = new EveChildMesh();
+  const seen = [];
+  child.mesh = {
+    GetAreas: () => [],
+    GetBatches(_batches, _areas, _perObjectData, screenSize, reverseWinding)
+    {
+      seen.push({ screenSize, reverseWinding });
+      return true;
+    }
+  };
+
+  child.currentScreenSize = 40;
+  child.currentInstanceScreenSize = 12;
+  child.GetBatches({}, TRIBATCHTYPE_OPAQUE, null);
+  assert.deepEqual(seen.at(-1), { screenSize: 12, reverseWinding: false },
+    "the smaller of the two screen sizes, unmirrored");
+
+  // A negative-determinant world transform mirrors, which flips triangle facing.
+  mat4.scale(child.worldTransform, child.worldTransform, [ -1, 1, 1 ]);
+  child.GetBatches({}, TRIBATCHTYPE_OPAQUE, null);
+  assert.equal(seen.at(-1).reverseWinding, true, "mirrored transform reverses winding");
+
+  assert.equal(child.GetShadowBatches({}, null, 256), false,
+    "a child that has never updated casts no shadow batches");
+
+  child.UpdateAsyncronous(null, {});
+  child.GetShadowBatches({}, null, 256);
+  assert.equal(seen.at(-1).screenSize, 256,
+    "shadow batches use the caller's shadow pixel size, not the child's own");
+});

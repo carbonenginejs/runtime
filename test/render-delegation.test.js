@@ -11,6 +11,7 @@ import {
   Tr2Mesh,
   Tr2MeshArea,
   Tr2PerObjectData,
+  Tr2RenderContext,
   TriRenderBatchAccumulator
 } from "../npm/dist/index.js";
 
@@ -311,4 +312,29 @@ test("end-to-end: real EveTransform through CjsBatchManager produces finalized b
   assert.ok(batches[0].objectData instanceof RawData,
     "per-object data Alloc'd once through the pool accumulator store and attached to the batch");
   assert.equal(batches[0].groupCount, 1, "finalize ran");
+});
+
+test("end-to-end: a real Tr2RenderContext supplies the pool with no engine setup", () =>
+{
+  const transform = new EveTransform();
+  transform.mesh = meshWithOpaqueArea({ id: "fx" });
+
+  const renderContext = new Tr2RenderContext();
+  const store = renderContext.GetTriPoolAllocator();
+  assert.ok(store.Has("EveBasicPerObjectData"),
+    "the catalogued Carbon structs are registered without an engine registering them");
+
+  const manager = new CjsBatchManager();
+  manager.Initialize();
+
+  const batch = manager.Collect([ transform ], undefined, renderContext)
+    .GetAccumulator(OPAQUE).GetBatches()[0];
+  assert.ok(batch.objectData instanceof RawData, "leased from the context's own pool");
+
+  const world = batch.objectData.GetTransposed("world");
+  renderContext.EndRenderContext();
+  const reused = store.Alloc("EveBasicPerObjectData");
+  assert.equal(reused.GetData().byteOffset, batch.objectData.GetData().byteOffset,
+    "EndRenderContext rewinds the arena, so the next frame re-leases the same slot");
+  assert.equal(world.length, 16);
 });

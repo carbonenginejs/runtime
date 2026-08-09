@@ -4,6 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { Tr2VariableStore as _Tr2VariableStore } from './Tr2VariableStore.js';
+import { TriPoolAllocator } from './rawData/TriPoolAllocator.js';
 
 let _initClass;
 
@@ -41,6 +42,28 @@ new class extends _identity {
     #projectionStack = [];
     #viewTransformStack = [];
     #intentCursor = 0;
+
+    // Carbon keeps ONE pool allocator as a Tr2Renderer static, created in
+    // Initialize (Tr2Renderer.cpp:345), read through GetPoolAllocator
+    // (cpp:1083) and Clear()ed in EndRenderContext (cpp:1072-1081). Those
+    // renderer statics relocate onto this context (see the file header), so the
+    // pool lives here too, per context rather than per process. Created on first
+    // request: constructing a context is not a frame, and the arena retains its
+    // chunks once it exists.
+    #poolAllocator = null;
+
+    // The frame clock, relocated here with the other Tr2Renderer statics. Carbon
+    // keeps the counter as a file-scope global in TriDevice.cpp:143 and the
+    // animation time as a TriDevice member; both are ADVANCED by the tick
+    // (TriDevice::Update, cpp:805/:823) and only READ by the render path
+    // (Tr2Renderer::GetCurrentFrameCounter, cpp:1090). Holding them here is what
+    // lets BeginFrame stay zero-argument as Carbon declares it, and matches the
+    // frameIndex an EveSpaceScene driver already documents as coming from
+    // GetCurrentFrameCounter. Trinity does not advance them: a driver does.
+    #frameCounter = 0;
+    #animationTime = 0;
+    #previousAnimationTime = 0;
+    #debugRenderer = null;
     /**
      * Installs the optional executor that Begin/Execute/EndStep delegate to;
      * passing null restores direct dispatch to the step itself.
@@ -81,6 +104,121 @@ new class extends _identity {
         return this.#stepExecutor.EndStep(step, realTime, simTime, job, this);
       }
       return step?.EndExecute?.(this);
+    }
+
+    // Carbon Tr2Renderer::GetCurrentFrameCounter (Tr2Renderer.cpp:1088-1091).
+
+    /** The frame the render path is currently working on. */
+    GetCurrentFrameCounter() {
+      return this.#frameCounter;
+    }
+
+    /** The animation clock the render path publishes, in seconds. */
+    GetAnimationTime() {
+      return this.#animationTime;
+    }
+
+    // Carbon advances both in TriDevice::Update (cpp:805/:823), which is the
+    // tick, and the tick is engine-owned (see the frame-driver contract in
+    // docs/architecture.md). A driver calls this once per frame BEFORE Render.
+    // Trinity never advances the clock itself: it cannot prove a frame boundary.
+
+    /**
+     * Advances the frame clock: increments the frame counter and records the new
+     * animation time, keeping the previous one for the render-time vector.
+     * Returns this for chaining.
+     */
+    AdvanceFrame(animationTime = this.#animationTime) {
+      this.#frameCounter++;
+      this.#previousAnimationTime = this.#animationTime;
+      this.#animationTime = Number(animationTime) || 0;
+      return this;
+    }
+
+    // Carbon Tr2Renderer::BeginFrame (Tr2Renderer.cpp:1040-1051): publishes the
+    // "Time" vector every consumer reads - x is the animation time, y its
+    // fractional part (a free 0..1 sawtooth for shaders), z the frame counter,
+    // and w the PREVIOUS frame's animation time, which is what makes a shader
+    // able to compute its own delta. Carbon registers this on the global store
+    // (cpp:329), and Tr2VariableStore.GlobalStore() is the same root here.
+
+    /**
+     * Publishes the per-frame "Time" vector into the global variable store, as
+     * Carbon does at the start of every frame; returns the published vector.
+     */
+    BeginFrame() {
+      const animationTime = this.#animationTime;
+      const time = [animationTime, animationTime - Math.floor(animationTime), this.#frameCounter, this.#previousAnimationTime];
+      _Tr2VariableStore.GlobalStore().RegisterVariable("Time", time);
+      return time;
+    }
+
+    // Carbon Tr2Renderer::EndFrame (Tr2Renderer.cpp:1053-1064) clears the debug
+    // text renderer and the debug line set, both Tr2Renderer statics. Only the
+    // debug renderer has a counterpart here (SetDebugRenderer); Carbon's global
+    // debug line set has no Trinity surface, so nothing stands in for it.
+
+    /**
+     * Ends the frame, clearing the installed debug renderer; returns this for
+     * chaining.
+     */
+    EndFrame() {
+      this.#debugRenderer?.Clear?.();
+      return this;
+    }
+
+    // Carbon Tr2Renderer::BeginRenderContext (Tr2Renderer.cpp:1066-1070) forwards
+    // to the backend context's BeginScene. The GPU-free context records the
+    // intent; an installed executor performs it.
+
+    /**
+     * Opens the scene for this frame, recording the intent and delegating to an
+     * installed executor's BeginScene; returns this for chaining.
+     */
+    BeginRenderContext() {
+      this.#stepExecutor?.BeginScene?.(this);
+      return this;
+    }
+
+    // Carbon: Tr2Renderer::GetPoolAllocator (Tr2Renderer.cpp:1083). The store
+    // this returns is the one CjsBatchManager binds onto the batch map, so every
+    // GetPerObjectData Alloc leases from it. Every catalogued Carbon struct is
+    // registered on it already - Trinity owns the offsets, so an engine supplies
+    // nothing to make per-object data work.
+
+    /**
+     * The per-object constant-data pool for this context, created on first use;
+     * an engine or host may replace it with SetTriPoolAllocator.
+     */
+    GetTriPoolAllocator() {
+      if (!this.#poolAllocator) {
+        this.#poolAllocator = new TriPoolAllocator().RegisterCatalog();
+      }
+      return this.#poolAllocator;
+    }
+
+    /**
+     * Replaces the per-object constant-data pool, for a host that shares one
+     * arena across contexts or registers extra structs; passing null restores
+     * lazy creation. Returns this for chaining.
+     */
+    SetTriPoolAllocator(allocator) {
+      this.#poolAllocator = allocator ?? null;
+      return this;
+    }
+
+    // Carbon clears the pool in Tr2Renderer::EndRenderContext (cpp:1072-1081),
+    // BEFORE EndScene, so every transient payload leased during the frame dies at
+    // one point. The frame driver calls this; nothing else may.
+
+    /**
+     * Rewinds the per-object pool arena at the end of a frame, freeing every
+     * transient payload leased during it; a context that never leased one does
+     * nothing.
+     */
+    EndRenderContext() {
+      this.#poolAllocator?.Reset();
+      return this;
     }
 
     /**
@@ -372,9 +510,11 @@ new class extends _identity {
 
     /**
      * Records the debug renderer to route subsequent debug drawing through; null
-     * detaches it.
+     * detaches it. The renderer is retained because EndFrame clears it, as
+     * Carbon clears its s_debugTextRenderer static.
      */
     SetDebugRenderer(renderer) {
+      this.#debugRenderer = renderer ?? null;
       this.#intents.push({
         type: "set-debug-renderer",
         renderer: renderer ?? null

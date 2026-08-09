@@ -777,6 +777,11 @@ export class EveChildMesh extends EveChildTransform
     return NO_BONE_TRANSFORMS;
   }
 
+  /**
+   * Resolves this child's visibility for the frame from its world bounding
+   * sphere, the parent LOD, and the authored screen-size thresholds, recording
+   * the mesh and per-instance screen sizes the batch path then draws at.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("Bone-fed decal bounds still await the decal seam and the raytracing refresh is engine-owned; the LOD/screen-size math and the bone-fed attachment pass are ported.")
@@ -978,15 +983,15 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /** Carbon EveChildMesh::GetBatches (cpp:652-670): the mesh delegates per
-   * batch type and activated attachments recurse. Carbon also passes
-   * min(currentInstanceScreenSize, currentScreenSize) for LOD selection and a
-   * reverse-winding flag from Determinant(m_worldTransform) < 0; both are
-   * resolved by the engine at batch realization in the GPU-free port.
-   * Returns whether any batch was committed (JS addition; Carbon returns
-   * void). */
+   * batch type and activated attachments recurse, at
+   * min(currentInstanceScreenSize, currentScreenSize) and with a reverse-winding
+   * flag from Determinant(m_worldTransform) < 0 - a negative determinant means
+   * the transform mirrors, which flips triangle facing. A determinant is
+   * transpose-invariant, so the row-vector/column-vector difference does not
+   * apply to this test. Returns whether any batch was committed (JS addition;
+   * Carbon returns void). */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Screen-size LOD selection and winding reversal are engine-resolved at realization; delegation structure is ported.")
+  @impl.implemented
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
     if (!this.display)
@@ -998,7 +1003,12 @@ export class EveChildMesh extends EveChildTransform
 
     if (this.mesh)
     {
-      committed = this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData) === true;
+      committed = this.mesh.GetBatches(
+        batches,
+        this.mesh.GetAreas(batchType),
+        perObjectData,
+        Math.min(this.currentInstanceScreenSize, this.currentScreenSize),
+        mat4.determinant(this.worldTransform) < 0) === true;
     }
 
     if (this.#activationStrength !== 0)
@@ -1013,17 +1023,21 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /** Carbon EveChildMesh::GetShadowBatches (cpp:672-681): the OPAQUE areas
-   * only, gated on display/mesh/hasUpdated. shadowPixelSize and the
-   * reverse-winding flag are engine-resolved at realization. Returns whether
-   * any batch was committed (JS addition; Carbon returns void). */
+   * only, gated on display/mesh/hasUpdated, at the caller's shadow pixel size
+   * rather than the child's own screen size. Returns whether any batch was
+   * committed (JS addition; Carbon returns void). */
   @carbon.method
-  @impl.adapted
-  @impl.reason("shadowPixelSize LOD selection and winding reversal are engine-resolved at realization; delegation structure is ported.")
-  GetShadowBatches(batches, perObjectData, _shadowPixelSize)
+  @impl.implemented
+  GetShadowBatches(batches, perObjectData, shadowPixelSize = Infinity)
   {
     if (this.display && this.mesh && this.#hasUpdated)
     {
-      return this.mesh.GetBatches(batches, this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_OPAQUE), perObjectData) === true;
+      return this.mesh.GetBatches(
+        batches,
+        this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_OPAQUE),
+        perObjectData,
+        shadowPixelSize,
+        mat4.determinant(this.worldTransform) < 0) === true;
     }
     return false;
   }

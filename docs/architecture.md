@@ -94,6 +94,45 @@ The default `Tr2RenderContext` is a GPU-free intent and diagnostic surface.
 take cursor so nested jobs cannot realize the same intent twice. The package
 does not provide a production backend executor.
 
+## Vertex-declaration matching
+
+`Tr2VertexDefinition` pairs a mesh's vertex element list with a vertex shader's
+declared inputs and returns a resolved binding plan. Engines consume the plan;
+they do not re-derive it, and a WebGL engine caches it as a vertex array object.
+
+Matching is by semantic and index only — never data type, format, offset, or
+stream — so a float3 POSITION0 in the mesh satisfies a float4 POSITION0 in the
+shader. Interning is stricter than matching: a handle is issued per element
+list compared field for field, because the same semantics packed differently
+need a different input layout. That handle is what a batch carries and what
+binning and sorting compare.
+
+A shader input the mesh cannot supply is reported as unmatched rather than
+resolved. Carbon fabricates an element so input-layout creation still succeeds
+and a WebGL engine disables the attribute and substitutes a constant zero; both
+mean "supply nothing here", and choosing between them is the engine's, so the
+plan carries the shader's declared type and stops.
+
+## Frame contract
+
+`CjsFrameDriver` runs Carbon's backend-neutral frame body in order: throttle and
+GPU sync, profiler open, the frame-clock publication, the scene bracket, the
+reserved quad indices, the render jobs, then profiler close, the scene close,
+and the frame close. Every step that touches a device arrives as an optional
+duck-typed hook, so a driver with no hooks still runs a complete frame and
+produces render-job intents.
+
+Two parts of that order are load-bearing. The entry and exit are deliberately
+asymmetric: the scene close rewinds the per-object pool before ending the
+scene, so every transient payload dies inside the bracket that leased it.
+And presentation is not part of a frame — the previous frame is presented at the
+top of the next tick, before the frame body, which is what overlaps CPU and GPU
+work. The tick belongs to an engine, as it does in Carbon's per-backend device.
+
+`Tr2RenderContext` carries the frame clock, because the frame counter and
+animation time are read by the render path and advanced by the tick. Trinity
+does not advance them; a driver does.
+
 ## Render-batch contract
 
 `Tr2RenderBatch`, `TriRenderBatchAccumulator`, and `TriRenderBatchMap` collect,
@@ -101,6 +140,17 @@ sort, group, and expose neutral CPU data, including the area-block collectors
 used by overlay and shadow passes. Geometry references, effect keys, per-object
 values, render modes, and draw arguments describe work; they are not live GPU
 resources.
+
+A mesh batch leaves collection with its draw arguments already computed, as
+Carbon computes them. The mesh path resolves the LOD for the caller's screen
+size, and `Tr2RenderBatch.resolveDrawArguments` turns that LOD's geometry data
+into an index count, start index, and base vertex. Two of those inputs are
+suballocation bases that only a realizing engine knows; they read off the
+geometry resource's allocations and default to zero, which is the correct
+answer for an engine that gives each mesh its own buffers instead of pooling
+them. No GPU handle crosses the boundary — the batch asks an allocation for two
+integers. A batch whose draw arguments are filled after collection has already
+missed `Finalize`, which sorts and stamps group runs.
 
 `CjsBatchManager` is the current GPU-free orchestrator. It registers producer
 types and scene-global collectors before `Initialize`, verifies required
@@ -145,8 +195,15 @@ encoding kind per field, and the byte offsets. There is ONE layout and no
 per-engine packing, because these buffers are not backend-specific — every
 backend declares them as a flat array of `vec4`, and std140's stride for an
 array of `vec4` matches tight C++ packing. A struct the catalog does not cover
-fails at registration rather than at draw time. An engine that genuinely needs
-different memory transforms it downstream.
+fails at registration rather than at draw time.
+
+Engine storage may differ: buffer type, ring or arena allocation, binding
+offset and alignment, upload call, and lifetime are backend concerns. Those
+choices may add padding BETWEEN record allocations, but they do not change a
+record's field order, field offsets, encodings, or stride. A consumer with a
+genuinely different representation needs an explicit compatibility transform
+after canonical `RawData`; that does not define a second engine layout, and no
+current backend requires one.
 
 `TriPoolAllocator` leases payloads from a per-engine arena; `RawData` is the
 view over one slice. Values enter through the encoding (matrices transposed,

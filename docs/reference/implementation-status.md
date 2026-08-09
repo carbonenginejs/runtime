@@ -86,6 +86,24 @@ parity gate rather than incidental test behavior.
 
 - Device creation, GPU resources, draw submission, presentation, and
   device-loss recovery require an engine package.
+- Mesh batches leave collection with complete draw arguments. The two
+  suballocation bases are read from the geometry resource's allocations and are
+  zero until an engine writes them, which is the correct answer for a backend
+  that gives each mesh its own buffers rather than pooling.
+- The frame body is ordered by `CjsFrameDriver`, with device-facing steps as
+  injected hooks. Presentation is not part of it: the previous frame is
+  presented at the top of the next tick, and the tick is engine-owned.
+- Vertex-declaration matching is resolved once, by semantic and index, into a
+  binding plan engines consume. A shader input the mesh cannot supply is
+  reported rather than resolved, because the two references legitimately differ
+  on the substitute.
+- Per-object constant records join the layout's declared stages to a
+  technique's shader-type mask. Carbon's `Standard` and `Skinned` per-object
+  classes disagree on gating the pixel payload; this package takes the gated
+  form for every struct.
+- The public class-purpose catalog remains substantially incomplete, so the
+  organization documentation checker still reports missing catalog markers for
+  classes that have not yet been through promotion review.
 - `EveSpaceScene` owns persistent per-frame record storage and fills scene,
   lighting, fog, shadow-quality, and volumetric values. Its fill methods
   consume stored history and jitter fields, but JavaScript does not yet

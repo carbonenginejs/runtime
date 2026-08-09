@@ -1257,7 +1257,10 @@ export class EveSpaceObject2 extends EveEntity
     {
       if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT)
       {
-        this.mesh.GetBatches(batches, areas, perObjectData);
+        // Carbon EveSpaceObject2.cpp:1130 passes the screen size resolved in
+        // UpdateVisibility, so the mesh draws the LOD this object was culled
+        // at; reverseWinding is left default on every EveSpaceObject2 path.
+        this.mesh.GetBatches(batches, areas, perObjectData, this.#meshScreenSize);
       }
       else
       {
@@ -1290,6 +1293,12 @@ export class EveSpaceObject2 extends EveEntity
     const viewPosition = renderContext?.GetViewPosition?.();
     const meshIndex = this.mesh.meshIndex ?? 0;
 
+    // Carbon resolves the LOD once for the whole sorted list (cpp:72) and
+    // returns early when there is none. This port keeps collecting so a
+    // GPU-free graph still produces batches; the LOD only supplies draw
+    // arguments.
+    const lod = geometry?.GetMeshLod?.(meshIndex, this.#meshScreenSize) ?? null;
+
     const sorted = [];
     for (const area of areas)
     {
@@ -1315,7 +1324,7 @@ export class EveSpaceObject2 extends EveEntity
     {
       const area = entry.area;
       if (!area.GetMaterialInterface?.()) continue;
-      const batch = this.mesh.CreateGeometryBatch(geometry, area, perObjectData);
+      const batch = this.mesh.CreateGeometryBatch(geometry, area, perObjectData, false, lod);
       if (batch) batches.Commit(batch);
     }
   }
@@ -1588,13 +1597,13 @@ export class EveSpaceObject2 extends EveEntity
     return Math.hypot(x, y, z);
   }
 
-  /** Carbon allocates Tr2PerObjectDataWithPersistentBuffers<EveSpaceObject2>,
-   * which calls back into the object at upload time; the GPU-free record carries
-   * the same live object reference for the engine serializer (the space-object
-   * Main profile) to pull current values at realization. */
+  /** Carbon allocates Tr2PerObjectDataWithPersistentBuffers<EveSpaceObject2>.
+   * This port retains persistent VS/PS RawData and returns those records
+   * directly. GPU-derived bone-ring offsets remain at their CPU defaults until
+   * an engine supplies them; other CPU-known values are already encoded. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Persistent VS/PS device buffers are engine-owned; the record carries the object reference the engine serializer consumes.")
+  @impl.reason("Trinity retains and fills persistent VS/PS RawData; the engine owns device buffers, GPU-derived offsets, upload, and binding.")
   GetPerObjectData(_accumulator = null)
   {
     // Carbon cpp:1437-1445: the bone ring is uploaded and its OFFSETS stamped

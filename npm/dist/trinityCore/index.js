@@ -1,4 +1,5 @@
 export { CjsBatchManager } from './CjsBatchManager.js';
+export { CjsFrameDriver } from './CjsFrameDriver.js';
 export { GrannyBoneOffset } from './GrannyBoneOffset.js';
 export { ITriRenderBatchAccumulator } from './ITriRenderBatchAccumulator.js';
 export { Tr2DepthStencil } from './Tr2DepthStencil.js';
@@ -19,6 +20,7 @@ export { Tr2RenderContext } from './Tr2RenderContext.js';
 export { Tr2RenderTarget } from './Tr2RenderTarget.js';
 export { Tr2RuntimeGpuBuffer } from './Tr2RuntimeGpuBuffer.js';
 export { Tr2RuntimeInstanceData } from './Tr2RuntimeInstanceData.js';
+export { Tr2VertexDefinition } from './Tr2VertexDefinition.js';
 export { Tr2SerializedMorphAnimation } from './Tr2SerializedMorphAnimation.js';
 export { Tr2ShLightingManager } from './Tr2ShLightingManager.js';
 export { Tr2SwapChain } from './Tr2SwapChain.js';

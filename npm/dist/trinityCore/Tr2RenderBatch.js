@@ -1,5 +1,6 @@
 import { RenderingMode } from '@carbonenginejs/runtime-utils/graphics';
 import { D3dPrimitiveTopology } from '@carbonenginejs/runtime-utils/d3d';
+import { TriGeometryRes } from '@carbonenginejs/runtime-resource/resource/geometry';
 
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/TriRenderBatch.h
@@ -327,6 +328,94 @@ class Tr2RenderBatch {
    */
   IsValid() {
     return this.shader !== null && this.shader !== undefined;
+  }
+
+  // Carbon Tr2MeshBase.cpp:341-395 (the draw arguments inside
+  // CreateGeometryBatch) and Tr2SuballocatedBuffer.cpp:212-215
+  // (Allocation::GetStartIndex).
+  //
+  // THE ARITHMETIC LIVES HERE ONCE. Carbon replicates this expression in
+  // Tr2InstancedMesh and at least eight further call sites that bypass
+  // CreateGeometryBatch; that duplication is a defect this port declines to
+  // inherit. Every producer calls resolveDrawArguments instead.
+  //
+  // A draw argument is neither wholly CPU-derivable nor wholly the engine's:
+  //
+  //   primCount  - pure geometry data (area primitive counts). CPU.
+  //   firstIndex - pure geometry data. CPU.
+  //   startIndex - firstIndex PLUS the index allocation's start index. The base
+  //                is a suballocation, which only a realizing engine knows.
+  //   baseVertex - the vertex allocation's offset / stride, which IS
+  //                GetStartIndex() hand-inlined (Tr2MeshBase.cpp:391).
+  //
+  // The two bases default to ZERO when nothing has realized the geometry, and
+  // zero is the CORRECT answer for an engine that gives each mesh its own
+  // buffers rather than suballocating from a shared one - which is what ccpwgl
+  // does and what a first WebGL implementation naturally does. A suballocating
+  // engine writes its allocation into the resource and the same expression
+  // yields the pooled bases. Trinity never sees a GPU handle: it asks the
+  // allocation for two integers.
+  //
+  // Carbon gates the BATCH on lod->m_allocationsValid, because in Carbon an
+  // unrealized draw cannot exist. This runtime is GPU-free, so an unrealized
+  // LOD is normal and the flags gate the DRAW ARGUMENTS instead: collection
+  // still emits the geometry-source descriptor.
+  //
+  // LOD selection and the primitive-count sum are NOT here. Carbon declares
+  // both beside TriGeometryRes (Resources/TriGeometryRes.h:202/:242), which
+  // runtime-resource owns.
+
+  /**
+   * Carbon's indexed draw arguments for one mesh area of one LOD, or null when
+   * the area contributes no primitives or a reversed draw has no reversed
+   * indices - both of which are Carbon's "emit no batch" answers.
+   *
+   * `reversed` is the already-resolved winding for this draw, which Carbon
+   * computes as `area->GetReversed() != reverseWinding` at the call site.
+   */
+  static resolveDrawArguments(lod, areaIndex, areaCount, reversed = false) {
+    if (!lod) return null;
+
+    // Carbon clamps both to zero before use (Tr2MeshBase.cpp:356).
+    const index = Math.max(0, areaIndex | 0);
+    const count = Math.max(0, areaCount | 0);
+    const primitiveCount = TriGeometryRes.getPrimitiveCount(lod, index, count);
+    if (!primitiveCount) return null;
+    if (reversed && lod.reversedIndicesValid === false) return null;
+    const firstIndex = lod.areas?.[index]?.firstIndex ?? 0;
+
+    // Carbon binds the FORWARD index allocation on both paths and only reads
+    // the reversed allocation for the start index (Tr2MeshBase.cpp:371/375).
+    // That works because both live in one pool at one stride; an engine that
+    // separates them must bind the one this start index belongs to.
+    const indices = reversed ? lod.reversedIndexAllocation : lod.indexAllocation;
+    const startIndexLocation = reversed ? Tr2RenderBatch.startIndexOf(indices) + lod.primitiveCount * 3 - firstIndex - primitiveCount * 3 : Tr2RenderBatch.startIndexOf(indices) + firstIndex;
+    return {
+      indexCountPerInstance: primitiveCount * 3,
+      instanceCount: 1,
+      startIndexLocation,
+      baseVertexLocation: Tr2RenderBatch.startIndexOf(lod.vertexAllocation),
+      startInstanceLocation: 0
+    };
+  }
+
+  /**
+   * The start index of a realized suballocation, or zero when the geometry is
+   * unrealized or the engine allocates per mesh rather than from a shared
+   * buffer; Carbon reads Allocation::GetStartIndex.
+   */
+  static startIndexOf(allocation) {
+    if (!allocation) return 0;
+    if (typeof allocation.GetStartIndex === "function") {
+      return allocation.GetStartIndex() >>> 0;
+    }
+
+    // GetStartIndex() IS offset / stride; Carbon hand-inlines exactly this for
+    // the base vertex (Tr2MeshBase.cpp:391).
+    const stride = allocation.GetStride?.() ?? allocation.stride ?? 0;
+    if (!stride) return 0;
+    const offset = allocation.GetOffset?.() ?? allocation.offset ?? 0;
+    return offset / stride >>> 0;
   }
 }
 

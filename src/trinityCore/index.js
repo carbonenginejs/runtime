@@ -1,4 +1,5 @@
 export * from "./CjsBatchManager.js";
+export * from "./CjsFrameDriver.js";
 export * from "./GrannyBoneOffset.js";
 export * from "./ITriRenderBatchAccumulator.js";
 export * from "./Tr2DepthStencil.js";
@@ -19,6 +20,7 @@ export * from "./Tr2RenderContext.js";
 export * from "./Tr2RenderTarget.js";
 export * from "./Tr2RuntimeGpuBuffer.js";
 export * from "./Tr2RuntimeInstanceData.js";
+export * from "./Tr2VertexDefinition.js";
 export * from "./Tr2SerializedMorphAnimation.js";
 export * from "./Tr2ShLightingManager.js";
 export * from "./Tr2SwapChain.js";

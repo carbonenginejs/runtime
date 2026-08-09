@@ -3,6 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from './Tr2RenderBatch.js';
+import { Tr2VertexDefinition } from './Tr2VertexDefinition.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_meshIndex, _init_extra_meshIndex, _init_opaqueAreas, _init_extra_opaqueAreas, _init_decalAreas, _init_extra_decalAreas, _init_depthAreas, _init_extra_depthAreas, _init_transparentAreas, _init_extra_transparentAreas, _init_additiveAreas, _init_extra_additiveAreas, _init_pickableAreas, _init_extra_pickableAreas, _init_mirrorAreas, _init_extra_mirrorAreas, _init_decalNormalAreas, _init_extra_decalNormalAreas, _init_depthNormalAreas, _init_extra_depthNormalAreas, _init_opaquePrepassAreas, _init_extra_opaquePrepassAreas, _init_decalPrepassAreas, _init_extra_decalPrepassAreas, _init_geometryEraserAreas, _init_extra_geometryEraserAreas, _init_distortionAreas, _init_extra_distortionAreas, _init_flareAreas, _init_extra_flareAreas, _init_maxVertexScale, _init_extra_maxVertexScale, _init_maxVertexDisplacement, _init_extra_maxVertexDisplacement, _init_rotatesVertices, _init_extra_rotatesVertices;
 
@@ -166,14 +167,20 @@ new class extends _identity {
      * transform can drive the mesh directly; returns whether any batch was
      * committed (a JS addition, Carbon returns void).
      */
-    GetBatches(accumulator, areas, perObjectData, _reason) {
+    GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false) {
       if (this.display === false) return false;
       const areaList = Array.isArray(areas) ? areas : this.GetAreas(areas);
       if (!areaList) return false;
       let committed = false;
       const geometry = this.GetGeometryResource?.() ?? null;
+
+      // Carbon resolves the LOD once for the whole area list from the caller's
+      // screen size (Tr2MeshBase.cpp:381) and passes it to every area. A resource
+      // that cannot select a LOD yet yields null, and the batch then carries its
+      // geometry-source descriptor with no draw arguments.
+      const lod = geometry?.GetMeshLod?.(this.meshIndex, screenSize) ?? null;
       for (const area of areaList) {
-        const batch = this.CreateGeometryBatch(geometry, area, perObjectData);
+        const batch = this.CreateGeometryBatch(geometry, area, perObjectData, reverseWinding, lod);
         if (batch) committed = accumulator.Commit(batch) || committed;
       }
       return committed;
@@ -190,14 +197,36 @@ new class extends _identity {
      * descriptor; returns null for a hidden or material-less area, where Carbon
      * returns an invalid batch.
      */
-    CreateGeometryBatch(geometry, area, perObjectData) {
+    CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null) {
       if (!area || area.GetDisplay() === false) return null;
       const effect = area.GetMaterialInterface();
       if (!effect) return null;
       const batch = new Tr2RenderBatch();
       batch.SetMaterial(effect);
       if (!batch.IsValid()) return null;
-      batch.SetGeometrySource(geometry, this.meshIndex, area.GetIndex(), area.GetCount(), area.GetReversed());
+
+      // Carbon XORs the area's authored winding with the caller's request
+      // (Tr2MeshBase.cpp:373); it is not a property of the area alone. The
+      // EveSpaceObject2 path always passes false, but EveChildMesh and the
+      // reflection reason pass a live value.
+      const reversed = area.GetReversed() !== reverseWinding;
+      batch.SetGeometrySource(geometry, this.meshIndex, area.GetIndex(), area.GetCount(), reversed);
+
+      // Carbon binds lod->m_mesh->m_vertexDeclarationHandle onto the batch
+      // (Tr2MeshBase.cpp:371). The handle is what binning and sorting compare, so
+      // leaving it zero makes every mesh look like one declaration.
+      const elements = geometry?.GetMeshVertexElements?.(this.meshIndex);
+      if (elements?.length) {
+        batch.SetVertexDeclaration(Tr2VertexDefinition.getHandle(elements));
+      }
+
+      // Carbon computes the draw arguments here, from the resolved LOD. Without a
+      // LOD the batch still carries its descriptor and the arguments stay zero,
+      // which is what every mesh batch did before this seam existed.
+      const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);
+      if (draw) {
+        batch.SetDrawIndexedInstanced(draw.indexCountPerInstance, draw.instanceCount, draw.startIndexLocation, draw.baseVertexLocation, draw.startInstanceLocation);
+      }
       batch.SetPerObjectData(perObjectData ?? null);
       batch.SetPickingData(this.meshIndex, area.GetIndex());
       return batch;

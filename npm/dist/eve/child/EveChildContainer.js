@@ -13,6 +13,7 @@ import { EveComponentType } from '../EveComponentTypes.js';
 import { Origin } from '../../generated/eve/child/enums.js';
 import { Tr2RenderReason, TR2SHADERMODEL } from '../../generated/trinityCore/enums.js';
 import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
+import '../../trinityCore/Tr2PerObjectData.js';
 import { createChildPerObjectRecords, inheritParentPerObjectData, stampChildTransforms } from '../perObjectData/childPerObjectRecords.js';
 
 let _initProto, _initClass, _init_displayFilter, _init_extra_displayFilter, _init_objects, _init_extra_objects, _init_transformModifiers, _init_extra_transformModifiers, _init_curveSets, _init_extra_curveSets, _init_worldTransform, _init_extra_worldTransform, _init_mute, _init_extra_mute, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_translation, _init_extra_translation, _init_rotation, _init_extra_rotation, _init_scaling, _init_extra_scaling, _init_localTransform, _init_extra_localTransform, _init_staticTransform, _init_extra_staticTransform, _init_alwaysOn, _init_extra_alwaysOn, _init_updateOnDisplay, _init_extra_updateOnDisplay, _init_attachments, _init_extra_attachments, _init_observers, _init_extra_observers, _init_fxAttributes, _init_extra_fxAttributes, _init_lights, _init_extra_lights, _init_controllers, _init_extra_controllers, _init_inheritProperties, _init_extra_inheritProperties, _init_useSRT, _init_extra_useSRT, _init_useStaticRotation, _init_extra_useStaticRotation, _init_useStaticScale, _init_extra_useStaticScale, _init_animationOwner, _init_extra_animationOwner, _init_origin, _init_extra_origin, _init_isPlacementRoot, _init_extra_isPlacementRoot;
@@ -422,9 +423,9 @@ new class extends _identity {
       this.#activationStrength = Number(params?.activationStrength ?? 1);
 
       // Carbon (cpp:568-590): when attachments exist the per-object VS/PS
-      // structs are refreshed from the parent - GPU constant-buffer seam; the
-      // per-object record carries the live object reference instead
-      // (GetPerObjectData).
+      // structs are refreshed from the parent. This port retains persistent
+      // RawData and returns it from GetPerObjectData; no live-object serializer
+      // indirection is involved.
 
       const newParams = _EveChildContainer.#DeriveChildParams(params);
       newParams.isVisible = params?.isVisible !== false && this.display;

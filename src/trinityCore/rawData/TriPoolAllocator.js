@@ -181,6 +181,29 @@ export class TriPoolAllocator
     this.#AddChunk();
   }
 
+  // C++ needs no registration step: Allocate<T>() resolves the layout from the
+  // type system, so every Carbon struct is allocatable the moment the pool
+  // exists. The frame pool reproduces that by registering the whole catalog
+  // when it is created (Tr2RenderContext, matching Carbon's pool creation in
+  // Tr2Renderer::Initialize), which keeps struct registration a Trinity concern
+  // rather than an engine one - Trinity owns the offsets (docs/architecture.md,
+  // constant-data ownership). An ad-hoc struct outside the catalog, and a pool
+  // sized too small to hold one, still registers explicitly.
+
+  /**
+   * Registers every struct in `CjsPerObjectLayouts` with its declared layout;
+   * returns the store for chaining.
+   */
+  RegisterCatalog()
+  {
+    for (const name of CjsPerObjectLayouts.Names())
+    {
+      this.RegisterStruct(name);
+    }
+
+    return this;
+  }
+
   /**
    * Register several structs at once: { StructName: def, ... }. Each value is a
    * field-def array (see RegisterStruct) or { def, stages } when the struct
@@ -346,8 +369,15 @@ export class TriPoolAllocator
   /** The field encoding kinds (packing directives). */
   static Type = RawDataType;
 
+  // Declared in Carbon's ShaderType order (trinityal/Tr2RenderContextEnum.h:31-43:
+  // VERTEX, PIXEL, COMPUTE, GEOMETRY, HULL, DOMAIN) so the position of a stage
+  // in this list is its shader-type bit. This list previously had gs and cs
+  // transposed, which was inert while nothing joined a stage to a bitmask, and
+  // wrong the moment something did. Bit positions are declared explicitly in
+  // Tr2PerObjectData.StageBits rather than derived from this order.
+
   /** The per-object binding slots a struct may declare via options.stages. */
-  static Stages = Object.freeze(["vs", "ps", "gs", "cs", "hs", "ds"]);
+  static Stages = Object.freeze(["vs", "ps", "cs", "gs", "hs", "ds"]);
 
   /**
    * Validate a stages declaration: a non-empty array drawn from
