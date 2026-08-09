@@ -5,6 +5,7 @@ import { AudListener as _AudListener } from './trinity/audio/AudListener.js';
 import { AudMusicPlayer as _AudMusicPlayer } from './trinity/audio/AudMusicPlayer.js';
 import { installAudioLibraryDocument } from './library/audioLibraryDocument.js';
 import { normalizeWwiseVoiceLimitMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseDynamicsMode } from './internal/busEffects.js';
+import { CjsAudioManSharedAcquisition } from './internal/CjsAudioManSharedAcquisition.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
 // composition root that installs one complete semantic library and owns
@@ -386,32 +387,18 @@ class CjsAudioMan {
     }
     let entry = this.#decodedMedia.get(selection.selectionKey);
     if (!entry) {
-      const controller = new AbortController();
-      entry = {
-        controller,
+      entry = new CjsAudioManSharedAcquisition({
+        start: signal => this.#ReadAndDecode(selection, signal),
         evict: () => {
           if (this.#decodedMedia.get(selection.selectionKey) === entry) {
             this.#decodedMedia.delete(selection.selectionKey);
           }
         },
-        leases: 0,
-        pending: true,
-        promise: null
-      };
-      entry.promise = this.#ReadAndDecode(selection, controller.signal).catch(error => {
-        entry.evict();
-        throw error;
-      }).then(buffer => {
-        if (!this.#cacheDecoded) {
-          entry.evict();
-        }
-        return buffer;
-      }).finally(() => {
-        entry.pending = false;
+        retain: () => this.#cacheDecoded
       });
       this.#decodedMedia.set(selection.selectionKey, entry);
     }
-    return this.#SubscribeSharedOperation(entry, options.signal);
+    return entry.Subscribe(options.signal);
   }
 
   /** Releases every retained decode variant for one media ID. */
@@ -450,59 +437,7 @@ class CjsAudioMan {
     this.#decodedMedia.clear();
     this.#wholeBanks.clear();
     for (const entry of entries) {
-      if (entry.pending && !entry.controller.signal.aborted) {
-        entry.controller.abort(reason);
-      }
-    }
-  }
-
-  /**
-   * Returns one independently abortable view over a shared acquisition.
-   * The provider operation is aborted only after its final live lease ends.
-   */
-  #SubscribeSharedOperation(entry, signal) {
-    ThrowIfAborted(signal);
-    ThrowIfAborted(entry.controller.signal);
-    entry.leases++;
-    return new Promise((resolve, reject) => {
-      let settled = false;
-      const sharedSignal = entry.controller.signal;
-      const finish = (callback, value) => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        signal?.removeEventListener?.("abort", onCallerAbort);
-        sharedSignal.removeEventListener?.("abort", onSharedAbort);
-        this.#ReleaseSharedOperation(entry, value);
-        callback(value);
-      };
-      const onCallerAbort = () => finish(reject, AbortReason(signal));
-      const onSharedAbort = () => finish(reject, AbortReason(sharedSignal));
-      signal?.addEventListener?.("abort", onCallerAbort, {
-        once: true
-      });
-      sharedSignal.addEventListener?.("abort", onSharedAbort, {
-        once: true
-      });
-      if (signal?.aborted) {
-        onCallerAbort();
-        return;
-      }
-      if (sharedSignal.aborted) {
-        onSharedAbort();
-        return;
-      }
-      entry.promise.then(value => finish(resolve, value), error => finish(reject, error));
-    });
-  }
-
-  /** Releases one shared-operation lease and cancels its orphaned work. */
-  #ReleaseSharedOperation(entry, reason = undefined) {
-    entry.leases = Math.max(0, entry.leases - 1);
-    if (entry.pending && entry.leases === 0 && !entry.controller.signal.aborted) {
-      entry.evict?.();
-      entry.controller.abort(reason);
+      entry.Abort(reason);
     }
   }
 
@@ -511,36 +446,22 @@ class CjsAudioMan {
     const bankKey = String(selection.bank.sourceID ?? selection.source.bank ?? selection.bank.resPath ?? selection.bank.storagePath);
     let entry = this.#wholeBanks.get(bankKey);
     if (!entry) {
-      const controller = new AbortController();
-      entry = {
-        controller,
+      entry = new CjsAudioManSharedAcquisition({
+        start: operationSignal => Promise.resolve().then(() => this.#mediaProvider.Read(selection.bank, {
+          signal: operationSignal,
+          kind: "bank",
+          mediaID: selection.mediaID
+        })).then(ToDetachedBytes),
         evict: () => {
           if (this.#wholeBanks.get(bankKey) === entry) {
             this.#wholeBanks.delete(bankKey);
           }
         },
-        leases: 0,
-        pending: true,
-        promise: null
-      };
-      entry.promise = Promise.resolve().then(() => this.#mediaProvider.Read(selection.bank, {
-        signal: controller.signal,
-        kind: "bank",
-        mediaID: selection.mediaID
-      })).then(ToDetachedBytes).catch(error => {
-        entry.evict();
-        throw error;
-      }).then(bytes => {
-        if (!this.#cacheWholeBanks) {
-          entry.evict();
-        }
-        return bytes;
-      }).finally(() => {
-        entry.pending = false;
+        retain: () => this.#cacheWholeBanks
       });
       this.#wholeBanks.set(bankKey, entry);
     }
-    return this.#SubscribeSharedOperation(entry, signal);
+    return entry.Subscribe(signal);
   }
 
   /** Attaches this manager to the static Carbon audio graph seams. */
@@ -1164,9 +1085,6 @@ function ThrowIfAborted(signal) {
     signal.throwIfAborted();
   }
   throw signal.reason ?? new DOMException("Aborted", "AbortError");
-}
-function AbortReason(signal) {
-  return signal?.reason ?? new DOMException("Aborted", "AbortError");
 }
 function IsAbortError(error) {
   return error?.name === "AbortError";

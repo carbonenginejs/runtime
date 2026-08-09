@@ -15,6 +15,36 @@ Realizes Carbon audio graph operations as Web Audio nodes and active playback so
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsAudioBackendSfxProgramBatch -->
+## `CjsAudioBackendSfxProgramBatch`
+
+Owns one overlapping Trigger-Rate or Crossfade batch within a program slot.
+
+- Export: None
+- Source: `src/internal/CjsAudioBackendSfxProgramSlot.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:CjsAudioBackendSfxProgramSlot -->
+## `CjsAudioBackendSfxProgramSlot`
+
+Owns one backend SFX program slot and its cancellation state.
+
+- Export: None
+- Source: `src/internal/CjsAudioBackendSfxProgramSlot.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:CjsAudioManSharedAcquisition -->
+## `CjsAudioManSharedAcquisition`
+
+Owns one shared acquisition, its caller leases, and orphan cancellation.
+
+- Export: None
+- Source: `src/internal/CjsAudioManSharedAcquisition.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsBusDuckingController -->
 ## `CjsBusDuckingController`
 

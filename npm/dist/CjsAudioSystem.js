@@ -180,6 +180,7 @@ class CjsAudioSystem {
           busEffects: this.#busEffects,
           busGraphRuntime: this.#busGraphRuntime
         });
+        const globalControlReaders = this.#CreateGlobalControlReaders();
         this.#busMixer = this.#busGraphRuntime ? new CjsSharedBusMixer({
           context,
           runtime: this.#busGraphRuntime,
@@ -187,54 +188,14 @@ class CjsAudioSystem {
           busRtpcs: this.#busRtpcs,
           busStates: this.#busStates,
           busDuckingController: this.#busDuckingController,
-          getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
-          getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
-          getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
-          getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from),
+          ...globalControlReaders,
           wwiseDynamics: this.#wwiseDynamics,
           wwiseMeterFeedback: this.#wwiseMeterFeedback,
           wwiseVoiceLimits: this.#wwiseVoiceLimits
         }) : null;
         this.backend.SetBusMixer(this.#busMixer);
         if (!this.musicEngine) {
-          const destination = this.backend.masterGain ?? context.destination;
-          if (this.#providedMusicEngine) {
-            this.musicEngine = CjsAudioSystem.ValidateMusicEngine(this.#providedMusicEngine);
-          } else if (this.#createMusicEngine) {
-            this.musicEngine = CjsAudioSystem.ValidateMusicEngine(this.#createMusicEngine({
-              context,
-              destination,
-              graph: this.#musicGraph,
-              loadMedia: this.#loadMedia,
-              busRtpcs: this.#busRtpcs,
-              busStates: this.#busStates,
-              busDuckingController: this.#busDuckingController,
-              busEffects: this.#busEffects,
-              busGraphRuntime: this.#busGraphRuntime,
-              busMixer: this.#busMixer,
-              getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
-              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
-              getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
-              getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from)
-            }));
-          } else if (this.#musicGraph) {
-            this.musicEngine = new CjsMusicEngine({
-              graph: this.#musicGraph,
-              context,
-              loadMedia: this.#loadMedia,
-              destination,
-              busRtpcs: this.#busRtpcs,
-              busStates: this.#busStates,
-              busDuckingController: this.#busDuckingController,
-              busEffects: this.#busEffects,
-              busGraphRuntime: this.#busGraphRuntime,
-              busMixer: this.#busMixer,
-              getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
-              getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
-              getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
-              getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from)
-            });
-          }
+          this.musicEngine = this.#CreateMusicEngine(context);
         }
         this.backend.SetMusicEngine(this.musicEngine);
       }
@@ -255,6 +216,40 @@ class CjsAudioSystem {
       }
     }
     return this.manager.enabled;
+  }
+
+  /** Creates the shared backend control-reader callbacks once per enable. */
+  #CreateGlobalControlReaders() {
+    return {
+      getGlobalRTPC: (name, at) => this.backend.GetGlobalRTPCValue(name, at),
+      getGlobalRTPCTransitionBoundaries: from => this.backend.GetGlobalRTPCTransitionBoundaries(from),
+      getGlobalStatePropertyWeights: (group, at) => this.backend.GetGlobalStatePropertyWeights(group, at),
+      getGlobalStateTransitionBoundaries: from => this.backend.GetGlobalStateTransitionBoundaries(from)
+    };
+  }
+
+  /** Creates or validates the configured music engine for one backend. */
+  #CreateMusicEngine(context) {
+    if (this.#providedMusicEngine) {
+      return CjsAudioSystem.ValidateMusicEngine(this.#providedMusicEngine);
+    }
+    const options = {
+      context,
+      destination: this.backend.masterGain ?? context.destination,
+      graph: this.#musicGraph,
+      loadMedia: this.#loadMedia,
+      busRtpcs: this.#busRtpcs,
+      busStates: this.#busStates,
+      busDuckingController: this.#busDuckingController,
+      busEffects: this.#busEffects,
+      busGraphRuntime: this.#busGraphRuntime,
+      busMixer: this.#busMixer,
+      ...this.#CreateGlobalControlReaders()
+    };
+    if (this.#createMusicEngine) {
+      return CjsAudioSystem.ValidateMusicEngine(this.#createMusicEngine(options));
+    }
+    return this.#musicGraph ? new CjsMusicEngine(options) : null;
   }
 
   /** Culls, clears banks, drops the engine to disabled. */

@@ -4,6 +4,7 @@ import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, busRtpcPathUses, evalua
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
 import { indexBusEffectCatalog, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
+import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProgramSlot.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -1437,13 +1438,13 @@ class CjsAudioBackend {
     for (const batch of slot?.batches?.values?.() ?? []) {
       this.#ReleasePendingSfxVoiceLimitSelections(record, batch.selections);
     }
-    AbortProgramSlot(slot);
+    slot.Abort();
   }
 
   /** Aborts one overlapping batch without retaining an unclaimed cap. */
   #AbortSfxProgramBatch(record, batch) {
     this.#ReleasePendingSfxVoiceLimitSelections(record, batch?.selections);
-    AbortTriggerRateBatch(batch);
+    batch.Abort();
   }
 
   /** Installs one synchronously resolved authored SFX program. */
@@ -1473,7 +1474,7 @@ class CjsAudioBackend {
             const selectionMetadata = selections.map(selection => CreateProgramSelectionMetadata(selection, record.postContextTime));
             const leafIndex = selections.length ? Math.min(...selections.map(selection => Number(selection.leafIndex))) : 0;
             const matchIds = Object.freeze([...new Set([...(continuation.matchIds ?? []).map(String), ...selections.flatMap(selection => (selection.matchIds ?? []).map(String))])]);
-            const slot = {
+            const slot = new CjsAudioBackendSfxProgramSlot({
               id,
               playingID,
               actionIndex: Number(operation.actionIndex),
@@ -1483,33 +1484,19 @@ class CjsAudioBackend {
               matchIds,
               selections: Object.freeze(selectionMetadata),
               cancelledSelectionKeys: CreateProgramCancelledSelectionKeys(selectionMetadata),
-              pauseDepths: new Map(),
               selectionControllers: CreateProgramSelectionControllers(selectionMetadata),
-              state: "pending",
-              voice: null,
-              voices: new Set(),
-              controller: new AbortController(),
               continuation: continuation.token,
               continuousNodeId: String(continuation.containerId ?? ""),
               advanceMode: continuation.advance === "trigger-rate" ? "trigger-rate" : continuation.advance === "crossfade" ? "crossfade" : continuation.advance === "switch" ? "switch" : "completion",
               switchGroups: NormalizeContinuousSwitchGroups(continuation.switchGroups),
-              switchGeneration: 0,
               crossfadeMode: continuation.crossfadeMode ?? null,
               completionBarrier: continuation.completionBarrier === true,
               transitionDelayMs: Math.max(0, Number(continuation.delayMs) || 0),
-              generation: 0,
-              broken: false,
-              exhausted: continuation.doneAfterBatch === true,
-              nextTriggerContextTime: null,
-              batches: null,
-              currentBatch: null,
-              preparedBatch: null,
-              preparingCrossfade: false,
-              batchSerial: 0
-            };
+              exhausted: continuation.doneAfterBatch === true
+            });
             if (IsOverlappingAdvanceMode(slot.advanceMode)) {
               slot.batches = new Map();
-              const batch = CreateTriggerRateBatch(slot, {
+              const batch = slot.CreateBatch({
                 id: continuation.programBatchId,
                 continuation: continuation.token,
                 exhausted: continuation.doneAfterBatch === true,
@@ -1540,7 +1527,7 @@ class CjsAudioBackend {
               existing.matchIds = Object.freeze([...new Set([...existing.matchIds, ...(selection.matchIds ?? []).map(String)])]);
               continue;
             }
-            record.programSlots.set(id, {
+            record.programSlots.set(id, new CjsAudioBackendSfxProgramSlot({
               id,
               playingID,
               actionIndex,
@@ -1549,17 +1536,8 @@ class CjsAudioBackend {
               matchIds: Object.freeze((selection.matchIds ?? []).map(String)),
               selections: Object.freeze([selectionMetadata]),
               cancelledSelectionKeys: CreateProgramCancelledSelectionKeys([selectionMetadata]),
-              pauseDepths: new Map(),
-              selectionControllers: CreateProgramSelectionControllers([selectionMetadata]),
-              state: "pending",
-              voice: null,
-              voices: new Set(),
-              controller: new AbortController(),
-              continuation: null,
-              transitionDelayMs: 0,
-              generation: 0,
-              broken: false
-            });
+              selectionControllers: CreateProgramSelectionControllers([selectionMetadata])
+            }));
           }
           continue;
         }
@@ -3134,7 +3112,7 @@ class CjsAudioBackend {
     slot.actionTime = selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.actionTime)) : batchStartContextTime;
     slot.matchIds = Object.freeze([...new Set(selectionMetadata.flatMap(selection => selection.matchIds))]);
     this.#DisposeEndedSlotVoices(record, slot);
-    const overlappingBatch = IsOverlappingAdvanceMode(slot.advanceMode) ? CreateTriggerRateBatch(slot, {
+    const overlappingBatch = IsOverlappingAdvanceMode(slot.advanceMode) ? slot.CreateBatch({
       id: continuation.programBatchId,
       actionTime: slot.actionTime,
       selections: slot.selections,
@@ -3267,7 +3245,7 @@ class CjsAudioBackend {
     const selectionControllers = CreateProgramSelectionControllers(selectionMetadata);
     const cancelledSelectionKeys = CreateProgramCancelledSelectionKeys(selectionMetadata);
     const controller = new AbortController();
-    const batch = CreateTriggerRateBatch(slot, {
+    const batch = slot.CreateBatch({
       id: continuation?.programBatchId,
       actionTime: selectionMetadata.length ? Math.min(...selectionMetadata.map(selection => selection.actionTime)) : batchStartContextTime,
       selections: Object.freeze(selectionMetadata),
@@ -3439,7 +3417,7 @@ class CjsAudioBackend {
     const selectionControllers = CreateProgramSelectionControllers(selectionMetadata);
     const cancelledSelectionKeys = CreateProgramCancelledSelectionKeys(selectionMetadata);
     const controller = new AbortController();
-    const batch = CreateTriggerRateBatch(slot, {
+    const batch = slot.CreateBatch({
       id: continuation.programBatchId,
       actionTime: selectionMetadata[0].actionTime,
       selections: Object.freeze(selectionMetadata),
@@ -3570,7 +3548,7 @@ class CjsAudioBackend {
         if (record) {
           this.#AbortSfxProgramBatch(record, batch);
         } else {
-          AbortTriggerRateBatch(batch);
+          batch.Abort();
         }
       }
     }
@@ -4074,10 +4052,10 @@ class CjsAudioBackend {
       record.stopped = true;
       record.controller?.abort();
       for (const slot of record.programSlots?.values?.() ?? []) {
-        AbortProgramSlot(slot);
+        slot.Abort();
         for (const batch of slot.batches?.values?.() ?? []) {
           this.#SettleCrossfadeBatchTransaction(batch);
-          AbortTriggerRateBatch(batch);
+          batch.Abort();
         }
       }
       const now = Number(this.#context?.currentTime) || 0;
@@ -4624,36 +4602,6 @@ function CreateProgramSelectionControllers(selections) {
 function CreateProgramCancelledSelectionKeys(selections) {
   return new Set(selections.filter(selection => selection.voiceLimitRejected === true).map(ProgramSelectionKey));
 }
-function CreateTriggerRateBatch(slot, overrides = {}) {
-  const selections = overrides.selections ?? slot.selections;
-  const serial = Number(slot.batchSerial) || 0;
-  slot.batchSerial = serial + 1;
-  const id = String(overrides.id ?? selections?.[0]?.programBatchId ?? `${slot.id}:b${serial}`);
-  return {
-    id,
-    actionTime: overrides.actionTime ?? slot.actionTime,
-    selections,
-    selectionControllers: overrides.selectionControllers ?? slot.selectionControllers,
-    cancelledSelectionKeys: overrides.cancelledSelectionKeys ?? slot.cancelledSelectionKeys,
-    controller: overrides.controller ?? slot.controller,
-    voices: new Set(),
-    state: overrides.state ?? slot.state,
-    continuation: overrides.continuation ?? slot.continuation,
-    exhausted: overrides.exhausted ?? slot.exhausted,
-    completionBarrier: overrides.completionBarrier ?? slot.completionBarrier,
-    transitionDelayMs: overrides.transitionDelayMs ?? slot.transitionDelayMs,
-    crossfadeMode: overrides.crossfadeMode ?? slot.crossfadeMode,
-    transaction: overrides.transaction ?? null
-  };
-}
-function AbortTriggerRateBatch(batch) {
-  batch.transaction?.rollback?.();
-  batch.transaction = null;
-  batch.controller?.abort();
-  for (const controller of batch.selectionControllers?.values?.() ?? []) {
-    controller.abort();
-  }
-}
 function StopFiniteRepeatAtBoundary(voice, now) {
   const duration = Number(voice.buffer?.duration);
   const rate = Number(voice.playbackRate);
@@ -4669,12 +4617,6 @@ function StopFiniteRepeatAtBoundary(voice, now) {
   const stopAt = voice.scheduledEndContextTime === null ? boundary : Math.max(now, Math.min(boundary, voice.scheduledEndContextTime));
   voice.source.stop(stopAt);
   voice.scheduledEndContextTime = stopAt;
-}
-function AbortProgramSlot(slot) {
-  slot.controller?.abort();
-  for (const controller of slot.selectionControllers?.values?.() ?? []) {
-    controller.abort();
-  }
 }
 function ProgramSelectionKey(value) {
   return `${value.programBatchId ?? ""}:` + `${Number(value.actionIndex)}:${Number(value.leafIndex)}`;

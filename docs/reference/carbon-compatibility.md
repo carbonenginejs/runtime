@@ -245,9 +245,10 @@ with randomized Delay around a static, two-child, one-pass amplitude Crossfade
 Sequence. The backend preserves its retained playlist cursor, inner Initial
 Delay, sampled Crossfade duration, dry-tail completion barrier, and randomized
 outer Delay. Random step `211583824` inherits Wwise Delay ShareSet
-`2464647643`; runtime-audio does not realize that inherited Delay or feedback
-tail, so completion follows decoded dry voices rather than the native effect
-tail. Other nested non-Switch Continuous clocks remain unsupported.
+`2464647643`; its nine Sound children receive the authored 280 ms delay,
+32.5-percent feedback, and 30.5-percent wet mix through the browser Delay
+adaptation. Completion still follows decoded dry voices and cuts the residual
+feedback tail. Other nested non-Switch Continuous clocks remain unsupported.
 
 ## Unsupported native behavior
 
