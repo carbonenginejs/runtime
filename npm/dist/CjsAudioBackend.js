@@ -6,6 +6,7 @@ import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
 import { indexBusEffectCatalog, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
 import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProgramSlot.js';
 import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSfxVoiceLimitLedger.js';
+import { CjsAudioBackendSfxVoice } from './internal/CjsAudioBackendSfxVoice.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -2677,36 +2678,15 @@ class CjsAudioBackend {
       lowPassFilter.connect(highPassFilter ?? fadeGain ?? gain);
     }
     sourceEffectChain?.output?.connect(lowPassFilter ?? highPassFilter ?? fadeGain ?? gain);
-    const voice = {
+    const voice = new CjsAudioBackendSfxVoice({
       gameObjID,
+      descriptor,
+      emitterNodes,
       busGraphRoute,
       emitterRouteBranch,
-      sharedBusFaders: emitterRouteBranch?.sharedBusFaders === true,
       sharedBusFilters,
-      sharedBusDucking: emitterRouteBranch?.sharedBusDucking === true,
-      buffer: descriptor.buffer,
-      silenceDurationSeconds: descriptor.silenceDurationSeconds,
-      loop: descriptor.loop,
-      playCount: descriptor.playCount,
-      playbackRate: descriptor.playbackRate,
-      getPlaybackRate: descriptor.getPlaybackRate,
-      getPlaybackRateAtVoicePitchCents: descriptor.getPlaybackRateAtVoicePitchCents,
-      spatial: descriptor.spatial,
-      dryVolumeCurve: descriptor.dryVolumeCurve,
-      distanceGainValue: 1,
-      getGain: descriptor.getGain,
-      getGainAtVoiceVolumeDb: descriptor.getGainAtVoiceVolumeDb,
-      voiceVolumeStates: emitterNodes.voiceVolumes,
-      busVoiceVolumeStates: emitterNodes.busVoiceVolumes,
-      voicePitchStates: emitterNodes.voicePitches,
-      voiceLowPassStates: emitterNodes.voiceLowPasses,
-      voiceHighPassStates: emitterNodes.voiceHighPasses,
-      busVolumeStates: emitterNodes.busVolumes,
       usesBusPitch,
       getBusStateProperties: at => evaluateBusStateProperties(this.#busStateCatalog, descriptor.busPathIds, (group, time) => this.#ReadStatePropertyWeights(group, time), at),
-      authoredBusVolumeDb: descriptor.authoredBusVolumeDb,
-      authoredBusMakeUpGainDb: descriptor.authoredBusMakeUpGainDb,
-      authoredOutputBusVolumeDb: descriptor.authoredOutputBusVolumeDb,
       rtpcTransitionEnd: this.#RtpcTransitionEndForRecord({
         gameObjID,
         emitterNodes
@@ -2715,64 +2695,21 @@ class CjsAudioBackend {
         gameObjID,
         emitterNodes
       }, Number(this.#context?.currentTime) || 0),
-      getLowPass: descriptor.getLowPass,
-      getHighPass: descriptor.getHighPass,
-      getLowPassAtAdditionalPercent: descriptor.getLowPassAtAdditionalPercent,
-      getHighPassAtAdditionalPercent: descriptor.getHighPassAtAdditionalPercent,
-      delayMs: descriptor.delayMs,
-      fadeInMs: descriptor.fadeInMs,
-      switchFadeInMs: descriptor.switchFadeInMs,
-      fadeCurve: descriptor.fadeCurve,
-      actionIndex: descriptor.actionIndex,
-      leafIndex: descriptor.leafIndex,
-      actionTime: descriptor.actionTime,
-      matchIds: descriptor.matchIds,
-      busPathIds: descriptor.busPathIds,
-      switchPath: descriptor.switchPath ?? Object.freeze([]),
-      switchGeneration: Math.max(0, Number(descriptor.switchGeneration) || 0),
-      programBatchId: descriptor.programBatchId,
-      voiceLimitReservationId: descriptor.voiceLimitReservationId,
-      crossfadeMode: descriptor.crossfadeMode ?? null,
-      gain,
-      busVoiceActionGain,
-      busVoiceGain,
-      busGain,
-      fadeGain,
-      transitionGain,
-      stopGain,
-      lowPassFilter,
-      highPassFilter,
-      sourceEffectInput: sourceEffectChain?.input ?? null,
-      sourceEffectNodes: sourceEffectChain?.nodes ?? [],
-      busEffectNodes: busEffectChain?.nodes ?? [],
-      fadeScheduled: false,
-      fadeStartContextTime: null,
-      transitionFadeScheduled: false,
-      transitionFadeStartContextTime: null,
-      transitionFadeDuration: 0,
-      transitionFadeFrom: 1,
-      transitionFadeTo: 1,
-      transitionFadeMode: null,
-      switchFadeScheduled: false,
-      source: null,
-      sourceStarted: false,
-      cancelledBeforeStart: false,
-      ended: false,
-      stopping: false,
-      pauseDepth: 0,
-      paused: false,
-      pausing: false,
-      pauseContextTime: null,
-      pauseSource: null,
-      startContextTime: null,
-      positionAnchorContextTime: null,
-      scheduledEndContextTime: null,
-      repeatRemainingSeconds: null,
-      repeatAnchorContextTime: null,
-      stopContextTime: null,
-      duckActivity: null,
-      offsetSeconds: 0
-    };
+      nodes: {
+        gain,
+        busVoiceActionGain,
+        busVoiceGain,
+        busGain,
+        fadeGain,
+        transitionGain,
+        stopGain,
+        lowPassFilter,
+        highPassFilter,
+        sourceEffectInput: sourceEffectChain?.input ?? null,
+        sourceEffectNodes: sourceEffectChain?.nodes ?? [],
+        busEffectNodes: busEffectChain?.nodes ?? []
+      }
+    });
     this.#ApplyVoiceDistanceGain(voice, emitterNodes);
     this.#ApplyVoiceBusActionGain(voice);
     this.#ApplyVoiceBusRtpcGain(voice);
@@ -3574,22 +3511,7 @@ class CjsAudioBackend {
       const now = Number(this.#context.currentTime) || 0;
       this.#EndVoiceDucking(voice, now, voice.sourceStarted !== true || voice.startContextTime > now || voice.cancelledBeforeStart === true);
       this.#voiceLimitLedger.Release(record, voice.voiceLimitReservationId);
-      voice.source?.disconnect?.();
-      for (const node of voice.sourceEffectNodes ?? []) {
-        node.disconnect?.();
-      }
-      voice.lowPassFilter?.disconnect?.();
-      voice.highPassFilter?.disconnect?.();
-      voice.gain?.disconnect?.();
-      voice.busVoiceActionGain?.disconnect?.();
-      voice.busVoiceGain?.disconnect?.();
-      voice.fadeGain?.disconnect?.();
-      voice.transitionGain?.disconnect?.();
-      voice.busGain?.disconnect?.();
-      for (const node of voice.busEffectNodes ?? []) {
-        node.disconnect?.();
-      }
-      voice.stopGain?.disconnect?.();
+      voice.DisconnectNodes();
       slot.voices.delete(voice);
       const index = record.voices.indexOf(voice);
       if (index !== -1) {
@@ -4019,22 +3941,7 @@ class CjsAudioBackend {
             // already stopped
           }
         }
-        voice.source?.disconnect?.();
-        for (const node of voice.sourceEffectNodes ?? []) {
-          node.disconnect?.();
-        }
-        voice.lowPassFilter?.disconnect?.();
-        voice.highPassFilter?.disconnect?.();
-        voice.gain?.disconnect?.();
-        voice.busVoiceActionGain?.disconnect?.();
-        voice.busVoiceGain?.disconnect?.();
-        voice.fadeGain?.disconnect?.();
-        voice.transitionGain?.disconnect?.();
-        voice.busGain?.disconnect?.();
-        for (const node of voice.busEffectNodes ?? []) {
-          node.disconnect?.();
-        }
-        voice.stopGain?.disconnect?.();
+        voice.DisconnectNodes();
       }
       if (record.source) {
         record.source.onended = null;
