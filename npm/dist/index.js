@@ -520,6 +520,7 @@ export { Tr2ScalingTool } from './trinityCore/Tr2ScalingTool.js';
 export { Tr2PrimitiveSet } from './trinityCore/Tr2PrimitiveSet.js';
 export { Tr2BoundingLineSet } from './trinityCore/Tr2BoundingLineSet.js';
 export { Tr2ManipulationTool } from './trinityCore/Tr2ManipulationTool.js';
+export { Tr2KelvinColor } from './trinityCore/Tr2KelvinColor.js';
 export { Tr2PresentParameters } from './ui/Tr2PresentParameters.js';
 export { EveChildCloud } from './generated/eve/child/EveChildCloud.js';
 export { EveChildInstanceMeshRenderer } from './generated/eve/child/EveChildInstanceMeshRenderer.js';
@@ -590,7 +591,6 @@ export { Tr2GpuStructuredBuffer } from './generated/trinityCore/Tr2GpuStructured
 export { Tr2GrannyPrimitiveSet } from './generated/trinityCore/Tr2GrannyPrimitiveSet.js';
 export { Tr2HostBitmap } from './generated/trinityCore/Tr2HostBitmap.js';
 export { Tr2ImpostorManager } from './generated/trinityCore/Tr2ImpostorManager.js';
-export { Tr2KelvinColor } from './generated/trinityCore/Tr2KelvinColor.js';
 export { Tr2PrimitiveScene } from './generated/trinityCore/Tr2PrimitiveScene.js';
 export { Tr2PrimitiveText } from './generated/trinityCore/Tr2PrimitiveText.js';
 export { Tr2ProjectBoundingBoxBracket } from './generated/trinityCore/Tr2ProjectBoundingBoxBracket.js';

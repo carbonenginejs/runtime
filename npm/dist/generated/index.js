@@ -71,7 +71,6 @@ export { Tr2GpuStructuredBuffer } from './trinityCore/Tr2GpuStructuredBuffer.js'
 export { Tr2GrannyPrimitiveSet } from './trinityCore/Tr2GrannyPrimitiveSet.js';
 export { Tr2HostBitmap } from './trinityCore/Tr2HostBitmap.js';
 export { Tr2ImpostorManager } from './trinityCore/Tr2ImpostorManager.js';
-export { Tr2KelvinColor } from './trinityCore/Tr2KelvinColor.js';
 export { Tr2PrimitiveScene } from './trinityCore/Tr2PrimitiveScene.js';
 export { Tr2PrimitiveText } from './trinityCore/Tr2PrimitiveText.js';
 export { Tr2ProjectBoundingBoxBracket } from './trinityCore/Tr2ProjectBoundingBoxBracket.js';

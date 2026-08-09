@@ -61,4 +61,5 @@ export { Tr2ScalingTool } from './Tr2ScalingTool.js';
 export { Tr2PrimitiveSet } from './Tr2PrimitiveSet.js';
 export { Tr2BoundingLineSet } from './Tr2BoundingLineSet.js';
 export { Tr2ManipulationTool } from './Tr2ManipulationTool.js';
+export { Tr2KelvinColor } from './Tr2KelvinColor.js';
 //# sourceMappingURL=index.js.map

@@ -8,7 +8,6 @@ export { Tr2GpuStructuredBuffer } from './Tr2GpuStructuredBuffer.js';
 export { Tr2GrannyPrimitiveSet } from './Tr2GrannyPrimitiveSet.js';
 export { Tr2HostBitmap } from './Tr2HostBitmap.js';
 export { Tr2ImpostorManager } from './Tr2ImpostorManager.js';
-export { Tr2KelvinColor } from './Tr2KelvinColor.js';
 export { Tr2PrimitiveScene } from './Tr2PrimitiveScene.js';
 export { Tr2PrimitiveText } from './Tr2PrimitiveText.js';
 export { Tr2ProjectBoundingBoxBracket } from './Tr2ProjectBoundingBoxBracket.js';

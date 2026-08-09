@@ -674,3 +674,12 @@ A screen viewport rectangle in pixels together with its minimum and maximum dept
 - Source: src/trinityCore/TriViewport.js
 - Visibility: Public
 - Kind: CarbonEngineJS
+<!-- class:Tr2KelvinColor -->
+## `Tr2KelvinColor`
+
+A light colour authored as a temperature in kelvin, a tint, and a white-balance illuminant.
+
+- Export: @carbonenginejs/runtime-trinity/trinityCore
+- Source: src/trinityCore/Tr2KelvinColor.js
+- Visibility: Public
+- Kind: CarbonEngineJS

@@ -56,3 +56,4 @@ export * from "./Tr2ScalingTool.js";
 export * from "./Tr2PrimitiveSet.js";
 export * from "./Tr2BoundingLineSet.js";
 export * from "./Tr2ManipulationTool.js";
+export * from "./Tr2KelvinColor.js";
