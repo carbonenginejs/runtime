@@ -2,7 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virt
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2RenderContext as _Tr2RenderContext } from '../core/context/Tr2RenderContext.js';
-import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
+import { TriRenderStep as _TriRenderStep } from './step/TriRenderStep.js';
 
 let _initProto, _initClass, _init_status, _init_extra_status, _init_stackGuard, _init_extra_stackGuard, _init_enabled, _init_extra_enabled, _init_name, _init_extra_name, _init_steps, _init_extra_steps;
 

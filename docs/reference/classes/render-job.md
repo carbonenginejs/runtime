@@ -21,7 +21,7 @@ The four render-job schedules a frame draws from - recurring, one-off, chained a
 A render-graph node that binds named sources onto an effect and produces its output.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/Tr2RenderNodeEffect.js
+- Source: src/renderJob/node/Tr2RenderNodeEffect.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -41,7 +41,7 @@ An ordered list of render steps plus the cursor and status that let the sequence
 Base of every render-job step: an enable flag, a name, and the begin/execute/end contract the owning job drives.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriRenderStep.js
+- Source: src/renderJob/step/TriRenderStep.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -51,7 +51,7 @@ Base of every render-job step: an enable flag, a name, and the begin/execute/end
 Step that clears the bound colour, depth and stencil attachments, each independently enabled with its own clear value.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepClear.js
+- Source: src/renderJob/step/TriStepClear.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -61,7 +61,7 @@ Step that clears the bound colour, depth and stencil attachments, each independe
 A render step that clears an unordered-access buffer to a fixed value.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepClearUav.js
+- Source: src/renderJob/step/TriStepClearUav.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -71,7 +71,7 @@ A render step that clears an unordered-access buffer to a fixed value.
 Step describing a copy out of one render target into another render target or into a texture resource, including the source and destination sub-rectangles.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepCopyRenderTarget.js
+- Source: src/renderJob/step/TriStepCopyRenderTarget.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -81,7 +81,7 @@ Step describing a copy out of one render target into another render target or in
 Step that turns wireframe rasterization on or off for the steps that follow.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepEnableWireframeMode.js
+- Source: src/renderJob/step/TriStepEnableWireframeMode.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -91,7 +91,7 @@ Step that turns wireframe rasterization on or off for the steps that follow.
 A render step that filters one visibility-result set into another by event and object filter.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepFilterVisibilityResults.js
+- Source: src/renderJob/step/TriStepFilterVisibilityResults.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -101,7 +101,7 @@ A render step that filters one visibility-result set into another by event and o
 Step that requests regeneration of a render target's mip chain.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepGenerateMipMaps.js
+- Source: src/renderJob/step/TriStepGenerateMipMaps.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -111,7 +111,7 @@ Step that requests regeneration of a render target's mip chain.
 Step that pops the executor's depth-stencil stack, undoing an earlier push.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPopDepthStencil.js
+- Source: src/renderJob/step/TriStepPopDepthStencil.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -121,7 +121,7 @@ Step that pops the executor's depth-stencil stack, undoing an earlier push.
 Step that pops the executor's projection stack, restoring the projection saved by an earlier push.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPopProjection.js
+- Source: src/renderJob/step/TriStepPopProjection.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -131,7 +131,7 @@ Step that pops the executor's projection stack, restoring the projection saved b
 Step that pops one slot off the executor's render-target stack, undoing an earlier push.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPopRenderTarget.js
+- Source: src/renderJob/step/TriStepPopRenderTarget.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -141,7 +141,7 @@ Step that pops one slot off the executor's render-target stack, undoing an earli
 Step that pops the executor's viewport stack, restoring the viewport saved by an earlier push.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPopViewport.js
+- Source: src/renderJob/step/TriStepPopViewport.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -151,7 +151,7 @@ Step that pops the executor's viewport stack, restoring the viewport saved by an
 Step that pops the executor's view-transform stack, restoring the view saved by an earlier push.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPopViewTransform.js
+- Source: src/renderJob/step/TriStepPopViewTransform.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -161,7 +161,7 @@ Step that pops the executor's view-transform stack, restoring the view saved by 
 Step that presents a swap chain, publishing the frame that the preceding steps produced.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPresentSwapChain.js
+- Source: src/renderJob/step/TriStepPresentSwapChain.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -171,7 +171,7 @@ Step that presents a swap chain, publishing the frame that the preceding steps p
 Step that pushes either a named depth-stencil or the currently bound one onto the executor's depth-stencil stack.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPushDepthStencil.js
+- Source: src/renderJob/step/TriStepPushDepthStencil.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -181,7 +181,7 @@ Step that pushes either a named depth-stencil or the currently bound one onto th
 Step that saves the current projection so a later pop can restore it.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPushProjection.js
+- Source: src/renderJob/step/TriStepPushProjection.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -191,7 +191,7 @@ Step that saves the current projection so a later pop can restore it.
 Step that pushes a render target onto the executor's stack for a given slot.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPushRenderTarget.js
+- Source: src/renderJob/step/TriStepPushRenderTarget.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -201,7 +201,7 @@ Step that pushes a render target onto the executor's stack for a given slot.
 Step that saves the current viewport so a later pop can restore it.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPushViewport.js
+- Source: src/renderJob/step/TriStepPushViewport.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -211,7 +211,7 @@ Step that saves the current viewport so a later pop can restore it.
 Step that saves the current view transform so a later pop can restore it.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPushViewTransform.js
+- Source: src/renderJob/step/TriStepPushViewTransform.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -221,7 +221,7 @@ Step that saves the current view transform so a later pop can restore it.
 A render step that invokes a host-supplied callback at its point in the job order.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepPythonCB.js
+- Source: src/renderJob/step/TriStepPythonCB.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -231,7 +231,7 @@ A render step that invokes a host-supplied callback at its point in the job orde
 Step for Carbon's Windows-only cross-process render synchronization, which has no browser equivalent and therefore always fails.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRemoteSync.js
+- Source: src/renderJob/step/TriStepRemoteSync.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -241,7 +241,7 @@ Step for Carbon's Windows-only cross-process render synchronization, which has n
 A render step that draws a texture atlas for inspection, focused on one entry.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderAtlas.js
+- Source: src/renderJob/step/TriStepRenderAtlas.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -251,7 +251,7 @@ A render step that draws a texture atlas for inspection, focused on one entry.
 A render step that accumulates debug lines, boxes and 2D/3D text for one frame and hands them to the executor to draw.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderDebug.js
+- Source: src/renderJob/step/TriStepRenderDebug.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -261,7 +261,7 @@ A render step that accumulates debug lines, boxes and 2D/3D text for one frame a
 A render step that draws a full-screen effect with an optional shader buffer.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderEffect.js
+- Source: src/renderJob/step/TriStepRenderEffect.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -271,7 +271,7 @@ A render step that draws a full-screen effect with an optional shader buffer.
 A render step that draws a set of line graphs with a shared scale and legend.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderLineGraph.js
+- Source: src/renderJob/step/TriStepRenderLineGraph.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -281,7 +281,7 @@ A render step that draws a set of line graphs with a shared scale and legend.
 A render step that renders a single renderable, optionally overriding its material.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderObject.js
+- Source: src/renderJob/step/TriStepRenderObject.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -291,7 +291,7 @@ A render step that renders a single renderable, optionally overriding its materi
 A render step that renders one named pass of a multi-pass scene.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderPass.js
+- Source: src/renderJob/step/TriStepRenderPass.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -301,7 +301,7 @@ A render step that renders one named pass of a multi-pass scene.
 A render step that renders one scene at its point in the job order.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderScene.js
+- Source: src/renderJob/step/TriStepRenderScene.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -311,7 +311,7 @@ A render step that renders one scene at its point in the job order.
 A render step that draws a scene through its debug representation rather than its normal path.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderSceneDebug.js
+- Source: src/renderJob/step/TriStepRenderSceneDebug.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -321,7 +321,7 @@ A render step that draws a scene through its debug representation rather than it
 A render step that draws a provided texture into the current target.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderTexture.js
+- Source: src/renderJob/step/TriStepRenderTexture.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -331,7 +331,7 @@ A render step that draws a provided texture into the current target.
 Step that resolves one render target into another, optionally regenerating the destination's mip chain afterwards.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepResolve.js
+- Source: src/renderJob/step/TriStepResolve.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -341,7 +341,7 @@ Step that resolves one render target into another, optionally regenerating the d
 A render step that dispatches a compute shader over its configured group dimensions.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRunComputeShader.js
+- Source: src/renderJob/step/TriStepRunComputeShader.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -351,7 +351,7 @@ A render step that dispatches a compute shader over its configured group dimensi
 Step that runs a nested render job in place, letting job graphs compose.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRunJob.js
+- Source: src/renderJob/step/TriStepRunJob.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -361,7 +361,7 @@ Step that runs a nested render job in place, letting job graphs compose.
 A render step that installs the debug renderer subsequent debug drawing routes through.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetDebugRenderer.js
+- Source: src/renderJob/step/TriStepSetDebugRenderer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -371,7 +371,7 @@ A render step that installs the debug renderer subsequent debug drawing routes t
 Step that binds a depth-stencil directly, without touching the depth-stencil stack.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetDepthStencil.js
+- Source: src/renderJob/step/TriStepSetDepthStencil.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -381,7 +381,7 @@ Step that binds a depth-stencil directly, without touching the depth-stencil sta
 Step that installs an authored projection for the steps that follow.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetProjection.js
+- Source: src/renderJob/step/TriStepSetProjection.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -391,7 +391,7 @@ Step that installs an authored projection for the steps that follow.
 Step that sets a single render state to a single value for the steps that follow.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetRenderState.js
+- Source: src/renderJob/step/TriStepSetRenderState.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -401,7 +401,7 @@ Step that sets a single render state to a single value for the steps that follow
 Step that binds a render target to slot 0 directly, without touching the render-target stack.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetRenderTarget.js
+- Source: src/renderJob/step/TriStepSetRenderTarget.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -411,7 +411,7 @@ Step that binds a render target to slot 0 directly, without touching the render-
 Step that selects one of Carbon's standard rendering-mode state blocks - opaque, decal, alpha, additive, depth-only, picking and so on - instead of setting states individually.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetStdRndStates.js
+- Source: src/renderJob/step/TriStepSetStdRndStates.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -421,7 +421,7 @@ Step that selects one of Carbon's standard rendering-mode state blocks - opaque,
 A render step that selects which upscaling context subsequent work resolves against.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetUpscalingContextID.js
+- Source: src/renderJob/step/TriStepSetUpscalingContextID.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -431,7 +431,7 @@ A render step that selects which upscaling context subsequent work resolves agai
 A render step that writes one named value into the variable store shaders read.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetVariableStore.js
+- Source: src/renderJob/step/TriStepSetVariableStore.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -441,7 +441,7 @@ A render step that writes one named value into the variable store shaders read.
 Step that installs the view transform for the steps that follow, taken either from an authored view or from a camera updated against the current viewport.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetView.js
+- Source: src/renderJob/step/TriStepSetView.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -451,7 +451,7 @@ Step that installs the view transform for the steps that follow, taken either fr
 Step that installs a viewport, or restores the full-screen viewport when none is authored.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetViewport.js
+- Source: src/renderJob/step/TriStepSetViewport.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -461,7 +461,7 @@ Step that installs a viewport, or restores the full-screen viewport when none is
 Step that switches a renderer object into a debug visualization mode for the remainder of the frame.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepSetVisualizationMode.js
+- Source: src/renderJob/step/TriStepSetVisualizationMode.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -471,7 +471,7 @@ Step that switches a renderer object into a debug visualization mode for the rem
 A render step that turns a scene cubemap display on or off.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepToggleCubemap.js
+- Source: src/renderJob/step/TriStepToggleCubemap.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -481,7 +481,7 @@ A render step that turns a scene cubemap display on or off.
 A render step that ticks one updateable object with the frame times.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepUpdate.js
+- Source: src/renderJob/step/TriStepUpdate.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -491,7 +491,7 @@ A render step that ticks one updateable object with the frame times.
 A render-graph node that draws a sprite scene into a destination texture, over an optional background node.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/Tr2RenderNodeSprite2dScene.js
+- Source: src/renderJob/node/Tr2RenderNodeSprite2dScene.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -501,7 +501,7 @@ A render-graph node that draws a sprite scene into a destination texture, over a
 A step that averages the frame rate over a quarter second and reports it as text with a threshold colour.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepRenderFps.js
+- Source: src/renderJob/step/TriStepRenderFps.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -511,6 +511,6 @@ A step that averages the frame rate over a quarter second and reports it as text
 A test step that reports itself in progress until its flag is cleared, so a job's resume path can be exercised.
 
 - Export: @carbonenginejs/runtime-trinity/renderJob
-- Source: src/renderJob/TriStepTestBlocking.js
+- Source: src/renderJob/step/TriStepTestBlocking.js
 - Visibility: Public
 - Kind: CarbonEngineJS

@@ -1,5 +1,5 @@
 import test from "node:test";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults } from "../npm/dist/core/index.js";
 import { Tr2RenderJobs, TriRenderJob, TriRenderStep, TriStepClear, TriStepCopyRenderTarget, TriStepEnableWireframeMode, TriStepGenerateMipMaps, TriStepPopDepthStencil, TriStepPopRenderTarget, TriStepPresentSwapChain, TriStepPushDepthStencil, TriStepPushRenderTarget, TriStepRemoteSync, TriStepResolve, TriStepRunJob, TriStepSetDepthStencil, TriStepSetProjection, TriStepSetRenderState, TriStepSetRenderTarget, TriStepSetStdRndStates, TriStepSetView, TriStepSetViewport, TriStepSetVisualizationMode } from "../npm/dist/renderJob/index.js";
@@ -665,12 +665,31 @@ test("Tr2RenderJobs ends delegated batch scope when a job throws", () =>
 
 test("maintained render-job sources remain backend-free", async () =>
 {
-  for (const file of ["TriRenderJob.js", "Tr2RenderJobs.js", "TriStepRunJob.js", "TriStepPushRenderTarget.js", "TriStepPopRenderTarget.js", "TriStepPushDepthStencil.js", "TriStepPopDepthStencil.js", "TriStepSetRenderTarget.js", "TriStepSetDepthStencil.js", "TriStepClear.js", "TriStepSetViewport.js", "TriStepSetView.js", "TriStepSetProjection.js", "TriStepResolve.js", "TriStepCopyRenderTarget.js", "TriStepGenerateMipMaps.js", "TriStepPresentSwapChain.js"])
+  // Walked rather than listed: a hardcoded list silently stops covering
+  // anything added or moved afterwards, which is exactly when a backend import
+  // would slip in.
+  const root = new URL("../src/renderJob/", import.meta.url);
+  const files = [];
+
+  async function collect(dir)
   {
-    const source = await readFile(new URL(`../src/renderJob/${file}`, import.meta.url), "utf8");
+    for (const entry of await readdir(dir, { withFileTypes: true }))
+    {
+      const child = new URL(`${entry.name}${entry.isDirectory() ? "/" : ""}`, dir);
+      if (entry.isDirectory()) await collect(child);
+      else if (entry.name.endsWith(".js")) files.push(child);
+    }
+  }
+
+  await collect(root);
+  assertEquals(files.length > 40, true, "the walk found the render-job sources");
+
+  for (const file of files)
+  {
+    const source = await readFile(file, "utf8");
     if (/GPUDevice|WebGLRenderingContext|GPUBuffer|GPUTexture|GPUCommandEncoder|engine-webgpu|engine-webgl/.test(source))
     {
-      throw new Error(`${file} contains a backend API`);
+      throw new Error(`${file.pathname} contains a backend API`);
     }
   }
 });

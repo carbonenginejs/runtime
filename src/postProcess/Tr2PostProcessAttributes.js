@@ -6,15 +6,15 @@ import { vec2 } from "@carbonenginejs/runtime-utils/vec2";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2PPBloomEffect } from "./Tr2PPBloomEffect.js";
-import { Tr2PPColorCorrectionEffect } from "./Tr2PPColorCorrectionEffect.js";
-import { Tr2PPDepthOfFieldEffect } from "./Tr2PPDepthOfFieldEffect.js";
-import { Tr2PPDesaturateEffect } from "./Tr2PPDesaturateEffect.js";
-import { Tr2PPFadeEffect } from "./Tr2PPFadeEffect.js";
-import { Tr2PPFilmGrainEffect } from "./Tr2PPFilmGrainEffect.js";
-import { Tr2PPLutEffect } from "./Tr2PPLutEffect.js";
-import { Tr2PPSignalLossEffect } from "./Tr2PPSignalLossEffect.js";
-import { Tr2PPVignetteEffect } from "./Tr2PPVignetteEffect.js";
+import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
+import { Tr2PPColorCorrectionEffect } from "./effect/Tr2PPColorCorrectionEffect.js";
+import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
+import { Tr2PPDesaturateEffect } from "./effect/Tr2PPDesaturateEffect.js";
+import { Tr2PPFadeEffect } from "./effect/Tr2PPFadeEffect.js";
+import { Tr2PPFilmGrainEffect } from "./effect/Tr2PPFilmGrainEffect.js";
+import { Tr2PPLutEffect } from "./effect/Tr2PPLutEffect.js";
+import { Tr2PPSignalLossEffect } from "./effect/Tr2PPSignalLossEffect.js";
+import { Tr2PPVignetteEffect } from "./effect/Tr2PPVignetteEffect.js";
 
 
 /**

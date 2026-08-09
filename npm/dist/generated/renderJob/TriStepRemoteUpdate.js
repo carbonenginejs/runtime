@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { TriRenderStep as _TriRenderStep } from '../../renderJob/TriRenderStep.js';
+import { TriRenderStep as _TriRenderStep } from '../../renderJob/step/TriRenderStep.js';
 
 let _initProto, _initClass, _init_view, _init_extra_view, _init_viewport, _init_extra_viewport, _init_projection, _init_extra_projection, _init_sharedMemoryHandle, _init_extra_sharedMemoryHandle, _init_needsHndl, _init_extra_needsHndl, _init_readingHndl, _init_extra_readingHndl, _init_writingHndl, _init_extra_writingHndl, _init_sharedMemory, _init_extra_sharedMemory, _init_id, _init_extra_id;
 
