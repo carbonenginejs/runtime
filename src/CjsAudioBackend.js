@@ -43,6 +43,9 @@ import {
 import {
     CjsAudioBackendSfxProgramSlot,
 } from "./internal/CjsAudioBackendSfxProgramSlot.js";
+import {
+    CjsAudioBackendSfxVoiceLimitLedger,
+} from "./internal/CjsAudioBackendSfxVoiceLimitLedger.js";
 
 const DEFAULT_FADE_SECONDS = 1;
 const DEFAULT_RENDER_QUANTUM_SECONDS = 128 / 48000;
@@ -79,11 +82,10 @@ export class CjsAudioBackend
 
     #playing = new Map();
 
-    #voiceLimitReservations = new Map();
-
-    #voiceLimitReservationKeys = new Map();
-
-    #nextVoiceLimitReservationID = 1;
+    #voiceLimitLedger = new CjsAudioBackendSfxVoiceLimitLedger({
+        isOwnerActive: owner =>
+            this.#playing.get(owner.playingID) === owner,
+    });
 
     #scheduledSfxActions = [];
 
@@ -464,7 +466,6 @@ export class CjsAudioBackend
             loading: false,
             posting: true,
             sfxControls: null,
-            voiceLimitReservations: new Set(),
         };
         this.#playing.set(playingID, record);
 
@@ -1799,7 +1800,7 @@ export class CjsAudioBackend
                     voice.stopping = true;
                     voice.cancelledBeforeStart = true;
                     this.#EndVoiceDucking(voice, now, true);
-                    this.#ReleaseSfxVoiceLimitReservation(
+                    this.#voiceLimitLedger.Release(
                         record,
                         voice.voiceLimitReservationId,
                     );
@@ -2130,10 +2131,12 @@ export class CjsAudioBackend
                         );
                     }
 
-                    const counterId = String(counterNumber);
-                    const key = `o:${String(record.gameObjID)}\0${counterId}`;
+                    const reservationID = this.#voiceLimitLedger.Reserve(
+                        record,
+                        String(counterNumber),
+                    );
 
-                    if (this.#voiceLimitReservationKeys.has(key))
+                    if (reservationID === null)
                     {
                         selections.push({
                             ...selection,
@@ -2141,20 +2144,6 @@ export class CjsAudioBackend
                         });
                         continue;
                     }
-                    const reservationID = this.#nextVoiceLimitReservationID++;
-                    const reservation = {
-                        id: reservationID,
-                        key,
-                        owner: record,
-                        voice: null,
-                    };
-
-                    this.#voiceLimitReservations.set(
-                        reservationID,
-                        reservation,
-                    );
-                    this.#voiceLimitReservationKeys.set(key, reservationID);
-                    record.voiceLimitReservations.add(reservationID);
                     created.push(reservationID);
                     selections.push({
                         ...selection,
@@ -2172,53 +2161,13 @@ export class CjsAudioBackend
         {
             for (const reservationID of created)
             {
-                this.#ReleaseSfxVoiceLimitReservation(
+                this.#voiceLimitLedger.Release(
                     record,
                     reservationID,
                 );
             }
             throw error;
         }
-    }
-
-    /** Binds a pending admission token to its realized physical voice. */
-    #BindSfxVoiceLimitReservation(voice, reservationID)
-    {
-        if (reservationID === undefined)
-        {
-            return;
-        }
-        const reservation = this.#voiceLimitReservations.get(
-            Number(reservationID),
-        );
-
-        if (!reservation
-            || reservation.voice
-            || reservation.owner.gameObjID !== voice.gameObjID
-            || this.#playing.get(reservation.owner.playingID)
-                !== reservation.owner)
-        {
-            throw new Error("SFX voice-limit reservation is no longer active");
-        }
-        reservation.voice = voice;
-    }
-
-    /** Releases one admission token owned by the expected playing record. */
-    #ReleaseSfxVoiceLimitReservation(record, reservationID)
-    {
-        const id = Number(reservationID);
-        const reservation = this.#voiceLimitReservations.get(id);
-
-        if (!reservation || reservation.owner !== record)
-        {
-            return;
-        }
-        this.#voiceLimitReservations.delete(id);
-        if (this.#voiceLimitReservationKeys.get(reservation.key) === id)
-        {
-            this.#voiceLimitReservationKeys.delete(reservation.key);
-        }
-        record.voiceLimitReservations.delete(id);
     }
 
     /** Releases reservations whose selected media never became a voice. */
@@ -2230,7 +2179,7 @@ export class CjsAudioBackend
                 ? operation.selections ?? []
                 : [])
             {
-                this.#ReleasePendingSfxVoiceLimitSelections(
+                this.#voiceLimitLedger.ReleasePending(
                     record,
                     [ selection ],
                 );
@@ -2238,33 +2187,16 @@ export class CjsAudioBackend
         }
     }
 
-    /** Releases unclaimed tokens attached to selected program metadata. */
-    #ReleasePendingSfxVoiceLimitSelections(record, selections)
-    {
-        for (const selection of selections ?? [])
-        {
-            const id = selection.voiceLimitReservationId;
-            const reservation = this.#voiceLimitReservations.get(Number(id));
-
-            if (id !== undefined
-                && reservation?.owner === record
-                && !reservation.voice)
-            {
-                this.#ReleaseSfxVoiceLimitReservation(record, id);
-            }
-        }
-    }
-
     /** Aborts one slot and releases only tokens not yet bound to a voice. */
     #AbortSfxProgramSlot(record, slot)
     {
-        this.#ReleasePendingSfxVoiceLimitSelections(
+        this.#voiceLimitLedger.ReleasePending(
             record,
             slot?.selections,
         );
         for (const batch of slot?.batches?.values?.() ?? [])
         {
-            this.#ReleasePendingSfxVoiceLimitSelections(
+            this.#voiceLimitLedger.ReleasePending(
                 record,
                 batch.selections,
             );
@@ -2275,7 +2207,7 @@ export class CjsAudioBackend
     /** Aborts one overlapping batch without retaining an unclaimed cap. */
     #AbortSfxProgramBatch(record, batch)
     {
-        this.#ReleasePendingSfxVoiceLimitSelections(
+        this.#voiceLimitLedger.ReleasePending(
             record,
             batch?.selections,
         );
@@ -3590,7 +3522,7 @@ export class CjsAudioBackend
         }
         try
         {
-            this.#ReleasePendingSfxVoiceLimitSelections(
+            this.#voiceLimitLedger.ReleasePending(
                 record,
                 slot.selections,
             );
@@ -3919,7 +3851,7 @@ export class CjsAudioBackend
 
                     slot.cancelledSelectionKeys?.add(key);
                     slot.selectionControllers?.get(key)?.abort();
-                    this.#ReleasePendingSfxVoiceLimitSelections(
+                    this.#voiceLimitLedger.ReleasePending(
                         record,
                         [ selection ],
                     );
@@ -4043,7 +3975,7 @@ export class CjsAudioBackend
 
                 slot.cancelledSelectionKeys.add(key);
                 slot.selectionControllers?.get(key)?.abort();
-                this.#ReleasePendingSfxVoiceLimitSelections(
+                this.#voiceLimitLedger.ReleasePending(
                     record,
                     [ selection ],
                 );
@@ -4139,7 +4071,7 @@ export class CjsAudioBackend
 
             batch.cancelledSelectionKeys.add(key);
             batch.selectionControllers?.get(key)?.abort();
-            this.#ReleasePendingSfxVoiceLimitSelections(
+            this.#voiceLimitLedger.ReleasePending(
                 record,
                 [ selection ],
             );
@@ -4950,7 +4882,7 @@ export class CjsAudioBackend
         this.#ApplyVoiceBusGain(voice);
         this.#ApplyVoiceFilters(voice);
         this.#ApplyVoicePlaybackRate(voice);
-        this.#BindSfxVoiceLimitReservation(
+        this.#voiceLimitLedger.Bind(
             voice,
             descriptor.voiceLimitReservationId,
         );
@@ -5297,7 +5229,7 @@ export class CjsAudioBackend
         );
         voice.ended = true;
         voice.source?.disconnect?.();
-        this.#ReleaseSfxVoiceLimitReservation(
+        this.#voiceLimitLedger.Release(
             record,
             voice.voiceLimitReservationId,
         );
@@ -5320,7 +5252,7 @@ export class CjsAudioBackend
     /** Marks the logical slot behind one realized program voice complete. */
     #SetSfxProgramSlotEnded(playingID, record, voice)
     {
-        this.#ReleaseSfxVoiceLimitReservation(
+        this.#voiceLimitLedger.Release(
             record,
             voice.voiceLimitReservationId,
         );
@@ -6349,7 +6281,7 @@ export class CjsAudioBackend
                     || voice.startContextTime > now
                     || voice.cancelledBeforeStart === true,
             );
-            this.#ReleaseSfxVoiceLimitReservation(
+            this.#voiceLimitLedger.Release(
                 record,
                 voice.voiceLimitReservationId,
             );
@@ -6543,7 +6475,7 @@ export class CjsAudioBackend
                     || voice.startContextTime > now
                     || voice.cancelledBeforeStart === true,
             );
-            this.#ReleaseSfxVoiceLimitReservation(
+            this.#voiceLimitLedger.Release(
                 record,
                 voice.voiceLimitReservationId,
             );
@@ -7255,15 +7187,7 @@ export class CjsAudioBackend
         {
             return;
         }
-        for (const reservationID of [
-            ...(record.voiceLimitReservations ?? []),
-        ])
-        {
-            this.#ReleaseSfxVoiceLimitReservation(
-                record,
-                reservationID,
-            );
-        }
+        this.#voiceLimitLedger.ReleaseAll(record);
         record.sfxFinished = true;
         if (!record.music || record.musicFinished)
         {
@@ -7293,15 +7217,7 @@ export class CjsAudioBackend
         const record = this.#playing.get(playingID);
         if (record)
         {
-            for (const reservationID of [
-                ...(record.voiceLimitReservations ?? []),
-            ])
-            {
-                this.#ReleaseSfxVoiceLimitReservation(
-                    record,
-                    reservationID,
-                );
-            }
+            this.#voiceLimitLedger.ReleaseAll(record);
             this.#playing.delete(playingID);
             this.#scheduledSfxActions = this.#scheduledSfxActions
                 .filter(value => value.ownerPlayingID !== playingID);

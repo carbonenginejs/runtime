@@ -5,6 +5,7 @@ import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, eva
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
 import { indexBusEffectCatalog, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
 import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProgramSlot.js';
+import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSfxVoiceLimitLedger.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -45,9 +46,9 @@ class CjsAudioBackend {
   #sfxGain = null;
   #emitterNodes = new Map();
   #playing = new Map();
-  #voiceLimitReservations = new Map();
-  #voiceLimitReservationKeys = new Map();
-  #nextVoiceLimitReservationID = 1;
+  #voiceLimitLedger = new CjsAudioBackendSfxVoiceLimitLedger({
+    isOwnerActive: owner => this.#playing.get(owner.playingID) === owner
+  });
   #scheduledSfxActions = [];
   #globalRtpcValues = new Map();
   #globalStateValues = new Map();
@@ -346,8 +347,7 @@ class CjsAudioBackend {
       planningProgram: false,
       loading: false,
       posting: true,
-      sfxControls: null,
-      voiceLimitReservations: new Set()
+      sfxControls: null
     };
     this.#playing.set(playingID, record);
     if (music) {
@@ -1133,7 +1133,7 @@ class CjsAudioBackend {
           voice.stopping = true;
           voice.cancelledBeforeStart = true;
           this.#EndVoiceDucking(voice, now, true);
-          this.#ReleaseSfxVoiceLimitReservation(record, voice.voiceLimitReservationId);
+          this.#voiceLimitLedger.Release(record, voice.voiceLimitReservationId);
           if (voice.source) {
             voice.source.onended = null;
             try {
@@ -1348,25 +1348,14 @@ class CjsAudioBackend {
           if (!limit || typeof limit !== "object" || Array.isArray(limit) || limit.scope !== "game-object" || Number(limit.maxInstances) !== 1 || limit.behavior !== "reject-newest" || !Number.isSafeInteger(counterNumber) || counterNumber <= 0 || counterNumber > 0xffffffff || String(counterNumber) !== String(limit.counterId) || Number(selection.delayMs) > 0) {
             throw new TypeError("Resolved SFX voice limit is unsupported");
           }
-          const counterId = String(counterNumber);
-          const key = `o:${String(record.gameObjID)}\0${counterId}`;
-          if (this.#voiceLimitReservationKeys.has(key)) {
+          const reservationID = this.#voiceLimitLedger.Reserve(record, String(counterNumber));
+          if (reservationID === null) {
             selections.push({
               ...selection,
               voiceLimitRejected: true
             });
             continue;
           }
-          const reservationID = this.#nextVoiceLimitReservationID++;
-          const reservation = {
-            id: reservationID,
-            key,
-            owner: record,
-            voice: null
-          };
-          this.#voiceLimitReservations.set(reservationID, reservation);
-          this.#voiceLimitReservationKeys.set(key, reservationID);
-          record.voiceLimitReservations.add(reservationID);
           created.push(reservationID);
           selections.push({
             ...selection,
@@ -1380,70 +1369,33 @@ class CjsAudioBackend {
       });
     } catch (error) {
       for (const reservationID of created) {
-        this.#ReleaseSfxVoiceLimitReservation(record, reservationID);
+        this.#voiceLimitLedger.Release(record, reservationID);
       }
       throw error;
     }
-  }
-
-  /** Binds a pending admission token to its realized physical voice. */
-  #BindSfxVoiceLimitReservation(voice, reservationID) {
-    if (reservationID === undefined) {
-      return;
-    }
-    const reservation = this.#voiceLimitReservations.get(Number(reservationID));
-    if (!reservation || reservation.voice || reservation.owner.gameObjID !== voice.gameObjID || this.#playing.get(reservation.owner.playingID) !== reservation.owner) {
-      throw new Error("SFX voice-limit reservation is no longer active");
-    }
-    reservation.voice = voice;
-  }
-
-  /** Releases one admission token owned by the expected playing record. */
-  #ReleaseSfxVoiceLimitReservation(record, reservationID) {
-    const id = Number(reservationID);
-    const reservation = this.#voiceLimitReservations.get(id);
-    if (!reservation || reservation.owner !== record) {
-      return;
-    }
-    this.#voiceLimitReservations.delete(id);
-    if (this.#voiceLimitReservationKeys.get(reservation.key) === id) {
-      this.#voiceLimitReservationKeys.delete(reservation.key);
-    }
-    record.voiceLimitReservations.delete(id);
   }
 
   /** Releases reservations whose selected media never became a voice. */
   #ReleasePendingSfxVoiceLimitReservations(record, program) {
     for (const operation of Array.isArray(program) ? program : []) {
       for (const selection of operation.kind === "play" ? operation.selections ?? [] : []) {
-        this.#ReleasePendingSfxVoiceLimitSelections(record, [selection]);
-      }
-    }
-  }
-
-  /** Releases unclaimed tokens attached to selected program metadata. */
-  #ReleasePendingSfxVoiceLimitSelections(record, selections) {
-    for (const selection of selections ?? []) {
-      const id = selection.voiceLimitReservationId;
-      const reservation = this.#voiceLimitReservations.get(Number(id));
-      if (id !== undefined && reservation?.owner === record && !reservation.voice) {
-        this.#ReleaseSfxVoiceLimitReservation(record, id);
+        this.#voiceLimitLedger.ReleasePending(record, [selection]);
       }
     }
   }
 
   /** Aborts one slot and releases only tokens not yet bound to a voice. */
   #AbortSfxProgramSlot(record, slot) {
-    this.#ReleasePendingSfxVoiceLimitSelections(record, slot?.selections);
+    this.#voiceLimitLedger.ReleasePending(record, slot?.selections);
     for (const batch of slot?.batches?.values?.() ?? []) {
-      this.#ReleasePendingSfxVoiceLimitSelections(record, batch.selections);
+      this.#voiceLimitLedger.ReleasePending(record, batch.selections);
     }
     slot.Abort();
   }
 
   /** Aborts one overlapping batch without retaining an unclaimed cap. */
   #AbortSfxProgramBatch(record, batch) {
-    this.#ReleasePendingSfxVoiceLimitSelections(record, batch?.selections);
+    this.#voiceLimitLedger.ReleasePending(record, batch?.selections);
     batch.Abort();
   }
 
@@ -2130,7 +2082,7 @@ class CjsAudioBackend {
       return;
     }
     try {
-      this.#ReleasePendingSfxVoiceLimitSelections(record, slot.selections);
+      this.#voiceLimitLedger.ReleasePending(record, slot.selections);
       program = this.#ReserveSfxProgram(record, program);
     } catch {
       slot.continuation = null;
@@ -2286,7 +2238,7 @@ class CjsAudioBackend {
           const key = ProgramSelectionKey(selection);
           slot.cancelledSelectionKeys?.add(key);
           slot.selectionControllers?.get(key)?.abort();
-          this.#ReleasePendingSfxVoiceLimitSelections(record, [selection]);
+          this.#voiceLimitLedger.ReleasePending(record, [selection]);
         }
         if (slot.state === "pending" || slot.state === "loading") {
           if (stopsWholeSlot) {
@@ -2350,7 +2302,7 @@ class CjsAudioBackend {
         const key = ProgramSelectionKey(selection);
         slot.cancelledSelectionKeys.add(key);
         slot.selectionControllers?.get(key)?.abort();
-        this.#ReleasePendingSfxVoiceLimitSelections(record, [selection]);
+        this.#voiceLimitLedger.ReleasePending(record, [selection]);
       }
     }
     const voices = stopsWholeSlot ? [...slot.voices].filter(voice => !voice.ended) : matchingVoices;
@@ -2403,7 +2355,7 @@ class CjsAudioBackend {
       const key = ProgramSelectionKey(selection);
       batch.cancelledSelectionKeys.add(key);
       batch.selectionControllers?.get(key)?.abort();
-      this.#ReleasePendingSfxVoiceLimitSelections(record, [selection]);
+      this.#voiceLimitLedger.ReleasePending(record, [selection]);
     }
     for (const batch of batches) {
       if ((batch.state === "loading" || batch.state === "pending") && (batch.selections?.length ?? 0) > 0 && batch.selections.every(selection => batch.cancelledSelectionKeys.has(ProgramSelectionKey(selection)))) {
@@ -2827,7 +2779,7 @@ class CjsAudioBackend {
     this.#ApplyVoiceBusGain(voice);
     this.#ApplyVoiceFilters(voice);
     this.#ApplyVoicePlaybackRate(voice);
-    this.#BindSfxVoiceLimitReservation(voice, descriptor.voiceLimitReservationId);
+    this.#voiceLimitLedger.Bind(voice, descriptor.voiceLimitReservationId);
     return voice;
   }
 
@@ -2995,7 +2947,7 @@ class CjsAudioBackend {
     this.#EndVoiceDucking(voice, Number(this.#context?.currentTime) || 0, voice.cancelledBeforeStart === true);
     voice.ended = true;
     voice.source?.disconnect?.();
-    this.#ReleaseSfxVoiceLimitReservation(record, voice.voiceLimitReservationId);
+    this.#voiceLimitLedger.Release(record, voice.voiceLimitReservationId);
     if (record.sfxProgram) {
       this.#SetSfxProgramSlotEnded(playingID, record, voice);
       this.#MaybeFinishSfxProgram(playingID, record);
@@ -3006,7 +2958,7 @@ class CjsAudioBackend {
 
   /** Marks the logical slot behind one realized program voice complete. */
   #SetSfxProgramSlotEnded(playingID, record, voice) {
-    this.#ReleaseSfxVoiceLimitReservation(record, voice.voiceLimitReservationId);
+    this.#voiceLimitLedger.Release(record, voice.voiceLimitReservationId);
     if (!record.sfxProgram) {
       return;
     }
@@ -3515,7 +3467,7 @@ class CjsAudioBackend {
     const now = Number(this.#context.currentTime) || 0;
     for (const voice of batch.voices) {
       this.#EndVoiceDucking(voice, now, voice.sourceStarted !== true || voice.startContextTime > now || voice.cancelledBeforeStart === true);
-      this.#ReleaseSfxVoiceLimitReservation(record, voice.voiceLimitReservationId);
+      this.#voiceLimitLedger.Release(record, voice.voiceLimitReservationId);
       if (voice.source && !voice.ended) {
         voice.source.onended = null;
         try {
@@ -3621,7 +3573,7 @@ class CjsAudioBackend {
       }
       const now = Number(this.#context.currentTime) || 0;
       this.#EndVoiceDucking(voice, now, voice.sourceStarted !== true || voice.startContextTime > now || voice.cancelledBeforeStart === true);
-      this.#ReleaseSfxVoiceLimitReservation(record, voice.voiceLimitReservationId);
+      this.#voiceLimitLedger.Release(record, voice.voiceLimitReservationId);
       voice.source?.disconnect?.();
       for (const node of voice.sourceEffectNodes ?? []) {
         node.disconnect?.();
@@ -4019,9 +3971,7 @@ class CjsAudioBackend {
     if (!record || record.sfxFinished) {
       return;
     }
-    for (const reservationID of [...(record.voiceLimitReservations ?? [])]) {
-      this.#ReleaseSfxVoiceLimitReservation(record, reservationID);
-    }
+    this.#voiceLimitLedger.ReleaseAll(record);
     record.sfxFinished = true;
     if (!record.music || record.musicFinished) {
       this.#FinishPlaying(playingID);
@@ -4044,9 +3994,7 @@ class CjsAudioBackend {
   #FinishPlaying(playingID) {
     const record = this.#playing.get(playingID);
     if (record) {
-      for (const reservationID of [...(record.voiceLimitReservations ?? [])]) {
-        this.#ReleaseSfxVoiceLimitReservation(record, reservationID);
-      }
+      this.#voiceLimitLedger.ReleaseAll(record);
       this.#playing.delete(playingID);
       this.#scheduledSfxActions = this.#scheduledSfxActions.filter(value => value.ownerPlayingID !== playingID);
       record.stopped = true;

@@ -35,6 +35,16 @@ Owns one backend SFX program slot and its cancellation state.
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CjsAudioBackendSfxVoiceLimitLedger -->
+## `CjsAudioBackendSfxVoiceLimitLedger`
+
+Owns backend SFX voice-limit reservations and their owner/key invariants.
+
+- Export: None
+- Source: `src/internal/CjsAudioBackendSfxVoiceLimitLedger.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioManSharedAcquisition -->
 ## `CjsAudioManSharedAcquisition`
 
