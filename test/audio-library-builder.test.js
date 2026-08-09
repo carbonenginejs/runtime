@@ -4563,6 +4563,368 @@ test("SFX Play-Event actions inline the referenced event program", () =>
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 
+test("untimed Play-Event recursion repeats shared memoized programs in order", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 200,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 301,
+                    actionType: 0x2103,
+                    targetId: 102,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 302,
+                    actionType: 0x2103,
+                    targetId: 101,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 302 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ 301, 301 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 102,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                outer: { eventID: 100 },
+                middle: { eventID: 101 },
+                leaf: { eventID: 102 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(result.programs.outer, [
+        { kind: "play", child: { nodeId: "200" } },
+        { kind: "play", child: { nodeId: "200" } },
+    ]);
+    assert.deepEqual(result.events.outer, [
+        { nodeId: "200" },
+        { nodeId: "200" },
+    ]);
+    assert.deepEqual(result.programs.middle, result.programs.outer);
+    assert.deepEqual(result.events.middle, result.events.outer);
+    assert.deepEqual(result.events.leaf, [ { nodeId: "200" } ]);
+});
+
+test("Play-Event recursion inherits only retained music event actions", () =>
+{
+    const busVolume = {
+        type: 3,
+        id: 301,
+        actionType: 0x0c02,
+        targetId: 500,
+        action: {
+            actionName: "set-bus-volume",
+            actionType: 0x0c02,
+            actionMode: "element",
+            actionScope: "global",
+            targetId: 500,
+            targetFlags: 1,
+            targetIsBus: true,
+            fadeCurve: 4,
+            exceptions: [],
+            valueMode: "absolute",
+            busVolumeDb: -12,
+            busVolumeRangeDb: { min: 0, max: 0 },
+        },
+        payload: new Uint8Array(),
+    };
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x2103,
+                    targetId: 101,
+                    payload: new Uint8Array(),
+                },
+                busVolume,
+                {
+                    type: 3,
+                    id: 302,
+                    actionType: 0x0403,
+                    targetId: 200,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 303,
+                    actionType: 0x0103,
+                    targetId: 200,
+                    action: {
+                        actionMode: "element",
+                        actionScope: "game-object",
+                        targetId: 200,
+                        targetFlags: 0,
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ 302, 303, 301 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                wrapper: { eventID: 100 },
+                music_nested: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    const expected = [ {
+        kind: "set-bus-volume",
+        targetId: "500",
+        targetFlags: 1,
+        scope: "global",
+        mode: "element",
+        curve: 4,
+        exceptions: [],
+        valueMode: "absolute",
+        busVolumeDb: -12,
+        busVolumeRangeDb: { min: 0, max: 0 },
+    } ];
+
+    assert.deepEqual(result.programs.wrapper, expected);
+    assert.deepEqual(result.programs.music_nested, expected);
+    assert.deepEqual(result.events, {});
+    assert.deepEqual(result.nodes, {});
+    assert.deepEqual(result.metadataProjection.Events, {});
+});
+
+test("untimed Play-Event recursion propagates nested Play and Stop state", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 200,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 301,
+                    actionType: 0x0103,
+                    targetId: 200,
+                    action: {
+                        actionMode: "element",
+                        actionScope: "game-object",
+                        targetId: 200,
+                        targetFlags: 0,
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 302,
+                    actionType: 0x2103,
+                    targetId: 101,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 302 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ 300, 301 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                outer_mixed: { eventID: 100 },
+                nested_mixed: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.deepEqual(
+        result.programs.outer_mixed,
+        result.programs.nested_mixed,
+    );
+    assert.deepEqual(
+        result.programs.outer_mixed.map(action => action.kind),
+        [ "play", "stop" ],
+    );
+    assert.deepEqual(result.events.outer_mixed, [ { nodeId: "200" } ]);
+    assert.deepEqual(result.events.nested_mixed, [ { nodeId: "200" } ]);
+    assert.deepEqual(
+        result.metadataProjection.Events.outer_mixed.eventsStoppedBy,
+        [ "nested_mixed", "outer_mixed" ],
+    );
+});
+
+test("omitted mixed-action Stops retain their fail-open relationship", () =>
+{
+    const result = CjsAudioLibraryBuilder.createSfxGraph({
+        inspections: [ {
+            source: "common.bnk",
+            bankVersion: 150,
+            hirc: [
+                {
+                    type: 2,
+                    id: 200,
+                    pluginId: 0x00040001,
+                    pluginType: 1,
+                    streamType: 0,
+                    sourceId: 9001,
+                    inMemoryMediaSize: 64,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 300,
+                    actionType: 0x0403,
+                    targetId: 200,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 301,
+                    actionType: 0x0103,
+                    targetId: 200,
+                    action: {
+                        actionMode: "element",
+                        actionScope: "game-object",
+                        targetId: 200,
+                        targetFlags: 0,
+                        exceptions: [],
+                    },
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 3,
+                    id: 302,
+                    actionType: 0x7700,
+                    targetId: 0,
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 100,
+                    actionIds: [ 301, 302 ],
+                    payload: new Uint8Array(),
+                },
+                {
+                    type: 4,
+                    id: 101,
+                    actionIds: [ 300 ],
+                    payload: new Uint8Array(),
+                },
+            ],
+        } ],
+        metadata: {
+            Events: {
+                mixed_stop: { eventID: 100 },
+                victim: { eventID: 101 },
+            },
+        },
+        media: {
+            "9001": { resPath: "res:/audio/9001.wem" },
+        },
+    });
+
+    assert.equal(result.programs.mixed_stop, undefined);
+    assert.deepEqual(result.diagnostics.omittedEvents, [ {
+        id: 100,
+        name: "mixed_stop",
+        reason: "mixed event actions 0x7700",
+    } ]);
+    assert.deepEqual(result.metadataProjection.Events.victim, {
+        eventsStoppedBy: [ "mixed_stop" ],
+    });
+});
+
 test("fixed-delay setters lower while scheduled Play-Event setters fail closed", () =>
 {
     const result = CjsAudioLibraryBuilder.createSfxGraph({

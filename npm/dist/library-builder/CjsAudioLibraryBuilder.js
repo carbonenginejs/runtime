@@ -1226,43 +1226,78 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession {
     }
   }
 }
-function LowerSfxGraph({
-  parsed,
-  effects,
-  buses,
-  eventNames,
-  musicNodeIds,
-  names,
-  media,
-  embeddedMedia
-}) {
-  const events = {};
-  const programs = {};
-  const leavesByEvent = new Map();
-  const stopTargetsByEvent = new Map();
-  const omittedEvents = [];
-  const approximatedEvents = [];
-  const ancestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(id => parsed.nodeBases?.get(id));
-  const nodeSession = new CjsAudioLibraryBuilderSfxNodeLoweringSession({
+
+/** Owns recursive SFX event lowering, publication, and diagnostics. */
+class CjsAudioLibraryBuilderSfxEventLoweringSession {
+  #activeEvents = new Set();
+  #approximatedEvents = [];
+  #buses = null;
+  #eventNames = null;
+  #events = {};
+  #leavesByEvent = new Map();
+  #loweredEvents = new Map();
+  #musicNodeIds = null;
+  #names = null;
+  #nodeSession = null;
+  #omittedEvents = [];
+  #parsed = null;
+  #programs = {};
+  #stopTargetsByEvent = new Map();
+
+  /** Creates one lowering session for a parsed Wwise SFX event graph. */
+  constructor({
     parsed,
-    effects,
     buses,
+    eventNames,
+    musicNodeIds,
     names,
-    media,
-    embeddedMedia,
-    ancestry
-  });
-  const loweredEvents = new Map();
-  const activeEvents = new Set();
-  const lowerEvent = rawID => {
-    const eventID = Number(rawID) >>> 0;
-    if (loweredEvents.has(eventID)) {
-      return loweredEvents.get(eventID);
+    nodeSession
+  }) {
+    this.#parsed = parsed;
+    this.#buses = buses;
+    this.#eventNames = eventNames;
+    this.#musicNodeIds = musicNodeIds;
+    this.#names = names;
+    this.#nodeSession = nodeSession;
+  }
+
+  /** Lowers and publishes every named event in deterministic ID order. */
+  LowerNamedEvents() {
+    for (const [eventID] of [...this.#parsed.events.entries()].sort(([left], [right]) => left - right)) {
+      const name = this.#eventNames.get(eventID >>> 0);
+      if (!name) {
+        continue;
+      }
+      try {
+        this.#PublishNamedEvent(eventID, name, this.#LowerEvent(eventID));
+      } catch (error) {
+        this.#omittedEvents.push({
+          id: eventID,
+          name,
+          reason: error.message
+        });
+      }
     }
-    if (activeEvents.has(eventID)) {
+    return {
+      events: this.#events,
+      programs: this.#programs,
+      leavesByEvent: this.#leavesByEvent,
+      stopTargetsByEvent: this.#stopTargetsByEvent,
+      omittedEvents: this.#omittedEvents,
+      approximatedEvents: this.#approximatedEvents
+    };
+  }
+
+  /** Lowers one event once, preserving authored action order. */
+  #LowerEvent(rawID) {
+    const eventID = Number(rawID) >>> 0;
+    if (this.#loweredEvents.has(eventID)) {
+      return this.#loweredEvents.get(eventID);
+    }
+    if (this.#activeEvents.has(eventID)) {
       throw new Error(`Play-Event cycle at event ${eventID}`);
     }
-    const event = parsed.events.get(eventID);
+    const event = this.#parsed.events.get(eventID);
     if (!event) {
       throw new Error(`missing Play-Event target ${eventID}`);
     }
@@ -1275,161 +1310,212 @@ function LowerSfxGraph({
       unsupportedActions: [],
       approximatedActions: []
     };
-    activeEvents.add(eventID);
+    this.#activeEvents.add(eventID);
     try {
-      for (const actionID of event.actionIds) {
-        const action = parsed.actions.get(actionID);
-        if (!action) {
-          throw new Error(`missing action ${actionID}`);
-        }
-        if (SFX_UNSUPPORTED_PLAY_ACTIONS.has(action.actionType)) {
-          throw new Error(`unsupported play action 0x${action.actionType.toString(16)}`);
-        }
-        if (action.actionType === SFX_PLAY_ACTION) {
-          if (musicNodeIds.has(Number(action.targetId) >>> 0)) {
-            continue;
-          }
-          if (IsBoundedCrossfadeLayerSiblingFallback(parsed, event, actionID, action)) {
-            result.approximatedActions.push({
-              actionId: Number(actionID) >>> 0,
-              targetId: Number(action.targetId) >>> 0
-            });
-            continue;
-          }
-          const projection = nodeSession.Lower(action.targetId);
-          const child = ReadSfxPlayActionChild({
-            nodeId: projection.nodeId
-          }, action, true);
-          result.roots.push(child);
-          result.program.push({
-            kind: "play",
-            child
-          });
-          AddSet(result.leaves, projection.leaves);
-        } else if (action.actionType === SFX_PLAY_EVENT_ACTION) {
-          const nested = lowerEvent(action.targetId);
-          const hasTiming = HasSfxPlayActionTiming(action, false);
-          if (hasTiming && nested.program.some(value => value.kind !== "play")) {
-            throw new Error(`scheduled Play-Event ${action.id} targets non-play actions`);
-          }
-          const actionChild = ReadSfxPlayActionChild(nested.roots.length ? nodeSession.AggregateRoots(nested.roots, hasTiming) : null, action, false);
-          if (actionChild) {
-            result.roots.push(actionChild);
-          }
-          if (hasTiming) {
-            if (actionChild) {
-              result.program.push({
-                kind: "play",
-                child: actionChild
-              });
-            }
-          } else {
-            result.program.push(...nested.program);
-          }
-          AddSet(result.leaves, nested.leaves);
-          AddSet(result.stopTargets, nested.stopTargets);
-          result.setters.push(...nested.setters);
-          result.unsupportedActions.push(...nested.unsupportedActions);
-          result.approximatedActions.push(...nested.approximatedActions);
-        } else if ([SFX_STOP_ACTION_FAMILY, SFX_PAUSE_ACTION_FAMILY, SFX_RESUME_ACTION_FAMILY].includes(action.actionType >> 8 & 0xff)) {
-          const family = action.actionType >> 8 & 0xff;
-          const kind = family === SFX_STOP_ACTION_FAMILY ? "stop" : family === SFX_PAUSE_ACTION_FAMILY ? "pause" : "resume";
-          const playbackControl = ReadSfxPlaybackControlAction(action, kind);
-          result.program.push(playbackControl);
-          if (kind === "stop" && playbackControl.mode === "element") {
-            result.stopTargets.add(Number(playbackControl.targetId) >>> 0);
-          }
-        } else if ((action.actionType >> 8 & 0xff) === SFX_SET_VOICE_PITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_VOICE_PITCH_ACTION_FAMILY) {
-          const voicePitch = ReadSfxVoicePitchAction(action, parsed);
-          if (voicePitch) {
-            result.program.push(voicePitch);
-          }
-        } else if ((action.actionType >> 8 & 0xff) === SFX_SET_VOICE_VOLUME_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY) {
-          const voiceVolume = ReadSfxVoiceVolumeAction(action, parsed, buses);
-          if (voiceVolume) {
-            result.program.push(voiceVolume);
-          }
-        } else if ((action.actionType >> 8 & 0xff) === SFX_SET_BUS_VOLUME_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_BUS_VOLUME_ACTION_FAMILY) {
-          result.program.push(ReadSfxBusVolumeAction(action));
-        } else if ([SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_SET_VOICE_HIGH_PASS_ACTION_FAMILY, SFX_RESET_VOICE_HIGH_PASS_ACTION_FAMILY].includes(action.actionType >> 8 & 0xff)) {
-          const voiceFilter = ReadSfxVoiceFilterAction(action, parsed);
-          if (voiceFilter) {
-            result.program.push(voiceFilter);
-          }
-        } else if ((action.actionType >> 8 & 0xff) === SFX_SET_GAME_PARAMETER_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_GAME_PARAMETER_ACTION_FAMILY) {
-          result.program.push(ReadSfxGameParameterAction(action, names));
-        } else if ((action.actionType >> 8 & 0xff) === SFX_SET_SWITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_SET_STATE_ACTION_FAMILY) {
-          const setter = ReadSfxSetterAction(action, names);
-          result.setters.push(setter);
-          result.program.push(setter);
-        } else {
-          result.unsupportedActions.push(action.actionType);
-        }
-      }
-      if (IsMusicEventName(eventNames.get(eventID))) {
-        if (result.program.some(value => value.kind === "set-bus-voice-volume")) {
-          throw new Error(`music Bus Voice Volume event ${eventID}`);
-        }
-        result.program = result.program.filter(value => value.kind === "set-bus-volume" || value.kind === "reset-bus-volume");
-        result.leaves.clear();
-        result.stopTargets.clear();
-        result.setters.length = 0;
-        result.unsupportedActions.length = 0;
-        result.approximatedActions.length = 0;
-      }
-      result.roots = result.program.filter(action => action.kind === "play").map(action => action.child);
-      loweredEvents.set(eventID, result);
+      this.#ApplyAuthoredActions(event, result);
+      this.#FinalizeEvent(eventID, result);
+      this.#loweredEvents.set(eventID, result);
       return result;
     } finally {
-      activeEvents.delete(eventID);
+      this.#activeEvents.delete(eventID);
     }
-  };
-  for (const [eventID, event] of [...parsed.events.entries()].sort(([left], [right]) => left - right)) {
-    const name = eventNames.get(eventID >>> 0);
-    if (!name) {
-      continue;
+  }
+
+  /** Applies every authored event action to one plain working result. */
+  #ApplyAuthoredActions(event, result) {
+    for (const actionID of event.actionIds) {
+      const action = this.#parsed.actions.get(actionID);
+      if (!action) {
+        throw new Error(`missing action ${actionID}`);
+      }
+      if (SFX_UNSUPPORTED_PLAY_ACTIONS.has(action.actionType)) {
+        throw new Error(`unsupported play action 0x${action.actionType.toString(16)}`);
+      }
+      if (action.actionType === SFX_PLAY_ACTION) {
+        this.#ApplyPlay(result, event, actionID, action);
+      } else if (action.actionType === SFX_PLAY_EVENT_ACTION) {
+        this.#ApplyPlayEvent(result, action);
+      } else if ([SFX_STOP_ACTION_FAMILY, SFX_PAUSE_ACTION_FAMILY, SFX_RESUME_ACTION_FAMILY].includes(action.actionType >> 8 & 0xff)) {
+        const family = action.actionType >> 8 & 0xff;
+        const kind = family === SFX_STOP_ACTION_FAMILY ? "stop" : family === SFX_PAUSE_ACTION_FAMILY ? "pause" : "resume";
+        const playbackControl = ReadSfxPlaybackControlAction(action, kind);
+        result.program.push(playbackControl);
+        if (kind === "stop" && playbackControl.mode === "element") {
+          result.stopTargets.add(Number(playbackControl.targetId) >>> 0);
+        }
+      } else if ((action.actionType >> 8 & 0xff) === SFX_SET_VOICE_PITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_VOICE_PITCH_ACTION_FAMILY) {
+        const voicePitch = ReadSfxVoicePitchAction(action, this.#parsed);
+        if (voicePitch) {
+          result.program.push(voicePitch);
+        }
+      } else if ((action.actionType >> 8 & 0xff) === SFX_SET_VOICE_VOLUME_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_VOICE_VOLUME_ACTION_FAMILY) {
+        const voiceVolume = ReadSfxVoiceVolumeAction(action, this.#parsed, this.#buses);
+        if (voiceVolume) {
+          result.program.push(voiceVolume);
+        }
+      } else if ((action.actionType >> 8 & 0xff) === SFX_SET_BUS_VOLUME_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_BUS_VOLUME_ACTION_FAMILY) {
+        result.program.push(ReadSfxBusVolumeAction(action));
+      } else if ([SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_SET_VOICE_HIGH_PASS_ACTION_FAMILY, SFX_RESET_VOICE_HIGH_PASS_ACTION_FAMILY].includes(action.actionType >> 8 & 0xff)) {
+        const voiceFilter = ReadSfxVoiceFilterAction(action, this.#parsed);
+        if (voiceFilter) {
+          result.program.push(voiceFilter);
+        }
+      } else if ((action.actionType >> 8 & 0xff) === SFX_SET_GAME_PARAMETER_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_RESET_GAME_PARAMETER_ACTION_FAMILY) {
+        result.program.push(ReadSfxGameParameterAction(action, this.#names));
+      } else if ((action.actionType >> 8 & 0xff) === SFX_SET_SWITCH_ACTION_FAMILY || (action.actionType >> 8 & 0xff) === SFX_SET_STATE_ACTION_FAMILY) {
+        const setter = ReadSfxSetterAction(action, this.#names);
+        result.setters.push(setter);
+        result.program.push(setter);
+      } else {
+        result.unsupportedActions.push(action.actionType);
+      }
     }
-    try {
-      const {
-        roots,
-        leaves,
-        stopTargets,
-        setters,
-        program,
-        unsupportedActions,
-        approximatedActions
-      } = lowerEvent(eventID);
-      if (stopTargets.size) {
-        stopTargetsByEvent.set(name, stopTargets);
+  }
+
+  /** Applies one ordinary Play action or its bounded omission fallback. */
+  #ApplyPlay(result, event, actionID, action) {
+    if (this.#musicNodeIds.has(Number(action.targetId) >>> 0)) {
+      return;
+    }
+    if (IsBoundedCrossfadeLayerSiblingFallback(this.#parsed, event, actionID, action)) {
+      result.approximatedActions.push({
+        actionId: Number(actionID) >>> 0,
+        targetId: Number(action.targetId) >>> 0
+      });
+      return;
+    }
+    const projection = this.#nodeSession.Lower(action.targetId);
+    const child = ReadSfxPlayActionChild({
+      nodeId: projection.nodeId
+    }, action, true);
+    result.roots.push(child);
+    result.program.push({
+      kind: "play",
+      child
+    });
+    AddSet(result.leaves, projection.leaves);
+  }
+
+  /** Applies one recursive Play-Event action and merges its plain result. */
+  #ApplyPlayEvent(result, action) {
+    const nested = this.#LowerEvent(action.targetId);
+    const hasTiming = HasSfxPlayActionTiming(action, false);
+    if (hasTiming && nested.program.some(value => value.kind !== "play")) {
+      throw new Error(`scheduled Play-Event ${action.id} targets non-play actions`);
+    }
+    const actionChild = ReadSfxPlayActionChild(nested.roots.length ? this.#nodeSession.AggregateRoots(nested.roots, hasTiming) : null, action, false);
+    if (actionChild) {
+      result.roots.push(actionChild);
+    }
+    if (hasTiming) {
+      if (actionChild) {
+        result.program.push({
+          kind: "play",
+          child: actionChild
+        });
       }
-      const retainedProgram = IsMusicEventName(name) ? program.filter(action => action.kind === "set-bus-volume" || action.kind === "reset-bus-volume") : program;
-      const retainedUnsupportedActions = IsMusicEventName(name) ? [] : unsupportedActions;
-      if (retainedProgram.length) {
-        if (retainedUnsupportedActions.length) {
-          throw new Error("mixed event actions " + retainedUnsupportedActions.map(value => `0x${value.toString(16)}`).join(", "));
-        }
-        if (roots.length && !IsMusicEventName(name)) {
-          events[name] = roots;
-          leavesByEvent.set(name, leaves);
-        }
-        programs[name] = retainedProgram;
-        if (approximatedActions.length) {
-          approximatedEvents.push({
-            id: eventID,
-            name,
-            reason: "retained independent Play actions while omitting an unsupported Crossfade-to-Layer action",
-            actions: approximatedActions
-          });
-        }
+    } else {
+      result.program.push(...nested.program);
+    }
+    AddSet(result.leaves, nested.leaves);
+    AddSet(result.stopTargets, nested.stopTargets);
+    result.setters.push(...nested.setters);
+    result.unsupportedActions.push(...nested.unsupportedActions);
+    result.approximatedActions.push(...nested.approximatedActions);
+  }
+
+  /** Applies music-event filtering and derives the final Play roots. */
+  #FinalizeEvent(eventID, result) {
+    if (IsMusicEventName(this.#eventNames.get(eventID))) {
+      if (result.program.some(value => value.kind === "set-bus-voice-volume")) {
+        throw new Error(`music Bus Voice Volume event ${eventID}`);
       }
-    } catch (error) {
-      omittedEvents.push({
+      result.program = result.program.filter(value => value.kind === "set-bus-volume" || value.kind === "reset-bus-volume");
+      result.leaves.clear();
+      result.stopTargets.clear();
+      result.setters.length = 0;
+      result.unsupportedActions.length = 0;
+      result.approximatedActions.length = 0;
+    }
+    result.roots = result.program.filter(action => action.kind === "play").map(action => action.child);
+  }
+
+  /** Publishes one successfully lowered named event and its diagnostics. */
+  #PublishNamedEvent(eventID, name, result) {
+    const {
+      roots,
+      leaves,
+      stopTargets,
+      program,
+      unsupportedActions,
+      approximatedActions
+    } = result;
+
+    // Preserve the existing fail-open Stop relationship side effect when
+    // later mixed-action validation rejects this named event.
+    if (stopTargets.size) {
+      this.#stopTargetsByEvent.set(name, stopTargets);
+    }
+    const music = IsMusicEventName(name);
+    const retainedProgram = music ? program.filter(action => action.kind === "set-bus-volume" || action.kind === "reset-bus-volume") : program;
+    const retainedUnsupportedActions = music ? [] : unsupportedActions;
+    if (!retainedProgram.length) {
+      return;
+    }
+    if (retainedUnsupportedActions.length) {
+      throw new Error("mixed event actions " + retainedUnsupportedActions.map(value => `0x${value.toString(16)}`).join(", "));
+    }
+    if (roots.length && !music) {
+      this.#events[name] = roots;
+      this.#leavesByEvent.set(name, leaves);
+    }
+    this.#programs[name] = retainedProgram;
+    if (approximatedActions.length) {
+      this.#approximatedEvents.push({
         id: eventID,
         name,
-        reason: error.message
+        reason: "retained independent Play actions while omitting an unsupported Crossfade-to-Layer action",
+        actions: approximatedActions
       });
     }
   }
+}
+function LowerSfxGraph({
+  parsed,
+  effects,
+  buses,
+  eventNames,
+  musicNodeIds,
+  names,
+  media,
+  embeddedMedia
+}) {
+  const ancestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(id => parsed.nodeBases?.get(id));
+  const nodeSession = new CjsAudioLibraryBuilderSfxNodeLoweringSession({
+    parsed,
+    effects,
+    buses,
+    names,
+    media,
+    embeddedMedia,
+    ancestry
+  });
+  const eventSession = new CjsAudioLibraryBuilderSfxEventLoweringSession({
+    parsed,
+    buses,
+    eventNames,
+    musicNodeIds,
+    names,
+    nodeSession
+  });
+  const {
+    events,
+    programs,
+    leavesByEvent,
+    stopTargetsByEvent,
+    omittedEvents,
+    approximatedEvents
+  } = eventSession.LowerNamedEvents();
   const nodes = nodeSession.GetPlainNodes();
   const spatial = CreateSfxSpatialProjection(parsed, leavesByEvent, nodes);
   const stopRelationships = CreateSfxStopRelationships(ancestry, leavesByEvent, stopTargetsByEvent);
