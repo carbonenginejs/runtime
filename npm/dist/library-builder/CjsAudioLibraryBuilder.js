@@ -419,54 +419,16 @@ class CjsAudioLibraryBuilder {
       throw new TypeError("Audio inspectBank must be a function");
     }
     requireMusicBanks(library, includeMusic);
-    const inspections = [];
-    const bankIdentities = {};
-    const embeddedMedia = {};
-    for (const [sourceID, bank] of Object.entries(library.banks)) {
-      throwIfAborted(signal);
-      let loaded;
-      try {
-        loaded = await loadBank(bank, {
-          sourceID,
-          signal
-        });
-      } catch (cause) {
-        throw new Error(`Unable to load audio bank ${sourceID}: ${bank.resPath}`, {
-          cause
-        });
-      }
-      throwIfAborted(signal);
-      const source = bankSourceName(bank.resPath);
-      const prepared = normalizeLoadedBank(loaded, sourceID);
-      const inspection = prepared.inspection ?? (await inspectBank(prepared.bytes, {
-        bank,
-        source,
-        sourceID,
-        signal
-      }));
-      const compact = compactBankInspection(inspection, source, bank);
-      const inspectedSourceID = `${compact.bankId}:${compact.languageId}`;
-      bankIdentities[bank.resPath.toLowerCase()] = {
-        bankID: compact.bankId,
-        languageID: compact.languageId
-      };
-      inspections.push(compact);
-      for (const record of compact.media) {
-        const id = String(record.id);
-        if (!record.available || library.media[id]) {
-          continue;
-        }
-        const mediaType = record.mediaType ?? (prepared.bytes ? this.mediaTypeFromMagic(prepared.bytes, record.absoluteOffset) : "unknown");
-        addSourceRecord(embeddedMedia, id, {
-          sourceID: `embedded:${id}:${inspectedSourceID}`,
-          bank: inspectedSourceID,
-          offset: record.absoluteOffset,
-          byteLength: record.length,
-          language: bank.language,
-          mediaType
-        });
-      }
-    }
+    const {
+      inspections,
+      bankIdentities,
+      embeddedMedia
+    } = await new CjsAudioLibraryBuilderBankInspectionSession({
+      builder: this,
+      loadBank,
+      inspectBank,
+      signal
+    }).Inspect(library);
     const graphInspections = SelectLanguageInspections(inspections, eventMediaLanguage);
     const busCatalog = includeSfx || includeMusic ? CreateTypedBusCatalog(graphInspections) : null;
     const busNames = busCatalog ? CreateSfxNameCatalog(options.soundbanksInfo, options.enrichment, graphInspections) : null;
@@ -678,6 +640,86 @@ function MarkBusGraphVolumeActionControls(busGraph, sfx) {
     ...busGraph,
     buses
   };
+}
+
+/** Owns ordered bank inspection and its coupled projections. */
+class CjsAudioLibraryBuilderBankInspectionSession {
+  #builder;
+  #loadBank;
+  #inspectBank;
+  #signal;
+  #inspections = [];
+  #bankIdentities = {};
+  #embeddedMedia = {};
+
+  /** Creates one ordered bank-inspection accumulator. */
+  constructor({
+    builder,
+    loadBank,
+    inspectBank,
+    signal
+  }) {
+    this.#builder = builder;
+    this.#loadBank = loadBank;
+    this.#inspectBank = inspectBank;
+    this.#signal = signal;
+  }
+
+  /** Inspects every indexed bank and returns its coupled projections. */
+  async Inspect(library) {
+    const loadBank = this.#loadBank;
+    const inspectBank = this.#inspectBank;
+    for (const [sourceID, bank] of Object.entries(library.banks)) {
+      throwIfAborted(this.#signal);
+      let loaded;
+      try {
+        loaded = await loadBank(bank, {
+          sourceID,
+          signal: this.#signal
+        });
+      } catch (cause) {
+        throw new Error(`Unable to load audio bank ${sourceID}: ${bank.resPath}`, {
+          cause
+        });
+      }
+      throwIfAborted(this.#signal);
+      const source = bankSourceName(bank.resPath);
+      const prepared = normalizeLoadedBank(loaded, sourceID);
+      const inspection = prepared.inspection ?? (await inspectBank(prepared.bytes, {
+        bank,
+        source,
+        sourceID,
+        signal: this.#signal
+      }));
+      const compact = compactBankInspection(inspection, source, bank);
+      const inspectedSourceID = `${compact.bankId}:${compact.languageId}`;
+      this.#bankIdentities[bank.resPath.toLowerCase()] = {
+        bankID: compact.bankId,
+        languageID: compact.languageId
+      };
+      this.#inspections.push(compact);
+      for (const record of compact.media) {
+        const id = String(record.id);
+        if (!record.available || library.media[id]) {
+          continue;
+        }
+        const mediaType = record.mediaType ?? (prepared.bytes ? this.#builder.mediaTypeFromMagic(prepared.bytes, record.absoluteOffset) : "unknown");
+        addSourceRecord(this.#embeddedMedia, id, {
+          sourceID: `embedded:${id}:${inspectedSourceID}`,
+          bank: inspectedSourceID,
+          offset: record.absoluteOffset,
+          byteLength: record.length,
+          language: bank.language,
+          mediaType
+        });
+      }
+    }
+    return {
+      inspections: this.#inspections,
+      bankIdentities: this.#bankIdentities,
+      embeddedMedia: this.#embeddedMedia
+    };
+  }
 }
 
 /** Traces and caches mechanical Wwise NodeBase parent ancestry. */

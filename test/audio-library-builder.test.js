@@ -35,6 +35,31 @@ const INDEX_TEXT = [
     "res:/graphics/example.red,cc/example,cccccccccccccccccccccccccccccccc,10",
 ].join("\n");
 
+function BankInspectionBuildOptions(overrides = {})
+{
+    return {
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "common.bnk": {
+                    name: "common",
+                    path: "\\SoundBanks\\SFX\\common.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [
+            {
+                logicalPath: "res:/audio/common.bnk",
+                storagePath: "banks/common.bnk",
+                byteLength: 4096,
+            },
+        ],
+        ...overrides,
+    };
+}
+
 test("optional library builder accepts supplied data and optional enrichment", () =>
 {
     const options = {
@@ -484,6 +509,115 @@ test("complete construction honors cancellation before reading a bank", async ()
         /cancelled/u,
     );
     assert.equal(called, false);
+});
+
+test("complete construction rechecks cancellation after an awaited bank load", async () =>
+{
+    const controller = new AbortController();
+    let inspected = false;
+
+    await assert.rejects(
+        CjsAudioLibraryBuilder.buildFromBanks(
+            BankInspectionBuildOptions({
+                signal: controller.signal,
+                loadBank()
+                {
+                    controller.abort(new Error("cancelled after load"));
+                    return new Uint8Array(4);
+                },
+                inspectBank()
+                {
+                    inspected = true;
+                    return null;
+                },
+            }),
+        ),
+        /cancelled after load/u,
+    );
+    assert.equal(inspected, false);
+});
+
+test("complete construction wraps loader failures but not inspector failures", async () =>
+{
+    const loaderFailure = new Error("loader failed");
+
+    await assert.rejects(
+        CjsAudioLibraryBuilder.buildFromBanks(
+            BankInspectionBuildOptions({
+                loadBank()
+                {
+                    assert.equal(this, undefined);
+                    throw loaderFailure;
+                },
+            }),
+        ),
+        error =>
+        {
+            assert.match(error.message, /Unable to load audio bank 200:0/u);
+            assert.equal(error.cause, loaderFailure);
+            return true;
+        },
+    );
+
+    const inspectorFailure = new Error("inspector failed");
+
+    await assert.rejects(
+        CjsAudioLibraryBuilder.buildFromBanks(
+            BankInspectionBuildOptions({
+                loadBank: () => new Uint8Array(4),
+                inspectBank()
+                {
+                    assert.equal(this, undefined);
+                    throw inspectorFailure;
+                },
+            }),
+        ),
+        error => error === inspectorFailure,
+    );
+});
+
+test("supplied bank inspections bypass the inspector and retain builder overrides", async () =>
+{
+    let inspected = false;
+    let classified = 0;
+
+    class CustomAudioLibraryBuilder extends CjsAudioLibraryBuilder
+    {
+        /** Supplies the caller-specific embedded-media classifier. */
+        static mediaTypeFromMagic()
+        {
+            classified++;
+            return "plugin";
+        }
+    }
+
+    const library = await CustomAudioLibraryBuilder.buildFromBanks(
+        BankInspectionBuildOptions({
+            loadBank: () => ({
+                bytes: new Uint8Array(8),
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    hirc: [],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 0,
+                        length: 4,
+                    } ],
+                },
+            }),
+            inspectBank()
+            {
+                inspected = true;
+                throw new Error("supplied inspection must win");
+            },
+        }),
+    );
+
+    assert.equal(inspected, false);
+    assert.equal(classified, 1);
+    assert.equal(library.embeddedMedia["9001"].mediaType, "plugin");
 });
 
 test("music:true is deferred until inspected banks are available", async () =>

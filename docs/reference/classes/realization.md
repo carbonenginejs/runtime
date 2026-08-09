@@ -105,6 +105,16 @@ Builds a deterministic schema-v2 audio-library document from caller-supplied val
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsAudioLibraryBuilderBankInspectionSession -->
+## `CjsAudioLibraryBuilderBankInspectionSession`
+
+Owns ordered bank inspection and its identity and embedded-media projections.
+
+- Export: None
+- Source: `src/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioLibraryBuilderBusGraphConstructionSession -->
 ## `CjsAudioLibraryBuilderBusGraphConstructionSession`
 
