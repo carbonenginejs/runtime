@@ -6,6 +6,7 @@ import {
     indexBusEffectCatalog,
     normalizeStaticSourceEffectChain,
     normalizeWwiseDynamicsMode,
+    normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
     parseGraphFeedbackFreeMeter,
@@ -13,6 +14,7 @@ import {
     parseGraphStaticWwiseCompressor,
     parseGraphStaticParametricEq,
     parseGraphStaticWwiseDelay,
+    parseGraphStaticWwiseFlanger,
     parseGraphStaticWwisePeakLimiter,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
@@ -53,6 +55,7 @@ function Context()
         compressors: [],
         filters: [],
         gains: [],
+        oscillators: [],
         createDelay(maxDelayTime)
         {
             const node = Node({
@@ -89,6 +92,19 @@ function Context()
         {
             const node = Node({ gain: { value: 1 } });
             context.gains.push(node);
+            return node;
+        },
+        createOscillator()
+        {
+            const node = Node({
+                type: "",
+                frequency: { value: 0 },
+                starts: [],
+                stops: [],
+                start(at) { node.starts.push(at); },
+                stop(at) { node.stops.push(at); },
+            });
+            context.oscillators.push(node);
             return node;
         },
     };
@@ -281,6 +297,57 @@ function GraphCompressor(bytes = CompressorBytes())
     const effect = GraphEffect(bytes);
 
     effect.pluginId = 0x006c0003;
+    return effect;
+}
+
+function FlangerBytes({
+    delayTimeMs = 12.3,
+    blend = 1,
+    feedforward = 1,
+    feedback = 0.5,
+    modulationDepthPercent = 33.2,
+    modulationFrequencyHz = 0.42,
+    waveform = 0,
+    smoothingPercent = 52,
+    pwmPercent = 50,
+    phaseOffsetDegrees = 0,
+    phaseMode = 0,
+    phaseSpreadDegrees = 0,
+    outputGainDb = 0,
+    wetDryMixPercent = 100,
+    lfoEnabled = 1,
+    processCenter = 0,
+    processLfe = 0,
+} = {})
+{
+    const bytes = new Uint8Array(59);
+    const view = new DataView(bytes.buffer);
+
+    view.setFloat32(0, delayTimeMs, true);
+    view.setFloat32(4, blend, true);
+    view.setFloat32(8, feedforward, true);
+    view.setFloat32(12, feedback, true);
+    view.setFloat32(16, modulationDepthPercent, true);
+    view.setFloat32(20, modulationFrequencyHz, true);
+    view.setUint32(24, waveform, true);
+    view.setFloat32(28, smoothingPercent, true);
+    view.setFloat32(32, pwmPercent, true);
+    view.setFloat32(36, phaseOffsetDegrees, true);
+    view.setUint32(40, phaseMode, true);
+    view.setFloat32(44, phaseSpreadDegrees, true);
+    view.setFloat32(48, outputGainDb, true);
+    view.setFloat32(52, wetDryMixPercent, true);
+    view.setUint8(56, lfoEnabled);
+    view.setUint8(57, processCenter);
+    view.setUint8(58, processLfe);
+    return bytes;
+}
+
+function GraphFlanger(bytes = FlangerBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.pluginId = 0x007d0003;
     return effect;
 }
 
@@ -685,6 +752,123 @@ test("normalizes source Peak Limiters and reuses the opt-in dynamics stage", () 
     );
     assert.equal(unavailable.compressors.length, 0);
     assert.equal(unavailable.filters.length, 0);
+});
+
+test("decodes and realizes only the opted-in static Wwise Flanger subset", () =>
+{
+    const decoded = parseGraphStaticWwiseFlanger(
+        GraphFlanger(),
+        "2906410516",
+        0,
+    );
+    const normalized = normalizeStaticSourceEffectChain(
+        [ decoded ],
+        "Audio source",
+    );
+
+    assert.deepEqual(decoded, {
+        effectId: "2906410516",
+        slotIndex: 0,
+        type: "flanger",
+        delayTimeSeconds: Math.fround(12.3) / 1000,
+        blend: 1,
+        feedforward: 1,
+        feedback: 0.5,
+        modulationDepthPercent: Math.fround(33.2),
+        modulationFrequencyHz: Math.fround(0.42),
+        outputGainDb: 0,
+        wetDryMixPercent: 100,
+        lfoEnabled: true,
+        processCenter: false,
+        processLfe: false,
+    });
+    assert.equal(createWwiseEffectChain(Context(), normalized), null);
+    const context = Context();
+    const chain = createWwiseEffectChain(context, normalized, {
+        wwiseModulation: "approximate-web-audio",
+    });
+    const [ input, dry, blend, feedforward, feedback, wet, output, depth ] =
+        context.gains;
+    const [ delay ] = context.delays;
+    const [ oscillator ] = context.oscillators;
+    const delayRange = decoded.delayTimeSeconds
+        * decoded.modulationDepthPercent / 100;
+
+    assert.equal(chain.input, input);
+    assert.equal(chain.output, output);
+    assert.equal(delay.delayTime.value, decoded.delayTimeSeconds);
+    assert.equal(delay.maxDelayTime, decoded.delayTimeSeconds + delayRange);
+    assert.equal(dry.gain.value, 0);
+    assert.equal(blend.gain.value, 1);
+    assert.equal(feedforward.gain.value, 1);
+    assert.equal(feedback.gain.value, 0.5);
+    assert.equal(wet.gain.value, 1);
+    assert.equal(output.gain.value, 1);
+    assert.equal(oscillator.type, "sine");
+    assert.equal(oscillator.frequency.value, decoded.modulationFrequencyHz);
+    assert.equal(depth.gain.value, delayRange);
+    assert.deepEqual(input.connections, [ dry, blend, delay ]);
+    assert.deepEqual(delay.connections, [ feedforward, feedback ]);
+    assert.equal(depth.connectedTo, delay.delayTime);
+
+    const unavailable = Context();
+
+    delete unavailable.createOscillator;
+    assert.equal(createWwiseEffectChain(unavailable, normalized, {
+        wwiseModulation: "approximate-web-audio",
+    }), null);
+    assert.equal(unavailable.gains.length, 0);
+    assert.equal(unavailable.delays.length, 0);
+});
+
+test("validates Flanger policy, exact shape, and fixed-delay LFO omission", () =>
+{
+    assert.equal(normalizeWwiseModulationMode(), "strict");
+    assert.equal(
+        normalizeWwiseModulationMode("approximate-web-audio"),
+        "approximate-web-audio",
+    );
+    assert.throws(
+        () => normalizeWwiseModulationMode("web-audio"),
+        /Unsupported Wwise modulation realization mode/u,
+    );
+    for (const parameters of [
+        { delayTimeMs: 0.1 },
+        { blend: 1.1 },
+        { feedforward: -1.1 },
+        { feedback: 1.1 },
+        { modulationDepthPercent: 101 },
+        { modulationFrequencyHz: 0.01 },
+        { waveform: 1 },
+        { smoothingPercent: 101 },
+        { pwmPercent: -1 },
+        { phaseOffsetDegrees: 1 },
+        { phaseMode: 1 },
+        { phaseSpreadDegrees: 1 },
+        { outputGainDb: 25 },
+        { wetDryMixPercent: 101 },
+        { lfoEnabled: 2 },
+        { processCenter: 2 },
+        { processLfe: 2 },
+    ])
+    {
+        assert.throws(() => parseGraphStaticWwiseFlanger(
+            GraphFlanger(FlangerBytes(parameters)),
+            "900",
+            0,
+        ));
+    }
+
+    const fixed = parseGraphStaticWwiseFlanger(GraphFlanger(FlangerBytes({
+        lfoEnabled: 0,
+    })), "290827855", 0);
+    const context = Context();
+
+    delete context.createOscillator;
+    assert.ok(createWwiseEffectChain(context, [ fixed ], {
+        wwiseModulation: "approximate-web-audio",
+    }));
+    assert.equal(context.oscillators.length, 0);
 });
 
 test("rejects dynamic, malformed, or independently routed Wwise Delays", () =>

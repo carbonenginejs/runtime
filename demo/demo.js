@@ -3124,6 +3124,7 @@ class BusGraphLabUi
                 runtime: this.#runtime,
                 destination,
                 wwiseDynamics: "approximate-web-audio",
+                wwiseModulation: "approximate-web-audio",
                 wwiseMeterFeedback: "omit-telemetry",
                 wwiseVoiceLimits: "ignore",
             });
@@ -3515,6 +3516,7 @@ class BusGraphLabUi
             getGlobalStateTransitionBoundaries: from =>
                 backend?.GetGlobalStateTransitionBoundaries(from) ?? [],
             wwiseDynamics: "approximate-web-audio",
+            wwiseModulation: "approximate-web-audio",
             wwiseMeterFeedback: "omit-telemetry",
             wwiseVoiceLimits: "ignore",
         });
@@ -4432,6 +4434,7 @@ class DemoApp
             this.audio = new CjsAudioMan(this.library.raw, {
                 distanceScale: ACOUSTIC_SCALE,
                 wwiseDynamics: "approximate-web-audio",
+                wwiseModulation: "approximate-web-audio",
                 wwiseMeterFeedback: "omit-telemetry",
                 wwiseVoiceLimits: "ignore",
                 createContext: () => this.media.CreateContext(),

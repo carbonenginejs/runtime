@@ -1724,20 +1724,38 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                         { x: 100, value: -1, interpolation: 8 },
                     ],
                 },
-                sourceEffects: [ {
-                    effectId: "900",
-                    slotIndex: 1,
-                    type: "parametric-eq",
-                    bands: [ {
-                        index: 0,
-                        filterType: "notch",
-                        gainDb: -24,
-                        frequencyHz: 240,
-                        q: 8,
-                    } ],
-                    outputGainDb: 0,
-                    processLfe: true,
-                } ],
+                sourceEffects: [
+                    {
+                        effectId: "900",
+                        slotIndex: 1,
+                        type: "parametric-eq",
+                        bands: [ {
+                            index: 0,
+                            filterType: "notch",
+                            gainDb: -24,
+                            frequencyHz: 240,
+                            q: 8,
+                        } ],
+                        outputGainDb: 0,
+                        processLfe: true,
+                    },
+                    {
+                        effectId: "901",
+                        slotIndex: 2,
+                        type: "flanger",
+                        delayTimeSeconds: 0.0123,
+                        blend: 1,
+                        feedforward: 1,
+                        feedback: 0.5,
+                        modulationDepthPercent: 33.2,
+                        modulationFrequencyHz: 0.42,
+                        outputGainDb: 0,
+                        wetDryMixPercent: 100,
+                        lfoEnabled: true,
+                        processCenter: false,
+                        processLfe: false,
+                    },
+                ],
                 rtpcCurves: [
                     {
                         rtpc: "speed",
@@ -1784,6 +1802,15 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.throws(
         () => validateAudioLibraryDocument(malformedSourceEffects),
         /processLfe must be true/u,
+    );
+
+    const malformedFlanger = structuredClone(valid);
+
+    malformedFlanger.sfx.nodes["2"].sourceEffects[1]
+        .modulationFrequencyHz = 0;
+    assert.throws(
+        () => validateAudioLibraryDocument(malformedFlanger),
+        /modulationFrequencyHz/u,
     );
 
     const legacySfx = structuredClone(valid);

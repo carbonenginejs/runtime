@@ -9,7 +9,7 @@ import { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
 import { CjsBusDuckingController } from './internal/busDucking.js';
 import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
 import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
-import { normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
+import { normalizeWwiseDynamicsMode, normalizeWwiseModulationMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -68,6 +68,7 @@ class CjsAudioSystem {
   #busMixer = null;
   #providedUpdateContext = null;
   #wwiseDynamics = "strict";
+  #wwiseModulation = "strict";
   #wwiseMeterFeedback = "strict";
   #wwiseVoiceLimits = "strict";
   #adoptedEmitters = new Set();
@@ -98,6 +99,7 @@ class CjsAudioSystem {
     busEffects,
     busGraph,
     wwiseDynamics = "strict",
+    wwiseModulation = "strict",
     wwiseMeterFeedback = "strict",
     wwiseVoiceLimits = "strict"
   } = {}) {
@@ -122,6 +124,7 @@ class CjsAudioSystem {
     this.#busEffects = busEffects ?? null;
     this.#busGraph = busGraph ?? null;
     this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+    this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
     this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(wwiseVoiceLimits);
     this.#providedUpdateContext = updateContext ?? null;
@@ -179,6 +182,7 @@ class CjsAudioSystem {
           busDuckingController: this.#busDuckingController,
           busEffects: this.#busEffects,
           wwiseDynamics: this.#wwiseDynamics,
+          wwiseModulation: this.#wwiseModulation,
           busGraphRuntime: this.#busGraphRuntime
         });
         const globalControlReaders = this.#CreateGlobalControlReaders();

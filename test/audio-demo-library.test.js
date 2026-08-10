@@ -1092,12 +1092,147 @@ test("committed demo library carries authored SFX and music semantics", () =>
         node.sourceEffects.some(effect => effect.type === "compressor"));
     const sourcePeakLimiterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "peak-limiter"));
+    const sourceFlangerSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect => effect.type === "flanger"));
 
-    assert.equal(sourceEffectSounds.length, 2423);
+    assert.equal(sourceEffectSounds.length, 2432);
     assert.equal(sourceEqSounds.length, 246);
     assert.equal(sourceDelaySounds.length, 79);
     assert.equal(sourceCompressorSounds.length, 2033);
     assert.equal(sourcePeakLimiterSounds.length, 73);
+    assert.equal(sourceFlangerSounds.length, 9);
+    assert.deepEqual(
+        Object.entries(graph.nodes)
+            .filter(([, node]) => sourceFlangerSounds.includes(node))
+            .map(([ id, node ]) => [
+                id,
+                node.mediaId,
+                node.sourceEffects.find(effect =>
+                    effect.type === "flanger").effectId,
+            ])
+            .sort((left, right) => Number(left[0]) - Number(right[0])),
+        [
+            [ "87619569", "632408785", "2906410516" ],
+            [ "206604303", "689827705", "2906410516" ],
+            [ "334487613", "170814237", "2906410516" ],
+            [ "639168720", "287274205", "2906410516" ],
+            [ "673321208", "661144132", "290827855" ],
+            [ "806298936", "689827705", "2906410516" ],
+            [ "829586991", "170814237", "2906410516" ],
+            [ "872272200", "632408785", "2906410516" ],
+            [ "908140579", "287274205", "2906410516" ],
+        ],
+    );
+    assert.deepEqual(
+        graph.nodes["334487613"].sourceEffects[0],
+        {
+            effectId: "2906410516",
+            slotIndex: 0,
+            type: "flanger",
+            delayTimeSeconds: Math.fround(12.3) / 1000,
+            blend: 1,
+            feedforward: 1,
+            feedback: 0.5,
+            modulationDepthPercent: Math.fround(33.2),
+            modulationFrequencyHz: Math.fround(0.42),
+            outputGainDb: 0,
+            wetDryMixPercent: 100,
+            lfoEnabled: true,
+            processCenter: false,
+            processLfe: false,
+        },
+    );
+    assert.deepEqual(
+        graph.nodes["673321208"].sourceEffects[0],
+        {
+            effectId: "290827855",
+            slotIndex: 0,
+            type: "flanger",
+            delayTimeSeconds: Math.fround(81.1) / 1000,
+            blend: Math.fround(0.57),
+            feedforward: 1,
+            feedback: Math.fround(0.1),
+            modulationDepthPercent: Math.fround(8.4),
+            modulationFrequencyHz: Math.fround(1.68),
+            outputGainDb: 0,
+            wetDryMixPercent: 55,
+            lfoEnabled: false,
+            processCenter: false,
+            processLfe: false,
+        },
+    );
+    const flangerSoundIds = new Set(Object.entries(graph.nodes)
+        .filter(([, node]) => sourceFlangerSounds.includes(node))
+        .map(([ id ]) => id));
+    const flangerEvents = Object.entries(graph.events)
+        .filter(([, roots ]) =>
+        {
+            const pending = roots.map(root => String(root.nodeId));
+            const visited = new Set();
+
+            while (pending.length)
+            {
+                const id = pending.pop();
+
+                if (visited.has(id)) continue;
+                visited.add(id);
+                if (flangerSoundIds.has(id)) return true;
+                const node = graph.nodes[id];
+
+                if (!node) continue;
+                pending.push(...(node.children ?? []).map(child =>
+                    String(child.nodeId)));
+                pending.push(...Object.values(node.cases ?? {}).map(child =>
+                    String(child.nodeId)));
+                if (node.default) pending.push(String(node.default.nodeId));
+            }
+            return false;
+        })
+        .map(([ name ]) => name)
+        .sort();
+
+    assert.deepEqual(flangerEvents, [
+        "dungeon_brothel_atmo_play",
+        "ecx_generic_explosive_individual_01c_play",
+        "ecx_generic_explosive_long_individual_01c_play",
+        "ecx_generic_lco_explosive_individual_01c_play",
+        "worldobject_jumpgate_activity_play",
+    ]);
+    assert.deepEqual(
+        [
+            [ "292533695", "487219032" ],
+            [ "293792304", "46253731" ],
+            [ "298447693", "487219032" ],
+            [ "304815500", "357773066" ],
+            [ "337117908", "357773066" ],
+            [ "494971020", "46253731" ],
+            [ "531596895", "487219032" ],
+            [ "656720365", "357773066" ],
+            [ "721771466", "487219032" ],
+            [ "797614024", "357773066" ],
+            [ "874311158", "46253731" ],
+            [ "914319909", "46253731" ],
+        ].map(([ id ]) => [
+            id,
+            graph.nodes[id]?.mediaId,
+            graph.nodes[id]?.sourceEffects,
+        ]),
+        [
+            [ "292533695", "487219032", undefined ],
+            [ "293792304", "46253731", undefined ],
+            [ "298447693", "487219032", undefined ],
+            [ "304815500", "357773066", undefined ],
+            [ "337117908", "357773066", undefined ],
+            [ "494971020", "46253731", undefined ],
+            [ "531596895", "487219032", undefined ],
+            [ "656720365", "357773066", undefined ],
+            [ "721771466", "487219032", undefined ],
+            [ "797614024", "357773066", undefined ],
+            [ "874311158", "46253731", undefined ],
+            [ "914319909", "46253731", undefined ],
+        ],
+        "static Flanger plus dynamic EQ stays atomically dry",
+    );
     assert.equal(
         sourceEqSounds.filter(node => node.sourceEffects.some(effect =>
             effect.type === "parametric-eq"

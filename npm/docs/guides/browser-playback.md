@@ -65,6 +65,7 @@ const audio = new CjsAudioMan(document, {
     defaultSoundBanks: [ "ui.bnk" ],
     // Optional documented approximation; the default is "strict".
     wwiseDynamics: "approximate-web-audio",
+    wwiseModulation: "approximate-web-audio",
     // Optional omission policies; both defaults are "strict".
     wwiseMeterFeedback: "omit-telemetry",
     wwiseVoiceLimits: "ignore",

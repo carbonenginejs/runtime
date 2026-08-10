@@ -40,6 +40,7 @@ import {
     indexBusEffectCatalog,
     normalizeStaticSourceEffectChain,
     normalizeWwiseDynamicsMode,
+    normalizeWwiseModulationMode,
 } from "./internal/busEffects.js";
 import {
     CjsAudioBackendSfxProgramSlot,
@@ -127,6 +128,8 @@ export class CjsAudioBackend
 
     #wwiseDynamics = "strict";
 
+    #wwiseModulation = "strict";
+
     #busGraphRuntime = null;
 
     #busMixer = null;
@@ -167,6 +170,7 @@ export class CjsAudioBackend
         busDuckingController,
         busEffects,
         wwiseDynamics = "strict",
+        wwiseModulation = "strict",
         busGraphRuntime,
         busMixer,
     } = {})
@@ -199,6 +203,9 @@ export class CjsAudioBackend
         this.#busDuckingController = busDuckingController ?? null;
         this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
         this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this.#wwiseModulation = normalizeWwiseModulationMode(
+            wwiseModulation,
+        );
         this.#busGraphRuntime = busGraphRuntime ?? null;
         this.#busMixer = busMixer ?? null;
         this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
@@ -4662,7 +4669,10 @@ export class CjsAudioBackend
         const sourceEffectChain = createWwiseEffectChain(
             this.#context,
             descriptor.sourceEffects ?? [],
-            { wwiseDynamics: this.#wwiseDynamics },
+            {
+                wwiseDynamics: this.#wwiseDynamics,
+                wwiseModulation: this.#wwiseModulation,
+            },
         );
 
         if (lowPassFilter)
@@ -5127,6 +5137,7 @@ export class CjsAudioBackend
         voice.sourceStarted = false;
         voice.cancelledBeforeStart = false;
         source.start(startContextTime, voice.offsetSeconds);
+        voice.StartSourceEffects(startContextTime);
         voice.sourceStarted = true;
         if (finiteRepeats)
         {
@@ -5162,7 +5173,7 @@ export class CjsAudioBackend
             voice.cancelledBeforeStart === true,
         );
         voice.ended = true;
-        voice.source?.disconnect?.();
+        voice.DisconnectNodes();
         this.#voiceLimitLedger.Release(
             record,
             voice.voiceLimitReservationId,

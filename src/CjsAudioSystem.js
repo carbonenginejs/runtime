@@ -19,6 +19,7 @@ import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "./internal/busGraphMixer.js";
 import {
     normalizeWwiseDynamicsMode,
+    normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
 } from "./internal/busEffects.js";
@@ -108,6 +109,8 @@ export class CjsAudioSystem
 
     #wwiseDynamics = "strict";
 
+    #wwiseModulation = "strict";
+
     #wwiseMeterFeedback = "strict";
 
     #wwiseVoiceLimits = "strict";
@@ -141,6 +144,7 @@ export class CjsAudioSystem
         busEffects,
         busGraph,
         wwiseDynamics = "strict",
+        wwiseModulation = "strict",
         wwiseMeterFeedback = "strict",
         wwiseVoiceLimits = "strict",
     } = {})
@@ -180,6 +184,9 @@ export class CjsAudioSystem
         this.#busEffects = busEffects ?? null;
         this.#busGraph = busGraph ?? null;
         this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this.#wwiseModulation = normalizeWwiseModulationMode(
+            wwiseModulation,
+        );
         this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
             wwiseMeterFeedback,
         );
@@ -252,6 +259,7 @@ export class CjsAudioSystem
                     busDuckingController: this.#busDuckingController,
                     busEffects: this.#busEffects,
                     wwiseDynamics: this.#wwiseDynamics,
+                    wwiseModulation: this.#wwiseModulation,
                     busGraphRuntime: this.#busGraphRuntime,
                 });
                 const globalControlReaders =

@@ -14,9 +14,11 @@ import {
     WWISE_DELAY_PLUGIN_ID,
     WWISE_COMPRESSOR_PLUGIN_ID,
     WWISE_PEAK_LIMITER_PLUGIN_ID,
+    WWISE_FLANGER_PLUGIN_ID,
     parseGraphSharedBusEffect,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
+    parseStaticWwiseFlangerBytes,
 } from "../internal/busEffects.js";
 
 const MUSIC_BANK_NAMES = Object.freeze([ "music.bnk", "music_essential.bnk" ]);
@@ -5174,6 +5176,25 @@ function ParseStaticWwisePeakLimiter(ownerLabel, slot, effect)
     return { ...approximation, type: "peak-limiter" };
 }
 
+function ParseStaticWwiseFlanger(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise Flanger ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    return parseStaticWwiseFlangerBytes(effect.parameterBlock, {
+        effectId: effect.id,
+        slotIndex: slot.index,
+        label: `Wwise Flanger ${effect.id} on ${ownerLabel}`,
+    });
+}
+
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
  * Sound's source ID references a CAkFxCustom object; its empty inline source
@@ -5316,6 +5337,14 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
             else if (effect.pluginId === WWISE_PEAK_LIMITER_PLUGIN_ID)
             {
                 chain.push(ParseStaticWwisePeakLimiter(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_FLANGER_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwiseFlanger(
                     `NodeBase ${ownerId} inherited by Sound ${soundId}`,
                     slot,
                     effect,

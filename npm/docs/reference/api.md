@@ -177,6 +177,20 @@ Any other value throws synchronously. `CjsAudioSystem` accepts the same option
 for lower-level composition. The mode is host runtime policy and is not stored
 in the portable audio-library document.
 
+Constructor option `wwiseModulation` independently controls qualified
+source-local Wwise Flanger records:
+
+- `"strict"` (default) omits the complete source chain and keeps the voice
+  audible/dry.
+- `"approximate-web-audio"` realizes the documented static sine/zero-phase
+  subset with voice-owned Gain, Delay, and optional Oscillator nodes. Missing
+  required primitives keep the complete chain dry.
+
+The portable record retains authored Flanger parameters and channel flags;
+the browser graph is an all-channel comb-filter approximation, not Wwise DSP.
+Any other value throws synchronously, and `CjsAudioSystem` accepts the same
+option.
+
 Two further host policies control shared-route admission through explicit
 omissions:
 
@@ -190,7 +204,7 @@ omissions:
   does not enforce its changing voice-count limit or eviction behavior. The
   default is `"strict"`.
 
-These policies are independent of `wwiseDynamics`, are validated
+These policies are independent of `wwiseDynamics` and `wwiseModulation`, are validated
 synchronously, and are passed through by both `CjsAudioMan` and
 `CjsAudioSystem`.
 

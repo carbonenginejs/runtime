@@ -6387,6 +6387,116 @@ test("SFX construction retains a qualified static Wwise Peak Limiter override", 
     } ]);
 });
 
+test("SFX construction retains only complete static Wwise Flanger overrides", async () =>
+{
+    const Build = propertyValues => CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                explosive_play: {
+                    eventID: 100,
+                    soundbanks: [ "effects.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "effects.bnk": {
+                    name: "effects",
+                    path: "\\SoundBanks\\effects.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/effects.bnk",
+            storagePath: "banks/effects.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 2906410516,
+                                    flags: 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 16,
+                            id: 2906410516,
+                            payload: wwiseFlangerEffectPayload({
+                                propertyValues,
+                            }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const library = await Build([]);
+
+    assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "2906410516",
+        slotIndex: 0,
+        type: "flanger",
+        delayTimeSeconds: Math.fround(12.3) / 1000,
+        blend: 1,
+        feedforward: 1,
+        feedback: 0.5,
+        modulationDepthPercent: Math.fround(33.2),
+        modulationFrequencyHz: Math.fround(0.42),
+        outputGainDb: 0,
+        wetDryMixPercent: 100,
+        lfoEnabled: true,
+        processCenter: false,
+        processLfe: false,
+    } ]);
+
+    const dynamic = await Build([ { propertyId: 1, value: 2 } ]);
+
+    assert.equal(
+        dynamic.sfx.nodes["300"].sourceEffects,
+        undefined,
+        "a dynamic Flanger keeps the complete override on dry fallback",
+    );
+});
+
 test("complete construction projects routed static Wwise Parametric EQ", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -10370,6 +10480,66 @@ function wwisePeakLimiterEffectPayload({
         .u8(0)
         .u16(0)
         .bytes();
+}
+
+function wwiseFlangerEffectPayload({
+    delayTimeMs = 12.3,
+    blend = 1,
+    feedforward = 1,
+    feedback = 0.5,
+    modulationDepthPercent = 33.2,
+    modulationFrequencyHz = 0.42,
+    waveform = 0,
+    smoothingPercent = 52,
+    pwmPercent = 50,
+    phaseOffsetDegrees = 0,
+    phaseMode = 0,
+    phaseSpreadDegrees = 0,
+    outputGainDb = 0,
+    wetDryMixPercent = 100,
+    lfoEnabled = true,
+    processCenter = false,
+    processLfe = false,
+    propertyValues = [],
+} = {})
+{
+    const parameterBlock = new TestWriter()
+        .f32(delayTimeMs)
+        .f32(blend)
+        .f32(feedforward)
+        .f32(feedback)
+        .f32(modulationDepthPercent)
+        .f32(modulationFrequencyHz)
+        .u32(waveform)
+        .f32(smoothingPercent)
+        .f32(pwmPercent)
+        .f32(phaseOffsetDegrees)
+        .u32(phaseMode)
+        .f32(phaseSpreadDegrees)
+        .f32(outputGainDb)
+        .f32(wetDryMixPercent)
+        .u8(lfoEnabled ? 1 : 0)
+        .u8(processCenter ? 1 : 0)
+        .u8(processLfe ? 1 : 0)
+        .bytes();
+    const writer = new TestWriter()
+        .u32(0x007d0003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(propertyValues.length);
+
+    for (const property of propertyValues)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation ?? 0)
+            .f32(property.value);
+    }
+    return writer.bytes();
 }
 
 function BuildRoutedEffectLibrary({

@@ -2,8 +2,10 @@ const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
 const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
 const WWISE_COMPRESSOR_PLUGIN_ID = 0x006c0003;
 const WWISE_PEAK_LIMITER_PLUGIN_ID = 0x006e0003;
+const WWISE_FLANGER_PLUGIN_ID = 0x007d0003;
 const WWISE_METER_PLUGIN_ID = 0x00810003;
 const WWISE_DYNAMICS_MODES = new Set(["strict", "approximate-web-audio"]);
+const WWISE_MODULATION_MODES = new Set(["strict", "approximate-web-audio"]);
 const WWISE_METER_FEEDBACK_MODES = new Set(["strict", "omit-telemetry"]);
 const WWISE_VOICE_LIMIT_MODES = new Set(["strict", "ignore"]);
 const FILTER_TYPE_NAMES = Object.freeze(["lowpass", "highpass", "bandpass", "notch", "lowshelf", "highshelf", "peaking"]);
@@ -31,6 +33,14 @@ const PEAK_LIMITER_RELEASE_MIN = 0.001;
 const PEAK_LIMITER_RELEASE_MAX = 5;
 const DYNAMICS_OUTPUT_GAIN_MIN = -24;
 const DYNAMICS_OUTPUT_GAIN_MAX = 24;
+const FLANGER_DELAY_SECONDS_MIN = 0.0002;
+const FLANGER_DELAY_SECONDS_MAX = 0.1;
+const FLANGER_LEVEL_MIN = -1;
+const FLANGER_LEVEL_MAX = 1;
+const FLANGER_PERCENT_MIN = 0;
+const FLANGER_PERCENT_MAX = 100;
+const FLANGER_FREQUENCY_MIN = 0.02;
+const FLANGER_FREQUENCY_MAX = 20000;
 const METER_MAX_TIME = 10;
 const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
@@ -42,6 +52,15 @@ function normalizeWwiseDynamicsMode(value = "strict") {
   const mode = String(value);
   if (!WWISE_DYNAMICS_MODES.has(mode)) {
     throw new TypeError(`Unsupported Wwise dynamics realization mode: ${mode}`);
+  }
+  return mode;
+}
+
+/** Validates the host policy for authored Wwise modulation realization. */
+function normalizeWwiseModulationMode(value = "strict") {
+  const mode = String(value);
+  if (!WWISE_MODULATION_MODES.has(mode)) {
+    throw new TypeError(`Unsupported Wwise modulation realization mode: ${mode}`);
   }
   return mode;
 }
@@ -164,6 +183,27 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay) {
         channelLink: true
       });
     }
+    if (allowDelay && effect.type === "flanger") {
+      if (typeof effect.lfoEnabled !== "boolean" || typeof effect.processCenter !== "boolean" || typeof effect.processLfe !== "boolean") {
+        throw new TypeError(`${label} Flanger flags must be boolean`);
+      }
+      return Object.freeze({
+        effectId,
+        slotIndex,
+        type: "flanger",
+        delayTimeSeconds: BoundedFinite(effect.delayTimeSeconds, FLANGER_DELAY_SECONDS_MIN, FLANGER_DELAY_SECONDS_MAX, `${label} delayTimeSeconds`),
+        blend: BoundedFinite(effect.blend, 0, 1, `${label} blend`),
+        feedforward: BoundedFinite(effect.feedforward, FLANGER_LEVEL_MIN, FLANGER_LEVEL_MAX, `${label} feedforward`),
+        feedback: BoundedFinite(effect.feedback, FLANGER_LEVEL_MIN, FLANGER_LEVEL_MAX, `${label} feedback`),
+        modulationDepthPercent: BoundedFinite(effect.modulationDepthPercent, FLANGER_PERCENT_MIN, FLANGER_PERCENT_MAX, `${label} modulationDepthPercent`),
+        modulationFrequencyHz: BoundedFinite(effect.modulationFrequencyHz, FLANGER_FREQUENCY_MIN, FLANGER_FREQUENCY_MAX, `${label} modulationFrequencyHz`),
+        outputGainDb: BoundedFinite(effect.outputGainDb, DYNAMICS_OUTPUT_GAIN_MIN, DYNAMICS_OUTPUT_GAIN_MAX, `${label} outputGainDb`),
+        wetDryMixPercent: BoundedFinite(effect.wetDryMixPercent, FLANGER_PERCENT_MIN, FLANGER_PERCENT_MAX, `${label} wetDryMixPercent`),
+        lfoEnabled: effect.lfoEnabled,
+        processCenter: effect.processCenter,
+        processLfe: effect.processLfe
+      });
+    }
     if (effect.type !== "parametric-eq") {
       throw new TypeError(`${label} has unsupported type ${effect.type}`);
     }
@@ -217,10 +257,12 @@ function createBusEffectChain(context, indexedCatalog, busPathIds) {
 
 /** Creates one ordered browser effect chain from normalized portable records. */
 function createWwiseEffectChain(context, effects, {
-  wwiseDynamics = "strict"
+  wwiseDynamics = "strict",
+  wwiseModulation = "strict"
 } = {}) {
   if (!Array.isArray(effects) || !effects.length) return null;
   const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
+  const modulationMode = normalizeWwiseModulationMode(wwiseModulation);
 
   // A source effect override is one ordered authored unit. In strict mode,
   // preserve the existing audible dry fallback by omitting the complete
@@ -235,7 +277,17 @@ function createWwiseEffectChain(context, effects, {
   if (sourceDynamics.some(effect => effect.type === "peak-limiter" && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD) && typeof context?.createDelay !== "function") {
     return null;
   }
-  const realizedEffects = effects.map(effect => effect.type === "compressor" ? RequireApproximateDynamics(effect, "compressor-approximation") : effect.type === "peak-limiter" ? RequireApproximateDynamics(effect, "peak-limiter-approximation") : effect);
+  const sourceFlangers = effects.filter(effect => effect.type === "flanger");
+  if (sourceFlangers.length && modulationMode === "strict") {
+    return null;
+  }
+  if (sourceFlangers.length && (typeof context?.createDelay !== "function" || typeof context?.createGain !== "function" || sourceFlangers.some(effect => effect.lfoEnabled && effect.modulationDepthPercent > 0) && typeof context?.createOscillator !== "function")) {
+    return null;
+  }
+  const realizedEffects = effects.map(effect => effect.type === "compressor" ? RequireApproximateDynamics(effect, "compressor-approximation") : effect.type === "peak-limiter" ? RequireApproximateDynamics(effect, "peak-limiter-approximation") : effect.type === "flanger" ? {
+    ...effect,
+    type: "flanger-approximation"
+  } : effect);
   const nodes = [];
   let input = null;
   let output = null;
@@ -255,6 +307,13 @@ function createWwiseEffectChain(context, effects, {
     }
     if (effect.type === "delay") {
       const stage = CreateWwiseDelayStage(context, effect);
+      if (output) output.connect(stage.input);else input = stage.input;
+      output = stage.output;
+      nodes.push(...stage.nodes);
+      continue;
+    }
+    if (effect.type === "flanger-approximation") {
+      const stage = CreateWwiseFlangerApproximation(context, effect);
       if (output) output.connect(stage.input);else input = stage.input;
       output = stage.output;
       nodes.push(...stage.nodes);
@@ -289,6 +348,53 @@ function createWwiseEffectChain(context, effects, {
     output,
     nodes
   } : null;
+}
+
+/** Creates a static, all-channel browser approximation of Wwise Flanger. */
+function CreateWwiseFlangerApproximation(context, effect) {
+  const input = context.createGain();
+  const delayRange = effect.delayTimeSeconds * effect.modulationDepthPercent / 100;
+  const delay = context.createDelay(effect.delayTimeSeconds + delayRange);
+  const dry = context.createGain();
+  const blend = context.createGain();
+  const feedforward = context.createGain();
+  const feedback = context.createGain();
+  const wet = context.createGain();
+  const output = context.createGain();
+  const mix = effect.wetDryMixPercent / 100;
+  const nodes = [input, delay, dry, blend, feedforward, feedback, wet, output];
+  SetParam(delay.delayTime, effect.delayTimeSeconds);
+  SetParam(dry.gain, 1 - mix);
+  SetParam(blend.gain, effect.blend);
+  SetParam(feedforward.gain, effect.feedforward);
+  SetParam(feedback.gain, Math.max(-0.999, Math.min(0.999, effect.feedback)));
+  SetParam(wet.gain, mix);
+  SetParam(output.gain, 10 ** (effect.outputGainDb / 20));
+  input.connect(dry);
+  dry.connect(output);
+  input.connect(blend);
+  blend.connect(wet);
+  input.connect(delay);
+  delay.connect(feedforward);
+  feedforward.connect(wet);
+  delay.connect(feedback);
+  feedback.connect(delay);
+  wet.connect(output);
+  if (effect.lfoEnabled && delayRange > 0) {
+    const depth = context.createGain();
+    const oscillator = context.createOscillator();
+    oscillator.type = "sine";
+    SetParam(oscillator.frequency, effect.modulationFrequencyHz);
+    SetParam(depth.gain, delayRange);
+    oscillator.connect(depth);
+    depth.connect(delay.delayTime);
+    nodes.push(depth, oscillator);
+  }
+  return {
+    input,
+    output,
+    nodes
+  };
 }
 
 /**
@@ -473,6 +579,54 @@ function parseStaticWwiseDelayBytes(bytes, {
     outputGainDb,
     feedbackEnabled: feedbackEnabledRaw === 1,
     processLfe: true
+  };
+}
+
+/** Decodes the pinned-wwiser static v150 Wwise Flanger parameter block. */
+function parseStaticWwiseFlangerBytes(bytes, {
+  effectId,
+  slotIndex,
+  label = `Wwise Flanger ${effectId}`
+} = {}) {
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength !== 59) {
+    throw new TypeError(`${label} has an unsupported parameter block`);
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const delayTimeMs = view.getFloat32(0, true);
+  const blend = view.getFloat32(4, true);
+  const feedforward = view.getFloat32(8, true);
+  const feedback = view.getFloat32(12, true);
+  const modulationDepthPercent = view.getFloat32(16, true);
+  const modulationFrequencyHz = view.getFloat32(20, true);
+  const waveform = view.getUint32(24, true);
+  const smoothingPercent = view.getFloat32(28, true);
+  const pwmPercent = view.getFloat32(32, true);
+  const phaseOffsetDegrees = view.getFloat32(36, true);
+  const phaseMode = view.getUint32(40, true);
+  const phaseSpreadDegrees = view.getFloat32(44, true);
+  const outputGainDb = view.getFloat32(48, true);
+  const wetDryMixPercent = view.getFloat32(52, true);
+  const lfoEnabledRaw = view.getUint8(56);
+  const processCenterRaw = view.getUint8(57);
+  const processLfeRaw = view.getUint8(58);
+  if (!Number.isFinite(delayTimeMs) || delayTimeMs < FLANGER_DELAY_SECONDS_MIN * 1000 || delayTimeMs > FLANGER_DELAY_SECONDS_MAX * 1000 || !Number.isFinite(blend) || blend < 0 || blend > 1 || !Number.isFinite(feedforward) || feedforward < FLANGER_LEVEL_MIN || feedforward > FLANGER_LEVEL_MAX || !Number.isFinite(feedback) || feedback < FLANGER_LEVEL_MIN || feedback > FLANGER_LEVEL_MAX || !Number.isFinite(modulationDepthPercent) || modulationDepthPercent < FLANGER_PERCENT_MIN || modulationDepthPercent > FLANGER_PERCENT_MAX || !Number.isFinite(modulationFrequencyHz) || modulationFrequencyHz < FLANGER_FREQUENCY_MIN || modulationFrequencyHz > FLANGER_FREQUENCY_MAX || waveform !== 0 || !Number.isFinite(smoothingPercent) || smoothingPercent < FLANGER_PERCENT_MIN || smoothingPercent > FLANGER_PERCENT_MAX || !Number.isFinite(pwmPercent) || pwmPercent < FLANGER_PERCENT_MIN || pwmPercent > FLANGER_PERCENT_MAX || phaseOffsetDegrees !== 0 || phaseMode !== 0 || phaseSpreadDegrees !== 0 || !Number.isFinite(outputGainDb) || outputGainDb < DYNAMICS_OUTPUT_GAIN_MIN || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX || !Number.isFinite(wetDryMixPercent) || wetDryMixPercent < FLANGER_PERCENT_MIN || wetDryMixPercent > FLANGER_PERCENT_MAX || lfoEnabledRaw > 1 || processCenterRaw > 1 || processLfeRaw > 1) {
+    throw new TypeError(`${label} has invalid Wwise Flanger parameters`);
+  }
+  return {
+    effectId: String(effectId),
+    slotIndex: Number(slotIndex),
+    type: "flanger",
+    delayTimeSeconds: delayTimeMs / 1000,
+    blend,
+    feedforward,
+    feedback,
+    modulationDepthPercent,
+    modulationFrequencyHz,
+    outputGainDb,
+    wetDryMixPercent,
+    lfoEnabled: lfoEnabledRaw === 1,
+    processCenter: processCenterRaw === 1,
+    processLfe: processLfeRaw === 1
   };
 }
 
@@ -720,5 +874,5 @@ function BoundedFinite(value, min, max, label) {
   return number;
 }
 
-export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeStaticSourceEffectChain, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes };
+export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeStaticSourceEffectChain, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes, parseStaticWwiseFlangerBytes };
 //# sourceMappingURL=busEffects.js.map

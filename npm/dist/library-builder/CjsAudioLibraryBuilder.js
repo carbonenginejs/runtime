@@ -3,7 +3,7 @@ import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js
 import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
-import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect } from '../internal/busEffects.js';
+import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes } from '../internal/busEffects.js';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
 // the builder accepts index values, metadata values, and optional injected
@@ -3168,6 +3168,16 @@ function ParseStaticWwisePeakLimiter(ownerLabel, slot, effect) {
     type: "peak-limiter"
   };
 }
+function ParseStaticWwiseFlanger(ownerLabel, slot, effect) {
+  if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`Wwise Flanger ${effect.id} on ${ownerLabel} is not static`);
+  }
+  return parseStaticWwiseFlangerBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise Flanger ${effect.id} on ${ownerLabel}`
+  });
+}
 
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
@@ -3244,6 +3254,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
         chain.push(ParseStaticWwiseCompressor(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_PEAK_LIMITER_PLUGIN_ID) {
         chain.push(ParseStaticWwisePeakLimiter(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+      } else if (effect.pluginId === WWISE_FLANGER_PLUGIN_ID) {
+        chain.push(ParseStaticWwiseFlanger(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else {
         return {};
       }

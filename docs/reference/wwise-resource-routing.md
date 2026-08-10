@@ -541,6 +541,36 @@ source population uses the same explicitly empirical v150 field order and
 makes no golden-vector DSP equivalence claim; the Peak Limiter layout is
 source-proven.
 
+Pinned wwiser also proves Wwise Flanger `0x007D0003` as an exact 59-byte v150
+record. The builder admits a source-local override only when the whole active
+slot list is static and supported, the Flanger has no media/RTPC/State/property
+controls, and it uses sine modulation with zero phase offset/spread and the
+Left-Right phase mode. `wwiseModulation: "strict"` leaves that complete chain
+dry. Explicit `"approximate-web-audio"` realizes the unified-comb topology with
+Gain and Delay nodes and, when LFO is enabled with nonzero depth, one
+voice-owned sine Oscillator. Its browser delay is
+`D * (1 + (depth/100) * sin(2*pi*f*t))`; Blend, feedforward, feedback, Wet/Dry, and
+output gain retain their authored placement. The oscillator starts once at
+the first physical source start and remains phase-running through pause/source
+recreation until final voice disposal.
+
+This adaptation is deliberately not Wwise-equivalent. It processes every
+decoded channel although both qualifying EVE definitions author Center and
+LFE bypass, clamps feedback to `[-0.999, 0.999]`, does not reproduce Wwise's
+sample interpolation or channel phase law, and cuts the feedback/delay tail at
+decoded dry-source completion. Missing required Web Audio primitives omits the
+entire source chain and preserves audible dry playback. Shared-Bus Flanger is
+still a route barrier because the shared mixer does not own scheduled-source
+lifecycle.
+
+EVE build 3453885 projects nine isolated static-Flanger Sound leaves across
+`dungeon_brothel_atmo_play`, three `ecx_*explosive*` events, and
+`worldobject_jumpgate_activity_play`. Eight use ShareSet `2906410516`; one
+uses Custom effect `290827855`. Another twelve booster leaves retain complete
+dry fallback because a static Flanger in slot 0 is followed by a dynamic
+Parametric EQ in slot 1. This raises qualified source-effect leaves from 2,423
+to 2,432 without changing media/event audibility.
+
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE
 build 3444265 payoff. Compressor support alone adds all 135 remaining music

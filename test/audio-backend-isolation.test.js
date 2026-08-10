@@ -61,6 +61,7 @@ function FakeContext({ withAnalyser = false } = {})
     panners: [],
     analysers: [],
     sources: [],
+    oscillators: [],
     createGain()
     {
       const node = {
@@ -144,6 +145,24 @@ function FakeContext({ withAnalyser = false } = {})
       };
       context.sources.push(source);
       return source;
+    },
+    createOscillator()
+    {
+      const oscillator = {
+        type: "",
+        frequency: FakeParam(0),
+        connectedTo: null,
+        starts: [],
+        stops: [],
+        disconnected: false,
+        connect(target) { oscillator.connectedTo = target; },
+        start(at) { oscillator.starts.push(at); },
+        stop(at) { oscillator.stops.push(at); },
+        disconnect() { oscillator.disconnected = true; },
+      };
+
+      context.oscillators.push(oscillator);
+      return oscillator;
     }
   };
   if (withAnalyser)
@@ -206,6 +225,7 @@ function Harness({
   busDuckingController,
   busEffects,
   wwiseDynamics,
+  wwiseModulation,
   busGraphRuntime,
   busMixer,
   busMixerFactory,
@@ -241,6 +261,7 @@ function Harness({
     busDuckingController,
     busEffects,
     wwiseDynamics,
+    wwiseModulation,
     busGraphRuntime,
     busMixer: resolvedBusMixer,
     distanceScale,
@@ -7772,6 +7793,98 @@ test("Sound-local Wwise Compressor is dry by default and opt-in per voice", asyn
 
   approximate.context.sources[0].onended();
   assert.equal(compressor.disconnected, true);
+});
+
+test("Sound-local Wwise Flanger starts once and stops with its physical voice", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "2906410516",
+    slotIndex: 0,
+    type: "flanger",
+    delayTimeSeconds: Math.fround(12.3) / 1000,
+    blend: 1,
+    feedforward: 1,
+    feedback: 0.5,
+    modulationDepthPercent: Math.fround(33.2),
+    modulationFrequencyHz: Math.fround(0.42),
+    outputGainDb: 0,
+    wetDryMixPercent: 100,
+    lfoEnabled: true,
+    processCenter: false,
+    processLfe: false,
+  } ];
+  const loadBuffer = async () => ({
+    voices: [ {
+      buffer: { duration: 2 },
+      loop: false,
+      sourceEffects,
+      lowPass: 20,
+      getGain: () => 1,
+    }, {
+      buffer: { duration: 20 },
+      loop: false,
+      getGain: () => 1,
+    } ],
+  });
+  const strict = Harness({ loadBuffer });
+
+  strict.backend.PostEvent(1, 1, 0, strict.emitter, "play");
+  await tick();
+  assert.equal(strict.context.oscillators.length, 0);
+
+  const approximate = Harness({
+    loadBuffer,
+    wwiseModulation: "approximate-web-audio",
+  });
+  approximate.context.delays = [];
+  approximate.context.createDelay = maxDelayTime =>
+  {
+    const delay = {
+      maxDelayTime,
+      delayTime: FakeParam(0),
+      connections: [],
+      disconnected: false,
+      connect(target) { delay.connections.push(target); },
+      disconnect() { delay.disconnected = true; },
+    };
+
+    approximate.context.delays.push(delay);
+    return delay;
+  };
+
+  approximate.backend.PostEvent(1, 1, 0, approximate.emitter, "play");
+  await tick();
+
+  const [ oscillator ] = approximate.context.oscillators;
+  const [ delay ] = approximate.context.delays;
+  const source = approximate.context.sources[0];
+  const lowPass = approximate.context.filters[0];
+  const input = source.connectedTo;
+
+  assert.deepEqual(oscillator.starts, [ source.startedAt ]);
+  assert.equal(source.startedAt, START_QUANTUM);
+  assert.equal(oscillator.type, "sine");
+  assert.equal(
+    oscillator.frequency.value,
+    sourceEffects[0].modulationFrequencyHz,
+  );
+  assert.ok(input.connections.includes(delay));
+  assert.ok(approximate.context.gains.some(gain =>
+    gain.connectedTo === lowPass), "the complete Flanger precedes Voice LPF");
+
+  source.onended();
+  assert.equal(oscillator.stops.length, 1);
+  assert.equal(oscillator.disconnected, true);
+  assert.equal(delay.disconnected, true);
+  assert.equal(lowPass.disconnected, true);
+  assert.notEqual(
+    approximate.context.sources[1].disconnected,
+    true,
+    "a longer sibling remains live after the Flanger voice ends",
+  );
+
+  approximate.context.sources[1].onended();
+  assert.equal(oscillator.stops.length, 1, "final disposal is idempotent");
 });
 
 test("routed SFX activity ducks future target voices and releases on source end", async () =>

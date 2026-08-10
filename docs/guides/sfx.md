@@ -165,7 +165,7 @@ but the rejected shared Delay and Peak Limiter character is omitted.
 
 | Type | Behavior |
 | --- | --- |
-| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, `sourceEffects` retains a complete qualified effective static Parametric EQ/Wwise Delay chain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
+| `sound` | Produces one media voice. Optional `loop` overrides event metadata, `playCount` preserves a finite authored repeat count, `playbackRate` controls the buffer source, `spatial` selects the panner (`true`) or flat SFX route (`false`), `dryVolumeCurve` retains the leaf's Wwise distance gain, `sourceEffects` retains one complete qualified effective static effect chain, and the qualified `voiceLimit` shape reserves a cap-one per-game-object instance before media acquisition. |
 | `silence` | Produces no voice. This preserves authored empty switch/state cases without falling through to the default. |
 | `timed-silence` | Produces one finite silent voice with authored `durationMs`. It owns lifecycle, routing, Stop matching, Continuous completion, and qualified voice-limit admission without acquiring media. |
 | `random` | Chooses one weighted child. `mode: "shuffle"` exhausts a pool before refilling it; `avoidRepeat` excludes recent choices. |
@@ -268,11 +268,11 @@ All and All-Except use qualified exact stored bus identities; EVE currently
 exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
-static Parametric EQ, Wwise Delay, and qualified Wwise Compressor/Peak Limiter
-records. The builder walks the Sound's NodeBase ancestry to the first effect
+static Parametric EQ, Wwise Delay, and qualified Wwise Compressor, Peak
+Limiter, or Flanger records. The builder walks the Sound's NodeBase ancestry to the first effect
 override, treating a root list as effective and an explicit empty override as
 a replacement that clears the parent list. It emits the chain only when every
-active slot is a control-free supported effect with ordinary LFE processing;
+active slot is a control-free supported effect with an admitted static shape;
 dynamics additionally require linked channels and timing within the Web Audio
 adapter's bounds. Playback creates one Web Audio chain per physical voice
 before the authored Voice LPF/HPF, gain, spatial/auxiliary split, and Audio Bus
@@ -290,23 +290,38 @@ decode Compressor parameters. Web Audio's fixed lookahead, automatic makeup,
 detector/envelope law, ratio ceiling, and channel behavior therefore remain
 non-equivalent to Wwise.
 
+Qualified Flanger records are also retained as authored base records. They use
+the independent `wwiseModulation: "approximate-web-audio"` opt-in; strict mode
+or missing Gain, Delay, or required Oscillator support omits the complete
+source chain and plays dry. Pinned wwiser proves the exact 59-byte v150 field
+order. The browser stage implements a sine-driven unified comb approximation:
+base delay plus `delay * depth` modulation, Blend/feedforward/feedback gains,
+Wet/Dry mix, and output gain. It starts one voice-owned oscillator at the
+first scheduled physical source start and stops it at final voice disposal.
+This is not Wwise-equivalent DSP: the browser stage processes every decoded
+channel even when Wwise authors Center/LFE bypass, clamps feedback to just
+below unity, retains LFO phase while paused, and cuts delay/feedback state at
+the decoded dry-source boundary. Shared-Bus Flanger remains unsupported.
+
 Bypassed or rendered slots need no live stage. Pause and seek reuse the
 voice-owned browser nodes instead of freezing or reconstructing native Wwise
 plug-in state. Natural completion still follows the decoded dry source;
 `DelayNode` has no Wwise tail-completion callback, so residual feedback is cut
 when the voice is disposed. Mixed unsupported plug-in sequences, supported
-effects with RTPC,
-State, property-value, or media controls, `processLfe:false`, and unsupported
-plug-ins retain the previous dry-playback approximation rather than applying
-part of an authored chain. EVE build 3453885 installs 2,423 qualified Sound
-leaves: 246 use Parametric EQ, 79 use Wwise Delay, 2,033 use Compressor, and 73
-use Peak Limiter. Those Peak Limiter leaves all inherit Custom effect
+effects with RTPC, State, property-value, or media controls, unsupported
+independent channel routing outside the documented Flanger approximation, and
+unsupported plug-ins retain the previous dry-playback approximation rather
+than applying part of an authored chain. EVE build 3453885 installs 2,432
+qualified Sound leaves: 246 use Parametric EQ, 79 use Wwise Delay, 2,033 use
+Compressor, 73 use Peak Limiter, and nine use Flanger across five retained
+events. Those Peak Limiter leaves all inherit Custom effect
 `754157063` under `refinery_l_play`. A total of 486 retained events can reach
 at least one Compressor leaf. The
 Compressor population contains nine complete chain signatures, including
 eight leaves where it precedes one qualified EQ. The 150 non-neutral EQ chains
 remain unchanged. Five mixed Tremolo/EQ chains and five dynamic EQ leaves
-remain intentionally unrealized.
+remain intentionally unrealized. Twelve additional static-Flanger leaves stay
+atomically dry because their second slot is a dynamic Parametric EQ.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its

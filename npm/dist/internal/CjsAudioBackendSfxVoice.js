@@ -77,6 +77,8 @@ class CjsAudioBackendSfxVoice {
     this.highPassFilter = nodes.highPassFilter;
     this.sourceEffectInput = nodes.sourceEffectInput;
     this.sourceEffectNodes = nodes.sourceEffectNodes;
+    this.sourceEffectsStarted = false;
+    this.sourceEffectsStopped = false;
     this.busEffectNodes = nodes.busEffectNodes;
     this.fadeScheduled = false;
     this.fadeStartContextTime = null;
@@ -107,12 +109,45 @@ class CjsAudioBackendSfxVoice {
     this.offsetSeconds = 0;
   }
 
-  /** Disconnects every disposable Web Audio node owned by this voice. */
-  DisconnectNodes() {
-    this.source?.disconnect?.();
+  /** Starts voice-owned scheduled effect nodes at the first physical start. */
+  StartSourceEffects(at) {
+    if (this.sourceEffectsStarted) return;
+    const sources = this.sourceEffectNodes.filter(node => typeof node?.start === "function");
+    if (!sources.length) return;
+    // Mark first so partial start failure remains safely disposable.
+    this.sourceEffectsStarted = true;
+    for (const source of sources) source.start(at);
+  }
+
+  /** Stops voice-owned scheduled effect nodes once at final disposal. */
+  StopSourceEffects() {
+    if (!this.sourceEffectsStarted || this.sourceEffectsStopped) return;
+    this.sourceEffectsStopped = true;
+    for (const node of this.sourceEffectNodes) {
+      if (typeof node?.start !== "function" || typeof node?.stop !== "function") {
+        continue;
+      }
+      try {
+        node.stop();
+      } catch {
+        // An already-ended scheduled source remains disposable.
+      }
+    }
+  }
+
+  /** Stops and disconnects the source-local effect chain once. */
+  DisconnectSourceEffects() {
+    this.StopSourceEffects();
     for (const node of this.sourceEffectNodes ?? []) {
       node.disconnect?.();
     }
+    this.sourceEffectNodes = [];
+  }
+
+  /** Disconnects every disposable Web Audio node owned by this voice. */
+  DisconnectNodes() {
+    this.DisconnectSourceEffects();
+    this.source?.disconnect?.();
     this.lowPassFilter?.disconnect?.();
     this.highPassFilter?.disconnect?.();
     this.gain?.disconnect?.();

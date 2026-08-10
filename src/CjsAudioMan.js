@@ -11,6 +11,7 @@ import {
 } from "./library/audioLibraryDocument.js";
 import {
     normalizeWwiseDynamicsMode,
+    normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
 } from "./internal/busEffects.js";
@@ -101,6 +102,7 @@ export class CjsAudioMan
         isMusicTrackAvailable = null,
         updateContext = null,
         wwiseDynamics = "strict",
+        wwiseModulation = "strict",
         wwiseMeterFeedback = "strict",
         wwiseVoiceLimits = "strict",
     } = {})
@@ -139,6 +141,9 @@ export class CjsAudioMan
             applyRTPC,
             updateContext,
             wwiseDynamics: normalizeWwiseDynamicsMode(wwiseDynamics),
+            wwiseModulation: normalizeWwiseModulationMode(
+                wwiseModulation,
+            ),
             wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(
                 wwiseMeterFeedback,
             ),

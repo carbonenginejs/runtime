@@ -187,6 +187,10 @@ function Deferred()
 test("CjsAudioMan validates shared Bus approximation policies", () =>
 {
     assert.throws(
+        () => new CjsAudioMan(null, { wwiseModulation: "approximate" }),
+        /Unsupported Wwise modulation realization mode/u,
+    );
+    assert.throws(
         () => new CjsAudioMan(null, { wwiseMeterFeedback: "omit" }),
         /Unsupported Wwise Meter feedback mode/u,
     );
@@ -195,6 +199,7 @@ test("CjsAudioMan validates shared Bus approximation policies", () =>
         /Unsupported Wwise voice-limit mode/u,
     );
     assert.doesNotThrow(() => new CjsAudioMan(null, {
+        wwiseModulation: "approximate-web-audio",
         wwiseMeterFeedback: "omit-telemetry",
         wwiseVoiceLimits: "ignore",
     }));

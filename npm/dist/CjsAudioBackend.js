@@ -3,7 +3,7 @@ import { evaluateWwiseRtpcCurve, wwiseDbRtpcValueToDb } from './internal/wwiseRt
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, busRtpcPathUses, evaluateBusRtpcGainDb, evaluateBusVoiceRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
-import { indexBusEffectCatalog, normalizeWwiseDynamicsMode, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
+import { indexBusEffectCatalog, normalizeWwiseDynamicsMode, normalizeWwiseModulationMode, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
 import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProgramSlot.js';
 import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSfxVoiceLimitLedger.js';
 import { CjsAudioBackendSfxVoice } from './internal/CjsAudioBackendSfxVoice.js';
@@ -68,6 +68,7 @@ class CjsAudioBackend {
   #busDuckingController = null;
   #busEffectCatalog = new Map();
   #wwiseDynamics = "strict";
+  #wwiseModulation = "strict";
   #busGraphRuntime = null;
   #busMixer = null;
   #unsubscribeBusDucking = null;
@@ -103,6 +104,7 @@ class CjsAudioBackend {
     busDuckingController,
     busEffects,
     wwiseDynamics = "strict",
+    wwiseModulation = "strict",
     busGraphRuntime,
     busMixer
   } = {}) {
@@ -122,6 +124,7 @@ class CjsAudioBackend {
     this.#busDuckingController = busDuckingController ?? null;
     this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
     this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+    this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#busGraphRuntime = busGraphRuntime ?? null;
     this.#busMixer = busMixer ?? null;
     this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.#RefreshBusDucking()) ?? null;
@@ -2634,7 +2637,8 @@ class CjsAudioBackend {
     const highPassFilter = descriptor.getHighPass || descriptor.getHighPassAtAdditionalPercent || usesBusHighPass && !sharedBusFilters ? this.#context.createBiquadFilter?.() ?? null : null;
     const busEffectChain = emitterRouteBranch?.mixerInput ? null : createBusEffectChain(this.#context, this.#busEffectCatalog, descriptor.busPathIds);
     const sourceEffectChain = createWwiseEffectChain(this.#context, descriptor.sourceEffects ?? [], {
-      wwiseDynamics: this.#wwiseDynamics
+      wwiseDynamics: this.#wwiseDynamics,
+      wwiseModulation: this.#wwiseModulation
     });
     if (lowPassFilter) {
       lowPassFilter.type = "lowpass";
@@ -2868,6 +2872,7 @@ class CjsAudioBackend {
     voice.sourceStarted = false;
     voice.cancelledBeforeStart = false;
     source.start(startContextTime, voice.offsetSeconds);
+    voice.StartSourceEffects(startContextTime);
     voice.sourceStarted = true;
     if (finiteRepeats) {
       const remaining = resumeRepeatRemaining ?? (timedSilence ? effectiveDuration - logicalOffsetSeconds : duration - voice.offsetSeconds + duration * (voice.playCount - 1));
@@ -2888,7 +2893,7 @@ class CjsAudioBackend {
     // boundary and #FinishPlaying disconnects any residual feedback.
     this.#EndVoiceDucking(voice, Number(this.#context?.currentTime) || 0, voice.cancelledBeforeStart === true);
     voice.ended = true;
-    voice.source?.disconnect?.();
+    voice.DisconnectNodes();
     this.#voiceLimitLedger.Release(record, voice.voiceLimitReservationId);
     if (record.sfxProgram) {
       this.#SetSfxProgramSlotEnded(playingID, record, voice);
