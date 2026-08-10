@@ -5,7 +5,7 @@
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 
@@ -22,7 +22,7 @@ export class EveChildFogVolume extends EveChildTransform
 
   @io.persist
   @type.int32
-  @schema.enum("Priority")
+  @type.enum("Priority")
   priority = 2;
 
   @io.persist

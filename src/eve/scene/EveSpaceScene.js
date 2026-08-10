@@ -6,7 +6,7 @@
 // additions are the per-frame update driver ported from Carbon
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
@@ -125,7 +125,7 @@ export class EveSpaceScene extends CjsModel
   /** m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
   @io.readwrite
   @type.int32
-  @schema.enum("EveVisualizeMethod")
+  @type.enum("EveVisualizeMethod")
   visualizeMethod = 0;
 
   /** m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
@@ -380,7 +380,7 @@ export class EveSpaceScene extends CjsModel
   @io.notify
   @io.readwrite
   @type.int32
-  @schema.enum("ShadowQuality")
+  @type.enum("ShadowQuality")
   shadowQualitySetting = 3;
 
   /** m_sunColor (Color) [READWRITE, PERSIST] */

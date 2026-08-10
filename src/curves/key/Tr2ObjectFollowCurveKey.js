@@ -3,7 +3,7 @@
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 
 
@@ -33,7 +33,7 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
 
   @io.persist
   @type.int32
-  @schema.enum("Tr2FollowCurveKeyInterpolation")
+  @type.enum("Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   @io.persist
@@ -63,7 +63,7 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
 
   @io.persist
   @type.int32
-  @schema.enum("RotationSetting")
+  @type.enum("RotationSetting")
   rotationSetting = RotationSetting.NO_ROTATION;
 
   #locator = null;

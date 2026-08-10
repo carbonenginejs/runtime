@@ -1,6 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPDepthOfFieldEffect.h
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPDepthOfFieldEffect.cpp
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
@@ -15,7 +15,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 
   @io.persist
   @type.int32
-  @schema.enum("Shape")
+  @type.enum("Shape")
   bokehShape = Tr2PPDepthOfFieldEffect.Disk;
 
   @io.persist

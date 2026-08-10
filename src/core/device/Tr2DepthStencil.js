@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Tr2DepthStencil.h
 // Hand-maintained from Carbon source; Trinity owns the graph class and engines realize live state.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { DepthStencilFormat } from "@carbonenginejs/runtime-utils/render-context";
 
@@ -37,7 +37,7 @@ export class Tr2DepthStencil extends CjsModel
 
   @io.read
   @type.int32
-  @schema.enum("DepthStencilFormat")
+  @type.enum("DepthStencilFormat")
   format = 7;
 
   @io.read

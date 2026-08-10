@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
@@ -58,14 +58,14 @@ export class EveChildEffectPropagator extends EveChildContainer
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("PropagationType")
+  @type.enum("PropagationType")
   propagationType = 0;
 
   /** m_triggerMethod (TriggerType - enum TriggerType) [READWRITE, PERSIST, ENUM, NOTIFY] */
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("TriggerType")
+  @type.enum("TriggerType")
   triggerMethood = 0;
 
   /** m_stopAfterNumTriggers (float) [READWRITE, PERSIST, NOTIFY] */

@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Curves\Tr2FollowCurveKey.cpp
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -19,7 +19,7 @@ export class Tr2CameraFollowCurveKey extends CjsModel
 {
   @io.persist
   @type.int32
-  @schema.enum("Tr2FollowCurveKeyInterpolation")
+  @type.enum("Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   @io.notify

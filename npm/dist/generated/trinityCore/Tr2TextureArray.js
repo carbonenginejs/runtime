@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { Tr2CpuUsage, Tr2GpuUsage } from '@carbonenginejs/runtime-utils/render-context';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2TextureArray",
         family: "trinityCore"
-      })], [[type.list("ImageIO::HostBitmap"), 0, "elements"], [type.rawStruct("Tr2TextureAL"), 0, "texture"], [type.rawStruct("Tr2BitmapDimensions"), 0, "dimensions"], [type.rawStruct("OnTextureChangeEvent"), 0, "onTextureChange"], [[type, type.uint32], 16, "increment"], [[type, type.int32, void 0, schema.enum("Tr2CpuUsage")], 16, "cpuUsage"], [[type, type.int32, void 0, schema.enum("Tr2GpuUsage")], 16, "gpuUsage"]], 0, void 0, CjsModel));
+      })], [[type.list("ImageIO::HostBitmap"), 0, "elements"], [type.rawStruct("Tr2TextureAL"), 0, "texture"], [type.rawStruct("Tr2BitmapDimensions"), 0, "dimensions"], [type.rawStruct("OnTextureChangeEvent"), 0, "onTextureChange"], [[type, type.uint32], 16, "increment"], [[type, type.int32, void 0, type.enum("Tr2CpuUsage")], 16, "cpuUsage"], [[type, type.int32, void 0, type.enum("Tr2GpuUsage")], 16, "gpuUsage"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

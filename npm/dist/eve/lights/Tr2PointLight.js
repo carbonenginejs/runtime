@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
@@ -21,7 +21,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2PointLight",
         family: "eve/lights"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.notify, io, io.persist, type, type.string], 16, "lightProfilePath"], [[io, io.read, void 0, type.objectRef("Tr2LightProfileRes")], 16, "lightProfile"], [[io, io.notify, io, io.persist, type, type.int32, void 0, schema.enum("PerLightShadowSetting")], 16, "castsShadows"], [[io, io.persist, type, type.uint16], 16, "flags"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.notify, io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.float32], 16, "radius"], [[io, io.persist, type, type.float32], 16, "innerRadius"], [[io, io.notify, io, io.persist, type, type.color], 16, "color"], [[io, io.notify, io, io.persist, type, type.float32], 16, "brightness"], [[io, io.persist, type, type.float32], 16, "noiseAmplitude"], [[io, io.persist, type, type.float32], 16, "noiseFrequency"], [[io, io.persist, type, type.uint32], 16, "noiseOctaves"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "isVolumetric"]], 0, void 0, _Tr2Light));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.notify, io, io.persist, type, type.string], 16, "lightProfilePath"], [[io, io.read, void 0, type.objectRef("Tr2LightProfileRes")], 16, "lightProfile"], [[io, io.notify, io, io.persist, type, type.int32, void 0, type.enum("PerLightShadowSetting")], 16, "castsShadows"], [[io, io.persist, type, type.uint16], 16, "flags"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.notify, io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.float32], 16, "radius"], [[io, io.persist, type, type.float32], 16, "innerRadius"], [[io, io.notify, io, io.persist, type, type.color], 16, "color"], [[io, io.notify, io, io.persist, type, type.float32], 16, "brightness"], [[io, io.persist, type, type.float32], 16, "noiseAmplitude"], [[io, io.persist, type, type.float32], 16, "noiseFrequency"], [[io, io.persist, type, type.uint32], 16, "noiseOctaves"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "isVolumetric"]], 0, void 0, _Tr2Light));
     }
     name = _init_name(this, "");
     lightProfilePath = (_init_extra_name(this), _init_lightProfilePath(this, ""));

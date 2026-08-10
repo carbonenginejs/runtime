@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2PPEffect as _Tr2PPEffect } from './Tr2PPEffect.js';
 import { Quality } from '../../generated/postProcess/enums.js';
 
@@ -19,7 +19,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2PPGenericEffect",
         family: "postProcess"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Quality")], 16, "quality"], [[io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"]], 0, void 0, _Tr2PPEffect));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Quality")], 16, "quality"], [[io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"]], 0, void 0, _Tr2PPEffect));
     }
     constructor(...args) {
       super(...args);

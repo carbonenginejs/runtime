@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2PPEffect as _Tr2PPEffect } from './Tr2PPEffect.js';
 
 let _initClass, _init_bokehShape, _init_extra_bokehShape, _init_scale, _init_extra_scale, _init_cocScale, _init_extra_cocScale, _init_useTAAFriendlyBokeh, _init_extra_useTAAFriendlyBokeh, _init_focalLength, _init_extra_focalLength, _init_foregroundBlurNeeded, _init_extra_foregroundBlurNeeded, _init_focalDistance, _init_extra_focalDistance;
@@ -19,7 +19,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2PPDepthOfFieldEffect",
         family: "postProcess"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Shape")], 16, "bokehShape"], [[io, io.persist, type, type.float32], 16, "scale"], [[io, io.readwrite, type, type.float32], 16, "cocScale"], [[io, io.readwrite, type, type.boolean], 16, "useTAAFriendlyBokeh"], [[io, io.persist, type, type.float32], 16, "focalLength"], [[io, io.persist, type, type.boolean], 16, "foregroundBlurNeeded"], [[io, io.persist, type, type.float32], 16, "focalDistance"]], 0, void 0, _Tr2PPEffect));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Shape")], 16, "bokehShape"], [[io, io.persist, type, type.float32], 16, "scale"], [[io, io.readwrite, type, type.float32], 16, "cocScale"], [[io, io.readwrite, type, type.boolean], 16, "useTAAFriendlyBokeh"], [[io, io.persist, type, type.float32], 16, "focalLength"], [[io, io.persist, type, type.boolean], 16, "foregroundBlurNeeded"], [[io, io.persist, type, type.float32], 16, "focalDistance"]], 0, void 0, _Tr2PPEffect));
     }
     constructor(...args) {
       super(...args);

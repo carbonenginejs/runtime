@@ -1,6 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPTonemappingEffect.h
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPTonemappingEffect.cpp
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
@@ -14,7 +14,7 @@ export class Tr2PPTonemappingEffect extends Tr2PPEffect
 
   @io.persist
   @type.int32
-  @schema.enum("Method")
+  @type.enum("Method")
   method = Tr2PPTonemappingEffect.Aces;
 
   @io.persist

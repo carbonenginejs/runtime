@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/TriDevice.h
 // Hand-maintained from Carbon source; Trinity owns the graph class and engines realize live state.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "@carbonenginejs/runtime-utils/render-context";
 
@@ -26,14 +26,14 @@ export class TriDevice extends CjsModel
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("PresentInterval")
+  @type.enum("PresentInterval")
   presentationInterval = 1;
 
   /** mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM] */
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("SwapEffect")
+  @type.enum("SwapEffect")
   swapEffect = 0;
 
   /** m_throttlingState (uint32_t) [READ] */
@@ -44,7 +44,7 @@ export class TriDevice extends CjsModel
   /** m_deviceType (DeviceType - enum DeviceType) [READWRITE, ENUM] */
   @io.readwrite
   @type.int32
-  @schema.enum("DeviceType")
+  @type.enum("DeviceType")
   deviceType = 0;
 
   /** m_allowThrottling (bool) [READWRITE] */
@@ -149,13 +149,13 @@ export class TriDevice extends CjsModel
   /** m_upscalingSetting (Tr2UpscalingAL::Setting) [READ] */
   @io.read
   @type.uint32
-  @schema.enum("UpscalingSetting")
+  @type.enum("UpscalingSetting")
   upscalingSetting = 1;
 
   /** m_upscalingTechnique (Tr2UpscalingAL::Technique) [READ] */
   @io.read
   @type.uint32
-  @schema.enum("UpscalingTechnique")
+  @type.enum("UpscalingTechnique")
   upscalingTechnique = 0;
 
   /** m_upscalingWithFrameGeneration (bool) [READ] */

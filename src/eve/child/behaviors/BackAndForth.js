@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { LocatorType } from "./enums.js";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
@@ -39,7 +39,7 @@ export class BackAndForth extends CjsModel
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("LocatorType")
+  @type.enum("LocatorType")
   locatorType = 0;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */

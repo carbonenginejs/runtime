@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Tr2GpuBuffer.h
 // Hand-maintained from Carbon source; Trinity owns the graph class and engines realize live state.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { PixelFormat } from "@carbonenginejs/runtime-utils/render-context";
 
@@ -22,7 +22,7 @@ export class Tr2GpuBuffer extends CjsModel
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("PixelFormat")
+  @type.enum("PixelFormat")
   format = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */

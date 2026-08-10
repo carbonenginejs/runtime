@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Tr2InstancedMesh.cpp
 // Source: E:\carbonengine\trinity\trinity\Tr2InstancedMesh_Blue.cpp
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2Mesh } from "./Tr2Mesh.js";
 
 
@@ -15,7 +15,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
 {
   @io.persist
   @type.int32
-  @schema.enum("BoundsMethod")
+  @type.enum("BoundsMethod")
   boundsMethod = 0;
 
   @io.rebuild("instanceBuffer")

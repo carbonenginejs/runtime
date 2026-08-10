@@ -2,7 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_v
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
-import { io, type, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from './EveChildTransform.js';
 import { EveComponentType } from '../EveComponentTypes.js';
 
@@ -23,7 +23,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveChildLightingOverride",
         family: "eve/child"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Priority")], 16, "priority"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.float32], 16, "backgroundIntensity"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, type, type.float32], 16, "reflectionIntensity"], [[io, io.persist, type, type.float32], 16, "sunIntensity"], [[io, io.persist, type, type.color], 16, "sunColor"], [[io, io.persist, void 0, type.list("IEveVolume")], 16, "volumes"], [[impl, impl.implemented], 18, "RegisterComponents"], [[impl, impl.implemented], 18, "GetOverrides"], [[impl, impl.adapted], 18, "GetBoundingSphere"], [[impl, impl.adapted], 18, "UpdateAsyncronous"]], 0, void 0, _EveChildTransform));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Priority")], 16, "priority"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.float32], 16, "backgroundIntensity"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, type, type.float32], 16, "reflectionIntensity"], [[io, io.persist, type, type.float32], 16, "sunIntensity"], [[io, io.persist, type, type.color], 16, "sunColor"], [[io, io.persist, void 0, type.list("IEveVolume")], 16, "volumes"], [[impl, impl.implemented], 18, "RegisterComponents"], [[impl, impl.implemented], 18, "GetOverrides"], [[impl, impl.adapted], 18, "GetBoundingSphere"], [[impl, impl.adapted], 18, "UpdateAsyncronous"]], 0, void 0, _EveChildTransform));
     }
     constructor(...args) {
       super(...args);

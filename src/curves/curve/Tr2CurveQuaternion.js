@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Curves\Tr2CurveQuaternion.cpp
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "../enums.js";
 import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 
@@ -34,12 +34,12 @@ export class Tr2CurveQuaternion extends CjsModel
 
   @io.persist
   @type.uint32
-  @schema.enum("Tr2CurveExtrapolation")
+  @type.enum("Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
   @io.persist
   @type.uint32
-  @schema.enum("Tr2CurveExtrapolation")
+  @type.enum("Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
   #lastSegment = 0;

@@ -3,7 +3,7 @@
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
 /**
@@ -14,7 +14,7 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 @type.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
 export class EveLocalPositionCurve extends CjsModel
 {
-  @io.persist @type.int32 @schema.enum("LocalPositionBehavior") behavior = 0;
+  @io.persist @type.int32 @type.enum("LocalPositionBehavior") behavior = 0;
   @io.readwrite @type.float32 impactSize = 1;
   @io.persist @type.float32 offset = 0;
   @io.persist @type.vec3 positionOffset = vec3.create();

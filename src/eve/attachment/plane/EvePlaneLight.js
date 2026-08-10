@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\Sets\EvePlaneSet.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
@@ -39,7 +39,7 @@ export class EvePlaneLight extends CjsModel
   lightProfile = null;
 
   @type.int32
-  @schema.enum("FadeType")
+  @type.enum("FadeType")
   fadeType = EvePlaneLight.FT_NONE;
 
   @type.float32

@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isArrayLike } from '@carbonenginejs/runtime-utils/is';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { ResetBehavior } from '../enums.js';
 import { ITr2ControllerAction } from './ITr2ControllerAction.js';
@@ -23,7 +23,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ActionResetClipSphereCenter",
         family: "controllers"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ResetBehavior")], 16, "resetBehavior"], [[io, io.persist, type, type.int32], 16, "locatorIndex"], [[io, io.persist, type, type.string], 16, "locatorSetName"], [[carbon, carbon.method, impl, impl.adapted], 18, "Start"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("ResetBehavior")], 16, "resetBehavior"], [[io, io.persist, type, type.int32], 16, "locatorIndex"], [[io, io.persist, type, type.string], 16, "locatorSetName"], [[carbon, carbon.method, impl, impl.adapted], 18, "Start"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2CurveVector3LerpKeyInterpolation } from '../enums.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_initialValue, _init_extra_initialValue, _init_currentValue, _init_extra_currentValue, _init_curveStartTime, _init_extra_curveStartTime, _init_startInterpolation, _init_extra_startInterpolation, _init_curve, _init_extra_curve;
@@ -21,7 +21,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2CurveVector3Lerp",
         family: "curves"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.readwrite, type, type.vec3], 16, "initialValue"], [[io, io.read, type, type.vec3], 16, "currentValue"], [[io, io.persist, type, type.float32], 16, "curveStartTime"], [[io, io.readwrite, type, type.uint32, void 0, schema.enum("Tr2CurveVector3LerpKeyInterpolation")], 16, "startInterpolation"], [[io, io.persist, void 0, type.objectRef("ITriVectorFunction")], 16, "curve"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValueAt"], [[carbon, carbon.method, impl, impl.noop], 18, "GetValueDotAt"], [[carbon, carbon.method, impl, impl.noop], 18, "GetValueDoubleDotAt"], [[carbon, carbon.method, impl, impl.noop], 18, "InterpolatedPosition"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.readwrite, type, type.vec3], 16, "initialValue"], [[io, io.read, type, type.vec3], 16, "currentValue"], [[io, io.persist, type, type.float32], 16, "curveStartTime"], [[io, io.readwrite, type, type.uint32, void 0, type.enum("Tr2CurveVector3LerpKeyInterpolation")], 16, "startInterpolation"], [[io, io.persist, void 0, type.objectRef("ITriVectorFunction")], 16, "curve"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValueAt"], [[carbon, carbon.method, impl, impl.noop], 18, "GetValueDotAt"], [[carbon, carbon.method, impl, impl.noop], 18, "GetValueDoubleDotAt"], [[carbon, carbon.method, impl, impl.noop], 18, "InterpolatedPosition"]], 0, void 0, CjsModel));
     }
     name = (_initProto(this), _init_name(this, ""));
     initialValue = (_init_extra_name(this), _init_initialValue(this, vec3.create()));

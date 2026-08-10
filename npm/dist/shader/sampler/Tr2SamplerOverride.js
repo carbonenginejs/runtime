@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { Tr2RenderContext as _Tr2RenderContext } from '../../core/context/Tr2RenderContext.js';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2SamplerOverride",
         family: "shader"
-      })], [[[void 0, io.rebuild("bindings"), io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, schema.enum("TextureAddressMode")], 16, "addressU"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, schema.enum("TextureAddressMode")], 16, "addressV"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, schema.enum("TextureAddressMode")], 16, "addressW"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, schema.enum("TextureFilter")], 16, "filter"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, schema.enum("TextureFilter")], 16, "mipFilter"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.float32], 16, "lodBias"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.uint32], 16, "maxMipLevel"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.uint32], 16, "maxAnisotropy"]], 0, void 0, CjsModel));
+      })], [[[void 0, io.rebuild("bindings"), io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, type.enum("TextureAddressMode")], 16, "addressU"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, type.enum("TextureAddressMode")], 16, "addressV"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, type.enum("TextureAddressMode")], 16, "addressW"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, type.enum("TextureFilter")], 16, "filter"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.int32, void 0, type.enum("TextureFilter")], 16, "mipFilter"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.float32], 16, "lodBias"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.uint32], 16, "maxMipLevel"], [[void 0, io.rebuild("bindings"), io, io.persist, type, type.uint32], 16, "maxAnisotropy"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

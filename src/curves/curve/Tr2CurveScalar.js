@@ -1,7 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\Curves\Tr2CurveScalar.h
 // Source: E:\carbonengine\trinity\trinity\Curves\Tr2CurveScalar.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { num } from "@carbonenginejs/runtime-utils/num";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalarKey } from "../key/Tr2CurveScalarKey.js";
@@ -181,12 +181,12 @@ export class Tr2CurveScalar extends CjsModel
 
   @io.persist
   @type.uint32
-  @schema.enum("Tr2CurveExtrapolation")
+  @type.enum("Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
   @io.persist
   @type.uint32
-  @schema.enum("Tr2CurveExtrapolation")
+  @type.enum("Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
   #lastSegment = 0;

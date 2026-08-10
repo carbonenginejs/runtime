@@ -1,6 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPTaaEffect.h
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPTaaEffect.cpp
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
@@ -14,12 +14,12 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
 
   @io.readwrite
   @type.int32
-  @schema.enum("Debug")
+  @type.enum("Debug")
   debug = Tr2PPTaaEffect.TAA_DEBUG_OFF;
 
   @io.readwrite
   @type.int32
-  @schema.enum("Quality")
+  @type.enum("Quality")
   quality = Tr2PPTaaEffect.TAA_HIGH;
 
   @io.readwrite

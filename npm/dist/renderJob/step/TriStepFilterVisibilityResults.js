@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_eventFilter, _init_extra_eventFilter, _init_filterType, _init_extra_filterType, _init_inputResults, _init_extra_inputResults, _init_objects, _init_extra_objects, _init_outputResults, _init_extra_outputResults;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "TriStepFilterVisibilityResults",
         family: "renderJob"
-      })], [[[io, io.persist, type, type.uint32], 16, "eventFilter"], [[io, io.persist, type, type.int32, void 0, schema.enum("FilterType")], 16, "filterType"], [[io, io.persist, void 0, type.model("Tr2VisibilityResults")], 16, "inputResults"], [[io, io.persist, void 0, type.list("IRoot")], 16, "objects"], [[io, io.persist, void 0, type.model("Tr2VisibilityResults")], 16, "outputResults"], [[carbon, carbon.method, impl, impl.implemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.adapted], 18, "Execute"]], 0, void 0, _TriRenderStep));
+      })], [[[io, io.persist, type, type.uint32], 16, "eventFilter"], [[io, io.persist, type, type.int32, void 0, type.enum("FilterType")], 16, "filterType"], [[io, io.persist, void 0, type.model("Tr2VisibilityResults")], 16, "inputResults"], [[io, io.persist, void 0, type.list("IRoot")], 16, "objects"], [[io, io.persist, void 0, type.model("Tr2VisibilityResults")], 16, "outputResults"], [[carbon, carbon.method, impl, impl.implemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.adapted], 18, "Execute"]], 0, void 0, _TriRenderStep));
     }
     constructor(...args) {
       super(...args);

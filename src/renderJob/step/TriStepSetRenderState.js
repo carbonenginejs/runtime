@@ -1,6 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriStepSetRenderState.cpp
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriStepSetRenderState_Blue.cpp
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderState } from "@carbonenginejs/runtime-utils/render-context";
@@ -15,7 +15,7 @@ export class TriStepSetRenderState extends TriRenderStep
 {
   @io.persist
   @type.int32
-  @schema.enum("RenderState")
+  @type.enum("RenderState")
   state = 0;
 
   @io.persist

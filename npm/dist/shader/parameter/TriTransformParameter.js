@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -19,7 +19,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "TriTransformParameter",
         family: "shader"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("TRITRANSFORMBASE")], 16, "transformBase"], [[io, io.persist, type, type.vec3], 16, "rotationCenter"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.mat4], 16, "worldTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetHashValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "CopyValueToEffect"]], 0, void 0, CjsParameter));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("TRITRANSFORMBASE")], 16, "transformBase"], [[io, io.persist, type, type.vec3], 16, "rotationCenter"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.mat4], 16, "worldTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetHashValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "CopyValueToEffect"]], 0, void 0, CjsParameter));
     }
     constructor(...args) {
       super(...args);

@@ -1,7 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\Curves\TriEventCurve.h
 // Source: E:\carbonengine\trinity\trinity\Curves\TriEventCurve.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TRIEXTRAPOLATION } from "../enums.js";
 import { TriEventKey } from "../key/TriEventKey.js";
 
@@ -65,7 +65,7 @@ export class TriEventCurve extends CjsModel
 
   @io.persist
   @type.int32
-  @schema.enum("TRIEXTRAPOLATION")
+  @type.enum("TRIEXTRAPOLATION")
   extrapolation = TRIEXTRAPOLATION.NONE;
 
   @io.persist

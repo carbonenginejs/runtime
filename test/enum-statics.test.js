@@ -1,4 +1,4 @@
-// Enum drift check: every @schema.enum("X") field must resolve its member map
+// Enum drift check: every @type.enum("X") field must resolve its member map
 // through the owning class's PascalCase static `Constructor.X` (own or
 // inherited). Known deferred gaps are allowlisted below; growing that list is
 // a regression, shrinking it should update the list.
@@ -6,12 +6,12 @@ import test from "node:test";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import * as trinity from "../npm/dist/index.js";
 
-// All @schema.enum fields now resolve a class-static member map: trinity-owned
+// All @type.enum fields now resolve a class-static member map: trinity-owned
 // enums inline, global graphics/device/render-context vocabulary aliased from
 // @carbonenginejs/runtime-utils. The allowlist is intentionally empty.
 const KNOWN_GAPS = new Set([]);
 
-test("every @schema.enum field resolves a class-static member map or is a known gap", () =>
+test("every @type.enum field resolves a class-static member map or is a known gap", () =>
 {
   const seen = new Set();
   const gaps = [];

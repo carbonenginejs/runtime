@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
@@ -112,13 +112,13 @@ export class EveChildCloud2 extends EveEntity
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("ReflectionMode")
+  @type.enum("ReflectionMode")
   reflectionMode = 0;
 
   /** m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("Tr2VolumerticQuality")
+  @type.enum("Tr2VolumerticQuality")
   minVisibleQuality = 0;
 
   /** m_sortingModifier (float) [READWRITE, PERSIST] */

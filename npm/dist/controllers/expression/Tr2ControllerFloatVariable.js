@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Type } from '../enums.js';
 
 let _initProto, _initClass, _init_variableType, _init_extra_variableType, _init_enumValues, _init_extra_enumValues, _init_value, _init_extra_value, _init_defaultValue, _init_extra_defaultValue, _init_name, _init_extra_name;
@@ -20,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ControllerFloatVariable",
         family: "controllers"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Type")], 16, "variableType"], [[io, io.persist, type, type.string], 16, "enumValues"], [[io, io.notify, io, io.always, io, io.readwrite, type, type.float32], 16, "value"], [[io, io.persist, type, type.float32], 16, "defaultValue"], [[io, io.persist, type, type.string], 16, "name"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDestinationBuffer"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDirtyMask"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Type")], 16, "variableType"], [[io, io.persist, type, type.string], 16, "enumValues"], [[io, io.notify, io, io.always, io, io.readwrite, type, type.float32], 16, "value"], [[io, io.persist, type, type.float32], 16, "defaultValue"], [[io, io.persist, type, type.string], 16, "name"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDestinationBuffer"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDirtyMask"]], 0, void 0, CjsModel));
     }
     variableType = (_initProto(this), _init_variableType(this, Type.FLOAT));
     enumValues = (_init_extra_variableType(this), _init_enumValues(this, ""));

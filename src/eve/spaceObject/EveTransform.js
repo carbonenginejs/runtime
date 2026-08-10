@@ -5,7 +5,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { Tr2Transform } from "../../generated/trinityCore/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -58,7 +58,7 @@ export class EveTransform extends Tr2Transform
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
   @io.read
   @type.int32
-  @schema.enum("Tr2Lod")
+  @type.enum("Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_LOW;
 
   /** m_hideOnLowQuality (bool) [READWRITE, PERSIST] */

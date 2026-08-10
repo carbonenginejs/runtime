@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
@@ -20,7 +20,7 @@ export class EveChildParticleSystem extends EveChildTransform
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("ReflectionMode")
+  @type.enum("ReflectionMode")
   reflectionMode = 3;
 
   /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */

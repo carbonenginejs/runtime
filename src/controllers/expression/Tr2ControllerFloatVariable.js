@@ -1,7 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\Controllers\Tr2ControllerFloatVariable.h
 // Source: E:\carbonengine\trinity\trinity\Controllers\Tr2ControllerFloatVariable.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Type } from "../enums.js";
 
 
@@ -18,7 +18,7 @@ export class Tr2ControllerFloatVariable extends CjsModel
 {
   @io.persist
   @type.int32
-  @schema.enum("Type")
+  @type.enum("Type")
   variableType = Type.FLOAT;
 
   @io.persist

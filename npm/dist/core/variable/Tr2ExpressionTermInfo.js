@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
 let _initProto, _initClass, _init_type, _init_extra_type, _init_category, _init_extra_category, _init_name, _init_extra_name, _init_description, _init_extra_description, _create;
 const TermType = Object.freeze({
@@ -23,7 +23,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ExpressionTermInfo",
         family: "trinityCore"
-      })], [[[io, io.readwrite, type, type.int32, void 0, schema.enum("TermType")], 16, "type"], [[io, io.readwrite, type, type.string], 16, "category"], [[io, io.readwrite, type, type.string], 16, "name"], [[io, io.readwrite, type, type.string], 16, "description"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetArguments"]], 0, void 0, CjsModel));
+      })], [[[io, io.readwrite, type, type.int32, void 0, type.enum("TermType")], 16, "type"], [[io, io.readwrite, type, type.string], 16, "category"], [[io, io.readwrite, type, type.string], 16, "name"], [[io, io.readwrite, type, type.string], 16, "description"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetArguments"]], 0, void 0, CjsModel));
       _create = function (termType, category, name, args, description) {
         const term = new _Tr2ExpressionTermInf();
         term.type = termType;

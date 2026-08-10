@@ -6,7 +6,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -36,7 +36,7 @@ export class EveEffectRoot2 extends EveEntity
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
   @io.read
   @type.int32
-  @schema.enum("Tr2Lod")
+  @type.enum("Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_HIGH;
 
   /** m_mute (bool) [READWRITE, NOTIFY] */

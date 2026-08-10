@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { PixelFormat, TextureType } from '@carbonenginejs/runtime-utils/render-context';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2RenderTarget",
         family: "trinityCore"
-      })], [[[io, io.persistOnly, type, type.string], 16, "name"], [[io, io.read, type, type.uint32], 16, "width"], [[io, io.read, type, type.uint32], 16, "height"], [[io, io.read, type, type.uint32], 16, "arraySize"], [[io, io.read, type, type.uint32], 16, "mipCount"], [[io, io.read, type, type.uint32], 16, "multiSampleType"], [[io, io.read, type, type.uint32], 16, "multiSampleQuality"], [[io, io.read, type, type.int32, void 0, schema.enum("PixelFormat")], 16, "format"], [[io, io.read, type, type.int32, void 0, schema.enum("TextureType")], 16, "type"], [[io, io.read, type, type.boolean], 16, "isValid"], [[io, io.read, type, type.boolean], 16, "isReadable"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "Create"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "CreateArray"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GenerateMipMaps"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "Resolve"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "HasALObject"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "sharedHandle"]], 0, void 0, CjsModel));
+      })], [[[io, io.persistOnly, type, type.string], 16, "name"], [[io, io.read, type, type.uint32], 16, "width"], [[io, io.read, type, type.uint32], 16, "height"], [[io, io.read, type, type.uint32], 16, "arraySize"], [[io, io.read, type, type.uint32], 16, "mipCount"], [[io, io.read, type, type.uint32], 16, "multiSampleType"], [[io, io.read, type, type.uint32], 16, "multiSampleQuality"], [[io, io.read, type, type.int32, void 0, type.enum("PixelFormat")], 16, "format"], [[io, io.read, type, type.int32, void 0, type.enum("TextureType")], 16, "type"], [[io, io.read, type, type.boolean], 16, "isValid"], [[io, io.read, type, type.boolean], 16, "isReadable"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "Create"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "CreateArray"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "GenerateMipMaps"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "Resolve"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "HasALObject"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "sharedHandle"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

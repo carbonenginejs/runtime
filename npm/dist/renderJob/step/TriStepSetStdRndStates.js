@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { TriRenderJob as _TriRenderJob } from '../TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
@@ -20,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "TriStepSetStdRndStates",
         family: "renderJob"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("RenderingMode")], 16, "renderingMode"], [[carbon, carbon.method, impl, impl.adapted], 18, "__init__"], [[carbon, carbon.method, impl, impl.implemented], 18, "Execute"]], 0, void 0, _TriRenderStep));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("RenderingMode")], 16, "renderingMode"], [[carbon, carbon.method, impl, impl.adapted], 18, "__init__"], [[carbon, carbon.method, impl, impl.implemented], 18, "Execute"]], 0, void 0, _TriRenderStep));
     }
     constructor(...args) {
       super(...args);

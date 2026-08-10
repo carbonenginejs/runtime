@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
@@ -18,7 +18,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2Transform",
         family: "trinityCore"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Tr2TransformModifier")], 16, "modifier"], [[io, io.read, type, type.mat4], 16, "localTransform"], [[io, io.read, type, type.mat4], 16, "worldTransform"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.float32], 16, "distanceBasedScaleArg1"], [[io, io.persist, type, type.float32], 16, "distanceBasedScaleArg2"], [[io, io.persist, void 0, type.model("Tr2MeshBase")], 16, "mesh"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, type, type.boolean], 16, "useDistanceBasedScale"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.persist, type, type.float32], 16, "sortValueMultiplier"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Tr2TransformModifier")], 16, "modifier"], [[io, io.read, type, type.mat4], 16, "localTransform"], [[io, io.read, type, type.mat4], 16, "worldTransform"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.float32], 16, "distanceBasedScaleArg1"], [[io, io.persist, type, type.float32], 16, "distanceBasedScaleArg2"], [[io, io.persist, void 0, type.model("Tr2MeshBase")], 16, "mesh"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, type, type.boolean], 16, "useDistanceBasedScale"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.persist, type, type.float32], 16, "sortValueMultiplier"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

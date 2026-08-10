@@ -4,7 +4,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { type } from "@carbonenginejs/runtime-utils/schema";
 
 
 /**
@@ -74,7 +74,7 @@ export class CjsLightData extends CjsModel
   startTime = 0;
 
   @type.int32
-  @schema.enum("PerLightShadowSetting")
+  @type.enum("PerLightShadowSetting")
   castsShadows = 0;
 
   @type.boolean

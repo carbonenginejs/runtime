@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_dimension, _init_extra_dimension, _init_usageIndex, _init_extra_usageIndex, _init_bufferType, _init_extra_bufferType, _init_offset, _init_extra_offset, _init_none, _init_extra_none;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ParticleElementData",
         family: "particle"
-      })], [[[type, type.uint32], 16, "dimension"], [[type, type.uint32], 16, "usageIndex"], [[type, type.int32, void 0, schema.enum("BufferType")], 16, "bufferType"], [[type, type.uint32], 16, "offset"], [type.rawStruct("Tr2ParticleElementData"), 0, "none"]], 0, void 0, CjsModel));
+      })], [[[type, type.uint32], 16, "dimension"], [[type, type.uint32], 16, "usageIndex"], [[type, type.int32, void 0, type.enum("BufferType")], 16, "bufferType"], [[type, type.uint32], 16, "offset"], [type.rawStruct("Tr2ParticleElementData"), 0, "none"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

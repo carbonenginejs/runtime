@@ -3,7 +3,7 @@
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { carbon, impl, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
@@ -59,7 +59,7 @@ export class Tr2Light extends CjsModel
   lightProfilePath = "";
 
   @type.int32
-  @schema.enum("LIGHT_TYPE")
+  @type.enum("LIGHT_TYPE")
   type = Tr2Light.UNDEFINED_LIGHT;
 
   // Compat view over the flattened light fields (2026-07-23 flatten

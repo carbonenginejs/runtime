@@ -7,7 +7,7 @@ import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { EveChildInheritProperties } from "./EveChildInheritProperties.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -38,7 +38,7 @@ export class EveChildContainer extends EveChildTransform
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("DisplayQualityModifier")
+  @type.enum("DisplayQualityModifier")
   displayFilter = 5;
 
   @io.persist
@@ -143,7 +143,7 @@ export class EveChildContainer extends EveChildTransform
 
   @io.persist
   @type.int32
-  @schema.enum("Origin")
+  @type.enum("Origin")
   origin = 0;
 
   @io.persist

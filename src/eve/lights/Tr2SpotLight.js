@@ -3,7 +3,7 @@
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
 // attributes are real decorated fields here, verified against
 // lights/Tr2SpotLight.json (tools-core schema build).
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
@@ -40,7 +40,7 @@ export class Tr2SpotLight extends Tr2Light
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("PerLightShadowSetting")
+  @type.enum("PerLightShadowSetting")
   castsShadows = 0;
 
   /** m_lightData.flags (uint16_t) [READWRITE, PERSIST] */

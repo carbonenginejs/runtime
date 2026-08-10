@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2RenderContext as _Tr2RenderContext } from '../core/context/Tr2RenderContext.js';
 import { TriRenderStep as _TriRenderStep } from './step/TriRenderStep.js';
 
@@ -20,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "TriRenderJob",
         family: "renderJob"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("TriRenderJobStatus")], 16, "status"], [[io, io.persist, type, type.boolean], 16, "stackGuard"], [[io, io.persist, type, type.boolean], 16, "enabled"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("TriRenderStep")], 16, "steps"], [[carbon, carbon.method, impl, impl.adapted], 18, "Run"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("TriRenderJobStatus")], 16, "status"], [[io, io.persist, type, type.boolean], 16, "stackGuard"], [[io, io.persist, type, type.boolean], 16, "enabled"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("TriRenderStep")], 16, "steps"], [[carbon, carbon.method, impl, impl.adapted], 18, "Run"]], 0, void 0, CjsModel));
     }
     status = (_initProto(this), _init_status(this, _TriRenderJob.Status.RJ_INIT));
     stackGuard = (_init_extra_status(this), _init_stackGuard(this, true));

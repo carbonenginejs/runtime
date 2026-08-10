@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_pickState, _init_extra_pickState, _init_isDirty, _init_extra_isDirty, _init_displayHeight, _init_extra_displayHeight, _init_pickingMask, _init_extra_pickingMask, _init_name, _init_extra_name, _init_auxMouseover, _init_extra_auxMouseover, _init_displayWidth, _init_extra_displayWidth, _init_displayX, _init_extra_displayX, _init_displayY, _init_extra_displayY;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2SpriteObjectBase",
         family: "sprite2d"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Tr2SpriteObjectPickState")], 16, "pickState"], [[io, io.readwrite, type, type.boolean], 16, "isDirty"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayHeight"], [[io, io.readwrite, void 0, type.objectRef("Tr2Sprite2dPickingMask")], 16, "pickingMask"], [[io, io.readwrite, type, type.string], 16, "name"], [[io, io.read, void 0, type.objectRef("ITr2SpriteObject")], 16, "auxMouseover"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayWidth"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayX"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayY"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDirty"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Tr2SpriteObjectPickState")], 16, "pickState"], [[io, io.readwrite, type, type.boolean], 16, "isDirty"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayHeight"], [[io, io.readwrite, void 0, type.objectRef("Tr2Sprite2dPickingMask")], 16, "pickingMask"], [[io, io.readwrite, type, type.string], 16, "name"], [[io, io.read, void 0, type.objectRef("ITr2SpriteObject")], 16, "auxMouseover"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayWidth"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayX"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "displayY"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDirty"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\TriSequencer.cpp
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriOperator } from "@carbonenginejs/runtime-utils/graphics";
 
 
@@ -16,7 +16,7 @@ export class TriColorSequencer extends CjsModel
 {
   @io.persist
   @type.int32
-  @schema.enum("TRIOPERATOR")
+  @type.enum("TRIOPERATOR")
   operator = TriOperator.TRIOP_MULTIPLY;
 
   @io.persist

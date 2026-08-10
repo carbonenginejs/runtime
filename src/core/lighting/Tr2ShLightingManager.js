@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
@@ -90,7 +90,7 @@ export class Tr2ShLightingManager extends CjsModel
   /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("Quality")
+  @type.enum("Quality")
   quality = 1;
 
   /** m_lights (PTr2PointLightVector) [READ, PERSIST] */

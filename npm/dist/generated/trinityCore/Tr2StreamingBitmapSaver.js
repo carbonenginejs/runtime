@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { PixelFormat } from '@carbonenginejs/runtime-utils/render-context';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2StreamingBitmapSaver",
         family: "trinityCore"
-      })], [[[io, io.read, type, type.uint32], 16, "currentOffset"], [[io, io.read, type, type.uint32], 16, "height"], [[io, io.read, type, type.int32, void 0, schema.enum("PixelFormat")], 16, "format"], [[io, io.read, type, type.uint32], 16, "width"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "CopyFromRenderTargetRegion"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "EndSaving"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "FlushBatch"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "StartBatch"]], 0, void 0, CjsModel));
+      })], [[[io, io.read, type, type.uint32], 16, "currentOffset"], [[io, io.read, type, type.uint32], 16, "height"], [[io, io.read, type, type.int32, void 0, type.enum("PixelFormat")], 16, "format"], [[io, io.read, type, type.uint32], 16, "width"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "CopyFromRenderTargetRegion"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "EndSaving"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "FlushBatch"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "StartBatch"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

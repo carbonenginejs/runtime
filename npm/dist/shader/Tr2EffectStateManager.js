@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { RenderingMode } from '../generated/shader/enums.js';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2EffectStateManager",
         family: "shader"
-      })], [[type.rawStruct("Tr2RenderContext"), 0, "renderContext"], [type.rawStruct("Tr2ConstantBufferAL"), 0, "perObjectConstantBuffers"], [[type, type.uint32], 16, "shaderProgram"], [[type, type.uint32], 16, "vertexDeclaration"], [type.rawStruct("Tr2BufferAL"), 0, "vertexBuffer"], [[type, type.uint32], 16, "offset"], [[type, type.uint32], 16, "stride"], [type.rawStruct("HalStream"), 0, "streams"], [type.rawStruct("Tr2BufferAL"), 0, "indexBuffer"], [[type, type.uint32], 16, "indexStride"], [[type, type.int32, void 0, schema.enum("RenderingMode")], 16, "renderingMode"], [[type, type.uint32], 16, "renderStateSetup"], [type.rawStruct("CurrentValues"), 0, "currentValues"], [[type, type.boolean], 16, "isManagedRendering"], [type.list("uint32_t"), 0, "states"], [[type, type.boolean], 16, "dirty"], [type.list("RenderStates"), 0, "renderStates"], [type.objectRef("uint32_t"), 0, "renderStateOverrides"], [[type, type.int32], 16, "renderTargetWidth"], [[type, type.int32], 16, "renderTargetHeight"], [type.rawStruct("CTriViewport"), 0, "viewport"], [type.rawStruct("Tr2Viewport"), 0, "viewportOnDevice"], [type.rawStruct("std::list<CTriViewport>"), 0, "viewportStack"], [type.rawStruct("Tr2Variable"), 0, "viewportSizeVar"]], 0, void 0, CjsModel));
+      })], [[type.rawStruct("Tr2RenderContext"), 0, "renderContext"], [type.rawStruct("Tr2ConstantBufferAL"), 0, "perObjectConstantBuffers"], [[type, type.uint32], 16, "shaderProgram"], [[type, type.uint32], 16, "vertexDeclaration"], [type.rawStruct("Tr2BufferAL"), 0, "vertexBuffer"], [[type, type.uint32], 16, "offset"], [[type, type.uint32], 16, "stride"], [type.rawStruct("HalStream"), 0, "streams"], [type.rawStruct("Tr2BufferAL"), 0, "indexBuffer"], [[type, type.uint32], 16, "indexStride"], [[type, type.int32, void 0, type.enum("RenderingMode")], 16, "renderingMode"], [[type, type.uint32], 16, "renderStateSetup"], [type.rawStruct("CurrentValues"), 0, "currentValues"], [[type, type.boolean], 16, "isManagedRendering"], [type.list("uint32_t"), 0, "states"], [[type, type.boolean], 16, "dirty"], [type.list("RenderStates"), 0, "renderStates"], [type.objectRef("uint32_t"), 0, "renderStateOverrides"], [[type, type.int32], 16, "renderTargetWidth"], [[type, type.int32], 16, "renderTargetHeight"], [type.rawStruct("CTriViewport"), 0, "viewport"], [type.rawStruct("Tr2Viewport"), 0, "viewportOnDevice"], [type.rawStruct("std::list<CTriViewport>"), 0, "viewportStack"], [type.rawStruct("Tr2Variable"), 0, "viewportSizeVar"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

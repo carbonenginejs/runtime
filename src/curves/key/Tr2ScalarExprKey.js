@@ -1,7 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\Curves\Tr2ScalarExprKeyCurve.h
 // Source: E:\carbonengine\trinity\trinity\Curves\Tr2ScalarExprKeyCurve.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { noise } from "@carbonenginejs/runtime-utils/noise";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 import { Tr2CurveInterpolation } from "../enums.js";
@@ -20,7 +20,7 @@ export class Tr2ScalarExprKey extends CjsModel
 {
   @io.persist
   @type.uint32
-  @schema.enum("Tr2CurveInterpolation")
+  @type.enum("Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   @io.notify

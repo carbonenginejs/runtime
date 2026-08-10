@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { TunnelGroupType } from "./enums.js";
@@ -41,7 +41,7 @@ export class FollowASpline extends CjsModel
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("TunnelGroupType")
+  @type.enum("TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST] */

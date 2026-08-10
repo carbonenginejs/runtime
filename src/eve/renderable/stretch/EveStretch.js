@@ -4,7 +4,7 @@ import { Tr2Lod } from "@carbonenginejs/runtime-utils/const/trinity";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -37,7 +37,7 @@ export class EveStretch extends EveEntity
   @io.persist @type.model("ITriVectorFunction") source = null;
   @io.persist @type.model("ITriVectorFunction") dest = null;
   @io.persist @type.model("IStretchAudio") stretchAudio = null;
-  @io.read @type.int32 @schema.enum("Tr2Lod") lodLevel = 0;
+  @io.read @type.int32 @type.enum("Tr2Lod") lodLevel = 0;
   @io.persist @type.model("ITriScalarFunction") progressCurve = null;
   @io.persist @type.model("TriCurveSet") moveCompletion = null;
   @io.persist @type.list("TriCurveSet") curveSets = [];

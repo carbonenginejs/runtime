@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
@@ -17,7 +17,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveConnector",
         family: "eve/ui"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ConnectorType")], 16, "type"], [[io, io.persist, type, type.color], 16, "color"], [[io, io.persist, type, type.float32], 16, "lineWidth"], [[io, io.persist, type, type.color], 16, "animationColor"], [[io, io.persist, type, type.float32], 16, "animationScale"], [[io, io.persist, type, type.float32], 16, "animationSpeed"], [[io, io.persist, type, type.boolean], 16, "isAnimated"], [[io, io.persist, type, type.boolean], 16, "autoScaleAnimation"], [[io, io.persist, type, type.vec3], 16, "destPosition"], [[io, io.persist, type, type.vec3], 16, "sourcePosition"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "destObject"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "sourceObject"], [[io, io.persist, type, type.vec3], 16, "planeNormal"], [[io, io.persist, type, type.float32], 16, "length"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("ConnectorType")], 16, "type"], [[io, io.persist, type, type.color], 16, "color"], [[io, io.persist, type, type.float32], 16, "lineWidth"], [[io, io.persist, type, type.color], 16, "animationColor"], [[io, io.persist, type, type.float32], 16, "animationScale"], [[io, io.persist, type, type.float32], 16, "animationSpeed"], [[io, io.persist, type, type.boolean], 16, "isAnimated"], [[io, io.persist, type, type.boolean], 16, "autoScaleAnimation"], [[io, io.persist, type, type.vec3], 16, "destPosition"], [[io, io.persist, type, type.vec3], 16, "sourcePosition"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "destObject"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "sourceObject"], [[io, io.persist, type, type.vec3], 16, "planeNormal"], [[io, io.persist, type, type.float32], 16, "length"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

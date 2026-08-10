@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Tr2ExpressionTermInfo.cpp
 // Source: E:\carbonengine\trinity\trinity\Tr2ExpressionTermInfo_Blue.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
 const TermType = Object.freeze({
@@ -24,7 +24,7 @@ export class Tr2ExpressionTermInfo extends CjsModel
 {
   @io.readwrite
   @type.int32
-  @schema.enum("TermType")
+  @type.enum("TermType")
   type = TermType.VARIABLE;
 
   @io.readwrite

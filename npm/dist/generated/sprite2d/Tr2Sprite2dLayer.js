@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2Sprite2dContainer as _Tr2Sprite2dContainer } from './Tr2Sprite2dContainer.js';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2Sprite2dLayer",
         family: "sprite2d"
-      })], [[[io, io.notify, io, io.readwrite, type, type.int32, void 0, schema.enum("Tr2SpriteObjectBlendMode")], 16, "blendMode"], [[io, io.notify, io, io.readwrite, type, type.int32, void 0, schema.enum("Tr2SpriteObjectEffect")], 16, "spriteEffect"], [[io, io.notify, io, io.persist, type, type.color], 16, "backgroundColor"], [[io, io.notify, io, io.persist, type, type.color], 16, "color"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "clearBackground"]], 0, void 0, _Tr2Sprite2dContainer));
+      })], [[[io, io.notify, io, io.readwrite, type, type.int32, void 0, type.enum("Tr2SpriteObjectBlendMode")], 16, "blendMode"], [[io, io.notify, io, io.readwrite, type, type.int32, void 0, type.enum("Tr2SpriteObjectEffect")], 16, "spriteEffect"], [[io, io.notify, io, io.persist, type, type.color], 16, "backgroundColor"], [[io, io.notify, io, io.persist, type, type.color], 16, "color"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "clearBackground"]], 0, void 0, _Tr2Sprite2dContainer));
     }
     constructor(...args) {
       super(...args);

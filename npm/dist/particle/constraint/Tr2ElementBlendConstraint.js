@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from '../element/Tr2ParticleElementDeclaration.js';
@@ -17,7 +17,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ElementBlendConstraint",
         family: "particle"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Type")], 16, "elementType"], [[io, io.persist, type, type.string], 16, "customName"], [[io, io.persist, type, type.vec4], 16, "value"], [[io, io.persist, type, type.float32], 16, "originalFactor"], [[io, io.read, type, type.boolean], 16, "isValid"], [[impl, impl.implemented], 18, "Bind"], [[impl, impl.implemented], 18, "ApplyConstraint"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Type")], 16, "elementType"], [[io, io.persist, type, type.string], 16, "customName"], [[io, io.persist, type, type.vec4], 16, "value"], [[io, io.persist, type, type.float32], 16, "originalFactor"], [[io, io.read, type, type.boolean], 16, "isValid"], [[impl, impl.implemented], 18, "Bind"], [[impl, impl.implemented], 18, "ApplyConstraint"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

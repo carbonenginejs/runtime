@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2PrimitiveText",
         family: "trinityCore"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("TriDebugFont")], 16, "font"], [[io, io.persist, type, type.string], 16, "text"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.vec3], 16, "position"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("TriDebugFont")], 16, "font"], [[io, io.persist, type, type.string], 16, "text"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.vec3], 16, "position"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

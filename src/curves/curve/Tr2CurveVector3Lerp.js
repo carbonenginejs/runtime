@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Curves\Tr2CurveVector3Lerp.cpp
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
 
 
@@ -35,7 +35,7 @@ export class Tr2CurveVector3Lerp extends CjsModel
 
   @io.readwrite
   @type.uint32
-  @schema.enum("Tr2CurveVector3LerpKeyInterpolation")
+  @type.enum("Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;
 
   @io.persist

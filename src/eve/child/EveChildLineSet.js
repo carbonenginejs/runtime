@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
@@ -14,7 +14,7 @@ export class EveChildLineSet extends EveChildTransform
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("lineSetType")
+  @type.enum("lineSetType")
   renderType = 1;
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */

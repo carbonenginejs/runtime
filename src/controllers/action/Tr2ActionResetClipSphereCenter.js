@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Controllers\Actions\Tr2ActionResetClipSphereCenter.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { isArrayLike } from "@carbonenginejs/runtime-utils/is";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { ResetBehavior } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -21,7 +21,7 @@ export class Tr2ActionResetClipSphereCenter extends CjsModel
 {
   @io.persist
   @type.int32
-  @schema.enum("ResetBehavior")
+  @type.enum("ResetBehavior")
   resetBehavior = ResetBehavior.OBJECT_CENTER;
 
   @io.persist

@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Tr2RenderTarget.h
 // Hand-maintained from Carbon source; Trinity owns the graph class and engines realize live state.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { PixelFormat, TextureType } from "@carbonenginejs/runtime-utils/render-context";
 
@@ -41,12 +41,12 @@ export class Tr2RenderTarget extends CjsModel
 
   @io.read
   @type.int32
-  @schema.enum("PixelFormat")
+  @type.enum("PixelFormat")
   format = 0;
 
   @io.read
   @type.int32
-  @schema.enum("TextureType")
+  @type.enum("TextureType")
   type = 6;
 
   @io.read

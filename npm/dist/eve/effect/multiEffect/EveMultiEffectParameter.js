@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveEffectRoot2 as _EveEffectRoot } from '../../spaceObject/EveEffectRoot2.js';
 import { EveSpaceObject2 as _EveSpaceObject } from '../../spaceObject/EveSpaceObject2.js';
 
@@ -20,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveMultiEffectParameter",
         family: "eve/effect"
-      })], [[[io, io.readwrite, type, type.int32, void 0, schema.enum("ParameterType")], 16, "type"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("IRoot")], 16, "object"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetParameterObject"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon BlueCast checks map to JavaScript instanceof checks against the maintained runtime classes.")], 18, "IsValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetOwner"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The runtime settle hook receives the completed model update rather than Carbon's Be::Var pointer; object is the only notifying field.")], 18, "OnModified"]], 0, void 0, CjsModel));
+      })], [[[io, io.readwrite, type, type.int32, void 0, type.enum("ParameterType")], 16, "type"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("IRoot")], 16, "object"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetParameterObject"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon BlueCast checks map to JavaScript instanceof checks against the maintained runtime classes.")], 18, "IsValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetOwner"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterObject"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The runtime settle hook receives the completed model update rather than Carbon's Be::Var pointer; object is the only notifying field.")], 18, "OnModified"]], 0, void 0, CjsModel));
     }
     type = (_initProto(this), _init_type(this, 3));
     name = (_init_extra_type(this), _init_name(this, ""));

@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { PlaneType } from "./enums.js";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
@@ -62,7 +62,7 @@ export class EveKDdroneManagementTree extends CjsModel
 
   /** planeType (PlaneType - enum PlaneType) */
   @type.int32
-  @schema.enum("PlaneType")
+  @type.enum("PlaneType")
   planeType = 0;
 
   /** b (int) */

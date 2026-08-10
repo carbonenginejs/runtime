@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that filters one visibility-result set into another by event and object filter. */
@@ -17,7 +17,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   /** m_filterType (FilterType - enum FilterType) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("FilterType")
+  @type.enum("FilterType")
   filterType = 1;
 
   /** m_inputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */

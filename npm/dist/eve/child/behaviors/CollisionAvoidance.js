@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { ProcessPriority } from './enums.js';
@@ -24,7 +24,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "CollisionAvoidance",
         family: "eve/child/behaviors"
-      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, schema.enum("ProcessPriority")], 16, "behaviorPriority"], [[io, io.persist, void 0, type.list("IEveVolume")], 16, "exclusionVolumes"], [[io, io.persist, type, type.float32], 16, "avoidanceScalar"], [[io, io.persist, type, type.boolean], 16, "enabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetProcessPriority"], [[carbon, carbon.method, impl, impl.implemented], 18, "CalculateBehavior"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")], 18, "GetDebugOptions"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("ITr2DebugRenderer2 is an injected engine-owned capability.")], 18, "RenderDebugInfo"]], 0, void 0, CjsModel));
+      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, type.enum("ProcessPriority")], 16, "behaviorPriority"], [[io, io.persist, void 0, type.list("IEveVolume")], 16, "exclusionVolumes"], [[io, io.persist, type, type.float32], 16, "avoidanceScalar"], [[io, io.persist, type, type.boolean], 16, "enabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetProcessPriority"], [[carbon, carbon.method, impl, impl.implemented], 18, "CalculateBehavior"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2DebugRendererOptions is represented by an injected Set-like option bag.")], 18, "GetDebugOptions"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("ITr2DebugRenderer2 is an injected engine-owned capability.")], 18, "RenderDebugInfo"]], 0, void 0, CjsModel));
     }
     /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
     behaviorPriority = (_initProto(this), _init_behaviorPriority(this, 0));

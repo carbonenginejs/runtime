@@ -5,7 +5,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec2 } from "@carbonenginejs/runtime-utils/vec2";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
 import { Tr2PPColorCorrectionEffect } from "./effect/Tr2PPColorCorrectionEffect.js";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
@@ -28,7 +28,7 @@ export class Tr2PostProcessAttributes extends CjsModel
 
   @io.persist
   @type.int32
-  @schema.enum("Priority")
+  @type.enum("Priority")
   priority = Tr2PostProcessAttributes.MEDIUM_PRIORITY;
 
   @io.read
@@ -425,7 +425,7 @@ export class Tr2PostProcessAttributes extends CjsModel
 
   @io.persist
   @type.int32
-  @schema.enum("Shape")
+  @type.enum("Shape")
   depthOfFieldShape = 0;
 
   @io.persist

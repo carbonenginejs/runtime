@@ -1,6 +1,6 @@
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriStepSetStandardRenderStates.h
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriStepSetStandardRenderStates.cpp
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -49,7 +49,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
 
   @io.persist
   @type.int32
-  @schema.enum("RenderingMode")
+  @type.enum("RenderingMode")
   renderingMode = TriStepSetStdRndStates.RM_OPAQUE;
 
   /**

@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2PPEffect as _Tr2PPEffect } from './Tr2PPEffect.js';
 
 let _initClass, _init_debug, _init_extra_debug, _init_quality, _init_extra_quality, _init_earlyOutThreshold, _init_extra_earlyOutThreshold;
@@ -18,7 +18,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2PPTaaEffect",
         family: "postProcess"
-      })], [[[io, io.readwrite, type, type.int32, void 0, schema.enum("Debug")], 16, "debug"], [[io, io.readwrite, type, type.int32, void 0, schema.enum("Quality")], 16, "quality"], [[io, io.readwrite, type, type.float32], 16, "earlyOutThreshold"]], 0, void 0, _Tr2PPEffect));
+      })], [[[io, io.readwrite, type, type.int32, void 0, type.enum("Debug")], 16, "debug"], [[io, io.readwrite, type, type.int32, void 0, type.enum("Quality")], 16, "quality"], [[io, io.readwrite, type, type.float32], 16, "earlyOutThreshold"]], 0, void 0, _Tr2PPEffect));
     }
     constructor(...args) {
       super(...args);

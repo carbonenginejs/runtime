@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
-import { type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_channel, _init_extra_channel, _init_finalize, _init_extra_finalize, _init_process, _init_extra_process, _init_type, _init_extra_type;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "BlurContext",
         family: "postProcess"
-      })], [[[type, type.int32, void 0, schema.enum("BlurChannel")], 16, "channel"], [[type, type.int32, void 0, schema.enum("BlurFinalize")], 16, "finalize"], [[type, type.int32, void 0, schema.enum("BlurProcess")], 16, "process"], [[type, type.int32, void 0, schema.enum("BlurType")], 16, "type"]], 0, void 0, CjsModel));
+      })], [[[type, type.int32, void 0, type.enum("BlurChannel")], 16, "channel"], [[type, type.int32, void 0, type.enum("BlurFinalize")], 16, "finalize"], [[type, type.int32, void 0, type.enum("BlurProcess")], 16, "process"], [[type, type.int32, void 0, type.enum("BlurType")], 16, "type"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

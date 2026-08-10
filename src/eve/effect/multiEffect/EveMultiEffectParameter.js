@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\EveMultiEffectParameter.cpp
 // Source: E:\carbonengine\trinity\trinity\Eve\EveMultiEffectParameter_Blue.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 
@@ -15,7 +15,7 @@ export class EveMultiEffectParameter extends CjsModel
 {
   @io.readwrite
   @type.int32
-  @schema.enum("ParameterType")
+  @type.enum("ParameterType")
   type = 3;
 
   @io.persist

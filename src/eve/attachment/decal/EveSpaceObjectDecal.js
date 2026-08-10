@@ -6,7 +6,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "../../../generated/trinityCore/enums.js";
 
@@ -37,7 +37,7 @@ export class EveSpaceObjectDecal extends CjsModel
 
   @io.read
   @type.int32
-  @schema.enum("TriBatchType")
+  @type.enum("TriBatchType")
   batchType = 1;
 
   @io.notify

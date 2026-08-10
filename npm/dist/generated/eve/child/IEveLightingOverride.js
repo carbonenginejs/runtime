@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_value, _init_extra_value, _init_sunIntensity, _init_extra_sunIntensity, _init_backgroundIntensity, _init_extra_backgroundIntensity, _init_reflectionIntensity, _init_extra_reflectionIntensity, _init_intensity, _init_extra_intensity, _init_priority, _init_extra_priority;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "IEveLightingOverride",
         family: "eve/child"
-      })], [[type.rawStruct("Overrides"), 0, "value"], [[type, type.float32], 16, "sunIntensity"], [[type, type.float32], 16, "backgroundIntensity"], [[type, type.float32], 16, "reflectionIntensity"], [[type, type.float32], 16, "intensity"], [[type, type.int32, void 0, schema.enum("Priority")], 16, "priority"]], 0, void 0, CjsModel));
+      })], [[type.rawStruct("Overrides"), 0, "value"], [[type, type.float32], 16, "sunIntensity"], [[type, type.float32], 16, "backgroundIntensity"], [[type, type.float32], 16, "reflectionIntensity"], [[type, type.float32], 16, "intensity"], [[type, type.int32, void 0, type.enum("Priority")], 16, "priority"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

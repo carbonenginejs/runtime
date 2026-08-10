@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclaration.json.).
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639.... */
@@ -12,7 +12,7 @@ export class Tr2ParticleElementDeclaration extends CjsModel
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("Type")
+  @type.enum("Type")
   elementType = 4;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */

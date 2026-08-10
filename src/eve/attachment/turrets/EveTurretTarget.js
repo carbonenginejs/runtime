@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\Turret\EveTurretTarget.cpp
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 
 
 /**
@@ -14,7 +14,7 @@ import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/sc
 export class EveTurretTarget extends CjsModel
 {
   @io.read @type.vec3 targetPosition = vec3.create();
-  @io.read @type.int32 @schema.enum("ImpactBehaviour") behaviour = 0;
+  @io.read @type.int32 @type.enum("ImpactBehaviour") behaviour = 0;
   @io.read @type.float32 positionOldInfluence = -1;
   @io.read @type.vec3 position = vec3.create();
   @io.read @type.vec3 positionOld = vec3.create();

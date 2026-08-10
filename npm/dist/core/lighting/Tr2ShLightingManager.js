@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
@@ -72,7 +72,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ShLightingManager",
         family: "trinityCore"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Quality")], 16, "quality"], [[io, io.persist, void 0, type.list("Tr2PointLight")], 16, "lights"], [[io, io.persist, type, type.float32], 16, "primaryIntensity"], [[io, io.persist, type, type.float32], 16, "secondaryIntensity"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterSecondaryLightSource"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnregisterSecondaryLightSource"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateWithDirectionalLight"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSourceData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLighting"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Quality")], 16, "quality"], [[io, io.persist, void 0, type.list("Tr2PointLight")], 16, "lights"], [[io, io.persist, type, type.float32], 16, "primaryIntensity"], [[io, io.persist, type, type.float32], 16, "secondaryIntensity"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterSecondaryLightSource"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnregisterSecondaryLightSource"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateWithDirectionalLight"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSourceData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLighting"]], 0, void 0, CjsModel));
     }
     /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */
     quality = (_initProto(this), _init_quality(this, 1));

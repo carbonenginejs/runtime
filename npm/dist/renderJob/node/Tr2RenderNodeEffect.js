@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_sources, _init_extra_sources, _init_renderingMode, _init_extra_renderingMode, _init_effect, _init_extra_effect, _init_viewport, _init_extra_viewport, _init_inputNodes, _init_extra_inputNodes;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2RenderNodeEffect",
         family: "renderJob"
-      })], [[type.list("Tr2RenderNodeEffectSource"), 0, "sources"], [[io, io.readwrite, type, type.int32, void 0, schema.enum("RenderingMode")], 16, "renderingMode"], [[io, io.readwrite, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.readwrite, void 0, type.objectRef("TriViewport")], 16, "viewport"], [[io, io.persist, void 0, type.list("ITr2RenderNode")], 16, "inputNodes"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddSource"]], 0, void 0, CjsModel));
+      })], [[type.list("Tr2RenderNodeEffectSource"), 0, "sources"], [[io, io.readwrite, type, type.int32, void 0, type.enum("RenderingMode")], 16, "renderingMode"], [[io, io.readwrite, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[io, io.readwrite, void 0, type.objectRef("TriViewport")], 16, "viewport"], [[io, io.persist, void 0, type.list("ITr2RenderNode")], 16, "inputNodes"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddSource"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

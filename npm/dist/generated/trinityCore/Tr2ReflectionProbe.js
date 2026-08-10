@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
@@ -17,7 +17,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ReflectionProbe",
         family: "trinityCore"
-      })], [[[io, io.notify, io, io.readwrite, type, type.int32, void 0, schema.enum("ReflectionProbeRenderFrequency")], 16, "renderFrequency"], [[io, io.read, type, type.uint8], 16, "currentFrame"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("ITriTextureRes")], 16, "customSourceTexture"], [[io, io.read, type, type.color], 16, "backlightColor"], [[io, io.read, type, type.float32], 16, "backlightContrast"], [[io, io.notify, io, io.readwrite, type, type.boolean], 16, "hollywoodMode"], [[io, io.read, void 0, type.objectRef("Tr2RenderTarget")], 16, "reflectionTexture"], [[io, io.notify, io, io.readwrite, type, type.boolean], 16, "hdrOutput"], [[io, io.readwrite, type, type.boolean], 16, "lockPosition"], [[io, io.readwrite, type, type.vec3], 16, "position"], [[io, io.notify, io, io.readwrite, type, type.int32], 16, "reflectionSize"], [[io, io.read, void 0, type.objectRef("Tr2RenderTarget")], 16, "unfilteredTexture"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RunFilter"]], 0, void 0, CjsModel));
+      })], [[[io, io.notify, io, io.readwrite, type, type.int32, void 0, type.enum("ReflectionProbeRenderFrequency")], 16, "renderFrequency"], [[io, io.read, type, type.uint8], 16, "currentFrame"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("ITriTextureRes")], 16, "customSourceTexture"], [[io, io.read, type, type.color], 16, "backlightColor"], [[io, io.read, type, type.float32], 16, "backlightContrast"], [[io, io.notify, io, io.readwrite, type, type.boolean], 16, "hollywoodMode"], [[io, io.read, void 0, type.objectRef("Tr2RenderTarget")], 16, "reflectionTexture"], [[io, io.notify, io, io.readwrite, type, type.boolean], 16, "hdrOutput"], [[io, io.readwrite, type, type.boolean], 16, "lockPosition"], [[io, io.readwrite, type, type.vec3], 16, "position"], [[io, io.notify, io, io.readwrite, type, type.int32], 16, "reflectionSize"], [[io, io.read, void 0, type.objectRef("Tr2RenderTarget")], 16, "unfilteredTexture"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RunFilter"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

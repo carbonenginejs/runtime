@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { PixelFormat } from '@carbonenginejs/runtime-utils/render-context';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2GpuBuffer",
         family: "trinityCore"
-      })], [[[io, io.notify, io, io.persist, type, type.uint32], 16, "creationFlags"], [[io, io.notify, io, io.persist, type, type.int32, void 0, schema.enum("PixelFormat")], 16, "format"], [[io, io.notify, io, io.persist, type, type.uint32], 16, "count"], [[io, io.read, type, type.boolean], 16, "isValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "DebugGetData"]], 0, void 0, CjsModel));
+      })], [[[io, io.notify, io, io.persist, type, type.uint32], 16, "creationFlags"], [[io, io.notify, io, io.persist, type, type.int32, void 0, type.enum("PixelFormat")], 16, "format"], [[io, io.notify, io, io.persist, type, type.uint32], 16, "count"], [[io, io.read, type, type.boolean], 16, "isValid"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "DebugGetData"]], 0, void 0, CjsModel));
     }
     /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
     creationFlags = (_initProto(this), _init_creationFlags(this, 0));

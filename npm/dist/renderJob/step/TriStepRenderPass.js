@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
 let _initProto, _initClass, _init_passType, _init_extra_passType, _init_scene, _init_extra_scene;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "TriStepRenderPass",
         family: "renderJob"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("PassType")], 16, "passType"], [[io, io.persist, void 0, type.model("ITr2MultiPassScene")], 16, "scene"], [[carbon, carbon.method, impl, impl.implemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.adapted], 18, "Execute"]], 0, void 0, _TriRenderStep));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("PassType")], 16, "passType"], [[io, io.persist, void 0, type.model("ITr2MultiPassScene")], 16, "scene"], [[carbon, carbon.method, impl, impl.implemented], 18, "__init__"], [[carbon, carbon.method, impl, impl.adapted], 18, "Execute"]], 0, void 0, _TriRenderStep));
     }
     constructor(...args) {
       super(...args);

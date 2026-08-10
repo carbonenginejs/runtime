@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_elementType, _init_extra_elementType, _init_customName, _init_extra_customName, _init_dimension, _init_extra_dimension, _init_usedByGPU, _init_extra_usedByGPU, _init_usageIndex, _init_extra_usageIndex;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ParticleElementDeclaration",
         family: "particle"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Type")], 16, "elementType"], [[io, io.persist, type, type.string], 16, "customName"], [[io, io.persist, type, type.uint32], 16, "dimension"], [[io, io.persist, type, type.boolean], 16, "usedByGPU"], [[io, io.persist, type, type.uint32], 16, "usageIndex"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Type")], 16, "elementType"], [[io, io.persist, type, type.string], 16, "customName"], [[io, io.persist, type, type.uint32], 16, "dimension"], [[io, io.persist, type, type.boolean], 16, "usedByGPU"], [[io, io.persist, type, type.uint32], 16, "usageIndex"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

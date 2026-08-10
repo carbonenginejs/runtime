@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/RenderJob/TriStepRenderPass.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that renders one named pass of a multi-pass scene. */
@@ -12,7 +12,7 @@ export class TriStepRenderPass extends TriRenderStep
   /** m_pass (ITr2MultiPassScene::PassType - enum PassType) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("PassType")
+  @type.enum("PassType")
   passType = 0;
 
   /** m_scene (ITr2MultiPassScenePtr) [READWRITE, PERSIST] */

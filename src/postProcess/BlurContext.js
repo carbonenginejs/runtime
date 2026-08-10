@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/BlurContext.json.).
-import { schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** BlurContext (postProcess) - generated from schema shapeHash 5d727dce.... */
@@ -11,22 +11,22 @@ export class BlurContext extends CjsModel
 
   /** channel (BlurChannel - enum BlurChannel) */
   @type.int32
-  @schema.enum("BlurChannel")
+  @type.enum("BlurChannel")
   channel = 4;
 
   /** finalize (BlurFinalize - enum BlurFinalize) */
   @type.int32
-  @schema.enum("BlurFinalize")
+  @type.enum("BlurFinalize")
   finalize = 0;
 
   /** process (BlurProcess - enum BlurProcess) */
   @type.int32
-  @schema.enum("BlurProcess")
+  @type.enum("BlurProcess")
   process = 0;
 
   /** type (BlurType - enum BlurType) */
   @type.int32
-  @schema.enum("BlurType")
+  @type.enum("BlurType")
   type = 0;
 
   /** Carbon BlurContext::Hash - the blur-variant cache key. */

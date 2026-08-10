@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Particle/Tr2ConsecutiveIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
@@ -19,7 +19,7 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends CjsModel
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("Type")
+  @type.enum("Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */

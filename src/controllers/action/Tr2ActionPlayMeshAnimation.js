@@ -1,7 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\Controllers\Actions\Tr2ActionPlayMeshAnimation.h
 // Source: E:\carbonengine\trinity\trinity\Controllers\Actions\Tr2ActionPlayMeshAnimation.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { DestinationType, PlayAction, StopAction } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
@@ -21,17 +21,17 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("DestinationType")
+  @type.enum("DestinationType")
   destinationType = DestinationType.OWNER;
 
   @io.persist
   @type.int32
-  @schema.enum("PlayAction")
+  @type.enum("PlayAction")
   playAction = PlayAction.ENQUEUE_PLAY;
 
   @io.persist
   @type.int32
-  @schema.enum("StopAction")
+  @type.enum("StopAction")
   stopAction = StopAction.ENQUEUE_STOP;
 
   @io.persist

@@ -7,7 +7,7 @@ import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -88,7 +88,7 @@ export class EveChildMesh extends EveChildTransform
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("ReflectionMode")
+  @type.enum("ReflectionMode")
   reflectionMode = 3;
 
   @io.persist
@@ -157,7 +157,7 @@ export class EveChildMesh extends EveChildTransform
 
   @io.persist
   @type.int32
-  @schema.enum("Tr2Lod")
+  @type.enum("Tr2Lod")
   lowestLodVisible = 0;
 
   @io.persist
@@ -192,7 +192,7 @@ export class EveChildMesh extends EveChildTransform
   // interchange reproduces Carbon's hidden child placement state.
   @io.persist
   @type.int32
-  @schema.enum("Origin")
+  @type.enum("Origin")
   origin = 0;
 
   @io.rebuild("instanceBuffer")

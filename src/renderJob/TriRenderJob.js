@@ -1,7 +1,7 @@
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriRenderJob.h
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriRenderJob.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2RenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 
@@ -29,7 +29,7 @@ export class TriRenderJob extends CjsModel
 
   @io.persist
   @type.int32
-  @schema.enum("TriRenderJobStatus")
+  @type.enum("TriRenderJobStatus")
   status = TriRenderJob.Status.RJ_INIT;
 
   @io.persist

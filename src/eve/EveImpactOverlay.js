@@ -3,7 +3,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\SpaceObject\Attachments\EveImpactOverlay_Blue.cpp
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2ScalarFader } from "../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 
@@ -30,7 +30,7 @@ export class EveImpactOverlay extends CjsModel
 
   @io.read
   @type.int32
-  @schema.enum("ImpactConfiguration")
+  @type.enum("ImpactConfiguration")
   configuration = 0;
 
   @io.read

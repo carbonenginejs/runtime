@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from '../enums.js';
 import { Tr2CurveQuaternionKey as _Tr2CurveQuaternionKe } from '../key/Tr2CurveQuaternionKey.js';
 
@@ -24,7 +24,7 @@ new class extends _identity {
       })], [[[io, io.persist, void 0, type.array({
         kind: "struct",
         className: "Tr2CurveQuaternionKey"
-      })], 16, "keys"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.read, type, type.quat], 16, "currentValue"], [[io, io.persist, type, type.uint32, void 0, schema.enum("Tr2CurveExtrapolation")], 16, "extrapolationBefore"], [[io, io.persist, type, type.uint32, void 0, schema.enum("Tr2CurveExtrapolation")], 16, "extrapolationAfter"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValueAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValueDotAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValueDoubleDotAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "Length"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurrentValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnKeysChanged"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetExtrapolation"]], 0, void 0, CjsModel));
+      })], 16, "keys"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.read, type, type.quat], 16, "currentValue"], [[io, io.persist, type, type.uint32, void 0, type.enum("Tr2CurveExtrapolation")], 16, "extrapolationBefore"], [[io, io.persist, type, type.uint32, void 0, type.enum("Tr2CurveExtrapolation")], 16, "extrapolationAfter"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValueAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValueDotAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValueDoubleDotAt"], [[carbon, carbon.method, impl, impl.implemented], 18, "Length"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurrentValue"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnKeysChanged"], [[carbon, carbon.method, impl, impl.adapted], 18, "AddKey"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetExtrapolation"]], 0, void 0, CjsModel));
     }
     keys = (_initProto(this), _init_keys(this, []));
     name = (_init_extra_keys(this), _init_name(this, ""));

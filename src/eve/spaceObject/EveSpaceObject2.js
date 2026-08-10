@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
@@ -49,7 +49,7 @@ export class EveSpaceObject2 extends EveEntity
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("ReflectionMode")
+  @type.enum("ReflectionMode")
   reflectionMode = 3;
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
@@ -97,7 +97,7 @@ export class EveSpaceObject2 extends EveEntity
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
   @io.read
   @type.int32
-  @schema.enum("Tr2Lod")
+  @type.enum("Tr2Lod")
   lodLevel = -1;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */

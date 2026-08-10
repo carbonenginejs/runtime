@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { carbonPerlin1D } from '@carbonenginejs/runtime-utils/noise';
@@ -26,7 +26,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Wander",
         family: "eve/child/behaviors"
-      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, schema.enum("ProcessPriority")], 16, "behaviorPriority"], [[io, io.persist, type, type.float32], 16, "rand1"], [[io, io.persist, type, type.float32], 16, "rand2"], [[io, io.persist, type, type.float32], 16, "rand3"], [[io, io.persist, type, type.float32], 16, "freq"], [[io, io.persist, type, type.float32], 16, "weightWander"], [[io, io.persist, type, type.boolean], 16, "enabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetProcessPriority"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon pushes a debug force pair for every agent unconditionally; the JS port collects them only when group.collectForces is set to keep the per-agent loop allocation-free.")], 18, "CalculateBehavior"]], 0, void 0, CjsModel));
+      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, type.enum("ProcessPriority")], 16, "behaviorPriority"], [[io, io.persist, type, type.float32], 16, "rand1"], [[io, io.persist, type, type.float32], 16, "rand2"], [[io, io.persist, type, type.float32], 16, "rand3"], [[io, io.persist, type, type.float32], 16, "freq"], [[io, io.persist, type, type.float32], 16, "weightWander"], [[io, io.persist, type, type.boolean], 16, "enabled"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetProcessPriority"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon pushes a debug force pair for every agent unconditionally; the JS port collects them only when group.collectForces is set to keep the per-agent loop allocation-free.")], 18, "CalculateBehavior"]], 0, void 0, CjsModel));
     }
     /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
     behaviorPriority = (_initProto(this), _init_behaviorPriority(this, 0));

@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_type, _init_extra_type, _init_name, _init_extra_name;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ParticleElementDeclarationName",
         family: "particle"
-      })], [[[type, type.int32, void 0, schema.enum("Type")], 16, "type"], [[type, type.string], 16, "name"]], 0, void 0, CjsModel));
+      })], [[[type, type.int32, void 0, type.enum("Type")], 16, "type"], [[type, type.string], 16, "name"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

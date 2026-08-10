@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.cpp
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbonPerlin1D } from "@carbonenginejs/runtime-utils/noise";
@@ -26,7 +26,7 @@ export class Wander extends CjsModel
   @io.notify
   @io.persist
   @type.int32
-  @schema.enum("ProcessPriority")
+  @type.enum("ProcessPriority")
   behaviorPriority = 0;
 
   /** rand1 (float) [READWRITE, PERSIST] */

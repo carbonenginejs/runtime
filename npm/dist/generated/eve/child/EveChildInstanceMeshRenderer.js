@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildMesh as _EveChildMesh } from '../../../eve/child/EveChildMesh.js';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -17,7 +17,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveChildInstanceMeshRenderer",
         family: "eve/child"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("RotationalConstraints")], 16, "rotationConstraint"], [[io, io.persist, type, type.quat], 16, "staticOffsetRotation"], [[io, io.persist, type, type.vec3], 16, "staticOffsetTranslation"], [[io, io.persist, void 0, type.model("IEveDistributionMethod")], 16, "distribution"], [[io, io.persist, type, type.vec3], 16, "staticOffsetScale"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RefreshStaticGeometry"]], 0, void 0, _EveChildMesh));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("RotationalConstraints")], 16, "rotationConstraint"], [[io, io.persist, type, type.quat], 16, "staticOffsetRotation"], [[io, io.persist, type, type.vec3], 16, "staticOffsetTranslation"], [[io, io.persist, void 0, type.model("IEveDistributionMethod")], 16, "distribution"], [[io, io.persist, type, type.vec3], 16, "staticOffsetScale"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RefreshStaticGeometry"]], 0, void 0, _EveChildMesh));
     }
     constructor(...args) {
       super(...args);

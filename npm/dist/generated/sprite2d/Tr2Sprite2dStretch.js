@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2TexturedSpriteObject as _Tr2TexturedSpriteObj } from './Tr2TexturedSpriteObject.js';
 
 let _initClass, _init_dpiScaleBehavior, _init_extra_dpiScaleBehavior, _init_edgeScale, _init_extra_edgeScale, _init_effectOpacity, _init_extra_effectOpacity, _init_fillCenter, _init_extra_fillCenter, _init_leftEdgeSize, _init_extra_leftEdgeSize, _init_rightEdgeSize, _init_extra_rightEdgeSize, _init_offset, _init_extra_offset, _init_saturation, _init_extra_saturation;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2Sprite2dStretch",
         family: "sprite2d"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Tr2StretchScaleBehavior")], 16, "dpiScaleBehavior"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "edgeScale"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "effectOpacity"], [[io, io.notify, io, io.readwrite, type, type.boolean], 16, "fillCenter"], [[io, io.notify, io, io.readwrite, type, type.uint32], 16, "leftEdgeSize"], [[io, io.notify, io, io.readwrite, type, type.uint32], 16, "rightEdgeSize"], [[io, io.notify, io, io.readwrite, type, type.int32], 16, "offset"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "saturation"]], 0, void 0, _Tr2TexturedSpriteObj));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Tr2StretchScaleBehavior")], 16, "dpiScaleBehavior"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "edgeScale"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "effectOpacity"], [[io, io.notify, io, io.readwrite, type, type.boolean], 16, "fillCenter"], [[io, io.notify, io, io.readwrite, type, type.uint32], 16, "leftEdgeSize"], [[io, io.notify, io, io.readwrite, type, type.uint32], 16, "rightEdgeSize"], [[io, io.notify, io, io.readwrite, type, type.int32], 16, "offset"], [[io, io.notify, io, io.readwrite, type, type.float32], 16, "saturation"]], 0, void 0, _Tr2TexturedSpriteObj));
     }
     constructor(...args) {
       super(...args);

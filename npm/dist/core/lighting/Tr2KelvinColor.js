@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2KelvinColor",
         family: "trinityCore"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Tr2StandardIlluminant")], 16, "whiteBalance"], [[io, io.persist, type, type.float32], 16, "temperature"], [[io, io.persist, type, type.float32], 16, "tint"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetColor"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Tr2StandardIlluminant")], 16, "whiteBalance"], [[io, io.persist, type, type.float32], 16, "temperature"], [[io, io.persist, type, type.float32], 16, "tint"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetColor"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

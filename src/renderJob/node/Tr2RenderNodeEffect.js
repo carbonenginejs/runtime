@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Tr2RenderNodeEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
@@ -16,7 +16,7 @@ export class Tr2RenderNodeEffect extends CjsModel
   /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) [READWRITE, ENUM] */
   @io.readwrite
   @type.int32
-  @schema.enum("RenderingMode")
+  @type.enum("RenderingMode")
   renderingMode = 8;
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */

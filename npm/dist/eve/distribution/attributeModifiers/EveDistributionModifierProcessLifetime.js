@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_killEvent, _init_extra_killEvent, _init_lifetimeDuration, _init_extra_lifetimeDuration;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveDistributionModifierProcessLifetime",
         family: "eve/distribution/attributeModifiers"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("DistributionEntityLifeTimeEvent")], 16, "killEvent"], [[io, io.persist, type, type.float32], 16, "lifetimeDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "AffectsTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "ProcessDistributionModifier"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("DistributionEntityLifeTimeEvent")], 16, "killEvent"], [[io, io.persist, type, type.float32], 16, "lifetimeDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "AffectsTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "ProcessDistributionModifier"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

@@ -1,5 +1,5 @@
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPGenericEffect.h
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { Quality } from "../../generated/postProcess/enums.js";
 
@@ -13,7 +13,7 @@ export class Tr2PPGenericEffect extends Tr2PPEffect
 {
   @io.persist
   @type.int32
-  @schema.enum("Quality")
+  @type.enum("Quality")
   quality = 1;
 
   @io.persist

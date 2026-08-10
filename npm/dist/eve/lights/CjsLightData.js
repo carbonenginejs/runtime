@@ -3,7 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
-import { type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { type } from '@carbonenginejs/runtime-utils/schema';
 
 let _initClass, _init_position, _init_extra_position, _init_color, _init_extra_color, _init_brightness, _init_extra_brightness, _init_noiseAmplitude, _init_extra_noiseAmplitude, _init_noiseFrequency, _init_extra_noiseFrequency, _init_noiseOctaves, _init_extra_noiseOctaves, _init_radius, _init_extra_radius, _init_innerRadius, _init_extra_innerRadius, _init_rotation, _init_extra_rotation, _init_outerAngle, _init_extra_outerAngle, _init_innerAngle, _init_extra_innerAngle, _init_texturePath, _init_extra_texturePath, _init_boneIndex, _init_extra_boneIndex, _init_flags, _init_extra_flags, _init_startTime, _init_extra_startTime, _init_castsShadows, _init_extra_castsShadows, _init_isVolumetric, _init_extra_isVolumetric;
 
@@ -25,7 +25,7 @@ new class extends _identity {
         sourceClass: "LightData",
         aliases: ["LightData"],
         family: "eve/lights"
-      })], [[[type, type.vec3], 16, "position"], [[type, type.color], 16, "color"], [[type, type.float32], 16, "brightness"], [[type, type.float32], 16, "noiseAmplitude"], [[type, type.float32], 16, "noiseFrequency"], [[type, type.uint32], 16, "noiseOctaves"], [[type, type.float32], 16, "radius"], [[type, type.float32], 16, "innerRadius"], [[type, type.quat], 16, "rotation"], [[type, type.float32], 16, "outerAngle"], [[type, type.float32], 16, "innerAngle"], [[type, type.string], 16, "texturePath"], [[type, type.int32], 16, "boneIndex"], [[type, type.uint16], 16, "flags"], [[type, type.float64], 16, "startTime"], [[type, type.int32, void 0, schema.enum("PerLightShadowSetting")], 16, "castsShadows"], [[type, type.boolean], 16, "isVolumetric"]], 0, void 0, CjsModel));
+      })], [[[type, type.vec3], 16, "position"], [[type, type.color], 16, "color"], [[type, type.float32], 16, "brightness"], [[type, type.float32], 16, "noiseAmplitude"], [[type, type.float32], 16, "noiseFrequency"], [[type, type.uint32], 16, "noiseOctaves"], [[type, type.float32], 16, "radius"], [[type, type.float32], 16, "innerRadius"], [[type, type.quat], 16, "rotation"], [[type, type.float32], 16, "outerAngle"], [[type, type.float32], 16, "innerAngle"], [[type, type.string], 16, "texturePath"], [[type, type.int32], 16, "boneIndex"], [[type, type.uint16], 16, "flags"], [[type, type.float64], 16, "startTime"], [[type, type.int32, void 0, type.enum("PerLightShadowSetting")], 16, "castsShadows"], [[type, type.boolean], 16, "isVolumetric"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

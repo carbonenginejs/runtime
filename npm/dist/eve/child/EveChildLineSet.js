@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from './EveChildTransform.js';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveChildLineSet",
         family: "eve/child"
-      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, schema.enum("lineSetType")], 16, "renderType"], [[io, io.persist, void 0, type.model("EveCurveLineSet")], 16, "lineSet"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "minScreenSize"], [[io, io.notify, io, io.persist, type, type.float32], 16, "brightness"], [[io, io.notify, io, io.persist, type, type.color], 16, "baseColor"], [[io, io.notify, io, io.persist, type, type.color], 16, "animColor"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "additiveBatches"], [[io, io.notify, io, io.persist, type, type.float32], 16, "scrollSpeed"], [[io, io.persist, void 0, type.list("IEveLineSetPath")], 16, "lines"], [[io, io.persist, type, type.boolean], 16, "alwaysOn"], [[io, io.read, type, type.float32], 16, "currentScreenSize"], [[io, io.notify, io, io.persist, void 0, type.model("Tr2Mesh")], 16, "mesh"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Returns Carbon's numeric Tr2VertexDefinition usage/index pairs without owning a renderer declaration.")], 18, "GetVertexElementAddedThroughCode"]], 0, void 0, _EveChildTransform));
+      })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, type.enum("lineSetType")], 16, "renderType"], [[io, io.persist, void 0, type.model("EveCurveLineSet")], 16, "lineSet"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "minScreenSize"], [[io, io.notify, io, io.persist, type, type.float32], 16, "brightness"], [[io, io.notify, io, io.persist, type, type.color], 16, "baseColor"], [[io, io.notify, io, io.persist, type, type.color], 16, "animColor"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "additiveBatches"], [[io, io.notify, io, io.persist, type, type.float32], 16, "scrollSpeed"], [[io, io.persist, void 0, type.list("IEveLineSetPath")], 16, "lines"], [[io, io.persist, type, type.boolean], 16, "alwaysOn"], [[io, io.read, type, type.float32], 16, "currentScreenSize"], [[io, io.notify, io, io.persist, void 0, type.model("Tr2Mesh")], 16, "mesh"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Returns Carbon's numeric Tr2VertexDefinition usage/index pairs without owning a renderer declaration.")], 18, "GetVertexElementAddedThroughCode"]], 0, void 0, _EveChildTransform));
     }
     constructor(...args) {
       super(...args);

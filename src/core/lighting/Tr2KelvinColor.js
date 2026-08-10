@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Tr2KelvinColor.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
@@ -13,7 +13,7 @@ export class Tr2KelvinColor extends CjsModel
   /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
   @io.persist
   @type.int32
-  @schema.enum("Tr2StandardIlluminant")
+  @type.enum("Tr2StandardIlluminant")
   whiteBalance = 2;
 
   /** m_temperature (float) [READWRITE, PERSIST] */

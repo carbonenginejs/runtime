@@ -1,7 +1,7 @@
 // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
@@ -67,7 +67,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** m_origin (Origin - enum Origin) [READ] */
   @io.read
   @type.int32
-  @schema.enum("Origin")
+  @type.enum("Origin")
   origin = 0;
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
