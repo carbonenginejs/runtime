@@ -251,6 +251,7 @@ export class CjsAudioSystem
                     busStates: this.#busStates,
                     busDuckingController: this.#busDuckingController,
                     busEffects: this.#busEffects,
+                    wwiseDynamics: this.#wwiseDynamics,
                     busGraphRuntime: this.#busGraphRuntime,
                 });
                 const globalControlReaders =

@@ -39,6 +39,7 @@ import {
     createWwiseEffectChain,
     indexBusEffectCatalog,
     normalizeStaticSourceEffectChain,
+    normalizeWwiseDynamicsMode,
 } from "./internal/busEffects.js";
 import {
     CjsAudioBackendSfxProgramSlot,
@@ -124,6 +125,8 @@ export class CjsAudioBackend
 
     #busEffectCatalog = new Map();
 
+    #wwiseDynamics = "strict";
+
     #busGraphRuntime = null;
 
     #busMixer = null;
@@ -163,6 +166,7 @@ export class CjsAudioBackend
         busStates,
         busDuckingController,
         busEffects,
+        wwiseDynamics = "strict",
         busGraphRuntime,
         busMixer,
     } = {})
@@ -194,6 +198,7 @@ export class CjsAudioBackend
         this.#busStateCatalog = indexBusStateCatalog(busStates);
         this.#busDuckingController = busDuckingController ?? null;
         this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
+        this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
         this.#busGraphRuntime = busGraphRuntime ?? null;
         this.#busMixer = busMixer ?? null;
         this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
@@ -4657,6 +4662,7 @@ export class CjsAudioBackend
         const sourceEffectChain = createWwiseEffectChain(
             this.#context,
             descriptor.sourceEffects ?? [],
+            { wwiseDynamics: this.#wwiseDynamics },
         );
 
         if (lowPassFilter)

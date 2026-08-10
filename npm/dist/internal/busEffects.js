@@ -130,6 +130,23 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay) {
         processLfe: true
       });
     }
+    if (allowDelay && effect.type === "compressor") {
+      if (effect.processLfe !== true || effect.channelLink !== true) {
+        throw new TypeError(`${label} requires unsupported independent dynamics channels`);
+      }
+      return Object.freeze({
+        effectId,
+        slotIndex,
+        type: "compressor",
+        thresholdDb: BoundedFinite(effect.thresholdDb, DYNAMICS_THRESHOLD_MIN, DYNAMICS_THRESHOLD_MAX, `${label} thresholdDb`),
+        ratio: BoundedFinite(effect.ratio, DYNAMICS_RATIO_MIN, DYNAMICS_RATIO_MAX, `${label} ratio`),
+        attackSeconds: BoundedFinite(effect.attackSeconds, Number.MIN_VALUE, WEB_AUDIO_DYNAMICS_TIME_MAX, `${label} attackSeconds`),
+        releaseSeconds: BoundedFinite(effect.releaseSeconds, COMPRESSOR_TIME_MIN, WEB_AUDIO_DYNAMICS_TIME_MAX, `${label} releaseSeconds`),
+        outputGainDb: BoundedFinite(effect.outputGainDb, DYNAMICS_OUTPUT_GAIN_MIN, DYNAMICS_OUTPUT_GAIN_MAX, `${label} outputGainDb`),
+        processLfe: true,
+        channelLink: true
+      });
+    }
     if (effect.type !== "parametric-eq") {
       throw new TypeError(`${label} has unsupported type ${effect.type}`);
     }
@@ -182,8 +199,22 @@ function createBusEffectChain(context, indexedCatalog, busPathIds) {
 }
 
 /** Creates one ordered browser effect chain from normalized portable records. */
-function createWwiseEffectChain(context, effects) {
+function createWwiseEffectChain(context, effects, {
+  wwiseDynamics = "strict"
+} = {}) {
   if (!Array.isArray(effects) || !effects.length) return null;
+  const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
+
+  // A source effect override is one ordered authored unit. In strict mode,
+  // preserve the existing audible dry fallback by omitting the complete
+  // chain instead of applying only the non-dynamics siblings.
+  if (effects.some(effect => effect.type === "compressor") && dynamicsMode === "strict") {
+    return null;
+  }
+  if (effects.some(effect => effect.type === "compressor") && (typeof context?.createDynamicsCompressor !== "function" || typeof context?.createGain !== "function")) {
+    return null;
+  }
+  const realizedEffects = effects.map(effect => effect.type === "compressor" ? RequireApproximateDynamics(effect, "compressor-approximation") : effect);
   const nodes = [];
   let input = null;
   let output = null;
@@ -192,7 +223,7 @@ function createWwiseEffectChain(context, effects) {
     output = node;
     nodes.push(node);
   };
-  for (const effect of effects) {
+  for (const effect of realizedEffects) {
     if (effect.type === "meter-omission") continue;
     if (effect.type === "compressor-approximation" || effect.type === "peak-limiter-approximation") {
       const stage = CreateWwiseDynamicsApproximation(context, effect);

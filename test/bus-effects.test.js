@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
     createBusEffectChain,
+    createWwiseEffectChain,
     indexBusEffectCatalog,
     normalizeStaticSourceEffectChain,
     normalizeWwiseDynamicsMode,
@@ -586,6 +587,43 @@ test("normalizes static Wwise Delay only for source effect chains", () =>
         () => indexBusEffectCatalog(Catalog([ delay ])),
         /unsupported type delay/u,
         "legacy distributed Bus catalogs remain EQ-only",
+    );
+});
+
+test("normalizes source Compressors and realizes them only through opt-in", () =>
+{
+    const decoded = parseGraphStaticWwiseCompressor(
+        GraphCompressor(),
+        "4243759709",
+        1,
+    );
+    const compressor = { ...decoded, type: "compressor" };
+    const normalized = normalizeStaticSourceEffectChain(
+        [ compressor ],
+        "Audio source",
+    );
+
+    assert.deepEqual(normalized, [ compressor ]);
+    assert.equal(
+        createWwiseEffectChain(Context(), normalized),
+        null,
+        "strict playback keeps the existing complete-chain dry fallback",
+    );
+    const context = Context();
+    const chain = createWwiseEffectChain(context, normalized, {
+        wwiseDynamics: "approximate-web-audio",
+    });
+
+    assert.equal(chain.input, context.compressors[0]);
+    assert.equal(context.compressors[0].threshold.value, -18);
+    assert.equal(context.compressors[0].ratio.value, 20);
+    assert.equal(chain.output, context.gains[0]);
+    assert.equal(
+        createWwiseEffectChain({}, normalized, {
+            wwiseDynamics: "approximate-web-audio",
+        }),
+        null,
+        "missing browser primitives retain audible dry playback",
     );
 });
 

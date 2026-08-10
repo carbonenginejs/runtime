@@ -12,6 +12,8 @@ import { normalizeBusGraphCatalog } from "../internal/busGraph.js";
 import {
     PARAMETRIC_EQ_PLUGIN_ID,
     WWISE_DELAY_PLUGIN_ID,
+    WWISE_COMPRESSOR_PLUGIN_ID,
+    parseGraphSharedBusEffect,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
 } from "../internal/busEffects.js";
@@ -5124,6 +5126,31 @@ function ParseStaticWwiseDelay(ownerLabel, slot, effect)
     });
 }
 
+function ParseStaticWwiseCompressor(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise Compressor ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    const approximation = parseGraphSharedBusEffect(
+        CreatePortableEffect(effect),
+        effect.id,
+        slot.index,
+        { wwiseDynamics: "approximate-web-audio" },
+    );
+
+    // Keep host policy out of the portable library. The base record proves
+    // that the explicit browser approximation could realize this complete
+    // source chain; strict runtimes still omit the chain and play dry.
+    return { ...approximation, type: "compressor" };
+}
+
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
  * Sound's source ID references a CAkFxCustom object; its empty inline source
@@ -5176,10 +5203,11 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId)
 }
 
 /**
- * Projects the first complete static EQ/Delay override in a Sound's NodeBase
- * ancestry. Wwise's FX override replaces the inherited list, so an explicit
- * empty override clears the chain. Dynamic controls, unsupported plug-ins,
- * and independent LFE routing keep the documented dry-playback approximation.
+ * Projects the first complete static EQ/Delay/Compressor override in a
+ * Sound's NodeBase ancestry. Wwise's FX override replaces the inherited list,
+ * so an explicit empty override clears the chain. Dynamic controls,
+ * unsupported plug-ins, and independent LFE routing keep the documented
+ * dry-playback approximation.
  */
 function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
 {
@@ -5250,6 +5278,14 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
             else if (effect.pluginId === WWISE_DELAY_PLUGIN_ID)
             {
                 chain.push(ParseStaticWwiseDelay(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_COMPRESSOR_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwiseCompressor(
                     `NodeBase ${ownerId} inherited by Sound ${soundId}`,
                     slot,
                     effect,

@@ -205,6 +205,7 @@ function Harness({
   busStates,
   busDuckingController,
   busEffects,
+  wwiseDynamics,
   busGraphRuntime,
   busMixer,
   busMixerFactory,
@@ -239,6 +240,7 @@ function Harness({
     busStates,
     busDuckingController,
     busEffects,
+    wwiseDynamics,
     busGraphRuntime,
     busMixer: resolvedBusMixer,
     distanceScale,
@@ -7701,6 +7703,75 @@ test("Sound-local Wwise Delay realizes before live Voice filters", async () =>
   context.sources[0].onended();
   assert.equal(delay.disconnected, true);
   assert.equal(lowPass.disconnected, true);
+});
+
+test("Sound-local Wwise Compressor is dry by default and opt-in per voice", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "4243759709",
+    slotIndex: 0,
+    type: "compressor",
+    thresholdDb: -20.3,
+    ratio: 16.7,
+    attackSeconds: 0.04,
+    releaseSeconds: 0.03,
+    outputGainDb: 5,
+    processLfe: true,
+    channelLink: true,
+  } ];
+  const loadBuffer = async () => ({
+    voices: [ {
+      buffer: { duration: 2 },
+      loop: false,
+      sourceEffects,
+      getGain: () => 1,
+    } ],
+  });
+  const strict = Harness({ loadBuffer });
+
+  strict.backend.PostEvent(1, 1, 0, strict.emitter, "play");
+  await tick();
+  assert.notEqual(
+    strict.context.sources[0].connectedTo?.threshold?.value,
+    -20.3,
+    "strict mode retains dry playback",
+  );
+
+  const approximate = Harness({
+    loadBuffer,
+    wwiseDynamics: "approximate-web-audio",
+  });
+  approximate.context.compressors = [];
+  approximate.context.createDynamicsCompressor = () =>
+  {
+    const node = {
+      threshold: FakeParam(0),
+      knee: FakeParam(30),
+      ratio: FakeParam(12),
+      attack: FakeParam(0.003),
+      release: FakeParam(0.25),
+      connectedTo: null,
+      disconnected: false,
+      connect(target) { node.connectedTo = target; },
+      disconnect() { node.disconnected = true; },
+    };
+
+    approximate.context.compressors.push(node);
+    return node;
+  };
+
+  approximate.backend.PostEvent(1, 1, 0, approximate.emitter, "play");
+  await tick();
+  const [ compressor ] = approximate.context.compressors;
+
+  assert.equal(approximate.context.sources[0].connectedTo, compressor);
+  assert.equal(compressor.threshold.value, -20.3);
+  assert.equal(compressor.ratio.value, 16.7);
+  assert.equal(compressor.attack.value, 0.04);
+  assert.equal(compressor.release.value, 0.03);
+
+  approximate.context.sources[0].onended();
+  assert.equal(compressor.disconnected, true);
 });
 
 test("routed SFX activity ducks future target voices and releases on source end", async () =>

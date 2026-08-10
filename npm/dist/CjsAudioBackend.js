@@ -3,7 +3,7 @@ import { evaluateWwiseRtpcCurve, wwiseDbRtpcValueToDb } from './internal/wwiseRt
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, busRtpcPathUses, evaluateBusRtpcGainDb, evaluateBusVoiceRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
-import { indexBusEffectCatalog, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
+import { indexBusEffectCatalog, normalizeWwiseDynamicsMode, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
 import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProgramSlot.js';
 import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSfxVoiceLimitLedger.js';
 import { CjsAudioBackendSfxVoice } from './internal/CjsAudioBackendSfxVoice.js';
@@ -67,6 +67,7 @@ class CjsAudioBackend {
   #busStateCatalog = new Map();
   #busDuckingController = null;
   #busEffectCatalog = new Map();
+  #wwiseDynamics = "strict";
   #busGraphRuntime = null;
   #busMixer = null;
   #unsubscribeBusDucking = null;
@@ -101,6 +102,7 @@ class CjsAudioBackend {
     busStates,
     busDuckingController,
     busEffects,
+    wwiseDynamics = "strict",
     busGraphRuntime,
     busMixer
   } = {}) {
@@ -119,6 +121,7 @@ class CjsAudioBackend {
     this.#busStateCatalog = indexBusStateCatalog(busStates);
     this.#busDuckingController = busDuckingController ?? null;
     this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
+    this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
     this.#busGraphRuntime = busGraphRuntime ?? null;
     this.#busMixer = busMixer ?? null;
     this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.#RefreshBusDucking()) ?? null;
@@ -2630,7 +2633,9 @@ class CjsAudioBackend {
     const lowPassFilter = descriptor.getLowPass || descriptor.getLowPassAtAdditionalPercent || usesBusLowPass && !sharedBusFilters ? this.#context.createBiquadFilter?.() ?? null : null;
     const highPassFilter = descriptor.getHighPass || descriptor.getHighPassAtAdditionalPercent || usesBusHighPass && !sharedBusFilters ? this.#context.createBiquadFilter?.() ?? null : null;
     const busEffectChain = emitterRouteBranch?.mixerInput ? null : createBusEffectChain(this.#context, this.#busEffectCatalog, descriptor.busPathIds);
-    const sourceEffectChain = createWwiseEffectChain(this.#context, descriptor.sourceEffects ?? []);
+    const sourceEffectChain = createWwiseEffectChain(this.#context, descriptor.sourceEffects ?? [], {
+      wwiseDynamics: this.#wwiseDynamics
+    });
     if (lowPassFilter) {
       lowPassFilter.type = "lowpass";
       SetAudioParam(lowPassFilter.frequency, wwiseFilterPercentToHz(0), this.#context);

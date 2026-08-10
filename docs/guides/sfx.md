@@ -268,26 +268,42 @@ All and All-Except use qualified exact stored bus identities; EVE currently
 exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
-static Parametric EQ and Wwise Delay records. The builder walks the Sound's
+static Parametric EQ, Wwise Delay, and qualified Wwise Compressor records. The
+builder walks the Sound's
 NodeBase ancestry to the first effect override, treating a root list as
 effective and an explicit empty override as a replacement that clears the
 parent list. It emits the chain only when every active slot is a control-free
-Parametric EQ or Wwise Delay with ordinary LFE processing. Playback creates
+supported effect with ordinary LFE processing; Compressor additionally
+requires linked channels and timing within the Web Audio adapter's bounds.
+Playback creates
 one Web Audio chain per physical voice before the authored Voice LPF/HPF,
 gain, spatial/auxiliary split, and Audio Bus effects.
 
-This is a browser DSP adaptation, not a native Wwise filter or Delay claim.
+Parametric EQ and Delay are browser DSP adaptations, not native Wwise filter
+or Delay claims. Source Compressor is retained as an authored base record but
+realized only under `wwiseDynamics: "approximate-web-audio"`; strict mode or
+missing browser compressor primitives omits the complete source chain and
+keeps the voice audible and dry. Its v150 field order remains the same
+explicitly empirical interpretation used by the shared-bus adapter: pinned
+wwiser does not decode Compressor parameters. Web Audio's fixed lookahead,
+automatic makeup, detector/envelope law, ratio ceiling, and channel behavior
+therefore remain non-equivalent to Wwise.
+
 Bypassed or rendered slots need no live stage. Pause and seek reuse the
 voice-owned browser nodes instead of freezing or reconstructing native Wwise
 plug-in state. Natural completion still follows the decoded dry source;
 `DelayNode` has no Wwise tail-completion callback, so residual feedback is cut
-when the voice is disposed. Mixed plug-in sequences, EQ/Delay with RTPC,
+when the voice is disposed. Mixed unsupported plug-in sequences, supported
+effects with RTPC,
 State, property-value, or media controls, `processLfe:false`, and unsupported
 plug-ins retain the previous dry-playback approximation rather than applying
-part of an authored chain. EVE build 3453885 installs 317 qualified Sound
-leaves across 127 retained events: 238 use Parametric EQ, 79 use Wwise Delay,
-and 150 EQ chains are non-neutral. Five mixed Tremolo/EQ chains and five
-dynamic EQ leaves remain intentionally unrealized.
+part of an authored chain. EVE build 3453885 installs 2,350 qualified Sound
+leaves: 246 use Parametric EQ, 79 use Wwise Delay, and 2,033 use Compressor;
+486 retained events can reach at least one of those Compressor leaves. The
+Compressor population contains nine complete chain signatures, including
+eight leaves where it precedes one qualified EQ. The 150 non-neutral EQ chains
+remain unchanged. Five mixed Tremolo/EQ chains and five dynamic EQ leaves
+remain intentionally unrealized.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its

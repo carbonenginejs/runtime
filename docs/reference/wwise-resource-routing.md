@@ -523,6 +523,18 @@ native detector window. This is adapted route qualification, not exact Wwise
 DSP. The backend's independent safety compressor is not an authored Wwise
 limiter and is never reused as one.
 
+The same runtime policy admits complete source-local Compressor overrides.
+EVE build 3453885 contains 2,033 qualified Sound leaves across nine complete
+chain signatures, reachable from 486 retained events. Eight of those leaves
+place one already-qualified Parametric EQ after the Compressor; strict mode
+omits the complete source chain rather than partially applying that EQ. The
+portable library retains the authored base Compressor record, while each
+opted-in physical voice owns its browser dynamics stage. Missing browser
+primitives keep the voice audible through the dry fallback. Pinned wwiser still
+does not decode Compressor parameters, so this larger source population uses
+the same explicitly empirical v150 field order and makes no golden-vector DSP
+equivalence claim.
+
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE
 build 3444265 payoff. Compressor support alone adds all 135 remaining music
