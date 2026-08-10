@@ -1094,13 +1094,16 @@ test("committed demo library carries authored SFX and music semantics", () =>
         node.sourceEffects.some(effect => effect.type === "peak-limiter"));
     const sourceFlangerSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "flanger"));
+    const sourceTremoloSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect => effect.type === "tremolo"));
 
-    assert.equal(sourceEffectSounds.length, 2432);
-    assert.equal(sourceEqSounds.length, 246);
+    assert.equal(sourceEffectSounds.length, 2506);
+    assert.equal(sourceEqSounds.length, 261);
     assert.equal(sourceDelaySounds.length, 79);
     assert.equal(sourceCompressorSounds.length, 2033);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 9);
+    assert.equal(sourceTremoloSounds.length, 74);
     assert.deepEqual(
         Object.entries(graph.nodes)
             .filter(([, node]) => sourceFlangerSounds.includes(node))
@@ -1198,6 +1201,122 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ecx_generic_lco_explosive_individual_01c_play",
         "worldobject_jumpgate_activity_play",
     ]);
+    const tremoloSoundIds = new Set(Object.entries(graph.nodes)
+        .filter(([, node]) => sourceTremoloSounds.includes(node))
+        .map(([ id ]) => id));
+
+    assert.deepEqual(
+        [ ...tremoloSoundIds ].map(Number).sort((left, right) => left - right),
+        [
+            25884399, 40436754, 43363314, 60415284, 68507679, 73677858,
+            78735863, 84669040, 99994845, 123394445, 173560074, 179016091,
+            185550431, 212767959, 213549686, 216531588, 220151376,
+            227488604, 234999876, 245023523, 289872408, 295844646,
+            303824015, 334236564, 337505310, 342408936, 367736782,
+            419444932, 422600908, 464520479, 466221579, 479691729,
+            483852729, 504198893, 513652395, 525063532, 552197906,
+            561895346, 563609806, 567959441, 569050443, 570940185,
+            585012572, 587318855, 601025667, 604031582, 606479059,
+            619225631, 627960890, 646956222, 671815947, 705896755,
+            707197595, 720713023, 722707846, 729008069, 737747941,
+            747245505, 767807393, 770608002, 771045205, 786791827,
+            833468545, 875267345, 897337650, 936914842, 939407056,
+            954428155, 962406120, 963801704, 968463064, 969222816,
+            1016689010, 1072313718,
+        ],
+    );
+    assert.deepEqual(
+        graph.nodes["185550431"].sourceEffects,
+        [
+            {
+                effectId: "683567116",
+                slotIndex: 0,
+                type: "parametric-eq",
+                bands: [ {
+                    index: 1,
+                    filterType: "peaking",
+                    gainDb: -6,
+                    frequencyHz: 304,
+                    q: 1,
+                } ],
+                outputGainDb: 0,
+                processLfe: true,
+            },
+            {
+                effectId: "920910989",
+                slotIndex: 1,
+                type: "tremolo",
+                modulationDepthPercent: 65,
+                modulationFrequencyHz: Math.fround(0.2),
+                outputGainDb: 0,
+                processCenter: true,
+                processLfe: true,
+            },
+        ],
+    );
+    const tremoloEvents = Object.entries(graph.events)
+        .filter(([, roots ]) =>
+        {
+            const pending = roots.map(root => String(root.nodeId));
+            const visited = new Set();
+
+            while (pending.length)
+            {
+                const id = pending.pop();
+
+                if (visited.has(id)) continue;
+                visited.add(id);
+                if (tremoloSoundIds.has(id)) return true;
+                const node = graph.nodes[id];
+
+                if (!node) continue;
+                pending.push(...(node.children ?? []).map(child =>
+                    String(child.nodeId)));
+                pending.push(...Object.values(node.cases ?? {}).map(child =>
+                    String(child.nodeId)));
+                if (node.default) pending.push(String(node.default.nodeId));
+            }
+            return false;
+        })
+        .map(([ name ]) => name)
+        .sort();
+
+    assert.deepEqual(tremoloEvents, [
+        "Ambience_Hangar_Gallente_Play",
+        "OSSE_Caldari_bigscreen_play",
+        "OSSE_Gallente_bigscreen_play",
+        "jita_sfx_commerce_atmo_play",
+        "mercenary_den_atmo_play",
+        "phased_fields_fake_rift_fracture_play",
+        "phased_fields_fracture_atmo_play",
+        "phased_fields_rift_play",
+        "ship_engine_L_afterburner_1st_idle",
+        "ship_engine_L_afterburner_3rd_idle",
+        "ship_engine_M_afterburner_1st_idle",
+        "ship_engine_M_afterburner_3rd_idle",
+        "ship_engine_S_afterburner_1st_idle",
+        "ship_engine_S_afterburner_3rd_idle",
+        "ship_engine_S_microwarpdrive_1st_idle",
+        "ship_engine_S_microwarpdrive_3rd_idle",
+        "ship_engine_XL_afterburner_1st_idle",
+        "ship_engine_XL_afterburner_3rd_idle",
+        "ship_engine_XS_afterburner_1st_idle",
+        "ship_engine_XS_afterburner_3rd_idle",
+        "ship_engine_XS_microwarpdrive_1st_idle",
+        "ship_engine_XS_microwarpdrive_3rd_idle",
+        "ship_engine_XXL_afterburner_1st_idle",
+        "ship_engine_XXL_afterburner_3rd_idle",
+        "ship_engine_XXL_microwarpdrive_1st_idle",
+        "ship_engine_XXL_microwarpdrive_3rd_idle",
+        "ship_smokefire_hangar_play",
+        "ship_smokefire_play",
+        "sov_hub_atmo_main_loop_play",
+    ]);
+    assert.equal(
+        graph.nodes["350811697"].sourceEffects,
+        undefined,
+        "independent Parametric EQ LFE routing keeps the whole chain dry",
+    );
     assert.deepEqual(
         [
             [ "292533695", "487219032" ],
@@ -1238,7 +1357,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
             effect.type === "parametric-eq"
             && (effect.outputGainDb !== 0
                 || effect.bands.some(band => band.gainDb !== 0)))).length,
-        150,
+        165,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(

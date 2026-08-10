@@ -15,14 +15,17 @@ import {
     WWISE_COMPRESSOR_PLUGIN_ID,
     WWISE_PEAK_LIMITER_PLUGIN_ID,
     WWISE_FLANGER_PLUGIN_ID,
+    WWISE_TREMOLO_PLUGIN_ID,
     parseGraphSharedBusEffect,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
     parseStaticWwiseFlangerBytes,
+    parseStaticWwiseTremoloBytes,
 } from "../internal/busEffects.js";
 
 const MUSIC_BANK_NAMES = Object.freeze([ "music.bnk", "music_essential.bnk" ]);
 const MUSIC_HIRC_TYPES = new Set([ 10, 11, 12, 13 ]);
+const EFFECT_HIRC_TYPES = new Set([ 16, 17 ]);
 const SFX_PLAY_ACTION = 0x0403;
 const SFX_PLAY_EVENT_ACTION = 0x2103;
 const SFX_STOP_ACTION_FAMILY = 0x01;
@@ -232,6 +235,29 @@ export class CjsAudioLibraryBuilder
         const parsedEffects = CjsBnkFormat.wwise.effectNodesFromBanks(
             inspections,
         );
+        const effectVersions = new Map();
+
+        for (const inspection of inspections)
+        {
+            for (const entry of inspection.hirc ?? [])
+            {
+                if (EFFECT_HIRC_TYPES.has(entry.type))
+                {
+                    effectVersions.set(
+                        Number(entry.id) >>> 0,
+                        Number(inspection.bankVersion) >>> 0,
+                    );
+                }
+            }
+        }
+        const effects = new Map([ ...parsedEffects.effects ]
+            .map(([ id, effect ]) => [
+                id,
+                {
+                    ...effect,
+                    bankVersion: effectVersions.get(Number(id) >>> 0),
+                },
+            ]));
         const eventNames = new Map();
 
         for (const [ name, record ] of metadataEntries(
@@ -244,7 +270,7 @@ export class CjsAudioLibraryBuilder
 
         return LowerSfxGraph({
             parsed,
-            effects: parsedEffects.effects,
+            effects,
             buses,
             eventNames,
             musicNodeIds: new Set(inspections.flatMap(inspection =>
@@ -5195,6 +5221,26 @@ function ParseStaticWwiseFlanger(ownerLabel, slot, effect)
     });
 }
 
+function ParseStaticWwiseTremolo(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise Tremolo ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    return parseStaticWwiseTremoloBytes(effect.parameterBlock, {
+        effectId: effect.id,
+        slotIndex: slot.index,
+        label: `Wwise Tremolo ${effect.id} on ${ownerLabel}`,
+        bankVersion: effect.bankVersion,
+    });
+}
+
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
  * Sound's source ID references a CAkFxCustom object; its empty inline source
@@ -5345,6 +5391,14 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
             else if (effect.pluginId === WWISE_FLANGER_PLUGIN_ID)
             {
                 chain.push(ParseStaticWwiseFlanger(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_TREMOLO_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwiseTremolo(
                     `NodeBase ${ownerId} inherited by Sound ${soundId}`,
                     slot,
                     effect,

@@ -174,13 +174,13 @@ NodeBase effect override for every retained Sound. A descendant override
 replaces its parent list, an explicit empty override clears it, and a root list
 is effective even when its override bit is clear. Complete static,
 control-free Parametric EQ/Wwise Delay chains are projected once per voice
-before Voice LPF/HPF and the emitter/auxiliary split. The exact demo now
-installs 317 qualified Sound leaves across 127 retained events: 238 EQ leaves
-across 120 events and 79 Delay leaves across eight events. Of the EQ leaves,
-150 are acoustically non-neutral. Five chains mixed with Wwise Tremolo and
-five EQ leaves with live RTPC controls remain dry-playback approximations;
-overlapping property-value, unsupported-plug-in, and independent-LFE barriers
-are not partially applied.
+before Voice LPF/HPF and the emitter/auxiliary split. The exact demo currently
+retains 261 qualified EQ Sound leaves and 79 Delay leaves. Of the EQ leaves,
+165 are acoustically non-neutral; 15 belong to complete admitted Tremolo/EQ
+chains. EQ leaves with live controls and Sound `350811697`'s independently
+routed LFE shape remain dry-playback approximations. Overlapping
+property-value, unsupported-plug-in, and other independent-LFE barriers are
+not partially applied.
 
 The builder and shared mixer follow pinned wwiser's version-150 56-byte
 parameter layout, validate exact boolean bytes and ShareSet/Custom slot
@@ -570,6 +570,37 @@ uses Custom effect `290827855`. Another twelve booster leaves retain complete
 dry fallback because a static Flanger in slot 0 is followed by a dynamic
 Parametric EQ in slot 1. This raises qualified source-effect leaves from 2,423
 to 2,432 without changing media/event audibility.
+
+Wwise Tremolo `0x00830003` uses a separate evidence boundary. Pinned wwiser
+identifies the plug-in and shows the corresponding depth/frequency/waveform,
+smoothing/PWM, and phase-field sequence inside Flanger, but it does not contain
+a Tremolo parameter decoder. The EVE corpus supports the inference. The
+implementation therefore treats EVE-v150's exact 38-byte record as empirical
+rather than source-proven: depth and
+frequency floats, waveform integer, smoothing/PWM floats, phase offset/mode/
+spread, output gain, and Center/LFE flags. Admission is further bounded to a
+control-free bank-version-150 record with a sine waveform, zero phase
+offset/mode/spread, and both channel flags enabled. Matching records associated
+with any other bank version are rejected before projection.
+
+The `wwiseModulation: "approximate-web-audio"` adapter maps that subset to a
+voice-owned Gain/Oscillator stage with
+`gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t)`, followed by authored output
+gain. It starts and disposes the oscillator with the physical voice. This
+preserves the unipolar `[1-depth, 1]` range and slot order, but does not claim
+Wwise's exact start phase, native oscillator/channel law, or sample behavior.
+Smoothing and PWM are shape-validated but not retained or applied because only
+the sine carrier is admitted. Strict mode, missing primitives, dynamic
+controls, other waveforms/phase shapes, and shared-Bus Tremolo keep the
+complete chain audible and dry.
+
+EVE build 3453885 projects 74 conservative Tremolo Sound leaves across 29
+retained events: 59 Tremolo-only, 13 Tremolo followed by qualified static EQ,
+and two qualified static EQ followed by Tremolo. They use 57 effect identities
+and 11 exact parameter records. Sound `350811697` is deliberately excluded
+because its preceding EQ `400239472` requires unsupported independent LFE
+routing. The result raises qualified source-effect leaves from 2,432 to 2,506
+without changing media or event reachability.
 
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE

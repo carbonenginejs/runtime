@@ -1755,6 +1755,16 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                         processCenter: false,
                         processLfe: false,
                     },
+                    {
+                        effectId: "902",
+                        slotIndex: 3,
+                        type: "tremolo",
+                        modulationDepthPercent: 65,
+                        modulationFrequencyHz: 0.2,
+                        outputGainDb: 0,
+                        processCenter: true,
+                        processLfe: true,
+                    },
                 ],
                 rtpcCurves: [
                     {
@@ -1811,6 +1821,15 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.throws(
         () => validateAudioLibraryDocument(malformedFlanger),
         /modulationFrequencyHz/u,
+    );
+
+    const malformedTremolo = structuredClone(valid);
+
+    malformedTremolo.sfx.nodes["2"].sourceEffects[2]
+        .modulationDepthPercent = -1;
+    assert.throws(
+        () => validateAudioLibraryDocument(malformedTremolo),
+        /modulationDepthPercent/u,
     );
 
     const legacySfx = structuredClone(valid);

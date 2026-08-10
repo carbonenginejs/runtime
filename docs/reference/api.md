@@ -81,7 +81,8 @@ raw Wwise scaling-2 values, including the authored parameter default, a
 every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
 built SFX `sound` nodes may additionally retain an ordered `sourceEffects`
 array for the complete effective static Parametric EQ, Wwise Delay, or
-qualified Wwise Compressor/Peak Limiter override in their NodeBase ancestry.
+qualified Wwise Compressor/Peak Limiter/Flanger/Tremolo override in their
+NodeBase ancestry.
 An explicit empty override clears the inherited list.
 Those effects are voice-owned and precede Voice LPF/HPF and route splitting;
 built-in music evaluates Bus Volume only from this Audio Bus catalog. A Music
@@ -178,16 +179,18 @@ for lower-level composition. The mode is host runtime policy and is not stored
 in the portable audio-library document.
 
 Constructor option `wwiseModulation` independently controls qualified
-source-local Wwise Flanger records:
+source-local Wwise Flanger and Tremolo records:
 
 - `"strict"` (default) omits the complete source chain and keeps the voice
   audible/dry.
 - `"approximate-web-audio"` realizes the documented static sine/zero-phase
-  subset with voice-owned Gain, Delay, and optional Oscillator nodes. Missing
-  required primitives keep the complete chain dry.
+  subsets with voice-owned Gain, optional Delay, and optional Oscillator nodes.
+  Missing required primitives keep the complete chain dry.
 
-The portable record retains authored Flanger parameters and channel flags;
-the browser graph is an all-channel comb-filter approximation, not Wwise DSP.
+The portable records retain authored Flanger/Tremolo parameters and channel
+flags. The browser graphs are all-channel modulation approximations, not Wwise
+DSP. The Tremolo record is an explicitly empirical EVE-v150 38-byte layout;
+pinned wwiser identifies its plug-in but does not decode those parameters.
 Any other value throws synchronously, and `CjsAudioSystem` accepts the same
 option.
 

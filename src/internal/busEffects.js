@@ -3,7 +3,9 @@ export const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
 export const WWISE_COMPRESSOR_PLUGIN_ID = 0x006c0003;
 export const WWISE_PEAK_LIMITER_PLUGIN_ID = 0x006e0003;
 export const WWISE_FLANGER_PLUGIN_ID = 0x007d0003;
+export const WWISE_TREMOLO_PLUGIN_ID = 0x00830003;
 export const WWISE_METER_PLUGIN_ID = 0x00810003;
+const WWISE_TREMOLO_BANK_VERSION = 150;
 
 const WWISE_DYNAMICS_MODES = new Set([
     "strict",
@@ -12,6 +14,19 @@ const WWISE_DYNAMICS_MODES = new Set([
 const WWISE_MODULATION_MODES = new Set([
     "strict",
     "approximate-web-audio",
+]);
+const REALIZABLE_EFFECT_TYPES = new Set([
+    "meter-omission",
+    "compressor",
+    "compressor-approximation",
+    "peak-limiter",
+    "peak-limiter-approximation",
+    "delay",
+    "flanger",
+    "flanger-approximation",
+    "tremolo",
+    "tremolo-approximation",
+    "parametric-eq",
 ]);
 const WWISE_METER_FEEDBACK_MODES = new Set([
     "strict",
@@ -61,10 +76,10 @@ const FLANGER_DELAY_SECONDS_MIN = 0.0002;
 const FLANGER_DELAY_SECONDS_MAX = 0.1;
 const FLANGER_LEVEL_MIN = -1;
 const FLANGER_LEVEL_MAX = 1;
-const FLANGER_PERCENT_MIN = 0;
-const FLANGER_PERCENT_MAX = 100;
-const FLANGER_FREQUENCY_MIN = 0.02;
-const FLANGER_FREQUENCY_MAX = 20000;
+const MODULATION_PERCENT_MIN = 0;
+const MODULATION_PERCENT_MAX = 100;
+const MODULATION_FREQUENCY_MIN = Math.fround(0.02);
+const MODULATION_FREQUENCY_MAX = 20000;
 const METER_MAX_TIME = 10;
 const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
@@ -385,14 +400,14 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 ),
                 modulationDepthPercent: BoundedFinite(
                     effect.modulationDepthPercent,
-                    FLANGER_PERCENT_MIN,
-                    FLANGER_PERCENT_MAX,
+                    MODULATION_PERCENT_MIN,
+                    MODULATION_PERCENT_MAX,
                     `${label} modulationDepthPercent`,
                 ),
                 modulationFrequencyHz: BoundedFinite(
                     effect.modulationFrequencyHz,
-                    FLANGER_FREQUENCY_MIN,
-                    FLANGER_FREQUENCY_MAX,
+                    MODULATION_FREQUENCY_MIN,
+                    MODULATION_FREQUENCY_MAX,
                     `${label} modulationFrequencyHz`,
                 ),
                 outputGainDb: BoundedFinite(
@@ -403,11 +418,46 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 ),
                 wetDryMixPercent: BoundedFinite(
                     effect.wetDryMixPercent,
-                    FLANGER_PERCENT_MIN,
-                    FLANGER_PERCENT_MAX,
+                    MODULATION_PERCENT_MIN,
+                    MODULATION_PERCENT_MAX,
                     `${label} wetDryMixPercent`,
                 ),
                 lfoEnabled: effect.lfoEnabled,
+                processCenter: effect.processCenter,
+                processLfe: effect.processLfe,
+            });
+        }
+        if (allowDelay && effect.type === "tremolo")
+        {
+            if (typeof effect.processCenter !== "boolean"
+                || typeof effect.processLfe !== "boolean")
+            {
+                throw new TypeError(
+                    `${label} Tremolo flags must be boolean`,
+                );
+            }
+            return Object.freeze({
+                effectId,
+                slotIndex,
+                type: "tremolo",
+                modulationDepthPercent: BoundedFinite(
+                    effect.modulationDepthPercent,
+                    MODULATION_PERCENT_MIN,
+                    MODULATION_PERCENT_MAX,
+                    `${label} modulationDepthPercent`,
+                ),
+                modulationFrequencyHz: BoundedFinite(
+                    effect.modulationFrequencyHz,
+                    MODULATION_FREQUENCY_MIN,
+                    MODULATION_FREQUENCY_MAX,
+                    `${label} modulationFrequencyHz`,
+                ),
+                outputGainDb: BoundedFinite(
+                    effect.outputGainDb,
+                    DYNAMICS_OUTPUT_GAIN_MIN,
+                    DYNAMICS_OUTPUT_GAIN_MAX,
+                    `${label} outputGainDb`,
+                ),
                 processCenter: effect.processCenter,
                 processLfe: effect.processLfe,
             });
@@ -511,38 +561,82 @@ export function createWwiseEffectChain(
     // chain instead of applying only the non-dynamics siblings.
     const sourceDynamics = effects.filter(effect =>
         effect.type === "compressor" || effect.type === "peak-limiter");
-
-    if (sourceDynamics.length
-        && dynamicsMode === "strict")
-    {
-        return null;
-    }
-    if (sourceDynamics.length
-        && (typeof context?.createDynamicsCompressor !== "function"
-            || typeof context?.createGain !== "function"))
-    {
-        return null;
-    }
-    if (sourceDynamics.some(effect =>
-        effect.type === "peak-limiter"
-            && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD)
-        && typeof context?.createDelay !== "function")
-    {
-        return null;
-    }
+    const dynamicsEffects = effects.filter(effect =>
+        effect.type === "compressor"
+        || effect.type === "compressor-approximation"
+        || effect.type === "peak-limiter"
+        || effect.type === "peak-limiter-approximation");
+    const sourceDelays = effects.filter(effect => effect.type === "delay");
+    const sourceEqualizers = effects.filter(effect =>
+        effect.type === "parametric-eq");
     const sourceFlangers = effects.filter(effect => effect.type === "flanger");
+    const sourceTremolos = effects.filter(effect => effect.type === "tremolo");
+    const flangerEffects = effects.filter(effect =>
+        effect.type === "flanger"
+        || effect.type === "flanger-approximation");
+    const tremoloEffects = effects.filter(effect =>
+        effect.type === "tremolo"
+        || effect.type === "tremolo-approximation");
+    const hasSourceModulation = sourceFlangers.length > 0
+        || sourceTremolos.length > 0;
+    const hasModulation = flangerEffects.length > 0
+        || tremoloEffects.length > 0;
 
-    if (sourceFlangers.length && modulationMode === "strict")
+    for (const effect of effects)
+    {
+        if (!REALIZABLE_EFFECT_TYPES.has(effect.type))
+        {
+            throw new TypeError(`Unsupported shared Bus effect ${effect.type}`);
+        }
+    }
+
+    if (sourceDynamics.length && dynamicsMode === "strict")
     {
         return null;
     }
-    if (sourceFlangers.length
-        && (typeof context?.createDelay !== "function"
-            || typeof context?.createGain !== "function"
-            || (sourceFlangers.some(effect =>
-                effect.lfoEnabled
-                && effect.modulationDepthPercent > 0)
-                && typeof context?.createOscillator !== "function")))
+    if (hasSourceModulation && modulationMode === "strict")
+    {
+        return null;
+    }
+    const needsGain = dynamicsEffects.length > 0
+        || sourceDelays.length > 0
+        || hasModulation
+        || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
+    const needsDelay = sourceDelays.length > 0
+        || flangerEffects.length > 0
+        || dynamicsEffects.some(effect =>
+            (effect.type === "peak-limiter"
+                || effect.type === "peak-limiter-approximation")
+            && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
+    const needsBiquad = sourceEqualizers.some(effect => effect.bands.length);
+    const needsOscillator = tremoloEffects.some(effect =>
+        effect.modulationDepthPercent > 0)
+        || flangerEffects.some(effect =>
+            effect.lfoEnabled && effect.modulationDepthPercent > 0);
+
+    if (needsGain && typeof context?.createGain !== "function")
+    {
+        return null;
+    }
+    if (needsDelay && typeof context?.createDelay !== "function")
+    {
+        return null;
+    }
+    if (needsBiquad && typeof context?.createBiquadFilter !== "function")
+    {
+        return null;
+    }
+    if (dynamicsEffects.length
+        && typeof context?.createDynamicsCompressor !== "function")
+    {
+        return null;
+    }
+    if (tremoloEffects.some(effect =>
+        !effect.processCenter || !effect.processLfe))
+    {
+        return null;
+    }
+    if (needsOscillator && typeof context?.createOscillator !== "function")
     {
         return null;
     }
@@ -559,6 +653,8 @@ export function createWwiseEffectChain(
                 )
             : effect.type === "flanger"
                 ? { ...effect, type: "flanger-approximation" }
+            : effect.type === "tremolo"
+                ? { ...effect, type: "tremolo-approximation" }
             : effect);
     const nodes = [];
     let input = null;
@@ -599,6 +695,16 @@ export function createWwiseEffectChain(
         if (effect.type === "flanger-approximation")
         {
             const stage = CreateWwiseFlangerApproximation(context, effect);
+
+            if (output) output.connect(stage.input);
+            else input = stage.input;
+            output = stage.output;
+            nodes.push(...stage.nodes);
+            continue;
+        }
+        if (effect.type === "tremolo-approximation")
+        {
+            const stage = CreateWwiseTremoloApproximation(context, effect);
 
             if (output) output.connect(stage.input);
             else input = stage.input;
@@ -703,6 +809,35 @@ function CreateWwiseFlangerApproximation(context, effect)
         oscillator.connect(depth);
         depth.connect(delay.delayTime);
         nodes.push(depth, oscillator);
+    }
+    return { input, output, nodes };
+}
+
+/** Creates a static, all-channel browser approximation of Wwise Tremolo. */
+function CreateWwiseTremoloApproximation(context, effect)
+{
+    const input = context.createGain();
+    const output = context.createGain();
+    const depth = effect.modulationDepthPercent / 100;
+    const nodes = [ input, output ];
+
+    // Wwise describes a unipolar sine carrier. A bipolar Web Audio oscillator
+    // reaches the same [1-depth, 1] range around this constant midpoint.
+    SetParam(input.gain, 1 - depth / 2);
+    SetParam(output.gain, 10 ** (effect.outputGainDb / 20));
+    input.connect(output);
+
+    if (depth > 0)
+    {
+        const modulation = context.createGain();
+        const oscillator = context.createOscillator();
+
+        oscillator.type = "sine";
+        SetParam(oscillator.frequency, effect.modulationFrequencyHz);
+        SetParam(modulation.gain, depth / 2);
+        oscillator.connect(modulation);
+        modulation.connect(input.gain);
+        nodes.push(modulation, oscillator);
     }
     return { input, output, nodes };
 }
@@ -1027,18 +1162,18 @@ export function parseStaticWwiseFlangerBytes(
         || feedback < FLANGER_LEVEL_MIN
         || feedback > FLANGER_LEVEL_MAX
         || !Number.isFinite(modulationDepthPercent)
-        || modulationDepthPercent < FLANGER_PERCENT_MIN
-        || modulationDepthPercent > FLANGER_PERCENT_MAX
+        || modulationDepthPercent < MODULATION_PERCENT_MIN
+        || modulationDepthPercent > MODULATION_PERCENT_MAX
         || !Number.isFinite(modulationFrequencyHz)
-        || modulationFrequencyHz < FLANGER_FREQUENCY_MIN
-        || modulationFrequencyHz > FLANGER_FREQUENCY_MAX
+        || modulationFrequencyHz < MODULATION_FREQUENCY_MIN
+        || modulationFrequencyHz > MODULATION_FREQUENCY_MAX
         || waveform !== 0
         || !Number.isFinite(smoothingPercent)
-        || smoothingPercent < FLANGER_PERCENT_MIN
-        || smoothingPercent > FLANGER_PERCENT_MAX
+        || smoothingPercent < MODULATION_PERCENT_MIN
+        || smoothingPercent > MODULATION_PERCENT_MAX
         || !Number.isFinite(pwmPercent)
-        || pwmPercent < FLANGER_PERCENT_MIN
-        || pwmPercent > FLANGER_PERCENT_MAX
+        || pwmPercent < MODULATION_PERCENT_MIN
+        || pwmPercent > MODULATION_PERCENT_MAX
         || phaseOffsetDegrees !== 0
         || phaseMode !== 0
         || phaseSpreadDegrees !== 0
@@ -1046,8 +1181,8 @@ export function parseStaticWwiseFlangerBytes(
         || outputGainDb < DYNAMICS_OUTPUT_GAIN_MIN
         || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
         || !Number.isFinite(wetDryMixPercent)
-        || wetDryMixPercent < FLANGER_PERCENT_MIN
-        || wetDryMixPercent > FLANGER_PERCENT_MAX
+        || wetDryMixPercent < MODULATION_PERCENT_MIN
+        || wetDryMixPercent > MODULATION_PERCENT_MAX
         || lfoEnabledRaw > 1
         || processCenterRaw > 1
         || processLfeRaw > 1)
@@ -1084,6 +1219,99 @@ export function parseGraphStaticWwiseFlanger(effect, effectId, slotIndex)
             59,
             label,
             "Wwise Flanger",
+        ),
+        { effectId, slotIndex, label },
+    );
+}
+
+/**
+ * Decodes the empirical EVE-v150 Wwise Tremolo parameter block.
+ *
+ * Pinned wwiser identifies the plug-in and shows the corresponding modulation
+ * and phase sequence inside Flanger, but does not decode Tremolo's own 38-byte
+ * record. The EVE corpus supports this version- and shape-bounded inference.
+ */
+export function parseStaticWwiseTremoloBytes(
+    bytes,
+    {
+        effectId,
+        slotIndex,
+        label = `Wwise Tremolo ${effectId}`,
+        bankVersion = WWISE_TREMOLO_BANK_VERSION,
+    } = {},
+)
+{
+    if (Number(bankVersion) !== WWISE_TREMOLO_BANK_VERSION
+        || !(bytes instanceof Uint8Array)
+        || bytes.byteLength !== 38)
+    {
+        throw new TypeError(`${label} has an unsupported parameter block`);
+    }
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+    const modulationDepthPercent = view.getFloat32(0, true);
+    const modulationFrequencyHz = view.getFloat32(4, true);
+    const waveform = view.getUint32(8, true);
+    const smoothingPercent = view.getFloat32(12, true);
+    const pwmPercent = view.getFloat32(16, true);
+    const phaseOffsetDegrees = view.getFloat32(20, true);
+    const phaseMode = view.getUint32(24, true);
+    const phaseSpreadDegrees = view.getFloat32(28, true);
+    const outputGainDb = view.getFloat32(32, true);
+    const processCenterRaw = view.getUint8(36);
+    const processLfeRaw = view.getUint8(37);
+
+    if (!Number.isFinite(modulationDepthPercent)
+        || modulationDepthPercent < MODULATION_PERCENT_MIN
+        || modulationDepthPercent > MODULATION_PERCENT_MAX
+        || !Number.isFinite(modulationFrequencyHz)
+        || modulationFrequencyHz < MODULATION_FREQUENCY_MIN
+        || modulationFrequencyHz > MODULATION_FREQUENCY_MAX
+        || waveform !== 0
+        || !Number.isFinite(smoothingPercent)
+        || smoothingPercent < MODULATION_PERCENT_MIN
+        || smoothingPercent > MODULATION_PERCENT_MAX
+        || !Number.isFinite(pwmPercent)
+        || pwmPercent < MODULATION_PERCENT_MIN
+        || pwmPercent > MODULATION_PERCENT_MAX
+        || phaseOffsetDegrees !== 0
+        || phaseMode !== 0
+        || phaseSpreadDegrees !== 0
+        || !Number.isFinite(outputGainDb)
+        || outputGainDb < DYNAMICS_OUTPUT_GAIN_MIN
+        || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
+        || processCenterRaw !== 1
+        || processLfeRaw !== 1)
+    {
+        throw new TypeError(`${label} has invalid Wwise Tremolo parameters`);
+    }
+    return {
+        effectId: String(effectId),
+        slotIndex: Number(slotIndex),
+        type: "tremolo",
+        modulationDepthPercent,
+        modulationFrequencyHz,
+        outputGainDb,
+        processCenter: processCenterRaw === 1,
+        processLfe: processLfeRaw === 1,
+    };
+}
+
+/** Qualifies one empirical static source-local EVE-v150 Tremolo record. */
+export function parseGraphStaticWwiseTremolo(effect, effectId, slotIndex)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+
+    return parseStaticWwiseTremoloBytes(
+        RequireStaticGraphEffect(
+            effect,
+            WWISE_TREMOLO_PLUGIN_ID,
+            38,
+            label,
+            "Wwise Tremolo",
         ),
         { effectId, slotIndex, label },
     );

@@ -3,13 +3,14 @@ import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js
 import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
-import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes } from '../internal/busEffects.js';
+import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes, parseStaticWwiseTremoloBytes } from '../internal/busEffects.js';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
 // the builder accepts index values, metadata values, and optional injected
 // bank-byte/inspection capabilities without discovering files or services.
 const MUSIC_BANK_NAMES = Object.freeze(["music.bnk", "music_essential.bnk"]);
 const MUSIC_HIRC_TYPES = new Set([10, 11, 12, 13]);
+const EFFECT_HIRC_TYPES = new Set([16, 17]);
 const SFX_PLAY_ACTION = 0x0403;
 const SFX_PLAY_EVENT_ACTION = 0x2103;
 const SFX_STOP_ACTION_FAMILY = 0x01;
@@ -207,13 +208,25 @@ class CjsAudioLibraryBuilder {
     }
     const parsed = CjsBnkFormat.wwise.sfxNodesFromBanks(inspections);
     const parsedEffects = CjsBnkFormat.wwise.effectNodesFromBanks(inspections);
+    const effectVersions = new Map();
+    for (const inspection of inspections) {
+      for (const entry of inspection.hirc ?? []) {
+        if (EFFECT_HIRC_TYPES.has(entry.type)) {
+          effectVersions.set(Number(entry.id) >>> 0, Number(inspection.bankVersion) >>> 0);
+        }
+      }
+    }
+    const effects = new Map([...parsedEffects.effects].map(([id, effect]) => [id, {
+      ...effect,
+      bankVersion: effectVersions.get(Number(id) >>> 0)
+    }]));
     const eventNames = new Map();
     for (const [name, record] of metadataEntries(metadata?.Events, "Audio metadata Events")) {
       eventNames.set(Number(record.eventID) >>> 0, name);
     }
     return LowerSfxGraph({
       parsed,
-      effects: parsedEffects.effects,
+      effects,
       buses,
       eventNames,
       musicNodeIds: new Set(inspections.flatMap(inspection => (inspection.hirc ?? []).filter(entry => MUSIC_HIRC_TYPES.has(entry.type)).map(entry => Number(entry.id) >>> 0))),
@@ -3178,6 +3191,17 @@ function ParseStaticWwiseFlanger(ownerLabel, slot, effect) {
     label: `Wwise Flanger ${effect.id} on ${ownerLabel}`
   });
 }
+function ParseStaticWwiseTremolo(ownerLabel, slot, effect) {
+  if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`Wwise Tremolo ${effect.id} on ${ownerLabel} is not static`);
+  }
+  return parseStaticWwiseTremoloBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise Tremolo ${effect.id} on ${ownerLabel}`,
+    bankVersion: effect.bankVersion
+  });
+}
 
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
@@ -3256,6 +3280,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
         chain.push(ParseStaticWwisePeakLimiter(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_FLANGER_PLUGIN_ID) {
         chain.push(ParseStaticWwiseFlanger(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+      } else if (effect.pluginId === WWISE_TREMOLO_PLUGIN_ID) {
+        chain.push(ParseStaticWwiseTremolo(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else {
         return {};
       }

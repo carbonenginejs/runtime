@@ -7887,6 +7887,65 @@ test("Sound-local Wwise Flanger starts once and stops with its physical voice", 
   assert.equal(oscillator.stops.length, 1, "final disposal is idempotent");
 });
 
+test("Sound-local Wwise Tremolo starts once and precedes the Voice filters", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "920910989",
+    slotIndex: 1,
+    type: "tremolo",
+    modulationDepthPercent: 65,
+    modulationFrequencyHz: Math.fround(0.2),
+    outputGainDb: 0,
+    processCenter: true,
+    processLfe: true,
+  } ];
+  const loadBuffer = async () => ({
+    voices: [ {
+      buffer: { duration: 2 },
+      loop: false,
+      sourceEffects,
+      lowPass: 20,
+      getGain: () => 1,
+    } ],
+  });
+  const strict = Harness({ loadBuffer });
+
+  strict.backend.PostEvent(1, 1, 0, strict.emitter, "play");
+  await tick();
+  assert.equal(strict.context.oscillators.length, 0);
+
+  const approximate = Harness({
+    loadBuffer,
+    wwiseModulation: "approximate-web-audio",
+  });
+
+  approximate.backend.PostEvent(1, 1, 0, approximate.emitter, "play");
+  await tick();
+
+  const source = approximate.context.sources[0];
+  const input = source.connectedTo;
+  const output = input.connectedTo;
+  const lowPass = approximate.context.filters[0];
+  const [ oscillator ] = approximate.context.oscillators;
+  const modulation = approximate.context.gains.find(gain =>
+    gain.connectedTo === input.gain);
+
+  assert.equal(input.gain.value, 0.675);
+  assert.equal(output.gain.value, 1);
+  assert.equal(output.connectedTo, lowPass);
+  assert.equal(modulation.gain.value, 0.325);
+  assert.equal(oscillator.connectedTo, modulation);
+  assert.deepEqual(oscillator.starts, [ source.startedAt ]);
+  assert.equal(oscillator.frequency.value, sourceEffects[0].modulationFrequencyHz);
+
+  source.onended();
+  assert.equal(oscillator.stops.length, 1);
+  assert.equal(oscillator.disconnected, true);
+  assert.equal(input.disconnected, true);
+  assert.equal(output.disconnected, true);
+  assert.equal(lowPass.disconnected, true);
+});
+
 test("routed SFX activity ducks future target voices and releases on source end", async () =>
 {
   const busDuckingController = new CjsBusDuckingController({

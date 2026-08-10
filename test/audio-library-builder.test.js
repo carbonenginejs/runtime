@@ -6497,6 +6497,117 @@ test("SFX construction retains only complete static Wwise Flanger overrides", as
     );
 });
 
+test("SFX construction retains only complete empirical Wwise Tremolo overrides", async () =>
+{
+    const Build = (propertyValues, bankVersion = 150) =>
+        CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                ambience_play: {
+                    eventID: 100,
+                    soundbanks: [ "effects.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "effects.bnk": {
+                    name: "effects",
+                    path: "\\SoundBanks\\effects.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/effects.bnk",
+            storagePath: "banks/effects.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 2196086003,
+                                    flags: 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 16,
+                            id: 2196086003,
+                            payload: wwiseTremoloEffectPayload({ propertyValues }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const library = await Build([]);
+
+    assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "2196086003",
+        slotIndex: 0,
+        type: "tremolo",
+        modulationDepthPercent: 100,
+        modulationFrequencyHz: 1,
+        outputGainDb: 0,
+        processCenter: true,
+        processLfe: true,
+    } ]);
+
+    const dynamic = await Build([ { propertyId: 1, value: 2 } ]);
+
+    assert.equal(
+        dynamic.sfx.nodes["300"].sourceEffects,
+        undefined,
+        "a controlled Tremolo keeps the complete override on dry fallback",
+    );
+
+    const unsupportedVersion = await Build([], 151);
+
+    assert.equal(
+        unsupportedVersion.sfx?.nodes?.["300"]?.sourceEffects,
+        undefined,
+        "the empirical layout is admitted only for EVE-v150 banks",
+    );
+});
+
 test("complete construction projects routed static Wwise Parametric EQ", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -10524,6 +10635,54 @@ function wwiseFlangerEffectPayload({
         .bytes();
     const writer = new TestWriter()
         .u32(0x007d0003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(propertyValues.length);
+
+    for (const property of propertyValues)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation ?? 0)
+            .f32(property.value);
+    }
+    return writer.bytes();
+}
+
+function wwiseTremoloEffectPayload({
+    modulationDepthPercent = 100,
+    modulationFrequencyHz = 1,
+    waveform = 0,
+    smoothingPercent = 0,
+    pwmPercent = 50,
+    phaseOffsetDegrees = 0,
+    phaseMode = 0,
+    phaseSpreadDegrees = 0,
+    outputGainDb = 0,
+    processCenter = true,
+    processLfe = true,
+    propertyValues = [],
+} = {})
+{
+    const parameterBlock = new TestWriter()
+        .f32(modulationDepthPercent)
+        .f32(modulationFrequencyHz)
+        .u32(waveform)
+        .f32(smoothingPercent)
+        .f32(pwmPercent)
+        .f32(phaseOffsetDegrees)
+        .u32(phaseMode)
+        .f32(phaseSpreadDegrees)
+        .f32(outputGainDb)
+        .u8(processCenter ? 1 : 0)
+        .u8(processLfe ? 1 : 0)
+        .bytes();
+    const writer = new TestWriter()
+        .u32(0x00830003)
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)

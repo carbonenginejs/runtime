@@ -63,7 +63,7 @@ let context;
 const audio = new CjsAudioMan(document, {
     createContext: () => context = new AudioContext(),
     defaultSoundBanks: [ "ui.bnk" ],
-    // Optional documented approximation; the default is "strict".
+    // Optional dynamics and Flanger/Tremolo approximations; defaults are strict.
     wwiseDynamics: "approximate-web-audio",
     wwiseModulation: "approximate-web-audio",
     // Optional omission policies; both defaults are "strict".
@@ -108,8 +108,9 @@ audio.Dispose();
 
 Unsupported shared-bus processing does not normally suppress the decoded
 voice. With the default strict policy, playback uses the legacy SFX/music route
-and omits the blocked bus stages. Opting into approximate dynamics replaces
-that omission only for its qualified static subset; it does not enable
+and omits the blocked bus stages. Opting into approximate dynamics or
+modulation replaces that omission only for the corresponding qualified static
+subset; it does not enable
 Convolution Reverb, Meter feedback, dynamic plug-in controls, or general Aux
 routing.
 

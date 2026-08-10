@@ -15,9 +15,11 @@ import {
     parseGraphStaticParametricEq,
     parseGraphStaticWwiseDelay,
     parseGraphStaticWwiseFlanger,
+    parseGraphStaticWwiseTremolo,
     parseGraphStaticWwisePeakLimiter,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
+    parseStaticWwiseTremoloBytes,
 } from "../src/internal/busEffects.js";
 
 function Effect(overrides = {})
@@ -348,6 +350,45 @@ function GraphFlanger(bytes = FlangerBytes())
     const effect = GraphEffect(bytes);
 
     effect.pluginId = 0x007d0003;
+    return effect;
+}
+
+function TremoloBytes({
+    modulationDepthPercent = 100,
+    modulationFrequencyHz = 1,
+    waveform = 0,
+    smoothingPercent = 0,
+    pwmPercent = 50,
+    phaseOffsetDegrees = 0,
+    phaseMode = 0,
+    phaseSpreadDegrees = 0,
+    outputGainDb = 0,
+    processCenter = 1,
+    processLfe = 1,
+} = {})
+{
+    const bytes = new Uint8Array(38);
+    const view = new DataView(bytes.buffer);
+
+    view.setFloat32(0, modulationDepthPercent, true);
+    view.setFloat32(4, modulationFrequencyHz, true);
+    view.setUint32(8, waveform, true);
+    view.setFloat32(12, smoothingPercent, true);
+    view.setFloat32(16, pwmPercent, true);
+    view.setFloat32(20, phaseOffsetDegrees, true);
+    view.setUint32(24, phaseMode, true);
+    view.setFloat32(28, phaseSpreadDegrees, true);
+    view.setFloat32(32, outputGainDb, true);
+    view.setUint8(36, processCenter);
+    view.setUint8(37, processLfe);
+    return bytes;
+}
+
+function GraphTremolo(bytes = TremoloBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.pluginId = 0x00830003;
     return effect;
 }
 
@@ -862,6 +903,120 @@ test("validates Flanger policy, exact shape, and fixed-delay LFO omission", () =
     const fixed = parseGraphStaticWwiseFlanger(GraphFlanger(FlangerBytes({
         lfoEnabled: 0,
     })), "290827855", 0);
+    const context = Context();
+
+    delete context.createOscillator;
+    assert.ok(createWwiseEffectChain(context, [ fixed ], {
+        wwiseModulation: "approximate-web-audio",
+    }));
+    assert.equal(context.oscillators.length, 0);
+});
+
+test("decodes and realizes only the empirical static Wwise Tremolo subset", () =>
+{
+    const decoded = parseGraphStaticWwiseTremolo(
+        GraphTremolo(),
+        "2196086003",
+        1,
+    );
+    const normalized = normalizeStaticSourceEffectChain(
+        [ decoded ],
+        "Audio source",
+    );
+
+    assert.deepEqual(decoded, {
+        effectId: "2196086003",
+        slotIndex: 1,
+        type: "tremolo",
+        modulationDepthPercent: 100,
+        modulationFrequencyHz: 1,
+        outputGainDb: 0,
+        processCenter: true,
+        processLfe: true,
+    });
+    assert.equal(createWwiseEffectChain(Context(), normalized), null);
+    const context = Context();
+    const chain = createWwiseEffectChain(context, normalized, {
+        wwiseModulation: "approximate-web-audio",
+    });
+    const [ input, output, depth ] = context.gains;
+    const [ oscillator ] = context.oscillators;
+
+    assert.equal(chain.input, input);
+    assert.equal(chain.output, output);
+    assert.equal(input.gain.value, 0.5);
+    assert.equal(output.gain.value, 1);
+    assert.equal(input.connectedTo, output);
+    assert.equal(oscillator.type, "sine");
+    assert.equal(oscillator.frequency.value, 1);
+    assert.equal(depth.gain.value, 0.5);
+    assert.equal(depth.connectedTo, input.gain);
+
+    const unavailable = Context();
+
+    delete unavailable.createOscillator;
+    assert.equal(createWwiseEffectChain(unavailable, normalized, {
+        wwiseModulation: "approximate-web-audio",
+    }), null);
+    assert.equal(unavailable.gains.length, 0);
+    assert.equal(createWwiseEffectChain(Context(), [ {
+        ...decoded,
+        processLfe: false,
+    } ], {
+        wwiseModulation: "approximate-web-audio",
+    }), null);
+
+    const unavailableEq = Context();
+    const equalizer = parseGraphStaticParametricEq(
+        GraphEffect(),
+        "900",
+        2,
+    );
+
+    delete unavailableEq.createBiquadFilter;
+    assert.equal(createWwiseEffectChain(
+        unavailableEq,
+        [ decoded, equalizer ],
+        { wwiseModulation: "approximate-web-audio" },
+    ), null);
+    assert.equal(unavailableEq.gains.length, 0);
+    assert.equal(unavailableEq.oscillators.length, 0);
+    assert.equal(unavailableEq.filters.length, 0);
+});
+
+test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
+{
+    assert.throws(() => parseStaticWwiseTremoloBytes(
+        TremoloBytes(),
+        { effectId: "900", slotIndex: 0, bankVersion: 151 },
+    ), /unsupported parameter block/u);
+
+    for (const parameters of [
+        { modulationDepthPercent: 101 },
+        { modulationFrequencyHz: 0.01 },
+        { waveform: 1 },
+        { smoothingPercent: 101 },
+        { pwmPercent: -1 },
+        { phaseOffsetDegrees: 1 },
+        { phaseMode: 1 },
+        { phaseSpreadDegrees: 1 },
+        { outputGainDb: 25 },
+        { processCenter: false },
+        { processLfe: false },
+        { processCenter: 2 },
+        { processLfe: 2 },
+    ])
+    {
+        assert.throws(() => parseGraphStaticWwiseTremolo(
+            GraphTremolo(TremoloBytes(parameters)),
+            "900",
+            0,
+        ));
+    }
+
+    const fixed = parseGraphStaticWwiseTremolo(GraphTremolo(TremoloBytes({
+        modulationDepthPercent: 0,
+    })), "901", 0);
     const context = Context();
 
     delete context.createOscillator;

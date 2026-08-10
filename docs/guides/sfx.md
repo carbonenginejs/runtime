@@ -269,7 +269,8 @@ exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
 static Parametric EQ, Wwise Delay, and qualified Wwise Compressor, Peak
-Limiter, or Flanger records. The builder walks the Sound's NodeBase ancestry to the first effect
+Limiter, Flanger, or Tremolo records. The builder walks the Sound's NodeBase
+ancestry to the first effect
 override, treating a root list as effective and an explicit empty override as
 a replacement that clears the parent list. It emits the chain only when every
 active slot is a control-free supported effect with an admitted static shape;
@@ -303,25 +304,44 @@ channel even when Wwise authors Center/LFE bypass, clamps feedback to just
 below unity, retains LFO phase while paused, and cuts delay/feedback state at
 the decoded dry-source boundary. Shared-Bus Flanger remains unsupported.
 
+Qualified Tremolo records reuse the same `wwiseModulation` policy. Pinned
+wwiser identifies plug-in `0x00830003` and shows the corresponding modulation
+and phase sequence inside Flanger, but does not decode Tremolo's own
+parameters. The EVE corpus informs the 38-byte interpretation; it remains
+empirical. Admission is explicitly limited to bank version 150, a control-free
+sine waveform, zero phase offset/mode/spread, and Center/LFE processing.
+Audiokinetic's
+[Wwise Tremolo reference](https://www.audiokinetic.com/en/library/2024.1.1_8691/?id=wwise_tremolo_plug_in_effect&source=Help)
+describes a unipolar carrier; the browser maps it to
+`gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t)`, then
+applies authored output gain. Its voice-owned oscillator has the same start,
+pause, and disposal lifecycle as Flanger. Exact carrier start phase, native
+oscillator shape, and channel law are not claimed. Smoothing and PWM remain
+shape-validated but are neither stored nor applied because this adapter admits
+only the sine carrier. Shared-Bus Tremolo remains unsupported.
+
 Bypassed or rendered slots need no live stage. Pause and seek reuse the
 voice-owned browser nodes instead of freezing or reconstructing native Wwise
 plug-in state. Natural completion still follows the decoded dry source;
 `DelayNode` has no Wwise tail-completion callback, so residual feedback is cut
 when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
-independent channel routing outside the documented Flanger approximation, and
+independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 2,432
-qualified Sound leaves: 246 use Parametric EQ, 79 use Wwise Delay, 2,033 use
-Compressor, 73 use Peak Limiter, and nine use Flanger across five retained
-events. Those Peak Limiter leaves all inherit Custom effect
+than applying part of an authored chain. EVE build 3453885 installs 2,506
+qualified Sound leaves: 261 use Parametric EQ, 79 use Wwise Delay, 2,033 use
+Compressor, 73 use Peak Limiter, nine use Flanger across five retained events,
+and 74 use Tremolo across 29 retained events. The Tremolo population contains
+59 isolated chains, 13 Tremolo-to-EQ chains, and two EQ-to-Tremolo chains over
+11 distinct 38-byte parameter records. Those Peak Limiter leaves all inherit Custom effect
 `754157063` under `refinery_l_play`. A total of 486 retained events can reach
 at least one Compressor leaf. The
 Compressor population contains nine complete chain signatures, including
-eight leaves where it precedes one qualified EQ. The 150 non-neutral EQ chains
-remain unchanged. Five mixed Tremolo/EQ chains and five dynamic EQ leaves
-remain intentionally unrealized. Twelve additional static-Flanger leaves stay
-atomically dry because their second slot is a dynamic Parametric EQ.
+eight leaves where it precedes one qualified EQ. There are now 165 non-neutral
+EQ chains. Sound `350811697` remains atomically dry because its preceding EQ
+requires unsupported independent LFE routing. Twelve additional
+static-Flanger leaves stay dry because their second slot is a dynamic
+Parametric EQ; dynamic or unsupported mixed Tremolo chains remain dry too.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its
