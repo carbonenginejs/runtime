@@ -5,6 +5,7 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildMesh } from "../../../eve/child/EveChildMesh.js";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { RotationalConstraints } from "./enums.js";
 
 /** EveChildInstanceMeshRenderer (eve/child) - generated from schema shapeHash 61c42c4d.... */
 @type.define({ className: "EveChildInstanceMeshRenderer", family: "eve/child" })
@@ -45,10 +46,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     throw new Error("EveChildInstanceMeshRenderer.RefreshStaticGeometry is not implemented in CarbonEngineJS.");
   }
 
-  static RotationalConstraints = Object.freeze({
-    NONE: 0,
-    BILLBOARD: 1,
-    BILLBOARD_WITH_Z_LOCKED: 2,
-  });
+  static RotationalConstraints = RotationalConstraints;
 
 }

@@ -15,6 +15,7 @@ import { Tr2PPFilmGrainEffect } from "./effect/Tr2PPFilmGrainEffect.js";
 import { Tr2PPLutEffect } from "./effect/Tr2PPLutEffect.js";
 import { Tr2PPSignalLossEffect } from "./effect/Tr2PPSignalLossEffect.js";
 import { Tr2PPVignetteEffect } from "./effect/Tr2PPVignetteEffect.js";
+import { AttributeType, Priority } from "../generated/postProcess/enums.js";
 
 
 /**
@@ -624,59 +625,9 @@ export class Tr2PostProcessAttributes extends CjsModel
     }
   }
 
-  static Priority = Object.freeze({
-    SCENE_DEFAULT_PRIORITY: 0,
-    LOW_PRIORITY: 1,
-    MEDIUM_PRIORITY: 2,
-    HIGH_PRIORITY: 3,
-    UI_PRIORITY: 4,
-    PRIORITY_COUNT: 5
-  });
+  static Priority = Priority;
 
-  static AttributeType = Object.freeze({
-    SIGNAL_LOSS_INTENSITY: 0,
-    BLOOM_BRIGHTNESS: 1,
-    BLOOM_LUMINANCE_THRESHOLD: 2,
-    BLOOM_LUMINANCE_SCALE: 3,
-    GRIME_INTENSITY: 4,
-    GRIME_PATH: 5,
-    FILM_GRAIN_INTENSITY: 6,
-    FILM_GRAIN_SIZE: 7,
-    FILM_GRAIN_DENSITY: 8,
-    FILM_GRAIN_CONTRAST: 9,
-    FILM_GRAIN_BRIGHTNESS_MODIFIER: 10,
-    FILM_GRAIN_COLORED: 11,
-    FILM_GRAIN_COLOR_AMOUNT: 12,
-    SATURATION: 13,
-    FADE_INTENSITY: 14,
-    FADE_COLOR: 15,
-    LUT_INTENSITY: 16,
-    LUT_PATH: 17,
-    VIGNETTE_INTENSITY: 18,
-    VIGNETTE_OPACITY: 19,
-    VIGNETTE_COLOR: 20,
-    VIGNETTE_DETAIL1_SIZE: 21,
-    VIGNETTE_DETAIL1_SCROLL: 22,
-    VIGNETTE_DETAIL2_SIZE: 23,
-    VIGNETTE_DETAIL2_SCROLL: 24,
-    VIGNETTE_SHAPE_PATH: 25,
-    VIGNETTE_DETAIL_PATH: 26,
-    VIGNETTE_SINE_FREQUENCY: 27,
-    VIGNETTE_MIN_SINE_FREQUENCY: 28,
-    VIGNETTE_MAX_SINE_FREQUENCY: 29,
-    DEPTH_OF_FIELD_SCALE: 30,
-    DEPTH_OF_FIELD_FOCAL_DISTANCE: 31,
-    DEPTH_OF_FIELD_FOCAL_LENGTH: 32,
-    DEPTH_OF_FIELD_SHAPE: 33,
-    WHITE_TEMPERATURE: 34,
-    WHITE_TINT: 35,
-    COLOR_SATURATION: 36,
-    COLOR_CONTRAST: 37,
-    COLOR_GAMMA: 38,
-    COLOR_GAIN: 39,
-    COLOR_OFFSET: 40,
-    POST_PROCESS_ATTRIBUTE_TYPE_COUNT: 41
-  });
+  static AttributeType = AttributeType;
 
   static SCENE_DEFAULT_PRIORITY = 0;
 
@@ -1157,13 +1108,6 @@ export class Tr2PostProcessAttributes extends CjsModel
     return postProcess;
   }
 
-  static Shape = Object.freeze({
-    Disk: 0,
-    Triangle: 1,
-    Rectangle: 2,
-    Pentagon: 3,
-    Hexagon: 4,
-    Heart: 5
-  });
+  static Shape = Tr2PPDepthOfFieldEffect.Shape;
 
 }

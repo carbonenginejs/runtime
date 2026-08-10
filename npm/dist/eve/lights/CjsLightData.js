@@ -4,6 +4,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { type } from '@carbonenginejs/runtime-utils/schema';
+import { PerLightShadowSetting } from '../../generated/eve/lights/enums.js';
 
 let _initClass, _init_position, _init_extra_position, _init_color, _init_extra_color, _init_brightness, _init_extra_brightness, _init_noiseAmplitude, _init_extra_noiseAmplitude, _init_noiseFrequency, _init_extra_noiseFrequency, _init_noiseOctaves, _init_extra_noiseOctaves, _init_radius, _init_extra_radius, _init_innerRadius, _init_extra_innerRadius, _init_rotation, _init_extra_rotation, _init_outerAngle, _init_extra_outerAngle, _init_innerAngle, _init_extra_innerAngle, _init_texturePath, _init_extra_texturePath, _init_boneIndex, _init_extra_boneIndex, _init_flags, _init_extra_flags, _init_startTime, _init_extra_startTime, _init_castsShadows, _init_extra_castsShadows, _init_isVolumetric, _init_extra_isVolumetric;
 
@@ -50,11 +51,7 @@ new class extends _identity {
     isVolumetric = (_init_extra_castsShadows(this), _init_isVolumetric(this, false));
   }];
   Fields = ["position", "color", "brightness", "noiseAmplitude", "noiseFrequency", "noiseOctaves", "radius", "innerRadius", "rotation", "outerAngle", "innerAngle", "texturePath", "boneIndex", "flags", "startTime", "castsShadows", "isVolumetric"];
-  PerLightShadowSetting = Object.freeze({
-    DISABLED: 0,
-    ENABLED_ONLY_ON_HIGH_QUALITY: 1,
-    ALWAYS_ENABLED: 2
-  });
+  PerLightShadowSetting = PerLightShadowSetting;
   constructor() {
     super(_CjsLightData), _initClass();
   }

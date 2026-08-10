@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe$1 } from './Tr2ParticleElementDeclaration.js';
 
 let _initClass, _init_type, _init_extra_type, _init_name, _init_extra_name;
 
@@ -64,13 +65,7 @@ new class extends _identity {
   }];
   #typeNames = Object.freeze(["LIFETIME", "POSITION", "VELOCITY", "MASS"]);
   #usageCodes = Object.freeze([3, 0, 2, 4, 5]);
-  Type = Object.freeze({
-    LIFETIME: 0,
-    POSITION: 1,
-    VELOCITY: 2,
-    MASS: 3,
-    CUSTOM: 4
-  });
+  Type = _Tr2ParticleElementDe$1.Type;
   constructor() {
     super(_Tr2ParticleElementDe), _initClass();
   }

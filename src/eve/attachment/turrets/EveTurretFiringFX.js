@@ -6,6 +6,7 @@ import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { getDeltaTime, getTime, translationMatrix } from "../../renderable/stretch/CjsStretchRuntime.js";
+import { ImpactConfiguration } from "../../../generated/include/enums.js";
 
 /** EveTurretFiringFX (eve/attachment/turrets) - generated from schema shapeHash ae5459c6.... */
 @type.define({ className: "EveTurretFiringFX", family: "eve/attachment/turrets" })
@@ -784,7 +785,7 @@ export class EveTurretFiringFX extends EveEntity
 
   static INVALID_INDEX = 0xffffffff;
 
-  static ImpactConfiguration = Object.freeze({ IMPACT_INVALID: 0, IMPACT_SHIELD: 1, IMPACT_ARMOR: 2, IMPACT_HULL: 3 });
+  static ImpactConfiguration = ImpactConfiguration;
 
   static #identity = mat4.create();
 

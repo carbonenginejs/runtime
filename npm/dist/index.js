@@ -34,7 +34,7 @@ export { Tr2TimelineController } from './controllers/timeline/Tr2TimelineControl
 export { Tr2TimelineEntry } from './controllers/timeline/Tr2TimelineEntry.js';
 export { Tr2CurveSetRange } from './curves/Tr2CurveSetRange.js';
 export { TriCurveSet } from './curves/TriCurveSet.js';
-export { RotationSetting, TRIEXTRAPOLATION, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting, TriExtrapolation } from './curves/enums.js';
+export { RotationSetting, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting } from './curves/enums.js';
 export { Tr2BoneMatrixCurve } from './curves/curve/Tr2BoneMatrixCurve.js';
 export { Tr2CurveColor } from './curves/curve/Tr2CurveColor.js';
 export { Tr2CurveColorMixer } from './curves/curve/Tr2CurveColorMixer.js';
@@ -452,7 +452,7 @@ export { CjsStoredVariable, CjsVariableStore } from './shader/CjsVariableStore.j
 export { Tr2DataTextureManager } from './shader/Tr2DataTextureManager.js';
 export { Tr2EffectStateManager } from './shader/Tr2EffectStateManager.js';
 export { Tr2ShaderBuffer } from './shader/Tr2ShaderBuffer.js';
-export { PROJECTION_TYPE, RenderingMode } from './generated/shader/enums.js';
+export { PROJECTION_TYPE } from './generated/shader/enums.js';
 export { Range } from './utilities/Range.js';
 export { Tr2MaterialBoundsAdjustment } from './utilities/Tr2MaterialBoundsAdjustment.js';
 export { Float4x3 } from './utilities/Float4x3.js';
@@ -530,7 +530,7 @@ export { MorphTargetAnimationFilter, Origin, PropagationType, RenderType, Rotati
 export { EveLineChildContainer } from './generated/eve/child/lineSetPaths/EveLineChildContainer.js';
 export { EveOccluder } from './generated/eve/effect/EveOccluder.js';
 export { EveStarfield } from './generated/eve/effect/EveStarfield.js';
-export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionMode, ReflectionQuality, ReflectionSetting, VisualizerType } from './generated/eve/enums.js';
+export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionQuality, ReflectionSetting, VisualizerType } from './generated/eve/enums.js';
 export { PerLightShadowSetting } from './generated/eve/lights/enums.js';
 export { EvePendingPickingReadback } from './generated/eve/scene/EvePendingPickingReadback.js';
 export { EveSpaceSceneRenderDriver } from './generated/eve/scene/EveSpaceSceneRenderDriver.js';
@@ -610,8 +610,9 @@ export { Tr2Transform } from './generated/trinityCore/Tr2Transform.js';
 export { Tr2TransientTextureReference } from './generated/trinityCore/Tr2TransientTextureReference.js';
 export { Tr2TranslationTool } from './generated/trinityCore/Tr2TranslationTool.js';
 export { Tr2VolumetricsRenderer } from './generated/trinityCore/Tr2VolumetricsRenderer.js';
-export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriBatchType, TriFrustumTestResult, TriVariableContentType } from './generated/trinityCore/enums.js';
+export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriFrustumTestResult, TriVariableContentType } from './generated/trinityCore/enums.js';
 export { INPUTTYPE, UIALIGN, UIANCHOR, UIBOX, UICONTROLTYPE, UICURSOR, UID, UIFONTSIZE, UIFONTSTYLE, UIHITAREA, UIINITPOS, UIMESSAGE, UISTATE, UITRAVERSE } from './generated/ui/enums.js';
 export { Obb } from './generated/utilities/Obb.js';
+export { ReflectionMode } from '@carbonenginejs/runtime-utils/graphics';
 export { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 //# sourceMappingURL=index.js.map

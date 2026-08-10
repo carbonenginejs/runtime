@@ -4,6 +4,7 @@
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { TriDebugFont } from "../include/enums.js";
 
 /** Tr2PrimitiveText (trinityCore) - generated from schema shapeHash 9b6c5ad5.... */
 @type.define({ className: "Tr2PrimitiveText", family: "trinityCore" })
@@ -31,10 +32,6 @@ export class Tr2PrimitiveText extends CjsModel
   @type.vec3
   position = vec3.create();
 
-  static TriDebugFont = Object.freeze({
-    TRI_DBG_FONT_SMALL: 0,
-    TRI_DBG_FONT_MEDIUM: 1,
-    TRI_DBG_FONT_LARGE: 2,
-  });
+  static TriDebugFont = TriDebugFont;
 
 }

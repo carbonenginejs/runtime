@@ -2,6 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virt
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2PPDepthOfFieldEffect as _Tr2PPDepthOfFieldEff } from './effect/Tr2PPDepthOfFieldEffect.js';
+import { Quality } from '../generated/postProcess/enums.js';
 
 let _initProto, _initClass, _init_signalLoss, _init_extra_signalLoss, _init_godRays, _init_extra_godRays, _init_bloom, _init_extra_bloom, _init_dynamicExposure, _init_extra_dynamicExposure, _init_filmGrain, _init_extra_filmGrain, _init_desaturate, _init_extra_desaturate, _init_fade, _init_extra_fade, _init_luts, _init_extra_luts, _init_lut, _init_extra_lut, _init_vignette, _init_extra_vignette, _init_fog, _init_extra_fog, _init_depthOfField, _init_extra_depthOfField, _init_taa, _init_extra_taa, _init_tonemapping, _init_extra_tonemapping, _init_colorCorrection, _init_extra_colorCorrection, _init_genericEffect, _init_extra_genericEffect;
 
@@ -302,12 +303,7 @@ new class extends _identity {
       return _Tr2PostProcess.IsEffectActive(effect, predicate) && qualitySetting >= minimumQuality ? effect : null;
     }
   }];
-  Quality = Object.freeze({
-    LOW: 0,
-    MEDIUM: 1,
-    HIGH: 2,
-    COUNT: 3
-  });
+  Quality = Quality;
   LOW = 0;
   MEDIUM = 1;
   HIGH = 2;

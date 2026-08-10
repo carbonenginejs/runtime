@@ -2,6 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\PostProcess\Effects\Tr2PPTaaEffect.cpp
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
+import { Debug } from "../../generated/postProcess/enums.js";
 
 
 /**
@@ -37,7 +38,7 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
 
   static Quality = Object.freeze({ TAA_LOW: 1, TAA_MEDIUM: 2, TAA_HIGH: 3 });
 
-  static Debug = Object.freeze({ TAA_DEBUG_OFF: 0, TAA_DEBUG_MOTION_VECTORS: 1, TAA_DEBUG_EARLY_OUT_MASK: 2 });
+  static Debug = Debug;
 
   static TAA_LOW = 1;
 

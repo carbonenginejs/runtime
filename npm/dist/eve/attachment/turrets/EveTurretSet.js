@@ -1032,11 +1032,7 @@ new class extends _identity {
   #invalidTranslation = vec4.fromValues(0, 0, 0, 1);
   #invalidRotation = quat.create();
   #zero4 = vec4.create();
-  ImpactBehaviour = Object.freeze({
-    DAMAGE_LOCATOR: 0,
-    SHIELD_ELLIPSOID: 1,
-    CENTER: 2
-  });
+  ImpactBehaviour = _EveTurretTarget.ImpactBehaviour;
   LOD = Object.freeze({
     LOD_INVALID: 0,
     LOD_EMPTY: 1,

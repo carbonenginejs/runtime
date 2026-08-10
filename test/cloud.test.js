@@ -9,14 +9,14 @@
 // cpp:854-884, PopulatePerObjectData cpp:544-619; math Sphere.cpp:10-17,
 // Matrix_inline.h:531-546 / 749-765; Tr2Light::GetLight Tr2Light.cpp:152-163.
 import test from "node:test";
+import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import assert from "node:assert/strict";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import {
   EveChildCloud2,
   Tr2PointLight,
-  Tr2RenderReason,
-  TriBatchType
+  Tr2RenderReason
 } from "../npm/dist/index.js";
 
 

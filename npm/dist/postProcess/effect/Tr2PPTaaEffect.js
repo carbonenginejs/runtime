@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2PPEffect as _Tr2PPEffect } from './Tr2PPEffect.js';
+import { Debug } from '../../generated/postProcess/enums.js';
 
 let _initClass, _init_debug, _init_extra_debug, _init_quality, _init_extra_quality, _init_earlyOutThreshold, _init_extra_earlyOutThreshold;
 
@@ -41,11 +42,7 @@ new class extends _identity {
     TAA_MEDIUM: 2,
     TAA_HIGH: 3
   });
-  Debug = Object.freeze({
-    TAA_DEBUG_OFF: 0,
-    TAA_DEBUG_MOTION_VECTORS: 1,
-    TAA_DEBUG_EARLY_OUT_MASK: 2
-  });
+  Debug = Debug;
   TAA_LOW = 1;
   TAA_MEDIUM = 2;
   TAA_HIGH = 3;

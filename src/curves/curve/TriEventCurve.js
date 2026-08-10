@@ -2,7 +2,7 @@
 // Source: E:\carbonengine\trinity\trinity\Curves\TriEventCurve.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { TRIEXTRAPOLATION } from "../enums.js";
+import { TriExtrapolation } from "@carbonenginejs/runtime-utils/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
 
 
@@ -66,7 +66,7 @@ export class TriEventCurve extends CjsModel
   @io.persist
   @type.int32
   @type.enum("TRIEXTRAPOLATION")
-  extrapolation = TRIEXTRAPOLATION.NONE;
+  extrapolation = TriExtrapolation.TRIEXT_NONE;
 
   @io.persist
   @type.string
@@ -116,7 +116,7 @@ export class TriEventCurve extends CjsModel
       this.#currentKeyIndex = 0;
       return;
     }
-    if (this.extrapolation === TRIEXTRAPOLATION.CYCLE)
+    if (this.extrapolation === TriExtrapolation.TRIEXT_CYCLE)
     {
       const localNow = this.time % this.length;
       if (localNow < this.localTime)
@@ -342,6 +342,6 @@ export class TriEventCurve extends CjsModel
     return Array.isArray(args) ? args : [args];
   }
 
-  static TRIEXTRAPOLATION = TRIEXTRAPOLATION;
+  static TRIEXTRAPOLATION = TriExtrapolation;
 
 }

@@ -36,12 +36,6 @@ const ParameterType = Object.freeze({
   TYPE_ANYTHING: 2,
   TYPE_UNDEFINED: 3
 });
-const ReflectionMode = Object.freeze({
-  REFLECT_HIGH: 0,
-  REFLECT_MEDIUM_AND_HIGH: 1,
-  REFLECT_LOW_MEDIUM_HIGH: 2,
-  REFLECT_NEVER: 3
-});
 const ReflectionQuality = Object.freeze({
   Disabled: 0,
   Low: 1,
@@ -62,5 +56,5 @@ const VisualizerType = Object.freeze({
   FULL_SCREEN_QUAD_OVERLAY: 2
 });
 
-export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionMode, ReflectionQuality, ReflectionSetting, VisualizerType };
+export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionQuality, ReflectionSetting, VisualizerType };
 //# sourceMappingURL=enums.js.map

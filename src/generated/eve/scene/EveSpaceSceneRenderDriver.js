@@ -4,6 +4,9 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { PixelFormat } from "@carbonenginejs/runtime-utils/render-context";
+import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../enums.js";
+import { ShadowQuality, Tr2VolumerticQuality } from "../../trinityCore/enums.js";
+import { Quality } from "../../postProcess/enums.js";
 
 /** EveSpaceSceneRenderDriver (eve/scene) - generated from schema shapeHash 9eaa96eb.... */
 @type.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene" })
@@ -181,51 +184,17 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     throw new Error("EveSpaceSceneRenderDriver.GetAllTempTextures is not implemented in CarbonEngineJS.");
   }
 
-  static AmbientOcclusionQuality = Object.freeze({
-    Disabled: 0,
-    Low: 1,
-    Medium: 2,
-    High: 3,
-  });
+  static AmbientOcclusionQuality = AmbientOcclusionQuality;
 
-  static AntiAliasingQuality = Object.freeze({
-    Disabled: 0,
-    Low: 1,
-    Medium: 2,
-    High: 3,
-  });
+  static AntiAliasingQuality = AntiAliasingQuality;
 
-  static EveVisualizeMethod = Object.freeze({
-    VM_NONE: 0,
-    VM_TEXCOORD0: 1,
-    VM_TEXCOORD1: 2,
-    VM_WHITE: 3,
-    VM_OVERDRAW: 4,
-    VW_WIREFRAME: 5,
-    VW_LIGHT_COUNT: 6,
-    VM_COUNT: 7,
-  });
+  static EveVisualizeMethod = EveVisualizeMethod;
 
-  static Quality = Object.freeze({
-    LOW: 0,
-    MEDIUM: 1,
-    HIGH: 2,
-    COUNT: 3,
-  });
+  static Quality = Quality;
 
-  static ShadowQuality = Object.freeze({
-    SHADOW_DISABLED: 0,
-    SHADOW_LOW: 1,
-    SHADOW_HIGH: 2,
-    SHADOW_RAYTRACED: 3,
-  });
+  static ShadowQuality = ShadowQuality;
 
-  static Tr2VolumerticQuality = Object.freeze({
-    Low: 0,
-    Medium: 1,
-    High: 2,
-    Ultra: 3,
-  });
+  static Tr2VolumerticQuality = Tr2VolumerticQuality;
 
   static PixelFormat = PixelFormat;
 

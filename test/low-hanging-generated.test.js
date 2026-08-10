@@ -6,7 +6,7 @@ import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLineSet, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../npm/dist/index.js";
 import { Tr2ParticleDirectForce } from "../npm/dist/particle/force/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
-import { TriBatchType } from "../npm/dist/generated/trinityCore/enums.js";
+import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { EveChildBulletStorm } from "../npm/dist/eve/child/EveChildBulletStorm.js";
 import { EveChildExplosion } from "../npm/dist/eve/child/EveChildExplosion.js";
 import { EveChildInstanceContainer } from "../npm/dist/eve/child/EveChildInstanceContainer.js";

@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { TRIEXTRAPOLATION } from '../enums.js';
+import { TriExtrapolation } from '@carbonenginejs/runtime-utils/graphics';
 import { TriEventKey as _TriEventKey } from '../key/TriEventKey.js';
 
 let _initProto, _initClass, _init_extrapolation, _init_extra_extrapolation, _init_name, _init_extra_name, _init_eventListener, _init_extra_eventListener, _init_time, _init_extra_time, _init_length, _init_extra_length, _init_localTime, _init_extra_localTime, _init_value, _init_extra_value, _init_keys, _init_extra_keys;
@@ -59,7 +59,7 @@ new class extends _identity {
     static clearPostUpdateCallbacks() {
       this.#postUpdateCallbacks.length = 0;
     }
-    extrapolation = (_initProto(this), _init_extrapolation(this, TRIEXTRAPOLATION.NONE));
+    extrapolation = (_initProto(this), _init_extrapolation(this, TriExtrapolation.TRIEXT_NONE));
     name = (_init_extra_extrapolation(this), _init_name(this, ""));
     eventListener = (_init_extra_name(this), _init_eventListener(this, null));
     time = (_init_extra_eventListener(this), _init_time(this, 0));
@@ -82,7 +82,7 @@ new class extends _identity {
         this.#currentKeyIndex = 0;
         return;
       }
-      if (this.extrapolation === TRIEXTRAPOLATION.CYCLE) {
+      if (this.extrapolation === TriExtrapolation.TRIEXT_CYCLE) {
         const localNow = this.time % this.length;
         if (localNow < this.localTime) {
           this.#currentKeyIndex = 0;
@@ -253,7 +253,7 @@ new class extends _identity {
     }
     return Array.isArray(args) ? args : [args];
   }
-  TRIEXTRAPOLATION = TRIEXTRAPOLATION;
+  TRIEXTRAPOLATION = TriExtrapolation;
   constructor() {
     super(_TriEventCurve), _initClass();
   }

@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from './EveChildTransform.js';
+import { Origin } from '../../generated/eve/child/enums.js';
 
 let _initProto, _initClass, _init_transformModifiers, _init_extra_transformModifiers, _init_transforms, _init_extra_transforms, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_alwaysOn, _init_extra_alwaysOn, _init_inheritProperties, _init_extra_inheritProperties, _init_reset, _init_extra_reset, _init_instances, _init_extra_instances, _init_locatorSet, _init_extra_locatorSet, _init_source, _init_extra_source, _init_origin, _init_extra_origin;
 
@@ -103,10 +104,7 @@ new class extends _identity {
       }
     }
   }];
-  Origin = Object.freeze({
-    SPACE: 0,
-    SOF: 1
-  });
+  Origin = Origin;
   constructor() {
     super(_EveChildInstanceCont), _initClass();
   }

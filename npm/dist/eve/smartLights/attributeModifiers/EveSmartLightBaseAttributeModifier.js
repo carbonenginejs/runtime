@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { LifeTimeFormulas } from './enums.js';
 
 let _initProto, _initClass, _init_lifeTimeFormula, _init_extra_lifeTimeFormula, _init_activationOverLifetime, _init_extra_activationOverLifetime, _init_activationValue, _init_extra_activationValue, _init_playTime, _init_extra_playTime, _init_crossFadeDuration, _init_extra_crossFadeDuration, _init_crossFadeIntensity, _init_extra_crossFadeIntensity, _init_perInstanceOffset, _init_extra_perInstanceOffset, _init_attributeMultiplier, _init_extra_attributeMultiplier, _init_startsActive, _init_extra_startsActive, _init_restartPlayTimeWhenInactive, _init_extra_restartPlayTimeWhenInactive, _init_finalAttributeMultiplier, _init_extra_finalAttributeMultiplier, _init_active, _init_extra_active, _init_delayedActivation, _init_extra_delayedActivation;
 
@@ -196,11 +197,7 @@ new class extends _identity {
     /** Carbon declares ResetChildren inline empty on the base (EveSmartLightBaseAttributeModifier.h:41). */
     ResetChildren(_parentActive) {}
   }];
-  LifeTimeFormulas = Object.freeze({
-    PER_INSTANCE_LIFETIME: 0,
-    PER_MODIFIER_PLAYTIME: 1,
-    STATIC: 2
-  });
+  LifeTimeFormulas = LifeTimeFormulas;
   constructor() {
     super(_EveSmartLightBaseAtt), _initClass();
   }

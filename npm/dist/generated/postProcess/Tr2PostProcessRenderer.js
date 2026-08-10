@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { BloomDebugMode, Quality } from './enums.js';
 
 let _initClass, _init_bloomDebugMode, _init_extra_bloomDebugMode, _init_quality, _init_extra_quality, _init_dynamicExposureToTextureShader, _init_extra_dynamicExposureToTextureShader, _init_bloomHighPassFilter, _init_extra_bloomHighPassFilter, _init_bloomDebugShader, _init_extra_bloomDebugShader, _init_depthOfFieldBokehBlurShader, _init_extra_depthOfFieldBokehBlurShader, _init_depthOfFieldBokehFillShader, _init_extra_depthOfFieldBokehFillShader, _init_dynamicExposureCreateHistogramShader, _init_extra_dynamicExposureCreateHistogramShader, _init_depthOfFieldCoCShader, _init_extra_depthOfFieldCoCShader, _init_fogColorEffect, _init_extra_fogColorEffect, _init_fogCompositeEffect, _init_extra_fogCompositeEffect, _init_godrayEffect, _init_extra_godrayEffect, _init_dynamicExposureMeasureExposureShader, _init_extra_dynamicExposureMeasureExposureShader, _init_dynamicExposureMergeHistogramShader, _init_extra_dynamicExposureMergeHistogramShader, _init_signalLossEffect, _init_extra_signalLossEffect, _init_taaEffect, _init_extra_taaEffect, _init_tonemappingEffect, _init_extra_tonemappingEffect, _init_useNewBloom, _init_extra_useNewBloom;
 
@@ -75,22 +76,8 @@ new class extends _identity {
     /** m_useNewBloom (bool) [READWRITE, NOTIFY] */
     useNewBloom = (_init_extra_tonemappingEffect(this), _init_useNewBloom(this, false));
   }];
-  BloomDebugMode = Object.freeze({
-    BLOOM_DEBUG_NONE: 0,
-    BLOOM_DEBUG_ALL: 1,
-    BLOOM_DEBUG_STEP1: 2,
-    BLOOM_DEBUG_STEP2: 3,
-    BLOOM_DEBUG_STEP3: 4,
-    BLOOM_DEBUG_STEP4: 5,
-    BLOOM_DEBUG_STEP5: 6,
-    BLOOM_DEBUG_STEP6: 7
-  });
-  Quality = Object.freeze({
-    LOW: 0,
-    MEDIUM: 1,
-    HIGH: 2,
-    COUNT: 3
-  });
+  BloomDebugMode = BloomDebugMode;
+  Quality = Quality;
   constructor() {
     super(_Tr2PostProcessRender), _initClass();
   }

@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { SSAOQuality } from './enums.js';
 
 let _initClass, _init_quality, _init_extra_quality, _init_cortaoBentNormal, _init_extra_cortaoBentNormal, _init_zoomLevel, _init_extra_zoomLevel, _init_shadowClamp, _init_extra_shadowClamp, _init_shadowPower, _init_extra_shadowPower, _init_shadowMultiplier, _init_extra_shadowMultiplier, _init_cortaoBlur, _init_extra_cortaoBlur, _init_cortaoEnabled, _init_extra_cortaoEnabled, _init_sharpness, _init_extra_sharpness, _init_enabled, _init_extra_enabled, _init_cortaoMipBias, _init_extra_cortaoMipBias, _init_cortaoMaxBlockerSearchRadius, _init_extra_cortaoMaxBlockerSearchRadius, _init_cortaoRadius, _init_extra_cortaoRadius, _init_cortaoStrength, _init_extra_cortaoStrength, _init_downsampled, _init_extra_downsampled, _init_radius, _init_extra_radius;
 
@@ -69,13 +70,7 @@ new class extends _identity {
     /** m_detail.settings.radius (float) [READWRITE, PERSIST] */
     radius = (_init_extra_downsampled(this), _init_radius(this, 6));
   }];
-  SSAOQuality = Object.freeze({
-    HIGHEST: 0,
-    HIGH: 1,
-    MEDIUM: 2,
-    LOW: 3,
-    LOWEST: 4
-  });
+  SSAOQuality = SSAOQuality;
   constructor() {
     super(_Tr2SSAO), _initClass();
   }

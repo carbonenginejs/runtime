@@ -26,5 +26,5 @@ export { Tr2Transform } from './Tr2Transform.js';
 export { Tr2TransientTextureReference } from './Tr2TransientTextureReference.js';
 export { Tr2TranslationTool } from './Tr2TranslationTool.js';
 export { Tr2VolumetricsRenderer } from './Tr2VolumetricsRenderer.js';
-export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriBatchType, TriFrustumTestResult, TriVariableContentType } from './enums.js';
+export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriFrustumTestResult, TriVariableContentType } from './enums.js';
 //# sourceMappingURL=index.js.map

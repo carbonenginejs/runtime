@@ -3,6 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2RenderContext as _Tr2RenderContext } from '../core/context/Tr2RenderContext.js';
 import { TriRenderStep as _TriRenderStep } from './step/TriRenderStep.js';
+import { TriRenderJobStatus } from '../generated/renderJob/enums.js';
 
 let _initProto, _initClass, _init_status, _init_extra_status, _init_stackGuard, _init_extra_stackGuard, _init_enabled, _init_extra_enabled, _init_name, _init_extra_name, _init_steps, _init_extra_steps;
 
@@ -165,12 +166,7 @@ new class extends _identity {
      * AddDiagnostic; Carbon asserts or logs at these same points.
      */
   }];
-  Status = Object.freeze({
-    RJ_INIT: 0,
-    RJ_IN_PROGRESS: 1,
-    RJ_DONE: 2,
-    RJ_FAILED: 3
-  });
+  Status = TriRenderJobStatus;
   RJ_INIT = 0;
   RJ_IN_PROGRESS = 1;
   RJ_DONE = 2;
@@ -235,7 +231,7 @@ new class extends _identity {
       ...detail
     });
   }
-  TriRenderJobStatus = _TriRenderJob.Status;
+  TriRenderJobStatus = TriRenderJobStatus;
   constructor() {
     super(_TriRenderJob), _initClass();
   }

@@ -7,7 +7,7 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { GrannyBoneOffset, Tr2DepthStencil, Tr2DirectInstanceData, Tr2ExpressionTermInfo, Tr2GpuBuffer, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2MeshBase, Tr2PrimaryRenderContext, Tr2RenderContext, Tr2RenderTarget, Tr2RuntimeGpuBuffer, Tr2RuntimeInstanceData, Tr2SwapChain, Tr2VariableStore, Tr2VisibilityResults, TriDevice, TriObserverLocal, TriProjection, TriRect, TriSettings, TriVariable, TriView, TriViewport } from "../npm/dist/core/index.js";
 import { Tr2PresentParameters } from "../npm/dist/ui/index.js";
-import { TriBatchType } from "../npm/dist/generated/trinityCore/enums.js";
+import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { Tr2DebugRenderer } from "../npm/dist/core/line/Tr2DebugRenderer.js";
 import { Tr2ParticleElementDeclaration } from "../npm/dist/particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2ParticleSystem } from "../npm/dist/particle/Tr2ParticleSystem.js";

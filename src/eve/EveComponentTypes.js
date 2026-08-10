@@ -4,7 +4,8 @@
 // each registry collection to a compile-time interface through
 // REGISTER_COMPONENT_TYPE(name, interface); JavaScript has no template
 // specialization, so the verbatim name strings are the load-bearing contract.
-import { ReflectionMode, ReflectionSetting } from "../generated/eve/enums.js";
+import { ReflectionMode } from "@carbonenginejs/runtime-utils/graphics";
+import { ReflectionSetting } from "../generated/eve/enums.js";
 
 export { ReflectionMode, ReflectionSetting };
 

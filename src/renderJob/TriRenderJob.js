@@ -4,6 +4,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2RenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
+import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
 
 
 /**
@@ -13,12 +14,7 @@ import { TriRenderStep } from "./step/TriRenderStep.js";
 @type.define({ className: "TriRenderJob", family: "renderJob" })
 export class TriRenderJob extends CjsModel
 {
-  static Status = Object.freeze({
-    RJ_INIT: 0,
-    RJ_IN_PROGRESS: 1,
-    RJ_DONE: 2,
-    RJ_FAILED: 3
-  });
+  static Status = TriRenderJobStatus;
 
   static RJ_INIT = 0;
   static RJ_IN_PROGRESS = 1;
@@ -259,6 +255,6 @@ export class TriRenderJob extends CjsModel
     executor?.AddDiagnostic?.({ type, ...detail });
   }
 
-  static TriRenderJobStatus = TriRenderJob.Status;
+  static TriRenderJobStatus = TriRenderJobStatus;
 
 }

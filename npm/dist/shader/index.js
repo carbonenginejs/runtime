@@ -29,5 +29,5 @@ export { CjsStoredVariable, CjsVariableStore } from './CjsVariableStore.js';
 export { Tr2DataTextureManager } from './Tr2DataTextureManager.js';
 export { Tr2EffectStateManager } from './Tr2EffectStateManager.js';
 export { Tr2ShaderBuffer } from './Tr2ShaderBuffer.js';
-export { PROJECTION_TYPE, RenderingMode } from '../generated/shader/enums.js';
+export { PROJECTION_TYPE } from '../generated/shader/enums.js';
 //# sourceMappingURL=index.js.map

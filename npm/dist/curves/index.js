@@ -1,6 +1,6 @@
 export { Tr2CurveSetRange } from './Tr2CurveSetRange.js';
 export { TriCurveSet } from './TriCurveSet.js';
-export { RotationSetting, TRIEXTRAPOLATION, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting, TriExtrapolation } from './enums.js';
+export { RotationSetting, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting } from './enums.js';
 export { Tr2BoneMatrixCurve } from './curve/Tr2BoneMatrixCurve.js';
 export { Tr2CurveColor } from './curve/Tr2CurveColor.js';
 export { Tr2CurveColorMixer } from './curve/Tr2CurveColorMixer.js';

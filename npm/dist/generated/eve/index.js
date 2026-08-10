@@ -7,7 +7,7 @@ export { MorphTargetAnimationFilter, Origin, PropagationType, RenderType, Rotati
 export { EveLineChildContainer } from './child/lineSetPaths/EveLineChildContainer.js';
 export { EveOccluder } from './effect/EveOccluder.js';
 export { EveStarfield } from './effect/EveStarfield.js';
-export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionMode, ReflectionQuality, ReflectionSetting, VisualizerType } from './enums.js';
+export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionQuality, ReflectionSetting, VisualizerType } from './enums.js';
 export { PerLightShadowSetting } from './lights/enums.js';
 export { LocalPositionBehavior, StretchState } from './renderable/stretch/enums.js';
 export { EvePendingPickingReadback } from './scene/EvePendingPickingReadback.js';

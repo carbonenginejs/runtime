@@ -3,6 +3,7 @@ import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2SpriteObjectBase as _Tr2SpriteObjectBase } from './Tr2SpriteObjectBase.js';
 import { vec2 } from '@carbonenginejs/runtime-utils/vec2';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
+import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from './enums.js';
 
 let _initClass, _init_blendMode, _init_extra_blendMode, _init_spriteEffect, _init_extra_spriteEffect, _init_spriteTarget, _init_extra_spriteTarget, _init_color, _init_extra_color, _init_depth, _init_extra_depth, _init_glowBrightness, _init_extra_glowBrightness, _init_glowColor, _init_extra_glowColor, _init_glowExpand, _init_extra_glowExpand, _init_glowFactor, _init_extra_glowFactor, _init_shadowOffset, _init_extra_shadowOffset, _init_outlineColor, _init_extra_outlineColor, _init_outlineThreshold, _init_extra_outlineThreshold, _init_shadowColor, _init_extra_shadowColor;
 
@@ -62,38 +63,9 @@ new class extends _identity {
     /** m_shadowColor (Color) [READWRITE, NOTIFY] */
     shadowColor = (_init_extra_outlineThreshold(this), _init_shadowColor(this, vec4.createLinear()));
   }];
-  Tr2SpriteObjectBlendMode = Object.freeze({
-    TR2_SBM_NONE: 0,
-    TR2_SBM_BLEND: 1,
-    TR2_SBM_ADD: 2,
-    TR2_SBM_ADDX2: 3
-  });
-  Tr2SpriteObjectEffect = Object.freeze({
-    TR2_SFX_NO_TEXTURE: 0,
-    TR2_SFX_FILL_AA: 1,
-    TR2_SFX_ONE_TEXTURE: 32,
-    TR2_SFX_DOT: 33,
-    TR2_SFX_NOALPHA: 34,
-    TR2_SFX_DROPSHADOW: 35,
-    TR2_SFX_OUTLINE: 36,
-    TR2_SFX_COLOROVERLAY: 37,
-    TR2_SFX_SOFTLIGHT: 38,
-    TR2_SFX_BLUR: 39,
-    TR2_SFX_BLURBACKGROUNDCOLORED: 40,
-    TR2_SFX_BLURBACKGROUND: 41,
-    TR2_SFX_GLOW: 42,
-    TR2_SFX_FONT: 43,
-    TR2_SFX_TWO_TEXTURES: 64,
-    TR2_SFX_MASK: 65,
-    TR2_SFX_COPY_DOT: 66,
-    TR2_SFX_COUNT: 67,
-    TR2_SFX_NONE: 4294967295
-  });
-  Tr2SpriteTarget = Object.freeze({
-    COLOR: 1,
-    GLOW: 2,
-    COLOR_AND_GLOW: 3
-  });
+  Tr2SpriteObjectBlendMode = Tr2SpriteObjectBlendMode;
+  Tr2SpriteObjectEffect = Tr2SpriteObjectEffect;
+  Tr2SpriteTarget = Tr2SpriteTarget;
   constructor() {
     super(_Tr2SpriteObject), _initClass();
   }

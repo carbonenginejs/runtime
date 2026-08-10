@@ -2,6 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_v
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { Tr2StandardIlluminant } from '../../generated/trinityCore/enums.js';
 
 let _initProto, _initClass, _init_whiteBalance, _init_extra_whiteBalance, _init_temperature, _init_extra_temperature, _init_tint, _init_extra_tint;
 
@@ -101,26 +102,7 @@ new class extends _identity {
 
     /** Carbon's standard-illuminant chromaticity table, indexed by the enum. */
   }];
-  Tr2StandardIlluminant = Object.freeze({
-    TR2STANDARDILLUMINANT_A: 0,
-    TR2STANDARDILLUMINANT_D50: 1,
-    TR2STANDARDILLUMINANT_D55: 2,
-    TR2STANDARDILLUMINANT_D65: 3,
-    TR2STANDARDILLUMINANT_D75: 4,
-    TR2STANDARDILLUMINANT_E: 5,
-    TR2STANDARDILLUMINANT_F1: 6,
-    TR2STANDARDILLUMINANT_F2: 7,
-    TR2STANDARDILLUMINANT_F3: 8,
-    TR2STANDARDILLUMINANT_F4: 9,
-    TR2STANDARDILLUMINANT_F5: 10,
-    TR2STANDARDILLUMINANT_F6: 11,
-    TR2STANDARDILLUMINANT_F7: 12,
-    TR2STANDARDILLUMINANT_F8: 13,
-    TR2STANDARDILLUMINANT_F9: 14,
-    TR2STANDARDILLUMINANT_F10: 15,
-    TR2STANDARDILLUMINANT_F11: 16,
-    TR2STANDARDILLUMINANT_F12: 17
-  });
+  Tr2StandardIlluminant = Tr2StandardIlluminant;
   #CHROMATICITY = Object.freeze([[0.44757, 0.40745], [0.34567, 0.35850], [0.33242, 0.34743], [0.31271, 0.32902], [0.29902, 0.31485], [0.33333, 0.33333], [0.31310, 0.33727], [0.37208, 0.37529], [0.40910, 0.39430], [0.44018, 0.40329], [0.31379, 0.34531], [0.37790, 0.38835], [0.31292, 0.32933], [0.34588, 0.35875], [0.37417, 0.37281], [0.34609, 0.35986], [0.38052, 0.37713], [0.43695, 0.40441]]);
   constructor() {
     super(_Tr2KelvinColor), _initClass();

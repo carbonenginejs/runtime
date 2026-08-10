@@ -3,6 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "./EveChildTransform.js";
+import { Origin } from "../../generated/eve/child/enums.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @type.define({ className: "EveChildInstanceContainer", family: "eve/child" })
@@ -138,9 +139,6 @@ export class EveChildInstanceContainer extends EveChildTransform
     }
   }
 
-  static Origin = Object.freeze({
-    SPACE: 0,
-    SOF: 1,
-  });
+  static Origin = Origin;
 
 }

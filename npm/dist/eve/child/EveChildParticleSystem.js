@@ -5,7 +5,7 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
-import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
+import { TriBatchType, ReflectionMode } from '@carbonenginejs/runtime-utils/graphics';
 import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 import { ShouldReflect, EveComponentType } from '../EveComponentTypes.js';
 
@@ -328,12 +328,7 @@ new class extends _identity {
     // ITr2GenericEmitter::UpdateArguments); child updates run sequentially, so
     // the shared records are non-reentrant by design.
   }];
-  ReflectionMode = Object.freeze({
-    REFLECT_HIGH: 0,
-    REFLECT_MEDIUM_AND_HIGH: 1,
-    REFLECT_LOW_MEDIUM_HIGH: 2,
-    REFLECT_NEVER: 3
-  });
+  ReflectionMode = ReflectionMode;
   Tr2Lod = Tr2Lod;
   #boundsMin = vec3.create();
   #boundsMax = vec3.create();

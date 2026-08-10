@@ -7,6 +7,7 @@ import { BELIST_LOADING, BELIST_INSERTED, BELIST_REMOVED, BELIST_UNLOADSTART, BE
 import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { TriFloat as _TriFloat } from '../../../core/variable/TriFloat.js';
 import { EveChildUpdateParams as _EveChildUpdateParams } from '../../EveChildUpdateParams.js';
+import { StretchState } from '../../../generated/eve/renderable/stretch/enums.js';
 import { getTime, sampleVector, updateChildSync, translationMatrix, updateCurveSet, makeEndpointTransforms, updateChildAsync, makeStretchTransform, updateChildVisibility, collectRenderables, mergeSphere, getCurveDuration } from './CjsStretchRuntime.js';
 
 let _initProto, _initClass, _init_sourcePosition, _init_extra_sourcePosition, _init_destinationPosition, _init_extra_destinationPosition, _init_source, _init_extra_source, _init_dest, _init_extra_dest, _init_name, _init_extra_name, _init_moveProgression, _init_extra_moveProgression, _init_stretchAudio, _init_extra_stretchAudio, _init_controllers, _init_extra_controllers, _init_curveSets, _init_extra_curveSets, _init_length, _init_extra_length, _init_dynamicBindings, _init_extra_dynamicBindings, _init_display, _init_extra_display, _init_update, _init_extra_update, _init_destObject, _init_extra_destObject, _init_sourceObject, _init_extra_sourceObject, _init_stretchObject, _init_extra_stretchObject, _init_startTime, _init_extra_startTime, _init_audio, _init_extra_audio, _init_moveObject, _init_extra_moveObject;
@@ -562,12 +563,7 @@ new class extends _identity {
       return params;
     }
   }];
-  StretchState = Object.freeze({
-    STRETCH_STATE_UNDEFINED: 0,
-    STRETCH_STATE_STARTING: 1,
-    STRETCH_STATE_STARTED: 2,
-    STRETCH_STATE_STOPPING: 3
-  });
+  StretchState = StretchState;
   #identity = mat4.create();
   #sourceTransform = mat4.create();
   #destinationTransform = mat4.create();

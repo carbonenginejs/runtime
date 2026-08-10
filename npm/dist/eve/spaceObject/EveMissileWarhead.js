@@ -7,6 +7,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveTransform as _EveTransform } from './EveTransform.js';
+import { State, StateChangeEvent } from '../../generated/eve/spaceObject/enums.js';
 
 let _initProto, _initClass, _init_pathOffsetNoiseScale, _init_extra_pathOffsetNoiseScale, _init_pathOffsetNoiseSpeed, _init_extra_pathOffsetNoiseSpeed, _init_startDataValid, _init_extra_startDataValid, _init_pathOffset, _init_extra_pathOffset, _init_maxExplosionDistance, _init_extra_maxExplosionDistance, _init_impactDuration, _init_extra_impactDuration, _init_explosionPosition, _init_extra_explosionPosition, _init_impactSize, _init_extra_impactSize, _init_spriteSet, _init_extra_spriteSet, _init_targetLocatorID, _init_extra_targetLocatorID, _init_durationEjectPhase, _init_extra_durationEjectPhase, _init_doSpread, _init_extra_doSpread, _init_acceleration, _init_extra_acceleration, _init_id, _init_extra_id, _init_startEjectVelocity, _init_extra_startEjectVelocity, _init_warheadLength, _init_extra_warheadLength, _init_warheadRadius, _init_extra_warheadRadius;
 
@@ -361,21 +362,8 @@ new class extends _identity {
       return data;
     }
   }];
-  State = Object.freeze({
-    STATE_DELAYED: 0,
-    STATE_LAUNCH: 1,
-    STATE_EJECTING: 2,
-    STATE_START_TRACKING: 3,
-    STATE_TRACKING_SPREAD: 4,
-    STATE_TRACKING_FINAL: 5,
-    STATE_EXPLODED: 6,
-    STATE_DEAD: 7
-  });
-  StateChangeEvent = Object.freeze({
-    EVT_SWITCH_TARGET: 0,
-    EVT_EXPLODE: 1,
-    EVT_NONE: 2
-  });
+  State = State;
+  StateChangeEvent = StateChangeEvent;
   #nextNoisePhase = 1;
   #zero = vec3.create();
   #localSphere = vec4.create();

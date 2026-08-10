@@ -32,10 +32,3 @@ export const RotationSetting = Object.freeze({
   LOCATOR_ROTATION: 2
 });
 export const Tr2ObjectFollowCurveKeyRotationSetting = RotationSetting;
-export const TRIEXTRAPOLATION = Object.freeze({
-  NONE: 0,
-  CONSTANT: 1,
-  GRADIENT: 2,
-  CYCLE: 3
-});
-export const TriExtrapolation = TRIEXTRAPOLATION;

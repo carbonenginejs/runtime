@@ -5,6 +5,7 @@ import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
+import { ConnectorType } from "./enums.js";
 
 /** EveConnector (eve/ui) - generated from schema shapeHash c8413c89.... */
 @type.define({ className: "EveConnector", family: "eve/ui" })
@@ -82,15 +83,6 @@ export class EveConnector extends CjsModel
   @type.float32
   length = 0;
 
-  static ConnectorType = Object.freeze({
-    PointToPoint: 0,
-    XZ_CircleStraight: 1,
-    XZ_Circle: 2,
-    StraightAnchor: 3,
-    CurvedAnchor: 4,
-    Orbit: 5,
-    Circle: 6,
-    Ellipse: 7,
-  });
+  static ConnectorType = ConnectorType;
 
 }

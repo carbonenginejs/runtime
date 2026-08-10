@@ -4,6 +4,7 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
 
 /** A light colour authored as a temperature in kelvin, a tint, and a white-balance illuminant. */
 @type.define({ className: "Tr2KelvinColor", family: "trinityCore" })
@@ -26,26 +27,7 @@ export class Tr2KelvinColor extends CjsModel
   @type.float32
   tint = 0.5;
 
-  static Tr2StandardIlluminant = Object.freeze({
-    TR2STANDARDILLUMINANT_A: 0,
-    TR2STANDARDILLUMINANT_D50: 1,
-    TR2STANDARDILLUMINANT_D55: 2,
-    TR2STANDARDILLUMINANT_D65: 3,
-    TR2STANDARDILLUMINANT_D75: 4,
-    TR2STANDARDILLUMINANT_E: 5,
-    TR2STANDARDILLUMINANT_F1: 6,
-    TR2STANDARDILLUMINANT_F2: 7,
-    TR2STANDARDILLUMINANT_F3: 8,
-    TR2STANDARDILLUMINANT_F4: 9,
-    TR2STANDARDILLUMINANT_F5: 10,
-    TR2STANDARDILLUMINANT_F6: 11,
-    TR2STANDARDILLUMINANT_F7: 12,
-    TR2STANDARDILLUMINANT_F8: 13,
-    TR2STANDARDILLUMINANT_F9: 14,
-    TR2STANDARDILLUMINANT_F10: 15,
-    TR2STANDARDILLUMINANT_F11: 16,
-    TR2STANDARDILLUMINANT_F12: 17,
-  });
+  static Tr2StandardIlluminant = Tr2StandardIlluminant;
 
   // Carbon Tr2KelvinColor.cpp:23-186. An artist authors a light as a colour
   // TEMPERATURE rather than an RGB triple, and this turns that into one.

@@ -4,6 +4,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
+import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
 
 
 /**
@@ -14,13 +15,7 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
 @type.define({ className: "EvePlaneLight", family: "eve/attachment/planes" })
 export class EvePlaneLight extends CjsModel
 {
-  static FadeType = Object.freeze({
-    FT_NONE: 0,
-    FT_BLINK: 1,
-    FT_FADEIN: 2,
-    FT_FADEOUT: 3,
-    FT_FADEINOUT: 4
-  });
+  static FadeType = FadeType;
 
   static FT_NONE = 0;
   static FT_BLINK = 1;

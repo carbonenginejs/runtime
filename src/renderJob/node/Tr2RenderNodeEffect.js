@@ -3,6 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
+import { RenderingMode } from "@carbonenginejs/runtime-utils/graphics";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
 @type.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })
@@ -66,22 +67,6 @@ export class Tr2RenderNodeEffect extends CjsModel
     return true;
   }
 
-  static RenderingMode = Object.freeze({
-    RM_ANY: 0,
-    RM_OPAQUE: 1,
-    RM_DECAL: 2,
-    RM_DECAL_NO_DEPTH: 3,
-    RM_ALPHA: 4,
-    RM_ALPHA_ADDITIVE: 5,
-    RM_DEPTH_ONLY: 6,
-    RM_PICKING: 7,
-    RM_FULLSCREEN: 8,
-    RM_SPRITE2D: 9,
-    RM_CULL: 10,
-    RM_LIGHT: 11,
-    RM_ERASE: 12,
-    RM_PREPASS_COLOR: 13,
-    RM_COUNT: 14,
-  });
+  static RenderingMode = RenderingMode;
 
 }

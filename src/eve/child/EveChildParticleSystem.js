@@ -7,7 +7,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
-import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
+import { ReflectionMode, TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 
@@ -459,12 +459,7 @@ export class EveChildParticleSystem extends EveChildTransform
     }
   }
 
-  static ReflectionMode = Object.freeze({
-    REFLECT_HIGH: 0,
-    REFLECT_MEDIUM_AND_HIGH: 1,
-    REFLECT_LOW_MEDIUM_HIGH: 2,
-    REFLECT_NEVER: 3,
-  });
+  static ReflectionMode = ReflectionMode;
 
   static Tr2Lod = Tr2Lod;
 

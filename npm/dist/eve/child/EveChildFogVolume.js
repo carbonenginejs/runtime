@@ -5,6 +5,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from './EveChildTransform.js';
 import { EveComponentType } from '../EveComponentTypes.js';
+import { Priority } from '../../generated/postProcess/enums.js';
 
 let _initProto, _initClass, _init_priority, _init_extra_priority, _init_volumes, _init_extra_volumes, _init_boundingSphereCenter, _init_extra_boundingSphereCenter, _init_boundingSphereRadius, _init_extra_boundingSphereRadius, _init_name, _init_extra_name, _init_intensity, _init_extra_intensity, _init_thickness, _init_extra_thickness, _init_thicknessEnabled, _init_extra_thicknessEnabled, _init_lightDirectionality, _init_extra_lightDirectionality, _init_lightDirectionalityEnabled, _init_extra_lightDirectionalityEnabled, _init_environmentIntensity, _init_extra_environmentIntensity, _init_environmentIntensityEnabled, _init_extra_environmentIntensityEnabled, _init_environmentDirectionality, _init_extra_environmentDirectionality, _init_environmentDirectionalityEnabled, _init_extra_environmentDirectionalityEnabled, _init_fogColor, _init_extra_fogColor, _init_fogColorEnabled, _init_extra_fogColorEnabled, _init_backgroundVisibility, _init_extra_backgroundVisibility, _init_backgroundVisibilityEnabled, _init_extra_backgroundVisibilityEnabled, _init_godRayNoiseIntensity, _init_extra_godRayNoiseIntensity, _init_godRayNoiseIntensityEnabled, _init_extra_godRayNoiseIntensityEnabled, _init_godRayNoiseFrequency, _init_extra_godRayNoiseFrequency, _init_godRayNoiseFrequencyEnabled, _init_extra_godRayNoiseFrequencyEnabled, _init_godRayNoiseAnimationSpeed, _init_extra_godRayNoiseAnimationSpeed, _init_godRayNoiseAnimationSpeedEnabled, _init_extra_godRayNoiseAnimationSpeedEnabled, _init_fogNoiseIntensity, _init_extra_fogNoiseIntensity, _init_fogNoiseIntensityEnabled, _init_extra_fogNoiseIntensityEnabled, _init_fogNoiseFrequency, _init_extra_fogNoiseFrequency, _init_fogNoiseFrequencyEnabled, _init_extra_fogNoiseFrequencyEnabled;
 
@@ -238,14 +239,7 @@ new class extends _identity {
       this.boundingSphereRadius = radius;
     }
   }];
-  Priority = Object.freeze({
-    SCENE_DEFAULT_PRIORITY: 0,
-    LOW_PRIORITY: 1,
-    MEDIUM_PRIORITY: 2,
-    HIGH_PRIORITY: 3,
-    UI_PRIORITY: 4,
-    PRIORITY_COUNT: 5
-  });
+  Priority = Priority;
   constructor() {
     super(_EveChildFogVolume), _initClass();
   }

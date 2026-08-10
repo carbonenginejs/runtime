@@ -1376,11 +1376,7 @@ export class EveTurretSet extends EveEntity
     return { source: turret, localMatrix, worldMatrix: mat4.clone(localMatrix), localQuaternion: quat.create(), localPosition: vec4.create(), valid: turret !== null, display: turret?.display ?? true, canFireWhenHidden: !!turret?.canFireWhenHidden };
   }
 
-  static ImpactBehaviour = Object.freeze({
-    DAMAGE_LOCATOR: 0,
-    SHIELD_ELLIPSOID: 1,
-    CENTER: 2,
-  });
+  static ImpactBehaviour = EveTurretTarget.ImpactBehaviour;
 
   static LOD = Object.freeze({
     LOD_INVALID: 0,

@@ -7,6 +7,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec2 } from "@carbonenginejs/runtime-utils/vec2";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
+import { Tr2SpriteObjectPickState } from "./enums.js";
 
 /** Tr2Sprite2dScene (sprite2d) - generated from schema shapeHash ba1b8287.... */
 @type.define({ className: "Tr2Sprite2dScene", family: "sprite2d" })
@@ -178,10 +179,6 @@ export class Tr2Sprite2dScene extends CjsModel
     throw new Error("Tr2Sprite2dScene.PickObject is not implemented in CarbonEngineJS.");
   }
 
-  static Tr2SpriteObjectPickState = Object.freeze({
-    TR2_SPS_OFF: 0,
-    TR2_SPS_ON: 1,
-    TR2_SPS_CHILDREN: 2,
-  });
+  static Tr2SpriteObjectPickState = Tr2SpriteObjectPickState;
 
 }

@@ -2,6 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virt
 import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { Tr2RenderBatch } from './batch/Tr2RenderBatch.js';
+import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
 
 let _initProto, _initClass, _init_vertexBufferOffset, _init_extra_vertexBufferOffset, _init_lastInstanceDataSize, _init_extra_lastInstanceDataSize, _init_bufferAlignment, _init_extra_bufferAlignment, _init_bufferSize, _init_extra_bufferSize;
 
@@ -245,23 +246,7 @@ new class extends _identity {
   QuadIndexSource = Object.freeze({
     quadRendererBuffer: "quad-indices"
   });
-  TriBatchType = Object.freeze({
-    TRIBATCHTYPE_OPAQUE: 0,
-    TRIBATCHTYPE_DECAL: 1,
-    TRIBATCHTYPE_TRANSPARENT: 2,
-    TRIBATCHTYPE_DEPTH: 3,
-    TRIBATCHTYPE_ADDITIVE: 4,
-    TRIBATCHTYPE_PICKING: 5,
-    TRIBATCHTYPE_MIRROR: 6,
-    TRIBATCHTYPE_DECALNORMAL: 7,
-    TRIBATCHTYPE_DEPTHNORMAL: 8,
-    TRIBATCHTYPE_OPAQUE_PREPASS: 9,
-    TRIBATCHTYPE_DECAL_PREPASS: 10,
-    TRIBATCHTYPE_GEOMETRY_ERASER: 11,
-    TRIBATCHTYPE_FLARE: 12,
-    TRIBATCHTYPE_DISTORTION: 13,
-    TRIBATCHTYPE_COUNT_OF_BATCH_TYPES: 14
-  });
+  TriBatchType = TriBatchType;
   constructor() {
     super(_Tr2QuadRenderer), _initClass();
   }

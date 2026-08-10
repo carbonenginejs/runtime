@@ -4,6 +4,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { Tr2TransformModifier } from './enums.js';
 
 let _initClass, _init_modifier, _init_extra_modifier, _init_localTransform, _init_extra_localTransform, _init_worldTransform, _init_extra_worldTransform, _init_name, _init_extra_name, _init_scaling, _init_extra_scaling, _init_rotation, _init_extra_rotation, _init_translation, _init_extra_translation, _init_distanceBasedScaleArg, _init_extra_distanceBasedScaleArg, _init_distanceBasedScaleArg2, _init_extra_distanceBasedScaleArg2, _init_mesh, _init_extra_mesh, _init_curveSets, _init_extra_curveSets, _init_useDistanceBasedScale, _init_extra_useDistanceBasedScale, _init_display, _init_extra_display, _init_update, _init_extra_update, _init_sortValueMultiplier, _init_extra_sortValueMultiplier;
 
@@ -69,19 +70,7 @@ new class extends _identity {
     /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
     sortValueMultiplier = (_init_extra_update(this), _init_sortValueMultiplier(this, 1));
   }];
-  Tr2TransformModifier = Object.freeze({
-    TR2TM_NONE: 0,
-    TR2TM_BILLBOARD: 1,
-    TR2TM_TRANSLATE_WITH_CAMERA: 2,
-    TR2TM_LOOK_AT_CAMERA: 3,
-    TR2TM_SIMPLE_HALO: 4,
-    TR2TM_PRE_TRANSLATE_WITH_CAMERA: 5,
-    TR2TM_EVE_CAMERA_ROTATION_ALIGNED: 100,
-    TR2TM_EVE_BOOSTER: 101,
-    TR2TM_EVE_SIMPLE_HALO: 102,
-    TR2TM_EVE_CAMERA_ROTATION: 103,
-    TR2TM_FORCE_DWORD: 4294967295
-  });
+  Tr2TransformModifier = Tr2TransformModifier;
   constructor() {
     super(_Tr2Transform), _initClass();
   }

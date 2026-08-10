@@ -1,4 +1,6 @@
-import { ReflectionSetting, ReflectionMode } from '../generated/eve/enums.js';
+import { ReflectionMode } from '@carbonenginejs/runtime-utils/graphics';
+export { ReflectionMode } from '@carbonenginejs/runtime-utils/graphics';
+import { ReflectionSetting } from '../generated/eve/enums.js';
 
 // Source: E:\carbonengine\trinity\trinity\Eve\EveEntity.h
 // Source: E:\carbonengine\trinity\trinity\Eve\EveEntity.cpp
@@ -112,5 +114,5 @@ function ShouldReflect(mode) {
   }
 }
 
-export { EveComponentRequiredMethods, EveComponentType, GetReflectionSetting, ReflectionMode, ReflectionSetting, SetReflectionSetting, ShouldReflect };
+export { EveComponentRequiredMethods, EveComponentType, GetReflectionSetting, ReflectionSetting, SetReflectionSetting, ShouldReflect };
 //# sourceMappingURL=EveComponentTypes.js.map

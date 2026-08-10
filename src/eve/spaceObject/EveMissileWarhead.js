@@ -8,6 +8,7 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveTransform } from "./EveTransform.js";
+import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.js";
 
 
 /**
@@ -433,18 +434,9 @@ export class EveMissileWarhead extends EveTransform
     return data;
   }
 
-  static State = Object.freeze({
-    STATE_DELAYED: 0,
-    STATE_LAUNCH: 1,
-    STATE_EJECTING: 2,
-    STATE_START_TRACKING: 3,
-    STATE_TRACKING_SPREAD: 4,
-    STATE_TRACKING_FINAL: 5,
-    STATE_EXPLODED: 6,
-    STATE_DEAD: 7
-  });
+  static State = State;
 
-  static StateChangeEvent = Object.freeze({ EVT_SWITCH_TARGET: 0, EVT_EXPLODE: 1, EVT_NONE: 2 });
+  static StateChangeEvent = StateChangeEvent;
 
   static #nextNoisePhase = 1;
   static #zero = vec3.create();

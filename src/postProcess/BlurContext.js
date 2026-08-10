@@ -3,6 +3,7 @@
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/BlurContext.json.).
 import { type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
+import { BlurChannel, BlurFinalize, BlurProcess, BlurType } from "../generated/postProcess/enums.js";
 
 /** BlurContext (postProcess) - generated from schema shapeHash 5d727dce.... */
 @type.define({ className: "BlurContext", family: "postProcess" })
@@ -35,28 +36,12 @@ export class BlurContext extends CjsModel
     return this.finalize * 1000 + this.process * 100 + this.type * 10 + this.channel;
   }
 
-  static BlurChannel = Object.freeze({
-    BC_r: 0,
-    BC_g: 1,
-    BC_b: 2,
-    BC_a: 3,
-    BC_rgba: 4,
-  });
+  static BlurChannel = BlurChannel;
 
-  static BlurFinalize = Object.freeze({
-    BF_None: 0,
-    BF_MaxOfAllChannels: 1,
-  });
+  static BlurFinalize = BlurFinalize;
 
-  static BlurProcess = Object.freeze({
-    BP_None: 0,
-    BP_Minimum: 1,
-    BP_Maximum: 2,
-  });
+  static BlurProcess = BlurProcess;
 
-  static BlurType = Object.freeze({
-    BT_Big: 0,
-    BT_Small: 1,
-  });
+  static BlurType = BlurType;
 
 }

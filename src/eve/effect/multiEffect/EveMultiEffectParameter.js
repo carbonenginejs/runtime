@@ -5,6 +5,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
+import { ParameterType } from "../../../generated/eve/enums.js";
 
 /**
  * One named slot in an EveMultiEffect, holding the object bound to that name
@@ -100,11 +101,6 @@ export class EveMultiEffectParameter extends CjsModel
     return true;
   }
 
-  static ParameterType = Object.freeze({
-    TYPE_EVESPACEOBJECT: 0,
-    TYPE_EVEEFFECTROOT: 1,
-    TYPE_ANYTHING: 2,
-    TYPE_UNDEFINED: 3,
-  });
+  static ParameterType = ParameterType;
 
 }

@@ -6,7 +6,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { IEveSpaceObject2ParentData as _IEveSpaceObject2Pare } from '../../spaceObject/IEveSpaceObject2ParentData.js';
-import { TriBatchType } from '../../../generated/trinityCore/enums.js';
+import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_batchType, _init_extra_batchType, _init_position, _init_extra_position, _init_minScreenSize, _init_extra_minScreenSize, _init_rotation, _init_extra_rotation, _init_scaling, _init_extra_scaling, _init_parentBoneIndex, _init_extra_parentBoneIndex, _init_decalEffect, _init_extra_decalEffect, _init_display, _init_extra_display, _init_staticIndexBuffers, _init_extra_staticIndexBuffers;
 

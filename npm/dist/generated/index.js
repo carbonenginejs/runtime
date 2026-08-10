@@ -7,7 +7,7 @@ export { MorphTargetAnimationFilter, Origin, PropagationType, RenderType, Rotati
 export { EveLineChildContainer } from './eve/child/lineSetPaths/EveLineChildContainer.js';
 export { EveOccluder } from './eve/effect/EveOccluder.js';
 export { EveStarfield } from './eve/effect/EveStarfield.js';
-export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionMode, ReflectionQuality, ReflectionSetting, VisualizerType } from './eve/enums.js';
+export { AmbientOcclusionQuality, AntiAliasingQuality, BackgroundRenderingReason, BoundingSphereQuery, EveVisualizeMethod, ParameterType, ReflectionQuality, ReflectionSetting, VisualizerType } from './eve/enums.js';
 export { PerLightShadowSetting } from './eve/lights/enums.js';
 export { LocalPositionBehavior, StretchState } from './eve/renderable/stretch/enums.js';
 export { EvePendingPickingReadback } from './eve/scene/EvePendingPickingReadback.js';
@@ -37,7 +37,7 @@ export { Tr2RaytracingPipelineStateManager } from './raytracing/Tr2RaytracingPip
 export { Tr2StepExecuteRenderNode } from './renderJob/Tr2StepExecuteRenderNode.js';
 export { TriStepRemoteUpdate } from './renderJob/TriStepRemoteUpdate.js';
 export { FilterType, TriRenderJobStatus, TriStepResult } from './renderJob/enums.js';
-export { PROJECTION_TYPE, RenderingMode } from './shader/enums.js';
+export { PROJECTION_TYPE } from './shader/enums.js';
 export { Tr2Sprite2d } from './sprite2d/Tr2Sprite2d.js';
 export { Tr2Sprite2dArc } from './sprite2d/Tr2Sprite2dArc.js';
 export { Tr2Sprite2dContainer } from './sprite2d/Tr2Sprite2dContainer.js';
@@ -89,7 +89,7 @@ export { Tr2Transform } from './trinityCore/Tr2Transform.js';
 export { Tr2TransientTextureReference } from './trinityCore/Tr2TransientTextureReference.js';
 export { Tr2TranslationTool } from './trinityCore/Tr2TranslationTool.js';
 export { Tr2VolumetricsRenderer } from './trinityCore/Tr2VolumetricsRenderer.js';
-export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriBatchType, TriFrustumTestResult, TriVariableContentType } from './trinityCore/enums.js';
+export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriFrustumTestResult, TriVariableContentType } from './trinityCore/enums.js';
 export { INPUTTYPE, UIALIGN, UIANCHOR, UIBOX, UICONTROLTYPE, UICURSOR, UID, UIFONTSIZE, UIFONTSTYLE, UIHITAREA, UIINITPOS, UIMESSAGE, UISTATE, UITRAVERSE } from './ui/enums.js';
 export { Obb } from './utilities/Obb.js';
 //# sourceMappingURL=index.js.map

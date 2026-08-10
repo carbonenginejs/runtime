@@ -3,6 +3,7 @@ import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
+import { ConnectorType } from './enums.js';
 
 let _initClass, _init_type, _init_extra_type, _init_color, _init_extra_color, _init_lineWidth, _init_extra_lineWidth, _init_animationColor, _init_extra_animationColor, _init_animationScale, _init_extra_animationScale, _init_animationSpeed, _init_extra_animationSpeed, _init_isAnimated, _init_extra_isAnimated, _init_autoScaleAnimation, _init_extra_autoScaleAnimation, _init_destPosition, _init_extra_destPosition, _init_sourcePosition, _init_extra_sourcePosition, _init_destObject, _init_extra_destObject, _init_sourceObject, _init_extra_sourceObject, _init_planeNormal, _init_extra_planeNormal, _init_length, _init_extra_length;
 
@@ -65,16 +66,7 @@ new class extends _identity {
     /** m_length (float) [READWRITE, PERSIST] */
     length = (_init_extra_planeNormal(this), _init_length(this, 0));
   }];
-  ConnectorType = Object.freeze({
-    PointToPoint: 0,
-    XZ_CircleStraight: 1,
-    XZ_Circle: 2,
-    StraightAnchor: 3,
-    CurvedAnchor: 4,
-    Orbit: 5,
-    Circle: 6,
-    Ellipse: 7
-  });
+  ConnectorType = ConnectorType;
   constructor() {
     super(_EveConnector), _initClass();
   }

@@ -7,6 +7,7 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EveComponentTypes.js";
+import { Priority } from "../../generated/postProcess/enums.js";
 
 
 /**
@@ -208,14 +209,7 @@ export class EveChildLightingOverride extends EveChildTransform
   {
   }
 
-  static Priority = Object.freeze({
-    SCENE_DEFAULT_PRIORITY: 0,
-    LOW_PRIORITY: 1,
-    MEDIUM_PRIORITY: 2,
-    HIGH_PRIORITY: 3,
-    UI_PRIORITY: 4,
-    PRIORITY_COUNT: 5
-  });
+  static Priority = Priority;
 
   /**
    * Recomputes the cached bounding sphere as the union of the child volumes'

@@ -3,6 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { FilterType } from "../../generated/renderJob/enums.js";
 
 /** A render step that filters one visibility-result set into another by event and object filter. */
 @type.define({ className: "TriStepFilterVisibilityResults", family: "renderJob" })
@@ -72,9 +73,6 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
     return TriRenderStep.Result.RS_OK;
   }
 
-  static FilterType = Object.freeze({
-    ONLY_OBJECTS_IN_LIST: 0,
-    EXCLUDE_OBJECTS_IN_LIST: 1,
-  });
+  static FilterType = FilterType;
 
 }

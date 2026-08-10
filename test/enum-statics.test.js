@@ -60,3 +60,64 @@ test("every @type.enum field resolves a class-static member map or is a known ga
     throw new Error(`enum field sweep looks broken: only ${enumFields} enum fields seen`);
   }
 });
+
+// docs/standards/enum-placement.md "Never both": a vocabulary has exactly one
+// home. Two frozen objects carrying the same members under the same name can
+// drift apart, and a consumer comparing one against the other still passes
+// today - which is what makes the drift silent. Aliasing (`static X = X`) keeps
+// the class-scoped identity without minting a second object.
+test("no enum type name resolves to two distinct objects with the same members", () =>
+{
+  const homes = new Map();   // typeName -> [{ object, where }]
+
+  const record = (typeName, object, where) =>
+  {
+    if (!object || typeof object !== "object") return;
+    const list = homes.get(typeName) ?? [];
+    if (!list.some(entry => entry.object === object)) list.push({ object, where });
+    homes.set(typeName, list);
+  };
+
+  for (const name of Object.keys(trinity))
+  {
+    const value = trinity[name];
+    if (typeof value === "function" && value.prototype)
+    {
+      // Own statics only: an inherited one is the same object by definition.
+      for (const key of Object.getOwnPropertyNames(value))
+      {
+        if (!/^[A-Z]/.test(key)) continue;
+        const members = value[key];
+        if (!members || typeof members !== "object" || Array.isArray(members)) continue;
+        if (!Object.values(members).every(member => typeof member === "number")) continue;
+        record(key, members, `${name}.${key}`);
+      }
+      continue;
+    }
+    // A bare enum object re-exported by a barrel.
+    if (value && typeof value === "object" && !Array.isArray(value)
+      && Object.keys(value).length
+      && Object.values(value).every(member => typeof member === "number"))
+    {
+      record(name, value, `export ${name}`);
+    }
+  }
+
+  const duplicates = [];
+  for (const [ typeName, list ] of homes)
+  {
+    for (let i = 0; i < list.length; i++)
+    {
+      for (let j = i + 1; j < list.length; j++)
+      {
+        if (JSON.stringify(list[i].object) !== JSON.stringify(list[j].object)) continue;
+        duplicates.push(`${typeName}: ${list[i].where} and ${list[j].where} are equal but distinct objects`);
+      }
+    }
+  }
+
+  if (duplicates.length)
+  {
+    throw new Error(`duplicate enum identities (${duplicates.length}):\n${duplicates.join("\n")}`);
+  }
+});

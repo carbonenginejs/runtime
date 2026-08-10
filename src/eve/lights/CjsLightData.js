@@ -5,6 +5,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { type } from "@carbonenginejs/runtime-utils/schema";
+import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 
 
 /**
@@ -80,11 +81,7 @@ export class CjsLightData extends CjsModel
   @type.boolean
   isVolumetric = false;
 
-  static PerLightShadowSetting = Object.freeze({
-    DISABLED: 0,
-    ENABLED_ONLY_ON_HIGH_QUALITY: 1,
-    ALWAYS_ENABLED: 2
-  });
+  static PerLightShadowSetting = PerLightShadowSetting;
 }
 
 /**

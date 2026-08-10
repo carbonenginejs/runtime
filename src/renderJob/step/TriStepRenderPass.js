@@ -3,6 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { PassType } from "../../generated/include/enums.js";
 
 /** A render step that renders one named pass of a multi-pass scene. */
 @type.define({ className: "TriStepRenderPass", family: "renderJob" })
@@ -40,20 +41,6 @@ export class TriStepRenderPass extends TriRenderStep
     return result === 1 ? TriRenderStep.Result.RS_TERMINATE : TriRenderStep.Result.RS_OK;
   }
 
-  static PassType = Object.freeze({
-    RP_BEGIN_RENDER: 0,
-    RP_PRE_PASS: 1,
-    RP_LIGHT_PASS: 2,
-    RP_GATHER_PASS: 3,
-    RP_FLARE_PASS: 4,
-    RP_END_RENDER: 5,
-    RP_BACKGROUND_RENDER: 6,
-    RP_MAIN_RENDER: 7,
-    RP_REFLECTION_RENDER: 8,
-    RP_DEPTH_PASS: 9,
-    RP_SET_PERFRAME_DATA: 10,
-    RP_RENDER_UI: 11,
-    RP_COUNT: 12,
-  });
+  static PassType = PassType;
 
 }

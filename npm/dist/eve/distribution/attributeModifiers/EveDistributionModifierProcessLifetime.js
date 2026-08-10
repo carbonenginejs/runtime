@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { DistributionEntityLifeTimeEvent } from './enums.js';
 
 let _initProto, _initClass, _init_killEvent, _init_extra_killEvent, _init_lifetimeDuration, _init_extra_lifetimeDuration;
 
@@ -44,13 +45,7 @@ new class extends _identity {
       return placement.lifeTime > this.lifetimeDuration && this.lifetimeDuration > 0 ? this.killEvent : _EveDistributionModif.DistributionEntityLifeTimeEvent.DO_NOTHING;
     }
   }];
-  DistributionEntityLifeTimeEvent = Object.freeze({
-    DO_NOTHING: 0,
-    KILL_ENTITY: 1,
-    KILL_AND_SPAWN_NEW_FROM_DISTRIBUTION: 2,
-    KILL_AND_SPAWN_NEW_FROM_INITIAL_POSITION: 3,
-    KILL_AND_SPAWN_NEW_FROM_CURRENT_POSITION: 4
-  });
+  DistributionEntityLifeTimeEvent = DistributionEntityLifeTimeEvent;
   constructor() {
     super(_EveDistributionModif), _initClass();
   }

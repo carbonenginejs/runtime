@@ -2,6 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_v
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2Sprite2dContainer as _Tr2Sprite2dContainer } from './Tr2Sprite2dContainer.js';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
+import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect } from './enums.js';
 
 let _initClass, _init_blendMode, _init_extra_blendMode, _init_spriteEffect, _init_extra_spriteEffect, _init_backgroundColor, _init_extra_backgroundColor, _init_color, _init_extra_color, _init_clearBackground, _init_extra_clearBackground;
 
@@ -37,33 +38,8 @@ new class extends _identity {
     /** m_clearBackground (bool) [READWRITE, PERSIST, NOTIFY] */
     clearBackground = (_init_extra_color(this), _init_clearBackground(this, true));
   }];
-  Tr2SpriteObjectBlendMode = Object.freeze({
-    TR2_SBM_NONE: 0,
-    TR2_SBM_BLEND: 1,
-    TR2_SBM_ADD: 2,
-    TR2_SBM_ADDX2: 3
-  });
-  Tr2SpriteObjectEffect = Object.freeze({
-    TR2_SFX_NO_TEXTURE: 0,
-    TR2_SFX_FILL_AA: 1,
-    TR2_SFX_ONE_TEXTURE: 32,
-    TR2_SFX_DOT: 33,
-    TR2_SFX_NOALPHA: 34,
-    TR2_SFX_DROPSHADOW: 35,
-    TR2_SFX_OUTLINE: 36,
-    TR2_SFX_COLOROVERLAY: 37,
-    TR2_SFX_SOFTLIGHT: 38,
-    TR2_SFX_BLUR: 39,
-    TR2_SFX_BLURBACKGROUNDCOLORED: 40,
-    TR2_SFX_BLURBACKGROUND: 41,
-    TR2_SFX_GLOW: 42,
-    TR2_SFX_FONT: 43,
-    TR2_SFX_TWO_TEXTURES: 64,
-    TR2_SFX_MASK: 65,
-    TR2_SFX_COPY_DOT: 66,
-    TR2_SFX_COUNT: 67,
-    TR2_SFX_NONE: 4294967295
-  });
+  Tr2SpriteObjectBlendMode = Tr2SpriteObjectBlendMode;
+  Tr2SpriteObjectEffect = Tr2SpriteObjectEffect;
   constructor() {
     super(_Tr2Sprite2dLayer), _initClass();
   }

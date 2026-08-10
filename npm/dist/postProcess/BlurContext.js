@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { BlurChannel, BlurFinalize, BlurProcess, BlurType } from '../generated/postProcess/enums.js';
 
 let _initClass, _init_channel, _init_extra_channel, _init_finalize, _init_extra_finalize, _init_process, _init_extra_process, _init_type, _init_extra_type;
 
@@ -38,26 +39,10 @@ new class extends _identity {
       return this.finalize * 1000 + this.process * 100 + this.type * 10 + this.channel;
     }
   }];
-  BlurChannel = Object.freeze({
-    BC_r: 0,
-    BC_g: 1,
-    BC_b: 2,
-    BC_a: 3,
-    BC_rgba: 4
-  });
-  BlurFinalize = Object.freeze({
-    BF_None: 0,
-    BF_MaxOfAllChannels: 1
-  });
-  BlurProcess = Object.freeze({
-    BP_None: 0,
-    BP_Minimum: 1,
-    BP_Maximum: 2
-  });
-  BlurType = Object.freeze({
-    BT_Big: 0,
-    BT_Small: 1
-  });
+  BlurChannel = BlurChannel;
+  BlurFinalize = BlurFinalize;
+  BlurProcess = BlurProcess;
+  BlurType = BlurType;
   constructor() {
     super(_BlurContext), _initClass();
   }

@@ -14,6 +14,7 @@ import {
 import { EveEntity } from "../../EveEntity.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { EveChildUpdateParams } from "../../EveChildUpdateParams.js";
+import { StretchState } from "../../../generated/eve/renderable/stretch/enums.js";
 import {
   collectRenderables,
   getCurveDuration,
@@ -689,7 +690,7 @@ export class EveStretch3 extends EveEntity
     return params;
   }
 
-  static StretchState = Object.freeze({ STRETCH_STATE_UNDEFINED: 0, STRETCH_STATE_STARTING: 1, STRETCH_STATE_STARTED: 2, STRETCH_STATE_STOPPING: 3 });
+  static StretchState = StretchState;
   static #identity = mat4.create();
   static #sourceTransform = mat4.create();
   static #destinationTransform = mat4.create();

@@ -3,6 +3,7 @@
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { ImpactConfiguration } from "../../../generated/include/enums.js";
 
 
 /**
@@ -357,7 +358,7 @@ export class EveTurretTarget extends CjsModel
   }
 
   static ImpactBehaviour = Object.freeze({ DAMAGE_LOCATOR: 0, SHIELD_ELLIPSOID: 1, CENTER: 2 });
-  static ImpactConfiguration = Object.freeze({ IMPACT_INVALID: 0, IMPACT_SHIELD: 1, IMPACT_ARMOR: 2, IMPACT_HULL: 3 });
+  static ImpactConfiguration = ImpactConfiguration;
   static #zero = vec3.create();
   static #direction = vec3.create();
   static #missDirection = vec3.create();

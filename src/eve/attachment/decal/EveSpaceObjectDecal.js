@@ -8,7 +8,7 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
-import { TriBatchType } from "../../../generated/trinityCore/enums.js";
+import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 
 
 /**

@@ -4,6 +4,7 @@ import { EveEntity as _EveEntity } from '../../EveEntity.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { getDeltaTime, getTime, translationMatrix } from '../../renderable/stretch/CjsStretchRuntime.js';
+import { ImpactConfiguration } from '../../../generated/include/enums.js';
 
 let _initProto, _initClass, _init_startCurveSet, _init_extra_startCurveSet, _init_stopCurveSet, _init_extra_stopCurveSet, _init_stretch, _init_extra_stretch, _init_name, _init_extra_name, _init_firingPeakTime, _init_extra_firingPeakTime, _init_firingDelay, _init_extra_firingDelay, _init_firingDelay2, _init_extra_firingDelay2, _init_firingDelay3, _init_extra_firingDelay3, _init_firingDelay4, _init_extra_firingDelay4, _init_firingDelay5, _init_extra_firingDelay5, _init_firingDelay6, _init_extra_firingDelay6, _init_firingDelay7, _init_extra_firingDelay7, _init_firingDelay8, _init_extra_firingDelay8, _init_firingDelay9, _init_extra_firingDelay9, _init_firingDelay0, _init_extra_firingDelay0, _init_firingDelay1, _init_extra_firingDelay1, _init_firingDelay10, _init_extra_firingDelay10, _init_endPosition, _init_extra_endPosition, _init_firingDuration, _init_extra_firingDuration, _init_isFiring, _init_extra_isFiring, _init_destinationObserver, _init_extra_destinationObserver, _init_sourceObserver, _init_extra_sourceObserver, _init_firingDurationOverride, _init_extra_firingDurationOverride, _init_useMuzzleTransform, _init_extra_useMuzzleTransform, _init_isLoopFiring, _init_extra_isLoopFiring, _init_boneName, _init_extra_boneName, _init_display, _init_extra_display, _init_scaleEffectTarget, _init_extra_scaleEffectTarget, _init_minRadius, _init_extra_minRadius, _init_maxRadius, _init_extra_maxRadius, _init_minScale, _init_extra_minScale, _init_maxScale, _init_extra_maxScale;
 
@@ -587,12 +588,7 @@ new class extends _identity {
   });
   MUZZLE_COUNT_MAX = _EveTurretFiringFX.MaxMuzzleCount.MUZZLECOUNT_MAX;
   INVALID_INDEX = 0xffffffff;
-  ImpactConfiguration = Object.freeze({
-    IMPACT_INVALID: 0,
-    IMPACT_SHIELD: 1,
-    IMPACT_ARMOR: 2,
-    IMPACT_HULL: 3
-  });
+  ImpactConfiguration = ImpactConfiguration;
   #identity = mat4.create();
   #destinationTransform = mat4.create();
   #startPosition = vec3.create();

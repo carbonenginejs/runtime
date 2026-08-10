@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { Tr2VolumerticQuality } from './enums.js';
 
 let _initClass, _init_quality, _init_extra_quality, _init_mieEnvironmentMap, _init_extra_mieEnvironmentMap, _init_blur, _init_extra_blur, _init_logBlending, _init_extra_logBlending, _init_gameBackClip, _init_extra_gameBackClip, _init_backgroundVisibility, _init_extra_backgroundVisibility, _init_thickness, _init_extra_thickness, _init_environmentDirectionality, _init_extra_environmentDirectionality, _init_lightDirectionality, _init_extra_lightDirectionality, _init_godRayNoiseAnimationSpeed, _init_extra_godRayNoiseAnimationSpeed, _init_fogNoiseMovementSpeed, _init_extra_fogNoiseMovementSpeed, _init_fogColor, _init_extra_fogColor, _init_godRayNoiseFrequency, _init_extra_godRayNoiseFrequency, _init_fogNoiseFrequency, _init_extra_fogNoiseFrequency, _init_godRayNoiseIntensity, _init_extra_godRayNoiseIntensity, _init_fogNoiseIntensity, _init_extra_fogNoiseIntensity, _init_logBlendingSmoothness, _init_extra_logBlendingSmoothness, _init_environmentIntensity, _init_extra_environmentIntensity, _init_castShadows, _init_extra_castShadows, _init_receiveShadows, _init_extra_receiveShadows, _init_scaleFactor, _init_extra_scaleFactor;
 
@@ -84,12 +85,7 @@ new class extends _identity {
     /** m_scaleFactor (float) [READWRITE] */
     scaleFactor = (_init_extra_receiveShadows(this), _init_scaleFactor(this, 0.7));
   }];
-  Tr2VolumerticQuality = Object.freeze({
-    Low: 0,
-    Medium: 1,
-    High: 2,
-    Ultra: 3
-  });
+  Tr2VolumerticQuality = Tr2VolumerticQuality;
   constructor() {
     super(_Tr2VolumetricsRender), _initClass();
   }

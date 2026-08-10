@@ -5,6 +5,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
+import { PropagationType, TriggerType } from '../../generated/eve/child/enums.js';
 
 let _initProto, _initClass, _init_propagationType, _init_extra_propagationType, _init_triggerMethood, _init_extra_triggerMethood, _init_stopAfterNumTriggers, _init_extra_stopAfterNumTriggers, _init_randScaleMin, _init_extra_randScaleMin, _init_randScaleMax, _init_extra_randScaleMax, _init_triggerSphereOffset, _init_extra_triggerSphereOffset, _init_effect, _init_extra_effect, _init_stopToClearDelay, _init_extra_stopToClearDelay, _init_ClosenessPreference, _init_extra_ClosenessPreference, _init_effectScaling, _init_extra_effectScaling, _init_durationPerEffect, _init_extra_durationPerEffect, _init_isPlaying, _init_extra_isPlaying, _init_localLocators, _init_extra_localLocators, _init_triggerSphereRadiusCurve, _init_extra_triggerSphereRadiusCurve, _init_triggerSphereScalarMulti, _init_extra_triggerSphereScalarMulti, _init_locatorSetName, _init_extra_locatorSetName, _init_completeness, _init_extra_completeness, _init_replayAfterDelay, _init_extra_replayAfterDelay, _init_trigger, _init_extra_trigger, _init_minRangeThreshold, _init_extra_minRangeThreshold, _init_playTime, _init_extra_playTime, _init_range, _init_extra_range, _init_numTriggers, _init_extra_numTriggers, _init_frequency, _init_extra_frequency, _init_skipCleanup, _init_extra_skipCleanup;
 
@@ -581,16 +582,8 @@ new class extends _identity {
       throw new Error("EveChildEffectPropagator.UnRegisterComponents is not implemented in CarbonEngineJS (component registry unported).");
     }
   }];
-  PropagationType = Object.freeze({
-    LOCAL_LOCATORS: 0,
-    LOCATOR_SET_BY_REF: 1,
-    RANDOM_SPREAD: 2
-  });
-  TriggerType = Object.freeze({
-    TRIGGER_SPHERE_CURVE: 0,
-    INTERVAL_TRIGGERS: 1,
-    INSTANT_PERMANENT: 2
-  });
+  PropagationType = PropagationType;
+  TriggerType = TriggerType;
   constructor() {
     super(_EveChildEffectPropag), _initClass();
   }

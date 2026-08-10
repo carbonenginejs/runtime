@@ -23,6 +23,8 @@ import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
+import { EveVisualizeMethod } from "../../generated/eve/enums.js";
+import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 
 
 // Module scratch for the per-frame sun-direction read (assume-dirty).
@@ -1417,23 +1419,9 @@ export class EveSpaceScene extends CjsModel
     return this.Update(time, time);
   }
 
-  static EveVisualizeMethod = Object.freeze({
-    VM_NONE: 0,
-    VM_TEXCOORD0: 1,
-    VM_TEXCOORD1: 2,
-    VM_WHITE: 3,
-    VM_OVERDRAW: 4,
-    VW_WIREFRAME: 5,
-    VW_LIGHT_COUNT: 6,
-    VM_COUNT: 7,
-  });
+  static EveVisualizeMethod = EveVisualizeMethod;
 
-  static ShadowQuality = Object.freeze({
-    SHADOW_DISABLED: 0,
-    SHADOW_LOW: 1,
-    SHADOW_HIGH: 2,
-    SHADOW_RAYTRACED: 3,
-  });
+  static ShadowQuality = ShadowQuality;
 
   /**
    * Carbon SimplePriorityBlend (PriorityBlend.h:371-413) specialized to the

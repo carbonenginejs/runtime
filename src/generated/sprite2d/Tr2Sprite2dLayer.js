@@ -4,6 +4,7 @@
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2Sprite2dContainer } from "./Tr2Sprite2dContainer.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
+import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect } from "./enums.js";
 
 /** Tr2Sprite2dLayer (sprite2d) - generated from schema shapeHash 2e706a59.... */
 @type.define({ className: "Tr2Sprite2dLayer", family: "sprite2d" })
@@ -42,33 +43,8 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   @type.boolean
   clearBackground = true;
 
-  static Tr2SpriteObjectBlendMode = Object.freeze({
-    TR2_SBM_NONE: 0,
-    TR2_SBM_BLEND: 1,
-    TR2_SBM_ADD: 2,
-    TR2_SBM_ADDX2: 3,
-  });
+  static Tr2SpriteObjectBlendMode = Tr2SpriteObjectBlendMode;
 
-  static Tr2SpriteObjectEffect = Object.freeze({
-    TR2_SFX_NO_TEXTURE: 0,
-    TR2_SFX_FILL_AA: 1,
-    TR2_SFX_ONE_TEXTURE: 32,
-    TR2_SFX_DOT: 33,
-    TR2_SFX_NOALPHA: 34,
-    TR2_SFX_DROPSHADOW: 35,
-    TR2_SFX_OUTLINE: 36,
-    TR2_SFX_COLOROVERLAY: 37,
-    TR2_SFX_SOFTLIGHT: 38,
-    TR2_SFX_BLUR: 39,
-    TR2_SFX_BLURBACKGROUNDCOLORED: 40,
-    TR2_SFX_BLURBACKGROUND: 41,
-    TR2_SFX_GLOW: 42,
-    TR2_SFX_FONT: 43,
-    TR2_SFX_TWO_TEXTURES: 64,
-    TR2_SFX_MASK: 65,
-    TR2_SFX_COPY_DOT: 66,
-    TR2_SFX_COUNT: 67,
-    TR2_SFX_NONE: 4294967295,
-  });
+  static Tr2SpriteObjectEffect = Tr2SpriteObjectEffect;
 
 }

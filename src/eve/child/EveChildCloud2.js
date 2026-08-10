@@ -6,12 +6,12 @@ import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
-import { RenderingMode } from "@carbonenginejs/runtime-utils/graphics";
+import { ReflectionMode, RenderingMode, TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../core/batch/Tr2RenderBatch.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
-import { Tr2RenderReason, TriBatchType } from "../../generated/trinityCore/enums.js";
+import { Tr2RenderReason, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 
 // Carbon std::numeric_limits<float>::max() (cpp:916). The renderable-side sort
 // value is a finite float32, NOT Infinity - downstream distance sums must stay
@@ -1079,18 +1079,8 @@ export class EveChildCloud2 extends EveEntity
     return data;
   }
 
-  static ReflectionMode = Object.freeze({
-    REFLECT_HIGH: 0,
-    REFLECT_MEDIUM_AND_HIGH: 1,
-    REFLECT_LOW_MEDIUM_HIGH: 2,
-    REFLECT_NEVER: 3,
-  });
+  static ReflectionMode = ReflectionMode;
 
-  static Tr2VolumerticQuality = Object.freeze({
-    Low: 0,
-    Medium: 1,
-    High: 2,
-    Ultra: 3,
-  });
+  static Tr2VolumerticQuality = Tr2VolumerticQuality;
 
 }

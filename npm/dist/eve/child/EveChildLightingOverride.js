@@ -5,6 +5,7 @@ import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from './EveChildTransform.js';
 import { EveComponentType } from '../EveComponentTypes.js';
+import { Priority } from '../../generated/postProcess/enums.js';
 
 let _initProto, _initClass, _init_priority, _init_extra_priority, _init_name, _init_extra_name, _init_backgroundIntensity, _init_extra_backgroundIntensity, _init_intensity, _init_extra_intensity, _init_reflectionIntensity, _init_extra_reflectionIntensity, _init_sunIntensity, _init_extra_sunIntensity, _init_sunColor, _init_extra_sunColor, _init_volumes, _init_extra_volumes;
 
@@ -199,14 +200,7 @@ new class extends _identity {
      * coincident centres.
      */
   }];
-  Priority = Object.freeze({
-    SCENE_DEFAULT_PRIORITY: 0,
-    LOW_PRIORITY: 1,
-    MEDIUM_PRIORITY: 2,
-    HIGH_PRIORITY: 3,
-    UI_PRIORITY: 4,
-    PRIORITY_COUNT: 5
-  });
+  Priority = Priority;
   #UnionSphere(target, sphere) {
     const delta = vec3.subtract(vec3.create(), sphere.center, target.center);
     const distance = vec3.length(delta);

@@ -3,7 +3,7 @@
 // Source: E:\carbonengine\trinity\trinity\Eve\UI\EveUiObject_Blue.cpp
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
-import { TriBatchType } from "../../generated/trinityCore/enums.js";
+import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 
 /** EveUiObject (eve/ui) - generated from schema shapeHash ea8f8922.... */
 @type.define({ className: "EveUiObject", family: "eve/ui" })

@@ -42,12 +42,6 @@ export const ParameterType = Object.freeze({
   TYPE_UNDEFINED: 3,
 });
 
-export const ReflectionMode = Object.freeze({
-  REFLECT_HIGH: 0,
-  REFLECT_MEDIUM_AND_HIGH: 1,
-  REFLECT_LOW_MEDIUM_HIGH: 2,
-  REFLECT_NEVER: 3,
-});
 
 export const ReflectionQuality = Object.freeze({
   Disabled: 0,

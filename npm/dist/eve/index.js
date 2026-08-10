@@ -242,6 +242,7 @@ export { EveStretch3 } from './renderable/stretch/EveStretch3.js';
 export { LocalPositionBehavior, StretchState } from '../generated/eve/renderable/stretch/enums.js';
 export { createChildPerObjectRecords, inheritParentPerObjectData, stampChildTransforms } from './perObjectData/childPerObjectRecords.js';
 export { AudioGameObject } from './AudioGameObject.js';
-export { ReflectionMode, ReflectionSetting } from '../generated/eve/enums.js';
+export { ReflectionMode } from '@carbonenginejs/runtime-utils/graphics';
+export { ReflectionSetting } from '../generated/eve/enums.js';
 export { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
 //# sourceMappingURL=index.js.map

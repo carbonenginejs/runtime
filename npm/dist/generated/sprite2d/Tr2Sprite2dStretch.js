@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2TexturedSpriteObject as _Tr2TexturedSpriteObj } from './Tr2TexturedSpriteObject.js';
+import { Tr2StretchScaleBehavior } from './enums.js';
 
 let _initClass, _init_dpiScaleBehavior, _init_extra_dpiScaleBehavior, _init_edgeScale, _init_extra_edgeScale, _init_effectOpacity, _init_extra_effectOpacity, _init_fillCenter, _init_extra_fillCenter, _init_leftEdgeSize, _init_extra_leftEdgeSize, _init_rightEdgeSize, _init_extra_rightEdgeSize, _init_offset, _init_extra_offset, _init_saturation, _init_extra_saturation;
 
@@ -45,11 +46,7 @@ new class extends _identity {
     /** m_saturation (float) [READWRITE, NOTIFY] */
     saturation = (_init_extra_offset(this), _init_saturation(this, 1));
   }];
-  Tr2StretchScaleBehavior = Object.freeze({
-    S2D_SSC_ALIGN_BOTTOMRIGHT: 0,
-    S2D_SSC_ALIGN_TOPLEFT: 1,
-    S2D_SSC_SCALE: 2
-  });
+  Tr2StretchScaleBehavior = Tr2StretchScaleBehavior;
   constructor() {
     super(_Tr2Sprite2dStretch), _initClass();
   }

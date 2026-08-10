@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
+import { PassType } from '../../generated/include/enums.js';
 
 let _initProto, _initClass, _init_passType, _init_extra_passType, _init_scene, _init_extra_scene;
 
@@ -41,21 +42,7 @@ new class extends _identity {
       return result === 1 ? _TriRenderStep.Result.RS_TERMINATE : _TriRenderStep.Result.RS_OK;
     }
   }];
-  PassType = Object.freeze({
-    RP_BEGIN_RENDER: 0,
-    RP_PRE_PASS: 1,
-    RP_LIGHT_PASS: 2,
-    RP_GATHER_PASS: 3,
-    RP_FLARE_PASS: 4,
-    RP_END_RENDER: 5,
-    RP_BACKGROUND_RENDER: 6,
-    RP_MAIN_RENDER: 7,
-    RP_REFLECTION_RENDER: 8,
-    RP_DEPTH_PASS: 9,
-    RP_SET_PERFRAME_DATA: 10,
-    RP_RENDER_UI: 11,
-    RP_COUNT: 12
-  });
+  PassType = PassType;
   constructor() {
     super(_TriStepRenderPass), _initClass();
   }

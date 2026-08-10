@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
+import { FilterType } from '../../generated/renderJob/enums.js';
 
 let _initProto, _initClass, _init_eventFilter, _init_extra_eventFilter, _init_filterType, _init_extra_filterType, _init_inputResults, _init_extra_inputResults, _init_objects, _init_extra_objects, _init_outputResults, _init_extra_outputResults;
 
@@ -64,10 +65,7 @@ new class extends _identity {
       return _TriRenderStep.Result.RS_OK;
     }
   }];
-  FilterType = Object.freeze({
-    ONLY_OBJECTS_IN_LIST: 0,
-    EXCLUDE_OBJECTS_IN_LIST: 1
-  });
+  FilterType = FilterType;
   constructor() {
     super(_TriStepFilterVisibil), _initClass();
   }

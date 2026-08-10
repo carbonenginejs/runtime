@@ -8,6 +8,7 @@ import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EveComponentTypes.js";
+import { Priority } from "../../generated/postProcess/enums.js";
 
 
 /**
@@ -316,14 +317,7 @@ export class EveChildFogVolume extends EveChildTransform
   {
   }
 
-  static Priority = Object.freeze({
-    SCENE_DEFAULT_PRIORITY: 0,
-    LOW_PRIORITY: 1,
-    MEDIUM_PRIORITY: 2,
-    HIGH_PRIORITY: 3,
-    UI_PRIORITY: 4,
-    PRIORITY_COUNT: 5
-  });
+  static Priority = Priority;
 
   /**
    * Grows the accumulated bounding sphere so it also encloses the given sphere,

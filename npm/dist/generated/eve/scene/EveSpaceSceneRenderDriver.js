@@ -2,6 +2,9 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../..
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { PixelFormat } from '@carbonenginejs/runtime-utils/render-context';
+import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from '../enums.js';
+import { ShadowQuality, Tr2VolumerticQuality } from '../../trinityCore/enums.js';
+import { Quality } from '../../postProcess/enums.js';
 
 let _initProto, _initClass, _init_aoQuality, _init_extra_aoQuality, _init_antiAliasingQuality, _init_extra_antiAliasingQuality, _init_visualizeMethod, _init_extra_visualizeMethod, _init_postProcessingQuality, _init_extra_postProcessingQuality, _init_shadowQuality, _init_extra_shadowQuality, _init_customStencilFormat, _init_extra_customStencilFormat, _init_internalPixelFormat, _init_extra_internalPixelFormat, _init_volumetricQuality, _init_extra_volumetricQuality, _init_scene, _init_extra_scene, _init_name, _init_extra_name, _init_enableUpscaling, _init_extra_enableUpscaling, _init_projection, _init_extra_projection, _init_camera, _init_extra_camera, _init_view, _init_extra_view, _init_clearColor, _init_extra_clearColor, _init_distortionEffect, _init_extra_distortionEffect, _init_enableDistortion, _init_extra_enableDistortion, _init_reflectionCorrectionEnabled, _init_extra_reflectionCorrectionEnabled, _init_forceOpaqueBuffer, _init_extra_forceOpaqueBuffer, _init_forceNormalMap, _init_extra_forceNormalMap, _init_forceVelocityMap, _init_extra_forceVelocityMap, _init_fpsRenderer, _init_extra_fpsRenderer, _init_mainPassRenderingEnabled, _init_extra_mainPassRenderingEnabled, _init_toolsScenes, _init_extra_toolsScenes, _init_depthPassTechnique, _init_extra_depthPassTechnique, _init_postProcess, _init_extra_postProcess, _init_showFPS, _init_extra_showFPS, _init_sceneOverlay, _init_extra_sceneOverlay, _init_background, _init_extra_background, _init_SSAO, _init_extra_SSAO, _init_enableRendering, _init_extra_enableRendering;
 
@@ -120,46 +123,12 @@ new class extends _identity {
       throw new Error("EveSpaceSceneRenderDriver.GetAllTempTextures is not implemented in CarbonEngineJS.");
     }
   }];
-  AmbientOcclusionQuality = Object.freeze({
-    Disabled: 0,
-    Low: 1,
-    Medium: 2,
-    High: 3
-  });
-  AntiAliasingQuality = Object.freeze({
-    Disabled: 0,
-    Low: 1,
-    Medium: 2,
-    High: 3
-  });
-  EveVisualizeMethod = Object.freeze({
-    VM_NONE: 0,
-    VM_TEXCOORD0: 1,
-    VM_TEXCOORD1: 2,
-    VM_WHITE: 3,
-    VM_OVERDRAW: 4,
-    VW_WIREFRAME: 5,
-    VW_LIGHT_COUNT: 6,
-    VM_COUNT: 7
-  });
-  Quality = Object.freeze({
-    LOW: 0,
-    MEDIUM: 1,
-    HIGH: 2,
-    COUNT: 3
-  });
-  ShadowQuality = Object.freeze({
-    SHADOW_DISABLED: 0,
-    SHADOW_LOW: 1,
-    SHADOW_HIGH: 2,
-    SHADOW_RAYTRACED: 3
-  });
-  Tr2VolumerticQuality = Object.freeze({
-    Low: 0,
-    Medium: 1,
-    High: 2,
-    Ultra: 3
-  });
+  AmbientOcclusionQuality = AmbientOcclusionQuality;
+  AntiAliasingQuality = AntiAliasingQuality;
+  EveVisualizeMethod = EveVisualizeMethod;
+  Quality = Quality;
+  ShadowQuality = ShadowQuality;
+  Tr2VolumerticQuality = Tr2VolumerticQuality;
   PixelFormat = PixelFormat;
   constructor() {
     super(_EveSpaceSceneRenderD), _initClass();

@@ -32,13 +32,6 @@ const RotationSetting = Object.freeze({
   LOCATOR_ROTATION: 2
 });
 const Tr2ObjectFollowCurveKeyRotationSetting = RotationSetting;
-const TRIEXTRAPOLATION = Object.freeze({
-  NONE: 0,
-  CONSTANT: 1,
-  GRADIENT: 2,
-  CYCLE: 3
-});
-const TriExtrapolation = TRIEXTRAPOLATION;
 
-export { RotationSetting, TRIEXTRAPOLATION, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting, TriExtrapolation };
+export { RotationSetting, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType, Tr2CurveVector3LerpKeyInterpolation, Tr2FollowCurveKeyInterpolation, Tr2ObjectFollowCurveKeyRotationSetting };
 //# sourceMappingURL=enums.js.map

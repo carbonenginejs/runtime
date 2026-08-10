@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { Priority } from '../postProcess/enums.js';
 
 let _initClass, _init_logThickness, _init_extra_logThickness, _init_thickness, _init_extra_thickness, _init_lightDirectionality, _init_extra_lightDirectionality, _init_environmentIntensity, _init_extra_environmentIntensity, _init_environmentDirectionality, _init_extra_environmentDirectionality, _init_backgroundVisibility, _init_extra_backgroundVisibility, _init_godRayNoiseIntensity, _init_extra_godRayNoiseIntensity, _init_godRayNoiseFrequency, _init_extra_godRayNoiseFrequency, _init_godRayNoiseAnimationSpeed, _init_extra_godRayNoiseAnimationSpeed, _init_fogNoiseIntensity, _init_extra_fogNoiseIntensity, _init_fogNoiseFrequency, _init_extra_fogNoiseFrequency, _init_intensity, _init_extra_intensity, _init_priority, _init_extra_priority;
 
@@ -60,14 +61,7 @@ new class extends _identity {
     /** priority (PostProcessEnums::Priority - enum Priority) */
     priority = (_init_extra_intensity(this), _init_priority(this, 2));
   }];
-  Priority = Object.freeze({
-    SCENE_DEFAULT_PRIORITY: 0,
-    LOW_PRIORITY: 1,
-    MEDIUM_PRIORITY: 2,
-    HIGH_PRIORITY: 3,
-    UI_PRIORITY: 4,
-    PRIORITY_COUNT: 5
-  });
+  Priority = Priority;
   constructor() {
     super(_ITr2FroxelFogSetting), _initClass();
   }

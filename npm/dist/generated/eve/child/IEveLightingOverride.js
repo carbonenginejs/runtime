@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { Priority } from '../../postProcess/enums.js';
 
 let _initClass, _init_value, _init_extra_value, _init_sunIntensity, _init_extra_sunIntensity, _init_backgroundIntensity, _init_extra_backgroundIntensity, _init_reflectionIntensity, _init_extra_reflectionIntensity, _init_intensity, _init_extra_intensity, _init_priority, _init_extra_priority;
 
@@ -39,14 +40,7 @@ new class extends _identity {
     /** priority (PostProcessEnums::Priority - enum Priority) */
     priority = (_init_extra_intensity(this), _init_priority(this, 2));
   }];
-  Priority = Object.freeze({
-    SCENE_DEFAULT_PRIORITY: 0,
-    LOW_PRIORITY: 1,
-    MEDIUM_PRIORITY: 2,
-    HIGH_PRIORITY: 3,
-    UI_PRIORITY: 4,
-    PRIORITY_COUNT: 5
-  });
+  Priority = Priority;
   constructor() {
     super(_IEveLightingOverride), _initClass();
   }

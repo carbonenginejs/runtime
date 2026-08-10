@@ -2,6 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../..
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
+import { ImpactConfiguration } from '../../../generated/include/enums.js';
 
 let _initProto, _initClass, _init_targetPosition, _init_extra_targetPosition, _init_behaviour, _init_extra_behaviour, _init_positionOldInfluence, _init_extra_positionOldInfluence, _init_position, _init_extra_position, _init_positionOld, _init_extra_positionOld, _init_locator, _init_extra_locator;
 
@@ -301,12 +302,7 @@ new class extends _identity {
     SHIELD_ELLIPSOID: 1,
     CENTER: 2
   });
-  ImpactConfiguration = Object.freeze({
-    IMPACT_INVALID: 0,
-    IMPACT_SHIELD: 1,
-    IMPACT_ARMOR: 2,
-    IMPACT_HULL: 3
-  });
+  ImpactConfiguration = ImpactConfiguration;
   #zero = vec3.create();
   #direction = vec3.create();
   #missDirection = vec3.create();

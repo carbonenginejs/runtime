@@ -6,6 +6,7 @@ import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { Tr2TransformModifier } from "./enums.js";
 
 /** Tr2Transform (trinityCore) - generated from schema shapeHash 28d5a6ca.... */
 @type.define({ className: "Tr2Transform", family: "trinityCore" })
@@ -88,18 +89,6 @@ export class Tr2Transform extends CjsModel
   @type.float32
   sortValueMultiplier = 1;
 
-  static Tr2TransformModifier = Object.freeze({
-    TR2TM_NONE: 0,
-    TR2TM_BILLBOARD: 1,
-    TR2TM_TRANSLATE_WITH_CAMERA: 2,
-    TR2TM_LOOK_AT_CAMERA: 3,
-    TR2TM_SIMPLE_HALO: 4,
-    TR2TM_PRE_TRANSLATE_WITH_CAMERA: 5,
-    TR2TM_EVE_CAMERA_ROTATION_ALIGNED: 100,
-    TR2TM_EVE_BOOSTER: 101,
-    TR2TM_EVE_SIMPLE_HALO: 102,
-    TR2TM_EVE_CAMERA_ROTATION: 103,
-    TR2TM_FORCE_DWORD: 4294967295,
-  });
+  static Tr2TransformModifier = Tr2TransformModifier;
 
 }

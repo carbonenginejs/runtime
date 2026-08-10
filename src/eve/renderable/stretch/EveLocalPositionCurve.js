@@ -4,6 +4,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
 
 
 /**
@@ -287,18 +288,7 @@ export class EveLocalPositionCurve extends CjsModel
     return out;
   }
 
-  static LocalPositionBehavior = Object.freeze({
-    POS_NONE: 0,
-    POS_NEAREST_BOUNDING_POINT: 1,
-    POS_CENTER_BOUNDING_POINT: 2,
-    POS_TARGET_DMG_LOCATOR: 3,
-    POS_TARGET_DMG_LOCATOR_IMPACT: 4,
-    POS_OFFSET_POSITION: 5,
-    POS_OFFSET_PLANE_ROTATION: 6,
-    POS_NEAREST_FIRING_LOCATOR: 7,
-    POS_ACTIVE_TURRET: 8,
-    POS_COUNT: 9
-  });
+  static LocalPositionBehavior = LocalPositionBehavior;
 
   static #parentPosition = vec3.create();
   static #alignedPosition = vec3.create();

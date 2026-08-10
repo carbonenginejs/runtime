@@ -7,6 +7,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2Lod } from "../EveLODHelper.js";
+import { PropagationType, TriggerType } from "../../generated/eve/child/enums.js";
 
 // Module scratch for the trigger-driven locator paths (allocation rules:
 // copy-into, never allocate per frame; child updates run sequentially so the
@@ -845,16 +846,8 @@ export class EveChildEffectPropagator extends EveChildContainer
     throw new Error("EveChildEffectPropagator.UnRegisterComponents is not implemented in CarbonEngineJS (component registry unported).");
   }
 
-  static PropagationType = Object.freeze({
-    LOCAL_LOCATORS: 0,
-    LOCATOR_SET_BY_REF: 1,
-    RANDOM_SPREAD: 2,
-  });
+  static PropagationType = PropagationType;
 
-  static TriggerType = Object.freeze({
-    TRIGGER_SPHERE_CURVE: 0,
-    INTERVAL_TRIGGERS: 1,
-    INSTANT_PERMANENT: 2,
-  });
+  static TriggerType = TriggerType;
 
 }

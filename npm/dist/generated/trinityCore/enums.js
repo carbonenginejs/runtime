@@ -91,23 +91,6 @@ const Tr2VolumerticQuality = Object.freeze({
   High: 2,
   Ultra: 3
 });
-const TriBatchType = Object.freeze({
-  TRIBATCHTYPE_OPAQUE: 0,
-  TRIBATCHTYPE_DECAL: 1,
-  TRIBATCHTYPE_TRANSPARENT: 2,
-  TRIBATCHTYPE_DEPTH: 3,
-  TRIBATCHTYPE_ADDITIVE: 4,
-  TRIBATCHTYPE_PICKING: 5,
-  TRIBATCHTYPE_MIRROR: 6,
-  TRIBATCHTYPE_DECALNORMAL: 7,
-  TRIBATCHTYPE_DEPTHNORMAL: 8,
-  TRIBATCHTYPE_OPAQUE_PREPASS: 9,
-  TRIBATCHTYPE_DECAL_PREPASS: 10,
-  TRIBATCHTYPE_GEOMETRY_ERASER: 11,
-  TRIBATCHTYPE_FLARE: 12,
-  TRIBATCHTYPE_DISTORTION: 13,
-  TRIBATCHTYPE_COUNT_OF_BATCH_TYPES: 14
-});
 const TriFrustumTestResult = Object.freeze({
   Outside: 0,
   Intersect: 1,
@@ -128,5 +111,5 @@ const TriVariableContentType = Object.freeze({
   TRIVARIABLE_COUNT: 11
 });
 
-export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriBatchType, TriFrustumTestResult, TriVariableContentType };
+export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriFrustumTestResult, TriVariableContentType };
 //# sourceMappingURL=enums.js.map

@@ -3,6 +3,7 @@
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
+import { Quality } from "../generated/postProcess/enums.js";
 
 
 /**
@@ -347,12 +348,7 @@ export class Tr2PostProcess2 extends CjsModel
     this.genericEffect = effect ?? null;
   }
 
-  static Quality = Object.freeze({
-    LOW: 0,
-    MEDIUM: 1,
-    HIGH: 2,
-    COUNT: 3
-  });
+  static Quality = Quality;
 
   static LOW = 0;
 

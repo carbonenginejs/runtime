@@ -3,6 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsLightData as _CjsLightData } from '../../lights/CjsLightData.js';
+import { FadeType } from '../EveSpaceObjectAttachmentUtils.js';
 
 let _initClass, _init_lightData, _init_extra_lightData, _init_saturation, _init_extra_saturation, _init_lightProfile, _init_extra_lightProfile, _init_fadeType, _init_extra_fadeType, _init_blinkPhase, _init_extra_blinkPhase, _init_blinkRate, _init_extra_blinkRate, _init_index, _init_extra_index, _init_boneMatrix, _init_extra_boneMatrix, _init_lightProfilePath, _init_extra_lightProfilePath;
 
@@ -50,13 +51,7 @@ new class extends _identity {
       });
     }
   }];
-  FadeType = Object.freeze({
-    FT_NONE: 0,
-    FT_BLINK: 1,
-    FT_FADEIN: 2,
-    FT_FADEOUT: 3,
-    FT_FADEINOUT: 4
-  });
+  FadeType = FadeType;
   FT_NONE = 0;
   FT_BLINK = 1;
   FT_FADEIN = 2;

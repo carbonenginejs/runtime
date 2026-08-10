@@ -1,7 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelHelpers.js';
 import { type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
-import { RenderingMode } from '../generated/shader/enums.js';
+import { RenderingMode } from '@carbonenginejs/runtime-utils/graphics';
 
 let _initClass, _init_renderContext, _init_extra_renderContext, _init_perObjectConstantBuffers, _init_extra_perObjectConstantBuffers, _init_shaderProgram, _init_extra_shaderProgram, _init_vertexDeclaration, _init_extra_vertexDeclaration, _init_vertexBuffer, _init_extra_vertexBuffer, _init_offset, _init_extra_offset, _init_stride, _init_extra_stride, _init_streams, _init_extra_streams, _init_indexBuffer, _init_extra_indexBuffer, _init_indexStride, _init_extra_indexStride, _init_renderingMode, _init_extra_renderingMode, _init_renderStateSetup, _init_extra_renderStateSetup, _init_currentValues, _init_extra_currentValues, _init_isManagedRendering, _init_extra_isManagedRendering, _init_states, _init_extra_states, _init_dirty, _init_extra_dirty, _init_renderStates, _init_extra_renderStates, _init_renderStateOverrides, _init_extra_renderStateOverrides, _init_renderTargetWidth, _init_extra_renderTargetWidth, _init_renderTargetHeight, _init_extra_renderTargetHeight, _init_viewport, _init_extra_viewport, _init_viewportOnDevice, _init_extra_viewportOnDevice, _init_viewportStack, _init_extra_viewportStack, _init_viewportSizeVar, _init_extra_viewportSizeVar;
 

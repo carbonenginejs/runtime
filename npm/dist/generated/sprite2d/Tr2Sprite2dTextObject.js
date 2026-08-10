@@ -1,6 +1,7 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2SpriteObject as _Tr2SpriteObject } from './Tr2SpriteObject.js';
+import { Tr2SpriteObjectEffect } from './enums.js';
 
 let _initClass, _init_shadowSpriteEffect, _init_extra_shadowSpriteEffect, _init_hasAuxiliaryTooltip, _init_extra_hasAuxiliaryTooltip, _init_textHeight, _init_extra_textHeight, _init_useSizeFromTexture, _init_extra_useSizeFromTexture, _init_useShadowSpriteEffect, _init_extra_useShadowSpriteEffect, _init_texturePrimary, _init_extra_texturePrimary, _init_pickRadius, _init_extra_pickRadius, _init_textWidth, _init_extra_textWidth;
 
@@ -45,27 +46,7 @@ new class extends _identity {
     /** m_textWidth (float) [READWRITE, NOTIFY] */
     textWidth = (_init_extra_pickRadius(this), _init_textWidth(this, 0));
   }];
-  Tr2SpriteObjectEffect = Object.freeze({
-    TR2_SFX_NO_TEXTURE: 0,
-    TR2_SFX_FILL_AA: 1,
-    TR2_SFX_ONE_TEXTURE: 32,
-    TR2_SFX_DOT: 33,
-    TR2_SFX_NOALPHA: 34,
-    TR2_SFX_DROPSHADOW: 35,
-    TR2_SFX_OUTLINE: 36,
-    TR2_SFX_COLOROVERLAY: 37,
-    TR2_SFX_SOFTLIGHT: 38,
-    TR2_SFX_BLUR: 39,
-    TR2_SFX_BLURBACKGROUNDCOLORED: 40,
-    TR2_SFX_BLURBACKGROUND: 41,
-    TR2_SFX_GLOW: 42,
-    TR2_SFX_FONT: 43,
-    TR2_SFX_TWO_TEXTURES: 64,
-    TR2_SFX_MASK: 65,
-    TR2_SFX_COPY_DOT: 66,
-    TR2_SFX_COUNT: 67,
-    TR2_SFX_NONE: 4294967295
-  });
+  Tr2SpriteObjectEffect = Tr2SpriteObjectEffect;
   constructor() {
     super(_Tr2Sprite2dTextObjec), _initClass();
   }

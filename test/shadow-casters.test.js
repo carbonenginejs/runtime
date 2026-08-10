@@ -4,6 +4,7 @@
 // companion (EveSwarm.cpp:801-808; BoundingSphereFromBox
 // Utilities/BoundingSphere.cpp:182-197; BoundingSphereTransform cpp:70-81).
 import test from "node:test";
+import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 import assert from "node:assert/strict";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
@@ -13,8 +14,7 @@ import {
   EveSwarm,
   EveSwarmRenderable,
   EveTurretSet,
-  Tr2RenderReason,
-  TriBatchType
+  Tr2RenderReason
 } from "../npm/dist/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 

@@ -3,6 +3,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveEffectRoot2 as _EveEffectRoot } from '../../spaceObject/EveEffectRoot2.js';
 import { EveSpaceObject2 as _EveSpaceObject } from '../../spaceObject/EveSpaceObject2.js';
+import { ParameterType } from '../../../generated/eve/enums.js';
 
 let _initProto, _initClass, _init_type, _init_extra_type, _init_name, _init_extra_name, _init_object, _init_extra_object;
 
@@ -77,12 +78,7 @@ new class extends _identity {
       return true;
     }
   }];
-  ParameterType = Object.freeze({
-    TYPE_EVESPACEOBJECT: 0,
-    TYPE_EVEEFFECTROOT: 1,
-    TYPE_ANYTHING: 2,
-    TYPE_UNDEFINED: 3
-  });
+  ParameterType = ParameterType;
   constructor() {
     super(_EveMultiEffectParame), _initClass();
   }

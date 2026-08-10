@@ -10,6 +10,7 @@
 import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { Tr2RenderBatch } from "./batch/Tr2RenderBatch.js";
+import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
 
 /** One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord). */
 export class Tr2QuadRendererEffectRecord
@@ -299,22 +300,6 @@ export class Tr2QuadRenderer extends CjsModel
   /** Deferred descriptor for the engine-owned shared quad index buffer. */
   static QuadIndexSource = Object.freeze({ quadRendererBuffer: "quad-indices" });
 
-  static TriBatchType = Object.freeze({
-    TRIBATCHTYPE_OPAQUE: 0,
-    TRIBATCHTYPE_DECAL: 1,
-    TRIBATCHTYPE_TRANSPARENT: 2,
-    TRIBATCHTYPE_DEPTH: 3,
-    TRIBATCHTYPE_ADDITIVE: 4,
-    TRIBATCHTYPE_PICKING: 5,
-    TRIBATCHTYPE_MIRROR: 6,
-    TRIBATCHTYPE_DECALNORMAL: 7,
-    TRIBATCHTYPE_DEPTHNORMAL: 8,
-    TRIBATCHTYPE_OPAQUE_PREPASS: 9,
-    TRIBATCHTYPE_DECAL_PREPASS: 10,
-    TRIBATCHTYPE_GEOMETRY_ERASER: 11,
-    TRIBATCHTYPE_FLARE: 12,
-    TRIBATCHTYPE_DISTORTION: 13,
-    TRIBATCHTYPE_COUNT_OF_BATCH_TYPES: 14,
-  });
+  static TriBatchType = TriBatchType;
 
 }

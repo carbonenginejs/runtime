@@ -2,6 +2,7 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_v
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { TriDebugFont } from '../include/enums.js';
 
 let _initClass, _init_font, _init_extra_font, _init_text, _init_extra_text, _init_display, _init_extra_display, _init_position, _init_extra_position;
 
@@ -34,11 +35,7 @@ new class extends _identity {
     /** m_position (Vector3) [READWRITE, PERSIST] */
     position = (_init_extra_display(this), _init_position(this, vec3.create()));
   }];
-  TriDebugFont = Object.freeze({
-    TRI_DBG_FONT_SMALL: 0,
-    TRI_DBG_FONT_MEDIUM: 1,
-    TRI_DBG_FONT_LARGE: 2
-  });
+  TriDebugFont = TriDebugFont;
   constructor() {
     super(_Tr2PrimitiveText), _initClass();
   }
