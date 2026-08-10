@@ -130,6 +130,25 @@ playback or decoded-cache lifetime would unnecessarily retain both
 representations. Runtime-lifetime and group retention remain caller policy
 built from explicit tokens, not an implicit default on every loaded resource.
 
+## Content-verified routing in the read path
+
+[Type resolution](concepts/format-type-resolution.md) exists as a per-format
+seam, but nothing in the resource read path consults it. `CjsResMan` still
+picks a format by extension through the synchronous support check, so a
+mislabeled container acquired the ordinary way is not corrected — only a caller
+that invokes `resolveType()` directly gets the verified answer.
+
+Wiring it in means awaiting a resolution between obtaining bytes and reading
+them, letting the resolved route supply the default emit while a caller-forced
+emit still wins, and deciding whether an extension tie-break may become
+asynchronous. The cost question is the real one: the read path must not pay for
+a content check on every resource merely because some format could opt in.
+
+Alongside it, `CjsWemFormat` could expose a single resolve-then-route output so
+a caller stops choosing between `raw`, `ogg`, and `pcm` for media whose codec
+the reader has already established. Today all three are distinct declared
+outputs.
+
 ## Open design questions
 
 - Should `Unload()` drop only adapter payloads by default, or CPU payloads
