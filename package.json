@@ -50,8 +50,8 @@
     "rollup": "^4.62.2"
   },
   "dependencies": {
-    "@carbonenginejs/runtime-resource": "^0.16.0",
-    "@carbonenginejs/runtime-utils": "^0.1.5"
+    "@carbonenginejs/runtime-resource": "file:../runtime-resource",
+    "@carbonenginejs/runtime-utils": "file:../runtime-utils"
   },
   "publishConfig": {
     "access": "public"
