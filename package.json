@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-audio",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Complete CarbonEngineJS audio domain with a graph-only ./trinity entry and optional Web Audio realization.",
   "type": "module",
@@ -50,8 +50,8 @@
     "rollup": "^4.62.2"
   },
   "dependencies": {
-    "@carbonenginejs/runtime-resource": "file:../runtime-resource",
-    "@carbonenginejs/runtime-utils": "file:../runtime-utils"
+    "@carbonenginejs/runtime-resource": "^0.16.0",
+    "@carbonenginejs/runtime-utils": "^0.1.5"
   },
   "publishConfig": {
     "access": "public"
