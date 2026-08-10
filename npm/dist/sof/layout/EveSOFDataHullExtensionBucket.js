@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { EveSOFDataHullExtensionPlacement as _EveSOFDataHullExtens$1 } from './EveSOFDataHullExtensionPlacement.js';
 
 let _initClass, _init_depletionCounters, _init_extra_depletionCounters, _init_name, _init_extra_name, _init_placements, _init_extra_placements;
@@ -19,7 +19,7 @@ class EveSOFDataHullExtensionBucket extends _EveSOFDataHullExtens$1 {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullExtensionBucket",
       family: "eve"
-    }), schema.hideInherited(["distributionConditions", "extendsBoundingSphere", "extendsShieldEllipsoid", "isShared", "isInstanced", "enabled", "distribution", "descriptor", "locatorSetName", "offset"])], [[[io, io.persist, void 0, type.list("EveSOFDataDistributionDepletionCounter")], 16, "depletionCounters"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("EveSOFDataHullExtensionPlacement")], 16, "placements"]], 0, void 0, _EveSOFDataHullExtens$1));
+    }), type.hideInherited(["distributionConditions", "extendsBoundingSphere", "extendsShieldEllipsoid", "isShared", "isInstanced", "enabled", "distribution", "descriptor", "locatorSetName", "offset"])], [[[io, io.persist, void 0, type.list("EveSOFDataDistributionDepletionCounter")], 16, "depletionCounters"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.list("EveSOFDataHullExtensionPlacement")], 16, "placements"]], 0, void 0, _EveSOFDataHullExtens$1));
   }
   constructor(...args) {
     super(...args);

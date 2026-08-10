@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 
@@ -15,7 +15,7 @@ class EveSOFDataHullSpriteSetItem extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullSpriteSetItem",
       family: "eve"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.float32], 16, "blinkRate"], [[io, io.persist, type, type.float32], 16, "blinkPhase"], [[io, io.persist, type, type.float32], 16, "minScale"], [[io, io.persist, type, type.float32], 16, "maxScale"], [[io, io.persist, type, type.float32], 16, "falloff"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, type, type.float32], 16, "saturation"], [[io, io.persist, void 0, type.objectRef("EveSOFDataPointLightAttachment")], 16, "light"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.float32], 16, "blinkRate"], [[io, io.persist, type, type.float32], 16, "blinkPhase"], [[io, io.persist, type, type.float32], 16, "minScale"], [[io, io.persist, type, type.float32], 16, "maxScale"], [[io, io.persist, type, type.float32], 16, "falloff"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, type, type.float32], 16, "saturation"], [[io, io.persist, void 0, type.objectRef("EveSOFDataPointLightAttachment")], 16, "light"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

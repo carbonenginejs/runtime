@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_displayModifier, _init_extra_displayModifier, _init_instances, _init_extra_instances, _init_textures, _init_extra_textures, _init_name, _init_extra_name, _init_lowestLodVisible, _init_extra_lowestLodVisible, _init_geometryResPath, _init_extra_geometryResPath, _init_shader, _init_extra_shader;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataInstancedMesh",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("DisplayQualityModifier")], 16, "displayModifier"], [[io, io.persist, void 0, type.list("EveSofDataMeshInstance")], 16, "instances"], [[io, io.persist, void 0, type.list("EveSOFDataTexture")], 16, "textures"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.int32, void 0, schema.enum("Tr2Lod")], 16, "lowestLodVisible"], [[io, io.persist, type, type.string], 16, "geometryResPath"], [[io, io.persist, type, type.string], 16, "shader"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("DisplayQualityModifier")], 16, "displayModifier"], [[io, io.persist, void 0, type.list("EveSofDataMeshInstance")], 16, "instances"], [[io, io.persist, void 0, type.list("EveSOFDataTexture")], 16, "textures"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.int32, void 0, type.enum("Tr2Lod")], 16, "lowestLodVisible"], [[io, io.persist, type, type.string], 16, "geometryResPath"], [[io, io.persist, type, type.string], 16, "shader"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

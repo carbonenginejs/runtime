@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec2 } from '@carbonenginejs/runtime-utils/vec2';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataHullPlaneSet",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.string], 16, "layer1MapResPath"], [[io, io.persist, type, type.string], 16, "layer2MapResPath"], [[io, io.persist, type, type.string], 16, "maskMapResPath"], [[io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.vec2], 16, "atlasAspectRatio"], [[io, io.persist, type, type.string], 16, "visibilityGroup"], [[io, io.persist, type, type.uint32], 16, "atlasSize"], [[io, io.persist, void 0, type.list("EveSOFDataHullPlaneSetItem")], 16, "items"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.string], 16, "layer1MapResPath"], [[io, io.persist, type, type.string], 16, "layer2MapResPath"], [[io, io.persist, type, type.string], 16, "maskMapResPath"], [[io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.vec2], 16, "atlasAspectRatio"], [[io, io.persist, type, type.string], 16, "visibilityGroup"], [[io, io.persist, type, type.uint32], 16, "atlasSize"], [[io, io.persist, void 0, type.list("EveSOFDataHullPlaneSetItem")], 16, "items"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

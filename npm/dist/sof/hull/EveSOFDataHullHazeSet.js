@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_hazeType, _init_extra_hazeType, _init_name, _init_extra_name, _init_skinned, _init_extra_skinned, _init_visibilityGroup, _init_extra_visibilityGroup, _init_items, _init_extra_items;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataHullHazeSet",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("HazeType")], 16, "hazeType"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.string], 16, "visibilityGroup"], [[io, io.persist, void 0, type.list("EveSOFDataHullHazeSetItem")], 16, "items"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("HazeType")], 16, "hazeType"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "skinned"], [[io, io.persist, type, type.string], 16, "visibilityGroup"], [[io, io.persist, void 0, type.list("EveSOFDataHullHazeSetItem")], 16, "items"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

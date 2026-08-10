@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_projectionTypeU, _init_extra_projectionTypeU, _init_projectionTypeV, _init_extra_projectionTypeV, _init_Primary, _init_extra_Primary, _init_Glass, _init_extra_Glass, _init_Sails, _init_extra_Sails, _init_Reactor, _init_extra_Reactor, _init_Darkhull, _init_extra_Darkhull, _init_Rock, _init_extra_Rock, _init_Monument, _init_extra_Monument, _init_Ornament, _init_extra_Ornament, _init_SimplePrimary, _init_extra_SimplePrimary, _init_isTargetMtl, _init_extra_isTargetMtl, _init_isTargetMtl2, _init_extra_isTargetMtl2, _init_isTargetMtl3, _init_extra_isTargetMtl3, _init_isTargetMtl4, _init_extra_isTargetMtl4;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataPatternLayerProperties",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ProjectionType")], 16, "projectionTypeU"], [[io, io.persist, type, type.int32, void 0, schema.enum("ProjectionType")], 16, "projectionTypeV"], [[io, io.persist, type, type.boolean], 16, "Primary"], [[io, io.persist, type, type.boolean], 16, "Glass"], [[io, io.persist, type, type.boolean], 16, "Sails"], [[io, io.persist, type, type.boolean], 16, "Reactor"], [[io, io.persist, type, type.boolean], 16, "Darkhull"], [[io, io.persist, type, type.boolean], 16, "Rock"], [[io, io.persist, type, type.boolean], 16, "Monument"], [[io, io.persist, type, type.boolean], 16, "Ornament"], [[io, io.persist, type, type.boolean], 16, "SimplePrimary"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl1"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl2"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl3"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl4"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("ProjectionType")], 16, "projectionTypeU"], [[io, io.persist, type, type.int32, void 0, type.enum("ProjectionType")], 16, "projectionTypeV"], [[io, io.persist, type, type.boolean], 16, "Primary"], [[io, io.persist, type, type.boolean], 16, "Glass"], [[io, io.persist, type, type.boolean], 16, "Sails"], [[io, io.persist, type, type.boolean], 16, "Reactor"], [[io, io.persist, type, type.boolean], 16, "Darkhull"], [[io, io.persist, type, type.boolean], 16, "Rock"], [[io, io.persist, type, type.boolean], 16, "Monument"], [[io, io.persist, type, type.boolean], 16, "Ornament"], [[io, io.persist, type, type.boolean], 16, "SimplePrimary"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl1"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl2"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl3"], [[io, io.persist, type, type.boolean], 16, "isTargetMtl4"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

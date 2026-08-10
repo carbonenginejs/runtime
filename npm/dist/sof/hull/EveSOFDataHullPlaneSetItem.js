@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -17,7 +17,7 @@ class EveSOFDataHullPlaneSetItem extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullPlaneSetItem",
       family: "eve"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("BlinkType")], 16, "blinkMode"], [[io, io.persist, type, type.int32, void 0, schema.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.color], 16, "color"], [[io, io.persist, type, type.vec4], 16, "layer1Transform"], [[io, io.persist, type, type.vec4], 16, "layer1Scroll"], [[io, io.persist, type, type.vec4], 16, "layer2Transform"], [[io, io.persist, type, type.vec4], 16, "layer2Scroll"], [[io, io.persist, type, type.int32], 16, "groupIndex"], [[io, io.persist, type, type.int32], 16, "maskMapAtlasIndex"], [[io, io.persist, type, type.float32], 16, "blinkPhase"], [[io, io.persist, type, type.float32], 16, "blinkRate"], [[io, io.persist, void 0, type.list("EveSOFDataPointLightAttachment")], 16, "lights"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, type, type.float32], 16, "saturation"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("BlinkType")], 16, "blinkMode"], [[io, io.persist, type, type.int32, void 0, type.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.color], 16, "color"], [[io, io.persist, type, type.vec4], 16, "layer1Transform"], [[io, io.persist, type, type.vec4], 16, "layer1Scroll"], [[io, io.persist, type, type.vec4], 16, "layer2Transform"], [[io, io.persist, type, type.vec4], 16, "layer2Scroll"], [[io, io.persist, type, type.int32], 16, "groupIndex"], [[io, io.persist, type, type.int32], 16, "maskMapAtlasIndex"], [[io, io.persist, type, type.float32], 16, "blinkPhase"], [[io, io.persist, type, type.float32], 16, "blinkRate"], [[io, io.persist, void 0, type.list("EveSOFDataPointLightAttachment")], 16, "lights"], [[io, io.persist, type, type.float32], 16, "intensity"], [[io, io.persist, type, type.float32], 16, "saturation"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

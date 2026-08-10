@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -16,7 +16,7 @@ class EveSOFDataHullHazeSetItem extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullHazeSetItem",
       family: "eve"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.float32], 16, "hazeBrightness"], [[io, io.persist, type, type.float32], 16, "hazeFalloff"], [[io, io.persist, type, type.float32], 16, "sourceBrightness"], [[io, io.persist, type, type.float32], 16, "sourceSize"], [[io, io.persist, type, type.boolean], 16, "boosterGainInfluence"], [[io, io.persist, void 0, type.list("EveSOFDataPointLightAttachment")], 16, "lights"], [[io, io.persist, type, type.float32], 16, "saturation"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.float32], 16, "hazeBrightness"], [[io, io.persist, type, type.float32], 16, "hazeFalloff"], [[io, io.persist, type, type.float32], 16, "sourceBrightness"], [[io, io.persist, type, type.float32], 16, "sourceSize"], [[io, io.persist, type, type.boolean], 16, "boosterGainInfluence"], [[io, io.persist, void 0, type.list("EveSOFDataPointLightAttachment")], 16, "lights"], [[io, io.persist, type, type.float32], 16, "saturation"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

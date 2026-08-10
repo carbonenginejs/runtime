@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { IEveSOFDataHullExtensionPlacementDistribution as _IEveSOFDataHullExten } from './IEveSOFDataHullExtensionPlacementDistribution.js';
 
 let _initClass, _init_displayFilter, _init_extra_displayFilter, _init_name, _init_extra_name;
@@ -15,7 +15,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("DisplayQualityModifier")], 16, "displayFilter"], [[io, io.persist, type, type.string], 16, "name"]], 0, void 0, _IEveSOFDataHullExten));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("DisplayQualityModifier")], 16, "displayFilter"], [[io, io.persist, type, type.string], 16, "name"]], 0, void 0, _IEveSOFDataHullExten));
     }
     constructor(...args) {
       super(...args);

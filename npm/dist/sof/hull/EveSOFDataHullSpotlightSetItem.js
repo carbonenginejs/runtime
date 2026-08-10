@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -16,7 +16,7 @@ class EveSOFDataHullSpotlightSetItem extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullSpotlightSetItem",
       family: "eve"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.mat4], 16, "transform"], [[io, io.persist, type, type.boolean], 16, "boosterGainInfluence"], [[io, io.persist, type, type.int32], 16, "groupIndex"], [[io, io.persist, type, type.vec3], 16, "spriteScale"], [[io, io.persist, type, type.float32], 16, "coneIntensity"], [[io, io.persist, type, type.float32], 16, "flareIntensity"], [[io, io.persist, type, type.float32], 16, "spriteIntensity"], [[io, io.persist, type, type.float32], 16, "saturation"], [[io, io.persist, void 0, type.objectRef("EveSOFDataSpotLightAttachment")], 16, "light"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("ColorType")], 16, "colorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.mat4], 16, "transform"], [[io, io.persist, type, type.boolean], 16, "boosterGainInfluence"], [[io, io.persist, type, type.int32], 16, "groupIndex"], [[io, io.persist, type, type.vec3], 16, "spriteScale"], [[io, io.persist, type, type.float32], 16, "coneIntensity"], [[io, io.persist, type, type.float32], 16, "flareIntensity"], [[io, io.persist, type, type.float32], 16, "spriteIntensity"], [[io, io.persist, type, type.float32], 16, "saturation"], [[io, io.persist, void 0, type.objectRef("EveSOFDataSpotLightAttachment")], 16, "light"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

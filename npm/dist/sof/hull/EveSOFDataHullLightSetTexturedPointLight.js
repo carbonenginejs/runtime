@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { EveSOFDataHullLightSetItem as _EveSOFDataHullLightS$1 } from './EveSOFDataHullLightSetItem.js';
 
 let _initClass, _init_texturePath, _init_extra_texturePath;
@@ -18,7 +18,7 @@ class EveSOFDataHullLightSetTexturedPointLight extends _EveSOFDataHullLightS$1 {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullLightSetTexturedPointLight",
       family: "eve"
-    }), schema.hideInherited(["lightColor"])], [[[io, io.persist, type, type.string], 16, "texturePath"]], 0, void 0, _EveSOFDataHullLightS$1));
+    }), type.hideInherited(["lightColor"])], [[[io, io.persist, type, type.string], 16, "texturePath"]], 0, void 0, _EveSOFDataHullLightS$1));
   }
   constructor(...args) {
     super(...args);

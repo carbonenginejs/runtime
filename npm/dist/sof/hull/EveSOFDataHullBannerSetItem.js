@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -18,7 +18,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataHullBannerSetItem",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persistOnly, type, type.vec3], 16, "scaling"], [[io, io.persistOnly, type, type.float32], 16, "angleX"], [[io, io.persistOnly, type, type.float32], 16, "angleY"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, void 0, type.objectRef("EveSOFDataPointLightAttachment")], 16, "light"], [[io, io.readwrite, type, type.boolean], 16, "maintainAspectRatio"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persistOnly, type, type.vec3], 16, "scaling"], [[io, io.persistOnly, type, type.float32], 16, "angleX"], [[io, io.persistOnly, type, type.float32], 16, "angleY"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, void 0, type.objectRef("EveSOFDataPointLightAttachment")], 16, "light"], [[io, io.readwrite, type, type.boolean], 16, "maintainAspectRatio"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

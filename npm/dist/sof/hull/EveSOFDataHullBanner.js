@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
@@ -19,7 +19,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataHullBanner",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persistOnly, type, type.vec3], 16, "scaling"], [[io, io.persistOnly, type, type.float32], 16, "angleX"], [[io, io.persistOnly, type, type.float32], 16, "angleY"], [[io, io.persist, void 0, type.objectRef("EveSOFDataHullBannerLight")], 16, "lightOverride"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.readwrite, type, type.boolean], 16, "maintainAspectRatio"], [[io, io.persist, type, type.string], 16, "visibilityGroup"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persistOnly, type, type.vec3], 16, "scaling"], [[io, io.persistOnly, type, type.float32], 16, "angleX"], [[io, io.persistOnly, type, type.float32], 16, "angleY"], [[io, io.persist, void 0, type.objectRef("EveSOFDataHullBannerLight")], 16, "lightOverride"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.readwrite, type, type.boolean], 16, "maintainAspectRatio"], [[io, io.persist, type, type.string], 16, "visibilityGroup"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

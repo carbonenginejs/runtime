@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-sof",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "CarbonEngineJS Space Object Factory (SOF) data classes and JSON contract.",
   "type": "module",
   "exports": {
@@ -18,8 +18,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@carbonenginejs/runtime-utils": "^0.1.0",
-    "@carbonenginejs/runtime-resource": "^0.15.0"
+    "@carbonenginejs/runtime-utils": "^0.1.5",
+    "@carbonenginejs/runtime-resource": "^0.16.0"
   },
   "license": "MIT",
   "publishConfig": {

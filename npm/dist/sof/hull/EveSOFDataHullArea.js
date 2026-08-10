@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_areaType, _init_extra_areaType, _init_textures, _init_extra_textures, _init_parameters, _init_extra_parameters, _init_index, _init_extra_index, _init_count, _init_extra_count, _init_name, _init_extra_name, _init_shader, _init_extra_shader, _init_blockedMaterials, _init_extra_blockedMaterials;
@@ -14,7 +14,7 @@ class EveSOFDataHullArea extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullArea",
       family: "eve"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("AreaType")], 16, "areaType"], [[io, io.persist, void 0, type.list("EveSOFDataTexture")], 16, "textures"], [[io, io.persist, void 0, type.list("EveSOFDataParameter")], 16, "parameters"], [[io, io.persist, type, type.uint32], 16, "index"], [[io, io.persist, type, type.uint32], 16, "count"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.string], 16, "shader"], [[io, io.persist, type, type.uint32], 16, "blockedMaterials"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("AreaType")], 16, "areaType"], [[io, io.persist, void 0, type.list("EveSOFDataTexture")], 16, "textures"], [[io, io.persist, void 0, type.list("EveSOFDataParameter")], 16, "parameters"], [[io, io.persist, type, type.uint32], 16, "index"], [[io, io.persist, type, type.uint32], 16, "count"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.string], 16, "shader"], [[io, io.persist, type, type.uint32], 16, "blockedMaterials"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

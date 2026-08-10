@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -16,7 +16,7 @@ class EveSOFDataHullChildSetItem extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataHullChildSetItem",
       family: "eve"
-    })], [[[io, io.persist, type, type.uint32], 16, "buildFilter"], [[io, io.persist, type, type.string], 16, "redFilePath"], [[io, io.persist, type, type.int32, void 0, schema.enum("Tr2Lod")], 16, "lowestLodVisible"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.uint32], 16, "buildFilter"], [[io, io.persist, type, type.string], 16, "redFilePath"], [[io, io.persist, type, type.int32, void 0, type.enum("Tr2Lod")], 16, "lowestLodVisible"], [[io, io.persist, type, type.vec3], 16, "translation"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

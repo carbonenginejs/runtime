@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { ReflectionMode } from '@carbonenginejs/runtime-utils/graphics';
 
@@ -15,7 +15,7 @@ class EveSOFDataGenericHullCategory extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataGenericHullCategory",
       family: "eve"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ReflectionMode")], 16, "reflectionMode"], [[io, io.persist, type, type.string], 16, "name"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("ReflectionMode")], 16, "reflectionMode"], [[io, io.persist, type, type.string], 16, "name"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

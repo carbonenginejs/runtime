@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { EveSOFDataBooster as _EveSOFDataBooster } from '../shared/EveSOFDataBooster.js';
 import { EveSOFDataRaceDamage as _EveSOFDataRaceDamage } from './EveSOFDataRaceDamage.js';
@@ -16,7 +16,7 @@ class EveSOFDataRace extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveSOFDataRace",
       family: "eve"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("ColorType")], 16, "hullPrimaryHeatColorType"], [[io, io.persist, type, type.int32, void 0, schema.enum("ColorType")], 16, "hullReactorHeatColorType"], [[io, io.persist, void 0, type.objectRef("EveSOFDataBooster")], 16, "booster"], [[io, io.persist, void 0, type.objectRef("EveSOFDataRaceDamage")], 16, "damage"], [[io, io.persist, type, type.string], 16, "name"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("ColorType")], 16, "hullPrimaryHeatColorType"], [[io, io.persist, type, type.int32, void 0, type.enum("ColorType")], 16, "hullReactorHeatColorType"], [[io, io.persist, void 0, type.objectRef("EveSOFDataBooster")], 16, "booster"], [[io, io.persist, void 0, type.objectRef("EveSOFDataRaceDamage")], 16, "damage"], [[io, io.persist, type, type.string], 16, "name"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

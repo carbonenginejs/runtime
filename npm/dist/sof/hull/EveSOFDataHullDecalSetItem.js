@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
@@ -17,7 +17,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSOFDataHullDecalSetItem",
         family: "eve"
-      })], [[[io, io.persist, type, type.int32, void 0, schema.enum("LogoType")], 16, "logoType"], [[io, io.persist, type, type.int32, void 0, schema.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.int32, void 0, schema.enum("ColorType")], 16, "glowColorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, void 0, type.list("EveSOFDataParameter")], 16, "parameters"], [[io, io.persist, void 0, type.list("EveSOFDataTexture")], 16, "textures"], [[io, io.persist, void 0, type.list("EveSOFDataDecalIndexBuffer")], 16, "indexBuffers"], [[io, io.persist, void 0, type.list("EveSOFDataMultiHullDecalIndexBuffers")], 16, "multiHullIndexBuffers"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.int32], 16, "meshIndex"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("LogoType")], 16, "logoType"], [[io, io.persist, type, type.int32, void 0, type.enum("Usage")], 16, "usage"], [[io, io.persist, type, type.int32, void 0, type.enum("ColorType")], 16, "glowColorType"], [[io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, void 0, type.list("EveSOFDataParameter")], 16, "parameters"], [[io, io.persist, void 0, type.list("EveSOFDataTexture")], 16, "textures"], [[io, io.persist, void 0, type.list("EveSOFDataDecalIndexBuffer")], 16, "indexBuffers"], [[io, io.persist, void 0, type.list("EveSOFDataMultiHullDecalIndexBuffers")], 16, "multiHullIndexBuffers"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.persist, type, type.vec3], 16, "scaling"], [[io, io.persist, type, type.int32], 16, "meshIndex"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);
