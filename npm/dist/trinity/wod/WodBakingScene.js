@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, carbon, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initProto, _initClass, _init_visualizeMethod, _init_extra_visualizeMethod, _init_Avatar, _init_extra_Avatar;
@@ -20,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "WodBakingScene",
         family: "wod"
-      })], [[[io, io.notify, io, io.readwrite, type, type.int32, void 0, schema.enum("VisualizeMethod")], 16, "visualizeMethod"], [[io, io.readwrite, void 0, type.objectRef("Tr2SkinnedObject")], 16, "Avatar"], [[carbon, carbon.method, impl, impl.notImplemented, void 0, impl.reason("Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU batch rendering owned by an engine adapter.")], 18, "Render"], [[carbon, carbon.method, impl, impl.notImplemented, void 0, impl.reason("Carbon leaves this hook empty, and any useful visualization would belong with the engine render-target implementation.")], 18, "RenderDebugInfo"], [[carbon, carbon.method, impl, impl.notImplemented, void 0, impl.reason("The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned object; frame ownership stays with the outer runtime adapter.")], 18, "Update"]], 0, void 0, CjsModel));
+      })], [[[io, io.notify, io, io.readwrite, type, type.int32, void 0, type.enum("VisualizeMethod")], 16, "visualizeMethod"], [[io, io.readwrite, void 0, type.objectRef("Tr2SkinnedObject")], 16, "Avatar"], [[carbon, carbon.method, impl, impl.notImplemented, void 0, impl.reason("Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU batch rendering owned by an engine adapter.")], 18, "Render"], [[carbon, carbon.method, impl, impl.notImplemented, void 0, impl.reason("Carbon leaves this hook empty, and any useful visualization would belong with the engine render-target implementation.")], 18, "RenderDebugInfo"], [[carbon, carbon.method, impl, impl.notImplemented, void 0, impl.reason("The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned object; frame ownership stays with the outer runtime adapter.")], 18, "Update"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

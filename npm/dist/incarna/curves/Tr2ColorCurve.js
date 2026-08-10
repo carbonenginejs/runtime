@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { IncarnaColorCurveInterpolation } from './enums.js';
@@ -23,7 +23,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ColorCurve",
         family: "incarna"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "cycle"], [[io, io.persist, type, type.boolean], 16, "reversed"], [[io, io.persist, type, type.float32], 16, "timeOffset"], [[io, io.persist, type, type.float32], 16, "timeScale"], [[io, io.persist, type, type.color], 16, "startValue"], [[io, io.readwrite, type, type.color], 16, "currentValue"], [[io, io.persist, type, type.color], 16, "endValue"], [[io, io.persist, type, type.vec4], 16, "startTangent"], [[io, io.persist, type, type.vec4], 16, "endTangent"], [[io, io.persist, type, type.uint32, void 0, schema.enum("Interpolation")], 16, "interpolation"], [[io, io.persist, void 0, type.list("Tr2ColorKey")], 16, "keys"], [[io, io.persist, type, type.float32], 16, "length"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "cycle"], [[io, io.persist, type, type.boolean], 16, "reversed"], [[io, io.persist, type, type.float32], 16, "timeOffset"], [[io, io.persist, type, type.float32], 16, "timeScale"], [[io, io.persist, type, type.color], 16, "startValue"], [[io, io.readwrite, type, type.color], 16, "currentValue"], [[io, io.persist, type, type.color], 16, "endValue"], [[io, io.persist, type, type.vec4], 16, "startTangent"], [[io, io.persist, type, type.vec4], 16, "endTangent"], [[io, io.persist, type, type.uint32, void 0, type.enum("Interpolation")], 16, "interpolation"], [[io, io.persist, void 0, type.list("Tr2ColorKey")], 16, "keys"], [[io, io.persist, type, type.float32], 16, "length"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);

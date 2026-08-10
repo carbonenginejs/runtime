@@ -3,7 +3,7 @@
 //   trinity/trinity/Wod/WodBakingScene.h
 //   trinity/trinity/Wod/WodBakingScene.cpp
 //   trinity/trinity/Wod/WodBakingScene_Blue.cpp
-import { carbon, impl, io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /**
@@ -20,7 +20,7 @@ export class WodBakingScene extends CjsModel
   @io.notify
   @io.readwrite
   @type.int32
-  @schema.enum("VisualizeMethod")
+  @type.enum("VisualizeMethod")
   visualizeMethod = 0;
 
   /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */

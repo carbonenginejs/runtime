@@ -1,7 +1,7 @@
 // Adapted from CCPWGL Tw2ColorCurve2 (MIT, Copyright (c) 2020
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ColorCurve
 // Black records.
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { IncarnaColorCurveInterpolation } from "./enums.js";
@@ -59,7 +59,7 @@ export class Tr2ColorCurve extends CjsModel
 
   @io.persist
   @type.uint32
-  @schema.enum("Interpolation")
+  @type.enum("Interpolation")
   interpolation = IncarnaColorCurveInterpolation.LINEAR;
 
   @io.persist

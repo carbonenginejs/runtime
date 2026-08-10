@@ -1,5 +1,5 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { IncarnaScalarCurveInterpolation } from './enums.js';
 
@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2ScalarKey",
         family: "incarna"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.float32], 16, "time"], [[io, io.persist, type, type.float32], 16, "value"], [[io, io.persist, type, type.float32], 16, "leftTangent"], [[io, io.persist, type, type.float32], 16, "rightTangent"], [[io, io.persist, type, type.uint32, void 0, schema.enum("Interpolation")], 16, "interpolation"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.float32], 16, "time"], [[io, io.persist, type, type.float32], 16, "value"], [[io, io.persist, type, type.float32], 16, "leftTangent"], [[io, io.persist, type, type.float32], 16, "rightTangent"], [[io, io.persist, type, type.uint32, void 0, type.enum("Interpolation")], 16, "interpolation"]], 0, void 0, CjsModel));
     }
     constructor(...args) {
       super(...args);
