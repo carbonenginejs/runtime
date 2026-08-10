@@ -46,7 +46,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   /** Blue MAP_PROPERTY "x"/"v1" - refreshes from the rerouted value on read. */
   get x()
   {
-    this.GetValue();
+    this.#RefreshFromReroute();
     return this.value[0];
   }
 
@@ -62,7 +62,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   /** Blue MAP_PROPERTY "y"/"v2". */
   get y()
   {
-    this.GetValue();
+    this.#RefreshFromReroute();
     return this.value[1];
   }
 
@@ -115,19 +115,34 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
     return CjsVectorParameter.hashFnv1String(this.name, CjsVectorParameter.hashFnv1Floats(this.value, startingHash));
   }
 
+  // Carbon returns `const Vector2&` - a reference the compiler forbids writing
+  // through (Tr2Vector2Parameter.cpp). JavaScript has no const reference,
+  // so returning this.value would hand a caller a live handle on the
+  // parameter's own state, and a stray write would change the parameter
+  // without marking it dirty or reaching the reroute destination. The caller
+  // gets a copy: their own buffer when they supply one, a fresh one otherwise.
+
   /**
-   * Refreshes from the reroute destination when one is set, then copies two components out.
-   * @param out defaults to the parameter's own value array, so a caller passing nothing gets a live reference rather than a copy
+   * Refreshes from the reroute destination when one is set, then copies the
+   * components into `out`, allocating only when the caller supplies nothing.
    */
   @carbon.method
-  @impl.implemented
-  GetValue(out = this.value)
+  @impl.adapted
+  @impl.reason("Carbon returns a const reference to its own value; JavaScript cannot express that, so this copies rather than exposing internal state.")
+  GetValue(out = vec2.create())
+  {
+    this.#RefreshFromReroute();
+    return CjsVectorParameter.copyNumberArray(out, this.value, 2);
+  }
+
+  /** Pulls the reroute destination into the stored value, without copying it out. */
+  #RefreshFromReroute()
   {
     if (this.#reroutedValue)
     {
       CjsVectorParameter.readVectorDestination(this.#reroutedValue, this.value, 2);
     }
-    return CjsVectorParameter.copyNumberArray(out, this.value, 2);
+    return this.value;
   }
 
   /**

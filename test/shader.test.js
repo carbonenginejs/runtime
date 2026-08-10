@@ -97,7 +97,7 @@ test("promoted shader parameters expose source-backed Carbon metadata", () =>
   assertEquals(CjsSchema.getField(Tr2RuntimeTextureParameter, "texture")?.type.className, "ITr2TextureProvider");
   assertEquals(CjsSchema.getField(TriVector4, "data")?.type.kind, "vec4");
   assertEquals(CjsSchema.getField(TriFloatArrayParameter, "value")?.type.kind, "list");
-  const sourceBackedMethods = [[Tr2FloatParameter, "GetParameterName", "implemented"], [Tr2FloatParameter, "GetValue", "implemented"], [Tr2FloatParameter, "SetValue", "implemented"], [Tr2FloatParameter, "IsRerouted", "implemented"], [Tr2FloatParameter, "SetDestination", "adapted"], [Tr2FloatParameter, "GetDestination", "adapted"], [Tr2FloatParameter, "RegisterBinding", "adapted"], [Tr2FloatParameter, "UnregisterBinding", "adapted"], [Tr2FloatParameter, "RebuildEffectHandles", "adapted"], [Tr2FloatParameter, "Initialize", "implemented"], [Tr2FloatParameter, "CopyValueToEffect", "adapted"], [Tr2Vector2Parameter, "GetValue", "implemented"], [Tr2Vector3Parameter, "GetValue", "implemented"], [Tr2Vector4Parameter, "RebuildEffectHandles", "adapted"], [Tr2Matrix4Parameter, "SetDestination", "adapted"], [Tr2RuntimeTextureParameter, "__init__", "adapted"], [Tr2RuntimeTextureParameter, "Create", "implemented"], [Tr2RuntimeTextureParameter, "GetParameterName", "implemented"], [Tr2RuntimeTextureParameter, "OnModified", "adapted"], [Tr2RuntimeTextureParameter, "RebuildEffectHandles", "adapted"], [Tr2RuntimeTextureParameter, "SetTextureProvider", "implemented"], [Tr2RuntimeTextureParameter, "GetTextureProvider", "implemented"], [Tr2RuntimeTextureParameter, "SetUavMipLevel", "implemented"], [TriTextureParameter, "GetResourcePath", "adapted"], [TriTextureParameter, "SetResource", "adapted"], [TriTextureParameter, "SupportsDirtyNotification", "implemented"], [TriTextureParameter, "UsedWithScreenSize", "adapted"], [TriTextureParameter, "OnTextureChanged", "adapted"], [TriFloatArrayParameter, "GetParameterName", "implemented"], [TriFloatArrayParameter, "Initialize", "implemented"], [TriFloatArrayParameter, "OnModified", "adapted"], [TriFloatArrayParameter, "RebuildEffectHandles", "adapted"], [TriFloatArrayParameter, "CopyValueToEffect", "adapted"]];
+  const sourceBackedMethods = [[Tr2FloatParameter, "GetParameterName", "implemented"], [Tr2FloatParameter, "GetValue", "implemented"], [Tr2FloatParameter, "SetValue", "implemented"], [Tr2FloatParameter, "IsRerouted", "implemented"], [Tr2FloatParameter, "SetDestination", "adapted"], [Tr2FloatParameter, "GetDestination", "adapted"], [Tr2FloatParameter, "RegisterBinding", "adapted"], [Tr2FloatParameter, "UnregisterBinding", "adapted"], [Tr2FloatParameter, "RebuildEffectHandles", "adapted"], [Tr2FloatParameter, "Initialize", "implemented"], [Tr2FloatParameter, "CopyValueToEffect", "adapted"], [Tr2Vector2Parameter, "GetValue", "adapted"], [Tr2Vector3Parameter, "GetValue", "adapted"], [Tr2Vector4Parameter, "RebuildEffectHandles", "adapted"], [Tr2Matrix4Parameter, "SetDestination", "adapted"], [Tr2RuntimeTextureParameter, "__init__", "adapted"], [Tr2RuntimeTextureParameter, "Create", "implemented"], [Tr2RuntimeTextureParameter, "GetParameterName", "implemented"], [Tr2RuntimeTextureParameter, "OnModified", "adapted"], [Tr2RuntimeTextureParameter, "RebuildEffectHandles", "adapted"], [Tr2RuntimeTextureParameter, "SetTextureProvider", "implemented"], [Tr2RuntimeTextureParameter, "GetTextureProvider", "implemented"], [Tr2RuntimeTextureParameter, "SetUavMipLevel", "implemented"], [TriTextureParameter, "GetResourcePath", "adapted"], [TriTextureParameter, "SetResource", "adapted"], [TriTextureParameter, "SupportsDirtyNotification", "implemented"], [TriTextureParameter, "UsedWithScreenSize", "adapted"], [TriTextureParameter, "OnTextureChanged", "adapted"], [TriFloatArrayParameter, "GetParameterName", "implemented"], [TriFloatArrayParameter, "Initialize", "implemented"], [TriFloatArrayParameter, "OnModified", "adapted"], [TriFloatArrayParameter, "RebuildEffectHandles", "adapted"], [TriFloatArrayParameter, "CopyValueToEffect", "adapted"]];
   for (const [ctor, methodName, status] of sourceBackedMethods)
   {
     assertCarbonMethod(ctor, methodName, status);
@@ -876,4 +876,40 @@ test("GetValues keyed lists round-trip the effect collections as unique-name obj
   assertEquals(clone.samplerOverrides.length, 1);
   assertEquals(clone.samplerOverrides[0].name, "AlbedoMapSampler");
   assertEquals(clone.samplerOverrides[0].addressU, 4);
+});
+
+test("vector parameters never hand out their own value array", () =>
+{
+  // Carbon returns a const reference, which the compiler stops a caller
+  // writing through. JavaScript cannot express that, so the value must be
+  // copied out: a stray write through a returned array would change the
+  // parameter without marking it dirty or reaching a reroute destination.
+  for (const [ctor, length] of [[Tr2Vector2Parameter, 2], [Tr2Vector3Parameter, 3], [Tr2Vector4Parameter, 4], [Tr2Matrix4Parameter, 16]])
+  {
+    const parameter = new ctor();
+    const returned = parameter.GetValue();
+
+    assertEquals(returned === parameter.value, false, `${ctor.name}.GetValue returned its own value array`);
+    assertEquals(returned.length, length);
+
+    returned[0] = 123.5;
+    assertEquals(parameter.value[0] === 123.5, false, `${ctor.name} was mutated through the returned array`);
+
+    const caller = new Array(length).fill(0);
+    assertEquals(parameter.GetValue(caller), caller, `${ctor.name} did not write into the caller's buffer`);
+  }
+});
+
+test("a vector parameter still refreshes from its reroute destination on read", () =>
+{
+  const parameter = new Tr2Vector4Parameter();
+  const destination = [ 0, 0, 0, 0 ];
+
+  // SetDestination seeds the destination FROM the parameter; afterwards the
+  // destination is the live value and reads pull it back.
+  parameter.SetDestination(destination);
+  destination[1] = 42;
+
+  assertEquals(parameter.GetValue()[1], 42, "GetValue refreshes from the reroute");
+  assertEquals(parameter.y, 42, "and so does a component getter");
 });

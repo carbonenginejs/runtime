@@ -19,7 +19,7 @@ class Tr2Vector4Parameter extends CjsVectorParameter {
     } = _applyDecs2311(this, [type.define({
       className: "Tr2Vector4Parameter",
       family: "shader"
-    })], [[[io, io.persistOnly, type, type.vec4], 16, "value"], [[io, io.read, type, type.boolean], 16, "isSrgb"], [[io, io.read, type, type.boolean], 16, "usedByCurrentTechnique"], [[io, io.read, type, type.boolean], 16, "usedByCurrentEffect"], [[io, io.notify, io, io.persist, type, type.string], 16, "name"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetHashValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsRerouted"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDestination"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDestination"], [[carbon, carbon.method, impl, impl.adapted], 18, "RegisterBinding"], [[carbon, carbon.method, impl, impl.adapted], 18, "UnregisterBinding"], [[carbon, carbon.method, impl, impl.adapted], 18, "RebuildEffectHandles"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "CopyValueToEffect"]], 0, void 0, CjsVectorParameter));
+    })], [[[io, io.persistOnly, type, type.vec4], 16, "value"], [[io, io.read, type, type.boolean], 16, "isSrgb"], [[io, io.read, type, type.boolean], 16, "usedByCurrentTechnique"], [[io, io.read, type, type.boolean], 16, "usedByCurrentEffect"], [[io, io.notify, io, io.persist, type, type.string], 16, "name"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterName"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetHashValue"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon returns a const reference to its own value; JavaScript cannot express that, so this copies rather than exposing internal state.")], 18, "GetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsRerouted"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDestination"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDestination"], [[carbon, carbon.method, impl, impl.adapted], 18, "RegisterBinding"], [[carbon, carbon.method, impl, impl.adapted], 18, "UnregisterBinding"], [[carbon, carbon.method, impl, impl.adapted], 18, "RebuildEffectHandles"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "CopyValueToEffect"]], 0, void 0, CjsVectorParameter));
   }
   value = (_initProto(this), _init_value(this, vec4.fromValues(1, 1, 1, 1)));
   isSrgb = (_init_extra_value(this), _init_isSrgb(this, false));
@@ -32,7 +32,7 @@ class Tr2Vector4Parameter extends CjsVectorParameter {
 
   /** Blue MAP_PROPERTY "x"/"v1" - refreshes from the rerouted value on read. */
   get x() {
-    this.GetValue();
+    this.#RefreshFromReroute();
     return this.value[0];
   }
 
@@ -46,7 +46,7 @@ class Tr2Vector4Parameter extends CjsVectorParameter {
 
   /** Blue MAP_PROPERTY "y"/"v2". */
   get y() {
-    this.GetValue();
+    this.#RefreshFromReroute();
     return this.value[1];
   }
 
@@ -60,7 +60,7 @@ class Tr2Vector4Parameter extends CjsVectorParameter {
 
   /** Blue MAP_PROPERTY "z"/"v3". */
   get z() {
-    this.GetValue();
+    this.#RefreshFromReroute();
     return this.value[2];
   }
 
@@ -74,7 +74,7 @@ class Tr2Vector4Parameter extends CjsVectorParameter {
 
   /** Blue MAP_PROPERTY "w"/"v4". */
   get w() {
-    this.GetValue();
+    this.#RefreshFromReroute();
     return this.value[3];
   }
 
@@ -136,15 +136,28 @@ class Tr2Vector4Parameter extends CjsVectorParameter {
     return CjsVectorParameter.hashFnv1String(this.name, CjsVectorParameter.hashFnv1Floats(this.value, startingHash));
   }
 
+  // Carbon returns `const Vector4&` - a reference the compiler forbids writing
+  // through (Tr2Vector4Parameter.cpp:56-67). JavaScript has no const reference,
+  // so returning this.value would hand a caller a live handle on the
+  // parameter's own state, and a stray write would change the parameter
+  // without marking it dirty or reaching the reroute destination. The caller
+  // gets a copy: their own buffer when they supply one, a fresh one otherwise.
+
   /**
-   * Refreshes from the reroute destination when one is set, then copies four components out.
-   * @param out defaults to the parameter's own value array, so a caller passing nothing gets a live reference rather than a copy
+   * Refreshes from the reroute destination when one is set, then copies the
+   * components into `out`, allocating only when the caller supplies nothing.
    */
-  GetValue(out = this.value) {
+  GetValue(out = vec4.create()) {
+    this.#RefreshFromReroute();
+    return CjsVectorParameter.copyNumberArray(out, this.value, 4);
+  }
+
+  /** Pulls the reroute destination into the stored value, without copying it out. */
+  #RefreshFromReroute() {
     if (this.#reroutedValue) {
       CjsVectorParameter.readVectorDestination(this.#reroutedValue, this.value, 4);
     }
-    return CjsVectorParameter.copyNumberArray(out, this.value, 4);
+    return this.value;
   }
 
   /**
