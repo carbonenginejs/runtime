@@ -81,6 +81,7 @@
     "./tangent": "./src/tangent.js",
     "./geometry": "./src/geometry/index.js",
     "./path": "./src/path.js",
+    "./resfile": "./src/resFile.js",
     "./text": "./src/text.js",
     "./validation": "./src/validation.js"
   },

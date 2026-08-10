@@ -60,3 +60,4 @@ export * as tangent from "./tangent.js";
  * TypedArray
  * @typedef {Float64Array|Float32Array|Uint32Array|Uint16Array|Uint8Array|Uint8ClampedArray|Int32Array|Int16Array|Int8Array} TypedArray
  */
+export * from "./resFile.js";
