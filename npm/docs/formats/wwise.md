@@ -140,6 +140,31 @@ media index-to-source mappings, RTPC curves, state values, and initial plug-in
 property values. Opaque parameter bytes are intentional: a consumer must
 qualify each plug-in's DSP behavior before interpreting them.
 
+## Two facts about the pin and the container
+
+**The version-150 pin has a horizon.** The typed decoding above is deliberately
+bound to bank generator version 150, which is what current EVE builds ship. The
+Wwise SDK that CarbonEngine itself pins is `2025.1.5.9095`, a generation whose
+authoring tools emit a substantially later bank version. So the pin is expected
+to be broken by a toolchain upgrade on the producing side rather than by
+anything here, and the failure will look like whole-body rejection rather than
+misreading: unknown or other-version bodies fall back to shallow action
+type/target with `action: null`, which is the designed behavior. Treat a sudden
+rise in `action: null` across a new build as a version bump, not corruption.
+
+**EVE wems carry a chunk that is not part of Wwise's own layout.** Observed
+between `fmt ` and `data`: a 24-byte `hash` chunk holding a 16-byte digest. The
+engine never reads it, and its derivation is unverified — it is not the resource
+index's whole-file md5. The repacker tolerates it structurally rather than by
+name: the chunk walk records only `fmt `, `vorb`, `data`, and `smpl` and
+advances past everything else, so an unrecognized chunk is skipped wherever it
+appears. That is why the chunk is safe to ignore, and why it must stay safe —
+a walk that assumed a fixed chunk order or a known-id whitelist would break on
+these files.
+
+Both observations are pinned to a 2026-07 corpus reading. Re-verify against a
+current build before relying on either.
+
 ## Related documentation
 
 - [Format subpaths](README.md)
