@@ -232,7 +232,19 @@ export class CjsSchema
         unknown: fieldDecorator("type", { kind: "unknown" }),
         vec2: fieldDecorator("type", { kind: "vec2" }),
         vec3: fieldDecorator("type", { kind: "vec3" }),
-        vec4: fieldDecorator("type", { kind: "vec4" })
+        vec4: fieldDecorator("type", { kind: "vec4" }),
+
+        // An enum names the vocabulary a field's values are drawn from, which
+        // is part of its type - it belongs here beside int32 and string rather
+        // than under a separate namespace. define and hideInherited show this
+        // namespace already carries class decorators as well as field ones.
+        enum: values => fieldDecorator("enum", normalizeEnumDefinition(values)),
+
+        /**
+         * Hides named inherited fields from a subclass's schema, for a subclass
+         * that genuinely does not carry part of its parent's shape.
+         */
+        hideInherited: fieldNames => hiddenInheritedFieldsDecorator(normalizeHiddenInheritedFields(fieldNames))
     });
 
     static io = Object.freeze({

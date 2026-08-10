@@ -2059,3 +2059,58 @@ test("io.rebuild unions changed fields' tokens into __state.rebuild before OnMod
     const viaHelper = CjsSchema.io.rebuild("geometry", "bounds");
     assert.equal(typeof viaHelper, "function");
 });
+
+test("type.enum and type.hideInherited are the same decorators as their schema.* spellings", () => {
+    const { CjsSchema } = schema;
+
+    // The migration to @type.* is only safe if both spellings produce the same
+    // field metadata, so this compares what each actually attaches rather than
+    // asserting they are the same function object.
+    class EnumViaSchema extends model.CjsModel
+    {
+        mode = 0;
+    }
+    class EnumViaType extends model.CjsModel
+    {
+        mode = 0;
+    }
+
+    const members = Object.freeze({ OFF: 0, ON: 1 });
+
+    CjsSchema.define(EnumViaSchema, { className: "EnumViaSchema" });
+    CjsSchema.define(EnumViaType, { className: "EnumViaType" });
+    EnumViaSchema.EnumMode = members;
+    EnumViaType.EnumMode = members;
+
+    CjsSchema.decorateField(EnumViaSchema, "mode", CjsSchema.type.int32, CjsSchema.enum("EnumMode"));
+    CjsSchema.decorateField(EnumViaType, "mode", CjsSchema.type.int32, CjsSchema.type.enum("EnumMode"));
+
+    const viaSchema = CjsSchema.getSchema(EnumViaSchema).fields.find(field => field.name === "mode");
+    const viaType = CjsSchema.getSchema(EnumViaType).fields.find(field => field.name === "mode");
+
+    assert.equal(viaType.enum.enumType, "EnumMode");
+    assert.deepEqual(viaType.enum.members, viaSchema.enum.members);
+    assert.equal(viaType.enum.enumType, viaSchema.enum.enumType);
+
+    // hideInherited is a class decorator; both spellings must hide the same field.
+    class HideParent extends model.CjsModel
+    {
+        kept = "kept";
+        dropped = "dropped";
+    }
+    class HideViaType extends HideParent {}
+
+    CjsSchema.define(HideParent, {
+        className: "HideParent",
+        fields: [
+            { name: "kept", type: { kind: "string" } },
+            { name: "dropped", type: { kind: "string" } }
+        ]
+    });
+    CjsSchema.define(HideViaType, { className: "HideViaType" });
+    CjsSchema.type.hideInherited(["dropped"])(HideViaType, { kind: "class", metadata: Object.create(null) });
+
+    const names = CjsSchema.getSchema(HideViaType).fields.map(field => field.name);
+    assert.equal(names.includes("kept"), true);
+    assert.equal(names.includes("dropped"), false, "type.hideInherited hid the inherited field");
+});
