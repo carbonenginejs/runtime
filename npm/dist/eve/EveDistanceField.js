@@ -3,7 +3,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from '../curves/enums.js';
-import { Tr2CurveScalar as _Tr2CurveScalar } from '../curves/curves/Tr2CurveScalar.js';
+import { Tr2CurveScalar as _Tr2CurveScalar } from '../curves/curve/Tr2CurveScalar.js';
 import { TriCurveSet as _TriCurveSet } from '../curves/TriCurveSet.js';
 
 let _initProto, _initClass, _init_dimensions, _init_extra_dimensions, _init_midpoint, _init_extra_midpoint, _init_distanceThreshold, _init_extra_distanceThreshold, _init_maxXZRatio, _init_extra_maxXZRatio, _init_minYRatio, _init_extra_minYRatio, _init_timeAdjustmentSecondsIn, _init_extra_timeAdjustmentSecondsIn, _init_timeAdjustmentSecondsOut, _init_extra_timeAdjustmentSecondsOut, _init_objects, _init_extra_objects, _init_cameraView, _init_extra_cameraView, _init_curveSet, _init_extra_curveSet, _init_distance, _init_extra_distance, _init_minDistance, _init_extra_minDistance, _init_maxDistance, _init_extra_maxDistance;
