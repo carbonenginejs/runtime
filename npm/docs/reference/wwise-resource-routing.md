@@ -434,8 +434,11 @@ whole-route filter pair; the exact SFX Aux path evaluates separate whole dry
 and wet ancestries, followed by their Bus-target duck gains. Incoming
 duck targets count as route controls even though the portable graph declares
 each duck on its source Bus. Unsupported RTPC bindings, dynamic effect controls,
-media, rendered slots, unsupported auxiliary sends, mixed/unknown effects, and any
-voice-/route-local control crossing an audible shared effect remain barriers.
+media, rendered slots, unsupported auxiliary sends, and mixed/unknown effects
+remain barriers. Voice-/route-local controls also remain barriers when they
+share an audible effect Bus or occur on its ancestor side. The one bounded
+exception is a strict-descendant control below an opted-in Peak Limiter, as
+detailed in the dynamics section.
 
 Qualified SFX branches now connect after their flat/spatial route stage to the
 shared SFX category input. When analyser support exists, each qualified branch
@@ -547,3 +550,23 @@ qualification from 9,956/18,739 (53.1%) to 10,235/18,739 (54.6%) and bringing
 built-in music to 100%. Of the Compressor-reachable SFX, most still cross
 independent Aux or convolution barriers, so the raw reach of 3,889 SFX is not
 an attainable dynamics-only gain.
+
+EVE build 3453885 also contains four SFX route shapes where all route-local
+controls belong to bus `1017660616` or one of its strict descendants and the
+only audible ancestor effect is root Peak Limiter `3134687450` on bus
+`4085017428`. The source/route filters, Voice Volume, Bus actions, and duck
+source activity already run before that shared root stage; the physical Bus
+faders remain on their existing sides of the limiter. None of these routes has
+an incoming duck target or audible Aux send. The mixer therefore admits this
+specific order under `wwiseDynamics: "approximate-web-audio"` while continuing
+to reject same-Bus/ancestor controls, incoming duck targets, and every other
+effect family.
+
+The four routes cover 36 SFX leaves and 24 media across
+`Ambience_Hangar_Caldari_Play`, `jita_hangar_play`,
+`Ambience_Hangar_Gallente_Play`, `OSSE_Gallente_steamalter_play`,
+`chjita_initial_docking_entrance_lights_play`, and
+`Ambience_Hangar_Minmatar_Play`. Only `OSSE_Gallente_steamalter_play` becomes
+fully shared-routed; the other five retain additional blocked branches. This
+is a stage-order qualification gain, not new media/event audibility, and the
+Peak Limiter remains the documented Web Audio approximation.

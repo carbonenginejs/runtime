@@ -366,10 +366,13 @@ export class CjsSharedBusMixer
             && route.busPathIds.length > 0
             && route.outputBusId === route.busPathIds[0];
         const pathIds = new Set();
-        let hasDistributedControls = Boolean(
+        const hasIncomingDuckTarget = Boolean(
             this.#busDuckingController?.PathHasTarget?.(route.busPathIds),
         );
+        const routeControlIndexes = [];
         let hasAudibleEffect = false;
+        let firstAudibleEffectIndex = Infinity;
+        let hasOnlyCrossableEffects = true;
         let authoredBusVolumeDb = 0;
 
         for (let index = 0; qualified && index < route.busPathIds.length; index++)
@@ -399,7 +402,7 @@ export class CjsSharedBusMixer
             authoredBusVolumeDb += Number(bus.busVolumeDb ?? 0);
             const busPath = [ String(busId) ];
 
-            hasDistributedControls ||= busRtpcPathUses(
+            const hasRouteControl = busRtpcPathUses(
                 this.#busRtpcs,
                 busPath,
                 "voice-volume",
@@ -409,18 +412,42 @@ export class CjsSharedBusMixer
                 || busStatePathUses(this.#busStates, busPath, "highPass")
                 || bus.busVolumeActionControlled === true
                 || bus.requiresProcessing.includes("ducking");
-            hasAudibleEffect ||= effects.some(effect =>
+            const audibleEffects = effects.filter(effect =>
                 effect.type !== "meter-omission");
+
+            if (hasRouteControl) routeControlIndexes.push(index);
+            if (audibleEffects.length)
+            {
+                hasAudibleEffect = true;
+                firstAudibleEffectIndex = Math.min(
+                    firstAudibleEffectIndex,
+                    index,
+                );
+                hasOnlyCrossableEffects &&= audibleEffects.every(effect =>
+                    effect.type === "peak-limiter-approximation");
+            }
         }
         if (qualified
             && authoredBusVolumeDb !== Number(route.authoredBusVolumeDb ?? 0))
         {
             qualified = false;
         }
-        // Existing dry-route controllers realize these controls before the
-        // shared topology. Preserve that ordering across the complete ancestry,
-        // not merely within the Bus that declares each stage.
-        if (qualified && hasDistributedControls && hasAudibleEffect)
+        // Existing dry-route controllers sit before the shared topology. A
+        // source-proven Peak Limiter remains ordered only when every such
+        // control belongs to a strict descendant of the first audible effect.
+        // Incoming duck targets and other effect kinds retain the atomic
+        // fallback until their exact stage/tail behavior is proven.
+        const controlsCrossEffects = hasIncomingDuckTarget
+            || !hasOnlyCrossableEffects
+            || routeControlIndexes.some(index =>
+                index >= firstAudibleEffectIndex);
+        const hasRouteControls = hasIncomingDuckTarget
+            || routeControlIndexes.length > 0;
+
+        if (qualified
+            && hasAudibleEffect
+            && hasRouteControls
+            && controlsCrossEffects)
         {
             qualified = false;
         }

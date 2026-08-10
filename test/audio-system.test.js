@@ -1099,6 +1099,61 @@ test("strict shared Bus controls cannot cross an audible effect on another Bus",
   }
 });
 
+test("opt-in Peak Limiter admits only strict descendant route controls", () =>
+{
+  for (const [ controlBusId, effectBusId, admitted ] of [
+    [ "500", "1", true ],
+    [ "1", "500", false ],
+    [ "500", "500", false ],
+  ])
+  {
+    const context = MixerContext();
+    const catalog = MixerCatalog();
+
+    catalog.buses[controlBusId].requiresProcessing = [ "state" ];
+    AddGraphDynamics(
+      catalog,
+      effectBusId,
+      "930",
+      0,
+      0x006e0003,
+      DynamicsParameters({
+        thresholdDb: -1,
+        ratio: 10,
+        attackOrLookaheadSeconds: 0.01,
+        releaseSeconds: 0.1,
+        outputGainDb: 0,
+      }),
+    );
+    const runtime = new CjsBusGraphRuntime(catalog);
+    const mixer = new CjsSharedBusMixer({
+      context,
+      runtime,
+      destination: context.destination,
+      wwiseDynamics: "approximate-web-audio",
+      busStates: {
+        schemaVersion: 2,
+        buses: {
+          [controlBusId]: [ {
+            group: "mode",
+            groupId: "10",
+            syncType: 0,
+            effectiveSyncType: 0,
+            states: [ { stateId: "20", state: "on", highPass: 50 } ],
+          } ],
+        },
+      },
+    });
+    const input = mixer.GetInput(
+      runtime.ResolveSfxRoute("100"),
+      "sfx",
+    );
+
+    assert.equal(Boolean(input), admitted);
+    assert.equal(context.compressors.length, admitted ? 1 : 0);
+  }
+});
+
 test("strict shared Bus mixer treats duck targets as route controls", () =>
 {
   const context = MixerContext();

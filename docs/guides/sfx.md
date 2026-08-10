@@ -596,6 +596,16 @@ missing graph retains the distributed per-source Parametric EQ fallback.
 Dynamic, mixed, media-backed, or otherwise unsupported effect sequences remain
 barriers rather than being partially realized.
 
+One bounded ordering proof admits an opted-in Peak-Limiter route when every
+source-/route-local control belongs to a strict descendant of the first
+audible effect Bus. Those controls already run before the shared topology, so
+an ancestor limiter retains its authored order. A control on the same Bus or
+an ancestor, an incoming duck target, or any other audible effect kind keeps
+the whole route on fallback. EVE build 3453885 has four such routes: 36 SFX
+leaves and 24 media across six event graphs. Only
+`OSSE_Gallente_steamalter_play` becomes fully shared-routed; the other five
+gain qualified branches while retaining separate blocked branches.
+
 The default `wwiseDynamics: "strict"` policy keeps Wwise Compressor and Peak
 Limiter out of shared routing. The source still plays through the existing SFX
 destination, but the complete authored shared-bus path is omitted; qualified
