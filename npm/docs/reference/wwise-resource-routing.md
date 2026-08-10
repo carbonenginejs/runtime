@@ -602,6 +602,24 @@ because its preceding EQ `400239472` requires unsupported independent LFE
 routing. The result raises qualified source-effect leaves from 2,432 to 2,506
 without changing media or event reachability.
 
+Wwise Guitar Distortion `0x007e0003` is source-proven separately. Pinned
+wwiser decodes six 17-byte EQ records followed by distortion type, Drive,
+Tone, Rectification, output gain, and Wet/Dry mix. EVE build 3453885 has 69
+retained Sound leaves across 23 events using 18 static effect identities and
+12 exact raw records (11 audible decoded parameter sets). All are v150,
+control-free, fully wet, and use Overdrive or Heavy; another 136 leaves across
+35 events have dynamic property/RTPC control and remain dry.
+
+`wwiseDistortion: "approximate-web-audio"` maps enabled pre/post bands to
+authored-order biquads around a 4x-oversampled WaveShaper. Its normalized tanh
+curve and Rectification blend are deliberate CarbonEngineJS approximations;
+wwiser establishes no native transfer, Drive scaling, Tone law, oversampling,
+or channel behavior. Tone is retained but currently inert. Strict mode,
+missing primitives, non-v150/dynamic/non-fully-wet records, unsupported
+distortion types, and shared-Bus Guitar Distortion keep the complete chain
+audible and dry. This raises qualified source-effect leaves from 2,506 to
+2,575 without changing media or event reachability.
+
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE
 build 3444265 payoff. Compressor support alone adds all 135 remaining music

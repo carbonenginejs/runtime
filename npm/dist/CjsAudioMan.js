@@ -4,7 +4,7 @@ import { CjsSfxEngine } from './CjsSfxEngine.js';
 import { AudListener as _AudListener } from './trinity/audio/AudListener.js';
 import { AudMusicPlayer as _AudMusicPlayer } from './trinity/audio/AudMusicPlayer.js';
 import { installAudioLibraryDocument } from './library/audioLibraryDocument.js';
-import { normalizeWwiseVoiceLimitMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseDynamicsMode } from './internal/busEffects.js';
+import { normalizeWwiseVoiceLimitMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode } from './internal/busEffects.js';
 import { CjsAudioManSharedAcquisition } from './internal/CjsAudioManSharedAcquisition.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
@@ -66,6 +66,7 @@ class CjsAudioMan {
     isMusicTrackAvailable = null,
     updateContext = null,
     wwiseDynamics = "strict",
+    wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseMeterFeedback = "strict",
     wwiseVoiceLimits = "strict"
@@ -95,6 +96,7 @@ class CjsAudioMan {
       applyRTPC,
       updateContext,
       wwiseDynamics: normalizeWwiseDynamicsMode(wwiseDynamics),
+      wwiseDistortion: normalizeWwiseDistortionMode(wwiseDistortion),
       wwiseModulation: normalizeWwiseModulationMode(wwiseModulation),
       wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback),
       wwiseVoiceLimits: normalizeWwiseVoiceLimitMode(wwiseVoiceLimits)

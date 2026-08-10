@@ -3,7 +3,7 @@ import { evaluateWwiseRtpcCurve, wwiseDbRtpcValueToDb } from './internal/wwiseRt
 import { indexBusRtpcCatalog, busRtpcCatalogUsesControl, busRtpcPathUses, evaluateBusRtpcGainDb, evaluateBusVoiceRtpcGainDb } from './internal/busRtpc.js';
 import { indexBusStateCatalog, busStatePathUses, evaluateBusStateProperties, evaluateBusStateGainDb } from './internal/busState.js';
 import { wwiseFilterPercentToHz } from './internal/wwiseFilter.js';
-import { indexBusEffectCatalog, normalizeWwiseDynamicsMode, normalizeWwiseModulationMode, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
+import { indexBusEffectCatalog, normalizeWwiseDynamicsMode, normalizeWwiseDistortionMode, normalizeWwiseModulationMode, createBusEffectChain, createWwiseEffectChain, normalizeStaticSourceEffectChain } from './internal/busEffects.js';
 import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProgramSlot.js';
 import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSfxVoiceLimitLedger.js';
 import { CjsAudioBackendSfxVoice } from './internal/CjsAudioBackendSfxVoice.js';
@@ -68,6 +68,7 @@ class CjsAudioBackend {
   #busDuckingController = null;
   #busEffectCatalog = new Map();
   #wwiseDynamics = "strict";
+  #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
   #busGraphRuntime = null;
   #busMixer = null;
@@ -104,6 +105,7 @@ class CjsAudioBackend {
     busDuckingController,
     busEffects,
     wwiseDynamics = "strict",
+    wwiseDistortion = "strict",
     wwiseModulation = "strict",
     busGraphRuntime,
     busMixer
@@ -124,6 +126,7 @@ class CjsAudioBackend {
     this.#busDuckingController = busDuckingController ?? null;
     this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
     this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+    this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#busGraphRuntime = busGraphRuntime ?? null;
     this.#busMixer = busMixer ?? null;
@@ -2638,6 +2641,7 @@ class CjsAudioBackend {
     const busEffectChain = emitterRouteBranch?.mixerInput ? null : createBusEffectChain(this.#context, this.#busEffectCatalog, descriptor.busPathIds);
     const sourceEffectChain = createWwiseEffectChain(this.#context, descriptor.sourceEffects ?? [], {
       wwiseDynamics: this.#wwiseDynamics,
+      wwiseDistortion: this.#wwiseDistortion,
       wwiseModulation: this.#wwiseModulation
     });
     if (lowPassFilter) {

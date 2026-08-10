@@ -6608,6 +6608,138 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
     );
 });
 
+test("SFX construction retains only the bounded static Guitar Distortion", async () =>
+{
+    const Build = (
+        propertyValues,
+        bankVersion = 150,
+        distortionType = 2,
+    ) =>
+        CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                distorted_play: {
+                    eventID: 100,
+                    soundbanks: [ "effects.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "effects.bnk": {
+                    name: "effects",
+                    path: "\\SoundBanks\\effects.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/effects.bnk",
+            storagePath: "banks/effects.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 168001308,
+                                    flags: 0,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 17,
+                            id: 168001308,
+                            payload: wwiseGuitarDistortionEffectPayload({
+                                distortionType,
+                                propertyValues,
+                            }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const library = await Build([]);
+
+    assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "168001308",
+        slotIndex: 0,
+        type: "guitar-distortion",
+        preEqBands: [],
+        postEqBands: [
+            {
+                index: 0,
+                filterType: "peaking",
+                gainDb: 4.5,
+                frequencyHz: 83,
+                q: 1,
+            },
+            {
+                index: 1,
+                filterType: "peaking",
+                gainDb: -4.5,
+                frequencyHz: 1359,
+                q: 1.5,
+            },
+        ],
+        distortionType: "heavy",
+        drivePercent: 34,
+        tonePercent: 0,
+        rectificationPercent: 0,
+        outputGainDb: 0,
+        wetDryMixPercent: 100,
+    } ]);
+
+    for (const unsupported of [
+        await Build([ { propertyId: 1, value: 2 } ]),
+        await Build([], 151),
+        await Build([], 150, 3),
+    ])
+    {
+        assert.equal(
+            unsupported.sfx?.nodes?.["300"]?.sourceEffects,
+            undefined,
+        );
+    }
+});
+
 test("complete construction projects routed static Wwise Parametric EQ", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -10683,6 +10815,59 @@ function wwiseTremoloEffectPayload({
         .bytes();
     const writer = new TestWriter()
         .u32(0x00830003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(propertyValues.length);
+
+    for (const property of propertyValues)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation ?? 0)
+            .f32(property.value);
+    }
+    return writer.bytes();
+}
+
+function wwiseGuitarDistortionEffectPayload({
+    drivePercent = 34,
+    distortionType = 2,
+    propertyValues = [],
+} = {})
+{
+    const bands = [
+        [ 1, 3.5, 83, 1, false ],
+        [ 1, -4.5, 347, Math.fround(0.1), false ],
+        [ 0, 0, 1000, 1, false ],
+        [ 1, 4.5, 83, 1, true ],
+        [ 1, -4.5, 1359, 1.5, true ],
+        [ 0, 0, 1000, 1, false ],
+    ];
+    const parameters = new TestWriter();
+
+    for (const [ type, gain, frequency, q, enabled ] of bands)
+    {
+        parameters
+            .u32(type)
+            .f32(gain)
+            .f32(frequency)
+            .f32(q)
+            .u8(enabled ? 1 : 0);
+    }
+    const parameterBlock = parameters
+        .u32(distortionType)
+        .f32(drivePercent)
+        .f32(0)
+        .f32(0)
+        .f32(0)
+        .f32(100)
+        .bytes();
+    const writer = new TestWriter()
+        .u32(0x007e0003)
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)

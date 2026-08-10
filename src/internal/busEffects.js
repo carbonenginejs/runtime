@@ -3,15 +3,21 @@ export const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
 export const WWISE_COMPRESSOR_PLUGIN_ID = 0x006c0003;
 export const WWISE_PEAK_LIMITER_PLUGIN_ID = 0x006e0003;
 export const WWISE_FLANGER_PLUGIN_ID = 0x007d0003;
+export const WWISE_GUITAR_DISTORTION_PLUGIN_ID = 0x007e0003;
 export const WWISE_TREMOLO_PLUGIN_ID = 0x00830003;
 export const WWISE_METER_PLUGIN_ID = 0x00810003;
 const WWISE_TREMOLO_BANK_VERSION = 150;
+const WWISE_GUITAR_DISTORTION_BANK_VERSION = 150;
 
 const WWISE_DYNAMICS_MODES = new Set([
     "strict",
     "approximate-web-audio",
 ]);
 const WWISE_MODULATION_MODES = new Set([
+    "strict",
+    "approximate-web-audio",
+]);
+const WWISE_DISTORTION_MODES = new Set([
     "strict",
     "approximate-web-audio",
 ]);
@@ -26,6 +32,8 @@ const REALIZABLE_EFFECT_TYPES = new Set([
     "flanger-approximation",
     "tremolo",
     "tremolo-approximation",
+    "guitar-distortion",
+    "guitar-distortion-approximation",
     "parametric-eq",
 ]);
 const WWISE_METER_FEEDBACK_MODES = new Set([
@@ -85,6 +93,23 @@ const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
 const METER_MAXIMUM_MIN = Math.fround(-96.3);
 const METER_MAXIMUM_MAX = 12;
+const GUITAR_DISTORTION_CURVE_SAMPLES = 4096;
+const GUITAR_DISTORTION_FILTER_TYPES = Object.freeze([
+    "lowshelf",
+    "peaking",
+    "highshelf",
+    "lowpass",
+    "highpass",
+    "bandpass",
+    "notch",
+]);
+const GUITAR_DISTORTION_TYPES = Object.freeze([
+    "none",
+    "overdrive",
+    "heavy",
+    "fuzz",
+    "clip",
+]);
 
 /** Validates the host policy for authored Wwise dynamics realization. */
 export function normalizeWwiseDynamicsMode(value = "strict")
@@ -109,6 +134,20 @@ export function normalizeWwiseModulationMode(value = "strict")
     {
         throw new TypeError(
             `Unsupported Wwise modulation realization mode: ${mode}`,
+        );
+    }
+    return mode;
+}
+
+/** Validates the host policy for authored Wwise distortion realization. */
+export function normalizeWwiseDistortionMode(value = "strict")
+{
+    const mode = String(value);
+
+    if (!WWISE_DISTORTION_MODES.has(mode))
+    {
+        throw new TypeError(
+            `Unsupported Wwise distortion realization mode: ${mode}`,
         );
     }
     return mode;
@@ -462,6 +501,64 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 processLfe: effect.processLfe,
             });
         }
+        if (allowDelay && effect.type === "guitar-distortion")
+        {
+            const preEqBands = NormalizeGuitarDistortionBands(
+                effect.preEqBands,
+                `${label} preEqBands`,
+            );
+            const postEqBands = NormalizeGuitarDistortionBands(
+                effect.postEqBands,
+                `${label} postEqBands`,
+            );
+            const distortionType = String(effect.distortionType ?? "");
+
+            if (distortionType !== "overdrive"
+                && distortionType !== "heavy")
+            {
+                throw new TypeError(
+                    `${label} has unsupported distortionType ${distortionType}`,
+                );
+            }
+            return Object.freeze({
+                effectId,
+                slotIndex,
+                type: "guitar-distortion",
+                preEqBands,
+                postEqBands,
+                distortionType,
+                drivePercent: BoundedFinite(
+                    effect.drivePercent,
+                    0,
+                    100,
+                    `${label} drivePercent`,
+                ),
+                tonePercent: BoundedFinite(
+                    effect.tonePercent,
+                    0,
+                    100,
+                    `${label} tonePercent`,
+                ),
+                rectificationPercent: BoundedFinite(
+                    effect.rectificationPercent,
+                    0,
+                    100,
+                    `${label} rectificationPercent`,
+                ),
+                outputGainDb: BoundedFinite(
+                    effect.outputGainDb,
+                    DYNAMICS_OUTPUT_GAIN_MIN,
+                    DYNAMICS_OUTPUT_GAIN_MAX,
+                    `${label} outputGainDb`,
+                ),
+                wetDryMixPercent: BoundedFinite(
+                    effect.wetDryMixPercent,
+                    100,
+                    100,
+                    `${label} wetDryMixPercent`,
+                ),
+            });
+        }
         if (effect.type !== "parametric-eq")
         {
             throw new TypeError(`${label} has unsupported type ${effect.type}`);
@@ -549,12 +646,14 @@ export function createWwiseEffectChain(
     {
         wwiseDynamics = "strict",
         wwiseModulation = "strict",
+        wwiseDistortion = "strict",
     } = {},
 )
 {
     if (!Array.isArray(effects) || !effects.length) return null;
     const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
     const modulationMode = normalizeWwiseModulationMode(wwiseModulation);
+    const distortionMode = normalizeWwiseDistortionMode(wwiseDistortion);
 
     // A source effect override is one ordered authored unit. In strict mode,
     // preserve the existing audible dry fallback by omitting the complete
@@ -581,6 +680,11 @@ export function createWwiseEffectChain(
         || sourceTremolos.length > 0;
     const hasModulation = flangerEffects.length > 0
         || tremoloEffects.length > 0;
+    const sourceDistortions = effects.filter(effect =>
+        effect.type === "guitar-distortion");
+    const distortionEffects = effects.filter(effect =>
+        effect.type === "guitar-distortion"
+        || effect.type === "guitar-distortion-approximation");
 
     for (const effect of effects)
     {
@@ -598,9 +702,14 @@ export function createWwiseEffectChain(
     {
         return null;
     }
+    if (sourceDistortions.length && distortionMode === "strict")
+    {
+        return null;
+    }
     const needsGain = dynamicsEffects.length > 0
         || sourceDelays.length > 0
         || hasModulation
+        || distortionEffects.some(effect => effect.outputGainDb !== 0)
         || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
     const needsDelay = sourceDelays.length > 0
         || flangerEffects.length > 0
@@ -609,6 +718,8 @@ export function createWwiseEffectChain(
                 || effect.type === "peak-limiter-approximation")
             && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
     const needsBiquad = sourceEqualizers.some(effect => effect.bands.length);
+    const needsDistortionBiquad = distortionEffects.some(effect =>
+        effect.preEqBands.length || effect.postEqBands.length);
     const needsOscillator = tremoloEffects.some(effect =>
         effect.modulationDepthPercent > 0)
         || flangerEffects.some(effect =>
@@ -622,7 +733,8 @@ export function createWwiseEffectChain(
     {
         return null;
     }
-    if (needsBiquad && typeof context?.createBiquadFilter !== "function")
+    if ((needsBiquad || needsDistortionBiquad)
+        && typeof context?.createBiquadFilter !== "function")
     {
         return null;
     }
@@ -637,6 +749,11 @@ export function createWwiseEffectChain(
         return null;
     }
     if (needsOscillator && typeof context?.createOscillator !== "function")
+    {
+        return null;
+    }
+    if (distortionEffects.length
+        && typeof context?.createWaveShaper !== "function")
     {
         return null;
     }
@@ -655,6 +772,8 @@ export function createWwiseEffectChain(
                 ? { ...effect, type: "flanger-approximation" }
             : effect.type === "tremolo"
                 ? { ...effect, type: "tremolo-approximation" }
+            : effect.type === "guitar-distortion"
+                ? { ...effect, type: "guitar-distortion-approximation" }
             : effect);
     const nodes = [];
     let input = null;
@@ -712,27 +831,27 @@ export function createWwiseEffectChain(
             nodes.push(...stage.nodes);
             continue;
         }
+        if (effect.type === "guitar-distortion-approximation")
+        {
+            const stage = CreateWwiseGuitarDistortionApproximation(
+                context,
+                effect,
+            );
+
+            if (output) output.connect(stage.input);
+            else input = stage.input;
+            output = stage.output;
+            nodes.push(...stage.nodes);
+            continue;
+        }
         if (effect.type !== "parametric-eq")
         {
             throw new TypeError(`Unsupported shared Bus effect ${effect.type}`);
         }
         for (const band of effect.bands)
         {
-            if (typeof context?.createBiquadFilter !== "function")
-            {
-                throw new TypeError(
-                    "AudioContext.createBiquadFilter is required for Wwise Parametric EQ",
-                );
-            }
-            const filter = context.createBiquadFilter();
-            const nyquist = Number(context.sampleRate) / 2;
+            const filter = CreateBiquadFilter(context, band);
 
-            filter.type = band.filterType;
-            SetParam(filter.frequency, Number.isFinite(nyquist) && nyquist > 0
-                ? Math.min(band.frequencyHz, nyquist)
-                : band.frequencyHz);
-            SetParam(filter.Q, band.q);
-            SetParam(filter.gain, band.gainDb);
             append(filter);
         }
         if (effect.outputGainDb !== 0)
@@ -750,6 +869,75 @@ export function createWwiseEffectChain(
         }
     }
     return input ? { input, output, nodes } : null;
+}
+
+/** Creates the bounded browser approximation of static Wwise distortion. */
+function CreateWwiseGuitarDistortionApproximation(context, effect)
+{
+    const shaper = context.createWaveShaper();
+    const curve = new Float32Array(GUITAR_DISTORTION_CURVE_SAMPLES);
+    const driveDivisor = effect.distortionType === "heavy" ? 8 : 12;
+    const drive = 1 + effect.drivePercent / driveDivisor;
+    const normalizer = Math.tanh(drive);
+    const rectification = effect.rectificationPercent / 100;
+
+    // wwiser proves the parameter record, not Audiokinetic's proprietary
+    // Heavy transfer law. This normalized tanh curve is intentionally our
+    // stable approximation and never participates in strict playback.
+    for (let index = 0; index < curve.length; index++)
+    {
+        const input = index * 2 / (curve.length - 1) - 1;
+
+        const shaped = Math.tanh(drive * input) / normalizer;
+
+        curve[index] = (1 - rectification) * shaped
+            + rectification * Math.abs(shaped);
+    }
+    shaper.curve = curve;
+    shaper.oversample = "4x";
+    const nodes = [];
+    let input = null;
+    let output = null;
+    const append = node =>
+    {
+        if (output) output.connect(node);
+        else input = node;
+        output = node;
+        nodes.push(node);
+    };
+
+    for (const band of effect.preEqBands)
+    {
+        append(CreateBiquadFilter(context, band));
+    }
+    append(shaper);
+
+    for (const band of effect.postEqBands)
+    {
+        append(CreateBiquadFilter(context, band));
+    }
+    if (effect.outputGainDb !== 0)
+    {
+        const gain = context.createGain();
+
+        SetParam(gain.gain, 10 ** (effect.outputGainDb / 20));
+        append(gain);
+    }
+    return { input, output, nodes };
+}
+
+function CreateBiquadFilter(context, band)
+{
+    const filter = context.createBiquadFilter();
+    const nyquist = Number(context.sampleRate) / 2;
+
+    filter.type = band.filterType;
+    SetParam(filter.frequency, Number.isFinite(nyquist) && nyquist > 0
+        ? Math.min(band.frequencyHz, nyquist)
+        : band.frequencyHz);
+    SetParam(filter.Q, band.q);
+    SetParam(filter.gain, band.gainDb);
+    return filter;
 }
 
 /** Creates a static, all-channel browser approximation of Wwise Flanger. */
@@ -1318,6 +1506,138 @@ export function parseGraphStaticWwiseTremolo(effect, effectId, slotIndex)
 }
 
 /**
+ * Decodes the source-proven static v150 Guitar Distortion layout used by EVE.
+ *
+ * Pinned wwiser proves the six EQ-band records and trailing distortion fields.
+ * It does not reveal the proprietary Heavy transfer curve, so the portable
+ * record remains inert unless the host explicitly selects an approximation.
+ */
+export function parseStaticWwiseGuitarDistortionBytes(
+    bytes,
+    {
+        effectId,
+        slotIndex,
+        label = `Wwise Guitar Distortion ${effectId}`,
+        bankVersion = WWISE_GUITAR_DISTORTION_BANK_VERSION,
+    } = {},
+)
+{
+    if (Number(bankVersion) !== WWISE_GUITAR_DISTORTION_BANK_VERSION
+        || !(bytes instanceof Uint8Array)
+        || bytes.byteLength !== 126)
+    {
+        throw new TypeError(`${label} has an unsupported parameter block`);
+    }
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+    let offset = 0;
+    const readBand = index =>
+    {
+        const filterType = view.getUint32(offset, true);
+        const gainDb = view.getFloat32(offset + 4, true);
+        const frequencyHz = view.getFloat32(offset + 8, true);
+        const q = view.getFloat32(offset + 12, true);
+        const enabledRaw = view.getUint8(offset + 16);
+
+        offset += 17;
+        if (filterType > 6
+            || !Number.isFinite(gainDb)
+            || !Number.isFinite(frequencyHz)
+            || frequencyHz <= 0
+            || !Number.isFinite(q)
+            || q <= 0
+            || enabledRaw > 1)
+        {
+            throw new TypeError(
+                `${label} has invalid Wwise Guitar Distortion EQ parameters`,
+            );
+        }
+        return {
+            index,
+            filterType,
+            gainDb,
+            frequencyHz,
+            q,
+            enabled: enabledRaw === 1,
+        };
+    };
+    const preEq = Array.from({ length: 3 }, (_, index) => readBand(index));
+    const postEq = Array.from({ length: 3 }, (_, index) => readBand(index));
+    const distortionType = view.getUint32(offset, true);
+    const drivePercent = view.getFloat32(offset + 4, true);
+    const tonePercent = view.getFloat32(offset + 8, true);
+    const rectificationPercent = view.getFloat32(offset + 12, true);
+    const outputGainDb = view.getFloat32(offset + 16, true);
+    const wetDryMixPercent = view.getFloat32(offset + 20, true);
+    const activePreEq = preEq.filter(band => band.enabled);
+    const activePostEq = postEq.filter(band => band.enabled);
+
+    if ((distortionType !== 1 && distortionType !== 2)
+        || !Number.isFinite(drivePercent)
+        || drivePercent < 0
+        || drivePercent > 100
+        || !Number.isFinite(tonePercent)
+        || tonePercent < 0
+        || tonePercent > 100
+        || !Number.isFinite(rectificationPercent)
+        || rectificationPercent < 0
+        || rectificationPercent > 100
+        || !Number.isFinite(outputGainDb)
+        || outputGainDb < DYNAMICS_OUTPUT_GAIN_MIN
+        || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
+        || wetDryMixPercent !== 100)
+    {
+        throw new TypeError(
+            `${label} has unsupported Wwise Guitar Distortion parameters`,
+        );
+    }
+    const portableBand = band => ({
+        index: band.index,
+        filterType: GUITAR_DISTORTION_FILTER_TYPES[band.filterType],
+        gainDb: band.gainDb,
+        frequencyHz: band.frequencyHz,
+        q: band.q,
+    });
+    return {
+        effectId: String(effectId),
+        slotIndex: Number(slotIndex),
+        type: "guitar-distortion",
+        preEqBands: activePreEq.map(portableBand),
+        postEqBands: activePostEq.map(portableBand),
+        distortionType: GUITAR_DISTORTION_TYPES[distortionType],
+        drivePercent,
+        tonePercent,
+        rectificationPercent,
+        outputGainDb,
+        wetDryMixPercent,
+    };
+}
+
+/** Qualifies the bounded static source-local v150 Guitar Distortion record. */
+export function parseGraphStaticWwiseGuitarDistortion(
+    effect,
+    effectId,
+    slotIndex,
+)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+
+    return parseStaticWwiseGuitarDistortionBytes(
+        RequireStaticGraphEffect(
+            effect,
+            WWISE_GUITAR_DISTORTION_PLUGIN_ID,
+            126,
+            label,
+            "Wwise Guitar Distortion",
+        ),
+        { effectId, slotIndex, label, bankVersion: effect.bankVersion },
+    );
+}
+
+/**
  * Decodes one source-proven static v150 Wwise Peak Limiter parameter block.
  *
  * Strict policy keeps the decoded record outside browser playback. The
@@ -1700,6 +2020,47 @@ function RequireRecord(value, label)
         throw new TypeError(`${label} must be an object`);
     }
     return value;
+}
+
+function NormalizeGuitarDistortionBands(value, label)
+{
+    if (!Array.isArray(value) || value.length > 3)
+    {
+        throw new TypeError(`${label} must contain at most 3 entries`);
+    }
+    const indices = new Set();
+    const bands = value.map((rawBand, offset) =>
+    {
+        const bandLabel = `${label} band ${offset}`;
+        const band = RequireRecord(rawBand, bandLabel);
+        const index = BoundedInteger(band.index, 0, 2, `${bandLabel} index`);
+
+        if (indices.has(index))
+        {
+            throw new TypeError(`${bandLabel} duplicates index ${index}`);
+        }
+        indices.add(index);
+        const filterType = String(band.filterType ?? "");
+
+        if (!FILTER_TYPES.has(filterType))
+        {
+            throw new TypeError(
+                `${bandLabel} has unsupported filterType ${filterType}`,
+            );
+        }
+        return Object.freeze({
+            index,
+            filterType,
+            gainDb: FiniteGain(band.gainDb, `${bandLabel} gainDb`),
+            frequencyHz: PositiveFinite(
+                band.frequencyHz,
+                `${bandLabel} frequencyHz`,
+            ),
+            q: PositiveFinite(band.q, `${bandLabel} q`),
+        });
+    }).sort((left, right) => left.index - right.index);
+
+    return Object.freeze(bands);
 }
 
 function CanonicalPositiveId(value, label)

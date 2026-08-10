@@ -9,7 +9,7 @@ import { createAudioUpdateContext } from './CjsAudioUpdateContext.js';
 import { CjsBusDuckingController } from './internal/busDucking.js';
 import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
 import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
-import { normalizeWwiseDynamicsMode, normalizeWwiseModulationMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
+import { normalizeWwiseDynamicsMode, normalizeWwiseDistortionMode, normalizeWwiseModulationMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -68,6 +68,7 @@ class CjsAudioSystem {
   #busMixer = null;
   #providedUpdateContext = null;
   #wwiseDynamics = "strict";
+  #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
   #wwiseMeterFeedback = "strict";
   #wwiseVoiceLimits = "strict";
@@ -99,6 +100,7 @@ class CjsAudioSystem {
     busEffects,
     busGraph,
     wwiseDynamics = "strict",
+    wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseMeterFeedback = "strict",
     wwiseVoiceLimits = "strict"
@@ -124,6 +126,7 @@ class CjsAudioSystem {
     this.#busEffects = busEffects ?? null;
     this.#busGraph = busGraph ?? null;
     this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+    this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
     this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(wwiseVoiceLimits);
@@ -182,6 +185,7 @@ class CjsAudioSystem {
           busDuckingController: this.#busDuckingController,
           busEffects: this.#busEffects,
           wwiseDynamics: this.#wwiseDynamics,
+          wwiseDistortion: this.#wwiseDistortion,
           wwiseModulation: this.#wwiseModulation,
           busGraphRuntime: this.#busGraphRuntime
         });

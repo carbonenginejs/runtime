@@ -1096,14 +1096,18 @@ test("committed demo library carries authored SFX and music semantics", () =>
         node.sourceEffects.some(effect => effect.type === "flanger"));
     const sourceTremoloSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "tremolo"));
+    const sourceGuitarDistortionSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect =>
+            effect.type === "guitar-distortion"));
 
-    assert.equal(sourceEffectSounds.length, 2506);
+    assert.equal(sourceEffectSounds.length, 2575);
     assert.equal(sourceEqSounds.length, 261);
     assert.equal(sourceDelaySounds.length, 79);
     assert.equal(sourceCompressorSounds.length, 2033);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 9);
     assert.equal(sourceTremoloSounds.length, 74);
+    assert.equal(sourceGuitarDistortionSounds.length, 69);
     assert.deepEqual(
         Object.entries(graph.nodes)
             .filter(([, node]) => sourceFlangerSounds.includes(node))
@@ -1311,6 +1315,89 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ship_smokefire_hangar_play",
         "ship_smokefire_play",
         "sov_hub_atmo_main_loop_play",
+    ]);
+    assert.deepEqual(graph.nodes["35906075"].sourceEffects[0], {
+        effectId: "168001308",
+        slotIndex: 0,
+        type: "guitar-distortion",
+        preEqBands: [],
+        postEqBands: [
+            {
+                index: 0,
+                filterType: "peaking",
+                gainDb: 4.5,
+                frequencyHz: 83,
+                q: 1,
+            },
+            {
+                index: 1,
+                filterType: "peaking",
+                gainDb: -4.5,
+                frequencyHz: 1359,
+                q: 1.5,
+            },
+        ],
+        distortionType: "heavy",
+        drivePercent: 34,
+        tonePercent: 0,
+        rectificationPercent: 0,
+        outputGainDb: 0,
+        wetDryMixPercent: 100,
+    });
+    const guitarDistortionSoundIds = new Set(Object.entries(graph.nodes)
+        .filter(([, node]) => sourceGuitarDistortionSounds.includes(node))
+        .map(([ id ]) => id));
+    const guitarDistortionEvents = Object.entries(graph.events)
+        .filter(([, roots ]) =>
+        {
+            const pending = roots.map(root => String(root.nodeId));
+            const visited = new Set();
+
+            while (pending.length)
+            {
+                const id = pending.pop();
+
+                if (visited.has(id)) continue;
+                visited.add(id);
+                if (guitarDistortionSoundIds.has(id)) return true;
+                const node = graph.nodes[id];
+
+                if (!node) continue;
+                pending.push(...(node.children ?? []).map(child =>
+                    String(child.nodeId)));
+                pending.push(...Object.values(node.cases ?? {}).map(child =>
+                    String(child.nodeId)));
+                if (node.default) pending.push(String(node.default.nodeId));
+            }
+            return false;
+        })
+        .map(([ name ]) => name)
+        .sort();
+
+    assert.deepEqual(guitarDistortionEvents, [
+        "drifter_gate_solo_play",
+        "hangar_corruption2_play",
+        "landing_pad_hardening_play",
+        "sun_blue_play",
+        "sun_orange_play",
+        "sun_pink_play",
+        "sun_red_play",
+        "sun_white_play",
+        "sun_yellow_play",
+        "tgfu01_materialization_play",
+        "tgfu01_unmaterialization_play",
+        "tgfu02_materialization_play",
+        "tgfu02_unmaterialization_play",
+        "tgfu03_materialization_play",
+        "tgfu03_unmaterialization_play",
+        "tgfu04_materialization_play",
+        "tgfu04_unmaterialization_play",
+        "tgfu05_materialization_play",
+        "tgfu05_unmaterialization_play",
+        "worldobject_wormhole_middleaged_play",
+        "worldobject_wormhole_old_play",
+        "worldobject_wormhole_play",
+        "wormhole_ambience_type_play",
     ]);
     assert.equal(
         graph.nodes["350811697"].sourceEffects,

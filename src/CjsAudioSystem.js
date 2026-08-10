@@ -19,6 +19,7 @@ import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "./internal/busGraphMixer.js";
 import {
     normalizeWwiseDynamicsMode,
+    normalizeWwiseDistortionMode,
     normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
@@ -109,6 +110,8 @@ export class CjsAudioSystem
 
     #wwiseDynamics = "strict";
 
+    #wwiseDistortion = "strict";
+
     #wwiseModulation = "strict";
 
     #wwiseMeterFeedback = "strict";
@@ -144,6 +147,7 @@ export class CjsAudioSystem
         busEffects,
         busGraph,
         wwiseDynamics = "strict",
+        wwiseDistortion = "strict",
         wwiseModulation = "strict",
         wwiseMeterFeedback = "strict",
         wwiseVoiceLimits = "strict",
@@ -184,6 +188,9 @@ export class CjsAudioSystem
         this.#busEffects = busEffects ?? null;
         this.#busGraph = busGraph ?? null;
         this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this.#wwiseDistortion = normalizeWwiseDistortionMode(
+            wwiseDistortion,
+        );
         this.#wwiseModulation = normalizeWwiseModulationMode(
             wwiseModulation,
         );
@@ -259,6 +266,7 @@ export class CjsAudioSystem
                     busDuckingController: this.#busDuckingController,
                     busEffects: this.#busEffects,
                     wwiseDynamics: this.#wwiseDynamics,
+                    wwiseDistortion: this.#wwiseDistortion,
                     wwiseModulation: this.#wwiseModulation,
                     busGraphRuntime: this.#busGraphRuntime,
                 });

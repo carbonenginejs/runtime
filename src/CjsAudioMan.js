@@ -11,6 +11,7 @@ import {
 } from "./library/audioLibraryDocument.js";
 import {
     normalizeWwiseDynamicsMode,
+    normalizeWwiseDistortionMode,
     normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
@@ -102,6 +103,7 @@ export class CjsAudioMan
         isMusicTrackAvailable = null,
         updateContext = null,
         wwiseDynamics = "strict",
+        wwiseDistortion = "strict",
         wwiseModulation = "strict",
         wwiseMeterFeedback = "strict",
         wwiseVoiceLimits = "strict",
@@ -141,6 +143,9 @@ export class CjsAudioMan
             applyRTPC,
             updateContext,
             wwiseDynamics: normalizeWwiseDynamicsMode(wwiseDynamics),
+            wwiseDistortion: normalizeWwiseDistortionMode(
+                wwiseDistortion,
+            ),
             wwiseModulation: normalizeWwiseModulationMode(
                 wwiseModulation,
             ),

@@ -40,6 +40,7 @@ import {
     indexBusEffectCatalog,
     normalizeStaticSourceEffectChain,
     normalizeWwiseDynamicsMode,
+    normalizeWwiseDistortionMode,
     normalizeWwiseModulationMode,
 } from "./internal/busEffects.js";
 import {
@@ -128,6 +129,8 @@ export class CjsAudioBackend
 
     #wwiseDynamics = "strict";
 
+    #wwiseDistortion = "strict";
+
     #wwiseModulation = "strict";
 
     #busGraphRuntime = null;
@@ -170,6 +173,7 @@ export class CjsAudioBackend
         busDuckingController,
         busEffects,
         wwiseDynamics = "strict",
+        wwiseDistortion = "strict",
         wwiseModulation = "strict",
         busGraphRuntime,
         busMixer,
@@ -203,6 +207,9 @@ export class CjsAudioBackend
         this.#busDuckingController = busDuckingController ?? null;
         this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
         this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this.#wwiseDistortion = normalizeWwiseDistortionMode(
+            wwiseDistortion,
+        );
         this.#wwiseModulation = normalizeWwiseModulationMode(
             wwiseModulation,
         );
@@ -4671,6 +4678,7 @@ export class CjsAudioBackend
             descriptor.sourceEffects ?? [],
             {
                 wwiseDynamics: this.#wwiseDynamics,
+                wwiseDistortion: this.#wwiseDistortion,
                 wwiseModulation: this.#wwiseModulation,
             },
         );

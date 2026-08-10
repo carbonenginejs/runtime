@@ -6,6 +6,7 @@ import {
     indexBusEffectCatalog,
     normalizeStaticSourceEffectChain,
     normalizeWwiseDynamicsMode,
+    normalizeWwiseDistortionMode,
     normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
@@ -15,10 +16,12 @@ import {
     parseGraphStaticParametricEq,
     parseGraphStaticWwiseDelay,
     parseGraphStaticWwiseFlanger,
+    parseGraphStaticWwiseGuitarDistortion,
     parseGraphStaticWwiseTremolo,
     parseGraphStaticWwisePeakLimiter,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
+    parseStaticWwiseGuitarDistortionBytes,
     parseStaticWwiseTremoloBytes,
 } from "../src/internal/busEffects.js";
 
@@ -58,6 +61,7 @@ function Context()
         filters: [],
         gains: [],
         oscillators: [],
+        waveShapers: [],
         createDelay(maxDelayTime)
         {
             const node = Node({
@@ -107,6 +111,12 @@ function Context()
                 stop(at) { node.stops.push(at); },
             });
             context.oscillators.push(node);
+            return node;
+        },
+        createWaveShaper()
+        {
+            const node = Node({ curve: null, oversample: "none" });
+            context.waveShapers.push(node);
             return node;
         },
     };
@@ -389,6 +399,57 @@ function GraphTremolo(bytes = TremoloBytes())
     const effect = GraphEffect(bytes);
 
     effect.pluginId = 0x00830003;
+    return effect;
+}
+
+function GuitarDistortionBytes({
+    drivePercent = 34,
+    distortionType = 2,
+    firstPostGainDb = 4.5,
+    preEqEnabled = false,
+    tonePercent = 0,
+    rectificationPercent = 0,
+    outputGainDb = 0,
+    wetDryMixPercent = 100,
+} = {})
+{
+    const bytes = new Uint8Array(126);
+    const view = new DataView(bytes.buffer);
+    const bands = [
+        [ 1, 3.5, 83, 1, preEqEnabled ],
+        [ 1, -4.5, 347, Math.fround(0.1), false ],
+        [ 0, 0, 1000, 1, false ],
+        [ 1, firstPostGainDb, 83, 1, true ],
+        [ 1, -4.5, 1359, 1.5, true ],
+        [ 0, 0, 1000, 1, false ],
+    ];
+    let at = 0;
+
+    for (const [ type, gain, frequency, q, enabled ] of bands)
+    {
+        view.setUint32(at, type, true);
+        view.setFloat32(at + 4, gain, true);
+        view.setFloat32(at + 8, frequency, true);
+        view.setFloat32(at + 12, q, true);
+        view.setUint8(at + 16, enabled ? 1 : 0);
+        at += 17;
+    }
+    view.setUint32(at, distortionType, true);
+    view.setFloat32(at + 4, drivePercent, true);
+    view.setFloat32(at + 8, tonePercent, true);
+    view.setFloat32(at + 12, rectificationPercent, true);
+    view.setFloat32(at + 16, outputGainDb, true);
+    view.setFloat32(at + 20, wetDryMixPercent, true);
+    return bytes;
+}
+
+function GraphGuitarDistortion(bytes = GuitarDistortionBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.type = "effect-custom";
+    effect.pluginId = 0x007e0003;
+    effect.bankVersion = 150;
     return effect;
 }
 
@@ -1024,6 +1085,173 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
         wwiseModulation: "approximate-web-audio",
     }));
     assert.equal(context.oscillators.length, 0);
+});
+
+test("decodes and explicitly approximates static EVE Guitar Distortion", () =>
+{
+    assert.equal(normalizeWwiseDistortionMode(), "strict");
+    assert.equal(
+        normalizeWwiseDistortionMode("approximate-web-audio"),
+        "approximate-web-audio",
+    );
+    assert.throws(
+        () => normalizeWwiseDistortionMode("web-audio"),
+        /Unsupported Wwise distortion realization mode/u,
+    );
+    const decoded = parseGraphStaticWwiseGuitarDistortion(
+        GraphGuitarDistortion(),
+        "168001308",
+        2,
+    );
+    const normalized = normalizeStaticSourceEffectChain(
+        [ decoded ],
+        "Audio source",
+    );
+
+    assert.deepEqual(decoded, {
+        effectId: "168001308",
+        slotIndex: 2,
+        type: "guitar-distortion",
+        preEqBands: [],
+        postEqBands: [
+            {
+                index: 0,
+                filterType: "peaking",
+                gainDb: 4.5,
+                frequencyHz: 83,
+                q: 1,
+            },
+            {
+                index: 1,
+                filterType: "peaking",
+                gainDb: -4.5,
+                frequencyHz: 1359,
+                q: 1.5,
+            },
+        ],
+        distortionType: "heavy",
+        drivePercent: 34,
+        tonePercent: 0,
+        rectificationPercent: 0,
+        outputGainDb: 0,
+        wetDryMixPercent: 100,
+    });
+    assert.equal(createWwiseEffectChain(Context(), normalized), null);
+    const context = Context();
+    const chain = createWwiseEffectChain(context, normalized, {
+        wwiseDistortion: "approximate-web-audio",
+    });
+    const [ shaper ] = context.waveShapers;
+    const [ lowPeak, highPeak ] = context.filters;
+
+    assert.equal(chain.input, shaper);
+    assert.equal(chain.output, highPeak);
+    assert.equal(shaper.oversample, "4x");
+    assert.equal(shaper.curve.length, 4096);
+    assert.equal(shaper.curve[0], -1);
+    assert.equal(shaper.curve.at(-1), 1);
+    assert.ok(shaper.curve[2047] < 0);
+    assert.ok(shaper.curve[2048] > 0);
+    assert.ok(shaper.curve[1024] < shaper.curve[2048]);
+    assert.equal(shaper.connectedTo, lowPeak);
+    assert.equal(lowPeak.connectedTo, highPeak);
+    assert.equal(lowPeak.type, "peaking");
+    assert.equal(lowPeak.gain.value, 4.5);
+    assert.equal(lowPeak.frequency.value, 83);
+    assert.equal(lowPeak.Q.value, 1);
+    assert.equal(highPeak.type, "peaking");
+    assert.equal(highPeak.gain.value, -4.5);
+    assert.equal(highPeak.frequency.value, 1359);
+    assert.equal(highPeak.Q.value, 1.5);
+
+    for (const missing of [ "createWaveShaper", "createBiquadFilter" ])
+    {
+        const unavailable = Context();
+
+        delete unavailable[missing];
+        assert.equal(createWwiseEffectChain(unavailable, normalized, {
+            wwiseDistortion: "approximate-web-audio",
+        }), null);
+        assert.equal(unavailable.waveShapers.length, 0);
+        assert.equal(unavailable.filters.length, 0);
+    }
+});
+
+test("rejects dynamic, malformed, or unsupported Guitar Distortion", () =>
+{
+    assert.throws(() => parseStaticWwiseGuitarDistortionBytes(
+        GuitarDistortionBytes(),
+        { effectId: "168001308", slotIndex: 0, bankVersion: 151 },
+    ), /unsupported parameter block/u);
+
+    for (const parameters of [
+        { drivePercent: 101 },
+        { distortionType: 3 },
+        { tonePercent: -1 },
+        { rectificationPercent: 101 },
+        { outputGainDb: 25 },
+        { wetDryMixPercent: 99 },
+    ])
+    {
+        assert.throws(() => parseGraphStaticWwiseGuitarDistortion(
+            GraphGuitarDistortion(GuitarDistortionBytes(parameters)),
+            "168001308",
+            0,
+        ), /unsupported Wwise Guitar Distortion parameters/u);
+    }
+    assert.doesNotThrow(() => parseGraphStaticWwiseGuitarDistortion(
+        GraphGuitarDistortion(GuitarDistortionBytes({
+            distortionType: 1,
+            drivePercent: 20,
+            tonePercent: 50,
+            rectificationPercent: 25,
+            firstPostGainDb: 4,
+            preEqEnabled: true,
+        })),
+        "900",
+        0,
+    ));
+    const dynamic = GraphGuitarDistortion();
+
+    dynamic.controls.rtpcCount = 1;
+    assert.throws(() => parseGraphStaticWwiseGuitarDistortion(
+        dynamic,
+        "168001308",
+        0,
+    ), /not a static Wwise Guitar Distortion/u);
+});
+
+test("approximates Overdrive rectification and output gain atomically", () =>
+{
+    const effect = parseGraphStaticWwiseGuitarDistortion(
+        GraphGuitarDistortion(GuitarDistortionBytes({
+            distortionType: 1,
+            drivePercent: 20,
+            rectificationPercent: 25,
+            outputGainDb: 6,
+        })),
+        "900",
+        0,
+    );
+    const unavailable = Context();
+
+    delete unavailable.createGain;
+    assert.equal(createWwiseEffectChain(unavailable, [ effect ], {
+        wwiseDistortion: "approximate-web-audio",
+    }), null);
+    assert.equal(unavailable.waveShapers.length, 0);
+    assert.equal(unavailable.filters.length, 0);
+
+    const context = Context();
+    const chain = createWwiseEffectChain(context, [ effect ], {
+        wwiseDistortion: "approximate-web-audio",
+    });
+    const [ shaper ] = context.waveShapers;
+    const [ output ] = context.gains;
+
+    assert.equal(chain.output, output);
+    assert.ok(Math.abs(shaper.curve[1024]) < shaper.curve[3071]);
+    assert.ok(Math.abs(output.gain.value - 10 ** (6 / 20)) < 1e-12);
 });
 
 test("rejects dynamic, malformed, or independently routed Wwise Delays", () =>

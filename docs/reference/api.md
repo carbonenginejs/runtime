@@ -81,7 +81,7 @@ raw Wwise scaling-2 values, including the authored parameter default, a
 every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
 built SFX `sound` nodes may additionally retain an ordered `sourceEffects`
 array for the complete effective static Parametric EQ, Wwise Delay, or
-qualified Wwise Compressor/Peak Limiter/Flanger/Tremolo override in their
+qualified Wwise Compressor/Peak Limiter/Flanger/Tremolo/Guitar Distortion override in their
 NodeBase ancestry.
 An explicit empty override clears the inherited list.
 Those effects are voice-owned and precede Voice LPF/HPF and route splitting;
@@ -194,6 +194,21 @@ pinned wwiser identifies its plug-in but does not decode those parameters.
 Any other value throws synchronously, and `CjsAudioSystem` accepts the same
 option.
 
+Constructor option `wwiseDistortion` independently controls qualified
+source-local Wwise Guitar Distortion records:
+
+- `"strict"` (default) omits the complete source chain and keeps the voice
+  audible/dry.
+- `"approximate-web-audio"` realizes the documented static, control-free,
+  fully-wet EVE-v150 subset with authored pre/post biquads, a 4x-oversampled
+  WaveShaper, and output gain. Missing required primitives keep the chain dry.
+
+Pinned wwiser proves the portable record layout, but not Wwise's transfer,
+Drive, Tone, Rectification, oversampling, or channel laws. The browser uses a
+documented deterministic curve, does not apply Tone, and is not DSP-equivalent.
+Any other value throws synchronously, and `CjsAudioSystem` accepts the same
+option.
+
 Two further host policies control shared-route admission through explicit
 omissions:
 
@@ -207,7 +222,8 @@ omissions:
   does not enforce its changing voice-count limit or eviction behavior. The
   default is `"strict"`.
 
-These policies are independent of `wwiseDynamics` and `wwiseModulation`, are validated
+These policies are independent of `wwiseDynamics`, `wwiseDistortion`, and
+`wwiseModulation`, are validated
 synchronously, and are passed through by both `CjsAudioMan` and
 `CjsAudioSystem`.
 

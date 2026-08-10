@@ -62,6 +62,7 @@ function FakeContext({ withAnalyser = false } = {})
     analysers: [],
     sources: [],
     oscillators: [],
+    waveShapers: [],
     createGain()
     {
       const node = {
@@ -163,6 +164,20 @@ function FakeContext({ withAnalyser = false } = {})
 
       context.oscillators.push(oscillator);
       return oscillator;
+    },
+    createWaveShaper()
+    {
+      const shaper = {
+        curve: null,
+        oversample: "none",
+        connectedTo: null,
+        disconnected: false,
+        connect(target) { shaper.connectedTo = target; },
+        disconnect() { shaper.disconnected = true; },
+      };
+
+      context.waveShapers.push(shaper);
+      return shaper;
     }
   };
   if (withAnalyser)
@@ -225,6 +240,7 @@ function Harness({
   busDuckingController,
   busEffects,
   wwiseDynamics,
+  wwiseDistortion,
   wwiseModulation,
   busGraphRuntime,
   busMixer,
@@ -261,6 +277,7 @@ function Harness({
     busDuckingController,
     busEffects,
     wwiseDynamics,
+    wwiseDistortion,
     wwiseModulation,
     busGraphRuntime,
     busMixer: resolvedBusMixer,
@@ -7944,6 +7961,77 @@ test("Sound-local Wwise Tremolo starts once and precedes the Voice filters", asy
   assert.equal(input.disconnected, true);
   assert.equal(output.disconnected, true);
   assert.equal(lowPass.disconnected, true);
+});
+
+test("Sound-local Guitar Distortion is opt-in and precedes Voice filters", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "168001308",
+    slotIndex: 0,
+    type: "guitar-distortion",
+    preEqBands: [],
+    postEqBands: [
+      {
+        index: 0,
+        filterType: "peaking",
+        gainDb: 4.5,
+        frequencyHz: 83,
+        q: 1,
+      },
+      {
+        index: 1,
+        filterType: "peaking",
+        gainDb: -4.5,
+        frequencyHz: 1359,
+        q: 1.5,
+      },
+    ],
+    distortionType: "heavy",
+    drivePercent: 34,
+    tonePercent: 0,
+    rectificationPercent: 0,
+    outputGainDb: 0,
+    wetDryMixPercent: 100,
+  } ];
+  const loadBuffer = async () => ({
+    voices: [ {
+      buffer: { duration: 2 },
+      loop: false,
+      sourceEffects,
+      lowPass: 20,
+      getGain: () => 1,
+    } ],
+  });
+  const strict = Harness({ loadBuffer });
+
+  strict.backend.PostEvent(1, 1, 0, strict.emitter, "play");
+  await tick();
+  assert.equal(strict.context.waveShapers.length, 0);
+
+  const approximate = Harness({
+    loadBuffer,
+    wwiseDistortion: "approximate-web-audio",
+  });
+
+  approximate.backend.PostEvent(1, 1, 0, approximate.emitter, "play");
+  await tick();
+
+  const source = approximate.context.sources[0];
+  const [ shaper ] = approximate.context.waveShapers;
+  const [ voiceLowPass, lowPeak, highPeak ] = approximate.context.filters;
+
+  assert.equal(source.connectedTo, shaper);
+  assert.equal(shaper.oversample, "4x");
+  assert.equal(shaper.curve.length, 4096);
+  assert.equal(shaper.connectedTo, lowPeak);
+  assert.equal(lowPeak.connectedTo, highPeak);
+  assert.equal(highPeak.connectedTo, voiceLowPass);
+
+  source.onended();
+  assert.equal(shaper.disconnected, true);
+  assert.equal(lowPeak.disconnected, true);
+  assert.equal(highPeak.disconnected, true);
+  assert.equal(voiceLowPass.disconnected, true);
 });
 
 test("routed SFX activity ducks future target voices and releases on source end", async () =>

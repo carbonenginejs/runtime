@@ -1726,6 +1726,34 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                 },
                 sourceEffects: [
                     {
+                        effectId: "899",
+                        slotIndex: 0,
+                        type: "guitar-distortion",
+                        preEqBands: [],
+                        postEqBands: [
+                            {
+                                index: 0,
+                                filterType: "peaking",
+                                gainDb: 4.5,
+                                frequencyHz: 83,
+                                q: 1,
+                            },
+                            {
+                                index: 1,
+                                filterType: "peaking",
+                                gainDb: -4.5,
+                                frequencyHz: 1359,
+                                q: 1.5,
+                            },
+                        ],
+                        distortionType: "heavy",
+                        drivePercent: 34,
+                        tonePercent: 0,
+                        rectificationPercent: 0,
+                        outputGainDb: 0,
+                        wetDryMixPercent: 100,
+                    },
+                    {
                         effectId: "900",
                         slotIndex: 1,
                         type: "parametric-eq",
@@ -1808,7 +1836,7 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
 
     const malformedSourceEffects = structuredClone(valid);
 
-    malformedSourceEffects.sfx.nodes["2"].sourceEffects[0].processLfe = false;
+    malformedSourceEffects.sfx.nodes["2"].sourceEffects[1].processLfe = false;
     assert.throws(
         () => validateAudioLibraryDocument(malformedSourceEffects),
         /processLfe must be true/u,
@@ -1816,7 +1844,7 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
 
     const malformedFlanger = structuredClone(valid);
 
-    malformedFlanger.sfx.nodes["2"].sourceEffects[1]
+    malformedFlanger.sfx.nodes["2"].sourceEffects[2]
         .modulationFrequencyHz = 0;
     assert.throws(
         () => validateAudioLibraryDocument(malformedFlanger),
@@ -1825,11 +1853,19 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
 
     const malformedTremolo = structuredClone(valid);
 
-    malformedTremolo.sfx.nodes["2"].sourceEffects[2]
+    malformedTremolo.sfx.nodes["2"].sourceEffects[3]
         .modulationDepthPercent = -1;
     assert.throws(
         () => validateAudioLibraryDocument(malformedTremolo),
         /modulationDepthPercent/u,
+    );
+
+    const malformedDistortion = structuredClone(valid);
+
+    malformedDistortion.sfx.nodes["2"].sourceEffects[0].drivePercent = 101;
+    assert.throws(
+        () => validateAudioLibraryDocument(malformedDistortion),
+        /drivePercent/u,
     );
 
     const legacySfx = structuredClone(valid);

@@ -15,11 +15,13 @@ import {
     WWISE_COMPRESSOR_PLUGIN_ID,
     WWISE_PEAK_LIMITER_PLUGIN_ID,
     WWISE_FLANGER_PLUGIN_ID,
+    WWISE_GUITAR_DISTORTION_PLUGIN_ID,
     WWISE_TREMOLO_PLUGIN_ID,
     parseGraphSharedBusEffect,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
     parseStaticWwiseFlangerBytes,
+    parseStaticWwiseGuitarDistortionBytes,
     parseStaticWwiseTremoloBytes,
 } from "../internal/busEffects.js";
 
@@ -5092,6 +5094,7 @@ function CreatePortableEffect(effect)
             stateGroupCount: effect.state?.groups?.length ?? 0,
             propertyValueCount: effect.propertyValues?.length ?? 0,
         },
+        bankVersion: effect.bankVersion,
     };
 }
 
@@ -5237,6 +5240,26 @@ function ParseStaticWwiseTremolo(ownerLabel, slot, effect)
         effectId: effect.id,
         slotIndex: slot.index,
         label: `Wwise Tremolo ${effect.id} on ${ownerLabel}`,
+        bankVersion: effect.bankVersion,
+    });
+}
+
+function ParseStaticWwiseGuitarDistortion(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise Guitar Distortion ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    return parseStaticWwiseGuitarDistortionBytes(effect.parameterBlock, {
+        effectId: effect.id,
+        slotIndex: slot.index,
+        label: `Wwise Guitar Distortion ${effect.id} on ${ownerLabel}`,
         bankVersion: effect.bankVersion,
     });
 }
@@ -5399,6 +5422,14 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
             else if (effect.pluginId === WWISE_TREMOLO_PLUGIN_ID)
             {
                 chain.push(ParseStaticWwiseTremolo(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_GUITAR_DISTORTION_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwiseGuitarDistortion(
                     `NodeBase ${ownerId} inherited by Sound ${soundId}`,
                     slot,
                     effect,

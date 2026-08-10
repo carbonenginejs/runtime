@@ -4434,6 +4434,7 @@ class DemoApp
             this.audio = new CjsAudioMan(this.library.raw, {
                 distanceScale: ACOUSTIC_SCALE,
                 wwiseDynamics: "approximate-web-audio",
+                wwiseDistortion: "approximate-web-audio",
                 wwiseModulation: "approximate-web-audio",
                 wwiseMeterFeedback: "omit-telemetry",
                 wwiseVoiceLimits: "ignore",

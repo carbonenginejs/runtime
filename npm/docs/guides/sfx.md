@@ -269,7 +269,7 @@ exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
 static Parametric EQ, Wwise Delay, and qualified Wwise Compressor, Peak
-Limiter, Flanger, or Tremolo records. The builder walks the Sound's NodeBase
+Limiter, Flanger, Tremolo, or Guitar Distortion records. The builder walks the Sound's NodeBase
 ancestry to the first effect
 override, treating a root list as effective and an explicit empty override as
 a replacement that clears the parent list. It emits the chain only when every
@@ -320,6 +320,24 @@ oscillator shape, and channel law are not claimed. Smoothing and PWM remain
 shape-validated but are neither stored nor applied because this adapter admits
 only the sine carrier. Shared-Bus Tremolo remains unsupported.
 
+Qualified static Guitar Distortion records use the independent
+`wwiseDistortion: "approximate-web-audio"` opt-in. Pinned wwiser proves the
+v150 126-byte layout: three pre-EQ bands, three post-EQ bands, distortion
+type, Drive, Tone, Rectification, output gain, and Wet/Dry mix. The EVE subset
+is control-free, uses Overdrive or Heavy, and is fully wet. Web Audio realizes
+enabled EQ bands in authored order around a 4x-oversampled `WaveShaperNode`,
+then applies output gain. The transfer curve is a deterministic normalized
+`tanh` approximation whose drive scale differs for Overdrive and Heavy;
+Rectification blends toward a full-wave curve. Authored Tone is retained but
+not applied because neither wwiser nor the browser API supplies Wwise's tone
+law. Strict mode, missing WaveShaper/biquad/gain primitives, dynamic controls,
+other distortion types, other bank versions, non-fully-wet records, and
+shared-Bus Guitar Distortion keep the complete source chain audible and dry.
+This preserves topology and audible coloration, not Audiokinetic DSP parity.
+The [Wwise effects reference](https://www.audiokinetic.com/library/edge/?id=effects&source=Help)
+and [Web Audio WaveShaperNode](https://webaudio.github.io/web-audio-api/#waveshapernode)
+describe the separate authored and browser surfaces.
+
 Bypassed or rendered slots need no live stage. Pause and seek reuse the
 voice-owned browser nodes instead of freezing or reconstructing native Wwise
 plug-in state. Natural completion still follows the decoded dry source;
@@ -328,10 +346,13 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 2,506
+than applying part of an authored chain. EVE build 3453885 installs 2,575
 qualified Sound leaves: 261 use Parametric EQ, 79 use Wwise Delay, 2,033 use
 Compressor, 73 use Peak Limiter, nine use Flanger across five retained events,
-and 74 use Tremolo across 29 retained events. The Tremolo population contains
+74 use Tremolo across 29 retained events, and 69 use static Guitar Distortion
+across 23 retained events. Guitar Distortion covers 18 effect identities and
+12 raw presets (11 audible decoded parameter sets); dynamic Guitar controls
+remain dry. The Tremolo population contains
 59 isolated chains, 13 Tremolo-to-EQ chains, and two EQ-to-Tremolo chains over
 11 distinct 38-byte parameter records. Those Peak Limiter leaves all inherit Custom effect
 `754157063` under `refinery_l_play`. A total of 486 retained events can reach
