@@ -143,6 +143,22 @@ values, batching, an in-memory persistence adapter, and package-owned apply
 hooks. Browser storage follows only after namespace and version behavior is
 tested.
 
+Audio is the first concrete consumer, and it shapes three of those
+requirements. Its user-facing volume levels are not a fixed list: they are
+authored data, arriving as parameters that carry their own tier, range,
+initial value, and localization key, so the preference surface must accept a
+data-supplied inventory rather than a schema written here. Their apply hook is
+inherently deferred — values reach the audio engine through a global parameter
+path that does not exist until audio is enabled, so "apply on set" is not
+available and the hook must be able to run at enable time with the stored
+values. And the authored initial value is the fallback when a stored value
+fails validation, which means a namespace must be able to name an external
+default rather than only a literal one.
+
+Runtime-core owns the storage, validation, and persistence of chosen values.
+The owning package continues to own interpretation and application; see the
+`runtime-audio` compatibility reference for the inventory itself.
+
 ## Planned providers and convenience surface
 
 Runtime-core may expose named browser data providers for generated or deployed
