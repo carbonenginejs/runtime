@@ -1,4 +1,4 @@
-// Content-verified codec resolution for wem media (kb §5 resolveType seam).
+// Content-verified codec resolution for wem media (resolveType seam; see docs/concepts/format-type-resolution.md).
 // The fmt tag is the declaration; each candidate codec gets ONE bounded
 // structural check against the actual container facts - no audio is decoded:
 //

@@ -3,7 +3,7 @@ import test from "node:test";
 // Decorated classes require the build transform - test the consumer output.
 import { CjsFormat, CjsResourceProbe } from "../npm/dist/index.js";
 
-// Shared resolveType seam (kb §5 content-verified type resolution): the base
+// Shared resolveType seam (content-verified type resolution, docs/concepts/format-type-resolution.md): the base
 // implementation is the zero-extra-work path - it delegates to isSupported()
 // and never claims verification, so an unverified result can never change a
 // route.

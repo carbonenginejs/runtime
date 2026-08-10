@@ -5,7 +5,7 @@ import * as formats from "../src/formats/index.js";
 // CjsFormat pulls in decorated probe code - test the consumer output.
 import { CjsFormat } from "../npm/dist/index.js";
 
-// Vocabulary conformance (kb §5.1): runtime-utils owns the shared media
+// Vocabulary conformance: runtime-utils owns the shared media
 // vocabulary; formats declare against it. This test pins the canonical set so
 // a format (including the dependency-free standalone packages mirrored here)
 // can never drift to an unshared token.

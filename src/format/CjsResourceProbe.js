@@ -31,7 +31,8 @@ export class CjsResourceProbe extends CjsModel
    * True when the report's variant flags are CONTENT-verified (a bounded
    * resolveType() check ran), false when they are declaration-derived
    * (inspect/isSupported). Declared/resolved/mismatch evidence rides in
-   * `metadata` per the kb §5 content-verified type resolution contract.
+   * `metadata` per the content-verified type resolution contract
+// (docs/concepts/format-type-resolution.md).
    */
   @io.persist
   @type.boolean

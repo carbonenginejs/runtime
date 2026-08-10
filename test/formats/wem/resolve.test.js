@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsWemFormat } from "../../../src/formats/wem/index.js";
 
-// Content-verified wem codec resolution (kb §5 resolveType seam): the fmt tag
+// Content-verified wem codec resolution (resolveType seam, docs/concepts/format-type-resolution.md): the fmt tag
 // picks the first candidate but content validation decides. Synthetic wems
 // below are minimal RIFF/WAVE containers with hand-built chunk layouts.
 

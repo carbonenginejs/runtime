@@ -179,7 +179,7 @@ export class CjsWemFormat
     }
 
     /**
-     * Content-verified codec/route resolution (kb §5 resolveType seam).
+     * Content-verified codec/route resolution (resolveType seam; see docs/concepts/format-type-resolution.md).
      *
      * Where `isSupported` trusts the fmt tag, this validates the declared
      * codec against the container's actual structure (Vorbis sidecar,

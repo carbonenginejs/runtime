@@ -63,7 +63,8 @@ export class CjsFormat
   }
 
   /**
-   * Content-verified type/route resolution (kb §5, optional per format).
+   * Content-verified type/route resolution (optional per format).
+   * Contract: docs/concepts/format-type-resolution.md.
    *
    * Where inspect()/isSupported() report what the container CLAIMS,
    * resolveType() performs one bounded asynchronous content check (magic, a
