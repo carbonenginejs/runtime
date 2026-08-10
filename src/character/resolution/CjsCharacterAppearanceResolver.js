@@ -18,7 +18,7 @@ export class CjsCharacterAppearanceResolver
     {
         if (!library
             || library.schema !== "carbonenginejs.characterLibrary"
-            || (library.schemaVersion !== 7 && library.schemaVersion !== 8)
+            || ![ 7, 8, 9 ].includes(library.schemaVersion)
             || typeof library.Get !== "function"
             || typeof library.GetDocument !== "function")
         {

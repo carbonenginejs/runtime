@@ -7,7 +7,7 @@ Summary: Documents model-shaped character JSON and current native character/inte
 
 ## Purpose
 
-`runtime-character` owns a source-neutral schema-v8 character document format,
+`runtime-character` owns a source-neutral schema-v9 character document format,
 a separate schema-v2 resolved appearance-plan format, and the current Carbon
 character/interior identities assigned to this package. It is GPU-free;
 acquisition remains caller-owned through structural loaders.

@@ -21,6 +21,7 @@ export { CjsCharacterPartType } from './character/catalog/CjsCharacterPartType.j
 export { CjsCharacterProjectionProfile } from './character/catalog/CjsCharacterProjectionProfile.js';
 export { CjsCharacterRecipeEntry } from './character/catalog/CjsCharacterRecipeEntry.js';
 export { CjsCharacterRecipeProfile } from './character/catalog/CjsCharacterRecipeProfile.js';
+export { CjsCharacterTextureMetadata } from './character/catalog/CjsCharacterTextureMetadata.js';
 export { CjsCharacterAtlasLayout } from './character/composition/CjsCharacterAtlasLayout.js';
 export { CjsCharacterModifierLocation } from './character/composition/CjsCharacterModifierLocation.js';
 export { CjsCharacterModifierOrder } from './character/composition/CjsCharacterModifierOrder.js';

@@ -5,6 +5,7 @@ import { normalizeResourcePath } from '@carbonenginejs/runtime-utils/path';
 class CjsCharacterLibraryManager {
   #library = new _CjsCharacterLibrary();
   #resourceLoader = null;
+  #resourceManager = null;
   #loadOperations = new Map();
   #installGeneration = 0;
 
@@ -15,6 +16,9 @@ class CjsCharacterLibraryManager {
     }
     if (Object.hasOwn(options, "resourceLoader")) {
       this.SetResourceLoader(options.resourceLoader);
+    }
+    if (Object.hasOwn(options, "resourceManager")) {
+      this.SetResourceManager(options.resourceManager);
     }
     if (library !== null && library !== undefined) {
       this.InstallLibrary(library);
@@ -30,10 +34,21 @@ class CjsCharacterLibraryManager {
     return this;
   }
 
+  /** Supplies the runtime-resource manager used for incremental resource-data inspection. */
+  SetResourceManager(resMan = null) {
+    if (resMan !== null && typeof resMan.GetObject !== "function") {
+      throw new TypeError("Character library resource manager must expose GetObject");
+    }
+    this.#resourceManager = resMan;
+    this.#library.SetResourceManager(resMan);
+    return this;
+  }
+
   /** Installs a hydrated library directly, or hydrates the same-shaped JSON values once. */
   InstallLibrary(value) {
     const installed = PrepareLibrary(value);
     this.#installGeneration += 1;
+    installed.SetResourceManager(this.#resourceManager);
     this.#library = installed;
     return installed;
   }
@@ -80,6 +95,7 @@ class CjsCharacterLibraryManager {
       if (this.#installGeneration !== generation) {
         return false;
       }
+      installed.SetResourceManager(this.#resourceManager);
       this.#library = installed;
       return true;
     });
@@ -143,6 +159,11 @@ class CjsCharacterLibraryManager {
     this.#library.Reindex(documentName);
     return this;
   }
+
+  /** Returns or discovers extension-neutral character data for one resource path. */
+  InspectResourceForData(resourcePath, options = {}) {
+    return this.#library.InspectResourceForData(resourcePath, options);
+  }
 }
 function NormalizeLibraryPath(value) {
   if (typeof value !== "string" || !value.trim()) {
@@ -158,8 +179,8 @@ function PrepareLibrary(value) {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError("Character library must be an object");
   }
-  if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 7 && value.schemaVersion !== 8) {
-    throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7 or 8");
+  if (value.schema !== "carbonenginejs.characterLibrary" || ![7, 8, 9].includes(value.schemaVersion)) {
+    throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7, 8, or 9");
   }
   const installed = value instanceof _CjsCharacterLibrary ? value : _CjsCharacterLibrary.from(_CjsCharacterLibrary.validateValues(value));
   installed.Reindex();

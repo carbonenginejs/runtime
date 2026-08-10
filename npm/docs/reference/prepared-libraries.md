@@ -1,20 +1,20 @@
 # Character library document contract
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-character` schema-v8 input and lookup
+Scope: `@carbonenginejs/runtime-character` schema-v9 input and lookup
 Audience: Library producers and runtime consumers
 Summary: Defines the model-shaped JSON document accepted by the character-library builder and runtime model.
 
 ## Shape
 
 `CjsCharacterLibraryBuilder` converts twelve required caller-supplied record
-maps plus one optional lossless decoded-definition catalog and six optional
+maps plus one optional lossless decoded-definition catalog and seven optional
 derived profile catalogs into JSON whose fields match `CjsCharacterLibrary`:
 
 ```json
 {
   "schema": "carbonenginejs.characterLibrary",
-  "schemaVersion": 8,
+  "schemaVersion": 9,
   "sourceBuild": "example-build",
   "documents": {
     "ancestries": [
@@ -61,13 +61,19 @@ The complete value contains these document arrays:
 - `characterPartMetadata`;
 - `characterMaterialProfiles`;
 - `characterProjectionProfiles`; and
-- `characterRecipeProfiles`.
+- `characterRecipeProfiles`; and
+- `characterTextureMetadata`.
 
-The first twelve arrays are required source-document inputs. The final seven
+The first twelve arrays are required source-document inputs. The final eight
 are optional and default to empty arrays. `characterDefinitions` retains each
 supplied decoded authoring definition. The other six arrays are additive typed
 projections and exact external resource inventories; they never replace the
 retained definition records.
+
+`characterTextureMetadata` stores raw PNG ancillary facts plus additive,
+explicitly experimental normalized character-atlas values. Its `recordID` is
+the extension-neutral resource name, while `sourcePath` identifies the exact
+PNG inspected. Texture candidate paths and image bytes remain unchanged.
 
 Each source record-map key becomes `recordID`. That is the source document
 record identity. Other identities keep their authored names: for example,
@@ -184,8 +190,9 @@ exact model-shaped fields are:
 | `characterMaterialProfiles` | `sourcePath`, `colors`, `pattern`, `patternColors`, `patternTransform`, `patternRotation`, `specularColors` | Every color entry is `{ "value": [r, g, b, a] }`. |
 | `characterProjectionProfiles` | `sourcePath`, `label`, `mode`, `angleRotation`, `aspectRatio`, `azimuth`, `texturePath`, `maskPath`, `headEnabled`, `bodyEnabled`, `flipX`, `flipY`, `height`, `incline`, `layer`, `maskPathEnabled`, `offset`, `pitch`, `planarBeta`, `planarScale`, `position`, `radius`, `roll`, `scale`, `yaw` | `offset` is a two-value vector and `position` is a three-value vector. |
 | `characterRecipeProfiles` | `sourcePath`, `sex`, `entries` | Each entry has `category`, `path`, `weight`, `colorVariation`, `colors`, `specularColors`, `pattern`, `patternColors`, `patternTransform`, and `patternRotation`; color entries use the same `{ "value": [...] }` shape. |
+| `characterTextureMetadata` | `sourcePath`, `sourceFormat`, `width`, `height`, raw `oFFs`/`pHYs` values and units, normalized `offsetX`/`offsetY`/`extentX`/`extentY`, metadata flags, `placementEncoding`, `placementPolicy`, `placementStatus` | `recordID` is the extension-neutral resource name. Raw PNG facts remain exact. Normalized millionths values are additive character policy and are labelled `experimental-policy`, not PNG semantics. |
 
-Schema v8 has no runtime fallback relationship. A producer that reads sparse
+Schema v9 does not infer resource relationships. A producer that reads sparse
 baseline-plus-override authoring data must materialize effective candidate
 arrays and metadata for every published version before building the combined
 library. Empty arrays mean no candidates; the runtime resolver never merges
@@ -216,7 +223,7 @@ representative as rendering policy.
 
 ## Combined catalog and editor mutation
 
-The nineteen collections form one combined runtime catalog. Individually
+The twenty collections form one combined runtime catalog. Individually
 published definition files are producer inputs; their decoded values survive
 inside `characterDefinitions`, so a runtime frontend does not reconstruct the
 catalog from the publication files.
@@ -237,7 +244,15 @@ JSON shape. Direct array mutation remains possible because the arrays are the
 model fields; call `Reindex()` after bypassing the named methods.
 
 `CjsCharacterLibraryManager` can install the combined model directly or obtain
-its decoded object through one injected loader. Plain installed values must
-contain all nineteen document arrays and must pass the same no-loss shape
-check. The loader is not part of the library document and does not load the
-external assets named by its records.
+its decoded object through one injected loader. Plain schema-v9 values contain
+all twenty document arrays and pass the same no-loss shape check. Schemas 7
+and 8 remain readable without the new texture-metadata array.
+
+A configured runtime-resource manager supports incremental inspection through
+`library.InspectResourceForData(path)`. The library first returns an existing
+extension-neutral metadata record. Otherwise it requests the corresponding
+`.png` representation through `resMan.GetObject`; ResMan reuses a resident raw
+PNG resource or performs its ordinary source read and keeps the resulting
+resource available. Passing the extension-neutral name, `.dds`, or `.png`
+addresses the same library record. Concurrent requests share one operation,
+and successful discovery uses the ordinary `recordadded` mutation event.

@@ -9,6 +9,8 @@ export class CjsCharacterLibraryManager
 
     #resourceLoader = null;
 
+    #resourceManager = null;
+
     #loadOperations = new Map();
 
     #installGeneration = 0;
@@ -24,6 +26,10 @@ export class CjsCharacterLibraryManager
         if (Object.hasOwn(options, "resourceLoader"))
         {
             this.SetResourceLoader(options.resourceLoader);
+        }
+        if (Object.hasOwn(options, "resourceManager"))
+        {
+            this.SetResourceManager(options.resourceManager);
         }
 
         if (library !== null && library !== undefined)
@@ -44,11 +50,25 @@ export class CjsCharacterLibraryManager
         return this;
     }
 
+    /** Supplies the runtime-resource manager used for incremental resource-data inspection. */
+    SetResourceManager(resMan = null)
+    {
+        if (resMan !== null && typeof resMan.GetObject !== "function")
+        {
+            throw new TypeError("Character library resource manager must expose GetObject");
+        }
+
+        this.#resourceManager = resMan;
+        this.#library.SetResourceManager(resMan);
+        return this;
+    }
+
     /** Installs a hydrated library directly, or hydrates the same-shaped JSON values once. */
     InstallLibrary(value)
     {
         const installed = PrepareLibrary(value);
         this.#installGeneration += 1;
+        installed.SetResourceManager(this.#resourceManager);
         this.#library = installed;
         return installed;
     }
@@ -119,6 +139,7 @@ export class CjsCharacterLibraryManager
                     return false;
                 }
 
+                installed.SetResourceManager(this.#resourceManager);
                 this.#library = installed;
                 return true;
             });
@@ -197,6 +218,12 @@ export class CjsCharacterLibraryManager
         return this;
     }
 
+    /** Returns or discovers extension-neutral character data for one resource path. */
+    InspectResourceForData(resourcePath, options = {})
+    {
+        return this.#library.InspectResourceForData(resourcePath, options);
+    }
+
 }
 
 function NormalizeLibraryPath(value)
@@ -224,10 +251,10 @@ function PrepareLibrary(value)
     }
 
     if (value.schema !== "carbonenginejs.characterLibrary"
-        || (value.schemaVersion !== 7 && value.schemaVersion !== 8))
+        || ![ 7, 8, 9 ].includes(value.schemaVersion))
     {
         throw new TypeError(
-            "Character library must use carbonenginejs.characterLibrary schema version 7 or 8"
+            "Character library must use carbonenginejs.characterLibrary schema version 7, 8, or 9"
         );
     }
 

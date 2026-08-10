@@ -11,7 +11,7 @@ Summary: Separates source-neutral character documents, current Carbon classes, a
 caller JSON
     |
     v
-CjsCharacterLibraryBuilder -> schema-v8 plain JSON
+CjsCharacterLibraryBuilder -> schema-v9 plain JSON
     |
     v
 CjsCharacterLibrary.from / instance.SetValues
@@ -48,12 +48,12 @@ relationship; relationships are `{ "_ref": id }`. `_id` is not a domain
 identity: `recordID`, `typeID`, `raceID`, and other named fields carry those
 meanings.
 
-`CjsCharacterLibrary.from(bigJSON)` hydrates nineteen established document
+`CjsCharacterLibrary.from(bigJSON)` hydrates twenty established document
 families into direct source-record classes under `src/character` without
 changing the public field layout. Twelve direct source documents are required.
 One optional catalog retains every supplied decoded authoring definition as
-plain JSON, and six optional catalogs add typed part, resource, metadata,
-material, projection, and recipe indexes. A typed projection never replaces
+plain JSON, and seven optional catalogs add typed part, resource, metadata,
+material, projection, recipe, and texture-placement indexes. A typed projection never replaces
 its retained definition. Applying the same values with `SetValues` produces
 the same model graph.
 `GetValues({ refs: true })` returns serializable model-shaped values; graph
@@ -82,7 +82,7 @@ source-record schema.
 ## Appearance-plan boundary
 
 The schema-v2 appearance plan is a standalone JSON graph, not an extension of
-the schema-v8 source library. Its selections, resolved parts, layers, textures,
+the schema-v9 source library. Its selections, resolved parts, layers, textures,
 coverages, composition targets, and bindings close over document-local `_id`
 and `_ref` identities. Source-document identity is retained only as provenance.
 
@@ -143,10 +143,18 @@ consumes one combined catalog. `CjsCharacterLibraryManager` may call one
 injected object-loader function to obtain that combined document, but it does
 not discover its source items or load the runtime assets referenced by them.
 
+PNG container inspection remains owned by runtime-resource. The optional
+`characterTextureMetadata` catalog stores only normalized placement facts and
+the exact `res:/` path used as its `recordID`. A producer may populate it from
+cached exact-build bytes. A runtime consumer may fill a missing record through
+`InspectResourceForData` through a configured runtime-resource manager;
+the new record follows the same named mutation/event contract as editor-added
+records. Schemas 7 and 8 hydrate with an empty metadata catalog.
+
 ## Removed compatibility surface
 
 The schema-v1/v2 `CjsCharacter*` graph, recipes, parts, materials, controls,
 visemes, deformation records, and library hydrator were based on superseded
 data structures. They were removed rather than treated as authority for the
-new document corpus. Consumers must migrate to the schema-v8 builder and the
+new document corpus. Consumers must migrate to the schema-v9 builder and the
 new direct source-record library.

@@ -7,7 +7,7 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
 
 ## Current baseline
 
-- schema-v8 model-shaped JSON construction, with schema-v7 migration loading;
+- schema-v9 model-shaped JSON construction, with schema-v7/v8 migration loading;
 - proven native `_id`/`_ref` relationship projection;
 - one connected source-record model with named `recordID` values;
 - observable create/add/remove/delete/clear editor mutation with lazy
@@ -59,7 +59,7 @@ and complete pixel matrix remain open.
 The final-library producer now materializes exact decoded baseline and version
 metadata plus configuration, geometry, and texture candidate arrays. The
 retired compact format distinguished absent overrides from explicit empty
-arrays; schema v8 runtime records deliberately do not guess that distinction.
+arrays; schema v9 runtime records deliberately do not guess that distinction.
 The producer now supplies an additive typed relation beside each retained raw
 dependency or occlusion string. Exact unsuffixed targets can resolve to part
 sources or modifier locations; suffixed values stay opaque and are not parsed
@@ -85,7 +85,7 @@ contribution.
 
 ## Document-to-native adapters
 
-Do not connect schema-v8 records to `Tr2*` objects by filename or old v1/v2
+Do not connect schema-v9 records to `Tr2*` objects by filename or old v1/v2
 assumptions. Each adapter requires a proven source relationship, focused
 synthetic tests, and a clear resource-owner boundary.
 

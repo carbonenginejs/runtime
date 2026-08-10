@@ -66,7 +66,7 @@ source-version match remains a plan part and layer; configuration and geometry
 paths are filled only when each candidate is unique, while every exact texture
 candidate remains in `texturePaths`. It parses no filenames and assigns no LOD
 or model family. It also does not infer candidate or metadata inheritance from
-an unversioned inventory: schema v8 version records are self-contained, so any
+an unversioned inventory: schema v9 version records are self-contained, so any
 authoring-time baseline/override merge belongs in the final-library producer.
 
 Schema-v8 metadata carries ordered typed references beside the unchanged raw
@@ -247,7 +247,7 @@ or channel registration result.
 | The selected top supplies the visible material and alpha for the tuck support mesh. | **Derived policy realized for one exact female fixture.** A normal/isolation comparison proves the selected-top alpha target retains the support's required waist and belly coverage. The relationship is not an authored source-document field, is not generalized to other resource combinations, and current plan instances still do not populate a final binding or coverage record. | Record the top as contributor and the lower-body selection as owner, with a `policy` origin until stronger evidence is available. |
 | Standard and middle-only coordination across both sexes, top-only, bottom-only, paired garments, cut coverage, and independent diffuse/normal/specular registration all produce correct pixels. | **Not yet proven.** | Keep the full realization matrix and its visual fixtures open without reopening the ownership split. |
 
-The schema-v8 resolver preserves every dependency and occlusion string and
+The schema-v9 resolver preserves every dependency and occlusion string and
 follows only an adjacent exact typed `partSource` relationship. A dependency
 source with one version becomes a requester-owned layer; all of that version's
 texture paths remain on its contributor. Coordination sources with no unique

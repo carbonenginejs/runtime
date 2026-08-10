@@ -21,7 +21,8 @@ const DOCUMENT_DEFINITIONS = [
     [ "characterPartMetadata", "CjsCharacterPartMetadata", false ],
     [ "characterMaterialProfiles", "CjsCharacterMaterialProfile", false ],
     [ "characterProjectionProfiles", "CjsCharacterProjectionProfile", false ],
-    [ "characterRecipeProfiles", "CjsCharacterRecipeProfile", false ]
+    [ "characterRecipeProfiles", "CjsCharacterRecipeProfile", false ],
+    [ "characterTextureMetadata", "CjsCharacterTextureMetadata", false ]
 ];
 
 /** Typed document collections contained by one character library. */
@@ -177,6 +178,11 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     @io.flag("index:characterRecipeProfiles")
     @type.list("CjsCharacterRecipeProfile")
     characterRecipeProfiles = [];
+
+    @io.readwrite
+    @io.flag("index:characterTextureMetadata")
+    @type.list("CjsCharacterTextureMetadata")
+    characterTextureMetadata = [];
 
 }
 

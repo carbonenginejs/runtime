@@ -49,6 +49,7 @@ const carbonEngineJs = [
     ["CjsCharacterSculptSelection", "src/character/appearance/CjsCharacterSculptSelection.js"],
     ["CjsCharacterTextureAsset", "src/character/planning/CjsCharacterTextureAsset.js"],
     ["CjsCharacterTextureChannel", "src/character/planning/CjsCharacterTextureChannel.js"],
+    ["CjsCharacterTextureMetadata", "src/character/catalog/CjsCharacterTextureMetadata.js"],
     ["CjsCharacterOrigin", "src/character/planning/CjsCharacterOrigin.js"]
 ];
 

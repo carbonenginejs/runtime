@@ -233,7 +233,7 @@ Hydrated character library whose public fields have the same shape as its JSON v
 <!-- class:CjsCharacterLibraryBuilder -->
 ## `CjsCharacterLibraryBuilder`
 
-Builds schema-v8 model-shaped JSON from source documents and lossless definition catalogs.
+Builds schema-v9 model-shaped JSON from source documents and lossless definition catalogs.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/library-builder/CjsCharacterLibraryBuilder.js`
@@ -497,6 +497,16 @@ Reference to one logical channel of a resolved character texture.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/planning/CjsCharacterTextureChannel.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterTextureMetadata -->
+## `CjsCharacterTextureMetadata`
+
+Inspected source-image facts and normalized character-atlas placement.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/catalog/CjsCharacterTextureMetadata.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

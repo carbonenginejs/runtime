@@ -35,13 +35,13 @@ const METADATA_FIELDS = [
     "generatedAt"
 ];
 
-/** Builds schema-v8 model-shaped JSON from source documents and lossless definition catalogs. */
+/** Builds schema-v9 model-shaped JSON from source documents and lossless definition catalogs. */
 export class CjsCharacterLibraryBuilder
 {
 
     static schema = "carbonenginejs.characterLibrary";
 
-    static schemaVersion = 8;
+    static schemaVersion = 9;
 
     /** Builds one deterministic library value from keyed or named JSON documents. */
     static build(documents = {}, options = {})

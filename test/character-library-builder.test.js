@@ -17,7 +17,8 @@ import {
     CjsCharacterProjectionProfile,
     CjsCharacterRace,
     CjsCharacterRecipeProfile,
-    CjsCharacterResource
+    CjsCharacterResource,
+    CjsCharacterTextureMetadata
 } from "../npm/dist/index.js";
 import { CjsCharacterLibraryBuilder } from "../npm/dist/library-builder/index.js";
 
@@ -30,7 +31,7 @@ test("builds model-shaped character JSON with separate domain and graph identiti
     });
 
     assert.equal(value.schema, "carbonenginejs.characterLibrary");
-    assert.equal(value.schemaVersion, 8);
+    assert.equal(value.schemaVersion, 9);
     assert.equal(value.sourceTarget, "example-target");
     assert.ok(Array.isArray(value.documents.ancestries));
     assert.equal(value.documents.ancestries[0].recordID, "1");
@@ -90,6 +91,24 @@ test("from and SetValues hydrate the same character-library model shape", () =>
     assert.equal(typeof CjsCharacterLibrary.schema.getSchema, "function");
 });
 
+test("migrates complete schema-v8 values to the canonical schema-v9 shape", () =>
+{
+    const legacy = CjsCharacterLibraryBuilder.build(CreateDocuments());
+    legacy.schemaVersion = 8;
+    delete legacy.documents.characterTextureMetadata;
+
+    const from = CjsCharacterLibrary.from(legacy);
+    const assigned = new CjsCharacterLibrary();
+    assigned.SetValues(legacy);
+
+    assert.equal(from.schemaVersion, 9);
+    assert.equal(assigned.schemaVersion, 9);
+    assert.deepEqual(from.documents.characterTextureMetadata, []);
+    assert.deepEqual(assigned.GetValues({ refs: true }), from.GetValues({ refs: true }));
+    assert.equal(legacy.schemaVersion, 8, "migration does not mutate caller values");
+    assert.equal(Object.hasOwn(legacy.documents, "characterTextureMetadata"), false);
+});
+
 test("lists document names without exporting the complete library graph", () =>
 {
     const library = CjsCharacterLibrary.from(
@@ -123,7 +142,8 @@ test("lists document names without exporting the complete library graph", () =>
         "characterPartMetadata",
         "characterMaterialProfiles",
         "characterProjectionProfiles",
-        "characterRecipeProfiles"
+        "characterRecipeProfiles",
+        "characterTextureMetadata"
     ];
     const documentSchema = CjsCharacterLibraryDocuments.schema
         .getSchema(CjsCharacterLibraryDocuments);
@@ -513,6 +533,97 @@ test("creates, removes, deletes, and clears records through observable library m
     assert.equal(events.at(-1)[0], "documentcleared");
 });
 
+test("inspects extension-neutral resource data through one resident resource-manager path", async () =>
+{
+    const library = CjsCharacterLibrary.from(
+        CjsCharacterLibraryBuilder.build(CreateDocuments())
+    );
+    const events = [];
+    const requests = [];
+    const resMan = {
+        async GetObject(path, options)
+        {
+            requests.push([ path, options ]);
+            return {
+                metadata: {
+                    sourceFormat: "png",
+                    width: 1024,
+                    height: 2048,
+                    offset: { x: 250000, y: -125000, unit: 0 },
+                    physicalPixelDimensions: { x: 500000, y: 1000000, unit: 0 }
+                }
+            };
+        }
+    };
+
+    library.SetResourceManager(resMan);
+    library.OnEvent("recordadded", (_owner, payload) => events.push(payload));
+    const [ first, second ] = await Promise.all([
+        library.InspectResourceForData("RES:/Character/Pants.DDS"),
+        library.InspectResourceForData("res:/character/pants.png")
+    ]);
+
+    assert.strictEqual(first, second);
+    assert.ok(first instanceof CjsCharacterTextureMetadata);
+    assert.equal(first.recordID, "res:/character/pants");
+    assert.equal(first.sourcePath, "res:/character/pants.png");
+    assert.equal(first.offsetXRaw, 250000);
+    assert.equal(first.offsetYRaw, -125000);
+    assert.equal(first.offsetUnit, 0);
+    assert.equal(first.physicalPixelDimensionsXRaw, 500000);
+    assert.equal(first.physicalPixelDimensionsYRaw, 1000000);
+    assert.equal(first.physicalPixelDimensionsUnit, 0);
+    assert.equal(first.offsetX, 0.25);
+    assert.equal(first.offsetY, -0.125);
+    assert.equal(first.extentX, 0.5);
+    assert.equal(first.extentY, 1);
+    assert.equal(first.hasPlacementMetadata, true);
+    assert.equal(first.placementEncoding, "png-oFFs-pHYs-millionths");
+    assert.equal(first.placementPolicy, "ccp-character-atlas-millionths-v1");
+    assert.equal(first.placementStatus, "experimental-policy");
+    assert.deepEqual(requests, [ [
+        "res:/character/pants.png",
+        { emit: "raw", cacheSource: true }
+    ] ]);
+    assert.equal(events.length, 1);
+    assert.equal(events[0].documentName, "characterTextureMetadata");
+    assert.strictEqual(events[0].record, first);
+
+    assert.strictEqual(
+        await library.InspectResourceForData("res:/character/pants"),
+        first
+    );
+    assert.equal(requests.length, 1);
+});
+
+test("retains non-character PNG ancillary units without promoting placement policy", () =>
+{
+    const values = CjsCharacterTextureMetadata.fromPngInspection(
+        "res:/character/example",
+        "res:/character/example.png",
+        {
+            sourceFormat: "png",
+            width: 64,
+            height: 32,
+            offset: { x: -8, y: 12, unit: 1 },
+            physicalPixelDimensions: { x: 3780, y: 3780, unit: 1 }
+        }
+    );
+
+    assert.equal(values.offsetXRaw, -8);
+    assert.equal(values.offsetYRaw, 12);
+    assert.equal(values.offsetUnit, 1);
+    assert.equal(values.physicalPixelDimensionsXRaw, 3780);
+    assert.equal(values.physicalPixelDimensionsUnit, 1);
+    assert.equal(values.hasOffsetMetadata, true);
+    assert.equal(values.hasPhysicalPixelDimensionsMetadata, true);
+    assert.equal(values.hasPlacementMetadata, false);
+    assert.equal(values.offsetX, 0);
+    assert.equal(values.extentX, 1);
+    assert.equal(values.placementPolicy, null);
+    assert.equal(values.placementStatus, null);
+});
+
 test("rebuilds private record indexes after direct editor mutation", () =>
 {
     const library = CjsCharacterLibrary.from(
@@ -566,6 +677,39 @@ test("installs or loads one combined character library without rebuilding its it
     assert.equal(loads, 2, "completed loads are not retained as a runtime cache");
 });
 
+test("asynchronous library loading preserves the configured resource manager", async () =>
+{
+    const value = CjsCharacterLibraryBuilder.build(CreateDocuments());
+    const requests = [];
+    const manager = new CjsCharacterLibraryManager(null, {
+        resourceLoader: async () => value,
+        resourceManager: {
+            async GetObject(path, options)
+            {
+                requests.push([ path, options ]);
+                return {
+                    metadata: {
+                        sourceFormat: "png",
+                        width: 128,
+                        height: 64,
+                        offset: null,
+                        physicalPixelDimensions: null
+                    }
+                };
+            }
+        }
+    });
+
+    assert.equal(await manager.LoadLibraryAsync("res:/character/library.json"), true);
+    const metadata = await manager.InspectResourceForData("res:/character/pants.dds");
+
+    assert.ok(metadata instanceof CjsCharacterTextureMetadata);
+    assert.deepEqual(requests, [ [
+        "res:/character/pants.png",
+        { emit: "raw", cacheSource: true }
+    ] ]);
+});
+
 test("combined character library installation is atomic", () =>
 {
     const installed = CjsCharacterLibrary.from(
@@ -586,7 +730,7 @@ test("combined character library installation is atomic", () =>
 
     assert.throws(
         () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 7 }),
-        /schema version 7 or 8/u
+        /schema version 7, 8, or 9/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 
@@ -595,7 +739,7 @@ test("combined character library installation is atomic", () =>
     retired.schemaVersion = 5;
     assert.throws(
         () => manager.InstallLibrary(retired),
-        /schema version 7 or 8/u
+        /schema version 7, 8, or 9/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 

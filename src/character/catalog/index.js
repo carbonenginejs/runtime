@@ -9,3 +9,4 @@ export { CjsCharacterPartType } from "./CjsCharacterPartType.js";
 export { CjsCharacterProjectionProfile } from "./CjsCharacterProjectionProfile.js";
 export { CjsCharacterRecipeEntry } from "./CjsCharacterRecipeEntry.js";
 export { CjsCharacterRecipeProfile } from "./CjsCharacterRecipeProfile.js";
+export { CjsCharacterTextureMetadata } from "./CjsCharacterTextureMetadata.js";

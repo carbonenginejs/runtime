@@ -13,7 +13,7 @@ import { CjsCharacterResource as _CjsCharacterResource } from '../resources/CjsC
 class CjsCharacterAppearanceResolver {
   /** Resolves one hydrated paper doll into the currently provable appearance-plan tranche. */
   static resolvePaperdoll(library, paperdoll) {
-    if (!library || library.schema !== "carbonenginejs.characterLibrary" || library.schemaVersion !== 7 && library.schemaVersion !== 8 || typeof library.Get !== "function" || typeof library.GetDocument !== "function") {
+    if (!library || library.schema !== "carbonenginejs.characterLibrary" || ![7, 8, 9].includes(library.schemaVersion) || typeof library.Get !== "function" || typeof library.GetDocument !== "function") {
       throw new TypeError("Character appearance resolution requires CjsCharacterLibrary");
     }
     if (!(paperdoll instanceof _CjsCharacterPaperdol)) {

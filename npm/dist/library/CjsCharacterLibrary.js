@@ -2,6 +2,7 @@ import { applyDecs2311 as _applyDecs2311 } from '../_virtual/_rollupPluginBabelH
 import { io, type, CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { CjsCharacterLibraryDocuments as _CjsCharacterLibraryD } from './CjsCharacterLibraryDocuments.js';
+import { CjsCharacterTextureMetadata as _CjsCharacterTextureM } from '../character/catalog/CjsCharacterTextureMetadata.js';
 
 let _initClass, _init_schema, _init_extra_schema, _init_schemaVersion, _init_extra_schemaVersion, _init_sourceTarget, _init_extra_sourceTarget, _init_sourceGame, _init_extra_sourceGame, _init_sourceProvider, _init_extra_sourceProvider, _init_sourceBuild, _init_extra_sourceBuild, _init_generatedAt, _init_extra_generatedAt, _init_documents, _init_extra_documents;
 
@@ -22,8 +23,10 @@ class CjsCharacterLibrary extends CjsModel {
     _init_extra_documents(this);
   }
   #documentIndexes = new Map();
+  #textureMetadataRequests = new Map();
+  #resourceManager = null;
   schema = _init_schema(this, "carbonenginejs.characterLibrary");
-  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 8));
+  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 9));
   sourceTarget = (_init_extra_schemaVersion(this), _init_sourceTarget(this, null));
   sourceGame = (_init_extra_sourceTarget(this), _init_sourceGame(this, null));
   sourceProvider = (_init_extra_sourceGame(this), _init_sourceProvider(this, null));
@@ -31,20 +34,42 @@ class CjsCharacterLibrary extends CjsModel {
   generatedAt = (_init_extra_sourceBuild(this), _init_generatedAt(this, null));
   documents = (_init_extra_generatedAt(this), _init_documents(this, new _CjsCharacterLibraryD()));
 
+  /** Hydrates a complete library after applying the explicit legacy migration. */
+  static from(values = {}, options = {}) {
+    return super.from(this.validateValues(values), options);
+  }
+
+  /** Applies complete library values through the same migration used by from(). */
+  SetValues(values = {}, options = {}) {
+    const input = IsCompleteLibraryValue(values) ? this.constructor.validateValues(values) : values;
+    return super.SetValues(input, options);
+  }
+
   /** Rejects combined plain values that cannot hydrate without losing fields or structure. */
   static validateValues(value) {
     RequirePlainObject(value, "Character library");
-    if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 7 && value.schemaVersion !== 8) {
-      throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7 or 8");
+    if (value.schema !== "carbonenginejs.characterLibrary" || ![7, 8, 9].includes(value.schemaVersion)) {
+      throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7, 8, or 9");
     }
     RequirePlainObject(value.documents, "Character library documents");
+    if (value.schemaVersion < 9 && Object.hasOwn(value.documents, "characterTextureMetadata")) {
+      throw new TypeError("Character library schemas 7 and 8 cannot define characterTextureMetadata");
+    }
+    const normalized = value.schemaVersion < 9 ? {
+      ...value,
+      schemaVersion: 9,
+      documents: {
+        ...value.documents,
+        characterTextureMetadata: []
+      }
+    } : value;
     for (const name of _CjsCharacterLibraryD.listDocumentNames()) {
-      if (!Object.hasOwn(value.documents, name) || !Array.isArray(value.documents[name])) {
+      if (!Object.hasOwn(normalized.documents, name) || !Array.isArray(normalized.documents[name])) {
         throw new TypeError(`Character library documents must define array ${JSON.stringify(name)}`);
       }
     }
-    ValidateModelValue(value, _CjsCharacterLibrary, "Character library");
-    return value;
+    ValidateModelValue(normalized, _CjsCharacterLibrary, "Character library");
+    return normalized;
   }
 
   /** Lists the document collections declared by this library model. */
@@ -178,6 +203,46 @@ class CjsCharacterLibrary extends CjsModel {
     }
     return record && record.recordID === identity ? record : null;
   }
+
+  /** Supplies the resource manager used by extension-neutral data inspection. */
+  SetResourceManager(resMan = null) {
+    if (resMan !== null && typeof resMan.GetObject !== "function") {
+      throw new TypeError("Character library resource manager must expose GetObject");
+    }
+    this.#resourceManager = resMan;
+    return this;
+  }
+
+  /** Returns or discovers extension-neutral character data for one resource path. */
+  async InspectResourceForData(resourcePath, {
+    resMan = this.#resourceManager,
+    source = this
+  } = {}) {
+    const {
+      identity,
+      pngPath
+    } = NormalizeTextureResource(resourcePath);
+    const existing = this.Get("characterTextureMetadata", identity);
+    if (existing) return existing;
+    if (!resMan || typeof resMan.GetObject !== "function") {
+      throw new TypeError("Character resource inspection requires resMan.GetObject");
+    }
+    if (!this.#textureMetadataRequests.has(identity)) {
+      const request = (async () => {
+        const payload = await resMan.GetObject(pngPath, {
+          emit: "raw",
+          cacheSource: true
+        });
+        const metadata = payload?.metadata ?? payload;
+        const values = _CjsCharacterTextureM.fromPngInspection(identity, pngPath, metadata);
+        return this.Get("characterTextureMetadata", identity) ?? this.Create("characterTextureMetadata", values, {
+          source
+        });
+      })().finally(() => this.#textureMetadataRequests.delete(identity));
+      this.#textureMetadataRequests.set(identity, request);
+    }
+    return this.#textureMetadataRequests.get(identity);
+  }
   static {
     _initClass();
   }
@@ -245,6 +310,20 @@ function NormalizeLookupRecordID(value) {
   }
   return result;
 }
+function NormalizeTextureResource(value) {
+  const path = String(value ?? "").replace(/\\/gu, "/").toLowerCase();
+  if (!/^res:\/.+$/u.test(path) || /[?#]/u.test(path)) {
+    throw new TypeError("Character resource inspection requires a res:/ path");
+  }
+  const identity = path.replace(/\.(?:dds|png)$/u, "");
+  if (/\.[^/]+$/u.test(identity)) {
+    throw new TypeError("Character resource inspection accepts extension-neutral, DDS, or PNG paths");
+  }
+  return {
+    identity,
+    pngPath: `${identity}.png`
+  };
+}
 function ValidateModelValue(value, Constructor, label) {
   RequirePlainObject(value, label);
   if (Object.hasOwn(value, "_ref")) {
@@ -301,6 +380,9 @@ function RequirePlainObject(value, label) {
   if (prototype !== Object.prototype && prototype !== null) {
     throw new TypeError(`${label} must be a plain object`);
   }
+}
+function IsCompleteLibraryValue(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value) && Object.hasOwn(value, "schema") && Object.hasOwn(value, "schemaVersion") && Object.hasOwn(value, "documents");
 }
 
 export { _CjsCharacterLibrary as CjsCharacterLibrary };

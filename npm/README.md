@@ -10,7 +10,7 @@ replacement, and animation rebinding remain renderer responsibilities.
 
 The package has five independent surfaces:
 
-- a source-neutral schema-v8 model-shaped JSON library built from
+- a source-neutral schema-v9 model-shaped JSON library built from
   caller-supplied record-map documents, losslessly retained decoded
   definitions, and additive prepared profile catalogs;
 - source-backed character record models under `src/character`, hydrated as one
@@ -56,9 +56,9 @@ own named fields. Proven relationships use native document-local `_id` and
 `_id`; missing positive targets remain visible as their named identifier value.
 
 `CjsCharacterLibrary.from(bigJSON)` and `new CjsCharacterLibrary().SetValues(bigJSON)`
-hydrate the same nineteen document collections into `CjsModel` records. Twelve
+hydrate the same twenty document collections into `CjsModel` records. Twelve
 direct source documents are required; the lossless decoded-definition document
-and six derived profile/resource catalogs are optional builder inputs. A
+and seven derived profile/resource catalogs are optional builder inputs. A
 derived catalog never replaces its source definition. The library does not
 retain or translate a second JSON representation. Its normal
 `GetValues({ refs: true })` output can be serialized and hydrated again.
@@ -93,6 +93,16 @@ Character asset fetching, decoding, caching, and lifecycle remain with
 `runtime-resource` and outer application adapters. This package stores paths
 and relationships, not downloaded asset bytes. Its library manager can invoke
 one caller-supplied object loader for the combined catalog.
+
+Schema v9 can also retain normalized PNG placement facts in
+`characterTextureMetadata`. Producers normally populate that catalog while
+building the library. For older or deliberately sparse libraries,
+`library.InspectResourceForData(path)` first returns an existing
+extension-neutral record, then asks its configured runtime-resource manager
+for the corresponding `.png` representation. The resource manager reuses a
+resident resource or performs its ordinary source read; the library hydrates
+the inspection facts and emits the ordinary `recordadded` event. Passing a
+stem, `.dds`, or `.png` addresses the same metadata record.
 
 ## Documentation
 
