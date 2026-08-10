@@ -155,6 +155,13 @@ Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
 tracks, and Music Track RTPC properties outside the qualified Voice Volume
 shape remain unsupported.
 
+The MIDI omission is a fidelity gap rather than dead data. The shipping native
+client links the Wwise Synth One source plug-in, so those MIDI clips are
+audible synthesized layers in the original, not unused authoring residue.
+Anything comparing this package's music output against the native client
+should expect those layers to be missing rather than treat their absence as
+evidence the data is inert.
+
 ## Demo examples
 
 After starting the package demo and enabling Audio, use **Authored music >

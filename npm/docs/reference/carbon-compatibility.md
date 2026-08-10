@@ -326,6 +326,32 @@ as described in the
 Unsupported Carbon methods remain visible with explicit implementation
 metadata where their schema surface is maintained.
 
+## User-facing volume settings are authored data
+
+Carbon does not hard-code its audio options screen. The volume levels a player
+adjusts are ordinary game parameters carrying authoring metadata that marks
+them as user-exposed, so the settings surface is generated from the bank data
+rather than written by hand.
+
+The shape, verified against the shipping audio metadata:
+
+- of roughly 136 game parameters, 38 are marked user-exposed;
+- they fall into two tiers — a first tier of exactly two, the master and music
+  levels, and a second tier of 36 per-category levels;
+- each carries a `0..1` range, an initial value, and a localization key for its
+  label. The music level's initial value is `0.75`.
+
+Two consequences for a host. A settings UI can be generated from that metadata
+— tier for grouping, localization key for the label, range and initial value
+for the control — instead of hard-coding a list that drifts from the banks. And
+stored values are applied through the ordinary global RTPC path, so they must
+be pushed once audio is enabled rather than at construction: before a backend
+exists there is nothing to apply them to.
+
+This package interprets the parameters and applies them. It does not own the
+storage, validation, or persistence of a user's chosen values; that is a host
+concern, and `runtime-core` owns the planned preferences service for it.
+
 ## Provenance
 
 Faithful and adapted classes are derived from the public MIT-licensed
