@@ -25,9 +25,9 @@ export { TriVector4 } from './parameter/TriVector4.js';
 export { Tr2ShaderOption } from './reflection/Tr2ShaderOption.js';
 export { Tr2SamplerOverride } from './sampler/Tr2SamplerOverride.js';
 export { Tr2SamplerOverrideData } from './sampler/Tr2SamplerOverrideData.js';
-export { CjsStoredVariable, CjsVariableStore } from './support/CjsVariableStore.js';
-export { Tr2DataTextureManager } from './support/Tr2DataTextureManager.js';
-export { Tr2EffectStateManager } from './support/Tr2EffectStateManager.js';
-export { Tr2ShaderBuffer } from './support/Tr2ShaderBuffer.js';
+export { CjsStoredVariable, CjsVariableStore } from './CjsVariableStore.js';
+export { Tr2DataTextureManager } from './Tr2DataTextureManager.js';
+export { Tr2EffectStateManager } from './Tr2EffectStateManager.js';
+export { Tr2ShaderBuffer } from './Tr2ShaderBuffer.js';
 export { PROJECTION_TYPE, RenderingMode } from '../generated/shader/enums.js';
 //# sourceMappingURL=index.js.map

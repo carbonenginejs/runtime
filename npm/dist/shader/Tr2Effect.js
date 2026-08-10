@@ -17,7 +17,7 @@ import { TriTextureParameter as _TriTextureParameter } from './parameter/TriText
 import { TriVariableParameter as _TriVariableParameter } from './parameter/TriVariableParameter.js';
 import { TriVector4 as _TriVector } from './parameter/TriVector4.js';
 import { CjsParameter } from './parameter/CjsParameter.js';
-import { CjsVariableStore } from './support/CjsVariableStore.js';
+import { CjsVariableStore } from './CjsVariableStore.js';
 
 let _initProto, _initClass, _init_effectFilePath, _init_extra_effectFilePath, _init_options, _init_extra_options, _init_name, _init_extra_name, _init_constParameters, _init_extra_constParameters, _init_parameters, _init_extra_parameters, _init_resources, _init_extra_resources, _init_effectResource, _init_extra_effectResource, _init_actualEffectFilePath, _init_extra_actualEffectFilePath, _init_samplerOverrides, _init_extra_samplerOverrides;
 

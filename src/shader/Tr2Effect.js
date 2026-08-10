@@ -19,7 +19,7 @@ import { TriTextureParameter } from "./parameter/TriTextureParameter.js";
 import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
-import { CjsVariableStore } from "./support/CjsVariableStore.js";
+import { CjsVariableStore } from "./CjsVariableStore.js";
 
 /** Tr2Effect (shader) - generated from schema shapeHash b0f86b00.... */
 @type.define({ className: "Tr2Effect", family: "shader" })
