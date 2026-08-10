@@ -1090,11 +1090,14 @@ test("committed demo library carries authored SFX and music semantics", () =>
         node.sourceEffects.some(effect => effect.type === "delay"));
     const sourceCompressorSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "compressor"));
+    const sourcePeakLimiterSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect => effect.type === "peak-limiter"));
 
-    assert.equal(sourceEffectSounds.length, 2350);
+    assert.equal(sourceEffectSounds.length, 2423);
     assert.equal(sourceEqSounds.length, 246);
     assert.equal(sourceDelaySounds.length, 79);
     assert.equal(sourceCompressorSounds.length, 2033);
+    assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(
         sourceEqSounds.filter(node => node.sourceEffects.some(effect =>
             effect.type === "parametric-eq"

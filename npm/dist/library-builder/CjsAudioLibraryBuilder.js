@@ -3,7 +3,7 @@ import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js
 import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
-import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect } from '../internal/busEffects.js';
+import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect } from '../internal/busEffects.js';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
 // the builder accepts index values, metadata values, and optional injected
@@ -3156,6 +3156,18 @@ function ParseStaticWwiseCompressor(ownerLabel, slot, effect) {
     type: "compressor"
   };
 }
+function ParseStaticWwisePeakLimiter(ownerLabel, slot, effect) {
+  if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`Wwise Peak Limiter ${effect.id} on ${ownerLabel} is not static`);
+  }
+  const approximation = parseGraphSharedBusEffect(CreatePortableEffect(effect), effect.id, slot.index, {
+    wwiseDynamics: "approximate-web-audio"
+  });
+  return {
+    ...approximation,
+    type: "peak-limiter"
+  };
+}
 
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
@@ -3183,11 +3195,10 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId) {
 }
 
 /**
- * Projects the first complete static EQ/Delay/Compressor override in a
- * Sound's NodeBase ancestry. Wwise's FX override replaces the inherited list,
- * so an explicit empty override clears the chain. Dynamic controls,
- * unsupported plug-ins, and independent LFE routing keep the documented
- * dry-playback approximation.
+ * Projects the first complete supported static override in a Sound's NodeBase
+ * ancestry. Wwise's FX override replaces the inherited list, so an explicit
+ * empty override clears the chain. Dynamic controls, unsupported plug-ins,
+ * and independent LFE routing keep the documented dry-playback approximation.
  */
 function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
   const soundId = Number(rawId) >>> 0;
@@ -3231,6 +3242,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
         chain.push(ParseStaticWwiseDelay(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_COMPRESSOR_PLUGIN_ID) {
         chain.push(ParseStaticWwiseCompressor(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+      } else if (effect.pluginId === WWISE_PEAK_LIMITER_PLUGIN_ID) {
+        chain.push(ParseStaticWwisePeakLimiter(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else {
         return {};
       }

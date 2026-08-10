@@ -6292,6 +6292,101 @@ test("SFX construction retains a qualified static Wwise Compressor override", as
     } ]);
 });
 
+test("SFX construction retains a qualified static Wwise Peak Limiter override", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                refinery_l_play: {
+                    eventID: 100,
+                    soundbanks: [ "refinery.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "refinery.bnk": {
+                    name: "refinery",
+                    path: "\\SoundBanks\\refinery.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/refinery.bnk",
+            storagePath: "banks/refinery.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 754157063,
+                                    flags: 0,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 17,
+                            id: 754157063,
+                            payload: wwisePeakLimiterEffectPayload(),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+
+    assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "754157063",
+        slotIndex: 0,
+        type: "peak-limiter",
+        thresholdDb: Math.fround(-6.6),
+        ratio: Math.fround(12.1),
+        lookaheadSeconds: Math.fround(0.01),
+        releaseSeconds: Math.fround(0.1),
+        outputGainDb: 0,
+        processLfe: true,
+        channelLink: true,
+    } ]);
+});
+
 test("complete construction projects routed static Wwise Parametric EQ", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -10235,6 +10330,38 @@ function wwiseCompressorEffectPayload({
 
     return new TestWriter()
         .u32(0x006c0003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(0)
+        .bytes();
+}
+
+function wwisePeakLimiterEffectPayload({
+    thresholdDb = -6.6,
+    ratio = 12.1,
+    lookaheadSeconds = 0.01,
+    releaseSeconds = 0.1,
+    outputGainDb = 0,
+    processLfe = true,
+    channelLink = true,
+} = {})
+{
+    const parameterBlock = new TestWriter()
+        .f32(thresholdDb)
+        .f32(ratio)
+        .f32(lookaheadSeconds)
+        .f32(releaseSeconds)
+        .f32(outputGainDb)
+        .u8(processLfe ? 1 : 0)
+        .u8(channelLink ? 1 : 0)
+        .bytes();
+
+    return new TestWriter()
+        .u32(0x006e0003)
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)

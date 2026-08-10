@@ -13,6 +13,7 @@ import {
     PARAMETRIC_EQ_PLUGIN_ID,
     WWISE_DELAY_PLUGIN_ID,
     WWISE_COMPRESSOR_PLUGIN_ID,
+    WWISE_PEAK_LIMITER_PLUGIN_ID,
     parseGraphSharedBusEffect,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
@@ -5151,6 +5152,28 @@ function ParseStaticWwiseCompressor(ownerLabel, slot, effect)
     return { ...approximation, type: "compressor" };
 }
 
+function ParseStaticWwisePeakLimiter(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise Peak Limiter ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    const approximation = parseGraphSharedBusEffect(
+        CreatePortableEffect(effect),
+        effect.id,
+        slot.index,
+        { wwiseDynamics: "approximate-web-audio" },
+    );
+
+    return { ...approximation, type: "peak-limiter" };
+}
+
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
  * Sound's source ID references a CAkFxCustom object; its empty inline source
@@ -5203,11 +5226,10 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId)
 }
 
 /**
- * Projects the first complete static EQ/Delay/Compressor override in a
- * Sound's NodeBase ancestry. Wwise's FX override replaces the inherited list,
- * so an explicit empty override clears the chain. Dynamic controls,
- * unsupported plug-ins, and independent LFE routing keep the documented
- * dry-playback approximation.
+ * Projects the first complete supported static override in a Sound's NodeBase
+ * ancestry. Wwise's FX override replaces the inherited list, so an explicit
+ * empty override clears the chain. Dynamic controls, unsupported plug-ins,
+ * and independent LFE routing keep the documented dry-playback approximation.
  */
 function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
 {
@@ -5286,6 +5308,14 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
             else if (effect.pluginId === WWISE_COMPRESSOR_PLUGIN_ID)
             {
                 chain.push(ParseStaticWwiseCompressor(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_PEAK_LIMITER_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwisePeakLimiter(
                     `NodeBase ${ownerId} inherited by Sound ${soundId}`,
                     slot,
                     effect,

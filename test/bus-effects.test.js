@@ -627,6 +627,66 @@ test("normalizes source Compressors and realizes them only through opt-in", () =
     );
 });
 
+test("normalizes source Peak Limiters and reuses the opt-in dynamics stage", () =>
+{
+    const decoded = parseGraphStaticWwisePeakLimiter(
+        GraphPeakLimiter(),
+        "754157063",
+        0,
+    );
+    const limiter = { ...decoded, type: "peak-limiter" };
+    const normalized = normalizeStaticSourceEffectChain(
+        [ limiter ],
+        "Audio source",
+    );
+
+    assert.deepEqual(normalized, [ limiter ]);
+    assert.equal(createWwiseEffectChain(Context(), normalized), null);
+    const context = Context();
+    const chain = createWwiseEffectChain(context, normalized, {
+        wwiseDynamics: "approximate-web-audio",
+    });
+
+    assert.equal(chain.input, context.compressors[0]);
+    assert.equal(context.compressors[0].threshold.value, -1);
+    assert.equal(context.compressors[0].attack.value, 0);
+    assert.equal(chain.output, context.delays[0]);
+    assert.ok(
+        Math.abs(context.delays[0].delayTime.value - 0.004) < 1e-8,
+    );
+    const mixed = normalizeStaticSourceEffectChain([ limiter, {
+        effectId: "900",
+        slotIndex: 1,
+        type: "parametric-eq",
+        bands: [ {
+            index: 0,
+            filterType: "peaking",
+            gainDb: -3,
+            frequencyHz: 1000,
+            q: 1,
+        } ],
+        outputGainDb: 0,
+        processLfe: true,
+    } ], "Audio source");
+    const strict = Context();
+
+    assert.equal(createWwiseEffectChain(strict, mixed), null);
+    assert.equal(strict.compressors.length, 0);
+    assert.equal(strict.filters.length, 0);
+    const unavailable = Context();
+
+    delete unavailable.createDelay;
+    assert.equal(
+        createWwiseEffectChain(unavailable, mixed, {
+            wwiseDynamics: "approximate-web-audio",
+        }),
+        null,
+        "missing lookahead padding omits the whole chain and stays dry",
+    );
+    assert.equal(unavailable.compressors.length, 0);
+    assert.equal(unavailable.filters.length, 0);
+});
+
 test("rejects dynamic, malformed, or independently routed Wwise Delays", () =>
 {
     const mutations = [

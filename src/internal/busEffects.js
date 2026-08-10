@@ -272,6 +272,52 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 channelLink: true,
             });
         }
+        if (allowDelay && effect.type === "peak-limiter")
+        {
+            if (effect.processLfe !== true || effect.channelLink !== true)
+            {
+                throw new TypeError(
+                    `${label} requires unsupported independent dynamics channels`,
+                );
+            }
+            return Object.freeze({
+                effectId,
+                slotIndex,
+                type: "peak-limiter",
+                thresholdDb: BoundedFinite(
+                    effect.thresholdDb,
+                    DYNAMICS_THRESHOLD_MIN,
+                    DYNAMICS_THRESHOLD_MAX,
+                    `${label} thresholdDb`,
+                ),
+                ratio: BoundedFinite(
+                    effect.ratio,
+                    DYNAMICS_RATIO_MIN,
+                    DYNAMICS_RATIO_MAX,
+                    `${label} ratio`,
+                ),
+                lookaheadSeconds: BoundedFinite(
+                    effect.lookaheadSeconds,
+                    PEAK_LIMITER_LOOKAHEAD_MIN,
+                    PEAK_LIMITER_LOOKAHEAD_MAX,
+                    `${label} lookaheadSeconds`,
+                ),
+                releaseSeconds: BoundedFinite(
+                    effect.releaseSeconds,
+                    PEAK_LIMITER_RELEASE_MIN,
+                    WEB_AUDIO_DYNAMICS_TIME_MAX,
+                    `${label} releaseSeconds`,
+                ),
+                outputGainDb: BoundedFinite(
+                    effect.outputGainDb,
+                    DYNAMICS_OUTPUT_GAIN_MIN,
+                    DYNAMICS_OUTPUT_GAIN_MAX,
+                    `${label} outputGainDb`,
+                ),
+                processLfe: true,
+                channelLink: true,
+            });
+        }
         if (effect.type !== "parametric-eq")
         {
             throw new TypeError(`${label} has unsupported type ${effect.type}`);
@@ -365,14 +411,24 @@ export function createWwiseEffectChain(
     // A source effect override is one ordered authored unit. In strict mode,
     // preserve the existing audible dry fallback by omitting the complete
     // chain instead of applying only the non-dynamics siblings.
-    if (effects.some(effect => effect.type === "compressor")
+    const sourceDynamics = effects.filter(effect =>
+        effect.type === "compressor" || effect.type === "peak-limiter");
+
+    if (sourceDynamics.length
         && dynamicsMode === "strict")
     {
         return null;
     }
-    if (effects.some(effect => effect.type === "compressor")
+    if (sourceDynamics.length
         && (typeof context?.createDynamicsCompressor !== "function"
             || typeof context?.createGain !== "function"))
+    {
+        return null;
+    }
+    if (sourceDynamics.some(effect =>
+        effect.type === "peak-limiter"
+            && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD)
+        && typeof context?.createDelay !== "function")
     {
         return null;
     }
@@ -382,6 +438,11 @@ export function createWwiseEffectChain(
                 effect,
                 "compressor-approximation",
             )
+            : effect.type === "peak-limiter"
+                ? RequireApproximateDynamics(
+                    effect,
+                    "peak-limiter-approximation",
+                )
             : effect);
     const nodes = [];
     let input = null;
@@ -732,10 +793,10 @@ export function parseStaticWwiseDelayBytes(
 /**
  * Decodes one source-proven static v150 Wwise Peak Limiter parameter block.
  *
- * This proves the authored controls and preserves them for a future DSP
- * adapter. It is deliberately not admitted by parseGraphSharedBusEffect:
- * Web Audio's native DynamicsCompressorNode cannot reproduce Wwise's variable
- * lookahead, peak detector, channel linking, or release behavior.
+ * Strict policy keeps the decoded record outside browser playback. The
+ * explicit approximation policy may adapt it, but Web Audio's native
+ * DynamicsCompressorNode cannot reproduce Wwise's variable lookahead, peak
+ * detector, channel linking, or release behavior.
  */
 export function parseGraphStaticWwisePeakLimiter(effect, effectId, slotIndex)
 {

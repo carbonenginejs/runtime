@@ -81,8 +81,8 @@ raw Wwise scaling-2 values, including the authored parameter default, a
 every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
 built SFX `sound` nodes may additionally retain an ordered `sourceEffects`
 array for the complete effective static Parametric EQ, Wwise Delay, or
-qualified Wwise Compressor override in their NodeBase ancestry. An explicit
-empty override clears the inherited list.
+qualified Wwise Compressor/Peak Limiter override in their NodeBase ancestry.
+An explicit empty override clears the inherited list.
 Those effects are voice-owned and precede Voice LPF/HPF and route splitting;
 built-in music evaluates Bus Volume only from this Audio Bus catalog. A Music
 Track's own qualified Voice Volume RTPC instead uses the independent pre-bus
@@ -161,16 +161,16 @@ intent without acquiring bytes. `SetGlobalRTPC()`, `SetState()`, and
 `StopAllPlayingSounds()` keep a thin browser integration on `CjsAudioMan`.
 
 Constructor option `wwiseDynamics` controls authored Wwise Compressor and Peak
-Limiter admission to the shared-bus mixer and qualified source-local
-Compressor chains:
+Limiter admission to the shared-bus mixer and qualified source-local dynamics
+chains:
 
 - `"strict"` (default) rejects those effects from shared routing and omits a
-  complete qualified source chain containing Compressor. The voice remains
+  complete qualified source chain containing either effect. The voice remains
   audible through the legacy/dry route with the authored dynamics omitted.
 - `"approximate-web-audio"` admits the documented static, linked subset through
   `DynamicsCompressorNode` plus compensation gain and optional limiter latency
-  padding. A qualified source Compressor receives its own equivalent browser
-  stage per physical voice. This preserves topology, not Wwise DSP
+  padding. Qualified source dynamics receive an equivalent browser stage per
+  physical voice. This preserves topology, not Wwise DSP
   equivalence; missing browser dynamics primitives retain dry SFX playback.
 
 Any other value throws synchronously. `CjsAudioSystem` accepts the same option
