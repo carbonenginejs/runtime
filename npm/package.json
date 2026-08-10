@@ -35,8 +35,8 @@
     "NOTICE"
   ],
   "dependencies": {
-    "@carbonenginejs/runtime-resource": "^0.15.0",
-    "@carbonenginejs/runtime-utils": "^0.1.2"
+    "@carbonenginejs/runtime-resource": "^0.16.0",
+    "@carbonenginejs/runtime-utils": "^0.1.5"
   },
   "type": "module",
   "description": "CarbonEngineJS Trinity graph classes and JSON contract."
