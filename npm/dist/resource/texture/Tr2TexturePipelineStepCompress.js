@@ -1,5 +1,5 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
-import { io, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { io, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 
 let _initClass, _init_format, _init_extra_format, _init_b, _init_extra_b, _init_g, _init_extra_g, _init_r, _init_extra_r;
@@ -14,7 +14,7 @@ class Tr2TexturePipelineStepCompress extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "Tr2TexturePipelineStepCompress",
       family: "resources"
-    })], [[[io, io.persist, type, type.int32, void 0, schema.enum("PixelFormat")], 16, "format"], [[io, io.persist, type, type.float32], 16, "b"], [[io, io.persist, type, type.float32], 16, "g"], [[io, io.persist, type, type.float32], 16, "r"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.int32, void 0, type.enum("PixelFormat")], 16, "format"], [[io, io.persist, type, type.float32], 16, "b"], [[io, io.persist, type, type.float32], 16, "g"], [[io, io.persist, type, type.float32], 16, "r"]], 0, void 0, CjsModel));
   }
   constructor(...args) {
     super(...args);

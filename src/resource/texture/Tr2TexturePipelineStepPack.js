@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepPack.json; maintained by runtime-resource.
-import { io, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 
 /** Tr2TexturePipelineStepPack (resources) - maintained from schema shapeHash 3efe48d4.... */
@@ -11,7 +11,7 @@ export class Tr2TexturePipelineStepPack extends CjsModel
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM] */
   @io.persist
   @type.int32
-  @schema.enum("PixelFormat")
+  @type.enum("PixelFormat")
   format = 87;
 
   /** m_a (PTr2TexturePackChannel) [READ, PERSIST] */

@@ -1,4 +1,4 @@
-import { CjsSchema, type, schema } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, type } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
 import { recordText, toRecordText } from './carbonRecordFields.js';
@@ -111,7 +111,7 @@ CjsSchema.define(Tr2EffectResource, {
     isSRGB: type.boolean,
     isAutoregister: type.boolean,
     name: type.string,
-    type: [type.int32, schema.enum("Type")],
+    type: [type.int32, type.enum("Type")],
     arrayElements: type.uint32
   }
 });

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { CjsSchema, impl, schema, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsSchema, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import {
   isPlainObject
@@ -122,7 +122,7 @@ CjsSchema.define(Tr2EffectResource, {
     isSRGB: type.boolean,
     isAutoregister: type.boolean,
     name: type.string,
-    type: [ type.int32, schema.enum("Type") ],
+    type: [ type.int32, type.enum("Type") ],
     arrayElements: type.uint32
   }
 });

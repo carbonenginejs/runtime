@@ -1,4 +1,4 @@
-import { CjsSchema, type, impl, schema } from '@carbonenginejs/runtime-utils/schema';
+import { CjsSchema, type, impl } from '@carbonenginejs/runtime-utils/schema';
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { dwordToFloat } from '@carbonenginejs/runtime-utils/math/num';
 import { isPlainObject } from '@carbonenginejs/runtime-utils/is';
@@ -112,7 +112,7 @@ CjsSchema.define(Tr2EffectParameterAnnotation, {
   family: "shader",
   fields: {
     name: type.string,
-    type: [type.int32, schema.enum("Type")],
+    type: [type.int32, type.enum("Type")],
     boolValue: type.boolean,
     rawValue: [impl.adapted, impl.reason("Carbon reads numeric annotations into typed values; the portable source contract retains the exact uint32 payload so NaN, negative zero, and integer bit patterns round-trip losslessly."), type.uint32],
     intValue: type.int32,
