@@ -425,7 +425,7 @@ function readPngChunks(bytes)
 
 function readPngChunkSummary(bytes)
 {
-    let offset = 8;
+    let cursor = 8;
     let chunkCount = 0;
     let idatChunkCount = 0;
     let idatBytes = 0;
@@ -434,11 +434,13 @@ function readPngChunkSummary(bytes)
     let hasSrgb = false;
     let hasIend = false;
     let chunksComplete = true;
-    while (offset + 12 <= bytes.byteLength)
+    let pngOffset = null;
+    let physicalPixelDimensions = null;
+    while (cursor + 12 <= bytes.byteLength)
     {
-        const length = readU32BE(bytes, offset);
-        const type = String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]);
-        const end = offset + 8 + length;
+        const length = readU32BE(bytes, cursor);
+        const type = String.fromCharCode(bytes[cursor + 4], bytes[cursor + 5], bytes[cursor + 6], bytes[cursor + 7]);
+        const end = cursor + 8 + length;
         if (end + 4 > bytes.byteLength)
         {
             chunksComplete = false;
@@ -453,11 +455,38 @@ function readPngChunkSummary(bytes)
         else if (type === "PLTE") hasPalette = true;
         else if (type === "tRNS") hasTransparency = true;
         else if (type === "sRGB") hasSrgb = true;
+        else if (type === "oFFs" && length === 9)
+        {
+            pngOffset = {
+                x: readI32BE(bytes, cursor + 8),
+                y: readI32BE(bytes, cursor + 12),
+                unit: bytes[cursor + 16]
+            };
+        }
+        else if (type === "pHYs" && length === 9)
+        {
+            physicalPixelDimensions = {
+                x: readU32BE(bytes, cursor + 8),
+                y: readU32BE(bytes, cursor + 12),
+                unit: bytes[cursor + 16]
+            };
+        }
         else if (type === "IEND") hasIend = true;
-        offset = end + 4;
+        cursor = end + 4;
         if (type === "IEND") break;
     }
-    return { chunkCount, idatChunkCount, idatBytes, hasPalette, hasTransparency, hasSrgb, hasIend, chunksComplete };
+    return {
+        chunkCount,
+        idatChunkCount,
+        idatBytes,
+        hasPalette,
+        hasTransparency,
+        hasSrgb,
+        hasIend,
+        chunksComplete,
+        offset: pngOffset,
+        physicalPixelDimensions
+    };
 }
 
 function concatBytes(chunks)
@@ -719,6 +748,11 @@ function readU16LE(bytes, offset)
 function readU32BE(bytes, offset)
 {
     return ((bytes[offset] * 0x1000000) + ((bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3])) >>> 0;
+}
+
+function readI32BE(bytes, offset)
+{
+    return new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getInt32(0, false);
 }
 
 function readU32LE(bytes, offset)

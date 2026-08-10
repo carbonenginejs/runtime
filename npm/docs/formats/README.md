@@ -72,6 +72,17 @@ Detailed pages: [Granny GR2 and GSF](gr2.md),
 history, retained snapshots, and donor licensing are recorded in
 [provenance.md](provenance.md).
 
+`CjsPngFormat.inspect(bytes)` is the one-shot, decode-free PNG inspection
+entry point. In addition to the header and bounded chunk summary, it exposes
+the standard ancillary placement chunks when present:
+
+- `offset: { x, y, unit }` from `oFFs`, with signed 32-bit coordinates; and
+- `physicalPixelDimensions: { x, y, unit }` from `pHYs`, with unsigned 32-bit
+  values.
+
+These are raw PNG facts. Runtime-resource does not assign character-atlas or
+other domain semantics to their values.
+
 ## Black and Red reader boundary
 
 `CjsBlackReader` and `CjsRedReader` share `CjsBlueReader` as an output and

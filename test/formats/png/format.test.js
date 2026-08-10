@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { deflateSync } from "node:zlib";
 import test from "node:test";
+import { CjsResMan } from "../../../src/CjsResMan.js";
 import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../src/formats/png/index.js";
 
 test("exports default and named CjsPngFormat", () =>
@@ -68,6 +69,107 @@ test("inspects PNG chunk summary metadata", () =>
     assert.equal(info.hasPalette, true);
     assert.equal(info.hasTransparency, true);
     assert.equal(info.hasSrgb, true);
+});
+
+test("inspects signed oFFs and unsigned pHYs placement chunks", () =>
+{
+    const offset = new Uint8Array(9);
+    const physical = new Uint8Array(9);
+    writeI32BE(offset, 0, -125000);
+    writeI32BE(offset, 4, 250000);
+    offset[8] = 0;
+    writeU32BE(physical, 0, 500000);
+    writeU32BE(physical, 4, 750000);
+    physical[8] = 0;
+
+    const info = CjsPngFormat.inspect(makePngImage(1, 1, 8, 6, [ 0, 0, 0, 0, 0 ], [
+        pngChunk("oFFs", offset),
+        pngChunk("pHYs", physical)
+    ]));
+
+    assert.deepEqual(info.offset, { x: -125000, y: 250000, unit: 0 });
+    assert.deepEqual(info.physicalPixelDimensions, {
+        x: 500000,
+        y: 750000,
+        unit: 0
+    });
+});
+
+test("retains ancillary units and ignores malformed placement chunk lengths", () =>
+{
+    const offset = new Uint8Array(9);
+    const physical = new Uint8Array(9);
+    const malformed = new Uint8Array(10);
+    writeI32BE(offset, 0, -2147483648);
+    writeI32BE(offset, 4, 2147483647);
+    offset[8] = 1;
+    writeU32BE(physical, 0, 0xffffffff);
+    writeU32BE(physical, 4, 1);
+    physical[8] = 1;
+
+    const exact = CjsPngFormat.inspect(makePngImage(1, 1, 8, 6, [ 0, 0, 0, 0, 0 ], [
+        pngChunk("oFFs", offset),
+        pngChunk("pHYs", physical)
+    ]));
+    const invalid = CjsPngFormat.inspect(makePngImage(1, 1, 8, 6, [ 0, 0, 0, 0, 0 ], [
+        pngChunk("oFFs", malformed),
+        pngChunk("pHYs", malformed)
+    ]));
+
+    assert.deepEqual(exact.offset, {
+        x: -2147483648,
+        y: 2147483647,
+        unit: 1
+    });
+    assert.deepEqual(exact.physicalPixelDimensions, {
+        x: 0xffffffff,
+        y: 1,
+        unit: 1
+    });
+    assert.equal(invalid.offset, null);
+    assert.equal(invalid.physicalPixelDimensions, null);
+});
+
+test("resource-manager raw PNG inspection reuses its resident resource", async () =>
+{
+    const offset = new Uint8Array(9);
+    const physical = new Uint8Array(9);
+    writeI32BE(offset, 0, 100000);
+    writeI32BE(offset, 4, 200000);
+    writeU32BE(physical, 0, 300000);
+    writeU32BE(physical, 4, 400000);
+    const bytes = makePngImage(4, 2, 8, 6, [ 0, 0, 0, 0, 0 ], [
+        pngChunk("oFFs", offset),
+        pngChunk("pHYs", physical)
+    ]);
+    let reads = 0;
+    const resMan = new CjsResMan({
+        source: {
+            Read()
+            {
+                reads++;
+                return bytes;
+            }
+        }
+    }).RegisterFormat(CjsPngFormat);
+
+    const first = await resMan.GetObject("res:/character/example.png", {
+        emit: "raw",
+        cacheSource: true
+    });
+    const second = await resMan.GetObject("res:/character/example.png", {
+        emit: "raw",
+        cacheSource: true
+    });
+
+    assert.strictEqual(second, first);
+    assert.equal(reads, 1);
+    assert.deepEqual(first.metadata.offset, { x: 100000, y: 200000, unit: 0 });
+    assert.deepEqual(first.metadata.physicalPixelDimensions, {
+        x: 300000,
+        y: 400000,
+        unit: 0
+    });
 });
 
 test("readAsync decodes a non-interlaced RGBA PNG to canonical pixels", async () =>
@@ -210,4 +312,9 @@ function writeU32BE(bytes, offset, value)
     bytes[offset + 1] = (value >>> 16) & 0xff;
     bytes[offset + 2] = (value >>> 8) & 0xff;
     bytes[offset + 3] = value & 0xff;
+}
+
+function writeI32BE(bytes, offset, value)
+{
+    new DataView(bytes.buffer, bytes.byteOffset + offset, 4).setInt32(0, value, false);
 }
