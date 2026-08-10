@@ -68,7 +68,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/plugin-proposal-decorators": "^7.29.7",
-    "@carbonenginejs/runtime-utils": "^0.1.5",
+    "@carbonenginejs/runtime-utils": "file:../runtime-utils",
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-json": "^6.1.0",
     "rollup": "^4.62.2"
