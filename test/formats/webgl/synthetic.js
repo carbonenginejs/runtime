@@ -737,3 +737,77 @@ export function buildDetailMapPixelDxbc(registers = [ 3, 4, 5 ])
     const tokens = new Uint32Array([ versionToken(0, 5, 0), body.length + 2, ...body ]);
     return buildContainer([ { fourCC: "SHEX", payload: new Uint8Array(tokens.buffer.slice(0)) } ]);
 }
+
+/**
+ * Builds a pixel shader that samples two 2D textures through two DIFFERENT
+ * sampler registers, standing in for a decal effect where one sampler uses
+ * CLAMP_TO_BORDER and the other does not.
+ *
+ * Two samplers rather than two textures, because border addressing is a
+ * property of the SAMPLER: the emitter must wrap by sampler register, and a
+ * fixture with only one sampler cannot tell a correct implementation from one
+ * that wraps every sample it sees.
+ *
+ * @param {number[]} [samplerRegisters=[0,1]] Sampler (s#) register indexes.
+ * @param {number[]} [resourceRegisters=[5,6]] SRV (t#) register indexes. Kept
+ *   DIFFERENT from the sampler registers on purpose: when they coincide, an
+ *   implementation that wraps by resource register is indistinguishable from
+ *   one that wraps by sampler register, and the fixture proves nothing.
+ * @returns {Uint8Array} Complete synthetic pixel-shader DXBC container.
+ */
+export function buildTwoSamplerPixelDxbc(samplerRegisters = [ 0, 1 ], resourceRegisters = [ 5, 6 ], constantBufferSlot = null)
+{
+    const DCL_RESOURCE = 88;
+    const DCL_SAMPLER = 90;
+    const DCL_TEMPS = 104;
+    const RET = 62;
+    const SAMPLE = 69;
+    const TEXTURE_2D = 3;
+
+    const tempDestination = 2 | (0 << 2) | (0xF << 4) | (0 << 12) | (1 << 20);
+    const tempSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (0 << 12) | (1 << 20);
+    const resourceSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (7 << 12) | (1 << 20);
+    const samplerSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (6 << 12) | (1 << 20);
+
+    const DCL_CONSTANT_BUFFER = 89;
+    const constantBufferOperand = 2 | (0 << 2) | (0xF << 4) | (8 << 12) | (2 << 20);
+
+    const declarations = [];
+    const samplerDeclarations = [];
+    const samples = [];
+
+    if (Number.isInteger(constantBufferSlot))
+    {
+        declarations.push(
+            opcodeToken(DCL_CONSTANT_BUFFER, 4), constantBufferOperand, constantBufferSlot, 4
+        );
+    }
+
+    samplerRegisters.forEach((samplerRegister, index) =>
+    {
+        declarations.push(
+            opcodeToken(DCL_RESOURCE, 4) | (TEXTURE_2D << 11), resourceSwizzleXyzw, resourceRegisters[index], 0x5555
+        );
+        samplerDeclarations.push(
+            opcodeToken(DCL_SAMPLER, 3), samplerSwizzleXyzw, samplerRegister
+        );
+        samples.push(
+            opcodeToken(SAMPLE, 9),
+            tempDestination, 0,
+            tempSwizzleXyzw, 0,
+            resourceSwizzleXyzw, resourceRegisters[index],
+            samplerSwizzleXyzw, samplerRegister
+        );
+    });
+
+    const body = [
+        opcodeToken(DCL_TEMPS, 2), 1,
+        ...declarations,
+        ...samplerDeclarations,
+        ...samples,
+        opcodeToken(RET, 1)
+    ];
+
+    const tokens = new Uint32Array([ versionToken(0, 5, 0), body.length + 2, ...body ]);
+    return buildContainer([ { fourCC: "SHEX", payload: new Uint8Array(tokens.buffer.slice(0)) } ]);
+}

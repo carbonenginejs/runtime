@@ -19,6 +19,12 @@ const MAX_MAP_STYLE_UAV_OUTPUTS = 8;
  * GLSL sampler type per DXBC resource-dimension id (float return types; the
  * stripped-RDEF corpus reflects everything as float).
  */
+/**
+ * DXBC resource dimension for a cube map. Emulated addressing refuses it: a
+ * cube coordinate is a direction, so a [0,1] range test is meaningless there.
+ */
+const CUBE_DIMENSION = 6;
+
 const SAMPLER_TYPE_BY_DIMENSION = {
     2: "sampler2D",
     3: "sampler2D",
@@ -137,6 +143,73 @@ export class DxbcGlslEmitter
    */
     _defineHelpers()
     {
+        // Texture address modes WebGL2 cannot express, emulated in the shader.
+        //
+        // WebGL2 does REPEAT, MIRRORED_REPEAT and CLAMP_TO_EDGE natively. It has
+        // no CLAMP_TO_BORDER (that needs EXT_texture_border_clamp, absent on our
+        // desktop contexts) and no MIRROR_ONCE. Only those two are done here.
+        //
+        // The mode is a RUNTIME value, per axis, read from the address buffer.
+        // It cannot be baked: ccpwgl resolves sampler overrides after
+        // translation and caches one translated GLSL per resource path across
+        // every instance, so a compile-time mode is wrong for any object whose
+        // override differs from the container - in both directions.
+        //
+        // Modes are the Trinity enum as stored: 1 wrap, 2 mirror, 3 clamp-edge,
+        // 4 border, 5 mirror-once. **0 means "nothing to emulate"**, which is
+        // what every failure produces - a zeroed buffer, an absent upload, a
+        // texture the consumer did not know about. Carbon's enum starts at 1 and
+        // no shipped sampler carries 0, so 0 cannot swallow a real mode.
+        //
+        // Two arities rather than one vec3 form: a 2D sample has no third
+        // coordinate, and its sampler may still declare a W mode - eight shipped
+        // samplers declare border on W - which must not be tested against a
+        // component that does not exist.
+        this.helpers.define("cjsAddressCoord", {
+            source: [
+                "vec2 cjsAddressCoord(vec2 uv, vec2 modes) {",
+                "    if (int(modes.x) == 5) uv.x = clamp(abs(uv.x), 0.0, 1.0);",
+                "    if (int(modes.y) == 5) uv.y = clamp(abs(uv.y), 0.0, 1.0);",
+                "    return uv;",
+                "}",
+                "",
+                "vec3 cjsAddressCoord(vec3 uv, vec3 modes) {",
+                "    if (int(modes.x) == 5) uv.x = clamp(abs(uv.x), 0.0, 1.0);",
+                "    if (int(modes.y) == 5) uv.y = clamp(abs(uv.y), 0.0, 1.0);",
+                "    if (int(modes.z) == 5) uv.z = clamp(abs(uv.z), 0.0, 1.0);",
+                "    return uv;",
+                "}"
+            ].join("\n")
+        });
+
+        // Applied to the already sampled value, so it composes with every sample
+        // form the emitter produces - texture, textureLod, textureGrad and the
+        // bias variant - instead of needing an overload for each.
+        //
+        // The border colour is baked, not read from the buffer: Carbon's
+        // AddSamplerOverride takes only U and V, so no override can change it.
+        // It is NOT always transparent black - specialfx/cloud, cloudsimple and
+        // volumetrichalfsphereglow use opaque white.
+        //
+        // Testing the post-transform coordinate is safe: an axis is either
+        // mirror-once or border, never both, and mirror-once leaves other axes
+        // untouched.
+        this.helpers.define("cjsAddressBorder", {
+            source: [
+                "vec4 cjsAddressBorder(vec4 sampled, vec2 uv, vec2 modes, vec4 borderColor) {",
+                "    if (int(modes.x) == 4 && (uv.x < 0.0 || uv.x > 1.0)) return borderColor;",
+                "    if (int(modes.y) == 4 && (uv.y < 0.0 || uv.y > 1.0)) return borderColor;",
+                "    return sampled;",
+                "}",
+                "",
+                "vec4 cjsAddressBorder(vec4 sampled, vec3 uv, vec3 modes, vec4 borderColor) {",
+                "    if (int(modes.x) == 4 && (uv.x < 0.0 || uv.x > 1.0)) return borderColor;",
+                "    if (int(modes.y) == 4 && (uv.y < 0.0 || uv.y > 1.0)) return borderColor;",
+                "    if (int(modes.z) == 4 && (uv.z < 0.0 || uv.z > 1.0)) return borderColor;",
+                "    return sampled;",
+                "}"
+            ].join("\n")
+        });
     // D3D11 IBFE pseudocode: width = src0 & 0x1f, offset = src1 & 0x1f;
     // width == 0 -> 0; width + offset < 32 -> a left/right arithmetic-shift
     // pair that sign-extends from bit (width-1); else an arithmetic shift by
@@ -295,6 +368,8 @@ export class DxbcGlslEmitter
             lightConstantBuffer: this._normalizeLightConstantBufferProfile(),
             lightConstantBufferDeclared: false,
             lightPackedTexture: this._normalizeLightPackedTextureProfile(),
+            emulatedAddressing: this._normalizeEmulatedAddressingProfile(),
+            addressBufferDeclared: false,
             lightPackedTextureDeclared: false,
             // Resource (t#) registers stubbed to a compile-time zero: their
             // declarations/bindings are dropped and every read of them lowers
@@ -515,6 +590,289 @@ export class DxbcGlslEmitter
         }
 
         return comparisonResources;
+    }
+
+    /**
+   * Normalizes the emulated-addressing profile.
+   *
+   * Keyed by RESOURCE register, not sampler register, because that is what
+   * every layer we touch keys on: GL stores wrap state on the texture object,
+   * ccpwgl keys overrides by texture name, and the emitted GLSL declares one
+   * sampler uniform per resource. Only D3D treats the mode as a property of a
+   * shared sampler - in `decalv5` five textures share one bordered sampler and
+   * each can resolve to a different mode, which a sampler-keyed scheme cannot
+   * represent.
+   *
+   * It arrives as a profile option because it CANNOT be discovered here: DXBC
+   * carries no sampler state, which lives in the Carbon container wrapping it.
+   * The caller also chooses the SUPERSET - listing a texture whose container
+   * mode needs no emulation is deliberate and cheap, because the runtime mode
+   * decides, and it is what lets an override correct a container that is wrong.
+   *
+   * Shape: `{ bufferRegister, textures: [{ registerIndex, borderColor }] }`.
+   *
+   * @returns {{bufferRegister:number, textures:Map<number,{color:number[]}>}|null}
+   *   Null when disabled.
+   */
+    _normalizeEmulatedAddressingProfile()
+    {
+        const value = this.profile.emulatedAddressing;
+
+        // Either input alone is a complete profile: `samplerModes` is the
+        // ordinary case (container modes, mapped onto resources here), and
+        // `textures` is for a caller gating something the container gives it no
+        // reason to gate. Requiring both would reject the ordinary case.
+        if (!value || typeof value !== "object") return null;
+        if (!Array.isArray(value.textures) && !value.samplerModes) return null;
+
+        const bufferRegister = Number(value.bufferRegister ?? 8);
+
+        if (!Number.isInteger(bufferRegister) || bufferRegister < 0 || bufferRegister > 254)
+        {
+            throw new WebglReadError(
+                "Emulated-addressing buffer register must be an integer in 0..254",
+                { bufferRegister: value.bufferRegister }
+            );
+        }
+
+        const colorOf = (raw) =>
+        {
+            if (raw === undefined || raw === null) return [ 0, 0, 0, 0 ];
+
+            if (!Array.isArray(raw) || raw.length !== 4)
+            {
+                throw new WebglReadError("Border colour must be four components", { color: raw });
+            }
+
+            const parsed = raw.map(Number);
+
+            // A malformed colour must not become a plausible one: transparent
+            // black is the common case, so silently defaulting to it would hide
+            // the mistake in exactly the effects that differ from it.
+            if (parsed.some((c) => !Number.isFinite(c)))
+            {
+                throw new WebglReadError("Border colour components must be finite numbers", { color: raw });
+            }
+
+            return parsed;
+        };
+
+        // Container sampler modes, keyed by SAMPLER register. Supplied so the
+        // emitter can derive which resources need a gate: only it knows, from
+        // the DXBC, which resource is read through which sampler. The caller
+        // knows the modes but not that mapping; the emitter knows the mapping
+        // but not the modes, because DXBC carries no sampler state.
+        const samplerModes = new Map();
+
+        for (const [ key, modes ] of Object.entries(value.samplerModes ?? {}))
+        {
+            const registerIndex = Number(key);
+
+            if (!Number.isInteger(registerIndex) || registerIndex < 0) continue;
+
+            const axes = [ modes?.u, modes?.v, modes?.w ].map(Number);
+
+            // Only the two modes WebGL2 cannot express need a gate. Everything
+            // else is left to GL, so listing it would cost a branch for nothing.
+            if (axes.some((m) => m === 4 || m === 5))
+            {
+                samplerModes.set(registerIndex, true);
+            }
+        }
+
+        const textures = new Map();
+
+        for (const entry of value.textures ?? [])
+        {
+            const registerIndex = Number.isInteger(entry) ? entry : Number(entry?.registerIndex);
+
+            if (!Number.isInteger(registerIndex) || registerIndex < 0)
+            {
+                throw new WebglReadError(
+                    "Emulated-addressing entries need an integer resource registerIndex",
+                    { entry }
+                );
+            }
+
+            textures.set(registerIndex, {
+                color: colorOf(Number.isInteger(entry) ? null : entry?.borderColor)
+            });
+        }
+
+        if (!textures.size && !samplerModes.size) return null;
+
+        return { bufferRegister, textures, samplerModes, defaultColor: colorOf(value.borderColor) };
+    }
+
+    /**
+   * Applies emulated address modes to one sample.
+   *
+   * Emits nothing for a texture the caller did not list, so a shader with no
+   * emulated addressing is byte-identical to one emitted without the profile.
+   *
+   * @param {object} state Emit state.
+   * @param {object} instruction Decoded texture instruction.
+   * @param {string} call The GLSL sample expression built so far.
+   * @param {string} coord The coordinate expression passed to that sample.
+   * @param {string} coordMask Component mask of the coordinate.
+   * @returns {string} The sample expression, addressed when the caller listed it.
+   * @private
+   */
+    _applyEmulatedAddressing(state, instruction, call, coord, coordMask)
+    {
+        const profile = state.emulatedAddressing;
+
+        if (!profile) return call;
+
+        const resourceRegister = instruction.operands?.[2]?.registerIndex;
+
+        if (!Number.isInteger(resourceRegister)) return call;
+
+        // An explicit entry wins; otherwise derive from the sampler this
+        // resource is read through. Deriving is the ordinary case - the caller
+        // supplies container modes and the emitter maps them onto resources -
+        // and the explicit list is for a caller that wants a texture gated the
+        // container gives it no reason to gate. That is not redundant: a
+        // sampler override can introduce an emulated mode the container never
+        // declared, and overrides exist precisely to correct a wrong container.
+        let entry = profile.textures.get(resourceRegister);
+
+        if (!entry)
+        {
+            const samplerRegister = instruction.operands?.[3]?.registerIndex;
+
+            if (!Number.isInteger(samplerRegister)) return call;
+            if (!profile.samplerModes.has(samplerRegister)) return call;
+
+            entry = { color: profile.defaultColor };
+        }
+
+        // A cube coordinate is a DIRECTION, not a texture coordinate, so a
+        // [0,1] test has no meaning on it. Refuse rather than emit a test that
+        // is silently nonsense - the caller must not list cube-target
+        // resources. decalholev5's interior cube and cubetextureviewer are the
+        // shipped cases that reach here.
+        const dimension = state.resourceDimensions.get(resourceRegister);
+
+        if (dimension === CUBE_DIMENSION)
+        {
+            // Reported and skipped, not fatal. `decalholev5` reads its interior
+            // cube through a bordered sampler, so refusing would make a shipped
+            // effect unbuildable over a mode that cannot apply to it anyway -
+            // trading a missing border for no shader at all. Skipping silently
+            // is the other wrong answer, so it goes in warnings.
+            state.warnings.push(
+                `emulated addressing skipped for cube resource t${resourceRegister}: `
+                + "a cube coordinate is a direction, so a [0,1] range test has no meaning"
+            );
+
+            return call;
+        }
+
+        if (coordMask.length !== 2 && coordMask.length !== 3)
+        {
+            throw new WebglReadError(
+                "Emulated addressing supports two- and three-component sampling only",
+                { source: state.sourceName, registerIndex: resourceRegister, coordMask }
+            );
+        }
+
+        const buffer = this._ensureAddressBuffer(state);
+        const swizzle = coordMask.length === 2 ? "xy" : "xyz";
+        const modes = `${buffer}[${resourceRegister}].${swizzle}`;
+        const glslFloat = (n) => (Number.isInteger(n) ? `${n}.0` : String(n));
+        const color = entry.color.map(glslFloat).join(", ");
+
+        // Mirror-once rewrites the coordinate BEFORE the fetch; border tests
+        // after it. Both are emitted: an axis is only ever one of them, and the
+        // unused one reads mode 0 or a native mode and does nothing.
+        const coordHelper = this.helpers.require("cjsAddressCoord");
+        const borderHelper = this.helpers.require("cjsAddressBorder");
+        const addressedCoord = `${coordHelper}(${coord}, ${modes})`;
+        const rewritten = call.split(coord).join(addressedCoord);
+
+        return `${borderHelper}(${rewritten}, ${addressedCoord}, ${modes}, vec4(${color}))`;
+    }
+
+    /**
+   * Declares the emulated-addressing constant buffer, once per shader.
+   *
+   * Sized to the highest listed resource register so the array stays compact,
+   * the way Carbon emitters declare compact `cb` arrays. The register is
+   * caller-chosen and defaults to 8: shipped effects declare only cb0-4, 6 and
+   * 7, and ccpwgl already resolves `cb0`..`cb15` by name, so 8 needs no new
+   * binding table.
+   *
+   * @param {object} state Emit state.
+   * @returns {string} The buffer's GLSL name.
+   * @private
+   */
+    _ensureAddressBuffer(state)
+    {
+        const { bufferRegister, textures } = state.emulatedAddressing;
+        const name = `cb${bufferRegister}`;
+
+        if (state.addressBufferDeclared) return name;
+
+        // Two declarations of one cb name is a GLSL redefinition error that
+        // nothing downstream checks, so catch it here, where the register is
+        // still attributable to a caller's choice.
+        //
+        // Compared by NAME, not by register: `constantBufferNames` is keyed by
+        // DXBC slot while the emitted name uses the remapped register, and on a
+        // pixel stage slot 0 becomes `cb7`. Comparing register to slot would
+        // miss exactly that case and emit two `cb7` declarations.
+        if ([ ...state.constantBufferNames.values() ].includes(name))
+        {
+            throw new WebglReadError(
+                "Emulated-addressing buffer register collides with a declared constant buffer",
+                { source: state.sourceName, bufferRegister }
+            );
+        }
+
+        // Sized from every resource the shader DECLARES, not from the addressed
+        // set: with a derived set the addressed registers are not all known yet,
+        // and the array is indexed by resource register, so it must be long
+        // enough for any of them. DXBC puts declarations before instructions, so
+        // resourceDimensions is complete by the first sample.
+        const highest = Math.max(
+            -1,
+            ...state.resourceDimensions.keys(),
+            ...textures.keys()
+        );
+        const rows = highest + 1;
+
+        if (rows < 1)
+        {
+            throw new WebglReadError(
+                "Emulated addressing found no declared resource to size its buffer",
+                { source: state.sourceName }
+            );
+        }
+
+        state.constantBufferNames.set(bufferRegister, name);
+        state.addressBufferDeclared = true;
+        state.declarationLines.push(`uniform vec4 ${name}[${rows}];`);
+        // An ordinary constantBuffer binding, deliberately with no extra fields.
+        // `cjsSemantic` is reserved vocabulary for the local-light family and
+        // the block writer throws on any other value, and the wire drops fields
+        // it does not encode - so an invented one would vanish for every effect
+        // loaded from bytes, which is exactly how the packed-light branch came
+        // to be silently dead.
+        //
+        // The consumer identifies it by register instead: Carbon declares only
+        // cb0-4, 6 and 7 across all 537 shipped effects, so a constant buffer at
+        // 8 or above is ours. That is a convention, and it is written down in
+        // the addressing contract rather than left to be inferred.
+        state.bindings.push({
+            kind: "constantBuffer",
+            registerIndex: bufferRegister,
+            name,
+            sizeInVec4: rows,
+            style: "array"
+        });
+
+        return name;
     }
 
     /**
@@ -2207,6 +2565,7 @@ export class DxbcGlslEmitter
         {
             call = `texture(${texName}, ${coord})`;
         }
+        call = this._applyEmulatedAddressing(state, instruction, call, coord, coordMask);
         this._assign(state, instruction, `${call}.${returnSwizzle}`, { saturate: instruction.saturate });
     }
 

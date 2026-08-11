@@ -111,6 +111,7 @@ const EMIT_GLSL_OPTION_KEYS = new Set([
     "detailMapArrayRegisters",
     "lightConstantBuffer",
     "lightPackedTexture",
+    "emulatedAddressing",
     "pairVaryings",
     "source"
 ]);
@@ -125,7 +126,8 @@ const EMIT_GLSL_PROFILE_KEYS = new Set([
     "neutralResourceRegisters",
     "detailMapArrayRegisters",
     "lightConstantBuffer",
-    "lightPackedTexture"
+    "lightPackedTexture",
+    "emulatedAddressing"
 ]);
 
 /**

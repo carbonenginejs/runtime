@@ -143,6 +143,7 @@ export function buildEffectPackage(input, options = {})
                 stringTableOffset: stage.bytecode.stringTableOffset,
                 bytes: stage.bytecode.bytes,
                 detailMapArray: stage.detailMapArray,
+                emulatedAddressing: stage.emulatedAddressing,
                 localLights: stage.localLights,
                 contracts: [ {
                     stageKey,
@@ -610,6 +611,10 @@ function collectStages(effectDescription, selection)
                     // The recogniser is shared with WebGPU so both backends
                     // merge exactly the same registers.
                     detailMapArray: recogniseDetailMapFamily(mapToJson(stageInput.resources)),
+                    // Recognised from reflection here, mapped onto resources by
+                    // the emitter, which is the only thing that knows from the
+                    // DXBC which resource each sampler serves.
+                    emulatedAddressing: recogniseEmulatedAddressing(mapToJson(stageInput.samplers)),
                     localLights: recogniseLocalLightFamily(mapToJson(stageInput.resources))
                 });
             }
@@ -772,6 +777,9 @@ function translateStages(shaderMap, stageMap, values)
                 ...(pairVaryings?.length ? { pairVaryings } : {}),
                 ...(record.detailMapArray
                     ? { detailMapArrayRegisters: record.detailMapArray.registers }
+                    : {}),
+                ...(record.emulatedAddressing
+                    ? { emulatedAddressing: record.emulatedAddressing }
                     : {}),
                 ...(localLightEmitterOptions(record.localLights, values.localLights) ?? {}),
                 ...(profileNeutral ?? {})
@@ -975,6 +983,48 @@ function buildStageContract(stage)
         uavs,
         constants
     };
+}
+
+/**
+ * Recognises samplers whose address mode WebGL2 cannot express.
+ *
+ * WebGL2 does REPEAT, MIRRORED_REPEAT and CLAMP_TO_EDGE natively. It has no
+ * CLAMP_TO_BORDER (mode 4) and no MIRROR_ONCE (mode 5), so those are honoured in
+ * the shader and their mode is read at runtime from the address buffer.
+ *
+ * Returns the modes keyed by SAMPLER register. The emitter maps them onto
+ * resources, because only it knows from the DXBC which resource each sampler
+ * serves - and the two are not interchangeable: in `decalv5` five textures share
+ * one bordered sampler, and each can resolve to a different mode at bind time.
+ *
+ * Returns null when nothing needs emulating, which is the common case - 492 of
+ * 537 shipped effects - and keeps those shaders byte-identical to before.
+ *
+ * @param {object[]} samplers Container sampler descriptors, keyed by register.
+ * @returns {{samplerModes:object}|null}
+ */
+function recogniseEmulatedAddressing(samplers)
+{
+    const samplerModes = {};
+
+    for (const entry of samplers ?? [])
+    {
+        const registerIndex = entry?.registerIndex;
+        const sampler = entry?.value?.sampler ?? entry?.sampler;
+
+        if (!Number.isInteger(registerIndex) || !sampler) continue;
+
+        const u = sampler.addressU;
+        const v = sampler.addressV;
+        const w = sampler.addressW;
+
+        if ([ u, v, w ].some((m) => m === 4 || m === 5))
+        {
+            samplerModes[registerIndex] = { u, v, w };
+        }
+    }
+
+    return Object.keys(samplerModes).length ? { samplerModes } : null;
 }
 
 function classifyTexturePacking(names)
