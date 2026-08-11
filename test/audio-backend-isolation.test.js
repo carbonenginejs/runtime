@@ -7806,6 +7806,109 @@ test("Sound-local Parametric EQ precedes live Voice filters and survives as one 
   assert.equal(voiceLowPass.disconnected, true);
 });
 
+test("Sound-local Parametric EQ follows live Game Parameters on mono and stereo voices", async () =>
+{
+  let curveOutput = Math.log10(160);
+  const sourceEffects = [ {
+    effectId: "902",
+    slotIndex: 0,
+    type: "parametric-eq",
+    bands: [ {
+      index: 0,
+      filterType: "peaking",
+      gainDb: 0,
+      frequencyHz: 160,
+      q: 1,
+    } ],
+    outputGainDb: 0,
+    processLfe: false,
+    rtpcCurves: [ {
+      rtpc: "ship_Roll",
+      scope: "object",
+      bandIndex: 0,
+      property: "frequencyHz",
+      accumulation: "exclusive",
+      scaling: 3,
+      defaultValue: 0,
+      points: [
+        { x: 0, value: Math.log10(160), interpolation: 4 },
+        { x: 360, value: Math.log10(3650), interpolation: 4 },
+      ],
+    } ],
+  } ];
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2, numberOfChannels: 2 },
+        loop: false,
+        sourceEffects,
+        getSourceEffectRtpc: () => curveOutput,
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+  const [ equalizer ] = context.filters;
+
+  assert.ok(Math.abs(equalizer.frequency.value - 160) < 0.001);
+  curveOutput = Math.log10(3650);
+  backend.SetRTPCValue("ship_Roll", 360, 1);
+  assert.ok(Math.abs(equalizer.frequency.value - 3650) < 0.01);
+
+  context.sources[0].onended();
+  assert.equal(equalizer.disconnected, true);
+});
+
+test("independent-LFE source EQ fails the whole effect chain dry for multichannel voices", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "902",
+    slotIndex: 0,
+    type: "parametric-eq",
+    bands: [ {
+      index: 0,
+      filterType: "peaking",
+      gainDb: 0,
+      frequencyHz: 160,
+      q: 1,
+    } ],
+    outputGainDb: 0,
+    processLfe: false,
+    rtpcCurves: [ {
+      rtpc: "ship_Roll",
+      scope: "object",
+      bandIndex: 0,
+      property: "frequencyHz",
+      accumulation: "exclusive",
+      scaling: 3,
+      points: [
+        { x: 0, value: Math.log10(160), interpolation: 4 },
+        { x: 360, value: Math.log10(3650), interpolation: 4 },
+      ],
+    } ],
+  } ];
+  const { backend, emitter, context } = Harness({
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2, numberOfChannels: 6 },
+        loop: false,
+        sourceEffects,
+        getSourceEffectRtpc: () => Math.log10(160),
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  assert.equal(context.filters.length, 0);
+  assert.ok(context.sources[0].connectedTo,
+    "unsupported complete effect chain retains dry playback");
+});
+
 test("Sound-local Meter telemetry omission preserves complete-chain policy", async () =>
 {
   const sourceEffects = [ {

@@ -6055,6 +6055,161 @@ test("SFX construction projects complete static Sound-local Parametric EQ", asyn
     } ]);
 });
 
+test("SFX construction projects the evidenced ship-roll Parametric EQ RTPC", async () =>
+{
+    const bands = [
+        { filterTypeId: 3, gainDb: 0, frequencyHz: 160, q: 1, enabled: true },
+        { filterTypeId: 4, gainDb: 0, frequencyHz: 120, q: 1, enabled: false },
+        { filterTypeId: 5, gainDb: 0, frequencyHz: 12000, q: 1, enabled: false },
+    ];
+    const Build = ({
+        controlType = 0,
+        parameterId = 2,
+        accumulation = 1,
+        scaling = 3,
+    } = {}) => CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                ship_roll: {
+                    eventID: 100,
+                    soundbanks: [ "common.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "common.bnk": {
+                    name: "common",
+                    path: "\\SoundBanks\\common.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "common",
+                    GameParameters: [ {
+                        Id: "295209019",
+                        Name: "ship_Roll",
+                    } ],
+                } ],
+            },
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/common.bnk",
+            storagePath: "banks/common.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion: 150,
+                    globalSettings: {
+                        rtpcParameters: [ {
+                            id: 295209019,
+                            defaultValue: 0,
+                        } ],
+                        stateGroups: [],
+                    },
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 1,
+                                    effectId: 900,
+                                    flags: 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 16,
+                            id: 900,
+                            payload: parametricEqEffectPayload({
+                                bands,
+                                processLfe: false,
+                                rtpcs: [ {
+                                    controlId: 295209019,
+                                    controlType,
+                                    accumulation,
+                                    parameterId,
+                                    curveId: 77,
+                                    scaling,
+                                    points: [
+                                        [ 0, Math.log10(160), 4 ],
+                                        [ 360, Math.log10(3650), 4 ],
+                                    ],
+                                } ],
+                            }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const library = await Build();
+    const [ effect ] = library.sfx.nodes["300"].sourceEffects;
+    const [ curve ] = effect.rtpcCurves;
+
+    assert.equal(effect.type, "parametric-eq");
+    assert.equal(effect.processLfe, false);
+    assert.deepEqual(curve, {
+        rtpc: "ship_Roll",
+        scope: "object",
+        bandIndex: 0,
+        property: "frequencyHz",
+        accumulation: "exclusive",
+        scaling: 3,
+        defaultValue: 0,
+        points: [
+            { x: 0, value: curve.points[0].value, interpolation: 4 },
+            { x: 360, value: curve.points[1].value, interpolation: 4 },
+        ],
+    });
+    assert.ok(Math.abs(10 ** curve.points[0].value - 160) < 0.001);
+    assert.ok(Math.abs(10 ** curve.points[1].value - 3650) < 0.01);
+
+    const modulated = await Build({ controlType: 4 });
+    assert.equal(modulated.sfx.nodes["300"].sourceEffects, undefined,
+        "unrealized Wwise modulators keep the complete chain dry");
+    const unmapped = await Build({ parameterId: 1, accumulation: 2 });
+
+    assert.equal(unmapped.sfx.nodes["300"].sourceEffects, undefined,
+        "unpublished plug-in parameter mappings remain fail-closed");
+});
+
 test("SFX construction inherits a complete static Wwise Delay override", async () =>
 {
     const library = await CjsAudioLibraryBuilder.buildFromBanks({
@@ -10970,6 +11125,7 @@ function parametricEqEffectPayload({
     bands,
     outputGainDb = 0,
     processLfe = true,
+    rtpcs = [],
     propertyValues = [],
     pluginId = 0x00690003,
 } = {})
@@ -10992,10 +11148,30 @@ function parametricEqEffectPayload({
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)
-        .u16(0)
-        .u8(0)
-        .u8(0)
-        .u16(propertyValues.length);
+        .u16(rtpcs.length);
+
+    for (let index = 0; index < rtpcs.length; index++)
+    {
+        const rtpc = rtpcs[index];
+
+        writer
+            .u32(rtpc.controlId)
+            .u8(rtpc.controlType ?? 0)
+            .u8(rtpc.accumulation ?? 2)
+            .variable(rtpc.parameterId)
+            .u32(rtpc.curveId ?? index + 1)
+            .u8(rtpc.scaling)
+            .u16(rtpc.points.length);
+
+        for (const [ from, to, interpolation ] of rtpc.points)
+        {
+            writer
+                .f32(from)
+                .f32(to)
+                .u32(interpolation);
+        }
+    }
+    writer.u8(0).u8(0).u16(propertyValues.length);
 
     for (const property of propertyValues)
     {

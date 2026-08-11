@@ -55,6 +55,16 @@ Owns backend SFX voice-limit reservations and their owner/key invariants.
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:CjsWwiseSourceEffectRtpcLane -->
+## `CjsWwiseSourceEffectRtpcLane`
+
+Owns live Web Audio parameter bindings for one qualified source-effect RTPC chain.
+
+- Export: None
+- Source: `src/internal/sourceEffectRtpc.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS original
+
 <!-- class:CjsAudioManSharedAcquisition -->
 ## `CjsAudioManSharedAcquisition`
 

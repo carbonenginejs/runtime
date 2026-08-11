@@ -100,6 +100,7 @@ const WWISE_USER_AUX_HIGH_PASS_PROPERTY = 0x14;
 const WWISE_REFLECTIONS_VOLUME_PROPERTY = 0x1a;
 const WWISE_SILENCE_SOURCE_PLUGIN_ID = 0x00650002;
 const SFX_ADDITIVE_ACCUMULATION = 2;
+const WWISE_EXCLUSIVE_ACCUMULATION = 1;
 const SFX_FILTER_ACCUMULATION = 6;
 const SFX_IMMEDIATE_STATE_SYNC = 0;
 const AUDIO_LANGUAGE_TAGS = Object.freeze({
@@ -925,7 +926,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession {
         type: "sound",
         mediaId: mediaID,
         ...identity,
-        ...CreateSfxSoundEffectProjection(this.#ancestry, this.#effects, id),
+        ...CreateSfxSoundEffectProjection(this.#ancestry, this.#effects, this.#names, id),
         ...(loopCount === 0 ? {
           loop: true
         } : Number.isSafeInteger(loopCount) && loopCount > 0 ? {
@@ -3145,6 +3146,58 @@ function ParseStaticParametricEq(ownerLabel, slot, effect) {
     label: `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`
   });
 }
+function ParseDynamicParametricEq(ownerLabel, slot, effect, names) {
+  if (effect.media?.length || !effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`Wwise Parametric EQ ${effect.id} on ${ownerLabel} has unsupported controls`);
+  }
+  const parsed = parseStaticParametricEqBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`,
+    allowIndependentLfe: true
+  });
+  // The numeric plug-in parameter ID is empirically pinned to the exact EVE
+  // v150 corpus. It is not treated as a universal Audiokinetic enum.
+  const definitions = new Map([[2, {
+    bandIndex: 0,
+    property: "frequencyHz",
+    accumulation: WWISE_EXCLUSIVE_ACCUMULATION,
+    scalings: new Set([3])
+  }]]);
+  const enabledBands = new Set(parsed.bands.map(band => band.index));
+  const targets = new Set();
+  const rtpcCurves = effect.rtpcs.map(rtpc => {
+    const definition = definitions.get(Number(rtpc.parameterId));
+    const controlID = Number(rtpc.controlId) >>> 0;
+    const parameter = names.parameters.get(controlID);
+    const target = definition ? `${definition.bandIndex}:${definition.property}` : "";
+    if (Number(rtpc.controlType) !== 0 || !definition || Number(rtpc.accumulation) !== definition.accumulation || !definition.scalings.has(Number(rtpc.scaling)) || !enabledBands.has(definition.bandIndex) || targets.has(target) || !parameter || !rtpc.points?.length) {
+      throw new Error(`Wwise Parametric EQ ${effect.id} on ${ownerLabel} has unsupported RTPC ${rtpc.curveId}`);
+    }
+    targets.add(target);
+    const defaultValue = names.parameterDefaults.get(controlID);
+    return {
+      rtpc: parameter,
+      scope: "object",
+      bandIndex: definition.bandIndex,
+      property: definition.property,
+      accumulation: definition.accumulation === SFX_ADDITIVE_ACCUMULATION ? "additive" : "exclusive",
+      scaling: Number(rtpc.scaling),
+      ...(defaultValue === undefined ? {} : {
+        defaultValue
+      }),
+      points: rtpc.points.map(point => ({
+        x: Number(point.from),
+        value: Number(point.to),
+        interpolation: Number(point.interpolation)
+      }))
+    };
+  });
+  return {
+    ...parsed,
+    rtpcCurves
+  };
+}
 function ParseStaticWwiseDelay(ownerLabel, slot, effect) {
   if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
     throw new Error(`Wwise Delay ${effect.id} on ${ownerLabel} is not static`);
@@ -3277,10 +3330,11 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId) {
 /**
  * Projects the first complete supported static override in a Sound's NodeBase
  * ancestry. Wwise's FX override replaces the inherited list, so an explicit
- * empty override clears the chain. Dynamic controls, unsupported plug-ins,
- * and independent LFE routing keep the documented dry-playback approximation.
+ * empty override clears the chain. Except for the exact admitted EVE-v150 EQ
+ * frequency RTPC, dynamic controls, unsupported plug-ins, and independent LFE
+ * routing keep the documented dry-playback approximation.
  */
-function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
+function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId) {
   const soundId = Number(rawId) >>> 0;
   let ownerId = 0;
   let fx = null;
@@ -3317,7 +3371,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
         return {};
       }
       if (effect.pluginId === PARAMETRIC_EQ_PLUGIN_ID) {
-        chain.push(ParseStaticParametricEq(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+        const ownerLabel = `NodeBase ${ownerId} inherited by Sound ${soundId}`;
+        chain.push(effect.rtpcs?.length ? ParseDynamicParametricEq(ownerLabel, slot, effect, names) : ParseStaticParametricEq(ownerLabel, slot, effect));
       } else if (effect.pluginId === WWISE_DELAY_PLUGIN_ID) {
         chain.push(ParseStaticWwiseDelay(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_COMPRESSOR_PLUGIN_ID) {

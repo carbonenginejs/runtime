@@ -4775,6 +4775,7 @@ export class CjsAudioBackend
                 wwiseMeterFeedback: this.#wwiseMeterFeedback,
                 sourceChannelCount:
                     descriptor.buffer?.numberOfChannels ?? 1,
+                readSourceEffectRtpc: descriptor.getSourceEffectRtpc,
             },
         );
 
@@ -4921,6 +4922,8 @@ export class CjsAudioBackend
                 highPassFilter,
                 sourceEffectInput: sourceEffectChain?.input ?? null,
                 sourceEffectNodes: sourceEffectChain?.nodes ?? [],
+                sourceEffectRtpcLane:
+                    sourceEffectChain?.sourceEffectRtpcLane ?? null,
                 busEffectNodes: busEffectChain?.nodes ?? [],
             },
         });
@@ -4930,6 +4933,7 @@ export class CjsAudioBackend
         this.#ApplyVoiceBusRtpcGain(voice);
         this.#ApplyVoiceBusGain(voice);
         this.#ApplyVoiceFilters(voice);
+        this.#ApplyVoiceSourceEffects(voice);
         this.#ApplyVoicePlaybackRate(voice);
         this.#voiceLimitLedger.Bind(
             voice,
@@ -6595,6 +6599,7 @@ export class CjsAudioBackend
                     this.#ApplyVoiceBusRtpcGain(voice);
                     this.#ApplyVoiceBusGain(voice);
                     this.#ApplyVoiceFilters(voice);
+                    this.#ApplyVoiceSourceEffects(voice);
                     this.#ApplyVoicePlaybackRate(voice);
                 }
             }
@@ -6954,6 +6959,14 @@ export class CjsAudioBackend
                     now,
                 ),
             ],
+        );
+    }
+
+    /** Applies live RTPC automation to qualified source-effect parameters. */
+    #ApplyVoiceSourceEffects(voice)
+    {
+        voice.sourceEffectRtpcLane?.Apply?.(
+            voice.controlTransitionBoundaries ?? [],
         );
     }
 
@@ -8548,6 +8561,10 @@ function NormalizeVoiceDescriptors(result, eventLoop)
                 : Boolean(value.spatial),
             ...(dryVolumeCurve === undefined ? {} : { dryVolumeCurve }),
             ...(sourceEffects === undefined ? {} : { sourceEffects }),
+            getSourceEffectRtpc:
+                typeof value.getSourceEffectRtpc === "function"
+                    ? value.getSourceEffectRtpc
+                    : null,
             delayMs,
             fadeInMs,
             switchFadeInMs,

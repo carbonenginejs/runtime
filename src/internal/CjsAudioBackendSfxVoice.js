@@ -87,6 +87,7 @@ export class CjsAudioBackendSfxVoice
         this.highPassFilter = nodes.highPassFilter;
         this.sourceEffectInput = nodes.sourceEffectInput;
         this.sourceEffectNodes = nodes.sourceEffectNodes;
+        this.sourceEffectRtpcLane = nodes.sourceEffectRtpcLane;
         this.sourceEffectsStarted = false;
         this.sourceEffectsStopped = false;
         this.busEffectNodes = nodes.busEffectNodes;
@@ -159,6 +160,8 @@ export class CjsAudioBackendSfxVoice
     DisconnectSourceEffects()
     {
         this.StopSourceEffects();
+        this.sourceEffectRtpcLane?.Dispose?.();
+        this.sourceEffectRtpcLane = null;
         for (const node of this.sourceEffectNodes ?? [])
         {
             node.disconnect?.();

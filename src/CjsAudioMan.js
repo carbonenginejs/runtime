@@ -1272,6 +1272,19 @@ export class CjsAudioMan
                             busVoiceVolumeActionControlled:
                                 selection.busVoiceVolumeActionControlled,
                             sourceEffects: selection.sourceEffects,
+                            ...(selection.sourceEffects?.some(effect =>
+                                effect.rtpcCurves?.length)
+                                ? {
+                                    getSourceEffectRtpc: (
+                                        curve,
+                                        at = undefined,
+                                    ) => engine.EvaluateSourceEffectRTPC(
+                                        curve,
+                                        controls,
+                                        at,
+                                    ),
+                                }
+                                : {}),
                             authoredBusVolumeDb:
                                 selection.authoredBusVolumeDb,
                             authoredBusMakeUpGainDb:

@@ -1086,6 +1086,10 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceEqSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect =>
             effect.type === "parametric-eq"));
+    const dynamicSourceEqSounds = sourceEqSounds.filter(node =>
+        node.sourceEffects.some(effect =>
+            effect.type === "parametric-eq"
+            && Array.isArray(effect.rtpcCurves)));
     const sourceDelaySounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "delay"));
     const sourceCompressorSounds = sourceEffectSounds.filter(node =>
@@ -1107,19 +1111,55 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 2792);
+    assert.equal(sourceEffectSounds.length, 2962);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 2857);
-    assert.equal(sourceEqSounds.length, 286);
+        count + node.sourceEffects.length, 0), 3039);
+    assert.equal(sourceEqSounds.length, 456);
+    assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2033);
     assert.equal(sourcePeakLimiterSounds.length, 73);
-    assert.equal(sourceFlangerSounds.length, 9);
+    assert.equal(sourceFlangerSounds.length, 21);
     assert.equal(sourceTremoloSounds.length, 148);
     assert.equal(sourceGuitarDistortionSounds.length, 69);
     assert.equal(sourceMatrixReverbSounds.length, 50);
     assert.equal(sourceRoomVerbSounds.length, 52);
     assert.equal(sourceMeterSounds.length, 49);
+    assert.deepEqual(graph.nodes["3270488"].sourceEffects, [ {
+        effectId: "3835448648",
+        slotIndex: 1,
+        type: "parametric-eq",
+        bands: [ {
+            index: 0,
+            filterType: "peaking",
+            gainDb: 0,
+            frequencyHz: 120,
+            q: 0.5,
+        } ],
+        outputGainDb: -3,
+        processLfe: false,
+        rtpcCurves: [ {
+            rtpc: "ship_Roll",
+            scope: "object",
+            bandIndex: 0,
+            property: "frequencyHz",
+            accumulation: "exclusive",
+            scaling: 3,
+            defaultValue: 0,
+            points: [
+                {
+                    x: 0,
+                    value: Math.fround(Math.log10(160)),
+                    interpolation: 2,
+                },
+                {
+                    x: 360,
+                    value: Math.fround(Math.log10(3650)),
+                    interpolation: 4,
+                },
+            ],
+        } ],
+    } ]);
     assert.deepEqual(graph.nodes["20988277"].sourceEffects, [ {
         effectId: "777891344",
         slotIndex: 0,
@@ -1197,13 +1237,25 @@ test("committed demo library carries authored SFX and music semantics", () =>
         [
             [ "87619569", "632408785", "2906410516" ],
             [ "206604303", "689827705", "2906410516" ],
+            [ "292533695", "487219032", "706763456" ],
+            [ "293792304", "46253731", "636129930" ],
+            [ "298447693", "487219032", "877054924" ],
+            [ "304815500", "357773066", "636129930" ],
             [ "334487613", "170814237", "2906410516" ],
+            [ "337117908", "357773066", "706763456" ],
+            [ "494971020", "46253731", "706763456" ],
+            [ "531596895", "487219032", "746828992" ],
             [ "639168720", "287274205", "2906410516" ],
+            [ "656720365", "357773066", "746828992" ],
             [ "673321208", "661144132", "290827855" ],
+            [ "721771466", "487219032", "636129930" ],
+            [ "797614024", "357773066", "877054924" ],
             [ "806298936", "689827705", "2906410516" ],
             [ "829586991", "170814237", "2906410516" ],
             [ "872272200", "632408785", "2906410516" ],
+            [ "874311158", "46253731", "877054924" ],
             [ "908140579", "287274205", "2906410516" ],
+            [ "914319909", "46253731", "746828992" ],
         ],
     );
     assert.deepEqual(
@@ -1279,6 +1331,10 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ecx_generic_explosive_individual_01c_play",
         "ecx_generic_explosive_long_individual_01c_play",
         "ecx_generic_lco_explosive_individual_01c_play",
+        "ship_engine_S_booster_1st_on",
+        "ship_engine_S_booster_3rd_on",
+        "ship_engine_XS_booster_1st_on",
+        "ship_engine_XS_booster_3rd_on",
         "worldobject_jumpgate_activity_play",
     ]);
     const tremoloSoundIds = new Set(Object.entries(graph.nodes)
@@ -1572,47 +1628,29 @@ test("committed demo library carries authored SFX and music semantics", () =>
         undefined,
         "independent Parametric EQ LFE routing keeps the whole chain dry",
     );
-    assert.deepEqual(
-        [
-            [ "292533695", "487219032" ],
-            [ "293792304", "46253731" ],
-            [ "298447693", "487219032" ],
-            [ "304815500", "357773066" ],
-            [ "337117908", "357773066" ],
-            [ "494971020", "46253731" ],
-            [ "531596895", "487219032" ],
-            [ "656720365", "357773066" ],
-            [ "721771466", "487219032" ],
-            [ "797614024", "357773066" ],
-            [ "874311158", "46253731" ],
-            [ "914319909", "46253731" ],
-        ].map(([ id ]) => [
-            id,
-            graph.nodes[id]?.mediaId,
-            graph.nodes[id]?.sourceEffects,
-        ]),
-        [
-            [ "292533695", "487219032", undefined ],
-            [ "293792304", "46253731", undefined ],
-            [ "298447693", "487219032", undefined ],
-            [ "304815500", "357773066", undefined ],
-            [ "337117908", "357773066", undefined ],
-            [ "494971020", "46253731", undefined ],
-            [ "531596895", "487219032", undefined ],
-            [ "656720365", "357773066", undefined ],
-            [ "721771466", "487219032", undefined ],
-            [ "797614024", "357773066", undefined ],
-            [ "874311158", "46253731", undefined ],
-            [ "914319909", "46253731", undefined ],
-        ],
-        "static Flanger plus dynamic EQ stays atomically dry",
-    );
+    const flangerShipRollIds = [
+        "292533695", "293792304", "298447693", "304815500",
+        "337117908", "494971020", "531596895", "656720365",
+        "721771466", "797614024", "874311158", "914319909",
+    ];
+
+    assert.ok(flangerShipRollIds.every(id =>
+    {
+        const effects = graph.nodes[id]?.sourceEffects;
+        const equalizer = effects?.[1];
+
+        return effects?.length === 2
+            && effects[0].type === "flanger"
+            && equalizer.type === "parametric-eq"
+            && equalizer.rtpcCurves?.[0]?.rtpc === "ship_Roll"
+            && equalizer.rtpcCurves[0].property === "frequencyHz";
+    }), "static Flanger plus ship-roll EQ survives as one complete chain");
     assert.equal(
         sourceEqSounds.filter(node => node.sourceEffects.some(effect =>
             effect.type === "parametric-eq"
             && (effect.outputGainDb !== 0
                 || effect.bands.some(band => band.gainDb !== 0)))).length,
-        190,
+        360,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(

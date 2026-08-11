@@ -2686,7 +2686,8 @@ class CjsAudioBackend {
       wwiseReverb: this.#wwiseReverb,
       wwiseRoomVerb: this.#wwiseRoomVerb,
       wwiseMeterFeedback: this.#wwiseMeterFeedback,
-      sourceChannelCount: descriptor.buffer?.numberOfChannels ?? 1
+      sourceChannelCount: descriptor.buffer?.numberOfChannels ?? 1,
+      readSourceEffectRtpc: descriptor.getSourceEffectRtpc
     });
     if (lowPassFilter) {
       lowPassFilter.type = "lowpass";
@@ -2764,6 +2765,7 @@ class CjsAudioBackend {
         highPassFilter,
         sourceEffectInput: sourceEffectChain?.input ?? null,
         sourceEffectNodes: sourceEffectChain?.nodes ?? [],
+        sourceEffectRtpcLane: sourceEffectChain?.sourceEffectRtpcLane ?? null,
         busEffectNodes: busEffectChain?.nodes ?? []
       }
     });
@@ -2772,6 +2774,7 @@ class CjsAudioBackend {
     this.#ApplyVoiceBusRtpcGain(voice);
     this.#ApplyVoiceBusGain(voice);
     this.#ApplyVoiceFilters(voice);
+    this.#ApplyVoiceSourceEffects(voice);
     this.#ApplyVoicePlaybackRate(voice);
     this.#voiceLimitLedger.Bind(voice, descriptor.voiceLimitReservationId);
     return voice;
@@ -3607,6 +3610,7 @@ class CjsAudioBackend {
           this.#ApplyVoiceBusRtpcGain(voice);
           this.#ApplyVoiceBusGain(voice);
           this.#ApplyVoiceFilters(voice);
+          this.#ApplyVoiceSourceEffects(voice);
           this.#ApplyVoicePlaybackRate(voice);
         }
       }
@@ -3806,6 +3810,11 @@ class CjsAudioBackend {
     };
     ApplyVoiceFilter(voice.lowPassFilter, (additional, at) => voice.getLowPassAtAdditionalPercent?.(additional, at) ?? (Number(voice.getLowPass?.(at)) || 0) + additional, at => evaluateBus(at).lowPass, false, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceLowPassStates, voice.matchIds, now)]);
     ApplyVoiceFilter(voice.highPassFilter, (additional, at) => voice.getHighPassAtAdditionalPercent?.(additional, at) ?? (Number(voice.getHighPass?.(at)) || 0) + additional, at => evaluateBus(at).highPass, true, this.#context, [...(voice.controlTransitionBoundaries ?? []), ...VoiceTargetTransitionBoundaries(voice.voiceHighPassStates, voice.matchIds, now)]);
+  }
+
+  /** Applies live RTPC automation to qualified source-effect parameters. */
+  #ApplyVoiceSourceEffects(voice) {
+    voice.sourceEffectRtpcLane?.Apply?.(voice.controlTransitionBoundaries ?? []);
   }
 
   /** Advances one live voice's media and finite-repeat clocks to a context time. */
@@ -4652,6 +4661,7 @@ function NormalizeVoiceDescriptors(result, eventLoop) {
       ...(sourceEffects === undefined ? {} : {
         sourceEffects
       }),
+      getSourceEffectRtpc: typeof value.getSourceEffectRtpc === "function" ? value.getSourceEffectRtpc : null,
       delayMs,
       fadeInMs,
       switchFadeInMs,

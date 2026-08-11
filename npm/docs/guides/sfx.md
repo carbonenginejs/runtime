@@ -268,14 +268,16 @@ All and All-Except use qualified exact stored bus identities; EVE currently
 exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
-static Parametric EQ, Wwise Delay, and qualified Wwise Compressor, Peak
+Parametric EQ, Wwise Delay, and qualified Wwise Compressor, Peak
 Limiter, Flanger, Tremolo, Guitar Distortion, Matrix Reverb, or RoomVerb
 records. The
 builder walks the Sound's NodeBase
 ancestry to the first effect
 override, treating a root list as effective and an explicit empty override as
 a replacement that clears the parent list. It emits the chain only when every
-active slot is a control-free supported effect with an admitted static shape;
+active slot is a supported effect with an admitted shape; almost all admitted
+effects are control-free and static. The bounded dynamic exception is the
+EVE-v150 Parametric EQ `ParamID 2` Game Parameter shape described below;
 dynamics additionally require linked channels and timing within the Web Audio
 adapter's bounds. Playback creates one Web Audio chain per physical voice
 before the authored Voice LPF/HPF, gain, spatial/auxiliary split, and Audio Bus
@@ -292,6 +294,25 @@ interpretation used by the shared-bus adapter because pinned wwiser does not
 decode Compressor parameters. Web Audio's fixed lookahead, automatic makeup,
 detector/envelope law, ratio ceiling, and channel behavior therefore remain
 non-equivalent to Wwise.
+
+The builder admits one empirical live Parametric EQ combination observed in
+the pinned EVE 3453885 v150 corpus: plug-in `0x00690003`, `ParamID 2`, Game
+Parameter control, exclusive accumulation, and scaling 3. It maps the authored
+curve to Band 1 Frequency as `10 ** output`, preserving Wwise curve
+interpolation and object RTPC, global RTPC, then STMG default precedence. The
+current EVE records are all driven by `ship_Roll` from `0..360`, producing
+about `160..3650 Hz`. The runtime schedules the browser biquad over known RTPC
+transition boundaries and clamps frequency to the context Nyquist limit.
+
+This is an exact EVE-v150 record adaptation, not a claim that Audiokinetic
+publishes `ParamID 2` as a stable universal enum. The same records author
+`processLfe:false`; mono and stereo decoded sources have no separate LFE
+channel, so their topology is preserved. A source with more than two decoded
+channels keeps the complete effect chain audible and dry. Parametric EQ
+parameters 1 and 7 in this corpus are driven by Wwise Modulator objects, not
+Game Parameters. They remain unsupported until the resource layer exposes the
+corresponding HIRC modulator records and runtime-audio owns a voice-local
+modulator lifecycle.
 
 Qualified Flanger records are also retained as authored base records. They use
 the independent `wwiseModulation: "approximate-web-audio"` opt-in; strict mode
@@ -398,10 +419,11 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 2,792
-qualified Sound leaves carrying 2,857 effect records: 286 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 2,962
+qualified Sound leaves carrying 3,039 effect records: 456 use Parametric EQ,
+including 170 leaves with live `ship_Roll` Band 1 Frequency,
 87 use Wwise Delay, 2,033 use
-Compressor, 73 use Peak Limiter, nine use Flanger across five retained events,
+Compressor, 73 use Peak Limiter, 21 use Flanger across nine retained events,
 149 Tremolo stages occur on 148 Sounds across 80 retained events, 69 use
 static Guitar Distortion across 23 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
@@ -424,10 +446,11 @@ Limiter leaves all inherit Custom effect
 at least one Compressor leaf. The
 Compressor population contains nine complete chain signatures, including
 eight leaves where it precedes one qualified EQ. There are now 190 non-neutral
-EQ chains. Sound `350811697` remains atomically dry because its preceding EQ
+static EQ chains and 360 non-neutral EQ chains including the live-EQ records.
+Sound `350811697` remains atomically dry because its preceding EQ
 requires unsupported independent LFE routing. Twelve additional
-static-Flanger leaves stay dry because their second slot is a dynamic
-Parametric EQ; dynamic or unsupported mixed Tremolo chains remain dry too.
+static-Flanger leaves now survive with their supported live Parametric EQ in
+slot 1; dynamic or unsupported mixed Tremolo chains remain dry.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its
@@ -692,10 +715,12 @@ busEffects: {
 ```
 
 The v150 adapter follows wwiser's 56-byte Parametric EQ layout, retains slot
-and band order, and realizes enabled bands with Web Audio biquads. Routed EQs
-with RTPC, State, property, or media
-controls fail closed. `processLfe` must be true until the browser runtime owns
-an independent LFE branch. Authored-neutral EQs remain in the catalog but do
+and band order, and realizes enabled bands with Web Audio biquads. Routed Bus
+EQs with RTPC, State, property, or media controls fail closed. Bus
+`processLfe` must be true until the browser runtime owns an independent LFE
+branch. Source-local EQ additionally admits the exact Game Parameter form
+described above and permits `processLfe:false` only when the decoded voice is
+mono or stereo. Authored-neutral EQs remain in the catalog but do
 not allocate browser nodes. A distributed EQ is emitted only when the complete
 routed ancestry contains no active unsupported effect slot. Bypassed slots do
 not block it; an active Compressor, Peak Limiter, reverb, Meter, or unknown

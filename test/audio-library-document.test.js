@@ -420,6 +420,18 @@ test("validates and freezes the optional static Audio Bus effect catalog", () =>
         value => { value.buses["500"][0].bands[0].filterType = "allpass"; },
         value => { value.buses["500"][0].bands[0].frequencyHz = 0; },
         value => { value.buses["500"][0].processLfe = false; },
+        value =>
+        {
+            value.buses["500"][0].rtpcCurves = [ {
+                rtpc: "ship_Roll",
+                scope: "global",
+                bandIndex: 1,
+                property: "frequencyHz",
+                accumulation: "exclusive",
+                scaling: 3,
+                points: [ { x: 0, value: Math.log10(160) } ],
+            } ];
+        },
     ])
     {
         const invalid = structuredClone(source);
@@ -1904,9 +1916,45 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         /sourceEffects require a sound node/u,
     );
 
+    const independentLfeSourceEffects = structuredClone(valid);
+
+    independentLfeSourceEffects.sfx.nodes["2"].sourceEffects[1]
+        .processLfe = false;
+    assert.equal(
+        validateAudioLibraryDocument(independentLfeSourceEffects),
+        true,
+    );
+
+    const dynamicSourceEq = structuredClone(independentLfeSourceEffects);
+
+    dynamicSourceEq.sfx.nodes["2"].sourceEffects[1].rtpcCurves = [ {
+        rtpc: "ship_Roll",
+        scope: "object",
+        bandIndex: 0,
+        property: "frequencyHz",
+        accumulation: "exclusive",
+        scaling: 3,
+        defaultValue: 0,
+        points: [
+            { x: 0, value: Math.log10(160), interpolation: 4 },
+            { x: 360, value: Math.log10(3650), interpolation: 4 },
+        ],
+    } ];
+    assert.equal(validateAudioLibraryDocument(dynamicSourceEq), true);
+
+    const malformedDynamicSourceEq = structuredClone(dynamicSourceEq);
+
+    malformedDynamicSourceEq.sfx.nodes["2"].sourceEffects[1]
+        .rtpcCurves[0].scaling = 2;
+    assert.throws(
+        () => validateAudioLibraryDocument(malformedDynamicSourceEq),
+        /scaling is unsupported/u,
+    );
+
     const malformedSourceEffects = structuredClone(valid);
 
-    malformedSourceEffects.sfx.nodes["2"].sourceEffects[1].processLfe = false;
+    malformedSourceEffects.sfx.nodes["2"].sourceEffects[1]
+        .processLfe = "false";
     assert.throws(
         () => validateAudioLibraryDocument(malformedSourceEffects),
         /processLfe must be true/u,

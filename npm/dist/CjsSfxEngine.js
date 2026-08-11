@@ -656,6 +656,12 @@ class CjsSfxEngine {
     return linearGain * 10 ** (gainDb / 20);
   }
 
+  /** Evaluates one qualified source-effect RTPC curve at a control time. */
+  EvaluateSourceEffectRTPC(curve, controls = {}, at = undefined) {
+    const value = ReadRTPC(curve, controls, true, at);
+    return EvaluateValueCurve(curve.points, value);
+  }
+
   /** Evaluates one resolved leaf's current playback rate from global states. */
   EvaluatePlaybackRate(selection, controls = {}, voicePitchCents = undefined, at = undefined) {
     const authoredPlaybackRate = selection?.authoredPlaybackRate ?? selection?.[AUTHORED_PLAYBACK_RATE];

@@ -385,6 +385,47 @@ test("Wwise filters accumulate static, State, and live RTPC values", () =>
     assert.equal(engine.EvaluateHighPass(selection, controls), 3);
 });
 
+test("source-effect RTPC curves retain object, global, and authored-default precedence", () =>
+{
+    const engine = new CjsSfxEngine({ graph: Graph({}, {}) });
+    const curve = {
+        rtpc: "ship_Roll",
+        scope: "object",
+        defaultValue: 90,
+        points: [
+            { x: 0, value: Math.log10(160), interpolation: 4 },
+            { x: 360, value: Math.log10(3650), interpolation: 4 },
+        ],
+    };
+    const objectValues = new Map([ [ "ship_Roll", 180 ] ]);
+    const globalValues = new Map([ [ "ship_Roll", 270 ] ]);
+    const controls = {
+        getRTPC: name => objectValues.get(name),
+        getGlobalRTPC: name => globalValues.get(name),
+    };
+
+    assert.equal(
+        engine.EvaluateSourceEffectRTPC(curve, controls),
+        Math.log10(160) + (
+            Math.log10(3650) - Math.log10(160)
+        ) / 2,
+    );
+    objectValues.clear();
+    assert.equal(
+        engine.EvaluateSourceEffectRTPC(curve, controls),
+        Math.log10(160) + (
+            Math.log10(3650) - Math.log10(160)
+        ) * 0.75,
+    );
+    globalValues.clear();
+    assert.equal(
+        engine.EvaluateSourceEffectRTPC(curve, controls),
+        Math.log10(160) + (
+            Math.log10(3650) - Math.log10(160)
+        ) * 0.25,
+    );
+});
+
 test("NodeBase RTPC curves add live volume and pitch but capture delay", () =>
 {
     const objectValues = new Map([

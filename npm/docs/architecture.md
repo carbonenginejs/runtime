@@ -42,9 +42,11 @@ WEM format import lazy until original WEM bytes actually need preparation.
 When asked to construct authored SFX from banks, the builder resolves raw
 version-150 NodeBase and Actor-Mixer inheritance supplied by
 `runtime-resource` and projects qualified per-leaf positioning, dry-volume
-distance curves, event culling metadata, and complete effective static
+distance curves, event culling metadata, and complete effective admitted
 Sound-local Parametric EQ/Wwise Delay/Matrix Reverb/RoomVerb overrides into the final
 document. It
+retains one exact EVE-v150 Game Parameter-controlled Parametric EQ frequency
+form; general dynamic effect controls and Wwise Modulators remain barriers.
 also follows
 qualified static Wwise Silence sources to their referenced effect parameters;
 the browser realizes their finite lifecycle with one constant-memory silent

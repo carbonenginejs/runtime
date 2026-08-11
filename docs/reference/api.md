@@ -101,12 +101,22 @@ raw Wwise scaling-2 values, including the authored parameter default, a
 `property` tag, and ordered graph points. SFX evaluates both properties for
 every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
 built SFX `sound` nodes may additionally retain an ordered `sourceEffects`
-array for the complete effective static Parametric EQ, Wwise Delay, or
+array for the complete effective Parametric EQ, Wwise Delay, or
 qualified Wwise Compressor/Peak Limiter/Flanger/Tremolo/Guitar
 Distortion/Matrix Reverb/RoomVerb override in their
 NodeBase ancestry.
 An explicit empty override clears the inherited list.
 Those effects are voice-owned and precede Voice LPF/HPF and route splitting.
+Parametric EQ records may carry `rtpcCurves`. The builder currently emits only
+the exact EVE-v150 Game Parameter `ParamID 2` form: object-scoped
+`ship_Roll`, exclusive accumulation, scaling 3, Band 1 `frequencyHz`, an STMG
+default, and ordered Wwise curve points. Playback reads object RTPC, global
+RTPC, then the retained default; converts the curve output with `10 ** value`;
+and schedules the bound biquad over known transition boundaries. This
+corpus-derived numeric mapping is not a general Wwise plug-in enum. Other
+dynamic EQ properties and Wwise Modulator controls remain unsupported.
+`processLfe:false` source EQ is realized only for decoded mono/stereo buffers;
+multichannel voices keep the complete source chain audible and dry.
 Built Matrix Reverb records remain dry by default. Hosts may select
 `wwiseReverb: "approximate-web-audio"` on `CjsAudioMan`, `CjsAudioSystem`, or
 `CjsAudioBackend` to realize the documented bounded source-local browser

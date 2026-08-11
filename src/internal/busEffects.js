@@ -10,6 +10,7 @@ import {
     prepareWwiseRoomVerbApproximation,
     WWISE_ROOMVERB_PLUGIN_ID,
 } from "./wwiseRoomVerb.js";
+import { createWwiseSourceEffectRtpcLane } from "./sourceEffectRtpc.js";
 
 export {
     normalizeWwiseRoomVerbMode,
@@ -283,6 +284,115 @@ export function normalizeStaticParametricEqChain(value, ownerLabel)
 export function normalizeStaticSourceEffectChain(value, ownerLabel)
 {
     return NormalizeStaticWwiseEffectChain(value, ownerLabel, true);
+}
+
+function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel)
+{
+    if (!Array.isArray(value) || !value.length)
+    {
+        throw new TypeError(`${ownerLabel} rtpcCurves must not be empty`);
+    }
+    const bandIndices = new Set(bands.map(band => band.index));
+    const targets = new Set();
+
+    return Object.freeze(value.map((rawCurve, index) =>
+    {
+        const label = `${ownerLabel} rtpcCurve ${index}`;
+        const curve = RequireRecord(rawCurve, label);
+        const rtpc = String(curve.rtpc ?? "").trim();
+        const scope = curve.scope ?? "object";
+        const bandIndex = BoundedInteger(
+            curve.bandIndex,
+            0,
+            2,
+            `${label} bandIndex`,
+        );
+        const property = String(curve.property ?? "");
+        const accumulation = String(curve.accumulation ?? "");
+        const scaling = BoundedInteger(
+            curve.scaling,
+            0,
+            3,
+            `${label} scaling`,
+        );
+        const target = `${bandIndex}:${property}`;
+
+        if (!rtpc) throw new TypeError(`${label} rtpc must not be empty`);
+        if (scope !== "object" && scope !== "global")
+        {
+            throw new TypeError(`${label} scope is unsupported`);
+        }
+        if (!bandIndices.has(bandIndex))
+        {
+            throw new TypeError(`${label} targets a disabled band`);
+        }
+        if (property !== "gainDb" && property !== "frequencyHz")
+        {
+            throw new TypeError(`${label} property is unsupported`);
+        }
+        if (accumulation !== "exclusive" && accumulation !== "additive")
+        {
+            throw new TypeError(`${label} accumulation is unsupported`);
+        }
+        if ((property === "gainDb" && scaling !== 0 && scaling !== 2)
+            || (property === "frequencyHz" && scaling !== 3))
+        {
+            throw new TypeError(`${label} scaling is unsupported`);
+        }
+        if (targets.has(target))
+        {
+            throw new TypeError(`${label} duplicates ${target}`);
+        }
+        targets.add(target);
+        if (!Array.isArray(curve.points) || !curve.points.length)
+        {
+            throw new TypeError(`${label} points must not be empty`);
+        }
+        let previous = -Infinity;
+        const points = curve.points.map((rawPoint, pointIndex) =>
+        {
+            const point = RequireRecord(
+                rawPoint,
+                `${label} point ${pointIndex}`,
+            );
+            const x = Number(point.x);
+            const output = Number(point.value);
+            const interpolation = Number(point.interpolation ?? 4);
+
+            if (!Number.isFinite(x)
+                || !Number.isFinite(output)
+                || x < previous)
+            {
+                throw new TypeError(`${label} points are invalid or unsorted`);
+            }
+            if (!Number.isSafeInteger(interpolation)
+                || interpolation < 0
+                || interpolation > 9)
+            {
+                throw new TypeError(`${label} interpolation is unsupported`);
+            }
+            previous = x;
+            return Object.freeze({ x, value: output, interpolation });
+        });
+        const defaultValue = curve.defaultValue === undefined
+            ? undefined
+            : Number(curve.defaultValue);
+
+        if (defaultValue !== undefined && !Number.isFinite(defaultValue))
+        {
+            throw new TypeError(`${label} defaultValue must be finite`);
+        }
+        return Object.freeze({
+            rtpc,
+            scope,
+            bandIndex,
+            property,
+            accumulation,
+            scaling,
+            ...(defaultValue === undefined ? {} : { defaultValue }),
+            points: Object.freeze(points),
+        });
+    }));
 }
 
 function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
@@ -804,12 +914,27 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
             });
         }).sort((left, right) => left.index - right.index);
 
-        if (effect.processLfe !== true)
+        if (effect.processLfe !== true
+            && (!allowSourceEffects || effect.processLfe !== false))
         {
             throw new TypeError(
                 `${label} processLfe must be true until independent LFE routing is supported`,
             );
         }
+        if (!allowSourceEffects && effect.rtpcCurves !== undefined)
+        {
+            throw new TypeError(
+                `${label} rtpcCurves require a source effect chain`,
+            );
+        }
+        const rtpcCurves = effect.rtpcCurves === undefined
+            ? undefined
+            : NormalizeParametricEqRtpcCurves(
+                effect.rtpcCurves,
+                bands,
+                label,
+            );
+
         return Object.freeze({
             effectId,
             slotIndex,
@@ -819,7 +944,8 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 effect.outputGainDb,
                 `${label} outputGainDb`,
             ),
-            processLfe: true,
+            processLfe: effect.processLfe,
+            ...(rtpcCurves === undefined ? {} : { rtpcCurves }),
         });
     }).sort((left, right) => left.slotIndex - right.slotIndex);
 
@@ -851,6 +977,7 @@ export function createWwiseEffectChain(
         wwiseRoomVerb = "strict",
         wwiseMeterFeedback = "strict",
         sourceChannelCount = 1,
+        readSourceEffectRtpc = null,
     } = {},
 )
 {
@@ -931,6 +1058,11 @@ export function createWwiseEffectChain(
         return null;
     }
     if (sourceRoomVerbs.length && roomVerbMode === "strict")
+    {
+        return null;
+    }
+    if (sourceChannelCount > 2
+        && sourceEqualizers.some(effect => effect.processLfe === false))
     {
         return null;
     }
@@ -1067,6 +1199,7 @@ export function createWwiseEffectChain(
                 }
             : effect);
     const nodes = [];
+    const sourceEffectRtpcBindings = [];
     let input = null;
     let output = null;
 
@@ -1173,6 +1306,19 @@ export function createWwiseEffectChain(
             const filter = CreateBiquadFilter(context, band);
 
             append(filter);
+            for (const curve of effect.rtpcCurves ?? [])
+            {
+                if (curve.bandIndex !== band.index) continue;
+                sourceEffectRtpcBindings.push({
+                    curve,
+                    baseValue: curve.property === "gainDb"
+                        ? band.gainDb
+                        : band.frequencyHz,
+                    param: curve.property === "gainDb"
+                        ? filter.gain
+                        : filter.frequency,
+                });
+            }
         }
         if (effect.outputGainDb !== 0)
         {
@@ -1188,7 +1334,16 @@ export function createWwiseEffectChain(
             append(gain);
         }
     }
-    return input ? { input, output, nodes } : null;
+    return input ? {
+        input,
+        output,
+        nodes,
+        sourceEffectRtpcLane: createWwiseSourceEffectRtpcLane(
+            context,
+            sourceEffectRtpcBindings,
+            readSourceEffectRtpc,
+        ),
+    } : null;
 }
 
 /** Creates the bounded browser approximation of static Wwise distortion. */
@@ -1469,6 +1624,7 @@ export function parseStaticParametricEqBytes(
         effectId,
         slotIndex,
         label = `Wwise Parametric EQ ${effectId}`,
+        allowIndependentLfe = false,
     } = {},
 )
 {
@@ -1525,7 +1681,10 @@ export function parseStaticParametricEqBytes(
     {
         throw new TypeError(`${label} has invalid output gain`);
     }
-    if (view.getUint8(at + 4) !== 1)
+    const processLfeRaw = view.getUint8(at + 4);
+
+    if (processLfeRaw > 1
+        || (processLfeRaw !== 1 && !allowIndependentLfe))
     {
         throw new TypeError(`${label} requires unsupported independent LFE routing`);
     }
@@ -1535,7 +1694,7 @@ export function parseStaticParametricEqBytes(
         type: "parametric-eq",
         bands,
         outputGainDb,
-        processLfe: true,
+        processLfe: processLfeRaw === 1,
     };
 }
 

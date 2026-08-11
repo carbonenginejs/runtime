@@ -137,7 +137,9 @@ only. The builder keeps raw graph values because Wwise interpolates them
 before converting `-1` to `-96.3 dB` and other values with
 `20 * log10(value + 1)`. Keeping these contributions distinct preserves their
 future placement when real bus and effect stages replace the collapsed gain.
-Static v150 Parametric EQ and Wwise Delay are the implemented DSP adapters. Feedback-free
+Static v150 Parametric EQ and Wwise Delay are the implemented DSP adapters.
+One bounded source-local EVE-v150 Parametric EQ Game Parameter form is also
+implemented; it does not make general dynamic effect controls admissible. Feedback-free
 v150 Meter records have a qualified audio-transparent omission contract, but
 Meter telemetry is not implemented. One qualified SFX-only static user send is
 implemented when its neutral-filter Auxiliary return rejoins the dry ancestry;
@@ -172,21 +174,21 @@ silently promoted; their SFX NodeBase effect slots remain unsupported.
 The later EVE build 3453885 source-local path resolves the first effective
 NodeBase effect override for every retained Sound. A descendant override
 replaces its parent list, an explicit empty override clears it, and a root list
-is effective even when its override bit is clear. Complete static,
-control-free Parametric EQ/Wwise Delay/Matrix Reverb/RoomVerb/Meter chains are projected
+is effective even when its override bit is clear. Complete admitted
+Parametric EQ/Wwise Delay/Matrix Reverb/RoomVerb/Meter chains are projected
 once per voice
 before Voice LPF/HPF and the emitter/auxiliary split. The exact demo currently
-retains 286 qualified EQ Sound leaves and 87 Delay leaves. Of the EQ leaves,
-190 are acoustically non-neutral; 15 belong to complete admitted Tremolo/EQ
-chains and 24 precede RoomVerb. EQ leaves with live controls and Sound
-`350811697`'s independently
-routed LFE shape remain dry-playback approximations. Overlapping
+retains 456 qualified EQ Sound leaves and 87 Delay leaves. Of the EQ leaves,
+360 are acoustically non-neutral; 170 use the exact live `ship_Roll` frequency
+form, 15 belong to complete admitted Tremolo/EQ chains, and 24 precede
+RoomVerb. Other EQ leaves with live controls and Sound `350811697`'s
+independently routed LFE shape remain dry-playback approximations. Overlapping
 property-value, unsupported-plug-in, and other independent-LFE barriers are
 not partially applied.
 
 The builder and shared mixer follow pinned wwiser's version-150 56-byte
 parameter layout, validate exact boolean bytes and ShareSet/Custom slot
-identity, preserve bus, slot, and band order, and reject routed
+identity, preserve bus, slot, and band order, and reject routed Bus
 `processLfe:false` until an independent browser LFE branch exists. A fully
 qualified graph route now realizes one ordered Web Audio EQ chain per Bus after
 SFX spatialization or music route envelopes. Blocked and graphless paths retain
@@ -194,6 +196,20 @@ the distributed source-route fallback. The field decoding and graph placement
 are exact, but Web Audio biquads are not claimed to be native Wwise DSP. EVE's
 reachable EQ follows an active Compressor in Wwise slot order, so its chain
 remains blocked rather than stacking a nonlinear stage per voice.
+
+The source-local exception accepts only the empirically evidenced v150
+combination `ParamID 2`, control type Game Parameter, exclusive accumulation,
+and log-frequency scaling. It maps the curve to Band 1 Frequency and preserves
+object RTPC, global RTPC, then STMG default precedence. All current EVE records
+use `ship_Roll` over `0..360`, producing approximately `160..3650 Hz`.
+Scheduling samples the existing Wwise interpolation over known control
+transition boundaries. The `ParamID 2` mapping is an exact corpus adaptation,
+not a published universal Wwise plug-in enum. These records also author
+`processLfe:false`; they are realized only for decoded mono/stereo voices,
+where no independent LFE channel exists. Multichannel playback keeps the whole
+chain dry. Parameters 1 and 7 are driven by Wwise Modulator controls in this
+corpus and remain unsupported until their HIRC objects and voice-local
+lifecycle are available.
 
 Pinned wwiser proves the v150 Wwise Delay's 18-byte layout: float32 Delay Time,
 Feedback, Wet/Dry Mix, and Output Level followed by one-byte Enable Feedback
@@ -568,10 +584,11 @@ lifecycle.
 EVE build 3453885 projects nine isolated static-Flanger Sound leaves across
 `dungeon_brothel_atmo_play`, three `ecx_*explosive*` events, and
 `worldobject_jumpgate_activity_play`. Eight use ShareSet `2906410516`; one
-uses Custom effect `290827855`. Another twelve booster leaves retain complete
-dry fallback because a static Flanger in slot 0 is followed by a dynamic
-Parametric EQ in slot 1. This raises qualified source-effect leaves from 2,423
-to 2,432 without changing media/event audibility.
+uses Custom effect `290827855`. Another twelve booster leaves place a static
+Flanger in slot 0 before the admitted live `ship_Roll` Parametric EQ in slot 1,
+raising the current Flanger population to 21 leaves across nine retained
+events. Before live EQ was implemented those twelve chains correctly remained
+complete dry fallbacks.
 
 Wwise Tremolo `0x00830003` uses a separate evidence boundary. Pinned wwiser
 identifies the plug-in and shows the corresponding depth/frequency/waveform,
@@ -682,10 +699,11 @@ They use 11 effect identities representing ten exact parameter records. Every
 record has an active late tail; 50 also have audible early reflections. Twenty-
 eight chains contain only RoomVerb and 24 place a qualified static Parametric
 EQ before it. Decay ranges from 1.2 to 6.7 seconds, Stereo Width is 88 or 180
-degrees, and two single-leaf records use active tone shaping. This raises the
-current qualified source-effect population from 2,740 to 2,792 Sound leaves and
-the retained record count from 2,781 to 2,857 without changing media or event
-reachability.
+degrees, and two single-leaf records use active tone shaping. RoomVerb raised
+the qualified source-effect population from 2,740 to 2,792 Sound leaves and
+the retained record count from 2,781 to 2,857; the later live-EQ block raises
+the current totals to 2,962 leaves and 3,039 records without changing media or
+event reachability.
 
 The same source-local projection retains pinned wwiser's exact 28-byte v150
 Wwise Meter record when it is static, control-free, and does not apply its
@@ -699,7 +717,7 @@ shared-Bus policy rather than baking host policy into the portable library.
 EVE build 3453885 has 49 such Sound leaves across 39 retained events, all with
 nonzero Game Parameter targets. Opt-in omission initially raised qualified
 source-effect leaves from 2,617 to 2,666; the current aggregate after Tremolo,
-Matrix, and RoomVerb admission is 2,792 without changing media or event
+Matrix, RoomVerb, and live-EQ admission is 2,962 without changing media or event
 reachability. The
 other 81 source-Meter leaves use effect `277510878` with downstream-volume
 application enabled and remain complete-chain dry fallbacks; omitting that

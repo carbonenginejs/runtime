@@ -77,6 +77,7 @@ class CjsAudioBackendSfxVoice {
     this.highPassFilter = nodes.highPassFilter;
     this.sourceEffectInput = nodes.sourceEffectInput;
     this.sourceEffectNodes = nodes.sourceEffectNodes;
+    this.sourceEffectRtpcLane = nodes.sourceEffectRtpcLane;
     this.sourceEffectsStarted = false;
     this.sourceEffectsStopped = false;
     this.busEffectNodes = nodes.busEffectNodes;
@@ -138,6 +139,8 @@ class CjsAudioBackendSfxVoice {
   /** Stops and disconnects the source-local effect chain once. */
   DisconnectSourceEffects() {
     this.StopSourceEffects();
+    this.sourceEffectRtpcLane?.Dispose?.();
+    this.sourceEffectRtpcLane = null;
     for (const node of this.sourceEffectNodes ?? []) {
       node.disconnect?.();
     }
