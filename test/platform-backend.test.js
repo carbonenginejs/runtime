@@ -242,3 +242,23 @@ test("ResolveDeviceRequirements stays empty when nothing above the default is wa
         "the fake adapter advertises the default, so a larger request is reported rather than sent"
     );
 });
+
+test("Tr2PlatformInfo lets configuration override the derived platform name", async () =>
+{
+    // The backend supplies the default. It does not fix the value: pointing a
+    // backend at a different compiled-effect tree is a configuration choice,
+    // and configuration is this package's to own. ccpwgl's original lineage
+    // refines the same value from a capability probe (Mali renderer string ->
+    // an effect.gles2.mali<version> directory), which is why this is separable
+    // at all - Carbon cannot show it, because its name IS the linked backend.
+    const derived = await Tr2PlatformInfo.Detect({ gpu: null, context: fakeWebGL2() });
+    assert.equal(derived.platformName, "webgl");
+
+    const configured = await Tr2PlatformInfo.Detect({
+        gpu: null,
+        context: fakeWebGL2(),
+        platformName: "gles2.mali400"
+    });
+    assert.equal(configured.platformName, "gles2.mali400");
+    assert.equal(configured.backend, Tr2PlatformInfo.Backend.WEBGL, "a different tree is not a different backend");
+});

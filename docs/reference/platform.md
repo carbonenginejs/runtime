@@ -57,9 +57,24 @@ capability families are reported either way.
 `platformName` is the **resource-path discriminator**, not a description of the
 host: it is the segment that turns `res:/.../effect/` into
 `res:/.../effect.webgpu/`, exactly as Carbon's `dx11` produces `effect.dx11/`.
-It is therefore the backend name, or `null` when there is no backend.
+It defaults to the backend name, or `null` when there is no backend, and a
+`platformName` detection option overrides it: pointing a backend at a different
+compiled-effect tree is a configuration choice, not a different backend.
 `platformID` remains zero; Carbon's value is a per-backend build constant naming
 targets that do not exist here.
+
+It applies to **unqualified paths only**. Substitution touches `/effect/` alone,
+so a path already naming a tree passes through untouched. How many trees may
+then coexist is the backend's answer, not this field's. WebGL can mix: CCP's
+v8-format `gles2` tree carries GLSL that a WebGL context compiles, so it loads
+side by side with a Carbon-derived WebGL tree. WebGPU cannot: it accepts WGSL
+only, so a GLSL tree is unloadable there at any path.
+
+The override exists for that asymmetry and for nothing else. CCP's own trees are
+a testing convenience — useful for comparing our output against theirs — not a
+shipping path, so no mixing mechanism is provided beyond one overridable
+default. Do not read this name to decide whether an already-qualified resource
+is loadable.
 
 Temporal anti-aliasing deviates deliberately. Carbon declares the cap but never
 handles it, so it always answers false; ours honours the caller's `taa` option

@@ -37,6 +37,45 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 // the source comment "In order to use the dx11 platform specific res files as
 // our own". A stub engine of ours reports a real backend name for the same
 // reason.
+//
+// THE NAME IS DERIVED BUT NOT FIXED, AND THAT DISTINCTION IS LOAD-BEARING.
+// Carbon cannot separate the two - its name IS the linked backend - so Carbon
+// alone would justify a hard mapping. ccpwgl's original lineage shows the
+// separation: `Tw2Device.effectDir` is an ordinary mutable field, and its
+// context setup REFINES the value from a runtime capability probe, switching to
+// an `effect.gles2.mali<version>` directory when the renderer string matches a
+// Mali part. Both are in ccpwgl's initial commit, so this is independent
+// evidence rather than our own convention reflected back.
+//
+// (Its later `EffectProfiles` table and its `effect.dx11` / `effect.webgl2`
+// entries are NOT prior art: `git log -S` puts them in commits that added our
+// own Carbon container work to ccpwgl. Do not cite them as corroboration.
+// Authority: docs/documentation-rules.md, Independent corroboration.)
+//
+// So the backend supplies the DEFAULT and configuration wins, which is also
+// where the engine-backends plan puts it: runtime-core owns configuration, and
+// an engine is told what to load rather than deciding it. A caller pointing a
+// WebGL backend at a different compiled-effect tree is a configuration choice,
+// not a different backend.
+//
+// AND IT IS A DEFAULT FOR UNQUALIFIED PATHS ONLY. Carbon substitutes only into
+// "/effect/" (Tr2Effect.cpp:320-333), so a path that already names a tree
+// passes through untouched. One name is what an unqualified path becomes, not
+// a partition of what may be loaded.
+//
+// HOW MANY TREES THAT ALLOWS IS THE BACKEND'S ANSWER, NOT THIS FIELD'S, AND THE
+// TWO BACKENDS GENUINELY DIFFER. WebGL can mix: CCP's v8-format gles2 tree is
+// GLSL a WebGL context compiles, so qualified paths into it load beside a
+// Carbon-derived WebGL tree. WebGPU cannot: WGSL only, so a GLSL tree is
+// unloadable there at any path.
+//
+// That asymmetry is why the override exists and is ALL it is for. We do not
+// expect to ship against CCP's trees - they are a testing convenience, useful
+// for comparing our output against theirs - so nothing here should grow a
+// mechanism for mixing. One overridable default covers it.
+//
+// Anything deciding whether an already-qualified resource is loadable must ask
+// the backend about the shading language rather than read this name.
 
 /** Browser feature report replacing Carbon's compile-time platform macros. */
 export class Tr2PlatformInfo
@@ -196,6 +235,8 @@ export class Tr2PlatformInfo
         if (backend === Tr2PlatformInfo.Backend.WEBGL)
         {
             return new Tr2PlatformInfo({
+                // Configuration wins over derivation; see the note above.
+                platformName: options.platformName,
                 isLowPerformance: false,
                 adapter,
                 webgl,
@@ -230,6 +271,7 @@ export class Tr2PlatformInfo
         };
 
         return new Tr2PlatformInfo({
+            platformName: options.platformName,
             isLowPerformance: adapter?.isFallbackAdapter ?? false,
             adapter,
             webgl,
