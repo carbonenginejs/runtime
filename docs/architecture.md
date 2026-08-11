@@ -214,6 +214,36 @@ are re-applied on lease; an unwritten field otherwise retains the previous
 tenant's bytes, which preserves the source engine's own contract that a fill
 writes every field it relies on.
 
+### The dirty flag is a write barrier here, and is not in Carbon
+
+A record is marked dirty by any write through `Set`, `SetIndex`,
+`SetAndTranspose` or `SetAndTransposeIndex`, as well as by `Zero`, `CopyFrom`
+and the explicit `Invalidate`. Reading never marks it. An engine uploader skips
+a clean record and calls `ClearDirty` once the bytes are on the device.
+
+**This deviates from Carbon deliberately.** Carbon marks a buffer dirty only
+through `InvalidateBufferData`, called once per frame from the owner's async
+update, and can afford to: its grouped render path refills per batch
+unconditionally, the dirty protocol exists on only one of its per-object data
+classes, and one of that class's overloads is excluded on DirectX 11, where the
+buffer is rewritten every time regardless. The flag is barely load-bearing
+there.
+
+It is load-bearing here, because an engine uploader honours it. Thirteen sites
+in this package create a persistent record and two call `Invalidate`, so under
+Carbon's rule every other record — including the per-frame view and projection
+matrices — would upload once and then hold its first frame's values, reporting
+nothing.
+
+The failure modes are not symmetric, which is what settles it. A missed
+invalidation renders stale data with no error at all; a redundant dirty costs
+one upload that was going to be correct anyway. `Invalidate` remains for a
+caller that changed something without writing through the record.
+
+A transient arena record never clears its flag, which is correct rather than a
+leak: it is filled and consumed within one frame, so `ClearDirty` means "these
+bytes have been uploaded", never "this payload is now stable".
+
 A renderable returns whichever shape its constant data actually has:
 
 - one payload, when a single buffer is bound;
