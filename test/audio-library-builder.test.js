@@ -6759,6 +6759,112 @@ test("SFX construction retains static source-local Wwise Matrix Reverb", async (
     }
 });
 
+test("SFX construction retains static source-local Wwise RoomVerb", async () =>
+{
+    const Build = ({ bankVersion = 150, propertyValues = [] } = {}) =>
+        CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                room_play: {
+                    eventID: 100,
+                    soundbanks: [ "effects.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "effects.bnk": {
+                    name: "effects",
+                    path: "\\SoundBanks\\effects.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/effects.bnk",
+            storagePath: "banks/effects.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 935940071,
+                                    flags: 0,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 17,
+                            id: 935940071,
+                            payload: wwiseRoomVerbEffectPayload({
+                                propertyValues,
+                            }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const built = await Build();
+    const [ effect ] = built.sfx.nodes["300"].sourceEffects;
+
+    assert.equal(effect.type, "roomverb");
+    assert.equal(effect.effectId, "935940071");
+    assert.equal(effect.decayTimeSeconds, 4);
+    assert.equal(effect.earlyReflectionsPattern, 5);
+    assert.equal(effect.reverbDelaySeconds, 0.013);
+    assert.equal(effect.reverbUnitCount, 8);
+    assert.equal(effect.toneFilters.length, 3);
+    assert.equal(
+        (await Build({ bankVersion: 151 })).sfx
+            ?.nodes?.["300"]?.sourceEffects,
+        undefined,
+    );
+    assert.equal(
+        (await Build({
+            propertyValues: [ { propertyId: 1, value: 2 } ],
+        })).sfx?.nodes?.["300"]?.sourceEffects,
+        undefined,
+    );
+});
+
 test("SFX construction retains static non-downstream Wwise Meter overrides", async () =>
 {
     const Build = ({
@@ -11135,6 +11241,47 @@ function wwiseMatrixReverbEffectPayload({
         .u8(0)
         .u16(propertyValues.length);
 
+    for (const property of propertyValues)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation ?? 0)
+            .f32(property.value);
+    }
+    return writer.bytes();
+}
+
+function wwiseRoomVerbEffectPayload({ propertyValues = [] } = {})
+{
+    const parameters = new TestWriter();
+
+    for (const value of [
+        4, 3.35, 100, 180,
+        0, 100, 1,
+        0, 1000, 1,
+        0, 10000, 1,
+        0, 0, 0, -96.3, -96.3, -10, -6,
+    ]) parameters.f32(value);
+    parameters.u8(1).u32(5);
+    for (const value of [ 13, 20, 40, 80, 100 ]) parameters.f32(value);
+    parameters.u32(8).u8(0);
+    for (const value of [ 3, 0, 3, 1, 3, 2 ]) parameters.u32(value);
+    parameters.f32(0).f32(-96.3);
+    for (const value of [
+        8, 50, 2, 0.1, 0.8, 66, 15, 5, 40, 100, 50,
+    ]) parameters.f32(value);
+    const parameterBlock = parameters.bytes();
+    const writer = new TestWriter()
+        .u32(0x00760003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(propertyValues.length);
+
+    assert.equal(parameterBlock.byteLength, 186);
     for (const property of propertyValues)
     {
         writer

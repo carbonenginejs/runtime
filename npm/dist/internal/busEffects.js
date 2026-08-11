@@ -1,4 +1,6 @@
 import { normalizeWwiseReverbMode, createWwiseMatrixReverbApproximation } from './wwiseMatrixReverb.js';
+import { normalizeWwiseRoomVerbMode, prepareWwiseRoomVerbApproximation, createWwiseRoomVerbApproximation, normalizeWwiseRoomVerbEffect } from './wwiseRoomVerb.js';
+export { WWISE_ROOMVERB_PLUGIN_ID, parseStaticWwiseRoomVerbBytes } from './wwiseRoomVerb.js';
 
 const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
 const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
@@ -17,7 +19,7 @@ const WWISE_MATRIX_REVERB_DELAY_COUNTS = new Set([4, 8, 12, 16]);
 const WWISE_DYNAMICS_MODES = new Set(["strict", "approximate-web-audio"]);
 const WWISE_MODULATION_MODES = new Set(["strict", "approximate-web-audio"]);
 const WWISE_DISTORTION_MODES = new Set(["strict", "approximate-web-audio"]);
-const REALIZABLE_EFFECT_TYPES = new Set(["meter", "meter-omission", "compressor", "compressor-approximation", "peak-limiter", "peak-limiter-approximation", "delay", "flanger", "flanger-approximation", "tremolo", "tremolo-approximation", "guitar-distortion", "guitar-distortion-approximation", "matrix-reverb", "matrix-reverb-approximation", "parametric-eq"]);
+const REALIZABLE_EFFECT_TYPES = new Set(["meter", "meter-omission", "compressor", "compressor-approximation", "peak-limiter", "peak-limiter-approximation", "delay", "flanger", "flanger-approximation", "tremolo", "tremolo-approximation", "guitar-distortion", "guitar-distortion-approximation", "matrix-reverb", "matrix-reverb-approximation", "roomverb", "roomverb-approximation", "parametric-eq"]);
 const WWISE_METER_FEEDBACK_MODES = new Set(["strict", "omit-telemetry"]);
 const WWISE_VOICE_LIMIT_MODES = new Set(["strict", "ignore"]);
 const FILTER_TYPE_NAMES = Object.freeze(["lowpass", "highpass", "bandpass", "notch", "lowshelf", "highshelf", "peaking"]);
@@ -299,6 +301,13 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
         delayLengthsMode: "default"
       });
     }
+    if (allowSourceEffects && effect.type === "roomverb") {
+      return normalizeWwiseRoomVerbEffect({
+        ...effect,
+        effectId,
+        slotIndex
+      }, label);
+    }
     if (allowSourceEffects && effect.type === "meter") {
       if (typeof effect.infiniteHold !== "boolean") {
         throw new TypeError(`${label} infiniteHold must be boolean`);
@@ -392,13 +401,16 @@ function createWwiseEffectChain(context, effects, {
   wwiseModulation = "strict",
   wwiseDistortion = "strict",
   wwiseReverb = "strict",
-  wwiseMeterFeedback = "strict"
+  wwiseRoomVerb = "strict",
+  wwiseMeterFeedback = "strict",
+  sourceChannelCount = 1
 } = {}) {
   if (!Array.isArray(effects) || !effects.length) return null;
   const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
   const modulationMode = normalizeWwiseModulationMode(wwiseModulation);
   const distortionMode = normalizeWwiseDistortionMode(wwiseDistortion);
   const reverbMode = normalizeWwiseReverbMode(wwiseReverb);
+  const roomVerbMode = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
   const meterFeedbackMode = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
 
   // A source effect override is one ordered authored unit. In strict mode,
@@ -419,6 +431,8 @@ function createWwiseEffectChain(context, effects, {
   const distortionEffects = effects.filter(effect => effect.type === "guitar-distortion" || effect.type === "guitar-distortion-approximation");
   const sourceReverbs = effects.filter(effect => effect.type === "matrix-reverb");
   const reverbEffects = effects.filter(effect => effect.type === "matrix-reverb" || effect.type === "matrix-reverb-approximation");
+  const sourceRoomVerbs = effects.filter(effect => effect.type === "roomverb");
+  const roomVerbEffects = effects.filter(effect => effect.type === "roomverb" || effect.type === "roomverb-approximation");
   for (const effect of effects) {
     if (!REALIZABLE_EFFECT_TYPES.has(effect.type)) {
       throw new TypeError(`Unsupported shared Bus effect ${effect.type}`);
@@ -436,16 +450,20 @@ function createWwiseEffectChain(context, effects, {
   if (sourceReverbs.length && reverbMode === "strict") {
     return null;
   }
+  if (sourceRoomVerbs.length && roomVerbMode === "strict") {
+    return null;
+  }
   if (sourceMeters.some(effect => effect.applyDownstreamVolume !== false)) {
     return null;
   }
   if (meterFeedbackMode === "strict" && sourceMeters.some(effect => effect.gameParameterId !== 0)) {
     return null;
   }
-  const needsGain = dynamicsEffects.length > 0 || sourceDelays.length > 0 || hasModulation || reverbEffects.length > 0 || distortionEffects.some(effect => effect.outputGainDb !== 0) || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
-  const needsDelay = sourceDelays.length > 0 || reverbEffects.length > 0 || flangerEffects.length > 0 || dynamicsEffects.some(effect => (effect.type === "peak-limiter" || effect.type === "peak-limiter-approximation") && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
+  const needsGain = dynamicsEffects.length > 0 || sourceDelays.length > 0 || hasModulation || reverbEffects.length > 0 || roomVerbEffects.length > 0 || distortionEffects.some(effect => effect.outputGainDb !== 0) || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
+  const needsDelay = sourceDelays.length > 0 || reverbEffects.length > 0 || roomVerbEffects.some(effect => effect.reverbDelaySeconds > 0) || flangerEffects.length > 0 || dynamicsEffects.some(effect => (effect.type === "peak-limiter" || effect.type === "peak-limiter-approximation") && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
   const needsBiquad = sourceEqualizers.some(effect => effect.bands.length);
   const needsReverbBiquad = reverbEffects.length > 0;
+  const needsRoomVerbBiquad = roomVerbEffects.length > 0;
   const needsDistortionBiquad = distortionEffects.some(effect => effect.preEqBands.length || effect.postEqBands.length);
   const needsOscillator = tremoloEffects.some(effect => effect.modulationDepthPercent > 0) || flangerEffects.some(effect => effect.lfoEnabled && effect.modulationDepthPercent > 0);
   const needsPeriodicWave = tremoloEffects.some(effect => effect.modulationDepthPercent > 0 && effect.phaseOffsetDegrees !== 0);
@@ -455,7 +473,7 @@ function createWwiseEffectChain(context, effects, {
   if (needsDelay && typeof context?.createDelay !== "function") {
     return null;
   }
-  if ((needsBiquad || needsDistortionBiquad || needsReverbBiquad) && typeof context?.createBiquadFilter !== "function") {
+  if ((needsBiquad || needsDistortionBiquad || needsReverbBiquad || needsRoomVerbBiquad) && typeof context?.createBiquadFilter !== "function") {
     return null;
   }
   if (dynamicsEffects.length && typeof context?.createDynamicsCompressor !== "function") {
@@ -473,6 +491,17 @@ function createWwiseEffectChain(context, effects, {
   if (distortionEffects.length && typeof context?.createWaveShaper !== "function") {
     return null;
   }
+  if (roomVerbEffects.length && (typeof context?.createConvolver !== "function" || typeof context?.createBuffer !== "function")) {
+    return null;
+  }
+  const preparedRoomVerbs = new Map();
+  try {
+    for (const effect of roomVerbEffects) {
+      preparedRoomVerbs.set(`${effect.effectId}:${effect.slotIndex}`, prepareWwiseRoomVerbApproximation(context, effect, sourceChannelCount));
+    }
+  } catch {
+    return null;
+  }
   const realizedEffects = effects.map(effect => effect.type === "compressor" ? RequireApproximateDynamics(effect, "compressor-approximation") : effect.type === "peak-limiter" ? RequireApproximateDynamics(effect, "peak-limiter-approximation") : effect.type === "flanger" ? {
     ...effect,
     type: "flanger-approximation"
@@ -485,6 +514,9 @@ function createWwiseEffectChain(context, effects, {
   } : effect.type === "matrix-reverb" ? {
     ...effect,
     type: "matrix-reverb-approximation"
+  } : effect.type === "roomverb" ? {
+    ...effect,
+    type: "roomverb-approximation"
   } : effect.type === "meter" ? {
     ...effect,
     type: "meter-omission",
@@ -537,6 +569,13 @@ function createWwiseEffectChain(context, effects, {
     }
     if (effect.type === "matrix-reverb-approximation") {
       const stage = createWwiseMatrixReverbApproximation(context, effect);
+      if (output) output.connect(stage.input);else input = stage.input;
+      output = stage.output;
+      nodes.push(...stage.nodes);
+      continue;
+    }
+    if (effect.type === "roomverb-approximation") {
+      const stage = createWwiseRoomVerbApproximation(context, effect, preparedRoomVerbs.get(`${effect.effectId}:${effect.slotIndex}`));
       if (output) output.connect(stage.input);else input = stage.input;
       output = stage.output;
       nodes.push(...stage.nodes);
@@ -1407,5 +1446,5 @@ function CreateSinePeriodicWave(context, phaseOffsetDegrees) {
   });
 }
 
-export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_MATRIX_REVERB_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeStaticSourceEffectChain, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseReverbMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes, parseStaticWwiseFlangerBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMatrixReverbBytes, parseStaticWwiseMeterBytes, parseStaticWwiseTremoloBytes };
+export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_MATRIX_REVERB_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeStaticSourceEffectChain, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseReverbMode, normalizeWwiseRoomVerbMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes, parseStaticWwiseFlangerBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMatrixReverbBytes, parseStaticWwiseMeterBytes, parseStaticWwiseTremoloBytes };
 //# sourceMappingURL=busEffects.js.map

@@ -4437,6 +4437,7 @@ class DemoApp
                 wwiseDistortion: "approximate-web-audio",
                 wwiseModulation: "approximate-web-audio",
                 wwiseReverb: "approximate-web-audio",
+                wwiseRoomVerb: "approximate-web-audio",
                 wwiseMeterFeedback: "omit-telemetry",
                 wwiseVoiceLimits: "ignore",
                 createContext: () => this.media.CreateContext(),

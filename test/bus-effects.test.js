@@ -11,6 +11,7 @@ import {
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
     normalizeWwiseReverbMode,
+    normalizeWwiseRoomVerbMode,
     parseGraphFeedbackFreeMeter,
     parseGraphSharedBusEffect,
     parseGraphStaticWwiseCompressor,
@@ -19,6 +20,7 @@ import {
     parseGraphStaticWwiseFlanger,
     parseGraphStaticWwiseGuitarDistortion,
     parseGraphStaticWwiseMatrixReverb,
+    parseGraphStaticWwiseRoomVerb,
     parseGraphStaticWwiseTremolo,
     parseGraphStaticWwisePeakLimiter,
     parseStaticParametricEqBytes,
@@ -26,6 +28,7 @@ import {
     parseStaticWwiseGuitarDistortionBytes,
     parseStaticWwiseMeterBytes,
     parseStaticWwiseMatrixReverbBytes,
+    parseStaticWwiseRoomVerbBytes,
     parseStaticWwiseTremoloBytes,
 } from "../src/internal/busEffects.js";
 
@@ -66,6 +69,8 @@ function Context()
         gains: [],
         oscillators: [],
         periodicWaves: [],
+        buffers: [],
+        convolvers: [],
         waveShapers: [],
         createDelay(maxDelayTime)
         {
@@ -130,6 +135,29 @@ function Context()
 
             context.periodicWaves.push(wave);
             return wave;
+        },
+        createBuffer(numberOfChannels, length, sampleRate)
+        {
+            const channels = Array.from(
+                { length: numberOfChannels },
+                () => new Float32Array(length),
+            );
+            const buffer = {
+                numberOfChannels,
+                length,
+                sampleRate,
+                getChannelData(index) { return channels[index]; },
+            };
+
+            context.buffers.push(buffer);
+            return buffer;
+        },
+        createConvolver()
+        {
+            const node = Node({ buffer: null, normalize: true });
+
+            context.convolvers.push(node);
+            return node;
         },
         createWaveShaper()
         {
@@ -451,6 +479,85 @@ function GraphMatrixReverb(bytes = MatrixReverbBytes())
 
     effect.type = "effect-custom";
     effect.pluginId = 0x00730003;
+    effect.bankVersion = 150;
+    return effect;
+}
+
+function RoomVerbBytes({
+    decayTimeSeconds = 4,
+    hfDampingRatio = 3.35,
+    diffusionPercent = 100,
+    stereoWidthDegrees = 180,
+    dryLevelDb = Math.fround(-96.3),
+    earlyReflectionsLevelDb = -10,
+    reverbLevelDb = -6,
+    earlyReflectionsEnabled = 1,
+    earlyReflectionsPattern = 5,
+    reverbDelayMs = 13,
+    roomSizePercent = 20,
+    earlyReflectionsFrontBackDelayMs = 40,
+    densityPercent = 80,
+    roomShapePercent = 100,
+    reverbUnitCount = 8,
+    toneControlsEnabled = 0,
+    inputCenterLevelDb = 0,
+} = {})
+{
+    const bytes = new Uint8Array(186);
+    const view = new DataView(bytes.buffer);
+    let at = 0;
+    const f32 = value =>
+    {
+        view.setFloat32(at, value, true);
+        at += 4;
+    };
+    const u32 = value =>
+    {
+        view.setUint32(at, value, true);
+        at += 4;
+    };
+    const u8 = value => view.setUint8(at++, value);
+
+    for (const value of [
+        decayTimeSeconds,
+        hfDampingRatio,
+        diffusionPercent,
+        stereoWidthDegrees,
+        0, 100, 1,
+        0, 1000, 1,
+        0, 10000, 1,
+        0, 0, 0, Math.fround(-96.3),
+        dryLevelDb,
+        earlyReflectionsLevelDb,
+        reverbLevelDb,
+    ]) f32(value);
+    u8(earlyReflectionsEnabled);
+    u32(earlyReflectionsPattern);
+    for (const value of [
+        reverbDelayMs,
+        roomSizePercent,
+        earlyReflectionsFrontBackDelayMs,
+        densityPercent,
+        roomShapePercent,
+    ]) f32(value);
+    u32(reverbUnitCount);
+    u8(toneControlsEnabled);
+    for (const value of [ 3, 0, 3, 1, 3, 2 ]) u32(value);
+    f32(inputCenterLevelDb);
+    f32(Math.fround(-96.3));
+    for (const value of [
+        8, 50, 2, 0.1, 0.8, 66, 15, 5, 40, 100, 50,
+    ]) f32(value);
+    assert.equal(at, 186);
+    return bytes;
+}
+
+function GraphRoomVerb(bytes = RoomVerbBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.type = "effect-custom";
+    effect.pluginId = 0x00760003;
     effect.bankVersion = 150;
     return effect;
 }
@@ -1335,6 +1442,151 @@ test("keeps Tremolo then Matrix Reverb atomic and in authored order", () =>
     assert.equal(chain.input, context.gains[0]);
     assert.equal(context.gains[1].connectedTo, context.gains[3]);
     assert.equal(chain.output, context.gains[7]);
+});
+
+test("decodes and explicitly approximates static Wwise RoomVerb", () =>
+{
+    assert.equal(normalizeWwiseRoomVerbMode(), "strict");
+    assert.equal(
+        normalizeWwiseRoomVerbMode("approximate-web-audio"),
+        "approximate-web-audio",
+    );
+    assert.throws(
+        () => normalizeWwiseRoomVerbMode("web-audio"),
+        /Unsupported Wwise RoomVerb realization mode/u,
+    );
+    const decoded = parseGraphStaticWwiseRoomVerb(
+        GraphRoomVerb(),
+        "935940071",
+        0,
+    );
+    const normalized = normalizeStaticSourceEffectChain(
+        [ decoded ],
+        "Audio source",
+    );
+
+    assert.equal(decoded.type, "roomverb");
+    assert.equal(decoded.decayTimeSeconds, 4);
+    assert.equal(decoded.hfDampingRatio, Math.fround(3.35));
+    assert.equal(decoded.earlyReflectionsPattern, 5);
+    assert.equal(decoded.reverbDelaySeconds, 0.013);
+    assert.equal(decoded.roomSizePercent, 20);
+    assert.equal(decoded.reverbUnitCount, 8);
+    assert.deepEqual(decoded.toneFilters.map(filter => [
+        filter.filterType,
+        filter.insert,
+        filter.gainDb,
+    ]), [
+        [ "lowshelf", "early-reflections-and-reverb", 0 ],
+        [ "peaking", "early-reflections-and-reverb", 0 ],
+        [ "highshelf", "early-reflections-and-reverb", 0 ],
+    ]);
+    assert.deepEqual(normalized, [ decoded ]);
+    assert.throws(() => normalizeStaticSourceEffectChain(
+        [ { ...decoded, effectId: "000935940071" } ],
+        "Audio source",
+    ), /canonical positive id/u);
+
+    const strictContext = Context();
+
+    assert.equal(createWwiseEffectChain(strictContext, [ decoded ]), null);
+    assert.equal(strictContext.buffers.length, 0);
+    assert.equal(strictContext.gains.length, 0);
+
+    const context = Context();
+    const chain = createWwiseEffectChain(context, [ decoded ], {
+        wwiseRoomVerb: "approximate-web-audio",
+        sourceChannelCount: 2,
+    });
+
+    assert.ok(chain);
+    assert.equal(context.buffers.length, 2);
+    assert.equal(context.buffers[0].numberOfChannels, 2);
+    assert.equal(
+        context.buffers[1].length,
+        Math.ceil(decoded.decayTimeSeconds * context.sampleRate),
+    );
+    assert.equal(context.convolvers.length, 2);
+    assert.ok(context.convolvers.every(node => node.normalize === false));
+    assert.equal(context.delays.length, 1);
+    assert.equal(context.delays[0].delayTime.value, 0.013);
+    assert.ok(context.filters.some(filter =>
+        filter.type === "highpass"
+        && filter.frequency.value === 40));
+
+    createWwiseEffectChain(context, [ decoded ], {
+        wwiseRoomVerb: "approximate-web-audio",
+        sourceChannelCount: 2,
+    });
+    assert.equal(
+        context.buffers.length,
+        2,
+        "prepared impulse responses are cached per context and record",
+    );
+    const firstImpulseBuffers = context.convolvers.slice(0, 2)
+        .map(node => node.buffer);
+    const mixVariant = {
+        ...decoded,
+        dryLevelDb: 0,
+        reverbDelaySeconds: 0,
+        toneControlsEnabled: true,
+    };
+
+    createWwiseEffectChain(context, [ mixVariant ], {
+        wwiseRoomVerb: "approximate-web-audio",
+        sourceChannelCount: 2,
+    });
+    assert.equal(
+        context.buffers.length,
+        2,
+        "mix, pre-delay, and tone controls do not duplicate acoustic IRs",
+    );
+    assert.deepEqual(
+        context.convolvers.slice(-2).map(node => node.buffer),
+        firstImpulseBuffers,
+    );
+
+    const surround = Context();
+
+    assert.equal(createWwiseEffectChain(surround, [ decoded ], {
+        wwiseRoomVerb: "approximate-web-audio",
+        sourceChannelCount: 6,
+    }), null);
+    assert.equal(surround.buffers.length, 0);
+    assert.equal(surround.gains.length, 0);
+});
+
+test("rejects malformed or uncontrolled Wwise RoomVerb records", () =>
+{
+    assert.throws(() => parseStaticWwiseRoomVerbBytes(
+        RoomVerbBytes(),
+        { effectId: "1", slotIndex: 0, bankVersion: 149 },
+    ), /unsupported parameter block/u);
+    const wrongVersion = GraphRoomVerb();
+
+    wrongVersion.bankVersion = 151;
+    assert.throws(() => parseGraphStaticWwiseRoomVerb(
+        wrongVersion,
+        "1",
+        0,
+    ), /unsupported parameter block/u);
+    for (const parameters of [
+        { earlyReflectionsPattern: 24 },
+        { reverbUnitCount: 7 },
+        { earlyReflectionsEnabled: 2 },
+    ])
+    {
+        assert.throws(() => parseGraphStaticWwiseRoomVerb(
+            GraphRoomVerb(RoomVerbBytes(parameters)),
+            "1",
+            0,
+        ));
+    }
+    assert.throws(() => parseGraphStaticWwiseRoomVerb(
+        GraphEffect(RoomVerbBytes()),
+        "1",
+        0,
+    ), /not a static Wwise RoomVerb/u);
 });
 
 test("decodes and explicitly approximates static EVE Guitar Distortion", () =>

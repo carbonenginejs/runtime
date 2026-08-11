@@ -1102,13 +1102,15 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMatrixReverbSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect =>
             effect.type === "matrix-reverb"));
+    const sourceRoomVerbSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect => effect.type === "roomverb"));
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 2740);
+    assert.equal(sourceEffectSounds.length, 2792);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 2781);
-    assert.equal(sourceEqSounds.length, 262);
+        count + node.sourceEffects.length, 0), 2857);
+    assert.equal(sourceEqSounds.length, 286);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2033);
     assert.equal(sourcePeakLimiterSounds.length, 73);
@@ -1116,6 +1118,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(sourceTremoloSounds.length, 148);
     assert.equal(sourceGuitarDistortionSounds.length, 69);
     assert.equal(sourceMatrixReverbSounds.length, 50);
+    assert.equal(sourceRoomVerbSounds.length, 52);
     assert.equal(sourceMeterSounds.length, 49);
     assert.deepEqual(graph.nodes["20988277"].sourceEffects, [ {
         effectId: "777891344",
@@ -1173,6 +1176,14 @@ test("committed demo library carries authored SFX and music semantics", () =>
             delayLengthsMode: "default",
         },
     ]);
+    const shieldDrainRoomVerb = graph.nodes["603165888"].sourceEffects[0];
+
+    assert.equal(shieldDrainRoomVerb.type, "roomverb");
+    assert.equal(shieldDrainRoomVerb.effectId, "402798902");
+    assert.equal(shieldDrainRoomVerb.decayTimeSeconds, Math.fround(4.1));
+    assert.equal(shieldDrainRoomVerb.stereoWidthDegrees, 88);
+    assert.equal(shieldDrainRoomVerb.earlyReflectionsPattern, 8);
+    assert.equal(shieldDrainRoomVerb.reverbUnitCount, 8);
     assert.deepEqual(
         Object.entries(graph.nodes)
             .filter(([, node]) => sourceFlangerSounds.includes(node))
@@ -1601,7 +1612,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
             effect.type === "parametric-eq"
             && (effect.outputGainDb !== 0
                 || effect.bands.some(band => band.gainDb !== 0)))).length,
-        166,
+        190,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(

@@ -243,6 +243,7 @@ function Harness({
   wwiseDistortion,
   wwiseModulation,
   wwiseReverb,
+  wwiseRoomVerb,
   wwiseMeterFeedback,
   wwiseObstructionOcclusion,
   busGraphRuntime,
@@ -289,6 +290,7 @@ function Harness({
     wwiseDistortion,
     wwiseModulation,
     wwiseReverb,
+    wwiseRoomVerb,
     wwiseMeterFeedback,
     wwiseObstructionOcclusion,
     busGraphRuntime,
@@ -8224,6 +8226,142 @@ test("Sound-local Matrix Reverb is opt-in and cuts its tail at source end", asyn
   source.onended();
   assert.ok(approximate.context.delays.every(delay => delay.disconnected));
   assert.ok(approximate.context.filters.every(filter => filter.disconnected));
+});
+
+test("Sound-local RoomVerb is opt-in, channel-aware, and voice-owned", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "935940071",
+    slotIndex: 0,
+    type: "roomverb",
+    decayTimeSeconds: 4,
+    hfDampingRatio: Math.fround(3.35),
+    diffusionPercent: 100,
+    stereoWidthDegrees: 180,
+    toneFilters: [
+      { index: 0, filterType: "lowshelf", gainDb: 0, frequencyHz: 100, q: 1, insert: "early-reflections-and-reverb" },
+      { index: 1, filterType: "peaking", gainDb: 0, frequencyHz: 1000, q: 1, insert: "early-reflections-and-reverb" },
+      { index: 2, filterType: "highshelf", gainDb: 0, frequencyHz: 10000, q: 1, insert: "early-reflections-and-reverb" },
+    ],
+    frontLevelDb: 0,
+    rearLevelDb: 0,
+    centerLevelDb: 0,
+    lfeLevelDb: Math.fround(-96.3),
+    dryLevelDb: Math.fround(-96.3),
+    earlyReflectionsLevelDb: -10,
+    reverbLevelDb: -6,
+    earlyReflectionsEnabled: true,
+    earlyReflectionsPattern: 5,
+    reverbDelaySeconds: 0.013,
+    roomSizePercent: 20,
+    earlyReflectionsFrontBackDelaySeconds: 0.04,
+    densityPercent: 80,
+    roomShapePercent: 100,
+    reverbUnitCount: 8,
+    toneControlsEnabled: false,
+    inputCenterLevelDb: 0,
+    inputLfeLevelDb: Math.fround(-96.3),
+    densityDelayMinSeconds: 0.008,
+    densityDelayMaxSeconds: 0.05,
+    densityDelayRandomPercent: 2,
+    roomShapeMin: Math.fround(0.1),
+    roomShapeMax: Math.fround(0.8),
+    diffusionDelayScalePercent: 66,
+    diffusionDelayMaxSeconds: 0.015,
+    diffusionDelayRandomPercent: 5,
+    dcFilterCutFrequencyHz: 40,
+    reverbUnitInputDelaySeconds: 0.1,
+    reverbUnitInputDelayRandomPercent: 50,
+  } ];
+  const loadBuffer = async () => ({
+    voices: [ {
+      buffer: { duration: 2, numberOfChannels: 2 },
+      loop: false,
+      sourceEffects,
+      lowPass: 20,
+      getGain: () => 1,
+    } ],
+  });
+  const strict = Harness({ loadBuffer });
+
+  strict.backend.PostEvent(1, 1, 0, strict.emitter, "play");
+  await tick();
+  assert.equal(strict.context.sources[0].connectedTo?.connections, undefined);
+
+  const approximate = Harness({
+    loadBuffer,
+    wwiseRoomVerb: "approximate-web-audio",
+  });
+
+  approximate.context.buffers = [];
+  approximate.context.convolvers = [];
+  approximate.context.delays = [];
+  approximate.context.createBuffer = (numberOfChannels, length, sampleRate) =>
+  {
+    const channels = Array.from(
+      { length: numberOfChannels },
+      () => new Float32Array(length),
+    );
+    const buffer = {
+      numberOfChannels,
+      length,
+      sampleRate,
+      getChannelData: channel => channels[channel],
+    };
+
+    approximate.context.buffers.push(buffer);
+    return buffer;
+  };
+  approximate.context.createConvolver = () =>
+  {
+    const convolver = {
+      normalize: true,
+      buffer: null,
+      connectedTo: null,
+      disconnected: false,
+      connect(target) { convolver.connectedTo = target; },
+      disconnect() { convolver.disconnected = true; },
+    };
+
+    approximate.context.convolvers.push(convolver);
+    return convolver;
+  };
+  approximate.context.createDelay = maxDelayTime =>
+  {
+    const delay = {
+      maxDelayTime,
+      delayTime: FakeParam(0),
+      connectedTo: null,
+      disconnected: false,
+      connect(target) { delay.connectedTo = target; },
+      disconnect() { delay.disconnected = true; },
+    };
+
+    approximate.context.delays.push(delay);
+    return delay;
+  };
+
+  approximate.backend.PostEvent(1, 1, 0, approximate.emitter, "play");
+  await tick();
+
+  const source = approximate.context.sources[0];
+  const input = source.connectedTo;
+  const voiceLowPass = approximate.context.filters.find(filter =>
+    filter.type === "lowpass");
+  const output = approximate.context.gains.find(gain =>
+    gain.connectedTo === voiceLowPass);
+
+  assert.equal(approximate.context.buffers.length, 2);
+  assert.ok(approximate.context.buffers.every(buffer =>
+    buffer.numberOfChannels === 2));
+  assert.equal(approximate.context.convolvers.length, 2);
+  assert.equal(approximate.context.delays[0].delayTime.value, 0.013);
+  assert.ok(input.connections.length === 3);
+  assert.ok(output, "the complete RoomVerb precedes the Voice LPF");
+
+  source.onended();
+  assert.ok(approximate.context.convolvers.every(node => node.disconnected));
+  assert.ok(approximate.context.delays.every(node => node.disconnected));
 });
 
 test("Sound-local Guitar Distortion is opt-in and precedes Voice filters", async () =>

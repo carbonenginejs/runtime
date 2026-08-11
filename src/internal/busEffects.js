@@ -2,6 +2,20 @@ import {
     createWwiseMatrixReverbApproximation,
     normalizeWwiseReverbMode,
 } from "./wwiseMatrixReverb.js";
+import {
+    createWwiseRoomVerbApproximation,
+    normalizeWwiseRoomVerbEffect,
+    normalizeWwiseRoomVerbMode,
+    parseStaticWwiseRoomVerbBytes,
+    prepareWwiseRoomVerbApproximation,
+    WWISE_ROOMVERB_PLUGIN_ID,
+} from "./wwiseRoomVerb.js";
+
+export {
+    normalizeWwiseRoomVerbMode,
+    parseStaticWwiseRoomVerbBytes,
+    WWISE_ROOMVERB_PLUGIN_ID,
+};
 
 export const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
 export const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
@@ -46,6 +60,8 @@ const REALIZABLE_EFFECT_TYPES = new Set([
     "guitar-distortion-approximation",
     "matrix-reverb",
     "matrix-reverb-approximation",
+    "roomverb",
+    "roomverb-approximation",
     "parametric-eq",
 ]);
 const WWISE_METER_FEEDBACK_MODES = new Set([
@@ -660,6 +676,14 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 delayLengthsMode: "default",
             });
         }
+        if (allowSourceEffects && effect.type === "roomverb")
+        {
+            return normalizeWwiseRoomVerbEffect({
+                ...effect,
+                effectId,
+                slotIndex,
+            }, label);
+        }
         if (allowSourceEffects && effect.type === "meter")
         {
             if (typeof effect.infiniteHold !== "boolean")
@@ -824,7 +848,9 @@ export function createWwiseEffectChain(
         wwiseModulation = "strict",
         wwiseDistortion = "strict",
         wwiseReverb = "strict",
+        wwiseRoomVerb = "strict",
         wwiseMeterFeedback = "strict",
+        sourceChannelCount = 1,
     } = {},
 )
 {
@@ -833,6 +859,7 @@ export function createWwiseEffectChain(
     const modulationMode = normalizeWwiseModulationMode(wwiseModulation);
     const distortionMode = normalizeWwiseDistortionMode(wwiseDistortion);
     const reverbMode = normalizeWwiseReverbMode(wwiseReverb);
+    const roomVerbMode = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
     const meterFeedbackMode = normalizeWwiseMeterFeedbackMode(
         wwiseMeterFeedback,
     );
@@ -873,6 +900,11 @@ export function createWwiseEffectChain(
     const reverbEffects = effects.filter(effect =>
         effect.type === "matrix-reverb"
         || effect.type === "matrix-reverb-approximation");
+    const sourceRoomVerbs = effects.filter(effect =>
+        effect.type === "roomverb");
+    const roomVerbEffects = effects.filter(effect =>
+        effect.type === "roomverb"
+        || effect.type === "roomverb-approximation");
 
     for (const effect of effects)
     {
@@ -898,6 +930,10 @@ export function createWwiseEffectChain(
     {
         return null;
     }
+    if (sourceRoomVerbs.length && roomVerbMode === "strict")
+    {
+        return null;
+    }
     if (sourceMeters.some(effect =>
         effect.applyDownstreamVolume !== false))
     {
@@ -912,10 +948,12 @@ export function createWwiseEffectChain(
         || sourceDelays.length > 0
         || hasModulation
         || reverbEffects.length > 0
+        || roomVerbEffects.length > 0
         || distortionEffects.some(effect => effect.outputGainDb !== 0)
         || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
     const needsDelay = sourceDelays.length > 0
         || reverbEffects.length > 0
+        || roomVerbEffects.some(effect => effect.reverbDelaySeconds > 0)
         || flangerEffects.length > 0
         || dynamicsEffects.some(effect =>
             (effect.type === "peak-limiter"
@@ -923,6 +961,7 @@ export function createWwiseEffectChain(
             && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
     const needsBiquad = sourceEqualizers.some(effect => effect.bands.length);
     const needsReverbBiquad = reverbEffects.length > 0;
+    const needsRoomVerbBiquad = roomVerbEffects.length > 0;
     const needsDistortionBiquad = distortionEffects.some(effect =>
         effect.preEqBands.length || effect.postEqBands.length);
     const needsOscillator = tremoloEffects.some(effect =>
@@ -941,7 +980,10 @@ export function createWwiseEffectChain(
     {
         return null;
     }
-    if ((needsBiquad || needsDistortionBiquad || needsReverbBiquad)
+    if ((needsBiquad
+        || needsDistortionBiquad
+        || needsReverbBiquad
+        || needsRoomVerbBiquad)
         && typeof context?.createBiquadFilter !== "function")
     {
         return null;
@@ -970,6 +1012,32 @@ export function createWwiseEffectChain(
     {
         return null;
     }
+    if (roomVerbEffects.length
+        && (typeof context?.createConvolver !== "function"
+            || typeof context?.createBuffer !== "function"))
+    {
+        return null;
+    }
+    const preparedRoomVerbs = new Map();
+
+    try
+    {
+        for (const effect of roomVerbEffects)
+        {
+            preparedRoomVerbs.set(
+                `${effect.effectId}:${effect.slotIndex}`,
+                prepareWwiseRoomVerbApproximation(
+                    context,
+                    effect,
+                    sourceChannelCount,
+                ),
+            );
+        }
+    }
+    catch
+    {
+        return null;
+    }
     const realizedEffects = effects.map(effect =>
         effect.type === "compressor"
             ? RequireApproximateDynamics(
@@ -989,6 +1057,8 @@ export function createWwiseEffectChain(
                 ? { ...effect, type: "guitar-distortion-approximation" }
             : effect.type === "matrix-reverb"
                 ? { ...effect, type: "matrix-reverb-approximation" }
+            : effect.type === "roomverb"
+                ? { ...effect, type: "roomverb-approximation" }
             : effect.type === "meter"
                 ? {
                     ...effect,
@@ -1070,6 +1140,22 @@ export function createWwiseEffectChain(
             const stage = createWwiseMatrixReverbApproximation(
                 context,
                 effect,
+            );
+
+            if (output) output.connect(stage.input);
+            else input = stage.input;
+            output = stage.output;
+            nodes.push(...stage.nodes);
+            continue;
+        }
+        if (effect.type === "roomverb-approximation")
+        {
+            const stage = createWwiseRoomVerbApproximation(
+                context,
+                effect,
+                preparedRoomVerbs.get(
+                    `${effect.effectId}:${effect.slotIndex}`,
+                ),
             );
 
             if (output) output.connect(stage.input);
@@ -1844,6 +1930,23 @@ export function parseGraphStaticWwiseMatrixReverb(
             29,
             label,
             "Wwise Matrix Reverb",
+        ),
+        { effectId, slotIndex, label, bankVersion: effect.bankVersion },
+    );
+}
+
+/** Qualifies one static source-local v150 Wwise RoomVerb record. */
+export function parseGraphStaticWwiseRoomVerb(effect, effectId, slotIndex)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+
+    return parseStaticWwiseRoomVerbBytes(
+        RequireStaticGraphEffect(
+            effect,
+            WWISE_ROOMVERB_PLUGIN_ID,
+            186,
+            label,
+            "Wwise RoomVerb",
         ),
         { effectId, slotIndex, label, bankVersion: effect.bankVersion },
     );

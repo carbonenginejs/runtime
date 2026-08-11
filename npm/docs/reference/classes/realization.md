@@ -95,6 +95,16 @@ Owns fail-closed shared Web Audio topology, qualified effect placement, explicit
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:WwiseRoomVerbReader -->
+## `WwiseRoomVerbReader`
+
+Reads one exact static v150 Wwise RoomVerb parameter block sequentially.
+
+- Export: None
+- Source: `src/internal/wwiseRoomVerb.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsAudioMan -->
 ## `CjsAudioMan`
 

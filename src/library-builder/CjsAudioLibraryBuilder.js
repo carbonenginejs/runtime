@@ -18,6 +18,7 @@ import {
     WWISE_GUITAR_DISTORTION_PLUGIN_ID,
     WWISE_METER_PLUGIN_ID,
     WWISE_MATRIX_REVERB_PLUGIN_ID,
+    WWISE_ROOMVERB_PLUGIN_ID,
     WWISE_TREMOLO_PLUGIN_ID,
     parseGraphSharedBusEffect,
     parseStaticParametricEqBytes,
@@ -26,6 +27,7 @@ import {
     parseStaticWwiseGuitarDistortionBytes,
     parseStaticWwiseMeterBytes,
     parseStaticWwiseMatrixReverbBytes,
+    parseStaticWwiseRoomVerbBytes,
     parseStaticWwiseTremoloBytes,
 } from "../internal/busEffects.js";
 
@@ -5308,6 +5310,26 @@ function ParseStaticWwiseMatrixReverb(ownerLabel, slot, effect)
     });
 }
 
+function ParseStaticWwiseRoomVerb(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise RoomVerb ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    return parseStaticWwiseRoomVerbBytes(effect.parameterBlock, {
+        effectId: effect.id,
+        slotIndex: slot.index,
+        label: `Wwise RoomVerb ${effect.id} on ${ownerLabel}`,
+        bankVersion: effect.bankVersion,
+    });
+}
+
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
  * Sound's source ID references a CAkFxCustom object; its empty inline source
@@ -5482,6 +5504,14 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
             else if (effect.pluginId === WWISE_MATRIX_REVERB_PLUGIN_ID)
             {
                 chain.push(ParseStaticWwiseMatrixReverb(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_ROOMVERB_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwiseRoomVerb(
                     `NodeBase ${ownerId} inherited by Sound ${soundId}`,
                     slot,
                     effect,

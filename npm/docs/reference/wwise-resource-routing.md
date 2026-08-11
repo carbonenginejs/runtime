@@ -173,12 +173,13 @@ The later EVE build 3453885 source-local path resolves the first effective
 NodeBase effect override for every retained Sound. A descendant override
 replaces its parent list, an explicit empty override clears it, and a root list
 is effective even when its override bit is clear. Complete static,
-control-free Parametric EQ/Wwise Delay/Matrix Reverb/Meter chains are projected
+control-free Parametric EQ/Wwise Delay/Matrix Reverb/RoomVerb/Meter chains are projected
 once per voice
 before Voice LPF/HPF and the emitter/auxiliary split. The exact demo currently
-retains 261 qualified EQ Sound leaves and 79 Delay leaves. Of the EQ leaves,
-165 are acoustically non-neutral; 15 belong to complete admitted Tremolo/EQ
-chains. EQ leaves with live controls and Sound `350811697`'s independently
+retains 286 qualified EQ Sound leaves and 87 Delay leaves. Of the EQ leaves,
+190 are acoustically non-neutral; 15 belong to complete admitted Tremolo/EQ
+chains and 24 precede RoomVerb. EQ leaves with live controls and Sound
+`350811697`'s independently
 routed LFE shape remain dry-playback approximations. Overlapping
 property-value, unsupported-plug-in, and other independent-LFE barriers are
 not partially applied.
@@ -654,6 +655,38 @@ raised qualified source-effect leaves from 2,575 to 2,617; the later Tremolo
 phase admission completed the remaining chains without changing media or
 event reachability.
 
+Pinned wwiser proves RoomVerb `0x00760003` and its exact 186-byte v150 record.
+It contains Decay Time, HF Damping, Diffusion, Stereo Width, three tone-filter
+records and insert positions, input/output channel levels, Dry/Early/Late
+levels, the early-reflection pattern and timing, Reverb Pre-Delay, Room Size,
+Density, Room Shape, quality/reverb-unit count, and the algorithm-tuning tail.
+The builder admits only static, control/media-free records with the exact
+audited EVE tuning fingerprint and mono/stereo-compatible channel levels.
+
+`wwiseRoomVerb: "approximate-web-audio"` realizes those source-local records
+with two deterministic cached procedural convolution branches rather than the
+Matrix feedback network. The early branch approximates the reflection pattern,
+room-size timing, and stereo width. The late branch preserves
+Pre-Delay and approximates nominal T60, time-varying HF damping, diffusion,
+density, room shape, and quality. Authored Dry/Early/Late levels are preserved,
+and enabled tone filters map to Web Audio biquads at their retained branch
+positions. This is not Audiokinetic's proprietary reflection table, reverb-unit
+algorithm, early-reflection front/back timing, surround/LFE/center routing, or
+channel law. Strict mode, missing
+primitives, a decoded source above two channels, dynamic records, and shared-Bus
+RoomVerb keep the complete chain audible and dry. Voice disposal cuts the
+remaining convolution tail.
+
+EVE build 3453885 projects 52 RoomVerb Sound leaves across 34 retained events.
+They use 11 effect identities representing ten exact parameter records. Every
+record has an active late tail; 50 also have audible early reflections. Twenty-
+eight chains contain only RoomVerb and 24 place a qualified static Parametric
+EQ before it. Decay ranges from 1.2 to 6.7 seconds, Stereo Width is 88 or 180
+degrees, and two single-leaf records use active tone shaping. This raises the
+current qualified source-effect population from 2,740 to 2,792 Sound leaves and
+the retained record count from 2,781 to 2,857 without changing media or event
+reachability.
+
 The same source-local projection retains pinned wwiser's exact 28-byte v150
 Wwise Meter record when it is static, control-free, and does not apply its
 measurement as downstream volume. A Meter without a Game Parameter target is
@@ -665,8 +698,9 @@ shared-Bus policy rather than baking host policy into the portable library.
 
 EVE build 3453885 has 49 such Sound leaves across 39 retained events, all with
 nonzero Game Parameter targets. Opt-in omission initially raised qualified
-source-effect leaves from 2,617 to 2,666; the current aggregate after Tremolo
-phase admission is 2,740 without changing media or event reachability. The
+source-effect leaves from 2,617 to 2,666; the current aggregate after Tremolo,
+Matrix, and RoomVerb admission is 2,792 without changing media or event
+reachability. The
 other 81 source-Meter leaves use effect `277510878` with downstream-volume
 application enabled and remain complete-chain dry fallbacks; omitting that
 behavior would alter the authored signal path, not merely its telemetry.

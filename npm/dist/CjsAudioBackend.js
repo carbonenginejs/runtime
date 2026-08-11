@@ -9,6 +9,7 @@ import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSf
 import { CjsAudioBackendSfxVoice } from './internal/CjsAudioBackendSfxVoice.js';
 import { normalizeWwiseObstructionOcclusionMode, createWwiseObstructionOcclusionStage, applyWwiseObstructionOcclusionStage, disconnectWwiseObstructionOcclusionStage } from './internal/obstructionOcclusion.js';
 import { normalizeWwiseReverbMode } from './internal/wwiseMatrixReverb.js';
+import { normalizeWwiseRoomVerbMode } from './internal/wwiseRoomVerb.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -73,6 +74,7 @@ class CjsAudioBackend {
   #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
   #wwiseReverb = "strict";
+  #wwiseRoomVerb = "strict";
   #wwiseMeterFeedback = "strict";
   #wwiseObstructionOcclusion = "strict";
   #busGraphRuntime = null;
@@ -113,6 +115,7 @@ class CjsAudioBackend {
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseReverb = "strict",
+    wwiseRoomVerb = "strict",
     wwiseMeterFeedback = "strict",
     wwiseObstructionOcclusion = "strict",
     busGraphRuntime,
@@ -137,6 +140,7 @@ class CjsAudioBackend {
     this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
+    this.#wwiseRoomVerb = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
     this.#wwiseObstructionOcclusion = normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion);
     this.#busGraphRuntime = busGraphRuntime ?? null;
@@ -2680,7 +2684,9 @@ class CjsAudioBackend {
       wwiseDistortion: this.#wwiseDistortion,
       wwiseModulation: this.#wwiseModulation,
       wwiseReverb: this.#wwiseReverb,
-      wwiseMeterFeedback: this.#wwiseMeterFeedback
+      wwiseRoomVerb: this.#wwiseRoomVerb,
+      wwiseMeterFeedback: this.#wwiseMeterFeedback,
+      sourceChannelCount: descriptor.buffer?.numberOfChannels ?? 1
     });
     if (lowPassFilter) {
       lowPassFilter.type = "lowpass";

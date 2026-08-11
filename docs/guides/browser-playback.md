@@ -68,6 +68,7 @@ const audio = new CjsAudioMan(document, {
     wwiseDistortion: "approximate-web-audio",
     wwiseModulation: "approximate-web-audio",
     wwiseReverb: "approximate-web-audio",
+    wwiseRoomVerb: "approximate-web-audio",
     wwiseObstructionOcclusion: "approximate-web-audio",
     // Optional omission policies; both defaults are "strict".
     wwiseMeterFeedback: "omit-telemetry",

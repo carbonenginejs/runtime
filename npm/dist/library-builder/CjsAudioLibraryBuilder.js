@@ -4,6 +4,7 @@ import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGrap
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
 import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_MATRIX_REVERB_PLUGIN_ID, WWISE_METER_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes, parseStaticWwiseTremoloBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMatrixReverbBytes, parseStaticWwiseMeterBytes } from '../internal/busEffects.js';
+import { WWISE_ROOMVERB_PLUGIN_ID, parseStaticWwiseRoomVerbBytes } from '../internal/wwiseRoomVerb.js';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
 // the builder accepts index values, metadata values, and optional injected
@@ -3236,6 +3237,17 @@ function ParseStaticWwiseMatrixReverb(ownerLabel, slot, effect) {
     bankVersion: effect.bankVersion
   });
 }
+function ParseStaticWwiseRoomVerb(ownerLabel, slot, effect) {
+  if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`Wwise RoomVerb ${effect.id} on ${ownerLabel} is not static`);
+  }
+  return parseStaticWwiseRoomVerbBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise RoomVerb ${effect.id} on ${ownerLabel}`,
+    bankVersion: effect.bankVersion
+  });
+}
 
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
@@ -3320,6 +3332,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
         chain.push(ParseStaticWwiseGuitarDistortion(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_MATRIX_REVERB_PLUGIN_ID) {
         chain.push(ParseStaticWwiseMatrixReverb(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+      } else if (effect.pluginId === WWISE_ROOMVERB_PLUGIN_ID) {
+        chain.push(ParseStaticWwiseRoomVerb(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_METER_PLUGIN_ID) {
         chain.push(ParseStaticWwiseMeter(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else {

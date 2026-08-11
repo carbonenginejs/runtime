@@ -269,7 +269,8 @@ exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
 static Parametric EQ, Wwise Delay, and qualified Wwise Compressor, Peak
-Limiter, Flanger, Tremolo, Guitar Distortion, or Matrix Reverb records. The
+Limiter, Flanger, Tremolo, Guitar Distortion, Matrix Reverb, or RoomVerb
+records. The
 builder walks the Sound's NodeBase
 ancestry to the first effect
 override, treating a root list as effective and an explicit empty override as
@@ -364,6 +365,31 @@ state, and natural completion disposes the stage at the decoded dry-source
 boundary, cutting the reverb tail. Shared-Bus Matrix Reverb remains
 unsupported.
 
+Qualified static RoomVerb records use the independent
+`wwiseRoomVerb: "approximate-web-audio"` opt-in. Pinned wwiser proves plug-in
+`0x00760003` and the exact 186-byte v150 layout. The builder retains every
+field but admits only the audited EVE tuning fingerprint, static/control-free
+records, and channel settings that can be approximated from mono or stereo
+decoded media. Strict mode, a source with more than two decoded channels, or
+missing Gain, Convolver, Buffer, Delay, or Biquad primitives omits the complete
+chain and keeps the voice audible and dry.
+
+The browser does not reuse the Matrix Reverb feedback network. It caches
+deterministic procedural impulse responses per AudioContext, sample rate,
+channel count, and authored parameter set. One branch approximates the
+authored early-reflection pattern, room size, and stereo width. A separate
+branch preserves Reverb Pre-Delay and approximates the late
+T60, HF damping, diffusion, density, room shape, and quality. Authored
+Dry/Early/Late decibel levels are preserved, and enabled tone filters are
+mapped to Web Audio biquads at their retained early/late insert positions.
+Audiokinetic's
+[Wwise RoomVerb reference](https://www.audiokinetic.com/library/2025.1.3_9037/?id=wwise_roomverb_effect_plug_in&source=Help)
+describes those controls, but the proprietary reflection tables, reverb-unit
+algorithm, early-reflection front/back timing, surround/LFE/center routing,
+and native channel law are not available in Web Audio. Pause/seek reuse browser convolution state and voice
+disposal cuts the remaining tail at decoded dry-source completion. Shared-Bus
+RoomVerb remains unsupported.
+
 Bypassed or rendered slots need no live stage. Pause and seek reuse the
 voice-owned browser nodes instead of freezing or reconstructing native Wwise
 plug-in state. Natural completion still follows the decoded dry source;
@@ -372,14 +398,17 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 2,740
-qualified Sound leaves carrying 2,781 effect records: 262 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 2,792
+qualified Sound leaves carrying 2,857 effect records: 286 use Parametric EQ,
 87 use Wwise Delay, 2,033 use
 Compressor, 73 use Peak Limiter, nine use Flanger across five retained events,
 149 Tremolo stages occur on 148 Sounds across 80 retained events, 69 use
 static Guitar Distortion across 23 retained events, 50 use static Matrix
-Reverb across 22 retained
+Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
 events, and 49 retain telemetry-only Meter records across 39 retained events.
+RoomVerb covers 11 effect identities and ten exact 186-byte parameter records;
+28 chains contain only RoomVerb and 24 place one qualified Parametric EQ before
+it.
 The formerly dry eight Matrix leaves are now complete because their preceding
 Tremolo ShareSet's 108-degree global phase is retained; its Random 66-degree
 per-channel spread remains an explicit browser omission. Projected Matrix
@@ -394,7 +423,7 @@ Limiter leaves all inherit Custom effect
 `754157063` under `refinery_l_play`. A total of 486 retained events can reach
 at least one Compressor leaf. The
 Compressor population contains nine complete chain signatures, including
-eight leaves where it precedes one qualified EQ. There are now 166 non-neutral
+eight leaves where it precedes one qualified EQ. There are now 190 non-neutral
 EQ chains. Sound `350811697` remains atomically dry because its preceding EQ
 requires unsupported independent LFE routing. Twelve additional
 static-Flanger leaves stay dry because their second slot is a dynamic
@@ -1170,9 +1199,11 @@ replay, and Crossfade envelope do not run.
 The same event's independent action `673588669` targets finite Sound
 `603165888`, so the builder retains that action as a bounded audible fallback.
 Media `278513022` plays once with its authored `-6 dB` and spatial properties.
-The Sound's direct Wwise RoomVerb `402798902` remains unsupported and follows
-the existing dry-playback fallback, so its reverb character and tail are
-omitted. This exception requires exactly two plain Play actions, the audited
+The Sound's direct Wwise RoomVerb `402798902` is retained. It remains audible
+and dry under the default strict policy; explicit
+`wwiseRoomVerb: "approximate-web-audio"` adds the documented RoomVerb character
+while still cutting its residual tail at source completion. This exception
+requires exactly two plain Play actions, the audited
 single-child infinite amplitude-Crossfade and trackless finite Layer shape,
 and one independent finite codec Sound. An infinite or modified sibling and
 all other Crossfade-to-Blend forms remain fail-closed.

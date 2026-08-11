@@ -103,14 +103,15 @@ every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
 built SFX `sound` nodes may additionally retain an ordered `sourceEffects`
 array for the complete effective static Parametric EQ, Wwise Delay, or
 qualified Wwise Compressor/Peak Limiter/Flanger/Tremolo/Guitar
-Distortion/Matrix Reverb override in their
+Distortion/Matrix Reverb/RoomVerb override in their
 NodeBase ancestry.
 An explicit empty override clears the inherited list.
 Those effects are voice-owned and precede Voice LPF/HPF and route splitting.
 Built Matrix Reverb records remain dry by default. Hosts may select
 `wwiseReverb: "approximate-web-audio"` on `CjsAudioMan`, `CjsAudioSystem`, or
 `CjsAudioBackend` to realize the documented bounded source-local browser
-adapter. This policy is not forwarded to the shared Bus mixer. Built-in music
+adapter. Built RoomVerb records use the independent `wwiseRoomVerb` policy
+described below. Neither policy is forwarded to the shared Bus mixer. Built-in music
 evaluates Bus Volume only from this Audio Bus catalog. A Music
 Track's own qualified Voice Volume RTPC instead uses the independent pre-bus
 track stage described in the music guide. Interpolation occurs before Wwise's
@@ -238,6 +239,27 @@ cyclic feedback topology, and a fixed HF damping curve. It is not Wwise's
 matrix, mixing, damping, channel, or LFE implementation. Source completion
 cuts the remaining tail. Any other value throws synchronously, and
 `CjsAudioSystem` accepts the same option; shared-Bus Matrix Reverb remains a
+barrier.
+
+Constructor option `wwiseRoomVerb` independently controls qualified
+source-local Wwise RoomVerb records:
+
+- `"strict"` (default) omits the complete source chain and keeps the voice
+  audible/dry.
+- `"approximate-web-audio"` realizes the documented static EVE-v150 subset
+  with deterministic cached early-reflection and late-reverb convolution
+  buffers plus Gain, optional Delay, and Biquad nodes. Missing required
+  primitives or a decoded source with more than two channels keep the complete
+  chain dry.
+
+Pinned wwiser proves the exact 186-byte portable record layout. The browser
+preserves Dry/Early/Late levels and Reverb Pre-Delay, and approximates the
+authored ER pattern, room size, decay, HF damping, diffusion, density, room
+shape, quality, stereo width, and tone filters. Wwise's proprietary reflection
+tables, reverb algorithm, surround/LFE/center treatment, and tail-completion
+lifecycle are not reproduced; early-reflection front/back timing also remains
+retained metadata. Any other value throws synchronously, and
+`CjsAudioSystem` accepts the same option; shared-Bus RoomVerb remains a
 barrier.
 
 Constructor option `wwiseDistortion` independently controls qualified

@@ -44,6 +44,7 @@ import {
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseModulationMode,
     normalizeWwiseReverbMode,
+    normalizeWwiseRoomVerbMode,
 } from "./internal/busEffects.js";
 import {
     CjsAudioBackendSfxProgramSlot,
@@ -142,6 +143,7 @@ export class CjsAudioBackend
     #wwiseModulation = "strict";
 
     #wwiseReverb = "strict";
+    #wwiseRoomVerb = "strict";
 
     #wwiseMeterFeedback = "strict";
 
@@ -190,6 +192,7 @@ export class CjsAudioBackend
         wwiseDistortion = "strict",
         wwiseModulation = "strict",
         wwiseReverb = "strict",
+        wwiseRoomVerb = "strict",
         wwiseMeterFeedback = "strict",
         wwiseObstructionOcclusion = "strict",
         busGraphRuntime,
@@ -231,6 +234,7 @@ export class CjsAudioBackend
             wwiseModulation,
         );
         this.#wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
+        this.#wwiseRoomVerb = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
         this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
             wwiseMeterFeedback,
         );
@@ -4767,7 +4771,10 @@ export class CjsAudioBackend
                 wwiseDistortion: this.#wwiseDistortion,
                 wwiseModulation: this.#wwiseModulation,
                 wwiseReverb: this.#wwiseReverb,
+                wwiseRoomVerb: this.#wwiseRoomVerb,
                 wwiseMeterFeedback: this.#wwiseMeterFeedback,
+                sourceChannelCount:
+                    descriptor.buffer?.numberOfChannels ?? 1,
             },
         );
 

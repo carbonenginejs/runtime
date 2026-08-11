@@ -7,6 +7,7 @@ import { installAudioLibraryDocument } from './library/audioLibraryDocument.js';
 import { normalizeWwiseVoiceLimitMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode } from './internal/busEffects.js';
 import { CjsAudioManSharedAcquisition } from './internal/CjsAudioManSharedAcquisition.js';
 import { normalizeWwiseObstructionOcclusionMode } from './internal/obstructionOcclusion.js';
+import { normalizeWwiseRoomVerbMode } from './internal/wwiseRoomVerb.js';
 import { normalizeWwiseReverbMode } from './internal/wwiseMatrixReverb.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
@@ -71,6 +72,7 @@ class CjsAudioMan {
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseReverb = "strict",
+    wwiseRoomVerb = "strict",
     wwiseMeterFeedback = "strict",
     wwiseObstructionOcclusion = "strict",
     wwiseVoiceLimits = "strict"
@@ -103,6 +105,7 @@ class CjsAudioMan {
       wwiseDistortion: normalizeWwiseDistortionMode(wwiseDistortion),
       wwiseModulation: normalizeWwiseModulationMode(wwiseModulation),
       wwiseReverb: normalizeWwiseReverbMode(wwiseReverb),
+      wwiseRoomVerb: normalizeWwiseRoomVerbMode(wwiseRoomVerb),
       wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback),
       wwiseObstructionOcclusion: normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion),
       wwiseVoiceLimits: normalizeWwiseVoiceLimitMode(wwiseVoiceLimits)

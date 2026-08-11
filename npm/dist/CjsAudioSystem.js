@@ -12,6 +12,7 @@ import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
 import { normalizeWwiseDynamicsMode, normalizeWwiseDistortionMode, normalizeWwiseModulationMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
 import { normalizeWwiseObstructionOcclusionMode } from './internal/obstructionOcclusion.js';
 import { normalizeWwiseReverbMode } from './internal/wwiseMatrixReverb.js';
+import { normalizeWwiseRoomVerbMode } from './internal/wwiseRoomVerb.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -73,6 +74,7 @@ class CjsAudioSystem {
   #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
   #wwiseReverb = "strict";
+  #wwiseRoomVerb = "strict";
   #wwiseMeterFeedback = "strict";
   #wwiseObstructionOcclusion = "strict";
   #wwiseVoiceLimits = "strict";
@@ -107,6 +109,7 @@ class CjsAudioSystem {
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseReverb = "strict",
+    wwiseRoomVerb = "strict",
     wwiseMeterFeedback = "strict",
     wwiseObstructionOcclusion = "strict",
     wwiseVoiceLimits = "strict"
@@ -135,6 +138,7 @@ class CjsAudioSystem {
     this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
+    this.#wwiseRoomVerb = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
     this.#wwiseObstructionOcclusion = normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion);
     this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(wwiseVoiceLimits);
@@ -196,6 +200,7 @@ class CjsAudioSystem {
           wwiseDistortion: this.#wwiseDistortion,
           wwiseModulation: this.#wwiseModulation,
           wwiseReverb: this.#wwiseReverb,
+          wwiseRoomVerb: this.#wwiseRoomVerb,
           wwiseMeterFeedback: this.#wwiseMeterFeedback,
           wwiseObstructionOcclusion: this.#wwiseObstructionOcclusion,
           busGraphRuntime: this.#busGraphRuntime
