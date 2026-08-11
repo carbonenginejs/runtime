@@ -1,3 +1,4 @@
+export * from "./backendSelection.js";
 export * from "./CjsWebGLProbe.js";
 export * from "./deviceLimits.js";
 export * from "./Tr2DisplayMode.js";

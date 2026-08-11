@@ -36,7 +36,7 @@ test("Tr2PlatformInfo reports observed browser WebGPU capabilities", async () =>
 {
     const platform = await Tr2PlatformInfo.Detect({ adapter: fakeAdapter(), taa: true });
 
-    assert.equal(platform.platformName, "browser-webgpu");
+    assert.equal(platform.platformName, "webgpu", "the platform name is the effect.<name> path segment, as Carbon's dx11 is");
     assert.equal(platform.GetStaticCap(PlatformStaticCap.NON_SYNCHRONIZED_LOCKS), false);
     assert.equal(platform.GetStaticCap(PlatformStaticCap.BUFFER_SHADER_RESOURCES), true);
     assert.equal(platform.GetStaticCap("UNORDERED_ACCESS"), true);
@@ -55,7 +55,7 @@ test("Tr2PlatformInfo reports observed browser WebGPU capabilities", async () =>
 test("Tr2PlatformInfo leaves unavailable browser capabilities false", async () =>
 {
     const platform = await Tr2PlatformInfo.Detect({ gpu: null });
-    assert.equal(platform.platformName, "browser");
+    assert.equal(platform.platformName, null, "no backend, no platform name");
     assert.equal(platform.GetCapabilities().webgpu, false);
     assert.equal(platform.GetStaticCap(PlatformStaticCap.COMPUTE), false);
 });

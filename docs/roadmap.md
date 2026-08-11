@@ -99,12 +99,13 @@ implicitly pin every resource it touches.
 This work requires a reviewed handle or scope contract from the resource
 manager; runtime-core must not infer private cache or lock internals.
 
-## Planned capability proof and selection
+## Capability proof and selection
 
-The current platform surface reports browser-visible WebGPU facts. It does not
-prove that a concrete renderer can satisfy an application's minimum contract.
+This flow is implemented; see [platform](reference/platform.md) § *Backend
+selection*. `SelectBackend` is a standalone function and `CjsLibrary` is its
+default caller, so a composition without this package reaches the same decision.
 
-The planned selection flow separates:
+The selection flow separates:
 
 1. cheap support reports;
 2. an engine-owned asynchronous proof of the required device or context;

@@ -138,8 +138,10 @@ test("Tr2PlatformInfo separates 'no WebGPU' from 'WebGL is available'", async ()
 
     assert.equal(withGL.backend, Tr2PlatformInfo.Backend.WEBGL);
     assert.equal(without.backend, Tr2PlatformInfo.Backend.NONE);
-    assert.equal(withGL.platformName, "browser-webgl2");
-    assert.equal(without.platformName, "browser");
+    // platformName is the resource-path discriminator, so it is the backend
+    // name: it is what turns `effect/` into `effect.webgl/`.
+    assert.equal(withGL.platformName, "webgl");
+    assert.equal(without.platformName, null);
 });
 
 test("Tr2PlatformInfo describes exactly one backend's capabilities", async () =>

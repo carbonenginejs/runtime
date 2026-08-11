@@ -16,6 +16,28 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
     Object.entries(PlatformStaticCap).map(([ name, value ]) => [ value, name ])
 ));
 
+// Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
+//   trinity/Tr2PlatformInfo.h, trinity/Tr2PlatformInfo.cpp
+//   trinity/trinityal/include/TrinityALForward.h:50-90 (the platform macros)
+//
+// Carbon's version is ENTIRELY COMPILE-TIME: every accessor returns a
+// preprocessor macro of whichever backend was linked, and there is no probing
+// because there is nothing to probe. We select a backend at runtime, so the
+// same questions become measurements - but the ANSWERS must keep Carbon's
+// meaning, and one of them had drifted.
+//
+// GetPlatformName IS THE RESOURCE-PATH DISCRIMINATOR, NOT A DESCRIPTION.
+// Tr2Effect.cpp:326 rewrites "/effect/" to "." TRINITY_PLATFORM_NAME "/", which
+// is how "dx11" reaches `effect.dx11/`. Ours is what reaches `effect.webgpu/`
+// and `effect.webgl/`. It previously returned "browser" / "browser-webgpu",
+// which is a sentence about the host rather than the value the path needs; the
+// descriptive facts live in the capability keys instead.
+//
+// This is also why Carbon's stub target reports "dx11" rather than "stub", with
+// the source comment "In order to use the dx11 platform specific res files as
+// our own". A stub engine of ours reports a real backend name for the same
+// reason.
+
 /** Browser feature report replacing Carbon's compile-time platform macros. */
 export class Tr2PlatformInfo
 {
@@ -35,15 +57,30 @@ export class Tr2PlatformInfo
         WEBGL: "webgl"
     });
 
+    /**
+     * The platform name each backend reports, which is the path segment a
+     * compiled effect is resolved through: `effect/` becomes `effect.webgpu/`
+     * or `effect.webgl/`, exactly as Carbon's `dx11` becomes `effect.dx11/`.
+     */
+    static PlatformName = Object.freeze({
+        none: null,
+        webgpu: "webgpu",
+        webgl: "webgl"
+    });
+
     /** Creates a browser platform capability report. */
     constructor(values = {})
     {
-        this.platformName = values.platformName ?? "browser";
+        this.backend = values.backend ?? Tr2PlatformInfo.Backend.NONE;
+        this.platformName = values.platformName ?? Tr2PlatformInfo.PlatformName[this.backend] ?? null;
+        // Carbon's TRINITY_PLATFORM is a per-backend build constant (dx11 = 2,
+        // stub = 5, dx12 = 6, metal = 10) naming targets that do not exist
+        // here, so a browser value in that numbering would be a fabrication.
+        // It stays zero, as it has been, and nothing reads it.
         this.platformID = values.platformID ?? 0;
         this.isLowPerformance = values.isLowPerformance ?? false;
         this.adapter = values.adapter ?? null;
         this.webgl = values.webgl ?? null;
-        this.backend = values.backend ?? Tr2PlatformInfo.Backend.NONE;
         this.probeError = values.probeError ?? null;
         this.#staticCaps = new Map();
         for (const name of Object.keys(PlatformStaticCap)) this.#staticCaps.set(name, values.staticCaps?.[name] === true);
@@ -159,8 +196,6 @@ export class Tr2PlatformInfo
         if (backend === Tr2PlatformInfo.Backend.WEBGL)
         {
             return new Tr2PlatformInfo({
-                platformName: "browser-webgl2",
-                platformID: 0,
                 isLowPerformance: false,
                 adapter,
                 webgl,
@@ -183,13 +218,18 @@ export class Tr2PlatformInfo
             TEXTURE_ARRAYS: hasWebGPU && Number(limits.maxTextureArrayLayers) > 1,
             // Multisampled textures and texture_multisampled_2d are core WebGPU.
             MSAA_SAMPLE: hasWebGPU,
-            // TAA is an application/engine feature, not a browser API capability.
+            // DELIBERATE DEVIATION. Carbon declares TAA and NON_SYNCHRONIZED_LOCKS
+            // in its StaticCap enum but handles neither in the switch, so both
+            // fall to `default: return false` and TRINITY_SUPPORTS_TAA is never
+            // read - its HANDLE_APPLICATION_CAP macro is defined and never used
+            // (Tr2PlatformInfo.cpp:22-37). TAA is genuinely an application
+            // choice, so ours honours the caller's answer rather than porting
+            // dead code. NON_SYNCHRONIZED_LOCKS stays false, which agrees with
+            // both Carbon's behavior and the browser's.
             TAA: options.taa === true
         };
 
         return new Tr2PlatformInfo({
-            platformName: hasWebGPU ? "browser-webgpu" : "browser",
-            platformID: 0,
             isLowPerformance: adapter?.isFallbackAdapter ?? false,
             adapter,
             webgl,

@@ -6,6 +6,9 @@
  * supplied services.
  */
 
+import { SelectBackend } from "./platform/backendSelection.js";
+import { Tr2PlatformInfo } from "./platform/Tr2PlatformInfo.js";
+
 export * from "./platform/index.js";
 
 export const CjsServiceKey = Object.freeze({
@@ -41,6 +44,7 @@ export class CjsLibrary
     #resourceManager = null;
     #spaceObjectFactory = null;
     #audioManager = null;
+    #backendSelection = null;
     #initialized = false;
 
     /** Creates a composition root from optional services, capabilities, and request policies. */
@@ -189,11 +193,70 @@ export class CjsLibrary
         return this;
     }
 
+    // THE JOIN BETWEEN PROBING AND SELECTION. Probing, capability recording and
+    // backend choice all belong to the library - it is the thing that decides
+    // what to test, what to load and what to fall back to - but the policy
+    // itself lives in `backendSelection.js` as a plain function, so a caller
+    // composing without `CjsLibrary` reaches the identical decision. This
+    // method is the default caller, not the owner.
+    //
+    // It records and applies; it does not create. The device or context proof
+    // is the candidate's own asynchronous `Prove`, because runtime-core must
+    // not create a GPU device and cannot import an engine to do it.
+
+    /**
+     * Probes the platform if it has not been told, then commits the library to
+     * exactly one backend from the candidates offered, recording the resulting
+     * capabilities. Returns the selection.
+     *
+     * `probe: false` skips detection and selects against already-registered
+     * capabilities, which is how a caller that probed elsewhere - or is
+     * replaying a known environment in a test - keeps one decision path.
+     */
+    async SelectBackendAsync(options = {})
+    {
+        assertPlainObject(options, "CjsLibrary.SelectBackendAsync options");
+
+        const { candidates, preference, probe, platform: supplied, ...detectOptions } = options;
+        let platform = supplied ?? null;
+
+        if (!platform && probe !== false)
+        {
+            platform = await Tr2PlatformInfo.Detect(detectOptions);
+        }
+
+        if (platform) this.RegisterCapabilities(platform.GetCapabilities());
+
+        const selection = await SelectBackend({
+            candidates,
+            preference,
+            platform,
+            capabilities: platform ? undefined : this.GetCapabilities()
+        });
+
+        // The committed name is a capability because that is how a resource
+        // behavior reads it; the proof itself is the caller's to hold, since a
+        // device is a service and not a capability value.
+        this.SetCapability("backend", selection.effective);
+        this.#backendSelection = selection;
+        return selection;
+    }
+
+    /** The committed backend selection, or null before one is made. */
+    GetBackendSelection()
+    {
+        return this.#backendSelection;
+    }
+
     /** Initializes the library and optionally loads SOF data through the configured factory. */
     async InitializeAsync(options = {})
     {
-        const { dataPath, ...libraryOptions } = options || {};
+        const { dataPath, backend, ...libraryOptions } = options || {};
         this.Initialize(libraryOptions);
+        if (backend !== undefined)
+        {
+            await this.SelectBackendAsync(backend === true ? {} : backend);
+        }
         if (dataPath !== undefined)
         {
             const sof = this.#spaceObjectFactory;
@@ -216,6 +279,10 @@ export class CjsLibrary
     {
         this.#audioManager?.Disable?.();
         this.#audioManager?.Detach?.();
+        // Switching backend is shutdown-and-reinitialize, never a hot swap, so
+        // the commitment is released here and nowhere else.
+        this.#backendSelection = null;
+        this.RemoveCapability("backend");
         this.#initialized = false;
         return this;
     }

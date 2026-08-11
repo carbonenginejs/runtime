@@ -9,11 +9,14 @@ Summary: Documents privacy-respecting browser screen, WebGPU adapter, and WebGL2
 
 ```js
 import {
+    CjsBackendPreference,
+    CjsBackendRejection,
     CjsWebGLProbe,
     PlatformStaticCap,
     ResolveDeviceRequirements,
     ResolveRequiredFeatures,
     ResolveRequiredLimits,
+    SelectBackend,
     Tr2DisplayMode,
     Tr2PlatformInfo,
     Tr2VideoAdapter,
@@ -50,6 +53,17 @@ only through the explicit `taa` detection option.
 answers describe that one backend rather than blending two. WebGPU wins when
 both are present; a library may still compose the WebGL engine, and both
 capability families are reported either way.
+
+`platformName` is the **resource-path discriminator**, not a description of the
+host: it is the segment that turns `res:/.../effect/` into
+`res:/.../effect.webgpu/`, exactly as Carbon's `dx11` produces `effect.dx11/`.
+It is therefore the backend name, or `null` when there is no backend.
+`platformID` remains zero; Carbon's value is a per-backend build constant naming
+targets that do not exist here.
+
+Temporal anti-aliasing deviates deliberately. Carbon declares the cap but never
+handles it, so it always answers false; ours honours the caller's `taa` option
+because the choice is genuinely an application one.
 
 The capability record carries `webgpu` and `webgl2` as **separate** keys.
 `webgpu === false` states only that WebGPU is absent, which is not evidence
@@ -113,6 +127,49 @@ is supplied by the caller rather than fixed here. Three rules apply:
 `GetDeviceDescriptor(demand)` returns the descriptor alone.
 `ResolveRequiredLimits` and `ResolveRequiredFeatures` are exported for a caller
 resolving against an adapter it holds directly.
+
+## Backend selection
+
+`SelectBackend(options)` commits to exactly one backend and reports why every
+other candidate lost. It is a plain function over injected values — it
+constructs nothing, imports no engine, and holds no state — so a caller
+composing without `CjsLibrary` reaches the identical decision.
+`CjsLibrary.SelectBackendAsync` is its default caller, not its owner.
+
+```js
+const selection = await SelectBackend({
+    platform,
+    preference: [ "webgpu", "webgl" ],
+    candidates: [
+        { name: "webgpu", limits, Prove: context => acquireDevice(context.descriptor) },
+        { name: "webgl", Prove: () => acquireContext() }
+    ]
+});
+selection.effective;    // the committed backend name
+selection.requested;    // the caller's preference, never overwritten by discovery
+selection.candidates;   // per-candidate outcome and rejection reason
+```
+
+The four stages stay separated: a cheap support report, then the candidate's
+**own** asynchronous `Prove`, then application policy ranking, then commitment.
+Stage two must not move into this package — runtime-core records and applies a
+result, and does not create a GPU device or context.
+
+A candidate may be a bare name, in which case the support report is the only
+evidence and `selection.backend.proven` is `false` — cheap answers are labelled
+as cheap. A candidate whose proof throws is declined and the chain continues to
+the next; the reason is kept in `selection.candidates`.
+
+Selection fails closed. A preference naming a backend no candidate offers throws
+`CJS_LIBRARY_BACKEND_UNKNOWN`, and exhausting every candidate throws
+`CJS_LIBRARY_BACKEND_UNAVAILABLE` with the per-candidate reasons attached.
+
+`CjsLibrary.SelectBackendAsync(options)` probes unless given `probe: false` or a
+`platform`, registers the resulting capabilities, records the committed name as
+the `backend` capability, and exposes the result through `GetBackendSelection()`.
+`InitializeAsync({ backend })` runs it as part of initialization. `Shutdown()`
+releases the commitment, because switching backend is shutdown-and-reinitialize
+rather than a hot swap.
 
 ## Adapter and driver snapshots
 
