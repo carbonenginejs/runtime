@@ -54,8 +54,9 @@ computes blockage; runtime-audio performs no ray casting.
 An injected backend may implement
 `SetObjectObstructionAndOcclusion(emitterID, listenerID, obstruction,
 occlusion)`. Explicit `false` requests a retry on the next `Process()`; a void
-return accepts the update. `CjsAudioBackend` does not implement this optional
-method because Web Audio has no Wwise-equivalent obstruction/occlusion law.
+return accepts the update. `CjsAudioBackend` accepts the fixed listener ID `4`
+and registered emitter IDs. It keeps strict playback dry by default or applies
+the explicitly selected browser approximation described below.
 
 ## Complete document
 
@@ -227,6 +228,25 @@ Pinned wwiser proves the portable record layout, but not Wwise's transfer,
 Drive, Tone, Rectification, oversampling, or channel laws. The browser uses a
 documented deterministic curve, does not apply Tone, and is not DSP-equivalent.
 Any other value throws synchronously, and `CjsAudioSystem` accepts the same
+option.
+
+Constructor option `wwiseObstructionOcclusion` controls audible realization
+of Carbon's caller-supplied obstruction/occlusion state:
+
+- `"strict"` (default) accepts backend updates without allocating DSP. The
+  exact manager-side clamp, fade, cull/wake, retry, clear, and geometry
+  suppression behavior remains active.
+- `"approximate-web-audio"` inserts one low-pass plus attenuation stage for
+  each active legacy or qualified emitter route. Combined blockage is
+  `1 - (1 - obstruction) * (1 - occlusion)`; its cutoff moves logarithmically
+  from the lower of 20 kHz or the context Nyquist frequency to 600 Hz and its
+  gain from 0 to -18 dB with a 5 ms browser smoothing constant. A route created
+  later inherits the current values.
+
+Carbon delegates the audible response to Wwise, so these fixed curves are
+CarbonEngineJS policy rather than Wwise DSP or bank-authored attenuation.
+Missing `BiquadFilterNode` capability retains strict dry playback. Any other
+option value throws synchronously, and `CjsAudioSystem` accepts the same
 option.
 
 Two further host policies control shared-route admission through explicit

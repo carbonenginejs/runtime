@@ -24,6 +24,9 @@ import {
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
 } from "./internal/busEffects.js";
+import {
+    normalizeWwiseObstructionOcclusionMode,
+} from "./internal/obstructionOcclusion.js";
 
 /** Audio system composition root: repository + manager + backend, attached to the graph seams. */
 export class CjsAudioSystem
@@ -116,6 +119,8 @@ export class CjsAudioSystem
 
     #wwiseMeterFeedback = "strict";
 
+    #wwiseObstructionOcclusion = "strict";
+
     #wwiseVoiceLimits = "strict";
 
     #adoptedEmitters = new Set();
@@ -150,6 +155,7 @@ export class CjsAudioSystem
         wwiseDistortion = "strict",
         wwiseModulation = "strict",
         wwiseMeterFeedback = "strict",
+        wwiseObstructionOcclusion = "strict",
         wwiseVoiceLimits = "strict",
     } = {})
     {
@@ -197,6 +203,10 @@ export class CjsAudioSystem
         this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
             wwiseMeterFeedback,
         );
+        this.#wwiseObstructionOcclusion =
+            normalizeWwiseObstructionOcclusionMode(
+                wwiseObstructionOcclusion,
+            );
         this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(
             wwiseVoiceLimits,
         );
@@ -269,6 +279,8 @@ export class CjsAudioSystem
                     wwiseDistortion: this.#wwiseDistortion,
                     wwiseModulation: this.#wwiseModulation,
                     wwiseMeterFeedback: this.#wwiseMeterFeedback,
+                    wwiseObstructionOcclusion:
+                        this.#wwiseObstructionOcclusion,
                     busGraphRuntime: this.#busGraphRuntime,
                 });
                 const globalControlReaders =

@@ -10,6 +10,7 @@ import { CjsBusDuckingController } from './internal/busDucking.js';
 import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
 import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
 import { normalizeWwiseDynamicsMode, normalizeWwiseDistortionMode, normalizeWwiseModulationMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
+import { normalizeWwiseObstructionOcclusionMode } from './internal/obstructionOcclusion.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -71,6 +72,7 @@ class CjsAudioSystem {
   #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
   #wwiseMeterFeedback = "strict";
+  #wwiseObstructionOcclusion = "strict";
   #wwiseVoiceLimits = "strict";
   #adoptedEmitters = new Set();
   #adoptedCurveSetDrivers = new Set();
@@ -103,6 +105,7 @@ class CjsAudioSystem {
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseMeterFeedback = "strict",
+    wwiseObstructionOcclusion = "strict",
     wwiseVoiceLimits = "strict"
   } = {}) {
     this.#createContext = createContext ?? null;
@@ -129,6 +132,7 @@ class CjsAudioSystem {
     this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
+    this.#wwiseObstructionOcclusion = normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion);
     this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(wwiseVoiceLimits);
     this.#providedUpdateContext = updateContext ?? null;
     if (audioMetadata) {
@@ -188,6 +192,7 @@ class CjsAudioSystem {
           wwiseDistortion: this.#wwiseDistortion,
           wwiseModulation: this.#wwiseModulation,
           wwiseMeterFeedback: this.#wwiseMeterFeedback,
+          wwiseObstructionOcclusion: this.#wwiseObstructionOcclusion,
           busGraphRuntime: this.#busGraphRuntime
         });
         const globalControlReaders = this.#CreateGlobalControlReaders();

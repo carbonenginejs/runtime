@@ -7,6 +7,7 @@ import { indexBusEffectCatalog, normalizeWwiseDynamicsMode, normalizeWwiseDistor
 import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProgramSlot.js';
 import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSfxVoiceLimitLedger.js';
 import { CjsAudioBackendSfxVoice } from './internal/CjsAudioBackendSfxVoice.js';
+import { normalizeWwiseObstructionOcclusionMode, createWwiseObstructionOcclusionStage, applyWwiseObstructionOcclusionStage, disconnectWwiseObstructionOcclusionStage } from './internal/obstructionOcclusion.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -71,6 +72,7 @@ class CjsAudioBackend {
   #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
   #wwiseMeterFeedback = "strict";
+  #wwiseObstructionOcclusion = "strict";
   #busGraphRuntime = null;
   #busMixer = null;
   #unsubscribeBusDucking = null;
@@ -109,6 +111,7 @@ class CjsAudioBackend {
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseMeterFeedback = "strict",
+    wwiseObstructionOcclusion = "strict",
     busGraphRuntime,
     busMixer
   } = {}) {
@@ -131,6 +134,7 @@ class CjsAudioBackend {
     this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
+    this.#wwiseObstructionOcclusion = normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion);
     this.#busGraphRuntime = busGraphRuntime ?? null;
     this.#busMixer = busMixer ?? null;
     this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(() => this.#RefreshBusDucking()) ?? null;
@@ -234,16 +238,19 @@ class CjsAudioBackend {
     const analyser = this.#context.createAnalyser?.() ?? null;
     if (analyser) {
       analyser.fftSize = 256;
-      panner.connect(analyser);
       analyser.connect(this.#sfxGain);
-    } else {
-      panner.connect(this.#sfxGain);
     }
+    const destination = analyser ?? this.#sfxGain;
+    const obstructionOcclusionStage = createWwiseObstructionOcclusionStage(this.#context, destination, this.#wwiseObstructionOcclusion);
+    panner.connect(obstructionOcclusionStage?.input ?? destination);
     this.#emitterNodes.set(gameObjID, {
       gain,
       flatGain: null,
       panner,
       analyser,
+      obstruction: 0,
+      occlusion: 0,
+      obstructionOcclusionStage,
       routeBranches: new Map(),
       front: null,
       position: null,
@@ -1243,6 +1250,23 @@ class CjsAudioBackend {
       sum += mixed[index] * mixed[index];
     }
     return Math.sqrt(sum / mixed.length);
+  }
+
+  /** Applies the optional browser obstruction/occlusion approximation. */
+  SetObjectObstructionAndOcclusion(gameObjID, listenerID, obstruction, occlusion) {
+    const nodes = this.#emitterNodes.get(gameObjID);
+    if (!nodes || Number(listenerID) !== 4) {
+      return false;
+    }
+    nodes.obstruction = obstruction;
+    nodes.occlusion = occlusion;
+    applyWwiseObstructionOcclusionStage(nodes.obstructionOcclusionStage, obstruction, occlusion, this.#context);
+    for (const modes of nodes.routeBranches.values()) {
+      for (const branch of modes.values()) {
+        applyWwiseObstructionOcclusionStage(branch.obstructionOcclusionStage, obstruction, occlusion, this.#context);
+      }
+    }
+    return true;
   }
 
   /** Allocates and posts one event owned by the active music engine. */
@@ -2534,6 +2558,9 @@ class CjsAudioBackend {
       analyser.connect(mixerInput);
     }
     const destination = analyser ?? mixerInput ?? emitterNodes.analyser ?? this.#sfxGain;
+    const obstructionOcclusionStage = createWwiseObstructionOcclusionStage(this.#context, destination, this.#wwiseObstructionOcclusion);
+    const routeDestination = obstructionOcclusionStage?.input ?? destination;
+    applyWwiseObstructionOcclusionStage(obstructionOcclusionStage, emitterNodes.obstruction, emitterNodes.occlusion, this.#context);
     if (spatial) {
       const gain = this.#context.createGain();
       const panner = this.#context.createPanner();
@@ -2545,13 +2572,14 @@ class CjsAudioBackend {
         SetPannerPose(panner, emitterNodes.front, emitterNodes.position, this.#distanceScale, this.#context);
       }
       gain.connect(panner);
-      panner.connect(destination);
+      panner.connect(routeDestination);
       branch = {
         busGraphRoute,
         gain,
         flatGain: null,
         panner,
         analyser,
+        obstructionOcclusionStage,
         mixerInput,
         sharedBusFaders: Boolean(mixerInput),
         sharedBusFilters,
@@ -2559,13 +2587,14 @@ class CjsAudioBackend {
       };
     } else {
       const flatGain = this.#context.createGain();
-      flatGain.connect(destination);
+      flatGain.connect(routeDestination);
       branch = {
         busGraphRoute,
         gain: null,
         flatGain,
         panner: null,
         analyser,
+        obstructionOcclusionStage,
         mixerInput,
         sharedBusFaders: Boolean(mixerInput),
         sharedBusFilters,
@@ -2665,7 +2694,7 @@ class CjsAudioBackend {
     } else {
       if (!emitterNodes.flatGain) {
         emitterNodes.flatGain = this.#context.createGain();
-        emitterNodes.flatGain.connect(emitterNodes.analyser ?? this.#sfxGain);
+        emitterNodes.flatGain.connect(emitterNodes.obstructionOcclusionStage?.input ?? emitterNodes.analyser ?? this.#sfxGain);
         // A 2D route is allocated lazily. Replay previously stored
         // object RTPCs now that adapters can finally see flatGain.
         for (const [rtpcName, value] of emitterNodes.retiredRtpcValues ?? this.#objectRtpcValues.get(gameObjID) ?? []) {
@@ -3988,6 +4017,7 @@ class CjsAudioBackend {
         branch.flatGain?.disconnect?.();
         branch.panner?.disconnect?.();
         branch.analyser?.disconnect?.();
+        disconnectWwiseObstructionOcclusionStage(branch.obstructionOcclusionStage);
       }
       modes.clear();
     }
@@ -3996,6 +4026,7 @@ class CjsAudioBackend {
     nodes.flatGain?.disconnect?.();
     nodes.panner.disconnect?.();
     nodes.analyser?.disconnect?.();
+    disconnectWwiseObstructionOcclusionStage(nodes.obstructionOcclusionStage);
   }
 }
 function SetPannerPose(panner, front, position, distanceScale, context, smooth = false) {

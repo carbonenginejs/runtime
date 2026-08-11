@@ -2058,14 +2058,21 @@ test("strict shared Bus mixer allocates nothing across authored processing barri
   assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
 });
 
-test("CjsAudioSystem validates the source distortion policy", () =>
+test("CjsAudioSystem validates optional Web Audio realization policies", () =>
 {
   assert.throws(
     () => new CjsAudioSystem({ wwiseDistortion: "approximate" }),
     /Unsupported Wwise distortion realization mode/u,
   );
+  assert.throws(
+    () => new CjsAudioSystem({
+      wwiseObstructionOcclusion: "approximate",
+    }),
+    /Unsupported Wwise obstruction\/occlusion realization mode/u,
+  );
   assert.doesNotThrow(() => new CjsAudioSystem({
     wwiseDistortion: "approximate-web-audio",
+    wwiseObstructionOcclusion: "approximate-web-audio",
   }));
 });
 

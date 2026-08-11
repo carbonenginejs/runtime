@@ -19,6 +19,9 @@ import {
 import {
     CjsAudioManSharedAcquisition,
 } from "./internal/CjsAudioManSharedAcquisition.js";
+import {
+    normalizeWwiseObstructionOcclusionMode,
+} from "./internal/obstructionOcclusion.js";
 
 const DELIVERY_MODES = new Set([ "auto", "individual", "whole", "range" ]);
 const ORIGINAL_MEDIA_TYPES = new Set([
@@ -106,6 +109,7 @@ export class CjsAudioMan
         wwiseDistortion = "strict",
         wwiseModulation = "strict",
         wwiseMeterFeedback = "strict",
+        wwiseObstructionOcclusion = "strict",
         wwiseVoiceLimits = "strict",
     } = {})
     {
@@ -152,6 +156,10 @@ export class CjsAudioMan
             wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(
                 wwiseMeterFeedback,
             ),
+            wwiseObstructionOcclusion:
+                normalizeWwiseObstructionOcclusionMode(
+                    wwiseObstructionOcclusion,
+                ),
             wwiseVoiceLimits: normalizeWwiseVoiceLimitMode(
                 wwiseVoiceLimits,
             ),

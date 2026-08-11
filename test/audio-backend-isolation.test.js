@@ -243,14 +243,21 @@ function Harness({
   wwiseDistortion,
   wwiseModulation,
   wwiseMeterFeedback,
+  wwiseObstructionOcclusion,
   busGraphRuntime,
   busMixer,
   busMixerFactory,
   distanceScale,
   withAnalyser,
+  withoutBiquad,
 } = {})
 {
   const context = FakeContext({ withAnalyser });
+
+  if (withoutBiquad)
+  {
+    context.createBiquadFilter = undefined;
+  }
   const resolvedBusMixer = busMixerFactory?.(context) ?? busMixer;
   const finished = [];
   const emitter = { EventFinishedCallback: playingID => finished.push(playingID) };
@@ -281,6 +288,7 @@ function Harness({
     wwiseDistortion,
     wwiseModulation,
     wwiseMeterFeedback,
+    wwiseObstructionOcclusion,
     busGraphRuntime,
     busMixer: resolvedBusMixer,
     distanceScale,
@@ -547,6 +555,117 @@ test("live spatial pose changes use continuous targets after initialization", ()
     context.listener.positionX.targets,
     [ [ 10, 0.5, 0.005 ] ],
   );
+});
+
+test("opt-in obstruction and occlusion muffles legacy and lazy routed emitters", async () =>
+{
+  const { context, emitter, backend } = Harness({
+    wwiseObstructionOcclusion: "approximate-web-audio",
+    busGraphRuntime: RouteRuntime(),
+    loadBuffer: async eventID => ({
+      voices: [ RoutedVoice("100", eventID !== 2) ],
+    }),
+  });
+
+  assert.equal(context.filters.length, 1);
+  assert.equal(context.panners[0].connectedTo, context.filters[0]);
+  context.currentTime = 0.25;
+  assert.equal(
+    backend.SetObjectObstructionAndOcclusion(1, 4, 0.2, 0.5),
+    true,
+  );
+  const expectedBlockage = 0.6;
+  const expectedCutoff = 20000 * (600 / 20000) ** expectedBlockage;
+  const expectedGain = 10 ** (-18 * expectedBlockage / 20);
+
+  assert.deepEqual(
+    context.filters[0].frequency.targets,
+    [ [ expectedCutoff, 0.25, 0.005 ] ],
+  );
+  assert.deepEqual(
+    context.gains[3].gain.targets,
+    [ [ expectedGain, 0.25, 0.005 ] ],
+  );
+
+  backend.PostEvent(1, 1, 0, emitter, "occluded_route");
+  await tick();
+
+  assert.equal(context.filters.length, 2);
+  assert.deepEqual(
+    context.filters[1].frequency.targets,
+    [ [ expectedCutoff, 0.25, 0.005 ] ],
+    "a route created after blockage inherits the emitter state",
+  );
+  assert.equal(
+    RouteBranchForSource(context.sources[0]).connectedTo.connectedTo,
+    context.filters[1],
+  );
+
+  context.currentTime = 0.5;
+  assert.equal(
+    backend.SetObjectObstructionAndOcclusion(1, 4, 1, 0),
+    true,
+  );
+  for (const filter of context.filters)
+  {
+    assert.deepEqual(
+      filter.frequency.targets.at(-1),
+      [ 600, 0.5, 0.005 ],
+      "existing legacy and qualified routes receive later updates",
+    );
+  }
+
+  backend.PostEvent(2, 1, 0, emitter, "occluded_flat_route");
+  await tick();
+
+  assert.equal(context.filters.length, 3);
+  assert.deepEqual(
+    context.filters[2].frequency.targets,
+    [ [ 600, 0.5, 0.005 ] ],
+    "a nonspatial route inherits the current emitter state",
+  );
+  assert.equal(
+    RouteBranchForSource(context.sources[1]).connectedTo,
+    context.filters[2],
+  );
+  assert.equal(
+    backend.SetObjectObstructionAndOcclusion(1, 99, 1, 1),
+    false,
+  );
+  assert.equal(
+    backend.SetObjectObstructionAndOcclusion(999, 4, 1, 1),
+    false,
+  );
+
+  backend.Dispose();
+  assert.ok(context.filters.every(filter => filter.disconnected));
+});
+
+test("strict obstruction and occlusion acknowledges state without adding DSP", () =>
+{
+  const { context, backend } = Harness();
+
+  assert.equal(context.filters.length, 0);
+  assert.equal(
+    backend.SetObjectObstructionAndOcclusion(1, 4, 0.5, 0.75),
+    true,
+  );
+  assert.equal(context.filters.length, 0);
+});
+
+test("opt-in obstruction stays dry when BiquadFilterNode is unavailable", () =>
+{
+  const { context, backend } = Harness({
+    wwiseObstructionOcclusion: "approximate-web-audio",
+    withoutBiquad: true,
+  });
+
+  assert.equal(
+    backend.SetObjectObstructionAndOcclusion(1, 4, 1, 1),
+    true,
+  );
+  assert.equal(context.filters.length, 0);
+  assert.equal(context.panners[0].connectedTo, context.gains[1]);
 });
 
 test("graph-backed SFX routes separate exact route and spatial branches", async () =>

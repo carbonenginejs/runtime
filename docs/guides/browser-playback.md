@@ -63,10 +63,11 @@ let context;
 const audio = new CjsAudioMan(document, {
     createContext: () => context = new AudioContext(),
     defaultSoundBanks: [ "ui.bnk" ],
-    // Optional dynamics, modulation, and distortion approximations.
+    // Optional dynamics, modulation, distortion, and blockage approximations.
     wwiseDynamics: "approximate-web-audio",
     wwiseDistortion: "approximate-web-audio",
     wwiseModulation: "approximate-web-audio",
+    wwiseObstructionOcclusion: "approximate-web-audio",
     // Optional omission policies; both defaults are "strict".
     wwiseMeterFeedback: "omit-telemetry",
     wwiseVoiceLimits: "ignore",
@@ -162,8 +163,8 @@ portable document. It is deliberately a compatibility fallback, not a claim
 of Wwise equivalence. Simultaneous movement and an active Voice Volume, State,
 or RTPC gain transition are smoothly rescheduled on their shared Web Audio
 gain parameter; their continuously varying product is approximate. Cone,
-distance-filter and spread/focus curves, diffraction, transmission, and an
-audible obstruction/occlusion response are not currently rendered.
+distance-filter and spread/focus curves, diffraction, and transmission are not
+currently rendered.
 
 Carbon's newer line-of-sight subsystem does not ray cast either: the host
 supplies a normalized blockage value per emitter and `AudManager` fades the
@@ -172,8 +173,15 @@ API and fade lifecycle. Call `SetEmitterLineOfSightBlockage(emitterID, value)`
 after registering the emitter; `GetEmitterOcclusion()` observes the live
 mid-fade value. An injected backend may accept
 `SetObjectObstructionAndOcclusion(emitterID, 4, obstruction, occlusion)`.
-The built-in Web Audio backend intentionally omits a gain/filter response,
-which would be an explicit approximation of the Wwise-authored audible law.
+The built-in backend acknowledges the state but allocates no DSP by default.
+Opt into `wwiseObstructionOcclusion: "approximate-web-audio"` to apply the
+same smooth low-pass and attenuation stage to legacy, flat, and qualified
+routes for that emitter. The browser combines obstruction and occlusion as
+`1 - (1 - obstruction) * (1 - occlusion)`, moves the cutoff logarithmically
+from the lower of 20 kHz or the context Nyquist frequency to 600 Hz, and
+attenuates from 0 to -18 dB. Carbon supplies only the normalized values and
+delegates their sound to Wwise, so this curve is an explicit CarbonEngineJS
+approximation rather than an authored Wwise law.
 
 For named soundtrack playback independent of authored Wwise music events,
 pass an optional neutral catalog, loader, and availability probe as described

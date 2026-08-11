@@ -6,6 +6,7 @@ import { AudMusicPlayer as _AudMusicPlayer } from './trinity/audio/AudMusicPlaye
 import { installAudioLibraryDocument } from './library/audioLibraryDocument.js';
 import { normalizeWwiseVoiceLimitMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode } from './internal/busEffects.js';
 import { CjsAudioManSharedAcquisition } from './internal/CjsAudioManSharedAcquisition.js';
+import { normalizeWwiseObstructionOcclusionMode } from './internal/obstructionOcclusion.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
 // composition root that installs one complete semantic library and owns
@@ -69,6 +70,7 @@ class CjsAudioMan {
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
     wwiseMeterFeedback = "strict",
+    wwiseObstructionOcclusion = "strict",
     wwiseVoiceLimits = "strict"
   } = {}) {
     if (typeof createContext !== "function") {
@@ -99,6 +101,7 @@ class CjsAudioMan {
       wwiseDistortion: normalizeWwiseDistortionMode(wwiseDistortion),
       wwiseModulation: normalizeWwiseModulationMode(wwiseModulation),
       wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback),
+      wwiseObstructionOcclusion: normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion),
       wwiseVoiceLimits: normalizeWwiseVoiceLimitMode(wwiseVoiceLimits)
     };
     if (musicLibrary !== null || loadMusicTrack !== null || isMusicTrackAvailable !== null) {

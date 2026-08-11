@@ -68,7 +68,8 @@ The package owns:
   decoded/source-byte cache release;
 - graph adoption and release through the composed `CjsAudioSystem`; and
 - Web Audio playback, HRTF positioning, authored dry-volume distance curves,
-  gain, seek, fades, and completion.
+  gain, seek, fades, completion, and an optional fixed obstruction/occlusion
+  approximation.
 
 `CjsAudioMan` is the public composition root. It receives one complete
 document and one structural media provider. `CjsAudioSystem` remains available
