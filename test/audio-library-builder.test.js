@@ -6499,7 +6499,7 @@ test("SFX construction retains only complete static Wwise Flanger overrides", as
 
 test("SFX construction retains only complete empirical Wwise Tremolo overrides", async () =>
 {
-    const Build = (propertyValues, bankVersion = 150) =>
+    const Build = (propertyValues, bankVersion = 150, tremolo = {}) =>
         CjsAudioLibraryBuilder.buildFromBanks({
         includeSfx: true,
         metadata: {
@@ -6564,7 +6564,10 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
                         {
                             type: 16,
                             id: 2196086003,
-                            payload: wwiseTremoloEffectPayload({ propertyValues }),
+                            payload: wwiseTremoloEffectPayload({
+                                ...tremolo,
+                                propertyValues,
+                            }),
                         },
                     ],
                     media: [ {
@@ -6586,6 +6589,9 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
         type: "tremolo",
         modulationDepthPercent: 100,
         modulationFrequencyHz: 1,
+        phaseOffsetDegrees: 0,
+        phaseMode: "left-right",
+        phaseSpreadDegrees: 0,
         outputGainDb: 0,
         processCenter: true,
         processLfe: true,
@@ -6598,6 +6604,28 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
         undefined,
         "a controlled Tremolo keeps the complete override on dry fallback",
     );
+
+    const phased = await Build([], 150, {
+        modulationDepthPercent: 80,
+        modulationFrequencyHz: 0.02,
+        phaseOffsetDegrees: 108,
+        phaseMode: 3,
+        phaseSpreadDegrees: 66,
+    });
+
+    assert.deepEqual(phased.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "2196086003",
+        slotIndex: 0,
+        type: "tremolo",
+        modulationDepthPercent: 80,
+        modulationFrequencyHz: Math.fround(0.02),
+        phaseOffsetDegrees: 108,
+        phaseMode: "random",
+        phaseSpreadDegrees: 66,
+        outputGainDb: 0,
+        processCenter: true,
+        processLfe: true,
+    } ]);
 
     const unsupportedVersion = await Build([], 151);
 

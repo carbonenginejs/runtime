@@ -1789,6 +1789,9 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                         type: "tremolo",
                         modulationDepthPercent: 65,
                         modulationFrequencyHz: 0.2,
+                        phaseOffsetDegrees: 0,
+                        phaseMode: "left-right",
+                        phaseSpreadDegrees: 0,
                         outputGainDb: 0,
                         processCenter: true,
                         processLfe: true,
@@ -1818,6 +1821,19 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.deepEqual(
         installAudioLibraryDocument(valid).sfx.nodes["2"].sourceEffects,
         valid.sfx.nodes["2"].sourceEffects,
+    );
+    const legacyTremolo = structuredClone(valid);
+
+    delete legacyTremolo.sfx.nodes["2"].sourceEffects[3]
+        .phaseOffsetDegrees;
+    delete legacyTremolo.sfx.nodes["2"].sourceEffects[3].phaseMode;
+    delete legacyTremolo.sfx.nodes["2"].sourceEffects[3]
+        .phaseSpreadDegrees;
+    assert.deepEqual(
+        installAudioLibraryDocument(legacyTremolo)
+            .sfx.nodes["2"].sourceEffects[3],
+        valid.sfx.nodes["2"].sourceEffects[3],
+        "older schema-v2 Tremolo records receive zero-phase defaults",
     );
     assert.equal(
         installAudioLibraryDocument(valid)
@@ -1913,6 +1929,21 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         () => validateAudioLibraryDocument(malformedTremolo),
         /modulationDepthPercent/u,
     );
+    for (const [ property, value ] of [
+        [ "phaseOffsetDegrees", 181 ],
+        [ "phaseOffsetDegrees", -181 ],
+        [ "phaseMode", "unknown" ],
+        [ "phaseSpreadDegrees", 181 ],
+    ])
+    {
+        const malformedPhase = structuredClone(valid);
+
+        malformedPhase.sfx.nodes["2"].sourceEffects[3][property] = value;
+        assert.throws(
+            () => validateAudioLibraryDocument(malformedPhase),
+            new RegExp(property, "u"),
+        );
+    }
 
     const malformedDistortion = structuredClone(valid);
 

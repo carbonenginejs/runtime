@@ -580,28 +580,33 @@ implementation therefore treats EVE-v150's exact 38-byte record as empirical
 rather than source-proven: depth and
 frequency floats, waveform integer, smoothing/PWM floats, phase offset/mode/
 spread, output gain, and Center/LFE flags. Admission is further bounded to a
-control-free bank-version-150 record with a sine waveform, zero phase
-offset/mode/spread, and both channel flags enabled. Matching records associated
-with any other bank version are rejected before projection.
+control-free bank-version-150 record with a sine waveform, bounded phase
+offset/mode/spread fields, and both channel flags enabled. Matching records
+associated with any other bank version are rejected before projection.
 
 The `wwiseModulation: "approximate-web-audio"` adapter maps that subset to a
 voice-owned Gain/Oscillator stage with
-`gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t)`, followed by authored output
-gain. It starts and disposes the oscillator with the physical voice. This
-preserves the unipolar `[1-depth, 1]` range and slot order, but does not claim
-Wwise's exact start phase, native oscillator/channel law, or sample behavior.
-Smoothing and PWM are shape-validated but not retained or applied because only
-the sine carrier is admitted. Strict mode, missing primitives, dynamic
-controls, other waveforms/phase shapes, and shared-Bus Tremolo keep the
+`gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t + phase)`, followed by
+authored output gain. Nonzero global phase uses a custom `PeriodicWave`; the
+record retains phase mode and spread, but the browser applies one carrier to
+all channels and omits Wwise's per-channel Left-Right, Front-Rear, Circular,
+or Random distribution. It starts and disposes the oscillator with the
+physical voice. This preserves the unipolar `[1-depth, 1]` range, global phase,
+and slot order, but does not claim Wwise's native oscillator/channel law or
+sample behavior. Smoothing and PWM are shape-validated but not retained or
+applied because only the sine carrier is admitted. Strict mode, missing
+primitives, dynamic controls, other waveforms, and shared-Bus Tremolo keep the
 complete chain audible and dry.
 
-EVE build 3453885 projects 74 conservative Tremolo Sound leaves across 29
-retained events: 59 Tremolo-only, 13 Tremolo followed by qualified static EQ,
-and two qualified static EQ followed by Tremolo. They use 57 effect identities
-and 11 exact parameter records. Sound `350811697` is deliberately excluded
-because its preceding EQ `400239472` requires unsupported independent LFE
-routing. The result raises qualified source-effect leaves from 2,432 to 2,506
-without changing media or event reachability.
+EVE build 3453885 projects 149 Tremolo stages on 148 Sound leaves across 80
+retained events: 115 Tremolo-only, 14 Tremolo followed by qualified static EQ,
+two qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
+Reverb, six Delay followed by Tremolo, two Tremolo followed by Delay, and one
+double-Tremolo chain. They use 64 effect identities and 18 exact parameter
+records. Sound `350811697` is deliberately excluded because its preceding EQ
+`400239472` requires unsupported independent LFE routing. Admitting bounded
+phase fields raises qualified source-effect leaves from 2,666 to 2,740 without
+changing media or event reachability.
 
 Wwise Guitar Distortion `0x007e0003` is source-proven separately. Pinned
 wwiser decodes six 17-byte EQ records followed by distortion type, Drive,
@@ -638,15 +643,16 @@ dynamic/custom-delay records, and shared-Bus placement retain complete-chain
 dry playback. Natural source completion disposes the network and cuts its
 remaining tail.
 
-EVE build 3453885 contains 50 Matrix Reverb Sound leaves across 22 retained
-events and five effect identities. Forty-two Matrix-only leaves across 12
-events and four effect identities are projected. The other eight place a
-Tremolo ShareSet before Matrix Reverb; that Tremolo record has a 108-degree
-phase offset and phase mode 3, outside the conservative zero-phase adapter, so
-atomic chain qualification keeps all eight dry. Every Matrix record itself is
-v150, 29-byte, 12-delay, default-mode, Process-LFE, and control/media-free.
-Matrix support raises qualified source-effect leaves from 2,575 to 2,617
-without changing media or event reachability.
+EVE build 3453885 contains and projects all 50 Matrix Reverb Sound leaves
+across 22 retained events and five effect identities. Forty-two are
+Matrix-only. The other eight place a Tremolo ShareSet before Matrix Reverb;
+the portable Tremolo retains its 108-degree global phase, Random mode, and
+66-degree spread, while the browser explicitly omits the Random per-channel
+distribution. Every Matrix record itself is v150, 29-byte, 12-delay,
+default-mode, Process-LFE, and control/media-free. The initial Matrix slice
+raised qualified source-effect leaves from 2,575 to 2,617; the later Tremolo
+phase admission completed the remaining chains without changing media or
+event reachability.
 
 The same source-local projection retains pinned wwiser's exact 28-byte v150
 Wwise Meter record when it is static, control-free, and does not apply its
@@ -658,8 +664,9 @@ allocating no Meter node and producing no Game Parameter value. This reuses the
 shared-Bus policy rather than baking host policy into the portable library.
 
 EVE build 3453885 has 49 such Sound leaves across 39 retained events, all with
-nonzero Game Parameter targets. Opt-in omission raises qualified source-effect
-leaves from 2,617 to 2,666 without changing media or event reachability. The
+nonzero Game Parameter targets. Opt-in omission initially raised qualified
+source-effect leaves from 2,617 to 2,666; the current aggregate after Tremolo
+phase admission is 2,740 without changing media or event reachability. The
 other 81 source-Meter leaves use effect `277510878` with downstream-volume
 application enabled and remain complete-chain dry fallbacks; omitting that
 behavior would alter the authored signal path, not merely its telemetry.

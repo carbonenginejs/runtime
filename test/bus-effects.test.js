@@ -65,6 +65,7 @@ function Context()
         filters: [],
         gains: [],
         oscillators: [],
+        periodicWaves: [],
         waveShapers: [],
         createDelay(maxDelayTime)
         {
@@ -111,11 +112,24 @@ function Context()
                 frequency: { value: 0 },
                 starts: [],
                 stops: [],
+                periodicWave: null,
                 start(at) { node.starts.push(at); },
                 stop(at) { node.stops.push(at); },
+                setPeriodicWave(value) { node.periodicWave = value; },
             });
             context.oscillators.push(node);
             return node;
+        },
+        createPeriodicWave(real, imaginary, options)
+        {
+            const wave = {
+                real: [ ...real ],
+                imaginary: [ ...imaginary ],
+                options,
+            };
+
+            context.periodicWaves.push(wave);
+            return wave;
         },
         createWaveShaper()
         {
@@ -1030,6 +1044,9 @@ test("decodes and realizes only the empirical static Wwise Tremolo subset", () =
         type: "tremolo",
         modulationDepthPercent: 100,
         modulationFrequencyHz: 1,
+        phaseOffsetDegrees: 0,
+        phaseMode: "left-right",
+        phaseSpreadDegrees: 0,
         outputGainDb: 0,
         processCenter: true,
         processLfe: true,
@@ -1097,9 +1114,10 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
         { waveform: 1 },
         { smoothingPercent: 101 },
         { pwmPercent: -1 },
-        { phaseOffsetDegrees: 1 },
-        { phaseMode: 1 },
-        { phaseSpreadDegrees: 1 },
+        { phaseOffsetDegrees: 181 },
+        { phaseOffsetDegrees: -181 },
+        { phaseMode: 4 },
+        { phaseSpreadDegrees: 181 },
         { outputGainDb: 25 },
         { processCenter: false },
         { processLfe: false },
@@ -1124,6 +1142,44 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
         wwiseModulation: "approximate-web-audio",
     }));
     assert.equal(context.oscillators.length, 0);
+
+    const phased = parseGraphStaticWwiseTremolo(GraphTremolo(TremoloBytes({
+        modulationDepthPercent: 80,
+        modulationFrequencyHz: 0.02,
+        phaseOffsetDegrees: 108,
+        phaseMode: 3,
+        phaseSpreadDegrees: 66,
+    })), "3206968232", 0);
+    const phasedContext = Context();
+    const phasedChain = createWwiseEffectChain(phasedContext, [ phased ], {
+        wwiseModulation: "approximate-web-audio",
+    });
+    const [ periodicWave ] = phasedContext.periodicWaves;
+    const [ phasedInput ] = phasedContext.gains;
+    const [ phasedOscillator ] = phasedContext.oscillators;
+    const radians = 108 * Math.PI / 180;
+
+    assert.ok(phasedChain);
+    assert.equal(phased.phaseMode, "random");
+    assert.equal(phased.phaseSpreadDegrees, 66);
+    assert.deepEqual(periodicWave.options, { disableNormalization: true });
+    assert.ok(Math.abs(periodicWave.real[1] - Math.sin(radians)) < 1e-6);
+    assert.ok(
+        Math.abs(periodicWave.imaginary[1] - Math.cos(radians)) < 1e-6,
+    );
+    assert.equal(phasedOscillator.periodicWave, periodicWave);
+    assert.equal(phasedInput.gain.value, 0.6);
+
+    const missingPeriodicWave = Context();
+
+    delete missingPeriodicWave.createPeriodicWave;
+    assert.equal(createWwiseEffectChain(
+        missingPeriodicWave,
+        [ phased ],
+        { wwiseModulation: "approximate-web-audio" },
+    ), null);
+    assert.equal(missingPeriodicWave.gains.length, 0);
+    assert.equal(missingPeriodicWave.oscillators.length, 0);
 });
 
 test("decodes and explicitly approximates static Wwise Matrix Reverb", () =>

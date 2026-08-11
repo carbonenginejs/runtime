@@ -1105,17 +1105,17 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 2666);
+    assert.equal(sourceEffectSounds.length, 2740);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 2689);
-    assert.equal(sourceEqSounds.length, 261);
-    assert.equal(sourceDelaySounds.length, 79);
+        count + node.sourceEffects.length, 0), 2781);
+    assert.equal(sourceEqSounds.length, 262);
+    assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2033);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 9);
-    assert.equal(sourceTremoloSounds.length, 74);
+    assert.equal(sourceTremoloSounds.length, 148);
     assert.equal(sourceGuitarDistortionSounds.length, 69);
-    assert.equal(sourceMatrixReverbSounds.length, 42);
+    assert.equal(sourceMatrixReverbSounds.length, 50);
     assert.equal(sourceMeterSounds.length, 49);
     assert.deepEqual(graph.nodes["20988277"].sourceEffects, [ {
         effectId: "777891344",
@@ -1145,11 +1145,34 @@ test("committed demo library carries authored SFX and music semantics", () =>
         applyDownstreamVolume: false,
         gameParameterId: 765248359,
     } ]);
-    assert.equal(
-        graph.nodes["61866929"].sourceEffects,
-        undefined,
-        "the nonzero-phase Tremolo-to-Matrix chain remains atomically dry",
-    );
+    assert.deepEqual(graph.nodes["61866929"].sourceEffects, [
+        {
+            effectId: "3206968232",
+            slotIndex: 0,
+            type: "tremolo",
+            modulationDepthPercent: 80,
+            modulationFrequencyHz: Math.fround(0.02),
+            phaseOffsetDegrees: 108,
+            phaseMode: "random",
+            phaseSpreadDegrees: 66,
+            outputGainDb: 0,
+            processCenter: true,
+            processLfe: true,
+        },
+        {
+            effectId: "2098638826",
+            slotIndex: 1,
+            type: "matrix-reverb",
+            reverbTimeSeconds: 4.5,
+            hfRatio: 7.5,
+            numberOfDelays: 12,
+            dryLevelDb: 0,
+            wetLevelDb: -30,
+            preDelaySeconds: Math.fround(0.02),
+            processLfe: true,
+            delayLengthsMode: "default",
+        },
+    ]);
     assert.deepEqual(
         Object.entries(graph.nodes)
             .filter(([, node]) => sourceFlangerSounds.includes(node))
@@ -1251,8 +1274,19 @@ test("committed demo library carries authored SFX and music semantics", () =>
         .filter(([, node]) => sourceTremoloSounds.includes(node))
         .map(([ id ]) => id));
 
+    const zeroPhaseTremoloSoundIds = [ ...tremoloSoundIds ].filter(id =>
+    {
+        const effect = graph.nodes[id].sourceEffects.find(candidate =>
+            candidate.type === "tremolo");
+
+        return effect.phaseOffsetDegrees === 0
+            && effect.phaseMode === "left-right"
+            && effect.phaseSpreadDegrees === 0;
+    });
+
     assert.deepEqual(
-        [ ...tremoloSoundIds ].map(Number).sort((left, right) => left - right),
+        zeroPhaseTremoloSoundIds.map(Number)
+            .sort((left, right) => left - right),
         [
             25884399, 40436754, 43363314, 60415284, 68507679, 73677858,
             78735863, 84669040, 99994845, 123394445, 173560074, 179016091,
@@ -1294,12 +1328,42 @@ test("committed demo library carries authored SFX and music semantics", () =>
                 type: "tremolo",
                 modulationDepthPercent: 65,
                 modulationFrequencyHz: Math.fround(0.2),
+                phaseOffsetDegrees: 0,
+                phaseMode: "left-right",
+                phaseSpreadDegrees: 0,
                 outputGainDb: 0,
                 processCenter: true,
                 processLfe: true,
             },
         ],
     );
+    const tremoloPhasePopulations = {};
+
+    for (const id of tremoloSoundIds)
+    {
+        for (const effect of graph.nodes[id].sourceEffects.filter(candidate =>
+            candidate.type === "tremolo"))
+        {
+            const key = [
+                effect.phaseMode,
+                effect.phaseOffsetDegrees,
+                effect.phaseSpreadDegrees,
+            ].join("|");
+
+            tremoloPhasePopulations[key] =
+                (tremoloPhasePopulations[key] ?? 0) + 1;
+        }
+    }
+    assert.deepEqual(tremoloPhasePopulations, {
+        "left-right|0|0": 74,
+        "random|-72|112": 1,
+        "random|0|20": 28,
+        "random|0|100": 1,
+        "random|44|93": 1,
+        "random|47|95": 1,
+        "random|53|45": 1,
+        "random|108|66": 42,
+    });
     const tremoloEvents = Object.entries(graph.events)
         .filter(([, roots ]) =>
         {
@@ -1331,11 +1395,42 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "Ambience_Hangar_Gallente_Play",
         "OSSE_Caldari_bigscreen_play",
         "OSSE_Gallente_bigscreen_play",
+        "_nanocoating_atmo_play",
+        "autominer_siren_play",
+        "character_creation_body_type_loop_play",
+        "character_creation_customize_character_loop_play",
+        "deathless_structure_warden_play",
+        "hangar_platforms_aura_hologram_atmo_play",
+        "hq_systems_amarr_play",
         "jita_sfx_commerce_atmo_play",
+        "jita_sfx_incidentals_level2_play",
+        "jita_sfx_incidentals_level3_play",
+        "jita_sfx_industrial_atmo_play",
+        "jita_sfx_military_atmo_play",
+        "jita_sfx_science_atmo_play",
+        "large_station_amarr_play",
+        "large_station_caldari_play",
+        "large_station_gallente_play",
+        "large_station_minmatar_play",
+        "medium_station_amarr_play",
+        "medium_station_caldari_play",
+        "medium_station_gallente_play",
+        "medium_structure_amarr_play",
+        "medium_structure_caldari_play",
+        "medium_structure_gallente_play",
+        "medium_structure_minmatar_play",
         "mercenary_den_atmo_play",
+        "navy_harbor_minmatar_m_play",
+        "navy_harbor_minmatar_s_play",
+        "npe_asteroid_atmo_play",
+        "outpost_atmo_amarr_play",
+        "outpost_atmo_caldari_play",
+        "outpost_atmo_gallente_play",
+        "outpost_atmo_minmatar_play",
         "phased_fields_fake_rift_fracture_play",
         "phased_fields_fracture_atmo_play",
         "phased_fields_rift_play",
+        "pvp_arena_atmo_loop_play",
         "ship_engine_L_afterburner_1st_idle",
         "ship_engine_L_afterburner_3rd_idle",
         "ship_engine_M_afterburner_1st_idle",
@@ -1356,7 +1451,27 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ship_engine_XXL_microwarpdrive_3rd_idle",
         "ship_smokefire_hangar_play",
         "ship_smokefire_play",
+        "small_station_caldari_play",
+        "small_station_gallente_play",
+        "small_station_minmatar_play",
         "sov_hub_atmo_main_loop_play",
+        "space_cathedral_play",
+        "station_trade_hub_amarr_play",
+        "station_trade_hub_gallente_play",
+        "station_trade_hub_minmatar_play",
+        "upwell_hangar_repair_timer_play",
+        "weather_effects_dark_heavy_play",
+        "weather_effects_dark_light_play",
+        "weather_effects_electronic_heavy_play",
+        "weather_effects_electronic_light_play",
+        "weather_effects_exotic_heavy_play",
+        "weather_effects_exotic_light_play",
+        "weather_effects_gamma_heavy_play",
+        "weather_effects_gamma_light_play",
+        "weather_effects_plasma_heavy_play",
+        "weather_effects_plasma_light_play",
+        "weather_effects_snow_play",
+        "worldobject_monument_jamyl_statue_play",
     ]);
     assert.deepEqual(graph.nodes["35906075"].sourceEffects[0], {
         effectId: "168001308",
@@ -1486,7 +1601,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
             effect.type === "parametric-eq"
             && (effect.outputGainDb !== 0
                 || effect.bands.some(band => band.gainDb !== 0)))).length,
-        165,
+        166,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(
