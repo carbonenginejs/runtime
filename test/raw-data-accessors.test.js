@@ -219,6 +219,36 @@ test("Invalidate is the per-frame dirty flag for a persistent record", () =>
 });
 
 
+test("a write marks the record dirty, so a missed Invalidate cannot go stale", () =>
+{
+  // DELIBERATE DEVIATION from Carbon, which relies on the owner invalidating
+  // once per frame. Thirteen sites create a persistent record here and two call
+  // Invalidate, so under Carbon's rule every other record - including the
+  // per-frame view and projection matrices - would upload once and then freeze
+  // at its first frame's values, with nothing reporting it.
+  const vs = RawData.create("EveSpaceObjectVSData");
+  vs.ClearDirty();
+
+  vs.Set("shipData", [ 1, 2, 3, 4 ]);
+  assertEquals(vs.IsDirty(), true, "a plain write re-arms the flag");
+
+  vs.ClearDirty();
+  vs.SetAndTranspose("worldTransform", [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+  ]);
+  assertEquals(vs.IsDirty(), true, "a matrix write re-arms it too");
+
+  // Reading must not, or every inspection would force an upload.
+  vs.ClearDirty();
+  vs.GetTransposed("worldTransform");
+  vs.Get("shipData");
+  assertEquals(vs.IsDirty(), false, "reading is not a change");
+});
+
+
 test("the catalog's encoding strings match RawDataType", () =>
 {
   // CjsPerObjectLayouts writes these literally rather than importing
