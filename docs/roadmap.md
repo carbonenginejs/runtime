@@ -116,8 +116,14 @@ test format-specific bytes, or implement WebGL/WebGPU realization itself.
 Format and resource reports remain CPU-side evidence; the selected engine owns
 device-route proof.
 
-WebGL capability reporting, minimum required limits, device-loss refresh, and
-long-lived capability refresh remain design gates rather than current APIs.
+WebGL capability reporting and required-limit resolution are now current APIs:
+`CjsWebGLProbe` reports WebGL2 under its own capability keys, `Tr2PlatformInfo`
+names which backend its static caps describe, and `ResolveDeviceRequirements`
+produces the `deviceDescriptor` an engine passes to `requestDevice`. See
+[platform](reference/platform.md).
+
+Device-loss refresh and long-lived capability refresh remain design gates
+rather than current APIs.
 
 ## Planned preferences and configuration
 

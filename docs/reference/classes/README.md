@@ -15,6 +15,16 @@ GPU-free CarbonEngineJS composition root and runtime service registry.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsWebGLProbe -->
+## `CjsWebGLProbe`
+
+Privacy-safe WebGL2 capability snapshot, reported under its own keys rather than as the absence of WebGPU.
+
+- Export: `@carbonenginejs/runtime-core/platform`
+- Source: `src/platform/CjsWebGLProbe.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Tr2DisplayMode -->
 ## `Tr2DisplayMode`
 

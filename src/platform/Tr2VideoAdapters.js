@@ -54,7 +54,13 @@ export class Tr2VideoAdapters
         this.platformInfo = await Tr2PlatformInfo.Detect({
             adapter,
             gpu: null,
-            taa: this.#options.taa
+            taa: this.#options.taa,
+            // Forwarded so a caller controls the WebGL probe from one place;
+            // `false` skips acquiring a context, and an existing probe is reused.
+            webgl: this.#options.webgl,
+            canvas: this.#options.canvas,
+            document: this.#options.document,
+            contextAttributes: this.#options.contextAttributes
         });
         if (this.probeError && !this.platformInfo.probeError) this.platformInfo.probeError = this.probeError;
         return this;

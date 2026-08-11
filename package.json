@@ -14,7 +14,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "lint": "node --check src/index.js && node --check src/platform/browserHelpers.js && node --check src/platform/Tr2DisplayMode.js && node --check src/platform/Tr2PlatformInfo.js && node --check src/platform/Tr2VideoAdapter.js && node --check src/platform/Tr2VideoAdapters.js && node --check src/platform/Tr2VideoDriver.js && node --check test/runtime-core.test.js && node --check test/platform.test.js"
+    "lint": "node --check src/index.js && node --check src/platform/browserHelpers.js && node --check src/platform/CjsWebGLProbe.js && node --check src/platform/deviceLimits.js && node --check src/platform/Tr2DisplayMode.js && node --check src/platform/Tr2PlatformInfo.js && node --check src/platform/Tr2VideoAdapter.js && node --check src/platform/Tr2VideoAdapters.js && node --check src/platform/Tr2VideoDriver.js && node --check test/runtime-core.test.js && node --check test/platform.test.js && node --check test/platform-backend.test.js"
   },
   "keywords": [
     "carbonenginejs",
