@@ -173,7 +173,7 @@ The later EVE build 3453885 source-local path resolves the first effective
 NodeBase effect override for every retained Sound. A descendant override
 replaces its parent list, an explicit empty override clears it, and a root list
 is effective even when its override bit is clear. Complete static,
-control-free Parametric EQ/Wwise Delay chains are projected once per voice
+control-free Parametric EQ/Wwise Delay/Meter chains are projected once per voice
 before Voice LPF/HPF and the emitter/auxiliary split. The exact demo currently
 retains 261 qualified EQ Sound leaves and 79 Delay leaves. Of the EQ leaves,
 165 are acoustically non-neutral; 15 belong to complete admitted Tremolo/EQ
@@ -619,6 +619,22 @@ missing primitives, non-v150/dynamic/non-fully-wet records, unsupported
 distortion types, and shared-Bus Guitar Distortion keep the complete chain
 audible and dry. This raises qualified source-effect leaves from 2,506 to
 2,575 without changing media or event reachability.
+
+The same source-local projection retains pinned wwiser's exact 28-byte v150
+Wwise Meter record when it is static, control-free, and does not apply its
+measurement as downstream volume. A Meter without a Game Parameter target is
+an exact signal-transparent omission. A target-bearing record keeps the whole
+source chain dry under the default `wwiseMeterFeedback: "strict"`; explicit
+`"omit-telemetry"` lets audible sibling effects run in authored order while
+allocating no Meter node and producing no Game Parameter value. This reuses the
+shared-Bus policy rather than baking host policy into the portable library.
+
+EVE build 3453885 has 49 such Sound leaves across 39 retained events, all with
+nonzero Game Parameter targets. Opt-in omission raises qualified source-effect
+leaves from 2,575 to 2,624 without changing media or event reachability. The
+other 81 source-Meter leaves use effect `277510878` with downstream-volume
+application enabled and remain complete-chain dry fallbacks; omitting that
+behavior would alter the authored signal path, not merely its telemetry.
 
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE

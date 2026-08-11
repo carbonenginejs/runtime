@@ -213,10 +213,12 @@ Two further host policies control shared-route admission through explicit
 omissions:
 
 - `wwiseMeterFeedback: "omit-telemetry"` admits a static v150 Meter with a
-  Game Parameter target only when downstream-volume application is disabled.
-  The signal path is transparent, but the Meter value is not produced and any
-  authored feedback through that Game Parameter is absent. The default is
-  `"strict"`.
+  Game Parameter target on a shared Bus or in a complete source-local effect
+  chain, only when downstream-volume application is disabled. The signal path
+  is transparent and audible source siblings still run, but the Meter value is
+  not produced and any authored feedback through that Game Parameter is absent.
+  The default `"strict"` keeps the shared route blocked or the complete source
+  chain audible and dry.
 - `wwiseVoiceLimits: "ignore"` admits a route whose only separately classified
   scheduling barrier is a dynamic Audio Bus `MaxNumInstances` RTPC. The browser
   does not enforce its changing voice-count limit or eviction behavior. The

@@ -3,7 +3,7 @@ import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js
 import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
-import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes, parseStaticWwiseTremoloBytes, parseStaticWwiseGuitarDistortionBytes } from '../internal/busEffects.js';
+import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_METER_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes, parseStaticWwiseTremoloBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMeterBytes } from '../internal/busEffects.js';
 
 // Browser-safe audio-library construction. Acquisition remains caller-owned:
 // the builder accepts index values, metadata values, and optional injected
@@ -3214,6 +3214,17 @@ function ParseStaticWwiseGuitarDistortion(ownerLabel, slot, effect) {
     bankVersion: effect.bankVersion
   });
 }
+function ParseStaticWwiseMeter(ownerLabel, slot, effect) {
+  if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
+    throw new Error(`Wwise Meter ${effect.id} on ${ownerLabel} is not static`);
+  }
+  return parseStaticWwiseMeterBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise Meter ${effect.id} on ${ownerLabel}`,
+    bankVersion: effect.bankVersion
+  });
+}
 
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
@@ -3296,6 +3307,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId) {
         chain.push(ParseStaticWwiseTremolo(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_GUITAR_DISTORTION_PLUGIN_ID) {
         chain.push(ParseStaticWwiseGuitarDistortion(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+      } else if (effect.pluginId === WWISE_METER_PLUGIN_ID) {
+        chain.push(ParseStaticWwiseMeter(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else {
         return {};
       }

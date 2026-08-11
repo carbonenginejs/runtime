@@ -39,13 +39,14 @@ bus processing omitted.
 | Wwise Flanger | Opt-in approximation | `wwiseModulation: "approximate-web-audio"` admits only a static, control-free, sine/zero-phase source-local subset decoded from wwiser's exact v150 layout. Gain/Delay/Oscillator nodes approximate the unified comb, start the LFO with the voice, and stop it at voice disposal. Strict mode or missing primitives plays the complete chain dry. Web Audio processes all decoded channels despite authored Center/LFE bypass, clamps unity feedback, retains phase through pause, and cuts effect state at dry-source completion. Shared-Bus Flanger remains unsupported. |
 | Wwise Tremolo | Opt-in approximation | `wwiseModulation: "approximate-web-audio"` admits a static, control-free, sine/zero-phase source-local EVE-v150 subset and rejects other bank versions. The 38-byte layout is empirical: pinned wwiser identifies `0x00830003` and shows a corresponding modulation/phase sequence in Flanger, but has no Tremolo parameter decoder; the EVE corpus informs the interpretation. Gain/Oscillator nodes map the unipolar authored depth to `[1-depth, 1]`, start with the voice, and stop at voice disposal. Exact start phase, native oscillator/channel law, Center/LFE bypass, and shared-Bus Tremolo remain unsupported; strict mode or missing primitives keeps the whole chain audible and dry. |
 | Wwise Guitar Distortion | Opt-in approximation | `wwiseDistortion: "approximate-web-audio"` admits static, control-free, fully-wet Overdrive/Heavy source records from the source-proven v150 layout. Voice-owned pre/post biquads surround a 4x-oversampled WaveShaper and preserve output gain. The deterministic normalized-tanh/full-wave blend is CarbonEngineJS behavior, not Wwise's proprietary transfer/Drive/Rectification law; authored Tone is retained but not applied. Exact oversampling, channel behavior, other distortion types, dynamic controls, and shared-Bus placement remain unsupported. Strict mode or missing primitives keeps the complete chain audible and dry. |
-| Wwise Meter | Proven omission or opt-in approximation | Feedback-free telemetry is audio-transparent and allocates no node. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output; downstream-volume Meter remains unsupported. |
+| Wwise Meter | Proven omission or opt-in approximation | Feedback-free telemetry is audio-transparent and allocates no node on a shared Bus or in a complete source-local chain. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output; strict source playback omits that complete effect chain and remains audible/dry. Downstream-volume Meter remains unsupported. |
 | Qualified Sound `MaxNumInstances` | Corroborated browser adaptation | A v150 local-scope cap-one, reject-newest Sound subset reserves at an immediate Play boundary before media acquisition and releases at physical completion. Qualification requires effective Continue virtual behavior and excludes dynamic/random Priority, capped bus routes, delayed admission, and Crossfade prefetch. The packed local/global scope bit is corpus-corroborated pending a controlled golden pair; general Wwise arbitration remains unsupported. |
 | Dynamic Audio Bus `MaxNumInstances` RTPC | Unsupported behavior with opt-in route admission | Static and dynamic bus limits, priority stealing, and virtual-voice policy are not enforced. `wwiseVoiceLimits: "ignore"` additionally admits separately classified dynamic RTPC paths without enforcing their changing count or eviction behavior; the default `"strict"` keeps those paths outside shared routing. |
 | Proven-silent Aux return | Proven omission | A complete return at or below `-96 dB` is omitted; a narrowly qualified static SFX Aux shape is exact topology, and other wet paths remain barriers. |
 | Rejected shared route | Fallback | SFX remains on its existing emitter/SFX destination and music remains on its legacy segment/instance/output path; authored blocked bus stages are omitted. |
 | Master safety compressor | Browser workaround | A separate fixed Web Audio compressor (`-6 dB`, knee `6 dB`, `12:1`, `3 ms`, `250 ms`) limits all output when supported. It is not an authored Wwise effect; without the node capability output connects directly. |
 | Spatial playback | Browser adaptation | `PannerNode` supplies HRTF direction with its native distance rolloff disabled. A retained Wwise dry-volume curve supplies each Sound leaf's distance gain in authored world units; emitter attenuation scaling evaluates that curve at `worldDistance / scalingFactor`. Old/custom graphs without a retained curve use the previous `distanceScale` inverse-gain fallback. The first pose is immediate; later pose and distance-gain changes use Web Audio target automation with a 5 ms time constant when available (about 95% settled in 15 ms). Legacy spatial setters and older AudioParam fallbacks remain immediate or use a short linear ramp. |
+| Carbon line-of-sight obstruction/occlusion | Newly unsupported Carbon behavior | Carbon added an internal `AudObstructionOcclusion` collaborator to `AudManager` on 2026-08-04. It is enabled by default but inert until a caller supplies per-emitter blockage, performs no ray casting, and fades normalized obstruction/occlusion toward their targets before sending them to Wwise. Runtime-audio does not yet expose the manager methods, retain the fade state, or provide a backend realization. |
 | Emitter level reporting | UI/debug approximation | `GetGameObjLevel()` samples 256-bin main-thread analyser frames and returns zero when analyser support is unavailable. It is not Wwise Meter telemetry. |
 | Legacy library controls | Compatibility fallback | Older documents may use master/music RTPC gain fallbacks; current typed bus catalogs take precedence. |
 | Missing optional Web Audio primitives | Capability fallback | Legacy LPF/HPF may be omitted without biquad support, level reporting becomes zero without an analyser, and the master safety compressor is absent without dynamics support. Shared graph qualification remains atomic. |
@@ -199,6 +200,17 @@ rather than a sample-exact Wwise envelope. Cone attenuation, distance-driven
 LPF/HPF and spread/focus curves, obstruction, occlusion, diffraction, and
 transmission remain unsupported.
 
+Carbon's 2026-08-04 `AudObstructionOcclusion` addition makes obstruction and
+occlusion a concrete manager-parity gap rather than only a native-renderer
+limitation. Carbon owns no line-of-sight query: the game supplies one blockage
+value per emitter. The manager clamps it, tracks and linearly fades the live
+value at one unit per second by default, suppresses occlusion while spatial
+geometry is enabled, and forwards it to Wwise. Runtime-audio currently has
+none of that state or API. A future portable port belongs behind `AudManager`
+with an optional backend seam; any Web Audio filter/gain mapping would be a
+separately documented approximation because Carbon delegates the audible law
+to Wwise.
+
 A Wwise Continuous Layer with no Layer records, or only Layer records with no
 child associations, is represented by the portable parallel node because it
 has no live child-admission region to evaluate. Its children retain independent
@@ -259,9 +271,10 @@ The package does not emulate:
 
 - Wwise device enumeration or device-change callbacks;
 - Wwise profiler capture;
-- Web Audio realization of spatial-audio geometry, occlusion, or diffraction
-  (the portable data/settings/refcount contract is implemented for injected
-  backends);
+- Carbon's game-supplied obstruction/occlusion manager API and fade state, and
+  Web Audio realization of spatial-audio geometry, occlusion, or diffraction
+  (the older geometry data/settings/refcount contract is implemented for
+  injected backends);
 - native audio-input plugins, including EVE's bank-media-free
   `in_game_video_stream_play` Wwise Audio Input source;
 - operating-system device selection; or
@@ -306,8 +319,12 @@ after spatialization, applies additive State filtering and Bus-target ducking
 per whole leg, and merges once at the common Bus. Mixed Voice/Bus rules from
 one duck source and wet-only duck sources or Voice targets remain barriers.
 Absolute or positive-relative action risk, unsupported filters, dynamic sends,
-reflections, and wet-path escapes all retain the barrier. Meter
-telemetry remains unsupported.
+reflections, and wet-path escapes all retain the barrier. A static,
+control-free, non-downstream source Meter is retained as portable metadata.
+It allocates no node when it has no Game Parameter target; an explicit
+`wwiseMeterFeedback: "omit-telemetry"` also admits a target-bearing Meter while
+omitting its telemetry. Strict mode leaves that complete source chain dry, and
+downstream-volume Meter remains unsupported.
 Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
 paths. A bounded Bus-target Voice Volume Set uses a second voice-owned pre-Bus
 gain only when its target is the route's first/output Bus. It persists on the

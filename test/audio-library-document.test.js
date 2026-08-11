@@ -1825,6 +1825,34 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         1000,
     );
 
+    const sourceMeter = structuredClone(valid);
+
+    sourceMeter.sfx.nodes["2"].sourceEffects[3] = {
+        effectId: "902",
+        slotIndex: 3,
+        type: "meter",
+        attack: 0,
+        release: 0.3,
+        minimum: -48,
+        maximum: 0,
+        hold: 0,
+        infiniteHold: false,
+        mode: "peak",
+        scope: "game-object",
+        applyDownstreamVolume: false,
+        gameParameterId: 1312763804,
+    };
+    assert.equal(validateAudioLibraryDocument(sourceMeter), true);
+
+    const downstreamMeter = structuredClone(sourceMeter);
+
+    downstreamMeter.sfx.nodes["2"].sourceEffects[3]
+        .applyDownstreamVolume = true;
+    assert.throws(
+        () => validateAudioLibraryDocument(downstreamMeter),
+        /unsupported downstream-volume feedback/u,
+    );
+
     const misplacedSourceEffects = structuredClone(valid);
 
     misplacedSourceEffects.sfx.nodes["1"].sourceEffects =

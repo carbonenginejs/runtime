@@ -165,6 +165,13 @@ gain parameter; their continuously varying product is approximate. Cone,
 distance-filter and spread/focus curves, obstruction, occlusion, diffraction,
 and transmission are not currently rendered.
 
+Carbon's newer line-of-sight subsystem does not ray cast either: the host
+supplies a normalized blockage value per emitter and `AudManager` fades the
+result before handing it to Wwise. That manager API and fade state are not yet
+ported. A future portable backend seam can preserve the host-supplied value,
+but a Web Audio gain/filter response would remain an explicit approximation of
+the Wwise-authored audible law.
+
 For named soundtrack playback independent of authored Wwise music events,
 pass an optional neutral catalog, loader, and availability probe as described
 in [Optional jukebox](jukebox.md).

@@ -268,6 +268,7 @@ export class CjsAudioSystem
                     wwiseDynamics: this.#wwiseDynamics,
                     wwiseDistortion: this.#wwiseDistortion,
                     wwiseModulation: this.#wwiseModulation,
+                    wwiseMeterFeedback: this.#wwiseMeterFeedback,
                     busGraphRuntime: this.#busGraphRuntime,
                 });
                 const globalControlReaders =

@@ -681,15 +681,18 @@ source-proven, while the v150 Compressor field order is empirically
 corroborated for the audited corpus rather than proven by the pinned wwiser
 parser.
 
-The shared mixer also decodes wwiser's exact 28-byte v150 Wwise Meter layout.
-It always omits a static, media-free, control-free Meter when downstream-volume
+The builder and shared mixer also decode wwiser's exact 28-byte v150 Wwise
+Meter layout. They omit a static, media-free, control-free Meter on a shared
+Bus or in a complete source-local effect chain when downstream-volume
 application is disabled and no Game Parameter is written. Such a Meter is
 audio-transparent, though its monitoring behavior remains unsupported. The
 default `wwiseMeterFeedback: "strict"` keeps a Meter with a Game Parameter
-target as a route barrier. Explicit `"omit-telemetry"` admits that Meter only
-when downstream-volume application is disabled: audio crosses the slot, but no
-Meter value is produced and authored feedback through the target Game
-Parameter is absent. Downstream-volume Meter records remain barriers.
+target as a shared-route barrier or leaves its complete source chain audible
+and dry. Explicit `"omit-telemetry"` admits that Meter only when
+downstream-volume application is disabled: audio crosses the slot, audible
+source siblings retain authored order, but no Meter value is produced and any
+authored feedback through the target Game Parameter is absent.
+Downstream-volume Meter records remain barriers.
 
 The builder separately identifies the v150 Audio Bus `MaxNumInstances` RTPC as
 the `"voice-limits"` processing reason. `wwiseVoiceLimits: "strict"` keeps that

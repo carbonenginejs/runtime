@@ -6,6 +6,7 @@ export const WWISE_FLANGER_PLUGIN_ID = 0x007d0003;
 export const WWISE_GUITAR_DISTORTION_PLUGIN_ID = 0x007e0003;
 export const WWISE_TREMOLO_PLUGIN_ID = 0x00830003;
 export const WWISE_METER_PLUGIN_ID = 0x00810003;
+const WWISE_METER_BANK_VERSION = 150;
 const WWISE_TREMOLO_BANK_VERSION = 150;
 const WWISE_GUITAR_DISTORTION_BANK_VERSION = 150;
 
@@ -22,6 +23,7 @@ const WWISE_DISTORTION_MODES = new Set([
     "approximate-web-audio",
 ]);
 const REALIZABLE_EFFECT_TYPES = new Set([
+    "meter",
     "meter-omission",
     "compressor",
     "compressor-approximation",
@@ -236,7 +238,7 @@ export function normalizeStaticSourceEffectChain(value, ownerLabel)
     return NormalizeStaticWwiseEffectChain(value, ownerLabel, true);
 }
 
-function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
+function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
 {
     if (!Array.isArray(value) || !value.length)
     {
@@ -263,7 +265,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
             throw new TypeError(`${label} duplicates slot ${slotIndex}`);
         }
         slots.add(slotIndex);
-        if (allowDelay && effect.type === "delay")
+        if (allowSourceEffects && effect.type === "delay")
         {
             if (effect.processLfe !== true)
             {
@@ -307,7 +309,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 processLfe: true,
             });
         }
-        if (allowDelay && effect.type === "compressor")
+        if (allowSourceEffects && effect.type === "compressor")
         {
             if (effect.processLfe !== true || effect.channelLink !== true)
             {
@@ -353,7 +355,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 channelLink: true,
             });
         }
-        if (allowDelay && effect.type === "peak-limiter")
+        if (allowSourceEffects && effect.type === "peak-limiter")
         {
             if (effect.processLfe !== true || effect.channelLink !== true)
             {
@@ -399,7 +401,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 channelLink: true,
             });
         }
-        if (allowDelay && effect.type === "flanger")
+        if (allowSourceEffects && effect.type === "flanger")
         {
             if (typeof effect.lfoEnabled !== "boolean"
                 || typeof effect.processCenter !== "boolean"
@@ -466,7 +468,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 processLfe: effect.processLfe,
             });
         }
-        if (allowDelay && effect.type === "tremolo")
+        if (allowSourceEffects && effect.type === "tremolo")
         {
             if (typeof effect.processCenter !== "boolean"
                 || typeof effect.processLfe !== "boolean")
@@ -501,7 +503,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                 processLfe: effect.processLfe,
             });
         }
-        if (allowDelay && effect.type === "guitar-distortion")
+        if (allowSourceEffects && effect.type === "guitar-distortion")
         {
             const preEqBands = NormalizeGuitarDistortionBands(
                 effect.preEqBands,
@@ -556,6 +558,81 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowDelay)
                     100,
                     100,
                     `${label} wetDryMixPercent`,
+                ),
+            });
+        }
+        if (allowSourceEffects && effect.type === "meter")
+        {
+            if (typeof effect.infiniteHold !== "boolean")
+            {
+                throw new TypeError(`${label} infiniteHold must be boolean`);
+            }
+            const mode = String(effect.mode ?? "");
+            const scope = String(effect.scope ?? "");
+            const minimum = BoundedFinite(
+                effect.minimum,
+                METER_MINIMUM_MIN,
+                METER_MINIMUM_MAX,
+                `${label} minimum`,
+            );
+            const maximum = BoundedFinite(
+                effect.maximum,
+                METER_MAXIMUM_MIN,
+                METER_MAXIMUM_MAX,
+                `${label} maximum`,
+            );
+
+            if (mode !== "peak" && mode !== "rms")
+            {
+                throw new TypeError(`${label} has unsupported mode ${mode}`);
+            }
+            if (scope !== "global" && scope !== "game-object")
+            {
+                throw new TypeError(`${label} has unsupported scope ${scope}`);
+            }
+            if (effect.applyDownstreamVolume !== false)
+            {
+                throw new TypeError(
+                    `${label} requires unsupported downstream-volume feedback`,
+                );
+            }
+            if (minimum > maximum)
+            {
+                throw new TypeError(`${label} minimum exceeds maximum`);
+            }
+            return Object.freeze({
+                effectId,
+                slotIndex,
+                type: "meter",
+                attack: BoundedFinite(
+                    effect.attack,
+                    0,
+                    METER_MAX_TIME,
+                    `${label} attack`,
+                ),
+                release: BoundedFinite(
+                    effect.release,
+                    0,
+                    METER_MAX_TIME,
+                    `${label} release`,
+                ),
+                minimum,
+                maximum,
+                hold: BoundedFinite(
+                    effect.hold,
+                    0,
+                    METER_MAX_TIME,
+                    `${label} hold`,
+                ),
+                infiniteHold: effect.infiniteHold,
+                mode,
+                scope,
+                applyDownstreamVolume: false,
+                gameParameterId: BoundedInteger(
+                    effect.gameParameterId,
+                    0,
+                    0xffffffff,
+                    `${label} gameParameterId`,
                 ),
             });
         }
@@ -647,6 +724,7 @@ export function createWwiseEffectChain(
         wwiseDynamics = "strict",
         wwiseModulation = "strict",
         wwiseDistortion = "strict",
+        wwiseMeterFeedback = "strict",
     } = {},
 )
 {
@@ -654,6 +732,9 @@ export function createWwiseEffectChain(
     const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
     const modulationMode = normalizeWwiseModulationMode(wwiseModulation);
     const distortionMode = normalizeWwiseDistortionMode(wwiseDistortion);
+    const meterFeedbackMode = normalizeWwiseMeterFeedbackMode(
+        wwiseMeterFeedback,
+    );
 
     // A source effect override is one ordered authored unit. In strict mode,
     // preserve the existing audible dry fallback by omitting the complete
@@ -682,6 +763,7 @@ export function createWwiseEffectChain(
         || tremoloEffects.length > 0;
     const sourceDistortions = effects.filter(effect =>
         effect.type === "guitar-distortion");
+    const sourceMeters = effects.filter(effect => effect.type === "meter");
     const distortionEffects = effects.filter(effect =>
         effect.type === "guitar-distortion"
         || effect.type === "guitar-distortion-approximation");
@@ -703,6 +785,16 @@ export function createWwiseEffectChain(
         return null;
     }
     if (sourceDistortions.length && distortionMode === "strict")
+    {
+        return null;
+    }
+    if (sourceMeters.some(effect =>
+        effect.applyDownstreamVolume !== false))
+    {
+        return null;
+    }
+    if (meterFeedbackMode === "strict"
+        && sourceMeters.some(effect => effect.gameParameterId !== 0))
     {
         return null;
     }
@@ -774,6 +866,12 @@ export function createWwiseEffectChain(
                 ? { ...effect, type: "tremolo-approximation" }
             : effect.type === "guitar-distortion"
                 ? { ...effect, type: "guitar-distortion-approximation" }
+            : effect.type === "meter"
+                ? {
+                    ...effect,
+                    type: "meter-omission",
+                    telemetryOmitted: effect.gameParameterId !== 0,
+                }
             : effect);
     const nodes = [];
     let input = null;
@@ -1770,25 +1868,27 @@ export function parseGraphStaticWwiseCompressor(effect, effectId, slotIndex)
     };
 }
 
-/**
- * Decodes a v150 Wwise Meter whose signal path is transparent. Telemetry may
- * be omitted only through explicit policy when it could feed the authored graph.
- */
-export function parseGraphFeedbackFreeMeter(
-    effect,
-    effectId,
-    slotIndex,
-    { wwiseMeterFeedback = "strict" } = {},
+/** Decodes one static v150 Wwise Meter parameter block. */
+export function parseStaticWwiseMeterBytes(
+    bytes,
+    {
+        effectId,
+        slotIndex,
+        label = `Wwise Meter effect ${effectId}`,
+        bankVersion = WWISE_METER_BANK_VERSION,
+    } = {},
 )
 {
-    const label = `Audio Bus graph effect ${effectId}`;
-    const bytes = RequireStaticGraphEffect(
-        effect,
-        WWISE_METER_PLUGIN_ID,
-        28,
-        label,
-        "Wwise Meter",
-    );
+    if (Number(bankVersion) !== WWISE_METER_BANK_VERSION)
+    {
+        throw new TypeError(
+            `${label} requires Wwise bank version ${WWISE_METER_BANK_VERSION}`,
+        );
+    }
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength !== 28)
+    {
+        throw new TypeError(`${label} has invalid Wwise Meter parameters`);
+    }
     const view = new DataView(
         bytes.buffer,
         bytes.byteOffset,
@@ -1804,9 +1904,6 @@ export function parseGraphFeedbackFreeMeter(
     const scopeRaw = view.getUint8(22);
     const applyDownstreamVolumeRaw = view.getUint8(23);
     const gameParameterId = view.getUint32(24, true);
-    const feedbackMode = normalizeWwiseMeterFeedbackMode(
-        wwiseMeterFeedback,
-    );
 
     if (!Number.isFinite(attack)
         || attack < 0
@@ -1831,15 +1928,14 @@ export function parseGraphFeedbackFreeMeter(
     {
         throw new TypeError(`${label} has invalid Wwise Meter parameters`);
     }
-    if (applyDownstreamVolumeRaw !== 0
-        || (gameParameterId !== 0 && feedbackMode !== "omit-telemetry"))
+    if (applyDownstreamVolumeRaw !== 0)
     {
         throw new TypeError(`${label} has observable Wwise Meter feedback`);
     }
     return {
         effectId: String(effectId),
         slotIndex: Number(slotIndex),
-        type: "meter-omission",
+        type: "meter",
         attack,
         release,
         minimum,
@@ -1850,7 +1946,45 @@ export function parseGraphFeedbackFreeMeter(
         scope: scopeRaw === 0 ? "global" : "game-object",
         applyDownstreamVolume: false,
         gameParameterId,
-        telemetryOmitted: gameParameterId !== 0,
+    };
+}
+
+/**
+ * Decodes a v150 Wwise Meter whose signal path is transparent. Telemetry may
+ * be omitted only through explicit policy when it could feed the authored graph.
+ */
+export function parseGraphFeedbackFreeMeter(
+    effect,
+    effectId,
+    slotIndex,
+    { wwiseMeterFeedback = "strict" } = {},
+)
+{
+    const label = `Audio Bus graph effect ${effectId}`;
+    const bytes = RequireStaticGraphEffect(
+        effect,
+        WWISE_METER_PLUGIN_ID,
+        28,
+        label,
+        "Wwise Meter",
+    );
+    const meter = parseStaticWwiseMeterBytes(bytes, {
+        effectId,
+        slotIndex,
+        label,
+    });
+    const feedbackMode = normalizeWwiseMeterFeedbackMode(
+        wwiseMeterFeedback,
+    );
+
+    if (meter.gameParameterId !== 0 && feedbackMode !== "omit-telemetry")
+    {
+        throw new TypeError(`${label} has observable Wwise Meter feedback`);
+    }
+    return {
+        ...meter,
+        type: "meter-omission",
+        telemetryOmitted: meter.gameParameterId !== 0,
     };
 }
 

@@ -6608,6 +6608,125 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
     );
 });
 
+test("SFX construction retains static non-downstream Wwise Meter overrides", async () =>
+{
+    const Build = ({
+        bankVersion = 150,
+        applyDownstreamVolume = false,
+        propertyValues = [],
+    } = {}) => CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                metered_play: {
+                    eventID: 100,
+                    soundbanks: [ "effects.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "effects.bnk": {
+                    name: "effects",
+                    path: "\\SoundBanks\\effects.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/effects.bnk",
+            storagePath: "banks/effects.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 910,
+                                    flags: 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 16,
+                            id: 910,
+                            payload: wwiseMeterEffectPayload({
+                                applyDownstreamVolume,
+                                gameParameterId: 1312763804,
+                                propertyValues,
+                            }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const library = await Build();
+
+    assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "910",
+        slotIndex: 0,
+        type: "meter",
+        attack: 0,
+        release: Math.fround(0.3),
+        minimum: -48,
+        maximum: 0,
+        hold: 0,
+        infiniteHold: false,
+        mode: "peak",
+        scope: "game-object",
+        applyDownstreamVolume: false,
+        gameParameterId: 1312763804,
+    } ]);
+
+    for (const unsupported of [
+        await Build({ bankVersion: 151 }),
+        await Build({ applyDownstreamVolume: true }),
+        await Build({ propertyValues: [ { propertyId: 1, value: 2 } ] }),
+    ])
+    {
+        assert.equal(
+            unsupported.sfx?.nodes?.["300"]?.sourceEffects,
+            undefined,
+        );
+    }
+});
+
 test("SFX construction retains only the bounded static Guitar Distortion", async () =>
 {
     const Build = (
@@ -10815,6 +10934,52 @@ function wwiseTremoloEffectPayload({
         .bytes();
     const writer = new TestWriter()
         .u32(0x00830003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(propertyValues.length);
+
+    for (const property of propertyValues)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation ?? 0)
+            .f32(property.value);
+    }
+    return writer.bytes();
+}
+
+function wwiseMeterEffectPayload({
+    attack = 0,
+    release = 0.3,
+    minimum = -48,
+    maximum = 0,
+    hold = 0,
+    infiniteHold = false,
+    mode = 0,
+    scope = 1,
+    applyDownstreamVolume = false,
+    gameParameterId = 0,
+    propertyValues = [],
+} = {})
+{
+    const parameterBlock = new TestWriter()
+        .f32(attack)
+        .f32(release)
+        .f32(minimum)
+        .f32(maximum)
+        .f32(hold)
+        .u8(infiniteHold ? 1 : 0)
+        .u8(mode)
+        .u8(scope)
+        .u8(applyDownstreamVolume ? 1 : 0)
+        .u32(gameParameterId)
+        .bytes();
+    const writer = new TestWriter()
+        .u32(0x00810003)
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)

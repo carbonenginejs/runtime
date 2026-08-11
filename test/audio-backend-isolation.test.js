@@ -242,6 +242,7 @@ function Harness({
   wwiseDynamics,
   wwiseDistortion,
   wwiseModulation,
+  wwiseMeterFeedback,
   busGraphRuntime,
   busMixer,
   busMixerFactory,
@@ -279,6 +280,7 @@ function Harness({
     wwiseDynamics,
     wwiseDistortion,
     wwiseModulation,
+    wwiseMeterFeedback,
     busGraphRuntime,
     busMixer: resolvedBusMixer,
     distanceScale,
@@ -7679,6 +7681,70 @@ test("Sound-local Parametric EQ precedes live Voice filters and survives as one 
   context.sources[0].onended();
   assert.equal(sourceEq.disconnected, true);
   assert.equal(voiceLowPass.disconnected, true);
+});
+
+test("Sound-local Meter telemetry omission preserves complete-chain policy", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "910",
+    slotIndex: 0,
+    type: "meter",
+    attack: 0,
+    release: 0.3,
+    minimum: -48,
+    maximum: 0,
+    hold: 0,
+    infiniteHold: false,
+    mode: "peak",
+    scope: "game-object",
+    applyDownstreamVolume: false,
+    gameParameterId: 1312763804,
+  }, {
+    effectId: "901",
+    slotIndex: 1,
+    type: "parametric-eq",
+    bands: [ {
+      index: 0,
+      filterType: "notch",
+      gainDb: -24,
+      frequencyHz: 240,
+      q: 8,
+    } ],
+    outputGainDb: 0,
+    processLfe: true,
+  } ];
+  const loadBuffer = async () => ({
+    voices: [ {
+      buffer: { duration: 2 },
+      loop: false,
+      sourceEffects,
+      getGain: () => 1,
+    } ],
+  });
+  const strict = Harness({ loadBuffer });
+
+  strict.backend.PostEvent(1, 1, 0, strict.emitter, "play");
+  await tick();
+  assert.equal(strict.context.filters.length, 0,
+    "strict mode keeps the complete authored source chain dry");
+
+  const approximate = Harness({
+    loadBuffer,
+    wwiseMeterFeedback: "omit-telemetry",
+  });
+
+  approximate.backend.PostEvent(1, 1, 0, approximate.emitter, "play");
+  await tick();
+  const [ equalizer ] = approximate.context.filters;
+
+  assert.equal(approximate.context.filters.length, 1,
+    "Meter omission allocates no browser node");
+  assert.equal(approximate.context.sources[0].connectedTo, equalizer);
+  assert.equal(equalizer.type, "notch");
+  assert.equal(equalizer.frequency.value, 240);
+
+  approximate.context.sources[0].onended();
+  assert.equal(equalizer.disconnected, true);
 });
 
 test("Sound-local Wwise Delay realizes before live Voice filters", async () =>
