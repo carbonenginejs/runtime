@@ -1022,3 +1022,55 @@ async function WaitFor(predicate)
 
     throw new Error("Timed out waiting for realtime test condition");
 }
+
+test("Register merges reconnect policy live, and rejects an invalid one whole", () =>
+{
+    // Live rather than pre-Initialize only: the reconnect loop reads the policy
+    // each time round, and the reason to reach for this is usually a console
+    // already being flooded by a server that is not there. Having to restart the
+    // client to quieten it would defeat the purpose.
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "policy-capability",
+        webSocketClass: CjsRealtimeTestSocket
+    });
+
+    assert.equal(client.reconnect.giveUpAfterMs, 60000, "default budget");
+
+    client.Register({ reconnect: { giveUpAfterMs: 2000 } });
+    assert.equal(client.reconnect.giveUpAfterMs, 2000);
+    assert.equal(client.reconnect.minimumDelayMs, 250, "unstated fields are kept");
+    assert.equal(client.reconnect.factor, 2);
+
+    client.Register({ reconnect: { giveUpAfterMs: 0 } });
+    assert.equal(client.reconnect.giveUpAfterMs, 0, "0 disables the budget");
+
+    // A policy that fails validation must leave the previous one in place rather
+    // than half-apply and leave the client in a state nobody configured.
+    assert.throws(() => client.Register({ reconnect: { factor: 0 } }), RangeError);
+    assert.equal(client.reconnect.factor, 2);
+    assert.equal(client.reconnect.giveUpAfterMs, 0);
+});
+
+test("Connect takes the same options as Register", () =>
+{
+    // The async entry point accepts the configuration object too, so a caller
+    // configures and starts in one step rather than having to remember the
+    // ordering. Applied before connecting, and applied even when joining an
+    // in-flight connection - a call that silently ignored its arguments
+    // depending on timing would be worse than one that always honours them.
+    const client = new CjsRealtimeClient({
+        url: "http://127.0.0.1:3000",
+        capability: "connect-options-capability",
+        webSocketClass: CjsRealtimeTestSocket
+    });
+
+    assert.throws(
+        () => client.Connect({ reconnect: { factor: 0 } }),
+        RangeError,
+        "an invalid policy throws before anything is started"
+    );
+    assert.equal(client.state, "idle", "and leaves the client unstarted");
+
+    client.Close();
+});

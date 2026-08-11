@@ -149,9 +149,26 @@ export class CjsRealtimeClient
         };
     }
 
-    /** Starts or joins the reconnect loop and resolves after subscriptions recover. */
-    Connect()
+    /**
+     * Starts or joins the reconnect loop and resolves after subscriptions
+     * recover.
+     *
+     * Takes the same options object as `Register`, applied before connecting, so
+     * a caller may configure and start in one step:
+     *
+     *     await realtime.Connect({ reconnect: { giveUpAfterMs: 2000 } });
+     *
+     * Options are applied even when joining an in-flight connection, because the
+     * alternative is a call that silently ignores what it was passed depending on
+     * timing. An invalid policy throws before anything is started.
+     *
+     * @param {object} [options] Same shape as Register.
+     * @returns {Promise<object>} The connection, once ready.
+     */
+    Connect(options)
     {
+        if (options !== undefined) this.Register(options);
+
         if (this.state === "ready")
         {
             return Promise.resolve(this.connection);
@@ -417,6 +434,54 @@ export class CjsRealtimeClient
     static normalizeRoute(pathname)
     {
         return !pathname || pathname === "/" ? REALTIME_ROUTE : pathname.replace(/\/+$/u, "");
+    }
+
+    /**
+     * Updates connection policy at runtime, applying only the keys provided.
+     *
+     * The reconnect loop reads the policy each time round, so a change takes
+     * effect on the next delay rather than needing a reconnect - which is the
+     * point: the usual reason to reach for this is a console being flooded by a
+     * server that is not there, and having to restart the client to quieten it
+     * defeats the purpose.
+     *
+     * `reconnect` merges into the current policy, so a caller may set one field
+     * without restating the rest, and the result is validated as a whole:
+     *
+     *     realtime.Register({ reconnect: { giveUpAfterMs: 2000 } });
+     *     realtime.Register({ reconnect: { giveUpAfterMs: 0 } });   // never give up
+     *
+     * An invalid policy throws and leaves the existing one in place, rather than
+     * half-applying and leaving the client in a state nobody configured.
+     *
+     * @param {object} [options]
+     * @param {object} [options.reconnect] Backoff policy fields to merge.
+     * @returns {CjsRealtimeClient} this, for chaining.
+     */
+    Register(options = {})
+    {
+        if (!options || typeof options !== "object")
+        {
+            throw new TypeError("Realtime Register requires an options object");
+        }
+
+        if ("reconnect" in options)
+        {
+            const merged = CjsRealtimeClient.normalizeReconnect({
+                ...this.#reconnect,
+                ...options.reconnect
+            });
+
+            this.#reconnect = merged;
+        }
+
+        return this;
+    }
+
+    /** The reconnect policy currently in force. Frozen; change it with Register. */
+    get reconnect()
+    {
+        return this.#reconnect;
     }
 
     /**
