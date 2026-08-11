@@ -482,9 +482,12 @@ Pinned wwiser proves the v150 Wwise Meter's 28-byte layout: five float32 attack,
 release, minimum, maximum, and hold values; four one-byte infinite-hold, mode,
 scope, and downstream-volume fields; and one uint32 Game Parameter ID. The
 shared mixer accepts exact boolean and Peak/RMS plus Global/GameObject enum
-values. By default it omits the telemetry stage only when downstream-volume
-application and the Game Parameter ID are both zero and the effect has no other
-controls or media. EVE's main feedback-free Meter `651869473` reaches 12,678 SFX dry paths,
+values. [Audiokinetic documents](https://www.audiokinetic.com/library/2024.1.0_8669/?id=wwise_meter_plug_in_effect&source=Help)
+that Meter measures without modifying the signal and that `Apply Downstream
+Volume` changes which inherited gains the meter displays. By default the mixer
+therefore omits the telemetry stage when the Game Parameter ID is zero and the
+effect has no other controls or media, regardless of that measurement flag.
+EVE's main feedback-free Meter `651869473` reaches 12,678 SFX dry paths,
 but only the subset with fully projected Voice/Bus Volume RTPC/State controls
 and no other barrier qualifies. Meter `902247780` similarly qualifies only the
 subset whose RTPC/State/ducking catalogs are complete. Other reachable EVE
@@ -497,19 +500,19 @@ telemetry itself is not implemented.
 
 The 1,243 feedback-Meter references are an overlapping upper ceiling, not an
 immediate-unlock count. All reachable EVE Meters use Global scope, but both Peak
-and RMS modes occur and one active record applies downstream volume. An exact
-adapter therefore needs render-thread metering, an audio-rate Meter-to-Game-
-Parameter feedback path, and downstream-aware topology; main-thread
+and RMS modes occur and one active record includes downstream volume in its
+measurement. An exact adapter therefore needs render-thread metering, an
+audio-rate Meter-to-Game-Parameter feedback path, and downstream-aware gain
+measurement; main-thread
 `AnalyserNode` polling cannot preserve its timing. Pinned wwiser proves the
 record layout, not the detector window or envelope law, so Wwise golden vectors
 remain required before these stages can leave fail-closed qualification.
 
 `wwiseMeterFeedback: "omit-telemetry"` is the explicit audible approximation
 for the signal-transparent subset: it accepts a static Meter with a nonzero
-Game Parameter target only when downstream-volume application is false, passes
-the audio through the slot, and does not produce the target value. It adds 858
-SFX references in the audited build while preserving every other qualification
-gate. The one active downstream-volume Meter remains blocked.
+Game Parameter target, passes the audio through the slot, and does not produce
+the target value. The downstream-volume flag changes the omitted value, not the
+audible route. Every other qualification gate still applies.
 
 Pinned wwiser's v150 property table identifies decimal Audio Bus RTPC parameter
 `53` (`0x35`) as `MaxNumInstances`. EVE build 3444265 contains one such curve,
@@ -545,8 +548,8 @@ DSP. The backend's independent safety compressor is not an authored Wwise
 limiter and is never reused as one.
 
 The same runtime policy admits complete source-local Compressor and Peak
-Limiter overrides. EVE build 3453885 contains 2,033 qualified Compressor Sound
-leaves across nine complete chain signatures, reachable from 486 retained
+Limiter overrides. EVE build 3453885 contains 2,114 qualified Compressor Sound
+leaves across nine complete chain signatures, reachable from 539 retained
 events. Eight of those leaves place one already-qualified Parametric EQ after
 the Compressor. Another 73 Sound leaves inherit the single source-proven
 Custom Peak Limiter `754157063` under `refinery_l_play`. Strict mode omits each
@@ -702,26 +705,28 @@ EQ before it. Decay ranges from 1.2 to 6.7 seconds, Stereo Width is 88 or 180
 degrees, and two single-leaf records use active tone shaping. RoomVerb raised
 the qualified source-effect population from 2,740 to 2,792 Sound leaves and
 the retained record count from 2,781 to 2,857; the later live-EQ block raises
-the current totals to 2,962 leaves and 3,039 records without changing media or
+the totals to 2,962 leaves and 3,039 records without changing media or
 event reachability.
 
 The same source-local projection retains pinned wwiser's exact 28-byte v150
-Wwise Meter record when it is static, control-free, and does not apply its
-measurement as downstream volume. A Meter without a Game Parameter target is
-an exact signal-transparent omission. A target-bearing record keeps the whole
+Wwise Meter record when it is static and control-free. A Meter without a Game
+Parameter target is an exact signal-transparent omission. A target-bearing record keeps the whole
 source chain dry under the default `wwiseMeterFeedback: "strict"`; explicit
 `"omit-telemetry"` lets audible sibling effects run in authored order while
 allocating no Meter node and producing no Game Parameter value. This reuses the
 shared-Bus policy rather than baking host policy into the portable library.
 
-EVE build 3453885 has 49 such Sound leaves across 39 retained events, all with
-nonzero Game Parameter targets. Opt-in omission initially raised qualified
-source-effect leaves from 2,617 to 2,666; the current aggregate after Tremolo,
-Matrix, RoomVerb, and live-EQ admission is 2,962 without changing media or event
-reachability. The
-other 81 source-Meter leaves use effect `277510878` with downstream-volume
-application enabled and remain complete-chain dry fallbacks; omitting that
-behavior would alter the authored signal path, not merely its telemetry.
+EVE build 3453885 has 130 such Sound leaves. The original 49 span 39 retained
+events; another 81 across 51 events use Meter `277510878`, whose downstream-
+volume flag changes the omitted measurement, followed by Compressor
+`554802347`. Retaining that complete chain raises the current aggregate after
+Tremolo, Matrix, RoomVerb, live EQ, and this correction to 3,043 leaves and
+3,201 records without changing media or event reachability. Playback still
+requires both explicit policies: Meter telemetry omission and Web Audio
+dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
+feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so
+the structure subtree loses up to about `0.94 dB` of authored ducking. This is
+an audible opt-in approximation, not an exact omission.
 
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE

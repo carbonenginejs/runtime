@@ -1111,20 +1111,20 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 2962);
+    assert.equal(sourceEffectSounds.length, 3043);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3039);
+        count + node.sourceEffects.length, 0), 3201);
     assert.equal(sourceEqSounds.length, 456);
     assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
-    assert.equal(sourceCompressorSounds.length, 2033);
+    assert.equal(sourceCompressorSounds.length, 2114);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 21);
     assert.equal(sourceTremoloSounds.length, 148);
     assert.equal(sourceGuitarDistortionSounds.length, 69);
     assert.equal(sourceMatrixReverbSounds.length, 50);
     assert.equal(sourceRoomVerbSounds.length, 52);
-    assert.equal(sourceMeterSounds.length, 49);
+    assert.equal(sourceMeterSounds.length, 130);
     assert.deepEqual(graph.nodes["3270488"].sourceEffects, [ {
         effectId: "3835448648",
         slotIndex: 1,
@@ -1188,6 +1188,24 @@ test("committed demo library carries authored SFX and music semantics", () =>
         applyDownstreamVolume: false,
         gameParameterId: 765248359,
     } ]);
+    assert.deepEqual(
+        graph.nodes["40562840"].sourceEffects.map(effect => ({
+            effectId: effect.effectId,
+            type: effect.type,
+        })),
+        [
+            { effectId: "277510878", type: "meter" },
+            { effectId: "554802347", type: "compressor" },
+        ],
+    );
+    assert.equal(
+        graph.nodes["40562840"].sourceEffects[0].applyDownstreamVolume,
+        true,
+    );
+    assert.equal(
+        graph.nodes["40562840"].sourceEffects[0].gameParameterId,
+        2030689742,
+    );
     assert.deepEqual(graph.nodes["61866929"].sourceEffects, [
         {
             effectId: "3206968232",

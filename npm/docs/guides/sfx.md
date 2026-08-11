@@ -421,15 +421,16 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 2,962
-qualified Sound leaves carrying 3,039 effect records: 456 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 3,043
+qualified Sound leaves carrying 3,201 effect records: 456 use Parametric EQ,
 including 170 leaves with live `ship_Roll` Band 1 Frequency,
-87 use Wwise Delay, 2,033 use
+87 use Wwise Delay, 2,114 use
 Compressor, 73 use Peak Limiter, 21 use Flanger across nine retained events,
 149 Tremolo stages occur on 148 Sounds across 80 retained events, 69 use
 static Guitar Distortion across 23 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
-events, and 49 retain telemetry-only Meter records across 39 retained events.
+events, and 130 retain telemetry-only Meter records. The added 81 Meter leaves
+pair Meter `277510878` with Compressor `554802347` across 51 events.
 RoomVerb covers 11 effect identities and ten exact 186-byte parameter records;
 28 chains contain only RoomVerb and 24 place one qualified Parametric EQ before
 it.
@@ -774,17 +775,21 @@ corroborated for the audited corpus rather than proven by the pinned wwiser
 parser.
 
 The builder and shared mixer also decode wwiser's exact 28-byte v150 Wwise
-Meter layout. They omit a static, media-free, control-free Meter on a shared
-Bus or in a complete source-local effect chain when downstream-volume
-application is disabled and no Game Parameter is written. Such a Meter is
-audio-transparent, though its monitoring behavior remains unsupported. The
+Meter layout. Audiokinetic documents that the plug-in measures without
+modifying its signal, so they omit a static, media-free, control-free Meter on
+a shared Bus or in a complete source-local effect chain when no Game Parameter
+is written. Such a Meter is audio-transparent, though its monitoring behavior
+remains unsupported. The
 default `wwiseMeterFeedback: "strict"` keeps a Meter with a Game Parameter
 target as a shared-route barrier or leaves its complete source chain audible
-and dry. Explicit `"omit-telemetry"` admits that Meter only when
-downstream-volume application is disabled: audio crosses the slot, audible
-source siblings retain authored order, but no Meter value is produced and any
-authored feedback through the target Game Parameter is absent.
-Downstream-volume Meter records remain barriers.
+and dry. Explicit `"omit-telemetry"` admits that Meter when its parameters are
+otherwise qualified: audio crosses the slot, audible source siblings retain
+authored order, but no Meter value is produced and any authored feedback
+through the target Game Parameter is absent. `Apply Downstream Volume` changes
+whether higher-level gains contribute to that omitted measurement; it does not
+alter signal flow. In EVE the omitted `sovhub_upgrades_meter` value drives a
+cross-bank structure Voice Volume RTPC by up to about `-0.94 dB`, so this remains
+an explicit audible approximation rather than an exact omission.
 
 The builder separately identifies the v150 Audio Bus `MaxNumInstances` RTPC as
 the `"voice-limits"` processing reason. `wwiseVoiceLimits: "strict"` keeps that

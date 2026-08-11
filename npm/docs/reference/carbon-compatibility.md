@@ -42,7 +42,7 @@ bus processing omitted.
 | Wwise Matrix Reverb | Opt-in approximation | `wwiseReverb: "approximate-web-audio"` admits static, control-free, source-local v150 default-delay records whose 29-byte layout is source-proven by pinned wwiser. A bounded four-line cyclic feedback-delay network preserves authored dry/wet levels and Pre-Delay and approximates Reverb Time and HF Ratio. The authored 4/8/12/16 delay count remains metadata rather than browser topology. Wwise's proprietary matrix, mixing, damping, channel, and LFE laws are not reproduced; pause/seek reuse browser state, and voice disposal cuts the tail at decoded dry-source completion. Shared-Bus Matrix Reverb, custom delay tables, dynamic controls, missing primitives, and strict mode keep the complete chain audible and dry. |
 | Wwise RoomVerb | Opt-in approximation | `wwiseRoomVerb: "approximate-web-audio"` admits the static, control-free, source-local EVE-v150 subset decoded from pinned wwiser's exact 186-byte layout. Deterministic cached procedural impulse responses split early reflections from the late tail. The browser preserves Dry/Early/Late levels and Reverb Pre-Delay and approximates ER pattern/room size, decay/HF damping, diffusion/density/shape/quality, stereo width, and tone filtering. Wwise's proprietary reflection tables, reverb algorithm, early-reflection front/back timing, surround/LFE/center routing, and tail completion are not reproduced. Strict mode, missing convolution primitives, more than two decoded channels, dynamic controls, and shared-Bus RoomVerb keep the complete chain audible and dry. |
 | Wwise Guitar Distortion | Opt-in approximation | `wwiseDistortion: "approximate-web-audio"` admits static, control-free, fully-wet Overdrive/Heavy source records from the source-proven v150 layout. Voice-owned pre/post biquads surround a 4x-oversampled WaveShaper and preserve output gain. The deterministic normalized-tanh/full-wave blend is CarbonEngineJS behavior, not Wwise's proprietary transfer/Drive/Rectification law; authored Tone is retained but not applied. Exact oversampling, channel behavior, other distortion types, dynamic controls, and shared-Bus placement remain unsupported. Strict mode or missing primitives keeps the complete chain audible and dry. |
-| Wwise Meter | Proven omission or opt-in approximation | Feedback-free telemetry is audio-transparent and allocates no node on a shared Bus or in a complete source-local chain. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output; strict source playback omits that complete effect chain and remains audible/dry. Downstream-volume Meter remains unsupported. |
+| Wwise Meter | Proven omission or opt-in approximation | [Wwise Meter](https://www.audiokinetic.com/library/2024.1.0_8669/?id=wwise_meter_plug_in_effect&source=Help) measures without modifying the signal. Feedback-free telemetry therefore allocates no node on a shared Bus or in a complete source-local chain. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output; strict source playback omits that complete effect chain and remains audible/dry. `Apply Downstream Volume` changes the omitted measurement basis, not signal flow. |
 | Qualified Sound `MaxNumInstances` | Corroborated browser adaptation | A v150 local-scope cap-one, reject-newest Sound subset reserves at an immediate Play boundary before media acquisition and releases at physical completion. Qualification requires effective Continue virtual behavior and excludes dynamic/random Priority, capped bus routes, delayed admission, and Crossfade prefetch. The packed local/global scope bit is corpus-corroborated pending a controlled golden pair; general Wwise arbitration remains unsupported. |
 | Dynamic Audio Bus `MaxNumInstances` RTPC | Unsupported behavior with opt-in route admission | Static and dynamic bus limits, priority stealing, and virtual-voice policy are not enforced. `wwiseVoiceLimits: "ignore"` additionally admits separately classified dynamic RTPC paths without enforcing their changing count or eviction behavior; the default `"strict"` keeps those paths outside shared routing. |
 | Proven-silent Aux return | Proven omission | A complete return at or below `-96 dB` is omitted; a narrowly qualified static SFX Aux shape is exact topology, and other wet paths remain barriers. |
@@ -131,9 +131,9 @@ The maintained graph includes:
 - source-proven static v150 Wwise Delay decoding with one shared Web Audio
   dry/wet split, optional feedback loop, output gain, ordered Bus placement,
   and fail-closed dynamic-control and independent-LFE qualification;
-- source-proven v150 Wwise Meter decoding with fail-closed omission limited to
-  audio-transparent records that cannot write a Game Parameter or apply
-  downstream volume; Meter telemetry itself remains unsupported;
+- source-proven v150 Wwise Meter decoding with exact audio-transparent omission
+  when no Game Parameter is written, regardless of its downstream-volume
+  measurement flag; Meter telemetry itself remains unsupported;
 - fail-closed omission of static user-aux returns only when their complete
   inactive-effect path and maximum installed gain remain at or below Wwise's
   `-96 dB` silence threshold;
@@ -337,11 +337,12 @@ per whole leg, and merges once at the common Bus. Mixed Voice/Bus rules from
 one duck source and wet-only duck sources or Voice targets remain barriers.
 Absolute or positive-relative action risk, unsupported filters, dynamic sends,
 reflections, and wet-path escapes all retain the barrier. A static,
-control-free, non-downstream source Meter is retained as portable metadata.
+control-free source Meter is retained as portable metadata.
 It allocates no node when it has no Game Parameter target; an explicit
 `wwiseMeterFeedback: "omit-telemetry"` also admits a target-bearing Meter while
-omitting its telemetry. Strict mode leaves that complete source chain dry, and
-downstream-volume Meter remains unsupported.
+omitting its telemetry. Strict mode leaves that complete source chain dry.
+`Apply Downstream Volume` affects the omitted reported level, not the passed
+audio signal.
 Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
 paths. A bounded Bus-target Voice Volume Set uses a second voice-owned pre-Bus
 gain only when its target is the route's first/output Bus. It persists on the

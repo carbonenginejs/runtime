@@ -7025,7 +7025,7 @@ test("SFX construction retains static source-local Wwise RoomVerb", async () =>
     );
 });
 
-test("SFX construction retains static non-downstream Wwise Meter overrides", async () =>
+test("SFX construction retains static Wwise Meter overrides", async () =>
 {
     const Build = ({
         bankVersion = 150,
@@ -7114,6 +7114,7 @@ test("SFX construction retains static non-downstream Wwise Meter overrides", asy
         },
     });
     const library = await Build();
+    const downstreamLibrary = await Build({ applyDownstreamVolume: true });
 
     assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
         effectId: "910",
@@ -7130,10 +7131,14 @@ test("SFX construction retains static non-downstream Wwise Meter overrides", asy
         applyDownstreamVolume: false,
         gameParameterId: 1312763804,
     } ]);
+    assert.equal(
+        downstreamLibrary.sfx.nodes["300"].sourceEffects[0]
+            .applyDownstreamVolume,
+        true,
+    );
 
     for (const unsupported of [
         await Build({ bankVersion: 151 }),
-        await Build({ applyDownstreamVolume: true }),
         await Build({ propertyValues: [ { propertyId: 1, value: 2 } ] }),
     ])
     {

@@ -399,8 +399,8 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
       if (scope !== "global" && scope !== "game-object") {
         throw new TypeError(`${label} has unsupported scope ${scope}`);
       }
-      if (effect.applyDownstreamVolume !== false) {
-        throw new TypeError(`${label} requires unsupported downstream-volume feedback`);
+      if (typeof effect.applyDownstreamVolume !== "boolean") {
+        throw new TypeError(`${label} applyDownstreamVolume must be boolean`);
       }
       if (minimum > maximum) {
         throw new TypeError(`${label} minimum exceeds maximum`);
@@ -417,7 +417,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
         infiniteHold: effect.infiniteHold,
         mode,
         scope,
-        applyDownstreamVolume: false,
+        applyDownstreamVolume: effect.applyDownstreamVolume,
         gameParameterId: BoundedInteger(effect.gameParameterId, 0, 0xffffffff, `${label} gameParameterId`)
       });
     }
@@ -542,9 +542,6 @@ function createWwiseEffectChain(context, effects, {
     return null;
   }
   if (sourceEqualizers.some(effect => effect.rtpcCurves?.length) && typeof readSourceEffectRtpc !== "function") {
-    return null;
-  }
-  if (sourceMeters.some(effect => effect.applyDownstreamVolume !== false)) {
     return null;
   }
   if (meterFeedbackMode === "strict" && sourceMeters.some(effect => effect.gameParameterId !== 0)) {
@@ -1336,9 +1333,6 @@ function parseStaticWwiseMeterBytes(bytes, {
   if (!Number.isFinite(attack) || attack < 0 || attack > METER_MAX_TIME || !Number.isFinite(release) || release < 0 || release > METER_MAX_TIME || !Number.isFinite(minimum) || minimum < METER_MINIMUM_MIN || minimum > METER_MINIMUM_MAX || !Number.isFinite(maximum) || maximum < METER_MAXIMUM_MIN || maximum > METER_MAXIMUM_MAX || minimum > maximum || !Number.isFinite(hold) || hold < 0 || hold > METER_MAX_TIME || infiniteHoldRaw > 1 || modeRaw > 1 || scopeRaw > 1 || applyDownstreamVolumeRaw > 1) {
     throw new TypeError(`${label} has invalid Wwise Meter parameters`);
   }
-  if (applyDownstreamVolumeRaw !== 0) {
-    throw new TypeError(`${label} has observable Wwise Meter feedback`);
-  }
   return {
     effectId: String(effectId),
     slotIndex: Number(slotIndex),
@@ -1351,7 +1345,7 @@ function parseStaticWwiseMeterBytes(bytes, {
     infiniteHold: infiniteHoldRaw === 1,
     mode: modeRaw === 0 ? "peak" : "rms",
     scope: scopeRaw === 0 ? "global" : "game-object",
-    applyDownstreamVolume: false,
+    applyDownstreamVolume: applyDownstreamVolumeRaw === 1,
     gameParameterId
   };
 }

@@ -1379,8 +1379,28 @@ test("strict shared Bus mixer omits only feedback-free Wwise Meter telemetry", (
   assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
   assert.equal(context.filters.length, 0, "Meter telemetry allocates no DSP node");
 
-  for (const bytes of [
+  const downstreamContext = MixerContext();
+  const downstreamCatalog = MixerCatalog();
+
+  AddGraphMeter(
+    downstreamCatalog,
+    "500",
+    "910",
     MeterParameters({ applyDownstreamVolume: 1 }),
+  );
+  const downstreamRuntime = new CjsBusGraphRuntime(downstreamCatalog);
+  const downstreamMixer = new CjsSharedBusMixer({
+    context: downstreamContext,
+    runtime: downstreamRuntime,
+    destination: downstreamContext.destination,
+  });
+
+  assert.ok(downstreamMixer.GetInput(
+    downstreamRuntime.ResolveSfxRoute("100"),
+    "sfx",
+  ), "downstream-volume measurement remains signal-transparent");
+
+  for (const bytes of [
     MeterParameters({ gameParameterId: 1312763804 }),
     (() =>
     {

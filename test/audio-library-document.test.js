@@ -1902,10 +1902,7 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
 
     downstreamMeter.sfx.nodes["2"].sourceEffects[3]
         .applyDownstreamVolume = true;
-    assert.throws(
-        () => validateAudioLibraryDocument(downstreamMeter),
-        /unsupported downstream-volume feedback/u,
-    );
+    assert.equal(validateAudioLibraryDocument(downstreamMeter), true);
 
     const misplacedSourceEffects = structuredClone(valid);
 

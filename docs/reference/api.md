@@ -313,9 +313,10 @@ omissions:
 
 - `wwiseMeterFeedback: "omit-telemetry"` admits a static v150 Meter with a
   Game Parameter target on a shared Bus or in a complete source-local effect
-  chain, only when downstream-volume application is disabled. The signal path
-  is transparent and audible source siblings still run, but the Meter value is
-  not produced and any authored feedback through that Game Parameter is absent.
+  chain. The signal path is transparent and audible source siblings still run,
+  but the Meter value is not produced and any authored feedback through that
+  Game Parameter is absent. `Apply Downstream Volume` changes which inherited
+  gains contribute to that omitted measurement; it does not modify the audio.
   The default `"strict"` keeps the shared route blocked or the complete source
   chain audible and dry.
 - `wwiseVoiceLimits: "ignore"` admits a route whose only separately classified

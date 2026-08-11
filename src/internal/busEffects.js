@@ -823,10 +823,10 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
             {
                 throw new TypeError(`${label} has unsupported scope ${scope}`);
             }
-            if (effect.applyDownstreamVolume !== false)
+            if (typeof effect.applyDownstreamVolume !== "boolean")
             {
                 throw new TypeError(
-                    `${label} requires unsupported downstream-volume feedback`,
+                    `${label} applyDownstreamVolume must be boolean`,
                 );
             }
             if (minimum > maximum)
@@ -860,7 +860,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 infiniteHold: effect.infiniteHold,
                 mode,
                 scope,
-                applyDownstreamVolume: false,
+                applyDownstreamVolume: effect.applyDownstreamVolume,
                 gameParameterId: BoundedInteger(
                     effect.gameParameterId,
                     0,
@@ -1068,11 +1068,6 @@ export function createWwiseEffectChain(
     }
     if (sourceEqualizers.some(effect => effect.rtpcCurves?.length)
         && typeof readSourceEffectRtpc !== "function")
-    {
-        return null;
-    }
-    if (sourceMeters.some(effect =>
-        effect.applyDownstreamVolume !== false))
     {
         return null;
     }
@@ -2441,10 +2436,6 @@ export function parseStaticWwiseMeterBytes(
     {
         throw new TypeError(`${label} has invalid Wwise Meter parameters`);
     }
-    if (applyDownstreamVolumeRaw !== 0)
-    {
-        throw new TypeError(`${label} has observable Wwise Meter feedback`);
-    }
     return {
         effectId: String(effectId),
         slotIndex: Number(slotIndex),
@@ -2457,7 +2448,7 @@ export function parseStaticWwiseMeterBytes(
         infiniteHold: infiniteHoldRaw === 1,
         mode: modeRaw === 0 ? "peak" : "rms",
         scope: scopeRaw === 0 ? "global" : "game-object",
-        applyDownstreamVolume: false,
+        applyDownstreamVolume: applyDownstreamVolumeRaw === 1,
         gameParameterId,
     };
 }

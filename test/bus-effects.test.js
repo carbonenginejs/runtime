@@ -2110,6 +2110,7 @@ test("decodes only feedback-free v150 Wwise Meters as audio-transparent omission
 test("retains static source Meters and omits telemetry only through policy", () =>
 {
     const meter = parseStaticWwiseMeterBytes(MeterBytes({
+        applyDownstreamVolume: 1,
         gameParameterId: 1312763804,
     }), {
         effectId: "910",
@@ -2145,16 +2146,15 @@ test("retains static source Meters and omits telemetry only through policy", () 
 
     assert.equal(transparentChain.input, transparent.filters[0],
         "a target-free Meter is an exact omission in strict mode");
+    const downstreamTransparent = Context();
+
     assert.equal(
-        createWwiseEffectChain(Context(), [ {
+        createWwiseEffectChain(downstreamTransparent, [ {
             ...meter,
-            applyDownstreamVolume: true,
             gameParameterId: 0,
-        } ], {
-            wwiseMeterFeedback: "omit-telemetry",
-        }),
-        null,
-        "downstream-volume behavior is never an omission",
+        }, equalizer ]).input,
+        downstreamTransparent.filters[0],
+        "downstream-volume measurement does not alter the signal path",
     );
     assert.throws(
         () => parseStaticWwiseMeterBytes(MeterBytes(), {
@@ -2164,19 +2164,10 @@ test("retains static source Meters and omits telemetry only through policy", () 
         }),
         /requires Wwise bank version 150/u,
     );
-    assert.throws(
-        () => parseStaticWwiseMeterBytes(MeterBytes({
-            applyDownstreamVolume: 1,
-        }), {
-            effectId: "910",
-            slotIndex: 0,
-            bankVersion: 150,
-        }),
-        /observable Wwise Meter feedback/u,
-    );
+    assert.equal(meter.applyDownstreamVolume, true);
 });
 
-test("rejects dynamic, feedback-capable, or malformed Wwise Meters", () =>
+test("rejects dynamic, strict-feedback, or malformed Wwise Meters", () =>
 {
     const mutations = [
         effect => { effect.type = "unknown-effect"; },
@@ -2190,12 +2181,6 @@ test("rejects dynamic, feedback-capable, or malformed Wwise Meters", () =>
         },
         effect => { effect.media.push({ index: 0, sourceId: "10" }); },
         effect => { effect.controls.rtpcCount = 1; },
-        effect =>
-        {
-            effect.parametersBase64 = Buffer.from(MeterBytes({
-                applyDownstreamVolume: 1,
-            })).toString("base64");
-        },
         effect =>
         {
             effect.parametersBase64 = Buffer.from(MeterBytes({
@@ -2275,8 +2260,8 @@ test("omits signal-transparent Meter telemetry only through explicit policy", ()
             telemetryOmitted: true,
         },
     );
-    assert.throws(
-        () => parseGraphSharedBusEffect(
+    assert.equal(
+        parseGraphSharedBusEffect(
             GraphMeter(MeterBytes({
                 applyDownstreamVolume: 1,
                 gameParameterId: 1312763804,
@@ -2284,9 +2269,53 @@ test("omits signal-transparent Meter telemetry only through explicit policy", ()
             "910",
             0,
             { wwiseMeterFeedback: "omit-telemetry" },
-        ),
-        /observable Wwise Meter feedback/u,
+        ).applyDownstreamVolume,
+        true,
     );
+});
+
+test("keeps downstream Meter and Compressor policies atomic", () =>
+{
+    const meter = parseStaticWwiseMeterBytes(MeterBytes({
+        applyDownstreamVolume: 1,
+        gameParameterId: 2030689742,
+    }), {
+        effectId: "277510878",
+        slotIndex: 0,
+    });
+    const compressor = parseGraphStaticWwiseCompressor(
+        GraphCompressor(CompressorBytes({
+            thresholdDb: -20.8,
+            ratio: 1.5,
+            attackSeconds: 0.05,
+            releaseSeconds: 0.5,
+            outputGainDb: 0,
+        })),
+        "554802347",
+        1,
+    );
+    const effects = normalizeStaticSourceEffectChain(
+        [ meter, compressor ],
+        "Audio source",
+    );
+
+    assert.equal(createWwiseEffectChain(Context(), effects), null);
+    assert.equal(createWwiseEffectChain(Context(), effects, {
+        wwiseMeterFeedback: "omit-telemetry",
+    }), null);
+    assert.equal(createWwiseEffectChain(Context(), effects, {
+        wwiseDynamics: "approximate-web-audio",
+    }), null);
+    const context = Context();
+    const chain = createWwiseEffectChain(context, effects, {
+        wwiseDynamics: "approximate-web-audio",
+        wwiseMeterFeedback: "omit-telemetry",
+    });
+
+    assert.equal(chain.input, context.compressors[0]);
+    assert.equal(chain.output, context.gains[0]);
+    assert.equal(context.compressors.length, 1,
+        "the omitted Meter allocates no browser node");
 });
 
 test("validates explicit Wwise voice-limit policy", () =>
