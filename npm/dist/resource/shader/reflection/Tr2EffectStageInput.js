@@ -61,6 +61,48 @@ class Tr2EffectStageInput extends CjsModel {
   /** Exact source program metadata and owned bytes, before backend realization. */
   sourceProgram = null;
 
+  // Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
+  //   trinity/Shader/Tr2Effect.cpp:1799-1821 (the sizing loop and its assertion)
+  //
+  // Carbon's comment at the site is the whole rule: "Figure out how large the
+  // constant buffer has to be. This has to be done even if the constant isn't
+  // set, as the shader may still sample it and expect to get some kind of
+  // default (usually zero)." So EVERY constant participates, not only the ones
+  // an effect binds a parameter to.
+  //
+  // THIS IS NOT `constantValueSize`, AND THE DIFFERENCE IS EASY TO MISS.
+  // `constantValueSize` is the length of the authored DEFAULT blob, which
+  // Carbon separately grows to cover autoregister sampler-index constants
+  // (Tr2EffectDescription.cpp:629-632). Carbon asserts
+  // `constantSize >= constantDefaultValueSize` precisely because the two are
+  // different numbers and the defaults are a PREFIX of the buffer. An effect
+  // that authors defaults for only some of its constants makes them differ, so
+  // using the default size as the buffer size is right until it silently is
+  // not.
+  //
+  // It lives here rather than in a consumer because it is arithmetic over this
+  // object's own constants and gives every backend the same answer. A backend
+  // then applies its own alignment on top - WebGPU's uniform binding alignment,
+  // std140 for a WebGL2 block - and that padding is the backend's, not this.
+  // Decision 4 of the engine backends plan names the alternative as a defect
+  // worth declining to inherit: Carbon replicates its draw-argument arithmetic
+  // across ten call sites, and this would replicate the same way once a second
+  // engine exists.
+
+  /**
+   * The byte size a constant buffer must have to hold every declared constant.
+   *
+   * Always at least `constantValueSize`, because the authored defaults occupy
+   * the start of the same buffer.
+   */
+  GetConstantBufferSize() {
+    let size = 0;
+    for (const constant of this.constants) {
+      size = Math.max(size, (constant?.offset ?? 0) + (constant?.size ?? 0));
+    }
+    return Math.max(size, this.constantValueSize);
+  }
+
   /**
    * Construct one canonical stage input from JS/JSON model values.
    *

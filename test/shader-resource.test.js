@@ -337,3 +337,41 @@ test("shader reflection classes register canonical runtime-resource metadata", (
     /output index/
   );
 });
+
+test("stage input sizes its constant buffer from every constant, not from the defaults", () =>
+{
+  // Carbon: "This has to be done even if the constant isn't set, as the shader
+  // may still sample it and expect to get some kind of default (usually zero)."
+  // (Tr2Effect.cpp:1799-1800), so every constant participates.
+  const stage = Tr2EffectStageInput.from({
+    stageType: 1,
+    exists: true,
+    constants: [
+      { name: "A", offset: 0, size: 16, type: 0, dimension: 4, elements: 0 },
+      { name: "B", offset: 32, size: 16, type: 0, dimension: 4, elements: 0 }
+    ],
+    constantValueSize: 16
+  });
+
+  assert.equal(stage.GetConstantBufferSize(), 48);
+  // The authored default blob is a PREFIX of that buffer, which is why Carbon
+  // asserts constantSize >= constantDefaultValueSize rather than treating the
+  // two as one number.
+  assert.ok(stage.GetConstantBufferSize() >= stage.constantValueSize);
+});
+
+test("stage input never reports a buffer smaller than its authored defaults", () =>
+{
+  // Carbon grows constantValueSize to cover autoregister sampler-index
+  // constants (Tr2EffectDescription.cpp:629-632), so the default blob can
+  // legitimately reach past the constants this stage declares.
+  const stage = Tr2EffectStageInput.from({
+    stageType: 1,
+    exists: true,
+    constants: [ { name: "A", offset: 0, size: 16, type: 0, dimension: 4, elements: 0 } ],
+    constantValueSize: 64
+  });
+
+  assert.equal(stage.GetConstantBufferSize(), 64);
+  assert.equal(Tr2EffectStageInput.createEmpty(1).GetConstantBufferSize(), 0);
+});
