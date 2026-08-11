@@ -1200,7 +1200,7 @@ export class EveSpaceScene extends CjsModel
 
     // The pixel fill alone overrides the sun's alpha with the roughness
     // (cpp:3087) - the vertex fill leaves the blended colour's own alpha.
-    out.Set("SunDiffuseColor", [
+    out.Set("Sun.DiffuseColor", [
       this.currentSunColor[0],
       this.currentSunColor[1],
       this.currentSunColor[2],
@@ -1281,12 +1281,12 @@ export class EveSpaceScene extends CjsModel
   #FillSunData(out)
   {
     vec3.normalize(sunDirectionScratch, this.sunDirection);
-    out.Set("SunDirWorld", [
+    out.Set("Sun.DirWorld", [
       -sunDirectionScratch[0],
       -sunDirectionScratch[1],
       -sunDirectionScratch[2]
     ]);
-    out.Set("SunDiffuseColor", this.currentSunColor);
+    out.Set("Sun.DiffuseColor", this.currentSunColor);
   }
 
   /**

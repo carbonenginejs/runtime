@@ -46,8 +46,8 @@ const CARBON_OFFSETS = {
     ViewInverseTransposeMat: 0,
     ViewProjectionMat: 16,
     ProjLast: 144,
-    SunDirWorld: 160,
-    SunDiffuseColor: 164,
+    "Sun.DirWorld": 160,
+    "Sun.DiffuseColor": 164,
     FogFactors: 168,
     TargetResolution: 172,
     FovXY: 174,
@@ -61,7 +61,7 @@ const CARBON_OFFSETS = {
     stride: 472,
     ViewInverseTransposeMat: 0,
     EnvMapRotationMat: 32,
-    SunDirWorld: 48,
+    "Sun.DirWorld": 48,
     AmbientColor: 56,
     ReflectionIntensity: 59,
     FogColor: 60,
@@ -240,9 +240,9 @@ test("the sun reaches the shader normalized and NEGATED", () =>
   scene.currentSunColor.set([ 0.25, 0.5, 0.75, 0.9 ]);
 
   const vs = scene.PopulatePerFrameVSData(makeContext());
-  assertClose(vs.Copy("SunDirWorld", new Float32Array(3)), [ 0, 0, 1 ], "direction to the light");
+  assertClose(vs.Copy("Sun.DirWorld", new Float32Array(3)), [ 0, 0, 1 ], "direction to the light");
   assertClose(
-    vs.Copy("SunDiffuseColor", new Float32Array(4)),
+    vs.Copy("Sun.DiffuseColor", new Float32Array(4)),
     [ 0.25, 0.5, 0.75, 0.9 ],
     "the vertex block keeps the blended colour's own alpha"
   );
@@ -251,7 +251,7 @@ test("the sun reaches the shader normalized and NEGATED", () =>
   scene.defaultDiffuseRoughness = 0.375;
   const ps = scene.PopulatePerFramePSData(makeContext());
   assertClose(
-    ps.Copy("SunDiffuseColor", new Float32Array(4)),
+    ps.Copy("Sun.DiffuseColor", new Float32Array(4)),
     [ 0.25, 0.5, 0.75, 0.375 ],
     "alpha is the roughness"
   );
