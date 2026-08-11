@@ -13,10 +13,13 @@ import {
     CjsBackendRejection,
     CjsWebGLProbe,
     PlatformStaticCap,
+    NormalizeResourcePath,
     ResolveDeviceRequirements,
+    ResolveEffectPath,
     ResolveRequiredFeatures,
     ResolveRequiredLimits,
     SelectBackend,
+    ShaderModelSuffix,
     Tr2DisplayMode,
     Tr2PlatformInfo,
     Tr2VideoAdapter,
@@ -142,6 +145,31 @@ is supplied by the caller rather than fixed here. Three rules apply:
 `GetDeviceDescriptor(demand)` returns the descriptor alone.
 `ResolveRequiredLimits` and `ResolveRequiredFeatures` are exported for a caller
 resolving against an adapter it holds directly.
+
+## Effect paths
+
+`ResolveEffectPath(path, { platformName, shaderModel })` turns an authored
+`/effect/*.fx` path into the compiled path a backend loads. Engines do not
+resolve paths — an engine that owns a path policy is an engine deciding its own
+configuration — so this is where the substitution lives, as Carbon puts it in
+`Tr2Effect` rather than in a backend. `Tr2PlatformInfo.ResolveEffectPath(path)`
+resolves against a report's own platform name.
+
+```js
+ResolveEffectPath("res:/graphics/effect/space/quadv5.fx", { platformName: "webgpu" });
+// "res:/graphics/effect.webgpu/space/quadv5.sm_depth"
+```
+
+`shaderModel` follows the tier policy rather than the spelling of the suffixes:
+`high` is `.sm_depth`, `medium` is `.sm_hi`, `low` is `.sm_lo`. `.sm_depth` is
+the top tier and the variant carrying the local lights, **not** a depth-only
+shader.
+
+Substitution touches `/effect/` only, so an already-qualified path passes
+through with just its suffix applied. Resolution fails loudly: an authored path
+with no platform name to substitute throws rather than returning something no
+backend can load, which would otherwise surface much later as a missing
+resource.
 
 ## Backend selection
 
