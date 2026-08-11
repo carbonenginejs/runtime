@@ -429,14 +429,26 @@ export class CjsRealtimeClient
             minimumDelayMs: value.minimumDelayMs ?? 250,
             maximumDelayMs: value.maximumDelayMs ?? 10000,
             factor: value.factor ?? 2,
-            jitter: value.jitter ?? 0.2
+            jitter: value.jitter ?? 0.2,
+            // Stop reconnecting after this much scheduled backoff without ever
+            // reaching ready. Without it the loop retries forever against a
+            // server that is not there, and every attempt writes a WebSocket
+            // handshake failure the page cannot suppress - the browser logs it
+            // before any of our code runs. That buries every other console
+            // message, which is the actual harm: the failure is not fatal, but
+            // it makes everything else undebuggable.
+            //
+            // 0 disables the limit, for a client that genuinely should wait
+            // indefinitely.
+            giveUpAfterMs: value.giveUpAfterMs ?? 60000
         };
 
         if (!Number.isFinite(result.minimumDelayMs) || result.minimumDelayMs < 0
             || !Number.isFinite(result.maximumDelayMs)
             || result.maximumDelayMs < result.minimumDelayMs
             || !Number.isFinite(result.factor) || result.factor < 1
-            || !Number.isFinite(result.jitter) || result.jitter < 0 || result.jitter > 1)
+            || !Number.isFinite(result.jitter) || result.jitter < 0 || result.jitter > 1
+            || !Number.isFinite(result.giveUpAfterMs) || result.giveUpAfterMs < 0)
         {
             throw new RangeError("Invalid realtime reconnect policy");
         }
@@ -576,6 +588,12 @@ export class CjsRealtimeClient
     async #RunConnectionLoop()
     {
         let attempt = 0;
+        // Scheduled backoff spent since the last connection that reached ready.
+        // Summed from the delays below rather than read off a clock: the client
+        // injects no clock, and summing keeps the give-up point deterministic
+        // for tests. It therefore measures waiting, not the time spent inside a
+        // connection attempt, so the real elapsed time is a little longer.
+        let backoffSpentMs = 0;
 
         while (this.#running)
         {
@@ -585,6 +603,7 @@ export class CjsRealtimeClient
             {
                 await this.#OpenConnection();
                 attempt = 0;
+                backoffSpentMs = 0;
             }
             catch (failure)
             {
@@ -625,6 +644,30 @@ export class CjsRealtimeClient
                 ? 0
                 : CjsRealtimeClient.reconnectDelay(this.#reconnect, attempt++, this.#random);
             this.#skipReconnectDelay = false;
+            backoffSpentMs += delay;
+
+            // Give up rather than retry forever against a server that never
+            // answers. Reported through the ordinary error channel first, so a
+            // caller sees why it stopped, then stopped exactly as a terminal
+            // failure would - waiters rejected, state "stopped" - because from
+            // the caller's side there is no difference between "refused
+            // permanently" and "never answered for a minute".
+            if (this.#reconnect.giveUpAfterMs > 0 && backoffSpentMs >= this.#reconnect.giveUpAfterMs)
+            {
+                const abandoned = CjsRealtimeError.from(null, {
+                    code: "connection_abandoned",
+                    message: "Realtime connection abandoned after "
+                        + `${Math.round(backoffSpentMs / 1000)}s of retries without a connection`,
+                    retryable: false,
+                    connectionUsable: false
+                });
+
+                this.#running = false;
+                this.#ReportError(abandoned);
+                this.#RejectReadyWaiters(abandoned);
+                this.#SetState("stopped");
+                break;
+            }
 
             if (delay > 0)
             {
