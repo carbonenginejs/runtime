@@ -242,6 +242,7 @@ function Harness({
   wwiseDynamics,
   wwiseDistortion,
   wwiseModulation,
+  wwiseReverb,
   wwiseMeterFeedback,
   wwiseObstructionOcclusion,
   busGraphRuntime,
@@ -287,6 +288,7 @@ function Harness({
     wwiseDynamics,
     wwiseDistortion,
     wwiseModulation,
+    wwiseReverb,
     wwiseMeterFeedback,
     wwiseObstructionOcclusion,
     busGraphRuntime,
@@ -8146,6 +8148,82 @@ test("Sound-local Wwise Tremolo starts once and precedes the Voice filters", asy
   assert.equal(input.disconnected, true);
   assert.equal(output.disconnected, true);
   assert.equal(lowPass.disconnected, true);
+});
+
+test("Sound-local Matrix Reverb is opt-in and cuts its tail at source end", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "844540054",
+    slotIndex: 0,
+    type: "matrix-reverb",
+    reverbTimeSeconds: 4,
+    hfRatio: 6,
+    numberOfDelays: 12,
+    dryLevelDb: 0,
+    wetLevelDb: -30,
+    preDelaySeconds: Math.fround(0.1),
+    processLfe: true,
+    delayLengthsMode: "default",
+  } ];
+  const loadBuffer = async () => ({
+    voices: [ {
+      buffer: { duration: 2 },
+      loop: false,
+      sourceEffects,
+      lowPass: 20,
+      getGain: () => 1,
+    } ],
+  });
+  const strict = Harness({ loadBuffer });
+
+  strict.backend.PostEvent(1, 1, 0, strict.emitter, "play");
+  await tick();
+  assert.equal(strict.context.sources[0].connectedTo?.connections, undefined);
+
+  const approximate = Harness({
+    loadBuffer,
+    wwiseReverb: "approximate-web-audio",
+  });
+
+  approximate.context.delays = [];
+  approximate.context.createDelay = maxDelayTime =>
+  {
+    const delay = {
+      maxDelayTime,
+      delayTime: FakeParam(0),
+      connectedTo: null,
+      connections: [],
+      disconnected: false,
+      connect(target)
+      {
+        delay.connectedTo ??= target;
+        delay.connections.push(target);
+      },
+      disconnect() { delay.disconnected = true; },
+    };
+
+    approximate.context.delays.push(delay);
+    return delay;
+  };
+
+  approximate.backend.PostEvent(1, 1, 0, approximate.emitter, "play");
+  await tick();
+
+  const source = approximate.context.sources[0];
+  const input = source.connectedTo;
+  const voiceLowPass = approximate.context.filters[0];
+  const output = approximate.context.gains.find(gain =>
+    gain.connectedTo === voiceLowPass);
+
+  assert.ok(input.connections.length === 2);
+  assert.ok(output, "the complete Matrix Reverb precedes the Voice LPF");
+  assert.equal(approximate.context.delays.length, 5);
+  assert.equal(approximate.context.filters.length, 5);
+  assert.equal(approximate.context.delays[0].delayTime.value, Math.fround(0.1));
+
+  source.onended();
+  assert.ok(approximate.context.delays.every(delay => delay.disconnected));
+  assert.ok(approximate.context.filters.every(filter => filter.disconnected));
 });
 
 test("Sound-local Guitar Distortion is opt-in and precedes Voice filters", async () =>

@@ -14,6 +14,7 @@ import {
     normalizeWwiseDistortionMode,
     normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
+    normalizeWwiseReverbMode,
     normalizeWwiseVoiceLimitMode,
 } from "./internal/busEffects.js";
 import {
@@ -108,6 +109,7 @@ export class CjsAudioMan
         wwiseDynamics = "strict",
         wwiseDistortion = "strict",
         wwiseModulation = "strict",
+        wwiseReverb = "strict",
         wwiseMeterFeedback = "strict",
         wwiseObstructionOcclusion = "strict",
         wwiseVoiceLimits = "strict",
@@ -153,6 +155,7 @@ export class CjsAudioMan
             wwiseModulation: normalizeWwiseModulationMode(
                 wwiseModulation,
             ),
+            wwiseReverb: normalizeWwiseReverbMode(wwiseReverb),
             wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(
                 wwiseMeterFeedback,
             ),

@@ -195,6 +195,10 @@ test("CjsAudioMan validates shared Bus approximation policies", () =>
         /Unsupported Wwise distortion realization mode/u,
     );
     assert.throws(
+        () => new CjsAudioMan(null, { wwiseReverb: "approximate" }),
+        /Unsupported Wwise reverb realization mode/u,
+    );
+    assert.throws(
         () => new CjsAudioMan(null, { wwiseMeterFeedback: "omit" }),
         /Unsupported Wwise Meter feedback mode/u,
     );
@@ -211,6 +215,7 @@ test("CjsAudioMan validates shared Bus approximation policies", () =>
     assert.doesNotThrow(() => new CjsAudioMan(null, {
         wwiseDistortion: "approximate-web-audio",
         wwiseModulation: "approximate-web-audio",
+        wwiseReverb: "approximate-web-audio",
         wwiseMeterFeedback: "omit-telemetry",
         wwiseObstructionOcclusion: "approximate-web-audio",
         wwiseVoiceLimits: "ignore",

@@ -1099,8 +1099,15 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceGuitarDistortionSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect =>
             effect.type === "guitar-distortion"));
+    const sourceMatrixReverbSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect =>
+            effect.type === "matrix-reverb"));
+    const sourceMeterSounds = sourceEffectSounds.filter(node =>
+        node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 2575);
+    assert.equal(sourceEffectSounds.length, 2666);
+    assert.equal(sourceEffectSounds.reduce((count, node) =>
+        count + node.sourceEffects.length, 0), 2689);
     assert.equal(sourceEqSounds.length, 261);
     assert.equal(sourceDelaySounds.length, 79);
     assert.equal(sourceCompressorSounds.length, 2033);
@@ -1108,6 +1115,41 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(sourceFlangerSounds.length, 9);
     assert.equal(sourceTremoloSounds.length, 74);
     assert.equal(sourceGuitarDistortionSounds.length, 69);
+    assert.equal(sourceMatrixReverbSounds.length, 42);
+    assert.equal(sourceMeterSounds.length, 49);
+    assert.deepEqual(graph.nodes["20988277"].sourceEffects, [ {
+        effectId: "777891344",
+        slotIndex: 0,
+        type: "matrix-reverb",
+        reverbTimeSeconds: 4,
+        hfRatio: Math.fround(1.4),
+        numberOfDelays: 12,
+        dryLevelDb: 0,
+        wetLevelDb: Math.fround(-27.3),
+        preDelaySeconds: 0,
+        processLfe: true,
+        delayLengthsMode: "default",
+    } ]);
+    assert.deepEqual(graph.nodes["41564381"].sourceEffects, [ {
+        effectId: "2315560391",
+        slotIndex: 0,
+        type: "meter",
+        attack: 0,
+        release: Math.fround(0.1),
+        minimum: -48,
+        maximum: 0,
+        hold: 0,
+        infiniteHold: false,
+        mode: "peak",
+        scope: "global",
+        applyDownstreamVolume: false,
+        gameParameterId: 765248359,
+    } ]);
+    assert.equal(
+        graph.nodes["61866929"].sourceEffects,
+        undefined,
+        "the nonzero-phase Tremolo-to-Matrix chain remains atomically dry",
+    );
     assert.deepEqual(
         Object.entries(graph.nodes)
             .filter(([, node]) => sourceFlangerSounds.includes(node))

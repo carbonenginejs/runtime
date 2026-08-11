@@ -17,6 +17,7 @@ import {
     WWISE_FLANGER_PLUGIN_ID,
     WWISE_GUITAR_DISTORTION_PLUGIN_ID,
     WWISE_METER_PLUGIN_ID,
+    WWISE_MATRIX_REVERB_PLUGIN_ID,
     WWISE_TREMOLO_PLUGIN_ID,
     parseGraphSharedBusEffect,
     parseStaticParametricEqBytes,
@@ -24,6 +25,7 @@ import {
     parseStaticWwiseFlangerBytes,
     parseStaticWwiseGuitarDistortionBytes,
     parseStaticWwiseMeterBytes,
+    parseStaticWwiseMatrixReverbBytes,
     parseStaticWwiseTremoloBytes,
 } from "../internal/busEffects.js";
 
@@ -5286,6 +5288,26 @@ function ParseStaticWwiseMeter(ownerLabel, slot, effect)
     });
 }
 
+function ParseStaticWwiseMatrixReverb(ownerLabel, slot, effect)
+{
+    if (effect.media?.length
+        || effect.rtpcs?.length
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length)
+    {
+        throw new Error(
+            `Wwise Matrix Reverb ${effect.id} on ${ownerLabel} is not static`,
+        );
+    }
+    return parseStaticWwiseMatrixReverbBytes(effect.parameterBlock, {
+        effectId: effect.id,
+        slotIndex: slot.index,
+        label: `Wwise Matrix Reverb ${effect.id} on ${ownerLabel}`,
+        bankVersion: effect.bankVersion,
+    });
+}
+
 /**
  * Reads the exact static v150 Wwise Silence source shape used by EVE. The
  * Sound's source ID references a CAkFxCustom object; its empty inline source
@@ -5452,6 +5474,14 @@ function CreateSfxSoundEffectProjection(ancestry, effects, rawId)
             else if (effect.pluginId === WWISE_GUITAR_DISTORTION_PLUGIN_ID)
             {
                 chain.push(ParseStaticWwiseGuitarDistortion(
+                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
+                    slot,
+                    effect,
+                ));
+            }
+            else if (effect.pluginId === WWISE_MATRIX_REVERB_PLUGIN_ID)
+            {
+                chain.push(ParseStaticWwiseMatrixReverb(
                     `NodeBase ${ownerId} inherited by Sound ${soundId}`,
                     slot,
                     effect,

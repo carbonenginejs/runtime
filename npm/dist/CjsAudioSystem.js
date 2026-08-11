@@ -11,6 +11,7 @@ import { CjsBusGraphRuntime } from './internal/busGraphRuntime.js';
 import { CjsSharedBusMixer } from './internal/busGraphMixer.js';
 import { normalizeWwiseDynamicsMode, normalizeWwiseDistortionMode, normalizeWwiseModulationMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseVoiceLimitMode } from './internal/busEffects.js';
 import { normalizeWwiseObstructionOcclusionMode } from './internal/obstructionOcclusion.js';
+import { normalizeWwiseReverbMode } from './internal/wwiseMatrixReverb.js';
 
 // CarbonEngineJS original (no Carbon counterpart). The audio system
 // composition root: owns the AudManager + AudStaticDataRepository + WebAudio
@@ -71,6 +72,7 @@ class CjsAudioSystem {
   #wwiseDynamics = "strict";
   #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
+  #wwiseReverb = "strict";
   #wwiseMeterFeedback = "strict";
   #wwiseObstructionOcclusion = "strict";
   #wwiseVoiceLimits = "strict";
@@ -104,6 +106,7 @@ class CjsAudioSystem {
     wwiseDynamics = "strict",
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
+    wwiseReverb = "strict",
     wwiseMeterFeedback = "strict",
     wwiseObstructionOcclusion = "strict",
     wwiseVoiceLimits = "strict"
@@ -131,6 +134,7 @@ class CjsAudioSystem {
     this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
     this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
+    this.#wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
     this.#wwiseObstructionOcclusion = normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion);
     this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(wwiseVoiceLimits);
@@ -191,6 +195,7 @@ class CjsAudioSystem {
           wwiseDynamics: this.#wwiseDynamics,
           wwiseDistortion: this.#wwiseDistortion,
           wwiseModulation: this.#wwiseModulation,
+          wwiseReverb: this.#wwiseReverb,
           wwiseMeterFeedback: this.#wwiseMeterFeedback,
           wwiseObstructionOcclusion: this.#wwiseObstructionOcclusion,
           busGraphRuntime: this.#busGraphRuntime

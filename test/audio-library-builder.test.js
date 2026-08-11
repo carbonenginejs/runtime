@@ -6608,6 +6608,129 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
     );
 });
 
+test("SFX construction retains static source-local Wwise Matrix Reverb", async () =>
+{
+    const Build = ({
+        bankVersion = 150,
+        processLfe = true,
+        delayLengthsMode = 0,
+        propertyValues = [],
+        shareSet = false,
+    } = {}) => CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                reverberant_play: {
+                    eventID: 100,
+                    soundbanks: [ "effects.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "effects.bnk": {
+                    name: "effects",
+                    path: "\\SoundBanks\\effects.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/effects.bnk",
+            storagePath: "banks/effects.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion,
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 844540054,
+                                    flags: shareSet ? 0 : 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: shareSet ? 17 : 16,
+                            id: 844540054,
+                            payload: wwiseMatrixReverbEffectPayload({
+                                processLfe,
+                                delayLengthsMode,
+                                propertyValues,
+                            }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const expected = [ {
+        effectId: "844540054",
+        slotIndex: 0,
+        type: "matrix-reverb",
+        reverbTimeSeconds: 4,
+        hfRatio: 6,
+        numberOfDelays: 12,
+        dryLevelDb: 0,
+        wetLevelDb: -30,
+        preDelaySeconds: Math.fround(0.1),
+        processLfe: true,
+        delayLengthsMode: "default",
+    } ];
+
+    assert.deepEqual((await Build()).sfx.nodes["300"].sourceEffects, expected);
+    assert.deepEqual(
+        (await Build({ shareSet: true })).sfx.nodes["300"].sourceEffects,
+        expected,
+    );
+    for (const unsupported of [
+        await Build({ bankVersion: 151 }),
+        await Build({ processLfe: false }),
+        await Build({ delayLengthsMode: 1 }),
+        await Build({ propertyValues: [ { propertyId: 1, value: 2 } ] }),
+    ])
+    {
+        assert.equal(
+            unsupported.sfx?.nodes?.["300"]?.sourceEffects,
+            undefined,
+        );
+    }
+});
+
 test("SFX construction retains static non-downstream Wwise Meter overrides", async () =>
 {
     const Build = ({
@@ -10934,6 +11057,48 @@ function wwiseTremoloEffectPayload({
         .bytes();
     const writer = new TestWriter()
         .u32(0x00830003)
+        .u32(parameterBlock.byteLength)
+        .append(parameterBlock)
+        .u8(0)
+        .u16(0)
+        .u8(0)
+        .u8(0)
+        .u16(propertyValues.length);
+
+    for (const property of propertyValues)
+    {
+        writer
+            .variable(property.propertyId)
+            .u8(property.accumulation ?? 0)
+            .f32(property.value);
+    }
+    return writer.bytes();
+}
+
+function wwiseMatrixReverbEffectPayload({
+    reverbTimeSeconds = 4,
+    hfRatio = 6,
+    numberOfDelays = 12,
+    dryLevelDb = 0,
+    wetLevelDb = -30,
+    preDelaySeconds = 0.1,
+    processLfe = true,
+    delayLengthsMode = 0,
+    propertyValues = [],
+} = {})
+{
+    const parameterBlock = new TestWriter()
+        .f32(reverbTimeSeconds)
+        .f32(hfRatio)
+        .u32(numberOfDelays)
+        .f32(dryLevelDb)
+        .f32(wetLevelDb)
+        .f32(preDelaySeconds)
+        .u8(processLfe ? 1 : 0)
+        .u32(delayLengthsMode)
+        .bytes();
+    const writer = new TestWriter()
+        .u32(0x00730003)
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)

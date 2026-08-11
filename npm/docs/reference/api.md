@@ -102,11 +102,16 @@ raw Wwise scaling-2 values, including the authored parameter default, a
 every bus in its dry ancestry, with Voice Volume on a distinct pre-bus gain;
 built SFX `sound` nodes may additionally retain an ordered `sourceEffects`
 array for the complete effective static Parametric EQ, Wwise Delay, or
-qualified Wwise Compressor/Peak Limiter/Flanger/Tremolo/Guitar Distortion override in their
+qualified Wwise Compressor/Peak Limiter/Flanger/Tremolo/Guitar
+Distortion/Matrix Reverb override in their
 NodeBase ancestry.
 An explicit empty override clears the inherited list.
-Those effects are voice-owned and precede Voice LPF/HPF and route splitting;
-built-in music evaluates Bus Volume only from this Audio Bus catalog. A Music
+Those effects are voice-owned and precede Voice LPF/HPF and route splitting.
+Built Matrix Reverb records remain dry by default. Hosts may select
+`wwiseReverb: "approximate-web-audio"` on `CjsAudioMan`, `CjsAudioSystem`, or
+`CjsAudioBackend` to realize the documented bounded source-local browser
+adapter. This policy is not forwarded to the shared Bus mixer. Built-in music
+evaluates Bus Volume only from this Audio Bus catalog. A Music
 Track's own qualified Voice Volume RTPC instead uses the independent pre-bus
 track stage described in the music guide. Interpolation occurs before Wwise's
 nonlinear dB conversion. Strict version-1 catalogs remain accepted as implicit
@@ -214,6 +219,23 @@ DSP. The Tremolo record is an explicitly empirical EVE-v150 38-byte layout;
 pinned wwiser identifies its plug-in but does not decode those parameters.
 Any other value throws synchronously, and `CjsAudioSystem` accepts the same
 option.
+
+Constructor option `wwiseReverb` independently controls qualified source-local
+Wwise Matrix Reverb records:
+
+- `"strict"` (default) omits the complete source chain and keeps the voice
+  audible/dry.
+- `"approximate-web-audio"` realizes the documented static v150 default-delay
+  subset with voice-owned Gain, Delay, and Biquad nodes. Missing required
+  primitives keep the complete chain dry.
+
+Pinned wwiser proves the 29-byte portable record layout. The browser uses four
+spaced default delays regardless of the retained authored delay count, a
+cyclic feedback topology, and a fixed HF damping curve. It is not Wwise's
+matrix, mixing, damping, channel, or LFE implementation. Source completion
+cuts the remaining tail. Any other value throws synchronously, and
+`CjsAudioSystem` accepts the same option; shared-Bus Matrix Reverb remains a
+barrier.
 
 Constructor option `wwiseDistortion` independently controls qualified
 source-local Wwise Guitar Distortion records:

@@ -8,6 +8,7 @@ import { CjsAudioBackendSfxProgramSlot } from './internal/CjsAudioBackendSfxProg
 import { CjsAudioBackendSfxVoiceLimitLedger } from './internal/CjsAudioBackendSfxVoiceLimitLedger.js';
 import { CjsAudioBackendSfxVoice } from './internal/CjsAudioBackendSfxVoice.js';
 import { normalizeWwiseObstructionOcclusionMode, createWwiseObstructionOcclusionStage, applyWwiseObstructionOcclusionStage, disconnectWwiseObstructionOcclusionStage } from './internal/obstructionOcclusion.js';
+import { normalizeWwiseReverbMode } from './internal/wwiseMatrixReverb.js';
 
 // CarbonEngineJS original (no Carbon counterpart). WebAudio realization of the
 // AudGameObjResource.backend seam. Signal chain:
@@ -71,6 +72,7 @@ class CjsAudioBackend {
   #wwiseDynamics = "strict";
   #wwiseDistortion = "strict";
   #wwiseModulation = "strict";
+  #wwiseReverb = "strict";
   #wwiseMeterFeedback = "strict";
   #wwiseObstructionOcclusion = "strict";
   #busGraphRuntime = null;
@@ -110,6 +112,7 @@ class CjsAudioBackend {
     wwiseDynamics = "strict",
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
+    wwiseReverb = "strict",
     wwiseMeterFeedback = "strict",
     wwiseObstructionOcclusion = "strict",
     busGraphRuntime,
@@ -133,6 +136,7 @@ class CjsAudioBackend {
     this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
     this.#wwiseDistortion = normalizeWwiseDistortionMode(wwiseDistortion);
     this.#wwiseModulation = normalizeWwiseModulationMode(wwiseModulation);
+    this.#wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
     this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
     this.#wwiseObstructionOcclusion = normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion);
     this.#busGraphRuntime = busGraphRuntime ?? null;
@@ -2675,6 +2679,7 @@ class CjsAudioBackend {
       wwiseDynamics: this.#wwiseDynamics,
       wwiseDistortion: this.#wwiseDistortion,
       wwiseModulation: this.#wwiseModulation,
+      wwiseReverb: this.#wwiseReverb,
       wwiseMeterFeedback: this.#wwiseMeterFeedback
     });
     if (lowPassFilter) {

@@ -10,6 +10,7 @@ import {
     normalizeWwiseModulationMode,
     normalizeWwiseMeterFeedbackMode,
     normalizeWwiseVoiceLimitMode,
+    normalizeWwiseReverbMode,
     parseGraphFeedbackFreeMeter,
     parseGraphSharedBusEffect,
     parseGraphStaticWwiseCompressor,
@@ -17,12 +18,14 @@ import {
     parseGraphStaticWwiseDelay,
     parseGraphStaticWwiseFlanger,
     parseGraphStaticWwiseGuitarDistortion,
+    parseGraphStaticWwiseMatrixReverb,
     parseGraphStaticWwiseTremolo,
     parseGraphStaticWwisePeakLimiter,
     parseStaticParametricEqBytes,
     parseStaticWwiseDelayBytes,
     parseStaticWwiseGuitarDistortionBytes,
     parseStaticWwiseMeterBytes,
+    parseStaticWwiseMatrixReverbBytes,
     parseStaticWwiseTremoloBytes,
 } from "../src/internal/busEffects.js";
 
@@ -400,6 +403,41 @@ function GraphTremolo(bytes = TremoloBytes())
     const effect = GraphEffect(bytes);
 
     effect.pluginId = 0x00830003;
+    return effect;
+}
+
+function MatrixReverbBytes({
+    reverbTimeSeconds = 4,
+    hfRatio = 6,
+    numberOfDelays = 12,
+    dryLevelDb = 0,
+    wetLevelDb = -30,
+    preDelaySeconds = 0.1,
+    processLfe = 1,
+    delayLengthsMode = 0,
+} = {})
+{
+    const bytes = new Uint8Array(29);
+    const view = new DataView(bytes.buffer);
+
+    view.setFloat32(0, reverbTimeSeconds, true);
+    view.setFloat32(4, hfRatio, true);
+    view.setUint32(8, numberOfDelays, true);
+    view.setFloat32(12, dryLevelDb, true);
+    view.setFloat32(16, wetLevelDb, true);
+    view.setFloat32(20, preDelaySeconds, true);
+    view.setUint8(24, processLfe);
+    view.setUint32(25, delayLengthsMode, true);
+    return bytes;
+}
+
+function GraphMatrixReverb(bytes = MatrixReverbBytes())
+{
+    const effect = GraphEffect(bytes);
+
+    effect.type = "effect-custom";
+    effect.pluginId = 0x00730003;
+    effect.bankVersion = 150;
     return effect;
 }
 
@@ -1086,6 +1124,161 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
         wwiseModulation: "approximate-web-audio",
     }));
     assert.equal(context.oscillators.length, 0);
+});
+
+test("decodes and explicitly approximates static Wwise Matrix Reverb", () =>
+{
+    assert.equal(normalizeWwiseReverbMode(), "strict");
+    assert.equal(
+        normalizeWwiseReverbMode("approximate-web-audio"),
+        "approximate-web-audio",
+    );
+    assert.throws(
+        () => normalizeWwiseReverbMode("web-audio"),
+        /Unsupported Wwise reverb realization mode/u,
+    );
+    const decoded = parseGraphStaticWwiseMatrixReverb(
+        GraphMatrixReverb(),
+        "844540054",
+        1,
+    );
+    const normalized = normalizeStaticSourceEffectChain(
+        [ decoded ],
+        "Audio source",
+    );
+
+    assert.deepEqual(decoded, {
+        effectId: "844540054",
+        slotIndex: 1,
+        type: "matrix-reverb",
+        reverbTimeSeconds: 4,
+        hfRatio: 6,
+        numberOfDelays: 12,
+        dryLevelDb: 0,
+        wetLevelDb: -30,
+        preDelaySeconds: Math.fround(0.1),
+        processLfe: true,
+        delayLengthsMode: "default",
+    });
+    const strictContext = Context();
+
+    assert.equal(createWwiseEffectChain(strictContext, normalized), null);
+    assert.equal(strictContext.gains.length, 0);
+    assert.equal(strictContext.delays.length, 0);
+    assert.equal(strictContext.filters.length, 0);
+    assert.throws(() => parseGraphSharedBusEffect(
+        GraphMatrixReverb(),
+        "844540054",
+        1,
+        { wwiseReverb: "approximate-web-audio" },
+    ), /unsupported/u);
+
+    const context = Context();
+    const chain = createWwiseEffectChain(context, normalized, {
+        wwiseReverb: "approximate-web-audio",
+    });
+
+    assert.equal(chain.input, context.gains[0]);
+    assert.equal(chain.output, context.gains[4]);
+    assert.equal(context.delays.length, 5);
+    assert.equal(context.filters.length, 4);
+    assert.equal(context.gains.length, 13);
+    assert.equal(context.gains[1].gain.value, 1);
+    assert.equal(context.gains[2].gain.value, 0.5);
+    assert.ok(Math.abs(
+        context.gains[3].gain.value - 10 ** (-30 / 20),
+    ) < 1e-12);
+    assert.equal(context.delays[0].delayTime.value, Math.fround(0.1));
+    assert.deepEqual(
+        context.delays.slice(1).map(delay => delay.delayTime.value),
+        [ 0.01362, 0.01902, 0.02478, 0.02691 ],
+    );
+    assert.ok(context.filters.every(filter => filter.type === "lowpass"));
+    assert.ok(context.filters.every(filter =>
+        filter.frequency.value > 1000
+        && filter.frequency.value < 20000));
+
+    for (const missing of [
+        "createGain",
+        "createDelay",
+        "createBiquadFilter",
+    ])
+    {
+        const unavailable = Context();
+
+        delete unavailable[missing];
+        assert.equal(createWwiseEffectChain(unavailable, normalized, {
+            wwiseReverb: "approximate-web-audio",
+        }), null);
+        assert.equal(unavailable.gains.length, 0);
+        assert.equal(unavailable.delays.length, 0);
+        assert.equal(unavailable.filters.length, 0);
+    }
+});
+
+test("rejects dynamic or unsupported Wwise Matrix Reverb records", () =>
+{
+    assert.throws(() => parseStaticWwiseMatrixReverbBytes(
+        MatrixReverbBytes(),
+        { effectId: "900", slotIndex: 0, bankVersion: 151 },
+    ), /unsupported parameter block/u);
+
+    for (const parameters of [
+        { reverbTimeSeconds: 0.09 },
+        { hfRatio: 10.1 },
+        { numberOfDelays: 6 },
+        { dryLevelDb: 1 },
+        { wetLevelDb: -97 },
+        { preDelaySeconds: 1.1 },
+        { processLfe: 0 },
+        { processLfe: 2 },
+        { delayLengthsMode: 1 },
+    ])
+    {
+        assert.throws(() => parseGraphStaticWwiseMatrixReverb(
+            GraphMatrixReverb(MatrixReverbBytes(parameters)),
+            "900",
+            0,
+        ), /unsupported Wwise Matrix Reverb parameters/u);
+    }
+    const dynamic = GraphMatrixReverb();
+
+    dynamic.controls.rtpcCount = 1;
+    assert.throws(() => parseGraphStaticWwiseMatrixReverb(
+        dynamic,
+        "900",
+        0,
+    ), /not a static Wwise Matrix Reverb/u);
+});
+
+test("keeps Tremolo then Matrix Reverb atomic and in authored order", () =>
+{
+    const tremolo = parseGraphStaticWwiseTremolo(
+        GraphTremolo(),
+        "2196086003",
+        0,
+    );
+    const reverb = parseGraphStaticWwiseMatrixReverb(
+        GraphMatrixReverb(),
+        "2098638826",
+        1,
+    );
+
+    assert.equal(createWwiseEffectChain(Context(), [ tremolo, reverb ], {
+        wwiseModulation: "approximate-web-audio",
+    }), null);
+    assert.equal(createWwiseEffectChain(Context(), [ tremolo, reverb ], {
+        wwiseReverb: "approximate-web-audio",
+    }), null);
+    const context = Context();
+    const chain = createWwiseEffectChain(context, [ tremolo, reverb ], {
+        wwiseModulation: "approximate-web-audio",
+        wwiseReverb: "approximate-web-audio",
+    });
+
+    assert.equal(chain.input, context.gains[0]);
+    assert.equal(context.gains[1].connectedTo, context.gains[3]);
+    assert.equal(chain.output, context.gains[7]);
 });
 
 test("decodes and explicitly approximates static EVE Guitar Distortion", () =>

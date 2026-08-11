@@ -63,10 +63,11 @@ let context;
 const audio = new CjsAudioMan(document, {
     createContext: () => context = new AudioContext(),
     defaultSoundBanks: [ "ui.bnk" ],
-    // Optional dynamics, modulation, distortion, and blockage approximations.
+    // Optional dynamics, modulation, distortion, reverb, and blockage approximations.
     wwiseDynamics: "approximate-web-audio",
     wwiseDistortion: "approximate-web-audio",
     wwiseModulation: "approximate-web-audio",
+    wwiseReverb: "approximate-web-audio",
     wwiseObstructionOcclusion: "approximate-web-audio",
     // Optional omission policies; both defaults are "strict".
     wwiseMeterFeedback: "omit-telemetry",

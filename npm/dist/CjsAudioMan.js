@@ -7,6 +7,7 @@ import { installAudioLibraryDocument } from './library/audioLibraryDocument.js';
 import { normalizeWwiseVoiceLimitMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode } from './internal/busEffects.js';
 import { CjsAudioManSharedAcquisition } from './internal/CjsAudioManSharedAcquisition.js';
 import { normalizeWwiseObstructionOcclusionMode } from './internal/obstructionOcclusion.js';
+import { normalizeWwiseReverbMode } from './internal/wwiseMatrixReverb.js';
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
 // composition root that installs one complete semantic library and owns
@@ -69,6 +70,7 @@ class CjsAudioMan {
     wwiseDynamics = "strict",
     wwiseDistortion = "strict",
     wwiseModulation = "strict",
+    wwiseReverb = "strict",
     wwiseMeterFeedback = "strict",
     wwiseObstructionOcclusion = "strict",
     wwiseVoiceLimits = "strict"
@@ -100,6 +102,7 @@ class CjsAudioMan {
       wwiseDynamics: normalizeWwiseDynamicsMode(wwiseDynamics),
       wwiseDistortion: normalizeWwiseDistortionMode(wwiseDistortion),
       wwiseModulation: normalizeWwiseModulationMode(wwiseModulation),
+      wwiseReverb: normalizeWwiseReverbMode(wwiseReverb),
       wwiseMeterFeedback: normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback),
       wwiseObstructionOcclusion: normalizeWwiseObstructionOcclusionMode(wwiseObstructionOcclusion),
       wwiseVoiceLimits: normalizeWwiseVoiceLimitMode(wwiseVoiceLimits)

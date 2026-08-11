@@ -269,7 +269,8 @@ exercises Element.
 
 A portable `sound` node may also carry `sourceEffects`, an ordered list of
 static Parametric EQ, Wwise Delay, and qualified Wwise Compressor, Peak
-Limiter, Flanger, Tremolo, or Guitar Distortion records. The builder walks the Sound's NodeBase
+Limiter, Flanger, Tremolo, Guitar Distortion, or Matrix Reverb records. The
+builder walks the Sound's NodeBase
 ancestry to the first effect
 override, treating a root list as effective and an explicit empty override as
 a replacement that clears the parent list. It emits the chain only when every
@@ -338,6 +339,26 @@ The [Wwise effects reference](https://www.audiokinetic.com/library/edge/?id=effe
 and [Web Audio WaveShaperNode](https://webaudio.github.io/web-audio-api/#waveshapernode)
 describe the separate authored and browser surfaces.
 
+Qualified static Matrix Reverb records use the independent
+`wwiseReverb: "approximate-web-audio"` opt-in. Pinned wwiser proves plug-in
+`0x00730003` and the exact 29-byte v150 default-delay layout: Reverb Time, HF
+Ratio, delay count, Dry and Wet levels, Pre-Delay, Process LFE, and delay mode.
+The builder admits only control-free, media-free records with a standard
+4/8/12/16 delay count, Process LFE enabled, and the default-delay mode. Strict
+mode or missing Gain, Delay, or Biquad primitives omits the complete chain and
+keeps the voice audible and dry.
+
+The browser stage preserves authored dry/wet decibel levels and Pre-Delay,
+then uses a bounded four-line cyclic feedback-delay network. Its four spaced
+delays come from Wwise's default table, feedback approximates the authored
+Reverb Time as a nominal T60, and a fixed logarithmic low-pass mapping adapts
+HF Ratio. The authored delay count remains in portable metadata but does not
+allocate that many browser lines. Wwise's proprietary matrix, mixing,
+damping, channel, and LFE laws are not reproduced. Pause/seek reuse browser
+state, and natural completion disposes the stage at the decoded dry-source
+boundary, cutting the reverb tail. Shared-Bus Matrix Reverb remains
+unsupported.
+
 Bypassed or rendered slots need no live stage. Pause and seek reuse the
 voice-owned browser nodes instead of freezing or reconstructing native Wwise
 plug-in state. Natural completion still follows the decoded dry source;
@@ -346,11 +367,18 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 2,575
-qualified Sound leaves: 261 use Parametric EQ, 79 use Wwise Delay, 2,033 use
+than applying part of an authored chain. EVE build 3453885 installs 2,666
+qualified Sound leaves carrying 2,689 effect records: 261 use Parametric EQ,
+79 use Wwise Delay, 2,033 use
 Compressor, 73 use Peak Limiter, nine use Flanger across five retained events,
-74 use Tremolo across 29 retained events, and 69 use static Guitar Distortion
-across 23 retained events. Guitar Distortion covers 18 effect identities and
+74 use Tremolo across 29 retained events, 69 use static Guitar Distortion
+across 23 retained events, 42 use static Matrix Reverb across 12 retained
+events, and 49 retain telemetry-only Meter records across 39 retained events.
+The corpus has eight further Matrix leaves, but their preceding Tremolo
+ShareSet uses a 108-degree phase offset and phase mode 3; atomic qualification
+keeps those complete chains dry. Projected Matrix Reverb covers four effect
+identities, while that excluded chain contains the fifth. Guitar Distortion
+covers 18 effect identities and
 12 raw presets (11 audible decoded parameter sets); dynamic Guitar controls
 remain dry. The Tremolo population contains
 59 isolated chains, 13 Tremolo-to-EQ chains, and two EQ-to-Tremolo chains over

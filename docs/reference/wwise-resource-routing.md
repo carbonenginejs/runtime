@@ -173,7 +173,8 @@ The later EVE build 3453885 source-local path resolves the first effective
 NodeBase effect override for every retained Sound. A descendant override
 replaces its parent list, an explicit empty override clears it, and a root list
 is effective even when its override bit is clear. Complete static,
-control-free Parametric EQ/Wwise Delay/Meter chains are projected once per voice
+control-free Parametric EQ/Wwise Delay/Matrix Reverb/Meter chains are projected
+once per voice
 before Voice LPF/HPF and the emitter/auxiliary split. The exact demo currently
 retains 261 qualified EQ Sound leaves and 79 Delay leaves. Of the EQ leaves,
 165 are acoustically non-neutral; 15 belong to complete admitted Tremolo/EQ
@@ -620,6 +621,33 @@ distortion types, and shared-Bus Guitar Distortion keep the complete chain
 audible and dry. This raises qualified source-effect leaves from 2,506 to
 2,575 without changing media or event reachability.
 
+Pinned wwiser proves Matrix Reverb `0x00730003` and its v150 default-delay
+record: float32 Reverb Time and HF Ratio, uint32 delay count, float32 Dry and
+Wet levels and Pre-Delay, a Process-LFE byte, and uint32 delay mode. The exact
+static form is 29 bytes; custom mode appends one float32 per delay and remains
+unsupported. The builder admits only control/media-free default-mode records,
+Process LFE, and standard 4/8/12/16 delay counts.
+
+`wwiseReverb: "approximate-web-audio"` realizes that source-local record as a
+bounded four-line cyclic feedback-delay network. It preserves Dry/Wet and
+Pre-Delay, estimates nominal T60 from Reverb Time, and maps HF Ratio to a fixed
+logarithmic low-pass curve. The authored delay count stays in metadata because
+the reduced browser topology does not reproduce Wwise's proprietary matrix,
+mixing, damping, channel, or LFE laws. Strict mode, missing primitives,
+dynamic/custom-delay records, and shared-Bus placement retain complete-chain
+dry playback. Natural source completion disposes the network and cuts its
+remaining tail.
+
+EVE build 3453885 contains 50 Matrix Reverb Sound leaves across 22 retained
+events and five effect identities. Forty-two Matrix-only leaves across 12
+events and four effect identities are projected. The other eight place a
+Tremolo ShareSet before Matrix Reverb; that Tremolo record has a 108-degree
+phase offset and phase mode 3, outside the conservative zero-phase adapter, so
+atomic chain qualification keeps all eight dry. Every Matrix record itself is
+v150, 29-byte, 12-delay, default-mode, Process-LFE, and control/media-free.
+Matrix support raises qualified source-effect leaves from 2,575 to 2,617
+without changing media or event reachability.
+
 The same source-local projection retains pinned wwiser's exact 28-byte v150
 Wwise Meter record when it is static, control-free, and does not apply its
 measurement as downstream volume. A Meter without a Game Parameter target is
@@ -631,7 +659,7 @@ shared-Bus policy rather than baking host policy into the portable library.
 
 EVE build 3453885 has 49 such Sound leaves across 39 retained events, all with
 nonzero Game Parameter targets. Opt-in omission raises qualified source-effect
-leaves from 2,575 to 2,624 without changing media or event reachability. The
+leaves from 2,617 to 2,666 without changing media or event reachability. The
 other 81 source-Meter leaves use effect `277510878` with downstream-volume
 application enabled and remain complete-chain dry fallbacks; omitting that
 behavior would alter the authored signal path, not merely its telemetry.

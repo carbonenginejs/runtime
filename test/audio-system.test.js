@@ -2065,6 +2065,10 @@ test("CjsAudioSystem validates optional Web Audio realization policies", () =>
     /Unsupported Wwise distortion realization mode/u,
   );
   assert.throws(
+    () => new CjsAudioSystem({ wwiseReverb: "approximate" }),
+    /Unsupported Wwise reverb realization mode/u,
+  );
+  assert.throws(
     () => new CjsAudioSystem({
       wwiseObstructionOcclusion: "approximate",
     }),
@@ -2072,6 +2076,7 @@ test("CjsAudioSystem validates optional Web Audio realization policies", () =>
   );
   assert.doesNotThrow(() => new CjsAudioSystem({
     wwiseDistortion: "approximate-web-audio",
+    wwiseReverb: "approximate-web-audio",
     wwiseObstructionOcclusion: "approximate-web-audio",
   }));
 });

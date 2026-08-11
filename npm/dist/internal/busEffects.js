@@ -1,7 +1,10 @@
+import { normalizeWwiseReverbMode, createWwiseMatrixReverbApproximation } from './wwiseMatrixReverb.js';
+
 const PARAMETRIC_EQ_PLUGIN_ID = 0x00690003;
 const WWISE_DELAY_PLUGIN_ID = 0x006a0003;
 const WWISE_COMPRESSOR_PLUGIN_ID = 0x006c0003;
 const WWISE_PEAK_LIMITER_PLUGIN_ID = 0x006e0003;
+const WWISE_MATRIX_REVERB_PLUGIN_ID = 0x00730003;
 const WWISE_FLANGER_PLUGIN_ID = 0x007d0003;
 const WWISE_GUITAR_DISTORTION_PLUGIN_ID = 0x007e0003;
 const WWISE_TREMOLO_PLUGIN_ID = 0x00830003;
@@ -9,10 +12,12 @@ const WWISE_METER_PLUGIN_ID = 0x00810003;
 const WWISE_METER_BANK_VERSION = 150;
 const WWISE_TREMOLO_BANK_VERSION = 150;
 const WWISE_GUITAR_DISTORTION_BANK_VERSION = 150;
+const WWISE_MATRIX_REVERB_BANK_VERSION = 150;
+const WWISE_MATRIX_REVERB_DELAY_COUNTS = new Set([4, 8, 12, 16]);
 const WWISE_DYNAMICS_MODES = new Set(["strict", "approximate-web-audio"]);
 const WWISE_MODULATION_MODES = new Set(["strict", "approximate-web-audio"]);
 const WWISE_DISTORTION_MODES = new Set(["strict", "approximate-web-audio"]);
-const REALIZABLE_EFFECT_TYPES = new Set(["meter", "meter-omission", "compressor", "compressor-approximation", "peak-limiter", "peak-limiter-approximation", "delay", "flanger", "flanger-approximation", "tremolo", "tremolo-approximation", "guitar-distortion", "guitar-distortion-approximation", "parametric-eq"]);
+const REALIZABLE_EFFECT_TYPES = new Set(["meter", "meter-omission", "compressor", "compressor-approximation", "peak-limiter", "peak-limiter-approximation", "delay", "flanger", "flanger-approximation", "tremolo", "tremolo-approximation", "guitar-distortion", "guitar-distortion-approximation", "matrix-reverb", "matrix-reverb-approximation", "parametric-eq"]);
 const WWISE_METER_FEEDBACK_MODES = new Set(["strict", "omit-telemetry"]);
 const WWISE_VOICE_LIMIT_MODES = new Set(["strict", "ignore"]);
 const FILTER_TYPE_NAMES = Object.freeze(["lowpass", "highpass", "bandpass", "notch", "lowshelf", "highshelf", "peaking"]);
@@ -53,6 +58,14 @@ const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
 const METER_MAXIMUM_MIN = Math.fround(-96.3);
 const METER_MAXIMUM_MAX = 12;
+const MATRIX_REVERB_TIME_MIN = 0.1;
+const MATRIX_REVERB_TIME_MAX = 10;
+const MATRIX_REVERB_HF_RATIO_MIN = 0.5;
+const MATRIX_REVERB_HF_RATIO_MAX = 10;
+const MATRIX_REVERB_LEVEL_MIN = Math.fround(-96.3);
+const MATRIX_REVERB_LEVEL_MAX = 0;
+const MATRIX_REVERB_PRE_DELAY_MIN = 0;
+const MATRIX_REVERB_PRE_DELAY_MAX = 1;
 const GUITAR_DISTORTION_CURVE_SAMPLES = 4096;
 const GUITAR_DISTORTION_FILTER_TYPES = Object.freeze(["lowshelf", "peaking", "highshelf", "lowpass", "highpass", "bandpass", "notch"]);
 const GUITAR_DISTORTION_TYPES = Object.freeze(["none", "overdrive", "heavy", "fuzz", "clip"]);
@@ -259,6 +272,24 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
         wetDryMixPercent: BoundedFinite(effect.wetDryMixPercent, 100, 100, `${label} wetDryMixPercent`)
       });
     }
+    if (allowSourceEffects && effect.type === "matrix-reverb") {
+      if (effect.processLfe !== true || effect.delayLengthsMode !== "default" || !WWISE_MATRIX_REVERB_DELAY_COUNTS.has(Number(effect.numberOfDelays))) {
+        throw new TypeError(`${label} has unsupported Matrix Reverb routing`);
+      }
+      return Object.freeze({
+        effectId,
+        slotIndex,
+        type: "matrix-reverb",
+        reverbTimeSeconds: BoundedFinite(effect.reverbTimeSeconds, MATRIX_REVERB_TIME_MIN, MATRIX_REVERB_TIME_MAX, `${label} reverbTimeSeconds`),
+        hfRatio: BoundedFinite(effect.hfRatio, MATRIX_REVERB_HF_RATIO_MIN, MATRIX_REVERB_HF_RATIO_MAX, `${label} hfRatio`),
+        numberOfDelays: Number(effect.numberOfDelays),
+        dryLevelDb: BoundedFinite(effect.dryLevelDb, MATRIX_REVERB_LEVEL_MIN, MATRIX_REVERB_LEVEL_MAX, `${label} dryLevelDb`),
+        wetLevelDb: BoundedFinite(effect.wetLevelDb, MATRIX_REVERB_LEVEL_MIN, MATRIX_REVERB_LEVEL_MAX, `${label} wetLevelDb`),
+        preDelaySeconds: BoundedFinite(effect.preDelaySeconds, MATRIX_REVERB_PRE_DELAY_MIN, MATRIX_REVERB_PRE_DELAY_MAX, `${label} preDelaySeconds`),
+        processLfe: true,
+        delayLengthsMode: "default"
+      });
+    }
     if (allowSourceEffects && effect.type === "meter") {
       if (typeof effect.infiniteHold !== "boolean") {
         throw new TypeError(`${label} infiniteHold must be boolean`);
@@ -351,12 +382,14 @@ function createWwiseEffectChain(context, effects, {
   wwiseDynamics = "strict",
   wwiseModulation = "strict",
   wwiseDistortion = "strict",
+  wwiseReverb = "strict",
   wwiseMeterFeedback = "strict"
 } = {}) {
   if (!Array.isArray(effects) || !effects.length) return null;
   const dynamicsMode = normalizeWwiseDynamicsMode(wwiseDynamics);
   const modulationMode = normalizeWwiseModulationMode(wwiseModulation);
   const distortionMode = normalizeWwiseDistortionMode(wwiseDistortion);
+  const reverbMode = normalizeWwiseReverbMode(wwiseReverb);
   const meterFeedbackMode = normalizeWwiseMeterFeedbackMode(wwiseMeterFeedback);
 
   // A source effect override is one ordered authored unit. In strict mode,
@@ -375,6 +408,8 @@ function createWwiseEffectChain(context, effects, {
   const sourceDistortions = effects.filter(effect => effect.type === "guitar-distortion");
   const sourceMeters = effects.filter(effect => effect.type === "meter");
   const distortionEffects = effects.filter(effect => effect.type === "guitar-distortion" || effect.type === "guitar-distortion-approximation");
+  const sourceReverbs = effects.filter(effect => effect.type === "matrix-reverb");
+  const reverbEffects = effects.filter(effect => effect.type === "matrix-reverb" || effect.type === "matrix-reverb-approximation");
   for (const effect of effects) {
     if (!REALIZABLE_EFFECT_TYPES.has(effect.type)) {
       throw new TypeError(`Unsupported shared Bus effect ${effect.type}`);
@@ -389,15 +424,19 @@ function createWwiseEffectChain(context, effects, {
   if (sourceDistortions.length && distortionMode === "strict") {
     return null;
   }
+  if (sourceReverbs.length && reverbMode === "strict") {
+    return null;
+  }
   if (sourceMeters.some(effect => effect.applyDownstreamVolume !== false)) {
     return null;
   }
   if (meterFeedbackMode === "strict" && sourceMeters.some(effect => effect.gameParameterId !== 0)) {
     return null;
   }
-  const needsGain = dynamicsEffects.length > 0 || sourceDelays.length > 0 || hasModulation || distortionEffects.some(effect => effect.outputGainDb !== 0) || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
-  const needsDelay = sourceDelays.length > 0 || flangerEffects.length > 0 || dynamicsEffects.some(effect => (effect.type === "peak-limiter" || effect.type === "peak-limiter-approximation") && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
+  const needsGain = dynamicsEffects.length > 0 || sourceDelays.length > 0 || hasModulation || reverbEffects.length > 0 || distortionEffects.some(effect => effect.outputGainDb !== 0) || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
+  const needsDelay = sourceDelays.length > 0 || reverbEffects.length > 0 || flangerEffects.length > 0 || dynamicsEffects.some(effect => (effect.type === "peak-limiter" || effect.type === "peak-limiter-approximation") && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
   const needsBiquad = sourceEqualizers.some(effect => effect.bands.length);
+  const needsReverbBiquad = reverbEffects.length > 0;
   const needsDistortionBiquad = distortionEffects.some(effect => effect.preEqBands.length || effect.postEqBands.length);
   const needsOscillator = tremoloEffects.some(effect => effect.modulationDepthPercent > 0) || flangerEffects.some(effect => effect.lfoEnabled && effect.modulationDepthPercent > 0);
   if (needsGain && typeof context?.createGain !== "function") {
@@ -406,7 +445,7 @@ function createWwiseEffectChain(context, effects, {
   if (needsDelay && typeof context?.createDelay !== "function") {
     return null;
   }
-  if ((needsBiquad || needsDistortionBiquad) && typeof context?.createBiquadFilter !== "function") {
+  if ((needsBiquad || needsDistortionBiquad || needsReverbBiquad) && typeof context?.createBiquadFilter !== "function") {
     return null;
   }
   if (dynamicsEffects.length && typeof context?.createDynamicsCompressor !== "function") {
@@ -430,6 +469,9 @@ function createWwiseEffectChain(context, effects, {
   } : effect.type === "guitar-distortion" ? {
     ...effect,
     type: "guitar-distortion-approximation"
+  } : effect.type === "matrix-reverb" ? {
+    ...effect,
+    type: "matrix-reverb-approximation"
   } : effect.type === "meter" ? {
     ...effect,
     type: "meter-omission",
@@ -475,6 +517,13 @@ function createWwiseEffectChain(context, effects, {
     }
     if (effect.type === "guitar-distortion-approximation") {
       const stage = CreateWwiseGuitarDistortionApproximation(context, effect);
+      if (output) output.connect(stage.input);else input = stage.input;
+      output = stage.output;
+      nodes.push(...stage.nodes);
+      continue;
+    }
+    if (effect.type === "matrix-reverb-approximation") {
+      const stage = createWwiseMatrixReverbApproximation(context, effect);
       if (output) output.connect(stage.input);else input = stage.input;
       output = stage.output;
       nodes.push(...stage.nodes);
@@ -910,6 +959,43 @@ function parseStaticWwiseTremoloBytes(bytes, {
   };
 }
 
+/** Decodes one source-proven static v150 Wwise Matrix Reverb block. */
+function parseStaticWwiseMatrixReverbBytes(bytes, {
+  effectId,
+  slotIndex,
+  label = `Wwise Matrix Reverb ${effectId}`,
+  bankVersion = WWISE_MATRIX_REVERB_BANK_VERSION
+} = {}) {
+  if (Number(bankVersion) !== WWISE_MATRIX_REVERB_BANK_VERSION || !(bytes instanceof Uint8Array) || bytes.byteLength !== 29) {
+    throw new TypeError(`${label} has an unsupported parameter block`);
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const reverbTimeSeconds = view.getFloat32(0, true);
+  const hfRatio = view.getFloat32(4, true);
+  const numberOfDelays = view.getUint32(8, true);
+  const dryLevelDb = view.getFloat32(12, true);
+  const wetLevelDb = view.getFloat32(16, true);
+  const preDelaySeconds = view.getFloat32(20, true);
+  const processLfeRaw = view.getUint8(24);
+  const delayLengthsModeRaw = view.getUint32(25, true);
+  if (!Number.isFinite(reverbTimeSeconds) || reverbTimeSeconds < MATRIX_REVERB_TIME_MIN || reverbTimeSeconds > MATRIX_REVERB_TIME_MAX || !Number.isFinite(hfRatio) || hfRatio < MATRIX_REVERB_HF_RATIO_MIN || hfRatio > MATRIX_REVERB_HF_RATIO_MAX || !WWISE_MATRIX_REVERB_DELAY_COUNTS.has(numberOfDelays) || !Number.isFinite(dryLevelDb) || dryLevelDb < MATRIX_REVERB_LEVEL_MIN || dryLevelDb > MATRIX_REVERB_LEVEL_MAX || !Number.isFinite(wetLevelDb) || wetLevelDb < MATRIX_REVERB_LEVEL_MIN || wetLevelDb > MATRIX_REVERB_LEVEL_MAX || !Number.isFinite(preDelaySeconds) || preDelaySeconds < MATRIX_REVERB_PRE_DELAY_MIN || preDelaySeconds > MATRIX_REVERB_PRE_DELAY_MAX || processLfeRaw !== 1 || delayLengthsModeRaw !== 0) {
+    throw new TypeError(`${label} has unsupported Wwise Matrix Reverb parameters`);
+  }
+  return {
+    effectId: String(effectId),
+    slotIndex: Number(slotIndex),
+    type: "matrix-reverb",
+    reverbTimeSeconds,
+    hfRatio,
+    numberOfDelays,
+    dryLevelDb,
+    wetLevelDb,
+    preDelaySeconds,
+    processLfe: true,
+    delayLengthsMode: "default"
+  };
+}
+
 /**
  * Decodes the source-proven static v150 Guitar Distortion layout used by EVE.
  *
@@ -1284,5 +1370,5 @@ function BoundedFinite(value, min, max, label) {
   return number;
 }
 
-export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeStaticSourceEffectChain, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes, parseStaticWwiseFlangerBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMeterBytes, parseStaticWwiseTremoloBytes };
+export { PARAMETRIC_EQ_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_MATRIX_REVERB_PLUGIN_ID, WWISE_METER_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, createBusEffectChain, createWwiseEffectChain, indexBusEffectCatalog, normalizeStaticParametricEqChain, normalizeStaticSourceEffectChain, normalizeWwiseDistortionMode, normalizeWwiseDynamicsMode, normalizeWwiseMeterFeedbackMode, normalizeWwiseModulationMode, normalizeWwiseReverbMode, normalizeWwiseVoiceLimitMode, parseGraphFeedbackFreeMeter, parseGraphSharedBusEffect, parseGraphStaticParametricEq, parseGraphStaticWwiseCompressor, parseGraphStaticWwiseDelay, parseGraphStaticWwisePeakLimiter, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes, parseStaticWwiseFlangerBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMatrixReverbBytes, parseStaticWwiseMeterBytes, parseStaticWwiseTremoloBytes };
 //# sourceMappingURL=busEffects.js.map

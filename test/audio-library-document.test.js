@@ -1844,6 +1844,32 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     };
     assert.equal(validateAudioLibraryDocument(sourceMeter), true);
 
+    const sourceMatrixReverb = structuredClone(valid);
+
+    sourceMatrixReverb.sfx.nodes["2"].sourceEffects[3] = {
+        effectId: "902",
+        slotIndex: 3,
+        type: "matrix-reverb",
+        reverbTimeSeconds: 4,
+        hfRatio: 6,
+        numberOfDelays: 12,
+        dryLevelDb: 0,
+        wetLevelDb: -30,
+        preDelaySeconds: 0.1,
+        processLfe: true,
+        delayLengthsMode: "default",
+    };
+    assert.equal(validateAudioLibraryDocument(sourceMatrixReverb), true);
+
+    const malformedMatrixReverb = structuredClone(sourceMatrixReverb);
+
+    malformedMatrixReverb.sfx.nodes["2"].sourceEffects[3]
+        .delayLengthsMode = "custom";
+    assert.throws(
+        () => validateAudioLibraryDocument(malformedMatrixReverb),
+        /unsupported Matrix Reverb routing/u,
+    );
+
     const downstreamMeter = structuredClone(sourceMeter);
 
     downstreamMeter.sfx.nodes["2"].sourceEffects[3]
