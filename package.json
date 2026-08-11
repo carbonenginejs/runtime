@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/tools-browser",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Browser-facing CarbonEngineJS clients, remote readers, and application tools.",
   "type": "module",
   "main": "src/index.js",
@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "@carbonenginejs/runtime-audio": "^0.3.0",
-    "@carbonenginejs/runtime-resource": "^0.12.0",
-    "@carbonenginejs/runtime-trinity": "^0.7.0",
-    "@carbonenginejs/runtime-utils": "file:../runtime-utils"
+    "@carbonenginejs/runtime-resource": "^0.16.0",
+    "@carbonenginejs/runtime-trinity": "^0.11.0",
+    "@carbonenginejs/runtime-utils": "^0.1.6"
   },
   "keywords": [
     "carbonenginejs",
