@@ -138,7 +138,7 @@ Represents the fixed Carbon listener and its effective orientation and position.
 <!-- class:AudManager -->
 ## `AudManager`
 
-Coordinates audio lifecycle, bank state, deferred events, global parameters, and sound prioritization.
+Coordinates audio lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion.
 
 - Export: `@carbonenginejs/runtime-audio/trinity`
 - Source: `src/trinity/audio/AudManager.js`
@@ -154,6 +154,16 @@ Provides the fixed high-priority Carbon emitter dedicated to music events.
 - Source: `src/trinity/audio/AudMusicPlayer.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
+
+<!-- class:AudObstructionOcclusion -->
+## `AudObstructionOcclusion`
+
+Owns Carbon's caller-supplied per-emitter obstruction/occlusion fade and backend-delivery lifecycle.
+
+- Export: None
+- Source: `src/trinity/audio/AudObstructionOcclusion.js`
+- Visibility: Internal
+- Kind: Internal implementation class
 
 <!-- class:AudParameter -->
 ## `AudParameter`
@@ -214,6 +224,26 @@ Drives a curve set's time from a monitored real-time parameter with a fallback c
 - Source: `src/trinity/audio/AudioCurveSetDriver.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
+
+<!-- class:EmitterState -->
+## `EmitterState`
+
+Retains obstruction, occlusion, and retry state for one registered emitter.
+
+- Export: None
+- Source: `src/trinity/audio/AudObstructionOcclusion.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
+<!-- class:FadingValue -->
+## `FadingValue`
+
+Advances one normalized obstruction or occlusion value towards its target.
+
+- Export: None
+- Source: `src/trinity/audio/AudObstructionOcclusion.js`
+- Visibility: Internal
+- Kind: Internal implementation class
 
 <!-- class:SoundPrioritization -->
 ## `SoundPrioritization`

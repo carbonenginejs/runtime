@@ -34,6 +34,7 @@ bus processing omitted.
 | Music Track Voice Volume RTPC | Browser adaptation | v150 property-0 Game Parameter curves using additive accumulation and Wwise dB scaling run on an independent pre-bus track gain from the global RTPC lane. Non-linear automation uses the documented sampled interpolation; other Music Track RTPC properties remain unsupported. |
 | Bus-target Voice Volume Set | Bounded browser adaptation with audible fallback | An absolute, non-randomized game-object Set targeting the first/output Audio Bus persists per emitter and drives existing and future routed voices before that Bus stage. Reset, relative/randomized/global/ancestor/wet/music forms remain fail-closed. A route rejected by the shared mixer still plays with its action envelope, but rejected Bus effects and tails are omitted. |
 | Authored-music UI transport | CarbonEngineJS extension | Previous, next, and random enumerate Music Segments plus a bounded coordinated path through Random/Sequence subtracks inside one live playing ID; layered-track Cartesian products are not materialized. Pause and selection fade then replay an item from its entry cue because Web Audio buffer sources cannot resume or seek. Manual selection starts a fresh playlist traversal (resetting random/shuffle history), while an explicitly selected Sequence Music Track continues at its following subtrack. These controls are not Wwise event actions; automatic playback otherwise retains independent authored selection. |
+| Authored music Pause/Resume events | Unsupported fidelity barrier | EVE build 3453885 contains five clean element/game-object actions for dynamic, cemetery, and login music. Wwise Resume continues the paused musical timeline. The UI transport instead recreates sources at an entry cue, so those bank actions remain omitted until the scheduler can restore layered clip offsets, playlist cursors, and pending transitions rather than mislabel an audible restart as Resume. |
 | Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, slot order, qualified shared-Bus placement, and complete effective static source overrides are retained. Source inheritance follows first-override replacement and explicit empty clears. Web Audio biquad/delay DSP is not bit-equivalent to Wwise; source Delay feedback is cut at decoded dry-source completion, and pause/seek do not preserve native plug-in state. |
 | Wwise Compressor and Peak Limiter | Opt-in approximation | `wwiseDynamics: "approximate-web-audio"` admits only static, linked, all-channel records. Qualified source-local Compressor and Peak Limiter overrides use one voice-owned browser stage; the default `"strict"` policy omits that complete source chain and keeps the voice audible/dry. A bounded SFX ordering proof also admits an ancestor Peak Limiter only when every route-local control belongs to a strict descendant and there is no incoming duck target. Other shared routes retain the legacy audible fallback. Missing browser dynamics or limiter-lookahead primitives also retain dry SFX playback. |
 | Wwise Flanger | Opt-in approximation | `wwiseModulation: "approximate-web-audio"` admits only a static, control-free, sine/zero-phase source-local subset decoded from wwiser's exact v150 layout. Gain/Delay/Oscillator nodes approximate the unified comb, start the LFO with the voice, and stop it at voice disposal. Strict mode or missing primitives plays the complete chain dry. Web Audio processes all decoded channels despite authored Center/LFE bypass, clamps unity feedback, retains phase through pause, and cuts effect state at dry-source completion. Shared-Bus Flanger remains unsupported. |
@@ -46,11 +47,11 @@ bus processing omitted.
 | Rejected shared route | Fallback | SFX remains on its existing emitter/SFX destination and music remains on its legacy segment/instance/output path; authored blocked bus stages are omitted. |
 | Master safety compressor | Browser workaround | A separate fixed Web Audio compressor (`-6 dB`, knee `6 dB`, `12:1`, `3 ms`, `250 ms`) limits all output when supported. It is not an authored Wwise effect; without the node capability output connects directly. |
 | Spatial playback | Browser adaptation | `PannerNode` supplies HRTF direction with its native distance rolloff disabled. A retained Wwise dry-volume curve supplies each Sound leaf's distance gain in authored world units; emitter attenuation scaling evaluates that curve at `worldDistance / scalingFactor`. Old/custom graphs without a retained curve use the previous `distanceScale` inverse-gain fallback. The first pose is immediate; later pose and distance-gain changes use Web Audio target automation with a 5 ms time constant when available (about 95% settled in 15 ms). Legacy spatial setters and older AudioParam fallbacks remain immediate or use a short linear ramp. |
-| Carbon line-of-sight obstruction/occlusion | Newly unsupported Carbon behavior | Carbon added an internal `AudObstructionOcclusion` collaborator to `AudManager` on 2026-08-04. It is enabled by default but inert until a caller supplies per-emitter blockage, performs no ray casting, and fades normalized obstruction/occlusion toward their targets before sending them to Wwise. Runtime-audio does not yet expose the manager methods, retain the fade state, or provide a backend realization. |
+| Carbon line-of-sight obstruction/occlusion | Exact headless manager behavior; backend realization seam | `AudManager` owns Carbon's enabled-by-default per-emitter fade state and caller-facing blockage, clear, enabled, fade-rate, and live-occlusion methods. It clamps the supplied value, snaps a newly tracked emitter, otherwise fades at one unit per second by default, advances while culled, resends on wake or failed delivery, clears on disable, removes on unregister, and suppresses duplicate occlusion while spatial geometry is enabled. It performs no ray casting. An injected backend may implement `SetObjectObstructionAndOcclusion`; the built-in Web Audio backend deliberately supplies no audible gain/filter approximation. |
 | Emitter level reporting | UI/debug approximation | `GetGameObjLevel()` samples 256-bin main-thread analyser frames and returns zero when analyser support is unavailable. It is not Wwise Meter telemetry. |
 | Legacy library controls | Compatibility fallback | Older documents may use master/music RTPC gain fallbacks; current typed bus catalogs take precedence. |
 | Missing optional Web Audio primitives | Capability fallback | Legacy LPF/HPF may be omitted without biquad support, level reporting becomes zero without an analyser, and the master safety compressor is absent without dynamics support. Shared graph qualification remains atomic. |
-| Native device, input, profiler, and spatial geometry rendering | Unsupported barrier | Portable contracts may remain, but native device work, capture, input plug-ins, diffraction, occlusion, and middleware rendering are not emulated. |
+| Native device, input, profiler, and spatial rendering | Unsupported barrier | Portable contracts may remain, but native device work, capture, input plug-ins, diffraction, middleware rendering, and an audible Web Audio obstruction/occlusion law are not emulated. |
 
 ### Approximate Wwise dynamics
 
@@ -138,6 +139,8 @@ The maintained graph includes:
   logical routing plus interruptible live Volume, Pitch, low-pass, and
   high-pass property interpolation;
 - listener and emitter placement;
+- caller-supplied obstruction/occlusion state, linear fading, cull/wake retry,
+  acoustics suppression, and optional backend delivery;
 - event metadata and sound prioritization;
 - event curves, direct emitter event handling, and RTPC-driven curve-set time;
 - post-render refresh of monitored RTPC values and action-log records for
@@ -197,19 +200,19 @@ Moving a source while one of those gain transitions is active reschedules the
 remaining transition with the new distance multiplier. The result is smooth
 and close, but the continuously varying product is a browser approximation
 rather than a sample-exact Wwise envelope. Cone attenuation, distance-driven
-LPF/HPF and spread/focus curves, obstruction, occlusion, diffraction, and
-transmission remain unsupported.
+LPF/HPF and spread/focus curves, diffraction, transmission, and an audible Web
+Audio obstruction/occlusion mapping remain unsupported.
 
 Carbon's 2026-08-04 `AudObstructionOcclusion` addition makes obstruction and
-occlusion a concrete manager-parity gap rather than only a native-renderer
-limitation. Carbon owns no line-of-sight query: the game supplies one blockage
-value per emitter. The manager clamps it, tracks and linearly fades the live
-value at one unit per second by default, suppresses occlusion while spatial
-geometry is enabled, and forwards it to Wwise. Runtime-audio currently has
-none of that state or API. A future portable port belongs behind `AudManager`
-with an optional backend seam; any Web Audio filter/gain mapping would be a
-separately documented approximation because Carbon delegates the audible law
-to Wwise.
+occlusion a host-driven manager contract rather than a ray-casting feature.
+The game supplies one blockage value per emitter. Runtime-audio clamps it,
+tracks and linearly fades the live value at one unit per second by default,
+suppresses occlusion while spatial geometry is enabled, and forwards changed
+awake values through the optional backend method
+`SetObjectObstructionAndOcclusion(emitterID, listenerID, obstruction,
+occlusion)`. A void return counts as acceptance; explicit `false` is retried on
+the next `Process()`. Carbon delegates the audible law to Wwise, so the built-in
+Web Audio backend does not guess a gain or filter response.
 
 A Wwise Continuous Layer with no Layer records, or only Layer records with no
 child associations, is represented by the portable parallel node because it
@@ -271,10 +274,9 @@ The package does not emulate:
 
 - Wwise device enumeration or device-change callbacks;
 - Wwise profiler capture;
-- Carbon's game-supplied obstruction/occlusion manager API and fade state, and
-  Web Audio realization of spatial-audio geometry, occlusion, or diffraction
-  (the older geometry data/settings/refcount contract is implemented for
-  injected backends);
+- Web Audio realization of spatial-audio geometry, obstruction/occlusion, or
+  diffraction (the manager state plus geometry data/settings/refcount
+  contracts are implemented for injected backends);
 - native audio-input plugins, including EVE's bank-media-free
   `in_game_video_stream_play` Wwise Audio Input source;
 - operating-system device selection; or

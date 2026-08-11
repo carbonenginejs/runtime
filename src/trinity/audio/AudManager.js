@@ -11,6 +11,7 @@ import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
+import { AudObstructionOcclusion } from "./AudObstructionOcclusion.js";
 import { LISTENER_GAME_OBJ_ID, SoundPrioritization } from "./SoundPrioritization.js";
 import { SpatialAudioSettings } from "./SpatialAudioSettings.js";
 
@@ -24,7 +25,7 @@ function BankKey(name)
   return dot === -1 ? text : text.slice(0, dot);
 }
 
-/** AudManager (audio) - engine lifecycle, bank state machine, global RTPC/state, monitored parameters. */
+/** AudManager (audio) - engine lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
 @type.define({ className: "AudManager", family: "audio" })
 export class AudManager extends CjsModel
 {
@@ -68,6 +69,8 @@ export class AudManager extends CjsModel
   #spatialAudioSettings = new SpatialAudioSettings();
 
   #spatialAudioGeometryBackends = new WeakSet();
+
+  #obstructionOcclusion = new AudObstructionOcclusion(this);
 
   // CarbonEngineJS-original: the prioritization is a public collaborator so
   // emitters can read weights directly (see AudGameObjResource notes).
@@ -160,6 +163,7 @@ export class AudManager extends CjsModel
       gameObject.Cull();
     }
     this.ClearBanks();
+    this.#obstructionOcclusion.Reset();
     AudGeometry.ClearAllGeometry();
     this.#state = "disabled";
   }
@@ -390,6 +394,65 @@ export class AudManager extends CjsModel
   GetSpatialAudioGeometryEnabled()
   {
     return this.#spatialAudioSettings.GetSpatialAudioGeometryEnabled();
+  }
+
+  /** Carbon method SetEmitterLineOfSightBlockage: stores a caller-computed blockage target. */
+  @carbon.method
+  @impl.implemented
+  SetEmitterLineOfSightBlockage(emitterID, blockage)
+  {
+    return this.#obstructionOcclusion.SetEmitterLineOfSightBlockage(
+      emitterID,
+      blockage,
+    );
+  }
+
+  /** Carbon method GetEmitterOcclusion: returns the live, mid-fade value. */
+  @carbon.method
+  @impl.implemented
+  GetEmitterOcclusion(emitterID)
+  {
+    return this.#obstructionOcclusion.GetEmitterOcclusion(emitterID);
+  }
+
+  /** Carbon method ClearObstructionOcclusion: fades every target to clear. */
+  @carbon.method
+  @impl.implemented
+  ClearObstructionOcclusion()
+  {
+    this.#obstructionOcclusion.ClearAll();
+  }
+
+  /** Carbon Blue property getter for game-driven obstruction/occlusion. */
+  @carbon.method
+  @impl.implemented
+  GetObstructionOcclusionEnabled()
+  {
+    return this.#obstructionOcclusion.IsEnabled();
+  }
+
+  /** Carbon Blue property setter for game-driven obstruction/occlusion. */
+  @carbon.method
+  @impl.implemented
+  SetObstructionOcclusionEnabled(value)
+  {
+    this.#obstructionOcclusion.SetEnabled(value);
+  }
+
+  /** Carbon Blue property getter for the obstruction/occlusion fade rate. */
+  @carbon.method
+  @impl.implemented
+  GetObstructionOcclusionFadeRate()
+  {
+    return this.#obstructionOcclusion.GetFadeRate();
+  }
+
+  /** Carbon Blue property setter for the obstruction/occlusion fade rate. */
+  @carbon.method
+  @impl.implemented
+  SetObstructionOcclusionFadeRate(value)
+  {
+    this.#obstructionOcclusion.SetFadeRate(value);
   }
 
   /** Carbon method SetSpatialAudioGeometryEnabled. */
@@ -871,6 +934,7 @@ export class AudManager extends CjsModel
   UnregisterGameObject(gameObjID)
   {
     this.soundPrioritization.UnregisterGameObject(gameObjID);
+    this.#obstructionOcclusion.RemoveEmitter(gameObjID);
     for (const info of this.#soundBankInfoMap.values())
     {
       info.waitingEventsAfterLoad = info.waitingEventsAfterLoad.filter(
@@ -1010,6 +1074,9 @@ export class AudManager extends CjsModel
       {
         this.soundPrioritization.CullAudio();
       }
+      this.#obstructionOcclusion.Update(
+        AudGameObjResource.backend,
+      );
       AudGameObjResource.backend?.RenderAudio?.();
       // Carbon refreshes monitored values from its end-render callback. The
       // portable backend has no Wwise callback thread, so Process owns the

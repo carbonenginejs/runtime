@@ -162,15 +162,18 @@ portable document. It is deliberately a compatibility fallback, not a claim
 of Wwise equivalence. Simultaneous movement and an active Voice Volume, State,
 or RTPC gain transition are smoothly rescheduled on their shared Web Audio
 gain parameter; their continuously varying product is approximate. Cone,
-distance-filter and spread/focus curves, obstruction, occlusion, diffraction,
-and transmission are not currently rendered.
+distance-filter and spread/focus curves, diffraction, transmission, and an
+audible obstruction/occlusion response are not currently rendered.
 
 Carbon's newer line-of-sight subsystem does not ray cast either: the host
 supplies a normalized blockage value per emitter and `AudManager` fades the
-result before handing it to Wwise. That manager API and fade state are not yet
-ported. A future portable backend seam can preserve the host-supplied value,
-but a Web Audio gain/filter response would remain an explicit approximation of
-the Wwise-authored audible law.
+result before handing it to Wwise. Runtime-audio now preserves that manager
+API and fade lifecycle. Call `SetEmitterLineOfSightBlockage(emitterID, value)`
+after registering the emitter; `GetEmitterOcclusion()` observes the live
+mid-fade value. An injected backend may accept
+`SetObjectObstructionAndOcclusion(emitterID, 4, obstruction, occlusion)`.
+The built-in Web Audio backend intentionally omits a gain/filter response,
+which would be an explicit approximation of the Wwise-authored audible law.
 
 For named soundtrack playback independent of authored Wwise music events,
 pass an optional neutral catalog, loader, and availability probe as described

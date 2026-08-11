@@ -37,6 +37,26 @@ create an audio context, fetch data, or touch the DOM.
 | `normalizeSfxGraph(value, media, embeddedMedia)` | Produces deterministic builder output for one validated SFX program. |
 | `audioMetadataFromSoundbanksInfo(document, enrichment)` | Maps supplied SoundbanksInfo and optional neutral enrichment to repository metadata. |
 
+### Caller-supplied obstruction and occlusion
+
+`AudManager` implements Carbon's headless line-of-sight lifecycle. The host
+computes blockage; runtime-audio performs no ray casting.
+
+- `SetEmitterLineOfSightBlockage(emitterID, blockage)` accepts a registered,
+  non-listener emitter while audio and the subsystem are enabled;
+- `GetEmitterOcclusion(emitterID)` returns the live mid-fade value;
+- `ClearObstructionOcclusion()` fades every tracked emitter to clear;
+- `Get/SetObstructionOcclusionEnabled()` controls new inputs and clears targets
+  when disabled; and
+- `Get/SetObstructionOcclusionFadeRate()` reads or changes the default
+  one-unit-per-second linear fade rate. Zero is instantaneous.
+
+An injected backend may implement
+`SetObjectObstructionAndOcclusion(emitterID, listenerID, obstruction,
+occlusion)`. Explicit `false` requests a retry on the next `Process()`; a void
+return accepts the update. `CjsAudioBackend` does not implement this optional
+method because Web Audio has no Wwise-equivalent obstruction/occlusion law.
+
 ## Complete document
 
 Only `schemaVersion: 2` is accepted:
