@@ -243,3 +243,22 @@ test("the profile is rejected under a misspelled name", () =>
         /unknown emitGlsl option/u
     );
 });
+
+test("a texture whose mode arrives at bind time is gated even when the container says wrap", () =>
+{
+    // The container declares pattern samplers as WRAP; Carbon applies the real
+    // mode later through a sampler override (EveSOF.cpp:639). A container-only
+    // rule emits no gate for them, and the override then degrades to edge -
+    // which is exactly why border on patterns rendered as clamp-to-edge.
+    //
+    // Here the caller lists the texture explicitly, which is the mechanism the
+    // packager uses for PatternMask*Map.
+    const result = CjsWebglFormat.emitGlsl(DXBC, {
+        source: "synthetic",
+        emulatedAddressing: addressing([ { registerIndex: 6 } ])
+    });
+
+    // No sampler in this fixture declares an emulated mode at all.
+    assert.match(result.source, /cjsAddressBorder\(texture\(s6,/u);
+    assert.match(result.source, /uniform vec4 cb8\[/u);
+});

@@ -479,7 +479,7 @@ function collectStages(effectDescription, selection) {
           // Recognised from reflection here, mapped onto resources by
           // the emitter, which is the only thing that knows from the
           // DXBC which resource each sampler serves.
-          emulatedAddressing: recogniseEmulatedAddressing(mapToJson(stageInput.samplers)),
+          emulatedAddressing: recogniseEmulatedAddressing(mapToJson(stageInput.samplers), mapToJson(stageInput.resources)),
           localLights: recogniseLocalLightFamily(mapToJson(stageInput.resources))
         });
       }
@@ -775,6 +775,18 @@ function buildStageContract(stage) {
 }
 
 /**
+ * Samplers whose address mode is decided at bind time rather than in the
+ * container, so a gate must exist for them even though the container declares
+ * something WebGL2 can express natively.
+ *
+ * Carbon overrides exactly one family — a pattern layer's sampler, named
+ * `<TextureName>Sampler` (`EveSOF.cpp:639`). In the shipped quad family those
+ * are `PatternMask1MapSampler` and `PatternMask2MapSampler`; measured across
+ * every body of `quadv5.sm_depth`, 120 stages bind them.
+ */
+const OVERRIDABLE_TEXTURE = /^PatternMask\d*Map$/iu;
+
+/**
  * Recognises samplers whose address mode WebGL2 cannot express.
  *
  * WebGL2 does REPEAT, MIRRORED_REPEAT and CLAMP_TO_EDGE natively. It has no
@@ -792,7 +804,7 @@ function buildStageContract(stage) {
  * @param {object[]} samplers Container sampler descriptors, keyed by register.
  * @returns {{samplerModes:object}|null}
  */
-function recogniseEmulatedAddressing(samplers) {
+function recogniseEmulatedAddressing(samplers, resources) {
   const samplerModes = {};
   for (const entry of samplers ?? []) {
     const registerIndex = entry?.registerIndex;
@@ -801,6 +813,8 @@ function recogniseEmulatedAddressing(samplers) {
     const u = sampler.addressU;
     const v = sampler.addressV;
     const w = sampler.addressW;
+    // The container declares an emulated mode: decals, the specialfx clouds,
+    // the compositing blits.
     if ([u, v, w].some(m => m === 4 || m === 5)) {
       samplerModes[registerIndex] = {
         u,
@@ -809,9 +823,35 @@ function recogniseEmulatedAddressing(samplers) {
       };
     }
   }
-  return Object.keys(samplerModes).length ? {
-    samplerModes
-  } : null;
+
+  // Textures whose mode is applied at BIND time, which the container cannot
+  // know. Carbon overrides exactly one family (`EveSOF.cpp:639`): a pattern
+  // layer's sampler, carrying per-layer user data that may be wrap, clamp or
+  // border. The container declares those samplers as WRAP, so the loop above
+  // never gates them - which is exactly why border on patterns rendered as
+  // clamp-to-edge.
+  //
+  // Matched on the RESOURCE name rather than the sampler's, because the
+  // container reflection leaves sampler names null; the manifest derives them
+  // later from metadata, which is not available here. Resource names are
+  // present, and the emitter gates by resource register anyway.
+  const textures = [];
+  for (const entry of resources ?? []) {
+    const registerIndex = entry?.registerIndex;
+    const name = entry?.name ?? entry?.value?.name ?? "";
+    if (Number.isInteger(registerIndex) && OVERRIDABLE_TEXTURE.test(name)) {
+      textures.push({
+        registerIndex
+      });
+    }
+  }
+  if (!Object.keys(samplerModes).length && !textures.length) return null;
+  return {
+    samplerModes,
+    ...(textures.length ? {
+      textures
+    } : {})
+  };
 }
 function classifyTexturePacking(names) {
   const values = new Set(names);
