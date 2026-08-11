@@ -117,6 +117,8 @@ corpus-derived numeric mapping is not a general Wwise plug-in enum. Other
 dynamic EQ properties and Wwise Modulator controls remain unsupported.
 `processLfe:false` source EQ is realized only for decoded mono/stereo buffers;
 multichannel voices keep the complete source chain audible and dry.
+A low-level voice descriptor carrying `rtpcCurves` without its corresponding
+`getSourceEffectRtpc` reader also keeps the complete chain dry.
 Built Matrix Reverb records remain dry by default. Hosts may select
 `wwiseReverb: "approximate-web-audio"` on `CjsAudioMan`, `CjsAudioSystem`, or
 `CjsAudioBackend` to realize the documented bounded source-local browser

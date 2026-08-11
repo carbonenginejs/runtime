@@ -7859,6 +7859,28 @@ test("Sound-local Parametric EQ follows live Game Parameters on mono and stereo 
 
   context.sources[0].onended();
   assert.equal(equalizer.disconnected, true);
+
+  const missingReader = Harness({
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2, numberOfChannels: 2 },
+        loop: false,
+        sourceEffects,
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  missingReader.backend.PostEvent(
+    1,
+    1,
+    0,
+    missingReader.emitter,
+    "play",
+  );
+  await tick();
+  assert.equal(missingReader.context.filters.length, 0,
+    "a missing live-control reader keeps the complete effect chain dry");
 });
 
 test("independent-LFE source EQ fails the whole effect chain dry for multichannel voices", async () =>

@@ -541,6 +541,9 @@ function createWwiseEffectChain(context, effects, {
   if (sourceChannelCount > 2 && sourceEqualizers.some(effect => effect.processLfe === false)) {
     return null;
   }
+  if (sourceEqualizers.some(effect => effect.rtpcCurves?.length) && typeof readSourceEffectRtpc !== "function") {
+    return null;
+  }
   if (sourceMeters.some(effect => effect.applyDownstreamVolume !== false)) {
     return null;
   }

@@ -6063,6 +6063,7 @@ test("SFX construction projects the evidenced ship-roll Parametric EQ RTPC", asy
         { filterTypeId: 5, gainDb: 0, frequencyHz: 12000, q: 1, enabled: false },
     ];
     const Build = ({
+        bankVersion = 150,
         controlType = 0,
         parameterId = 2,
         accumulation = 1,
@@ -6108,7 +6109,7 @@ test("SFX construction projects the evidenced ship-roll Parametric EQ RTPC", asy
                 inspection: {
                     bankId: 200,
                     languageId: 0,
-                    bankVersion: 150,
+                    bankVersion,
                     globalSettings: {
                         rtpcParameters: [ {
                             id: 295209019,
@@ -6208,6 +6209,10 @@ test("SFX construction projects the evidenced ship-roll Parametric EQ RTPC", asy
 
     assert.equal(unmapped.sfx.nodes["300"].sourceEffects, undefined,
         "unpublished plug-in parameter mappings remain fail-closed");
+    const otherVersion = await Build({ bankVersion: 149 });
+
+    assert.equal(otherVersion.sfx?.nodes?.["300"]?.sourceEffects, undefined,
+        "the empirical numeric mapping is pinned to Wwise v150");
 });
 
 test("SFX construction inherits a complete static Wwise Delay override", async () =>

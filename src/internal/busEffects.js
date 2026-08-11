@@ -1066,6 +1066,11 @@ export function createWwiseEffectChain(
     {
         return null;
     }
+    if (sourceEqualizers.some(effect => effect.rtpcCurves?.length)
+        && typeof readSourceEffectRtpc !== "function")
+    {
+        return null;
+    }
     if (sourceMeters.some(effect =>
         effect.applyDownstreamVolume !== false))
     {

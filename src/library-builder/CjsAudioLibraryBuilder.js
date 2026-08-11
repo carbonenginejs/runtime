@@ -5149,7 +5149,8 @@ function ParseStaticParametricEq(ownerLabel, slot, effect)
 
 function ParseDynamicParametricEq(ownerLabel, slot, effect, names)
 {
-    if (effect.media?.length
+    if (Number(effect.bankVersion) !== 150
+        || effect.media?.length
         || !effect.rtpcs?.length
         || effect.state?.properties?.length
         || effect.state?.groups?.length

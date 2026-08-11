@@ -312,7 +312,9 @@ channels keeps the complete effect chain audible and dry. Parametric EQ
 parameters 1 and 7 in this corpus are driven by Wwise Modulator objects, not
 Game Parameters. They remain unsupported until the resource layer exposes the
 corresponding HIRC modulator records and runtime-audio owns a voice-local
-modulator lifecycle.
+modulator lifecycle. A low-level custom voice descriptor that supplies
+`rtpcCurves` without its live source-effect RTPC reader also keeps the complete
+chain dry instead of applying a stale static base.
 
 Qualified Flanger records are also retained as authored base records. They use
 the independent `wwiseModulation: "approximate-web-audio"` opt-in; strict mode
