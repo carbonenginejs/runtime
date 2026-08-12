@@ -113,6 +113,28 @@ function CreateFetch(values, calls)
     };
 }
 
+test("remote audio client retains the browser Fetch receiver", async () =>
+{
+    const fetch = function(url)
+    {
+        assert.equal(this, globalThis);
+        assert.equal(url, "https://audio.test/media.wem");
+
+        return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers({
+                "content-type": "audio/x-wem",
+            }),
+            arrayBuffer: async () => Uint8Array.from([ 1, 2, 3 ]).buffer,
+        });
+    };
+    const client = new CjsAudioLibrary({ fetch });
+    const result = await client.Read("https://audio.test/media.wem");
+
+    assert.deepEqual([ ...new Uint8Array(result.bytes) ], [ 1, 2, 3 ]);
+});
+
 test("remote audio client returns caller-owned builder inputs", async () =>
 {
     const fileIndex = CreateFileIndexLibrary();

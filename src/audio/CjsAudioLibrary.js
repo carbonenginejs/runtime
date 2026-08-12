@@ -38,7 +38,9 @@ export class CjsAudioLibrary
             );
         }
 
-        this.#fetch = fetch;
+        // Native Window.fetch is receiver-sensitive in Chromium. Retain the
+        // browser global when the client invokes a stored Fetch capability.
+        this.#fetch = fetch.bind(globalThis);
         this.#fileIndex = fileIndex;
         this.#requestInit = requestInit;
     }
