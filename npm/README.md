@@ -11,8 +11,10 @@ JavaScript convenience ideas.
 
 The package provides the SOF data surface, a map-backed
 `EveSOFDataMgr`, Carbon DNA parsing and validation through `EveSOFDNA`, and a
-deterministic `EveSOF.BuildFromDNA` builder. The builder emits a versioned
-`carbon.document` graph that hydrates through `runtime-trinity`. Current output
+deterministic `EveSOF.BuildFromDNA` builder. The builder emits plain model
+values, and a versioned `carbon.document` graph for compatibility and
+diagnostics; both are JSON, and producing either requires no class library.
+Current output
 includes multi-hull bounds and locators, the space-object type and core flags,
 `Tr2Mesh`, routed mesh areas, shader parameters/resources, pattern masks,
 custom masks, transparent depth clones, decal sets, and CPU-side impact overlay
@@ -104,29 +106,39 @@ The public turret material entry points support both direct faction selection
 and full parent DNA, including Carbon's faction material-slot remap and
 const-parameter-first update behavior.
 
-Plain model values are the recommended SOF boundary:
+Plain model values are the SOF boundary:
 `BuildValues`/`BuildValuesAsync`/`BuildValuesFromDNA`/`BuildValuesFromDNAAsync`
-hydrate the built graph and return the root's
-`GetValues({ refs: true, typeTags: true })` — one nested JSON-serializable
-value with `_type` on polymorphic nodes and `_id`/`_ref` only for genuinely
-shared identity, no node table or `raw` payloads. Callers supply the class
-registry (`options.registry`, e.g.
-`CjsClassRegistry.fromMaps({ constructors: runtimeTrinityModule })`), keeping
-runtime-sof free of a runtime-trinity dependency. Hydrate the result with
-`RootClass.from(values)` against the same registry; parity tests prove the
-values-hydrated and document-hydrated graphs export identically, including a
-shared-reference graph and a graph carrying the remaining deferred audio
-record.
+return one nested JSON-serializable value with `_type` on polymorphic nodes and
+`_id`/`_ref` only for genuinely shared identity, and no node table, `kind`,
+`fields` or `raw` payload.
+
+**Pass no class registry.** runtime-sof emits JSON, and JSON does not need the
+classes it names, so the projection constructs nothing and imports nothing —
+which is what keeps this package free of runtime-trinity in fact rather than
+only in its manifest. A registry parameter here would reintroduce the round trip
+this package deliberately removed.
+
+Building real objects is the caller's choice, performed on the result:
+`RootClass.from(values)` against whatever classes that caller has. Objects are
+built *from* the values, never in order to produce them. The output is sparse —
+it carries what SOF set, and class defaults are applied by whoever constructs.
+
+Parity tests prove the constructed graph exports identically to the
+document-hydrated one, including a shared-reference graph and the audio emitter,
+and a further test asserts that values build with nothing supplied at all.
 
 The explicit `carbon.document` output (`BuildFromDNA`) remains available as
 the compatibility/diagnostic graph format. Consumers that hydrate documents
 pass `createSofHydrationAdapter()`, which now carries only the per-kind
-Initialize lifecycle (what `CjsModel.from` performs on the values path) and
-one deliberately retained private record: `sofAudioEmitterSetup`, the
-deferred audio-emitter construction intent, which stays document-only until
-the pure-data audio graph package exists. Observer placement itself is
-ordinary declared data and appears in values output. The emitted animation
-document preserves the complete curve and binding graph.
+Initialize lifecycle (what `CjsModel.from` performs on the values path).
+
+No `raw` payload is written any more. The audio emitter was the last one: it
+used to be a deferred `sofAudioEmitterSetup` construction record, because no
+audio model could be named without dragging WebAudio in. `runtime-audio/trinity`
+is that model now, so the emitter is an ordinary declared `AudEmitter` node in
+`TriObserverLocal.observer`, present in both outputs, and the values graph is a
+complete rebuild source. The emitted animation document preserves the complete
+curve and binding graph.
 Texture path inserts remain
 deterministic and GPU-free through an optional synchronous resource-existence
 resolver. Compatibility limits and remaining verification work are called out
@@ -266,10 +278,12 @@ the corresponding effects on the factory instance and shares them across
 builds; no operational incompatibility is known while those effects remain
 immutable.
 
-At runtime-sof revision `68fb735` on 2026-07-31, lint passed and all 121 tests
-ran and passed with the sibling runtime-trinity build present. Nine hydration
-tests are currently conditional on that sibling build, so a standalone run can
-silently exercise a smaller integration surface.
+At runtime-sof revision `b3ccd08` on 2026-08-12, all 122 tests ran and passed
+with the sibling runtime-trinity build present. Nine hydration tests remain
+conditional on that sibling build, so a standalone run exercises a smaller
+integration surface — but the values path is no longer among them: it is now
+covered by a test that supplies nothing at all, which is what proves this
+package needs no class library.
 
 ### Planned
 
