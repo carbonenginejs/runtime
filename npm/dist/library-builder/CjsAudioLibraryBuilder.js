@@ -5315,6 +5315,7 @@ function createMusicEventProjection(inspections, metadata, nodes) {
   const switchSetters = {};
   const programs = {};
   const musicGroups = MusicArgumentGroups(nodes);
+  const eventsWithOtherActions = new Set();
   for (const inspection of inspections) {
     const actionsByID = new Map();
     const eventsByID = new Map();
@@ -5331,7 +5332,13 @@ function createMusicEventProjection(inspections, metadata, nodes) {
         continue;
       }
       const actionIDs = eventActionIDs(event);
-      const programLength = programs[name]?.length ?? 0;
+      if (actionIDs.some(actionID => {
+        const candidate = actionsByID.get(actionID);
+        const family = candidate ? actionFields(candidate).actionType >> 8 & 0xff : null;
+        return family !== 0x02 && family !== 0x03;
+      })) {
+        eventsWithOtherActions.add(name);
+      }
       for (const actionID of actionIDs) {
         const action = actionsByID.get(actionID);
         if (!action) {
@@ -5360,17 +5367,13 @@ function createMusicEventProjection(inspections, metadata, nodes) {
           program.push(playbackControl);
         }
       }
-      if ((programs[name]?.length ?? 0) > programLength && actionIDs.some(actionID => {
-        const candidate = actionsByID.get(actionID);
-        const family = candidate ? actionFields(candidate).actionType >> 8 & 0xff : null;
-        return family !== 0x02 && family !== 0x03;
-      })) {
-        throw new Error(`unsupported ordered Music action mix ${name}`);
-      }
     }
   }
   const roots = new Set(Object.values(eventTargets).flat().map(String));
   for (const [name, actions] of Object.entries(programs)) {
+    if (eventsWithOtherActions.has(name)) {
+      throw new Error(`unsupported ordered Music action mix ${name}`);
+    }
     programs[name] = actions.filter(action => action.mode === "all" || roots.has(action.targetId));
     if (!programs[name].length) {
       delete programs[name];

@@ -1076,6 +1076,54 @@ test("music playback controls reject an unordered Play and Pause mixture", () =>
         }),
         /unsupported ordered Music action mix mixed/u,
     );
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createMusicEventProjection({
+            inspections: [
+                {
+                    hirc: [
+                        {
+                            typeName: "event-action",
+                            id: 20,
+                            actionType: 0x0c02,
+                            targetId: 500,
+                        },
+                        {
+                            typeName: "event",
+                            id: 200,
+                            actionIds: [ 20 ],
+                        },
+                    ],
+                },
+                {
+                    hirc: [
+                        {
+                            typeName: "event-action",
+                            id: 21,
+                            actionType: 0x0203,
+                            targetId: 1000,
+                            action: {
+                                targetFlags: 0,
+                                actionFlags: 7,
+                                actionMode: "element",
+                                actionScope: "game-object",
+                                fadeCurve: 4,
+                                transitionTimeMs: 0,
+                            },
+                        },
+                        {
+                            typeName: "event",
+                            id: 200,
+                            actionIds: [ 21 ],
+                        },
+                    ],
+                },
+            ],
+            metadata: { Events: { mixed: { eventID: 200 } } },
+            nodes: { "1000": { type: "music-segment" } },
+        }),
+        /unsupported ordered Music action mix mixed/u,
+        "ignored action families remain barriers across bank fragments",
+    );
 });
 
 test("typed runtime-resource SFX nodes lower into the portable builder graph", () =>
