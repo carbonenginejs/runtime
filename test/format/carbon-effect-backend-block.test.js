@@ -12,11 +12,14 @@ import {
     writeEffectDescription
 } from "../../src/format/carbonEffect/carbonEffectRecords.js";
 import {
-    CARBON_EFFECT_BACKEND_BLOCK_VERSION,
     DETAIL_MAP_ARRAY_DEFAULTS,
     readBackendBlock,
     writeBackendBlock
 } from "../../src/format/carbonEffect/carbonEffectBackendBlock.js";
+import {
+    CARBON_BACKEND_ENGINE_ID,
+    peekBackendEngineId
+} from "../../src/format/carbonEffect/backendEngineId.js";
 import { CjsCarbonEffectReader } from "../../src/format/carbonEffect/CjsCarbonEffectReader.js";
 import { CjsCarbonEffectWriter } from "../../src/format/carbonEffect/CjsCarbonEffectWriter.js";
 import { buildSyntheticDescription, SYNTHETIC_PERMUTATIONS } from "./carbonEffectSynthetic.js";
@@ -83,8 +86,6 @@ test("a backend block round-trips every stored field", () =>
 {
     const parsed = readBackendBlock(writeBackendBlock(sampleBlock()), { layoutKey: "Main.pass0" });
 
-    assert.equal(parsed.version, CARBON_EFFECT_BACKEND_BLOCK_VERSION);
-    assert.equal(parsed.unsupported, false);
     assert.equal(parsed.trailingBytes, 0);
     assert.equal(parsed.bindGroups.length, 1);
 
@@ -183,32 +184,39 @@ test("identical blocks dedupe in the arena the way program source does", () =>
     assert.equal(table.entryCount, 1);
 });
 
-test("a same-version block with a trailing tail is rejected, not silently truncated", () =>
+test("a block with a trailing tail is rejected, not silently truncated", () =>
 {
-    // Version skew without a version bump: a newer writer added a field and did
-    // not raise blobVersion. Discarding the tail would parse clean and lose data.
+    // A newer writer added a field. With no version byte this is the ONLY signal
+    // that a block came from a different build, so the check is load-bearing:
+    // discarding the tail would parse clean and lose data.
     const bytes = writeBackendBlock(sampleBlock());
     const padded = new Uint8Array(bytes.length + 3);
     padded.set(bytes, 0);
 
     assert.throws(
         () => readBackendBlock(padded),
-        /Backend block has 3 unparsed trailing byte\(s\) at version 1/
+        /Backend block has 3 unparsed trailing byte\(s\); rebuild the effect package/
     );
 
     // And the exact-length case still reports a clean landing.
     assert.equal(readBackendBlock(bytes).trailingBytes, 0);
 });
 
-test("a newer block version is skipped rather than misparsed", () =>
+test("the leading byte identifies the target engine, and a mismatch is fatal", () =>
 {
+    // This byte was once called a version and emitted 1, while the WebGL2 block
+    // also emitted 1 meaning something unrelated - so it could not do its one
+    // job. It is an engine identifier: parsing a WebGL2 block as WebGPU must
+    // fail loudly rather than misread structurally valid bytes.
     const bytes = Uint8Array.from(writeBackendBlock(sampleBlock()));
-    bytes[0] = CARBON_EFFECT_BACKEND_BLOCK_VERSION + 1;
+    assert.equal(bytes[0], CARBON_BACKEND_ENGINE_ID.webgpu);
 
-    const parsed = readBackendBlock(bytes);
-    assert.equal(parsed.unsupported, true);
-    assert.deepEqual(parsed.bindGroups, []);
-    assert.deepEqual(parsed.transforms, []);
+    bytes[0] = CARBON_BACKEND_ENGINE_ID.webgl2;
+    assert.throws(() => readBackendBlock(bytes), /declares type 1 \(webgl2\) but was parsed as webgpu/u);
+
+    // Zero-filled or truncated data must never read as a valid backend.
+    bytes[0] = CARBON_BACKEND_ENGINE_ID.invalid;
+    assert.throws(() => readBackendBlock(bytes), /invalid/u);
 });
 
 test("the block rejects values outside its enums", () =>
@@ -361,4 +369,27 @@ test("the container reader honours the backend gate", () =>
         reader.readDescription(0).techniques[0].passes[0].backendBlock.bytes,
         resolved.bytes
     );
+});
+
+test("a foreign engine id is absent data at the container, not a failed load", () =>
+{
+    // Loading must never depend on being able to USE a backend block. CCP's own
+    // dx11, dx12 and metal containers are Carbon-shaped and carry no block at
+    // all, and they must load here even though nothing in this library can
+    // execute their programs. A sibling backend's block is the same case: not
+    // for this engine, not corrupt.
+    //
+    // So the container peeks and skips; only a caller that has committed to
+    // parsing a specific backend gets the hard error.
+    const bytes = Uint8Array.from(writeBackendBlock(sampleBlock()));
+
+    assert.equal(peekBackendEngineId(bytes), CARBON_BACKEND_ENGINE_ID.webgpu);
+
+    bytes[0] = CARBON_BACKEND_ENGINE_ID.webgl2;
+    assert.equal(peekBackendEngineId(bytes), CARBON_BACKEND_ENGINE_ID.webgl2);
+    assert.notEqual(peekBackendEngineId(bytes), CARBON_BACKEND_ENGINE_ID.webgpu);
+
+    // An empty or truncated block never reads as a usable backend.
+    assert.equal(peekBackendEngineId(new Uint8Array(0)), CARBON_BACKEND_ENGINE_ID.invalid);
+    assert.equal(peekBackendEngineId(null), CARBON_BACKEND_ENGINE_ID.invalid);
 });

@@ -4,6 +4,7 @@ import { looksLikeCarbonEffectContainer, CjsCarbonEffectReader } from '../../../
 import '../../../../format/carbonEffect/CjsCarbonEffectWriter.js';
 import { WGSL_ENTRY_POINT } from '../buildCarbonEffectContainer.js';
 import { sha256Bytes } from '../../../../format/effect/sha256.js';
+import { peekBackendEngineId, CARBON_BACKEND_ENGINE_ID } from '../../../../format/carbonEffect/backendEngineId.js';
 import { deriveBackendBodySet } from './containerViews.js';
 
 /**
@@ -286,7 +287,15 @@ class CarbonWebgpuContainer {
           }));
         }
         if (!shaders.length) continue;
-        const block = pass.backendBlock && pass.backendBlock.size !== 0 ? readBackendBlock(pass.backendBlock.bytes, {
+
+        // A block belonging to another backend reads as absent, not as a
+        // failure. The container is Carbon-shaped whatever it targets, so
+        // loading must not depend on being able to use its programs - a
+        // dx11 container carries no block at all and still loads, and a
+        // WebGL2 block met here means "not for this engine". Prepare is
+        // where the backend actually matters.
+        const blockBytes = pass.backendBlock && pass.backendBlock.size !== 0 ? pass.backendBlock.bytes : null;
+        const block = blockBytes && peekBackendEngineId(blockBytes) === CARBON_BACKEND_ENGINE_ID.webgpu ? readBackendBlock(blockBytes, {
           layoutKey: passKey,
           source: this.sourcePath || "CARBON_WEBGPU"
         }) : null;

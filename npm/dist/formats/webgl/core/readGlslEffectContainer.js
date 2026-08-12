@@ -1,5 +1,6 @@
 import { CjsCarbonEffectReader } from '../../../format/carbonEffect/CjsCarbonEffectReader.js';
 import { readGlslBackendBlock } from './glslBackendBlock.js';
+import { peekBackendEngineId, CARBON_BACKEND_ENGINE_ID } from '../../../format/carbonEffect/backendEngineId.js';
 import { hlslShaderStageName } from '../../hlsl/core/tr2/HlslRenderContextEnum.js';
 import { runtimeDescriptionFromCarbon } from '../../hlsl/core/carbonDescriptionToRuntime.js';
 import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';
@@ -80,6 +81,20 @@ function backendStages(pass, passKey, source) {
     stages: {},
     transforms: []
   };
+
+  // A block belonging to another backend is not an error here. The container
+  // is Carbon-shaped whatever it targets, and loading it must not depend on
+  // being able to use its programs - a dx11 container loads and simply cannot
+  // be executed by this library. Report no backend data and let prepare fail
+  // where the backend actually matters.
+  const engineId = peekBackendEngineId(pass.backendBlock.bytes);
+  if (engineId !== CARBON_BACKEND_ENGINE_ID.webgl2) {
+    return {
+      stages: {},
+      transforms: [],
+      foreignEngineId: engineId
+    };
+  }
   const block = readGlslBackendBlock(pass.backendBlock.bytes, {
     layoutKey: passKey,
     source

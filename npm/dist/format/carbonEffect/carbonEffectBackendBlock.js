@@ -1,6 +1,7 @@
 import { CjsByteWriter } from '../CjsByteWriter.js';
 import { CjsByteReader } from '../CjsByteReader.js';
 import { CjsFormatReadError, CjsFormatWriteError } from '../CjsFormatError.js';
+import { readBackendEngineId, CARBON_BACKEND_ENGINE_ID } from './backendEngineId.js';
 import { readInlineString, readTransformSection, writeInlineString, writeTransformSection } from './carbonEffectResourceTransform.js';
 export { CARBON_BACKEND_TRANSFORM_FAMILY, DETAIL_MAP_ARRAY_DEFAULTS } from './carbonEffectResourceTransform.js';
 
@@ -38,8 +39,20 @@ export { CARBON_BACKEND_TRANSFORM_FAMILY, DETAIL_MAP_ARRAY_DEFAULTS } from './ca
  * The block itself is what dedupes, and it dedupes 30x.
  */
 
-/** Current block version. Bump when a field is added; readers may skip unknown. */
-const CARBON_EFFECT_BACKEND_BLOCK_VERSION = 1;
+/**
+ * The leading byte is the TARGET ENGINE IDENTIFIER, not a version.
+ *
+ * It was called CARBON_EFFECT_BACKEND_BLOCK_VERSION and emitted 1, while the
+ * WebGL2 writer also emitted 1 meaning something unrelated - so the byte could
+ * not do the one job it was there for. Renamed to what it is, and given a
+ * distinct value per backend, it identifies the block.
+ *
+ * Carbon container version remains the only version. Nothing stores this block:
+ * a consumer builds one and reads it back in the same process, so a block from
+ * a different build is caught by the trailing-byte check at the end of the read.
+ *
+ * Authority: /docs/architecture/effect-read-path.md, the block identifies itself.
+ */
 
 /**
  * Resource kinds, ordered so the wire value is stable
@@ -186,7 +199,7 @@ function writeBackendBlock(block) {
   const bindGroups = block.bindGroups ?? [];
   const transforms = block.transforms ?? [];
   const writer = new CjsByteWriter(256);
-  writer.u8(CARBON_EFFECT_BACKEND_BLOCK_VERSION);
+  writer.u8(CARBON_BACKEND_ENGINE_ID.webgpu);
   writer.u8(bindGroups.length);
   for (const group of bindGroups) {
     writer.u8(group.group);
@@ -230,18 +243,7 @@ function readBackendBlock(bytes, options = {}) {
     source: options.source ?? "backend block"
   });
   const layoutKey = options.layoutKey ?? null;
-  const version = reader.readUint8();
-  if (version > CARBON_EFFECT_BACKEND_BLOCK_VERSION) {
-    // Forward compatibility: an unknown block version means a newer writer
-    // added fields. Report the pass as having no backend data rather than
-    // misparsing it; the enclosing `{size, offset}` pair makes it skippable.
-    return {
-      version,
-      unsupported: true,
-      bindGroups: [],
-      transforms: []
-    };
-  }
+  readBackendEngineId(reader, CARBON_BACKEND_ENGINE_ID.webgpu, options.source ?? "backend block");
   const bindGroups = [];
   const groupCount = reader.readUint8();
   for (let groupIndex = 0; groupIndex < groupCount; groupIndex += 1) {
@@ -293,23 +295,21 @@ function readBackendBlock(bytes, options = {}) {
   }
   const transforms = readTransformSection(reader, layoutKey);
 
-  // A sized record parsed at a known version must land exactly on its declared
-  // end. Trailing bytes mean the writer knew fields this reader does not — the
-  // same skew an unknown `blobVersion` reports, arriving without a version bump.
+  // A sized record must land exactly on its declared end. Trailing bytes mean
+  // the writer knew fields this reader does not, which with no version byte is
+  // the ONLY signal that a block came from a different build - so this check is
+  // load-bearing rather than defensive.
   // This is the only surviving form of a closed-schema check: under a record
   // layout a field either exists at its offset or the read fails, so there is
   // nothing per-field left to assert, but exhaustiveness is still checkable and
   // is exactly what a silently-discarded tail would violate.
   if (reader.remaining !== 0) {
-    throw new CjsFormatReadError(`Backend block has ${reader.remaining} unparsed trailing byte(s) at version ${version}`, {
+    throw new CjsFormatReadError(`Backend block has ${reader.remaining} unparsed trailing byte(s); rebuild the effect package`, {
       source: options.source ?? "backend block",
-      version,
       trailingBytes: reader.remaining
     });
   }
   return {
-    version,
-    unsupported: false,
     layoutKey,
     bindGroups,
     transforms,
@@ -317,5 +317,5 @@ function readBackendBlock(bytes, options = {}) {
   };
 }
 
-export { CARBON_BACKEND_RESOURCE_KIND, CARBON_BACKEND_VISIBILITY, CARBON_EFFECT_BACKEND_BLOCK_VERSION, readBackendBlock, writeBackendBlock };
+export { CARBON_BACKEND_RESOURCE_KIND, CARBON_BACKEND_VISIBILITY, readBackendBlock, writeBackendBlock };
 //# sourceMappingURL=carbonEffectBackendBlock.js.map

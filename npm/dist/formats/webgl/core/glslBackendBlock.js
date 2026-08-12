@@ -2,6 +2,7 @@ import { CjsByteWriter } from '../../../format/CjsByteWriter.js';
 import { CjsByteReader } from '../../../format/CjsByteReader.js';
 import { CjsFormatReadError, CjsFormatWriteError } from '../../../format/CjsFormatError.js';
 import { readInlineString, readTransformSection, writeInlineString, writeTransformSection } from '../../../format/carbonEffect/carbonEffectResourceTransform.js';
+import { readBackendEngineId, CARBON_BACKEND_ENGINE_ID } from '../../../format/carbonEffect/backendEngineId.js';
 import { DxbcComponentTypeNames } from '../../dxbc/core/signature.js';
 import { DxbcResourceDimensionNames } from '../../dxbc/core/decoder.js';
 
@@ -17,11 +18,10 @@ import { DxbcResourceDimensionNames } from '../../dxbc/core/decoder.js';
  * synthesised data textures and UBOs, the vertex attribute ABI, and the recipe
  * for running a compute shader as a fragment pass.
  *
- * The two codecs version independently, and that is safe: which one parses a
- * given block is decided by the resource path the file came from, the same way
- * the backend itself is chosen. Nothing has to sniff. This one is at version 2
- * and reads only version 2 — see the version constant for why it carries no
- * backward-compatible path.
+ * Which one parses a given block is decided by the resource path the file came
+ * from, the same way the backend itself is chosen — so nothing has to sniff.
+ * The leading engine identifier then confirms that decision rather than
+ * replacing it, and disagreement is a hard error.
  *
  * ## Why identifiers are on the wire
  *
@@ -54,7 +54,12 @@ import { DxbcResourceDimensionNames } from '../../dxbc/core/decoder.js';
  */
 
 /**
- * ## This block carries no version of its own
+ * ## This block identifies itself, and carries no version of its own
+ *
+ * The first byte is `CARBON_BACKEND_ENGINE_ID.webgl2`. Until it existed, this
+ * writer and the WebGPU one both led with a `1` meaning unrelated things, so a
+ * block could not say what it was and identification relied on the caller
+ * already knowing.
  *
  * **Carbon's container version is the only version.** An independent counter
  * here would be a second versioning axis over the same bytes, and the two would
@@ -459,6 +464,7 @@ function readComputeFragment(reader) {
 function writeGlslBackendBlock(block) {
   const stages = block.stages ?? {};
   const writer = new CjsByteWriter(256);
+  writer.u8(CARBON_BACKEND_ENGINE_ID.webgl2);
 
   // Canonical stage order, not object insertion order: two passes with the
   // same lowering must produce the same bytes so the arena dedupes them.
@@ -518,10 +524,12 @@ function readGlslBackendBlock(bytes, options = {}) {
   });
   const layoutKey = options.layoutKey ?? null;
 
-  // No version byte is read, because none is written: Carbon's container
-  // version is the only version. A block whose shape does not match this build
-  // fails on the trailing-byte check below rather than being detected here,
-  // and the fix for that is to rebuild the package, never to add a branch.
+  // Identity, then straight into the payload: no version byte is read because
+  // none is written. Carbon's container version is the only version, and a
+  // block whose shape does not match this build fails on the trailing-byte
+  // check below - the fix for which is to rebuild the package, never to add a
+  // branch.
+  readBackendEngineId(reader, CARBON_BACKEND_ENGINE_ID.webgl2, options.source ?? "glsl backend block");
   const stages = {};
   const stageCount = reader.readUint8();
   for (let index = 0; index < stageCount; index += 1) {
