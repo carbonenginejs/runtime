@@ -33,9 +33,9 @@ import { DxbcResourceDimensionNames } from "../../dxbc/core/decoder.js";
  *
  * ## Why identifiers are on the wire
  *
- * `docs/contracts/constant-buffer-slots.md` establishes that a constant buffer's
- * register index is its meaning, and that identifiers are positional. That is
- * true of the *contract* but not sufficient to derive a name here: the pixel
+ * A constant buffer's register index is its meaning, and identifiers are
+ * positional. That is true of the *contract* but not sufficient to derive a
+ * name here: the pixel
  * stage remaps slot 0 to `cb7` (`DxbcGlslEmitter.js`, `pixelConstantBufferRemap`),
  * so an identifier is a function of register **and stage**, through a profile
  * table. A reader deriving names would be re-implementing the emitter's naming
@@ -90,8 +90,9 @@ import { DxbcResourceDimensionNames } from "../../dxbc/core/decoder.js";
  * Why the pairing is here at all: D3D pairs a texture with a sampler at each
  * sample site, GLSL merges the two into one uniform, and Carbon's reflection
  * relates them nowhere. A consumer without this field can only match `t#`
- * against `s#` by number, which is coincidence — see
- * `/docs/contracts/texture-sampler-pairing.md`.
+ * against `s#` by number, which is coincidence: with two pattern samplers
+ * declared, `NormalMap` at t3 collides with the clamp sampler at s3 and every
+ * hull reads its normal map clamped instead of wrapped.
  */
 
 /**

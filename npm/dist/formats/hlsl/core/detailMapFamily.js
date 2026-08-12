@@ -17,7 +17,7 @@
  * The WebGL 2 motivation is a hard limit rather than tidiness: the affected
  * shaders sit at exactly 16 textures against a 16-unit guarantee, so merging
  * three maps into one is what creates the headroom lighting needs. See
- * docs/contracts/webgl2-texture-budget.md.
+ * the WebGL2 sampler-unit limit of 16.
  */
 
 /** Resource names that make up the family, in layer order. */

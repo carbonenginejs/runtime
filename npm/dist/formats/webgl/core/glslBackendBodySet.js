@@ -74,7 +74,6 @@ function unitSignature(unit) {
  * depends on the register *and* the stage, through a profile table. Deriving it
  * downstream would re-implement that policy, and a divergence would show up as a
  * uniform that never binds rather than as an error.
- * See docs/contracts/constant-buffer-slots.md.
  *
  * @param {object} shader Translated shader record.
  * @returns {object|null} Stage block data, or null when the stage adds nothing.

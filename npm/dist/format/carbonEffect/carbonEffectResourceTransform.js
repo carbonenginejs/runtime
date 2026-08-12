@@ -9,7 +9,7 @@ import { CjsFormatReadError, CjsFormatWriteError } from '../CjsFormatError.js';
  * that decision is about the *resources*, not about WGSL or GLSL. Both backends
  * want the identical merge, for different reasons - WebGPU to reduce binding
  * churn, WebGL 2 because the family otherwise needs 17 texture units against a
- * limit of 16 (docs/contracts/webgl2-texture-budget.md).
+ * limit of 16.
  *
  * So the section lives here rather than in either backend's block codec, and the
  * two codecs compose it. A transform written by one backend decodes identically

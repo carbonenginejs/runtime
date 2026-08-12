@@ -1,4 +1,4 @@
-import { CjsFormatReadError } from "../CjsFormatError.js";
+import { CjsFormatReadError } from '../CjsFormatError.js';
 
 /**
  * Which backend a per-pass block belongs to.
@@ -23,18 +23,16 @@ import { CjsFormatReadError } from "../CjsFormatError.js";
  * and none of that is derivable from the shader.
 
  */
-export const CARBON_BACKEND_ENGINE_ID = Object.freeze({
-    invalid: 0,
-    webgl2: 1,
-    webgpu: 2,
-    webgl1: 3,
-    opengl: 4
+const CARBON_BACKEND_ENGINE_ID = Object.freeze({
+  invalid: 0,
+  webgl2: 1,
+  webgpu: 2,
+  webgl1: 3,
+  opengl: 4
 });
 
 /** Wire value to name, for error messages. */
-const TYPE_NAMES = Object.freeze(
-    Object.fromEntries(Object.entries(CARBON_BACKEND_ENGINE_ID).map(([ name, value ]) => [ value, name ]))
-);
+const TYPE_NAMES = Object.freeze(Object.fromEntries(Object.entries(CARBON_BACKEND_ENGINE_ID).map(([name, value]) => [value, name])));
 
 /**
  * Reads a block's engine id without consuming it or validating it.
@@ -53,9 +51,8 @@ const TYPE_NAMES = Object.freeze(
  * @param {Uint8Array} bytes Block bytes.
  * @returns {number} The declared engine id, or `invalid` when unreadable.
  */
-export function peekBackendEngineId(bytes)
-{
-    return bytes && bytes.length ? bytes[0] : CARBON_BACKEND_ENGINE_ID.invalid;
+function peekBackendEngineId(bytes) {
+  return bytes && bytes.length ? bytes[0] : CARBON_BACKEND_ENGINE_ID.invalid;
 }
 
 /**
@@ -85,18 +82,17 @@ export function peekBackendEngineId(bytes)
  * @param {string} source Source name for error details.
  * @returns {number} The type that was read.
  */
-export function readBackendEngineId(reader, expected, source)
-{
-    const type = reader.readUint8();
-
-    if (type !== expected)
-    {
-        throw new CjsFormatReadError(
-            `Backend block declares type ${type} (${TYPE_NAMES[type] ?? "unknown"}) `
-            + `but was parsed as ${TYPE_NAMES[expected]}`,
-            { source, type, expected }
-        );
-    }
-
-    return type;
+function readBackendEngineId(reader, expected, source) {
+  const type = reader.readUint8();
+  if (type !== expected) {
+    throw new CjsFormatReadError(`Backend block declares type ${type} (${TYPE_NAMES[type] ?? "unknown"}) ` + `but was parsed as ${TYPE_NAMES[expected]}`, {
+      source,
+      type,
+      expected
+    });
+  }
+  return type;
 }
+
+export { CARBON_BACKEND_ENGINE_ID, peekBackendEngineId, readBackendEngineId };
+//# sourceMappingURL=backendEngineId.js.map

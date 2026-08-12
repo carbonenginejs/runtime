@@ -13,7 +13,7 @@
  * fixed — one permutation binds the family at t11/t12/t13 and another at
  * t13/t14/t15 — so this is name-driven and must stay that way.
  *
- * See docs/contracts/webgl2-texture-budget.md for why the two units matter.
+ * Those two sampler units matter against the WebGL2 limit of 16.
  */
 
 /** The structured buffers, both required for the family to be recognised. */

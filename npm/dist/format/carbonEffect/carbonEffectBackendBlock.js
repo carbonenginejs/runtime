@@ -51,7 +51,8 @@ export { CARBON_BACKEND_TRANSFORM_FAMILY, DETAIL_MAP_ARRAY_DEFAULTS } from './ca
  * a consumer builds one and reads it back in the same process, so a block from
  * a different build is caught by the trailing-byte check at the end of the read.
  *
- * Authority: /docs/architecture/effect-read-path.md, the block identifies itself.
+ * The identifier is shared with the WebGL2 block rather than duplicated, so the
+ * two cannot drift into meaning the same number again.
  */
 
 /**

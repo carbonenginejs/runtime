@@ -393,7 +393,7 @@ function normalizeOptions(input, options)
         // bit 0, so the shader's own guard skips the lookup for every light. A
         // dropped profile is therefore observationally identical today and a
         // real loss only once profile indices are written.
-        // See /docs/contracts/carbon-light-data.md.
+        // Revisit when a profile index is actually written to those bits.
         lightProfile: normalizeLightProfileMode(options.lightProfile),
         emitterOptions: { ...(options.emitterOptions ?? {}) }
     };
