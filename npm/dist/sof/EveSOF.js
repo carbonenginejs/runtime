@@ -410,10 +410,16 @@ class EveSOF extends CjsModel {
    * document hydration tests build with `CjsClassRegistry.fromMaps`).
    * `options.values` may override the GetValues export options.
    *
-   * Deliberate omission: deferred audio construction intent
-   * (`sofAudioEmitterSetup`) stays private to the explicit carbon.document
-   * path until the pure-data audio graph package exists; observer placement
-   * itself is ordinary declared data and is included.
+   * There is no longer an omission here. The audio emitter used to stay
+   * private to the explicit carbon.document path, as a descriptor in a node's
+   * `raw` bag, because no audio model could be named without dragging WebAudio
+   * in. `runtime-audio/trinity` is that model now, so the emitter is an
+   * ordinary declared `AudEmitter` node in `TriObserverLocal.observer` and this
+   * output is a complete rebuild source.
+   *
+   * A registry must therefore resolve `AudEmitter`. Compose it from
+   * runtime-trinity AND `@carbonenginejs/runtime-audio/trinity`, which is
+   * data-only and creates no AudioContext.
    */
   BuildValuesFromDNA(dnaString, options = {}) {
     const document = this.BuildFromDNA(dnaString, options);
@@ -1208,19 +1214,28 @@ class EveSOF extends CjsModel {
       const position = vec3.transformMat4(vec3.create(), arrayValue(emitter.position, [0, 0, 0]), arrayValue(parentOffset, identityMatrix()));
       const rotation = quat.multiply(quat.create(), parentRotation, arrayValue(emitter.rotation, [0, 0, 0, 1]));
       const front = vec3.transformQuat(vec3.create(), [0, 0, 1], rotation);
+      // The emitter is a declared node in the observer's own `observer` slot,
+      // not a descriptor hidden beside it. TriObserverLocal exists to hold "an
+      // audio or placement observer" and forwards placement to it through
+      // `observer.UpdatePlacement`, so this is the field the class was written
+      // for; leaving it null and stashing a class name in `raw` described the
+      // graph instead of being it.
+      //
+      // This emits a declarative identity and constructs nothing. Building the
+      // live emitter remains runtime-audio's alone, which is what
+      // ../docs/architecture/class-ownership.md permits a producer to carry.
+      // The node also keeps runtime-sof standalone: no audio import is needed
+      // to name a node any more than to name a Trinity one.
       rootFields.observers.push(document.AddNode("TriObserverLocal", {
         name: String(emitter.name ?? ""),
         position: Array.from(position),
         front: Array.from(front),
-        observer: null
-      }, {
-        sofAudioEmitterSetup: {
-          className: "AudEmitter",
+        observer: document.AddNode("AudEmitter", {
           name: String(emitter.name ?? ""),
-          prefix: String(emitter.prefix ?? ""),
+          eventPrefix: String(emitter.prefix ?? ""),
           position: Array.from(position),
-          attenuationScalingFactor: Number(emitter.attenuationScalingFactor ?? 1)
-        }
+          scalingFactor: Number(emitter.attenuationScalingFactor ?? 1)
+        })
       }));
     }
   }

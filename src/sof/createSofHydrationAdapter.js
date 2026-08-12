@@ -24,31 +24,29 @@ const INITIALIZE_KINDS = Object.freeze([
 /**
  * Creates the hydration adapter for the explicit carbon.document path.
  *
- * All SOF-authored state now travels as declared node fields; the adapter's
- * remaining jobs are the per-kind Initialize lifecycle that `CjsModel.from`
- * performs on the values path, and retention of the deferred audio-emitter
- * construction intent (`sofAudioEmitterSetup`), which stays private until the
- * pure-data audio graph package exists.
+ * All SOF-authored state travels as declared node fields, so the adapter's one
+ * remaining job is the per-kind Initialize lifecycle that `CjsModel.from`
+ * performs on the values path.
+ *
+ * It used to carry a second job. The audio emitter was emitted as a plain
+ * descriptor in a node's `raw` bag and lifted out here into a WeakMap, because
+ * there was no audio model that could be named without dragging WebAudio in.
+ * `runtime-audio/trinity` is that model now, the emitter is an ordinary
+ * declared node in `TriObserverLocal.observer`, and the side channel is gone
+ * with it. `raw` consequently has no writer left in this package.
  */
 export function createSofHydrationAdapter()
 {
-  const audioEmitterSetups = new WeakMap();
   return {
     applyValues(instance, values, context)
     {
-      const next = { ...values };
-      if (Object.hasOwn(next, "sofAudioEmitterSetup"))
-      {
-        audioEmitterSetups.set(instance, next.sofAudioEmitterSetup ?? null);
-        delete next.sofAudioEmitterSetup;
-      }
       if (instance && typeof instance.SetValues === "function")
       {
-        instance.SetValues(next, context?.options);
+        instance.SetValues(values, context?.options);
       }
       else
       {
-        Object.assign(instance, next);
+        Object.assign(instance, values);
       }
       return instance;
     },
@@ -59,10 +57,6 @@ export function createSofHydrationAdapter()
         if (typeof instance.Initialize === "function") instance.Initialize();
         else if (typeof instance.Rebuild === "function") instance.Rebuild();
       }
-    },
-    getAudioEmitterSetup(instance)
-    {
-      return audioEmitterSetups.get(instance) ?? null;
     }
   };
 }

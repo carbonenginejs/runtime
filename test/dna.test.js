@@ -34,6 +34,11 @@ import { EveSOFDataHullExtensionBucket } from "../npm/dist/sof/layout/EveSOFData
 import { EveSOFDataLogoSet } from "../npm/dist/sof/shared/EveSOFDataLogoSet.js";
 
 const trinityConsumerEntry = new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url);
+// A SOF document now names an AudEmitter, so a registry built from
+// runtime-trinity alone cannot resolve every node it contains. This entry point
+// is data-only and creates no AudioContext, which is what lets a headless test
+// -- and a headless consumer -- hydrate the audio node without an audio stack.
+const audioTrinityConsumerEntry = new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url);
 
 
 function createData()
@@ -213,7 +218,8 @@ test("EveSOF emits and hydrates Carbon swarm behavior on the EveShip2-derived ro
   }
 
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -989,7 +995,10 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(controlled.fields.animationOwner.$ref, controlled.fields.objects[0].$ref);
   const controlledObserver = referencedNode(document, controlled.fields.observers[0]);
   assert.deepEqual(controlledObserver.fields.position, [1, 0, 20]);
-  assert.equal(controlledObserver.raw.sofAudioEmitterSetup.prefix, "layout_");
+  const controlledEmitter = referencedNode(document, controlledObserver.fields.observer);
+  assert.equal(controlledEmitter.kind, "AudEmitter");
+  assert.equal(controlledEmitter.fields.eventPrefix, "layout_");
+  assert.equal(controlledObserver.raw, undefined);
   const controlledEffect = controlled.fields.objects
     .map(ref => referencedNode(document, ref))
     .find(node => node.fields.name === "layout-effect");
@@ -1032,7 +1041,8 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(damageLocators[1].boneIndex, 15);
 
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -1049,7 +1059,8 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(hydratedControlled.controllers.length, 1);
   assert.equal(hydratedControlled.animationOwner, hydratedControlled.objects[0]);
   assert.equal(hydratedControlled.objects[0].animationUpdater.constructor.name, "Tr2GrannyAnimation");
-  assert.equal(adapter.getAudioEmitterSetup(hydratedControlled.observers[0]).prefix, "layout_");
+  assert.equal(hydratedControlled.observers[0].observer.constructor.name, "AudEmitter");
+  assert.equal(hydratedControlled.observers[0].observer.eventPrefix, "layout_");
   assert.equal(hydratedShared.GetMeshCount(), 1);
   const sharedData = hydratedShared.GetMeshData(0);
   assert.equal(sharedData.instances.length, 2);
@@ -1495,7 +1506,8 @@ test("SOF projects first-hull legacy children, faction visibility, and animation
   assert.equal(root.fields.modelRotationCurve.$ref > 0, true);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -1727,7 +1739,8 @@ test("SOF async builds resolve selected direct documents and existence probes de
   if (existsSync(trinityConsumerEntry))
   {
     const trinity = await import(trinityConsumerEntry);
-    const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+    const audioTrinity = await import(audioTrinityConsumerEntry);
+    const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
     const adapter = createSofHydrationAdapter();
     const hydrated = CjsDocumentHydrator.hydrate(asyncDocument, { registry, adapter });
     assert.deepEqual(hydrated.reports, []);
@@ -2106,7 +2119,8 @@ test("SOF imports complete child carbon.document fragments with remapped refs", 
   assert.deepEqual(importedRoot.fields.translation, [9, 8, 7]);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const hydrated = CjsDocumentHydrator.hydrate(document, {
     registry,
     adapter: createSofHydrationAdapter(),
@@ -2208,13 +2222,17 @@ test("SOF emits first-hull audio, filtered controllers, and model curve resource
   assert(Math.abs(observer.fields.front[0]) < 1e-6);
   assert(Math.abs(observer.fields.front[1]) < 1e-6);
   assert(Math.abs(observer.fields.front[2] + 1) < 1e-6);
-  assert.deepEqual(observer.raw.sofAudioEmitterSetup, {
-    className: "AudEmitter",
+  // The emitter is a declared node in the observer's own slot, and `raw` has no
+  // writer left in this package.
+  const emitter = referencedNode(document, observer.fields.observer);
+  assert.equal(emitter.kind, "AudEmitter");
+  assert.deepEqual(emitter.fields, {
     name: "engine",
-    prefix: "ship_",
+    eventPrefix: "ship_",
     position: [1, 2, 3],
-    attenuationScalingFactor: 2.5,
+    scalingFactor: 2.5,
   });
+  assert.equal(observer.raw, undefined);
   assert.equal(referencedNode(document, root.fields.controllers[0]).kind, "Tr2ControllerReference");
   assert.equal(referencedNode(document, root.fields.modelRotationCurve).kind, "Tr2RotationAdapter");
   assert.equal(referencedNode(document, root.fields.modelTranslationCurve).kind, "Tr2TranslationAdapter");
@@ -2223,12 +2241,14 @@ test("SOF emits first-hull audio, filtered controllers, and model curve resource
   assert.notEqual(animationBinding.fields.destinationObject.$ref, root.fields.modelRotationCurve.$ref);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
   assert.equal(hydrated.root.observers[0].constructor.name, "TriObserverLocal");
-  assert.equal(adapter.getAudioEmitterSetup(hydrated.root.observers[0]).prefix, "ship_");
+  assert.equal(hydrated.root.observers[0].observer.constructor.name, "AudEmitter");
+  assert.equal(hydrated.root.observers[0].observer.eventPrefix, "ship_");
   assert.equal(hydrated.root.modelRotationCurve.constructor.name, "Tr2RotationAdapter");
   assert.equal(hydrated.root.modelTranslationCurve.constructor.name, "Tr2TranslationAdapter");
 });
@@ -2351,7 +2371,8 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
   ]);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const hydrated = CjsDocumentHydrator.hydrate(document, {
     registry,
     adapter: createSofHydrationAdapter(),
@@ -2482,7 +2503,8 @@ test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
   assert.equal(spriteLight.fields.lightData.brightness, 4);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const hydrated = CjsDocumentHydrator.hydrate(document, {
     registry,
     adapter: createSofHydrationAdapter(),
@@ -2626,7 +2648,8 @@ test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights
   assert.equal(spotlightLight.fields.lightData.texturePath, "res:/spotlight.profile");
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -2783,7 +2806,8 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
   assert.equal(planeLight.fields.lightData.brightness, 5);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const hydrated = CjsDocumentHydrator.hydrate(document, {
     registry,
     adapter: createSofHydrationAdapter(),
@@ -2899,7 +2923,8 @@ test("SOF emits Carbon sprite-line sets with shared effects and per-sprite SOF6 
   assert.equal(lights[0].fields.lightProfilePath, "res:/line.profile");
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -3012,6 +3037,7 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   assert.equal(lights[0].fields.lightProfilePath, "res:/haze.profile");
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
   class TrackingEveHazeSet extends trinity.EveHazeSet
   {
     calls = [];
@@ -3139,7 +3165,8 @@ test("SOF emits and hydrates legacy banners with external texture bindings", {
   assert.equal(lights[0].fields.saturation, 0.75);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -3212,7 +3239,8 @@ test("SOF6 banner sets group usages numerically and preserve optional lights", {
   assert.equal(lights[0].fields.lightProfilePath, "res:/banner.profile");
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -3313,7 +3341,8 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
   assert.deepEqual(secondHullFields.position, [11, 0, 0]);
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const hydrated = CjsDocumentHydrator.hydrate(document, {
     registry,
     adapter: createSofHydrationAdapter(),
@@ -3412,7 +3441,8 @@ test("SOF emits and hydrates Carbon impact overlays and preserves the HULL shiel
   assert.deepEqual(flicker.fields, { alpha: 1.5, beta: 2.5, N: 4, speed: 1.25, offset: 1, scale: 0 });
 
   const trinity = await import(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url));
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url));
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const hydrated = CjsDocumentHydrator.hydrate(document, {
     registry,
     adapter: createSofHydrationAdapter(),
@@ -4073,7 +4103,8 @@ test("EveSOF emits SOF6 PPT resources and Carbon sampler overrides", async () =>
   if (existsSync(trinityConsumerEntry))
   {
     const trinity = await import(trinityConsumerEntry);
-    const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+    const audioTrinity = await import(audioTrinityConsumerEntry);
+    const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
     const hydrated = CjsDocumentHydrator.hydrate(document, { registry });
     assert.deepEqual(hydrated.reports, []);
     const sampler = hydrated.root.mesh.opaqueAreas[0].effect.samplerOverrides[0];
@@ -4222,7 +4253,8 @@ test("EveSOF emits and hydrates Carbon's extension-root placement branch", {
   assert.equal(referencedNode(document, extensionContainer.fields.objects[1]).fields.name, "Hull");
 
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -4437,7 +4469,8 @@ test("EveSOF routes animated extension children through Solo Placement", {
   assert.equal(solo.fields.animationOwner.$ref, solo.fields.objects[0].$ref);
 
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -4448,7 +4481,8 @@ test("EveSOF routes animated extension children through Solo Placement", {
   assert.equal(hydrated.root.children[0].constructor.name, "EveTransform");
   assert.equal(hydrated.root.curveSets[0].name, "extension-animation");
   assert.equal(hydrated.root.modelRotationCurve.constructor.name, "Tr2RotationAdapter");
-  assert.equal(adapter.getAudioEmitterSetup(hydratedSolo.observers[0]).prefix, "extension_");
+  assert.equal(hydratedSolo.observers[0].observer.constructor.name, "AudEmitter");
+  assert.equal(hydratedSolo.observers[0].observer.eventPrefix, "extension_");
 });
 
 test("EveSOFDNA resolves explicit and faction material parameters in Carbon order", () => {
@@ -4715,7 +4749,8 @@ test("SOF emits and hydrates Carbon instanced attachments with public CPU instan
   ]);
 
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -4877,7 +4912,8 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   );
 
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const adapter = createSofHydrationAdapter();
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter });
   assert.deepEqual(hydrated.reports, []);
@@ -4993,7 +5029,8 @@ test("SOF carbon.document hydrates through the sibling runtime-trinity consumer"
   skip: !existsSync(trinityConsumerEntry),
 }, async () => {
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
   const data = createData();
   data.hull[0].opaqueAreas = [{
     name: "Hull",
@@ -5222,7 +5259,8 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
 
   const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry });
 
@@ -5257,7 +5295,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   );
 });
 
-test("values projection keeps parity while deferred audio raw stays document-only", {
+test("values projection carries the audio emitter as a declared node", {
   skip: !existsSync(trinityConsumerEntry),
 }, async () => {
   const data = createData();
@@ -5272,28 +5310,45 @@ test("values projection keeps parity while deferred audio raw stays document-onl
   const sof = new EveSOF();
   assert.equal(sof.dataMgr.SetData(data), true);
   const trinity = await import(trinityConsumerEntry);
-  const registry = CjsClassRegistry.fromMaps({ constructors: trinity });
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
 
   const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry });
 
-  // Observer placement is ordinary declared data in the values graph...
+  // The emitter is declared data in both forms now, so the values graph is a
+  // complete rebuild source rather than one that silently drops the audio
+  // placement it was carrying all along.
   assert.equal(values.observers.length, 1);
   assert.deepEqual(values.observers[0].position, [1, 2, 3]);
-  // ...while deferred audio construction intent remains only on the explicit
-  // document path (documented omission until the pure-data audio package).
+  assert.equal(values.observers[0].observer._type, "AudEmitter");
+  assert.equal(values.observers[0].observer.eventPrefix, "ship_");
   assert.equal(JSON.stringify(values).includes("sofAudioEmitterSetup"), false);
-  assert.equal(JSON.stringify(values).includes("AudEmitter"), false);
+
+  // ...and nothing in this package writes a raw bag any more.
   const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
   const observerNode = referencedNode(document, rootNode(document).fields.observers[0]);
-  assert.equal(observerNode.raw.sofAudioEmitterSetup.className, "AudEmitter");
+  assert.equal(observerNode.raw, undefined);
+  assert.equal(referencedNode(document, observerNode.fields.observer).kind, "AudEmitter");
+  assert.equal(document.nodes.some(node => node.raw !== undefined), false);
 
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter: createSofHydrationAdapter() });
   assert.deepEqual(hydrated.reports, []);
   const RootClass = registry.GetConstructor(values._type);
   const fromValues = RootClass.from(JSON.parse(JSON.stringify(values)), { registry });
+  // The two graphs are built independently, so two things can differ without
+  // the paths disagreeing: AudEmitter carries a per-instance runtime counter
+  // that increments per construction, and a negated zero in a vector component
+  // is a distinct value to strict deep-equal while being the same number.
+  // Neither is authored data, and comparing them would assert construction
+  // order rather than parity.
+  const forParity = (value) => JSON.parse(JSON.stringify(value, (key, item) =>
+  {
+    if (key === "ID") return undefined;
+    return Object.is(item, -0) ? 0 : item;
+  }));
   assert.deepEqual(
-    fromValues.GetValues({ refs: true, typeTags: true }),
-    hydrated.root.GetValues({ refs: true, typeTags: true })
+    forParity(fromValues.GetValues({ refs: true, typeTags: true })),
+    forParity(hydrated.root.GetValues({ refs: true, typeTags: true }))
   );
 });
 
