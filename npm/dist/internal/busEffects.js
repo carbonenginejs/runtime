@@ -285,6 +285,76 @@ function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel) {
     points: Object.freeze(points)
   });
 }
+function NormalizeTremoloRtpcCurves(value, ownerLabel) {
+  if (!Array.isArray(value) || value.length !== 2) {
+    throw new TypeError(`${ownerLabel} must contain two curves`);
+  }
+  const targets = new Set();
+  const curves = value.map((rawCurve, index) => {
+    const label = `${ownerLabel} ${index}`;
+    const curve = RequireRecord(rawCurve, label);
+    const rtpc = String(curve.rtpc ?? "").trim();
+    const property = String(curve.property ?? "");
+    const accumulation = String(curve.accumulation ?? "");
+    const scaling = BoundedInteger(curve.scaling, 0, 3, `${label} scaling`);
+    if (!rtpc || (curve.scope ?? "object") !== "object") {
+      throw new TypeError(`${label} control is unsupported`);
+    }
+    if (property === "modulationDepthPercent" && (accumulation !== "additive" || scaling !== 0) || property === "modulationFrequencyHz" && (accumulation !== "exclusive" || scaling !== 3) || property !== "modulationDepthPercent" && property !== "modulationFrequencyHz" || targets.has(property)) {
+      throw new TypeError(`${label} target is unsupported`);
+    }
+    targets.add(property);
+    if (!Array.isArray(curve.points) || !curve.points.length) {
+      throw new TypeError(`${label} points must not be empty`);
+    }
+    let previous = -Infinity;
+    const points = curve.points.map((rawPoint, pointIndex) => {
+      const point = RequireRecord(rawPoint, `${label} point ${pointIndex}`);
+      const x = Number(point.x);
+      const output = Number(point.value);
+      const interpolation = Number(point.interpolation ?? 4);
+      if (!Number.isFinite(x) || !Number.isFinite(output) || x < previous || !Number.isSafeInteger(interpolation) || interpolation < 0 || interpolation > 9) {
+        throw new TypeError(`${label} points are invalid`);
+      }
+      previous = x;
+      return Object.freeze({
+        x,
+        value: output,
+        interpolation
+      });
+    });
+    const defaultValue = curve.defaultValue === undefined ? undefined : Number(curve.defaultValue);
+    if (defaultValue !== undefined && !Number.isFinite(defaultValue)) {
+      throw new TypeError(`${label} defaultValue must be finite`);
+    }
+    const transition = RequireRecord(curve.controlTransition, `${label} controlTransition`);
+    const rampUpSeconds = Number(transition.rampUpSeconds);
+    const rampDownSeconds = Number(transition.rampDownSeconds);
+    if (transition.type !== "filtering-over-time" || !Number.isFinite(rampUpSeconds) || !Number.isFinite(rampDownSeconds) || rampUpSeconds <= 0 || rampDownSeconds <= 0) {
+      throw new TypeError(`${label} controlTransition is unsupported`);
+    }
+    return Object.freeze({
+      rtpc,
+      scope: "object",
+      property,
+      accumulation,
+      scaling,
+      ...(defaultValue === undefined ? {} : {
+        defaultValue
+      }),
+      controlTransition: Object.freeze({
+        type: "filtering-over-time",
+        rampUpSeconds,
+        rampDownSeconds
+      }),
+      points: Object.freeze(points)
+    });
+  });
+  if (curves[0].rtpc !== curves[1].rtpc || curves[0].defaultValue !== curves[1].defaultValue || JSON.stringify(curves[0].controlTransition) !== JSON.stringify(curves[1].controlTransition)) {
+    throw new TypeError(`${ownerLabel} must share one filtered control`);
+  }
+  return Object.freeze(curves);
+}
 function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) {
   if (!Array.isArray(value) || !value.length) {
     throw new TypeError(`${ownerLabel} must have effects`);
@@ -396,7 +466,10 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
         phaseSpreadDegrees,
         outputGainDb: BoundedFinite(effect.outputGainDb, DYNAMICS_OUTPUT_GAIN_MIN, DYNAMICS_OUTPUT_GAIN_MAX, `${label} outputGainDb`),
         processCenter: effect.processCenter,
-        processLfe: effect.processLfe
+        processLfe: effect.processLfe,
+        ...(effect.rtpcCurves === undefined ? {} : {
+          rtpcCurves: NormalizeTremoloRtpcCurves(effect.rtpcCurves, `${label} rtpcCurves`)
+        })
       });
     }
     if (allowSourceEffects && effect.type === "guitar-distortion") {
@@ -605,7 +678,7 @@ function createWwiseEffectChain(context, effects, {
   if (sourceChannelCount > 2 && sourceEqualizers.some(effect => effect.processLfe === false)) {
     return null;
   }
-  if ((sourceEqualizers.some(effect => effect.rtpcCurves?.length) || sourceDistortions.some(effect => effect.driveRtpcCurve)) && typeof readSourceEffectRtpc !== "function") {
+  if ((sourceEqualizers.some(effect => effect.rtpcCurves?.length) || sourceTremolos.some(effect => effect.rtpcCurves?.length) || sourceDistortions.some(effect => effect.driveRtpcCurve)) && typeof readSourceEffectRtpc !== "function") {
     return null;
   }
   if (meterFeedbackMode === "strict" && sourceMeters.some(effect => effect.gameParameterId !== 0)) {
@@ -617,8 +690,8 @@ function createWwiseEffectChain(context, effects, {
   const needsReverbBiquad = reverbEffects.length > 0;
   const needsRoomVerbBiquad = roomVerbEffects.length > 0;
   const needsDistortionBiquad = distortionEffects.some(effect => effect.preEqBands.length || effect.postEqBands.length);
-  const needsOscillator = tremoloEffects.some(effect => effect.modulationDepthPercent > 0) || flangerEffects.some(effect => effect.lfoEnabled && effect.modulationDepthPercent > 0);
-  const needsPeriodicWave = tremoloEffects.some(effect => effect.modulationDepthPercent > 0 && effect.waveform === "sine" && effect.phaseOffsetDegrees !== 0);
+  const needsOscillator = tremoloEffects.some(effect => effect.modulationDepthPercent > 0 || effect.rtpcCurves?.length) || flangerEffects.some(effect => effect.lfoEnabled && effect.modulationDepthPercent > 0);
+  const needsPeriodicWave = tremoloEffects.some(effect => (effect.modulationDepthPercent > 0 || effect.rtpcCurves?.length) && effect.waveform === "sine" && effect.phaseOffsetDegrees !== 0);
   if (needsGain && typeof context?.createGain !== "function") {
     return null;
   }
@@ -711,6 +784,27 @@ function createWwiseEffectChain(context, effects, {
       if (output) output.connect(stage.input);else input = stage.input;
       output = stage.output;
       nodes.push(...stage.nodes);
+      for (const curve of effect.rtpcCurves ?? []) {
+        if (curve.property === "modulationFrequencyHz") {
+          sourceEffectRtpcBindings.push({
+            curve,
+            baseValue: effect.modulationFrequencyHz,
+            param: stage.oscillatorFrequency
+          });
+          continue;
+        }
+        sourceEffectRtpcBindings.push({
+          curve,
+          baseValue: effect.modulationDepthPercent,
+          param: stage.inputGain,
+          transform: "tremolo-depth-midpoint"
+        }, {
+          curve,
+          baseValue: effect.modulationDepthPercent,
+          param: stage.modulationGain,
+          transform: "tremolo-depth-range"
+        });
+      }
       continue;
     }
     if (effect.type === "guitar-distortion-approximation") {
@@ -922,7 +1016,9 @@ function CreateWwiseTremoloApproximation(context, effect) {
   // Wwise phase mode/spread distribute phase between channels. This bounded
   // browser stage owns one all-channel carrier, so it applies only the
   // retained global offset and leaves mode/spread as portable metadata.
-  if (depth > 0) {
+  let modulationGain = null;
+  let oscillatorFrequency = null;
+  if (depth > 0 || effect.rtpcCurves?.length) {
     const modulation = context.createGain();
     const oscillator = context.createOscillator();
     if (effect.waveform !== "sine") {
@@ -937,11 +1033,16 @@ function CreateWwiseTremoloApproximation(context, effect) {
     oscillator.connect(modulation);
     modulation.connect(input.gain);
     nodes.push(modulation, oscillator);
+    modulationGain = modulation.gain;
+    oscillatorFrequency = oscillator.frequency;
   }
   return {
     input,
     output,
-    nodes
+    nodes,
+    inputGain: input.gain,
+    modulationGain,
+    oscillatorFrequency
   };
 }
 

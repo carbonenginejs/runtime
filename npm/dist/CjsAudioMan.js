@@ -841,7 +841,7 @@ class CjsAudioMan {
           busVoiceVolumeActionControlled: selection.busVoiceVolumeActionControlled,
           sourceEffects: selection.sourceEffects,
           ...(selection.sourceEffects?.some(effect => effect.rtpcCurves?.length) ? {
-            getSourceEffectRtpc: (curve, at = undefined) => engine.EvaluateSourceEffectRTPC(curve, controls, at)
+            getSourceEffectRtpc: (curve, at = undefined, readControl = false) => engine.EvaluateSourceEffectRTPC(curve, controls, at, readControl)
           } : {}),
           authoredBusVolumeDb: selection.authoredBusVolumeDb,
           authoredBusMakeUpGainDb: selection.authoredBusMakeUpGainDb,

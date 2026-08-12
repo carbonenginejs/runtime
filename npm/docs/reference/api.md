@@ -107,7 +107,7 @@ Distortion/Matrix Reverb/RoomVerb override in their
 NodeBase ancestry.
 An explicit empty override clears the inherited list.
 Those effects are voice-owned and precede Voice LPF/HPF and route splitting.
-Parametric EQ records may carry `rtpcCurves`. The builder currently emits only
+Parametric EQ and qualified Tremolo records may carry `rtpcCurves`. EQ emits
 the exact EVE-v150 Game Parameter `ParamID 2` form: object-scoped
 `ship_Roll`, exclusive accumulation, scaling 3, Band 1 `frequencyHz`, an STMG
 default, and ordered Wwise curve points. Playback reads object RTPC, global
@@ -115,6 +115,19 @@ RTPC, then the retained default; converts the curve output with `10 ** value`;
 and schedules the bound biquad over known transition boundaries. This
 corpus-derived numeric mapping is not a general Wwise plug-in enum. Other
 dynamic EQ properties and Wwise Modulator controls remain unsupported.
+The bounded Tremolo form carries paired `modulationDepthPercent` and
+`modulationFrequencyHz` targets plus one shared `controlTransition`. The
+current EVE shape requires `booster_intensity`, additive scaling-0 `ParamID 1`,
+exclusive scaling-3 `ParamID 2`, and two-second STMG Filtering Over Time in
+both directions. Playback approximates that filter independently per voice
+before evaluating both curves and schedules the oscillator and unipolar gain
+terms. A newly posted voice starts from the current readable control; it does
+not inherit another voice's earlier filter history. Other dynamic Tremolo
+forms remain unsupported.
+This filtering is carried by the qualified Tremolo curves, not yet by the
+generic Game Parameter store. Existing live EQ and Guitar Distortion bindings
+therefore retain their documented explicit-action/boundary scheduling unless
+their own qualified curve projection supplies a transition policy.
 `processLfe:false` source EQ is realized only for decoded mono/stereo buffers;
 multichannel voices keep the complete source chain audible and dry.
 A low-level voice descriptor carrying `rtpcCurves` without its corresponding
@@ -222,8 +235,9 @@ source-local Wwise Flanger and Tremolo records:
 
 - `"strict"` (default) omits the complete source chain and keeps the voice
   audible/dry.
-- `"approximate-web-audio"` realizes the documented static Sine subsets and
-  the narrow unsmoothed zero-phase Tremolo Square (50%-duty) and Triangle
+- `"approximate-web-audio"` realizes the documented static Sine subsets, the
+  bounded filtered `booster_intensity` Sine form, and the narrow unsmoothed
+  zero-phase Tremolo Square (50%-duty) and Triangle
   subsets with voice-owned Gain, optional Delay, and optional Oscillator nodes. Tremolo
   Sine global phase uses `PeriodicWave` when nonzero. Missing required
   primitives keep the complete chain dry.

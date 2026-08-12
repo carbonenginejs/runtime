@@ -615,7 +615,7 @@ implementation therefore treats EVE-v150's exact 38-byte record as empirical
 rather than source-proven: depth and
 frequency floats, waveform integer, smoothing/PWM floats, phase offset/mode/
 spread, output gain, and Center/LFE flags. Admission is further bounded to a
-control-free bank-version-150 Sine record, an unsmoothed 50%-duty Square, or an
+static bank-version-150 Sine record, an unsmoothed 50%-duty Square, or an
 unsmoothed Triangle record. Square and Triangle require zero offset and zero
 all-channel spread; all admitted records require bounded phase fields and both
 channel flags enabled. The official authoring order and EVE preset corpus
@@ -637,11 +637,29 @@ sample behavior. Smoothing and PWM are shape-validated but not retained or
 applied; Square is admitted only when they are exactly zero and 50 percent.
 Triangle is admitted only with zero smoothing; its PWM is intentionally
 ignored after range validation because Wwise applies PWM only to Square.
-Strict mode, missing primitives, dynamic controls, other waveforms, and shared-Bus Tremolo keep the
-complete chain audible and dry.
+Strict mode, missing primitives, other dynamic controls, other waveforms, and
+shared-Bus Tremolo keep the complete chain audible and dry.
 
-EVE build 3453885 projects 156 Tremolo stages on 152 Sound leaves across 82
-retained events: 115 Tremolo-only, 14 Tremolo followed by qualified static EQ,
+One dynamic EVE-v150 Sine form is admitted separately. Exactly two object
+Game Parameter curves share `booster_intensity`: additive scaling-0 `ParamID
+1` drives Depth and exclusive scaling-3 `ParamID 2` drives Frequency. Those
+numeric targets are corpus-proven mappings, not universal Wwise enums. The
+builder also requires the matching base-Depth property and STMG ramp type 2
+with the exact two-second up/down times. Runtime-audio approximates the control
+filter independently per voice with Wwise's documented
+99.5%-at-authored-time exponential law, samples the two curves, clamps Depth
+to `0..100` and Frequency to `0.02 Hz..Nyquist`, and automates the oscillator
+plus both unipolar-gain terms. A voice created during an existing object's
+filter ramp begins at the currently readable target rather than reconstructing
+object-level history. Set Game Parameter transitions are likewise resampled as
+targets rather than being convolved with this plug-in-local filter. This is
+still the same native-oscillator approximation; missing
+metadata/readers/primitives keep the whole chain dry.
+
+EVE build 3453885 projects 166 Tremolo stages on 162 Sound leaves. The added
+ten dynamic leaves cover ten medium-engine activate, deactivate, idle, and
+power-down events. The earlier static population spans 82 retained events:
+115 Tremolo-only, 14 Tremolo followed by qualified static EQ,
 two qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
 Reverb, six Delay followed by Tremolo, two Tremolo followed by Delay, one
 double-Tremolo chain, three Square-carrier leaves under
@@ -680,8 +698,8 @@ types, other dynamic shapes, a missing live RTPC reader, and shared-Bus Guitar
 Distortion keep the complete chain audible and dry. Static admission raised
 qualified source-effect leaves from 2,506 to 2,575. Live Drive raised the
 post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
-records without changing media or event reachability; the later Square and
-Triangle Tremolo slices set the current totals to 3,183 and 3,344.
+records without changing media or event reachability; the later modulation
+slices set the current totals to 3,193 and 3,354.
 
 Wwise Harmonizer `0x008a0003` remains a measured DSP barrier rather than an
 unclassified plug-in. Pinned wwiser proves the v150 layout for two pitch
@@ -786,8 +804,9 @@ volume flag changes the omitted measurement, followed by Compressor
 `554802347`. Retaining that complete chain raises the current aggregate after
 Tremolo, Matrix, RoomVerb, live EQ, and this correction to 3,043 leaves and
 3,201 records; the later live-Drive admission raises those totals to 3,179
-and 3,337 without changing media or event reachability. Bounded Square and
-Triangle Tremolo admission raises the current totals to 3,183 and 3,344. Playback still
+and 3,337 without changing media or event reachability. Bounded static
+Tremolo admission raises those totals to 3,183 and 3,344; the paired dynamic
+Tremolo slice raises the current totals to 3,193 and 3,354. Playback still
 requires both explicit policies: Meter telemetry omission and Web Audio
 dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so

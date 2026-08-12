@@ -103,6 +103,7 @@ const WWISE_REFLECTIONS_VOLUME_PROPERTY = 0x1a;
 const WWISE_SILENCE_SOURCE_PLUGIN_ID = 0x00650002;
 const SFX_ADDITIVE_ACCUMULATION = 2;
 const WWISE_EXCLUSIVE_ACCUMULATION = 1;
+const WWISE_FILTERING_OVER_TIME_RAMP = 2;
 const SFX_FILTER_ACCUMULATION = 6;
 const SFX_IMMEDIATE_STATE_SYNC = 0;
 const AUDIO_LANGUAGE_TAGS = Object.freeze({
@@ -5330,6 +5331,111 @@ function ParseStaticWwiseTremolo(ownerLabel, slot, effect)
     });
 }
 
+function ParseDynamicWwiseTremolo(ownerLabel, slot, effect, names)
+{
+    if (Number(effect.bankVersion) !== 150
+        || effect.media?.length
+        || effect.rtpcs?.length !== 2
+        || effect.state?.properties?.length
+        || effect.state?.groups?.length
+        || effect.propertyValues?.length !== 1)
+    {
+        throw new Error(
+            `Wwise Tremolo ${effect.id} on ${ownerLabel} has unsupported controls`,
+        );
+    }
+    const parsed = parseStaticWwiseTremoloBytes(effect.parameterBlock, {
+        effectId: effect.id,
+        slotIndex: slot.index,
+        label: `Wwise Tremolo ${effect.id} on ${ownerLabel}`,
+        bankVersion: effect.bankVersion,
+    });
+    const property = effect.propertyValues[0];
+    const controlIds = new Set(effect.rtpcs.map(rtpc =>
+        Number(rtpc.controlId) >>> 0));
+    const controlID = [ ...controlIds ][0];
+    const parameter = names.parameters.get(controlID);
+    const transition = names.parameterTransitions.get(controlID);
+    const defaultValue = names.parameterDefaults.get(controlID);
+    const targets = new Map([
+        [ 1, {
+            property: "modulationDepthPercent",
+            accumulation: SFX_ADDITIVE_ACCUMULATION,
+            scaling: 0,
+        } ],
+        [ 2, {
+            property: "modulationFrequencyHz",
+            accumulation: WWISE_EXCLUSIVE_ACCUMULATION,
+            scaling: 3,
+        } ],
+    ]);
+
+    // ParamIDs 1 and 2 are empirically pinned to Depth and Frequency in the
+    // exact EVE-v150 corpus. They are not universal Audiokinetic plug-in enums.
+    if (controlIds.size !== 1
+        || parameter !== "booster_intensity"
+        || defaultValue !== 0
+        || transition?.rampType !== WWISE_FILTERING_OVER_TIME_RAMP
+        || transition.rampUpSeconds !== 2
+        || transition.rampDownSeconds !== 2
+        || parsed.waveform !== "sine"
+        || Number(property.propertyId) !== 1
+        || Number(property.accumulation) !== SFX_ADDITIVE_ACCUMULATION
+        || Number(property.value) !== parsed.modulationDepthPercent)
+    {
+        throw new Error(
+            `Wwise Tremolo ${effect.id} on ${ownerLabel} has unsupported filtered control`,
+        );
+    }
+    const seen = new Set();
+    const rtpcCurves = effect.rtpcs.map(rtpc =>
+    {
+        const target = targets.get(Number(rtpc.parameterId));
+
+        if (!target
+            || seen.has(target.property)
+            || Number(rtpc.controlType) !== 0
+            || Number(rtpc.accumulation) !== target.accumulation
+            || Number(rtpc.scaling) !== target.scaling
+            || !rtpc.points?.length)
+        {
+            throw new Error(
+                `Wwise Tremolo ${effect.id} on ${ownerLabel} has unsupported RTPC`,
+            );
+        }
+        seen.add(target.property);
+        return {
+            rtpc: parameter,
+            scope: "object",
+            property: target.property,
+            accumulation: target.accumulation
+                === SFX_ADDITIVE_ACCUMULATION
+                ? "additive"
+                : "exclusive",
+            scaling: target.scaling,
+            ...(defaultValue === undefined ? {} : { defaultValue }),
+            controlTransition: {
+                type: "filtering-over-time",
+                rampUpSeconds: transition.rampUpSeconds,
+                rampDownSeconds: transition.rampDownSeconds,
+            },
+            points: rtpc.points.map(point => ({
+                x: Number(point.from),
+                value: Number(point.to),
+                interpolation: Number(point.interpolation),
+            })),
+        };
+    });
+
+    if (seen.size !== targets.size)
+    {
+        throw new Error(
+            `Wwise Tremolo ${effect.id} on ${ownerLabel} is missing an RTPC target`,
+        );
+    }
+    return { ...parsed, rtpcCurves };
+}
+
 function ParseStaticWwiseGuitarDistortion(ownerLabel, slot, effect)
 {
     if (effect.media?.length
@@ -5639,11 +5745,20 @@ function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId)
             }
             else if (effect.pluginId === WWISE_TREMOLO_PLUGIN_ID)
             {
-                chain.push(ParseStaticWwiseTremolo(
-                    `NodeBase ${ownerId} inherited by Sound ${soundId}`,
-                    slot,
-                    effect,
-                ));
+                const ownerLabel = `NodeBase ${ownerId} inherited by Sound ${soundId}`;
+
+                chain.push(effect.rtpcs?.length
+                    ? ParseDynamicWwiseTremolo(
+                        ownerLabel,
+                        slot,
+                        effect,
+                        names,
+                    )
+                    : ParseStaticWwiseTremolo(
+                        ownerLabel,
+                        slot,
+                        effect,
+                    ));
             }
             else if (effect.pluginId === WWISE_GUITAR_DISTORTION_PLUGIN_ID)
             {
@@ -6864,6 +6979,8 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
 
     #parameterDefaults = new Map();
 
+    #parameterTransitions = new Map();
+
     #stateFilterBehavior;
 
     #stateTransitionSettings = new Map();
@@ -6954,6 +7071,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
             groups: this.#groups,
             parameters: this.#parameters,
             parameterDefaults: this.#parameterDefaults,
+            parameterTransitions: this.#parameterTransitions,
             stateTransitions: this.#CreateStateTransitions(),
             stateFilterBehavior: this.#stateFilterBehavior,
         };
@@ -7166,6 +7284,41 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
             );
         }
         this.#parameterDefaults.set(id, defaultValue);
+        const hasTransition = parameter.rampType !== undefined
+            || parameter.rampUp !== undefined
+            || parameter.rampDown !== undefined;
+
+        if (!hasTransition) return;
+        const rampType = Number(parameter.rampType);
+        const rampUpSeconds = Number(parameter.rampUp);
+        const rampDownSeconds = Number(parameter.rampDown);
+
+        if (!Number.isSafeInteger(rampType)
+            || rampType < 0
+            || rampType > WWISE_FILTERING_OVER_TIME_RAMP
+            || !Number.isFinite(rampUpSeconds)
+            || rampUpSeconds < 0
+            || !Number.isFinite(rampDownSeconds)
+            || rampDownSeconds < 0)
+        {
+            throw new TypeError(
+                `Audio STMG game parameter ${id}`
+                + " transition settings are invalid",
+            );
+        }
+        const transition = { rampType, rampUpSeconds, rampDownSeconds };
+        const existingTransition = this.#parameterTransitions.get(id);
+
+        if (existingTransition
+            && JSON.stringify(existingTransition)
+                !== JSON.stringify(transition))
+        {
+            throw new TypeError(
+                `Audio STMG game parameter ${id}`
+                + " transition settings conflict between banks",
+            );
+        }
+        this.#parameterTransitions.set(id, transition);
     }
 
     /** Merges one optional enrichment Game Parameter name. */

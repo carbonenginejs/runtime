@@ -1084,11 +1084,18 @@ export class CjsSfxEngine
     }
 
     /** Evaluates one qualified source-effect RTPC curve at a control time. */
-    EvaluateSourceEffectRTPC(curve, controls = {}, at = undefined)
+    EvaluateSourceEffectRTPC(
+        curve,
+        controls = {},
+        at = undefined,
+        readControl = false,
+    )
     {
         const value = ReadRTPC(curve, controls, true, at);
 
-        return EvaluateValueCurve(curve.points, value);
+        return readControl
+            ? value
+            : EvaluateValueCurve(curve.points, value);
     }
 
     /** Evaluates one resolved leaf's current playback rate from global states. */

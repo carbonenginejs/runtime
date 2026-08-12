@@ -410,6 +410,16 @@ test("source-effect RTPC curves retain object, global, and authored-default prec
             Math.log10(3650) - Math.log10(160)
         ) / 2,
     );
+    assert.equal(
+        engine.EvaluateSourceEffectRTPC(
+            curve,
+            controls,
+            undefined,
+            true,
+        ),
+        180,
+        "filtered effect lanes can read the raw Game Parameter before the curve",
+    );
     objectValues.clear();
     assert.equal(
         engine.EvaluateSourceEffectRTPC(curve, controls),

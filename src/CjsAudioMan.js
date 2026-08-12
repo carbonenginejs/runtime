@@ -1278,10 +1278,12 @@ export class CjsAudioMan
                                     getSourceEffectRtpc: (
                                         curve,
                                         at = undefined,
+                                        readControl = false,
                                     ) => engine.EvaluateSourceEffectRTPC(
                                         curve,
                                         controls,
                                         at,
+                                        readControl,
                                     ),
                                 }
                                 : {}),

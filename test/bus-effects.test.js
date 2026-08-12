@@ -1347,6 +1347,115 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
     assert.equal(missingPeriodicWave.oscillators.length, 0);
 });
 
+test("filters the exact EVE-v150 dynamic Tremolo control before DSP mapping", () =>
+{
+    const decoded = parseGraphStaticWwiseTremolo(
+        GraphTremolo(),
+        "2980799",
+        0,
+    );
+    const transition = {
+        type: "filtering-over-time",
+        rampUpSeconds: 2,
+        rampDownSeconds: 2,
+    };
+    const dynamic = normalizeStaticSourceEffectChain([ {
+        ...decoded,
+        rtpcCurves: [
+            {
+                rtpc: "booster_intensity",
+                scope: "object",
+                property: "modulationFrequencyHz",
+                accumulation: "exclusive",
+                scaling: 3,
+                defaultValue: 0,
+                controlTransition: transition,
+                points: [
+                    { x: 0, value: 0, interpolation: 4 },
+                    { x: 2, value: 1, interpolation: 4 },
+                ],
+            },
+            {
+                rtpc: "booster_intensity",
+                scope: "object",
+                property: "modulationDepthPercent",
+                accumulation: "additive",
+                scaling: 0,
+                defaultValue: 0,
+                controlTransition: transition,
+                points: [
+                    { x: 0, value: 0, interpolation: 4 },
+                    { x: 2, value: -100, interpolation: 4 },
+                ],
+            },
+        ],
+    } ], "Audio source");
+
+    assert.equal(createWwiseEffectChain(Context(), dynamic, {
+        wwiseModulation: "approximate-web-audio",
+    }), null, "a missing live reader keeps the complete chain dry");
+    const context = Context();
+    let rawControl = 0;
+    const chain = createWwiseEffectChain(context, dynamic, {
+        wwiseModulation: "approximate-web-audio",
+        readSourceEffectRtpc: (_curve, _at, readControl) =>
+            readControl ? rawControl : NaN,
+    });
+    const [ input, , modulation ] = context.gains;
+    const [ oscillator ] = context.oscillators;
+    const params = [ input.gain, modulation.gain, oscillator.frequency ];
+
+    for (const param of params)
+    {
+        param.curves = [];
+        param.cancelAndHoldAtTime = () => {};
+        param.setValueAtTime = value => { param.value = value; };
+        param.setValueCurveAtTime = (values, start, duration) =>
+        {
+            param.curves.push([ values, start, duration ]);
+        };
+    }
+    chain.sourceEffectRtpcLane.Apply();
+    assert.equal(input.gain.value, 0.5);
+    assert.equal(modulation.gain.value, 0.5);
+    assert.equal(oscillator.frequency.value, 1);
+
+    rawControl = 2;
+    chain.sourceEffectRtpcLane.Apply();
+    const inputCurve = input.gain.curves[0];
+    const modulationCurve = modulation.gain.curves[0];
+    const frequencyCurve = oscillator.frequency.curves[0];
+
+    assert.equal(inputCurve[1], 0);
+    assert.equal(inputCurve[2], 4);
+    assert.equal(inputCurve[0].length, 33);
+    assert.ok(Math.abs(inputCurve[0][16] - 0.9975) < 1e-6);
+    assert.ok(Math.abs(modulationCurve[0][16] - 0.0025) < 1e-6);
+    assert.ok(Math.abs(frequencyCurve[0][16] - 10 ** 0.995) < 1e-5);
+    assert.equal(inputCurve[0].at(-1), 1);
+    assert.equal(modulationCurve[0].at(-1), 0);
+    assert.equal(frequencyCurve[0].at(-1), 10);
+
+    const malformed = structuredClone(dynamic);
+
+    delete malformed[0].rtpcCurves[0].controlTransition;
+    assert.throws(
+        () => normalizeStaticSourceEffectChain(malformed, "Audio source"),
+        /controlTransition/u,
+    );
+
+    const mismatchedDefaults = structuredClone(dynamic);
+
+    mismatchedDefaults[0].rtpcCurves[1].defaultValue = 1;
+    assert.throws(
+        () => normalizeStaticSourceEffectChain(
+            mismatchedDefaults,
+            "Audio source",
+        ),
+        /share one filtered control/u,
+    );
+});
+
 test("decodes and explicitly approximates static Wwise Matrix Reverb", () =>
 {
     assert.equal(normalizeWwiseReverbMode(), "strict");

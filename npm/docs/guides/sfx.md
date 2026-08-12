@@ -277,8 +277,8 @@ override, treating a root list as effective and an explicit empty override as
 a replacement that clears the parent list. It emits the chain only when every
 active slot is a supported effect with an admitted shape; almost all admitted
 effects are control-free and static. The bounded dynamic exceptions are the
-EVE-v150 Parametric EQ `ParamID 2` frequency and Guitar Distortion `ParamID 61`
-Drive Game Parameter shapes described below;
+EVE-v150 Parametric EQ `ParamID 2` frequency, Tremolo Depth/Frequency, and
+Guitar Distortion `ParamID 61` Drive Game Parameter shapes described below;
 dynamics additionally require linked channels and timing within the Web Audio
 adapter's bounds. Playback creates one Web Audio chain per physical voice
 before the authored Voice LPF/HPF, gain, spatial/auxiliary split, and Audio Bus
@@ -339,7 +339,7 @@ Qualified Tremolo records reuse the same `wwiseModulation` policy. Pinned
 wwiser identifies plug-in `0x00830003` and shows the corresponding modulation
 and phase sequence inside Flanger, but does not decode Tremolo's own
 parameters. The EVE corpus informs the 38-byte interpretation; it remains
-empirical. Admission is explicitly limited to bank version 150, a control-free
+empirical. Admission is explicitly limited to bank version 150, a static
 Sine record, an unsmoothed 50%-duty Square record, or an unsmoothed Triangle
 record, bounded phase offset/mode/spread fields, and Center/LFE processing.
 Square and Triangle admission is further limited to zero offset and zero
@@ -361,6 +361,18 @@ shape-validated but are neither stored nor applied; Square is admitted only
 where their authored values are exactly zero and 50 percent respectively, and
 Triangle only where smoothing is zero. PWM applies only to Square in Wwise, so
 Triangle PWM is intentionally ignored after range validation.
+The sole dynamic exception has two object-scoped `booster_intensity` curves:
+additive scaling-0 `ParamID 1` controls Depth and exclusive scaling-3 `ParamID
+2` controls Frequency. The builder requires their matching Depth property and
+the shared STMG Filtering Over Time policy with two-second up/down times. The
+runtime applies a voice-local approximation of Wwise's documented exponential
+filtering to each raw control target, samples both curves, and automates the
+oscillator plus both unipolar gain terms. A voice posted during an existing
+object's ramp starts from the current readable control rather than inheriting
+the older voice's filter history, and an independently authored Set Game
+Parameter transition is sampled as a new target rather than convolved with the
+plug-in filter. The target IDs are EVE-v150 corpus evidence, not universal
+Wwise enums. Other dynamic forms remain dry.
 Shared-Bus Tremolo remains unsupported.
 
 Wwise Harmonizer `0x008a0003` deliberately has no browser policy yet. Pinned
@@ -468,12 +480,13 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 3,183
-qualified Sound leaves carrying 3,344 effect records: 456 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 3,193
+qualified Sound leaves carrying 3,354 effect records: 456 use Parametric EQ,
 including 170 leaves with live `ship_Roll` Band 1 Frequency,
 87 use Wwise Delay, 2,114 use
 Compressor, 73 use Peak Limiter, 21 use Flanger across nine retained events,
-156 Tremolo stages occur on 152 Sounds across 82 retained events, 205 use
+166 Tremolo stages occur on 162 Sounds, including ten live
+`booster_intensity` leaves across ten medium-engine events; 205 use
 Guitar Distortion across 57 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
 events, and 130 retain telemetry-only Meter records. The added 81 Meter leaves
@@ -487,8 +500,8 @@ per-channel spread remains an explicit browser omission. Projected Matrix
 Reverb now covers all five effect identities. Guitar Distortion covers 21
 effect identities: 69 static leaves use 18 identities and 12 raw presets (11
 audible decoded parameter sets), while 136 live-Drive leaves across 35 events
-use three identities. Other dynamic Guitar controls remain dry. The Tremolo
-population contains 115 isolated chains, 14
+use three identities. Other dynamic Guitar controls remain dry. The static
+Tremolo population contains 115 isolated chains, 14
 Tremolo-to-EQ, two EQ-to-Tremolo, eight Tremolo-to-Matrix, six
 Delay-to-Tremolo, two Tremolo-to-Delay, one double-Tremolo chain, and one
 four-Tremolo chain over 69 effect identities and 23 distinct 38-byte parameter

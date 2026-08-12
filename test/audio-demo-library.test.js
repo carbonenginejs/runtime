@@ -1100,6 +1100,10 @@ test("committed demo library carries authored SFX and music semantics", () =>
         node.sourceEffects.some(effect => effect.type === "flanger"));
     const sourceTremoloSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "tremolo"));
+    const dynamicTremoloSounds = sourceTremoloSounds.filter(node =>
+        node.sourceEffects.some(effect =>
+            effect.type === "tremolo"
+            && Array.isArray(effect.rtpcCurves)));
     const sourceGuitarDistortionSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect =>
             effect.type === "guitar-distortion"));
@@ -1115,16 +1119,17 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 3183);
+    assert.equal(sourceEffectSounds.length, 3193);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3344);
+        count + node.sourceEffects.length, 0), 3354);
     assert.equal(sourceEqSounds.length, 456);
     assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2114);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 21);
-    assert.equal(sourceTremoloSounds.length, 152);
+    assert.equal(sourceTremoloSounds.length, 162);
+    assert.equal(dynamicTremoloSounds.length, 10);
     assert.equal(sourceGuitarDistortionSounds.length, 205);
     assert.equal(dynamicGuitarDistortionSounds.length, 136);
     assert.equal(sourceMatrixReverbSounds.length, 50);
@@ -1452,23 +1457,68 @@ test("committed demo library carries authored SFX and music semantics", () =>
             .sort((left, right) => left - right),
         [
             25884399, 40436754, 43363314, 60415284, 68507679, 73677858,
-            78735863, 84669040, 99994845, 123394445, 159333883, 173560074, 179016091,
-            185550431, 212767959, 213549686, 216531588, 220151376,
-            227488604, 234999876, 245023523, 289872408, 295844646,
+            78735863, 84669040, 99994845, 123394445, 138975651, 159333883,
+            173560074, 179016091, 185550431, 205298853, 212767959,
+            213549686, 215897794, 216531588, 220151376,
+            227488604, 234999876, 245023523, 274154427, 289872408, 295844646,
             303824015, 334236564, 337505310, 342408936, 367736782,
-            419444932, 422600908, 464520479, 466221579, 474875076, 479691729,
+            419444932, 422600908, 433220951, 457709217, 464520479,
+            466221579, 474875076, 479691729,
             483852729, 504198893, 513652395, 525063532, 525463666, 527348461,
             552197906,
             561895346, 563609806, 567959441, 569050443, 570940185,
             585012572, 587318855, 601025667, 604031582, 606479059,
-            619225631, 627960890, 646956222, 671815947, 705896755,
+            619225631, 627960890, 646956222, 656544328, 671815947, 705896755,
             707197595, 720713023, 722707846, 729008069, 737747941,
             747245505, 767807393, 770608002, 771045205, 786791827,
             833468545, 875267345, 897337650, 936914842, 939407056,
-            954428155, 962406120, 963801704, 968463064, 969222816,
-            1016689010, 1072313718,
+            954428155, 962406120, 963648746, 963801704, 968463064,
+            968802066, 969222816, 1016689010, 1059945043, 1072313718,
         ],
     );
+    const dynamicTremoloSoundIds = Object.entries(graph.nodes)
+        .filter(([, node]) => dynamicTremoloSounds.includes(node))
+        .map(([ id ]) => Number(id))
+        .sort((left, right) => left - right);
+
+    assert.deepEqual(dynamicTremoloSoundIds, [
+        138975651, 205298853, 215897794, 274154427, 433220951,
+        457709217, 656544328, 963648746, 968802066, 1059945043,
+    ]);
+    const dynamicTremolo = graph.nodes["138975651"].sourceEffects[0];
+
+    assert.equal(dynamicTremolo.effectId, "774819147");
+    assert.equal(dynamicTremolo.modulationDepthPercent, 60);
+    assert.deepEqual(dynamicTremolo.rtpcCurves.map(curve => ({
+        rtpc: curve.rtpc,
+        property: curve.property,
+        accumulation: curve.accumulation,
+        scaling: curve.scaling,
+        controlTransition: curve.controlTransition,
+    })), [
+        {
+            rtpc: "booster_intensity",
+            property: "modulationDepthPercent",
+            accumulation: "additive",
+            scaling: 0,
+            controlTransition: {
+                type: "filtering-over-time",
+                rampUpSeconds: 2,
+                rampDownSeconds: 2,
+            },
+        },
+        {
+            rtpc: "booster_intensity",
+            property: "modulationFrequencyHz",
+            accumulation: "exclusive",
+            scaling: 3,
+            controlTransition: {
+                type: "filtering-over-time",
+                rampUpSeconds: 2,
+                rampDownSeconds: 2,
+            },
+        },
+    ]);
     assert.deepEqual(
         graph.nodes["185550431"].sourceEffects,
         [
@@ -1520,7 +1570,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
         }
     }
     assert.deepEqual(tremoloPhasePopulations, {
-        "left-right|0|0": 81,
+        "left-right|0|0": 91,
         "random|-72|112": 1,
         "random|0|20": 28,
         "random|0|100": 1,
@@ -1601,7 +1651,17 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ship_engine_L_afterburner_1st_idle",
         "ship_engine_L_afterburner_3rd_idle",
         "ship_engine_M_afterburner_1st_idle",
+        "ship_engine_M_afterburner_1st_powerdown",
         "ship_engine_M_afterburner_3rd_idle",
+        "ship_engine_M_afterburner_3rd_powerdown",
+        "ship_engine_M_microwarpdrive_1st_activate",
+        "ship_engine_M_microwarpdrive_1st_deactivate",
+        "ship_engine_M_microwarpdrive_1st_idle",
+        "ship_engine_M_microwarpdrive_1st_powerdown",
+        "ship_engine_M_microwarpdrive_3rd_activate",
+        "ship_engine_M_microwarpdrive_3rd_deactivate",
+        "ship_engine_M_microwarpdrive_3rd_idle",
+        "ship_engine_M_microwarpdrive_3rd_powerdown",
         "ship_engine_S_afterburner_1st_idle",
         "ship_engine_S_afterburner_3rd_idle",
         "ship_engine_S_microwarpdrive_1st_idle",

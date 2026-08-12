@@ -6662,6 +6662,14 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
     const Build = (propertyValues, bankVersion = 150, tremolo = {}) =>
         CjsAudioLibraryBuilder.buildFromBanks({
         includeSfx: true,
+        enrichment: {
+            gameParameters: {
+                "4000082469": {
+                    name: "booster_intensity",
+                    defaultValue: 0,
+                },
+            },
+        },
         metadata: {
             Events: {
                 ambience_play: {
@@ -6690,6 +6698,16 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
                     bankId: 200,
                     languageId: 0,
                     bankVersion,
+                    globalSettings: {
+                        stateGroups: [],
+                        rtpcParameters: [ {
+                            id: 4000082469,
+                            defaultValue: 0,
+                            rampType: 2,
+                            rampUp: 2,
+                            rampDown: 2,
+                        } ],
+                    },
                     hirc: [
                         {
                             type: 2,
@@ -6764,6 +6782,74 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
         dynamic.sfx.nodes["300"].sourceEffects,
         undefined,
         "a controlled Tremolo keeps the complete override on dry fallback",
+    );
+
+    const filtered = await Build([ {
+        propertyId: 1,
+        accumulation: 2,
+        value: 60,
+    } ], 150, {
+        modulationDepthPercent: 60,
+        modulationFrequencyHz: 9.32,
+        rtpcs: [
+            {
+                controlId: 4000082469,
+                accumulation: 1,
+                parameterId: 2,
+                scaling: 3,
+                points: [
+                    [ 0, 0.4, 0 ],
+                    [ 2, 1.1461280584335327, 4 ],
+                ],
+            },
+            {
+                controlId: 4000082469,
+                accumulation: 2,
+                parameterId: 1,
+                scaling: 0,
+                points: [
+                    [ 0, -39.16666030883789, 0 ],
+                    [ 2, -80.83332824707031, 4 ],
+                ],
+            },
+        ],
+    });
+    const filteredEffect = filtered.sfx.nodes["300"].sourceEffects[0];
+
+    assert.equal(filteredEffect.modulationDepthPercent, 60);
+    assert.equal(filteredEffect.rtpcCurves.length, 2);
+    assert.deepEqual(
+        filteredEffect.rtpcCurves.map(curve => [
+            curve.rtpc,
+            curve.property,
+            curve.accumulation,
+            curve.scaling,
+            curve.controlTransition,
+        ]),
+        [
+            [
+                "booster_intensity",
+                "modulationFrequencyHz",
+                "exclusive",
+                3,
+                {
+                    type: "filtering-over-time",
+                    rampUpSeconds: 2,
+                    rampDownSeconds: 2,
+                },
+            ],
+            [
+                "booster_intensity",
+                "modulationDepthPercent",
+                "additive",
+                0,
+                {
+                    type: "filtering-over-time",
+                    rampUpSeconds: 2,
+                    rampDownSeconds: 2,
+                },
+            ],
+        ],
     );
 
     const phased = await Build([], 150, {
@@ -11471,6 +11557,7 @@ function wwiseTremoloEffectPayload({
     outputGainDb = 0,
     processCenter = true,
     processLfe = true,
+    rtpcs = [],
     propertyValues = [],
 } = {})
 {
@@ -11492,7 +11579,30 @@ function wwiseTremoloEffectPayload({
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)
-        .u16(0)
+        .u16(rtpcs.length);
+
+    for (let index = 0; index < rtpcs.length; index++)
+    {
+        const rtpc = rtpcs[index];
+
+        writer
+            .u32(rtpc.controlId)
+            .u8(rtpc.controlType ?? 0)
+            .u8(rtpc.accumulation)
+            .variable(rtpc.parameterId)
+            .u32(rtpc.curveId ?? index + 1)
+            .u8(rtpc.scaling)
+            .u16(rtpc.points.length);
+
+        for (const [ from, to, interpolation ] of rtpc.points)
+        {
+            writer
+                .f32(from)
+                .f32(to)
+                .u32(interpolation);
+        }
+    }
+    writer
         .u8(0)
         .u8(0)
         .u16(propertyValues.length);

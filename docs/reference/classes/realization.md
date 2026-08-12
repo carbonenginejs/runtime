@@ -65,6 +65,16 @@ Owns live Web Audio parameter bindings for one qualified source-effect RTPC chai
 - Visibility: Internal
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsWwiseFilteredControl -->
+## `CjsWwiseFilteredControl`
+
+Tracks one voice-local approximation of a Wwise Filtering Over Time control.
+
+- Export: None
+- Source: `src/internal/sourceEffectRtpc.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS original
+
 <!-- class:CjsAudioManSharedAcquisition -->
 ## `CjsAudioManSharedAcquisition`
 

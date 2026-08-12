@@ -1741,9 +1741,9 @@ class CjsAudioBackend {
       curve: Number(action.curve ?? LINEAR_FADE_CURVE),
       resetting,
       // The action's bypass flag addresses Wwise's separate internal
-      // Game Parameter interpolation. runtime-resource does not expose
-      // that STMG policy yet, so the authored action transition remains
-      // exact while the flag is retained for future realization.
+      // Game Parameter interpolation. Qualified source-effect curves
+      // may project that STMG policy independently; the generic RTPC
+      // store retains this flag for future whole-parameter realization.
       bypassTransition: action.bypassTransition === true
     });
     this.#RefreshSfxControls(scope === "game-object" ? gameObjID : null, at + transitionMs / 1000);
