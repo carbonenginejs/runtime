@@ -223,8 +223,8 @@ source-local Wwise Flanger and Tremolo records:
 - `"strict"` (default) omits the complete source chain and keeps the voice
   audible/dry.
 - `"approximate-web-audio"` realizes the documented static Sine subsets and
-  the narrow unsmoothed 50%-duty, zero-phase Tremolo Square subset with
-  voice-owned Gain, optional Delay, and optional Oscillator nodes. Tremolo
+  the narrow unsmoothed zero-phase Tremolo Square (50%-duty) and Triangle
+  subsets with voice-owned Gain, optional Delay, and optional Oscillator nodes. Tremolo
   Sine global phase uses `PeriodicWave` when nonzero. Missing required
   primitives keep the complete chain dry.
 

@@ -1219,7 +1219,7 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
     for (const parameters of [
         { modulationDepthPercent: 101 },
         { modulationFrequencyHz: 0.01 },
-        { waveform: 2 },
+        { waveform: 3 },
         { smoothingPercent: 101 },
         { pwmPercent: -1 },
         { phaseOffsetDegrees: 181 },
@@ -1246,6 +1246,10 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
         { waveform: 1, phaseOffsetDegrees: 1 },
         { waveform: 1, phaseMode: 1 },
         { waveform: 1, phaseSpreadDegrees: 1 },
+        { waveform: 2, smoothingPercent: 1 },
+        { waveform: 2, phaseOffsetDegrees: 1 },
+        { waveform: 2, phaseMode: 1 },
+        { waveform: 2, phaseSpreadDegrees: 1 },
     ])
     {
         assert.throws(() => parseGraphStaticWwiseTremolo(
@@ -1268,9 +1272,25 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
     assert.ok(squareChain);
     assert.equal(square.waveform, "square");
     assert.equal(squareContext.oscillators[0].type, "square");
+    const triangle = parseGraphStaticWwiseTremolo(
+        GraphTremolo(TremoloBytes({
+            waveform: 2,
+            smoothingPercent: 0,
+            pwmPercent: 15,
+        })),
+        "903",
+        0,
+    );
+    const triangleContext = Context();
+
+    assert.ok(createWwiseEffectChain(triangleContext, [ triangle ], {
+        wwiseModulation: "approximate-web-audio",
+    }));
+    assert.equal(triangle.waveform, "triangle");
+    assert.equal(triangleContext.oscillators[0].type, "triangle");
     assert.throws(() => normalizeStaticSourceEffectChain([ {
         ...square,
-        waveform: "triangle",
+        waveform: "sawtooth",
     } ], "Audio source"), /waveform/u);
     assert.throws(() => normalizeStaticSourceEffectChain([ {
         ...square,

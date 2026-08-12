@@ -128,7 +128,7 @@ const MODULATION_PHASE_MODES = Object.freeze([
     "random",
 ]);
 const MODULATION_PHASE_MODE_SET = new Set(MODULATION_PHASE_MODES);
-const TREMOLO_WAVEFORMS = Object.freeze([ "sine", "square" ]);
+const TREMOLO_WAVEFORMS = Object.freeze([ "sine", "square", "triangle" ]);
 const TREMOLO_WAVEFORM_SET = new Set(TREMOLO_WAVEFORMS);
 const METER_MAX_TIME = 10;
 const METER_MINIMUM_MIN = Math.fround(-96.3);
@@ -730,13 +730,13 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 `${label} phaseSpreadDegrees`,
             );
 
-            if (waveform === "square"
+            if (waveform !== "sine"
                 && (phaseOffsetDegrees !== 0
                     || phaseMode !== "left-right"
                     || phaseSpreadDegrees !== 0))
             {
                 throw new TypeError(
-                    `${label} square Tremolo requires zero all-channel phase`,
+                    `${label} non-sine Tremolo requires zero all-channel phase`,
                 );
             }
             return Object.freeze({
@@ -1658,9 +1658,9 @@ function CreateWwiseTremoloApproximation(context, effect)
         const modulation = context.createGain();
         const oscillator = context.createOscillator();
 
-        if (effect.waveform === "square")
+        if (effect.waveform !== "sine")
         {
-            oscillator.type = "square";
+            oscillator.type = effect.waveform;
         }
         else if (effect.phaseOffsetDegrees === 0)
         {
@@ -2100,7 +2100,8 @@ export function parseStaticWwiseTremoloBytes(
     const modulationFrequencyHz = view.getFloat32(4, true);
     const waveformId = view.getUint32(8, true);
     // Audiokinetic's authoring order and the EVE preset corpus together pin
-    // 0 to Sine and 1 to Square for this empirical v150 Tremolo record.
+    // 0 to Sine, 1 to Square, and 2 to Triangle for this empirical v150
+    // Tremolo record.
     const waveform = TREMOLO_WAVEFORMS[waveformId];
     const smoothingPercent = view.getFloat32(12, true);
     const pwmPercent = view.getFloat32(16, true);
@@ -2136,12 +2137,16 @@ export function parseStaticWwiseTremoloBytes(
         || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
         || processCenterRaw !== 1
         || processLfeRaw !== 1
+        || (waveform !== "sine"
+            && (phaseOffsetDegrees !== 0
+                || phaseMode !== 0
+                || phaseSpreadDegrees !== 0))
         || (waveform === "square"
             && (smoothingPercent !== 0
-                || pwmPercent !== 50
-                || phaseOffsetDegrees !== 0
-                || phaseMode !== 0
-                || phaseSpreadDegrees !== 0)))
+                || pwmPercent !== 50))
+        // Wwise applies PWM only to Square. Triangle PWM is inert, while
+        // nonzero Triangle smoothing changes the carrier shape we realize.
+        || (waveform === "triangle" && smoothingPercent !== 0))
     {
         throw new TypeError(`${label} has invalid Wwise Tremolo parameters`);
     }

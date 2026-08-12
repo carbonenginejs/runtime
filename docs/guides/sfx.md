@@ -340,23 +340,27 @@ wwiser identifies plug-in `0x00830003` and shows the corresponding modulation
 and phase sequence inside Flanger, but does not decode Tremolo's own
 parameters. The EVE corpus informs the 38-byte interpretation; it remains
 empirical. Admission is explicitly limited to bank version 150, a control-free
-Sine record or an unsmoothed 50%-duty Square record, bounded phase
-offset/mode/spread fields, and Center/LFE processing. Square admission is
-further limited to zero offset and zero all-channel spread.
+Sine record, an unsmoothed 50%-duty Square record, or an unsmoothed Triangle
+record, bounded phase offset/mode/spread fields, and Center/LFE processing.
+Square and Triangle admission is further limited to zero offset and zero
+all-channel spread.
 Audiokinetic's
 [Wwise Tremolo reference](https://www.audiokinetic.com/en/library/2024.1.1_8691/?id=wwise_tremolo_plug_in_effect&source=Help)
 describes a unipolar carrier; the browser maps it to
 `gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t + phase)`, then
 applies authored output gain. A nonzero global phase uses a custom
 `PeriodicWave`; missing that primitive keeps the complete chain dry. A
-qualified Square record uses Web Audio's band-limited `square` oscillator. The
+qualified Square or Triangle record uses Web Audio's band-limited native
+oscillator of the same name. The
 portable record also retains Wwise's phase mode and spread, but the browser
 uses one all-channel carrier and does not reproduce the authored per-channel
 Left-Right, Front-Rear, Circular, or Random distribution. Its voice-owned
 oscillator has the same start, pause, and disposal lifecycle as Flanger.
 Native oscillator/channel law is not claimed. Smoothing and PWM remain
 shape-validated but are neither stored nor applied; Square is admitted only
-where their authored values are exactly zero and 50 percent respectively.
+where their authored values are exactly zero and 50 percent respectively, and
+Triangle only where smoothing is zero. PWM applies only to Square in Wwise, so
+Triangle PWM is intentionally ignored after range validation.
 Shared-Bus Tremolo remains unsupported.
 
 Wwise Harmonizer `0x008a0003` deliberately has no browser policy yet. Pinned
@@ -464,12 +468,12 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 3,182
-qualified Sound leaves carrying 3,340 effect records: 456 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 3,183
+qualified Sound leaves carrying 3,344 effect records: 456 use Parametric EQ,
 including 170 leaves with live `ship_Roll` Band 1 Frequency,
 87 use Wwise Delay, 2,114 use
 Compressor, 73 use Peak Limiter, 21 use Flanger across nine retained events,
-152 Tremolo stages occur on 151 Sounds across 81 retained events, 205 use
+156 Tremolo stages occur on 152 Sounds across 82 retained events, 205 use
 Guitar Distortion across 57 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
 events, and 130 retain telemetry-only Meter records. The added 81 Meter leaves
@@ -486,8 +490,10 @@ audible decoded parameter sets), while 136 live-Drive leaves across 35 events
 use three identities. Other dynamic Guitar controls remain dry. The Tremolo
 population contains 115 isolated chains, 14
 Tremolo-to-EQ, two EQ-to-Tremolo, eight Tremolo-to-Matrix, six
-Delay-to-Tremolo, two Tremolo-to-Delay, and one double-Tremolo chain over 64
-effect identities and 18 distinct 38-byte parameter records. Those Peak
+Delay-to-Tremolo, two Tremolo-to-Delay, one double-Tremolo chain, and one
+four-Tremolo chain over 69 effect identities and 23 distinct 38-byte parameter
+records. The four-stage `jita_OSSE_bigscreen_1_play` chain contains three
+unsmoothed, zero-phase Triangle carriers and one Sine carrier. Those Peak
 Limiter leaves all inherit Custom effect
 `754157063` under `refinery_l_play`. A total of 486 retained events can reach
 at least one Compressor leaf. The

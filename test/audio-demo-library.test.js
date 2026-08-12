@@ -1115,16 +1115,16 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 3182);
+    assert.equal(sourceEffectSounds.length, 3183);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3340);
+        count + node.sourceEffects.length, 0), 3344);
     assert.equal(sourceEqSounds.length, 456);
     assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2114);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 21);
-    assert.equal(sourceTremoloSounds.length, 151);
+    assert.equal(sourceTremoloSounds.length, 152);
     assert.equal(sourceGuitarDistortionSounds.length, 205);
     assert.equal(dynamicGuitarDistortionSounds.length, 136);
     assert.equal(sourceMatrixReverbSounds.length, 50);
@@ -1254,6 +1254,64 @@ test("committed demo library carries authored SFX and music semantics", () =>
         processCenter: true,
         processLfe: true,
     } ]);
+    assert.deepEqual(graph.nodes["525463666"].sourceEffects, [
+        {
+            effectId: "566093542",
+            slotIndex: 0,
+            type: "tremolo",
+            modulationDepthPercent: 100,
+            modulationFrequencyHz: Math.fround(7.62),
+            waveform: "triangle",
+            phaseOffsetDegrees: 0,
+            phaseMode: "left-right",
+            phaseSpreadDegrees: 0,
+            outputGainDb: 0,
+            processCenter: true,
+            processLfe: true,
+        },
+        {
+            effectId: "126257322",
+            slotIndex: 1,
+            type: "tremolo",
+            modulationDepthPercent: 70,
+            modulationFrequencyHz: Math.fround(0.2),
+            waveform: "sine",
+            phaseOffsetDegrees: 0,
+            phaseMode: "left-right",
+            phaseSpreadDegrees: 0,
+            outputGainDb: 0,
+            processCenter: true,
+            processLfe: true,
+        },
+        {
+            effectId: "579691495",
+            slotIndex: 2,
+            type: "tremolo",
+            modulationDepthPercent: 100,
+            modulationFrequencyHz: Math.fround(0.06),
+            waveform: "triangle",
+            phaseOffsetDegrees: 0,
+            phaseMode: "left-right",
+            phaseSpreadDegrees: 0,
+            outputGainDb: 0,
+            processCenter: true,
+            processLfe: true,
+        },
+        {
+            effectId: "672599830",
+            slotIndex: 3,
+            type: "tremolo",
+            modulationDepthPercent: 100,
+            modulationFrequencyHz: Math.fround(0.52),
+            waveform: "triangle",
+            phaseOffsetDegrees: 0,
+            phaseMode: "left-right",
+            phaseSpreadDegrees: 0,
+            outputGainDb: 0,
+            processCenter: true,
+            processLfe: true,
+        },
+    ]);
     const shieldDrainRoomVerb = graph.nodes["603165888"].sourceEffects[0];
 
     assert.equal(shieldDrainRoomVerb.type, "roomverb");
@@ -1399,7 +1457,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
             227488604, 234999876, 245023523, 289872408, 295844646,
             303824015, 334236564, 337505310, 342408936, 367736782,
             419444932, 422600908, 464520479, 466221579, 474875076, 479691729,
-            483852729, 504198893, 513652395, 525063532, 527348461, 552197906,
+            483852729, 504198893, 513652395, 525063532, 525463666, 527348461,
+            552197906,
             561895346, 563609806, 567959441, 569050443, 570940185,
             585012572, 587318855, 601025667, 604031582, 606479059,
             619225631, 627960890, 646956222, 671815947, 705896755,
@@ -1461,7 +1520,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
         }
     }
     assert.deepEqual(tremoloPhasePopulations, {
-        "left-right|0|0": 77,
+        "left-right|0|0": 81,
         "random|-72|112": 1,
         "random|0|20": 28,
         "random|0|100": 1,
@@ -1508,6 +1567,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "deathless_structure_warden_play",
         "hangar_platforms_aura_hologram_atmo_play",
         "hq_systems_amarr_play",
+        "jita_OSSE_bigscreen_1_play",
         "jita_sfx_commerce_atmo_play",
         "jita_sfx_incidentals_level2_play",
         "jita_sfx_incidentals_level3_play",

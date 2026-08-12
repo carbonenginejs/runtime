@@ -6810,6 +6810,27 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
         processLfe: true,
     } ]);
 
+    const triangle = await Build([], 150, {
+        waveform: 2,
+        smoothingPercent: 0,
+        pwmPercent: 15,
+    });
+
+    assert.deepEqual(triangle.sfx.nodes["300"].sourceEffects, [ {
+        effectId: "2196086003",
+        slotIndex: 0,
+        type: "tremolo",
+        modulationDepthPercent: 100,
+        modulationFrequencyHz: 1,
+        waveform: "triangle",
+        phaseOffsetDegrees: 0,
+        phaseMode: "left-right",
+        phaseSpreadDegrees: 0,
+        outputGainDb: 0,
+        processCenter: true,
+        processLfe: true,
+    } ]);
+
     const unsupportedVersion = await Build([], 151);
 
     assert.equal(
