@@ -8802,6 +8802,7 @@ function createMusicEventProjection(inspections, metadata, nodes)
     const eventTargets = {};
     const eventStops = {};
     const switchSetters = {};
+    const programs = {};
     const musicGroups = MusicArgumentGroups(nodes);
 
     for (const inspection of inspections)
@@ -8873,6 +8874,18 @@ function createMusicEventProjection(inspections, metadata, nodes)
 
                     values.push(setter);
                 }
+                else if (family === 0x02 || family === 0x03)
+                {
+                    const playbackControl = ReadMusicPlaybackControlAction(
+                        action,
+                        family === 0x02 ? "pause" : "resume",
+                        nodes,
+                    );
+                    const program = programs[name]
+                        ?? (programs[name] = []);
+
+                    program.push(playbackControl);
+                }
             }
         }
     }
@@ -8881,6 +8894,59 @@ function createMusicEventProjection(inspections, metadata, nodes)
         eventTargets: normalizeTargetTable(eventTargets),
         eventStops: normalizeTargetTable(eventStops),
         switchSetters: normalizeSetterTable(switchSetters),
+        programs: normalizeMusicProgramTable(programs),
+    };
+}
+
+/** Retains only the authored music playback controls qualified by EVE banks. */
+function ReadMusicPlaybackControlAction(action, kind, nodes)
+{
+    const result = ReadSfxPlaybackControlAction(action, kind);
+    const unsupported = [
+        "delayMs",
+        "delayRangeMs",
+        "transitionRangeMs",
+        "probability",
+    ].find(field => result[field] !== undefined);
+
+    if (unsupported !== undefined)
+    {
+        throw new Error(
+            `unsupported Music ${kind} ${unsupported} ${action.id}`,
+        );
+    }
+    if (result.scope !== "game-object"
+        || (result.mode !== "element" && result.mode !== "all")
+        || result.targetFlags !== 0
+        || result.exceptions.length)
+    {
+        throw new Error(`unsupported Music ${kind} form ${action.id}`);
+    }
+    if (result.mode === "element" && !nodes[result.targetId])
+    {
+        throw new Error(
+            `Music ${kind} ${action.id} references missing node ${result.targetId}`,
+        );
+    }
+    if (result.mode === "all" && result.targetId !== "0")
+    {
+        throw new Error(`invalid Music ${kind} all target ${action.id}`);
+    }
+    if (!Number.isSafeInteger(result.curve)
+        || result.curve < 0
+        || result.curve > 9)
+    {
+        throw new Error(`invalid Music ${kind} curve ${action.id}`);
+    }
+    const transitionMs = Number(result.transitionMs ?? 0);
+
+    if (!Number.isFinite(transitionMs) || transitionMs < 0)
+    {
+        throw new Error(`invalid Music ${kind} transition ${action.id}`);
+    }
+    return {
+        ...result,
+        transitionMs,
     };
 }
 
@@ -9081,6 +9147,27 @@ function normalizeSetterTable(table)
     return result;
 }
 
+function normalizeMusicProgramTable(table)
+{
+    const result = {};
+
+    for (const name of Object.keys(table ?? {}).sort())
+    {
+        result[name] = table[name].map(action => ({
+            kind: action.kind,
+            targetId: String(Number(action.targetId) >>> 0),
+            targetFlags: Number(action.targetFlags),
+            scope: action.scope,
+            mode: action.mode,
+            curve: Number(action.curve),
+            actionFlags: Number(action.actionFlags),
+            exceptions: [],
+            transitionMs: Number(action.transitionMs),
+        }));
+    }
+    return result;
+}
+
 function validateMusicGraph(music, media, embeddedMedia)
 {
     if (!music || typeof music !== "object" || Array.isArray(music))
@@ -9214,6 +9301,60 @@ function validateMusicGraph(music, media, embeddedMedia)
             );
         }
     }
+
+    ValidateMusicPrograms(music.programs, music.nodes);
+}
+
+function ValidateMusicPrograms(programs, nodes)
+{
+    if (programs === undefined)
+    {
+        return;
+    }
+    if (!programs || typeof programs !== "object" || Array.isArray(programs))
+    {
+        throw new TypeError("Audio library music programs must be an object");
+    }
+    for (const [ name, actions ] of Object.entries(programs))
+    {
+        if (!Array.isArray(actions) || !actions.length)
+        {
+            throw new TypeError(
+                `Audio library music programs.${name} must be non-empty`,
+            );
+        }
+        for (const action of actions)
+        {
+            const expectedFlags = action?.kind === "pause" ? 7 : 6;
+            const targetId = String(Number(action?.targetId) >>> 0);
+            const transitionMs = Number(action?.transitionMs);
+
+            if (!action || ![ "pause", "resume" ].includes(action.kind)
+                || action.scope !== "game-object"
+                || ![ "element", "all" ].includes(action.mode)
+                || Number(action.targetFlags) !== 0
+                || Number(action.actionFlags) !== expectedFlags
+                || !Array.isArray(action.exceptions)
+                || action.exceptions.length
+                || !Number.isSafeInteger(Number(action.curve))
+                || Number(action.curve) < 0
+                || Number(action.curve) > 9
+                || !Number.isFinite(transitionMs)
+                || transitionMs < 0)
+            {
+                throw new TypeError(
+                    `Audio library music programs.${name} has an invalid action`,
+                );
+            }
+            if ((action.mode === "element" && !nodes[targetId])
+                || (action.mode === "all" && targetId !== "0"))
+            {
+                throw new TypeError(
+                    `Audio library music programs.${name} has an invalid target`,
+                );
+            }
+        }
+    }
 }
 
 function normalizeMusicGraph(music)
@@ -9226,6 +9367,7 @@ function normalizeMusicGraph(music)
         eventTargets: normalizeTargetTable(music.eventTargets),
         eventStops: normalizeTargetTable(music.eventStops),
         switchSetters: normalizeSetterTable(music.switchSetters),
+        programs: normalizeMusicProgramTable(music.programs),
     };
 }
 

@@ -51,6 +51,16 @@ nonzero `overrideBusId`. Only that same NodeBase contributes Output Bus Volume;
 a value stored on a descendant that does not override the output bus is not an
 active routing contribution. Track `iLookAheadTime` is read as a signed `s32`.
 
+The music event projection also retains a narrow ordered `music.programs`
+table for v150 Pause and Resume actions. Qualification requires game-object
+scope, element or all mode, no Bus flag, exceptions, delay, probability, or
+randomized transition, standard action flags (Pause 7, Resume 6), and a Wwise
+curve from 0 through 9. Element targets must be retained music nodes; all mode
+must target zero. Repeated actions are not deduplicated because their order and
+count define nested pause depth. This is a portable-data contract only until
+the music scheduler can restore source offsets, the live playlist iterator,
+pending preparation, and musical envelope progress.
+
 ## Audio, Auxiliary Bus, and effect contract
 
 For bank version 150, HIRC 8 is Audio Bus, HIRC 18 (`0x12`) is Auxiliary Bus,

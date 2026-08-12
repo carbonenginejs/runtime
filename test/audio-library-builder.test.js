@@ -817,6 +817,34 @@ test("music event projection follows typed targets across every bank", () =>
                         payload: setterPayload(77, 88),
                     },
                     {
+                        typeName: "event-action",
+                        id: 14,
+                        actionType: 0x0203,
+                        targetId: 1000,
+                        action: {
+                            targetFlags: 0,
+                            actionFlags: 7,
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            fadeCurve: 5,
+                            transitionTimeMs: 7000,
+                        },
+                    },
+                    {
+                        typeName: "event-action",
+                        id: 15,
+                        actionType: 0x0305,
+                        targetId: 0,
+                        action: {
+                            targetFlags: 0,
+                            actionFlags: 6,
+                            actionMode: "all",
+                            actionScope: "game-object",
+                            fadeCurve: 4,
+                            transitionTimeMs: 10000,
+                        },
+                    },
+                    {
                         typeName: "event",
                         id: 100,
                         actionIds: [ 10 ],
@@ -836,6 +864,11 @@ test("music event projection follows typed targets across every bank", () =>
                         id: 103,
                         actionIds: [ 13 ],
                     },
+                    {
+                        typeName: "event",
+                        id: 104,
+                        actionIds: [ 14, 15 ],
+                    },
                 ],
             },
         ],
@@ -845,6 +878,7 @@ test("music event projection follows typed targets across every bank", () =>
                 dungeon_leave: { eventID: 101 },
                 danger: { eventID: 102 },
                 unrelated_switch: { eventID: 103 },
+                music_transport: { eventID: 104 },
             },
         },
         nodes: {
@@ -871,6 +905,32 @@ test("music event projection follows typed targets across every bank", () =>
                     groupId: 55,
                     targetId: 66,
                     delayMs: 200,
+                },
+            ],
+        },
+        programs: {
+            music_transport: [
+                {
+                    kind: "pause",
+                    targetId: "1000",
+                    targetFlags: 0,
+                    scope: "game-object",
+                    mode: "element",
+                    curve: 5,
+                    actionFlags: 7,
+                    exceptions: [],
+                    transitionMs: 7000,
+                },
+                {
+                    kind: "resume",
+                    targetId: "0",
+                    targetFlags: 0,
+                    scope: "game-object",
+                    mode: "all",
+                    curve: 4,
+                    actionFlags: 6,
+                    exceptions: [],
+                    transitionMs: 10000,
                 },
             ],
         },
@@ -917,6 +977,57 @@ test("music setter typed fields must agree with retained raw payloads", () =>
         }),
         /typed fields disagree with payload/u,
     );
+});
+
+test("music playback controls reject unqualified Wwise action forms", () =>
+{
+    const create = mutate =>
+    {
+        const action = {
+            typeName: "event-action",
+            id: 20,
+            actionType: 0x0203,
+            targetId: 1000,
+            action: {
+                targetFlags: 0,
+                actionFlags: 7,
+                actionMode: "element",
+                actionScope: "game-object",
+                fadeCurve: 5,
+                transitionTimeMs: 7000,
+            },
+        };
+
+        mutate(action);
+        return () => CjsAudioLibraryBuilder.createMusicEventProjection({
+            inspections: [ {
+                hirc: [
+                    action,
+                    { typeName: "event", id: 200, actionIds: [ 20 ] },
+                ],
+            } ],
+            metadata: { Events: { music_pause: { eventID: 200 } } },
+            nodes: { "1000": { type: "music-segment" } },
+        });
+    };
+    const cases = [
+        action => { action.targetId = 999; },
+        action => { action.action.actionScope = "global"; },
+        action => { action.action.actionMode = "all-except"; },
+        action => { action.action.targetFlags = 1; },
+        action => { action.action.exceptions = [ { targetId: 1 } ]; },
+        action => { action.action.delayTimeMs = 1; },
+        action => { action.action.transitionRangeMs = { min: 0, max: 1 }; },
+        action => { action.action.probability = 50; },
+        action => { action.action.fadeCurve = 10; },
+        action => { action.action.transitionTimeMs = -1; },
+        action => { action.action.actionFlags = 6; },
+    ];
+
+    for (const mutate of cases)
+    {
+        assert.throws(create(mutate));
+    }
 });
 
 test("typed runtime-resource SFX nodes lower into the portable builder graph", () =>

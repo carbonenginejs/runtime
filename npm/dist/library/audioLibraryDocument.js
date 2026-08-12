@@ -551,6 +551,32 @@ function ValidateMusic(music, media, embeddedMedia) {
       throw new TypeError(`Audio library music switchSetters.${name} has duplicate setters`);
     }
   }
+  ValidateMusicPrograms(music.programs, nodes);
+}
+function ValidateMusicPrograms(programs, nodes) {
+  if (programs === undefined) {
+    return;
+  }
+  RequireRecord(programs, "Audio library music programs");
+  for (const [name, actions] of Object.entries(programs)) {
+    if (!Array.isArray(actions) || !actions.length) {
+      throw new TypeError(`Audio library music programs.${name} must be non-empty`);
+    }
+    for (let index = 0; index < actions.length; index++) {
+      const label = `Audio library music programs.${name}[${index}]`;
+      const action = RequireRecord(actions[index], label);
+      const expectedFlags = action.kind === "pause" ? 7 : 6;
+      const targetId = NormalizeUnsignedID(action.targetId, `${label} targetId`);
+      const curve = NormalizeNonNegativeInteger(action.curve, `${label} curve`);
+      const transitionMs = Number(action.transitionMs);
+      if (!["pause", "resume"].includes(action.kind) || action.scope !== "game-object" || !["element", "all"].includes(action.mode) || Number(action.targetFlags) !== 0 || Number(action.actionFlags) !== expectedFlags || !Array.isArray(action.exceptions) || action.exceptions.length || curve > 9 || !Number.isFinite(transitionMs) || transitionMs < 0) {
+        throw new TypeError(`${label} is unsupported`);
+      }
+      if (action.mode === "element" && !nodes[targetId] || action.mode === "all" && targetId !== "0") {
+        throw new TypeError(`${label} has an invalid target`);
+      }
+    }
+  }
 }
 function ValidateMusicBusRouting(node, id) {
   const hasOutput = node.outputBusId !== undefined;

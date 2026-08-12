@@ -820,6 +820,30 @@ test("validates and installs routed music-track bus metadata", () =>
                 delayMs: "200",
             } ],
         },
+        programs: {
+            music_pause: [ {
+                kind: "pause",
+                targetId: "100",
+                targetFlags: 0,
+                scope: "game-object",
+                mode: "element",
+                curve: 5,
+                actionFlags: 7,
+                exceptions: [],
+                transitionMs: 7000,
+            } ],
+            music_resume_all: [ {
+                kind: "resume",
+                targetId: "0",
+                targetFlags: 0,
+                scope: "game-object",
+                mode: "all",
+                curve: 4,
+                actionFlags: 6,
+                exceptions: [],
+                transitionMs: 1000,
+            } ],
+        },
     };
 
     const installed = installAudioLibraryDocument(source);
@@ -846,6 +870,10 @@ test("validates and installs routed music-track bus metadata", () =>
         "200",
         "music setter validation does not mutate caller-owned documents",
     );
+    assert.equal(
+        Object.isFrozen(installed.music.programs.music_pause),
+        true,
+    );
 
     const invalidSetterDelay = structuredClone(source);
 
@@ -864,6 +892,22 @@ test("validates and installs routed music-track bus metadata", () =>
     assert.throws(
         () => validateAudioLibraryDocument(randomizedMusicSetter),
         /delayRangeMs is unsupported/u,
+    );
+
+    const invalidMusicProgram = structuredClone(source);
+
+    invalidMusicProgram.music.programs.music_pause[0].actionFlags = 6;
+    assert.throws(
+        () => validateAudioLibraryDocument(invalidMusicProgram),
+        /is unsupported/u,
+    );
+
+    const missingMusicTarget = structuredClone(source);
+
+    missingMusicTarget.music.programs.music_pause[0].targetId = "999";
+    assert.throws(
+        () => validateAudioLibraryDocument(missingMusicTarget),
+        /has an invalid target/u,
     );
 
     for (const mutate of [

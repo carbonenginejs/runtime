@@ -155,13 +155,21 @@ Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
 tracks, and Music Track RTPC properties outside the qualified Voice Volume
 shape remain unsupported.
 
-Authored Wwise music Pause/Resume actions also remain unsupported. EVE build
-3453885 contains five otherwise clean element/game-object actions for dynamic,
-cemetery, and login music. Wwise Resume continues the paused musical timeline;
-the current browser transport instead recreates sources at an item entry cue.
-Projecting those actions onto the UI transport would therefore be audibly
-incorrect, so the builder continues to omit them until layered clip offsets,
-playlist cursors, and pending transition state can be frozen and restored.
+Authored Wwise music Pause/Resume playback remains a scheduler barrier. The
+portable music graph does retain the seven fully qualified actions in EVE
+build 3453885, in authored event order: five element/game-object actions for
+dynamic, cemetery, and login music plus the global-named pair whose authored
+mode is all music on the posting game object. The retained records preserve
+target, mode, curve, action flags, and the 1, 2, 7, or 10 second transition.
+The metadata-only `music_login_resume` Event has no action and therefore has no
+program.
+
+The browser scheduler does not execute those programs yet. Wwise Resume
+continues the paused musical timeline; the UI transport instead recreates
+sources at an item entry cue. Reusing that extension would be audibly
+incorrect. Runtime execution remains blocked until layered clip offsets,
+playlist iterators, pending media and switch preparations, and active musical
+fade progress can be frozen and restored.
 
 The MIDI omission is a fidelity gap rather than dead data. The shipping native
 client links the Wwise Synth One source plug-in, so those MIDI clips are
