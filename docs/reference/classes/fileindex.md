@@ -25,6 +25,16 @@ Represents one immutable row from a CCP-style appfileindex or resfileindex.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsFileIndexDiff -->
+## `CjsFileIndexDiff`
+
+Compares two resfileindexes to find what changed between builds.
+
+- Export: `@carbonenginejs/tools-browser/fileindex`
+- Source: `src/fileindex/CjsFileIndexDiff.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsFileIndexLibrary -->
 ## `CjsFileIndexLibrary`
 
