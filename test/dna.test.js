@@ -5244,6 +5244,57 @@ test("editor mode records Carbon placement metadata on layout children", () => {
   }
 });
 
+// runtime-sof must be Trinity-free. That was enforced by "no dependency in the
+// manifest, no import in the source", and both stayed green for months while
+// BuildValuesFromDNA could not run unless its caller handed in the entire
+// runtime-trinity class library -- the requirement was satisfied in spelling
+// and broken in effect. This test states the property instead: values build
+// with nothing supplied. It must not be given a registry, and it deliberately
+// does not import runtime-trinity, so it fails the moment a class library
+// becomes necessary again.
+test("values build with no registry, because SOF emits JSON and JSON needs no classes", () => {
+  const data = createData();
+  data.hull[0].soundEmitters = [{
+    name: "engine",
+    prefix: "ship_",
+    position: [1, 2, 3],
+    rotation: [0, 1, 0, 0],
+    attenuationScalingFactor: 2.5,
+  }];
+  data.hull[0].spriteSets = [
+    { visibilityGroup: "primary", items: [{ position: [1, 0, 0], colorType: 0 }] },
+    { visibilityGroup: "primary", items: [{ position: [2, 0, 0], colorType: 0 }] },
+  ];
+  data.faction[0].visibilityGroupSet = { visibilityGroups: [{ str: "primary" }] };
+  data.faction[0].colorSet = { Primary: [1, 0, 0, 1] };
+
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+
+  const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+
+  assert.equal(values._type, "EveShip2");
+  assert.equal(values.schema, undefined);
+  assert.equal(values.nodes, undefined);
+
+  // No node-table vocabulary survives the projection, at any depth.
+  const text = JSON.stringify(values);
+  for (const leaked of [ "\"kind\"", "\"$ref\"", "\"fields\"", "\"raw\"" ])
+  {
+    assert.equal(text.includes(leaked), false, `values leaked ${leaked} from the document form`);
+  }
+
+  // Shared topology still resolves without any class deciding it.
+  const spriteSets = values.attachments.filter(item => item._type === "EveSpriteSet");
+  assert.equal(spriteSets.length, 2);
+  assert.notEqual(spriteSets[0].effect._id, undefined);
+  assert.deepEqual(spriteSets[1].effect, { _ref: spriteSets[0].effect._id });
+
+  // A class name is written as data; nothing resolves it here.
+  assert.equal(values.observers[0].observer._type, "AudEmitter");
+  assert.equal(values.observers[0].observer.eventPrefix, "ship_");
+});
+
 test("BuildValuesFromDNA emits plain model values with parity to document hydration", {
   skip: !existsSync(trinityConsumerEntry),
 }, async () => {

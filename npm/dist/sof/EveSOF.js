@@ -16,10 +16,9 @@ import { EveSOFDataHull as _EveSOFDataHull } from './hull/EveSOFDataHull.js';
 import { EveSOFDataArea as _EveSOFDataArea } from './shared/EveSOFDataArea.js';
 import { EveSOFDataInstancedMesh as _EveSOFDataInstancedM } from './shared/EveSOFDataInstancedMesh.js';
 import { EveSOFUtilsParameterName } from './shared/EveSOFUtilsParameterName.js';
-import { CjsDocumentHydrator } from '@carbonenginejs/runtime-utils/document';
+import { CjsCarbonDocument } from '@carbonenginejs/runtime-utils/document';
 import { EveSOFDNA as _EveSOFDNA } from './EveSOFDNA.js';
 import { EveSOFDataMgr as _EveSOFDataMgr } from './EveSOFDataMgr.js';
-import { createSofHydrationAdapter } from './createSofHydrationAdapter.js';
 import { planSofLayouts } from './layoutPlanner.js';
 
 let _initProto, _initClass, _init_allowFileCaching, _init_extra_allowFileCaching, _init_alphaCutoutShadowsEnabled, _init_extra_alphaCutoutShadowsEnabled, _init_volumetricTrailPath, _init_extra_volumetricTrailPath, _init_buildTime, _init_extra_buildTime, _init_dataMgr, _init_extra_dataMgr, _init_editorMode, _init_extra_editorMode;
@@ -397,29 +396,27 @@ class EveSOF extends CjsModel {
   /**
    * Builds the plain model-values graph for a DNA string.
    *
-   * The result is exactly what the hydrated root model's
-   * `GetValues({ refs: true, typeTags: true })` returns: one nested,
-   * JSON-serializable root value carrying `_type` on polymorphic nodes and
-   * `_id`/`_ref` only where topology demands shared identity. There is no
-   * node table, `kind`/`fields` record, or `raw` payload; hydrate it with
-   * `RootClass.from(values)` against the same class registry.
+   * The result is one nested, JSON-serializable root value carrying `_type` on
+   * polymorphic nodes and `_id`/`_ref` only where topology demands shared
+   * identity. There is no node table, `kind`/`fields` record, or `raw` payload.
    *
-   * runtime-sof stays free of a runtime-trinity dependency, so callers
-   * provide the concrete classes: `options.registry` is the
-   * `CjsClassRegistry` holding the runtime-trinity constructors (as the
-   * document hydration tests build with `CjsClassRegistry.fromMaps`).
-   * `options.values` may override the GetValues export options.
+   * **No class registry is required, and none should be passed.** runtime-sof
+   * must be Trinity-free — that requirement is why it is a separate package —
+   * and JSON does not need the classes it names. Building this used to hydrate
+   * a document into live runtime objects and re-export them, which made a
+   * registry mandatory and relocated a runtime-trinity dependency onto every
+   * caller rather than removing it. Anything that takes a registry here is the
+   * round trip growing back.
    *
-   * There is no longer an omission here. The audio emitter used to stay
-   * private to the explicit carbon.document path, as a descriptor in a node's
-   * `raw` bag, because no audio model could be named without dragging WebAudio
-   * in. `runtime-audio/trinity` is that model now, so the emitter is an
-   * ordinary declared `AudEmitter` node in `TriObserverLocal.observer` and this
-   * output is a complete rebuild source.
+   * Constructing objects is the caller's option, performed on the result:
+   * `RootClass.from(values)` against whatever classes that caller has. The
+   * direction matters — objects are built *from* the values, never in order to
+   * produce them.
    *
-   * A registry must therefore resolve `AudEmitter`. Compose it from
-   * runtime-trinity AND `@carbonenginejs/runtime-audio/trinity`, which is
-   * data-only and creates no AudioContext.
+   * The output is sparse: it carries what SOF set, and class defaults belong to
+   * whoever constructs. The audio emitter is ordinary declared data, an
+   * `AudEmitter` node in `TriObserverLocal.observer`, so this is a complete
+   * rebuild source.
    */
   BuildValuesFromDNA(dnaString, options = {}) {
     const document = this.BuildFromDNA(dnaString, options);
@@ -470,26 +467,43 @@ class EveSOF extends CjsModel {
   }
 
   /**
-   * Projects a built carbon.document into plain model values by hydrating a
-   * fresh runtime graph and exporting it. Throws when hydration reports
-   * problems rather than emitting a partial values graph.
+   * Projects a built carbon.document into plain model values.
+   *
+   * Both forms are JSON describing one graph, so this is a structural rewrite
+   * and nothing more: a node table becomes a tree, `kind` becomes `_type`, and
+   * `{ $ref }` becomes a `{ _ref }` back-reference paired with an `_id` on the
+   * first occurrence. `fields` and `raw` are envelopes, so their contents move
+   * onto the node itself.
+   *
+   * **No class library is involved, by requirement.** runtime-sof must be
+   * Trinity-free — that is why it is a separate package — and it emits JSON, so
+   * it never needs the classes that JSON names. The previous implementation
+   * hydrated the document into live runtime objects and called `GetValues` on
+   * the root, which made a class registry mandatory and pushed a runtime-trinity
+   * dependency onto every caller. Constructing objects to serialize a graph we
+   * already hold is a round trip; building objects from these values is a thing
+   * a caller may choose to do afterwards, with `RootClass.from(values)`.
+   *
+   * The output is therefore sparse: it carries what SOF actually set, and class
+   * defaults are applied by whoever constructs. Hydration used to fill them in,
+   * which is why the projected graph used to be larger than the document it
+   * came from.
    */
   static projectDocumentValues(document, options = {}) {
-    if (!options.registry) {
-      throw new TypeError("EveSOF values projection requires options.registry with the runtime graph classes (e.g. CjsClassRegistry.fromMaps({ constructors: trinityModule })).");
+    const normalized = CjsCarbonDocument.normalize(document);
+    const nodeById = new Map(normalized.nodes.map(node => [Number(node.id), node]));
+    const rootRef = normalized.roots?.[0]?.ref;
+    if (!CjsCarbonDocument.isRef(rootRef)) {
+      throw new TypeError("EveSOF values projection requires a document with one root reference.");
     }
-    const adapter = options.adapter ?? createSofHydrationAdapter();
-    const hydrated = CjsDocumentHydrator.hydrate(document, {
-      registry: options.registry,
-      adapter
-    });
-    if (Array.isArray(hydrated.reports) && hydrated.reports.length) {
-      throw new Error(`EveSOF values projection failed to hydrate: ${hydrated.reports.map(report => JSON.stringify(report)).join("; ")}`);
-    }
-    return hydrated.root.GetValues({
-      refs: true,
-      typeTags: true,
-      ...options.values
+
+    // A node reachable more than once is shared topology and needs an identity;
+    // one reachable once is ordinary nesting and needs none. Counting first
+    // keeps `_id` off the great majority of nodes.
+    const visits = new Map();
+    CountDocumentVisits(rootRef, nodeById, visits);
+    return ProjectDocumentNode(rootRef, nodeById, visits, new Map(), {
+      nextId: 1
     });
   }
 
@@ -3469,6 +3483,78 @@ function createImpactEmitter(document, values) {
     turbulenceAmplitude: paramsData.turbulenceAmplitude,
     turbulenceFrequency: paramsData.turbulenceFrequency
   });
+}
+
+/**
+ * Counts how many times each node is reached from a starting reference.
+ *
+ * Recursion stops at a node already seen, so a cycle terminates and every node
+ * on it still records more than one visit — which is exactly the condition for
+ * giving it an identity.
+ */
+function CountDocumentVisits(value, nodeById, visits) {
+  if (CjsCarbonDocument.isRef(value)) {
+    const id = Number(value.$ref);
+    const seen = visits.get(id) ?? 0;
+    visits.set(id, seen + 1);
+    if (seen) return;
+    const node = nodeById.get(id);
+    if (!node) return;
+    CountDocumentVisits(node.fields ?? {}, nodeById, visits);
+    CountDocumentVisits(node.raw ?? {}, nodeById, visits);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) CountDocumentVisits(item, nodeById, visits);
+    return;
+  }
+  if (value && typeof value === "object") {
+    for (const item of Object.values(value)) CountDocumentVisits(item, nodeById, visits);
+  }
+}
+
+/**
+ * Rewrites one document value into its plain-values form.
+ *
+ * `emitted` maps a node id to the `_id` it was given on first emission, so a
+ * later occurrence becomes `{ _ref }`. Ids are allocated in emission order
+ * rather than reusing document ids, so the output does not carry the node
+ * table's numbering as a hidden dependency.
+ */
+function ProjectDocumentNode(value, nodeById, visits, emitted, state) {
+  if (CjsCarbonDocument.isRef(value)) {
+    const id = Number(value.$ref);
+    if (emitted.has(id)) return {
+      _ref: emitted.get(id)
+    };
+    const node = nodeById.get(id);
+    if (!node) throw new TypeError(`EveSOF values projection found no node for ref ${id}.`);
+    const projected = {
+      _type: node.kind
+    };
+    if ((visits.get(id) ?? 0) > 1) {
+      const valueId = state.nextId++;
+      emitted.set(id, valueId);
+      projected._id = valueId;
+    }
+
+    // `fields` and `raw` are transport envelopes rather than data: the reader
+    // of a values graph sees one object whose properties are the node's.
+    for (const [key, item] of Object.entries({
+      ...node.fields,
+      ...node.raw
+    })) {
+      projected[key] = ProjectDocumentNode(item, nodeById, visits, emitted, state);
+    }
+    return projected;
+  }
+  if (Array.isArray(value)) {
+    return value.map(item => ProjectDocumentNode(item, nodeById, visits, emitted, state));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, ProjectDocumentNode(item, nodeById, visits, emitted, state)]));
+  }
+  return value;
 }
 function cloneFields(fields) {
   return Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, cloneValue(value)]));
