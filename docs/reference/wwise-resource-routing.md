@@ -208,8 +208,22 @@ not a published universal Wwise plug-in enum. These records also author
 `processLfe:false`; they are realized only for decoded mono/stereo voices,
 where no independent LFE channel exists. Multichannel playback keeps the whole
 chain dry. Parameters 1 and 7 are driven by Wwise Modulator controls in this
-corpus and remain unsupported until their HIRC objects and voice-local
-lifecycle are available.
+corpus. The largest exact unresolved family is ShareSet `1738007123`, inherited
+by 27 Sound leaves across seven medium/XXL engine-on events. Its first curve is
+the already-admitted `ship_Roll` Band 1 Frequency mapping. Its second is
+additive `ParamID 1`, scaling 0, from `+0.2` to `-24 dB`; the v150 band field
+order and corpus value domain pin this narrowly to Band 1 Gain. LFO HIRC
+`841531431` drives that gain with 82.6-percent depth at a base `0.2 Hz`, while
+a nested exclusive `ship_Roll` curve drives LFO Frequency toward `100 Hz`.
+The object has zero attack, default Sine waveform, two-percent smoothing, and
+50-percent PWM.
+
+Runtime-resource currently identifies that v150 type-19 object but retains its
+96-byte payload raw. Runtime-audio does not duplicate the owning BNK decoder,
+so this otherwise realizable Oscillator-to-biquad-gain adapter remains blocked
+until a typed LFO record is exposed. Exact scope sharing, phase/lifecycle,
+smoothing, and pause behavior must then be qualified before the 27 leaves can
+leave complete-chain dry fallback.
 
 Pinned wwiser proves the v150 Wwise Delay's 18-byte layout: float32 Delay Time,
 Feedback, Wet/Dry Mix, and Output Level followed by one-byte Enable Feedback
@@ -601,29 +615,34 @@ implementation therefore treats EVE-v150's exact 38-byte record as empirical
 rather than source-proven: depth and
 frequency floats, waveform integer, smoothing/PWM floats, phase offset/mode/
 spread, output gain, and Center/LFE flags. Admission is further bounded to a
-control-free bank-version-150 record with a sine waveform, bounded phase
-offset/mode/spread fields, and both channel flags enabled. Matching records
-associated with any other bank version are rejected before projection.
+control-free bank-version-150 Sine record or an unsmoothed 50%-duty Square
+record with zero offset and zero all-channel spread, plus bounded phase fields
+and both channel flags enabled. The official authoring order and EVE preset
+corpus together pin numeric waveform IDs 0 and 1 to Sine and Square. Matching
+records associated with any other bank version or waveform shape are rejected
+before projection.
 
 The `wwiseModulation: "approximate-web-audio"` adapter maps that subset to a
 voice-owned Gain/Oscillator stage with
 `gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t + phase)`, followed by
-authored output gain. Nonzero global phase uses a custom `PeriodicWave`; the
+authored output gain. Nonzero Sine global phase uses a custom `PeriodicWave`;
+qualified Square uses Web Audio's band-limited `square` oscillator. The
 record retains phase mode and spread, but the browser applies one carrier to
 all channels and omits Wwise's per-channel Left-Right, Front-Rear, Circular,
 or Random distribution. It starts and disposes the oscillator with the
 physical voice. This preserves the unipolar `[1-depth, 1]` range, global phase,
 and slot order, but does not claim Wwise's native oscillator/channel law or
 sample behavior. Smoothing and PWM are shape-validated but not retained or
-applied because only the sine carrier is admitted. Strict mode, missing
-primitives, dynamic controls, other waveforms, and shared-Bus Tremolo keep the
+applied; Square is admitted only when they are exactly zero and 50 percent.
+Strict mode, missing primitives, dynamic controls, other waveforms, and shared-Bus Tremolo keep the
 complete chain audible and dry.
 
-EVE build 3453885 projects 149 Tremolo stages on 148 Sound leaves across 80
+EVE build 3453885 projects 152 Tremolo stages on 151 Sound leaves across 81
 retained events: 115 Tremolo-only, 14 Tremolo followed by qualified static EQ,
 two qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
-Reverb, six Delay followed by Tremolo, two Tremolo followed by Delay, and one
-double-Tremolo chain. They use 64 effect identities and 18 exact parameter
+Reverb, six Delay followed by Tremolo, two Tremolo followed by Delay, one
+double-Tremolo chain, and three Square-carrier leaves under
+`phased_asteroid_impossible`. They use 65 effect identities and 19 exact parameter
 records. Sound `350811697` is deliberately excluded because its preceding EQ
 `400239472` requires unsupported independent LFE routing. Admitting bounded
 phase fields raises qualified source-effect leaves from 2,666 to 2,740 without
@@ -653,9 +672,38 @@ or channel behavior. Tone is retained but currently inert. Strict mode,
 missing primitives, non-v150/non-fully-wet records, unsupported distortion
 types, other dynamic shapes, a missing live RTPC reader, and shared-Bus Guitar
 Distortion keep the complete chain audible and dry. Static admission raised
-qualified source-effect leaves from 2,506 to 2,575. Live Drive now raises the
-current post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
-records without changing media or event reachability.
+qualified source-effect leaves from 2,506 to 2,575. Live Drive raised the
+post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
+records without changing media or event reachability; the later Square
+Tremolo slice sets the current totals to 3,182 and 3,340.
+
+Wwise Harmonizer `0x008a0003` remains a measured DSP barrier rather than an
+unclassified plug-in. Pinned wwiser proves the v150 layout for two pitch
+voices, voice-local filters and gains, input mode, dry/wet levels, window size,
+Process LFE, and dry synchronization. EVE build 3453885 has 101 effectively
+reachable Harmonizer Sound leaves across 12 retained events. Ten static leaves
+belong to `sun_yellow_play`; another 90 belong to the five `sun_*` and five
+`trig_sun*` events, and one belongs to `warp_ship_init_play`.
+
+The 100 sun leaves enable one zero-cent voice, disable voice two, mix dry and
+wet at `0 dB`, and synchronize dry latency. Zero pitch does not make this a
+transparent effect: the processed windowed branch and latency-aligned dry
+branch still define the sound, while Web Audio exposes no duration-preserving
+pitch-shift node. The 90 dynamic leaves also use Envelope Modulator
+`53388567`: object scope, 1.674-second attack, curve 49, 1-second decay,
+100-percent sustain, and 0.268-second release. It drives additive dB plug-in
+`ParamID 3`, but pinned wwiser supplies no Harmonizer RTPC enum and the corpus
+does not distinguish Voice 1 Gain from another gain-like target. The runtime
+must not guess that mapping.
+
+Effect `100527105` is the narrow exception: its wet level is `-96 dB`, so its
+`booster_intensity` RTPC cannot audibly alter the dry signal and omission is
+safe. It reaches only the single warp Sound. Since existing dry fallback
+already produces that audible result, projecting a one-record no-op would add
+metadata rather than fidelity. Harmonizer therefore remains fully unprojected
+until a controlled Wwise parameter pair and custom voice-owned pitch-shift DSP
+exist; all affected media remains audible through the complete-chain dry
+fallback.
 
 Pinned wwiser proves Matrix Reverb `0x00730003` and its v150 default-delay
 record: float32 Reverb Time and HF Ratio, uint32 delay count, float32 Dry and
@@ -732,7 +780,8 @@ volume flag changes the omitted measurement, followed by Compressor
 `554802347`. Retaining that complete chain raises the current aggregate after
 Tremolo, Matrix, RoomVerb, live EQ, and this correction to 3,043 leaves and
 3,201 records; the later live-Drive admission raises those totals to 3,179
-and 3,337 without changing media or event reachability. Playback still
+and 3,337 without changing media or event reachability, and the bounded Square
+Tremolo admission raises the current totals to 3,182 and 3,340. Playback still
 requires both explicit policies: Meter telemetry omission and Web Audio
 dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so

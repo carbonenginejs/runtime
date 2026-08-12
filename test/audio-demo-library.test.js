@@ -1115,16 +1115,16 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 3179);
+    assert.equal(sourceEffectSounds.length, 3182);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3337);
+        count + node.sourceEffects.length, 0), 3340);
     assert.equal(sourceEqSounds.length, 456);
     assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2114);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 21);
-    assert.equal(sourceTremoloSounds.length, 148);
+    assert.equal(sourceTremoloSounds.length, 151);
     assert.equal(sourceGuitarDistortionSounds.length, 205);
     assert.equal(dynamicGuitarDistortionSounds.length, 136);
     assert.equal(sourceMatrixReverbSounds.length, 50);
@@ -1218,6 +1218,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
             type: "tremolo",
             modulationDepthPercent: 80,
             modulationFrequencyHz: Math.fround(0.02),
+            waveform: "sine",
             phaseOffsetDegrees: 108,
             phaseMode: "random",
             phaseSpreadDegrees: 66,
@@ -1239,6 +1240,20 @@ test("committed demo library carries authored SFX and music semantics", () =>
             delayLengthsMode: "default",
         },
     ]);
+    assert.deepEqual(graph.nodes["159333883"].sourceEffects, [ {
+        effectId: "357574926",
+        slotIndex: 0,
+        type: "tremolo",
+        modulationDepthPercent: 50,
+        modulationFrequencyHz: Math.fround(0.05),
+        waveform: "square",
+        phaseOffsetDegrees: 0,
+        phaseMode: "left-right",
+        phaseSpreadDegrees: 0,
+        outputGainDb: 0,
+        processCenter: true,
+        processLfe: true,
+    } ]);
     const shieldDrainRoomVerb = graph.nodes["603165888"].sourceEffects[0];
 
     assert.equal(shieldDrainRoomVerb.type, "roomverb");
@@ -1379,12 +1394,12 @@ test("committed demo library carries authored SFX and music semantics", () =>
             .sort((left, right) => left - right),
         [
             25884399, 40436754, 43363314, 60415284, 68507679, 73677858,
-            78735863, 84669040, 99994845, 123394445, 173560074, 179016091,
+            78735863, 84669040, 99994845, 123394445, 159333883, 173560074, 179016091,
             185550431, 212767959, 213549686, 216531588, 220151376,
             227488604, 234999876, 245023523, 289872408, 295844646,
             303824015, 334236564, 337505310, 342408936, 367736782,
-            419444932, 422600908, 464520479, 466221579, 479691729,
-            483852729, 504198893, 513652395, 525063532, 552197906,
+            419444932, 422600908, 464520479, 466221579, 474875076, 479691729,
+            483852729, 504198893, 513652395, 525063532, 527348461, 552197906,
             561895346, 563609806, 567959441, 569050443, 570940185,
             585012572, 587318855, 601025667, 604031582, 606479059,
             619225631, 627960890, 646956222, 671815947, 705896755,
@@ -1418,6 +1433,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
                 type: "tremolo",
                 modulationDepthPercent: 65,
                 modulationFrequencyHz: Math.fround(0.2),
+                waveform: "sine",
                 phaseOffsetDegrees: 0,
                 phaseMode: "left-right",
                 phaseSpreadDegrees: 0,
@@ -1445,7 +1461,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
         }
     }
     assert.deepEqual(tremoloPhasePopulations, {
-        "left-right|0|0": 74,
+        "left-right|0|0": 77,
         "random|-72|112": 1,
         "random|0|20": 28,
         "random|0|100": 1,
@@ -1517,6 +1533,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "outpost_atmo_caldari_play",
         "outpost_atmo_gallente_play",
         "outpost_atmo_minmatar_play",
+        "phased_asteroid_impossible",
         "phased_fields_fake_rift_fracture_play",
         "phased_fields_fracture_atmo_play",
         "phased_fields_rift_play",

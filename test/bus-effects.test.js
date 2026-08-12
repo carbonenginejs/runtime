@@ -1151,6 +1151,7 @@ test("decodes and realizes only the empirical static Wwise Tremolo subset", () =
         type: "tremolo",
         modulationDepthPercent: 100,
         modulationFrequencyHz: 1,
+        waveform: "sine",
         phaseOffsetDegrees: 0,
         phaseMode: "left-right",
         phaseSpreadDegrees: 0,
@@ -1218,7 +1219,7 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
     for (const parameters of [
         { modulationDepthPercent: 101 },
         { modulationFrequencyHz: 0.01 },
-        { waveform: 1 },
+        { waveform: 2 },
         { smoothingPercent: 101 },
         { pwmPercent: -1 },
         { phaseOffsetDegrees: 181 },
@@ -1238,6 +1239,43 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
             0,
         ));
     }
+
+    for (const parameters of [
+        { waveform: 1, smoothingPercent: 1 },
+        { waveform: 1, pwmPercent: 49 },
+        { waveform: 1, phaseOffsetDegrees: 1 },
+        { waveform: 1, phaseMode: 1 },
+        { waveform: 1, phaseSpreadDegrees: 1 },
+    ])
+    {
+        assert.throws(() => parseGraphStaticWwiseTremolo(
+            GraphTremolo(TremoloBytes(parameters)),
+            "900",
+            0,
+        ));
+    }
+
+    const square = parseGraphStaticWwiseTremolo(GraphTremolo(TremoloBytes({
+        waveform: 1,
+        modulationDepthPercent: 50,
+        modulationFrequencyHz: 0.05,
+    })), "902", 0);
+    const squareContext = Context();
+    const squareChain = createWwiseEffectChain(squareContext, [ square ], {
+        wwiseModulation: "approximate-web-audio",
+    });
+
+    assert.ok(squareChain);
+    assert.equal(square.waveform, "square");
+    assert.equal(squareContext.oscillators[0].type, "square");
+    assert.throws(() => normalizeStaticSourceEffectChain([ {
+        ...square,
+        waveform: "triangle",
+    } ], "Audio source"), /waveform/u);
+    assert.throws(() => normalizeStaticSourceEffectChain([ {
+        ...square,
+        phaseOffsetDegrees: 1,
+    } ], "Audio source"), /zero all-channel phase/u);
 
     const fixed = parseGraphStaticWwiseTremolo(GraphTremolo(TremoloBytes({
         modulationDepthPercent: 0,

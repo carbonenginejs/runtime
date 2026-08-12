@@ -128,6 +128,8 @@ const MODULATION_PHASE_MODES = Object.freeze([
     "random",
 ]);
 const MODULATION_PHASE_MODE_SET = new Set(MODULATION_PHASE_MODES);
+const TREMOLO_WAVEFORMS = Object.freeze([ "sine", "square" ]);
+const TREMOLO_WAVEFORM_SET = new Set(TREMOLO_WAVEFORMS);
 const METER_MAX_TIME = 10;
 const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
@@ -705,6 +707,38 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${label} Tremolo flags must be boolean`,
                 );
             }
+            const waveform = Enumerated(
+                effect.waveform ?? "sine",
+                TREMOLO_WAVEFORM_SET,
+                `${label} waveform`,
+            );
+            const phaseOffsetDegrees = BoundedFinite(
+                effect.phaseOffsetDegrees ?? 0,
+                MODULATION_PHASE_OFFSET_MIN,
+                MODULATION_PHASE_OFFSET_MAX,
+                `${label} phaseOffsetDegrees`,
+            );
+            const phaseMode = Enumerated(
+                effect.phaseMode ?? "left-right",
+                MODULATION_PHASE_MODE_SET,
+                `${label} phaseMode`,
+            );
+            const phaseSpreadDegrees = BoundedFinite(
+                effect.phaseSpreadDegrees ?? 0,
+                MODULATION_PHASE_SPREAD_MIN,
+                MODULATION_PHASE_SPREAD_MAX,
+                `${label} phaseSpreadDegrees`,
+            );
+
+            if (waveform === "square"
+                && (phaseOffsetDegrees !== 0
+                    || phaseMode !== "left-right"
+                    || phaseSpreadDegrees !== 0))
+            {
+                throw new TypeError(
+                    `${label} square Tremolo requires zero all-channel phase`,
+                );
+            }
             return Object.freeze({
                 effectId,
                 slotIndex,
@@ -721,23 +755,10 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     MODULATION_FREQUENCY_MAX,
                     `${label} modulationFrequencyHz`,
                 ),
-                phaseOffsetDegrees: BoundedFinite(
-                    effect.phaseOffsetDegrees ?? 0,
-                    MODULATION_PHASE_OFFSET_MIN,
-                    MODULATION_PHASE_OFFSET_MAX,
-                    `${label} phaseOffsetDegrees`,
-                ),
-                phaseMode: Enumerated(
-                    effect.phaseMode ?? "left-right",
-                    MODULATION_PHASE_MODE_SET,
-                    `${label} phaseMode`,
-                ),
-                phaseSpreadDegrees: BoundedFinite(
-                    effect.phaseSpreadDegrees ?? 0,
-                    MODULATION_PHASE_SPREAD_MIN,
-                    MODULATION_PHASE_SPREAD_MAX,
-                    `${label} phaseSpreadDegrees`,
-                ),
+                waveform,
+                phaseOffsetDegrees,
+                phaseMode,
+                phaseSpreadDegrees,
                 outputGainDb: BoundedFinite(
                     effect.outputGainDb,
                     DYNAMICS_OUTPUT_GAIN_MIN,
@@ -1185,6 +1206,7 @@ export function createWwiseEffectChain(
             effect.lfoEnabled && effect.modulationDepthPercent > 0);
     const needsPeriodicWave = tremoloEffects.some(effect =>
         effect.modulationDepthPercent > 0
+        && effect.waveform === "sine"
         && effect.phaseOffsetDegrees !== 0);
 
     if (needsGain && typeof context?.createGain !== "function")
@@ -1636,7 +1658,11 @@ function CreateWwiseTremoloApproximation(context, effect)
         const modulation = context.createGain();
         const oscillator = context.createOscillator();
 
-        if (effect.phaseOffsetDegrees === 0)
+        if (effect.waveform === "square")
+        {
+            oscillator.type = "square";
+        }
+        else if (effect.phaseOffsetDegrees === 0)
         {
             oscillator.type = "sine";
         }
@@ -2072,7 +2098,10 @@ export function parseStaticWwiseTremoloBytes(
     );
     const modulationDepthPercent = view.getFloat32(0, true);
     const modulationFrequencyHz = view.getFloat32(4, true);
-    const waveform = view.getUint32(8, true);
+    const waveformId = view.getUint32(8, true);
+    // Audiokinetic's authoring order and the EVE preset corpus together pin
+    // 0 to Sine and 1 to Square for this empirical v150 Tremolo record.
+    const waveform = TREMOLO_WAVEFORMS[waveformId];
     const smoothingPercent = view.getFloat32(12, true);
     const pwmPercent = view.getFloat32(16, true);
     const phaseOffsetDegrees = view.getFloat32(20, true);
@@ -2088,7 +2117,7 @@ export function parseStaticWwiseTremoloBytes(
         || !Number.isFinite(modulationFrequencyHz)
         || modulationFrequencyHz < MODULATION_FREQUENCY_MIN
         || modulationFrequencyHz > MODULATION_FREQUENCY_MAX
-        || waveform !== 0
+        || !waveform
         || !Number.isFinite(smoothingPercent)
         || smoothingPercent < MODULATION_PERCENT_MIN
         || smoothingPercent > MODULATION_PERCENT_MAX
@@ -2106,7 +2135,13 @@ export function parseStaticWwiseTremoloBytes(
         || outputGainDb < DYNAMICS_OUTPUT_GAIN_MIN
         || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
         || processCenterRaw !== 1
-        || processLfeRaw !== 1)
+        || processLfeRaw !== 1
+        || (waveform === "square"
+            && (smoothingPercent !== 0
+                || pwmPercent !== 50
+                || phaseOffsetDegrees !== 0
+                || phaseMode !== 0
+                || phaseSpreadDegrees !== 0)))
     {
         throw new TypeError(`${label} has invalid Wwise Tremolo parameters`);
     }
@@ -2116,6 +2151,7 @@ export function parseStaticWwiseTremoloBytes(
         type: "tremolo",
         modulationDepthPercent,
         modulationFrequencyHz,
+        waveform,
         phaseOffsetDegrees,
         phaseMode: MODULATION_PHASE_MODES[phaseMode],
         phaseSpreadDegrees,

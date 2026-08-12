@@ -1812,6 +1812,7 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                         type: "tremolo",
                         modulationDepthPercent: 65,
                         modulationFrequencyHz: 0.2,
+                        waveform: "sine",
                         phaseOffsetDegrees: 0,
                         phaseMode: "left-right",
                         phaseSpreadDegrees: 0,
@@ -1855,6 +1856,7 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     ), true);
     const legacyTremolo = structuredClone(valid);
 
+    delete legacyTremolo.sfx.nodes["2"].sourceEffects[3].waveform;
     delete legacyTremolo.sfx.nodes["2"].sourceEffects[3]
         .phaseOffsetDegrees;
     delete legacyTremolo.sfx.nodes["2"].sourceEffects[3].phaseMode;

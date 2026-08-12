@@ -222,13 +222,14 @@ source-local Wwise Flanger and Tremolo records:
 
 - `"strict"` (default) omits the complete source chain and keeps the voice
   audible/dry.
-- `"approximate-web-audio"` realizes the documented static sine subsets with
+- `"approximate-web-audio"` realizes the documented static Sine subsets and
+  the narrow unsmoothed 50%-duty, zero-phase Tremolo Square subset with
   voice-owned Gain, optional Delay, and optional Oscillator nodes. Tremolo
-  global phase uses `PeriodicWave` when nonzero. Missing required primitives
-  keep the complete chain dry.
+  Sine global phase uses `PeriodicWave` when nonzero. Missing required
+  primitives keep the complete chain dry.
 
 The portable records retain authored Flanger/Tremolo parameters and channel
-flags. Tremolo additionally retains phase mode and spread, but the browser
+flags. Tremolo additionally retains waveform, phase mode, and spread, but the browser
 applies one all-channel carrier and omits Wwise's per-channel phase
 distribution. The browser graphs are modulation approximations, not Wwise
 DSP. The Tremolo record is an explicitly empirical EVE-v150 38-byte layout;
