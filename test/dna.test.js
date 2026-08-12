@@ -132,6 +132,24 @@ test("a mesh command carries one material per prefix, exactly like material", ()
   assert.deepEqual(both.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "paint", "paint" ]);
 });
 
+// Designs in the live feed carry `MATERIAL?...`. Carbon compares command names
+// exactly, so the faithful port rejected them outright.
+test("a DNA string is lowercased before parsing, so case never decides validity", () => {
+  const sof = new EveSOF();
+  sof.dataMgr.SetData(createData());
+
+  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:MATERIAL?rust;paint").valid, true);
+  assert.equal(sof.InspectDna("RIFTER:MINMATAR:MINMATAR:MESH?RUST;PAINT").valid, true);
+
+  const dna = sof.CreateDna("Rifter:Minmatar:Minmatar:Material?Rust;Paint");
+  assert.deepEqual(dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "rust", "paint" ]);
+  assert.deepEqual(dna.GetHullNames(), [ "rifter" ]);
+
+  // The stored string is the folded one, so a consumer never sees a spelling
+  // that would not parse again.
+  assert.equal(dna.GetDnaString(), "rifter:minmatar:minmatar:material?rust;paint");
+});
+
 test("EveSOF DNA inspection distinguishes malformed and unknown selections", () => {
   const sof = new EveSOF();
   sof.dataMgr.SetData(createData());

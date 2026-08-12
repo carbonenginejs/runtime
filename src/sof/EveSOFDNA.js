@@ -1030,8 +1030,20 @@ export class EveSOFDNA extends CjsModel
     return this.raceName;
   }
 
-  #setupFromString(dna, dataMgr)
+  #setupFromString(dnaString, dataMgr)
   {
+    // A DNA string is lowercased before anything reads it. Every catalog name
+    // it can contain — hull, faction, race, command, material, pattern, layout
+    // — is canonically lowercase, so case carries no meaning and folding it
+    // costs nothing.
+    //
+    // Carbon compares command names exactly
+    // (`cit->first.compare( s_dnaCommands[i] )`) and looks catalog names up as
+    // given. Authored EVE skins do not respect that: designs in the live feed
+    // carry `MATERIAL?...`, and porting the exact comparison faithfully
+    // rejected them with "Invalid SOF DNA content". Deliberate deviation.
+    const dna = dnaString.toLowerCase();
+
     this.#reset(dna, dataMgr);
     const parts = splitCarbon(dna, ":");
     if (parts.length < 3)
