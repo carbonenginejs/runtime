@@ -18,8 +18,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@carbonenginejs/runtime-utils": "^0.1.5",
-    "@carbonenginejs/runtime-resource": "^0.16.0"
+    "@carbonenginejs/runtime-utils": "^0.1.6",
+    "@carbonenginejs/runtime-resource": "^0.18.0"
   },
   "license": "MIT",
   "publishConfig": {
