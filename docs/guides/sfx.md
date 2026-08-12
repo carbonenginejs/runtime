@@ -335,6 +335,16 @@ channel even when Wwise authors Center/LFE bypass, clamps feedback to just
 below unity, retains LFO phase while paused, and cuts delay/feedback state at
 the decoded dry-source boundary. Shared-Bus Flanger remains unsupported.
 
+One dynamic EVE-v150 form is also retained. SoundbanksInfo names control
+`3712448215` `ship_Distance`; STMG binds it to built-in Distance (`1`) with a
+zero default and no ramp, and the Flanger uses additive scaling-0 parameter and
+property ID `1` for Wet/Dry Mix. The browser evaluates that curve at
+`worldDistance / scalingFactor`, clamps the combined mix to `0..100`, and
+automates independent dry and wet gains when the emitter, listener, or scaling
+factor moves. This is a single-listener browser adaptation. Wwise's native
+multi-listener reduction/update cadence, other parameter IDs, and control-type-4
+Modulators remain unsupported.
+
 Qualified Tremolo records reuse the same `wwiseModulation` policy. Pinned
 wwiser identifies plug-in `0x00830003` and shows the corresponding modulation
 and phase sequence inside Flanger, but does not decode Tremolo's own
@@ -486,13 +496,14 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 3,196
-qualified Sound leaves carrying 3,358 effect records: 457 use Parametric EQ,
-including 170 leaves with live `ship_Roll` Band 1 Frequency,
+than applying part of an authored chain. EVE build 3453885 installs 3,224
+qualified Sound leaves carrying 3,422 effect records: 473 use Parametric EQ,
+including 186 leaves with live `ship_Roll` Band 1 Frequency,
 87 use Wwise Delay, 2,114 use
-Compressor, 73 use Peak Limiter, 21 use Flanger across nine retained events,
-169 Tremolo stages occur on 165 Sounds, including ten live
-`booster_intensity` leaves across ten medium-engine events; 205 use
+Compressor, 73 use Peak Limiter, 49 use Flanger across 27 retained events,
+including 28 built-in-Distance leaves across 18 newly complete events;
+189 Tremolo stages occur on 185 Sounds, including 20 live
+`booster_intensity` leaves; 205 use
 Guitar Distortion across 57 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
 events, and 130 retain telemetry-only Meter records. The added 81 Meter leaves
@@ -518,12 +529,15 @@ Limiter leaves all inherit Custom effect
 at least one Compressor leaf. The
 Compressor population contains nine complete chain signatures, including
 eight leaves where it precedes one qualified EQ. There are now 191 non-neutral
-static EQ chains and 361 non-neutral EQ chains including the live-EQ records.
+static EQ chains and 377 non-neutral EQ chains including the live-EQ records.
 Sound `350811697` adds the static EQ-to-Tremolo skyhook population chain. Its
 `processLfe:false` EQ is equivalent for decoded mono/stereo audio; a decoded
 multichannel source keeps the complete chain dry. Twelve additional
 static-Flanger leaves now survive with their supported live Parametric EQ in
-slot 1; dynamic or unsupported mixed Tremolo chains remain dry.
+slot 1. The distance-driven Flanger slice completes ten idle Tremolo chains,
+sixteen engine-on EQ chains (ten also carrying live Tremolo), and two XXL warp
+blast leaves. Two M-afterburner leaves remain dry because companion EQ
+`1738007123` is still unsupported.
 
 Set Voice Pitch stores one cents contribution for the target HIRC element.
 `valueMode: "absolute"` replaces that contribution; `"relative"` adds to its

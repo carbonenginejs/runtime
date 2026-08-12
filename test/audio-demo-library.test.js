@@ -1119,17 +1119,17 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 3196);
+    assert.equal(sourceEffectSounds.length, 3224);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3358);
-    assert.equal(sourceEqSounds.length, 457);
-    assert.equal(dynamicSourceEqSounds.length, 170);
+        count + node.sourceEffects.length, 0), 3422);
+    assert.equal(sourceEqSounds.length, 473);
+    assert.equal(dynamicSourceEqSounds.length, 186);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2114);
     assert.equal(sourcePeakLimiterSounds.length, 73);
-    assert.equal(sourceFlangerSounds.length, 21);
-    assert.equal(sourceTremoloSounds.length, 165);
-    assert.equal(dynamicTremoloSounds.length, 10);
+    assert.equal(sourceFlangerSounds.length, 49);
+    assert.equal(sourceTremoloSounds.length, 185);
+    assert.equal(dynamicTremoloSounds.length, 20);
     assert.equal(sourceGuitarDistortionSounds.length, 205);
     assert.equal(dynamicGuitarDistortionSounds.length, 136);
     assert.equal(sourceMatrixReverbSounds.length, 50);
@@ -1325,40 +1325,81 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(shieldDrainRoomVerb.stereoWidthDegrees, 88);
     assert.equal(shieldDrainRoomVerb.earlyReflectionsPattern, 8);
     assert.equal(shieldDrainRoomVerb.reverbUnitCount, 8);
+    const flangerRows = Object.entries(graph.nodes)
+        .filter(([, node]) => sourceFlangerSounds.includes(node))
+        .map(([ id, node ]) => [
+            id,
+            node.mediaId,
+            node.sourceEffects.find(effect =>
+                effect.type === "flanger").effectId,
+        ])
+        .sort((left, right) => Number(left[0]) - Number(right[0]));
+    const dynamicFlangerIds = new Set([
+        "50057679",
+        "2280646043",
+        "2328072489",
+        "2631462617",
+    ]);
+
     assert.deepEqual(
-        Object.entries(graph.nodes)
-            .filter(([, node]) => sourceFlangerSounds.includes(node))
-            .map(([ id, node ]) => [
-                id,
-                node.mediaId,
-                node.sourceEffects.find(effect =>
-                    effect.type === "flanger").effectId,
-            ])
-            .sort((left, right) => Number(left[0]) - Number(right[0])),
+        flangerRows.filter(([, , effectId ]) =>
+            dynamicFlangerIds.has(effectId)),
         [
-            [ "87619569", "632408785", "2906410516" ],
-            [ "206604303", "689827705", "2906410516" ],
-            [ "292533695", "487219032", "706763456" ],
-            [ "293792304", "46253731", "636129930" ],
-            [ "298447693", "487219032", "877054924" ],
-            [ "304815500", "357773066", "636129930" ],
-            [ "334487613", "170814237", "2906410516" ],
-            [ "337117908", "357773066", "706763456" ],
-            [ "494971020", "46253731", "706763456" ],
-            [ "531596895", "487219032", "746828992" ],
-            [ "639168720", "287274205", "2906410516" ],
-            [ "656720365", "357773066", "746828992" ],
-            [ "673321208", "661144132", "290827855" ],
-            [ "721771466", "487219032", "636129930" ],
-            [ "797614024", "357773066", "877054924" ],
-            [ "806298936", "689827705", "2906410516" ],
-            [ "829586991", "170814237", "2906410516" ],
-            [ "872272200", "632408785", "2906410516" ],
-            [ "874311158", "46253731", "877054924" ],
-            [ "908140579", "287274205", "2906410516" ],
-            [ "914319909", "46253731", "746828992" ],
+            [ "70944498", "932998323", "2328072489" ],
+            [ "87956317", "932998323", "2328072489" ],
+            [ "140544204", "657399556", "2280646043" ],
+            [ "198138320", "145041668", "2328072489" ],
+            [ "307116626", "1045459118", "2280646043" ],
+            [ "311991163", "145041668", "2328072489" ],
+            [ "314715848", "657399556", "2280646043" ],
+            [ "349990814", "145041668", "2328072489" ],
+            [ "474556844", "257341812", "2631462617" ],
+            [ "576955363", "657399556", "2280646043" ],
+            [ "595027669", "145041668", "2328072489" ],
+            [ "610161540", "657399556", "2280646043" ],
+            [ "619983071", "257341812", "2631462617" ],
+            [ "691670924", "145041668", "2328072489" ],
+            [ "699037190", "1045459118", "2280646043" ],
+            [ "788404655", "723903505", "2328072489" ],
+            [ "806646184", "145041668", "2328072489" ],
+            [ "807269923", "932998323", "2328072489" ],
+            [ "813487095", "723903505", "2328072489" ],
+            [ "823387142", "657399556", "2280646043" ],
+            [ "827816041", "1045459118", "2280646043" ],
+            [ "873565899", "932998323", "2328072489" ],
+            [ "873998361", "932998323", "2328072489" ],
+            [ "934217147", "932998323", "2328072489" ],
+            [ "959754505", "1045459118", "2280646043" ],
+            [ "973310382", "257341812", "2631462617" ],
+            [ "979760223", "257341812", "2631462617" ],
+            [ "1026568426", "657399556", "2280646043" ],
         ],
     );
+    const skyhookFlanger = graph.nodes["140544204"].sourceEffects[1];
+
+    assert.equal(skyhookFlanger.effectId, "2280646043");
+    assert.deepEqual(skyhookFlanger.wetDryMixRtpcCurve, {
+        rtpc: "ship_Distance",
+        scope: "object",
+        controlSource: "built-in-distance",
+        property: "wetDryMixPercent",
+        accumulation: "additive",
+        scaling: 0,
+        defaultValue: 0,
+        points: [
+            {
+                x: 0,
+                value: Math.fround(25.83333),
+                interpolation: 1,
+            },
+            {
+                x: Math.fround(9526.18457),
+                value: 100,
+                interpolation: 9,
+            },
+            { x: 20000, value: 100, interpolation: 4 },
+        ],
+    });
     assert.deepEqual(
         graph.nodes["334487613"].sourceEffects[0],
         {
@@ -1432,10 +1473,28 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ecx_generic_explosive_individual_01c_play",
         "ecx_generic_explosive_long_individual_01c_play",
         "ecx_generic_lco_explosive_individual_01c_play",
+        "ship_engine_L_microwarpdrive_1st_idle",
+        "ship_engine_L_microwarpdrive_3rd_idle",
+        "ship_engine_M_microwarpdrive_1st_idle",
+        "ship_engine_M_microwarpdrive_3rd_idle",
+        "ship_engine_S_afterburner_1st_on",
+        "ship_engine_S_afterburner_3rd_on",
         "ship_engine_S_booster_1st_on",
         "ship_engine_S_booster_3rd_on",
+        "ship_engine_XL_microwarpdrive_1st_idle",
+        "ship_engine_XL_microwarpdrive_3rd_idle",
+        "ship_engine_XS_afterburner_1st_on",
+        "ship_engine_XS_afterburner_3rd_on",
         "ship_engine_XS_booster_1st_on",
         "ship_engine_XS_booster_3rd_on",
+        "ship_engine_XXL_afterburner_1st_on",
+        "ship_engine_XXL_afterburner_3rd_on",
+        "ship_engine_XXL_booster_1st_on",
+        "ship_engine_XXL_booster_3rd_on",
+        "ship_engine_XXL_microwarpdrive_1st_on",
+        "ship_engine_XXL_microwarpdrive_3rd_on",
+        "ship_engine_XXL_warpdrive_1st_blast",
+        "ship_engine_XXL_warpdrive_3rd_blast",
         "worldobject_jumpgate_activity_play",
     ]);
     const tremoloSoundIds = new Set(Object.entries(graph.nodes)
@@ -1457,24 +1516,30 @@ test("committed demo library carries authored SFX and music semantics", () =>
             .sort((left, right) => left - right),
         [
             25884399, 40436754, 43363314, 60415284, 68507679, 73677858,
-            78735863, 84669040, 99994845, 123394445, 138975651, 159333883,
-            173560074, 179016091, 185550431, 205298853, 212767959,
+            78735863, 84669040, 99994845, 123394445, 138975651, 140544204,
+            159333883, 173560074, 179016091, 185550431, 198138320, 205298853,
+            212767959,
             213549686, 215897794, 216531588, 220151376,
             227488604, 234999876, 245023523, 274154427, 289872408, 295844646,
-            303824015, 334236564, 337505310, 342408936, 350811697,
+            303824015, 307116626, 311991163, 314715848, 334236564,
+            337505310, 342408936, 349990814, 350811697,
             367736782,
             419444932, 422600908, 433220951, 457709217, 464520479,
-            466221579, 474875076, 479691729,
+            466221579, 474556844, 474875076, 479691729,
             483852729, 504198893, 513652395, 525063532, 525463666, 527348461,
             552197906,
             561895346, 563609806, 567959441, 569050443, 570940185,
-            585012572, 587318855, 601025667, 604031582, 606479059,
-            619225631, 627960890, 646956222, 656544328, 671815947, 705896755,
+            576955363, 585012572, 587318855, 595027669, 601025667,
+            604031582, 606479059, 610161540, 619225631, 619983071,
+            627960890, 646956222, 656544328, 671815947, 691670924, 699037190,
+            705896755,
             707197595, 720713023, 722707846, 729008069, 737747941,
             747245505, 767807393, 770608002, 771045205, 786791827,
-            833468545, 875267345, 897337650, 936914842, 939407056,
-            954428155, 962406120, 963648746, 963801704, 968463064,
-            968802066, 969222816, 1016689010, 1059945043, 1072313718,
+            806646184, 823387142, 827816041, 833468545, 875267345,
+            897337650, 936914842, 939407056, 954428155, 959754505,
+            962406120, 963648746, 963801704, 968463064, 968802066,
+            969222816, 973310382, 979760223, 1016689010, 1026568426,
+            1059945043, 1072313718,
         ],
     );
     const dynamicTremoloSoundIds = Object.entries(graph.nodes)
@@ -1483,8 +1548,10 @@ test("committed demo library carries authored SFX and music semantics", () =>
         .sort((left, right) => left - right);
 
     assert.deepEqual(dynamicTremoloSoundIds, [
-        138975651, 205298853, 215897794, 274154427, 433220951,
-        457709217, 656544328, 963648746, 968802066, 1059945043,
+        138975651, 198138320, 205298853, 215897794, 274154427,
+        311991163, 349990814, 433220951, 457709217, 474556844,
+        595027669, 619983071, 656544328, 691670924, 806646184,
+        963648746, 968802066, 973310382, 979760223, 1059945043,
     ]);
     for (const [ soundId, effectId ] of [
         [ "39249460", "627789220" ],
@@ -1594,7 +1661,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
     }
     assert.deepEqual(tremoloPhasePopulations, {
         "circular|0|180": 2,
-        "left-right|0|0": 92,
+        "left-right|0|0": 112,
         "random|-72|112": 1,
         "random|0|20": 28,
         "random|0|100": 1,
@@ -1676,6 +1743,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "pvp_arena_atmo_loop_play",
         "ship_engine_L_afterburner_1st_idle",
         "ship_engine_L_afterburner_3rd_idle",
+        "ship_engine_L_microwarpdrive_1st_idle",
+        "ship_engine_L_microwarpdrive_3rd_idle",
         "ship_engine_M_afterburner_1st_idle",
         "ship_engine_M_afterburner_1st_powerdown",
         "ship_engine_M_afterburner_3rd_idle",
@@ -1689,19 +1758,31 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ship_engine_M_microwarpdrive_3rd_idle",
         "ship_engine_M_microwarpdrive_3rd_powerdown",
         "ship_engine_S_afterburner_1st_idle",
+        "ship_engine_S_afterburner_1st_on",
         "ship_engine_S_afterburner_3rd_idle",
+        "ship_engine_S_afterburner_3rd_on",
         "ship_engine_S_microwarpdrive_1st_idle",
         "ship_engine_S_microwarpdrive_3rd_idle",
         "ship_engine_XL_afterburner_1st_idle",
         "ship_engine_XL_afterburner_3rd_idle",
+        "ship_engine_XL_microwarpdrive_1st_idle",
+        "ship_engine_XL_microwarpdrive_3rd_idle",
         "ship_engine_XS_afterburner_1st_idle",
+        "ship_engine_XS_afterburner_1st_on",
         "ship_engine_XS_afterburner_3rd_idle",
+        "ship_engine_XS_afterburner_3rd_on",
         "ship_engine_XS_microwarpdrive_1st_idle",
         "ship_engine_XS_microwarpdrive_3rd_idle",
         "ship_engine_XXL_afterburner_1st_idle",
+        "ship_engine_XXL_afterburner_1st_on",
         "ship_engine_XXL_afterburner_3rd_idle",
+        "ship_engine_XXL_afterburner_3rd_on",
+        "ship_engine_XXL_booster_1st_on",
+        "ship_engine_XXL_booster_3rd_on",
         "ship_engine_XXL_microwarpdrive_1st_idle",
+        "ship_engine_XXL_microwarpdrive_1st_on",
         "ship_engine_XXL_microwarpdrive_3rd_idle",
+        "ship_engine_XXL_microwarpdrive_3rd_on",
         "ship_smokefire_hangar_play",
         "ship_smokefire_play",
         "skyhook_silo_population",
@@ -1891,7 +1972,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
             effect.type === "parametric-eq"
             && (effect.outputGainDb !== 0
                 || effect.bands.some(band => band.gainDb !== 0)))).length,
-        361,
+        377,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(

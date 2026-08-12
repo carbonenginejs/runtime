@@ -8250,6 +8250,96 @@ test("Sound-local Wwise Flanger starts once and stops with its physical voice", 
   assert.equal(oscillator.stops.length, 1, "final disposal is idempotent");
 });
 
+test("built-in Distance updates a live Flanger mix from emitter pose and scale", async () =>
+{
+  const sourceEffects = [ {
+    effectId: "2280646043",
+    slotIndex: 0,
+    type: "flanger",
+    delayTimeSeconds: 0.0128,
+    blend: 0.84,
+    feedforward: 1,
+    feedback: 0.1,
+    modulationDepthPercent: 78.4,
+    modulationFrequencyHz: 0.04,
+    outputGainDb: 0,
+    wetDryMixPercent: 25,
+    lfoEnabled: true,
+    processCenter: false,
+    processLfe: false,
+    wetDryMixRtpcCurve: {
+      rtpc: "ship_Distance",
+      scope: "object",
+      controlSource: "built-in-distance",
+      property: "wetDryMixPercent",
+      accumulation: "additive",
+      scaling: 0,
+      defaultValue: 0,
+      points: [
+        { x: 0, value: 25, interpolation: 4 },
+        { x: 100, value: 75, interpolation: 4 },
+      ],
+    },
+  } ];
+  const harness = Harness({
+    wwiseModulation: "approximate-web-audio",
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2 },
+        spatial: true,
+        sourceEffects,
+      } ],
+    }),
+  });
+  harness.context.createDelay = maxDelayTime =>
+  {
+    const delay = {
+      maxDelayTime,
+      delayTime: FakeParam(0),
+      connections: [],
+      connect(target) { delay.connections.push(target); },
+      disconnect() {},
+    };
+
+    return delay;
+  };
+  harness.backend.SetListenerPosition(
+    0,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 0, 0, 0 ],
+  );
+  harness.backend.SetPosition(
+    1,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 0, 0, 0 ],
+  );
+  harness.backend.PostEvent(1, 1, 0, harness.emitter, "play");
+  await tick();
+
+  const input = harness.context.sources[0].connectedTo;
+  const dry = input.connections[0];
+  const blend = input.connections[1];
+  const wet = blend.connectedTo;
+
+  assert.equal(dry.gain.value, 0.5);
+  assert.equal(wet.gain.value, 0.5);
+
+  harness.backend.SetPosition(
+    1,
+    [ 0, 0, -1 ],
+    [ 0, 1, 0 ],
+    [ 100, 0, 0 ],
+  );
+  assert.deepEqual(dry.gain.targets.at(-1), [ 0, 0, 0.005 ]);
+  assert.deepEqual(wet.gain.targets.at(-1), [ 1, 0, 0.005 ]);
+
+  assert.equal(harness.backend.SetScalingFactor(1, 2), true);
+  assert.deepEqual(dry.gain.targets.at(-1), [ 0.25, 0, 0.005 ]);
+  assert.deepEqual(wet.gain.targets.at(-1), [ 0.75, 0, 0.005 ]);
+});
+
 test("Sound-local Wwise Tremolo starts once and precedes the Voice filters", async () =>
 {
   const sourceEffects = [ {

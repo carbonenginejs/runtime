@@ -45,9 +45,9 @@ version-150 NodeBase and Actor-Mixer inheritance supplied by
 distance curves, event culling metadata, and complete effective admitted
 Sound-local Parametric EQ/Wwise Delay/Matrix Reverb/RoomVerb overrides into the final
 document. It
-retains one exact EVE-v150 Game Parameter-controlled Parametric EQ frequency
-form; general dynamic effect controls and Wwise Modulators remain barriers.
-also follows
+retains exact EVE-v150 Game Parameter-controlled Parametric EQ frequency and
+built-in-Distance Flanger Wet/Dry forms; general dynamic effect controls and
+Wwise Modulators remain barriers. It also follows
 qualified static Wwise Silence sources to their referenced effect parameters;
 the browser realizes their finite lifecycle with one constant-memory silent
 carrier rather than treating them as media or empty graph branches.

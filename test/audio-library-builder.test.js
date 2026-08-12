@@ -6660,6 +6660,183 @@ test("SFX construction retains only complete static Wwise Flanger overrides", as
     );
 });
 
+test("SFX construction projects only the exact built-in-distance Flanger control", async () =>
+{
+    const Build = ({
+        bankVersion = 150,
+        parameterName = "ship_Distance",
+        builtInParameter = 1,
+        rampType = 0,
+        rampUp = 0,
+        rampDown = 0,
+        controlType = 0,
+        parameterId = 1,
+        accumulation = 2,
+        scaling = 0,
+        propertyId = 1,
+        propertyAccumulation = 2,
+    } = {}) => CjsAudioLibraryBuilder.buildFromBanks({
+        includeSfx: true,
+        metadata: {
+            Events: {
+                booster_play: {
+                    eventID: 100,
+                    soundbanks: [ "boosters.bnk" ],
+                },
+            },
+            SoundBanks: {
+                "boosters.bnk": {
+                    name: "boosters",
+                    path: "\\SoundBanks\\boosters.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "boosters",
+                    GameParameters: [ {
+                        Id: "3712448215",
+                        Name: parameterName,
+                    } ],
+                } ],
+            },
+        },
+        indexEntries: [ {
+            logicalPath: "res:/audio/boosters.bnk",
+            storagePath: "banks/boosters.bnk",
+            byteLength: 256,
+        } ],
+        loadBank()
+        {
+            return {
+                inspection: {
+                    bankId: 200,
+                    languageId: 0,
+                    bankVersion,
+                    globalSettings: {
+                        stateGroups: [],
+                        rtpcParameters: [ {
+                            id: 3712448215,
+                            defaultValue: 0,
+                            rampType,
+                            rampUp,
+                            rampDown,
+                            builtInParameter,
+                        } ],
+                    },
+                    hirc: [
+                        {
+                            type: 2,
+                            id: 300,
+                            pluginId: 0x00040001,
+                            pluginType: 1,
+                            streamType: 0,
+                            sourceId: 9001,
+                            inMemoryMediaSize: 64,
+                            payload: soundPayload({
+                                overrideEffects: true,
+                                effects: [ {
+                                    slotIndex: 0,
+                                    effectId: 2280646043,
+                                    flags: 2,
+                                } ],
+                            }),
+                        },
+                        {
+                            type: 3,
+                            id: 400,
+                            actionType: 0x0403,
+                            targetId: 300,
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 4,
+                            id: 100,
+                            actionIds: [ 400 ],
+                            payload: new Uint8Array(),
+                        },
+                        {
+                            type: 16,
+                            id: 2280646043,
+                            payload: wwiseFlangerEffectPayload({
+                                wetDryMixPercent: 25,
+                                rtpcs: [ {
+                                    controlId: 3712448215,
+                                    controlType,
+                                    accumulation,
+                                    parameterId,
+                                    curveId: 77,
+                                    scaling,
+                                    points: [
+                                        [ 0, 25, 1 ],
+                                        [ 10000, 100, 9 ],
+                                        [ 20000, 100, 4 ],
+                                    ],
+                                } ],
+                                propertyValues: [ {
+                                    propertyId,
+                                    accumulation: propertyAccumulation,
+                                    value: 25,
+                                } ],
+                            }),
+                        },
+                    ],
+                    media: [ {
+                        id: 9001,
+                        available: true,
+                        absoluteOffset: 32,
+                        length: 64,
+                        mediaType: "wem",
+                    } ],
+                },
+            };
+        },
+    });
+    const library = await Build();
+    const [ effect ] = library.sfx.nodes["300"].sourceEffects;
+
+    assert.deepEqual(effect.wetDryMixRtpcCurve, {
+        rtpc: "ship_Distance",
+        scope: "object",
+        controlSource: "built-in-distance",
+        property: "wetDryMixPercent",
+        accumulation: "additive",
+        scaling: 0,
+        defaultValue: 0,
+        points: [
+            { x: 0, value: 25, interpolation: 1 },
+            { x: 10000, value: 100, interpolation: 9 },
+            { x: 20000, value: 100, interpolation: 4 },
+        ],
+    });
+
+    for (const variant of [
+        { bankVersion: 149 },
+        { parameterName: "distance" },
+        { builtInParameter: 0 },
+        { rampType: 1 },
+        { controlType: 4 },
+        { parameterId: 2 },
+        { accumulation: 1 },
+        { scaling: 2 },
+        { propertyId: 2 },
+        { propertyAccumulation: 1 },
+    ])
+    {
+        const rejected = await Build(variant);
+
+        assert.equal(
+            rejected.sfx?.nodes?.["300"]?.sourceEffects,
+            undefined,
+            `unsupported dynamic Flanger variant ${JSON.stringify(variant)}`,
+        );
+    }
+});
+
 test("SFX construction retains only complete empirical Wwise Tremolo overrides", async () =>
 {
     const Build = (propertyValues, bankVersion = 150, tremolo = {}) =>
@@ -11506,6 +11683,7 @@ function wwiseFlangerEffectPayload({
     lfoEnabled = true,
     processCenter = false,
     processLfe = false,
+    rtpcs = [],
     propertyValues = [],
 } = {})
 {
@@ -11533,7 +11711,30 @@ function wwiseFlangerEffectPayload({
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)
-        .u16(0)
+        .u16(rtpcs.length);
+
+    for (let index = 0; index < rtpcs.length; index++)
+    {
+        const rtpc = rtpcs[index];
+
+        writer
+            .u32(rtpc.controlId)
+            .u8(rtpc.controlType ?? 0)
+            .u8(rtpc.accumulation)
+            .variable(rtpc.parameterId)
+            .u32(rtpc.curveId ?? index + 1)
+            .u8(rtpc.scaling)
+            .u16(rtpc.points.length);
+
+        for (const [ from, to, interpolation ] of rtpc.points)
+        {
+            writer
+                .f32(from)
+                .f32(to)
+                .u32(interpolation);
+        }
+    }
+    writer
         .u8(0)
         .u8(0)
         .u16(propertyValues.length);

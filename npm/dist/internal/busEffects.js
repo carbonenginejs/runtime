@@ -289,6 +289,51 @@ function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel) {
     points: Object.freeze(points)
   });
 }
+function NormalizeFlangerWetDryMixRtpcCurve(value, ownerLabel) {
+  const curve = RequireRecord(value, ownerLabel);
+  const rtpc = String(curve.rtpc ?? "").trim();
+  const scope = curve.scope ?? "object";
+  const controlSource = String(curve.controlSource ?? "");
+  const property = String(curve.property ?? "");
+  const accumulation = String(curve.accumulation ?? "");
+  const scaling = BoundedInteger(curve.scaling, 0, 3, `${ownerLabel} scaling`);
+  if (rtpc !== "ship_Distance" || scope !== "object" || controlSource !== "built-in-distance" || property !== "wetDryMixPercent" || accumulation !== "additive" || scaling !== 0) {
+    throw new TypeError(`${ownerLabel} control is unsupported`);
+  }
+  if (!Array.isArray(curve.points) || !curve.points.length) {
+    throw new TypeError(`${ownerLabel} points must not be empty`);
+  }
+  let previous = -Infinity;
+  const points = curve.points.map((rawPoint, pointIndex) => {
+    const point = RequireRecord(rawPoint, `${ownerLabel} point ${pointIndex}`);
+    const x = Number(point.x);
+    const output = Number(point.value);
+    const interpolation = Number(point.interpolation ?? 4);
+    if (!Number.isFinite(x) || !Number.isFinite(output) || x < previous || !Number.isSafeInteger(interpolation) || interpolation < 0 || interpolation > 9) {
+      throw new TypeError(`${ownerLabel} points are invalid`);
+    }
+    previous = x;
+    return Object.freeze({
+      x,
+      value: output,
+      interpolation
+    });
+  });
+  const defaultValue = Number(curve.defaultValue);
+  if (defaultValue !== 0) {
+    throw new TypeError(`${ownerLabel} defaultValue must be zero`);
+  }
+  return Object.freeze({
+    rtpc,
+    scope,
+    controlSource,
+    property,
+    accumulation,
+    scaling,
+    defaultValue,
+    points: Object.freeze(points)
+  });
+}
 function NormalizeTremoloRtpcCurves(value, ownerLabel) {
   if (!Array.isArray(value) || value.length !== 2) {
     throw new TypeError(`${ownerLabel} must contain two curves`);
@@ -430,6 +475,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
       if (typeof effect.lfoEnabled !== "boolean" || typeof effect.processCenter !== "boolean" || typeof effect.processLfe !== "boolean") {
         throw new TypeError(`${label} Flanger flags must be boolean`);
       }
+      const wetDryMixRtpcCurve = effect.wetDryMixRtpcCurve === undefined ? undefined : NormalizeFlangerWetDryMixRtpcCurve(effect.wetDryMixRtpcCurve, `${label} wetDryMixRtpcCurve`);
       return Object.freeze({
         effectId,
         slotIndex,
@@ -444,7 +490,10 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
         wetDryMixPercent: BoundedFinite(effect.wetDryMixPercent, MODULATION_PERCENT_MIN, MODULATION_PERCENT_MAX, `${label} wetDryMixPercent`),
         lfoEnabled: effect.lfoEnabled,
         processCenter: effect.processCenter,
-        processLfe: effect.processLfe
+        processLfe: effect.processLfe,
+        ...(wetDryMixRtpcCurve === undefined ? {} : {
+          wetDryMixRtpcCurve
+        })
       });
     }
     if (allowSourceEffects && effect.type === "tremolo") {
@@ -694,7 +743,7 @@ function createWwiseEffectChain(context, effects, {
   if (sourceChannelCount > 2 && sourceEqualizers.some(effect => effect.processLfe === false)) {
     return null;
   }
-  if ((sourceEqualizers.some(effect => effect.rtpcCurves?.length) || sourceTremolos.some(effect => effect.rtpcCurves?.length) || sourceDistortions.some(effect => effect.driveRtpcCurve)) && typeof readSourceEffectRtpc !== "function") {
+  if ((sourceEqualizers.some(effect => effect.rtpcCurves?.length) || sourceFlangers.some(effect => effect.wetDryMixRtpcCurve) || sourceTremolos.some(effect => effect.rtpcCurves?.length) || sourceDistortions.some(effect => effect.driveRtpcCurve)) && typeof readSourceEffectRtpc !== "function") {
     return null;
   }
   if (meterFeedbackMode === "strict" && sourceMeters.some(effect => effect.gameParameterId !== 0)) {
@@ -793,6 +842,21 @@ function createWwiseEffectChain(context, effects, {
       if (output) output.connect(stage.input);else input = stage.input;
       output = stage.output;
       nodes.push(...stage.nodes);
+      if (effect.wetDryMixRtpcCurve) {
+        sourceEffectRtpcBindings.push({
+          curve: effect.wetDryMixRtpcCurve,
+          baseValue: effect.wetDryMixPercent,
+          param: stage.dryGain,
+          transform: "flanger-dry-mix",
+          smooth: true
+        }, {
+          curve: effect.wetDryMixRtpcCurve,
+          baseValue: effect.wetDryMixPercent,
+          param: stage.wetGain,
+          transform: "flanger-wet-mix",
+          smooth: true
+        });
+      }
       continue;
     }
     if (effect.type === "tremolo-approximation") {
@@ -1012,7 +1076,9 @@ function CreateWwiseFlangerApproximation(context, effect) {
   return {
     input,
     output,
-    nodes
+    nodes,
+    dryGain: dry.gain,
+    wetGain: wet.gain
   };
 }
 

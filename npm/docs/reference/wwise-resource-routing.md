@@ -580,8 +580,8 @@ source-proven.
 
 Pinned wwiser also proves Wwise Flanger `0x007D0003` as an exact 59-byte v150
 record. The builder admits a source-local override only when the whole active
-slot list is static and supported, the Flanger has no media/RTPC/State/property
-controls, and it uses sine modulation with zero phase offset/spread and the
+slot list is otherwise supported, the Flanger has no media/State controls,
+and it uses sine modulation with zero phase offset/spread and the
 Left-Right phase mode. `wwiseModulation: "strict"` leaves that complete chain
 dry. Explicit `"approximate-web-audio"` realizes the unified-comb topology with
 Gain and Delay nodes and, when LFO is enabled with nonzero depth, one
@@ -600,14 +600,26 @@ entire source chain and preserves audible dry playback. Shared-Bus Flanger is
 still a route barrier because the shared mixer does not own scheduled-source
 lifecycle.
 
+The exact EVE dynamic exception is not a Wwise Modulator. Four v150 Flanger
+ShareSets use ordinary Game Parameter control `3712448215`, named
+`ship_Distance`, while STMG binds that parameter to built-in Distance `1`.
+Their additive scaling-0 `ParamID 1` and matching property ID `1` drive the
+decoded Wet/Dry Mix base. Runtime-audio admits only that complete shape and
+evaluates it per voice from emitter/listener distance. Control type `4`, other
+bindings, ramps, names, targets, accumulations, scalings, and versions remain
+barriers.
+
 EVE build 3453885 projects nine isolated static-Flanger Sound leaves across
 `dungeon_brothel_atmo_play`, three `ecx_*explosive*` events, and
 `worldobject_jumpgate_activity_play`. Eight use ShareSet `2906410516`; one
 uses Custom effect `290827855`. Another twelve booster leaves place a static
 Flanger in slot 0 before the admitted live `ship_Roll` Parametric EQ in slot 1,
-raising the current Flanger population to 21 leaves across nine retained
-events. Before live EQ was implemented those twelve chains correctly remained
-complete dry fallbacks.
+raising the static Flanger population to 21 leaves across nine retained
+events. The built-in-Distance exception adds 28 leaves across 18 more events:
+ten idle Tremolo chains, sixteen engine-on EQ chains (ten also with live
+Tremolo), and two XXL warp-blast leaves. Two M-afterburner leaves still fail
+closed on companion EQ `1738007123`. The total is 49 Flanger leaves across 27
+events.
 
 Wwise Tremolo `0x00830003` uses a separate evidence boundary. Pinned wwiser
 identifies the plug-in and shows the corresponding depth/frequency/waveform,
@@ -666,10 +678,10 @@ targets rather than being convolved with this plug-in-local filter. This is
 still the same native-oscillator approximation; missing
 metadata/readers/primitives keep the whole chain dry.
 
-EVE build 3453885 projects 169 Tremolo stages on 165 Sound leaves. The added
-ten dynamic leaves cover ten medium-engine activate, deactivate, idle, and
-power-down events. Two exact OSSE Square leaves add the Amarr and Minmatar
-big-screen events. The static population spans 85 retained events: 117
+EVE build 3453885 projects 189 Tremolo stages on 185 Sound leaves. Twenty
+dynamic leaves cover the original medium-engine set plus ten newly complete
+engine-on chains. Two exact OSSE Square leaves add the Amarr and Minmatar
+big-screen events. The static population spans 91 retained events: 117
 Tremolo-only, 14 Tremolo followed by qualified static EQ,
 three qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
 Reverb, six Delay followed by Tremolo, two Tremolo followed by Delay, one
@@ -681,7 +693,8 @@ control-free, and zero-phase. They use 70 effect identities and 24 exact
 parameter records. Sound `350811697` contributes the static skyhook EQ-to-Tremolo
 chain. Its `processLfe:false` EQ realizes for decoded mono/stereo audio, where
 there is no independent LFE channel, while multichannel playback remains wholly
-dry. Admitting bounded
+dry. Ten additional static Tremolo-to-distance-Flanger leaves cover six idle
+engine events. Admitting bounded
 phase fields raises qualified source-effect leaves from 2,666 to 2,740 without
 changing media or event reachability.
 
@@ -712,7 +725,8 @@ Distortion keep the complete chain audible and dry. Static admission raised
 qualified source-effect leaves from 2,506 to 2,575. Live Drive raised the
 post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
 records without changing media or event reachability; the later modulation
-and skyhook-EQ slices set the current totals to 3,196 and 3,358.
+and skyhook-EQ slices set the prior totals to 3,196 and 3,358; built-in-Distance
+Flanger now sets the current totals to 3,224 leaves and 3,422 records.
 
 Wwise Harmonizer `0x008a0003` remains a measured DSP barrier rather than an
 unclassified plug-in. Pinned wwiser proves the v150 layout for two pitch
@@ -821,7 +835,8 @@ and 3,337 without changing media or event reachability. Bounded static
 Tremolo admission raises those totals to 3,183 and 3,344; the paired dynamic
 Tremolo slice raises those totals to 3,193 and 3,354; the exact OSSE Square
 slice raises those totals to 3,195 and 3,356; the static skyhook EQ-to-Tremolo
-slice sets the current totals to 3,196 and 3,358. Playback still
+slice set the prior totals to 3,196 and 3,358; built-in-Distance Flanger now
+sets the current totals to 3,224 and 3,422. Playback still
 requires both explicit policies: Meter telemetry omission and Web Audio
 dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so

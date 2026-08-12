@@ -1273,7 +1273,8 @@ export class CjsAudioMan
                                 selection.busVoiceVolumeActionControlled,
                             sourceEffects: selection.sourceEffects,
                             ...(selection.sourceEffects?.some(effect =>
-                                effect.rtpcCurves?.length)
+                                effect.rtpcCurves?.length
+                                || effect.driveRtpcCurve)
                                 ? {
                                     getSourceEffectRtpc: (
                                         curve,

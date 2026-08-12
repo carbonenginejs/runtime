@@ -840,7 +840,7 @@ class CjsAudioMan {
           busPathIds: selection.busPathIds,
           busVoiceVolumeActionControlled: selection.busVoiceVolumeActionControlled,
           sourceEffects: selection.sourceEffects,
-          ...(selection.sourceEffects?.some(effect => effect.rtpcCurves?.length) ? {
+          ...(selection.sourceEffects?.some(effect => effect.rtpcCurves?.length || effect.driveRtpcCurve) ? {
             getSourceEffectRtpc: (curve, at = undefined, readControl = false) => engine.EvaluateSourceEffectRTPC(curve, controls, at, readControl)
           } : {}),
           authoredBusVolumeDb: selection.authoredBusVolumeDb,

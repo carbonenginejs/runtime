@@ -107,7 +107,10 @@ Distortion/Matrix Reverb/RoomVerb override in their
 NodeBase ancestry.
 An explicit empty override clears the inherited list.
 Those effects are voice-owned and precede Voice LPF/HPF and route splitting.
-Parametric EQ and qualified Tremolo records may carry `rtpcCurves`. EQ emits
+Parametric EQ and qualified Tremolo records may carry `rtpcCurves`. A qualified
+Flanger may instead carry one `wetDryMixRtpcCurve` whose
+`controlSource: "built-in-distance"` prevents it from being mistaken for a
+user-settable RTPC. EQ emits
 the exact EVE-v150 Game Parameter `ParamID 2` form: object-scoped
 `ship_Roll`, exclusive accumulation, scaling 3, Band 1 `frequencyHz`, an STMG
 default, and ordered Wwise curve points. Playback reads object RTPC, global
@@ -236,6 +239,7 @@ source-local Wwise Flanger and Tremolo records:
 - `"strict"` (default) omits the complete source chain and keeps the voice
   audible/dry.
 - `"approximate-web-audio"` realizes the documented static Sine subsets, the
+  exact EVE-v150 built-in-Distance Flanger Wet/Dry form, the
   bounded filtered `booster_intensity` Sine form, and the narrow unsmoothed
   zero-phase Tremolo Square (50%-duty) and Triangle subsets with voice-owned
   Gain, optional Delay, and optional Oscillator nodes. One exact OSSE Square
@@ -249,6 +253,10 @@ browser applies one all-channel carrier and omits Wwise's per-channel phase
 distribution. The browser graphs are modulation approximations, not Wwise
 DSP. The Tremolo record is an explicitly empirical EVE-v150 38-byte layout;
 pinned wwiser identifies its plug-in but does not decode those parameters.
+Dynamic Flanger is admitted only when STMG binds named `ship_Distance` to
+built-in Distance with the exact zero default/ramp and additive Wet/Dry target.
+Emitter/listener pose and attenuation scaling refresh its independent dry and
+wet gains; control-type-4 Modulators and other dynamic forms remain rejected.
 Any other value throws synchronously, and `CjsAudioSystem` accepts the same
 option.
 

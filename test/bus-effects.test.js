@@ -1133,6 +1133,72 @@ test("validates Flanger policy, exact shape, and fixed-delay LFO omission", () =
     assert.equal(context.oscillators.length, 0);
 });
 
+test("realizes built-in-distance Flanger wet and dry mix live", () =>
+{
+    const decoded = parseGraphStaticWwiseFlanger(
+        GraphFlanger(FlangerBytes({ wetDryMixPercent: 25 })),
+        "2280646043",
+        0,
+    );
+    const dynamic = normalizeStaticSourceEffectChain([ {
+        ...decoded,
+        wetDryMixRtpcCurve: {
+            rtpc: "ship_Distance",
+            scope: "object",
+            controlSource: "built-in-distance",
+            property: "wetDryMixPercent",
+            accumulation: "additive",
+            scaling: 0,
+            defaultValue: 0,
+            points: [
+                { x: 0, value: 25, interpolation: 4 },
+                { x: 10000, value: 100, interpolation: 4 },
+            ],
+        },
+    } ], "Audio source");
+
+    assert.equal(createWwiseEffectChain(Context(), dynamic, {
+        wwiseModulation: "approximate-web-audio",
+    }), null, "a missing built-in reader keeps the complete chain dry");
+    const context = Context();
+    context.currentTime = 0;
+    let curveOutput = 25;
+    const chain = createWwiseEffectChain(context, dynamic, {
+        wwiseModulation: "approximate-web-audio",
+        readSourceEffectRtpc: () => curveOutput,
+    });
+    const [ , dry, , , , wet ] = context.gains;
+
+    for (const param of [ dry.gain, wet.gain ])
+    {
+        param.curves = [];
+        param.setValueAtTime = value => { param.value = value; };
+        param.setTargetAtTime = (value, at, timeConstant) =>
+        {
+            param.target = [ value, at, timeConstant ];
+        };
+        param.setValueCurveAtTime = (...args) => param.curves.push(args);
+    }
+    chain.sourceEffectRtpcLane.Apply();
+    assert.equal(dry.gain.value, 0.5);
+    assert.equal(wet.gain.value, 0.5);
+
+    curveOutput = 100;
+    chain.sourceEffectRtpcLane.Apply([ 1 ], true);
+    assert.deepEqual(dry.gain.target, [ 0, 0, 0.005 ]);
+    assert.deepEqual(wet.gain.target, [ 1, 0, 0.005 ]);
+    assert.deepEqual(dry.gain.curves, []);
+    assert.deepEqual(wet.gain.curves, []);
+
+    const malformed = structuredClone(dynamic);
+
+    malformed[0].wetDryMixRtpcCurve.controlSource = "game-parameter";
+    assert.throws(
+        () => normalizeStaticSourceEffectChain(malformed, "Audio source"),
+        /control is unsupported/u,
+    );
+});
+
 test("decodes and realizes only the empirical static Wwise Tremolo subset", () =>
 {
     const decoded = parseGraphStaticWwiseTremolo(

@@ -4763,6 +4763,38 @@ export class CjsAudioBackend
                 this.#busEffectCatalog,
                 descriptor.busPathIds,
             );
+        const hasBuiltInDistanceEffect = descriptor.sourceEffects?.some(
+            effect => effect.wetDryMixRtpcCurve?.controlSource
+                === "built-in-distance",
+        ) === true;
+        const needsExternalEffectControl = descriptor.sourceEffects?.some(
+            effect => effect.rtpcCurves?.length || effect.driveRtpcCurve,
+        ) === true;
+        const canReadAllSourceEffects = !needsExternalEffectControl
+            || typeof descriptor.getSourceEffectRtpc === "function";
+        const readSourceEffectRtpc = hasBuiltInDistanceEffect
+            && canReadAllSourceEffects
+            ? (curve, at = undefined, readControl = false) =>
+            {
+                if (curve.controlSource === "built-in-distance")
+                {
+                    const distance = EvaluateSfxBuiltInDistance(
+                        emitterNodes?.position,
+                        this.#listenerPosition,
+                        emitterNodes?.scalingFactor,
+                    );
+
+                    return readControl
+                        ? distance
+                        : evaluateWwiseRtpcCurve(curve.points, distance);
+                }
+                return descriptor.getSourceEffectRtpc?.(
+                    curve,
+                    at,
+                    readControl,
+                );
+            }
+            : descriptor.getSourceEffectRtpc;
         const sourceEffectChain = createWwiseEffectChain(
             this.#context,
             descriptor.sourceEffects ?? [],
@@ -4775,7 +4807,7 @@ export class CjsAudioBackend
                 wwiseMeterFeedback: this.#wwiseMeterFeedback,
                 sourceChannelCount:
                     descriptor.buffer?.numberOfChannels ?? 1,
-                readSourceEffectRtpc: descriptor.getSourceEffectRtpc,
+                readSourceEffectRtpc,
             },
         );
 
@@ -6809,6 +6841,7 @@ export class CjsAudioBackend
                         record.emitterNodes,
                         smooth,
                     );
+                    this.#ApplyVoiceSourceEffects(voice, smooth);
                 }
             }
         }
@@ -6963,10 +6996,11 @@ export class CjsAudioBackend
     }
 
     /** Applies live RTPC automation to qualified source-effect parameters. */
-    #ApplyVoiceSourceEffects(voice)
+    #ApplyVoiceSourceEffects(voice, smooth = false)
     {
         voice.sourceEffectRtpcLane?.Apply?.(
             voice.controlTransitionBoundaries ?? [],
+            smooth,
         );
     }
 
@@ -7466,6 +7500,29 @@ function EvaluateSfxDistanceGain({
     return acousticDistance <= factor
         ? 1
         : factor / acousticDistance;
+}
+
+/** Resolves one Wwise built-in Distance value in authored/scaled units. */
+function EvaluateSfxBuiltInDistance(
+    emitterPosition,
+    listenerPosition,
+    scalingFactor,
+)
+{
+    if (!Array.isArray(emitterPosition)
+        || !Array.isArray(listenerPosition))
+    {
+        return 0;
+    }
+    const distance = Math.hypot(
+        Number(emitterPosition[0]) - Number(listenerPosition[0]),
+        Number(emitterPosition[1]) - Number(listenerPosition[1]),
+        Number(emitterPosition[2]) - Number(listenerPosition[2]),
+    );
+    const scale = Number(scalingFactor);
+    const factor = Number.isFinite(scale) && scale > 0 ? scale : 1;
+
+    return Number.isFinite(distance) ? distance / factor : 0;
 }
 
 function SetAudioParam(param, value, context)

@@ -3250,6 +3250,58 @@ function ParseStaticWwiseFlanger(ownerLabel, slot, effect) {
     label: `Wwise Flanger ${effect.id} on ${ownerLabel}`
   });
 }
+function ParseDynamicWwiseFlanger(ownerLabel, slot, effect, names) {
+  if (Number(effect.bankVersion) !== 150 || effect.media?.length || effect.rtpcs?.length !== 1 || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length !== 1) {
+    throw new Error(`Wwise Flanger ${effect.id} on ${ownerLabel} has unsupported controls`);
+  }
+  const parsed = parseStaticWwiseFlangerBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise Flanger ${effect.id} on ${ownerLabel}`
+  });
+  const rtpc = effect.rtpcs[0];
+  const property = effect.propertyValues[0];
+  const controlID = Number(rtpc.controlId) >>> 0;
+  const parameter = names.parameters.get(controlID);
+  const defaultValue = names.parameterDefaults.get(controlID);
+  const transition = names.parameterTransitions.get(controlID);
+  const builtInParameter = names.parameterBuiltIns.get(controlID);
+
+  // ParamID/property ID 1 is corpus-pinned to Wet/Dry Mix for these exact
+  // EVE-v150 Flangers. The STMG binding, rather than a controlType-4
+  // Modulator, makes ship_Distance a voice-local built-in distance source.
+  if (parameter !== "ship_Distance" || defaultValue !== 0 || transition?.rampType !== 0 || transition.rampUpSeconds !== 0 || transition.rampDownSeconds !== 0 || builtInParameter !== 1 || Number(rtpc.controlType) !== 0 || Number(rtpc.parameterId) !== 1 || Number(rtpc.accumulation) !== SFX_ADDITIVE_ACCUMULATION || Number(rtpc.scaling) !== 0 || !rtpc.points?.length || Number(property.propertyId) !== 1 || Number(property.accumulation) !== SFX_ADDITIVE_ACCUMULATION || Number(property.value) !== parsed.wetDryMixPercent) {
+    throw new Error(`Wwise Flanger ${effect.id} on ${ownerLabel} has unsupported distance control`);
+  }
+  let previous = -Infinity;
+  const points = rtpc.points.map((point, index) => {
+    const x = Number(point.from);
+    const value = Number(point.to);
+    const interpolation = Number(point.interpolation);
+    if (!Number.isFinite(x) || !Number.isFinite(value) || x < previous || !Number.isSafeInteger(interpolation) || interpolation < 0 || interpolation > 9) {
+      throw new Error(`Wwise Flanger ${effect.id} on ${ownerLabel} has invalid distance point ${index}`);
+    }
+    previous = x;
+    return {
+      x,
+      value,
+      interpolation
+    };
+  });
+  return {
+    ...parsed,
+    wetDryMixRtpcCurve: {
+      rtpc: parameter,
+      scope: "object",
+      controlSource: "built-in-distance",
+      property: "wetDryMixPercent",
+      accumulation: "additive",
+      scaling: 0,
+      defaultValue,
+      points
+    }
+  };
+}
 function ParseStaticWwiseTremolo(ownerLabel, slot, effect) {
   if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
     throw new Error(`Wwise Tremolo ${effect.id} on ${ownerLabel} is not static`);
@@ -3494,7 +3546,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId) {
       } else if (effect.pluginId === WWISE_PEAK_LIMITER_PLUGIN_ID) {
         chain.push(ParseStaticWwisePeakLimiter(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_FLANGER_PLUGIN_ID) {
-        chain.push(ParseStaticWwiseFlanger(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+        const ownerLabel = `NodeBase ${ownerId} inherited by Sound ${soundId}`;
+        chain.push(effect.rtpcs?.length ? ParseDynamicWwiseFlanger(ownerLabel, slot, effect, names) : ParseStaticWwiseFlanger(ownerLabel, slot, effect));
       } else if (effect.pluginId === WWISE_TREMOLO_PLUGIN_ID) {
         const ownerLabel = `NodeBase ${ownerId} inherited by Sound ${soundId}`;
         chain.push(effect.rtpcs?.length ? ParseDynamicWwiseTremolo(ownerLabel, slot, effect, names) : ParseStaticWwiseTremolo(ownerLabel, slot, effect));
@@ -4291,6 +4344,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator {
   #groups = new Map();
   #parameters = new Map();
   #parameterDefaults = new Map();
+  #parameterBuiltIns = new Map();
   #parameterTransitions = new Map();
   #stateFilterBehavior;
   #stateTransitionSettings = new Map();
@@ -4347,6 +4401,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator {
       groups: this.#groups,
       parameters: this.#parameters,
       parameterDefaults: this.#parameterDefaults,
+      parameterBuiltIns: this.#parameterBuiltIns,
       parameterTransitions: this.#parameterTransitions,
       stateTransitions: this.#CreateStateTransitions(),
       stateFilterBehavior: this.#stateFilterBehavior
@@ -4458,6 +4513,17 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator {
       throw new TypeError(`Audio STMG game parameter ${id}` + ` defaultValue conflicts with ${existing}`);
     }
     this.#parameterDefaults.set(id, defaultValue);
+    const builtInParameter = parameter.builtInParameter === undefined ? undefined : Number(parameter.builtInParameter);
+    if (builtInParameter !== undefined && (!Number.isSafeInteger(builtInParameter) || builtInParameter < 0 || builtInParameter > 255)) {
+      throw new TypeError(`Audio STMG game parameter ${id}` + " builtInParameter is invalid");
+    }
+    const existingBuiltIn = this.#parameterBuiltIns.get(id);
+    if (builtInParameter !== undefined && existingBuiltIn !== undefined && existingBuiltIn !== builtInParameter) {
+      throw new TypeError(`Audio STMG game parameter ${id}` + ` builtInParameter conflicts with ${existingBuiltIn}`);
+    }
+    if (builtInParameter !== undefined) {
+      this.#parameterBuiltIns.set(id, builtInParameter);
+    }
     const hasTransition = parameter.rampType !== undefined || parameter.rampUp !== undefined || parameter.rampDown !== undefined;
     if (!hasTransition) return;
     const rampType = Number(parameter.rampType);

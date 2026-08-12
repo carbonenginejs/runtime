@@ -12,6 +12,8 @@ const MIN_EQ_FREQUENCY_HZ = 20;
 const MAX_EQ_FREQUENCY_HZ = 20000;
 const MIN_DISTORTION_DRIVE_PERCENT = 0;
 const MAX_DISTORTION_DRIVE_PERCENT = 100;
+const MIN_FLANGER_MIX_PERCENT = 0;
+const MAX_FLANGER_MIX_PERCENT = 100;
 const MIN_TREMOLO_FREQUENCY_HZ = 0.02;
 const MIN_TREMOLO_DEPTH_PERCENT = 0;
 const MAX_TREMOLO_DEPTH_PERCENT = 100;
@@ -38,7 +40,7 @@ export class CjsWwiseSourceEffectRtpcLane
     }
 
     /** Schedules every bound effect parameter over known control transitions. */
-    Apply(boundaries = [])
+    Apply(boundaries = [], smooth = false)
     {
         if (typeof this.#readCurve !== "function") return;
         const now = Number(this.#context?.currentTime) || 0;
@@ -103,6 +105,7 @@ export class CjsWwiseSourceEffectRtpcLane
                 [ ...new Set(bindingEnds) ].sort(
                     (left, right) => left - right,
                 ),
+                smooth,
             );
         }
     }
@@ -115,6 +118,7 @@ export class CjsWwiseSourceEffectRtpcLane
         this.#filteredControls.clear();
     }
 
+    /** Resolves one bound AudioParam value at an AudioContext time. */
     #ValueAt(binding, at)
     {
         const filtered = binding.curve.controlTransition
@@ -164,6 +168,18 @@ export class CjsWwiseSourceEffectRtpcLane
                 ? 1 - depth / 2
                 : depth / 2;
         }
+        if (binding.curve.property === "wetDryMixPercent")
+        {
+            const mix = Clamp(
+                combined,
+                MIN_FLANGER_MIX_PERCENT,
+                MAX_FLANGER_MIX_PERCENT,
+            ) / 100;
+
+            return binding.transform === "flanger-dry-mix"
+                ? 1 - mix
+                : mix;
+        }
         const nyquist = Number(this.#context?.sampleRate) / 2;
         const maximum = Number.isFinite(nyquist) && nyquist > 0
             ? Math.min(MAX_EQ_FREQUENCY_HZ, nyquist)
@@ -198,7 +214,7 @@ function ScaleCurveOutput(value, scaling)
     return value;
 }
 
-function ScheduleBinding(binding, evaluate, now, boundaries)
+function ScheduleBinding(binding, evaluate, now, boundaries, smooth)
 {
     const param = binding.param;
     const startValue = evaluate(now);
@@ -211,8 +227,18 @@ function ScheduleBinding(binding, evaluate, now, boundaries)
     {
         param?.cancelScheduledValues?.(0);
     }
-    param?.setValueAtTime?.(startValue, now);
-    if (param && "value" in param) param.value = startValue;
+    if (smooth
+        && binding.smooth
+        && typeof param?.setTargetAtTime === "function")
+    {
+        param.setTargetAtTime(startValue, now, 0.005);
+        return;
+    }
+    else
+    {
+        param?.setValueAtTime?.(startValue, now);
+        if (param && "value" in param) param.value = startValue;
+    }
     let segmentStart = now;
 
     for (const segmentEnd of boundaries)
@@ -269,6 +295,7 @@ class CjsWwiseFilteredControl
 
     #settleTime;
 
+    /** Creates a settled control at one initial value and context time. */
     constructor(value, at)
     {
         this.#from = value;
@@ -277,11 +304,13 @@ class CjsWwiseFilteredControl
         this.#settleTime = at;
     }
 
+    /** Returns the context time at which the current filter settles exactly. */
     GetSettleTime()
     {
         return this.#settleTime;
     }
 
+    /** Rebases the filter toward a new target using authored ramp timing. */
     SetTarget(value, at, transition)
     {
         if (!Number.isFinite(value) || value === this.#to) return;
@@ -298,6 +327,7 @@ class CjsWwiseFilteredControl
         this.#settleTime = at + duration * FILTER_SETTLE_MULTIPLIER;
     }
 
+    /** Evaluates the filtered control at one context time. */
     Evaluate(at)
     {
         const time = Number(at);
