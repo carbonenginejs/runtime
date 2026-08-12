@@ -138,7 +138,19 @@ export class EveSOFDNA extends CjsModel
           if (args.length !== this.genericData.materialPrefixes.length) return false;
           if (args.some(value => value !== "none" && !this.dataMgr.HasMaterialData(value))) return false;
           break;
+        // `mesh` carries one material per material prefix, exactly like
+        // `material`, and it is the spelling live EVE skins are authored with.
+        // The Carbon snapshot at
+        // trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.cpp validates
+        // CMD_MESH as a single argument alongside CMD_RESPATHINSERT; that is a
+        // deliberate deviation, because real authored DNA fails it. See
+        // ccpwgl's legacy reader indexing `commands.mesh[materialIndex]`
+        // against `generic.materialPrefixes` for independent confirmation.
         case "mesh":
+        case "material":
+          if (args.length !== this.genericData.materialPrefixes.length) return false;
+          if (args.some(value => value !== "none" && !this.dataMgr.HasMaterialData(value))) return false;
+          break;
         case "respathinsert":
           if (args.length !== 1) return false;
           break;
@@ -1037,6 +1049,23 @@ export class EveSOFDNA extends CjsModel
         return;
       }
       this.#commands.set(command[0], splitCarbon(command[1], ";"));
+    }
+
+    // `mesh` and `material` are the same command: one material per material
+    // prefix. `mesh` is the spelling live EVE skins are authored with, and
+    // ccpwgl's legacy reader indexes `commands.mesh[materialIndex]` against
+    // `generic.materialPrefixes` for the same reason.
+    //
+    // The Carbon snapshot does neither. Its parser splits every payload on
+    // `;`, so it sees four arguments; its ValidateContent then rejects any
+    // CMD_MESH that is not exactly one; and CMD_MESH is read nowhere in the
+    // tree. Faithfully porting that gave us a validator that rejects real
+    // authored DNA and a builder that would have dropped the materials even if
+    // it had passed. Normalizing here means every downstream reader keeps
+    // asking for CMD_MATERIAL and simply works.
+    if (this.#commands.has("mesh") && !this.#commands.has("material"))
+    {
+      this.#commands.set("material", this.#commands.get("mesh"));
     }
 
     this.hullNames = splitCarbon(parts[0], ";");

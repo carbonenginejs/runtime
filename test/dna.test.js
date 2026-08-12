@@ -98,6 +98,40 @@ test("EveSOFDataMgr indexes every top-level SOF catalog", () => {
   assert.equal(manager.GetGenericData().variants.has("transparent"), true);
 });
 
+// `mesh` is the spelling live EVE skins are authored with, and it carries one
+// material per material prefix — the same payload as `material`. The Carbon
+// snapshot validates CMD_MESH as exactly one argument and reads it nowhere in
+// the tree, so porting it faithfully rejected real authored DNA and would have
+// dropped the materials even had it passed. This fixture declares two prefixes,
+// so "one per prefix" is two here rather than the four a live hull has.
+test("a mesh command carries one material per prefix, exactly like material", () => {
+  const sof = new EveSOF();
+  sof.dataMgr.SetData(createData());
+
+  assert.deepEqual(sof.InspectDna("rifter:minmatar:minmatar:mesh?rust;paint"), {
+    buildable: true,
+    valid: true,
+    error: null,
+  });
+
+  // One argument is what the snapshot demanded. It is wrong for any hull with
+  // more than one material prefix.
+  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:mesh?rust").valid, false);
+
+  // An unknown material is still rejected, and "none" is still a valid slot.
+  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:mesh?rust;missing").valid, false);
+  assert.equal(sof.InspectDna("rifter:minmatar:minmatar:mesh?none;paint").valid, true);
+
+  // Accepting the command is only half of it: the materials must reach the
+  // reader, which asks for CMD_MATERIAL.
+  const dna = sof.CreateDna("rifter:minmatar:minmatar:mesh?rust;paint");
+  assert.deepEqual(dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "rust", "paint" ]);
+
+  // An explicit `material` command still wins when both are present.
+  const both = sof.CreateDna("rifter:minmatar:minmatar:mesh?rust;rust:material?paint;paint");
+  assert.deepEqual(both.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "paint", "paint" ]);
+});
+
 test("EveSOF DNA inspection distinguishes malformed and unknown selections", () => {
   const sof = new EveSOF();
   sof.dataMgr.SetData(createData());
