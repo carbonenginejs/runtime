@@ -362,7 +362,14 @@ export class DxbcGlslEmitter
             outputNames: new Map(),
             resourceDimensions: new Map(),
             resourceNames: new Map(),
-            comparisonResources: this._analyzeComparisonResources(raw.decoder, sourceName),
+            ...(() =>
+            {
+                const analysed = this._analyzeComparisonResources(raw.decoder, sourceName);
+                return {
+                    comparisonResources: analysed.comparison,
+                    pairedSamplers: analysed.paired
+                };
+            })(),
             constantBufferNames: new Map(),
             structuredBuffers: new Map(),
             lightConstantBuffer: this._normalizeLightConstantBufferProfile(),
@@ -550,31 +557,57 @@ export class DxbcGlslEmitter
    * types. A single GLSL uniform cannot be both a shadow and ordinary sampler;
    * reject that shape explicitly instead of producing invalid GLSL.
    *
+   * The same walk records the t#/s# pairing for EVERY sampled resource, not
+   * only the comparison ones. D3D carries sampler state on a shared sampler
+   * object and pairs it with a texture at the sample site; GLSL merges the two
+   * into one uniform, so that pairing is the only place the pairing exists once
+   * the shader is translated. Dropping it forces a consumer to guess, and the
+   * available guess - "the sampler whose register equals the texture's" - is
+   * numeric coincidence: with two pattern samplers declared, `NormalMap` at t3
+   * collides with the clamp sampler at s3 and every hull's normal map is read
+   * clamped instead of wrapped.
+   *
    * @param {object} decoder Decoded DXBC instruction stream.
    * @param {string} sourceName Source name used in error details.
-   * @returns {Map<number,Set<number>>} Resource register -> sampler registers.
+   * @returns {{comparison:Map<number,Set<number>>,paired:Map<number,Set<number>>}}
+   *   Resource register -> sampler registers, for comparison sampling and for
+   *   all sampling respectively.
    */
     _analyzeComparisonResources(decoder, sourceName)
     {
         const comparisonResources = new Map();
+        const pairedSamplers = new Map();
         const ordinaryResources = new Set();
+
+        const recordPair = (map, register, samplerRegister) =>
+        {
+            const samplers = map.get(register) || new Set();
+            if (Number.isInteger(samplerRegister)) samplers.add(samplerRegister);
+            map.set(register, samplers);
+        };
 
         for (const instruction of decoder.instructions)
         {
             const resourceOperand = instruction.operands?.[2];
             if (!resourceOperand || !Number.isInteger(resourceOperand.registerIndex)) continue;
 
+            const register = resourceOperand.registerIndex;
+            const samplerRegister = instruction.operands?.[3]?.registerIndex;
+
             if (COMPARISON_SAMPLE_OPCODES.has(instruction.opcodeName))
             {
-                const register = resourceOperand.registerIndex;
-                const samplerRegister = instruction.operands?.[3]?.registerIndex;
-                const samplers = comparisonResources.get(register) || new Set();
-                if (Number.isInteger(samplerRegister)) samplers.add(samplerRegister);
-                comparisonResources.set(register, samplers);
+                recordPair(comparisonResources, register, samplerRegister);
+                recordPair(pairedSamplers, register, samplerRegister);
             }
             else if (NON_COMPARISON_TEXTURE_OPCODES.has(instruction.opcodeName))
             {
-                ordinaryResources.add(resourceOperand.registerIndex);
+                ordinaryResources.add(register);
+                // `ld`-family fetches carry no sampler operand and legitimately
+                // pair with nothing; only record a pair when one is present.
+                if (Number.isInteger(samplerRegister))
+                {
+                    recordPair(pairedSamplers, register, samplerRegister);
+                }
             }
         }
 
@@ -589,7 +622,7 @@ export class DxbcGlslEmitter
             }
         }
 
-        return comparisonResources;
+        return { comparison: comparisonResources, paired: pairedSamplers };
     }
 
     /**
@@ -1340,12 +1373,21 @@ export class DxbcGlslEmitter
                 state.resourceDimensions.set(register, declaration.resourceDimension);
                 state.resourceNames.set(register, name);
                 state.declarationLines.push(`uniform mediump ${samplerType} ${name};`);
+                // The sampler this texture is actually paired with at its sample
+                // sites. A texture sampled through more than one sampler cannot
+                // be represented by one GLSL uniform's state, so record them all
+                // and let the packaging layer decide; a texture sampled through
+                // none (pure `ld`) simply has no sampler state to carry.
+                const paired = state.pairedSamplers.get(register);
                 state.bindings.push({
                     kind: "resource",
                     registerIndex: register,
                     name,
                     samplerType,
                     dimensionName: declaration.resourceDimensionName,
+                    ...(paired?.size
+                        ? { pairedSamplerRegisters: [ ...paired ].sort((a, b) => a - b) }
+                        : {}),
                     ...(comparisonSamplers ? {
                         comparison: true,
                         samplerRegisterIndices: [ ...comparisonSamplers ].sort((a, b) => a - b)
@@ -2344,6 +2386,16 @@ export class DxbcGlslEmitter
         if (state.detailMapArrayDeclared) return;
         state.detailMapArrayDeclared = true;
 
+        // One GL uniform now stands for every merged layer, so it can carry only
+        // one sampler state. Union the layers' pairings: if they disagree the
+        // merge itself was invalid, and the packaging layer is where that is
+        // detectable, because only it holds the sampler values to compare.
+        const merged = new Set();
+        for (const layerRegister of state.detailMapArrayLayers.keys())
+        {
+            for (const sampler of state.pairedSamplers.get(layerRegister) ?? []) merged.add(sampler);
+        }
+
         state.declarationLines.push(`uniform mediump sampler2DArray ${DETAIL_MAP_ARRAY_SYMBOL};`);
         state.bindings.push({
             kind: "resource",
@@ -2352,7 +2404,8 @@ export class DxbcGlslEmitter
             samplerType: "sampler2DArray",
             dimensionName: "texture2darray",
             arrayLayerCount: state.detailMapArrayLayers.size,
-            mergedFrom: [ ...state.detailMapArrayLayers.keys() ]
+            mergedFrom: [ ...state.detailMapArrayLayers.keys() ],
+            ...(merged.size ? { pairedSamplerRegisters: [ ...merged ].sort((a, b) => a - b) } : {})
         });
     }
 

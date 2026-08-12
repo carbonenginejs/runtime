@@ -27,6 +27,9 @@ test("sample_c_lz emits a 2D shadow comparison at explicit LOD zero", () =>
             samplerType: "sampler2DShadow",
             dimensionName: "texture2d",
             comparison: true,
+            // The general pairing and the comparison-specific one agree here,
+            // and must: a comparison sample is still a sample site.
+            pairedSamplerRegisters: [ 2 ],
             samplerRegisterIndices: [ 2 ]
         }
     );

@@ -17,9 +17,11 @@ import { DxbcResourceDimensionNames } from '../../dxbc/core/decoder.js';
  * synthesised data textures and UBOs, the vertex attribute ABI, and the recipe
  * for running a compute shader as a fragment pass.
  *
- * Both codecs start at their own version 1, and that is safe: which one parses a
+ * The two codecs version independently, and that is safe: which one parses a
  * given block is decided by the resource path the file came from, the same way
- * the backend itself is chosen. Nothing has to sniff.
+ * the backend itself is chosen. Nothing has to sniff. This one is at version 2
+ * and reads only version 2 — see the version constant for why it carries no
+ * backward-compatible path.
  *
  * ## Why identifiers are on the wire
  *
@@ -51,8 +53,33 @@ import { DxbcResourceDimensionNames } from '../../dxbc/core/decoder.js';
  * container the transform is the single source of truth for what merged.
  */
 
-/** Current block version. Bump when a field is added; readers may skip unknown. */
-const GLSL_BACKEND_BLOCK_VERSION = 1;
+/**
+ * ## This block carries no version of its own
+ *
+ * **Carbon's container version is the only version.** An independent counter
+ * here would be a second versioning axis over the same bytes, and the two would
+ * have to be reasoned about together at every change — while describing a block
+ * that is only ever written and read by the same build, because every consumer
+ * calls `buildEffect` and then `read` on its result in-process.
+ *
+ * A shape change is therefore not a compatibility event, it is a rebuild. Stale
+ * artifacts are deleted and regenerated rather than parsed by an older path, and
+ * the trailing-byte check at the end of the read is what catches a mismatch: a
+ * record that does not land exactly on its declared size is a hard error, not a
+ * degraded read.
+ *
+ * This replaced a private version byte whose v1 wrote sampler registers only for
+ * comparison sampling and recovered `comparison` as "that list is non-empty".
+ * Carrying the texture-to-sampler pairing for ordinary textures under that
+ * encoding would have marked every one of them a shadow sampler, so the two are
+ * now independent fields — as they always were independent facts.
+ *
+ * Why the pairing is here at all: D3D pairs a texture with a sampler at each
+ * sample site, GLSL merges the two into one uniform, and Carbon's reflection
+ * relates them nowhere. A consumer without this field can only match `t#`
+ * against `s#` by number, which is coincidence — see
+ * `/docs/contracts/texture-sampler-pairing.md`.
+ */
 
 /**
  * Stage names, as a wire index.
@@ -210,6 +237,12 @@ function writeBindingBody(writer, binding) {
         const samplers = binding.comparison ? binding.samplerRegisterIndices ?? [] : [];
         writer.u8(samplers.length);
         for (const register of samplers) writer.u8(register);
+        // v2: comparison is its own fact, not "the list above is non-empty",
+        // so the pairing below can be written for ordinary textures too.
+        writer.u8(binding.comparison ? 1 : 0);
+        const paired = binding.pairedSamplerRegisters ?? [];
+        writer.u8(paired.length);
+        for (const register of paired) writer.u8(register);
         break;
       }
     case "bufferTexture":
@@ -266,7 +299,15 @@ function readBindingBody(reader, kind) {
         for (let index = 0; index < samplerCount; index += 1) {
           samplerRegisterIndices.push(reader.readUint8());
         }
-        const comparison = samplerCount > 0;
+        // Comparison is its own fact rather than "the register list above is
+        // non-empty", which is what frees the pairing below to be written
+        // for ordinary textures too.
+        const comparison = reader.readUint8() === 1;
+        const pairedSamplerRegisters = [];
+        const pairedCount = reader.readUint8();
+        for (let index = 0; index < pairedCount; index += 1) {
+          pairedSamplerRegisters.push(reader.readUint8());
+        }
         const samplerType = comparison ? SHADOW_SAMPLER_TYPE_BY_DIMENSION[dimension] : SAMPLER_TYPE_BY_DIMENSION[dimension];
         if (!samplerType) {
           throw new CjsFormatReadError(`Resource dimension ${dimension} has no ${comparison ? "shadow " : ""}sampler type`, {
@@ -277,6 +318,9 @@ function readBindingBody(reader, kind) {
         return {
           samplerType,
           dimensionName: DxbcResourceDimensionNames[dimension] ?? `dimension_${dimension}`,
+          ...(pairedSamplerRegisters.length ? {
+            pairedSamplerRegisters
+          } : {}),
           ...(comparison ? {
             comparison: true,
             samplerRegisterIndices
@@ -415,7 +459,6 @@ function readComputeFragment(reader) {
 function writeGlslBackendBlock(block) {
   const stages = block.stages ?? {};
   const writer = new CjsByteWriter(256);
-  writer.u8(GLSL_BACKEND_BLOCK_VERSION);
 
   // Canonical stage order, not object insertion order: two passes with the
   // same lowering must produce the same bytes so the arena dedupes them.
@@ -474,18 +517,11 @@ function readGlslBackendBlock(bytes, options = {}) {
     source: options.source ?? "glsl backend block"
   });
   const layoutKey = options.layoutKey ?? null;
-  const version = reader.readUint8();
-  if (version > GLSL_BACKEND_BLOCK_VERSION) {
-    // Forward compatibility: an unknown block version means a newer writer
-    // added fields. Report the pass as having no backend data rather than
-    // misparsing it; the enclosing `{size, offset}` pair makes it skippable.
-    return {
-      version,
-      unsupported: true,
-      stages: {},
-      transforms: []
-    };
-  }
+
+  // No version byte is read, because none is written: Carbon's container
+  // version is the only version. A block whose shape does not match this build
+  // fails on the trailing-byte check below rather than being detected here,
+  // and the fix for that is to rebuild the package, never to add a branch.
   const stages = {};
   const stageCount = reader.readUint8();
   for (let index = 0; index < stageCount; index += 1) {
@@ -528,19 +564,18 @@ function readGlslBackendBlock(bytes, options = {}) {
   }
   const transforms = readTransformSection(reader, layoutKey);
 
-  // A sized record parsed at a known version must land exactly on its declared
-  // end. Trailing bytes mean the writer knew fields this reader does not - the
-  // same skew an unknown version reports, arriving without a version bump.
+  // A sized record must land exactly on its declared end. Trailing bytes mean
+  // the writer knew fields this reader does not, which without a version byte
+  // is the ONLY signal that a block came from a different build - so this is
+  // load-bearing rather than defensive, and it is why removing the version is
+  // safe. The fix is always to rebuild the package.
   if (reader.remaining !== 0) {
-    throw new CjsFormatReadError(`GLSL backend block has ${reader.remaining} unparsed trailing byte(s) at version ${version}`, {
+    throw new CjsFormatReadError(`GLSL backend block has ${reader.remaining} unparsed trailing byte(s); rebuild the effect package`, {
       source: options.source ?? "glsl backend block",
-      version,
       trailingBytes: reader.remaining
     });
   }
   return {
-    version,
-    unsupported: false,
     layoutKey,
     stages,
     transforms,
@@ -548,5 +583,5 @@ function readGlslBackendBlock(bytes, options = {}) {
   };
 }
 
-export { GLSL_BACKEND_BINDING_KIND, GLSL_BACKEND_BLOCK_VERSION, GLSL_BACKEND_CONSTANT_BUFFER_STYLE, GLSL_BACKEND_STAGE, GLSL_LOCAL_LIGHT_ROLE, readGlslBackendBlock, writeGlslBackendBlock };
+export { GLSL_BACKEND_BINDING_KIND, GLSL_BACKEND_CONSTANT_BUFFER_STYLE, GLSL_BACKEND_STAGE, GLSL_LOCAL_LIGHT_ROLE, readGlslBackendBlock, writeGlslBackendBlock };
 //# sourceMappingURL=glslBackendBlock.js.map

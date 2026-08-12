@@ -60,7 +60,10 @@ test("the array binding reports its layers and where they came from", () =>
         samplerType: "sampler2DArray",
         dimensionName: "texture2darray",
         arrayLayerCount: 3,
-        mergedFrom: [ 3, 4, 5 ]
+        mergedFrom: [ 3, 4, 5 ],
+        // The merged layers all sample through one sampler, so the single
+        // uniform standing for them can carry its state unambiguously.
+        pairedSamplerRegisters: [ 0 ]
     });
 });
 

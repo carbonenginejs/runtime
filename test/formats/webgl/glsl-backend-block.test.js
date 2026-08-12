@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-    GLSL_BACKEND_BLOCK_VERSION,
     readGlslBackendBlock,
     writeGlslBackendBlock
 } from "../../../src/formats/webgl/core/glslBackendBlock.js";
@@ -118,8 +117,6 @@ test("every binding kind survives a write/read round trip", () =>
 {
     const block = readGlslBackendBlock(writeGlslBackendBlock(BLOCK));
 
-    assert.equal(block.version, GLSL_BACKEND_BLOCK_VERSION);
-    assert.equal(block.unsupported, false);
     assert.deepEqual(Object.keys(block.stages), [ "vertex", "pixel", "compute" ]);
 
     for (const [ stageName, stage ] of Object.entries(BLOCK.stages))
@@ -269,14 +266,18 @@ test("an unknown local-light role fails the build rather than being dropped", ()
     assert.throws(() => writeGlslBackendBlock(block), /somethingElse/u);
 });
 
-test("a newer block version reports as unsupported instead of misparsing", () =>
+test("the block carries no version of its own", () =>
 {
+    // Carbon's container version is the only version. Nothing here may reserve a
+    // leading byte for a private counter, because a second versioning axis over
+    // the same bytes is exactly what this format does not have - a block from a
+    // different build is caught by its size, not by a number it declares.
     const bytes = writeGlslBackendBlock(BLOCK);
-    bytes[0] = GLSL_BACKEND_BLOCK_VERSION + 1;
-
     const block = readGlslBackendBlock(bytes);
-    assert.equal(block.unsupported, true);
-    assert.deepEqual(block.stages, {});
+
+    assert.equal(block.version, undefined);
+    assert.equal(block.unsupported, undefined);
+    assert.deepEqual(Object.keys(block.stages), [ "vertex", "pixel", "compute" ]);
 });
 
 test("a trailing byte is an error, not a silent discard", () =>
