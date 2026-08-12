@@ -17,6 +17,9 @@ import {
     CjsAudioMan,
     CjsMusicEngine,
 } from "/runtime-audio/npm/dist/index.js";
+import {
+    CjsAudioLibrary,
+} from "@carbonenginejs/tools-browser/audio";
 import { CjsSharedBusMixer } from "/runtime-audio/npm/dist/internal/busGraphMixer.js";
 import { CjsBusGraphRuntime } from "/runtime-audio/npm/dist/internal/busGraphRuntime.js";
 import { CjsBusDuckingController } from "/runtime-audio/npm/dist/internal/busDucking.js";
@@ -910,9 +913,13 @@ class AudioLibrary
                 const loops = node.loop === undefined
                     ? fallback
                     : node.loop;
-                const url = this.WemUrl(String(node.mediaId));
+                const embedded = this.SelectVariant(
+                    this.raw.embeddedMedia?.[String(node.mediaId)],
+                );
 
-                if (!loops || !url?.startsWith("/bankwem/"))
+                if (!loops
+                    || !embedded
+                    || (embedded.mediaType && embedded.mediaType !== "wem"))
                 {
                     return false;
                 }
@@ -972,7 +979,7 @@ class AudioLibrary
             {
                 const mediaId = String(node.mediaId);
 
-                if (this.WemUrl(mediaId))
+                if (this.HasPlayableWem(mediaId))
                 {
                     media.add(mediaId);
                 }
@@ -1082,20 +1089,22 @@ class AudioLibrary
         return candidates[0] ?? null;
     }
 
-    /**
-     * A wem is reachable when it's streamed (media table -> /cache) or
-     * embedded in a bank's DATA payload (embeddedMedia -> server-side
-     * /bankwem slice).
-     */
-    WemUrl(wemId)
+    /** True when one disclosed individual or embedded WEM record is playable. */
+    HasPlayableWem(wemId)
     {
         const media = this.SelectVariant(this.raw.media[wemId]);
-        if (media) return `/cache/${media.storagePath}`;
+        if (media)
+        {
+            return !media.mediaType || media.mediaType === "wem";
+        }
         const embedded = this.SelectVariant(this.raw.embeddedMedia?.[wemId]);
-        // mediaType is catalog-time typing (kb §5): only wem entries are
-        // playable audio; MIDI clips and plugin blobs are music-system data.
-        if (embedded && (!embedded.mediaType || embedded.mediaType === "wem")) return `/bankwem/${wemId}`;
-        return null;
+
+        // Only WEM entries are playable audio; MIDI clips and plug-in blobs
+        // remain music-system data rather than browser media.
+        return Boolean(
+            embedded
+            && (!embedded.mediaType || embedded.mediaType === "wem"),
+        );
     }
 
     /** Select the source matching the language used to build eventMedia. */
@@ -1209,10 +1218,55 @@ class MediaSource
 {
 
     /** Provider-operation tallies for the HUD. */
-    stats = { individual: 0, range: 0, whole: 0, failed: 0 };
+    stats = {
+        individual: 0,
+        range: 0,
+        whole: 0,
+        failed: 0,
+        lastError: "",
+    };
 
     /** @type {AudioContext} */
     #context = null;
+
+    /** Browser-tools remote reader over the exact tools-core audio service. */
+    #remote = null;
+
+    constructor(library)
+    {
+        const params = new URLSearchParams(globalThis.location?.search ?? "");
+        const service = params.get("audio-service")
+            ?? "http://127.0.0.1:5510";
+        const target = String(library.raw.sourceTarget ?? "eve");
+        const build = String(library.raw.sourceBuild ?? "");
+        const base = new URL(`${service.replace(/\/$/u, "")}/`);
+
+        if (!/^\d+$/u.test(build))
+        {
+            throw new Error(
+                `The demo audio library requires an exact source build: ${build}`,
+            );
+        }
+
+        this.#remote = new CjsAudioLibrary({
+            fileIndex: {
+                Resolve(logicalPath)
+                {
+                    const route = [
+                        encodeURIComponent(target),
+                        encodeURIComponent(build),
+                        "audio",
+                        "path",
+                        encodeURIComponent(String(logicalPath)),
+                    ].join("/");
+
+                    return {
+                        sourceURL: new URL(route, base).href,
+                    };
+                },
+            },
+        });
+    }
 
     /** CjsAudioMan's user-gesture context factory. */
     CreateContext()
@@ -1235,25 +1289,34 @@ class MediaSource
     async Read(source, context = {})
     {
         const route = context.kind === "bank" ? "whole" : "individual";
-        const url = source?.storagePath
-            ? `/cache/${source.storagePath}`
-            : source?.url;
 
         this.stats[route]++;
-        return this.#Fetch(url, context.signal, source?.mediaType);
+        try
+        {
+            return await this.#remote.Read(source, context);
+        }
+        catch (error)
+        {
+            this.stats.failed++;
+            this.stats.lastError = String(error?.message ?? error);
+            throw error;
+        }
     }
 
     /** Reads one exact embedded WEM member selected by CjsAudioMan. */
     async ReadRange(bank, context)
     {
         this.stats.range++;
-        return this.#Fetch(
-            `/range/${encodeURIComponent(bank.storagePath)}`
-                + `?offset=${context.offset}`
-                + `&byteLength=${context.byteLength}`,
-            context.signal,
-            "wem",
-        );
+        try
+        {
+            return await this.#remote.ReadRange(bank, context);
+        }
+        catch (error)
+        {
+            this.stats.failed++;
+            this.stats.lastError = String(error?.message ?? error);
+            throw error;
+        }
     }
 
     /** Acquires one caller-selected jukebox path; runtime owns its decoding. */
@@ -1283,32 +1346,6 @@ class MediaSource
         }).catch(() => null);
 
         return Boolean(response?.ok);
-    }
-
-    async #Fetch(url, signal, mediaType = "")
-    {
-        if (!url)
-        {
-            this.stats.failed++;
-            throw new Error("Audio source has no provider route");
-        }
-
-        const response = await fetch(url, { signal }).catch(error =>
-        {
-            this.stats.failed++;
-            throw error;
-        });
-
-        if (!response.ok)
-        {
-            this.stats.failed++;
-            throw new Error(`Audio unavailable: ${response.status}`);
-        }
-
-        return {
-            bytes: await response.arrayBuffer(),
-            mediaType,
-        };
     }
 
 }
@@ -1909,7 +1946,10 @@ class Stage
             }
         }
         const stats = this.#app.media.stats;
-        this.#hud.textContent = `emitters: ${scene.emitters.length}  awake: ${awake}  playing: ${system.backend?.GetPlayingCount() ?? 0}  reads: ${stats.individual} file / ${stats.range} range / ${stats.whole} whole / ${stats.failed} failed  zoom: ${this.zoom >= 1 ? this.zoom.toFixed(1) : `1/${(1 / this.zoom).toFixed(1)}`}x  view: ${Math.round(this.viewCenter[0])}, ${Math.round(this.viewCenter[1])}`;
+        const mediaError = stats.lastError
+            ? `  media error: ${stats.lastError}`
+            : "";
+        this.#hud.textContent = `emitters: ${scene.emitters.length}  awake: ${awake}  playing: ${system.backend?.GetPlayingCount() ?? 0}  reads: ${stats.individual} file / ${stats.range} range / ${stats.whole} whole / ${stats.failed} failed  zoom: ${this.zoom >= 1 ? this.zoom.toFixed(1) : `1/${(1 / this.zoom).toFixed(1)}`}x  view: ${Math.round(this.viewCenter[0])}, ${Math.round(this.viewCenter[1])}${mediaError}`;
     }
 
     #OnWheel(event)
@@ -4434,7 +4474,7 @@ class DemoApp
     {
         this.library = library;
         this.jukeboxLibrary = jukeboxLibrary;
-        this.media = new MediaSource();
+        this.media = new MediaSource(library);
         this.scene = new Scene(this);
         this.stage = new Stage(this);
         this.musicUi = new MusicUi(this);

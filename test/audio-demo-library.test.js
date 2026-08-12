@@ -25,6 +25,10 @@ test("authored music demo exposes a stable contextual transport", () =>
         path.join(root, "demo", "demo.js"),
         "utf8",
     );
+    const server = fs.readFileSync(
+        path.join(root, "scripts", "serve_demo.js"),
+        "utf8",
+    );
     const guide = fs.readFileSync(
         path.join(root, "docs", "guides", "music.md"),
         "utf8",
@@ -50,6 +54,7 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.match(html, /Authored Wwise programs and bounded fallbacks/);
     assert.match(html, /#music \.sfxControl select\s*\{[^}]*padding:\s*9px 36px 9px 12px/s);
     assert.match(html, /id="musicVol"[^>]*value="20"/);
+    assert.doesNotMatch(html, /id="busGraphRouted"[^>]*class="primary"/);
     assert.match(html, /#musicExampleDetail\s*\{[^}]*height:\s*44px/s);
     assert.match(html, /\.transport button:disabled\s*\{[^}]*color:\s*rgba\([^)]*,\s*0\.24\)/s);
     assert.match(script, /#transportState = "idle"/);
@@ -65,6 +70,13 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.match(script, /function FaderPercentToGain\(value\)/);
     assert.match(script, /ship_module_shield_drain_play/);
     assert.match(script, /return normalized \* normalized/);
+    assert.match(html, /@carbonenginejs\/tools-browser\/audio/);
+    assert.match(script, /new CjsAudioLibrary\(/);
+    assert.match(script, /params\.get\("audio-service"\)/);
+    assert.match(script, /"audio",\s*"path"/s);
+    assert.doesNotMatch(script, /\/bankwem\/|\/range\/|\/cache\//);
+    assert.doesNotMatch(server, /resources\.eveonline\.com|FetchResource|ReadEmbedded/);
+    assert.doesNotMatch(server, /AUDIO_RESOURCE_CACHE|\/bankwem\/|\/range\/|\/cache\//);
     assert.doesNotMatch(script, /#StepExample/);
     assert.match(guide, /inside the\s+currently selected example/s);
 });

@@ -73,6 +73,24 @@ Callers supply index rows, SoundbanksInfo, optional neutral enrichment, and
 bank access. Fetching those inputs is outside the builder and runtime
 contracts.
 
+## Demo
+
+The repository demo uses `@carbonenginejs/tools-browser/audio` as its media
+provider and expects the tools-core audio service at
+`http://127.0.0.1:5510` by default. The demo server serves only static assets,
+the selected audio-library document, and optional local jukebox tracks; it
+does not read a game-resource cache or download game media itself.
+
+Start the tools-core service separately, then run:
+
+```sh
+npm run demo
+```
+
+Use `?audio-service=<url>` on the demo URL when the prepared service uses a
+different origin. Media requests remain exact to the document's
+`sourceTarget` and numeric `sourceBuild`.
+
 ## Documentation
 
 - [Package documentation](docs/README.md)
