@@ -19,6 +19,23 @@ const DECORATOR_METADATA = Symbol("carbonenginejs.schema.decoratorMetadata");
 export const CJS_ENUM_NAME = Symbol.for("carbonenginejs.enum.name");
 
 /**
+ * Cross-copy carrier for a declared class name.
+ *
+ * Schema metadata lives in a `WeakMap` keyed by constructor, which is private
+ * to whichever copy of this file created it. Packages install as copies and
+ * each built package bundles its own runtime-utils, so a class declared by a
+ * sibling package is invisible to `getClassName` here — it returns null for a
+ * perfectly well-declared class.
+ *
+ * That null is not inert. `_type` is emitted only when a class name is known,
+ * so a cross-copy model exports with no type tag and the values graph silently
+ * stops being able to rebuild it. Stamping the name on the constructor under a
+ * global-registry symbol makes the identity survive the boundary, exactly as
+ * `carbonenginejs.model` does for instances.
+ */
+export const CJS_CLASS_NAME = Symbol.for("carbonenginejs.className");
+
+/**
  * Reusable schema/decorator metadata surface.
  *
  * Decorators are namespace-scoped so consumers can export only the parts they
@@ -106,7 +123,15 @@ export class CjsSchema
         let current = Constructor;
         while (typeof current === "function")
         {
-            const className = CLASS_SCHEMA.get(current)?.className || null;
+            // The local metadata is authoritative wherever it exists, including
+            // when it deliberately declares no name. The cross-copy brand is
+            // consulted ONLY for a class this copy has never seen at all --
+            // otherwise it would answer for local classes whose absence of a
+            // name is itself the declared answer.
+            const local = CLASS_SCHEMA.get(current);
+            const className = local
+                ? (local.className || null)
+                : (Object.hasOwn(current, CJS_CLASS_NAME) ? current[CJS_CLASS_NAME] : null);
             if (className)
             {
                 return current !== Constructor && className === "CjsModel" ? null : className;
@@ -533,7 +558,16 @@ function defineFieldMetadata(Constructor, fieldName, namespace, value)
 function defineClassMetadata(Constructor, definition)
 {
     const schema = getOrCreateClassSchema(Constructor);
-    if (definition.className) schema.className = definition.className;
+    if (definition.className)
+    {
+        schema.className = definition.className;
+        // Non-enumerable and own-property, so it neither pollutes exported
+        // values nor is mistaken for an inherited name further down the chain.
+        Object.defineProperty(Constructor, CJS_CLASS_NAME, {
+            value: definition.className,
+            configurable: true
+        });
+    }
     if (definition.family) schema.family = definition.family;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
     if (definition.aliases) schema.aliases = Object.freeze([...definition.aliases]);

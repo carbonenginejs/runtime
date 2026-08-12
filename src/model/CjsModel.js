@@ -4,6 +4,38 @@ import { getRuntimeState } from "../runtime/CjsRuntimeState.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 
+/**
+ * Cross-copy brand for "this object is already a live CjsModel".
+ *
+ * `value instanceof CjsModel` answers a narrower question than it appears to:
+ * it asks whether the value came from THIS copy of runtime-utils. Packages are
+ * installed as copies rather than links, and each built package bundles its own
+ * runtime-utils, so a model handed over from a sibling package fails the test
+ * while being a perfectly good model. `CjsSchema.getClassName` fails across the
+ * same boundary for the same reason, so schema metadata is no better a probe.
+ *
+ * `Symbol.for` resolves through the global registry, which is one registry per
+ * realm no matter how many copies of this file are loaded — the same reason
+ * `carbonenginejs.type` and `carbonenginejs.enum.name` already use it.
+ *
+ * This matters most where the answer decides between ALIASING and COPYING a
+ * value. Getting it wrong there does not throw; it silently substitutes a plain
+ * object for a live instance.
+ */
+const CJS_MODEL_BRAND = Symbol.for("carbonenginejs.model");
+
+/**
+ * Reports whether a value is already a live model, including one constructed by
+ * a different copy of this package.
+ *
+ * @param {*} value Candidate value.
+ * @returns {boolean} True when the value is a live `CjsModel`.
+ */
+export function isModelInstance(value)
+{
+    return !!value && typeof value === "object" && value[CJS_MODEL_BRAND] === true;
+}
+
 const MAX_UPDATE_PASSES = 32;
 const CHILD_COLLECTION_KINDS = new Set([ "array", "list" ]);
 const CHILD_LIST_EVENT = {
@@ -27,6 +59,17 @@ export class CjsModel extends CjsEventEmitter
      * this module already imports CjsSchema. Mirrors `CjsResource.isResource`.
      */
     static isModel = true;
+
+    /**
+     * Instance-side counterpart of `isModel`, readable across package copies.
+     *
+     * On the prototype rather than per instance, so it costs nothing per object
+     * and cannot be enumerated into exported values.
+     */
+    get [CJS_MODEL_BRAND]()
+    {
+        return true;
+    }
 
     /**
      * Creates a schema-backed model with initialized runtime state.
@@ -1422,8 +1465,21 @@ function exportModelInto(model, out, declaredClassName, options, context)
         out._id = context.getId(model);
     }
 
+    // Field metadata is per-copy for the same reason the class name is, and
+    // when it is missing the loop below simply exports nothing — a model that
+    // silently becomes an empty object rather than failing. The model itself
+    // always knows its own schema, so the export is delegated to the copy that
+    // declared it. `_type` and `_id` are already resolved above and are kept:
+    // identity belongs to the graph being written, not to the model's own view
+    // of itself.
+    const fields = getModelFields(model);
+    if (!fields.length && typeof model.GetValues === "function")
+    {
+        return Object.assign(out, model.GetValues(options), out);
+    }
+
     const enumMode = options.enumFormat && options.enumFormat !== "values";
-    for (const field of getModelFields(model))
+    for (const field of fields)
     {
         if (options.persistOnly && !isPersistedModelField(field)) continue;
         if (enumMode)
@@ -1448,7 +1504,10 @@ function exportModelInto(model, out, declaredClassName, options, context)
 
 function exportAdvancedValue(value, declaredClassName, options, context)
 {
-    if (value instanceof CjsModel)
+    // Branded, for the same reason as the import side: a cross-copy model that
+    // fails this test is exported as an anonymous field bag, losing both its
+    // `_type` and its place in the shared-identity table.
+    if (isModelInstance(value))
     {
         if (context && options.refs && context.emitted.has(value))
         {
@@ -1496,7 +1555,10 @@ function exportKeyedList(list, declaredClassName, options, context)
 
 export function importSourceValue(value, field = null, options = {})
 {
-    if (value instanceof CjsModel) return value;
+    // Branded rather than `instanceof`: a live model handed over by a sibling
+    // package is still a live model, and the alternative here is not an error
+    // but a silent copy into a plain object further down.
+    if (isModelInstance(value)) return value;
 
     if (isReferenceValue(value))
     {
@@ -1510,7 +1572,7 @@ export function importSourceValue(value, field = null, options = {})
 
     const schemaType = getSchemaType(options.ownerConstructor, field?.name);
     const declaredClassName = getSchemaClassName(schemaType, options);
-    if (value && typeof value === "object" && !(value instanceof CjsModel) && !Array.isArray(value) && !ArrayBuffer.isView(value))
+    if (value && typeof value === "object" && !isModelInstance(value) && !Array.isArray(value) && !ArrayBuffer.isView(value))
     {
         // A registered `_type` selects the concrete class in singular
         // schema-typed positions. Carbon contracts may be declared through
@@ -1696,7 +1758,10 @@ function createModelValue(className, values, options)
     {
         throw new TypeError(`No CjsModel class is registered for schema type ${className}.`);
     }
-    if (Constructor !== CjsModel && !(Constructor.prototype instanceof CjsModel))
+    // Branded, so a class registered from a sibling package is accepted. The
+    // check still rejects a genuinely unrelated class; it just no longer
+    // rejects a real model for having been declared elsewhere.
+    if (Constructor !== CjsModel && !isModelInstance(Constructor.prototype))
     {
         throw new TypeError(`Registered schema type ${className} is not a CjsModel.`);
     }
