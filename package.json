@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-audio",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "description": "Complete CarbonEngineJS audio domain with a graph-only ./trinity entry and optional Web Audio realization.",
   "type": "module",

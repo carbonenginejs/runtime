@@ -22,3 +22,9 @@ carbonenginejs.md
 
 # Downloaded demo music is local-only and must never enter git or npm.
 /demo/music-cache/
+
+# Agent entry files. Generated per checkout by docs/tooling/bin/cjs-agent-entry.js
+# and deliberately local: they cite the private organization documentation, which
+# a published package must not point at.
+/AGENTS.md
+/CLAUDE.md
