@@ -233,6 +233,56 @@ function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel) {
     });
   }));
 }
+function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel) {
+  const curve = RequireRecord(value, ownerLabel);
+  const rtpc = String(curve.rtpc ?? "").trim();
+  const scope = curve.scope ?? "object";
+  const accumulation = String(curve.accumulation ?? "");
+  const scaling = BoundedInteger(curve.scaling, 0, 3, `${ownerLabel} scaling`);
+  if (!rtpc) throw new TypeError(`${ownerLabel} rtpc must not be empty`);
+  if (scope !== "object") {
+    throw new TypeError(`${ownerLabel} scope is unsupported`);
+  }
+  if (accumulation !== "additive") {
+    throw new TypeError(`${ownerLabel} accumulation is unsupported`);
+  }
+  if (scaling !== 0) {
+    throw new TypeError(`${ownerLabel} scaling is unsupported`);
+  }
+  if (!Array.isArray(curve.points) || !curve.points.length) {
+    throw new TypeError(`${ownerLabel} points must not be empty`);
+  }
+  let previous = -Infinity;
+  const points = curve.points.map((rawPoint, pointIndex) => {
+    const point = RequireRecord(rawPoint, `${ownerLabel} point ${pointIndex}`);
+    const x = Number(point.x);
+    const output = Number(point.value);
+    const interpolation = Number(point.interpolation ?? 4);
+    if (!Number.isFinite(x) || !Number.isFinite(output) || x < previous || !Number.isSafeInteger(interpolation) || interpolation < 0 || interpolation > 9) {
+      throw new TypeError(`${ownerLabel} points are invalid`);
+    }
+    previous = x;
+    return Object.freeze({
+      x,
+      value: output,
+      interpolation
+    });
+  });
+  const defaultValue = curve.defaultValue === undefined ? undefined : Number(curve.defaultValue);
+  if (defaultValue !== undefined && !Number.isFinite(defaultValue)) {
+    throw new TypeError(`${ownerLabel} defaultValue must be finite`);
+  }
+  return Object.freeze({
+    rtpc,
+    scope,
+    accumulation,
+    scaling,
+    ...(defaultValue === undefined ? {} : {
+      defaultValue
+    }),
+    points: Object.freeze(points)
+  });
+}
 function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) {
   if (!Array.isArray(value) || !value.length) {
     throw new TypeError(`${ownerLabel} must have effects`);
@@ -346,6 +396,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
       if (distortionType !== "overdrive" && distortionType !== "heavy") {
         throw new TypeError(`${label} has unsupported distortionType ${distortionType}`);
       }
+      const driveRtpcCurve = effect.driveRtpcCurve === undefined ? undefined : NormalizeGuitarDistortionDriveRtpcCurve(effect.driveRtpcCurve, `${label} driveRtpcCurve`);
       return Object.freeze({
         effectId,
         slotIndex,
@@ -357,7 +408,10 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects) 
         tonePercent: BoundedFinite(effect.tonePercent, 0, 100, `${label} tonePercent`),
         rectificationPercent: BoundedFinite(effect.rectificationPercent, 0, 100, `${label} rectificationPercent`),
         outputGainDb: BoundedFinite(effect.outputGainDb, DYNAMICS_OUTPUT_GAIN_MIN, DYNAMICS_OUTPUT_GAIN_MAX, `${label} outputGainDb`),
-        wetDryMixPercent: BoundedFinite(effect.wetDryMixPercent, 100, 100, `${label} wetDryMixPercent`)
+        wetDryMixPercent: BoundedFinite(effect.wetDryMixPercent, 100, 100, `${label} wetDryMixPercent`),
+        ...(driveRtpcCurve === undefined ? {} : {
+          driveRtpcCurve
+        })
       });
     }
     if (allowSourceEffects && effect.type === "matrix-reverb") {
@@ -541,13 +595,13 @@ function createWwiseEffectChain(context, effects, {
   if (sourceChannelCount > 2 && sourceEqualizers.some(effect => effect.processLfe === false)) {
     return null;
   }
-  if (sourceEqualizers.some(effect => effect.rtpcCurves?.length) && typeof readSourceEffectRtpc !== "function") {
+  if ((sourceEqualizers.some(effect => effect.rtpcCurves?.length) || sourceDistortions.some(effect => effect.driveRtpcCurve)) && typeof readSourceEffectRtpc !== "function") {
     return null;
   }
   if (meterFeedbackMode === "strict" && sourceMeters.some(effect => effect.gameParameterId !== 0)) {
     return null;
   }
-  const needsGain = dynamicsEffects.length > 0 || sourceDelays.length > 0 || hasModulation || reverbEffects.length > 0 || roomVerbEffects.length > 0 || distortionEffects.some(effect => effect.outputGainDb !== 0) || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
+  const needsGain = dynamicsEffects.length > 0 || sourceDelays.length > 0 || hasModulation || reverbEffects.length > 0 || roomVerbEffects.length > 0 || sourceDistortions.some(effect => effect.driveRtpcCurve) || distortionEffects.some(effect => effect.outputGainDb !== 0) || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
   const needsDelay = sourceDelays.length > 0 || reverbEffects.length > 0 || roomVerbEffects.some(effect => effect.reverbDelaySeconds > 0) || flangerEffects.length > 0 || dynamicsEffects.some(effect => (effect.type === "peak-limiter" || effect.type === "peak-limiter-approximation") && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
   const needsBiquad = sourceEqualizers.some(effect => effect.bands.length);
   const needsReverbBiquad = reverbEffects.length > 0;
@@ -654,6 +708,27 @@ function createWwiseEffectChain(context, effects, {
       if (output) output.connect(stage.input);else input = stage.input;
       output = stage.output;
       nodes.push(...stage.nodes);
+      if (effect.driveRtpcCurve) {
+        const curve = {
+          ...effect.driveRtpcCurve,
+          property: "drivePercent"
+        };
+        sourceEffectRtpcBindings.push({
+          curve,
+          baseValue: effect.drivePercent,
+          param: stage.driveInputGain,
+          transform: "distortion-drive-input",
+          driveDivisor: stage.driveDivisor,
+          maximumDrive: stage.maximumDrive
+        }, {
+          curve,
+          baseValue: effect.drivePercent,
+          param: stage.driveOutputGain,
+          transform: "distortion-drive-output",
+          driveDivisor: stage.driveDivisor,
+          maximumDrive: stage.maximumDrive
+        });
+      }
       continue;
     }
     if (effect.type === "matrix-reverb-approximation") {
@@ -707,7 +782,9 @@ function CreateWwiseGuitarDistortionApproximation(context, effect) {
   const shaper = context.createWaveShaper();
   const curve = new Float32Array(GUITAR_DISTORTION_CURVE_SAMPLES);
   const driveDivisor = effect.distortionType === "heavy" ? 8 : 12;
-  const drive = 1 + effect.drivePercent / driveDivisor;
+  const dynamicDrive = Boolean(effect.driveRtpcCurve);
+  const maximumDrive = dynamicDrive ? 1 + 100 / driveDivisor : 1 + effect.drivePercent / driveDivisor;
+  const drive = maximumDrive;
   const normalizer = Math.tanh(drive);
   const rectification = effect.rectificationPercent / 100;
 
@@ -732,7 +809,18 @@ function CreateWwiseGuitarDistortionApproximation(context, effect) {
   for (const band of effect.preEqBands) {
     append(CreateBiquadFilter(context, band));
   }
+  let driveInputGain = null;
+  let driveOutputGain = null;
+  if (dynamicDrive) {
+    driveInputGain = context.createGain();
+    driveOutputGain = context.createGain();
+    const initialDrive = 1 + effect.drivePercent / driveDivisor;
+    SetParam(driveInputGain.gain, initialDrive / maximumDrive);
+    SetParam(driveOutputGain.gain, Math.tanh(maximumDrive) / Math.tanh(initialDrive));
+    append(driveInputGain);
+  }
   append(shaper);
+  if (driveOutputGain) append(driveOutputGain);
   for (const band of effect.postEqBands) {
     append(CreateBiquadFilter(context, band));
   }
@@ -744,7 +832,11 @@ function CreateWwiseGuitarDistortionApproximation(context, effect) {
   return {
     input,
     output,
-    nodes
+    nodes,
+    driveInputGain: driveInputGain?.gain ?? null,
+    driveOutputGain: driveOutputGain?.gain ?? null,
+    driveDivisor,
+    maximumDrive
   };
 }
 function CreateBiquadFilter(context, band) {

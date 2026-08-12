@@ -1764,6 +1764,17 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
                         rectificationPercent: 0,
                         outputGainDb: 0,
                         wetDryMixPercent: 100,
+                        driveRtpcCurve: {
+                            rtpc: "ship_health_hull",
+                            scope: "object",
+                            accumulation: "additive",
+                            scaling: 0,
+                            defaultValue: 50,
+                            points: [
+                                { x: 0, value: 44.5, interpolation: 4 },
+                                { x: 100, value: 0, interpolation: 4 },
+                            ],
+                        },
                     },
                     {
                         effectId: "900",
@@ -1830,10 +1841,18 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         installAudioLibraryDocument(valid).sfx.nodes["2"].dryVolumeCurve,
         valid.sfx.nodes["2"].dryVolumeCurve,
     );
-    assert.deepEqual(
-        installAudioLibraryDocument(valid).sfx.nodes["2"].sourceEffects,
-        valid.sfx.nodes["2"].sourceEffects,
+    const installedSourceEffects = installAudioLibraryDocument(valid)
+        .sfx.nodes["2"].sourceEffects;
+
+    assert.deepEqual(installedSourceEffects, valid.sfx.nodes["2"].sourceEffects);
+    assert.notEqual(
+        installedSourceEffects[0].driveRtpcCurve,
+        valid.sfx.nodes["2"].sourceEffects[0].driveRtpcCurve,
     );
+    assert.equal(Object.isFrozen(installedSourceEffects[0].driveRtpcCurve), true);
+    assert.equal(Object.isFrozen(
+        installedSourceEffects[0].driveRtpcCurve.points,
+    ), true);
     const legacyTremolo = structuredClone(valid);
 
     delete legacyTremolo.sfx.nodes["2"].sourceEffects[3]
@@ -1996,6 +2015,30 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
     assert.throws(
         () => validateAudioLibraryDocument(malformedDistortion),
         /drivePercent/u,
+    );
+    for (const [ property, value, pattern ] of [
+        [ "scope", "global", /scope is unsupported/u ],
+        [ "accumulation", "exclusive", /accumulation is unsupported/u ],
+        [ "scaling", 1, /scaling is unsupported/u ],
+        [ "defaultValue", Infinity, /defaultValue must be finite/u ],
+    ])
+    {
+        const malformedDriveCurve = structuredClone(valid);
+
+        malformedDriveCurve.sfx.nodes["2"].sourceEffects[0]
+            .driveRtpcCurve[property] = value;
+        assert.throws(
+            () => validateAudioLibraryDocument(malformedDriveCurve),
+            pattern,
+        );
+    }
+    const unsortedDriveCurve = structuredClone(valid);
+
+    unsortedDriveCurve.sfx.nodes["2"].sourceEffects[0]
+        .driveRtpcCurve.points[1].x = -1;
+    assert.throws(
+        () => validateAudioLibraryDocument(unsortedDriveCurve),
+        /points are invalid/u,
     );
 
     const legacySfx = structuredClone(valid);

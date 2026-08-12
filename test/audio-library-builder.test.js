@@ -7149,12 +7149,13 @@ test("SFX construction retains static Wwise Meter overrides", async () =>
     }
 });
 
-test("SFX construction retains only the bounded static Guitar Distortion", async () =>
+test("SFX construction retains the bounded EVE Guitar Distortion shapes", async () =>
 {
     const Build = (
         propertyValues,
         bankVersion = 150,
         distortionType = 2,
+        rtpcs = [],
     ) =>
         CjsAudioLibraryBuilder.buildFromBanks({
         includeSfx: true,
@@ -7174,6 +7175,18 @@ test("SFX construction retains only the bounded static Guitar Distortion", async
             },
             WemFileIDs: {},
         },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "effects",
+                    GameParameters: [ {
+                        Id: "692202422",
+                        Name: "ship_health_hull",
+                    } ],
+                } ],
+            },
+        },
         indexEntries: [ {
             logicalPath: "res:/audio/effects.bnk",
             storagePath: "banks/effects.bnk",
@@ -7186,6 +7199,13 @@ test("SFX construction retains only the bounded static Guitar Distortion", async
                     bankId: 200,
                     languageId: 0,
                     bankVersion,
+                    globalSettings: {
+                        rtpcParameters: [ {
+                            id: 692202422,
+                            defaultValue: 50,
+                        } ],
+                        stateGroups: [],
+                    },
                     hirc: [
                         {
                             type: 2,
@@ -7223,6 +7243,7 @@ test("SFX construction retains only the bounded static Guitar Distortion", async
                             payload: wwiseGuitarDistortionEffectPayload({
                                 distortionType,
                                 propertyValues,
+                                rtpcs,
                             }),
                         },
                     ],
@@ -7267,11 +7288,58 @@ test("SFX construction retains only the bounded static Guitar Distortion", async
         outputGainDb: 0,
         wetDryMixPercent: 100,
     } ]);
+    const dynamic = await Build(
+        [ { propertyId: 61, accumulation: 2, value: 34 } ],
+        150,
+        2,
+        [ {
+            controlId: 692202422,
+            controlType: 0,
+            accumulation: 2,
+            parameterId: 61,
+            curveId: 77,
+            scaling: 0,
+            points: [
+                [ 0, Math.fround(44.51612854003906), 4 ],
+                [ 100, 0, 4 ],
+            ],
+        } ],
+    );
+
+    assert.deepEqual(
+        dynamic.sfx.nodes["300"].sourceEffects[0].driveRtpcCurve,
+        {
+            rtpc: "ship_health_hull",
+            scope: "object",
+            accumulation: "additive",
+            scaling: 0,
+            defaultValue: 50,
+            points: [
+                {
+                    x: 0,
+                    value: Math.fround(44.51612854003906),
+                    interpolation: 4,
+                },
+                { x: 100, value: 0, interpolation: 4 },
+            ],
+        },
+    );
 
     for (const unsupported of [
         await Build([ { propertyId: 1, value: 2 } ]),
         await Build([], 151),
         await Build([], 150, 3),
+        await Build(
+            [ { propertyId: 61, accumulation: 2, value: 34 } ],
+            150,
+            2,
+            [ {
+                controlId: 692202422,
+                parameterId: 60,
+                scaling: 0,
+                points: [ [ 0, 0, 4 ], [ 100, 10, 4 ] ],
+            } ],
+        ),
     ])
     {
         assert.equal(
@@ -11527,6 +11595,7 @@ function wwiseMeterEffectPayload({
 function wwiseGuitarDistortionEffectPayload({
     drivePercent = 34,
     distortionType = 2,
+    rtpcs = [],
     propertyValues = [],
 } = {})
 {
@@ -11562,7 +11631,30 @@ function wwiseGuitarDistortionEffectPayload({
         .u32(parameterBlock.byteLength)
         .append(parameterBlock)
         .u8(0)
-        .u16(0)
+        .u16(rtpcs.length);
+
+    for (let index = 0; index < rtpcs.length; index++)
+    {
+        const rtpc = rtpcs[index];
+
+        writer
+            .u32(rtpc.controlId)
+            .u8(rtpc.controlType ?? 0)
+            .u8(rtpc.accumulation ?? 2)
+            .variable(rtpc.parameterId)
+            .u32(rtpc.curveId ?? index + 1)
+            .u8(rtpc.scaling)
+            .u16(rtpc.points.length);
+
+        for (const [ from, to, interpolation ] of rtpc.points)
+        {
+            writer
+                .f32(from)
+                .f32(to)
+                .u32(interpolation);
+        }
+    }
+    writer
         .u8(0)
         .u8(0)
         .u16(propertyValues.length);

@@ -3268,6 +3268,45 @@ function ParseStaticWwiseGuitarDistortion(ownerLabel, slot, effect) {
     bankVersion: effect.bankVersion
   });
 }
+function ParseDynamicWwiseGuitarDistortion(ownerLabel, slot, effect, names) {
+  if (Number(effect.bankVersion) !== 150 || effect.media?.length || effect.rtpcs?.length !== 1 || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length !== 1) {
+    throw new Error(`Wwise Guitar Distortion ${effect.id} on ${ownerLabel} has unsupported controls`);
+  }
+  const parsed = parseStaticWwiseGuitarDistortionBytes(effect.parameterBlock, {
+    effectId: effect.id,
+    slotIndex: slot.index,
+    label: `Wwise Guitar Distortion ${effect.id} on ${ownerLabel}`,
+    bankVersion: effect.bankVersion
+  });
+  const rtpc = effect.rtpcs[0];
+  const property = effect.propertyValues[0];
+  const controlID = Number(rtpc.controlId) >>> 0;
+  const parameter = names.parameters.get(controlID);
+
+  // ParamID 61 is empirically pinned to Drive in the exact EVE-v150 corpus.
+  // It is not treated as a universal Audiokinetic plug-in enum.
+  if (Number(rtpc.controlType) !== 0 || Number(rtpc.parameterId) !== 61 || Number(rtpc.accumulation) !== SFX_ADDITIVE_ACCUMULATION || Number(rtpc.scaling) !== 0 || Number(property.propertyId) !== 61 || Number(property.accumulation) !== SFX_ADDITIVE_ACCUMULATION || Number(property.value) !== parsed.drivePercent || !parameter || !rtpc.points?.length) {
+    throw new Error(`Wwise Guitar Distortion ${effect.id} on ${ownerLabel} has unsupported Drive RTPC`);
+  }
+  const defaultValue = names.parameterDefaults.get(controlID);
+  return {
+    ...parsed,
+    driveRtpcCurve: {
+      rtpc: parameter,
+      scope: "object",
+      accumulation: "additive",
+      scaling: 0,
+      ...(defaultValue === undefined ? {} : {
+        defaultValue
+      }),
+      points: rtpc.points.map(point => ({
+        x: Number(point.from),
+        value: Number(point.to),
+        interpolation: Number(point.interpolation)
+      }))
+    }
+  };
+}
 function ParseStaticWwiseMeter(ownerLabel, slot, effect) {
   if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
     throw new Error(`Wwise Meter ${effect.id} on ${ownerLabel} is not static`);
@@ -3331,8 +3370,8 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId) {
  * Projects the first complete supported static override in a Sound's NodeBase
  * ancestry. Wwise's FX override replaces the inherited list, so an explicit
  * empty override clears the chain. Except for the exact admitted EVE-v150 EQ
- * frequency RTPC, dynamic controls, unsupported plug-ins, and independent LFE
- * routing keep the documented dry-playback approximation.
+ * frequency and Guitar Distortion Drive RTPCs, dynamic controls, unsupported
+ * plug-ins, and independent LFE routing keep the documented dry approximation.
  */
 function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId) {
   const soundId = Number(rawId) >>> 0;
@@ -3384,7 +3423,8 @@ function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId) {
       } else if (effect.pluginId === WWISE_TREMOLO_PLUGIN_ID) {
         chain.push(ParseStaticWwiseTremolo(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_GUITAR_DISTORTION_PLUGIN_ID) {
-        chain.push(ParseStaticWwiseGuitarDistortion(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
+        const ownerLabel = `NodeBase ${ownerId} inherited by Sound ${soundId}`;
+        chain.push(effect.rtpcs?.length ? ParseDynamicWwiseGuitarDistortion(ownerLabel, slot, effect, names) : ParseStaticWwiseGuitarDistortion(ownerLabel, slot, effect));
       } else if (effect.pluginId === WWISE_MATRIX_REVERB_PLUGIN_ID) {
         chain.push(ParseStaticWwiseMatrixReverb(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_ROOMVERB_PLUGIN_ID) {

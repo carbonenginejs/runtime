@@ -276,8 +276,9 @@ ancestry to the first effect
 override, treating a root list as effective and an explicit empty override as
 a replacement that clears the parent list. It emits the chain only when every
 active slot is a supported effect with an admitted shape; almost all admitted
-effects are control-free and static. The bounded dynamic exception is the
-EVE-v150 Parametric EQ `ParamID 2` Game Parameter shape described below;
+effects are control-free and static. The bounded dynamic exceptions are the
+EVE-v150 Parametric EQ `ParamID 2` frequency and Guitar Distortion `ParamID 61`
+Drive Game Parameter shapes described below;
 dynamics additionally require linked channels and timing within the Web Audio
 adapter's bounds. Playback creates one Web Audio chain per physical voice
 before the authored Voice LPF/HPF, gain, spatial/auxiliary split, and Audio Bus
@@ -350,7 +351,7 @@ Native oscillator/channel law is not claimed. Smoothing and PWM remain
 shape-validated but are neither stored nor applied because this adapter admits
 only the sine carrier. Shared-Bus Tremolo remains unsupported.
 
-Qualified static Guitar Distortion records use the independent
+Qualified Guitar Distortion records use the independent
 `wwiseDistortion: "approximate-web-audio"` opt-in. Pinned wwiser proves the
 v150 126-byte layout: three pre-EQ bands, three post-EQ bands, distortion
 type, Drive, Tone, Rectification, output gain, and Wet/Dry mix. The EVE subset
@@ -360,9 +361,23 @@ then applies output gain. The transfer curve is a deterministic normalized
 `tanh` approximation whose drive scale differs for Overdrive and Heavy;
 Rectification blends toward a full-wave curve. Authored Tone is retained but
 not applied because neither wwiser nor the browser API supplies Wwise's tone
-law. Strict mode, missing WaveShaper/biquad/gain primitives, dynamic controls,
-other distortion types, other bank versions, non-fully-wet records, and
-shared-Bus Guitar Distortion keep the complete source chain audible and dry.
+law.
+
+The exact EVE-v150 dynamic exception is plug-in `0x007e0003`, `ParamID 61`, an
+object Game Parameter, additive accumulation, and scaling 0. It maps to Drive,
+preserves Wwise interpolation/default precedence, and currently covers
+`ship_health_hull`, `ship_warp_direction`, and `booster_intensity`. ParamID 61
+is an empirical corpus mapping, not a claimed universal Audiokinetic enum.
+Because a WaveShaper curve cannot be automated, the browser fixes the curve at
+maximum admitted Drive and schedules pre/post Gain nodes. For normalized
+WaveShaper inputs this reproduces the same CarbonEngineJS tanh/full-wave curve
+family used by static records; it does not reproduce Wwise's native Drive or
+clipping law. The admitted dynamic records have no enabled pre-EQ stages.
+
+Strict mode, missing WaveShaper/biquad/gain primitives, a missing live RTPC
+reader, other dynamic controls, other distortion types, other bank versions,
+non-fully-wet records, and shared-Bus Guitar Distortion keep the complete
+source chain audible and dry.
 This preserves topology and audible coloration, not Audiokinetic DSP parity.
 The [Wwise effects reference](https://www.audiokinetic.com/library/edge/?id=effects&source=Help)
 and [Web Audio WaveShaperNode](https://webaudio.github.io/web-audio-api/#waveshapernode)
@@ -421,13 +436,13 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 3,043
-qualified Sound leaves carrying 3,201 effect records: 456 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 3,179
+qualified Sound leaves carrying 3,337 effect records: 456 use Parametric EQ,
 including 170 leaves with live `ship_Roll` Band 1 Frequency,
 87 use Wwise Delay, 2,114 use
 Compressor, 73 use Peak Limiter, 21 use Flanger across nine retained events,
-149 Tremolo stages occur on 148 Sounds across 80 retained events, 69 use
-static Guitar Distortion across 23 retained events, 50 use static Matrix
+149 Tremolo stages occur on 148 Sounds across 80 retained events, 205 use
+Guitar Distortion across 57 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
 events, and 130 retain telemetry-only Meter records. The added 81 Meter leaves
 pair Meter `277510878` with Compressor `554802347` across 51 events.
@@ -437,10 +452,11 @@ it.
 The formerly dry eight Matrix leaves are now complete because their preceding
 Tremolo ShareSet's 108-degree global phase is retained; its Random 66-degree
 per-channel spread remains an explicit browser omission. Projected Matrix
-Reverb now covers all five effect identities. Guitar Distortion covers 18
-effect identities and
-12 raw presets (11 audible decoded parameter sets); dynamic Guitar controls
-remain dry. The Tremolo population contains 115 isolated chains, 14
+Reverb now covers all five effect identities. Guitar Distortion covers 21
+effect identities: 69 static leaves use 18 identities and 12 raw presets (11
+audible decoded parameter sets), while 136 live-Drive leaves across 35 events
+use three identities. Other dynamic Guitar controls remain dry. The Tremolo
+population contains 115 isolated chains, 14
 Tremolo-to-EQ, two EQ-to-Tremolo, eight Tremolo-to-Matrix, six
 Delay-to-Tremolo, two Tremolo-to-Delay, and one double-Tremolo chain over 64
 effect identities and 18 distinct 38-byte parameter records. Those Peak

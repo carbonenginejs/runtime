@@ -8560,6 +8560,78 @@ test("Sound-local Guitar Distortion is opt-in and precedes Voice filters", async
   assert.equal(voiceLowPass.disconnected, true);
 });
 
+test("Sound-local Guitar Distortion follows its live Drive Game Parameter", async () =>
+{
+  let curveOutput = Math.fround(44.51612854003906);
+  const driveDivisor = 8;
+  const maximumDrive = 1 + 100 / driveDivisor;
+  const sourceEffects = [ {
+    effectId: "760932256",
+    slotIndex: 0,
+    type: "guitar-distortion",
+    preEqBands: [],
+    postEqBands: [],
+    distortionType: "heavy",
+    drivePercent: 0,
+    tonePercent: 0,
+    rectificationPercent: 0,
+    outputGainDb: 0,
+    wetDryMixPercent: 100,
+    driveRtpcCurve: {
+      rtpc: "ship_health_hull",
+      scope: "object",
+      accumulation: "additive",
+      scaling: 0,
+      defaultValue: 50,
+      points: [
+        { x: 0, value: curveOutput, interpolation: 4 },
+        { x: 100, value: 0, interpolation: 4 },
+      ],
+    },
+  } ];
+  const { backend, emitter, context } = Harness({
+    wwiseDistortion: "approximate-web-audio",
+    loadBuffer: async () => ({
+      voices: [ {
+        buffer: { duration: 2 },
+        loop: false,
+        sourceEffects,
+        getSourceEffectRtpc: () => curveOutput,
+        getGain: () => 1,
+      } ],
+    }),
+  });
+
+  backend.PostEvent(1, 1, 0, emitter, "play");
+  await tick();
+
+  const inputGain = context.sources[0].connectedTo;
+  const shaper = inputGain.connectedTo;
+  const outputGain = shaper.connectedTo;
+  const initialDrive = 1 + curveOutput / driveDivisor;
+
+  assert.equal(shaper, context.waveShapers[0]);
+  assert.ok(Math.abs(
+    inputGain.gain.value - initialDrive / maximumDrive,
+  ) < 1e-12);
+  assert.ok(Math.abs(
+    outputGain.gain.value
+      - Math.tanh(maximumDrive) / Math.tanh(initialDrive),
+  ) < 1e-12);
+
+  curveOutput = 0;
+  backend.SetRTPCValue("ship_health_hull", 100, 1);
+  assert.ok(Math.abs(inputGain.gain.value - 1 / maximumDrive) < 1e-12);
+  assert.ok(Math.abs(
+    outputGain.gain.value - Math.tanh(maximumDrive) / Math.tanh(1),
+  ) < 1e-12);
+
+  context.sources[0].onended();
+  assert.equal(inputGain.disconnected, true);
+  assert.equal(shaper.disconnected, true);
+  assert.equal(outputGain.disconnected, true);
+});
+
 test("routed SFX activity ducks future target voices and releases on source end", async () =>
 {
   const busDuckingController = new CjsBusDuckingController({

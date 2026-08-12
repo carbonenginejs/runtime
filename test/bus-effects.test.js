@@ -1679,6 +1679,51 @@ test("decodes and explicitly approximates static EVE Guitar Distortion", () =>
     }
 });
 
+test("schedules the exact EVE-v150 Guitar Distortion Drive RTPC shape", () =>
+{
+    const decoded = parseGraphStaticWwiseGuitarDistortion(
+        GraphGuitarDistortion(GuitarDistortionBytes({ drivePercent: 0 })),
+        "760932256",
+        0,
+    );
+    const dynamic = normalizeStaticSourceEffectChain([ {
+        ...decoded,
+        driveRtpcCurve: {
+            rtpc: "ship_health_hull",
+            scope: "object",
+            accumulation: "additive",
+            scaling: 0,
+            defaultValue: 50,
+            points: [
+                { x: 0, value: Math.fround(44.51612854003906), interpolation: 4 },
+                { x: 100, value: 0, interpolation: 4 },
+            ],
+        },
+    } ], "Audio source");
+
+    assert.equal(createWwiseEffectChain(Context(), dynamic, {
+        wwiseDistortion: "approximate-web-audio",
+    }), null, "a missing live RTPC reader keeps the whole chain dry");
+    const context = Context();
+    const chain = createWwiseEffectChain(context, dynamic, {
+        wwiseDistortion: "approximate-web-audio",
+        readSourceEffectRtpc: () => 60,
+    });
+    const maximumDrive = 1 + 100 / 8;
+    const currentDrive = 1 + 60 / 8;
+
+    assert.ok(chain);
+    assert.equal(context.gains.length, 2);
+    chain.sourceEffectRtpcLane.Apply();
+    assert.ok(Math.abs(
+        context.gains[0].gain.value - currentDrive / maximumDrive,
+    ) < 1e-12);
+    assert.ok(Math.abs(
+        context.gains[1].gain.value
+        - Math.tanh(maximumDrive) / Math.tanh(currentDrive),
+    ) < 1e-12);
+});
+
 test("rejects dynamic, malformed, or unsupported Guitar Distortion", () =>
 {
     assert.throws(() => parseStaticWwiseGuitarDistortionBytes(

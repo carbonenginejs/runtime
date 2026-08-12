@@ -634,18 +634,28 @@ wwiser decodes six 17-byte EQ records followed by distortion type, Drive,
 Tone, Rectification, output gain, and Wet/Dry mix. EVE build 3453885 has 69
 retained Sound leaves across 23 events using 18 static effect identities and
 12 exact raw records (11 audible decoded parameter sets). All are v150,
-control-free, fully wet, and use Overdrive or Heavy; another 136 leaves across
-35 events have dynamic property/RTPC control and remain dry.
+control-free, fully wet, and use Overdrive or Heavy. Another 136 leaves across
+35 events use three dynamic effect identities. Their exact common shape is an
+object Game Parameter, additive accumulation, scaling 0, property and RTPC
+`ParamID 61`, with the property value equal to base Drive. The controls are
+`ship_health_hull` (111 leaves), `ship_warp_direction` (one), and
+`booster_intensity` (24). ParamID 61 is pinned empirically to Drive only for
+this EVE-v150 corpus; pinned wwiser does not publish a plug-in RTPC enum.
 
 `wwiseDistortion: "approximate-web-audio"` maps enabled pre/post bands to
-authored-order biquads around a 4x-oversampled WaveShaper. Its normalized tanh
-curve and Rectification blend are deliberate CarbonEngineJS approximations;
+authored-order biquads around a 4x-oversampled WaveShaper. Dynamic Drive uses
+scheduled pre/post Gain nodes around a fixed maximum-Drive curve. For
+normalized WaveShaper inputs this preserves the existing static approximation
+family without rebuilding the curve. Its normalized tanh curve and
+Rectification blend are deliberate CarbonEngineJS approximations;
 wwiser establishes no native transfer, Drive scaling, Tone law, oversampling,
 or channel behavior. Tone is retained but currently inert. Strict mode,
-missing primitives, non-v150/dynamic/non-fully-wet records, unsupported
-distortion types, and shared-Bus Guitar Distortion keep the complete chain
-audible and dry. This raises qualified source-effect leaves from 2,506 to
-2,575 without changing media or event reachability.
+missing primitives, non-v150/non-fully-wet records, unsupported distortion
+types, other dynamic shapes, a missing live RTPC reader, and shared-Bus Guitar
+Distortion keep the complete chain audible and dry. Static admission raised
+qualified source-effect leaves from 2,506 to 2,575. Live Drive now raises the
+current post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
+records without changing media or event reachability.
 
 Pinned wwiser proves Matrix Reverb `0x00730003` and its v150 default-delay
 record: float32 Reverb Time and HF Ratio, uint32 delay count, float32 Dry and
@@ -721,7 +731,8 @@ events; another 81 across 51 events use Meter `277510878`, whose downstream-
 volume flag changes the omitted measurement, followed by Compressor
 `554802347`. Retaining that complete chain raises the current aggregate after
 Tremolo, Matrix, RoomVerb, live EQ, and this correction to 3,043 leaves and
-3,201 records without changing media or event reachability. Playback still
+3,201 records; the later live-Drive admission raises those totals to 3,179
+and 3,337 without changing media or event reachability. Playback still
 requires both explicit policies: Meter telemetry omission and Web Audio
 dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so

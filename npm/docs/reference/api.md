@@ -279,13 +279,20 @@ source-local Wwise Guitar Distortion records:
 
 - `"strict"` (default) omits the complete source chain and keeps the voice
   audible/dry.
-- `"approximate-web-audio"` realizes the documented static, control-free,
-  fully-wet EVE-v150 subset with authored pre/post biquads, a 4x-oversampled
-  WaveShaper, and output gain. Missing required primitives keep the chain dry.
+- `"approximate-web-audio"` realizes the documented fully-wet EVE-v150
+  subset with authored pre/post biquads, a 4x-oversampled WaveShaper, and
+  output gain. The exact EVE `ParamID 61` object/additive/scaling-0 Drive
+  shape also follows its live Game Parameter through two scheduled Gain
+  nodes. Missing required primitives or a live RTPC reader keep the complete
+  dynamic chain dry.
 
 Pinned wwiser proves the portable record layout, but not Wwise's transfer,
 Drive, Tone, Rectification, oversampling, or channel laws. The browser uses a
 documented deterministic curve, does not apply Tone, and is not DSP-equivalent.
+`ParamID 61` is pinned only to the EVE-v150 corpus rather than claimed as an
+Audiokinetic enum. The gain transformation reproduces the fixed static curve
+family for normalized WaveShaper inputs; it does not add Wwise's native Drive
+or clipping behavior.
 Any other value throws synchronously, and `CjsAudioSystem` accepts the same
 option.
 

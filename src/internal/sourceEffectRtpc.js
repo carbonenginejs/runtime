@@ -7,6 +7,8 @@ const MIN_EQ_GAIN_DB = -24;
 const MAX_EQ_GAIN_DB = 24;
 const MIN_EQ_FREQUENCY_HZ = 20;
 const MAX_EQ_FREQUENCY_HZ = 20000;
+const MIN_DISTORTION_DRIVE_PERCENT = 0;
+const MAX_DISTORTION_DRIVE_PERCENT = 100;
 
 /** Owns live AudioParam bindings for one realized source-effect chain. */
 export class CjsWwiseSourceEffectRtpcLane
@@ -64,6 +66,21 @@ export class CjsWwiseSourceEffectRtpcLane
         if (binding.curve.property === "gainDb")
         {
             return Clamp(combined, MIN_EQ_GAIN_DB, MAX_EQ_GAIN_DB);
+        }
+        if (binding.curve.property === "drivePercent")
+        {
+            const drivePercent = Clamp(
+                combined,
+                MIN_DISTORTION_DRIVE_PERCENT,
+                MAX_DISTORTION_DRIVE_PERCENT,
+            );
+            const drive = 1 + drivePercent / binding.driveDivisor;
+
+            if (binding.transform === "distortion-drive-input")
+            {
+                return drive / binding.maximumDrive;
+            }
+            return Math.tanh(binding.maximumDrive) / Math.tanh(drive);
         }
         const nyquist = Number(this.#context?.sampleRate) / 2;
         const maximum = Number.isFinite(nyquist) && nyquist > 0

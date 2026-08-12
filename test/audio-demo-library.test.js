@@ -1103,6 +1103,10 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceGuitarDistortionSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect =>
             effect.type === "guitar-distortion"));
+    const dynamicGuitarDistortionSounds = sourceGuitarDistortionSounds
+        .filter(node => node.sourceEffects.some(effect =>
+            effect.type === "guitar-distortion"
+            && effect.driveRtpcCurve));
     const sourceMatrixReverbSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect =>
             effect.type === "matrix-reverb"));
@@ -1111,9 +1115,9 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 3043);
+    assert.equal(sourceEffectSounds.length, 3179);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3201);
+        count + node.sourceEffects.length, 0), 3337);
     assert.equal(sourceEqSounds.length, 456);
     assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
@@ -1121,7 +1125,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 21);
     assert.equal(sourceTremoloSounds.length, 148);
-    assert.equal(sourceGuitarDistortionSounds.length, 69);
+    assert.equal(sourceGuitarDistortionSounds.length, 205);
+    assert.equal(dynamicGuitarDistortionSounds.length, 136);
     assert.equal(sourceMatrixReverbSounds.length, 50);
     assert.equal(sourceRoomVerbSounds.length, 52);
     assert.equal(sourceMeterSounds.length, 130);
@@ -1586,8 +1591,28 @@ test("committed demo library carries authored SFX and music semantics", () =>
         outputGainDb: 0,
         wetDryMixPercent: 100,
     });
+    assert.deepEqual(
+        graph.nodes["101885"].sourceEffects[0].driveRtpcCurve,
+        {
+            rtpc: "ship_health_hull",
+            scope: "object",
+            accumulation: "additive",
+            scaling: 0,
+            defaultValue: 50,
+            points: [
+                {
+                    x: 0,
+                    value: Math.fround(44.51612854003906),
+                    interpolation: 4,
+                },
+                { x: 100, value: 0, interpolation: 4 },
+            ],
+        },
+    );
     const guitarDistortionSoundIds = new Set(Object.entries(graph.nodes)
-        .filter(([, node]) => sourceGuitarDistortionSounds.includes(node))
+        .filter(([, node]) => node.sourceEffects?.some(effect =>
+            effect.type === "guitar-distortion"
+            && !effect.driveRtpcCurve))
         .map(([ id ]) => id));
     const guitarDistortionEvents = Object.entries(graph.events)
         .filter(([, roots ]) =>
