@@ -616,9 +616,11 @@ rather than source-proven: depth and
 frequency floats, waveform integer, smoothing/PWM floats, phase offset/mode/
 spread, output gain, and Center/LFE flags. Admission is further bounded to a
 static bank-version-150 Sine record, an unsmoothed 50%-duty Square, or an
-unsmoothed Triangle record. Square and Triangle require zero offset and zero
-all-channel spread; all admitted records require bounded phase fields and both
-channel flags enabled. The official authoring order and EVE preset corpus
+unsmoothed Triangle record. Square and Triangle normally require zero offset
+and zero all-channel spread. One exact EVE OSSE Square preset instead carries
+9% smoothing, 15% PWM, Circular phase mode, and 180-degree spread; all
+admitted records require bounded phase fields and both channel flags enabled.
+The official authoring order and EVE preset corpus
 together pin numeric waveform IDs 0, 1, and 2 to Sine, Square, and Triangle. Matching
 records associated with any other bank version or waveform shape are rejected
 before projection.
@@ -627,16 +629,22 @@ The `wwiseModulation: "approximate-web-audio"` adapter maps that subset to a
 voice-owned Gain/Oscillator stage with
 `gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t + phase)`, followed by
 authored output gain. Nonzero Sine global phase uses a custom `PeriodicWave`;
-qualified Square and Triangle use Web Audio's band-limited native oscillators. The
+qualified Square and Triangle normally use Web Audio's band-limited native
+oscillators. One exact 15%-duty OSSE Square preset uses a bounded custom
+Fourier pulse instead. The
 record retains phase mode and spread, but the browser applies one carrier to
 all channels and omits Wwise's per-channel Left-Right, Front-Rear, Circular,
 or Random distribution. It starts and disposes the oscillator with the
 physical voice. This preserves the unipolar `[1-depth, 1]` range, global phase,
 and slot order, but does not claim Wwise's native oscillator/channel law or
-sample behavior. Smoothing and PWM are shape-validated but not retained or
-applied; Square is admitted only when they are exactly zero and 50 percent.
-Triangle is admitted only with zero smoothing; its PWM is intentionally
-ignored after range validation because Wwise applies PWM only to Square.
+sample behavior. Smoothing and PWM are normally shape-validated but not
+retained or applied; Square is admitted only when they are exactly zero and
+50 percent. The exact OSSE exception retains 9% smoothing and 15% PWM and
+applies the duty cycle, but its finite Fourier carrier does not reproduce
+Wwise's exponential smoothing filter. Its two leaves share mono media, so the
+authored Circular 180-degree channel spread is inert. Triangle is admitted
+only with zero smoothing; its PWM is intentionally ignored after range
+validation because Wwise applies PWM only to Square.
 Strict mode, missing primitives, other dynamic controls, other waveforms, and
 shared-Bus Tremolo keep the complete chain audible and dry.
 
@@ -656,10 +664,11 @@ targets rather than being convolved with this plug-in-local filter. This is
 still the same native-oscillator approximation; missing
 metadata/readers/primitives keep the whole chain dry.
 
-EVE build 3453885 projects 166 Tremolo stages on 162 Sound leaves. The added
+EVE build 3453885 projects 168 Tremolo stages on 164 Sound leaves. The added
 ten dynamic leaves cover ten medium-engine activate, deactivate, idle, and
-power-down events. The earlier static population spans 82 retained events:
-115 Tremolo-only, 14 Tremolo followed by qualified static EQ,
+power-down events. Two exact OSSE Square leaves add the Amarr and Minmatar
+big-screen events. The static population spans 84 retained events: 117
+Tremolo-only, 14 Tremolo followed by qualified static EQ,
 two qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
 Reverb, six Delay followed by Tremolo, two Tremolo followed by Delay, one
 double-Tremolo chain, three Square-carrier leaves under
@@ -699,7 +708,7 @@ Distortion keep the complete chain audible and dry. Static admission raised
 qualified source-effect leaves from 2,506 to 2,575. Live Drive raised the
 post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
 records without changing media or event reachability; the later modulation
-slices set the current totals to 3,193 and 3,354.
+slices set the current totals to 3,195 and 3,356.
 
 Wwise Harmonizer `0x008a0003` remains a measured DSP barrier rather than an
 unclassified plug-in. Pinned wwiser proves the v150 layout for two pitch
@@ -806,7 +815,8 @@ Tremolo, Matrix, RoomVerb, live EQ, and this correction to 3,043 leaves and
 3,201 records; the later live-Drive admission raises those totals to 3,179
 and 3,337 without changing media or event reachability. Bounded static
 Tremolo admission raises those totals to 3,183 and 3,344; the paired dynamic
-Tremolo slice raises the current totals to 3,193 and 3,354. Playback still
+Tremolo slice raises those totals to 3,193 and 3,354; the exact OSSE Square
+slice raises the current totals to 3,195 and 3,356. Playback still
 requires both explicit policies: Meter telemetry omission and Web Audio
 dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so

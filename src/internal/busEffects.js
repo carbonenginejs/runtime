@@ -130,6 +130,10 @@ const MODULATION_PHASE_MODES = Object.freeze([
 const MODULATION_PHASE_MODE_SET = new Set(MODULATION_PHASE_MODES);
 const TREMOLO_WAVEFORMS = Object.freeze([ "sine", "square", "triangle" ]);
 const TREMOLO_WAVEFORM_SET = new Set(TREMOLO_WAVEFORMS);
+const EVE_OSSE_SQUARE_SMOOTHING_PERCENT = 9;
+const EVE_OSSE_SQUARE_PWM_PERCENT = 15;
+const EVE_OSSE_SQUARE_PHASE_SPREAD_DEGREES = 180;
+const TREMOLO_PULSE_HARMONICS = 8191;
 const METER_MAX_TIME = 10;
 const METER_MINIMUM_MIN = Math.fround(-96.3);
 const METER_MINIMUM_MAX = 0;
@@ -831,14 +835,35 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 MODULATION_PHASE_SPREAD_MAX,
                 `${label} phaseSpreadDegrees`,
             );
+            const smoothingPercent = BoundedFinite(
+                effect.smoothingPercent ?? 0,
+                MODULATION_PERCENT_MIN,
+                MODULATION_PERCENT_MAX,
+                `${label} smoothingPercent`,
+            );
+            const pwmPercent = BoundedFinite(
+                effect.pwmPercent ?? 50,
+                MODULATION_PERCENT_MIN,
+                MODULATION_PERCENT_MAX,
+                `${label} pwmPercent`,
+            );
 
-            if (waveform !== "sine"
-                && (phaseOffsetDegrees !== 0
-                    || phaseMode !== "left-right"
-                    || phaseSpreadDegrees !== 0))
+            if ((waveform === "square"
+                    && !IsSupportedSquareTremoloShape({
+                        smoothingPercent,
+                        pwmPercent,
+                        phaseOffsetDegrees,
+                        phaseMode,
+                        phaseSpreadDegrees,
+                    }))
+                || (waveform === "triangle"
+                    && (smoothingPercent !== 0
+                        || phaseOffsetDegrees !== 0
+                        || phaseMode !== "left-right"
+                        || phaseSpreadDegrees !== 0)))
             {
                 throw new TypeError(
-                    `${label} non-sine Tremolo requires zero all-channel phase`,
+                    `${label} has an unsupported non-sine Tremolo shape`,
                 );
             }
             return Object.freeze({
@@ -861,6 +886,9 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 phaseOffsetDegrees,
                 phaseMode,
                 phaseSpreadDegrees,
+                ...(waveform === "square" && pwmPercent !== 50
+                    ? { smoothingPercent, pwmPercent }
+                    : {}),
                 outputGainDb: BoundedFinite(
                     effect.outputGainDb,
                     DYNAMICS_OUTPUT_GAIN_MIN,
@@ -1315,8 +1343,10 @@ export function createWwiseEffectChain(
             effect.lfoEnabled && effect.modulationDepthPercent > 0);
     const needsPeriodicWave = tremoloEffects.some(effect =>
         (effect.modulationDepthPercent > 0 || effect.rtpcCurves?.length)
-        && effect.waveform === "sine"
-        && effect.phaseOffsetDegrees !== 0);
+        && ((effect.waveform === "sine"
+                && effect.phaseOffsetDegrees !== 0)
+            || (effect.waveform === "square"
+                && effect.pwmPercent !== undefined)));
 
     if (needsGain && typeof context?.createGain !== "function")
     {
@@ -1777,11 +1807,20 @@ function CreateWwiseTremoloApproximation(context, effect)
     const input = context.createGain();
     const output = context.createGain();
     const depth = effect.modulationDepthPercent / 100;
+    const pulseDuty = effect.waveform === "square"
+        && effect.pwmPercent !== undefined
+        ? effect.pwmPercent / 100
+        : null;
     const nodes = [ input, output ];
 
     // Wwise describes a unipolar sine carrier. A bipolar Web Audio oscillator
     // reaches the same [1-depth, 1] range around this constant midpoint.
-    SetParam(input.gain, 1 - depth / 2);
+    SetParam(
+        input.gain,
+        pulseDuty === null
+            ? 1 - depth / 2
+            : 1 - depth + depth * pulseDuty,
+    );
     SetParam(output.gain, 10 ** (effect.outputGainDb / 20));
     input.connect(output);
 
@@ -1796,7 +1835,15 @@ function CreateWwiseTremoloApproximation(context, effect)
         const modulation = context.createGain();
         const oscillator = context.createOscillator();
 
-        if (effect.waveform !== "sine")
+        if (effect.waveform === "square"
+            && effect.pwmPercent !== undefined)
+        {
+            oscillator.setPeriodicWave(CreatePulsePeriodicWave(
+                context,
+                effect.pwmPercent,
+            ));
+        }
+        else if (effect.waveform !== "sine")
         {
             oscillator.type = effect.waveform;
         }
@@ -2284,16 +2331,21 @@ export function parseStaticWwiseTremoloBytes(
         || outputGainDb > DYNAMICS_OUTPUT_GAIN_MAX
         || processCenterRaw !== 1
         || processLfeRaw !== 1
-        || (waveform !== "sine"
-            && (phaseOffsetDegrees !== 0
-                || phaseMode !== 0
-                || phaseSpreadDegrees !== 0))
         || (waveform === "square"
-            && (smoothingPercent !== 0
-                || pwmPercent !== 50))
+            && !IsSupportedSquareTremoloShape({
+                smoothingPercent,
+                pwmPercent,
+                phaseOffsetDegrees,
+                phaseMode: MODULATION_PHASE_MODES[phaseMode],
+                phaseSpreadDegrees,
+            }))
         // Wwise applies PWM only to Square. Triangle PWM is inert, while
         // nonzero Triangle smoothing changes the carrier shape we realize.
-        || (waveform === "triangle" && smoothingPercent !== 0))
+        || (waveform === "triangle"
+            && (smoothingPercent !== 0
+                || phaseOffsetDegrees !== 0
+                || phaseMode !== 0
+                || phaseSpreadDegrees !== 0)))
     {
         throw new TypeError(`${label} has invalid Wwise Tremolo parameters`);
     }
@@ -2307,10 +2359,36 @@ export function parseStaticWwiseTremoloBytes(
         phaseOffsetDegrees,
         phaseMode: MODULATION_PHASE_MODES[phaseMode],
         phaseSpreadDegrees,
+        ...(waveform === "square" && pwmPercent !== 50
+            ? { smoothingPercent, pwmPercent }
+            : {}),
         outputGainDb,
         processCenter: processCenterRaw === 1,
         processLfe: processLfeRaw === 1,
     };
+}
+
+/** Admits the native Square shape and one exact EVE OSSE approximation. */
+function IsSupportedSquareTremoloShape({
+    smoothingPercent,
+    pwmPercent,
+    phaseOffsetDegrees,
+    phaseMode,
+    phaseSpreadDegrees,
+})
+{
+    if (phaseOffsetDegrees !== 0) return false;
+    if (smoothingPercent === 0
+        && pwmPercent === 50
+        && phaseMode === "left-right"
+        && phaseSpreadDegrees === 0)
+    {
+        return true;
+    }
+    return smoothingPercent === EVE_OSSE_SQUARE_SMOOTHING_PERCENT
+        && pwmPercent === EVE_OSSE_SQUARE_PWM_PERCENT
+        && phaseMode === "circular"
+        && phaseSpreadDegrees === EVE_OSSE_SQUARE_PHASE_SPREAD_DEGREES;
 }
 
 /** Qualifies one empirical static source-local EVE-v150 Tremolo record. */
@@ -3108,6 +3186,33 @@ function CreateSinePeriodicWave(context, phaseOffsetDegrees)
     return context.createPeriodicWave(
         new Float32Array([ 0, Math.sin(phase) ]),
         new Float32Array([ 0, Math.cos(phase) ]),
+        { disableNormalization: true },
+    );
+}
+
+/** Creates a bounded Fourier approximation of one bipolar PWM pulse. */
+function CreatePulsePeriodicWave(context, pwmPercent)
+{
+    const duty = pwmPercent / 100;
+    const real = new Float32Array(TREMOLO_PULSE_HARMONICS + 1);
+    const imaginary = new Float32Array(TREMOLO_PULSE_HARMONICS + 1);
+
+    // PeriodicWave ignores the DC coefficient during waveform generation.
+    // This zero-mean carrier is +2(1-duty) during the authored pulse and
+    // -2*duty otherwise; the Tremolo input midpoint restores the unipolar
+    // [0, 1] pulse. A finite series softens its discontinuities, but does not
+    // claim Wwise's exact smoothing-filter transfer.
+    for (let harmonic = 1; harmonic < real.length; harmonic++)
+    {
+        const angle = 2 * Math.PI * harmonic * duty;
+
+        real[harmonic] = 2 * Math.sin(angle) / (Math.PI * harmonic);
+        imaginary[harmonic] = 2 * (1 - Math.cos(angle))
+            / (Math.PI * harmonic);
+    }
+    return context.createPeriodicWave(
+        real,
+        imaginary,
         { disableNormalization: true },
     );
 }

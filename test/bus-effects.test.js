@@ -1272,6 +1272,78 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
     assert.ok(squareChain);
     assert.equal(square.waveform, "square");
     assert.equal(squareContext.oscillators[0].type, "square");
+    const osseSquare = parseGraphStaticWwiseTremolo(
+        GraphTremolo(TremoloBytes({
+            waveform: 1,
+            smoothingPercent: 9,
+            pwmPercent: 15,
+            phaseMode: 2,
+            phaseSpreadDegrees: 180,
+        })),
+        "627789220",
+        0,
+    );
+    const osseContext = Context();
+
+    assert.ok(createWwiseEffectChain(osseContext, [ osseSquare ], {
+        wwiseModulation: "approximate-web-audio",
+    }));
+    assert.equal(osseSquare.waveform, "square");
+    assert.equal(osseSquare.smoothingPercent, 9);
+    assert.equal(osseSquare.pwmPercent, 15);
+    assert.equal(osseSquare.phaseMode, "circular");
+    assert.equal(osseSquare.phaseSpreadDegrees, 180);
+    assert.equal(osseContext.periodicWaves.length, 1);
+    assert.equal(
+        osseContext.oscillators[0].periodicWave,
+        osseContext.periodicWaves[0],
+    );
+    assert.equal(osseContext.periodicWaves[0].real.length, 8192);
+    assert.equal(osseContext.periodicWaves[0].real[0], 0);
+    assert.deepEqual(osseContext.periodicWaves[0].options, {
+        disableNormalization: true,
+    });
+    assert.ok(Math.abs(
+        osseContext.periodicWaves[0].real[1]
+            - 2 * Math.sin(0.3 * Math.PI) / Math.PI,
+    ) < 1e-6);
+    assert.ok(Math.abs(osseContext.gains[0].gain.value - 0.15) < 1e-6);
+    assert.equal(osseContext.gains[2].gain.value, 0.5);
+    const pulse = osseContext.periodicWaves[0];
+    const SamplePulseGain = phase =>
+    {
+        let carrier = 0;
+
+        for (let harmonic = 1; harmonic < pulse.real.length; harmonic++)
+        {
+            const angle = 2 * Math.PI * harmonic * phase;
+
+            carrier += pulse.real[harmonic] * Math.cos(angle)
+                + pulse.imaginary[harmonic] * Math.sin(angle);
+        }
+        return osseContext.gains[0].gain.value
+            + osseContext.gains[2].gain.value * carrier;
+    };
+
+    const highPulseGain = SamplePulseGain(0.075);
+    const lowPulseGain = SamplePulseGain(0.575);
+
+    assert.ok(
+        Math.abs(highPulseGain - 1) < 2e-4,
+        `expected high pulse gain near 1, got ${highPulseGain}`,
+    );
+    assert.ok(
+        Math.abs(lowPulseGain) < 2e-4,
+        `expected low pulse gain near 0, got ${lowPulseGain}`,
+    );
+    const missingOssePeriodicWave = Context();
+
+    delete missingOssePeriodicWave.createPeriodicWave;
+    assert.equal(createWwiseEffectChain(
+        missingOssePeriodicWave,
+        [ osseSquare ],
+        { wwiseModulation: "approximate-web-audio" },
+    ), null);
     const triangle = parseGraphStaticWwiseTremolo(
         GraphTremolo(TremoloBytes({
             waveform: 2,
@@ -1295,7 +1367,7 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
     assert.throws(() => normalizeStaticSourceEffectChain([ {
         ...square,
         phaseOffsetDegrees: 1,
-    } ], "Audio source"), /zero all-channel phase/u);
+    } ], "Audio source"), /unsupported non-sine Tremolo shape/u);
 
     const fixed = parseGraphStaticWwiseTremolo(GraphTremolo(TremoloBytes({
         modulationDepthPercent: 0,

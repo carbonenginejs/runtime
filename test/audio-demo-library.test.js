@@ -1119,16 +1119,16 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 3193);
+    assert.equal(sourceEffectSounds.length, 3195);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3354);
+        count + node.sourceEffects.length, 0), 3356);
     assert.equal(sourceEqSounds.length, 456);
     assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2114);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 21);
-    assert.equal(sourceTremoloSounds.length, 162);
+    assert.equal(sourceTremoloSounds.length, 164);
     assert.equal(dynamicTremoloSounds.length, 10);
     assert.equal(sourceGuitarDistortionSounds.length, 205);
     assert.equal(dynamicGuitarDistortionSounds.length, 136);
@@ -1485,6 +1485,28 @@ test("committed demo library carries authored SFX and music semantics", () =>
         138975651, 205298853, 215897794, 274154427, 433220951,
         457709217, 656544328, 963648746, 968802066, 1059945043,
     ]);
+    for (const [ soundId, effectId ] of [
+        [ "39249460", "627789220" ],
+        [ "567887844", "921114677" ],
+    ])
+    {
+        assert.deepEqual(graph.nodes[soundId].sourceEffects, [ {
+            effectId,
+            slotIndex: 0,
+            type: "tremolo",
+            modulationDepthPercent: 100,
+            modulationFrequencyHz: Math.fround(0.02),
+            waveform: "square",
+            phaseOffsetDegrees: 0,
+            phaseMode: "circular",
+            phaseSpreadDegrees: 180,
+            smoothingPercent: 9,
+            pwmPercent: 15,
+            outputGainDb: 0,
+            processCenter: true,
+            processLfe: true,
+        } ]);
+    }
     const dynamicTremolo = graph.nodes["138975651"].sourceEffects[0];
 
     assert.equal(dynamicTremolo.effectId, "774819147");
@@ -1570,6 +1592,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
         }
     }
     assert.deepEqual(tremoloPhasePopulations, {
+        "circular|0|180": 2,
         "left-right|0|0": 91,
         "random|-72|112": 1,
         "random|0|20": 28,
@@ -1610,6 +1633,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "Ambience_Hangar_Gallente_Play",
         "OSSE_Caldari_bigscreen_play",
         "OSSE_Gallente_bigscreen_play",
+        "OSSE_amarr_bigscreen_play",
+        "OSSE_minmatar_bigscreen_play",
         "_nanocoating_atmo_play",
         "autominer_siren_play",
         "character_creation_body_type_loop_play",
