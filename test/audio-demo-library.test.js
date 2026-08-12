@@ -1136,6 +1136,12 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(dynamicTremoloSounds.length, 21);
     assert.equal(sourceGuitarDistortionSounds.length, 205);
     assert.equal(dynamicGuitarDistortionSounds.length, 136);
+    const filteredGuitarDistortionSounds = dynamicGuitarDistortionSounds
+        .filter(node => node.sourceEffects.some(effect =>
+            effect.type === "guitar-distortion"
+            && effect.driveRtpcCurve?.controlTransition));
+
+    assert.equal(filteredGuitarDistortionSounds.length, 25);
     assert.equal(sourceMatrixReverbSounds.length, 50);
     assert.equal(sourceRoomVerbSounds.length, 52);
     assert.equal(sourceMeterSounds.length, 130);
@@ -1899,6 +1905,20 @@ test("committed demo library carries authored SFX and music semantics", () =>
             ],
         },
     );
+    for (const [ soundId, rtpc ] of [
+        [ "75328544", "booster_intensity" ],
+        [ "953342719", "ship_warp_direction" ],
+    ])
+    {
+        const curve = graph.nodes[soundId].sourceEffects[0].driveRtpcCurve;
+
+        assert.equal(curve.rtpc, rtpc);
+        assert.deepEqual(curve.controlTransition, {
+            type: "filtering-over-time",
+            rampUpSeconds: 2,
+            rampDownSeconds: 2,
+        });
+    }
     const guitarDistortionSoundIds = new Set(Object.entries(graph.nodes)
         .filter(([, node]) => node.sourceEffects?.some(effect =>
             effect.type === "guitar-distortion"

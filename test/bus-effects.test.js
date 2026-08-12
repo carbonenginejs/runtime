@@ -2072,6 +2072,54 @@ test("schedules the exact EVE-v150 Guitar Distortion Drive RTPC shape", () =>
         context.gains[1].gain.value
         - Math.tanh(maximumDrive) / Math.tanh(currentDrive),
     ) < 1e-12);
+
+    const filtered = structuredClone(dynamic);
+
+    filtered[0].driveRtpcCurve.controlTransition = {
+        type: "filtering-over-time",
+        rampUpSeconds: 2,
+        rampDownSeconds: 2,
+    };
+    const filteredContext = Context();
+    let rawControl = 100;
+    const filteredChain = createWwiseEffectChain(
+        filteredContext,
+        normalizeStaticSourceEffectChain(filtered, "Filtered audio source"),
+        {
+            wwiseDistortion: "approximate-web-audio",
+            readSourceEffectRtpc: (_curve, _at, readControl) =>
+                readControl ? rawControl : NaN,
+        },
+    );
+
+    for (const gain of filteredContext.gains)
+    {
+        gain.gain.curves = [];
+        gain.gain.cancelAndHoldAtTime = () => {};
+        gain.gain.setValueAtTime = value => { gain.gain.value = value; };
+        gain.gain.setValueCurveAtTime = (values, start, duration) =>
+            gain.gain.curves.push([ values, start, duration ]);
+    }
+    filteredChain.sourceEffectRtpcLane.Apply();
+    rawControl = 0;
+    filteredChain.sourceEffectRtpcLane.Apply();
+    const [ inputAutomation ] = filteredContext.gains[0].gain.curves;
+
+    assert.equal(inputAutomation[1], 0);
+    assert.equal(inputAutomation[2], 4);
+    assert.equal(inputAutomation[0].length, 33);
+    assert.ok(
+        inputAutomation[0][16] < inputAutomation[0].at(-1),
+        "the authored two-second filter approaches before settling exactly",
+    );
+
+    const malformed = structuredClone(filtered);
+
+    malformed[0].driveRtpcCurve.controlTransition.rampUpSeconds = 0;
+    assert.throws(
+        () => normalizeStaticSourceEffectChain(malformed, "Audio source"),
+        /controlTransition is unsupported/u,
+    );
 });
 
 test("rejects dynamic, malformed, or unsupported Guitar Distortion", () =>

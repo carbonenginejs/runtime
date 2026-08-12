@@ -6230,6 +6230,9 @@ test("SFX construction projects the evidenced ship-roll Parametric EQ RTPC", asy
         parameterId = 2,
         accumulation = 1,
         scaling = 3,
+        rampType,
+        rampUp,
+        rampDown,
     } = {}) => CjsAudioLibraryBuilder.buildFromBanks({
         includeSfx: true,
         metadata: {
@@ -6276,6 +6279,11 @@ test("SFX construction projects the evidenced ship-roll Parametric EQ RTPC", asy
                         rtpcParameters: [ {
                             id: 295209019,
                             defaultValue: 0,
+                            ...(rampType === undefined ? {} : {
+                                rampType,
+                                rampUp,
+                                rampDown,
+                            }),
                         } ],
                         stateGroups: [],
                     },
@@ -6363,6 +6371,31 @@ test("SFX construction projects the evidenced ship-roll Parametric EQ RTPC", asy
     });
     assert.ok(Math.abs(10 ** curve.points[0].value - 160) < 0.001);
     assert.ok(Math.abs(10 ** curve.points[1].value - 3650) < 0.01);
+
+    const filtered = await Build({
+        rampType: 2,
+        rampUp: 1.5,
+        rampDown: 2.5,
+    });
+    assert.deepEqual(
+        filtered.sfx.nodes["300"].sourceEffects[0]
+            .rtpcCurves[0].controlTransition,
+        {
+            type: "filtering-over-time",
+            rampUpSeconds: 1.5,
+            rampDownSeconds: 2.5,
+        },
+    );
+    const unsupportedFiltering = await Build({
+        rampType: 1,
+        rampUp: 1,
+        rampDown: 1,
+    });
+    assert.equal(
+        unsupportedFiltering.sfx.nodes["300"].sourceEffects,
+        undefined,
+        "unreproduced Game Parameter ramp laws keep the chain dry",
+    );
 
     const modulated = await Build({ controlType: 4 });
     assert.equal(modulated.sfx.nodes["300"].sourceEffects, undefined,
@@ -7728,6 +7761,7 @@ test("SFX construction retains the bounded EVE Guitar Distortion shapes", async 
         bankVersion = 150,
         distortionType = 2,
         rtpcs = [],
+        transition = null,
     ) =>
         CjsAudioLibraryBuilder.buildFromBanks({
         includeSfx: true,
@@ -7775,6 +7809,7 @@ test("SFX construction retains the bounded EVE Guitar Distortion shapes", async 
                         rtpcParameters: [ {
                             id: 692202422,
                             defaultValue: 50,
+                            ...(transition ?? {}),
                         } ],
                         stateGroups: [],
                     },
@@ -7894,6 +7929,30 @@ test("SFX construction retains the bounded EVE Guitar Distortion shapes", async 
                 },
                 { x: 100, value: 0, interpolation: 4 },
             ],
+        },
+    );
+    const filtered = await Build(
+        [ { propertyId: 61, accumulation: 2, value: 34 } ],
+        150,
+        2,
+        [ {
+            controlId: 692202422,
+            controlType: 0,
+            accumulation: 2,
+            parameterId: 61,
+            curveId: 77,
+            scaling: 0,
+            points: [ [ 0, 40, 4 ], [ 100, 0, 4 ] ],
+        } ],
+        { rampType: 2, rampUp: 2, rampDown: 2 },
+    );
+    assert.deepEqual(
+        filtered.sfx.nodes["300"].sourceEffects[0]
+            .driveRtpcCurve.controlTransition,
+        {
+            type: "filtering-over-time",
+            rampUpSeconds: 2,
+            rampDownSeconds: 2,
         },
     );
 

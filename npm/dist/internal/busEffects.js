@@ -225,6 +225,7 @@ function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel) {
     if (defaultValue !== undefined && !Number.isFinite(defaultValue)) {
       throw new TypeError(`${label} defaultValue must be finite`);
     }
+    const controlTransition = NormalizeControlTransition(curve.controlTransition, `${label} controlTransition`);
     return Object.freeze({
       rtpc,
       scope,
@@ -234,6 +235,9 @@ function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel) {
       scaling,
       ...(defaultValue === undefined ? {} : {
         defaultValue
+      }),
+      ...(controlTransition === undefined ? {} : {
+        controlTransition
       }),
       points: Object.freeze(points)
     });
@@ -278,6 +282,7 @@ function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel) {
   if (defaultValue !== undefined && !Number.isFinite(defaultValue)) {
     throw new TypeError(`${ownerLabel} defaultValue must be finite`);
   }
+  const controlTransition = NormalizeControlTransition(curve.controlTransition, `${ownerLabel} controlTransition`);
   return Object.freeze({
     rtpc,
     scope,
@@ -286,7 +291,26 @@ function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel) {
     ...(defaultValue === undefined ? {} : {
       defaultValue
     }),
+    ...(controlTransition === undefined ? {} : {
+      controlTransition
+    }),
     points: Object.freeze(points)
+  });
+}
+
+/** Validates one optional Wwise Filtering Over Time control law. */
+function NormalizeControlTransition(value, ownerLabel, required = false) {
+  if (value === undefined && !required) return undefined;
+  const transition = RequireRecord(value, ownerLabel);
+  const rampUpSeconds = Number(transition.rampUpSeconds);
+  const rampDownSeconds = Number(transition.rampDownSeconds);
+  if (transition.type !== "filtering-over-time" || !Number.isFinite(rampUpSeconds) || !Number.isFinite(rampDownSeconds) || rampUpSeconds <= 0 || rampDownSeconds <= 0) {
+    throw new TypeError(`${ownerLabel} is unsupported`);
+  }
+  return Object.freeze({
+    type: "filtering-over-time",
+    rampUpSeconds,
+    rampDownSeconds
   });
 }
 function NormalizeFlangerWetDryMixRtpcCurve(value, ownerLabel) {
@@ -376,12 +400,7 @@ function NormalizeTremoloRtpcCurves(value, ownerLabel) {
     if (defaultValue !== undefined && !Number.isFinite(defaultValue)) {
       throw new TypeError(`${label} defaultValue must be finite`);
     }
-    const transition = RequireRecord(curve.controlTransition, `${label} controlTransition`);
-    const rampUpSeconds = Number(transition.rampUpSeconds);
-    const rampDownSeconds = Number(transition.rampDownSeconds);
-    if (transition.type !== "filtering-over-time" || !Number.isFinite(rampUpSeconds) || !Number.isFinite(rampDownSeconds) || rampUpSeconds <= 0 || rampDownSeconds <= 0) {
-      throw new TypeError(`${label} controlTransition is unsupported`);
-    }
+    const transition = NormalizeControlTransition(curve.controlTransition, `${label} controlTransition`, true);
     return Object.freeze({
       rtpc,
       scope: "object",
@@ -391,11 +410,7 @@ function NormalizeTremoloRtpcCurves(value, ownerLabel) {
       ...(defaultValue === undefined ? {} : {
         defaultValue
       }),
-      controlTransition: Object.freeze({
-        type: "filtering-over-time",
-        rampUpSeconds,
-        rampDownSeconds
-      }),
+      controlTransition: transition,
       points: Object.freeze(points)
     });
   });

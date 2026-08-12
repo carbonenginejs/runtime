@@ -846,6 +846,7 @@ class CjsMusicEngineScheduledClip
         this.#BeginLoad(isPrepared);
     }
 
+    /** Acquires the clip buffer and realizes it when playback is active. */
     #BeginLoad(isPrepared)
     {
         let acquired;
@@ -873,6 +874,7 @@ class CjsMusicEngineScheduledClip
         });
     }
 
+    /** Retains an acquired buffer or marks the clip as failed. */
     #AcceptBuffer(buffer)
     {
         if (!buffer)
@@ -888,6 +890,7 @@ class CjsMusicEngineScheduledClip
         }
     }
 
+    /** Creates the Web Audio source for the clip's remaining schedule. */
     #Realize()
     {
         if (!this.#buffer || this.cancelled || this.ended
@@ -1056,6 +1059,7 @@ class CjsMusicEngineScheduledClip
         }
     }
 
+    /** Retains the clip's playback position at an authored pause boundary. */
     #RetainAt(pauseAt)
     {
         if (this.#pausedAt !== null || this.cancelled || this.ended)
@@ -1363,6 +1367,7 @@ class CjsMusicEngineScheduledSegment
         }
     }
 
+    /** Records and schedules one authored music automation envelope. */
     #ScheduleEnvelope({
         param,
         from,
@@ -2050,6 +2055,7 @@ export class CjsMusicEngine
         }
     }
 
+    /** Collects the active gain parameters controlled by authored fades. */
     #AuthoredOutputParams(instance)
     {
         return [

@@ -5152,6 +5152,33 @@ function ParseStaticParametricEq(
     });
 }
 
+/** Projects the Wwise Game Parameter filter forms the browser can reproduce. */
+function ProjectSourceEffectControlTransition(names, controlID, ownerLabel)
+{
+    const transition = names.parameterTransitions.get(controlID);
+
+    if (!transition
+        || (transition.rampType === 0
+            && transition.rampUpSeconds === 0
+            && transition.rampDownSeconds === 0))
+    {
+        return undefined;
+    }
+    if (transition.rampType !== WWISE_FILTERING_OVER_TIME_RAMP
+        || !(transition.rampUpSeconds > 0)
+        || !(transition.rampDownSeconds > 0))
+    {
+        throw new Error(
+            `${ownerLabel} has unsupported Game Parameter filtering`,
+        );
+    }
+    return {
+        type: "filtering-over-time",
+        rampUpSeconds: transition.rampUpSeconds,
+        rampDownSeconds: transition.rampDownSeconds,
+    };
+}
+
 function ParseDynamicParametricEq(ownerLabel, slot, effect, names)
 {
     if (Number(effect.bankVersion) !== 150
@@ -5207,6 +5234,11 @@ function ParseDynamicParametricEq(ownerLabel, slot, effect, names)
         }
         targets.add(target);
         const defaultValue = names.parameterDefaults.get(controlID);
+        const controlTransition = ProjectSourceEffectControlTransition(
+            names,
+            controlID,
+            `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`,
+        );
 
         return {
             rtpc: parameter,
@@ -5219,6 +5251,9 @@ function ParseDynamicParametricEq(ownerLabel, slot, effect, names)
                 : "exclusive",
             scaling: Number(rtpc.scaling),
             ...(defaultValue === undefined ? {} : { defaultValue }),
+            ...(controlTransition === undefined
+                ? {}
+                : { controlTransition }),
             points: rtpc.points.map(point => ({
                 x: Number(point.from),
                 value: Number(point.to),
@@ -5618,6 +5653,11 @@ function ParseDynamicWwiseGuitarDistortion(ownerLabel, slot, effect, names)
         );
     }
     const defaultValue = names.parameterDefaults.get(controlID);
+    const controlTransition = ProjectSourceEffectControlTransition(
+        names,
+        controlID,
+        `Wwise Guitar Distortion ${effect.id} on ${ownerLabel}`,
+    );
 
     return {
         ...parsed,
@@ -5627,6 +5667,9 @@ function ParseDynamicWwiseGuitarDistortion(ownerLabel, slot, effect, names)
             accumulation: "additive",
             scaling: 0,
             ...(defaultValue === undefined ? {} : { defaultValue }),
+            ...(controlTransition === undefined
+                ? {}
+                : { controlTransition }),
             points: rtpc.points.map(point => ({
                 x: Number(point.from),
                 value: Number(point.to),

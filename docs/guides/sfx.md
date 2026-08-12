@@ -436,6 +436,10 @@ object Game Parameter, additive accumulation, and scaling 0. It maps to Drive,
 preserves Wwise interpolation/default precedence, and currently covers
 `ship_health_hull`, `ship_warp_direction`, and `booster_intensity`. ParamID 61
 is an empirical corpus mapping, not a claimed universal Audiokinetic enum.
+The latter two controls author two-second Wwise Filtering Over Time ramps. The
+builder retains that STMG policy on 25 leaves and the voice-local RTPC lane
+filters their raw control before evaluating Drive. The 111 `ship_health_hull`
+leaves explicitly author no filtering and therefore remain immediate.
 Because a WaveShaper curve cannot be automated, the browser fixes the curve at
 maximum admitted Drive and schedules pre/post Gain nodes. For normalized
 WaveShaper inputs this reproduces the same CarbonEngineJS tanh/full-wave curve
