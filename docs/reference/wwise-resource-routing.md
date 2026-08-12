@@ -662,14 +662,20 @@ validation because Wwise applies PWM only to Square.
 Strict mode, missing primitives, other dynamic controls, other waveforms, and
 shared-Bus Tremolo keep the complete chain audible and dry.
 
-One dynamic EVE-v150 Sine form is admitted separately. Exactly two object
-Game Parameter curves share `booster_intensity`: additive scaling-0 `ParamID
-1` drives Depth and exclusive scaling-3 `ParamID 2` drives Frequency. Those
-numeric targets are corpus-proven mappings, not universal Wwise enums. The
-builder also requires the matching base-Depth property and STMG ramp type 2
-with the exact two-second up/down times. Runtime-audio approximates the control
-filter independently per voice with Wwise's documented
-99.5%-at-authored-time exponential law, samples the two curves, clamps Depth
+Two dynamic EVE-v150 Sine forms are admitted separately. The common form has
+exactly two object Game Parameter curves sharing `booster_intensity`:
+additive scaling-0 `ParamID 1` drives Depth and exclusive scaling-3 `ParamID 2`
+drives Frequency. One `pirate_radio_guristas_play` Sound carries only that
+Depth curve and retains a static `0.24 Hz` frequency. Its complete admission
+fingerprint is 72.6% base Depth, 35% smoothing, 50% PWM, 53-degree global
+phase, Random phase mode, and 55-degree spread. The browser preserves the
+global phase, omits the per-channel Random spread, and does not reproduce the
+native 35% smoothing. Those numeric targets and the single-curve preset are
+corpus-proven mappings, not universal Wwise enums. The builder also requires
+the matching base-Depth property and STMG ramp type 2 with the exact two-second
+up/down times. Runtime-audio approximates the control filter independently per
+voice with Wwise's documented
+99.5%-at-authored-time exponential law, samples the admitted curves, clamps Depth
 to `0..100` and Frequency to `0.02 Hz..Nyquist`, and automates the oscillator
 plus both unipolar-gain terms. A voice created during an existing object's
 filter ramp begins at the currently readable target rather than reconstructing
@@ -678,9 +684,10 @@ targets rather than being convolved with this plug-in-local filter. This is
 still the same native-oscillator approximation; missing
 metadata/readers/primitives keep the whole chain dry.
 
-EVE build 3453885 projects 189 Tremolo stages on 185 Sound leaves. Twenty
-dynamic leaves cover the original medium-engine set plus ten newly complete
-engine-on chains. Two exact OSSE Square leaves add the Amarr and Minmatar
+EVE build 3453885 projects 190 Tremolo stages on 186 Sound leaves. Twenty-one
+dynamic leaves cover the original medium-engine set, ten newly complete
+engine-on chains, and the single Depth-controlled Guristas radio loop. Two
+exact OSSE Square leaves add the Amarr and Minmatar
 big-screen events. The static population spans 91 retained events: 117
 Tremolo-only, 14 Tremolo followed by qualified static EQ,
 three qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
@@ -726,7 +733,8 @@ qualified source-effect leaves from 2,506 to 2,575. Live Drive raised the
 post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
 records without changing media or event reachability; the later modulation
 and skyhook-EQ slices set the prior totals to 3,196 and 3,358; built-in-Distance
-Flanger now sets the current totals to 3,224 leaves and 3,422 records.
+Flanger and the single-Depth Tremolo now set the current totals to 3,225 leaves
+and 3,423 records.
 
 Wwise Harmonizer `0x008a0003` remains a measured DSP barrier rather than an
 unclassified plug-in. Pinned wwiser proves the v150 layout for two pitch
@@ -835,8 +843,9 @@ and 3,337 without changing media or event reachability. Bounded static
 Tremolo admission raises those totals to 3,183 and 3,344; the paired dynamic
 Tremolo slice raises those totals to 3,193 and 3,354; the exact OSSE Square
 slice raises those totals to 3,195 and 3,356; the static skyhook EQ-to-Tremolo
-slice set the prior totals to 3,196 and 3,358; built-in-Distance Flanger now
-sets the current totals to 3,224 and 3,422. Playback still
+slice set the prior totals to 3,196 and 3,358; built-in-Distance Flanger and
+the single-Depth Tremolo now set the current totals to 3,225 and 3,423.
+Playback still
 requires both explicit policies: Meter telemetry omission and Web Audio
 dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so

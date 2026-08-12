@@ -5426,7 +5426,7 @@ function ParseDynamicWwiseTremolo(ownerLabel, slot, effect, names)
 {
     if (Number(effect.bankVersion) !== 150
         || effect.media?.length
-        || effect.rtpcs?.length !== 2
+        || (effect.rtpcs?.length !== 1 && effect.rtpcs?.length !== 2)
         || effect.state?.properties?.length
         || effect.state?.groups?.length
         || effect.propertyValues?.length !== 1)
@@ -5448,6 +5448,7 @@ function ParseDynamicWwiseTremolo(ownerLabel, slot, effect, names)
     const parameter = names.parameters.get(controlID);
     const transition = names.parameterTransitions.get(controlID);
     const defaultValue = names.parameterDefaults.get(controlID);
+    const singleDepthControl = effect.rtpcs.length === 1;
     const targets = new Map([
         [ 1, {
             property: "modulationDepthPercent",
@@ -5470,6 +5471,11 @@ function ParseDynamicWwiseTremolo(ownerLabel, slot, effect, names)
         || transition.rampUpSeconds !== 2
         || transition.rampDownSeconds !== 2
         || parsed.waveform !== "sine"
+        || (singleDepthControl
+            && !IsExactSingleDepthWwiseTremolo(
+                parsed,
+                effect.parameterBlock,
+            ))
         || Number(property.propertyId) !== 1
         || Number(property.accumulation) !== SFX_ADDITIVE_ACCUMULATION
         || Number(property.value) !== parsed.modulationDepthPercent)
@@ -5518,13 +5524,36 @@ function ParseDynamicWwiseTremolo(ownerLabel, slot, effect, names)
         };
     });
 
-    if (seen.size !== targets.size)
+    if (!seen.has("modulationDepthPercent")
+        || (!singleDepthControl
+            && !seen.has("modulationFrequencyHz")))
     {
         throw new Error(
             `Wwise Tremolo ${effect.id} on ${ownerLabel} is missing an RTPC target`,
         );
     }
     return { ...parsed, rtpcCurves };
+}
+
+/** Identifies the one exact EVE-v150 single-Depth filtered Tremolo preset. */
+function IsExactSingleDepthWwiseTremolo(parsed, bytes)
+{
+    const view = new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength,
+    );
+
+    return parsed.modulationDepthPercent === Math.fround(72.6)
+        && parsed.modulationFrequencyHz === Math.fround(0.24)
+        && view.getFloat32(12, true) === 35
+        && view.getFloat32(16, true) === 50
+        && parsed.phaseOffsetDegrees === 53
+        && parsed.phaseMode === "random"
+        && parsed.phaseSpreadDegrees === 55
+        && parsed.outputGainDb === 0
+        && parsed.processCenter
+        && parsed.processLfe;
 }
 
 function ParseStaticWwiseGuitarDistortion(ownerLabel, slot, effect)

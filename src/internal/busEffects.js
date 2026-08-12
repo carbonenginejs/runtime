@@ -543,9 +543,10 @@ function NormalizeFlangerWetDryMixRtpcCurve(value, ownerLabel)
 
 function NormalizeTremoloRtpcCurves(value, ownerLabel)
 {
-    if (!Array.isArray(value) || value.length !== 2)
+    if (!Array.isArray(value)
+        || (value.length !== 1 && value.length !== 2))
     {
-        throw new TypeError(`${ownerLabel} must contain two curves`);
+        throw new TypeError(`${ownerLabel} must contain one or two curves`);
     }
     const targets = new Set();
 
@@ -633,10 +634,13 @@ function NormalizeTremoloRtpcCurves(value, ownerLabel)
         });
     });
 
-    if (curves[0].rtpc !== curves[1].rtpc
-        || curves[0].defaultValue !== curves[1].defaultValue
-        || JSON.stringify(curves[0].controlTransition)
-            !== JSON.stringify(curves[1].controlTransition))
+    if (!targets.has("modulationDepthPercent")
+        || (curves.length === 2
+            && !targets.has("modulationFrequencyHz"))
+        || curves.some(curve => curve.rtpc !== curves[0].rtpc
+            || curve.defaultValue !== curves[0].defaultValue
+            || JSON.stringify(curve.controlTransition)
+                !== JSON.stringify(curves[0].controlTransition)))
     {
         throw new TypeError(`${ownerLabel} must share one filtered control`);
     }

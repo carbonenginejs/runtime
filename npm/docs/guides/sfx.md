@@ -377,18 +377,26 @@ retains its exact 9%/15% values and applies the duty cycle, but its finite
 Fourier carrier does not reproduce Wwise's exponential smoothing filter. PWM
 applies only to Square in Wwise, so Triangle PWM is intentionally ignored
 after range validation.
-The sole dynamic exception has two object-scoped `booster_intensity` curves:
-additive scaling-0 `ParamID 1` controls Depth and exclusive scaling-3 `ParamID
-2` controls Frequency. The builder requires their matching Depth property and
-the shared STMG Filtering Over Time policy with two-second up/down times. The
-runtime applies a voice-local approximation of Wwise's documented exponential
-filtering to each raw control target, samples both curves, and automates the
-oscillator plus both unipolar gain terms. A voice posted during an existing
-object's ramp starts from the current readable control rather than inheriting
-the older voice's filter history, and an independently authored Set Game
-Parameter transition is sampled as a new target rather than convolved with the
-plug-in filter. The target IDs are EVE-v150 corpus evidence, not universal
-Wwise enums. Other dynamic forms remain dry.
+Two exact dynamic EVE-v150 forms are admitted. The common form has two
+object-scoped `booster_intensity` curves: additive scaling-0 `ParamID 1`
+controls Depth and exclusive scaling-3 `ParamID 2` controls Frequency. The
+builder requires their matching Depth property and the shared STMG Filtering
+Over Time policy with two-second up/down times. One
+`pirate_radio_guristas_play` Sound instead uses only the same Depth curve and
+keeps its authored `0.24 Hz` frequency. That exception is pinned to its
+complete preset: 72.6% base Depth, 35% smoothing, 50% PWM, 53-degree global
+phase, Random mode, and 55-degree spread. The browser retains the global phase
+but its one all-channel carrier omits Random per-channel spread, and the native
+35% smoothing is shape-validated but not reproduced.
+
+The runtime applies a voice-local approximation of Wwise's documented
+exponential filtering to each raw control target, samples the admitted curves,
+and automates the oscillator plus both unipolar gain terms. A voice posted
+during an existing object's ramp starts from the current readable control
+rather than inheriting the older voice's filter history, and an independently
+authored Set Game Parameter transition is sampled as a new target rather than
+convolved with the plug-in filter. The target IDs are EVE-v150 corpus evidence,
+not universal Wwise enums. Other dynamic forms remain dry.
 Shared-Bus Tremolo remains unsupported.
 
 Wwise Harmonizer `0x008a0003` deliberately has no browser policy yet. Pinned
@@ -496,13 +504,13 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 3,224
-qualified Sound leaves carrying 3,422 effect records: 473 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 3,225
+qualified Sound leaves carrying 3,423 effect records: 473 use Parametric EQ,
 including 186 leaves with live `ship_Roll` Band 1 Frequency,
 87 use Wwise Delay, 2,114 use
 Compressor, 73 use Peak Limiter, 49 use Flanger across 27 retained events,
 including 28 built-in-Distance leaves across 18 newly complete events;
-189 Tremolo stages occur on 185 Sounds, including 20 live
+190 Tremolo stages occur on 186 Sounds, including 21 live
 `booster_intensity` leaves; 205 use
 Guitar Distortion across 57 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained

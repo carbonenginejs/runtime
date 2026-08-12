@@ -1592,6 +1592,51 @@ test("filters the exact EVE-v150 dynamic Tremolo control before DSP mapping", ()
         ),
         /share one filtered control/u,
     );
+
+    const singleDepth = structuredClone(dynamic);
+
+    singleDepth[0].rtpcCurves = [ singleDepth[0].rtpcCurves[1] ];
+    const singleContext = Context();
+    let singleControl = 0;
+    const singleChain = createWwiseEffectChain(
+        singleContext,
+        normalizeStaticSourceEffectChain(singleDepth, "Audio source"),
+        {
+            wwiseModulation: "approximate-web-audio",
+            readSourceEffectRtpc: (_curve, _at, readControl) =>
+                readControl ? singleControl : NaN,
+        },
+    );
+    const [ singleInput, , singleModulation ] = singleContext.gains;
+
+    for (const param of [ singleInput.gain, singleModulation.gain ])
+    {
+        param.curves = [];
+        param.cancelAndHoldAtTime = () => {};
+        param.setValueAtTime = value => { param.value = value; };
+        param.setValueCurveAtTime = values => param.curves.push(values);
+    }
+    singleChain.sourceEffectRtpcLane.Apply();
+    assert.equal(singleInput.gain.value, 0.5);
+    assert.equal(singleModulation.gain.value, 0.5);
+    assert.equal(singleContext.oscillators[0].frequency.value, 1);
+
+    singleControl = 2;
+    singleChain.sourceEffectRtpcLane.Apply();
+    assert.equal(singleInput.gain.curves[0].at(-1), 1);
+    assert.equal(singleModulation.gain.curves[0].at(-1), 0);
+    assert.equal(singleContext.oscillators[0].frequency.value, 1);
+
+    const frequencyOnly = structuredClone(dynamic);
+
+    frequencyOnly[0].rtpcCurves = [ frequencyOnly[0].rtpcCurves[0] ];
+    assert.throws(
+        () => normalizeStaticSourceEffectChain(
+            frequencyOnly,
+            "Audio source",
+        ),
+        /share one filtered control/u,
+    );
 });
 
 test("decodes and explicitly approximates static Wwise Matrix Reverb", () =>

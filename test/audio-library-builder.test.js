@@ -6840,105 +6840,111 @@ test("SFX construction projects only the exact built-in-distance Flanger control
 test("SFX construction retains only complete empirical Wwise Tremolo overrides", async () =>
 {
     const Build = (propertyValues, bankVersion = 150, tremolo = {}) =>
-        CjsAudioLibraryBuilder.buildFromBanks({
-        includeSfx: true,
-        enrichment: {
-            gameParameters: {
-                "4000082469": {
-                    name: "booster_intensity",
-                    defaultValue: 0,
+    {
+        const effectId = tremolo.effectId ?? 2196086003;
+        const effectType = tremolo.effectType ?? 16;
+        const effectFlags = tremolo.effectFlags ?? 2;
+
+        return CjsAudioLibraryBuilder.buildFromBanks({
+            includeSfx: true,
+            enrichment: {
+                gameParameters: {
+                    "4000082469": {
+                        name: "booster_intensity",
+                        defaultValue: 0,
+                    },
                 },
             },
-        },
-        metadata: {
-            Events: {
-                ambience_play: {
-                    eventID: 100,
-                    soundbanks: [ "effects.bnk" ],
+            metadata: {
+                Events: {
+                    ambience_play: {
+                        eventID: 100,
+                        soundbanks: [ "effects.bnk" ],
+                    },
                 },
-            },
-            SoundBanks: {
-                "effects.bnk": {
-                    name: "effects",
-                    path: "\\SoundBanks\\effects.bnk",
-                    shortId: 200,
+                SoundBanks: {
+                    "effects.bnk": {
+                        name: "effects",
+                        path: "\\SoundBanks\\effects.bnk",
+                        shortId: 200,
+                    },
                 },
+                WemFileIDs: {},
             },
-            WemFileIDs: {},
-        },
-        indexEntries: [ {
-            logicalPath: "res:/audio/effects.bnk",
-            storagePath: "banks/effects.bnk",
-            byteLength: 256,
-        } ],
-        loadBank()
-        {
-            return {
-                inspection: {
-                    bankId: 200,
-                    languageId: 0,
-                    bankVersion,
-                    globalSettings: {
-                        stateGroups: [],
-                        rtpcParameters: [ {
-                            id: 4000082469,
-                            defaultValue: 0,
-                            rampType: 2,
-                            rampUp: 2,
-                            rampDown: 2,
+            indexEntries: [ {
+                logicalPath: "res:/audio/effects.bnk",
+                storagePath: "banks/effects.bnk",
+                byteLength: 256,
+            } ],
+            loadBank()
+            {
+                return {
+                    inspection: {
+                        bankId: 200,
+                        languageId: 0,
+                        bankVersion,
+                        globalSettings: {
+                            stateGroups: [],
+                            rtpcParameters: [ {
+                                id: 4000082469,
+                                defaultValue: 0,
+                                rampType: 2,
+                                rampUp: 2,
+                                rampDown: 2,
+                            } ],
+                        },
+                        hirc: [
+                            {
+                                type: 2,
+                                id: 300,
+                                pluginId: 0x00040001,
+                                pluginType: 1,
+                                streamType: 0,
+                                sourceId: 9001,
+                                inMemoryMediaSize: 64,
+                                payload: soundPayload({
+                                    overrideEffects: true,
+                                    effects: [ {
+                                        slotIndex: 0,
+                                        effectId,
+                                        flags: effectFlags,
+                                    } ],
+                                }),
+                            },
+                            {
+                                type: 3,
+                                id: 400,
+                                actionType: 0x0403,
+                                targetId: 300,
+                                payload: new Uint8Array(),
+                            },
+                            {
+                                type: 4,
+                                id: 100,
+                                actionIds: [ 400 ],
+                                payload: new Uint8Array(),
+                            },
+                            {
+                                type: effectType,
+                                id: effectId,
+                                payload: wwiseTremoloEffectPayload({
+                                    ...tremolo,
+                                    propertyValues,
+                                }),
+                            },
+                        ],
+                        media: [ {
+                            id: 9001,
+                            available: true,
+                            absoluteOffset: 32,
+                            length: 64,
+                            mediaType: "wem",
                         } ],
                     },
-                    hirc: [
-                        {
-                            type: 2,
-                            id: 300,
-                            pluginId: 0x00040001,
-                            pluginType: 1,
-                            streamType: 0,
-                            sourceId: 9001,
-                            inMemoryMediaSize: 64,
-                            payload: soundPayload({
-                                overrideEffects: true,
-                                effects: [ {
-                                    slotIndex: 0,
-                                    effectId: 2196086003,
-                                    flags: 2,
-                                } ],
-                            }),
-                        },
-                        {
-                            type: 3,
-                            id: 400,
-                            actionType: 0x0403,
-                            targetId: 300,
-                            payload: new Uint8Array(),
-                        },
-                        {
-                            type: 4,
-                            id: 100,
-                            actionIds: [ 400 ],
-                            payload: new Uint8Array(),
-                        },
-                        {
-                            type: 16,
-                            id: 2196086003,
-                            payload: wwiseTremoloEffectPayload({
-                                ...tremolo,
-                                propertyValues,
-                            }),
-                        },
-                    ],
-                    media: [ {
-                        id: 9001,
-                        available: true,
-                        absoluteOffset: 32,
-                        length: 64,
-                        mediaType: "wem",
-                    } ],
-                },
-            };
-        },
-    });
+                };
+            },
+        });
+    };
     const library = await Build([]);
 
     assert.deepEqual(library.sfx.nodes["300"].sourceEffects, [ {
@@ -7031,6 +7037,103 @@ test("SFX construction retains only complete empirical Wwise Tremolo overrides",
             ],
         ],
     );
+
+    const singleDepth = await Build([ {
+        propertyId: 1,
+        accumulation: 2,
+        value: 72.6,
+    } ], 150, {
+        effectId: 1003903544,
+        effectType: 17,
+        effectFlags: 0,
+        modulationDepthPercent: 72.6,
+        modulationFrequencyHz: 0.24,
+        smoothingPercent: 35,
+        phaseOffsetDegrees: 53,
+        phaseMode: 3,
+        phaseSpreadDegrees: 55,
+        rtpcs: [ {
+            controlId: 4000082469,
+            accumulation: 2,
+            parameterId: 1,
+            scaling: 0,
+            points: [
+                [ 0, -1.2422300577163696, 4 ],
+                [ 2, -86.9565200805664, 4 ],
+            ],
+        } ],
+    });
+    const singleDepthEffect = singleDepth.sfx
+        .nodes["300"].sourceEffects[0];
+
+    assert.equal(
+        singleDepthEffect.modulationDepthPercent,
+        Math.fround(72.6),
+    );
+    assert.equal(singleDepthEffect.modulationFrequencyHz, Math.fround(0.24));
+    assert.equal(singleDepthEffect.phaseOffsetDegrees, 53);
+    assert.equal(singleDepthEffect.phaseMode, "random");
+    assert.equal(singleDepthEffect.phaseSpreadDegrees, 55);
+    assert.deepEqual(singleDepthEffect.rtpcCurves, [ {
+        rtpc: "booster_intensity",
+        scope: "object",
+        property: "modulationDepthPercent",
+        accumulation: "additive",
+        scaling: 0,
+        defaultValue: 0,
+        controlTransition: {
+            type: "filtering-over-time",
+            rampUpSeconds: 2,
+            rampDownSeconds: 2,
+        },
+        points: [
+            {
+                x: 0,
+                value: Math.fround(-1.2422300577163696),
+                interpolation: 4,
+            },
+            {
+                x: 2,
+                value: Math.fround(-86.9565200805664),
+                interpolation: 4,
+            },
+        ],
+    } ]);
+
+    for (const overrides of [
+        { smoothingPercent: 34 },
+        { modulationFrequencyHz: 0.25 },
+        { phaseOffsetDegrees: 52 },
+        { phaseMode: 2 },
+        { phaseSpreadDegrees: 54 },
+    ])
+    {
+        const rejected = await Build([ {
+            propertyId: 1,
+            accumulation: 2,
+            value: 72.6,
+        } ], 150, {
+            modulationDepthPercent: 72.6,
+            modulationFrequencyHz: 0.24,
+            smoothingPercent: 35,
+            phaseOffsetDegrees: 53,
+            phaseMode: 3,
+            phaseSpreadDegrees: 55,
+            rtpcs: [ {
+                controlId: 4000082469,
+                accumulation: 2,
+                parameterId: 1,
+                scaling: 0,
+                points: [ [ 0, -1, 4 ], [ 2, -87, 4 ] ],
+            } ],
+            ...overrides,
+        });
+
+        assert.equal(
+            rejected.sfx?.nodes?.["300"]?.sourceEffects,
+            undefined,
+        );
+    }
 
     const phased = await Build([], 150, {
         modulationDepthPercent: 80,
