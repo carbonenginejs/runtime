@@ -551,14 +551,18 @@ function ValidateMusic(music, media, embeddedMedia) {
       throw new TypeError(`Audio library music switchSetters.${name} has duplicate setters`);
     }
   }
-  ValidateMusicPrograms(music.programs, nodes);
+  ValidateMusicPrograms(music.programs, nodes, music.eventTargets, music.eventStops, music.switchSetters);
 }
-function ValidateMusicPrograms(programs, nodes) {
+function ValidateMusicPrograms(programs, nodes, eventTargets, eventStops, switchSetters) {
   if (programs === undefined) {
     return;
   }
   RequireRecord(programs, "Audio library music programs");
+  const roots = new Set(Object.values(eventTargets ?? {}).flat().map(value => NormalizeUnsignedID(value, "Audio library music event target")));
   for (const [name, actions] of Object.entries(programs)) {
+    if (eventTargets?.[name]?.length || eventStops?.[name]?.length || switchSetters?.[name]?.length) {
+      throw new TypeError(`Audio library music programs.${name} has an ordered action mix`);
+    }
     if (!Array.isArray(actions) || !actions.length) {
       throw new TypeError(`Audio library music programs.${name} must be non-empty`);
     }
@@ -569,10 +573,11 @@ function ValidateMusicPrograms(programs, nodes) {
       const targetId = NormalizeUnsignedID(action.targetId, `${label} targetId`);
       const curve = NormalizeNonNegativeInteger(action.curve, `${label} curve`);
       const transitionMs = Number(action.transitionMs);
-      if (!["pause", "resume"].includes(action.kind) || action.scope !== "game-object" || !["element", "all"].includes(action.mode) || Number(action.targetFlags) !== 0 || Number(action.actionFlags) !== expectedFlags || !Array.isArray(action.exceptions) || action.exceptions.length || curve > 9 || !Number.isFinite(transitionMs) || transitionMs < 0) {
+      const unsupported = ["delayMs", "delayRangeMs", "transitionRangeMs", "probability"].some(field => action[field] !== undefined);
+      if (!["pause", "resume"].includes(action.kind) || action.scope !== "game-object" || !["element", "all"].includes(action.mode) || Number(action.targetFlags) !== 0 || Number(action.actionFlags) !== expectedFlags || !Array.isArray(action.exceptions) || action.exceptions.length || curve > 9 || !Number.isFinite(transitionMs) || transitionMs < 0 || unsupported) {
         throw new TypeError(`${label} is unsupported`);
       }
-      if (action.mode === "element" && !nodes[targetId] || action.mode === "all" && targetId !== "0") {
+      if (action.mode === "element" && (!nodes[targetId] || !roots.has(targetId)) || action.mode === "all" && targetId !== "0") {
         throw new TypeError(`${label} has an invalid target`);
       }
     }

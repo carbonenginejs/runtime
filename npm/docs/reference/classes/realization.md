@@ -225,6 +225,16 @@ Schedules an authored interactive-music graph against decoded Web Audio buffers.
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsMusicEngineScheduledClip -->
+## `CjsMusicEngineScheduledClip`
+
+Retains one music clip's logical window while disposable Web Audio sources are stopped and recreated across authored Pause and Resume actions.
+
+- Export: None
+- Source: `src/CjsMusicEngine.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:CjsMusicEngineScheduledSegment -->
 ## `CjsMusicEngineScheduledSegment`
 

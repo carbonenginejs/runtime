@@ -2095,6 +2095,7 @@ export class CjsAudioBackend
                 {
                     busVolumeStates: record.emitterNodes?.busVolumes
                         ?? this.#globalBusVolumes,
+                    gameObjID: record.gameObjID,
                 },
             );
         }

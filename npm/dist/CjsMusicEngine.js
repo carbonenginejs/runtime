@@ -78,6 +78,11 @@ function ScheduleFade(param, from, to, when, duration, curve, progress = 0) {
   const curveId = Number(curve);
   const startValue = from + (to - from) * FadeCurveValue(curveId, startProgress);
   if ("value" in param) param.value = startValue;
+  if (!(duration > 0)) {
+    param.setValueAtTime?.(to, when);
+    if ("value" in param) param.value = to;
+    return to;
+  }
   if (!Number.isInteger(curveId) || curveId === LINEAR_FADE_CURVE || typeof param.setValueCurveAtTime !== "function") {
     param.setValueAtTime?.(startValue, when);
     param.linearRampToValueAtTime?.(to, when + duration);
@@ -91,6 +96,20 @@ function ScheduleFade(param, from, to, when, duration, curve, progress = 0) {
   }
   param.setValueCurveAtTime(values, when, duration);
   return startValue;
+}
+function EvaluateFadeEnvelope(envelope, at) {
+  if (!envelope) return 1;
+  const progress = envelope.duration <= 0 ? 1 : Math.max(0, Math.min(1, (at - envelope.start) / envelope.duration));
+  return envelope.from + (envelope.to - envelope.from) * FadeCurveValue(envelope.curve, progress);
+}
+function HoldAudioParam(param, at, value) {
+  if (typeof param?.cancelAndHoldAtTime === "function") {
+    param.cancelAndHoldAtTime(at);
+  } else {
+    param?.cancelScheduledValues?.(0);
+  }
+  param?.setValueAtTime?.(value, at);
+  if (param && "value" in param) param.value = value;
 }
 function EvaluateBusVolumeState(state, at) {
   if (!state) return 0;
@@ -455,6 +474,270 @@ function RouteSelection(route, containerId) {
   return (route ?? []).find(entry => entry.containerId === containerId)?.selectedTargetId ?? null;
 }
 
+/** One retained music clip whose disposable Web Audio source may be resumed. */
+class CjsMusicEngineScheduledClip {
+  #acquireBuffer;
+  #buffer = null;
+  #context;
+  #destination;
+  #isLive;
+  #getStopAt;
+  #offsetSeconds;
+  #pausedAt = null;
+  #pausedDelay = 0;
+  #pausedDuration = 0;
+  #scheduledPauseAt = null;
+  #scheduleDuck;
+
+  /** Retains one already-windowed clip and begins asynchronous realization. */
+  constructor({
+    context,
+    sourceId,
+    startCtx,
+    endCtx,
+    offsetSeconds,
+    destination,
+    acquireBuffer,
+    isPrepared,
+    isLive,
+    getStopAt,
+    scheduleDuck
+  }) {
+    this.#context = context;
+    this.#destination = destination;
+    this.#acquireBuffer = acquireBuffer;
+    this.#isLive = isLive;
+    this.#getStopAt = getStopAt;
+    this.#scheduleDuck = scheduleDuck;
+    this.#offsetSeconds = offsetSeconds;
+    this.sourceId = sourceId;
+    this.source = null;
+    this.startCtx = startCtx;
+    this.endCtx = endCtx;
+    this.cancelled = false;
+    this.failed = false;
+    this.missed = false;
+    this.ended = false;
+    this.duckActivity = null;
+    this.#BeginLoad(isPrepared);
+  }
+  #BeginLoad(isPrepared) {
+    let acquired;
+    try {
+      acquired = this.#acquireBuffer();
+    } catch {
+      this.cancelled = true;
+      this.failed = true;
+      return;
+    }
+    if (isPrepared) {
+      this.#AcceptBuffer(acquired);
+      return;
+    }
+    Promise.resolve(acquired).then(buffer => this.#AcceptBuffer(buffer)).catch(() => {
+      this.cancelled = true;
+      this.failed = true;
+    });
+  }
+  #AcceptBuffer(buffer) {
+    if (!buffer) {
+      this.cancelled = true;
+      this.failed = true;
+      return;
+    }
+    this.#buffer = buffer;
+    if (this.#pausedAt === null) {
+      this.#Realize();
+    }
+  }
+  #Realize() {
+    if (!this.#buffer || this.cancelled || this.ended || this.#pausedAt !== null || !this.#isLive()) {
+      return;
+    }
+    let when = this.startCtx;
+    let offset = this.#offsetSeconds;
+    const now = Number(this.#context?.currentTime) || 0;
+    const stopAt = this.#getStopAt();
+    const carrierStopAt = [stopAt, this.#scheduledPauseAt].filter(value => value !== null).reduce((minimum, value) => Math.min(minimum, value), Infinity);
+    if (this.#scheduledPauseAt !== null && this.#scheduledPauseAt <= now) {
+      this.#RetainAt(this.#scheduledPauseAt);
+      return;
+    }
+    if (stopAt !== null && stopAt <= now) {
+      this.cancelled = true;
+      return;
+    }
+    if (when < now) {
+      offset += now - when;
+      when = now;
+    }
+    const duration = this.endCtx - when;
+    if (!(duration > 0)) {
+      this.cancelled = true;
+      this.missed = true;
+      return;
+    }
+    const source = this.#context.createBufferSource();
+    source.buffer = this.#buffer;
+    source.connect(this.#destination);
+    source.onended = () => {
+      const endedAt = Number(this.#context?.currentTime) || this.endCtx;
+      const authoredStopAt = this.#getStopAt();
+      if (this.#scheduledPauseAt !== null && this.#scheduledPauseAt < this.endCtx && (authoredStopAt === null || this.#scheduledPauseAt < authoredStopAt) && endedAt >= this.#scheduledPauseAt) {
+        source.onended = null;
+        this.#RetainAt(this.#scheduledPauseAt);
+        return;
+      }
+      if (endedAt <= this.startCtx) {
+        this.duckActivity?.Cancel?.(endedAt);
+      } else {
+        this.duckActivity?.End?.(endedAt);
+      }
+      this.duckActivity = null;
+      this.ended = true;
+      source.onended = null;
+      source.disconnect?.();
+    };
+    try {
+      source.start(when, Math.max(0, offset), duration);
+    } catch {
+      source.onended = null;
+      source.disconnect?.();
+      this.cancelled = true;
+      this.failed = true;
+      return;
+    }
+    this.source = source;
+    this.startCtx = when;
+    this.endCtx = when + duration;
+    this.#offsetSeconds = offset;
+    this.duckActivity = this.#scheduleDuck(this.startCtx, this.endCtx);
+    if (Number.isFinite(carrierStopAt)) {
+      source.stop(carrierStopAt);
+    }
+  }
+
+  /** Arms an audio-clock stop without freezing the logical clip early. */
+  SchedulePauseAt(pauseAt) {
+    if (this.cancelled || this.failed || this.missed || this.ended || this.#pausedAt !== null || this.endCtx <= pauseAt) {
+      return;
+    }
+    this.#scheduledPauseAt = pauseAt;
+    if (this.source) {
+      const stopAt = this.#getStopAt();
+      try {
+        this.source.stop(stopAt === null ? pauseAt : Math.min(stopAt, pauseAt));
+      } catch {
+        // already stopped
+      }
+    }
+  }
+
+  /** Replaces a scheduled pause stop with the clip's authored end. */
+  CancelScheduledPause() {
+    if (this.#scheduledPauseAt === null || this.#pausedAt !== null) {
+      return;
+    }
+    this.#scheduledPauseAt = null;
+    if (this.source) {
+      const stopAt = this.#getStopAt();
+      try {
+        this.source.stop(stopAt ?? this.endCtx);
+      } catch {
+        // already stopped
+      }
+    }
+  }
+
+  /** Schedules an authored clip end without moving an armed Pause stop. */
+  ScheduleStopAt(stopAt) {
+    if (!this.source) return;
+    const carrierStopAt = this.#scheduledPauseAt === null ? stopAt : Math.min(stopAt, this.#scheduledPauseAt);
+    try {
+      this.source.stop(carrierStopAt);
+    } catch {
+      // already stopped
+    }
+  }
+  #RetainAt(pauseAt) {
+    if (this.#pausedAt !== null || this.cancelled || this.ended) {
+      return;
+    }
+    const stopAt = this.#getStopAt();
+    const effectiveEnd = stopAt === null ? this.endCtx : Math.min(this.endCtx, stopAt);
+    if (effectiveEnd <= pauseAt) {
+      if (this.source) {
+        this.source.onended = null;
+        this.source.disconnect?.();
+        this.source = null;
+      }
+      this.duckActivity?.End?.(effectiveEnd);
+      this.duckActivity = null;
+      this.ended = true;
+      return;
+    }
+    this.#pausedAt = pauseAt;
+    this.#pausedDelay = Math.max(0, this.startCtx - pauseAt);
+    const elapsed = Math.max(0, pauseAt - this.startCtx);
+    this.#offsetSeconds += elapsed;
+    this.#pausedDuration = effectiveEnd - Math.max(this.startCtx, pauseAt);
+    if (this.source) {
+      const source = this.source;
+      source.onended = null;
+      try {
+        source.stop(pauseAt);
+      } catch {
+        // already stopped
+      }
+      source.disconnect?.();
+      this.source = null;
+    }
+    if (pauseAt <= this.startCtx) {
+      this.duckActivity?.Cancel?.(pauseAt);
+    } else {
+      this.duckActivity?.End?.(pauseAt);
+    }
+    this.duckActivity = null;
+  }
+
+  /** Stops the carrier at a musical boundary and retains its logical window. */
+  PauseAt(pauseAt) {
+    if (this.cancelled || this.failed || this.missed || this.ended || this.#pausedAt !== null) {
+      return;
+    }
+    this.#RetainAt(pauseAt);
+  }
+
+  /** Recreates the carrier at its retained offset on a shifted timeline. */
+  ResumeAt(resumeAt) {
+    if (this.#pausedAt === null || this.cancelled || this.ended) {
+      return;
+    }
+    this.startCtx = resumeAt + this.#pausedDelay;
+    this.endCtx = this.startCtx + this.#pausedDuration;
+    this.#pausedAt = null;
+    this.#scheduledPauseAt = null;
+    this.#Realize();
+  }
+
+  /** Stops and disconnects this clip permanently. */
+  Dispose() {
+    this.cancelled = true;
+    const now = Number(this.#context?.currentTime) || 0;
+    if (now <= this.startCtx) {
+      this.duckActivity?.Cancel?.(now);
+    } else {
+      this.duckActivity?.End?.(now);
+    }
+    this.duckActivity = null;
+    if (this.source) {
+      this.source.onended = null;
+      this.source.disconnect?.();
+      this.source = null;
+    }
+  }
+}
+
 /**
  * Owns the Web Audio sources, fade state, and route nodes for one scheduled
  * music segment.
@@ -485,6 +768,7 @@ class CjsMusicEngineScheduledSegment {
     this.endCtx = endCtx;
     this.audibleEndCtx = endCtx;
     this.timeline = timeline;
+    this.envelopes = [];
     this.fading = false;
     this.fadeEndCtx = null;
     this.disposed = false;
@@ -503,94 +787,91 @@ class CjsMusicEngineScheduledSegment {
     acquireBuffer,
     scheduleDuck
   }) {
-    const entry = {
-      sourceId,
-      source: null,
-      startCtx,
-      endCtx: startCtx + (audibleEndMs - audibleStartMs - (offsetMs - initialOffsetMs)) / 1000,
-      cancelled: false,
-      failed: false,
-      missed: false,
-      ended: false,
-      duckActivity: null
-    };
-    this.sources.push(entry);
+    const endCtx = startCtx + (audibleEndMs - audibleStartMs - (offsetMs - initialOffsetMs)) / 1000;
     // Route resolution deliberately follows insertion: callers may inspect
     // the retained failed scheduling attempt when a dependency throws.
-    const destination = resolveDestination();
+    const destination = resolveDestination() ?? this.gain;
     const {
       prepared,
       isLive
     } = acquireBuffer();
-    const scheduleBuffer = buffer => {
-      if (!buffer) {
-        entry.cancelled = true;
-        entry.failed = true;
-        return;
-      }
-      if (entry.cancelled || !isLive()) {
-        return;
-      }
-      let resolvedWhen = startCtx;
-      let resolvedOffsetMs = offsetMs;
-      if (!isPrepared && resolvedWhen < this.#context.currentTime) {
-        const loadedAt = this.#context.currentTime;
-        resolvedOffsetMs += (loadedAt - resolvedWhen) * 1000;
-        resolvedWhen = loadedAt;
-      }
-      const resolvedDurationMs = audibleEndMs - audibleStartMs - (resolvedOffsetMs - initialOffsetMs);
-      if (resolvedDurationMs <= 0) {
-        entry.cancelled = true;
-        entry.missed = true;
-        return;
-      }
-      if (this.fading && this.fadeEndCtx <= this.#context.currentTime) {
-        entry.cancelled = true;
-        return;
-      }
-      this.audibleEndCtx = Math.max(this.audibleEndCtx, resolvedWhen + resolvedDurationMs / 1000);
-      const source = this.#context.createBufferSource();
-      source.buffer = buffer;
-      source.connect(destination ?? this.gain);
-      source.onended = () => {
-        const endedAt = Number(this.#context.currentTime) || entry.endCtx;
-        if (endedAt <= entry.startCtx) {
-          entry.duckActivity?.Cancel?.(endedAt);
-        } else {
-          entry.duckActivity?.End?.(endedAt);
-        }
-        entry.duckActivity = null;
-        entry.ended = true;
-        source.onended = null;
-        source.disconnect?.();
-      };
-      try {
-        source.start(resolvedWhen, Math.max(0, resolvedOffsetMs) / 1000, resolvedDurationMs / 1000);
-      } catch {
-        source.onended = null;
-        source.disconnect?.();
-        entry.cancelled = true;
-        entry.failed = true;
-        return;
-      }
-      entry.source = source;
-      entry.startCtx = resolvedWhen;
-      entry.endCtx = resolvedWhen + resolvedDurationMs / 1000;
-      entry.duckActivity = scheduleDuck(entry.startCtx, entry.endCtx);
-      if (this.fading) {
-        source.stop(this.fadeEndCtx);
-      }
-    };
-    const failed = () => {
-      entry.cancelled = true;
-      entry.failed = true;
-    };
-    if (isPrepared) {
-      scheduleBuffer(prepared);
-    } else {
-      Promise.resolve(prepared).then(scheduleBuffer).catch(failed);
-    }
+    const entry = new CjsMusicEngineScheduledClip({
+      context: this.#context,
+      sourceId,
+      startCtx,
+      endCtx,
+      offsetSeconds: Math.max(0, offsetMs) / 1000,
+      destination,
+      acquireBuffer: () => prepared,
+      isPrepared,
+      isLive,
+      getStopAt: () => this.fading ? this.fadeEndCtx : null,
+      scheduleDuck
+    });
+    this.sources.push(entry);
+    this.audibleEndCtx = Math.max(this.audibleEndCtx, endCtx);
     return entry;
+  }
+
+  /** Arms audio-clock stops for a future authored pause boundary. */
+  SchedulePauseAt(pauseAt) {
+    for (const entry of this.sources) {
+      entry.SchedulePauseAt(pauseAt);
+    }
+  }
+
+  /** Cancels a future freeze when Resume arrives during the Pause fade. */
+  CancelScheduledPause() {
+    for (const entry of this.sources) {
+      entry.CancelScheduledPause();
+    }
+  }
+
+  /** Freezes every clip at one authored musical boundary. */
+  PauseAt(pauseAt) {
+    for (const envelope of this.envelopes) {
+      const end = envelope.start + envelope.duration;
+      if (envelope.duration <= 0 || end <= pauseAt) {
+        continue;
+      }
+      const ratio = pauseAt <= envelope.start ? 0 : Math.min(1, (pauseAt - envelope.start) / envelope.duration);
+      const progress = envelope.progress + (1 - envelope.progress) * ratio;
+      const value = envelope.from + (envelope.to - envelope.from) * FadeCurveValue(envelope.curve, progress);
+      HoldAudioParam(envelope.param, pauseAt, value);
+      envelope.paused = {
+        delay: Math.max(0, envelope.start - pauseAt),
+        duration: end - Math.max(pauseAt, envelope.start),
+        progress
+      };
+    }
+    for (const entry of this.sources) {
+      entry.PauseAt(pauseAt);
+    }
+  }
+
+  /** Shifts this segment and resumes each retained clip together. */
+  ResumeAt(resumeAt, pauseAt) {
+    const delta = resumeAt - pauseAt;
+    this.startCtx += delta;
+    this.endCtx += delta;
+    this.audibleEndCtx += delta;
+    if (this.timeline) {
+      this.timeline.startCtx += delta;
+    }
+    if (this.fadeEndCtx !== null) {
+      this.fadeEndCtx += delta;
+    }
+    for (const envelope of this.envelopes) {
+      if (!envelope.paused) continue;
+      envelope.start = resumeAt + envelope.paused.delay;
+      envelope.duration = envelope.paused.duration;
+      envelope.progress = envelope.paused.progress;
+      envelope.paused = null;
+      ScheduleFade(envelope.param, envelope.from, envelope.to, envelope.start, envelope.duration, envelope.curve, envelope.progress);
+    }
+    for (const entry of this.sources) {
+      entry.ResumeAt(resumeAt);
+    }
   }
 
   /** Returns each gain parameter participating in synchronized fades. */
@@ -603,6 +884,47 @@ class CjsMusicEngineScheduledSegment {
       if (param) params.push(param);
     }
     return params;
+  }
+
+  /** Retains and schedules one musical gain envelope. */
+  FadeIn({
+    when,
+    duration,
+    curve,
+    progress = 0
+  }) {
+    for (const param of this.GetGainParams()) {
+      this.#ScheduleEnvelope({
+        param,
+        from: 0,
+        to: 1,
+        start: when,
+        duration,
+        curve,
+        progress
+      });
+    }
+  }
+  #ScheduleEnvelope({
+    param,
+    from,
+    to,
+    start,
+    duration,
+    curve,
+    progress = 0
+  }) {
+    this.envelopes.push({
+      param,
+      from,
+      to,
+      start,
+      duration,
+      curve,
+      progress,
+      paused: null
+    });
+    ScheduleFade(param, from, to, start, duration, curve, progress);
   }
 
   /** Fades this segment and stops loaded or future sources. */
@@ -633,7 +955,15 @@ class CjsMusicEngineScheduledSegment {
     if (duration > 0) {
       for (const param of this.GetGainParams()) {
         const authored = startValue !== null;
-        ScheduleFade(param, authored ? 1 : param.value ?? 1, 0, when, duration, authored ? fadeCurve : LINEAR_FADE_CURVE, authored ? progress : 0);
+        this.#ScheduleEnvelope({
+          param,
+          from: authored ? 1 : param.value ?? 1,
+          to: 0,
+          start: when,
+          duration,
+          curve: authored ? fadeCurve : LINEAR_FADE_CURVE,
+          progress: authored ? progress : 0
+        });
       }
     }
     for (const entry of this.sources) {
@@ -645,11 +975,7 @@ class CjsMusicEngineScheduledSegment {
         } else {
           entry.duckActivity?.End?.(stopAt);
         }
-        try {
-          entry.source.stop(stopAt);
-        } catch {
-          // already stopped
-        }
+        entry.ScheduleStopAt(stopAt);
       } else if (when + duration <= (this.#context?.currentTime ?? 0)) {
         entry.cancelled = true;
       }
@@ -661,18 +987,7 @@ class CjsMusicEngineScheduledSegment {
     if (this.disposed) return;
     this.disposed = true;
     for (const entry of this.sources) {
-      entry.cancelled = true;
-      const now = Number(this.#context?.currentTime) || 0;
-      if (now <= entry.startCtx) {
-        entry.duckActivity?.Cancel?.(now);
-      } else {
-        entry.duckActivity?.End?.(now);
-      }
-      entry.duckActivity = null;
-      if (entry.source) {
-        entry.source.onended = null;
-        entry.source.disconnect?.();
-      }
+      entry.Dispose();
     }
     for (const route of this.routeGains.values()) {
       route.lowPassFilter?.disconnect?.();
@@ -693,11 +1008,13 @@ class MusicInstance {
   /** Creates the scheduling state for one posted music event. */
   constructor({
     playingID,
+    gameObjID,
     rootId,
     group,
     busVolumeStates
   }) {
     this.playingID = playingID;
+    this.gameObjID = gameObjID;
     this.rootId = rootId;
     this.group = group;
     this.busVolumeStates = busVolumeStates ?? null;
@@ -734,6 +1051,11 @@ class MusicInstance {
     this.transportChoice = null;
     this.transportPendingChoice = null;
     this.transportGeneration = 0;
+    this.authoredPauseDepth = 0;
+    this.authoredPause = null;
+    this.authoredOutputEnvelope = null;
+    this.authoredReevaluate = false;
+    this.authoredPrepared = null;
   }
 }
 
@@ -890,10 +1212,10 @@ class CjsMusicEngine {
     this.#context = null;
   }
 
-  /** True when this engine owns the event (play/stop target or switch/state setter). */
+  /** True when this engine owns the event or one retained music program. */
   HandlesEvent(eventName) {
     if (!this.#graph) return false;
-    return !!(this.#graph.eventTargets?.[eventName] || this.#graph.eventStops?.[eventName] || this.#graph.switchSetters?.[eventName]);
+    return !!(this.#graph.eventTargets?.[eventName] || this.#graph.eventStops?.[eventName] || this.#graph.switchSetters?.[eventName] || this.#graph.programs?.[eventName]);
   }
 
   /**
@@ -903,8 +1225,11 @@ class CjsMusicEngine {
    * playback. Returns true when the id stays live.
    */
   PostEvent(eventName, playingID, onFinished, {
-    busVolumeStates = null
+    busVolumeStates = null,
+    gameObjID = 3
   } = {}) {
+    this.#FinalizeDueAuthoredPauses(Number(this.#context?.currentTime) || 0);
+    this.#ApplyMusicProgram(this.#graph.programs?.[eventName], gameObjID);
     const setters = this.#graph.switchSetters?.[eventName];
     const delayedSetters = [];
     if (setters) {
@@ -962,6 +1287,7 @@ class CjsMusicEngine {
     for (const rootId of targets ?? []) {
       const instance = new MusicInstance({
         playingID,
+        gameObjID,
         rootId,
         group,
         busVolumeStates
@@ -974,6 +1300,149 @@ class CjsMusicEngine {
     }
     this.Process();
     return true;
+  }
+
+  /** Applies one ordered bank-authored Pause/Resume program. */
+  #ApplyMusicProgram(program, gameObjID) {
+    for (const action of program ?? []) {
+      for (const instance of [...this.#instances.values()]) {
+        if (instance.stopped || Number(instance.gameObjID) !== Number(gameObjID) || action.mode === "element" && String(instance.rootId) !== String(action.targetId)) {
+          continue;
+        }
+        if (action.kind === "pause") {
+          const wasPaused = instance.authoredPauseDepth > 0;
+          instance.authoredPauseDepth++;
+          if (!wasPaused) {
+            this.#BeginAuthoredPause(instance, action);
+          }
+        } else if (instance.authoredPauseDepth > 0) {
+          instance.authoredPauseDepth--;
+          if (instance.authoredPauseDepth === 0) {
+            this.#ResumeAuthoredPause(instance, action);
+          }
+        }
+      }
+    }
+  }
+
+  /** Starts an authored fade whose completion freezes the musical clock. */
+  #BeginAuthoredPause(instance, action) {
+    const now = Number(this.#context?.currentTime) || 0;
+    const duration = Math.max(0, Number(action.transitionMs) || 0) / 1000;
+    instance.authoredPause = {
+      phase: duration > 0 ? "pausing" : "paused",
+      pauseAt: now + duration
+    };
+    this.#SetAuthoredOutputEnvelope(instance, 0, duration, action.curve, now);
+    for (const scheduled of instance.active) {
+      scheduled.SchedulePauseAt(instance.authoredPause.pauseAt);
+    }
+    // Pause fades run on the audio clock, so queue the musical timeline
+    // through every source/fade that can become audible at the fade edge,
+    // even if the browser's frame loop is throttled.
+    this.#QueueThroughAuthoredPause(instance);
+    if (duration <= 0) {
+      this.#FreezeAuthoredPause(instance, now);
+    }
+  }
+
+  /** Extends one pausing playlist through its exact audible lookahead. */
+  #QueueThroughAuthoredPause(instance) {
+    const pause = instance.authoredPause;
+    if (pause?.phase !== "pausing") return;
+    const targetNode = this.#graph.nodes[instance.resolvedTargetId];
+    const scheduleHorizon = targetNode?.type === "music-playlist-container" ? PlaylistScheduleHorizon(targetNode) : SCHEDULE_HORIZON_SECONDS;
+    const audibleHorizon = pause.pauseAt + scheduleHorizon;
+    let remaining = 10000;
+    while (instance.iterator !== null && !instance.exhausted && instance.boundary <= audibleHorizon && remaining-- > 0) {
+      if (!this.#ScheduleNextSegment(instance)) break;
+    }
+  }
+
+  /** Freezes source offsets and invalidates preparations at the fade edge. */
+  #FreezeAuthoredPause(instance, pauseAt) {
+    if (instance.authoredPause?.phase === "paused") {
+      instance.authoredPause.pauseAt = pauseAt;
+    } else if (instance.authoredPause?.phase === "pausing") {
+      instance.authoredPause.phase = "paused";
+      instance.authoredPause.pauseAt = pauseAt;
+    } else {
+      return;
+    }
+    for (const scheduled of instance.active) {
+      scheduled.PauseAt(pauseAt);
+    }
+  }
+
+  /** Cancels a pending freeze or resumes the retained timeline in place. */
+  #ResumeAuthoredPause(instance, action) {
+    const state = instance.authoredPause;
+    if (!state) return;
+    const now = Number(this.#context?.currentTime) || 0;
+    const duration = Math.max(0, Number(action.transitionMs) || 0) / 1000;
+    const frozen = state.phase === "paused";
+    instance.authoredPause = null;
+    if (frozen) {
+      const delta = Math.max(0, now - state.pauseAt);
+      instance.boundary += delta;
+      if (instance.timeline) {
+        instance.timeline.startCtx += delta;
+      }
+      if (Number.isFinite(instance.nextSegmentPlan?.scheduleFloor)) {
+        instance.nextSegmentPlan.scheduleFloor += delta;
+      }
+      for (const scheduled of instance.active) {
+        scheduled.ResumeAt(now, state.pauseAt);
+      }
+    } else {
+      for (const scheduled of instance.active) {
+        scheduled.CancelScheduledPause();
+      }
+    }
+    this.#SetAuthoredOutputEnvelope(instance, 1, duration, action.curve, now);
+    const prepared = instance.authoredPrepared;
+    instance.authoredPrepared = null;
+    if (prepared) {
+      prepared();
+    } else if (frozen || instance.authoredReevaluate) {
+      instance.authoredReevaluate = false;
+      this.#ReevaluateInstance(instance);
+    }
+    this.Process();
+  }
+
+  /** Schedules the instance-level Wwise curve on every output topology. */
+  #SetAuthoredOutputEnvelope(instance, to, duration, curve, now) {
+    const from = EvaluateFadeEnvelope(instance.authoredOutputEnvelope, now);
+    const envelope = {
+      from,
+      to,
+      start: now,
+      duration,
+      curve: Number(curve)
+    };
+    instance.authoredOutputEnvelope = envelope;
+    for (const param of this.#AuthoredOutputParams(instance)) {
+      HoldAudioParam(param, now, from);
+      ScheduleFade(param, from, to, now, duration, curve);
+    }
+  }
+  #AuthoredOutputParams(instance) {
+    return [instance.gain?.gain, ...[...instance.routeMixerGains.values()].map(gain => gain.gain)].filter(Boolean);
+  }
+
+  /** Applies the current authored output envelope to a lazily created route. */
+  #ApplyAuthoredOutputEnvelope(instance, param) {
+    const envelope = instance.authoredOutputEnvelope;
+    if (!envelope) return;
+    const now = Number(this.#context?.currentTime) || 0;
+    const value = EvaluateFadeEnvelope(envelope, now);
+    const end = envelope.start + envelope.duration;
+    HoldAudioParam(param, now, value);
+    if (end > now) {
+      const progress = envelope.duration <= 0 ? 1 : (now - envelope.start) / envelope.duration;
+      ScheduleFade(param, envelope.from, envelope.to, now, end - now, envelope.curve, progress);
+    }
   }
 
   /** Stops authored music; Wwise Break does not affect music objects. */
@@ -1001,13 +1470,13 @@ class CjsMusicEngine {
     const active = states.length > 0;
     const choiceCount = states.reduce((count, state) => Math.max(count, state.choices.length), 0);
     const preparing = active && states.some(state => state.instance.transportPendingChoice !== null);
-    const canSelect = active && states.every(state => state.instance.pendingTargetId === null && !(state.instance.transportPaused && state.instance.transportPendingChoice !== null));
+    const canSelect = active && states.every(state => state.instance.pendingTargetId === null && state.instance.authoredPause === null && !(state.instance.transportPaused && state.instance.transportPendingChoice !== null));
     return {
       active,
       preparing,
       paused: active && states.every(state => state.instance.transportPaused),
-      canPause: active && states.some(state => !state.instance.transportPaused && state.choice),
-      canResume: active && states.some(state => state.instance.transportPaused && state.choice) && !preparing,
+      canPause: active && states.some(state => state.instance.authoredPause === null && !state.instance.transportPaused && state.choice),
+      canResume: active && states.some(state => state.instance.authoredPause === null && state.instance.transportPaused && state.choice) && !preparing,
       canPrevious: canSelect && states.some(state => state.choices.length > 1),
       canNext: canSelect && states.some(state => state.choices.length > 1),
       canRandom: canSelect && states.some(state => state.choices.length > 1),
@@ -1022,7 +1491,7 @@ class CjsMusicEngine {
     const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : 0.03;
     let changed = false;
     for (const instance of group?.instances ?? []) {
-      if (instance.stopped || instance.transportPaused) continue;
+      if (instance.stopped || instance.transportPaused || instance.authoredPause !== null) continue;
       instance.transportGeneration++;
       instance.transportPendingChoice = null;
       instance.pendingGeneration++;
@@ -1049,7 +1518,7 @@ class CjsMusicEngine {
     const group = this.#groups.get(playingID);
     const queued = [];
     for (const instance of group?.instances ?? []) {
-      if (instance.stopped || !instance.transportPaused) continue;
+      if (instance.stopped || !instance.transportPaused || instance.authoredPause !== null) continue;
       const state = this.#GetTransportState(instance);
       const choice = instance.transportChoice ?? state.choice;
       if (!choice) continue;
@@ -1068,7 +1537,7 @@ class CjsMusicEngine {
   /** Moves within the current authored playlist/track selection. */
   StepTransport(playingID, direction) {
     const group = this.#groups.get(playingID);
-    if ([...(group?.instances ?? [])].some(instance => !instance.stopped && (instance.pendingTargetId !== null || instance.transportPaused && instance.transportPendingChoice !== null))) {
+    if ([...(group?.instances ?? [])].some(instance => !instance.stopped && (instance.authoredPause !== null || instance.pendingTargetId !== null || instance.transportPaused && instance.transportPendingChoice !== null))) {
       return false;
     }
     const delta = Number(direction) < 0 ? -1 : 1;
@@ -1097,7 +1566,7 @@ class CjsMusicEngine {
   /** Chooses another item inside the current authored playlist/track. */
   RandomTransport(playingID) {
     const group = this.#groups.get(playingID);
-    if ([...(group?.instances ?? [])].some(instance => !instance.stopped && (instance.pendingTargetId !== null || instance.transportPaused && instance.transportPendingChoice !== null))) {
+    if ([...(group?.instances ?? [])].some(instance => !instance.stopped && (instance.authoredPause !== null || instance.pendingTargetId !== null || instance.transportPaused && instance.transportPendingChoice !== null))) {
       return false;
     }
     const queued = [];
@@ -1150,12 +1619,16 @@ class CjsMusicEngine {
   Process() {
     if (!this.#context) return;
     const now = this.#context.currentTime;
+    this.#FinalizeDueAuthoredPauses(now);
     this.#ProcessScheduledSetters(now);
     for (const instance of [...this.#instances.values()]) {
       if (instance.stopped) {
         if (instance.stopAt === null || now >= instance.stopAt) {
           this.#FinalizeInstance(instance);
         }
+        continue;
+      }
+      if (instance.authoredPause?.phase === "paused") {
         continue;
       }
       this.#PruneScheduledSegments(instance, now);
@@ -1178,6 +1651,16 @@ class CjsMusicEngine {
       }
       if (instance.exhausted && this.#FinishExhaustedInstance(instance, now)) {
         continue;
+      }
+    }
+  }
+
+  /** Freezes music instances whose authored Pause fade has completed. */
+  #FinalizeDueAuthoredPauses(now) {
+    for (const instance of this.#instances.values()) {
+      const pause = instance.authoredPause;
+      if (!instance.stopped && pause?.phase === "pausing" && pause.pauseAt <= now) {
+        this.#FreezeAuthoredPause(instance, pause.pauseAt);
       }
     }
   }
@@ -1211,8 +1694,14 @@ class CjsMusicEngine {
       this.#switchValues.set(setter.groupId >>> 0, setter.targetId >>> 0);
     }
     for (const instance of this.#instances.values()) {
-      if (!instance.stopped && !instance.transportPaused) {
+      if (!instance.stopped && !instance.transportPaused && instance.authoredPause?.phase !== "paused") {
         this.#ReevaluateInstance(instance);
+      } else if (!instance.stopped && instance.authoredPause?.phase === "paused") {
+        instance.authoredReevaluate = true;
+        instance.authoredPrepared = null;
+        instance.pendingGeneration++;
+        instance.pendingTargetId = null;
+        instance.pendingRoute = null;
       }
     }
   }
@@ -1321,6 +1810,10 @@ class CjsMusicEngine {
         state = "stopping";
       } else if (instance.transportPaused) {
         state = "paused";
+      } else if (instance.authoredPause?.phase === "pausing") {
+        state = "pausing";
+      } else if (instance.authoredPause?.phase === "paused") {
+        state = "paused";
       } else if (totals.audible) {
         state = totals.failed || totals.missed ? "degraded" : "playing";
       } else if (instance.pendingTargetId !== null || totals.pending) {
@@ -1334,10 +1827,12 @@ class CjsMusicEngine {
       }
       return {
         playingID: instance.playingID,
+        gameObjID: instance.gameObjID,
         rootId: instance.rootId,
         now,
         state,
-        paused: instance.transportPaused,
+        paused: instance.transportPaused || instance.authoredPause?.phase === "paused",
+        authoredPauseDepth: instance.authoredPauseDepth,
         stopped: instance.stopped,
         stopAt: instance.stopAt,
         resolvedTargetId: instance.resolvedTargetId,
@@ -1359,9 +1854,18 @@ class CjsMusicEngine {
 
   /** Stores one switch/state argument and reevaluates every live instance. */
   #SetValue(groupId, valueId) {
+    this.#FinalizeDueAuthoredPauses(Number(this.#context?.currentTime) || 0);
     this.#switchValues.set(groupId >>> 0, valueId >>> 0);
     for (const instance of this.#instances.values()) {
       if (instance.stopped) continue;
+      if (instance.authoredPause?.phase === "paused") {
+        instance.authoredReevaluate = true;
+        instance.authoredPrepared = null;
+        instance.pendingGeneration++;
+        instance.pendingTargetId = null;
+        instance.pendingRoute = null;
+        continue;
+      }
       if (instance.transportPaused) {
         instance.transportGeneration++;
         instance.transportPendingChoice = null;
@@ -1415,23 +1919,35 @@ class CjsMusicEngine {
     instance.pendingTargetId = target;
     instance.pendingRoute = route;
     this.#PrepareTransition(instance, target, rule, generation, targetMeter, EffectiveMeter(null, root)).then(preparation => {
+      this.#FinalizeDueAuthoredPauses(Number(this.#context?.currentTime) || 0);
       if (instance.stopped || instance.pendingGeneration !== generation) {
         return;
       }
       if (!preparation) {
         return;
       }
-      instance.pendingTargetId = null;
-      instance.pendingRoute = null;
-      if (!preparation.available) {
-        instance.unavailableTargetId = target;
-        if (!recoverable) {
-          this.#FinishInstance(instance);
+      const commit = () => {
+        if (instance.stopped || instance.pendingGeneration !== generation) {
+          return;
         }
-        return;
+        instance.pendingTargetId = null;
+        instance.pendingRoute = null;
+        if (!preparation.available) {
+          instance.unavailableTargetId = target;
+          if (!recoverable) {
+            this.#FinishInstance(instance);
+          }
+          return;
+        }
+        const when = this.#TransitionTime(instance, rule) ?? instance.boundary;
+        this.#TransitionInstance(instance, rule, target, route, Math.max(when, this.#context.currentTime), preparation);
+        this.#QueueThroughAuthoredPause(instance);
+      };
+      if (instance.authoredPause?.phase === "paused") {
+        instance.authoredPrepared = commit;
+      } else {
+        commit();
       }
-      const when = this.#TransitionTime(instance, rule) ?? instance.boundary;
-      this.#TransitionInstance(instance, rule, target, route, Math.max(when, this.#context.currentTime), preparation);
     }).catch(() => {
       if (instance.stopped || instance.pendingGeneration !== generation) {
         return;
@@ -1583,20 +2099,32 @@ class CjsMusicEngine {
     instance.pendingRoute = route;
     instance.unavailableTargetId = null;
     this.#PrepareTransition(instance, target, rule, generation, targetMeter, ruleMeter).then(preparation => {
+      this.#FinalizeDueAuthoredPauses(Number(this.#context?.currentTime) || 0);
       if (instance.stopped || instance.pendingGeneration !== generation) {
         return;
       }
       if (!preparation) {
         return;
       }
-      instance.pendingTargetId = null;
-      instance.pendingRoute = null;
-      if (!preparation.available) {
-        instance.unavailableTargetId = target;
-        return;
+      const commit = () => {
+        if (instance.stopped || instance.pendingGeneration !== generation) {
+          return;
+        }
+        instance.pendingTargetId = null;
+        instance.pendingRoute = null;
+        if (!preparation.available) {
+          instance.unavailableTargetId = target;
+          return;
+        }
+        const when = this.#TransitionTime(instance, rule) ?? this.#CurrentSegmentBoundary(instance);
+        this.#TransitionInstance(instance, rule, target, route, Math.max(when, this.#context.currentTime), preparation);
+        this.#QueueThroughAuthoredPause(instance);
+      };
+      if (instance.authoredPause?.phase === "paused") {
+        instance.authoredPrepared = commit;
+      } else {
+        commit();
       }
-      const when = this.#TransitionTime(instance, rule) ?? this.#CurrentSegmentBoundary(instance);
-      this.#TransitionInstance(instance, rule, target, route, Math.max(when, this.#context.currentTime), preparation);
     });
   }
 
@@ -2254,6 +2782,9 @@ class CjsMusicEngine {
         this.#ScheduleClip(instance, scheduled, trackId, track, clip, boundary, entryCueMs, exitCueMs, playPreEntry, playPostExit, preparedBuffers, scheduleFloor);
       }
     }
+    if (instance.authoredPause?.phase === "pausing") {
+      scheduled.SchedulePauseAt(instance.authoredPause.pauseAt);
+    }
     return scheduled;
   }
 
@@ -2441,6 +2972,7 @@ class CjsMusicEngine {
       gain.gain.value = 0;
     }
     gain.connect(mixerInput);
+    this.#ApplyAuthoredOutputEnvelope(instance, gain.gain);
     instance.routeMixerGains.set(busGraphRoute, gain);
     return gain;
   }
@@ -2476,9 +3008,12 @@ class CjsMusicEngine {
     }
     const effectiveStart = Math.max(start, now);
     const progress = Math.max(0, Math.min(1, (effectiveStart - start) / duration));
-    for (const param of params) {
-      ScheduleFade(param, 0, 1, effectiveStart, end - effectiveStart, fade?.fadeCurve, progress);
-    }
+    scheduledSegment.FadeIn({
+      when: effectiveStart,
+      duration: end - effectiveStart,
+      curve: fade?.fadeCurve,
+      progress
+    });
   }
 
   /** Applies an authored fade-out whose offset is relative to an exit cue. */

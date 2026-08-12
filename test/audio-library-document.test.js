@@ -810,7 +810,7 @@ test("validates and installs routed music-track bus metadata", () =>
                 } ],
             },
         },
-        eventTargets: {},
+        eventTargets: { music_play: [ "100" ] },
         eventStops: {},
         switchSetters: {
             music_state: [ {
@@ -902,12 +902,49 @@ test("validates and installs routed music-track bus metadata", () =>
         /is unsupported/u,
     );
 
+    for (const field of [
+        "delayMs",
+        "delayRangeMs",
+        "transitionRangeMs",
+        "probability",
+    ])
+    {
+        const scheduledMusicProgram = structuredClone(source);
+
+        scheduledMusicProgram.music.programs.music_pause[0][field]
+            = field.endsWith("RangeMs") ? { min: 0, max: 1 } : 1;
+        assert.throws(
+            () => validateAudioLibraryDocument(scheduledMusicProgram),
+            /is unsupported/u,
+            `music programs reject ignored ${field}`,
+        );
+    }
+
     const missingMusicTarget = structuredClone(source);
 
     missingMusicTarget.music.programs.music_pause[0].targetId = "999";
     assert.throws(
         () => validateAudioLibraryDocument(missingMusicTarget),
         /has an invalid target/u,
+    );
+
+    for (const targetId of [ "-1", "4294967296", "1.5" ])
+    {
+        const invalidMusicTarget = structuredClone(source);
+
+        invalidMusicTarget.music.programs.music_pause[0].targetId = targetId;
+        assert.throws(
+            () => validateAudioLibraryDocument(invalidMusicTarget),
+            /targetId must be an unsigned 32-bit integer/u,
+        );
+    }
+
+    const orderedMusicMix = structuredClone(source);
+
+    orderedMusicMix.music.eventTargets.music_pause = [ "100" ];
+    assert.throws(
+        () => validateAudioLibraryDocument(orderedMusicMix),
+        /has an ordered action mix/u,
     );
 
     for (const mutate of [

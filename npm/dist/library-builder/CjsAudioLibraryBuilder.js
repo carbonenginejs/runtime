@@ -1488,7 +1488,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession {
       if (result.program.some(value => value.kind === "set-bus-voice-volume")) {
         throw new Error(`music Bus Voice Volume event ${eventID}`);
       }
-      result.program = result.program.filter(value => value.kind === "set-bus-volume" || value.kind === "reset-bus-volume");
+      result.program = result.program.filter(IsRetainedMusicSfxAction);
       result.leaves.clear();
       result.stopTargets.clear();
       result.setters.length = 0;
@@ -1515,7 +1515,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession {
       this.#stopTargetsByEvent.set(name, stopTargets);
     }
     const music = IsMusicEventName(name);
-    const retainedProgram = music ? program.filter(action => action.kind === "set-bus-volume" || action.kind === "reset-bus-volume") : program;
+    const retainedProgram = music ? program.filter(IsRetainedMusicSfxAction) : program;
     const retainedUnsupportedActions = music ? [] : unsupportedActions;
     if (!retainedProgram.length) {
       return;
@@ -4660,6 +4660,11 @@ function NormalizeGameParameterID(value) {
 function IsMusicEventName(name) {
   return String(name).toLowerCase().startsWith("music_");
 }
+
+/** Cross-domain Wwise actions a music-named event must also send to SFX. */
+function IsRetainedMusicSfxAction(action) {
+  return action.kind === "set-bus-volume" || action.kind === "reset-bus-volume" || (action.kind === "pause" || action.kind === "resume") && action.scope === "game-object" && action.mode === "all" && action.targetId === "0" && Number(action.targetFlags) === 0 && !action.exceptions?.length;
+}
 function PruneSfxNodes(events, nodes) {
   const reachable = new Set();
   const visit = child => {
@@ -5301,7 +5306,9 @@ function createMusicEventProjection(inspections, metadata, nodes) {
       if (!name) {
         continue;
       }
-      for (const actionID of eventActionIDs(event)) {
+      const actionIDs = eventActionIDs(event);
+      const programLength = programs[name]?.length ?? 0;
+      for (const actionID of actionIDs) {
         const action = actionsByID.get(actionID);
         if (!action) {
           continue;
@@ -5322,10 +5329,29 @@ function createMusicEventProjection(inspections, metadata, nodes) {
           values.push(setter);
         } else if (family === 0x02 || family === 0x03) {
           const playbackControl = ReadMusicPlaybackControlAction(action, family === 0x02 ? "pause" : "resume", nodes);
+          if (!playbackControl) {
+            continue;
+          }
           const program = programs[name] ?? (programs[name] = []);
           program.push(playbackControl);
         }
       }
+      if ((programs[name]?.length ?? 0) > programLength && actionIDs.some(actionID => {
+        const candidate = actionsByID.get(actionID);
+        const family = candidate ? actionFields(candidate).actionType >> 8 & 0xff : null;
+        return family !== 0x02 && family !== 0x03;
+      })) {
+        throw new Error(`unsupported ordered Music action mix ${name}`);
+      }
+    }
+  }
+  const roots = new Set(Object.values(eventTargets).flat().map(String));
+  for (const [name, actions] of Object.entries(programs)) {
+    programs[name] = actions.filter(action => action.mode === "all" || roots.has(action.targetId));
+    if (!programs[name].length) {
+      delete programs[name];
+    } else if (eventTargets[name]?.length || eventStops[name]?.length || switchSetters[name]?.length) {
+      throw new Error(`unsupported ordered Music action mix ${name}`);
     }
   }
   return {
@@ -5347,7 +5373,7 @@ function ReadMusicPlaybackControlAction(action, kind, nodes) {
     throw new Error(`unsupported Music ${kind} form ${action.id}`);
   }
   if (result.mode === "element" && !nodes[result.targetId]) {
-    throw new Error(`Music ${kind} ${action.id} references missing node ${result.targetId}`);
+    return null;
   }
   if (result.mode === "all" && result.targetId !== "0") {
     throw new Error(`invalid Music ${kind} all target ${action.id}`);
@@ -5568,27 +5594,32 @@ function validateMusicGraph(music, media, embeddedMedia) {
       throw new TypeError(`Audio library music switchSetters.${name} has duplicate setters`);
     }
   }
-  ValidateMusicPrograms(music.programs, music.nodes);
+  ValidateMusicPrograms(music.programs, music.nodes, music.eventTargets, music.eventStops, music.switchSetters);
 }
-function ValidateMusicPrograms(programs, nodes) {
+function ValidateMusicPrograms(programs, nodes, eventTargets, eventStops, switchSetters) {
   if (programs === undefined) {
     return;
   }
   if (!programs || typeof programs !== "object" || Array.isArray(programs)) {
     throw new TypeError("Audio library music programs must be an object");
   }
+  const roots = new Set(Object.values(eventTargets ?? {}).flat().map(value => normalizeUnsignedID(value, "Audio library music event target")));
   for (const [name, actions] of Object.entries(programs)) {
+    if (eventTargets?.[name]?.length || eventStops?.[name]?.length || switchSetters?.[name]?.length) {
+      throw new TypeError(`Audio library music programs.${name} has an ordered action mix`);
+    }
     if (!Array.isArray(actions) || !actions.length) {
       throw new TypeError(`Audio library music programs.${name} must be non-empty`);
     }
     for (const action of actions) {
       const expectedFlags = action?.kind === "pause" ? 7 : 6;
-      const targetId = String(Number(action?.targetId) >>> 0);
+      const targetId = normalizeUnsignedID(action?.targetId, `Audio library music programs.${name} targetId`);
       const transitionMs = Number(action?.transitionMs);
-      if (!action || !["pause", "resume"].includes(action.kind) || action.scope !== "game-object" || !["element", "all"].includes(action.mode) || Number(action.targetFlags) !== 0 || Number(action.actionFlags) !== expectedFlags || !Array.isArray(action.exceptions) || action.exceptions.length || !Number.isSafeInteger(Number(action.curve)) || Number(action.curve) < 0 || Number(action.curve) > 9 || !Number.isFinite(transitionMs) || transitionMs < 0) {
+      const unsupported = ["delayMs", "delayRangeMs", "transitionRangeMs", "probability"].some(field => action?.[field] !== undefined);
+      if (!action || !["pause", "resume"].includes(action.kind) || action.scope !== "game-object" || !["element", "all"].includes(action.mode) || Number(action.targetFlags) !== 0 || Number(action.actionFlags) !== expectedFlags || !Array.isArray(action.exceptions) || action.exceptions.length || !Number.isSafeInteger(Number(action.curve)) || Number(action.curve) < 0 || Number(action.curve) > 9 || !Number.isFinite(transitionMs) || transitionMs < 0 || unsupported) {
         throw new TypeError(`Audio library music programs.${name} has an invalid action`);
       }
-      if (action.mode === "element" && !nodes[targetId] || action.mode === "all" && targetId !== "0") {
+      if (action.mode === "element" && (!nodes[targetId] || !roots.has(targetId)) || action.mode === "all" && targetId !== "0") {
         throw new TypeError(`Audio library music programs.${name} has an invalid target`);
       }
     }

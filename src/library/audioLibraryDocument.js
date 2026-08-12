@@ -1129,19 +1129,46 @@ function ValidateMusic(music, media, embeddedMedia)
         }
     }
 
-    ValidateMusicPrograms(music.programs, nodes);
+    ValidateMusicPrograms(
+        music.programs,
+        nodes,
+        music.eventTargets,
+        music.eventStops,
+        music.switchSetters,
+    );
 }
 
-function ValidateMusicPrograms(programs, nodes)
+function ValidateMusicPrograms(
+    programs,
+    nodes,
+    eventTargets,
+    eventStops,
+    switchSetters,
+)
 {
     if (programs === undefined)
     {
         return;
     }
     RequireRecord(programs, "Audio library music programs");
+    const roots = new Set(
+        Object.values(eventTargets ?? {}).flat().map(value =>
+            NormalizeUnsignedID(
+                value,
+                "Audio library music event target",
+            )),
+    );
 
     for (const [ name, actions ] of Object.entries(programs))
     {
+        if (eventTargets?.[name]?.length
+            || eventStops?.[name]?.length
+            || switchSetters?.[name]?.length)
+        {
+            throw new TypeError(
+                `Audio library music programs.${name} has an ordered action mix`,
+            );
+        }
         if (!Array.isArray(actions) || !actions.length)
         {
             throw new TypeError(
@@ -1162,6 +1189,12 @@ function ValidateMusicPrograms(programs, nodes)
                 `${label} curve`,
             );
             const transitionMs = Number(action.transitionMs);
+            const unsupported = [
+                "delayMs",
+                "delayRangeMs",
+                "transitionRangeMs",
+                "probability",
+            ].some(field => action[field] !== undefined);
 
             if (![ "pause", "resume" ].includes(action.kind)
                 || action.scope !== "game-object"
@@ -1172,11 +1205,13 @@ function ValidateMusicPrograms(programs, nodes)
                 || action.exceptions.length
                 || curve > 9
                 || !Number.isFinite(transitionMs)
-                || transitionMs < 0)
+                || transitionMs < 0
+                || unsupported)
             {
                 throw new TypeError(`${label} is unsupported`);
             }
-            if ((action.mode === "element" && !nodes[targetId])
+            if ((action.mode === "element"
+                    && (!nodes[targetId] || !roots.has(targetId)))
                 || (action.mode === "all" && targetId !== "0"))
             {
                 throw new TypeError(`${label} has an invalid target`);

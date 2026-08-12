@@ -446,6 +446,10 @@
         <button id="musicExampleNext" type="button" title="next audio inside this authored example" disabled>next</button>
         <button id="musicExampleRandom" type="button" title="random audio inside this authored example" disabled>random</button>
       </div>
+      <div class="buttonRow transport" role="group" aria-label="Bank-authored Wwise music actions">
+        <button id="musicAuthoredPause" type="button" title="post the bank-authored music_global_pause event" disabled>Wwise pause</button>
+        <button id="musicAuthoredResume" type="button" title="post the bank-authored music_global_resume event" disabled>Wwise resume</button>
+      </div>
       <label class="sfxControl" for="moods">Dynamic mood
         <select id="moods" title="dynamic mood" disabled><option>enable audio to load moods</option></select>
         <span id="moodNotApplicable" class="unavailableField" hidden>not applicable</span>

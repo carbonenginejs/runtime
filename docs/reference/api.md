@@ -408,6 +408,16 @@ banks contribute the decoded music hierarchy while typed event actions are
 projected from every selected bank. Projection follows music targets and
 argument groups rather than bank-name or event-name conventions.
 
+Qualified bank-authored music Pause/Resume actions live in the ordered
+`music.programs` table. `CjsMusicEngine.PostEvent()` applies their game-object
+scope and target matching, nested depth, transition duration, and Wwise curve.
+Pause freezes at fade completion; Resume retains clip offsets, delayed layers,
+playlist state, and pinned pending preparation. Element actions are admitted
+only for postable music roots. Target-zero all/game-object actions also remain
+in the SFX program so the backend dispatches the one authored Event across
+both domains. This is distinct from the entry-cue-replay browser transport
+described above.
+
 ## Errors
 
 | Failure | Meaning |

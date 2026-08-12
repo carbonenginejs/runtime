@@ -1007,11 +1007,19 @@ test("music playback controls reject unqualified Wwise action forms", () =>
                 ],
             } ],
             metadata: { Events: { music_pause: { eventID: 200 } } },
-            nodes: { "1000": { type: "music-segment" } },
+            nodes: {
+                "999": { type: "music-segment" },
+                "1000": { type: "music-segment" },
+            },
         });
     };
+    assert.deepEqual(create(action => { action.targetId = 999; })(), {
+        eventTargets: {},
+        eventStops: {},
+        switchSetters: {},
+        programs: {},
+    }, "retained descendants that are not postable roots stay fail-closed");
     const cases = [
-        action => { action.targetId = 999; },
         action => { action.action.actionScope = "global"; },
         action => { action.action.actionMode = "all-except"; },
         action => { action.action.targetFlags = 1; },
@@ -1028,6 +1036,46 @@ test("music playback controls reject unqualified Wwise action forms", () =>
     {
         assert.throws(create(mutate));
     }
+});
+
+test("music playback controls reject an unordered Play and Pause mixture", () =>
+{
+    assert.throws(
+        () => CjsAudioLibraryBuilder.createMusicEventProjection({
+            inspections: [ {
+                hirc: [
+                    {
+                        typeName: "event-action",
+                        id: 20,
+                        actionType: 0x0403,
+                        targetId: 1000,
+                    },
+                    {
+                        typeName: "event-action",
+                        id: 21,
+                        actionType: 0x0203,
+                        targetId: 1000,
+                        action: {
+                            targetFlags: 0,
+                            actionFlags: 7,
+                            actionMode: "element",
+                            actionScope: "game-object",
+                            fadeCurve: 4,
+                            transitionTimeMs: 0,
+                        },
+                    },
+                    {
+                        typeName: "event",
+                        id: 200,
+                        actionIds: [ 20, 21 ],
+                    },
+                ],
+            } ],
+            metadata: { Events: { mixed: { eventID: 200 } } },
+            nodes: { "1000": { type: "music-segment" } },
+        }),
+        /unsupported ordered Music action mix mixed/u,
+    );
 });
 
 test("typed runtime-resource SFX nodes lower into the portable builder graph", () =>
@@ -9208,6 +9256,24 @@ test("SFX Pause and Resume actions lower as typed ordered programs", () =>
                     control(301, 0x0203, "pause", 7),
                     control(302, 0x0303, "resume", 6),
                     {
+                        ...control(303, 0x0205, "pause", 7),
+                        targetId: 0,
+                        action: {
+                            ...control(303, 0x0205, "pause", 7).action,
+                            actionMode: "all",
+                            targetId: 0,
+                        },
+                    },
+                    {
+                        ...control(304, 0x0305, "resume", 6),
+                        targetId: 0,
+                        action: {
+                            ...control(304, 0x0305, "resume", 6).action,
+                            actionMode: "all",
+                            targetId: 0,
+                        },
+                    },
+                    {
                         type: 4,
                         id: 100,
                         actionIds: [ 300 ],
@@ -9225,6 +9291,8 @@ test("SFX Pause and Resume actions lower as typed ordered programs", () =>
                         actionIds: [ 302 ],
                         payload: new Uint8Array(),
                     },
+                    { type: 4, id: 103, actionIds: [ 303 ] },
+                    { type: 4, id: 104, actionIds: [ 304 ] },
                 ],
             },
         ],
@@ -9233,6 +9301,8 @@ test("SFX Pause and Resume actions lower as typed ordered programs", () =>
                 voice_play: { eventID: 100 },
                 voice_pause: { eventID: 101 },
                 voice_resume: { eventID: 102 },
+                music_global_pause: { eventID: 103 },
+                music_global_resume: { eventID: 104 },
             },
         },
         media: {
@@ -9266,6 +9336,10 @@ test("SFX Pause and Resume actions lower as typed ordered programs", () =>
             exceptions: [],
         },
     ]);
+    assert.equal(result.programs.music_global_pause[0].kind, "pause");
+    assert.equal(result.programs.music_global_pause[0].mode, "all");
+    assert.equal(result.programs.music_global_resume[0].kind, "resume");
+    assert.equal(result.programs.music_global_resume[0].mode, "all");
     assert.deepEqual(result.diagnostics.omittedEvents, []);
 });
 

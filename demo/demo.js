@@ -2121,6 +2121,10 @@ class MusicUi
 
     #randomButton = null;
 
+    #authoredPauseButton = null;
+
+    #authoredResumeButton = null;
+
     #transportState = "idle";
 
     #playingID = 0;
@@ -2156,6 +2160,8 @@ class MusicUi
         this.#pauseButton = document.getElementById("musicExamplePause");
         this.#nextButton = document.getElementById("musicExampleNext");
         this.#randomButton = document.getElementById("musicExampleRandom");
+        this.#authoredPauseButton = document.getElementById("musicAuthoredPause");
+        this.#authoredResumeButton = document.getElementById("musicAuthoredResume");
         this.#exampleSelect.replaceChildren();
         for (const example of MusicUi.examples)
         {
@@ -2179,6 +2185,10 @@ class MusicUi
         this.#pauseButton.onclick = () => this.Pause();
         this.#nextButton.onclick = () => this.#StepAuthoredAudio(1);
         this.#randomButton.onclick = () => this.#RandomAuthoredAudio();
+        this.#authoredPauseButton.onclick = () =>
+            this.musicPlayer.SendEvent("music_global_pause");
+        this.#authoredResumeButton.onclick = () =>
+            this.musicPlayer.SendEvent("music_global_resume");
         this.#RefreshExampleDetail();
         this.#moodEvents = Object.keys(musicGraph.switchSetters).filter(n => n.startsWith("music_switch_")).sort();
         this.#select.onchange = () => this.#SteerTo(this.#select.value);
@@ -2451,6 +2461,14 @@ class MusicUi
         {
             parts.push("music: stopping");
         }
+        else if (status.state === "pausing")
+        {
+            parts.push("music: bank-authored Pause fading to its freeze boundary");
+        }
+        else if (status.state === "paused")
+        {
+            parts.push("music: bank-authored timeline paused (Wwise resume continues it)");
+        }
         else if (playing) parts.push(`music: ${label(playing)}`);
         else if (fadingOut) parts.push(`music: ${label(fadingOut)} fading out`);
         else if (status.state === "preparing")
@@ -2644,6 +2662,17 @@ class MusicUi
             || !capabilities.canRandom;
         this.#pauseButton.disabled = !audioEnabled
             || !capabilities.canPause;
+        const status = this.#app.audio?.musicEngine?.GetStatus()
+            ?.find(value => value.playingID === this.#playingID);
+        const authoredControls = audioEnabled
+            && Boolean(status)
+            && this.#app.library.music.programs?.music_global_pause
+            && this.#app.library.music.programs?.music_global_resume;
+
+        this.#authoredPauseButton.disabled = !authoredControls
+            || status.authoredPauseDepth > 0;
+        this.#authoredResumeButton.disabled = !authoredControls
+            || status.authoredPauseDepth === 0;
         this.#playButton.title = capabilities.preparing
             ? "preparing the retained authored item"
             : this.#transportState === "paused"

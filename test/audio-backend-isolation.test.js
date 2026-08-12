@@ -9279,12 +9279,14 @@ test("authored bus controls supersede legacy hard-coded music volume mapping", (
 test("music receives its emitter Bus Volume state map and refresh notifications", () =>
 {
   let receivedStates = null;
+  let receivedGameObjID = null;
   let refreshes = 0;
   const musicEngine = {
     HandlesEvent: eventName => eventName === "music_play",
     PostEvent(_eventName, _playingID, _complete, options)
     {
       receivedStates = options.busVolumeStates;
+      receivedGameObjID = options.gameObjID;
       return true;
     },
     ExecuteAction() {},
@@ -9317,6 +9319,7 @@ test("music receives its emitter Bus Volume state map and refresh notifications"
   backend.PostEvent(1, 1, 0, emitter, "music_play");
   assert.ok(receivedStates instanceof Map);
   assert.equal(receivedStates.size, 0);
+  assert.equal(receivedGameObjID, 1);
 
   backend.PostEvent(2, 1, 0, emitter, "set_bus");
   assert.equal(refreshes, 1);

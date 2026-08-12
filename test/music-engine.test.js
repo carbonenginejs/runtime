@@ -1502,6 +1502,580 @@ test("browser pause overrides a future authored fade and retains the audible ite
   );
 });
 
+test("authored music Pause and Resume preserve offsets, depth, and game-object scope", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    graph.programs = {
+      music_authored_pause: [ {
+        kind: "pause", targetId: String(SWITCH), targetFlags: 0,
+        scope: "game-object", mode: "element", curve: 5,
+        actionFlags: 7, exceptions: [], transitionMs: 1000,
+      } ],
+      music_authored_resume: [ {
+        kind: "resume", targetId: String(SWITCH), targetFlags: 0,
+        scope: "game-object", mode: "element", curve: 4,
+        actionFlags: 6, exceptions: [], transitionMs: 2000,
+      } ],
+    };
+  });
+
+  engine.PostEvent("music_test_play", 1301, () => {}, { gameObjID: 11 });
+  engine.PostEvent("music_test_play", 1302, () => {}, { gameObjID: 22 });
+  await tick();
+  const first = context.sources[0];
+  const second = context.sources[1];
+
+  context.currentTime = 2;
+  assert.equal(
+    engine.PostEvent(
+      "music_authored_pause",
+      1303,
+      () => {},
+      { gameObjID: 11 },
+    ),
+    false,
+  );
+  assert.equal(
+    engine.GetStatus().find(value => value.playingID === 1301).state,
+    "pausing",
+  );
+  assert.equal(
+    first.stoppedAt,
+    3,
+    "music advances until the future audio-clock Pause boundary",
+  );
+
+  context.currentTime = 3;
+  engine.Process();
+  assert.equal(first.stoppedAt, 3, "the carrier freezes at fade completion");
+  assert.equal(second.stoppedAt, null, "another game object is unaffected");
+  assert.equal(
+    engine.GetStatus().find(value => value.playingID === 1301).state,
+    "paused",
+  );
+
+  context.currentTime = 8;
+  engine.Process();
+  assert.equal(
+    engine.GetStatus().find(value => value.playingID === 1301)
+      .scheduledSources > 0,
+    true,
+    "a long pause does not prune the retained timeline",
+  );
+
+  engine.PostEvent(
+    "music_authored_pause",
+    1304,
+    () => {},
+    { gameObjID: 11 },
+  );
+  engine.PostEvent(
+    "music_authored_resume",
+    1305,
+    () => {},
+    { gameObjID: 11 },
+  );
+  assert.equal(
+    engine.GetStatus().find(value => value.playingID === 1301).state,
+    "paused",
+    "one Resume does not release two nested Pauses",
+  );
+
+  context.currentTime = 10;
+  engine.PostEvent(
+    "music_authored_resume",
+    1306,
+    () => {},
+    { gameObjID: 11 },
+  );
+  const resumed = context.sources.find(source =>
+    source !== first && source !== second
+      && source.buffer.fake === 111);
+
+  assert.equal(resumed.startedAt, 10);
+  assert.equal(resumed.startOffset, 4, "Resume continues the retained media offset");
+  assert.equal(resumed.startDuration, 6);
+  assert.equal(
+    engine.GetStatus().find(value => value.playingID === 1301).boundary,
+    15,
+    "the live playlist boundary shifts by only the frozen duration",
+  );
+});
+
+test("authored Resume during a Pause fade cancels the pending freeze", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    graph.programs = {
+      pause: [ {
+        kind: "pause", targetId: "0", targetFlags: 0,
+        scope: "game-object", mode: "all", curve: 5,
+        actionFlags: 7, exceptions: [], transitionMs: 7000,
+      } ],
+      resume: [ {
+        kind: "resume", targetId: "0", targetFlags: 0,
+        scope: "game-object", mode: "all", curve: 5,
+        actionFlags: 6, exceptions: [], transitionMs: 10000,
+      } ],
+    };
+  });
+
+  engine.PostEvent("music_test_play", 1310, () => {}, { gameObjID: 44 });
+  await tick();
+  const source = context.sources[0];
+
+  context.currentTime = 2;
+  engine.PostEvent("pause", 1311, () => {}, { gameObjID: 44 });
+  context.currentTime = 4;
+  engine.PostEvent("resume", 1312, () => {}, { gameObjID: 44 });
+  context.currentTime = 12;
+  engine.Process();
+  await tick();
+
+  assert.equal(source.stoppedAt, null);
+  assert.equal(context.sources.length, 2, "normal lookahead is not a resume restart");
+  assert.equal(engine.GetStatus()[0].authoredPauseDepth, 0);
+  assert.notEqual(engine.GetStatus()[0].state, "paused");
+});
+
+test("overdue authored Resume freezes at the audio-clock boundary without a render tick", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    graph.programs = {
+      pause: [ {
+        kind: "pause", targetId: "0", targetFlags: 0,
+        scope: "game-object", mode: "all", curve: 4,
+        actionFlags: 7, exceptions: [], transitionMs: 1000,
+      } ],
+      resume: [ {
+        kind: "resume", targetId: "0", targetFlags: 0,
+        scope: "game-object", mode: "all", curve: 4,
+        actionFlags: 6, exceptions: [], transitionMs: 0,
+      } ],
+    };
+  });
+
+  engine.PostEvent("music_test_play", 1315, () => {}, { gameObjID: 45 });
+  await tick();
+  const first = context.sources[0];
+
+  context.currentTime = 2;
+  engine.PostEvent("pause", 1316, () => {}, { gameObjID: 45 });
+  assert.equal(first.stoppedAt, 3, "the carrier stop is armed immediately");
+
+  context.currentTime = 8;
+  first.onended?.();
+  engine.PostEvent("resume", 1317, () => {}, { gameObjID: 45 });
+  const resumed = context.sources.at(-1);
+
+  assert.equal(resumed.startedAt, 8);
+  assert.equal(resumed.startOffset, 4);
+  assert.equal(resumed.startDuration, 6);
+  assert.equal(engine.GetStatus()[0].boundary, 13);
+});
+
+test("music decisions remain live until an authored Pause fade completes", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    graph.programs = {
+      pause: [ {
+        kind: "pause", targetId: "0", targetFlags: 0,
+        scope: "game-object", mode: "all", curve: 5,
+        actionFlags: 7, exceptions: [], transitionMs: 5000,
+      } ],
+    };
+  });
+
+  engine.PostEvent("music_test_play", 1318, () => {}, { gameObjID: 46 });
+  await tick();
+  context.currentTime = 2;
+  engine.PostEvent("pause", 1319, () => {}, { gameObjID: 46 });
+  context.currentTime = 3;
+  engine.SetSwitch(GROUP, COMBAT);
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetStatus()[0].state, "pausing");
+  assert.equal(engine.GetStatus()[0].resolvedTargetId, SEGMENT_B);
+  assert.equal(
+    context.sources.some(source => source.buffer.fake === 222),
+    true,
+    "a switch transition can prepare and schedule before the fade edge",
+  );
+  assert.equal(
+    context.sources[0].stoppedAt,
+    7,
+    "a later transition fade cannot move the armed carrier past Pause",
+  );
+});
+
+test("an overdue setter cannot cross an authored Pause boundary", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    graph.programs = {
+      pause: [ {
+        kind: "pause", targetId: "0", targetFlags: 0,
+        scope: "game-object", mode: "all", curve: 4,
+        actionFlags: 7, exceptions: [], transitionMs: 1000,
+      } ],
+      resume: [ {
+        kind: "resume", targetId: "0", targetFlags: 0,
+        scope: "game-object", mode: "all", curve: 4,
+        actionFlags: 6, exceptions: [], transitionMs: 0,
+      } ],
+    };
+    graph.switchSetters.delayed_combat = [ {
+      kind: "switch",
+      groupId: GROUP,
+      targetId: COMBAT,
+      delayMs: 2000,
+    } ];
+  });
+
+  engine.PostEvent("music_test_play", 1323, () => {}, { gameObjID: 58 });
+  await tick();
+  engine.PostEvent("delayed_combat", 1324, () => {});
+  engine.PostEvent("pause", 1325, () => {}, { gameObjID: 58 });
+  context.currentTime = 3;
+  engine.Process();
+  await tick();
+
+  assert.equal(engine.GetStatus()[0].state, "paused");
+  assert.equal(engine.GetStatus()[0].resolvedTargetId, PLAYLIST);
+  assert.equal(
+    context.sources.some(source => source.buffer.fake === 222),
+    false,
+    "the overdue setter is retained for Resume instead of mutating frozen music",
+  );
+
+  engine.PostEvent("resume", 1326, () => {}, { gameObjID: 58 });
+  await tick();
+  await tick();
+  assert.equal(engine.GetStatus()[0].resolvedTargetId, SEGMENT_B);
+});
+
+test("music media resolving while authored-paused stays silent until Resume", async () =>
+{
+  const loading = Deferred();
+  const { context, engine } = Harness(graph =>
+  {
+    graph.programs = {
+      pause: [ {
+        kind: "pause", targetId: String(SWITCH), targetFlags: 0,
+        scope: "game-object", mode: "element", curve: 4,
+        actionFlags: 7, exceptions: [], transitionMs: 0,
+      } ],
+      resume: [ {
+        kind: "resume", targetId: String(SWITCH), targetFlags: 0,
+        scope: "game-object", mode: "element", curve: 4,
+        actionFlags: 6, exceptions: [], transitionMs: 0,
+      } ],
+    };
+  }, {
+    loadMedia: () => loading.promise,
+  });
+
+  engine.PostEvent("music_test_play", 1320, () => {}, { gameObjID: 55 });
+  engine.PostEvent("pause", 1321, () => {}, { gameObjID: 55 });
+  loading.resolve({ fake: 111 });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 0);
+  assert.equal(engine.GetStatus()[0].state, "paused");
+
+  context.currentTime = 5;
+  engine.PostEvent("resume", 1322, () => {}, { gameObjID: 55 });
+  await tick();
+  await tick();
+
+  assert.equal(context.sources.length, 1);
+  assert.equal(context.sources[0].startedAt, 5);
+  assert.equal(context.sources[0].startOffset, 1);
+});
+
+test("music switch changes made while authored-paused commit only after Resume", async () =>
+{
+  const { context, engine } = Harness(graph =>
+  {
+    graph.programs = {
+      pause: [ {
+        kind: "pause", targetId: String(SWITCH), targetFlags: 0,
+        scope: "game-object", mode: "element", curve: 4,
+        actionFlags: 7, exceptions: [], transitionMs: 0,
+      } ],
+      resume: [ {
+        kind: "resume", targetId: String(SWITCH), targetFlags: 0,
+        scope: "game-object", mode: "element", curve: 4,
+        actionFlags: 6, exceptions: [], transitionMs: 0,
+      } ],
+    };
+  });
+
+  engine.PostEvent("music_test_play", 1325, () => {}, { gameObjID: 56 });
+  await tick();
+  assert.equal(engine.GetStatus()[0].resolvedTargetId, PLAYLIST);
+
+  context.currentTime = 2;
+  engine.PostEvent("pause", 1326, () => {}, { gameObjID: 56 });
+  engine.SetSwitch(GROUP, COMBAT);
+  await tick();
+
+  assert.equal(engine.GetStatus()[0].resolvedTargetId, PLAYLIST);
+  assert.equal(
+    context.sources.some(source => source.buffer.fake === 222),
+    false,
+    "the new branch does not prepare or schedule while frozen",
+  );
+
+  context.currentTime = 5;
+  engine.PostEvent("resume", 1327, () => {}, { gameObjID: 56 });
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetStatus()[0].resolvedTargetId, SEGMENT_B);
+  assert.equal(
+    context.sources.some(source => source.buffer.fake === 222),
+    true,
+    "Resume applies the latest switch value against the shifted timeline",
+  );
+});
+
+test("authored Pause retains a pinned random transition preparation", async () =>
+{
+  const RANDOM_TARGET = 500;
+  const graph = fixtureGraph();
+  const context = FakeContext();
+  const pending = Deferred();
+  const reads = [];
+  let randomCalls = 0;
+
+  graph.nodes[RANDOM_TARGET] = {
+    type: "music-playlist-container",
+    playlist: [
+      {
+        segmentId: 0, playlistItemId: 500, childCount: 2,
+        rsType: 3, loop: 1, loopMin: 0, loopMax: 0,
+        weight: 1, avoidRepeatCount: 0, usingWeight: true,
+        shuffle: false,
+      },
+      {
+        segmentId: SEGMENT_A, playlistItemId: 501, childCount: 0,
+        rsType: -1, loop: 1, loopMin: 0, loopMax: 0,
+        weight: 1, avoidRepeatCount: 0, usingWeight: false,
+        shuffle: false,
+      },
+      {
+        segmentId: SEGMENT_B, playlistItemId: 502, childCount: 0,
+        rsType: -1, loop: 1, loopMin: 0, loopMax: 0,
+        weight: 1, avoidRepeatCount: 0, usingWeight: false,
+        shuffle: false,
+      },
+    ],
+  };
+  graph.nodes[SWITCH].treeNodes.find(node =>
+    node.key === COMBAT).audioNodeId = RANDOM_TARGET;
+  graph.programs = {
+    pause: [ {
+      kind: "pause", targetId: "0", targetFlags: 0,
+      scope: "game-object", mode: "all", curve: 4,
+      actionFlags: 7, exceptions: [], transitionMs: 0,
+    } ],
+    resume: [ {
+      kind: "resume", targetId: "0", targetFlags: 0,
+      scope: "game-object", mode: "all", curve: 4,
+      actionFlags: 6, exceptions: [], transitionMs: 0,
+    } ],
+  };
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: sourceId =>
+    {
+      reads.push(sourceId);
+      return sourceId === 222
+        ? pending.promise
+        : Promise.resolve({ fake: sourceId });
+    },
+    random: () => (randomCalls++, 0.99),
+  });
+
+  engine.PostEvent("music_test_play", 1328, () => {}, { gameObjID: 57 });
+  await tick();
+  engine.PostEvent("music_switch_combat", 1329, () => {});
+  await tick();
+  engine.PostEvent("pause", 1330, () => {}, { gameObjID: 57 });
+  pending.resolve({ fake: 222 });
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetStatus()[0].state, "paused");
+  assert.equal(randomCalls, 1);
+  assert.deepEqual(reads, [ 111, 222 ]);
+
+  context.currentTime = 5;
+  engine.PostEvent("resume", 1331, () => {}, { gameObjID: 57 });
+
+  assert.equal(engine.GetStatus()[0].resolvedTargetId, RANDOM_TARGET);
+  assert.equal(context.sources.at(-1).buffer.fake, 222);
+  assert.equal(randomCalls, 1, "Resume does not reroll the pinned branch");
+  assert.deepEqual(reads, [ 111, 222 ], "prepared media is not acquired twice");
+});
+
+test("authored Pause retains layered clips and active transition progress", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({
+    rsType: 0,
+    loop: 1,
+    segments: [ 910, 920 ],
+  });
+
+  graph.nodes[900].rules = [ {
+    srcIds: [ -1 ], dstIds: [ -1 ],
+    src: {
+      transitionTime: 500, fadeCurve: 4, fadeOffset: 0,
+      syncType: 7, playPostExit: false,
+    },
+    dst: {
+      transitionTime: 500, fadeCurve: 4, fadeOffset: 0,
+      playPreEntry: false,
+    },
+    transitionSegment: null,
+  } ];
+  graph.programs = {
+    pause: [ {
+      kind: "pause", targetId: "0", targetFlags: 0,
+      scope: "game-object", mode: "all", curve: 4,
+      actionFlags: 7, exceptions: [], transitionMs: 0,
+    } ],
+    resume: [ {
+      kind: "resume", targetId: "0", targetFlags: 0,
+      scope: "game-object", mode: "all", curve: 4,
+      actionFlags: 6, exceptions: [], transitionMs: 0,
+    } ],
+  };
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("play", 1330, () => {}, { gameObjID: 66 });
+  await tick();
+  context.currentTime = 0.75;
+  engine.PostEvent("pause", 1331, () => {}, { gameObjID: 66 });
+  assert.equal(context.sources[0].stoppedAt, 0.75);
+  assert.equal(context.sources[1].stoppedAt, 0.75);
+
+  context.currentTime = 5;
+  engine.PostEvent("resume", 1332, () => {}, { gameObjID: 66 });
+  const resumedSource = context.sources[2];
+  const resumedDestination = context.sources[3];
+
+  assert.equal(resumedSource.startedAt, 5);
+  assert.equal(resumedSource.startOffset, 0.75);
+  assert.equal(resumedSource.startDuration, 0.25);
+  assert.equal(resumedSource.stoppedAt, 5.25);
+  assert.equal(resumedDestination.startedAt, 5.25);
+  assert.equal(resumedDestination.startOffset, 0);
+  assert.deepEqual(
+    resumedDestination.connectedTo.gain.ramps.at(-1),
+    [ 1, 5.75 ],
+    "the destination fade resumes from the same musical boundary",
+  );
+});
+
+test("an authored Pause prequeues a short playlist through its fade boundary", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({ rsType: 0, loop: 0 });
+
+  graph.programs = {
+    pause: [ {
+      kind: "pause", targetId: "0", targetFlags: 0,
+      scope: "game-object", mode: "all", curve: 5,
+      actionFlags: 7, exceptions: [], transitionMs: 7000,
+    } ],
+  };
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: async sourceId => ({ fake: sourceId }),
+  });
+
+  engine.PostEvent("play", 1335, () => {}, { gameObjID: 67 });
+  await tick();
+  engine.PostEvent("pause", 1336, () => {}, { gameObjID: 67 });
+  await tick();
+  await tick();
+
+  assert.equal(
+    Math.max(...context.sources.map(source => source.startedAt)) >= 7,
+    true,
+    "audio-clock starts cover the fade even without another Process call",
+  );
+  assert.equal(
+    Math.max(...context.sources.map(source => source.startedAt)) > 7,
+    true,
+    "lookahead also covers sources whose transition lead-in begins at the edge",
+  );
+  assert.equal(
+    context.sources
+      .filter(source => source.startedAt + source.startDuration > 7)
+      .every(source => source.stoppedAt === 7),
+    true,
+    "every carrier crossing the fade edge is armed to freeze there",
+  );
+});
+
+test("a playlist prepared during a Pause fade extends through its audible edge", async () =>
+{
+  const context = FakeContext();
+  const graph = PlaylistModeGraph({ rsType: 0, loop: 0 });
+  const loading = Deferred();
+
+  graph.programs = {
+    pause: [ {
+      kind: "pause", targetId: "0", targetFlags: 0,
+      scope: "game-object", mode: "all", curve: 5,
+      actionFlags: 7, exceptions: [], transitionMs: 7000,
+    } ],
+  };
+  const engine = new CjsMusicEngine({
+    graph,
+    context,
+    destination: context.destination,
+    loadMedia: () => loading.promise,
+  });
+
+  engine.PostEvent("play", 1337, () => {}, { gameObjID: 68 });
+  engine.PostEvent("pause", 1338, () => {}, { gameObjID: 68 });
+  loading.resolve({ fake: 1000 });
+  await tick();
+  await tick();
+
+  assert.equal(engine.GetStatus()[0].state, "pausing");
+  assert.equal(
+    Math.max(...context.sources.map(source => source.startedAt)) > 7,
+    true,
+    "an async commit reruns proactive audio-clock prequeueing",
+  );
+  assert.equal(
+    context.sources
+      .filter(source => source.startedAt + source.startDuration > 7)
+      .every(source => source.stoppedAt === 7),
+    true,
+  );
+});
+
 test("playlist scheduling expands its lookahead for long authored fades", async () =>
 {
   const context = FakeContext();

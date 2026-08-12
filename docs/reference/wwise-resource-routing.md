@@ -56,10 +56,17 @@ table for v150 Pause and Resume actions. Qualification requires game-object
 scope, element or all mode, no Bus flag, exceptions, delay, probability, or
 randomized transition, standard action flags (Pause 7, Resume 6), and a Wwise
 curve from 0 through 9. Element targets must be retained music nodes; all mode
-must target zero. Repeated actions are not deduplicated because their order and
-count define nested pause depth. This is a portable-data contract only until
-the music scheduler can restore source offsets, the live playlist iterator,
-pending preparation, and musical envelope progress.
+must target zero. Element execution is currently limited to nodes that are
+also postable music roots; retained descendants stay fail-closed because one
+browser music instance cannot pause only a nested Wwise subtree. Repeated actions are not deduplicated because their order and
+count define nested pause depth. The music scheduler executes this subset by
+freezing at the authored fade boundary, retaining source offsets, the live
+playlist iterator, pending preparation, and musical envelope progress, then
+shifting the retained timeline on Resume. All/game-object controls are also
+retained in the SFX program because Wwise target zero has no music/SFX
+discriminator. Events that mix a retained music control with music Play, Stop,
+or setter actions stay fail-closed until one ordered cross-family program can
+represent their authored order.
 
 ## Audio, Auxiliary Bus, and effect contract
 

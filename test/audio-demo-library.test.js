@@ -36,6 +36,8 @@ test("authored music demo exposes a stable contextual transport", () =>
         "musicExamplePause",
         "musicExampleNext",
         "musicExampleRandom",
+        "musicAuthoredPause",
+        "musicAuthoredResume",
     ])
     {
         assert.match(html, new RegExp(`id="${id}"`));
@@ -54,6 +56,8 @@ test("authored music demo exposes a stable contextual transport", () =>
     assert.match(script, /\.StepTransport\(/);
     assert.match(script, /\.RandomTransport\(/);
     assert.match(script, /\.PauseTransport\(/);
+    assert.match(script, /SendEvent\("music_global_pause"\)/);
+    assert.match(script, /SendEvent\("music_global_resume"\)/);
     assert.match(script, /#RefreshMoodApplicability\(/);
     assert.match(script, /toggle\.disabled = !audioEnabled \|\| !applicable/);
     assert.match(script, /this\.#select\.hidden = !applicable/);
@@ -79,7 +83,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
     assert.equal(graph.schemaVersion, 2);
     assert.equal(Object.keys(library.metadata.Events).length, 10766);
     assert.equal(Object.keys(graph.events).length, 4889);
-    assert.equal(Object.keys(graph.programs).length, 9115);
+    assert.equal(Object.keys(graph.programs).length, 9117);
     assert.ok(
         Object.keys(library.busRtpcs?.buses ?? {}).length > 0,
         "the committed demo retains authored Audio Bus RTPCs",
@@ -2167,6 +2171,65 @@ test("committed demo library carries authored SFX and music semantics", () =>
             },
         ],
         "music retains immediate and delayed setters in authored order",
+    );
+    assert.deepEqual(
+        library.music.programs,
+        {
+            music_eve_cemetery_pause: [ {
+                kind: "pause", targetId: "541724524", targetFlags: 0,
+                scope: "game-object", mode: "element", curve: 5,
+                actionFlags: 7, exceptions: [], transitionMs: 7000,
+            } ],
+            music_eve_cemetery_resume: [ {
+                kind: "resume", targetId: "541724524", targetFlags: 0,
+                scope: "game-object", mode: "element", curve: 5,
+                actionFlags: 6, exceptions: [], transitionMs: 10000,
+            } ],
+            music_eve_dynamic_pause: [ {
+                kind: "pause", targetId: "771690104", targetFlags: 0,
+                scope: "game-object", mode: "element", curve: 5,
+                actionFlags: 7, exceptions: [], transitionMs: 7000,
+            } ],
+            music_eve_dynamic_resume: [ {
+                kind: "resume", targetId: "771690104", targetFlags: 0,
+                scope: "game-object", mode: "element", curve: 5,
+                actionFlags: 6, exceptions: [], transitionMs: 10000,
+            } ],
+            music_global_pause: [ {
+                kind: "pause", targetId: "0", targetFlags: 0,
+                scope: "game-object", mode: "all", curve: 4,
+                actionFlags: 7, exceptions: [], transitionMs: 1000,
+            } ],
+            music_global_resume: [ {
+                kind: "resume", targetId: "0", targetFlags: 0,
+                scope: "game-object", mode: "all", curve: 4,
+                actionFlags: 6, exceptions: [], transitionMs: 1000,
+            } ],
+            music_login_pause: [ {
+                kind: "pause", targetId: "289339910", targetFlags: 0,
+                scope: "game-object", mode: "element", curve: 4,
+                actionFlags: 7, exceptions: [], transitionMs: 2000,
+            } ],
+        },
+        "the exact EVE corpus retains all seven authored music controls",
+    );
+    assert.deepEqual(
+        library.sfx.programs.music_global_pause,
+        [ {
+            kind: "pause", targetId: "0", targetFlags: 0,
+            scope: "game-object", mode: "all", curve: 4,
+            actionFlags: 7, exceptions: [], transitionMs: 1000,
+        } ],
+        "Pause All remains cross-domain for SFX on the posting game object",
+    );
+    assert.deepEqual(
+        library.sfx.programs.music_global_resume,
+        [ {
+            kind: "resume", targetId: "0", targetFlags: 0,
+            scope: "game-object", mode: "all", curve: 4,
+            actionFlags: 6, exceptions: [], transitionMs: 1000,
+        } ],
+        "Resume All remains cross-domain for SFX on the posting game object",
     );
 
     const musicSourcePlugins = rootId =>

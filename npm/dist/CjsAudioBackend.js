@@ -1324,7 +1324,8 @@ class CjsAudioBackend {
     };
     try {
       record.musicEngine.PostEvent(record.eventName, playingID, complete, {
-        busVolumeStates: record.emitterNodes?.busVolumes ?? this.#globalBusVolumes
+        busVolumeStates: record.emitterNodes?.busVolumes ?? this.#globalBusVolumes,
+        gameObjID: record.gameObjID
       });
     } catch {
       finished = true;

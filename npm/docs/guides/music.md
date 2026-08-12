@@ -155,21 +155,31 @@ Stingers, Musical Instrument Digital Interface (MIDI) tracks, Synth One
 tracks, and Music Track RTPC properties outside the qualified Voice Volume
 shape remain unsupported.
 
-Authored Wwise music Pause/Resume playback remains a scheduler barrier. The
-portable music graph does retain the seven fully qualified actions in EVE
-build 3453885, in authored event order: five element/game-object actions for
-dynamic, cemetery, and login music plus the global-named pair whose authored
-mode is all music on the posting game object. The retained records preserve
-target, mode, curve, action flags, and the 1, 2, 7, or 10 second transition.
-The metadata-only `music_login_resume` Event has no action and therefore has no
-program.
+Authored Wwise music Pause/Resume playback is retained and executed for the
+seven fully qualified actions in EVE build 3453885, in authored event order:
+five element/game-object actions for dynamic, cemetery, and login music plus
+the global-named pair whose authored mode is all audio on the posting game
+object. That pair is also retained in the SFX program so one posted Event
+reaches both runtime domains. Target, scope, nested pause depth, Wwise curve, action flags, and the
+1, 2, 7, or 10 second transition are preserved. The metadata-only
+`music_login_resume` Event has no action and therefore has no program.
 
-The browser scheduler does not execute those programs yet. Wwise Resume
-continues the paused musical timeline; the UI transport instead recreates
-sources at an item entry cue. Reusing that extension would be audibly
-incorrect. Runtime execution remains blocked until layered clip offsets,
-playlist iterators, pending media and switch preparations, and active musical
-fade progress can be frozen and restored.
+Pause advances normally through its fade and freezes at fade completion. The
+engine prequeues through that boundary and arms carrier stops on the audio
+clock, so a throttled render loop cannot move the retained offset past it.
+Resume recreates each disposable Web Audio source at its retained media offset
+and remaining duration, shifts future layered clips and musical boundaries by
+the frozen interval, and keeps the existing playlist iterator, random/shuffle
+history, sequence positions, transition envelopes, and pending control
+decision. Media that finishes loading while paused is cached but stays silent
+until Resume. A Resume arriving during the Pause fade cancels the pending
+freeze and reverses from the current output level.
+
+This is separate from the UI transport below, which intentionally replays an
+item from its entry cue. Web Audio and shared-Bus effect state cannot be frozen
+per music instance, so browser/native DSP tails and internal plug-in phase may
+still differ across authored Pause/Resume even though the musical scheduler
+timeline is retained.
 
 The MIDI omission is a fidelity gap rather than dead data. The shipping native
 client links the Wwise Synth One source plug-in, so those MIDI clips are
@@ -209,6 +219,12 @@ item because Web Audio buffer sources cannot be suspended individually;
 pressing **play** replays the retained item from its entry cue rather than its
 exact sample position. The transport greys actions that are not currently
 applicable.
+
+The separate **Wwise pause** and **Wwise resume** buttons post the retained
+`music_global_pause` and `music_global_resume` SoundBank events. They exercise
+the authored one-second fades and offset-preserving scheduler path on the
+current example and any matching SFX on the same game object; they are not
+aliases for the browser transport buttons.
 
 The authored panel always obtains its audio from the SoundBank graph and WEM
 delivery path. A bank WEM can contain the same recording as an external classic
