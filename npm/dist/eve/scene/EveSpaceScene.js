@@ -913,7 +913,7 @@ new class extends _identity {
 
       // The pixel fill alone overrides the sun's alpha with the roughness
       // (cpp:3087) - the vertex fill leaves the blended colour's own alpha.
-      out.Set("SunDiffuseColor", [this.currentSunColor[0], this.currentSunColor[1], this.currentSunColor[2], this.defaultDiffuseRoughness]);
+      out.Set("Sun.DiffuseColor", [this.currentSunColor[0], this.currentSunColor[1], this.currentSunColor[2], this.defaultDiffuseRoughness]);
       out.Set("AmbientColor", [this.ambientColor[0], this.ambientColor[1], this.ambientColor[2]]);
       out.Set("ReflectionIntensity", this.currentReflectionIntensity);
       out.Set("FogColor", [this.fogColor[0], this.fogColor[1], this.fogColor[2], this.fogMax]);
@@ -969,8 +969,8 @@ new class extends _identity {
      */
     #FillSunData(out) {
       vec3.normalize(sunDirectionScratch, this.sunDirection);
-      out.Set("SunDirWorld", [-sunDirectionScratch[0], -sunDirectionScratch[1], -sunDirectionScratch[2]]);
-      out.Set("SunDiffuseColor", this.currentSunColor);
+      out.Set("Sun.DirWorld", [-sunDirectionScratch[0], -sunDirectionScratch[1], -sunDirectionScratch[2]]);
+      out.Set("Sun.DiffuseColor", this.currentSunColor);
     }
 
     /**

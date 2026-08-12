@@ -273,6 +273,28 @@ class RawData {
       throw new Error(`RawData: no encoder for encoding "${field.encoding}" (field "${name}")`);
     }
     encoder(this.#floats, this.#uints, field, this.#Normalize(field, name, value));
+
+    // DELIBERATE DEVIATION: a write marks the record dirty, where Carbon relies
+    // on the owner calling InvalidateBufferData once per frame.
+    //
+    // Carbon can afford that because its flag is barely load-bearing: the
+    // grouped path calls SetPerObjectDataToDevice unconditionally per batch,
+    // the dirty protocol exists only on Tr2PersistentPerObjectData, and one of
+    // its overloads is excluded on DX11, where the buffer is refilled every
+    // time regardless. Ours IS load-bearing, because an engine uploader skips a
+    // clean record.
+    //
+    // Thirteen sites create a persistent record here and two call Invalidate.
+    // With the flag as Carbon has it, every other record would upload once and
+    // then freeze at its first frame's values - including the per-frame view
+    // and projection matrices - and nothing would say so.
+    //
+    // The failure modes are not symmetric. A missed Invalidate renders stale
+    // data with no error at all; a redundant dirty costs one upload that was
+    // already going to be correct. So the flag is set where the change actually
+    // happens, and Invalidate remains for a caller that changed something
+    // without writing through this object.
+    this.#dirty = true;
   }
 
   /**

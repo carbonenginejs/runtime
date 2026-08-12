@@ -32,20 +32,26 @@ import { Types, IDENTITY, ZERO4, toRawLayout, buildLayouts } from './constantLay
 // HLSL but the layouts do not.
 
 /**
- * EveSpaceScene.h:218-223. Nested in both space-scene blocks; laid out inline
- * because the catalog resolves flat float offsets, not nested structs.
+ * EveSpaceScene.h:218-223. Carbon declares a `SunData` struct and both
+ * space-scene blocks hold it as a member named `Sun` (`:246`, `:314`), so the
+ * field is `Sun.DirWorld`. The catalog resolves flat float offsets rather than
+ * nested structs, but the NAME keeps the dot: collapsing it to `SunDirWorld`
+ * invents an identifier Carbon does not have, and it disagreed with the dotted
+ * form `engine-webgpu`'s bounded serializer already uses for the same field —
+ * which surfaces as a bare `unknown field` from `RawData.Set` and costs real
+ * time to trace.
  *
  * `DirWorld` is stored NEGATED and normalized - shaders work with the
  * direction TO the light (EveSpaceScene.cpp:3039).
  */
 const SUN_DATA = Object.freeze({
-  SunDirWorld: {
+  "Sun.DirWorld": {
     type: Types.VECTOR3
   },
-  SunUnusedPad0: {
+  "Sun.unused_pad0": {
     type: Types.FLOAT
   },
-  SunDiffuseColor: {
+  "Sun.DiffuseColor": {
     type: Types.COLOR
   }
 });
