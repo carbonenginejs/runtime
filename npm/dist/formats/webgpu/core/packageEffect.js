@@ -6,8 +6,8 @@ import { buildWgslBindingPlan } from './wgsl/buildWgslBindingPlan.js';
 import { buildWgsl } from './wgsl/emitWgsl.js';
 import { buildWgslSet } from './wgsl/buildWgslSet.js';
 import { buildResourceTransformPlan } from './wgsl/buildResourceTransformPlan.js';
-import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';
-import { buildEffectBackendBodySet, EFFECT_BACKEND_BODY_SET_VERSION, EFFECT_BACKEND_BODY_SET_FORMAT, EFFECT_BACKEND_BODY_SET_CHUNK } from './effectBackendBodySet.js';
+import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT } from '../../../format/effect/effectPermutationGraph.js';
+import { buildEffectBackendBodySet, EFFECT_BACKEND_BODY_SET_VERSION, EFFECT_BACKEND_BODY_SET_FORMAT } from './effectBackendBodySet.js';
 import { DXBC_WGSL_TRANSLATOR_VERSION, DXBC_WGSL_TRANSLATOR_NAME, FORMAT_WEBGPU_PACKAGE_VERSION, FORMAT_WEBGPU_PACKAGE_NAME, WEBGPU_BACKEND_NAME, EFFECT_INFO_VERSION } from './packageMetadata.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
 import { isParticleClearEffectCandidate, preflightParticleClearEffectProfile, particleClearEffectProofFor } from './wgsl/lowerParticleClearComputePrograms.js';
@@ -148,7 +148,6 @@ function buildEffectPackage(input, options = {}) {
     translator: DXBC_WGSL_TRANSLATOR_NAME,
     translatorVersion: DXBC_WGSL_TRANSLATOR_VERSION,
     permutationGraph: Object.freeze({
-      chunk: EFFECT_PERMUTATION_GRAPH_CHUNK,
       format: EFFECT_PERMUTATION_GRAPH_FORMAT,
       formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
       sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),
@@ -161,7 +160,6 @@ function buildEffectPackage(input, options = {}) {
     } : {}),
     ...(backendBodySet ? {
       backendBodySet: Object.freeze({
-        chunk: EFFECT_BACKEND_BODY_SET_CHUNK,
         format: EFFECT_BACKEND_BODY_SET_FORMAT,
         formatVersion: EFFECT_BACKEND_BODY_SET_VERSION,
         sha256: sha256Utf8(`${JSON.stringify(backendBodySet)}\n`),

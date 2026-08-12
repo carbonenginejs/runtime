@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 
 
+import { readContainer } from "./support/readContainer.js";
 import CjsWebgpuFormat from "../../../src/formats/webgpu/index.js";
 import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";
 import { validateEffectContainer } from "../../../src/formats/webgpu/core/carbonWebgpu/validateContainer.js";
@@ -23,7 +24,7 @@ function canonicalEffectChunks()
     const result = CjsWebgpuFormat.buildEffect(buildMinimalStagedEffectBytes({ version: 15 }), {
         source: "synthetic.sm_hi"
     });
-    const pkg = CjsWebgpuFormat.read(result.bytes, { emit: CjsWebgpuFormat.OUTPUT_RAW });
+    const pkg = readContainer(result.bytes);
 
     return pkg.chunks.map((chunk) => [
         chunk.tag,
@@ -83,9 +84,7 @@ function canonicalV15EffectChunks()
         }),
         { source: "synthetic.sm_depth" }
     );
-    const pkg = CjsWebgpuFormat.read(result.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
+    const pkg = readContainer(result.bytes);
 
     return pkg.chunks.map((chunk) => [
         chunk.tag,
@@ -151,9 +150,7 @@ function legacySelectedReflectionFixture(selectHigh = false)
             sourcePath
         }
     );
-    const raw = CjsWebgpuFormat.read(current.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
+    const raw = readContainer(current.bytes);
     const chunks = raw.chunks.map((chunk) =>
     {
         if (chunk.tag === "RFLX") return [ chunk.tag, legacy.reflection ];
@@ -617,7 +614,7 @@ test("the backend layer rejects a program WebGPU cannot express", () =>
     const result = CjsWebgpuFormat.buildEffect(buildMinimalStagedEffectBytes({ version: 15 }), {
         source: "synthetic.sm_hi"
     });
-    const container = CjsWebgpuFormat.read(result.bytes, { emit: CjsWebgpuFormat.OUTPUT_RAW });
+    const container = readContainer(result.bytes);
 
     const description = container.GetDescription(0);
     const stage = description.techniques[0].passes[0].stages[0];

@@ -4,7 +4,6 @@ import { HlslRenderContextEnum, hlslShaderStageName } from "../../hlsl/core/tr2/
 
 import {
     buildEffectPermutationGraph,
-    EFFECT_PERMUTATION_GRAPH_CHUNK,
     EFFECT_PERMUTATION_GRAPH_FORMAT,
     EFFECT_PERMUTATION_GRAPH_VERSION
 } from "../../../format/effect/effectPermutationGraph.js";
@@ -215,7 +214,6 @@ export function buildEffectPackage(input, options = {})
         sourcePermutationCount: permutationGraph.variants.length,
         sourceUniqueBodyCount: permutationGraph.bodies.length,
         permutationGraph: {
-            chunk: EFFECT_PERMUTATION_GRAPH_CHUNK,
             format: EFFECT_PERMUTATION_GRAPH_FORMAT,
             formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
             sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),

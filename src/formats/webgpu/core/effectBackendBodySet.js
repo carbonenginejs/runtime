@@ -16,7 +16,6 @@ import {
     preflightParticleClearEffectProfile
 } from "./wgsl/lowerParticleClearComputePrograms.js";
 
-export const EFFECT_BACKEND_BODY_SET_CHUNK = "WGSB";
 export const EFFECT_BACKEND_BODY_SET_FORMAT = "CJS_WGSL_BODY_SET";
 export const EFFECT_BACKEND_BODY_SET_VERSION = 1;
 

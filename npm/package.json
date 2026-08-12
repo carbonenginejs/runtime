@@ -1,6 +1,6 @@
 {
   "name": "@carbonenginejs/runtime-resource",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "CarbonEngineJS resource lifecycle, cache, source, and object loading contracts.",
   "type": "module",
   "exports": {
@@ -52,7 +52,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@carbonenginejs/runtime-utils": "^0.1.5",
+    "@carbonenginejs/runtime-utils": "^0.1.6",
     "meshoptimizer": "^1.2.0",
     "yaml": "^2.4.0"
   },

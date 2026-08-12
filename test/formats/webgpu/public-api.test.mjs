@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 
 import CjsWebgpuFormat, { CjsWebgpuFormat as NamedCjsWebgpuFormat } from "../../../src/formats/webgpu/index.js";
 import { buildMinimalStagedEffectBytes } from "./synthetic.js";
+import { readContainer } from "./support/readContainer.js";
 
 class Package {}
 class Resource {}
@@ -82,7 +83,15 @@ test("implemented metadata advertises the package surface", () =>
     assert.deepEqual(CjsWebgpuFormat.mediaTypes, [ "shader" ]);
     assert.deepEqual(CjsWebgpuFormat.inputTypes, [ "carbonwebgpu" ]);
     assert.deepEqual(CjsWebgpuFormat.outputTypes, [ "json" ]);
-    assert.deepEqual(CjsWebgpuFormat.debugOutputTypes, [ "raw" ]);
+    // One emit, as WebGL has. There is no debug emit and no `OUTPUT_RAW`: the
+    // container is internal, and a second way in is what let a consumer bind to
+    // the reader object instead of the document it returns.
+    assert.equal("debugOutputTypes" in CjsWebgpuFormat, false);
+    assert.equal("OUTPUT_RAW" in CjsWebgpuFormat, false);
+    assert.throws(
+      () => CjsWebgpuFormat.read(sampleBytes(), { emit: "raw" }),
+      /emit must be "json", got "raw"/u
+    );
     assert.equal(CjsWebgpuFormat.implementationStatus, "partial");
     assert.equal(CjsWebgpuFormat.format, "CARBON_WEBGPU");
     assert.equal(CjsWebgpuFormat.analysisFormat, "CARBON_WEBGPU_ANALYSIS");
@@ -117,14 +126,33 @@ test("json emit exposes the derived info, analysis and stage records", () =>
     assert.equal(typeof JSON.stringify(result), "string");
 });
 
-test("raw emit exposes the CarbonWebgpuContainer instance", () =>
+// The container still exists and still resolves bodies; what changed is that no
+// caller outside this repository can hold one. The single emit publishes the
+// container's own answer instead - `deriveBackendBodySet` calls exactly this
+// method - so the join a consumer needs is data, not a live object.
+test("the internal container resolves bodies, and the emit publishes its answer", () =>
 {
-    const container = CjsWebgpuFormat.read(sampleBytes(), { emit: CjsWebgpuFormat.OUTPUT_RAW });
+    const bytes = sampleBytes();
+    const container = readContainer(bytes);
 
     assert.equal(container.constructor.name, "CarbonWebgpuContainer");
     assert.equal(container.IsGood(), true);
     assert.equal(container.carbon.version, 15);
-    assert.ok(container.GetBackendBodyPrograms(0));
+
+    const resolved = container.GetBackendBodyPrograms(0);
+    assert.ok(resolved);
+
+    const document = CjsWebgpuFormat.read(bytes);
+    const bodyKey = document.permutationGraph.variants[0].bodyKey;
+    const body = document.backendBodySet.bodies.find((entry) => entry.bodyKey === bodyKey);
+    const units = new Map(document.backendBodySet.passUnits.map((unit) => [ unit.key, unit ]));
+
+    assert.equal(body.bodyKey, resolved.bodyKey);
+    assert.equal(body.status, resolved.status);
+    assert.deepEqual(
+      body.passes.map((pass) => [ pass.passKey, units.get(pass.unitKey).shaders ]),
+      resolved.passes.map((pass) => [ pass.passKey, pass.shaders ])
+    );
 });
 
 test("inspect summarizes without building the full JSON shape", () =>
@@ -207,7 +235,6 @@ test("buildEffect exposes structurally qualified selected-body Carbon WebGPU pac
     assert.equal(result.info.translatorVersion, CjsWebgpuFormat.packageVersion);
     assert.match(result.info.permutationGraph.sha256, /^[0-9a-f]{64}$/u);
     assert.deepEqual(result.info.permutationGraph, {
-        chunk: "PGRF",
         format: "CJS_EFFECT_PERMUTATION_GRAPH",
         formatVersion: 1,
         sha256: result.info.permutationGraph.sha256,

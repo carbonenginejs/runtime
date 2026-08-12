@@ -5,7 +5,7 @@ import '../../hlsl/core/carbonDescriptionToRuntime.js';
 import '../../../format/CjsByteReader.js';
 import '../../../format/compareUtf8.js';
 import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';
-import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_CHUNK } from '../../../format/effect/effectPermutationGraph.js';
+import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT } from '../../../format/effect/effectPermutationGraph.js';
 import { emitGlslWithOptions } from './helpers.js';
 import { inspectGlslEffectContainer } from './inspectGlslEffectContainer.js';
 import { inspectRasterCompleteness } from './glslEffectCompleteness.js';
@@ -181,7 +181,6 @@ function buildEffectPackage(input, options = {}) {
     sourcePermutationCount: permutationGraph.variants.length,
     sourceUniqueBodyCount: permutationGraph.bodies.length,
     permutationGraph: {
-      chunk: EFFECT_PERMUTATION_GRAPH_CHUNK,
       format: EFFECT_PERMUTATION_GRAPH_FORMAT,
       formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
       sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),

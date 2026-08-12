@@ -12,7 +12,6 @@ import { selectEffectStages } from './packageEffectSelection.js';
 import { compareUtf8 } from '../../../format/compareUtf8.js';
 import { isParticleClearEffectCandidate, preflightParticleClearEffectProfile, particleClearEffectProofFor } from './wgsl/lowerParticleClearComputePrograms.js';
 
-const EFFECT_BACKEND_BODY_SET_CHUNK = "WGSB";
 const EFFECT_BACKEND_BODY_SET_FORMAT = "CJS_WGSL_BODY_SET";
 const EFFECT_BACKEND_BODY_SET_VERSION = 1;
 
@@ -302,5 +301,5 @@ function buildEffectBackendBodySet(effectRes, permutationGraph, options = {}) {
   });
 }
 
-export { EFFECT_BACKEND_BODY_SET_CHUNK, EFFECT_BACKEND_BODY_SET_FORMAT, EFFECT_BACKEND_BODY_SET_VERSION, buildEffectBackendBodySet };
+export { EFFECT_BACKEND_BODY_SET_FORMAT, EFFECT_BACKEND_BODY_SET_VERSION, buildEffectBackendBodySet };
 //# sourceMappingURL=effectBackendBodySet.js.map

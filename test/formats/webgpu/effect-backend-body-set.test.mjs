@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { CjsWebgpuFormat } from "../../../src/formats/webgpu/index.js";
 import { buildMinimalStagedEffectBytes } from "./synthetic.js";
+import { readContainer } from "./support/readContainer.js";
 
 function allBodyEffectBytes()
 {
@@ -84,9 +85,7 @@ test("allPermutations compatibility request selects all-body mode", () =>
 test("every permutation resolves to translated backend programs", () =>
 {
     const result = buildAllBodyPackage();
-    const pkg = CjsWebgpuFormat.read(result.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
+    const pkg = readContainer(result.bytes);
     const bodyKeys = new Set();
 
     for (let index = 0; index < result.permutationGraph.variants.length; index++)
@@ -114,9 +113,7 @@ test("every permutation resolves to translated backend programs", () =>
 test("the selected body's translated programs equal the WGSL chunk", () =>
 {
     const result = buildAllBodyPackage();
-    const pkg = CjsWebgpuFormat.read(result.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
+    const pkg = readContainer(result.bytes);
     const selected = pkg.GetBackendBodyPrograms();
     const shaders = selected.passes.flatMap((pass) => pass.shaders);
 
@@ -188,9 +185,7 @@ test("body accounting cannot disagree with the bodies, because there is one docu
     // What replaces them is the guard that does still have work to do: the bytes
     // themselves must be sound.
     const result = buildAllBodyPackage();
-    const container = CjsWebgpuFormat.read(result.bytes, {
-        emit: CjsWebgpuFormat.OUTPUT_RAW
-    });
+    const container = readContainer(result.bytes);
 
     const graph = container.permutationGraph;
     const distinctOffsets = new Set(container.carbon.records.map((record) => record.offset));
@@ -222,7 +217,7 @@ test("a corrupted container is rejected rather than silently misread", () =>
     let rejected = false;
     try
     {
-        const container = CjsWebgpuFormat.read(corrupted, { emit: CjsWebgpuFormat.OUTPUT_RAW });
+        const container = readContainer(corrupted);
         for (let index = 0; index < container.carbon.records.length; index += 1)
         {
             container.GetDescription(index);

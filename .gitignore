@@ -24,6 +24,16 @@ carbonenginejs.md
 resource-kb.md
 /DECORATOR-TODOS.md
 
+# Agent entry files. Generated per checkout by docs/tooling/bin/cjs-agent-entry.js
+# and deliberately local: they cite the private organization documentation, which
+# a published package must not point at.
+/AGENTS.md
+/CLAUDE.md
+
+# Acquired game data. Anything using the tools-core client materialises this, and
+# it holds CCP bytes. Same rule and anchoring as tools-core's own ignore file.
+/.cache/
+
 # Locally materialised test fixtures extracted from CCP game files. These are
 # never committed: the compute tests in test/formats/webgl/ expect you to
 # extract real EVE stages locally, and their own comment already promised this

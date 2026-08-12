@@ -1,8 +1,25 @@
 import { sha256Bytes } from './sha256.js';
 
+/**
+ * The source permutation topology: which permutations exist, and which of them
+ * share one body.
+ *
+ * This module used to model that as the `PGRF` **chunk** - it exported the tag,
+ * and every error it raised named it. There are no chunks. A `.carbonwebgpu` or
+ * `.carbonwebgl` file is one Carbon v15 record container, and the graph the
+ * container publishes is a *view* over the header's own permutation records and
+ * offset table, not a stored document beside them. The chunk vocabulary outlived
+ * the reader beneath it by weeks precisely because nothing was broken: packages
+ * built, ccpwgl rendered, and the only cost was that every error message named a
+ * container the file no longer had.
+ *
+ * The graph is still built here, from the decoded effect resource, because that
+ * is where the source topology is known. What is gone is the claim that it is
+ * stored anywhere.
+ */
+
 const EFFECT_PERMUTATION_GRAPH_FORMAT = "CJS_EFFECT_PERMUTATION_GRAPH";
 const EFFECT_PERMUTATION_GRAPH_VERSION = 1;
-const EFFECT_PERMUTATION_GRAPH_CHUNK = "PGRF";
 const SHA256 = /^[0-9a-f]{64}$/u;
 const UINT8_MAX = 0xff;
 const UINT32_MAX = 0xffffffff;
@@ -94,21 +111,21 @@ function buildEffectPermutationGraph(effectRes) {
  */
 function validateEffectPermutationGraph(graph, options = {}) {
   if (!graph || typeof graph !== "object" || Array.isArray(graph) || graph.format !== EFFECT_PERMUTATION_GRAPH_FORMAT || graph.formatVersion !== EFFECT_PERMUTATION_GRAPH_VERSION || !graph.coverage || typeof graph.coverage !== "object" || Array.isArray(graph.coverage) || graph.coverage.permutations !== "complete" || graph.coverage.bodies !== "identity-only" || graph.coverage.reflection !== "absent") {
-    throw new Error("PGRF schema or coverage is unsupported");
+    throw new Error("Effect permutation graph schema or coverage is unsupported");
   }
   const axes = validateGraphAxes(graph.axes);
   const permutationCount = permutationProduct(axes);
   if (!Array.isArray(graph.variants) || graph.variants.length !== permutationCount) {
-    throw new Error("PGRF must contain one variant per Cartesian permutation");
+    throw new Error("Effect permutation graph must contain one variant per Cartesian permutation");
   }
   if (!Array.isArray(graph.bodies) || !graph.bodies.length || graph.bodies.length > graph.variants.length) {
-    throw new Error("PGRF bodies are malformed");
+    throw new Error("Effect permutation graph bodies are malformed");
   }
   const bodies = new Map();
   const bodyDigests = new Set();
   for (const [bodyIndex, body] of graph.bodies.entries()) {
     if (!body || typeof body !== "object" || Array.isArray(body) || typeof body.key !== "string" || !body.key || body.key !== body.key.trim() || !Number.isSafeInteger(body.byteLength) || body.byteLength < 1 || body.byteLength > UINT32_MAX || typeof body.sha256 !== "string" || !SHA256.test(body.sha256) || bodies.has(body.key) || bodyDigests.has(body.sha256)) {
-      throw new Error(`PGRF body ${bodyIndex} is malformed or duplicated`);
+      throw new Error(`Effect permutation graph body ${bodyIndex} is malformed or duplicated`);
     }
     bodyDigests.add(body.sha256);
     bodies.set(body.key, {
@@ -121,26 +138,26 @@ function validateEffectPermutationGraph(graph, options = {}) {
   for (const [permutationIndex, variant] of graph.variants.entries()) {
     const expectedOptionIndices = decodeOptionIndices(permutationIndex, axes);
     if (!variant || typeof variant !== "object" || Array.isArray(variant) || variant.permutationIndex !== permutationIndex || !Array.isArray(variant.optionIndices) || variant.optionIndices.length !== expectedOptionIndices.length || variant.optionIndices.some((value, index) => value !== expectedOptionIndices[index]) || typeof variant.bodyKey !== "string" || !bodies.has(variant.bodyKey)) {
-      throw new Error(`PGRF variant ${permutationIndex} is malformed`);
+      throw new Error(`Effect permutation graph variant ${permutationIndex} is malformed`);
     }
     const sourceRecord = validateGraphSourceRecord(variant.sourceRecord, permutationIndex, options.sourceByteLength);
     const body = bodies.get(variant.bodyKey);
     if (sourceRecord.byteLength !== body.byteLength) {
-      throw new Error(`PGRF variant ${permutationIndex} body length disagrees`);
+      throw new Error(`Effect permutation graph variant ${permutationIndex} body length disagrees`);
     }
     const recordKey = `${sourceRecord.offset}:${sourceRecord.byteLength}`;
     const existingBodyKey = bodyKeyBySourceRecord.get(recordKey);
     if (existingBodyKey && existingBodyKey !== variant.bodyKey) {
-      throw new Error(`PGRF source record ${recordKey} maps to multiple bodies`);
+      throw new Error(`Effect permutation graph source record ${recordKey} maps to multiple bodies`);
     }
     bodyKeyBySourceRecord.set(recordKey, variant.bodyKey);
     sourceRecords.push(sourceRecord);
     body.references += 1;
   }
-  validateDisjointSourceRecords(sourceRecords, "PGRF source body records partially overlap");
+  validateDisjointSourceRecords(sourceRecords, "Effect permutation graph source body records partially overlap");
   for (const [bodyKey, body] of bodies) {
     if (!body.references) {
-      throw new Error(`PGRF body ${bodyKey} is unreferenced`);
+      throw new Error(`Effect permutation graph body ${bodyKey} is unreferenced`);
     }
   }
   return Object.freeze({
@@ -177,18 +194,18 @@ function normalizeAxes(value) {
 }
 function validateGraphAxes(value) {
   if (!Array.isArray(value) || value.length > UINT8_MAX) {
-    throw new Error("PGRF axes must be an array");
+    throw new Error("Effect permutation graph axes must be an array");
   }
   const names = new Set();
   return value.map((axis, index) => {
     if (!axis || typeof axis !== "object" || Array.isArray(axis) || axis.index !== index || typeof axis.name !== "string" || !axis.name || axis.name !== axis.name.trim() || names.has(axis.name) || !Array.isArray(axis.options) || !axis.options.length || axis.options.length > UINT8_MAX || !Number.isSafeInteger(axis.defaultOption) || axis.defaultOption < 0 || axis.defaultOption >= axis.options.length || typeof axis.description !== "string" || !Number.isSafeInteger(axis.type) || axis.type < 0 || axis.type > UINT8_MAX) {
-      throw new Error(`PGRF axis ${index} is malformed or duplicated`);
+      throw new Error(`Effect permutation graph axis ${index} is malformed or duplicated`);
     }
     names.add(axis.name);
     const options = new Set();
     for (const option of axis.options) {
       if (typeof option !== "string" || !option || option !== option.trim() || options.has(option)) {
-        throw new Error(`PGRF axis ${index} options are malformed`);
+        throw new Error(`Effect permutation graph axis ${index} options are malformed`);
       }
       options.add(option);
     }
@@ -227,7 +244,7 @@ function validateGraphSourceRecord(record, permutationIndex, sourceByteLength) {
   const byteLength = record?.byteLength;
   const end = offset + byteLength;
   if (!record || typeof record !== "object" || Array.isArray(record) || !Number.isSafeInteger(offset) || offset < 0 || offset > UINT32_MAX || !Number.isSafeInteger(byteLength) || byteLength < 1 || byteLength > UINT32_MAX || !Number.isSafeInteger(end) || sourceByteLength !== undefined && (!Number.isSafeInteger(sourceByteLength) || sourceByteLength < 1 || end > sourceByteLength)) {
-    throw new Error(`PGRF variant ${permutationIndex} source record is malformed`);
+    throw new Error(`Effect permutation graph variant ${permutationIndex} source record is malformed`);
   }
   return record;
 }
@@ -253,5 +270,5 @@ function bytesEqual(left, right) {
   return left.byteLength === right.byteLength && left.every((value, index) => value === right[index]);
 }
 
-export { EFFECT_PERMUTATION_GRAPH_CHUNK, EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_VERSION, buildEffectPermutationGraph, validateEffectPermutationGraph };
+export { EFFECT_PERMUTATION_GRAPH_FORMAT, EFFECT_PERMUTATION_GRAPH_VERSION, buildEffectPermutationGraph, validateEffectPermutationGraph };
 //# sourceMappingURL=effectPermutationGraph.js.map

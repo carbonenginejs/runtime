@@ -5,7 +5,7 @@ import { buildWgslBindingPlan } from './core/wgsl/buildWgslBindingPlan.js';
 import { buildWgslSet } from './core/wgsl/buildWgslSet.js';
 import { buildEffectPackage } from './core/packageEffect.js';
 import { FORMAT_WEBGPU_PACKAGE_VERSION } from './core/packageMetadata.js';
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, analyzeEffectWithValues, toJsonValue, isCarbonWebgpu, OUTPUT_JSON, OUTPUT_RAW, CARBON_WEBGPU_FORMAT, CARBON_WEBGPU_ANALYSIS_FORMAT } from './core/helpers.js';
+import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, analyzeEffectWithValues, toJsonValue, isCarbonWebgpu, OUTPUT_JSON, CARBON_WEBGPU_FORMAT, CARBON_WEBGPU_ANALYSIS_FORMAT } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWebgpuFormat";
 
@@ -128,7 +128,7 @@ class CjsWebgpuFormat {
    *
    * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
    * @param {object} [options] Per-call value overrides.
-   * @returns {object} Plain JSON data, or the raw package instance when emit is "raw".
+   * @returns {object} Plain JSON data: the container-backed views plus the complete backend body set.
    */
   Read(input, options = {}) {
     return readWithValues(input, this.GetValues(options));
@@ -245,7 +245,7 @@ class CjsWebgpuFormat {
    *
    * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
    * @param {object} [options] Format values.
-   * @returns {object} Plain JSON data, or the raw package instance when emit is "raw".
+   * @returns {object} Plain JSON data: the container-backed views plus the complete backend body set.
    */
   static read(input, options = {}) {
     return readWithValues(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME));
@@ -340,13 +340,11 @@ class CjsWebgpuFormat {
     return toJsonValue(value);
   }
   static OUTPUT_JSON = OUTPUT_JSON;
-  static OUTPUT_RAW = OUTPUT_RAW;
   static CLASS_KEYS = CLASS_KEYS;
   static type = Object.freeze(["shader"]);
   static mediaTypes = Object.freeze(["shader"]);
   static inputTypes = Object.freeze(["carbonwebgpu"]);
   static outputTypes = Object.freeze([OUTPUT_JSON]);
-  static debugOutputTypes = Object.freeze([OUTPUT_RAW]);
   static implementationStatus = "partial";
   static format = CARBON_WEBGPU_FORMAT;
   static analysisFormat = CARBON_WEBGPU_ANALYSIS_FORMAT;

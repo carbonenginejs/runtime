@@ -75,7 +75,7 @@ Callers establish identity through the resource path that supplied the bytes.
 
 | Option | Meaning |
 | --- | --- |
-| `emit` | `"json"` by default or `"raw"` for the internal container reader. |
+| `emit` | `"json"`, the only accepted value. Any other value is a `TypeError`. |
 | `source` | Caller-owned diagnostic label; it is never opened. |
 | `decodeInstructions` | Includes decoded instruction and IR detail during analysis. |
 | `permutation` | Exact `NAME=VALUE` assertions for `AnalyzeEffect` and `BuildEffect`; ignored by current `Read` and `Inspect`. |
@@ -85,8 +85,9 @@ Callers establish identity through the resource path that supplied the bytes.
 Class registrations are validated and stored for forward compatibility.
 Current JSON reads return plain data rather than hydrated package classes.
 
-Raw output is an internal reader over the same bytes. It is not a second wire
-format and should not be persisted.
+There is one emit. The document it returns carries every view a consumer needs,
+including `permutationGraph` and the complete `backendBodySet`, so there is no
+second read mode to choose and no reader object to hold.
 
 ## Read result
 
@@ -174,9 +175,9 @@ coalescing uses version 3 and carries an explicit transform recipe.
 
 ## Static metadata
 
-The class exposes `OUTPUT_JSON`, `OUTPUT_RAW`, `CLASS_KEYS`, `type`,
-`mediaTypes`, `inputTypes`, `outputTypes`, `debugOutputTypes`,
-`implementationStatus`, `format`, `analysisFormat`, and `packageVersion`.
+The class exposes `OUTPUT_JSON`, `CLASS_KEYS`, `type`, `mediaTypes`,
+`inputTypes`, `outputTypes`, `implementationStatus`, `format`, `analysisFormat`,
+and `packageVersion`. There is no `OUTPUT_RAW` and no `debugOutputTypes`.
 
 ## Errors
 

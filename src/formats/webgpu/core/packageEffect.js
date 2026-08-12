@@ -8,13 +8,11 @@ import { buildWgslSet } from "./wgsl/buildWgslSet.js";
 import { buildResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";
 import {
     buildEffectPermutationGraph,
-    EFFECT_PERMUTATION_GRAPH_CHUNK,
     EFFECT_PERMUTATION_GRAPH_FORMAT,
     EFFECT_PERMUTATION_GRAPH_VERSION
 } from "../../../format/effect/effectPermutationGraph.js";
 import {
     buildEffectBackendBodySet,
-    EFFECT_BACKEND_BODY_SET_CHUNK,
     EFFECT_BACKEND_BODY_SET_FORMAT,
     EFFECT_BACKEND_BODY_SET_VERSION
 } from "./effectBackendBodySet.js";
@@ -215,7 +213,6 @@ export function buildEffectPackage(input, options = {})
         translator: DXBC_WGSL_TRANSLATOR_NAME,
         translatorVersion: DXBC_WGSL_TRANSLATOR_VERSION,
         permutationGraph: Object.freeze({
-            chunk: EFFECT_PERMUTATION_GRAPH_CHUNK,
             format: EFFECT_PERMUTATION_GRAPH_FORMAT,
             formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
             sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),
@@ -233,7 +230,6 @@ export function buildEffectPackage(input, options = {})
         ...(backendBodySet
             ? {
                 backendBodySet: Object.freeze({
-                    chunk: EFFECT_BACKEND_BODY_SET_CHUNK,
                     format: EFFECT_BACKEND_BODY_SET_FORMAT,
                     formatVersion: EFFECT_BACKEND_BODY_SET_VERSION,
                     sha256: sha256Utf8(`${JSON.stringify(backendBodySet)}\n`),

@@ -63,10 +63,17 @@ Equivalent read surfaces are derived from the one Carbon record tree:
 | `WGSL` | Program text and layouts read from stage records and backend blocks |
 | `WGSB` | A body-set view derived across distinct stored bodies |
 
-`Read(..., { emit: "json" })` returns these compatibility views as plain data.
-They are not independent stored documents and carry no cross-document digests.
-`Read(..., { emit: "raw" })` returns the internal `CarbonWebgpuContainer` reader.
-There is no `chunks` array and no generic `Build(chunks)` API.
+`Read` returns these derived views as plain data. They are not independent stored
+documents and carry no cross-document digests. There is no `chunks` array and no
+generic `Build(chunks)` API.
+
+There is exactly one emit, as there is for WebGL, and the document it returns is
+complete: alongside the views above it carries `permutationGraph` and
+`backendBodySet`, the latter being every translated body joined to its shared
+translation units. A second `raw` emit used to hand back the internal
+`CarbonWebgpuContainer` because the former chunk package could not express the
+body set in JSON. It is removed. The container is internal, and consumers read
+the document rather than binding to a reader object.
 
 ## Building
 

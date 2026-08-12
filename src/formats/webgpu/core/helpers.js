@@ -19,7 +19,6 @@ import {
 } from "./packageEffectSelection.js";
 
 export const OUTPUT_JSON = "json";
-export const OUTPUT_RAW = "raw";
 export const CARBON_WEBGPU_FORMAT = "CARBON_WEBGPU";
 export const CARBON_WEBGPU_ANALYSIS_FORMAT = "CARBON_WEBGPU_ANALYSIS";
 export const CARBON_WEBGPU_ANALYSIS_VERSION = 1;
@@ -34,7 +33,21 @@ export const DEFAULT_VALUES = Object.freeze({
 });
 
 const OPTION_KEYS = new Set([ "emit", "source", "decodeInstructions", "permutation", "schema", "classes" ]);
-const VALID_EMITS = new Set([ OUTPUT_JSON, OUTPUT_RAW ]);
+// One emit, as WebGL has. `Read` returns the container-backed document and that
+// document is complete: the analysis, WGSL, metadata and permutation views the
+// caller selects among, plus `backendBodySet`, which is every translated body
+// joined to its shared translation units.
+//
+// A second `raw` emit used to hand back the live `CarbonWebgpuContainer` because
+// the chunk package's JSON could not express the body set. It became the only way
+// to reach a body, so `engine-webgpu` duck-typed the container instead of reading
+// the document - and when the chunk package was replaced, the engine kept asking
+// for a shape the producer had stopped emitting. Both halves then failed, in
+// different directions, for weeks: the default emit built pipelines but resolved
+// no bodies, and the raw emit resolved bodies but built no pipelines.
+//
+// Neither is reachable now. The container stays internal to this module.
+const VALID_EMITS = new Set([ OUTPUT_JSON ]);
 
 function hasOwn(value, key)
 {
@@ -43,9 +56,8 @@ function hasOwn(value, key)
 
 function normalizeEmit(emit, readerName)
 {
-    if (emit === undefined || emit === OUTPUT_JSON) return OUTPUT_JSON;
-    if (emit === OUTPUT_RAW) return OUTPUT_RAW;
-    throw new TypeError(`${readerName}: emit must be "${OUTPUT_JSON}" or "${OUTPUT_RAW}", got ${JSON.stringify(emit)}`);
+    if (emit === undefined || VALID_EMITS.has(emit)) return OUTPUT_JSON;
+    throw new TypeError(`${readerName}: emit must be "${OUTPUT_JSON}", got ${JSON.stringify(emit)}`);
 }
 
 function assertKnownOptions(options, readerName)
@@ -269,18 +281,15 @@ export function packageToJson(container, options = {})
 }
 
 /**
- * Shared read entry honouring the emit mode.
+ * Shared read entry.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU container payload.
  * @param {object} values Normalized format values.
- * @returns {CarbonWebgpuContainer|object} Raw container or plain JSON data.
+ * @returns {object} Plain JSON data.
  */
 export function readWithValues(input, values)
 {
-    const container = readRaw(input, values);
-    return values.emit === OUTPUT_RAW
-        ? container
-        : packageToJson(container, { source: values.source });
+    return packageToJson(readRaw(input, values), { source: values.source });
 }
 
 /**

@@ -10,7 +10,6 @@ import {
     CARBON_WEBGPU_FORMAT,
     DEFAULT_VALUES,
     OUTPUT_JSON,
-    OUTPUT_RAW,
     analyzeEffectWithValues,
     inspectWithValues,
     isCarbonWebgpu,
@@ -147,7 +146,7 @@ export class CjsWebgpuFormat
      *
      * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
      * @param {object} [options] Per-call value overrides.
-     * @returns {object} Plain JSON data, or the raw package instance when emit is "raw".
+     * @returns {object} Plain JSON data: the container-backed views plus the complete backend body set.
      */
     Read(input, options = {})
     {
@@ -275,7 +274,7 @@ export class CjsWebgpuFormat
      *
      * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Carbon WebGPU package bytes.
      * @param {object} [options] Format values.
-     * @returns {object} Plain JSON data, or the raw package instance when emit is "raw".
+     * @returns {object} Plain JSON data: the container-backed views plus the complete backend body set.
      */
     static read(input, options = {})
     {
@@ -380,13 +379,11 @@ export class CjsWebgpuFormat
     }
 
     static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_RAW = OUTPUT_RAW;
     static CLASS_KEYS = CLASS_KEYS;
     static type = Object.freeze([ "shader" ]);
     static mediaTypes = Object.freeze([ "shader" ]);
     static inputTypes = Object.freeze([ "carbonwebgpu" ]);
     static outputTypes = Object.freeze([ OUTPUT_JSON ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_RAW ]);
     static implementationStatus = "partial";
     static format = CARBON_WEBGPU_FORMAT;
     static analysisFormat = CARBON_WEBGPU_ANALYSIS_FORMAT;
