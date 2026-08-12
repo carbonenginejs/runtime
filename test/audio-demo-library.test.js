@@ -1119,16 +1119,16 @@ test("committed demo library carries authored SFX and music semantics", () =>
     const sourceMeterSounds = sourceEffectSounds.filter(node =>
         node.sourceEffects.some(effect => effect.type === "meter"));
 
-    assert.equal(sourceEffectSounds.length, 3195);
+    assert.equal(sourceEffectSounds.length, 3196);
     assert.equal(sourceEffectSounds.reduce((count, node) =>
-        count + node.sourceEffects.length, 0), 3356);
-    assert.equal(sourceEqSounds.length, 456);
+        count + node.sourceEffects.length, 0), 3358);
+    assert.equal(sourceEqSounds.length, 457);
     assert.equal(dynamicSourceEqSounds.length, 170);
     assert.equal(sourceDelaySounds.length, 87);
     assert.equal(sourceCompressorSounds.length, 2114);
     assert.equal(sourcePeakLimiterSounds.length, 73);
     assert.equal(sourceFlangerSounds.length, 21);
-    assert.equal(sourceTremoloSounds.length, 164);
+    assert.equal(sourceTremoloSounds.length, 165);
     assert.equal(dynamicTremoloSounds.length, 10);
     assert.equal(sourceGuitarDistortionSounds.length, 205);
     assert.equal(dynamicGuitarDistortionSounds.length, 136);
@@ -1461,7 +1461,8 @@ test("committed demo library carries authored SFX and music semantics", () =>
             173560074, 179016091, 185550431, 205298853, 212767959,
             213549686, 215897794, 216531588, 220151376,
             227488604, 234999876, 245023523, 274154427, 289872408, 295844646,
-            303824015, 334236564, 337505310, 342408936, 367736782,
+            303824015, 334236564, 337505310, 342408936, 350811697,
+            367736782,
             419444932, 422600908, 433220951, 457709217, 464520479,
             466221579, 474875076, 479691729,
             483852729, 504198893, 513652395, 525063532, 525463666, 527348461,
@@ -1593,7 +1594,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
     }
     assert.deepEqual(tremoloPhasePopulations, {
         "circular|0|180": 2,
-        "left-right|0|0": 91,
+        "left-right|0|0": 92,
         "random|-72|112": 1,
         "random|0|20": 28,
         "random|0|100": 1,
@@ -1703,6 +1704,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "ship_engine_XXL_microwarpdrive_3rd_idle",
         "ship_smokefire_hangar_play",
         "ship_smokefire_play",
+        "skyhook_silo_population",
         "small_station_caldari_play",
         "small_station_gallente_play",
         "small_station_minmatar_play",
@@ -1828,11 +1830,45 @@ test("committed demo library carries authored SFX and music semantics", () =>
         "worldobject_wormhole_play",
         "wormhole_ambience_type_play",
     ]);
-    assert.equal(
-        graph.nodes["350811697"].sourceEffects,
-        undefined,
-        "independent Parametric EQ LFE routing keeps the whole chain dry",
-    );
+    assert.deepEqual(graph.nodes["350811697"].sourceEffects, [
+        {
+            effectId: "400239472",
+            slotIndex: 0,
+            type: "parametric-eq",
+            bands: [
+                {
+                    index: 1,
+                    filterType: "peaking",
+                    gainDb: -6,
+                    frequencyHz: 800,
+                    q: 1,
+                },
+                {
+                    index: 2,
+                    filterType: "peaking",
+                    gainDb: -7,
+                    frequencyHz: 2220,
+                    q: 1,
+                },
+            ],
+            outputGainDb: 0,
+            processLfe: false,
+        },
+        {
+            effectId: "354426519",
+            slotIndex: 1,
+            type: "tremolo",
+            modulationDepthPercent: 50,
+            modulationFrequencyHz: Math.fround(0.12),
+            waveform: "sine",
+            phaseOffsetDegrees: 0,
+            phaseMode: "left-right",
+            phaseSpreadDegrees: 0,
+            outputGainDb: 0,
+            processCenter: true,
+            processLfe: true,
+        },
+    ]);
     const flangerShipRollIds = [
         "292533695", "293792304", "298447693", "304815500",
         "337117908", "494971020", "531596895", "656720365",
@@ -1855,7 +1891,7 @@ test("committed demo library carries authored SFX and music semantics", () =>
             effect.type === "parametric-eq"
             && (effect.outputGainDb !== 0
                 || effect.bands.some(band => band.gainDb !== 0)))).length,
-        360,
+        361,
         "the exact demo retains every qualified non-neutral Sound-local EQ",
     );
     assert.deepEqual(

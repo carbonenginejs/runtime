@@ -5953,7 +5953,7 @@ test("complete construction projects typed Audio Bus ducking once per source", a
     });
 });
 
-test("SFX construction projects complete static Sound-local Parametric EQ", async () =>
+test("SFX construction projects static source EQ with independent LFE routing", async () =>
 {
     const bands = [
         { filterTypeId: 3, gainDb: -24, frequencyHz: 240, q: 8, enabled: true },
@@ -6024,7 +6024,10 @@ test("SFX construction projects complete static Sound-local Parametric EQ", asyn
                         {
                             type: 16,
                             id: 900,
-                            payload: parametricEqEffectPayload({ bands }),
+                            payload: parametricEqEffectPayload({
+                                bands,
+                                processLfe: false,
+                            }),
                         },
                     ],
                     media: [ {
@@ -6051,7 +6054,7 @@ test("SFX construction projects complete static Sound-local Parametric EQ", asyn
             q: 8,
         } ],
         outputGainDb: 0,
-        processLfe: true,
+        processLfe: false,
     } ]);
 });
 

@@ -5129,7 +5129,12 @@ function BytesToBase64(bytes)
     return result;
 }
 
-function ParseStaticParametricEq(ownerLabel, slot, effect)
+function ParseStaticParametricEq(
+    ownerLabel,
+    slot,
+    effect,
+    { allowIndependentLfe = false } = {},
+)
 {
     if (effect.media?.length
         || effect.rtpcs?.length
@@ -5145,6 +5150,7 @@ function ParseStaticParametricEq(ownerLabel, slot, effect)
         effectId: effect.id,
         slotIndex: slot.index,
         label: `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`,
+        allowIndependentLfe,
     });
 }
 
@@ -5634,7 +5640,9 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId)
  * ancestry. Wwise's FX override replaces the inherited list, so an explicit
  * empty override clears the chain. Except for the exact admitted EVE-v150 EQ
  * frequency and Guitar Distortion Drive RTPCs, dynamic controls, unsupported
- * plug-ins, and independent LFE routing keep the documented dry approximation.
+ * plug-ins, and unsafe independent LFE routing keep the documented dry
+ * approximation. Static source EQ may retain `processLfe:false`; decoded
+ * multichannel voices reject the complete chain at realization time.
  */
 function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId)
 {
@@ -5709,6 +5717,7 @@ function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId)
                         ownerLabel,
                         slot,
                         effect,
+                        { allowIndependentLfe: true },
                     ));
             }
             else if (effect.pluginId === WWISE_DELAY_PLUGIN_ID)

@@ -304,7 +304,10 @@ path claims native Wwise DSP equivalence. A complete effective Sound-local,
 control-free Parametric EQ/Wwise Delay override is also adapted into
 one voice-owned Web Audio chain before Voice filters and spatial/auxiliary
 splitting. The first NodeBase override replaces inherited effects, including
-an explicit empty clear. One bounded EVE-v150 dynamic EQ form is also retained:
+an explicit empty clear. Static source EQ may retain `processLfe:false` because
+decoded mono/stereo audio has no independent LFE channel; above two channels
+the complete chain stays dry. This admits the skyhook population EQ-to-Tremolo
+chain. One bounded EVE-v150 dynamic EQ form is also retained:
 Game Parameter `ParamID 2`, exclusive accumulation, and log-frequency scaling
 drive Band 1 Frequency through the existing object/global/default RTPC lane.
 Its `processLfe:false` routing is equivalent for decoded mono/stereo sources;

@@ -7835,8 +7835,22 @@ test("Sound-local Parametric EQ follows live Game Parameters on mono and stereo 
         { x: 360, value: Math.log10(3650), interpolation: 4 },
       ],
     } ],
+  }, {
+    effectId: "903",
+    slotIndex: 1,
+    type: "tremolo",
+    modulationDepthPercent: 50,
+    modulationFrequencyHz: 0.12,
+    waveform: "sine",
+    phaseOffsetDegrees: 0,
+    phaseMode: "left-right",
+    phaseSpreadDegrees: 0,
+    outputGainDb: 0,
+    processCenter: true,
+    processLfe: true,
   } ];
   const { backend, emitter, context } = Harness({
+    wwiseModulation: "approximate-web-audio",
     loadBuffer: async () => ({
       voices: [ {
         buffer: { duration: 2, numberOfChannels: 2 },
@@ -7853,6 +7867,8 @@ test("Sound-local Parametric EQ follows live Game Parameters on mono and stereo 
   const [ equalizer ] = context.filters;
 
   assert.ok(Math.abs(equalizer.frequency.value - 160) < 0.001);
+  assert.equal(context.oscillators.length, 1,
+    "stereo realizes the complete independent-LFE EQ and Tremolo chain");
   curveOutput = Math.log10(3650);
   backend.SetRTPCValue("ship_Roll", 360, 1);
   assert.ok(Math.abs(equalizer.frequency.value - 3650) < 0.01);
@@ -7910,8 +7926,22 @@ test("independent-LFE source EQ fails the whole effect chain dry for multichanne
         { x: 360, value: Math.log10(3650), interpolation: 4 },
       ],
     } ],
+  }, {
+    effectId: "903",
+    slotIndex: 1,
+    type: "tremolo",
+    modulationDepthPercent: 50,
+    modulationFrequencyHz: 0.12,
+    waveform: "sine",
+    phaseOffsetDegrees: 0,
+    phaseMode: "left-right",
+    phaseSpreadDegrees: 0,
+    outputGainDb: 0,
+    processCenter: true,
+    processLfe: true,
   } ];
   const { backend, emitter, context } = Harness({
+    wwiseModulation: "approximate-web-audio",
     loadBuffer: async () => ({
       voices: [ {
         buffer: { duration: 2, numberOfChannels: 6 },
@@ -7927,6 +7957,8 @@ test("independent-LFE source EQ fails the whole effect chain dry for multichanne
   await tick();
 
   assert.equal(context.filters.length, 0);
+  assert.equal(context.oscillators.length, 0,
+    "the following Tremolo is not partially realized");
   assert.ok(context.sources[0].connectedTo,
     "unsupported complete effect chain retains dry playback");
 });

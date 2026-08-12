@@ -178,11 +178,13 @@ is effective even when its override bit is clear. Complete admitted
 Parametric EQ/Wwise Delay/Matrix Reverb/RoomVerb/Meter chains are projected
 once per voice
 before Voice LPF/HPF and the emitter/auxiliary split. The exact demo currently
-retains 456 qualified EQ Sound leaves and 87 Delay leaves. Of the EQ leaves,
-360 are acoustically non-neutral; 170 use the exact live `ship_Roll` frequency
-form, 15 belong to complete admitted Tremolo/EQ chains, and 24 precede
-RoomVerb. Other EQ leaves with live controls and Sound `350811697`'s
-independently routed LFE shape remain dry-playback approximations. Overlapping
+retains 457 qualified EQ Sound leaves and 87 Delay leaves. Of the EQ leaves,
+361 are acoustically non-neutral; 170 use the exact live `ship_Roll` frequency
+form, 17 belong to complete admitted Tremolo/EQ chains, and 24 precede
+RoomVerb. Sound `350811697` adds the static EQ-to-Tremolo skyhook chain; its
+`processLfe:false` form is admitted for decoded mono/stereo voices and keeps
+the complete chain dry above two channels. Other EQ leaves with live controls remain
+dry-playback approximations. Overlapping
 property-value, unsupported-plug-in, and other independent-LFE barriers are
 not partially applied.
 
@@ -664,20 +666,22 @@ targets rather than being convolved with this plug-in-local filter. This is
 still the same native-oscillator approximation; missing
 metadata/readers/primitives keep the whole chain dry.
 
-EVE build 3453885 projects 168 Tremolo stages on 164 Sound leaves. The added
+EVE build 3453885 projects 169 Tremolo stages on 165 Sound leaves. The added
 ten dynamic leaves cover ten medium-engine activate, deactivate, idle, and
 power-down events. Two exact OSSE Square leaves add the Amarr and Minmatar
-big-screen events. The static population spans 84 retained events: 117
+big-screen events. The static population spans 85 retained events: 117
 Tremolo-only, 14 Tremolo followed by qualified static EQ,
-two qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
+three qualified static EQ followed by Tremolo, eight Tremolo followed by Matrix
 Reverb, six Delay followed by Tremolo, two Tremolo followed by Delay, one
 double-Tremolo chain, three Square-carrier leaves under
 `phased_asteroid_impossible`, and one four-stage chain under
 `jita_OSSE_bigscreen_1_play`. The latter contains Triangle effects `566093542`,
 `579691495`, and `672599830` around Sine effect `126257322`; all are static,
-control-free, and zero-phase. They use 69 effect identities and 23 exact
-parameter records. Sound `350811697` is deliberately excluded because its preceding EQ
-`400239472` requires unsupported independent LFE routing. Admitting bounded
+control-free, and zero-phase. They use 70 effect identities and 24 exact
+parameter records. Sound `350811697` contributes the static skyhook EQ-to-Tremolo
+chain. Its `processLfe:false` EQ realizes for decoded mono/stereo audio, where
+there is no independent LFE channel, while multichannel playback remains wholly
+dry. Admitting bounded
 phase fields raises qualified source-effect leaves from 2,666 to 2,740 without
 changing media or event reachability.
 
@@ -708,7 +712,7 @@ Distortion keep the complete chain audible and dry. Static admission raised
 qualified source-effect leaves from 2,506 to 2,575. Live Drive raised the
 post-Meter aggregate from 3,043 to 3,179 leaves and from 3,201 to 3,337
 records without changing media or event reachability; the later modulation
-slices set the current totals to 3,195 and 3,356.
+and skyhook-EQ slices set the current totals to 3,196 and 3,358.
 
 Wwise Harmonizer `0x008a0003` remains a measured DSP barrier rather than an
 unclassified plug-in. Pinned wwiser proves the v150 layout for two pitch
@@ -816,7 +820,8 @@ Tremolo, Matrix, RoomVerb, live EQ, and this correction to 3,043 leaves and
 and 3,337 without changing media or event reachability. Bounded static
 Tremolo admission raises those totals to 3,183 and 3,344; the paired dynamic
 Tremolo slice raises those totals to 3,193 and 3,354; the exact OSSE Square
-slice raises the current totals to 3,195 and 3,356. Playback still
+slice raises those totals to 3,195 and 3,356; the static skyhook EQ-to-Tremolo
+slice sets the current totals to 3,196 and 3,358. Playback still
 requires both explicit policies: Meter telemetry omission and Web Audio
 dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so

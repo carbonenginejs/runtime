@@ -486,12 +486,12 @@ when the voice is disposed. Mixed unsupported plug-in sequences, supported
 effects with RTPC, State, property-value, or media controls, unsupported
 independent channel routing outside the documented modulation approximations, and
 unsupported plug-ins retain the previous dry-playback approximation rather
-than applying part of an authored chain. EVE build 3453885 installs 3,195
-qualified Sound leaves carrying 3,356 effect records: 456 use Parametric EQ,
+than applying part of an authored chain. EVE build 3453885 installs 3,196
+qualified Sound leaves carrying 3,358 effect records: 457 use Parametric EQ,
 including 170 leaves with live `ship_Roll` Band 1 Frequency,
 87 use Wwise Delay, 2,114 use
 Compressor, 73 use Peak Limiter, 21 use Flanger across nine retained events,
-168 Tremolo stages occur on 164 Sounds, including ten live
+169 Tremolo stages occur on 165 Sounds, including ten live
 `booster_intensity` leaves across ten medium-engine events; 205 use
 Guitar Distortion across 57 retained events, 50 use static Matrix
 Reverb across 22 retained events, 52 use static RoomVerb across 34 retained
@@ -508,19 +508,20 @@ effect identities: 69 static leaves use 18 identities and 12 raw presets (11
 audible decoded parameter sets), while 136 live-Drive leaves across 35 events
 use three identities. Other dynamic Guitar controls remain dry. The static
 Tremolo population contains 115 isolated chains, 14
-Tremolo-to-EQ, two EQ-to-Tremolo, eight Tremolo-to-Matrix, six
+Tremolo-to-EQ, three EQ-to-Tremolo, eight Tremolo-to-Matrix, six
 Delay-to-Tremolo, two Tremolo-to-Delay, one double-Tremolo chain, and one
-four-Tremolo chain over 69 effect identities and 23 distinct 38-byte parameter
+four-Tremolo chain over 70 effect identities and 24 distinct 38-byte parameter
 records. The four-stage `jita_OSSE_bigscreen_1_play` chain contains three
 unsmoothed, zero-phase Triangle carriers and one Sine carrier. Those Peak
 Limiter leaves all inherit Custom effect
 `754157063` under `refinery_l_play`. A total of 486 retained events can reach
 at least one Compressor leaf. The
 Compressor population contains nine complete chain signatures, including
-eight leaves where it precedes one qualified EQ. There are now 190 non-neutral
-static EQ chains and 360 non-neutral EQ chains including the live-EQ records.
-Sound `350811697` remains atomically dry because its preceding EQ
-requires unsupported independent LFE routing. Twelve additional
+eight leaves where it precedes one qualified EQ. There are now 191 non-neutral
+static EQ chains and 361 non-neutral EQ chains including the live-EQ records.
+Sound `350811697` adds the static EQ-to-Tremolo skyhook population chain. Its
+`processLfe:false` EQ is equivalent for decoded mono/stereo audio; a decoded
+multichannel source keeps the complete chain dry. Twelve additional
 static-Flanger leaves now survive with their supported live Parametric EQ in
 slot 1; dynamic or unsupported mixed Tremolo chains remain dry.
 

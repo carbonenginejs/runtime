@@ -3137,14 +3137,17 @@ function BytesToBase64(bytes) {
   }
   return result;
 }
-function ParseStaticParametricEq(ownerLabel, slot, effect) {
+function ParseStaticParametricEq(ownerLabel, slot, effect, {
+  allowIndependentLfe = false
+} = {}) {
   if (effect.media?.length || effect.rtpcs?.length || effect.state?.properties?.length || effect.state?.groups?.length || effect.propertyValues?.length) {
     throw new Error(`Wwise Parametric EQ ${effect.id} on ${ownerLabel} is not static`);
   }
   return parseStaticParametricEqBytes(effect.parameterBlock, {
     effectId: effect.id,
     slotIndex: slot.index,
-    label: `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`
+    label: `Wwise Parametric EQ ${effect.id} on ${ownerLabel}`,
+    allowIndependentLfe
   });
 }
 function ParseDynamicParametricEq(ownerLabel, slot, effect, names) {
@@ -3439,7 +3442,9 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId) {
  * ancestry. Wwise's FX override replaces the inherited list, so an explicit
  * empty override clears the chain. Except for the exact admitted EVE-v150 EQ
  * frequency and Guitar Distortion Drive RTPCs, dynamic controls, unsupported
- * plug-ins, and independent LFE routing keep the documented dry approximation.
+ * plug-ins, and unsafe independent LFE routing keep the documented dry
+ * approximation. Static source EQ may retain `processLfe:false`; decoded
+ * multichannel voices reject the complete chain at realization time.
  */
 function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId) {
   const soundId = Number(rawId) >>> 0;
@@ -3479,7 +3484,9 @@ function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId) {
       }
       if (effect.pluginId === PARAMETRIC_EQ_PLUGIN_ID) {
         const ownerLabel = `NodeBase ${ownerId} inherited by Sound ${soundId}`;
-        chain.push(effect.rtpcs?.length ? ParseDynamicParametricEq(ownerLabel, slot, effect, names) : ParseStaticParametricEq(ownerLabel, slot, effect));
+        chain.push(effect.rtpcs?.length ? ParseDynamicParametricEq(ownerLabel, slot, effect, names) : ParseStaticParametricEq(ownerLabel, slot, effect, {
+          allowIndependentLfe: true
+        }));
       } else if (effect.pluginId === WWISE_DELAY_PLUGIN_ID) {
         chain.push(ParseStaticWwiseDelay(`NodeBase ${ownerId} inherited by Sound ${soundId}`, slot, effect));
       } else if (effect.pluginId === WWISE_COMPRESSOR_PLUGIN_ID) {
