@@ -1,39 +1,34 @@
 import { coerceCarbonMathInto, exportCarbonValue, normalizeCarbonValue } from "../types/index.js";
-import { CjsSchema } from "../schema/index.js";
+import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../runtime/CjsRuntimeState.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 
 /**
- * Cross-copy brand for "this object is already a live CjsModel".
+ * The cross-copy brand this class stamps on every instance.
  *
- * `value instanceof CjsModel` answers a narrower question than it appears to:
- * it asks whether the value came from THIS copy of runtime-utils. Packages are
- * installed as copies rather than links, and each built package bundles its own
- * runtime-utils, so a model handed over from a sibling package fails the test
- * while being a perfectly good model. `CjsSchema.getClassName` fails across the
- * same boundary for the same reason, so schema metadata is no better a probe.
- *
- * `Symbol.for` resolves through the global registry, which is one registry per
- * realm no matter how many copies of this file are loaded — the same reason
- * `carbonenginejs.type` and `carbonenginejs.enum.name` already use it.
- *
- * This matters most where the answer decides between ALIASING and COPYING a
- * value. Getting it wrong there does not throw; it silently substitutes a plain
- * object for a live instance.
+ * Defined by CjsSchema and applied here. The predicate that reads it lives
+ * there too, as `CjsSchema.IsModelInstance`, because CjsModel imports CjsSchema
+ * and the reverse is impossible — so the schema side is the only side both a
+ * consumer and this class can reach. See its declaration for why a symbol is
+ * what survives two copies of this package in one realm.
  */
-const CJS_MODEL_BRAND = Symbol.for("carbonenginejs.model");
 
 /**
  * Reports whether a value is already a live model, including one constructed by
  * a different copy of this package.
+ *
+ * Retained as the function form of `CjsSchema.IsModelInstance`, which is the
+ * spelling to prefer in new code: it is reachable from anything holding the
+ * schema, including through `CjsModel.schema`, without importing the model
+ * layer to ask a question about it.
  *
  * @param {*} value Candidate value.
  * @returns {boolean} True when the value is a live `CjsModel`.
  */
 export function isModelInstance(value)
 {
-    return !!value && typeof value === "object" && value[CJS_MODEL_BRAND] === true;
+    return CjsSchema.IsModelInstance(value);
 }
 
 const MAX_UPDATE_PASSES = 32;

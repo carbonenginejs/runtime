@@ -133,6 +133,37 @@ Installing this state is optional. An object without it is ordinarily alive
 and unmanaged. Runtime-utils does not provide a generic lifecycle manager or
 automatic transitions between these statuses.
 
+## Asking whether a value is a model
+
+Use `CjsSchema.IsModelInstance(value)`, not `value instanceof CjsModel`.
+
+`instanceof` asks a narrower question than it appears to: whether the value came
+from *this* copy of runtime-utils. Packages install as copies rather than links,
+and each built package bundles its own copy, so a model handed over by another
+package fails the test while being a perfectly good model. Nothing throws when
+that happens — the value is silently copied into a plain object instead of
+aliased, or rejected as "not a model", or exported without its `_type`.
+
+`CjsModel` stamps every instance with a brand under `Symbol.for`, whose registry
+is per realm rather than per copy, so the brand is readable from any copy.
+
+To ask about a *particular* class, use `CjsSchema.IsInstanceOf(name, value)`,
+which is true for the named class and for anything descending from it. It reads
+the declared names up the value's prototype chain — stamped, not derived — and
+never compares constructor identity. Note what that rules out: resolving the
+name through `GetConstructor` and testing `instanceof` against the result
+reintroduces exactly the identity comparison being avoided, so it is not a valid
+shorthand. `CjsSchema.getClassNames(Constructor)` returns that ancestry directly
+when the names themselves are wanted.
+
+Both are reachable through `CjsModel.schema` for code that already holds the
+model layer. The predicates live on the schema because `CjsModel` imports
+`CjsSchema` and the reverse is impossible, so the schema is the only side both a
+consumer and the model class can reach.
+
+The function `isModelInstance` remains exported from `./model` and is equivalent
+to `CjsSchema.IsModelInstance`; prefer the schema spelling in new code.
+
 ## Not provided by this foundation
 
 The current model/lifecycle surface does not define:

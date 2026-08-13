@@ -36,6 +36,27 @@ export const CJS_ENUM_NAME = Symbol.for("carbonenginejs.enum.name");
 export const CJS_CLASS_NAME = Symbol.for("carbonenginejs.className");
 
 /**
+ * Cross-copy brand for "this object is already a live CjsModel".
+ *
+ * Declared here rather than in CjsModel, even though CjsModel is what applies
+ * it, because the dependency runs one way only: CjsModel imports CjsSchema and
+ * the reverse is impossible. A predicate that reads a symbol needs no access to
+ * the class, so the question can be answered from this side of the edge and the
+ * answer becomes available to every consumer that has the schema.
+ *
+ * `value instanceof CjsModel` answers a narrower question than it appears to:
+ * it asks whether the value came from THIS copy of runtime-utils. Packages are
+ * installed as copies rather than links, and each built package bundles its own
+ * runtime-utils, so a model handed over from a sibling package fails the test
+ * while being a perfectly good model.
+ *
+ * `Symbol.for` resolves through the global registry, which is one registry per
+ * realm no matter how many copies of this file are loaded — the same reason
+ * `carbonenginejs.type` and `carbonenginejs.enum.name` already use it.
+ */
+export const CJS_MODEL_BRAND = Symbol.for("carbonenginejs.model");
+
+/**
  * Reusable schema/decorator metadata surface.
  *
  * Decorators are namespace-scoped so consumers can export only the parts they
@@ -151,6 +172,79 @@ export class CjsSchema
             current = Object.getPrototypeOf(current);
         }
         return null;
+    }
+
+    /**
+     * Reports whether a value is a live model, including one constructed by a
+     * different copy of this package.
+     *
+     * Prefer this to `value instanceof CjsModel` anywhere the answer decides
+     * between ALIASING and COPYING, or admits and rejects. Getting it wrong
+     * there does not throw: it silently substitutes a plain object for a live
+     * instance, or rejects a real model for having been declared elsewhere.
+     *
+     * @param {*} value Candidate value.
+     * @returns {boolean} True when the value is a live model from any copy.
+     */
+    static IsModelInstance(value)
+    {
+        return !!value && typeof value === "object" && value[CJS_MODEL_BRAND] === true;
+    }
+
+    /**
+     * Every declared class name on a constructor's chain, nearest first.
+     *
+     * Read per level from local metadata where this copy has it and from the
+     * cross-copy stamp where it does not, so the ancestry of a class registered
+     * by a sibling package is still readable. Unnamed levels are skipped rather
+     * than ending the walk: an intermediate class with no schema declaration is
+     * ordinary, and its named ancestors still apply.
+     *
+     * @param {Function} Constructor Class to inspect.
+     * @returns {string[]} Declared names from the class up to its root.
+     */
+    static getClassNames(Constructor)
+    {
+        const names = [];
+        let current = Constructor;
+        while (typeof current === "function")
+        {
+            const local = CLASS_SCHEMA.get(current);
+            const className = local
+                ? (local.className || null)
+                : (Object.hasOwn(current, CJS_CLASS_NAME) ? current[CJS_CLASS_NAME] : null);
+            if (className && !names.includes(className)) names.push(className);
+            current = Object.getPrototypeOf(current);
+        }
+        return names;
+    }
+
+    /**
+     * Reports whether a value is an instance of the class declared as `name`,
+     * or of any class descending from it — across package copies.
+     *
+     * This is the cross-copy replacement for `value instanceof SomeClass`, and
+     * the reason it is worth having is that the obvious implementation is wrong.
+     * Resolving the name through GetConstructor and testing `instanceof` against
+     * the result reintroduces the identity comparison this exists to avoid: the
+     * registry may hold a sibling's constructor, and then a perfectly good local
+     * instance fails. So the check never compares constructor identity at all.
+     * It reads the declared names up the value's own prototype chain, which are
+     * stamped rather than derived and therefore survive the copy boundary.
+     *
+     * A consequence worth relying on: this does not consult the constructor
+     * registry, so it is unaffected by the flat-map collision where two families
+     * register the same class name and the later one wins.
+     *
+     * @param {string} name Declared class name to test against.
+     * @param {*} value Candidate value.
+     * @returns {boolean} True when the value descends from that declared class.
+     */
+    static IsInstanceOf(name, value)
+    {
+        if (typeof name !== "string" || !name.trim()) return false;
+        if (!value || typeof value !== "object") return false;
+        return this.getClassNames(value.constructor).includes(name.trim());
     }
 
     static SetConstructor(name, Constructor)
