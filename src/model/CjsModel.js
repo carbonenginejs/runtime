@@ -8,7 +8,7 @@ import { CjsEventEmitter } from "./CjsEventEmitter.js";
  * The cross-copy brand this class stamps on every instance.
  *
  * Defined by CjsSchema and applied here. The predicate that reads it lives
- * there too, as `CjsSchema.IsModelInstance`, because CjsModel imports CjsSchema
+ * there too, as `CjsSchema.isModelInstance`, because CjsModel imports CjsSchema
  * and the reverse is impossible — so the schema side is the only side both a
  * consumer and this class can reach. See its declaration for why a symbol is
  * what survives two copies of this package in one realm.
@@ -18,7 +18,7 @@ import { CjsEventEmitter } from "./CjsEventEmitter.js";
  * Reports whether a value is already a live model, including one constructed by
  * a different copy of this package.
  *
- * Retained as the function form of `CjsSchema.IsModelInstance`, which is the
+ * Retained as the function form of `CjsSchema.isModelInstance`, which is the
  * spelling to prefer in new code: it is reachable from anything holding the
  * schema, including through `CjsModel.schema`, without importing the model
  * layer to ask a question about it.
@@ -28,7 +28,7 @@ import { CjsEventEmitter } from "./CjsEventEmitter.js";
  */
 export function isModelInstance(value)
 {
-    return CjsSchema.IsModelInstance(value);
+    return CjsSchema.isModelInstance(value);
 }
 
 const MAX_UPDATE_PASSES = 32;

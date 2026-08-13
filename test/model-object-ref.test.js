@@ -89,17 +89,17 @@ test("the schema answers the model question, including through CjsModel.schema",
     const observed = new Observed();
 
     assert.equal(CjsModel.schema, CjsSchema);
-    assert.equal(CjsSchema.IsModelInstance(observed), true);
-    assert.equal(CjsModel.schema.IsModelInstance(observed), true);
-    assert.equal(isModelInstance(observed), CjsSchema.IsModelInstance(observed));
+    assert.equal(CjsSchema.isModelInstance(observed), true);
+    assert.equal(CjsModel.schema.isModelInstance(observed), true);
+    assert.equal(isModelInstance(observed), CjsSchema.isModelInstance(observed));
 
     for (const notAModel of [ null, undefined, "Observed", 7, {}, [] ])
     {
-        assert.equal(CjsSchema.IsModelInstance(notAModel), false);
+        assert.equal(CjsSchema.isModelInstance(notAModel), false);
     }
 });
 
-test("IsInstanceOf answers by declared name rather than by constructor identity", () =>
+test("isInstanceOf answers by declared name rather than by constructor identity", () =>
 {
     class Derived extends Observed {}
     CjsSchema.define(Derived, { className: "ObjectRefTestDerived", family: "test" });
@@ -109,14 +109,14 @@ test("IsInstanceOf answers by declared name rather than by constructor identity"
         CjsSchema.getClassNames(Derived).slice(0, 2),
         [ "ObjectRefTestDerived", "ObjectRefTestObserved" ]
     );
-    assert.equal(CjsSchema.IsInstanceOf("ObjectRefTestDerived", derived), true);
-    assert.equal(CjsSchema.IsInstanceOf("ObjectRefTestObserved", derived), true, "a base class must match too");
-    assert.equal(CjsSchema.IsInstanceOf("ObjectRefTestObserver", derived), false);
-    assert.equal(CjsSchema.IsInstanceOf("", derived), false);
-    assert.equal(CjsSchema.IsInstanceOf("ObjectRefTestDerived", { name: "bag" }), false);
+    assert.equal(CjsSchema.isInstanceOf("ObjectRefTestDerived", derived), true);
+    assert.equal(CjsSchema.isInstanceOf("ObjectRefTestObserved", derived), true, "a base class must match too");
+    assert.equal(CjsSchema.isInstanceOf("ObjectRefTestObserver", derived), false);
+    assert.equal(CjsSchema.isInstanceOf("", derived), false);
+    assert.equal(CjsSchema.isInstanceOf("ObjectRefTestDerived", { name: "bag" }), false);
 });
 
-test("IsInstanceOf reads a class this copy has never seen", () =>
+test("isInstanceOf reads a class this copy has never seen", () =>
 {
     // What a sibling package's CLASS registration looks like from here: the
     // WeakMap holding schema metadata is private to whichever copy created it,
@@ -134,9 +134,9 @@ test("IsInstanceOf reads a class this copy has never seen", () =>
     const foreign = new ForeignShip();
 
     assert.equal(CjsSchema.GetConstructor("ForeignEveShip2"), null, "this copy has no registration for it");
-    assert.equal(CjsSchema.IsInstanceOf("ForeignEveShip2", foreign), true);
-    assert.equal(CjsSchema.IsInstanceOf("ForeignTr2Mesh", foreign), true);
-    assert.equal(CjsSchema.IsInstanceOf("ForeignTr2Effect", foreign), false);
+    assert.equal(CjsSchema.isInstanceOf("ForeignEveShip2", foreign), true);
+    assert.equal(CjsSchema.isInstanceOf("ForeignTr2Mesh", foreign), true);
+    assert.equal(CjsSchema.isInstanceOf("ForeignTr2Effect", foreign), false);
 });
 
 test("an objectRef still constructs from a plain values bag", () =>

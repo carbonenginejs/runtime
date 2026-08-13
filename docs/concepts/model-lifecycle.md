@@ -135,7 +135,7 @@ automatic transitions between these statuses.
 
 ## Asking whether a value is a model
 
-Use `CjsSchema.IsModelInstance(value)`, not `value instanceof CjsModel`.
+Use `CjsSchema.isModelInstance(value)`, not `value instanceof CjsModel`.
 
 `instanceof` asks a narrower question than it appears to: whether the value came
 from *this* copy of runtime-utils. Packages install as copies rather than links,
@@ -147,7 +147,7 @@ aliased, or rejected as "not a model", or exported without its `_type`.
 `CjsModel` stamps every instance with a brand under `Symbol.for`, whose registry
 is per realm rather than per copy, so the brand is readable from any copy.
 
-To ask about a *particular* class, use `CjsSchema.IsInstanceOf(name, value)`,
+To ask about a *particular* class, use `CjsSchema.isInstanceOf(name, value)`,
 which is true for the named class and for anything descending from it. It reads
 the declared names up the value's prototype chain — stamped, not derived — and
 never compares constructor identity. Note what that rules out: resolving the
@@ -162,7 +162,7 @@ model layer. The predicates live on the schema because `CjsModel` imports
 consumer and the model class can reach.
 
 The function `isModelInstance` remains exported from `./model` and is equivalent
-to `CjsSchema.IsModelInstance`; prefer the schema spelling in new code.
+to `CjsSchema.isModelInstance`; prefer the schema spelling in new code.
 
 ## Not provided by this foundation
 

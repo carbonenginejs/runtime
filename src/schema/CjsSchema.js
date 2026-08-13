@@ -186,7 +186,7 @@ export class CjsSchema
      * @param {*} value Candidate value.
      * @returns {boolean} True when the value is a live model from any copy.
      */
-    static IsModelInstance(value)
+    static isModelInstance(value)
     {
         return !!value && typeof value === "object" && value[CJS_MODEL_BRAND] === true;
     }
@@ -240,7 +240,7 @@ export class CjsSchema
      * @param {*} value Candidate value.
      * @returns {boolean} True when the value descends from that declared class.
      */
-    static IsInstanceOf(name, value)
+    static isInstanceOf(name, value)
     {
         if (typeof name !== "string" || !name.trim()) return false;
         if (!value || typeof value !== "object") return false;
