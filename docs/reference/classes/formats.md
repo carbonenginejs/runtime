@@ -689,6 +689,17 @@ Data-only Python pickle format facade that currently decodes protocol 0 into JSO
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+<!-- class:CjsStaticFormat -->
+## `CjsStaticFormat`
+
+Identifies which of three unrelated containers a client `.static` file holds, decoding the prefixed-pickle family and reporting the SQLite and schema-bound families rather than guessing at them.
+
+- Export: `@carbonenginejs/runtime-resource/formats/static`
+- Source: `src/formats/static/CjsStaticFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+- Notes: Signature-based. Opening a SQLite container needs a database driver, which callers own.
+
 <!-- class:CjsPickleProtocol0Reader -->
 ## `CjsPickleProtocol0Reader`
 

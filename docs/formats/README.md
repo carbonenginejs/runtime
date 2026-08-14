@@ -58,6 +58,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | Python pickle (`.pickle`, protocol 0 data subset) | `CjsPickleFormat` | `@carbonenginejs/runtime-resource/formats/pickle` |
 | PNG (`.png`) | `CjsPngFormat` | `@carbonenginejs/runtime-resource/formats/png` |
 | Red (`.red`) | `CjsRedFormat` | `@carbonenginejs/runtime-resource/formats/red` |
+| Client static data (`.static`, identification) | `CjsStaticFormat` | `@carbonenginejs/runtime-resource/formats/static` |
 | STL (`.stl`) | `CjsStlFormat` | `@carbonenginejs/runtime-resource/formats/stl` |
 | TGA (`.tga`) | `CjsTgaFormat` | `@carbonenginejs/runtime-resource/formats/tga` |
 | WAV (`.wav`) | `CjsWavFormat` | `@carbonenginejs/runtime-resource/formats/wav` |
@@ -68,6 +69,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 
 Detailed pages: [Granny GR2 and GSF](gr2.md),
 [data-only pickle protocol 0](pickle.md),
+[client `.static` container identification](static.md),
 [Wwise soundbanks and media](wwise.md), and [STL export](stl.md). Ownership
 history, retained snapshots, and donor licensing are recorded in
 [provenance.md](provenance.md).
