@@ -8,6 +8,10 @@ import { buildCarbonEffectContainer } from "../../../src/formats/webgpu/core/bui
 import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";
 import { CarbonWebgpuContainer } from "../../../src/formats/webgpu/core/carbonWebgpu/CarbonWebgpuContainer.js";
 import {
+    deriveAnalysis,
+    deriveMetadata
+} from "../../../src/formats/webgpu/core/carbonWebgpu/containerViews.js";
+import {
     readBackendBlock,
     writeBackendBlock
 } from "../../../src/format/carbonEffect/carbonEffectBackendBlock.js";
@@ -190,6 +194,7 @@ test(
             assert.deepEqual(
                 graph.axes,
                 built.permutationGraph.axes.map((axis) => ({
+                    index: axis.index,
                     name: axis.name,
                     defaultOption: axis.defaultOption,
                     description: axis.description,
@@ -318,5 +323,53 @@ test("the per-pass block is detected without being told, and without a version o
     assert.ok(
         refusedAsPlainCarbon > 0,
         "bodies carrying blocks must not also parse cleanly as plain Carbon"
+    );
+});
+
+test("the analysis and metadata views describe the same permutation identically", () =>
+{
+    // Regression: deriveAnalysis resolved a permutation index, used it for
+    // bodyIndex, then built selectedOptions from each axis's defaultOption
+    // instead of that permutation's option indices. deriveMetadata read the
+    // variant. So one package reported an option enabled in one view and
+    // disabled in the other, and an engine gate reading a package back from
+    // disk could not agree with the package that produced it.
+    //
+    // The fixture axes make this visible: SKINNED defaults to option 0 and
+    // DETAIL defaults to option 1, so any permutation that is not exactly
+    // (0, 1) disagrees with the defaults.
+    const built = buildFixtureContainer();
+    const container = new CarbonWebgpuContainer();
+
+    assert.ok(container.Read(built.bytes, { sourcePath: "views" }));
+
+    const axisDefaults = container.carbon.permutations.map(
+        (axis) => axis.options[axis.defaultOption]?.value ?? null
+    );
+    let sawNonDefault = false;
+
+    for (let index = 0; index < container.permutationGraph.variants.length; index += 1)
+    {
+        const analysis = deriveAnalysis(container, { source: "views", permutationIndex: index });
+        const metadata = deriveMetadata(container, { source: "views", permutationIndex: index });
+
+        assert.equal(analysis.bodyIndex, index);
+        assert.equal(metadata.bodyIndex, index);
+        assert.deepEqual(
+            analysis.selectedOptions,
+            metadata.selectedOptions,
+            `permutation ${index} must read the same in both views`
+        );
+
+        const values = metadata.selectedOptions.map((entry) => entry.value);
+
+        if (JSON.stringify(values) !== JSON.stringify(axisDefaults)) sawNonDefault = true;
+    }
+
+    // Negative control: without a permutation whose options differ from the
+    // axis defaults, this test would pass against the original defect.
+    assert.ok(
+        sawNonDefault,
+        "the fixture must contain a permutation that differs from the axis defaults"
     );
 });

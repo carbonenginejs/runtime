@@ -96,6 +96,27 @@ function describeRuntime(container, permutationIndex, source)
  * @param {number} [options.permutationIndex] Permutation to describe.
  * @returns {object} Analysis document.
  */
+/**
+ * Names the option each axis carries for one permutation.
+ *
+ * The variant's `optionIndices` are the authority; an axis default is only the
+ * fallback for an axis the variant does not pin. Shared by the analysis and
+ * metadata views so the two cannot describe the same permutation differently.
+ *
+ * @param {object} container Loaded container.
+ * @param {number} permutationIndex Permutation to describe.
+ * @returns {Array<{name: string, value: *}>} Selected option per axis.
+ */
+function SelectedOptions(container, permutationIndex)
+{
+    const variant = container.permutationGraph?.variants?.[permutationIndex];
+
+    return container.carbon.permutations.map((axis, axisIndex) => ({
+        name: axis.name.value,
+        value: axis.options[variant?.optionIndices?.[axisIndex] ?? axis.defaultOption]?.value ?? null
+    }));
+}
+
 export function deriveAnalysis(container, options = {})
 {
     const source = options.source || container.sourcePath || "memory";
@@ -113,10 +134,13 @@ export function deriveAnalysis(container, options = {})
         },
         selection: {
             bodyIndex: permutationIndex,
-            selectedOptions: container.carbon.permutations.map((axis) => ({
-                name: axis.name.value,
-                value: axis.options[axis.defaultOption]?.value ?? null
-            }))
+            // Report the options of the permutation this view actually
+            // resolved, not the axis defaults. Reading `axis.defaultOption`
+            // here described permutation zero while `bodyIndex` named another,
+            // so a package could report an option enabled in its metadata view
+            // and disabled in its analysis view. `deriveMetadata` has always
+            // read the variant; this now matches it.
+            selectedOptions: SelectedOptions(container, permutationIndex)
         }
     }, { source, decodeBytecode: false, decodeInstructions: false });
 }
@@ -313,13 +337,7 @@ export function deriveMetadata(container, options = {})
 {
     const source = options.source || container.sourcePath || "memory";
     const permutationIndex = options.permutationIndex ?? resolvedPermutationIndex(container);
-    const variant = container.permutationGraph.variants[permutationIndex];
-    const axes = container.carbon.permutations;
-
-    const selectedOptions = axes.map((axis, axisIndex) => ({
-        name: axis.name.value,
-        value: axis.options[variant?.optionIndices?.[axisIndex] ?? axis.defaultOption]?.value ?? null
-    }));
+    const selectedOptions = SelectedOptions(container, permutationIndex);
 
     const body = container.GetBackendBodyPrograms(permutationIndex);
     const selectedStageKeys = (body?.passes ?? [])
