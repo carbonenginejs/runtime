@@ -80,6 +80,53 @@ const TARGETS = [
 const corpusDir = process.env.CARBON_EFFECT_CORPUS_DIR || null;
 
 /**
+ * Layout prefixes `CARBON_EFFECT_CORPUS_DIR` is known to be handed.
+ *
+ * The variable names two shapes in practice. engine-webgpu and the analysis
+ * adapter corpus expect the res-tree shape, `graphics/effect.dx11/...`, which
+ * the engine's GPU gates also read the tier and backend out of; this test was
+ * written against a flat `dx11/...` drop. They are not convertible by anyone
+ * running the suite, so a single corpus could not satisfy both and one of these
+ * tests was always going to fail.
+ *
+ * Resolving the target instead of assuming its prefix costs one `stat` and lets
+ * both layouts pass in the same run, which is cheaper than reorganising a
+ * corpus or changing a contract engine-webgpu already depends on.
+ */
+const CORPUS_LAYOUT_PREFIXES = [ "graphics/effect.dx11", "dx11", "" ];
+
+/**
+ * Resolves a res-relative effect path under whichever layout the corpus uses.
+ *
+ * @param {string} root Corpus root.
+ * @param {string} target Res-relative effect path.
+ * @returns {Promise<string>} Absolute path to the effect file.
+ */
+async function resolveCorpusFile(root, target)
+{
+    const attempted = [];
+
+    for (const prefix of CORPUS_LAYOUT_PREFIXES)
+    {
+        const candidate = path.join(root, ...prefix ? [ prefix ] : [], target);
+
+        attempted.push(candidate);
+
+        try
+        {
+            if ((await stat(candidate)).isFile()) return candidate;
+        }
+        catch
+        {
+            // Next layout.
+        }
+    }
+
+    assert.fail(`corpus file not found for "${target}". Tried:\n  ${attempted.join("\n  ")}`);
+    return null;
+}
+
+/**
  * Stringifies with sorted keys, so key order is not mistaken for a difference.
  *
  * @param {*} value Any document.
@@ -175,7 +222,7 @@ test(
 
         for (const target of TARGETS)
         {
-            const file = path.join(corpusDir, "dx11", target);
+            const file = await resolveCorpusFile(corpusDir, target);
             const bytes = new Uint8Array(await readFile(file));
             const built = buildEffectPackage(bytes, { mode: "all", source: file });
             const resolved = readEffectAnalysis(bytes, { source: file });

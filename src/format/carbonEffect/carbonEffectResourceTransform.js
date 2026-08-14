@@ -1,4 +1,5 @@
 import { CjsFormatWriteError, CjsFormatReadError } from "../CjsFormatError.js";
+import { DETAIL_MAP_ARRAY_NAME } from "../../formats/hlsl/core/detailMapFamily.js";
 
 /**
  * The resource-transform section, shared by every backend's per-pass block.
@@ -35,7 +36,10 @@ export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
     representation: "native-or-rgba8",
     missingLayer: "reject",
     viewDimension: "2d-array",
-    outputName: "DetailArrayMap"
+    // The merged array's name is owned by the detail-map family, not restated
+    // here. It has been renamed once already (DetailMapArray -> DetailArrayMap),
+    // and a second literal is a second place for the next rename to miss.
+    outputName: DETAIL_MAP_ARRAY_NAME
 });
 
 /**
@@ -72,6 +76,63 @@ const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
     "detail-map-array": DETAIL_MAP_ARRAY_DEFAULTS,
     "local-light-profile-neutral": LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS
 });
+
+/**
+ * Refuses a transform whose restored fields disagree with its family.
+ *
+ * Every field below is dropped on write and rebuilt from the family constants
+ * on read, so a document that disagrees does not fail - it round-trips into a
+ * *different* document, which is the failure shape that produced both the
+ * `selectedOptions` and the register-pair bugs. A caller may supply its own
+ * transform plan, so agreement is checked here rather than assumed from the
+ * one producer that happens to emit constants.
+ *
+ * An absent field is not a disagreement: omitting it is the normal way to say
+ * "restore the family value".
+ *
+ * @param {object} transform Resource transform.
+ * @param {string} family Resolved family name.
+ * @param {object} defaults Family constants the reader restores.
+ */
+function assertRestoredFieldsAgree(transform, family, defaults)
+{
+    const restored = [
+        [ "version", transform.version, defaults.version ],
+        [ "kind", transform.kind, defaults.kind ],
+        [ "stage", transform.stage, defaults.stage ],
+        [ "representation", transform.representation, defaults.representation ],
+        [ "missingLayer", transform.missingLayer, defaults.missingLayer ],
+        [ "output.name", transform.output?.name, defaults.outputName ],
+        [ "output.viewDimension", transform.output?.viewDimension, defaults.viewDimension ]
+    ];
+
+    for (const [ field, actual, expected ] of restored)
+    {
+        if (actual === undefined || actual === null) continue;
+        if (actual === expected) continue;
+
+        throw new CjsFormatWriteError(
+            `Resource transform "${transform.id}" sets ${field} to ${JSON.stringify(actual)}, but the`
+            + ` "${family}" family restores ${JSON.stringify(expected)} on read. The value is not`
+            + ` stored, so writing this would silently change the document.`,
+            { transform: transform.id, family, field, actual, expected }
+        );
+    }
+
+    // Layer count is positional on the wire: the reader counts the inputs it
+    // read. A document claiming a different count is claiming something the
+    // bytes cannot carry.
+    const layerCount = transform.output?.layerCount;
+
+    if (layerCount !== undefined && layerCount !== null && layerCount !== transform.inputs.length)
+    {
+        throw new CjsFormatWriteError(
+            `Resource transform "${transform.id}" declares ${layerCount} output layers but carries`
+            + ` ${transform.inputs.length} inputs; the reader derives the count from the inputs.`,
+            { transform: transform.id, family, declared: layerCount, inputs: transform.inputs.length }
+        );
+    }
+}
 
 /**
  * Writes a length-prefixed UTF-8 string.
@@ -116,13 +177,15 @@ export function writeTransformSection(writer, transforms)
 
     for (const transform of transforms)
     {
-        const family = CARBON_BACKEND_TRANSFORM_FAMILY.indexOf(transform.family ?? "detail-map-array");
+        const familyName = transform.family ?? "detail-map-array";
+        const family = CARBON_BACKEND_TRANSFORM_FAMILY.indexOf(familyName);
         if (family < 0)
         {
             throw new CjsFormatWriteError(`Unknown transform family "${transform.family}"`, {
                 family: transform.family
             });
         }
+        assertRestoredFieldsAgree(transform, familyName, TRANSFORM_DEFAULTS_BY_FAMILY[familyName]);
         writer.u8(family);
         // `id` stays on the wire: a caller may supply it, and it propagates into
         // the engine binding as `transformId`. Deriving it would foreclose the

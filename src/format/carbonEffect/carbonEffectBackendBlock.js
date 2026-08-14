@@ -204,6 +204,50 @@ const TEXTURE_DESCRIPTORS = Object.freeze({
  * @param {object[]} [block.transforms] Resource transforms.
  * @returns {Uint8Array} Self-contained block bytes.
  */
+/**
+ * Refuses a binding whose derived fields disagree with what the reader rebuilds.
+ *
+ * `identity`, `scopeIdentity` and the per-binding `group` are not stored: the
+ * reader recomputes them from the register triple, the visibility mask and the
+ * enclosing group. A binding that carries a different value therefore does not
+ * fail - it round-trips into a different binding, and the engine matches on
+ * exactly these strings.
+ *
+ * `scopeIdentity` deserves the sharpest check, because the wire cannot preserve
+ * what it is derived from. Visibility is stored as a **bitmask**, so it is a
+ * set; `scopeIdentity` is built from `visibility[0]`, so it depends on an
+ * order. A binding written as `[fragment, vertex]` reads back as
+ * `[vertex, fragment]` and its scope silently moves from `@fragment` to
+ * `@vertex`. Canonical order is the only order the format can represent, so a
+ * producer must write it.
+ *
+ * @param {object} binding Binding record.
+ * @param {object} group Enclosing bind group.
+ */
+function assertDerivedBindingFieldsAgree(binding, group)
+{
+    const identity = `${binding.resourceKind}:${binding.registerSpace}:${binding.registerIndex}`;
+    const canonical = unpackVisibility(packVisibility(binding.visibility));
+    const derived = [
+        [ "identity", binding.identity, identity ],
+        [ "scopeIdentity", binding.scopeIdentity, `${identity}@${canonical[0]}` ],
+        [ "group", binding.group, group.group ]
+    ];
+
+    for (const [ field, actual, expected ] of derived)
+    {
+        if (actual === undefined || actual === null) continue;
+        if (actual === expected) continue;
+
+        throw new CjsFormatWriteError(
+            `Binding ${identity} sets ${field} to ${JSON.stringify(actual)}, but the reader rebuilds`
+            + ` ${JSON.stringify(expected)}. The value is not stored, so writing this would silently`
+            + ` change the binding.`,
+            { identity, field, actual, expected }
+        );
+    }
+}
+
 export function writeBackendBlock(block)
 {
     const bindGroups = block.bindGroups ?? [];
@@ -226,6 +270,7 @@ export function writeBackendBlock(block)
                     resourceKind: binding.resourceKind
                 });
             }
+            assertDerivedBindingFieldsAgree(binding, group);
             writer.u8(kind);
             writer.u8(binding.registerSpace);
             writer.u8(binding.binding);

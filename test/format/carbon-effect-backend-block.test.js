@@ -150,6 +150,92 @@ test("a transform restores every derived field from the family discriminator", (
     assert.equal(transform.layoutKey, "Main.pass0");
 });
 
+test("a transform that disagrees with its family is refused, not silently rewritten", () =>
+{
+    // Every field the previous test calls "restored from the family" is dropped
+    // on write. A document that sets one to something else does not fail on its
+    // own - it round-trips into a different document. That is the shape behind
+    // both the selectedOptions and register-pair bugs, so the writer refuses it
+    // at the producing site instead.
+    const disagreements = [
+        [ "stage", { stage: "vertex" } ],
+        [ "kind", { kind: "texture-2d" } ],
+        [ "version", { version: 2 } ],
+        [ "representation", { representation: "rgba8" } ],
+        [ "missingLayer", { missingLayer: "ignore" } ],
+        [ "output.name", { output: { name: "SomethingElse" } } ],
+        [ "output.viewDimension", { output: { viewDimension: "2d" } } ],
+        [ "output.layerCount", { output: { layerCount: 7 } } ]
+    ];
+
+    for (const [ label, patch ] of disagreements)
+    {
+        const block = sampleBlock();
+        const transform = block.transforms[0];
+
+        block.transforms = [ { ...transform, ...patch, output: { ...transform.output, ...patch.output } } ];
+
+        assert.throws(
+            () => writeBackendBlock(block),
+            (error) => error.message.includes("silently change the document")
+                || error.message.includes("output layers"),
+            `writing a transform with a conflicting ${label} must throw`
+        );
+    }
+
+    // Negative control: the unmodified block still writes. Without this, a
+    // writer that threw on everything would pass the loop above.
+    assert.ok(writeBackendBlock(sampleBlock()).byteLength > 0);
+
+    // Omitting a restored field is not a disagreement - it is how a caller says
+    // "use the family value", and it must still round-trip.
+    const sparse = sampleBlock();
+    const { stage, representation, ...rest } = sparse.transforms[0];
+
+    sparse.transforms = [ rest ];
+    assert.equal(readBackendBlock(writeBackendBlock(sparse), { layoutKey: "Main.pass0" }).transforms[0].stage, "fragment");
+});
+
+test("a binding whose derived fields disagree is refused, including visibility order", () =>
+{
+    const withBinding = (patch) =>
+    {
+        const block = sampleBlock();
+        const [ first ] = block.bindGroups[0].bindings;
+
+        block.bindGroups[0].bindings = [ { ...first, ...patch } ];
+        return block;
+    };
+
+    // identity and group are derived from stored data, so a disagreeing value
+    // is a producer bug the round trip would otherwise hide.
+    assert.throws(() => writeBackendBlock(withBinding({ identity: "uniform-buffer:9:9" })), /silently/);
+    assert.throws(() => writeBackendBlock(withBinding({ group: 3 })), /silently/);
+
+    // The sharp one: visibility is stored as a bitmask, so it is a set, while
+    // scopeIdentity is derived from visibility[0], which is an order. Written
+    // as [fragment, vertex] this binding reads back [vertex, fragment] and its
+    // scope moves from @fragment to @vertex - a wrong package that loads.
+    assert.throws(
+        () => writeBackendBlock(withBinding({
+            visibility: [ "fragment", "vertex" ],
+            scopeIdentity: "uniform-buffer:0:0@fragment"
+        })),
+        /silently/,
+        "non-canonical visibility order must be refused, not quietly reordered"
+    );
+
+    // Canonical order carrying the matching scope is accepted, so the check
+    // above is about disagreement rather than about rejecting every binding.
+    assert.ok(writeBackendBlock(withBinding({
+        visibility: [ "vertex", "fragment" ],
+        scopeIdentity: "uniform-buffer:0:0@vertex"
+    })).byteLength > 0);
+
+    // Omitting the derived fields entirely remains the normal path.
+    assert.ok(writeBackendBlock(sampleBlock()).byteLength > 0);
+});
+
 test("the block carries no arena offsets, so it can live inside the arena", () =>
 {
     // The whole point of the self-contained encoding: interning the block cannot
