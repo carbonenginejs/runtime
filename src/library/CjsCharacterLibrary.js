@@ -20,7 +20,7 @@ export class CjsCharacterLibrary extends CjsModel
 
     @io.readwrite
     @type.uint32
-    schemaVersion = 9;
+    schemaVersion = 10;
 
     @io.readwrite
     @type.string
@@ -67,10 +67,10 @@ export class CjsCharacterLibrary extends CjsModel
         RequirePlainObject(value, "Character library");
 
         if (value.schema !== "carbonenginejs.characterLibrary"
-            || ![ 7, 8, 9 ].includes(value.schemaVersion))
+            || ![ 7, 8, 9, 10 ].includes(value.schemaVersion))
         {
             throw new TypeError(
-                "Character library must use carbonenginejs.characterLibrary schema version 7, 8, or 9"
+                "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, or 10"
             );
         }
 
@@ -83,14 +83,16 @@ export class CjsCharacterLibrary extends CjsModel
             );
         }
 
-        const normalized = value.schemaVersion < 9
+        const normalized = value.schemaVersion < 10
             ? {
                 ...value,
-                schemaVersion: 9,
-                documents: {
-                    ...value.documents,
-                    characterTextureMetadata: []
-                }
+                schemaVersion: 10,
+                documents: value.schemaVersion < 9
+                    ? {
+                        ...value.documents,
+                        characterTextureMetadata: []
+                    }
+                    : value.documents
             }
             : value;
 

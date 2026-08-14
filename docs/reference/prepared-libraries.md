@@ -1,7 +1,7 @@
 # Character library document contract
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-character` schema-v9 input and lookup
+Scope: `@carbonenginejs/runtime-character` schema-v10 input and lookup
 Audience: Library producers and runtime consumers
 Summary: Defines the model-shaped JSON document accepted by the character-library builder and runtime model.
 
@@ -14,7 +14,7 @@ derived profile catalogs into JSON whose fields match `CjsCharacterLibrary`:
 ```json
 {
   "schema": "carbonenginejs.characterLibrary",
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "sourceBuild": "example-build",
   "documents": {
     "ancestries": [
@@ -61,12 +61,12 @@ The complete value contains these document arrays:
 - `characterPartMetadata`;
 - `characterMaterialProfiles`;
 - `characterProjectionProfiles`; and
-- `characterRecipeProfiles`; and
+- `characterRecipeProfiles`;
 - `characterTextureMetadata`.
 
 The first twelve arrays are required source-document inputs. The final eight
 are optional and default to empty arrays. `characterDefinitions` retains each
-supplied decoded authoring definition. The other six arrays are additive typed
+supplied decoded authoring definition. The other seven arrays are additive typed
 projections and exact external resource inventories; they never replace the
 retained definition records.
 
@@ -192,7 +192,7 @@ exact model-shaped fields are:
 | `characterRecipeProfiles` | `sourcePath`, `sex`, `entries` | Each entry has `category`, `path`, `weight`, `colorVariation`, `colors`, `specularColors`, `pattern`, `patternColors`, `patternTransform`, and `patternRotation`; color entries use the same `{ "value": [...] }` shape. |
 | `characterTextureMetadata` | `sourcePath`, `sourceFormat`, `width`, `height`, raw `oFFs`/`pHYs` values and units, normalized `offsetX`/`offsetY`/`extentX`/`extentY`, metadata flags, `placementEncoding`, `placementPolicy`, `placementStatus` | `recordID` is the extension-neutral resource name. Raw PNG facts remain exact. Normalized millionths values are additive character policy and are labelled `experimental-policy`, not PNG semantics. |
 
-Schema v9 does not infer resource relationships. A producer that reads sparse
+Schema v10 does not infer resource relationships. A producer that reads sparse
 baseline-plus-override authoring data must materialize effective candidate
 arrays and metadata for every published version before building the combined
 library. Empty arrays mean no candidates; the runtime resolver never merges
@@ -244,9 +244,10 @@ JSON shape. Direct array mutation remains possible because the arrays are the
 model fields; call `Reindex()` after bypassing the named methods.
 
 `CjsCharacterLibraryManager` can install the combined model directly or obtain
-its decoded object through one injected loader. Plain schema-v9 values contain
-all twenty document arrays and pass the same no-loss shape check. Schemas 7
-and 8 remain readable without the new texture-metadata array.
+its decoded object through one injected loader. Plain schema-v10 values contain
+all twenty document arrays and pass the same no-loss shape check. Schemas 7,
+8, and 9 remain readable and migrate to schema v10; schemas 7 and 8 predate
+the texture-metadata array and therefore normalize it to an empty catalog.
 
 A configured runtime-resource manager supports incremental inspection through
 `library.InspectResourceForData(path)`. The library first returns an existing

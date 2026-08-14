@@ -31,6 +31,7 @@ export { CjsCharacterAncestry } from './character/demographics/CjsCharacterAnces
 export { CjsCharacterBloodline } from './character/demographics/CjsCharacterBloodline.js';
 export { CjsCharacterRace } from './character/demographics/CjsCharacterRace.js';
 export { CjsCharacterAppearanceBinding } from './character/planning/CjsCharacterAppearanceBinding.js';
+export { CjsCharacterAppearanceColorSelection } from './character/planning/CjsCharacterAppearanceColorSelection.js';
 export { CjsCharacterAppearanceDiagnostic } from './character/planning/CjsCharacterAppearanceDiagnostic.js';
 export { CjsCharacterAppearanceLayer } from './character/planning/CjsCharacterAppearanceLayer.js';
 export { CjsCharacterAppearancePlan } from './character/planning/CjsCharacterAppearancePlan.js';
@@ -41,6 +42,7 @@ export { CjsCharacterCompositionPass } from './character/planning/CjsCharacterCo
 export { CjsCharacterCompositionTarget } from './character/planning/CjsCharacterCompositionTarget.js';
 export { CjsCharacterCoverage } from './character/planning/CjsCharacterCoverage.js';
 export { CjsCharacterOrigin } from './character/planning/CjsCharacterOrigin.js';
+export { CjsCharacterMorphTargetWeight } from './character/planning/CjsCharacterMorphTargetWeight.js';
 export { CjsCharacterResolvedPart } from './character/planning/CjsCharacterResolvedPart.js';
 export { CjsCharacterTextureAsset } from './character/planning/CjsCharacterTextureAsset.js';
 export { CjsCharacterTextureChannel } from './character/planning/CjsCharacterTextureChannel.js';

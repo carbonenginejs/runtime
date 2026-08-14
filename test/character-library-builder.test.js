@@ -31,7 +31,7 @@ test("builds model-shaped character JSON with separate domain and graph identiti
     });
 
     assert.equal(value.schema, "carbonenginejs.characterLibrary");
-    assert.equal(value.schemaVersion, 9);
+    assert.equal(value.schemaVersion, 10);
     assert.equal(value.sourceTarget, "example-target");
     assert.ok(Array.isArray(value.documents.ancestries));
     assert.equal(value.documents.ancestries[0].recordID, "1");
@@ -91,7 +91,7 @@ test("from and SetValues hydrate the same character-library model shape", () =>
     assert.equal(typeof CjsCharacterLibrary.schema.getSchema, "function");
 });
 
-test("migrates complete schema-v8 values to the canonical schema-v9 shape", () =>
+test("migrates complete schema-v8 values to the canonical schema-v10 shape", () =>
 {
     const legacy = CjsCharacterLibraryBuilder.build(CreateDocuments());
     legacy.schemaVersion = 8;
@@ -101,8 +101,8 @@ test("migrates complete schema-v8 values to the canonical schema-v9 shape", () =
     const assigned = new CjsCharacterLibrary();
     assigned.SetValues(legacy);
 
-    assert.equal(from.schemaVersion, 9);
-    assert.equal(assigned.schemaVersion, 9);
+    assert.equal(from.schemaVersion, 10);
+    assert.equal(assigned.schemaVersion, 10);
     assert.deepEqual(from.documents.characterTextureMetadata, []);
     assert.deepEqual(assigned.GetValues({ refs: true }), from.GetValues({ refs: true }));
     assert.equal(legacy.schemaVersion, 8, "migration does not mutate caller values");
@@ -227,7 +227,8 @@ test("folds source-backed profiles and exact external resource candidates into o
             dependencies: [ {
                 authoredValue: "dependants/tuck/basic",
                 modifierPath: "dependants/tuck/basic",
-                partSource: sourceID
+                partSource: sourceID,
+                weight: 0.35
             } ],
             occlusions: [ {
                 authoredValue: "topinner",
@@ -294,6 +295,10 @@ test("folds source-backed profiles and exact external resource candidates into o
         values.documents.characterPartMetadata[0].dependencies[0].partSource,
         { _ref: sourceValue._id }
     );
+    assert.equal(
+        values.documents.characterPartMetadata[0].dependencies[0].weight,
+        0.35
+    );
     assert.deepEqual(
         values.documents.characterPartMetadata[0].occlusions[0].modifierLocation,
         { _ref: values.documents.characterModifierLocations[0]._id }
@@ -317,6 +322,8 @@ test("folds source-backed profiles and exact external resource candidates into o
         "characterRecipeProfiles",
         "res:/example/recipes/example"
     );
+
+    assert.equal(metadata.dependencies[0].weight, 0.35);
 
     assert.ok(partType instanceof CjsCharacterPartType);
     assert.ok(definition instanceof CjsCharacterDefinition);
@@ -730,7 +737,7 @@ test("combined character library installation is atomic", () =>
 
     assert.throws(
         () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 7 }),
-        /schema version 7, 8, or 9/u
+        /schema version 7, 8, 9, or 10/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 
@@ -739,7 +746,7 @@ test("combined character library installation is atomic", () =>
     retired.schemaVersion = 5;
     assert.throws(
         () => manager.InstallLibrary(retired),
-        /schema version 7, 8, or 9/u
+        /schema version 7, 8, 9, or 10/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 

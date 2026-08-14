@@ -3,6 +3,7 @@ const publicExport = "`@carbonenginejs/runtime-character`";
 const carbonEngineJs = [
     ["CjsCharacterAncestry", "src/character/demographics/CjsCharacterAncestry.js"],
     ["CjsCharacterAppearanceBinding", "src/character/planning/CjsCharacterAppearanceBinding.js"],
+    ["CjsCharacterAppearanceColorSelection", "src/character/planning/CjsCharacterAppearanceColorSelection.js"],
     ["CjsCharacterAppearanceDiagnostic", "src/character/planning/CjsCharacterAppearanceDiagnostic.js"],
     ["CjsCharacterAppearanceLayer", "src/character/planning/CjsCharacterAppearanceLayer.js"],
     ["CjsCharacterAppearancePlan", "src/character/planning/CjsCharacterAppearancePlan.js"],
@@ -29,6 +30,7 @@ const carbonEngineJs = [
     ["CjsCharacterAtlasLayout", "src/character/composition/CjsCharacterAtlasLayout.js"],
     ["CjsCharacterModifierLocation", "src/character/composition/CjsCharacterModifierLocation.js"],
     ["CjsCharacterModifierReference", "src/character/catalog/CjsCharacterModifierReference.js"],
+    ["CjsCharacterMorphTargetWeight", "src/character/planning/CjsCharacterMorphTargetWeight.js"],
     ["CjsCharacterModifierOrder", "src/character/composition/CjsCharacterModifierOrder.js"],
     ["CjsCharacterModifierSelection", "src/character/composition/CjsCharacterModifierSelection.js"],
     ["CjsCharacterPaperdoll", "src/character/creation/CjsCharacterPaperdoll.js"],

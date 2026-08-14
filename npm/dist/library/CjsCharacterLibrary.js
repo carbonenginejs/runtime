@@ -26,7 +26,7 @@ class CjsCharacterLibrary extends CjsModel {
   #textureMetadataRequests = new Map();
   #resourceManager = null;
   schema = _init_schema(this, "carbonenginejs.characterLibrary");
-  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 9));
+  schemaVersion = (_init_extra_schema(this), _init_schemaVersion(this, 10));
   sourceTarget = (_init_extra_schemaVersion(this), _init_sourceTarget(this, null));
   sourceGame = (_init_extra_sourceTarget(this), _init_sourceGame(this, null));
   sourceProvider = (_init_extra_sourceGame(this), _init_sourceProvider(this, null));
@@ -48,20 +48,20 @@ class CjsCharacterLibrary extends CjsModel {
   /** Rejects combined plain values that cannot hydrate without losing fields or structure. */
   static validateValues(value) {
     RequirePlainObject(value, "Character library");
-    if (value.schema !== "carbonenginejs.characterLibrary" || ![7, 8, 9].includes(value.schemaVersion)) {
-      throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7, 8, or 9");
+    if (value.schema !== "carbonenginejs.characterLibrary" || ![7, 8, 9, 10].includes(value.schemaVersion)) {
+      throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, or 10");
     }
     RequirePlainObject(value.documents, "Character library documents");
     if (value.schemaVersion < 9 && Object.hasOwn(value.documents, "characterTextureMetadata")) {
       throw new TypeError("Character library schemas 7 and 8 cannot define characterTextureMetadata");
     }
-    const normalized = value.schemaVersion < 9 ? {
+    const normalized = value.schemaVersion < 10 ? {
       ...value,
-      schemaVersion: 9,
-      documents: {
+      schemaVersion: 10,
+      documents: value.schemaVersion < 9 ? {
         ...value.documents,
         characterTextureMetadata: []
-      }
+      } : value.documents
     } : value;
     for (const name of _CjsCharacterLibraryD.listDocumentNames()) {
       if (!Object.hasOwn(normalized.documents, name) || !Array.isArray(normalized.documents[name])) {

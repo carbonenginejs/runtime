@@ -30,6 +30,16 @@ Final consumer/sampler binding to a resolved texture or composition target.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterAppearanceColorSelection -->
+## `CjsCharacterAppearanceColorSelection`
+
+One plan-local authored paper-doll colour selection.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterAppearanceColorSelection.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterAppearanceDiagnostic -->
 ## `CjsCharacterAppearanceDiagnostic`
 
@@ -233,7 +243,7 @@ Hydrated character library whose public fields have the same shape as its JSON v
 <!-- class:CjsCharacterLibraryBuilder -->
 ## `CjsCharacterLibraryBuilder`
 
-Builds schema-v9 model-shaped JSON from source documents and lossless definition catalogs.
+Builds schema-v10 model-shaped JSON from source documents and lossless definition catalogs.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/library-builder/CjsCharacterLibraryBuilder.js`
@@ -307,6 +317,16 @@ One authored paper-doll resource selection at a resolved modifier location.
 
 - Export: `@carbonenginejs/runtime-character`
 - Source: `src/character/composition/CjsCharacterModifierSelection.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterMorphTargetWeight -->
+## `CjsCharacterMorphTargetWeight`
+
+One exact renderer-neutral morph-target request in an appearance plan.
+
+- Export: `@carbonenginejs/runtime-character`
+- Source: `src/character/planning/CjsCharacterMorphTargetWeight.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

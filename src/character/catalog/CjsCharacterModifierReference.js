@@ -22,6 +22,11 @@ export class CjsCharacterModifierReference extends CjsModel
     @type.model("CjsCharacterModifierLocation")
     modifierLocation = null;
 
+    /** Effective weight for a proved weighted logical modifier; otherwise null. */
+    @io.readwrite
+    @type.float64
+    weight = null;
+
 }
 
 export default CjsCharacterModifierReference;

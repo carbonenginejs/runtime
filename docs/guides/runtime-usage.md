@@ -179,9 +179,11 @@ when that version contains exactly one candidate of each. Its
 `layers` collection records owner/contributor relationships, not atlas order.
 Effective version metadata contributes the five verified modifier-order flags,
 but this policy normalization does not reorder `plan.layers`. Raw dependency
-and occlusion strings remain untouched and produce one precise diagnostic per
-value; they do not create, remove, or redirect parts. Unknown modifier
-categories are retained and diagnosed rather than dropped.
+and occlusion strings remain untouched. A producer-supplied typed dependency
+may add an exact requester-owned contribution when its target resolves
+uniquely; unresolved raw or typed values produce precise diagnostics and do
+not create, remove, or redirect parts. Unknown modifier categories are retained
+and diagnosed rather than dropped.
 
 Until later stages supply decoded resource facts or explicit policy, textures,
 coverage, targets, passes, and bindings remain empty and diagnostics explain

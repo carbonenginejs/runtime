@@ -10,7 +10,7 @@ replacement, and animation rebinding remain renderer responsibilities.
 
 The package has five independent surfaces:
 
-- a source-neutral schema-v9 model-shaped JSON library built from
+- a source-neutral schema-v10 model-shaped JSON library built from
   caller-supplied record-map documents, losslessly retained decoded
   definitions, and additive prepared profile catalogs;
 - source-backed character record models under `src/character`, hydrated as one
@@ -67,7 +67,7 @@ Editors can incrementally call `Create`, `Add`, `Remove`, `Delete`, or `Clear`
 without changing that JSON shape. The library lazily invalidates the affected
 document index and emits record/document events for UI synchronization.
 
-`CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v2 plan
+`CjsCharacterAppearancePlan.from(bigJSON)` hydrates a separate schema-v4 plan
 through the inherited `CjsModel` contract. Its `_id`/`_ref` graph closes within
 the document. It records resolved ownership, contributors, textures, reusable
 coverage, ordered logical composition, final bindings, and provenance.
@@ -94,7 +94,7 @@ Character asset fetching, decoding, caching, and lifecycle remain with
 and relationships, not downloaded asset bytes. Its library manager can invoke
 one caller-supplied object loader for the combined catalog.
 
-Schema v9 can also retain normalized PNG placement facts in
+Schema v10 retains normalized PNG placement facts in
 `characterTextureMetadata`. Producers normally populate that catalog while
 building the library. For older or deliberately sparse libraries,
 `library.InspectResourceForData(path)` first returns an existing
@@ -112,6 +112,8 @@ stem, `.dds`, or `.png` addresses the same metadata record.
 - [Combined library pipeline](docs/guides/combined-library-pipeline.md)
 - [Character document contract](docs/reference/prepared-libraries.md)
 - [Character appearance plans](docs/reference/character-appearance-plans.md)
+- [Character CPU, GPU, and format boundary](docs/reference/cpu-gpu-and-format-boundary.md)
+- [Legacy GLES character reference](docs/reference/legacy-gles-character-reference.md)
 - [Class catalog](docs/reference/classes/README.md)
 - [Roadmap](docs/roadmap.md)
 

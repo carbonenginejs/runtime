@@ -1,4 +1,5 @@
 export * from "./CjsCharacterAppearanceBinding.js";
+export * from "./CjsCharacterAppearanceColorSelection.js";
 export * from "./CjsCharacterAppearanceDiagnostic.js";
 export * from "./CjsCharacterAppearanceLayer.js";
 export * from "./CjsCharacterAppearancePlan.js";
@@ -9,6 +10,7 @@ export * from "./CjsCharacterCompositionPass.js";
 export * from "./CjsCharacterCompositionTarget.js";
 export * from "./CjsCharacterCoverage.js";
 export * from "./CjsCharacterOrigin.js";
+export * from "./CjsCharacterMorphTargetWeight.js";
 export * from "./CjsCharacterResolvedPart.js";
 export * from "./CjsCharacterTextureAsset.js";
 export * from "./CjsCharacterTextureChannel.js";

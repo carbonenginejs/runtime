@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
     CjsCharacterAppearanceLayer,
+    CjsCharacterAppearanceColorSelection,
     CjsCharacterAppearancePlan,
     CjsCharacterAppearanceResolver,
     CjsCharacterAppearanceSelection,
@@ -20,6 +21,12 @@ test("resolves exact paper-doll selections and unique atomic part candidates", (
     assert.ok(plan instanceof CjsCharacterAppearancePlan);
     assert.equal(plan.sourceBuild, "synthetic-build");
     assert.equal(plan.selections.length, 1);
+    assert.equal(plan.colorSelections.length, 1);
+    assert.ok(plan.colorSelections[0] instanceof CjsCharacterAppearanceColorSelection);
+    assert.equal(plan.colorSelections[0].colorKey, "makeup/eyes");
+    assert.equal(plan.colorSelections[0].colorNameA, "darkbrown_abc");
+    assert.equal(plan.colorSelections[0].colorNameBC, null);
+    assert.equal(plan.colorSelections[0].origin.jsonPointer, "/colorSelections/0");
     assert.equal(plan.parts.length, 1);
     assert.equal(plan.layers.length, 1);
     assert.ok(plan.selections[0] instanceof CjsCharacterAppearanceSelection);
@@ -48,6 +55,7 @@ test("resolves exact paper-doll selections and unique atomic part candidates", (
 
     assert.strictEqual(roundTrip.layers[0].owner, roundTrip.selections[0]);
     assert.strictEqual(roundTrip.layers[0].contributor, roundTrip.parts[0]);
+    assert.strictEqual(roundTrip.colorSelections[0].origin, roundTrip.origins[0]);
     assert.equal(roundTrip.parts[0].origin.rule, "unique-version-candidates");
 });
 
@@ -445,7 +453,7 @@ test("projects exact typed dependencies as requester-owned source contributions"
         library.Get("paperdolls", "30")
     );
 
-    assert.equal(plan.schemaVersion, 2);
+    assert.equal(plan.schemaVersion, 4);
     assert.equal(plan.parts.length, 3);
     assert.equal(plan.layers.length, 3);
     assert.ok(plan.layers.every(layer => layer.owner === plan.selections[0]));
@@ -457,12 +465,123 @@ test("projects exact typed dependencies as requester-owned source contributions"
     ]);
     assert.equal(plan.layers[1].origin.kind, "authored");
     assert.equal(plan.parts[1].origin.kind, "derived");
+    assert.deepEqual(plan.morphTargets.map(value => ({
+        modifierPath: value.modifierPath,
+        targetName: value.targetName,
+        weight: value.weight,
+        owner: value.owner.groupID,
+        rule: value.origin.rule
+    })), [ {
+        modifierPath: "utilityshapes/pushhemshape",
+        targetName: "pushhemshape",
+        weight: 0.7,
+        owner: "topinner",
+        rule: "utility-shape-triple-suffix-weight"
+    } ]);
     assert.deepEqual(plan.diagnostics.map(value => value.code), [
-        "DEPENDENCY_REFERENCE_UNRESOLVED",
         "DEPENDENCY_VERSION_UNRESOLVED",
         "TEXTURE_ROLES_UNRESOLVED",
         "PASS_ORDER_UNRESOLVED"
     ]);
+});
+
+test("resolves an exact weighted part dependency without dropping its authored weight", () =>
+{
+    const documents = CreateDocuments();
+
+    documents.characterPartSources["source/top"].versions[0].metadata = "metadata/top";
+    documents.characterPartSources["female/makeup/eyelashes/eyelashes_02"] = {
+        sourcePath: "res:/character/female/makeup/eyelashes/eyelashes_02",
+        sex: "female",
+        partPath: "makeup/eyelashes/eyelashes_02",
+        versions: [ {
+            resourceVersion: null,
+            metadata: null,
+            configurationCandidates: [],
+            geometryCandidates: [],
+            textureCandidates: [ "res:/character/eyelashes/colorize_head_l_4k.png" ]
+        } ],
+        metadata: null
+    };
+    documents.characterPartMetadata["metadata/top"] = {
+        sourcePath: "res:/character/top/metadata.yaml",
+        dependentModifiers: [ "makeup/eyelashes/eyelashes_02###0.4" ],
+        dependencies: [ {
+            authoredValue: "makeup/eyelashes/eyelashes_02###0.4"
+        } ]
+    };
+
+    const library = CreateLibrary(documents);
+    const plan = CjsCharacterAppearanceResolver.resolvePaperdoll(
+        library,
+        library.Get("paperdolls", "30")
+    );
+
+    assert.equal(plan.parts.length, 2);
+    assert.equal(plan.layers.length, 2);
+    assert.equal(plan.layers[1].weight, 0.4);
+    assert.deepEqual(plan.parts[1].texturePaths, [
+        "res:/character/eyelashes/colorize_head_l_4k.png"
+    ]);
+    assert.equal(plan.parts[1].origin.rule, "unique-weighted-dependency-version");
+    assert.ok(!plan.diagnostics.some(value =>
+        value.code === "DEPENDENCY_REFERENCE_UNRESOLVED"));
+});
+
+test("resolves proved utility dependency weights and exact active occlusions", () =>
+{
+    const documents = CreateDocuments();
+
+    documents.characterPartSources["source/top"].versions[0].metadata = "metadata/top";
+    documents.characterPartMetadata["metadata/top"] = {
+        sourcePath: "res:/character/top/metadata.yaml",
+        dependentModifiers: [
+            "utilityshapes/PinchTuckShape",
+            "utilityshapes/PushHemMidShape###0.35",
+            "utilityshapes/ZeroShape###0",
+            "utilityshapes/UnprovedShape#0.5"
+        ],
+        occludesModifiers: [ "utilityshapes/PinchTuckShape" ],
+        dependencies: [ {
+            authoredValue: "utilityshapes/PinchTuckShape",
+            modifierPath: "utilityshapes/pinchtuckshape",
+            weight: 1
+        }, {
+            authoredValue: "utilityshapes/PushHemMidShape###0.35",
+            modifierPath: "utilityshapes/pushhemmidshape",
+            weight: 0.35
+        }, {
+            authoredValue: "utilityshapes/ZeroShape###0",
+            modifierPath: "utilityshapes/zeroshape",
+            weight: 0
+        }, {
+            authoredValue: "utilityshapes/UnprovedShape#0.5"
+        } ],
+        occlusions: [ {
+            authoredValue: "utilityshapes/PinchTuckShape",
+            modifierPath: "utilityshapes/pinchtuckshape"
+        } ]
+    };
+
+    const library = CreateLibrary(documents);
+    const plan = CjsCharacterAppearanceResolver.resolvePaperdoll(
+        library,
+        library.Get("paperdolls", "30")
+    );
+
+    assert.deepEqual(plan.morphTargets.map(value => [
+        value.modifierPath,
+        value.targetName,
+        value.weight
+    ]), [
+        [ "utilityshapes/pushhemmidshape", "PushHemMidShape", 0.35 ],
+        [ "utilityshapes/zeroshape", "ZeroShape", 0 ]
+    ]);
+    assert.ok(plan.diagnostics.some(value =>
+        value.code === "UTILITY_SHAPE_SUPPRESSED"));
+    assert.ok(plan.diagnostics.some(value =>
+        value.code === "DEPENDENCY_REFERENCE_UNRESOLVED"
+        && value.message.includes("UnprovedShape#0.5")));
 });
 
 test("consumes ordering flags without reordering contribution inventory", () =>
@@ -563,8 +682,19 @@ function CreateDocuments()
         archetypes: {},
         bloodlines: {},
         characterAvatarBehaviors: {},
-        characterColorLocations: {},
-        characterColorNames: {},
+        characterColorLocations: {
+            5: {
+                colorKey: "makeup/eyes",
+                hasGloss: 0,
+                hasWeight: 0
+            }
+        },
+        characterColorNames: {
+            119: {
+                colorName: "darkbrown_abc",
+                hairColor: 0
+            }
+        },
         characterModifierLocations: {
             10: {
                 modifierKey: "topinner",
@@ -581,6 +711,13 @@ function CreateDocuments()
         characterSculptingLocations: {},
         paperdolls: {
             30: {
+                colorSelections: [ {
+                    gloss: 0,
+                    weight: 0,
+                    colorID: "5",
+                    colorNameA: "119",
+                    colorNameBC: null
+                } ],
                 modifiers: [ {
                     modifierLocationID: "10",
                     paperdollResourceID: "20",

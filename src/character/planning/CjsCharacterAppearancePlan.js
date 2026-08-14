@@ -1,6 +1,7 @@
 import { io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import "./CjsCharacterAppearanceBinding.js";
+import "./CjsCharacterAppearanceColorSelection.js";
 import "./CjsCharacterAppearanceDiagnostic.js";
 import "./CjsCharacterAppearanceLayer.js";
 import "./CjsCharacterAppearanceSelection.js";
@@ -10,6 +11,7 @@ import "./CjsCharacterCompositionPass.js";
 import "./CjsCharacterCompositionTarget.js";
 import "./CjsCharacterCoverage.js";
 import "./CjsCharacterOrigin.js";
+import "./CjsCharacterMorphTargetWeight.js";
 import "./CjsCharacterResolvedPart.js";
 import "./CjsCharacterTextureAsset.js";
 import "./CjsCharacterTextureChannel.js";
@@ -18,6 +20,30 @@ import "./CjsCharacterTextureChannel.js";
 @type.define({ className: "CjsCharacterAppearancePlan", family: "character" })
 export class CjsCharacterAppearancePlan extends CjsModel
 {
+
+    /** Hydrates and adds an authored colour selection. */
+    CreateColorSelection(values = {}, options = {})
+    {
+        return CjsModel.createChild(this, "colorSelections", values, options);
+    }
+
+    /** Adds an existing authored colour selection. */
+    AddColorSelection(value, options = {})
+    {
+        return CjsModel.addChild(this, "colorSelections", value, options);
+    }
+
+    /** Detaches an authored colour selection. */
+    RemoveColorSelection(value, options = {})
+    {
+        return CjsModel.removeChild(this, "colorSelections", value, options);
+    }
+
+    /** Deletes an authored colour selection through an optional teardown hook. */
+    DeleteColorSelection(value, options = {})
+    {
+        return CjsModel.deleteChild(this, "colorSelections", value, options);
+    }
 
     /** Hydrates and adds an origin. */
     CreateOrigin(values = {}, options = {})
@@ -163,6 +189,30 @@ export class CjsCharacterAppearancePlan extends CjsModel
         return CjsModel.deleteChild(this, "coverages", value, options);
     }
 
+    /** Hydrates and adds one exact morph-target request. */
+    CreateMorphTarget(values = {}, options = {})
+    {
+        return CjsModel.createChild(this, "morphTargets", values, options);
+    }
+
+    /** Adds one existing morph-target request. */
+    AddMorphTarget(value, options = {})
+    {
+        return CjsModel.addChild(this, "morphTargets", value, options);
+    }
+
+    /** Detaches one morph-target request. */
+    RemoveMorphTarget(value, options = {})
+    {
+        return CjsModel.removeChild(this, "morphTargets", value, options);
+    }
+
+    /** Deletes one morph-target request through an optional teardown hook. */
+    DeleteMorphTarget(value, options = {})
+    {
+        return CjsModel.deleteChild(this, "morphTargets", value, options);
+    }
+
     /** Hydrates and adds a composition target. */
     CreateTarget(values = {}, options = {})
     {
@@ -241,7 +291,7 @@ export class CjsCharacterAppearancePlan extends CjsModel
 
     @io.readwrite
     @type.uint32
-    schemaVersion = 2;
+    schemaVersion = 4;
 
     @io.readwrite
     @type.string
@@ -254,6 +304,10 @@ export class CjsCharacterAppearancePlan extends CjsModel
     @io.readwrite
     @type.list("CjsCharacterAppearanceSelection")
     selections = [];
+
+    @io.readwrite
+    @type.list("CjsCharacterAppearanceColorSelection")
+    colorSelections = [];
 
     @io.readwrite
     @type.list("CjsCharacterResolvedPart")
@@ -270,6 +324,10 @@ export class CjsCharacterAppearancePlan extends CjsModel
     @io.readwrite
     @type.list("CjsCharacterCoverage")
     coverages = [];
+
+    @io.readwrite
+    @type.list("CjsCharacterMorphTargetWeight")
+    morphTargets = [];
 
     @io.readwrite
     @type.list("CjsCharacterCompositionTarget")

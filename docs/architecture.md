@@ -11,7 +11,7 @@ Summary: Separates source-neutral character documents, current Carbon classes, a
 caller JSON
     |
     v
-CjsCharacterLibraryBuilder -> schema-v9 plain JSON
+CjsCharacterLibraryBuilder -> schema-v10 plain JSON
     |
     v
 CjsCharacterLibrary.from / instance.SetValues
@@ -81,8 +81,8 @@ source-record schema.
 
 ## Appearance-plan boundary
 
-The schema-v2 appearance plan is a standalone JSON graph, not an extension of
-the schema-v9 source library. Its selections, resolved parts, layers, textures,
+The schema-v4 appearance plan is a standalone JSON graph, not an extension of
+the schema-v10 source library. Its selections, resolved parts, layers, textures,
 coverages, composition targets, and bindings close over document-local `_id`
 and `_ref` identities. Source-document identity is retained only as provenance.
 
@@ -93,8 +93,10 @@ composition order. Logical operations, blends, and write masks cross the
 boundary; shader paths, render targets, live textures, decoded bytes, GPU
 constants, and cache objects do not.
 
-The first source-to-plan resolver stage deliberately leaves dependencies, LOD,
-materials, texture roles, coverage, targets, bindings, and composition passes
+The first source-to-plan resolver stage projects exact selections and colour
+selections, follows bounded exact typed dependencies, and retains proved
+utility-shape target weights. Recursive dependency policy, LOD, materials,
+texture roles, coverage, targets, bindings, and composition passes remain
 unresolved. It emits diagnostics rather than promoting the working demo's
 heuristics into source data. There is no plan execution adapter.
 
@@ -156,5 +158,5 @@ records. Schemas 7 and 8 hydrate with an empty metadata catalog.
 The schema-v1/v2 `CjsCharacter*` graph, recipes, parts, materials, controls,
 visemes, deformation records, and library hydrator were based on superseded
 data structures. They were removed rather than treated as authority for the
-new document corpus. Consumers must migrate to the schema-v9 builder and the
+new document corpus. Consumers must migrate to the schema-v10 builder and the
 new direct source-record library.

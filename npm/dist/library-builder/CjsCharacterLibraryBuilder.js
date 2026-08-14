@@ -5,10 +5,10 @@ const DOCUMENT_NAMES = _CjsCharacterLibraryD.listDocumentNames();
 const RELATIONSHIPS = [["ancestries", ["bloodlineID"], "bloodlines"], ["bloodlines", ["raceID"], "races"], ["characterResources", ["clothingAlsoCoversCategory"], "characterModifierLocations"], ["characterResources", ["clothingAlsoCoversCategory2"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory"], "characterModifierLocations"], ["characterResources", ["clothingRemovesCategory2"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "modifierLocationID"], "characterModifierLocations"], ["paperdolls", ["modifiers", "*", "paperdollResourceID"], "characterResources"], ["paperdolls", ["colorSelections", "*", "colorID"], "characterColorLocations"], ["paperdolls", ["colorSelections", "*", "colorNameA"], "characterColorNames"], ["paperdolls", ["colorSelections", "*", "colorNameBC"], "characterColorNames"], ["paperdolls", ["sculptWeights", "*", "sculptLocationID"], "characterSculptingLocations"], ["paperdolls", ["backgroundID"], "characterPortraitResources"], ["characterPartTypes", ["partSource"], "characterPartSources"], ["characterPartTypes", ["partSources", "*"], "characterPartSources"], ["characterPartSources", ["metadata"], "characterPartMetadata"], ["characterPartSources", ["versions", "*", "metadata"], "characterPartMetadata"], ["characterPartMetadata", ["dependencies", "*", "partSource"], "characterPartSources"], ["characterPartMetadata", ["dependencies", "*", "modifierLocation"], "characterModifierLocations"], ["characterPartMetadata", ["occlusions", "*", "partSource"], "characterPartSources"], ["characterPartMetadata", ["occlusions", "*", "modifierLocation"], "characterModifierLocations"]];
 const METADATA_FIELDS = ["sourceTarget", "sourceGame", "sourceProvider", "sourceBuild", "generatedAt"];
 
-/** Builds schema-v9 model-shaped JSON from source documents and lossless definition catalogs. */
+/** Builds schema-v10 model-shaped JSON from source documents and lossless definition catalogs. */
 class CjsCharacterLibraryBuilder {
   static schema = "carbonenginejs.characterLibrary";
-  static schemaVersion = 9;
+  static schemaVersion = 10;
 
   /** Builds one deterministic library value from keyed or named JSON documents. */
   static build(documents = {}, options = {}) {

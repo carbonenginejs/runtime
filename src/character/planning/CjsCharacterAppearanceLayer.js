@@ -14,6 +14,11 @@ export class CjsCharacterAppearanceLayer extends CjsModel
     @type.model("CjsCharacterResolvedPart")
     contributor = null;
 
+    /** Authored contribution weight when the dependency carries one. */
+    @io.readwrite
+    @type.float64
+    weight = null;
+
     @io.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;

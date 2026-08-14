@@ -179,8 +179,8 @@ function PrepareLibrary(value) {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError("Character library must be an object");
   }
-  if (value.schema !== "carbonenginejs.characterLibrary" || ![7, 8, 9].includes(value.schemaVersion)) {
-    throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7, 8, or 9");
+  if (value.schema !== "carbonenginejs.characterLibrary" || ![7, 8, 9, 10].includes(value.schemaVersion)) {
+    throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, or 10");
   }
   const installed = value instanceof _CjsCharacterLibrary ? value : _CjsCharacterLibrary.from(_CjsCharacterLibrary.validateValues(value));
   installed.Reindex();

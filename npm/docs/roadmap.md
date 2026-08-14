@@ -7,16 +7,16 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
 
 ## Current baseline
 
-- schema-v9 model-shaped JSON construction, with schema-v7/v8 migration loading;
+- schema-v10 model-shaped JSON construction, with schema-v7/v8/v9 migration loading;
 - proven native `_id`/`_ref` relationship projection;
 - one connected source-record model with named `recordID` values;
 - observable create/add/remove/delete/clear editor mutation with lazy
   per-document private indexed lookup;
 - direct or injected-loader installation of one combined runtime catalog;
 - direct `CjsModel` records for all twelve required source documents, one
-  lossless decoded-definition catalog, six additive typed profile/resource
+  lossless decoded-definition catalog, seven additive typed profile/resource
   catalogs, and nested selection records;
-- a standalone schema-v2 appearance-plan data contract with local graph
+- a standalone schema-v4 appearance-plan data contract with local graph
   identity, provenance, reusable coverage, ordered composition, and bindings;
 - a source-to-plan resolver that preserves exact paper-doll source-version
   contributions, all exact texture candidates, uniquely determined
@@ -59,7 +59,7 @@ and complete pixel matrix remain open.
 The final-library producer now materializes exact decoded baseline and version
 metadata plus configuration, geometry, and texture candidate arrays. The
 retired compact format distinguished absent overrides from explicit empty
-arrays; schema v9 runtime records deliberately do not guess that distinction.
+arrays; schema v10 runtime records deliberately do not guess that distinction.
 The producer now supplies an additive typed relation beside each retained raw
 dependency or occlusion string. Exact unsuffixed targets can resolve to part
 sources or modifier locations; suffixed values stay opaque and are not parsed
@@ -77,6 +77,17 @@ does not reopen the established owner/contributor split.
 Each future resolved field needs a source fact, resource inspection, or an
 explicit labelled policy decision.
 
+The [legacy GLES character reference](reference/legacy-gles-character-reference.md)
+is the functional parity worklist for the replacement system. It is broader
+than the current GPU-free resolver, so its in-scope working flows and visible
+outcomes remain implementation targets, although individual newer adapter
+behaviors may already be better. The replacement must preserve or explicitly
+supersede those capabilities while moving their inputs from filename rules,
+fixed fallbacks, fixture policies, and hardcoded layer tables to retained
+domain identities, typed relationships, decoded metadata, and explicit
+renderer policy. No in-scope legacy capability may be silently dropped because
+its old discovery mechanism was heuristic.
+
 Authored dependency and occlusion values remain unchanged strings beside the
 typed relation list. The resolver follows only a producer-supplied exact typed
 part-source relationship and diagnoses everything else. It must not parse
@@ -85,7 +96,7 @@ contribution.
 
 ## Document-to-native adapters
 
-Do not connect schema-v9 records to `Tr2*` objects by filename or old v1/v2
+Do not connect schema-v10 records to `Tr2*` objects by filename or old v1/v2
 assumptions. Each adapter requires a proven source relationship, focused
 synthetic tests, and a clear resource-owner boundary.
 
