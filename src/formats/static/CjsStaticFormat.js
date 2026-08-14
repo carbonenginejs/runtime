@@ -102,7 +102,12 @@ export class CjsStaticFormat
         byteLength: bytes.byteLength,
         payloadOffset: 0,
         prefix: null,
+        // Capability here is not a property of the format. These bytes are
+        // decodable given a driver the caller supplies, so `decodable` reports
+        // what this package can do alone and `requires` names what closes the
+        // gap. A boolean static cannot express that.
         decodable: false,
+        requires: "sqlite",
         reason: "SQLite containers need a driver, which this package does not ship."
       });
     }
@@ -117,6 +122,7 @@ export class CjsStaticFormat
         payloadOffset: PICKLE_PREFIX_BYTES,
         prefix: view.getUint32(0, true),
         decodable: true,
+        requires: null,
         reason: null
       });
     }
@@ -127,6 +133,7 @@ export class CjsStaticFormat
       payloadOffset: 0,
       prefix: null,
       decodable: false,
+      requires: "schema",
       reason: "No signature. A schema-bound container needs its .schema companion, "
         + "which is YAML describing the layout."
     });

@@ -51,6 +51,19 @@ test("identifies a SQLite container and declines to open it", () =>
   );
 });
 
+test("capability names what closes the gap, not just that there is one", () =>
+{
+  assert.equal(CjsStaticFormat.describe(Bytes(SQLITE_HEADER)).requires, "sqlite");
+  assert.equal(
+    CjsStaticFormat.describe(Bytes([ 0x01, 0x00, 0x00, 0x00 ], "(dp1\nI1\ns.")).requires,
+    null
+  );
+  assert.equal(
+    CjsStaticFormat.describe(Bytes([ 0x08, 0x13, 0x02, 0x00, 0x01, 0x2d ])).requires,
+    "schema"
+  );
+});
+
 test("a supplied SQLite driver reads the container anywhere", () =>
 {
   const bytes = Bytes(SQLITE_HEADER, [ 0x10, 0x00, 0x01, 0x01 ]);
