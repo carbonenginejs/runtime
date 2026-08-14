@@ -38,7 +38,7 @@ test("package subpath exports one public static format class", async () =>
 test("identifies a SQLite container and declines to open it", () =>
 {
   const bytes = Bytes(SQLITE_HEADER, [ 0x10, 0x00, 0x01, 0x01 ]);
-  const detected = CjsStaticFormat.detect(bytes);
+  const detected = CjsStaticFormat.describe(bytes);
 
   assert.equal(detected.family, CJS_STATIC_FAMILIES.SQLITE);
   assert.equal(detected.decodable, false);
@@ -72,7 +72,7 @@ test("a supplied SQLite driver reads the container anywhere", () =>
 test("identifies a prefixed pickle and reports the prefix and payload", () =>
 {
   const bytes = Bytes([ 0xa5, 0x02, 0x00, 0x00 ], "(dp1\nS'a'\np2\nI1\ns.");
-  const detected = CjsStaticFormat.detect(bytes);
+  const detected = CjsStaticFormat.describe(bytes);
 
   assert.equal(detected.family, CJS_STATIC_FAMILIES.PICKLE);
   assert.equal(detected.decodable, true);
@@ -92,13 +92,13 @@ test("a list pickle is recognised as well as a dictionary", () =>
 {
   const bytes = Bytes([ 0x00, 0x00, 0x00, 0x00 ], "(lp1\nI1\na.");
 
-  assert.equal(CjsStaticFormat.detect(bytes).family, CJS_STATIC_FAMILIES.PICKLE);
+  assert.equal(CjsStaticFormat.describe(bytes).family, CJS_STATIC_FAMILIES.PICKLE);
 });
 
 test("a schema-bound container is reported as unknown, not guessed at", () =>
 {
   const bytes = Bytes([ 0x08, 0x13, 0x02, 0x00, 0x01, 0x2d, 0x31, 0x01, 0x81, 0x96 ]);
-  const detected = CjsStaticFormat.detect(bytes);
+  const detected = CjsStaticFormat.describe(bytes);
 
   assert.equal(detected.family, CJS_STATIC_FAMILIES.UNKNOWN);
   assert.equal(detected.decodable, false);
@@ -114,7 +114,42 @@ test("a schema-bound container is reported as unknown, not guessed at", () =>
 test("rejects input that is not bytes", () =>
 {
   assert.throws(
-    () => CjsStaticFormat.detect("not bytes"),
+    () => CjsStaticFormat.describe("not bytes"),
     error => error.code === "CJS_STATIC_INPUT_INVALID"
   );
+});
+
+test("reports the family on the shared probe seam", () =>
+{
+  const probe = CjsStaticFormat.isSupported(
+    Bytes([ 0x01, 0x00, 0x00, 0x00 ], "(dp1\nS'a'\np2\nI1\ns.")
+  );
+
+  assert.equal(probe.format, "static");
+  assert.equal(probe.preferred, CJS_STATIC_FAMILIES.PICKLE);
+  assert.equal(probe.supported, "full");
+  assert.equal(probe.metadata.payloadOffset, 4);
+  assert.equal(probe.verified, false, "the declaration seam never claims verification");
+  assert.equal(
+    CjsStaticFormat.inspect(Bytes(SQLITE_HEADER)).preferred,
+    CJS_STATIC_FAMILIES.SQLITE
+  );
+});
+
+test("resolveType is verified, because the extension declares nothing", async () =>
+{
+  const probe = await CjsStaticFormat.resolveType(Bytes(SQLITE_HEADER));
+
+  assert.equal(probe.verified, true);
+  assert.equal(probe.preferred, CJS_STATIC_FAMILIES.SQLITE);
+  assert.equal(probe.metadata.declared, null);
+  assert.equal(probe.metadata.resolved, CJS_STATIC_FAMILIES.SQLITE);
+  assert.equal(probe.metadata.mismatch, false);
+
+  const unknown = await CjsStaticFormat.resolveType(
+    Bytes([ 0x08, 0x13, 0x02, 0x00, 0x01, 0x2d, 0x31, 0x01 ])
+  );
+
+  assert.equal(unknown.verified, true);
+  assert.equal(unknown.preferred, CJS_STATIC_FAMILIES.UNKNOWN);
 });

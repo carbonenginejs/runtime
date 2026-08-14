@@ -39,12 +39,59 @@ export class CjsStaticFormat
 {
 
   /**
-   * Describe one container without decoding it.
+   * Report which family a container holds, on the declaration seam.
+   *
+   * `.static` declares nothing: the extension names a role and every family
+   * wears it. The signature is therefore the only claim there is, which is why
+   * this format reads it here rather than trusting a name.
+   *
+   * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+   * @param {object} [options] Probe options.
+   * @returns {CjsResourceProbe} Declaration-derived probe.
+   */
+  static isSupported(input, options = null)
+  {
+    return Probe(this.describe(input), false, options);
+  }
+
+  /**
+   * Alias for canonical naming.
+   *
+   * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+   * @param {object} [options] Probe options.
+   * @returns {CjsResourceProbe} Declaration-derived probe.
+   */
+  static inspect(input, options = null)
+  {
+    return this.isSupported(input, options);
+  }
+
+  /**
+   * Content-verified family resolution.
+   *
+   * Contract: docs/concepts/format-type-resolution.md. There is no declared
+   * type to disagree with here — the extension is silent — so the signature is
+   * both the claim and the evidence, and the resolution is always verified.
+   * `preferred` names the decode route: this package's own for the pickle
+   * family, a caller-supplied driver for SQLite, and none for a schema-bound
+   * container until its companion is read.
+   *
+   * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+   * @param {object} [options] Probe options.
+   * @returns {Promise<CjsResourceProbe>} Verified probe.
+   */
+  static async resolveType(input, options = null)
+  {
+    return Probe(this.describe(input), true, options);
+  }
+
+  /**
+   * Describe one container without decoding it or building a probe.
    *
    * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
    * @returns {object} Family, payload offset, and whether this package decodes it.
    */
-  static detect(input)
+  static describe(input)
   {
     const bytes = Normalize(input);
 
@@ -94,7 +141,7 @@ export class CjsStaticFormat
   static payload(input)
   {
     const bytes = Normalize(input);
-    const detected = this.detect(bytes);
+    const detected = this.describe(bytes);
 
     return bytes.subarray(detected.payloadOffset);
   }
@@ -109,7 +156,7 @@ export class CjsStaticFormat
   static read(input, options = {})
   {
     const bytes = Normalize(input);
-    const detected = this.detect(bytes);
+    const detected = this.describe(bytes);
 
     if (detected.family === CJS_STATIC_FAMILIES.PICKLE)
     {
@@ -146,6 +193,31 @@ export class CjsStaticFormat
     throw error;
   }
 
+}
+
+/**
+ * Build the shared probe payload.
+ *
+ * Formats report a plain probe-shaped object rather than constructing a
+ * `CjsResourceProbe`, which keeps this module free of the decorated class and
+ * of the build transform it needs.
+ */
+function Probe(detected, verified, options)
+{
+  return {
+    format: "static",
+    source: "buffer",
+    supported: detected.decodable ? "full" : "partial",
+    confidence: detected.family === CJS_STATIC_FAMILIES.UNKNOWN ? 0.5 : 1,
+    preferred: detected.family,
+    verified,
+    reason: detected.reason ?? `Recognized a ${detected.family} container.`,
+    variants: [ { kind: "container", codec: detected.family, supported: detected.decodable } ],
+    metadata: verified
+      ? { ...detected, declared: null, resolved: detected.family, mismatch: false }
+      : detected,
+    ...(options || {})
+  };
 }
 
 function MatchesSqlite(bytes)

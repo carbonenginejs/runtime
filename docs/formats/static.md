@@ -93,21 +93,32 @@ implemented.**
 
 ## Use
 
+Identification goes through the shared type-resolution seam rather than a
+private entry point — see [format type resolution](../concepts/format-type-resolution.md).
+
 ```js
 import { CjsStaticFormat, CJS_STATIC_FAMILIES } from
     "@carbonenginejs/runtime-resource/formats/static";
 
-const detected = CjsStaticFormat.detect(bytes);
+const probe = await CjsStaticFormat.resolveType(bytes);
 
-if (detected.family === CJS_STATIC_FAMILIES.PICKLE)
+if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
 {
     const value = CjsStaticFormat.read(bytes);
 }
 ```
 
-`detect()` returns `{ family, byteLength, payloadOffset, prefix, decodable,
-reason }`. `payload()` returns the bytes past any wrapper, which is what a
-caller hands to a SQLite driver or another decoder.
+`isSupported()` and its `inspect()` alias report on the declaration seam;
+`resolveType()` is the content-verified one. This format is an unusual case for
+that contract: `.static` carries no in-band declaration at all, so there is
+nothing for the content to disagree with. The signature is both claim and
+evidence, `resolveType()` is therefore always `verified`, and `metadata.declared`
+is `null` with `mismatch` always false.
+
+`describe()` returns the underlying
+`{ family, byteLength, payloadOffset, prefix, decodable, reason }` without
+building a probe. `payload()` returns the bytes past any wrapper, which is what
+a caller hands to a SQLite driver or another decoder.
 
 `read()` throws `CJS_STATIC_FAMILY_UNSUPPORTED` for a family this package does
 not own, naming the family and the reason, so a caller can route rather than
