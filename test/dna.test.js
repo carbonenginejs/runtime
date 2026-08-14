@@ -34,10 +34,10 @@ import { EveSOFDataHullExtensionBucket } from "../npm/dist/sof/layout/EveSOFData
 import { EveSOFDataLogoSet } from "../npm/dist/sof/shared/EveSOFDataLogoSet.js";
 
 const trinityConsumerEntry = new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url);
-// A SOF document now names an AudEmitter, so a registry built from
-// runtime-trinity alone cannot resolve every node it contains. This entry point
-// is data-only and creates no AudioContext, which is what lets a headless test
-// -- and a headless consumer -- hydrate the audio node without an audio stack.
+// Document-hydration compatibility tests require constructors from BOTH sibling
+// bundles: runtime-trinity and runtime-audio/trinity. The audio entry point is
+// data-only and creates no AudioContext. A predicate that checks only Trinity
+// does not make audio optional.
 const audioTrinityConsumerEntry = new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url);
 
 
@@ -2274,8 +2274,8 @@ test("SOF emits first-hull audio, filtered controllers, and model curve resource
   assert(Math.abs(observer.fields.front[0]) < 1e-6);
   assert(Math.abs(observer.fields.front[1]) < 1e-6);
   assert(Math.abs(observer.fields.front[2] + 1) < 1e-6);
-  // The emitter is a declared node in the observer's own slot, and `raw` has no
-  // writer left in this package.
+  // The emitter is a declared node in the observer's own slot, with no audio
+  // construction side channel in `raw`.
   const emitter = referencedNode(document, observer.fields.observer);
   assert.equal(emitter.kind, "AudEmitter");
   assert.deepEqual(emitter.fields, {
@@ -5077,7 +5077,7 @@ function assertDocumentRefsResolve(document)
   });
 }
 
-test("SOF carbon.document hydrates through the sibling runtime-trinity consumer", {
+test("SOF carbon.document hydrates through the sibling Trinity and audio consumers", {
   skip: !existsSync(trinityConsumerEntry),
 }, async () => {
   const trinity = await import(trinityConsumerEntry);
@@ -5367,7 +5367,8 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
 
   const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry });
 
-  // The values result is the model's own GetValues shape: no document wrappers.
+  // The direct projection has the model-values shape expected by GetValues: no
+  // document wrappers, and no model was constructed to produce it.
   assert.equal(values.schema, undefined);
   assert.equal(values.nodes, undefined);
   assert.equal(values.roots, undefined);
@@ -5382,8 +5383,9 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   assert.notEqual(spriteSets[0].effect._id, undefined);
   assert.deepEqual(spriteSets[1].effect, { _ref: spriteSets[0].effect._id });
 
-  // Hydrating the values recreates the same public graph as the document path,
-  // and the shared effect is one instance again.
+  // Hydrating the supported values recreates the same runtime graph as the
+  // deprecated document compatibility path; shared identity is restored in
+  // both.
   const RootClass = registry.GetConstructor(transported._type);
   const fromValues = RootClass.from(transported, { registry });
   const hydratedSets = fromValues.attachments.filter(item => item.constructor.name === "EveSpriteSet");
@@ -5418,16 +5420,16 @@ test("values projection carries the audio emitter as a declared node", {
 
   const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", { registry });
 
-  // The emitter is declared data in both forms now, so the values graph is a
-  // complete rebuild source rather than one that silently drops the audio
-  // placement it was carrying all along.
+  // The emitter is declared data in the supported values and the internal
+  // document form, so the public values graph retains audio placement.
   assert.equal(values.observers.length, 1);
   assert.deepEqual(values.observers[0].position, [1, 2, 3]);
   assert.equal(values.observers[0].observer._type, "AudEmitter");
   assert.equal(values.observers[0].observer.eventPrefix, "ship_");
   assert.equal(JSON.stringify(values).includes("sofAudioEmitterSetup"), false);
 
-  // ...and nothing in this package writes a raw bag any more.
+  // The retired audio observer side channel writes no raw bag; this fixture
+  // imports no external raw state, so its document has none.
   const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
   const observerNode = referencedNode(document, rootNode(document).fields.observers[0]);
   assert.equal(observerNode.raw, undefined);

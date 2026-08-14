@@ -254,7 +254,7 @@ const SOF_INSTANCE_LAYOUT = Object.freeze([
   Object.freeze({ usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" })
 ]);
 
-/** Carbon-first SOF builder with a GPU-free Trinity graph output boundary. */
+/** Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph. */
 @type.define({ className: "EveSOF", family: "eve" })
 export class EveSOF extends CjsModel
 {
@@ -309,7 +309,8 @@ export class EveSOF extends CjsModel
 
   // Build-scope counterpart of Carbon's CCP_LOGERR sites: records in
   // layoutPlanner diagnostic shape ({ code, ...context }), reset by each
-  // BuildFromDNA and readable through GetBuildDiagnostics().
+  // every values or deprecated document build and readable through
+  // GetBuildDiagnostics().
   #buildDiagnostics = [];
 
   /** Add standalone SOF configuration or accept CjsLibrary topic forwarding. */
@@ -419,11 +420,12 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Supplies Carbon's synchronous `.red` child-object boundary.
+   * Supplies Carbon's synchronous `.red` child-object compatibility boundary.
    *
    * The resolver receives `(redFilePath, context)` and returns either null, a
    * local `{ kind, target, fields, raw }` descriptor, or
-   * `{ document, root?, target }` for a complete carbon.document fragment.
+   * `{ document, root?, target }` for a complete compatibility fragment
+   * consumed by the internal builder.
    * Target is `children` for an EveTransform root or `effectChildren` for an
    * IEveSpaceObjectChild root.
    */
@@ -437,7 +439,7 @@ export class EveSOF extends CjsModel
     return this;
   }
 
-  /** Supplies synchronous controller and model-curve object documents. */
+  /** Supplies synchronous controller and model-curve compatibility fragments. */
   SetObjectResourceResolver(resolver)
   {
     if (resolver !== null && typeof resolver !== "function")
@@ -579,7 +581,10 @@ export class EveSOF extends CjsModel
     return dna !== null && dna.ValidateContent();
   }
 
-  /** Builds a DNA string from the three mandatory selections. */
+  /**
+   * Builds the legacy `carbon.document` compatibility form.
+   * @deprecated Use BuildValues(...).
+   */
   @carbon.method
   @impl.implemented
   Build(hullName, factionName, raceName)
@@ -587,32 +592,35 @@ export class EveSOF extends CjsModel
     return this.BuildFromDNA(`${hullName}:${factionName}:${raceName}`);
   }
 
-  /** Promise-facing build entry point for standalone and CjsLibrary callers. */
+  /**
+   * Promise-facing legacy `carbon.document` compatibility form.
+   * @deprecated Use BuildValuesAsync(...).
+   */
   BuildAsync(hullName, factionName, raceName, options = {})
   {
     return this.BuildFromDNAAsync(`${hullName}:${factionName}:${raceName}`, options);
   }
 
-  /** Returns the diagnostics recorded by the most recent BuildFromDNA call. */
+  /** Returns diagnostics from the most recent values build or deprecated document build. */
   GetBuildDiagnostics()
   {
     return this.#buildDiagnostics.map(entry => ({ ...entry }));
   }
 
-  /** Builds plain model values from the three mandatory selections. */
+  /** Builds the supported public model-values graph from three selections. */
   BuildValues(hullName, factionName, raceName, options = {})
   {
     return this.BuildValuesFromDNA(`${hullName}:${factionName}:${raceName}`, options);
   }
 
-  /** Promise-facing values entry point mirroring BuildAsync. */
+  /** Builds the supported public model-values graph asynchronously. */
   BuildValuesAsync(hullName, factionName, raceName, options = {})
   {
     return this.BuildValuesFromDNAAsync(`${hullName}:${factionName}:${raceName}`, options);
   }
 
   /**
-   * Builds the plain model-values graph for a DNA string.
+   * Builds the supported public model-values graph for a DNA string.
    *
    * The result is one nested, JSON-serializable root value carrying `_type` on
    * polymorphic nodes and `_id`/`_ref` only where topology demands shared
@@ -642,7 +650,7 @@ export class EveSOF extends CjsModel
     return document ? EveSOF.projectDocumentValues(document, options) : null;
   }
 
-  /** Async values build mirroring BuildFromDNAAsync's dependency resolution. */
+  /** Supported async values build; dependency collection currently reuses the deprecated internal document builder. */
   async BuildValuesFromDNAAsync(dnaString, options = {})
   {
     const document = await this.BuildFromDNAAsync(dnaString, options);
@@ -695,7 +703,8 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Projects a built carbon.document into plain model values.
+   * Internal structural projection from the builder's `carbon.document`
+   * intermediate to supported plain model values.
    *
    * Both forms are JSON describing one graph, so this is a structural rewrite
    * and nothing more: a node table becomes a tree, `kind` becomes `_type`, and
@@ -716,6 +725,8 @@ export class EveSOF extends CjsModel
    * defaults are applied by whoever constructs. Hydration used to fill them in,
    * which is why the projected graph used to be larger than the document it
    * came from.
+   *
+   * @internal The document form is not a supported consumer boundary.
    */
   static projectDocumentValues(document, options = {})
   {
@@ -738,12 +749,17 @@ export class EveSOF extends CjsModel
   }
 
   /**
+   * Deprecated async `carbon.document` assembly used internally by
+   * `BuildValuesFromDNAAsync`.
+   *
    * Resolve selected child/object dependencies without converting the
    * deterministic synchronous builder into an async state machine.
    *
    * A collection build records only dependencies selected by the normal SOF
    * filters. They are fetched concurrently, then the unchanged builder runs a
    * second time against synchronous per-call caches.
+   *
+   * @deprecated Use BuildValuesFromDNAAsync(...).
    */
   async BuildFromDNAAsync(dnaString, options = {})
   {
@@ -852,8 +868,12 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Emits the maintained GPU-free SOF graph, including deterministic layouts.
-   * Layout options may be passed directly or under an `options.layout` object.
+   * Emits the deprecated internal `carbon.document` assembly form, including
+   * deterministic layouts. `BuildValuesFromDNA` currently projects this
+   * intermediate to the supported output. Layout options may be passed
+   * directly or under an `options.layout` object.
+   *
+   * @deprecated Use BuildValuesFromDNA(...).
    */
   @carbon.method
   @impl.implemented

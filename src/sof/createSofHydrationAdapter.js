@@ -22,7 +22,8 @@ const INITIALIZE_KINDS = Object.freeze([
 ]);
 
 /**
- * Creates the hydration adapter for the explicit carbon.document path.
+ * Creates the compatibility hydration adapter for the deprecated
+ * `carbon.document` path.
  *
  * All SOF-authored state travels as declared node fields, so the adapter's one
  * remaining job is the per-kind Initialize lifecycle that `CjsModel.from`
@@ -33,7 +34,9 @@ const INITIALIZE_KINDS = Object.freeze([
  * there was no audio model that could be named without dragging WebAudio in.
  * `runtime-audio/trinity` is that model now, the emitter is an ordinary
  * declared node in `TriObserverLocal.observer`, and the side channel is gone
- * with it. `raw` consequently has no writer left in this package.
+ * with it, so this adapter no longer reads audio setup from `raw`.
+ * Externally supplied compatibility descriptors and fragments may still carry
+ * `raw`; the internal builder preserves them.
  */
 export function createSofHydrationAdapter()
 {

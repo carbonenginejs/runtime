@@ -5,7 +5,7 @@ import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 let _initClass, _init_resPath, _init_extra_resPath, _init_expects, _init_extra_expects;
 
 /**
- * CarbonEngineJS-original external document reference.
+ * CarbonEngineJS-original external graph reference.
  *
  * Carbon ships deferred-loading nodes for children (EveChildRef) and
  * controllers (Tr2ControllerReference) but inline-loads everything else
@@ -13,7 +13,7 @@ let _initClass, _init_resPath, _init_extra_resPath, _init_expects, _init_extra_e
  * reference class - currently the model rotation/translation curves - the
  * builder emits this node instead: the authored res path plus the interface
  * the loaded root must implement. A consuming loader resolves the reference
- * by fetching and decoding the target document, verifying the root against
+ * by fetching and decoding the target graph, verifying the root against
  * `expects`, and splicing it into the owning slot.
  */
 let _CjsExternalRef;

@@ -21,4 +21,6 @@ for (const file of ["README.md", "LICENSE", "NOTICE"]) {
   await copyFileIfExists(file);
 }
 
+await fs.cp(path.join(root, "docs"), path.join(npmRoot, "docs"), { recursive: true });
+
 console.log("runtime-sof npm package metadata refreshed -> npm/");

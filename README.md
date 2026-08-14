@@ -7,13 +7,52 @@ Ports/adapts from CarbonEngine (https://github.com/carbonengine, MIT). Carbon
 C++/Blue is canonical; ccpwgl is only an optional, non-authoritative source of
 JavaScript convenience ideas.
 
+## Install
+
+```sh
+npm install @carbonenginejs/runtime-sof
+```
+
+## Quick start
+
+```js
+import { EveSOF } from "@carbonenginejs/runtime-sof";
+
+const sof = EveSOF.Create({
+  black: decodedSofData,
+  resFileIndex
+});
+
+const values = sof.BuildValues("rifter", "minmatar", "minmatar");
+```
+
+`decodedSofData` is the decoded SOF catalog (raw `data.black` bytes are also
+accepted), and `resFileIndex` is an optional list or structural membership
+surface used for texture-path existence checks. The result is plain
+JSON-compatible model values; no class registry or GPU device is required.
+
+## Documentation
+
+- [Package documentation](docs/README.md)
+- [Architecture and boundaries](docs/architecture.md)
+- [Class catalog](docs/reference/classes/README.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
 ## Status
 
 The package provides the SOF data surface, a map-backed
 `EveSOFDataMgr`, Carbon DNA parsing and validation through `EveSOFDNA`, and a
-deterministic `EveSOF.BuildFromDNA` builder. The builder emits plain model
-values, and a versioned `carbon.document` graph for compatibility and
-diagnostics; both are JSON, and producing either requires no class library.
+deterministic GPU-free builder. Plain model values returned by
+`BuildValues`/`BuildValuesAsync`/`BuildValuesFromDNA`/
+`BuildValuesFromDNAAsync` are the sole supported public output boundary. The
+implementation still assembles a versioned `carbon.document` node table
+internally, and the legacy document-returning methods remain implemented for
+compatibility and diagnostics, but those methods are deprecated and the
+node-table shape is not a supported consumer contract. Producing values or the
+internal intermediate requires no class library.
 Current output
 includes multi-hull bounds and locators, the space-object type and core flags,
 `Tr2Mesh`, routed mesh areas, shader parameters/resources, pattern masks,
@@ -24,9 +63,9 @@ colors and cumulative multi-hull transforms; their photometric data is emitted
 as Carbon's flat Blue-persisted fields on the light nodes (2026-07-23
 LightData flatten decision). Visible hull sprite sets also
 emit shared-effect `EveSpriteSet` attachments, including Carbon saturation and
-SOF6 private sprite-light descriptors restored by the hydration adapter. Hull
+SOF6 sprite-light descriptors reconstructed during runtime initialization. Hull
 spotlight sets emit their cone/glow effects, legacy faction colors, SOF6 HSV
-color variants, multi-hull transforms, and private spotlight-light descriptors.
+color variants, multi-hull transforms, and typed spotlight-light descriptors.
 Plane sets emit standard, haze, and video effects; legacy/SOF6 colors; authored
 blink state; and SOF6 lights restored through Trinity's maintained CPU API.
 Sprite-line sets share the sprite pool effect and preserve Carbon line/circle
@@ -41,8 +80,9 @@ Legacy hull children and SOF6 child sets now project and filter exactly from
 the first hull, including faction overrides and standalone build flags. Because
 their `.red` paths name arbitrary Trinity graphs, callers provide a synchronous
 `EveSOF.SetChildResourceResolver()` that returns either a local root descriptor
-or a complete `carbon.document` fragment. Fragment IDs and references are
-remapped into the output document for every placement clone. Legacy hull
+or a complete `carbon.document` compatibility fragment. Fragment IDs and
+references are remapped inside the builder's internal document for every
+placement clone before the supported values projection is produced. Legacy hull
 animations emit scalar/quaternion curves, model-rotation bindings, empty curve
 sets, and recursive `Tr2DynamicEmitter.rate` bindings; Carbon's translation
 animation branch remains its source TODO.
@@ -73,7 +113,8 @@ methods, descriptor defaults, and DNA layout/locator accessors.
 `EveSOF.PlanLayoutFromDNA()` exposes the detached, versioned CPU plan with
 Carbon's exact RNG stream, locator occupation/ranking, condition quirks,
 random rotation/scaling, descriptor inheritance, and recursive nested layout
-transforms. `BuildFromDNA()` now consumes the same plan to emit Carbon's
+transforms. The legacy document builder used by `BuildValuesFromDNA()` consumes
+the same plan to emit Carbon's
 `layouts` container, ordinary extension hull children, non-shared runtime
 instance meshes, and the single root-level `SharedInstancedMeshes` child.
 Shared mesh records are typed `EveChildInstancedMesh` nodes on the declared
@@ -106,11 +147,11 @@ The public turret material entry points support both direct faction selection
 and full parent DNA, including Carbon's faction material-slot remap and
 const-parameter-first update behavior.
 
-Plain model values are the SOF boundary:
+Plain model values are the SOF package's sole supported output boundary:
 `BuildValues`/`BuildValuesAsync`/`BuildValuesFromDNA`/`BuildValuesFromDNAAsync`
 return one nested JSON-serializable value with `_type` on polymorphic nodes and
 `_id`/`_ref` only for genuinely shared identity, and no node table, `kind`,
-`fields` or `raw` payload.
+`fields`, or `raw` transport envelope.
 
 **Pass no class registry.** runtime-sof emits JSON, and JSON does not need the
 classes it names, so the projection constructs nothing and imports nothing —
@@ -118,27 +159,35 @@ which is what keeps this package free of runtime-trinity in fact rather than
 only in its manifest. A registry parameter here would reintroduce the round trip
 this package deliberately removed.
 
-Building real objects is the caller's choice, performed on the result:
-`RootClass.from(values)` against whatever classes that caller has. Objects are
-built *from* the values, never in order to produce them. The output is sparse —
-it carries what SOF set, and class defaults are applied by whoever constructs.
+Building real objects is an optional caller step: use `RootClass.from(values)`
+with the class families that caller has loaded. Current SOF graphs can name
+both Trinity and audio graph classes, so optional object construction may
+require both `runtime-trinity` and `runtime-audio/trinity`; generation does
+not. The output is sparse: it carries what SOF set, and constructors apply
+class defaults.
 
-Parity tests prove the constructed graph exports identically to the
-document-hydrated one, including a shared-reference graph and the audio emitter,
-and a further test asserts that values build with nothing supplied at all.
+Parity tests prove the constructed values graph exports identically to the
+legacy document-hydrated one, including shared references and the audio
+emitter, and a further test asserts that values build with nothing supplied at
+all.
 
-The explicit `carbon.document` output (`BuildFromDNA`) remains available as
-the compatibility/diagnostic graph format. Consumers that hydrate documents
-pass `createSofHydrationAdapter()`, which now carries only the per-kind
-Initialize lifecycle (what `CjsModel.from` performs on the values path).
+**Deprecated:** `Build`/`BuildFromDNA` and their async forms still expose the
+internal `carbon.document` compatibility shape, and document hydration still
+uses `createSofHydrationAdapter()`. They remain only until existing fragment,
+diagnostic, and test consumers migrate. New package APIs and service routes
+must return model values; they must not expose `carbon.document`.
 
-No `raw` payload is written any more. The audio emitter was the last one: it
-used to be a deferred `sofAudioEmitterSetup` construction record, because no
-audio model could be named without dragging WebAudio in. `runtime-audio/trinity`
-is that model now, so the emitter is an ordinary declared `AudEmitter` node in
-`TriObserverLocal.observer`, present in both outputs, and the values graph is a
-complete rebuild source. The emitted animation document preserves the complete
-curve and binding graph.
+The retired **audio** side channel no longer writes `node.raw`. The emitter used
+to be a deferred
+`sofAudioEmitterSetup` construction record because no audio model could be
+named without dragging WebAudio in. `runtime-audio/trinity` is that model now,
+so the emitter is an ordinary declared `AudEmitter` value under
+`TriObserverLocal.observer`, and the values graph is a complete rebuild source.
+Caller-supplied resolver descriptors and imported legacy document fragments may
+still carry `raw`; the builder preserves and remaps it, while the values
+projection flattens those envelope contents into ordinary model-value
+properties. The emitted animation values preserve the complete curve and
+binding graph.
 Texture path inserts remain
 deterministic and GPU-free through an optional synchronous resource-existence
 resolver. Compatibility limits and remaining verification work are called out
@@ -167,7 +216,7 @@ const sof = EveSOF.Create({
   black,                  // data.black bytes (or its decoded data) - required
   resFileIndex: names     // plain array of res file names - optional
 });
-const document = sof.Build("rifter", "minmatar", "minmatar");
+const values = sof.BuildValues("rifter", "minmatar", "minmatar");
 ```
 
 `black` is mandatory: a factory without its catalog is useless, so its absence
@@ -196,36 +245,41 @@ sof.Register({
 });
 
 await sof.LoadDataAsync();
-const document = await sof.BuildFromDNAAsync("rifter:minmatar:minmatar");
+const values = await sof.BuildValuesFromDNAAsync("rifter:minmatar:minmatar");
 ```
 
-Async builds run the deterministic builder once to collect selected
-dependencies, resolve each unique dependency, then run the same builder against
-per-call synchronous caches. Completion means the `carbon.document` contains
-its selected SOF child/controller/curve fragments. It does not imply geometry,
-texture, effect, engine-adapter, or GPU readiness.
+Async values builds run the internal document builder once to collect selected
+dependencies, resolve each unique dependency, rerun against per-call
+synchronous caches, and project the result to model values. `getObject`
+currently supplies selected child/controller/curve inputs as `carbon.document`
+compatibility fragments; that input shape does not make the document node table
+a supported output. Completion means the returned values include the selected
+fragments; it does not imply geometry, texture, effect, engine-adapter, or GPU
+readiness.
 
 Registration is additive: omitted resource callbacks retain their current
 values, while an explicit `null` clears only that callback. Resource paths are
 normalized before requests are deduplicated by path and semantic output.
 Resolver failures reject the complete operation with code
 `EVE_SOF_RESOURCE_RESOLUTION_FAILED` plus `path`, `role`, and `cause`; no
-partial document is returned. A resolved `null` remains an optional missing
+partial values graph is returned. A resolved `null` remains an optional missing
 dependency and follows the synchronous omission behavior.
 
-The async Build methods are the embedding API. Carbon's synchronous build is
+The async `BuildValues*` methods are the supported embedding API. The
+document-returning async methods remain only as the deprecated intermediate and
+compatibility path they currently reuse. Carbon's synchronous build is
 self-resolving only because C++ blocks on its global resource manager; the
 authored `res:/...red` references resolve to compiled `.black` payloads that
 only a resource layer (in this organization, `@carbonenginejs/runtime-resource`
 and its `CjsResMan`) can fetch and decode.
 
-Without resolvers, the synchronous Build methods stay complete AS DATA through
+Without resolvers, synchronous values builds stay complete AS DATA through
 Carbon's own deferred-loading nodes: hull children emit `EveChildRef`
 (persisted `resPath`, placement, `loadChildAutomatically`) and controllers
 emit `Tr2ControllerReference` (persisted `path`), exactly the nodes Carbon
 ships for runtime-loaded references. The consuming runtime loads each
 reference when it pleases and routes the loaded root by its real type. The
-emitted document doubles as its own dependency manifest. Model curves have no
+returned values graph doubles as its own dependency manifest. Model curves have no
 Carbon reference class - Carbon inline-loads them only because its blocking
 resource manager made that free - so they defer through the
 CarbonEngineJS-original `CjsExternalRef` node, which carries the authored res
@@ -241,7 +295,7 @@ Texture `resPathInsert` selection is existence-driven at build time in Carbon.
 Provide the resfileindex as the synchronous existence oracle -
 `Register({ resFileIndex })` accepts the tools-browser `CjsFileIndex` surface
 (`Has`), a `Set`/`Map`, or a predicate - or supply an async `exists` callback
-(for example backed by a remote index service) and use the async Build
+(for example backed by a remote index service) and use the async `BuildValues`
 methods.
 
 ## Read-only contract
@@ -261,7 +315,8 @@ but they do not defensively copy on every getter call.
 The implementation is source-aligned against Carbon C++/Blue, but it has no
 checked-in native-output differential harness. In this README, “exact” refers
 to an inspected algorithm and “parity” in the values section means equivalence
-between the two JavaScript projections; neither term claims end-to-end native
+between the supported model-values output and the deprecated internal document
+projection; neither term claims end-to-end native
 Carbon equivalence.
 
 The layout planner deliberately replaces process-global and wall-clock state
@@ -273,22 +328,32 @@ unpacker reaches Bucket through its concrete Placement lineage. These are
 intentional compatibility choices pending authored-data or native-fixture
 evidence.
 
-Sprite and haze effects share identity within one built document. Carbon keeps
+Sprite and haze effects share identity within one built graph; the internal
+document and supported values projection preserve that identity. Carbon keeps
 the corresponding effects on the factory instance and shares them across
 builds; no operational incompatibility is known while those effects remain
 immutable.
 
-At runtime-sof revision `b3ccd08` on 2026-08-12, all 122 tests ran and passed
-with the sibling runtime-trinity build present. Nine hydration tests remain
-conditional on that sibling build, so a standalone run exercises a smaller
-integration surface — but the values path is no longer among them: it is now
-covered by a test that supplies nothing at all, which is what proves this
-package needs no class library.
+At runtime-sof revision `3715644` on 2026-08-15, the suite contains 124 tests.
+With both sibling consumer bundles present —
+`runtime-trinity/npm/dist/index.js` and
+`runtime-audio/npm/dist/trinity/index.js` — all 124 run and pass. Twenty-two
+tests are wholly conditional hydration/integration tests, and two
+otherwise-unconditional tests contain optional hydration branches. All 24
+integration points require constructors from both sibling bundles. Their
+current guards check only for runtime-trinity, so a lane with Trinity present
+but the audio bundle absent fails at import rather than skipping. Values
+generation itself is unconditional and is proved with no registry or class
+library supplied.
 
 ### Planned
 
-- Make the runtime-trinity hydration lane required and revision-controlled for
-  release evidence instead of allowing those integration tests to skip.
+- Retire the public `carbon.document` methods, hydration adapter, and tools
+  `/document` route after their remaining consumers migrate; then remove the
+  internal document intermediate if no builder stage still requires it.
+- Until that retirement, make both runtime-trinity and runtime-audio hydration
+  bundles required and revision-controlled for release evidence, and make the
+  test skip preconditions match both dependencies.
 - Add normalized native fixtures for representative stationary, mobile, ship,
   swarm, and extension builds.
 - Recheck the deliberate Bucket traversal and deterministic layout differences
