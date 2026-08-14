@@ -43,12 +43,30 @@ test("identifies a SQLite container and declines to open it", () =>
   assert.equal(detected.family, CJS_STATIC_FAMILIES.SQLITE);
   assert.equal(detected.decodable, false);
   assert.equal(detected.payloadOffset, 0);
-  assert.match(detected.reason, /database driver/u);
+  assert.match(detected.reason, /driver/u);
 
   assert.throws(
     () => CjsStaticFormat.read(bytes),
-    error => error.code === "CJS_STATIC_FAMILY_UNSUPPORTED" && error.family === "sqlite"
+    error => error.code === "CJS_STATIC_DRIVER_REQUIRED" && error.family === "sqlite"
   );
+});
+
+test("a supplied SQLite driver reads the container anywhere", () =>
+{
+  const bytes = Bytes(SQLITE_HEADER, [ 0x10, 0x00, 0x01, 0x01 ]);
+  const seen = [];
+
+  const result = CjsStaticFormat.read(bytes, {
+    sqlite: payload =>
+    {
+      seen.push(payload.byteLength);
+
+      return { opened: true };
+    }
+  });
+
+  assert.deepEqual(result, { opened: true });
+  assert.deepEqual(seen, [ bytes.byteLength ]);
 });
 
 test("identifies a prefixed pickle and reports the prefix and payload", () =>
@@ -85,6 +103,7 @@ test("a schema-bound container is reported as unknown, not guessed at", () =>
   assert.equal(detected.family, CJS_STATIC_FAMILIES.UNKNOWN);
   assert.equal(detected.decodable, false);
   assert.match(detected.reason, /\.schema companion/u);
+  assert.match(detected.reason, /YAML/u);
 
   assert.throws(
     () => CjsStaticFormat.read(bytes),

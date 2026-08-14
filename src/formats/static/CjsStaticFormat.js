@@ -17,16 +17,21 @@ export const CJS_STATIC_FAMILIES = Object.freeze({
  * under it, and each fails in its own way when guessed at:
  *
  * - **SQLite 3** — a `cache(key, value, time)` plus `indexes(key, value)`
- *   database whose values are JSON documents. Reading it needs a SQLite
- *   driver, which is a caller concern rather than a browser-capable one, so
- *   this format reports the family and stops.
+ *   database whose values are JSON documents. Readable anywhere given a
+ *   driver: a WASM build opens these bytes in a browser and can persist the
+ *   result to OPFS or IndexedDB, while Node's own driver opens the file by
+ *   path. The driver is injected through `options.sqlite` rather than chosen
+ *   here, because a format package should not pick its callers' dependencies.
  * - **Prefixed pickle** — a four-byte little-endian prefix followed by a
  *   protocol-0 pickle. Many of these carry class-construction opcodes, which
  *   the data-only pickle reader refuses by design; that refusal is correct and
  *   is surfaced rather than worked around.
- * - **Schema-bound** — a binary record container that cannot be read without
- *   its `.schema` companion. Six datasets ship this way, the celestial tables
- *   among them.
+ * - **Schema-bound** — a binary record container whose `.schema` companion is
+ *   YAML describing its own layout: attribute sizes and types, optional flags,
+ *   lists with a fixed item size, vectors with a precision, and a key footer of
+ *   key-to-offset pairs. Nothing needs deriving, because the build ships the
+ *   layout. Six datasets are stored this way, the celestial tables among them.
+ *   Decoding them is not implemented here yet.
  *
  * Detection is signature-based and never executes or trusts file names.
  */
@@ -51,7 +56,7 @@ export class CjsStaticFormat
         payloadOffset: 0,
         prefix: null,
         decodable: false,
-        reason: "SQLite containers need a database driver, which callers own."
+        reason: "SQLite containers need a driver, which this package does not ship."
       });
     }
 
@@ -75,7 +80,8 @@ export class CjsStaticFormat
       payloadOffset: 0,
       prefix: null,
       decodable: false,
-      reason: "No known signature. Schema-bound containers need their .schema companion."
+      reason: "No signature. A schema-bound container needs its .schema companion, "
+        + "which is YAML describing the layout."
     });
   }
 
@@ -105,18 +111,39 @@ export class CjsStaticFormat
     const bytes = Normalize(input);
     const detected = this.detect(bytes);
 
-    if (detected.family !== CJS_STATIC_FAMILIES.PICKLE)
+    if (detected.family === CJS_STATIC_FAMILIES.PICKLE)
     {
+      return CjsPickleFormat.read(bytes.subarray(detected.payloadOffset), options);
+    }
+
+    if (detected.family === CJS_STATIC_FAMILIES.SQLITE)
+    {
+      // SQLite is readable anywhere given a driver: a WASM build opens these
+      // bytes in a browser, and Node's own driver opens the file by path. The
+      // driver is a dependency this package will not choose for its callers, so
+      // it is injected rather than assumed absent.
+      if (typeof options.sqlite === "function")
+      {
+        return options.sqlite(bytes);
+      }
+
       const error = new TypeError(
-        `Cannot read a ${detected.family} .static container here: ${detected.reason}`
+        "Reading a SQLite .static container needs a driver. Pass options.sqlite "
+        + "to open these bytes, or open the file by path with a driver of your own."
       );
 
-      error.code = "CJS_STATIC_FAMILY_UNSUPPORTED";
+      error.code = "CJS_STATIC_DRIVER_REQUIRED";
       error.family = detected.family;
       throw error;
     }
 
-    return CjsPickleFormat.read(bytes.subarray(detected.payloadOffset), options);
+    const error = new TypeError(
+      `Cannot read a ${detected.family} .static container: ${detected.reason}`
+    );
+
+    error.code = "CJS_STATIC_FAMILY_UNSUPPORTED";
+    error.family = detected.family;
+    throw error;
   }
 
 }
