@@ -5,6 +5,22 @@ Scope: `@carbonenginejs/runtime-resource/formats`
 Audience: Users and integrators  
 Summary: Maps every owned format subpath and records cross-format output conventions.
 
+## Formats are decorator free
+
+A format may not use a decorator, and may not import a module that does. This
+is enforced by the package linter, not left to review.
+
+A decorated module only parses after the build transform, so a format that
+touches one stops being loadable from source. Every consumer reading `src/`
+directly then fails with a bare syntax error pointing at the decorator rather
+than at the import that reached it, which is a long way from the mistake.
+
+The practical consequence is that a format reports a **plain probe-shaped
+object** from `isSupported()` and `resolveType()` rather than constructing a
+`CjsResourceProbe`, which is decorated. `CjsResourceProbe.from()` normalizes
+those payloads wherever a real probe instance is wanted. See
+[format type resolution](../concepts/format-type-resolution.md).
+
 ## Import rule
 
 Concrete formats are never imported or registered by the package root. Each

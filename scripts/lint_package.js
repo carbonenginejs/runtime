@@ -67,6 +67,8 @@ async function CheckJavaScript(file, errors)
     errors.push(`${relativeFile}: use exact // Source: <Carbon path> provenance`);
   }
 
+  CheckDecoratorFree(relativeFile, source, errors);
+
   if (
     relativeFile.startsWith("src/generated/") &&
     !relativeFile.endsWith("/index.js") &&
@@ -99,6 +101,42 @@ async function CheckJavaScript(file, errors)
   catch (error)
   {
     errors.push(`${relativeFile}:${error.loc?.line ?? 1}: ${error.message}`);
+  }
+}
+
+/**
+ * Rejects decorators in formats (hard rule): everything under `src/formats/`
+ * must be decorator free, and must not import a decorated module.
+ *
+ * A decorated module only parses after the build transform, so a format that
+ * uses one — or merely imports one — stops being loadable from source. Every
+ * consumer that reads `src/` directly then fails with a bare syntax error
+ * pointing at the decorator rather than at the import that reached it, which
+ * is a long way from the mistake. Formats therefore report plain
+ * probe-shaped objects instead of constructing `CjsResourceProbe`.
+ */
+function CheckDecoratorFree(relativeFile, source, errors)
+{
+  if (!relativeFile.startsWith("src/formats/")) return;
+
+  const code = source
+    .replace(/\/\*[\s\S]*?\*\//gu, "")
+    .replace(/^[ \t]*\/\/.*$/gmu, "");
+
+  if (/^\s*@[A-Za-z_$]/mu.test(code))
+  {
+    errors.push(`${relativeFile}: formats must be decorator free`);
+  }
+
+  for (const match of code.matchAll(/from\s+["']([^"']+)["']/gu))
+  {
+    if (/(^|\/)CjsResourceProbe(\.js)?$/u.test(match[1]))
+    {
+      errors.push(
+        `${relativeFile}: imports the decorated ${match[1]};`
+        + " formats report plain probe-shaped objects instead"
+      );
+    }
   }
 }
 
