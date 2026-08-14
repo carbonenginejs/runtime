@@ -125,6 +125,15 @@ function writeTransformSection(writer, transforms) {
       // Array position is the layer. Safe because `parameter` stays on the
       // wire, so layer identity remains cross-checkable rather than
       // asserted by position.
+      //
+      // Checked rather than trusted: the reader rebuilds each input's
+      // identity from this pair, so a producer that omits it does not fail
+      // here -- it writes two zero bytes and every layer reads back as
+      // register 0. That is a wrong package that loads, which is worse
+      // than one that throws.
+      if (!Number.isInteger(input.registerSpace) || !Number.isInteger(input.registerIndex)) {
+        throw new TypeError(`Resource transform input ${input.parameter} needs integer registerSpace and` + ` registerIndex; the reader rebuilds its identity from them`);
+      }
       writer.u8(input.registerSpace);
       writer.u8(input.registerIndex);
       writeInlineString(writer, input.parameter);
