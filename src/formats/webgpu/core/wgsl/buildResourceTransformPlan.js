@@ -40,14 +40,27 @@ function normalizeInput(input, transformId, index)
     const layer = input?.layer;
     const identity = input?.identity;
     const scoped = input?.scopeIdentity;
+    const registers = typeof identity === "string" ? RESOURCE_IDENTITY.exec(identity) : null;
     if (typeof parameter !== "string" || !parameter
         || !Number.isInteger(layer) || layer !== index
-        || typeof identity !== "string" || !RESOURCE_IDENTITY.test(identity)
+        || !registers
         || scoped !== `${identity}@fragment`)
     {
         throw new Error(`WGSL resource transform ${transformId} has an invalid input at layer ${index}`);
     }
-    return { parameter, layer, identity, scopeIdentity: scoped };
+    // The register pair is parsed back out of the identity rather than copied
+    // from the caller, so it cannot contradict the identity it composes. It has
+    // to be carried: the container stores the pair and rebuilds the identity
+    // from it on read, so dropping it here wrote zeroes and every layer of every
+    // merged detail map came back as `sampled-resource:0:0`.
+    return {
+        parameter,
+        layer,
+        registerSpace: Number(registers[1]),
+        registerIndex: Number(registers[2]),
+        identity,
+        scopeIdentity: scoped
+    };
 }
 
 function normalizeTransform(transform)

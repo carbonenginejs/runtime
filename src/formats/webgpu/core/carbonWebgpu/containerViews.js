@@ -111,16 +111,38 @@ function SelectedOptions(container, permutationIndex)
 {
     const variant = container.permutationGraph?.variants?.[permutationIndex];
 
-    return container.carbon.permutations.map((axis, axisIndex) => ({
-        name: axis.name.value,
-        value: axis.options[variant?.optionIndices?.[axisIndex] ?? axis.defaultOption]?.value ?? null
-    }));
+    return container.carbon.permutations.map((axis, axisIndex) =>
+    {
+        const optionIndex = variant?.optionIndices?.[axisIndex] ?? axis.defaultOption;
+
+        // `optionIndex`, `defaultOption` and `defaultValue` are derived, not
+        // stored: the axis carries its options and its default, and the variant
+        // carries which option this permutation took. Emitting them lets a
+        // consumer see that a selection departs from the defaults without
+        // rebuilding the axis table itself.
+        //
+        // There is deliberately no `source` field. Carbon's build-time resolver
+        // records whether a value arrived as "default", "local" or "global"
+        // (formats/hlsl/core/metadata.js), and that is who CHOSE the value, not
+        // what the value is. The container stores only which permutation was
+        // translated, so a permutation that happens to equal the default is
+        // indistinguishable from one explicitly requested. Synthesising a
+        // plausible `source` here would be inventing build-time policy, which
+        // this view already refuses to do for `bodyMode` and `completeness`.
+        return {
+            name: axis.name.value,
+            value: axis.options[optionIndex]?.value ?? null,
+            optionIndex,
+            defaultOption: axis.defaultOption,
+            defaultValue: axis.options[axis.defaultOption]?.value ?? null
+        };
+    });
 }
 
 export function deriveAnalysis(container, options = {})
 {
     const source = options.source || container.sourcePath || "memory";
-    const permutationIndex = options.permutationIndex ?? defaultPermutationIndex(container);
+    const permutationIndex = options.permutationIndex ?? resolvedPermutationIndex(container);
     const effectDescription = describeRuntime(container, permutationIndex, source);
 
     return buildEffectAnalysis({
@@ -160,7 +182,7 @@ export function deriveAnalysis(container, options = {})
  */
 export function deriveWgsl(container, options = {})
 {
-    const permutationIndex = options.permutationIndex ?? defaultPermutationIndex(container);
+    const permutationIndex = options.permutationIndex ?? resolvedPermutationIndex(container);
     const body = container.GetBackendBodyPrograms(permutationIndex);
     const shaders = [];
     const layouts = [];
@@ -294,6 +316,17 @@ export function deriveBackendBodySet(container)
  * translated, so the resolved permutation is the first one whose body carries
  * programs. When every body is translated, there is nothing to single out and
  * Carbon's own default applies.
+ *
+ * This is the default for *every* view, not just this one. The views used to
+ * disagree -- analysis and wgsl fell back to `defaultPermutationIndex` while
+ * metadata fell back to here -- so a direct caller that omitted an index got
+ * documents describing different permutations of the same package. On a
+ * selected package those differ: measured on a real QuadV5 package, the default
+ * resolves to 0 and the translated body to 4. The public read path never hit it
+ * because it resolves one index and passes it to all three; the divergence was
+ * only reachable by calling a view directly. Falling back to here can never be
+ * worse, because it degrades to Carbon's default in exactly the case where
+ * there is no single translated body to prefer.
  *
  * @param {object} container Loaded container.
  * @returns {number} Permutation index.
