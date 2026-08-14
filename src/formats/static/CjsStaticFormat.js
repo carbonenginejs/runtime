@@ -200,6 +200,24 @@ export class CjsStaticFormat
     throw error;
   }
 
+  static id = "static";
+  static extensions = Object.freeze([ ".static" ]);
+  static type = Object.freeze([ "data" ]);
+  static mediaTypes = Object.freeze([ "data" ]);
+
+  /**
+   * The extension is the only input this format claims.
+   *
+   * Naming the three families here would be a lie in the other direction: a
+   * caller cannot hand this format "a pickle" or "a sqlite" and expect it to
+   * route, because the whole point of the class is that `.static` declares
+   * nothing and the signature has to be read. The family belongs in
+   * `describe()`, which measures it, not in a static that asserts it.
+   */
+  static inputTypes = Object.freeze([ "static" ]);
+  static outputTypes = Object.freeze([ "json", "payload" ]);
+  static debugOutputTypes = Object.freeze([ "raw" ]);
+
 }
 
 /**

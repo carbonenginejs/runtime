@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import rollupConfig from "../rollup.config.mjs";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -42,5 +43,51 @@ test("published package includes every README document target", async () =>
 
     assert.equal(relative.startsWith("..") || path.isAbsolute(relative), false);
     await access(targetPath);
+  }
+});
+
+// Format discovery is hand-maintained in two lists that the filesystem does not
+// police: the rollup inputs decide what gets built, and the authored exports map
+// decides what a consumer can import. A format missing from either is not a
+// build error - it is silently unreachable, which is how `static` shipped with
+// neither. `npm.package.json` is the authored manifest; `npm/package.json` is
+// the build's copy of it, so asserting against the copy would only prove the
+// build copied its own mistake.
+test("every source format is built and exported", async () =>
+{
+  const formatsRoot = path.join(root, "src", "formats");
+  const entries = await readdir(formatsRoot, { withFileTypes: true });
+  const manifest = JSON.parse(await readFile(path.join(root, "npm.package.json"), "utf8"));
+  const inputs = new Set(rollupConfig.input);
+  const names = [];
+
+  for (const entry of entries)
+  {
+    if (!entry.isDirectory()) continue;
+
+    try
+    {
+      await access(path.join(formatsRoot, entry.name, "index.js"));
+    }
+    catch
+    {
+      continue;
+    }
+
+    names.push(entry.name);
+  }
+
+  assert.ok(names.length >= 20, `expected the full format tree, saw ${names.length}`);
+
+  for (const name of names)
+  {
+    assert.ok(
+      inputs.has(`src/formats/${name}/index.js`),
+      `src/formats/${name}/index.js is not a rollup input, so it will not be built`
+    );
+    assert.ok(
+      Object.hasOwn(manifest.exports, `./formats/${name}`),
+      `npm.package.json declares no "./formats/${name}" export, so consumers cannot import it`
+    );
   }
 });
