@@ -57,12 +57,14 @@ await library.InitializeAsync({
 
 const handle = library.GetResource("res:/model/ship.gr2");
 const object = await library.FetchObject("res:/model/ship.gr2");
-const document = await library.FetchDNA("rifter:minmatar:minmatar");
+const values = await library.FetchDNA("rifter:minmatar:minmatar");
 ```
 
 `GetResource()` and `GetObject()` are immediate service facades. The
 `FetchResource()`, `FetchObject()`, `FetchDNA()`, and `Fetch()` methods return
-promises or normalize service results to promises.
+promises or normalize service results to promises. `FetchDNA()` returns the
+plain CjsModel-shaped values produced by `BuildValuesFromDNA*`; it does not
+return a `carbon.document` node table.
 
 ## Inspect the composition
 

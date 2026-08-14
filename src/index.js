@@ -666,7 +666,7 @@ export class CjsLibrary
         return FetchResolvedObject(this.#resourceManager, request);
     }
 
-    /** Builds one SOF object from a DNA string through the configured factory. */
+    /** Builds one plain SOF model-values graph through the configured factory. */
     FetchDNA(dna, options = {})
     {
         const sof = this.#spaceObjectFactory;
@@ -676,15 +676,15 @@ export class CjsLibrary
             error.code = "CJS_LIBRARY_SOF_MISSING";
             throw error;
         }
-        if (typeof sof.BuildFromDNAAsync === "function")
+        if (typeof sof.BuildValuesFromDNAAsync === "function")
         {
-            return sof.BuildFromDNAAsync(dna, options);
+            return sof.BuildValuesFromDNAAsync(dna, options);
         }
-        if (typeof sof.BuildFromDNA === "function")
+        if (typeof sof.BuildValuesFromDNA === "function")
         {
-            return Promise.resolve(sof.BuildFromDNA(dna, options));
+            return Promise.resolve(sof.BuildValuesFromDNA(dna, options));
         }
-        return ForwardCall(sof, "BuildFromDNAAsync", dna, options);
+        return ForwardCall(sof, "BuildValuesFromDNAAsync", dna, options);
     }
 
     /** Fetches DNA, a resource, or a decoded object according to the request options. */

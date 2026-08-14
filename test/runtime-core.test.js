@@ -168,23 +168,43 @@ test("Fetch routes DNA through the configured async SOF facade", async () =>
             seen.push([ "data", path ]);
             return true;
         },
-        async BuildFromDNAAsync(dna, options)
+        async BuildValuesFromDNAAsync(dna, options)
         {
             seen.push([ "dna", dna, options ]);
-            return { schema: "carbon.document", dna };
+            return { _type: "EveShip2", dna };
         }
     };
     const library = new CjsLibrary({ spaceObjectFactory: sof });
 
     assert.equal(await library.InitializeAsync({ dataPath: "res:/sof/data.black" }), library);
     assert.deepEqual(await library.Fetch("rifter:minmatar:minmatar"), {
-        schema: "carbon.document",
+        _type: "EveShip2",
         dna: "rifter:minmatar:minmatar"
     });
     assert.deepEqual(seen.map(entry => entry.slice(0, 2)), [
         [ "data", "res:/sof/data.black" ],
         [ "dna", "rifter:minmatar:minmatar" ]
     ]);
+});
+
+test("FetchDNA normalizes the synchronous SOF values fallback to a promise", async () =>
+{
+    const options = { editorMode: true };
+    const library = new CjsLibrary({
+        spaceObjectFactory: {
+            BuildValuesFromDNA(dna, received)
+            {
+                assert.equal(dna, "rifter:minmatar:minmatar");
+                assert.equal(received, options);
+                return { _type: "EveShip2", dna };
+            }
+        }
+    });
+
+    assert.deepEqual(await library.FetchDNA("rifter:minmatar:minmatar", options), {
+        _type: "EveShip2",
+        dna: "rifter:minmatar:minmatar"
+    });
 });
 
 test("default resource behavior selects a presentation recipe before ResMan", () =>
@@ -322,7 +342,7 @@ test("every resource facade resolves exactly once while DNA bypasses resource be
     };
     const library = new CjsLibrary({
         resourceManager,
-        spaceObjectFactory: { BuildFromDNAAsync: async dna => ({ dna }) },
+        spaceObjectFactory: { BuildValuesFromDNAAsync: async dna => ({ _type: "EveShip2", dna }) },
         behaviors: {
             default: {
                 behavior: {

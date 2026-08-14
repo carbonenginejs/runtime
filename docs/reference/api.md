@@ -93,7 +93,8 @@ failure behavior.
   configured resource manager.
 - `FetchResource(path, options)` and `FetchObject(path, options)` return
   promise-facing results.
-- `FetchDNA(dna, options)` calls the configured SOF service.
+- `FetchDNA(dna, options)` calls the configured SOF service's
+  `BuildValuesFromDNA*` boundary and returns plain CjsModel-shaped values.
 - `Fetch(value, options)` selects DNA or resource behavior from the request.
 
 Missing required services or methods fail with errors carrying a
