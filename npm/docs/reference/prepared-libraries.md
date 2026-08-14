@@ -178,6 +178,14 @@ The prepared catalogs contain only source-backed values:
 - `characterRecipeProfiles`: authored sex and unlinked selection/material
   entries.
 
+These three profile catalogs are supported schema surfaces, not a claim about
+the current producer output. In the currently reviewed schema-v10 build,
+`characterMaterialProfiles`, `characterProjectionProfiles`, and
+`characterRecipeProfiles` are empty. Material, projection, and recipe values
+remain available in `characterDefinitions`, but no typed profile link yet joins
+them to a selected part. Consumers must diagnose that missing join rather than
+assuming the optional catalogs were populated.
+
 Every catalog record also contains its source-map key as `recordID`. Their
 exact model-shaped fields are:
 
