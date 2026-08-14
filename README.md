@@ -79,10 +79,12 @@ banner effects, private light/texture state, and root external texture bindings.
 Legacy hull children and SOF6 child sets now project and filter exactly from
 the first hull, including faction overrides and standalone build flags. Because
 their `.red` paths name arbitrary Trinity graphs, callers provide a synchronous
-`EveSOF.SetChildResourceResolver()` that returns either a local root descriptor
-or a complete `carbon.document` compatibility fragment. Fragment IDs and
-references are remapped inside the builder's internal document for every
-placement clone before the supported values projection is produced. Legacy hull
+`EveSOF.SetChildResourceResolver()` that returns a local root descriptor, a
+self-describing model-values root (directly or in `{ values, ... }`), or a
+legacy complete `carbon.document` compatibility fragment. Every model in a
+values fragment carries `_type`; values `_id`/`_ref` labels and legacy document
+IDs/references are remapped inside the builder for every placement clone before
+the supported values projection is produced. Legacy hull
 animations emit scalar/quaternion curves, model-rotation bindings, empty curve
 sets, and recursive `Tr2DynamicEmitter.rate` bindings; Carbon's translation
 animation branch remains its source TODO.
@@ -90,7 +92,8 @@ The standalone tail also projects first-hull sound emitters and controllers,
 emits `TriObserverLocal` audio placement intent, filters controller resources,
 and loads model rotation/translation curve documents after legacy animations.
 `EveSOF.SetObjectResourceResolver()` provides the synchronous controller/curve
-resource boundary; audio backend creation remains intentionally deferred.
+resource boundary and accepts the same self-describing values or legacy
+document inputs; audio backend creation remains intentionally deferred.
 First-hull instanced attachments now project Carbon's packed current/previous
 transform rows, runtime instance bounds, shader inputs, and quality filters.
 The builder emits `Tr2RuntimeInstanceData`, `Tr2InstancedMesh`, opaque area,
@@ -251,11 +254,13 @@ const values = await sof.BuildValuesFromDNAAsync("rifter:minmatar:minmatar");
 Async values builds run the internal document builder once to collect selected
 dependencies, resolve each unique dependency, rerun against per-call
 synchronous caches, and project the result to model values. `getObject`
-currently supplies selected child/controller/curve inputs as `carbon.document`
-compatibility fragments; that input shape does not make the document node table
-a supported output. Completion means the returned values include the selected
-fragments; it does not imply geometry, texture, effect, engine-adapter, or GPU
-readiness.
+may supply selected child/controller/curve inputs as self-describing values or
+legacy `carbon.document` compatibility fragments. For compatibility with
+existing loaders, the dependency request still says `output: "carbon.document"`;
+that request token negotiates an accepted input shape and does not make the
+document node table a supported SOF output. Completion means the returned
+values include the selected fragments; it does not imply geometry, texture,
+effect, engine-adapter, or GPU readiness.
 
 Registration is additive: omitted resource callbacks retain their current
 values, while an explicit `null` clears only that callback. Resource paths are
@@ -334,26 +339,24 @@ the corresponding effects on the factory instance and shares them across
 builds; no operational incompatibility is known while those effects remain
 immutable.
 
-At runtime-sof revision `3715644` on 2026-08-15, the suite contains 124 tests.
+At the current runtime-sof source on 2026-08-15, the suite contains 129 tests.
 With both sibling consumer bundles present —
 `runtime-trinity/npm/dist/index.js` and
-`runtime-audio/npm/dist/trinity/index.js` — all 124 run and pass. Twenty-two
+`runtime-audio/npm/dist/trinity/index.js` — all 129 run and pass. Twenty-two
 tests are wholly conditional hydration/integration tests, and two
 otherwise-unconditional tests contain optional hydration branches. All 24
-integration points require constructors from both sibling bundles. Their
-current guards check only for runtime-trinity, so a lane with Trinity present
-but the audio bundle absent fails at import rather than skipping. Values
-generation itself is unconditional and is proved with no registry or class
-library supplied.
+integration points require constructors from both sibling bundles, and their
+predicates check both prerequisites. Values generation and the four resolver
+values-fragment regressions are unconditional and require no registry or class
+library.
 
 ### Planned
 
 - Retire the public `carbon.document` methods, hydration adapter, and tools
   `/document` route after their remaining consumers migrate; then remove the
   internal document intermediate if no builder stage still requires it.
-- Until that retirement, make both runtime-trinity and runtime-audio hydration
-  bundles required and revision-controlled for release evidence, and make the
-  test skip preconditions match both dependencies.
+- Until that retirement, keep both runtime-trinity and runtime-audio hydration
+  bundles revision-controlled for complete release evidence.
 - Add normalized native fixtures for representative stationary, mobile, ship,
   swarm, and extension builds.
 - Recheck the deliberate Bucket traversal and deterministic layout differences

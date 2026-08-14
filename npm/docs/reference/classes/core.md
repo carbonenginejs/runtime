@@ -58,7 +58,7 @@ Implements the deterministic integer pseudo-random sequence used by internal SOF
 <!-- class:SofDocumentBuilder -->
 ## `SofDocumentBuilder`
 
-Allocates and links the internal compatibility node table, imports legacy fragments, and retains only nodes reachable from its root.
+Allocates and links the internal compatibility node table, imports self-describing values or legacy document fragments, and retains only nodes reachable from its root.
 
 - Export: None
 - Source: `src/sof/EveSOF.js`

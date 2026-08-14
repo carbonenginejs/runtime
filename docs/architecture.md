@@ -52,8 +52,11 @@ runtime-utils model/schema      runtime-resource Black reader
   is supplied.
 - `carbon.document` remains a deprecated internal/compatibility intermediate;
   new consumers must not depend on its node-table shape.
-- Resolver inputs and imported compatibility fragments may preserve legacy
-  `raw` data; SOF-authored audio uses ordinary declared values instead.
+- Resolver inputs prefer self-describing model values and may also consume
+  legacy `carbon.document` compatibility fragments. Every model in a values
+  fragment must carry `_type` so SOF can compose it without a class registry.
+- Imported legacy document fragments may preserve `raw` data; SOF-authored
+  audio uses ordinary declared values instead.
 
 ## Related documentation
 

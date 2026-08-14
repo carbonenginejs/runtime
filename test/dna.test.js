@@ -36,9 +36,10 @@ import { EveSOFDataLogoSet } from "../npm/dist/sof/shared/EveSOFDataLogoSet.js";
 const trinityConsumerEntry = new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url);
 // Document-hydration compatibility tests require constructors from BOTH sibling
 // bundles: runtime-trinity and runtime-audio/trinity. The audio entry point is
-// data-only and creates no AudioContext. A predicate that checks only Trinity
-// does not make audio optional.
+// data-only and creates no AudioContext.
 const audioTrinityConsumerEntry = new URL("../../runtime-audio/npm/dist/trinity/index.js", import.meta.url);
+const hasHydrationConsumerBundles =
+  existsSync(trinityConsumerEntry) && existsSync(audioTrinityConsumerEntry);
 
 
 function createData()
@@ -238,7 +239,7 @@ test("EveSOFDataMgr and EveSOFDNA preserve Carbon swarm behavior defaults", () =
 });
 
 test("EveSOF emits and hydrates Carbon swarm behavior on the EveShip2-derived root", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].buildClass = EveSOFDataHull.BuildClass.BUILDCLASS_SWARM;
@@ -825,7 +826,7 @@ test("EveSOF layout planning preserves Carbon condition quirks and nested transf
 });
 
 test("SOF emits and hydrates non-instanced, instanced, and shared layout placement graphs", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].boundingSphere = [0, 0, 0, 1];
@@ -1467,7 +1468,7 @@ test("SOF child defaults resolve Carbon named constants", () => {
 });
 
 test("SOF projects first-hull legacy children, faction visibility, and animations", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].children = [
@@ -1788,7 +1789,7 @@ test("SOF async builds resolve selected direct documents and existence probes de
   assert.equal(findTextureResourcePath(asyncDocument, "DiffuseMap"), "res:/x/insert/ship_insert_d.dds");
   assertDocumentRefsResolve(asyncDocument);
 
-  if (existsSync(trinityConsumerEntry))
+  if (hasHydrationConsumerBundles)
   {
     const trinity = await import(trinityConsumerEntry);
     const audioTrinity = await import(audioTrinityConsumerEntry);
@@ -2136,7 +2137,7 @@ test("runtime-SOF async boundary introduces no engine or format-layer imports", 
 });
 
 test("SOF imports complete child carbon.document fragments with remapped refs", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].children = [{
@@ -2189,6 +2190,164 @@ test("SOF imports complete child carbon.document fragments with remapped refs", 
   assert.throws(() => invalid.Build("rifter", "minmatar", "minmatar"), /ref 999 does not exist/);
 });
 
+test("SOF imports self-describing child model values with placement and remapped identity", () => {
+  const data = createData();
+  data.hull[0].children = [
+    { redFilePath: "res:/direct-values.red", translation: [1, 2, 3] },
+    { redFilePath: "res:/wrapped-values.red", translation: [9, 8, 7], scaling: [2, 3, 4] },
+  ];
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+  sof.SetChildResourceResolver(path => {
+    if (path === "res:/direct-values.red")
+    {
+      return { _type: "EveTransform", name: "direct", children: [] };
+    }
+    return {
+      values: {
+        _type: "EveTransform",
+        _id: "wrapped-root",
+        $ref: "ordinary-model-field",
+        name: "wrapped",
+        children: [
+          { _ref: "shared-child" },
+          {
+            _type: "EveTransform",
+            _id: "shared-child",
+            name: "shared",
+            children: [{ _ref: "shared-child" }],
+          },
+        ],
+        settings: {
+          label: "ordinary-record",
+          literalDocumentReference: { $ref: 999 },
+        },
+        cycle: { _ref: "wrapped-root" },
+      },
+      target: "children",
+      raw: { compatibilityOverlay: true },
+    };
+  });
+
+  const values = sof.BuildValues("rifter", "minmatar", "minmatar");
+  const direct = values.children[0];
+  const wrapped = values.children[1];
+  assert.equal(direct._type, "EveTransform");
+  assert.equal(direct.name, "direct");
+  assert.deepEqual(direct.translation, [1, 2, 3]);
+  assert.equal(wrapped._type, "EveTransform");
+  assert.deepEqual(wrapped.translation, [9, 8, 7]);
+  assert.deepEqual(wrapped.scaling, [2, 3, 4]);
+  assert.equal(wrapped.$ref, "ordinary-model-field");
+  assert.deepEqual(wrapped.settings, {
+    label: "ordinary-record",
+    literalDocumentReference: { $ref: 999 },
+  });
+  assert.equal(wrapped.compatibilityOverlay, true);
+  assert.notEqual(wrapped._id, undefined);
+  assert.deepEqual(wrapped.cycle, { _ref: wrapped._id });
+  assert.equal(wrapped.children[0]._type, "EveTransform");
+  assert.notEqual(wrapped.children[0]._id, undefined);
+  assert.deepEqual(wrapped.children[0].children[0], { _ref: wrapped.children[0]._id });
+  assert.deepEqual(wrapped.children[1], { _ref: wrapped.children[0]._id });
+});
+
+test("SOF prefers a direct model-values discriminator over document-shaped ordinary fields", () => {
+  const data = createData();
+  data.hull[0].children = [{ redFilePath: "res:/document-shaped-values.red" }];
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+  sof.SetChildResourceResolver(() => ({
+    _type: "EveTransform",
+    name: "values-win",
+    schema: "carbon.document",
+    roots: [],
+    nodes: [],
+  }));
+
+  const values = sof.BuildValues("rifter", "minmatar", "minmatar");
+  assert.equal(values.children[0]._type, "EveTransform");
+  assert.equal(values.children[0].name, "values-win");
+  assert.equal(values.children[0].schema, "carbon.document");
+  assert.deepEqual(values.children[0].roots, []);
+  assert.deepEqual(values.children[0].nodes, []);
+});
+
+test("SOF rejects malformed self-describing model-values fragments", () => {
+  const build = fragment => {
+    const data = createData();
+    data.hull[0].children = [{ redFilePath: "res:/invalid-values.red" }];
+    const sof = new EveSOF();
+    assert.equal(sof.dataMgr.SetData(data), true);
+    sof.SetChildResourceResolver(() => ({ values: fragment, target: "children" }));
+    return () => sof.BuildValues("rifter", "minmatar", "minmatar");
+  };
+
+  assert.throws(build({ _ref: 1 }), /self-describing root with _type/);
+  assert.throws(build({ _type: "EveTransform", children: [{ _ref: 7 }] }), /_ref 7 does not exist/);
+  assert.throws(build({
+    _type: "EveTransform",
+    children: [
+      { _type: "EveTransform", _id: 2 },
+      { _type: "EveTransform", _id: 2 },
+    ],
+  }), /duplicate _id 2/);
+  assert.throws(build({ _type: "EveTransform", children: [{ _id: 3 }] }), /_type on every identified model/);
+  assert.throws(build({ _type: "EveTransform", children: [{ _ref: 4, extra: true }] }), /must contain only _ref/);
+  assert.throws(build(Object.create({ _type: "EveTransform" })), /self-describing root with _type/);
+});
+
+test("SOF async values builds accept values dependencies without changing the legacy request token", async () => {
+  const data = createData();
+  data.hull[0].children = [{ redFilePath: "res:/child-values.red" }];
+  data.hull[0].controllers = [{ path: "res:/controller-values.red" }];
+  data.hull[0].modelRotationCurvePath = "res:/rotation-values.red";
+  data.hull[0].modelTranslationCurvePath = "res:/translation-values.red";
+  const requests = [];
+  const sof = new EveSOF().Register({
+    resources: {
+      async getObject(path, request)
+      {
+        requests.push([path, request.role, request.output]);
+        if (request.role === "child")
+        {
+          return { _type: "EveTransform", name: "values-child", children: [] };
+        }
+        if (request.role === "controller")
+        {
+          return {
+            values: { _type: "Tr2Controller", name: "values-controller" },
+            raw: { compatibilityOverlay: "controller" },
+          };
+        }
+        if (request.role === "modelRotationCurve")
+        {
+          return { _type: "Tr2RotationAdapter", name: "values-rotation" };
+        }
+        return {
+          values: { _type: "CustomVectorCurve", name: "values-translation" },
+          implements: ["ITriVectorFunction"],
+        };
+      },
+    },
+  });
+  assert.equal(sof.dataMgr.SetData(data), true);
+
+  const values = await sof.BuildValuesFromDNAAsync("rifter:minmatar:minmatar");
+  assert.deepEqual(requests.map(([, role, output]) => [role, output]).sort(), [
+    ["child", "carbon.document"],
+    ["controller", "carbon.document"],
+    ["modelRotationCurve", "carbon.document"],
+    ["modelTranslationCurve", "carbon.document"],
+  ].sort());
+  assert.equal(values.children[0]._type, "EveTransform");
+  assert.equal(values.children[0].name, "values-child");
+  assert.equal(values.controllers[0]._type, "Tr2Controller");
+  assert.equal(values.controllers[0].compatibilityOverlay, "controller");
+  assert.equal(values.modelRotationCurve._type, "Tr2RotationAdapter");
+  assert.equal(values.modelTranslationCurve._type, "CustomVectorCurve");
+});
+
 test("legacy child animations bind only recursively reachable dynamic emitters", () => {
   const data = createData();
   data.hull[0].children = [{ redFilePath: "res:/particles.red", id: 4 }];
@@ -2218,8 +2377,36 @@ test("legacy child animations bind only recursively reachable dynamic emitters",
   assert.equal(referencedNode(document, binding.fields.destinationObject).kind, "Tr2DynamicEmitter");
 });
 
+test("legacy child animations bind through self-describing model-values fragments", () => {
+  const data = createData();
+  data.hull[0].children = [{ redFilePath: "res:/particles-values.red", id: 4 }];
+  data.hull[0].animations = [{ name: "rate", id: 4, startRate: 1, endRate: 9 }];
+  const fragment = {
+    _type: "EveChildContainer",
+    objects: [{
+      _type: "EveChildParticleSystem",
+      particleEmitters: [
+        { _type: "Tr2DynamicEmitter", rate: 0 },
+        { _type: "Tr2GpuUniqueEmitter", rate: 0 },
+      ],
+    }],
+  };
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+  sof.SetChildResourceResolver(() => ({ values: fragment, target: "effectChildren" }));
+  const document = sof.Build("rifter", "minmatar", "minmatar");
+  const root = rootNode(document);
+  const curveSet = referencedNode(document, root.fields.curveSets[0]);
+  assert.equal(curveSet.fields.curves.length, 1);
+  assert.equal(curveSet.fields.bindings.length, 1);
+  const binding = referencedNode(document, curveSet.fields.bindings[0]);
+  assert.equal(binding.fields.sourceAttribute, "currentValue");
+  assert.equal(binding.fields.destinationAttribute, "rate");
+  assert.equal(referencedNode(document, binding.fields.destinationObject).kind, "Tr2DynamicEmitter");
+});
+
 test("SOF emits first-hull audio, filtered controllers, and model curve resources", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].soundEmitters = [{
@@ -2334,7 +2521,7 @@ test("SOF object resource resolution is explicit and synchronous", () => {
 });
 
 test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const buffer = new EveSOFDataDecalIndexBuffer();
   buffer.AddIndex(0);
@@ -2471,7 +2658,7 @@ test("SOF selects multi-hull decal indices by the lowercased combined geometry p
 });
 
 test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].sof6 = true;
@@ -2571,7 +2758,7 @@ test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
 });
 
 test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   assert.equal(new EveSOFDataHullSpotlightSet().visibilityGroup, "primary");
   assert.equal(new EveSOFDataHullSpotlightSetItem().colorType, 12);
@@ -2748,7 +2935,7 @@ test("SOF legacy spotlight sets use faction groups without SOF6 visibility filte
 });
 
 test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and light state", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   assert.deepEqual(EveSOFDataHullPlaneSet.Usage, {
     USAGE_STANDARD: 0,
@@ -2902,7 +3089,7 @@ test("SOF legacy hangar-video plane sets use faction colors without SOF6 visibil
 });
 
 test("SOF emits Carbon sprite-line sets with shared effects and per-sprite SOF6 lights", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].sof6 = true;
@@ -2999,7 +3186,7 @@ test("SOF applies sprite-line visibility filtering to legacy hulls", () => {
 });
 
 test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   assert.deepEqual(EveSOFDataHullHazeSet.HazeType, {
     TYPE_SPHERICAL: 0,
@@ -3139,7 +3326,7 @@ test("SOF applies haze visibility filtering to legacy hulls", () => {
 });
 
 test("SOF emits and hydrates legacy banners with external texture bindings", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].banners = [{
@@ -3230,7 +3417,7 @@ test("SOF emits and hydrates legacy banners with external texture bindings", {
 });
 
 test("SOF6 banner sets group usages numerically and preserve optional lights", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].sof6 = true;
@@ -3303,7 +3490,7 @@ test("SOF6 banner sets group usages numerically and preserve optional lights", {
 });
 
 test("SOF emits and hydrates visible Carbon hull light types with cumulative hull offsets", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   assert.deepEqual(EveSOFDataHullLightSetItem.LightType, {
     POINT_LIGHT: 0,
@@ -3406,7 +3593,7 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
 });
 
 test("SOF emits and hydrates Carbon impact overlays and preserves the HULL shield quirk", {
-  skip: !existsSync(new URL("../../runtime-trinity/npm/dist/index.js", import.meta.url)),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].impactEffectType = EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_ELLIPSOID;
@@ -4152,7 +4339,7 @@ test("EveSOF emits SOF6 PPT resources and Carbon sampler overrides", async () =>
     materialIndex: 0,
     targetMaterials: [1, 0, 0, 1],
   });
-  if (existsSync(trinityConsumerEntry))
+  if (hasHydrationConsumerBundles)
   {
     const trinity = await import(trinityConsumerEntry);
     const audioTrinity = await import(audioTrinityConsumerEntry);
@@ -4170,7 +4357,7 @@ test("EveSOF emits SOF6 PPT resources and Carbon sampler overrides", async () =>
 });
 
 test("EveSOF emits and hydrates Carbon's extension-root placement branch", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].buildClass = EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION;
@@ -4447,7 +4634,7 @@ test("EveSOF placement routing preserves root transform children without a Solo 
 });
 
 test("EveSOF routes animated extension children through Solo Placement", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].buildClass = EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION;
@@ -4710,7 +4897,7 @@ test("EveSOFDataMgr packs and detaches Carbon instanced-mesh projections", () =>
 });
 
 test("SOF emits and hydrates Carbon instanced attachments with public CPU instance data", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].castShadow = true;
@@ -4826,7 +5013,7 @@ test("SOF emits and hydrates Carbon instanced attachments with public CPU instan
 });
 
 test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].booster = {
@@ -5078,7 +5265,7 @@ function assertDocumentRefsResolve(document)
 }
 
 test("SOF carbon.document hydrates through the sibling Trinity and audio consumers", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const trinity = await import(trinityConsumerEntry);
   const audioTrinity = await import(audioTrinityConsumerEntry);
@@ -5348,7 +5535,7 @@ test("values build with no registry, because SOF emits JSON and JSON needs no cl
 });
 
 test("BuildValuesFromDNA emits plain model values with parity to document hydration", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].sof6 = true;
@@ -5401,7 +5588,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
 });
 
 test("values projection carries the audio emitter as a declared node", {
-  skip: !existsSync(trinityConsumerEntry),
+  skip: !hasHydrationConsumerBundles,
 }, async () => {
   const data = createData();
   data.hull[0].soundEmitters = [{

@@ -65,6 +65,13 @@ const OBJECT_RESOURCE_ROLE_GATES = Object.freeze({
 // Sentinel returned when a resolved child root fails Carbon's type gate; the
 // callers mirror Carbon's early return rather than skipping one item.
 const WRONG_TYPE_CHILD = Symbol("wrong-type-child");
+
+// A model-values record may legitimately own a `$ref` field: only `_ref` is
+// reserved by that format. Mark such records while they cross the deprecated
+// document intermediate so its private reference walker does not reinterpret
+// their data. Symbols survive the in-process shallow normalization but never
+// appear in either JSON output shape.
+const VALUES_LITERAL_DOLLAR_REF = Symbol("values-literal-dollar-ref");
 function descriptorClaimsInterface(descriptor, interfaceName) {
   return Array.isArray(descriptor.implements) && descriptor.implements.includes(interfaceName);
 }
@@ -239,9 +246,13 @@ class EveSOF extends CjsModel {
    * Supplies Carbon's synchronous `.red` child-object compatibility boundary.
    *
    * The resolver receives `(redFilePath, context)` and returns either null, a
-   * local `{ kind, target, fields, raw }` descriptor, or
-   * `{ document, root?, target }` for a complete compatibility fragment
-   * consumed by the internal builder.
+   * self-describing model-values root, `{ values, target?, implements?, raw? }`,
+   * a local `{ kind, target, fields, raw }` descriptor, or
+   * `{ document, root?, target?, implements?, raw? }` for a legacy complete
+   * compatibility fragment consumed by the internal builder.
+   *
+   * Values fragments require `_type` on every model because runtime-sof has no
+   * class library from which to infer an untagged nested model's schema.
    * Target is `children` for an EveTransform root or `effectChildren` for an
    * IEveSpaceObjectChild root.
    */
@@ -253,7 +264,7 @@ class EveSOF extends CjsModel {
     return this;
   }
 
-  /** Supplies synchronous controller and model-curve compatibility fragments. */
+  /** Supplies synchronous controller and model-curve values or legacy compatibility fragments. */
   SetObjectResourceResolver(resolver) {
     if (resolver !== null && typeof resolver !== "function") {
       throw new TypeError("EveSOF object resource resolver must be a function or null");
@@ -1164,12 +1175,18 @@ class EveSOF extends CjsModel {
     if (!descriptor || typeof descriptor !== "object") {
       throw new TypeError("EveSOF child resource resolver must return a child descriptor or null");
     }
-    if (IsCarbonDocument(descriptor)) descriptor = {
+    if (IsModelValuesRoot(descriptor)) descriptor = {
+      values: descriptor
+    };else if (IsCarbonDocument(descriptor)) descriptor = {
       document: descriptor
     };
     let kind = descriptor.kind;
     let fragment = null;
+    let values = null;
     let rootRef = null;
+    if (descriptor.document && descriptor.values) {
+      throw new TypeError("EveSOF child resource descriptor cannot contain both document and values");
+    }
     if (descriptor.document) {
       fragment = descriptor.document;
       rootRef = descriptor.root ?? fragment.roots?.[0]?.ref ?? null;
@@ -1177,6 +1194,12 @@ class EveSOF extends CjsModel {
         throw new TypeError("EveSOF child document descriptor requires a valid root ref");
       }
       kind = fragment.nodes?.find(node => Number(node.id) === Number(rootRef.$ref))?.kind;
+    } else if (descriptor.values !== undefined) {
+      if (!IsModelValuesRoot(descriptor.values)) {
+        throw new TypeError("EveSOF child values descriptor requires a self-describing root with _type");
+      }
+      values = descriptor.values;
+      kind = values._type;
     }
     if (typeof kind !== "string" || kind.length === 0) {
       throw new TypeError("EveSOF child resource descriptor requires a root kind");
@@ -1206,6 +1229,7 @@ class EveSOF extends CjsModel {
       fields: descriptor.fields && typeof descriptor.fields === "object" ? descriptor.fields : {},
       raw: descriptor.raw && typeof descriptor.raw === "object" ? descriptor.raw : {},
       fragment,
+      values,
       rootRef
     };
   }
@@ -1219,13 +1243,15 @@ class EveSOF extends CjsModel {
       translation: placement.translation
     } : placement;
     let ref;
-    if (descriptor.fragment) {
-      ref = document.ImportRoot(descriptor.fragment, descriptor.rootRef);
+    if (descriptor.fragment || descriptor.values) {
+      ref = descriptor.values ? document.ImportValuesRoot(descriptor.values) : document.ImportRoot(descriptor.fragment, descriptor.rootRef);
       const node = document.GetNode(ref.$ref);
-      if (descriptor.raw) node.raw = {
-        ...(node.raw ?? {}),
-        ...cloneValue(descriptor.raw)
-      };
+      if (descriptor.raw && Object.keys(descriptor.raw).length) {
+        node.raw = {
+          ...(node.raw ?? {}),
+          ...cloneValue(descriptor.raw)
+        };
+      }
       Object.assign(node.fields, cloneValue(placementFields));
     } else {
       ref = document.AddNode(descriptor.kind, {
@@ -1777,12 +1803,18 @@ class EveSOF extends CjsModel {
     if (!descriptor || typeof descriptor !== "object") {
       throw new TypeError("EveSOF object resource resolver must return an object descriptor or null");
     }
-    if (IsCarbonDocument(descriptor)) descriptor = {
+    if (IsModelValuesRoot(descriptor)) descriptor = {
+      values: descriptor
+    };else if (IsCarbonDocument(descriptor)) descriptor = {
       document: descriptor
     };
     let kind = descriptor.kind;
     let fragment = null;
+    let values = null;
     let rootRef = null;
+    if (descriptor.document && descriptor.values) {
+      throw new TypeError("EveSOF object resource descriptor cannot contain both document and values");
+    }
     if (descriptor.document) {
       fragment = descriptor.document;
       rootRef = descriptor.root ?? fragment.roots?.[0]?.ref ?? null;
@@ -1790,6 +1822,12 @@ class EveSOF extends CjsModel {
         throw new TypeError("EveSOF object document descriptor requires a valid root ref");
       }
       kind = fragment.nodes?.find(node => Number(node.id) === Number(rootRef.$ref))?.kind;
+    } else if (descriptor.values !== undefined) {
+      if (!IsModelValuesRoot(descriptor.values)) {
+        throw new TypeError("EveSOF object values descriptor requires a self-describing root with _type");
+      }
+      values = descriptor.values;
+      kind = values._type;
     }
     if (typeof kind !== "string" || kind.length === 0) {
       throw new TypeError("EveSOF object resource descriptor requires a root kind");
@@ -1813,12 +1851,23 @@ class EveSOF extends CjsModel {
       fields: descriptor.fields && typeof descriptor.fields === "object" ? descriptor.fields : {},
       raw: descriptor.raw && typeof descriptor.raw === "object" ? descriptor.raw : {},
       fragment,
+      values,
       rootRef
     };
   }
   #addObjectResource(document, descriptor) {
-    if (descriptor.fragment) return document.ImportRoot(descriptor.fragment, descriptor.rootRef);
-    return document.AddNode(descriptor.kind, cloneFields(descriptor.fields), cloneValue(descriptor.raw));
+    if (!descriptor.fragment && !descriptor.values) {
+      return document.AddNode(descriptor.kind, cloneFields(descriptor.fields), cloneValue(descriptor.raw));
+    }
+    const ref = descriptor.values ? document.ImportValuesRoot(descriptor.values) : document.ImportRoot(descriptor.fragment, descriptor.rootRef);
+    if (descriptor.raw && Object.keys(descriptor.raw).length) {
+      const node = document.GetNode(ref.$ref);
+      node.raw = {
+        ...(node.raw ?? {}),
+        ...cloneValue(descriptor.raw)
+      };
+    }
+    return ref;
   }
 
   /** Emits the currently maintained Carbon attachment stages in source order. */
@@ -3513,6 +3562,10 @@ function createImpactEmitter(document, values) {
  * giving it an identity.
  */
 function CountDocumentVisits(value, nodeById, visits) {
+  if (value?.[VALUES_LITERAL_DOLLAR_REF]) {
+    for (const item of Object.values(value)) CountDocumentVisits(item, nodeById, visits);
+    return;
+  }
   if (CjsCarbonDocument.isRef(value)) {
     const id = Number(value.$ref);
     const seen = visits.get(id) ?? 0;
@@ -3542,6 +3595,9 @@ function CountDocumentVisits(value, nodeById, visits) {
  * table's numbering as a hidden dependency.
  */
 function ProjectDocumentNode(value, nodeById, visits, emitted, state) {
+  if (value?.[VALUES_LITERAL_DOLLAR_REF]) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, ProjectDocumentNode(item, nodeById, visits, emitted, state)]));
+  }
   if (CjsCarbonDocument.isRef(value)) {
     const id = Number(value.$ref);
     if (emitted.has(id)) return {
@@ -3628,6 +3684,88 @@ class SofDocumentBuilder {
     }
     return importedRoot;
   }
+
+  /**
+   * Imports one self-describing CjsModel-shaped values graph.
+   *
+   * Every model must carry `_type`: this class deliberately has no registry or
+   * schema library from which to infer the type of an untagged nested object.
+   * IDs are fragment-local labels, so they are remapped to this builder's node
+   * IDs just as legacy document fragment IDs are.
+   */
+  ImportValuesRoot(values) {
+    if (!IsModelValuesRoot(values)) {
+      throw new TypeError("EveSOF values fragment requires a self-describing root with _type");
+    }
+    const refByValue = new WeakMap();
+    const refById = new Map();
+    const visited = new WeakSet();
+    const allocate = value => {
+      if (Array.isArray(value)) {
+        for (const item of value) allocate(item);
+        return;
+      }
+      if (!value || typeof value !== "object") return;
+      if (IsModelValuesReference(value)) {
+        if (Object.keys(value).length !== 1) {
+          throw new TypeError("EveSOF values fragment reference must contain only _ref");
+        }
+        return;
+      }
+      if (visited.has(value)) return;
+      visited.add(value);
+      if (Object.hasOwn(value, "_type")) {
+        if (typeof value._type !== "string" || value._type.length === 0) {
+          throw new TypeError("EveSOF values fragment model requires a non-empty string _type");
+        }
+        const ref = this.AddNode(value._type, {});
+        refByValue.set(value, ref);
+        if (value._id !== undefined && value._id !== null) {
+          if (refById.has(value._id)) {
+            throw new TypeError(`EveSOF values fragment contains duplicate _id ${JSON.stringify(value._id)}`);
+          }
+          refById.set(value._id, ref);
+        }
+      } else if (value._id !== undefined && value._id !== null) {
+        throw new TypeError("EveSOF values fragment requires _type on every identified model");
+      }
+      for (const [key, item] of Object.entries(value)) {
+        if (key !== "_type" && key !== "_id") allocate(item);
+      }
+    };
+    allocate(values);
+    const populated = new WeakSet();
+    const convert = value => {
+      if (Array.isArray(value)) return value.map(convert);
+      if (!value || typeof value !== "object") return value;
+      if (IsModelValuesReference(value)) {
+        const ref = refById.get(value._ref);
+        if (!ref) {
+          throw new TypeError(`EveSOF values fragment _ref ${JSON.stringify(value._ref)} does not exist`);
+        }
+        return {
+          $ref: ref.$ref
+        };
+      }
+      const ref = refByValue.get(value);
+      if (ref) {
+        if (!populated.has(value)) {
+          populated.add(value);
+          const node = this.GetNode(ref.$ref);
+          const fields = Object.fromEntries(Object.entries(value).filter(([key]) => key !== "_type" && key !== "_id").map(([key, item]) => [key, convert(item)]));
+          if (Object.hasOwn(value, "$ref")) fields[VALUES_LITERAL_DOLLAR_REF] = true;
+          node.fields = fields;
+        }
+        return {
+          $ref: ref.$ref
+        };
+      }
+      const record = Object.fromEntries(Object.entries(value).map(([key, item]) => [key, convert(item)]));
+      if (Object.hasOwn(value, "$ref")) record[VALUES_LITERAL_DOLLAR_REF] = true;
+      return record;
+    };
+    return convert(values);
+  }
   GetNode(id) {
     return this.#nodes[id - 1] ?? null;
   }
@@ -3646,6 +3784,10 @@ class SofDocumentBuilder {
         return;
       }
       if (!value || typeof value !== "object") return;
+      if (value[VALUES_LITERAL_DOLLAR_REF]) {
+        Object.values(value).forEach(visitValue);
+        return;
+      }
       if (Object.hasOwn(value, "$ref")) {
         const id = Number(value.$ref);
         if (reachable.has(id)) return;
@@ -3703,6 +3845,12 @@ function CollectSofRequest(requests, path, output, role, context = null) {
 }
 function IsCarbonDocument(value) {
   return value?.schema === "carbon.document" && Array.isArray(value.roots) && Array.isArray(value.nodes);
+}
+function IsModelValuesRoot(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value) && Object.hasOwn(value, "_type") && typeof value._type === "string" && value._type.length > 0;
+}
+function IsModelValuesReference(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value) && Object.hasOwn(value, "_ref");
 }
 async function ResolveSofDependency(load, path, role, results, resultKey = path) {
   try {
