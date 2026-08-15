@@ -23,6 +23,8 @@ export { CjsOggFormat } from './ogg/CjsOggFormat.js';
 export { CjsPickleFormat } from './pickle/CjsPickleFormat.js';
 export { CjsPngFormat } from './png/CjsPngFormat.js';
 export { CjsRedFormat } from './red/CjsRedFormat.js';
+export { CjsSchemaBoundFormat } from './schemabound/CjsSchemaBoundFormat.js';
+export { CjsSqliteFormat } from './sqlite/CjsSqliteFormat.js';
 export { CJS_STATIC_FAMILIES, CjsStaticFormat } from './static/CjsStaticFormat.js';
 export { CjsStlFormat } from './stl/CjsStlFormat.js';
 export { CjsTgaFormat } from './tga/CjsTgaFormat.js';

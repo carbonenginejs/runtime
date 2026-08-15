@@ -25,7 +25,9 @@ Written 2026-08-16. Everything here is interim and was agreed as interim.
 **Find the uses before changing any of it.** Each item below has callers, and
 three separate mistakes were made today by assuming otherwise.
 
-1. **`CjsSqliteFormat` omits `inspect`, and nineteen sibling formats have it.**
+1. **`CjsSqliteFormat` and `CjsSchemaBoundFormat` omit `inspect`, and nineteen
+   sibling formats have it** — including `CjsStaticFormat`, which sits next to
+   both of them in the same `.static` routing.
    That was decided from `docs/internal/decisions/format-capability-surface.md`,
    whose own *What is not proposed* section says not to change things on its
    strength alone. It is recorded there as the second instance of a new format
@@ -61,9 +63,14 @@ identically to `node:sqlite`, and eleven manufactured containers cover overflow
 chains, multi-level b-tree ordering, rowid aliasing, every serial type, awkward
 column names, and nine-byte varints.
 
+Also proven, added the same day: `CjsSchemaBoundFormat` reads all six containers
+of the schema-bound family, and every field the published export carries from
+them matches exactly — 114 regions, 1,184 constellations and 8,490 systems, plus
+6,989 jumps cross-checked against an entirely separate container.
+
 Not proven: nothing has read the prefixed-pickle family (`CjsPickleFormat`
-refuses its class-construction opcode by design, and all 25 files use it), and
-nothing reads the schema-bound family at all.
+refuses its class-construction opcode by design, and all 25 files use it). That
+is now the only `.static` family with no reader.
 
 Also worth knowing: `resolveType()` and `RegisterExtension`'s `Identify`/`Target`
 route are both implemented, contracted and tested, and — as far as could be

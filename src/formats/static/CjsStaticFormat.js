@@ -26,7 +26,7 @@ export const CJS_STATIC_FAMILIES = Object.freeze({
  *   lists with a fixed item size, vectors with a precision, and a key footer of
  *   key-to-offset pairs. Nothing needs deriving, because the build ships the
  *   layout. Six datasets are stored this way, the celestial tables among them.
- *   Decoding them is not implemented here yet.
+ *   `CjsSchemaBoundFormat` reads it, given that companion.
  *
  * Detection is signature-based and never executes or trusts file names.
  *
@@ -75,9 +75,9 @@ export class CjsStaticFormat
    * Contract: docs/concepts/format-type-resolution.md. There is no declared
    * type to disagree with here — the extension is silent — so the signature is
    * both the claim and the evidence, and the resolution is always verified.
-   * `preferred` names the decode route: this package's own for the pickle
-   * family, a caller-supplied driver for SQLite, and none for a schema-bound
-   * container until its companion is read.
+   * `preferred` names the decode route, and all three now lead into this
+   * package: `CjsPickleFormat`, `CjsSqliteFormat`, and `CjsSchemaBoundFormat`
+   * once the caller has the `.schema` companion to hand it.
    *
    * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
    * @param {object} [options] Probe options.
@@ -137,8 +137,12 @@ export class CjsStaticFormat
       prefix: null,
       decodable: false,
       requires: "schema",
+      // `decodable` is this format's own answer, and it stays false: these bytes
+      // carry nothing to identify, so the family is an inference from the absence
+      // of the other two signatures rather than a reading. `requires` names what
+      // closes that gap - with the companion, CjsSchemaBoundFormat decodes it.
       reason: "No signature. A schema-bound container needs its .schema companion, "
-        + "which is YAML describing the layout."
+        + "which is YAML describing the layout. CjsSchemaBoundFormat reads it from there."
     });
   }
 

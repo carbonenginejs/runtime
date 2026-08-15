@@ -19,6 +19,8 @@ export { CjsOggFormat } from "./ogg/index.js";
 export { CjsPickleFormat } from "./pickle/index.js";
 export { CjsPngFormat } from "./png/index.js";
 export { CjsRedFormat } from "./red/index.js";
+export { CjsSchemaBoundFormat } from "./schemabound/index.js";
+export { CjsSqliteFormat } from "./sqlite/index.js";
 export { CjsStaticFormat, CJS_STATIC_FAMILIES } from "./static/index.js";
 export { CjsStlFormat } from "./stl/index.js";
 export { CjsTgaFormat } from "./tga/index.js";

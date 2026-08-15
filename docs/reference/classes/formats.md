@@ -689,6 +689,17 @@ Data-only Python pickle format facade that currently decodes protocol 0 into JSO
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+<!-- class:CjsSchemaBoundFormat -->
+## `CjsSchemaBoundFormat`
+
+Reads a binary record container against the separate schema document that describes its layout.
+
+- Export: `@carbonenginejs/runtime-resource/formats/schemabound`
+- Source: `src/formats/schemabound/CjsSchemaBoundFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+- Notes: The schema is required and there is no default. These bytes carry no signature, so the wrong schema decodes into plausible nonsense rather than failing.
+
 <!-- class:CjsSqliteFormat -->
 ## `CjsSqliteFormat`
 
@@ -703,13 +714,13 @@ Reads a SQLite 3 container as data: the tables it holds and every row of them, w
 <!-- class:CjsStaticFormat -->
 ## `CjsStaticFormat`
 
-Identifies which of three unrelated containers a client `.static` file holds, decoding the prefixed-pickle family and reporting the SQLite and schema-bound families rather than guessing at them.
+Identifies which of three unrelated containers a client `.static` file holds, so a caller can route it to the format that decodes it.
 
 - Export: `@carbonenginejs/runtime-resource/formats/static`
 - Source: `src/formats/static/CjsStaticFormat.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
-- Notes: Signature-based. Opening a SQLite container needs a database driver, which callers own.
+- Notes: Signature-based, and it decodes nothing at all since 2026-08-15. It reports the family and the payload offset; `CjsPickleFormat`, `CjsSqliteFormat` and `CjsSchemaBoundFormat` decode.
 
 <!-- class:CjsPickleProtocol0Reader -->
 ## `CjsPickleProtocol0Reader`

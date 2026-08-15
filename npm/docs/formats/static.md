@@ -3,7 +3,7 @@
 Status: Experimental
 Scope: `@carbonenginejs/runtime-resource/formats/static`
 Audience: Resource integrators reading client static data
-Summary: Identifies which of three unrelated containers a `.static` file holds, and decodes the one this package owns.
+Summary: Identifies which of three unrelated containers a `.static` file holds, so a caller can route it to the format that decodes it.
 
 ## Why this exists
 
@@ -30,7 +30,8 @@ family that cannot be read without its companion.
   `indexes(key, value)`, with a JSON document per record.
 - **Prefixed pickle** containers are decoded through `CjsPickleFormat` after
   the four-byte prefix.
-- **Schema-bound** containers report `unknown` and are never guessed at.
+- **Schema-bound** containers report `unknown` with `requires: "schema"`, and
+  are decoded by `CjsSchemaBoundFormat` once the caller has that companion.
 
 Detection is signature-based. It never trusts a file name and never executes
 anything.
@@ -76,32 +77,11 @@ surfaced rather than worked around, and widening it is a deliberate decision
 rather than a bug fix.
 
 **The schema-bound family is self-describing.** Its `.schema` companion is
-YAML — readable today with `CjsYamlFormat` — and it states the whole binary
-layout:
-
-```yaml
-keyTypes: {min: 0, size: 4, type: int}
-type: dict
-valueTypes:
-  attributes:
-    regionID: {min: 0, size: 4, type: int}
-    nameID: {min: 0, size: 4, type: int}
-    center: {precision: double, size: 24, type: vector3, aliases: {x: 0, y: 1, z: 2}}
-    descriptionID: {isOptional: true, min: 0, size: 4, type: int}
-    neighbours: {fixedItemSize: 4, itemTypes: {min: 0, size: 4, type: int}, type: list}
-keyFooter:
-  fixedItemSize: 8
-  itemTypes:
-    attributes:
-      key: {min: 0, size: 4, type: int}
-      offset: {min: 0, size: 4, type: int}
-```
-
-Sizes, types, optional flags, list item sizes, vector precision and a
-key-to-offset footer are all declared, so **nothing needs deriving** — unlike an
-FSD container, the build ships its own layout. A generic decoder driven by this
-YAML would read all six datasets, the celestial tables among them. **Not
-implemented.**
+YAML and states the whole binary layout — sizes, types, optional flags, list item
+sizes, vector precision and a key-to-offset footer — so **nothing needs
+deriving**, unlike an FSD container. `CjsSchemaBoundFormat` reads it:
+[schema-bound containers](schemabound.md). All six datasets decode, the celestial
+tables among them.
 
 ## Use
 
@@ -116,7 +96,7 @@ const probe = await CjsStaticFormat.resolveType(bytes);
 
 if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
 {
-    const value = CjsStaticFormat.read(bytes);
+    const value = CjsPickleFormat.read(CjsStaticFormat.payload(bytes));
 }
 ```
 
@@ -128,15 +108,12 @@ evidence, `resolveType()` is therefore always `verified`, and `metadata.declared
 is `null` with `mismatch` always false.
 
 `describe()` returns the underlying
-`{ family, byteLength, payloadOffset, prefix, decodable, reason }` without
-building a probe. `payload()` returns the bytes past any wrapper, which is what
-a caller hands to a SQLite driver or another decoder.
-
-`read()` throws `CJS_STATIC_FAMILY_UNSUPPORTED` for a family this package does
-not own, naming the family and the reason, so a caller can route rather than
-retry.
+`{ family, byteLength, payloadOffset, prefix, decodable, requires, reason }` without
+building a probe. `payload()` returns the bytes past any wrapper, which is what a
+caller hands to the format that owns the family.
 
 ## Related documentation
 
 - [Formats](README.md)
 - [Data-only pickle protocol 0](pickle.md)
+- [Schema-bound containers](schemabound.md)
