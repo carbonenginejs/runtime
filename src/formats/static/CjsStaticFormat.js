@@ -1,4 +1,5 @@
 import { CjsPickleFormat } from "../pickle/index.js";
+import { CjsSqliteFormat } from "../sqlite/index.js";
 
 const SQLITE_SIGNATURE = "SQLite format 3\0";
 const PICKLE_PREFIX_BYTES = 4;
@@ -102,13 +103,13 @@ export class CjsStaticFormat
         byteLength: bytes.byteLength,
         payloadOffset: 0,
         prefix: null,
-        // Capability here is not a property of the format. These bytes are
-        // decodable given a driver the caller supplies, so `decodable` reports
-        // what this package can do alone and `requires` names what closes the
-        // gap. A boolean static cannot express that.
-        decodable: false,
-        requires: "sqlite",
-        reason: "SQLite containers need a driver, which this package does not ship."
+        // Decodable outright since CjsSqliteFormat landed. This reported
+        // `requires: "sqlite"` while a caller had to supply an engine, and was
+        // the example behind the argument that a capability can depend on the
+        // caller's environment - an argument that now needs a different one.
+        decodable: true,
+        requires: null,
+        reason: "Recognized a SQLite container."
       });
     }
 
@@ -172,23 +173,16 @@ export class CjsStaticFormat
 
     if (detected.family === CJS_STATIC_FAMILIES.SQLITE)
     {
-      // SQLite is readable anywhere given a driver: a WASM build opens these
-      // bytes in a browser, and Node's own driver opens the file by path. The
-      // driver is a dependency this package will not choose for its callers, so
-      // it is injected rather than assumed absent.
-      if (typeof options.sqlite === "function")
-      {
-        return options.sqlite(bytes);
-      }
-
-      const error = new TypeError(
-        "Reading a SQLite .static container needs a driver. Pass options.sqlite "
-        + "to open these bytes, or open the file by path with a driver of your own."
-      );
-
-      error.code = "CJS_STATIC_DRIVER_REQUIRED";
-      error.family = detected.family;
-      throw error;
+      // Delegated exactly as the pickle family above is: identify the family,
+      // then hand the bytes to the format that owns it.
+      //
+      // This took an injected `options.sqlite` driver until CjsSqliteFormat
+      // existed, on the reasoning that a SQLite engine was a dependency this
+      // package would not choose for its callers. A reader that needs no engine
+      // removes the choice, so the seam is gone. A caller still passing
+      // `options.sqlite` is now ignored rather than obeyed, which is worth
+      // knowing if a decode changes shape.
+      return CjsSqliteFormat.read(bytes, options);
     }
 
     const error = new TypeError(

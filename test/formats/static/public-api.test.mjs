@@ -35,25 +35,32 @@ test("package subpath exports one public static format class", async () =>
   assert.equal(NamedCjsStaticFormat, CjsStaticFormat);
 });
 
-test("identifies a SQLite container and declines to open it", () =>
+test("identifies a SQLite container and now decodes it", () =>
 {
   const bytes = Bytes(SQLITE_HEADER, [ 0x10, 0x00, 0x01, 0x01 ]);
   const detected = CjsStaticFormat.describe(bytes);
 
   assert.equal(detected.family, CJS_STATIC_FAMILIES.SQLITE);
-  assert.equal(detected.decodable, false);
   assert.equal(detected.payloadOffset, 0);
-  assert.match(detected.reason, /driver/u);
+
+  // This family declined to open until CjsSqliteFormat existed, and the test
+  // that replaced this one asserted the refusal. These four bytes are a header
+  // and nothing else, so the read fails on the container being truncated - not
+  // on a missing driver, which is the distinction worth holding onto.
+  assert.equal(detected.decodable, true);
+  assert.equal(detected.requires, null);
 
   assert.throws(
     () => CjsStaticFormat.read(bytes),
-    error => error.code === "CJS_STATIC_DRIVER_REQUIRED" && error.family === "sqlite"
+    error => error.code === "CJS_SQLITE_INVALID"
   );
 });
 
 test("capability names what closes the gap, not just that there is one", () =>
 {
-  assert.equal(CjsStaticFormat.describe(Bytes(SQLITE_HEADER)).requires, "sqlite");
+  // SQLite requires nothing now; the schema-bound family is the remaining case
+  // where this package cannot finish the job alone.
+  assert.equal(CjsStaticFormat.describe(Bytes(SQLITE_HEADER)).requires, null);
   assert.equal(
     CjsStaticFormat.describe(Bytes([ 0x01, 0x00, 0x00, 0x00 ], "(dp1\nI1\ns.")).requires,
     null
@@ -64,22 +71,20 @@ test("capability names what closes the gap, not just that there is one", () =>
   );
 });
 
-test("a supplied SQLite driver reads the container anywhere", () =>
+test("a supplied SQLite driver is ignored, because none is needed", () =>
 {
   const bytes = Bytes(SQLITE_HEADER, [ 0x10, 0x00, 0x01, 0x01 ]);
-  const seen = [];
+  let called = false;
 
-  const result = CjsStaticFormat.read(bytes, {
-    sqlite: payload =>
-    {
-      seen.push(payload.byteLength);
-
-      return { opened: true };
-    }
-  });
-
-  assert.deepEqual(result, { opened: true });
-  assert.deepEqual(seen, [ bytes.byteLength ]);
+  // `options.sqlite` was the seam a caller injected a driver through. It is
+  // gone rather than deprecated, so a caller still passing one gets this
+  // package's own decode instead of theirs - silently, which is why it is
+  // asserted rather than left to be discovered.
+  assert.throws(
+    () => CjsStaticFormat.read(bytes, { sqlite: () => { called = true; return { opened: true }; } }),
+    error => error.code === "CJS_SQLITE_INVALID"
+  );
+  assert.equal(called, false);
 });
 
 test("identifies a prefixed pickle and reports the prefix and payload", () =>

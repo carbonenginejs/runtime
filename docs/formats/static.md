@@ -35,19 +35,26 @@ family that cannot be read without its companion.
 Detection is signature-based. It never trusts a file name and never executes
 anything.
 
-## SQLite needs a driver, not an environment
+## SQLite needs no driver
 
-SQLite is readable anywhere given a driver. A WebAssembly build opens these
-bytes in a browser and the result can be persisted to OPFS or IndexedDB; Node's
-own driver opens the file by path. This package ships no driver, because a
-format package should not choose its callers' dependencies, so one is injected:
+`read()` decodes this family itself, by handing the bytes to
+[`CjsSqliteFormat`](README.md) exactly as the pickle family is handed to
+`CjsPickleFormat`:
 
 ```js
-CjsStaticFormat.read(bytes, { sqlite: openWithYourDriver });
+CjsStaticFormat.read(bytes); // tables, each an array of row objects
 ```
 
-Without it, `read()` throws `CJS_STATIC_DRIVER_REQUIRED` rather than claiming the
-container is unreadable.
+**This changed.** Until `CjsSqliteFormat` existed, the family reported
+`decodable: false`, `requires: "sqlite"`, and `read()` threw
+`CJS_STATIC_DRIVER_REQUIRED` unless a caller injected an engine through
+`options.sqlite`. The reasoning was that a format package should not choose its
+callers' dependencies — sound, but it made these containers unreadable in a
+browser, where no engine was ever wired up.
+
+A caller still passing `options.sqlite` is now **ignored rather than obeyed**,
+and gets this package's decode instead of theirs. Worth checking for, because
+nothing warns.
 
 ## The pickles name classes, and the schemas describe layouts
 
