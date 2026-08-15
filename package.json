@@ -41,6 +41,7 @@
     "./formats/red": "./src/formats/red/index.js",
     "./formats/red/schema": "./src/formats/red/core/blackDefinitions.js",
     "./formats/static": "./src/formats/static/index.js",
+    "./formats/sqlite": "./src/formats/sqlite/index.js",
     "./formats/stl": "./src/formats/stl/index.js",
     "./formats/tga": "./src/formats/tga/index.js",
     "./formats/wav": "./src/formats/wav/index.js",

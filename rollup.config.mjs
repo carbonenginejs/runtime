@@ -44,6 +44,7 @@ export default {
     "src/formats/png/index.js",
     "src/formats/red/index.js",
     "src/formats/red/core/blackDefinitions.js",
+    "src/formats/sqlite/index.js",
     "src/formats/static/index.js",
     "src/formats/stl/index.js",
     "src/formats/tga/index.js",
