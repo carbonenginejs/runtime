@@ -438,10 +438,15 @@ function reduce(state, offset) {
 /**
  * Rebuilds `OrderedDict(pairs)` as a plain object.
  *
- * JavaScript preserves the insertion order of string keys, which is the whole of
- * what the ordered dictionary was chosen for. An integer-like key would not
- * preserve it — those sort ahead of everything else — so a schema that used one
- * is refused rather than quietly reordered.
+ * JavaScript preserves the insertion order of string keys, but NOT of keys that
+ * look like array indices — those sort ahead of everything else, in ascending
+ * numeric order. Refusing every numeric key was too blunt: real containers use
+ * them, and where they already ascend the object's order is the source's order
+ * and nothing is lost.
+ *
+ * So the order is checked rather than the keys. The result is compared against
+ * the order it was built in, and only a dictionary JavaScript would actually
+ * reorder is refused.
  */
 function RebuildOrderedDict(args, state, offset) {
   const pairs = args.length ? args[0] : [];
@@ -449,6 +454,7 @@ function RebuildOrderedDict(args, state, offset) {
     throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary is rebuilt from a list of key/value pairs.", offset);
   }
   requireContainerLimit(state, pairs.length, offset);
+  const order = [];
 
   // A per-container check is not enough here. REDUCE is the only path that
   // builds N properties for a constant number of opcodes, so a memoized pair
@@ -464,9 +470,10 @@ function RebuildOrderedDict(args, state, offset) {
       throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary entry must be a key/value pair.", offset);
     }
     const key = pair[0];
-    if (typeof key !== "string" || String(Number(key)) === key) {
-      throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary key must be a non-numeric string to keep its order.", offset);
+    if (typeof key !== "string") {
+      throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary key must be a string.", offset);
     }
+    order.push(key);
 
     // Defined rather than assigned, as the dictionary path already does. A
     // plain assignment to `__proto__` sets the object's prototype instead of
@@ -478,6 +485,15 @@ function RebuildOrderedDict(args, state, offset) {
       value: pair[1],
       writable: true
     });
+  }
+
+  // Order is the one thing this type exists to carry, so it is checked rather
+  // than assumed. A repeated key keeps its first position, which is what both
+  // Python and JavaScript do.
+  const expected = [...new Set(order)];
+  const kept = Object.keys(result);
+  if (kept.length !== expected.length || kept.some((key, index) => key !== expected[index])) {
+    throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary's key order would not survive as a JavaScript object.", offset);
   }
   return result;
 }
