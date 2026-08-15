@@ -97,9 +97,19 @@ function writeEffectFile(perBody)
 function analysisFromSource(bytes)
 {
     const resolved = readEffectAnalysis(bytes, { source: SOURCE });
+    // Asserted rather than defaulted. This selection is what points the
+    // container side at a body, so `?? 0` and `?? []` would silently aim both
+    // sides at body 0 with no options and make the comparison agree about
+    // nothing. Selection is also where a real defect has already occurred:
+    // the analysis view once reported axis defaults instead of the resolved
+    // permutation, which a default here would have hidden.
+    if (!resolved.selection || !Array.isArray(resolved.selection.selectedOptions))
+    {
+        throw new TypeError("readEffectAnalysis returned no selection");
+    }
     lastSourceSelection = {
-        bodyIndex: resolved.selection?.bodyIndex ?? 0,
-        selectedOptions: resolved.selection?.selectedOptions ?? [],
+        bodyIndex: resolved.selection.bodyIndex,
+        selectedOptions: resolved.selection.selectedOptions,
         compilerVersion: resolved.effectRes?.m_compilerVersion ?? null
     };
     return buildEffectAnalysis(resolved, { source: SOURCE, decodeBytecode: false });
