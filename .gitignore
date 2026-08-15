@@ -12,3 +12,7 @@ _review/
 carbonenginejs.md
 npm-debug.log*
 *.tgz
+
+# Downloaded and generated caches - never committed or published.
+.cache/
+**/.cache/
