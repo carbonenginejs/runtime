@@ -59,8 +59,6 @@ snapshot.
 | --- | --- |
 | `@carbonenginejs/core-math` | `@carbonenginejs/runtime-utils/math` |
 | `@carbonenginejs/core-math/<subpath>` | `@carbonenginejs/runtime-utils/<subpath>` |
-| `@carbonenginejs/runtime-const` | `@carbonenginejs/runtime-utils/const` |
-| `@carbonenginejs/runtime-const/<subpath>` | `@carbonenginejs/runtime-utils/<subpath>` |
 | `@carbonenginejs/core-types/<subpath>` | The matching `@carbonenginejs/runtime-utils/<subpath>` |
 | `@carbonenginejs/core-types` | The direct runtime-utils type/model/document subpaths used by the consumer |
 

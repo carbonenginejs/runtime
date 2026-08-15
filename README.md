@@ -41,10 +41,6 @@ Former package imports map as follows:
   `@carbonenginejs/runtime-utils/math`;
 - `@carbonenginejs/core-math/<subpath>` becomes
   `@carbonenginejs/runtime-utils/<subpath>`;
-- `@carbonenginejs/runtime-const` becomes
-  `@carbonenginejs/runtime-utils/const`;
-- `@carbonenginejs/runtime-const/<subpath>` becomes
-  `@carbonenginejs/runtime-utils/<subpath>`;
 - `@carbonenginejs/core-types/<subpath>` becomes the matching
   `@carbonenginejs/runtime-utils/<subpath>`; replace former root imports with
   the direct type/model/document subpaths they use.
