@@ -49,6 +49,7 @@ const DXGI_PIXEL_FORMATS = Object.freeze({
     6: "rgb32float",
     10: "rgba16float",
     16: "rg32float",
+    34: "rg16float",
     41: "r32float",
     54: "r16float",
     28: "rgba8unorm",
@@ -520,6 +521,7 @@ function canDecodeDdsToRgba(metadata)
         "rgb32float",
         "rgba16float",
         "rg32float",
+        "rg16float",
         "r32float",
         "r16float",
         "rgba8unorm",
@@ -693,6 +695,7 @@ function getDdsLevelLayout(pixelFormat, width, height, depth)
         "rgb32float": 12,
         "rgba16float": 8,
         "rg32float": 8,
+        "rg16float": 4,
         "r32float": 4,
         "r16float": 2,
         "rgba8unorm": 4,
@@ -795,6 +798,7 @@ function decodeFloatUncompressed(source, metadata)
         "rgb32float": 12,
         "rgba16float": 8,
         "rg32float": 8,
+        "rg16float": 4,
         "r32float": 4,
         "r16float": 2
     }[metadata.pixelFormat];
@@ -832,6 +836,13 @@ function decodeFloatUncompressed(source, metadata)
             blue = 0;
             alpha = 1;
         }
+        else if (metadata.pixelFormat === "rg16float")
+        {
+            red = halfToFloat(view.getUint16(sourceOffset, true));
+            green = halfToFloat(view.getUint16(sourceOffset + 2, true));
+            blue = 0;
+            alpha = 1;
+        }
         else
         {
             red = metadata.pixelFormat === "r16float"
@@ -852,7 +863,8 @@ function decodeFloatUncompressed(source, metadata)
 function isFloatPixelFormat(pixelFormat)
 {
     return typeof pixelFormat === "string" && (pixelFormat.startsWith("bc6h-") ||
-        [ "rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float" ].includes(pixelFormat));
+        [ "rgba32float", "rgb32float", "rgba16float", "rg32float", "rg16float", "r32float",
+            "r16float" ].includes(pixelFormat));
 }
 
 function halfToFloat(value)
@@ -1094,15 +1106,36 @@ function decode565(value)
     ];
 }
 
+/**
+ * The floating-point `D3DFORMAT` enumerators, which a legacy DDS stores as a
+ * NUMBER in the four-character-code field rather than as four characters.
+ *
+ * That is the whole trap. `DDPF_FOURCC` is set and the field reads `114`, which
+ * as text is `"r\0\0\0"` and matches nothing, so a reader that only compares
+ * character codes reports an unrecognized format for a file whose format is
+ * perfectly ordinary. Every one of these six is a plain uncompressed surface.
+ *
+ * Two were mapped when BC6H support landed and the other four were not, so
+ * `A16B16G16R16F` and `A32B32G32R32F` loaded while their one- and two-channel
+ * siblings did not. Found 2026-08-16 on
+ * `res:/dx9/model/ship/amarr/battleship/ab3/effects/ab3_traffic.dds`, a 256x9
+ * `R32F` gradient.
+ */
+const LEGACY_D3DFMT_PIXEL_FORMATS = {
+    111: "r16float",
+    112: "rg16float",
+    113: "rgba16float",
+    114: "r32float",
+    115: "rg32float",
+    116: "rgba32float"
+};
+
 function getDdsPixelFormat(format)
 {
     if (format.dxgiFormat) return DXGI_PIXEL_FORMATS[format.dxgiFormat] || "";
     if ((format.pfFlags & DDS_FOURCC) && format.fourCc)
     {
-        return FOURCC_PIXEL_FORMATS[format.fourCc] || {
-            113: "rgba16float",
-            116: "rgba32float"
-        }[format.fourCcCode] || "";
+        return FOURCC_PIXEL_FORMATS[format.fourCc] || LEGACY_D3DFMT_PIXEL_FORMATS[format.fourCcCode] || "";
     }
     if (format.pfFlags & DDS_RGB)
     {

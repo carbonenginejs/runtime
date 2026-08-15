@@ -182,6 +182,49 @@ test("decodes the legacy A32B32G32R32F DDS float fourCC", () =>
     assert.deepEqual(Array.from(rgba.data), [ 2, 1, 0.5, 1 ]);
 });
 
+test("decodes the one- and two-channel legacy float fourCCs", () =>
+{
+    // Only 113 and 116 were mapped, so A16B16G16R16F and A32B32G32R32F loaded
+    // while their narrower siblings reported an unrecognized format. Found on
+    // an R32F gradient in EVE's own art, 2026-08-16.
+    const single = new Uint8Array(4);
+    new DataView(single.buffer).setFloat32(0, -89.5, true);
+    const r32 = CjsDdsFormat.read(makeLegacyFourCcDdsHeader(1, 1, 114, single), { emit: "rgba" });
+
+    assert.equal(CjsDdsFormat.inspect(makeLegacyFourCcDdsHeader(1, 1, 114, single)).pixelFormat, "r32float");
+    // One channel broadcasts to RGB with an opaque alpha, as r16float already did.
+    assert.deepEqual(Array.from(r32.data), [ -89.5, -89.5, -89.5, 1 ]);
+
+    const pair = new Uint8Array(8);
+    new DataView(pair.buffer).setFloat32(0, 3, true);
+    new DataView(pair.buffer).setFloat32(4, -4, true);
+
+    assert.deepEqual(
+        Array.from(CjsDdsFormat.read(makeLegacyFourCcDdsHeader(1, 1, 115, pair), { emit: "rgba" }).data),
+        [ 3, -4, 0, 1 ]
+    );
+
+    // Half precision, which shares its decode with the DX10 header path.
+    const half = Uint8Array.from([ 0x00, 0x3c, 0x00, 0xc0 ]);
+
+    assert.equal(CjsDdsFormat.inspect(makeLegacyFourCcDdsHeader(1, 1, 111, half.subarray(0, 2))).pixelFormat, "r16float");
+    assert.deepEqual(
+        Array.from(CjsDdsFormat.read(makeLegacyFourCcDdsHeader(1, 1, 112, half), { emit: "rgba" }).data),
+        [ 1, -2, 0, 1 ]
+    );
+});
+
+test("a legacy float fourCC is a number, not four characters", () =>
+{
+    // The trap that hid this: DDPF_FOURCC is set and the field reads 114, which
+    // as text is "r\0\0\0" and matches no character code at all.
+    const bytes = makeLegacyFourCcDdsHeader(1, 1, 114, new Uint8Array(4));
+    const support = CjsDdsFormat.isSupported(bytes);
+
+    assert.equal(CjsDdsFormat.inspect(bytes).fourCcCode, 114);
+    assert.equal(support.variants.find(variant => variant.kind === "texture").supported, true);
+});
+
 test("decodes unsigned BC6H to canonical float RGBA", () =>
 {
     const bytes = makeDx10DdsHeader(4, 4, 95, makeBc6hMode11Block(0x200, 0x200));

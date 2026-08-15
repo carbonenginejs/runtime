@@ -37,6 +37,7 @@ const DXGI_PIXEL_FORMATS = Object.freeze({
   6: "rgb32float",
   10: "rgba16float",
   16: "rg32float",
+  34: "rg16float",
   41: "r32float",
   54: "r16float",
   28: "rgba8unorm",
@@ -460,7 +461,7 @@ function readDdsTexture(bytes, metadata) {
   };
 }
 function canDecodeDdsToRgba(metadata) {
-  return ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float", "rgba8unorm", "rgba8unorm-srgb", "bgra8unorm", "bgra8unorm-srgb", "bgrx8unorm", "bgrx8unorm-srgb", "rgbx8unorm", "bgr8unorm", "l8unorm", "l8a8unorm", "a8unorm", "rg8unorm", "r8unorm", "bc1-rgba-unorm", "bc1-rgba-unorm-srgb", "bc2-rgba-unorm", "bc2-rgba-unorm-srgb", "bc3-rgba-unorm", "bc3-rgba-unorm-srgb", "bc4-r-unorm", "bc4-r-snorm", "bc5-rg-unorm", "bc5-rg-snorm", "bc6h-rgb-ufloat", "bc6h-rgb-float", "bc7-rgba-unorm", "bc7-rgba-unorm-srgb"].includes(metadata.pixelFormat);
+  return ["rgba32float", "rgb32float", "rgba16float", "rg32float", "rg16float", "r32float", "r16float", "rgba8unorm", "rgba8unorm-srgb", "bgra8unorm", "bgra8unorm-srgb", "bgrx8unorm", "bgrx8unorm-srgb", "rgbx8unorm", "bgr8unorm", "l8unorm", "l8a8unorm", "a8unorm", "rg8unorm", "r8unorm", "bc1-rgba-unorm", "bc1-rgba-unorm-srgb", "bc2-rgba-unorm", "bc2-rgba-unorm-srgb", "bc3-rgba-unorm", "bc3-rgba-unorm-srgb", "bc4-r-unorm", "bc4-r-snorm", "bc5-rg-unorm", "bc5-rg-snorm", "bc6h-rgb-ufloat", "bc6h-rgb-float", "bc7-rgba-unorm", "bc7-rgba-unorm-srgb"].includes(metadata.pixelFormat);
 }
 function readDdsToRgba(bytes, metadata) {
   if (!canDecodeDdsToRgba(metadata)) {
@@ -563,6 +564,7 @@ function getDdsLevelLayout(pixelFormat, width, height, depth) {
     "rgb32float": 12,
     "rgba16float": 8,
     "rg32float": 8,
+    "rg16float": 4,
     "r32float": 4,
     "r16float": 2,
     "rgba8unorm": 4,
@@ -648,6 +650,7 @@ function decodeFloatUncompressed(source, metadata) {
     "rgb32float": 12,
     "rgba16float": 8,
     "rg32float": 8,
+    "rg16float": 4,
     "r32float": 4,
     "r16float": 2
   }[metadata.pixelFormat];
@@ -675,6 +678,11 @@ function decodeFloatUncompressed(source, metadata) {
       green = view.getFloat32(sourceOffset + 4, true);
       blue = 0;
       alpha = 1;
+    } else if (metadata.pixelFormat === "rg16float") {
+      red = halfToFloat(view.getUint16(sourceOffset, true));
+      green = halfToFloat(view.getUint16(sourceOffset + 2, true));
+      blue = 0;
+      alpha = 1;
     } else {
       red = metadata.pixelFormat === "r16float" ? halfToFloat(view.getUint16(sourceOffset, true)) : view.getFloat32(sourceOffset, true);
       green = red;
@@ -689,7 +697,7 @@ function decodeFloatUncompressed(source, metadata) {
   return rgba;
 }
 function isFloatPixelFormat(pixelFormat) {
-  return typeof pixelFormat === "string" && (pixelFormat.startsWith("bc6h-") || ["rgba32float", "rgb32float", "rgba16float", "rg32float", "r32float", "r16float"].includes(pixelFormat));
+  return typeof pixelFormat === "string" && (pixelFormat.startsWith("bc6h-") || ["rgba32float", "rgb32float", "rgba16float", "rg32float", "rg16float", "r32float", "r16float"].includes(pixelFormat));
 }
 function halfToFloat(value) {
   const sign = value & 0x8000 ? -1 : 1;
@@ -832,13 +840,34 @@ function decodeBc1Colors(c0, c1, forceFourColor = false) {
 function decode565(value) {
   return [Math.round((value >>> 11 & 0x1f) * 255 / 31), Math.round((value >>> 5 & 0x3f) * 255 / 63), Math.round((value & 0x1f) * 255 / 31), 255];
 }
+
+/**
+ * The floating-point `D3DFORMAT` enumerators, which a legacy DDS stores as a
+ * NUMBER in the four-character-code field rather than as four characters.
+ *
+ * That is the whole trap. `DDPF_FOURCC` is set and the field reads `114`, which
+ * as text is `"r\0\0\0"` and matches nothing, so a reader that only compares
+ * character codes reports an unrecognized format for a file whose format is
+ * perfectly ordinary. Every one of these six is a plain uncompressed surface.
+ *
+ * Two were mapped when BC6H support landed and the other four were not, so
+ * `A16B16G16R16F` and `A32B32G32R32F` loaded while their one- and two-channel
+ * siblings did not. Found 2026-08-16 on
+ * `res:/dx9/model/ship/amarr/battleship/ab3/effects/ab3_traffic.dds`, a 256x9
+ * `R32F` gradient.
+ */
+const LEGACY_D3DFMT_PIXEL_FORMATS = {
+  111: "r16float",
+  112: "rg16float",
+  113: "rgba16float",
+  114: "r32float",
+  115: "rg32float",
+  116: "rgba32float"
+};
 function getDdsPixelFormat(format) {
   if (format.dxgiFormat) return DXGI_PIXEL_FORMATS[format.dxgiFormat] || "";
   if (format.pfFlags & DDS_FOURCC && format.fourCc) {
-    return FOURCC_PIXEL_FORMATS[format.fourCc] || {
-      113: "rgba16float",
-      116: "rgba32float"
-    }[format.fourCcCode] || "";
+    return FOURCC_PIXEL_FORMATS[format.fourCc] || LEGACY_D3DFMT_PIXEL_FORMATS[format.fourCcCode] || "";
   }
   if (format.pfFlags & DDS_RGB) {
     if (format.rgbBitCount === 32 && format.rBitMask === 0x000000ff && format.gBitMask === 0x0000ff00 && format.bBitMask === 0x00ff0000 && format.aBitMask === 0xff000000) return "rgba8unorm";
