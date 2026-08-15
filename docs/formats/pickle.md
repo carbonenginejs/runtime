@@ -35,11 +35,19 @@ Adding a second name to that set is not a small change. A name qualifies only if
 reconstructing it is pure data with no behaviour of its own, and the entry has to
 build that data directly rather than defer to anything callable.
 
-Why it matters: measured across every self-describing static-data container CCP
-ships, this is the **only** global any of them uses — 25 files, one name, once
-each. They use it because a schema's attribute order is its field order, which
+Why it matters: every one of the 25 embedded-schema static-data containers in one
+client build was scanned for the `GLOBAL` opcode's module and attribute lines,
+and this is the **only** name any of them uses — once per file, 25 occurrences,
+no second name. They use it because a schema's attribute order is its field order, which
 an ordinary dictionary would lose. Refusing it left 25 containers unreadable,
 including one of 88 MB holding roughly 477,000 records.
+
+Two limits exist because of this opcode and are worth knowing before raising
+either: `REDUCE` is the only path that builds many properties for a constant
+number of opcodes, so rebuilt properties are budgeted **across the whole decode**
+rather than per container, and a global may only ever be consumed by a `REDUCE` —
+appending one to a list or leaving it as the result is refused, because it would
+reach the caller as an empty object indistinguishable from an empty dictionary.
 
 The initial reader accepts the protocol-0 scalar, string, list, tuple,
 dictionary, memo, append, and set-item operations required by inert data

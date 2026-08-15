@@ -25,9 +25,11 @@ Written 2026-08-16. Everything here is interim and was agreed as interim.
 **Find the uses before changing any of it.** Each item below has callers, and
 three separate mistakes were made today by assuming otherwise.
 
-1. **`CjsSqliteFormat` and `CjsSchemaBoundFormat` omit `inspect`, and nineteen
-   sibling formats have it** — including `CjsStaticFormat`, which sits next to
-   both of them in the same `.static` routing.
+1. **`CjsSqliteFormat` and `CjsSchemaBoundFormat` omit `inspect`, and 28 of the
+   31 format classes define it** — including `CjsStaticFormat`, which sits next
+   to both of them in the same `.static` routing. Note the third omitter is
+   `CjsPickleFormat`, which defines no capability method at all, so "everything
+   else has it" is not quite the shape of the problem.
    That was decided from `docs/internal/decisions/format-capability-surface.md`,
    whose own *What is not proposed* section says not to change things on its
    strength alone. It is recorded there as the second instance of a new format
@@ -68,9 +70,9 @@ of the schema-bound family, and every field the published export carries from
 them matches exactly — 114 regions, 1,184 constellations and 8,490 systems, plus
 6,989 jumps cross-checked against an entirely separate container.
 
-Not proven: nothing has read the prefixed-pickle family (`CjsPickleFormat`
-refuses its class-construction opcode by design, and all 25 files use it). That
-is now the only `.static` family with no reader.
+**Superseded the same day.** The prefixed-pickle family is read: the prefix is a
+schema length, the pickle behind it is a schema, and its one global
+(`collections.OrderedDict`) is now rebuilt. Every `.static` family has a reader.
 
 Also worth knowing: `resolveType()` and `RegisterExtension`'s `Identify`/`Target`
 route are both implemented, contracted and tested, and — as far as could be

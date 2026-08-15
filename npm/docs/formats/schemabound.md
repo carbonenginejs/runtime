@@ -98,18 +98,20 @@ Two smaller rules:
 | `enum` | the member's name, or its number when `readEnumValue` is set |
 | `vector2`, `vector3` | an object keyed by the schema's own component aliases |
 | `string`, `resPath`, `unicode` | length-prefixed UTF-8 |
-| `localizationID`, `typeID`, `factionID` and other `*ID` names | four-byte unsigned key into another table |
+| `localizationID`, `typeID`, `factionID`, `groupID`, `categoryID`, `graphicID`, `iconID`, `fsdReference` | unsigned key into another table, four bytes unless the schema says otherwise. A name outside this closed set throws rather than being guessed at |
 | `list` | array, strided or offset-indexed as above |
 | `dict` | object, framed exactly as the file's own root |
 | `object` | record, as above |
 
 ## Evidence
 
-The reader was verified field for field against the published static data export
-for every container of this family in one build, and cross-checked between
-containers that describe the same relationships from different sides. The
-detailed measurements are recorded in the organization documentation rather than
-here.
+The reader was verified field for field against a published static data export,
+for every container of this family that HAS a corresponding export table — three
+of six, plus the six that carry the celestial data. Two of the remaining three
+have no table to check against at all; the third was cross-checked against a
+different container describing the same relationships from the other side, which
+is evidence but not the same evidence. The measurements are recorded in the
+organization documentation rather than here.
 
 The tests in this package hold the structure instead, on containers laid out byte
 by byte: the shrinking offset table, both list framings, declared defaults,

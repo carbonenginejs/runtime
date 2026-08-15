@@ -14,8 +14,8 @@ the 45 `.static` files in one build:
 | Family | Count | Signature |
 |---|---:|---|
 | SQLite 3 | 14 | `SQLite format 3\0` |
-| Prefixed pickle | 25 | four-byte little-endian prefix, then `(d` or `(l` |
-| Schema-bound | 6 | no signature; has a `.schema` companion |
+| Embedded schema | 25 | four-byte schema LENGTH, then `(d` or `(l` |
+| Sibling schema | 6 | no signature; has a `.schema` companion |
 
 The six unidentified files are exactly the six with a `.schema` companion —
 `constellations`, `dialogs`, `factionsowningsolarsystems`, `jumps`, `regions`
@@ -28,9 +28,10 @@ family that cannot be read without its companion.
 
 - **SQLite** containers hold `cache(key, value, time)` and
   `indexes(key, value)`, with a JSON document per record.
-- **Prefixed pickle** containers are decoded through `CjsPickleFormat` after
-  the four-byte prefix.
-- **Schema-bound** containers report `unknown` with `requires: "schema"`, and
+- **Embedded-schema** containers put a schema, not a record, behind that prefix.
+  The prefix is the schema's LENGTH: read `[4, 4 + length)` with
+  `CjsPickleFormat` and hand the rest to `CjsSchemaBoundFormat`.
+- **Sibling-schema** containers report `unknown` with `requires: "schema"`, and
   are decoded by `CjsSchemaBoundFormat` once the caller has that companion.
 
 Detection is signature-based. It never trusts a file name and never executes
@@ -51,7 +52,14 @@ if (probe.preferred === CJS_STATIC_FAMILIES.SQLITE)
 
 if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
 {
-  return CjsPickleFormat.read(CjsStaticFormat.payload(bytes));
+  // The prefix is the SCHEMA's length, not a wrapper to skip. Handing the whole
+  // remainder to a pickle reader throws CJS_PICKLE_TRAILING_DATA, on the binary
+  // payload, long after the schema has parsed.
+  const length = new DataView(bytes.buffer, bytes.byteOffset).getUint32(0, true);
+
+  return CjsSchemaBoundFormat.read(bytes.subarray(4 + length), {
+    schema: CjsPickleFormat.read(bytes.subarray(4, 4 + length))
+  });
 }
 ```
 
@@ -62,26 +70,25 @@ routing table for two others, and deciding what to decode belongs to whoever
 asked. Nothing outside this format's own tests ever called `read()`.
 
 
-## The pickles name classes, and the schemas describe layouts
+## Both of the remaining families are the same container
 
-Two notes that decide how the remaining families get decoded.
+The schema is encoded differently; the payload behind it is identical.
 
-**The pickle family carries class-construction opcodes.** Protocol 0's `c`
+**The pickle behind that prefix is a SCHEMA, not a record.** Protocol 0's `c`
 (`GLOBAL`) names a module and an attribute for the unpickler to import, and
-`R`/`i`/`o`/`b` then call it. That is the pickle remote-execution vector, so
-`CjsPickleFormat` rejects those opcodes by design. Client `.static` pickles use
-them legitimately, to name the classes their records are constructed from, so
-decoding this family fully means mapping each named global to an inert
-descriptor and never invoking it. **Not implemented**; the rejection is
-surfaced rather than worked around, and widening it is a deliberate decision
-rather than a bug fix.
+`R` then calls it — the remote-execution vector — so `CjsPickleFormat` refuses
+globals by design. These files need exactly one: `collections.OrderedDict`,
+because a schema's attribute order is its field order. That one name is rebuilt
+as a plain object and every other global is still refused. See
+[the pickle format](pickle.md).
 
-**The schema-bound family is self-describing.** Its `.schema` companion is
+**The sibling-schema family states its layout in YAML.** The `.schema` file is
 YAML and states the whole binary layout — sizes, types, optional flags, list item
 sizes, vector precision and a key-to-offset footer — so **nothing needs
 deriving**, unlike an FSD container. `CjsSchemaBoundFormat` reads it:
-[schema-bound containers](schemabound.md). All six datasets decode, the celestial
-tables among them.
+[schema-bound containers](schemabound.md). All six datasets decode — the map
+skeleton of regions, constellations and systems. The celestial detail (moons,
+planets, belts, stars, gates) is in the embedded-schema family, not this one.
 
 ## Use
 
@@ -96,7 +103,7 @@ const probe = await CjsStaticFormat.resolveType(bytes);
 
 if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
 {
-    const value = CjsPickleFormat.read(CjsStaticFormat.payload(bytes));
+    // See the routing example above: the prefix is a schema length.
 }
 ```
 

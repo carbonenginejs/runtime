@@ -264,3 +264,80 @@ test("REDUCE cannot be pointed at anything that is not a rebuildable global", ()
     error => error.code === "CJS_PICKLE_REDUCE_INVALID" && /order/u.test(error.message)
   );
 });
+
+test("a rebuilt key is defined, so __proto__ cannot be lost or become a prototype", () =>
+{
+  // A plain assignment to `__proto__` sets the object's prototype instead of
+  // storing a property, so the field vanishes from the decoded record with no
+  // error at all - and if its value is an object it becomes a phantom that
+  // reads through `in` and dot access while JSON shows nothing. The dictionary
+  // path already defended this with defineProperty; this one did not.
+  const lost = CjsPickleFormat.read(bytes(
+    "ccollections\nOrderedDict\n((l(lS'__proto__'\naS'hello'\naa(lS'kept'\naI7\naatR."
+  ));
+
+  assert.deepEqual(Object.keys(lost), [ "__proto__", "kept" ]);
+  assert.equal(Object.hasOwn(lost, "__proto__"), true);
+  assert.equal(Object.getPrototypeOf(lost), Object.prototype);
+
+  const injected = CjsPickleFormat.readPayload(bytes(
+    "ccollections\nOrderedDict\n((l(lS'__proto__'\na(dS'injected'\nI1\nsaa(lS'kept'\naI7\naatR."
+  ));
+
+  assert.equal(Object.getPrototypeOf(injected), Object.prototype);
+  assert.equal(injected.injected, undefined);
+  assert.equal(({}).injected, undefined, "Object.prototype is untouched either way");
+});
+
+test("a global no REDUCE consumes is refused rather than decoding as an empty object", () =>
+{
+  // It would otherwise reach the caller as {}, indistinguishable from an empty
+  // dictionary, and it can be memoized and buried anywhere in the graph.
+  for (const source of [
+    "ccollections\nOrderedDict\n.",
+    "(lccollections\nOrderedDict\na.",
+    "(dS'k'\nccollections\nOrderedDict\ns."
+  ])
+  {
+    assert.throws(
+      () => CjsPickleFormat.read(bytes(source)),
+      error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED",
+      source
+    );
+  }
+});
+
+test("rebuilt items are budgeted across the whole decode, not per container", () =>
+{
+  // REDUCE is the only path that builds N properties for a constant number of
+  // opcodes, so a memoized pair list rebuilt in a loop multiplies maxOperations
+  // by maxContainerItems rather than being bounded by either. Checking each
+  // rebuild in isolation is satisfied every time; a 1 MB input built 3e8
+  // properties and aborted the process.
+  const craft = (pairs, rebuilds) =>
+  {
+    // The marker stays on the stack and in the memo, which is the only place a
+    // global is allowed to be - appending it to the list is refused in its own
+    // right, by the test above.
+    let source = "(l(l";
+
+    for (let index = 0; index < pairs; index += 1) source += `(lS'k${index}'\naI${index}\naa`;
+
+    source += "p1\na(g1\ntp2\naccollections\nOrderedDict\np0\n";
+    source += "g2\nRa" + "g0\ng2\nRa".repeat(rebuilds - 1) + ".";
+
+    return bytes(source);
+  };
+
+  assert.throws(
+    () => CjsPickleFormat.read(craft(2000, 15000)),
+    error => error.code === "CJS_PICKLE_LIMIT_EXCEEDED" && /across the decode/u.test(error.message)
+  );
+
+  // A rebuild count a real schema could plausibly reach still decodes.
+  const small = CjsPickleFormat.read(craft(50, 100));
+
+  // The outer list holds the pair list, the argument tuple and 100 rebuilds.
+  assert.equal(small.length, 102);
+  assert.equal(Object.keys(small[small.length - 1]).length, 50);
+});

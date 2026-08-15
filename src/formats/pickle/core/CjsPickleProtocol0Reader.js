@@ -93,6 +93,13 @@ function decode(bytes, limits)
     memo: new Map(),
     offset: 0,
     operations: 0,
+    // Every global marker created, and separately those no REDUCE has consumed.
+    // A marker is a decoding artifact, never data: it may sit on the stack and
+    // in the memo on its way to a REDUCE, and it may reach nothing else.
+    globalMarkers: new WeakSet(),
+    pendingGlobals: new Set(),
+    // Properties built by REDUCE across the WHOLE decode, not per container.
+    rebuiltItems: 0,
     stack: []
   };
 
@@ -199,6 +206,17 @@ function decode(bytes, limits)
 
 function stop(state, offset)
 {
+  // A GLOBAL that no REDUCE consumed would otherwise reach the caller as an
+  // empty object, indistinguishable from an empty dictionary.
+  if (state.pendingGlobals.size)
+  {
+    throw pickleError(
+      "CJS_PICKLE_GLOBAL_UNSUPPORTED",
+      "Pickle names a global that no REDUCE consumes.",
+      offset
+    );
+  }
+  rejectGlobalMarker(state, state.stack[0], offset);
   if (state.marks.length || state.stack.length !== 1 || state.stack[0] === MARK)
   {
     throw pickleError(
@@ -433,7 +451,7 @@ function readDictionary(state, offset)
 function append(state, offset)
 {
   requireStack(state, 2, offset);
-  const value = state.stack.pop();
+  const value = rejectGlobalMarker(state, state.stack.pop(), offset);
   const target = state.stack[state.stack.length - 1];
   if (!Array.isArray(target) || !state.lists.has(target))
   {
@@ -452,7 +470,7 @@ function append(state, offset)
 function setItem(state, offset)
 {
   requireStack(state, 3, offset);
-  const value = state.stack.pop();
+  const value = rejectGlobalMarker(state, state.stack.pop(), offset);
   const key = state.stack.pop();
   const target = state.stack[state.stack.length - 1];
   if (!isDictionary(target))
@@ -620,7 +638,12 @@ function readGlobal(state, offset)
     );
   }
 
-  return { [GLOBAL_NAME]: name };
+  const marker = { [GLOBAL_NAME]: name };
+
+  state.globalMarkers.add(marker);
+  state.pendingGlobals.add(marker);
+
+  return marker;
 }
 
 /** Rebuilds one allowed global from its arguments. Calls nothing. */
@@ -648,6 +671,7 @@ function reduce(state, offset)
     );
   }
 
+  state.pendingGlobals.delete(callable);
   push(state, REBUILDABLE_GLOBALS.get(name)(args, state, offset), offset);
 }
 
@@ -674,6 +698,21 @@ function RebuildOrderedDict(args, state, offset)
 
   requireContainerLimit(state, pairs.length, offset);
 
+  // A per-container check is not enough here. REDUCE is the only path that
+  // builds N properties for a constant number of opcodes, so a memoized pair
+  // list rebuilt in a loop multiplies `maxOperations` by `maxContainerItems`
+  // instead of being bounded by either. A decode-wide budget is what bounds it.
+  state.rebuiltItems += pairs.length;
+
+  if (state.rebuiltItems > state.limits.maxContainerItems)
+  {
+    throw pickleError(
+      "CJS_PICKLE_LIMIT_EXCEEDED",
+      `Rebuilt items exceed maxContainerItems (${state.limits.maxContainerItems}) across the decode.`,
+      offset
+    );
+  }
+
   const result = {};
 
   for (const pair of pairs)
@@ -698,7 +737,16 @@ function RebuildOrderedDict(args, state, offset)
       );
     }
 
-    result[key] = pair[1];
+    // Defined rather than assigned, as the dictionary path already does. A
+    // plain assignment to `__proto__` sets the object's prototype instead of
+    // storing a property: the field silently disappears from the decoded record
+    // and, if its value is an object, becomes a phantom the JSON never shows.
+    Object.defineProperty(result, key, {
+      configurable: true,
+      enumerable: true,
+      value: pair[1],
+      writable: true
+    });
   }
 
   return result;
@@ -712,6 +760,28 @@ function decodeAscii(bytes)
   for (const byte of bytes) result += String.fromCharCode(byte);
 
   return result.trim();
+}
+
+/**
+ * Refuses a global marker anywhere a decoded value is stored or returned.
+ *
+ * Consuming a marker with REDUCE is the only thing it is for. Appended to a
+ * list, set as a dictionary value or left as the result, it would reach the
+ * caller as `{}` - indistinguishable from an empty dictionary, and buryable
+ * anywhere in the graph through the memo.
+ */
+function rejectGlobalMarker(state, value, offset)
+{
+  if (value && typeof value === "object" && state.globalMarkers.has(value))
+  {
+    throw pickleError(
+      "CJS_PICKLE_GLOBAL_UNSUPPORTED",
+      "A pickle global is only usable as the target of a REDUCE.",
+      offset
+    );
+  }
+
+  return value;
 }
 
 function popMarkedValues(state, offset)
@@ -737,6 +807,7 @@ function popMarkedValues(state, offset)
 
   const values = state.stack.slice(mark + 1);
   state.stack.length = mark;
+  for (const value of values) rejectGlobalMarker(state, value, offset);
   return values;
 }
 

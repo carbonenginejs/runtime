@@ -17,16 +17,18 @@ export const CJS_STATIC_FAMILIES = Object.freeze({
  *
  * - **SQLite 3** — a `cache(key, value, time)` plus `indexes(key, value)`
  *   database whose values are JSON documents. `CjsSqliteFormat` reads it.
- * - **Prefixed pickle** — a four-byte little-endian prefix followed by a
- *   protocol-0 pickle. Many of these carry class-construction opcodes, which
- *   the data-only pickle reader refuses by design; that refusal is correct and
- *   is surfaced rather than worked around.
+ * - **Embedded schema** — a four-byte little-endian SCHEMA LENGTH followed by
+ *   that schema as a protocol-0 pickle, and then a payload. The prefix is not a
+ *   wrapper to skip: slice `[4, 4 + length)` for the schema and give the rest
+ *   to `CjsSchemaBoundFormat`. All 25 of these name one global,
+ *   `collections.OrderedDict`, which the pickle reader rebuilds as plain data.
  * - **Schema-bound** — a binary record container whose `.schema` companion is
  *   YAML describing its own layout: attribute sizes and types, optional flags,
  *   lists with a fixed item size, vectors with a precision, and a key footer of
  *   key-to-offset pairs. Nothing needs deriving, because the build ships the
- *   layout. Six datasets are stored this way, the celestial tables among them.
- *   `CjsSchemaBoundFormat` reads it, given that companion.
+ *   layout. Six datasets are stored this way - the map skeleton of regions,
+ *   constellations and systems. `CjsSchemaBoundFormat` reads it, given that
+ *   companion, and reads the embedded-schema family above from the same code.
  *
  * Detection is signature-based and never executes or trusts file names.
  *
