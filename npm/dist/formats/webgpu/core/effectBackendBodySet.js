@@ -166,7 +166,7 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy) {
  * separately from the same effect; this body-set document does not store it.
  *
  * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
- * @param {object} permutationGraph Validated `PGRF` document.
+ * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} [options] Source label, stage selection, and binding policy.
  * @returns {object} Frozen `CJS_WGSL_BODY_SET` document.
  */

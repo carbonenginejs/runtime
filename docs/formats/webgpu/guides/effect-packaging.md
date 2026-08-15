@@ -50,8 +50,7 @@ The emitted bytes are a stock Carbon v15 effect container:
 - each distinct emitted description body is stored once, based on exact emitted
   bytes rather than the source alias partition;
 - representable non-program description/reflection fields remain in the Carbon
-  tree; non-dynamic sampler names are unrecoverable and stage order is
-  canonicalized;
+  tree, non-dynamic sampler names and the authored stage order included;
 - translated stage program slots contain UTF-8 WGSL;
 - untranslated or unsupported stage program slots have zero length; and
 - translated passes may carry a WebGPU backend block with bind-group layouts

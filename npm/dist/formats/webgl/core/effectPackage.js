@@ -3,7 +3,7 @@ import { HlslRenderContextEnum, hlslShaderStageName } from '../../hlsl/core/tr2/
 import '@carbonenginejs/runtime-utils/bytes';
 import '../../hlsl/core/carbonDescriptionToRuntime.js';
 import '../../../format/CjsByteReader.js';
-import '../../../format/compareUtf8.js';
+import { resolveWriteVersion } from '../../../format/carbonEffect/carbonEffectRecords.js';
 import { HlslEffectBindingManifest } from '../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js';
 import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_PERMUTATION_GRAPH_FORMAT } from '../../../format/effect/effectPermutationGraph.js';
 import { emitGlslWithOptions } from './helpers.js';
@@ -38,6 +38,9 @@ const PACKAGE_VERSION = "0.11.1";
  */
 function buildEffectPackage(input, options = {}) {
   const values = normalizeOptions(input, options);
+  // Resolved before any translation work, so an unwritable version is refused
+  // up front. What lands in `info.containerVersion` is what was emitted.
+  const containerVersion = resolveWriteVersion(options.version);
   const effectRes = CjsHlslFormat.read(values.sourceBytes, {
     emit: CjsHlslFormat.OUTPUT_RAW,
     source: values.source
@@ -155,6 +158,11 @@ function buildEffectPackage(input, options = {}) {
     format: "CARBON_WEBGL",
     formatVersion: EFFECT_INFO_VERSION,
     packageKind: values.allPermutations ? "tr2-effect-webgl-permutations" : "tr2-effect-webgl",
+    // What these bytes ARE, next to `sourceEffectVersion` below, which is
+    // what they were read FROM. The reader accepts 8..15; the writer emits
+    // 15 only, so the two are not the same number and a consumer must not
+    // infer one from the other.
+    containerVersion,
     targetBackend: "webgl",
     backendPackage: "@carbonenginejs/runtime-resource/formats/webgl",
     backendPackageVersion: PACKAGE_VERSION,
@@ -270,7 +278,8 @@ function buildEffectPackage(input, options = {}) {
     permutationGraph
   });
   const container = buildGlslEffectContainer(effectRes, permutationGraph, backendBodySet, {
-    compilerVersion: effectRes.m_compilerVersionBytes
+    compilerVersion: effectRes.m_compilerVersionBytes,
+    version: containerVersion
   });
   const bytes = container.bytes;
   const inspection = inspectGlslEffectContainer(bytes, {

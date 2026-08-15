@@ -39,9 +39,11 @@ compiled effect bytes
 The emitted artifact is a shared Carbon v15 container, not a tagged-chunk
 package; the GLSL replaces the DXBC in each stage's program slot. Backend body
 keys deliberately retain the historical `body_<offset>_<size>` form.
-`EFFECT_PERMUTATION_GRAPH_CHUNK` (`PGRF`) still records every Cartesian
-permutation, its option indices, its exact source record, and a
-content-deduplicated body identity.
+The permutation graph still records every Cartesian permutation, its option
+indices, its exact source record, and a content-deduplicated body identity — but
+it is a **derived view** (`CJS_EFFECT_PERMUTATION_GRAPH`, built by
+`buildEffectPermutationGraph`), not a stored `PGRF` chunk. That chunk and its
+`EFFECT_PERMUTATION_GRAPH_CHUNK` export are retired; nothing emits or reads one.
 
 ## Completeness
 

@@ -1,7 +1,7 @@
 import { CjsByteWriter } from '../CjsByteWriter.js';
 import { CjsStringTable } from '../CjsStringTable.js';
 import { CjsFormatWriteError } from '../CjsFormatError.js';
-import { writeEffectDescription, collectArena, internArena, CARBON_EFFECT_DATA_VERSION } from './carbonEffectRecords.js';
+import { resolveWriteVersion, writeEffectDescription, collectArena, internArena } from './carbonEffectRecords.js';
 import { CARBON_EFFECT_SOURCE_HASH_BYTES } from './CjsCarbonEffectReader.js';
 export { CARBON_EFFECT_RECORD_BYTES } from './CjsCarbonEffectReader.js';
 
@@ -98,6 +98,8 @@ function normalizeCompilerVersion(value) {
  * arena's own `u32` length prefix (`StringTable.cpp:82-85`).
  *
  * @param {object} parts Resolved container parts.
+ * @param {number} [parts.version] Container data version to emit; must be one of
+ *     `CARBON_EFFECT_WRITE_VERSIONS`. Defaults to the current version.
  * @param {number[]|Uint8Array} parts.compilerVersion Four version bytes.
  * @param {string|Uint8Array} parts.sourceHash 32 ASCII hash bytes.
  * @param {Uint8Array} parts.stringTableBytes Arena payload, without its prefix.
@@ -106,6 +108,7 @@ function normalizeCompilerVersion(value) {
  * @returns {Uint8Array} Container bytes.
  */
 function writeCarbonEffectFile(parts) {
+  const version = resolveWriteVersion(parts.version);
   const compilerVersion = normalizeCompilerVersion(parts.compilerVersion ?? [0, 0, 0, 0]);
   const sourceHash = normalizeSourceHash(parts.sourceHash ?? "0".repeat(CARBON_EFFECT_SOURCE_HASH_BYTES));
   const stringTableBytes = parts.stringTableBytes ?? new Uint8Array(0);
@@ -178,7 +181,7 @@ function writeCarbonEffectFile(parts) {
     cursor += body.bytes.length;
   }
   const writer = new CjsByteWriter(cursor);
-  writer.u32(CARBON_EFFECT_DATA_VERSION);
+  writer.u32(version);
   writer.bytes(compilerVersion);
   writer.bytes(sourceHash);
   writer.u32(stringTableBytes.length);
@@ -231,17 +234,23 @@ class CjsCarbonEffectWriter {
   #compilerVersion;
   #sourceHash;
   #backend;
+  #version;
 
   /**
    * Creates an empty container builder.
    *
    * @param {object} [options] Builder options.
+   * @param {number} [options.version] Container data version to emit; must be
+   *     one of `CARBON_EFFECT_WRITE_VERSIONS`. Defaults to the current
+   *     version. Rejected at construction, not at `finish()`, so a caller
+   *     learns it asked for something unwritable before doing the work.
    * @param {number[]|Uint8Array} [options.compilerVersion] Four version bytes.
    * @param {string|Uint8Array} [options.sourceHash] 32 ASCII hash bytes.
    * @param {CjsStringTable} [options.stringTable] Arena to intern into.
    * @param {boolean} [options.backend] Emit the optional trailing block per pass.
    */
   constructor(options = {}) {
+    this.#version = resolveWriteVersion(options.version);
     this.#table = options.stringTable ?? new CjsStringTable();
     this.#compilerVersion = options.compilerVersion ?? [0, 0, 0, 0];
     this.#sourceHash = options.sourceHash ?? "0".repeat(CARBON_EFFECT_SOURCE_HASH_BYTES);
@@ -330,7 +339,8 @@ class CjsCarbonEffectWriter {
       if (body.description) {
         writeEffectDescription(new CjsByteWriter(), body.description, {
           arena: collectArena(this.#table),
-          backend: this.#backend
+          backend: this.#backend,
+          version: this.#version
         });
       }
     }
@@ -344,7 +354,8 @@ class CjsCarbonEffectWriter {
       const writer = new CjsByteWriter();
       writeEffectDescription(writer, body.description, {
         arena,
-        backend: this.#backend
+        backend: this.#backend,
+        version: this.#version
       });
       return {
         index: body.index,
@@ -360,6 +371,7 @@ class CjsCarbonEffectWriter {
       options: axis.optionRefs.map(reference => this.#table.offsetOf(reference))
     }));
     return writeCarbonEffectFile({
+      version: this.#version,
       compilerVersion: this.#compilerVersion,
       sourceHash: this.#sourceHash,
       stringTableBytes: this.#table.toBytes(),

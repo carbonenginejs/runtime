@@ -18,6 +18,7 @@ import {
 import { buildGlslBackendBodySet } from "./glslBackendBodySet.js";
 import { buildGlslEffectContainer } from "./buildGlslEffectContainer.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
+import { resolveWriteVersion } from "../../../format/carbonEffect/carbonEffectRecords.js";
 
 /**
  * INFO record version for the in-memory build result.
@@ -44,6 +45,9 @@ const PACKAGE_VERSION = "0.11.1";
 export function buildEffectPackage(input, options = {})
 {
     const values = normalizeOptions(input, options);
+    // Resolved before any translation work, so an unwritable version is refused
+    // up front. What lands in `info.containerVersion` is what was emitted.
+    const containerVersion = resolveWriteVersion(options.version);
     const effectRes = CjsHlslFormat.read(values.sourceBytes, {
         emit: CjsHlslFormat.OUTPUT_RAW,
         source: values.source
@@ -186,6 +190,11 @@ export function buildEffectPackage(input, options = {})
         packageKind: values.allPermutations
             ? "tr2-effect-webgl-permutations"
             : "tr2-effect-webgl",
+        // What these bytes ARE, next to `sourceEffectVersion` below, which is
+        // what they were read FROM. The reader accepts 8..15; the writer emits
+        // 15 only, so the two are not the same number and a consumer must not
+        // infer one from the other.
+        containerVersion,
         targetBackend: "webgl",
         backendPackage: "@carbonenginejs/runtime-resource/formats/webgl",
         backendPackageVersion: PACKAGE_VERSION,
@@ -309,7 +318,7 @@ export function buildEffectPackage(input, options = {})
         effectRes,
         permutationGraph,
         backendBodySet,
-        { compilerVersion: effectRes.m_compilerVersionBytes }
+        { compilerVersion: effectRes.m_compilerVersionBytes, version: containerVersion }
     );
 
     const bytes = container.bytes;

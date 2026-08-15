@@ -16,8 +16,8 @@ Carbon version-15 records.
 Unsupported requested shader semantics fail explicitly instead of producing a
 partially translated selected pass. `BuildEffect` preserves every permutation
 row and representable non-program description/reflection fields in the Carbon
-container. Non-dynamic sampler names are unrecoverable and stage order is
-canonicalized. Source-stage DXBC is replaced by WGSL or an empty program slot.
+container, including non-dynamic sampler names and the authored stage order.
+Source-stage DXBC is replaced by WGSL or an empty program slot.
 Selected mode writes WGSL only for the resolved body's requested passes; all
 mode attempts every distinct body after the resolved body passes the initial
 translation gate. Backend and runtime completeness remain broader gates.

@@ -55,9 +55,11 @@ const GLSL_CONTAINER_BACKEND = Object.freeze({
  * Builds the complete WebGL 2 effect container.
  *
  * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
- * @param {object} permutationGraph Validated `PGRF` document.
+ * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} backendBodySet Translated GLSL bodies.
  * @param {object} [options] Container options.
+ * @param {number} [options.version] Container data version to emit; defaults to
+ *     the current version. Independent of the source effect's version.
  * @param {number[]|Uint8Array} [options.compilerVersion] Four version bytes.
  * @param {string} [options.sourceHash] 32 ASCII hash characters.
  * @returns {{bytes:Uint8Array, permutationCount:number, bodyCount:number}} Container and its body accounting.

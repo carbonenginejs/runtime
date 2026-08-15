@@ -219,6 +219,20 @@ class Tr2EffectStageInput extends CjsModel {
         registerIndex: entry.registerIndex,
         registerSpace: entry.registerSpace,
         descriptor: {
+          // Carried so a consumer can answer "may this sampler be overridden?"
+          // without inferring it. Carbon's compiler only makes a static sampler
+          // out of a non-dynamic one -- `ConvertToStaticSampler` opens
+          // `if( sampler.isDynamic ) { return false; }`
+          // (shadercompiler/FXAnalyzer.cpp:1727-1731) -- so `false` is
+          // guaranteed, not assumed, and there is no wire field to read.
+          //
+          // The flag is an authorisation, not decoration: dynamic means the
+          // sampler may be overridden, non-dynamic means it must not be
+          // touched. A reader that treats an absent flag as dynamic, which is
+          // Carbon's default for the stage sampler that does carry one, would
+          // offer an override on a sampler Carbon forbids overriding. Omitting
+          // it therefore fails in the permissive direction.
+          isDynamic: false,
           comparison: !!entry.comparison,
           minFilter: entry.minFilter,
           magFilter: entry.magFilter,

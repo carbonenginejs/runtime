@@ -68,25 +68,40 @@ handles the rest. What emerges carries no version, so consumers above that
 boundary are version-free. A port that preserves the same separation stays
 consistent with Carbon.
 
-### What this reader does: constant-folded to 15
+### What this reader does: reads 8 through 15, writes 15
 
-`readEffectDescription` takes no version parameter. This reader is
-constant-folded to version 15 and rejects everything else outright.
+`readEffectDescription` takes the version as an option and branches on it, the
+way Carbon's own reader always did. The accepted range is
+`CARBON_EFFECT_MIN_DATA_VERSION` = 8 through `CARBON_EFFECT_DATA_VERSION` = 15;
+anything outside it is rejected outright.
 
-That is a deliberate narrowing, and it is the missing piece if an older version
-is ever needed. Supporting v8 does **not** mean writing a second reader; it
-means restoring the parameter Carbon always had and implementing the branches
-above. The writer is unaffected — reading an old version does not imply emitting
-one, and this package emits v15 only.
+The reader was briefly constant-folded to 15, and the branches were restored on
+2026-08-02.
 
-Rejecting is the correct failure mode rather than a limitation to route around.
-Applying v15 rules to an older layout can misalign fields — the comparisons
-above change which fields are present and how their bytes are interpreted — and
-must not be attempted. How such a read would fail in practice is not documented
-here, because no legacy container has been examined to establish it.
+Reading a version does not imply emitting it. The two ranges are independent and
+deliberately so: reading a version needs a branch that interprets bytes, while
+emitting one needs a branch that produces them.
+
+**The emitted version is a parameter, not a constant.** `CjsCarbonEffectWriter`,
+`writeCarbonEffectFile`, the shared container builder and both backend packagers
+all take a `version` option, defaulting to the current version.
+`CARBON_EFFECT_WRITE_VERSIONS` declares what the writer can actually produce —
+today `[15]`, because the v15 shape is the only one we have writer branches for.
+A version outside that set is **refused**, never emitted as v15 bytes under
+another number, which would produce a file that lies about itself.
+
+This is the shape that lets a future version land: add the branches, add the
+entry, and every caller already passes the parameter. The source effect's
+version never selects the emitted one — a package built from a v8 file is still
+emitted at the version you asked for.
+
+Rejecting outside the range is the correct failure mode rather than a limitation
+to route around. Applying v15 rules to a version below 8 can misalign fields —
+the comparisons above change which fields are present and how their bytes are
+interpreted — and must not be attempted.
 
 The reader rejects with the version it read, and does not classify it further.
-A leading dword of 2..14 is a *recognized legacy version number*, not evidence
+A leading dword below 8 is a *recognized legacy version number*, not evidence
 that the bytes are an effect container: arbitrary data can begin with a small
 integer, and the version dword alone carries no magic or checksum to confirm it.
 Anything that reaches this rejection needs identifying by other means before it
@@ -205,17 +220,28 @@ carries inline length-prefixed strings instead of references. A test pins the
 property directly — the block's bytes must be identical whichever arena it is
 interned into. Any future arena entry must satisfy the same rule.
 
-### One field the container cannot round-trip
+### The non-dynamic sampler name is kept, though Carbon's runtime drops it
 
-For a **non-dynamic sampler, the name is not preserved.** The file stores one, but
-Carbon's reader nulls it before any producer sees it, so a package built from
-our reflection carries the empty string.
+Carbon's *runtime* nulls a non-dynamic sampler's name while reading, precisely
+because such a sampler is never looked up by name — `FindSamplerByName` only
+matters for the dynamic case. **The file carries the string regardless, and this
+reader keeps it**: `readSampler` and `writeSampler` handle `name` unconditionally,
+whatever `isDynamic` says.
 
-This is a property of the input, not a bug in the mapping: the name is unrecoverable
-by the time we receive the data, rather than dropped on the way out. Carbon nulls it
-precisely because a non-dynamic sampler is never looked up by name — `FindSamplerByName`
-only matters for the dynamic case. Recorded here because it will otherwise be
-rediscovered as a bug: a diff against the source effect will always show it.
+That is the rule, and it generalises: we re-emit the *file*, not Carbon's
+in-memory view of it. Discarding what the runtime happens not to need is how a
+byte-exact round trip stops being byte-exact. This field was one of **three**
+such losses found together — the others being the authored stage order (21
+files) and the offset word behind a zero-size blob (150 files) — and it was the
+widest, affecting 1,631 files. All three are closed.
+
+Each was invisible to a record-level comparison, because a record rebuilt from a
+lossy class matches the lossy class it came from. Byte equality is the assertion
+for that reason.
+
+This section previously said the opposite, describing the name as unrecoverable.
+It was wrong, and it is the kind of wrong that gets rediscovered as a bug in the
+other direction, so it is corrected here rather than deleted.
 
 **Corollary: the container admits all six of Carbon's stage types.** `stages` is
 capped at `SHADER_TYPE_COUNT` = 6, and the stage-type byte uses Carbon's
@@ -436,7 +462,8 @@ longer part of the package.
 **Current WebGPU wire.** Carbon WebGPU bytes have no envelope, magic, `payloadKind`,
 or independent container version. They are bare Carbon v15 records resolved
 from `effect.webgpu/`, with one optional per-pass backend block. `.carbonwebgl`
-remains a separate Carbon WebGL chunk format rather than this Carbon-record wire.
+is this same wire — the same records, the same reader, GLSL in the program slots
+— and not a separate chunk format.
 
 `CarbonWebgpuContainer` reads the optional blocks, and the shared record reader can
 auto-detect them from a description's declared size. There is no adapter

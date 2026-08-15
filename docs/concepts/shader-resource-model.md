@@ -72,7 +72,9 @@ emitted bytes, so it need not preserve the original source alias partition. `mod
 WGSL; it does not discard source permutations. `mode: "all"` attempts every
 distinct body after the resolved selection passes the initial translation gate.
 
-`.carbonwebgl` remains its own Carbon WebGL chunk format. Its current package contract also
+`.carbonwebgl` is the **same** Carbon v15 record container as `.carbonwebgpu`,
+carrying GLSL in the program slots and an optional per-pass backend block.
+Neither has a private magic or chunk layout. Its package contract likewise
 preserves complete source permutation topology and supports selected versus
 all backend coverage.
 
@@ -89,6 +91,37 @@ one description record. No intermediate document sits between them.
 
 What remains unproven is execution, not construction. The presence of every
 permutation proves source preservation; it does not prove a rendered result.
+
+## How an option list becomes a permutation index
+
+`Tr2EffectRes.GetShader(options, count)` resolves a caller's option list to one
+exact index. The rules are not obvious and each one has a consequence:
+
+- **Mixed radix, first axis least significant.** The index accumulates as
+  `index += selectedIndex * multiplier`, with `multiplier` starting at 1 and
+  multiplying by each axis's option count in turn. An index is therefore only
+  meaningful against the axis order of that exact compiled effect.
+- **A global option owns its axis outright.** If a global option matches the
+  axis name, the caller's local options for that axis are **not consulted at
+  all** — not even as a fallback.
+- **An invalid global keeps the default and still blocks the local.** A global
+  naming a value the axis does not offer leaves the axis on `defaultOption`, and
+  the local option that *would* have been valid is still skipped. This is the
+  rule that surprises people: a typo in a global option silently pins an axis to
+  its default rather than erroring or deferring.
+- **Among locals, the last valid one wins.** The scan does not stop at the first
+  match, so a later duplicate overrides an earlier one.
+- **An unmatched or invalid value falls back to `defaultOption`**, never to
+  option 0 — the default is frequently not 0.
+
+`GetShaderByIndex` **returns `null` for an index at or beyond the variant
+count**. It does not clamp and it does not fall back to body 0. A caller that
+treats `null` as "use the first body" reintroduces exactly the bug the null
+exists to expose.
+
+Selecting the default is rarely what a caller wants. A compiled axis can default
+to one value while real construction selects another, so a caller qualifying a
+shader should name the option explicitly and record the index it resolved to.
 
 ## Reading the model without inventing gaps
 

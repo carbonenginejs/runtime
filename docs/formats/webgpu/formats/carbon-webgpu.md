@@ -9,11 +9,18 @@ Summary: Defines the Carbon v15 record container used for WebGPU effects, its ba
 
 A `.carbonwebgpu` file is a stock Carbon version-15 compiled-effect container whose
 program slots carry WGSL instead of DXBC. It preserves every permutation row
-and representable non-program description/reflection fields. Non-dynamic
-sampler names are unrecoverable and stage order is canonicalized. Source-stage
+and representable non-program description/reflection fields, including
+non-dynamic sampler names and the authored stage order. Source-stage
 programs are not stored: a translated slot contains WGSL and an untranslated slot is empty.
 Each translated pass may also carry one WebGPU backend block containing
 bind-group layouts and resource transforms.
+
+That preservation is **inherited, not separately tested.** It holds because the
+emit round-trips the description through the same Carbon classes the plain
+container uses and mutates only `stage.sourceProgram` and `pass.backendBlock`;
+the byte-exact corpus proof covers the shared codec, and no WebGPU-specific test
+pins sampler names or stage order. Anything that widens what the emit touches
+loses that guarantee silently, so widen it and add the test together.
 
 There is no Carbon WebGPU-specific magic, envelope, payload tag, or container version.
 Backend identity comes from the resource path, such as `effect.webgpu/`, just

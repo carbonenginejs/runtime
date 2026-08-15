@@ -10,6 +10,7 @@ import { buildEffectPermutationGraph, EFFECT_PERMUTATION_GRAPH_VERSION, EFFECT_P
 import { buildEffectBackendBodySet, EFFECT_BACKEND_BODY_SET_VERSION, EFFECT_BACKEND_BODY_SET_FORMAT } from './effectBackendBodySet.js';
 import { DXBC_WGSL_TRANSLATOR_VERSION, DXBC_WGSL_TRANSLATOR_NAME, FORMAT_WEBGPU_PACKAGE_VERSION, FORMAT_WEBGPU_PACKAGE_NAME, WEBGPU_BACKEND_NAME, EFFECT_INFO_VERSION } from './packageMetadata.js';
 import { sha256Utf8, sha256Bytes } from '../../../format/effect/sha256.js';
+import { resolveWriteVersion } from '../../../format/carbonEffect/carbonEffectRecords.js';
 import { isParticleClearEffectCandidate, preflightParticleClearEffectProfile, particleClearEffectProofFor } from './wgsl/lowerParticleClearComputePrograms.js';
 import { normalizeEffectPermutation, validateResolvedPermutation, selectEffectStages, buildWgslSelectionMetadata } from './packageEffectSelection.js';
 
@@ -28,6 +29,10 @@ import { normalizeEffectPermutation, validateResolvedPermutation, selectEffectSt
 function buildEffectPackage(input, options = {}) {
   const mode = normalizeMode(options.mode, options.allPermutations);
   const source = normalizeSource(options.source);
+  // Resolved once, up front, so an unwritable request fails before any
+  // translation work is done rather than at the final assembly step. The
+  // reported value is what was actually emitted, never the constant.
+  const containerVersion = resolveWriteVersion(options.version);
   const outputPath = normalizeOptionalString(options.outputPath, "Effect outputPath");
   const sourceIdentity = normalizeSourceIdentity(options.sourceIdentity, source, input);
   const permutation = normalizeEffectPermutation(options.permutation);
@@ -142,6 +147,12 @@ function buildEffectPackage(input, options = {}) {
     sourcePath: source,
     outputPath,
     sourceIdentity,
+    // The Carbon container version these bytes ARE, stated rather than
+    // implied. The writer emits 15 and only 15, while the reader accepts
+    // 8..15, so a consumer cannot infer what it was handed from what we can
+    // read - and a v15 reader elsewhere (ccpwgl's Tw2Shader, Carbon itself)
+    // needs to know this file is one it can parse before it tries.
+    containerVersion,
     targetBackend: WEBGPU_BACKEND_NAME,
     backendPackage: FORMAT_WEBGPU_PACKAGE_NAME,
     backendPackageVersion: FORMAT_WEBGPU_PACKAGE_VERSION,
@@ -177,6 +188,7 @@ function buildEffectPackage(input, options = {}) {
   };
   const metadata = {
     effectName: analysis.effectName,
+    containerVersion,
     sourcePath: source,
     bodyMode: mode,
     bodyIndex: analysis.bodyIndex,
@@ -196,7 +208,8 @@ function buildEffectPackage(input, options = {}) {
   // hashes as build evidence; they are not records in the emitted container.
   const emittedBodySet = backendBodySet ?? selectedModeBodySet(permutationGraph, wgsl, analysis.bodyIndex);
   const container = buildCarbonEffectContainer(resolved.effectRes, permutationGraph, emittedBodySet, {
-    compilerVersion: resolved.effectRes.m_compilerVersionBytes
+    compilerVersion: resolved.effectRes.m_compilerVersionBytes,
+    version: containerVersion
   });
   const bytes = container.bytes;
   const inspection = inspectWithValues(bytes, {

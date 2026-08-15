@@ -1403,8 +1403,8 @@ program slots and coverage degrades to `partial`. The in-memory build result
 retains its specific reason; the wire does not. A reread can say only that the
 body carries no translated programs. Permutation topology and representable
 non-program description fields remain present, but source-stage programs are
-not stored. Non-dynamic sampler names are unrecoverable and stage order is
-canonicalized.
+not stored. Non-dynamic sampler names and the authored stage order are both
+preserved.
 
 Translating every body is deliberately **not** treated as backend completeness.
 `backendComplete` and `runtimeComplete` remain false, matching the sibling

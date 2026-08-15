@@ -133,12 +133,15 @@ function describeBody(reader, permutationIndex, passUnits, backend)
  * Builds a complete backend effect container.
  *
  * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
- * @param {object} permutationGraph Validated `PGRF` document.
+ * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} backendBodySet Translated backend bodies.
  * @param {object} backend Backend encoders.
  * @param {(shader:object, stage:object, context:object)=>Uint8Array} backend.encodeProgram Encodes one stage program.
  * @param {(unit:object, passKey:string)=>(Uint8Array|null)} backend.encodeBackendBlock Builds one pass's trailing block.
  * @param {object} [options] Container options.
+ * @param {number} [options.version] Container data version to emit; must be one
+ *     of `CARBON_EFFECT_WRITE_VERSIONS`. Defaults to the current version, and is
+ *     independent of the source effect's version.
  * @param {number[]|Uint8Array} [options.compilerVersion] Four version bytes.
  * @param {string} [options.sourceHash] 32 ASCII hash characters.
  * @returns {{bytes:Uint8Array, permutationCount:number, bodyCount:number}} Container and its body accounting.
@@ -169,6 +172,11 @@ export function buildCarbonEffectContainer(
     const bodyByKey = new Map(backendBodySet.bodies.map((body) => [ body.bodyKey, body ]));
     const writer = new CjsCarbonEffectWriter({
         backend: true,
+        // Not defaulted from the SOURCE effect's version. The source can be any
+        // version the reader accepts; what we emit is a version we have a
+        // writer for. Conflating the two would have us claim to emit whatever
+        // we happened to read.
+        ...(options.version === undefined ? {} : { version: options.version }),
         compilerVersion: options.compilerVersion ?? effectRes.m_compilerVersionBytes ?? [ 0, 0, 0, 0 ],
         ...(options.sourceHash ? { sourceHash: options.sourceHash } : {})
     });

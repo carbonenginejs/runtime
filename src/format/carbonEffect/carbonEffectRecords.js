@@ -18,6 +18,44 @@ import { compareUtf8 } from "../compareUtf8.js";
 export const CARBON_EFFECT_DATA_VERSION = 15;
 
 /**
+ * Every version the WRITER can actually produce, newest first.
+ *
+ * This is deliberately separate from what the reader accepts
+ * (`CARBON_EFFECT_MIN_DATA_VERSION`..`CARBON_EFFECT_DATA_VERSION`) and from the
+ * default above. Reading a version needs a branch that interprets bytes;
+ * emitting one needs a branch that produces them, and we have only ever written
+ * the v15 shape.
+ *
+ * **The version is a parameter, not a constant, so that adding v16 is a matter
+ * of adding branches and one entry here rather than re-plumbing every caller.**
+ * It is not a promise that any listed version can be requested today.
+ *
+ * The failure this guards against is the tempting one: accepting a version we
+ * cannot emit and writing v15 bytes under its number. That produces a file that
+ * lies about itself, which is strictly worse than refusing.
+ */
+export const CARBON_EFFECT_WRITE_VERSIONS = Object.freeze([ 15 ]);
+
+/**
+ * Validate a requested write version, or fall back to the default.
+ *
+ * @param {number} [version] Requested container data version.
+ * @returns {number} A version this writer can emit.
+ */
+export function resolveWriteVersion(version)
+{
+    if (version === undefined || version === null) return CARBON_EFFECT_DATA_VERSION;
+    if (!CARBON_EFFECT_WRITE_VERSIONS.includes(version))
+    {
+        throw new CjsFormatWriteError(
+            `Cannot write Carbon effect container version ${version}`,
+            { requested: version, writable: [ ...CARBON_EFFECT_WRITE_VERSIONS ] }
+        );
+    }
+    return version;
+}
+
+/**
  * The oldest description-blob version this module reads.
  *
  * Carbon threads the version through parsing rather than gating on it twice,
@@ -1187,12 +1225,20 @@ export function readEffectDescription(reader, options = {})
  * @param {object} [options.arena] Arena resolver; defaults to passthrough.
  * @param {boolean} [options.backend] Emit our optional per-pass trailing block.
  *     Leave false to produce bytes a Carbon reader accepts unchanged.
+ * @param {number} [options.version] Container data version to emit; must be one
+ *     of `CARBON_EFFECT_WRITE_VERSIONS`. Defaults to the current version.
  * @returns {import("../CjsByteWriter.js").CjsByteWriter} The writer.
  */
 export function writeEffectDescription(writer, description, options = {})
 {
     const arena = options.arena ?? passthroughArena;
     const backend = options.backend === true;
+    // Validated, though nothing below branches on it yet: today every writable
+    // version produces the same body shape. A caller asking for a version we
+    // cannot emit must be refused here, at the description boundary, rather
+    // than have its request ignored and v15 bytes written under another number.
+    // When a version changes the body, branch on this.
+    resolveWriteVersion(options.version);
 
     writer.u8(description.techniques.length);
     for (const technique of description.techniques)

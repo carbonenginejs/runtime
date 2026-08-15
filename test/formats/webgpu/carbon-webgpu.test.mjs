@@ -5,7 +5,6 @@ import { createHash } from "node:crypto";
 
 import { readContainer } from "./support/readContainer.js";
 import CjsWebgpuFormat from "../../../src/formats/webgpu/index.js";
-import { readEffectAnalysis } from "../../../src/formats/webgpu/core/effectAnalysis.js";
 import { validateEffectContainer } from "../../../src/formats/webgpu/core/carbonWebgpu/validateContainer.js";
 import { buildEffectAnalysis } from "../../../src/formats/webgpu/core/helpers.js";
 import {
@@ -13,166 +12,10 @@ import {
     validateEffectPermutationGraph
 } from "../../../src/format/effect/effectPermutationGraph.js";
 import {
-    buildCarbonWebgpuPackage,
     buildEffectBytes,
     buildMinimalStagedEffectBytes,
     buildMinimalVertexDxbc
 } from "./synthetic.js";
-
-function canonicalEffectChunks()
-{
-    const result = CjsWebgpuFormat.buildEffect(buildMinimalStagedEffectBytes({ version: 15 }), {
-        source: "synthetic.sm_hi"
-    });
-    const pkg = readContainer(result.bytes);
-
-    return pkg.chunks.map((chunk) => [
-        chunk.tag,
-        chunk.tag === "RBLB"
-            ? Uint8Array.from(chunk.bytes)
-            : pkg.GetJson(chunk.tag)
-    ]);
-}
-
-function mutateCanonicalEffect(mutations = {}, omitted = [])
-{
-    const chunks = canonicalEffectChunks()
-        .filter(([ tag ]) => !omitted.includes(tag))
-        .map(([ tag, value ]) =>
-        {
-            if (!Object.prototype.hasOwnProperty.call(mutations, tag))
-            {
-                return [ tag, value ];
-            }
-
-            const mutation = mutations[tag];
-            if (typeof mutation !== "function") return [ tag, mutation ];
-            const copy = structuredClone(value);
-            mutation(copy);
-            return [ tag, copy ];
-        });
-
-    // The PGRF digest is always present now, so a shape mutation would be
-    // caught by the digest before its own shape check. Rehash so each mutation
-    // still proves the rule it was written for.
-    const info = chunks.find(([ tag ]) => tag === "INFO")?.[1];
-    const graph = chunks.find(([ tag ]) => tag === "PGRF")?.[1];
-    if (info && typeof info === "object" && info.permutationGraph
-        && typeof info.permutationGraph === "object" && graph !== undefined)
-    {
-        info.permutationGraph.sha256 = createHash("sha256")
-            .update(typeof graph === "string" ? graph : `${JSON.stringify(graph)}\n`)
-            .digest("hex");
-    }
-
-    return CjsWebgpuFormat.build(chunks);
-}
-
-function canonicalV15EffectChunks()
-{
-    const result = CjsWebgpuFormat.buildEffect(
-        buildMinimalStagedEffectBytes({
-            version: 15,
-            permutations: [ {
-                name: "QUALITY",
-                options: [ "LOW", "HIGH" ],
-                defaultOption: 0,
-                description: "quality",
-                type: 1
-            } ],
-            bodyPassCounts: [ 1, 2 ]
-        }),
-        { source: "synthetic.sm_depth" }
-    );
-    const pkg = readContainer(result.bytes);
-
-    return pkg.chunks.map((chunk) => [
-        chunk.tag,
-        chunk.tag === "RBLB"
-            ? Uint8Array.from(chunk.bytes)
-            : pkg.GetJson(chunk.tag)
-    ]);
-}
-
-function mutateCanonicalV15Effect(mutations = {}, omitted = [])
-{
-    const chunks = canonicalV15EffectChunks()
-        .filter(([ tag ]) => !omitted.includes(tag))
-        .map(([ tag, value ]) =>
-        {
-            if (!Object.prototype.hasOwnProperty.call(mutations, tag))
-            {
-                return [ tag, value ];
-            }
-
-            const mutation = mutations[tag];
-            if (typeof mutation !== "function") return [ tag, mutation ];
-            const copy = structuredClone(value);
-            mutation(copy);
-            return [ tag, copy ];
-        });
-
-    return CjsWebgpuFormat.build(chunks);
-}
-
-function legacySelectedReflectionFixture(selectHigh = false)
-{
-    const source = buildMinimalStagedEffectBytes({
-        version: 15,
-        permutations: [ {
-            name: "QUALITY",
-            options: [ "LOW", "HIGH" ],
-            defaultOption: 0,
-            description: "quality",
-            type: 1
-        } ],
-        bodyPassCounts: [ 1, 2 ]
-    });
-    const sourcePath = "legacy-selected.sm_depth";
-    const permutation = [ {
-        name: "QUALITY",
-        value: selectHigh ? "HIGH" : "LOW"
-    } ];
-    const current = CjsWebgpuFormat.buildEffect(source, {
-        source: sourcePath,
-        permutation
-    });
-    const resolved = readEffectAnalysis(source, {
-        source: sourcePath,
-        permutation
-    });
-    const legacy = buildSelectedEffectReflection(
-        resolved.effectRes,
-        current.metadata.bodyIndex,
-        current.permutationGraph,
-        {
-            sourceIdentity: current.info.sourceIdentity,
-            sourcePath
-        }
-    );
-    const raw = readContainer(current.bytes);
-    const chunks = raw.chunks.map((chunk) =>
-    {
-        if (chunk.tag === "RFLX") return [ chunk.tag, legacy.reflection ];
-        if (chunk.tag === "RBLB") return [ chunk.tag, legacy.blobBytes ];
-        if (chunk.tag !== "INFO") return [ chunk.tag, raw.GetJson(chunk.tag) ];
-        const info = structuredClone(raw.GetJson(chunk.tag));
-        info.formatVersion = 2;
-        info.effectReflection = legacy.pointer;
-        info.completeness.sourceComplete = false;
-        delete info.permutationGraph.sha256;
-        delete info.sourceBodyCoverage;
-        delete info.backendBodyCoverage;
-        return [ chunk.tag, info ];
-    });
-
-    return {
-        bytes: CjsWebgpuFormat.build(chunks),
-        permutationIndex: current.metadata.bodyIndex,
-        source,
-        sourcePath
-    };
-}
 
 function uniformLayoutBinding(overrides = {})
 {
@@ -239,14 +82,6 @@ function samplerCarbon()
             isDynamic: true
         }
     };
-}
-
-function signatureSamplerCarbon()
-{
-    const value = samplerCarbon();
-    delete value.sampler.isDynamic;
-    value.sampler.borderColor = 0;
-    return value;
 }
 
 function resourceCarbon(name = "Resource")
@@ -979,5 +814,87 @@ test("buildEffectAnalysis validates transient raw stage identity and bytes", () 
     assert.throws(
         () => buildEffectAnalysis(invalidManifestBytes),
         /must contain only byte values/
+    );
+});
+
+
+// The emitted container is Carbon v15 and says so. `info.formatVersion` is the
+// version of the info DOCUMENT (3 at the time of writing) and is routinely
+// mistaken for the container version, so the container version is stated
+// separately and pinned here against the byte that actually goes on the wire.
+//
+// The reader accepts 8..15; the writer emits 15 only. A consumer must be able to
+// learn which one it was handed without re-reading the file, and a v15 reader
+// elsewhere - ccpwgl's Tw2Shader, Carbon itself - needs it before it parses.
+test("the emitted package states its Carbon container version, and it matches the wire", () =>
+{
+    const source = buildMinimalStagedEffectBytes({ version: 15 });
+    const built = CjsWebgpuFormat.buildEffect(source, { source: "graphics/effect.webgpu/pin.sm_hi" });
+
+    assert.equal(built.info.containerVersion, 15);
+    assert.equal(built.metadata.containerVersion, 15);
+
+    const wireVersion = new DataView(
+        built.bytes.buffer,
+        built.bytes.byteOffset,
+        built.bytes.byteLength
+    ).getUint32(0, true);
+    assert.equal(wireVersion, built.info.containerVersion);
+
+    // Not the info document's own version. These are different numbers and
+    // conflating them is the mistake this test exists to catch.
+    assert.notEqual(built.info.formatVersion, built.info.containerVersion);
+});
+
+
+// The version is a parameter, not a constant. The point is that adding a future
+// version means adding branches plus one entry in CARBON_EFFECT_WRITE_VERSIONS,
+// not re-plumbing every caller — so the plumbing is pinned here even though only
+// one version is currently writable.
+//
+// The failure this guards is the tempting one: accepting a version we have no
+// branches for and emitting the v15 shape under its number, producing a file
+// that lies about itself.
+test("the container version is a parameter, and an unwritable one is refused", () =>
+{
+    const source = buildMinimalStagedEffectBytes({ version: 15 });
+    const wireVersionOf = (bytes) => new DataView(
+        bytes.buffer,
+        bytes.byteOffset,
+        bytes.byteLength
+    ).getUint32(0, true);
+
+    // Asking for the version we can write is honoured, not merely tolerated.
+    const explicit = CjsWebgpuFormat.buildEffect(source, {
+        source: "graphics/effect.webgpu/pin.sm_hi",
+        version: 15
+    });
+    assert.equal(explicit.info.containerVersion, 15);
+    assert.equal(wireVersionOf(explicit.bytes), 15);
+
+    // Omitting it defaults to the same thing, byte for byte.
+    const defaulted = CjsWebgpuFormat.buildEffect(source, {
+        source: "graphics/effect.webgpu/pin.sm_hi"
+    });
+    assert.deepEqual(defaulted.bytes, explicit.bytes);
+
+    // A version the reader accepts but the writer has no branches for must be
+    // refused, NOT silently emitted as v15. 14 is readable and unwritable, which
+    // is exactly the case that would otherwise produce a mislabelled file.
+    assert.throws(
+        () => CjsWebgpuFormat.buildEffect(source, {
+            source: "graphics/effect.webgpu/pin.sm_hi",
+            version: 14
+        }),
+        /Cannot write Carbon effect container version 14/
+    );
+
+    // And a version that does not exist at all.
+    assert.throws(
+        () => CjsWebgpuFormat.buildEffect(source, {
+            source: "graphics/effect.webgpu/pin.sm_hi",
+            version: 16
+        }),
+        /Cannot write Carbon effect container version 16/
     );
 });

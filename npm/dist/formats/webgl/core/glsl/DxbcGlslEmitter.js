@@ -2,6 +2,7 @@ import { CjsDxbcFormat } from '../../../dxbc/CjsDxbcFormat.js';
 import { WebglReadError } from '../errors.js';
 import { DxbcGlslOperandFormatter } from './DxbcGlslOperandFormatter.js';
 import { DxbcGlslHelperRegistry } from './DxbcGlslHelpers.js';
+import { DETAIL_MAP_ARRAY_NAME } from '../../../hlsl/core/detailMapFamily.js';
 
 const COMPONENTS = ["x", "y", "z", "w"];
 
@@ -50,8 +51,15 @@ const NON_COMPARISON_TEXTURE_OPCODES = new Set(["sample", "sample_l", "sample_b"
  * Filtered-sample coordinate mask per resource dimension
  * (HLSLcc `TranslateTexCoord`, toGLSLInstruction.cpp:985-1031).
  */
-/** GLSL symbol for the merged detail-map array. */
-const DETAIL_MAP_ARRAY_SYMBOL = "sDetailArrayMap";
+/**
+ * GLSL symbol for the merged detail-map array.
+ *
+ * Derived, not spelled out. The family owns the name and it has been renamed
+ * once already (`DetailMapArray` -> `DetailArrayMap`); a second literal is a
+ * second place for the next rename to miss, which is exactly what the writer's
+ * `outputName` comment warns about. Only the GLSL sampler prefix is local.
+ */
+const DETAIL_MAP_ARRAY_SYMBOL = `s${DETAIL_MAP_ARRAY_NAME}`;
 const COORD_MASK_BY_DIMENSION = {
   2: "x",
   3: "xy",

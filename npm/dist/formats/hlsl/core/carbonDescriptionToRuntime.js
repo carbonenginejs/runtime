@@ -245,6 +245,21 @@ const SAMPLER_RULES = Object.freeze({
 });
 
 /** Static sampler rules. `borderColor` is a one-byte enum here, not four floats. */
+/**
+ * Carbon's static-sampler border-colour enum, expanded to the four floats a
+ * stage sampler carries directly (`Tr2EffectDescription.cpp:340-362`).
+ *
+ * Only three values exist and everything unrecognised is transparent black,
+ * which is Carbon's own `default:` arm rather than a guess. The corpus uses more
+ * than one: effectively every sampler is transparent black, while a couple of
+ * cloud samplers are opaque white, so this table is load-bearing and not a
+ * formality.
+ */
+const STATIC_BORDER_COLORS = Object.freeze({
+  1: Object.freeze([0, 0, 0, 1]),
+  2: Object.freeze([1, 1, 1, 1]),
+  default: Object.freeze([0, 0, 0, 0])
+});
 const STATIC_SAMPLER_RULES = Object.freeze({
   registerIndex: (target, value) => {
     target.registerIndex = value;
@@ -476,10 +491,47 @@ function mapStaticSamplerRecord(record) {
       comparisonFunc: 0,
       borderColor: 0,
       minLOD: 0,
-      maxLOD: 0
+      maxLOD: 0,
+      // Restored, not invented, and last so this object matches the stage
+      // sampler's key order exactly (`HlslSamplerDescription.toJSON`) -- the
+      // two are compared structurally, where a reordered key reads as a
+      // difference.
+      //
+      // Carbon's compiler refuses to make a static sampler out of a dynamic
+      // one: `ConvertToStaticSampler` opens
+      // `if( sampler.isDynamic ) { return false; }`
+      // (shadercompiler/FXAnalyzer.cpp:1727-1731), so every static sampler
+      // that exists is non-dynamic by construction. `false` is the guaranteed
+      // value, on the same footing as the UAV `isSRGB = false` restoration.
+      //
+      // There is no wire field to read -- Carbon's `StaticSampler` has no
+      // `isDynamic` member and the shared container's record carries none at
+      // any version -- so adding it changes no bytes: the mapping rules only
+      // fire on fields the record actually carries.
+      //
+      // It is carried because the flag decides whether a sampler may be
+      // overridden. Carbon nulls a non-dynamic sampler's name so
+      // `FindSamplerByName` can never reach it, and a consumer testing
+      // `isDynamic !== false` -- as ccpwgl does -- reads an absent flag as
+      // dynamic. Omitting it therefore fails in the permissive direction,
+      // offering an override on a sampler Carbon forbids touching.
+      isDynamic: false
     }
   };
   mapClosed(record, STATIC_SAMPLER_RULES, entry, "static sampler");
+
+  // Expanded exactly as Carbon expands it (`Tr2EffectDescription.cpp:340-362`).
+  // The wire stores one byte here and four floats on a stage sampler, so
+  // leaving the byte alone made the same sampler reflect a scalar on DX12 and
+  // an array on DX11 -- a difference in the compiled effect's record type
+  // leaking into metadata that is supposed to describe the same thing either
+  // way. Carbon's own reader ends with both shapes identical, and so does
+  // this one.
+  //
+  // Byte-exact re-emission is unaffected: the reflection graph reads the wire
+  // record directly (`Tr2EffectStageInput.fromCarbonBinary`) and keeps the raw
+  // byte, deliberately, so the write path never sees this expansion.
+  entry.sampler.borderColor = STATIC_BORDER_COLORS[entry.sampler.borderColor] ?? STATIC_BORDER_COLORS.default;
   Object.defineProperties(entry.sampler, {
     mipLODBiasRaw: {
       value: 0,

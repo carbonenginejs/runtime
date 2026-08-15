@@ -38,8 +38,8 @@ then package data to the engine.
 - Reading, inspecting, and building Carbon-record Carbon WebGPU containers.
 - Resolving one compiled-effect permutation and complete pass.
 - Preserving every source permutation row and representable non-program
-  description field; non-dynamic sampler names are unrecoverable and stage
-  order is canonicalized.
+  description field, including non-dynamic sampler names and the authored stage
+  order — both are preserved, whatever Carbon's runtime does with them.
   Stored-body identity is exact emitted-description-byte identity; it does not
   promise to retain the source alias partition after programs are replaced.
 - Writing WGSL to program slots and bind-group/transform data to the optional

@@ -255,7 +255,18 @@ function buildRegisterBinding(effectDescription, pass, stageType, stage, registe
         registerSpace: register.registerSpace,
         registerCount: register.registerCount,
         arrayCount: register.arrayCount,
-        dynamic: Boolean(register.dynamic),
+        // A sampler's `dynamic` is the override authorisation, never the
+        // per-frame register flag. `isRegisterDynamic` answers a constant-buffer
+        // question -- it returns true for every register whose type is not a
+        // constant buffer -- so reading it here marked every DX11 sampler
+        // dynamic by construction, contradicting the `isDynamic: false` sitting
+        // beside it in the same binding's `carbon.sampler`. DX12 reaches these
+        // samplers through the signature path, which already uses the sampler
+        // flag, so the same sampler disagreed across backends for no reason
+        // other than which code path declared it.
+        dynamic: classification.kind === "sampler"
+            ? Boolean(metadata?.sampler?.isDynamic)
+            : Boolean(register.dynamic),
         metadataName: metadataName(classification.kind, metadata, stage, register.registerIndex),
         carbon: carbonPayload(classification.kind, metadata, stage, register.registerIndex),
         annotations: annotationsFor(effectDescription, metadataName(classification.kind, metadata, stage, register.registerIndex)),
