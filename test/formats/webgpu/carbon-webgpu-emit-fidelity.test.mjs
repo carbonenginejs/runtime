@@ -70,30 +70,40 @@ function project(description)
     const samplers = [];
     const stageOrders = [];
 
-    for (const technique of description.techniques ?? [])
+    // No `?? []` defaults below, deliberately. A record tree carries no
+    // undefined values — verified across 110,668 nodes — so a missing array
+    // here means this projection is reading a field the shape does not have,
+    // and a default would turn that mistake into an empty comparison that
+    // passes. That is not hypothetical: reading `pass.stageOrder`, which
+    // belongs to the runtime reflection class and not to this tree, compared
+    // 84,912 empty arrays and reported success.
+    const require = (value, what) =>
     {
-        for (const pass of technique.passes ?? [])
+        if (!Array.isArray(value)) throw new TypeError(`record tree has no ${what}`);
+        return value;
+    };
+
+    for (const technique of require(description.techniques, "techniques"))
+    {
+        for (const pass of require(technique.passes, "technique.passes"))
         {
             // The authored order IS the sequence of stage records in the pass.
-            // `pass.stageOrder` exists on the runtime reflection class, not on
-            // this record tree, so reading it here yields `undefined` and
-            // silently compares empty arrays — which is exactly what this test
-            // did on its first run, reporting 84,912 comparisons that proved
-            // nothing.
-            stageOrders.push((pass.stages ?? []).map(stage => stage?.type ?? null));
-            for (const stage of pass.stages ?? [])
+            // Nothing stores it separately at this layer, because nothing here
+            // reorders them.
+            const stages = require(pass.stages, "pass.stages");
+            stageOrders.push(stages.map(stage => stage.type));
+
+            for (const stage of stages)
             {
-                for (const sampler of stage.samplers ?? [])
+                for (const sampler of require(stage.samplers, "stage.samplers"))
                 {
                     // The STRING, never the arena reference. A name is stored
                     // as `{offset, value}`, and the offset legitimately moves
                     // when the emit re-interns the arena — comparing the
                     // reference reports every file as broken and hides whether
                     // the name itself survived.
-                    const name = sampler?.name;
-                    samplers.push(typeof name === "object" && name !== null
-                        ? name.value ?? null
-                        : name ?? null);
+                    const name = sampler.name;
+                    samplers.push(name === null || name === undefined ? null : name.value);
                 }
             }
         }
