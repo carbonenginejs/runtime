@@ -148,6 +148,14 @@ function decode(bytes, limits) {
         // SETITEM
         setItem(state, opcodeOffset);
         break;
+      case 0x63:
+        // GLOBAL
+        push(state, readGlobal(state, opcodeOffset), opcodeOffset);
+        break;
+      case 0x52:
+        // REDUCE
+        reduce(state, opcodeOffset);
+        break;
       default:
         throw pickleError("CJS_PICKLE_OPCODE_UNSUPPORTED", `Data-only pickle protocol 0 rejects opcode ${displayOpcode(opcode)}.`, opcodeOffset);
     }
@@ -358,6 +366,91 @@ function readMemoID(state, offset) {
     throw pickleError("CJS_PICKLE_LIMIT_EXCEEDED", `Pickle memo ID exceeds maxMemoID (${state.limits.maxMemoID}).`, offset);
   }
   return result;
+}
+
+/**
+ * The one closed set of globals this reader will name, and how each rebuilds.
+ *
+ * `GLOBAL` is the opcode that makes a pickle dangerous: it names a module and an
+ * attribute for the unpickler to import, and `REDUCE` then calls it. The general
+ * form stays refused, and nothing here imports, resolves or invokes anything.
+ * What this table does instead is recognize a fixed name and build the plain
+ * data it stands for.
+ *
+ * `collections.OrderedDict` earns its place because it is not a behaviour, it is
+ * a dictionary that remembers insertion order — and a JavaScript object already
+ * does. It is also, measured across every self-describing container CCP ships,
+ * **the only global any of them uses**: 25 files, one name, once each. They use
+ * it because a schema's attribute order is its field order, which is exactly the
+ * property an ordinary dict would lose.
+ *
+ * **Adding to this table is not a small change.** A name belongs here only if
+ * reconstructing it is pure data with no behaviour of its own, and the entry has
+ * to build that data directly rather than defer to anything callable.
+ */
+const REBUILDABLE_GLOBALS = new Map([["collections.OrderedDict", RebuildOrderedDict]]);
+const GLOBAL_NAME = Symbol("pickle-global");
+
+/** Reads a GLOBAL, and refuses every name outside the closed set above. */
+function readGlobal(state, offset) {
+  const module = decodeAscii(readLine(state, state.limits.maxStringBytes, offset));
+  const attribute = decodeAscii(readLine(state, state.limits.maxStringBytes, offset));
+  const name = `${module}.${attribute}`;
+  if (!REBUILDABLE_GLOBALS.has(name)) {
+    throw pickleError("CJS_PICKLE_GLOBAL_UNSUPPORTED", `Data-only pickle protocol 0 rejects the global ${JSON.stringify(name)}. ` + "Only a closed set of pure-data containers can be rebuilt, and this is not one.", offset);
+  }
+  return {
+    [GLOBAL_NAME]: name
+  };
+}
+
+/** Rebuilds one allowed global from its arguments. Calls nothing. */
+function reduce(state, offset) {
+  const args = state.stack.pop();
+  const callable = state.stack.pop();
+  const name = callable && typeof callable === "object" ? callable[GLOBAL_NAME] : undefined;
+  if (!name || !REBUILDABLE_GLOBALS.has(name)) {
+    throw pickleError("CJS_PICKLE_REDUCE_INVALID", "Pickle REDUCE applies only to a global this reader can rebuild.", offset);
+  }
+  if (!Array.isArray(args)) {
+    throw pickleError("CJS_PICKLE_REDUCE_INVALID", "Pickle REDUCE requires an argument tuple.", offset);
+  }
+  push(state, REBUILDABLE_GLOBALS.get(name)(args, state, offset), offset);
+}
+
+/**
+ * Rebuilds `OrderedDict(pairs)` as a plain object.
+ *
+ * JavaScript preserves the insertion order of string keys, which is the whole of
+ * what the ordered dictionary was chosen for. An integer-like key would not
+ * preserve it — those sort ahead of everything else — so a schema that used one
+ * is refused rather than quietly reordered.
+ */
+function RebuildOrderedDict(args, state, offset) {
+  const pairs = args.length ? args[0] : [];
+  if (!Array.isArray(pairs)) {
+    throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary is rebuilt from a list of key/value pairs.", offset);
+  }
+  requireContainerLimit(state, pairs.length, offset);
+  const result = {};
+  for (const pair of pairs) {
+    if (!Array.isArray(pair) || pair.length !== 2) {
+      throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary entry must be a key/value pair.", offset);
+    }
+    const key = pair[0];
+    if (typeof key !== "string" || String(Number(key)) === key) {
+      throw pickleError("CJS_PICKLE_REDUCE_INVALID", "An ordered dictionary key must be a non-numeric string to keep its order.", offset);
+    }
+    result[key] = pair[1];
+  }
+  return result;
+}
+
+/** Decodes a GLOBAL's module or attribute line, which is always ASCII. */
+function decodeAscii(bytes) {
+  let result = "";
+  for (const byte of bytes) result += String.fromCharCode(byte);
+  return result.trim();
 }
 function popMarkedValues(state, offset) {
   if (!state.marks.length) {

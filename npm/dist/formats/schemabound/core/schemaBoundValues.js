@@ -19,6 +19,23 @@ function ReadValue(context, offset, node) {
   switch (node.type) {
     case "int":
       return ReadInt(context, offset, node);
+    // Identifier types. Each is a four-byte unsigned integer that names a row in
+    // another table, and the schema states the meaning rather than the width -
+    // `factionID` and one or two others declare no size at all. Keeping them
+    // named here rather than folding them into `int` is what lets a consumer see
+    // that a number is a key.
+    case "localizationID":
+    case "typeID":
+    case "factionID":
+    case "groupID":
+    case "categoryID":
+    case "graphicID":
+    case "iconID":
+    case "fsdReference":
+      return ReadInt(context, offset, {
+        size: node.size ?? 4,
+        min: 0
+      });
     case "float":
       return ReadFloat(context, offset, node);
     case "bool":
@@ -28,10 +45,15 @@ function ReadValue(context, offset, node) {
       };
     case "enum":
       return ReadEnum(context, offset, node);
+    case "vector2":
+      return ReadVector(context, offset, node, 2);
     case "vector3":
-      return ReadVector3(context, offset, node);
+      return ReadVector(context, offset, node, 3);
+    // `unicode` is the same framing as `string`; the distinction is Python's,
+    // and both arrive as a byte length followed by UTF-8.
     case "string":
     case "resPath":
+    case "unicode":
       return ReadString(context, offset);
     case "list":
       return ReadList(context, offset, node);
@@ -129,23 +151,30 @@ function ReadEnum(context, offset, node) {
   };
 }
 
-/** Reads three doubles into the component names the schema aliases them to. */
-function ReadVector3(context, offset, node) {
+/** Reads a fixed-length vector into the component names the schema aliases. */
+function ReadVector(context, offset, node, components) {
   const wide = (node.precision ?? "double") === "double";
   const width = wide ? 8 : 4;
   const read = index => wide ? context.view.getFloat64(offset + index * width, true) : context.view.getFloat32(offset + index * width, true);
-  const aliases = node.aliases ?? {
-    x: 0,
-    y: 1,
-    z: 2
-  };
+  const aliases = node.aliases ?? DEFAULT_COMPONENTS[components];
   const value = {};
   for (const [name, index] of Object.entries(aliases)) value[name] = read(index);
   return {
     value,
-    size: node.size ?? width * 3
+    size: node.size ?? width * components
   };
 }
+const DEFAULT_COMPONENTS = {
+  2: {
+    x: 0,
+    y: 1
+  },
+  3: {
+    x: 0,
+    y: 1,
+    z: 2
+  }
+};
 
 /** Reads a length-prefixed UTF-8 string; `resPath` is the same shape. */
 function ReadString(context, offset) {

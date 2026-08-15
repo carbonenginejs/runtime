@@ -13,6 +13,34 @@ module, resolves a global, calls a reducer, follows a persistent ID, or
 constructs a Python object. Every executable, object-bearing, newer-protocol,
 or unknown opcode fails at its exact byte offset.
 
+## One global is rebuilt, and it is a closed set
+
+`GLOBAL` is the opcode that makes a pickle dangerous: it names a module and an
+attribute for the unpickler to import, and `REDUCE` then calls it. That is the
+remote-execution vector, and the general form stays refused — `os.system` fails
+at the `GLOBAL`, before its argument is read and long before `REDUCE` could do
+anything with it.
+
+**`collections.OrderedDict` is the single exception**, because it is not a
+behaviour. It is a dictionary that remembers insertion order, which a JavaScript
+object already is, so the reader builds that object directly. Nothing is
+imported, resolved or invoked, and `REDUCE` applied to anything else is refused
+in its own right so it cannot be used to step around the `GLOBAL` check.
+
+An integer-like key is rejected rather than accepted, because those sort ahead
+of every other key in a JavaScript object and order is the whole point of the
+type.
+
+Adding a second name to that set is not a small change. A name qualifies only if
+reconstructing it is pure data with no behaviour of its own, and the entry has to
+build that data directly rather than defer to anything callable.
+
+Why it matters: measured across every self-describing static-data container CCP
+ships, this is the **only** global any of them uses — 25 files, one name, once
+each. They use it because a schema's attribute order is its field order, which
+an ordinary dictionary would lose. Refusing it left 25 containers unreadable,
+including one of 88 MB holding roughly 477,000 records.
+
 The initial reader accepts the protocol-0 scalar, string, list, tuple,
 dictionary, memo, append, and set-item operations required by inert data
 graphs. Lists and tuples become JavaScript arrays. Integers outside the safe

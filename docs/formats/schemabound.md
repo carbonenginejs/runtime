@@ -36,6 +36,14 @@ text, or an already-parsed object. YAML is parsed with `CjsYamlFormat`, and
 anchors and aliases are rejoined — these schemas share repeated declarations that
 way, and left unresolved an anchor reads as one more field.
 
+**The schema does not always ship as a separate file.** Some containers embed it:
+a `uint32` schema length, then the schema as a protocol-0 pickle, then the
+payload. Read the pickle with [`CjsPickleFormat`](pickle.md) and hand the result
+in as `schema`, with the payload being everything past `4 + length`. It is the
+same format either way — only the schema's own encoding differs, and the type
+vocabulary is a little richer because those schemas name what a number means
+rather than only how wide it is.
+
 - `read` / `readJSON` — plain JSON-compatible values; a wide integer becomes a
   decimal string.
 - `readPayload` — the same, with wide integers left as `BigInt`.
@@ -88,8 +96,9 @@ Two smaller rules:
 | `float` | number, single or double by declared size |
 | `bool` | boolean |
 | `enum` | the member's name, or its number when `readEnumValue` is set |
-| `vector3` | an object keyed by the schema's own component aliases |
-| `string`, `resPath` | length-prefixed UTF-8 |
+| `vector2`, `vector3` | an object keyed by the schema's own component aliases |
+| `string`, `resPath`, `unicode` | length-prefixed UTF-8 |
+| `localizationID`, `typeID`, `factionID` and other `*ID` names | four-byte unsigned key into another table |
 | `list` | array, strided or offset-indexed as above |
 | `dict` | object, framed exactly as the file's own root |
 | `object` | record, as above |

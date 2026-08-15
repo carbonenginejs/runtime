@@ -119,11 +119,14 @@ test("pickle reader preserves lossless integers and safe dictionary keys", () =>
 
 test("pickle reader rejects executable and unsupported protocol opcodes", () =>
 {
+  // The reason this reader exists. `os.system` is refused at the GLOBAL, before
+  // any argument is read and long before REDUCE could call anything.
   assert.throws(
     () => CjsPickleFormat.read(bytes("cos\nsystem\n(S'unsafe'\ntR.")),
-    error => error.code === "CJS_PICKLE_OPCODE_UNSUPPORTED"
+    error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED"
       && error.protocol === 0
       && error.offset === 0
+      && /"os\.system"/u.test(error.message)
   );
   assert.throws(
     () => CjsPickleFormat.read(new Uint8Array([ 0x80, 0x02, 0x4e, 0x2e ])),
@@ -215,3 +218,49 @@ function bytes(value)
 {
   return new TextEncoder().encode(value);
 }
+
+test("rebuilds collections.OrderedDict, and nothing else", () =>
+{
+  // The one global this reader will name. It is a dictionary that remembers
+  // insertion order, which a JavaScript object already is, so rebuilding it is
+  // pure data - nothing is imported, resolved or called. Measured across every
+  // self-describing container CCP ships, it is also the only global any of them
+  // uses: 25 files, this name, once each. They need it because a schema's
+  // attribute order is its field order.
+  const ordered = CjsPickleFormat.read(bytes(
+    "ccollections\nOrderedDict\np1\n((lp2\n(lp3\nS'zulu'\np4\naI1\naa(lp5\nS'alpha'\np6\naI2\naatRp7\n."
+  ));
+
+  assert.deepEqual(ordered, { zulu: 1, alpha: 2 });
+  // Order is the point, so it is asserted rather than assumed.
+  assert.deepEqual(Object.keys(ordered), [ "zulu", "alpha" ]);
+
+  // A different global is still refused, including one that looks harmless.
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("ccollections\ndefaultdict\np1\n((lp2\ntRp3\n.")),
+    error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED"
+  );
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("c__builtin__\neval\np1\n((lp2\ntRp3\n.")),
+    error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED"
+  );
+});
+
+test("REDUCE cannot be pointed at anything that is not a rebuildable global", () =>
+{
+  // Without this, REDUCE on an ordinary value would be a way past the GLOBAL
+  // check rather than a use of it.
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("(lp1\n(tR.")),
+    error => error.code === "CJS_PICKLE_REDUCE_INVALID"
+  );
+
+  // An integer-like key would not keep its order in a JavaScript object - those
+  // sort ahead of everything else - so it is refused rather than reordered.
+  assert.throws(
+    () => CjsPickleFormat.read(bytes(
+      "ccollections\nOrderedDict\np1\n((lp2\n(lp3\nS'2'\np4\naI1\naa(lp5\nS'1'\np6\naI2\naatRp7\n."
+    )),
+    error => error.code === "CJS_PICKLE_REDUCE_INVALID" && /order/u.test(error.message)
+  );
+});

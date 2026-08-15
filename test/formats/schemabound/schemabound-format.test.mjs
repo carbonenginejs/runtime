@@ -362,3 +362,44 @@ test("a schema this reader cannot follow fails, rather than inventing values", (
     error => error.code === "CJS_SCHEMA_BOUND_INVALID"
   );
 });
+
+test("reads the identifier, unicode and two-component vector types", () =>
+{
+  // These come from the containers whose schema ships embedded as a pickle
+  // rather than beside them as YAML. They are the same format; the extra type
+  // names are the schema stating what a number MEANS where the YAML ones state
+  // only its width. An identifier that declares no size at all is four bytes.
+  const schema = {
+    type: "list",
+    fixedItemSize: 28,
+    itemTypes: {
+      type: "object",
+      attributes: {
+        nameID: { type: "localizationID", size: 4 },
+        owner: { type: "factionID" },
+        what: { type: "typeID", size: 4 },
+        at: { type: "vector2", precision: "double", size: 16 }
+      },
+      constantAttributeOffsets: { nameID: 0, owner: 4, what: 8, at: 12 },
+      attributesWithVariableOffsets: [],
+      optionalValueLookups: {},
+      endOfFixedSizeData: 28
+    }
+  };
+  const container = bytes(u32(1), u32(268957), u32(500007), u32(11), f64(1.5), f64(-2.5));
+
+  assert.deepEqual(CjsSchemaBoundFormat.read(container, { schema }), [
+    { nameID: 268957, owner: 500007, what: 11, at: { x: 1.5, y: -2.5 } }
+  ]);
+
+  // `unicode` is Python's distinction, not the container's: same framing as a
+  // string, and the same decode.
+  assert.deepEqual(
+    CjsSchemaBoundFormat.read(
+      // One variable item, so a count and one offset measured from the list start.
+      bytes(u32(1), u32(8), str("Jita")),
+      { schema: { type: "list", itemTypes: { type: "unicode" } } }
+    ),
+    [ "Jita" ]
+  );
+});
