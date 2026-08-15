@@ -1,5 +1,3 @@
-import { CjsPickleFormat } from '../pickle/CjsPickleFormat.js';
-
 const SQLITE_SIGNATURE = "SQLite format 3\0";
 const PICKLE_PREFIX_BYTES = 4;
 
@@ -17,11 +15,7 @@ const CJS_STATIC_FAMILIES = Object.freeze({
  * under it, and each fails in its own way when guessed at:
  *
  * - **SQLite 3** — a `cache(key, value, time)` plus `indexes(key, value)`
- *   database whose values are JSON documents. Readable anywhere given a
- *   driver: a WASM build opens these bytes in a browser and can persist the
- *   result to OPFS or IndexedDB, while Node's own driver opens the file by
- *   path. The driver is injected through `options.sqlite` rather than chosen
- *   here, because a format package should not pick its callers' dependencies.
+ *   database whose values are JSON documents. `CjsSqliteFormat` reads it.
  * - **Prefixed pickle** — a four-byte little-endian prefix followed by a
  *   protocol-0 pickle. Many of these carry class-construction opcodes, which
  *   the data-only pickle reader refuses by design; that refusal is correct and
@@ -34,6 +28,14 @@ const CJS_STATIC_FAMILIES = Object.freeze({
  *   Decoding them is not implemented here yet.
  *
  * Detection is signature-based and never executes or trusts file names.
+ *
+ * **This class identifies and does not decode.** It reports the family, the
+ * payload offset and what is still missing; the caller takes that answer to the
+ * format that owns the family. It carried a `read()` that dispatched to
+ * `CjsPickleFormat` and `CjsSqliteFormat` until 2026-08-15, which made an
+ * identification format the routing table for two others and put the decision
+ * about what to decode in the wrong place. Nothing outside its own tests ever
+ * called it.
  */
 class CjsStaticFormat {
   /**
@@ -94,13 +96,13 @@ class CjsStaticFormat {
         byteLength: bytes.byteLength,
         payloadOffset: 0,
         prefix: null,
-        // Capability here is not a property of the format. These bytes are
-        // decodable given a driver the caller supplies, so `decodable` reports
-        // what this package can do alone and `requires` names what closes the
-        // gap. A boolean static cannot express that.
-        decodable: false,
-        requires: "sqlite",
-        reason: "SQLite containers need a driver, which this package does not ship."
+        // Decodable outright since CjsSqliteFormat landed. This reported
+        // `requires: "sqlite"` while a caller had to supply an engine, and was
+        // the example behind the argument that a capability can depend on the
+        // caller's environment - an argument that now needs a different one.
+        decodable: true,
+        requires: null,
+        reason: "Recognized a SQLite container."
       });
     }
     if (MatchesPickle(bytes)) {
@@ -136,38 +138,6 @@ class CjsStaticFormat {
     const bytes = Normalize(input);
     const detected = this.describe(bytes);
     return bytes.subarray(detected.payloadOffset);
-  }
-
-  /**
-   * Decode a container this package can read, or explain why it cannot.
-   *
-   * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
-   * @param {object} [options] Options forwarded to the underlying format.
-   * @returns {*} Decoded value graph.
-   */
-  static read(input, options = {}) {
-    const bytes = Normalize(input);
-    const detected = this.describe(bytes);
-    if (detected.family === CJS_STATIC_FAMILIES.PICKLE) {
-      return CjsPickleFormat.read(bytes.subarray(detected.payloadOffset), options);
-    }
-    if (detected.family === CJS_STATIC_FAMILIES.SQLITE) {
-      // SQLite is readable anywhere given a driver: a WASM build opens these
-      // bytes in a browser, and Node's own driver opens the file by path. The
-      // driver is a dependency this package will not choose for its callers, so
-      // it is injected rather than assumed absent.
-      if (typeof options.sqlite === "function") {
-        return options.sqlite(bytes);
-      }
-      const error = new TypeError("Reading a SQLite .static container needs a driver. Pass options.sqlite " + "to open these bytes, or open the file by path with a driver of your own.");
-      error.code = "CJS_STATIC_DRIVER_REQUIRED";
-      error.family = detected.family;
-      throw error;
-    }
-    const error = new TypeError(`Cannot read a ${detected.family} .static container: ${detected.reason}`);
-    error.code = "CJS_STATIC_FAMILY_UNSUPPORTED";
-    error.family = detected.family;
-    throw error;
   }
   static id = "static";
   static extensions = Object.freeze([".static"]);

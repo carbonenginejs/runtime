@@ -39,6 +39,7 @@
     "./formats/png": "./dist/formats/png/index.js",
     "./formats/red": "./dist/formats/red/index.js",
     "./formats/red/schema": "./dist/formats/red/core/blackDefinitions.js",
+    "./formats/sqlite": "./dist/formats/sqlite/index.js",
     "./formats/static": "./dist/formats/static/index.js",
     "./formats/stl": "./dist/formats/stl/index.js",
     "./formats/tga": "./dist/formats/tga/index.js",

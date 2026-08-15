@@ -24,7 +24,7 @@ family that cannot be read without its companion.
 
 ## Boundary
 
-`CjsStaticFormat` identifies; it decodes only what this package owns.
+`CjsStaticFormat` identifies. It decodes nothing.
 
 - **SQLite** containers hold `cache(key, value, time)` and
   `indexes(key, value)`, with a JSON document per record.
@@ -35,19 +35,31 @@ family that cannot be read without its companion.
 Detection is signature-based. It never trusts a file name and never executes
 anything.
 
-## SQLite needs a driver, not an environment
+## This format identifies; it does not decode
 
-SQLite is readable anywhere given a driver. A WebAssembly build opens these
-bytes in a browser and the result can be persisted to OPFS or IndexedDB; Node's
-own driver opens the file by path. This package ships no driver, because a
-format package should not choose its callers' dependencies, so one is injected:
+It reports the family, where the payload starts, and what is still missing. The
+caller takes that to the format that owns the family:
 
 ```js
-CjsStaticFormat.read(bytes, { sqlite: openWithYourDriver });
+const probe = await CjsStaticFormat.resolveType(bytes);
+
+if (probe.preferred === CJS_STATIC_FAMILIES.SQLITE)
+{
+  return CjsSqliteFormat.readJSON(bytes);
+}
+
+if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
+{
+  return CjsPickleFormat.read(CjsStaticFormat.payload(bytes));
+}
 ```
 
-Without it, `read()` throws `CJS_STATIC_DRIVER_REQUIRED` rather than claiming the
-container is unreadable.
+**This changed on 2026-08-15.** A `read()` here dispatched to those two formats
+itself, and the SQLite family additionally required a driver injected through
+`options.sqlite`. Both are gone. An identification format should not be the
+routing table for two others, and deciding what to decode belongs to whoever
+asked. Nothing outside this format's own tests ever called `read()`.
+
 
 ## The pickles name classes, and the schemas describe layouts
 
