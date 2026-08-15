@@ -50,10 +50,7 @@ test("identifies a SQLite container and now decodes it", () =>
   assert.equal(detected.decodable, true);
   assert.equal(detected.requires, null);
 
-  assert.throws(
-    () => CjsStaticFormat.read(bytes),
-    error => error.code === "CJS_SQLITE_INVALID"
-  );
+  assert.equal(typeof CjsStaticFormat.read, "undefined");
 });
 
 test("capability names what closes the gap, not just that there is one", () =>
@@ -71,20 +68,20 @@ test("capability names what closes the gap, not just that there is one", () =>
   );
 });
 
-test("a supplied SQLite driver is ignored, because none is needed", () =>
+test("this format identifies and does not decode", async () =>
 {
   const bytes = Bytes(SQLITE_HEADER, [ 0x10, 0x00, 0x01, 0x01 ]);
-  let called = false;
 
-  // `options.sqlite` was the seam a caller injected a driver through. It is
-  // gone rather than deprecated, so a caller still passing one gets this
-  // package's own decode instead of theirs - silently, which is why it is
-  // asserted rather than left to be discovered.
-  assert.throws(
-    () => CjsStaticFormat.read(bytes, { sqlite: () => { called = true; return { opened: true }; } }),
-    error => error.code === "CJS_SQLITE_INVALID"
-  );
-  assert.equal(called, false);
+  // read() dispatched to CjsPickleFormat and CjsSqliteFormat until 2026-08-15.
+  // It is gone, not deprecated: an identification format should not be the
+  // routing table for two others, and nothing outside these tests called it.
+  assert.equal(typeof CjsStaticFormat.read, "undefined");
+
+  // What a caller gets instead is the family and where the payload starts.
+  const probe = await CjsStaticFormat.resolveType(bytes);
+
+  assert.equal(probe.preferred, CJS_STATIC_FAMILIES.SQLITE);
+  assert.equal(CjsStaticFormat.describe(bytes).payloadOffset, 0);
 });
 
 test("identifies a prefixed pickle and reports the prefix and payload", () =>
@@ -99,11 +96,17 @@ test("identifies a prefixed pickle and reports the prefix and payload", () =>
   assert.equal(new TextDecoder().decode(CjsStaticFormat.payload(bytes))[0], "(");
 });
 
-test("decodes a prefixed pickle through the pickle reader", () =>
+test("hands a caller the payload a pickle reader wants, without reading it", () =>
 {
   const bytes = Bytes([ 0x01, 0x00, 0x00, 0x00 ], "(dp1\nS'a'\np2\nI1\ns.");
+  const detected = CjsStaticFormat.describe(bytes);
 
-  assert.deepEqual(CjsStaticFormat.read(bytes), { a: 1 });
+  // This used to decode the pickle here. Identifying the family and saying
+  // where its payload starts is the whole job; the four-byte prefix is what a
+  // caller would otherwise have to know about, so it is measured for them.
+  assert.equal(detected.family, CJS_STATIC_FAMILIES.PICKLE);
+  assert.equal(detected.payloadOffset, 4);
+  assert.deepEqual(CjsStaticFormat.payload(bytes), bytes.subarray(4));
 });
 
 test("a list pickle is recognised as well as a dictionary", () =>
@@ -123,10 +126,9 @@ test("a schema-bound container is reported as unknown, not guessed at", () =>
   assert.match(detected.reason, /\.schema companion/u);
   assert.match(detected.reason, /YAML/u);
 
-  assert.throws(
-    () => CjsStaticFormat.read(bytes),
-    error => error.code === "CJS_STATIC_FAMILY_UNSUPPORTED"
-  );
+  // Nothing can read this family yet, and the container says so through
+  // `requires` rather than through a throw from a decode that never happens.
+  assert.equal(detected.requires, "schema");
 });
 
 test("rejects input that is not bytes", () =>

@@ -24,7 +24,7 @@ family that cannot be read without its companion.
 
 ## Boundary
 
-`CjsStaticFormat` identifies; it decodes only what this package owns.
+`CjsStaticFormat` identifies. It decodes nothing.
 
 - **SQLite** containers hold `cache(key, value, time)` and
   `indexes(key, value)`, with a JSON document per record.
@@ -35,26 +35,31 @@ family that cannot be read without its companion.
 Detection is signature-based. It never trusts a file name and never executes
 anything.
 
-## SQLite needs no driver
+## This format identifies; it does not decode
 
-`read()` decodes this family itself, by handing the bytes to
-[`CjsSqliteFormat`](README.md) exactly as the pickle family is handed to
-`CjsPickleFormat`:
+It reports the family, where the payload starts, and what is still missing. The
+caller takes that to the format that owns the family:
 
 ```js
-CjsStaticFormat.read(bytes); // tables, each an array of row objects
+const probe = await CjsStaticFormat.resolveType(bytes);
+
+if (probe.preferred === CJS_STATIC_FAMILIES.SQLITE)
+{
+  return CjsSqliteFormat.readJSON(bytes);
+}
+
+if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
+{
+  return CjsPickleFormat.read(CjsStaticFormat.payload(bytes));
+}
 ```
 
-**This changed.** Until `CjsSqliteFormat` existed, the family reported
-`decodable: false`, `requires: "sqlite"`, and `read()` threw
-`CJS_STATIC_DRIVER_REQUIRED` unless a caller injected an engine through
-`options.sqlite`. The reasoning was that a format package should not choose its
-callers' dependencies — sound, but it made these containers unreadable in a
-browser, where no engine was ever wired up.
+**This changed on 2026-08-15.** A `read()` here dispatched to those two formats
+itself, and the SQLite family additionally required a driver injected through
+`options.sqlite`. Both are gone. An identification format should not be the
+routing table for two others, and deciding what to decode belongs to whoever
+asked. Nothing outside this format's own tests ever called `read()`.
 
-A caller still passing `options.sqlite` is now **ignored rather than obeyed**,
-and gets this package's decode instead of theirs. Worth checking for, because
-nothing warns.
 
 ## The pickles name classes, and the schemas describe layouts
 

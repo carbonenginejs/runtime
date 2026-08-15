@@ -1,5 +1,3 @@
-import { CjsPickleFormat } from "../pickle/index.js";
-import { CjsSqliteFormat } from "../sqlite/index.js";
 
 const SQLITE_SIGNATURE = "SQLite format 3\0";
 const PICKLE_PREFIX_BYTES = 4;
@@ -18,11 +16,7 @@ export const CJS_STATIC_FAMILIES = Object.freeze({
  * under it, and each fails in its own way when guessed at:
  *
  * - **SQLite 3** — a `cache(key, value, time)` plus `indexes(key, value)`
- *   database whose values are JSON documents. Readable anywhere given a
- *   driver: a WASM build opens these bytes in a browser and can persist the
- *   result to OPFS or IndexedDB, while Node's own driver opens the file by
- *   path. The driver is injected through `options.sqlite` rather than chosen
- *   here, because a format package should not pick its callers' dependencies.
+ *   database whose values are JSON documents. `CjsSqliteFormat` reads it.
  * - **Prefixed pickle** — a four-byte little-endian prefix followed by a
  *   protocol-0 pickle. Many of these carry class-construction opcodes, which
  *   the data-only pickle reader refuses by design; that refusal is correct and
@@ -35,6 +29,14 @@ export const CJS_STATIC_FAMILIES = Object.freeze({
  *   Decoding them is not implemented here yet.
  *
  * Detection is signature-based and never executes or trusts file names.
+ *
+ * **This class identifies and does not decode.** It reports the family, the
+ * payload offset and what is still missing; the caller takes that answer to the
+ * format that owns the family. It carried a `read()` that dispatched to
+ * `CjsPickleFormat` and `CjsSqliteFormat` until 2026-08-15, which made an
+ * identification format the routing table for two others and put the decision
+ * about what to decode in the wrong place. Nothing outside its own tests ever
+ * called it.
  */
 export class CjsStaticFormat
 {
@@ -154,45 +156,6 @@ export class CjsStaticFormat
     return bytes.subarray(detected.payloadOffset);
   }
 
-  /**
-   * Decode a container this package can read, or explain why it cannot.
-   *
-   * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
-   * @param {object} [options] Options forwarded to the underlying format.
-   * @returns {*} Decoded value graph.
-   */
-  static read(input, options = {})
-  {
-    const bytes = Normalize(input);
-    const detected = this.describe(bytes);
-
-    if (detected.family === CJS_STATIC_FAMILIES.PICKLE)
-    {
-      return CjsPickleFormat.read(bytes.subarray(detected.payloadOffset), options);
-    }
-
-    if (detected.family === CJS_STATIC_FAMILIES.SQLITE)
-    {
-      // Delegated exactly as the pickle family above is: identify the family,
-      // then hand the bytes to the format that owns it.
-      //
-      // This took an injected `options.sqlite` driver until CjsSqliteFormat
-      // existed, on the reasoning that a SQLite engine was a dependency this
-      // package would not choose for its callers. A reader that needs no engine
-      // removes the choice, so the seam is gone. A caller still passing
-      // `options.sqlite` is now ignored rather than obeyed, which is worth
-      // knowing if a decode changes shape.
-      return CjsSqliteFormat.read(bytes, options);
-    }
-
-    const error = new TypeError(
-      `Cannot read a ${detected.family} .static container: ${detected.reason}`
-    );
-
-    error.code = "CJS_STATIC_FAMILY_UNSUPPORTED";
-    error.family = detected.family;
-    throw error;
-  }
 
   static id = "static";
   static extensions = Object.freeze([ ".static" ]);

@@ -65,11 +65,14 @@ export class CjsSqliteFormat {
     return Probe(this.is(input), options);
   }
 
-  // Deliberately NO `inspect` alias onto `isSupported`. The sibling formats
-  // have one, and the capability-surface decision page names that exact alias
-  // as the confusion it wants removed: `inspect` reports what a thing is in 28
-  // formats, which is metadata, not a capability answer. Adding a twenty-ninth
-  // instance would make the pending fix larger for no gain here.
+  // INTERIM, 2026-08-16. No `inspect` alias onto `isSupported`, while nineteen
+  // sibling formats have one. The capability-surface decision page names that
+  // alias as the confusion it wants removed, but its own "What is not proposed"
+  // says not to change things on its strength alone - so this is a divergence
+  // awaiting a decision, not a settled position.
+  //
+  // See maintenance/INTERIM-sqlite-and-static-2026-08-16.md before resolving it,
+  // and search for callers of `inspect` on any format first.
 
   /**
    * Reads every table and row.
