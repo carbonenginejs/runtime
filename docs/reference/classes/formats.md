@@ -689,6 +689,17 @@ Data-only Python pickle format facade that currently decodes protocol 0 into JSO
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+<!-- class:CjsSqliteFormat -->
+## `CjsSqliteFormat`
+
+Reads a SQLite 3 container as data: the tables it holds and every row of them, with no SQL and no query engine.
+
+- Export: `@carbonenginejs/runtime-resource/formats/sqlite`
+- Source: `src/formats/sqlite/CjsSqliteFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+- Notes: Read-only and full-scan. Index b-trees are never walked, and nothing here needs a driver or a filesystem.
+
 <!-- class:CjsStaticFormat -->
 ## `CjsStaticFormat`
 

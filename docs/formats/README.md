@@ -74,6 +74,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | Python pickle (`.pickle`, protocol 0 data subset) | `CjsPickleFormat` | `@carbonenginejs/runtime-resource/formats/pickle` |
 | PNG (`.png`) | `CjsPngFormat` | `@carbonenginejs/runtime-resource/formats/png` |
 | Red (`.red`) | `CjsRedFormat` | `@carbonenginejs/runtime-resource/formats/red` |
+| SQLite 3 (`.sqlite`/`.db`) | `CjsSqliteFormat` | `@carbonenginejs/runtime-resource/formats/sqlite` |
 | Client static data (`.static`, identification) | `CjsStaticFormat` | `@carbonenginejs/runtime-resource/formats/static` |
 | STL (`.stl`) | `CjsStlFormat` | `@carbonenginejs/runtime-resource/formats/stl` |
 | TGA (`.tga`) | `CjsTgaFormat` | `@carbonenginejs/runtime-resource/formats/tga` |
