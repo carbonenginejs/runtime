@@ -15,12 +15,16 @@ programs are not stored: a translated slot contains WGSL and an untranslated slo
 Each translated pass may also carry one WebGPU backend block containing
 bind-group layouts and resource transforms.
 
-That preservation is **inherited, not separately tested.** It holds because the
-emit round-trips the description through the same Carbon classes the plain
-container uses and mutates only `stage.sourceProgram` and `pass.backendBlock`;
-the byte-exact corpus proof covers the shared codec, and no WebGPU-specific test
-pins sampler names or stage order. Anything that widens what the emit touches
-loses that guarantee silently, so widen it and add the test together.
+That preservation is **inherited from the shared codec, and now pinned on this
+path.** It holds because the emit round-trips the description through the same
+Carbon classes the plain container uses and mutates only `stage.sourceProgram`
+and `pass.backendBlock`.
+
+`carbon-webgpu-emit-fidelity.test.mjs` compares both fields source-to-emitted
+across the corpus rather than trusting that restraint: 2,960 emitted files,
+39,252 sampler names and 84,912 stage orders, of which 102 are non-canonical —
+the case that distinguishes a preserved order from a re-derived one. Widening
+what the emit touches now fails there instead of surfacing in a consumer later.
 
 There is no Carbon WebGPU-specific magic, envelope, payload tag, or container version.
 Backend identity comes from the resource path, such as `effect.webgpu/`, just
