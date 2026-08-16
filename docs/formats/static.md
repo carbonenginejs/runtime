@@ -120,6 +120,23 @@ is `null` with `mismatch` always false.
 building a probe. `payload()` returns the bytes past any wrapper, which is what a
 caller hands to the format that owns the family.
 
+## If you want the whole job done, use the container readers
+
+Identifying and then routing by hand is the same twenty lines for every caller,
+so they are written once at
+[`@carbonenginejs/runtime-resource/containers`](../containers.md):
+
+```js
+import { ReadStaticContainer } from "@carbonenginejs/runtime-resource/containers";
+
+const records = await ReadStaticContainer(bytes, "res:/staticdata/skins.static");
+```
+
+**That is a different subpath on purpose.** This format imports nothing at all,
+and importing `formats/static` gets you exactly one self-contained file.
+The container readers know four formats between them, so a caller that wants
+them opts in and takes the weight knowingly.
+
 ## Related documentation
 
 - [Formats](README.md)

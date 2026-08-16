@@ -41,6 +41,7 @@
     "./formats/red/schema": "./dist/formats/red/core/blackDefinitions.js",
     "./formats/schemabound": "./dist/formats/schemabound/index.js",
     "./formats/sqlite": "./dist/formats/sqlite/index.js",
+    "./containers": "./dist/containers/index.js",
     "./formats/static": "./dist/formats/static/index.js",
     "./formats/stl": "./dist/formats/stl/index.js",
     "./formats/tga": "./dist/formats/tga/index.js",
