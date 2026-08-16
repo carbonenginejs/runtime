@@ -26,11 +26,22 @@ function Bytes(...parts)
   return result;
 }
 
-test("package subpath exports one public static format class", async () =>
+test("the subpath exports the identification format and the container readers", async () =>
 {
   const mod = await import("../../../src/formats/static/index.js");
 
-  assert.deepEqual(Object.keys(mod).sort(), [ "CJS_STATIC_FAMILIES", "CjsStaticFormat", "default" ]);
+  // The format identifies and the readers decode. They ship together because
+  // reading a .static needs both, and the readers import the three formats that
+  // own its families - which is a format reaching formats, not a format
+  // dragging the library in behind it.
+  assert.deepEqual(Object.keys(mod).sort(), [
+    "CJS_STATIC_FAMILIES",
+    "CjsStaticFormat",
+    "ReadEmbeddedSchemaContainer",
+    "ReadSchemaBoundContainer",
+    "ReadStaticContainer",
+    "default"
+  ]);
   assert.equal(mod.default, CjsStaticFormat);
   assert.equal(NamedCjsStaticFormat, CjsStaticFormat);
 });

@@ -120,22 +120,44 @@ is `null` with `mismatch` always false.
 building a probe. `payload()` returns the bytes past any wrapper, which is what a
 caller hands to the format that owns the family.
 
-## If you want the whole job done, use the container readers
+## Reading a container, rather than identifying one
 
-Identifying and then routing by hand is the same twenty lines for every caller,
-so they are written once at
-[`@carbonenginejs/runtime-resource/containers`](../containers.md):
+Identifying a family and then routing it to the format that owns it is the same
+twenty lines in every caller, so they are written once here and exported from the
+same subpath:
 
 ```js
-import { ReadStaticContainer } from "@carbonenginejs/runtime-resource/containers";
+import {
+    ReadStaticContainer,          // SQLite family
+    ReadEmbeddedSchemaContainer,  // schema length, pickled schema, payload
+    ReadSchemaBoundContainer,     // payload plus its .schema sibling
+} from "@carbonenginejs/runtime-resource/formats/static";
 
-const records = await ReadStaticContainer(bytes, "res:/staticdata/skins.static");
+const skins = await ReadStaticContainer(bytes, "res:/staticdata/skins.static");
 ```
 
-**That is a different subpath on purpose.** This format imports nothing at all,
-and importing `formats/static` gets you exactly one self-contained file.
-The container readers know four formats between them, so a caller that wants
-them opts in and takes the weight knowingly.
+The `path` argument only ever names the file in an error.
+
+These import the pickle, schema-bound and SQLite formats, because reading a
+`.static` genuinely needs them - a container format that wraps other containers
+has to reach the formats it wraps. What a format must not do is pull the rest of
+the library in behind it, and nothing here reaches outside `formats/`.
+
+`CjsStaticFormat` itself still imports nothing and decodes nothing. Routing is a
+sibling module so that identification is not also the routing table, which is the
+arrangement `read()` was cut back to on 2026-08-15.
+
+### Errors
+
+| Code | When |
+| --- | --- |
+| `CJS_STATIC_FORMAT_FAMILY_UNSUPPORTED` | the bytes are a `.static` of a family this reader does not read; carries `family` |
+| `CJS_STATIC_FORMAT_SHAPE_INVALID` | right family, wrong container - no `cache` table, or a schema length running past the end |
+| `CJS_STATIC_FORMAT_RECORD_INVALID` | one stored value is not JSON; carries `key` |
+
+The family check is kept even on `ReadSchemaBoundContainer`, where the caller has
+already supplied a schema: those bytes carry no signature at all, so given the
+wrong schema they decode into plausible nonsense rather than failing.
 
 ## Related documentation
 

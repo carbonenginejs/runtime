@@ -40,7 +40,6 @@
     "./formats/png": "./src/formats/png/index.js",
     "./formats/red": "./src/formats/red/index.js",
     "./formats/red/schema": "./src/formats/red/core/blackDefinitions.js",
-    "./containers": "./src/containers/index.js",
     "./formats/static": "./src/formats/static/index.js",
     "./formats/schemabound": "./src/formats/schemabound/index.js",
     "./formats/sqlite": "./src/formats/sqlite/index.js",
