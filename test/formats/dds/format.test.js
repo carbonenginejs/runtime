@@ -350,6 +350,44 @@ test("decodes the reserved BC7 mode as transparent black", () =>
     assert.deepEqual(Array.from(rgba.data), new Array(16 * 4).fill(0));
 });
 
+test("decodes every slice of a compressed volume, not just the first", () =>
+{
+    // Two 4x4 DXT1 blocks: slice 0 opaque red, slice 1 opaque blue. Distinct
+    // colours because the bug being guarded against returned a correctly shaped
+    // buffer holding the wrong slice, which no length check can catch.
+    const red = new Uint8Array([ 0x00, 0xf8, 0x00, 0xf8, 0, 0, 0, 0 ]);
+    const blue = new Uint8Array([ 0x1f, 0x00, 0x1f, 0x00, 0, 0, 0, 0 ]);
+    const payload = new Uint8Array(16);
+
+    payload.set(red, 0);
+    payload.set(blue, 8);
+
+    const rgba = CjsDdsFormat.read(makeVolumeDdsHeader(4, 4, 2, "DXT1", payload), { emit: "rgba" });
+
+    assert.equal(rgba.depth, 2, "depth is reported");
+    assert.equal(rgba.isVolume, true);
+    assert.equal(rgba.sliceBytes, 4 * 4 * 4);
+    assert.equal(rgba.data.length, 4 * 4 * 4 * 2, "the whole volume is decoded");
+
+    assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ 255, 0, 0, 255 ], "slice 0 is red");
+    assert.deepEqual(
+        Array.from(rgba.data.slice(rgba.sliceBytes, rgba.sliceBytes + 4)),
+        [ 0, 0, 255, 255 ],
+        "slice 1 is blue, so it was decoded rather than dropped"
+    );
+});
+
+test("reports depth 1 for a flat image", () =>
+{
+    // The companion to the volume case: `depth` is always present, so a caller
+    // never has to tell "flat" from "the field is missing".
+    const rgba = CjsDdsFormat.read(makeDdsHeader(4, 4, "DXT1", new Uint8Array(8)), { emit: "rgba" });
+
+    assert.equal(rgba.depth, 1);
+    assert.equal(rgba.isVolume, false);
+    assert.equal(rgba.data.length, 4 * 4 * 4);
+});
+
 const BC7_MODES = Object.freeze([
     { subsets: 3, partitionBits: 4, rotationBits: 0, selectionBits: 0, colorBits: 4, alphaBits: 0, endpointPBits: 1, sharedPBits: 0, indexBits: 3, secondaryIndexBits: 0 },
     { subsets: 2, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 6, alphaBits: 0, endpointPBits: 0, sharedPBits: 1, indexBits: 3, secondaryIndexBits: 0 },
@@ -455,6 +493,17 @@ function makeDdsHeader(width, height, fourCc, payload = [])
     writeU32LE(bytes, 80, 0x4);
     bytes.set(Array.from(fourCc).map(c => c.charCodeAt(0)), 84);
     bytes.set(payload, 128);
+    return bytes;
+}
+
+/** A legacy-FourCC DDS carrying a depth and the volume caps bit. */
+function makeVolumeDdsHeader(width, height, depth, fourCc, payload = [])
+{
+    const bytes = makeDdsHeader(width, height, fourCc, payload);
+
+    writeU32LE(bytes, 24, depth);
+    writeU32LE(bytes, 112, 0x00200000);   // DDSCAPS2_VOLUME
+
     return bytes;
 }
 
