@@ -242,6 +242,6 @@ function Normalize(input)
 
   const error = new TypeError("A .static container must be an ArrayBuffer or a view over one.");
 
-  error.code = "CJS_STATIC_INPUT_INVALID";
+  error.code = "CJS_STATIC_FORMAT_INPUT_INVALID";
   throw error;
 }

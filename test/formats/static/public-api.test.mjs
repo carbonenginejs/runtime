@@ -135,7 +135,7 @@ test("rejects input that is not bytes", () =>
 {
   assert.throws(
     () => CjsStaticFormat.describe("not bytes"),
-    error => error.code === "CJS_STATIC_INPUT_INVALID"
+    error => error.code === "CJS_STATIC_FORMAT_INPUT_INVALID"
   );
 });
 

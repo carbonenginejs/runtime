@@ -3818,7 +3818,7 @@ function arrayPropertyToNumbers(property, feature)
     if (property.compressed)
     {
         const error = new Error(`fbx: GR2 output cannot read compressed ${feature} arrays yet`);
-        error.code = "CJS_FORMAT_OUTPUT_UNSUPPORTED";
+        error.code = "CJS_FORMAT_OUTPUT_NOT_SUPPORTED";
         error.sourceFormat = "fbx";
         error.emit = OUTPUT_GR2;
         error.feature = "compressed-array";

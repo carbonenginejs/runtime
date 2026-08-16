@@ -53,7 +53,7 @@ if (probe.preferred === CJS_STATIC_FAMILIES.SQLITE)
 if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
 {
   // The prefix is the SCHEMA's length, not a wrapper to skip. Handing the whole
-  // remainder to a pickle reader throws CJS_PICKLE_TRAILING_DATA, on the binary
+  // remainder to a pickle reader throws CJS_PICKLE_FORMAT_TRAILING_DATA, on the binary
   // payload, long after the schema has parsed.
   const length = new DataView(bytes.buffer, bytes.byteOffset).getUint32(0, true);
 

@@ -214,7 +214,7 @@ function Normalize(input) {
     return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   }
   const error = new TypeError("A .static container must be an ArrayBuffer or a view over one.");
-  error.code = "CJS_STATIC_INPUT_INVALID";
+  error.code = "CJS_STATIC_FORMAT_INPUT_INVALID";
   throw error;
 }
 

@@ -39,7 +39,7 @@ export class CjsPickleProtocol0Reader
     if (this.#bytes.byteLength > this.#limits.maxInputBytes)
     {
       throw pickleError(
-        "CJS_PICKLE_LIMIT_EXCEEDED",
+        "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
         `Pickle input exceeds maxInputBytes (${this.#limits.maxInputBytes}).`,
         0
       );
@@ -112,7 +112,7 @@ function decode(bytes, limits)
     if (state.operations > limits.maxOperations)
     {
       throw pickleError(
-        "CJS_PICKLE_LIMIT_EXCEEDED",
+        "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
         `Pickle operation count exceeds maxOperations (${limits.maxOperations}).`,
         opcodeOffset
       );
@@ -190,7 +190,7 @@ function decode(bytes, limits)
 
       default:
         throw pickleError(
-          "CJS_PICKLE_OPCODE_UNSUPPORTED",
+          "CJS_PICKLE_FORMAT_OPCODE_UNSUPPORTED",
           `Data-only pickle protocol 0 rejects opcode ${displayOpcode(opcode)}.`,
           opcodeOffset
         );
@@ -198,7 +198,7 @@ function decode(bytes, limits)
   }
 
   throw pickleError(
-    "CJS_PICKLE_STOP_MISSING",
+    "CJS_PICKLE_FORMAT_STOP_MISSING",
     "Pickle input ended without a STOP opcode.",
     state.offset
   );
@@ -211,7 +211,7 @@ function stop(state, offset)
   if (state.pendingGlobals.size)
   {
     throw pickleError(
-      "CJS_PICKLE_GLOBAL_UNSUPPORTED",
+      "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED",
       "Pickle names a global that no REDUCE consumes.",
       offset
     );
@@ -220,7 +220,7 @@ function stop(state, offset)
   if (state.marks.length || state.stack.length !== 1 || state.stack[0] === MARK)
   {
     throw pickleError(
-      "CJS_PICKLE_STACK_INVALID",
+      "CJS_PICKLE_FORMAT_STACK_INVALID",
       "Pickle STOP requires one completed value and no open marks.",
       offset
     );
@@ -228,7 +228,7 @@ function stop(state, offset)
   if (state.offset !== state.bytes.byteLength)
   {
     throw pickleError(
-      "CJS_PICKLE_TRAILING_DATA",
+      "CJS_PICKLE_FORMAT_TRAILING_DATA",
       "Pickle input contains bytes after STOP.",
       state.offset
     );
@@ -242,7 +242,7 @@ function readFloat(state, offset)
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/u.test(value))
   {
     throw pickleError(
-      "CJS_PICKLE_NUMBER_INVALID",
+      "CJS_PICKLE_FORMAT_NUMBER_INVALID",
       `Pickle FLOAT value is invalid: ${JSON.stringify(value)}.`,
       offset
     );
@@ -252,7 +252,7 @@ function readFloat(state, offset)
   if (!Number.isFinite(result))
   {
     throw pickleError(
-      "CJS_PICKLE_NUMBER_INVALID",
+      "CJS_PICKLE_FORMAT_NUMBER_INVALID",
       "Pickle FLOAT must be finite for JSON-compatible output.",
       offset
     );
@@ -271,7 +271,7 @@ function readInteger(state, offset, isLong)
   if (!/^[+-]?\d+$/u.test(value))
   {
     throw pickleError(
-      "CJS_PICKLE_NUMBER_INVALID",
+      "CJS_PICKLE_FORMAT_NUMBER_INVALID",
       `Pickle integer value is invalid: ${JSON.stringify(value)}.`,
       offset
     );
@@ -292,7 +292,7 @@ function readString(state, offset)
   if (bytes.byteLength < 2)
   {
     throw pickleError(
-      "CJS_PICKLE_STRING_INVALID",
+      "CJS_PICKLE_FORMAT_STRING_INVALID",
       "Pickle STRING must be a quoted Python string literal.",
       offset
     );
@@ -303,7 +303,7 @@ function readString(state, offset)
     || bytes[bytes.byteLength - 1] !== quote)
   {
     throw pickleError(
-      "CJS_PICKLE_STRING_INVALID",
+      "CJS_PICKLE_FORMAT_STRING_INVALID",
       "Pickle STRING must use matching single or double quotes.",
       offset
     );
@@ -323,7 +323,7 @@ function readString(state, offset)
     if (index >= bytes.byteLength - 1)
     {
       throw pickleError(
-        "CJS_PICKLE_STRING_INVALID",
+        "CJS_PICKLE_FORMAT_STRING_INVALID",
         "Pickle STRING ends with an incomplete escape.",
         offset
       );
@@ -356,7 +356,7 @@ function readString(state, offset)
     else
     {
       throw pickleError(
-        "CJS_PICKLE_STRING_INVALID",
+        "CJS_PICKLE_FORMAT_STRING_INVALID",
         `Pickle STRING contains unsupported escape \\${String.fromCharCode(escaped)}.`,
         offset
       );
@@ -391,7 +391,7 @@ function readUnicode(state, offset)
       if (codePoint > 0x10ffff)
       {
         throw pickleError(
-          "CJS_PICKLE_STRING_INVALID",
+          "CJS_PICKLE_FORMAT_STRING_INVALID",
           `Pickle UNICODE code point is out of range: ${codePoint}.`,
           offset
         );
@@ -422,7 +422,7 @@ function readDictionary(state, offset)
   if (values.length % 2 !== 0)
   {
     throw pickleError(
-      "CJS_PICKLE_CONTAINER_INVALID",
+      "CJS_PICKLE_FORMAT_CONTAINER_INVALID",
       "Pickle DICT requires key/value pairs.",
       offset
     );
@@ -456,7 +456,7 @@ function append(state, offset)
   if (!Array.isArray(target) || !state.lists.has(target))
   {
     throw pickleError(
-      "CJS_PICKLE_CONTAINER_INVALID",
+      "CJS_PICKLE_FORMAT_CONTAINER_INVALID",
       "Pickle APPEND target must be a list.",
       offset
     );
@@ -476,7 +476,7 @@ function setItem(state, offset)
   if (!isDictionary(target))
   {
     throw pickleError(
-      "CJS_PICKLE_CONTAINER_INVALID",
+      "CJS_PICKLE_FORMAT_CONTAINER_INVALID",
       "Pickle SETITEM target must be a dictionary.",
       offset
     );
@@ -502,7 +502,7 @@ function defineDictionaryValue(state, target, key, value, count, offset)
   if (previousType && previousType !== normalized.type)
   {
     throw pickleError(
-      "CJS_PICKLE_CONTAINER_INVALID",
+      "CJS_PICKLE_FORMAT_CONTAINER_INVALID",
       `Pickle dictionary keys collide after JSON normalization: ${JSON.stringify(normalized.value)}.`,
       offset
     );
@@ -528,7 +528,7 @@ function normalizeDictionaryKey(key, offset)
     return { type: "integer", value: String(key) };
   }
   throw pickleError(
-    "CJS_PICKLE_CONTAINER_INVALID",
+    "CJS_PICKLE_FORMAT_CONTAINER_INVALID",
     "Data-only pickle dictionaries require string or safe-integer keys.",
     offset
   );
@@ -540,7 +540,7 @@ function putMemo(state, offset)
   if (state.stack[state.stack.length - 1] === MARK)
   {
     throw pickleError(
-      "CJS_PICKLE_MARK_INVALID",
+      "CJS_PICKLE_FORMAT_MARK_INVALID",
       "Pickle MARK cannot be stored in the memo.",
       offset
     );
@@ -549,7 +549,7 @@ function putMemo(state, offset)
   if (!state.memo.has(id) && state.memo.size >= state.limits.maxMemoEntries)
   {
     throw pickleError(
-      "CJS_PICKLE_LIMIT_EXCEEDED",
+      "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
       `Pickle memo exceeds maxMemoEntries (${state.limits.maxMemoEntries}).`,
       offset
     );
@@ -563,7 +563,7 @@ function getMemo(state, offset)
   if (!state.memo.has(id))
   {
     throw pickleError(
-      "CJS_PICKLE_MEMO_INVALID",
+      "CJS_PICKLE_FORMAT_MEMO_INVALID",
       `Pickle memo entry ${id} does not exist.`,
       offset
     );
@@ -577,7 +577,7 @@ function readMemoID(state, offset)
   if (!/^\d+$/u.test(value))
   {
     throw pickleError(
-      "CJS_PICKLE_MEMO_INVALID",
+      "CJS_PICKLE_FORMAT_MEMO_INVALID",
       `Pickle memo ID is invalid: ${JSON.stringify(value)}.`,
       offset
     );
@@ -587,7 +587,7 @@ function readMemoID(state, offset)
   if (!Number.isSafeInteger(result) || result > state.limits.maxMemoID)
   {
     throw pickleError(
-      "CJS_PICKLE_LIMIT_EXCEEDED",
+      "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
       `Pickle memo ID exceeds maxMemoID (${state.limits.maxMemoID}).`,
       offset
     );
@@ -631,7 +631,7 @@ function readGlobal(state, offset)
   if (!REBUILDABLE_GLOBALS.has(name))
   {
     throw pickleError(
-      "CJS_PICKLE_GLOBAL_UNSUPPORTED",
+      "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED",
       `Data-only pickle protocol 0 rejects the global ${JSON.stringify(name)}. `
         + "Only a closed set of pure-data containers can be rebuilt, and this is not one.",
       offset
@@ -656,7 +656,7 @@ function reduce(state, offset)
   if (!name || !REBUILDABLE_GLOBALS.has(name))
   {
     throw pickleError(
-      "CJS_PICKLE_REDUCE_INVALID",
+      "CJS_PICKLE_FORMAT_REDUCE_INVALID",
       "Pickle REDUCE applies only to a global this reader can rebuild.",
       offset
     );
@@ -665,7 +665,7 @@ function reduce(state, offset)
   if (!Array.isArray(args))
   {
     throw pickleError(
-      "CJS_PICKLE_REDUCE_INVALID",
+      "CJS_PICKLE_FORMAT_REDUCE_INVALID",
       "Pickle REDUCE requires an argument tuple.",
       offset
     );
@@ -695,7 +695,7 @@ function RebuildOrderedDict(args, state, offset)
   if (!Array.isArray(pairs))
   {
     throw pickleError(
-      "CJS_PICKLE_REDUCE_INVALID",
+      "CJS_PICKLE_FORMAT_REDUCE_INVALID",
       "An ordered dictionary is rebuilt from a list of key/value pairs.",
       offset
     );
@@ -714,7 +714,7 @@ function RebuildOrderedDict(args, state, offset)
   if (state.rebuiltItems > state.limits.maxContainerItems)
   {
     throw pickleError(
-      "CJS_PICKLE_LIMIT_EXCEEDED",
+      "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
       `Rebuilt items exceed maxContainerItems (${state.limits.maxContainerItems}) across the decode.`,
       offset
     );
@@ -727,7 +727,7 @@ function RebuildOrderedDict(args, state, offset)
     if (!Array.isArray(pair) || pair.length !== 2)
     {
       throw pickleError(
-        "CJS_PICKLE_REDUCE_INVALID",
+        "CJS_PICKLE_FORMAT_REDUCE_INVALID",
         "An ordered dictionary entry must be a key/value pair.",
         offset
       );
@@ -738,7 +738,7 @@ function RebuildOrderedDict(args, state, offset)
     if (typeof key !== "string")
     {
       throw pickleError(
-        "CJS_PICKLE_REDUCE_INVALID",
+        "CJS_PICKLE_FORMAT_REDUCE_INVALID",
         "An ordered dictionary key must be a string.",
         offset
       );
@@ -766,7 +766,7 @@ function RebuildOrderedDict(args, state, offset)
 
   if (kept.length !== expected.length || kept.some((key, index) => key !== expected[index])) {
     throw pickleError(
-      "CJS_PICKLE_REDUCE_INVALID",
+      "CJS_PICKLE_FORMAT_REDUCE_INVALID",
       "An ordered dictionary's key order would not survive as a JavaScript object.",
       offset
     );
@@ -798,7 +798,7 @@ function rejectGlobalMarker(state, value, offset)
   if (value && typeof value === "object" && state.globalMarkers.has(value))
   {
     throw pickleError(
-      "CJS_PICKLE_GLOBAL_UNSUPPORTED",
+      "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED",
       "A pickle global is only usable as the target of a REDUCE.",
       offset
     );
@@ -812,7 +812,7 @@ function popMarkedValues(state, offset)
   if (!state.marks.length)
   {
     throw pickleError(
-      "CJS_PICKLE_MARK_INVALID",
+      "CJS_PICKLE_FORMAT_MARK_INVALID",
       "Pickle container has no matching MARK.",
       offset
     );
@@ -822,7 +822,7 @@ function popMarkedValues(state, offset)
   if (state.stack[mark] !== MARK)
   {
     throw pickleError(
-      "CJS_PICKLE_MARK_INVALID",
+      "CJS_PICKLE_FORMAT_MARK_INVALID",
       "Pickle MARK stack is inconsistent.",
       offset
     );
@@ -839,7 +839,7 @@ function push(state, value, offset)
   if (state.stack.length >= state.limits.maxStackDepth)
   {
     throw pickleError(
-      "CJS_PICKLE_LIMIT_EXCEEDED",
+      "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
       `Pickle stack exceeds maxStackDepth (${state.limits.maxStackDepth}).`,
       offset
     );
@@ -852,7 +852,7 @@ function requireStack(state, count, offset)
   if (state.stack.length < count)
   {
     throw pickleError(
-      "CJS_PICKLE_STACK_INVALID",
+      "CJS_PICKLE_FORMAT_STACK_INVALID",
       `Pickle opcode requires ${count} stack values.`,
       offset
     );
@@ -864,7 +864,7 @@ function requireContainerLimit(state, count, offset)
   if (count > state.limits.maxContainerItems)
   {
     throw pickleError(
-      "CJS_PICKLE_LIMIT_EXCEEDED",
+      "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
       `Pickle container exceeds maxContainerItems (${state.limits.maxContainerItems}).`,
       offset
     );
@@ -880,7 +880,7 @@ function readAsciiLine(state, limit, offset)
     if (byte > 0x7f)
     {
       throw pickleError(
-        "CJS_PICKLE_STRING_INVALID",
+        "CJS_PICKLE_FORMAT_STRING_INVALID",
         "Pickle control line must contain ASCII bytes.",
         offset
       );
@@ -899,7 +899,7 @@ function readLine(state, limit, offset)
     if (state.offset - start > limit)
     {
       throw pickleError(
-        "CJS_PICKLE_LIMIT_EXCEEDED",
+        "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
         `Pickle line exceeds its ${limit}-byte limit.`,
         offset
       );
@@ -909,7 +909,7 @@ function readLine(state, limit, offset)
   if (state.offset >= state.bytes.byteLength)
   {
     throw pickleError(
-      "CJS_PICKLE_EOF",
+      "CJS_PICKLE_FORMAT_EOF",
       "Pickle line is missing its newline terminator.",
       offset
     );
@@ -925,7 +925,7 @@ function readHex(bytes, start, length, offset)
   if (start + length > bytes.byteLength)
   {
     throw pickleError(
-      "CJS_PICKLE_STRING_INVALID",
+      "CJS_PICKLE_FORMAT_STRING_INVALID",
       "Pickle escape sequence is truncated.",
       offset
     );
@@ -938,7 +938,7 @@ function readHex(bytes, start, length, offset)
     if (value === -1)
     {
       throw pickleError(
-        "CJS_PICKLE_STRING_INVALID",
+        "CJS_PICKLE_FORMAT_STRING_INVALID",
         "Pickle escape sequence contains a non-hexadecimal digit.",
         offset
       );
@@ -994,7 +994,7 @@ function assertJSONCompatible(value)
       if (!Number.isFinite(current))
       {
         throw pickleError(
-          "CJS_PICKLE_JSON_INVALID",
+          "CJS_PICKLE_FORMAT_JSON_INVALID",
           "Pickle output contains a non-finite number.",
           null
         );
@@ -1004,7 +1004,7 @@ function assertJSONCompatible(value)
     if (!current || typeof current !== "object")
     {
       throw pickleError(
-        "CJS_PICKLE_JSON_INVALID",
+        "CJS_PICKLE_FORMAT_JSON_INVALID",
         `Pickle output contains unsupported ${typeof current} data.`,
         null
       );
@@ -1019,7 +1019,7 @@ function assertJSONCompatible(value)
     if (active.has(current))
     {
       throw pickleError(
-        "CJS_PICKLE_JSON_INVALID",
+        "CJS_PICKLE_FORMAT_JSON_INVALID",
         "Pickle output contains a cyclic reference.",
         null
       );
@@ -1046,7 +1046,7 @@ function assertJSONCompatible(value)
     else
     {
       throw pickleError(
-        "CJS_PICKLE_JSON_INVALID",
+        "CJS_PICKLE_FORMAT_JSON_INVALID",
         "Pickle output contains a non-plain object.",
         null
       );
@@ -1062,7 +1062,7 @@ function normalizeBytes(input)
     return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   }
   throw pickleError(
-    "CJS_PICKLE_INPUT_INVALID",
+    "CJS_PICKLE_FORMAT_INPUT_INVALID",
     "Pickle input must be an ArrayBuffer or an ArrayBuffer view.",
     0
   );
@@ -1073,7 +1073,7 @@ function normalizeLimits(options)
   if (!options || typeof options !== "object" || Array.isArray(options))
   {
     throw pickleError(
-      "CJS_PICKLE_LIMIT_INVALID",
+      "CJS_PICKLE_FORMAT_LIMIT_INVALID",
       "Pickle limits must be an object.",
       0
     );
@@ -1084,7 +1084,7 @@ function normalizeLimits(options)
     if (!LIMIT_NAMES.includes(name))
     {
       throw pickleError(
-        "CJS_PICKLE_LIMIT_INVALID",
+        "CJS_PICKLE_FORMAT_LIMIT_INVALID",
         `Pickle limits contain unknown value ${JSON.stringify(name)}.`,
         0
       );
@@ -1098,7 +1098,7 @@ function normalizeLimits(options)
     if (!Number.isSafeInteger(value) || value <= 0)
     {
       throw pickleError(
-        "CJS_PICKLE_LIMIT_INVALID",
+        "CJS_PICKLE_FORMAT_LIMIT_INVALID",
         `Pickle ${name} must be a positive safe integer.`,
         0
       );

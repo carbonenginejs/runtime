@@ -166,7 +166,7 @@ function ReadRecord(payload, encoding) {
 /** Creates a tagged error, so a caller can tell a malformed container apart. */
 function SqliteError(message) {
   const error = new Error(message);
-  error.code = "CJS_SQLITE_INVALID";
+  error.code = "CJS_SQLITE_FORMAT_INVALID";
   return error;
 }
 

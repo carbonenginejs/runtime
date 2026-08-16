@@ -312,9 +312,9 @@ test("malformed bytes fail as a tagged error rather than an internal one", () =>
     const truncated = bytes.slice(0, 90);
 
     assert.throws(() => CjsSqliteFormat.read(truncated), error =>
-      error.code === "CJS_SQLITE_INVALID");
+      error.code === "CJS_SQLITE_FORMAT_INVALID");
     assert.throws(() => CjsSqliteFormat.read("not bytes"), error =>
-      error.code === "CJS_SQLITE_INVALID");
+      error.code === "CJS_SQLITE_FORMAT_INVALID");
   } finally {
     cleanup();
   }

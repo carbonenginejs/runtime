@@ -82,12 +82,12 @@ test("payload output preserves memo aliases while JSON rejects cycles", () =>
   assert.equal(raw[0], raw);
   assert.throws(
     () => CjsPickleFormat.readJSON(cyclic),
-    error => error.code === "CJS_PICKLE_JSON_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_JSON_INVALID"
       && error.protocol === 0
   );
   assert.throws(
     () => CjsPickleFormat.toJSON(raw),
-    error => error.code === "CJS_PICKLE_JSON_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_JSON_INVALID"
   );
 });
 
@@ -113,7 +113,7 @@ test("pickle reader preserves lossless integers and safe dictionary keys", () =>
     () => CjsPickleFormat.read(bytes(
       "(dp0\nI0\nS'number'\np1\nsS'0'\np2\nS'text'\np3\ns."
     )),
-    error => error.code === "CJS_PICKLE_CONTAINER_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_CONTAINER_INVALID"
   );
 });
 
@@ -123,24 +123,24 @@ test("pickle reader rejects executable and unsupported protocol opcodes", () =>
   // any argument is read and long before REDUCE could call anything.
   assert.throws(
     () => CjsPickleFormat.read(bytes("cos\nsystem\n(S'unsafe'\ntR.")),
-    error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED"
+    error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED"
       && error.protocol === 0
       && error.offset === 0
       && /"os\.system"/u.test(error.message)
   );
   assert.throws(
     () => CjsPickleFormat.read(new Uint8Array([ 0x80, 0x02, 0x4e, 0x2e ])),
-    error => error.code === "CJS_PICKLE_OPCODE_UNSUPPORTED"
+    error => error.code === "CJS_PICKLE_FORMAT_OPCODE_UNSUPPORTED"
       && error.offset === 0
   );
   assert.throws(
     () => CjsPickleFormat.read(bytes("(tI1\na.")),
-    error => error.code === "CJS_PICKLE_CONTAINER_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_CONTAINER_INVALID"
       && /APPEND target must be a list/u.test(error.message)
   );
   assert.throws(
     () => CjsPickleFormat.readRaw(bytes("(p0\ng0\nl.")),
-    error => error.code === "CJS_PICKLE_MARK_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_MARK_INVALID"
       && /MARK cannot be stored/u.test(error.message)
   );
 });
@@ -159,7 +159,7 @@ test("pickle profiles strictly validate options and resource limits", () =>
 
   assert.throws(
     () => format.Read(bytes("S'larger'\n.")),
-    error => error.code === "CJS_PICKLE_LIMIT_EXCEEDED"
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED"
   );
   assert.throws(
     () => new CjsPickleFormat({ emit: "runtime" }),
@@ -171,11 +171,11 @@ test("pickle profiles strictly validate options and resource limits", () =>
   );
   assert.throws(
     () => new CjsPickleFormat({ limits: { maxInputBytes: 0 } }).Read(bytes("N.")),
-    error => error.code === "CJS_PICKLE_LIMIT_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_INVALID"
   );
   assert.throws(
     () => new CjsPickleFormat({ limits: { unknown: 1 } }).Read(bytes("N.")),
-    error => error.code === "CJS_PICKLE_LIMIT_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_INVALID"
   );
 });
 
@@ -238,11 +238,11 @@ test("rebuilds collections.OrderedDict, and nothing else", () =>
   // A different global is still refused, including one that looks harmless.
   assert.throws(
     () => CjsPickleFormat.read(bytes("ccollections\ndefaultdict\np1\n((lp2\ntRp3\n.")),
-    error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED"
+    error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED"
   );
   assert.throws(
     () => CjsPickleFormat.read(bytes("c__builtin__\neval\np1\n((lp2\ntRp3\n.")),
-    error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED"
+    error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED"
   );
 });
 
@@ -252,7 +252,7 @@ test("REDUCE cannot be pointed at anything that is not a rebuildable global", ()
   // check rather than a use of it.
   assert.throws(
     () => CjsPickleFormat.read(bytes("(lp1\n(tR.")),
-    error => error.code === "CJS_PICKLE_REDUCE_INVALID"
+    error => error.code === "CJS_PICKLE_FORMAT_REDUCE_INVALID"
   );
 
   // An integer-like key would not keep its order in a JavaScript object - those
@@ -261,7 +261,7 @@ test("REDUCE cannot be pointed at anything that is not a rebuildable global", ()
     () => CjsPickleFormat.read(bytes(
       "ccollections\nOrderedDict\np1\n((lp2\n(lp3\nS'2'\np4\naI1\naa(lp5\nS'1'\np6\naI2\naatRp7\n."
     )),
-    error => error.code === "CJS_PICKLE_REDUCE_INVALID" && /order/u.test(error.message)
+    error => error.code === "CJS_PICKLE_FORMAT_REDUCE_INVALID" && /order/u.test(error.message)
   );
 });
 
@@ -301,7 +301,7 @@ test("a global no REDUCE consumes is refused rather than decoding as an empty ob
   {
     assert.throws(
       () => CjsPickleFormat.read(bytes(source)),
-      error => error.code === "CJS_PICKLE_GLOBAL_UNSUPPORTED",
+      error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED",
       source
     );
   }
@@ -331,7 +331,7 @@ test("rebuilt items are budgeted across the whole decode, not per container", ()
 
   assert.throws(
     () => CjsPickleFormat.read(craft(2000, 15000)),
-    error => error.code === "CJS_PICKLE_LIMIT_EXCEEDED" && /across the decode/u.test(error.message)
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED" && /across the decode/u.test(error.message)
   );
 
   // A rebuild count a real schema could plausibly reach still decodes.

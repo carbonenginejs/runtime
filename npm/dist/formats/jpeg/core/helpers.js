@@ -148,7 +148,7 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   if ((values.emit === OUTPUT_RGBA || values.emit === OUTPUT_IMAGE) && metadata.sourceFormat === "jpeg") {
     if (!canDecodeJpeg(metadata)) {
       const error = new Error(`jpeg: ${jpegDecodeReason(metadata)}`);
-      error.code = "CJS_FORMAT_OUTPUT_UNSUPPORTED";
+      error.code = "CJS_FORMAT_OUTPUT_NOT_SUPPORTED";
       throw error;
     }
     return decodeJpegToRgba(bytes, metadata);

@@ -316,7 +316,7 @@ test("the schema is required, and is what this format reports on", () => {
 
   assert.throws(
     () => CjsSchemaBoundFormat.read(container, {}),
-    error => error.code === "CJS_SCHEMA_BOUND_INVALID"
+    error => error.code === "CJS_SCHEMA_BOUND_FORMAT_INVALID"
   );
 
   // These bytes carry no signature at all, so the answer is about the schema.
@@ -336,7 +336,7 @@ test("a schema this reader cannot follow fails, rather than inventing values", (
     () => CjsSchemaBoundFormat.read(bytes(u32(1), u32(0)), {
       schema: { type: "list", fixedItemSize: 4, itemTypes: { type: "decimal", size: 4 } }
     }),
-    error => error.code === "CJS_SCHEMA_BOUND_INVALID" && error.schemaType === "decimal"
+    error => error.code === "CJS_SCHEMA_BOUND_FORMAT_INVALID" && error.schemaType === "decimal"
   );
 
   assert.throws(
@@ -359,7 +359,7 @@ test("a schema this reader cannot follow fails, rather than inventing values", (
 
   assert.throws(
     () => CjsSchemaBoundFormat.read("not bytes", { schema: { type: "list", itemTypes: {} } }),
-    error => error.code === "CJS_SCHEMA_BOUND_INVALID"
+    error => error.code === "CJS_SCHEMA_BOUND_FORMAT_INVALID"
   );
 });
 
