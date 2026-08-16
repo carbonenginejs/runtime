@@ -471,22 +471,79 @@ function readDdsToRgba(bytes, metadata) {
     throw error;
   }
   const subresource = buildDdsSubresources(bytes, metadata)[0];
-  const source = bytes.subarray(metadata.dataOffset + subresource.offset, metadata.dataOffset + subresource.offset + subresource.byteLength);
-  const rgba = metadata.pixelFormat.startsWith("bc1-") ? decodeBc1(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc2-") ? decodeBc2(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc3-") ? decodeBc3(source, metadata.width, metadata.height, subresource.rowPitch) : metadata.pixelFormat.startsWith("bc4-") ? decodeBc4(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm")) : metadata.pixelFormat.startsWith("bc5-") ? decodeBc5(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat.endsWith("-snorm")) : metadata.pixelFormat.startsWith("bc6h-") ? decodeBc6h(source, metadata.width, metadata.height, subresource.rowPitch, metadata.pixelFormat === "bc6h-rgb-float") : metadata.pixelFormat.startsWith("bc7-") ? decodeBc7(source, metadata.width, metadata.height, subresource.rowPitch) : isFloatPixelFormat(metadata.pixelFormat) ? decodeFloatUncompressed(source, metadata) : decodeUncompressed(source, metadata);
   const isFloat = isFloatPixelFormat(metadata.pixelFormat);
+  const depth = Math.max(subresource.depth ?? 1, 1);
+
+  // Every slice, not just the first.
+  //
+  // This decoded subresource[0] with the source's own width and height, which
+  // for a volume reads one slice out of a buffer holding all of them and
+  // returns it as though it were the image. A 128-cube came back as 65,536
+  // bytes with `depth` absent from the payload, so a caller could not even
+  // tell it had been handed 1/128th of what it asked for. Silent and
+  // plausible, which is worse than an error: nothing downstream can detect it.
+  //
+  // Slices are `slicePitch` apart and each decodes exactly like a 2D image of
+  // the same dimensions, so this is a loop rather than a second decoder.
+  const slices = [];
+  for (let z = 0; z < depth; z++) {
+    const start = metadata.dataOffset + subresource.offset + z * subresource.slicePitch;
+    const source = bytes.subarray(start, start + subresource.slicePitch);
+    slices.push(decodeDdsSlice(source, metadata, subresource));
+  }
+  const rgba = depth === 1 ? slices[0] : concatTypedArrays(slices);
+  const sliceBytes = metadata.width * metadata.height * (isFloat ? 16 : 4);
   return {
     payloadType: OUTPUT_RGBA,
     sourceFormat: "dds",
     width: metadata.width,
     height: metadata.height,
+    // Always present, and 1 for a flat image. An optional field that only
+    // appears for volumes is one every caller forgets to look for.
+    depth,
+    isVolume: depth > 1,
     pixelFormat: isFloat ? "rgba32float" : "rgba8unorm",
     strideBytes: metadata.width * (isFloat ? 16 : 4),
+    // What one z-slice occupies, so a caller can cut the buffer up without
+    // recomputing it from a pixel format it should not have to know about.
+    sliceBytes,
     origin: "top-left",
     colorSpace: isFloat ? "linear" : metadata.pixelFormat.endsWith("-srgb") ? "srgb" : "unknown",
     alphaMode: metadata.hasAlpha ? "straight" : "opaque",
     metadata,
     data: rgba
   };
+}
+
+/** Decodes one 2D slice of a DDS subresource to RGBA, whatever its block format. */
+function decodeDdsSlice(source, metadata, subresource) {
+  const {
+    width,
+    height
+  } = metadata;
+  const pitch = subresource.rowPitch;
+  const format = metadata.pixelFormat;
+  if (format.startsWith("bc1-")) return decodeBc1(source, width, height, pitch);
+  if (format.startsWith("bc2-")) return decodeBc2(source, width, height, pitch);
+  if (format.startsWith("bc3-")) return decodeBc3(source, width, height, pitch);
+  if (format.startsWith("bc4-")) return decodeBc4(source, width, height, pitch, format.endsWith("-snorm"));
+  if (format.startsWith("bc5-")) return decodeBc5(source, width, height, pitch, format.endsWith("-snorm"));
+  if (format.startsWith("bc6h-")) return decodeBc6h(source, width, height, pitch, format === "bc6h-rgb-float");
+  if (format.startsWith("bc7-")) return decodeBc7(source, width, height, pitch);
+  return isFloatPixelFormat(format) ? decodeFloatUncompressed(source, metadata) : decodeUncompressed(source, metadata);
+}
+
+/** Joins same-typed slice buffers into one, preserving the element type. */
+function concatTypedArrays(parts) {
+  let total = 0;
+  for (const part of parts) total += part.length;
+  const out = new parts[0].constructor(total);
+  let at = 0;
+  for (const part of parts) {
+    out.set(part, at);
+    at += part.length;
+  }
+  return out;
 }
 function buildDdsSubresources(bytes, metadata) {
   const subresources = [];
