@@ -85,7 +85,8 @@ as a plain object and every other global is still refused. See
 **The sibling-schema family states its layout in YAML.** The `.schema` file is
 YAML and states the whole binary layout — sizes, types, optional flags, list item
 sizes, vector precision and a key-to-offset footer — so **nothing needs
-deriving**, unlike an FSD container. `CjsSchemaBoundFormat` reads it:
+deriving**, unlike a container whose layout is defined outside the file and has
+to be worked out and pinned. `CjsSchemaBoundFormat` reads it:
 [schema-bound containers](schemabound.md). All six datasets decode — the map
 skeleton of regions, constellations and systems. The celestial detail (moons,
 planets, belts, stars, gates) is in the embedded-schema family, not this one.
