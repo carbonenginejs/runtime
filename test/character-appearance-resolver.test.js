@@ -584,6 +584,86 @@ test("resolves proved utility dependency weights and exact active occlusions", (
         && value.message.includes("UnprovedShape#0.5")));
 });
 
+test("suppresses an exact selected location through a typed clothing removal", () =>
+{
+    const documents = CreateDocuments();
+    AddOuterSelection(documents, {
+        clothingRemovesCategory: "10"
+    });
+
+    const library = CreateLibrary(documents);
+    const plan = CjsCharacterAppearanceResolver.resolvePaperdoll(
+        library,
+        library.Get("paperdolls", "30")
+    );
+
+    assert.deepEqual(plan.selections.map(value => value.groupID), [
+        "topinner",
+        "outer"
+    ]);
+    assert.deepEqual(plan.layers.map(value => value.owner.groupID), [ "outer" ]);
+    assert.equal(plan.parts.length, 1);
+    assert.equal(plan.parts[0].geometryPath, "res:/character/outer.gr2");
+    assert.ok(plan.diagnostics.some(value =>
+        value.code === "SELECTION_SUPPRESSED"
+        && value.message.includes("topinner")
+        && value.message.includes("outer")));
+    assert.ok(!plan.diagnostics.some(value =>
+        value.code === "CLOTHING_RULES_UNRESOLVED"));
+});
+
+test("suppresses an exact selected location through typed part metadata", () =>
+{
+    const documents = CreateDocuments();
+    AddOuterSelection(documents);
+    documents.characterPartSources["source/outer"].versions[0].metadata = "metadata/outer";
+    documents.characterPartMetadata["metadata/outer"] = {
+        sourcePath: "res:/character/outer/metadata.yaml",
+        occludesModifiers: [ "topinner" ],
+        occlusions: [ {
+            authoredValue: "topinner",
+            modifierLocation: "10"
+        } ]
+    };
+
+    const library = CreateLibrary(documents);
+    const plan = CjsCharacterAppearanceResolver.resolvePaperdoll(
+        library,
+        library.Get("paperdolls", "30")
+    );
+
+    assert.deepEqual(plan.layers.map(value => value.owner.groupID), [ "outer" ]);
+    assert.ok(plan.diagnostics.some(value =>
+        value.code === "SELECTION_SUPPRESSED"));
+    assert.ok(!plan.diagnostics.some(value =>
+        value.code === "OCCLUSION_POLICY_UNRESOLVED"));
+});
+
+test("retains both selections when exact typed suppression is cyclic", () =>
+{
+    const documents = CreateDocuments();
+    AddOuterSelection(documents, {
+        clothingRemovesCategory: "10"
+    });
+    documents.characterResources[20].clothingRemovesCategory = "11";
+
+    const library = CreateLibrary(documents);
+    const plan = CjsCharacterAppearanceResolver.resolvePaperdoll(
+        library,
+        library.Get("paperdolls", "30")
+    );
+
+    assert.deepEqual(plan.layers.map(value => value.owner.groupID), [
+        "topinner",
+        "outer"
+    ]);
+    assert.equal(plan.parts.length, 2);
+    assert.equal(plan.diagnostics.filter(value =>
+        value.code === "SELECTION_SUPPRESSION_CONFLICT").length, 2);
+    assert.ok(!plan.diagnostics.some(value =>
+        value.code === "SELECTION_SUPPRESSED"));
+});
+
 test("consumes ordering flags without reordering contribution inventory", () =>
 {
     const documents = CreateDocuments();
@@ -673,6 +753,45 @@ function CreateLibrary(documents = CreateDocuments())
         sourceProvider: "ccp",
         sourceBuild: "synthetic-build"
     }));
+}
+
+function AddOuterSelection(documents, resourceValues = {})
+{
+    documents.characterModifierLocations[11] = {
+        modifierKey: "outer",
+        variationKey: ""
+    };
+    documents.characterResources[21] = {
+        resPath: "type/outer",
+        resGender: 0,
+        ...resourceValues
+    };
+    documents.characterPartTypes["type/outer"] = {
+        sourcePath: "res:/character/outer.type",
+        sex: "female",
+        partPath: "outer/coat",
+        resourceVersion: "v1",
+        colorVariant: null,
+        partSource: "source/outer"
+    };
+    documents.characterPartSources["source/outer"] = {
+        sourcePath: "res:/character/outer",
+        sex: "female",
+        partPath: "outer/coat",
+        versions: [ {
+            resourceVersion: "v1",
+            metadata: null,
+            configurationCandidates: [ "res:/character/outer.black" ],
+            geometryCandidates: [ "res:/character/outer.gr2" ],
+            textureCandidates: [ "res:/character/outer_d.png" ]
+        } ],
+        metadata: null
+    };
+    documents.paperdolls[30].modifiers.push({
+        modifierLocationID: "11",
+        paperdollResourceID: "21",
+        paperdollResourceVariation: 0
+    });
 }
 
 function CreateDocuments()

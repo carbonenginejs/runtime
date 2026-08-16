@@ -91,8 +91,8 @@ interchangeable set.
 
 ### Direct decoded source-document targets
 
-The twelve FSD readers currently correspond one-for-one with the required
-character-library document families:
+The twelve static-data readers currently correspond one-for-one with the
+required character-library document families:
 
 | Decoded document | Character record target |
 | --- | --- |
@@ -110,9 +110,9 @@ character-library document families:
 | `races` | `CjsCharacterRace` |
 
 The reader output is plain JSON keyed by source record identity. The library
-builder adds the named `recordID` and projects proved relationships. The FSD
-reader remains outside this package; these classes describe decoded values,
-not the binary layout or schema ID.
+builder adds the named `recordID` and projects proved relationships. The reader
+itself remains outside this package; these classes describe decoded values, not
+the binary layout or schema identity.
 
 Nested source values hydrate through their owning records:
 `CjsCharacterColorSelection`, `CjsCharacterSculptSelection`, and

@@ -84,7 +84,13 @@ weight is retained on the resulting appearance layer. Configuration/geometry
 support and texture-only masks therefore remain distinct contributors.
 Coordination sources with no unique resource version and unmatched suffixed
 values remain diagnostics. Recursive
-dependency policy, material ownership, texture roles, placement, coverage,
+dependency policy remains unresolved, but an active selection is now suppressed
+when another active selection has either an exact typed modifier-location
+occlusion or an exact typed `clothingRemovesCategory` relationship targeting
+its location. The suppressed selection and its provenance remain in the plan;
+its layers, unreferenced parts, utility requests, and modifier-order policy do
+not. Cyclic exact suppression remains active with an explicit conflict
+diagnostic. Material ownership, texture roles, placement, coverage,
 targets, passes, bindings, image decoding, execution, and renderer realization
 remain future stages.
 
@@ -252,7 +258,7 @@ Evidence status is deliberately consumer-specific:
 | The nude foundation retains its loaded transform, while a configured proof fallback reading the reconstructed full atlas currently uses identity. Ordinary private-map garment consumers retain their loaded transform. | **Implemented experimental demo policy; correctness is not yet proved.** |
 | A qualified configured body-atlas consumer copies authored RGBA, applies explicitly assigned ordered cut masks to alpha only, replaces RGB from the shared body atlas, and samples the resulting full target with identity. | **Pass states, CPU pixel behavior, grouping, ambiguity deferral, and atomic rollback are structurally tested; target resolution and live visual proof remain open.** Dependency ownership alone is explicitly insufficient to choose the cut consumer, and the currently checked female and male fixtures use proof fallbacks rather than this branch. |
 | The generic head and body foundation textures are paired sex-specific D/N/S inventories in the same exact `head_generic` resource folder. | **Exact inventory and 2048x2048 body placement are proved; the complete body material binding is not.** Binding the paired generic body diffuse through the current rebuilt `skinnedavatar` proof effect was visually disproved because non-head skin became transparent. That proof path therefore retains its prior `ccshape` diffuse fallback. The exact head skin uses `skinnedavatarbrdflinear` with authored normal/specular inputs, so the visible chin/neck discontinuity remains an unresolved material-boundary gate. Direct all-or-nothing D/N/S attachment was also rejected because it made the body foundation unavailable. The paired generic body D/N/S inputs must remain unbound until an authored body-material contract is promoted atomically. |
-| A configured head may retain exact authored sub-meshes while its dynamic head-skin channels are reconstructed as full 2048x1024 atlases. | **Structurally tested and exercised live for paper doll `3000001`; complete face correctness remains open.** The exact `head_generic` folder inventories sex-specific generic head D/N/S bases; substituting an unrelated `cc` archetype/skintype fallback was visually disproved by a head/body brightness seam and incorrect chin/neck normals. Retained head-region UV bounds are not sufficient consumer identity: the decoded head contains materially different skin, eyeball, tongue, and teeth surfaces using that region. The GLES experiment therefore binds the head-local D/N/S targets only to the exact `meshIndex 0` / `meshShape` / `C_Skin_blinn1` skin carrier and changes its `TransformUV0` to identity only after all targets are ready. A regression test proves the eye, tongue, and teeth bindings remain untouched. Their complete channel composition remains unresolved. Retaining the Black file's half-atlas transform on a local skin target visibly misplaced the head texture and is also disproved. Eye normal/specular overlays may be composed only after an exact eye consumer contract is recovered. Selected 16x16/8x8 eyebrow placeholders fail the aspect gate; the compositor retains those rejections and selects the first compatible candidate from the same exact family, which is the corresponding 512 atlas input for the reviewed fixture. Eye and eyebrow diffuse colorization remains deferred because this paper doll does not resolve an exact color selection for those modifier groups. |
+| A configured head may retain exact authored sub-meshes while its dynamic head-skin channels are reconstructed as full 2048x1024 atlases. | **Structurally tested and exercised live for paper doll `3000001`; complete face correctness remains open.** The exact `head_generic` folder inventories sex-specific generic head D/N/S bases; substituting an unrelated `cc` archetype/skintype fallback was visually disproved by a head/body brightness seam and incorrect chin/neck normals. Retained head-region UV bounds are not sufficient consumer identity: the decoded head contains materially different skin, eyeball, tongue, teeth, tearduct, brow-support, wet-eye, eye-shadow, and eyelash surfaces using that region. The GLES experiment binds the head-local D/N/S targets to the exact `meshIndex 0` / `meshShape` / `C_Skin_blinn1` skin carrier and changes its `TransformUV0` to identity only after all targets are ready. Bounded consumer exceptions are now explicit: exact eyeballs receive the completed eye diffuse contribution; the exact brow-support and tearduct carriers receive completed head D/N/S after their fallback lighting maps produced visible rectangular and white-wedge artifacts; eyelash and eye-shadow cards receive their independently composed transparent lash target. Tongue, teeth, and wet-eye bindings remain authored. Retaining the Black file's half-atlas transform on a local skin target visibly misplaced the head texture and is also disproved. The selected eyes resolve an exact paper-doll colour. Eyebrows do not; the adapter retains that absence and uses a labelled selected-family preset, with an exact sibling `default.color` only as a presentation fallback. These are GLES-adapter consumer policies, not appearance-plan facts or Carbon authority. |
 | Correct transforms for every body, head, hair, accessory, and diffuse/normal/specular/cut-mask binding. | **Not yet proven.** The isolated demo executes a bounded body-diffuse restore-base pass through exact typed masks and structurally tests one qualified diffuse-consumer contract, but the complete consumer and visual fixture matrix remains open. |
 
 The renderer must choose from the resource actually bound at that stage. It
@@ -262,14 +268,15 @@ covers every object and mask.
 
 The configured-head proof does not invent face geometry. The exact decoded
 head configuration and geometry already provide the skin, eyeballs, tongue,
-teeth, tearducts, wet-eye, eye-shadow, and eyelash carriers. The temporary GLES
-adapter preserves those authored surface identities. Retained atlas bounds are
-placement evidence, not material ownership. Only the exact head skin carrier
-currently receives the reconstructed head-local D/N/S targets. Eyeballs,
-tongue, teeth, tearducts, wet-eye, eye-shadow, and eyelash carriers retain their
-authored bindings until each consumer's required channel contributions are
-proved. This closes the accidental cross-material binding that made other face
-surfaces transparent without claiming their final composition is complete.
+teeth, tearducts, brow support, wet-eye, eye-shadow, and eyelash carriers. The
+temporary GLES adapter preserves those authored surface identities. Retained
+atlas bounds are placement evidence, not material ownership. Each reconstructed
+binding is therefore qualified by exact carrier identity: skin receives the
+head D/N/S atlases; eyeballs receive the completed eye diffuse contribution;
+brow support and tearducts receive completed head D/N/S; eyelash and eye-shadow
+cards receive the separate transparent lash target. Tongue, teeth, and wet-eye
+remain authored. These bounded bindings close observed GLES fallback artifacts
+without claiming a renderer-neutral consumer contract or complete face parity.
 
 ## Waist and tuck evidence status
 
@@ -289,8 +296,11 @@ The schema-v10 resolver preserves every dependency and occlusion string and
 follows only an adjacent exact typed `partSource` relationship. A dependency
 source with one version becomes a requester-owned layer; all of that version's
 texture paths remain on its contributor. Coordination sources with no unique
-resource version, modifier-location occlusions, suffixed strings, selected-top
-material transfer, and mask-cut realization remain diagnosed or deferred. One
+resource version, suffixed strings, selected-top material transfer, and
+mask-cut realization remain diagnosed or deferred. Exact typed
+modifier-location occlusions and exact typed clothing-removal relationships
+suppress only their targeted active selection. `clothingAlsoCoversCategory`
+and `clothingRuleException` remain unresolved coverage policy. One
 exact demo adapter applies the reviewed female tuck combination after resource
 readiness; the resolver does not infer or serialize that fixture policy and
 does not recover roles by parsing a resource name.
@@ -356,7 +366,8 @@ resource.
 - the complete standard/middle-only, male/female, selection-state, cut-mask,
   and texture-channel realization matrix for the closed waist/tuck ownership
   split;
-- complete category-removal semantics and `clothingRuleException` behavior;
+- complete category-coverage and `clothingRuleException` behavior beyond the
+  implemented exact typed selection-removal paths;
 - whether authored inputs can override the native category priority rather
   than merely contributing metadata-controlled swaps;
 - whether native PaperDoll always applies both replacement and additive normal
@@ -391,6 +402,9 @@ The data-only contract and first-stage resolver tests prove:
   references, requester-owned projection of a unique exact dependency source,
   and per-value diagnostics for unresolved references without fabricated
   targets;
+- exact typed modifier-location and clothing-removal suppression without
+  deleting the retained selection, including explicit cyclic-conflict
+  diagnostics;
 - retention and diagnosis of categories absent from the native modifier order;
 - contribution relationships without inferred pass order;
 - deterministic diagnostics for dangling, ambiguous, and policy-dependent

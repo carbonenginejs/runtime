@@ -25,7 +25,9 @@ a compatibility surface. The appearance-plan schema-v4 is a distinct
 standalone model graph under `src/character/planning`. Its initial resolver
 projects exact paper-doll selections and colour selections, preserves every
 exact source-version contribution, follows bounded exact typed dependencies,
-and retains proved utility-shape requests. It fills part candidates only when
+suppresses active selections through exact typed modifier-location occlusions
+and typed clothing-removal relationships, and retains proved utility-shape
+requests. It fills part candidates only when
 uniquely determined. Recursive dependency policy, LOD, material, texture-role,
 coverage, pass ordering, and rendering remain unresolved. They must not inherit
 a prototype renderer's unproven filename heuristics.

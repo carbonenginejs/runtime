@@ -34,7 +34,8 @@ class CjsCharacterAppearanceResolver {
     for (let modifierIndex = 0; modifierIndex < paperdoll.modifiers.length; modifierIndex++) {
       ResolveModifier(library, plan, paperdoll, paperdoll.modifiers[modifierIndex], modifierIndex, groupIDs, modifierPolicies, utilityRequests, utilityOcclusions);
     }
-    ResolveModifierPolicy(plan, modifierPolicies);
+    const activeModifierPolicies = ResolveSelectionSuppressions(plan, modifierPolicies, utilityRequests, utilityOcclusions);
+    ResolveModifierPolicy(plan, activeModifierPolicies);
     ResolveUtilityShapes(plan, utilityRequests, utilityOcclusions);
     if (plan.layers.length) {
       AddDiagnostic(plan, "PASS_ORDER_UNRESOLVED", "Resolved contributions do not establish atlas targets or composition-pass order.", "warning");
@@ -90,6 +91,9 @@ function ResolveModifier(library, plan, paperdoll, modifier, modifierIndex, grou
   const modifierPolicy = {
     category: modifierOrderIdentity.category,
     group: modifierOrderIdentity.group,
+    location,
+    resource: null,
+    selection,
     metadata: null,
     origin: selectionOrigin
   };
@@ -106,6 +110,7 @@ function ResolveModifier(library, plan, paperdoll, modifier, modifierIndex, grou
     AddDiagnostic(plan, "CHARACTER_RESOURCE_UNRESOLVED", `Selection ${JSON.stringify(selection.groupID)} has no resolved character resource.`, "warning", selectionOrigin);
     return;
   }
+  modifierPolicy.resource = resource;
   DiagnoseCharacterRules(plan, resource, selection, selectionOrigin);
   const partType = resource.partType;
   if (!(partType instanceof _CjsCharacterPartType)) {
@@ -191,8 +196,8 @@ function ResolvePartSource(plan, partType, resource, origin) {
   return matches[0];
 }
 function DiagnoseCharacterRules(plan, resource, selection, origin) {
-  const hasCategoryRules = [resource.clothingAlsoCoversCategory, resource.clothingAlsoCoversCategory2, resource.clothingRemovesCategory, resource.clothingRemovesCategory2].some(Boolean);
-  if (hasCategoryRules || resource.clothingRuleException !== null) {
+  const hasUnresolvedCoverageRules = [resource.clothingAlsoCoversCategory, resource.clothingAlsoCoversCategory2].some(Boolean);
+  if (hasUnresolvedCoverageRules || resource.clothingRuleException !== null) {
     AddDiagnostic(plan, "CLOTHING_RULES_UNRESOLVED", `Selection ${JSON.stringify(selection.groupID)} has authored clothing rules whose actions are not yet resolved.`, "warning", origin);
   }
 }
@@ -215,7 +220,7 @@ function DiagnosePartMetadata(library, plan, metadata, partSource, origin) {
   for (let index = 0; index < metadata.occludesModifiers.length; index++) {
     const value = metadata.occludesModifiers[index];
     const relation = metadata.occlusions[index];
-    if (relation instanceof _CjsCharacterModifier$1 && relation.authoredValue === value && DecodeUtilityOcclusion(relation, value)) {
+    if (relation instanceof _CjsCharacterModifier$1 && relation.authoredValue === value && (relation.modifierLocation instanceof _CjsCharacterModifier || DecodeUtilityOcclusion(relation, value))) {
       continue;
     }
     AddDiagnostic(plan, "OCCLUSION_POLICY_UNRESOLVED", `Part source ${JSON.stringify(partSource.recordID)} has unresolved authored occlusion ${JSON.stringify(value)}.`, "warning", origin);
@@ -224,6 +229,78 @@ function DiagnosePartMetadata(library, plan, metadata, partSource, origin) {
     AddDiagnostic(plan, "METADATA_COMPATIBILITY_UNRESOLVED", `Part source ${JSON.stringify(partSource.recordID)} has unresolved compatibility metadata.`, "info", origin);
   }
   return metadata;
+}
+function ResolveSelectionSuppressions(plan, modifierPolicies, utilityRequests, utilityOcclusions) {
+  const suppressions = new Map();
+  for (const owner of modifierPolicies) {
+    const targets = [];
+    for (const value of [owner.resource?.clothingRemovesCategory, owner.resource?.clothingRemovesCategory2]) {
+      if (value instanceof _CjsCharacterModifier) {
+        targets.push({
+          location: value,
+          rule: "typed-clothing-removal"
+        });
+      }
+    }
+    for (let index = 0; index < (owner.metadata?.occlusions?.length ?? 0); index++) {
+      const relation = owner.metadata.occlusions[index];
+      if (!(relation instanceof _CjsCharacterModifier$1) || !(relation.modifierLocation instanceof _CjsCharacterModifier) || relation.authoredValue !== owner.metadata.occludesModifiers[index]) {
+        continue;
+      }
+      targets.push({
+        location: relation.modifierLocation,
+        rule: "typed-modifier-location-occlusion"
+      });
+    }
+    for (const target of targets) {
+      for (const candidate of modifierPolicies) {
+        if (candidate === owner || candidate.location !== target.location) continue;
+        const existing = suppressions.get(candidate);
+        if (!existing) suppressions.set(candidate, []);
+        const current = suppressions.get(candidate).find(value => value.owner === owner);
+        if (current) {
+          current.rules.add(target.rule);
+        } else {
+          suppressions.get(candidate).push({
+            owner,
+            rules: new Set([target.rule])
+          });
+        }
+      }
+    }
+  }
+  const cyclic = new Set();
+  for (const [target, owners] of suppressions) {
+    if (owners.some(value => suppressions.get(value.owner)?.some(other => other.owner === target))) {
+      cyclic.add(target);
+    }
+  }
+  for (const target of cyclic) {
+    AddDiagnostic(plan, "SELECTION_SUPPRESSION_CONFLICT", `Selection ${JSON.stringify(target.selection.groupID)} participates in a cyclic exact suppression and remains active.`, "warning", target.origin);
+    suppressions.delete(target);
+  }
+  const suppressedSelections = new Set();
+  for (const [target, owners] of suppressions) {
+    suppressedSelections.add(target.selection);
+    for (const value of owners) {
+      AddDiagnostic(plan, "SELECTION_SUPPRESSED", `Selection ${JSON.stringify(target.selection.groupID)} is suppressed by ${JSON.stringify(value.owner.selection.groupID)} through an exact typed relationship.`, "info", value.owner.origin);
+    }
+  }
+  if (!suppressedSelections.size) return modifierPolicies;
+  for (const layer of [...plan.layers]) {
+    if (suppressedSelections.has(layer.owner)) plan.RemoveLayer(layer);
+  }
+  const retainedParts = new Set(plan.layers.map(layer => layer.contributor));
+  for (const part of [...plan.parts]) {
+    if (!retainedParts.has(part)) plan.RemovePart(part);
+  }
+  FilterOwnedRequests(utilityRequests, suppressedSelections);
+  FilterOwnedRequests(utilityOcclusions, suppressedSelections);
+  return modifierPolicies.filter(value => !suppressedSelections.has(value.selection));
+}
+function FilterOwnedRequests(values, suppressedSelections) {
+  const retained = values.filter(value => !suppressedSelections.has(value.owner));
+  values.splice(0, values.length, ...retained);
 }
 function CollectUtilityShapes(plan, metadata, owner, requests, occlusions) {
   if (!(metadata instanceof _CjsCharacterPartMeta)) return;

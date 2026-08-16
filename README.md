@@ -74,7 +74,10 @@ coverage, ordered logical composition, final bindings, and provenance.
 `CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll)` resolves
 only exact source relationships. Every exact source version remains a plan
 contribution; configuration and geometry fields are filled only when their
-candidates are unique. It emits diagnostics and leaves composition empty when dependency,
+candidates are unique. Exact typed modifier-location occlusions and typed
+`clothingRemovesCategory` relationships suppress only the targeted active
+selection while retaining its selection record and provenance. It emits
+diagnostics and leaves composition empty when dependency,
 LOD, material, texture-role, coverage, or pass-order policy is not proven. The
 package does not execute the plan. Prototype bake order and filename heuristics
 are not source-record fields.
