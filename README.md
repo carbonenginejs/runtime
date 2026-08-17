@@ -66,10 +66,10 @@ enrichment for the optional
 files and exact ranges for the runtime provider contract.
 
 The root export is available when an application consumes several tool
-families. Targeted `./audio`, `./chat`, `./demos`, `./fileindex`, and
-`./realtime` imports remain available. Node hosts and protocol tools that need only the
-side-effect-free wire constants and structural validators use
-`./realtime/wire`.
+families. Targeted `./audio`, `./chat`, `./demos`, `./fileindex`, `./market`,
+`./ship-show-info`, and `./realtime` imports remain available. Node hosts and
+protocol tools that need only the side-effect-free wire constants and
+structural validators use `./realtime/wire`.
 
 Host independently mountable demos without choosing their renderer or data
 storage:
@@ -90,6 +90,23 @@ The demo family accepts caller-provided browser capabilities. It imports no
 Node implementation and may consume in-memory or bundled JSON, remote APIs,
 IndexedDB, prepared runtime libraries, and injected graphics adapters.
 
+Coordinate asynchronous Ship Show Info data and an application-owned renderer
+without importing presentation or acquiring an engine:
+
+```js
+import {
+    CjsESIShipShowInfoController
+} from "@carbonenginejs/tools-browser/ship-show-info";
+
+const showInfo = new CjsESIShipShowInfoController({
+    shipSource,
+    renderer
+});
+
+await showInfo.Mount(renderSurface);
+await showInfo.Open({ typeID, regionID });
+```
+
 ## Documentation
 
 - [Package documentation](docs/README.md)
@@ -98,6 +115,8 @@ IndexedDB, prepared runtime libraries, and injected graphics adapters.
 - [Chat guide](docs/guides/chat.md)
 - [Browser demo guide](docs/guides/demos.md)
 - [File-index guide](docs/guides/file-indexes.md)
+- [Regional-market guide](docs/guides/market.md)
+- [Ship Show Info guide](docs/guides/ship-show-info.md)
 - [Realtime guide](docs/guides/realtime.md)
 - [Current API reference](docs/reference/api.md)
 - [Class-purpose catalog](docs/reference/classes/README.md)

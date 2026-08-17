@@ -16,6 +16,7 @@ import {
     CjsDemoHost,
     CjsFileIndex,
     CjsESIMarket,
+    CjsESIShipShowInfoController,
     CjsPerObjectDecoder,
     CjsPerObjectPacker,
     CjsRealtimeClient
@@ -40,6 +41,7 @@ import {
 | [`./demos`](../../src/demos/index.js) | Hosts independent demos, selects browser data providers, and coordinates injected graphics adapters. | `CjsDemoDataService`, `CjsDemoHost`, `CjsDemoRenderer` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
 | [`./market`](../../src/market/index.js) | Reads and normalizes regional-market data without importing presentation. | `CjsESIMarket`, `CjsESIMarketBackendSource`, `CjsESIMarketMemorySource`, `CjsESIMarketSource`, and market analysis/formatting functions |
+| [`./ship-show-info`](../../src/ship-show-info/index.js) | Coordinates Ship Show Info data and renderer behavior without owning presentation. | `CjsESIShipShowInfoController`, `CjsESIShipShowInfoMarketSource`, `CjsESIShipShowInfoMemorySource`, `CjsESIShipShowInfoSessionSource`, panel constants, and presentation-neutral model helpers |
 | [`./perobject`](../../src/perobject/index.js) | Names, synthesizes, packs, decodes, and inspects Carbon per-object constant-buffer layouts. | `CjsPerObjectDecoder`, `CjsPerObjectFieldType`, `CjsPerObjectLayoutError`, `CjsPerObjectLimits`, `CjsPerObjectPacker`, `CjsPerObjectRegister`, `CjsPerObjectSynthesizer`, `CjsPerObjectTypes`, `perObjectStruct`, `perObjectStructNames` |
 | [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with bounded lifecycle, pressure, reconnect, metrics, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 | [`./realtime/wire`](../../src/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
@@ -59,6 +61,9 @@ adapter and never acquire an engine or graphics context.
 Market clients use injected Fetch and return mutable normalized records. The
 direct ESI adapter bundles no type, region, order, or history dataset; callers
 may supply an initial shelf or use a memory source.
+Ship Show Info sources likewise bundle no hull, skill, skin, industry, or
+market dataset. Its controller only invokes an injected renderer; engine and
+WebGL-context acquisition remain adapter or application responsibilities.
 
 ## Errors
 
@@ -79,6 +84,7 @@ details.
 - [Audio-library guide](../guides/audio-libraries.md)
 - [File-index guide](../guides/file-indexes.md)
 - [Regional-market guide](../guides/market.md)
+- [Ship Show Info guide](../guides/ship-show-info.md)
 - [Browser demo guide](../guides/demos.md)
 - [Per-object tooling](../perobject/README.md)
 - [Per-object class catalog](classes/perobject.md)

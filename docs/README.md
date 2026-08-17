@@ -45,8 +45,9 @@ runtime-utils  runtime-audio  runtime-resource  runtime-trinity/perobject
 The package uses narrow browser-safe runtime subpaths when a domain tool needs
 an owning schema or reader. Its public families are remote audio acquisition,
 provider-neutral chat, browser demo hosting, regional-market data logic,
-remote file-index handling, per-object shader inspection/packing, and the
-Carbon realtime v1 client.
+remote file-index handling, per-object shader inspection/packing,
+presentation-neutral Ship Show Info coordination, and the Carbon realtime v1
+client.
 
 ## Start here
 
@@ -106,6 +107,16 @@ import {
 } from "@carbonenginejs/tools-browser/market";
 ```
 
+For Ship Show Info source composition, lazy panel reads, and an injected
+renderer contract, start with:
+
+```js
+import {
+    CjsESIShipShowInfoController,
+    CjsESIShipShowInfoMemorySource
+} from "@carbonenginejs/tools-browser/ship-show-info";
+```
+
 For Carbon per-object constant-buffer inspection, synthesis, and packing,
 start with:
 
@@ -124,6 +135,7 @@ import {
 - [Browser demo guide](guides/demos.md)
 - [File-index guide](guides/file-indexes.md)
 - [Regional-market guide](guides/market.md)
+- [Ship Show Info guide](guides/ship-show-info.md)
 - [Per-object tooling](perobject/README.md)
 - [Realtime guide](guides/realtime.md)
 - [Current API reference](reference/api.md)

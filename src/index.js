@@ -5,3 +5,4 @@ export * from "./fileindex/index.js";
 export * from "./market/index.js";
 export * from "./perobject/index.js";
 export * from "./realtime/index.js";
+export * from "./ship-show-info/index.js";

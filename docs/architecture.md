@@ -52,6 +52,9 @@ The implemented package currently owns:
   remote APIs, browser databases, and memory without deciding domain policy;
 - DOM-free regional-market HTTP clients, direct public ESI translation,
   caller-owned memory records, and presentation-neutral order/history analysis;
+- provider-neutral Ship Show Info lifecycle, lazy panel acquisition, optional
+  regional-price and session decoration, caller-owned memory records, and an
+  injected asynchronous renderer contract;
 - cancellation-aware graphics-adapter lifecycle without importing or creating
   a graphics engine or context;
 - an optional asset-free, scoped EVE-like demo theme;
@@ -80,8 +83,9 @@ for source/client behavior and optional presentation so a consumer can replace
 the markup without copying the logic.
 
 Baseline browser-safety tests reject DOM-presentation APIs and CSS imports from
-the `src/demos` and `src/market` logic layers. Feature-specific logic layers
-require the same one-way check when they are added.
+the `src/demos`, `src/market`, and `src/ship-show-info` logic layers.
+Feature-specific logic layers require the same one-way check when they are
+added.
 
 ## Admission rules
 
@@ -167,6 +171,7 @@ remain valid dependencies.
 - [Browser demo guide](guides/demos.md)
 - [File-index guide](guides/file-indexes.md)
 - [Regional-market guide](guides/market.md)
+- [Ship Show Info guide](guides/ship-show-info.md)
 - [Per-object tooling](perobject/README.md)
 - [Realtime guide](guides/realtime.md)
 - [Class-purpose catalog](reference/classes/README.md)

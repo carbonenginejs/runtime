@@ -137,7 +137,7 @@ test("the public theme is scoped and carries no external assets", async () =>
 
 test("logic families have no presentation dependency", async () =>
 {
-    for (const family of [ "demos", "market" ])
+    for (const family of [ "demos", "market", "ship-show-info" ])
     {
         const sourceRoot = path.join(packageRoot, "src", family);
         const files = await fs.readdir(sourceRoot);
@@ -157,7 +157,16 @@ test("logic families have no presentation dependency", async () =>
 
 test("every JavaScript public subpath imports independently", async () =>
 {
-    for (const name of [ "audio", "chat", "demos", "fileindex", "market", "realtime", "realtime/wire" ])
+    for (const name of [
+        "audio",
+        "chat",
+        "demos",
+        "fileindex",
+        "market",
+        "realtime",
+        "realtime/wire",
+        "ship-show-info"
+    ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
 

@@ -14,6 +14,7 @@
     "./perobject": "./src/perobject/index.js",
     "./realtime": "./src/realtime/index.js",
     "./realtime/wire": "./src/realtime/CjsRealtimeProtocol.js",
+    "./ship-show-info": "./src/ship-show-info/index.js",
     "./theme/eve.css": "./src/theme/eve.css"
   },
   "sideEffects": [
@@ -37,6 +38,7 @@
     "audio",
     "chat",
     "market",
+    "ship-show-info",
     "fileindex",
     "realtime",
     "websocket"

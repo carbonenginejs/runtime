@@ -12,6 +12,7 @@ Summary: Indexes one-sentence purpose descriptors for every maintained browser-t
 - [Browser demo classes](demos.md)
 - [File-index classes](fileindex.md)
 - [Regional-market classes](market.md)
+- [Ship Show Info classes](ship-show-info.md)
 - [Per-object classes](perobject.md)
 - [Realtime classes](realtime.md)
 
