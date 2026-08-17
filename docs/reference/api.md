@@ -7,7 +7,7 @@ Summary: Lists the currently implemented public subpaths and exports.
 
 ## Import contract
 
-The package root re-exports all current browser tool families:
+The package root re-exports the presentation-neutral browser tool families:
 
 ```js
 import {
@@ -35,13 +35,16 @@ import {
 
 | Subpath | Purpose | Exports |
 | --- | --- | --- |
-| `.` | Aggregates all current browser tool families. | All exports below. |
+| `.` | Aggregates presentation-neutral browser tool families. | Logic exports below; optional UI and demo-app subpaths remain explicit. |
 | [`./audio`](../../src/audio/index.js) | Reads remote audio documents, builder inputs, complete files, and ranges. | `CjsAudioLibrary` |
 | [`./chat`](../../src/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
+| [`./demo-apps`](../../src/demo-apps/index.js) | Composes optional feature presentations for standalone or catalogue mounting. | `CjsShipShowInfoDemo`, `CreateShipShowInfoDemoDefinition` |
 | [`./demos`](../../src/demos/index.js) | Hosts independent demos, selects browser data providers, and coordinates injected graphics adapters. | `CjsDemoDataService`, `CjsDemoHost`, `CjsDemoRenderer` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
 | [`./market`](../../src/market/index.js) | Reads and normalizes regional-market data without importing presentation. | `CjsESIMarket`, `CjsESIMarketBackendSource`, `CjsESIMarketMemorySource`, `CjsESIMarketSource`, and market analysis/formatting functions |
 | [`./ship-show-info`](../../src/ship-show-info/index.js) | Coordinates Ship Show Info data and renderer behavior without owning presentation. | `CjsESIShipShowInfoController`, `CjsESIShipShowInfoMarketSource`, `CjsESIShipShowInfoMemorySource`, `CjsESIShipShowInfoSessionSource`, panel constants, and presentation-neutral model helpers |
+| [`./ship-show-info/ui`](../../src/ship-show-info/ui/index.js) | Renders the optional EVE-like Ship Show Info window over the shared controller. | `CjsESIShipShowInfoUIWindow` |
+| `./ship-show-info/ui.css` | Supplies scoped Ship Show Info feature layout without bundling fonts or images. | `.ship-show-info-*` classes |
 | [`./perobject`](../../src/perobject/index.js) | Names, synthesizes, packs, decodes, and inspects Carbon per-object constant-buffer layouts. | `CjsPerObjectDecoder`, `CjsPerObjectFieldType`, `CjsPerObjectLayoutError`, `CjsPerObjectLimits`, `CjsPerObjectPacker`, `CjsPerObjectRegister`, `CjsPerObjectSynthesizer`, `CjsPerObjectTypes`, `perObjectStruct`, `perObjectStructNames` |
 | [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with bounded lifecycle, pressure, reconnect, metrics, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 | [`./realtime/wire`](../../src/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
@@ -64,6 +67,8 @@ may supply an initial shelf or use a memory source.
 Ship Show Info sources likewise bundle no hull, skill, skin, industry, or
 market dataset. Its controller only invokes an injected renderer; engine and
 WebGL-context acquisition remain adapter or application responsibilities.
+Optional demo-app and UI subpaths may use DOM APIs. They remain independently
+importable from the package root and presentation-neutral feature subpaths.
 
 ## Errors
 

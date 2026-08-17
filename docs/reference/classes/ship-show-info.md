@@ -44,3 +44,13 @@ Adds the current external session identity to a provider-neutral Show Info sourc
 - Source: `src/ship-show-info/CjsESIShipShowInfoSessionSource.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
+
+<!-- class:CjsESIShipShowInfoUIWindow -->
+## `CjsESIShipShowInfoUIWindow`
+
+Renders an optional EVE-like Ship Show Info window over the shared controller.
+
+- Export: `@carbonenginejs/tools-browser/ship-show-info/ui`
+- Source: `src/ship-show-info/ui/CjsESIShipShowInfoUIWindow.js`
+- Visibility: Public
+- Kind: CarbonEngineJS

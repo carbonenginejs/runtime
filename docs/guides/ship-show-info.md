@@ -127,11 +127,38 @@ declared authority rather than hidden fallback.
 
 ## Presentation boundary
 
-The EVE-like window, accessibility behavior, CSS, icons, camera-pose catalog,
-and catalogue/standalone composition remain a separate planned presentation
-export. The concrete tools-core-to-record mapper also remains separate: a
-browser client may speak its HTTP contract but must not import tools-core
-server code or credential/session internals.
+The optional `./ship-show-info/ui` export renders the EVE-like window over a
+controller. Its independently imported `./ship-show-info/ui.css` stylesheet
+owns feature layout. The window creates a controller only when the caller does
+not inject one; it never calls `FetchShip` or panel source methods itself.
+
+```js
+import {
+    CjsESIShipShowInfoUIWindow
+} from "@carbonenginejs/tools-browser/ship-show-info/ui";
+import "@carbonenginejs/tools-browser/ship-show-info/ui.css";
+```
+
+UI artwork resolves from the constructor's `uiResourceRoot`. Its default is
+`/eve/latest/resources/ui/texture/`; a standalone host may provide an absolute
+permitted asset service root. The package ships no EVE font, icon, or texture.
+
+Camera views and automatic rotation remain optional renderer-adapter methods.
+The window contains no camera implementation or pose catalog belonging to an
+engine. `CjsShipShowInfoDemo` in `./demo-apps` composes this same window for
+direct mounting, while `CreateShipShowInfoDemoDefinition` supplies the same
+instance shape to `CjsDemoHost`.
+
+The concrete tools-core-to-record mapper remains separate: a browser client
+may speak its HTTP contract but must not import tools-core server code or
+credential/session internals.
+
+## Standalone example
+
+`examples/ship-show-info/` uses only synthetic records supplied to
+`CjsESIShipShowInfoMemorySource`. It proves that the window loads without
+auth, ESI, SDE, or a graphics engine. Supply a renderer adapter to exercise a
+shared or standalone graphics runtime.
 
 ## Related documentation
 

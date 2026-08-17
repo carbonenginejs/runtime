@@ -107,6 +107,19 @@ await showInfo.Mount(renderSurface);
 await showInfo.Open({ typeID, regionID });
 ```
 
+The reusable window and its stylesheet are optional presentation exports:
+
+```js
+import {
+    CjsESIShipShowInfoUIWindow
+} from "@carbonenginejs/tools-browser/ship-show-info/ui";
+import "@carbonenginejs/tools-browser/ship-show-info/ui.css";
+```
+
+Run the caller-owned memory example by serving the package root and opening
+`examples/ship-show-info/`. It has no auth, SDE, ESI, or graphics-engine
+requirement.
+
 ## Documentation
 
 - [Package documentation](docs/README.md)

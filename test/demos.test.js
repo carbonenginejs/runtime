@@ -6,6 +6,34 @@ import {
     CjsDemoHost,
     CjsDemoRenderer
 } from "@carbonenginejs/tools-browser/demos";
+import {
+    CjsShipShowInfoDemo,
+    CreateShipShowInfoDemoDefinition
+} from "@carbonenginejs/tools-browser/demo-apps";
+
+test("Ship Show Info uses the same explicit composition in catalogue and standalone form", () =>
+{
+    const context = { id: "catalogue-context" };
+    const options = { shipSource: { FetchShip() {} }, initialTypeID: 7001 };
+    let receivedContext = null;
+    const definition = CreateShipShowInfoDemoDefinition({
+        CreateOptions(value)
+        {
+            receivedContext = value;
+
+            return options;
+        }
+    });
+    const catalogueDemo = definition.create({ context });
+    const standaloneDemo = new CjsShipShowInfoDemo(options);
+
+    assert.equal(receivedContext, context);
+    assert.equal(definition.id, "ship-show-info");
+    assert.equal(catalogueDemo instanceof CjsShipShowInfoDemo, true);
+    assert.equal(standaloneDemo instanceof CjsShipShowInfoDemo, true);
+    assert.notEqual(catalogueDemo.options, options);
+    assert.equal(catalogueDemo.options.shipSource, options.shipSource);
+});
 
 test("hosts independently constructible demos in one container", async () =>
 {

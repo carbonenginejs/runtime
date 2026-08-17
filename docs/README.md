@@ -97,6 +97,16 @@ import {
 } from "@carbonenginejs/tools-browser/demos";
 ```
 
+For optional feature compositions that can mount directly or become
+`CjsDemoHost` definitions, start with:
+
+```js
+import {
+    CjsShipShowInfoDemo,
+    CreateShipShowInfoDemoDefinition
+} from "@carbonenginejs/tools-browser/demo-apps";
+```
+
 For regional-market clients, provider adapters, and presentation-neutral
 analysis, start with:
 

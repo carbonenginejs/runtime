@@ -8,6 +8,7 @@
     ".": "./src/index.js",
     "./audio": "./src/audio/index.js",
     "./chat": "./src/chat/index.js",
+    "./demo-apps": "./src/demo-apps/index.js",
     "./demos": "./src/demos/index.js",
     "./fileindex": "./src/fileindex/index.js",
     "./market": "./src/market/index.js",
@@ -15,9 +16,12 @@
     "./realtime": "./src/realtime/index.js",
     "./realtime/wire": "./src/realtime/CjsRealtimeProtocol.js",
     "./ship-show-info": "./src/ship-show-info/index.js",
+    "./ship-show-info/ui": "./src/ship-show-info/ui/index.js",
+    "./ship-show-info/ui.css": "./src/ship-show-info/ui/ship-show-info.css",
     "./theme/eve.css": "./src/theme/eve.css"
   },
   "sideEffects": [
+    "./src/ship-show-info/ui/ship-show-info.css",
     "./src/theme/eve.css"
   ],
   "scripts": {
@@ -46,6 +50,7 @@
   "files": [
     "src",
     "docs",
+    "examples",
     "README.md",
     "LICENSE",
     "NOTICE"

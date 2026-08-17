@@ -123,6 +123,10 @@ test("the published manifest has no Node host contract", async () =>
 
     assert.equal(manifest.engines?.node, undefined);
     assert.equal(manifest.dependencies?.["@carbonenginejs/tools-core"], undefined);
+    assert.equal(
+        manifest.exports["./ship-show-info/ui.css"],
+        "./src/ship-show-info/ui/ship-show-info.css"
+    );
     assert.equal(manifest.exports["./theme/eve.css"], "./src/theme/eve.css");
 });
 
@@ -160,12 +164,14 @@ test("every JavaScript public subpath imports independently", async () =>
     for (const name of [
         "audio",
         "chat",
+        "demo-apps",
         "demos",
         "fileindex",
         "market",
         "realtime",
         "realtime/wire",
-        "ship-show-info"
+        "ship-show-info",
+        "ship-show-info/ui"
     ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
@@ -176,4 +182,29 @@ test("every JavaScript public subpath imports independently", async () =>
     const root = await import("@carbonenginejs/tools-browser");
 
     assert.ok(Object.keys(root).length > 0, "root");
+    assert.equal(root.CjsESIShipShowInfoUIWindow, undefined);
+    assert.equal(root.CjsShipShowInfoDemo, undefined);
+});
+
+test("optional Show Info presentation consumes the controller boundary", async () =>
+{
+    const source = await fs.readFile(path.join(
+        packageRoot,
+        "src",
+        "ship-show-info",
+        "ui",
+        "CjsESIShipShowInfoUIWindow.js"
+    ), "utf8");
+    const css = await fs.readFile(path.join(
+        packageRoot,
+        "src",
+        "ship-show-info",
+        "ui",
+        "ship-show-info.css"
+    ), "utf8");
+
+    assert.match(source, /from "\.\.\/CjsESIShipShowInfoController\.js"/u);
+    assert.doesNotMatch(source, /this\.shipSource|PANEL_METHODS|\.FetchShip\s*\(/u);
+    assert.match(css, /^\.ship-show-info-host\s*\{/u);
+    assert.doesNotMatch(css, /@font-face|\burl\s*\(/u);
 });

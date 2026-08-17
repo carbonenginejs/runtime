@@ -1,7 +1,7 @@
 # Browser demo hosting
 
 Status: Evolving
-Scope: `@carbonenginejs/tools-browser/demos` and `@carbonenginejs/tools-browser/theme/eve.css`
+Scope: `@carbonenginejs/tools-browser/demos`, `@carbonenginejs/tools-browser/demo-apps`, and `@carbonenginejs/tools-browser/theme/eve.css`
 Audience: Browser demo authors and runtime integrators
 Summary: Hosts independent demos together, composes browser data sources, and keeps graphics, audio, and character runtimes behind injected domain adapters.
 
@@ -29,6 +29,11 @@ import {
     CjsDemoHost,
     CjsDemoRenderer
 } from "@carbonenginejs/tools-browser/demos";
+
+import {
+    CjsShipShowInfoDemo,
+    CreateShipShowInfoDemoDefinition
+} from "@carbonenginejs/tools-browser/demo-apps";
 
 import "@carbonenginejs/tools-browser/theme/eve.css";
 ```
@@ -68,15 +73,17 @@ toward the earlier layers:
 - a product may import the source/client and behavior layers while supplying
   entirely different components and styling.
 
-The current `./demos` JavaScript is coordination logic, not a component set.
+The `./demos` JavaScript is coordination logic, not a component set.
 `CjsDemoHost` treats its container as an opaque caller-owned value and never
 creates markup. `CjsDemoDataService` and `CjsDemoRenderer` have no presentation
-dependency. The separately imported `./theme/eve.css` subpath is UI-only.
+dependency. `./demo-apps` contains optional feature compositions and may import
+feature UI. The separately imported `./theme/eve.css` subpath is UI-only.
 
-When Market Details and Ship Show Info move, each must expose its source/client
-and behavior independently from its optional EVE-like window. A single export
-that only yields a pre-styled component is insufficient because another host
-would have to copy the data and behavior to render its own UI.
+Ship Show Info now demonstrates this split through `./ship-show-info`,
+`./ship-show-info/ui`, and `./demo-apps`. Market Details must retain the same
+separation when its optional presentation moves. A single export that only
+yields a pre-styled component is insufficient because another host would have
+to copy the data and behavior to render its own UI.
 
 ## One definition, two launch shapes
 
@@ -142,6 +149,29 @@ const context = {
 These names are an application convention, not a required schema. Keeping the
 context caller-owned lets a parent provide shared capabilities while a
 standalone entry point supplies only what its one demo needs.
+
+The maintained Show Info helper makes the options factory explicit:
+
+```js
+const showInfoDefinition = CreateShipShowInfoDemoDefinition({
+    CreateOptions(context)
+    {
+        return {
+            shipSource: context.showInfoSource,
+            renderer: context.CreateShowInfoRenderer?.()
+        };
+    }
+});
+
+const standalone = new CjsShipShowInfoDemo({
+    shipSource,
+    renderer
+});
+```
+
+Both values create the same `CjsShipShowInfoDemo` instance shape. The factory
+is the only catalogue-specific seam; it does not hide provider selection or
+business rules.
 
 ## Rendering adapters
 

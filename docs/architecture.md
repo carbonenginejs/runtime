@@ -55,6 +55,10 @@ The implemented package currently owns:
 - provider-neutral Ship Show Info lifecycle, lazy panel acquisition, optional
   regional-price and session decoration, caller-owned memory records, and an
   injected asynchronous renderer contract;
+- an optional Ship Show Info window and stylesheet that consume that
+  controller without duplicating source acquisition or renderer lifecycle;
+- explicit feature-demo compositions that mount directly or provide the same
+  instance shape to `CjsDemoHost`;
 - cancellation-aware graphics-adapter lifecycle without importing or creating
   a graphics engine or context;
 - an optional asset-free, scoped EVE-like demo theme;
@@ -76,11 +80,12 @@ layers. Optional UI may import them; they never import the UI, a theme, or a
 demo entry point. Standalone and catalogue demos are composition roots that
 wire providers, runtime adapters, UI, theme, routing, and configuration.
 
-The `./demos` JavaScript subpath currently owns presentation-neutral lifecycle
-coordination only. The independently imported `./theme/eve.css` subpath owns
-shared styling. A future feature migration must retain separate public imports
-for source/client behavior and optional presentation so a consumer can replace
-the markup without copying the logic.
+The `./demos` JavaScript subpath owns presentation-neutral lifecycle
+coordination only. `./demo-apps` contains optional composition roots that may
+import feature UI. The independently imported `./theme/eve.css` subpath owns
+shared styling. Feature migrations retain separate public imports for
+source/client behavior and optional presentation so a consumer can replace the
+markup without copying the logic.
 
 Baseline browser-safety tests reject DOM-presentation APIs and CSS imports from
 the `src/demos`, `src/market`, and `src/ship-show-info` logic layers.
