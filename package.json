@@ -8,15 +8,16 @@
     ".": "./src/index.js",
     "./audio": "./src/audio/index.js",
     "./chat": "./src/chat/index.js",
+    "./demos": "./src/demos/index.js",
     "./fileindex": "./src/fileindex/index.js",
     "./perobject": "./src/perobject/index.js",
     "./realtime": "./src/realtime/index.js",
-    "./realtime/wire": "./src/realtime/CjsRealtimeProtocol.js"
+    "./realtime/wire": "./src/realtime/CjsRealtimeProtocol.js",
+    "./theme/eve.css": "./src/theme/eve.css"
   },
-  "sideEffects": false,
-  "engines": {
-    "node": ">=18"
-  },
+  "sideEffects": [
+    "./src/theme/eve.css"
+  ],
   "scripts": {
     "lint": "node scripts/lint_package.js",
     "test": "node --test",

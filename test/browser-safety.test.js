@@ -117,9 +117,44 @@ test("the wire-only subpath does not read WebSocket or Fetch while importing", (
     assert.equal(probe.status, 0, probe.stderr || probe.stdout);
 });
 
-test("every public subpath imports independently", async () =>
+test("the published manifest has no Node host contract", async () =>
 {
-    for (const name of [ "audio", "chat", "fileindex", "realtime", "realtime/wire" ])
+    const manifest = JSON.parse(await fs.readFile(path.join(packageRoot, "package.json"), "utf8"));
+
+    assert.equal(manifest.engines?.node, undefined);
+    assert.equal(manifest.dependencies?.["@carbonenginejs/tools-core"], undefined);
+    assert.equal(manifest.exports["./theme/eve.css"], "./src/theme/eve.css");
+});
+
+test("the public theme is scoped and carries no external assets", async () =>
+{
+    const source = await fs.readFile(path.join(packageRoot, "src", "theme", "eve.css"), "utf8");
+
+    assert.match(source, /^\.cjs-eve-theme\s*\{/u);
+    assert.doesNotMatch(source, /@font-face|\burl\s*\(|(?:^|[},]\s*)(?:html|body)\b/imu);
+    assert.match(source, /prefers-reduced-motion/u);
+});
+
+test("demo coordination has no presentation dependency", async () =>
+{
+    const sourceRoot = path.join(packageRoot, "src", "demos");
+    const files = await fs.readdir(sourceRoot);
+
+    for (const name of files.filter(item => item.endsWith(".js")))
+    {
+        const source = withoutComments(await fs.readFile(path.join(sourceRoot, name), "utf8"));
+
+        assert.doesNotMatch(
+            source,
+            /(?:from|import\s*\()\s*["'][^"']*\.css["']|\b(?:document|window|HTMLElement|customElements)\b|\.innerHTML\b|\.classList\b|\.createElement\s*\(/u,
+            `${name} crosses the logic/UI boundary.`
+        );
+    }
+});
+
+test("every JavaScript public subpath imports independently", async () =>
+{
+    for (const name of [ "audio", "chat", "demos", "fileindex", "realtime", "realtime/wire" ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
 

@@ -13,6 +13,7 @@ The package root re-exports all current browser tool families:
 import {
     CjsAudioLibrary,
     CjsChatClient,
+    CjsDemoHost,
     CjsFileIndex,
     CjsPerObjectDecoder,
     CjsPerObjectPacker,
@@ -35,10 +36,12 @@ import {
 | `.` | Aggregates all current browser tool families. | All exports below. |
 | [`./audio`](../../src/audio/index.js) | Reads remote audio documents, builder inputs, complete files, and ranges. | `CjsAudioLibrary` |
 | [`./chat`](../../src/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
+| [`./demos`](../../src/demos/index.js) | Hosts independent demos, selects browser data providers, and coordinates injected graphics adapters. | `CjsDemoDataService`, `CjsDemoHost`, `CjsDemoRenderer` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
 | [`./perobject`](../../src/perobject/index.js) | Names, synthesizes, packs, decodes, and inspects Carbon per-object constant-buffer layouts. | `CjsPerObjectDecoder`, `CjsPerObjectFieldType`, `CjsPerObjectLayoutError`, `CjsPerObjectLimits`, `CjsPerObjectPacker`, `CjsPerObjectRegister`, `CjsPerObjectSynthesizer`, `CjsPerObjectTypes`, `perObjectStruct`, `perObjectStructNames` |
 | [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with bounded lifecycle, pressure, reconnect, metrics, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 | [`./realtime/wire`](../../src/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
+| `./theme/eve.css` | Supplies an asset-free, scoped EVE-like token and primitive stylesheet. | CSS custom properties and `.cjs-eve-*` classes |
 
 ## Environment contract
 
@@ -48,7 +51,9 @@ responses. `CjsAudioLibrary` accepts explicit HTTP(S) records or resolves
 logical paths through an injected remote `CjsFileIndexLibrary`; it
 structurally supplies `Read` and `ReadRange` to `CjsAudioMan`.
 Realtime consumption requires WebSocket and uses Fetch for snapshot recovery
-when configured.
+when configured. Demo data providers may use caller-supplied documents, Fetch,
+IndexedDB, or other injected browser capabilities. Demo renderers receive an
+adapter and never acquire an engine or graphics context.
 
 ## Errors
 
@@ -68,6 +73,7 @@ details.
 
 - [Audio-library guide](../guides/audio-libraries.md)
 - [File-index guide](../guides/file-indexes.md)
+- [Browser demo guide](../guides/demos.md)
 - [Per-object tooling](../perobject/README.md)
 - [Per-object class catalog](classes/perobject.md)
 - [Realtime guide](../guides/realtime.md)

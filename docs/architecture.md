@@ -22,7 +22,7 @@ runtime-utils  runtime-audio  runtime-resource  runtime-trinity/perobject
                        tools-browser
                              ^
                              |
-                browser applications and Node wrappers
+           browser applications, demos, and injected adapters
 ```
 
 The manifest declares browser-safe dependencies on runtime-utils,
@@ -46,6 +46,13 @@ The implemented package currently owns:
   per-object constant-buffer layouts owned by runtime-trinity;
 - provider-neutral chat-room selection, browser-local filtering, disposable
   room listeners, and consumption of server-resolved presentation assets;
+- independent demo registration, serialized parent-container switching, and
+  cancellation-aware demo lifecycle;
+- authority-ordered browser data-provider composition for caller-supplied JSON,
+  remote APIs, browser databases, and memory without deciding domain policy;
+- cancellation-aware graphics-adapter lifecycle without importing or creating
+  a graphics engine or context;
+- an optional asset-free, scoped EVE-like demo theme;
 - Carbon realtime v1 message validation, WebSocket consumption, exact
   subscriptions, bounded hello/request/pressure behavior, reconnect
   classification, secret-safe metrics, capability replacement, and snapshot
@@ -56,6 +63,23 @@ The implemented package currently owns:
 
 Future demos, inspectors, loaders, and integration helpers may join when they
 provide a usable browser-facing outcome.
+
+## Logic and UI dependency direction
+
+Feature source clients and presentation-neutral behavior are reusable library
+layers. Optional UI may import them; they never import the UI, a theme, or a
+demo entry point. Standalone and catalogue demos are composition roots that
+wire providers, runtime adapters, UI, theme, routing, and configuration.
+
+The `./demos` JavaScript subpath currently owns presentation-neutral lifecycle
+coordination only. The independently imported `./theme/eve.css` subpath owns
+shared styling. A future feature migration must retain separate public imports
+for source/client behavior and optional presentation so a consumer can replace
+the markup without copying the logic.
+
+Baseline browser-safety tests reject DOM-presentation APIs and CSS imports from
+the `src/demos` coordination layer. Feature-specific logic layers require the
+same one-way check when they are added.
 
 ## Admission rules
 
@@ -95,6 +119,10 @@ subpath, tests, documentation, and owned security boundary.
   `@carbonenginejs/tools-core`.
 - Textures, buffers, pipelines, and backend realization belong in `engine-*`
   packages.
+- Audio and character library construction, planning, and runtime semantics
+  remain in their owning runtime packages. Demos may receive their prepared
+  documents and runtime capabilities without wrapping them in a graphics
+  lifecycle.
 
 ## Security
 
@@ -119,15 +147,22 @@ no audio-library construction or runtime selection.
 
 ## Environment contract
 
-Source is side-effect-free by public subpath and uses standard ECMAScript plus
-Web APIs. Browser globals may be replaced with injected implementations for
-offline tests and compatible non-browser hosts.
+JavaScript source is side-effect-free by public subpath and uses standard
+ECMAScript plus Web APIs. The independently imported theme stylesheet is the
+only declared side-effectful asset. Browser globals may be replaced with
+injected implementations for offline tests and compatible non-browser hosts.
+
+Published source has no Node host contract, imports no Node built-ins, and
+depends on no Node-only package. Tests and package checks may use Node as a
+browser-compatible development host. Browser-safe runtime package subpaths
+remain valid dependencies.
 
 ## Related documentation
 
 - [Package documentation](README.md)
 - [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
+- [Browser demo guide](guides/demos.md)
 - [File-index guide](guides/file-indexes.md)
 - [Per-object tooling](perobject/README.md)
 - [Realtime guide](guides/realtime.md)

@@ -1,6 +1,7 @@
 # @carbonenginejs/tools-browser
 
-Browser-facing CarbonEngineJS clients, remote readers, and application tools.
+Browser-facing CarbonEngineJS clients, remote readers, demo infrastructure,
+and application tools.
 
 Use this package when a useful browser implementation does not belong in a
 runtime library. Shared primitives remain in `@carbonenginejs/runtime-utils`;
@@ -65,10 +66,29 @@ enrichment for the optional
 files and exact ranges for the runtime provider contract.
 
 The root export is available when an application consumes several tool
-families. Targeted `./audio`, `./chat`, `./fileindex`, and `./realtime` imports
-remain available. Node hosts and protocol tools that need only the
+families. Targeted `./audio`, `./chat`, `./demos`, `./fileindex`, and
+`./realtime` imports remain available. Node hosts and protocol tools that need only the
 side-effect-free wire constants and structural validators use
 `./realtime/wire`.
+
+Host independently mountable demos without choosing their renderer or data
+storage:
+
+```js
+import {
+    CjsDemoDataService,
+    CjsDemoHost
+} from "@carbonenginejs/tools-browser/demos";
+
+const data = new CjsDemoDataService({ providers });
+const host = new CjsDemoHost({ container, context: { data }, demos });
+
+await host.Open("ship-show-info");
+```
+
+The demo family accepts caller-provided browser capabilities. It imports no
+Node implementation and may consume in-memory or bundled JSON, remote APIs,
+IndexedDB, prepared runtime libraries, and injected graphics adapters.
 
 ## Documentation
 
@@ -76,6 +96,7 @@ side-effect-free wire constants and structural validators use
 - [Architecture and boundaries](docs/architecture.md)
 - [Audio-library guide](docs/guides/audio-libraries.md)
 - [Chat guide](docs/guides/chat.md)
+- [Browser demo guide](docs/guides/demos.md)
 - [File-index guide](docs/guides/file-indexes.md)
 - [Realtime guide](docs/guides/realtime.md)
 - [Current API reference](docs/reference/api.md)
