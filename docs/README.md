@@ -44,8 +44,9 @@ runtime-utils  runtime-audio  runtime-resource  runtime-trinity/perobject
 
 The package uses narrow browser-safe runtime subpaths when a domain tool needs
 an owning schema or reader. Its public families are remote audio acquisition,
-provider-neutral chat, browser demo hosting, remote file-index handling,
-per-object shader inspection/packing, and the Carbon realtime v1 client.
+provider-neutral chat, browser demo hosting, regional-market data logic,
+remote file-index handling, per-object shader inspection/packing, and the
+Carbon realtime v1 client.
 
 ## Start here
 
@@ -95,6 +96,16 @@ import {
 } from "@carbonenginejs/tools-browser/demos";
 ```
 
+For regional-market clients, provider adapters, and presentation-neutral
+analysis, start with:
+
+```js
+import {
+    CjsESIMarket,
+    analyzeOrders
+} from "@carbonenginejs/tools-browser/market";
+```
+
 For Carbon per-object constant-buffer inspection, synthesis, and packing,
 start with:
 
@@ -112,6 +123,7 @@ import {
 - [Chat guide](guides/chat.md)
 - [Browser demo guide](guides/demos.md)
 - [File-index guide](guides/file-indexes.md)
+- [Regional-market guide](guides/market.md)
 - [Per-object tooling](perobject/README.md)
 - [Realtime guide](guides/realtime.md)
 - [Current API reference](reference/api.md)

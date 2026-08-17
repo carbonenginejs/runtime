@@ -11,6 +11,7 @@ Summary: Indexes one-sentence purpose descriptors for every maintained browser-t
 - [Chat classes](chat.md)
 - [Browser demo classes](demos.md)
 - [File-index classes](fileindex.md)
+- [Regional-market classes](market.md)
 - [Per-object classes](perobject.md)
 - [Realtime classes](realtime.md)
 

@@ -135,26 +135,29 @@ test("the public theme is scoped and carries no external assets", async () =>
     assert.match(source, /prefers-reduced-motion/u);
 });
 
-test("demo coordination has no presentation dependency", async () =>
+test("logic families have no presentation dependency", async () =>
 {
-    const sourceRoot = path.join(packageRoot, "src", "demos");
-    const files = await fs.readdir(sourceRoot);
-
-    for (const name of files.filter(item => item.endsWith(".js")))
+    for (const family of [ "demos", "market" ])
     {
-        const source = withoutComments(await fs.readFile(path.join(sourceRoot, name), "utf8"));
+        const sourceRoot = path.join(packageRoot, "src", family);
+        const files = await fs.readdir(sourceRoot);
 
-        assert.doesNotMatch(
-            source,
-            /(?:from|import\s*\()\s*["'][^"']*\.css["']|\b(?:document|window|HTMLElement|customElements)\b|\.innerHTML\b|\.classList\b|\.createElement\s*\(/u,
-            `${name} crosses the logic/UI boundary.`
-        );
+        for (const name of files.filter(item => item.endsWith(".js")))
+        {
+            const source = withoutComments(await fs.readFile(path.join(sourceRoot, name), "utf8"));
+
+            assert.doesNotMatch(
+                source,
+                /(?:from|import\s*\()\s*["'][^"']*\.css["']|\b(?:document|window|HTMLElement|customElements)\b|\.innerHTML\b|\.classList\b|\.createElement\s*\(/u,
+                `${family}/${name} crosses the logic/UI boundary.`
+            );
+        }
     }
 });
 
 test("every JavaScript public subpath imports independently", async () =>
 {
-    for (const name of [ "audio", "chat", "demos", "fileindex", "realtime", "realtime/wire" ])
+    for (const name of [ "audio", "chat", "demos", "fileindex", "market", "realtime", "realtime/wire" ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
 

@@ -15,6 +15,7 @@ import {
     CjsChatClient,
     CjsDemoHost,
     CjsFileIndex,
+    CjsESIMarket,
     CjsPerObjectDecoder,
     CjsPerObjectPacker,
     CjsRealtimeClient
@@ -38,6 +39,7 @@ import {
 | [`./chat`](../../src/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
 | [`./demos`](../../src/demos/index.js) | Hosts independent demos, selects browser data providers, and coordinates injected graphics adapters. | `CjsDemoDataService`, `CjsDemoHost`, `CjsDemoRenderer` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
+| [`./market`](../../src/market/index.js) | Reads and normalizes regional-market data without importing presentation. | `CjsESIMarket`, `CjsESIMarketBackendSource`, `CjsESIMarketMemorySource`, `CjsESIMarketSource`, and market analysis/formatting functions |
 | [`./perobject`](../../src/perobject/index.js) | Names, synthesizes, packs, decodes, and inspects Carbon per-object constant-buffer layouts. | `CjsPerObjectDecoder`, `CjsPerObjectFieldType`, `CjsPerObjectLayoutError`, `CjsPerObjectLimits`, `CjsPerObjectPacker`, `CjsPerObjectRegister`, `CjsPerObjectSynthesizer`, `CjsPerObjectTypes`, `perObjectStruct`, `perObjectStructNames` |
 | [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with bounded lifecycle, pressure, reconnect, metrics, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 | [`./realtime/wire`](../../src/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
@@ -54,6 +56,9 @@ Realtime consumption requires WebSocket and uses Fetch for snapshot recovery
 when configured. Demo data providers may use caller-supplied documents, Fetch,
 IndexedDB, or other injected browser capabilities. Demo renderers receive an
 adapter and never acquire an engine or graphics context.
+Market clients use injected Fetch and return mutable normalized records. The
+direct ESI adapter bundles no type, region, order, or history dataset; callers
+may supply an initial shelf or use a memory source.
 
 ## Errors
 
@@ -73,6 +78,7 @@ details.
 
 - [Audio-library guide](../guides/audio-libraries.md)
 - [File-index guide](../guides/file-indexes.md)
+- [Regional-market guide](../guides/market.md)
 - [Browser demo guide](../guides/demos.md)
 - [Per-object tooling](../perobject/README.md)
 - [Per-object class catalog](classes/perobject.md)

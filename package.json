@@ -10,6 +10,7 @@
     "./chat": "./src/chat/index.js",
     "./demos": "./src/demos/index.js",
     "./fileindex": "./src/fileindex/index.js",
+    "./market": "./src/market/index.js",
     "./perobject": "./src/perobject/index.js",
     "./realtime": "./src/realtime/index.js",
     "./realtime/wire": "./src/realtime/CjsRealtimeProtocol.js",
@@ -35,6 +36,7 @@
     "browser",
     "audio",
     "chat",
+    "market",
     "fileindex",
     "realtime",
     "websocket"
