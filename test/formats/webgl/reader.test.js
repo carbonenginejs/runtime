@@ -156,3 +156,46 @@ test("every permutation index resolves to exactly one body", () =>
         assert.ok(stageBodies.has(key), `${key} has no stages`);
     }
 });
+
+
+test("read carries each pass's render states onto its stage records as `states`", () =>
+{
+    // ONE/ONE plus BLENDOP ADD - the additive decal state. Nothing in the
+    // emitted GLSL implies it, so a consumer that reads only programs and
+    // bindings draws the pass under whatever state the previous one left set.
+    // For the three additive decal shaders, which write alpha 0, inheriting a
+    // src-alpha blend multiplies the pass away entirely.
+    const RENDER_STATES = [
+        { state: 14, value: 0 },   // RS_ZWRITEENABLE
+        { state: 19, value: 2 },   // RS_SRCBLEND  = BLEND_ONE
+        { state: 20, value: 2 },   // RS_DESTBLEND = BLEND_ONE
+        { state: 27, value: 1 },   // RS_ALPHABLENDENABLE
+        { state: 171, value: 1 }   // RS_BLENDOP   = BLENDOP_ADD
+    ];
+
+    const bytes = CjsWebglFormat.buildEffect(
+        buildMinimalStagedEffectBytes({ version: 15, renderStates: RENDER_STATES }),
+        { source: "synthetic.sm_hi", allowFailures: true }
+    ).bytes;
+
+    const result = CjsWebglFormat.read(bytes, { source: "synthetic" });
+
+    assert.ok(result.stages.length > 0);
+    for (const stage of result.stages)
+    {
+        assert.deepEqual(stage.states, RENDER_STATES, stage.key);
+        // Carbon reserves `renderStates` for the registration handle, and this
+        // path registers nothing - so the name must not appear at all.
+        assert.equal(stage.renderStates, undefined, stage.key);
+    }
+});
+
+test("a pass with no render states reports an empty list, never undefined", () =>
+{
+    const result = CjsWebglFormat.read(sampleBytes(), { source: "synthetic" });
+
+    for (const stage of result.stages)
+    {
+        assert.deepEqual(stage.states, [], stage.key);
+    }
+});

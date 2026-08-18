@@ -185,6 +185,7 @@ function buildStringTable(strings)
  * @param {1|2} [options.passCount] Number of identical minimal passes.
  * @param {Array<1|2>} [options.bodyPassCounts] Per-permutation pass counts.
  * @param {boolean} [options.distinctBodyRanges] Store aliases at separate ranges.
+ * @param {Array<{state: number, value: number}>} [options.renderStates] Pass render states.
  * @returns {Uint8Array} Synthetic compiled effect bytes.
  */
 export function buildMinimalStagedEffectBytes(options = {})
@@ -194,6 +195,7 @@ export function buildMinimalStagedEffectBytes(options = {})
     {
         throw new TypeError("Minimal staged effect version must be 8, 14, or 15");
     }
+    const renderStates = options.renderStates ?? [];
     const passCount = options.passCount ?? 1;
     if (![ 1, 2 ].includes(passCount))
     {
@@ -284,7 +286,13 @@ export function buildMinimalStagedEffectBytes(options = {})
                     body.u8(0);
                 }
             }
-            body.u8(0);
+            // renderStateCount, then {u32 state, u32 value} pairs.
+            body.u8(renderStates.length);
+            for (const entry of renderStates)
+            {
+                body.u32(entry.state);
+                body.u32(entry.value);
+            }
         }
         if (version > 13) body.u8(0);
         body.u16(0);

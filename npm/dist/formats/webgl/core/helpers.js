@@ -83,8 +83,8 @@ function isWebglEffectContainer(input) {
     return false;
   }
 }
-const EMIT_GLSL_OPTION_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "neutralResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture", "emulatedAddressing", "pairVaryings", "source"]);
-const EMIT_GLSL_PROFILE_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "neutralResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture", "emulatedAddressing"]);
+const EMIT_GLSL_OPTION_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "neutralResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture", "emulatedAddressing", "depthRange", "pairVaryings", "source"]);
+const EMIT_GLSL_PROFILE_KEYS = new Set(["constantBufferStyle", "pixelConstantBufferRemap", "samplerName", "vertexStructuredCapacity", "dataTextureWidth", "stubResourceRegisters", "neutralResourceRegisters", "detailMapArrayRegisters", "lightConstantBuffer", "lightPackedTexture", "emulatedAddressing", "depthRange"]);
 
 /**
  * Translates one DXBC stage into GLSL ES 3.00 source, sharing one core path

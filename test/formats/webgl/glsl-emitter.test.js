@@ -290,3 +290,69 @@ test("constant buffers emit as a flat vec4 array in both declaration styles", ()
         }
     }
 });
+
+
+const REVERSED_FIXUP = "gl_Position.z = gl_Position.w - 2.0 * gl_Position.z;";
+const FORWARD_FIXUP = "gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;";
+
+test("an unknown depthRange is rejected rather than silently defaulted", () =>
+{
+    // Rejected at construction, so it fails whether or not the stage happens to
+    // write a position. A silently ignored depth range is the worst outcome
+    // available: the output still compiles and still draws.
+    assert.throws(
+        () => CjsWebglFormat.emitGlsl(buildMinimalVertexDxbc(), { source: "s", depthRange: "sideways" }),
+        /depthRange must be/u
+    );
+});
+
+// The fixup is only emitted by a stage that writes SV_Position, which the
+// synthetic DXBC builders do not - they exist to exercise instruction
+// lowering. So the round trip is asserted against a real compiled effect.
+const depthCorpusDir = process.env.CARBON_EFFECT_CORPUS_DIR || "";
+
+test(
+    "the vertex depth fixup follows depthRange, defaulting to reversed",
+    { skip: depthCorpusDir ? false : "set CARBON_EFFECT_CORPUS_DIR to run the depth-range guard" },
+    async () =>
+    {
+        const { readdir, readFile } = await import("node:fs/promises");
+        const path = await import("node:path");
+
+        const names = (await readdir(depthCorpusDir)).filter(n => /.sm_(hi|lo|depth)$/u.test(n));
+        assert.ok(names.length, "corpus directory holds no compiled effects");
+        const bytes = new Uint8Array(await readFile(path.join(depthCorpusDir, names[0])));
+
+        const tailOf = (depthRange) =>
+        {
+            const opts = { source: names[0], localLights: "packed-texture" };
+            if (depthRange) opts.emitterOptions = { depthRange };
+            const doc = CjsWebglFormat.read(CjsWebglFormat.buildEffect(bytes, opts).bytes, { source: names[0] });
+            const vertex = doc.shaders.find(shader => shader.stageName === "vertex" && shader.source);
+            assert.ok(vertex, "no translated vertex stage");
+            return vertex.source;
+        };
+
+        const byDefault = tailOf(null);
+        assert.ok(byDefault.includes(REVERSED_FIXUP), "the default must be the reversed fixup");
+        assert.ok(!byDefault.includes(FORWARD_FIXUP));
+
+        assert.ok(tailOf("reversed").includes(REVERSED_FIXUP));
+
+        const forward = tailOf("forward");
+        assert.ok(forward.includes(FORWARD_FIXUP), "depthRange forward must emit the forward fixup");
+        assert.ok(!forward.includes(REVERSED_FIXUP));
+
+        // Exactly one FIXUP, whichever it is: a stage carrying both would be
+        // depth-neutral and would satisfy every range assertion.
+        //
+        // Counting `gl_Position.z =` outright would be wrong. A surface decal
+        // assigns it twice - once for the lift it authors itself, once for the
+        // fixup - so the count must be of the fixup strings, not of writes.
+        const occurrences = (source, needle) => source.split(needle).length - 1;
+        assert.equal(occurrences(byDefault, REVERSED_FIXUP), 1);
+        assert.equal(occurrences(byDefault, FORWARD_FIXUP), 0);
+        assert.equal(occurrences(forward, FORWARD_FIXUP), 1);
+        assert.equal(occurrences(forward, REVERSED_FIXUP), 0);
+    }
+);

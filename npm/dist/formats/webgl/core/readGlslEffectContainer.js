@@ -234,6 +234,25 @@ function readGlslEffectContainer(input, values = {}) {
             stageType: stage.type,
             shaderKey,
             manifest: manifestStages.get(`${passKey}.${name}`) ?? null,
+            // The pass's D3D render states, verbatim from the
+            // description. They are not reflection and nothing in
+            // the GLSL implies them, so a consumer that only reads
+            // programs and bindings renders every effect with
+            // whatever state the previous draw happened to leave
+            // set. That is invisible for an effect whose states
+            // match the ambient ones and total for one whose do
+            // not - an additive pass writing alpha 0 disappears
+            // completely under a src-alpha blend.
+            //
+            // `states`, not `renderStates`. In the shipped format a
+            // pass reserves `renderStates` for the integer handle a
+            // registered state setup is identified by, and calls
+            // the {state, value} pairs themselves `states` - as do
+            // the WebGPU analysis passes and both of ccpwgl's
+            // legacy readers. This path registers nothing, so it
+            // carries the list and no handle rather than inventing
+            // a number.
+            states: pass.renderStates ?? [],
             // The pass's transforms, so a rule can ask whether a
             // description resource was merged away rather than lost.
             transforms

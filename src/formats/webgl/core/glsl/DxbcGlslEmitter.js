@@ -139,8 +139,37 @@ export class DxbcGlslEmitter
             // into one array binding frees two texture units on shaders that
             // sit exactly on WebGL2's 16-unit limit.
             detailMapArrayRegisters: [],
+            // Which end of the source clip range is NEAR, and therefore which
+            // form the depth-range fixup takes.
+            //
+            //   "reversed" (default)  z_clip [w, 0]  ->  gl_Position.z = w - 2z
+            //   "forward"             z_clip [0, w]  ->  gl_Position.z = 2z - w
+            //
+            // The default is "reversed" because that is what the shaders this
+            // emitter translates were compiled against, and it is a property of
+            // the INPUT, not a preference of any one consumer. It is stated as
+            // an option rather than hard-coded for two reasons: the assumption
+            // is otherwise invisible in the output, and a future source may not
+            // share it. Deciding it here also means a consumer supplies a
+            // matching projection or gets inverted depth, which is a real
+            // coupling and better declared than implied.
+            //
+            // Switch to "forward" to A/B the convention against a forward-range
+            // projection. Expect an unbiased vertex to look identical either
+            // way - the fixup and the projection compose to the identity - and
+            // only shader-authored depth offsets to change sign. That is the
+            // whole observable difference, and it is what makes the wrong
+            // choice so hard to see.
+            depthRange: "reversed",
             ...options.profile
         };
+
+        if (this.profile.depthRange !== "reversed" && this.profile.depthRange !== "forward")
+        {
+            throw new TypeError(
+                `DxbcGlslEmitter: depthRange must be "reversed" or "forward", got ${JSON.stringify(this.profile.depthRange)}`
+            );
+        }
     }
 
     /**
@@ -3272,6 +3301,19 @@ DxbcGlslEmitter.prototype._gather4Channel = function _gather4Channel(operand)
 /**
  * Assembles the final GLSL text.
  */
+/**
+ * The depth-range fixup emitted at the end of a vertex stage, by source range.
+ *
+ * Both entries map their range onto GL NDC [-1, 1] and both compose to the
+ * identity with a projection of the matching form, so an unbiased vertex is
+ * unchanged either way. See `profile.depthRange`.
+ * @type {Object.<string,string>}
+ */
+const DEPTH_RANGE_FIXUP = Object.freeze({
+    reversed: "gl_Position.z = gl_Position.w - 2.0 * gl_Position.z;",
+    forward: "gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;"
+});
+
 DxbcGlslEmitter.prototype._assemble = function _assemble(state)
 {
     const lines = [ "#version 300 es" ];
@@ -3285,16 +3327,27 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
     {
         lines.push("", helperSource);
     }
-    // Vertex stages get the standard DX->GL depth-range fixup: EVE's
-    // projection matrices are D3D-style (z_clip in [0, w]), so the raw
-    // DXBC position would land in GL NDC [0, 1] instead of [-1, 1] —
-    // halving depth precision and breaking every pixel-stage read of
-    // SV_Position.z (gl_FragCoord.z) and depth-encoding technique against
-    // the DX-convention values the shaders were compiled for. Remapping
-    // z after the translated body runs makes depth output, clipping and
-    // gl_FragCoord.z all match D3D semantics exactly. The body is wrapped
-    // in a helper so early `ret` (return) statements cannot skip the
-    // fixup.
+    // Vertex stages get the depth-range fixup that turns a compiled shader's
+    // clip z into GL's. These shaders are compiled against a REVERSED depth
+    // range: z_clip runs [w, 0], near at w and far at 0, and `w - 2z` maps that
+    // onto GL NDC [-1, 1].
+    //
+    // The reversal is observable in the shipped bodies themselves. Surface
+    // decals add a small positive constant to clip z to lift themselves off the
+    // hull they sit on, and a lift is only toward the camera on a reversed
+    // axis.
+    //
+    // The caller MUST supply a reversed-D3D projection. Composed with one, this
+    // is exactly the identity for an unbiased vertex, so the depth buffer keeps
+    // conventional GL values and legacy shaders sharing it are unaffected. What
+    // changes is the direction of any offset the shader authors ITSELF: the
+    // decal family adds `+1e-5` to lift itself off the hull, which is toward
+    // the camera only on a reversed axis. Hand it a forward-D3D projection and
+    // every such offset inverts - decals sink INTO the hull by `2e-5/w`, an
+    // error that grows as the camera closes in.
+    //
+    // The body is wrapped in a helper so early `ret` (return) statements cannot
+    // skip the fixup.
     const writesPosition = [ ...state.outputNames.values() ].includes("gl_Position");
     if (!state.isPixel && !state.isCompute && writesPosition)
     {
@@ -3308,7 +3361,7 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
             "",
             "void main() {",
             "    dxbc_main();",
-            "    gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;",
+            `    ${DEPTH_RANGE_FIXUP[this.profile.depthRange]}`,
             "}"
         );
         return `${lines.join("\n")}\n`;
