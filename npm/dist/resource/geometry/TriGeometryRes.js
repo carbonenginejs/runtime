@@ -319,7 +319,7 @@ class TriGeometryRes extends CjsResource {
    * @returns {object}
    */
   GetIntersectionPointNormalBone(position, direction) {
-    return TriGeometryRes.intersectGeometry(this.GetPayload()?.meshes, position, direction, -1);
+    return TriGeometryRes.intersectGeometry(this.RequireIntersectionMeshes(), position, direction, -1);
   }
 
   /**
@@ -334,7 +334,37 @@ class TriGeometryRes extends CjsResource {
     if (!Number.isInteger(areaIndex) || areaIndex < -1) {
       throw new RangeError("TriGeometryRes area index must be -1 or a non-negative integer.");
     }
-    return TriGeometryRes.intersectGeometry(this.GetPayload()?.meshes, position, direction, areaIndex);
+    return TriGeometryRes.intersectGeometry(this.RequireIntersectionMeshes(), position, direction, areaIndex);
+  }
+
+  /**
+   * The CPU triangle data an intersection query needs, or a loud failure.
+   *
+   * A ray query used to read `GetPayload()?.meshes`, and `intersectGeometry`
+   * loops over `meshes?.length || 0`. So an absent payload produced a clean
+   * MISS: `hit: false`, no error, indistinguishable from the ray genuinely
+   * passing the object by. Picking would appear to work and simply stop
+   * hitting things, and the symptom reads as a maths bug rather than a
+   * residency one.
+   *
+   * Carbon never has to answer this, because it holds the loaded file for the
+   * resource's lifetime and its CPU data is always resident. Ours is
+   * releasable, so the unavailable case is real and must be named.
+   *
+   * Throwing is the interim answer, not the final one: once accuracy tiers
+   * exist a query degrades to bounds or sphere and reports which produced it.
+   * What it must never do again is report absence as a miss. See
+   * `/docs/contracts/cpu-geometry-residency.md`.
+   *
+   * @returns {Array<*>} Canonical CPU meshes.
+   * @throws {Error} When the CPU geometry is not resident.
+   */
+  RequireIntersectionMeshes() {
+    const meshes = this.GetPayload()?.meshes;
+    if (!Array.isArray(meshes)) {
+      throw new Error("TriGeometryRes cannot answer an intersection query: CPU geometry is " + "not resident. The payload was never loaded or has been released. " + "Reload through CjsResMan before querying.");
+    }
+    return meshes;
   }
 
   /**

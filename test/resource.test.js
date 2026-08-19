@@ -2116,6 +2116,36 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
   assert.equal(geometry.GetPayload(), geometryPayload);
 });
 
+test("a geometry intersection query reports unavailable CPU data instead of a miss", () =>
+{
+  // The regression this guards is silent: reading `GetPayload()?.meshes` on a
+  // released payload returned `hit: false`, which no caller can distinguish
+  // from the ray genuinely missing. Picking degrades to "nothing is ever
+  // clickable" with no error anywhere. See
+  // /docs/contracts/cpu-geometry-residency.md.
+  const geometry = new TriGeometryRes();
+
+  assert.equal(geometry.HasPayload(), false);
+  assert.throws(
+    () => geometry.GetIntersectionPointNormalBone([ 0, 0, 1 ], [ 0, 0, -1 ]),
+    /CPU geometry is not resident/u,
+    "an absent payload must not answer a ray query"
+  );
+  assert.throws(
+    () => geometry.GetAreaIntersectionPointNormalBone([ 0, 0, 1 ], [ 0, 0, -1 ], 0),
+    /CPU geometry is not resident/u,
+    "the area query fails the same way"
+  );
+
+  // Negative control: the failure must be about residency, not about the ray.
+  // An invalid ray still fails as an invalid ray.
+  assert.throws(
+    () => geometry.GetAreaIntersectionPointNormalBone([ 0, 0, 1 ], [ 0, 0, -1 ], -2),
+    RangeError,
+    "an invalid area index is still a RangeError"
+  );
+});
+
 test("CjsResource can hold opaque engine-owned subobjects", () => {
   const resource = new TriTextureRes().Initialize("res:/texture/ship.dds");
   const gpuTexture = {
