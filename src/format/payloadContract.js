@@ -1,18 +1,59 @@
 /**
- * Canonical semantic payload vocabulary shared by runtime-resource adapters
- * and pure format readers.
+ * The `payloadType` vocabulary shared by the format readers and the resources
+ * they populate, plus validators for the shapes that carry structure worth
+ * checking.
  *
- * Format packages may return plain objects matching these shapes without
- * importing runtime-resource. These validators are runtime-side guardrails;
- * they are not file decoders or GPU capability checks.
+ * THIS FILE IS NOT A CROSS-PACKAGE CONTRACT, whatever it used to say. Every
+ * reader lives in this package, and not one of them imports this vocabulary:
+ * all nineteen spell their `payloadType` as a bare string literal or a local
+ * `OUTPUT_*` constant. The declaration and the spelling drifted apart exactly
+ * as you would expect - the enum named five values while readers were emitting
+ * eleven, and the missing one used most often was `raw`, which is the default
+ * return of nearly every reader.
+ *
+ * A source scan was tried as the drift guard and abandoned: its first run
+ * reported `dds` and `video-frame` as new vocabulary, when one was the
+ * CONDITION of a ternary and the other a capability variant marked
+ * `supported: false`. Nothing reading reader source as text can tell a payload
+ * from a record describing what a payload could have been, so the vocabulary is
+ * stated here and checked by eye.
+ *
+ * Validation is deliberately partial. `validateRgbaPayload`,
+ * `validateTexturePayload`, `validateAudioPayload` and `validateVideoPayload`
+ * check payloads whose fields have to agree with each other - strides against
+ * widths, subresource extents against buffer length - because those are wrong
+ * in ways a type cannot catch. The rest carry bytes and a source format, and
+ * there is nothing to cross-check.
  */
 
+/**
+ * Every `payloadType` that reaches a resource through `CjsResMan`.
+ *
+ * `RAW` and `MEDIA` were the additions. `RAW` is the one that mattered: it is
+ * the default return of nearly every reader in this package, and it had gone
+ * unnamed here since the file was written.
+ *
+ * The debug emits are deliberately absent. `fbxJson`, `ddsJson`, `wavJson` and
+ * the rest are asked of a format directly, and the inspection records tagged
+ * `image`, `geometry` or `container` are descriptions of what a reader found
+ * rather than something it decoded. None of them is part of the manager's
+ * normal traffic.
+ *
+ * Not that they are unreachable. A caller who asks the manager for a `json`
+ * emit gets the inspection record published as the payload, because the
+ * manager publishes whatever the reader returned. That is a hole in the emit
+ * contract rather than a reason to widen this vocabulary, and it is written
+ * down here so the next person to meet an `image` payload knows it arrived by
+ * request and not by accident.
+ */
 export const ResourcePayloadType = Object.freeze({
+    RAW: "raw",
     RGBA: "rgba",
     TEXTURE: "texture",
     AUDIO: "audio",
     PCM: "pcm",
-    VIDEO: "video"
+    VIDEO: "video",
+    MEDIA: "media"
 });
 
 export const ResourcePayloadValues = Object.freeze({
