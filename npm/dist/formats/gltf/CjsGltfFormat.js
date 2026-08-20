@@ -243,6 +243,7 @@ class CjsGltfFormat {
   static CLASS_KEYS = CLASS_KEYS;
   static type = Object.freeze(["geometry"]);
   static mediaTypes = Object.freeze(["geometry"]);
+  static extensions = Object.freeze([".gltf", ".glb"]);
   static inputTypes = Object.freeze(["gltf", "glb"]);
   static outputTypes = Object.freeze([OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF]);
   static debugOutputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_GLTF_JSON]);

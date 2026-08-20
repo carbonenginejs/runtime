@@ -188,6 +188,7 @@ class CjsTgaFormat {
   static OUTPUT_TGA_JSON = "tgaJson";
   static type = Object.freeze(["image"]);
   static mediaTypes = Object.freeze(["image"]);
+  static extensions = Object.freeze([".tga"]);
   static inputTypes = Object.freeze(["tga"]);
   static outputTypes = Object.freeze([OUTPUT_IMAGE, OUTPUT_RGBA]);
   static debugOutputTypes = Object.freeze(["tgaJson", OUTPUT_RAW]);

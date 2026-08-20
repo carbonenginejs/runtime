@@ -273,6 +273,7 @@ export class CjsFbxFormat
     static CLASS_KEYS = CLASS_KEYS;
     static type = Object.freeze([ "geometry" ]);
     static mediaTypes = Object.freeze([ "geometry" ]);
+    static extensions = Object.freeze([ ".fbx" ]);
     static inputTypes = Object.freeze([ "fbx" ]);
     static outputTypes = Object.freeze([ OUTPUT_GR2, OUTPUT_CMF ]);
     static debugOutputTypes = Object.freeze([ OUTPUT_FBX_JSON, OUTPUT_RAW ]);

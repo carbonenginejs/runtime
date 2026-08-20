@@ -271,6 +271,7 @@ export class CjsWemFormat
     static CODEC_NAMES = WEM_CODEC_NAMES;
     static type = Object.freeze([ "audio" ]);
     static mediaTypes = Object.freeze([ "audio" ]);
+    static extensions = Object.freeze([ ".wem" ]);
     static inputTypes = Object.freeze([ "wem" ]);
     static outputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM ]);
     static debugOutputTypes = Object.freeze([ OUTPUT_WEM_JSON, OUTPUT_RAW ]);

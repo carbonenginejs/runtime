@@ -413,6 +413,71 @@ export class CjsResource extends CjsEventEmitter
   }
 
   /**
+   * Take over loading entirely, before the manager fetches anything.
+   *
+   * Returning `true` means this resource handled its own acquisition and the
+   * manager stands down: no fetch, no queue entry. Returning `false` — the
+   * default — means load it the ordinary way.
+   *
+   * This one IS optional, unlike `DoLoad`, and that is why it has a default
+   * instead of a refusal. Most resources never take it. Declaring it here
+   * rather than optional-chaining at the call site keeps the caller honest:
+   * absence is a supported answer, so the base states the answer.
+   *
+   * @param {string} url Resolved source url.
+   * @param {string} extension Lowercased extension including its dot.
+   * @returns {boolean} Whether this resource handled its own load.
+   */
+  DoCustomLoad(url, extension) {
+    return false;
+  }
+
+  /**
+   * How this resource wants its source bytes delivered.
+   *
+   * The manager must fetch before it knows the format, so the resource states
+   * what shape it needs. Defaults to the format-side default, which is what
+   * every transport hardcodes today.
+   *
+   * @returns {string} A fetch response type.
+   */
+  GetRequestResponseType() {
+    return "arraybuffer";
+  }
+
+  /**
+   * Turn raw source bytes into this resource.
+   *
+   * Declared here rather than left to each subclass because it is the load
+   * contract, not an optional capability. The base refuses rather than
+   * silently succeeding: a resource reached by the loader that has not been
+   * taught to read its own bytes is a registration mistake, and returning
+   * quietly would publish an empty resource and mark it prepared.
+   *
+   * `Tr2EffectRes` already implements exactly this shape, and it is the only
+   * resource that does. It takes container bytes and keeps the reader it
+   * builds, because a shader body cannot be read later without it — strings
+   * are offsets into an arena that lives in the header it consumed. No payload
+   * hand-off could have carried that, which is why it bypassed the manager.
+   *
+   * @param {ArrayBuffer|ArrayBufferView|string} data Raw source data.
+   * @param {object|null} [options] Model values applied after the read.
+   * @returns {CjsResource} This resource.
+   * @throws {Error} When the concrete resource does not implement it.
+   */
+  DoLoad(data, options = null) {
+    const className = this.constructor?.name || "CjsResource";
+    const error = new Error(
+      `${className}.DoLoad is not implemented. A resource reached by the loader `
+      + "must turn its own source bytes into itself; implement DoLoad, or register "
+      + "a format that populates this resource."
+    );
+    error.code = "CJS_RESOURCE_LOAD_NOT_IMPLEMENTED";
+    error.className = className;
+    throw error;
+  }
+
+  /**
    * Read the plain CPU payload associated with this resource.
    *
    * The query is pure and does not renew the payload lease.

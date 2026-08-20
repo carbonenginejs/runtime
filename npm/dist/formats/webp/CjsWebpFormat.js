@@ -130,6 +130,7 @@ class CjsWebpFormat {
   static OUTPUT_WEBP_JSON = "webpJson";
   static type = Object.freeze(["image"]);
   static mediaTypes = Object.freeze(["image"]);
+  static extensions = Object.freeze([".webp"]);
   static inputTypes = Object.freeze(["webp"]);
   static outputTypes = Object.freeze([]);
   static debugOutputTypes = Object.freeze(["webpJson", OUTPUT_RAW]);

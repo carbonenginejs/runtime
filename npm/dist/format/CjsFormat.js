@@ -191,6 +191,38 @@ class CjsFormat {
   static debugOutputTypes = Object.freeze(["json", "raw"]);
 
   /**
+   * File extensions this format loads, leading dot included.
+   *
+   * A format that can be reached through a resource declares them here so the
+   * resource's handler registry needs no parallel table. Seven formats already
+   * did this independently — black, pickle, red, schemabound, sqlite, static,
+   * yaml — and this only names the convention they share.
+   *
+   * Empty means "not reachable by extension". That is the honest answer for
+   * `webgl`, `webgpu`, `dxbc` and `hlsl`, whose `inputTypes` are logical input
+   * names rather than file suffixes; do not populate it to look complete.
+   *
+   * `inputTypes` is NOT a substitute. It is dotless, it is present on every
+   * format, and for the four above it names something that is not an extension
+   * at all.
+   */
+  static extensions = Object.freeze([]);
+
+  /**
+   * How this format wants its bytes delivered.
+   *
+   * A loader must know whether to hand over an `ArrayBuffer` or text without
+   * knowing the format, which is the one fact it cannot derive. Text-capable
+   * formats — gltf, obj, stl, yaml, hlsl — currently sniff `typeof input ===
+   * "string"` inside their readers instead of declaring it, so the decision is
+   * made twice and stated nowhere.
+   *
+   * `"arraybuffer"` is the default because it is what every transport already
+   * hardcodes today.
+   */
+  static requestResponseType = "arraybuffer";
+
+  /**
    * Optional browser-worker module declaration.
    *
    * Concrete formats opt in with their exact `import.meta.url`, export name,

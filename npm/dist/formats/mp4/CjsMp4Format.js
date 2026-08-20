@@ -188,6 +188,7 @@ class CjsMp4Format {
   static OUTPUT_MP4_JSON = "mp4Json";
   static type = Object.freeze(["audio", "video"]);
   static mediaTypes = Object.freeze(["audio", "video"]);
+  static extensions = Object.freeze([".mp4", ".m4v", ".m4a"]);
   static inputTypes = Object.freeze(["mp4", "m4v", "m4a"]);
   static outputTypes = Object.freeze([OUTPUT_VIDEO]);
   static debugOutputTypes = Object.freeze(["mp4Json", OUTPUT_RAW]);

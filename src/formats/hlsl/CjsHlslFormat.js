@@ -250,6 +250,7 @@ export class CjsHlslFormat
     static CLASS_KEYS = CLASS_KEYS;
     static type = Object.freeze([ "shader" ]);
     static mediaTypes = Object.freeze([ "shader" ]);
+    static extensions = Object.freeze([ ".sm_hi", ".sm_lo", ".sm_depth" ]);
     static inputTypes = Object.freeze([ "sm_hi", "sm_lo", "sm_depth" ]);
     static outputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_METADATA ]);
     static debugOutputTypes = Object.freeze([ OUTPUT_RAW ]);

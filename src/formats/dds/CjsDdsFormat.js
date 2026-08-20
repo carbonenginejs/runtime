@@ -208,6 +208,7 @@ export class CjsDdsFormat
     static OUTPUT_DDS_JSON = "ddsJson";
     static type = Object.freeze([ "texture", "image" ]);
     static mediaTypes = Object.freeze([ "texture", "image" ]);
+    static extensions = Object.freeze([ ".dds" ]);
     static inputTypes = Object.freeze([ "dds" ]);
     static outputTypes = Object.freeze([ OUTPUT_TEXTURE, OUTPUT_IMAGE, OUTPUT_RGBA ]);
     static debugOutputTypes = Object.freeze([ "ddsJson", OUTPUT_RAW ]);

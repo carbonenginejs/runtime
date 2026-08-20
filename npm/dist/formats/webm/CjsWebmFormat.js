@@ -188,6 +188,7 @@ class CjsWebmFormat {
   static OUTPUT_WEBM_JSON = "webmJson";
   static type = Object.freeze(["video"]);
   static mediaTypes = Object.freeze(["video"]);
+  static extensions = Object.freeze([".webm"]);
   static inputTypes = Object.freeze(["webm"]);
   static outputTypes = Object.freeze([OUTPUT_VIDEO]);
   static debugOutputTypes = Object.freeze(["webmJson", OUTPUT_RAW]);

@@ -207,6 +207,7 @@ export class CjsWebmFormat
 
     static mediaTypes = Object.freeze([ "video" ]);
 
+    static extensions = Object.freeze([ ".webm" ]);
     static inputTypes = Object.freeze([ "webm" ]);
 
     static outputTypes = Object.freeze([ OUTPUT_VIDEO ]);

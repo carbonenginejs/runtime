@@ -208,6 +208,7 @@ export class CjsTgaFormat
 
     static mediaTypes = Object.freeze([ "image" ]);
 
+    static extensions = Object.freeze([ ".tga" ]);
     static inputTypes = Object.freeze([ "tga" ]);
 
     static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);

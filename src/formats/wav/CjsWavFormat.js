@@ -205,6 +205,7 @@ export class CjsWavFormat
     static OUTPUT_WAV_JSON = "wavJson";
     static type = Object.freeze([ "audio" ]);
     static mediaTypes = Object.freeze([ "audio" ]);
+    static extensions = Object.freeze([ ".wav" ]);
     static inputTypes = Object.freeze([ "wav" ]);
     static outputTypes = Object.freeze([ OUTPUT_AUDIO, OUTPUT_PCM ]);
     static debugOutputTypes = Object.freeze([ "wavJson", OUTPUT_RAW ]);

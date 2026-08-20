@@ -206,6 +206,7 @@ export class CjsPngFormat
     static OUTPUT_PNG_JSON = "pngJson";
     static type = Object.freeze([ "image" ]);
     static mediaTypes = Object.freeze([ "image" ]);
+    static extensions = Object.freeze([ ".png" ]);
     static inputTypes = Object.freeze([ "png" ]);
     static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);
     static debugOutputTypes = Object.freeze([ "pngJson", OUTPUT_RAW ]);

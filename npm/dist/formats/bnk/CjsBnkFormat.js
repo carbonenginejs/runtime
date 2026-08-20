@@ -272,6 +272,7 @@ class CjsBnkFormat {
   static HIRC_V150_TYPE_NAMES = HIRC_V150_TYPE_NAMES;
   static type = Object.freeze(["audio"]);
   static mediaTypes = Object.freeze(["audio"]);
+  static extensions = Object.freeze([".bnk"]);
   static inputTypes = Object.freeze(["bnk"]);
   static outputTypes = Object.freeze([OUTPUT_RAW, OUTPUT_MEDIA]);
   static debugOutputTypes = Object.freeze([OUTPUT_BNK_JSON, OUTPUT_RAW]);

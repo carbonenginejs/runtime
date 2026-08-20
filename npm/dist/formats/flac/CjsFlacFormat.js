@@ -132,6 +132,7 @@ class CjsFlacFormat {
   static OUTPUT_FLAC_JSON = "flacJson";
   static type = Object.freeze(["audio"]);
   static mediaTypes = Object.freeze(["audio"]);
+  static extensions = Object.freeze([".flac"]);
   static inputTypes = Object.freeze(["flac"]);
   static outputTypes = Object.freeze([]);
   static debugOutputTypes = Object.freeze(["flacJson", OUTPUT_RAW]);

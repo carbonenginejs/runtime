@@ -311,6 +311,7 @@ class CjsStlFormat {
   static CLASS_KEYS = CLASS_KEYS;
   static type = Object.freeze(["geometry"]);
   static mediaTypes = Object.freeze(["geometry"]);
+  static extensions = Object.freeze([".stl"]);
   static inputTypes = Object.freeze(["stl"]);
   static outputTypes = Object.freeze([OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF]);
   static debugOutputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_STL_JSON]);

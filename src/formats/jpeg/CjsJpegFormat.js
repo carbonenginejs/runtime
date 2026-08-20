@@ -224,6 +224,7 @@ export class CjsJpegFormat
     static OUTPUT_JPEG_JSON = "jpegJson";
     static type = Object.freeze([ "image" ]);
     static mediaTypes = Object.freeze([ "image" ]);
+    static extensions = Object.freeze([ ".jpg", ".jpeg" ]);
     static inputTypes = Object.freeze([ "jpg", "jpeg" ]);
     static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);
     static debugOutputTypes = Object.freeze([ "jpegJson", OUTPUT_RAW ]);

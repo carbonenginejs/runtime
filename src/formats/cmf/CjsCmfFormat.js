@@ -520,6 +520,7 @@ export class CjsCmfFormat
     static CLASS_KEYS = CLASS_KEYS;
     static type = Object.freeze([ "geometry" ]);
     static mediaTypes = Object.freeze([ "geometry" ]);
+    static extensions = Object.freeze([ ".cmf" ]);
     static inputTypes = Object.freeze([ "cmf" ]);
     static outputTypes = Object.freeze([ OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED ]);
     static debugOutputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_CMF_JSON, OUTPUT_RAW ]);

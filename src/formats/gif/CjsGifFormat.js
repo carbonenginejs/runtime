@@ -148,6 +148,7 @@ export class CjsGifFormat
     static OUTPUT_GIF_JSON = "gifJson";
     static type = Object.freeze([ "image" ]);
     static mediaTypes = Object.freeze([ "image" ]);
+    static extensions = Object.freeze([ ".gif" ]);
     static inputTypes = Object.freeze([ "gif" ]);
     static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);
     static debugOutputTypes = Object.freeze([ "gifJson", OUTPUT_RAW ]);

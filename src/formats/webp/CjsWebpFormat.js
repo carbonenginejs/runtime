@@ -148,6 +148,7 @@ export class CjsWebpFormat
 
     static mediaTypes = Object.freeze([ "image" ]);
 
+    static extensions = Object.freeze([ ".webp" ]);
     static inputTypes = Object.freeze([ "webp" ]);
 
     static outputTypes = Object.freeze([]);

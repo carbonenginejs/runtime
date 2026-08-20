@@ -149,6 +149,7 @@ export class CjsOggFormat
     static OUTPUT_AUDIO = OUTPUT_AUDIO;
     static type = Object.freeze([ "audio", "video" ]);
     static mediaTypes = Object.freeze([ "audio", "video" ]);
+    static extensions = Object.freeze([ ".ogg", ".oga", ".ogv" ]);
     static inputTypes = Object.freeze([ "ogg", "oga", "ogv" ]);
     static outputTypes = Object.freeze([ OUTPUT_PCM, OUTPUT_AUDIO ]);
     static debugOutputTypes = Object.freeze([ "oggJson", OUTPUT_RAW ]);

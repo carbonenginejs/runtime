@@ -294,6 +294,7 @@ export class CjsGr2Format
     static CLASS_KEYS = CLASS_KEYS;
     static type = Object.freeze([ "geometry" ]);
     static mediaTypes = Object.freeze([ "geometry" ]);
+    static extensions = Object.freeze([ ".gr2", ".gsf" ]);
     static inputTypes = Object.freeze([ "gr2", "gsf" ]);
     static outputTypes = Object.freeze([ OUTPUT_GR2, OUTPUT_CMF ]);
     static debugOutputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_GR2_JSON, OUTPUT_RAW ]);

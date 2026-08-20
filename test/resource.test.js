@@ -1906,6 +1906,56 @@ test("resource payload validators reject ambiguous image data", () => {
   }), /Uint8Array/);
 });
 
+test("a resource refuses to load bytes it was never taught to read", () =>
+{
+  // DoLoad is the load contract, not an optional capability, so the base
+  // declares it and refuses. Returning quietly would publish an empty resource
+  // and let the manager mark it prepared - an absent load wearing the shape of
+  // a completed one. See /docs/internal/decisions/resource-population.md.
+  const resource = new CjsResource();
+
+  assert.throws(
+    () => resource.DoLoad(new Uint8Array([ 1, 2, 3 ])),
+    error => error.code === "CJS_RESOURCE_LOAD_NOT_IMPLEMENTED"
+      && /CjsResource/u.test(error.message),
+    "the base resource names itself and refuses"
+  );
+});
+
+
+test("a resource declines to load itself by default, and says so", () =>
+{
+  // DoCustomLoad is genuinely optional, so the base answers rather than
+  // refusing - the opposite of DoLoad. A false return is a real answer, which
+  // is why the caller can invoke it plainly instead of optional-chaining.
+  const resource = new CjsResource();
+
+  assert.equal(resource.DoCustomLoad("res:/x.dds", ".dds"), false);
+
+  class SelfLoading extends CjsResource
+  {
+    DoCustomLoad() { return true; }
+  }
+  assert.equal(new SelfLoading().DoCustomLoad("res:/x.dds", ".dds"), true);
+});
+
+
+test("a resource states how it wants its bytes delivered", () =>
+{
+  // The manager fetches before it knows the format, so it cannot derive this.
+  assert.equal(new CjsResource().GetRequestResponseType(), "arraybuffer");
+});
+
+
+test("Tr2EffectRes implements the load hook the base declares", () =>
+{
+  // It was the only resource that loaded itself, reached outside the manager's
+  // path. It now overrides a declared hook rather than standing alone.
+  assert.equal(typeof Tr2EffectRes.prototype.DoLoad, "function");
+  assert.notEqual(Tr2EffectRes.prototype.DoLoad, CjsResource.prototype.DoLoad);
+});
+
+
 test("CjsResourceProbe preserves generalized capability variants", () => {
   const probe = CjsResourceProbe.createSupported("dds", [
     {

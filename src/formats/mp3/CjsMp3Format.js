@@ -204,6 +204,7 @@ export class CjsMp3Format
     static OUTPUT_MP3_JSON = "mp3Json";
     static type = Object.freeze([ "audio" ]);
     static mediaTypes = Object.freeze([ "audio" ]);
+    static extensions = Object.freeze([ ".mp3" ]);
     static inputTypes = Object.freeze([ "mp3" ]);
     static outputTypes = Object.freeze([]);
     static debugOutputTypes = Object.freeze([ "mp3Json", OUTPUT_RAW ]);

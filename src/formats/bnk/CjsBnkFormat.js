@@ -337,6 +337,7 @@ export class CjsBnkFormat
 
     static mediaTypes = Object.freeze([ "audio" ]);
 
+    static extensions = Object.freeze([ ".bnk" ]);
     static inputTypes = Object.freeze([ "bnk" ]);
 
     static outputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_MEDIA ]);
