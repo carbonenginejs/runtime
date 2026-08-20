@@ -30,28 +30,47 @@ class CjsFormatStore {
   #byExtension = new Map();
 
   /**
-   * Register a format under every extension it declares.
+   * Register a format, by default under every extension it declares.
    *
-   * Registering the same format twice is a no-op rather than an error, so a
-   * composition root may register defensively without tracking what it has
-   * already done.
+   * `Format.extensions` is a CONVENIENCE, not the routing authority. It exists
+   * so a composition root can register a pile of formats without restating
+   * what each one reads, and that is the whole of its job. The caller may name
+   * extensions instead, and then the declaration is not consulted at all — a
+   * format reading a suffix its author never anticipated is a deployment's
+   * business, not the format's.
    *
-   * @param {Function} Format Format class declaring `extensions`.
+   * That is also the only way to reach `webgl`, `webgpu` and `dxbc` through a
+   * store. They declare nothing because their inputs are logical names rather
+   * than file suffixes, which is a statement about what they read, not a bar on
+   * an application routing a suffix to one of them.
+   *
+   * Registering the same format twice under the same extension is a no-op
+   * rather than an error, so a composition root may register defensively
+   * without tracking what it has already done.
+   *
+   * @param {Function} Format Format class.
+   * @param {string|string[]|null} [extensions] Extensions to route, overriding the declaration.
    * @returns {CjsFormatStore} This store.
    */
-  Register(Format) {
+  Register(Format, extensions = null) {
     if (typeof Format !== "function") {
       throw new TypeError("CjsFormatStore.Register requires a format class.");
     }
-    const declared = Format.extensions;
+    const supplied = extensions === null || extensions === undefined ? null : Array.isArray(extensions) ? extensions : [extensions];
+    const declared = supplied || Format.extensions;
     if (!Array.isArray(declared) || declared.length === 0) {
       const name = Format.name || "format";
-      const error = new Error(`${name} declares no extensions, so it cannot be reached by file suffix. ` + "Formats whose inputs are logical names rather than file extensions - " + "webgl, webgpu, dxbc - are used directly instead of through a store.");
+      const error = new Error(`${name} declares no extensions and none were supplied, so there is ` + "nothing to route it under. Pass the extensions this application " + "wants it to read: Register(Format, \".ext\"). Formats whose inputs " + "are logical names rather than file suffixes - webgl, webgpu, dxbc - " + "declare none, and are usually used directly instead.");
       error.code = "CJS_FORMAT_STORE_NO_EXTENSIONS";
       throw error;
     }
     for (const extension of declared) {
       const key = normalizeResourceExtension(extension);
+      if (!key) {
+        // An empty key would register silently and route nothing, which is the
+        // worst of both outcomes: the caller believes the format is reachable.
+        throw new TypeError(`CjsFormatStore.Register cannot route ${Format.name || "a format"} ` + `under ${JSON.stringify(extension)}, which is not an extension.`);
+      }
       const existing = this.#byExtension.get(key);
       if (!existing) this.#byExtension.set(key, [Format]);else if (!existing.includes(Format)) existing.push(Format);
     }
@@ -61,11 +80,16 @@ class CjsFormatStore {
   /**
    * Register several formats in caller order.
    *
-   * @param {Iterable<Function>} formats
+   * An entry is either a format class, which registers under what it declares,
+   * or a `[Format, extensions]` pair naming where it should route instead.
+   *
+   * @param {Iterable<Function|[Function, string|string[]]>} formats
    * @returns {CjsFormatStore} This store.
    */
   RegisterAll(formats) {
-    for (const Format of formats || []) this.Register(Format);
+    for (const entry of formats || []) {
+      if (Array.isArray(entry)) this.Register(entry[0], entry[1]);else this.Register(entry);
+    }
     return this;
   }
 

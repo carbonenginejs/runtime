@@ -41,15 +41,62 @@ test("registering the same format twice does not duplicate it", () =>
 });
 
 
-test("a format with no declared extensions is refused, and says why", () =>
+test("a format with nothing declared and nothing supplied is refused, and says why", () =>
 {
-  // webgl takes an already-built container, not a file. Letting it into an
-  // extension store would claim a file route that does not exist.
+  // webgl takes an already-built container, not a file, so it declares no
+  // extensions. With none supplied either there is nothing to route it under.
   assert.throws(
     () => new CjsFormatStore().Register(CjsWebglFormat),
     error => error.code === "CJS_FORMAT_STORE_NO_EXTENSIONS",
-    "a format without extensions cannot be routed by extension"
+    "no declaration and no argument means no route"
   );
+});
+
+
+test("the caller's extensions override the declaration, which is only a default", () =>
+{
+  // `Format.extensions` exists so a composition root can register a pile of
+  // formats without restating what each reads. It is a convenience, not the
+  // routing authority - an application may route whatever suffix it likes to
+  // whatever reader it likes, including one that declares nothing.
+  const store = new CjsFormatStore()
+    .Register(CjsWebglFormat, ".effect")
+    .Register(CjsDdsFormat, [ ".texture", ".bitmap" ]);
+
+  assert.equal(store.Resolve(".effect"), CjsWebglFormat, "a format that declares nothing still routes");
+  assert.deepEqual(store.Extensions(), [ "bitmap", "effect", "texture" ]);
+
+  // The declaration is not consulted at all once the caller has named one.
+  assert.equal(store.Has(".dds"), false, "dds declares .dds, but this store was told otherwise");
+});
+
+
+test("RegisterAll takes a pair when an entry needs its own extensions", () =>
+{
+  const store = new CjsFormatStore().RegisterAll([
+    CjsTgaFormat,
+    [ CjsWebglFormat, ".effect" ]
+  ]);
+
+  assert.deepEqual(store.Extensions(), [ "effect", "tga" ]);
+});
+
+
+test("an extension that normalizes to nothing is refused rather than stored", () =>
+{
+  // Registering under an empty key is the worst outcome available: it succeeds,
+  // routes nothing, and leaves the caller believing the format is reachable.
+  const store = new CjsFormatStore();
+
+  for (const empty of [ "", ".", "   " ])
+  {
+    assert.throws(
+      () => store.Register(CjsDdsFormat, empty),
+      TypeError,
+      `${JSON.stringify(empty)} is not an extension`
+    );
+  }
+  assert.deepEqual(store.Extensions(), []);
 });
 
 
