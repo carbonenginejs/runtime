@@ -54,7 +54,7 @@ export { TriTextureRes } from './resource/texture/TriTextureRes.js';
 export { CjsResourceProbe } from './format/CjsResourceProbe.js';
 export { ResourcePayloadType, ResourcePayloadValues, validateAudioPayload, validateRgbaPayload, validateTexturePayload, validateVideoPayload } from './format/payloadContract.js';
 export { CjsFormat } from './format/CjsFormat.js';
-export { CjsFormatStore } from './format/CjsFormatStore.js';
+export { CjsFormatRoute, CjsFormatStore } from './format/CjsFormatStore.js';
 export { CjsEventEmitter } from '@carbonenginejs/runtime-utils/model';
 export { CjsMotherLode, getMotherLodeKey } from './CjsMotherLode.js';
 export { CjsResManFetchProvider } from './CjsResManFetchProvider.js';

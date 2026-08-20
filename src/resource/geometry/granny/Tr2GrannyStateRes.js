@@ -84,20 +84,25 @@ export class Tr2GrannyStateRes extends CjsResource
 
     if (!data?.stateMachine)
     {
-      const Reader = this.ResolveFormat(data, { format });
-      if (typeof Reader?.readGsf !== "function")
+      // `readGsf`, not `read`: a `.gsf` and a `.gr2` are the same container
+      // family read two different ways, and gr2 carries a separate entry point
+      // for the state-machine one. Naming it here is the fallback for a caller
+      // that passed a bare format; a registered route carries the reader name
+      // as data, so the store's answer needs no such knowledge.
+      const route = this.ResolveFormat(data, format ? { format, read: "readGsf" } : null);
+      if (!route)
       {
         const error = new Error(
           "Tr2GrannyStateRes.DoLoad needs an already-projected GSF document, an "
           + "options.format carrying readGsf, or a registered format store that "
-          + "resolves this resource's extension. The resource does not import "
+          + "routes this resource's extension. The resource does not import "
           + "gr2: every format is a tree-shakeable subpath and importing one "
           + "here would pull it into every consumer of GState."
         );
         error.code = "CJS_RESOURCE_FORMAT_REQUIRED";
         throw error;
       }
-      document = Reader.readGsf(data);
+      document = route.Read(data);
     }
 
     this.#animations.clear();

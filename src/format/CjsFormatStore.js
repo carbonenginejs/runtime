@@ -1,6 +1,94 @@
 import { normalizeResourceExtension } from "@carbonenginejs/runtime-utils/path";
 
 /**
+ * One registered route: an extension, the format that reads it, the reader to
+ * call, and the output to ask for.
+ *
+ * The unit is deliberately not a bare format class. A format class does not
+ * answer the question "how is this file read", because three separate things
+ * can vary independently and every one of them is live in this package:
+ *
+ * - **Several formats under one extension.** `.static` is read by both
+ *   `CjsStaticFormat` and `CjsSchemaBoundFormat`, and only content tells them
+ *   apart.
+ * - **Several inputs on one format.** `CjsGr2Format` declares
+ *   `inputTypes: ["gr2", "gsf"]` and carries a distinct `readGsf` entry point,
+ *   because a `.gsf` is an animation state machine and a `.gr2` is geometry.
+ * - **Several outputs from one reader.** `CjsDdsFormat` declares
+ *   `outputTypes: ["texture", "image", "rgba"]` off a single `read`, selected
+ *   by `options.emit`.
+ *
+ * ccpwgl mapped one extension to one constructor and stopped, which is why
+ * every one of those cases has to be hardcoded at a call site there. Naming the
+ * route makes them registration data instead - and the resource that reads a
+ * `.gsf` no longer has to know that the method is called `readGsf`.
+ */
+class CjsFormatRoute
+{
+  constructor(Format, options = {})
+  {
+    this.Format = Format;
+    this.read = options.read || "read";
+    this.output = options.output || null;
+    this.name = options.name || `${Format.name || "format"}.${this.read}`;
+
+    if (typeof Format[this.read] !== "function")
+    {
+      throw new TypeError(
+        `${Format.name || "format"} has no reader named ${JSON.stringify(this.read)}. `
+        + "A route names the entry point to call, so a misspelling here would "
+        + "otherwise surface as a failed load of the first matching file."
+      );
+    }
+    if (this.output && Array.isArray(Format.outputTypes)
+      && !Format.outputTypes.includes(this.output))
+    {
+      throw new TypeError(
+        `${Format.name || "format"} does not declare the output `
+        + `${JSON.stringify(this.output)}; it declares `
+        + `${Format.outputTypes.map(value => JSON.stringify(value)).join(", ")}.`
+      );
+    }
+    Object.freeze(this);
+  }
+
+  /**
+   * Whether this route recognises the data.
+   *
+   * A route with no probe answers yes: the extension already selected it, and
+   * a format is entitled to reject its own file later with a better message
+   * than a probe could give. A probe that throws has declined rather than
+   * failed - probes read headers of files they may not own.
+   */
+  Accepts(data)
+  {
+    if (data === undefined) return true;
+    const probe = this.Format.isSupported;
+    if (typeof probe !== "function") return true;
+    try { return Boolean(probe.call(this.Format, data)); }
+    catch { return false; }
+  }
+
+  /**
+   * Read data through this route.
+   *
+   * The registered output is applied as `emit` unless the caller names one,
+   * which is what makes "which representation of a DDS do we want" a
+   * registration decision rather than something every call site repeats.
+   *
+   * @param {*} data Source data.
+   * @param {object|null} [options] Reader options; `emit` overrides the route's output.
+   * @returns {*} Whatever the reader returns.
+   */
+  Read(data, options = null)
+  {
+    const values = { ...(options || {}) };
+    if (this.output && values.emit === undefined) values.emit = this.output;
+    return this.Format[this.read](data, values);
+  }
+}
+
+/**
  * The link between a resource and the formats that can populate it.
  *
  * WHY THIS EXISTS RATHER THAN A RESOURCE IMPORTING ITS FORMATS. ccpwgl's
@@ -11,20 +99,19 @@ import { normalizeResourceExtension } from "@carbonenginejs/runtime-utils/path";
  * PNG, JPEG, TGA, GIF and WebP. A resource that imports its formats destroys
  * that, quietly and permanently.
  *
- * So nobody imports anybody. The composing application registers the formats
- * it actually wants, and both the manager and a resource loading itself ask
- * the store. That is also what makes "which formats exist" a property of the
+ * So nobody imports anybody. The composing application registers the routes it
+ * actually wants, and both the manager and a resource loading itself ask the
+ * store. That is also what makes "which formats exist" a property of the
  * composed application rather than a list baked into the loader.
  *
- * A format is indexed by its own `extensions` declaration. Formats whose
- * inputs are not file suffixes — `webgl`, `webgpu`, `dxbc` — declare none and
- * are simply not reachable this way, which is the honest answer rather than a
- * gap.
+ * WHAT THE STORE DOES NOT OWN: which resource class a file becomes. That is
+ * `CjsResMan.RegisterExtension`'s Handler, and duplicating it here would make
+ * two registries disagree about one question. The store answers how bytes are
+ * read; the manager answers what they become.
  *
  * ORDER IS THE CALLER'S. Registration order is retained per extension, because
- * where two formats answer for one suffix the caller's ordering is the routing
- * policy. `.static` is the live case: three unrelated containers ship under it
- * and only content tells them apart.
+ * where several routes answer for one suffix the caller's ordering is the
+ * routing policy.
  */
 export class CjsFormatStore
 {
@@ -45,24 +132,39 @@ export class CjsFormatStore
    * than file suffixes, which is a statement about what they read, not a bar on
    * an application routing a suffix to one of them.
    *
-   * Registering the same format twice under the same extension is a no-op
-   * rather than an error, so a composition root may register defensively
-   * without tracking what it has already done.
+   * The second argument may be the extensions alone, or a route:
+   *
+   * ```js
+   * store.Register(CjsPngFormat);                                   // as declared
+   * store.Register(CjsGr2Format, { extensions: ".gsf", read: "readGsf" });
+   * store.Register(CjsDdsFormat, { extensions: ".dds", output: "texture" });
+   * ```
+   *
+   * Registering the same route twice under one extension is a no-op, so a
+   * composition root may register defensively. Two routes over the same format
+   * that differ in reader or output are NOT duplicates — that is the whole
+   * point of naming them.
    *
    * @param {Function} Format Format class.
-   * @param {string|string[]|null} [extensions] Extensions to route, overriding the declaration.
+   * @param {string|string[]|object|null} [options] Extensions, or a route descriptor.
    * @returns {CjsFormatStore} This store.
    */
-  Register(Format, extensions = null)
+  Register(Format, options = null)
   {
     if (typeof Format !== "function")
     {
       throw new TypeError("CjsFormatStore.Register requires a format class.");
     }
 
-    const supplied = extensions === null || extensions === undefined
+    const settings = options === null || options === undefined
+      ? {}
+      : (typeof options === "string" || Array.isArray(options))
+        ? { extensions: options }
+        : options;
+
+    const supplied = settings.extensions === undefined || settings.extensions === null
       ? null
-      : Array.isArray(extensions) ? extensions : [ extensions ];
+      : Array.isArray(settings.extensions) ? settings.extensions : [ settings.extensions ];
     const declared = supplied || Format.extensions;
     if (!Array.isArray(declared) || declared.length === 0)
     {
@@ -78,6 +180,7 @@ export class CjsFormatStore
       throw error;
     }
 
+    const route = new CjsFormatRoute(Format, settings);
     for (const extension of declared)
     {
       const key = normalizeResourceExtension(extension);
@@ -91,8 +194,8 @@ export class CjsFormatStore
         );
       }
       const existing = this.#byExtension.get(key);
-      if (!existing) this.#byExtension.set(key, [ Format ]);
-      else if (!existing.includes(Format)) existing.push(Format);
+      if (!existing) this.#byExtension.set(key, [ route ]);
+      else if (!existing.some(entry => isSameRoute(entry, route))) existing.push(route);
     }
     return this;
   }
@@ -101,9 +204,9 @@ export class CjsFormatStore
    * Register several formats in caller order.
    *
    * An entry is either a format class, which registers under what it declares,
-   * or a `[Format, extensions]` pair naming where it should route instead.
+   * or a `[Format, extensionsOrRoute]` pair.
    *
-   * @param {Iterable<Function|[Function, string|string[]]>} formats
+   * @param {Iterable<Function|[Function, string|string[]|object]>} formats
    * @returns {CjsFormatStore} This store.
    */
   RegisterAll(formats)
@@ -117,10 +220,10 @@ export class CjsFormatStore
   }
 
   /**
-   * Every format registered for an extension, in registration order.
+   * Every route registered for an extension, in registration order.
    *
    * @param {string} extension
-   * @returns {Function[]} A copy; the store's own order is not exposed for mutation.
+   * @returns {CjsFormatRoute[]} A copy; the store's own order is not exposed for mutation.
    */
   Get(extension)
   {
@@ -139,46 +242,49 @@ export class CjsFormatStore
   }
 
   /**
-   * The single format that should read these bytes.
+   * The route that should read this data.
    *
-   * With one candidate the extension already decided, and the bytes are not
-   * consulted: a format is entitled to reject its own file later with a better
-   * message than this store could produce.
+   * Three filters apply in order, and each exists because something in this
+   * package needs it:
    *
-   * With several, content decides, because that is the only thing that can.
-   * Each candidate is asked in registration order and the first to recognise
-   * the bytes wins. A candidate whose probe throws is treated as declining
-   * rather than failing the resolve - probes read headers of files they may
-   * not own, and one throwing probe must not mask a later format that would
-   * have said yes.
+   * 1. **Extension** narrows to the routes registered for the suffix.
+   * 2. **Output**, when the caller wants a particular representation, narrows
+   *    further. A resource asking for `texture` must not be handed the route
+   *    registered to decode the same file to `rgba`. `CjsResource.requirement`
+   *    is where that request usually comes from.
+   * 3. **Content** separates what remains, because with several candidates left
+   *    nothing else can. With exactly one the data is not consulted at all: the
+   *    extension already decided, and the format is entitled to reject its own
+   *    file with a better message than a probe could produce.
    *
    * Returns `null` rather than guessing when nothing matches, so the caller
-   * reports what it could not read instead of handing bytes to a format that
+   * reports what it could not read instead of handing bytes to a reader that
    * never claimed them.
    *
    * @param {string} extension
-   * @param {*} [data] Bytes to probe when more than one format is registered.
-   * @returns {Function|null} The chosen format class.
+   * @param {*} [data] Data to probe when more than one route remains.
+   * @param {object|null} [options] May carry `output` to select a representation.
+   * @returns {CjsFormatRoute|null} The chosen route.
    */
-  Resolve(extension, data)
+  Resolve(extension, data, options = null)
   {
-    const candidates = this.#byExtension.get(normalizeResourceExtension(extension)) || [];
+    let candidates = this.#byExtension.get(normalizeResourceExtension(extension)) || [];
+
+    const output = options?.output || null;
+    if (output)
+    {
+      candidates = candidates.filter(route => route.output === output
+        || (route.output === null && routeDeclaresOutput(route, output)));
+      // A requested output nothing was registered for is a miss, not a reason
+      // to fall back to a route that produces something else entirely.
+      if (candidates.length === 0) return null;
+    }
+
     if (candidates.length === 0) return null;
     if (candidates.length === 1) return candidates[0];
     if (data === undefined) return candidates[0];
 
-    for (const Format of candidates)
-    {
-      try
-      {
-        if (typeof Format.isSupported === "function" && Format.isSupported(data)) return Format;
-      }
-      catch
-      {
-        // A probe that throws has declined, not failed. Keep asking.
-      }
-    }
-    return null;
+    return candidates.find(route => route.Accepts(data)) || null;
   }
 
   /** Every extension the store can route, sorted. */
@@ -195,4 +301,26 @@ export class CjsFormatStore
   }
 }
 
+/**
+ * Whether two routes are the same registration.
+ *
+ * Same format but a different reader or output is a DIFFERENT route, which is
+ * how one format serves `.gr2` and `.gsf`, or serves `.dds` as both a
+ * compressed texture and decoded RGBA.
+ */
+function isSameRoute(left, right)
+{
+  return left.Format === right.Format
+    && left.read === right.read
+    && left.output === right.output;
+}
+
+/** Whether an unpinned route's format can produce the requested output. */
+function routeDeclaresOutput(route, output)
+{
+  const declared = route.Format.outputTypes;
+  return Array.isArray(declared) ? declared.includes(output) : false;
+}
+
+export { CjsFormatRoute };
 export default CjsFormatStore;

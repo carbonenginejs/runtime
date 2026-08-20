@@ -150,23 +150,29 @@ test("DoLoad takes a projection, and refuses bytes without an injected reader", 
 
 test("a bound format store answers instead of the caller naming the reader", () =>
 {
-  // The store is the link: the composition root registers gr2, and the resource
-  // resolves it from its own extension without importing it. Naming the reader
-  // at every call site was the interim, not the design.
-  const store = new CjsFormatStore().Register(CjsGr2Format);
+  // gr2 declares BOTH .gr2 and .gsf, but they are not the same read: a .gsf is
+  // an animation state machine and needs readGsf, a .gr2 is geometry. That the
+  // declaration lumps them together is exactly why it is only a default - the
+  // composition root names the reader per role.
+  const store = new CjsFormatStore()
+    .Register(CjsGr2Format, { extensions: ".gsf", read: "readGsf" })
+    .Register(CjsGr2Format, { extensions: ".gr2" });
+
   const resource = new Tr2GrannyStateRes()
     .Initialize("res:/char/gstate/loco.gsf")
     .SetFormatStore(store);
 
   assert.equal(resource.GetFormatStore(), store);
-  assert.equal(resource.ResolveFormat(), CjsGr2Format, "resolved by this resource's own extension");
+
+  const route = resource.ResolveFormat();
+  assert.equal(route.Format, CjsGr2Format, "resolved by this resource's own extension");
+  assert.equal(route.read, "readGsf", "the reader is registration data, not something the resource knows");
 
   resource.DoLoad(gsfRaw());
   assert.ok(resource.GetStateMachine(), "the store-resolved reader produced the document");
 
-  // An explicitly named format still wins - the caller knows what the suffix
-  // cannot.
-  assert.equal(resource.ResolveFormat(null, { format: CjsGr2Format }), CjsGr2Format);
+  // The .gr2 role of the same format resolves to the ordinary reader.
+  assert.equal(store.Resolve(".gr2").read, "read");
 
   // A store that routes nothing for this extension is not a reader.
   const empty = new Tr2GrannyStateRes()

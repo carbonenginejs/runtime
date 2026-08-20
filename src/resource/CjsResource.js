@@ -5,6 +5,7 @@ import {
   normalizeResourcePath
 } from "@carbonenginejs/runtime-utils/path";
 import { CjsSchema, carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
+import { CjsFormatRoute } from "../format/CjsFormatStore.js";
 import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
 
 /**
@@ -469,23 +470,35 @@ export class CjsResource extends CjsEventEmitter
   }
 
   /**
-   * The format that should read this resource's source data.
+   * The route that should read this resource's source data.
    *
-   * An explicitly supplied format always wins: the caller naming a reader knows
-   * something the extension does not. Otherwise the bound store answers from
-   * this resource's own extension, probing content when several formats claim
-   * that suffix.
+   * An explicitly supplied format always wins: a caller naming a reader knows
+   * something the extension does not. It is wrapped in a route so callers have
+   * one shape to handle either way.
    *
-   * Returns `null` when neither can answer, so the caller reports what it could
+   * Otherwise the bound store answers, from this resource's own extension and
+   * its `requirement` — the representation this resource was asked for. That
+   * last part is why a route rather than a format class: `.dds` decoded to
+   * RGBA and `.dds` kept as a compressed texture are the same file, the same
+   * format and the same reader, differing only in what was asked of it.
+   *
+   * Returns `null` when nothing answers, so the caller reports what it could
    * not read rather than handing bytes to a reader that never claimed them.
    *
-   * @param {*} [data] Source data, used to separate formats sharing an extension.
-   * @param {object|null} [options] May carry an explicit `format`.
-   * @returns {Function|null} Format class, or `null`.
+   * @param {*} [data] Source data, used to separate routes sharing an extension.
+   * @param {object|null} [options] May carry an explicit `format`, `read` and `output`.
+   * @returns {import("../format/CjsFormatStore.js").CjsFormatRoute|null}
    */
   ResolveFormat(data, options = null) {
-    if (options?.format) return options.format;
-    return this.GetFormatStore()?.Resolve(this.ext, data) || null;
+    if (options?.format) {
+      return new CjsFormatRoute(options.format, {
+        read: options.read,
+        output: options.output || this.requirement || null
+      });
+    }
+    return this.GetFormatStore()?.Resolve(this.ext, data, {
+      output: options?.output || this.requirement || null
+    }) || null;
   }
 
   /**
