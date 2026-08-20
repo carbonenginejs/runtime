@@ -309,3 +309,50 @@ test("a resource's requirement is not a format output, and must not filter route
   // An output asked for explicitly still filters, which is the real axis.
   assert.equal(resource.ResolveFormat(undefined, { output: "video" }), null);
 });
+
+
+test("a probe reporting \"none\" has declined, however truthy its report is", () =>
+{
+  // The defect this pins. isSupported on the formats that share an extension
+  // returns a REPORT - {supported: "full"|"partial"|"none", ...} - and every
+  // one of those objects is truthy. Under Boolean() the store accepted a
+  // format that had explicitly declined, so `.static`, the case it was built
+  // for, silently fell back to registration order.
+  class Declines
+  {
+    static read(data) { return data; }
+    static extensions = Object.freeze([ ".report" ]);
+    static isSupported() { return { format: "declines", supported: "none", confidence: 0 }; }
+  }
+  class Partial
+  {
+    static read(data) { return data; }
+    static extensions = Object.freeze([ ".report" ]);
+    static isSupported() { return { format: "partial", supported: "partial", confidence: 0.5 }; }
+  }
+  const store = new CjsFormatStore().RegisterAll([ Declines, Partial ]);
+
+  assert.equal(
+    store.Resolve(".report", new Uint8Array([ 1 ])).Format,
+    Partial,
+    "a truthy report saying \"none\" must not win over one saying \"partial\""
+  );
+
+  // And "full" counts, while an unrecognised verdict does not.
+  class Full
+  {
+    static read(data) { return data; }
+    static extensions = Object.freeze([ ".verdict" ]);
+    static isSupported() { return { supported: "full" }; }
+  }
+  class Unknown
+  {
+    static read(data) { return data; }
+    static extensions = Object.freeze([ ".verdict" ]);
+    static isSupported() { return { supported: "maybe" }; }
+  }
+  assert.equal(
+    new CjsFormatStore().RegisterAll([ Unknown, Full ]).Resolve(".verdict", new Uint8Array([ 1 ])).Format,
+    Full
+  );
+});

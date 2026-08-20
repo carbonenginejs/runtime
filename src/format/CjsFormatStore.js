@@ -92,7 +92,7 @@ class CjsFormatRoute
         ? this.Format[this.accepts]
         : this.Format.isSupported;
     if (typeof probe !== "function") return true;
-    try { return Boolean(probe.call(this.Format, data)); }
+    try { return isPositiveProbe(probe.call(this.Format, data)); }
     catch { return false; }
   }
 
@@ -341,6 +341,37 @@ function isSameRoute(left, right)
     && left.read === right.read
     && left.output === right.output
     && left.accepts === right.accepts;
+}
+
+/**
+ * Whether a probe result means yes.
+ *
+ * MOST PROBES HERE DO NOT RETURN A BOOLEAN. `isSupported` on the formats that
+ * share an extension returns a REPORT — `{format, source, supported, confidence,
+ * …}` — where `supported` is `"full"`, `"partial"` or `"none"`. Every one of
+ * those objects is truthy, so a plain `Boolean()` accepts a format that
+ * explicitly declined.
+ *
+ * That broke exactly the case this store exists for. `.static` is read by
+ * `CjsStaticFormat` and `CjsSchemaBoundFormat`; on the same bytes one answers
+ * `"partial"` and the other `"none"`, and under `Boolean()` both said yes, so
+ * the store silently returned whichever was registered first. Content routing
+ * that quietly becomes registration order is worse than none, because the
+ * caller is told it happened.
+ *
+ * This matches `CjsResMan`'s `isPositiveFormatProbe` deliberately. Two probe
+ * semantics for one question is how the two registries start disagreeing.
+ *
+ * @param {*} report A probe result, boolean or report object.
+ * @returns {boolean}
+ */
+function isPositiveProbe(report)
+{
+  if (report === true) return true;
+  if (!report || typeof report !== "object") return false;
+  return report.supported === true
+    || report.supported === "full"
+    || report.supported === "partial";
 }
 
 /** Whether an unpinned route's format can produce the requested output. */
