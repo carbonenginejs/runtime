@@ -20,10 +20,9 @@ export const ResourceRequirement = Object.freeze({
   IMAGE: "image",
   /** `CjsTextureArrayRes` */
   TEXTURE_ARRAY: "texture-array",
-  /** `TriGeometryRes` */
+  /** `TriGeometryRes`, and `TriGrannyRes` — a `.gr2` is geometry, and which
+   *  geometry resource reads it is the extension route's decision. */
   GEOMETRY: "geometry",
-  /** `TriGrannyRes` */
-  GRANNY: "granny",
   /** `Tr2GrannyStateRes` */
   GRANNY_STATE: "granny-state",
   /** `Tr2EffectRes` */

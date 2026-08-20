@@ -480,12 +480,11 @@ export class CjsResource extends CjsEventEmitter
    * from an `output` only when the caller asks for one.
    *
    * `requirement` IS NOT THE OUTPUT, though it reads like it. It selects the
-   * resource TYPE — `CjsResMan.RegisterResourceType` keys on it, and its values
-   * are `texture`, `image`, `geometry`, `granny`. A format's outputs are a
-   * different axis entirely: `texture` and `rgba` are two representations of
-   * one DDS. Conflating them makes a resource loaded with
-   * `requirement: "granny"` filter for routes declaring an output named
-   * `granny`, find none, and resolve to null.
+   * resource class — `CjsResMan.RegisterResourceType` keys on it. A format's
+   * outputs are a different axis entirely: `texture` and `rgba` are two
+   * representations of one DDS. Conflating them makes a resource loaded with
+   * `requirement: "geometry"` filter for routes declaring an output named
+   * `geometry`, find none, and resolve to null.
    *
    * Returns `null` when nothing answers, so the caller reports what it could
    * not read rather than handing bytes to a reader that never claimed them.

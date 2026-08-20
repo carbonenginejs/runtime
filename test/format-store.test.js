@@ -287,10 +287,9 @@ test("the route applies its output as the reader's emit", () =>
 test("a resource's requirement is not a format output, and must not filter routes", () =>
 {
   // requirement selects the resource CLASS - CjsResMan.RegisterResourceType
-  // keys on it, and its values are texture, granny, geometry. A format's
-  // outputs are a different axis. Folding one into the other made a resource
-  // loaded as "granny" filter for routes emitting "granny", find none, and
-  // resolve to nothing at all.
+  // keys on it. A format's outputs are a different axis. Folding one into the
+  // other made a resource loaded as "geometry" filter the store for routes
+  // emitting "geometry", find none, and resolve to nothing at all.
   const store = new CjsFormatStore().Register(CjsDdsFormat);
   const resource = new TriTextureRes()
     .Initialize("res:/texture/hull.dds", null, ResourceRequirement.TEXTURE)
@@ -299,11 +298,13 @@ test("a resource's requirement is not a format output, and must not filter route
   assert.equal(resource.GetRequirement(), ResourceRequirement.TEXTURE);
   assert.ok(resource.ResolveFormat(), "the requirement must not have filtered the route away");
 
-  // The same, with a requirement no format could ever declare as an output.
-  const granny = new TriGrannyRes()
-    .Initialize("res:/ship/hull.dds", null, ResourceRequirement.GRANNY)
+  // The same, with a requirement no format declares as an output: dds emits
+  // texture, image and rgba, never "geometry".
+  const geometry = new TriGrannyRes()
+    .Initialize("res:/ship/hull.dds", null, ResourceRequirement.GEOMETRY)
     .SetFormatStore(store);
-  assert.ok(granny.ResolveFormat(), "requirement 'granny' is not an output filter");
+  assert.equal(geometry.GetRequirement(), "geometry", "the key must exist, or this proves nothing");
+  assert.ok(geometry.ResolveFormat(), "a requirement is not an output filter");
 
   // An output asked for explicitly still filters, which is the real axis.
   assert.equal(resource.ResolveFormat(undefined, { output: "video" }), null);

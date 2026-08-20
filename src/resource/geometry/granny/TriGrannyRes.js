@@ -46,7 +46,7 @@ export class TriGrannyRes extends CjsResource
     return this;
   }
 
-  static payload = ResourceRequirement.GRANNY;
+  static payload = ResourceRequirement.GEOMETRY;
 }
 
 CjsSchema.define(TriGrannyRes, {

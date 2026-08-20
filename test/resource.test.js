@@ -178,7 +178,7 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
   assert.equal(granny instanceof CjsResource, true);
   assert.equal(gstate instanceof CjsResource, true);
   assert.equal(lightProfile instanceof CjsResource, true);
-  assert.equal(TriGrannyRes.payload, "granny");
+  assert.equal(TriGrannyRes.payload, "geometry");
   assert.equal(Tr2GrannyStateRes.payload, "granny-state");
   assert.equal(Tr2LightProfileRes.payload, "light-profile");
 
@@ -220,7 +220,7 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
 
   const resMan = new CjsResMan().RegisterResourceType(TriGrannyRes);
   assert.equal(
-    resMan.GetResource("res:/character/other.gr2", { requirement: "granny" }) instanceof TriGrannyRes,
+    resMan.GetResource("res:/character/other.gr2", { requirement: "geometry" }) instanceof TriGrannyRes,
     true
   );
 });
@@ -229,7 +229,7 @@ test("CjsResMan.Register adds formats and semantic resource types", async () => 
   class CjsTestFormat
   {
     static inputTypes = [ "foo", "bar" ];
-    static outputTypes = [ "granny" ];
+    static outputTypes = [ "geometry" ];
     static debugOutputTypes = [ "cmfJson" ];
     static read(input, options) { return { input, emit: options.emit }; }
   }
@@ -242,8 +242,8 @@ test("CjsResMan.Register adds formats and semantic resource types", async () => 
   });
 
   assert.equal(resMan.source, source);
-  assert.equal(resMan.ResolveFormat("foo", { emit: "granny" }), CjsTestFormat);
-  assert.equal(resMan.ResolveFormat("bar", { emit: "granny" }), CjsTestFormat);
+  assert.equal(resMan.ResolveFormat("foo", { emit: "geometry" }), CjsTestFormat);
+  assert.equal(resMan.ResolveFormat("bar", { emit: "geometry" }), CjsTestFormat);
   assert.equal(resMan.ResolveFormat("foo", { emit: "cmfjson" }), CjsTestFormat);
   assert.deepEqual(
     await resMan.ReadFormat(resMan.GetFormatDescriptors("foo")[0], 7, { emit: "cmfjson" }),
@@ -268,7 +268,7 @@ test("CjsResMan.Register adds formats and semantic resource types", async () => 
     error => error.code === "CJS_RESOURCE_FORMAT_OUTPUT_MISSING"
   );
   assert.equal(
-    resMan.GetResource("res:/character/value.foo", { requirement: "granny" }) instanceof TriGrannyRes,
+    resMan.GetResource("res:/character/value.foo", { requirement: "geometry" }) instanceof TriGrannyRes,
     true
   );
   assert.equal(resMan.Register({ formats: [ CjsTestFormat ] }), resMan);
