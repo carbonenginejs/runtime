@@ -71,3 +71,78 @@ test("geometry is not mistaken for a GState", () =>
     "a model-bearing payload is a TriGrannyRes payload, not a GState one"
   );
 });
+
+
+test("authored references resolve against the GSF's own directory", () =>
+{
+  // References are authored relative to the .gsf, so a consumer asking for
+  // them verbatim asks for a path that does not exist. Ported from Carbon
+  // GetFullAnimPath (Tr2GrannyStateRes.cpp:80-103).
+  const owner = "res:/graphics/character/male/gstate/locomotion.gsf";
+  const resolve = (reference) => Tr2GrannyStateRes.ResolveAnimPath(reference, owner);
+
+  assert.equal(resolve("../anim/idle.gr2"), "res:/graphics/character/male/anim/idle.gr2");
+  assert.equal(resolve("../../shared/walk.gr2"), "res:/graphics/character/shared/walk.gr2");
+  assert.equal(resolve("./local.gr2"), "res:/graphics/character/male/gstate/local.gr2");
+  assert.equal(resolve("sibling.gr2"), "res:/graphics/character/male/gstate/sibling.gr2");
+
+  // Backslashes are authoring-tool output, not a different meaning.
+  assert.equal(resolve("..\\anim\\back.gr2"), "res:/graphics/character/male/anim/back.gr2");
+
+  // An absolute reference cannot have meant anything relative.
+  assert.equal(resolve("res:/abs/x.gr2"), "res:/abs/x.gr2");
+
+  // Carbon erases three characters after matching only "..", which would
+  // corrupt a name that merely starts with two dots. This does not.
+  assert.equal(resolve("..oddname.gr2"), "res:/graphics/character/male/gstate/..oddname.gr2");
+});
+
+
+test("a GState is fully loaded only once every referenced animation has arrived", () =>
+{
+  const resource = new Tr2GrannyStateRes().Initialize("res:/char/gstate/loco.gsf");
+
+  assert.equal(resource.IsFullyLoaded(), false, "no document yet");
+
+  resource.SetPayload({
+    stateMachine: { states: [] },
+    animationSets: [
+      { index: 0, sourceFileReferences: [ "../anim/idle.gr2", "../anim/walk.gr2" ] },
+      { index: 1, sourceFileReferences: [ "../anim/idle.gr2" ] }
+    ]
+  });
+
+  const paths = resource.GetGStateAnimFileRefPaths();
+  assert.deepEqual(paths, [ "res:/char/anim/idle.gr2", "res:/char/anim/walk.gr2" ],
+    "references are resolved and deduplicated across sets, in first-seen order");
+  assert.equal(resource.IsFullyLoaded(), false);
+
+  resource.SetAnimationResource(paths[0], { name: "idle" });
+  assert.equal(resource.IsFullyLoaded(), false, "one clip short is not loaded");
+
+  resource.SetAnimationResource(paths[1], { name: "walk" });
+  assert.equal(resource.IsFullyLoaded(), true);
+  assert.deepEqual(resource.GetAnimationResource(paths[0]), { name: "idle" });
+  assert.equal(resource.GetAnimationResource("res:/nope.gr2"), null);
+});
+
+
+test("DoLoad takes a projection, and refuses bytes without an injected reader", () =>
+{
+  const projected = CjsGr2Format.readGsf(gsfRaw());
+
+  const fromDocument = new Tr2GrannyStateRes().DoLoad(projected);
+  assert.equal(fromDocument.GetStateMachine(), projected.stateMachine);
+
+  const fromBytes = new Tr2GrannyStateRes().DoLoad(gsfRaw(), { format: CjsGr2Format });
+  assert.deepEqual(fromBytes.GetAnimationSlots(), [ { Name: "base" } ]);
+  assert.ok(fromBytes.GetCharacterInfo());
+
+  // The resource must not import gr2 - that would drag the whole reader into
+  // every consumer of GState and destroy the tree-shakeable subpath.
+  assert.throws(
+    () => new Tr2GrannyStateRes().DoLoad(gsfRaw()),
+    error => error.code === "CJS_RESOURCE_FORMAT_REQUIRED",
+    "raw input needs a reader supplied, not imported"
+  );
+});
