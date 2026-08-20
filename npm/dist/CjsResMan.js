@@ -1800,31 +1800,20 @@ class CjsResMan extends CjsEventEmitter {
    * @returns {*} Plain payload or semantic resource handle.
    */
   #PublishResourceObjectValue(resource, object, options) {
-    let result = object;
-    const route = this.#resourceExtensionRoutes.get(resource) || null;
-    const handlerMode = route ? this.#resourceHandlerModes.get(resource) : null;
-    if (handlerMode === ResourceHandlerMode.RESOURCE) {
-      resource.SetPayload?.(object, options);
-      resource.object = resource;
-      result = resource;
-    } else if (handlerMode === ResourceHandlerMode.OBJECT) {
-      resource.SetPayload?.(object, options);
-      resource.object = object;
-    } else if (resource.constructor !== CjsResource && typeof resource.SetPayload === "function") {
-      resource.SetPayload(object, options);
-      resource.object = resource;
-      result = resource;
-    } else {
-      resource.SetPayload?.(object, options);
-      resource.object = object;
-    }
+    const mode = resolveResourceHandlerMode(resource, this.#resourceExtensionRoutes.get(resource) ? this.#resourceHandlerModes.get(resource) : null);
+    resource.SetPayload?.(object, options);
+    // The two modes differ in one thing only: what `object` names and what the
+    // caller is handed back. RESOURCE publishes the stable handle, so both
+    // point at the resource; OBJECT publishes the reader outcome.
+    const published = mode === ResourceHandlerMode.RESOURCE ? resource : object;
+    resource.object = published;
     // PREPARED, not LOADED: `object` is the reader/converter OUTCOME, so the
     // bytes have already been turned into whatever they needed to become.
     // LOADED means raw source data is in hand and still has to be prepared - a
     // resource in that state is not yet good, and marking it here left IsGood()
     // permanently false for every resource that does not prepare itself.
     if (!resource.IsPrepared?.()) resource.MarkPrepared();
-    return result;
+    return published;
   }
 
   /**
@@ -3388,9 +3377,39 @@ function getResourceFileName(path) {
 }
 
 /**
+ * The mode this resource publishes under.
+ *
+ * There are two modes and there have only ever been two - RESOURCE hands back
+ * the stable handle, OBJECT hands back the reader outcome - but the question
+ * was answered in four branches at each of two call sites, because a resource
+ * reached without a registered route has no captured mode to read. Both sites
+ * then re-derived the same rule inline, and both had to be kept in agreement by
+ * hand.
+ *
+ * The route's captured mode wins when there is one, since that is what the
+ * registration declared. Otherwise the class answers for itself: anything
+ * deriving from `CjsResource` carries a `handlerMode`, and a bare `CjsResource`
+ * is a carrier rather than a semantic resource, so it publishes its payload.
+ * That last case is why the class static cannot simply be trusted - the base
+ * declares RESOURCE for the subclasses that inherit it, not for itself.
+ *
+ * @param {object} resource Resource being published or read back.
+ * @param {string|null} [routedMode] Mode captured at registration, when routed.
+ * @returns {string} A `ResourceHandlerMode` value.
+ */
+function resolveResourceHandlerMode(resource, routedMode = null) {
+  if (routedMode === ResourceHandlerMode.RESOURCE) return ResourceHandlerMode.RESOURCE;
+  if (routedMode === ResourceHandlerMode.OBJECT) return ResourceHandlerMode.OBJECT;
+  if (resource?.constructor === CjsResource) return ResourceHandlerMode.OBJECT;
+  return typeof resource?.SetPayload === "function" ? ResourceHandlerMode.RESOURCE : ResourceHandlerMode.OBJECT;
+}
+
+/**
  * Recover the public object result represented by a resident resource payload.
- * The publication contract returns semantic subclasses as their resource
- * handle and base resources as their plain payload.
+ *
+ * The read-back counterpart of publication, and it must agree with it exactly:
+ * a resource published as its handle has to be recovered as its handle, or a
+ * cache hit answers differently from the load that filled it.
  *
  * @param {CjsResource} resource Resource with an attached CPU payload.
  * @param {object|null} route Captured explicit extension route.
@@ -3398,9 +3417,8 @@ function getResourceFileName(path) {
  * @returns {*} Resident public object outcome.
  */
 function getPublishedResourceObject(resource, route = null, handlerMode = null) {
-  if (route && handlerMode === ResourceHandlerMode.RESOURCE) return resource;
-  if (route && handlerMode === ResourceHandlerMode.OBJECT) return resource.GetPayload();
-  return resource.constructor !== CjsResource ? resource : resource.GetPayload();
+  const mode = resolveResourceHandlerMode(resource, route ? handlerMode : null);
+  return mode === ResourceHandlerMode.RESOURCE ? resource : resource.GetPayload();
 }
 function assertPositiveInteger(value, name) {
   if (!Number.isInteger(value) || value < 1) {

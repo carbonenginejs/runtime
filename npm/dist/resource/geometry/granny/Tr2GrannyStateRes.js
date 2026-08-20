@@ -73,12 +73,15 @@ class Tr2GrannyStateRes extends CjsResource {
     } = options || {};
     let document = data;
     if (!data?.stateMachine) {
-      if (typeof format?.readGsf !== "function") {
-        const error = new Error("Tr2GrannyStateRes.DoLoad needs an already-projected GSF document, or " + "options.format carrying readGsf. The resource does not import gr2: " + "every format is a tree-shakeable subpath and importing one here " + "would pull it into every consumer of GState.");
+      const Reader = this.ResolveFormat(data, {
+        format
+      });
+      if (typeof Reader?.readGsf !== "function") {
+        const error = new Error("Tr2GrannyStateRes.DoLoad needs an already-projected GSF document, an " + "options.format carrying readGsf, or a registered format store that " + "resolves this resource's extension. The resource does not import " + "gr2: every format is a tree-shakeable subpath and importing one " + "here would pull it into every consumer of GState.");
         error.code = "CJS_RESOURCE_FORMAT_REQUIRED";
         throw error;
       }
-      document = format.readGsf(data);
+      document = Reader.readGsf(data);
     }
     this.#animations.clear();
     this.SetPayload(document);

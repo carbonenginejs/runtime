@@ -92,6 +92,12 @@ export class CjsResource extends CjsEventEmitter
       configurable: true,
       writable: true
     });
+    Object.defineProperty(this, "__formatStore", {
+      value: null,
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
     Object.defineProperty(this, "__objectLoader", {
       value: null,
       enumerable: false,
@@ -430,6 +436,56 @@ export class CjsResource extends CjsEventEmitter
    */
   DoCustomLoad(url, extension) {
     return false;
+  }
+
+  /**
+   * Bind the format store this resource may resolve its own reader from.
+   *
+   * A resource must not import its formats - every one of them is a
+   * tree-shakeable subpath, so importing one here would drag it into every
+   * consumer of this resource. Nor can it hardcode a list, because which
+   * formats exist is a property of the composed application. The store is the
+   * link that lets both stay true: the composition root registers what it
+   * wants, and the resource asks.
+   *
+   * Optional. A resource loaded through `CjsResMan` never needs it, because the
+   * manager resolves the reader from its own extension routes and hands the
+   * outcome over as a payload. This is for the resource driving its own load.
+   *
+   * @param {import("../format/CjsFormatStore.js").CjsFormatStore|null} store
+   * @returns {CjsResource} This resource.
+   */
+  SetFormatStore(store = null) {
+    if (store !== null && typeof store?.Resolve !== "function") {
+      throw new TypeError("CjsResource.SetFormatStore requires a format store or null.");
+    }
+    this.__formatStore = store;
+    return this;
+  }
+
+  /** The bound format store, or `null`. */
+  GetFormatStore() {
+    return this.__formatStore || null;
+  }
+
+  /**
+   * The format that should read this resource's source data.
+   *
+   * An explicitly supplied format always wins: the caller naming a reader knows
+   * something the extension does not. Otherwise the bound store answers from
+   * this resource's own extension, probing content when several formats claim
+   * that suffix.
+   *
+   * Returns `null` when neither can answer, so the caller reports what it could
+   * not read rather than handing bytes to a reader that never claimed them.
+   *
+   * @param {*} [data] Source data, used to separate formats sharing an extension.
+   * @param {object|null} [options] May carry an explicit `format`.
+   * @returns {Function|null} Format class, or `null`.
+   */
+  ResolveFormat(data, options = null) {
+    if (options?.format) return options.format;
+    return this.GetFormatStore()?.Resolve(this.ext, data) || null;
   }
 
   /**
