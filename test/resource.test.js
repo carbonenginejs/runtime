@@ -182,10 +182,37 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
   assert.equal(Tr2GrannyStateRes.payload, "granny-state");
   assert.equal(Tr2LightProfileRes.payload, "light-profile");
 
-  const payload = { skeleton: { bones: [] }, additiveAnimations: [] };
+  // The shape CjsGr2Format.readGsf actually returns. The previous literal used
+  // `skeleton`/`additiveAnimations`, which no reader emits and Carbon does not
+  // have - it was written to satisfy the guard rather than to read a file, so
+  // it proved its own premise and hid the fact that every real GSF was
+  // rejected.
+  const payload = {
+    format: "gsf",
+    container: { family: "granny", revision: 6, sectionCount: 8 },
+    character: { modelNameHint: "male_generic", modelIndexHint: 0 },
+    stateMachine: { states: [] },
+    animationSlots: [],
+    animationSets: [ { index: 0, sourceFileReferences: [ "../anim/idle.gr2" ], raw: {} } ],
+    uniqueTokenCount: 0
+  };
   gstate.SetPayload(payload);
   assert.equal(gstate.GetPayload(), payload);
+  // A GSF carries a state machine and references to animations, never geometry.
   assert.equal("models" in payload, false);
+  assert.equal("meshes" in payload, false);
+  assert.equal("skeleton" in payload, false);
+
+  assert.throws(
+    () => gstate.SetPayload({ animationSlots: [] }),
+    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID",
+    "a GState payload without a state machine is not a GState"
+  );
+  assert.throws(
+    () => gstate.SetPayload({ stateMachine: {}, animationSets: "nope" }),
+    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID",
+    "animation sets are walked, so a non-array is rejected before the first bind"
+  );
 
   assert.equal(CjsSchema.GetConstructor("TriGrannyRes"), TriGrannyRes);
   assert.equal(CjsSchema.GetConstructor("Tr2GrannyStateRes"), Tr2GrannyStateRes);
