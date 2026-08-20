@@ -150,13 +150,24 @@ test("DoLoad takes a projection, and refuses bytes without an injected reader", 
 
 test("a bound format store answers instead of the caller naming the reader", () =>
 {
-  // gr2 declares BOTH .gr2 and .gsf, but they are not the same read: a .gsf is
-  // an animation state machine and needs readGsf, a .gr2 is geometry. That the
-  // declaration lumps them together is exactly why it is only a default - the
-  // composition root names the reader per role.
+  // .gr2 and .gsf are the SAME format and the same container - both go through
+  // readRawInput, and the suffix only denotes what the Granny root holds. So
+  // the routes are registered under both suffixes and CONTENT decides, which is
+  // what isGsf is for. Registering readGsf against the .gsf suffix alone would
+  // have encoded a naming convention as if it were a format boundary.
   const store = new CjsFormatStore()
-    .Register(CjsGr2Format, { extensions: ".gsf", read: "readGsf" })
-    .Register(CjsGr2Format, { extensions: ".gr2" });
+    .Register(CjsGr2Format, {
+      extensions: [ ".gr2", ".gsf" ],
+      read: "readGsf",
+      accepts: "isGsf"
+    })
+    // Geometry is the not-a-state-machine case, and saying so is better than
+    // leaving it to Format.isSupported - that answers "is this a Granny file",
+    // which is true of both and so separates nothing.
+    .Register(CjsGr2Format, {
+      extensions: [ ".gr2", ".gsf" ],
+      accepts: data => !CjsGr2Format.isGsf(data)
+    });
 
   const resource = new Tr2GrannyStateRes()
     .Initialize("res:/char/gstate/loco.gsf")
@@ -164,15 +175,18 @@ test("a bound format store answers instead of the caller naming the reader", () 
 
   assert.equal(resource.GetFormatStore(), store);
 
-  const route = resource.ResolveFormat();
-  assert.equal(route.Format, CjsGr2Format, "resolved by this resource's own extension");
-  assert.equal(route.read, "readGsf", "the reader is registration data, not something the resource knows");
+  const route = resource.ResolveFormat(gsfRaw());
+  assert.equal(route.Format, CjsGr2Format);
+  assert.equal(route.read, "readGsf", "content selected the state-machine projection");
 
   resource.DoLoad(gsfRaw());
   assert.ok(resource.GetStateMachine(), "the store-resolved reader produced the document");
 
-  // The .gr2 role of the same format resolves to the ordinary reader.
-  assert.equal(store.Resolve(".gr2").read, "read");
+  // The same suffix carrying geometry resolves to the ordinary reader, because
+  // isGsf says no. The extension never entered into it.
+  const geometry = { version: 6, secCount: 8, fileInfo: { Meshes: [], Models: [] } };
+  assert.equal(store.Resolve(".gsf", geometry).read, "read");
+  assert.equal(store.Resolve(".gr2", gsfRaw()).read, "readGsf");
 
   // A store that routes nothing for this extension is not a reader.
   const empty = new Tr2GrannyStateRes()
@@ -194,4 +208,29 @@ test("a format store binding is a store or nothing", () =>
     "an object that cannot resolve is not a store"
   );
   assert.equal(new Tr2GrannyStateRes().SetFormatStore(null).GetFormatStore(), null);
+});
+
+
+test("a GSF read as geometry succeeds and yields nothing, which is why content must route", () =>
+{
+  // The asymmetry worth knowing about. projectGsf guards its input and throws
+  // on a geometry root, but the geometry path does not guard at all: it walks
+  // `json.meshes || []`, so a state machine read as geometry produces a valid
+  // document with no meshes and NO ERROR.
+  //
+  // That is the whole argument for routing on content rather than on the
+  // suffix. Get it wrong toward GSF and you get a thrown error; get it wrong
+  // toward geometry and you get a model that silently has nothing in it.
+  const gsf = gsfRaw();
+
+  assert.equal(CjsGr2Format.isGsf(gsf), true);
+  assert.throws(
+    () => CjsGr2Format.read(gsf, { emit: "raw" }) && CjsGr2Format.readGsf({ version: 6, secCount: 8, fileInfo: {} }),
+    /Granny State root schema/u,
+    "the state-machine projection refuses a root that is not one"
+  );
+
+  const asGeometry = CjsGr2Format.read(gsf);
+  assert.ok(asGeometry, "reading a state machine as geometry does not throw");
+  assert.equal((asGeometry.meshes || []).length, 0, "it just has no meshes");
 });

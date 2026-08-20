@@ -11,9 +11,12 @@ import { normalizeResourceExtension } from '@carbonenginejs/runtime-utils/path';
  * - **Several formats under one extension.** `.static` is read by both
  *   `CjsStaticFormat` and `CjsSchemaBoundFormat`, and only content tells them
  *   apart.
- * - **Several inputs on one format.** `CjsGr2Format` declares
- *   `inputTypes: ["gr2", "gsf"]` and carries a distinct `readGsf` entry point,
- *   because a `.gsf` is an animation state machine and a `.gr2` is geometry.
+ * - **Several readers on one format, chosen by CONTENT.** `CjsGr2Format` reads
+ *   `.gr2` and `.gsf` through the same `readRawInput`, because they are the
+ *   same Granny container — the suffix only denotes what the root object holds.
+ *   `read` projects geometry and `readGsf` projects a state machine, and
+ *   `isGsf` is what actually tells them apart. The extension is a hint, not the
+ *   discriminator, which is why a route may carry its own `accepts` probe.
  * - **Several outputs from one reader.** `CjsDdsFormat` declares
  *   `outputTypes: ["texture", "image", "rgba"]` off a single `read`, selected
  *   by `options.emit`.
@@ -28,9 +31,13 @@ class CjsFormatRoute {
     this.Format = Format;
     this.read = options.read || "read";
     this.output = options.output || null;
+    this.accepts = options.accepts || null;
     this.name = options.name || `${Format.name || "format"}.${this.read}`;
     if (typeof Format[this.read] !== "function") {
       throw new TypeError(`${Format.name || "format"} has no reader named ${JSON.stringify(this.read)}. ` + "A route names the entry point to call, so a misspelling here would " + "otherwise surface as a failed load of the first matching file.");
+    }
+    if (this.accepts !== null && typeof this.accepts !== "function" && typeof Format[this.accepts] !== "function") {
+      throw new TypeError(`${Format.name || "format"} has no probe named ${JSON.stringify(this.accepts)}. ` + "A route's probe is what separates two readers over one container, so " + "a missing one would silently route every file to the first route.");
     }
     if (this.output && Array.isArray(Format.outputTypes) && !Format.outputTypes.includes(this.output)) {
       throw new TypeError(`${Format.name || "format"} does not declare the output ` + `${JSON.stringify(this.output)}; it declares ` + `${Format.outputTypes.map(value => JSON.stringify(value)).join(", ")}.`);
@@ -41,14 +48,23 @@ class CjsFormatRoute {
   /**
    * Whether this route recognises the data.
    *
-   * A route with no probe answers yes: the extension already selected it, and
-   * a format is entitled to reject its own file later with a better message
-   * than a probe could give. A probe that throws has declined rather than
-   * failed - probes read headers of files they may not own.
+   * The route's own probe answers when it has one, and it is the only thing
+   * that can separate two readers over ONE container. `Format.isSupported` says
+   * "yes, this is a Granny file" for both a `.gr2` and a `.gsf`, because it is
+   * — the question it answers is about the container, not about which
+   * projection applies. `isGsf` is the question that matters there.
+   *
+   * Falling back to `Format.isSupported` is right when the routes belong to
+   * different formats, which is the `.static` case.
+   *
+   * A route with no probe at all answers yes: the extension already selected
+   * it, and a format is entitled to reject its own file later with a better
+   * message than a probe could give. A probe that throws has declined rather
+   * than failed — probes read headers of files they may not own.
    */
   Accepts(data) {
     if (data === undefined) return true;
-    const probe = this.Format.isSupported;
+    const probe = typeof this.accepts === "function" ? this.accepts : this.accepts ? this.Format[this.accepts] : this.Format.isSupported;
     if (typeof probe !== "function") return true;
     try {
       return Boolean(probe.call(this.Format, data));
@@ -262,7 +278,7 @@ class CjsFormatStore {
  * compressed texture and decoded RGBA.
  */
 function isSameRoute(left, right) {
-  return left.Format === right.Format && left.read === right.read && left.output === right.output;
+  return left.Format === right.Format && left.read === right.read && left.output === right.output && left.accepts === right.accepts;
 }
 
 /** Whether an unpinned route's format can produce the requested output. */
