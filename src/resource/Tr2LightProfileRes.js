@@ -2,6 +2,7 @@
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "./CjsResource.js";
 import { assertResourcePayloadObject } from "./resourceBoundary.js";
+import { ResourceRequirement } from "./ResourceRequirement.js";
 
 /**
  * Runtime-owned light-profile resource.
@@ -24,7 +25,7 @@ export class Tr2LightProfileRes extends CjsResource
     return this;
   }
 
-  static payload = "light-profile";
+  static payload = ResourceRequirement.LIGHT_PROFILE;
 }
 
 CjsSchema.define(Tr2LightProfileRes, {

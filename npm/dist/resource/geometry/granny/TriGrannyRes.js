@@ -1,6 +1,7 @@
 import { CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsResource } from '../../CjsResource.js';
 import { assertResourcePayloadObject, resourcePayloadError } from '../../resourceBoundary.js';
+import { ResourceRequirement } from '../../ResourceRequirement.js';
 
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 
@@ -35,7 +36,7 @@ class TriGrannyRes extends CjsResource {
     super.SetPayload(payload);
     return this;
   }
-  static payload = "granny";
+  static payload = ResourceRequirement.GRANNY;
 }
 CjsSchema.define(TriGrannyRes, {
   className: "TriGrannyRes",

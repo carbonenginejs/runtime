@@ -2,6 +2,7 @@ import { CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { normalizeResourcePath } from '@carbonenginejs/runtime-utils/path';
 import { CjsResource } from '../CjsResource.js';
 import { CjsTextureArrayResParameterProxy } from './CjsTextureArrayResParameterProxy.js';
+import { ResourceRequirement } from '../ResourceRequirement.js';
 
 /**
  * Mutable runtime aggregate for an ordered texture-array request.
@@ -456,7 +457,7 @@ class CjsTextureArrayRes extends CjsResource {
     }
     this.#readyWaiters = pending;
   }
-  static payload = "texture-array";
+  static payload = ResourceRequirement.TEXTURE_ARRAY;
 }
 function destroyAdapterValue(value) {
   if (!value || typeof value !== "object" && typeof value !== "function") return;

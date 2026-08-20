@@ -476,11 +476,16 @@ export class CjsResource extends CjsEventEmitter
    * something the extension does not. It is wrapped in a route so callers have
    * one shape to handle either way.
    *
-   * Otherwise the bound store answers, from this resource's own extension and
-   * its `requirement` — the representation this resource was asked for. That
-   * last part is why a route rather than a format class: `.dds` decoded to
-   * RGBA and `.dds` kept as a compressed texture are the same file, the same
-   * format and the same reader, differing only in what was asked of it.
+   * Otherwise the bound store answers from this resource's own extension, and
+   * from an `output` only when the caller asks for one.
+   *
+   * `requirement` IS NOT THE OUTPUT, though it reads like it. It selects the
+   * resource TYPE — `CjsResMan.RegisterResourceType` keys on it, and its values
+   * are `texture`, `image`, `geometry`, `granny`. A format's outputs are a
+   * different axis entirely: `texture` and `rgba` are two representations of
+   * one DDS. Conflating them makes a resource loaded with
+   * `requirement: "granny"` filter for routes declaring an output named
+   * `granny`, find none, and resolve to null.
    *
    * Returns `null` when nothing answers, so the caller reports what it could
    * not read rather than handing bytes to a reader that never claimed them.
@@ -493,11 +498,11 @@ export class CjsResource extends CjsEventEmitter
     if (options?.format) {
       return new CjsFormatRoute(options.format, {
         read: options.read,
-        output: options.output || this.requirement || null
+        output: options.output || null
       });
     }
     return this.GetFormatStore()?.Resolve(this.ext, data, {
-      output: options?.output || this.requirement || null
+      output: options?.output || null
     }) || null;
   }
 

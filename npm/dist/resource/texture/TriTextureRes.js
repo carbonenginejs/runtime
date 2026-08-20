@@ -1,7 +1,8 @@
 import { CjsSchema, carbon, impl, type, io } from '@carbonenginejs/runtime-utils/schema';
 import { CjsResource } from '../CjsResource.js';
+import { ResourceRequirement } from '../ResourceRequirement.js';
 import { validateVideoPayload, validateTexturePayload, validateRgbaPayload, ResourcePayloadType } from '../../format/payloadContract.js';
-import { resourcePayloadError, validateResourcePayload, resourceBoundaryError } from '../resourceBoundary.js';
+import { resourcePayloadError, validateResourcePayload, resourceFormatRequiredError, resourceBoundaryError } from '../resourceBoundary.js';
 
 // Source: trinity/trinity/Resources/TriTextureRes.h
 // Source: trinity/trinity/Resources/TriTextureRes.cpp
@@ -82,6 +83,43 @@ class TriTextureRes extends CjsResource {
     super.SetPayload(payload);
     this.SetValues(values);
     return this;
+  }
+
+  /**
+   * Turn source bytes into this texture.
+   *
+   * This is the family the route design exists for. One `.dds` is readable as a
+   * compressed `texture` or decoded `rgba`, and six formats — dds, png, jpeg,
+   * tga, gif, webp — populate this same resource. Which reader and which
+   * representation is a registration decision, so neither is written here.
+   *
+   * The resource imports none of them. A texture resource that imported its
+   * formats would drag all six into anything that touches a texture, which is
+   * the whole reason the store exists.
+   *
+   * @param {ArrayBuffer|ArrayBufferView|object} data Source bytes, or a payload already read.
+   * @param {object|null} [options] `{ format, read, output }` plus values applied after the read.
+   * @returns {TriTextureRes} This resource.
+   */
+  DoLoad(data, options = null) {
+    const {
+      format = null,
+      read = null,
+      output = null,
+      ...values
+    } = options || {};
+
+    // Already a payload: the manager read it, and there is nothing to route.
+    if (data?.payloadType !== undefined) return this.SetPayload(data, values);
+    const route = this.ResolveFormat(data, format ? {
+      format,
+      read,
+      output
+    } : {
+      output
+    });
+    if (!route) throw resourceFormatRequiredError("TriTextureRes", this.ext, output);
+    return this.SetPayload(route.Read(data), values);
   }
 
   /**
@@ -292,7 +330,7 @@ class TriTextureRes extends CjsResource {
   PrepareResources() {
     return this.IsPrepared();
   }
-  static payload = "texture";
+  static payload = ResourceRequirement.TEXTURE;
 }
 function getPayloadMemoryUsage(payload) {
   if (!payload || typeof payload !== "object") return 0;

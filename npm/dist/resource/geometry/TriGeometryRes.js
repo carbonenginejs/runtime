@@ -1,3 +1,4 @@
+import { ResourceRequirement } from '../ResourceRequirement.js';
 import { CjsSchema, carbon, impl, type, io } from '@carbonenginejs/runtime-utils/schema';
 import { box3 } from '@carbonenginejs/runtime-utils/box3';
 import { triangleNormalTo } from '@carbonenginejs/runtime-utils/mesh';
@@ -7,10 +8,6 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { CjsResource } from '../CjsResource.js';
 import { assertResourcePayloadObject, assertResourcePayloadArray, resourcePayloadError, resourceBoundaryError } from '../resourceBoundary.js';
-
-// Source: trinity/trinity/Resources/TriGeometryRes.h
-// Source: trinity/trinity/Resources/TriGeometryRes.cpp
-// Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
 
 /**
  * Resource record that owns geometry payload facts (meshes, optional
@@ -390,7 +387,7 @@ class TriGeometryRes extends CjsResource {
   SaveMesh() {
     throw resourceBoundaryError("TriGeometryRes", "SaveMesh", "Use a geometry format writer with the resource payload and a caller-owned destination.");
   }
-  static payload = "geometry";
+  static payload = ResourceRequirement.GEOMETRY;
 
   // Carbon TriGeometryRes.cpp:158-178, declared beside the class
   // (TriGeometryRes.h:202) because it reads LOD data rather than resource

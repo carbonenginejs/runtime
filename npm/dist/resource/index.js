@@ -1,6 +1,7 @@
 export { CjsResource } from './CjsResource.js';
 export { CjsLoadingObject } from './CjsLoadingObject.js';
 export { ResourceHandlerMode } from './ResourceHandlerMode.js';
+export { ResourceRequirement, isResourceRequirement } from './ResourceRequirement.js';
 export { Tr2LightProfileRes } from './Tr2LightProfileRes.js';
 export { AudioGeometryResData } from './audio/AudioGeometryResData.js';
 export { CjsAudioBufferRes } from './audio/CjsAudioBufferRes.js';

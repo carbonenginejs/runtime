@@ -1,3 +1,4 @@
+import { ResourceRequirement } from "../ResourceRequirement.js";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
@@ -473,7 +474,7 @@ export class TriGeometryRes extends CjsResource
     );
   }
 
-  static payload = "geometry";
+  static payload = ResourceRequirement.GEOMETRY;
 
   // Carbon TriGeometryRes.cpp:158-178, declared beside the class
   // (TriGeometryRes.h:202) because it reads LOD data rather than resource

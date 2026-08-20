@@ -6,6 +6,7 @@ import { CjsResource } from "../CjsResource.js";
 import { validateResourcePayload } from "../resourceBoundary.js";
 import { CjsCarbonEffectReader } from "../../format/carbonEffect/CjsCarbonEffectReader.js";
 import { Tr2Shader } from "./Tr2Shader.js";
+import { ResourceRequirement } from "../ResourceRequirement.js";
 
 const globalEffectOptions = [];
 
@@ -236,7 +237,7 @@ export class Tr2EffectRes extends CjsResource
     return super.ReleasePayload();
   }
 
-  static payload = "shader";
+  static payload = ResourceRequirement.SHADER;
 
 }
 

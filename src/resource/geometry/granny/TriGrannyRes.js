@@ -2,6 +2,7 @@
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 import { CjsResource } from "../../CjsResource.js";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
+import { ResourceRequirement } from "../../ResourceRequirement.js";
 
 /**
  * Runtime-owned Granny resource.
@@ -45,7 +46,7 @@ export class TriGrannyRes extends CjsResource
     return this;
   }
 
-  static payload = "granny";
+  static payload = ResourceRequirement.GRANNY;
 }
 
 CjsSchema.define(TriGrannyRes, {

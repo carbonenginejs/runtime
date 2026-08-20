@@ -1,6 +1,7 @@
 import { CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsResource } from '../../CjsResource.js';
-import { assertResourcePayloadObject, resourcePayloadError } from '../../resourceBoundary.js';
+import { assertResourcePayloadObject, resourcePayloadError, resourceFormatRequiredError } from '../../resourceBoundary.js';
+import { ResourceRequirement } from '../../ResourceRequirement.js';
 
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 
@@ -82,11 +83,7 @@ class Tr2GrannyStateRes extends CjsResource {
         format,
         read: "readGsf"
       } : null);
-      if (!route) {
-        const error = new Error("Tr2GrannyStateRes.DoLoad needs an already-projected GSF document, an " + "options.format carrying readGsf, or a registered format store that " + "routes this resource's extension. The resource does not import " + "gr2: every format is a tree-shakeable subpath and importing one " + "here would pull it into every consumer of GState.");
-        error.code = "CJS_RESOURCE_FORMAT_REQUIRED";
-        throw error;
-      }
+      if (!route) throw resourceFormatRequiredError("Tr2GrannyStateRes", this.ext);
       document = route.Read(data);
     }
     this.#animations.clear();
@@ -205,7 +202,7 @@ class Tr2GrannyStateRes extends CjsResource {
     if (!this.GetPayload()) return false;
     return this.GetGStateAnimFileRefPaths().every(path => this.#animations.has(path));
   }
-  static payload = "granny-state";
+  static payload = ResourceRequirement.GRANNY_STATE;
 }
 CjsSchema.define(Tr2GrannyStateRes, {
   className: "Tr2GrannyStateRes",

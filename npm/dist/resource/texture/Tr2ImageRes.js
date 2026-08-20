@@ -2,6 +2,7 @@ import { CjsSchema, carbon, impl, type, io } from '@carbonenginejs/runtime-utils
 import { CjsResource } from '../CjsResource.js';
 import { validateRgbaPayload } from '../../format/payloadContract.js';
 import { validateResourcePayload } from '../resourceBoundary.js';
+import { ResourceRequirement } from '../ResourceRequirement.js';
 
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
@@ -95,7 +96,7 @@ class Tr2ImageRes extends CjsResource {
     if (!Array.isArray(color)) return false;
     return color.length < 4 || color[3] > 0;
   }
-  static payload = "image";
+  static payload = ResourceRequirement.IMAGE;
 }
 
 // Declared as data rather than with decorators, so the resource tree loads from

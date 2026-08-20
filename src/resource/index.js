@@ -1,6 +1,7 @@
 export * from "./CjsResource.js";
 export * from "./CjsLoadingObject.js";
 export * from "./ResourceHandlerMode.js";
+export * from "./ResourceRequirement.js";
 export * from "./Tr2LightProfileRes.js";
 export * from "./audio/index.js";
 export * from "./geometry/index.js";

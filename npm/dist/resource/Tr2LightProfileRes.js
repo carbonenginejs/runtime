@@ -1,6 +1,7 @@
 import { CjsSchema } from '@carbonenginejs/runtime-utils/schema';
 import { CjsResource } from './CjsResource.js';
 import { assertResourcePayloadObject } from './resourceBoundary.js';
+import { ResourceRequirement } from './ResourceRequirement.js';
 
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
 
@@ -21,7 +22,7 @@ class Tr2LightProfileRes extends CjsResource {
     super.SetPayload(payload);
     return this;
   }
-  static payload = "light-profile";
+  static payload = ResourceRequirement.LIGHT_PROFILE;
 }
 CjsSchema.define(Tr2LightProfileRes, {
   className: "Tr2LightProfileRes",

@@ -5,6 +5,7 @@ import { CjsSchema, carbon, impl, io, type } from "@carbonenginejs/runtime-utils
 import { CjsResource } from "../CjsResource.js";
 import { validateRgbaPayload } from "../../format/payloadContract.js";
 import { validateResourcePayload } from "../resourceBoundary.js";
+import { ResourceRequirement } from "../ResourceRequirement.js";
 
 /**
  * Tr2ImageRes resource record.
@@ -104,7 +105,7 @@ export class Tr2ImageRes extends CjsResource
     return color.length < 4 || color[3] > 0;
   }
 
-  static payload = "image";
+  static payload = ResourceRequirement.IMAGE;
 }
 
 // Declared as data rather than with decorators, so the resource tree loads from
