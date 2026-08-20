@@ -1,0 +1,7 @@
+const CJS_BLACK_FORMAT_ID = "black";
+const CJS_BLACK_EXTENSION = ".black";
+const CJS_BLACK_FOURCC = 0xB1ACF11E;
+const CJS_BLACK_VERSION = 1;
+
+export { CJS_BLACK_EXTENSION, CJS_BLACK_FORMAT_ID, CJS_BLACK_FOURCC, CJS_BLACK_VERSION };
+//# sourceMappingURL=blackConstants.js.map
