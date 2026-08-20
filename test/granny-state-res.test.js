@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsFormatStore, Tr2GrannyStateRes } from "../npm/dist/index.js";
+import { CjsFormatStore, Tr2GrannyStateRes, TriGrannyRes } from "../npm/dist/index.js";
 import { CjsGr2Format } from "../npm/dist/formats/gr2/index.js";
 
 // The reader and the resource were never tested together, which is how a guard
@@ -233,4 +233,34 @@ test("a GSF read as geometry succeeds and yields nothing, which is why content m
   const asGeometry = CjsGr2Format.read(gsf);
   assert.ok(asGeometry, "reading a state machine as geometry does not throw");
   assert.equal((asGeometry.meshes || []).length, 0, "it just has no meshes");
+});
+
+
+test("an empty Granny container is refused rather than published as a model", () =>
+{
+  // The other half of the same problem. `CjsGr2Format.read` always builds
+  // `meshes`, `models` and `animations`, so a state machine read as geometry
+  // produced three empty arrays - and the old guard, which asked only whether
+  // the arrays EXISTED, passed it straight through.
+  const asGeometry = CjsGr2Format.read(gsfRaw());
+  assert.deepEqual(asGeometry.meshes, []);
+  assert.deepEqual(asGeometry.models, []);
+
+  assert.throws(
+    () => new TriGrannyRes().SetPayload(asGeometry),
+    error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID",
+    "a container with nothing in it is not geometry"
+  );
+
+  // An animation-only .gr2 is a real file and must still load: a GSF's
+  // referenced clips are exactly that, and they carry no meshes by design.
+  const clip = new TriGrannyRes().SetPayload({
+    meshes: [],
+    models: [],
+    animations: [ { name: "idle" } ]
+  });
+  assert.equal(clip.GetPayload().animations.length, 1);
+
+  // And ordinary geometry is unaffected.
+  assert.ok(new TriGrannyRes().SetPayload({ meshes: [ { name: "hull" } ] }));
 });
