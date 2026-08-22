@@ -164,6 +164,7 @@ class CjsAudioLibraryBuilder {
         ...buildOptions,
         indexEntries,
         metadata,
+        music: options.music === false ? null : options.music,
         ...(soundbanksInfo === undefined ? {} : {
           soundbanksInfo
         })

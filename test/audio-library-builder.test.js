@@ -99,6 +99,7 @@ test("resource builder can decode FSD without inspecting indexed banks", async (
             },
         },
         inspectBanks: false,
+        music: false,
         source(path)
         {
             requested.push(path);
