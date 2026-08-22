@@ -2,6 +2,10 @@
 export class CjsESIMarketMemorySource
 {
 
+    /**
+     * Creates a market esi market memory source around caller-supplied browser
+     * collaborators.
+     */
     constructor({ regions = [], types = [], orders = [], history = [] } = {})
     {
         this.regions = CopyRecords(regions);

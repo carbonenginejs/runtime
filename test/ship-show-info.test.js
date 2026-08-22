@@ -3,23 +3,30 @@ import test from "node:test";
 
 import {
     alignTimeSeconds,
-    CjsESIShipShowInfoController,
+    CjsESIShipShowInfoController as LegacyShipShowInfoController,
+    CjsShipShowInfoController,
     CjsESIShipShowInfoMarketSource,
     CjsESIShipShowInfoMemorySource,
     CjsESIShipShowInfoSessionSource,
+    CjsShipShowInfoToolsCoreSessionSource,
+    CjsShipShowInfoToolsCoreSource,
     effectiveHitpoints,
     MarketEstimate,
     metersToAU,
     resistancePercent,
     shipShowInfoID
 } from "@carbonenginejs/tools-browser/ship-show-info";
+import { TnyShipShowInfoImageRenderer } from "@carbonenginejs/tools-browser/ship-show-info/ui";
 
-test("Show Info logic classes preserve the CjsESIShipShowInfo family", () =>
+test("Show Info sources retain provider identity while the controller remains provider-neutral", () =>
 {
-    assert.equal(CjsESIShipShowInfoController.name, "CjsESIShipShowInfoController");
+    assert.equal(CjsShipShowInfoController.name, "CjsShipShowInfoController");
+    assert.equal(LegacyShipShowInfoController, CjsShipShowInfoController);
     assert.equal(CjsESIShipShowInfoMarketSource.name, "CjsESIShipShowInfoMarketSource");
     assert.equal(CjsESIShipShowInfoMemorySource.name, "CjsESIShipShowInfoMemorySource");
     assert.equal(CjsESIShipShowInfoSessionSource.name, "CjsESIShipShowInfoSessionSource");
+    assert.equal(CjsShipShowInfoToolsCoreSessionSource.name, "CjsShipShowInfoToolsCoreSessionSource");
+    assert.equal(CjsShipShowInfoToolsCoreSource.name, "CjsShipShowInfoToolsCoreSource");
 });
 
 test("Show Info model helpers remain presentation neutral", () =>
@@ -90,7 +97,7 @@ test("controller awaits asynchronous ship acquisition and renderer loading", asy
             calls.push([ "destroy" ]);
         }
     };
-    const controller = new CjsESIShipShowInfoController({ shipSource, renderer });
+    const controller = new CjsShipShowInfoController({ shipSource, renderer });
     const container = { id: "surface" };
 
     await controller.Mount(container);
@@ -135,7 +142,7 @@ test("controller lazily deduplicates panels and forwards renderer selections", a
             calls.push([ "panel", request.panel ]);
         }
     };
-    const controller = new CjsESIShipShowInfoController({ shipSource, renderer });
+    const controller = new CjsShipShowInfoController({ shipSource, renderer });
 
     await controller.Open({ typeID: 7001 });
     const first = controller.SelectPanel("overview");
@@ -168,7 +175,7 @@ test("caller cancellation stops waiting without canceling a shared panel read", 
             });
         }
     };
-    const controller = new CjsESIShipShowInfoController({ shipSource: source });
+    const controller = new CjsShipShowInfoController({ shipSource: source });
     const cancellation = new AbortController();
 
     await controller.Open({ typeID: 7001 });
@@ -198,7 +205,7 @@ test("newest ship request wins and variations reuse Open", async () =>
             });
         }
     };
-    const controller = new CjsESIShipShowInfoController({ shipSource: source });
+    const controller = new CjsShipShowInfoController({ shipSource: source });
     const first = controller.Open({ typeID: 7001, regionID: 90000001 });
     const second = controller.Open({ typeID: 7002, regionID: 90000001 });
 
@@ -230,7 +237,7 @@ test("skin selection remains renderer-owned and supports returning to the base h
             calls.push(request.skin);
         }
     };
-    const controller = new CjsESIShipShowInfoController({ shipSource: source, renderer });
+    const controller = new CjsShipShowInfoController({ shipSource: source, renderer });
     const skin = { materialSetID: 8001, name: "Synthetic Finish" };
 
     await controller.Open({ typeID: 7001 });
@@ -401,3 +408,213 @@ test("session source retains the injected provider receiver", async () =>
     await source.FetchShip({ typeID: 7001 });
     assert.deepEqual(receivers, [ sessionSource ]);
 });
+
+test("session decoration preserves missing optional price enrichment", async () =>
+{
+    const source = new CjsESIShipShowInfoSessionSource({
+        shipSource: {
+            async FetchShip()
+            {
+                return { typeID: 7001, name: "No Market Hull" };
+            }
+        },
+        sessionSource: {
+            async FetchViewer()
+            {
+                return { authenticated: false };
+            }
+        }
+    });
+
+    assert.equal(await source.FetchPrice({ typeID: 7001, regionID: 10000002 }), null);
+});
+
+test("tools-core source pins one exact SDE facet and never reads inspection tables", async () =>
+{
+    const calls = [];
+    const receivers = [];
+    const fetchImpl = async function(url)
+    {
+        receivers.push(this);
+        const path = String(url).replace("https://tools.example.test", "");
+
+        calls.push(path);
+        if (path === "/eve/latest/build")
+        {
+            return JsonResponse({ builds: { sde: 3466501, resources: 3466502 } });
+        }
+        if (path === "/eve/3466501/types/28661?lang=en")
+        {
+            return JsonResponse({
+                typeID: 28661,
+                categoryID: 6,
+                name: { text: "Kronos", language: "en" },
+                groupName: { text: "Marauder", language: "en" },
+                manufacturers: [ 1000109 ],
+                manufacturerNames: {
+                    1000109: { text: "Duvolle Laboratories", language: "en" }
+                },
+                quote: { text: "Unparalleled innovation.", language: "en" },
+                quoteAuthor: { text: "Joroutte Duvolle", language: "en" }
+            });
+        }
+        if (path === "/eve/3466501/dna/resolve?typeID=28661")
+        {
+            return JsonResponse({ dna: "gb2_t2:duvolle:gallente" });
+        }
+        if (path === "/eve/3466501/types/28661/traits")
+        {
+            return JsonResponse({
+                roleBonuses: [ { bonus: 100, unit: "%", text: { text: "large hybrid turret damage" } } ]
+            });
+        }
+        if (path === "/eve/3466501/types/28661/variations")
+        {
+            return JsonResponse({
+                parentTypeID: 641,
+                variations: [
+                    { typeID: 641, name: { text: "Megathron" }, categoryID: 6 },
+                    { typeID: 28661, name: { text: "Kronos" } },
+                    { typeID: 999, name: { text: "Not a ship" }, categoryID: 7 }
+                ]
+            });
+        }
+        return JsonResponse({ error: `Unexpected route ${path}` }, 404);
+    };
+    const source = new CjsShipShowInfoToolsCoreSource({
+        baseURL: "https://tools.example.test",
+        resourceBaseURL: "https://tools.example.test",
+        fetchImpl
+    });
+    const ship = await source.FetchShip({ typeID: 28661, regionID: 10000002 });
+    const overview = await source.FetchOverview({ typeID: 28661 });
+    const variations = await source.FetchVariations({ typeID: 28661 });
+
+    assert.equal(ship.name, "Kronos");
+    assert.equal(ship.dna, "gb2_t2:duvolle:gallente");
+    assert.equal(ship.manufacturers[0].name, "Duvolle Laboratories");
+    assert.match(ship.faction?.backdropURL || "", /^$/u);
+    assert.deepEqual(overview.quote, {
+        text: "Unparalleled innovation.",
+        author: "Joroutte Duvolle"
+    });
+    assert.deepEqual(variations.variations.map(item => item.typeID), [ 641, 28661 ]);
+    assert.equal(calls.filter(path => path === "/eve/latest/build").length, 1);
+    assert.equal(calls.some(path => path.includes("/sde/")), false);
+    assert.equal(calls.some(path => path.includes("3466502")), false);
+    assert.ok(receivers.every(receiver => receiver === globalThis));
+});
+
+test("tools-core session source binds injected fetch and exposes the stored grant only", async () =>
+{
+    const receivers = [];
+    const fetchImpl = async function(url)
+    {
+        receivers.push(this);
+        const path = String(url).replace("https://tools.example.test", "");
+
+        if (path === "/v1/auth/esi/status")
+        {
+            return JsonResponse({ authenticated: true, characterId: 90000001, characterName: "Test Pilot" });
+        }
+        if (path === "/v1/auth/esi/skills")
+        {
+            return JsonResponse({
+                characterId: 90000001,
+                characterName: "Test Pilot",
+                skills: [ { typeID: 3300, activeSkillLevel: 5, trainedSkillLevel: 5, skillPoints: 256000 } ]
+            });
+        }
+        return JsonResponse({ error: "missing" }, 404);
+    };
+    const source = new CjsShipShowInfoToolsCoreSessionSource({
+        baseURL: "https://tools.example.test",
+        fetchImpl
+    });
+
+    assert.deepEqual(await source.FetchViewer(), {
+        authenticated: true,
+        characterID: 90000001,
+        name: "Test Pilot",
+        iconURL: "https://images.evetech.net/characters/90000001/portrait?size=128"
+    });
+    assert.equal((await source.FetchSkills()).skills[0].activeSkillLevel, 5);
+    assert.equal(source.LoginURL(), "https://tools.example.test/v1/auth/esi/login");
+    assert.ok(receivers.every(receiver => receiver === globalThis));
+});
+
+test("image fallback keeps the previous decoded preview until its replacement is ready", async () =>
+{
+    const children = [];
+    const images = [];
+    const container = {
+        replaceChildren(...next)
+        {
+            children.splice(0, children.length, ...next);
+        }
+    };
+    const renderer = new TnyShipShowInfoImageRenderer({
+        imageFactory()
+        {
+            const image = FakeImage();
+
+            images.push(image);
+            return image;
+        }
+    });
+
+    renderer.Mount(container);
+    const first = renderer.FetchShip({ ship: { name: "First", renderURL: "first.png" } });
+
+    images[0].Emit("load");
+    await first;
+    assert.equal(children[0], images[0]);
+
+    const second = renderer.FetchShip({ ship: { name: "Second", renderURL: "second.png" } });
+
+    assert.equal(children[0], images[0]);
+    images[1].Emit("load");
+    await second;
+    assert.equal(children[0], images[1]);
+    renderer.Destroy();
+    assert.equal(children.length, 0);
+});
+
+function JsonResponse(body, status = 200)
+{
+    return {
+        ok: status >= 200 && status < 300,
+        status,
+        async json()
+        {
+            return structuredClone(body);
+        }
+    };
+}
+
+function FakeImage()
+{
+    const listeners = new Map();
+
+    return {
+        complete: false,
+        naturalWidth: 0,
+        src: "",
+        addEventListener(name, listener)
+        {
+            if (!listeners.has(name)) listeners.set(name, new Set());
+            listeners.get(name).add(listener);
+        },
+        removeEventListener(name, listener)
+        {
+            listeners.get(name)?.delete(listener);
+        },
+        Emit(name)
+        {
+            this.complete = name === "load";
+            this.naturalWidth = name === "load" ? 512 : 0;
+            for (const listener of Array.from(listeners.get(name) || [])) listener();
+        },
+        async decode() {}
+    };
+}

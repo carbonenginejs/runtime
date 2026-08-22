@@ -8,6 +8,10 @@
 export class CjsESIMarketSource
 {
 
+    /**
+     * Creates a market esi market source around caller-supplied browser
+     * collaborators.
+     */
     constructor({
         baseURL = "https://esi.evetech.net",
         compatibilityDate = "2026-08-14",
@@ -207,6 +211,7 @@ export class CjsESIMarketSource
         }));
     }
 
+    /** Builds the ordered parent trail for one market group. */
     async #GroupTrail(groupID, signal)
     {
         const trail = [];
@@ -224,6 +229,7 @@ export class CjsESIMarketSource
         return trail;
     }
 
+    /** Resolves ESI name records for a deduplicated identifier collection. */
     async #Names(orders, signal)
     {
         const unique = new Set();
@@ -260,6 +266,7 @@ export class CjsESIMarketSource
         return names;
     }
 
+    /** Collects every paginated ESI response into one normalized result list. */
     async #Paged(path, query, signal)
     {
         const first = await this.#Response(path, { query: Object.assign({}, query, { page: 1 }), signal });
@@ -287,6 +294,7 @@ export class CjsESIMarketSource
         return rows;
     }
 
+    /** Decodes a successful market response into a plain JSON value. */
     async #Json(path, options = {})
     {
         const response = await this.#Response(path, options);
@@ -294,6 +302,7 @@ export class CjsESIMarketSource
         return response.json();
     }
 
+    /** Validates the market transport response before body decoding. */
     async #Response(path, { method = "GET", query = null, body = null, signal } = {})
     {
         const url = this.#URL(path, query);
@@ -344,6 +353,7 @@ export class CjsESIMarketSource
         throw error;
     }
 
+    /** Constructs an ESI endpoint URL from normalized request parameters. */
     #URL(path, query)
     {
         const url = new URL(path, `${this.baseURL}/`);
@@ -355,6 +365,7 @@ export class CjsESIMarketSource
         return url;
     }
 
+    /** Constructs an image-server URL for one normalized market type. */
     #IconURL(typeID)
     {
         return `https://images.evetech.net/types/${typeID}/icon?size=64&tenant=${encodeURIComponent(this.tenant)}`;

@@ -51,14 +51,17 @@ The implemented package currently owns:
 - authority-ordered browser data-provider composition for caller-supplied JSON,
   remote APIs, browser databases, and memory without deciding domain policy;
 - DOM-free regional-market HTTP clients, direct public ESI translation,
-  caller-owned memory records, and presentation-neutral order/history analysis;
+  caller-owned memory records, presentation-neutral selection/search state,
+  and order/history analysis;
+- an optional Market Details window, history chart, and stylesheet that consume
+  the Market controller without duplicating source acquisition;
 - provider-neutral Ship Show Info lifecycle, lazy panel acquisition, optional
   regional-price and session decoration, caller-owned memory records, and an
   injected asynchronous renderer contract;
 - an optional Ship Show Info window and stylesheet that consume that
   controller without duplicating source acquisition or renderer lifecycle;
 - explicit feature-demo compositions that mount directly or provide the same
-  instance shape to `CjsDemoHost`;
+  instance shape to `TnyDemoHost`;
 - cancellation-aware graphics-adapter lifecycle without importing or creating
   a graphics engine or context;
 - an optional asset-free, scoped EVE-like demo theme;
@@ -125,9 +128,11 @@ subpath, tests, documentation, and owned security boundary.
 - Canonical per-object field/layout definitions belong in
   `@carbonenginejs/runtime-trinity/perobject`; tools-browser owns only the
   browser-safe inspection and packing utilities around them.
-- Node filesystems, acquisition caches, provider credentials, servers,
-  command-line interfaces, and build orchestration belong in
-  `@carbonenginejs/tools-core`.
+- `@carbonenginejs/tools-core` is the API authority for maintained demos. It
+  owns Node filesystems, acquisition caches, provider credentials,
+  authenticated ESI access, generated SDE facets, servers, command-line
+  interfaces, and build orchestration. tools-browser consumes its documented
+  HTTP and shared wire contracts through injected browser transports.
 - Textures, buffers, pipelines, and backend realization belong in `engine-*`
   packages.
 - Audio and character library construction, planning, and runtime semantics
@@ -159,9 +164,10 @@ no audio-library construction or runtime selection.
 ## Environment contract
 
 JavaScript source is side-effect-free by public subpath and uses standard
-ECMAScript plus Web APIs. The independently imported theme stylesheet is the
-only declared side-effectful asset. Browser globals may be replaced with
-injected implementations for offline tests and compatible non-browser hosts.
+ECMAScript plus Web APIs. Independently imported theme and feature stylesheets
+are the only declared side-effectful assets. Browser globals may be replaced
+with injected implementations for offline tests and compatible non-browser
+hosts.
 
 Published source has no Node host contract, imports no Node built-ins, and
 depends on no Node-only package. Tests and package checks may use Node as a
@@ -174,6 +180,7 @@ remain valid dependencies.
 - [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [Browser demo guide](guides/demos.md)
+- [Planned interactive diagram demos](guides/interactive-diagrams.md)
 - [File-index guide](guides/file-indexes.md)
 - [Regional-market guide](guides/market.md)
 - [Ship Show Info guide](guides/ship-show-info.md)

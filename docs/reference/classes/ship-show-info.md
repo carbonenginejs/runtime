@@ -5,13 +5,13 @@ Scope: `@carbonenginejs/tools-browser/ship-show-info`
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for maintained Ship Show Info classes.
 
-<!-- class:CjsESIShipShowInfoController -->
-## `CjsESIShipShowInfoController`
+<!-- class:CjsShipShowInfoController -->
+## `CjsShipShowInfoController`
 
 Coordinates Show Info data and renderer behavior without owning presentation.
 
 - Export: `@carbonenginejs/tools-browser/ship-show-info`
-- Source: `src/ship-show-info/CjsESIShipShowInfoController.js`
+- Source: `src/ship-show-info/CjsShipShowInfoController.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -45,12 +45,42 @@ Adds the current external session identity to a provider-neutral Show Info sourc
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsESIShipShowInfoUIWindow -->
-## `CjsESIShipShowInfoUIWindow`
+<!-- class:CjsShipShowInfoToolsCoreSource -->
+## `CjsShipShowInfoToolsCoreSource`
+
+Maps composed public tools-core answers into provider-neutral Show Info records.
+
+- Export: `@carbonenginejs/tools-browser/ship-show-info`
+- Source: `src/ship-show-info/CjsShipShowInfoToolsCoreSource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsShipShowInfoToolsCoreSessionSource -->
+## `CjsShipShowInfoToolsCoreSessionSource`
+
+Adapts the optional tools-core stored-grant identity and trained-skill routes.
+
+- Export: `@carbonenginejs/tools-browser/ship-show-info`
+- Source: `src/ship-show-info/CjsShipShowInfoToolsCoreSessionSource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:TnyShipShowInfoWindow -->
+## `TnyShipShowInfoWindow`
 
 Renders an optional EVE-like Ship Show Info window over the shared controller.
 
 - Export: `@carbonenginejs/tools-browser/ship-show-info/ui`
-- Source: `src/ship-show-info/ui/CjsESIShipShowInfoUIWindow.js`
+- Source: `src/ship-show-info/ui/TnyShipShowInfoWindow.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:TnyShipShowInfoImageRenderer -->
+## `TnyShipShowInfoImageRenderer`
+
+Provides an optional image-server preview without acquiring WebGL or an engine runtime.
+
+- Export: `@carbonenginejs/tools-browser/ship-show-info/ui`
+- Source: `src/ship-show-info/ui/TnyShipShowInfoImageRenderer.js`
 - Visibility: Public
 - Kind: CarbonEngineJS

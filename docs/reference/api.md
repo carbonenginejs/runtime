@@ -13,10 +13,10 @@ The package root re-exports the presentation-neutral browser tool families:
 import {
     CjsAudioLibrary,
     CjsChatClient,
-    CjsDemoHost,
+    TnyDemoHost,
     CjsFileIndex,
     CjsESIMarket,
-    CjsESIShipShowInfoController,
+    CjsShipShowInfoController,
     CjsPerObjectDecoder,
     CjsPerObjectPacker,
     CjsRealtimeClient
@@ -38,17 +38,24 @@ import {
 | `.` | Aggregates presentation-neutral browser tool families. | Logic exports below; optional UI and demo-app subpaths remain explicit. |
 | [`./audio`](../../src/audio/index.js) | Reads remote audio documents, builder inputs, complete files, and ranges. | `CjsAudioLibrary` |
 | [`./chat`](../../src/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
-| [`./demo-apps`](../../src/demo-apps/index.js) | Composes optional feature presentations for standalone or catalogue mounting. | `CjsShipShowInfoDemo`, `CreateShipShowInfoDemoDefinition` |
-| [`./demos`](../../src/demos/index.js) | Hosts independent demos, selects browser data providers, and coordinates injected graphics adapters. | `CjsDemoDataService`, `CjsDemoHost`, `CjsDemoRenderer` |
+| [`./demo-apps`](../../src/demo-apps/index.js) | Composes optional feature presentations for standalone or catalogue mounting. | `TnyMarketDetailsDemo`, `CreateMarketDetailsDemoDefinition`, `TnyShipShowInfoDemo`, `CreateShipShowInfoDemoDefinition` |
+| [`./demos`](../../src/demos/index.js) | Hosts independent demos, selects browser data providers, and coordinates injected graphics adapters. | `TnyDemoDataService`, `TnyDemoHost`, `TnyDemoRenderer` |
 | [`./fileindex`](../../src/fileindex/index.js) | Parses, loads, layers, and safely resolves appfileindex and resfileindex data. | `CjsFileIndex`, `CjsFileIndexEntry`, `CjsFileIndexLibrary`, `CjsFileIndexOverlay`, `CjsFileIndexSource` |
-| [`./market`](../../src/market/index.js) | Reads and normalizes regional-market data without importing presentation. | `CjsESIMarket`, `CjsESIMarketBackendSource`, `CjsESIMarketMemorySource`, `CjsESIMarketSource`, and market analysis/formatting functions |
-| [`./ship-show-info`](../../src/ship-show-info/index.js) | Coordinates Ship Show Info data and renderer behavior without owning presentation. | `CjsESIShipShowInfoController`, `CjsESIShipShowInfoMarketSource`, `CjsESIShipShowInfoMemorySource`, `CjsESIShipShowInfoSessionSource`, panel constants, and presentation-neutral model helpers |
-| [`./ship-show-info/ui`](../../src/ship-show-info/ui/index.js) | Renders the optional EVE-like Ship Show Info window over the shared controller. | `CjsESIShipShowInfoUIWindow` |
+| [`./market`](../../src/market/index.js) | Reads, normalizes, and coordinates regional-market data without importing presentation. | `CjsESIMarket`, `CjsESIMarketBackendSource`, `CjsMarketController`, `CjsESIMarketMemorySource`, `CjsESIMarketSource`, and market analysis/formatting functions |
+| [`./market/ui`](../../src/market/ui/index.js) | Renders the optional EVE-like Market Details window over the shared controller. | `TnyMarketHistoryChart`, `TnyMarketWindow` |
+| `./market/ui.css` | Supplies scoped Market Details feature layout without bundling fonts or images. | `.market-*` classes |
+| [`./ship-show-info`](../../src/ship-show-info/index.js) | Coordinates Ship Show Info data and renderer behavior without owning presentation. | `CjsShipShowInfoController`, tools-core public/session adapters, optional market/session decorators, caller-owned memory records, panel constants, and presentation-neutral model helpers |
+| [`./ship-show-info/ui`](../../src/ship-show-info/ui/index.js) | Renders the optional EVE-like Ship Show Info window and its zero-WebGL image fallback over the shared controller. | `TnyShipShowInfoWindow`, `TnyShipShowInfoImageRenderer` |
 | `./ship-show-info/ui.css` | Supplies scoped Ship Show Info feature layout without bundling fonts or images. | `.ship-show-info-*` classes |
 | [`./perobject`](../../src/perobject/index.js) | Names, synthesizes, packs, decodes, and inspects Carbon per-object constant-buffer layouts. | `CjsPerObjectDecoder`, `CjsPerObjectFieldType`, `CjsPerObjectLayoutError`, `CjsPerObjectLimits`, `CjsPerObjectPacker`, `CjsPerObjectRegister`, `CjsPerObjectSynthesizer`, `CjsPerObjectTypes`, `perObjectStruct`, `perObjectStructNames` |
 | [`./realtime`](../../src/realtime/index.js) | Consumes Carbon realtime v1 with bounded lifecycle, pressure, reconnect, metrics, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 | [`./realtime/wire`](../../src/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 | `./theme/eve.css` | Supplies an asset-free, scoped EVE-like token and primitive stylesheet. | CSS custom properties and `.cjs-eve-*` classes |
+
+The table lists canonical names. Compatibility aliases for published 0.1.x
+demo and Show Info names remain identity aliases and are documented in the
+[browser demo](../guides/demos.md) and
+[Ship Show Info](../guides/ship-show-info.md) guides.
 
 ## Environment contract
 

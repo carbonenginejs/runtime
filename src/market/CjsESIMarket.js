@@ -7,6 +7,7 @@
 export class CjsESIMarket
 {
 
+    /** Creates a market esi market around caller-supplied browser collaborators. */
     constructor({
         baseURL = "/api/market",
         origin = globalThis.location?.origin ?? null,
@@ -97,6 +98,7 @@ export class CjsESIMarket
         return this.#Json("status", null, signal);
     }
 
+    /** Decodes a successful market response into a plain JSON value. */
     async #Json(path, query, signal)
     {
         const url = new URL(path, this.baseURL);

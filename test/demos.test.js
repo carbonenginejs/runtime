@@ -2,14 +2,84 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-    CjsDemoDataService,
-    CjsDemoHost,
-    CjsDemoRenderer
+    CjsDemoDataService as LegacyDemoDataService,
+    CjsDemoHost as LegacyDemoHost,
+    CjsDemoRenderer as LegacyDemoRenderer,
+    TnyDemoDataService,
+    TnyDemoHost,
+    TnyDemoRenderer
 } from "@carbonenginejs/tools-browser/demos";
 import {
-    CjsShipShowInfoDemo,
-    CreateShipShowInfoDemoDefinition
+    CjsShipShowInfoDemo as LegacyShipShowInfoDemo,
+    TnyMarketDetailsDemo,
+    TnyShipShowInfoDemo,
+    TnyShipTreeDemo,
+    CreateMarketDetailsDemoDefinition,
+    CreateShipShowInfoDemoDefinition,
+    CreateShipTreeDemoDefinition
 } from "@carbonenginejs/tools-browser/demo-apps";
+
+test("Tny demo names are canonical while published 0.1.x aliases retain identity", () =>
+{
+    assert.equal(TnyDemoDataService.name, "TnyDemoDataService");
+    assert.equal(TnyDemoHost.name, "TnyDemoHost");
+    assert.equal(TnyDemoRenderer.name, "TnyDemoRenderer");
+    assert.equal(TnyMarketDetailsDemo.name, "TnyMarketDetailsDemo");
+    assert.equal(TnyShipShowInfoDemo.name, "TnyShipShowInfoDemo");
+    assert.equal(TnyShipTreeDemo.name, "TnyShipTreeDemo");
+    assert.equal(LegacyDemoDataService, TnyDemoDataService);
+    assert.equal(LegacyDemoHost, TnyDemoHost);
+    assert.equal(LegacyDemoRenderer, TnyDemoRenderer);
+    assert.equal(LegacyShipShowInfoDemo, TnyShipShowInfoDemo);
+});
+
+test("Ship Tree uses the same explicit composition in catalogue and standalone form", () =>
+{
+    const context = { id: "catalogue-context" };
+    const options = { source: { FetchTree() {} }, initialFactionID: 9001 };
+    let receivedContext = null;
+    const definition = CreateShipTreeDemoDefinition({
+        CreateOptions(value)
+        {
+            receivedContext = value;
+
+            return options;
+        }
+    });
+    const catalogueDemo = definition.create({ context });
+    const standaloneDemo = new TnyShipTreeDemo(options);
+
+    assert.equal(receivedContext, context);
+    assert.equal(definition.id, "ship-tree");
+    assert.equal(catalogueDemo instanceof TnyShipTreeDemo, true);
+    assert.equal(standaloneDemo instanceof TnyShipTreeDemo, true);
+    assert.notEqual(catalogueDemo.options, options);
+    assert.equal(catalogueDemo.options.source, options.source);
+});
+
+test("Market Details uses the same explicit composition in catalogue and standalone form", () =>
+{
+    const context = { id: "catalogue-context" };
+    const options = { marketSource: {}, initialTypeID: 7001, initialRegionID: 90000001 };
+    let receivedContext = null;
+    const definition = CreateMarketDetailsDemoDefinition({
+        CreateOptions(value)
+        {
+            receivedContext = value;
+
+            return options;
+        }
+    });
+    const catalogueDemo = definition.create({ context });
+    const standaloneDemo = new TnyMarketDetailsDemo(options);
+
+    assert.equal(receivedContext, context);
+    assert.equal(definition.id, "market-details");
+    assert.equal(catalogueDemo instanceof TnyMarketDetailsDemo, true);
+    assert.equal(standaloneDemo instanceof TnyMarketDetailsDemo, true);
+    assert.notEqual(catalogueDemo.options, options);
+    assert.equal(catalogueDemo.options.marketSource, options.marketSource);
+});
 
 test("Ship Show Info uses the same explicit composition in catalogue and standalone form", () =>
 {
@@ -25,12 +95,12 @@ test("Ship Show Info uses the same explicit composition in catalogue and standal
         }
     });
     const catalogueDemo = definition.create({ context });
-    const standaloneDemo = new CjsShipShowInfoDemo(options);
+    const standaloneDemo = new TnyShipShowInfoDemo(options);
 
     assert.equal(receivedContext, context);
     assert.equal(definition.id, "ship-show-info");
-    assert.equal(catalogueDemo instanceof CjsShipShowInfoDemo, true);
-    assert.equal(standaloneDemo instanceof CjsShipShowInfoDemo, true);
+    assert.equal(catalogueDemo instanceof TnyShipShowInfoDemo, true);
+    assert.equal(standaloneDemo instanceof TnyShipShowInfoDemo, true);
     assert.notEqual(catalogueDemo.options, options);
     assert.equal(catalogueDemo.options.shipSource, options.shipSource);
 });
@@ -66,7 +136,7 @@ test("hosts independently constructible demos in one container", async () =>
         };
     }
 
-    const host = new CjsDemoHost({
+    const host = new TnyDemoHost({
         container,
         context,
         demos: [ definition("market"), definition("show-info") ]
@@ -98,7 +168,7 @@ test("hosts independently constructible demos in one container", async () =>
 test("destroys a demo whose asynchronous mount fails", async () =>
 {
     let destroyed = 0;
-    const host = new CjsDemoHost({
+    const host = new TnyDemoHost({
         container: {},
         demos: [ {
             id: "broken",
@@ -124,7 +194,7 @@ test("destroys a demo whose asynchronous mount fails", async () =>
 test("an invalid selection leaves the active demo mounted", async () =>
 {
     let activeSignal = null;
-    const host = new CjsDemoHost({
+    const host = new TnyDemoHost({
         container: {},
         demos: [ {
             id: "known",
@@ -148,7 +218,7 @@ test("an invalid selection leaves the active demo mounted", async () =>
 test("can cancel a queued demo before its factory runs", async () =>
 {
     let created = 0;
-    const host = new CjsDemoHost({
+    const host = new TnyDemoHost({
         container: {},
         demos: [ {
             id: "queued",
@@ -181,7 +251,7 @@ test("aborts a mounting demo as soon as another demo is requested", async () =>
     {
         markMountStarted = resolve;
     });
-    const host = new CjsDemoHost({
+    const host = new TnyDemoHost({
         container: {},
         demos: [
             {
@@ -276,7 +346,7 @@ test("coordinates rendering through an injected receiver-preserving adapter", as
     }
 
     const adapter = new Adapter();
-    const renderer = new CjsDemoRenderer({ adapter });
+    const renderer = new TnyDemoRenderer({ adapter });
     const container = {};
 
     await renderer.Mount(container);
@@ -308,7 +378,7 @@ test("suppresses a renderer load completed after a newer request", async () =>
         async Unmount() {},
         async Destroy() {}
     };
-    const renderer = new CjsDemoRenderer({ adapter });
+    const renderer = new TnyDemoRenderer({ adapter });
 
     await renderer.Mount({});
 
@@ -326,7 +396,7 @@ test("suppresses a renderer load completed after a newer request", async () =>
 test("selects browser data providers by declared authority without hidden fallback", async () =>
 {
     let fallbackReads = 0;
-    const service = new CjsDemoDataService({
+    const service = new TnyDemoDataService({
         providers: [
             {
                 id: "manual",
@@ -379,7 +449,7 @@ test("selects browser data providers by declared authority without hidden fallba
 
 test("distinguishes unsupported, provider failure, and invalid provider answers", async () =>
 {
-    const unsupported = new CjsDemoDataService({
+    const unsupported = new TnyDemoDataService({
         providers: [ {
             id: "remote",
             CanRead: () => false,
@@ -395,7 +465,7 @@ test("distinguishes unsupported, provider failure, and invalid provider answers"
         provenance: []
     });
 
-    const failure = new CjsDemoDataService({
+    const failure = new TnyDemoDataService({
         providers: [ {
             id: "api",
             async Read() { throw new Error("offline"); }
@@ -407,7 +477,7 @@ test("distinguishes unsupported, provider failure, and invalid provider answers"
     assert.equal(failed.providerID, "api");
     assert.match(failed.error.message, /offline/u);
 
-    const invalid = new CjsDemoDataService({
+    const invalid = new TnyDemoDataService({
         providers: [ {
             id: "invalid",
             async Read() { return { status: "ready", presence: "value" }; }

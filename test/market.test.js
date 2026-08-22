@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CjsESIMarket } from "../src/market/CjsESIMarket.js";
+import { CjsMarketController } from "../src/market/CjsMarketController.js";
 import { CjsESIMarketMemorySource } from "../src/market/CjsESIMarketMemorySource.js";
 import { CjsESIMarketSource } from "../src/market/CjsESIMarketSource.js";
 import {
@@ -12,11 +13,12 @@ import {
     marketID
 } from "../src/market/marketModel.js";
 
-test("market logic classes preserve the CjsESIMarket family", () =>
+test("market provider classes retain ESI identity while the controller remains provider-neutral", () =>
 {
     assert.equal(CjsESIMarket.name, "CjsESIMarket");
     assert.equal(CjsESIMarketSource.name, "CjsESIMarketSource");
     assert.equal(CjsESIMarketMemorySource.name, "CjsESIMarketMemorySource");
+    assert.equal(CjsMarketController.name, "CjsMarketController");
 });
 
 test("market IDs reject coercive and non-positive addresses", () =>
@@ -150,6 +152,113 @@ test("market clients retain an injected browser fetch receiver", async () =>
     await client.GetStatus();
 
     assert.deepEqual(receivers, [ globalThis ]);
+});
+
+test("market controller preserves source receivers and mutable browser state", async () =>
+{
+    const receivers = [];
+    const source = {
+        async GetRegions()
+        {
+            receivers.push(this);
+
+            return [ { regionID: 90000001, name: "Test Region" } ];
+        },
+        async BrowseTypes()
+        {
+            receivers.push(this);
+
+            return [ { typeID: 7001, name: "Test Commodity" } ];
+        },
+        async SearchTypes(query)
+        {
+            receivers.push(this);
+
+            return [ { typeID: 7001, name: String(query) } ];
+        },
+        async GetType(typeID)
+        {
+            receivers.push(this);
+
+            return { typeID, name: "Test Commodity" };
+        },
+        async GetOrders(request)
+        {
+            receivers.push(this);
+
+            return [ { orderID: 1, typeID: request.typeID, regionID: request.regionID } ];
+        },
+        async GetHistory(request)
+        {
+            receivers.push(this);
+
+            return [ { date: "2026-08-13", typeID: request.typeID } ];
+        }
+    };
+    const controller = new CjsMarketController({ marketSource: source });
+
+    await controller.Start({ typeID: 7001, regionID: 90000001 });
+    await controller.Search("Synthetic");
+
+    const state = controller.Snapshot();
+
+    assert.equal(state.status, "ready");
+    assert.equal(state.type.typeID, 7001);
+    assert.equal(state.searchResults[0].name, "Synthetic");
+    assert.equal(Object.isFrozen(state), false);
+    assert.ok(receivers.every(receiver => receiver === source));
+
+    state.orders.push({ orderID: 2 });
+    assert.equal(controller.Snapshot().orders.length, 1);
+});
+
+test("market controller ignores a superseded selection", async () =>
+{
+    let finishFirst;
+    const source = {
+        async GetRegions()
+        {
+            return [];
+        },
+        async BrowseTypes()
+        {
+            return [];
+        },
+        async SearchTypes()
+        {
+            return [];
+        },
+        GetType(typeID)
+        {
+            if (typeID === 7001)
+            {
+                return new Promise(resolve =>
+                {
+                    finishFirst = () => resolve({ typeID, name: "Old" });
+                });
+            }
+
+            return Promise.resolve({ typeID, name: "New" });
+        },
+        async GetOrders()
+        {
+            return [];
+        },
+        async GetHistory()
+        {
+            return [];
+        }
+    };
+    const controller = new CjsMarketController({ marketSource: source });
+    const first = controller.Open({ typeID: 7001, regionID: 90000001 });
+    const second = controller.Open({ typeID: 7002, regionID: 90000001 });
+
+    await second;
+    finishFirst();
+
+    await assert.rejects(first, error => error?.name === "AbortError");
+    assert.equal(controller.Snapshot().typeID, 7002);
+    assert.equal(controller.Snapshot().type.name, "New");
 });
 
 test("ESI source contains wire translation and emits normalized records", async () =>

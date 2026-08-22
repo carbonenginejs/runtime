@@ -1,0 +1,560 @@
+.ship-tree-host {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.ship-tree-titlebar {
+    min-width: 0;
+    min-height: 26px;
+}
+
+.ship-tree-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: .06em;
+}
+
+.ship-tree-body,
+.ship-tree-stage {
+    min-width: 0;
+    min-height: 0;
+}
+
+.ship-tree-body {
+    display: block;
+}
+
+.ship-tree-stage {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        linear-gradient(rgba(53, 91, 101, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(53, 91, 101, .035) 1px, transparent 1px),
+        radial-gradient(ellipse at 52% 57%, rgba(28, 68, 80, .14), transparent 56%),
+        linear-gradient(145deg, rgba(17, 32, 39, .12), transparent 42%),
+        #010608;
+    background-size: 96px 96px, 96px 96px, auto, auto, auto;
+}
+
+.ship-tree-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(115deg, transparent 21%, rgba(66, 101, 108, .025) 21.2%, transparent 42%),
+        radial-gradient(circle at 76% 32%, rgba(69, 111, 118, .035), transparent 19%);
+}
+
+.ship-tree-visual {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+}
+
+.ship-tree-visual.is-dragging {
+    cursor: grabbing;
+}
+
+.ship-tree-visual pattern path {
+    fill: none;
+    stroke: rgba(104, 150, 157, .07);
+    stroke-width: 1;
+}
+
+.ship-tree-context,
+.ship-tree-inspector,
+.ship-tree-status {
+    position: absolute;
+    z-index: 3;
+}
+
+.ship-tree-context {
+    top: 16px;
+    left: 16px;
+    width: min(260px, calc(100% - 32px));
+    color: var(--cjs-eve-text);
+    background: linear-gradient(90deg, rgba(1, 6, 8, .96), rgba(1, 6, 8, .72));
+    border-left: 2px solid rgba(111, 167, 177, .42);
+    box-shadow: 10px 14px 30px rgba(0, 0, 0, .32);
+    backdrop-filter: blur(5px);
+}
+
+.ship-tree-context-header {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(121, 158, 165, .2);
+}
+
+.ship-tree-faction-mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(137, 177, 183, .34);
+    border-radius: 50%;
+    color: #be7f3d;
+    background: radial-gradient(circle, rgba(173, 111, 48, .22), transparent 66%);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -.05em;
+}
+
+.ship-tree-field-label {
+    display: grid;
+    gap: 4px;
+    color: var(--cjs-eve-text-muted);
+    font-size: .68em;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
+.ship-tree-field-label > :where(input, select) {
+    width: 100%;
+    min-width: 0;
+    text-transform: none;
+}
+
+.ship-tree-faction-label .cjs-eve-field {
+    border-color: transparent;
+    background: rgba(255, 255, 255, .025);
+    color: var(--cjs-eve-text-bright);
+    font-weight: 600;
+}
+
+.ship-tree-role-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(121, 158, 165, .17);
+}
+
+.ship-tree-role-mark {
+    min-height: 28px;
+    display: grid;
+    place-items: center;
+    border-right: 1px solid rgba(121, 158, 165, .12);
+    color: rgba(160, 186, 190, .7);
+    font-size: 16px;
+}
+
+.ship-tree-role-mark:last-child {
+    border-right: 0;
+}
+
+.ship-tree-faction-info {
+    padding: 10px 12px 12px;
+}
+
+.ship-tree-faction-name {
+    display: block;
+    color: var(--cjs-eve-text-bright);
+    font-size: .82em;
+    letter-spacing: .04em;
+}
+
+.ship-tree-faction-description {
+    margin: 6px 0 0;
+    color: var(--cjs-eve-text-muted);
+    font-size: .72em;
+    line-height: 1.45;
+}
+
+.ship-tree-search-panel {
+    padding: 0 10px 10px;
+}
+
+.ship-tree-outline {
+    max-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    list-style: none;
+    pointer-events: none;
+    transition:
+        max-height var(--cjs-eve-motion-fast) ease,
+        opacity var(--cjs-eve-motion-fast) ease;
+}
+
+.ship-tree-search-panel[data-open="true"] .ship-tree-outline,
+.ship-tree-outline:focus-within {
+    max-height: min(240px, 35vh);
+    margin-top: 6px;
+    overflow: auto;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ship-tree-outline-item + .ship-tree-outline-item {
+    border-top: 1px solid rgba(121, 158, 165, .13);
+}
+
+.ship-tree-outline-button {
+    width: 100%;
+    padding: 8px 9px;
+    border: 1px solid transparent;
+    background: rgba(9, 18, 21, .72);
+    color: var(--cjs-eve-text);
+    cursor: pointer;
+    text-align: left;
+}
+
+.ship-tree-outline-button:hover {
+    border-color: var(--cjs-eve-line-strong);
+    color: var(--cjs-eve-text-bright);
+}
+
+.ship-tree-outline-button[aria-current="true"] {
+    background: rgba(137, 84, 34, .25);
+    border-color: rgba(193, 135, 63, .58);
+}
+
+.ship-tree-outline-name,
+.ship-tree-outline-group {
+    display: block;
+}
+
+.ship-tree-outline-name {
+    font-size: .8em;
+    font-weight: 600;
+}
+
+.ship-tree-outline-group {
+    margin-top: 2px;
+    color: var(--cjs-eve-text-muted);
+    font-size: .66em;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.ship-tree-outline-empty {
+    padding: 10px;
+    color: var(--cjs-eve-text-muted);
+    font-size: .74em;
+}
+
+.ship-tree-status {
+    left: 18px;
+    bottom: 14px;
+    max-width: 70%;
+    margin: 0;
+    padding: 5px 8px;
+    color: rgba(142, 163, 165, .7);
+    background: rgba(1, 5, 6, .64);
+    border-left: 2px solid rgba(104, 153, 162, .4);
+    font-size: .67em;
+    letter-spacing: .04em;
+}
+
+.ship-tree-status[data-tone="error"] {
+    border-left-color: var(--cjs-eve-danger-bright);
+    color: var(--cjs-eve-danger-bright);
+}
+
+.ship-tree-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.ship-tree-inspector {
+    width: min(270px, calc(100% - 32px));
+    padding: 11px;
+    color: var(--cjs-eve-text);
+    background:
+        linear-gradient(110deg, rgba(12, 25, 28, .97), rgba(2, 8, 10, .91));
+    border: 1px solid rgba(112, 156, 163, .34);
+    border-left: 2px solid rgba(193, 135, 63, .72);
+    box-shadow: 8px 12px 30px rgba(0, 0, 0, .42);
+    backdrop-filter: blur(6px);
+    pointer-events: auto;
+}
+
+.ship-tree-inspector-header {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+}
+
+.ship-tree-inspector-image {
+    width: 82px;
+    height: 54px;
+    object-fit: contain;
+    background: radial-gradient(circle, rgba(115, 155, 161, .13), transparent 65%);
+}
+
+.ship-tree-inspector-identity {
+    min-width: 0;
+}
+
+.ship-tree-inspector-eyebrow,
+.ship-tree-inspector-name,
+.ship-tree-inspector-mastery {
+    display: block;
+}
+
+.ship-tree-inspector-eyebrow {
+    color: var(--cjs-eve-text-muted);
+    font-size: .63em;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.ship-tree-inspector-name {
+    margin-top: 3px;
+    overflow: hidden;
+    color: var(--cjs-eve-text-bright);
+    font-size: .96em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ship-tree-inspector-mastery {
+    margin-top: 4px;
+    color: #d7a55a;
+    font-size: .68em;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.ship-tree-inspector-summary {
+    margin: 10px 0;
+    color: var(--cjs-eve-text-muted);
+    font-size: .72em;
+    line-height: 1.45;
+}
+
+.ship-tree-inspector-traits {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 10px;
+    margin: 0;
+    padding: 8px 0;
+    border-block: 1px solid rgba(120, 158, 164, .16);
+    font-size: .68em;
+}
+
+.ship-tree-inspector-traits dt {
+    color: var(--cjs-eve-text-muted);
+}
+
+.ship-tree-inspector-traits dd {
+    margin: 0;
+    color: var(--cjs-eve-text-bright);
+    text-align: right;
+}
+
+.ship-tree-inspector-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 9px;
+}
+
+.ship-tree-edge {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+}
+
+.ship-tree-edge-underlay {
+    stroke: rgba(6, 17, 20, .96);
+    stroke-width: 10;
+}
+
+.ship-tree-edge-core {
+    stroke: rgba(122, 162, 171, .72);
+    stroke-width: 3;
+}
+
+.ship-tree-edge.is-path.ship-tree-edge-core {
+    stroke: #d09a4f;
+    stroke-width: 4;
+    filter: drop-shadow(0 0 4px rgba(208, 154, 79, .55));
+}
+
+.ship-tree-group-line {
+    stroke: rgba(133, 170, 177, .55);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.ship-tree-group.is-path .ship-tree-group-line {
+    stroke: rgba(208, 154, 79, .84);
+}
+
+.ship-tree-group-label {
+    fill: rgba(207, 222, 223, .86);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.ship-tree-group-tier {
+    fill: #d39236;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .8px;
+}
+
+.ship-tree-group-port {
+    fill: rgba(11, 26, 30, .96);
+    stroke: rgba(133, 175, 183, .78);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+
+.ship-tree-group.is-path .ship-tree-group-port {
+    stroke: #d09a4f;
+}
+
+.ship-tree-card {
+    cursor: pointer;
+    transition: opacity var(--cjs-eve-motion-fast) ease;
+}
+
+.ship-tree-card.is-dimmed {
+    opacity: .14;
+}
+
+.ship-tree-card-frame {
+    fill: rgba(5, 12, 14, .94);
+    stroke: rgba(139, 174, 179, .34);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.ship-tree-card:hover .ship-tree-card-frame {
+    fill: rgba(10, 23, 27, .98);
+    stroke: var(--cjs-eve-accent);
+}
+
+.ship-tree-card.is-selected .ship-tree-card-frame {
+    fill: rgba(42, 32, 16, .94);
+    stroke: #d09a4f;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 5px rgba(208, 154, 79, .44));
+}
+
+.ship-tree-card-tech-corner {
+    fill: #a65f12;
+    opacity: .88;
+}
+
+.ship-tree-card-tech {
+    fill: #fff4de;
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.ship-tree-card-image {
+    opacity: .84;
+    filter: saturate(.62) brightness(.92);
+}
+
+.ship-tree-card:hover .ship-tree-card-image,
+.ship-tree-card.is-selected .ship-tree-card-image {
+    opacity: 1;
+    filter: saturate(.9) brightness(1.08);
+}
+
+.ship-tree-card-mark {
+    fill: rgba(111, 157, 164, .18);
+    stroke: rgba(151, 195, 201, .72);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.ship-tree-card-label-background {
+    fill: rgba(5, 12, 14, .96);
+    stroke: none;
+    pointer-events: none;
+}
+
+.ship-tree-card-label {
+    fill: rgba(209, 222, 223, .86);
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.ship-tree-card-mastery {
+    fill: none;
+    stroke: rgba(181, 133, 61, .86);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.ship-tree-card-mastery text {
+    fill: #e0ad61;
+    stroke: none;
+    font-size: 7px;
+    font-weight: 700;
+}
+
+.ship-tree-visual[data-lod="medium"] .ship-tree-card-label,
+.ship-tree-visual[data-lod="far"] .ship-tree-card-label,
+.ship-tree-visual[data-lod="far"] .ship-tree-card-mastery,
+.ship-tree-visual[data-lod="far"] .ship-tree-card-tech {
+    display: none;
+}
+
+.ship-tree-visual[data-lod="far"] .ship-tree-group-tier {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    .ship-tree-context {
+        width: min(220px, calc(100% - 24px));
+        top: 12px;
+        left: 12px;
+    }
+
+    .ship-tree-faction-description,
+    .ship-tree-role-strip {
+        display: none;
+    }
+
+    .ship-tree-inspector {
+        top: auto;
+        right: 12px;
+        bottom: 42px;
+        left: 12px;
+        width: auto;
+    }
+
+    .ship-tree-titlebar .cjs-eve-window-actions .cjs-eve-button:first-child,
+    .ship-tree-titlebar .cjs-eve-window-actions .cjs-eve-button:nth-child(2) {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ship-tree-card,
+    .ship-tree-outline {
+        transition: none;
+    }
+}

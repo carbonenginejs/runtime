@@ -11,7 +11,7 @@ export const SHIP_SHOW_INFO_PANEL_METHODS = {
 export const SHIP_SHOW_INFO_PANELS = Object.keys(SHIP_SHOW_INFO_PANEL_METHODS);
 
 /** Coordinates Show Info data and renderer behavior without owning presentation. */
-export class CjsESIShipShowInfoController
+export class CjsShipShowInfoController
 {
 
     #activeController = null;
@@ -21,11 +21,15 @@ export class CjsESIShipShowInfoController
     #panelData = new Map();
     #panelPending = new Map();
 
+    /**
+     * Creates a ship-detail ship show info controller around caller-supplied
+     * browser collaborators.
+     */
     constructor({ shipSource, renderer = null, onListenerError = null } = {})
     {
         if (typeof shipSource?.FetchShip !== "function")
         {
-            throw new TypeError("CjsESIShipShowInfoController requires a ship source");
+            throw new TypeError("CjsShipShowInfoController requires a ship source");
         }
         if (renderer !== null && typeof renderer !== "object")
         {
@@ -312,6 +316,7 @@ export class CjsESIShipShowInfoController
         this.#listeners.clear();
     }
 
+    /** Loads normalized record data from the configured ship-detail source. */
     #FetchRecord(key, method)
     {
         const loader = this.shipSource[method];
@@ -354,6 +359,7 @@ export class CjsESIShipShowInfoController
         return pending;
     }
 
+    /** Notifies registered ship-detail observers after mutable state changes. */
     #Emit(kind, details = {})
     {
         const event = Object.assign({
@@ -374,6 +380,10 @@ export class CjsESIShipShowInfoController
         }
     }
 
+    /**
+     * Rejects controller work until required ship-detail collaborators are
+     * ready.
+     */
     #AssertReady()
     {
         this.#AssertUsable();
@@ -384,11 +394,12 @@ export class CjsESIShipShowInfoController
         }
     }
 
+    /** Rejects work after the ship-detail component has been destroyed. */
     #AssertUsable()
     {
         if (this.#destroyed)
         {
-            throw new Error("CjsESIShipShowInfoController has been destroyed");
+            throw new Error("CjsShipShowInfoController has been destroyed");
         }
     }
 

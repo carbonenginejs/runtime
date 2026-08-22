@@ -7,7 +7,10 @@ Use this package when a useful browser implementation does not belong in a
 runtime library. Shared primitives remain in `@carbonenginejs/runtime-utils`;
 audio graph semantics and resource formats remain in their owning runtime
 packages. Node acquisition, servers, credentials, and persistent caches remain
-in `@carbonenginejs/tools-core`.
+in `@carbonenginejs/tools-core`. For the maintained EVE-like demos,
+tools-core is the API authority; this package supplies browser clients,
+provider-neutral behavior, and optional presentation over its documented HTTP
+and wire contracts.
 
 ## Install
 
@@ -76,12 +79,12 @@ storage:
 
 ```js
 import {
-    CjsDemoDataService,
-    CjsDemoHost
+    TnyDemoDataService,
+    TnyDemoHost
 } from "@carbonenginejs/tools-browser/demos";
 
-const data = new CjsDemoDataService({ providers });
-const host = new CjsDemoHost({ container, context: { data }, demos });
+const data = new TnyDemoDataService({ providers });
+const host = new TnyDemoHost({ container, context: { data }, demos });
 
 await host.Open("ship-show-info");
 ```
@@ -95,10 +98,10 @@ without importing presentation or acquiring an engine:
 
 ```js
 import {
-    CjsESIShipShowInfoController
+    CjsShipShowInfoController
 } from "@carbonenginejs/tools-browser/ship-show-info";
 
-const showInfo = new CjsESIShipShowInfoController({
+const showInfo = new CjsShipShowInfoController({
     shipSource,
     renderer
 });
@@ -111,13 +114,26 @@ The reusable window and its stylesheet are optional presentation exports:
 
 ```js
 import {
-    CjsESIShipShowInfoUIWindow
+    TnyShipShowInfoWindow
 } from "@carbonenginejs/tools-browser/ship-show-info/ui";
 import "@carbonenginejs/tools-browser/ship-show-info/ui.css";
 ```
 
-Run the caller-owned memory example by serving the package root and opening
-`examples/ship-show-info/`. It has no auth, SDE, ESI, or graphics-engine
+Market Details follows the same split:
+
+```js
+import {
+    CjsMarketController
+} from "@carbonenginejs/tools-browser/market";
+import {
+    TnyMarketWindow
+} from "@carbonenginejs/tools-browser/market/ui";
+import "@carbonenginejs/tools-browser/market/ui.css";
+```
+
+Run the caller-owned memory examples by serving the package root and opening
+`examples/ship-show-info/`, `examples/market-details/`, or
+`examples/catalogue/`. They have no auth, SDE, ESI, or graphics-engine
 requirement.
 
 ## Documentation

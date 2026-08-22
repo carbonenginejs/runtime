@@ -39,7 +39,7 @@ runtime-utils  runtime-audio  runtime-resource  runtime-trinity/perobject
                              ^
                              +---- browser applications
                              +---- demos and inspectors
-                             +---- tools-core wrappers using injected Web APIs
+                             +---- browser clients of tools-core HTTP/wire APIs
 ```
 
 The package uses narrow browser-safe runtime subpaths when a domain tool needs
@@ -91,18 +91,20 @@ graphics adapters, start with:
 
 ```js
 import {
-    CjsDemoHost,
-    CjsDemoDataService,
-    CjsDemoRenderer
+    TnyDemoHost,
+    TnyDemoDataService,
+    TnyDemoRenderer
 } from "@carbonenginejs/tools-browser/demos";
 ```
 
 For optional feature compositions that can mount directly or become
-`CjsDemoHost` definitions, start with:
+`TnyDemoHost` definitions, start with:
 
 ```js
 import {
-    CjsShipShowInfoDemo,
+    TnyMarketDetailsDemo,
+    TnyShipShowInfoDemo,
+    CreateMarketDetailsDemoDefinition,
     CreateShipShowInfoDemoDefinition
 } from "@carbonenginejs/tools-browser/demo-apps";
 ```
@@ -112,6 +114,7 @@ analysis, start with:
 
 ```js
 import {
+    CjsMarketController,
     CjsESIMarket,
     analyzeOrders
 } from "@carbonenginejs/tools-browser/market";
@@ -122,7 +125,7 @@ renderer contract, start with:
 
 ```js
 import {
-    CjsESIShipShowInfoController,
+    CjsShipShowInfoController,
     CjsESIShipShowInfoMemorySource
 } from "@carbonenginejs/tools-browser/ship-show-info";
 ```
@@ -143,6 +146,7 @@ import {
 - [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [Browser demo guide](guides/demos.md)
+- [Planned interactive diagram demos](guides/interactive-diagrams.md)
 - [File-index guide](guides/file-indexes.md)
 - [Regional-market guide](guides/market.md)
 - [Ship Show Info guide](guides/ship-show-info.md)

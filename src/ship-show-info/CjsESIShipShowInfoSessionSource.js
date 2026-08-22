@@ -3,6 +3,10 @@ export class CjsESIShipShowInfoSessionSource
 {
     #identityPromise = null;
 
+    /**
+     * Creates a ship-detail esi ship show info session source around
+     * caller-supplied browser collaborators.
+     */
     constructor({ shipSource, sessionSource } = {})
     {
         if (!shipSource || typeof shipSource.FetchShip !== "function")
@@ -18,6 +22,7 @@ export class CjsESIShipShowInfoSessionSource
         this.sessionSource = sessionSource;
     }
 
+    /** Loads normalized ship data from the configured ship-detail source. */
     async FetchShip(request = {})
     {
         const identity = await this.#FetchIdentity();
@@ -35,26 +40,33 @@ export class CjsESIShipShowInfoSessionSource
         return ship;
     }
 
+    /** Loads normalized overview data from the configured ship-detail source. */
     async FetchOverview(request = {})
     {
         return this.#FetchPanel("FetchOverview", request);
     }
 
+    /** Loads normalized price data from the configured ship-detail source. */
     async FetchPrice(request = {})
     {
+        if (typeof this.shipSource.FetchPrice !== "function") return null;
+
         return this.#FetchPanel("FetchPrice", request);
     }
 
+    /** Loads normalized attributes data from the configured ship-detail source. */
     async FetchAttributes(request = {})
     {
         return this.#FetchPanel("FetchAttributes", request);
     }
 
+    /** Loads normalized fitting data from the configured ship-detail source. */
     async FetchFitting(request = {})
     {
         return this.#FetchPanel("FetchFitting", request);
     }
 
+    /** Loads normalized skills data from the configured ship-detail source. */
     async FetchSkills(request = {})
     {
         const identity = await this.#FetchIdentity();
@@ -111,16 +123,19 @@ export class CjsESIShipShowInfoSessionSource
         return result;
     }
 
+    /** Loads normalized variations data from the configured ship-detail source. */
     async FetchVariations(request = {})
     {
         return this.#FetchPanel("FetchVariations", request);
     }
 
+    /** Loads normalized industry data from the configured ship-detail source. */
     async FetchIndustry(request = {})
     {
         return this.#FetchPanel("FetchIndustry", request);
     }
 
+    /** Loads normalized skins data from the configured ship-detail source. */
     async FetchSkins(request = {})
     {
         return this.#FetchPanel("FetchSkins", request);
@@ -133,6 +148,7 @@ export class CjsESIShipShowInfoSessionSource
         return this.#FetchIdentity();
     }
 
+    /** Loads normalized panel data from the configured ship-detail source. */
     async #FetchPanel(method, request)
     {
         const identity = await this.#FetchIdentity();
@@ -140,6 +156,7 @@ export class CjsESIShipShowInfoSessionSource
         return this.#Fetch(method, request, identity);
     }
 
+    /** Loads normalized fetch data from the configured ship-detail source. */
     #Fetch(method, request, identity)
     {
         const loader = this.shipSource[method];
@@ -153,12 +170,14 @@ export class CjsESIShipShowInfoSessionSource
         return loader.call(this.shipSource, nextRequest);
     }
 
+    /** Loads normalized identity data from the configured ship-detail source. */
     #FetchIdentity()
     {
         if (!this.#identityPromise) this.#identityPromise = this.#ReadIdentity();
         return this.#identityPromise;
     }
 
+    /** Reads identity identity from the supplied response metadata. */
     async #ReadIdentity()
     {
         try

@@ -1,5 +1,5 @@
 /** Coordinates one browser demo with one caller-supplied rendering adapter. */
-export class CjsDemoRenderer
+export class TnyDemoRenderer
 {
 
     #adapter;
@@ -157,6 +157,7 @@ export class CjsDemoRenderer
         }
     }
 
+    /** Cancels the renderer load owned by the current request generation. */
     #AbortLoad(reason)
     {
         this.#loadGeneration++;
@@ -168,21 +169,23 @@ export class CjsDemoRenderer
         }
     }
 
+    /** Rejects renderer work before a browser mount is active. */
     #AssertMounted()
     {
         this.#AssertUsable();
 
         if (!this.#mounted)
         {
-            throw new Error("CjsDemoRenderer must be mounted first");
+            throw new Error("TnyDemoRenderer must be mounted first");
         }
     }
 
+    /** Rejects work after the demo component has been destroyed. */
     #AssertUsable()
     {
         if (this.#destroyed)
         {
-            throw new Error("CjsDemoRenderer has been destroyed");
+            throw new Error("TnyDemoRenderer has been destroyed");
         }
     }
 
@@ -192,7 +195,7 @@ function assertAdapter(value)
 {
     if (!value || (typeof value !== "object" && typeof value !== "function"))
     {
-        throw new TypeError("CjsDemoRenderer requires an adapter");
+        throw new TypeError("TnyDemoRenderer requires an adapter");
     }
 
     for (const method of [ "Mount", "Load", "Unmount", "Destroy" ])

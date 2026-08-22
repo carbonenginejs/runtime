@@ -10,9 +10,11 @@ Summary: Indexes one-sentence purpose descriptors for every maintained browser-t
 - [Audio classes](audio.md)
 - [Chat classes](chat.md)
 - [Browser demo classes](demos.md)
+- [Diagram foundation classes](diagrams.md)
 - [File-index classes](fileindex.md)
 - [Regional-market classes](market.md)
 - [Ship Show Info classes](ship-show-info.md)
+- [Ship Tree classes](ship-tree.md)
 - [Per-object classes](perobject.md)
 - [Realtime classes](realtime.md)
 

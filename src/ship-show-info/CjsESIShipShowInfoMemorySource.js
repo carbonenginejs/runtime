@@ -2,6 +2,10 @@
 export class CjsESIShipShowInfoMemorySource
 {
 
+    /**
+     * Creates a ship-detail esi ship show info memory source around
+     * caller-supplied browser collaborators.
+     */
     constructor({ records = [] } = {})
     {
         if (!Array.isArray(records))
@@ -12,51 +16,61 @@ export class CjsESIShipShowInfoMemorySource
         this.records = records.map(CopyRecord);
     }
 
+    /** Loads normalized ship data from the configured ship-detail source. */
     async FetchShip(request = {})
     {
         return this.#Fetch(request, "ship", true);
     }
 
+    /** Loads normalized price data from the configured ship-detail source. */
     async FetchPrice(request = {})
     {
         return this.#Fetch(request, "price");
     }
 
+    /** Loads normalized overview data from the configured ship-detail source. */
     async FetchOverview(request = {})
     {
         return this.#Fetch(request, "overview");
     }
 
+    /** Loads normalized attributes data from the configured ship-detail source. */
     async FetchAttributes(request = {})
     {
         return this.#Fetch(request, "attributes");
     }
 
+    /** Loads normalized fitting data from the configured ship-detail source. */
     async FetchFitting(request = {})
     {
         return this.#Fetch(request, "fitting");
     }
 
+    /** Loads normalized skills data from the configured ship-detail source. */
     async FetchSkills(request = {})
     {
         return this.#Fetch(request, "skills");
     }
 
+    /** Loads normalized variations data from the configured ship-detail source. */
     async FetchVariations(request = {})
     {
         return this.#Fetch(request, "variations");
     }
 
+    /** Loads normalized industry data from the configured ship-detail source. */
     async FetchIndustry(request = {})
     {
         return this.#Fetch(request, "industry");
     }
 
+    /** Loads normalized skins data from the configured ship-detail source. */
     async FetchSkins(request = {})
     {
         return this.#Fetch(request, "skins");
     }
 
+    /** Loads normalized fetch data from the configured ship-detail source. */
     #Fetch({ typeID, signal } = {}, name, required = false)
     {
         ThrowIfAborted(signal);

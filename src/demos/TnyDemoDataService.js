@@ -9,7 +9,7 @@ const TERMINAL_STATUSES = new Set([
 ]);
 
 /** Selects one authoritative browser data provider for each demo request. */
-export class CjsDemoDataService
+export class TnyDemoDataService
 {
 
     #providers = [];

@@ -124,9 +124,17 @@ test("the published manifest has no Node host contract", async () =>
     assert.equal(manifest.engines?.node, undefined);
     assert.equal(manifest.dependencies?.["@carbonenginejs/tools-core"], undefined);
     assert.equal(
+        manifest.exports["./market/ui.css"],
+        "./src/market/ui/market-window.css"
+    );
+    assert.equal(
         manifest.exports["./ship-show-info/ui.css"],
         "./src/ship-show-info/ui/ship-show-info.css"
     );
+    assert.equal(manifest.exports["./diagrams"], "./src/diagrams/index.js");
+    assert.equal(manifest.exports["./ship-tree"], "./src/ship-tree/index.js");
+    assert.equal(manifest.exports["./ship-tree/ui"], "./src/ship-tree/ui/index.js");
+    assert.equal(manifest.exports["./ship-tree/ui.css"], "./src/ship-tree/ui/ship-tree.css");
     assert.equal(manifest.exports["./theme/eve.css"], "./src/theme/eve.css");
 });
 
@@ -141,7 +149,7 @@ test("the public theme is scoped and carries no external assets", async () =>
 
 test("logic families have no presentation dependency", async () =>
 {
-    for (const family of [ "demos", "market", "ship-show-info" ])
+    for (const family of [ "demos", "diagrams", "market", "ship-show-info", "ship-tree" ])
     {
         const sourceRoot = path.join(packageRoot, "src", family);
         const files = await fs.readdir(sourceRoot);
@@ -166,12 +174,16 @@ test("every JavaScript public subpath imports independently", async () =>
         "chat",
         "demo-apps",
         "demos",
+        "diagrams",
         "fileindex",
         "market",
+        "market/ui",
         "realtime",
         "realtime/wire",
         "ship-show-info",
-        "ship-show-info/ui"
+        "ship-show-info/ui",
+        "ship-tree",
+        "ship-tree/ui"
     ])
     {
         const module = await import(`@carbonenginejs/tools-browser/${name}`);
@@ -182,8 +194,45 @@ test("every JavaScript public subpath imports independently", async () =>
     const root = await import("@carbonenginejs/tools-browser");
 
     assert.ok(Object.keys(root).length > 0, "root");
-    assert.equal(root.CjsESIShipShowInfoUIWindow, undefined);
-    assert.equal(root.CjsShipShowInfoDemo, undefined);
+    assert.equal(root.TnyMarketWindow, undefined);
+    assert.equal(root.TnyMarketDetailsDemo, undefined);
+    assert.equal(root.TnyShipShowInfoWindow, undefined);
+    assert.equal(root.TnyShipShowInfoDemo, undefined);
+    assert.equal(root.TnyShipTreeWindow, undefined);
+});
+
+test("optional Ship Tree presentation consumes the controller boundary", async () =>
+{
+    const source = await fs.readFile(path.join(
+        packageRoot,
+        "src",
+        "ship-tree",
+        "ui",
+        "TnyShipTreeWindow.js"
+    ), "utf8");
+    const css = await fs.readFile(path.join(
+        packageRoot,
+        "src",
+        "ship-tree",
+        "ui",
+        "ship-tree.css"
+    ), "utf8");
+
+    assert.match(source, /from "\.\.\/CjsShipTreeController\.js"/u);
+    assert.doesNotMatch(source, /this\.source|\/sde\//u);
+    assert.match(css, /^\.ship-tree-host\s*\{/u);
+    assert.doesNotMatch(css, /@font-face|url\(\s*["']?(?:https?:|\/|res:)/u);
+});
+
+test("published Show Info presentation aliases resolve to the canonical Tny window", async () =>
+{
+    const presentation = await import("@carbonenginejs/tools-browser/ship-show-info/ui");
+
+    assert.equal(presentation.TnyShipShowInfoWindow.name, "TnyShipShowInfoWindow");
+    assert.equal(
+        presentation.CjsESIShipShowInfoUIWindow,
+        presentation.TnyShipShowInfoWindow
+    );
 });
 
 test("optional Show Info presentation consumes the controller boundary", async () =>
@@ -193,7 +242,7 @@ test("optional Show Info presentation consumes the controller boundary", async (
         "src",
         "ship-show-info",
         "ui",
-        "CjsESIShipShowInfoUIWindow.js"
+        "TnyShipShowInfoWindow.js"
     ), "utf8");
     const css = await fs.readFile(path.join(
         packageRoot,
@@ -203,8 +252,31 @@ test("optional Show Info presentation consumes the controller boundary", async (
         "ship-show-info.css"
     ), "utf8");
 
-    assert.match(source, /from "\.\.\/CjsESIShipShowInfoController\.js"/u);
+    assert.match(source, /from "\.\.\/CjsShipShowInfoController\.js"/u);
     assert.doesNotMatch(source, /this\.shipSource|PANEL_METHODS|\.FetchShip\s*\(/u);
     assert.match(css, /^\.ship-show-info-host\s*\{/u);
+    assert.doesNotMatch(css, /@font-face|\burl\s*\(/u);
+});
+
+test("optional Market presentation consumes the controller boundary", async () =>
+{
+    const source = await fs.readFile(path.join(
+        packageRoot,
+        "src",
+        "market",
+        "ui",
+        "TnyMarketWindow.js"
+    ), "utf8");
+    const css = await fs.readFile(path.join(
+        packageRoot,
+        "src",
+        "market",
+        "ui",
+        "market-window.css"
+    ), "utf8");
+
+    assert.match(source, /from "\.\.\/CjsMarketController\.js"/u);
+    assert.doesNotMatch(source, /this\.source|\.GetRegions\s*\(|\.GetOrders\s*\(|\.GetHistory\s*\(/u);
+    assert.match(css, /^\.market-window-host\s*\{/u);
     assert.doesNotMatch(css, /@font-face|\burl\s*\(/u);
 });

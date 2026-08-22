@@ -14,7 +14,7 @@ and one renderer contract.
 
 It imports no DOM API, component, stylesheet, theme, demo entry point,
 ccpwgl bundle, TrinityJS engine, or tools-core implementation. A consumer can
-draw an EVE-like window, a Skindr-native component, or no UI at all over the
+draw an EVE-like window, an application-native component, or no UI at all over the
 same logic.
 
 ## Source contract
@@ -46,6 +46,13 @@ value.
 parsed JSON. The package ships no real EVE hull, skill, skin, industry, or
 market dataset.
 
+`CjsShipShowInfoToolsCoreSource` is the browser transport adapter for public,
+composed tools-core answers. It resolves `latest` once, pins the exact
+`builds.sde` value for the request lifetime, and never reads inspection-table
+routes. Public hull information is independent of sign-in. Optional fields
+such as manufacturers and quotations remain absent when the composed answer
+does not contain them.
+
 ## Renderer contract
 
 The controller accepts an optional renderer with this structural contract:
@@ -72,7 +79,7 @@ viewport and returns ownership in `Destroy()`.
 
 ```js
 import {
-    CjsESIShipShowInfoController,
+    CjsShipShowInfoController,
     CjsESIShipShowInfoMemorySource
 } from "@carbonenginejs/tools-browser/ship-show-info";
 
@@ -88,7 +95,7 @@ const shipSource = new CjsESIShipShowInfoMemorySource({
         }
     } ]
 });
-const controller = new CjsESIShipShowInfoController({
+const controller = new CjsShipShowInfoController({
     shipSource,
     renderer: callerRenderer
 });
@@ -134,10 +141,15 @@ not inject one; it never calls `FetchShip` or panel source methods itself.
 
 ```js
 import {
-    CjsESIShipShowInfoUIWindow
+    TnyShipShowInfoWindow
 } from "@carbonenginejs/tools-browser/ship-show-info/ui";
 import "@carbonenginejs/tools-browser/ship-show-info/ui.css";
 ```
+
+The published 0.1.x `CjsESIShipShowInfoController` and
+`CjsESIShipShowInfoUIWindow` exports remain temporary aliases of
+`CjsShipShowInfoController` and `TnyShipShowInfoWindow`. The canonical names
+reflect that neither class is bound to ESI.
 
 UI artwork resolves from the constructor's `uiResourceRoot`. Its default is
 `/eve/latest/resources/ui/texture/`; a standalone host may provide an absolute
@@ -145,20 +157,46 @@ permitted asset service root. The package ships no EVE font, icon, or texture.
 
 Camera views and automatic rotation remain optional renderer-adapter methods.
 The window contains no camera implementation or pose catalog belonging to an
-engine. `CjsShipShowInfoDemo` in `./demo-apps` composes this same window for
+engine. `TnyShipShowInfoDemo` in `./demo-apps` composes this same window for
 direct mounting, while `CreateShipShowInfoDemoDefinition` supplies the same
-instance shape to `CjsDemoHost`.
+instance shape to `TnyDemoHost`.
 
 The concrete tools-core-to-record mapper remains separate: a browser client
 may speak its HTTP contract but must not import tools-core server code or
 credential/session internals.
 
+`CjsShipShowInfoToolsCoreSessionSource` adapts the optional stored-grant
+identity and skill routes. Compose it through
+`CjsESIShipShowInfoSessionSource`; when no grant exists, the public hull and
+requirements still load and only character-specific comparisons are hidden.
+The image-server portrait needs a character ID but no additional image scope.
+
+`TnyShipShowInfoImageRenderer` is the zero-WebGL fallback used by the
+standalone example. It decodes a replacement image before swapping it into
+the surface, so a current preview is not briefly replaced by a partial image.
+Applications with ccpwgl, TrinityJS, or another runtime inject their own
+renderer under the same contract.
+
+The window emits `shipshowinfochange` after a hull opens and
+`shipshowinfopanelchange` after a panel renders. Its copy-link, previous, and
+next controls emit the cancelable `shipshowinfowindowaction` event before using
+the browser clipboard or history defaults, so an embedding host can take over
+those actions without forking the presentation.
+
 ## Standalone example
 
-`examples/ship-show-info/` uses only synthetic records supplied to
-`CjsESIShipShowInfoMemorySource`. It proves that the window loads without
-auth, ESI, SDE, or a graphics engine. Supply a renderer adapter to exercise a
-shared or standalone graphics runtime.
+`examples/ship-show-info/` uses composed tools-core data and the image
+fallback by default. On a local host it expects the caller-owned tools-core
+service at port `5510`; override it with `?toolsCoreURL=http://host:port`.
+Useful query fields are `typeID`, `regionID`, `panel`, `session=off`, and
+`resourceRoot`. The standalone page keeps `typeID`, `regionID`, and `panel` in
+the address. Selecting a variation creates a hull-history entry; the window's
+previous and next controls restore both the hull and its selected panel.
+
+`?mode=synthetic` explicitly switches to caller-owned memory records. It
+proves that the window and renderer contract load without auth, ESI, an SDE
+service, or a graphics engine; it is not a hidden fallback from provider
+failure.
 
 ## Related documentation
 

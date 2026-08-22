@@ -313,6 +313,14 @@
     height: 100%;
 }
 
+.ship-info-preview-image {
+    width: min(82%, 1120px);
+    height: 82%;
+    object-fit: contain;
+    user-select: none;
+    filter: drop-shadow(0 24px 32px rgba(0, 0, 0, .76));
+}
+
 .ship-info-stage-overlay {
     position: absolute;
     inset: 0;

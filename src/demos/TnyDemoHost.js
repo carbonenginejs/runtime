@@ -1,5 +1,5 @@
 /** Mounts independently constructible browser demos into one shared container. */
-export class CjsDemoHost
+export class TnyDemoHost
 {
 
     #active = null;
@@ -18,7 +18,7 @@ export class CjsDemoHost
     {
         if (container === null || (typeof container !== "object" && typeof container !== "function"))
         {
-            throw new TypeError("CjsDemoHost requires a caller-owned container");
+            throw new TypeError("TnyDemoHost requires a caller-owned container");
         }
 
         this.container = container;
@@ -213,6 +213,7 @@ export class CjsDemoHost
         return this.#destroyPromise;
     }
 
+    /** Destroys the active demo and clears its mounted host state. */
     async #CloseActive()
     {
         const active = this.#active;
@@ -228,6 +229,7 @@ export class CjsDemoHost
         await active.instance.Destroy();
     }
 
+    /** Serializes one demo transition behind previously requested host work. */
     #Enqueue(operation)
     {
         const pending = this.#queue.then(operation, operation);
@@ -237,11 +239,12 @@ export class CjsDemoHost
         return pending;
     }
 
+    /** Rejects work after the demo component has been destroyed. */
     #AssertUsable()
     {
         if (this.#destroyed || this.#destroyPromise)
         {
-            throw new Error("CjsDemoHost has been destroyed");
+            throw new Error("TnyDemoHost has been destroyed");
         }
     }
 

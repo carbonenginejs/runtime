@@ -8,6 +8,10 @@
  */
 export class CjsESIShipShowInfoMarketSource
 {
+    /**
+     * Creates a ship-detail esi ship show info market source around
+     * caller-supplied browser collaborators.
+     */
     constructor({ shipSource, market } = {})
     {
         if (typeof shipSource?.FetchShip !== "function")
@@ -23,11 +27,13 @@ export class CjsESIShipShowInfoMarketSource
         this.market = market;
     }
 
+    /** Loads normalized ship data from the configured ship-detail source. */
     FetchShip(request = {})
     {
         return this.shipSource.FetchShip(request);
     }
 
+    /** Loads normalized price data from the configured ship-detail source. */
     async FetchPrice({ typeID, regionID, signal } = {})
     {
         let result;
@@ -46,41 +52,49 @@ export class CjsESIShipShowInfoMarketSource
         return estimatedPrice === null ? {} : { estimatedPrice };
     }
 
+    /** Loads normalized overview data from the configured ship-detail source. */
     FetchOverview(request = {})
     {
         return this.#Fetch("FetchOverview", request);
     }
 
+    /** Loads normalized attributes data from the configured ship-detail source. */
     FetchAttributes(request = {})
     {
         return this.#Fetch("FetchAttributes", request);
     }
 
+    /** Loads normalized fitting data from the configured ship-detail source. */
     FetchFitting(request = {})
     {
         return this.#Fetch("FetchFitting", request);
     }
 
+    /** Loads normalized skills data from the configured ship-detail source. */
     FetchSkills(request = {})
     {
         return this.#Fetch("FetchSkills", request);
     }
 
+    /** Loads normalized variations data from the configured ship-detail source. */
     FetchVariations(request = {})
     {
         return this.#Fetch("FetchVariations", request);
     }
 
+    /** Loads normalized industry data from the configured ship-detail source. */
     FetchIndustry(request = {})
     {
         return this.#Fetch("FetchIndustry", request);
     }
 
+    /** Loads normalized skins data from the configured ship-detail source. */
     FetchSkins(request = {})
     {
         return this.#Fetch("FetchSkins", request);
     }
 
+    /** Loads normalized fetch data from the configured ship-detail source. */
     #Fetch(method, request)
     {
         if (typeof this.shipSource[method] !== "function") return null;

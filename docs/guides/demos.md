@@ -9,7 +9,7 @@ Summary: Hosts independent demos together, composes browser data sources, and ke
 
 The demo family gives related browser tools one parent-container contract
 without turning them into one application. Each demo remains directly
-constructible and mountable, while `CjsDemoHost` can select the same demo
+constructible and mountable, while `TnyDemoHost` can select the same demo
 definition inside a shared catalogue or landing page.
 
 The family is browser-only. Published source has no Node host contract, imports
@@ -25,13 +25,15 @@ runtime dependency of the published source.
 
 ```js
 import {
-    CjsDemoDataService,
-    CjsDemoHost,
-    CjsDemoRenderer
+    TnyDemoDataService,
+    TnyDemoHost,
+    TnyDemoRenderer
 } from "@carbonenginejs/tools-browser/demos";
 
 import {
-    CjsShipShowInfoDemo,
+    TnyMarketDetailsDemo,
+    TnyShipShowInfoDemo,
+    CreateMarketDetailsDemoDefinition,
     CreateShipShowInfoDemoDefinition
 } from "@carbonenginejs/tools-browser/demo-apps";
 
@@ -40,6 +42,12 @@ import "@carbonenginejs/tools-browser/theme/eve.css";
 
 The JavaScript and stylesheet subpaths are independent. A demo can use the
 host without the EVE-like theme, or the theme without the host.
+
+The canonical optional-layer prefix is `Tny`. The published 0.1.x names
+`CjsDemoDataService`, `CjsDemoHost`, `CjsDemoRenderer`, and
+`CjsShipShowInfoDemo` remain temporary aliases of the corresponding `Tny*`
+classes; they do not create parallel implementations. New code should use the
+canonical names shown above.
 
 ## Logic and presentation boundary
 
@@ -74,14 +82,13 @@ toward the earlier layers:
   entirely different components and styling.
 
 The `./demos` JavaScript is coordination logic, not a component set.
-`CjsDemoHost` treats its container as an opaque caller-owned value and never
-creates markup. `CjsDemoDataService` and `CjsDemoRenderer` have no presentation
+`TnyDemoHost` treats its container as an opaque caller-owned value and never
+creates markup. `TnyDemoDataService` and `TnyDemoRenderer` have no presentation
 dependency. `./demo-apps` contains optional feature compositions and may import
 feature UI. The separately imported `./theme/eve.css` subpath is UI-only.
 
-Ship Show Info now demonstrates this split through `./ship-show-info`,
-`./ship-show-info/ui`, and `./demo-apps`. Market Details must retain the same
-separation when its optional presentation moves. A single export that only
+Ship Show Info and Market Details demonstrate this split through their logic,
+optional UI, stylesheet, and `./demo-apps` exports. A single export that only
 yields a pre-styled component is insufficient because another host would have
 to copy the data and behavior to render its own UI.
 
@@ -117,7 +124,7 @@ await demo.Mount(document.querySelector("[data-demo]"), {
 The same definition can run under a parent container:
 
 ```js
-const host = new CjsDemoHost({
+const host = new TnyDemoHost({
     container: document.querySelector("[data-demo]"),
     context,
     demos: [ marketDetailsDefinition, showInfoDefinition ]
@@ -163,19 +170,19 @@ const showInfoDefinition = CreateShipShowInfoDemoDefinition({
     }
 });
 
-const standalone = new CjsShipShowInfoDemo({
+const standalone = new TnyShipShowInfoDemo({
     shipSource,
     renderer
 });
 ```
 
-Both values create the same `CjsShipShowInfoDemo` instance shape. The factory
+Both values create the same `TnyShipShowInfoDemo` instance shape. The factory
 is the only catalogue-specific seam; it does not hide provider selection or
 business rules.
 
 ## Rendering adapters
 
-`CjsDemoRenderer` is a lifecycle and cancellation facade over an injected
+`TnyDemoRenderer` is a lifecycle and cancellation facade over an injected
 graphics adapter. It never imports, locates, or constructs ccpwgl, TrinityJS,
 WebGL, WebGPU, or another engine.
 
@@ -195,7 +202,7 @@ only supplies cancellation and suppresses a result that completes after a
 newer load.
 
 ```js
-const renderer = new CjsDemoRenderer({ adapter });
+const renderer = new TnyDemoRenderer({ adapter });
 
 await renderer.Mount(surface);
 await renderer.Load({ kind: "ship", dna }, { signal });
@@ -250,12 +257,12 @@ knows nor assumes which path produced the answer.
 
 ## Browser data sources
 
-`CjsDemoDataService` selects the first provider whose optional `CanRead`
+`TnyDemoDataService` selects the first provider whose optional `CanRead`
 accepts a request, then awaits that provider's `Read` method. Provider order is
 authority order, not a race:
 
 ```js
-const data = new CjsDemoDataService({
+const data = new TnyDemoDataService({
     providers: [ manualProfileSource, exactBuildSource, publicLiveSource ]
 });
 
@@ -375,10 +382,10 @@ It does not own:
 - application routing or navigation; or
 - bundled game data, fonts, icons, or textures.
 
-## Migration direction
+## Migration pattern
 
-The Market Details and Ship Show Info demos are the first intended consumers.
-Move them only after their provider boundaries are browser-safe:
+Market Details and Ship Show Info establish the pattern for later demos. A
+feature moves only after its provider boundaries are browser-safe:
 
 1. commit a reviewable baseline in the source repository so the move has a
    checkable before-and-after diff;

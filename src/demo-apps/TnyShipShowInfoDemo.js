@@ -1,11 +1,15 @@
-import { CjsESIShipShowInfoUIWindow } from "../ship-show-info/ui/CjsESIShipShowInfoUIWindow.js";
+import { TnyShipShowInfoWindow } from "../ship-show-info/ui/TnyShipShowInfoWindow.js";
 
 /** Composes one independently mountable Ship Show Info presentation. */
-export class CjsShipShowInfoDemo
+export class TnyShipShowInfoDemo
 {
 
     #destroyed = false;
 
+    /**
+     * Creates a demo ship show info demo around caller-supplied browser
+     * collaborators.
+     */
     constructor(options = {})
     {
         if (!options || typeof options !== "object")
@@ -22,15 +26,15 @@ export class CjsShipShowInfoDemo
     {
         if (this.#destroyed)
         {
-            throw new Error("CjsShipShowInfoDemo has been destroyed");
+            throw new Error("TnyShipShowInfoDemo has been destroyed");
         }
         if (this.window)
         {
-            throw new Error("CjsShipShowInfoDemo is already mounted");
+            throw new Error("TnyShipShowInfoDemo is already mounted");
         }
 
         ThrowIfAborted(signal);
-        const window = new CjsESIShipShowInfoUIWindow(Object.assign({}, this.options, {
+        const window = new TnyShipShowInfoWindow(Object.assign({}, this.options, {
             root: container
         }));
 
@@ -55,7 +59,7 @@ export class CjsShipShowInfoDemo
     {
         if (!this.window)
         {
-            throw new Error("CjsShipShowInfoDemo must be mounted first");
+            throw new Error("TnyShipShowInfoDemo must be mounted first");
         }
 
         return this.window.Open(request);
@@ -110,7 +114,7 @@ export function CreateShipShowInfoDemoDefinition({
                 throw new TypeError("CreateOptions(context) must return demo options");
             }
 
-            return new CjsShipShowInfoDemo(options);
+            return new TnyShipShowInfoDemo(options);
         }
     };
 }

@@ -15,6 +15,16 @@ Provides a DOM-free client for a compatible regional-market HTTP backend.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsMarketController -->
+## `CjsMarketController`
+
+Coordinates regional market selection, search, cancellation, and mutable state without owning presentation.
+
+- Export: `@carbonenginejs/tools-browser/market`
+- Source: `src/market/CjsMarketController.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsESIMarketBackendSource -->
 ## `CjsESIMarketBackendSource`
 
@@ -42,5 +52,25 @@ Provides a direct browser adapter for ESI's public market and universe routes.
 
 - Export: `@carbonenginejs/tools-browser/market`
 - Source: `src/market/CjsESIMarketSource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:TnyMarketHistoryChart -->
+## `TnyMarketHistoryChart`
+
+Renders normalized market history as an optional browser SVG chart.
+
+- Export: `@carbonenginejs/tools-browser/market/ui`
+- Source: `src/market/ui/TnyMarketHistoryChart.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:TnyMarketWindow -->
+## `TnyMarketWindow`
+
+Renders the optional EVE-like Market Details window over the shared controller.
+
+- Export: `@carbonenginejs/tools-browser/market/ui`
+- Source: `src/market/ui/TnyMarketWindow.js`
 - Visibility: Public
 - Kind: CarbonEngineJS

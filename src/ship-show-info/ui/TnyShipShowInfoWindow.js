@@ -3,7 +3,7 @@ import {
     formatShipValue,
     shipShowInfoID
 } from "../shipShowInfoModel.js";
-import { CjsESIShipShowInfoController } from "../CjsESIShipShowInfoController.js";
+import { CjsShipShowInfoController } from "../CjsShipShowInfoController.js";
 
 const PANEL_NAMES = [ "overview", "attributes", "fitting", "skills", "variations", "industry", "skins" ];
 
@@ -33,7 +33,7 @@ const CAMERA_VIEW_NAMES = [ "top", "front", "left", "right", "back", "under" ];
  * ESI routes, static-data joins, character scopes, caching, DNA resolution, ccpwgl
  * ownership, and resource acquisition all stop at the injected collaborators.
  */
-export class CjsESIShipShowInfoUIWindow
+export class TnyShipShowInfoWindow
 {
     #activePanel = "overview";
     #destroyed = false;
@@ -41,6 +41,10 @@ export class CjsESIShipShowInfoUIWindow
     #selectedSkinKey = null;
     #skinSelectionGeneration = 0;
 
+    /**
+     * Creates a ship-detail ship show info window around caller-supplied browser
+     * collaborators.
+     */
     constructor({
         root,
         controller = null,
@@ -53,14 +57,14 @@ export class CjsESIShipShowInfoUIWindow
         uiResourceRoot = EVE_UI_RESOURCE_ROOT
     } = {})
     {
-        if (!(root instanceof Element)) throw new TypeError("CjsESIShipShowInfoUIWindow requires a root Element");
+        if (!(root instanceof Element)) throw new TypeError("TnyShipShowInfoWindow requires a root Element");
         if (controller === null)
         {
-            controller = new CjsESIShipShowInfoController({ shipSource, renderer });
+            controller = new CjsShipShowInfoController({ shipSource, renderer });
         }
         if (typeof controller?.Open !== "function" || typeof controller?.SelectPanel !== "function")
         {
-            throw new TypeError("CjsESIShipShowInfoUIWindow requires a Show Info controller");
+            throw new TypeError("TnyShipShowInfoWindow requires a Show Info controller");
         }
 
         this.root = root;
@@ -155,6 +159,15 @@ export class CjsESIShipShowInfoUIWindow
 
             if (generation !== this.#generation || this.#activePanel !== name || this.#destroyed) return data;
             this.#RenderPanel(name, data ?? {});
+            this.element.dispatchEvent(new CustomEvent("shipshowinfopanelchange", {
+                bubbles: true,
+                detail: {
+                    panel: name,
+                    typeID: this.typeID,
+                    regionID: this.regionID,
+                    ship: this.ship
+                }
+            }));
             return data;
         }
         catch (error)
@@ -174,6 +187,7 @@ export class CjsESIShipShowInfoUIWindow
         await this.controller.Destroy();
     }
 
+    /** Loads normalized price data from the configured ship-detail source. */
     #FetchPrice(generation)
     {
         this.controller.FetchPrice().then(record =>
@@ -195,6 +209,7 @@ export class CjsESIShipShowInfoUIWindow
         });
     }
 
+    /** Enables only camera controls supported by the injected renderer. */
     #ConfigureCameraTools()
     {
         const tools = this.element.querySelector("[data-camera-tools]");
@@ -208,6 +223,7 @@ export class CjsESIShipShowInfoUIWindow
         auto.hidden = !canAutoRotate;
     }
 
+    /** Applies the requested camera view selection through the active controller. */
     #SelectCameraView(view)
     {
         if (!CAMERA_VIEW_NAMES.includes(view)) throw new TypeError(`Unknown camera view: ${view}`);
@@ -233,6 +249,7 @@ export class CjsESIShipShowInfoUIWindow
         }));
     }
 
+    /** Stores auto rotate state and synchronizes dependent presentation. */
     #SetAutoRotate(enabled)
     {
         const next = Boolean(enabled);
@@ -258,6 +275,7 @@ export class CjsESIShipShowInfoUIWindow
         }));
     }
 
+    /** Reconciles camera view controls with current controller state. */
     #SyncCameraView(view)
     {
         for (const button of this.element.querySelectorAll("[data-camera-view]"))
@@ -269,6 +287,7 @@ export class CjsESIShipShowInfoUIWindow
         }
     }
 
+    /** Connects browser controls to the ship-detail controller and local actions. */
     #Bind()
     {
         this.element.querySelector("[data-nav]").addEventListener("click", event =>
@@ -347,8 +366,68 @@ export class CjsESIShipShowInfoUIWindow
         {
             this.element.dispatchEvent(new CustomEvent("shipshowinfoclose", { bubbles: true }));
         });
+
+        this.element.querySelector("[data-copy-link]").addEventListener("click", () =>
+        {
+            this.#WindowAction("copy-link");
+        });
+
+        this.element.querySelector("[data-previous]").addEventListener("click", () =>
+        {
+            this.#WindowAction("previous");
+        });
+
+        this.element.querySelector("[data-next]").addEventListener("click", () =>
+        {
+            this.#WindowAction("next");
+        });
     }
 
+    /** Dispatches a window-chrome action through the injected host callbacks. */
+    #WindowAction(action)
+    {
+        const event = new CustomEvent("shipshowinfowindowaction", {
+            bubbles: true,
+            cancelable: true,
+            detail: {
+                action,
+                typeID: this.typeID,
+                regionID: this.regionID,
+                panel: this.#activePanel,
+                ship: this.ship
+            }
+        });
+
+        if (!this.element.dispatchEvent(event)) return;
+
+        if (action === "previous")
+        {
+            globalThis.history?.back?.();
+            return;
+        }
+        if (action === "next")
+        {
+            globalThis.history?.forward?.();
+            return;
+        }
+        if (action !== "copy-link") return;
+
+        const clipboard = globalThis.navigator?.clipboard;
+        const url = globalThis.location?.href;
+
+        if (!clipboard?.writeText || !url) return;
+
+        try
+        {
+            Promise.resolve(clipboard.writeText.call(clipboard, url)).catch(() => {});
+        }
+        catch
+        {
+            // Clipboard access can be denied by the browser or embedding host.
+        }
+    }
+
+    /** Updates the identity presentation from current controller state. */
     #RenderIdentity()
     {
         const ship = this.ship;
@@ -401,6 +480,7 @@ export class CjsESIShipShowInfoUIWindow
         manufacturers.hidden = !manufacturers.childElementCount;
     }
 
+    /** Updates the price presentation from current controller state. */
     #RenderPrice()
     {
         const row = this.element.querySelector("[data-price-row]");
@@ -410,6 +490,7 @@ export class CjsESIShipShowInfoUIWindow
         SetText(this.element, "[data-price]", available ? formatShipISK(this.ship.estimatedPrice) : "");
     }
 
+    /** Updates the panel presentation from current controller state. */
     #RenderPanel(name, data)
     {
         const panel = this.element.querySelector("[data-panel-content]");
@@ -434,6 +515,7 @@ export class CjsESIShipShowInfoUIWindow
         this.#ResolveResourceImages(panel);
     }
 
+    /** Updates the stage panel presentation from current controller state. */
     #RenderStagePanel(name, data = null)
     {
         this.element.dataset.activePanel = name;
@@ -461,6 +543,7 @@ export class CjsESIShipShowInfoUIWindow
         this.#ResolveResourceImages(overlay);
     }
 
+    /** Maps resource images records into usable browser-facing values. */
     #ResolveResourceImages(root = this.element)
     {
         for (const image of root.querySelectorAll("img[data-eve-ui-resource]"))
@@ -469,6 +552,7 @@ export class CjsESIShipShowInfoUIWindow
         }
     }
 
+    /** Applies the requested skin selection through the active controller. */
     async #SelectSkin(skin)
     {
         const selectedKey = SkinKey(skin);
@@ -501,6 +585,7 @@ export class CjsESIShipShowInfoUIWindow
         }));
     }
 
+    /** Reconciles skin selection controls with current controller state. */
     #SyncSkinSelection()
     {
         for (const row of this.element.querySelectorAll("[data-skin-key]"))
@@ -512,6 +597,7 @@ export class CjsESIShipShowInfoUIWindow
         }
     }
 
+    /** Opens market context for the currently displayed ship type. */
     #ViewMarket(typeID = this.typeID, skin = null)
     {
         const detail = {
@@ -525,6 +611,7 @@ export class CjsESIShipShowInfoUIWindow
         this.onViewMarket?.(detail);
     }
 
+    /** Opens the configured Paragon destination for the selected hull. */
     #OpenParagonHub()
     {
         this.element.dispatchEvent(new CustomEvent("shipshowinfoparagonhub", {
@@ -559,6 +646,7 @@ export class CjsESIShipShowInfoUIWindow
         }
     }
 
+    /** Reconciles navigation controls with current controller state. */
     #SyncNavigation()
     {
         const buttons = this.element.querySelectorAll("[data-panel]");
@@ -573,6 +661,7 @@ export class CjsESIShipShowInfoUIWindow
         }
     }
 
+    /** Stores loading state and synchronizes dependent presentation. */
     #SetLoading(loading, text = "")
     {
         this.element.classList.toggle("is-loading", loading);
@@ -580,6 +669,7 @@ export class CjsESIShipShowInfoUIWindow
         this.element.querySelector("[data-global-status]").hidden = !text;
     }
 
+    /** Stores panel status state and synchronizes dependent presentation. */
     #SetPanelStatus(text, error = false)
     {
         const panel = this.element.querySelector("[data-panel-content]");
@@ -590,6 +680,7 @@ export class CjsESIShipShowInfoUIWindow
         panel.replaceChildren(status);
     }
 
+    /** Presents the current error state to the browser user. */
     #ShowError(error)
     {
         this.#SetLoading(false);
@@ -607,9 +698,9 @@ function Shell()
             <span class="ship-info-title-mark" aria-hidden="true"></span>
             <strong data-title>Ship Information</strong>
             <div class="ship-info-window-actions" aria-label="Window controls">
-                ${IconButton("eveicon/system_icons/link_16px.png", "Copy link")}
-                ${IconButton("eveicon/system_icons/navigate_back_16px.png", "Previous")}
-                ${IconButton("eveicon/system_icons/navigate_forward_16px.png", "Next")}
+                ${IconButton("eveicon/system_icons/link_16px.png", "Copy link", "data-copy-link")}
+                ${IconButton("eveicon/system_icons/navigate_back_16px.png", "Previous", "data-previous")}
+                ${IconButton("eveicon/system_icons/navigate_forward_16px.png", "Next", "data-next")}
                 <span class="ship-info-window-more" aria-hidden="true">${StaticIcon("eveicon/system_icons/more_vertical_16px.png")}</span>
                 ${IconButton("eveicon/system_icons/close_16px.png", "Close", "data-close")}
             </div>
