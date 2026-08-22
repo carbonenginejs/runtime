@@ -1,5 +1,8 @@
 export { Tr2MaterialParameterStore } from './Tr2MaterialParameterStore.js';
 export { Tr2QuadRenderer, Tr2QuadRendererEffectRecord } from './Tr2QuadRenderer.js';
+export { Tr2Transform } from './Tr2Transform.js';
+export { Tr2ShadowMap } from './Tr2ShadowMap.js';
+export { AccumulatePriorityAttribute } from './PriorityBlend.js';
 export { TriSettings } from './TriSettings.js';
 export { Tr2GrannyAnimation, getBoneList } from './animation/Tr2GrannyAnimation.js';
 export { GrannyBoneOffset } from './animation/GrannyBoneOffset.js';
@@ -20,6 +23,8 @@ export { Tr2RenderContext } from './context/Tr2RenderContext.js';
 export { Tr2PrimaryRenderContext } from './context/Tr2PrimaryRenderContext.js';
 export { Tr2VisibilityEvent, Tr2VisibilityResults } from './context/Tr2VisibilityResults.js';
 export { CjsFrameDriver } from './context/CjsFrameDriver.js';
+export { CjsShadowMapExecutor } from './context/CjsShadowMapExecutor.js';
+export { CjsVolumetricsExecutor } from './context/CjsVolumetricsExecutor.js';
 export { TriDevice } from './device/TriDevice.js';
 export { Tr2SwapChain } from './device/Tr2SwapChain.js';
 export { Tr2DepthStencil } from './device/Tr2DepthStencil.js';
@@ -62,4 +67,5 @@ export { TriViewport, Vec3TransformByViewport } from './view/TriViewport.js';
 export { TriRect } from './view/TriRect.js';
 export { convertProjectionCoordToWorldPickRay, screenToProjection } from './view/pickRay.js';
 export { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from './view/Tr2PickType.js';
+export { Tr2VolumetricsRenderer } from './volumetrics/Tr2VolumetricsRenderer.js';
 //# sourceMappingURL=index.js.map

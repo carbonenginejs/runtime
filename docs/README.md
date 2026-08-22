@@ -81,6 +81,8 @@ family. The root entry aggregates the complete public runtime.
 - [Generated-class lifecycle](concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](reference/implementation-status.md)
 - [Eve runtime classes](reference/classes/eve-runtime.md)
+- [Post-process classes](reference/classes/post-process.md)
+- [Sprite2D classes](reference/classes/sprite2d.md)
 - [Trinity core classes](reference/classes/trinity-core.md)
 
 A complete class-purpose catalog is planned after generated classes carry

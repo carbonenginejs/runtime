@@ -1,6 +1,11 @@
 import test from "node:test";
-import { Range } from "../npm/dist/index.js";
+import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { Obb, Range } from "../npm/dist/index.js";
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
+import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 
 
 function assertEquals(actual, expected)
@@ -51,4 +56,94 @@ test("Range preserves Carbon slider and uniformity edge behavior", () =>
   assertEquals(range.GetMaxRangePoint(), 12);
   range.ToggleIsUniform();
   assertEquals(range.GetIsUniform(), false);
+});
+
+test("Obb preserves Carbon corner order and computes transformed AABBs", () =>
+{
+  const box = new Obb();
+  vec3.set(box.center, 10, 20, 30);
+  vec3.set(box.sizes, 2, 3, 4);
+  vec3.set(box.x, 1, 0, 0);
+  vec3.set(box.y, 0, 2, 0);
+  vec3.set(box.z, 0, 0, 3);
+
+  const signs = [
+    [1, 1, 1], [-1, 1, 1], [1, -1, 1], [-1, -1, 1],
+    [1, 1, -1], [-1, 1, -1], [1, -1, -1], [-1, -1, -1]
+  ];
+  for (let index = 0; index < signs.length; index++)
+  {
+    const [sx, sy, sz] = signs[index];
+    assert.deepEqual(Array.from(box.GetPoint(index)), [10 + sx * 2, 20 + sy * 6, 30 + sz * 12]);
+  }
+  assert.throws(() => box.GetPoint(8), RangeError);
+
+  const transform = mat4.fromValues(
+    1, 0, 0, 0,
+    0, 0, 2, 0,
+    0, -1, 0, 0,
+    5, 7, 11, 1
+  );
+  const expectedMin = vec3.fromValues(Infinity, Infinity, Infinity);
+  const expectedMax = vec3.fromValues(-Infinity, -Infinity, -Infinity);
+  const transformed = vec3.create();
+  for (let index = 0; index < 8; index++)
+  {
+    vec3.transformMat4(transformed, box.GetPoint(index), transform);
+    vec3.min(expectedMin, expectedMin, transformed);
+    vec3.max(expectedMax, expectedMax, transformed);
+  }
+
+  const actualMin = vec3.create();
+  const actualMax = vec3.create();
+  box.ComputeAABB(actualMin, actualMax, transform);
+  assert.deepEqual(Array.from(actualMin), Array.from(expectedMin));
+  assert.deepEqual(Array.from(actualMax), Array.from(expectedMax));
+});
+
+test("Obb builds Carbon world bases and clips one side against a frustum plane", () =>
+{
+  const box = new Obb();
+  const localToWorld = mat4.fromValues(
+    0, 2, 0, 0,
+    -3, 0, 0, 0,
+    0, 0, 4, 0,
+    10, 20, 30, 1
+  );
+  box.CreateClippedWorldBoundingObb([-1, -2, -3], [3, 4, 5], localToWorld, null);
+  assert.deepEqual(Array.from(box.center), [7, 22, 34]);
+  assert.deepEqual(Array.from(box.sizes), [2, 3, 4]);
+  assert.deepEqual(Array.from(box.x), [0, 2, 0]);
+  assert.deepEqual(Array.from(box.y), [-3, 0, 0]);
+  assert.deepEqual(Array.from(box.z), [0, 0, 4]);
+
+  const clipped = new Obb();
+  const insidePlane = vec4.fromValues(0, 0, 0, 1);
+  clipped.CreateClippedWorldBoundingObb(
+    [-1, -1, -1],
+    [1, 1, 1],
+    mat4.create(),
+    {
+      planes: [
+        vec4.fromValues(1, 0, 0, 0),
+        insidePlane,
+        insidePlane,
+        insidePlane,
+        insidePlane,
+        insidePlane
+      ]
+    }
+  );
+  assert.deepEqual(Array.from(clipped.center), [0.5, 0, 0]);
+  assert.deepEqual(Array.from(clipped.sizes), [0.5, 1, 1]);
+});
+
+test("Obb is maintained utility source and remains generator-protected", () =>
+{
+  assert.equal(existsSync(new URL("../src/generated/utilities/Obb.js", import.meta.url)), false);
+  const summary = JSON.parse(readFileSync(new URL("../src/generated/summary.json", import.meta.url), "utf8"));
+  const disposition = summary.skipped.find(entry => entry.className === "Obb");
+  assert.equal(disposition?.family, "utilities");
+  assert.equal(disposition?.reason, "hand-maintained source exists");
+  assert.equal(CjsSchema.GetConstructor("Obb"), Obb);
 });

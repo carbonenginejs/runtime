@@ -1,4 +1,3 @@
-export { ITr2FroxelFogSettings } from './ITr2FroxelFogSettings.js';
 export { ITr2ImpostorSource } from './ITr2ImpostorSource.js';
 export { ITr2InstanceData } from './ITr2InstanceData.js';
 export { Tr2AtlasTexture } from './Tr2AtlasTexture.js';
@@ -10,21 +9,16 @@ export { Tr2HostBitmap } from './Tr2HostBitmap.js';
 export { Tr2ImpostorManager } from './Tr2ImpostorManager.js';
 export { Tr2PrimitiveScene } from './Tr2PrimitiveScene.js';
 export { Tr2PrimitiveText } from './Tr2PrimitiveText.js';
-export { Tr2ProjectBoundingBoxBracket } from './Tr2ProjectBoundingBoxBracket.js';
 export { Tr2ReflectionProbe } from './Tr2ReflectionProbe.js';
 export { Tr2RingBuffer } from './Tr2RingBuffer.js';
 export { Tr2RotationTool } from './Tr2RotationTool.js';
-export { Tr2SSAO } from './Tr2SSAO.js';
 export { Tr2SSSSS } from './Tr2SSSSS.js';
-export { Tr2ShadowMap } from './Tr2ShadowMap.js';
 export { Tr2StreamingBitmapSaver } from './Tr2StreamingBitmapSaver.js';
 export { Tr2TextureArray } from './Tr2TextureArray.js';
 export { Tr2TextureAtlas } from './Tr2TextureAtlas.js';
 export { Tr2TextureAtlasMan } from './Tr2TextureAtlasMan.js';
 export { Tr2TextureReference } from './Tr2TextureReference.js';
-export { Tr2Transform } from './Tr2Transform.js';
 export { Tr2TransientTextureReference } from './Tr2TransientTextureReference.js';
 export { Tr2TranslationTool } from './Tr2TranslationTool.js';
-export { Tr2VolumetricsRenderer } from './Tr2VolumetricsRenderer.js';
 export { RenderBatchSortType, SSAOQuality, ShadowQuality, TR2SHADERMODEL, Tr2DxtCompressionFormat, Tr2DxtCompressionSquishQuality, Tr2RenderReason, Tr2StandardIlluminant, Tr2TransformModifier, Tr2VolumerticQuality, TriFrustumTestResult, TriVariableContentType } from './enums.js';
 //# sourceMappingURL=index.js.map

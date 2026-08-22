@@ -162,7 +162,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   {
     for (const modifier of this.attributeModifiers)
     {
-      modifier?.SetControllerVariable?.(name, value);
+      modifier.SetControllerVariable(name, value);
     }
   }
 
@@ -182,7 +182,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.UpdateSyncronous?.(updateContext, params, activationMultiplier);
+      attributeModifier.UpdateSyncronous(updateContext, params, activationMultiplier);
     }
 
     if (!this.expression)

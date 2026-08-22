@@ -242,10 +242,10 @@ export class EveMeshOverlayEffect extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  Update(realTime, simTime)
+  Update(realTime, simTime, renderContext = null)
   {
     if (!this.update || !this.curveSet) return;
-    this.curveSet.Update?.(realTime, simTime);
+    this.curveSet.Update(realTime, simTime, renderContext);
     for (const controller of this.controllers) controller?.Update?.(0.5);
   }
 

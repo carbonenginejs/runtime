@@ -87,8 +87,8 @@ class Tr2VectorFunctionModifier extends CjsModel {
    * position, reading system coordinates instead when this modifier is
    * authored in them.
    */
-  Update(inOut, time, renderContext = null) {
-    this.#ReadSource(inOut, time, "Update");
+  Update(time, inOut, renderContext = null) {
+    this.#ReadSource(time, inOut, "Update");
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
@@ -96,8 +96,8 @@ class Tr2VectorFunctionModifier extends CjsModel {
    * The wrapped source's position at a time, offset and scaled, without
    * advancing it.
    */
-  GetValueAt(inOut, time, renderContext = null) {
-    this.#ReadSource(inOut, time, "GetValueAt");
+  GetValueAt(time, inOut, renderContext = null) {
+    this.#ReadSource(time, inOut, "GetValueAt");
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
@@ -105,16 +105,20 @@ class Tr2VectorFunctionModifier extends CjsModel {
    * The wrapped source's velocity at a time, scaled but NOT offset, because a
    * constant offset has no rate of change.
    */
-  GetValueDotAt(inOut, time) {
-    this.clientBall?.GetValueDotAt?.(inOut, time);
+  GetValueDotAt(time, inOut) {
+    if (this.clientBall) {
+      this.clientBall.GetValueDotAt(time, inOut);
+    }
     return vec3.scale(inOut, inOut, this.scaleModifier);
   }
 
   /**
    * The wrapped source's acceleration at a time, scaled but not offset.
    */
-  GetValueDoubleDotAt(inOut, time) {
-    this.clientBall?.GetValueDoubleDotAt?.(inOut, time);
+  GetValueDoubleDotAt(time, inOut) {
+    if (this.clientBall) {
+      this.clientBall.GetValueDoubleDotAt(time, inOut);
+    }
     return vec3.scale(inOut, inOut, this.scaleModifier);
   }
 
@@ -122,8 +126,10 @@ class Tr2VectorFunctionModifier extends CjsModel {
    * The wrapped source's interpolated system-coordinate position at a time,
    * passed through untouched by the offset and scale.
    */
-  InterpolatedPosition(out, time) {
-    this.clientBall?.InterpolatedPosition?.(out, time);
+  InterpolatedPosition(time, out) {
+    if (this.clientBall) {
+      this.clientBall.InterpolatedPosition(time, out);
+    }
     return out;
   }
 
@@ -134,13 +140,13 @@ class Tr2VectorFunctionModifier extends CjsModel {
   // narrowing happens only when the value reaches a Float32Array.
 
   /** Reads the wrapped source into `inOut`, by whichever path is authored. */
-  #ReadSource(inOut, time, method) {
+  #ReadSource(time, inOut, method) {
     if (!this.clientBall) return inOut;
     if (this.useSystemCoordinates) {
-      this.clientBall.InterpolatedPosition?.(inOut, time);
+      this.clientBall.InterpolatedPosition(time, inOut);
       return inOut;
     }
-    this.clientBall[method]?.(inOut, time);
+    this.clientBall[method](time, inOut);
     return inOut;
   }
   static {

@@ -32,7 +32,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2Effect",
         family: "shader"
-      })], [[[io, io.notify, void 0, io.rebuild("pipeline"), io, io.always, io, io.persist, type, type.string], 16, "effectFilePath"], [[void 0, io.rebuild("pipeline"), io, io.persist, void 0, type.list("Tr2ShaderOption")], 16, "options"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("Tr2ConstantEffectParameter")], 16, "constParameters"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("EffectParameter")], 16, "parameters"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("EffectResource")], 16, "resources"], [[io, io.read, void 0, type.objectRef("Tr2EffectRes")], 16, "effectResource"], [[io, io.read, type, type.string], 16, "actualEffectFilePath"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("Tr2SamplerOverride")], 16, "samplerOverrides"], [[carbon, carbon.method, impl, impl.adapted], 18, "RebuildCachedData"], [[carbon, carbon.method, impl, impl.implemented], 18, "RebuildCachedDataAsync"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetVariableStore"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetVariableStore"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetConstParameters"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetHashValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterAnnotations"], [[carbon, carbon.method, impl, impl.adapted], 18, "PopulateParameters"], [[carbon, carbon.method, impl, impl.implemented], 18, "EndUpdate"], [[carbon, carbon.method, impl, impl.adapted], 18, "PruneParameters"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsParameterUsedByTechnique"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartUpdate"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetResourceTexture2D"]], 0, void 0, _Tr2Material));
+      })], [[[io, io.notify, void 0, io.rebuild("pipeline"), io, io.always, io, io.persist, type, type.string], 16, "effectFilePath"], [[void 0, io.rebuild("pipeline"), io, io.persist, void 0, type.list("Tr2ShaderOption")], 16, "options"], [[io, io.persist, type, type.string], 16, "name"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("Tr2ConstantEffectParameter")], 16, "constParameters"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("EffectParameter")], 16, "parameters"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("EffectResource")], 16, "resources"], [[io, io.read, void 0, type.objectRef("Tr2EffectRes")], 16, "effectResource"], [[io, io.read, type, type.string], 16, "actualEffectFilePath"], [[void 0, io.rebuild("bindings"), io, io.persist, void 0, type.list("Tr2SamplerOverride")], 16, "samplerOverrides"], [[carbon, carbon.method, impl, impl.adapted], 18, "RebuildCachedData"], [[carbon, carbon.method, impl, impl.implemented], 18, "RebuildCachedDataAsync"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetVariableStore"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetVariableStore"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetConstParameters"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetHashValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetParameterAnnotations"], [[carbon, carbon.method, impl, impl.adapted], 18, "PopulateParameters"], [[carbon, carbon.method, impl, impl.implemented], 18, "EndUpdate"], [[carbon, carbon.method, impl, impl.adapted], 18, "PruneParameters"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsParameterUsedByTechnique"], [[carbon, carbon.method, impl, impl.implemented], 18, "StartUpdate"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetResourceTexture2D"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("JS explicitly rebuilds the cached CPU effect data after Carbon's Vector4 parameter reuse-or-append policy because plain array mutation has no Blue list notification.")], 18, "SetParameter"]], 0, void 0, _Tr2Material));
     }
     /** m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY] */
     effectFilePath = (_initProto(this), _init_effectFilePath(this, ""));
@@ -465,6 +465,23 @@ new class extends _identity {
         this.RebuildCachedDataInternal();
       }
       return updated;
+    }
+
+    /**
+     * Sets one named dynamic parameter. Carbon exposes this singular facade and
+     * smart-light meshes use it while stamping their resolved group color.
+     */
+    SetParameter(name, value) {
+      const parameterName = String(name ?? "");
+      const existing = CjsParameter.findByName(this.parameters, parameterName);
+      let parameter = existing instanceof _Tr2Vector4Parameter ? existing : null;
+      if (!parameter) {
+        parameter = new _Tr2Vector4Parameter();
+        parameter.name = parameterName;
+        this.parameters.push(parameter);
+      }
+      parameter.SetValue(value);
+      this.RebuildCachedDataInternal();
     }
 
     /** Merges texture resources by unique name from res path strings. */

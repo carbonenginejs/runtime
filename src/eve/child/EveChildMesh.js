@@ -84,6 +84,28 @@ export class EveChildMesh extends EveChildTransform
 
   #worldBoundingSphere = vec4.create();
 
+  /**
+   * Clears the private visibility state for a derived child whose own Carbon
+   * cull rejects it before EveChildMesh::UpdateVisibility runs.
+   *
+   * EveChildInstanceMeshRenderer owns exactly that two-stage cull. Keeping the
+   * mutation here preserves one state owner instead of shadowing the four
+   * private values in the subclass.
+   */
+  _ResetVisibilityState()
+  {
+    this.#isVisible = false;
+    this.currentScreenSize = -1;
+    this.#instancesVisible = false;
+    this.currentInstanceScreenSize = -1;
+  }
+
+  /** Carbon-derived classes read m_activationStrength after the mesh update. */
+  _GetActivationStrength()
+  {
+    return this.#activationStrength;
+  }
+
   @io.notify
   @io.persist
   @type.int32

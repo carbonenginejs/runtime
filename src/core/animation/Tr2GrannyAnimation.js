@@ -650,12 +650,14 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   @impl.implemented
+  /** Returns the number of mesh bones in the current palette. */
   GetMeshBoneCount()
   {
     return this.#meshBoneIndices.length;
   }
 
   @impl.adapted
+  /** Copies a named bone's world transform into an output matrix. */
   GetBoneWorldTransform(boneName, out = mat4.create())
   {
     const index = this.#runtimeModel?.boneByName.get(String(boneName ?? ""));
@@ -668,6 +670,7 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   @impl.adapted
+  /** Copies an indexed bone's world transform into an output matrix. */
   GetBoneTransform(index, out = mat4.create())
   {
     const bone = this.#runtimeModel?.bones[Number(index)];
@@ -680,6 +683,7 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   @impl.adapted
+  /** Resolves a bone name or index to its current world matrix. */
   GetBoneMatrix(bone)
   {
     if (typeof bone === "number")
@@ -690,12 +694,14 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   @impl.implemented
+  /** Returns the current world transforms for every animation bone. */
   GetAnimationTransforms()
   {
     return this.#runtimeModel?.bones.map(bone => bone.worldTransform) ?? [];
   }
 
   @impl.implemented
+  /** Returns the ordered names of the current animation bones. */
   GetAnimationBoneList()
   {
     return this.#runtimeModel?.bones.map(bone => bone.name) ?? [];
@@ -720,6 +726,7 @@ export class Tr2GrannyAnimation extends CjsModel
     };
   }
 
+  /** Advances one animation layer and retires completed requests. */
   #advanceLayer(layer, dt)
   {
     if (layer.controlParamEnabled)
@@ -767,6 +774,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Applies configured bone offsets to the sampled local pose. */
   #applyBoneOffsets()
   {
     const bones = this.#runtimeModel?.bones ?? [];
@@ -787,6 +795,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Composes local bone state into world and offset transforms. */
   #composePose()
   {
     const rotationMatrix = mat4.create();
@@ -814,6 +823,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Creates one detached runtime bone record from a decoded source bone. */
   #createBone(source, index)
   {
     const sourcePosition = source.position ?? source.Position ?? [0, 0, 0];
@@ -837,6 +847,7 @@ export class Tr2GrannyAnimation extends CjsModel
     };
   }
 
+  /** Decodes and caches the transform curves for one animation track. */
   #decodeTrack(track)
   {
     let value = this.#curveCache.get(track);
@@ -852,6 +863,7 @@ export class Tr2GrannyAnimation extends CjsModel
     return value;
   }
 
+  /** Finds a named animation across primary and secondary resources. */
   #findAnimation(name)
   {
     const target = String(name ?? "");
@@ -872,22 +884,26 @@ export class Tr2GrannyAnimation extends CjsModel
     return null;
   }
 
+  /** Returns a nonnegative duration for one animation. */
   #getAnimationDuration(animation)
   {
     return Math.max(0, CjsGrannyCurves.getAnimationDuration(animation));
   }
 
+  /** Reads a lower- or upper-case array property from decoded Granny data. */
   #getArray(value, lowerName, upperName)
   {
     return Array.isArray(value?.[lowerName]) ? value[lowerName] : Array.isArray(value?.[upperName]) ? value[upperName] : [];
   }
 
+  /** Resolves a named layer or the unnamed base layer. */
   #getLayer(layerName)
   {
     const name = String(layerName ?? "");
     return name ? this.#layers.get(name) ?? null : this.#baseLayer;
   }
 
+  /** Returns named animation layers in deterministic name order. */
   #getOrderedLayers()
   {
     return [ ...this.#layers.entries() ]
@@ -895,6 +911,7 @@ export class Tr2GrannyAnimation extends CjsModel
       .map(([, layer ]) => layer);
   }
 
+  /** Unwraps a resource wrapper to its decoded Granny source object. */
   #getSource(resource)
   {
     let value = resource?.GetPayload?.() ?? resource;
@@ -911,6 +928,7 @@ export class Tr2GrannyAnimation extends CjsModel
     return null;
   }
 
+  /** Queues or replaces one animation request on a layer. */
   #playLayer(layerName, animName, replace, loopCount, delay, speed, clearWhenDone)
   {
     const layer = this.#getLayer(layerName);
@@ -940,6 +958,7 @@ export class Tr2GrannyAnimation extends CjsModel
     return true;
   }
 
+  /** Rebuilds the mesh-to-skeleton bone index map. */
   #rebuildMeshBoneIndices()
   {
     const { source, model, bones, boneByName } = this.#runtimeModel;
@@ -956,6 +975,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Rebuilds rest-world and inverse-rest transforms for every bone. */
   #rebuildRestTransforms()
   {
     const rotationMatrix = mat4.create();
@@ -982,6 +1002,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Restores every runtime bone to its authored rest pose. */
   #resetPose()
   {
     for (const bone of this.#runtimeModel.bones)
@@ -992,6 +1013,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Decodes and caches one modern or legacy morph curve. */
   #decodeMorphCurve(curve, modern)
   {
     if (!curve || typeof curve !== "object")
@@ -1008,6 +1030,7 @@ export class Tr2GrannyAnimation extends CjsModel
     return this.#morphCurveCache.get(curve);
   }
 
+  /** Samples every supported morph channel from one animation. */
   #sampleMorphs(animation, time, duration, weight, additive)
   {
     if (!(duration > 0) || time < 0 || time >= duration)
@@ -1052,6 +1075,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Accumulates one sampled morph curve into retained output state. */
   #sampleMorph(name, curve, time, duration, weight, additive)
   {
     if (!name || !curve)
@@ -1071,6 +1095,7 @@ export class Tr2GrannyAnimation extends CjsModel
     this.#morphAnimations.set(name, additive && previous !== undefined ? previous + value : value);
   }
 
+  /** Samples the active request for one animation layer. */
   #sampleLayer(layer, additive)
   {
     const request = layer.queue[0];
@@ -1118,6 +1143,7 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /** Samples and blends one transform track into a runtime bone. */
   #sampleTrack(bone, track, time, duration, weight, additive)
   {
     const curves = this.#decodeTrack(track);

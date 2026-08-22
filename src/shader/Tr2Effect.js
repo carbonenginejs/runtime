@@ -575,6 +575,28 @@ export class Tr2Effect extends Tr2Material
     return updated;
   }
 
+  /**
+   * Sets one named dynamic parameter. Carbon exposes this singular facade and
+   * smart-light meshes use it while stamping their resolved group color.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("JS explicitly rebuilds the cached CPU effect data after Carbon's Vector4 parameter reuse-or-append policy because plain array mutation has no Blue list notification.")
+  SetParameter(name, value)
+  {
+    const parameterName = String(name ?? "");
+    const existing = CjsParameter.findByName(this.parameters, parameterName);
+    let parameter = existing instanceof Tr2Vector4Parameter ? existing : null;
+    if (!parameter)
+    {
+      parameter = new Tr2Vector4Parameter();
+      parameter.name = parameterName;
+      this.parameters.push(parameter);
+    }
+    parameter.SetValue(value);
+    this.RebuildCachedDataInternal();
+  }
+
   /** Merges texture resources by unique name from res path strings. */
   SetTextures(values = {})
   {

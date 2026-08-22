@@ -4,6 +4,7 @@ import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { Tr2Light as _Tr2Light } from './Tr2Light.js';
+import { hasFactionColor, resolveFactionColor } from '../resolveFactionColor.js';
 
 let _initProto, _initClass, _init_castsShadows, _init_extra_castsShadows, _init_flags, _init_extra_flags, _init_position, _init_extra_position, _init_rotation, _init_extra_rotation, _init_boneIndex, _init_extra_boneIndex, _init_radius, _init_extra_radius, _init_innerRadius, _init_extra_innerRadius, _init_innerAngle, _init_extra_innerAngle, _init_outerAngle, _init_extra_outerAngle, _init_color, _init_extra_color, _init_brightness, _init_extra_brightness, _init_noiseAmplitude, _init_extra_noiseAmplitude, _init_noiseFrequency, _init_extra_noiseFrequency, _init_noiseOctaves, _init_extra_noiseOctaves, _init_isVolumetric, _init_extra_isVolumetric, _init_name, _init_extra_name, _init_factionColor, _init_extra_factionColor, _init_saturation, _init_extra_saturation, _init_isSpotlight, _init_extra_isSpotlight, _init_lightProfilePath, _init_extra_lightProfilePath, _init_lightProfile, _init_extra_lightProfile;
 
@@ -21,6 +22,9 @@ new class extends _identity {
       })], [[[io, io.notify, io, io.persist, type, type.int32, void 0, type.enum("PerLightShadowSetting")], 16, "castsShadows"], [[io, io.persist, type, type.uint16], 16, "flags"], [[io, io.persist, type, type.vec3], 16, "position"], [[io, io.persist, type, type.quat], 16, "rotation"], [[io, io.notify, io, io.persist, type, type.int32], 16, "boneIndex"], [[io, io.persist, type, type.float32], 16, "radius"], [[io, io.persist, type, type.float32], 16, "innerRadius"], [[io, io.persist, type, type.float32], 16, "innerAngle"], [[io, io.persist, type, type.float32], 16, "outerAngle"], [[io, io.notify, io, io.persist, type, type.color], 16, "color"], [[io, io.notify, io, io.persist, type, type.float32], 16, "brightness"], [[io, io.persist, type, type.float32], 16, "noiseAmplitude"], [[io, io.persist, type, type.float32], 16, "noiseFrequency"], [[io, io.persist, type, type.uint32], 16, "noiseOctaves"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "isVolumetric"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.notify, io, io.persist, type, type.int32], 16, "factionColor"], [[io, io.notify, io, io.persist, type, type.float32], 16, "saturation"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "isSpotlight"], [[io, io.notify, io, io.persist, type, type.string], 16, "lightProfilePath"], [[io, io.read, void 0, type.objectRef("Tr2LightProfileRes")], 16, "lightProfile"], [[impl, impl.implemented], 18, "SetInheritProperties"], [[impl, impl.implemented], 18, "SetLightColorFromFactionColor"], [[impl, impl.implemented], 18, "GetSelectedColor"], [[impl, impl.adapted, void 0, impl.reason("Browser property notifications identify the changed field by name rather than Carbon's Be::Var pointer.")], 18, "OnModified"]], 0, void 0, _Tr2Light));
     }
     #parentColorSet = (_initProto(this), null);
+
+    /** Caller-owned faction-colour result; never aliases the SOF model. */
+    #selectedFactionColor = vec4.createLinear();
 
     /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
     castsShadows = _init_castsShadows(this, 0);
@@ -100,10 +104,10 @@ new class extends _identity {
      * Recolours the light by blending its palette entry's luminance with the full palette colour by the saturation factor, reporting false when no palette entry is available.
      */
     SetLightColorFromFactionColor() {
-      const color = this.#parentColorSet?.[this.factionColor];
-      if (!color) {
+      if (!hasFactionColor(this.#parentColorSet, this.factionColor)) {
         return false;
       }
+      const color = resolveFactionColor(this.#selectedFactionColor, this.color, true, this.factionColor, this.#parentColorSet);
       const intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114;
       const saturation = Math.max(0, Number(this.saturation) || 0);
       this.color[0] = intensity + (color[0] - intensity) * saturation;

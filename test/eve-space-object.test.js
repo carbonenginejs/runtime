@@ -11,6 +11,7 @@ import {
   EvePlanet,
   EveRootTransform,
   EveSpaceObject2,
+  Tr2RenderContext,
   Tr2Lod,
   TriObserverLocal
 } from "../npm/dist/index.js";
@@ -57,7 +58,13 @@ test("EveRootTransform evaluates detached curves and implements Carbon targetabl
   };
 
   assert.equal(root.UpdateSyncronous({ currentTime: 3, deltaTime: 0 }), true);
-  root.UpdateViewDependentData({});
+  root.UpdateViewDependentData({
+    GetFrustum()
+    {
+      return null;
+    },
+    renderContext: new Tr2RenderContext()
+  });
   assertVecNear(root.worldTransform.slice(12, 15), [11, 20, 30]);
   assert.equal(root.GetDamageLocatorCount(), 0);
   const target = new Float32Array(3);

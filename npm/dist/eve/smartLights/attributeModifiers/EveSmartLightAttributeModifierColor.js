@@ -2,6 +2,7 @@ import { applyDecs2311 as _applyDecs2311 } from '../../../_virtual/_rollupPlugin
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveSmartLightBaseAttributeModifier as _EveSmartLightBaseAtt } from './EveSmartLightBaseAttributeModifier.js';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
+import { resolveFactionColor } from '../../resolveFactionColor.js';
 
 let _initProto, _initClass, _init_factionColor, _init_extra_factionColor, _init_blendValue, _init_extra_blendValue, _init_useFactionColor, _init_extra_useFactionColor, _init_blendColor, _init_extra_blendColor, _init_brightnessMultiplier, _init_extra_brightnessMultiplier, _init_saturationMultiplier, _init_extra_saturationMultiplier;
 
@@ -15,7 +16,7 @@ class EveSmartLightAttributeModifierColor extends _EveSmartLightBaseAtt {
     } = _applyDecs2311(this, [type.define({
       className: "EveSmartLightAttributeModifierColor",
       family: "eve/smartLights/attributeModifiers"
-    })], [[[io, io.notify, io, io.persist, type, type.int32], 16, "factionColor"], [[io, io.persist, type, type.float32], 16, "blendValue"], [[io, io.persist, type, type.boolean], 16, "useFactionColor"], [[io, io.persist, type, type.color], 16, "blendColor"], [[io, io.persist, type, type.float32], 16, "brightnessMultiplier"], [[io, io.persist, type, type.float32], 16, "saturationMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInheritProperties"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetGroupColor"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "ProcessAttributeModifier"]], 0, void 0, _EveSmartLightBaseAtt));
+    })], [[[io, io.notify, io, io.persist, type, type.int32], 16, "factionColor"], [[io, io.persist, type, type.float32], 16, "blendValue"], [[io, io.persist, type, type.boolean], 16, "useFactionColor"], [[io, io.persist, type, type.color], 16, "blendColor"], [[io, io.persist, type, type.float32], 16, "brightnessMultiplier"], [[io, io.persist, type, type.float32], 16, "saturationMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInheritProperties"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("JS accepts Carbon's indexed colour array and the combined runtime's named SOF colour-set model through one direct two-representation boundary.")], 18, "GetGroupColor"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "ProcessAttributeModifier"]], 0, void 0, _EveSmartLightBaseAtt));
   }
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   factionColor = (_initProto(this), _init_factionColor(this, -1));
@@ -38,6 +39,9 @@ class EveSmartLightAttributeModifierColor extends _EveSmartLightBaseAtt {
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = (_init_extra_saturationMultiplier(this), null);
 
+  /** Caller-owned faction-colour result; never aliases the SOF model. */
+  #resolvedGroupColor = vec4.createLinear();
+
   /** Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24). */
   SetInheritProperties(colorSet) {
     if (colorSet) {
@@ -53,13 +57,7 @@ class EveSmartLightAttributeModifierColor extends _EveSmartLightBaseAtt {
    * exactly that array, so its length is the bound.
    */
   GetGroupColor() {
-    if (this.useFactionColor && this.#parentColorSet) {
-      const index = this.factionColor | 0;
-      if (index >= 0 && index < this.#parentColorSet.length && this.#parentColorSet[index]) {
-        return this.#parentColorSet[index];
-      }
-    }
-    return this.blendColor;
+    return resolveFactionColor(this.#resolvedGroupColor, this.blendColor, this.useFactionColor, this.factionColor, this.#parentColorSet);
   }
 
   /** Advances the crossfade state machine (EveSmartLightAttributeModifierColor.cpp:38-41). */

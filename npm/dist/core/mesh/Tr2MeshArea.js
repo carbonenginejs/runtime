@@ -2,7 +2,7 @@ import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBab
 import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 
-let _initProto, _initClass, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_index, _init_extra_index, _init_count, _init_extra_count, _init_reversed, _init_extra_reversed, _init_useSHLighting, _init_extra_useSHLighting, _init_effect, _init_extra_effect, _init_castsShadows, _init_extra_castsShadows, _init_generateDepthArea, _init_extra_generateDepthArea, _init_minLod, _init_extra_minLod;
+let _initProto, _initClass, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_index, _init_extra_index, _init_count, _init_extra_count, _init_reversed, _init_extra_reversed, _init_useSHLighting, _init_extra_useSHLighting, _init_effect, _init_extra_effect, _init_castsShadows, _init_extra_castsShadows, _init_generateDepthArea, _init_extra_generateDepthArea, _init_alphaCutout, _init_extra_alphaCutout, _init_minLod, _init_extra_minLod;
 
 /**
  * One drawable range of a mesh: the index and count of geometry groups plus the
@@ -12,12 +12,12 @@ let _Tr2MeshArea;
 class Tr2MeshArea extends CjsModel {
   static {
     ({
-      e: [_init_name, _init_extra_name, _init_display, _init_extra_display, _init_index, _init_extra_index, _init_count, _init_extra_count, _init_reversed, _init_extra_reversed, _init_useSHLighting, _init_extra_useSHLighting, _init_effect, _init_extra_effect, _init_castsShadows, _init_extra_castsShadows, _init_generateDepthArea, _init_extra_generateDepthArea, _init_minLod, _init_extra_minLod, _initProto],
+      e: [_init_name, _init_extra_name, _init_display, _init_extra_display, _init_index, _init_extra_index, _init_count, _init_extra_count, _init_reversed, _init_extra_reversed, _init_useSHLighting, _init_extra_useSHLighting, _init_effect, _init_extra_effect, _init_castsShadows, _init_extra_castsShadows, _init_generateDepthArea, _init_extra_generateDepthArea, _init_alphaCutout, _init_extra_alphaCutout, _init_minLod, _init_extra_minLod, _initProto],
       c: [_Tr2MeshArea, _initClass]
     } = _applyDecs2311(this, [type.define({
       className: "Tr2MeshArea",
       family: "trinityCore"
-    })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.int32], 16, "index"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.int32], 16, "count"], [[void 0, io.rebuild("batches"), io, io.persistOnly, type, type.boolean], 16, "reversed"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.boolean], 16, "useSHLighting"], [[void 0, io.rebuild("batches"), io, io.notify, io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.boolean], 16, "castsShadows"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.boolean], 16, "generateDepthArea"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.int32], 16, "minLod"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDisplay"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetReversed"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsReversed"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetReversed"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetUseSHLighting"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetUseSHLighting"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMaterialInterface"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMaterial"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetName"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsCastingShadows"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetCastsShadows"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetGenerateDepthArea"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetGenerateDepthArea"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetMinLod"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMinLod"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetJointCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetJointCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetJointMappingAnimRig"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetJointMappingAnimRig"], [[carbon, carbon.method, impl, impl.adapted], 18, "CopyFrom"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.readwrite, type, type.boolean], 16, "display"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.int32], 16, "index"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.int32], 16, "count"], [[void 0, io.rebuild("batches"), io, io.persistOnly, type, type.boolean], 16, "reversed"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.boolean], 16, "useSHLighting"], [[void 0, io.rebuild("batches"), io, io.notify, io, io.persist, void 0, type.objectRef("Tr2Effect")], 16, "effect"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.boolean], 16, "castsShadows"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.boolean], 16, "generateDepthArea"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.boolean], 16, "alphaCutout"], [[void 0, io.rebuild("batches"), io, io.persist, type, type.int32], 16, "minLod"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetIndex"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetCount"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetDisplay"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetReversed"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsReversed"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetReversed"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetUseSHLighting"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetUseSHLighting"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetMaterialInterface"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetMaterial"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetName"], [[carbon, carbon.method, impl, impl.adapted], 18, "IsCastingShadows"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetCastsShadows"], [[carbon, carbon.method, impl, impl.implemented], 18, "IsAlphaCutout"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetAlphaCutout"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetGenerateDepthArea"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetGenerateDepthArea"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetMinLod"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetMinLod"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetJointCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetJointCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetJointMappingAnimRig"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetJointMappingAnimRig"], [[carbon, carbon.method, impl, impl.adapted], 18, "CopyFrom"]], 0, void 0, CjsModel));
   }
   name = (_initProto(this), _init_name(this, ""));
   display = (_init_extra_name(this), _init_display(this, true));
@@ -28,7 +28,7 @@ class Tr2MeshArea extends CjsModel {
   effect = (_init_extra_useSHLighting(this), _init_effect(this, null));
 
   // DIVERGENCE (deliberate, precedent: EvePlaneSetItem.blinkData): Carbon
-  // keeps these three as private runtime state stamped by SOF through
+  // keeps these four as private runtime state stamped by SOF through
   // setters. The JS values path has no setter side channel, so they are
   // schema-backed here so SOF-authored shadow/depth/LOD state survives
   // values exchange. Without them every area defaults to shadow-casting.
@@ -39,8 +39,11 @@ class Tr2MeshArea extends CjsModel {
   /** m_generateDepthArea - authored depth-area participation (SOF-stamped). */
   generateDepthArea = (_init_extra_castsShadows(this), _init_generateDepthArea(this, false));
 
+  /** m_alphaCutout - decal-style surface whose ray-facing rule is two-sided. */
+  alphaCutout = (_init_extra_generateDepthArea(this), _init_alphaCutout(this, false));
+
   /** m_minLod (Tr2Lod) - minimal visible lod; TR2_LOD_UNSPECIFIED = -1. */
-  minLod = (_init_extra_generateDepthArea(this), _init_minLod(this, -1));
+  minLod = (_init_extra_alphaCutout(this), _init_minLod(this, -1));
 
   /** m_jointCount - skinning joint count, fed by Tr2MeshBase.BindToRig. */
   #jointCount = (_init_extra_minLod(this), 0);
@@ -148,6 +151,16 @@ class Tr2MeshArea extends CjsModel {
     this.castsShadows = !!value;
   }
 
+  /** Whether ray intersection treats this area as an alpha-cutout surface. */
+  IsAlphaCutout() {
+    return this.alphaCutout;
+  }
+
+  /** Sets alpha-cutout participation; SOF stamps decal areas through this. */
+  SetAlphaCutout(value) {
+    this.alphaCutout = !!value;
+  }
+
   /** Whether the authored area participates in depth-area generation. */
   GetGenerateDepthArea() {
     return this.generateDepthArea;
@@ -215,6 +228,7 @@ class Tr2MeshArea extends CjsModel {
     this.display = other.display;
     this.useSHLighting = other.useSHLighting;
     this.generateDepthArea = other.GetGenerateDepthArea();
+    this.alphaCutout = other.IsAlphaCutout();
     return this;
   }
   static {

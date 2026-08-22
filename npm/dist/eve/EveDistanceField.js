@@ -107,7 +107,7 @@ new class extends _identity {
         if (!this.curveSet.IsPlaying()) {
           this.curveSet.PlayFrom(this.distance);
         } else {
-          this.curveSet.Update(this.distance);
+          this.curveSet.Update(this.distance, undefined, updateContext.renderContext);
         }
       }
     }

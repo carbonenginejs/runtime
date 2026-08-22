@@ -185,7 +185,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     return super.isLoading &&
       !!this.GetInstanceGeometryResource() &&
-      !(this.GetInstanceGeometryResource().IsInstanceDataReady?.() ?? false);
+      !this.GetInstanceGeometryResource().IsInstanceDataReady();
   }
 
   /** Overrides Tr2MeshBase - instanced areas share the whole-mesh bounds. */

@@ -378,7 +378,7 @@ new class extends _identity {
       }
       const curveSet = this.isFiring ? this.startCurveSet : this.stopCurveSet;
       const time = getTime(context);
-      curveSet?.Update?.(time, time);
+      if (curveSet) curveSet.Update(time, time, context.renderContext);
       this.sourceObserver?.Update?.(this.#perMuzzleData[0]?.muzzleTransform ?? _EveTurretFiringFX.#identity);
       this.destinationObserver?.Update?.(translationMatrix(this.endPosition, _EveTurretFiringFX.#destinationTransform));
       return justFired;

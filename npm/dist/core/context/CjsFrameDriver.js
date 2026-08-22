@@ -16,9 +16,10 @@
 //
 //   - the entry and exit are DELIBERATELY ASYMMETRIC. Entry is profiler,
 //     BeginFrame, BeginRenderContext; exit is profiler, EndRenderContext,
-//     EndFrame. EndRenderContext clears the frame pool allocator BEFORE
-//     EndScene, so every transient per-object payload dies inside the scene
-//     bracket that leased it.
+//     EndFrame. Carbon's EndRenderContext clears the frame pool allocator
+//     BEFORE EndScene. The current JS context resets the pool but has not yet
+//     ported the matching EndScene delegation; that is a real composition gap,
+//     not permission to omit the close.
 //   - PRESENT IS NOT HERE. Carbon presents the PREVIOUS frame at the top of
 //     the NEXT tick, before Render, with a source comment explaining that it
 //     buys CPU/GPU overlap while the host script is pumped
@@ -26,9 +27,8 @@
 //     exactly as Carbon puts it in the per-backend TriDevice. A driver that
 //     presents at the end of Render has the ordering wrong.
 //
-// WHAT AN ENGINE OWNS: every step that touches a device. Those arrive as one
-// duck-typed hooks object rather than as Trinity behavior, so the order is
-// preserved even though the work is not ours:
+// WHAT AN ENGINE OWNS: every step that touches a device. The current separate-
+// package implementation receives those through a structural hooks object:
 //
 //   Throttle()                     - Carbon sleeps here to give the GPU a break
 //                                    right after Present. A browser host paces
@@ -38,17 +38,16 @@
 //   EndProfileFrame()              - Tr2GpuProfiler::EndFrame
 //   ReserveQuadListIndexBuffer(n)  - a shared GPU index buffer
 //
-// Every hook is optional. A driver with no hooks runs the whole frame and
-// produces render-job intents, which is what makes a frame testable headlessly.
+// TRANSITION NOTE (accepted 2026-08-22): the combined runtime moves this driver
+// to core composition and replaces required structural hooks with narrow
+// nominal bases whose methods throw until implemented. Required frame calls are
+// then direct after one-time composition validation. Only capabilities proven
+// genuinely optional remain separate and guarded; do not copy this hooks bag as
+// the target contract.
 //
-// OWNERSHIP IS OPEN. This is composition rather than graph behavior, and
-// runtime-core is the package that composes engines with domain runtimes
-// (docs/engine-backends-plan.md, decision 7). It sits here because decision 2
-// currently assigns the neutral frame body to runtime-trinity. It imports
-// NOTHING - the context, the jobs and the hooks are all injected and
-// duck-typed - specifically so that relocating it is a file move rather than a
-// rewrite, and so runtime-core could adopt it without acquiring a dependency
-// on this package.
+// OWNERSHIP IS SETTLED. This is composition rather than graph behavior and
+// moves to the combined runtime's core layer. It remains here only until the
+// physical history-preserving migration.
 
 /** Runs Carbon's backend-neutral frame body in order, against injected engine hooks. */
 class CjsFrameDriver {

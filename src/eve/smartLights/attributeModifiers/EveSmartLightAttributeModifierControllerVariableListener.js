@@ -91,7 +91,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
 
     for (const modifier of this.attributeModifiers)
     {
-      modifier?.SetControllerVariable?.(name, value);
+      modifier.SetControllerVariable(name, value);
     }
   }
 

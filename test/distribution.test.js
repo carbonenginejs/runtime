@@ -206,6 +206,43 @@ test("distribution lifetime modifiers update Carbon transform and kill state", (
   );
 });
 
+
+test("a lifetime replacement with no free placement produces Carbon's default record", () =>
+{
+  const locator = new Locator();
+  locator.position.set([7, 8, 9]);
+  const generator = new EveDistributionPlacementGeneratorLocators();
+  generator.locators.push(locator);
+
+  const distribution = new EveBaseDistributionMethod();
+  distribution.placementGenerators.push(generator);
+  distribution.Initialize();
+  distribution.AddEntity();
+  assert.equal(distribution.GetFreePlacementCount(), 0);
+
+  let replace = true;
+  distribution.lifetimeModifiers.push({
+    AffectsTransform: () => false,
+    ProcessDistributionModifier()
+    {
+      if (!replace)
+      {
+        return EveDistributionModifierProcessLifetime.DistributionEntityLifeTimeEvent.DO_NOTHING;
+      }
+      replace = false;
+      return EveDistributionModifierProcessLifetime.DistributionEntityLifeTimeEvent.KILL_AND_SPAWN_NEW_FROM_DISTRIBUTION;
+    }
+  });
+
+  distribution.UpdateSyncronous({ GetDeltaT: () => 1 });
+  assert.equal(distribution.GetNumberOfPlacements(), 1);
+  assert.equal(distribution.GetFreePlacementCount(), 0);
+  assert.ok(distribution.placementData[0] instanceof PlacementDataWithIdentifier);
+  assert.equal(distribution.placementData[0].uniqueID, 1);
+  assert.equal(distribution.placementData[0].initialPlacementID, -1);
+  assert.deepEqual(Array.from(distribution.placementData[0].initialTranslation), [0, 0, 0]);
+});
+
 test("burst and interval spawners drive Carbon distribution owners", () =>
 {
   const generator = new EveDistributionPlacementGeneratorLocators();

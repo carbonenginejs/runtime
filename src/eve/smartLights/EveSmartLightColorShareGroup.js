@@ -7,6 +7,13 @@ import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
+import {
+  BELIST_EVENTMASK,
+  BELIST_INSERTED,
+  BELIST_LOADING,
+  BELIST_REMOVED,
+  BELIST_UNLOADSTART
+} from "../../controllers/contracts.js";
 
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
 @type.define({ className: "EveSmartLightColorShareGroup", family: "eve/smartLights" })
@@ -58,6 +65,9 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = null;
 
+  /** Caller-owned faction-colour result; never aliases the SOF model. */
+  #resolvedGroupColor = vec4.createLinear();
+
   /** Last `display` value the settle hook applied (JS-only change detection). */
   #lastAppliedDisplay = true;
 
@@ -67,7 +77,13 @@ export class EveSmartLightColorShareGroup extends EveEntity
   @impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
   GetGroupColor()
   {
-    return resolveGroupColor(this.customColor, this.useFactionColor, this.factionColor, this.#parentColorSet);
+    return resolveGroupColor(
+      this.customColor,
+      this.useFactionColor,
+      this.factionColor,
+      this.#parentColorSet,
+      this.#resolvedGroupColor
+    );
   }
 
   /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
@@ -99,28 +115,45 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * (EveSmartLightColorShareGroup.cpp:26-82).
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("List events carry no BELIST insert/remove mask; inserted values (or, absent one, the whole list) are re-fanned idempotently, and registry wiring re-registers this entity rather than the individual group.")
-  OnListModified(_event, _key, _key2, value, list)
+  @impl.implemented
+  OnListModified(event, _key, _key2, value, list)
   {
-    if (this.#parentColorSet && (list === this.attributeModifiers || list === this.lightGroups))
+    const maskedEvent = Number(event) & BELIST_EVENTMASK;
+    if (
+      Number(event) === BELIST_INSERTED &&
+      this.#parentColorSet &&
+      value &&
+      (list === this.attributeModifiers || list === this.lightGroups)
+    )
     {
-      if (value)
-      {
-        value.SetInheritProperties?.(this.#parentColorSet);
-      }
-      else
-      {
-        for (const entry of list)
-        {
-          entry?.SetInheritProperties?.(this.#parentColorSet);
-        }
-      }
+      value.SetInheritProperties(this.#parentColorSet);
     }
 
-    if (list === this.lightGroups && this.IsInRegistry())
+    if (
+      list === this.lightGroups &&
+      (Number(event) & BELIST_LOADING) === 0 &&
+      this.IsInRegistry()
+    )
     {
-      this.ReRegister();
+      const registry = this.GetComponentRegistry();
+      if (maskedEvent === BELIST_INSERTED && value instanceof EveEntity)
+      {
+        value.Register(registry);
+      }
+      else if (maskedEvent === BELIST_REMOVED && value instanceof EveEntity)
+      {
+        value.UnRegister(registry);
+      }
+      else if (maskedEvent === BELIST_UNLOADSTART)
+      {
+        for (const group of this.lightGroups)
+        {
+          if (group instanceof EveEntity)
+          {
+            group.UnRegister(registry);
+          }
+        }
+      }
     }
   }
 
@@ -134,7 +167,10 @@ export class EveSmartLightColorShareGroup extends EveEntity
     {
       for (const group of this.lightGroups)
       {
-        group?.Register?.(registry);
+        if (group instanceof EveEntity)
+        {
+          group.Register(registry);
+        }
       }
     }
   }
@@ -149,7 +185,10 @@ export class EveSmartLightColorShareGroup extends EveEntity
     {
       for (const group of this.lightGroups)
       {
-        group?.UnRegister?.(registry);
+        if (group instanceof EveEntity)
+        {
+          group.UnRegister(registry);
+        }
       }
     }
   }
@@ -166,7 +205,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
     for (const group of this.lightGroups)
     {
-      group?.AddQuadsToQuadRenderer?.(placements, size, frustum, quadRenderer);
+      group.AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer);
     }
   }
 
@@ -182,7 +221,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
     for (const group of this.lightGroups)
     {
-      group?.GetRenderables?.(renderables);
+      group.GetRenderables(renderables);
     }
     return renderables;
   }
@@ -197,12 +236,12 @@ export class EveSmartLightColorShareGroup extends EveEntity
   {
     for (const group of this.lightGroups)
     {
-      group?.UpdateSyncronous?.(updateContext, params, distribution);
+      group.UpdateSyncronous(updateContext, params, distribution);
     }
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.UpdateSyncronous?.(updateContext, params, 1);
+      attributeModifier.UpdateSyncronous(updateContext, params, 1);
     }
   }
 
@@ -223,12 +262,12 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.ProcessAttributeModifier?.(
+      attributeModifier.ProcessAttributeModifier(
         colorValues,
         statics.#defaultPlacement,
         statics.#defaultPlacement.initialTranslation,
         statics.#up,
-        params?.activationStrength ?? 1
+        params.activationStrength
       );
     }
     const sharedColor = statics.#sharedColor;
@@ -236,8 +275,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
     for (const group of this.lightGroups)
     {
-      group?.SetColor?.(sharedColor);
-      group?.UpdateAsyncronous?.(updateContext, params, distribution);
+      group.SetColor(sharedColor);
+      group.UpdateAsyncronous(updateContext, params, distribution);
     }
   }
 
@@ -251,12 +290,12 @@ export class EveSmartLightColorShareGroup extends EveEntity
   {
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.SetControllerVariable?.(name, value);
+      attributeModifier.SetControllerVariable(name, value);
     }
 
     for (const group of this.lightGroups)
     {
-      group?.SetControllerVariable?.(name, value);
+      group.SetControllerVariable(name, value);
     }
   }
 
@@ -274,11 +313,11 @@ export class EveSmartLightColorShareGroup extends EveEntity
       this.#parentColorSet = colorSet;
       for (const attributeModifier of this.attributeModifiers)
       {
-        attributeModifier?.SetInheritProperties?.(colorSet);
+        attributeModifier.SetInheritProperties(colorSet);
       }
       for (const group of this.lightGroups)
       {
-        group?.SetInheritProperties?.(colorSet);
+        group.SetInheritProperties(colorSet);
       }
     }
   }
@@ -290,7 +329,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   {
     for (const group of this.lightGroups)
     {
-      group?.RegisterWithQuadRenderer?.(quadRenderer);
+      group.RegisterWithQuadRenderer(quadRenderer);
     }
   }
 
@@ -309,7 +348,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   {
     for (const group of this.lightGroups)
     {
-      group?.UpdateVisibility?.(updateContext, parentTransform, parentLod);
+      group.UpdateVisibility(updateContext, parentTransform, parentLod);
     }
   }
 

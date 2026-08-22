@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../EveEntity.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
@@ -105,7 +105,7 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @type.define({ className: "EveChildCloud2", family: "eve/child" })
-export class EveChildCloud2 extends EveEntity
+export class EveChildCloud2 extends EveSpaceObjectChild
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */

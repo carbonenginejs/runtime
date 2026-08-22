@@ -129,7 +129,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
       const childStrength = activationValue * modifierStrength * this.attributeMultiplier;
       for (const attributeModifier of this.attributeModifiers)
       {
-        attributeModifier?.ProcessAttributeModifier?.(attribute, placement, entityPosition, entityDirection, childStrength);
+        attributeModifier.ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, childStrength);
       }
     }
   }

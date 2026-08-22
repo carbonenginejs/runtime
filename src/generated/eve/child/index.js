@@ -1,5 +1,4 @@
 export * from "./EveChildCloud.js";
-export * from "./EveChildInstanceMeshRenderer.js";
 export * from "./EveCloudEditableVolume.js";
 export * from "./EveCloudVolumeTextureParameter.js";
 export * from "./IEveLightingOverride.js";

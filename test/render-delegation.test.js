@@ -111,7 +111,8 @@ test("GetSortValue measures view-position distance scaled by the multiplier", ()
     }
   };
   assert.equal(transform.GetSortValue(context), 8, "distance 4 x multiplier 2");
-  assert.equal(transform.GetSortValue(), 10, "no context falls back to the origin (distance 5 x 2)");
+  assert.throws(() => transform.GetSortValue(), /GetViewPosition/u,
+    "the owned camera contract fails visibly when no render context is supplied");
 });
 
 test("GetPerObjectData applies the Carbon singular-world patch fixup", () =>

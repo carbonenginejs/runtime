@@ -93,7 +93,7 @@ new class extends _identity {
       if (activationValue !== 0) {
         const childStrength = activationValue * modifierStrength * this.attributeMultiplier;
         for (const attributeModifier of this.attributeModifiers) {
-          attributeModifier?.ProcessAttributeModifier?.(attribute, placement, entityPosition, entityDirection, childStrength);
+          attributeModifier.ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, childStrength);
         }
       }
     }

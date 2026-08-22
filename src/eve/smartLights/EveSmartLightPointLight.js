@@ -14,6 +14,7 @@ import {
   createCjsLightDataView,
   setCjsLightDataOwnerValues
 } from "../lights/CjsLightData.js";
+import { BELIST_INSERTED } from "../../controllers/contracts.js";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
 @type.define({ className: "EveSmartLightPointLight", family: "eve/smartLights" })
@@ -101,6 +102,9 @@ export class EveSmartLightPointLight extends EveEntity
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = null;
 
+  /** Caller-owned faction-colour result; never aliases the SOF model. */
+  #resolvedGroupColor = vec4.createLinear();
+
   /** m_activationStrength (float) - captured from the update params (EveSmartLightPointLight.h:49). */
   #activationStrength = 1;
 
@@ -117,6 +121,42 @@ export class EveSmartLightPointLight extends EveEntity
   // flatten decision); light-manager records and the pre-flatten hydration
   // shape keep reading a LightData-shaped object.
   #lightDataView = null;
+
+  /** IEveSmartLightGroup default: point-light groups have no async work. */
+  @carbon.method
+  @impl.noop
+  UpdateAsyncronous(_updateContext, _params, _distribution)
+  {
+  }
+
+  /** IEveSmartLightGroup default: light-manager visibility is handled later. */
+  @carbon.method
+  @impl.noop
+  UpdateVisibility(_updateContext, _parentTransform, _parentLod)
+  {
+  }
+
+  /** IEveSmartLightGroup default: point lights are components, not renderables. */
+  @carbon.method
+  @impl.noop
+  GetRenderables(renderables = [])
+  {
+    return renderables;
+  }
+
+  /** IEveSmartLightGroup default: point lights contribute no quads. */
+  @carbon.method
+  @impl.noop
+  AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
+  {
+  }
+
+  /** IEveSmartLightGroup default: point lights register no quad effect. */
+  @carbon.method
+  @impl.noop
+  RegisterWithQuadRenderer(_quadRenderer)
+  {
+  }
 
   /**
    * A lazily built compatibility view over the flattened light-group fields,
@@ -148,7 +188,13 @@ export class EveSmartLightPointLight extends EveEntity
   @impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
   GetGroupColor()
   {
-    return resolveGroupColor(this.customColor, this.useFactionColor, this.factionColor, this.#parentColorSet);
+    return resolveGroupColor(
+      this.customColor,
+      this.useFactionColor,
+      this.factionColor,
+      this.#parentColorSet,
+      this.#resolvedGroupColor
+    );
   }
 
   /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
@@ -176,7 +222,7 @@ export class EveSmartLightPointLight extends EveEntity
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.SetInheritProperties?.(colorSet);
+      attributeModifier.SetInheritProperties(colorSet);
     }
   }
 
@@ -188,7 +234,7 @@ export class EveSmartLightPointLight extends EveEntity
   {
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.SetControllerVariable?.(name, value);
+      attributeModifier.SetControllerVariable(name, value);
     }
   }
 
@@ -198,22 +244,17 @@ export class EveSmartLightPointLight extends EveEntity
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("List events carry no BELIST insert mask; the inserted value (or, absent one, the whole list) is re-fanned - SetInheritProperties is idempotent.")
-  OnListModified(_event, _key, _key2, value, list)
+  @impl.reason("Carbon's EveSmartLightBaseGroup secondary base is flattened; CjsModel still forwards its exact BELIST event and inserted value.")
+  OnListModified(event, _key, _key2, value, list)
   {
-    if (list === this.attributeModifiers && this.#parentColorSet)
+    if (
+      list === this.attributeModifiers &&
+      Number(event) === BELIST_INSERTED &&
+      this.#parentColorSet &&
+      value
+    )
     {
-      if (value)
-      {
-        value.SetInheritProperties?.(this.#parentColorSet);
-      }
-      else
-      {
-        for (const attributeModifier of this.attributeModifiers)
-        {
-          attributeModifier?.SetInheritProperties?.(this.#parentColorSet);
-        }
-      }
+      value.SetInheritProperties(this.#parentColorSet);
     }
   }
 
@@ -262,7 +303,7 @@ export class EveSmartLightPointLight extends EveEntity
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.UpdateSyncronous?.(updateContext, params, 1);
+      attributeModifier.UpdateSyncronous(updateContext, params, 1);
     }
 
     this.#distribution = distribution ?? null;
@@ -274,11 +315,15 @@ export class EveSmartLightPointLight extends EveEntity
   @impl.reason("Carbon's RegisterComponent<ITr2LightOwner> template is expressed as the registry's explicit component-name signature (verbatim \"LightOwner\", Lights/ITr2LightOwner.h:18).")
   RegisterComponents()
   {
-    this.GetComponentRegistry()?.RegisterComponent?.(EveComponentType.LightOwner, this);
+    const registry = this.GetComponentRegistry();
+    if (registry)
+    {
+      registry.RegisterComponent(EveComponentType.LightOwner, this);
+    }
   }
 
   /**
-   * Registers one light per distribution placement with the duck-typed light
+   * Registers one light per distribution placement with the injected light
    * manager (EveSmartLightPointLight.cpp:65-131). The submitted record keeps
    * typed CPU state only (float32 color/direction, unpacked flags, the
    * CjsLightData and unresolved profile reference); Carbon's Float_16/
@@ -297,8 +342,8 @@ export class EveSmartLightPointLight extends EveEntity
       return;
     }
 
-    const placements = this.#distribution.GetPlacementData?.() ?? [];
-    const size = Number(this.#distribution.GetNumberOfPlacements?.() ?? placements.length);
+    const placements = this.#distribution.GetPlacementData();
+    const size = Number(this.#distribution.GetNumberOfPlacements());
     const statics = EveSmartLightPointLight;
     const m = this.#worldTransform;
 
@@ -356,7 +401,7 @@ export class EveSmartLightPointLight extends EveEntity
 
       for (const attributeModifier of this.attributeModifiers)
       {
-        attributeModifier?.ProcessAttributeModifier?.(record.color, placement, position, direction, this.#activationStrength);
+        attributeModifier.ProcessAttributeModifier(record.color, placement, position, direction, this.#activationStrength);
       }
 
       record.outerAngle = 0;
@@ -373,7 +418,10 @@ export class EveSmartLightPointLight extends EveEntity
       record.lightProfile = this.lightProfile;
       record.owner = this;
 
-      lightManager?.AddLight?.(record);
+      if (lightManager)
+      {
+        lightManager.AddLight(record);
+      }
     }
   }
 

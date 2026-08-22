@@ -9,6 +9,7 @@ import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2Light } from "./Tr2Light.js";
+import { hasFactionColor, resolveFactionColor } from "../resolveFactionColor.js";
 
 /** A light whose colour is derived from a faction palette entry blended by a saturation factor, in addition to its own authored light attributes. */
 @type.define({ className: "Tr2FactionLight", family: "eve/lights" })
@@ -16,6 +17,9 @@ export class Tr2FactionLight extends Tr2Light
 {
 
   #parentColorSet = null;
+
+  /** Caller-owned faction-colour result; never aliases the SOF model. */
+  #selectedFactionColor = vec4.createLinear();
 
   /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @io.notify
@@ -153,11 +157,17 @@ export class Tr2FactionLight extends Tr2Light
   @impl.implemented
   SetLightColorFromFactionColor()
   {
-    const color = this.#parentColorSet?.[this.factionColor];
-    if (!color)
+    if (!hasFactionColor(this.#parentColorSet, this.factionColor))
     {
       return false;
     }
+    const color = resolveFactionColor(
+      this.#selectedFactionColor,
+      this.color,
+      true,
+      this.factionColor,
+      this.#parentColorSet
+    );
     const intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114;
     const saturation = Math.max(0, Number(this.saturation) || 0);
     this.color[0] = intensity + (color[0] - intensity) * saturation;

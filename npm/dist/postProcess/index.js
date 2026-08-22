@@ -3,6 +3,8 @@ export { GaussianData } from './GaussianData.js';
 export { Tr2PostProcess } from './Tr2PostProcess.js';
 export { Tr2PostProcess2 } from './Tr2PostProcess2.js';
 export { Tr2PostProcessAttributes } from './Tr2PostProcessAttributes.js';
+export { Tr2PostProcessRenderer } from './Tr2PostProcessRenderer.js';
+export { Tr2SSAO } from './Tr2SSAO.js';
 export { Tr2PPBloomEffect } from './effect/Tr2PPBloomEffect.js';
 export { Tr2PPColorCorrectionEffect } from './effect/Tr2PPColorCorrectionEffect.js';
 export { Tr2PPDepthOfFieldEffect } from './effect/Tr2PPDepthOfFieldEffect.js';

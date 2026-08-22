@@ -7,7 +7,7 @@ import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
-import { Tr2Transform } from "../../generated/trinityCore/Tr2Transform.js";
+import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 
@@ -83,7 +83,6 @@ export class EveTransform extends Tr2Transform
 
   #isVisible = true;
   #lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
-  #lastWorldTransform = mat4.create();
 
   /**
    * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
@@ -104,17 +103,17 @@ export class EveTransform extends Tr2Transform
   /**
    * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers.
    * @returns {mat4} The node's live worldTransform, valid until the next update.
-   */
+  */
   @carbon.method
+  @carbon.contextual(["camera"])
   @impl.adapted
   @impl.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")
   UpdateViewDependentData(context, parentTransform = EveTransform.#identity)
   {
-    mat4.copy(this.#lastWorldTransform, this.worldTransform);
-    mat4.fromRotationTranslationScale(this.localTransform, this.rotation, this.translation, this.scaling);
-    mat4.multiply(this.worldTransform, parentTransform, this.localTransform);
-    for (const system of this.particleSystems) system?.UpdateViewDependentData?.(context?.GetFrustum?.() ?? context?.frustum ?? context, this.worldTransform);
-    for (const observer of this.observers) observer?.Update?.(this.worldTransform);
+    const frustum = context.GetFrustum();
+    super.UpdateViewDependentData(context.renderContext, parentTransform);
+    for (const system of this.particleSystems) system.UpdateViewDependentData(frustum, this.worldTransform);
+    for (const observer of this.observers) observer.Update(this.worldTransform);
     return this.worldTransform;
   }
 
@@ -153,7 +152,7 @@ export class EveTransform extends Tr2Transform
     if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this.#lastCurveUpdateDelta))
     {
       this.#lastCurveUpdateDelta = 0;
-      for (const curveSet of this.curveSets) curveSet?.Update?.(time);
+      for (const curveSet of this.curveSets) curveSet.Update(time, undefined, context.renderContext);
     }
     for (const child of this.children) child?.Update?.(context);
     for (const system of this.particleSystems)
@@ -246,7 +245,7 @@ export class EveTransform extends Tr2Transform
     const data = accumulator.Alloc("EveBasicPerObjectData");
 
     data.SetAndTranspose("world", this.worldTransform);
-    data.SetAndTranspose("worldLast", this.#lastWorldTransform);
+    data.SetAndTranspose("worldLast", this.lastWorldTransform);
 
     if (!mat4.invert(INVERSE_PATCH_SCRATCH, this.worldTransform))
     {
@@ -264,22 +263,6 @@ export class EveTransform extends Tr2Transform
 
     data.SetAndTranspose("worldInverse", INVERSE_PATCH_SCRATCH);
     return data;
-  }
-
-  /** Carbon declares the renderable batch contract on Tr2Transform
-   * (Tr2Transform.cpp:250-276); the generated base stays data-only, so the
-   * maintained renderable carries the behavior. */
-  // Returns whether any batch was committed (JS addition; Carbon returns void).
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")
-  GetBatches(batches, batchType, perObjectData, _reason)
-  {
-    if (this.display && this.mesh)
-    {
-      return this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData) === true;
-    }
-    return false;
   }
 
   /**
@@ -333,42 +316,6 @@ export class EveTransform extends Tr2Transform
   GetID(_areaID = 0)
   {
     return this;
-  }
-
-  /**
-   * Reports whether the mesh has any transparent areas, which tells the renderer
-   * to route this node through the sorted transparent pass.
-   */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")
-  HasTransparentBatches()
-  {
-    if (this.display && this.mesh)
-    {
-      return (this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0;
-    }
-    return false;
-  }
-
-  // Distance from the view position to the world translation, scaled by the
-  // authored multiplier (used to order transparent renderables back-to-front).
-
-  /**
-   * Returns the distance from the render context's view position to this node's
-   * world translation, scaled by the authored sortValueMultiplier, used to order
-   * transparent renderables back-to-front.
-   */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
-  GetSortValue(renderContext = null)
-  {
-    const viewPosition = renderContext?.GetViewPosition?.();
-    const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
-    const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
-    const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];
-    return Math.hypot(x, y, z) * this.sortValueMultiplier;
   }
 
   /**

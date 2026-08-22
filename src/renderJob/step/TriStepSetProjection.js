@@ -1,6 +1,8 @@
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriStepSetProjection.h
 // Source: E:\carbonengine\trinity\trinity\RenderJob\TriStepSetProjection.cpp
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import { TriProjection } from "../../core/view/TriProjection.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -9,6 +11,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepSetProjection", family: "renderJob" })
 export class TriStepSetProjection extends TriRenderStep
 {
+  #transform = mat4.create();
+
   @io.persist
   @type.objectRef("TriProjection")
   projection = null;
@@ -40,7 +44,26 @@ export class TriStepSetProjection extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    if (this.projection) executor?.SetProjection?.(this.projection);
+    if (this.projection)
+    {
+      this.projection.GetTransform(this.#transform);
+      let fieldOfView;
+      switch (this.projection.GetProjectionType())
+      {
+        case TriProjection.FOV:
+          fieldOfView = this.projection.fov;
+          break;
+        case TriProjection.ORTHO:
+          fieldOfView = 1;
+          break;
+        default:
+          fieldOfView = this.#transform[5]
+            ? 2 * Math.atan(1 / this.#transform[5])
+            : 0;
+          break;
+      }
+      executor.SetProjection(this.#transform, fieldOfView);
+    }
     return TriRenderJob.StepResult.RS_OK;
   }
 }

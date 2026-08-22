@@ -49,6 +49,7 @@ Examples of maintained homes include:
 - `src/eve/attachment/decal` for space-object decals;
 - `src/eve/child/behaviors/lifecycle` and `tunnels` for cohesive behaviors;
 - `src/eve/effect/multiEffect` for multi-effect graphs; and
+- `src/postProcess` for SSAO and post-process renderer settings; and
 - `src/core/binding` for dynamic and value binding classes.
 
 ## Enum ownership
@@ -76,6 +77,18 @@ Generated output is deterministic and should not be hand-edited as a
 substitute for changing its owning schema or emitter. Runtime-specific
 implementations belong in the maintained tree before the manual edit is made.
 
+`src/generated/summary.json` is the receipt from an earlier whole-tree install,
+not a live work queue or an authoritative count of the current generated tree.
+The current `tools-core` emitter operates per class; promotion removes installed
+files without rewriting that historical receipt. Ownership and release checks
+therefore use the current source tree, barrels, parity audit, and gap audit.
+
+`EveDamageOverlay` and `EveModularObjectModifier` are currently unexported
+generated intake. They are retained for later Carbon review but deliberately
+excluded from public barrels and the npm build. The former needs the complete
+damage-overlay/data-texture path; the latter still has an unresolved owning
+object type and depends on modular child, locator, SOF, and resource behavior.
+
 Generation runs into a tooling-owned scratch corpus or another staging
 directory. Reviewed output is then copied only into generator-owned paths.
 The class emitter refuses to overwrite a differing `--out` file unless
@@ -98,6 +111,19 @@ supported public implementation. Its disposition records why this package
 owns the identity, why it is rejected as a runtime model, its replacement, and
 the condition for revival. Dropped files are not imported, exported,
 registered, or implemented in place.
+
+## Live deprecation records
+
+`src/toDeprecate/{ClassName}.json` records an intended removal without moving
+the live class out of its maintained domain path. Each sidecar names the
+replacement, reason, declaration date, nullable removal date, source, and
+removal gates. It is never imported or exported.
+
+A recorded class remains supported, maintained, schema-registered, audited,
+and protected from generator overwrite until its gates are satisfied. When it
+is actually deleted, the same record changes to removed status and receives
+its removal date. This metadata does not create a fourth source state:
+generated, maintained, and dropped remain mutually exclusive.
 
 ## Planned class descriptors
 

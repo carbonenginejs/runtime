@@ -21,7 +21,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2RuntimeInstanceData",
         family: "trinityCore"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.objectRef("Tr2ParticleSystem")], 16, "particleSystem"], [[void 0, io.flag("cpuData"), void 0, io.rebuild("instanceBuffer"), io, io.notify, io, io.persist, void 0, type.array("unknown")], 16, "layout"], [[void 0, io.flag("cpuData"), void 0, io.rebuild("instanceBuffer"), io, io.notify, io, io.persist, void 0, type.array("unknown")], 16, "rows"], [[io, io.persist, type, type.boolean], 16, "explicitBoundingBox"], [[io, io.read, type, type.uint32], 16, "count"], [[io, io.persist, type, type.vec3], 16, "aabbMin"], [[io, io.persist, type, type.vec3], 16, "aabbMax"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnModified"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetElementLayout"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetItem"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetItem"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetItemElement"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetItemElement"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateData"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateBoundingBox"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBoundingBox"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingBox"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetInstanceBufferBoundingBox"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetStride"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLayout"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetData"], [[carbon, carbon.method, impl, impl.adapted], 18, "DestroyData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Maps Carbon vertex semantics into the maintained CPU particle-system declaration without GPU buffers.")], 18, "Spawn"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.implemented], 18, "SpawnParticles"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetThreadSafeFlag"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "SaveToCMF"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "SaveToGranny"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.objectRef("Tr2ParticleSystem")], 16, "particleSystem"], [[void 0, io.flag("cpuData"), void 0, io.rebuild("instanceBuffer"), io, io.notify, io, io.persist, void 0, type.array("unknown")], 16, "layout"], [[void 0, io.flag("cpuData"), void 0, io.rebuild("instanceBuffer"), io, io.notify, io, io.persist, void 0, type.array("unknown")], 16, "rows"], [[io, io.persist, type, type.boolean], 16, "explicitBoundingBox"], [[io, io.read, type, type.uint32], 16, "count"], [[io, io.persist, type, type.vec3], 16, "aabbMin"], [[io, io.persist, type, type.vec3], 16, "aabbMax"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted], 18, "OnModified"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetElementLayout"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetItem"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetItem"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetItemElement"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetItemElement"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateData"], [[carbon, carbon.method, impl, impl.adapted], 18, "UpdateBoundingBox"], [[carbon, carbon.method, impl, impl.adapted], 18, "SetBoundingBox"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingBox"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetInstanceBufferBoundingBox"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCount"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetStride"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLayout"], [[carbon, carbon.method, impl, impl.adapted], 18, "GetData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Physical vertex-declaration and buffer readiness belongs to the engine; Trinity reports published CPU layout/bytes.")], 18, "IsInstanceDataReady"], [[carbon, carbon.method, impl, impl.adapted], 18, "DestroyData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Maps Carbon vertex semantics into the maintained CPU particle-system declaration without GPU buffers.")], 18, "Spawn"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.implemented], 18, "SpawnParticles"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetThreadSafeFlag"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "SaveToCMF"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "SaveToGranny"]], 0, void 0, CjsModel));
     }
     name = (_initProto(this), _init_name(this, ""));
     particleSystem = (_init_extra_name(this), _init_particleSystem(this, null));
@@ -243,6 +243,16 @@ new class extends _identity {
      */
     GetData() {
       return this.#data ? new Uint8Array(this.#data) : null;
+    }
+
+    /**
+     * CPU readiness for the nominal ITr2InstanceData contract. Carbon also tests
+     * the realized vertex declaration and GPU buffer; those are engine-owned in
+     * CarbonEngineJS, so Trinity reports whether a published layout and byte
+     * payload are available for realization.
+     */
+    IsInstanceDataReady() {
+      return this.#layout.length > 0 && this.#data !== null && !this.#dirty;
     }
 
     /**
@@ -537,6 +547,14 @@ new class extends _identity {
      */
 
     /** Copies array-valued elements so returned rows never alias stored data. */
+
+    /**
+     * Shared instanced-transform shader contract. Carbon's
+     * EveChildInstanceMeshRenderer declares TEXCOORD0..6, but that collides with
+     * geometry UVs and disagrees with every other instanced producer and the
+     * measured ubershader inputs. The organization contract therefore uses the
+     * working TEXCOORD8..14 range on stream 1.
+     */
   }];
   #normalizeElement(value, index, offset) {
     const legacy = Array.isArray(value);
@@ -546,7 +564,7 @@ new class extends _identity {
     const usageValue = legacy ? _Tr2RuntimeInstanceDa.#particleUsageToVertexUsage(value[0]) : value.usage;
     const usage = _Tr2RuntimeInstanceDa.#normalizeUsage(usageValue);
     const usageIndex = Number(legacy ? value[1] : value.usageIndex ?? 0);
-    if (!Number.isInteger(usageIndex) || usageIndex < 0 || usageIndex > 7) {
+    if (!Number.isInteger(usageIndex) || usageIndex < 0 || usageIndex > 15) {
       throw new TypeError(`Element ${index} has invalid usageIndex`);
     }
     const type = legacy ? `FLOAT32_${Number(value[2])}` : value.type;
@@ -676,37 +694,37 @@ new class extends _identity {
   }
   TransformLayout = Object.freeze([Object.freeze({
     usage: "TEXCOORD",
-    usageIndex: 0,
+    usageIndex: 8,
     type: "FLOAT32_4",
     name: "transform0"
   }), Object.freeze({
     usage: "TEXCOORD",
-    usageIndex: 1,
+    usageIndex: 9,
     type: "FLOAT32_4",
     name: "transform1"
   }), Object.freeze({
     usage: "TEXCOORD",
-    usageIndex: 2,
+    usageIndex: 10,
     type: "FLOAT32_4",
     name: "transform2"
   }), Object.freeze({
     usage: "TEXCOORD",
-    usageIndex: 3,
+    usageIndex: 11,
     type: "FLOAT32_4",
     name: "lastTransform0"
   }), Object.freeze({
     usage: "TEXCOORD",
-    usageIndex: 4,
+    usageIndex: 12,
     type: "FLOAT32_4",
     name: "lastTransform1"
   }), Object.freeze({
     usage: "TEXCOORD",
-    usageIndex: 5,
+    usageIndex: 13,
     type: "FLOAT32_4",
     name: "lastTransform2"
   }), Object.freeze({
     usage: "TEXCOORD",
-    usageIndex: 6,
+    usageIndex: 14,
     type: "BYTE_4",
     name: "boneIndex"
   })]);

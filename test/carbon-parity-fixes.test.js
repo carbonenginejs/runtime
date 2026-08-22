@@ -25,6 +25,7 @@ import {
   Tr2ParticleSpring,
   Tr2RenderContext,
   Tr2SamplerOverride,
+  Tr2Transform,
   Tr2Vector2Parameter,
   Tr2Vector4Parameter,
   Tr2VisibilityEvent,
@@ -58,7 +59,7 @@ test("child transforms compose exactly like EveTransform (parent . local)", () =
   const rotation = quat.create();
   const translation = vec3.fromValues(1, 0, 0);
 
-  const reference = new EveTransform();
+  const reference = new Tr2Transform();
   vec3.copy(reference.translation, translation);
   reference.UpdateViewDependentData(null, parent);
 
@@ -160,6 +161,7 @@ test("Tr2MeshArea carries min-LOD and joint state with Carbon's copy reset", () 
   area.SetMinLod(2);
   area.SetJointCount(4);
   area.SetJointMappingAnimRig([0, 1, 2, 3]);
+  area.SetAlphaCutout(true);
 
   const copy = new Tr2MeshArea();
   copy.CopyFrom(area);
@@ -167,6 +169,7 @@ test("Tr2MeshArea carries min-LOD and joint state with Carbon's copy reset", () 
   assert.equal(copy.GetJointCount(), 0, "operator= deliberately resets joint state");
   assert.equal(copy.GetJointMappingAnimRig(), null);
   assert.equal(area.GetJointCount(), 4, "source keeps its joints");
+  assert.equal(copy.IsAlphaCutout(), true, "operator= preserves alpha-cutout state");
 });
 
 test("Tr2InstancedMesh bounds helpers follow Carbon's shapes", () =>

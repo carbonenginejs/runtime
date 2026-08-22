@@ -1,9 +1,9 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { CjsModel } from '@carbonenginejs/runtime-utils/model';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { bindParticleElement, hasUnboundParticleElements } from '../../particle/element/particleElementBinding.js';
 import { Tr2ParticleElementDeclaration as _Tr2ParticleElementDe } from '../../particle/element/Tr2ParticleElementDeclaration.js';
+import { EveSpaceObjectChild as _EveSpaceObjectChild } from './EveSpaceObjectChild.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_particleSystem, _init_extra_particleSystem, _init_mesh, _init_extra_mesh, _init_useSpaceObjectData, _init_extra_useSpaceObjectData, _init_maxSpeed, _init_extra_maxSpeed, _init_radius, _init_extra_radius, _init_egoSpeed, _init_extra_egoSpeed, _init_positionShiftDecreaseSpeed, _init_extra_positionShiftDecreaseSpeed, _init_positionShiftIncreaseSpeed, _init_extra_positionShiftIncreaseSpeed, _init_generators, _init_extra_generators, _init_movementScale, _init_extra_movementScale, _init_positionShift, _init_extra_positionShift, _init_display, _init_extra_display, _init_positionShiftMin, _init_extra_positionShiftMin, _init_positionShiftMax, _init_extra_positionShiftMax;
 const BIND_PENDING = 0;
@@ -12,7 +12,7 @@ const BIND_INVALID = 2;
 
 /** A model that binds a particle system's position, velocity and lifetime elements and its attribute generators for a sphere-distributed ambient effect. */
 let _EveChildParticleSphe;
-class EveChildParticleSphere extends CjsModel {
+class EveChildParticleSphere extends _EveSpaceObjectChild {
   static {
     ({
       e: [_init_name, _init_extra_name, _init_particleSystem, _init_extra_particleSystem, _init_mesh, _init_extra_mesh, _init_useSpaceObjectData, _init_extra_useSpaceObjectData, _init_maxSpeed, _init_extra_maxSpeed, _init_radius, _init_extra_radius, _init_egoSpeed, _init_extra_egoSpeed, _init_positionShiftDecreaseSpeed, _init_extra_positionShiftDecreaseSpeed, _init_positionShiftIncreaseSpeed, _init_extra_positionShiftIncreaseSpeed, _init_generators, _init_extra_generators, _init_movementScale, _init_extra_movementScale, _init_positionShift, _init_extra_positionShift, _init_display, _init_extra_display, _init_positionShiftMin, _init_extra_positionShiftMin, _init_positionShiftMax, _init_extra_positionShiftMax, _initProto],
@@ -20,7 +20,7 @@ class EveChildParticleSphere extends CjsModel {
     } = _applyDecs2311(this, [type.define({
       className: "EveChildParticleSphere",
       family: "eve/child"
-    })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("Tr2ParticleSystem")], 16, "particleSystem"], [[io, io.persist, void 0, type.model("Tr2InstancedMesh")], 16, "mesh"], [[io, io.persist, type, type.boolean], 16, "useSpaceObjectData"], [[io, io.persist, type, type.float32], 16, "maxSpeed"], [[io, io.persist, type, type.float32], 16, "radius"], [[io, io.read, type, type.float32], 16, "egoSpeed"], [[io, io.persist, type, type.float32], 16, "positionShiftDecreaseSpeed"], [[io, io.persist, type, type.float32], 16, "positionShiftIncreaseSpeed"], [[io, io.persist, void 0, type.list("ITr2AttributeGenerator")], 16, "generators"], [[io, io.persist, type, type.float32], 16, "movementScale"], [[io, io.read, type, type.float32], 16, "positionShift"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "positionShiftMin"], [[io, io.persist, type, type.float32], 16, "positionShiftMax"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Browser attribute generators bind to the CPU particle-system declaration while retaining Carbon's shared element-claim validation.")], 18, "Refresh"]], 0, void 0, CjsModel));
+    })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("Tr2ParticleSystem")], 16, "particleSystem"], [[io, io.persist, void 0, type.model("Tr2InstancedMesh")], 16, "mesh"], [[io, io.persist, type, type.boolean], 16, "useSpaceObjectData"], [[io, io.persist, type, type.float32], 16, "maxSpeed"], [[io, io.persist, type, type.float32], 16, "radius"], [[io, io.read, type, type.float32], 16, "egoSpeed"], [[io, io.persist, type, type.float32], 16, "positionShiftDecreaseSpeed"], [[io, io.persist, type, type.float32], 16, "positionShiftIncreaseSpeed"], [[io, io.persist, void 0, type.list("ITr2AttributeGenerator")], 16, "generators"], [[io, io.persist, type, type.float32], 16, "movementScale"], [[io, io.read, type, type.float32], 16, "positionShift"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.float32], 16, "positionShiftMin"], [[io, io.persist, type, type.float32], 16, "positionShiftMax"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Browser attribute generators bind to the CPU particle-system declaration while retaining Carbon's shared element-claim validation.")], 18, "Refresh"]], 0, void 0, _EveSpaceObjectChild));
   }
   constructor(...args) {
     super(...args);

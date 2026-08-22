@@ -89,6 +89,26 @@ new class extends _identity {
     #worldBoundsMax = vec3.create();
     #worldBoundsValid = false;
     #worldBoundingSphere = vec4.create();
+
+    /**
+     * Clears the private visibility state for a derived child whose own Carbon
+     * cull rejects it before EveChildMesh::UpdateVisibility runs.
+     *
+     * EveChildInstanceMeshRenderer owns exactly that two-stage cull. Keeping the
+     * mutation here preserves one state owner instead of shadowing the four
+     * private values in the subclass.
+     */
+    _ResetVisibilityState() {
+      this.#isVisible = false;
+      this.currentScreenSize = -1;
+      this.#instancesVisible = false;
+      this.currentInstanceScreenSize = -1;
+    }
+
+    /** Carbon-derived classes read m_activationStrength after the mesh update. */
+    _GetActivationStrength() {
+      return this.#activationStrength;
+    }
     reflectionMode = _init_reflectionMode(this, 3);
     transformModifiers = (_init_extra_reflectionMode(this), _init_transformModifiers(this, []));
     worldTransform = (_init_extra_transformModifiers(this), _init_worldTransform(this, mat4.create()));

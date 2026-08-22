@@ -4,7 +4,15 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
+import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import {
+  BELIST_EVENTMASK,
+  BELIST_INSERTED,
+  BELIST_LOADING,
+  BELIST_REMOVED,
+  BELIST_UNLOADSTART
+} from "../../controllers/contracts.js";
 
 /** A child that drives a placement distribution and fans its per-frame update, visibility, rendering and registration across a set of smart-light groups. */
 @type.define({ className: "EveChildSmartLightSet", family: "eve/smartLights" })
@@ -84,13 +92,16 @@ export class EveChildSmartLightSet extends EveChildTransform
   @impl.implemented
   UpdateSyncronous(updateContext, params)
   {
-    this.UpdateTransform(params?.localToWorldTransform ?? EveChildSmartLightSet.#identity);
+    this.UpdateTransform(params.localToWorldTransform);
 
-    this.distribution?.UpdateSyncronous?.(updateContext, params);
+    if (this.distribution)
+    {
+      this.distribution.UpdateSyncronous(updateContext, params);
+    }
 
     for (const group of this.lightGroups)
     {
-      group?.UpdateSyncronous?.(updateContext, params, this.distribution);
+      group.UpdateSyncronous(updateContext, params, this.distribution);
     }
   }
 
@@ -99,11 +110,14 @@ export class EveChildSmartLightSet extends EveChildTransform
   @impl.implemented
   UpdateAsyncronous(updateContext, params)
   {
-    this.distribution?.UpdateAsyncronous?.(updateContext, params);
+    if (this.distribution)
+    {
+      this.distribution.UpdateAsyncronous(updateContext, params);
+    }
 
     for (const group of this.lightGroups)
     {
-      group?.UpdateAsyncronous?.(updateContext, params, this.distribution);
+      group.UpdateAsyncronous(updateContext, params, this.distribution);
     }
   }
 
@@ -116,7 +130,7 @@ export class EveChildSmartLightSet extends EveChildTransform
     {
       for (const group of this.lightGroups)
       {
-        group?.UpdateVisibility?.(updateContext, parentTransform, parentLod);
+        group.UpdateVisibility(updateContext, parentTransform, parentLod);
       }
     }
   }
@@ -130,7 +144,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   @impl.reason("Carbon re-registers on m_display/m_distribution Var edits; JS forwards every OnModified to the EveEntity ReRegister lifecycle on the flattened EveChildTransform base.")
   OnModified(_options = {})
   {
-    this.ReRegister?.();
+    this.ReRegister();
     return true;
   }
 
@@ -142,22 +156,43 @@ export class EveChildSmartLightSet extends EveChildTransform
    * EveSpaceScene.ReregisterEntities in this pass).
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("List events carry no BELIST insert mask; the inserted value (or, absent one, the whole list) is re-fanned - SetInheritProperties is idempotent.")
-  OnListModified(_event, _key, _key2, value, list)
+  @impl.implemented
+  OnListModified(event, _key, _key2, value, list)
   {
-    if (list === this.lightGroups && this.#inheritProperties)
+    const maskedEvent = Number(event) & BELIST_EVENTMASK;
+    if (
+      list === this.lightGroups &&
+      maskedEvent === BELIST_INSERTED &&
+      this.#inheritProperties &&
+      value
+    )
     {
-      const properties = this.#inheritProperties.GetProperties();
-      if (value)
+      value.SetInheritProperties(this.#inheritProperties.GetProperties());
+    }
+
+    if (
+      list === this.lightGroups &&
+      (Number(event) & BELIST_LOADING) === 0 &&
+      this.IsInRegistry()
+    )
+    {
+      const registry = this.GetComponentRegistry();
+      if (maskedEvent === BELIST_INSERTED && value instanceof EveEntity)
       {
-        value.SetInheritProperties?.(properties);
+        value.Register(registry);
       }
-      else
+      else if (maskedEvent === BELIST_REMOVED && value instanceof EveEntity)
+      {
+        value.UnRegister(registry);
+      }
+      else if (maskedEvent === BELIST_UNLOADSTART)
       {
         for (const group of this.lightGroups)
         {
-          group?.SetInheritProperties?.(properties);
+          if (group instanceof EveEntity)
+          {
+            group.UnRegister(registry);
+          }
         }
       }
     }
@@ -174,7 +209,10 @@ export class EveChildSmartLightSet extends EveChildTransform
     {
       for (const group of this.lightGroups)
       {
-        group?.Register?.(registry);
+        if (group instanceof EveEntity)
+        {
+          group.Register(registry);
+        }
       }
     }
   }
@@ -190,7 +228,10 @@ export class EveChildSmartLightSet extends EveChildTransform
     {
       for (const group of this.lightGroups)
       {
-        group?.UnRegister?.(registry);
+        if (group instanceof EveEntity)
+        {
+          group.UnRegister(registry);
+        }
       }
     }
   }
@@ -204,7 +245,7 @@ export class EveChildSmartLightSet extends EveChildTransform
     {
       for (const group of this.lightGroups)
       {
-        group?.GetRenderables?.(renderables);
+        group.GetRenderables(renderables);
       }
     }
     return renderables;
@@ -228,11 +269,14 @@ export class EveChildSmartLightSet extends EveChildTransform
   @impl.implemented
   SetControllerVariable(name, value)
   {
-    this.distribution?.SetControllerVariable?.(name, value);
+    if (this.distribution)
+    {
+      this.distribution.SetControllerVariable(name, value);
+    }
 
     for (const group of this.lightGroups)
     {
-      group?.SetControllerVariable?.(name, value);
+      group.SetControllerVariable(name, value);
     }
   }
 
@@ -250,14 +294,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   @impl.reason("Tr2DebugRendererOptions is a std::set of option names; the duck-typed bag accepts add or insert.")
   GetDebugOptions(options)
   {
-    if (options?.add)
-    {
-      options.add("smartLightSets");
-    }
-    else
-    {
-      options?.insert?.("smartLightSets");
-    }
+    options.add("smartLightSets");
   }
 
   /**
@@ -270,11 +307,11 @@ export class EveChildSmartLightSet extends EveChildTransform
   {
     if (this.display && this.distribution)
     {
-      const placements = this.distribution.GetPlacementData?.() ?? [];
-      const size = Number(this.distribution.GetNumberOfPlacements?.() ?? placements.length);
+      const placements = this.distribution.GetPlacementData();
+      const size = Number(this.distribution.GetNumberOfPlacements());
       for (const group of this.lightGroups)
       {
-        group?.AddQuadsToQuadRenderer?.(placements, size, frustum, quadRenderer);
+        group.AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer);
       }
     }
   }
@@ -286,7 +323,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   {
     for (const group of this.lightGroups)
     {
-      group?.RegisterWithQuadRenderer?.(quadRenderer);
+      group.RegisterWithQuadRenderer(quadRenderer);
     }
   }
 
@@ -306,7 +343,7 @@ export class EveChildSmartLightSet extends EveChildTransform
 
     for (const group of this.lightGroups)
     {
-      group?.SetInheritProperties?.(colorSet);
+      group.SetInheritProperties(colorSet);
     }
   }
 

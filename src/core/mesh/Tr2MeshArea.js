@@ -47,7 +47,7 @@ export class Tr2MeshArea extends CjsModel
   effect = null;
 
   // DIVERGENCE (deliberate, precedent: EvePlaneSetItem.blinkData): Carbon
-  // keeps these three as private runtime state stamped by SOF through
+  // keeps these four as private runtime state stamped by SOF through
   // setters. The JS values path has no setter side channel, so they are
   // schema-backed here so SOF-authored shadow/depth/LOD state survives
   // values exchange. Without them every area defaults to shadow-casting.
@@ -63,6 +63,12 @@ export class Tr2MeshArea extends CjsModel
   @io.persist
   @type.boolean
   generateDepthArea = false;
+
+  /** m_alphaCutout - decal-style surface whose ray-facing rule is two-sided. */
+  @io.rebuild("batches")
+  @io.persist
+  @type.boolean
+  alphaCutout = false;
 
   /** m_minLod (Tr2Lod) - minimal visible lod; TR2_LOD_UNSPECIFIED = -1. */
   @io.rebuild("batches")
@@ -227,6 +233,22 @@ export class Tr2MeshArea extends CjsModel
     this.castsShadows = !!value;
   }
 
+  /** Whether ray intersection treats this area as an alpha-cutout surface. */
+  @carbon.method
+  @impl.implemented
+  IsAlphaCutout()
+  {
+    return this.alphaCutout;
+  }
+
+  /** Sets alpha-cutout participation; SOF stamps decal areas through this. */
+  @carbon.method
+  @impl.implemented
+  SetAlphaCutout(value)
+  {
+    this.alphaCutout = !!value;
+  }
+
   /** Whether the authored area participates in depth-area generation. */
   @carbon.method
   @impl.adapted
@@ -321,6 +343,7 @@ export class Tr2MeshArea extends CjsModel
     this.display = other.display;
     this.useSHLighting = other.useSHLighting;
     this.generateDepthArea = other.GetGenerateDepthArea();
+    this.alphaCutout = other.IsAlphaCutout();
     return this;
   }
 }

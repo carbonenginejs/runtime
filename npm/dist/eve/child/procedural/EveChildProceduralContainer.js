@@ -217,8 +217,8 @@ new class extends _identity {
     }
 
     /** Carbon EveChildProceduralContainer::UpdateCurveSet (cpp:226-232). */
-    UpdateCurveSet(name, time) {
-      this.selectedObject?.UpdateCurveSet?.(name, time);
+    UpdateCurveSet(name, time, renderContext = null) {
+      if (this.selectedObject) this.selectedObject.UpdateCurveSet(name, time, renderContext);
     }
 
     /** Carbon EveChildProceduralContainer::GetCurveSetDuration (cpp:234-244). */

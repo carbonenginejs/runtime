@@ -73,7 +73,7 @@ class EveSmartLightAttributeModifierControllerVariableListener extends _EveSmart
       this.#ApplyValue();
     }
     for (const modifier of this.attributeModifiers) {
-      modifier?.SetControllerVariable?.(name, value);
+      modifier.SetControllerVariable(name, value);
     }
   }
 

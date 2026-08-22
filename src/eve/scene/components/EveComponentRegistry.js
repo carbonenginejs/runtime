@@ -5,7 +5,8 @@
 import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { EveComponentCollection } from "./EveComponentCollection.js";
-import { EveComponentRequiredMethods } from "../../EveComponentTypes.js";
+import { EveComponentRequiredMethods, EveComponentType } from "../../EveComponentTypes.js";
+import { ITr2FroxelFogSettings } from "../../child/ITr2FroxelFogSettings.js";
 
 /** Indexes Eve entities and their component collections for scene processing. */
 @type.define({ className: "EveComponentRegistry", family: "eve/scene" })
@@ -132,10 +133,18 @@ export class EveComponentRegistry extends CjsModel
   @impl.reason("JavaScript passes Carbon's compile-time component name explicitly because it has no C++ template specialization.")
   RegisterComponent(componentName, entity)
   {
+    if (componentName === EveComponentType.FroxelFogSettings)
+    {
+      if (!(entity instanceof ITr2FroxelFogSettings))
+      {
+        throw new TypeError(
+          `EveComponentRegistry.RegisterComponent("${componentName}") expects an ITr2FroxelFogSettings.`);
+      }
+    }
     // Fail-closed duck assertion: Carbon's RegisterComponent<T> cannot compile
     // for an entity that does not implement T; the JS port asserts the
     // interface's pure-virtual surface (EveComponentRequiredMethods) instead.
-    if (Object.hasOwn(EveComponentRequiredMethods, componentName))
+    else if (Object.hasOwn(EveComponentRequiredMethods, componentName))
     {
       for (const method of EveComponentRequiredMethods[componentName])
       {

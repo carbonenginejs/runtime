@@ -3,7 +3,8 @@ import { RawData } from "../src/core/rawData/RawData.js";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
-import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLineSet, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../npm/dist/index.js";
+import { CjsModel } from "@carbonenginejs/runtime-utils/model";
+import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLineSet, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../npm/dist/index.js";
 import { Tr2ParticleDirectForce } from "../npm/dist/particle/force/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
@@ -18,6 +19,7 @@ import { EveChildProceduralContainer } from "../npm/dist/eve/child/procedural/Ev
 import { EveMultiEffect } from "../npm/dist/eve/effect/multiEffect/EveMultiEffect.js";
 import { EveShip2 } from "../npm/dist/eve/spaceObject/EveShip2.js";
 import { EveCamera } from "../npm/dist/eve/camera/EveCamera.js";
+import { EveSmartLightPointLight } from "../npm/dist/eve/smartLights/EveSmartLightPointLight.js";
 import { BackAndForth } from "../npm/dist/eve/child/behaviors/BackAndForth.js";
 import { SeekTarget } from "../npm/dist/eve/child/behaviors/SeekTarget.js";
 import { EveProceduralMethodCycling } from "../npm/dist/eve/child/procedural/selection/EveProceduralMethodCycling.js";
@@ -48,7 +50,7 @@ import { Tr2SphereConstraint } from "../npm/dist/particle/constraint/Tr2SphereCo
 import { Tr2ScalingTool } from "../npm/dist/core/tool/Tr2ScalingTool.js";
 import { Tr2TextureAnimation } from "../npm/dist/core/animation/Tr2TextureAnimation.js";
 import { Tr2FactionLight } from "../npm/dist/eve/lights/Tr2FactionLight.js";
-import { EveSmartLightSpotLight } from "../npm/dist/generated/eve/smartLights/EveSmartLightSpotLight.js";
+import { EveSmartLightSpotLight } from "../npm/dist/eve/smartLights/EveSmartLightSpotLight.js";
 import { Tr2Light } from "../npm/dist/eve/lights/Tr2Light.js";
 
 
@@ -219,7 +221,33 @@ test("Sprite2D value helpers preserve Carbon vertices, transforms, and dirty sta
 
   polygon.SetVertices(null, null, [[0, 1, 0, 1], [0, 0, 1, 1]]);
   assert.deepEqual(Array.from(polygon.vertices[1].color), [0, 0, 1, 1]);
-  new Tr2SpriteObjectBase();
+  const sprite = new Tr2SpriteObjectBase();
+  let dirtyChild = null;
+  sprite.isDirty = false;
+  sprite.SetParent({ SetChildDirty: child => { dirtyChild = child; } });
+  assert.equal(sprite.isDirty, true);
+  assert.equal(dirtyChild, sprite);
+  sprite.isDirty = false;
+  dirtyChild = null;
+  sprite.SetDisplay(false);
+  sprite.SetDisplayX(12);
+  sprite.SetDisplayY(18);
+  sprite.SetDisplayWidth(64);
+  sprite.SetDisplayHeight(32);
+  assert.equal(sprite.GetDisplay(), false);
+  assert.equal(sprite.GetDisplayX(), 12);
+  assert.equal(sprite.GetDisplayY(), 18);
+  assert.equal(sprite.GetDisplayWidth(), 64);
+  assert.equal(sprite.GetDisplayHeight(), 32);
+  assert.equal(sprite.isDirty, true);
+  assert.equal(dirtyChild, sprite);
+  sprite.isDirty = false;
+  sprite.SetDisplayHeight(32);
+  assert.equal(sprite.isDirty, false);
+  assert.equal(sprite.IsAuxMouseover(), false);
+  assert.equal(sprite.OnModified(null), true);
+  assert.equal(sprite.isDirty, true);
+  assert.equal(CjsSchema.getField(Tr2SpriteObjectBase, "display")?.type.kind, "boolean");
   assert.equal(CjsSchema.getField(Tr2SpriteObjectBase, "displayX")?.type.kind, "float32");
   assert.equal(CjsSchema.getField(Tr2Sprite2dVertex, "texCoord")?.type.kind, "array");
 
@@ -230,6 +258,59 @@ test("Sprite2D value helpers preserve Carbon vertices, transforms, and dirty sta
   lineTrace.SetVertices([[1, 2], [3, 4]], null, [0.5, 0.5, 0.5, 1], "point");
   assert.deepEqual(Array.from(lineTrace.vertices[0].position), [1, 2]);
   assert.equal(lineTrace.vertices[1].name, "point");
+});
+
+test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", () =>
+{
+  const outer = new Tr2Sprite2dContainerBase();
+  const inner = new Tr2Sprite2dContainerBase();
+  const leaf = new Tr2SpriteObjectBase();
+
+  assert.deepEqual(outer.background, []);
+  assert.deepEqual(outer.children, []);
+  assert.equal(outer.opacity, 1);
+
+  CjsModel.addChild(outer, "children", inner);
+  CjsModel.addChild(inner, "children", leaf);
+  outer.isDirty = false;
+  inner.isDirty = false;
+  leaf.isDirty = false;
+
+  leaf.SetDirty();
+  assert.equal(leaf.isDirty, true);
+  assert.equal(inner.isDirty, true);
+  assert.equal(outer.isDirty, true);
+
+  outer.isDirty = false;
+  inner.isDirty = false;
+  leaf.isDirty = false;
+  assert.equal(CjsModel.removeChild(inner, "children", leaf), true);
+  assert.equal(inner.isDirty, true);
+  assert.equal(outer.isDirty, true);
+
+  outer.isDirty = false;
+  inner.isDirty = false;
+  leaf.isDirty = false;
+  leaf.SetDirty();
+  assert.equal(inner.isDirty, false, "removed child no longer dirties its former parent");
+  assert.equal(outer.isDirty, false);
+
+  const first = new Tr2SpriteObjectBase();
+  const second = new Tr2SpriteObjectBase();
+  CjsModel.addChild(inner, "background", first);
+  CjsModel.addChild(inner, "background", second);
+  CjsModel.clearChildren(inner, "background");
+  assert.equal(inner.background.length, 0);
+  inner.isDirty = false;
+  first.isDirty = false;
+  second.isDirty = false;
+  first.SetDirty();
+  second.SetDirty();
+  assert.equal(inner.isDirty, false, "unloaded children are detached before the list is cleared");
+
+  assert.equal(CjsSchema.getMethod(Tr2Sprite2dContainerBase, "SetChildDirty")?.impl?.status, "implemented");
+  assert.equal(CjsSchema.getMethod(Tr2Sprite2dContainerBase, "OnListModified")?.impl?.status, "implemented");
+  assert.equal(CjsSchema.getField(Tr2Sprite2dContainerBase, "children")?.type.kind, "list");
 });
 
 test("EveLineSet retains editable CPU lines before renderer submission", () =>
@@ -1172,6 +1253,11 @@ test("Carbon light accessors remain backed by one shared CjsLightData", () =>
   assert.equal(light.type, Tr2Light.SPOT_LIGHT);
 
   const smartSpot = new EveSmartLightSpotLight();
+  assert.equal(smartSpot instanceof EveSmartLightPointLight, true);
+  assert.equal(smartSpot.lightType, Tr2Light.SPOT_LIGHT);
+  assert.equal(smartSpot.innerAngle, 0);
+  assert.equal(smartSpot.outerAngle, 0);
+  assert.throws(() => smartSpot.RenderDebugInfo(), /not implemented/u);
   smartSpot.SetValues({ innerAngle: 20, outerAngle: 40 });
   assert.equal(smartSpot.innerAngle, 20);
   assert.equal(smartSpot.outerAngle, 40);
@@ -1248,13 +1334,26 @@ test("low-hanging ports replace their generated staging files", () =>
     ["EvePlanet", "eve/spaceObject"],
     ["EveLensflare", "eve/effect"],
     ["EveLineSet", "eve/ui"],
+    ["EveProjectBracket", "eve/ui"],
+    ["EveTacticalOverlay", "eve/ui"],
     ["EveTacticalTrails", "eve/ui"],
     ["EveComponentCollection", "eve/scene"],
     ["EveComponentRegistry", "eve/scene"],
     ["EveTurretFiringFX", "eve/attachment/turrets"],
     ["EveUiObject", "eve/ui"],
     ["EveChildEffectPropagator", "eve/child"],
-    ["Tr2MaterialParameterStore", "trinityCore"]
+    ["Tr2MaterialParameterStore", "trinityCore"],
+    ["Tr2Sprite2dLineTrace", "sprite2d"],
+    ["Tr2Sprite2dContainerBase", "sprite2d"],
+    ["Tr2Sprite2dPolygon", "sprite2d"],
+    ["Tr2Sprite2dRenderJob", "sprite2d"],
+    ["Tr2Sprite2dTransform", "sprite2d"],
+    ["Tr2Sprite2dVertex", "sprite2d"],
+    ["Tr2SpriteObjectBase", "sprite2d"],
+    ["EveSmartLightSpotLight", "eve/smartLights"],
+    ["Tr2Transform", "trinityCore"],
+    ["Tr2ShadowMap", "trinityCore"],
+    ["Tr2VolumetricsRenderer", "trinityCore"]
   ]);
   const summary = JSON.parse(readFileSync(new URL("../src/generated/summary.json", import.meta.url), "utf8"));
   const skipped = new Map(summary.skipped.map(entry => [entry.className, entry]));

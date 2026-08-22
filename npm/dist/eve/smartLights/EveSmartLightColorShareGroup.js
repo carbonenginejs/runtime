@@ -5,6 +5,7 @@ import { resolveGroupColor } from './EveSmartLightBaseGroup.js';
 import { PlacementDataWithIdentifier as _PlacementDataWithIde } from '../PlacementDataWithIdentifier.js';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
+import { BELIST_INSERTED, BELIST_LOADING, BELIST_REMOVED, BELIST_UNLOADSTART, BELIST_EVENTMASK } from '../../controllers/contracts.js';
 
 let _initProto, _initClass, _init_display, _init_extra_display, _init_name, _init_extra_name, _init_lightGroups, _init_extra_lightGroups, _init_factionColor, _init_extra_factionColor, _init_useFactionColor, _init_extra_useFactionColor, _init_attributeModifiers, _init_extra_attributeModifiers, _init_customColor, _init_extra_customColor;
 
@@ -19,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSmartLightColorShareGroup",
         family: "eve/smartLights"
-      })], [[[io, io.notify, io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.notify, io, io.persist, void 0, type.list("IEveSmartLightGroup")], 16, "lightGroups"], [[io, io.notify, io, io.persist, type, type.int32], 16, "factionColor"], [[io, io.persist, type, type.boolean], 16, "useFactionColor"], [[io, io.persist, void 0, type.list("IEveSmartLightGroupAttributeModifier")], 16, "attributeModifiers"], [[io, io.persist, type, type.color], 16, "customColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")], 18, "GetGroupColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")], 18, "SetColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The settle hook receives no changed-property list; the display edit is detected by comparing the cached last-applied value.")], 18, "OnModified"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("List events carry no BELIST insert/remove mask; inserted values (or, absent one, the whole list) are re-fanned idempotently, and registry wiring re-registers this entity rather than the individual group.")], 18, "OnListModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddQuadsToQuadRenderer"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInheritProperties"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterWithQuadRenderer"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RenderDebugInfo"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"]], 0, void 0, _EveEntity));
+      })], [[[io, io.notify, io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.notify, io, io.persist, void 0, type.list("IEveSmartLightGroup")], 16, "lightGroups"], [[io, io.notify, io, io.persist, type, type.int32], 16, "factionColor"], [[io, io.persist, type, type.boolean], 16, "useFactionColor"], [[io, io.persist, void 0, type.list("IEveSmartLightGroupAttributeModifier")], 16, "attributeModifiers"], [[io, io.persist, type, type.color], 16, "customColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")], 18, "GetGroupColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface.")], 18, "SetColor"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The settle hook receives no changed-property list; the display edit is detected by comparing the cached last-applied value.")], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "OnListModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddQuadsToQuadRenderer"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInheritProperties"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterWithQuadRenderer"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RenderDebugInfo"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"]], 0, void 0, _EveEntity));
     }
     /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
     display = (_initProto(this), _init_display(this, true));
@@ -49,12 +50,15 @@ new class extends _identity {
     /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
     #parentColorSet = (_init_extra_customColor(this), null);
 
+    /** Caller-owned faction-colour result; never aliases the SOF model. */
+    #resolvedGroupColor = vec4.createLinear();
+
     /** Last `display` value the settle hook applied (JS-only change detection). */
     #lastAppliedDisplay = true;
 
     /** Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53). */
     GetGroupColor() {
-      return resolveGroupColor(this.customColor, this.useFactionColor, this.factionColor, this.#parentColorSet);
+      return resolveGroupColor(this.customColor, this.useFactionColor, this.factionColor, this.#parentColorSet, this.#resolvedGroupColor);
     }
 
     /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
@@ -76,18 +80,24 @@ new class extends _identity {
      * set; inserted light groups register while this entity is registered
      * (EveSmartLightColorShareGroup.cpp:26-82).
      */
-    OnListModified(_event, _key, _key2, value, list) {
-      if (this.#parentColorSet && (list === this.attributeModifiers || list === this.lightGroups)) {
-        if (value) {
-          value.SetInheritProperties?.(this.#parentColorSet);
-        } else {
-          for (const entry of list) {
-            entry?.SetInheritProperties?.(this.#parentColorSet);
+    OnListModified(event, _key, _key2, value, list) {
+      const maskedEvent = Number(event) & BELIST_EVENTMASK;
+      if (Number(event) === BELIST_INSERTED && this.#parentColorSet && value && (list === this.attributeModifiers || list === this.lightGroups)) {
+        value.SetInheritProperties(this.#parentColorSet);
+      }
+      if (list === this.lightGroups && (Number(event) & BELIST_LOADING) === 0 && this.IsInRegistry()) {
+        const registry = this.GetComponentRegistry();
+        if (maskedEvent === BELIST_INSERTED && value instanceof _EveEntity) {
+          value.Register(registry);
+        } else if (maskedEvent === BELIST_REMOVED && value instanceof _EveEntity) {
+          value.UnRegister(registry);
+        } else if (maskedEvent === BELIST_UNLOADSTART) {
+          for (const group of this.lightGroups) {
+            if (group instanceof _EveEntity) {
+              group.UnRegister(registry);
+            }
           }
         }
-      }
-      if (list === this.lightGroups && this.IsInRegistry()) {
-        this.ReRegister();
       }
     }
 
@@ -96,7 +106,9 @@ new class extends _identity {
       const registry = this.GetComponentRegistry();
       if (registry && this.display) {
         for (const group of this.lightGroups) {
-          group?.Register?.(registry);
+          if (group instanceof _EveEntity) {
+            group.Register(registry);
+          }
         }
       }
     }
@@ -106,7 +118,9 @@ new class extends _identity {
       const registry = this.GetComponentRegistry();
       if (registry) {
         for (const group of this.lightGroups) {
-          group?.UnRegister?.(registry);
+          if (group instanceof _EveEntity) {
+            group.UnRegister(registry);
+          }
         }
       }
     }
@@ -117,7 +131,7 @@ new class extends _identity {
         return;
       }
       for (const group of this.lightGroups) {
-        group?.AddQuadsToQuadRenderer?.(placements, size, frustum, quadRenderer);
+        group.AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer);
       }
     }
 
@@ -127,7 +141,7 @@ new class extends _identity {
         return renderables;
       }
       for (const group of this.lightGroups) {
-        group?.GetRenderables?.(renderables);
+        group.GetRenderables(renderables);
       }
       return renderables;
     }
@@ -138,10 +152,10 @@ new class extends _identity {
      */
     UpdateSyncronous(updateContext, params, distribution) {
       for (const group of this.lightGroups) {
-        group?.UpdateSyncronous?.(updateContext, params, distribution);
+        group.UpdateSyncronous(updateContext, params, distribution);
       }
       for (const attributeModifier of this.attributeModifiers) {
-        attributeModifier?.UpdateSyncronous?.(updateContext, params, 1);
+        attributeModifier.UpdateSyncronous(updateContext, params, 1);
       }
     }
 
@@ -157,13 +171,13 @@ new class extends _identity {
       const colorValues = statics.#colorValues;
       vec3.set(colorValues, groupColor[0], groupColor[1], groupColor[2]);
       for (const attributeModifier of this.attributeModifiers) {
-        attributeModifier?.ProcessAttributeModifier?.(colorValues, statics.#defaultPlacement, statics.#defaultPlacement.initialTranslation, statics.#up, params?.activationStrength ?? 1);
+        attributeModifier.ProcessAttributeModifier(colorValues, statics.#defaultPlacement, statics.#defaultPlacement.initialTranslation, statics.#up, params.activationStrength);
       }
       const sharedColor = statics.#sharedColor;
       vec4.set(sharedColor, colorValues[0], colorValues[1], colorValues[2], this.customColor[3]);
       for (const group of this.lightGroups) {
-        group?.SetColor?.(sharedColor);
-        group?.UpdateAsyncronous?.(updateContext, params, distribution);
+        group.SetColor(sharedColor);
+        group.UpdateAsyncronous(updateContext, params, distribution);
       }
     }
 
@@ -173,10 +187,10 @@ new class extends _identity {
      */
     SetControllerVariable(name, value) {
       for (const attributeModifier of this.attributeModifiers) {
-        attributeModifier?.SetControllerVariable?.(name, value);
+        attributeModifier.SetControllerVariable(name, value);
       }
       for (const group of this.lightGroups) {
-        group?.SetControllerVariable?.(name, value);
+        group.SetControllerVariable(name, value);
       }
     }
 
@@ -189,10 +203,10 @@ new class extends _identity {
       if (colorSet) {
         this.#parentColorSet = colorSet;
         for (const attributeModifier of this.attributeModifiers) {
-          attributeModifier?.SetInheritProperties?.(colorSet);
+          attributeModifier.SetInheritProperties(colorSet);
         }
         for (const group of this.lightGroups) {
-          group?.SetInheritProperties?.(colorSet);
+          group.SetInheritProperties(colorSet);
         }
       }
     }
@@ -200,7 +214,7 @@ new class extends _identity {
     /** Effect-registration fan-out (EveSmartLightColorShareGroup.cpp:192-198). */
     RegisterWithQuadRenderer(quadRenderer) {
       for (const group of this.lightGroups) {
-        group?.RegisterWithQuadRenderer?.(quadRenderer);
+        group.RegisterWithQuadRenderer(quadRenderer);
       }
     }
 
@@ -212,7 +226,7 @@ new class extends _identity {
     /** Visibility fan-out (EveSmartLightColorShareGroup.cpp:213-219). */
     UpdateVisibility(updateContext, parentTransform, parentLod) {
       for (const group of this.lightGroups) {
-        group?.UpdateVisibility?.(updateContext, parentTransform, parentLod);
+        group.UpdateVisibility(updateContext, parentTransform, parentLod);
       }
     }
 

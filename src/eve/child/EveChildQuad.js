@@ -7,6 +7,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { sph3 } from "@carbonenginejs/runtime-utils/sph3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
+import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "./packQuadInstanceData.js";
 
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
 @type.define({ className: "EveChildQuad", family: "eve/child" })
@@ -69,8 +70,8 @@ export class EveChildQuad extends EveChildTransform
 
   // m_quad (EveChildQuad::Quad, EveChildQuad.h:55-67) - the per-instance
   // record handed to the quad renderer. Carbon stores the color/brightness
-  // fields as Float_16; the half packing happens at buffer-build time in the
-  // engine, so the CPU record keeps float32 values.
+  // fields as Float_16. The logical record keeps ordinary numeric values and
+  // is packed into terminal bytes immediately before AddQuads.
   #quad = {
     parentTransform0: vec4.create(),
     parentTransform1: vec4.create(),
@@ -81,6 +82,9 @@ export class EveChildQuad extends EveChildTransform
     color: vec4.create(),
     brightness: new Float32Array(2)
   };
+
+  /** Reusable terminal byte record; Tr2QuadRenderer copies it on AddQuads. */
+  #quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
 
   /**
    * Caches the effect key and rebuilds static local transforms
@@ -133,12 +137,12 @@ export class EveChildQuad extends EveChildTransform
   /** Registers the effect bucket with a quad renderer (EveChildQuad.cpp:87-93). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The quad renderer is an injected engine-owned capability; the Carbon arguments are forwarded through a duck-typed contract.")
+  @impl.reason("The injected renderer owns physical realization; Trinity forwards the required Carbon registration contract directly.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.effect)
     {
-      quadRenderer?.RegisterEffect?.(
+      quadRenderer.RegisterEffect(
         this.#effectKey,
         TriBatchType.TRIBATCHTYPE_ADDITIVE,
         EveChildQuad.QUAD_INSTANCE_SIZE,
@@ -152,12 +156,12 @@ export class EveChildQuad extends EveChildTransform
   /** Submits the current instance record when visible (EveChildQuad.cpp:95-101). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The quad renderer is an injected engine-owned capability; the CPU-side instance record is submitted through a duck-typed contract.")
+  @impl.reason("Trinity packs Carbon's mixed float32/float16 record into terminal bytes before direct submission to the injected renderer.")
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
     if (this.display && this.effect && this.#isVisible)
     {
-      quadRenderer?.AddQuads?.(this.#effectKey, this.#quad, 1);
+      quadRenderer.AddQuads(this.#effectKey, packQuadInstanceData(this.#quad, this.#quadBytes), 1);
     }
   }
 
@@ -346,7 +350,7 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** sizeof(EveChildQuad::Quad): 6 * 16 + 4 * 2 + 2 * 2 bytes. */
-  static QUAD_INSTANCE_SIZE = 108;
+  static QUAD_INSTANCE_SIZE = QUAD_INSTANCE_SIZE;
 
   static #quadDefinition = Object.freeze([
     Object.freeze({ type: "FLOAT32_1", usage: "TEXCOORD", usageIndex: 5, stream: 0, stepRate: 0 }),

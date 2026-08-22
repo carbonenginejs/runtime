@@ -11,6 +11,8 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { TriBatchType } from "@carbonenginejs/runtime-utils/graphics";
+import { BELIST_INSERTED } from "../../controllers/contracts.js";
+import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInstanceData.js";
 
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
 @type.define({ className: "EveSmartLightQuad", family: "eve/smartLights" })
@@ -86,6 +88,9 @@ export class EveSmartLightQuad extends EveChildTransform
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = null;
 
+  /** Caller-owned faction-colour result; never aliases the SOF model. */
+  #resolvedGroupColor = vec4.createLinear();
+
   /** m_effectKey (unsigned) - cached Tr2Effect hash used as the quad-renderer bucket key (EveSmartLightQuad.h:59). */
   #effectKey = 0;
 
@@ -101,7 +106,13 @@ export class EveSmartLightQuad extends EveChildTransform
   @impl.reason("Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the base-group surface through the shared resolveGroupColor helper.")
   GetGroupColor()
   {
-    return resolveGroupColor(this.customColor, this.useFactionColor, this.factionColor, this.#parentColorSet);
+    return resolveGroupColor(
+      this.customColor,
+      this.useFactionColor,
+      this.factionColor,
+      this.#parentColorSet,
+      this.#resolvedGroupColor
+    );
   }
 
   /** Overwrites the custom color (Carbon base EveSmartLightBaseGroup.cpp:55-58). */
@@ -129,7 +140,7 @@ export class EveSmartLightQuad extends EveChildTransform
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.SetInheritProperties?.(colorSet);
+      attributeModifier.SetInheritProperties(colorSet);
     }
   }
 
@@ -141,7 +152,7 @@ export class EveSmartLightQuad extends EveChildTransform
   {
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.SetControllerVariable?.(name, value);
+      attributeModifier.SetControllerVariable(name, value);
     }
   }
 
@@ -151,22 +162,17 @@ export class EveSmartLightQuad extends EveChildTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("List events carry no BELIST insert mask; the inserted value (or, absent one, the whole list) is re-fanned - SetInheritProperties is idempotent.")
-  OnListModified(_event, _key, _key2, value, list)
+  @impl.reason("Carbon's EveSmartLightBaseGroup secondary base is flattened; CjsModel still forwards its exact BELIST event and inserted value.")
+  OnListModified(event, _key, _key2, value, list)
   {
-    if (list === this.attributeModifiers && this.#parentColorSet)
+    if (
+      list === this.attributeModifiers &&
+      Number(event) === BELIST_INSERTED &&
+      this.#parentColorSet &&
+      value
+    )
     {
-      if (value)
-      {
-        value.SetInheritProperties?.(this.#parentColorSet);
-      }
-      else
-      {
-        for (const attributeModifier of this.attributeModifiers)
-        {
-          attributeModifier?.SetInheritProperties?.(this.#parentColorSet);
-        }
-      }
+      value.SetInheritProperties(this.#parentColorSet);
     }
   }
 
@@ -199,7 +205,7 @@ export class EveSmartLightQuad extends EveChildTransform
       this.effect = new Tr2Effect();
       this.#ApplyEffectPath();
     }
-    this.#effectKey = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
+    this.#effectKey = Number(this.effect.GetHashValue()) >>> 0;
     this.#lastAppliedSoftQuad = this.softQuad;
     return true;
   }
@@ -207,10 +213,10 @@ export class EveSmartLightQuad extends EveChildTransform
   /** Registers the effect bucket with a quad renderer (EveSmartLightQuad.cpp:68-71). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The quad renderer is an injected engine-owned capability; the Carbon arguments are forwarded through a duck-typed contract using EveChildQuad's shared quad definition.")
+  @impl.reason("The injected renderer owns physical realization; Trinity forwards the required Carbon registration contract directly using EveChildQuad's shared definition.")
   RegisterWithQuadRenderer(quadRenderer)
   {
-    quadRenderer?.RegisterEffect?.(
+    quadRenderer.RegisterEffect(
       this.#effectKey,
       TriBatchType.TRIBATCHTYPE_ADDITIVE,
       EveSmartLightQuad.QUAD_INSTANCE_SIZE,
@@ -236,7 +242,7 @@ export class EveSmartLightQuad extends EveChildTransform
     {
       if (this.effect)
       {
-        const key = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
+        const key = Number(this.effect.GetHashValue()) >>> 0;
         if (key !== this.#effectKey)
         {
           this.#effectKey = key;
@@ -255,7 +261,7 @@ export class EveSmartLightQuad extends EveChildTransform
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.UpdateSyncronous?.(updateContext, params, 1);
+      attributeModifier.UpdateSyncronous(updateContext, params, 1);
     }
   }
 
@@ -271,7 +277,7 @@ export class EveSmartLightQuad extends EveChildTransform
     let localToWorld = params?.localToWorldTransform ?? EveSmartLightQuad.#identity;
 
     const parent = params?.childParent ?? params?.spaceObjectParent;
-    if (parent?.GetLocalToWorldTransform)
+    if (parent)
     {
       const transform = parent.GetLocalToWorldTransform(EveSmartLightQuad.#parentTransform);
       if (transform)
@@ -288,12 +294,12 @@ export class EveSmartLightQuad extends EveChildTransform
    * renderer (EveSmartLightQuad.cpp:116-170). The transforms are packed as
    * Carbon's Vector4 rows (_11,_21,_31,_41 / ...), which on the shared
    * D3D-row-major / GL-column-major byte layout is the column-stride pattern
-   * (m[0],m[4],m[8],m[12]) etc. Color/brightness stay float32; the half
-   * packing happens at buffer-build time in the engine.
+   * (m[0],m[4],m[8],m[12]) etc. The mixed float32/float16 record is packed
+   * into terminal bytes here before the quad renderer copies it.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The quad renderer and frustum are injected engine-owned capabilities reached through duck-typed contracts; a missing frustum is treated as visible.")
+  @impl.reason("The injected renderer owns physical realization; Trinity builds and packs Carbon's logical record before direct submission.")
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {
     if (!this.display || !this.effect)
@@ -344,14 +350,14 @@ export class EveSmartLightQuad extends EveChildTransform
       vec3.transformMat4(worldPosition, position, m);
       vec4.set(sphere, worldPosition[0], worldPosition[1], worldPosition[2], maxScale);
 
-      if (frustum?.IsSphereVisible?.(sphere) !== false)
+      if (!frustum || frustum.IsSphereVisible(sphere))
       {
         const strength = this.#activationStrength;
         vec3.set(color, groupColor[0] * strength, groupColor[1] * strength, groupColor[2] * strength);
 
         for (const attributeModifier of this.attributeModifiers)
         {
-          attributeModifier?.ProcessAttributeModifier?.(color, placement, worldPosition, direction, strength);
+          attributeModifier.ProcessAttributeModifier(color, placement, worldPosition, direction, strength);
         }
 
         vec4.set(quad.parentTransform0, m[0], m[4], m[8], m[12]);
@@ -364,7 +370,7 @@ export class EveSmartLightQuad extends EveChildTransform
         quad.brightness[0] = this.brightness;
         quad.brightness[1] = 0;
 
-        quadRenderer?.AddQuads?.(this.#effectKey, quad, 1);
+        quadRenderer.AddQuads(this.#effectKey, packQuadInstanceData(quad, statics.#quadBytes), 1);
       }
     }
   }
@@ -372,15 +378,18 @@ export class EveSmartLightQuad extends EveChildTransform
   /** Applies the softQuad-selected flare effect path (EveSmartLightQuad.cpp:25-33 and cpp:40-51). */
   #ApplyEffectPath()
   {
-    this.effect?.SetEffectPathName?.(
-      this.softQuad
-        ? "res:/Graphics/Effect/Managed/Space/SpecialFX/flarequadsoft.fx"
-        : "res:/Graphics/Effect/Managed/Space/SpecialFX/FlareQuad.fx"
-    );
+    if (this.effect)
+    {
+      this.effect.SetEffectPathName(
+        this.softQuad
+          ? "res:/Graphics/Effect/Managed/Space/SpecialFX/flarequadsoft.fx"
+          : "res:/Graphics/Effect/Managed/Space/SpecialFX/FlareQuad.fx"
+      );
+    }
   }
 
   /** sizeof(EveSmartLightQuad::SimplifiedQuad): 6 * 16 + 4 * 2 + 2 * 2 bytes (EveSmartLightQuad.h:38-49). */
-  static QUAD_INSTANCE_SIZE = 108;
+  static QUAD_INSTANCE_SIZE = QUAD_INSTANCE_SIZE;
 
   /** TriVectorRotateMatrix (TriMath.cpp:81-94): basis-rows multiply, no translation. */
   static #TransformNormal(out, direction, matrix)
@@ -406,6 +415,8 @@ export class EveSmartLightQuad extends EveChildTransform
     color: vec4.create(),
     brightness: new Float32Array(2)
   };
+
+  static #quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
 
   static #identity = mat4.create();
 

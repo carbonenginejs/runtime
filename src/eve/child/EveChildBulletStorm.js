@@ -3,14 +3,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 /** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
 @type.define({ className: "EveChildBulletStorm", family: "eve/child" })
-export class EveChildBulletStorm extends CjsModel
+export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 
   #changingClipSphere = false;

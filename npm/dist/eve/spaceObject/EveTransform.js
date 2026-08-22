@@ -6,7 +6,7 @@ import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
-import { Tr2Transform as _Tr2Transform } from '../../generated/trinityCore/Tr2Transform.js';
+import { Tr2Transform as _Tr2Transform } from '../../core/Tr2Transform.js';
 import { EveLODHelper } from '../EveLODHelper.js';
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from '../../core/view/Tr2PickType.js';
 import { Tr2Lod } from '@carbonenginejs/runtime-utils/const/trinity';
@@ -32,7 +32,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveTransform",
         family: "eve/spaceObject"
-      })], [[[io, io.persist, void 0, type.model("Tr2MeshBase")], 16, "meshLod"], [[io, io.persist, void 0, type.list("IEveTransform")], 16, "children"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMin"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMax"], [[io, io.persist, void 0, type.list("ITr2GenericEmitter")], 16, "particleEmitters"], [[io, io.persist, void 0, type.list("Tr2ParticleSystem")], 16, "particleSystems"], [[io, io.read, type, type.int32, void 0, type.enum("Tr2Lod")], 16, "lodLevel"], [[io, io.persist, type, type.boolean], 16, "hideOnLowQuality"], [[io, io.persist, type, type.float32], 16, "visibilityThreshold"], [[io, io.persist, void 0, type.list("TriObserverLocal")], 16, "observers"], [[io, io.persist, type, type.boolean], 16, "useLodLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")], 18, "UpdateViewDependentData"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers remain engine-owned.")], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Browser frustum and quality state are read from the explicit update context instead of renderer globals.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Trinity allocates the catalogued record and encodes its matrix fields into the canonical stored layout; the engine owns GPU allocation, upload, and binding.")], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPickingBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetID"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Declared on Tr2Transform in Carbon; the generated base class stays data-only.")], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldPosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldRotation"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLODLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSets"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRangeDuration"]], 0, void 0, _Tr2Transform));
+      })], [[[io, io.persist, void 0, type.model("Tr2MeshBase")], 16, "meshLod"], [[io, io.persist, void 0, type.list("IEveTransform")], 16, "children"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMin"], [[io, io.persist, type, type.vec3], 16, "overrideBoundsMax"], [[io, io.persist, void 0, type.list("ITr2GenericEmitter")], 16, "particleEmitters"], [[io, io.persist, void 0, type.list("Tr2ParticleSystem")], 16, "particleSystems"], [[io, io.read, type, type.int32, void 0, type.enum("Tr2Lod")], 16, "lodLevel"], [[io, io.persist, type, type.boolean], 16, "hideOnLowQuality"], [[io, io.persist, type, type.float32], 16, "visibilityThreshold"], [[io, io.persist, void 0, type.list("TriObserverLocal")], 16, "observers"], [[io, io.persist, type, type.boolean], 16, "useLodLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, void 0, carbon.contextual(["camera"]), impl, impl.adapted, void 0, impl.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")], 18, "UpdateViewDependentData"], [[carbon, carbon.method, impl, impl.implemented], 18, "Update"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers remain engine-owned.")], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Browser frustum and quality state are read from the explicit update context instead of renderer globals.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Trinity allocates the catalogued record and encodes its matrix fields into the canonical stored layout; the engine owns GPU allocation, upload, and binding.")], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPickingBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetID"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldPosition"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetWorldRotation"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLODLevel"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetDisplay"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSets"], [[carbon, carbon.method, impl, impl.implemented], 18, "PlayCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "StopCurveSet"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetCurveSetDuration"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRangeDuration"]], 0, void 0, _Tr2Transform));
     }
     /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */
     meshLod = (_initProto(this), _init_meshLod(this, null));
@@ -68,7 +68,6 @@ new class extends _identity {
     useLodLevel = (_init_extra_observers(this), _init_useLodLevel(this, true));
     #isVisible = (_init_extra_useLodLevel(this), true);
     #lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
-    #lastWorldTransform = mat4.create();
 
     /**
      * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
@@ -85,13 +84,12 @@ new class extends _identity {
     /**
      * Rebuilds the local matrix from rotation, translation and scaling and composes it with the parent to refresh worldTransform, keeping the previous world transform for motion vectors, then pushes the new transform to the particle systems and observers.
      * @returns {mat4} The node's live worldTransform, valid until the next update.
-     */
+    */
     UpdateViewDependentData(context, parentTransform = _EveTransform.#identity) {
-      mat4.copy(this.#lastWorldTransform, this.worldTransform);
-      mat4.fromRotationTranslationScale(this.localTransform, this.rotation, this.translation, this.scaling);
-      mat4.multiply(this.worldTransform, parentTransform, this.localTransform);
-      for (const system of this.particleSystems) system?.UpdateViewDependentData?.(context?.GetFrustum?.() ?? context?.frustum ?? context, this.worldTransform);
-      for (const observer of this.observers) observer?.Update?.(this.worldTransform);
+      const frustum = context.GetFrustum();
+      super.UpdateViewDependentData(context.renderContext, parentTransform);
+      for (const system of this.particleSystems) system.UpdateViewDependentData(frustum, this.worldTransform);
+      for (const observer of this.observers) observer.Update(this.worldTransform);
       return this.worldTransform;
     }
 
@@ -118,7 +116,7 @@ new class extends _identity {
       this.#lastCurveUpdateDelta += deltaTime;
       if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this.#lastCurveUpdateDelta)) {
         this.#lastCurveUpdateDelta = 0;
-        for (const curveSet of this.curveSets) curveSet?.Update?.(time);
+        for (const curveSet of this.curveSets) curveSet.Update(time, undefined, context.renderContext);
       }
       for (const child of this.children) child?.Update?.(context);
       for (const system of this.particleSystems) {
@@ -195,7 +193,7 @@ new class extends _identity {
     GetPerObjectData(accumulator) {
       const data = accumulator.Alloc("EveBasicPerObjectData");
       data.SetAndTranspose("world", this.worldTransform);
-      data.SetAndTranspose("worldLast", this.#lastWorldTransform);
+      data.SetAndTranspose("worldLast", this.lastWorldTransform);
       if (!mat4.invert(INVERSE_PATCH_SCRATCH, this.worldTransform)) {
         // Carbon singular fixup (EveTransform.cpp:66-75): patch the first
         // all-zero basis of the LOGICAL world (its column [0,1,2]/[4,5,6]/
@@ -208,17 +206,6 @@ new class extends _identity {
       }
       data.SetAndTranspose("worldInverse", INVERSE_PATCH_SCRATCH);
       return data;
-    }
-
-    /** Carbon declares the renderable batch contract on Tr2Transform
-     * (Tr2Transform.cpp:250-276); the generated base stays data-only, so the
-     * maintained renderable carries the behavior. */
-    // Returns whether any batch was committed (JS addition; Carbon returns void).
-    GetBatches(batches, batchType, perObjectData, _reason) {
-      if (this.display && this.mesh) {
-        return this.mesh.GetBatches(batches, this.mesh.GetAreas(batchType), perObjectData) === true;
-      }
-      return false;
     }
 
     /**
@@ -260,33 +247,6 @@ new class extends _identity {
      */
     GetID(_areaID = 0) {
       return this;
-    }
-
-    /**
-     * Reports whether the mesh has any transparent areas, which tells the renderer
-     * to route this node through the sorted transparent pass.
-     */
-    HasTransparentBatches() {
-      if (this.display && this.mesh) {
-        return (this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0;
-      }
-      return false;
-    }
-
-    // Distance from the view position to the world translation, scaled by the
-    // authored multiplier (used to order transparent renderables back-to-front).
-
-    /**
-     * Returns the distance from the render context's view position to this node's
-     * world translation, scaled by the authored sortValueMultiplier, used to order
-     * transparent renderables back-to-front.
-     */
-    GetSortValue(renderContext = null) {
-      const viewPosition = renderContext?.GetViewPosition?.();
-      const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
-      const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
-      const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];
-      return Math.hypot(x, y, z) * this.sortValueMultiplier;
     }
 
     /**

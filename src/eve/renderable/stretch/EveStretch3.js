@@ -299,7 +299,7 @@ export class EveStretch3 extends EveEntity
     const time = getTime(context);
     if (this.startTime === 0) this.startTime = time;
     const relative = time - this.startTime;
-    for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative);
+    for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative, context.renderContext);
 
     const params = this.#makeParams();
     const sourceMatrix = EveStretch3.#sourceTransform;
@@ -587,10 +587,16 @@ export class EveStretch3 extends EveEntity
    * forwards the call to the children; unlike play and stop this is not gated on
    * display.
    */
-  UpdateCurveSet(name, time)
+  UpdateCurveSet(name, time, renderContext = null)
   {
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) updateCurveSet(curveSet, time);
-    for (const component of this.#components()) component?.UpdateCurveSet?.(name, time);
+    for (const curveSet of this.curveSets)
+    {
+      if (curveSet.GetName() === name)
+      {
+        updateCurveSet(curveSet, time, renderContext);
+      }
+    }
+    for (const component of this.#components()) component?.UpdateCurveSet?.(name, time, renderContext);
   }
 
   /**

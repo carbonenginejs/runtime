@@ -171,9 +171,9 @@ new class extends _identity {
      * every controller, matching Carbon's fixed 0.5 controller step; skipped
      * entirely when updates are disabled or no curve set is assigned.
      */
-    Update(realTime, simTime) {
+    Update(realTime, simTime, renderContext = null) {
       if (!this.update || !this.curveSet) return;
-      this.curveSet.Update?.(realTime, simTime);
+      this.curveSet.Update(realTime, simTime, renderContext);
       for (const controller of this.controllers) controller?.Update?.(0.5);
     }
 

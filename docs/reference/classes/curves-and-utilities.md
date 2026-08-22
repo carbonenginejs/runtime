@@ -436,6 +436,26 @@ A transform packed into twelve floats, dropping the constant fourth column.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:Obb -->
+## `Obb`
+
+A portable oriented bounding box with Carbon-compatible clipping helpers.
+
+- Export: `@carbonenginejs/runtime-trinity/utilities`
+- Source: `src/utilities/Obb.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2ProjectBoundingBoxBracket -->
+## `Tr2ProjectBoundingBoxBracket`
+
+Projects an owned world-space bounding box into a Sprite2D bracket.
+
+- Export: `@carbonenginejs/runtime-trinity/ui`
+- Source: `src/ui/Tr2ProjectBoundingBoxBracket.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Range -->
 ## `Range`
 

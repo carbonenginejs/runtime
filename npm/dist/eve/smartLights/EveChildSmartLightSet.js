@@ -2,7 +2,9 @@ import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_v
 import { io, type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
 import { EveChildTransform as _EveChildTransform } from '../child/EveChildTransform.js';
 import { EveChildInheritProperties as _EveChildInheritPrope } from '../child/EveChildInheritProperties.js';
+import { EveEntity as _EveEntity } from '../EveEntity.js';
 import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
+import { BELIST_INSERTED, BELIST_LOADING, BELIST_REMOVED, BELIST_UNLOADSTART, BELIST_EVENTMASK } from '../../controllers/contracts.js';
 
 let _initProto, _initClass, _init_name, _init_extra_name, _init_display, _init_extra_display, _init_distribution, _init_extra_distribution, _init_lightGroups, _init_extra_lightGroups;
 
@@ -17,7 +19,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveChildSmartLightSet",
         family: "eve/smartLights"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, void 0, type.model("IEveDistributionMethod")], 16, "distribution"], [[io, io.persist, void 0, type.list("IEveSmartLightGroup")], 16, "lightGroups"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.noop], 18, "Setup"], [[carbon, carbon.method, impl, impl.noop], 18, "ChangeLOD"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon re-registers on m_display/m_distribution Var edits; JS forwards every OnModified to the EveEntity ReRegister lifecycle on the flattened EveChildTransform base.")], 18, "OnModified"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("List events carry no BELIST insert mask; the inserted value (or, absent one, the whole list) is re-fanned - SetInheritProperties is idempotent.")], 18, "OnListModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")], 18, "GetLocalToWorldTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RenderDebugInfo"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2DebugRendererOptions is a std::set of option names; the duck-typed bag accepts add or insert.")], 18, "GetDebugOptions"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddQuadsToQuadRenderer"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterWithQuadRenderer"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInheritProperties"]], 0, void 0, _EveChildTransform));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, void 0, type.model("IEveDistributionMethod")], 16, "distribution"], [[io, io.persist, void 0, type.list("IEveSmartLightGroup")], 16, "lightGroups"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.noop], 18, "Setup"], [[carbon, carbon.method, impl, impl.noop], 18, "ChangeLOD"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon re-registers on m_display/m_distribution Var edits; JS forwards every OnModified to the EveEntity ReRegister lifecycle on the flattened EveChildTransform base.")], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "OnListModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnRegisterComponents"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")], 18, "GetLocalToWorldTransform"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "RenderDebugInfo"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2DebugRendererOptions is a std::set of option names; the duck-typed bag accepts add or insert.")], 18, "GetDebugOptions"], [[carbon, carbon.method, impl, impl.implemented], 18, "AddQuadsToQuadRenderer"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterWithQuadRenderer"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetInheritProperties"]], 0, void 0, _EveChildTransform));
     }
     /** m_name (std::string) [READWRITE, PERSIST] */
     name = (_initProto(this), _init_name(this, ""));
@@ -62,18 +64,22 @@ new class extends _identity {
      * light group (EveChildSmartLightSet.cpp:73-86).
      */
     UpdateSyncronous(updateContext, params) {
-      this.UpdateTransform(params?.localToWorldTransform ?? _EveChildSmartLightSe.#identity);
-      this.distribution?.UpdateSyncronous?.(updateContext, params);
+      this.UpdateTransform(params.localToWorldTransform);
+      if (this.distribution) {
+        this.distribution.UpdateSyncronous(updateContext, params);
+      }
       for (const group of this.lightGroups) {
-        group?.UpdateSyncronous?.(updateContext, params, this.distribution);
+        group.UpdateSyncronous(updateContext, params, this.distribution);
       }
     }
 
     /** Asynchronous fan-out to the distribution and light groups (EveChildSmartLightSet.cpp:88-99). */
     UpdateAsyncronous(updateContext, params) {
-      this.distribution?.UpdateAsyncronous?.(updateContext, params);
+      if (this.distribution) {
+        this.distribution.UpdateAsyncronous(updateContext, params);
+      }
       for (const group of this.lightGroups) {
-        group?.UpdateAsyncronous?.(updateContext, params, this.distribution);
+        group.UpdateAsyncronous(updateContext, params, this.distribution);
       }
     }
 
@@ -81,7 +87,7 @@ new class extends _identity {
     UpdateVisibility(updateContext, parentTransform, parentLod) {
       if (this.distribution && this.display) {
         for (const group of this.lightGroups) {
-          group?.UpdateVisibility?.(updateContext, parentTransform, parentLod);
+          group.UpdateVisibility(updateContext, parentTransform, parentLod);
         }
       }
     }
@@ -91,7 +97,7 @@ new class extends _identity {
      * (EveChildSmartLightSet.cpp:112-119).
      */
     OnModified(_options = {}) {
-      this.ReRegister?.();
+      this.ReRegister();
       return true;
     }
 
@@ -102,14 +108,22 @@ new class extends _identity {
      * stays a follow-up (registration is one-shot via
      * EveSpaceScene.ReregisterEntities in this pass).
      */
-    OnListModified(_event, _key, _key2, value, list) {
-      if (list === this.lightGroups && this.#inheritProperties) {
-        const properties = this.#inheritProperties.GetProperties();
-        if (value) {
-          value.SetInheritProperties?.(properties);
-        } else {
+    OnListModified(event, _key, _key2, value, list) {
+      const maskedEvent = Number(event) & BELIST_EVENTMASK;
+      if (list === this.lightGroups && maskedEvent === BELIST_INSERTED && this.#inheritProperties && value) {
+        value.SetInheritProperties(this.#inheritProperties.GetProperties());
+      }
+      if (list === this.lightGroups && (Number(event) & BELIST_LOADING) === 0 && this.IsInRegistry()) {
+        const registry = this.GetComponentRegistry();
+        if (maskedEvent === BELIST_INSERTED && value instanceof _EveEntity) {
+          value.Register(registry);
+        } else if (maskedEvent === BELIST_REMOVED && value instanceof _EveEntity) {
+          value.UnRegister(registry);
+        } else if (maskedEvent === BELIST_UNLOADSTART) {
           for (const group of this.lightGroups) {
-            group?.SetInheritProperties?.(properties);
+            if (group instanceof _EveEntity) {
+              group.UnRegister(registry);
+            }
           }
         }
       }
@@ -121,7 +135,9 @@ new class extends _identity {
       const registry = this.GetComponentRegistry();
       if (registry && this.distribution && this.display) {
         for (const group of this.lightGroups) {
-          group?.Register?.(registry);
+          if (group instanceof _EveEntity) {
+            group.Register(registry);
+          }
         }
       }
     }
@@ -132,7 +148,9 @@ new class extends _identity {
       const registry = this.GetComponentRegistry();
       if (registry) {
         for (const group of this.lightGroups) {
-          group?.UnRegister?.(registry);
+          if (group instanceof _EveEntity) {
+            group.UnRegister(registry);
+          }
         }
       }
     }
@@ -141,7 +159,7 @@ new class extends _identity {
     GetRenderables(renderables = []) {
       if (this.distribution && this.display) {
         for (const group of this.lightGroups) {
-          group?.GetRenderables?.(renderables);
+          group.GetRenderables(renderables);
         }
       }
       return renderables;
@@ -157,9 +175,11 @@ new class extends _identity {
 
     /** Fans a controller variable to the distribution and light groups (EveChildSmartLightSet.cpp:167-178). */
     SetControllerVariable(name, value) {
-      this.distribution?.SetControllerVariable?.(name, value);
+      if (this.distribution) {
+        this.distribution.SetControllerVariable(name, value);
+      }
       for (const group of this.lightGroups) {
-        group?.SetControllerVariable?.(name, value);
+        group.SetControllerVariable(name, value);
       }
     }
 
@@ -170,11 +190,7 @@ new class extends _identity {
 
     /** Advertises the smartLightSets debug option (EveChildSmartLightSet.cpp:210-213); options is a Set-like bag. */
     GetDebugOptions(options) {
-      if (options?.add) {
-        options.add("smartLightSets");
-      } else {
-        options?.insert?.("smartLightSets");
-      }
+      options.add("smartLightSets");
     }
 
     /**
@@ -183,10 +199,10 @@ new class extends _identity {
      */
     AddQuadsToQuadRenderer(frustum, quadRenderer) {
       if (this.display && this.distribution) {
-        const placements = this.distribution.GetPlacementData?.() ?? [];
-        const size = Number(this.distribution.GetNumberOfPlacements?.() ?? placements.length);
+        const placements = this.distribution.GetPlacementData();
+        const size = Number(this.distribution.GetNumberOfPlacements());
         for (const group of this.lightGroups) {
-          group?.AddQuadsToQuadRenderer?.(placements, size, frustum, quadRenderer);
+          group.AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer);
         }
       }
     }
@@ -194,7 +210,7 @@ new class extends _identity {
     /** Effect-registration fan-out (EveChildSmartLightSet.cpp:202-208). */
     RegisterWithQuadRenderer(quadRenderer) {
       for (const group of this.lightGroups) {
-        group?.RegisterWithQuadRenderer?.(quadRenderer);
+        group.RegisterWithQuadRenderer(quadRenderer);
       }
     }
 
@@ -208,7 +224,7 @@ new class extends _identity {
       }
       this.#inheritProperties.SetProperties(colorSet);
       for (const group of this.lightGroups) {
-        group?.SetInheritProperties?.(colorSet);
+        group.SetInheritProperties(colorSet);
       }
     }
   }];

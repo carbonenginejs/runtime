@@ -1,7 +1,7 @@
 import test from "node:test";
 import { readdir, readFile } from "node:fs/promises";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
-import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults } from "../npm/dist/core/index.js";
+import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../npm/dist/core/index.js";
 import { Tr2RenderJobs, TriRenderJob, TriRenderStep, TriStepClear, TriStepCopyRenderTarget, TriStepEnableWireframeMode, TriStepGenerateMipMaps, TriStepPopDepthStencil, TriStepPopRenderTarget, TriStepPresentSwapChain, TriStepPushDepthStencil, TriStepPushRenderTarget, TriStepRemoteSync, TriStepResolve, TriStepRunJob, TriStepSetDepthStencil, TriStepSetProjection, TriStepSetRenderState, TriStepSetRenderTarget, TriStepSetStdRndStates, TriStepSetView, TriStepSetViewport, TriStepSetVisualizationMode } from "../npm/dist/renderJob/index.js";
 import { TriStepFilterVisibilityResults } from "../npm/dist/renderJob/index.js";
 import { TriStepPythonCB } from "../npm/dist/renderJob/index.js";
@@ -403,7 +403,8 @@ test("P0 render steps preserve Carbon null rules and emit backend-neutral intent
   const target = {};
   const depth = {};
   const viewport = {};
-  const projection = {};
+  const projection = new TriProjection();
+  projection.PerspectiveFov(0.9, 1.6, 1, 100);
 
   const setRT = new TriStepSetRenderTarget();
   assertEquals(setRT instanceof TriRenderStep, true);
@@ -430,7 +431,10 @@ test("P0 render steps preserve Carbon null rules and emit backend-neutral intent
   const setProjection = new TriStepSetProjection();
   setProjection.__init__(projection);
   setProjection.Execute(0, 0, context);
-  assertEquals(context.GetProjection(), projection);
+  assertEquals(
+    Array.from(context.GetProjection()).join(","),
+    Array.from(projection.transform).join(",")
+  );
 });
 
 test("TriStepClear preserves raw defaults, optional initializer rules, and color clamps", () =>

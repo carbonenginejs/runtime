@@ -133,7 +133,7 @@ new class extends _identity {
      * even while instance data settles; ported verbatim.
      */
     get isLoading() {
-      return super.isLoading && !!this.GetInstanceGeometryResource() && !(this.GetInstanceGeometryResource().IsInstanceDataReady?.() ?? false);
+      return super.isLoading && !!this.GetInstanceGeometryResource() && !this.GetInstanceGeometryResource().IsInstanceDataReady();
     }
 
     /** Overrides Tr2MeshBase - instanced areas share the whole-mesh bounds. */

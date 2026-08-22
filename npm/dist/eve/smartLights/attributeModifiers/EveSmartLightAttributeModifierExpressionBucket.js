@@ -199,7 +199,7 @@ new class extends _identity {
      */
     SetControllerVariable(name, value) {
       for (const modifier of this.attributeModifiers) {
-        modifier?.SetControllerVariable?.(name, value);
+        modifier.SetControllerVariable(name, value);
       }
     }
 
@@ -214,7 +214,7 @@ new class extends _identity {
       this.finalAttributeMultiplier = activationMultiplier * this.attributeMultiplier * this.activationValue;
       this.playTime += updateContext?.GetDeltaT?.() ?? 0;
       for (const attributeModifier of this.attributeModifiers) {
-        attributeModifier?.UpdateSyncronous?.(updateContext, params, activationMultiplier);
+        attributeModifier.UpdateSyncronous(updateContext, params, activationMultiplier);
       }
       if (!this.expression) {
         return;

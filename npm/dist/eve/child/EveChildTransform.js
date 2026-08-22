@@ -3,7 +3,7 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { quat } from '@carbonenginejs/runtime-utils/quat';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
-import { EveEntity as _EveEntity } from '../EveEntity.js';
+import { EveSpaceObjectChild as _EveSpaceObjectChild } from './EveSpaceObjectChild.js';
 
 let _initProto, _initClass, _init_translation, _init_extra_translation, _init_scaling, _init_extra_scaling, _init_rotation, _init_extra_rotation, _init_localTransform, _init_extra_localTransform, _init_worldTransform, _init_extra_worldTransform, _init_staticTransform, _init_extra_staticTransform, _init_useSRT, _init_extra_useSRT, _init_useStaticRotation, _init_extra_useStaticRotation, _init_useStaticScale, _init_extra_useStaticScale;
 
@@ -24,7 +24,7 @@ let _initProto, _initClass, _init_translation, _init_extra_translation, _init_sc
  */
 let _EveChildTransform;
 new class extends _identity {
-  static [class EveChildTransform extends _EveEntity {
+  static [class EveChildTransform extends _EveSpaceObjectChild {
     static {
       ({
         e: [_init_translation, _init_extra_translation, _init_scaling, _init_extra_scaling, _init_rotation, _init_extra_rotation, _init_localTransform, _init_extra_localTransform, _init_worldTransform, _init_extra_worldTransform, _init_staticTransform, _init_extra_staticTransform, _init_useSRT, _init_extra_useSRT, _init_useStaticRotation, _init_extra_useStaticRotation, _init_useStaticScale, _init_extra_useStaticScale, _initProto],
@@ -32,7 +32,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveChildTransform",
         family: "eve/child"
-      })], [[[type, type.vec3], 16, "translation"], [[type, type.vec3], 16, "scaling"], [[type, type.quat], 16, "rotation"], [[type, type.mat4], 16, "localTransform"], [[type, type.mat4], 16, "worldTransform"], [[type, type.boolean], 16, "staticTransform"], [[type, type.boolean], 16, "useSRT"], [[type, type.boolean], 16, "useStaticRotation"], [[type, type.boolean], 16, "useStaticScale"], [[carbon, carbon.method, impl, impl.implemented], 18, "RebuildLocalTransform"]], 0, void 0, _EveEntity));
+      })], [[[type, type.vec3], 16, "translation"], [[type, type.vec3], 16, "scaling"], [[type, type.quat], 16, "rotation"], [[type, type.mat4], 16, "localTransform"], [[type, type.mat4], 16, "worldTransform"], [[type, type.boolean], 16, "staticTransform"], [[type, type.boolean], 16, "useSRT"], [[type, type.boolean], 16, "useStaticRotation"], [[type, type.boolean], 16, "useStaticScale"], [[carbon, carbon.method, impl, impl.implemented], 18, "RebuildLocalTransform"]], 0, void 0, _EveSpaceObjectChild));
     }
     constructor(...args) {
       super(...args);

@@ -1,6 +1,6 @@
 import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2SpriteObjectBase as _Tr2SpriteObjectBase } from './Tr2SpriteObjectBase.js';
+import { Tr2SpriteObjectBase as _Tr2SpriteObjectBase } from '../../sprite2d/Tr2SpriteObjectBase.js';
 import { vec2 } from '@carbonenginejs/runtime-utils/vec2';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from './enums.js';

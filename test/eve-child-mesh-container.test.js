@@ -12,12 +12,15 @@ import {
   EveChildInstancedMeshInstance,
   EveChildInstancedMeshes,
   EveChildMesh,
+  EveChildPartData,
+  EveChildPartDataPartData,
   EveChildParticleSystem,
   EveChildProceduralContainer,
   EveChildQuad,
   EveChildRef,
   EveChildSocket,
   EveChildTransform,
+  EveSpaceObjectChild,
   IEveSpaceObjectChild
 } from "../npm/dist/index.js";
 import { EveChildLineSet } from "../npm/dist/eve/child/EveChildLineSet.js";
@@ -207,10 +210,14 @@ test("maintained Eve child classes replace generated fallbacks", () =>
   const generatedContainer = new URL("../src/generated/eve/child/EveChildContainer.js", import.meta.url);
   const generatedShared = new URL("../src/generated/eve/child/EveChildInstancedMeshes.js", import.meta.url);
   const generatedInterface = new URL("../src/generated/eve/child/IEveSpaceObjectChild.js", import.meta.url);
+  const generatedBase = new URL("../src/generated/eve/EveSpaceObjectChild.js", import.meta.url);
+  const generatedPartData = new URL("../src/generated/eve/EveChildPartData.js", import.meta.url);
   assert.equal(existsSync(generatedMesh), false);
   assert.equal(existsSync(generatedContainer), false);
   assert.equal(existsSync(generatedShared), false);
   assert.equal(existsSync(generatedInterface), false);
+  assert.equal(existsSync(generatedBase), false);
+  assert.equal(existsSync(generatedPartData), false);
 
   const summary = JSON.parse(readFileSync(new URL("../src/generated/summary.json", import.meta.url), "utf8"));
   const skipped = summary.skipped.filter(entry =>
@@ -239,11 +246,95 @@ test("generated Eve child classes enforce format-carbon inheritance through main
   assert.equal(new EveChildLineSet() instanceof EveChildTransform, true);
 });
 
-test("IEveSpaceObjectChild owns Carbon's canonical Origin statics", () =>
+test("EveSpaceObjectChild owns Carbon's child identity and hierarchy state", () =>
 {
-  assert.deepEqual(IEveSpaceObjectChild.Origin, { SPACE: 0, SOF: 1 });
-  assert.equal(Object.isFrozen(IEveSpaceObjectChild.Origin), true);
+  const parent = new EveSpaceObjectChild();
+  const child = new EveSpaceObjectChild();
+  const owner = {};
+
+  assert.equal(parent.name, "");
+  assert.equal(parent.GetPartTag(), EveSpaceObjectChild.NO_PART_TAG);
+  assert.equal(parent.GetOwner(), null);
+  assert.equal(parent.GetParent(), null);
+  assert.equal(parent.GetBoundingSphere(null, null), false);
+  assert.equal(parent.IsAlwaysOn(), false);
+  assert.equal(CjsSchema.getField(EveSpaceObjectChild, "partTag")?.type?.kind, "uint32");
+  assert.equal(CjsSchema.getField(EveSpaceObjectChild, "partTag")?.io?.read, true);
+
+  child.SetPartTag(17);
+  parent.SetOwner(owner);
+  parent.RegisterChild(child);
+  assert.equal(child.GetParent(), parent);
+  assert.equal(child.GetOwner(), owner);
+  assert.equal(child.GetPartTag(), 17, "a zero parent tag does not replace the child tag");
+
+  parent.SetPartTag(23);
+  parent.RegisterChild(child);
+  assert.equal(child.GetPartTag(), 23);
+  parent.UnregisterChild(child);
+  assert.equal(child.GetParent(), null);
+  assert.equal(child.GetOwner(), null);
+  assert.equal(child.GetPartTag(), 23, "unregister retains the now-meaningless part tag");
+
+  child.SetParent(new EveSpaceObjectChild());
+  assert.throws(() => parent.UnregisterChild(child), /another parent/);
+  assert.equal(new EveChildTransform() instanceof EveSpaceObjectChild, true);
+  assert.equal(new EveChildInstancedMeshes() instanceof EveSpaceObjectChild, true);
+
+  assert.deepEqual(EveSpaceObjectChild.Origin, { SPACE: 0, SOF: 1 });
+  assert.equal(Object.isFrozen(EveSpaceObjectChild.Origin), true);
+  assert.equal(IEveSpaceObjectChild.Origin, EveSpaceObjectChild.Origin);
   assert.equal(CjsSchema.getField(IEveSpaceObjectChild, "false"), null);
+});
+
+test("EveChildPartData owns persistent modular part state", () =>
+{
+  const data = new EveChildPartData();
+  const first = new EveChildPartDataPartData();
+  const second = new EveChildPartData.PartData();
+
+  first.partId = 4;
+  first.position.set([1, 2, 3]);
+  first.rotation.set([0, 0.5, 0, 0.5]);
+  first.scale.set([2, 3, 4]);
+  first.boundingSphere.set([5, 6, 7, 8]);
+  second.partId = 9;
+  data.faction = "amarr";
+  data.race = "hull";
+  data.parts.push(first, second);
+
+  assert.equal(data instanceof EveSpaceObjectChild, true);
+  assert.equal(CjsSchema.GetConstructor("EveChildPartData"), EveChildPartData);
+  assert.equal(
+    CjsSchema.GetConstructor("EveChildPartData.PartData"),
+    EveChildPartDataPartData
+  );
+  assert.equal(
+    CjsSchema.getField(EveChildPartData, "parts")?.type?.itemType,
+    "EveChildPartData.PartData"
+  );
+  assert.equal(data.GetUnusedPartID(), 10);
+  assert.deepEqual(data.GetValues({ persistOnly: true }), {
+    name: "",
+    faction: "amarr",
+    race: "hull",
+    parts: [
+      {
+        partId: 4,
+        position: [1, 2, 3],
+        rotation: [0, 0.5, 0, 0.5],
+        scale: [2, 3, 4],
+        boundingSphere: [5, 6, 7, 8]
+      },
+      {
+        partId: 9,
+        position: [0, 0, 0],
+        rotation: [0, 0, 0, 1],
+        scale: [1, 1, 1],
+        boundingSphere: [0, 0, 0, 0]
+      }
+    ]
+  });
 });
 
 test("EveChildInstancedMeshes owns shared SOF mesh records without backend state", () =>

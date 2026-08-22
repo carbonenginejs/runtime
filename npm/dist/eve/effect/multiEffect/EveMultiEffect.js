@@ -171,9 +171,9 @@ new class extends _identity {
      * Advances every curve set with the given name to an explicit time, bypassing
      * the effect's own update pass.
      */
-    UpdateCurveSet(name, time) {
+    UpdateCurveSet(name, time, renderContext = null) {
       for (const curveSet of this.curveSets) {
-        if (_EveMultiEffect.#GetName(curveSet) === name) curveSet?.Update?.(time, time);
+        if (_EveMultiEffect.#GetName(curveSet) === name) curveSet.Update(time, time, renderContext);
       }
     }
 
@@ -211,7 +211,7 @@ new class extends _identity {
      */
     UpdateSyncronous(updateContext) {
       const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
-      for (const curveSet of this.curveSets) curveSet?.Update?.(time, time);
+      for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
       for (const controller of this.controllers) controller?.Update?.(0.5);
       for (const binding of this.bindings) binding?.Update?.(time);
     }

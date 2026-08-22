@@ -16,7 +16,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSmartLightBaseAttributeModifier",
         family: "eve/smartLights/attributeModifiers"
-      })], [[[io, io.persist, type, type.int32, void 0, type.enum("LifeTimeFormulas")], 16, "lifeTimeFormula"], [[io, io.persist, void 0, type.model("Tr2CurveScalar")], 16, "activationOverLifetime"], [[io, io.read, type, type.float32], 16, "activationValue"], [[io, io.read, type, type.float32], 16, "playTime"], [[io, io.persist, type, type.float32], 16, "crossFadeDuration"], [[io, io.persist, type, type.float32], 16, "crossFadeIntensity"], [[io, io.persist, type, type.float32], 16, "perInstanceOffset"], [[io, io.persist, type, type.float32], 16, "attributeMultiplier"], [[io, io.persist, type, type.boolean], 16, "startsActive"], [[io, io.persist, type, type.boolean], 16, "restartPlayTimeWhenInactive"], [[io, io.read, type, type.float32], 16, "finalAttributeMultiplier"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "active"], [[io, io.persist, type, type.float32], 16, "delayedActivation"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The settle hook receives no changed-property list; the active edit is detected by comparing the cached last-applied value.")], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "ResetPlayTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "MapActivationValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateActivationStrength"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetActivationStrength"], [[carbon, carbon.method, impl, impl.noop], 18, "ResetChildren"]], 0, void 0, CjsModel));
+      })], [[[io, io.persist, type, type.int32, void 0, type.enum("LifeTimeFormulas")], 16, "lifeTimeFormula"], [[io, io.persist, void 0, type.model("Tr2CurveScalar")], 16, "activationOverLifetime"], [[io, io.read, type, type.float32], 16, "activationValue"], [[io, io.read, type, type.float32], 16, "playTime"], [[io, io.persist, type, type.float32], 16, "crossFadeDuration"], [[io, io.persist, type, type.float32], 16, "crossFadeIntensity"], [[io, io.persist, type, type.float32], 16, "perInstanceOffset"], [[io, io.persist, type, type.float32], 16, "attributeMultiplier"], [[io, io.persist, type, type.boolean], 16, "startsActive"], [[io, io.persist, type, type.boolean], 16, "restartPlayTimeWhenInactive"], [[io, io.read, type, type.float32], 16, "finalAttributeMultiplier"], [[io, io.notify, io, io.persist, type, type.boolean], 16, "active"], [[io, io.persist, type, type.float32], 16, "delayedActivation"], [[carbon, carbon.method, impl, impl.implemented], 18, "Initialize"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The settle hook receives no changed-property list; the active edit is detected by comparing the cached last-applied value.")], 18, "OnModified"], [[carbon, carbon.method, impl, impl.implemented], 18, "ResetPlayTime"], [[carbon, carbon.method, impl, impl.implemented], 18, "MapActivationValue"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateActivationStrength"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetActivationStrength"], [[carbon, carbon.method, impl, impl.noop], 18, "SetControllerVariable"], [[carbon, carbon.method, impl, impl.noop], 18, "SetInheritProperties"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "ProcessAttributeModifier"], [[carbon, carbon.method, impl, impl.noop], 18, "ResetChildren"]], 0, void 0, CjsModel));
     }
     /** m_lifeTimeFormula (LifeTimeFormulas - enum LifeTimeFormulas) [READWRITE, PERSIST, ENUM] */
     lifeTimeFormula = (_initProto(this), _init_lifeTimeFormula(this, 0));
@@ -192,6 +192,22 @@ new class extends _identity {
         }
       }
       return this.finalAttributeMultiplier * activationMultiplier;
+    }
+
+    /** Default interface hook: this modifier does not consume controller variables. */
+    SetControllerVariable(_name, _value) {}
+
+    /** Default interface hook: this modifier does not consume inherited colours. */
+    SetInheritProperties(_colorSet) {}
+
+    /** Required smart-light modifier update implemented by every concrete modifier. */
+    UpdateSyncronous(_updateContext, _params, _activationMultiplier) {
+      throw new Error("EveSmartLightBaseAttributeModifier.UpdateSyncronous must be implemented by a concrete modifier.");
+    }
+
+    /** Required smart-light attribute operation implemented by every concrete modifier. */
+    ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength) {
+      throw new Error("EveSmartLightBaseAttributeModifier.ProcessAttributeModifier must be implemented by a concrete modifier.");
     }
 
     /** Carbon declares ResetChildren inline empty on the base (EveSmartLightBaseAttributeModifier.h:41). */

@@ -25,13 +25,18 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 152 explicit methods across 50 classes; and
-- no unknown properties.
+- 173 explicit methods across 57 classes; and
+- one unknown property, the transient `EveModularObjectModifier.object`
+  member in generated intake.
 
 The remaining methods are concentrated in native, GPU, font, bitmap/atlas,
 particle, scene-picking, smart-light, and related backend-facing families.
 Markers are intentional: the runtime does not fabricate behavior before a
 portable contract or engine seam is established.
+
+Two of those methods are the required throwing operations on
+`EveSmartLightBaseAttributeModifier`. Concrete smart-light modifiers override
+them; the base fails loudly when an incomplete extension is used.
 
 ## Promoted-class parity
 
@@ -45,8 +50,9 @@ The `CARBON_SCHEMA_ROOT` environment variable may provide the same location.
 The audit resolves JavaScript inheritance, checks `@carbon.method` exposure,
 and excludes deliberately quarantined classes.
 
-The current audit checks 321 promoted classes and excludes 32 quarantined
-classes. Two classes have six omitted methods:
+Against the isolated 2026-08-22 Carbon schema refresh, the current audit checks
+344 promoted classes and excludes 32 quarantined classes. Two classes have six
+omitted methods:
 
 | Contract | Classes | Omitted surface |
 | --- | --- | --- |
@@ -90,8 +96,10 @@ parity gate rather than incidental test behavior.
   suballocation bases are read from the geometry resource's allocations and are
   zero until an engine writes them, which is the correct answer for a backend
   that gives each mesh its own buffers rather than pooling.
-- The frame body is ordered by `CjsFrameDriver`, with device-facing steps as
-  injected hooks. Presentation is not part of it: the previous frame is
+- The frame body is ordered by `CjsFrameDriver`. Current split-package code
+  still carries transitional injected hooks; combined-runtime cutover replaces
+  required hooks with nominal executors that are validated once and called
+  directly. Presentation is not part of the frame: the previous frame is
   presented at the top of the next tick, and the tick is engine-owned.
 - Vertex-declaration matching is resolved once, by semantic and index, into a
   binding plan engines consume. A shader input the mesh cannot supply is
@@ -119,9 +127,54 @@ parity gate rather than incidental test behavior.
   whose only Carbon filler is an interior placeable that is not a
   runtime-trinity class.
 - Generated classes may expose explicit obligations, but manual behavior
-  belongs in maintained source from the first substantive edit. Some legacy
-  generated files already contain portable implementations and are being
-  promoted without waiting for every native or backend gap to close.
+  belongs in maintained source from the first substantive edit. The five
+  legacy Sprite2D files that carried implementations, their portable
+  `Tr2Sprite2dContainerBase`, the corrected `EveSmartLightSpotLight`, and
+  implemented `Obb` were promoted on 2026-08-22. The rewritten portable
+  `Tr2ProjectBoundingBoxBracket` projection and its active-context curve path
+  were promoted in the same tranche. `Tr2Sprite2dRenderJob` now owns its
+  portable render-job traversal and picking behavior, while the common
+  Sprite2D base starts with Carbon's picking state enabled and throws for
+  unimplemented concrete traversal contracts. `Tr2Transform` now owns the
+  common curve, SRT, mesh, sorting, motion-history, distance-scale, and all ten
+  camera-modifier paths inherited by `EveTransform`; the active render context
+  supplies Carbon's view position, matrices, and cached field of view. The
+  particle system now accepts that inherited view-update call and derives its
+  portable bounds/visibility scheduling without owning a GPU buffer.
+  `Tr2ShadowMap` now owns its exact static and dynamic splits, light-space
+  bounds, shimmer-stable orthographic frusta, and fixed per-split shader data.
+  Its matrices remain logical until the scene's terminal RawData write. A
+  nominal `CjsShadowMapExecutor` throws until an engine realizes atlas targets,
+  passes, result drawing, and optional denoising.
+  `Tr2VolumetricsRenderer` now owns per-attribute fog blending, quality and
+  planet state, and the terminal froxel per-frame RawData writes. The scene
+  owns one renderer by default and calls its per-frame fill directly; the
+  promoted scene driver still needs to schedule the fog blend. Physical
+  fog/volumetric resources and passes delegate through a nominal throwing
+  `CjsVolumetricsExecutor`. The remaining generated methods are explicit
+  throwing obligations; the generated tree no longer owns manual behavior.
+  `Tr2SSAO` and `Tr2PostProcessRenderer` are also maintained now: their
+  quality/settings methods are portable and implemented, while physical
+  `Filter` and `Execute` remain exact-signature throwing engine obligations.
+  `ITr2FroxelFogSettings` is now the maintained nominal provider contract
+  consumed by the registry. `EveCurveLineSet` is also maintained and owns Eve
+  transform, visibility, and per-object policy; its `Tr2CurveLineSet` base now
+  rebuilds Carbon's CPU bounds, while physical line-stream batches remain one
+  visible engine obligation. `EveConnector` now owns the portable connector
+  geometry and animation policy and emits directly into that maintained line
+  set. `EveLineContainer` owns the ordered clear/update/append/submit cycle and
+  delegates visibility and bounds directly. `EveProjectBracket` now consumes
+  the active frame context to project, dock, offset, round, and publish a
+  tracked world position with Carbon's visibility-callback latch.
+  `EveTacticalOverlay` now owns Carbon's effect-local variables, LOD and
+  prior-frame segment budget, culling, and exact flat quad-instance records.
+  `EveChildInstanceMeshRenderer` now owns distribution updates, visibility,
+  bounds, Carbon-exact billboard transforms, and canonical CPU instance rows;
+  `EveSmartLightMesh` adds the smart-light group, colour-modifier, and material
+  parameter policy over that nominal base. Their instance declaration uses the
+  shader-compatible `TEXCOORD8` through `TEXCOORD14` range, while engines remain
+  responsible for physical buffer realization.
+  Their generated classes and the standalone connector enum have been retired.
 - The child reference and socket resource seam is synchronous and injected.
 - Socket parameter auto-creation currently covers the emitted string
   parameter type; additional types require corresponding schema emission.

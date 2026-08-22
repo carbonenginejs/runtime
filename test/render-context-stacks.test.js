@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2RenderContext } from "../npm/dist/core/index.js";
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import { Tr2RenderContext, TriProjection } from "../npm/dist/core/index.js";
+import { TriStepSetProjection } from "../npm/dist/renderJob/index.js";
 
 function viewWithTranslationX(tx)
 {
@@ -42,14 +44,40 @@ test("PopViewport on an empty stack returns false and does not throw", () =>
 test("PushProjection/PopProjection save and restore the current projection", () =>
 {
   const context = new Tr2RenderContext();
-  context.SetProjection({ id: "p0" });
+  const p0 = mat4.fromScaling(mat4.create(), [ 1, 2, 3 ]);
+  const p1 = mat4.fromScaling(mat4.create(), [ 4, 5, 6 ]);
+  context.SetProjection(p0, 0.75);
   context.PushProjection();
-  context.SetProjection({ id: "p1" });
-  assert.equal(context.GetProjection().id, "p1");
+  context.SetProjection(p1, 1.25);
+  assert.deepEqual(Array.from(context.GetProjection()), Array.from(p1));
+  assert.equal(context.GetFieldOfView(), 1.25);
 
   assert.equal(context.PopProjection(), true);
-  assert.equal(context.GetProjection().id, "p0");
+  assert.deepEqual(Array.from(context.GetProjection()), Array.from(p0));
+  assert.equal(context.GetFieldOfView(), 0.75, "field of view is restored with its projection");
   assert.equal(context.GetStackSizeProjection(), 0);
+});
+
+test("TriStepSetProjection preserves Carbon field-of-view semantics by mode", () =>
+{
+  const context = new Tr2RenderContext();
+  const step = new TriStepSetProjection();
+  const projection = new TriProjection();
+
+  projection.PerspectiveFov(1.07, 1.6, 1, 1000);
+  step.SetProjection(projection);
+  step.Execute(0, 0, context);
+  assert.equal(context.GetFieldOfView(), 1.07, "FOV projections retain the authored scalar");
+
+  projection.PerspectiveOrthographic(20, 10, 1, 1000);
+  step.Execute(0, 0, context);
+  assert.equal(context.GetFieldOfView(), 1, "Carbon caches one radian for orthographic projections");
+
+  const custom = mat4.create();
+  custom[5] = 3.5;
+  projection.CustomProjection(custom);
+  step.Execute(0, 0, context);
+  assert.ok(Math.abs(context.GetFieldOfView() - 2 * Math.atan(1 / 3.5)) < 1e-12);
 });
 
 test("PushViewTransform/PopViewTransform save and restore the cached view matrix", () =>
@@ -75,7 +103,7 @@ test("TakeIntents consumes incrementally and exactly once", () =>
 {
   const context = new Tr2RenderContext();
   context.SetViewport({ id: "a" });
-  context.SetProjection({ id: "p" });
+  context.SetProjection(mat4.create());
 
   const first = context.TakeIntents();
   assert.equal(first.length, 2);

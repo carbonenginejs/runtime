@@ -118,9 +118,15 @@ plan carries the shader's declared type and stops.
 `CjsFrameDriver` runs Carbon's backend-neutral frame body in order: throttle and
 GPU sync, profiler open, the frame-clock publication, the scene bracket, the
 reserved quad indices, the render jobs, then profiler close, the scene close,
-and the frame close. Every step that touches a device arrives as an optional
-duck-typed hook, so a driver with no hooks still runs a complete frame and
-produces render-job intents.
+and the frame close.
+
+Current split-package code still accepts transitional optional hooks at parts
+of this boundary. The combined-runtime cutover replaces those hooks with
+nominal executor and context identities: composition validates required
+methods once, and the frame hot path calls them directly. A missing required
+method throws rather than silently omitting part of the frame. Nullable
+authored graph children and separately declared optional capabilities remain
+distinct from this required execution contract.
 
 Two parts of that order are load-bearing. The entry and exit are deliberately
 asymmetric: the scene close rewinds the per-object pool before ending the
@@ -140,6 +146,11 @@ sort, group, and expose neutral CPU data, including the area-block collectors
 used by overlay and shadow passes. Geometry references, effect keys, per-object
 values, render modes, and draw arguments describe work; they are not live GPU
 resources.
+
+`Tr2QuadRenderer` likewise owns the CPU byte boundary for instance records.
+Producers pack Carbon's mixed-width layouts, including float16 tails, before
+submission; the renderer performs raw byte copies into its merged buffer.
+Engines upload those terminal bytes without reserializing the record.
 
 A mesh batch leaves collection with its draw arguments already computed, as
 Carbon computes them. The mesh path resolves the LOD for the caller's screen
@@ -165,6 +176,27 @@ composition, and concrete global collectors remain engine or application
 work. Rebuild tokens stay on the object or child that declared them; a realizer
 consumes the tokens for work it successfully completes.
 
+### Instance-stream contract
+
+`EveChildInstanceMeshRenderer` and `Tr2RuntimeInstanceData` own the logical
+current/previous transforms, bone index, 100-byte record packing, bounds, and
+vertex-element declaration for distributed meshes. The transform matrices stay
+in logical gl-matrix form until `SetTransformInstances` writes the established
+three-row instance representation; this is an instance-stream packing boundary,
+not a `RawData` constant-buffer transpose.
+
+The canonical declaration uses stream-one `TEXCOORD8` through `TEXCOORD14`.
+Carbon's renderer currently declares indices 0 through 6, which overlap mesh
+semantics and do not match the measured shader inputs; engines consume the
+canonical declaration and bytes without renumbering them. Physical instance
+buffers and readiness remain engine realization.
+
+Smart-light faction palettes have two owned representations: Carbon-compatible
+indexed arrays and SOF named-field models exposing static `Types` plus
+`Get(index, out)`. Trinity resolves either representation once into
+caller-owned colour storage; it does not probe arrays through a fake `length`
+contract on SOF models.
+
 ## Per-frame and per-object data
 
 Trinity can expose per-object values proven by graph state, including world
@@ -187,6 +219,92 @@ The pixel record must be populated before the vertex record for a frame,
 because the pixel fill resets the scene's upscaling amount and the vertex fill
 then reads it. Engines serialize or upload the filled records and remain
 responsible for presentation and backend memory.
+
+### Cascaded-shadow contract
+
+`Tr2ShadowMap` owns cascade endpoint policy, D3D clip-cube projection, light-
+space bounds, shimmer-stable orthographic frusta, ranges, and the fixed
+`PerSplitData` record. `ShadowMatrixVal` contains logical gl-matrix matrices;
+the scene composes them with inverse view and atlas transforms, then
+`RawData.SetAndTransposeIndex` performs the one terminal packing transpose.
+Engines must not transpose, rebuild, or reinterpret those matrices.
+
+Physical shadow work uses the nominal `CjsShadowMapExecutor` installed once on
+the active `Tr2RenderContext`. Engine implementations extend that base and
+realize atlas allocation, split-pass begin/end, screen-result drawing, and
+optional denoising. Every base method throws, and `Tr2ShadowMap` calls the
+installed executor directly, so a missing engine capability cannot degrade to
+a silently skipped shadow pass.
+
+### Froxel-fog contract
+
+`Tr2VolumetricsRenderer` owns Carbon's per-attribute priority blending, fog
+quality/state, planet inputs, and writes the inline `FroxelPerFrameData` fields
+through the scene's canonical `RawData`. `EveChildFogVolume` returns one stable
+settings record that includes movement and log-thickness attributes. The
+promoted scene driver must call `EveSpaceScene.UpdateFogSettings()` after
+lighting overrides and before visibility/gather; that orchestration caller has
+not landed yet. The renderer is scene-owned and its per-frame fill is already
+called directly, so a missing owned method fails visibly.
+
+Physical froxel and volumetric textures, fog passes, environment-map updates,
+variable-store texture publication, and volumetric shadow draws remain engine
+realization. `CjsVolumetricsExecutor` is the nominal throwing base installed on
+the active render context; the maintained graph class delegates the exact
+Carbon-shaped calls directly to that executor. Engines consume the blended
+values and terminal RawData bytes; they do not re-run the priority policy or
+repack constants.
+
+Fog providers implement the maintained nominal `ITr2FroxelFogSettings`
+identity. Its base method throws; `EveChildFogVolume` supplies the concrete,
+stable record. The component registry validates that owned identity once at
+composition, and the renderer calls `GetFroxelFogSettings` directly in the hot
+blend path.
+
+### Post-process renderer boundary
+
+`Tr2SSAO` and `Tr2PostProcessRenderer` are maintained post-process graph
+classes. Trinity owns their authored settings, enum vocabulary, and portable
+quality controls. `Tr2SSAO.Filter` and `Tr2PostProcessRenderer.Execute` retain
+their exact Carbon-shaped signatures as explicit throwing obligations because
+they allocate temporary textures, dispatch compute work, and perform physical
+render passes. A later engine contract must realize those calls without moving
+the quality/settings policy out of Trinity.
+
+### Curve-line boundary
+
+`Tr2CurveLineSet` owns editable CPU line records, deterministic segment counts,
+and Carbon's incremental local bounding sphere for straight, sphered, and
+Hermite-curved lines. `EveCurveLineSet` adds local/parent SRT composition,
+frustum visibility, renderable collection, and standard Eve VS/PS per-object
+records. Its matrices remain logical until `RawData.SetAndTranspose` performs
+the sole packing transpose.
+
+`EveConnector` is maintained CPU graph policy over that concrete line-set
+contract. It samples nullable vector functions at the active update time and
+emits the selected point, anchor, circle, orbit, or ellipse records through
+direct `EveCurveLineSet` methods. The connector owns the canonical
+`ConnectorType` vocabulary; no generated enum or alternate renderer path
+remains. `EveLineContainer` owns the ordered rebuild: it clears one authored
+line set, updates and appends every connector directly, then submits the
+resulting CPU records and delegates visibility and bound queries.
+`EveProjectBracket` projects an authored track through the active
+`Tr2RenderContext`, using its camera, viewport, and animation time to preserve
+Carbon's docking, visibility, callback, offset, and rounding policy.
+`EveTacticalOverlay` owns the scalar range policy, curve sampling, visibility
+and subdivision decisions, effect-local variable store, and flat anchor,
+connector, and velocity instance records consumed by `Tr2QuadRenderer`.
+Effect identity remains distinct even when two authored effects have the same
+content hash; the quad renderer owns the terminal CPU merge.
+Carbon detaches the overlay-local variable store in its deterministic
+destructor. The JavaScript graph has no destruction hook, so the overlay and
+its authored effects currently share one graph lifetime; an eventual nominal
+graph-lifecycle contract must own explicit detachment.
+
+Physical line vertex streams, declarations, and draw submission remain an
+explicit `Tr2CurveLineSet.GetBatches` engine obligation. The base throws until
+that realization exists; visibility and constant production do not silently
+pretend the line stream is drawable.
 
 ### Constant-data ownership
 

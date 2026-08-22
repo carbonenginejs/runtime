@@ -102,9 +102,9 @@ export class Tr2VectorFunctionModifier extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  Update(inOut, time, renderContext = null)
+  Update(time, inOut, renderContext = null)
   {
-    this.#ReadSource(inOut, time, "Update");
+    this.#ReadSource(time, inOut, "Update");
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
@@ -114,9 +114,9 @@ export class Tr2VectorFunctionModifier extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  GetValueAt(inOut, time, renderContext = null)
+  GetValueAt(time, inOut, renderContext = null)
   {
-    this.#ReadSource(inOut, time, "GetValueAt");
+    this.#ReadSource(time, inOut, "GetValueAt");
     return this.GetTransformedPosition(inOut, renderContext);
   }
 
@@ -126,9 +126,12 @@ export class Tr2VectorFunctionModifier extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  GetValueDotAt(inOut, time)
+  GetValueDotAt(time, inOut)
   {
-    this.clientBall?.GetValueDotAt?.(inOut, time);
+    if (this.clientBall)
+    {
+      this.clientBall.GetValueDotAt(time, inOut);
+    }
     return vec3.scale(inOut, inOut, this.scaleModifier);
   }
 
@@ -137,9 +140,12 @@ export class Tr2VectorFunctionModifier extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  GetValueDoubleDotAt(inOut, time)
+  GetValueDoubleDotAt(time, inOut)
   {
-    this.clientBall?.GetValueDoubleDotAt?.(inOut, time);
+    if (this.clientBall)
+    {
+      this.clientBall.GetValueDoubleDotAt(time, inOut);
+    }
     return vec3.scale(inOut, inOut, this.scaleModifier);
   }
 
@@ -149,9 +155,12 @@ export class Tr2VectorFunctionModifier extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  InterpolatedPosition(out, time)
+  InterpolatedPosition(time, out)
   {
-    this.clientBall?.InterpolatedPosition?.(out, time);
+    if (this.clientBall)
+    {
+      this.clientBall.InterpolatedPosition(time, out);
+    }
     return out;
   }
 
@@ -162,17 +171,17 @@ export class Tr2VectorFunctionModifier extends CjsModel
   // narrowing happens only when the value reaches a Float32Array.
 
   /** Reads the wrapped source into `inOut`, by whichever path is authored. */
-  #ReadSource(inOut, time, method)
+  #ReadSource(time, inOut, method)
   {
     if (!this.clientBall) return inOut;
 
     if (this.useSystemCoordinates)
     {
-      this.clientBall.InterpolatedPosition?.(inOut, time);
+      this.clientBall.InterpolatedPosition(time, inOut);
       return inOut;
     }
 
-    this.clientBall[method]?.(inOut, time);
+    this.clientBall[method](time, inOut);
     return inOut;
   }
 

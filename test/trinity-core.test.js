@@ -12,7 +12,7 @@ import { Tr2DebugRenderer } from "../npm/dist/core/line/Tr2DebugRenderer.js";
 import { Tr2ParticleElementDeclaration } from "../npm/dist/particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2ParticleSystem } from "../npm/dist/particle/Tr2ParticleSystem.js";
 import { Tr2HostBitmap } from "../npm/dist/generated/trinityCore/Tr2HostBitmap.js";
-import { Tr2SSAO } from "../npm/dist/generated/trinityCore/Tr2SSAO.js";
+import { Tr2ProjectBoundingBoxBracket } from "../npm/dist/ui/index.js";
 import { Tr2BoundingLineSet } from "../npm/dist/core/line/Tr2BoundingLineSet.js";
 import { Tr2LineSet } from "../npm/dist/core/line/Tr2LineSet.js";
 import { Tr2LineGraph } from "../npm/dist/core/line/Tr2LineGraph.js";
@@ -52,19 +52,23 @@ function assertMatrixValues(actual, expected)
 
 test("generated Trinity value records use source-backed types, defaults, and accessors", () =>
 {
-  const ssao = new Tr2SSAO();
-  assertEquals(ssao.enabled, true);
-  assertEquals(ssao.zoomLevel, 5);
-  assertEquals(ssao.radius, 6);
-  assertEquals(ssao.shadowPower, 2.6);
-  assertEquals(ssao.cortaoMipBias, -4);
-  assertEquals(CjsSchema.getField(Tr2SSAO, "shadowClamp")?.type.kind, "float32");
-
   const bitmap = new Tr2HostBitmap();
   assertEquals(bitmap.width, 0);
   assertEquals(bitmap.height, 0);
   assertEquals(bitmap.imageType, Tr2HostBitmap.TextureType.TEX_TYPE_INVALID);
   assertEquals(CjsSchema.getField(Tr2HostBitmap, "format")?.type.kind, "int32");
+
+  const bracket = new Tr2ProjectBoundingBoxBracket();
+  assertEquals(bracket.screenMargin, 0);
+  assertEquals(bracket.isProjectionValid, false);
+  assertEquals(bracket.containsCamera, false);
+  assertEquals(bracket.extendsOffscreen, false);
+  assertEquals(bracket.coversViewport, false);
+  for (const field of ["isProjectionValid", "containsCamera", "extendsOffscreen", "coversViewport"])
+  {
+    assertEquals(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.io?.read, true);
+    assertEquals(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.io?.write, undefined);
+  }
 });
 
 test("Tr2DebugRenderer stores Carbon option, selection, and color state", () =>
@@ -408,13 +412,13 @@ test("runtime instance data packs Carbon SOF records without realizing a GPU buf
 {
   const data = new Tr2RuntimeInstanceData();
   const layout = [
-    { usage: "TEXCOORD", usageIndex: 0, type: "FLOAT32_4", name: "transform0" },
-    { usage: "TEXCOORD", usageIndex: 1, type: "FLOAT32_4", name: "transform1" },
-    { usage: "TEXCOORD", usageIndex: 2, type: "FLOAT32_4", name: "transform2" },
-    { usage: "TEXCOORD", usageIndex: 3, type: "FLOAT32_4", name: "lastTransform0" },
-    { usage: "TEXCOORD", usageIndex: 4, type: "FLOAT32_4", name: "lastTransform1" },
-    { usage: "TEXCOORD", usageIndex: 5, type: "FLOAT32_4", name: "lastTransform2" },
-    { usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" }
+    { usage: "TEXCOORD", usageIndex: 8, type: "FLOAT32_4", name: "transform0" },
+    { usage: "TEXCOORD", usageIndex: 9, type: "FLOAT32_4", name: "transform1" },
+    { usage: "TEXCOORD", usageIndex: 10, type: "FLOAT32_4", name: "transform2" },
+    { usage: "TEXCOORD", usageIndex: 11, type: "FLOAT32_4", name: "lastTransform0" },
+    { usage: "TEXCOORD", usageIndex: 12, type: "FLOAT32_4", name: "lastTransform1" },
+    { usage: "TEXCOORD", usageIndex: 13, type: "FLOAT32_4", name: "lastTransform2" },
+    { usage: "TEXCOORD", usageIndex: 14, type: "BYTE_4", name: "boneIndex" }
   ];
   data.SetElementLayout(layout);
   assertEquals(data.GetStride(), 100);

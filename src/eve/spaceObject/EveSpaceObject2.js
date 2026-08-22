@@ -1052,7 +1052,7 @@ export class EveSpaceObject2 extends EveEntity
     {
       for (const curveSet of this.curveSets)
       {
-        curveSet?.Update?.(time, time);
+        curveSet.Update(time, time, updateContext.renderContext);
       }
     }
 

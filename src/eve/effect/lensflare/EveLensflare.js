@@ -113,9 +113,9 @@ export class EveLensflare extends CjsModel
    * counts as VISIBLE (the >= comparison) - deliberate Carbon behavior. */
   direction = vec3.create();
 
-  /** m_sunSize (EveLensflare.h:107; ctor 0, cpp:71) - stamped by
-   * PrepareRender from the distance-to-center falloff (cpp:161-165);
-   * runtime state, not persisted. */
+  /** m_sunSize (EveLensflare.h:107; ctor 0, cpp:71) - computed by Carbon's
+   * Update from the distance-to-center falloff (cpp:161-165); PrepareRender
+   * consumes it but does not produce it. Runtime state, not persisted. */
   sunSize = 0;
 
   /** m_occlusionOffset / m_backgroundOcclusionOffset (EveLensflare.h:140-141) -

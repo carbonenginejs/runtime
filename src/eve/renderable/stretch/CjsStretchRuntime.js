@@ -50,11 +50,10 @@ export function sampleVector(curve, time, out)
  * Advances a curve set to an absolute time, using UpdateDelta for objects that
  * predate the two-argument Update.
  */
-export function updateCurveSet(curveSet, time)
+export function updateCurveSet(curveSet, time, renderContext = null)
 {
   if (!curveSet) return;
-  if (typeof curveSet.Update === "function") curveSet.Update(time, time);
-  else curveSet.UpdateDelta?.(time);
+  curveSet.Update(time, time, renderContext);
 }
 
 /**

@@ -381,6 +381,11 @@ new class extends _identity {
 
     /** Takes a uniformly chosen free placement out of the pool. */
     #getRandomPlacement() {
+      if (this.freePlacements < 1 || this.#initialPlacements.length === 0) {
+        // Carbon's zero-free-placement path leaves the caller with a default
+        // constructed PlacementDataWithIdentifier rather than a null pointer.
+        return new _PlacementDataWithIde();
+      }
       const selectedIndex = Math.floor(Math.random() * this.freePlacements);
       return this.#getPlacement(this.#initialPlacements[selectedIndex].placement.uniqueID);
     }

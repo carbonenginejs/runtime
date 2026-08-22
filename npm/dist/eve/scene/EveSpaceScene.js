@@ -15,6 +15,8 @@ import { EveEffectRoot2 as _EveEffectRoot } from '../spaceObject/EveEffectRoot2.
 import { EveCamera as _EveCamera } from '../camera/EveCamera.js';
 import { CjsPerFrameLayouts } from '../../core/rawData/CjsPerFrameLayouts.js';
 import { RawData } from '../../core/rawData/RawData.js';
+import { Tr2ShadowMap as _Tr2ShadowMap } from '../../core/Tr2ShadowMap.js';
+import { Tr2VolumetricsRenderer as _Tr2VolumetricsRender } from '../../core/volumetrics/Tr2VolumetricsRenderer.js';
 import { screenToProjection, convertProjectionCoordToWorldPickRay } from '../../core/view/pickRay.js';
 import { EveVisualizeMethod } from '../../generated/eve/enums.js';
 import { ShadowQuality } from '../../generated/trinityCore/enums.js';
@@ -29,7 +31,6 @@ const sunDirectionScratch = vec3.create();
 // the call that wrote it.
 const perFrameMatrixScratch = mat4.create();
 const perFrameLastProjectionScratch = mat4.create();
-const ZERO4 = Object.freeze([0, 0, 0, 0]);
 const ZERO_JITTER = vec4.create();
 
 // EveSpaceScene.cpp:3196-3199 - the four froxel-fog slice distances, constant
@@ -64,9 +65,9 @@ const IDENTITY = mat4.create();
 //     cpp:584 -> 589).
 //  5. `scene.BlendLightingOverrides()` - BeginRender phase, before any gather
 //     (Carbon cpp:1333, before GatherBatches cpp:1387).
-//  6. (engine) volumetrics `UpdateFogSettings(scene.componentRegistry,
-//     scene.updateContext)` - engine reads "FroxelFogSettings"; not scene
-//     work (cpp:1365-1370).
+//  6. `scene.UpdateFogSettings()` - portable Trinity state production over
+//     "FroxelFogSettings" (cpp:1365-1370). An engine realizes the later render
+//     intent; it does not own this blend/update method.
 //  7. `scene.UpdateVisibility(updateContext.renderContext
 //     .GetInverseViewTransform())` - the cpp:1443-1467 block.
 //  8. `const renderables = scene.GetRenderables([])` - pre-culled
@@ -89,9 +90,10 @@ const IDENTITY = mat4.create();
 //     so the blended sun colour is current. The engine binds the two records at
 //     Tr2Renderer::GetPerFrame{VS,PS}StartRegister; their layouts are published
 //     on the `/perframe` subpath.
-// 11. (driver/engine, optional) `for (const lf of scene.lensflares)
-//     lf?.PrepareRender?.(frustum)` (cpp:1419-1422; the JS lensflare shell has
-//     no method yet - pure no-op today).
+// 11. (driver) `for (const lf of scene.lensflares)
+//     lf.PrepareRender(frustum)` (cpp:1419-1422). EveLensflare still needs that
+//     Carbon method ported; its absence is an explicit driver-readiness gap,
+//     not an optional capability to hide with a guarded call.
 // 12. (engine) reads registry collections directly: "ShadowCaster" (cascade
 //     gate cpp:614-621, RT push cpp:1544-1547), "VolumetricRenderable",
 //     "FroxelFogSettings", "MeshMorph" (engine may call
@@ -117,7 +119,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveSpaceScene",
         family: "eve/scene"
-      })], [[[io, io.readwrite, type, type.int32, void 0, type.enum("EveVisualizeMethod")], 16, "visualizeMethod"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMap1ResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMap2ResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMap3ResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "lowQualityNebulaResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "lowQualityNebulaMixResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMapResPath"], [[io, io.persist, type, type.color], 16, "fogColor"], [[io, io.persist, type, type.vec3], 16, "sunDirection"], [[io, io.persist, type, type.color], 16, "ambientColor"], [[io, io.persistOnly, void 0, type.model("Tr2ShLightingManager")], 16, "shLightingManager"], [[io, io.read, void 0, type.objectRef("Tr2PostProcessAttributes")], 16, "combinedPostProcessAttributes"], [[io, io.read, void 0, type.objectRef("Tr2DataTextureManager")], 16, "dataTextureMgr"], [[io, io.readwrite, type, type.boolean], 16, "dynamicObjectReflectionEnabled"], [[io, io.read, void 0, type.objectRef("EveComponentRegistry")], 16, "componentRegistry"], [type.model("EveEffectRoot2"), 0, "cameraAttachmentParent"], [type.rawStruct("BluePy"), 0, "postProcessDebug"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, type, type.float32], 16, "defaultDiffuseRoughness"], [[io, io.persist, type, type.float32], 16, "fogStart"], [[io, io.persist, type, type.float32], 16, "fogEnd"], [[io, io.notify, io, io.persist, type, type.float32], 16, "reflectionIntensity"], [[io, io.read, void 0, type.list("EveDistanceField")], 16, "distanceFields"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "backgroundEffect"], [[io, io.persist, type, type.float32], 16, "backgroundReflectionIntensity"], [[io, io.persist, type, type.float32], 16, "nebulaIntensity"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "backgroundRenderingEnabled"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.readwrite, void 0, type.objectRef("Tr2ImpostorManager")], 16, "impostorManager"], [[io, io.persist, void 0, type.list("EveLensflare")], 16, "lensflares"], [[io, io.persist, void 0, type.list("Tr2ExternalParameter")], 16, "externalParameters"], [[io, io.persist, type, type.float32], 16, "fogMax"], [[io, io.read, void 0, type.list("EveSceneStaticParticles")], 16, "staticParticles"], [[io, io.readwrite, void 0, type.objectRef("Tr2DebugRenderer")], 16, "debugRenderer"], [[io, io.persist, void 0, type.list("IEveSpaceObject2")], 16, "objects"], [[io, io.persist, void 0, type.list("IEveSpaceObject2")], 16, "uiObjects"], [[io, io.persist, void 0, type.list("IEveSpaceObject2")], 16, "backgroundObjects"], [[io, io.persist, void 0, type.list("EvePlanet")], 16, "planets"], [[io, io.readwrite, void 0, type.objectRef("Tr2RaytracingManager")], 16, "raytracingManager"], [[io, io.notify, io, io.persist, type, type.color], 16, "reflectionBackLightingColor"], [[io, io.notify, io, io.persist, type, type.float32], 16, "reflectionBackLightingContrast"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("Tr2ReflectionProbe")], 16, "reflectionProbe"], [[io, io.read, void 0, type.objectRef("Tr2VolumetricsRenderer")], 16, "volumetricsRenderer"], [[io, io.persist, void 0, type.model("EveStarfield")], 16, "starfield"], [[io, io.persist, type, type.float32], 16, "planetScale"], [[io, io.persist, type, type.float32], 16, "planetCameraScale"], [[io, io.read, void 0, type.objectRef("Tr2SSSSS")], 16, "subSurfaceScattering"], [[io, io.notify, io, io.readwrite, type, type.int32, void 0, type.enum("ShadowQuality")], 16, "shadowQualitySetting"], [[io, io.persist, type, type.color], 16, "sunDiffuseColor"], [[io, io.persist, type, type.color], 16, "sunDiffuseColorWithDynamicLights"], [[io, io.persist, type, type.quat], 16, "envMapRotation"], [[io, io.readwrite, void 0, type.objectRef("IEveBallpark")], 16, "ballpark"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "sunBall"], [[io, io.persist, void 0, type.model("Tr2PostProcess2")], 16, "postprocess"], [[io, io.persist, void 0, type.model("EveVirtualCameraSystem")], 16, "virtualCameraSystem"], [[io, io.readwrite, void 0, type.objectRef("IEveSpaceObject2")], 16, "warpTunnel"], [[io, io.readwrite, type, type.float32], 16, "perFrameDebug"], [[io, io.persist, void 0, type.model("Tr2ShadowMap")], 16, "cascadedShadowMap"], [[io, io.read, type, type.float64], 16, "updateTime"], [[io, io.persist, type, type.boolean], 16, "useSunDiffuseColorWithDynamicLights"], [[io, io.read, void 0, type.objectRef("ITr2TextureProvider")], 16, "envMap1"], [[io, io.read, void 0, type.objectRef("ITr2TextureProvider")], 16, "envMap2"], [[io, io.read, void 0, type.objectRef("ITr2TextureProvider")], 16, "envMap3"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "PickObject"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "PickAsyncObject"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "PickObjectAndAreaID"], [[carbon, carbon.method, impl, impl.implemented], 18, "PickInfinity"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's g_enablePostProcessDebugging global becomes the scene-scoped enablePostProcessDebugging field; the debug payload is a plain object, null when off.")], 18, "UpdatePostProcessAttributes"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPostProcess"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's Tr2ParallelFor becomes a sequential pass; the receivers touch only their own per-object records.")], 18, "UpdateShLighting"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are engine state; the driver supplies them in `frame`.")], 18, "PopulatePerFrameVSData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")], 18, "PopulatePerFramePSData"], [[carbon, carbon.method, impl, impl.implemented], 18, "ReregisterEntities"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearComponentRegistry"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPostProcessDebug"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateScene"]], 0, void 0, CjsModel));
+      })], [[[io, io.readwrite, type, type.int32, void 0, type.enum("EveVisualizeMethod")], 16, "visualizeMethod"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMap1ResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMap2ResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMap3ResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "lowQualityNebulaResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "lowQualityNebulaMixResPath"], [[io, io.notify, io, io.persist, type, type.string], 16, "envMapResPath"], [[io, io.persist, type, type.color], 16, "fogColor"], [[io, io.persist, type, type.vec3], 16, "sunDirection"], [[io, io.persist, type, type.color], 16, "ambientColor"], [[io, io.persistOnly, void 0, type.model("Tr2ShLightingManager")], 16, "shLightingManager"], [[io, io.read, void 0, type.objectRef("Tr2PostProcessAttributes")], 16, "combinedPostProcessAttributes"], [[io, io.read, void 0, type.objectRef("Tr2DataTextureManager")], 16, "dataTextureMgr"], [[io, io.readwrite, type, type.boolean], 16, "dynamicObjectReflectionEnabled"], [[io, io.read, void 0, type.objectRef("EveComponentRegistry")], 16, "componentRegistry"], [type.model("EveEffectRoot2"), 0, "cameraAttachmentParent"], [type.rawStruct("BluePy"), 0, "postProcessDebug"], [[io, io.persist, void 0, type.list("TriCurveSet")], 16, "curveSets"], [[io, io.persist, type, type.float32], 16, "defaultDiffuseRoughness"], [[io, io.persist, type, type.float32], 16, "fogStart"], [[io, io.persist, type, type.float32], 16, "fogEnd"], [[io, io.notify, io, io.persist, type, type.float32], 16, "reflectionIntensity"], [[io, io.read, void 0, type.list("EveDistanceField")], 16, "distanceFields"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "backgroundEffect"], [[io, io.persist, type, type.float32], 16, "backgroundReflectionIntensity"], [[io, io.persist, type, type.float32], 16, "nebulaIntensity"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.persist, type, type.boolean], 16, "backgroundRenderingEnabled"], [[io, io.persist, type, type.boolean], 16, "update"], [[io, io.readwrite, void 0, type.objectRef("Tr2ImpostorManager")], 16, "impostorManager"], [[io, io.persist, void 0, type.list("EveLensflare")], 16, "lensflares"], [[io, io.persist, void 0, type.list("Tr2ExternalParameter")], 16, "externalParameters"], [[io, io.persist, type, type.float32], 16, "fogMax"], [[io, io.read, void 0, type.list("EveSceneStaticParticles")], 16, "staticParticles"], [[io, io.readwrite, void 0, type.objectRef("Tr2DebugRenderer")], 16, "debugRenderer"], [[io, io.persist, void 0, type.list("IEveSpaceObject2")], 16, "objects"], [[io, io.persist, void 0, type.list("IEveSpaceObject2")], 16, "uiObjects"], [[io, io.persist, void 0, type.list("IEveSpaceObject2")], 16, "backgroundObjects"], [[io, io.persist, void 0, type.list("EvePlanet")], 16, "planets"], [[io, io.readwrite, void 0, type.objectRef("Tr2RaytracingManager")], 16, "raytracingManager"], [[io, io.notify, io, io.persist, type, type.color], 16, "reflectionBackLightingColor"], [[io, io.notify, io, io.persist, type, type.float32], 16, "reflectionBackLightingContrast"], [[io, io.notify, io, io.readwrite, void 0, type.objectRef("Tr2ReflectionProbe")], 16, "reflectionProbe"], [[io, io.read, void 0, type.objectRef("Tr2VolumetricsRenderer")], 16, "volumetricsRenderer"], [[io, io.persist, void 0, type.model("EveStarfield")], 16, "starfield"], [[io, io.persist, type, type.float32], 16, "planetScale"], [[io, io.persist, type, type.float32], 16, "planetCameraScale"], [[io, io.read, void 0, type.objectRef("Tr2SSSSS")], 16, "subSurfaceScattering"], [[io, io.notify, io, io.readwrite, type, type.int32, void 0, type.enum("ShadowQuality")], 16, "shadowQualitySetting"], [[io, io.persist, type, type.color], 16, "sunDiffuseColor"], [[io, io.persist, type, type.color], 16, "sunDiffuseColorWithDynamicLights"], [[io, io.persist, type, type.quat], 16, "envMapRotation"], [[io, io.readwrite, void 0, type.objectRef("IEveBallpark")], 16, "ballpark"], [[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("ITriVectorFunction")], 16, "sunBall"], [[io, io.persist, void 0, type.model("Tr2PostProcess2")], 16, "postprocess"], [[io, io.persist, void 0, type.model("EveVirtualCameraSystem")], 16, "virtualCameraSystem"], [[io, io.readwrite, void 0, type.objectRef("IEveSpaceObject2")], 16, "warpTunnel"], [[io, io.readwrite, type, type.float32], 16, "perFrameDebug"], [[io, io.persist, void 0, type.model("Tr2ShadowMap")], 16, "cascadedShadowMap"], [[io, io.read, type, type.float64], 16, "updateTime"], [[io, io.persist, type, type.boolean], 16, "useSunDiffuseColorWithDynamicLights"], [[io, io.read, void 0, type.objectRef("ITr2TextureProvider")], 16, "envMap1"], [[io, io.read, void 0, type.objectRef("ITr2TextureProvider")], 16, "envMap2"], [[io, io.read, void 0, type.objectRef("ITr2TextureProvider")], 16, "envMap3"], [[carbon, carbon.method, impl, impl.adapted], 18, "Update"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "PickObject"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "PickAsyncObject"], [[carbon, carbon.method, impl, impl.notImplemented], 18, "PickObjectAndAreaID"], [[carbon, carbon.method, impl, impl.implemented], 18, "PickInfinity"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's g_enablePostProcessDebugging global becomes the scene-scoped enablePostProcessDebugging field; the debug payload is a plain object, null when off.")], 18, "UpdatePostProcessAttributes"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPostProcess"], [[impl, impl.custom, void 0, impl.reason("Carbon performs this inside BeginRender; CarbonEngineJS exposes the scene-owned CPU phase because the engine driver owns the surrounding frame order.")], 18, "UpdateFogSettings"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon's Tr2ParallelFor becomes a sequential pass; the receivers touch only their own per-object records.")], 18, "UpdateShLighting"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are engine state; the driver supplies them in `frame`.")], 18, "PopulatePerFrameVSData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")], 18, "PopulatePerFramePSData"], [[carbon, carbon.method, impl, impl.implemented], 18, "ReregisterEntities"], [[carbon, carbon.method, impl, impl.implemented], 18, "ClearComponentRegistry"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPostProcessDebug"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateScene"]], 0, void 0, CjsModel));
     }
     /** m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
     visualizeMethod = (_initProto(this), _init_visualizeMethod(this, 0));
@@ -141,13 +143,13 @@ new class extends _identity {
     envMapResPath = (_init_extra_lowQualityNebulaMixResPath(this), _init_envMapResPath(this, ""));
 
     /** m_fogColor (Color) [READWRITE, PERSIST] */
-    fogColor = (_init_extra_envMapResPath(this), _init_fogColor(this, vec4.create()));
+    fogColor = (_init_extra_envMapResPath(this), _init_fogColor(this, vec4.fromValues(0.25, 0.25, 0.25, 1)));
 
     /** m_sunData.DirWorld (Vector3) [READWRITE, PERSIST] */
-    sunDirection = (_init_extra_fogColor(this), _init_sunDirection(this, vec3.create()));
+    sunDirection = (_init_extra_fogColor(this), _init_sunDirection(this, vec3.fromValues(0, -1, 0)));
 
     /** m_ambientColor (Color) [READWRITE, PERSIST] */
-    ambientColor = (_init_extra_sunDirection(this), _init_ambientColor(this, vec4.create()));
+    ambientColor = (_init_extra_sunDirection(this), _init_ambientColor(this, vec4.fromValues(0.25, 0.25, 0.25, 1)));
 
     /** m_shLightingManager (Tr2ShLightingManagerPtr) [PERSISTONLY] */
     shLightingManager = (_init_extra_ambientColor(this), _init_shLightingManager(this, null));
@@ -188,7 +190,7 @@ new class extends _identity {
     fogEnd = (_init_extra_fogStart(this), _init_fogEnd(this, 0));
 
     /** m_reflectionIntensity (float) [READWRITE, PERSIST, NOTIFY] */
-    reflectionIntensity = (_init_extra_fogEnd(this), _init_reflectionIntensity(this, 0));
+    reflectionIntensity = (_init_extra_fogEnd(this), _init_reflectionIntensity(this, 1));
 
     /** m_distanceFields (PEveDistanceFieldVector) [READ] */
     distanceFields = (_init_extra_reflectionIntensity(this), _init_distanceFields(this, []));
@@ -254,7 +256,7 @@ new class extends _identity {
     reflectionProbe = (_init_extra_reflectionBackLightingContrast(this), _init_reflectionProbe(this, null));
 
     /** m_volumetricsRenderer (Tr2VolumetricsRendererPtr) [READ] */
-    volumetricsRenderer = (_init_extra_reflectionProbe(this), _init_volumetricsRenderer(this, null));
+    volumetricsRenderer = (_init_extra_reflectionProbe(this), _init_volumetricsRenderer(this, new _Tr2VolumetricsRender()));
 
     /** m_starfield (EveStarfieldPtr) [READWRITE, PERSIST] */
     starfield = (_init_extra_volumetricsRenderer(this), _init_starfield(this, null));
@@ -338,9 +340,9 @@ new class extends _identity {
     // Carbon m_currentSunColor / m_currentNebulaIntensity /
     // m_currentReflectionIntensity (EveSpaceScene.h:492-493/650, protected):
     // outputs of the BeginRender lighting-override blend (cpp:1360-1362).
-    currentSunColor = vec4.create();
-    currentNebulaIntensity = 0;
-    currentReflectionIntensity = 0;
+    currentSunColor = vec4.fromValues(1, 1, 1, 1);
+    currentNebulaIntensity = 1;
+    currentReflectionIntensity = 1;
 
     // Carbon m_viewLast / m_projectionLast / m_jitterMatrix
     // (EveSpaceScene.h:296-297, protected): the previous frame's camera, which
@@ -458,7 +460,7 @@ new class extends _identity {
       }
       this.virtualCameraSystem?.Update?.(realTime);
       for (const curveSet of this.curveSets) {
-        curveSet?.Update?.(realTime, simTime);
+        curveSet.Update(realTime, simTime, context.renderContext);
       }
       for (const object of this.objects) {
         object?.UpdateSyncronous?.(context);
@@ -722,6 +724,15 @@ new class extends _identity {
     }
 
     /**
+     * Runs Carbon's portable froxel-fog blend against the scene-owned registry
+     * and update context. The frame driver calls this immediately after lighting
+     * overrides and before visibility/gather.
+     */
+    UpdateFogSettings() {
+      this.volumetricsRenderer.UpdateFogSettings(this.componentRegistry, this.updateContext);
+    }
+
+    /**
      * Drives the injected light manager through Carbon's dynamic-light gather
      * (EveSpaceScene::BeginRender, EveSpaceScene.cpp:1396-1416, AFTER
      * GatherBatches cpp:1387): shadow quality, clear (runs even with zero owners
@@ -886,7 +897,9 @@ new class extends _identity {
      * The cascaded-shadow block (ShadowMapValues / CascadeRanges /
      * ShadowMatrixVal / SplitInfo) is filled only when a shadow map is passed,
      * exactly as Carbon's `if( shadowMap )` gate does; without one the record
-     * keeps the shadows-disabled defaults the catalog declares.
+     * leaves the persistent cascade bytes untouched. `ShadowCameraRange` remains
+     * disabled, so stale cascade bytes are not consumed until a map is supplied
+     * again.
      *
      * @param {Object} renderContext - the frame's Tr2RenderContext
      * @param {Object} [frame] - as PopulatePerFrameVSData, plus:
@@ -896,11 +909,15 @@ new class extends _identity {
      *   scene post-process's own; the upscaling info is engine state
      * @param {Number} [frame.inverseShadowMapAtlasSize] - 0 with no light manager
      * @param {Number} [frame.shadowMapAtlasEntryMinSizeLog2]
-     * @param {Object|null} [shadowMap] - the cascaded shadow map, or null
+     * @param {Tr2ShadowMap|null} [shadowMap=this.cascadedShadowMap] - the owned
+     *   cascaded shadow map; explicit null disables cascade packing
      * @param {Object} [out] - the record to fill; defaults to the scene's own
      * @returns {Object} the filled record
      */
-    PopulatePerFramePSData(renderContext, frame = {}, shadowMap = null, out = this.#perFramePS) {
+    PopulatePerFramePSData(renderContext, frame = {}, shadowMap = this.cascadedShadowMap, out = this.#perFramePS) {
+      if (shadowMap !== null && !(shadowMap instanceof _Tr2ShadowMap)) {
+        throw new TypeError("EveSpaceScene.PopulatePerFramePSData requires a Tr2ShadowMap or null.");
+      }
       const projection = renderContext.GetProjection();
       out.SetAndTranspose("ViewMat", renderContext.GetViewTransform());
 
@@ -952,13 +969,13 @@ new class extends _identity {
         this.#FillShadowCascades(out, shadowMap, renderContext);
       }
 
-      // m_perFrameVS.ProjectionMat is already transposed (cpp:3192-3193).
-      mat4.transpose(perFrameMatrixScratch, projection);
-      mat4.invert(perFrameMatrixScratch, perFrameMatrixScratch);
+      // Carbon writes Inverse(Transpose(P)). RawData supplies that terminal
+      // transpose, so derive only the logical inverse here.
+      mat4.invert(perFrameMatrixScratch, projection);
       out.SetAndTranspose("ProjectionInverseMat", perFrameMatrixScratch);
       out.Set("Debug", this.perFrameDebug);
       out.Set("VolumetricSlices", VOLUMETRIC_SLICES);
-      this.volumetricsRenderer?.PopulatePerFrameData?.(out);
+      this.volumetricsRenderer.PopulatePerFrameData(out);
       return out;
     }
 
@@ -990,25 +1007,22 @@ new class extends _identity {
      * (0,1), then scaled and offset into its cell of the 8x2 atlas.
      */
     #FillShadowCascades(out, shadowMap, renderContext) {
-      const split = shadowMap.perSplitData ?? shadowMap.m_perSplitData ?? {};
+      const split = shadowMap.GetPerSplitData();
       for (let index = 0; index < 4; index++) {
-        out.SetIndex("ShadowMapValues", index, split.ShadowMapValues?.[index] ?? ZERO4);
+        out.SetIndex("ShadowMapValues", index, split.ShadowMapValues[index]);
       }
       for (let index = 0; index < 16; index++) {
-        out.SetIndex("CascadeRanges", index, split.CascadeRanges?.[index] ?? ZERO4);
+        out.SetIndex("CascadeRanges", index, split.CascadeRanges[index]);
       }
       const inverseView = renderContext.GetInverseViewTransform();
       const cellsX = 8;
       const cellsY = 2;
       for (let index = 0; index < CjsPerFrameLayouts.SHADOW_FRUSTUM_COUNT; index++) {
-        const stored = split.ShadowMatrixVal?.[index];
-        if (!stored) {
-          continue;
-        }
+        const stored = split.ShadowMatrixVal[index];
 
-        // Carbon `inverseView * Transpose(stored)`; gl-matrix swaps operands.
-        mat4.transpose(perFrameLastProjectionScratch, stored);
-        mat4.multiply(perFrameMatrixScratch, perFrameLastProjectionScratch, inverseView);
+        // Carbon stores Transpose(LVP), then computes inverseView * LVP. The JS
+        // producer keeps logical LVP, so gl-matrix reverses only that product.
+        mat4.multiply(perFrameMatrixScratch, stored, inverseView);
 
         // Flip y and change the range from (-1, +1) to (0, 1).
         mat4.multiply(perFrameMatrixScratch, SHADOW_CLIP_TO_UV, perFrameMatrixScratch);
@@ -1020,7 +1034,7 @@ new class extends _identity {
         mat4.multiply(perFrameMatrixScratch, perFrameLastProjectionScratch, perFrameMatrixScratch);
         out.SetAndTransposeIndex("ShadowMatrixVal", index, perFrameMatrixScratch);
       }
-      out.Set("SplitInfo", split.SplitInfo ?? ZERO4);
+      out.Set("SplitInfo", split.SplitInfo);
     }
 
     /** Carbon method ReregisterEntities (MAP_METHOD_AND_WRAP, cpp:4064-4089).

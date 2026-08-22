@@ -747,7 +747,7 @@ new class extends _identity {
       const time = _EveSpaceObject.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
       if (this.#lastCurveUpdateTime === time) {
         for (const curveSet of this.curveSets) {
-          curveSet?.Update?.(time, time);
+          curveSet.Update(time, time, updateContext.renderContext);
         }
       }
       for (const child of this.children) {

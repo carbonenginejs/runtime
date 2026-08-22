@@ -5,6 +5,7 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { sph3 } from '@carbonenginejs/runtime-utils/sph3';
 import { vec4 } from '@carbonenginejs/runtime-utils/vec4';
 import { TriBatchType } from '@carbonenginejs/runtime-utils/graphics';
+import { QUAD_INSTANCE_SIZE, packQuadInstanceData } from './packQuadInstanceData.js';
 
 let _initProto, _initStatic, _initClass, _init_name, _init_extra_name, _init_effect, _init_extra_effect, _init_minScreenSize, _init_extra_minScreenSize, _init_brightness, _init_extra_brightness, _init_color, _init_extra_color, _init_viewRotation, _init_extra_viewRotation, _init_currentScreenSize, _init_extra_currentScreenSize, _init_display, _init_extra_display, _init_editMode, _init_extra_editMode;
 
@@ -19,7 +20,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "EveChildQuad",
         family: "eve/child"
-      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.float32], 16, "minScreenSize"], [[io, io.persist, type, type.float32], 16, "brightness"], [[io, io.persist, type, type.color], 16, "color"], [[io, io.persist, type, type.float32], 16, "viewRotation"], [[io, io.read, type, type.float32], 16, "currentScreenSize"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.readwrite, type, type.boolean], 16, "editMode"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2QuadRenderer::Instance() is engine-owned; Initialize caches the effect key and defers effect registration to RegisterWithQuadRenderer.")], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The quad renderer is an injected engine-owned capability; the Carbon arguments are forwarded through a duck-typed contract.")], 18, "RegisterWithQuadRenderer"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The quad renderer is an injected engine-owned capability; the CPU-side instance record is submitted through a duck-typed contract.")], 18, "AddQuadsToQuadRenderer"], [[carbon, carbon.method, impl, impl.noop], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.noop], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon re-registers through the Tr2QuadRenderer singleton; the relocated renderer arrives via the threaded update context when present.")], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Frustum and LOD factor are read from the explicit update context; a missing frustum is treated as visible.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")], 18, "GetLocalToWorldTransform"], [[carbon, carbon.method, impl, impl.noop], 18, "ChangeLOD"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2VertexDefinition is a native layout builder; the same elements are published as a frozen descriptor list for the engine to realize.")], 26, "GetQuadDefinition"]], 0, void 0, _EveChildTransform));
+      })], [[[io, io.persist, type, type.string], 16, "name"], [[io, io.persist, void 0, type.model("Tr2Effect")], 16, "effect"], [[io, io.persist, type, type.float32], 16, "minScreenSize"], [[io, io.persist, type, type.float32], 16, "brightness"], [[io, io.persist, type, type.color], 16, "color"], [[io, io.persist, type, type.float32], 16, "viewRotation"], [[io, io.read, type, type.float32], 16, "currentScreenSize"], [[io, io.persist, type, type.boolean], 16, "display"], [[io, io.readwrite, type, type.boolean], 16, "editMode"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2QuadRenderer::Instance() is engine-owned; Initialize caches the effect key and defers effect registration to RegisterWithQuadRenderer.")], 18, "Initialize"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetName"], [[carbon, carbon.method, impl, impl.implemented], 18, "Setup"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The injected renderer owns physical realization; Trinity forwards the required Carbon registration contract directly.")], 18, "RegisterWithQuadRenderer"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Trinity packs Carbon's mixed float32/float16 record into terminal bytes before direct submission to the injected renderer.")], 18, "AddQuadsToQuadRenderer"], [[carbon, carbon.method, impl, impl.noop], 18, "GetRenderables"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBoundingSphere"], [[carbon, carbon.method, impl, impl.implemented], 18, "HasTransparentBatches"], [[carbon, carbon.method, impl, impl.noop], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")], 18, "GetSortValue"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Carbon re-registers through the Tr2QuadRenderer singleton; the relocated renderer arrives via the threaded update context when present.")], 18, "UpdateSyncronous"], [[carbon, carbon.method, impl, impl.implemented], 18, "UpdateAsyncronous"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Frustum and LOD factor are read from the explicit update context; a missing frustum is treated as visible.")], 18, "UpdateVisibility"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("CarbonEngineJS uses an out-last signature and returns the matrix when no output is supplied.")], 18, "GetLocalToWorldTransform"], [[carbon, carbon.method, impl, impl.noop], 18, "ChangeLOD"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetPerObjectData"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Tr2VertexDefinition is a native layout builder; the same elements are published as a frozen descriptor list for the engine to realize.")], 26, "GetQuadDefinition"]], 0, void 0, _EveChildTransform));
       _initStatic(this);
     }
     /** m_name (BlueSharedString) [READWRITE, PERSIST] */
@@ -60,8 +61,8 @@ new class extends _identity {
 
     // m_quad (EveChildQuad::Quad, EveChildQuad.h:55-67) - the per-instance
     // record handed to the quad renderer. Carbon stores the color/brightness
-    // fields as Float_16; the half packing happens at buffer-build time in the
-    // engine, so the CPU record keeps float32 values.
+    // fields as Float_16. The logical record keeps ordinary numeric values and
+    // is packed into terminal bytes immediately before AddQuads.
     #quad = {
       parentTransform0: vec4.create(),
       parentTransform1: vec4.create(),
@@ -72,6 +73,9 @@ new class extends _identity {
       color: vec4.create(),
       brightness: new Float32Array(2)
     };
+
+    /** Reusable terminal byte record; Tr2QuadRenderer copies it on AddQuads. */
+    #quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
 
     /**
      * Caches the effect key and rebuilds static local transforms
@@ -109,14 +113,14 @@ new class extends _identity {
     /** Registers the effect bucket with a quad renderer (EveChildQuad.cpp:87-93). */
     RegisterWithQuadRenderer(quadRenderer) {
       if (this.effect) {
-        quadRenderer?.RegisterEffect?.(this.#effectKey, TriBatchType.TRIBATCHTYPE_ADDITIVE, _EveChildQuad.QUAD_INSTANCE_SIZE, 1, _EveChildQuad.GetQuadDefinition(), this.effect);
+        quadRenderer.RegisterEffect(this.#effectKey, TriBatchType.TRIBATCHTYPE_ADDITIVE, _EveChildQuad.QUAD_INSTANCE_SIZE, 1, _EveChildQuad.GetQuadDefinition(), this.effect);
       }
     }
 
     /** Submits the current instance record when visible (EveChildQuad.cpp:95-101). */
     AddQuadsToQuadRenderer(_frustum, quadRenderer) {
       if (this.display && this.effect && this.#isVisible) {
-        quadRenderer?.AddQuads?.(this.#effectKey, this.#quad, 1);
+        quadRenderer.AddQuads(this.#effectKey, packQuadInstanceData(this.#quad, this.#quadBytes), 1);
       }
     }
 
@@ -253,7 +257,7 @@ new class extends _identity {
 
     /** sizeof(EveChildQuad::Quad): 6 * 16 + 4 * 2 + 2 * 2 bytes. */
   }];
-  QUAD_INSTANCE_SIZE = 108;
+  QUAD_INSTANCE_SIZE = QUAD_INSTANCE_SIZE;
   #quadDefinition = Object.freeze([Object.freeze({
     type: "FLOAT32_1",
     usage: "TEXCOORD",

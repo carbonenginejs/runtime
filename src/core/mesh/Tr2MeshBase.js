@@ -116,6 +116,22 @@ export class Tr2MeshBase extends CjsModel
   @type.boolean
   rotatesVertices = false;
 
+  /** Whether this mesh participates in rendering. */
+  @carbon.method
+  @impl.implemented
+  GetDisplay()
+  {
+    return this.display;
+  }
+
+  /** Index of this mesh inside its geometry resource. */
+  @carbon.method
+  @impl.implemented
+  GetMeshIndex()
+  {
+    return this.meshIndex;
+  }
+
   /**
    * The live area list for a TriBatchType, or null for a non-integer or unmapped
    * type.

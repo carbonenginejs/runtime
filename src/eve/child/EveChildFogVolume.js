@@ -6,9 +6,42 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveChildTransform } from "./EveChildTransform.js";
+import { ITr2FroxelFogSettings } from "./ITr2FroxelFogSettings.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Priority } from "../../generated/postProcess/enums.js";
+
+
+const INVERSE_WORLD = mat4.create();
+const LOCAL_VIEW = vec3.create();
+const UNION_DELTA = vec3.create();
+
+
+function createAttribute(value)
+{
+  return { value, enabled: false };
+}
+
+
+function createFroxelFogSettings()
+{
+  return {
+    priority: Priority.MEDIUM_PRIORITY,
+    intensity: 0,
+    thickness: createAttribute(0),
+    lightDirectionality: createAttribute(0),
+    environmentIntensity: createAttribute(0),
+    environmentDirectionality: createAttribute(0),
+    fogColor: createAttribute(vec4.create()),
+    backgroundVisibility: createAttribute(0),
+    godRayNoiseIntensity: createAttribute(0),
+    godRayNoiseFrequency: createAttribute(0),
+    godRayNoiseAnimationSpeed: createAttribute(0),
+    fogNoiseIntensity: createAttribute(0),
+    fogNoiseFrequency: createAttribute(0),
+    fogNoiseMovementSpeed: createAttribute(vec3.create()),
+    logThickness: createAttribute(0)
+  };
+}
 
 
 /**
@@ -17,9 +50,11 @@ import { Priority } from "../../generated/postProcess/enums.js";
  * it owns.
  */
 @type.define({ className: "EveChildFogVolume", family: "eve/child" })
-export class EveChildFogVolume extends EveChildTransform
+export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
   #fogIntensity = 0;
+
+  #froxelFogSettings = createFroxelFogSettings();
 
   @io.persist
   @type.int32
@@ -147,8 +182,8 @@ export class EveChildFogVolume extends EveChildTransform
     let initialized = false;
     for (const volume of this.volumes)
     {
-      const sphere = volume?.GetBoundingSphere?.();
-      if (!sphere?.center || !Number.isFinite(sphere.radius) || sphere.radius < 0) continue;
+      const sphere = volume.GetBoundingSphere();
+      if (!Number.isFinite(sphere.radius) || sphere.radius < 0) continue;
       if (!initialized)
       {
         vec3.copy(this.boundingSphereCenter, sphere.center);
@@ -201,9 +236,9 @@ export class EveChildFogVolume extends EveChildTransform
    * outside leaves the intensity at zero.
    */
   @impl.adapted
-  UpdateAsyncronous(updateContext, params = {})
+  UpdateAsyncronous(updateContext, params)
   {
-    this.UpdateTransform(params.localToWorldTransform ?? mat4.create());
+    this.UpdateTransform(params.localToWorldTransform);
     const initialized = this.RebuildBoundingSphere();
     if (this.volumes.length === 0)
     {
@@ -212,24 +247,29 @@ export class EveChildFogVolume extends EveChildTransform
     }
 
     this.#fogIntensity = 0;
-    const viewPosition = updateContext?.renderContext?.GetViewPosition?.();
-    const inverse = mat4.invert(mat4.create(), this.worldTransform);
-    if (!viewPosition || !inverse || !initialized) return;
-    const localView = vec3.transformMat4(vec3.create(), viewPosition, inverse);
-    if (vec3.distance(localView, this.boundingSphereCenter) > this.boundingSphereRadius) return;
+    const viewPosition = updateContext.renderContext.GetViewPosition();
+    const inverse = mat4.invert(INVERSE_WORLD, this.worldTransform);
+    if (!inverse || !initialized) return;
+    vec3.transformMat4(LOCAL_VIEW, viewPosition, inverse);
+    if (vec3.distance(LOCAL_VIEW, this.boundingSphereCenter) > this.boundingSphereRadius) return;
     for (const volume of this.volumes)
     {
-      this.#fogIntensity = Math.max(this.#fogIntensity, Number(volume?.GetIntensity?.(localView)) || 0);
-      if (this.#fogIntensity >= 1) break;
+      this.#fogIntensity = Math.max(this.#fogIntensity, volume.GetIntensity(LOCAL_VIEW));
+      if (this.#fogIntensity === 1) break;
     }
     this.#fogIntensity *= this.intensity;
   }
 
   /**
    * Copies the child's world transform, as rebuilt by the last async update.
+   * Carbon's body is empty; the JavaScript child contract must return the
+   * transform because owned parent/FX consumers use this method as their
+   * nominal transform boundary.
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
+  @impl.adapted
+  @impl.reason("Carbon's EveChildFogVolume body leaves the out matrix untouched; JavaScript's nominal child consumers require the current world transform and already consume that corrected contract.")
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.worldTransform);
@@ -276,30 +316,39 @@ export class EveChildFogVolume extends EveChildTransform
   }
 
   /**
-   * Returns this child's contribution to the froxel fog system: its priority,
-   * the intensity resolved by the last async update, and every optional
-   * attribute as a {value, enabled} pair so the consumer can tell an override
-   * from a default.
+   * Returns this child's stable contribution record. Values are refreshed in
+   * place so per-frame fog blending neither allocates nor loses Carbon's
+   * `fogNoiseMovementSpeed` and derived `logThickness` attributes.
    */
   @impl.adapted
   GetFroxelFogSettings()
   {
-    const attribute = (value, enabled) => ({ value, enabled });
-    return {
-      priority: this.priority,
-      intensity: this.#fogIntensity,
-      thickness: attribute(this.thickness, this.thicknessEnabled),
-      lightDirectionality: attribute(this.lightDirectionality, this.lightDirectionalityEnabled),
-      environmentIntensity: attribute(this.environmentIntensity, this.environmentIntensityEnabled),
-      environmentDirectionality: attribute(this.environmentDirectionality, this.environmentDirectionalityEnabled),
-      fogColor: attribute(vec4.clone(this.fogColor), this.fogColorEnabled),
-      backgroundVisibility: attribute(this.backgroundVisibility, this.backgroundVisibilityEnabled),
-      godRayNoiseIntensity: attribute(this.godRayNoiseIntensity, this.godRayNoiseIntensityEnabled),
-      godRayNoiseFrequency: attribute(this.godRayNoiseFrequency, this.godRayNoiseFrequencyEnabled),
-      godRayNoiseAnimationSpeed: attribute(this.godRayNoiseAnimationSpeed, this.godRayNoiseAnimationSpeedEnabled),
-      fogNoiseIntensity: attribute(this.fogNoiseIntensity, this.fogNoiseIntensityEnabled),
-      fogNoiseFrequency: attribute(this.fogNoiseFrequency, this.fogNoiseFrequencyEnabled)
-    };
+    const out = this.#froxelFogSettings;
+    out.priority = this.priority;
+    out.intensity = this.#fogIntensity;
+    out.thickness.value = this.thickness;
+    out.thickness.enabled = this.thicknessEnabled;
+    out.lightDirectionality.value = this.lightDirectionality;
+    out.lightDirectionality.enabled = this.lightDirectionalityEnabled;
+    out.environmentIntensity.value = this.environmentIntensity;
+    out.environmentIntensity.enabled = this.environmentIntensityEnabled;
+    out.environmentDirectionality.value = this.environmentDirectionality;
+    out.environmentDirectionality.enabled = this.environmentDirectionalityEnabled;
+    vec4.copy(out.fogColor.value, this.fogColor);
+    out.fogColor.enabled = this.fogColorEnabled;
+    out.backgroundVisibility.value = this.backgroundVisibility;
+    out.backgroundVisibility.enabled = this.backgroundVisibilityEnabled;
+    out.godRayNoiseIntensity.value = this.godRayNoiseIntensity;
+    out.godRayNoiseIntensity.enabled = this.godRayNoiseIntensityEnabled;
+    out.godRayNoiseFrequency.value = this.godRayNoiseFrequency;
+    out.godRayNoiseFrequency.enabled = this.godRayNoiseFrequencyEnabled;
+    out.godRayNoiseAnimationSpeed.value = this.godRayNoiseAnimationSpeed;
+    out.godRayNoiseAnimationSpeed.enabled = this.godRayNoiseAnimationSpeedEnabled;
+    out.fogNoiseIntensity.value = this.fogNoiseIntensity;
+    out.fogNoiseIntensity.enabled = this.fogNoiseIntensityEnabled;
+    out.fogNoiseFrequency.value = this.fogNoiseFrequency;
+    out.fogNoiseFrequency.enabled = this.fogNoiseFrequencyEnabled;
+    return out;
   }
 
   /** No-op: a fog volume is not renderable and keeps no visibility state. */
@@ -326,8 +375,8 @@ export class EveChildFogVolume extends EveChildTransform
    */
   #UnionSphere(sphere)
   {
-    const delta = vec3.subtract(vec3.create(), sphere.center, this.boundingSphereCenter);
-    const distance = vec3.length(delta);
+    vec3.subtract(UNION_DELTA, sphere.center, this.boundingSphereCenter);
+    const distance = vec3.length(UNION_DELTA);
     if (distance + sphere.radius <= this.boundingSphereRadius) return;
     if (distance + this.boundingSphereRadius <= sphere.radius)
     {
@@ -341,7 +390,7 @@ export class EveChildFogVolume extends EveChildTransform
       return;
     }
     const radius = (this.boundingSphereRadius + sphere.radius + distance) * 0.5;
-    vec3.scaleAndAdd(this.boundingSphereCenter, this.boundingSphereCenter, delta, (radius - this.boundingSphereRadius) / distance);
+    vec3.scaleAndAdd(this.boundingSphereCenter, this.boundingSphereCenter, UNION_DELTA, (radius - this.boundingSphereRadius) / distance);
     this.boundingSphereRadius = radius;
   }
 }

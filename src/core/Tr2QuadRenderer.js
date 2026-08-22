@@ -67,7 +67,7 @@ export class Tr2QuadRenderer extends CjsModel
   /** m_effects - EffectKey -> Tr2QuadRendererEffectRecord. */
   #effects = new Map();
 
-  /** The merged CPU instance buffer for the frame (Float32Array). */
+  /** The merged terminal CPU instance bytes for the frame. */
   #mergedData = null;
 
   /** Largest quadCount among records with instances (RecreateQuadBuffers input). */
@@ -108,27 +108,28 @@ export class Tr2QuadRenderer extends CjsModel
 
   /**
    * Accumulates instance data for a registered effect (Carbon cpp:60-79).
-   * Accepts float data (Float32Array or number[]) covering
-   * count * instanceSize bytes; unknown keys are ignored like Carbon.
+   * Accepts terminal byte views or legacy float32-compatible number arrays
+   * covering count * instanceSize bytes; unknown keys are ignored like Carbon.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Single-threaded JS collapses the per-thread TLS buffers to one pending list; bytes stay float32-typed.")
+  @impl.reason("Single-threaded JS collapses the per-thread TLS buffers to one pending list while preserving Carbon's raw memcpy byte boundary.")
   AddQuads(effectKey, sprites, count = 1)
   {
     const record = this.#effects.get(effectKey);
-    if (!record || !sprites)
+    if (!record)
     {
       return;
     }
+
     const size = count * record.instanceSize;
-    const floats = new Float32Array(size / 4);
-    const source = sprites;
-    for (let index = 0; index < floats.length; index++)
+    if (!size)
     {
-      floats[index] = Number(source[index]) || 0;
+      return;
     }
-    record.pending.push(floats);
+
+    const bytes = Tr2QuadRenderer.#CopyInstanceBytes(sprites, size);
+    record.pending.push(bytes);
     record.addedSize += size;
     this.bufferSize += size;
   }
@@ -147,7 +148,7 @@ export class Tr2QuadRenderer extends CjsModel
     {
       padded += record.instanceSize;
     }
-    const merged = new Float32Array(Math.ceil(padded / 4));
+    const merged = new Uint8Array(padded);
     let offset = 0;
     let quadCount = 0;
     for (const record of this.#effects.values())
@@ -156,8 +157,8 @@ export class Tr2QuadRenderer extends CjsModel
       record.bufferOffset = offset;
       for (const chunk of record.pending)
       {
-        merged.set(chunk, offset / 4);
-        offset += chunk.length * 4;
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
       }
       record.pending.length = 0;
       record.addedSize = 0;
@@ -215,9 +216,7 @@ export class Tr2QuadRenderer extends CjsModel
       {
         continue;
       }
-      const batch = typeof accumulator?.Allocate === "function"
-        ? accumulator.Allocate(Tr2RenderBatch)
-        : new Tr2RenderBatch();
+      const batch = accumulator.Allocate(Tr2RenderBatch);
       batch.SetMaterial(record.effect);
       batch.SetGeometry(record.definition, Tr2QuadRenderer.QuadVertexSource, 4, Tr2QuadRenderer.QuadIndexSource, 2);
       batch.SetStreamSource(1, {
@@ -232,7 +231,7 @@ export class Tr2QuadRenderer extends CjsModel
         0,
         record.instanceSize ? (this.vertexBufferOffset + record.bufferOffset) / record.instanceSize : 0
       );
-      committed = (accumulator?.Commit?.(batch) === true) || committed;
+      committed = accumulator.Commit(batch) || committed;
     }
     return committed;
   }
@@ -290,6 +289,37 @@ export class Tr2QuadRenderer extends CjsModel
   {
     const gcd = (x, y) => (y ? gcd(y, x % y) : x);
     return (a * b) / gcd(a, b);
+  }
+
+  /** Copies one AddQuads input as the exact bytes Carbon memcpy would receive. */
+  static #CopyInstanceBytes(source, size)
+  {
+    let bytes;
+
+    if (ArrayBuffer.isView(source))
+    {
+      bytes = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+    }
+    else if (source instanceof ArrayBuffer)
+    {
+      bytes = new Uint8Array(source);
+    }
+    else if (Array.isArray(source))
+    {
+      const floats = Float32Array.from(source);
+      bytes = new Uint8Array(floats.buffer, floats.byteOffset, floats.byteLength);
+    }
+    else
+    {
+      throw new TypeError("Tr2QuadRenderer.AddQuads requires terminal bytes or float32-compatible numeric data.");
+    }
+
+    if (bytes.byteLength < size)
+    {
+      throw new RangeError(`Tr2QuadRenderer.AddQuads expected ${size} bytes, received ${bytes.byteLength}.`);
+    }
+
+    return bytes.slice(0, size);
   }
 
   static #instance = null;

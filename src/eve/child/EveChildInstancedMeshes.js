@@ -5,8 +5,8 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../EveEntity.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { RawData } from "../../core/rawData/RawData.js";
 
 /** Carbon EveInstancedMeshManager::InstanceFlags (EveInstancedMeshManager.h:
@@ -166,7 +166,7 @@ export class EveChildInstancedMesh extends CjsModel
  * world cull bounds.
  */
 @type.define({ className: "EveChildInstancedMeshes", family: "eve/child" })
-export class EveChildInstancedMeshes extends EveEntity
+export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
   @io.persist
   @type.string

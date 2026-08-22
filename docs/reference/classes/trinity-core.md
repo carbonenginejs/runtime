@@ -55,6 +55,66 @@ Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406....
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsShadowMapExecutor -->
+## `CjsShadowMapExecutor`
+
+Defines the nominal backend contract for realizing Trinity's cascaded-shadow intents.
+
+Its base methods throw until an engine supplies physical atlas and pass work.
+
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/context/CjsShadowMapExecutor.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsVolumetricsExecutor -->
+## `CjsVolumetricsExecutor`
+
+Nominal backend contract for realizing Trinity's volumetric and froxel-fog intents.
+
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/context/CjsVolumetricsExecutor.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2Transform -->
+## `Tr2Transform`
+
+Provides the common placeable-renderable transform behavior.
+
+It advances curve sets, composes SRT state, preserves motion history, applies
+Carbon's camera modifiers, delegates batches, and computes sort distance.
+
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/Tr2Transform.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2ShadowMap -->
+## `Tr2ShadowMap`
+
+Produces cascaded-shadow endpoints, bounds, frusta, and logical per-split data.
+
+Physical rendering delegates to the installed shadow executor.
+
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/Tr2ShadowMap.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2VolumetricsRenderer -->
+## `Tr2VolumetricsRenderer`
+
+Blends froxel-fog state and writes Carbon's inline per-frame fog constants.
+
+Physical fog, volumetric, environment-map, and shadow rendering delegate
+through the nominal throwing `CjsVolumetricsExecutor` engine contract.
+
+- Export: `@carbonenginejs/runtime-trinity/core`
+- Source: `src/core/volumetrics/Tr2VolumetricsRenderer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Tr2DynamicBinding -->
 ## `Tr2DynamicBinding`
 
@@ -158,7 +218,10 @@ A line set that draws an axis-aligned bounding box and its picking volume.
 <!-- class:Tr2CurveLineSet -->
 ## `Tr2CurveLineSet`
 
-A line set that draws curved and sphere-projected lines by tessellating them into straight segments.
+Owns editable curve-line records and their portable CPU runtime state.
+
+That state includes Carbon's tessellated segment counts, local bounds,
+transparent sorting, and the explicit physical line-stream draw obligation.
 
 - Export: @carbonenginejs/runtime-trinity/core
 - Source: src/core/line/Tr2CurveLineSet.js
@@ -339,6 +402,11 @@ A drawable set of primitives with a world transform, sort value and bounding sph
 ## `Tr2QuadRenderer`
 
 Collects quads from every registered effect into one merged instance buffer and emits them as batches.
+
+`AddQuads` copies terminal instance bytes without interpreting them. Producers
+that own mixed-width records, such as Eve's 108-byte quad layouts, pack their
+float32 rows and float16 tails before submission. Numeric arrays remain a
+float32-compatible convenience for uniformly typed records.
 
 - Export: @carbonenginejs/runtime-trinity/core
 - Source: src/core/Tr2QuadRenderer.js

@@ -169,7 +169,7 @@ export class EveDistanceField extends CjsModel
       }
       else
       {
-        this.curveSet.Update(this.distance);
+        this.curveSet.Update(this.distance, undefined, updateContext.renderContext);
       }
     }
   }

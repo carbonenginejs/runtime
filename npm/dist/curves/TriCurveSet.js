@@ -45,9 +45,9 @@ class TriCurveSet extends CjsModel {
   /**
    * Updates playback using a single time value or Carbon's real/sim overload.
    */
-  Update(time, simTime) {
+  Update(time, simTime, renderContext = null) {
     const selectedTime = simTime === undefined ? time : this.useRealTime ? time : simTime;
-    this.UpdateAt(selectedTime);
+    this.UpdateAt(selectedTime, renderContext);
   }
 
   /**
@@ -64,7 +64,7 @@ class TriCurveSet extends CjsModel {
   /**
    * Updates playback at the supplied source time.
    */
-  UpdateAt(time) {
+  UpdateAt(time, renderContext = null) {
     if (this.driver) {
       time = this.driver.GetCurveSetTime(time);
     }
@@ -84,7 +84,7 @@ class TriCurveSet extends CjsModel {
         this.scaledTime = this.#endTime - this.#startTime - 0.001;
         this.#stopOnNextFrame = true;
       }
-      this.Apply();
+      this.Apply(renderContext);
     }
     if (this.#stopOnNextFrame) {
       this.CallStopCallback();
@@ -96,9 +96,9 @@ class TriCurveSet extends CjsModel {
   /**
    * Applies all curves at the current scaled time, then copies bindings.
    */
-  Apply() {
+  Apply(renderContext = null) {
     for (const curve of this.curves) {
-      curve.UpdateValue(this.scaledTime);
+      curve.UpdateValue(this.scaledTime, renderContext);
     }
     for (const binding of this.bindings) {
       binding.CopyValue();
@@ -108,9 +108,9 @@ class TriCurveSet extends CjsModel {
   /**
    * Applies all curves and bindings at an explicit scaled time.
    */
-  ApplyTime(time) {
+  ApplyTime(time, renderContext = null) {
     this.scaledTime = time;
-    this.Apply();
+    this.Apply(renderContext);
   }
 
   /**

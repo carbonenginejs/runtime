@@ -91,7 +91,7 @@ export class EveChildSpherePin extends EveChildMesh
     const time = updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0;
     for (const curveSet of this.curveSets)
     {
-      curveSet?.Update?.(time, time);
+      curveSet.Update(time, time, updateContext.renderContext);
     }
   }
 

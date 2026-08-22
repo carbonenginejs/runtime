@@ -4,7 +4,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, type } from "@carbonenginejs/runtime-utils/schema";
-import { EveEntity } from "../EveEntity.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 
 // Carbon's registered space-object children multiple-inherit EveEntity
@@ -26,7 +26,7 @@ import { EveEntity } from "../EveEntity.js";
   className: "EveChildTransform",
   family: "eve/child"
 })
-export class EveChildTransform extends EveEntity
+export class EveChildTransform extends EveSpaceObjectChild
 {
   @type.vec3
   translation = vec3.create();

@@ -1,12 +1,12 @@
 {
   "outRoot": "src/generated",
   "classes": {
-    "written": 279,
-    "skipped": 304
+    "written": 256,
+    "skipped": 327
   },
   "enums": {
-    "written": 16,
-    "skippedEntries": 7
+    "written": 15,
+    "skippedEntries": 8
   },
   "skipped": [
     {
@@ -427,6 +427,11 @@
     {
       "family": "eve/child",
       "className": "EveChildInheritProperties",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceMeshRenderer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1435,6 +1440,36 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "eve/ui",
+      "className": "EveCurveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveConnector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveProjectBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2FroxelFogSettings",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "trinityCore",
       "className": "Tr2MaterialParameterStore",
       "reason": "hand-maintained source exists"
@@ -1460,8 +1495,38 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "postProcess",
+      "className": "Tr2PostProcessRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "trinityCore",
       "className": "Tr2PrimaryRenderContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ProjectBoundingBoxBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ShadowMap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SSAO",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Transform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VolumetricsRenderer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1567,6 +1632,11 @@
     {
       "family": "utilities",
       "className": "Range",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "Obb",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1756,6 +1826,11 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2dContainerBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dD3DVertex",
       "reason": "hand-maintained source exists"
     },
@@ -1766,12 +1841,52 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2dLineTrace",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dPolygon",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dTriangle",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "sprite2d",
       "className": "Tr2Sprite2dVertexBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2SpriteObjectBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightSpotLight",
       "reason": "hand-maintained source exists"
     }
   ],
@@ -1810,6 +1925,11 @@
       "family": "curves",
       "enum": "RotationSetting",
       "reason": "export collision: RotationSetting"
+    },
+    {
+      "family": "eve/ui",
+      "enum": "ConnectorType",
+      "reason": "export collision: ConnectorType"
     }
   ],
   "families": {
@@ -1854,8 +1974,8 @@
       "enumsFile": true
     },
     "eve/child": {
-      "exports": 30,
-      "classes": 25,
+      "exports": 29,
+      "classes": 24,
       "enumsFile": true
     },
     "eve/child/behaviors": {
@@ -1949,8 +2069,8 @@
       "enumsFile": false
     },
     "eve/smartLights": {
-      "exports": 8,
-      "classes": 7,
+      "exports": 6,
+      "classes": 5,
       "enumsFile": false
     },
     "eve/smartLights/attributeModifiers": {
@@ -1974,9 +2094,9 @@
       "enumsFile": false
     },
     "eve/ui": {
-      "exports": 12,
-      "classes": 11,
-      "enumsFile": true
+      "exports": 6,
+      "classes": 6,
+      "enumsFile": false
     },
     "font": {
       "exports": 3,
@@ -2014,8 +2134,8 @@
       "enumsFile": true
     },
     "sprite2d": {
-      "exports": 28,
-      "classes": 27,
+      "exports": 23,
+      "classes": 22,
       "enumsFile": true
     },
     "trinityCore": {
@@ -2029,8 +2149,8 @@
       "enumsFile": true
     },
     "utilities": {
-      "exports": 8,
-      "classes": 8,
+      "exports": 7,
+      "classes": 7,
       "enumsFile": false
     }
   },
@@ -2160,7 +2280,7 @@
       },
       "eve/smartLights": {
         "docs": 8,
-        "generated": 7,
+        "generated": 6,
         "fallback": 1,
         "skippedSof": 0,
         "errors": 0
@@ -2174,7 +2294,7 @@
       },
       "eve/ui": {
         "docs": 16,
-        "generated": 16,
+        "generated": 13,
         "fallback": 0,
         "skippedSof": 0,
         "errors": 0
@@ -2412,7 +2532,7 @@
       },
       "sprite2d": {
         "docs": 31,
-        "generated": 27,
+        "generated": 22,
         "fallback": 4,
         "skippedSof": 0,
         "errors": 0
@@ -2440,7 +2560,7 @@
       },
       "utilities": {
         "docs": 9,
-        "generated": 9,
+        "generated": 8,
         "fallback": 0,
         "skippedSof": 0,
         "errors": 0

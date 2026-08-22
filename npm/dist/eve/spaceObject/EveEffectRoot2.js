@@ -163,7 +163,7 @@ new class extends _identity {
       }
       this.UpdateControllers(frequency);
       const time = _EveEffectRoot.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
-      for (const curveSet of this.curveSets) curveSet?.Update?.(time, time);
+      for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
       if (this.effectChildren.length) {
         const params = this.#CreateChildUpdateParams();
         params.controllerUpdateFrequency = frequency;
@@ -490,12 +490,12 @@ new class extends _identity {
     }
 
     /** Samples matching root and child curve sets at an explicit time. */
-    UpdateCurveSet(name, time) {
+    UpdateCurveSet(name, time, renderContext = null) {
       const target = String(name ?? "");
       for (const curveSet of this.curveSets) {
-        if ((curveSet?.GetName?.() ?? curveSet?.name) === target) curveSet?.Update?.(time, time);
+        if (curveSet.GetName() === target) curveSet.Update(time, time, renderContext);
       }
-      for (const child of this.effectChildren) child?.UpdateCurveSet?.(target, time);
+      for (const child of this.effectChildren) child?.UpdateCurveSet?.(target, time, renderContext);
     }
 
     /** Returns the maximum duration of matching root and child curve sets. */

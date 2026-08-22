@@ -44,7 +44,7 @@ new class extends _identity {
       } = _applyDecs2311(this, [type.define({
         className: "Tr2QuadRenderer",
         family: "trinityCore"
-      })], [[[type, type.uint32], 16, "vertexBufferOffset"], [[type, type.uint32], 16, "lastInstanceDataSize"], [[type, type.uint32], 16, "bufferAlignment"], [[type, type.uint32], 16, "bufferSize"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnregisterEffect"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Single-threaded JS collapses the per-thread TLS buffers to one pending list; bytes stay float32-typed.")], 18, "AddQuads"], [[carbon, carbon.method, impl, impl.implemented], 18, "MergeBuffers"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("UpdateInstanceBuffer/RecreateQuadBuffers/PrepareResources are GPU realization; the merged CPU state is exposed for the engine.")], 18, "BeginRendering"], [[carbon, carbon.method, impl, impl.implemented], 18, "DoneRendering"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Quad and ring buffers become deferred descriptors the engine realizes; Carbon binds live AL buffers here.")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetInstanceDataSize"]], 0, void 0, CjsModel));
+      })], [[[type, type.uint32], 16, "vertexBufferOffset"], [[type, type.uint32], 16, "lastInstanceDataSize"], [[type, type.uint32], 16, "bufferAlignment"], [[type, type.uint32], 16, "bufferSize"], [[carbon, carbon.method, impl, impl.implemented], 18, "RegisterEffect"], [[carbon, carbon.method, impl, impl.implemented], 18, "UnregisterEffect"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Single-threaded JS collapses the per-thread TLS buffers to one pending list while preserving Carbon's raw memcpy byte boundary.")], 18, "AddQuads"], [[carbon, carbon.method, impl, impl.implemented], 18, "MergeBuffers"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("UpdateInstanceBuffer/RecreateQuadBuffers/PrepareResources are GPU realization; the merged CPU state is exposed for the engine.")], 18, "BeginRendering"], [[carbon, carbon.method, impl, impl.implemented], 18, "DoneRendering"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("Quad and ring buffers become deferred descriptors the engine realizes; Carbon binds live AL buffers here.")], 18, "GetBatches"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetInstanceDataSize"]], 0, void 0, CjsModel));
     }
     /** m_vertexBufferOffset (uint32_t) - ring offset; engine stamps the real one. */
     vertexBufferOffset = (_initProto(this), _init_vertexBufferOffset(this, 0));
@@ -61,7 +61,7 @@ new class extends _identity {
     /** m_effects - EffectKey -> Tr2QuadRendererEffectRecord. */
     #effects = (_init_extra_bufferSize(this), new Map());
 
-    /** The merged CPU instance buffer for the frame (Float32Array). */
+    /** The merged terminal CPU instance bytes for the frame. */
     #mergedData = null;
 
     /** Largest quadCount among records with instances (RecreateQuadBuffers input). */
@@ -95,21 +95,20 @@ new class extends _identity {
 
     /**
      * Accumulates instance data for a registered effect (Carbon cpp:60-79).
-     * Accepts float data (Float32Array or number[]) covering
-     * count * instanceSize bytes; unknown keys are ignored like Carbon.
+     * Accepts terminal byte views or legacy float32-compatible number arrays
+     * covering count * instanceSize bytes; unknown keys are ignored like Carbon.
      */
     AddQuads(effectKey, sprites, count = 1) {
       const record = this.#effects.get(effectKey);
-      if (!record || !sprites) {
+      if (!record) {
         return;
       }
       const size = count * record.instanceSize;
-      const floats = new Float32Array(size / 4);
-      const source = sprites;
-      for (let index = 0; index < floats.length; index++) {
-        floats[index] = Number(source[index]) || 0;
+      if (!size) {
+        return;
       }
-      record.pending.push(floats);
+      const bytes = _Tr2QuadRenderer.#CopyInstanceBytes(sprites, size);
+      record.pending.push(bytes);
       record.addedSize += size;
       this.bufferSize += size;
     }
@@ -124,15 +123,15 @@ new class extends _identity {
       for (const record of this.#effects.values()) {
         padded += record.instanceSize;
       }
-      const merged = new Float32Array(Math.ceil(padded / 4));
+      const merged = new Uint8Array(padded);
       let offset = 0;
       let quadCount = 0;
       for (const record of this.#effects.values()) {
         offset = _Tr2QuadRenderer.#Align(offset, record.instanceSize || 1);
         record.bufferOffset = offset;
         for (const chunk of record.pending) {
-          merged.set(chunk, offset / 4);
-          offset += chunk.length * 4;
+          merged.set(chunk, offset);
+          offset += chunk.byteLength;
         }
         record.pending.length = 0;
         record.addedSize = 0;
@@ -176,7 +175,7 @@ new class extends _identity {
         if (!record.count || record.batchType !== batchType) {
           continue;
         }
-        const batch = typeof accumulator?.Allocate === "function" ? accumulator.Allocate(Tr2RenderBatch) : new Tr2RenderBatch();
+        const batch = accumulator.Allocate(Tr2RenderBatch);
         batch.SetMaterial(record.effect);
         batch.SetGeometry(record.definition, _Tr2QuadRenderer.QuadVertexSource, 4, _Tr2QuadRenderer.QuadIndexSource, 2);
         batch.SetStreamSource(1, {
@@ -185,7 +184,7 @@ new class extends _identity {
           instanceSize: record.instanceSize
         }, record.instanceSize);
         batch.SetDrawIndexedInstanced(6 * record.quadCount, record.count, 0, 0, record.instanceSize ? (this.vertexBufferOffset + record.bufferOffset) / record.instanceSize : 0);
-        committed = accumulator?.Commit?.(batch) === true || committed;
+        committed = accumulator.Commit(batch) || committed;
       }
       return committed;
     }
@@ -228,6 +227,8 @@ new class extends _identity {
      * The lowest common multiple of two sizes, used to align a shared instance stride.
      */
 
+    /** Copies one AddQuads input as the exact bytes Carbon memcpy would receive. */
+
     /** Deferred descriptor for the engine-owned shared quad vertex buffer. */
 
     /** Deferred descriptor for the engine-owned shared quad index buffer. */
@@ -238,6 +239,23 @@ new class extends _identity {
   #Lcm(a, b) {
     const gcd = (x, y) => y ? gcd(y, x % y) : x;
     return a * b / gcd(a, b);
+  }
+  #CopyInstanceBytes(source, size) {
+    let bytes;
+    if (ArrayBuffer.isView(source)) {
+      bytes = new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+    } else if (source instanceof ArrayBuffer) {
+      bytes = new Uint8Array(source);
+    } else if (Array.isArray(source)) {
+      const floats = Float32Array.from(source);
+      bytes = new Uint8Array(floats.buffer, floats.byteOffset, floats.byteLength);
+    } else {
+      throw new TypeError("Tr2QuadRenderer.AddQuads requires terminal bytes or float32-compatible numeric data.");
+    }
+    if (bytes.byteLength < size) {
+      throw new RangeError(`Tr2QuadRenderer.AddQuads expected ${size} bytes, received ${bytes.byteLength}.`);
+    }
+    return bytes.slice(0, size);
   }
   #instance = null;
   QuadVertexSource = Object.freeze({

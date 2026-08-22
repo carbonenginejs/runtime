@@ -51,7 +51,7 @@ class EveSmartLightAttributeModifierBucket extends _EveSmartLightBaseAtt {
   /** Fans the inherited color set out to the child modifiers (EveSmartLightAttributeModifierBucket.cpp:28-34). */
   SetInheritProperties(colorSet) {
     for (const attributeModifier of this.attributeModifiers) {
-      attributeModifier?.SetInheritProperties?.(colorSet);
+      attributeModifier.SetInheritProperties(colorSet);
     }
   }
 
@@ -63,7 +63,7 @@ class EveSmartLightAttributeModifierBucket extends _EveSmartLightBaseAtt {
     this.UpdateActivationStrength(activationMultiplier, updateContext?.GetDeltaT?.() ?? 0);
     const childMultiplier = activationMultiplier * this.finalAttributeMultiplier;
     for (const attributeModifier of this.attributeModifiers) {
-      attributeModifier?.UpdateSyncronous?.(updateContext, params, childMultiplier);
+      attributeModifier.UpdateSyncronous(updateContext, params, childMultiplier);
     }
   }
 
@@ -74,7 +74,7 @@ class EveSmartLightAttributeModifierBucket extends _EveSmartLightBaseAtt {
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength) {
     const activationStrength = this.GetActivationStrength(placement) * modifierStrength;
     for (const attributeModifier of this.attributeModifiers) {
-      attributeModifier?.ProcessAttributeModifier?.(attribute, placement, entityPosition, entityDirection, activationStrength);
+      attributeModifier.ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, activationStrength);
     }
   }
 
@@ -82,12 +82,12 @@ class EveSmartLightAttributeModifierBucket extends _EveSmartLightBaseAtt {
    * Resets every child's play time; a child only becomes active when both the
    * parent request and the bucket state agree
    * (EveSmartLightAttributeModifierBucket.cpp:57-67). Carbon BlueCasts to
-   * EveSmartLightBaseAttributeModifier; the JS children are duck-typed.
+   * EveSmartLightBaseAttributeModifier; the JS children share that nominal base.
    */
   ResetChildren(parentActive = true) {
     const isActive = parentActive && this.active;
     for (const attributeModifier of this.attributeModifiers) {
-      attributeModifier?.ResetPlayTime?.(isActive);
+      attributeModifier.ResetPlayTime(isActive);
     }
   }
   static {

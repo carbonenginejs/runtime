@@ -340,6 +340,20 @@ export class Tr2RuntimeInstanceData extends CjsModel
   }
 
   /**
+   * CPU readiness for the nominal ITr2InstanceData contract. Carbon also tests
+   * the realized vertex declaration and GPU buffer; those are engine-owned in
+   * CarbonEngineJS, so Trinity reports whether a published layout and byte
+   * payload are available for realization.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Physical vertex-declaration and buffer readiness belongs to the engine; Trinity reports published CPU layout/bytes.")
+  IsInstanceDataReady()
+  {
+    return this.#layout.length > 0 && this.#data !== null && !this.#dirty;
+  }
+
+  /**
    * Drops every row and the packed buffer while keeping the layout, and marks
    * the data dirty.
    */
@@ -705,7 +719,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
       : value.usage;
     const usage = Tr2RuntimeInstanceData.#normalizeUsage(usageValue);
     const usageIndex = Number(legacy ? value[1] : value.usageIndex ?? 0);
-    if (!Number.isInteger(usageIndex) || usageIndex < 0 || usageIndex > 7)
+    if (!Number.isInteger(usageIndex) || usageIndex < 0 || usageIndex > 15)
     {
       throw new TypeError(`Element ${index} has invalid usageIndex`);
     }
@@ -894,14 +908,21 @@ export class Tr2RuntimeInstanceData extends CjsModel
     return Array.isArray(value) ? value.slice() : value;
   }
 
+  /**
+   * Shared instanced-transform shader contract. Carbon's
+   * EveChildInstanceMeshRenderer declares TEXCOORD0..6, but that collides with
+   * geometry UVs and disagrees with every other instanced producer and the
+   * measured ubershader inputs. The organization contract therefore uses the
+   * working TEXCOORD8..14 range on stream 1.
+   */
   static TransformLayout = Object.freeze([
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 0, type: "FLOAT32_4", name: "transform0" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 1, type: "FLOAT32_4", name: "transform1" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 2, type: "FLOAT32_4", name: "transform2" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 3, type: "FLOAT32_4", name: "lastTransform0" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 4, type: "FLOAT32_4", name: "lastTransform1" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 5, type: "FLOAT32_4", name: "lastTransform2" }),
-    Object.freeze({ usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" })
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 8, type: "FLOAT32_4", name: "transform0" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 9, type: "FLOAT32_4", name: "transform1" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 10, type: "FLOAT32_4", name: "transform2" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 11, type: "FLOAT32_4", name: "lastTransform0" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 12, type: "FLOAT32_4", name: "lastTransform1" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 13, type: "FLOAT32_4", name: "lastTransform2" }),
+    Object.freeze({ usage: "TEXCOORD", usageIndex: 14, type: "BYTE_4", name: "boneIndex" })
   ]);
 
   static #zero = vec3.create();

@@ -680,7 +680,7 @@ export class EveChildContainer extends EveChildTransform
       const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
       for (const curveSet of this.curveSets)
       {
-        curveSet?.Update?.(time, time);
+        curveSet.Update(time, time, updateContext.renderContext);
       }
     }
 
@@ -1085,20 +1085,20 @@ export class EveChildContainer extends EveChildTransform
    * own and child sets at an explicit time (both clocks, as Carbon does). */
   @carbon.method
   @impl.implemented
-  UpdateCurveSet(name, time)
+  UpdateCurveSet(name, time, renderContext = null)
   {
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) === target)
+      if (curveSet.GetName() === target)
       {
-        curveSet.Update?.(time, time);
+        curveSet.Update(time, time, renderContext);
       }
     }
 
     for (const child of this.objects)
     {
-      child?.UpdateCurveSet?.(target, time);
+      child?.UpdateCurveSet?.(target, time, renderContext);
     }
   }
 

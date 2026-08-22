@@ -1,6 +1,6 @@
-// Source: E:\carbonengine\trinity\trinity\Eve\UI\EveTacticalOverlay.h
-// Source: E:\carbonengine\trinity\trinity\Eve\UI\EveTacticalOverlay.cpp
-// Source: E:\carbonengine\trinity\trinity\Eve\UI\EveTacticalOverlay_Blue.cpp
+// Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
+// Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
+// Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
@@ -46,11 +46,9 @@ export class EveTacticalOverlayTrackObject extends CjsModel
   UpdatePosition(updateContext)
   {
     if (!this.translationCurve) return;
-    const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0) || 0;
-    const velocity = this.translationCurve.GetValueDotAt?.(time, this.#velocity);
-    if (velocity && velocity !== this.#velocity) vec3.copy(this.#velocity, velocity);
-    const position = this.translationCurve.GetValueAt?.(time, this.position);
-    if (position && position !== this.position) vec3.copy(this.position, position);
+    const time = updateContext.GetTime();
+    this.translationCurve.GetValueDotAt(time, this.#velocity);
+    this.translationCurve.GetValueAt(time, this.position);
   }
 
   /** Copies the velocity sampled by the last UpdatePosition into out. */

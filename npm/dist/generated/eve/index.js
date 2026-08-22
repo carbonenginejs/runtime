@@ -1,5 +1,4 @@
 export { EveChildCloud } from './child/EveChildCloud.js';
-export { EveChildInstanceMeshRenderer } from './child/EveChildInstanceMeshRenderer.js';
 export { EveCloudEditableVolume } from './child/EveCloudEditableVolume.js';
 export { EveCloudVolumeTextureParameter } from './child/EveCloudVolumeTextureParameter.js';
 export { IEveLightingOverride } from './child/IEveLightingOverride.js';
@@ -12,14 +11,6 @@ export { PerLightShadowSetting } from './lights/enums.js';
 export { LocalPositionBehavior, StretchState } from './renderable/stretch/enums.js';
 export { EvePendingPickingReadback } from './scene/EvePendingPickingReadback.js';
 export { EveSpaceSceneRenderDriver } from './scene/EveSpaceSceneRenderDriver.js';
-export { EveSmartLightMesh } from './smartLights/EveSmartLightMesh.js';
-export { EveSmartLightSpotLight } from './smartLights/EveSmartLightSpotLight.js';
 export { State, StateChangeEvent } from './spaceObject/enums.js';
-export { EveConnector } from './ui/EveConnector.js';
-export { EveCurveLineSet } from './ui/EveCurveLineSet.js';
-export { EveLineContainer } from './ui/EveLineContainer.js';
-export { EveProjectBracket } from './ui/EveProjectBracket.js';
 export { EveSprite2dBracketRenderer } from './ui/EveSprite2dBracketRenderer.js';
-export { EveTacticalOverlay } from './ui/EveTacticalOverlay.js';
-export { ConnectorType } from './ui/enums.js';
 //# sourceMappingURL=index.js.map

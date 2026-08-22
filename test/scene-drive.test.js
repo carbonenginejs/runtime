@@ -596,8 +596,8 @@ test("display=false gates every BeginRender-phase method; update=false gates Upd
 
   vec4.set(scene.sunDiffuseColor, 1, 1, 1, 1);
   scene.BlendLightingOverrides();
-  assert.deepEqual(Array.from(scene.currentSunColor), [0, 0, 0, 0], "blend outputs untouched");
-  assert.equal(scene.currentNebulaIntensity, 0);
+  assert.deepEqual(Array.from(scene.currentSunColor), [1, 1, 1, 1], "Carbon constructor output untouched");
+  assert.equal(scene.currentNebulaIntensity, 1);
 
   scene.postprocess = new Tr2PostProcess2();
   scene.UpdatePostProcessAttributes();

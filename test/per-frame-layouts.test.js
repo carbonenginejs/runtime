@@ -12,7 +12,7 @@ import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { quat } from "@carbonenginejs/runtime-utils/quat";
 
 import { CjsPerFrameLayouts } from "../src/core/rawData/CjsPerFrameLayouts.js";
-import { EveSpaceScene, Tr2RenderContext } from "../npm/dist/index.js";
+import { EveSpaceScene, Tr2RenderContext, Tr2ShadowMap } from "../npm/dist/index.js";
 
 
 /** Field offsets hand-computed from the C++ declaration order. */
@@ -397,8 +397,8 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
   const scene = new EveSpaceScene();
   const context = makeContext();
 
-  // cpp:3163 - no shadow map, no cascade block: the record keeps the
-  // shadows-disabled defaults rather than half-filled garbage.
+  // cpp:3163 - no shadow map, no cascade block. A fresh persistent record
+  // begins at the catalog defaults while ShadowCameraRange disables sampling.
   const bare = scene.PopulatePerFramePSData(context);
   assert.deepEqual(Array.from(bare.Copy("ShadowCameraRange", new Float32Array(2))), [ 1, 0 ]);
   assert.deepEqual(
@@ -407,14 +407,17 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
   );
   assert.deepEqual(Array.from(bare.Copy("SplitInfo", new Float32Array(4))), [ 0, 0, 0, 0 ]);
 
-  const shadowMap = {
-    perSplitData: {
-      ShadowMapValues: [ [ 1, 2, 3, 4 ], [ 5, 6, 7, 8 ], [ 9, 10, 11, 12 ], [ 13, 14, 15, 16 ] ],
-      CascadeRanges: Array.from({ length: 16 }, (_value, index) => [ index, 0, 0, 0 ]),
-      ShadowMatrixVal: Array.from({ length: 16 }, () => mat4.create()),
-      SplitInfo: [ 0.25, 0.5, 0.75, 1 ]
-    }
-  };
+  const shadowMap = new Tr2ShadowMap();
+  const split = shadowMap.GetPerSplitData();
+  for (let index = 0; index < 4; index++)
+  {
+    split.ShadowMapValues[index].set([ index * 4 + 1, index * 4 + 2, index * 4 + 3, index * 4 + 4 ]);
+  }
+  for (let index = 0; index < 16; index++)
+  {
+    split.CascadeRanges[index].set([ index, 0, 0, 0 ]);
+  }
+  split.SplitInfo.set([ 0.25, 0.5, 0.75, 1 ]);
 
   const filled = scene.PopulatePerFramePSData(context, {}, shadowMap);
 
@@ -429,6 +432,27 @@ test("the shadow cascade block is written only when a shadow map is supplied", (
     "all sixteen ranges are copied"
   );
   assert.deepEqual(Array.from(filled.Copy("SplitInfo", new Float32Array(4))), [ 0.25, 0.5, 0.75, 1 ]);
+
+  scene.cascadedShadowMap = shadowMap;
+  split.SplitInfo.set([ 4, 3, 2, 1 ]);
+  const owned = scene.PopulatePerFramePSData(context);
+  assert.deepEqual(
+    Array.from(owned.Copy("SplitInfo", new Float32Array(4))),
+    [ 4, 3, 2, 1 ],
+    "the omitted argument uses the scene-owned cascaded shadow map"
+  );
+
+  const disabled = scene.PopulatePerFramePSData(context, {}, null);
+  assert.deepEqual(
+    Array.from(disabled.Copy("ShadowCameraRange", new Float32Array(2))),
+    [ 1, 0 ],
+    "explicit null disables shadow sampling"
+  );
+  assert.deepEqual(
+    Array.from(disabled.Copy("SplitInfo", new Float32Array(4))),
+    [ 4, 3, 2, 1 ],
+    "Carbon leaves persistent cascade bytes untouched while disabled"
+  );
 });
 
 
@@ -439,14 +463,7 @@ test("each cascade matrix lands in its own cell of the 8x2 atlas", () =>
   // cascade 8 starts one full row down.
   const scene = new EveSpaceScene();
   const context = makeContext();
-  const shadowMap = {
-    perSplitData: {
-      ShadowMapValues: [],
-      CascadeRanges: [],
-      ShadowMatrixVal: Array.from({ length: 16 }, () => mat4.create()),
-      SplitInfo: [ 0, 0, 0, 0 ]
-    }
-  };
+  const shadowMap = new Tr2ShadowMap();
 
   const record = scene.PopulatePerFramePSData(context, {}, shadowMap);
 
@@ -470,6 +487,134 @@ test("each cascade matrix lands in its own cell of the 8x2 atlas", () =>
   // cell size. y stays negated by the flip.
   assert.ok(Math.abs(first[0] - 0.5 / 8) < 1e-6, "x scale");
   assert.ok(Math.abs(first[5] + 0.5 / 2) < 1e-6, "y scale, flipped");
+});
+
+
+test("logical shadow matrices are composed once and transposed only at RawData", () =>
+{
+  const view = mat4.fromValues(
+    0, 2, 0, 0,
+    -3, 0, 0, 0,
+    0, 0, 4, 0,
+    5, -7, 11, 1
+  );
+  const context = makeContext({ view });
+  const logicalLvp = mat4.fromValues(
+    1, 2, 3, 0,
+    4, 5, 6, 0,
+    7, 8, 9, 0,
+    10, 11, 12, 1
+  );
+  const shadowMap = new Tr2ShadowMap();
+  mat4.copy(shadowMap.GetPerSplitData().ShadowMatrixVal[0], logicalLvp);
+
+  const record = new EveSpaceScene().PopulatePerFramePSData(context, {}, shadowMap);
+  const actualLogical = mat4.transpose(
+    mat4.create(),
+    record.Copy("ShadowMatrixVal", new Float32Array(16), 0)
+  );
+
+  const clipToUv = mat4.fromValues(
+    0.5, 0, 0, 0,
+    0, -0.5, 0, 0,
+    0, 0, 1, 0,
+    0.5, 0.5, 0, 1
+  );
+  const atlasCell = mat4.create();
+  mat4.scale(atlasCell, atlasCell, [ 1 / 8, 1 / 2, 1 ]);
+  const expected = mat4.multiply(
+    mat4.create(),
+    logicalLvp,
+    context.GetInverseViewTransform()
+  );
+  mat4.multiply(expected, clipToUv, expected);
+  mat4.multiply(expected, atlasCell, expected);
+  assertClose(actualLogical, expected, "logical LVP -> view -> clip -> atlas");
+});
+
+
+test("Tr2ShadowMap split output reaches the packed scene record end to end", () =>
+{
+  const view = mat4.fromValues(
+    0.8, 0.1, -0.3, 0,
+    -0.2, 0.9, 0.25, 0,
+    0.35, -0.15, 0.75, 0,
+    4, -6, 9, 1
+  );
+  const context = makeContext({ view });
+  const shadowMap = new Tr2ShadowMap();
+  shadowMap.shadowSplitMode = Tr2ShadowMap.ShadowSplitMode.MANUAL;
+  shadowMap.OnModified();
+  shadowMap.disableShimmer = false;
+  shadowMap.SplitNr0 = 80;
+  const setup = shadowMap.SetupShadowSplit(
+    0,
+    context.GetInverseViewTransform(),
+    [ 0.2, -1, 0.35 ],
+    2,
+    -0.9,
+    1.1,
+    0.8,
+    -1.2
+  );
+  const record = new EveSpaceScene().PopulatePerFramePSData(context, {}, shadowMap);
+  const actual = mat4.transpose(
+    mat4.create(),
+    record.Copy("ShadowMatrixVal", new Float32Array(16), 0)
+  );
+
+  const clipToUv = mat4.fromValues(
+    0.5, 0, 0, 0,
+    0, -0.5, 0, 0,
+    0, 0, 1, 0,
+    0.5, 0.5, 0, 1
+  );
+  const atlasCell = mat4.create();
+  mat4.scale(atlasCell, atlasCell, [ 1 / 8, 1 / 2, 1 ]);
+  const expected = mat4.multiply(
+    mat4.create(),
+    setup.lightViewProjection,
+    context.GetInverseViewTransform()
+  );
+  mat4.multiply(expected, clipToUv, expected);
+  mat4.multiply(expected, atlasCell, expected);
+  assertClose(actual, expected, "producer -> scene -> RawData");
+});
+
+
+test("projection inverse is derived logically before RawData's sole transpose", () =>
+{
+  const projection = mat4.fromValues(
+    2, 3, 5, 0,
+    7, 11, 13, 0,
+    17, 19, 23, -1,
+    29, 31, 37, 1
+  );
+  const record = new EveSpaceScene().PopulatePerFramePSData(makeContext({ projection }));
+  const expectedStored = mat4.transpose(
+    mat4.create(),
+    mat4.invert(mat4.create(), projection)
+  );
+  assertClose(
+    record.Copy("ProjectionInverseMat", new Float32Array(16)),
+    expectedStored,
+    "Inverse(Transpose(P)) packed bytes"
+  );
+});
+
+
+test("controlled shadow-map shapes fail loudly instead of uploading fallback zeros", () =>
+{
+  const scene = new EveSpaceScene();
+  const context = makeContext();
+  assert.throws(
+    () => scene.PopulatePerFramePSData(context, {}, { GetPerSplitData: () => ({}) }),
+    /requires a Tr2ShadowMap/u
+  );
+  assert.throws(
+    () => scene.PopulatePerFramePSData(context, {}, {}),
+    /requires a Tr2ShadowMap/u
+  );
 });
 
 

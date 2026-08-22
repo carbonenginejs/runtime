@@ -56,7 +56,7 @@ export class EveSmartLightAttributeModifierBucket extends EveSmartLightBaseAttri
   {
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.SetInheritProperties?.(colorSet);
+      attributeModifier.SetInheritProperties(colorSet);
     }
   }
 
@@ -73,7 +73,7 @@ export class EveSmartLightAttributeModifierBucket extends EveSmartLightBaseAttri
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.UpdateSyncronous?.(updateContext, params, childMultiplier);
+      attributeModifier.UpdateSyncronous(updateContext, params, childMultiplier);
     }
   }
 
@@ -89,7 +89,7 @@ export class EveSmartLightAttributeModifierBucket extends EveSmartLightBaseAttri
 
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.ProcessAttributeModifier?.(attribute, placement, entityPosition, entityDirection, activationStrength);
+      attributeModifier.ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, activationStrength);
     }
   }
 
@@ -97,7 +97,7 @@ export class EveSmartLightAttributeModifierBucket extends EveSmartLightBaseAttri
    * Resets every child's play time; a child only becomes active when both the
    * parent request and the bucket state agree
    * (EveSmartLightAttributeModifierBucket.cpp:57-67). Carbon BlueCasts to
-   * EveSmartLightBaseAttributeModifier; the JS children are duck-typed.
+   * EveSmartLightBaseAttributeModifier; the JS children share that nominal base.
    */
   @carbon.method
   @impl.implemented
@@ -106,7 +106,7 @@ export class EveSmartLightAttributeModifierBucket extends EveSmartLightBaseAttri
     const isActive = parentActive && this.active;
     for (const attributeModifier of this.attributeModifiers)
     {
-      attributeModifier?.ResetPlayTime?.(isActive);
+      attributeModifier.ResetPlayTime(isActive);
     }
   }
 

@@ -1,5 +1,8 @@
 export * from "./Tr2MaterialParameterStore.js";
 export * from "./Tr2QuadRenderer.js";
+export * from "./Tr2Transform.js";
+export * from "./Tr2ShadowMap.js";
+export * from "./PriorityBlend.js";
 export * from "./TriSettings.js";
 export * from "./animation/index.js";
 export * from "./batch/index.js";
@@ -14,3 +17,4 @@ export * from "./tool/index.js";
 export * from "./variable/index.js";
 export * from "./vertex/index.js";
 export * from "./view/index.js";
+export * from "./volumetrics/index.js";

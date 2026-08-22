@@ -1,4 +1,5 @@
 import test from "node:test";
+import nodeAssert from "node:assert/strict";
 import {
   Tr2PPBloomEffect,
   Tr2PPDepthOfFieldEffect,
@@ -8,7 +9,9 @@ import {
   Tr2PPTonemappingEffect,
   Tr2PostProcess,
   Tr2PostProcess2,
-  Tr2PostProcessAttributes
+  Tr2PostProcessAttributes,
+  Tr2PostProcessRenderer,
+  Tr2SSAO
 } from "../npm/dist/index.js";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
 
@@ -208,4 +211,44 @@ test("maintained post-process defaults match Carbon constructors", () =>
   Tr2PostProcess2.PostProcessDofEnabled = true;
   assertEquals(depthOfField.IsActive(), true);
   Tr2PostProcess2.PostProcessDofEnabled = false;
+});
+
+test("maintained SSAO owns Carbon quality state and leaves filtering explicit", () =>
+{
+  const ssao = new Tr2SSAO();
+  assertEquals(ssao.enabled, true);
+  assertEquals(ssao.quality, Tr2SSAO.SSAOQuality.HIGHEST);
+  assertEquals(ssao.downsampled, false);
+  assertEquals(ssao.zoomLevel, 5);
+  assertEquals(ssao.radius, 6);
+  assertEquals(ssao.shadowPower, 2.6);
+  assertEquals(ssao.cortaoMipBias, -4);
+  assertEquals(CjsSchema.getField(Tr2SSAO, "shadowClamp")?.type.kind, "float32");
+
+  ssao.Enable(false);
+  assertEquals(ssao.enabled, false);
+  ssao.SetQuality(Tr2SSAO.SSAOQuality.LOW, true);
+  assertEquals(ssao.quality, Tr2SSAO.SSAOQuality.LOW);
+  assertEquals(ssao.downsampled, true);
+  assertEquals(CjsSchema.getMethod(Tr2SSAO, "Enable")?.impl?.status, "implemented");
+  assertEquals(CjsSchema.getMethod(Tr2SSAO, "SetQuality")?.impl?.status, "implemented");
+  assertEquals(CjsSchema.getMethod(Tr2SSAO, "Filter")?.impl?.status, "notImplemented");
+  nodeAssert.throws(() => ssao.Filter(null, null, null, null, false), /engine-owned SSAO realization/u);
+});
+
+test("maintained post-process renderer owns quality while execution stays explicit", () =>
+{
+  const renderer = new Tr2PostProcessRenderer();
+  assertEquals(renderer.quality, Tr2PostProcessRenderer.Quality.HIGH);
+  assertEquals(renderer.bloomDebugMode, Tr2PostProcessRenderer.BloomDebugMode.BLOOM_DEBUG_NONE);
+  assertEquals(renderer.GetPostProcessingQuality(), Tr2PostProcessRenderer.Quality.HIGH);
+  renderer.SetPostProcessingQuality(Tr2PostProcessRenderer.Quality.LOW);
+  assertEquals(renderer.GetPostProcessingQuality(), Tr2PostProcessRenderer.Quality.LOW);
+  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "GetPostProcessingQuality")?.impl?.status, "implemented");
+  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "SetPostProcessingQuality")?.impl?.status, "implemented");
+  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "Execute")?.impl?.status, "notImplemented");
+  nodeAssert.throws(
+    () => renderer.Execute(null, null, null, null, null, null, null, null, null),
+    /engine-owned post-process realization/u
+  );
 });

@@ -22,6 +22,8 @@ import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { RawData } from "../../core/rawData/RawData.js";
+import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
+import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
@@ -35,8 +37,6 @@ const sunDirectionScratch = vec3.create();
 // the call that wrote it.
 const perFrameMatrixScratch = mat4.create();
 const perFrameLastProjectionScratch = mat4.create();
-
-const ZERO4 = Object.freeze([0, 0, 0, 0]);
 
 const ZERO_JITTER = vec4.create();
 
@@ -77,9 +77,9 @@ const IDENTITY = mat4.create();
 //     cpp:584 -> 589).
 //  5. `scene.BlendLightingOverrides()` - BeginRender phase, before any gather
 //     (Carbon cpp:1333, before GatherBatches cpp:1387).
-//  6. (engine) volumetrics `UpdateFogSettings(scene.componentRegistry,
-//     scene.updateContext)` - engine reads "FroxelFogSettings"; not scene
-//     work (cpp:1365-1370).
+//  6. `scene.UpdateFogSettings()` - portable Trinity state production over
+//     "FroxelFogSettings" (cpp:1365-1370). An engine realizes the later render
+//     intent; it does not own this blend/update method.
 //  7. `scene.UpdateVisibility(updateContext.renderContext
 //     .GetInverseViewTransform())` - the cpp:1443-1467 block.
 //  8. `const renderables = scene.GetRenderables([])` - pre-culled
@@ -102,9 +102,10 @@ const IDENTITY = mat4.create();
 //     so the blended sun colour is current. The engine binds the two records at
 //     Tr2Renderer::GetPerFrame{VS,PS}StartRegister; their layouts are published
 //     on the `/perframe` subpath.
-// 11. (driver/engine, optional) `for (const lf of scene.lensflares)
-//     lf?.PrepareRender?.(frustum)` (cpp:1419-1422; the JS lensflare shell has
-//     no method yet - pure no-op today).
+// 11. (driver) `for (const lf of scene.lensflares)
+//     lf.PrepareRender(frustum)` (cpp:1419-1422). EveLensflare still needs that
+//     Carbon method ported; its absence is an explicit driver-readiness gap,
+//     not an optional capability to hide with a guarded call.
 // 12. (engine) reads registry collections directly: "ShadowCaster" (cascade
 //     gate cpp:614-621, RT push cpp:1544-1547), "VolumetricRenderable",
 //     "FroxelFogSettings", "MeshMorph" (engine may call
@@ -169,17 +170,17 @@ export class EveSpaceScene extends CjsModel
   /** m_fogColor (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  fogColor = vec4.create();
+  fogColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
   /** m_sunData.DirWorld (Vector3) [READWRITE, PERSIST] */
   @io.persist
   @type.vec3
-  sunDirection = vec3.create();
+  sunDirection = vec3.fromValues(0, -1, 0);
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  ambientColor = vec4.create();
+  ambientColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
   /** m_shLightingManager (Tr2ShLightingManagerPtr) [PERSISTONLY] */
   @io.persistOnly
@@ -243,7 +244,7 @@ export class EveSpaceScene extends CjsModel
   @io.notify
   @io.persist
   @type.float32
-  reflectionIntensity = 0;
+  reflectionIntensity = 1;
 
   /** m_distanceFields (PEveDistanceFieldVector) [READ] */
   @io.read
@@ -356,7 +357,7 @@ export class EveSpaceScene extends CjsModel
   /** m_volumetricsRenderer (Tr2VolumetricsRendererPtr) [READ] */
   @io.read
   @type.objectRef("Tr2VolumetricsRenderer")
-  volumetricsRenderer = null;
+  volumetricsRenderer = new Tr2VolumetricsRenderer();
 
   /** m_starfield (EveStarfieldPtr) [READWRITE, PERSIST] */
   @io.persist
@@ -484,11 +485,11 @@ export class EveSpaceScene extends CjsModel
   // Carbon m_currentSunColor / m_currentNebulaIntensity /
   // m_currentReflectionIntensity (EveSpaceScene.h:492-493/650, protected):
   // outputs of the BeginRender lighting-override blend (cpp:1360-1362).
-  currentSunColor = vec4.create();
+  currentSunColor = vec4.fromValues(1, 1, 1, 1);
 
-  currentNebulaIntensity = 0;
+  currentNebulaIntensity = 1;
 
-  currentReflectionIntensity = 0;
+  currentReflectionIntensity = 1;
 
   // Carbon m_viewLast / m_projectionLast / m_jitterMatrix
   // (EveSpaceScene.h:296-297, protected): the previous frame's camera, which
@@ -630,7 +631,7 @@ export class EveSpaceScene extends CjsModel
 
     for (const curveSet of this.curveSets)
     {
-      curveSet?.Update?.(realTime, simTime);
+      curveSet.Update(realTime, simTime, context.renderContext);
     }
 
     for (const object of this.objects)
@@ -964,6 +965,18 @@ export class EveSpaceScene extends CjsModel
   }
 
   /**
+   * Runs Carbon's portable froxel-fog blend against the scene-owned registry
+   * and update context. The frame driver calls this immediately after lighting
+   * overrides and before visibility/gather.
+   */
+  @impl.custom
+  @impl.reason("Carbon performs this inside BeginRender; CarbonEngineJS exposes the scene-owned CPU phase because the engine driver owns the surrounding frame order.")
+  UpdateFogSettings()
+  {
+    this.volumetricsRenderer.UpdateFogSettings(this.componentRegistry, this.updateContext);
+  }
+
+  /**
    * Drives the injected light manager through Carbon's dynamic-light gather
    * (EveSpaceScene::BeginRender, EveSpaceScene.cpp:1396-1416, AFTER
    * GatherBatches cpp:1387): shadow quality, clear (runs even with zero owners
@@ -1166,7 +1179,9 @@ export class EveSpaceScene extends CjsModel
    * The cascaded-shadow block (ShadowMapValues / CascadeRanges /
    * ShadowMatrixVal / SplitInfo) is filled only when a shadow map is passed,
    * exactly as Carbon's `if( shadowMap )` gate does; without one the record
-   * keeps the shadows-disabled defaults the catalog declares.
+   * leaves the persistent cascade bytes untouched. `ShadowCameraRange` remains
+   * disabled, so stale cascade bytes are not consumed until a map is supplied
+   * again.
    *
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @param {Object} [frame] - as PopulatePerFrameVSData, plus:
@@ -1176,15 +1191,20 @@ export class EveSpaceScene extends CjsModel
    *   scene post-process's own; the upscaling info is engine state
    * @param {Number} [frame.inverseShadowMapAtlasSize] - 0 with no light manager
    * @param {Number} [frame.shadowMapAtlasEntryMinSizeLog2]
-   * @param {Object|null} [shadowMap] - the cascaded shadow map, or null
+   * @param {Tr2ShadowMap|null} [shadowMap=this.cascadedShadowMap] - the owned
+   *   cascaded shadow map; explicit null disables cascade packing
    * @param {Object} [out] - the record to fill; defaults to the scene's own
    * @returns {Object} the filled record
    */
   @carbon.method
   @impl.adapted
   @impl.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")
-  PopulatePerFramePSData(renderContext, frame = {}, shadowMap = null, out = this.#perFramePS)
+  PopulatePerFramePSData(renderContext, frame = {}, shadowMap = this.cascadedShadowMap, out = this.#perFramePS)
   {
+    if (shadowMap !== null && !(shadowMap instanceof Tr2ShadowMap))
+    {
+      throw new TypeError("EveSpaceScene.PopulatePerFramePSData requires a Tr2ShadowMap or null.");
+    }
     const projection = renderContext.GetProjection();
 
     out.SetAndTranspose("ViewMat", renderContext.GetViewTransform());
@@ -1259,16 +1279,16 @@ export class EveSpaceScene extends CjsModel
       this.#FillShadowCascades(out, shadowMap, renderContext);
     }
 
-    // m_perFrameVS.ProjectionMat is already transposed (cpp:3192-3193).
-    mat4.transpose(perFrameMatrixScratch, projection);
-    mat4.invert(perFrameMatrixScratch, perFrameMatrixScratch);
+    // Carbon writes Inverse(Transpose(P)). RawData supplies that terminal
+    // transpose, so derive only the logical inverse here.
+    mat4.invert(perFrameMatrixScratch, projection);
     out.SetAndTranspose("ProjectionInverseMat", perFrameMatrixScratch);
 
     out.Set("Debug", this.perFrameDebug);
 
     out.Set("VolumetricSlices", VOLUMETRIC_SLICES);
 
-    this.volumetricsRenderer?.PopulatePerFrameData?.(out);
+    this.volumetricsRenderer.PopulatePerFrameData(out);
 
     return out;
   }
@@ -1309,16 +1329,16 @@ export class EveSpaceScene extends CjsModel
    */
   #FillShadowCascades(out, shadowMap, renderContext)
   {
-    const split = shadowMap.perSplitData ?? shadowMap.m_perSplitData ?? {};
+    const split = shadowMap.GetPerSplitData();
 
     for (let index = 0; index < 4; index++)
     {
-      out.SetIndex("ShadowMapValues", index, split.ShadowMapValues?.[index] ?? ZERO4);
+      out.SetIndex("ShadowMapValues", index, split.ShadowMapValues[index]);
     }
 
     for (let index = 0; index < 16; index++)
     {
-      out.SetIndex("CascadeRanges", index, split.CascadeRanges?.[index] ?? ZERO4);
+      out.SetIndex("CascadeRanges", index, split.CascadeRanges[index]);
     }
 
     const inverseView = renderContext.GetInverseViewTransform();
@@ -1327,16 +1347,11 @@ export class EveSpaceScene extends CjsModel
 
     for (let index = 0; index < CjsPerFrameLayouts.SHADOW_FRUSTUM_COUNT; index++)
     {
-      const stored = split.ShadowMatrixVal?.[index];
+      const stored = split.ShadowMatrixVal[index];
 
-      if (!stored)
-      {
-        continue;
-      }
-
-      // Carbon `inverseView * Transpose(stored)`; gl-matrix swaps operands.
-      mat4.transpose(perFrameLastProjectionScratch, stored);
-      mat4.multiply(perFrameMatrixScratch, perFrameLastProjectionScratch, inverseView);
+      // Carbon stores Transpose(LVP), then computes inverseView * LVP. The JS
+      // producer keeps logical LVP, so gl-matrix reverses only that product.
+      mat4.multiply(perFrameMatrixScratch, stored, inverseView);
 
       // Flip y and change the range from (-1, +1) to (0, 1).
       mat4.multiply(perFrameMatrixScratch, SHADOW_CLIP_TO_UV, perFrameMatrixScratch);
@@ -1358,7 +1373,7 @@ export class EveSpaceScene extends CjsModel
       out.SetAndTransposeIndex("ShadowMatrixVal", index, perFrameMatrixScratch);
     }
 
-    out.Set("SplitInfo", split.SplitInfo ?? ZERO4);
+    out.Set("SplitInfo", split.SplitInfo);
   }
 
   /** Carbon method ReregisterEntities (MAP_METHOD_AND_WRAP, cpp:4064-4089).

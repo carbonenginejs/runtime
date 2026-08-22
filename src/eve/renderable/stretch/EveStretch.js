@@ -163,13 +163,13 @@ export class EveStretch extends EveEntity
     const time = getTime(context);
     if (this.startTime < 0 && this.moving) this.startTime = time;
     const relative = this.startTime >= 0 ? time - this.startTime : time;
-    for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative);
+    for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative, context.renderContext);
     if (this.progressCurve)
     {
       if (typeof this.progressCurve.UpdateValue === "function") this.progressCurve.UpdateValue(relative);
       else this.progressCurve.Update?.(relative);
     }
-    updateCurveSet(this.moveCompletion, relative);
+    updateCurveSet(this.moveCompletion, relative, context.renderContext);
   }
 
   /**

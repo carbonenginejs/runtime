@@ -193,7 +193,7 @@ export class EveStretch2 extends EveEntity
     const sets = [this.start, this.loop, this.end];
     for (let index = 0; index < sets.length; index++)
     {
-      updateCurveSet(sets[index], relative);
+      updateCurveSet(sets[index], relative, context.renderContext);
       this.#effectData[0][index] = Number(sets[index]?.GetScaledTime?.() ?? sets[index]?.scaledTime ?? 0);
     }
     makeEndpointTransforms(this.#source, this.#destination, this.#sourceTransform, this.#destinationTransform);

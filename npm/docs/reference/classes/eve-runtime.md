@@ -5,6 +5,141 @@ Scope: `@carbonenginejs/runtime-trinity/eve`
 Audience: Users and integrators
 Summary: Catalogs promoted Eve runtime classes with renderer-neutral behavior.
 
+<!-- class:EveSmartLightSpotLight -->
+## `EveSmartLightSpotLight`
+
+A spot-light specialization with persisted cone angles.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/smartLights/EveSmartLightSpotLight.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2FroxelFogSettings -->
+## `ITr2FroxelFogSettings`
+
+Nominal Carbon froxel-fog component contract.
+
+Its base method throws until a concrete Eve component supplies a stable settings record.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/child/ITr2FroxelFogSettings.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveCurveLineSet -->
+## `EveCurveLineSet`
+
+An Eve-owned curve-line set that composes transforms, culls bounds, collects itself, and writes object constants.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/ui/lines/EveCurveLineSet.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveConnector -->
+## `EveConnector`
+
+Builds Carbon connector records in a maintained `EveCurveLineSet`.
+
+The records include curve-driven endpoints and line animation policy.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/ui/EveConnector.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveLineContainer -->
+## `EveLineContainer`
+
+Owns the ordered connector-to-line-set rebuild and delegates its runtime queries.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/ui/EveLineContainer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveProjectBracket -->
+## `EveProjectBracket`
+
+Projects an authored world position into an owned Sprite2D bracket.
+
+Camera state and Carbon's current animation time come from the active
+`Tr2RenderContext`; docking and visibility remain portable CPU policy.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/ui/EveProjectBracket.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveTacticalOverlay -->
+## `EveTacticalOverlay`
+
+Produces Carbon's tactical anchor, range-connector, and velocity instance records.
+
+The records include curve-driven positions, visibility/LOD subdivision, the
+prior-frame segment budget, and the effect-local shader variable store.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/ui/EveTacticalOverlay.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveTacticalOverlayTrackObject -->
+## `EveTacticalOverlayTrackObject`
+
+Samples an authored vector curve into tactical-overlay position and velocity values.
+
+It also carries the tracked object's radius, aggression, and velocity flags.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/ui/tacticalOverlay/EveTacticalOverlayTrackObject.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveChildPartData -->
+## `EveChildPartData`
+
+Persistent modular-space-object state stored as an effect child.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/child/EveChildPartData.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveChildInstanceMeshRenderer -->
+## `EveChildInstanceMeshRenderer`
+
+Builds and publishes the canonical CPU instance stream from a placement distribution.
+
+It applies Carbon's billboard constraints and computes visibility and bounds;
+engines own physical instance-buffer realization.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/child/EveChildInstanceMeshRenderer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveChildPartDataPartData -->
+## `EveChildPartDataPartData`
+
+One modular-object part's logical transform and local-space bounds.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/child/EveChildPartData.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveSpaceObjectChild -->
+## `EveSpaceObjectChild`
+
+Nominal base for every live space-object child.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/child/EveSpaceObjectChild.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:EvePlanet -->
 ## `EvePlanet`
 
@@ -889,7 +1024,7 @@ EveSmartLightAttributeModifierNoise (eve/smartLights/attributeModifiers) - gener
 <!-- class:EveSmartLightBaseAttributeModifier -->
 ## `EveSmartLightBaseAttributeModifier`
 
-EveSmartLightBaseAttributeModifier (eve/smartLights/attributeModifiers) - generated from schema shapeHash d70f7c45....
+Owns common smart-light activation state and a nominal modifier contract whose optional colour and controller hooks default to no-ops while required update and attribute-processing methods throw until a concrete modifier implements them.
 
 - Export: @carbonenginejs/runtime-trinity/eve
 - Source: src/eve/smartLights/attributeModifiers/EveSmartLightBaseAttributeModifier.js
@@ -923,6 +1058,18 @@ A smart-light group that computes one shared faction-aware colour, applies it to
 
 - Export: @carbonenginejs/runtime-trinity/eve
 - Source: src/eve/smartLights/EveSmartLightColorShareGroup.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveSmartLightMesh -->
+## `EveSmartLightMesh`
+
+Specializes the maintained instance-mesh renderer for distributed smart-light meshes.
+
+It includes faction-aware colour modifiers and effect-parameter updates.
+
+- Export: `@carbonenginejs/runtime-trinity/eve`
+- Source: `src/eve/smartLights/EveSmartLightMesh.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

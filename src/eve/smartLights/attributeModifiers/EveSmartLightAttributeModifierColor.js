@@ -4,6 +4,7 @@
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
+import { resolveFactionColor } from "../../resolveFactionColor.js";
 
 /** EveSmartLightAttributeModifierColor (eve/smartLights/attributeModifiers) - generated from schema shapeHash 1d22dfd5.... */
 @type.define({ className: "EveSmartLightAttributeModifierColor", family: "eve/smartLights/attributeModifiers" })
@@ -44,6 +45,9 @@ export class EveSmartLightAttributeModifierColor extends EveSmartLightBaseAttrib
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = null;
 
+  /** Caller-owned faction-colour result; never aliases the SOF model. */
+  #resolvedGroupColor = vec4.createLinear();
+
   /** Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24). */
   @carbon.method
   @impl.implemented
@@ -63,18 +67,17 @@ export class EveSmartLightAttributeModifierColor extends EveSmartLightBaseAttrib
    * exactly that array, so its length is the bound.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("JS accepts Carbon's indexed colour array and the combined runtime's named SOF colour-set model through one direct two-representation boundary.")
   GetGroupColor()
   {
-    if (this.useFactionColor && this.#parentColorSet)
-    {
-      const index = this.factionColor | 0;
-      if (index >= 0 && index < this.#parentColorSet.length && this.#parentColorSet[index])
-      {
-        return this.#parentColorSet[index];
-      }
-    }
-    return this.blendColor;
+    return resolveFactionColor(
+      this.#resolvedGroupColor,
+      this.blendColor,
+      this.useFactionColor,
+      this.factionColor,
+      this.#parentColorSet
+    );
   }
 
   /** Advances the crossfade state machine (EveSmartLightAttributeModifierColor.cpp:38-41). */

@@ -298,9 +298,9 @@ export class EveChildProceduralContainer extends EveChildTransform
   /** Carbon EveChildProceduralContainer::UpdateCurveSet (cpp:226-232). */
   @carbon.method
   @impl.implemented
-  UpdateCurveSet(name, time)
+  UpdateCurveSet(name, time, renderContext = null)
   {
-    this.selectedObject?.UpdateCurveSet?.(name, time);
+    if (this.selectedObject) this.selectedObject.UpdateCurveSet(name, time, renderContext);
   }
 
   /** Carbon EveChildProceduralContainer::GetCurveSetDuration (cpp:234-244). */

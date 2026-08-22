@@ -1,0 +1,15 @@
+{
+  "className": "IEveSpaceObjectChild",
+  "status": "live-deprecated",
+  "deprecatedAt": "2026-08-22",
+  "removedAt": null,
+  "replacement": "EveSpaceObjectChild",
+  "reason": "Carbon retains IEveSpaceObjectChild only as a deprecated compatibility interface and now owns child state and behavior on EveSpaceObjectChild.",
+  "source": "trinity/trinity/Eve/SpaceObject/Children/IEveSpaceObjectChild.h",
+  "removalGate": [
+    "Migrate runtime type references and imports from IEveSpaceObjectChild.",
+    "Prove Black/Red hydration and child-container behavior against the replacement.",
+    "Complete the announced compatibility window for the legacy class identity.",
+    "Remove the compatibility export and set removedAt in this record."
+  ]
+}

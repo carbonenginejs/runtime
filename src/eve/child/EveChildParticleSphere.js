@@ -2,13 +2,13 @@
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
-import { CjsModel } from "@carbonenginejs/runtime-utils/model";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 import {
   bindParticleElement,
   hasUnboundParticleElements
 } from "../../particle/element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 
 const BIND_PENDING = 0;
@@ -17,7 +17,7 @@ const BIND_INVALID = 2;
 
 /** A model that binds a particle system's position, velocity and lifetime elements and its attribute generators for a sphere-distributed ambient effect. */
 @type.define({ className: "EveChildParticleSphere", family: "eve/child" })
-export class EveChildParticleSphere extends CjsModel
+export class EveChildParticleSphere extends EveSpaceObjectChild
 {
 
   #bindStatus = BIND_PENDING;

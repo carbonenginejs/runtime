@@ -3,7 +3,9 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "@carbonenginejs/runtime-utils/schema";
 import { CjsModel } from "@carbonenginejs/runtime-utils/model";
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
 import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
+import { vec4 } from "@carbonenginejs/runtime-utils/vec4";
 import { Tr2ParticleElementDeclaration } from "./element/Tr2ParticleElementDeclaration.js";
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
@@ -22,6 +24,12 @@ export class Tr2ParticleSystem extends CjsModel
   #semanticElements = [null, null, null, null, null];
 
   #strides = [0, 0];
+
+  #worldTransform = mat4.create();
+
+  #shouldSortVisible = true;
+
+  #updatePeriod = 1;
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
   @io.persist
@@ -489,6 +497,58 @@ export class Tr2ParticleSystem extends CjsModel
   }
 
   /**
+   * Copies the owning transform and derives Carbon's conservative particle
+   * sorting visibility state from the current CPU bounds.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Backend buffer validity and upload dirtiness stay engine-owned; Trinity preserves the world transform, bounds test, and update-period decision.")
+  UpdateViewDependentData(frustum, worldTransform)
+  {
+    this.#shouldSortVisible = true;
+    this.#updatePeriod = 1;
+    mat4.copy(this.#worldTransform, worldTransform);
+
+    if (!frustum || !this.GetBoundingBox(Tr2ParticleSystem.#boundsMin, Tr2ParticleSystem.#boundsMax))
+    {
+      return;
+    }
+
+    vec3.add(Tr2ParticleSystem.#center, Tr2ParticleSystem.#boundsMax, Tr2ParticleSystem.#boundsMin);
+    vec3.scale(Tr2ParticleSystem.#center, Tr2ParticleSystem.#center, 0.5);
+    vec3.subtract(Tr2ParticleSystem.#extent, Tr2ParticleSystem.#boundsMax, Tr2ParticleSystem.#boundsMin);
+    vec3.scale(Tr2ParticleSystem.#extent, Tr2ParticleSystem.#extent, 0.5);
+
+    const radius = Math.max(
+      Math.abs(Tr2ParticleSystem.#extent[0]),
+      Math.abs(Tr2ParticleSystem.#extent[1]),
+      Math.abs(Tr2ParticleSystem.#extent[2])
+    ) * Math.hypot(worldTransform[0], worldTransform[1], worldTransform[2]);
+    vec3.transformMat4(Tr2ParticleSystem.#center, Tr2ParticleSystem.#center, worldTransform);
+    vec4.set(
+      Tr2ParticleSystem.#boundingSphere,
+      Tr2ParticleSystem.#center[0],
+      Tr2ParticleSystem.#center[1],
+      Tr2ParticleSystem.#center[2],
+      radius
+    );
+
+    if (!frustum.IsSphereVisible(Tr2ParticleSystem.#boundingSphere))
+    {
+      this.#shouldSortVisible = false;
+      this.#updatePeriod = 4;
+    }
+  }
+
+  /** Copies the owning world transform without evaluating view state. */
+  @carbon.method
+  @impl.implemented
+  UpdateTransform(worldTransform)
+  {
+    mat4.copy(this.#worldTransform, worldTransform);
+  }
+
+  /**
    * A typed-array view onto one particle's slot within an element's buffer.
    */
   #getElementView(element, index)
@@ -573,5 +633,15 @@ export class Tr2ParticleSystem extends CjsModel
       vec3.max(this.aabbMax, this.aabbMax, value);
     }
   }
+
+  static #boundsMin = vec3.create();
+
+  static #boundsMax = vec3.create();
+
+  static #center = vec3.create();
+
+  static #extent = vec3.create();
+
+  static #boundingSphere = vec4.create();
 
 }

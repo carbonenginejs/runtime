@@ -35,11 +35,9 @@ class EveTacticalOverlayTrackObject extends CjsModel {
    */
   UpdatePosition(updateContext) {
     if (!this.translationCurve) return;
-    const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0) || 0;
-    const velocity = this.translationCurve.GetValueDotAt?.(time, this.#velocity);
-    if (velocity && velocity !== this.#velocity) vec3.copy(this.#velocity, velocity);
-    const position = this.translationCurve.GetValueAt?.(time, this.position);
-    if (position && position !== this.position) vec3.copy(this.position, position);
+    const time = updateContext.GetTime();
+    this.translationCurve.GetValueDotAt(time, this.#velocity);
+    this.translationCurve.GetValueAt(time, this.position);
   }
 
   /** Copies the velocity sampled by the last UpdatePosition into out. */

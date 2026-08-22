@@ -1,6 +1,6 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, type } from '@carbonenginejs/runtime-utils/schema';
-import { Tr2Sprite2dContainerBase as _Tr2Sprite2dContainer$1 } from './Tr2Sprite2dContainerBase.js';
+import { Tr2Sprite2dContainerBase as _Tr2Sprite2dContainer$1 } from '../../sprite2d/Tr2Sprite2dContainerBase.js';
 
 let _initClass, _init_clip, _init_extra_clip, _init_isCachingContents, _init_extra_isCachingContents, _init_depthMax, _init_extra_depthMax, _init_depthMin, _init_extra_depthMin, _init_pickRadius, _init_extra_pickRadius, _init_cacheContents, _init_extra_cacheContents, _init_absoluteCoordinates, _init_extra_absoluteCoordinates;
 

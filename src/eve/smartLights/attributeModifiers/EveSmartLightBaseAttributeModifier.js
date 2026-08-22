@@ -260,6 +260,36 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
     return this.finalAttributeMultiplier * activationMultiplier;
   }
 
+  /** Default interface hook: this modifier does not consume controller variables. */
+  @carbon.method
+  @impl.noop
+  SetControllerVariable(_name, _value)
+  {
+  }
+
+  /** Default interface hook: this modifier does not consume inherited colours. */
+  @carbon.method
+  @impl.noop
+  SetInheritProperties(_colorSet)
+  {
+  }
+
+  /** Required smart-light modifier update implemented by every concrete modifier. */
+  @carbon.method
+  @impl.notImplemented
+  UpdateSyncronous(_updateContext, _params, _activationMultiplier)
+  {
+    throw new Error("EveSmartLightBaseAttributeModifier.UpdateSyncronous must be implemented by a concrete modifier.");
+  }
+
+  /** Required smart-light attribute operation implemented by every concrete modifier. */
+  @carbon.method
+  @impl.notImplemented
+  ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength)
+  {
+    throw new Error("EveSmartLightBaseAttributeModifier.ProcessAttributeModifier must be implemented by a concrete modifier.");
+  }
+
   /** Carbon declares ResetChildren inline empty on the base (EveSmartLightBaseAttributeModifier.h:41). */
   @carbon.method
   @impl.noop

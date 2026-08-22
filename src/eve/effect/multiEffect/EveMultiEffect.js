@@ -245,11 +245,11 @@ export class EveMultiEffect extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  UpdateCurveSet(name, time)
+  UpdateCurveSet(name, time, renderContext = null)
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect.#GetName(curveSet) === name) curveSet?.Update?.(time, time);
+      if (EveMultiEffect.#GetName(curveSet) === name) curveSet.Update(time, time, renderContext);
     }
   }
 
@@ -300,7 +300,7 @@ export class EveMultiEffect extends CjsModel
   UpdateSyncronous(updateContext)
   {
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
-    for (const curveSet of this.curveSets) curveSet?.Update?.(time, time);
+    for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
     for (const controller of this.controllers) controller?.Update?.(0.5);
     for (const binding of this.bindings) binding?.Update?.(time);
   }

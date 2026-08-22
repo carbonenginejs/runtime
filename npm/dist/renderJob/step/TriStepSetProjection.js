@@ -1,5 +1,7 @@
 import { applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
 import { io, carbon, impl, type } from '@carbonenginejs/runtime-utils/schema';
+import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
+import { TriProjection as _TriProjection } from '../../core/view/TriProjection.js';
 import { TriRenderJob as _TriRenderJob } from '../TriRenderJob.js';
 import { TriRenderStep as _TriRenderStep } from './TriRenderStep.js';
 
@@ -21,7 +23,8 @@ class TriStepSetProjection extends _TriRenderStep {
     super(...args);
     _init_extra_projection(this);
   }
-  projection = (_initProto(this), _init_projection(this, null));
+  #transform = (_initProto(this), mat4.create());
+  projection = _init_projection(this, null);
 
   /** Stores the projection this step installs. */
   __init__(projection = null) {
@@ -41,7 +44,22 @@ class TriStepSetProjection extends _TriRenderStep {
    * current projection untouched otherwise.
    */
   Execute(_realTime, _simTime, executor) {
-    if (this.projection) executor?.SetProjection?.(this.projection);
+    if (this.projection) {
+      this.projection.GetTransform(this.#transform);
+      let fieldOfView;
+      switch (this.projection.GetProjectionType()) {
+        case _TriProjection.FOV:
+          fieldOfView = this.projection.fov;
+          break;
+        case _TriProjection.ORTHO:
+          fieldOfView = 1;
+          break;
+        default:
+          fieldOfView = this.#transform[5] ? 2 * Math.atan(1 / this.#transform[5]) : 0;
+          break;
+      }
+      executor.SetProjection(this.#transform, fieldOfView);
+    }
     return _TriRenderJob.StepResult.RS_OK;
   }
   static {

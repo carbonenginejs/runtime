@@ -2,9 +2,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  EveSmartLightQuad,
   Tr2QuadRenderer,
+  Tr2Effect,
   TriRenderBatchAccumulator
 } from "../npm/dist/index.js";
+import { mat4 } from "@carbonenginejs/runtime-utils/mat4";
+import { quat } from "@carbonenginejs/runtime-utils/quat";
+import { toHalfFloat } from "@carbonenginejs/runtime-utils/num";
+import { vec3 } from "@carbonenginejs/runtime-utils/vec3";
 
 const OPAQUE = Tr2QuadRenderer.TriBatchType.TRIBATCHTYPE_OPAQUE;
 const ADDITIVE = Tr2QuadRenderer.TriBatchType.TRIBATCHTYPE_ADDITIVE;
@@ -32,7 +38,8 @@ test("Tr2QuadRenderer merges per-effect instances and emits instanced batches", 
   const records = renderer.GetEffectRecords();
   assert.equal(records.get("a").count, 3);
   assert.equal(records.get("b").count, 1);
-  const merged = renderer.GetMergedData();
+  const mergedBytes = renderer.GetMergedData();
+  const merged = new Float32Array(mergedBytes.buffer, mergedBytes.byteOffset, mergedBytes.byteLength / 4);
   assert.equal(merged[0], 1);
   assert.equal(merged[records.get("b").bufferOffset / 4], 7, "aligned record offset");
 
@@ -54,4 +61,45 @@ test("Tr2QuadRenderer merges per-effect instances and emits instanced batches", 
   assert.equal(renderer.bufferSize, 0, "frame reset");
 
   assert.equal(Tr2QuadRenderer.Instance(), Tr2QuadRenderer.Instance(), "singleton");
+});
+
+
+test("EveSmartLightQuad packs Carbon's 108-byte mixed-width instance record", () =>
+{
+  const renderer = new Tr2QuadRenderer();
+  const effect = new Tr2Effect();
+  effect.GetHashValue = () => 0x1234;
+
+  const quad = new EveSmartLightQuad();
+  quad.effect = effect;
+  quad.brightness = 2.5;
+  quad.customColor.set([ 0.25, 0.5, 0.75, 1 ]);
+  quad.Initialize();
+  quad.RegisterWithQuadRenderer(renderer);
+  quad.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
+
+  const placement = {
+    initialScale: vec3.fromValues(2, 3, 4),
+    additionalScale: vec3.fromValues(1, 1, 1),
+    initialRotation: quat.create(),
+    additionalRotation: quat.create(),
+    initialTranslation: vec3.fromValues(5, 6, 7),
+    additionalTranslation: vec3.create()
+  };
+
+  quad.AddQuadsToQuadRenderer([ placement ], 1, { IsSphereVisible: () => true }, renderer);
+  renderer.BeginRendering();
+
+  const bytes = renderer.GetMergedData();
+  assert.ok(bytes instanceof Uint8Array);
+  assert.equal(renderer.GetEffectRecords().get(0x1234).count, 1);
+  assert.equal(bytes.byteLength >= EveSmartLightQuad.QUAD_INSTANCE_SIZE, true);
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, EveSmartLightQuad.QUAD_INSTANCE_SIZE);
+  assert.equal(view.getFloat32(0, true), 1, "parentTransform0.x is float32");
+  assert.equal(view.getFloat32(60, true), 5, "localTransform0.w carries position.x");
+  assert.equal(view.getUint16(96, true), toHalfFloat(0.25), "color.r is float16");
+  assert.equal(view.getUint16(102, true), toHalfFloat(1), "color.a is float16");
+  assert.equal(view.getUint16(104, true), toHalfFloat(2.5), "brightness is float16");
+  assert.equal(view.getUint16(106, true), toHalfFloat(0), "brightness padding is float16 zero");
 });

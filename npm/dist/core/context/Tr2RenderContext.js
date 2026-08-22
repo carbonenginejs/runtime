@@ -5,6 +5,8 @@ import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
 import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
 import { Tr2VariableStore as _Tr2VariableStore } from '../variable/Tr2VariableStore.js';
 import { TriPoolAllocator } from '../rawData/TriPoolAllocator.js';
+import { CjsShadowMapExecutor } from './CjsShadowMapExecutor.js';
+import { CjsVolumetricsExecutor } from './CjsVolumetricsExecutor.js';
 
 let _initClass;
 
@@ -22,12 +24,19 @@ new class extends _identity {
     #depthStencilStack = [];
     #diagnostics = [];
     #stepExecutor = null;
+    #shadowMapExecutor = null;
+    #volumetricsExecutor = null;
     #intents = [];
     #renderTargets = new Map();
     #depthStencil = null;
     #viewport = null;
     #view = null;
     #projection = null;
+
+    // Tr2Renderer::GetFieldOfView relocated beside the projection matrix. It is
+    // accepted from a typed TriProjection step or derived once when raw matrix
+    // state changes, not recomputed by every camera-dependent transform.
+    #fieldOfView = 0;
 
     // Carbon-faithful cached view state (Tr2Renderer::SetViewTransform): the raw
     // column-major view matrix, its inverse (computed once per view change, read
@@ -64,13 +73,57 @@ new class extends _identity {
     #animationTime = 0;
     #previousAnimationTime = 0;
     #debugRenderer = null;
-    /**
-     * Installs the optional executor that Begin/Execute/EndStep delegate to;
-     * passing null restores direct dispatch to the step itself.
-     */
+    // PRE-CONSOLIDATION TRANSITION: this nullable executor and the guarded
+    // fallbacks below describe the current recording shell, not the accepted
+    // contract. The combined runtime installs a nominal Trinity executor once;
+    // required BeginStep/ExecuteStep/EndStep and scene brackets are then direct
+    // calls and missing implementations fail loudly.
+
+    /** Installs the current transition executor; null restores step dispatch. */
     SetStepExecutor(executor) {
       this.#stepExecutor = executor ?? null;
       return this;
+    }
+
+    /**
+     * Installs the nominal engine implementation for cascaded-shadow realization.
+     * Passing null removes it; all shadow operations then fail loudly on use.
+     */
+    SetShadowMapExecutor(executor) {
+      if (executor !== null && !(executor instanceof CjsShadowMapExecutor)) {
+        throw new TypeError("Tr2RenderContext.SetShadowMapExecutor expects a CjsShadowMapExecutor or null.");
+      }
+      this.#shadowMapExecutor = executor;
+      return this;
+    }
+
+    /** Returns the installed shadow executor, rejecting incomplete composition. */
+    GetShadowMapExecutor() {
+      if (!this.#shadowMapExecutor) {
+        throw new Error("Tr2RenderContext has no CjsShadowMapExecutor installed.");
+      }
+      return this.#shadowMapExecutor;
+    }
+
+    /**
+     * Installs the nominal engine implementation for volumetric realization.
+     * Passing null removes it; all physical volumetric operations then fail on
+     * use instead of being skipped.
+     */
+    SetVolumetricsExecutor(executor) {
+      if (executor !== null && !(executor instanceof CjsVolumetricsExecutor)) {
+        throw new TypeError("Tr2RenderContext.SetVolumetricsExecutor expects a CjsVolumetricsExecutor or null.");
+      }
+      this.#volumetricsExecutor = executor;
+      return this;
+    }
+
+    /** Returns the installed volumetrics executor, rejecting incomplete composition. */
+    GetVolumetricsExecutor() {
+      if (!this.#volumetricsExecutor) {
+        throw new Error("Tr2RenderContext has no CjsVolumetricsExecutor installed.");
+      }
+      return this.#volumetricsExecutor;
     }
 
     /**
@@ -209,7 +262,8 @@ new class extends _identity {
 
     // Carbon clears the pool in Tr2Renderer::EndRenderContext (cpp:1072-1081),
     // BEFORE EndScene, so every transient payload leased during the frame dies at
-    // one point. The frame driver calls this; nothing else may.
+    // one point. The frame driver calls this; nothing else may. The current body
+    // is incomplete because it has no matching executor EndScene call.
 
     /**
      * Rewinds the per-object pool arena at the end of a frame, freeing every
@@ -757,14 +811,20 @@ new class extends _identity {
     }
 
     /**
-     * Caches the projection and records a set-projection intent; the projection
-     * object is held by reference.
+     * Copies the active 4x4 projection matrix and records it as an intent.
+     * Tr2RenderContext owns this matrix so later caller mutations cannot change
+     * the state observed by frame consumers.
      */
-    SetProjection(projection) {
-      this.#projection = projection ?? null;
+    SetProjection(projection, fieldOfView = undefined) {
+      if (!projection || projection.length !== 16) {
+        throw new TypeError("Tr2RenderContext.SetProjection requires a 16-element matrix");
+      }
+      if (!this.#projection) this.#projection = mat4.create();
+      mat4.copy(this.#projection, projection);
+      this.#fieldOfView = fieldOfView === undefined ? projection[5] ? 2 * Math.atan(1 / projection[5]) : 0 : Number(fieldOfView);
       this.#intents.push({
         type: "set-projection",
-        projection: this.#projection
+        projection: mat4.clone(this.#projection)
       });
       return true;
     }
@@ -811,11 +871,22 @@ new class extends _identity {
       return this.#projection;
     }
 
+    /**
+     * The vertical field of view cached when the active projection was set.
+     * This is Carbon's Tr2Renderer::GetFieldOfView state, cached on the context.
+     */
+    GetFieldOfView() {
+      return this.#fieldOfView;
+    }
+
     // Save/restore stack for the current projection (Carbon Push/PopProjection).
 
     /** Saves the current projection on its own save/restore stack. */
     PushProjection() {
-      this.#projectionStack.push(this.#projection);
+      this.#projectionStack.push({
+        projection: this.#projection ? mat4.clone(this.#projection) : null,
+        fieldOfView: this.#fieldOfView
+      });
       return true;
     }
 
@@ -825,10 +896,17 @@ new class extends _identity {
      */
     PopProjection() {
       if (!this.#projectionStack.length) return false;
-      this.#projection = this.#projectionStack.pop();
+      const saved = this.#projectionStack.pop();
+      if (saved.projection) {
+        if (!this.#projection) this.#projection = mat4.create();
+        mat4.copy(this.#projection, saved.projection);
+      } else {
+        this.#projection = null;
+      }
+      this.#fieldOfView = saved.fieldOfView;
       this.#intents.push({
         type: "set-projection",
-        projection: this.#projection
+        projection: this.#projection ? mat4.clone(this.#projection) : null
       });
       return true;
     }

@@ -85,10 +85,10 @@ export class TriCurveSet extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  Update(time, simTime)
+  Update(time, simTime, renderContext = null)
   {
     const selectedTime = simTime === undefined ? time : this.useRealTime ? time : simTime;
-    this.UpdateAt(selectedTime);
+    this.UpdateAt(selectedTime, renderContext);
   }
 
   /**
@@ -109,7 +109,7 @@ export class TriCurveSet extends CjsModel
   /**
    * Updates playback at the supplied source time.
    */
-  UpdateAt(time)
+  UpdateAt(time, renderContext = null)
   {
     if (this.driver)
     {
@@ -135,7 +135,7 @@ export class TriCurveSet extends CjsModel
         this.scaledTime = this.#endTime - this.#startTime - 0.001;
         this.#stopOnNextFrame = true;
       }
-      this.Apply();
+      this.Apply(renderContext);
     }
     if (this.#stopOnNextFrame)
     {
@@ -150,11 +150,11 @@ export class TriCurveSet extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  Apply()
+  Apply(renderContext = null)
   {
     for (const curve of this.curves)
     {
-      curve.UpdateValue(this.scaledTime);
+      curve.UpdateValue(this.scaledTime, renderContext);
     }
     for (const binding of this.bindings)
     {
@@ -167,10 +167,10 @@ export class TriCurveSet extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  ApplyTime(time)
+  ApplyTime(time, renderContext = null)
   {
     this.scaledTime = time;
-    this.Apply();
+    this.Apply(renderContext);
   }
 
   /**
