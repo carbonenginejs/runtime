@@ -2982,11 +2982,37 @@ DxbcGlslEmitter.prototype._ldStructured = function _ldStructured(state, instruct
     });
   }
   const offsetDwords = offsetOperand.immediateValues[0].uint32 >> 2;
-  const element = state.formatter.sourceExpression(instruction.operands[1], {
+  let element = state.formatter.sourceExpression(instruction.operands[1], {
     destMask: "x",
     as: "int"
   });
   const swizzle = resourceOperand.swizzle || "xyzw";
+
+  // `ld_structured` reads its address ONCE and writes every masked component
+  // from that one read. This emitter scalarises the write into one assignment
+  // per component and re-substitutes the address expression in each, so when
+  // the destination register is also the address register, the second
+  // component onwards reads the value the first assignment just stored.
+  //
+  // That is not hypothetical: it corrupts the bone-matrix fetch in every
+  // skinned EVE hull shader. The address is `blendIndex + boneArrayBase`, the
+  // destination is the same register, and the third matrix row overwrites it
+  // mid-fetch - so rows 2 and 3 index the bone buffer with a matrix float
+  // (~1e9) instead of a bone index. Verified across skinned_quadv5,
+  // skinned_quaddetailv5 and skinned_quadheatv5: every vertex body of every
+  // technique. Unskinned shaders never alias and are unaffected.
+  //
+  // Same hazard `movc` above already guards, handled the same way, and only
+  // when it actually aliases so non-aliasing shaders emit byte-identical GLSL.
+  const addressOperand = instruction.operands[1];
+  const destOperand = instruction.operands[0];
+  const aliasesAddress = addressOperand && destOperand && addressOperand.type === destOperand.type && addressOperand.registerIndex === destOperand.registerIndex;
+  if (aliasesAddress) {
+    this._line(state, "{");
+    state.indent += 1;
+    this._line(state, `int cjsSbAddr = ${element};`);
+    element = "cjsSbAddr";
+  }
   const widthMask = this.profile.dataTextureWidth - 1;
   const widthShift = Math.log2(this.profile.dataTextureWidth);
   const aligned = info.strideDwords % 4 === 0 && offsetDwords % 4 === 0;
@@ -3027,6 +3053,10 @@ DxbcGlslEmitter.prototype._ldStructured = function _ldStructured(state, instruct
       value = `uintBitsToFloat(texelFetch(${info.name}, ivec2(((${dword}) >> 2) & ${widthMask}, (${dword}) >> ${widthShift + 2}), 0)[(${dword}) & 3])`;
     }
     this._line(state, `${this._destComponentRef(state, instruction.operands[0], target, component)} = ${value};`);
+  }
+  if (aliasesAddress) {
+    state.indent -= 1;
+    this._line(state, "}");
   }
 };
 

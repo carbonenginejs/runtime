@@ -819,3 +819,66 @@ export function buildTwoSamplerPixelDxbc(samplerRegisters = [ 0, 1 ], resourceRe
     const tokens = new Uint32Array([ versionToken(0, 5, 0), body.length + 2, ...body ]);
     return buildContainer([ { fourCC: "SHEX", payload: new Uint8Array(tokens.buffer.slice(0)) } ]);
 }
+
+/**
+ * Build a pixel-shader SHEX payload whose `ld_structured` writes ALL FOUR
+ * components of the same register it reads its address from.
+ *
+ * `ld_structured r0.xyzw, r0.x, l(0), t0.xyzw`
+ *
+ * DXBC reads the address operand once and writes every masked component from
+ * that single read. An emitter that scalarises the write and re-substitutes the
+ * address expression per component corrupts itself from the second component
+ * on, because the first assignment has already overwritten the address. That is
+ * exactly the shape of EVE's skinned bone-matrix fetch, where the address is
+ * `blendIndex + boneArrayBase` and the destination is the matrix row.
+ *
+ * @param {number} [register=0] SRV (t#) register index.
+ * @param {number} [stride=48] Structure byte stride (3 x float4 = one 3x4 bone).
+ * @returns {Uint8Array} SHEX chunk payload bytes.
+ */
+export function buildAliasedStructuredLoadShex(register = 0, stride = 48)
+{
+    const DCL_TEMPS = 104;
+    const DCL_RESOURCE_STRUCTURED = 162;
+    const LD_STRUCTURED = 167;
+    const RET = 62;
+
+    const resourceOperand = 2 | (0 << 2) | (0xF << 4) | (7 << 12) | (1 << 20);
+
+    // r0.xyzw destination: four-component mode, mask 0xF, type 0 (temp), one index.
+    const destOperand = 2 | (0 << 2) | (0xF << 4) | (0 << 12) | (1 << 20);
+    // r0.x address: four-component mode, SELECT_1 (1), swizzle .x, type 0 (temp).
+    const addressOperand = 2 | (1 << 2) | (0 << 4) | (0 << 12) | (1 << 20);
+    // l(0) byte offset: immediate32, one component.
+    const immediateOperand = 1 | (0 << 2) | (4 << 12);
+
+    const tokens = new Uint32Array([
+        versionToken(0, 5, 0),
+        // 2 header + 2 dcl_temps + 4 dcl_resource_structured + 9 ld_structured + 1 ret
+        18,
+        opcodeToken(DCL_TEMPS, 2), 1,
+        opcodeToken(DCL_RESOURCE_STRUCTURED, 4), resourceOperand, register, stride,
+        // opcode + dest(2) + address(2) + immediate(2) + resource(2)
+        opcodeToken(LD_STRUCTURED, 9),
+        destOperand, 0,
+        addressOperand, 0,
+        immediateOperand, 0,
+        resourceOperand, register,
+        opcodeToken(RET, 1)
+    ]);
+    return new Uint8Array(tokens.buffer.slice(0));
+}
+
+/**
+ * Build a complete pixel-shader DXBC container whose structured load aliases
+ * its own address register.
+ *
+ * @param {number} [register=0] SRV (t#) register index.
+ * @param {number} [stride=48] Structure byte stride.
+ * @returns {Uint8Array} Container bytes with a single SHEX chunk.
+ */
+export function buildAliasedStructuredLoadDxbc(register = 0, stride = 48)
+{
+    return buildContainer([ { fourCC: "SHEX", payload: buildAliasedStructuredLoadShex(register, stride) } ]);
+}
