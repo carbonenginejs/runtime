@@ -58,6 +58,22 @@ runtime-utils model/schema      runtime-resource Black reader
 - Imported legacy document fragments may preserve `raw` data; SOF-authored
   audio uses ordinary declared values instead.
 
+## Deferred partial catalog libraries
+
+A future runtime-owned SOF library builder must not require the monolithic
+`data.black` catalog. It should support a minimum library bootstrapped from
+`generic.black`, then add only the named hull, faction, race, material, pattern,
+and layout definitions required by requested DNA. Complete `data.black` remains
+a supported input, not a mandatory runtime download.
+
+The eventual library value must remain serializable through `GetValues()` so a
+caller may import prepared JSON, fetch a prepared gzip artifact, or build the
+same value from raw resources. `tools-core` may supply indexed local bytes and
+persist that value, but partial catalog assembly and dependency closure belong
+to runtime-sof. Duplicate and replacement behavior must follow Carbon's
+individual `EveSOFDataMgr::Update*` operations rather than depending on a
+ccpwgl-only convention.
+
 ## Related documentation
 
 - [Package documentation](README.md)
