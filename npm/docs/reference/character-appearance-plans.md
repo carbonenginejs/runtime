@@ -59,13 +59,24 @@ material, texture-role, placement, and bake-order decisions. Hydration applies
 declared model fields and resolves graph identity; it does not validate or
 invent resolver policy.
 
-`CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll)` implements
+`CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperdoll, options)` implements
 the first exact stage. It follows hydrated paper-doll modifier, character
 resource, part-type, and part-source relationships. Every strict selected
-source-version match remains a plan part and layer; configuration and geometry
-paths are filled only when each candidate is unique, while every exact texture
-candidate remains in `texturePaths`. It parses no filenames and assigns no LOD
-or model family. It also does not infer candidate or metadata inheritance from
+source-version match remains a plan part and layer. Configuration and geometry
+paths are filled when each candidate is unique, or when the producer retained
+exactly one configuration/geometry model bundle decoded from the
+configuration's own mesh relationship. A producer may label a bundle with a
+derived LOD only when both retained paths carry the same terminal `_lod<number>`
+identity; `lodOrigin` keeps that derivation explicit. A matching normalized
+paired resource stem is retained separately as `modelFamily`, with its own
+origin. When `options.requestedLod` is a non-negative integer, the resolver
+selects one exact matching labelled bundle and records the requested LOD,
+resolved LOD, and model family on the plan part. If more than one bundle has
+that LOD, exactly one model family must match the retained part-path leaf. It
+does not parse filenames, choose a nearest LOD, or guess between multiple
+family matches. Every
+candidate inventory remains lossless and every exact texture candidate remains
+in `texturePaths`. It also does not infer candidate or metadata inheritance from
 an unversioned inventory: schema v10 version records are self-contained, so any
 authoring-time baseline/override merge belongs in the final-library producer.
 The resolver also copies every hydrated paper-doll colour selection into a
@@ -76,14 +87,15 @@ default.
 
 Schema-v10 metadata retains ordered typed references, introduced in schema v8,
 beside the unchanged raw dependency strings. When such a reference names an
-exact part source with one
-published version, the resolver adds that source as a requester-owned
-contribution. A terminal `###<finite-number>` on a non-utility dependency is
+exact part source, the resolver first selects the unique dependency version
+matching the requesting source version. If no such peer exists, it selects the
+unique unversioned dependency as the authored family default. Ambiguous or
+missing results remain diagnostics. The selected source becomes a
+requester-owned contribution. A terminal `###<finite-number>` on a non-utility dependency is
 also decoded when its sex-relative part-source identity exists exactly; its
 weight is retained on the resulting appearance layer. Configuration/geometry
 support and texture-only masks therefore remain distinct contributors.
-Coordination sources with no unique resource version and unmatched suffixed
-values remain diagnostics. Recursive
+Unmatched suffixed values remain diagnostics. Recursive
 dependency policy remains unresolved, but an active selection is now suppressed
 when another active selection has either an exact typed modifier-location
 occlusion or an exact typed `clothingRemovesCategory` relationship targeting
@@ -293,10 +305,11 @@ or channel registration result.
 | Standard and middle-only coordination across both sexes, top-only, bottom-only, paired garments, cut coverage, and independent diffuse/normal/specular registration all produce correct pixels. | **Not yet proven.** | Keep the full realization matrix and its visual fixtures open without reopening the ownership split. |
 
 The schema-v10 resolver preserves every dependency and occlusion string and
-follows only an adjacent exact typed `partSource` relationship. A dependency
-source with one version becomes a requester-owned layer; all of that version's
-texture paths remain on its contributor. Coordination sources with no unique
-resource version, suffixed strings, selected-top material transfer, and
+follows only an adjacent exact typed `partSource` relationship. It selects one
+dependency source version by exact requesting-version identity, then by a
+unique unversioned default; all of that version's texture paths remain on its
+requester-owned contributor. Ambiguous sources, suffixed strings,
+selected-top material transfer, and
 mask-cut realization remain diagnosed or deferred. Exact typed
 modifier-location occlusions and exact typed clothing-removal relationships
 suppress only their targeted active selection. `clothingAlsoCoversCategory`

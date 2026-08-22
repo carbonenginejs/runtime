@@ -3,6 +3,7 @@ export { CjsCharacterDefinition } from "./CjsCharacterDefinition.js";
 export { CjsCharacterMaterialProfile } from "./CjsCharacterMaterialProfile.js";
 export { CjsCharacterModifierReference } from "./CjsCharacterModifierReference.js";
 export { CjsCharacterPartMetadata } from "./CjsCharacterPartMetadata.js";
+export { CjsCharacterPartModelBundle } from "./CjsCharacterPartModelBundle.js";
 export { CjsCharacterPartSource } from "./CjsCharacterPartSource.js";
 export { CjsCharacterPartSourceVersion } from "./CjsCharacterPartSourceVersion.js";
 export { CjsCharacterPartType } from "./CjsCharacterPartType.js";

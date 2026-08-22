@@ -23,6 +23,10 @@ export class CjsCharacterPartSourceVersion extends CjsModel
     geometryCandidates = [];
 
     @io.readwrite
+    @type.list("CjsCharacterPartModelBundle")
+    modelBundles = [];
+
+    @io.readwrite
     @type.list("string")
     textureCandidates = [];
 

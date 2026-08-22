@@ -14,6 +14,7 @@ import '../character/catalog/CjsCharacterDefinition.js';
 import '../character/catalog/CjsCharacterMaterialProfile.js';
 import '../character/catalog/CjsCharacterModifierReference.js';
 import '../character/catalog/CjsCharacterPartMetadata.js';
+import '../character/catalog/CjsCharacterPartModelBundle.js';
 import '../character/catalog/CjsCharacterPartSource.js';
 import '../character/catalog/CjsCharacterPartSourceVersion.js';
 import '../character/catalog/CjsCharacterPartType.js';

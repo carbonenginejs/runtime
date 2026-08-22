@@ -15,6 +15,7 @@ export { CjsCharacterDefinition } from './character/catalog/CjsCharacterDefiniti
 export { CjsCharacterMaterialProfile } from './character/catalog/CjsCharacterMaterialProfile.js';
 export { CjsCharacterModifierReference } from './character/catalog/CjsCharacterModifierReference.js';
 export { CjsCharacterPartMetadata } from './character/catalog/CjsCharacterPartMetadata.js';
+export { CjsCharacterPartModelBundle } from './character/catalog/CjsCharacterPartModelBundle.js';
 export { CjsCharacterPartSource } from './character/catalog/CjsCharacterPartSource.js';
 export { CjsCharacterPartSourceVersion } from './character/catalog/CjsCharacterPartSourceVersion.js';
 export { CjsCharacterPartType } from './character/catalog/CjsCharacterPartType.js';

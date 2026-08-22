@@ -2,6 +2,7 @@ import { CjsCharacterPartMetadata } from "../catalog/CjsCharacterPartMetadata.js
 import { CjsCharacterModifierReference } from "../catalog/CjsCharacterModifierReference.js";
 import { CjsCharacterPartSource } from "../catalog/CjsCharacterPartSource.js";
 import { CjsCharacterPartSourceVersion } from "../catalog/CjsCharacterPartSourceVersion.js";
+import { CjsCharacterPartModelBundle } from "../catalog/CjsCharacterPartModelBundle.js";
 import { CjsCharacterPartType } from "../catalog/CjsCharacterPartType.js";
 import { CjsCharacterModifierLocation } from "../composition/CjsCharacterModifierLocation.js";
 import { CjsCharacterModifierOrder } from "../composition/CjsCharacterModifierOrder.js";
@@ -16,7 +17,7 @@ export class CjsCharacterAppearanceResolver
 {
 
     /** Resolves one hydrated paper doll into the currently provable appearance-plan tranche. */
-    static resolvePaperdoll(library, paperdoll)
+    static resolvePaperdoll(library, paperdoll, options = {})
     {
         if (!library
             || library.schema !== "carbonenginejs.characterLibrary"
@@ -40,6 +41,10 @@ export class CjsCharacterAppearanceResolver
         const modifierPolicies = [];
         const utilityRequests = [];
         const utilityOcclusions = [];
+        const requestedLod = Number.isInteger(options.requestedLod)
+            && options.requestedLod >= 0
+            ? options.requestedLod
+            : null;
 
         plan.sourceBuild = library.sourceBuild;
 
@@ -56,7 +61,8 @@ export class CjsCharacterAppearanceResolver
                 groupIDs,
                 modifierPolicies,
                 utilityRequests,
-                utilityOcclusions
+                utilityOcclusions,
+                requestedLod
             );
         }
 
@@ -135,7 +141,8 @@ function ResolveModifier(
     groupIDs,
     modifierPolicies,
     utilityRequests,
-    utilityOcclusions
+    utilityOcclusions,
+    requestedLod
 )
 {
     const selectionOrigin = AddOrigin(plan, {
@@ -297,15 +304,18 @@ function ResolveModifier(
         utilityOcclusions
     );
 
-    const hasConfiguration = version.configurationCandidates.length === 1;
-    const hasGeometry = version.geometryCandidates.length === 1;
+    const modelBundle = ResolveModelBundle(version, requestedLod, partSource.partPath);
+    const hasConfiguration = Boolean(modelBundle)
+        || version.configurationCandidates.length === 1;
+    const hasGeometry = Boolean(modelBundle)
+        || version.geometryCandidates.length === 1;
 
     if (!hasConfiguration || !hasGeometry)
     {
         AddDiagnostic(
             plan,
             "PART_CANDIDATES_UNRESOLVED",
-            `Part source ${JSON.stringify(partSource.recordID)} requires exactly one configuration and one geometry candidate.`,
+            `Part source ${JSON.stringify(partSource.recordID)} has no unique configuration/geometry model for the requested LOD.`,
             "warning",
             selectionOrigin
         );
@@ -316,14 +326,23 @@ function ResolveModifier(
         document: "characterPartSources",
         recordID: partSource.recordID,
         jsonPointer: `/versions/${versionIndex}`,
-        rule: hasConfiguration && hasGeometry
-            ? "unique-version-candidates"
-            : "exact-source-version"
+        rule: modelBundle
+            ? requestedLod !== null && modelBundle.lod === requestedLod
+                ? "requested-lod-model-bundle"
+                : "unique-version-model-bundle"
+            : hasConfiguration && hasGeometry
+                ? "unique-version-candidates"
+                : "exact-source-version"
     });
     const part = plan.CreatePart({
-        configurationPath: hasConfiguration ? version.configurationCandidates[0] : null,
-        geometryPath: hasGeometry ? version.geometryCandidates[0] : null,
+        configurationPath: modelBundle?.configurationPath
+            ?? (hasConfiguration ? version.configurationCandidates[0] : null),
+        geometryPath: modelBundle?.geometryPath
+            ?? (hasGeometry ? version.geometryCandidates[0] : null),
         texturePaths: [ ...version.textureCandidates ],
+        requestedLod,
+        resolvedLod: modelBundle?.lod ?? null,
+        modelFamily: modelBundle?.modelFamily ?? null,
         origin: partOrigin
     });
 
@@ -345,7 +364,11 @@ function ResolveModifier(
         plan,
         modifierPolicy.metadata,
         partSource,
-        selection
+        version,
+        selection,
+        requestedLod,
+        utilityRequests,
+        utilityOcclusions
     );
 
     if (version.textureCandidates.length)
@@ -561,15 +584,8 @@ function ResolveSelectionSuppressions(
         }
     }
 
-    const cyclic = new Set();
-    for (const [ target, owners ] of suppressions)
-    {
-        if (owners.some(value => suppressions.get(value.owner)?.some(other =>
-            other.owner === target)))
-        {
-            cyclic.add(target);
-        }
-    }
+    const cyclic = new Set(modifierPolicies.filter(value =>
+        HasSuppressionPath(suppressions, value, value)));
     for (const target of cyclic)
     {
         AddDiagnostic(
@@ -579,11 +595,39 @@ function ResolveSelectionSuppressions(
             "warning",
             target.origin
         );
-        suppressions.delete(target);
+    }
+
+    const active = new Set(modifierPolicies);
+    const appliedSuppressions = new Map();
+    while (true)
+    {
+        const roots = [ ...active ].filter(target =>
+            !(suppressions.get(target) ?? []).some(value =>
+                active.has(value.owner)
+                && !ShareSuppressionCycle(suppressions, value.owner, target)));
+        const next = new Map();
+        for (const owner of roots)
+        {
+            for (const [ target, owners ] of suppressions)
+            {
+                if (!active.has(target)
+                    || ShareSuppressionCycle(suppressions, owner, target)) continue;
+                const value = owners.find(candidate => candidate.owner === owner);
+                if (!value) continue;
+                if (!next.has(target)) next.set(target, []);
+                next.get(target).push(value);
+            }
+        }
+        if (!next.size) break;
+        for (const [ target, owners ] of next)
+        {
+            active.delete(target);
+            appliedSuppressions.set(target, owners);
+        }
     }
 
     const suppressedSelections = new Set();
-    for (const [ target, owners ] of suppressions)
+    for (const [ target, owners ] of appliedSuppressions)
     {
         suppressedSelections.add(target.selection);
         for (const value of owners)
@@ -614,13 +658,43 @@ function ResolveSelectionSuppressions(
     return modifierPolicies.filter(value => !suppressedSelections.has(value.selection));
 }
 
+function HasSuppressionPath(suppressions, owner, target, visited = new Set())
+{
+    if (visited.has(owner)) return false;
+    visited.add(owner);
+    for (const [ candidate, owners ] of suppressions)
+    {
+        if (!owners.some(value => value.owner === owner)) continue;
+        if (candidate === target
+            || HasSuppressionPath(suppressions, candidate, target, visited))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+function ShareSuppressionCycle(suppressions, left, right)
+{
+    return HasSuppressionPath(suppressions, left, right)
+        && HasSuppressionPath(suppressions, right, left);
+}
+
 function FilterOwnedRequests(values, suppressedSelections)
 {
     const retained = values.filter(value => !suppressedSelections.has(value.owner));
     values.splice(0, values.length, ...retained);
 }
 
-function CollectUtilityShapes(plan, metadata, owner, requests, occlusions)
+/** Collects typed utility requests while retaining the owner scope of nested coordinators. */
+function CollectUtilityShapes(
+    plan,
+    metadata,
+    owner,
+    requests,
+    occlusions,
+    { protectedOwner = null } = {}
+)
 {
     if (!(metadata instanceof CjsCharacterPartMetadata)) return;
 
@@ -660,6 +734,7 @@ function CollectUtilityShapes(plan, metadata, owner, requests, occlusions)
         occlusions.push({
             ...decoded,
             owner,
+            protectedOwner,
             origin: AddOrigin(plan, {
                 kind: "decoded",
                 document: "characterPartMetadata",
@@ -672,7 +747,6 @@ function CollectUtilityShapes(plan, metadata, owner, requests, occlusions)
 
 function ResolveUtilityShapes(plan, requests, occlusions)
 {
-    const occluded = new Set(occlusions.map(value => value.modifierPath));
     const grouped = new Map();
 
     for (const request of requests)
@@ -683,9 +757,17 @@ function ResolveUtilityShapes(plan, requests, occlusions)
 
     for (const [ modifierPath, values ] of grouped)
     {
-        if (occluded.has(modifierPath))
+        const matchingOcclusions = occlusions.filter(value =>
+            value.modifierPath === modifierPath);
+        const retained = [];
+
+        for (const value of values)
         {
-            for (const value of values)
+            const suppressed = matchingOcclusions.some(occlusion =>
+                occlusion.protectedOwner === null
+                || occlusion.protectedOwner !== value.owner);
+
+            if (suppressed)
             {
                 AddDiagnostic(
                     plan,
@@ -694,11 +776,15 @@ function ResolveUtilityShapes(plan, requests, occlusions)
                     "info",
                     value.origin
                 );
+                continue;
             }
-            continue;
+
+            retained.push(value);
         }
 
-        const weights = new Set(values.map(value => value.weight));
+        if (!retained.length) continue;
+
+        const weights = new Set(retained.map(value => value.weight));
 
         if (weights.size !== 1)
         {
@@ -707,12 +793,12 @@ function ResolveUtilityShapes(plan, requests, occlusions)
                 "UTILITY_SHAPE_WEIGHT_CONFLICT",
                 `Utility shape ${JSON.stringify(modifierPath)} has conflicting active weights.`,
                 "warning",
-                values[0].origin
+                retained[0].origin
             );
             continue;
         }
 
-        for (const value of values)
+        for (const value of retained)
         {
             plan.CreateMorphTarget({
                 modifierPath: value.modifierPath,
@@ -794,7 +880,17 @@ function NormalizeUtilityPath(value)
     return result;
 }
 
-function ResolvePartDependencies(library, plan, metadata, requestingSource, owner)
+function ResolvePartDependencies(
+    library,
+    plan,
+    metadata,
+    requestingSource,
+    requestingVersion,
+    owner,
+    requestedLod,
+    utilityRequests,
+    utilityOcclusions
+)
 {
     if (!(metadata instanceof CjsCharacterPartMetadata)) return;
 
@@ -818,8 +914,13 @@ function ResolvePartDependencies(library, plan, metadata, requestingSource, owne
             : DecodeWeightedPartDependency(library, requestingSource, relation, authoredValue);
         if (!decoded) continue;
         const { target, weight } = decoded;
-        const versions = target.versions.filter(value =>
+        const retainedVersions = target.versions.filter(value =>
             value instanceof CjsCharacterPartSourceVersion);
+        const exactVersions = retainedVersions.filter(value =>
+            value.resourceVersion === requestingVersion.resourceVersion);
+        const versions = exactVersions.length
+            ? exactVersions
+            : retainedVersions.filter(value => value.resourceVersion === null);
         const relationOrigin = AddOrigin(plan, {
             kind: "authored",
             document: "characterPartMetadata",
@@ -834,7 +935,7 @@ function ResolvePartDependencies(library, plan, metadata, requestingSource, owne
                 "DEPENDENCY_VERSION_UNRESOLVED",
                 `Dependency ${JSON.stringify(authoredValue)} from part source `
                 + `${JSON.stringify(requestingSource.recordID)} has ${versions.length} `
-                + "possible source versions.",
+                + "exact owner-version or unversioned-default matches.",
                 "warning",
                 relationOrigin
             );
@@ -843,8 +944,33 @@ function ResolvePartDependencies(library, plan, metadata, requestingSource, owne
 
         const version = versions[0];
         const versionIndex = target.versions.indexOf(version);
-        const hasConfiguration = version.configurationCandidates.length === 1;
-        const hasGeometry = version.geometryCandidates.length === 1;
+        const dependencyMetadata = DiagnosePartMetadata(
+            library,
+            plan,
+            version.metadata,
+            target,
+            relationOrigin
+        );
+        // Dependency metadata is retained evidence, not recursively active
+        // selection policy. Promote only the exact typed boot-shin capability;
+        // its authored utility list coordinates another selected owner without
+        // cancelling the requesting garment's own fit shapes.
+        if (dependencyMetadata?.hidesBootShin === true)
+        {
+            CollectUtilityShapes(
+                plan,
+                dependencyMetadata,
+                owner,
+                utilityRequests,
+                utilityOcclusions,
+                { protectedOwner: owner }
+            );
+        }
+        const modelBundle = ResolveModelBundle(version, requestedLod, target.partPath);
+        const hasConfiguration = Boolean(modelBundle)
+            || version.configurationCandidates.length === 1;
+        const hasGeometry = Boolean(modelBundle)
+            || version.geometryCandidates.length === 1;
         const hasTextures = version.textureCandidates.length > 0;
 
         if (!hasConfiguration && !hasGeometry && !hasTextures)
@@ -878,14 +1004,17 @@ function ResolvePartDependencies(library, plan, metadata, requestingSource, owne
             document: "characterPartSources",
             recordID: target.recordID,
             jsonPointer: `/versions/${versionIndex}`,
-            rule: decoded.rule
+            rule: modelBundle ? `${decoded.rule}-model-bundle` : decoded.rule
         });
         const part = plan.CreatePart({
-            configurationPath: hasConfiguration
-                ? version.configurationCandidates[0]
-                : null,
-            geometryPath: hasGeometry ? version.geometryCandidates[0] : null,
+            configurationPath: modelBundle?.configurationPath
+                ?? (hasConfiguration ? version.configurationCandidates[0] : null),
+            geometryPath: modelBundle?.geometryPath
+                ?? (hasGeometry ? version.geometryCandidates[0] : null),
             texturePaths: [ ...version.textureCandidates ],
+            requestedLod,
+            resolvedLod: modelBundle?.lod ?? null,
+            modelFamily: modelBundle?.modelFamily ?? null,
             origin: partOrigin
         });
 
@@ -896,6 +1025,34 @@ function ResolvePartDependencies(library, plan, metadata, requestingSource, owne
             origin: relationOrigin
         });
     }
+}
+
+function ResolveModelBundle(version, requestedLod, partPath)
+{
+    const bundles = (version?.modelBundles ?? []).filter(bundle =>
+        bundle instanceof CjsCharacterPartModelBundle
+        && version.configurationCandidates.includes(bundle.configurationPath)
+        && version.geometryCandidates.includes(bundle.geometryPath));
+
+    if (requestedLod !== null)
+    {
+        const exact = bundles.filter(bundle => bundle.lod === requestedLod);
+        if (exact.length === 1) return exact[0];
+        if (exact.length > 1)
+        {
+            const family = NormalizeModelFamily(String(partPath ?? "").split("/").at(-1));
+            const familyMatches = exact.filter(bundle => bundle.modelFamily === family);
+            return familyMatches.length === 1 ? familyMatches[0] : null;
+        }
+    }
+
+    return bundles.length === 1 ? bundles[0] : null;
+}
+
+function NormalizeModelFamily(value)
+{
+    const result = String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/gu, "");
+    return result || null;
 }
 
 function DecodeWeightedPartDependency(library, requestingSource, relation, authoredValue)
