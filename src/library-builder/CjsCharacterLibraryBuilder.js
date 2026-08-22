@@ -1,5 +1,6 @@
 import { CjsCharacterLibrary } from "../library/CjsCharacterLibrary.js";
 import { CjsCharacterLibraryDocuments } from "../library/CjsCharacterLibraryDocuments.js";
+import { createCharacterResourceReader } from "./resourceSource.js";
 
 const DOCUMENT_NAMES = CjsCharacterLibraryDocuments.listDocumentNames();
 
@@ -43,6 +44,65 @@ export class CjsCharacterLibraryBuilder
 
     static schemaVersion = 10;
 
+    /** Hydrates the deterministic values produced by build(). */
+    static buildLibrary(documents = {}, options = {})
+    {
+        return CjsCharacterLibrary.from(this.build(documents, options));
+    }
+
+    /**
+     * Builds a hydrated library from the twelve required cFSD documents using
+     * fetch by default or one caller-supplied byte source.
+     */
+    static async buildFromResources(options = {})
+    {
+        RequirePlainObject(options, "Character resource builder options");
+
+        const read = createCharacterResourceReader(options);
+        const signal = options.signal ?? null;
+        const resourcePaths = options.resourcePaths ?? {};
+        const suppliedDocuments = options.documents ?? {};
+
+        RequirePlainObject(resourcePaths, "Character resource paths");
+        RequirePlainObject(suppliedDocuments, "Character supplied documents");
+
+        const [ fsdModule, readerModule ] = await Promise.all([
+            import("@carbonenginejs/runtime-resource/formats/fsd"),
+            import("@carbonenginejs/runtime-resource/formats/fsd/64/readers")
+        ]);
+        const registry = readerModule.CjsFsd64ReaderSetCharacterStaticData
+            .registerAll(new fsdModule.CjsFsd64Reader());
+
+        const decodedEntries = await Promise.all(
+            readerModule.CjsFsd64ReaderSetCharacterStaticData.create().map(async reader =>
+            {
+                const schema = reader.constructor.getFsdSchema();
+                const path = resourcePaths[schema.name] ?? schema.path;
+                const bytes = await read(path, {
+                    document: schema.name,
+                    kind: "characterStaticData",
+                    logicalPath: schema.path,
+                    signal
+                });
+
+                return [
+                    schema.name,
+                    await fsdModule.CjsFsdFormat.readJSON(bytes, {
+                        ...(options.fsdOptions ?? {}),
+                        path: schema.path,
+                        reader: registry
+                    })
+                ];
+            })
+        );
+        const documents = {
+            ...suppliedDocuments,
+            ...Object.fromEntries(decodedEntries)
+        };
+
+        return this.buildLibrary(documents, OmitResourceOptions(options));
+    }
+
     /** Builds one deterministic library value from keyed or named JSON documents. */
     static build(documents = {}, options = {})
     {
@@ -85,6 +145,30 @@ export class CjsCharacterLibraryBuilder
         return this.build(documents, options);
     }
 
+}
+
+function OmitResourceOptions(options)
+{
+    const result = { ...options };
+
+    for (const key of [
+        "baseUrl",
+        "documents",
+        "fetch",
+        "fetchThis",
+        "fetchOptions",
+        "fsdOptions",
+        "read",
+        "resolveUrl",
+        "resourcePaths",
+        "signal",
+        "source"
+    ])
+    {
+        delete result[key];
+    }
+
+    return result;
 }
 
 export default CjsCharacterLibraryBuilder;

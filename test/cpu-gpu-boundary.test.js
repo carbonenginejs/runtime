@@ -8,7 +8,8 @@ const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const SOURCE_ROOT = path.join(PACKAGE_ROOT, "src");
 
 const PACKAGE_IMPORT = /(?:from\s+|import\s*\()\s*["'](@carbonenginejs\/[^"']+)["']/gu;
-const FORBIDDEN_RUNTIME_DEPENDENCY = /^@carbonenginejs\/(?:engine-|runtime-resource(?:\/|$)|tools-(?:browser|core)(?:\/|$))/u;
+const FORBIDDEN_RUNTIME_DEPENDENCY = /^@carbonenginejs\/(?:engine-|tools-(?:browser|core)(?:\/|$))/u;
+const RESOURCE_DEPENDENCY = /^@carbonenginejs\/runtime-resource(?:\/|$)/u;
 const LIVE_GPU_OPERATIONS = [
     /\bWebGL2?RenderingContext\b/u,
     /\bGPU(?:Adapter|BindGroup|Buffer|CommandEncoder|Device|Pipeline|Queue|Texture)\b/u,
@@ -16,7 +17,7 @@ const LIVE_GPU_OPERATIONS = [
     /\.(?:bufferData|drawArrays|drawElements|texImage2D)\s*\(/u
 ];
 
-test("runtime-character source has no engine or concrete GPU dependency", async () =>
+test("runtime-character keeps tools, engines, and resource decoding outside its model graph", async () =>
 {
     const files = await ListJavaScriptFiles(SOURCE_ROOT);
     const failures = [];
@@ -30,6 +31,13 @@ test("runtime-character source has no engine or concrete GPU dependency", async 
             if (FORBIDDEN_RUNTIME_DEPENDENCY.test(match[1]))
             {
                 failures.push(`${Relative(filePath)} imports ${match[1]}`);
+            }
+            if (RESOURCE_DEPENDENCY.test(match[1])
+                && !Relative(filePath).startsWith("src/library-builder/"))
+            {
+                failures.push(
+                    `${Relative(filePath)} imports ${match[1]} outside library-builder`,
+                );
             }
         }
 
@@ -45,7 +53,7 @@ test("runtime-character source has no engine or concrete GPU dependency", async 
     assert.deepEqual(failures, []);
 });
 
-test("runtime-character production dependencies exclude resource, tool, and engine owners", async () =>
+test("runtime-character production dependencies exclude tool and engine owners", async () =>
 {
     const packageJson = JSON.parse(await readFile(
         path.join(PACKAGE_ROOT, "package.json"),

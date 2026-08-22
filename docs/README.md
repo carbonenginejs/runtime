@@ -10,9 +10,11 @@ Summary: Documents model-shaped character JSON and current native character/inte
 `runtime-character` owns a source-neutral schema-v10 character document format,
 a separate schema-v4 resolved appearance-plan format, and the current Carbon
 character/interior identities assigned to this package. It is GPU-free;
-acquisition remains caller-owned through structural loaders.
+its builder reads the twelve modern cFSD source documents through fetch or an
+injected byte source, while applications retain endpoint and asset-lifecycle
+policy.
 
-The builder copies caller-supplied record fields, names each source map key as
+The builder decodes or accepts caller-supplied record fields, names each source map key as
 `recordID`, and adds only established relationships. The resulting JSON has
 the same shape as `CjsCharacterLibrary`; inherited `from`, `SetValues`, and
 `GetValues` own hydration and serialization of its direct source-backed

@@ -8,10 +8,10 @@ Summary: Separates source-neutral character documents, current Carbon classes, a
 ## Source states
 
 ```text
-caller JSON
+modern cFSD bytes or caller JSON
     |
     v
-CjsCharacterLibraryBuilder -> schema-v10 plain JSON
+CjsCharacterLibraryBuilder -> hydrated schema-v10 library
     |
     v
 CjsCharacterLibrary.from / instance.SetValues
@@ -135,15 +135,19 @@ interior classes can refer to it by schema name.
 
 ## Resource boundary
 
-Character documents and native graphs may expose resource paths. They do not
-download or embed asset bytes. Resource acquisition, decoding, caching,
-preparation, and lifecycle belong to `runtime-resource` and outer adapters;
+Character documents and native graphs may expose resource paths. The library
+builder can acquire and decode the twelve static-data cFSD documents through
+`runtime-resource`, but it does not download or embed selected character asset
+bytes. Asset acquisition, decoding, caching, preparation, and lifecycle belong
+to `runtime-resource` and outer adapters;
 render realization belongs to an engine.
 
 Separately published definition records are build inputs, while the runtime
 consumes one combined catalog. `CjsCharacterLibraryManager` may call one
 injected object-loader function to obtain that combined document, but it does
 not discover its source items or load the runtime assets referenced by them.
+Tools-core may provide exact-build bytes to `buildFromResources()` and persist
+the resulting `library.GetValues()` without owning a second build algorithm.
 
 PNG container inspection remains owned by runtime-resource. The optional
 `characterTextureMetadata` catalog stores only normalized placement facts and

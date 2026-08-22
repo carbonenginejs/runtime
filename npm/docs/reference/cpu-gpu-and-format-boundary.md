@@ -77,14 +77,16 @@ bytes -> generic format reader -> plain values/inspection
 The intended package split is:
 
 - `runtime-utils` owns the shared GPU-free model, schema, path, and math
-  functions used by character models; and
-- `tools-browser` owns browser-facing acquisition, remote readers, indexes,
-  and application tooling that may supply decoded values to the character
-  runtime.
+  functions used by character models;
+- `runtime-resource` owns the generic FSD pipeline and schema-driven cFSD
+  readers; and
+- `runtime-character` owns the twelve-reader character composition and accepts
+  fetch or an injected byte source. Applications own endpoint and target
+  selection; tools-core may supply validated local/cache bytes.
 
-`runtime-character` must not import `tools-browser`. A browser application may
-compose both packages and pass the resulting plain values or inspections across
-the boundary.
+`runtime-character` does not import `tools-browser` or tools-core. A browser
+application may call the runtime builder directly; tools-browser remains demos
+and application tooling, not a required data layer.
 
 There are four different target categories. They must not be treated as one
 interchangeable set.

@@ -7,8 +7,8 @@ Summary: Defines the model-shaped JSON document accepted by the character-librar
 
 ## Shape
 
-`CjsCharacterLibraryBuilder` converts twelve required caller-supplied record
-maps plus one optional lossless decoded-definition catalog and seven optional
+`CjsCharacterLibraryBuilder` converts twelve required modern cFSD or
+caller-supplied record maps plus one optional lossless decoded-definition catalog and seven optional
 derived profile catalogs into JSON whose fields match `CjsCharacterLibrary`:
 
 ```json
@@ -147,15 +147,17 @@ relationships must remain equivalent.
 
 ## Builder boundary
 
-The builder accepts plain JSON values, rejects missing or unmodelled document
+The builder accepts plain JSON values or reads the twelve required modern cFSD
+documents through fetch/an injected byte source. It rejects missing or unmodelled document
 families, blank source record keys, unknown model fields, and incompatible
 nested model shapes. `recordID` remains reserved for the source-map key.
 `_type`, `_id`, and `_ref` retain their Carbon graph-hydration meaning: existing
 graph IDs are validated and reserved, and relationship projection generates
 non-colliding IDs only for referenced targets that still need one. They never
 replace `recordID`, `typeID`, or another named domain identity. The builder
-performs no acquisition, byte decoding, resource loading, policy resolution,
-or rendering. Successful builder output therefore hydrates without silently
+performs no target discovery, cache management, selected-asset loading, policy
+resolution, or rendering. cFSD decoding is delegated to runtime-resource.
+Successful builder output therefore hydrates without silently
 discarding input fields.
 
 The prepared catalogs contain only source-backed values:
@@ -193,7 +195,7 @@ exact model-shaped fields are:
 | --- | --- | --- |
 | `characterDefinitions` | `sourcePath`, `extension`, `values` | `values` is any JSON scalar, array, object, or `null` emitted by the source decoder. It is authoritative source evidence even when no typed catalog projection exists. |
 | `characterPartTypes` | `sourcePath`, `sourcePaths`, `sex`, `partPath`, `resourceVersion`, `colorVariant`, `bloodlineIDs`, `partSource`, `partSources` | `sourcePaths` retains every exact definition path. `partSources` retains every exact sex-specific source relationship; `partSource` is present only when that relationship is unique. `bloodlineIDs` retains authored bloodline identities but does not assert availability, allow-list, or deny-list semantics. |
-| `characterPartSources` | `sourcePath`, `sourcePaths`, `sex`, `partPath`, `versions`, `metadata` | `sourcePaths` is the complete authored folder list; `sourcePath` is its deterministic first entry for single-path consumers. Each version has `resourceVersion`, effective `metadata`, `configurationCandidates`, `geometryCandidates`, and `textureCandidates`; metadata fields are exact relationships or unresolved named identities. Version candidate arrays are a self-contained effective inventory, not implicit overrides of the unversioned record. |
+| `characterPartSources` | `sourcePath`, `sourcePaths`, `sex`, `partPath`, `versions`, `metadata` | `sourcePaths` is the complete authored folder list; `sourcePath` is its deterministic first entry for single-path consumers. Each version has `resourceVersion`, effective `metadata`, `configurationCandidates`, `geometryCandidates`, `textureCandidates`, and optional `modelBundles`. A model bundle is a producer-verified configuration/geometry relationship decoded from the configuration's own mesh resource path. Optional `lod`/`lodOrigin` and `modelFamily`/`modelFamilyOrigin` fields retain explicitly labelled derivations when paired paths agree on terminal LOD and normalized resource stem respectively. Bundles do not remove candidates from the retained inventories. Metadata fields are exact relationships or unresolved named identities. Version candidate arrays are a self-contained effective inventory, not implicit overrides of the unversioned record. |
 | `characterPartMetadata` | `sourcePath`, `alternativeTextureSourcePath`, `forcesLooseTop`, `hidesBootShin`, `lod1Replacement`, `lod2Replacement`, `numColorAreas`, `dependentModifiers`, `occludesModifiers`, `dependencies`, `occlusions`, `soundTag`, `swapTops`, `swapBottom`, `swapSocks`, `wap` | Raw dependency and occlusion fields remain string arrays. Each ordered `CjsCharacterModifierReference` retains `authoredValue`, an optional normalized unsuffixed `modifierPath`, and optional exact `partSource` and `modifierLocation` relationships. |
 | `characterMaterialProfiles` | `sourcePath`, `colors`, `pattern`, `patternColors`, `patternTransform`, `patternRotation`, `specularColors` | Every color entry is `{ "value": [r, g, b, a] }`. |
 | `characterProjectionProfiles` | `sourcePath`, `label`, `mode`, `angleRotation`, `aspectRatio`, `azimuth`, `texturePath`, `maskPath`, `headEnabled`, `bodyEnabled`, `flipX`, `flipY`, `height`, `incline`, `layer`, `maskPathEnabled`, `offset`, `pitch`, `planarBeta`, `planarScale`, `position`, `radius`, `roll`, `scale`, `yaw` | `offset` is a two-value vector and `position` is a three-value vector. |
@@ -218,8 +220,11 @@ unsuffixed path with an exact source/index or modifier-location join. Optional
 suffixes remain opaque; neither hydration nor the runtime resolver parses them.
 
 Candidate arrays do not assert semantic selection. The combined library does
-not contain inferred model families, filename-derived texture roles, compiled
-recipe links, material fallbacks, or LOD/configuration/geometry pairings.
+not contain unlabelled model families, filename-derived texture roles, compiled
+recipe links, or material fallbacks. Optional model bundles retain decoded
+configuration/geometry relationships plus explicitly labelled terminal-LOD and
+paired-resource-family derivations; unpaired or ambiguous candidates remain
+unresolved.
 External configuration graphs, geometry data, images, animations, and effects
 remain resource-manager inputs rather than embedded library objects.
 

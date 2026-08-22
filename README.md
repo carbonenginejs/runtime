@@ -1,8 +1,9 @@
 # @carbonenginejs/runtime-character
 
 GPU-free character source documents, combined-library loading, and native
-Trinity character classes for CarbonEngineJS. Acquisition remains
-caller-owned through structural loaders.
+Trinity character classes for CarbonEngineJS. The combined library can be
+built from decoded values or directly from the twelve modern cFSD resources
+through fetch or an injected byte source.
 
 The root export also provides source-neutral modifier-order and shared-atlas
 layout helpers for resolvers. Resource loading, shader realization, mesh
@@ -11,7 +12,7 @@ replacement, and animation rebinding remain renderer responsibilities.
 The package has five independent surfaces:
 
 - a source-neutral schema-v10 model-shaped JSON library built from
-  caller-supplied record-map documents, losslessly retained decoded
+  modern cFSD record maps or caller-supplied record-map documents, losslessly retained decoded
   definitions, and additive prepared profile catalogs;
 - source-backed character record models under `src/character`, hydrated as one
   connected library graph;
@@ -48,6 +49,21 @@ const ancestry = library.Get("ancestries", ancestryID);
 const bloodline = ancestry.bloodlineID;
 const race = bloodline.raceID;
 ```
+
+To build the twelve required source documents directly:
+
+```js
+const library = await CjsCharacterLibraryBuilder.buildFromResources({
+    baseUrl: "https://assets.example.test"
+});
+
+const values = library.GetValues();
+```
+
+Native fetch cannot resolve `res:/` URLs. Browser callers provide `baseUrl` or
+`resolveUrl`; local tooling injects `source.read(path, context)` and uses the
+same builder. Legacy 32-bit FSD can be identified through `fsdOptions`, but its
+reader is intentionally unsupported.
 
 Inputs and output are ordinary model-shaped JSON. Each source map key becomes
 the named `recordID` field; authored identities such as `typeID` remain their
@@ -92,9 +108,10 @@ color/scalar layouts. The latter preserve the relevant historical Curve2
 evaluation semantics and remain distinct from runtime-trinity's materially
 different current Carbon curve layouts.
 
-Character asset fetching, decoding, caching, and lifecycle remain with
-`runtime-resource` and outer application adapters. This package stores paths
-and relationships, not downloaded asset bytes. Its library manager can invoke
+Selected character asset fetching, caching, and lifecycle remain with
+`runtime-resource` and outer application adapters. The library builder decodes
+the twelve static-data cFSD inputs but stores paths and relationships, not
+downloaded runtime asset bytes. Its library manager can invoke
 one caller-supplied object loader for the combined catalog.
 
 Schema v10 retains normalized PNG placement facts in

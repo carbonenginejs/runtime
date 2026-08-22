@@ -21,6 +21,109 @@ import {
     CjsCharacterTextureMetadata
 } from "../npm/dist/index.js";
 import { CjsCharacterLibraryBuilder } from "../npm/dist/library-builder/index.js";
+import {
+    CjsFsd64ReaderSetCharacterStaticData,
+} from "@carbonenginejs/runtime-resource/formats/fsd/64/readers";
+
+test("resource builder fetches every required cFSD document into a hydrated library", async () =>
+{
+    const readers = CjsFsd64ReaderSetCharacterStaticData.create();
+    const byPath = new Map(readers.map(reader => [
+        reader.constructor.path,
+        reader.constructor,
+    ]));
+    const requested = [];
+    const library = await CjsCharacterLibraryBuilder.buildFromResources({
+        sourceTarget: "example-target",
+        sourceBuild: "synthetic-build",
+        async fetch(path)
+        {
+            assert.equal(this, globalThis);
+            requested.push(path);
+            const Reader = byPath.get(path);
+
+            assert.ok(Reader, `unexpected character resource ${path}`);
+            return {
+                ok: true,
+                async arrayBuffer()
+                {
+                    return CreateEmptyMapContainer(Reader.schemaID).buffer;
+                }
+            };
+        }
+    });
+
+    assert.ok(library instanceof CjsCharacterLibrary);
+    assert.equal(requested.length, 12);
+    assert.deepEqual(new Set(requested), new Set(byPath.keys()));
+    assert.equal(library.sourceTarget, "example-target");
+    assert.equal(library.sourceBuild, "synthetic-build");
+
+    for (const name of CjsCharacterLibraryDocuments.listDocumentNames())
+    {
+        assert.deepEqual(library.documents[name], []);
+    }
+
+    assert.deepEqual(
+        CjsCharacterLibrary.from(library.GetValues()).GetValues(),
+        library.GetValues()
+    );
+});
+
+test("resource builder accepts one injected source object", async () =>
+{
+    const readers = CjsFsd64ReaderSetCharacterStaticData.create();
+    const byPath = new Map(readers.map(reader => [
+        reader.constructor.path,
+        reader.constructor,
+    ]));
+    const requested = [];
+    const source = {
+        read(path, context)
+        {
+            assert.equal(this, source);
+            requested.push(context.document);
+            return CreateEmptyMapContainer(byPath.get(path).schemaID);
+        },
+    };
+    const library = await CjsCharacterLibraryBuilder.buildFromResources({ source });
+
+    assert.ok(library instanceof CjsCharacterLibrary);
+    assert.deepEqual(
+        new Set(requested),
+        new Set(CjsCharacterLibraryDocuments.listDocumentNames()
+            .filter(name => CjsCharacterLibraryDocuments.isRequiredDocument(name))),
+    );
+});
+
+test("resource builder reports explicitly identified legacy 32-bit FSD", async () =>
+{
+    await assert.rejects(CjsCharacterLibraryBuilder.buildFromResources({
+        fsdOptions: { bitWidth: 32 },
+        source()
+        {
+            return new Uint8Array(1);
+        },
+    }), error => error?.code === "CJS_FSD_32_UNSUPPORTED");
+});
+
+function CreateEmptyMapContainer(schemaID)
+{
+    const size = 48;
+    const bytes = new Uint8Array(size);
+    const view = new DataView(bytes.buffer);
+
+    for (let index = 0; index < schemaID.length / 2; index++)
+    {
+        bytes[index] = Number.parseInt(
+            schemaID.slice(index * 2, index * 2 + 2),
+            16
+        );
+    }
+
+    view.setUint32(24, size - 32, true);
+    return bytes;
+}
 
 test("builds model-shaped character JSON with separate domain and graph identities", () =>
 {

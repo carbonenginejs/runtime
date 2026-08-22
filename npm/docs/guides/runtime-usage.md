@@ -26,11 +26,30 @@ const library = CjsCharacterLibrary.from(values);
 ```
 
 The builder is deterministic when caller metadata is deterministic. It does
-not fetch, decode, or identify a source format. Each non-empty source
+not discover a target or installation. `buildFromResources()` fetches the
+twelve required modern cFSD documents or reads them from a supplied
+`source.read(path, context)` capability, then routes them through the normal
+FSD format pipeline. `build()` and `buildFromInputs()` accept decoded values.
+Each non-empty source
 record-map key is copied into the named `recordID` field. Existing fields such
 as `typeID` remain ordinary domain data. Unknown fields and incompatible nested
 model shapes are rejected so a successful build cannot silently lose values
 during hydration.
+
+```js
+const library = await CjsCharacterLibraryBuilder.buildFromResources({
+    source: { read: (path, context) => localBytes(path, context) },
+    documents: optionalPreparedCatalogs,
+    sourceTarget: "eve",
+    sourceBuild: "123456"
+});
+
+const values = library.GetValues();
+```
+
+Browser fetch callers provide `baseUrl` or `resolveUrl` for `res:/` paths.
+Passing `fsdOptions: { bitWidth: 32 }` identifies legacy FSD and currently
+throws its explicit unsupported-reader error.
 
 Supplied `characterDefinitions` records preserve the decoder's JSON in their
 `values` field. Their typed profile catalogs are additional lookup structures;

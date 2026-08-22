@@ -26,7 +26,7 @@ The character format remains a source-neutral JSON contract.
 ## Build pipeline
 
 ```text
-caller-supplied source-document JSON
+modern cFSD bytes or caller-supplied source-document JSON
 + prepared character definition JSON
 + exact external resource candidates
 + optional caller-supplied identity enrichment
@@ -41,10 +41,13 @@ caller-supplied source-document JSON
        CjsCharacterLibrary.from(values)
 ```
 
-Acquisition adapters may fetch and decode the build inputs. The
-`CjsCharacterLibraryBuilder` receives their plain values and performs the
-deterministic combination. It does not locate an installation, fetch bytes,
-decode resources, or query an identity service itself. A producer must preserve
+`CjsCharacterLibraryBuilder.buildFromResources()` fetches the twelve required
+modern cFSD documents by default or reads them through one injected structural
+source, decodes them through `runtime-resource`, and returns a hydrated
+library. Native fetch needs `baseUrl` or `resolveUrl` for `res:/` paths.
+`build()` and `buildFromInputs()` continue to accept decoded plain values. The
+builder does not locate an installation, select a target/provider, manage a
+cache, or query an identity service. A producer must preserve
 every record when one domain identity maps to multiple character records, and
 it must not invent a resource relationship when an exact join is absent.
 
@@ -120,16 +123,17 @@ indexes are never schema fields and never appear in serialized JSON.
 ## Current package ownership
 
 - `runtime-character` owns item models, the combined library model, hydration,
-  editor insertion, private lookup indexes, and the source-neutral builder.
-- Acquisition and decoding adapters remain outside this package.
-- `runtime-resource` owns resource decoding and lifecycle. It is not modified
-  by this pipeline.
+  editor insertion, private lookup indexes, the source-neutral builder, and
+  orchestration of its twelve required static-data reads.
+- `runtime-resource` owns cFSD decoding and selected-resource lifecycle.
+- Tools and applications own target selection, URLs/local paths, credentials,
+  cache policy, and optional prepared catalogs.
 - A renderer or application owns loading and realizing external assets named
   by the combined library.
 
 ## Planned integrations
 
-Node tooling can compose acquisition, normalization, artifact generation, and
-API exposure around this builder. Browser tooling can gather only the
-editor/build inputs required by that producer. Neither integration defines a
-second character schema.
+Node tooling can supply exact-build local/cache bytes and persist
+`library.GetValues()`. A browser application can fetch the same raw resources
+or load already prepared JSON. Neither integration defines a second character
+schema or build algorithm.
