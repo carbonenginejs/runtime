@@ -395,6 +395,22 @@ This package interprets the parameters and applies them. It does not own the
 storage, validation, or persistence of a user's chosen values; that is a host
 concern, and `runtime-core` owns the planned preferences service for it.
 
+## Schema refresh and generation safety
+
+An isolated tools-core schema refresh on 2026-08-22, using Carbon audio
+`e424db6`, contains `audio/AudObstructionOcclusion.json`. The refresh was
+review-only: no schema or generated class was installed into this package. The
+three files that still carry generator provenance—`AudEventKey`, `AudSettings`,
+and `Tr2AudGeometryData`—compare clean with the refreshed schema.
+
+`scripts/generate_trinity.js` now separates schema-identity skipping from file
+ownership. Cleanup removes only files carrying the exact generator provenance
+banner, emission refuses to overwrite an existing maintained file, and barrels
+are rebuilt from every retained source file. The release test suite protects
+the aggregate `audio/AudActionLog.js` and maintained
+`audio/AudObstructionOcclusion.js` cases. A schema refresh must still be staged
+and reviewed before generator-owned output is installed.
+
 ## Provenance
 
 Faithful and adapted classes are derived from the public MIT-licensed

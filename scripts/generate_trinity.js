@@ -17,6 +17,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { deriveExpectedFields, loadSchemaDoc, renderClassFile, schemaBaseClassForDoc } from "../../tools-core/src/schema/core/classTool.js";
+import { assertGeneratedTargetWritable, isGeneratedClassSource } from "./generate_trinity_ownership.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = path.resolve(root, "..");
@@ -42,6 +43,7 @@ const HAND_OWNED_CLASSES = new Set([
   "AudioCurveSetDriver",
   "AudManager",
   "AudMusicPlayer",
+  "AudObstructionOcclusion",
   "AudParameter",
   "AudPosition",
   "StretchAudio",
@@ -203,27 +205,12 @@ for (const family of GENERATED_FAMILIES) {
     continue;
   }
   for (const name of fs.readdirSync(familyDir)) {
-    if (!name.endsWith(".js") || HAND_OWNED_CLASSES.has(path.basename(name, ".js"))) {
+    if (!name.endsWith(".js") || name === "index.js") {
       continue;
     }
-    fs.rmSync(path.join(familyDir, name));
-  }
-}
-
-const familyClasses = new Map();
-
-for (const family of GENERATED_FAMILIES) {
-  const familyDir = path.join(outRoot, family);
-  if (!fs.existsSync(familyDir)) {
-    continue;
-  }
-  for (const name of fs.readdirSync(familyDir)) {
-    const className = path.basename(name, ".js");
-    if (name.endsWith(".js") && HAND_OWNED_CLASSES.has(className)) {
-      if (!familyClasses.has(family)) {
-        familyClasses.set(family, []);
-      }
-      familyClasses.get(family).push(className);
+    const file = path.join(familyDir, name);
+    if (isGeneratedClassSource(fs.readFileSync(file, "utf8"))) {
+      fs.rmSync(file);
     }
   }
 }
@@ -247,11 +234,11 @@ for (const item of prepared) {
     if (authoredFields) {
       text = applyAuthoredImplMarkers(text, authoredFields);
     }
-    writeFile(path.join(outRoot, family, `${className}.js`), text);
-    if (!familyClasses.has(family)) {
-      familyClasses.set(family, []);
+    const outputFile = path.join(outRoot, family, `${className}.js`);
+    if (fs.existsSync(outputFile)) {
+      assertGeneratedTargetWritable(outputFile, fs.readFileSync(outputFile, "utf8"));
     }
-    familyClasses.get(family).push(className);
+    writeFile(outputFile, text);
     summary.generated++;
     summary.families[family] = (summary.families[family] || 0) + 1;
   } catch (error) {
@@ -259,8 +246,13 @@ for (const item of prepared) {
   }
 }
 
-for (const [family, classes] of familyClasses) {
-  const lines = classes.sort().map(name => `export * from "./${name}.js";`);
+for (const family of GENERATED_FAMILIES) {
+  const familyDir = path.join(outRoot, family);
+  const classes = fs.readdirSync(familyDir)
+    .filter(name => name.endsWith(".js") && name !== "index.js")
+    .map(name => path.basename(name, ".js"))
+    .sort();
+  const lines = classes.map(name => `export * from "./${name}.js";`);
   writeFile(path.join(outRoot, family, "index.js"), `${lines.join("\n")}\n`);
 }
 
