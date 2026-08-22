@@ -70,6 +70,10 @@ historical mapping.
 - Opaque engine-owned subobject slots for backend adapters.
 - Format implementations as explicit tree-shakeable subpaths under
   `@carbonenginejs/runtime-resource/formats/<name>`.
+- Acquisition-free FSD byte validation, schema decoding, and approved dataset
+  readers under `formats/fsd`. The format keeps separate `32` and `64`
+  implementation directories: legacy headerless FSD is identified explicitly
+  but is not yet decoded, while modern cFSD uses the 64-bit implementation.
 
 ## What the package does not own
 
@@ -111,8 +115,9 @@ dynamic identification run after any worker decode on the main thread.
 Authoring source is decorated JavaScript; published output is built ESM in
 `npm/dist`. Resource owners and their direct Carbon data records live under
 `src/resource`, grouped as `audio`, `geometry`, `geometry/granny`, `shader`,
-and `texture`; worker execution and its message protocol live under `src/worker`;
-`src/generated` is reserved for unresolved active ports and is currently
-absent. Native shapes that JavaScript replaces or does not use are retained
-only under `src/dropped`, with their disposition documented there, and are
-never exported or bundled.
+and `texture`; worker execution and its message protocol live under `src/worker`.
+Reviewed, unresolved active ports live under `src/generated` and are exposed
+only through the explicit `./generated` package subpath until promotion. Native
+shapes that JavaScript replaces or does not use are retained only under
+`src/dropped`, with their disposition documented there, and are never exported
+or bundled.

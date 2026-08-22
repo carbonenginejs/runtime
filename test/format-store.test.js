@@ -108,13 +108,13 @@ test("content decides between formats sharing one extension", () =>
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
-    static isSupported(data) { return data?.[0] === 1; }
+    static is(data) { return data?.[0] === 1; }
   }
   class Second
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
-    static isSupported(data) { return data?.[0] === 2; }
+    static is(data) { return data?.[0] === 2; }
   }
   const store = new CjsFormatStore().RegisterAll([ First, Second ]);
 
@@ -132,13 +132,13 @@ test("a probe that throws declines, and does not mask a later format", () =>
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
-    static isSupported() { throw new Error("not my file"); }
+    static is() { throw new Error("not my file"); }
   }
   class Accepts
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
-    static isSupported() { return true; }
+    static is() { return true; }
   }
   const store = new CjsFormatStore().RegisterAll([ Throws, Accepts ]);
 
@@ -152,13 +152,13 @@ test("nothing recognising the bytes resolves to null rather than a guess", () =>
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
-    static isSupported() { return false; }
+    static is() { return false; }
   }
   class AlsoNever
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".shared" ]);
-    static isSupported() { return false; }
+    static is() { return false; }
   }
   const store = new CjsFormatStore().RegisterAll([ Never, AlsoNever ]);
 
@@ -176,7 +176,7 @@ test("a single candidate is not probed, so it can reject its own file properly",
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".only" ]);
-    static isSupported() { probed = true; return false; }
+    static is() { probed = true; return false; }
   }
   const store = new CjsFormatStore().Register(Only);
 
@@ -269,7 +269,7 @@ test("the route applies its output as the reader's emit", () =>
   class Recording
   {
     static extensions = Object.freeze([ ".rec" ]);
-    static outputTypes = Object.freeze([ "alpha", "beta" ]);
+    static outputs = Object.freeze({ "alpha": Object.freeze({ output: "alpha" }), "beta": Object.freeze({ output: "beta" }) })
     static read(data, options) { seen = options; return data; }
   }
   const store = new CjsFormatStore().Register(Recording, { extensions: ".rec", output: "beta" });
@@ -281,6 +281,25 @@ test("the route applies its output as the reader's emit", () =>
   // could not.
   store.Resolve(".rec").Read("bytes", { emit: "alpha" });
   assert.equal(seen.emit, "alpha");
+});
+
+
+test("an output that selects an unpinned route is applied to its reader", () =>
+{
+  let seen = null;
+  class Recording
+  {
+    static extensions = Object.freeze([ ".rec" ]);
+    static outputs = Object.freeze({ "alpha": Object.freeze({ output: "alpha" }), "beta": Object.freeze({ output: "beta" }) })
+    static read(data, options) { seen = options; return data; }
+  }
+  const store = new CjsFormatStore().Register(Recording);
+  const route = store.Resolve(".rec", undefined, { output: "beta" });
+
+  assert.equal(route.output, "beta", "the matched output is pinned to the resolved route");
+  route.Read("bytes");
+  assert.equal(seen.emit, "beta", "the reader receives the output that selected its route");
+  assert.equal(store.Get(".rec")[0].output, null, "the stored registration remains unpinned");
 });
 
 
@@ -311,45 +330,41 @@ test("a resource's requirement is not a format output, and must not filter route
 });
 
 
-test("a probe reporting \"none\" has declined, however truthy its report is", () =>
+test("routing accepts only the boolean is contract", () =>
 {
-  // The defect this pins. isSupported on the formats that share an extension
-  // returns a REPORT - {supported: "full"|"partial"|"none", ...} - and every
-  // one of those objects is truthy. Under Boolean() the store accepted a
-  // format that had explicitly declined, so `.static`, the case it was built
-  // for, silently fell back to registration order.
+  // A stale report object must not become a match merely because it is truthy.
   class Declines
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".report" ]);
-    static isSupported() { return { format: "declines", supported: "none", confidence: 0 }; }
+    static is() { return { recognized: true, supported: true }; }
   }
   class Partial
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".report" ]);
-    static isSupported() { return { format: "partial", supported: "partial", confidence: 0.5 }; }
+    static is() { return true; }
   }
   const store = new CjsFormatStore().RegisterAll([ Declines, Partial ]);
 
   assert.equal(
     store.Resolve(".report", new Uint8Array([ 1 ])).Format,
     Partial,
-    "a truthy report saying \"none\" must not win over one saying \"partial\""
+    "only literal true may select a route"
   );
 
-  // And "full" counts, while an unrecognised verdict does not.
+  // Truthy non-booleans do not count.
   class Full
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".verdict" ]);
-    static isSupported() { return { supported: "full" }; }
+    static is() { return true; }
   }
   class Unknown
   {
     static read(data) { return data; }
     static extensions = Object.freeze([ ".verdict" ]);
-    static isSupported() { return { supported: "maybe" }; }
+    static is() { return { recognized: true }; }
   }
   assert.equal(
     new CjsFormatStore().RegisterAll([ Unknown, Full ]).Resolve(".verdict", new Uint8Array([ 1 ])).Format,

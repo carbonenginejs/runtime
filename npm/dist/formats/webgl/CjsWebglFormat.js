@@ -1,16 +1,8 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { DEFAULT_VALUES, normalizeValues, emitGlslWithOptions, toJsonValue, isWebglEffectContainer, OUTPUT_JSON } from './core/helpers.js';
 import { buildEffectPackage } from './core/effectPackage.js';
 import { readGlslEffectContainer } from './core/readGlslEffectContainer.js';
 import { inspectGlslEffectContainer } from './core/inspectGlslEffectContainer.js';
-
-/**
- * Exposed CarbonEngineJS-facing WebGL format class.
- *
- * Keep this file small and reviewable: container decoding lives in
- * core/readGlslEffectContainer.js, summarising in
- * core/inspectGlslEffectContainer.js, the DXBC-to-GLSL ES 3.00 emitter under
- * core/glsl, and option normalization in core/helpers.js.
- */
 
 const FORMAT_NAME = "CjsWebglFormat";
 
@@ -26,7 +18,7 @@ const FORMAT_NAME = "CjsWebglFormat";
  * records; `Inspect` is a cheap structural summary; `BuildEffect` translates a
  * compiled Tr2 effect into one; `EmitGlsl` translates a single DXBC stage.
  */
-class CjsWebglFormat {
+class CjsWebglFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #source = DEFAULT_VALUES.source;
 
@@ -36,6 +28,7 @@ class CjsWebglFormat {
    * @param {object} [options] Default format values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -188,10 +181,15 @@ class CjsWebglFormat {
     return toJsonValue(value);
   }
   static OUTPUT_JSON = OUTPUT_JSON;
-  static type = Object.freeze(["shader"]);
+  static id = "webgl";
   static mediaTypes = Object.freeze(["shader"]);
-  static inputTypes = Object.freeze(["carbonwebgl"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON]);
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      default: true,
+      decoded: true
+    }
+  });
+  static extensions = Object.freeze([]);
   static packageVersion = "0.2.0";
 }
 

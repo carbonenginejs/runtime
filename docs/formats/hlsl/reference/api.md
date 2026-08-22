@@ -49,7 +49,9 @@ Options are reusable on an instance and can be overridden per call:
 
 ## Static methods
 
-- `CjsHlslFormat.isSupported(input)` performs a header-level support check.
+- `CjsHlslFormat.is(input)` performs boolean header-level identification.
+- `CjsHlslFormat.getSupport(input, options)` returns synchronous advisory output support.
+- `CjsHlslFormat.verifySupport(input, options)` proves one output through `readAsync()`.
 - `CjsHlslFormat.read(input, options)` performs a one-shot read.
 - `CjsHlslFormat.inspect(input, options)` performs a one-shot inspection.
 - `CjsHlslFormat.toJSON(value)` converts output to JSON-compatible data.
@@ -59,9 +61,9 @@ Supported container versions are 8 through 15.
 
 ## Constants
 
-The class exposes `OUTPUT_JSON`, `OUTPUT_METADATA`, `OUTPUT_RAW`,
-`CLASS_KEYS`, `type`, `mediaTypes`, `inputTypes`, `outputTypes`, and
-`debugOutputTypes`. `inputTypes` contains `sm_hi`, `sm_lo`, and `sm_depth`.
+The class exposes `OUTPUT_JSON`, `OUTPUT_METADATA`, `OUTPUT_RAW`, `CLASS_KEYS`,
+`id`, frozen `mediaTypes`, dotted `extensions`, and its frozen `outputs` map.
+The extensions are `.sm_hi`, `.sm_lo`, and `.sm_depth`.
 
 ## Output stability
 

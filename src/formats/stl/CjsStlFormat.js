@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing STL format class.
  *
@@ -68,7 +69,7 @@ const FORMAT_NAME = "CjsStlFormat";
  * STL is a triangle-only import/export format; the JSON contract is the shared
  * CarbonEngineJS mesh schema.
  */
-export class CjsStlFormat
+export class CjsStlFormat extends CjsFormat
 {
 
     #emit = DEFAULT_VALUES.emit;
@@ -94,6 +95,7 @@ export class CjsStlFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -340,12 +342,16 @@ export class CjsStlFormat
         CMF: OUTPUT_CMF
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static type = Object.freeze([ "geometry" ]);
+    static id = "stl";
     static mediaTypes = Object.freeze([ "geometry" ]);
+    static outputs = CjsFormat.defineOutputs({
+        shared: { decoded: true },
+        gr2: { decoded: true },
+        cmf: { decoded: true },
+        json: { role: "debug", decoded: true },
+        stlJson: { role: "debug", default: true, decoded: true }
+    });
     static extensions = Object.freeze([ ".stl" ]);
-    static inputTypes = Object.freeze([ "stl" ]);
-    static outputTypes = Object.freeze([ OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_STL_JSON ]);
 
 }
 

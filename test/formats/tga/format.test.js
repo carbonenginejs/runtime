@@ -5,7 +5,7 @@ import CjsTgaFormat, { CjsTgaFormat as NamedCjsTgaFormat } from "../../../src/fo
 test("exports default and named CjsTgaFormat", () =>
 {
     assert.equal(CjsTgaFormat, NamedCjsTgaFormat);
-    assert.deepEqual(CjsTgaFormat.inputTypes, [ "tga" ]);
+    assert.deepEqual(CjsTgaFormat.extensions, [ ".tga" ]);
 });
 
 test("inspects tga dimensions and emits raw payload", () =>
@@ -16,9 +16,6 @@ test("inspects tga dimensions and emits raw payload", () =>
     assert.equal(CjsTgaFormat.isTGA(bytes), true);
     assert.equal(raw.sourceFormat, "tga");
     assert.equal(raw.mimeType, "image/x-tga");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.rgbaDecodeSupported, false);
     assert.equal(raw.metadata.width, 8);
     assert.equal(raw.metadata.height, 4);
 });
@@ -26,34 +23,29 @@ test("inspects tga dimensions and emits raw payload", () =>
 test("reports raw-only TGA support as partial and rejects texture output", () =>
 {
     const bytes = makeUnsupportedColorMappedTga();
-    const support = CjsTgaFormat.isSupported(bytes);
+    const support = CjsTgaFormat.getSupport(bytes);
 
-    assert.equal(support.supported, "partial");
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
+    assert.equal(support.supported, true);
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
     assert.equal(rawVariant.supported, true);
-    assert.equal(rawVariant.mimeType, "image/x-tga");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.rgbaDecodeSupported, false);
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, false);
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
+    assert.equal(support.outputs.find((variant) => variant.output === "rgba").supported, false);
     assert.throws(() => CjsTgaFormat.read(bytes, { emit: "texture" }), /unknown emit value/u);
 
-    const headerOnly = CjsTgaFormat.isSupported(makeTgaHeader(2, 2));
-    assert.equal(headerOnly.supported, "partial");
-    assert.equal(headerOnly.variants.find((variant) => variant.kind === "rgba").supported, false);
+    const headerOnly = CjsTgaFormat.getSupport(makeTgaHeader(2, 2));
+    assert.equal(headerOnly.supported, true);
+    assert.equal(headerOnly.outputs.find((variant) => variant.output === "rgba").supported, false);
 });
 
 test("decodes uncompressed true-color tga to rgba", () =>
 {
     const bytes = makeTgaRgba();
     const rgba = CjsTgaFormat.read(bytes, { emit: "rgba" });
-    const support = CjsTgaFormat.isSupported(bytes);
+    const support = CjsTgaFormat.getSupport(bytes);
 
     assert.equal(rgba.payloadType, "rgba");
     assert.equal(rgba.mimeType, "image/x-tga");
-    assert.equal(rgba.containerOnly, false);
-    assert.equal(rgba.isDecoded, true);
-    assert.equal(rgba.rgbaDecodeSupported, true);
     assert.equal(rgba.width, 2);
     assert.equal(rgba.height, 1);
     assert.equal(rgba.pixelFormat, "rgba8unorm");
@@ -64,7 +56,7 @@ test("decodes uncompressed true-color tga to rgba", () =>
         255, 0, 0, 255,
         0, 255, 0, 128
     ]);
-    assert.equal(support.supported, "full");
+    assert.equal(support.supported, true);
 });
 
 test("normalizes bottom-left tga origin to top-left rgba rows", () =>
@@ -84,7 +76,7 @@ test("decodes indexed TGA color maps to canonical RGBA", () =>
     const bytes = makeIndexedTga();
     const info = CjsTgaFormat.inspect(bytes);
     const rgba = CjsTgaFormat.read(bytes, { emit: "rgba" });
-    const support = CjsTgaFormat.isSupported(bytes);
+    const support = CjsTgaFormat.getSupport(bytes);
 
     assert.equal(info.colorMapBytes, 6);
     assert.equal(info.imageDataOffset, 24);
@@ -94,7 +86,7 @@ test("decodes indexed TGA color maps to canonical RGBA", () =>
         255, 0, 0, 255,
         0, 255, 0, 255
     ]);
-    assert.equal(support.supported, "full");
+    assert.equal(support.supported, true);
 });
 
 test("decodes grayscale and RLE TGA images", () =>

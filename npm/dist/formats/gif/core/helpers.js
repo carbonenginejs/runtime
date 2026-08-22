@@ -63,7 +63,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "gif")
  * Reports whether input is supported under normalized format options for the GIF
  * format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES) {
+function probeSupportWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
     const decoded = metadata.frameCount > 0 && metadata.lzwSupported;
@@ -72,7 +72,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: decoded ? "full" : "partial",
       confidence: 1,
-      preferred: decoded ? "rgba8unorm" : "raw",
+      preferredOutput: decoded ? "rgba" : "raw",
       reason: decoded ? "GIF frame RGBA decode and compositing are available." : "GIF metadata/raw input is recognized but no decodable image frame was found.",
       metadata,
       variants: [{
@@ -80,19 +80,13 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
         payloadType: "rgba",
         codec: "rgba8unorm",
         supported: decoded,
-        reason: decoded ? "" : "GIF LZW frame decode is unavailable.",
-        containerOnly: false,
-        isDecoded: decoded,
-        rgbaDecodeSupported: decoded
+        reason: decoded ? "" : "GIF LZW frame decode is unavailable."
       }, {
         kind: "raw",
         payloadType: "raw",
         codec: "gif",
         mimeType: "image/gif",
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        rgbaDecodeSupported: decoded
+        supported: true
       }],
       warnings: [],
       errors: []
@@ -103,7 +97,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -122,9 +116,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
       payloadType: "raw",
       sourceFormat: "gif",
       mimeType: "image/gif",
-      containerOnly: true,
-      isDecoded: false,
-      rgbaDecodeSupported: metadata.frameCount > 0 && metadata.lzwSupported,
       metadata,
       bytes
     };
@@ -282,9 +273,6 @@ function decodeFrames(bytes, metadata) {
     payloadType: "rgba",
     sourceFormat: "gif",
     mimeType: "image/gif",
-    containerOnly: false,
-    isDecoded: true,
-    rgbaDecodeSupported: true,
     width: metadata.width,
     height: metadata.height,
     pixelFormat: "rgba8unorm",
@@ -376,5 +364,5 @@ function readU16LE(bytes, offset) {
   return bytes[offset] | bytes[offset + 1] << 8;
 }
 
-export { DEFAULT_VALUES, OUTPUT_IMAGE, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, inspectWithValues, isGIF, isSupportedWithValues, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_IMAGE, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, inspectWithValues, isGIF, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

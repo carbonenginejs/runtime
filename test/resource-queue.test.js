@@ -133,9 +133,8 @@ test("resource variants share one queued source-load slot", async () => {
   let reads = 0;
   class CjsQueueVariantFormat
   {
-    static inputTypes = [ "bin" ];
-    static outputTypes = [ "raw" ];
-    static debugOutputTypes = [ "json" ];
+    static extensions = Object.freeze([ ".bin" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
 
     static read(value, options)
     {

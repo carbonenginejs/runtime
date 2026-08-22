@@ -1,3 +1,4 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { CLASS_KEYS } from './core/schema.js';
 import { lowerDxbcToIr } from './core/ir/lowerDxbcToIr.js';
 import { buildWgsl } from './core/wgsl/emitWgsl.js';
@@ -18,7 +19,7 @@ const FORMAT_NAME = "CjsWebgpuFormat";
  * bounded DXBC-to-WGSL profiles. Broader shader-semantic coverage remains an
  * explicit qualification ladder.
  */
-class CjsWebgpuFormat {
+class CjsWebgpuFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #source = DEFAULT_VALUES.source;
   #decodeInstructions = DEFAULT_VALUES.decodeInstructions;
@@ -32,6 +33,7 @@ class CjsWebgpuFormat {
    * @param {object} [options] Default format values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -341,11 +343,15 @@ class CjsWebgpuFormat {
   }
   static OUTPUT_JSON = OUTPUT_JSON;
   static CLASS_KEYS = CLASS_KEYS;
-  static type = Object.freeze(["shader"]);
+  static id = "webgpu";
   static mediaTypes = Object.freeze(["shader"]);
-  static inputTypes = Object.freeze(["carbonwebgpu"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON]);
-  static implementationStatus = "partial";
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      default: true,
+      decoded: true
+    }
+  });
+  static extensions = Object.freeze([".carbonwebgpu"]);
   static format = CARBON_WEBGPU_FORMAT;
   static analysisFormat = CARBON_WEBGPU_ANALYSIS_FORMAT;
   static packageVersion = FORMAT_WEBGPU_PACKAGE_VERSION;

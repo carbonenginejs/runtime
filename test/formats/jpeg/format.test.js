@@ -5,8 +5,8 @@ import CjsJpegFormat, { CjsJpegFormat as NamedCjsJpegFormat } from "../../../src
 test("exports default and named CjsJpegFormat", () =>
 {
     assert.equal(CjsJpegFormat, NamedCjsJpegFormat);
-    assert.deepEqual(CjsJpegFormat.inputTypes, [ "jpg", "jpeg" ]);
-    assert.deepEqual(CjsJpegFormat.outputTypes, [ "image", "rgba" ]);
+    assert.deepEqual(CjsJpegFormat.extensions, [ ".jpg", ".jpeg" ]);
+    assert.deepEqual(Object.values(CjsJpegFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "image", "rgba" ]);
 });
 
 test("inspects jpeg marker and exposes raw fallback", () =>
@@ -14,22 +14,17 @@ test("inspects jpeg marker and exposes raw fallback", () =>
     const bytes = new Uint8Array([ 0xff, 0xd8, 0xff, 0xd9 ]);
     const info = CjsJpegFormat.inspect(bytes);
     const raw = CjsJpegFormat.read(bytes);
-    const support = CjsJpegFormat.isSupported(bytes);
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
+    const support = CjsJpegFormat.getSupport(bytes);
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
     assert.equal(CjsJpegFormat.isJPEG(bytes), true);
     assert.equal(CjsJpegFormat.isJPG(bytes), true);
     assert.equal(info.sourceFormat, "jpeg");
-    assert.equal(support.preferred, "jpeg");
+    assert.equal(support.preferredOutput, "raw");
     assert.equal(rawVariant.supported, true);
-    assert.equal(rawVariant.mimeType, "image/jpeg");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.rgbaDecodeSupported, false);
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
     assert.equal(raw.mimeType, "image/jpeg");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.rgbaDecodeSupported, false);
 });
 
 test("inspects JPEG APP and comment marker summary", () =>
@@ -54,27 +49,23 @@ test("software-decodes a baseline JPEG to canonical RGBA", () =>
         "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AJgA/9k=",
         "base64"));
     const rgba = CjsJpegFormat.read(bytes, { emit: "rgba" });
-    const support = CjsJpegFormat.isSupported(bytes);
+    const support = CjsJpegFormat.getSupport(bytes);
 
     assert.equal(rgba.payloadType, "rgba");
     assert.equal(rgba.mimeType, "image/jpeg");
-    assert.equal(rgba.containerOnly, false);
-    assert.equal(rgba.isDecoded, true);
-    assert.equal(rgba.rgbaDecodeSupported, true);
     assert.equal(rgba.width, 1);
     assert.equal(rgba.height, 1);
     assert.equal(rgba.data.length, 4);
     assert.equal(rgba.data[3], 255);
     assert.equal(rgba.metadata.decoder, "software-baseline");
-    assert.equal(support.supported, "full");
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").isDecoded, true);
-    assert.equal(support.variants.find((variant) => variant.kind === "raw").rgbaDecodeSupported, true);
+    assert.equal(support.supported, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "rgba").decoded, true);
 });
 
 test("reports truncated or unsupported JPEG frames without claiming RGBA", () =>
 {
-    const support = CjsJpegFormat.isSupported(new Uint8Array([ 0xff, 0xd8, 0xff, 0xd9 ]));
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, false);
+    const support = CjsJpegFormat.getSupport(new Uint8Array([ 0xff, 0xd8, 0xff, 0xd9 ]));
+    assert.equal(support.outputs.find((variant) => variant.output === "rgba").supported, false);
     assert.throws(() => CjsJpegFormat.read(new Uint8Array([ 0xff, 0xd8, 0xff, 0xd9 ]), { emit: "rgba" }), /baseline frame metadata/u);
 });
 

@@ -1,10 +1,11 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_JSON,
     OUTPUT_RAW,
     OUTPUT_VIDEO,
     inspectWithValues,
-    isSupportedWithValues,
+    probeSupportWithValues,
     isWebM,
     normalizeValues,
     readWithValues,
@@ -19,7 +20,7 @@ const FORMAT_NAME = "CjsWebmFormat";
  * structure and emits raw bytes, debug JSON, or a container-only video
  * payload with codec and duration summaries but no frame decoding.
  */
-export class CjsWebmFormat
+export class CjsWebmFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -30,6 +31,7 @@ export class CjsWebmFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -93,18 +95,6 @@ export class CjsWebmFormat
     }
 
     /**
-     * Report whether WebM input and requested output variants are supported.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input WebM bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Support/probe report.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options), "webm");
-    }
-
-    /**
      * Convert format output into JSON-compatible debug data.
      *
      * @param {any} value Format output.
@@ -158,9 +148,9 @@ export class CjsWebmFormat
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "webm", ...options }, FORMAT_NAME), "webm");
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "webm", ...options }, FORMAT_NAME), "webm");
     }
 
     /**
@@ -203,16 +193,21 @@ export class CjsWebmFormat
 
     static OUTPUT_WEBM_JSON = "webmJson";
 
-    static type = Object.freeze([ "video" ]);
+    static id = "webm";
 
     static mediaTypes = Object.freeze([ "video" ]);
 
+    static outputs = CjsFormat.defineOutputs({
+
+        video: {  },
+
+        webmJson: { role: "debug", probes: [ "webmJson", "raw" ] },
+
+        raw: { role: "debug", default: true, passthrough: true }
+
+    });
+
     static extensions = Object.freeze([ ".webm" ]);
-    static inputTypes = Object.freeze([ "webm" ]);
-
-    static outputTypes = Object.freeze([ OUTPUT_VIDEO ]);
-
-    static debugOutputTypes = Object.freeze([ "webmJson", OUTPUT_RAW ]);
 }
 
 export default CjsWebmFormat;

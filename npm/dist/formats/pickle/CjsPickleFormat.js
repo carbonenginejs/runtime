@@ -1,3 +1,4 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { PICKLE_PROTOCOL_0_LIMITS, CjsPickleProtocol0Reader } from './core/CjsPickleProtocol0Reader.js';
 
 const OUTPUT_JSON = "json";
@@ -15,7 +16,7 @@ const DEFAULT_VALUES = {
  * JSON-compatible values or identity-preserving payload graphs while rejecting
  * callable and object-construction opcodes.
  */
-class CjsPickleFormat {
+class CjsPickleFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /**
@@ -24,6 +25,7 @@ class CjsPickleFormat {
    * @param {object} [options] Emit mode and bounded decoder limits.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -161,6 +163,54 @@ class CjsPickleFormat {
     return CjsPickleProtocol0Reader.ToJSON(value);
   }
 
+  /** Validate protocol-0 structure and return format metadata. */
+  static inspect(input, options = {}) {
+    const {
+      source: _source,
+      ...readOptions
+    } = options;
+    const value = this.readPayload(input, readOptions);
+    const byteLength = input instanceof ArrayBuffer ? input.byteLength : ArrayBuffer.isView(input) ? input.byteLength : 0;
+    return {
+      protocol: 0,
+      byteLength,
+      rootType: value === null ? "null" : Array.isArray(value) ? "array" : typeof value
+    };
+  }
+
+  /** Return synchronous advisory support from a bounded protocol-0 decode. */
+  static probeSupport(input, options = {}) {
+    try {
+      return {
+        format: this.id,
+        recognized: true,
+        supported: true,
+        preferredOutput: OUTPUT_JSON,
+        metadata: this.inspect(input, options),
+        variants: [{
+          kind: OUTPUT_JSON,
+          supported: true
+        }, {
+          kind: OUTPUT_PAYLOAD,
+          supported: true
+        }, {
+          kind: OUTPUT_RAW,
+          supported: true
+        }],
+        reason: "The input is a supported inert protocol-0 pickle."
+      };
+    } catch (error) {
+      return {
+        format: this.id,
+        recognized: false,
+        supported: false,
+        metadata: null,
+        reason: error.message,
+        errors: [error.message]
+      };
+    }
+  }
+
   /**
    * Normalize a format profile and partial override into detached effective
    * values.
@@ -203,11 +253,20 @@ class CjsPickleFormat {
   static supportedProtocols = Object.freeze([0]);
   static id = "pickle";
   static extensions = Object.freeze([".pickle"]);
-  static type = Object.freeze(["data"]);
   static mediaTypes = Object.freeze(["data"]);
-  static inputTypes = Object.freeze(["pickle"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_PAYLOAD]);
-  static debugOutputTypes = Object.freeze([OUTPUT_RAW]);
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      default: true,
+      decoded: true
+    },
+    payload: {
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    }
+  });
 }
 
 export { CjsPickleFormat };

@@ -5,9 +5,9 @@ import CjsMp3Format, { CjsMp3Format as NamedCjsMp3Format } from "../../../src/fo
 test("exports default and named CjsMp3Format", () =>
 {
     assert.equal(CjsMp3Format, NamedCjsMp3Format);
-    assert.deepEqual(CjsMp3Format.inputTypes, [ "mp3" ]);
-    assert.deepEqual(CjsMp3Format.outputTypes, []);
-    assert.deepEqual(CjsMp3Format.debugOutputTypes, [ "mp3Json", CjsMp3Format.Output.RAW ]);
+    assert.deepEqual(CjsMp3Format.extensions, [ ".mp3" ]);
+    assert.deepEqual(Object.values(CjsMp3Format.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), []);
+    assert.deepEqual(Object.values(CjsMp3Format.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "mp3Json", CjsMp3Format.Output.RAW ]);
 });
 
 test("inspects mp3 id3 header", () =>
@@ -43,19 +43,14 @@ test("prefers the supported raw MP3 variant", () =>
 {
     const bytes = new Uint8Array(417);
     bytes.set([ 0xff, 0xfb, 0x90, 0x64 ]);
-    const support = CjsMp3Format.isSupported(bytes);
+    const support = CjsMp3Format.getSupport(bytes);
     const raw = CjsMp3Format.read(bytes);
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
-    assert.equal(support.preferred, "mp3");
+    assert.equal(support.preferredOutput, "raw");
     assert.equal(raw.mimeType, "audio/mpeg");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.pcmDecodeSupported, false);
-    assert.equal(rawVariant.mimeType, "audio/mpeg");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.pcmDecodeSupported, false);
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
 });
 
 test("inspects Xing VBR declarations and gapless LAME metadata", () =>

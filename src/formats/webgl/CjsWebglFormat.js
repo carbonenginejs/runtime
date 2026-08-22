@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing WebGL format class.
  *
@@ -33,7 +34,7 @@ const FORMAT_NAME = "CjsWebglFormat";
  * records; `Inspect` is a cheap structural summary; `BuildEffect` translates a
  * compiled Tr2 effect into one; `EmitGlsl` translates a single DXBC stage.
  */
-export class CjsWebglFormat
+export class CjsWebglFormat extends CjsFormat
 {
 
     #emit = DEFAULT_VALUES.emit;
@@ -46,6 +47,7 @@ export class CjsWebglFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -214,10 +216,12 @@ export class CjsWebglFormat
     }
 
     static OUTPUT_JSON = OUTPUT_JSON;
-    static type = Object.freeze([ "shader" ]);
+    static id = "webgl";
     static mediaTypes = Object.freeze([ "shader" ]);
-    static inputTypes = Object.freeze([ "carbonwebgl" ]);
-    static outputTypes = Object.freeze([ OUTPUT_JSON ]);
+    static outputs = CjsFormat.defineOutputs({
+        json: { default: true, decoded: true }
+    });
+    static extensions = Object.freeze([]);
     static packageVersion = "0.2.0";
 
 }

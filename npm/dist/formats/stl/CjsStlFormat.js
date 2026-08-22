@@ -1,12 +1,6 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, writeWithValues, inspectWithValues, toJsonValue, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED, OUTPUT_STL_JSON, OUTPUT_JSON, CLASS_KEYS } from './core/helpers.js';
 import { isStl, isBinaryStl } from './core/stl.js';
-
-/**
- * Exposed CarbonEngineJS-facing STL format class.
- *
- * Keep this file small and reviewable: STL parsing, writing, printability
- * inspection, option normalization, and JSON hydration live under src/core.
- */
 
 const FORMAT_NAME = "CjsStlFormat";
 
@@ -52,7 +46,7 @@ const FORMAT_NAME = "CjsStlFormat";
  * STL is a triangle-only import/export format; the JSON contract is the shared
  * CarbonEngineJS mesh schema.
  */
-class CjsStlFormat {
+class CjsStlFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #source = DEFAULT_VALUES.source;
   #binary = DEFAULT_VALUES.binary;
@@ -75,6 +69,7 @@ class CjsStlFormat {
    * @throws {TypeError} If an option, output mode, numeric value, or class map is invalid.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -309,12 +304,29 @@ class CjsStlFormat {
     CMF: OUTPUT_CMF
   });
   static CLASS_KEYS = CLASS_KEYS;
-  static type = Object.freeze(["geometry"]);
+  static id = "stl";
   static mediaTypes = Object.freeze(["geometry"]);
+  static outputs = CjsFormat.defineOutputs({
+    shared: {
+      decoded: true
+    },
+    gr2: {
+      decoded: true
+    },
+    cmf: {
+      decoded: true
+    },
+    json: {
+      role: "debug",
+      decoded: true
+    },
+    stlJson: {
+      role: "debug",
+      default: true,
+      decoded: true
+    }
+  });
   static extensions = Object.freeze([".stl"]);
-  static inputTypes = Object.freeze(["stl"]);
-  static outputTypes = Object.freeze([OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF]);
-  static debugOutputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_STL_JSON]);
 }
 
 export { CjsStlFormat, CjsStlFormat as default };

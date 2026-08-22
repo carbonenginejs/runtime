@@ -1,5 +1,6 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWEM, toBytes, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_WEM_JSON, OUTPUT_JSON, OUTPUT_RAW, WEM_CODEC_NAMES } from './core/helpers.js';
-import { resolveTypeWithValues } from './core/resolve.js';
+import { CjsFormat } from '../../format/CjsFormat.js';
+import { DEFAULT_VALUES, OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_WEM_JSON, normalizeValues, readWithValues, inspectWithValues, toJsonValue, isWEM, toBytes, OUTPUT_JSON, WEM_CODEC_NAMES } from './core/helpers.js';
+import { probeCodecSupportWithValues } from './core/probeCodecSupport.js';
 
 const FORMAT_NAME = "CjsWemFormat";
 
@@ -11,7 +12,7 @@ const FORMAT_NAME = "CjsWemFormat";
  * default; `emit: "ogg"` repacks Wwise Vorbis into a standard Ogg stream and
  * `emit: "pcm"` decodes PTADPCM / 16-bit PCM media to float32 samples.
  */
-class CjsWemFormat {
+class CjsWemFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /**
@@ -19,7 +20,9 @@ class CjsWemFormat {
    */
   static worker = Object.freeze({
     module: import.meta.url,
-    exportName: "CjsWemFormat"
+    exportName: "CjsWemFormat",
+    outputTypes: Object.freeze([OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_WEM_JSON]),
+    defaultOutput: OUTPUT_RAW
   });
 
   /**
@@ -28,6 +31,7 @@ class CjsWemFormat {
    * @param {object} [options] Default read/inspect options.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -86,17 +90,6 @@ class CjsWemFormat {
   }
 
   /**
-   * Report whether wem input and requested output variants are supported.
-   *
-   * @param {Uint8Array|ArrayBuffer|DataView} input Wem bytes.
-   * @param {object} [options] Per-call values.
-   * @returns {object} Support/probe report.
-   */
-  IsSupported(input, options = {}) {
-    return isSupportedWithValues(input, this.GetValues(options));
-  }
-
-  /**
    * Convert format output into JSON-compatible debug data.
    *
    * @param {any} value Format output.
@@ -146,26 +139,8 @@ class CjsWemFormat {
    * @param {object} [options] Probe options.
    * @returns {object} Support/probe report.
    */
-  static isSupported(input, options = {}) {
-    return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
-  }
-
-  /**
-   * Content-verified codec/route resolution (resolveType seam; see docs/concepts/format-type-resolution.md).
-   *
-   * Where `isSupported` trusts the fmt tag, this validates the declared
-   * codec against the container's actual structure (Vorbis sidecar,
-   * PTADPCM frame layout, PCM size consistency - bounded, no audio
-   * decode) and tries the other codecs when the declaration fails.
-   * The report carries `verified: true`, `preferred` = `ogg`/`pcm`/`raw`,
-   * and declared/resolved/mismatch evidence in `metadata`.
-   *
-   * @param {Uint8Array|ArrayBuffer|DataView} input Wem bytes.
-   * @param {object} [options] Probe options.
-   * @returns {Promise<object>} Content-verified probe report.
-   */
-  static async resolveType(input, options = {}) {
-    return resolveTypeWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
+  static probeSupport(input, options = {}) {
+    return probeCodecSupportWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
   }
 
   /**
@@ -239,12 +214,23 @@ class CjsWemFormat {
     PCM: OUTPUT_PCM
   });
   static CODEC_NAMES = WEM_CODEC_NAMES;
-  static type = Object.freeze(["audio"]);
+  static id = "wem";
   static mediaTypes = Object.freeze(["audio"]);
+  static outputs = CjsFormat.defineOutputs({
+    raw: {
+      default: true,
+      passthrough: true
+    },
+    ogg: {},
+    pcm: {
+      decoded: true
+    },
+    wemJson: {
+      role: "debug",
+      probes: ["wemJson", "raw"]
+    }
+  });
   static extensions = Object.freeze([".wem"]);
-  static inputTypes = Object.freeze(["wem"]);
-  static outputTypes = Object.freeze([OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM]);
-  static debugOutputTypes = Object.freeze([OUTPUT_WEM_JSON, OUTPUT_RAW]);
 }
 
 export { CjsWemFormat };

@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing Tr2 effect container format class.
  *
@@ -42,7 +43,7 @@ const FORMAT_NAME = "CjsHlslFormat";
  * node kinds in the emitted JSON graph (see `CjsHlslFormat.CLASS_KEYS`);
  * class registration does not depend on importing internal graph classes.
  */
-export class CjsHlslFormat
+export class CjsHlslFormat extends CjsFormat
 {
 
     #emit = DEFAULT_VALUES.emit;
@@ -57,6 +58,7 @@ export class CjsHlslFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -196,12 +198,12 @@ export class CjsHlslFormat
      * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate bytes.
      * @returns {boolean} True when the payload's header decodes as a supported Tr2 effect.
      */
-    static isSupported(input)
+    static probeSupport(input)
     {
         try
         {
             const bytes = toBytes(input);
-            return new HlslEffectRes().DoLoad(bytes, { source: "isSupported" });
+            return new HlslEffectRes().DoLoad(bytes, { source: "probeSupport" });
         }
         catch
         {
@@ -248,12 +250,14 @@ export class CjsHlslFormat
     static OUTPUT_METADATA = OUTPUT_METADATA;
     static OUTPUT_RAW = OUTPUT_RAW;
     static CLASS_KEYS = CLASS_KEYS;
-    static type = Object.freeze([ "shader" ]);
+    static id = "hlsl";
     static mediaTypes = Object.freeze([ "shader" ]);
+    static outputs = CjsFormat.defineOutputs({
+        json: { default: true, decoded: true },
+        metadata: { decoded: true },
+        raw: { role: "debug", decoded: true }
+    });
     static extensions = Object.freeze([ ".sm_hi", ".sm_lo", ".sm_depth" ]);
-    static inputTypes = Object.freeze([ "sm_hi", "sm_lo", "sm_depth" ]);
-    static outputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_METADATA ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_RAW ]);
 
 }
 

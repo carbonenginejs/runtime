@@ -68,7 +68,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "ogg")
  * Reports whether input is supported under normalized format options for the Ogg
  * format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES) {
+function probeSupportWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
     const mimeType = getOggMimeType(metadata);
@@ -77,11 +77,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       payloadType: "raw",
       codec: "ogg",
       mimeType,
-      supported: true,
-      containerOnly: true,
-      isDecoded: false,
-      pcmDecodeSupported: false,
-      frameDecodeSupported: false
+      supported: true
     }, {
       kind: "pcm",
       payloadType: "pcm",
@@ -104,7 +100,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "partial",
       confidence: 1,
-      preferred: pcmSupported ? "pcm" : metadata.sourceFormat ? "ogg" : "",
+      preferredOutput: pcmSupported ? "pcm" : metadata.sourceFormat ? "raw" : "",
       reason: pcmSupported ? "Ogg Vorbis recognized; PCM decode is supported." : "Ogg pages and codec headers are recognized; raw Ogg passthrough is available.",
       metadata,
       variants,
@@ -117,7 +113,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -136,10 +132,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
       payloadType: "raw",
       sourceFormat: "ogg",
       mimeType: getOggMimeType(metadata),
-      containerOnly: true,
-      isDecoded: false,
-      pcmDecodeSupported: false,
-      frameDecodeSupported: false,
       metadata,
       bytes
     };
@@ -163,9 +155,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
       payloadType: values.emit === OUTPUT_AUDIO ? OUTPUT_AUDIO : OUTPUT_PCM,
       sourceFormat: "ogg",
       codec: "vorbis",
-      containerOnly: false,
-      isDecoded: true,
-      pcmDecodeSupported: true,
       audioFormat: "float32",
       sampleFormat: "float32",
       sampleRate: decoded.sampleRate,
@@ -406,5 +395,5 @@ function readU64LE(bytes, offset) {
   return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value.toString();
 }
 
-export { DEFAULT_VALUES, OUTPUT_AUDIO, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectWithValues, isOGG, isSupportedWithValues, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_AUDIO, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectWithValues, isOGG, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

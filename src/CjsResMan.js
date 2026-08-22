@@ -204,6 +204,7 @@ export class CjsResMan extends CjsEventEmitter
   #extensionRoutes = new Map();
   #resourceExtensionRoutes = new WeakMap();
   #resourceHandlerModes = new WeakMap();
+  #resourceTypeCandidates = new Map();
 
   /**
    * Create a GPU-free resource manager and apply its initial registration.
@@ -878,9 +879,11 @@ export class CjsResMan extends CjsEventEmitter
 
   /**
    * Register a resource constructor or factory for one semantic outcome.
-   * The constructor is selected by `requirement`/`payload`, never by file
-   * extension. It does not enter resource identity: re-registration affects a
-   * path/output only after its existing handle is explicitly deleted/cleared.
+   * An explicit keyed registration replaces the semantic default. Constructor
+   * shorthand is additive: when several classes declare one requirement, a
+   * matching extension handler selects the concrete class and an un-routed
+   * request fails as ambiguous. Registration does not enter resource identity:
+   * changes affect a path/output only after its existing handle is deleted.
    *
    * @param {string|Function} requirement Semantic outcome key, or a constructor declaring its own `payload`.
    * @param {Function|object|null} [Constructor=null] Resource constructor/factory, or options when the first argument is the constructor.
@@ -891,6 +894,7 @@ export class CjsResMan extends CjsEventEmitter
    */
   RegisterResourceType(requirement, Constructor = null, options = {})
   {
+    const inferredRequirement = typeof requirement === "function";
     if (typeof requirement === "function")
     {
       options = Constructor && typeof Constructor === "object" ? Constructor : {};
@@ -905,11 +909,21 @@ export class CjsResMan extends CjsEventEmitter
       throw new TypeError("CjsResMan.RegisterResourceType requires a constructor or factory.");
     }
 
+    const candidates = inferredRequirement
+      ? this.#resourceTypeCandidates.get(key) || new Set()
+      : new Set();
+    candidates.add(Constructor);
+    this.#resourceTypeCandidates.set(key, candidates);
     this.resourceTypes.set(key, Constructor);
+
     for (const alias of options.aliases || [])
     {
       const aliasKey = normalizeRequirement(alias);
-      if (aliasKey) this.resourceTypes.set(aliasKey, Constructor);
+      if (aliasKey)
+      {
+        this.#resourceTypeCandidates.set(aliasKey, new Set([ Constructor ]));
+        this.resourceTypes.set(aliasKey, Constructor);
+      }
     }
     return this;
   }
@@ -942,7 +956,7 @@ export class CjsResMan extends CjsEventEmitter
    * rewrite the registered configuration. Format methods are read from the
    * currently registered facade when an operation runs.
    *
-   * @param {Function} Format Format facade declaring at least one `inputTypes` extension.
+   * @param {Function} Format Format facade declaring at least one extension.
    * @param {object} [defaults={}] Plain reader-option defaults to snapshot for this registration.
    * @returns {CjsResMan} This resource manager.
    * @throws {TypeError} If the format declaration or immutable defaults snapshot is invalid.
@@ -953,13 +967,13 @@ export class CjsResMan extends CjsEventEmitter
     {
       throw new TypeError("CjsResMan.RegisterFormat requires a format class.");
     }
-    if (!Array.isArray(Format.inputTypes) || Format.inputTypes.length === 0)
+    if (!Array.isArray(Format.extensions) || Format.extensions.length === 0)
     {
-      throw new TypeError(`${Format.name || "Format"} must declare non-empty inputTypes.`);
+      throw new TypeError(`${Format.name || "Format"} must declare non-empty extensions.`);
     }
 
     const descriptor = createFormatDescriptor(Format, defaults);
-    for (const inputType of Format.inputTypes)
+    for (const inputType of Format.extensions)
     {
       const key = normalizeResourceExtension(inputType);
       if (!key) continue;
@@ -2790,8 +2804,10 @@ export class CjsResMan extends CjsEventEmitter
 
   /**
    * Resolve the current resource constructor for a semantic request. Explicit
-   * requirement/payload selection precedes an emitted-output registration;
-   * otherwise the generic `CjsResource` handle is used.
+   * requirement/payload selection normally precedes an emitted-output
+   * registration. When an extension handler declares the same requirement it
+   * wins, because the route is what distinguishes concrete resource classes
+   * sharing one semantic key. Otherwise the generic `CjsResource` is used.
    *
    * @param {object} [options={}] Semantic requirement, payload, and emit request.
    * @param {object|null} [extensionRoute=null] Captured extension-selected default handler.
@@ -2800,7 +2816,21 @@ export class CjsResMan extends CjsEventEmitter
   ResolveResourceConstructor(options = {}, extensionRoute = null)
   {
     const requested = normalizeRequirement(options.requirement || options.payload);
-    if (requested && this.resourceTypes.has(requested)) return this.resourceTypes.get(requested);
+    if (requested)
+    {
+      if (extensionRoute
+        && normalizeRequirement(extensionRoute.Handler?.payload) === requested)
+      {
+        return extensionRoute.Handler;
+      }
+
+      const candidates = this.#resourceTypeCandidates.get(requested);
+      if (candidates?.size > 1)
+      {
+        throw createAmbiguousResourceTypeError(requested, candidates);
+      }
+      if (this.resourceTypes.has(requested)) return this.resourceTypes.get(requested);
+    }
 
     const emitted = normalizeRequirement(options.emit);
     if (emitted && this.resourceTypes.has(emitted)) return this.resourceTypes.get(emitted);
@@ -3777,8 +3807,8 @@ function resolveOrderedExtensionFormatDescriptor(descriptors, ext, options)
   for (const descriptor of candidates)
   {
     const { Format, defaults } = descriptor;
-    if (typeof Format.isSupported !== "function") return descriptor;
-    const report = Format.isSupported(options.bytes, {
+    if (typeof Format.is !== "function") return descriptor;
+    const report = Format.is(options.bytes, {
       ...defaults,
       ...(options.formatOptions || {})
     });
@@ -3810,10 +3840,7 @@ function isPositiveFormatProbe(report)
  */
 function getFormatOutputs(Format)
 {
-  return [
-    ...(Format.outputTypes || []),
-    ...(Format.debugOutputTypes || [])
-  ];
+  return Object.keys(Format.outputs || {});
 }
 
 /**
@@ -3893,9 +3920,9 @@ function resolveFormatDescriptorCandidates(descriptors, ext, options)
     const supported = candidates.filter(descriptor =>
     {
       const { Format, defaults } = descriptor;
-      const isSupported = Format.isSupported;
-      if (typeof isSupported !== "function") return false;
-      const report = isSupported.call(Format, options.bytes, {
+      const isFormat = Format.is;
+      if (typeof isFormat !== "function") return false;
+      const report = isFormat.call(Format, options.bytes, {
         ...defaults,
         ...(options.formatOptions || {})
       });
@@ -3920,6 +3947,28 @@ function resolveFormatDescriptorCandidates(descriptors, ext, options)
     throw error;
   }
   return candidates[0];
+}
+
+/**
+ * Report shorthand resource registrations that need an extension route or an
+ * explicit keyed default to choose between them.
+ *
+ * @param {string} requirement Normalized semantic requirement.
+ * @param {Set<Function>} candidates Registered constructors.
+ * @returns {Error} Contextual ambiguity error.
+ */
+function createAmbiguousResourceTypeError(requirement, candidates)
+{
+  const names = [ ...candidates ].map(Constructor => Constructor.name || "resource");
+  const error = new Error(
+    `Ambiguous resource types registered for requirement ${JSON.stringify(requirement)}: `
+    + `${names.join(", ")}. Register an extension handler to select the concrete `
+    + "resource for that file, or register one explicit keyed default."
+  );
+  error.code = "CJS_RESOURCE_TYPE_AMBIGUOUS";
+  error.requirement = requirement;
+  error.resourceTypes = names;
+  return error;
 }
 
 function normalizeRequirement(value)
@@ -4572,7 +4621,7 @@ function validateOrderedExtensionFormats(descriptors, ext)
   for (let index = 0; index < descriptors.length - 1; index++)
   {
     const Format = descriptors[index].Format;
-    if (typeof Format.isSupported !== "function")
+    if (typeof Format.is !== "function")
     {
       throw new TypeError(
         `CjsResMan extension .${ext} format ${Format.name || index} has no support probe and must be last.`

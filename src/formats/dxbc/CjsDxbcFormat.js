@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing DXBC format class.
  *
@@ -62,7 +63,7 @@ function resolveDecoderRecord(input, options)
  * SM4/SM5 token stream, and emits plain JSON data by default or the raw
  * decoder objects for backends (GLSL/WGSL emitters) that want them.
  */
-export class CjsDxbcFormat
+export class CjsDxbcFormat extends CjsFormat
 {
 
     #emit = DEFAULT_VALUES.emit;
@@ -76,6 +77,7 @@ export class CjsDxbcFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -209,11 +211,13 @@ export class CjsDxbcFormat
 
     static OUTPUT_JSON = OUTPUT_JSON;
     static OUTPUT_RAW = OUTPUT_RAW;
-    static type = Object.freeze([ "shader" ]);
+    static id = "dxbc";
     static mediaTypes = Object.freeze([ "shader" ]);
-    static inputTypes = Object.freeze([ "dxbc" ]);
-    static outputTypes = Object.freeze([ OUTPUT_JSON ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_RAW ]);
+    static outputs = CjsFormat.defineOutputs({
+        json: { default: true, decoded: true },
+        raw: { role: "debug", decoded: true }
+    });
+    static extensions = Object.freeze([]);
 
 }
 

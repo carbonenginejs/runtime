@@ -1,4 +1,5 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWAV, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
+import { CjsFormat } from '../../format/CjsFormat.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, toJsonValue, probeSupportWithValues, isWAV, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_PCM, OUTPUT_AUDIO } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWavFormat";
 
@@ -7,7 +8,7 @@ const FORMAT_NAME = "CjsWavFormat";
  * supported WAV bytes into PCM or audio payloads, alongside raw and debug
  * JSON output.
  */
-class CjsWavFormat {
+class CjsWavFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /**
@@ -16,6 +17,7 @@ class CjsWavFormat {
    * @param {object} [options] Default read/inspect options.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -80,17 +82,6 @@ class CjsWavFormat {
   }
 
   /**
-   * Report whether WAV input and requested output variants are supported.
-   *
-   * @param {Uint8Array|ArrayBuffer|DataView} input WAV bytes.
-   * @param {object} [options] Per-call values.
-   * @returns {object} Support/probe report.
-   */
-  IsSupported(input, options = {}) {
-    return isSupportedWithValues(input, this.GetValues(options), "wav");
-  }
-
-  /**
    * Convert format output into JSON-compatible debug data.
    *
    * @param {any} value Format output.
@@ -146,8 +137,8 @@ class CjsWavFormat {
    * @param {object} [options] Probe options.
    * @returns {object} Support/probe report.
    */
-  static isSupported(input, options = {}) {
-    return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, {
+  static probeSupport(input, options = {}) {
+    return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, {
       inputType: "wav",
       ...options
     }, FORMAT_NAME), "wav");
@@ -187,12 +178,27 @@ class CjsWavFormat {
     JSON: OUTPUT_JSON
   });
   static OUTPUT_WAV_JSON = "wavJson";
-  static type = Object.freeze(["audio"]);
+  static id = "wav";
   static mediaTypes = Object.freeze(["audio"]);
+  static outputs = CjsFormat.defineOutputs({
+    audio: {
+      decoded: true,
+      probes: ["audio", "pcm"]
+    },
+    pcm: {
+      decoded: true
+    },
+    wavJson: {
+      role: "debug",
+      probes: ["wavJson", "raw"]
+    },
+    raw: {
+      role: "debug",
+      default: true,
+      passthrough: true
+    }
+  });
   static extensions = Object.freeze([".wav"]);
-  static inputTypes = Object.freeze(["wav"]);
-  static outputTypes = Object.freeze([OUTPUT_AUDIO, OUTPUT_PCM]);
-  static debugOutputTypes = Object.freeze(["wavJson", OUTPUT_RAW]);
 }
 
 export { CjsWavFormat };

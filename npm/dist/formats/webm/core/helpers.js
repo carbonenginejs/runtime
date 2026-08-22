@@ -63,7 +63,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
  * Reports whether input is supported under normalized format options for the
  * WebM format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
+function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
     const codecs = getTrackCodecSummary(metadata);
@@ -73,7 +73,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: metadata.sourceFormat ? "partial" : "none",
       confidence: metadata.sourceFormat ? 1 : 0,
-      preferred: "container",
+      preferredOutput: "video",
       reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized video format.",
       metadata,
       variants: [{
@@ -81,10 +81,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         payloadType: "raw",
         codec: metadata.sourceFormat,
         mimeType,
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        frameDecodeSupported: false
+        supported: true
       }, {
         kind: "container",
         payloadType: "video",
@@ -93,10 +90,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         codecs: codecs.codecs,
         videoCodecs: codecs.videoCodecs,
         audioCodecs: codecs.audioCodecs,
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        frameDecodeSupported: false
+        supported: true
       }, {
         kind: "decoded",
         payloadType: "video-frame",
@@ -113,7 +107,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -144,9 +138,6 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
       sourceFormat: "webm",
       container: metadata.container,
       mimeType,
-      containerOnly: true,
-      isDecoded: false,
-      frameDecodeSupported: false,
       codecs: codecs.codecs,
       videoCodecs: codecs.videoCodecs,
       audioCodecs: codecs.audioCodecs,
@@ -568,5 +559,5 @@ function fourCc(bytes, offset) {
   return String.fromCharCode(bytes[offset] || 0, bytes[offset + 1] || 0, bytes[offset + 2] || 0, bytes[offset + 3] || 0);
 }
 
-export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_VIDEO, inspectBytes, inspectWithValues, isMP4, isSupportedWithValues, isWebM, normalizeEmit, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_VIDEO, inspectBytes, inspectWithValues, isMP4, isWebM, normalizeEmit, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

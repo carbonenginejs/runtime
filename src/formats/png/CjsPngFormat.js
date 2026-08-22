@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -6,7 +7,7 @@ import {
     OUTPUT_RGBA,
     inspectWithValues,
     isPNG,
-    isSupportedWithValues,
+    probeSupportWithValues,
     normalizeValues,
     readWithValues,
     readWithValuesAsync,
@@ -21,7 +22,7 @@ const FORMAT_NAME = "CjsPngFormat";
  * and emits raw bytes or debug JSON, with RGBA decoding available on the
  * asynchronous read path.
  */
-export class CjsPngFormat
+export class CjsPngFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -32,6 +33,7 @@ export class CjsPngFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -95,18 +97,6 @@ export class CjsPngFormat
     }
 
     /**
-     * Report whether PNG input and requested output variants are supported.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input PNG bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Support/probe report.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options), "png");
-    }
-
-    /**
      * Convert format output into JSON-compatible debug data.
      *
      * @param {any} value Format output.
@@ -160,9 +150,9 @@ export class CjsPngFormat
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "png", ...options }, FORMAT_NAME), "png");
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "png", ...options }, FORMAT_NAME), "png");
     }
 
     /**
@@ -204,12 +194,15 @@ export class CjsPngFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_PNG_JSON = "pngJson";
-    static type = Object.freeze([ "image" ]);
+    static id = "png";
     static mediaTypes = Object.freeze([ "image" ]);
+    static outputs = CjsFormat.defineOutputs({
+        image: { readMode: "async", decoded: true, probes: [ "image", "rgba" ] },
+        rgba: { readMode: "async", decoded: true },
+        pngJson: { role: "debug", probes: [ "pngJson", "raw" ] },
+        raw: { role: "debug", default: true, passthrough: true }
+    });
     static extensions = Object.freeze([ ".png" ]);
-    static inputTypes = Object.freeze([ "png" ]);
-    static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);
-    static debugOutputTypes = Object.freeze([ "pngJson", OUTPUT_RAW ]);
 }
 
 export default CjsPngFormat;

@@ -60,6 +60,24 @@ the copied `CjsFormatGr2` name is gone and `formats/gr2/core/` holds only
 role-named helper modules, matching every other format. Donor license and
 notice files are kept under `format-notices/gr2/`.
 
+On 2026-08-22, the acquisition-free decoder and verified modern cFSD dataset
+readers moved from the retiring `tools-fsd` package. The runtime copy contains
+only caller-supplied byte decoding, inert schemas, and reader registration; it
+does not contain acquisition, build selection, native loader modules, decoded
+tables, or game data.
+
+| Legacy package | Source revision/state | Runtime classes | Runtime imports |
+|---|---|---|---|
+| `tools-fsd` | `1cef89b88c6285f6874420519cfc8f1bd4085281` (source and reader trees clean; documentation-only retirement edits present) | `CjsFsdFormat`, `CjsFsd64Format`, `CjsFsd64Reader`, schema readers | `@carbonenginejs/runtime-resource/formats/fsd`, `@carbonenginejs/runtime-resource/formats/fsd/64`, `@carbonenginejs/runtime-resource/formats/fsd/64/readers` |
+
+The runtime layout also reserves `formats/fsd/32` for legacy Carbon FSD. That
+format is headerless and schema-driven, so the current facade identifies it
+only from an explicit caller/profile declaration and throws
+`CJS_FSD_32_UNSUPPORTED` when reading. Modern cFSD is independently recognized
+by its fixed envelope and 64-bit payload length. The two layouts are related
+formats, not aliases. Donor MIT license and notice files are retained under
+`format-notices/fsd/`.
+
 ## Black definition snapshot
 
 The Black reader uses the package-owned generated definition snapshot at

@@ -66,7 +66,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the
  * WebM format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
+export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
     {
@@ -78,7 +78,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: metadata.sourceFormat ? "partial" : "none",
             confidence: metadata.sourceFormat ? 1 : 0,
-            preferred: "container",
+            preferredOutput: "video",
             reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized video format.",
             metadata,
             variants: [
@@ -88,9 +88,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
                     codec: metadata.sourceFormat,
                     mimeType,
                     supported: true,
-                    containerOnly: true,
-                    isDecoded: false,
-                    frameDecodeSupported: false
                 },
                 {
                     kind: "container",
@@ -101,9 +98,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
                     videoCodecs: codecs.videoCodecs,
                     audioCodecs: codecs.audioCodecs,
                     supported: true,
-                    containerOnly: true,
-                    isDecoded: false,
-                    frameDecodeSupported: false
                 },
                 {
                     kind: "decoded",
@@ -124,7 +118,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -159,9 +153,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
             sourceFormat: "webm",
             container: metadata.container,
             mimeType,
-            containerOnly: true,
-            isDecoded: false,
-            frameDecodeSupported: false,
             codecs: codecs.codecs,
             videoCodecs: codecs.videoCodecs,
             audioCodecs: codecs.audioCodecs,

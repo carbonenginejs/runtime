@@ -132,7 +132,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
  * Reports whether input is supported under normalized format options for the DDS
  * format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
+function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
     const hasCompleteTextureData = metadata.isDataComplete !== false;
@@ -144,7 +144,6 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       payloadType: "texture",
       codec: metadata.pixelFormat || metadata.textureFormat || "unknown",
       supported: canEmitTexture && metadata.isCompressed,
-      nativeOnly: !!metadata.nativeTextureOnly,
       reason: metadata.isCompressed ? textureUnsupportedReason : "DDS is not block-compressed."
     }, {
       kind: "texture",
@@ -175,7 +174,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: metadata.sourceFormat ? variants.some(v => v.supported && v.kind !== "raw") ? "full" : variants.some(v => v.supported) ? "partial" : "none" : "none",
       confidence: metadata.sourceFormat ? 1 : 0,
-      preferred: preferredVariant?.codec || "",
+      preferredOutput: preferredVariant?.kind || "",
       reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized image format.",
       metadata,
       variants,
@@ -188,7 +187,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -983,5 +982,5 @@ function capitalize(value) {
   return value ? value[0].toUpperCase() + value.slice(1) : "Image";
 }
 
-export { DEFAULT_VALUES, OUTPUT_IMAGE, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_TEXTURE, inspectBytes, inspectWithValues, isDDS, isJPEG, isPNG, isSupportedWithValues, isTGA, normalizeEmit, normalizeInputType, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_IMAGE, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_TEXTURE, inspectBytes, inspectWithValues, isDDS, isJPEG, isPNG, isTGA, normalizeEmit, normalizeInputType, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

@@ -8,10 +8,10 @@ const FBX_TICKS_PER_SECOND = 46186158000;
 test("exports default and named CjsFbxFormat", () =>
 {
     assert.equal(CjsFbxFormat, NamedCjsFbxFormat);
-    assert.deepEqual(CjsFbxFormat.inputTypes, [ "fbx" ]);
+    assert.deepEqual(CjsFbxFormat.extensions, [ ".fbx" ]);
     assert.equal(CjsFbxFormat.Output.GR2, "gr2");
-    assert.deepEqual(CjsFbxFormat.outputTypes, [ "gr2", "cmf" ]);
-    assert.deepEqual(CjsFbxFormat.debugOutputTypes, [ "fbxJson", "raw" ]);
+    assert.deepEqual(Object.values(CjsFbxFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "gr2", "cmf" ]);
+    assert.deepEqual(Object.values(CjsFbxFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "fbxJson", "raw" ]);
     assert.equal(CjsFbxFormat.CLASS_KEYS.includes("Mesh"), true);
 });
 
@@ -885,7 +885,7 @@ test("keeps strongest four skin influences and reports truncation", () =>
         emit: "gr2",
         classes: { Root, Mesh, IndexGroup, BoneBinding }
     }).meshes[0];
-    const support = CjsFbxFormat.isSupported(bytes);
+    const support = CjsFbxFormat.getSupport(bytes);
 
     assert.deepEqual(mesh.vertex.blendIndice.slice(0, 4), [ 1, 2, 4, 0 ]);
     assertFloatArrayClose(mesh.vertex.blendWeight.slice(0, 4), [
@@ -2203,9 +2203,9 @@ test("reports partial FBX feature warnings in support probe", () =>
         ])
     ]);
 
-    const support = CjsFbxFormat.isSupported(bytes);
+    const support = CjsFbxFormat.getSupport(bytes);
 
-    assert.equal(support.supported, "partial");
+    assert.equal(support.supported, true);
     assert.deepEqual(support.errors, []);
     assert.equal(support.warnings.some(message => message.includes("MappingInformationType \"ByEdge\"")), true);
     assert.equal(support.warnings.some(message => message.includes("ReferenceInformationType \"UnsupportedReference\"")), true);
@@ -2300,7 +2300,7 @@ test("inspects ascii fbx version as debug json", () =>
         "}\n"
     );
     const json = CjsFbxFormat.read(bytes, { emit: "json" });
-    const support = CjsFbxFormat.isSupported(bytes);
+    const support = CjsFbxFormat.getSupport(bytes);
     const objects = json.nodes.find(node => node.name === "Objects");
     const geometry = objects.children[0];
 
@@ -2313,9 +2313,9 @@ test("inspects ascii fbx version as debug json", () =>
     assert.equal(json.root.objects.byId["123"].name, "Mesh");
     assert.equal(json.root.objects.byId["456"].nodeName, "Model");
     assert.deepEqual(json.root.connections.parentsByChild["123"], [ "456" ]);
-    assert.equal(support.supported, "partial");
-    assert.equal(support.preferred, "gr2");
-    assert.equal(support.variants.some(variant => variant.kind === "cmf" && variant.codec === "cmf-geometry-animation"), true);
+    assert.equal(support.supported, true);
+    assert.equal(support.preferredOutput, "gr2");
+    assert.equal(support.outputs.some(variant => variant.output === "cmf" && variant.codec === "cmf-geometry-animation"), true);
 });
 
 test("emits gr2 classes for static ascii mesh", () =>

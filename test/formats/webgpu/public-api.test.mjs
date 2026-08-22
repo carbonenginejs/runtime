@@ -81,8 +81,8 @@ test("reader manages values and classes", () =>
 test("implemented metadata advertises the package surface", () =>
 {
     assert.deepEqual(CjsWebgpuFormat.mediaTypes, [ "shader" ]);
-    assert.deepEqual(CjsWebgpuFormat.inputTypes, [ "carbonwebgpu" ]);
-    assert.deepEqual(CjsWebgpuFormat.outputTypes, [ "json" ]);
+    assert.deepEqual(CjsWebgpuFormat.extensions, [ ".carbonwebgpu" ]);
+    assert.deepEqual(Object.values(CjsWebgpuFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "json" ]);
     // One emit, as WebGL has. There is no debug emit and no `OUTPUT_RAW`: the
     // container is internal, and a second way in is what let a consumer bind to
     // the reader object instead of the document it returns.
@@ -92,7 +92,6 @@ test("implemented metadata advertises the package surface", () =>
       () => CjsWebgpuFormat.read(sampleBytes(), { emit: "raw" }),
       /emit must be "json", got "raw"/u
     );
-    assert.equal(CjsWebgpuFormat.implementationStatus, "partial");
     assert.equal(CjsWebgpuFormat.format, "CARBON_WEBGPU");
     assert.equal(CjsWebgpuFormat.analysisFormat, "CARBON_WEBGPU_ANALYSIS");
     assert.equal(CjsWebgpuFormat.packageVersion, FORMAT_VERSION);

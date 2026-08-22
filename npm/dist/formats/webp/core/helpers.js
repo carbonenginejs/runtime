@@ -64,7 +64,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "webp"
  * Reports whether input is supported under normalized format options for the
  * WebP format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES) {
+function probeSupportWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
     return {
@@ -72,7 +72,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "partial",
       confidence: 1,
-      preferred: "raw",
+      preferredOutput: "raw",
       reason: "WebP container and image metadata are recognized; software RGBA decode is not implemented.",
       metadata,
       variants: [{
@@ -80,10 +80,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
         payloadType: "raw",
         codec: "webp",
         mimeType: "image/webp",
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        rgbaDecodeSupported: false
+        supported: true
       }, {
         kind: "rgba",
         payloadType: "rgba",
@@ -100,7 +97,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -119,9 +116,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
       payloadType: "raw",
       sourceFormat: "webp",
       mimeType: "image/webp",
-      containerOnly: true,
-      isDecoded: false,
-      rgbaDecodeSupported: false,
       metadata,
       bytes
     };
@@ -233,5 +227,5 @@ function readU32LE(bytes, offset) {
   return (bytes[offset] | bytes[offset + 1] << 8 | bytes[offset + 2] << 16 | bytes[offset + 3] * 0x1000000) >>> 0;
 }
 
-export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_RAW, inspectWithValues, isSupportedWithValues, isWebP, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_RAW, inspectWithValues, isWebP, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

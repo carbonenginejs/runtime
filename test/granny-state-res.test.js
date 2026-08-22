@@ -162,7 +162,7 @@ test("a bound format store answers instead of the caller naming the reader", () 
       accepts: "isGsf"
     })
     // Geometry is the not-a-state-machine case, and saying so is better than
-    // leaving it to Format.isSupported - that answers "is this a Granny file",
+    // leaving it to Format.is - that answers "is this a Granny file",
     // which is true of both and so separates nothing.
     .Register(CjsGr2Format, {
       extensions: [ ".gr2", ".gsf" ],

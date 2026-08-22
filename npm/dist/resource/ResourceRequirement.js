@@ -6,7 +6,7 @@
  * `GetResource({ requirement })` — one vocabulary in three places, previously a
  * bare literal in each, with nothing catching a typo between them.
  *
- * Not to be confused with a format's `outputTypes`, which select a
+ * Not to be confused with a format's `outputs`, which declare each available
  * representation rather than a class: one DDS read as `texture` or as `rgba` is
  * the same file in the same resource.
  *

@@ -405,7 +405,7 @@ function extractMedia(bytes, metadata, mediaId) {
  * Reports whether input is supported under normalized format options for the BNK
  * format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES) {
+function probeSupportWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
     const extractable = metadata.media.some(entry => entry.available);
@@ -414,7 +414,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "partial",
       confidence: 1,
-      preferred: extractable ? OUTPUT_MEDIA : "raw",
+      preferredOutput: extractable ? OUTPUT_MEDIA : "raw",
       reason: extractable ? "Soundbank recognized; embedded media can be extracted undecoded." : "Soundbank recognized; it carries no extractable embedded media.",
       metadata,
       variants: [{
@@ -422,17 +422,12 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
         payloadType: "raw",
         codec: "wwise-soundbank",
         mimeType: "application/octet-stream",
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        pcmDecodeSupported: false
+        supported: true
       }, {
         kind: OUTPUT_MEDIA,
         payloadType: OUTPUT_MEDIA,
         codec: "wem",
         supported: extractable,
-        containerOnly: true,
-        isDecoded: false,
         reason: extractable ? "" : "No DIDX/DATA media entries are present."
       }],
       warnings: [],
@@ -444,7 +439,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -463,8 +458,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
     return {
       payloadType: OUTPUT_MEDIA,
       sourceFormat: "bnk",
-      containerOnly: true,
-      isDecoded: false,
       metadata,
       items: extractMedia(bytes, metadata)
     };
@@ -473,9 +466,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
     payloadType: "raw",
     sourceFormat: "bnk",
     mimeType: "application/octet-stream",
-    containerOnly: true,
-    isDecoded: false,
-    pcmDecodeSupported: false,
     metadata,
     bytes
   };
@@ -508,5 +498,5 @@ function readU32(bytes, offset) {
   return (bytes[offset] | bytes[offset + 1] << 8 | bytes[offset + 2] << 16 | bytes[offset + 3] * 0x1000000) >>> 0;
 }
 
-export { DEFAULT_VALUES, HIRC_TYPE_NAMES, HIRC_V150_TYPE_NAMES, OUTPUT_BNK_JSON, OUTPUT_JSON, OUTPUT_MEDIA, OUTPUT_RAW, extractMedia, inspectBNK, inspectWithValues, isBNK, isSupportedWithValues, normalizeEmit, normalizeValues, readWithValues, readWwiseVar, toBytes, toJsonValue };
+export { DEFAULT_VALUES, HIRC_TYPE_NAMES, HIRC_V150_TYPE_NAMES, OUTPUT_BNK_JSON, OUTPUT_JSON, OUTPUT_MEDIA, OUTPUT_RAW, extractMedia, inspectBNK, inspectWithValues, isBNK, normalizeEmit, normalizeValues, probeSupportWithValues, readWithValues, readWwiseVar, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

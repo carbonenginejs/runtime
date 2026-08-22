@@ -58,11 +58,11 @@ function FamilyError(path, found, wanted, reason)
  */
 export async function ReadStaticContainer(bytes, path = ".static input")
 {
-    const probe = await CjsStaticFormat.resolveType(bytes);
+    const detected = CjsStaticFormat.inspect(bytes);
 
-    if (probe.preferred !== CJS_STATIC_FAMILIES.SQLITE)
+    if (detected.family !== CJS_STATIC_FAMILIES.SQLITE)
     {
-        throw FamilyError(path, probe.preferred, CJS_STATIC_FAMILIES.SQLITE, probe.reason);
+        throw FamilyError(path, detected.family, CJS_STATIC_FAMILIES.SQLITE, detected.reason);
     }
 
     const tables = CjsSqliteFormat.readJSON(bytes, { tables: [ CACHE_TABLE ] });
@@ -150,13 +150,13 @@ export function ReadEmbeddedSchemaContainer(bytes, path = ".static input")
  */
 export async function ReadSchemaBoundContainer(bytes, schema, path = ".static input")
 {
-    const probe = await CjsStaticFormat.resolveType(bytes);
+    const detected = CjsStaticFormat.inspect(bytes);
 
     // The schema-bound family is the one with nothing to recognize, so it is
     // reported as `unknown` with `requires: "schema"` rather than named outright.
-    if (probe.preferred !== CJS_STATIC_FAMILIES.UNKNOWN)
+    if (detected.family !== CJS_STATIC_FAMILIES.UNKNOWN)
     {
-        throw FamilyError(path, probe.preferred, "schema-bound", null);
+        throw FamilyError(path, detected.family, "schema-bound", null);
     }
 
     return CjsSchemaBoundFormat.read(bytes, { schema });

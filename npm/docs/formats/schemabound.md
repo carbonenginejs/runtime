@@ -47,10 +47,16 @@ rather than only how wide it is.
 - `read` / `readJSON` — plain JSON-compatible values; a wide integer becomes a
   decimal string.
 - `readPayload` — the same, with wide integers left as `BigInt`.
-- `is` / `isSupported` — **these ask about the schema, not the payload.** These
-  containers have no signature, so claiming to recognize the bytes would be a
-  claim this format cannot support. Which family a `.static` file belongs to is
-  [`CjsStaticFormat`](static.md)'s question.
+- `is` — the synchronous boolean routing predicate. For this format it asks
+  whether the supplied schema is structurally recognizable, not whether the
+  payload matches it. These containers have no signature, so claiming to
+  recognize the bytes would be a claim the format cannot support.
+- `getSupport` — an advisory report derived from the schema and requested
+  output. Use `verifySupport()` when the caller needs asynchronous proof that a
+  particular output can actually be read.
+
+Which family a `.static` file belongs to is
+[`CjsStaticFormat`](static.md)'s question.
 
 The root is whatever the schema declares: a keyed map decodes to an object, a
 list decodes to an array.

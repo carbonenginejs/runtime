@@ -445,6 +445,16 @@ Data record mirroring Carbon's ray-tracing geometry constants: index/vertex buff
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:Tr2RaycastGeometryRes -->
+## `Tr2RaycastGeometryRes`
+
+Carries generated raycast-geometry LOD indices and opaque bounding-volume-hierarchy intake for later maintained realization.
+
+- Export: `@carbonenginejs/runtime-resource/generated`
+- Source: `src/generated/resources/Tr2RaycastGeometryRes.js`
+- Visibility: Public
+- Kind: Generated Carbon schema intake
+
 <!-- class:TriTextureRes -->
 ## `TriTextureRes`
 

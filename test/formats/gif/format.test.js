@@ -5,27 +5,24 @@ import CjsGifFormat, { CjsGifFormat as NamedCjsGifFormat } from "../../../src/fo
 test("exports GIF reader metadata and output contract", () =>
 {
     assert.equal(CjsGifFormat, NamedCjsGifFormat);
-    assert.deepEqual(CjsGifFormat.inputTypes, [ "gif" ]);
-    assert.deepEqual(CjsGifFormat.outputTypes, [ "image", "rgba" ]);
+    assert.deepEqual(CjsGifFormat.extensions, [ ".gif" ]);
+    assert.deepEqual(Object.values(CjsGifFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "image", "rgba" ]);
 });
 
 test("decodes a first-frame GIF to canonical RGBA", () =>
 {
     const bytes = makeGif([ 255, 0, 0 ], [ 0, 0, 0 ]);
     const rgba = CjsGifFormat.read(bytes, { emit: "rgba" });
-    const support = CjsGifFormat.isSupported(bytes);
+    const support = CjsGifFormat.getSupport(bytes);
 
     assert.equal(CjsGifFormat.isGIF(bytes), true);
     assert.equal(rgba.payloadType, "rgba");
     assert.equal(rgba.width, 1);
     assert.equal(rgba.height, 1);
     assert.equal(rgba.mimeType, "image/gif");
-    assert.equal(rgba.containerOnly, false);
-    assert.equal(rgba.isDecoded, true);
-    assert.equal(rgba.rgbaDecodeSupported, true);
     assert.deepEqual(Array.from(rgba.data), [ 255, 0, 0, 255 ]);
-    assert.equal(support.supported, "full");
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").isDecoded, true);
+    assert.equal(support.supported, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "rgba").decoded, true);
 });
 
 test("reports raw payload and graphics metadata", () =>
@@ -36,19 +33,14 @@ test("reports raw payload and graphics metadata", () =>
 
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.mimeType, "image/gif");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.rgbaDecodeSupported, true);
     assert.equal(raw.bytes, bytes);
     assert.equal(info.sourceFormat, "gif");
     assert.equal(info.frameCount, 1);
     assert.equal(info.animated, false);
 
-    const rawVariant = CjsGifFormat.isSupported(bytes).variants.find((variant) => variant.kind === "raw");
-    assert.equal(rawVariant.mimeType, "image/gif");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.rgbaDecodeSupported, true);
+    const rawVariant = CjsGifFormat.getSupport(bytes).outputs.find((variant) => variant.output === "raw");
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
 });
 
 test("reports GIF application-extension loop count", () =>

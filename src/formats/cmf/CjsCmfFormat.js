@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing CMF format class.
  *
@@ -41,7 +42,7 @@ import {
  * shared geometry, emit shared geometry when requested, or hydrate
  * caller-supplied CarbonEngineJS-style classes.
  */
-export class CjsCmfFormat
+export class CjsCmfFormat extends CjsFormat
 {
     #emit = DEFAULT_VALUES.emit;
     #validateCrc = DEFAULT_VALUES.validateCrc;
@@ -55,6 +56,7 @@ export class CjsCmfFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -518,12 +520,17 @@ export class CjsCmfFormat
         SHARED: OUTPUT_SHARED
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static type = Object.freeze([ "geometry" ]);
+    static id = "cmf";
     static mediaTypes = Object.freeze([ "geometry" ]);
+    static outputs = CjsFormat.defineOutputs({
+        cmf: { default: true, decoded: true },
+        gr2: { decoded: true },
+        shared: { decoded: true },
+        json: { role: "debug", payloadType: "cmf", decoded: true },
+        cmfJson: { role: "debug", payloadType: "cmf", decoded: true },
+        raw: { role: "debug", decoded: true }
+    });
     static extensions = Object.freeze([ ".cmf" ]);
-    static inputTypes = Object.freeze([ "cmf" ]);
-    static outputTypes = Object.freeze([ OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_CMF_JSON, OUTPUT_RAW ]);
 }
 
 export default CjsCmfFormat;

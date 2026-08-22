@@ -69,7 +69,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the Ogg
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES)
+export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
     try
     {
@@ -82,10 +82,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                 codec: "ogg",
                 mimeType,
                 supported: true,
-                containerOnly: true,
-                isDecoded: false,
-                pcmDecodeSupported: false,
-                frameDecodeSupported: false
             },
             {
                 kind: "pcm",
@@ -111,7 +107,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "partial",
             confidence: 1,
-            preferred: pcmSupported ? "pcm" : (metadata.sourceFormat ? "ogg" : ""),
+            preferredOutput: pcmSupported ? "pcm" : (metadata.sourceFormat ? "raw" : ""),
             reason: pcmSupported
                 ? "Ogg Vorbis recognized; PCM decode is supported."
                 : "Ogg pages and codec headers are recognized; raw Ogg passthrough is available.",
@@ -128,7 +124,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -149,10 +145,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             payloadType: "raw",
             sourceFormat: "ogg",
             mimeType: getOggMimeType(metadata),
-            containerOnly: true,
-            isDecoded: false,
-            pcmDecodeSupported: false,
-            frameDecodeSupported: false,
             metadata,
             bytes
         };
@@ -180,9 +172,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             payloadType: values.emit === OUTPUT_AUDIO ? OUTPUT_AUDIO : OUTPUT_PCM,
             sourceFormat: "ogg",
             codec: "vorbis",
-            containerOnly: false,
-            isDecoded: true,
-            pcmDecodeSupported: true,
             audioFormat: "float32",
             sampleFormat: "float32",
             sampleRate: decoded.sampleRate,

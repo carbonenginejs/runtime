@@ -108,7 +108,7 @@ Shared output and hydration backend for Blue persistence readers that owns commo
 <!-- class:CjsFormat -->
 ## `CjsFormat`
 
-Base class for format readers that defines the static `read`/`readAsync`/`isSupported`/`resolveType` contract and instance option handling that concrete format packages implement.
+Decorator-free base for every format facade. It owns normalized statics, boolean `is()` routing, structural `inspect()`, synchronous advisory `getSupport()`, exact asynchronous `verifySupport()`, and shared instance option handling.
 
 - Export: `@carbonenginejs/runtime-resource`
 - Source: `src/format/CjsFormat.js`
@@ -124,6 +124,26 @@ Internal base for construction-bound readers that are created for one source and
 - Source: `src/format/CjsReader.js`
 - Visibility: Internal
 - Kind: Internal implementation class
+
+<!-- class:CjsFormatRoute -->
+## `CjsFormatRoute`
+
+Captures one registered extension, content probe, reader, and output-capability route for format dispatch.
+
+- Export: `None`
+- Source: `src/format/CjsFormatStore.js`
+- Visibility: Internal
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsFormatStore -->
+## `CjsFormatStore`
+
+Registers ordered content-aware format routes without coupling resource classes to concrete format implementations.
+
+- Export: `@carbonenginejs/runtime-resource`
+- Source: `src/format/CjsFormatStore.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
 
 <!-- class:CjsFormatReadError -->
 ## `CjsFormatReadError`
@@ -208,7 +228,7 @@ Builder for a Carbon compiled-effect container.
 <!-- class:CjsResourceProbe -->
 ## `CjsResourceProbe`
 
-Standard probe-report model that formats return from inspection, recording support status, content-verification state, confidence, preferred route, capability variants, warnings, and errors without choosing an engine or media backend.
+Optional decorated resource-layer model for a plain format support report. It records recognition, the selected output, advisory or verified support, declared output capabilities, metadata, warnings, and structured errors, and exposes `canUseSelected()` and `canUse(output)`.
 
 - Export: `@carbonenginejs/runtime-resource`
 - Source: `src/format/CjsResourceProbe.js`

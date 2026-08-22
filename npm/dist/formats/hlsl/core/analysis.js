@@ -1,4 +1,4 @@
-import { normalizeValues, readRaw, DEFAULT_VALUES } from './helpers.js';
+import { normalizeValues, DEFAULT_VALUES, readRaw } from './helpers.js';
 import { resolveSelectedOptions } from './metadata.js';
 import { HlslEffectBindingManifest } from './tr2/shader/HlslEffectBindingManifest.js';
 

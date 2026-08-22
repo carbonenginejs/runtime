@@ -8,7 +8,7 @@ import { getPackedCodebooksAotuv603 } from "../../../src/formats/wem/core/packed
 test("exports default and named CjsWemFormat", () =>
 {
     assert.equal(CjsWemFormat, NamedCjsWemFormat);
-    assert.deepEqual(CjsWemFormat.inputTypes, [ "wem" ]);
+    assert.deepEqual(CjsWemFormat.extensions, [ ".wem" ]);
 });
 
 test("inspects wwise vorbis wem with inline fmt sample count", () =>
@@ -71,16 +71,13 @@ test("emits raw container payload and passthrough support report", () =>
 {
     const bytes = makeVorbisWem({ sampleCount: 96000 });
     const raw = CjsWemFormat.read(bytes);
-    const support = CjsWemFormat.isSupported(bytes);
+    const support = CjsWemFormat.getSupport(bytes);
 
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.codec, "wwise-vorbis");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
     assert.equal(raw.bytes, bytes);
-    assert.equal(support.supported, "partial");
-    assert.equal(support.preferred, "ogg");
-    assert.equal(support.variants[0].pcmDecodeSupported, false);
+    assert.equal(support.supported, true);
+    assert.equal(support.preferredOutput, "ogg");
 });
 
 test("emit json returns metadata and unsupported emits fail cleanly", () =>
@@ -138,23 +135,23 @@ test("decodes interleaved stereo PTADPCM frames per channel", () =>
 
 test("advertises the pcm variant for PTADPCM and prefers it over raw", () =>
 {
-    const support = CjsWemFormat.isSupported(makePtadpcmWem({
+    const support = CjsWemFormat.getSupport(makePtadpcmWem({
         channels: 1,
         blockAlign: 8,
         frames: [ [ 0, 0, 0, 0x77, 0x77, 0x77 ] ]
     }));
 
-    assert.equal(support.preferred, "pcm");
-    assert.equal(support.variants.find((variant) => variant.kind === "pcm").supported, true);
+    assert.equal(support.preferredOutput, "pcm");
+    assert.equal(support.outputs.find((variant) => variant.output === "pcm").supported, true);
 });
 
 test("rejects non-wem bytes without throwing from probes", () =>
 {
     const junk = new Uint8Array([ 1, 2, 3, 4 ]);
-    const support = CjsWemFormat.isSupported(junk);
+    const support = CjsWemFormat.getSupport(junk);
 
     assert.equal(CjsWemFormat.isWEM(junk), false);
-    assert.equal(support.supported, "none");
+    assert.equal(support.supported, false);
     assert.throws(() => CjsWemFormat.inspect(junk), /expected a RIFF\/RIFX/u);
 });
 
@@ -230,13 +227,12 @@ test("rejects non-vorbis wem for ogg emit with a clear error", () =>
 
 test("advertises the ogg variant for wwise vorbis input", () =>
 {
-    const support = CjsWemFormat.isSupported(makeVorbisWem({ sampleCount: 96000 }));
-    const oggVariant = support.variants.find((variant) => variant.kind === "ogg");
+    const support = CjsWemFormat.getSupport(makeVorbisWem({ sampleCount: 96000 }));
+    const oggVariant = support.outputs.find((variant) => variant.output === "ogg");
 
-    assert.equal(support.preferred, "ogg");
+    assert.equal(support.preferredOutput, "ogg");
     assert.equal(oggVariant.supported, true);
-    assert.equal(oggVariant.mimeType, "audio/ogg");
-    assert.deepEqual(CjsWemFormat.outputTypes, [ "raw", "ogg", "pcm" ]);
+    assert.deepEqual(Object.values(CjsWemFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "raw", "ogg", "pcm" ]);
 });
 
 test("does not advertise ogg for unsupported old Wwise Vorbis layouts", () =>
@@ -244,13 +240,12 @@ test("does not advertise ogg for unsupported old Wwise Vorbis layouts", () =>
     for (const vorbSize of [ 0x28, 0x2c ])
     {
         const bytes = makeVorbisWemWithVorbChunk({ sampleCount: 96000, vorbSize });
-        const support = CjsWemFormat.isSupported(bytes);
-        const oggVariant = support.variants.find((variant) => variant.kind === "ogg");
+        const support = CjsWemFormat.getSupport(bytes);
+        const oggVariant = support.outputs.find((variant) => variant.output === "ogg");
 
-        assert.equal(support.preferred, "raw");
-        assert.match(support.reason, /old header-triad/u);
+        assert.equal(support.preferredOutput, "raw");
         assert.equal(oggVariant.supported, false);
-        assert.match(oggVariant.reason, /old header-triad/u);
+        assert.match(oggVariant.reason, /No decodable codec validated/u);
         assert.throws(() => CjsWemFormat.read(bytes, { emit: "ogg" }), /old header-triad/u);
     }
 });

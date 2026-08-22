@@ -474,7 +474,7 @@ export function extractMedia(bytes, metadata, mediaId)
  * Reports whether input is supported under normalized format options for the BNK
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES)
+export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
     try
     {
@@ -485,7 +485,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "partial",
             confidence: 1,
-            preferred: extractable ? OUTPUT_MEDIA : "raw",
+            preferredOutput: extractable ? OUTPUT_MEDIA : "raw",
             reason: extractable
                 ? "Soundbank recognized; embedded media can be extracted undecoded."
                 : "Soundbank recognized; it carries no extractable embedded media.",
@@ -497,17 +497,12 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                     codec: "wwise-soundbank",
                     mimeType: "application/octet-stream",
                     supported: true,
-                    containerOnly: true,
-                    isDecoded: false,
-                    pcmDecodeSupported: false
                 },
                 {
                     kind: OUTPUT_MEDIA,
                     payloadType: OUTPUT_MEDIA,
                     codec: "wem",
                     supported: extractable,
-                    containerOnly: true,
-                    isDecoded: false,
                     reason: extractable ? "" : "No DIDX/DATA media entries are present."
                 }
             ],
@@ -522,7 +517,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -543,8 +538,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
         return {
             payloadType: OUTPUT_MEDIA,
             sourceFormat: "bnk",
-            containerOnly: true,
-            isDecoded: false,
             metadata,
             items: extractMedia(bytes, metadata)
         };
@@ -553,9 +546,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
         payloadType: "raw",
         sourceFormat: "bnk",
         mimeType: "application/octet-stream",
-        containerOnly: true,
-        isDecoded: false,
-        pcmDecodeSupported: false,
         metadata,
         bytes
     };

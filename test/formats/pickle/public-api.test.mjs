@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsFormat } from "../../../npm/dist/format/CjsFormat.js";
+import { CjsFormat } from "../../../src/format/CjsFormat.js";
 import {
   CjsLoadingObject,
   CjsResMan

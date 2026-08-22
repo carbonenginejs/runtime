@@ -54,7 +54,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the
  * FLAC format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
+export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
     {
@@ -64,7 +64,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "partial",
             confidence: 1,
-            preferred: "flac",
+            preferredOutput: "raw",
             reason: "FLAC metadata and raw source are recognized; PCM decoding remains a backend/decoder task.",
             metadata,
             variants: [
@@ -74,9 +74,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
                     codec: "flac",
                     mimeType: "audio/flac",
                     supported: true,
-                    containerOnly: true,
-                    isDecoded: false,
-                    pcmDecodeSupported: false
                 },
                 { kind: "pcm", payloadType: "pcm", codec: "pcm", supported: false, reason: "FLAC PCM decode/output is not implemented in this package." }
             ],
@@ -91,7 +88,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -119,9 +116,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         payloadType: OUTPUT_RAW,
         sourceFormat: "flac",
         mimeType: "audio/flac",
-        containerOnly: true,
-        isDecoded: false,
-        pcmDecodeSupported: false,
         metadata,
         bytes
     };

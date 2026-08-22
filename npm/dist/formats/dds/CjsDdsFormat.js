@@ -1,4 +1,5 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isDDS, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_TEXTURE, OUTPUT_IMAGE } from './core/helpers.js';
+import { CjsFormat } from '../../format/CjsFormat.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, toJsonValue, probeSupportWithValues, isDDS, toBytes, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, OUTPUT_TEXTURE, OUTPUT_IMAGE } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsDdsFormat";
 
@@ -8,7 +9,7 @@ const FORMAT_NAME = "CjsDdsFormat";
  * software-decoded RGBA and float payloads (BC1-BC5, BC7, and BC6H
  * included).
  */
-class CjsDdsFormat {
+class CjsDdsFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /**
@@ -17,6 +18,7 @@ class CjsDdsFormat {
    * @param {object} [options] Default read/inspect options.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -81,17 +83,6 @@ class CjsDdsFormat {
   }
 
   /**
-   * Report whether DDS input and requested output variants are supported.
-   *
-   * @param {Uint8Array|ArrayBuffer|DataView} input DDS bytes.
-   * @param {object} [options] Per-call values.
-   * @returns {object} Support/probe report.
-   */
-  IsSupported(input, options = {}) {
-    return isSupportedWithValues(input, this.GetValues(options), "dds");
-  }
-
-  /**
    * Convert format output into JSON-compatible debug data.
    *
    * @param {any} value Format output.
@@ -147,8 +138,8 @@ class CjsDdsFormat {
    * @param {object} [options] Probe options.
    * @returns {object} Support/probe report.
    */
-  static isSupported(input, options = {}) {
-    return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, {
+  static probeSupport(input, options = {}) {
+    return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, {
       inputType: "dds",
       ...options
     }, FORMAT_NAME), "dds");
@@ -189,12 +180,30 @@ class CjsDdsFormat {
     JSON: OUTPUT_JSON
   });
   static OUTPUT_DDS_JSON = "ddsJson";
-  static type = Object.freeze(["texture", "image"]);
+  static id = "dds";
   static mediaTypes = Object.freeze(["texture", "image"]);
+  static outputs = CjsFormat.defineOutputs({
+    texture: {
+      probes: ["texture", "compressed"]
+    },
+    image: {
+      decoded: true,
+      probes: ["image", "rgba"]
+    },
+    rgba: {
+      decoded: true
+    },
+    ddsJson: {
+      role: "debug",
+      probes: ["ddsJson", "raw"]
+    },
+    raw: {
+      role: "debug",
+      default: true,
+      passthrough: true
+    }
+  });
   static extensions = Object.freeze([".dds"]);
-  static inputTypes = Object.freeze(["dds"]);
-  static outputTypes = Object.freeze([OUTPUT_TEXTURE, OUTPUT_IMAGE, OUTPUT_RGBA]);
-  static debugOutputTypes = Object.freeze(["ddsJson", OUTPUT_RAW]);
 }
 
 export { CjsDdsFormat };

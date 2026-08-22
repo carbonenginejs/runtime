@@ -90,7 +90,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the TGA
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
+export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
     {
@@ -106,9 +106,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
                     codec: "rgba8unorm",
                     supported: canDecodeTga,
                     reason: canDecodeTga ? "" : "Only supported true-color, grayscale, and indexed TGA images are decoded to RGBA.",
-                    containerOnly: false,
-                    isDecoded: canDecodeTga,
-                    rgbaDecodeSupported: canDecodeTga
                 },
                 rawVariant(metadata, canDecodeTga)
             ];
@@ -117,7 +114,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
         {
             variants = [
                 rawVariant(metadata, false),
-                { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: false, reason: `${metadata.sourceFormat.toUpperCase()} RGBA decode is not implemented yet.`, containerOnly: false, isDecoded: false, rgbaDecodeSupported: false }
+                { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: false, reason: `${metadata.sourceFormat.toUpperCase()} RGBA decode is not implemented yet.`}
             ];
         }
 
@@ -126,7 +123,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: metadata.sourceFormat ? (variants.some(v => v.supported && v.kind === "rgba") ? "full" : "partial") : "none",
             confidence: metadata.sourceFormat ? 1 : 0,
-            preferred: variants.find(v => v.supported)?.codec || "",
+            preferredOutput: variants.find(v => v.supported)?.kind || "",
             reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized image format.",
             metadata,
             variants,
@@ -141,7 +138,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -163,9 +160,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
             payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: imageMimeType(metadata.sourceFormat),
-            containerOnly: true,
-            isDecoded: false,
-            rgbaDecodeSupported: metadata.sourceFormat === "tga" && canDecodeTgaToRgba(metadata),
             metadata,
             bytes
         };
@@ -414,9 +408,6 @@ function decodeTgaToRgba(bytes, metadata)
         payloadType: OUTPUT_RGBA,
         sourceFormat: "tga",
         mimeType: "image/x-tga",
-        containerOnly: false,
-        isDecoded: true,
-        rgbaDecodeSupported: true,
         width: metadata.width,
         height: metadata.height,
         pixelFormat: "rgba8unorm",
@@ -437,9 +428,6 @@ function rawVariant(metadata, canDecode)
         codec: metadata.sourceFormat,
         mimeType: imageMimeType(metadata.sourceFormat),
         supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        rgbaDecodeSupported: metadata.sourceFormat === "tga" && canDecode === true
     };
 }
 

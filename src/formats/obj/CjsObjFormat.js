@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing OBJ format class.
  *
@@ -31,7 +32,7 @@ const FORMAT_NAME = "CjsObjFormat";
  * OBJ is the current import source; the public read contract is the shared
  * CarbonEngineJS JSON mesh schema.
  */
-export class CjsObjFormat
+export class CjsObjFormat extends CjsFormat
 {
 
     #emit = DEFAULT_VALUES.emit;
@@ -50,6 +51,7 @@ export class CjsObjFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -251,12 +253,16 @@ export class CjsObjFormat
         CMF: OUTPUT_CMF
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static type = Object.freeze([ "geometry" ]);
+    static id = "obj";
     static mediaTypes = Object.freeze([ "geometry" ]);
+    static outputs = CjsFormat.defineOutputs({
+        shared: { decoded: true },
+        gr2: { decoded: true },
+        cmf: { decoded: true },
+        json: { role: "debug", decoded: true },
+        objJson: { role: "debug", default: true, decoded: true }
+    });
     static extensions = Object.freeze([ ".obj" ]);
-    static inputTypes = Object.freeze([ "obj" ]);
-    static outputTypes = Object.freeze([ OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_OBJ_JSON ]);
 
 }
 

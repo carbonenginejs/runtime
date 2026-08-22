@@ -92,14 +92,14 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the
  * JPEG format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
+export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
     {
         const metadata = inspectWithValues(input, values, expectedType);
         const canDecode = metadata.sourceFormat === "jpeg" && canDecodeJpeg(metadata);
         const variants = [
-            { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: canDecode, reason: canDecode ? "" : jpegDecodeReason(metadata), containerOnly: false, isDecoded: canDecode, rgbaDecodeSupported: canDecode },
+            { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: canDecode, reason: canDecode ? "" : jpegDecodeReason(metadata)},
             rawVariant(metadata, canDecode)
         ];
 
@@ -108,7 +108,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: metadata.sourceFormat ? (variants.some(variant => variant.supported && variant.kind === "rgba") ? "full" : "partial") : "none",
             confidence: metadata.sourceFormat ? 1 : 0,
-            preferred: variants.find(v => v.supported)?.codec || "",
+            preferredOutput: variants.find(v => v.supported)?.kind || "",
             reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized image format.",
             metadata,
             variants,
@@ -123,7 +123,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -145,9 +145,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
             payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: imageMimeType(metadata.sourceFormat),
-            containerOnly: true,
-            isDecoded: false,
-            rgbaDecodeSupported: metadata.sourceFormat === "jpeg" && canDecodeJpeg(metadata),
             metadata,
             bytes
         };
@@ -184,9 +181,6 @@ function rawVariant(metadata, canDecode)
         codec: metadata.sourceFormat,
         mimeType: imageMimeType(metadata.sourceFormat),
         supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        rgbaDecodeSupported: metadata.sourceFormat === "jpeg" && canDecode === true
     };
 }
 

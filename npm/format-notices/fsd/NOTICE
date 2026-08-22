@@ -1,0 +1,11 @@
+CarbonEngineJS tools-fsd
+
+This implementation provides original JavaScript infrastructure for decoding
+caller-supplied FSD bytes. No game assets, downloaded static data, proprietary
+schemas, generated game tables, or copied game reader implementations are
+included.
+
+CarbonEngine and Fenris Creations (CCP Games) are named only for
+interoperability and provenance context. This project is not affiliated with,
+endorsed by, or sponsored by CCP Games or CCP ehf. EVE Online and related marks
+remain the property of their respective owners.

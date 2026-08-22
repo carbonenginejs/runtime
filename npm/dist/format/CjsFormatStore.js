@@ -17,9 +17,9 @@ import { normalizeResourceExtension } from '@carbonenginejs/runtime-utils/path';
  *   `read` projects geometry and `readGsf` projects a state machine, and
  *   `isGsf` is what actually tells them apart. The extension is a hint, not the
  *   discriminator, which is why a route may carry its own `accepts` probe.
- * - **Several outputs from one reader.** `CjsDdsFormat` declares
- *   `outputTypes: ["texture", "image", "rgba"]` off a single `read`, selected
- *   by `options.emit`.
+ * - **Several outputs from one reader.** `CjsDdsFormat` declares `texture`,
+ *   `image`, and `rgba` capability descriptors in `outputs` off a single
+ *   `read`, selected by `options.emit`.
  *
  * ccpwgl mapped one extension to one constructor and stopped, which is why
  * every one of those cases has to be hardcoded at a call site there. Naming the
@@ -39,8 +39,8 @@ class CjsFormatRoute {
     if (this.accepts !== null && typeof this.accepts !== "function" && typeof Format[this.accepts] !== "function") {
       throw new TypeError(`${Format.name || "format"} has no probe named ${JSON.stringify(this.accepts)}. ` + "A route's probe is what separates two readers over one container, so " + "a missing one would silently route every file to the first route.");
     }
-    if (this.output && Array.isArray(Format.outputTypes) && !Format.outputTypes.includes(this.output)) {
-      throw new TypeError(`${Format.name || "format"} does not declare the output ` + `${JSON.stringify(this.output)}; it declares ` + `${Format.outputTypes.map(value => JSON.stringify(value)).join(", ")}.`);
+    if (this.output && typeof Format.getOutputCapability === "function" && !Format.getOutputCapability(this.output)) {
+      throw new TypeError(`${Format.name || "format"} does not declare the output ` + `${JSON.stringify(this.output)}; it declares ` + `${Object.keys(Format.outputs || {}).map(value => JSON.stringify(value)).join(", ")}.`);
     }
     Object.freeze(this);
   }
@@ -49,12 +49,12 @@ class CjsFormatRoute {
    * Whether this route recognises the data.
    *
    * The route's own probe answers when it has one, and it is the only thing
-   * that can separate two readers over ONE container. `Format.isSupported` says
+   * that can separate two readers over ONE container. `Format.is` says
    * "yes, this is a Granny file" for both a `.gr2` and a `.gsf`, because it is
    * — the question it answers is about the container, not about which
    * projection applies. `isGsf` is the question that matters there.
    *
-   * Falling back to `Format.isSupported` is right when the routes belong to
+   * Falling back to `Format.is` is right when the routes belong to
    * different formats, which is the `.static` case.
    *
    * A route with no probe at all answers yes: the extension already selected
@@ -64,7 +64,7 @@ class CjsFormatRoute {
    */
   Accepts(data) {
     if (data === undefined) return true;
-    const probe = typeof this.accepts === "function" ? this.accepts : this.accepts ? this.Format[this.accepts] : this.Format.isSupported;
+    const probe = typeof this.accepts === "function" ? this.accepts : this.accepts ? this.Format[this.accepts] : this.Format.is;
     if (typeof probe !== "function") return true;
     try {
       return isPositiveProbe(probe.call(this.Format, data));
@@ -226,9 +226,9 @@ class CjsFormatStore {
    *
    * 1. **Extension** narrows to the routes registered for the suffix.
    * 2. **Output**, when the caller wants a particular representation, narrows
-   *    further. A resource asking for `texture` must not be handed the route
-   *    registered to decode the same file to `rgba`. `CjsResource.requirement`
-   *    is where that request usually comes from.
+   *    further and pins that output onto an otherwise unpinned route. A caller
+   *    asking for `texture` must not be handed the route registered to decode
+   *    the same file to `rgba`; resource requirements select classes instead.
    * 3. **Content** separates what remains, because with several candidates left
    *    nothing else can. With exactly one the data is not consulted at all: the
    *    extension already decided, and the format is entitled to reject its own
@@ -251,6 +251,7 @@ class CjsFormatStore {
       // A requested output nothing was registered for is a miss, not a reason
       // to fall back to a route that produces something else entirely.
       if (candidates.length === 0) return null;
+      candidates = candidates.map(route => pinRouteOutput(route, output));
     }
     if (candidates.length === 0) return null;
     if (candidates.length === 1) return candidates[0];
@@ -282,37 +283,32 @@ function isSameRoute(left, right) {
 }
 
 /**
- * Whether a probe result means yes.
+ * Accept only the canonical boolean routing verdict.
  *
- * MOST PROBES HERE DO NOT RETURN A BOOLEAN. `isSupported` on the formats that
- * share an extension returns a REPORT — `{format, source, supported, confidence,
- * …}` — where `supported` is `"full"`, `"partial"` or `"none"`. Every one of
- * those objects is truthy, so a plain `Boolean()` accepts a format that
- * explicitly declined.
+ * Requiring literal true prevents a stale report object from becoming an
+ * accidental match merely because objects are truthy.
  *
- * That broke exactly the case this store exists for. `.static` is read by
- * `CjsStaticFormat` and `CjsSchemaBoundFormat`; on the same bytes one answers
- * `"partial"` and the other `"none"`, and under `Boolean()` both said yes, so
- * the store silently returned whichever was registered first. Content routing
- * that quietly becomes registration order is worse than none, because the
- * caller is told it happened.
- *
- * This matches `CjsResMan`'s `isPositiveFormatProbe` deliberately. Two probe
- * semantics for one question is how the two registries start disagreeing.
- *
- * @param {*} report A probe result, boolean or report object.
+ * @param {*} report A routing verdict.
  * @returns {boolean}
  */
 function isPositiveProbe(report) {
-  if (report === true) return true;
-  if (!report || typeof report !== "object") return false;
-  return report.supported === true || report.supported === "full" || report.supported === "partial";
+  return report === true;
 }
 
 /** Whether an unpinned route's format can produce the requested output. */
 function routeDeclaresOutput(route, output) {
-  const declared = route.Format.outputTypes;
-  return Array.isArray(declared) ? declared.includes(output) : false;
+  return typeof route.Format.getOutputCapability === "function" ? route.Format.getOutputCapability(output) !== null : Object.hasOwn(route.Format.outputs || {}, output);
+}
+
+/** Return a route that applies the output which selected an unpinned route. */
+function pinRouteOutput(route, output) {
+  if (route.output === output) return route;
+  return new CjsFormatRoute(route.Format, {
+    read: route.read,
+    output,
+    accepts: route.accepts,
+    name: route.name
+  });
 }
 
 export { CjsFormatRoute, CjsFormatStore };

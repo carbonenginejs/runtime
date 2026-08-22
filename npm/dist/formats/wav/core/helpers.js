@@ -69,7 +69,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
  * Reports whether input is supported under normalized format options for the WAV
  * format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
+function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
     const canEmitPcm = metadata.sourceFormat === "wav" && canEmitWavPcm(metadata);
@@ -79,7 +79,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: metadata.sourceFormat ? canEmitPcm ? "full" : "partial" : "none",
       confidence: metadata.sourceFormat ? 1 : 0,
-      preferred: canEmitPcm ? "pcm" : "",
+      preferredOutput: canEmitPcm ? "pcm" : "raw",
       reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized audio format.",
       metadata,
       variants: [{
@@ -87,10 +87,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         payloadType: "raw",
         codec: metadata.audioFormat || metadata.sourceFormat,
         mimeType,
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        pcmDecodeSupported: canEmitPcm
+        supported: true
       }, {
         kind: "pcm",
         codec: metadata.sampleFormat || "pcm",
@@ -107,7 +104,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -126,9 +123,6 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
       payloadType: "raw",
       sourceFormat: metadata.sourceFormat,
       mimeType: getAudioMimeType(metadata),
-      containerOnly: true,
-      isDecoded: false,
-      pcmDecodeSupported: metadata.sourceFormat === "wav" && canEmitWavPcm(metadata),
       metadata,
       bytes
     };
@@ -260,7 +254,7 @@ function readU32LE(bytes, offset) {
   return (bytes[offset] | bytes[offset + 1] << 8 | bytes[offset + 2] << 16 | bytes[offset + 3] * 0x1000000) >>> 0;
 }
 function canEmitWavPcm(metadata) {
-  return metadata.dataOffset > 0 && [1, 3].includes(metadata.formatTag) && metadata.channels > 0 && metadata.sampleRate > 0 && isSupportedWavSampleWidth(metadata);
+  return metadata.dataOffset > 0 && [1, 3].includes(metadata.formatTag) && metadata.channels > 0 && metadata.sampleRate > 0 && canReadWavSampleWidth(metadata);
 }
 function readWavPcm(bytes, metadata, emit) {
   if (!canEmitWavPcm(metadata)) {
@@ -280,9 +274,6 @@ function readWavPcm(bytes, metadata, emit) {
   return {
     payloadType: emit === OUTPUT_AUDIO ? OUTPUT_AUDIO : OUTPUT_PCM,
     sourceFormat: "wav",
-    containerOnly: false,
-    isDecoded: true,
-    pcmDecodeSupported: true,
     audioFormat: metadata.sampleFormat,
     sampleFormat: metadata.sampleFormat,
     sampleRate: metadata.sampleRate,
@@ -345,7 +336,7 @@ function decodeWavSamples(bytes, metadata, end) {
   error.sourceFormat = metadata.sourceFormat;
   throw error;
 }
-function isSupportedWavSampleWidth(metadata) {
+function canReadWavSampleWidth(metadata) {
   if (metadata.formatTag === 1) return [8, 16, 24, 32].includes(metadata.bitsPerSample);
   if (metadata.formatTag === 3) return [32, 64].includes(metadata.bitsPerSample);
   return false;
@@ -361,5 +352,5 @@ function channelLayoutFromMask(mask, channels) {
   return layout.length === channels ? layout : layout.length ? layout : "unspecified";
 }
 
-export { DEFAULT_VALUES, OUTPUT_AUDIO, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectBytes, inspectWithValues, isMP3, isSupportedWithValues, isWAV, normalizeEmit, normalizeInputType, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_AUDIO, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectBytes, inspectWithValues, isMP3, isWAV, normalizeEmit, normalizeInputType, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

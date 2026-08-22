@@ -76,14 +76,14 @@ test("recognises a container by signature and refuses anything else", () => {
 
   try {
     assert.equal(CjsSqliteFormat.is(bytes), true);
-    assert.equal(CjsSqliteFormat.isSupported(bytes).supported, "full");
+    assert.equal(CjsSqliteFormat.getSupport(bytes).supported, true);
 
     // Short, empty, and plausible-but-wrong all have to fail rather than throw
     // somewhere deeper: `.static` wears this extension over two other families.
     assert.equal(CjsSqliteFormat.is(new Uint8Array(0)), false);
     assert.equal(CjsSqliteFormat.is(new Uint8Array(4096)), false);
     assert.equal(CjsSqliteFormat.is(new TextEncoder().encode("SQLite format 4\0")), false);
-    assert.equal(CjsSqliteFormat.isSupported(new Uint8Array(200)).supported, "none");
+    assert.equal(CjsSqliteFormat.getSupport(new Uint8Array(200)).supported, false);
   } finally {
     cleanup();
   }

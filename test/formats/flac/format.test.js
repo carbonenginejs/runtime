@@ -5,8 +5,8 @@ import CjsFlacFormat, { CjsFlacFormat as NamedCjsFlacFormat } from "../../../src
 test("exports the FLAC metadata/raw contract", () =>
 {
     assert.equal(CjsFlacFormat, NamedCjsFlacFormat);
-    assert.deepEqual(CjsFlacFormat.inputTypes, [ "flac" ]);
-    assert.equal(CjsFlacFormat.implementationStatus, "metadata-only");
+    assert.deepEqual(CjsFlacFormat.extensions, [ ".flac" ]);
+    assert.equal(CjsFlacFormat.getOutputCapability("pcm"), null);
 });
 
 test("reads STREAMINFO and Vorbis comments", () =>
@@ -43,29 +43,24 @@ test("prefers raw FLAC and reports PCM as a backend path", () =>
 {
     const bytes = makeFlac();
     const raw = CjsFlacFormat.read(bytes);
-    const support = CjsFlacFormat.isSupported(bytes);
+    const support = CjsFlacFormat.getSupport(bytes);
 
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.sourceFormat, "flac");
     assert.equal(raw.mimeType, "audio/flac");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.pcmDecodeSupported, false);
     assert.equal(raw.bytes, bytes);
-    assert.equal(support.preferred, "flac");
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
-    assert.equal(rawVariant.mimeType, "audio/flac");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.pcmDecodeSupported, false);
-    assert.equal(support.variants.find((variant) => variant.kind === "pcm").supported, false);
+    assert.equal(support.preferredOutput, "raw");
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
+    assert.equal(support.outputs.find((variant) => variant.output === "pcm"), undefined);
     assert.throws(() => CjsFlacFormat.read(bytes, { emit: "pcm" }), /PCM decode\/output is not implemented/u);
 });
 
 test("rejects truncated FLAC metadata", () =>
 {
-    const support = CjsFlacFormat.isSupported(new Uint8Array([ 0x66, 0x4c, 0x61, 0x43, 0x80, 0, 0, 34 ]));
-    assert.equal(support.supported, "none");
+    const support = CjsFlacFormat.getSupport(new Uint8Array([ 0x66, 0x4c, 0x61, 0x43, 0x80, 0, 0, 34 ]));
+    assert.equal(support.supported, false);
     assert.match(support.reason, /truncated/u);
 });
 

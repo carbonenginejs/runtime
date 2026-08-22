@@ -56,7 +56,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
  * Reports whether input is supported under normalized format options for the
  * FLAC format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
+function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
     return {
@@ -64,7 +64,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: "partial",
       confidence: 1,
-      preferred: "flac",
+      preferredOutput: "raw",
       reason: "FLAC metadata and raw source are recognized; PCM decoding remains a backend/decoder task.",
       metadata,
       variants: [{
@@ -72,10 +72,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         payloadType: "raw",
         codec: "flac",
         mimeType: "audio/flac",
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        pcmDecodeSupported: false
+        supported: true
       }, {
         kind: "pcm",
         payloadType: "pcm",
@@ -92,7 +89,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -118,9 +115,6 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
     payloadType: OUTPUT_RAW,
     sourceFormat: "flac",
     mimeType: "audio/flac",
-    containerOnly: true,
-    isDecoded: false,
-    pcmDecodeSupported: false,
     metadata,
     bytes
   };
@@ -311,5 +305,5 @@ function readU64BE(bytes, offset) {
   return high > 0x1fffff ? null : high * 0x100000000 + low;
 }
 
-export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectWithValues, isFLAC, isSupportedWithValues, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectWithValues, isFLAC, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

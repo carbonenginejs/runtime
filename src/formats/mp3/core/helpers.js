@@ -73,7 +73,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the MP3
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
+export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
     {
@@ -86,9 +86,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
                 codec: metadata.audioFormat || metadata.sourceFormat,
                 mimeType,
                 supported: true,
-                containerOnly: true,
-                isDecoded: false,
-                pcmDecodeSupported: false
             },
             { kind: "pcm", payloadType: "pcm", codec: "pcm", supported: false, reason: "MP3 PCM decode/output is not implemented yet." }
         ];
@@ -97,7 +94,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: metadata.sourceFormat ? "partial" : "none",
             confidence: metadata.sourceFormat ? 1 : 0,
-            preferred: variants.find((variant) => variant.supported)?.codec || "",
+            preferredOutput: variants.find((variant) => variant.supported)?.kind || "",
             reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized audio format.",
             metadata,
             variants,
@@ -112,7 +109,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -133,9 +130,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
             payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: getAudioMimeType(metadata),
-            containerOnly: true,
-            isDecoded: false,
-            pcmDecodeSupported: false,
             metadata,
             bytes
         };

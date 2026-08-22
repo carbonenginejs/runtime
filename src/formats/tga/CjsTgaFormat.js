@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -5,7 +6,7 @@ import {
     OUTPUT_RAW,
     OUTPUT_RGBA,
     inspectWithValues,
-    isSupportedWithValues,
+    probeSupportWithValues,
     isTGA,
     normalizeValues,
     readWithValues,
@@ -19,7 +20,7 @@ const FORMAT_NAME = "CjsTgaFormat";
  * TGA format profile that inspects header metadata and reads TGA bytes into
  * raw, debug JSON, or decoded RGBA image payloads.
  */
-export class CjsTgaFormat
+export class CjsTgaFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -30,6 +31,7 @@ export class CjsTgaFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -93,18 +95,6 @@ export class CjsTgaFormat
     }
 
     /**
-     * Report whether TGA input and requested output variants are supported.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input TGA bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Support/probe report.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options), "tga");
-    }
-
-    /**
      * Convert format output into JSON-compatible debug data.
      *
      * @param {any} value Format output.
@@ -158,9 +148,9 @@ export class CjsTgaFormat
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "tga", ...options }, FORMAT_NAME), "tga");
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "tga", ...options }, FORMAT_NAME), "tga");
     }
 
     /**
@@ -204,16 +194,23 @@ export class CjsTgaFormat
 
     static OUTPUT_TGA_JSON = "tgaJson";
 
-    static type = Object.freeze([ "image" ]);
+    static id = "tga";
 
     static mediaTypes = Object.freeze([ "image" ]);
 
+    static outputs = CjsFormat.defineOutputs({
+
+        image: { decoded: true, probes: [ "image", "rgba" ] },
+
+        rgba: { decoded: true },
+
+        tgaJson: { role: "debug", probes: [ "tgaJson", "raw" ] },
+
+        raw: { role: "debug", default: true, passthrough: true }
+
+    });
+
     static extensions = Object.freeze([ ".tga" ]);
-    static inputTypes = Object.freeze([ "tga" ]);
-
-    static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);
-
-    static debugOutputTypes = Object.freeze([ "tgaJson", OUTPUT_RAW ]);
 }
 
 export default CjsTgaFormat;

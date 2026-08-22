@@ -196,70 +196,6 @@ function inspectWithValues(input, values = DEFAULT_VALUES) {
   };
 }
 
-/**
- * Reports whether input is supported under normalized format options for the WEM
- * format reader.
- */
-function isSupportedWithValues(input, values = DEFAULT_VALUES) {
-  try {
-    const metadata = inspectWithValues(input, values);
-    const oggSupport = getOggSupport(metadata);
-    const pcmSupport = getPcmSupport(metadata);
-    return {
-      format: "wem",
-      source: values.source || "buffer",
-      supported: metadata.codec ? "partial" : "none",
-      confidence: metadata.codec ? 1 : 0.5,
-      preferred: oggSupport.supported ? OUTPUT_OGG : pcmSupport.supported ? OUTPUT_PCM : "raw",
-      reason: metadata.codec ? oggSupport.supported ? "Wwise Vorbis recognized; repacks losslessly to Ogg Vorbis." : metadata.codec === "wwise-vorbis" ? oggSupport.reason : "Wwise media container recognized; payloads pass through undecoded." : "RIFF/RIFX container recognized but no fmt chunk was found.",
-      metadata,
-      variants: [{
-        kind: "raw",
-        payloadType: "raw",
-        codec: metadata.codec || "unknown",
-        mimeType: "application/octet-stream",
-        supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        pcmDecodeSupported: false
-      }, {
-        kind: OUTPUT_OGG,
-        payloadType: "raw",
-        codec: "vorbis",
-        mimeType: "audio/ogg",
-        supported: oggSupport.supported,
-        containerOnly: true,
-        isDecoded: false,
-        reason: oggSupport.supported ? "" : oggSupport.reason
-      }, {
-        kind: OUTPUT_PCM,
-        payloadType: OUTPUT_PCM,
-        codec: "float32",
-        supported: pcmSupport.supported,
-        containerOnly: false,
-        isDecoded: true,
-        pcmDecodeSupported: pcmSupport.supported,
-        reason: pcmSupport.supported ? "" : pcmSupport.reason
-      }],
-      warnings: [],
-      errors: []
-    };
-  } catch (error) {
-    return {
-      format: "wem",
-      source: values.source || "buffer",
-      supported: "none",
-      confidence: 0,
-      preferred: "",
-      reason: error.message,
-      metadata: null,
-      variants: [],
-      warnings: [],
-      errors: [error.message]
-    };
-  }
-}
-
 // PCM decode routing by codec: PTADPCM decodes through its own module;
 // uncompressed 16-bit PCM deinterleaves directly. Compressed codecs with
 // their own containers (Vorbis, Opus, XMA) are not decoded here - Vorbis
@@ -294,47 +230,6 @@ function decodeToPcm(bytes, metadata) {
   error.sourceFormat = "wem";
   throw error;
 }
-function getPcmSupport(metadata) {
-  if (metadata.codec === "wwise-ptadpcm") return {
-    supported: true,
-    reason: ""
-  };
-  if ((metadata.codec === "pcm" || metadata.codec === "pcm-extensible") && metadata.bitsPerSample === 16) {
-    return {
-      supported: true,
-      reason: ""
-    };
-  }
-  return {
-    supported: false,
-    reason: "PCM decode covers PTADPCM and 16-bit PCM; use the ogg emit for Wwise Vorbis."
-  };
-}
-function getOggSupport(metadata) {
-  if (metadata.codec !== "wwise-vorbis") {
-    return {
-      supported: false,
-      reason: "Only Wwise Vorbis media can be repacked to Ogg."
-    };
-  }
-  const vorbSize = metadata.vorbis?.vorbSize;
-  if (vorbSize === 0x28 || vorbSize === 0x2c) {
-    return {
-      supported: false,
-      reason: "Wwise Vorbis recognized, but old header-triad Wwise Vorbis is not supported by this repacker."
-    };
-  }
-  if (!metadata.vorbis) {
-    return {
-      supported: false,
-      reason: "Wwise Vorbis recognized, but no Vorbis layout metadata was found."
-    };
-  }
-  return {
-    supported: true,
-    reason: ""
-  };
-}
 
 /** Reads input using normalized format options for the WEM format reader. */
 function readWithValues(input, values = DEFAULT_VALUES) {
@@ -357,9 +252,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
       outputFormat: "ogg",
       codec: "vorbis",
       mimeType: "audio/ogg",
-      containerOnly: true,
-      isDecoded: false,
-      pcmDecodeSupported: false,
       sampleCount: ogg.sampleCount,
       sampleRate: ogg.sampleRate,
       channels: ogg.channels,
@@ -378,8 +270,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
       outputFormat: OUTPUT_PCM,
       codec: "float32",
       sourceCodec: metadata.codec,
-      isDecoded: true,
-      pcmDecodeSupported: true,
       sampleCount: decoded.sampleCount,
       sampleRate: decoded.sampleRate,
       channels: decoded.channels,
@@ -394,9 +284,6 @@ function readWithValues(input, values = DEFAULT_VALUES) {
       sourceFormat: "wem",
       codec: metadata.codec,
       mimeType: "application/octet-stream",
-      containerOnly: true,
-      isDecoded: false,
-      pcmDecodeSupported: false,
       metadata,
       bytes
     };
@@ -433,5 +320,5 @@ function readU32(bytes, offset, littleEndian) {
   return littleEndian ? (bytes[offset] | bytes[offset + 1] << 8 | bytes[offset + 2] << 16 | bytes[offset + 3] * 0x1000000) >>> 0 : bytes[offset] * 0x1000000 + (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3] >>> 0;
 }
 
-export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_RAW, OUTPUT_WEM_JSON, WEM_CODEC_NAMES, inspectWEM, inspectWithValues, isSupportedWithValues, isWEM, normalizeEmit, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_RAW, OUTPUT_WEM_JSON, WEM_CODEC_NAMES, inspectWEM, inspectWithValues, isWEM, normalizeEmit, normalizeValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

@@ -324,10 +324,10 @@ test("the schema is required, and is what this format reports on", () => {
   assert.equal(CjsSchemaBoundFormat.is({ type: "int", size: 4 }), false);
   assert.equal(CjsSchemaBoundFormat.is(null), false);
 
-  const probe = CjsSchemaBoundFormat.isSupported({ type: "dict" });
+  const probe = CjsSchemaBoundFormat.getSupport({ type: "dict" });
 
   assert.equal(probe.format, "schemabound");
-  assert.equal(probe.supported, "full");
+  assert.equal(probe.supported, true);
   assert.equal(probe.metadata.requiresSchema, true);
 });
 

@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     buildSoundbanksCatalog,
     isSoundbanksInfo,
@@ -16,7 +17,7 @@ import {
     extractMedia,
     inspectWithValues,
     isBNK,
-    isSupportedWithValues,
+    probeSupportWithValues,
     normalizeValues,
     readWithValues,
     toBytes,
@@ -62,7 +63,7 @@ const FORMAT_NAME = "CjsBnkFormat";
  * helpers, id hash, event -> media graph resolution) is grouped under the
  * `wwise` static.
  */
-export class CjsBnkFormat
+export class CjsBnkFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -71,7 +72,9 @@ export class CjsBnkFormat
      */
     static worker = Object.freeze({
         module: import.meta.url,
-        exportName: "CjsBnkFormat"
+        exportName: "CjsBnkFormat",
+        outputTypes: Object.freeze([ OUTPUT_RAW, OUTPUT_MEDIA, OUTPUT_BNK_JSON ]),
+        defaultOutput: OUTPUT_RAW
     });
 
     /**
@@ -81,6 +84,7 @@ export class CjsBnkFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -144,18 +148,6 @@ export class CjsBnkFormat
     }
 
     /**
-     * Report whether soundbank input and requested output variants are supported.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Support/probe report.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options));
-    }
-
-    /**
      * Convert format output into JSON-compatible debug data.
      *
      * @param {any} value Format output.
@@ -209,9 +201,9 @@ export class CjsBnkFormat
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
     }
 
     /**
@@ -333,16 +325,21 @@ export class CjsBnkFormat
 
     static HIRC_V150_TYPE_NAMES = HIRC_V150_TYPE_NAMES;
 
-    static type = Object.freeze([ "audio" ]);
+    static id = "bnk";
 
     static mediaTypes = Object.freeze([ "audio" ]);
 
+    static outputs = CjsFormat.defineOutputs({
+
+        raw: { default: true, passthrough: true },
+
+        media: {  },
+
+        bnkJson: { role: "debug", probes: [ "bnkJson", "raw" ] }
+
+    });
+
     static extensions = Object.freeze([ ".bnk" ]);
-    static inputTypes = Object.freeze([ "bnk" ]);
-
-    static outputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_MEDIA ]);
-
-    static debugOutputTypes = Object.freeze([ OUTPUT_BNK_JSON, OUTPUT_RAW ]);
 }
 
 export default CjsBnkFormat;

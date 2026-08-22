@@ -1,15 +1,7 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { HlslEffectRes } from './core/tr2/resources/HlslEffectRes.js';
 import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, toJsonValue, toBytes, OUTPUT_JSON, OUTPUT_METADATA, OUTPUT_RAW } from './core/helpers.js';
 import { CLASS_KEYS } from './core/json.js';
-
-/**
- * Exposed CarbonEngineJS-facing Tr2 effect container format class.
- *
- * Keep this file small and reviewable: the Tr2 effect graph parser lives
- * under src/core/tr2 (internal parsing machinery, not part of this
- * package's public surface); input/option normalization, the shared read
- * path, and the JSON emitters live under src/core.
- */
 
 const FORMAT_NAME = "CjsHlslFormat";
 
@@ -30,7 +22,7 @@ const FORMAT_NAME = "CjsHlslFormat";
  * node kinds in the emitted JSON graph (see `CjsHlslFormat.CLASS_KEYS`);
  * class registration does not depend on importing internal graph classes.
  */
-class CjsHlslFormat {
+class CjsHlslFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #source = DEFAULT_VALUES.source;
   #permutation = DEFAULT_VALUES.permutation;
@@ -42,6 +34,7 @@ class CjsHlslFormat {
    * @param {object} [options] Default format values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -176,11 +169,11 @@ class CjsHlslFormat {
    * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate bytes.
    * @returns {boolean} True when the payload's header decodes as a supported Tr2 effect.
    */
-  static isSupported(input) {
+  static probeSupport(input) {
     try {
       const bytes = toBytes(input);
       return new HlslEffectRes().DoLoad(bytes, {
-        source: "isSupported"
+        source: "probeSupport"
       });
     } catch {
       return false;
@@ -222,12 +215,22 @@ class CjsHlslFormat {
   static OUTPUT_METADATA = OUTPUT_METADATA;
   static OUTPUT_RAW = OUTPUT_RAW;
   static CLASS_KEYS = CLASS_KEYS;
-  static type = Object.freeze(["shader"]);
+  static id = "hlsl";
   static mediaTypes = Object.freeze(["shader"]);
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      default: true,
+      decoded: true
+    },
+    metadata: {
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    }
+  });
   static extensions = Object.freeze([".sm_hi", ".sm_lo", ".sm_depth"]);
-  static inputTypes = Object.freeze(["sm_hi", "sm_lo", "sm_depth"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_METADATA]);
-  static debugOutputTypes = Object.freeze([OUTPUT_RAW]);
 }
 
 export { CjsHlslFormat, CjsHlslFormat as default };

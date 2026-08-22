@@ -5,7 +5,7 @@ import CjsMp4Format, { CjsMp4Format as NamedCjsMp4Format } from "../../../src/fo
 test("exports default and named CjsMp4Format", () =>
 {
     assert.equal(CjsMp4Format, NamedCjsMp4Format);
-    assert.deepEqual(CjsMp4Format.inputTypes, [ "mp4", "m4v", "m4a" ]);
+    assert.deepEqual(CjsMp4Format.extensions, [ ".mp4", ".m4v", ".m4a" ]);
 });
 
 test("inspects mp4 container", () =>
@@ -25,7 +25,7 @@ test("treats M4A as an MP4 audio-profile input", () =>
 
     assert.equal(info.sourceFormat, "mp4");
     assert.equal(info.container, "isobmff");
-    assert.equal(CjsMp4Format.isSupported(bytes, { inputType: "m4a" }).format, "mp4");
+    assert.equal(CjsMp4Format.getSupport(bytes, { inputType: "m4a" }).format, "mp4");
 });
 
 test("extracts M4A-style AAC track metadata", () =>
@@ -44,31 +44,22 @@ test("emits a GPU-free video container payload without decoding frames", () =>
 {
     const bytes = makeMp4VideoTrack();
     const video = CjsMp4Format.read(bytes, { emit: "video" });
-    const support = CjsMp4Format.isSupported(bytes);
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
-    const containerVariant = support.variants.find((variant) => variant.kind === "container");
+    const support = CjsMp4Format.getSupport(bytes);
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
     assert.equal(video.payloadType, "video");
     assert.equal(video.sourceFormat, "mp4");
     assert.equal(video.container, "isobmff");
     assert.equal(video.mimeType, "video/mp4");
-    assert.equal(video.containerOnly, true);
-    assert.equal(video.isDecoded, false);
-    assert.equal(video.frameDecodeSupported, false);
     assert.deepEqual(video.codecs, [ "avc1" ]);
     assert.deepEqual(video.videoCodecs, [ "avc1" ]);
     assert.deepEqual(video.audioCodecs, []);
     assert.equal(video.durationTimescale, 1000);
     assert.equal(video.tracks[0].codec, "avc1");
     assert.equal(video.sourceBytes, bytes);
-    assert.equal(support.supported, "partial");
-    assert.equal(rawVariant.mimeType, "video/mp4");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.frameDecodeSupported, false);
-    assert.equal(containerVariant.mimeType, "video/mp4");
-    assert.equal(containerVariant.containerOnly, true);
-    assert.equal(containerVariant.frameDecodeSupported, false);
-    assert.deepEqual(containerVariant.videoCodecs, [ "avc1" ]);
+    assert.equal(support.supported, true);
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "video").supported, true);
 });
 
 test("inspects MP4 movie and video track timing metadata", () =>

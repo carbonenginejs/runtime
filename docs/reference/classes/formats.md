@@ -279,7 +279,649 @@ Metadata-only FLAC format profile that validates the stream signature, inspects 
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
-### gif
+### fsd
+
+<!-- class:CjsFsdFormat -->
+## `CjsFsdFormat`
+
+FSD format-pipeline facade that distinguishes explicitly declared legacy 32-bit FSD from self-identifying modern 64-bit cFSD and dispatches to the matching implementation.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd`
+- Source: `src/formats/fsd/CjsFsdFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsFsd32Format -->
+## `CjsFsd32Format`
+
+Reserved legacy FSD format boundary that reports caller-identified 32-bit input and throws a stable unsupported error until its schema-driven decoder is implemented.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/32`
+- Source: `src/formats/fsd/32/CjsFsd32Format.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsFsd64Format -->
+## `CjsFsd64Format`
+
+Modern cFSD format profile that validates the 32-byte envelope and dispatches bytes to an explicitly supplied dataset reader or registry.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64`
+- Source: `src/formats/fsd/64/CjsFsd64Format.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsFsd64Binary -->
+## `CjsFsd64Binary`
+
+Bounds-checked access to a modern 64-bit cFSD container and its schema identity, offsets, collections, strings, and primitive values.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64`
+- Source: `src/formats/fsd/64/core/CjsFsd64Binary.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64Reader -->
+## `CjsFsd64Reader`
+
+Acquisition-free registry that dispatches caller-supplied modern cFSD bytes by normalized logical path.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64`
+- Source: `src/formats/fsd/64/core/CjsFsd64Reader.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaDecoder -->
+## `CjsFsd64SchemaDecoder`
+
+Validates JSON-shaped binary layout definitions and decodes modern cFSD bytes into typed or JSON-compatible values.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64`
+- Source: `src/formats/fsd/64/core/CjsFsd64SchemaDecoder.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaReader -->
+## `CjsFsd64SchemaReader`
+
+Base class for modern file-specific readers whose package-owned JSON-shaped layout is exposed as `fsdSchema` and through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64`
+- Source: `src/formats/fsd/64/core/CjsFsd64SchemaReader.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64ReaderSetCharacterStaticData -->
+## `CjsFsd64ReaderSetCharacterStaticData`
+
+Registers the complete reviewed character-static-data reader family on a modern cFSD reader registry.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64ReaderSetCharacterStaticData.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaAgentsInSpace -->
+## `CjsFsd64SchemaAgentsInSpace`
+
+Exposes the verified inline modern cFSD layout for agents in space records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaAgentsInSpace.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaAgentTypes -->
+## `CjsFsd64SchemaAgentTypes`
+
+Exposes the verified inline modern cFSD layout for agent types records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaAgentTypes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaAncestries -->
+## `CjsFsd64SchemaAncestries`
+
+Exposes the verified inline modern cFSD layout for ancestries records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaAncestries.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaArchetypes -->
+## `CjsFsd64SchemaArchetypes`
+
+Exposes the verified inline modern cFSD layout for archetypes records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaArchetypes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaAudioMetadata -->
+## `CjsFsd64SchemaAudioMetadata`
+
+Exposes the verified inline modern cFSD layout for audio metadata records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaAudioMetadata.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaBloodlines -->
+## `CjsFsd64SchemaBloodlines`
+
+Exposes the verified inline modern cFSD layout for bloodlines records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaBloodlines.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCategories -->
+## `CjsFsd64SchemaCategories`
+
+Exposes the verified inline modern cFSD layout for categories records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCategories.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCharacterAvatarBehaviors -->
+## `CjsFsd64SchemaCharacterAvatarBehaviors`
+
+Exposes the verified inline modern cFSD layout for character avatar behaviors records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCharacterAvatarBehaviors.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCharacterColorLocations -->
+## `CjsFsd64SchemaCharacterColorLocations`
+
+Exposes the verified inline modern cFSD layout for character color locations records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCharacterColorLocations.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCharacterColorNames -->
+## `CjsFsd64SchemaCharacterColorNames`
+
+Exposes the verified inline modern cFSD layout for character color names records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCharacterColorNames.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCharacterModifierLocations -->
+## `CjsFsd64SchemaCharacterModifierLocations`
+
+Exposes the verified inline modern cFSD layout for character modifier locations records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCharacterModifierLocations.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCharacterPortraitResources -->
+## `CjsFsd64SchemaCharacterPortraitResources`
+
+Exposes the verified inline modern cFSD layout for character portrait resources records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCharacterPortraitResources.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCharacterResources -->
+## `CjsFsd64SchemaCharacterResources`
+
+Exposes the verified inline modern cFSD layout for character resources records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCharacterResources.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCharacterSculptingLocations -->
+## `CjsFsd64SchemaCharacterSculptingLocations`
+
+Exposes the verified inline modern cFSD layout for character sculpting locations records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCharacterSculptingLocations.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCompressibleTypes -->
+## `CjsFsd64SchemaCompressibleTypes`
+
+Exposes the verified inline modern cFSD layout for compressible types records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCompressibleTypes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaContrabandTypes -->
+## `CjsFsd64SchemaContrabandTypes`
+
+Exposes the verified inline modern cFSD layout for contraband types records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaContrabandTypes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaControlTowerResources -->
+## `CjsFsd64SchemaControlTowerResources`
+
+Exposes the verified inline modern cFSD layout for control tower resources records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaControlTowerResources.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCorporationActivities -->
+## `CjsFsd64SchemaCorporationActivities`
+
+Exposes the verified inline modern cFSD layout for corporation activities records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCorporationActivities.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCorporationRoleGroups -->
+## `CjsFsd64SchemaCorporationRoleGroups`
+
+Exposes the verified inline modern cFSD layout for corporation role groups records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCorporationRoleGroups.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaCorporationRoles -->
+## `CjsFsd64SchemaCorporationRoles`
+
+Exposes the verified inline modern cFSD layout for corporation roles records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaCorporationRoles.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaDogmaAttributeCategories -->
+## `CjsFsd64SchemaDogmaAttributeCategories`
+
+Exposes the verified inline modern cFSD layout for dogma attribute categories records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaDogmaAttributeCategories.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaDogmaAttributes -->
+## `CjsFsd64SchemaDogmaAttributes`
+
+Exposes the verified inline modern cFSD layout for dogma attributes records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaDogmaAttributes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaDogmaEffects -->
+## `CjsFsd64SchemaDogmaEffects`
+
+Exposes the verified inline modern cFSD layout for dogma effects records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaDogmaEffects.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaDogmaUnits -->
+## `CjsFsd64SchemaDogmaUnits`
+
+Exposes the verified inline modern cFSD layout for dogma units records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaDogmaUnits.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaDynamicItemAttributes -->
+## `CjsFsd64SchemaDynamicItemAttributes`
+
+Exposes the verified inline modern cFSD layout for dynamic item attributes records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaDynamicItemAttributes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaEpicArcs -->
+## `CjsFsd64SchemaEpicArcs`
+
+Exposes the verified inline modern cFSD layout for epic arcs records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaEpicArcs.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaExpertSystems -->
+## `CjsFsd64SchemaExpertSystems`
+
+Exposes the verified inline modern cFSD layout for expert systems records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaExpertSystems.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaFactions -->
+## `CjsFsd64SchemaFactions`
+
+Exposes the verified inline modern cFSD layout for factions records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaFactions.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaGraphicIds -->
+## `CjsFsd64SchemaGraphicIds`
+
+Exposes the verified inline modern cFSD layout for graphic ids records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaGraphicIds.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaGraphicMaterialSets -->
+## `CjsFsd64SchemaGraphicMaterialSets`
+
+Exposes the verified inline modern cFSD layout for graphic material sets records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaGraphicMaterialSets.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaGroups -->
+## `CjsFsd64SchemaGroups`
+
+Exposes the verified inline modern cFSD layout for groups records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaGroups.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaIcons -->
+## `CjsFsd64SchemaIcons`
+
+Exposes the verified inline modern cFSD layout for icons records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaIcons.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaMarketGroups -->
+## `CjsFsd64SchemaMarketGroups`
+
+Exposes the verified inline modern cFSD layout for market groups records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaMarketGroups.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaMetaGroups -->
+## `CjsFsd64SchemaMetaGroups`
+
+Exposes the verified inline modern cFSD layout for meta groups records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaMetaGroups.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaNpcCorporationDivisions -->
+## `CjsFsd64SchemaNpcCorporationDivisions`
+
+Exposes the verified inline modern cFSD layout for npc corporation divisions records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaNpcCorporationDivisions.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaNpcCorporations -->
+## `CjsFsd64SchemaNpcCorporations`
+
+Exposes the verified inline modern cFSD layout for npc corporations records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaNpcCorporations.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaPaperdolls -->
+## `CjsFsd64SchemaPaperdolls`
+
+Exposes the verified inline modern cFSD layout for paperdolls records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaPaperdolls.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaRaces -->
+## `CjsFsd64SchemaRaces`
+
+Exposes the verified inline modern cFSD layout for races records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaRaces.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSchoolMap -->
+## `CjsFsd64SchemaSchoolMap`
+
+Exposes the verified inline modern cFSD layout for school map records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSchoolMap.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSchools -->
+## `CjsFsd64SchemaSchools`
+
+Exposes the verified inline modern cFSD layout for schools records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSchools.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkillPlans -->
+## `CjsFsd64SchemaSkillPlans`
+
+Exposes the verified inline modern cFSD layout for skill plans records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkillPlans.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrComponentCategories -->
+## `CjsFsd64SchemaSkinrComponentCategories`
+
+Exposes the verified inline modern cFSD layout for skinr component categories records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponentCategories.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrComponentPointValues -->
+## `CjsFsd64SchemaSkinrComponentPointValues`
+
+Exposes the verified inline modern cFSD layout for skinr component point values records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponentPointValues.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrComponentRarities -->
+## `CjsFsd64SchemaSkinrComponentRarities`
+
+Exposes the verified inline modern cFSD layout for skinr component rarities records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponentRarities.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrComponents -->
+## `CjsFsd64SchemaSkinrComponents`
+
+Exposes the verified inline modern cFSD layout for skinr components records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponents.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrSlotCategories -->
+## `CjsFsd64SchemaSkinrSlotCategories`
+
+Exposes the verified inline modern cFSD layout for skinr slot categories records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlotCategories.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrSlotConfigurations -->
+## `CjsFsd64SchemaSkinrSlotConfigurations`
+
+Exposes the verified inline modern cFSD layout for skinr slot configurations records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlotConfigurations.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrSlotNames -->
+## `CjsFsd64SchemaSkinrSlotNames`
+
+Exposes the verified inline modern cFSD layout for skinr slot names records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlotNames.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrSlots -->
+## `CjsFsd64SchemaSkinrSlots`
+
+Exposes the verified inline modern cFSD layout for skinr slots records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlots.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaSkinrTierThresholds -->
+## `CjsFsd64SchemaSkinrTierThresholds`
+
+Exposes the verified inline modern cFSD layout for skinr tier thresholds records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaSkinrTierThresholds.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaStationOperations -->
+## `CjsFsd64SchemaStationOperations`
+
+Exposes the verified inline modern cFSD layout for station operations records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaStationOperations.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaStationServices -->
+## `CjsFsd64SchemaStationServices`
+
+Exposes the verified inline modern cFSD layout for station services records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaStationServices.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaTypeDogma -->
+## `CjsFsd64SchemaTypeDogma`
+
+Exposes the verified inline modern cFSD layout for type dogma records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaTypeDogma.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaTypeLists -->
+## `CjsFsd64SchemaTypeLists`
+
+Exposes the verified inline modern cFSD layout for type lists records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaTypeLists.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaTypeMaterials -->
+## `CjsFsd64SchemaTypeMaterials`
+
+Exposes the verified inline modern cFSD layout for type materials records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaTypeMaterials.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFsd64SchemaTypes -->
+## `CjsFsd64SchemaTypes`
+
+Exposes the verified inline modern cFSD layout for types records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime-resource/formats/fsd/64/readers`
+- Source: `src/formats/fsd/64/readers/CjsFsd64SchemaTypes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
++### gif
 
 <!-- class:CjsGifFormat -->
 ## `CjsGifFormat`

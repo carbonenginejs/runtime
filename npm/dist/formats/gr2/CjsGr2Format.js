@@ -1,3 +1,4 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { curves } from './core/curves.js';
 import { GR2_MAGICS, bytesToHex } from './core/reader.js';
 import { tangents } from './core/tangents.js';
@@ -12,7 +13,7 @@ import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readW
  * emitting GR2 JSON, hydrated caller-supplied classes, or CMF-shaped output,
  * without pretending those classes are the engine runtime itself.
  */
-class CjsGr2Format {
+class CjsGr2Format extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #decompressCurves = DEFAULT_VALUES.decompressCurves;
   #unpackTangents = DEFAULT_VALUES.unpackTangents;
@@ -27,6 +28,7 @@ class CjsGr2Format {
    * @param {object} [options] Default format/build values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -249,12 +251,30 @@ class CjsGr2Format {
   static OUTPUT_CMF = OUTPUT_CMF;
   static OUTPUT_RAW = OUTPUT_RAW;
   static CLASS_KEYS = CLASS_KEYS;
-  static type = Object.freeze(["geometry"]);
+  static id = "gr2";
   static mediaTypes = Object.freeze(["geometry"]);
+  static outputs = CjsFormat.defineOutputs({
+    gr2: {
+      decoded: true
+    },
+    cmf: {
+      decoded: true
+    },
+    json: {
+      role: "debug",
+      default: true,
+      decoded: true
+    },
+    gr2Json: {
+      role: "debug",
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    }
+  });
   static extensions = Object.freeze([".gr2", ".gsf"]);
-  static inputTypes = Object.freeze(["gr2", "gsf"]);
-  static outputTypes = Object.freeze([OUTPUT_GR2, OUTPUT_CMF]);
-  static debugOutputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_GR2_JSON, OUTPUT_RAW]);
   static curves = curves;
   static tangents = tangents;
   static gsf = Object.freeze({
@@ -269,7 +289,7 @@ class CjsGr2Format {
    * @param {Uint8Array} bytes Candidate source bytes.
    * @returns {boolean} True when the 16-byte Granny magic is recognized.
    */
-  static isSupported(bytes) {
+  static probeSupport(bytes) {
     if (!bytes || bytes.length < 16) return false;
     return bytesToHex(bytes.subarray(0, 16)) in GR2_MAGICS;
   }

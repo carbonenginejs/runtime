@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsYamlFormat } from "../yaml/index.js";
 import { ReadValue } from "./core/schemaBoundValues.js";
 import { SchemaBoundError } from "./core/schemaBoundErrors.js";
@@ -30,7 +31,7 @@ const ROOT_TYPES = new Set([ "dict", "list", "object" ]);
  * a decoder written around a constant stride will read the first record
  * correctly and everything after it wrongly.
  */
-export class CjsSchemaBoundFormat {
+export class CjsSchemaBoundFormat extends CjsFormat {
 
   /**
    * Reports whether a schema can drive this reader.
@@ -43,9 +44,9 @@ export class CjsSchemaBoundFormat {
    * @param {object|Uint8Array|ArrayBuffer|string} schema Schema document or its bytes.
    * @returns {boolean} True when the schema has a root this reader understands.
    */
-  static is(schema) {
+  static is(input, options = null) {
     try {
-      return ROOT_TYPES.has(this.schema(schema).type);
+      return ROOT_TYPES.has(this.schema(options?.schema ?? input).type);
     } catch {
       return false;
     }
@@ -58,13 +59,40 @@ export class CjsSchemaBoundFormat {
    * @param {object} [options] Probe options.
    * @returns {object} Resource probe.
    */
-  static isSupported(schema, options = null) {
-    return Probe(this.is(schema), options);
+  static probeSupport(input, options = null) {
+    const usable = this.is(input, options);
+    return {
+      format: this.id,
+      source: options?.source || "buffer",
+      recognized: usable,
+      supported: usable,
+      preferredOutput: usable ? OUTPUT_JSON : "",
+      reason: usable
+        ? "The supplied schema declares a root this reader can decode."
+        : "A readable companion schema was not supplied.",
+      variants: [
+        { kind: OUTPUT_JSON, supported: usable },
+        { kind: OUTPUT_PAYLOAD, supported: usable }
+      ],
+      metadata: usable ? this.inspect(input, options) : {
+        family: this.id,
+        requiresSchema: true,
+        decodable: false
+      }
+    };
   }
 
-  // INTERIM, 2026-08-16. No `inspect` alias, matching CjsSqliteFormat and
-  // diverging from the older formats. Both are held by the same undecided
-  // question; see maintenance/INTERIM-sqlite-and-static-2026-08-16.md.
+  /** Return schema and payload facts without decoding the payload. */
+  static inspect(input, options = null) {
+    const schema = this.schema(options?.schema ?? input);
+    return {
+      family: this.id,
+      rootType: schema.type,
+      requiresSchema: true,
+      decodable: ROOT_TYPES.has(schema.type),
+      byteLength: options?.schema === undefined ? null : Normalize(input).byteLength
+    };
+  }
 
   /**
    * Reads a container against its schema.
@@ -105,7 +133,8 @@ export class CjsSchemaBoundFormat {
     };
     const decoded = ReadValue(context, 0, schema).value;
 
-    return options.output === OUTPUT_PAYLOAD ? decoded : ToJSON(decoded);
+    const output = options.emit ?? options.output ?? OUTPUT_JSON;
+    return output === OUTPUT_PAYLOAD ? decoded : ToJSON(decoded);
   }
 
   /** Reads to plain JSON-compatible values. */
@@ -146,10 +175,11 @@ export class CjsSchemaBoundFormat {
 
   static id = "schemabound";
   static extensions = Object.freeze([ ".static" ]);
-  static type = Object.freeze([ "data" ]);
   static mediaTypes = Object.freeze([ "data" ]);
-  static inputTypes = Object.freeze([ "schemabound" ]);
-  static outputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_PAYLOAD ]);
+  static outputs = CjsFormat.defineOutputs({
+      json: { default: true, decoded: true },
+      payload: { decoded: true }
+  });
 }
 
 /**
@@ -195,26 +225,6 @@ function Resolve(value) {
   };
 
   return walk(value);
-}
-
-/** Builds the probe shape the resource manager routes on. */
-function Probe(usable, options) {
-  return {
-    format: "schemabound",
-    source: "buffer",
-    supported: usable ? "full" : "none",
-    confidence: usable ? 1 : 0,
-    preferred: "schemabound",
-    // The schema is read to answer this, so it is measured rather than declared.
-    // It says nothing about any payload: these containers carry no signature.
-    verified: true,
-    reason: usable
-      ? "The schema declares a root this reader can decode."
-      : "The schema is missing, unparsable, or declares an unreadable root.",
-    variants: [ { kind: "container", codec: "schemabound", supported: usable } ],
-    metadata: { family: "schemabound", requiresSchema: true, decodable: usable },
-    ...(options || {})
-  };
 }
 
 /** Converts decoded values to something `JSON.stringify` keeps losslessly. */

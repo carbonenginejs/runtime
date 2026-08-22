@@ -413,7 +413,7 @@ function parseGr2DocumentWithValues(input, values)
  * @param {object} values Normalized reader values.
  * @returns {object} Support report.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES)
+export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
     try
     {
@@ -428,7 +428,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: recognized ? "partial" : "none",
             confidence: recognized ? metadata.confidence : 0,
-            preferred: recognized ? "gr2" : "",
+            preferredOutput: recognized ? "gr2" : "",
             reason: recognized ? "FBX document parsing plus basic static/skinned/morphed GR2/CMF output and basic CMF animation curves are available; full CarbonEngine-equivalent import is not implemented yet." : "Unrecognized FBX data.",
             metadata,
             variants: [
@@ -447,7 +447,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],

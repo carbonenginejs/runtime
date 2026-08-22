@@ -165,7 +165,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the DDS
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
+export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
     {
@@ -185,7 +185,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
                     payloadType: "texture",
                     codec: metadata.pixelFormat || metadata.textureFormat || "unknown",
                     supported: canEmitTexture && metadata.isCompressed,
-                    nativeOnly: !!metadata.nativeTextureOnly,
                     reason: metadata.isCompressed ? textureUnsupportedReason : "DDS is not block-compressed."
                 },
                 {
@@ -220,7 +219,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: metadata.sourceFormat ? (variants.some(v => v.supported && v.kind !== "raw") ? "full" : (variants.some(v => v.supported) ? "partial" : "none")) : "none",
             confidence: metadata.sourceFormat ? 1 : 0,
-            preferred: preferredVariant?.codec || "",
+            preferredOutput: preferredVariant?.kind || "",
             reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized image format.",
             metadata,
             variants,
@@ -235,7 +234,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],

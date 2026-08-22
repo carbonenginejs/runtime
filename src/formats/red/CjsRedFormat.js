@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import { CLASS_KEYS } from "./core/schema.js";
 import {
     DEFAULT_VALUES,
@@ -30,7 +31,7 @@ const FORMAT_NAME = "CjsRedFormat";
  * Disabling the reference marker preserves actual JavaScript identity; a
  * cyclic result in that mode is intentionally not JSON-serializable.
  */
-export class CjsRedFormat
+export class CjsRedFormat extends CjsFormat
 {
 
     #emit = DEFAULT_VALUES.emit;
@@ -44,6 +45,7 @@ export class CjsRedFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -282,11 +284,13 @@ export class CjsRedFormat
     static schema = blackDefinitions;
     static id = "red";
     static extensions = Object.freeze([ ".red" ]);
-    static type = Object.freeze([ "data" ]);
     static mediaTypes = Object.freeze([ "data" ]);
-    static inputTypes = Object.freeze([ "red" ]);
-    static outputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_PAYLOAD, OUTPUT_RUNTIME ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_RAW ]);
+    static outputs = CjsFormat.defineOutputs({
+        json: { default: true, decoded: true },
+        payload: { decoded: true },
+        runtime: { decoded: true },
+        raw: { role: "debug", decoded: true }
+    });
 
 }
 

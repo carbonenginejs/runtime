@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MediaType, PayloadType } from "@carbonenginejs/runtime-utils/media";
 import * as formats from "../src/formats/index.js";
-// CjsFormat pulls in decorated probe code - test the consumer output.
-import { CjsFormat } from "../npm/dist/index.js";
+import { CjsFormat } from "../src/format/CjsFormat.js";
+import { CjsFsd32Format } from "../src/formats/fsd/32/index.js";
+import { CjsFsd64Format } from "../src/formats/fsd/64/index.js";
 
 // Vocabulary conformance: runtime-utils owns the shared media
 // vocabulary; formats declare against it. This test pins the canonical set so
@@ -20,23 +21,40 @@ test("CjsFormat exposes the runtime-utils vocabulary objects by identity", () =>
   assert.equal(CjsFormat.OutputType.RAW, PayloadType.RAW);
 });
 
-test("every format declares type and mediaTypes from the canonical vocabulary", () =>
+test("every format is a CjsFormat with one canonical frozen contract", () =>
 {
-  const formatClasses = Object.entries(formats)
-    .filter(([ name, value ]) => /^Cjs.+Format$/.test(name) && typeof value === "function");
+  const formatClasses = [
+    ...Object.entries(formats)
+      .filter(([ name, value ]) => /^Cjs.+Format$/.test(name) && typeof value === "function"),
+    [ "CjsFsd32Format", CjsFsd32Format ],
+    [ "CjsFsd64Format", CjsFsd64Format ]
+  ];
   assert.ok(formatClasses.length >= 20, `expected the full format registry, saw ${formatClasses.length}`);
+  const ids = new Set();
   for (const [ name, Format ] of formatClasses)
   {
-    for (const token of Format.type ?? [])
-    {
-      assert.ok(CANONICAL_MEDIA.has(token), `${name}.type token "${token}" is not canonical MediaType vocabulary`);
-    }
-    for (const token of Format.mediaTypes ?? [])
+    CjsFormat.validateContract(Format);
+    assert.equal(Format.prototype instanceof CjsFormat, true, `${name} extends CjsFormat`);
+    assert.equal(ids.has(Format.id), false, `${name}.id is unique`);
+    ids.add(Format.id);
+    for (const token of Format.mediaTypes)
     {
       assert.ok(CANONICAL_MEDIA.has(token), `${name}.mediaTypes token "${token}" is not canonical MediaType vocabulary`);
     }
-    assert.ok((Format.type ?? []).length > 0, `${name} declares no type`);
-    assert.ok((Format.mediaTypes ?? []).length > 0, `${name} declares no mediaTypes`);
+    assert.ok(Format.mediaTypes.length > 0, `${name} declares mediaTypes`);
+    assert.equal(typeof Format.requestResponseType, "string", `${name} declares requestResponseType`);
+    assert.ok(Format.requestResponseType.length > 0, `${name}.requestResponseType is non-empty`);
+    assert.ok(Format.worker === null || Object.isFrozen(Format.worker), `${name}.worker is null or frozen`);
+    for (const retired of [ "type", "inputTypes", "outputTypes", "debugOutputTypes", "implementationStatus" ])
+    {
+      assert.equal(Object.hasOwn(Format, retired), false, `${name} does not redeclare retired ${retired}`);
+    }
+    for (const [ output, capability ] of Object.entries(Format.outputs))
+    {
+      assert.equal(capability.output, output);
+      assert.equal(Object.isFrozen(capability), true, `${name}.${output} capability is frozen`);
+      assert.equal(capability.verified, undefined, "declarations do not claim runtime proof");
+    }
   }
 });
 
@@ -91,10 +109,9 @@ test("no two formats claim the same extension, except the .static router pair", 
 
 test("a format whose inputs are not file suffixes declares no extensions", () =>
 {
-  // webgl/webgpu take already-built containers and dxbc takes a bytecode blob;
-  // their `inputTypes` are logical input names. Populating `extensions` to look
-  // complete would claim a file route that does not exist.
-  for (const name of [ "CjsWebglFormat", "CjsWebgpuFormat", "CjsDxbcFormat" ])
+  // WebGL takes an already-built container and DXBC takes a bytecode blob.
+  // Populating `extensions` would claim a file route that does not exist.
+  for (const name of [ "CjsWebglFormat", "CjsDxbcFormat" ])
   {
     const Format = formats[name];
     if (!Format) continue;

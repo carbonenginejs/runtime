@@ -15,11 +15,17 @@ touches one stops being loadable from source. Every consumer reading `src/`
 directly then fails with a bare syntax error pointing at the decorator rather
 than at the import that reached it, which is a long way from the mistake.
 
-The practical consequence is that a format reports a **plain probe-shaped
-object** from `isSupported()` and `resolveType()` rather than constructing a
-`CjsResourceProbe`, which is decorated. `CjsResourceProbe.from()` normalizes
-those payloads wherever a real probe instance is wanted. See
-[format type resolution](../concepts/format-type-resolution.md).
+The practical consequence is that `inspect()`, `getSupport()`, and
+`verifySupport()` return plain objects rather than constructing a decorated
+`CjsResourceProbe`. `CjsResourceProbe.from()` is the optional resource-layer
+normalization boundary. `is()` remains the boolean-only synchronous routing
+predicate. See [format capabilities](../concepts/format-capabilities.md).
+
+Every format extends `CjsFormat` and exposes one normalized static contract:
+`id`, frozen `mediaTypes`, frozen dotted `extensions`, a frozen `outputs` map,
+`requestResponseType`, and `worker`. `getSupport()` is synchronous structural
+advice and always reports `verified: false`; `verifySupport()` asynchronously
+executes the real `readAsync()` path for one exact output.
 
 ## Import rule
 
@@ -60,9 +66,10 @@ metadata. Worker eligibility never changes the format's direct API; see
 | DXBC (shader bytecode) | `CjsDxbcFormat` | `@carbonenginejs/runtime-resource/formats/dxbc` |
 | Compiled effect (`.sm_hi`, `.sm_lo`, `.sm_depth`) | `CjsHlslFormat` | `@carbonenginejs/runtime-resource/formats/hlsl` |
 | Carbon WebGL WebGL effect package | `CjsWebglFormat` | `@carbonenginejs/runtime-resource/formats/webgl` |
-| Carbon WebGPU WebGPU effect package | `CjsWebgpuFormat` | `@carbonenginejs/runtime-resource/formats/webgpu` |
+| Carbon WebGPU effect package (`.carbonwebgpu`) | `CjsWebgpuFormat` | `@carbonenginejs/runtime-resource/formats/webgpu` |
 | FBX (`.fbx`) | `CjsFbxFormat` | `@carbonenginejs/runtime-resource/formats/fbx` |
 | FLAC (`.flac`) | `CjsFlacFormat` | `@carbonenginejs/runtime-resource/formats/flac` |
+| FSD (`.fsdbinary`; legacy 32-bit and modern 64-bit cFSD) | `CjsFsdFormat` | `@carbonenginejs/runtime-resource/formats/fsd` |
 | GIF (`.gif`) | `CjsGifFormat` | `@carbonenginejs/runtime-resource/formats/gif` |
 | glTF (`.gltf`/`.glb`) | `CjsGltfFormat` | `@carbonenginejs/runtime-resource/formats/gltf` |
 | Granny GR2/GSF (`.gr2`/`.gsf`) | `CjsGr2Format` | `@carbonenginejs/runtime-resource/formats/gr2` |
@@ -86,6 +93,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | YAML (`.yaml`/`.yml`) | `CjsYamlFormat` | `@carbonenginejs/runtime-resource/formats/yaml` |
 
 Detailed pages: [Granny GR2 and GSF](gr2.md),
+[FSD and cFSD](fsd.md),
 [data-only pickle protocol 0](pickle.md),
 [client `.static` container identification](static.md),
 [schema-bound containers](schemabound.md),

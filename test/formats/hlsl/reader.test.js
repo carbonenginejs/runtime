@@ -503,12 +503,12 @@ test("toJSON converts typed arrays and nested structures", () =>
     assert.deepEqual(reader.ToJSON(new Uint8Array([ 4, 5 ])), [ 4, 5 ]);
 });
 
-test("isSupported accepts a well-formed header and rejects garbage or truncated data", () =>
+test("is accepts a well-formed header and rejects garbage or truncated data", () =>
 {
-    assert.equal(CjsHlslFormat.isSupported(buildEffectBytes()), true);
-    assert.equal(CjsHlslFormat.isSupported(new Uint8Array([ 1, 2, 3, 4, 5 ])), false);
-    assert.equal(CjsHlslFormat.isSupported(new Uint8Array(0)), false);
-    assert.equal(CjsHlslFormat.isSupported(buildEffectBytes({ version: 99 })), false);
+    assert.equal(CjsHlslFormat.is(buildEffectBytes()), true);
+    assert.equal(CjsHlslFormat.is(new Uint8Array([ 1, 2, 3, 4, 5 ])), false);
+    assert.equal(CjsHlslFormat.is(new Uint8Array(0)), false);
+    assert.equal(CjsHlslFormat.is(buildEffectBytes({ version: 99 })), false);
 });
 
 test("out-of-range version is rejected with a read error", () =>

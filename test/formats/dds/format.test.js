@@ -5,14 +5,14 @@ import CjsDdsFormat, { CjsDdsFormat as NamedCjsDdsFormat } from "../../../src/fo
 test("exports default and named CjsDdsFormat", () =>
 {
     assert.equal(CjsDdsFormat, NamedCjsDdsFormat);
-    assert.deepEqual(CjsDdsFormat.inputTypes, [ "dds" ]);
+    assert.deepEqual(CjsDdsFormat.extensions, [ ".dds" ]);
 });
 
 test("inspects dds dimensions and compressed support variant", () =>
 {
-    const bytes = makeDdsHeader(64, 32, "DXT1");
+    const bytes = makeDdsHeader(64, 32, "DXT1", new Uint8Array(1024));
     const info = CjsDdsFormat.inspect(bytes);
-    const support = CjsDdsFormat.isSupported(bytes);
+    const support = CjsDdsFormat.getSupport(bytes);
 
     assert.equal(CjsDdsFormat.isDDS(bytes), true);
     assert.equal(info.payloadType, "texture");
@@ -20,7 +20,8 @@ test("inspects dds dimensions and compressed support variant", () =>
     assert.equal(info.height, 32);
     assert.equal(info.fourCc, "DXT1");
     assert.equal(info.pixelFormat, "bc1-rgba-unorm");
-    assert.equal(support.variants[0].kind, "compressed");
+    assert.equal(support.outputs[0].output, "texture");
+    assert.equal(support.outputs[0].supported, true);
 });
 
 test("emits compressed dds texture payload", () =>
@@ -46,19 +47,19 @@ test("reports expected and missing DDS texture data bytes during inspection", ()
 {
     const bytes = makeDdsHeader(8, 8, "DXT1", new Uint8Array(8));
     const info = CjsDdsFormat.inspect(bytes);
-    const support = CjsDdsFormat.isSupported(bytes);
+    const support = CjsDdsFormat.getSupport(bytes);
 
     assert.equal(info.dataBytes, 8);
     assert.equal(info.expectedDataBytes, 32);
     assert.equal(info.isDataComplete, false);
     assert.equal(info.missingDataBytes, 24);
     assert.equal(info.extraDataBytes, 0);
-    assert.equal(support.supported, "partial");
-    assert.equal(support.preferred, "dds");
-    assert.equal(support.variants.find((variant) => variant.kind === "texture").supported, false);
-    assert.match(support.variants.find((variant) => variant.kind === "texture").reason, /truncated/u);
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, false);
-    assert.equal(support.variants.find((variant) => variant.kind === "raw").supported, true);
+    assert.equal(support.supported, true, "the default raw output remains usable");
+    assert.equal(support.preferredOutput, "raw");
+    assert.equal(support.outputs.find((variant) => variant.output === "texture").supported, false);
+    assert.match(support.outputs.find((variant) => variant.output === "texture").reason, /truncated/u);
+    assert.equal(support.outputs.find((variant) => variant.output === "rgba").supported, false);
+    assert.equal(support.outputs.find((variant) => variant.output === "raw").supported, true);
     assert.throws(() => CjsDdsFormat.read(bytes, { emit: "texture" }), (error) =>
     {
         assert.equal(error.code, "CJS_FORMAT_TRUNCATED");
@@ -111,17 +112,22 @@ test("emits DX10 cube-array texture subresource face metadata", () =>
     ]);
 });
 
-test("decodes a BC1 block to canonical RGBA", () =>
+test("decodes and asynchronously verifies a BC1 block as canonical RGBA", async () =>
 {
     const bytes = makeDdsHeader(4, 4, "DXT1", [ 0x00, 0xf8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]);
     const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
-    const support = CjsDdsFormat.isSupported(bytes);
+    const support = CjsDdsFormat.getSupport(bytes);
+    const verified = await CjsDdsFormat.verifySupport(bytes, { emit: "rgba" });
 
     assert.equal(rgba.payloadType, "rgba");
     assert.equal(rgba.strideBytes, 16);
     assert.equal(rgba.origin, "top-left");
     assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ 255, 0, 0, 255 ]);
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "rgba").supported, true);
+    assert.equal(support.verified, false);
+    assert.equal(verified.output, "rgba");
+    assert.equal(verified.supported, true);
+    assert.equal(verified.verified, true);
 });
 
 test("decodes BC2 and BC3 alpha blocks to canonical RGBA", () =>
@@ -219,21 +225,21 @@ test("a legacy float fourCC is a number, not four characters", () =>
     // The trap that hid this: DDPF_FOURCC is set and the field reads 114, which
     // as text is "r\0\0\0" and matches no character code at all.
     const bytes = makeLegacyFourCcDdsHeader(1, 1, 114, new Uint8Array(4));
-    const support = CjsDdsFormat.isSupported(bytes);
+    const support = CjsDdsFormat.getSupport(bytes);
 
     assert.equal(CjsDdsFormat.inspect(bytes).fourCcCode, 114);
-    assert.equal(support.variants.find(variant => variant.kind === "texture").supported, true);
+    assert.equal(support.outputs.find(variant => variant.output === "texture").supported, true);
 });
 
 test("decodes unsigned BC6H to canonical float RGBA", () =>
 {
     const bytes = makeDx10DdsHeader(4, 4, 95, makeBc6hMode11Block(0x200, 0x200));
-    const support = CjsDdsFormat.isSupported(bytes);
+    const support = CjsDdsFormat.getSupport(bytes);
     const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
 
-    assert.equal(support.variants.find((variant) => variant.kind === "texture").supported, true);
-    assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, true);
-    assert.equal(support.variants.find((variant) => variant.kind === "compressed").nativeOnly, false);
+    assert.equal(support.outputs.find((variant) => variant.output === "texture").supported, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "rgba").supported, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "texture").passthrough, false);
     assert.equal(CjsDdsFormat.inspect(bytes).nativeTextureOnly, false);
     assert.equal(rgba.pixelFormat, "rgba32float");
     assert.equal(rgba.strideBytes, 64);
@@ -288,13 +294,13 @@ test("decodes BC7 to canonical RGBA without requiring Node Buffer", () =>
 
     try
     {
-        const support = CjsDdsFormat.isSupported(bytes);
+        const support = CjsDdsFormat.getSupport(bytes);
         const rgba = CjsDdsFormat.read(bytes, { emit: "rgba" });
 
         assert.equal(CjsDdsFormat.inspect(bytes).pixelFormat, "bc7-rgba-unorm");
-        assert.equal(support.variants.find((variant) => variant.kind === "texture").supported, true);
-        assert.equal(support.variants.find((variant) => variant.kind === "rgba").supported, true);
-        assert.equal(support.variants.find((variant) => variant.kind === "compressed").nativeOnly, false);
+        assert.equal(support.outputs.find((variant) => variant.output === "texture").supported, true);
+        assert.equal(support.outputs.find((variant) => variant.output === "rgba").supported, true);
+        assert.equal(support.outputs.find((variant) => variant.output === "texture").passthrough, false);
         assert.equal(CjsDdsFormat.inspect(bytes).nativeTextureOnly, false);
         assert.deepEqual(Array.from(rgba.data.slice(0, 4)), [ 254, 254, 254, 254 ]);
     }

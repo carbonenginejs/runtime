@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -7,7 +8,7 @@ import {
     inspectWithValues,
     isJPEG,
     isJPG,
-    isSupportedWithValues,
+    probeSupportWithValues,
     normalizeValues,
     readWithValues,
     toBytes,
@@ -21,7 +22,7 @@ const FORMAT_NAME = "CjsJpegFormat";
  * baseline JPEG bytes into raw, debug JSON, or RGBA payloads through the
  * in-project baseline decoder.
  */
-export class CjsJpegFormat
+export class CjsJpegFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -32,6 +33,7 @@ export class CjsJpegFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -95,18 +97,6 @@ export class CjsJpegFormat
     }
 
     /**
-     * Report whether JPEG input and requested output variants are supported.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input JPEG bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Support/probe report.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options), "jpeg");
-    }
-
-    /**
      * Convert format output into JSON-compatible debug data.
      *
      * @param {any} value Format output.
@@ -160,9 +150,9 @@ export class CjsJpegFormat
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "jpeg", ...options }, FORMAT_NAME), "jpeg");
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "jpeg", ...options }, FORMAT_NAME), "jpeg");
     }
 
     /**
@@ -222,12 +212,15 @@ export class CjsJpegFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_JPEG_JSON = "jpegJson";
-    static type = Object.freeze([ "image" ]);
+    static id = "jpeg";
     static mediaTypes = Object.freeze([ "image" ]);
+    static outputs = CjsFormat.defineOutputs({
+        image: { decoded: true, probes: [ "image", "rgba" ] },
+        rgba: { decoded: true },
+        jpegJson: { role: "debug", probes: [ "jpegJson", "raw" ] },
+        raw: { role: "debug", default: true, passthrough: true }
+    });
     static extensions = Object.freeze([ ".jpg", ".jpeg" ]);
-    static inputTypes = Object.freeze([ "jpg", "jpeg" ]);
-    static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);
-    static debugOutputTypes = Object.freeze([ "jpegJson", OUTPUT_RAW ]);
 }
 
 export default CjsJpegFormat;

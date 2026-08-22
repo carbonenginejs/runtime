@@ -34,8 +34,8 @@ test("default export and named export are the same CjsObjFormat class", () => {
     assert.equal(CjsObjFormat.Output.SHARED, "shared");
     assert.equal(CjsObjFormat.Output.GR2, "gr2");
     assert.equal(CjsObjFormat.Output.CMF, "cmf");
-    assert.deepEqual(CjsObjFormat.outputTypes, [ "shared", "gr2", "cmf" ]);
-    assert.deepEqual(CjsObjFormat.debugOutputTypes, [ "json", "objJson" ]);
+    assert.deepEqual(Object.values(CjsObjFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "shared", "gr2", "cmf" ]);
+    assert.deepEqual(Object.values(CjsObjFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "objJson" ]);
 });
 
 test("reads a triangulated OBJ quad into the shared JSON mesh schema", () => {

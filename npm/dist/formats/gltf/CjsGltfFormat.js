@@ -1,13 +1,6 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, toJsonValue, OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED, OUTPUT_GLTF_JSON, OUTPUT_JSON, CLASS_KEYS } from './core/helpers.js';
 import { isGlb, toBytes } from './core/parser.js';
-
-/**
- * Exposed CarbonEngineJS-facing glTF/GLB format class.
- *
- * Keep this file small and reviewable: glTF parsing, accessor decoding,
- * mesh conversion, skin conversion, animation conversion, and geometry helper
- * glue live under src/core.
- */
 
 const FORMAT_NAME = "CjsGltfFormat";
 
@@ -18,7 +11,7 @@ const FORMAT_NAME = "CjsGltfFormat";
  * glTF is the import source; the public read contract is the shared
  * CarbonEngineJS JSON mesh, skeleton, and animation schema.
  */
-class CjsGltfFormat {
+class CjsGltfFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #source = DEFAULT_VALUES.source;
   #buffers = DEFAULT_VALUES.buffers;
@@ -35,6 +28,7 @@ class CjsGltfFormat {
    * @param {object} [options] Default format values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -241,12 +235,29 @@ class CjsGltfFormat {
     CMF: OUTPUT_CMF
   });
   static CLASS_KEYS = CLASS_KEYS;
-  static type = Object.freeze(["geometry"]);
+  static id = "gltf";
   static mediaTypes = Object.freeze(["geometry"]);
+  static outputs = CjsFormat.defineOutputs({
+    shared: {
+      decoded: true
+    },
+    gr2: {
+      decoded: true
+    },
+    cmf: {
+      decoded: true
+    },
+    json: {
+      role: "debug",
+      decoded: true
+    },
+    gltfJson: {
+      role: "debug",
+      default: true,
+      decoded: true
+    }
+  });
   static extensions = Object.freeze([".gltf", ".glb"]);
-  static inputTypes = Object.freeze(["gltf", "glb"]);
-  static outputTypes = Object.freeze([OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF]);
-  static debugOutputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_GLTF_JSON]);
 }
 
 export { CjsGltfFormat, CjsGltfFormat as default };

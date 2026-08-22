@@ -6,8 +6,8 @@ import CjsCmfFormat, { CjsCmfFormat as NamedCjsCmfFormat } from "../../../src/fo
 test("exports default and named CjsCmfFormat", () =>
 {
     assert.equal(CjsCmfFormat, NamedCjsCmfFormat);
-    assert.deepEqual(CjsCmfFormat.outputTypes, [ "cmf", "gr2", "shared" ]);
-    assert.deepEqual(CjsCmfFormat.debugOutputTypes, [ "json", "cmfJson", "raw" ]);
+    assert.deepEqual(Object.values(CjsCmfFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "cmf", "gr2", "shared" ]);
+    assert.deepEqual(Object.values(CjsCmfFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "cmfJson", "raw" ]);
 });
 
 test("reads a minimal empty CMF v1 file", () =>

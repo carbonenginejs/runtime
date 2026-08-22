@@ -1,14 +1,7 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { DxbcContainer } from './core/container.js';
 import { disassembleInstructions } from './core/disassemble.js';
 import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, toJsonValue, OUTPUT_JSON, OUTPUT_RAW } from './core/helpers.js';
-
-/**
- * Exposed CarbonEngineJS-facing DXBC format class.
- *
- * Keep this file small and reviewable: container/signature/program parsing
- * and the instruction decoder live in core/; input/option normalization and
- * the shared read path live in core/helpers.js.
- */
 
 const FORMAT_NAME = "CjsDxbcFormat";
 
@@ -48,7 +41,7 @@ function resolveDecoderRecord(input, options) {
  * SM4/SM5 token stream, and emits plain JSON data by default or the raw
  * decoder objects for backends (GLSL/WGSL emitters) that want them.
  */
-class CjsDxbcFormat {
+class CjsDxbcFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #source = DEFAULT_VALUES.source;
   #decodeInstructions = DEFAULT_VALUES.decodeInstructions;
@@ -59,6 +52,7 @@ class CjsDxbcFormat {
    * @param {object} [options] Default format values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -176,11 +170,19 @@ class CjsDxbcFormat {
   }
   static OUTPUT_JSON = OUTPUT_JSON;
   static OUTPUT_RAW = OUTPUT_RAW;
-  static type = Object.freeze(["shader"]);
+  static id = "dxbc";
   static mediaTypes = Object.freeze(["shader"]);
-  static inputTypes = Object.freeze(["dxbc"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON]);
-  static debugOutputTypes = Object.freeze([OUTPUT_RAW]);
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      default: true,
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    }
+  });
+  static extensions = Object.freeze([]);
 }
 
 export { CjsDxbcFormat, CjsDxbcFormat as default };

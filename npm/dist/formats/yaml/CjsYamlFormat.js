@@ -1,3 +1,4 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { CjsYamlReader } from './core/CjsYamlReader.js';
 import { DEFAULT_VALUES, normalizeValues, toJsonGraph, OUTPUT_RAW, OUTPUT_DOCUMENT, OUTPUT_PAYLOAD, OUTPUT_JSON, TAG_PRESERVE, TAG_REJECT, TAG_HANDLE } from './core/helpers.js';
 
@@ -8,11 +9,12 @@ const FORMAT_NAME = "CjsYamlFormat";
  * JSON-graph, raw, or document output with configurable tag policies, alias
  * limits, and identity/reference markers.
  */
-class CjsYamlFormat {
+class CjsYamlFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /** Creates a CjsYamlFormat with caller-provided reader configuration. */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -123,11 +125,24 @@ class CjsYamlFormat {
   static TAG_HANDLE = TAG_HANDLE;
   static id = "yaml";
   static extensions = Object.freeze([".yaml", ".yml"]);
-  static type = Object.freeze(["data"]);
   static mediaTypes = Object.freeze(["data"]);
-  static inputTypes = Object.freeze(["yaml"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_PAYLOAD]);
-  static debugOutputTypes = Object.freeze([OUTPUT_RAW, OUTPUT_DOCUMENT]);
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      decoded: true
+    },
+    payload: {
+      default: true,
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    },
+    document: {
+      role: "debug",
+      decoded: true
+    }
+  });
 }
 
 export { CjsYamlFormat, CjsYamlFormat as default };

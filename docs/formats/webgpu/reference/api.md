@@ -175,9 +175,10 @@ coalescing uses version 3 and carries an explicit transform recipe.
 
 ## Static metadata
 
-The class exposes `OUTPUT_JSON`, `CLASS_KEYS`, `type`, `mediaTypes`,
-`inputTypes`, `outputTypes`, `implementationStatus`, `format`, `analysisFormat`,
-and `packageVersion`. There is no `OUTPUT_RAW` and no `debugOutputTypes`.
+The class exposes `OUTPUT_JSON`, `CLASS_KEYS`, `id`, frozen `mediaTypes`,
+`extensions` (`.carbonwebgpu`), its frozen `outputs` map, `format`,
+`analysisFormat`, and `packageVersion`. There is no `OUTPUT_RAW` or debug
+output.
 
 ## Errors
 

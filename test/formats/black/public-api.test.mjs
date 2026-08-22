@@ -134,9 +134,9 @@ test("bounded support probe recognizes Black magic without parsing the body", ()
     const bytes = new Uint8Array(8);
     new DataView(bytes.buffer).setUint32(0, CjsBlackFormat.fourCC, true);
 
-    assert.equal(CjsBlackFormat.isSupported(bytes), true);
-    assert.equal(CjsBlackFormat.isSupported(bytes.subarray(1)), false);
-    assert.equal(CjsBlackFormat.isSupported(new Uint8Array([ 1, 2, 3 ])), false);
+    assert.equal(CjsBlackFormat.is(bytes), true);
+    assert.equal(CjsBlackFormat.is(bytes.subarray(1)), false);
+    assert.equal(CjsBlackFormat.is(new Uint8Array([ 1, 2, 3 ])), false);
 });
 
 test("inspect reads Black header and string tables", () =>

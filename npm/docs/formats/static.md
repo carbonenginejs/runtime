@@ -43,14 +43,14 @@ It reports the family, where the payload starts, and what is still missing. The
 caller takes that to the format that owns the family:
 
 ```js
-const probe = await CjsStaticFormat.resolveType(bytes);
+const metadata = CjsStaticFormat.inspect(bytes);
 
-if (probe.preferred === CJS_STATIC_FAMILIES.SQLITE)
+if (metadata.family === CJS_STATIC_FAMILIES.SQLITE)
 {
   return CjsSqliteFormat.readJSON(bytes);
 }
 
-if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
+if (metadata.family === CJS_STATIC_FAMILIES.PICKLE)
 {
   // The prefix is the SCHEMA's length, not a wrapper to skip. Handing the whole
   // remainder to a pickle reader throws CJS_PICKLE_FORMAT_TRAILING_DATA, on the binary
@@ -93,27 +93,27 @@ planets, belts, stars, gates) is in the embedded-schema family, not this one.
 
 ## Use
 
-Identification goes through the shared type-resolution seam rather than a
-private entry point — see [format type resolution](../concepts/format-type-resolution.md).
+Identification uses the shared synchronous inspection seam; see
+[format capabilities](../concepts/format-capabilities.md).
 
 ```js
 import { CjsStaticFormat, CJS_STATIC_FAMILIES } from
     "@carbonenginejs/runtime-resource/formats/static";
 
-const probe = await CjsStaticFormat.resolveType(bytes);
+const metadata = CjsStaticFormat.inspect(bytes);
 
-if (probe.preferred === CJS_STATIC_FAMILIES.PICKLE)
+if (metadata.family === CJS_STATIC_FAMILIES.PICKLE)
 {
     // See the routing example above: the prefix is a schema length.
 }
 ```
 
-`isSupported()` and its `inspect()` alias report on the declaration seam;
-`resolveType()` is the content-verified one. This format is an unusual case for
-that contract: `.static` carries no in-band declaration at all, so there is
-nothing for the content to disagree with. The signature is both claim and
-evidence, `resolveType()` is therefore always `verified`, and `metadata.declared`
-is `null` with `mismatch` always false.
+`is()` is the boolean routing predicate and `inspect()` returns the identified
+family. `getSupport()` reports `recognized: true` for SQLite and prefixed
+pickle, but `supported: false`: `CjsStaticFormat` deliberately declares no
+outputs and decodes nothing. `verifySupport()` therefore returns
+`CJS_FORMAT_OUTPUT_UNDECLARED` instead of pretending family identification is
+a decoder capability.
 
 `describe()` returns the underlying
 `{ family, byteLength, payloadOffset, prefix, decodable, requires, reason }` without

@@ -1,4 +1,5 @@
-import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isFBX, toBytes, OUTPUT_FBX_JSON, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_GR2, OUTPUT_CMF, CLASS_KEYS } from './core/helpers.js';
+import { CjsFormat } from '../../format/CjsFormat.js';
+import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, inspectWithValues, toJsonValue, probeSupportWithValues, isFBX, toBytes, OUTPUT_FBX_JSON, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_GR2, OUTPUT_CMF, CLASS_KEYS } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsFbxFormat";
 
@@ -9,7 +10,7 @@ const FORMAT_NAME = "CjsFbxFormat";
  * is available; full CarbonEngine-equivalent FBX import still follows the
  * cmfprocessor/ufbx importer behavior and needs more pure JS coverage.
  */
-class CjsFbxFormat {
+class CjsFbxFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /**
@@ -18,6 +19,7 @@ class CjsFbxFormat {
    * @param {object} [options] Default read/inspect options.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -147,17 +149,6 @@ class CjsFbxFormat {
   }
 
   /**
-   * Report whether this package supports the input and requested variants.
-   *
-   * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-   * @param {object} [options] Per-call values.
-   * @returns {object} Support/probe report.
-   */
-  IsSupported(input, options = {}) {
-    return isSupportedWithValues(input, this.GetValues(options));
-  }
-
-  /**
    * Convert format output into JSON-compatible debug data.
    *
    * @param {any} value Format output.
@@ -213,8 +204,8 @@ class CjsFbxFormat {
    * @param {object} [options] Probe options.
    * @returns {object} Support/probe report.
    */
-  static isSupported(input, options = {}) {
-    return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, {
+  static probeSupport(input, options = {}) {
+    return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, {
       inputType: "fbx",
       ...options
     }, FORMAT_NAME));
@@ -255,12 +246,28 @@ class CjsFbxFormat {
     FBX_JSON: OUTPUT_FBX_JSON
   });
   static CLASS_KEYS = CLASS_KEYS;
-  static type = Object.freeze(["geometry"]);
+  static id = "fbx";
   static mediaTypes = Object.freeze(["geometry"]);
+  static outputs = CjsFormat.defineOutputs({
+    gr2: {
+      decoded: true
+    },
+    cmf: {
+      decoded: true
+    },
+    fbxJson: {
+      role: "debug",
+      decoded: true,
+      probes: ["fbxJson", "document"]
+    },
+    raw: {
+      role: "debug",
+      default: true,
+      passthrough: true,
+      probes: ["raw", "document"]
+    }
+  });
   static extensions = Object.freeze([".fbx"]);
-  static inputTypes = Object.freeze(["fbx"]);
-  static outputTypes = Object.freeze([OUTPUT_GR2, OUTPUT_CMF]);
-  static debugOutputTypes = Object.freeze([OUTPUT_FBX_JSON, OUTPUT_RAW]);
 }
 
 export { CjsFbxFormat, CjsFbxFormat as default };

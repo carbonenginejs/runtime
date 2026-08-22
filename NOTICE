@@ -30,3 +30,9 @@ The GR2/GSF implementation is included under `formats/gr2`, migrated from
 validated clean-room implementation and the package was relicensed MIT. Its
 retained license, provenance, and third-party notices live under
 `format-notices/gr2/` and `docs/formats/provenance.md`.
+
+The modern cFSD decoder and reviewed dataset schemas are included under
+`formats/fsd/64`, migrated from the MIT-licensed `tools-fsd` donor package.
+They decode caller-supplied bytes and include no acquired game data, decoded
+tables, or native loader modules. The retained donor notice and license live
+under `format-notices/fsd/`.

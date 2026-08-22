@@ -3,8 +3,7 @@ import test from "node:test";
 import CjsGr2Format, {
     CjsGr2Format as NamedCjsGr2Format
 } from "../../../src/formats/gr2/index.js";
-// CjsFormat pulls in decorated probe code - test the consumer output.
-import { CjsFormat } from "../../../npm/dist/index.js";
+import { CjsFormat } from "../../../src/format/CjsFormat.js";
 
 const MAGIC_32 = "29de6cc0baa4532b25f5b7a5f666e2ee";
 
@@ -54,19 +53,19 @@ test("exports one public class as default and named", () =>
 test("satisfies the runtime-resource format contract", () =>
 {
     CjsFormat.validateContract(CjsGr2Format);
-    assert.deepEqual([ ...CjsGr2Format.inputTypes ], [ "gr2", "gsf" ]);
+    assert.deepEqual([ ...CjsGr2Format.extensions ], [ ".gr2", ".gsf" ]);
     assert.deepEqual([ ...CjsGr2Format.mediaTypes ], [ "geometry" ]);
     assert.equal(typeof CjsGr2Format.read, "function");
     assert.equal(typeof CjsGr2Format.readAsync, "function");
     assert.equal(typeof CjsGr2Format.inspect, "function");
 });
 
-test("isSupported answers from the 16-byte Granny magic", () =>
+test("is answers from the 16-byte Granny magic", () =>
 {
-    assert.equal(CjsGr2Format.isSupported(createMinimalGr2()), true);
-    assert.equal(CjsGr2Format.isSupported(new Uint8Array(64)), false);
-    assert.equal(CjsGr2Format.isSupported(new Uint8Array(4)), false);
-    assert.equal(CjsGr2Format.isSupported(null), false);
+    assert.equal(CjsGr2Format.is(createMinimalGr2()), true);
+    assert.equal(CjsGr2Format.is(new Uint8Array(64)), false);
+    assert.equal(CjsGr2Format.is(new Uint8Array(4)), false);
+    assert.equal(CjsGr2Format.is(null), false);
 });
 
 test("reads browser byte inputs without a Buffer global", () =>

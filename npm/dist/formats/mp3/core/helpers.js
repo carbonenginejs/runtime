@@ -69,7 +69,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
  * Reports whether input is supported under normalized format options for the MP3
  * format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
+function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
     const mimeType = getAudioMimeType(metadata);
@@ -78,10 +78,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       payloadType: "raw",
       codec: metadata.audioFormat || metadata.sourceFormat,
       mimeType,
-      supported: true,
-      containerOnly: true,
-      isDecoded: false,
-      pcmDecodeSupported: false
+      supported: true
     }, {
       kind: "pcm",
       payloadType: "pcm",
@@ -94,7 +91,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: metadata.sourceFormat ? "partial" : "none",
       confidence: metadata.sourceFormat ? 1 : 0,
-      preferred: variants.find(variant => variant.supported)?.codec || "",
+      preferredOutput: variants.find(variant => variant.supported)?.kind || "",
       reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized audio format.",
       metadata,
       variants,
@@ -107,7 +104,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -126,9 +123,6 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
       payloadType: "raw",
       sourceFormat: metadata.sourceFormat,
       mimeType: getAudioMimeType(metadata),
-      containerOnly: true,
-      isDecoded: false,
-      pcmDecodeSupported: false,
       metadata,
       bytes
     };
@@ -371,5 +365,5 @@ function readU32BE(bytes, offset) {
   return bytes[offset] * 0x1000000 + (bytes[offset + 1] << 16 | bytes[offset + 2] << 8 | bytes[offset + 3]) >>> 0;
 }
 
-export { DEFAULT_VALUES, OUTPUT_AUDIO, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectBytes, inspectWithValues, isMP3, isSupportedWithValues, isWAV, normalizeEmit, normalizeInputType, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_AUDIO, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW, inspectBytes, inspectWithValues, isMP3, isWAV, normalizeEmit, normalizeInputType, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

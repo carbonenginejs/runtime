@@ -223,14 +223,51 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
     resMan.GetResource("res:/character/other.gr2", { requirement: "geometry" }) instanceof TriGrannyRes,
     true
   );
+  assert.equal(
+    resMan.GetResource("res:/character/not-granny.bin", { requirement: "granny" }) instanceof TriGrannyRes,
+    false,
+    "granny is not a semantic requirement alias"
+  );
+});
+
+test("extension routes disambiguate resource classes sharing one requirement", () =>
+{
+  class CjsGeometryFormat
+  {
+    static outputs = Object.freeze({ "geometry": Object.freeze({ output: "geometry" }) })
+    static read(input) { return input; }
+  }
+
+  for (const resourceTypes of [
+    [ TriGeometryRes, TriGrannyRes ],
+    [ TriGrannyRes, TriGeometryRes ]
+  ])
+  {
+    const resMan = new CjsResMan();
+    resMan.RegisterExtension("gr2", TriGrannyRes, CjsGeometryFormat);
+    for (const Resource of resourceTypes) resMan.RegisterResourceType(Resource);
+
+    assert.equal(
+      resMan.GetResource("res:/ship/hull.gr2", { requirement: "geometry" }) instanceof TriGrannyRes,
+      true,
+      "the matching extension handler wins independently of registration order"
+    );
+    assert.throws(
+      () => resMan.GetResource("res:/ship/hull.bin", { requirement: "geometry" }),
+      error => error.code === "CJS_RESOURCE_TYPE_AMBIGUOUS"
+        && error.requirement === "geometry"
+        && error.resourceTypes.includes("TriGeometryRes")
+        && error.resourceTypes.includes("TriGrannyRes"),
+      "without a route, two shorthand defaults fail loudly rather than using the last one"
+    );
+  }
 });
 
 test("CjsResMan.Register adds formats and semantic resource types", async () => {
   class CjsTestFormat
   {
-    static inputTypes = [ "foo", "bar" ];
-    static outputTypes = [ "geometry" ];
-    static debugOutputTypes = [ "cmfJson" ];
+    static extensions = Object.freeze([ ".foo", ".bar" ]);
+    static outputs = Object.freeze({ "geometry": Object.freeze({ output: "geometry" }), "cmfJson": Object.freeze({ output: "cmfJson" }) })
     static read(input, options) { return { input, emit: options.emit }; }
   }
 
@@ -290,7 +327,7 @@ test("CjsResMan registers immutable extension handlers through every short form"
   class CjsRouteResource extends CjsResource {}
   class CjsRouteFormat
   {
-    static outputTypes = [ "payload" ];
+    static outputs = Object.freeze({ "payload": Object.freeze({ output: "payload" }) })
     static read(bytes) { return { byte: bytes[0] }; }
   }
 
@@ -401,14 +438,14 @@ test("CjsResMan ordered extension formats probe once and use only a final fallba
   const calls = [];
   class CjsRejectingFormat
   {
-    static inputTypes = [ "legacyprobe" ];
-    static isSupported() { calls.push("probe:reject"); return { supported: "none" }; }
+    static extensions = Object.freeze([ ".legacyprobe" ]);
+    static is() { calls.push("probe:reject"); return { supported: "none" }; }
     static read() { calls.push("read:reject"); throw new Error("must not read"); }
   }
   class CjsAcceptedFormat
   {
-    static inputTypes = [ "legacyprobe" ];
-    static isSupported() { calls.push("probe:accept"); return true; }
+    static extensions = Object.freeze([ ".legacyprobe" ]);
+    static is() { calls.push("probe:accept"); return true; }
     static read() { calls.push("read:accept"); return { accepted: true }; }
   }
   class CjsFallbackFormat
@@ -465,7 +502,7 @@ test("CjsResMan never falls through after an ordered format is selected", async 
   let fallbackReads = 0;
   class CjsSelectedFormat
   {
-    static isSupported() { return true; }
+    static is() { return true; }
     static read() { throw new Error("selected reader failure"); }
   }
   class CjsUnselectedFallback
@@ -717,8 +754,8 @@ test("bound resource handles keep their promised output during reconstruction", 
   let reads = 0;
   class CjsBoundOutputFormat
   {
-    static inputTypes = [ "boundoutput" ];
-    static outputTypes = [ "cmf", "gr2" ];
+    static extensions = Object.freeze([ ".boundoutput" ]);
+    static outputs = Object.freeze({ "cmf": Object.freeze({ output: "cmf" }), "gr2": Object.freeze({ output: "gr2" }) })
 
     static read(_bytes, options)
     {
@@ -1983,65 +2020,70 @@ test("Tr2EffectRes implements the load hook the base declares", () =>
 });
 
 
-test("CjsResourceProbe preserves generalized capability variants", () => {
-  const probe = CjsResourceProbe.createSupported("dds", [
-    {
-      kind: "rgba",
-      payloadType: "rgba",
-      codec: "rgba8unorm",
-      supported: true,
-      isDecoded: true,
-      rgbaDecodeSupported: true
-    },
-    {
-      kind: "compressed",
-      payloadType: "texture",
-      codec: "bc7-rgba-unorm",
-      supported: true,
-      mimeType: "image/vnd-ms.dds",
-      containerOnly: false,
-      isDecoded: false
-    }
-  ]);
+test("CjsResourceProbe preserves generalized output capabilities", () => {
+  const probe = CjsResourceProbe.from({
+    format: "dds",
+    source: "buffer",
+    recognized: true,
+    output: "texture",
+    supported: true,
+    verified: false,
+    preferredOutput: "texture",
+    outputs: [
+      {
+        output: "rgba",
+        payloadType: "rgba",
+        codec: "rgba8unorm",
+        decoded: true,
+        supported: true,
+        verified: false
+      },
+      {
+        output: "texture",
+        payloadType: "texture",
+        codec: "bc7-rgba-unorm",
+        passthrough: false,
+        supported: true,
+        verified: false
+      }
+    ]
+  });
 
-  assert.equal(probe.preferred, "bc7-rgba-unorm");
-  assert.equal(probe.canUseRaw(), true);
+  assert.equal(probe.preferredOutput, "texture");
+  assert.equal(probe.canUseSelected(), true);
+  assert.equal(probe.canUseSelected({ verified: true }), false);
   assert.equal(probe.canUse("rgba"), true);
-  assert.equal(probe.canUseCompressed(), true);
-  assert.equal(probe.variants[0].payloadType, "rgba");
-  assert.equal(probe.variants[0].isDecoded, true);
-  assert.equal(probe.variants[0].rgbaDecodeSupported, true);
-  assert.equal(probe.variants[1].mimeType, "image/vnd-ms.dds");
-  assert.equal(probe.variants[1].containerOnly, false);
-  assert.equal(probe.variants[1].isDecoded, false);
+  assert.equal(probe.canUse("texture"), true);
+  assert.equal(probe.outputs[0].payloadType, "rgba");
+  assert.equal(probe.outputs[0].decoded, true);
+  assert.equal(probe.outputs[1].passthrough, false);
 });
 
 test("CjsResourceProbe.from normalizes plain reports without dropping handoff metadata", () => {
   const probe = CjsResourceProbe.from({
     format: "webp",
     source: "buffer",
-    supported: "partial",
-    preferred: "webp",
-    variants: [
+    recognized: true,
+    output: "raw",
+    supported: true,
+    preferredOutput: "raw",
+    outputs: [
       {
-        kind: "raw",
+        output: "raw",
         payloadType: "raw",
         codec: "webp",
-        mimeType: "image/webp",
         supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        rgbaDecodeSupported: false
+        verified: false,
+        passthrough: true,
+        decoded: false
       }
     ]
   });
 
   assert.equal(probe.canUse("raw"), true);
-  assert.equal(probe.variants[0].payloadType, "raw");
-  assert.equal(probe.variants[0].mimeType, "image/webp");
-  assert.equal(probe.variants[0].containerOnly, true);
-  assert.equal(probe.variants[0].isDecoded, false);
-  assert.equal(probe.variants[0].rgbaDecodeSupported, false);
+  assert.equal(probe.outputs[0].payloadType, "raw");
+  assert.equal(probe.outputs[0].passthrough, true);
+  assert.equal(probe.outputs[0].decoded, false);
 });
 
 test("TriTextureRes accepts a plain video payload and preserves it on invalid replacement", () => {
@@ -2353,9 +2395,8 @@ test("registered formats and resource readiness share one object operation", asy
 
   class CjsTestFormat
   {
-    static inputTypes = [ "one", "two" ];
-    static outputTypes = [ "raw" ];
-    static debugOutputTypes = [ "json" ];
+    static extensions = Object.freeze([ ".one", ".two" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
     static mediaTypes = [ "data" ];
 
     static read(input)
@@ -2501,8 +2542,8 @@ test("reload replaces retained source and format results for later reconstructio
 
   class CjsReloadCacheFormat
   {
-    static inputTypes = [ "reloadcache" ];
-    static outputTypes = [ "raw" ];
+    static extensions = Object.freeze([ ".reloadcache" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
 
     static read(bytes)
     {
@@ -2628,8 +2669,8 @@ test("source revision scopes shared source and parsed format operations", async 
 
   class CjsRevisionCacheFormat
   {
-    static inputTypes = [ "revisioncache" ];
-    static outputTypes = [ "raw" ];
+    static extensions = Object.freeze([ ".revisioncache" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
 
     static read(bytes)
     {
@@ -2679,8 +2720,8 @@ test("format caches isolate source objects and registration descriptors", async 
 
   class CjsDescriptorCacheFormat
   {
-    static inputTypes = [ "descriptorcache" ];
-    static outputTypes = [ "raw" ];
+    static extensions = Object.freeze([ ".descriptorcache" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
 
     static read(bytes, options)
     {
@@ -2762,8 +2803,8 @@ test("format cache identity distinguishes same-named class constructors", async 
 
   class CjsClassIdentityFormat
   {
-    static inputTypes = [ "classidentity" ];
-    static outputTypes = [ "raw" ];
+    static extensions = Object.freeze([ ".classidentity" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
 
     static read(bytes, options)
     {
@@ -2807,8 +2848,8 @@ test("non-canonical format options bypass retained format sharing", async () =>
 
   class CjsNonCanonicalCacheFormat
   {
-    static inputTypes = [ "noncanonical" ];
-    static outputTypes = [ "raw" ];
+    static extensions = Object.freeze([ ".noncanonical" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
 
     static read(bytes)
     {
@@ -2853,8 +2894,8 @@ test("registered format defaults are deeply snapshotted", async () =>
 
   class CjsDefaultSnapshotFormat
   {
-    static inputTypes = [ "defaultsnapshot" ];
-    static outputTypes = [ "raw" ];
+    static extensions = Object.freeze([ ".defaultsnapshot" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
 
     static read(bytes, options)
     {
@@ -2953,8 +2994,8 @@ test("late invalidated format settlement cannot displace a newer retained record
 
   class CjsLateFormatCache
   {
-    static inputTypes = [ "lateformat" ];
-    static outputTypes = [ "raw" ];
+    static extensions = Object.freeze([ ".lateformat" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
 
     static readAsync(bytes)
     {
@@ -3048,8 +3089,8 @@ test("semantic resource readiness resolves the resource and retains its plain pa
   const bytes = new Uint8Array([ 4, 3, 2, 1 ]);
   class CjsTestFormat
   {
-    static inputTypes = [ "semantic" ];
-    static outputTypes = [ "semantic" ];
+    static extensions = Object.freeze([ ".semantic" ]);
+    static outputs = Object.freeze({ "semantic": Object.freeze({ output: "semantic" }) })
     static read(input) { return { payloadType: "semantic", data: input }; }
   }
   class CjsTestResource extends CjsResource
@@ -3082,9 +3123,8 @@ test("different outcomes use distinct resources while sharing source bytes", asy
   let formatReads = 0;
   class CjsTestFormat
   {
-    static inputTypes = [ "test" ];
-    static outputTypes = [ "raw" ];
-    static debugOutputTypes = [ "json" ];
+    static extensions = Object.freeze([ ".test" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
     static mediaTypes = [ "data" ];
 
     static read(input, options)

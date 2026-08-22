@@ -5,7 +5,7 @@ import CjsWebmFormat, { CjsWebmFormat as NamedCjsWebmFormat } from "../../../src
 test("exports default and named CjsWebmFormat", () =>
 {
     assert.equal(CjsWebmFormat, NamedCjsWebmFormat);
-    assert.deepEqual(CjsWebmFormat.inputTypes, [ "webm" ]);
+    assert.deepEqual(CjsWebmFormat.extensions, [ ".webm" ]);
 });
 
 test("inspects webm container", () =>
@@ -22,31 +22,22 @@ test("emits a GPU-free video container payload without decoding frames", () =>
 {
     const bytes = makeWebmVideoTrack();
     const video = CjsWebmFormat.read(bytes, { emit: "video" });
-    const support = CjsWebmFormat.isSupported(bytes);
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
-    const containerVariant = support.variants.find((variant) => variant.kind === "container");
+    const support = CjsWebmFormat.getSupport(bytes);
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
     assert.equal(video.payloadType, "video");
     assert.equal(video.sourceFormat, "webm");
     assert.equal(video.container, "ebml");
     assert.equal(video.mimeType, "video/webm");
-    assert.equal(video.containerOnly, true);
-    assert.equal(video.isDecoded, false);
-    assert.equal(video.frameDecodeSupported, false);
     assert.deepEqual(video.codecs, [ "V_VP9" ]);
     assert.deepEqual(video.videoCodecs, [ "V_VP9" ]);
     assert.deepEqual(video.audioCodecs, []);
     assert.equal(video.durationTimescale, 1000000000);
     assert.equal(video.tracks[0].codec, "V_VP9");
     assert.equal(video.sourceBytes, bytes);
-    assert.equal(support.supported, "partial");
-    assert.equal(rawVariant.mimeType, "video/webm");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.frameDecodeSupported, false);
-    assert.equal(containerVariant.mimeType, "video/webm");
-    assert.equal(containerVariant.containerOnly, true);
-    assert.equal(containerVariant.frameDecodeSupported, false);
-    assert.deepEqual(containerVariant.videoCodecs, [ "V_VP9" ]);
+    assert.equal(support.supported, true);
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "video").supported, true);
 });
 
 test("inspects WebM Info and video track metadata", () =>

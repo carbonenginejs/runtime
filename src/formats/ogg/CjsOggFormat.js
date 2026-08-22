@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_AUDIO,
@@ -6,7 +7,7 @@ import {
     OUTPUT_RAW,
     inspectWithValues,
     isOGG,
-    isSupportedWithValues,
+    probeSupportWithValues,
     normalizeValues,
     readWithValues,
     toBytes,
@@ -20,13 +21,14 @@ const FORMAT_NAME = "CjsOggFormat";
  * decodes Ogg Vorbis audio to PCM with the in-project pure-JS Vorbis
  * decoder, alongside raw and debug JSON output.
  */
-export class CjsOggFormat
+export class CjsOggFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
     /** Creates a CjsOggFormat with caller-provided reader configuration. */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -77,15 +79,6 @@ export class CjsOggFormat
     }
 
     /**
-     * Reports whether input meets the active decoder capability constraints for
-     * the Ogg format configuration.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options));
-    }
-
-    /**
      * Converts the current decoded payload into a JSON-safe representation for
      * the Ogg format configuration.
      */
@@ -113,9 +106,9 @@ export class CjsOggFormat
     }
 
     /** Checks one input against the Ogg decoder capability contract. */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "ogg", ...options }, FORMAT_NAME));
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "ogg", ...options }, FORMAT_NAME));
     }
 
     /** Provides the one-shot Ogg JSON conversion entry point. */
@@ -147,13 +140,15 @@ export class CjsOggFormat
     static OUTPUT_OGG_JSON = "oggJson";
     static OUTPUT_PCM = OUTPUT_PCM;
     static OUTPUT_AUDIO = OUTPUT_AUDIO;
-    static type = Object.freeze([ "audio", "video" ]);
+    static id = "ogg";
     static mediaTypes = Object.freeze([ "audio", "video" ]);
+    static outputs = CjsFormat.defineOutputs({
+        pcm: { decoded: true },
+        audio: { decoded: true, probes: [ "audio", "pcm" ] },
+        oggJson: { role: "debug", probes: [ "oggJson", "raw" ] },
+        raw: { role: "debug", default: true, passthrough: true }
+    });
     static extensions = Object.freeze([ ".ogg", ".oga", ".ogv" ]);
-    static inputTypes = Object.freeze([ "ogg", "oga", "ogv" ]);
-    static outputTypes = Object.freeze([ OUTPUT_PCM, OUTPUT_AUDIO ]);
-    static debugOutputTypes = Object.freeze([ "oggJson", OUTPUT_RAW ]);
-    static implementationStatus = "vorbis-pcm";
 }
 
 export default CjsOggFormat;

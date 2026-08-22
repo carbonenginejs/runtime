@@ -130,24 +130,20 @@ playback or decoded-cache lifetime would unnecessarily retain both
 representations. Runtime-lifetime and group retention remain caller policy
 built from explicit tokens, not an implicit default on every loaded resource.
 
-## Content-verified routing in the read path
+## Explicit capability verification
 
-[Type resolution](concepts/format-type-resolution.md) exists as a per-format
-seam, but nothing in the resource read path consults it. `CjsResMan` still
-picks a format by extension through the synchronous support check, so a
-mislabeled container acquired the ordinary way is not corrected — only a caller
-that invokes `resolveType()` directly gets the verified answer.
+**Current:** [Format capabilities](concepts/format-capabilities.md) separates
+synchronous routing and advisory reporting from asynchronous proof. `is()` is
+the only routing predicate, `getSupport()` reports declared or cheaply observed
+capability, and `verifySupport()` attempts the exact requested output through
+the real asynchronous read path.
 
-Wiring it in means awaiting a resolution between obtaining bytes and reading
-them, letting the resolved route supply the default emit while a caller-forced
-emit still wins, and deciding whether an extension tie-break may become
-asynchronous. The cost question is the real one: the read path must not pay for
-a content check on every resource merely because some format could opt in.
-
-Alongside it, `CjsWemFormat` could expose a single resolve-then-route output so
-a caller stops choosing between `raw`, `ogg`, and `pcm` for media whose codec
-the reader has already established. Today all three are distinct declared
-outputs.
+The ordinary resource read path deliberately does not preflight every read.
+Doing so would decode twice or impose an asynchronous content check on formats
+that do not need one. A consumer such as runtime-core that must prove an output
+before committing to a route can call `verifySupport()` explicitly; ordinary
+reads route synchronously and let the read itself provide the authoritative
+failure. WEM's `raw`, `ogg`, and `pcm` outputs remain explicit caller choices.
 
 ## Open design questions
 

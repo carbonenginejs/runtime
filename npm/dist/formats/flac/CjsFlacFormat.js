@@ -1,4 +1,5 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isFLAC, toBytes, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW } from './core/helpers.js';
+import { CjsFormat } from '../../format/CjsFormat.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, toJsonValue, probeSupportWithValues, isFLAC, toBytes, OUTPUT_JSON, OUTPUT_PCM, OUTPUT_RAW } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsFlacFormat";
 
@@ -7,11 +8,12 @@ const FORMAT_NAME = "CjsFlacFormat";
  * inspects stream metadata, and emits raw container bytes or debug JSON
  * without decoding PCM.
  */
-class CjsFlacFormat {
+class CjsFlacFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /** Creates a CjsFlacFormat with caller-provided reader configuration. */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -63,14 +65,6 @@ class CjsFlacFormat {
   }
 
   /**
-   * Reports whether input meets the active decoder capability constraints for
-   * the FLAC format configuration.
-   */
-  IsSupported(input, options = {}) {
-    return isSupportedWithValues(input, this.GetValues(options));
-  }
-
-  /**
    * Converts the current decoded payload into a JSON-safe representation for
    * the FLAC format configuration.
    */
@@ -100,8 +94,8 @@ class CjsFlacFormat {
   }
 
   /** Checks one input against the FLAC decoder capability contract. */
-  static isSupported(input, options = {}) {
-    return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, {
+  static probeSupport(input, options = {}) {
+    return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, {
       inputType: "flac",
       ...options
     }, FORMAT_NAME));
@@ -130,13 +124,20 @@ class CjsFlacFormat {
     JSON: OUTPUT_JSON
   });
   static OUTPUT_FLAC_JSON = "flacJson";
-  static type = Object.freeze(["audio"]);
+  static id = "flac";
   static mediaTypes = Object.freeze(["audio"]);
+  static outputs = CjsFormat.defineOutputs({
+    flacJson: {
+      role: "debug",
+      probes: ["flacJson", "raw"]
+    },
+    raw: {
+      role: "debug",
+      default: true,
+      passthrough: true
+    }
+  });
   static extensions = Object.freeze([".flac"]);
-  static inputTypes = Object.freeze(["flac"]);
-  static outputTypes = Object.freeze([]);
-  static debugOutputTypes = Object.freeze(["flacJson", OUTPUT_RAW]);
-  static implementationStatus = "metadata-only";
 }
 
 export { CjsFlacFormat };

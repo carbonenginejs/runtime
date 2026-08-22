@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -6,7 +7,7 @@ import {
     OUTPUT_RGBA,
     inspectWithValues,
     isGIF,
-    isSupportedWithValues,
+    probeSupportWithValues,
     normalizeValues,
     readWithValues,
     toBytes,
@@ -19,13 +20,14 @@ const FORMAT_NAME = "CjsGifFormat";
  * GIF format profile that inspects header and frame metadata and reads GIF
  * bytes into raw, debug JSON, or LZW-decoded RGBA frame payloads.
  */
-export class CjsGifFormat
+export class CjsGifFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
     /** Creates a CjsGifFormat with caller-provided reader configuration. */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -76,15 +78,6 @@ export class CjsGifFormat
     }
 
     /**
-     * Reports whether input meets the active decoder capability constraints for
-     * the GIF format configuration.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options));
-    }
-
-    /**
      * Converts the current decoded payload into a JSON-safe representation for
      * the GIF format configuration.
      */
@@ -112,9 +105,9 @@ export class CjsGifFormat
     }
 
     /** Checks one input against the GIF decoder capability contract. */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "gif", ...options }, FORMAT_NAME));
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "gif", ...options }, FORMAT_NAME));
     }
 
     /** Provides the one-shot GIF JSON conversion entry point. */
@@ -146,12 +139,15 @@ export class CjsGifFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_GIF_JSON = "gifJson";
-    static type = Object.freeze([ "image" ]);
+    static id = "gif";
     static mediaTypes = Object.freeze([ "image" ]);
+    static outputs = CjsFormat.defineOutputs({
+        image: { decoded: true, probes: [ "image", "rgba" ] },
+        rgba: { decoded: true },
+        gifJson: { role: "debug", probes: [ "gifJson", "raw" ] },
+        raw: { role: "debug", default: true, passthrough: true }
+    });
     static extensions = Object.freeze([ ".gif" ]);
-    static inputTypes = Object.freeze([ "gif" ]);
-    static outputTypes = Object.freeze([ OUTPUT_IMAGE, OUTPUT_RGBA ]);
-    static debugOutputTypes = Object.freeze([ "gifJson", OUTPUT_RAW ]);
 }
 
 export default CjsGifFormat;

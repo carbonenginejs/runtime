@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing glTF/GLB format class.
  *
@@ -33,7 +34,7 @@ const FORMAT_NAME = "CjsGltfFormat";
  * glTF is the import source; the public read contract is the shared
  * CarbonEngineJS JSON mesh, skeleton, and animation schema.
  */
-export class CjsGltfFormat
+export class CjsGltfFormat extends CjsFormat
 {
 
     #emit = DEFAULT_VALUES.emit;
@@ -53,6 +54,7 @@ export class CjsGltfFormat
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -273,12 +275,16 @@ export class CjsGltfFormat
         CMF: OUTPUT_CMF
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static type = Object.freeze([ "geometry" ]);
+    static id = "gltf";
     static mediaTypes = Object.freeze([ "geometry" ]);
+    static outputs = CjsFormat.defineOutputs({
+        shared: { decoded: true },
+        gr2: { decoded: true },
+        cmf: { decoded: true },
+        json: { role: "debug", decoded: true },
+        gltfJson: { role: "debug", default: true, decoded: true }
+    });
     static extensions = Object.freeze([ ".gltf", ".glb" ]);
-    static inputTypes = Object.freeze([ "gltf", "glb" ]);
-    static outputTypes = Object.freeze([ OUTPUT_SHARED, OUTPUT_GR2, OUTPUT_CMF ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_GLTF_JSON ]);
 
 }
 

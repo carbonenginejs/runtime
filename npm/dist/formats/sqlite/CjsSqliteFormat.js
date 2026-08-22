@@ -1,6 +1,7 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { ReadColumns } from './core/sqliteSchema.js';
 import { ReadHeader, TableRows } from './core/sqlitePages.js';
-import { SqliteError, ReadRecord } from './core/sqliteRecords.js';
+import { ReadRecord, SqliteError } from './core/sqliteRecords.js';
 
 const OUTPUT_JSON = "json";
 const OUTPUT_PAYLOAD = "payload";
@@ -31,7 +32,7 @@ const MASTER_ROOT_PAGE = 1;
  * than `Number.MAX_SAFE_INTEGER` is returned as a `BigInt` rather than silently
  * rounded.
  */
-class CjsSqliteFormat {
+class CjsSqliteFormat extends CjsFormat {
   /**
    * Reports whether bytes are a SQLite container, by signature.
    *
@@ -59,18 +60,41 @@ class CjsSqliteFormat {
    * @param {object} [options] Probe options.
    * @returns {object} Resource probe.
    */
-  static isSupported(input, options = null) {
-    return Probe(this.is(input), options);
+  static probeSupport(input, options = null) {
+    const recognized = this.is(input);
+    return {
+      format: this.id,
+      source: options?.source || "buffer",
+      recognized,
+      supported: recognized,
+      preferredOutput: recognized ? OUTPUT_JSON : "",
+      reason: recognized ? "Recognized a SQLite 3 container." : "The header signature is not SQLite 3.",
+      variants: [{
+        kind: OUTPUT_JSON,
+        supported: recognized
+      }, {
+        kind: OUTPUT_PAYLOAD,
+        supported: recognized
+      }, {
+        kind: OUTPUT_RAW,
+        supported: recognized
+      }],
+      metadata: recognized ? this.inspect(input) : {
+        family: this.id,
+        decodable: false
+      }
+    };
   }
 
-  // INTERIM, 2026-08-16. No `inspect` alias onto `isSupported`, while nineteen
-  // sibling formats have one. The capability-surface decision page names that
-  // alias as the confusion it wants removed, but its own "What is not proposed"
-  // says not to change things on its strength alone - so this is a divergence
-  // awaiting a decision, not a settled position.
-  //
-  // See maintenance/INTERIM-sqlite-and-static-2026-08-16.md before resolving it,
-  // and search for callers of `inspect` on any format first.
+  /** Return header facts without reading table rows. */
+  static inspect(input) {
+    const header = ReadHeader(Normalize(input));
+    return {
+      family: this.id,
+      decodable: true,
+      header
+    };
+  }
 
   /**
    * Reads every table and row.
@@ -82,7 +106,7 @@ class CjsSqliteFormat {
    * @returns {object} Tables keyed by name, each an array of row objects.
    */
   static read(input, options = {}) {
-    const output = options.output ?? OUTPUT_JSON;
+    const output = options.emit ?? options.output ?? OUTPUT_JSON;
     const bytes = Normalize(input);
     const header = ReadHeader(bytes);
     const schema = ReadMaster(bytes, header);
@@ -146,36 +170,20 @@ class CjsSqliteFormat {
   });
   static id = "sqlite";
   static extensions = Object.freeze([".sqlite", ".db", ".sqlite3"]);
-  static type = Object.freeze(["data"]);
   static mediaTypes = Object.freeze(["data"]);
-  static inputTypes = Object.freeze(["sqlite"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_PAYLOAD]);
-  static debugOutputTypes = Object.freeze([OUTPUT_RAW]);
-}
-
-/** Builds the probe shape the resource manager routes on. */
-function Probe(recognized, options) {
-  return {
-    format: "sqlite",
-    source: "buffer",
-    supported: recognized ? "full" : "none",
-    confidence: 1,
-    preferred: "sqlite",
-    // The header signature is content, not a declaration, so a match is
-    // evidence rather than a claim to be checked later.
-    verified: true,
-    reason: recognized ? "Recognized a SQLite 3 container." : "The header signature is not SQLite 3.",
-    variants: [{
-      kind: "container",
-      codec: "sqlite",
-      supported: recognized
-    }],
-    metadata: {
-      family: "sqlite",
-      decodable: recognized
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      default: true,
+      decoded: true
     },
-    ...(options || {})
-  };
+    payload: {
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    }
+  });
 }
 
 /** Reads `sqlite_master`, which is always the table b-tree rooted at page 1. */

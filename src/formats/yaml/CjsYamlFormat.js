@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsYamlReader } from "./core/CjsYamlReader.js";
 import {
     DEFAULT_VALUES,
@@ -19,13 +20,14 @@ const FORMAT_NAME = "CjsYamlFormat";
  * JSON-graph, raw, or document output with configurable tag policies, alias
  * limits, and identity/reference markers.
  */
-export class CjsYamlFormat
+export class CjsYamlFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
     /** Creates a CjsYamlFormat with caller-provided reader configuration. */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -150,11 +152,13 @@ export class CjsYamlFormat
     static TAG_HANDLE = TAG_HANDLE;
     static id = "yaml";
     static extensions = Object.freeze([ ".yaml", ".yml" ]);
-    static type = Object.freeze([ "data" ]);
     static mediaTypes = Object.freeze([ "data" ]);
-    static inputTypes = Object.freeze([ "yaml" ]);
-    static outputTypes = Object.freeze([ OUTPUT_JSON, OUTPUT_PAYLOAD ]);
-    static debugOutputTypes = Object.freeze([ OUTPUT_RAW, OUTPUT_DOCUMENT ]);
+    static outputs = CjsFormat.defineOutputs({
+        json: { decoded: true },
+        payload: { default: true, decoded: true },
+        raw: { role: "debug", decoded: true },
+        document: { role: "debug", decoded: true }
+    });
 }
 
 export default CjsYamlFormat;

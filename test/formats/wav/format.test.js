@@ -5,7 +5,7 @@ import CjsWavFormat, { CjsWavFormat as NamedCjsWavFormat } from "../../../src/fo
 test("exports default and named CjsWavFormat", () =>
 {
     assert.equal(CjsWavFormat, NamedCjsWavFormat);
-    assert.deepEqual(CjsWavFormat.inputTypes, [ "wav" ]);
+    assert.deepEqual(CjsWavFormat.extensions, [ ".wav" ]);
 });
 
 test("inspects wav metadata and emits raw payload", () =>
@@ -13,8 +13,8 @@ test("inspects wav metadata and emits raw payload", () =>
     const bytes = makeWav();
     const info = CjsWavFormat.inspect(bytes);
     const raw = CjsWavFormat.read(bytes);
-    const support = CjsWavFormat.isSupported(bytes);
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
+    const support = CjsWavFormat.getSupport(bytes);
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
 
     assert.equal(CjsWavFormat.isWAV(bytes), true);
     assert.equal(info.sampleRate, 48000);
@@ -24,25 +24,17 @@ test("inspects wav metadata and emits raw payload", () =>
     assert.equal(info.durationSeconds, 0);
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.mimeType, "audio/wav");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.pcmDecodeSupported, true);
-    assert.equal(rawVariant.mimeType, "audio/wav");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.pcmDecodeSupported, true);
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
 });
 
 test("emits wav pcm payload without GPU or audio-device work", () =>
 {
     const bytes = makeWav([ 1, 0, 255, 255 ]);
     const pcm = CjsWavFormat.read(bytes, { emit: "pcm" });
-    const support = CjsWavFormat.isSupported(bytes);
+    const support = CjsWavFormat.getSupport(bytes);
 
     assert.equal(pcm.payloadType, "pcm");
-    assert.equal(pcm.containerOnly, false);
-    assert.equal(pcm.isDecoded, true);
-    assert.equal(pcm.pcmDecodeSupported, true);
     assert.equal(pcm.audioFormat, "pcm16");
     assert.equal(pcm.sampleFormat, "pcm16");
     assert.equal(pcm.sampleRate, 48000);
@@ -53,17 +45,17 @@ test("emits wav pcm payload without GPU or audio-device work", () =>
     assert.equal(pcm.durationSeconds, 1 / 48000);
     assert.ok(pcm.data instanceof Int16Array);
     assert.deepEqual(Array.from(pcm.data), [ 1, -1 ]);
-    assert.equal(support.supported, "full");
+    assert.equal(support.supported, true);
 });
 
 test("does not advertise unsupported WAV PCM sample widths", () =>
 {
     const bytes = makeWavWithFormat({ bitsPerSample: 12, blockAlign: 3, byteRate: 48000 * 3, samples: [ 0, 0, 0 ] });
-    const support = CjsWavFormat.isSupported(bytes);
+    const support = CjsWavFormat.getSupport(bytes);
 
-    assert.equal(support.supported, "partial");
-    assert.equal(support.variants.find((variant) => variant.kind === "raw").supported, true);
-    assert.equal(support.variants.find((variant) => variant.kind === "pcm").supported, false);
+    assert.equal(support.supported, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "raw").supported, true);
+    assert.equal(support.outputs.find((variant) => variant.output === "pcm").supported, false);
     assert.throws(() => CjsWavFormat.read(bytes, { emit: "pcm" }), /only PCM and IEEE-float/u);
 });
 

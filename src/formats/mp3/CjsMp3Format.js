@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_AUDIO,
@@ -6,7 +7,7 @@ import {
     OUTPUT_RAW,
     inspectWithValues,
     isMP3,
-    isSupportedWithValues,
+    probeSupportWithValues,
     normalizeValues,
     readWithValues,
     toBytes,
@@ -19,7 +20,7 @@ const FORMAT_NAME = "CjsMp3Format";
  * MP3 audio format profile that inspects frame and tag metadata and emits
  * raw container bytes or debug JSON, with PCM decoding not implemented.
  */
-export class CjsMp3Format
+export class CjsMp3Format extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -30,6 +31,7 @@ export class CjsMp3Format
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -93,18 +95,6 @@ export class CjsMp3Format
     }
 
     /**
-     * Report whether MP3 input and requested output variants are supported.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input MP3 bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Support/probe report.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options), "mp3");
-    }
-
-    /**
      * Convert format output into JSON-compatible debug data.
      *
      * @param {any} value Format output.
@@ -158,9 +148,9 @@ export class CjsMp3Format
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "mp3", ...options }, FORMAT_NAME), "mp3");
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "mp3", ...options }, FORMAT_NAME), "mp3");
     }
 
     /**
@@ -202,12 +192,13 @@ export class CjsMp3Format
         JSON: OUTPUT_JSON
     });
     static OUTPUT_MP3_JSON = "mp3Json";
-    static type = Object.freeze([ "audio" ]);
+    static id = "mp3";
     static mediaTypes = Object.freeze([ "audio" ]);
+    static outputs = CjsFormat.defineOutputs({
+        mp3Json: { role: "debug", probes: [ "mp3Json", "raw" ] },
+        raw: { role: "debug", default: true, passthrough: true }
+    });
     static extensions = Object.freeze([ ".mp3" ]);
-    static inputTypes = Object.freeze([ "mp3" ]);
-    static outputTypes = Object.freeze([]);
-    static debugOutputTypes = Object.freeze([ "mp3Json", OUTPUT_RAW ]);
 }
 
 export default CjsMp3Format;

@@ -1,3 +1,4 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { CLASS_KEYS } from './core/schema.js';
 import { DEFAULT_VALUES, OUTPUT_JSON, OUTPUT_PAYLOAD, normalizeValues, validateClassKey, validateClass, toJsonValue, OUTPUT_DOCUMENT, OUTPUT_RAW, OUTPUT_RUNTIME } from './core/helpers.js';
 import { CJS_BLACK_FOURCC, CJS_BLACK_FORMAT_ID, CJS_BLACK_EXTENSION, CJS_BLACK_VERSION } from './core/blackConstants.js';
@@ -11,7 +12,7 @@ const FORMAT_NAME = "CjsBlackFormat";
  * This package reads public-facing `.black` payload data using CarbonEngineJS
  * canonical schemas or source-shape registries.
  */
-class CjsBlackFormat {
+class CjsBlackFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #schema = DEFAULT_VALUES.schema;
   #readerOptions = {};
@@ -35,6 +36,7 @@ class CjsBlackFormat {
    * @param {object} [options] Default format values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -263,7 +265,7 @@ class CjsBlackFormat {
    * @param {ArrayBuffer|ArrayBufferView} input Candidate source bytes.
    * @returns {boolean} True when the little-endian Black magic is present.
    */
-  static isSupported(input) {
+  static probeSupport(input) {
     const view = getBlackProbeView(input);
     return Boolean(view && view.byteLength >= 4 && view.getUint32(0, true) === CJS_BLACK_FOURCC);
   }
@@ -283,11 +285,26 @@ class CjsBlackFormat {
   static extensions = Object.freeze([CJS_BLACK_EXTENSION]);
   static fourCC = CJS_BLACK_FOURCC;
   static version = CJS_BLACK_VERSION;
-  static type = Object.freeze(["data"]);
   static mediaTypes = Object.freeze(["data"]);
-  static inputTypes = Object.freeze(["black"]);
-  static outputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_DOCUMENT, OUTPUT_PAYLOAD, OUTPUT_RUNTIME]);
-  static debugOutputTypes = Object.freeze([OUTPUT_RAW]);
+  static outputs = CjsFormat.defineOutputs({
+    json: {
+      default: true,
+      decoded: true
+    },
+    document: {
+      decoded: true
+    },
+    payload: {
+      decoded: true
+    },
+    runtime: {
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    }
+  });
 
   /** Provides the one-shot Black copy reader options helper entry point. */
   static copyReaderOptions(values) {

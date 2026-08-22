@@ -15,13 +15,40 @@ test("published package exposes every declared subpath", async () =>
 
   for (const [subpath, target] of Object.entries(manifest.exports))
   {
-    const targetPath = path.resolve(npmRoot, target);
-    await access(targetPath);
-    const exports = await import(pathToFileURL(targetPath).href);
+    for (const resolved of await expandExportTargets(subpath, target))
+    {
+      const targetPath = path.resolve(npmRoot, resolved.target);
+      await access(targetPath);
+      const exports = await import(pathToFileURL(targetPath).href);
 
-    assert.ok(exports && typeof exports === "object", `${subpath} must import from ${target}`);
+      assert.ok(
+        exports && typeof exports === "object",
+        `${resolved.subpath} must import from ${resolved.target}`
+      );
+    }
   }
 });
+
+async function expandExportTargets(subpath, target)
+{
+  const star = target.indexOf("*");
+  if (star === -1) return [ { subpath, target } ];
+
+  assert.equal(target.indexOf("*", star + 1), -1, `${subpath} has one target wildcard`);
+  assert.ok(subpath.includes("*"), `${subpath} mirrors the target wildcard`);
+
+  const prefix = target.slice(0, star);
+  const entries = await readdir(path.resolve(npmRoot, prefix), { withFileTypes: true });
+  const resolved = entries
+    .filter(entry => entry.isDirectory())
+    .map(entry => ({
+      subpath: subpath.replace("*", entry.name),
+      target: target.replace("*", entry.name)
+    }));
+
+  assert.ok(resolved.length > 0, `${subpath} must expose at least one built target`);
+  return resolved;
+}
 
 test("published package includes every README document target", async () =>
 {

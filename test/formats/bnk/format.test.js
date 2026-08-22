@@ -5,7 +5,7 @@ import CjsBnkFormat, { CjsBnkFormat as NamedCjsBnkFormat } from "../../../src/fo
 test("exports default and named CjsBnkFormat", () =>
 {
     assert.equal(CjsBnkFormat, NamedCjsBnkFormat);
-    assert.deepEqual(CjsBnkFormat.inputTypes, [ "bnk" ]);
+    assert.deepEqual(CjsBnkFormat.extensions, [ ".bnk" ]);
 });
 
 test("inspects bank header, media index, hierarchy, and names", () =>
@@ -180,16 +180,15 @@ test("read emits raw, media, and json payloads", () =>
     const raw = CjsBnkFormat.read(bytes);
     const media = CjsBnkFormat.read(bytes, { emit: "media" });
     const metadata = CjsBnkFormat.read(bytes, { emit: "json" });
-    const support = CjsBnkFormat.isSupported(bytes);
+    const support = CjsBnkFormat.getSupport(bytes);
 
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.bytes, bytes);
-    assert.equal(raw.containerOnly, true);
     assert.equal(media.payloadType, "media");
     assert.equal(media.items.length, 2);
     assert.equal(metadata.sourceFormat, "bnk");
-    assert.equal(support.supported, "partial");
-    assert.equal(support.preferred, "media");
+    assert.equal(support.supported, true);
+    assert.equal(support.preferredOutput, "media");
     assert.throws(() => CjsBnkFormat.read(bytes, { emit: "pcm" }), /unknown emit value/u);
 });
 
@@ -208,20 +207,20 @@ test("banks without media report no extractable variant", () =>
 {
     const bytes = makeBnk({ headerOnly: true });
     const info = CjsBnkFormat.inspect(bytes);
-    const support = CjsBnkFormat.isSupported(bytes);
+    const support = CjsBnkFormat.getSupport(bytes);
 
     assert.equal(info.mediaCount, 0);
-    assert.equal(support.preferred, "raw");
-    assert.equal(support.variants.find((variant) => variant.kind === "media").supported, false);
+    assert.equal(support.preferredOutput, "raw");
+    assert.equal(support.outputs.find((variant) => variant.output === "media").supported, false);
 });
 
 test("rejects non-bnk bytes without throwing from probes", () =>
 {
     const junk = new Uint8Array([ 1, 2, 3, 4, 5, 6, 7, 8 ]);
-    const support = CjsBnkFormat.isSupported(junk);
+    const support = CjsBnkFormat.getSupport(junk);
 
     assert.equal(CjsBnkFormat.isBNK(junk), false);
-    assert.equal(support.supported, "none");
+    assert.equal(support.supported, false);
     assert.throws(() => CjsBnkFormat.inspect(junk), /expected a Wwise soundbank/u);
 });
 

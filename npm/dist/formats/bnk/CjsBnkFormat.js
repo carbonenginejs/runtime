@@ -1,5 +1,6 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { wwiseIdFromName, joinSoundbanksInfo, buildSoundbanksCatalog, parseSoundbanksInfo, isSoundbanksInfo } from './core/soundbanksInfo.js';
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, toBytes, extractMedia, isBNK, OUTPUT_MEDIA, OUTPUT_BNK_JSON, OUTPUT_JSON, OUTPUT_RAW, HIRC_TYPE_NAMES, HIRC_V150_TYPE_NAMES } from './core/helpers.js';
+import { DEFAULT_VALUES, OUTPUT_RAW, OUTPUT_MEDIA, OUTPUT_BNK_JSON, normalizeValues, readWithValues, inspectWithValues, toJsonValue, probeSupportWithValues, toBytes, extractMedia, isBNK, OUTPUT_JSON, HIRC_TYPE_NAMES, HIRC_V150_TYPE_NAMES } from './core/helpers.js';
 import { eventMediaFromBanks } from './core/graph.js';
 import { parseEventAction } from './core/eventAction.js';
 import { parseGlobalSettings } from './core/globalSettings.js';
@@ -21,7 +22,7 @@ const FORMAT_NAME = "CjsBnkFormat";
  * helpers, id hash, event -> media graph resolution) is grouped under the
  * `wwise` static.
  */
-class CjsBnkFormat {
+class CjsBnkFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /**
@@ -29,7 +30,9 @@ class CjsBnkFormat {
    */
   static worker = Object.freeze({
     module: import.meta.url,
-    exportName: "CjsBnkFormat"
+    exportName: "CjsBnkFormat",
+    outputTypes: Object.freeze([OUTPUT_RAW, OUTPUT_MEDIA, OUTPUT_BNK_JSON]),
+    defaultOutput: OUTPUT_RAW
   });
 
   /**
@@ -38,6 +41,7 @@ class CjsBnkFormat {
    * @param {object} [options] Default read/inspect options.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -96,17 +100,6 @@ class CjsBnkFormat {
   }
 
   /**
-   * Report whether soundbank input and requested output variants are supported.
-   *
-   * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-   * @param {object} [options] Per-call values.
-   * @returns {object} Support/probe report.
-   */
-  IsSupported(input, options = {}) {
-    return isSupportedWithValues(input, this.GetValues(options));
-  }
-
-  /**
    * Convert format output into JSON-compatible debug data.
    *
    * @param {any} value Format output.
@@ -156,8 +149,8 @@ class CjsBnkFormat {
    * @param {object} [options] Probe options.
    * @returns {object} Support/probe report.
    */
-  static isSupported(input, options = {}) {
-    return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
+  static probeSupport(input, options = {}) {
+    return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
   }
 
   /**
@@ -270,12 +263,20 @@ class CjsBnkFormat {
   });
   static HIRC_TYPE_NAMES = HIRC_TYPE_NAMES;
   static HIRC_V150_TYPE_NAMES = HIRC_V150_TYPE_NAMES;
-  static type = Object.freeze(["audio"]);
+  static id = "bnk";
   static mediaTypes = Object.freeze(["audio"]);
+  static outputs = CjsFormat.defineOutputs({
+    raw: {
+      default: true,
+      passthrough: true
+    },
+    media: {},
+    bnkJson: {
+      role: "debug",
+      probes: ["bnkJson", "raw"]
+    }
+  });
   static extensions = Object.freeze([".bnk"]);
-  static inputTypes = Object.freeze(["bnk"]);
-  static outputTypes = Object.freeze([OUTPUT_RAW, OUTPUT_MEDIA]);
-  static debugOutputTypes = Object.freeze([OUTPUT_BNK_JSON, OUTPUT_RAW]);
 }
 
 export { CjsBnkFormat };

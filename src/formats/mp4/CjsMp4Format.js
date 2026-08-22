@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_JSON,
@@ -5,7 +6,7 @@ import {
     OUTPUT_VIDEO,
     inspectWithValues,
     isMP4,
-    isSupportedWithValues,
+    probeSupportWithValues,
     normalizeValues,
     readWithValues,
     toBytes,
@@ -19,7 +20,7 @@ const FORMAT_NAME = "CjsMp4Format";
  * emits raw bytes, debug JSON, or a container-only video payload with codec
  * and duration summaries but no frame decoding.
  */
-export class CjsMp4Format
+export class CjsMp4Format extends CjsFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -30,6 +31,7 @@ export class CjsMp4Format
      */
     constructor(options = {})
     {
+        super();
         this.SetValues(options);
     }
 
@@ -93,18 +95,6 @@ export class CjsMp4Format
     }
 
     /**
-     * Report whether MP4 input and requested output variants are supported.
-     *
-     * @param {Uint8Array|ArrayBuffer|DataView} input MP4 bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Support/probe report.
-     */
-    IsSupported(input, options = {})
-    {
-        return isSupportedWithValues(input, this.GetValues(options), "mp4");
-    }
-
-    /**
      * Convert format output into JSON-compatible debug data.
      *
      * @param {any} value Format output.
@@ -158,9 +148,9 @@ export class CjsMp4Format
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static isSupported(input, options = {})
+    static probeSupport(input, options = {})
     {
-        return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "mp4", ...options }, FORMAT_NAME), "mp4");
+        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "mp4", ...options }, FORMAT_NAME), "mp4");
     }
 
     /**
@@ -201,12 +191,14 @@ export class CjsMp4Format
         JSON: OUTPUT_JSON
     });
     static OUTPUT_MP4_JSON = "mp4Json";
-    static type = Object.freeze([ "audio", "video" ]);
+    static id = "mp4";
     static mediaTypes = Object.freeze([ "audio", "video" ]);
+    static outputs = CjsFormat.defineOutputs({
+        video: {  },
+        mp4Json: { role: "debug", probes: [ "mp4Json", "raw" ] },
+        raw: { role: "debug", default: true, passthrough: true }
+    });
     static extensions = Object.freeze([ ".mp4", ".m4v", ".m4a" ]);
-    static inputTypes = Object.freeze([ "mp4", "m4v", "m4a" ]);
-    static outputTypes = Object.freeze([ OUTPUT_VIDEO ]);
-    static debugOutputTypes = Object.freeze([ "mp4Json", OUTPUT_RAW ]);
 }
 
 export default CjsMp4Format;

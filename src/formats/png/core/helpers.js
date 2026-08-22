@@ -90,7 +90,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the PNG
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "")
+export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     try
     {
@@ -113,7 +113,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: metadata.sourceFormat ? (variants.some((variant) => variant.kind === "rgba" && variant.supported) ? "full" : "partial") : "none",
             confidence: metadata.sourceFormat ? 1 : 0,
-            preferred: variants.find(v => v.supported)?.codec || "",
+            preferredOutput: variants.find(v => v.supported)?.kind || "",
             reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized image format.",
             metadata,
             variants,
@@ -128,7 +128,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedTy
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -150,9 +150,6 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
             payloadType: "raw",
             sourceFormat: metadata.sourceFormat,
             mimeType: imageMimeType(metadata.sourceFormat),
-            containerOnly: true,
-            isDecoded: false,
-            rgbaDecodeSupported: metadata.sourceFormat === "png" && pngRgbaSupport(metadata).supported === true,
             metadata,
             bytes
         };
@@ -331,9 +328,6 @@ async function decodePngToRgba(bytes, metadata)
         payloadType: OUTPUT_RGBA,
         sourceFormat: "png",
         mimeType: "image/png",
-        containerOnly: false,
-        isDecoded: true,
-        rgbaDecodeSupported: true,
         width: metadata.width,
         height: metadata.height,
         pixelFormat: "rgba8unorm",
@@ -354,9 +348,6 @@ function rawVariant(metadata)
         codec: metadata.sourceFormat,
         mimeType: imageMimeType(metadata.sourceFormat),
         supported: true,
-        containerOnly: true,
-        isDecoded: false,
-        rgbaDecodeSupported: metadata.sourceFormat === "png" && pngRgbaSupport(metadata).supported === true
     };
 }
 

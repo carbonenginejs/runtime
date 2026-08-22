@@ -5,29 +5,26 @@ import CjsWebpFormat, { CjsWebpFormat as NamedCjsWebpFormat } from "../../../src
 test("exports the WEBP reader and metadata-only contract", () =>
 {
     assert.equal(CjsWebpFormat, NamedCjsWebpFormat);
-    assert.deepEqual(CjsWebpFormat.inputTypes, [ "webp" ]);
-    assert.deepEqual(CjsWebpFormat.outputTypes, []);
-    assert.equal(CjsWebpFormat.implementationStatus, "metadata-only");
+    assert.deepEqual(CjsWebpFormat.extensions, [ ".webp" ]);
+    assert.deepEqual(Object.values(CjsWebpFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), []);
 });
 
 test("inspects VP8X dimensions and alpha/animation flags", () =>
 {
     const bytes = makeWebP("VP8X", [ 0x12, 1, 0, 0, 1, 0, 0, 1, 0, 0 ]);
     const info = CjsWebpFormat.inspect(bytes);
-    const support = CjsWebpFormat.isSupported(bytes);
+    const support = CjsWebpFormat.getSupport(bytes);
 
     assert.equal(CjsWebpFormat.isWebP(bytes), true);
     assert.equal(info.width, 2);
     assert.equal(info.height, 2);
     assert.equal(info.hasAlpha, true);
     assert.equal(info.animated, true);
-    const rawVariant = support.variants.find(variant => variant.kind === "raw");
+    const rawVariant = support.outputs.find(variant => variant.output === "raw");
     assert.equal(rawVariant.supported, true);
-    assert.equal(rawVariant.mimeType, "image/webp");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.rgbaDecodeSupported, false);
-    assert.equal(support.variants.find(variant => variant.kind === "rgba").supported, false);
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
+    assert.equal(CjsWebpFormat.getOutputCapability("rgba"), null);
 });
 
 test("reads raw WebP bytes and rejects hidden RGBA/image emits until a decoder exists", () =>
@@ -38,9 +35,6 @@ test("reads raw WebP bytes and rejects hidden RGBA/image emits until a decoder e
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.sourceFormat, "webp");
     assert.equal(raw.mimeType, "image/webp");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.rgbaDecodeSupported, false);
     assert.equal(raw.bytes, bytes);
     assert.throws(() => CjsWebpFormat.read(bytes, { emit: "rgba" }), /unknown emit value/u);
     assert.throws(() => CjsWebpFormat.read(bytes, { emit: "image" }), /unknown emit value/u);

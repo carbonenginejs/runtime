@@ -417,9 +417,8 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
   };
   class CjsWorkerQueueFormat
   {
-    static inputTypes = [ "workerqueue" ];
-    static outputTypes = [ "raw" ];
-    static debugOutputTypes = [ "json" ];
+    static extensions = Object.freeze([ ".workerqueue" ]);
+    static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
   }
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,

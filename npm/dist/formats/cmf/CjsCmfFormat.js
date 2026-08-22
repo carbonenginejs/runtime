@@ -1,18 +1,10 @@
+import { CjsFormat } from '../../format/CjsFormat.js';
 import { convertGr2SkeletonsAndAnimations } from './core/gr2Anim.js';
 import { packGraphBuffers } from './core/pack.js';
 import { buildCmfFromShared } from './core/shared.js';
 import { writeCmf, writeCmfAsync } from './core/writer.js';
 import { DEFAULT_VALUES, normalizeValues, validateClassKey, validateClass, readWithValues, loadNativeWithValues, loadSharedWithValues, readWithValuesAsync, readRawInput, readRawInputAsync, inspectRawCmfResult, toJsonValue } from './core/helpers.js';
 import { OUTPUT_SHARED, OUTPUT_RAW, OUTPUT_NATIVE, OUTPUT_GR2, OUTPUT_CMF_JSON, OUTPUT_CMF, OUTPUT_JSON, CLASS_KEYS } from './core/constants.js';
-
-/**
- * Exposed CarbonEngineJS-facing CMF format class.
- *
- * CMF is expected to become the common CarbonEngineJS geometry container, so
- * this public wrapper keeps parsing details under core/ and exposes CMF-native
- * data by default.
- */
-
 
 /**
  * CarbonEngineJS-facing CMF reader.
@@ -22,7 +14,7 @@ import { OUTPUT_SHARED, OUTPUT_RAW, OUTPUT_NATIVE, OUTPUT_GR2, OUTPUT_CMF_JSON, 
  * shared geometry, emit shared geometry when requested, or hydrate
  * caller-supplied CarbonEngineJS-style classes.
  */
-class CjsCmfFormat {
+class CjsCmfFormat extends CjsFormat {
   #emit = DEFAULT_VALUES.emit;
   #validateCrc = DEFAULT_VALUES.validateCrc;
   #decodeBuffers = DEFAULT_VALUES.decodeBuffers;
@@ -34,6 +26,7 @@ class CjsCmfFormat {
    * @param {object} [options] Default format/build values.
    */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -486,12 +479,35 @@ class CjsCmfFormat {
     SHARED: OUTPUT_SHARED
   });
   static CLASS_KEYS = CLASS_KEYS;
-  static type = Object.freeze(["geometry"]);
+  static id = "cmf";
   static mediaTypes = Object.freeze(["geometry"]);
+  static outputs = CjsFormat.defineOutputs({
+    cmf: {
+      default: true,
+      decoded: true
+    },
+    gr2: {
+      decoded: true
+    },
+    shared: {
+      decoded: true
+    },
+    json: {
+      role: "debug",
+      payloadType: "cmf",
+      decoded: true
+    },
+    cmfJson: {
+      role: "debug",
+      payloadType: "cmf",
+      decoded: true
+    },
+    raw: {
+      role: "debug",
+      decoded: true
+    }
+  });
   static extensions = Object.freeze([".cmf"]);
-  static inputTypes = Object.freeze(["cmf"]);
-  static outputTypes = Object.freeze([OUTPUT_CMF, OUTPUT_GR2, OUTPUT_SHARED]);
-  static debugOutputTypes = Object.freeze([OUTPUT_JSON, OUTPUT_CMF_JSON, OUTPUT_RAW]);
 }
 
 export { CjsCmfFormat, CjsCmfFormat as default };

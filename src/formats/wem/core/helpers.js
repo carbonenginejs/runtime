@@ -211,7 +211,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
  * Reports whether input is supported under normalized format options for the WEM
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES)
+export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
     try
     {
@@ -223,7 +223,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: metadata.codec ? "partial" : "none",
             confidence: metadata.codec ? 1 : 0.5,
-            preferred: oggSupport.supported ? OUTPUT_OGG : (pcmSupport.supported ? OUTPUT_PCM : "raw"),
+            preferredOutput: oggSupport.supported ? OUTPUT_OGG : (pcmSupport.supported ? OUTPUT_PCM : "raw"),
             reason: metadata.codec
                 ? (oggSupport.supported
                     ? "Wwise Vorbis recognized; repacks losslessly to Ogg Vorbis."
@@ -239,9 +239,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                     codec: metadata.codec || "unknown",
                     mimeType: "application/octet-stream",
                     supported: true,
-                    containerOnly: true,
-                    isDecoded: false,
-                    pcmDecodeSupported: false
                 },
                 {
                     kind: OUTPUT_OGG,
@@ -249,8 +246,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                     codec: "vorbis",
                     mimeType: "audio/ogg",
                     supported: oggSupport.supported,
-                    containerOnly: true,
-                    isDecoded: false,
                     reason: oggSupport.supported ? "" : oggSupport.reason
                 },
                 {
@@ -258,9 +253,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                     payloadType: OUTPUT_PCM,
                     codec: "float32",
                     supported: pcmSupport.supported,
-                    containerOnly: false,
-                    isDecoded: true,
-                    pcmDecodeSupported: pcmSupport.supported,
                     reason: pcmSupport.supported ? "" : pcmSupport.reason
                 }
             ],
@@ -275,7 +267,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -386,9 +378,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             outputFormat: "ogg",
             codec: "vorbis",
             mimeType: "audio/ogg",
-            containerOnly: true,
-            isDecoded: false,
-            pcmDecodeSupported: false,
             sampleCount: ogg.sampleCount,
             sampleRate: ogg.sampleRate,
             channels: ogg.channels,
@@ -408,8 +397,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             outputFormat: OUTPUT_PCM,
             codec: "float32",
             sourceCodec: metadata.codec,
-            isDecoded: true,
-            pcmDecodeSupported: true,
             sampleCount: decoded.sampleCount,
             sampleRate: decoded.sampleRate,
             channels: decoded.channels,
@@ -425,9 +412,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             sourceFormat: "wem",
             codec: metadata.codec,
             mimeType: "application/octet-stream",
-            containerOnly: true,
-            isDecoded: false,
-            pcmDecodeSupported: false,
             metadata,
             bytes
         };

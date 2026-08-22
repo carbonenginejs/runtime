@@ -11,9 +11,8 @@ const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "
 test("exports the Ogg reader with Vorbis PCM decode", () =>
 {
     assert.equal(CjsOggFormat, NamedCjsOggFormat);
-    assert.deepEqual(CjsOggFormat.inputTypes, [ "ogg", "oga", "ogv" ]);
-    assert.deepEqual(CjsOggFormat.outputTypes, [ "pcm", "audio" ]);
-    assert.equal(CjsOggFormat.implementationStatus, "vorbis-pcm");
+    assert.deepEqual(CjsOggFormat.extensions, [ ".ogg", ".oga", ".ogv" ]);
+    assert.deepEqual(Object.values(CjsOggFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "pcm", "audio" ]);
 });
 
 test("inspects a Vorbis identification stream", () =>
@@ -89,7 +88,7 @@ test("inspects Theora identification dimensions and frame rate", () =>
     writeU24BE(packet, 33, 1);
     packet[36] = 1;
     const info = CjsOggFormat.inspect(makeOggPage(packet));
-    const support = CjsOggFormat.isSupported(makeOggPage(packet));
+    const support = CjsOggFormat.getSupport(makeOggPage(packet));
     const track = info.tracks[0];
 
     assert.equal(track.codec, "theora");
@@ -101,8 +100,7 @@ test("inspects Theora identification dimensions and frame rate", () =>
     assert.equal(track.frameRate, 30000 / 1001);
     assert.equal(track.pixelAspectRatio, 1);
     assert.equal(track.colorSpace, 1);
-    assert.equal(support.variants.find(variant => variant.kind === "decoded").payloadType, "video-frame");
-    assert.equal(support.variants.find(variant => variant.kind === "decoded").supported, false);
+    assert.equal(CjsOggFormat.getOutputCapability("decoded"), null);
 });
 
 test("reads raw Ogg bytes and reports codec-specific PCM availability", () =>
@@ -110,25 +108,18 @@ test("reads raw Ogg bytes and reports codec-specific PCM availability", () =>
     const packet = new Uint8Array([ 0x4f, 0x70, 0x75, 0x73, 0x48, 0x65, 0x61, 0x64, 1, 2, 0, 0, 0x80, 0xbb, 0x00, 0x00, 0, 0, 0 ]);
     const bytes = makeOggPage(packet);
     const raw = CjsOggFormat.read(bytes);
-    const support = CjsOggFormat.isSupported(bytes);
+    const support = CjsOggFormat.getSupport(bytes);
 
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.sourceFormat, "ogg");
     assert.equal(raw.mimeType, "audio/ogg");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.pcmDecodeSupported, false);
-    assert.equal(raw.frameDecodeSupported, false);
     assert.equal(raw.bytes, bytes);
-    assert.equal(support.preferred, "ogg");
+    assert.equal(support.preferredOutput, "raw");
     assert.match(support.reason, /raw Ogg passthrough/u);
-    const rawVariant = support.variants.find(variant => variant.kind === "raw");
-    assert.equal(rawVariant.mimeType, "audio/ogg");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.pcmDecodeSupported, false);
-    assert.equal(rawVariant.frameDecodeSupported, false);
-    assert.equal(support.variants.find(variant => variant.kind === "pcm").supported, false);
+    const rawVariant = support.outputs.find(variant => variant.output === "raw");
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
+    assert.equal(support.outputs.find(variant => variant.output === "pcm").supported, false);
     assert.throws(() => CjsOggFormat.read(bytes, { emit: "pcm" }), /supports Vorbis only/u);
 });
 
@@ -202,11 +193,9 @@ test("decodes an Ogg Vorbis fixture to PCM with the expected tone", () =>
 {
     const bytes = readFileSync(path.join(FIXTURES, "sine-440.ogg"));
     const pcm = CjsOggFormat.read(bytes, { emit: "pcm" });
-    const support = CjsOggFormat.isSupported(bytes);
+    const support = CjsOggFormat.getSupport(bytes);
 
     assert.equal(pcm.payloadType, "pcm");
-    assert.equal(pcm.isDecoded, true);
-    assert.equal(pcm.containerOnly, false);
     assert.equal(pcm.sampleFormat, "float32");
     assert.equal(pcm.channels, 2);
     assert.equal(pcm.sampleRate, 48000);
@@ -214,9 +203,9 @@ test("decodes an Ogg Vorbis fixture to PCM with the expected tone", () =>
     assert.ok(pcm.data instanceof Float32Array);
     assert.equal(pcm.data.length, pcm.frameCount * 2);
     assert.equal(pcm.channelData.length, 2);
-    assert.equal(support.preferred, "pcm");
+    assert.equal(support.preferredOutput, "pcm");
     assert.match(support.reason, /PCM decode is supported/u);
-    assert.equal(support.variants.find(variant => variant.kind === "pcm").supported, true);
+    assert.equal(support.outputs.find(variant => variant.output === "pcm").supported, true);
 
     // steady-state analysis away from the encoder's fade-in
     const start = 4800;
@@ -249,7 +238,6 @@ test("audio emit mirrors pcm with an audio payload type", () =>
     const bytes = readFileSync(path.join(FIXTURES, "sine-440.ogg"));
     const audio = CjsOggFormat.read(bytes, { emit: "audio" });
     assert.equal(audio.payloadType, "audio");
-    assert.equal(audio.isDecoded, true);
 });
 
 function makeOggPage(packet, options = {})

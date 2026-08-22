@@ -66,7 +66,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the
  * WebP format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES)
+export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
     try
     {
@@ -76,7 +76,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "partial",
             confidence: 1,
-            preferred: "raw",
+            preferredOutput: "raw",
             reason: "WebP container and image metadata are recognized; software RGBA decode is not implemented.",
             metadata,
             variants: [
@@ -86,9 +86,6 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
                     codec: "webp",
                     mimeType: "image/webp",
                     supported: true,
-                    containerOnly: true,
-                    isDecoded: false,
-                    rgbaDecodeSupported: false
                 },
                 { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: false, reason: "WebP software RGBA decode is not implemented yet." }
             ],
@@ -103,7 +100,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -124,9 +121,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             payloadType: "raw",
             sourceFormat: "webp",
             mimeType: "image/webp",
-            containerOnly: true,
-            isDecoded: false,
-            rgbaDecodeSupported: false,
             metadata,
             bytes
         };

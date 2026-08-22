@@ -1,3 +1,4 @@
+import { CjsFormat } from "../../format/CjsFormat.js";
 
 const SQLITE_SIGNATURE = "SQLite format 3\0";
 const PICKLE_PREFIX_BYTES = 4;
@@ -40,7 +41,7 @@ export const CJS_STATIC_FAMILIES = Object.freeze({
  * about what to decode in the wrong place. Nothing outside its own tests ever
  * called it.
  */
-export class CjsStaticFormat
+export class CjsStaticFormat extends CjsFormat
 {
 
   /**
@@ -54,9 +55,17 @@ export class CjsStaticFormat
    * @param {object} [options] Probe options.
    * @returns {CjsResourceProbe} Declaration-derived probe.
    */
-  static isSupported(input, options = null)
+  static probeSupport(input, options = null)
   {
-    return Probe(this.describe(input), false, options);
+    const detected = this.describe(input);
+    return {
+      format: this.id,
+      source: options?.source || "buffer",
+      recognized: detected.family !== CJS_STATIC_FAMILIES.UNKNOWN,
+      supported: false,
+      reason: detected.reason ?? `Recognized a ${detected.family} container.`,
+      metadata: detected
+    };
   }
 
   /**
@@ -68,26 +77,8 @@ export class CjsStaticFormat
    */
   static inspect(input, options = null)
   {
-    return this.isSupported(input, options);
-  }
-
-  /**
-   * Content-verified family resolution.
-   *
-   * Contract: docs/concepts/format-type-resolution.md. There is no declared
-   * type to disagree with here — the extension is silent — so the signature is
-   * both the claim and the evidence, and the resolution is always verified.
-   * `preferred` names the decode route, and all three now lead into this
-   * package: `CjsPickleFormat`, `CjsSqliteFormat`, and `CjsSchemaBoundFormat`
-   * once the caller has the `.schema` companion to hand it.
-   *
-   * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
-   * @param {object} [options] Probe options.
-   * @returns {Promise<CjsResourceProbe>} Verified probe.
-   */
-  static async resolveType(input, options = null)
-  {
-    return Probe(this.describe(input), true, options);
+    void options;
+    return this.describe(input);
   }
 
   /**
@@ -165,8 +156,8 @@ export class CjsStaticFormat
 
   static id = "static";
   static extensions = Object.freeze([ ".static" ]);
-  static type = Object.freeze([ "data" ]);
   static mediaTypes = Object.freeze([ "data" ]);
+  static outputs = Object.freeze({});
 
   /**
    * The extension is the only input this format claims.
@@ -177,35 +168,7 @@ export class CjsStaticFormat
    * nothing and the signature has to be read. The family belongs in
    * `describe()`, which measures it, not in a static that asserts it.
    */
-  static inputTypes = Object.freeze([ "static" ]);
-  static outputTypes = Object.freeze([ "json", "payload" ]);
-  static debugOutputTypes = Object.freeze([ "raw" ]);
 
-}
-
-/**
- * Build the shared probe payload.
- *
- * Formats report a plain probe-shaped object rather than constructing a
- * `CjsResourceProbe`, which keeps this module free of the decorated class and
- * of the build transform it needs.
- */
-function Probe(detected, verified, options)
-{
-  return {
-    format: "static",
-    source: "buffer",
-    supported: detected.decodable ? "full" : "partial",
-    confidence: detected.family === CJS_STATIC_FAMILIES.UNKNOWN ? 0.5 : 1,
-    preferred: detected.family,
-    verified,
-    reason: detected.reason ?? `Recognized a ${detected.family} container.`,
-    variants: [ { kind: "container", codec: detected.family, supported: detected.decodable } ],
-    metadata: verified
-      ? { ...detected, declared: null, resolved: detected.family, mismatch: false }
-      : detected,
-    ...(options || {})
-  };
 }
 
 function MatchesSqlite(bytes)

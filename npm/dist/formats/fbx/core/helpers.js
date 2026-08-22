@@ -293,7 +293,7 @@ function parseGr2DocumentWithValues(input, values) {
  * @param {object} values Normalized reader values.
  * @returns {object} Support report.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES) {
+function probeSupportWithValues(input, values = DEFAULT_VALUES) {
   try {
     const metadata = inspectWithValues(input, values);
     const recognized = metadata.encoding !== "";
@@ -306,7 +306,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: recognized ? "partial" : "none",
       confidence: recognized ? metadata.confidence : 0,
-      preferred: recognized ? "gr2" : "",
+      preferredOutput: recognized ? "gr2" : "",
       reason: recognized ? "FBX document parsing plus basic static/skinned/morphed GR2/CMF output and basic CMF animation curves are available; full CarbonEngine-equivalent import is not implemented yet." : "Unrecognized FBX data.",
       metadata,
       variants: [{
@@ -333,7 +333,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES) {
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -3928,5 +3928,5 @@ function readF64LE(bytes, offset) {
   return new DataView(bytes.buffer, bytes.byteOffset + offset, 8).getFloat64(0, true);
 }
 
-export { CLASS_KEYS, CMF_CLASS_KEYS, DEFAULT_VALUES, GR2_CLASS_KEYS, OUTPUT_CMF, OUTPUT_FBX_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_RAW, inspectBytes, inspectWithValues, isFBX, isSupportedWithValues, normalizeEmit, normalizeValues, parseWithValues, readCmfWithValues, readGr2WithValues, readWithValues, toBytes, toJsonValue, validateClass, validateClassKey };
+export { CLASS_KEYS, CMF_CLASS_KEYS, DEFAULT_VALUES, GR2_CLASS_KEYS, OUTPUT_CMF, OUTPUT_FBX_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_RAW, inspectBytes, inspectWithValues, isFBX, normalizeEmit, normalizeValues, parseWithValues, probeSupportWithValues, readCmfWithValues, readGr2WithValues, readWithValues, toBytes, toJsonValue, validateClass, validateClassKey };
 //# sourceMappingURL=helpers.js.map

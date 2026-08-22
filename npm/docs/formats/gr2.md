@@ -33,7 +33,7 @@ const asynchronousGraph = await CjsGr2Format.readAsync(bytes);
 ```
 
 `CjsGr2Format` is the one public class: the reader engine plus the normal
-runtime-resource format metadata and the `isSupported(bytes)` magic probe.
+runtime-resource format metadata and the boolean `is(bytes)` magic probe.
 The barrel exports nothing else.
 
 Register it with `CjsResMan` when GR2/GSF should participate in ordinary

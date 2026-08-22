@@ -7,7 +7,7 @@ import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../src/fo
 test("exports default and named CjsPngFormat", () =>
 {
     assert.equal(CjsPngFormat, NamedCjsPngFormat);
-    assert.deepEqual(CjsPngFormat.inputTypes, [ "png" ]);
+    assert.deepEqual(CjsPngFormat.extensions, [ ".png" ]);
 });
 
 test("inspects png dimensions and emits raw payload", () =>
@@ -22,32 +22,27 @@ test("inspects png dimensions and emits raw payload", () =>
     assert.equal(info.height, 16);
     assert.equal(raw.payloadType, "raw");
     assert.equal(raw.mimeType, "image/png");
-    assert.equal(raw.containerOnly, true);
-    assert.equal(raw.isDecoded, false);
-    assert.equal(raw.rgbaDecodeSupported, false);
 });
 
 test("support probing matches the PNG RGBA decoder contract", () =>
 {
-    const support = CjsPngFormat.isSupported(makePngRgba());
-    assert.equal(support.supported, "full");
-    const rgbaVariant = support.variants.find((variant) => variant.kind === "rgba");
-    const rawVariant = support.variants.find((variant) => variant.kind === "raw");
+    const support = CjsPngFormat.getSupport(makePngRgba());
+    assert.equal(support.supported, true);
+    const rgbaVariant = support.outputs.find((variant) => variant.output === "rgba");
+    const rawVariant = support.outputs.find((variant) => variant.output === "raw");
     assert.equal(rgbaVariant.supported, true);
-    assert.equal(rawVariant.mimeType, "image/png");
-    assert.equal(rawVariant.containerOnly, true);
-    assert.equal(rawVariant.isDecoded, false);
-    assert.equal(rawVariant.rgbaDecodeSupported, true);
-    assert.equal(support.preferred, "rgba8unorm");
+    assert.equal(rawVariant.passthrough, true);
+    assert.equal(rawVariant.decoded, false);
+    assert.equal(support.preferredOutput, "rgba");
 
-    const unsupported = CjsPngFormat.isSupported(makePngImage(1, 1, 4, 2, [ 0, 0, 0, 0 ]));
-    assert.equal(unsupported.supported, "partial");
-    assert.equal(unsupported.variants.find((variant) => variant.kind === "rgba").supported, false);
+    const unsupported = CjsPngFormat.getSupport(makePngImage(1, 1, 4, 2, [ 0, 0, 0, 0 ]));
+    assert.equal(unsupported.supported, true);
+    assert.equal(unsupported.outputs.find((variant) => variant.output === "rgba").supported, false);
 
-    const headerOnly = CjsPngFormat.isSupported(makePngHeader(1, 1));
-    assert.equal(headerOnly.supported, "partial");
-    assert.equal(headerOnly.variants.find((variant) => variant.kind === "rgba").supported, false);
-    assert.match(headerOnly.variants.find((variant) => variant.kind === "rgba").reason, /IDAT/u);
+    const headerOnly = CjsPngFormat.getSupport(makePngHeader(1, 1));
+    assert.equal(headerOnly.supported, true);
+    assert.equal(headerOnly.outputs.find((variant) => variant.output === "rgba").supported, false);
+    assert.match(headerOnly.outputs.find((variant) => variant.output === "rgba").reason, /IDAT/u);
 });
 
 test("rejects texture output because PNG is not a GPU texture container", () =>
@@ -179,9 +174,6 @@ test("readAsync decodes a non-interlaced RGBA PNG to canonical pixels", async ()
 
     assert.equal(rgba.payloadType, "rgba");
     assert.equal(rgba.mimeType, "image/png");
-    assert.equal(rgba.containerOnly, false);
-    assert.equal(rgba.isDecoded, true);
-    assert.equal(rgba.rgbaDecodeSupported, true);
     assert.equal(rgba.width, 1);
     assert.equal(rgba.height, 1);
     assert.equal(rgba.strideBytes, 4);

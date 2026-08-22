@@ -155,7 +155,11 @@ canonical handle retains the complete route it captured.
 The older registries remain independent compatibility and specialization
 seams. `RegisterFormat` adds a format under its self-declared input extensions.
 `RegisterResourceType` selects a resource class from a semantic requirement or
-payload and takes precedence over the extension handler:
+payload. A matching extension handler takes precedence when several concrete
+resource classes declare that same semantic key; this is how `.gr2` selects
+`TriGrannyRes` while other geometry routes can select `TriGeometryRes`.
+Otherwise an explicitly registered semantic default takes precedence over the
+extension handler:
 
 ```js
 import { CjsResMan } from "@carbonenginejs/runtime-resource";
@@ -183,8 +187,15 @@ const image = resMan.GetResource("res:/image/ship.png", {
 ```
 
 Those are distinct resource identities but share the normalized source-byte
-operation. `RegisterObjectLoader` remains the direct legacy byte-to-value
-registration for an extension without an explicit route.
+operation. Registering several constructor shorthands with one semantic key is
+valid when an extension route disambiguates them; requesting that key without a
+matching route throws `CJS_RESOURCE_TYPE_AMBIGUOUS`. An explicit keyed
+`RegisterResourceType("geometry", Constructor)` establishes one default and
+replaces that ambiguity. Call-level `aliases` map additional semantic keys to
+the same registered constructor.
+
+`RegisterObjectLoader` remains the direct legacy byte-to-value registration for
+an extension without an explicit route.
 
 ## Related documentation
 

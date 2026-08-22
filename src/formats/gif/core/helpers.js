@@ -64,7 +64,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
  * Reports whether input is supported under normalized format options for the GIF
  * format reader.
  */
-export function isSupportedWithValues(input, values = DEFAULT_VALUES)
+export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
     try
     {
@@ -75,12 +75,12 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: decoded ? "full" : "partial",
             confidence: 1,
-            preferred: decoded ? "rgba8unorm" : "raw",
+            preferredOutput: decoded ? "rgba" : "raw",
             reason: decoded ? "GIF frame RGBA decode and compositing are available." : "GIF metadata/raw input is recognized but no decodable image frame was found.",
             metadata,
             variants: [
-                { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: decoded, reason: decoded ? "" : "GIF LZW frame decode is unavailable.", containerOnly: false, isDecoded: decoded, rgbaDecodeSupported: decoded },
-                { kind: "raw", payloadType: "raw", codec: "gif", mimeType: "image/gif", supported: true, containerOnly: true, isDecoded: false, rgbaDecodeSupported: decoded }
+                { kind: "rgba", payloadType: "rgba", codec: "rgba8unorm", supported: decoded, reason: decoded ? "" : "GIF LZW frame decode is unavailable."},
+                { kind: "raw", payloadType: "raw", codec: "gif", mimeType: "image/gif", supported: true}
             ],
             warnings: [],
             errors: []
@@ -93,7 +93,7 @@ export function isSupportedWithValues(input, values = DEFAULT_VALUES)
             source: values.source || "buffer",
             supported: "none",
             confidence: 0,
-            preferred: "",
+            preferredOutput: "",
             reason: error.message,
             metadata: null,
             variants: [],
@@ -114,9 +114,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
             payloadType: "raw",
             sourceFormat: "gif",
             mimeType: "image/gif",
-            containerOnly: true,
-            isDecoded: false,
-            rgbaDecodeSupported: metadata.frameCount > 0 && metadata.lzwSupported,
             metadata,
             bytes
         };
@@ -298,9 +295,6 @@ function decodeFrames(bytes, metadata)
         payloadType: "rgba",
         sourceFormat: "gif",
         mimeType: "image/gif",
-        containerOnly: false,
-        isDecoded: true,
-        rgbaDecodeSupported: true,
         width: metadata.width,
         height: metadata.height,
         pixelFormat: "rgba8unorm",

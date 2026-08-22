@@ -84,7 +84,7 @@ function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
  * Reports whether input is supported under normalized format options for the
  * JPEG format reader.
  */
-function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
+function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
   try {
     const metadata = inspectWithValues(input, values, expectedType);
     const canDecode = metadata.sourceFormat === "jpeg" && canDecodeJpeg(metadata);
@@ -93,17 +93,14 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       payloadType: "rgba",
       codec: "rgba8unorm",
       supported: canDecode,
-      reason: canDecode ? "" : jpegDecodeReason(metadata),
-      containerOnly: false,
-      isDecoded: canDecode,
-      rgbaDecodeSupported: canDecode
+      reason: canDecode ? "" : jpegDecodeReason(metadata)
     }, rawVariant(metadata, canDecode)];
     return {
       format: metadata.sourceFormat,
       source: values.source || "buffer",
       supported: metadata.sourceFormat ? variants.some(variant => variant.supported && variant.kind === "rgba") ? "full" : "partial" : "none",
       confidence: metadata.sourceFormat ? 1 : 0,
-      preferred: variants.find(v => v.supported)?.codec || "",
+      preferredOutput: variants.find(v => v.supported)?.kind || "",
       reason: metadata.sourceFormat ? "Container/header recognized." : "Unrecognized image format.",
       metadata,
       variants,
@@ -116,7 +113,7 @@ function isSupportedWithValues(input, values = DEFAULT_VALUES, expectedType = ""
       source: values.source || "buffer",
       supported: "none",
       confidence: 0,
-      preferred: "",
+      preferredOutput: "",
       reason: error.message,
       metadata: null,
       variants: [],
@@ -135,9 +132,6 @@ function readWithValues(input, values = DEFAULT_VALUES, expectedType = "") {
       payloadType: "raw",
       sourceFormat: metadata.sourceFormat,
       mimeType: imageMimeType(metadata.sourceFormat),
-      containerOnly: true,
-      isDecoded: false,
-      rgbaDecodeSupported: metadata.sourceFormat === "jpeg" && canDecodeJpeg(metadata),
       metadata,
       bytes
     };
@@ -165,10 +159,7 @@ function rawVariant(metadata, canDecode) {
     payloadType: "raw",
     codec: metadata.sourceFormat,
     mimeType: imageMimeType(metadata.sourceFormat),
-    supported: true,
-    containerOnly: true,
-    isDecoded: false,
-    rgbaDecodeSupported: metadata.sourceFormat === "jpeg" && canDecode === true
+    supported: true
   };
 }
 function imageMimeType(sourceFormat) {
@@ -398,5 +389,5 @@ function capitalize(value) {
   return value ? value[0].toUpperCase() + value.slice(1) : "Image";
 }
 
-export { DEFAULT_VALUES, OUTPUT_IMAGE, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, inspectBytes, inspectWithValues, isDDS, isJPEG, isJPG, isPNG, isSupportedWithValues, isTGA, normalizeEmit, normalizeInputType, normalizeValues, readWithValues, toBytes, toJsonValue };
+export { DEFAULT_VALUES, OUTPUT_IMAGE, OUTPUT_JSON, OUTPUT_RAW, OUTPUT_RGBA, inspectBytes, inspectWithValues, isDDS, isJPEG, isJPG, isPNG, isTGA, normalizeEmit, normalizeInputType, normalizeValues, probeSupportWithValues, readWithValues, toBytes, toJsonValue };
 //# sourceMappingURL=helpers.js.map

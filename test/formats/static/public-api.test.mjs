@@ -61,7 +61,10 @@ test("identifies a SQLite container and now decodes it", () =>
   assert.equal(detected.decodable, true);
   assert.equal(detected.requires, null);
 
-  assert.equal(typeof CjsStaticFormat.read, "undefined");
+  assert.throws(
+    () => CjsStaticFormat.read(bytes),
+    error => error.code === "CJS_FORMAT_READ_NOT_IMPLEMENTED"
+  );
 });
 
 test("capability names what closes the gap, not just that there is one", () =>
@@ -79,19 +82,20 @@ test("capability names what closes the gap, not just that there is one", () =>
   );
 });
 
-test("this format identifies and does not decode", async () =>
+test("this format identifies and does not decode", () =>
 {
   const bytes = Bytes(SQLITE_HEADER, [ 0x10, 0x00, 0x01, 0x01 ]);
 
   // read() dispatched to CjsPickleFormat and CjsSqliteFormat until 2026-08-15.
   // It is gone, not deprecated: an identification format should not be the
   // routing table for two others, and nothing outside these tests called it.
-  assert.equal(typeof CjsStaticFormat.read, "undefined");
+  assert.throws(
+    () => CjsStaticFormat.read(bytes),
+    error => error.code === "CJS_FORMAT_READ_NOT_IMPLEMENTED"
+  );
 
   // What a caller gets instead is the family and where the payload starts.
-  const probe = await CjsStaticFormat.resolveType(bytes);
-
-  assert.equal(probe.preferred, CJS_STATIC_FAMILIES.SQLITE);
+  assert.equal(CjsStaticFormat.inspect(bytes).family, CJS_STATIC_FAMILIES.SQLITE);
   assert.equal(CjsStaticFormat.describe(bytes).payloadOffset, 0);
 });
 
@@ -152,35 +156,35 @@ test("rejects input that is not bytes", () =>
 
 test("reports the family on the shared probe seam", () =>
 {
-  const probe = CjsStaticFormat.isSupported(
+  const probe = CjsStaticFormat.getSupport(
     Bytes([ 0x01, 0x00, 0x00, 0x00 ], "(dp1\nS'a'\np2\nI1\ns.")
   );
 
   assert.equal(probe.format, "static");
-  assert.equal(probe.preferred, CJS_STATIC_FAMILIES.PICKLE);
-  assert.equal(probe.supported, "full");
+  assert.equal(probe.recognized, true);
+  assert.equal(probe.supported, false);
   assert.equal(probe.metadata.payloadOffset, 4);
   assert.equal(probe.verified, false, "the declaration seam never claims verification");
   assert.equal(
-    CjsStaticFormat.inspect(Bytes(SQLITE_HEADER)).preferred,
+    CjsStaticFormat.inspect(Bytes(SQLITE_HEADER)).family,
     CJS_STATIC_FAMILIES.SQLITE
   );
 });
 
-test("resolveType is verified, because the extension declares nothing", async () =>
+test("verifySupport refuses an identification-only format with no output", async () =>
 {
-  const probe = await CjsStaticFormat.resolveType(Bytes(SQLITE_HEADER));
+  const probe = await CjsStaticFormat.verifySupport(Bytes(SQLITE_HEADER));
 
   assert.equal(probe.verified, true);
-  assert.equal(probe.preferred, CJS_STATIC_FAMILIES.SQLITE);
-  assert.equal(probe.metadata.declared, null);
-  assert.equal(probe.metadata.resolved, CJS_STATIC_FAMILIES.SQLITE);
-  assert.equal(probe.metadata.mismatch, false);
+  assert.equal(probe.recognized, true);
+  assert.equal(probe.supported, false);
+  assert.equal(probe.metadata.family, CJS_STATIC_FAMILIES.SQLITE);
+  assert.equal(probe.error.code, "CJS_FORMAT_OUTPUT_UNDECLARED");
 
-  const unknown = await CjsStaticFormat.resolveType(
+  const unknown = await CjsStaticFormat.verifySupport(
     Bytes([ 0x08, 0x13, 0x02, 0x00, 0x01, 0x2d, 0x31, 0x01 ])
   );
 
   assert.equal(unknown.verified, true);
-  assert.equal(unknown.preferred, CJS_STATIC_FAMILIES.UNKNOWN);
+  assert.equal(unknown.recognized, false);
 });

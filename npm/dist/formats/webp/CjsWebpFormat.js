@@ -1,4 +1,5 @@
-import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, isSupportedWithValues, toJsonValue, isWebP, toBytes, OUTPUT_JSON, OUTPUT_RAW } from './core/helpers.js';
+import { CjsFormat } from '../../format/CjsFormat.js';
+import { DEFAULT_VALUES, normalizeValues, readWithValues, inspectWithValues, toJsonValue, probeSupportWithValues, isWebP, toBytes, OUTPUT_JSON, OUTPUT_RAW } from './core/helpers.js';
 
 const FORMAT_NAME = "CjsWebpFormat";
 
@@ -6,11 +7,12 @@ const FORMAT_NAME = "CjsWebpFormat";
  * Metadata-only WebP format profile that inspects RIFF chunk headers and
  * emits raw container bytes or debug JSON without decoding pixels.
  */
-class CjsWebpFormat {
+class CjsWebpFormat extends CjsFormat {
   #values = DEFAULT_VALUES;
 
   /** Creates a CjsWebpFormat with caller-provided reader configuration. */
   constructor(options = {}) {
+    super();
     this.SetValues(options);
   }
 
@@ -62,14 +64,6 @@ class CjsWebpFormat {
   }
 
   /**
-   * Reports whether input meets the active decoder capability constraints for
-   * the WebP format configuration.
-   */
-  IsSupported(input, options = {}) {
-    return isSupportedWithValues(input, this.GetValues(options));
-  }
-
-  /**
    * Converts the current decoded payload into a JSON-safe representation for
    * the WebP format configuration.
    */
@@ -99,8 +93,8 @@ class CjsWebpFormat {
   }
 
   /** Checks one input against the WebP decoder capability contract. */
-  static isSupported(input, options = {}) {
-    return isSupportedWithValues(input, normalizeValues(DEFAULT_VALUES, {
+  static probeSupport(input, options = {}) {
+    return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, {
       inputType: "webp",
       ...options
     }, FORMAT_NAME));
@@ -128,13 +122,20 @@ class CjsWebpFormat {
     JSON: OUTPUT_JSON
   });
   static OUTPUT_WEBP_JSON = "webpJson";
-  static type = Object.freeze(["image"]);
+  static id = "webp";
   static mediaTypes = Object.freeze(["image"]);
+  static outputs = CjsFormat.defineOutputs({
+    webpJson: {
+      role: "debug",
+      probes: ["webpJson", "raw"]
+    },
+    raw: {
+      role: "debug",
+      default: true,
+      passthrough: true
+    }
+  });
   static extensions = Object.freeze([".webp"]);
-  static inputTypes = Object.freeze(["webp"]);
-  static outputTypes = Object.freeze([]);
-  static debugOutputTypes = Object.freeze(["webpJson", OUTPUT_RAW]);
-  static implementationStatus = "metadata-only";
 }
 
 export { CjsWebpFormat };

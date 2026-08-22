@@ -190,8 +190,8 @@ test("default export and named export are the same CjsGltfFormat class", () => {
     assert.equal(CjsGltfFormat.Output.SHARED, "shared");
     assert.equal(CjsGltfFormat.Output.GR2, "gr2");
     assert.equal(CjsGltfFormat.Output.CMF, "cmf");
-    assert.deepEqual(CjsGltfFormat.outputTypes, [ "shared", "gr2", "cmf" ]);
-    assert.deepEqual(CjsGltfFormat.debugOutputTypes, [ "json", "gltfJson" ]);
+    assert.deepEqual(Object.values(CjsGltfFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "shared", "gr2", "cmf" ]);
+    assert.deepEqual(Object.values(CjsGltfFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "gltfJson" ]);
 });
 
 test("reads a glTF object with provided buffers into the shared mesh schema", () => {
