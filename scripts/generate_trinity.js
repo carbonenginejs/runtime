@@ -3,6 +3,16 @@
 // tools-core's current Carbon schema build, reusing the same classTool API as
 // runtime-trinity/scripts/regenerate_generated.js. trinityAudio is already
 // hand-owned in src/trinity/trinityAudio and is not re-emitted here.
+//
+// The classTool import below reaches into a SIBLING CHECKOUT by relative path
+// rather than by package specifier, and that is deliberate: tools-core depends
+// on this package, so a declared dependency the other way would be a cycle.
+// Nothing records this edge - not package.json, not the dependency checker -
+// and it runs only under "npm run generate", never under test, lint or check.
+// It survived the tools-core class rename of 2026-08-22 because the four names
+// it imports are free FUNCTIONS rather than classes; a file move under
+// tools-core/src/schema would take it out, and nothing would notice until
+// somebody regenerated.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
