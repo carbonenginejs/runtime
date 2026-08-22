@@ -44,11 +44,13 @@ needed.
       applications   runtime-core composition
 ```
 
-The host supplies the complete document, exact source acquisition, and browser
-audio context. Runtime-audio owns source selection, bank slicing, WEM
+The host may supply a complete document or ask the runtime-owned builder to
+read explicit indexed resources through fetch or an injected byte source. The
+host still owns endpoint selection, credentials, exact source policy, and the
+browser audio context. Runtime-audio owns source selection, bank slicing, WEM
 preparation, decoding, and decoded-buffer policy.
 `@carbonenginejs/runtime-resource` owns reusable audio format operations. Node
-acquisition, caches, and HTTP services belong in
+target/build resolution, caches, persistent artifacts, and HTTP services belong in
 `@carbonenginejs/tools-core`.
 
 ## Start here

@@ -65,6 +65,8 @@ The package owns:
   crossfades, switch/state, parallel/blend, per-leaf spatial routing, gain,
   and live RTPC-curve behavior;
 - immutable schema-v2 document validation and installation;
+- deterministic document construction from decoded inputs, raw indexed
+  resources through fetch, or one injected byte source;
 - language/media representation selection;
 - individual-file, whole-original-file, and exact-range delivery;
 - WEM preparation, browser decoding, pending-work deduplication, and explicit
@@ -82,9 +84,6 @@ as the lower-level graph/backend composition used by the manager.
 
 - `@carbonenginejs/runtime-resource` owns WEM, BNK, Ogg, and related format
   parsing and CPU conversion.
-- `@carbonenginejs/tools-browser/audio` optionally acquires remote documents,
-  builder inputs, complete files, and ranges. It neither builds nor interprets
-  the installed library.
 - `@carbonenginejs/tools-core` calls the runtime-owned builder and adds
   exact-build acquisition, caches, provider indexing, prefetch, CLI/API, and
   HTTP routes.
@@ -97,8 +96,11 @@ as the lower-level graph/backend composition used by the manager.
 
 ## Environment contract
 
-All public runtime entries are browser-safe. Import and construction perform
-no DOM, fetch, Node, or device work. `Enable()` is the first point at which the
+All public runtime entries are browser-safe. Import and ordinary construction
+perform no DOM, fetch, Node, or device work. An explicit `buildFromResources()`
+or `CjsAudioLibrary.load(path)` call may use fetch. A resource build with
+`inspectBanks: false` only decodes catalog inputs and does not acquire bank
+bytes. `Enable()` is the first point at which the
 supplied/default browser context factory may create an `AudioContext`.
 Without a usable context, enablement fails safely and graph events retain
 Carbon's null-manager behavior.

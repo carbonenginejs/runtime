@@ -14,3 +14,4 @@ export { CjsJukebox } from "./CjsJukebox.js";
 export { CjsMusicEngine, wwiseIdFromName } from "./CjsMusicEngine.js";
 export { CjsSfxEngine } from "./CjsSfxEngine.js";
 export { audioMetadataFromSoundbanksInfo } from "./audioMetadata.js";
+export { CjsAudioLibrary } from "./library/CjsAudioLibrary.js";

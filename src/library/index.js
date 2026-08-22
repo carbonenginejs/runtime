@@ -2,6 +2,7 @@ export {
     installAudioLibraryDocument,
     validateAudioLibraryDocument,
 } from "./audioLibraryDocument.js";
+export { CjsAudioLibrary } from "./CjsAudioLibrary.js";
 export {
     normalizeSfxGraph,
     validateSfxGraph,

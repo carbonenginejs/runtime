@@ -3,7 +3,7 @@
 Status: Experimental
 Scope: `@carbonenginejs/runtime-audio`  
 Audience: Runtime authors and application integrators  
-Summary: Defines the whole-library manager and its acquisition-free runtime boundary.
+Summary: Defines whole-library installation, construction, and media-acquisition boundaries.
 
 ## Contract
 
@@ -53,13 +53,17 @@ The caller decides how the complete document exists:
 
 - import or download a built artifact;
 - receive a complete result from an API;
-- call `@carbonenginejs/runtime-audio/library-builder` with already acquired
-  inputs; or
+- call `CjsAudioLibrary.load()` with plain or gzip JSON;
+- call `CjsAudioLibraryBuilder.buildFromResources()` with fetch, `baseUrl` or
+  `resolveUrl`, and explicit index information;
+- pass a local or custom `source.read(path, context)` capability to that same
+  builder; or
 - package it through another application-specific process.
 
-Neither manager nor builder discovers or downloads builder inputs. The
-optional builder accepts supplied index rows, SoundbanksInfo or metadata,
-optional neutral enrichment, and optional bank access.
+The manager never discovers builder inputs. The builder never locates an
+installation or selects a provider: it reads only caller-selected paths and
+index rows. Tools-core can supply validated local/cache bytes through the same
+source seam and persist `library.GetValues()`.
 The enrichment may carry an `sfx` program; the manager consumes it after
 installation without learning how the caller obtained it.
 
@@ -79,8 +83,8 @@ runtime intent only; they never acquire library or media data.
 - Making a general resource manager interpret audio events or banks.
 - Requiring a Node service for browser playback.
 - Treating filenames or URLs as canonical Wwise media identity.
-- Downloading SoundbanksInfo, indexes, enrichment, or banks inside the
-  builder.
+- Discovering an installation, target, provider, credentials, or cache policy
+  inside the builder.
 - Claiming buffer playback is long-form streaming.
 
 ## Related documentation

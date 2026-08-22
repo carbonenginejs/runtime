@@ -135,10 +135,20 @@ Installs one complete audio-library document and owns media selection, delivery,
 - Visibility: Public
 - Kind: CarbonEngineJS original
 
+<!-- class:CjsAudioLibrary -->
+## `CjsAudioLibrary`
+
+Hydrates immutable audio-library values, loads plain or gzip JSON, and exports detached persistence values.
+
+- Export: `@carbonenginejs/runtime-audio`
+- Source: `src/library/CjsAudioLibrary.js`
+- Visibility: Public
+- Kind: CarbonEngineJS original
+
 <!-- class:CjsAudioLibraryBuilder -->
 ## `CjsAudioLibraryBuilder`
 
-Builds a deterministic schema-v2 audio-library document from caller-supplied values and bank access.
+Builds a deterministic schema-v2 audio library from decoded values, raw resources, or injected bank access.
 
 - Export: `@carbonenginejs/runtime-audio/library-builder`
 - Source: `src/library-builder/CjsAudioLibraryBuilder.js`

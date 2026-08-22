@@ -1,15 +1,17 @@
 import { audioMetadataFromSoundbanksInfo } from '../audioMetadata.js';
 import { validateAudioLibraryDocument } from '../library/audioLibraryDocument.js';
+import { CjsAudioLibrary } from '../library/CjsAudioLibrary.js';
 import { normalizeSfxGraph, NormalizeStateTransitions } from '../library/sfxGraph.js';
 import { CjsBnkFormat } from '@carbonenginejs/runtime-resource/formats/bnk';
 import { normalizeBusGraphCatalog } from '../internal/busGraph.js';
+import { createAudioResourceReader, decodeAudioResourceText, decodeAudioResourceJson } from './resourceSource.js';
 import { PARAMETRIC_EQ_PLUGIN_ID, parseStaticParametricEqBytes, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_MATRIX_REVERB_PLUGIN_ID, WWISE_METER_PLUGIN_ID, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes, parseStaticWwiseTremoloBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMatrixReverbBytes, parseStaticWwiseMeterBytes } from '../internal/busEffects.js';
 import { WWISE_ROOMVERB_PLUGIN_ID, parseStaticWwiseRoomVerbBytes } from '../internal/wwiseRoomVerb.js';
 
-// Browser-safe audio-library construction. Acquisition remains caller-owned:
-// the builder accepts index values, metadata values, and optional injected
-// bank-byte/inspection capabilities without discovering files or services.
+// Browser-safe audio-library construction. The high-level resource seam uses
+// fetch by default and accepts an injected byte source for local/tool callers.
 const MUSIC_BANK_NAMES = Object.freeze(["music.bnk", "music_essential.bnk"]);
+const AUTO_MUSIC_BANK_NAMES = Object.freeze(["common.bnk", ...MUSIC_BANK_NAMES]);
 const MUSIC_HIRC_TYPES = new Set([10, 11, 12, 13]);
 const EFFECT_HIRC_TYPES = new Set([16, 17]);
 const SFX_PLAY_ACTION = 0x0403;
@@ -116,7 +118,6 @@ const AUDIO_LANGUAGE_TAGS = Object.freeze({
   sfx: "",
   spanish: "es"
 });
-
 /**
  * Builds a deterministic schema-v2 audio-library document from caller-supplied
  * values and bank access.
@@ -124,6 +125,70 @@ const AUDIO_LANGUAGE_TAGS = Object.freeze({
 class CjsAudioLibraryBuilder {
   static schema = "carbonenginejs.audioLibrary";
   static schemaVersion = 2;
+
+  /** Hydrates the deterministic document produced by build(). */
+  static buildLibrary(options = {}) {
+    return CjsAudioLibrary.from(this.build(options));
+  }
+
+  /**
+   * Builds a hydrated library from raw resources through fetch by default or
+   * one caller-supplied byte source.
+   */
+  static async buildFromResources(options = {}) {
+    RequireBuilderOptions(options);
+    const read = createAudioResourceReader(options);
+    const signal = options.signal ?? null;
+    const [fsdModule, readerModule] = await Promise.all([import('@carbonenginejs/runtime-resource/formats/fsd'), import('@carbonenginejs/runtime-resource/formats/fsd/64/readers')]);
+    const metadataReader = new readerModule.CjsFsd64SchemaAudioMetadata();
+    const registry = new fsdModule.CjsFsd64Reader().Register(metadataReader.constructor.path, metadataReader);
+    const metadataPath = options.audioMetadataPath ?? metadataReader.constructor.path;
+    const indexEntries = await ResolveResourceIndexEntries(options, read, signal);
+    const metadata = options.metadata ?? (await fsdModule.CjsFsdFormat.readJSON(await read(metadataPath, {
+      kind: "audioMetadata",
+      logicalPath: metadataReader.constructor.path,
+      signal
+    }), {
+      ...(options.fsdOptions ?? {}),
+      path: metadataReader.constructor.path,
+      reader: registry
+    }));
+    const soundbanksInfo = await ResolveSoundbanksInfo(options, indexEntries, read, signal);
+    const buildOptions = OmitResourceOptions(options);
+
+    // Catalog-only builds still decode the authoritative FSD metadata, but
+    // do not need to open every Wwise bank. Tools can use this path for a
+    // compact prepared payload and opt into graph inspection separately.
+    if (options.inspectBanks === false) {
+      return this.buildLibrary({
+        ...buildOptions,
+        indexEntries,
+        metadata,
+        ...(soundbanksInfo === undefined ? {} : {
+          soundbanksInfo
+        })
+      });
+    }
+    const availableBankNames = new Set(indexEntries.map(entry => bankSourceName(entry.logicalPath)).filter(name => name.endsWith(".bnk")));
+    const includeMusic = options.music === undefined ? AUTO_MUSIC_BANK_NAMES.every(name => availableBankNames.has(name)) : options.music;
+    const values = await this.buildFromBanks({
+      ...buildOptions,
+      indexEntries,
+      metadata,
+      ...(soundbanksInfo === undefined ? {} : {
+        soundbanksInfo
+      }),
+      includeSfx: options.includeSfx ?? true,
+      music: includeMusic,
+      loadBank: options.loadBank ?? (async (bank, context = {}) => read(bank.resPath, {
+        ...context,
+        kind: "audioBank",
+        bank,
+        signal: context.signal ?? signal
+      }))
+    });
+    return CjsAudioLibrary.from(values);
+  }
 
   /** Normalizes audio rows from index text, a file index, or an iterable. */
   static parseIndexEntries(indexValue) {
@@ -629,6 +694,46 @@ class CjsAudioLibraryBuilder {
     validateAudioLibraryDocument(library);
     return library;
   }
+}
+function RequireBuilderOptions(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new TypeError("Audio resource builder options must be an object");
+  }
+}
+async function ResolveResourceIndexEntries(options, read, signal) {
+  if (options.indexEntries !== undefined) {
+    return CjsAudioLibraryBuilder.parseIndexEntries(options.indexEntries);
+  }
+  const path = options.indexPath ?? "resfileindex.txt";
+  return CjsAudioLibraryBuilder.parseIndexEntries(decodeAudioResourceText(await read(path, {
+    kind: "audioIndex",
+    signal
+  })));
+}
+async function ResolveSoundbanksInfo(options, indexEntries, read, signal) {
+  if (options.soundbanksInfo !== undefined) {
+    return options.soundbanksInfo;
+  }
+  const explicit = options.soundbanksInfoPath;
+  const entry = explicit ? {
+    logicalPath: explicit
+  } : indexEntries.find(value => value.logicalPath.toLowerCase().endsWith("/soundbanksinfo.json"));
+  if (!entry) {
+    return undefined;
+  }
+  return decodeAudioResourceJson(await read(entry.logicalPath, {
+    kind: "soundbanksInfo",
+    signal
+  }), entry.logicalPath);
+}
+function OmitResourceOptions(options) {
+  const result = {
+    ...options
+  };
+  for (const key of ["audioMetadataPath", "baseUrl", "fetch", "fetchThis", "fetchOptions", "fsdOptions", "indexPath", "inspectBanks", "read", "resolveUrl", "source", "soundbanksInfoPath"]) {
+    delete result[key];
+  }
+  return result;
 }
 function MarkBusGraphVolumeActionControls(busGraph, sfx) {
   const buses = Object.fromEntries(Object.entries(busGraph.buses ?? {}).map(([busId, bus]) => [busId, {

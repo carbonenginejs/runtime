@@ -15,8 +15,8 @@ create an audio context, fetch data, or touch the DOM.
 | `@carbonenginejs/runtime-audio` | Complete graph, `CjsAudioMan`, lower-level system, backend, SFX interpreter, metadata adapter, authored music scheduler, and neutral jukebox. |
 | `@carbonenginejs/runtime-audio/trinity` | Carbon audio graph and portable behavior without backend evaluation. |
 | `@carbonenginejs/runtime-audio/audioMetadata` | `audioMetadataFromSoundbanksInfo()`. |
-| `@carbonenginejs/runtime-audio/library` | Audio and neutral music-library validation and immutable installation. |
-| `@carbonenginejs/runtime-audio/library-builder` | Optional construction from caller-supplied inputs. |
+| `@carbonenginejs/runtime-audio/library` | Audio-library hydration/loading plus audio and neutral music-library validation and immutable installation. |
+| `@carbonenginejs/runtime-audio/library-builder` | Construction from decoded values or explicit raw resources. |
 
 ## Principal exports
 
@@ -28,7 +28,8 @@ create an audio context, fetch data, or touch the DOM.
 | `CjsSfxEngine` | Browser-safe authored random, step-sequence, continuous transition, switch/state, blend, and RTPC-gain interpretation. |
 | `CjsMusicEngine` | Authored interactive-music scheduling. |
 | `CjsJukebox` | Neutral browser playlist playback over caller-supplied catalog, acquisition, and availability functions. |
-| `CjsAudioLibraryBuilder` | Deterministic document construction without input acquisition. |
+| `CjsAudioLibrary` | Hydrated immutable library; `from(values)`, `load(pathOrBytes, options)`, and `GetValues()` bridge prepared JSON/gzip and runtime use. |
+| `CjsAudioLibraryBuilder` | Deterministic construction from supplied values, fetch, or an injected byte source. |
 | `installAudioLibraryDocument(value)` | Validates, detaches, and deeply freezes one document. |
 | `validateAudioLibraryDocument(value)` | Validates the current schema-v2 contract. |
 | `installMusicLibrary(value)` | Validates, detaches, and deeply freezes one optional jukebox catalog. |
@@ -396,11 +397,21 @@ history. A selected Sequence Music Track continues at its following subtrack.
 
 ## Builder
 
-`CjsAudioLibraryBuilder` accepts caller-supplied `indexEntries`,
-`soundbanksInfo` or metadata, optional `enrichment`, optional `sfx`, and
-optional `loadBank`.
-It performs no fetch, file-index discovery, cache access, or Node filesystem
-work. With `includeSfx: true`, inspected version-150 banks may also contribute
+`CjsAudioLibraryBuilder.build()` accepts caller-supplied `indexEntries`,
+`soundbanksInfo` or metadata, optional `enrichment`, and optional `sfx`.
+`buildFromBanks()` adds caller-supplied bank access. `buildFromResources()`
+loads the index when needed, modern cFSD audio metadata, optional
+SoundbanksInfo, and indexed banks through fetch by default or a structural
+`source.read(path, context)` capability. Fetch callers provide `baseUrl` or
+`resolveUrl` for `res:/` paths. The resource path returns a hydrated
+`CjsAudioLibrary`; `build()` and `buildFromBanks()` retain their plain-document
+return contract. `inspectBanks: false` returns the cFSD/SoundbanksInfo catalog
+without opening bank bytes; graph extraction opts into bank inspection.
+
+The builder does no installation discovery, provider selection, cache access,
+or Node filesystem work. `fsdOptions: { bitWidth: 32 }` identifies legacy FSD
+through the normal format pipeline and currently throws the explicit
+unsupported-reader error. With `includeSfx: true`, inspected version-150 banks may also contribute
 a conservative authored SFX graph, exact typed-graph `eventMedia`
 reachability, and sparse inherited `is2D` event metadata; caller metadata and
 enrichment retain final precedence. With `music: true`, the two authored music

@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { gzipSync } from "node:zlib";
 
 import {
     CjsAudioLibraryBuilder,
 } from "../npm/dist/library-builder/index.js";
+import { CjsAudioLibrary } from "../npm/dist/library/index.js";
+import {
+    CjsFsd64SchemaAudioMetadata,
+} from "@carbonenginejs/runtime-resource/formats/fsd/64/readers";
 
 const SOUNDBANKS_INFO = {
     SoundBanksInfo: {
@@ -34,6 +39,257 @@ const INDEX_TEXT = [
     "res:/audio/media/777.wem,bb/777_hash.wem,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,2000",
     "res:/graphics/example.red,cc/example,cccccccccccccccccccccccccccccccc,10",
 ].join("\n");
+
+test("resource builder fetches FSD metadata and returns a hydrated library", async () =>
+{
+    const metadataPath = CjsFsd64SchemaAudioMetadata.path;
+    const requested = [];
+    const library = await CjsAudioLibraryBuilder.buildFromResources({
+        indexEntries: [],
+        async fetch(path)
+        {
+            assert.equal(this, globalThis);
+            requested.push(path);
+            assert.equal(path, metadataPath);
+            return {
+                ok: true,
+                async arrayBuffer()
+                {
+                    return CreateEmptyAudioMetadata().buffer;
+                },
+            };
+        },
+    });
+
+    assert.ok(library instanceof CjsAudioLibrary);
+    assert.deepEqual(requested, [ metadataPath ]);
+    assert.deepEqual(library.GetValues(), {
+        schema: "carbonenginejs.audioLibrary",
+        schemaVersion: 2,
+        metadata: {
+            Events: {},
+            SoundBanks: {},
+            WemFileIDs: {},
+        },
+        media: {},
+        banks: {},
+    });
+    assert.deepEqual(
+        CjsAudioLibrary.from(library.GetValues()).GetValues(),
+        library.GetValues(),
+    );
+});
+
+test("resource builder can decode FSD without inspecting indexed banks", async () =>
+{
+    const requested = [];
+    const library = await CjsAudioLibraryBuilder.buildFromResources({
+        indexEntries: [ {
+            logicalPath: "res:/audio/common.bnk",
+            storagePath: "audio/common.bnk",
+            byteLength: 4,
+        } ],
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "common",
+                    Path: "SoundBanks\\SFX\\common.bnk",
+                } ],
+            },
+        },
+        inspectBanks: false,
+        source(path)
+        {
+            requested.push(path);
+            if (path.endsWith(".bnk"))
+            {
+                throw new Error("catalog-only build opened a bank");
+            }
+            return CreateEmptyAudioMetadata();
+        },
+    });
+
+    assert.ok(library instanceof CjsAudioLibrary);
+    assert.deepEqual(requested, [ CjsFsd64SchemaAudioMetadata.path ]);
+    assert.equal(library.banks["200:0"].resPath, "res:/audio/common.bnk");
+});
+
+test("resource builder uses one injected source for JSON and bank bytes", async () =>
+{
+    const requested = [];
+    const controller = new AbortController();
+    const library = await CjsAudioLibraryBuilder.buildFromResources({
+        indexEntries: [
+            {
+                logicalPath: "res:/audio/soundbanksinfo.json",
+                storagePath: "audio/soundbanksinfo.json",
+                byteLength: 2,
+            },
+            {
+                logicalPath: "res:/audio/common.bnk",
+                storagePath: "audio/common.bnk",
+                byteLength: 4,
+            },
+        ],
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "common.bnk": {
+                    name: "common",
+                    path: "\\SoundBanks\\SFX\\common.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        signal: controller.signal,
+        source: {
+            read(path, context)
+            {
+                requested.push({ path, context });
+                return path.endsWith("soundbanksinfo.json")
+                    ? new TextEncoder().encode(JSON.stringify({
+                        SoundBanksInfo: {
+                            SoundBanks: [ {
+                                Id: "200",
+                                ShortName: "common",
+                                Path: "SoundBanks\\SFX\\common.bnk",
+                            } ],
+                        },
+                    }))
+                    : new Uint8Array(4);
+            },
+        },
+        includeSfx: false,
+        inspectBank(_bytes, context)
+        {
+            assert.equal(context.signal, controller.signal);
+            return {
+                bankId: 200,
+                languageId: 0,
+                bankVersion: 150,
+                hirc: [],
+                media: [],
+            };
+        },
+    });
+
+    assert.ok(library instanceof CjsAudioLibrary);
+    assert.deepEqual(requested.map(value => value.path), [
+        "res:/audio/soundbanksinfo.json",
+        "res:/audio/common.bnk",
+    ]);
+    assert.equal(requested[1].context.sourceID, "200:0");
+    assert.equal(requested[1].context.signal, controller.signal);
+});
+
+test("resource builder preserves cancellation across its bank-source seam", async () =>
+{
+    const controller = new AbortController();
+    let inspected = false;
+
+    await assert.rejects(CjsAudioLibraryBuilder.buildFromResources({
+        indexEntries: [ {
+            logicalPath: "res:/audio/common.bnk",
+            storagePath: "audio/common.bnk",
+            byteLength: 4,
+        } ],
+        metadata: {
+            Events: {},
+            SoundBanks: {
+                "common.bnk": {
+                    name: "common",
+                    path: "\\SoundBanks\\SFX\\common.bnk",
+                    shortId: 200,
+                },
+            },
+            WemFileIDs: {},
+        },
+        signal: controller.signal,
+        source(path)
+        {
+            assert.equal(path, "res:/audio/common.bnk");
+            controller.abort(new Error("cancelled resource build"));
+            return new Uint8Array(4);
+        },
+        includeSfx: false,
+        inspectBank()
+        {
+            inspected = true;
+        },
+    }), /cancelled resource build/u);
+    assert.equal(inspected, false);
+});
+
+test("resource builder reports explicitly identified legacy 32-bit FSD", async () =>
+{
+    await assert.rejects(CjsAudioLibraryBuilder.buildFromResources({
+        indexEntries: [],
+        fsdOptions: { bitWidth: 32 },
+        source()
+        {
+            return new Uint8Array(1);
+        },
+    }), error => error?.code === "CJS_FSD_32_UNSUPPORTED");
+});
+
+test("audio libraries load from plain or gzip JSON and detach exported values", async () =>
+{
+    const values = CjsAudioLibraryBuilder.build({
+        metadata: { Events: {}, SoundBanks: {}, WemFileIDs: {} },
+    });
+    const plain = new TextEncoder().encode(JSON.stringify(values));
+    const fromPlain = await CjsAudioLibrary.load(plain);
+    const fromGzip = await CjsAudioLibrary.load(gzipSync(plain));
+    const fromFetch = await CjsAudioLibrary.load("res:/libraries/audio.json.gz", {
+        baseUrl: "https://assets.example.test/root/",
+        async fetch(url)
+        {
+            assert.equal(this, globalThis);
+            assert.equal(
+                url,
+                "https://assets.example.test/root/libraries/audio.json.gz",
+            );
+            return {
+                ok: true,
+                async arrayBuffer()
+                {
+                    const compressed = gzipSync(plain);
+                    return compressed.buffer.slice(
+                        compressed.byteOffset,
+                        compressed.byteOffset + compressed.byteLength,
+                    );
+                },
+            };
+        },
+    });
+    const detached = fromGzip.GetValues();
+
+    detached.metadata.Events.changed = {};
+    assert.deepEqual(fromPlain.GetValues(), values);
+    assert.deepEqual(fromGzip.GetValues(), values);
+    assert.deepEqual(fromFetch.GetValues(), values);
+});
+
+function CreateEmptyAudioMetadata()
+{
+    const size = 80;
+    const bytes = new Uint8Array(size);
+    const view = new DataView(bytes.buffer);
+    const schemaID = CjsFsd64SchemaAudioMetadata.schemaID;
+
+    for (let index = 0; index < schemaID.length / 2; index++)
+    {
+        bytes[index] = Number.parseInt(
+            schemaID.slice(index * 2, index * 2 + 2),
+            16,
+        );
+    }
+
+    view.setUint32(24, size - 32, true);
+    return bytes;
+}
 
 function BankInspectionBuildOptions(overrides = {})
 {

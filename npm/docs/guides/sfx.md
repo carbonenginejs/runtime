@@ -1088,6 +1088,21 @@ const library = await CjsAudioLibraryBuilder.buildFromBanks({
 });
 ```
 
+For an end-to-end browser or tool path, `buildFromResources()` reads the cFSD
+metadata, optional SoundbanksInfo, and banks through fetch or one injected
+source and returns a hydrated library:
+
+```js
+const library = await CjsAudioLibraryBuilder.buildFromResources({
+    indexEntries,
+    source: { read: (path, context) => readBytes(path, context) },
+    includeSfx: true,
+    language: "en-us"
+});
+
+const values = library.GetValues();
+```
+
 `language` selects one localized bank variant before event-media and SFX HIRC
 objects are merged. This is required because localized banks reuse object IDs
 while pointing at different media.

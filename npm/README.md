@@ -5,8 +5,9 @@ optional Web Audio realization.
 
 Use this package to hydrate and operate Carbon audio objects, install one
 complete schema-v2 audio-library document, and play it through an injected
-browser media provider. Runtime-audio consumes data; it never discovers an
-installation, downloads builder inputs, or requires Node.
+browser media provider. Runtime-audio can build that document directly from
+indexed resources through fetch or an injected byte source. It never discovers
+an installation or requires Node.
 
 An optional SFX program in that document provides authored random,
 step-sequence, continuous scheduling and crossfades, switch/state,
@@ -67,11 +68,27 @@ builder is isolated from the root runtime graph:
 import {
     CjsAudioLibraryBuilder
 } from "@carbonenginejs/runtime-audio/library-builder";
+
+const library = await CjsAudioLibraryBuilder.buildFromResources({
+    indexEntries,
+    baseUrl: "https://assets.example.test"
+});
+
+const values = library.GetValues();
 ```
 
-Callers supply index rows, SoundbanksInfo, optional neutral enrichment, and
-bank access. Fetching those inputs is outside the builder and runtime
-contracts.
+`buildFromResources()` fetches explicitly named index, cFSD metadata,
+SoundbanksInfo, and bank resources by default. A local tool supplies the same
+bytes through `source.read(path, context)`. Native fetch cannot resolve
+`res:/` URLs, so browser callers provide `baseUrl` or `resolveUrl` unless their
+index already contains fetchable URLs. Set `inspectBanks: false` for a
+catalog-only payload that decodes cFSD and SoundbanksInfo without opening the
+indexed banks. Existing decoded inputs remain supported through `build()` and
+`buildFromBanks()`.
+
+Prepared documents hydrate from imported JSON with `CjsAudioLibrary.from()`.
+`CjsAudioLibrary.load(pathOrBytes, options)` also accepts plain JSON or gzip
+bytes and uses fetch for a string path by default.
 
 ## Demo
 
