@@ -70,11 +70,25 @@ The implemented package currently owns:
 - scalar, vector, quaternion, matrix, geometry, mesh, tangent, noise, and curve
   math;
 - shared media, graphics, render-context, audio, shader, D3D, and WebGPU
-  constants; and
+  constants;
+- stable policy-free nominal bases for backend selection and terminal constant
+  payloads; and
 - Carbon type descriptors, schema metadata, models, lifecycle state,
   documents, hydration, and dehydration.
 
 The [API reference](reference/api.md) is the exact current inventory.
+
+## Nominal contract policy
+
+The `/contracts` subpath owns only obligations that are stable below every
+runtime and engine layer. Each required base method throws unless a concrete
+owner overrides it. Composition validates the concrete identity once and then
+calls required methods directly; repeated structural probes are not a contract.
+
+`CjsBackendCandidate` exposes only backend proof and is not a device or RHI
+superclass. `CjsConstantPayload` exposes terminal bytes and their dirty
+lifecycle; layout, packing, transpose, allocation, upload, and binding stay in
+their owning layers.
 
 ## Ownership elsewhere
 

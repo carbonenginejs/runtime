@@ -34,6 +34,8 @@ The package has no organization dependencies. It uses `gl-matrix` for the math
 families; its subpaths remain side-effect-free and independently importable.
 The `/errors` family supplies coded operational failures without defining
 logging, transport, HTTP, or retry policy.
+The `/contracts` family supplies narrow nominal identities whose required base
+methods throw until a concrete owner overrides them.
 
 ```text
 runtime libraries       tools-browser
@@ -46,9 +48,9 @@ runtime libraries       tools-browser
       Web-standard platform APIs
 ```
 
-Runtime packages and tools-browser consume this foundation directly. Math,
-constant, type, schema, model, document, hydration, and lifecycle ownership is
-consolidated here.
+Runtime packages, engines, and tools-browser consume this foundation directly.
+Math, constant, contract, type, schema, model, document, hydration, and
+lifecycle ownership is consolidated here.
 
 ## Start here
 

@@ -8,8 +8,8 @@ Summary: Lists the consolidated public API families and utility primitives.
 ## Import contract
 
 The package root re-exports neutral utilities, math namespaces, and
-non-conflicting constants. Type, schema, model, document, hydration, and
-lifecycle APIs remain direct-subpath only.
+non-conflicting constants. Contracts, type, schema, model, document, hydration,
+and lifecycle APIs remain direct-subpath only.
 
 ```js
 import {
@@ -35,6 +35,7 @@ import { encodeUtf8 } from "@carbonenginejs/runtime-utils/text";
 | [`./arrays`](../../src/arrays.js) | Normalizes nullable values and mutates writable array-like targets. | `toArray`, `copyArrayLike`, `fillArrayLike` |
 | [`./bytes`](../../src/bytes.js) | Creates byte views, owned copies, exact buffers, and prefix checks. | `asUint8Array`, `copyBytes`, `toArrayBuffer`, `hasBytePrefix` |
 | [`./compression`](../../src/compression.js) | Detects and decompresses gzip through Web-standard streams. | `isGzip`, `decompressBytes`, `decompressGzip`, `decompressGzipIfNeeded` |
+| [`./contracts`](../../src/contracts/index.js) | Declares dependency-floor nominal obligations whose required base methods throw. | `CjsBackendCandidate`, `CjsConstantPayload` |
 | [`./errors`](../../src/errors/index.js) | Represents coded operational failures and Web-compatible cancellation without logging or transport policy. | `CjsError`, `CjsCancellationError`, `CJS_OPERATION_CANCELLED` |
 | [`./is`](../../src/is.js) | Provides shared literal-boolean value predicates. | `isTypedArray`, `isArrayLike`, `isFunction`, `isNullish`, `isObject`, `isObjectLike`, `isPlainObject`, `isPromiseLike` |
 | [`./json`](../../src/json.js) | Encodes and decodes JSON with explicit UTF-8 behavior. | `encodeJson`, `decodeJson` |
@@ -56,8 +57,9 @@ available. `render-context` stays out of the root because its numeric
 `PixelFormat` intentionally differs from graphics' string vocabulary.
 `./const/trinity` exports the shared `Tr2Lod` vocabulary.
 
-Carbon foundation families use `./types`, `./schema`, `./model`,
-`./document`, `./hydration`, and `./lifecycle`.
+Dependency-floor identities use `./contracts`. Carbon foundation families use
+`./types`, `./schema`, `./model`, `./document`, `./hydration`, and
+`./lifecycle`.
 
 ## Operational error contract
 

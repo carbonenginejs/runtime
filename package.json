@@ -1,7 +1,7 @@
 {
   "name": "@carbonenginejs/runtime-utils",
   "version": "0.1.6",
-  "description": "Browser-safe shared utilities, math, constants, Carbon types, schemas, documents, and runtime model primitives.",
+  "description": "Browser-safe shared utilities, math, constants, nominal contracts, Carbon types, schemas, documents, and runtime model primitives.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -26,6 +26,7 @@
     "./d3d": "./src/d3d/index.js",
     "./webgpu": "./src/webgpu/index.js",
     "./document": "./src/document/index.js",
+    "./contracts": "./src/contracts/index.js",
     "./errors": "./src/errors/index.js",
     "./hydration": "./src/document/hydrationAdapter.js",
     "./lifecycle": "./src/lifecycle/index.js",

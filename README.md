@@ -10,6 +10,8 @@ The package owns:
   noise math;
 - shared media, graphics, render-context, audio, shader, D3D, and WebGPU
   constants;
+- dependency-free nominal contracts for backend selection and terminal
+  constant payloads;
 - Carbon type descriptors, schema metadata, models, lifecycle state,
   documents, hydration, and dehydration.
 
@@ -30,6 +32,7 @@ Prefer direct subpaths so unrelated families are not initialized:
 ```js
 import { normalizePath } from "@carbonenginejs/runtime-utils/path";
 import { CjsError } from "@carbonenginejs/runtime-utils/errors";
+import { CjsConstantPayload } from "@carbonenginejs/runtime-utils/contracts";
 import { cross, normalize } from "@carbonenginejs/runtime-utils/vec3";
 import { PixelFormat } from "@carbonenginejs/runtime-utils/graphics";
 import { CjsSchema } from "@carbonenginejs/runtime-utils/schema";
@@ -46,11 +49,12 @@ Former package imports map as follows:
   the direct type/model/document subpaths they use.
 
 Carbon type and model primitives use `/types`, `/schema`, `/model`,
-`/document`, `/hydration`, and `/lifecycle`.
+`/document`, `/hydration`, and `/lifecycle`. Dependency-floor contractual
+identities use `/contracts`.
 
 The root export is intentionally limited to common neutral utilities, math,
-and non-conflicting constants. Import Carbon type/model/document families from
-their direct subpaths.
+and non-conflicting constants. Import contracts and Carbon type/model/document
+families from their direct subpaths.
 
 ## Documentation
 

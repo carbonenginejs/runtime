@@ -5,6 +5,26 @@ Scope: `@carbonenginejs/runtime-utils` class exports
 Audience: Runtime authors and integrators
 Summary: Catalogs maintained named classes in the consolidated runtime foundation.
 
+<!-- class:CjsBackendCandidate -->
+## `CjsBackendCandidate`
+
+Dependency-free participant in runtime backend selection.
+
+- Export: `@carbonenginejs/runtime-utils/contracts`
+- Source: `src/contracts/CjsBackendCandidate.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsConstantPayload -->
+## `CjsConstantPayload`
+
+Terminal constant-buffer bytes with an explicit upload dirty lifecycle.
+
+- Export: `@carbonenginejs/runtime-utils/contracts`
+- Source: `src/contracts/CjsConstantPayload.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsError -->
 ## `CjsError`
 
