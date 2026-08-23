@@ -1,0 +1,43 @@
+{
+  "name": "@carbonenginejs/runtime-character",
+  "version": "0.4.0",
+  "private": true,
+  "description": "GPU-free character source documents, combined-library hydration, and native Trinity character classes for CarbonEngineJS.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./library-builder": "./src/library-builder/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:npm": "node scripts/build_npm.js && rollup -c",
+    "docs:classes": "node scripts/generate_class_catalog.js",
+    "proof:decorators": "node scripts/proof_decorator_transform.js",
+    "test": "npm run build:npm && node --test test/*.test.js",
+    "lint": "npm run build:npm && node --check npm/dist/index.js && node --check npm/dist/library-builder/index.js && node --check test/character-appearance-plan.test.js && node --check test/character-appearance-resolver.test.js && node --check test/character-composition-policy.test.js && node --check test/character-library-builder.test.js && node --check test/character-rig-binding.test.js && node --check test/cpu-gpu-boundary.test.js && node --check test/incarna-hydration.test.js && node --check test/trinity-classes.test.js && node --check scripts/build_npm.js && node --check scripts/class_catalog_metadata.js && node --check scripts/generate_class_catalog.js && node --check scripts/proof_decorator_transform.js && node --check rollup.config.mjs",
+    "check": "npm run lint && npm test"
+  },
+  "keywords": [
+    "carbonenginejs",
+    "character",
+    "paperdoll",
+    "avatar",
+    "trinity"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-proposal-decorators": "^7.29.7",
+    "@rollup/plugin-babel": "^7.1.0",
+    "rollup": "^4.62.2"
+  },
+  "dependencies": {
+    "@carbonenginejs/runtime-resource": "file:../runtime-resource",
+    "@carbonenginejs/runtime-utils": "file:../runtime-utils"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
