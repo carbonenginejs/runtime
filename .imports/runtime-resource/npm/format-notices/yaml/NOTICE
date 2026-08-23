@@ -1,0 +1,44 @@
+format-yaml
+
+Copyright (c) CarbonEngineJS contributors.
+CarbonEngine source material, formats, class names, and schema semantics remain
+copyright their original CarbonEngine authors.
+Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
+and EVE-related data remain copyright their original holders.
+
+This package is a generic, standalone CarbonEngineJS-facing YAML data reader.
+CarbonEngine and Fenris Creations (CCP Games) are mentioned for
+interoperability and provenance context only. This package is not affiliated
+with or endorsed by CCP Games.
+
+Legacy Python tag spellings used by serialized paperdoll data were identified
+from data records and are supported only as inert interoperability shapes. No
+CarbonEngine or Fenris Creations source code, tools, assets, shader source, or
+proprietary implementation code is included, copied, ported, adapted, or
+reverse-engineered. No EVE data is distributed with this package.
+
+This package does not implement Red, paperdoll, runtime hydration, or resource
+loading semantics.
+
+Third-party dependency
+----------------------
+
+yaml
+Repository: https://github.com/eemeli/yaml
+Author and copyright: Eemeli Aro <eemeli@gmail.com>
+License: ISC
+
+The `yaml` npm package is used as a runtime dependency for YAML parsing. Its AST
+is converted by original CarbonEngineJS code so custom input tags do not select
+or execute constructors. No `yaml` source code is vendored into this repository;
+the dependency distribution carries its ISC license text.
+
+Provenance and legal requirements
+---------------------------------
+
+This repository contains CarbonEngineJS original project code only, plus the
+third-party dependency attribution above. If future work copies, ports,
+translates, adapts, or derives material from CarbonEngine, ccpwgl, Fenris
+Creations (CCP Games) / EVE assets or tools, or another third party, update this
+NOTICE before committing that work with the upstream holders, source and
+revision, license and redistribution obligations, and the nature of the use.

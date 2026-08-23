@@ -1,0 +1,60 @@
+carbonenginejs/format-gr2
+=========================
+
+A pure-JavaScript reader for RAD Game Tools' Granny 3D (.gr2) file format.
+Contains no RAD/Granny code and does not link granny2.dll. Section decompression
+is reimplemented from clean-room / open reverse-engineering efforts, listed below.
+
+CarbonEngineJS-facing code is copyright cppctamber / CarbonEngineJS
+contributors. CarbonEngine source material, formats, class names, and schema
+semantics remain copyright their original CarbonEngine authors.
+Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
+and EVE-related data remain copyright their original holders.
+
+Current repository license: MIT. See LICENSE.
+
+The former EUPL-derived BitKnit implementation was replaced on 2026-07-24 by
+an original clean-room implementation written solely from this package's
+published format specification (docs/formats/bitknit2.md); no EUPL-derived
+code remains.
+
+Provenance and legal requirements
+---------------------------------
+
+When this package copies, ports, translates, or derives from CarbonEngine,
+ccpwgl, Fenris Creations (CCP Games) / EVE assets or tools, RAD/Granny
+materials, or any third-party library, the relevant section below must record
+the upstream copyright holders, project/repository, file path, revision when
+known, license name, and required redistribution obligations. Behavioral
+references with no copied expression should be marked as references only.
+
+CarbonEngine and Fenris Creations (CCP Games) are mentioned for interoperability
+and provenance context. This package is not affiliated with or endorsed by CCP
+Games.
+
+Third-party algorithm provenance
+--------------------------------
+
+Oodle1 / Oodle0 section decompressor (src/codecs/oodle1.js)
+  Ported from the open Granny2 decompressors:
+    - nwn2mdk  "gr2_decompress"        (Boost Software License 1.0)
+    - arves100/opengr2  "oodle1.c"     (MPL-2.0)   https://github.com/arves100/opengr2
+  This is Granny's own legacy codec, not RAD's modern Oodle (Kraken/BitKnit families).
+
+BitKnit / BitKnit2 section decompressor (src/core/bitknit2.js)
+  Original CarbonEngineJS clean-room implementation (2026-07-24), written
+  solely from this package's published format specification
+  (docs/formats/bitknit2.md) by an isolated implementer, and validated
+  byte-exact against the EVE .gr2 corpus. It replaced a prior port of
+  neptuwunium/Knit (EUPL-1.2); no code from Knit, pybg3, ooz, or any other
+  BitKnit implementation remains. See THIRD-PARTY-NOTICES.md.
+
+Granny curve decompression (src/curves/**, optional; enabled via decompressCurves)
+  Adapted from cppctamber's granny extension for ccpwgl2 (src/core/reader/granny/curves).
+
+Container / relocation / type-tree reflection (src/container.js, src/reader.js)
+  Original to this project, derived from the on-disk Granny GRN format layout
+  (cross-referenced with the Granny SDK headers and the above projects' docs).
+
+Please retain this NOTICE, LICENSE, THIRD-PARTY-NOTICES.md, and the upstream
+licenses when redistributing.

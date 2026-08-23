@@ -1,0 +1,35 @@
+carbonenginejs/format-webgl
+===========================
+
+A pure-JavaScript reader/builder for CarbonEngineJS `.cewg` WebGL shader
+packages, and a DXBC (Direct3D compiled shader bytecode) to GLSL ES 3.00
+emitter for the WebGL2 vertex/pixel/map-style-compute stages ccpwgl targets.
+
+Contains no Microsoft, CarbonEngine, or Fenris Creations (CCP Games) code. The CEWG container format (a flat
+four-byte-tagged chunk layout: `INFO`/`META`/`GLSL`/...) is a CarbonEngineJS
+invention, not a Microsoft, CarbonEngine, or Fenris Creations (CCP Games) one. The DXBC token-stream layout follows
+Microsoft's public d3d11TokenizedProgramFormat documentation (consumed here
+only through the sibling `formats/dxbc` public format; this format
+decodes no DXBC bytes itself). Unity Technologies' HLSLcc (MIT) was used as
+a behavioral reference while auditing the GLSL lowering rules this emitter
+implements; no HLSLcc source is included in this repository.
+
+CarbonEngine and Fenris Creations (CCP Games) are mentioned for
+interoperability and target-runtime context. This package is not affiliated with
+or endorsed by CCP Games.
+
+Provenance
+----------
+
+The CEWG package reader/builder and the DXBC-to-GLSL emitter were originally
+developed in this project's own prior-work repository,
+`hlslreader` (`src/carbon/webgl/CewgPackage.js`, `CewgPackageBuilder.js`, and
+`src/dxbc/glsl/*.js`), and ported here with import/error-class adjustments
+only (see README for the ported-file list). No third-party, CarbonEngine, or
+Fenris Creations (CCP Games) source was copied; both repositories are
+cppctamber / CarbonEngineJS original work.
+
+CarbonEngineJS-facing code is copyright cppctamber / CarbonEngineJS
+contributors.
+
+Repository license: MIT. See LICENSE.

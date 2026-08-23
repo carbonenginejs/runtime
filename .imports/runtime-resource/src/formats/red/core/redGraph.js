@@ -1,0 +1,98 @@
+import CjsYamlFormat from "../../yaml/index.js";
+import {
+    isYamlSourceInput,
+    toYamlSourceText
+} from "../../yaml/core/helpers.js";
+
+/**
+ * Keys added by authoring tools are prefixed with a double underscore and are
+ * not part of the Red data. They can carry environment-specific information, so
+ * they are stripped on every read and never emitted.
+ * @param {string} key
+ * @returns {boolean}
+ */
+export function isStrippedKey(key)
+{
+    return typeof key === "string" && key.length > 1 && key[0] === "_" && key[1] === "_";
+}
+
+/**
+ * Parses Red input into a plain object graph.
+ *
+ * Accepts an already-parsed object (returned as-is), a YAML string, or strict
+ * UTF-8 bytes. YAML anchors/aliases resolve to shared object identities, which
+ * the reader uses to rebuild the Red reference graph.
+ *
+ * @param {unknown} input Parsed Red object, YAML string, or UTF-8 bytes.
+ * @param {object} [options] `options.parse(text)` overrides the built-in parser
+ * @param {string} [readerName]
+ * @returns {object} parsed Red object graph
+ */
+export function parseRed(input, options = {}, readerName = "CjsRedFormat")
+{
+    if (isYamlSourceInput(input))
+    {
+        if (typeof options.parse === "function")
+        {
+            return options.parse(toYamlSourceText(input, readerName));
+        }
+        return CjsYamlFormat.readRaw(input, { tagPolicy: "reject" });
+    }
+
+    if (input && typeof input === "object") return input;
+
+    throw new TypeError(`${readerName}: input must be a parsed Red object, YAML string, or byte buffer.`);
+}
+
+/**
+ * A "typed table" is Red's compact columnar encoding: a `structure` array of
+ * `[name, typeCode, byteOffset]` columns plus an `items` array where each row
+ * is one record aligned to those columns. Curve `keys`, effect `options`, and
+ * `samplerOverrides` all use this shape.
+ * @param {*} node
+ * @returns {boolean}
+ */
+export function isTypedTable(node)
+{
+    return Boolean(
+        node &&
+        typeof node === "object" &&
+        !Array.isArray(node) &&
+        Array.isArray(node.structure) &&
+        Array.isArray(node.items)
+    );
+}
+
+/**
+ * Decodes a typed table into an array of row objects keyed by column name.
+ * @param {object} node typed table (`{ structure, items }`)
+ * @returns {Array<object>}
+ */
+export function decodeTypedTable(node)
+{
+    const columns = node.structure.map(column => (Array.isArray(column) ? column[0] : column && column.name));
+
+    return node.items.map(row =>
+    {
+        const record = {};
+        const cells = Array.isArray(row) ? row : [ row ];
+        for (let i = 0; i < columns.length; i++)
+        {
+            if (columns[i] === undefined || columns[i] === null) continue;
+            record[columns[i]] = cells[i];
+        }
+        return record;
+    });
+}
+
+/**
+ * Red `structure` type codes (informational). The YAML export already carries
+ * decoded JS values, so decoding keys on column names, not these codes.
+ */
+export const RED_TYPE_CODES = Object.freeze({
+    4: "float32",
+    5: "string",
+    8: "uint8",
+    9: "uint16",
+    10: "uint32"
+});
