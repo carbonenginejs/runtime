@@ -32,6 +32,7 @@
       "commit": "8ce56a3efb42f0fac62f8ecb72a21674e88eaae6",
       "temporaryPrefix": ".imports/runtime-trinity",
       "destination": "src/trinity",
+      "sourceMoved": true,
       "baseline": { "command": "npm test", "passed": 856, "skipped": 0, "failed": 0 }
     },
     {

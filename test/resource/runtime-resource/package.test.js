@@ -31,6 +31,11 @@ test("published package exposes every declared subpath", async () =>
 
 async function expandExportTargets(subpath, target)
 {
+  // A null target is an explicit package-export exclusion, not an advertised
+  // import path. Domain-specific tests verify the corresponding files remain
+  // absent from the artifact.
+  if (target === null) return [];
+
   const star = target.indexOf("*");
   if (star === -1) return [ { subpath, target } ];
 
@@ -38,16 +43,35 @@ async function expandExportTargets(subpath, target)
   assert.ok(subpath.includes("*"), `${subpath} mirrors the target wildcard`);
 
   const prefix = target.slice(0, star);
-  const entries = await readdir(path.resolve(npmRoot, prefix), { withFileTypes: true });
-  const resolved = entries
-    .filter(entry => entry.isDirectory())
-    .map(entry => ({
-      subpath: subpath.replace("*", entry.name),
-      target: target.replace("*", entry.name)
-    }));
+  const suffix = target.slice(star + 1);
+  const directoryTarget = prefix.slice(0, prefix.lastIndexOf("/") + 1);
+  const files = await listFiles(path.resolve(npmRoot, directoryTarget));
+  const resolved = files.flatMap(file =>
+  {
+    const relativeTarget = `./${path.relative(npmRoot, file).replaceAll(path.sep, "/")}`;
+    if (!relativeTarget.startsWith(prefix) || !relativeTarget.endsWith(suffix)) return [];
+    const value = relativeTarget.slice(prefix.length, relativeTarget.length - suffix.length);
+    if (!value) return [];
+    return [ {
+      subpath: subpath.replace("*", value),
+      target: relativeTarget
+    } ];
+  });
 
   assert.ok(resolved.length > 0, `${subpath} must expose at least one built target`);
   return resolved;
+}
+
+async function listFiles(directory)
+{
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true }))
+  {
+    const target = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await listFiles(target));
+    else if (entry.isFile()) files.push(target);
+  }
+  return files;
 }
 
 test("published package includes every README document target", async () =>

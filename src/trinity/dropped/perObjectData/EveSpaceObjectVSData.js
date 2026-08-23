@@ -1,0 +1,110 @@
+// Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
+import { mat4 } from "#math/mat4";
+import { vec4 } from "#math/vec4";
+import { CjsModel } from "#model";
+import { type } from "#schema";
+
+
+/**
+ * Vertex-stage per-object values for a space object - world/inverse-world
+ * transforms, clip and ellipsoid data, custom-mask matrices, bone and
+ * morph-target offsets - held as plain values a renderer packs into a constant
+ * buffer, never as GPU resources.
+ */
+@type.define({ className: "EveSpaceObjectVSData", family: "eve/spaceObject" })
+export class EveSpaceObjectVSData extends CjsModel
+{
+  static CUSTOM_MASK_COUNT = 2;
+
+  static BONE_OFFSET_COUNT = 4;
+
+  @type.mat4
+  worldTransform = mat4.create();
+
+  @type.mat4
+  worldTransformLast = mat4.create();
+
+  @type.mat4
+  invWorldTransform = mat4.create();
+
+  @type.vec4
+  shipData = vec4.create();
+
+  @type.vec4
+  clipData = vec4.create();
+
+  @type.vec4
+  ellpsoidRadii = vec4.create();
+
+  @type.vec4
+  ellpsoidCenter = vec4.create();
+
+  @type.array("mat4")
+  customMaskMatrix = Array.from({ length: EveSpaceObjectVSData.CUSTOM_MASK_COUNT }, () => mat4.create());
+
+  @type.array("vec4")
+  customMaskData = Array.from({ length: EveSpaceObjectVSData.CUSTOM_MASK_COUNT }, () => vec4.create());
+
+  @type.array("uint32")
+  boneOffsets = Array(EveSpaceObjectVSData.BONE_OFFSET_COUNT).fill(0);
+
+  @type.uint32
+  morphTargetVertexDataOffset = 0;
+
+  @type.uint32
+  morphTargetAnimationDataOffset = 0;
+
+  @type.uint32
+  activeMorphTargetsCount = 0;
+
+  @type.uint32
+  bakedMorphTargetVertexDataOffset = 0;
+
+  @type.vec4
+  customData = vec4.create();
+
+  /**
+   * Applies a value bag, first padding or truncating the fixed-length
+   * customMaskMatrix, customMaskData and boneOffsets arrays to their declared
+   * counts so the record always matches the constant-buffer layout.
+   */
+  SetValues(values = {}, options = {})
+  {
+    const normalized = { ...values };
+    if (Object.hasOwn(values, "customMaskMatrix")) normalized.customMaskMatrix = EveSpaceObjectVSData.#mat4Array(values.customMaskMatrix, EveSpaceObjectVSData.CUSTOM_MASK_COUNT);
+    if (Object.hasOwn(values, "customMaskData")) normalized.customMaskData = EveSpaceObjectVSData.#vec4Array(values.customMaskData, EveSpaceObjectVSData.CUSTOM_MASK_COUNT);
+    if (Object.hasOwn(values, "boneOffsets")) normalized.boneOffsets = EveSpaceObjectVSData.#uintArray(values.boneOffsets, EveSpaceObjectVSData.BONE_OFFSET_COUNT);
+    return super.SetValues(normalized, options);
+  }
+
+  /**
+   * Builds a fixed-length array of owned mat4 copies, substituting identity for
+   * any entry that is not a 16-element matrix.
+   */
+  static #mat4Array(values, count)
+  {
+    return Array.from({ length: count }, (_, index) => values?.[index]?.length === 16 ? mat4.copy(mat4.create(), values[index]) : mat4.create());
+  }
+
+  /**
+   * Builds a fixed-length array of owned vec4 copies, coercing each component to
+   * a number and defaulting missing ones to zero.
+   */
+  static #vec4Array(values, count)
+  {
+    return Array.from({ length: count }, (_, index) => {
+      const value = values?.[index];
+      return vec4.fromValues(Number(value?.[0] ?? 0), Number(value?.[1] ?? 0), Number(value?.[2] ?? 0), Number(value?.[3] ?? 0));
+    });
+  }
+
+  /**
+   * Builds a fixed-length array of unsigned 32-bit integers, coercing missing or
+   * non-numeric entries to zero.
+   */
+  static #uintArray(values, count)
+  {
+    return Array.from({ length: count }, (_, index) => Number(values?.[index] || 0) >>> 0);
+  }
+
+}

@@ -10,7 +10,8 @@ Summary: Explains the unpublished combined-runtime destination and routes reader
 `@carbonenginejs/runtime` is the accepted consolidation destination for the
 browser-safe CarbonEngineJS runtime family, renderer engines, and browser-safe
 tools. The repository owns the executable dependency-layer contract, migration
-metadata, the maintained global foundation, and the resource/format capability.
+metadata, the maintained global foundation, the resource/format capability,
+and the Trinity/EVE object graph.
 Remaining donor implementations stay under temporary prefixes until each
 reviewed source family is moved into its final layer.
 
@@ -45,16 +46,17 @@ Run the current structural checks from the repository root:
 npm test
 ```
 
-The global foundation and resource capability are now maintained source in
-this repository. Foundation, lifecycle, format, FSD, shader-translation, and
-resource tests run as part of the combined suite. Other runtime layers remain
-inert until their reviewed donor moves land.
+The global foundation, resource capability, and Trinity graph are now
+maintained source in this repository. Foundation, lifecycle, format, FSD,
+shader-translation, resource, and Trinity tests run as part of the combined
+suite. Other runtime layers remain inert until their reviewed donor moves land.
 
 ## Documentation map
 
 - [Architecture and layer ownership](architecture.md)
 - [Global foundation](global/README.md)
 - [Resource capability](resource/README.md)
+- [Trinity and EVE graph](trinity/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

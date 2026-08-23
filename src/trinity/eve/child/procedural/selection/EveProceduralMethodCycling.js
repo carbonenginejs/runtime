@@ -1,0 +1,167 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
+// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { carbon, impl, io, type } from "#schema";
+import { CjsModel } from "#model";
+
+// Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
+// persisted list hydrates carry this flag and must not trigger reselection.
+const BELIST_LOADING = 0x10;
+
+/** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
+@type.define({ className: "EveProceduralMethodCycling", family: "eve/child/procedural/selection" })
+export class EveProceduralMethodCycling extends CjsModel
+{
+
+  #selectedChildModified = false;
+
+  // Carbon m_startTime (Be::Time): stamped by restart from the caller-supplied
+  // clock (frame time when the update loop reselects, wall clock for the
+  // Date.now default); UpdateAsyncronous must feed the same clock.
+  #startTime = 0;
+
+  /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("EveProceduralMethodCyclingParameter")
+  parameters = [];
+
+  /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("IEveVolume")
+  debugVolumes = [];
+
+  /** m_startTimeOffset (float) [READWRITE, PERSIST] */
+  @io.persist
+  @type.float32
+  startTimeOffset = 0;
+
+  /** m_randomizeOrder (bool) [READWRITE, PERSIST] */
+  @io.persist
+  @type.boolean
+  randomizeOrder = false;
+
+  /** m_selectedChildIndex (int) [READ] */
+  @io.read
+  @type.int32
+  selectedChild = -1;
+
+  /** Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
+   * cpp:36-60): randomized order picks any OTHER index (the shifted draw);
+   * otherwise a plain cycle. Math.random replaces Carbon's unseeded rand(). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("An optional timestamp provides Carbon's current-frame clock deterministically in browser tests.")
+  restart(timestamp = Date.now() / 1000)
+  {
+    const count = this.parameters.length;
+    if (count === 0)
+    {
+      return false;
+    }
+
+    if (this.randomizeOrder && count > 2)
+    {
+      const previous = this.selectedChild;
+      this.selectedChild = Math.floor(Math.random() * (count - 1));
+      if (this.selectedChild >= previous)
+      {
+        this.selectedChild++;
+      }
+    }
+    else
+    {
+      this.selectedChild = (this.selectedChild + 1) % count;
+    }
+
+    this.#startTime = timestamp - this.startTimeOffset;
+    this.#selectedChildModified = true;
+    return true;
+  }
+
+  /** Carbon EveProceduralMethodCycling::OnModified (cpp:23-26) is an
+   * intentional no-op notify. */
+  @carbon.method
+  @impl.implemented
+  OnModified(_value = null)
+  {
+    return true;
+  }
+
+  /** Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
+   * non-loading change to the parameter list reselects. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The list argument defaults to the parameters list; the reselect uses restart's default wall clock (no frame context reaches list notifies).")
+  OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
+  {
+    if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
+    {
+      this.restart();
+    }
+  }
+
+  /** Carbon EveProceduralMethodCycling::IsSelectedChildModified
+   * (cpp:62-65). */
+  @carbon.method
+  @impl.implemented
+  IsSelectedChildModified()
+  {
+    return this.#selectedChildModified;
+  }
+
+  /** Carbon EveProceduralMethodCycling::GetSelectedChild (cpp:67-87):
+   * bounds-check the index, clear the modified flag, then hand out the
+   * parameter's child ref after loading it - only when it carries a res
+   * path. */
+  @carbon.method
+  @impl.implemented
+  GetSelectedChild()
+  {
+    if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
+    {
+      return null;
+    }
+
+    this.#selectedChildModified = false;
+    const param = this.parameters[this.selectedChild];
+
+    if (param)
+    {
+      const child = param.GetChild?.() ?? param.child;
+      if (child && String(child.GetResPath?.() ?? child.resPath ?? "").length !== 0)
+      {
+        param.Load?.();
+        return child;
+      }
+    }
+    return null;
+  }
+
+  /** Carbon EveProceduralMethodCycling::UpdateAsyncronous (cpp:89-106):
+   * reselect when no valid index exists or the current parameter's play
+   * duration has elapsed on the frame clock (BeOS GetCurrentFrameTime maps to
+   * the update context time, falling back to restart's wall-clock default). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The BeOS frame clock arrives via the duck-typed update context time; both restart and the elapsed check share the same value per call.")
+  UpdateAsyncronous(updateContext, _params)
+  {
+    const now = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? Date.now() / 1000);
+
+    if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
+    {
+      this.restart(now);
+      return;
+    }
+
+    const param = this.parameters[this.selectedChild];
+    if (param)
+    {
+      const elapsed = now - this.#startTime;
+      if (elapsed >= Number(param.GetDuration?.() ?? param.playDuration ?? 0))
+      {
+        this.restart(now);
+      }
+    }
+  }
+
+}

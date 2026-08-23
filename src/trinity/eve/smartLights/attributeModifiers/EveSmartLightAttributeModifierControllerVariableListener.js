@@ -1,0 +1,110 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierControllerVariableListener.h
+// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { carbon, impl, io, type } from "#schema";
+import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
+
+/** EveSmartLightAttributeModifierControllerVariableListener (eve/smartLights/attributeModifiers) - generated from schema shapeHash 8438774e.... */
+@type.define({ className: "EveSmartLightAttributeModifierControllerVariableListener", family: "eve/smartLights/attributeModifiers" })
+export class EveSmartLightAttributeModifierControllerVariableListener extends EveSmartLightAttributeModifierBucket
+{
+
+  /** m_variableName (std::string) [READWRITE, PERSIST] */
+  @io.persist
+  @type.string
+  variableName = "";
+
+  /** m_value (float) [READWRITE, PERSIST, NOTIFY] */
+  @io.notify
+  @io.persist
+  @type.float32
+  value = 0;
+
+  /** m_invertReceivedValue (bool) [READWRITE, PERSIST, NOTIFY] */
+  @io.notify
+  @io.persist
+  @type.boolean
+  invertReceivedValue = false;
+
+  /** m_defaultValue (float) [READWRITE, PERSIST] */
+  @io.persist
+  @type.float32
+  defaultValue = 0;
+
+  /** Last value/invert pair the settle hook applied (JS-only change detection). */
+  #lastAppliedValue = 0;
+
+  /** See #lastAppliedValue. */
+  #lastAppliedInvert = false;
+
+  /**
+   * Seeds the listener from its default value before the base crossfade seed
+   * (EveSmartLightAttributeModifierControllerVariableListener.cpp:15-21).
+   */
+  @carbon.method
+  @impl.implemented
+  Initialize()
+  {
+    this.value = this.defaultValue;
+    this.startsActive = this.defaultValue > 0.5;
+    this.active = this.defaultValue > 0.5;
+    this.#lastAppliedValue = this.value;
+    this.#lastAppliedInvert = this.invertReceivedValue;
+    return super.Initialize();
+  }
+
+  /**
+   * Reapplies the activation state when the received value or the inversion
+   * flag is edited, then defers to the base active-edit handling
+   * (EveSmartLightAttributeModifierControllerVariableListener.cpp:23-39).
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The settle hook receives no changed-property list; value/invert edits are detected by comparing cached last-applied values.")
+  OnModified(options = {})
+  {
+    if (this.value !== this.#lastAppliedValue || this.invertReceivedValue !== this.#lastAppliedInvert)
+    {
+      this.#lastAppliedValue = this.value;
+      this.#lastAppliedInvert = this.invertReceivedValue;
+      this.#ApplyValue();
+    }
+
+    return super.OnModified(options);
+  }
+
+  /**
+   * Receives a controller variable: a name match updates the listener state,
+   * and the value always fans out to the child modifiers
+   * (EveSmartLightAttributeModifierControllerVariableListener.cpp:41-60).
+   */
+  @carbon.method
+  @impl.implemented
+  SetControllerVariable(name, value)
+  {
+    if (this.variableName === name)
+    {
+      this.value = Number(value);
+      this.#lastAppliedValue = this.value;
+      this.#ApplyValue();
+    }
+
+    for (const modifier of this.attributeModifiers)
+    {
+      modifier.SetControllerVariable(name, value);
+    }
+  }
+
+  /** Shared value-to-activation mapping (cpp:27-35 and cpp:46-53 are identical). */
+  #ApplyValue()
+  {
+    if (this.invertReceivedValue)
+    {
+      this.SetActive(this.value < 1);
+    }
+    else
+    {
+      this.SetActive(this.value > 0);
+    }
+  }
+
+}

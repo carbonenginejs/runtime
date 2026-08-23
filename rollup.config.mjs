@@ -7,6 +7,10 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 const dependencies = new Set(Object.keys(manifest.dependencies ?? {}));
+const unpublishedInputs = new Set([
+    "src/trinity/generated/eve/EveDamageOverlay.js",
+    "src/trinity/generated/eve/EveModularObjectModifier.js"
+]);
 
 function collectTargets(value, out = [])
 {
@@ -16,23 +20,36 @@ function collectTargets(value, out = [])
     return out;
 }
 
+function collectFiles(directory)
+{
+    return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry =>
+    {
+        const target = path.join(directory, entry.name);
+        return entry.isDirectory() ? collectFiles(target) : [ target ];
+    });
+}
+
 function expandTarget(target)
 {
     const star = target.indexOf("*");
     if (star === -1) return [ target.slice(2) ];
 
-    const before = target.slice(2, star);
-    const after = target.slice(star + 1);
-    const directory = path.resolve(root, before);
+    const relativeTarget = target.slice(2);
+    const before = relativeTarget.slice(0, relativeTarget.indexOf("*"));
+    const directory = path.resolve(root, before.endsWith("/") ? before : path.dirname(before));
     if (!fs.existsSync(directory)) return [];
 
-    return fs.readdirSync(directory, { withFileTypes: true })
-        .filter(entry => entry.isDirectory())
-        .map(entry => `${before}${entry.name}${after}`)
-        .filter(file => fs.existsSync(path.resolve(root, file)));
+    const pattern = new RegExp(`^${relativeTarget
+        .replace(/[.+?^${}()|[\]\\]/gu, "\\$&")
+        .replaceAll("*", ".*")}$`, "u");
+
+    return collectFiles(directory)
+        .map(file => path.relative(root, file).replaceAll(path.sep, "/"))
+        .filter(file => pattern.test(file));
 }
 
-const input = Array.from(new Set(collectTargets(manifest.exports).flatMap(expandTarget)));
+const input = Array.from(new Set(collectTargets(manifest.exports).flatMap(expandTarget)))
+    .filter(target => !unpublishedInputs.has(target));
 
 function packageName(id)
 {

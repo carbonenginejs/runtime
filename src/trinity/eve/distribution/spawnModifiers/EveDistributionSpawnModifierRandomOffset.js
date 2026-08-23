@@ -1,0 +1,76 @@
+// Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomOffset.h
+// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { carbon, impl, io, type } from "#schema";
+import { CjsModel } from "#model";
+import { vec3 } from "#math/vec3";
+import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
+
+/** EveDistributionSpawnModifierRandomOffset (eve/distribution/spawnModifiers) - generated from schema shapeHash 65d2580b.... */
+@type.define({ className: "EveDistributionSpawnModifierRandomOffset", family: "eve/distribution/spawnModifiers" })
+export class EveDistributionSpawnModifierRandomOffset extends CjsModel
+{
+
+  #timeSeed = Date.now() >>> 0;
+
+  /** m_minOffset (Vector3) [READWRITE, PERSIST] */
+  @io.persist
+  @type.vec3
+  minOffset = vec3.create();
+
+  /** m_maxOffset (Vector3) [READWRITE, PERSIST] */
+  @io.persist
+  @type.vec3
+  maxOffset = vec3.create();
+
+  /** m_consistentRandom (bool) [READWRITE, PERSIST] */
+  @io.persist
+  @type.boolean
+  consistentRandom = false;
+
+  /** m_uniformOffset (bool) [READWRITE, PERSIST] */
+  @io.persist
+  @type.boolean
+  uniformOffset = false;
+
+  /**
+   * Reseeds the random stream from the wall clock, so offsets differ between
+   * runs unless consistentRandom pins them to the placement id.
+   */
+  @carbon.method
+  @impl.adapted
+  Initialize()
+  {
+    this.#timeSeed = Date.now() >>> 0;
+    return true;
+  }
+
+  /**
+   * Adds a random offset between minOffset and maxOffset - drawn per axis, or
+   * with one shared factor when uniformOffset is set - to the placement's
+   * initial translation, rotated into the placement's initial orientation first.
+   */
+  @carbon.method
+  @impl.adapted
+  ProcessSpawnModifier(placement, _numPlacements)
+  {
+    const seed = getDistributionSeed(placement.uniqueID, this.#timeSeed, this.consistentRandom);
+    const random = createMinStdRandom(seed);
+    const offset = vec3.create();
+
+    if (this.uniformOffset)
+    {
+      vec3.lerp(offset, this.minOffset, this.maxOffset, random());
+    }
+    else
+    {
+      for (let axis = 0; axis < 3; axis++)
+      {
+        offset[axis] = this.minOffset[axis] + (this.maxOffset[axis] - this.minOffset[axis]) * random();
+      }
+    }
+
+    vec3.transformQuat(offset, offset, placement.initialRotation);
+    vec3.add(placement.initialTranslation, placement.initialTranslation, offset);
+  }
+
+}

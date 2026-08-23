@@ -1,0 +1,212 @@
+// Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
+// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { carbon, impl, io, type } from "#schema";
+import { CjsModel } from "#model";
+
+// Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
+// persisted list hydrates carry this flag and must not trigger a re-sort.
+const BELIST_LOADING = 0x10;
+
+// Carbon SelectiveParameterCompare (cpp:66-72): ascending threshold order.
+function SelectiveParameterCompare(param1, param2)
+{
+  return Number(param1?.GetThreshold?.() ?? param1?.threshold ?? 0) -
+    Number(param2?.GetThreshold?.() ?? param2?.threshold ?? 0);
+}
+
+/** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
+@type.define({ className: "EveProceduralMethodThresholds", family: "eve/child/procedural/selection" })
+export class EveProceduralMethodThresholds extends CjsModel
+{
+
+  #selectedChildModified = false;
+
+  /** m_parameters (PEveProceduralMethodThresholdParameterVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("EveProceduralMethodThresholdParameter")
+  parameters = [];
+
+  /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("IEveVolume")
+  debugVolumes = [];
+
+  /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @io.persist
+  @type.string
+  name = "";
+
+  /** m_thresholdAttribute (BlueSharedString) [READWRITE, PERSIST] */
+  @io.persist
+  @type.string
+  thresholdAttribute = "";
+
+  /** m_selectedChildIndex (int) [READ] */
+  @io.read
+  @type.int32
+  selectedChild = -1;
+
+  /** m_seed (float) [READWRITE, NOTIFY] */
+  @io.notify
+  @io.readwrite
+  @type.float32
+  seed_temp = -1;
+
+  /** Carbon EveProceduralMethodThresholds::Initialize (cpp:20-24). */
+  @carbon.method
+  @impl.implemented
+  Initialize()
+  {
+    this.SortParameters();
+    return true;
+  }
+
+  /** Carbon EveProceduralMethodThresholds::OnModified (cpp:26-34): a seed
+   * change reselects. The value argument follows the repo's OnModified
+   * duck. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Field matching follows the repo OnModified duck.")
+  OnModified(value = null)
+  {
+    if (value === "seed_temp" || value === this.seed_temp)
+    {
+      this.SelectParameter();
+    }
+
+    return true;
+  }
+
+  /** Carbon EveProceduralMethodThresholds::OnListModified (cpp:36-42): a
+   * non-loading change to the parameter list re-sorts. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The list argument defaults to the parameters list.")
+  OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
+  {
+    if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
+    {
+      this.SortParameters();
+    }
+  }
+
+  /** Carbon EveProceduralMethodThresholds::SelectParameter (cpp:44-63): the
+   * first threshold at or above the seed wins (the list is sorted ascending);
+   * a changed index flags the selected child as modified. Carbon leaves the
+   * index untouched when the seed exceeds every threshold. */
+  @carbon.method
+  @impl.implemented
+  SelectParameter()
+  {
+    const currentChild = this.selectedChild;
+
+    for (let index = 0; index < this.parameters.length; index++)
+    {
+      const param = this.parameters[index];
+      if (this.seed_temp <= Number(param?.GetThreshold?.() ?? param?.threshold ?? 0))
+      {
+        this.selectedChild = index;
+        break;
+      }
+    }
+
+    if (currentChild !== this.selectedChild)
+    {
+      this.#selectedChildModified = true;
+    }
+  }
+
+  /** Carbon EveProceduralMethodThresholds::SortParameters (cpp:74-82):
+   * ascending threshold sort (JS Array.sort is stable, matching std::sort's
+   * observable order for distinct thresholds). */
+  @carbon.method
+  @impl.implemented
+  SortParameters()
+  {
+    if (this.parameters.length < 2)
+    {
+      return;
+    }
+
+    this.parameters.sort(SelectiveParameterCompare);
+  }
+
+  /** Carbon EveProceduralMethodThresholds::IsSelectedChildModified
+   * (cpp:84-87). */
+  @carbon.method
+  @impl.implemented
+  IsSelectedChildModified()
+  {
+    return this.#selectedChildModified;
+  }
+
+  /** Carbon EveProceduralMethodThresholds::GetSelectedChild (cpp:89-109):
+   * bounds-check the index, clear the modified flag, then hand out the
+   * parameter's child ref after loading it - only when it carries a res
+   * path. */
+  @carbon.method
+  @impl.implemented
+  GetSelectedChild()
+  {
+    if (this.selectedChild < 0 || this.selectedChild > this.parameters.length - 1)
+    {
+      return null;
+    }
+
+    this.#selectedChildModified = false;
+    const param = this.parameters[this.selectedChild];
+
+    if (param)
+    {
+      const child = param.GetChild?.() ?? param.child;
+      if (child && String(child.GetResPath?.() ?? child.resPath ?? "").length !== 0)
+      {
+        param.Load?.();
+        return child;
+      }
+    }
+    return null;
+  }
+
+  /** Carbon EveProceduralMethodThresholds::UpdateAsyncronous (cpp:111-127):
+   * re-sort and reselect once any parameter reports itself modified, clearing
+   * the flags on the way. */
+  @carbon.method
+  @impl.implemented
+  UpdateAsyncronous(_updateContext, _params)
+  {
+    let reselect = false;
+    for (const param of this.parameters)
+    {
+      if (param?.IsModified?.())
+      {
+        reselect = true;
+        param.SetModified(false);
+      }
+    }
+    if (reselect)
+    {
+      this.SortParameters();
+      this.SelectParameter();
+    }
+  }
+
+  /** Carbon EveProceduralMethodThresholds::SetProceduralMethodVariable
+   * (cpp:134-144): only the named threshold attribute is accepted; a changed
+   * value reselects. */
+  @carbon.method
+  @impl.implemented
+  SetProceduralMethodVariable(name, value)
+  {
+    if (String(name ?? "") === this.thresholdAttribute)
+    {
+      const next = Number(value);
+      if (this.seed_temp !== next)
+      {
+        this.seed_temp = next;
+        this.SelectParameter();
+      }
+    }
+  }
+
+}

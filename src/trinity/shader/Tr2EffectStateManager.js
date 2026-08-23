@@ -1,0 +1,111 @@
+// Source: trinity/trinity/Shader/Tr2EffectStateManager.h
+// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { type } from "#schema";
+import { CjsModel } from "#model";
+import { RenderingMode } from "#consts/graphics";
+
+/** Tr2EffectStateManager (shader) - generated from schema shapeHash 6d2b836e.... */
+@type.define({ className: "Tr2EffectStateManager", family: "shader" })
+export class Tr2EffectStateManager extends CjsModel
+{
+
+  /** m_renderContext (Tr2RenderContext&) */
+  @type.rawStruct("Tr2RenderContext")
+  renderContext = null;
+
+  /** m_perObjectConstantBuffers (Tr2ConstantBufferAL) */
+  @type.rawStruct("Tr2ConstantBufferAL")
+  perObjectConstantBuffers = null;
+
+  /** m_shaderProgram (uint32_t) */
+  @type.uint32
+  shaderProgram = 0;
+
+  /** m_vertexDeclaration (uint32_t) */
+  @type.uint32
+  vertexDeclaration = 0;
+
+  /** m_vertexBuffer (Tr2BufferAL) */
+  @type.rawStruct("Tr2BufferAL")
+  vertexBuffer = null;
+
+  /** m_offset (uint32_t) */
+  @type.uint32
+  offset = 0;
+
+  /** m_stride (uint32_t) */
+  @type.uint32
+  stride = 0;
+
+  /** m_streams (HalStream) */
+  @type.rawStruct("HalStream")
+  streams = null;
+
+  /** m_indexBuffer (Tr2BufferAL) */
+  @type.rawStruct("Tr2BufferAL")
+  indexBuffer = null;
+
+  /** m_indexStride (uint32_t) */
+  @type.uint32
+  indexStride = 0;
+
+  /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) */
+  @type.int32
+  @type.enum("RenderingMode")
+  renderingMode = 0;
+
+  /** m_renderStateSetup (uint32_t) */
+  @type.uint32
+  renderStateSetup = 0;
+
+  /** m_currentValues (CurrentValues) */
+  @type.rawStruct("CurrentValues")
+  currentValues = null;
+
+  /** m_isManagedRendering (bool) */
+  @type.boolean
+  isManagedRendering = false;
+
+  /** states (std::vector<uint32_t>) */
+  @type.list("uint32_t")
+  states = [];
+
+  /** dirty (bool) */
+  @type.boolean
+  dirty = false;
+
+  /** m_renderStates (std::vector<RenderStates>) */
+  @type.list("RenderStates")
+  renderStates = [];
+
+  /** m_renderStateOverrides (const uint32_t*) */
+  @type.objectRef("uint32_t")
+  renderStateOverrides = null;
+
+  /** m_renderTargetWidth (int) */
+  @type.int32
+  renderTargetWidth = 0;
+
+  /** m_renderTargetHeight (int) */
+  @type.int32
+  renderTargetHeight = 0;
+
+  /** m_viewport (CTriViewport) */
+  @type.rawStruct("CTriViewport")
+  viewport = null;
+
+  /** m_viewportOnDevice (Tr2Viewport) */
+  @type.rawStruct("Tr2Viewport")
+  viewportOnDevice = null;
+
+  /** m_viewportStack (std::list<CTriViewport>) */
+  @type.rawStruct("std::list<CTriViewport>")
+  viewportStack = null;
+
+  /** m_viewportSizeVar (Tr2Variable) */
+  @type.rawStruct("Tr2Variable")
+  viewportSizeVar = null;
+
+  static RenderingMode = RenderingMode;
+
+}
