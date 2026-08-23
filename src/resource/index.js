@@ -1,1 +1,21 @@
-// Populated by the reviewed runtime-resource migration.
+export * from "./CjsLoadingObject.js";
+export * from "./CjsResource.js";
+export * from "./resourceBoundary.js";
+export * from "./ResourceHandlerMode.js";
+export * from "./ResourceRequirement.js";
+export * from "./Tr2LightProfileRes.js";
+export * from "./audio/index.js";
+export * from "./geometry/index.js";
+export * from "./shader/index.js";
+export * from "./texture/index.js";
+export * from "./format/CjsResourceProbe.js";
+export * from "./format/payloadContract.js";
+export * from "./format/CjsFormat.js";
+export * from "./format/CjsFormatStore.js";
+export { CjsEventEmitter } from "#model";
+export * from "./CjsMotherLode.js";
+export * from "./CjsResManFetchProvider.js";
+export * from "./worker/CjsResManMainThreadLoader.js";
+export * from "./worker/CjsResManWorkerLoader.js";
+export { CjsResManQueue } from "./CjsResManWorkQueue.js";
+export * from "./CjsResMan.js";

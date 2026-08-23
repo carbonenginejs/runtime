@@ -176,7 +176,7 @@ function validateGraph(layers, sourceRoot, problems)
     return names.sort((a, b) => b.length - a.length);
 }
 
-function parseSpecifiers(source, shown, problems)
+function parseSpecifiers(source, shown, problems, allowExternalDynamicImport = false)
 {
     let ast;
     try
@@ -202,7 +202,7 @@ function parseSpecifiers(source, shown, problems)
     }
 
     const found = [];
-    function literal(node, kind)
+    function literal(node, kind, allowNonliteral = false)
     {
         if (node?.type === "StringLiteral") return node.value;
         if (node?.type === "Literal" && typeof node.value === "string") return node.value;
@@ -210,7 +210,7 @@ function parseSpecifiers(source, shown, problems)
         {
             return node.quasis[0]?.value?.cooked ?? node.quasis[0]?.value?.raw ?? "";
         }
-        problems.push(`${shown}: ${kind} must use a literal module specifier`);
+        if (!allowNonliteral) problems.push(`${shown}: ${kind} must use a literal module specifier`);
         return null;
     }
 
@@ -230,12 +230,12 @@ function parseSpecifiers(source, shown, problems)
         }
         else if (node.type === "ImportExpression")
         {
-            const value = literal(node.source, "dynamic import");
+            const value = literal(node.source, "dynamic import", allowExternalDynamicImport);
             if (value !== null) found.push(value);
         }
         else if (node.type === "CallExpression" && node.callee?.type === "Import")
         {
-            const value = literal(node.arguments[0], "dynamic import");
+            const value = literal(node.arguments[0], "dynamic import", allowExternalDynamicImport);
             if (value !== null) found.push(value);
         }
 
@@ -370,6 +370,10 @@ export async function validateLayering(options = {})
     const imports = manifest.imports ?? {};
     const externalImportValues = config.externalImports ?? [];
     const externalImports = new Set(Array.isArray(externalImportValues) ? externalImportValues : []);
+    const externalDynamicImportValues = config.externalDynamicImports ?? [];
+    const externalDynamicImports = new Set(Array.isArray(externalDynamicImportValues)
+        ? externalDynamicImportValues
+        : []);
 
     if (!Array.isArray(externalImportValues))
     {
@@ -384,6 +388,28 @@ export async function validateLayering(options = {})
         else if (!Object.hasOwn(manifest.dependencies ?? {}, packageName))
         {
             problems.push(`layers.json externalImports names undeclared dependency "${packageName}"`);
+        }
+    }
+    if (!Array.isArray(externalDynamicImportValues))
+    {
+        problems.push("layers.json externalDynamicImports must be an array");
+    }
+    for (const sourcePath of externalDynamicImports)
+    {
+        if (typeof sourcePath !== "string" || !sourcePath)
+        {
+            problems.push("layers.json externalDynamicImports entries must be source-relative paths");
+            continue;
+        }
+        const target = join(sourceRoot, sourcePath);
+        if (sourcePath !== slash(normalize(sourcePath)) || sourcePath.startsWith("../")
+            || sourcePath.startsWith("/") || !inside(sourceRoot, target))
+        {
+            problems.push("layers.json externalDynamicImports entries must be source-relative paths");
+        }
+        else if (!existsSync(target))
+        {
+            problems.push(`layers.json externalDynamicImports path does not exist: "${sourcePath}"`);
         }
     }
 
@@ -416,7 +442,12 @@ export async function validateLayering(options = {})
         }
 
         const allowed = new Set(rule.mayImport ?? []);
-        for (const specifier of parseSpecifiers(await readFile(file, "utf8"), shown, problems))
+        for (const specifier of parseSpecifiers(
+            await readFile(file, "utf8"),
+            shown,
+            problems,
+            externalDynamicImports.has(sourcePath)
+        ))
         {
             const targets = resolveSpecifierLayers(specifier, file, {
                 root,

@@ -18,4 +18,23 @@ This project is not affiliated with, endorsed by, or sponsored by CCP Games or
 CCP ehf. "EVE Online" and related marks are the property of their respective
 owners. No game assets are redistributed in this package.
 
+Resource capability
+-------------------
+
+The resource capability owns resource lifecycle, format selection, canonical
+GPU-free shader/reflection models, and the format readers under
+`src/resource/formats`. Copied format implementations retain their original
+license and notice files under `format-notices/<format>/`, including notices
+for meshoptimizer, yaml, black-reader-js, and bundled Wwise codebook data.
+
+The bundled Black definition JSON is a generated CarbonEngineJS schema artifact
+copied from `format-carbon` revision
+`d2a3c67cf3d46e8ba78ca19e66558d868178ec24`. Its digest and retention purpose
+are recorded in `docs/resource/formats/provenance.md`; it contains no game asset.
+
+The GR2/GSF reader was migrated after its EUPL-derived decoder was replaced by
+a validated clean-room implementation and the donor was relicensed MIT. The
+modern cFSD decoder and reviewed dataset schemas decode caller-supplied bytes
+and include no acquired game data, decoded tables, or native loader modules.
+
 License: MIT. See LICENSE.

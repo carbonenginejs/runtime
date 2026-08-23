@@ -3,8 +3,8 @@
 Unpublished consolidation destination for the browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.
 
 Use this repository while the accepted combined-runtime migration is in
-progress. It provides the executable layer boundary, migration metadata, and
-the maintained global foundation migrated from `runtime-utils`.
+progress. It provides the executable layer boundary, migration metadata, the
+maintained global foundation, and the migrated resource/format capability.
 `@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
@@ -18,8 +18,8 @@ npm install
 
 ## Quick start
 
-Current validation checks the internal dependency graph, package maps, and the
-migrated foundation implementation:
+Current validation checks the internal dependency graph, package maps, the
+migrated foundation, and all resource/format implementations:
 
 ```sh
 npm test
@@ -28,12 +28,14 @@ npm test
 Current foundation imports include `@carbonenginejs/runtime/math`,
 `@carbonenginejs/runtime/utils`, `@carbonenginejs/runtime/consts`,
 `@carbonenginejs/runtime/schema`, and `@carbonenginejs/runtime/model`.
+Resource consumers use `@carbonenginejs/runtime/resource`; concrete readers,
+including FSD, are opt-in subpaths below
+`@carbonenginejs/runtime/resource/formats/*`.
 
-Planned public imports such as `@carbonenginejs/runtime/resource` and
-`@carbonenginejs/runtime/engine/webgpu` become available only after their
+The remaining domain and WebGPU imports become available only after their
 history-preserving migrations and the atomic consumer cutover. The WebGPU
-engine is not exported from this scaffold, and no WebGL placeholder is
-advertised before a maintained implementation exists.
+engine is not exported yet, and no WebGL placeholder is advertised before a
+maintained implementation exists.
 
 ## Documentation
 

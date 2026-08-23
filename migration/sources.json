@@ -22,6 +22,7 @@
       "commit": "1dbaa3642706e8122efe844b25654aca2ea8de3e",
       "temporaryPrefix": ".imports/runtime-resource",
       "destination": "src/resource",
+      "sourceMoved": true,
       "baseline": { "command": "npm test", "passed": 1279, "skipped": 19, "failed": 0 }
     },
     {

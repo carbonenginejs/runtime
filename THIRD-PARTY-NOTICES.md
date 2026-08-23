@@ -8,6 +8,14 @@ matrix containers with CarbonEngineJS helpers.
 - Project: <https://github.com/toji/gl-matrix>
 - License: MIT
 
+## Resource format dependencies and retained notices
+
+The CMF reader depends on `meshoptimizer`, and the YAML reader depends on
+`yaml`. Format-specific licenses, behavioral-reference attribution, and copied
+data notices are retained under `format-notices/`; this includes the
+black-reader-js reference notice and the BSD-licensed Wwise/Vorbis codebook
+data embedded by the WEM reader.
+
 ## ccpwgl math extraction
 
 Most container modules in `src/global/math` were extracted from ccpwgl's

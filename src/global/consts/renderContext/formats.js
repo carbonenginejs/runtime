@@ -1,5 +1,5 @@
-// Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
-//   trinityal/Tr2RenderContextEnum.h (PixelFormat, DepthStencilFormat); shadercompiler/EffectData.h (TextureType)
+// Source: trinity/trinityal/Tr2RenderContextEnum.h (PixelFormat, DepthStencilFormat)
+// Source: trinity/shadercompiler/EffectData.h (TextureType)
 
 /** Carbon numeric GPU pixel formats (distinct from the abstract graphics/pixelFormats string vocabulary). */
 export const PixelFormat = Object.freeze({

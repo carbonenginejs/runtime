@@ -1,5 +1,4 @@
-// Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
-//   trinity/UI/Tr2MainWindow.h (Tr2WindowMode, Tr2WindowShowState, Tr2ImeState_MacOS namespaces)
+// Source: trinity/trinity/UI/Tr2MainWindow.h (Tr2WindowMode, Tr2WindowShowState, Tr2ImeState_MacOS namespaces)
 
 export const Tr2WindowMode = Object.freeze({
     FULL_SCREEN: 0,

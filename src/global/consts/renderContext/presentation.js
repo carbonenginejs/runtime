@@ -1,5 +1,4 @@
-// Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
-//   trinityal/Tr2RenderContextEnum.h (SwapEffect, PresentInterval, RenderState)
+// Source: trinity/trinityal/Tr2RenderContextEnum.h (SwapEffect, PresentInterval, RenderState)
 
 export const SwapEffect = Object.freeze({
     SWAP_EFFECT_DISCARD: 0,

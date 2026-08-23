@@ -1,5 +1,4 @@
-// Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
-//   trinityal/Tr2RenderContextEnum.h (Tr2CpuUsage, Tr2GpuUsage namespaces)
+// Source: trinity/trinityal/Tr2RenderContextEnum.h (Tr2CpuUsage, Tr2GpuUsage namespaces)
 
 /** CPU access usage flags. */
 export const Tr2CpuUsage = Object.freeze({

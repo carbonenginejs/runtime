@@ -245,10 +245,10 @@ tri3.getClosestEdgeToPoint = (function()
         lne3.set(edgeList[0], a[0], a[1], a[2], a[3], a[4], a[5]); // vert a - vert b
         lne3.set(edgeList[1], a[3], a[4], a[5], a[6], a[7], a[8]); // vert b - vert c
         lne3.set(edgeList[2], a[6], a[7], a[8], a[0], a[1], a[2]); // vert c - vert a
-        
+
         let minDistance = Infinity,
             edgeIndex;
-        
+
         for (let i = 0; i < edgeList.length; i++)
         {
             // Get the closest point on the triangles edge to the closest point on the triangle to the supplied point
@@ -276,12 +276,12 @@ tri3.getClosestEdgeToPoint = (function()
                     debug.edgeStart = 0;
                     debug.edgeEnd = 1;
                     break;
-                    
+
                 case 1:
                     debug.edgeStart = 1;
                     debug.edgeEnd = 2;
                     break;
-                    
+
                 default:
                     debug.edgeStart = 2;
                     debug.edgeEnd = 0;
@@ -408,7 +408,7 @@ tri3.getClosestVertexToPoint = (function()
                 foundIndex = i;
             }
         }
-        
+
         if (debug) debug.closest = foundIndex;
 
         out[0] = x;

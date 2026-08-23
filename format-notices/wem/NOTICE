@@ -1,0 +1,33 @@
+formats/wem
+
+Copyright (c) CarbonEngineJS contributors.
+CarbonEngine source material, formats, class names, and schema semantics remain
+copyright their original CarbonEngine authors.
+Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
+and EVE-related data remain copyright their original holders.
+Wwise and the Wwise media format are property of Audiokinetic Inc.
+
+This reader is original CarbonEngineJS code authored directly in the resource
+capability of `@carbonenginejs/runtime`; no legacy format package was copied. The Wwise RIFF/RIFX container
+layout and codec tag meanings were implemented from publicly documented
+community knowledge of the format (ww2ogg, vgmstream, wwiser documentation);
+no code was copied from those projects and no Audiokinetic SDK material was
+used.
+
+The Wwise-Vorbis-to-Ogg repacker is an original JavaScript reimplementation of
+the ww2ogg algorithm by Adam Gashlin (hcs), https://github.com/hcs64/ww2ogg,
+used as a behavioral reference. The bundled packed Vorbis codebook data
+(src/resource/formats/wem/core/packedCodebooksAotuv603.js) is a byte-identical copy of
+packed_codebooks_aoTuV_603.bin from the ww2ogg distribution, redistributed
+under the BSD 3-clause license terms included in this directory's LICENSE
+file:
+
+  Copyright (c) 2002, Xiph.org Foundation
+  Copyright (c) 2009-2016, Adam Gashlin
+
+  The BSD conditions and warranty disclaimer for the bundled codebook data are
+  reproduced in full in format-notices/wem/LICENSE.
+
+Audiokinetic, CarbonEngine, and Fenris Creations (CCP Games) are mentioned for
+interoperability, provenance, and future migration context only. This package
+is not affiliated with or endorsed by Audiokinetic Inc. or CCP Games.

@@ -12,9 +12,9 @@ CarbonEngineJS.
 
 This package provides stable constants that can be shared by:
 
-- `runtime-resource/formats/*` readers when emitting GPU-free semantic
+- `@carbonenginejs/runtime/resource/formats/*` readers when emitting GPU-free semantic
   payloads, including the DXBC, HLSL, WebGL, and WebGPU subpaths.
-- `runtime-resource` when interpreting payloads and resource intent.
+- the `resource` layer when interpreting payloads and resource intent.
 - `src/engine/*` layers when mapping payloads to backend APIs.
 - tools and tests that need canonical media, graphics, audio, shader, D3D, or
   backend names.
@@ -51,7 +51,7 @@ engine/*            imports global constants for backend mapping
 global/consts       imports no resource or engine layer
 ```
 
-Shader formats are maintained as runtime-resource subpaths. Retired standalone
+Shader formats are maintained as runtime resource subpaths. Retired standalone
 format package names are provenance labels, not current dependency owners.
 
 ## Initial domains

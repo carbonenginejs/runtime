@@ -51,6 +51,7 @@ async function fixture(t, options = {})
     await put(root, "layers.json", JSON.stringify({
         surfaces,
         externalImports: options.externalImports ?? [],
+        externalDynamicImports: options.externalDynamicImports ?? [],
         layers
     }));
     await put(root, "src/index.js");
@@ -140,6 +141,21 @@ test("all static module forms are scanned and nonliteral dynamic imports fail", 
     assert.match(problems, /may not import "core"/u);
     assert.match(problems, /may not import "tools"/u);
     assert.match(problems, /dynamic import must use a literal module specifier/u);
+});
+
+test("reviewed external dynamic import sites are exact-file allowlisted", async t =>
+{
+    const root = await fixture(t, {
+        externalDynamicImports: [ "resource/worker.js" ],
+        files: {
+            "resource/worker.js": "export const load = target => import(target);",
+            "resource/other.js": "export const load = target => import(target);"
+        }
+    });
+    const problems = (await validateLayering({ root })).problems.join("\n");
+
+    assert.doesNotMatch(problems, /resource\/worker\.js: dynamic import/u);
+    assert.match(problems, /resource\/other\.js: dynamic import must use a literal module specifier/u);
 });
 
 test("every conditional import-map branch is enforced", async t =>

@@ -5,7 +5,7 @@ import {
     CJS_OPERATION_CANCELLED,
     CjsCancellationError,
     CjsError
-} from "@carbonenginejs/runtime/utils/errors";
+} from "../../../npm/dist/global/utils/errors/index.js";
 
 test("CjsError preserves stable operational identity and detached safe details", () =>
 {
@@ -134,7 +134,7 @@ test("CjsCancellationError uses stable and platform-compatible cancellation iden
 
 test("errors are available from the common root without environment initialization", async () =>
 {
-    const root = await import("@carbonenginejs/runtime");
+    const root = await import("../../../npm/dist/index.js");
 
     assert.equal(root.CjsError, CjsError);
     assert.equal(root.CjsCancellationError, CjsCancellationError);

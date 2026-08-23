@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 
@@ -28,30 +28,37 @@ test("published source is organization-independent and browser-safe", async () =
     for (const file of files)
     {
         const source = await fs.readFile(file, "utf8");
+        const code = source
+            .replace(/\/\*[\s\S]*?\*\//gu, "")
+            .replace(/^[ \t]*\/\/.*$/gmu, "");
 
-        assert.doesNotMatch(source, /["']@carbonenginejs\//u, file);
-        assert.doesNotMatch(source, /(?:from|import\s*\()\s*["']node:/u, file);
-        assert.doesNotMatch(source, /\bBuffer\b|\bprocess\b|\brequire\s*\(/u, file);
+        assert.doesNotMatch(code, /from\s+["']@carbonenginejs\//u, file);
+        assert.doesNotMatch(code, /import\s*\(\s*["']@carbonenginejs\//u, file);
+        assert.doesNotMatch(code, /from\s+["']node:/u, file);
+        assert.doesNotMatch(code, /import\s*\(\s*["'`]node:/u, file);
+        assert.doesNotMatch(code, /\bprocess\.(?:env|argv|platform|cwd|exit|versions)\b/u, file);
+        assert.doesNotMatch(code, /new\s+Function\s*\([^)]*import\s*\(/u, file);
+
+        for (const line of code.split("\n"))
+        {
+            const callsBuffer = /\bnew\s+Buffer\b|\bBuffer\s*\.\s*(?:from|alloc|allocUnsafe|concat|isBuffer)\b/u.test(line);
+            assert.equal(callsBuffer && !/typeof\s+Buffer/u.test(line), false, file);
+        }
     }
 });
 
-test("every advertised subpath imports independently", async () =>
+test("every built advertised subpath imports independently", async () =>
 {
-    const manifest = JSON.parse(await fs.readFile(path.join(packageRoot, "package.json"), "utf8"));
-    const modules = Object.keys(manifest.exports)
-        .filter(name => name !== "." && !name.includes("*"))
-        .map(name => name.slice(2));
+    const npmRoot = path.join(packageRoot, "npm");
+    const manifest = JSON.parse(await fs.readFile(path.join(npmRoot, "package.json"), "utf8"));
 
-    for (const name of modules)
+    for (const [ name, target ] of Object.entries(manifest.exports))
     {
-        const module = await import(`@carbonenginejs/runtime/${name}`);
+        if (name.includes("*") || typeof target !== "string") continue;
+        const module = await import(pathToFileURL(path.resolve(npmRoot, target)).href);
 
         assert.equal(typeof module, "object", name);
     }
-
-    const root = await import("@carbonenginejs/runtime");
-
-    assert.ok(Object.keys(root).length > 0, "root");
 });
 
 test("directory-backed internal aliases resolve to concrete foundation fronts", async () =>

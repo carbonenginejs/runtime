@@ -1,5 +1,4 @@
-// Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
-//   trinityal/include/upscaling/Tr2UpscalingAL.h (Technique, Setting)
+// Source: trinity/trinityal/include/upscaling/Tr2UpscalingAL.h (Technique, Setting)
 
 export const UpscalingTechnique = Object.freeze({
     NONE: 0,

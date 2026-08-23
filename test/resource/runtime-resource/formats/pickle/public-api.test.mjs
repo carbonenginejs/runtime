@@ -1,0 +1,343 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import { CjsFormat } from "../../../../../src/resource/format/CjsFormat.js";
+import {
+  CjsLoadingObject,
+  CjsResMan
+} from "../../../../../npm/dist/resource/index.js";
+import CjsPickleFormat, {
+  CjsPickleFormat as NamedCjsPickleFormat
+} from "../../../../../src/resource/formats/pickle/index.js";
+
+test("package subpath exports one public pickle format class", async () =>
+{
+  const mod = await import("../../../../../src/resource/formats/pickle/index.js");
+
+  assert.deepEqual(Object.keys(mod).sort(), [ "CjsPickleFormat", "default" ]);
+  assert.equal(mod.default, CjsPickleFormat);
+  assert.equal(NamedCjsPickleFormat, CjsPickleFormat);
+});
+
+test("pickle facade declares protocol 0 and the standard format vocabulary", () =>
+{
+  assert.deepEqual(Object.getOwnPropertyNames(CjsPickleFormat.prototype).sort(), [
+    "GetValues", "Read", "ReadJSON", "ReadPayload", "ReadRaw", "SetValues",
+    "ToJSON", "constructor"
+  ].sort());
+  assert.equal(CjsPickleFormat.id, "pickle");
+  assert.deepEqual(CjsPickleFormat.extensions, [ ".pickle" ]);
+  assert.deepEqual(CjsPickleFormat.supportedProtocols, [ 0 ]);
+  assert.equal(typeof CjsPickleFormat.normalizeValues, "function");
+  assert.doesNotThrow(() => CjsFormat.validateContract(CjsPickleFormat));
+});
+
+test("default output decodes protocol-0 data into JSON-compatible values", () =>
+{
+  const result = CjsPickleFormat.read(bytes(
+    "(dp0\n"
+    + "Vprofile\n"
+    + "p1\n"
+    + "(dp2\n"
+    + "Vcolors\n"
+    + "p3\n"
+    + "(lp4\n"
+    + "(F0.5\nF0.25\nF0.125\nI1\n"
+    + "tp5\n"
+    + "asVlabel\n"
+    + "p6\n"
+    + "Vexample\\u0020profile\n"
+    + "p7\n"
+    + "ss."
+  ));
+
+  assert.deepEqual(result, {
+    profile: {
+      colors: [ [ 0.5, 0.25, 0.125, 1 ] ],
+      label: "example profile"
+    }
+  });
+  assert.doesNotThrow(() => JSON.stringify(result));
+});
+
+test("payload output preserves memo aliases while JSON rejects cycles", () =>
+{
+  const shared = bytes(
+    "(dp0\n"
+    + "Vleft\n"
+    + "p1\n"
+    + "(lp2\nI1\nas"
+    + "Vright\n"
+    + "p3\n"
+    + "g2\ns."
+  );
+  const value = CjsPickleFormat.readPayload(shared);
+
+  assert.deepEqual(value, { left: [ 1 ], right: [ 1 ] });
+  assert.equal(value.left, value.right);
+  assert.equal(CjsPickleFormat.toJSON(value), value);
+
+  const cyclic = bytes("(lp0\ng0\na.");
+  const raw = CjsPickleFormat.readRaw(cyclic);
+  assert.equal(raw[0], raw);
+  assert.throws(
+    () => CjsPickleFormat.readJSON(cyclic),
+    error => error.code === "CJS_PICKLE_FORMAT_JSON_INVALID"
+      && error.protocol === 0
+  );
+  assert.throws(
+    () => CjsPickleFormat.toJSON(raw),
+    error => error.code === "CJS_PICKLE_FORMAT_JSON_INVALID"
+  );
+});
+
+test("pickle reader preserves lossless integers and safe dictionary keys", () =>
+{
+  assert.equal(
+    CjsPickleFormat.read(bytes("L9007199254740993L\n.")),
+    "9007199254740993"
+  );
+  assert.deepEqual(
+    CjsPickleFormat.read(bytes("(dp0\nI7\nS'seven'\np1\ns.")),
+    { "7": "seven" }
+  );
+
+  const prototypeKey = CjsPickleFormat.read(bytes(
+    "(dp0\nS'__proto__'\np1\nS'inert'\np2\ns."
+  ));
+  assert.equal(Object.getPrototypeOf(prototypeKey), Object.prototype);
+  assert.equal(Object.hasOwn(prototypeKey, "__proto__"), true);
+  assert.equal(prototypeKey.__proto__, "inert");
+
+  assert.throws(
+    () => CjsPickleFormat.read(bytes(
+      "(dp0\nI0\nS'number'\np1\nsS'0'\np2\nS'text'\np3\ns."
+    )),
+    error => error.code === "CJS_PICKLE_FORMAT_CONTAINER_INVALID"
+  );
+});
+
+test("pickle reader rejects executable and unsupported protocol opcodes", () =>
+{
+  // The reason this reader exists. `os.system` is refused at the GLOBAL, before
+  // any argument is read and long before REDUCE could call anything.
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("cos\nsystem\n(S'unsafe'\ntR.")),
+    error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED"
+      && error.protocol === 0
+      && error.offset === 0
+      && /"os\.system"/u.test(error.message)
+  );
+  assert.throws(
+    () => CjsPickleFormat.read(new Uint8Array([ 0x80, 0x02, 0x4e, 0x2e ])),
+    error => error.code === "CJS_PICKLE_FORMAT_OPCODE_UNSUPPORTED"
+      && error.offset === 0
+  );
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("(tI1\na.")),
+    error => error.code === "CJS_PICKLE_FORMAT_CONTAINER_INVALID"
+      && /APPEND target must be a list/u.test(error.message)
+  );
+  assert.throws(
+    () => CjsPickleFormat.readRaw(bytes("(p0\ng0\nl.")),
+    error => error.code === "CJS_PICKLE_FORMAT_MARK_INVALID"
+      && /MARK cannot be stored/u.test(error.message)
+  );
+});
+
+test("pickle profiles strictly validate options and resource limits", () =>
+{
+  const format = new CjsPickleFormat({
+    emit: "payload",
+    limits: { maxInputBytes: 8 }
+  });
+
+  assert.equal(format.GetValues().emit, "payload");
+  assert.equal(format.GetValues().limits.maxInputBytes, 8);
+  assert.equal(format.SetValues({ emit: "json" }), format);
+  assert.equal(format.Read(bytes("N.")), null);
+
+  assert.throws(
+    () => format.Read(bytes("S'larger'\n.")),
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED"
+  );
+  assert.throws(
+    () => new CjsPickleFormat({ emit: "runtime" }),
+    /unknown emit value/u
+  );
+  assert.throws(
+    () => new CjsPickleFormat({ protocol: 0 }),
+    /unknown option/u
+  );
+  assert.throws(
+    () => new CjsPickleFormat({ limits: { maxInputBytes: 0 } }).Read(bytes("N.")),
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_INVALID"
+  );
+  assert.throws(
+    () => new CjsPickleFormat({ limits: { unknown: 1 } }).Read(bytes("N.")),
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_INVALID"
+  );
+});
+
+test("ResMan routes lowercase pickle resource context without domain coupling", async () =>
+{
+  const input = bytes("(dp0\nVvalue\np1\nI7\ns.");
+  let identifyContext = null;
+  const resMan = new CjsResMan({
+    source: {
+      Read()
+      {
+        return input;
+      }
+    },
+    extensions: {
+      pickle: {
+        Handler: CjsLoadingObject,
+        Format: CjsPickleFormat,
+        Identify(value, context)
+        {
+          assert.deepEqual(value, { value: 7 });
+          identifyContext = context;
+          return true;
+        }
+      }
+    }
+  });
+
+  assert.deepEqual(
+    await resMan.Fetch(" RES:\\Data\\Profile.PICKLE "),
+    { value: 7 }
+  );
+  assert.equal(identifyContext.resFilePath, "res:/data/profile.pickle");
+  assert.equal(identifyContext.ext, "pickle");
+  assert.equal(identifyContext.fileName, "profile.pickle");
+  assert.equal(identifyContext.url, null);
+});
+
+function bytes(value)
+{
+  return new TextEncoder().encode(value);
+}
+
+test("rebuilds collections.OrderedDict, and nothing else", () =>
+{
+  // The one global this reader will name. It is a dictionary that remembers
+  // insertion order, which a JavaScript object already is, so rebuilding it is
+  // pure data - nothing is imported, resolved or called. Measured across every
+  // self-describing container CCP ships, it is also the only global any of them
+  // uses: 25 files, this name, once each. They need it because a schema's
+  // attribute order is its field order.
+  const ordered = CjsPickleFormat.read(bytes(
+    "ccollections\nOrderedDict\np1\n((lp2\n(lp3\nS'zulu'\np4\naI1\naa(lp5\nS'alpha'\np6\naI2\naatRp7\n."
+  ));
+
+  assert.deepEqual(ordered, { zulu: 1, alpha: 2 });
+  // Order is the point, so it is asserted rather than assumed.
+  assert.deepEqual(Object.keys(ordered), [ "zulu", "alpha" ]);
+
+  // A different global is still refused, including one that looks harmless.
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("ccollections\ndefaultdict\np1\n((lp2\ntRp3\n.")),
+    error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED"
+  );
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("c__builtin__\neval\np1\n((lp2\ntRp3\n.")),
+    error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED"
+  );
+});
+
+test("REDUCE cannot be pointed at anything that is not a rebuildable global", () =>
+{
+  // Without this, REDUCE on an ordinary value would be a way past the GLOBAL
+  // check rather than a use of it.
+  assert.throws(
+    () => CjsPickleFormat.read(bytes("(lp1\n(tR.")),
+    error => error.code === "CJS_PICKLE_FORMAT_REDUCE_INVALID"
+  );
+
+  // An integer-like key would not keep its order in a JavaScript object - those
+  // sort ahead of everything else - so it is refused rather than reordered.
+  assert.throws(
+    () => CjsPickleFormat.read(bytes(
+      "ccollections\nOrderedDict\np1\n((lp2\n(lp3\nS'2'\np4\naI1\naa(lp5\nS'1'\np6\naI2\naatRp7\n."
+    )),
+    error => error.code === "CJS_PICKLE_FORMAT_REDUCE_INVALID" && /order/u.test(error.message)
+  );
+});
+
+test("a rebuilt key is defined, so __proto__ cannot be lost or become a prototype", () =>
+{
+  // A plain assignment to `__proto__` sets the object's prototype instead of
+  // storing a property, so the field vanishes from the decoded record with no
+  // error at all - and if its value is an object it becomes a phantom that
+  // reads through `in` and dot access while JSON shows nothing. The dictionary
+  // path already defended this with defineProperty; this one did not.
+  const lost = CjsPickleFormat.read(bytes(
+    "ccollections\nOrderedDict\n((l(lS'__proto__'\naS'hello'\naa(lS'kept'\naI7\naatR."
+  ));
+
+  assert.deepEqual(Object.keys(lost), [ "__proto__", "kept" ]);
+  assert.equal(Object.hasOwn(lost, "__proto__"), true);
+  assert.equal(Object.getPrototypeOf(lost), Object.prototype);
+
+  const injected = CjsPickleFormat.readPayload(bytes(
+    "ccollections\nOrderedDict\n((l(lS'__proto__'\na(dS'injected'\nI1\nsaa(lS'kept'\naI7\naatR."
+  ));
+
+  assert.equal(Object.getPrototypeOf(injected), Object.prototype);
+  assert.equal(injected.injected, undefined);
+  assert.equal(({}).injected, undefined, "Object.prototype is untouched either way");
+});
+
+test("a global no REDUCE consumes is refused rather than decoding as an empty object", () =>
+{
+  // It would otherwise reach the caller as {}, indistinguishable from an empty
+  // dictionary, and it can be memoized and buried anywhere in the graph.
+  for (const source of [
+    "ccollections\nOrderedDict\n.",
+    "(lccollections\nOrderedDict\na.",
+    "(dS'k'\nccollections\nOrderedDict\ns."
+  ])
+  {
+    assert.throws(
+      () => CjsPickleFormat.read(bytes(source)),
+      error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED",
+      source
+    );
+  }
+});
+
+test("rebuilt items are budgeted across the whole decode, not per container", () =>
+{
+  // REDUCE is the only path that builds N properties for a constant number of
+  // opcodes, so a memoized pair list rebuilt in a loop multiplies maxOperations
+  // by maxContainerItems rather than being bounded by either. Checking each
+  // rebuild in isolation is satisfied every time; a 1 MB input built 3e8
+  // properties and aborted the process.
+  const craft = (pairs, rebuilds) =>
+  {
+    // The marker stays on the stack and in the memo, which is the only place a
+    // global is allowed to be - appending it to the list is refused in its own
+    // right, by the test above.
+    let source = "(l(l";
+
+    for (let index = 0; index < pairs; index += 1) source += `(lS'k${index}'\naI${index}\naa`;
+
+    source += "p1\na(g1\ntp2\naccollections\nOrderedDict\np0\n";
+    source += "g2\nRa" + "g0\ng2\nRa".repeat(rebuilds - 1) + ".";
+
+    return bytes(source);
+  };
+
+  assert.throws(
+    () => CjsPickleFormat.read(craft(2000, 15000)),
+    error => error.code === "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED" && /across the decode/u.test(error.message)
+  );
+
+  // A rebuild count a real schema could plausibly reach still decodes.
+  const small = CjsPickleFormat.read(craft(50, 100));
+
+  // The outer list holds the pair list, the argument tuple and 100 rebuilds.
+  assert.equal(small.length, 102);
+  assert.equal(Object.keys(small[small.length - 1]).length, 50);
+});

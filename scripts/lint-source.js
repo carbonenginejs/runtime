@@ -1,0 +1,97 @@
+import { transformAsync } from "@babel/core";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const sourceRoot = path.join(root, "src");
+
+async function sourceFiles(directory)
+{
+    const files = [];
+    for (const entry of await fs.readdir(directory, { withFileTypes: true }))
+    {
+        const target = path.join(directory, entry.name);
+        if (entry.isDirectory()) files.push(...await sourceFiles(target));
+        else if (entry.isFile() && entry.name.endsWith(".js")) files.push(target);
+    }
+    return files;
+}
+
+function slash(value)
+{
+    return value.replaceAll(path.sep, "/");
+}
+
+function checkFormatBoundary(relativeFile, source, problems)
+{
+    if (!relativeFile.startsWith("src/resource/formats/")) return;
+
+    const code = source
+        .replace(/\/\*[\s\S]*?\*\//gu, "")
+        .replace(/^[ \t]*\/\/.*$/gmu, "");
+
+    if (/^\s*@[A-Za-z_$]/mu.test(code))
+    {
+        problems.push(`${relativeFile}: runtime format readers must remain decorator-free`);
+    }
+    for (const match of code.matchAll(/from\s+["']([^"']+)["']/gu))
+    {
+        if (/(^|\/)CjsResourceProbe(\.js)?$/u.test(match[1]))
+        {
+            problems.push(`${relativeFile}: formats report plain probes and may not import ${match[1]}`);
+        }
+    }
+}
+
+const problems = [];
+for (const file of await sourceFiles(sourceRoot))
+{
+    const relativeFile = slash(path.relative(root, file));
+    const source = await fs.readFile(file, "utf8");
+
+    if (/[ \t]+$/mu.test(source)) problems.push(`${relativeFile}: contains trailing whitespace`);
+    if (/^\/\/ Ported from CarbonEngine/mu.test(source))
+    {
+        problems.push(`${relativeFile}: use exact // Source: <Carbon path> provenance`);
+    }
+    if (relativeFile.includes("/generated/")
+        && !relativeFile.endsWith("/index.js")
+        && !relativeFile.endsWith("/enums.js")
+        && !source.startsWith("// Source:"))
+    {
+        problems.push(`${relativeFile}: generated Carbon source requires an exact source header`);
+    }
+
+    checkFormatBoundary(relativeFile, source, problems);
+
+    try
+    {
+        await transformAsync(source, {
+            filename: file,
+            sourceType: "module",
+            babelrc: false,
+            configFile: false,
+            code: false,
+            ast: false,
+            plugins: [
+                [ "@babel/plugin-proposal-decorators", { version: "2023-11" } ]
+            ]
+        });
+    }
+    catch (error)
+    {
+        problems.push(`${relativeFile}:${error.loc?.line ?? 1}: ${error.message}`);
+    }
+}
+
+if (problems.length)
+{
+    console.error(problems.join("\n"));
+    console.error(`\n${problems.length} source lint problem(s)`);
+    process.exitCode = 1;
+}
+else
+{
+    console.log("Source lint passed");
+}

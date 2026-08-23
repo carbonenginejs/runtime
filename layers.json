@@ -43,7 +43,12 @@
         }
     },
     "externalImports": [
-        "gl-matrix"
+        "gl-matrix",
+        "meshoptimizer",
+        "yaml"
+    ],
+    "externalDynamicImports": [
+        "resource/worker/CjsResManWorker.js"
     ],
     "layers": {
         "global/utils": {

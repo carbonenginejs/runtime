@@ -1,0 +1,47 @@
+format-black
+
+Copyright (c) CarbonEngineJS contributors.
+CarbonEngine source material, formats, class names, and schema semantics remain
+copyright their original CarbonEngine authors.
+Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
+and EVE-related data remain copyright their original holders.
+
+This package is a CarbonEngineJS-facing reader for `.black` files. It
+contains original project code unless third-party material is explicitly listed
+below.
+CarbonEngine and Fenris Creations (CCP Games) are mentioned for
+interoperability, provenance, and future migration context only. This package is
+not affiliated with or endorsed by CCP Games.
+
+Third-party reference material
+------------------------------
+
+black-reader-js
+Repository: https://github.com/rawrafox/black-reader-js
+Author: rawrafox
+Package author: aurora
+License: MIT
+Local license notice: Copyright (c) 2023 @rawrafox and @cppctamber
+
+CarbonEngineJS uses black-reader-js as reference material for `.black` format
+behavior. The runtime resource reader is implemented against CarbonEngineJS
+canonical schema definitions and emits CarbonEngineJS public
+Black payload data.
+
+Provenance and legal requirements
+---------------------------------
+
+This scaffold currently contains CarbonEngineJS original project code plus the
+third-party reference attribution listed above. It does not include copied
+CarbonEngine source code or third-party parser code.
+
+If future work copies, ports, translates, or derives from CarbonEngine, ccpwgl,
+Fenris Creations (CCP Games) / EVE assets or tools, or any third-party library,
+update this NOTICE before committing that work with:
+
+- upstream copyright holders;
+- upstream project/repository, file path, and revision when known;
+- upstream license name, license text or required notice location, and any
+  redistribution obligations;
+- whether the material was copied/ported/adapted, or used only as a behavioral
+  reference with no copied expression.
