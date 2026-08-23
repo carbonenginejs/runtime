@@ -7,6 +7,37 @@ import {
     SelectBackend,
     Tr2PlatformInfo
 } from "../../../src/core/index.js";
+import { CjsBackendCandidate } from "../../../src/global/contracts/index.js";
+
+
+class TestBackendCandidate extends CjsBackendCandidate
+{
+    #prove;
+
+    constructor(name, prove = () => true, requirements = {})
+    {
+        super();
+        this.name = name;
+        this.#prove = prove;
+        this.limits = requirements.limits ?? null;
+        this.features = requirements.features ?? null;
+    }
+
+    Prove(context)
+    {
+        return this.#prove(context);
+    }
+}
+
+function candidate(name, prove, requirements)
+{
+    return new TestBackendCandidate(name, prove, requirements);
+}
+
+function candidates()
+{
+    return [ candidate("webgpu"), candidate("webgl") ];
+}
 
 function capabilities(values = {})
 {
@@ -16,7 +47,8 @@ function capabilities(values = {})
 test("SelectBackend commits to one backend and says why the rest lost", async () =>
 {
     const selection = await SelectBackend({
-        capabilities: capabilities({ webgpu: true, webgl2: true })
+        capabilities: capabilities({ webgpu: true, webgl2: true }),
+        candidates: candidates()
     });
 
     assert.equal(selection.effective, "webgpu");
@@ -30,7 +62,10 @@ test("SelectBackend commits to one backend and says why the rest lost", async ()
 
 test("SelectBackend falls back to the next supported candidate", async () =>
 {
-    const selection = await SelectBackend({ capabilities: capabilities({ webgl2: true }) });
+    const selection = await SelectBackend({
+        capabilities: capabilities({ webgl2: true }),
+        candidates: candidates()
+    });
 
     assert.equal(selection.effective, "webgl");
     assert.equal(selection.candidates[0].rejected, CjsBackendRejection.UNSUPPORTED);
@@ -40,47 +75,54 @@ test("SelectBackend lets application policy outrank the default order", async ()
 {
     const selection = await SelectBackend({
         capabilities: capabilities({ webgpu: true, webgl2: true }),
+        candidates: candidates(),
         preference: [ "webgl", "webgpu" ]
     });
 
     assert.equal(selection.effective, "webgl");
-    // Requested and effective stay separately inspectable, so a preference is
-    // never overwritten by what discovery happened to find.
     assert.deepEqual(selection.requested, [ "webgl", "webgpu" ]);
 });
 
-test("SelectBackend awaits the candidate's own proof and falls through a failure", async () =>
+test("SelectBackend awaits required proof and falls through a failure", async () =>
 {
     const seen = [];
     const selection = await SelectBackend({
         capabilities: capabilities({ webgpu: true, webgl2: true }),
         candidates: [
+            candidate("webgpu", async context =>
             {
-                name: "webgpu",
-                async Prove(context)
-                {
-                    seen.push(context.name);
-                    throw new Error("device request rejected");
-                }
-            },
-            { name: "webgl", Prove: async () => ({ context: "gl" }) }
+                seen.push(context.name);
+                throw new Error("device request rejected");
+            }),
+            candidate("webgl", async () => ({ context: "gl" }))
         ]
     });
 
-    assert.deepEqual(seen, [ "webgpu" ], "the proof runs, and runtime-core never creates the device itself");
+    assert.deepEqual(seen, [ "webgpu" ], "the proof runs, and runtime core never creates the device itself");
     assert.equal(selection.effective, "webgl");
     assert.deepEqual(selection.backend.proof, { context: "gl" });
-    assert.equal(selection.backend.proven, true, "a candidate that really proved says so");
+    assert.equal(selection.backend.proven, true);
     assert.equal(selection.candidates[0].rejected, CjsBackendRejection.UNPROVEN);
     assert.equal(selection.candidates[0].error, "device request rejected");
 });
 
-test("SelectBackend labels an unproven candidate honestly", async () =>
+test("SelectBackend requires exact nominal candidates", async () =>
 {
-    const selection = await SelectBackend({ capabilities: capabilities({ webgpu: true }) });
-
-    assert.equal(selection.effective, "webgpu");
-    assert.equal(selection.backend.proven, false, "support is a cheap report, not a proof, and is not dressed up as one");
+    await assert.rejects(
+        () => SelectBackend({ capabilities: capabilities({ webgpu: true }) }),
+        /candidates are required/u
+    );
+    await assert.rejects(
+        () => SelectBackend({ capabilities: capabilities({ webgpu: true }), candidates: [ "webgpu" ] }),
+        /extend CjsBackendCandidate/u
+    );
+    await assert.rejects(
+        () => SelectBackend({
+            capabilities: capabilities({ webgpu: true }),
+            candidates: [ { name: "webgpu", Prove: () => true } ]
+        }),
+        /extend CjsBackendCandidate/u
+    );
 });
 
 test("SelectBackend hands a candidate the resolved device descriptor", async () =>
@@ -97,12 +139,14 @@ test("SelectBackend hands a candidate the resolved device descriptor", async () 
     let handed = null;
     const selection = await SelectBackend({
         platform,
-        candidates: [ {
-            name: "webgpu",
+        candidates: [ candidate("webgpu", context =>
+        {
+            handed = context;
+            return true;
+        }, {
             limits: { maxSampledTexturesPerShaderStage: 20 },
-            features: [ "texture-compression-bc", "shader-f16" ],
-            Prove: context => { handed = context; return true; }
-        } ]
+            features: [ "texture-compression-bc", "shader-f16" ]
+        }) ]
     });
 
     assert.deepEqual(handed.descriptor, {
@@ -115,9 +159,8 @@ test("SelectBackend hands a candidate the resolved device descriptor", async () 
 
 test("SelectBackend fails closed", async () =>
 {
-    // Nothing to render with is a composition failure, not a silent no-op.
     await assert.rejects(
-        () => SelectBackend({ capabilities: capabilities() }),
+        () => SelectBackend({ capabilities: capabilities(), candidates: candidates() }),
         error =>
         {
             assert.equal(error.code, "CJS_LIBRARY_BACKEND_UNAVAILABLE");
@@ -129,32 +172,49 @@ test("SelectBackend fails closed", async () =>
         }
     );
 
-    // An explicit request for something no candidate offers is a mistake, not a
-    // reason to quietly render through a backend the caller did not ask for.
     await assert.rejects(
-        () => SelectBackend({ capabilities: capabilities({ webgpu: true }), preference: [ "metal" ] }),
+        () => SelectBackend({
+            capabilities: capabilities({ webgpu: true }),
+            candidates: [ candidate("webgpu") ],
+            preference: [ "metal" ]
+        }),
         error => error.code === "CJS_LIBRARY_BACKEND_UNKNOWN"
     );
 
     await assert.rejects(
-        () => SelectBackend({ capabilities: capabilities({ webgpu: true }), candidates: [ "webgpu", "webgpu" ] }),
-        TypeError
+        () => SelectBackend({
+            capabilities: capabilities({ webgpu: true }),
+            candidates: [ candidate("webgpu"), candidate("webgpu") ]
+        }),
+        /duplicate backend candidate/u
+    );
+
+    await assert.rejects(
+        () => SelectBackend({ candidates: [ candidate("stub") ], platform: {} }),
+        /Tr2PlatformInfo/u
     );
 });
 
-test("SelectBackend trusts a candidate it does not probe for only on its own proof", async () =>
+test("SelectBackend trusts an unprobed backend only after its nominal proof", async () =>
 {
     const selection = await SelectBackend({
         capabilities: capabilities(),
-        candidates: [ { name: "stub", Prove: () => true } ],
+        candidates: [ candidate("stub") ],
         preference: [ "stub" ]
     });
-
     assert.equal(selection.effective, "stub");
+    assert.equal(selection.backend.proven, true);
 
+    const unimplemented = new CjsBackendCandidate();
+    unimplemented.name = "stub";
     await assert.rejects(
-        () => SelectBackend({ capabilities: capabilities(), candidates: [ "stub" ], preference: [ "stub" ] }),
+        () => SelectBackend({
+            capabilities: capabilities(),
+            candidates: [ unimplemented ],
+            preference: [ "stub" ]
+        }),
         error => error.code === "CJS_LIBRARY_BACKEND_UNAVAILABLE"
+            && /must be overridden/u.test(error.candidates[0].error)
     );
 });
 
@@ -163,7 +223,8 @@ test("CjsLibrary probes, records capabilities, and commits one backend", async (
     const library = new CjsLibrary();
     const selection = await library.SelectBackendAsync({
         gpu: null,
-        context: fakeWebGL2()
+        context: fakeWebGL2(),
+        candidates: [ candidate("webgl") ]
     });
 
     assert.equal(selection.effective, "webgl");
@@ -171,7 +232,6 @@ test("CjsLibrary probes, records capabilities, and commits one backend", async (
     assert.equal(library.GetCapability("backend"), "webgl");
     assert.equal(library.GetBackendSelection(), selection);
 
-    // Backend switching is shutdown-and-reinitialize, never a hot swap.
     library.Shutdown();
     assert.equal(library.GetBackendSelection(), null);
     assert.equal(library.HasCapability("backend"), false);
@@ -182,7 +242,10 @@ test("CjsLibrary selects against registered capabilities when told not to probe"
     const library = new CjsLibrary();
     library.RegisterCapabilities(capabilities({ webgl2: true }));
 
-    const selection = await library.SelectBackendAsync({ probe: false });
+    const selection = await library.SelectBackendAsync({
+        probe: false,
+        candidates: [ candidate("webgl") ]
+    });
     assert.equal(selection.effective, "webgl");
 });
 
@@ -191,14 +254,12 @@ test("CjsLibrary selects a backend as part of initialization", async () =>
     const library = new CjsLibrary();
     await library.InitializeAsync({
         capabilities: capabilities({ webgpu: true }),
-        backend: { probe: false }
+        backend: { probe: false, candidates: [ candidate("webgpu") ] }
     });
 
     assert.equal(library.GetValues().initialized, true);
     assert.equal(library.GetCapability("backend"), "webgpu");
 
-    // Initialization without a backend topic stays exactly as it was: nothing
-    // probes, and nothing commits.
     const untouched = new CjsLibrary();
     await untouched.InitializeAsync({});
     assert.equal(untouched.GetBackendSelection(), null);
@@ -206,12 +267,11 @@ test("CjsLibrary selects a backend as part of initialization", async () =>
 
 function fakeWebGL2()
 {
-    const context = {
+    return {
         MAX_ARRAY_TEXTURE_LAYERS: 0x9001,
         MAX_SAMPLES: 0x9002,
         getParameter: query => (query === 0x9001 ? 256 : 4),
         getSupportedExtensions: () => [],
         getExtension: () => null
     };
-    return context;
 }

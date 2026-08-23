@@ -183,10 +183,7 @@ composing without `CjsLibrary` reaches the identical decision.
 const selection = await SelectBackend({
     platform,
     preference: [ "webgpu", "webgl" ],
-    candidates: [
-        { name: "webgpu", limits, Prove: context => acquireDevice(context.descriptor) },
-        { name: "webgl", Prove: () => acquireContext() }
-    ]
+    candidates: [ webgpuCandidate, webglCandidate ]
 });
 selection.effective;    // the committed backend name
 selection.requested;    // the caller's preference, never overwritten by discovery
@@ -198,10 +195,12 @@ The four stages stay separated: a cheap support report, then the candidate's
 Stage two must not move into core — the core layer records and applies a
 result, and does not create a GPU device or context.
 
-A candidate may be a bare name, in which case the support report is the only
-evidence and `selection.backend.proven` is `false` — cheap answers are labelled
-as cheap. A candidate whose proof throws is declined and the chain continues to
-the next; the reason is kept in `selection.candidates`.
+Every candidate extends `CjsBackendCandidate`; bare names and structural records
+are rejected. A committed candidate has run its required `Prove` method. A
+candidate whose proof returns no result or throws is declined and the chain
+continues to the next; the reason is kept in `selection.candidates`.
+The concrete candidates are engine- or application-owned; core does not import
+an engine merely to synthesize a default candidate.
 
 Selection fails closed. A preference naming a backend no candidate offers throws
 `CJS_LIBRARY_BACKEND_UNKNOWN`, and exhausting every candidate throws

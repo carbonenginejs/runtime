@@ -1,6 +1,6 @@
 // Which backend a library commits to, decided in one place.
 //
-// STANDALONE ON PURPOSE. `runtime-core` is the default composition and is
+// STANDALONE ON PURPOSE. The runtime core is the default composition and is
 // expected to be what almost everyone uses, but a caller must be able to reach
 // the same answer without it. So the policy is a plain function over injected
 // values: it constructs nothing, imports no engine, holds no state, and a
@@ -8,14 +8,14 @@
 // decision. `CjsLibrary.SelectBackendAsync` is its default caller, not its
 // owner.
 //
-// This implements the four-stage flow accepted in runtime-core's roadmap:
+// This implements the four-stage flow accepted in the core roadmap:
 //
 //   1. cheap support reports          <- Tr2PlatformInfo / CjsWebGLProbe
 //   2. an engine-owned asynchronous proof of the required device or context
 //   3. application policy ranking the proven candidates
 //   4. commitment of one backend
 //
-// Stage 2 is the one that must NOT move here. "Runtime-core records and applies
+// Stage 2 is the one that must NOT move here. "Runtime core records and applies
 // the result. It does not create a GPU device, test format-specific bytes, or
 // implement WebGL/WebGPU realization itself." A candidate therefore supplies
 // its own `Prove`, and this awaits it. Constructing a device here would also
@@ -26,6 +26,7 @@
 // one active renderer, and there is no registry of simultaneously active
 // backends. Candidates are an ARGUMENT rather than a stored registration for
 // the same reason - nothing here outlives the decision except the answer.
+import { CjsBackendCandidate } from "#contracts";
 import { Tr2PlatformInfo } from "./Tr2PlatformInfo.js";
 
 
@@ -64,14 +65,13 @@ const SUPPORT_KEY = Object.freeze({
  * Chooses one backend from the candidates a caller offers, given a platform
  * report, and returns what was chosen and why every other option was not.
  *
- * `candidates` are duck-typed and may be bare names. A candidate may supply:
+ * Every candidate must extend `CjsBackendCandidate` and supply:
  *
  * - `name` — the backend it is a candidate for;
- * - `Prove(context)` — an OPTIONAL asynchronous proof that it can really
+ * - `Prove(context)` — the asynchronous proof that it can really
  *   acquire its device or context. It receives `{name, capabilities, platform,
  *   descriptor, unsatisfiedLimits}` and returns a truthy value, or `false`/a
- *   throw to decline. A candidate with no proof is accepted on the support
- *   report alone, which is a cheap answer and honestly labelled as one;
+ *   throw to decline;
  * - `limits` / `features` — what its content needs, resolved against the probed
  *   adapter into the `deviceDescriptor` it is handed.
  *
@@ -88,8 +88,12 @@ const SUPPORT_KEY = Object.freeze({
 export async function SelectBackend(options = {})
 {
     const platform = options.platform ?? null;
-    const capabilities = options.capabilities ?? platform?.GetCapabilities?.() ?? {};
-    const candidates = NormalizeCandidates(options.candidates ?? CjsBackendPreference);
+    if (platform !== null && !(platform instanceof Tr2PlatformInfo))
+    {
+        throw new TypeError("CjsLibrary backend platform must be a Tr2PlatformInfo.");
+    }
+    const capabilities = platform ? platform.GetCapabilities() : options.capabilities ?? {};
+    const candidates = NormalizeCandidates(options.candidates);
     const preference = options.preference ?? null;
 
     // An explicit request is a statement, not a hint. Asking for a backend
@@ -124,7 +128,7 @@ export async function SelectBackend(options = {})
         const supported = supportKey === undefined
             // A backend this package does not probe for is the caller's to
             // vouch for; its proof is the only evidence there is.
-            ? typeof candidate.Prove === "function"
+            ? true
             : capabilities[supportKey] === true;
 
         if (!supported)
@@ -154,7 +158,7 @@ export async function SelectBackend(options = {})
         committed = Object.freeze({
             name: candidate.name,
             proof: proof.value,
-            proven: proof.attempted,
+            proven: true,
             ...requirement
         });
         evaluated.push({ name: candidate.name, committed: true });
@@ -180,19 +184,22 @@ export async function SelectBackend(options = {})
 }
 
 
-/** Accepts bare names or candidate records, and rejects anything else loudly. */
+/** Requires exact nominal candidates and rejects duplicate backend names. */
 function NormalizeCandidates(candidates)
 {
+    if (candidates === undefined)
+    {
+        throw new TypeError("CjsLibrary backend candidates are required.");
+    }
     const list = Array.isArray(candidates) ? candidates : [ candidates ];
     const seen = new Set();
 
     return list.map(entry =>
     {
-        const candidate = typeof entry === "string" ? { name: entry } : entry;
-
-        if (!candidate || typeof candidate !== "object" || typeof candidate.name !== "string" || !candidate.name)
+        const candidate = entry;
+        if (!(candidate instanceof CjsBackendCandidate) || typeof candidate.name !== "string" || !candidate.name)
         {
-            throw new TypeError("CjsLibrary backend candidate must be a name or an object with a name.");
+            throw new TypeError("CjsLibrary backend candidate must extend CjsBackendCandidate and have a name.");
         }
 
         if (seen.has(candidate.name))
@@ -227,7 +234,7 @@ function RankCandidates(candidates, preference)
 /** The device requirement a candidate is handed, resolved against the adapter. */
 function ResolveCandidateRequirement(candidate, platform)
 {
-    if (candidate.limits === undefined && candidate.features === undefined)
+    if (candidate.limits == null && candidate.features == null)
     {
         return { descriptor: null, unsatisfiedLimits: Object.freeze([]), unavailableFeatures: Object.freeze([]) };
     }
@@ -252,23 +259,17 @@ function ResolveCandidateRequirement(candidate, platform)
  */
 async function ProveCandidate(candidate, context)
 {
-    if (typeof candidate.Prove !== "function")
-    {
-        return { proven: true, attempted: false, value: null, error: null };
-    }
-
     try
     {
         const value = await candidate.Prove(Object.freeze(context));
         return value === false || value === null || value === undefined
-            ? { proven: false, attempted: true, value: null, error: null }
-            : { proven: true, attempted: true, value, error: null };
+            ? { proven: false, value: null, error: null }
+            : { proven: true, value, error: null };
     }
     catch (error)
     {
         return {
             proven: false,
-            attempted: true,
             value: null,
             error: error instanceof Error ? error.message : String(error)
         };

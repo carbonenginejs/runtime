@@ -199,7 +199,7 @@ export class CjsLibrary
     // method is the default caller, not the owner.
     //
     // It records and applies; it does not create. The device or context proof
-    // is the candidate's own asynchronous `Prove`, because runtime-core must
+    // is the candidate's own asynchronous `Prove`, because runtime core must
     // not create a GPU device and cannot import an engine to do it.
 
     /**
