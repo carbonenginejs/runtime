@@ -87,6 +87,7 @@ export class Tr2MouseCursor
         this.cssCursor = null;
     }
 
+    /** Resolves one cursor representation to a CSS-compatible source. */
     #resolveSource(bitmap)
     {
         if (typeof bitmap === "string")

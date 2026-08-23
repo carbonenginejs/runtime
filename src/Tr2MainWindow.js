@@ -306,6 +306,7 @@ export class Tr2MainWindow
         return this;
     }
 
+    /** Registers one host listener for deterministic teardown. */
     #listen(target, type, listener)
     {
         if (typeof target?.addEventListener !== "function") return;
@@ -313,6 +314,7 @@ export class Tr2MainWindow
         this.#listeners.push([ target, type, listener ]);
     }
 
+    /** Invokes one configured callback through its supported callable form. */
     #invoke(field, ...args)
     {
         const callback = this[field];
@@ -321,6 +323,7 @@ export class Tr2MainWindow
         return undefined;
     }
 
+    /** Updates pressed and toggled keys before forwarding a key-down event. */
     #onKeyDown(event)
     {
         const scancode = UIScancode.FromKeyboardEvent(event);
@@ -333,6 +336,7 @@ export class Tr2MainWindow
         this.#invoke("onKeyDown", scancode.mDIK, event.repeat === true, event);
     }
 
+    /** Clears one pressed key before forwarding its key-up event. */
     #onKeyUp(event)
     {
         const scancode = UIScancode.FromKeyboardEvent(event);
@@ -340,6 +344,7 @@ export class Tr2MainWindow
         this.#invoke("onKeyUp", scancode.mDIK, event);
     }
 
+    /** Records and forwards one browser pointer movement. */
     #onPointerMove(event)
     {
         this.#cursorPosition[0] = Number(event.clientX) || 0;
@@ -347,6 +352,7 @@ export class Tr2MainWindow
         this.#invoke("onMouseMove", this.#cursorPosition[0], this.#cursorPosition[1], Number(event.movementX) || 0, Number(event.movementY) || 0, event);
     }
 
+    /** Synchronizes the window state with one browser resize. */
     #onResize(event)
     {
         this.#state.width = Number(this.#window?.innerWidth) || this.#state.width;
