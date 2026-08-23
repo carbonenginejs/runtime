@@ -1,0 +1,4480 @@
+{
+  "outRoot": "src/generated",
+  "classes": {
+    "written": 256,
+    "skipped": 327
+  },
+  "enums": {
+    "written": 15,
+    "skippedEntries": 8
+  },
+  "skipped": [
+    {
+      "family": "controllers",
+      "className": "Tr2ActionAnimateCurveSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionAnimateValue",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionBindRTPC",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionCallback",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionChildEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPlayCurveSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPlayMeshAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPlaySound",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionPython",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionResetClipSphereCenter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetAttenuationScaling",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetAudioEmitterPrefix",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetAudioSwitch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetExternalControllerVariable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetShaderOption",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSetValue",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ActionSpawnParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2BindingPoint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2Controller",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerEventHandler",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerExpression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerFloatVariable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2ControllerReference",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2StateMachine",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2StateMachineState",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2StateMachineTransition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2SyncToAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2TimelineController",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "controllers",
+      "className": "Tr2TimelineEntry",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2BoneMatrixCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CameraFollowCurveKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveColorMixer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveCombiner",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveConstant",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveEulerRotation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveEulerRotationExpression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveQuaternion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveQuaternionKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveRandomAxisRotation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveRasterizeDestination",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalar",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalarDefinition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalarExpression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveScalarKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveSetRange",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector3Expression",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2CurveVector3Lerp",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2DistanceTracker",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2FollowCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyEventTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyTransformTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2GrannyVectorTrack",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2MatrixKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ObjectFollowCurveKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2QuaternionLerpCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2RotationAdapter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ScalarExprKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ScalarExprKeyCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2ScalarFader",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2TranslationAdapter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriCurveSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriEventCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriEventKey",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "BackAndForthData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "DecalVSPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/banners",
+      "className": "EveBannerItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/banners",
+      "className": "EveBannerLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/banners",
+      "className": "EveBannerSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveBasicPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "EveBezierCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/boosters",
+      "className": "EveBoosterSet2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/boosters",
+      "className": "EveBoosterSet2Renderable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/volume",
+      "className": "EveBoxVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveCameraFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildBulletStorm",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildEffectPropagator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInheritProperties",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceMeshRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstancedMeshes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierAttachToBone",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierBillboard3D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierSRT",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/modifiers",
+      "className": "EveChildModifierTranslateWithCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildSpherePin",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveChildSpherePinPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildUpdateParams",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/lineSetPaths",
+      "className": "EveCircle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveComponentCollection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveComponentRegistry",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveCustomMask",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveDistanceField",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveEntity",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/volume",
+      "className": "EveEllipsoidVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveFiringEffectElementContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/haze",
+      "className": "EveHazeSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/haze",
+      "className": "EveHazeSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/haze",
+      "className": "EveHazeSetLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/overlays/impact",
+      "className": "EveImpactOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveLensflare",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveLocalPositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveLocator2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveLocatorSets",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/overlays",
+      "className": "EveMeshOverlayEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMissile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMissileWarhead",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveMobile",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveMultiEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/effect",
+      "className": "EveMultiEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePerObjectPSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EvePerObjectVSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EvePickingContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/planes",
+      "className": "EvePlaneLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/planes",
+      "className": "EvePlaneSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/planes",
+      "className": "EvePlaneSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EvePlanet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveRemotePositionCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveRootTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveSceneStaticParticles",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveShip2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveSpaceObject2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/decal",
+      "className": "EveSpaceObjectDecal",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/fxAttributes",
+      "className": "EveSpaceObjectFxAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveSpaceObjectPSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveSpaceObjectVSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveSpacePerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "EveSpaceScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSpherePin",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveSpherePinPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/volume",
+      "className": "EveSphereVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/spotlights",
+      "className": "EveSpotlightLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/spotlights",
+      "className": "EveSpotlightSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/spotlights",
+      "className": "EveSpotlightSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteLineSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/sprites",
+      "className": "EveSpriteSetItem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveStretch2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/renderable/stretch",
+      "className": "EveStretch3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalOverlayTrackObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalTrails",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "EveThrottleable",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/boosters",
+      "className": "EveTrailsSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject",
+      "className": "EveTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretFiringFX",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "EveTurretSetPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretSetPSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretSetVSData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/turrets",
+      "className": "EveTurretTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveUiObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve",
+      "className": "EveUpdateContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera",
+      "className": "EveVirtualCamera",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatAdd",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatDamping",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatNoise",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourFloatSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Base",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Damping",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Inertia",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3MoveBetween",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3MoveForward",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Offset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Orbit",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/behaviour",
+      "className": "EveVirtualCameraBehaviourVector3Shake",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera",
+      "className": "EveVirtualCameraSystem",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/transition",
+      "className": "EveVirtualCameraTransitionBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/virtualCamera/transition",
+      "className": "EveVirtualCameraTransitionLerp",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "FollowASplineData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "FormationData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "CollisionAvoidance",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "InclusionVolume",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "InertiaData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/utils",
+      "className": "Locator",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "LocatorData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "PlacementDataWithIdentifier",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "PlayFXData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "ProcessLifetimeData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "ProcessLifetime",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SeekTargetData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "Wander",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriDevice",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriEffectTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriMatrix",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriQuaternion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "ITriVector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Point",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2CurveBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2DebugColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2DebugObjectReference",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "Tr2Key",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "Tr2Rect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
+      "className": "TriPerlinNoise",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2Light",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2PointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2SpotLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "Tr2TexturedPointLight",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2GpuSharedEmitter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2GpuUniqueEmitter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleAttractorForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleDirectForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleDragForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleFluidDragForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleSpring",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleVortexForce",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcess2",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcessAttributes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPBloomEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPDepthOfFieldEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPGenericEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPTaaEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPTonemappingEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "Tr2RenderJobs",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriRenderStep",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "TriShadowFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/scene",
+      "className": "TriShadowOrthoFrustum",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepClear",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepCopyRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepEnableWireframeMode",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepGenerateMipMaps",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPopRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPresentSwapChain",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPushDepthStencil",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepPushRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepResolve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepRunJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetDepthStencil",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetProjection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetRenderState",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetRenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetStdRndStates",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetView",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetViewport",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "renderJob",
+      "className": "TriStepSetVisualizationMode",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2ConstantEffectParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2DataTextureManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Effect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectLibraryParameters",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectParam",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectPassParameters",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectStateManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2EffectTechniqueInputs",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2FloatParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2GeometryBufferParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Material",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2MaterialStageInput",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Matrix4Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2RuntimeTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2SamplerOverride",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2SamplerOverrideData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2ShaderBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2ShaderOption",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2SharedConstantBuffers",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2TextureAnimationParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Vector2Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Vector3Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "Tr2Vector4Parameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriFloatArrayParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriTextureParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriTransformParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriVariableParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "shader",
+      "className": "TriVector4",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveSprite2dBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DepthStencil",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DirectInstanceData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2DynamicBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ExpressionTermInfo",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ExternalParameter",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2GpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2InstancedMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveCurveLineSet",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveConnector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveLineContainer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveProjectBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/ui",
+      "className": "EveTacticalOverlay",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2FroxelFogSettings",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2MaterialParameterStore",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Mesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2MeshArea",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2MeshBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcess",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PostProcessRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2PrimaryRenderContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ProjectBoundingBoxBracket",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2ShadowMap",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SSAO",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2Transform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VolumetricsRenderer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RenderContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RenderTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RuntimeGpuBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2RuntimeInstanceData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SwapChain",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VariableStore",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2VisibilityResults",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriColor",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriColorSequencer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriDevice",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriObserverLocal",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriPerlinCurve",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriProjection",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriQuaternion",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriRect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriVector",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "curves",
+      "className": "TriVectorSequencer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriView",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriViewport",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "ui",
+      "className": "Tr2PresentParameters",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "Range",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "utilities",
+      "className": "Obb",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementDeclaration",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2ParticleElementDeclarationName",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "BlurContext",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "GaussianData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPColorCorrectionEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPDesaturateEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPDynamicExposureEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFadeEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFilmGrainEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPFogEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPGodRaysEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPLutEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPSignalLossEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "postProcess",
+      "className": "Tr2PPVignetteEffect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "DroneAgent",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SplineTunnel",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SplineTunnelGroup",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "SplineTunnelPoint",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveChildInstanceTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child",
+      "className": "EveCloudVolumeBall",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/attachment/decal",
+      "className": "DecalMeshCache",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/distribution/attributeModifiers",
+      "className": "InitialPlacement",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/lights",
+      "className": "LightFeatures",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "DecalPSPerObjectData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/perObjectData",
+      "className": "MergeMorphsConstantBuffer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/socket",
+      "className": "EveSocketParameterFilePath",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "SwarmVehicle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/spaceObject/swarm",
+      "className": "SwarmVehicleDebug",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2BindingVector3",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2PyValueBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2SerializedMorphAnimation",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriFloat",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriValueBinding",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriTorque",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dClipRect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dContainerBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dD3DVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLineTraceVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLineTrace",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dPolygon",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTriangle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dVertexBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dTransform",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2SpriteObjectBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightMesh",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/smartLights",
+      "className": "EveSmartLightSpotLight",
+      "reason": "hand-maintained source exists"
+    }
+  ],
+  "enumSkipped": [
+    {
+      "family": "controllers",
+      "enum": "DestinationType",
+      "reason": "export collision: DestinationType"
+    },
+    {
+      "family": "controllers",
+      "enum": "PlayAction",
+      "reason": "export collision: PlayAction"
+    },
+    {
+      "family": "controllers",
+      "enum": "ResetBehavior",
+      "reason": "export collision: ResetBehavior"
+    },
+    {
+      "family": "controllers",
+      "enum": "StopAction",
+      "reason": "export collision: StopAction"
+    },
+    {
+      "family": "controllers",
+      "enum": "Type",
+      "reason": "export collision: Type"
+    },
+    {
+      "family": "controllers",
+      "enum": "UnlinkReason",
+      "reason": "export collision: UnlinkReason"
+    },
+    {
+      "family": "curves",
+      "enum": "RotationSetting",
+      "reason": "export collision: RotationSetting"
+    },
+    {
+      "family": "eve/ui",
+      "enum": "ConnectorType",
+      "reason": "export collision: ConnectorType"
+    }
+  ],
+  "families": {
+    "curves": {
+      "exports": 1,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve": {
+      "exports": 18,
+      "classes": 3,
+      "enumsFile": true
+    },
+    "eve/attachment": {
+      "exports": 5,
+      "classes": 0,
+      "enumsFile": false
+    },
+    "eve/attachment/decal": {
+      "exports": 1,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/attachment/haze": {
+      "exports": 1,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/attachment/spotlights": {
+      "exports": 1,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/attachment/sprites": {
+      "exports": 1,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/attachment/turrets": {
+      "exports": 1,
+      "classes": 0,
+      "enumsFile": true
+    },
+    "eve/child": {
+      "exports": 29,
+      "classes": 24,
+      "enumsFile": true
+    },
+    "eve/child/behaviors": {
+      "exports": 19,
+      "classes": 19,
+      "enumsFile": false
+    },
+    "eve/child/lineSetPaths": {
+      "exports": 1,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/child/modifiers": {
+      "exports": 4,
+      "classes": 4,
+      "enumsFile": false
+    },
+    "eve/child/procedural": {
+      "exports": 2,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/child/procedural/selection": {
+      "exports": 8,
+      "classes": 8,
+      "enumsFile": false
+    },
+    "eve/distribution": {
+      "exports": 5,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/distribution/attributeModifiers": {
+      "exports": 5,
+      "classes": 4,
+      "enumsFile": true
+    },
+    "eve/distribution/placement": {
+      "exports": 3,
+      "classes": 3,
+      "enumsFile": false
+    },
+    "eve/distribution/spawnModifiers": {
+      "exports": 4,
+      "classes": 4,
+      "enumsFile": false
+    },
+    "eve/distribution/spawners": {
+      "exports": 6,
+      "classes": 6,
+      "enumsFile": false
+    },
+    "eve/effect": {
+      "exports": 4,
+      "classes": 4,
+      "enumsFile": false
+    },
+    "eve/fxAttributes": {
+      "exports": 2,
+      "classes": 2,
+      "enumsFile": false
+    },
+    "eve/lights": {
+      "exports": 4,
+      "classes": 3,
+      "enumsFile": true
+    },
+    "eve/overlays": {
+      "exports": 1,
+      "classes": 1,
+      "enumsFile": false
+    },
+    "eve/perObjectData": {
+      "exports": 6,
+      "classes": 6,
+      "enumsFile": false
+    },
+    "eve/renderable": {
+      "exports": 1,
+      "classes": 0,
+      "enumsFile": false
+    },
+    "eve/renderable/stretch": {
+      "exports": 1,
+      "classes": 0,
+      "enumsFile": true
+    },
+    "eve/scene": {
+      "exports": 8,
+      "classes": 8,
+      "enumsFile": false
+    },
+    "eve/smartLights": {
+      "exports": 6,
+      "classes": 5,
+      "enumsFile": false
+    },
+    "eve/smartLights/attributeModifiers": {
+      "exports": 8,
+      "classes": 7,
+      "enumsFile": true
+    },
+    "eve/socket": {
+      "exports": 2,
+      "classes": 2,
+      "enumsFile": false
+    },
+    "eve/spaceObject": {
+      "exports": 5,
+      "classes": 3,
+      "enumsFile": true
+    },
+    "eve/spaceObject/swarm": {
+      "exports": 4,
+      "classes": 4,
+      "enumsFile": false
+    },
+    "eve/ui": {
+      "exports": 6,
+      "classes": 6,
+      "enumsFile": false
+    },
+    "font": {
+      "exports": 3,
+      "classes": 3,
+      "enumsFile": false
+    },
+    "include": {
+      "exports": 1,
+      "classes": 0,
+      "enumsFile": true
+    },
+    "particle": {
+      "exports": 20,
+      "classes": 20,
+      "enumsFile": false
+    },
+    "postProcess": {
+      "exports": 16,
+      "classes": 15,
+      "enumsFile": true
+    },
+    "raytracing": {
+      "exports": 5,
+      "classes": 5,
+      "enumsFile": false
+    },
+    "renderJob": {
+      "exports": 26,
+      "classes": 25,
+      "enumsFile": true
+    },
+    "shader": {
+      "exports": 1,
+      "classes": 0,
+      "enumsFile": true
+    },
+    "sprite2d": {
+      "exports": 23,
+      "classes": 22,
+      "enumsFile": true
+    },
+    "trinityCore": {
+      "exports": 55,
+      "classes": 54,
+      "enumsFile": true
+    },
+    "ui": {
+      "exports": 1,
+      "classes": 0,
+      "enumsFile": true
+    },
+    "utilities": {
+      "exports": 7,
+      "classes": 7,
+      "enumsFile": false
+    }
+  },
+  "generation": {
+    "schemaRoot": "../format-carbon/src/schema",
+    "outRoot": "src/generated",
+    "scannedDocs": 1247,
+    "relevantDocs": 893,
+    "generated": 583,
+    "fallback": 121,
+    "skippedSof": 97,
+    "skippedInvalid": 1,
+    "errors": 0,
+    "nonAsciiOutputs": 0,
+    "byFamily": {
+      "controllers": {
+        "docs": 37,
+        "generated": 30,
+        "fallback": 7,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "curves": {
+        "docs": 45,
+        "generated": 42,
+        "fallback": 3,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/child/behaviors": {
+        "docs": 30,
+        "generated": 29,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve": {
+        "docs": 18,
+        "generated": 7,
+        "fallback": 11,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment/decal": {
+        "docs": 3,
+        "generated": 2,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/perObjectData": {
+        "docs": 13,
+        "generated": 12,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/distribution/attributeModifiers": {
+        "docs": 7,
+        "generated": 5,
+        "fallback": 2,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment/banners": {
+        "docs": 3,
+        "generated": 3,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/distribution": {
+        "docs": 2,
+        "generated": 1,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/child/lineSetPaths": {
+        "docs": 4,
+        "generated": 3,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment/boosters": {
+        "docs": 3,
+        "generated": 3,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/volume": {
+        "docs": 4,
+        "generated": 3,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/fxAttributes": {
+        "docs": 3,
+        "generated": 2,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/child": {
+        "docs": 38,
+        "generated": 32,
+        "fallback": 6,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/child/modifiers": {
+        "docs": 11,
+        "generated": 5,
+        "fallback": 6,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/child/procedural": {
+        "docs": 1,
+        "generated": 1,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/smartLights": {
+        "docs": 8,
+        "generated": 6,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/scene": {
+        "docs": 14,
+        "generated": 11,
+        "fallback": 3,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/ui": {
+        "docs": 16,
+        "generated": 13,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/spaceObject": {
+        "docs": 20,
+        "generated": 12,
+        "fallback": 8,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/distribution/placement": {
+        "docs": 4,
+        "generated": 3,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/distribution/spawners": {
+        "docs": 8,
+        "generated": 6,
+        "fallback": 2,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/distribution/spawnModifiers": {
+        "docs": 5,
+        "generated": 4,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/renderable/stretch": {
+        "docs": 9,
+        "generated": 6,
+        "fallback": 3,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment/haze": {
+        "docs": 3,
+        "generated": 3,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/overlays/impact": {
+        "docs": 1,
+        "generated": 1,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/effect": {
+        "docs": 5,
+        "generated": 5,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/utils": {
+        "docs": 4,
+        "generated": 4,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/overlays": {
+        "docs": 1,
+        "generated": 1,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment/planes": {
+        "docs": 3,
+        "generated": 3,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/child/procedural/selection": {
+        "docs": 9,
+        "generated": 8,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/smartLights/attributeModifiers": {
+        "docs": 8,
+        "generated": 7,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/socket": {
+        "docs": 5,
+        "generated": 2,
+        "fallback": 2,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/spaceObjectFactory": {
+        "docs": 97,
+        "generated": 0,
+        "fallback": 0,
+        "skippedSof": 97,
+        "errors": 0
+      },
+      "eve/attachment/spotlights": {
+        "docs": 3,
+        "generated": 3,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment/sprites": {
+        "docs": 5,
+        "generated": 5,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/spaceObject/swarm": {
+        "docs": 4,
+        "generated": 4,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment/turrets": {
+        "docs": 5,
+        "generated": 5,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/virtualCamera": {
+        "docs": 2,
+        "generated": 2,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/virtualCamera/behaviour": {
+        "docs": 15,
+        "generated": 13,
+        "fallback": 2,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/virtualCamera/transition": {
+        "docs": 3,
+        "generated": 2,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/attachment": {
+        "docs": 2,
+        "generated": 0,
+        "fallback": 2,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "font": {
+        "docs": 4,
+        "generated": 3,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "include": {
+        "docs": 40,
+        "generated": 12,
+        "fallback": 22,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "interior": {
+        "docs": 12,
+        "generated": 0,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "eve/lights": {
+        "docs": 9,
+        "generated": 7,
+        "fallback": 2,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "particle": {
+        "docs": 32,
+        "generated": 28,
+        "fallback": 4,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "postProcess": {
+        "docs": 24,
+        "generated": 23,
+        "fallback": 1,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "raytracing": {
+        "docs": 5,
+        "generated": 5,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "renderJob": {
+        "docs": 54,
+        "generated": 46,
+        "fallback": 8,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "resources": {
+        "docs": 41,
+        "generated": 0,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "shader": {
+        "docs": 41,
+        "generated": 28,
+        "fallback": 2,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "sprite2d": {
+        "docs": 31,
+        "generated": 22,
+        "fallback": 4,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "trinityAudio": {
+        "docs": 4,
+        "generated": 0,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "trinityCore": {
+        "docs": 99,
+        "generated": 81,
+        "fallback": 7,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "ui": {
+        "docs": 5,
+        "generated": 1,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "utilities": {
+        "docs": 9,
+        "generated": 8,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      },
+      "wod": {
+        "docs": 2,
+        "generated": 0,
+        "fallback": 0,
+        "skippedSof": 0,
+        "errors": 0
+      }
+    },
+    "fallbacks": [
+      {
+        "family": "controllers",
+        "className": "IShaderConfigurer",
+        "schema": "controllers/IShaderConfigurer.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "controllers",
+        "className": "ITr2ActionController",
+        "schema": "controllers/ITr2ActionController.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "controllers",
+        "className": "ITr2Controller",
+        "schema": "controllers/ITr2Controller.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "controllers",
+        "className": "ITr2ControllerAction",
+        "schema": "controllers/ITr2ControllerAction.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "controllers",
+        "className": "ITr2ControllerOwner",
+        "schema": "controllers/ITr2ControllerOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "controllers",
+        "className": "ITr2StateMachineStateFinalizer",
+        "schema": "controllers/ITr2StateMachineStateFinalizer.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "controllers",
+        "className": "UnlinkReason",
+        "schema": "controllers/UnlinkReason.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "curves",
+        "className": "ICurveSetDriver",
+        "schema": "curves/ICurveSetDriver.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "curves",
+        "className": "ITr2CurveSetOwner",
+        "schema": "curves/ITr2CurveSetOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "curves",
+        "className": "ITr2FollowCurveKey",
+        "schema": "curves/ITr2FollowCurveKey.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/attachment/decal",
+        "className": "IEveSpaceObjectDecalOwner",
+        "schema": "eve/IEveSpaceObjectDecalOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/attachment",
+        "className": "IEveSpaceObjectAttachment",
+        "schema": "eve/IEveSpaceObjectAttachment.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/attachment",
+        "className": "IEveSpaceObjectAttachmentOwner",
+        "schema": "eve/IEveSpaceObjectAttachmentOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/behaviors",
+        "className": "IBehavior",
+        "schema": "eve/IBehavior.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/lineSetPaths",
+        "className": "IEveLineSetPath",
+        "schema": "eve/IEveLineSetPath.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/modifiers",
+        "className": "EveChildModifierBillboard2D",
+        "schema": "eve/EveChildModifierBillboard2D.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/modifiers",
+        "className": "EveChildModifierBooster",
+        "schema": "eve/EveChildModifierBooster.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/modifiers",
+        "className": "EveChildModifierCameraOrientedRotationConstrained",
+        "schema": "eve/EveChildModifierCameraOrientedRotationConstrained.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/modifiers",
+        "className": "EveChildModifierHalo",
+        "schema": "eve/EveChildModifierHalo.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/modifiers",
+        "className": "EveChildModifierHaloInverted",
+        "schema": "eve/EveChildModifierHaloInverted.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/modifiers",
+        "className": "IEveChildTransformModifier",
+        "schema": "eve/IEveChildTransformModifier.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child/procedural/selection",
+        "className": "IEveProceduralSelectionMethod",
+        "schema": "eve/IEveProceduralSelectionMethod.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "IEveEffectChildrenOwner",
+        "schema": "eve/IEveEffectChildrenOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "IEveInheritPropertiesOwner",
+        "schema": "eve/IEveInheritPropertiesOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "IEveSpaceObjectChild",
+        "schema": "eve/IEveSpaceObjectChild.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "ITr2PostProcessOwner",
+        "schema": "eve/ITr2PostProcessOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "ITr2VolumetricRenderable",
+        "schema": "eve/ITr2VolumetricRenderable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/child",
+        "className": "MorphTargetAnimationFilter",
+        "schema": "eve/MorphTargetAnimationFilter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution/attributeModifiers",
+        "className": "DistributionEntityLifeTimeEvent",
+        "schema": "eve/DistributionEntityLifeTimeEvent.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution/attributeModifiers",
+        "className": "IEveDistributionModifier",
+        "schema": "eve/IEveDistributionModifier.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution/placement",
+        "className": "IEveDistributionPlacementGenerators",
+        "schema": "eve/IEveDistributionPlacementGenerators.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution/spawners",
+        "className": "IEveDistributionRulesParent",
+        "schema": "eve/IEveDistributionRulesParent.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution/spawners",
+        "className": "IEveDistributionSpawner",
+        "schema": "eve/IEveDistributionSpawner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution/spawnModifiers",
+        "className": "IEveDistributionSpawnModifier",
+        "schema": "eve/IEveDistributionSpawnModifier.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/distribution",
+        "className": "IEveDistributionMethod",
+        "schema": "eve/IEveDistributionMethod.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/fxAttributes",
+        "className": "IEveFxAttribute",
+        "schema": "eve/IEveFxAttribute.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/lights",
+        "className": "ITr2LightOwner",
+        "schema": "lights/ITr2LightOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/lights",
+        "className": "PerLightShadowSetting",
+        "schema": "lights/PerLightShadowSetting.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/perObjectData",
+        "className": "EveMissileWarheadPerObjectData",
+        "schema": "eve/EveMissileWarheadPerObjectData.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/renderable/stretch",
+        "className": "IStrechAudio",
+        "schema": "eve/IStrechAudio.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/renderable/stretch",
+        "className": "IStretchAudio",
+        "schema": "eve/IStretchAudio.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/renderable/stretch",
+        "className": "ITr2DebugRenderable",
+        "schema": "eve/ITr2DebugRenderable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/scene",
+        "className": "IEveComponentCollection",
+        "schema": "eve/IEveComponentCollection.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/scene",
+        "className": "IEveShadowCaster",
+        "schema": "eve/IEveShadowCaster.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/scene",
+        "className": "IEveShadowFrustum",
+        "schema": "eve/IEveShadowFrustum.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/smartLights/attributeModifiers",
+        "className": "IEveSmartLightGroupAttributeModifier",
+        "schema": "eve/IEveSmartLightGroupAttributeModifier.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/smartLights",
+        "className": "IEveSmartLightGroup",
+        "schema": "eve/IEveSmartLightGroup.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/socket",
+        "className": "EveSocketParameterFilePath",
+        "schema": "eve/EveSocketParameterFilePath.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/socket",
+        "className": "IEveSocketParameter",
+        "schema": "eve/IEveSocketParameter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "EveStation2",
+        "schema": "eve/EveStation2.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveLightReceiver",
+        "schema": "eve/IEveLightReceiver.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveReflectionRenderable",
+        "schema": "eve/IEveReflectionRenderable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveSceneRegistrationObject",
+        "schema": "eve/IEveSceneRegistrationObject.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "IEveSpaceObject2",
+        "schema": "eve/IEveSpaceObject2.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "ITr2AudGeometry",
+        "schema": "eve/ITr2AudGeometry.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "ITr2LightOwner",
+        "schema": "eve/ITr2LightOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/spaceObject",
+        "className": "ITr2SoundEmitterOwner",
+        "schema": "eve/ITr2SoundEmitterOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/virtualCamera/behaviour",
+        "className": "EveVirtualCameraBehaviourVector3MoveRight",
+        "schema": "eve/EveVirtualCameraBehaviourVector3MoveRight.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/virtualCamera/behaviour",
+        "className": "EveVirtualCameraBehaviourVector3MoveUp",
+        "schema": "eve/EveVirtualCameraBehaviourVector3MoveUp.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/virtualCamera/transition",
+        "className": "EveVirtualCameraTransitionCut",
+        "schema": "eve/EveVirtualCameraTransitionCut.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve/volume",
+        "className": "IEveVolume",
+        "schema": "eve/IEveVolume.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveLODHelper",
+        "schema": "eve/EveLODHelper.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveParticleDirectForce",
+        "schema": "eve/EveParticleDirectForce.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveParticleDragForce",
+        "schema": "eve/EveParticleDragForce.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "EveParticleSpring",
+        "schema": "eve/EveParticleSpring.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveBallpark",
+        "schema": "eve/IEveBallpark.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveFiringEffectElement",
+        "schema": "eve/IEveFiringEffectElement.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveInstanceMeshProvider",
+        "schema": "eve/IEveInstanceMeshProvider.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveReferencePoint",
+        "schema": "eve/IEveReferencePoint.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "IEveTransform",
+        "schema": "eve/IEveTransform.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "ITr2DynamicBindingOwner",
+        "schema": "eve/ITr2DynamicBindingOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "eve",
+        "className": "workAroundForCppStandard",
+        "schema": "eve/workAroundForCppStandard.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "font",
+        "className": "ITr2FontMeasurerNotifyTarget",
+        "schema": "font/ITr2FontMeasurerNotifyTarget.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "IEveBallpark",
+        "schema": "include/IEveBallpark.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "IEveReferencePoint",
+        "schema": "include/IEveReferencePoint.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2AnimationUpdater",
+        "schema": "include/ITr2AnimationUpdater.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2AudioEmitter",
+        "schema": "include/ITr2AudioEmitter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2BoundingBox",
+        "schema": "include/ITr2BoundingBox.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2DebugRenderable",
+        "schema": "include/ITr2DebugRenderable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2DebugRenderer",
+        "schema": "include/ITr2DebugRenderer.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2DebugRenderer2",
+        "schema": "include/ITr2DebugRenderer2.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2GpuBuffer",
+        "schema": "include/ITr2GpuBuffer.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2Interior",
+        "schema": "include/ITr2Interior.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2InteriorCullable",
+        "schema": "include/ITr2InteriorCullable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2InteriorDynamic",
+        "schema": "include/ITr2InteriorDynamic.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2MultiPassScene",
+        "schema": "include/ITr2MultiPassScene.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2Scene",
+        "schema": "include/ITr2Scene.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2Updateable",
+        "schema": "include/ITr2Updateable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITr2ValueBinding",
+        "schema": "include/ITr2ValueBinding.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITriDuration",
+        "schema": "include/ITriDuration.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITriEffectParameter",
+        "schema": "include/ITriEffectParameter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITriEffectResourceParameter",
+        "schema": "include/ITriEffectResourceParameter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITriTargetable",
+        "schema": "include/ITriTargetable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "ITriTextureRes",
+        "schema": "include/ITriTextureRes.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "include",
+        "className": "Tr2Curve",
+        "schema": "include/Tr2Curve.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "particle",
+        "className": "ITr2AttributeGenerator",
+        "schema": "particle/ITr2AttributeGenerator.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "particle",
+        "className": "ITr2Emitter",
+        "schema": "particle/ITr2Emitter.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "particle",
+        "className": "ITr2GenericParticleConstraint",
+        "schema": "particle/ITr2GenericParticleConstraint.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "particle",
+        "className": "ITr2ParticleForce",
+        "schema": "particle/ITr2ParticleForce.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "postProcess",
+        "className": "ITr2PostProcessOwner",
+        "schema": "postProcess/ITr2PostProcessOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "ITr2RenderNode",
+        "schema": "renderJob/ITr2RenderNode.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "TriStepPopDepthStencil",
+        "schema": "renderJob/TriStepPopDepthStencil.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "TriStepPopProjection",
+        "schema": "renderJob/TriStepPopProjection.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "TriStepPopViewport",
+        "schema": "renderJob/TriStepPopViewport.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "TriStepPopViewTransform",
+        "schema": "renderJob/TriStepPopViewTransform.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "TriStepPushProjection",
+        "schema": "renderJob/TriStepPushProjection.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "TriStepPushViewport",
+        "schema": "renderJob/TriStepPushViewport.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "renderJob",
+        "className": "TriStepPushViewTransform",
+        "schema": "renderJob/TriStepPushViewTransform.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "shader",
+        "className": "IShaderConfigurer",
+        "schema": "shader/IShaderConfigurer.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "shader",
+        "className": "PassParametersOwner",
+        "schema": "shader/PassParametersOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "sprite2d",
+        "className": "ITr2Sprite2dTexture",
+        "schema": "sprite2d/ITr2Sprite2dTexture.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "sprite2d",
+        "className": "ITr2Sprite2dTextureNotifyTarget",
+        "schema": "sprite2d/ITr2Sprite2dTextureNotifyTarget.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "sprite2d",
+        "className": "ITr2SpriteObject",
+        "schema": "sprite2d/ITr2SpriteObject.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "sprite2d",
+        "className": "Tr2SpriteTarget",
+        "schema": "sprite2d/Tr2SpriteTarget.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "trinityCore",
+        "className": "ITr2GpuBuffer",
+        "schema": "trinityCore/ITr2GpuBuffer.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "trinityCore",
+        "className": "ITr2GrannyAnimationOwner",
+        "schema": "trinityCore/ITr2GrannyAnimationOwner.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "trinityCore",
+        "className": "ITr2SecondaryLightSource",
+        "schema": "trinityCore/ITr2SecondaryLightSource.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "trinityCore",
+        "className": "ITr2ShLightingReceiver",
+        "schema": "trinityCore/ITr2ShLightingReceiver.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "trinityCore",
+        "className": "ITr2ValueBinding",
+        "schema": "trinityCore/ITr2ValueBinding.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "trinityCore",
+        "className": "ITriObserverLocal",
+        "schema": "trinityCore/ITriObserverLocal.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      },
+      {
+        "family": "trinityCore",
+        "className": "ITriReroutable",
+        "schema": "trinityCore/ITriReroutable.json",
+        "reason": "schema carries no field or method detail (interface/no-detail class)"
+      }
+    ],
+    "skipped": [
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOF",
+        "schema": "eve/EveSOF.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFData",
+        "schema": "eve/EveSOFData.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataArea",
+        "schema": "eve/EveSOFDataArea.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataAreaMaterial",
+        "schema": "eve/EveSOFDataAreaMaterial.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataBlink",
+        "schema": "eve/EveSOFDataBlink.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataBlinkType",
+        "schema": "eve/EveSOFDataBlinkType.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataBooster",
+        "schema": "eve/EveSOFDataBooster.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataBoosterShape",
+        "schema": "eve/EveSOFDataBoosterShape.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataDecalIndexBuffer",
+        "schema": "eve/EveSOFDataDecalIndexBuffer.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataDistributionDepletionCounter",
+        "schema": "eve/EveSOFDataDistributionDepletionCounter.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataFaction",
+        "schema": "eve/EveSOFDataFaction.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataFactionChild",
+        "schema": "eve/EveSOFDataFactionChild.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataFactionColorSet",
+        "schema": "eve/EveSOFDataFactionColorSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataFactionHullArea",
+        "schema": "eve/EveSOFDataFactionHullArea.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataFactionPlaneSet",
+        "schema": "eve/EveSOFDataFactionPlaneSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataFactionSpotlightSet",
+        "schema": "eve/EveSOFDataFactionSpotlightSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataFactionVisibilityGroupSet",
+        "schema": "eve/EveSOFDataFactionVisibilityGroupSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGeneric",
+        "schema": "eve/EveSOFDataGeneric.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericDamage",
+        "schema": "eve/EveSOFDataGenericDamage.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericDecalShader",
+        "schema": "eve/EveSOFDataGenericDecalShader.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericHullCategory",
+        "schema": "eve/EveSOFDataGenericHullCategory.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericHullDamage",
+        "schema": "eve/EveSOFDataGenericHullDamage.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericShader",
+        "schema": "eve/EveSOFDataGenericShader.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericString",
+        "schema": "eve/EveSOFDataGenericString.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericSwarm",
+        "schema": "eve/EveSOFDataGenericSwarm.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataGenericVariant",
+        "schema": "eve/EveSOFDataGenericVariant.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHull",
+        "schema": "eve/EveSOFDataHull.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullAnimation",
+        "schema": "eve/EveSOFDataHullAnimation.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullArea",
+        "schema": "eve/EveSOFDataHullArea.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullBanner",
+        "schema": "eve/EveSOFDataHullBanner.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullBannerLight",
+        "schema": "eve/EveSOFDataHullBannerLight.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullBannerSet",
+        "schema": "eve/EveSOFDataHullBannerSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullBannerSetItem",
+        "schema": "eve/EveSOFDataHullBannerSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullBooster",
+        "schema": "eve/EveSOFDataHullBooster.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullBoosterItem",
+        "schema": "eve/EveSOFDataHullBoosterItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullChild",
+        "schema": "eve/EveSOFDataHullChild.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullChildSet",
+        "schema": "eve/EveSOFDataHullChildSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullChildSetItem",
+        "schema": "eve/EveSOFDataHullChildSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullController",
+        "schema": "eve/EveSOFDataHullController.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullDecalSet",
+        "schema": "eve/EveSOFDataHullDecalSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullDecalSetItem",
+        "schema": "eve/EveSOFDataHullDecalSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionBucket",
+        "schema": "eve/EveSOFDataHullExtensionBucket.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionPlacement",
+        "schema": "eve/EveSOFDataHullExtensionPlacement.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionPlacementDistributionDepletionCounter",
+        "schema": "eve/EveSOFDataHullExtensionPlacementDistributionDepletionCounter.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings",
+        "schema": "eve/EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionPlacementDistributionParentMatch",
+        "schema": "eve/EveSOFDataHullExtensionPlacementDistributionParentMatch.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionPlacementDistributionPlacement",
+        "schema": "eve/EveSOFDataHullExtensionPlacementDistributionPlacement.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionPlacementDistributionRandomChance",
+        "schema": "eve/EveSOFDataHullExtensionPlacementDistributionRandomChance.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullExtensionPlacementGroup",
+        "schema": "eve/EveSOFDataHullExtensionPlacementGroup.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullHazeSet",
+        "schema": "eve/EveSOFDataHullHazeSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullHazeSetItem",
+        "schema": "eve/EveSOFDataHullHazeSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullLightSet",
+        "schema": "eve/EveSOFDataHullLightSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullLightSetItem",
+        "schema": "eve/EveSOFDataHullLightSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullLightSetSpotLight",
+        "schema": "eve/EveSOFDataHullLightSetSpotLight.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullLightSetTexturedPointLight",
+        "schema": "eve/EveSOFDataHullLightSetTexturedPointLight.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullLocator",
+        "schema": "eve/EveSOFDataHullLocator.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullLocatorSet",
+        "schema": "eve/EveSOFDataHullLocatorSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullLocatorSetGroup",
+        "schema": "eve/EveSOFDataHullLocatorSetGroup.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullPlaneSet",
+        "schema": "eve/EveSOFDataHullPlaneSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullPlaneSetItem",
+        "schema": "eve/EveSOFDataHullPlaneSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullSoundEmitter",
+        "schema": "eve/EveSOFDataHullSoundEmitter.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullSpotlightSet",
+        "schema": "eve/EveSOFDataHullSpotlightSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullSpotlightSetItem",
+        "schema": "eve/EveSOFDataHullSpotlightSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullSpriteLineSet",
+        "schema": "eve/EveSOFDataHullSpriteLineSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullSpriteLineSetItem",
+        "schema": "eve/EveSOFDataHullSpriteLineSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullSpriteSet",
+        "schema": "eve/EveSOFDataHullSpriteSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataHullSpriteSetItem",
+        "schema": "eve/EveSOFDataHullSpriteSetItem.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataInstancedMesh",
+        "schema": "eve/EveSOFDataInstancedMesh.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataLayout",
+        "schema": "eve/EveSOFDataLayout.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataLogo",
+        "schema": "eve/EveSOFDataLogo.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataLogoSet",
+        "schema": "eve/EveSOFDataLogoSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataMaterial",
+        "schema": "eve/EveSOFDataMaterial.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSofDataMeshInstance",
+        "schema": "eve/EveSofDataMeshInstance.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataMgr",
+        "schema": "eve/EveSOFDataMgr.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataMultiHullDecalIndexBuffers",
+        "schema": "eve/EveSOFDataMultiHullDecalIndexBuffers.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataParameter",
+        "schema": "eve/EveSOFDataParameter.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPattern",
+        "schema": "eve/EveSOFDataPattern.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPatternApplicationGroup",
+        "schema": "eve/EveSOFDataPatternApplicationGroup.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPatternLayer",
+        "schema": "eve/EveSOFDataPatternLayer.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPatternLayerProperties",
+        "schema": "eve/EveSOFDataPatternLayerProperties.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPatternMaterialOverride",
+        "schema": "eve/EveSOFDataPatternMaterialOverride.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPatternPerHull",
+        "schema": "eve/EveSOFDataPatternPerHull.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPatternTransform",
+        "schema": "eve/EveSOFDataPatternTransform.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataPointLightAttachment",
+        "schema": "eve/EveSOFDataPointLightAttachment.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataRace",
+        "schema": "eve/EveSOFDataRace.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataRaceDamage",
+        "schema": "eve/EveSOFDataRaceDamage.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataSpotLightAttachment",
+        "schema": "eve/EveSOFDataSpotLightAttachment.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataTexture",
+        "schema": "eve/EveSOFDataTexture.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataTransform",
+        "schema": "eve/EveSOFDataTransform.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDataVisibilityGroup",
+        "schema": "eve/EveSOFDataVisibilityGroup.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDNA",
+        "schema": "eve/EveSOFDNA.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFDNADescriptor",
+        "schema": "eve/EveSOFDNADescriptor.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFUtils",
+        "schema": "eve/EveSOFUtils.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "EveSOFUtilsParameterName",
+        "schema": "eve/EveSOFUtilsParameterName.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "IEveSOFDataHullExtensionPlacement",
+        "schema": "eve/IEveSOFDataHullExtensionPlacement.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "IEveSOFDataHullExtensionPlacementDistribution",
+        "schema": "eve/IEveSOFDataHullExtensionPlacementDistribution.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/spaceObjectFactory",
+        "className": "IEveSOFDataHullLocatorSet",
+        "schema": "eve/IEveSOFDataHullLocatorSet.json",
+        "reason": "owned by runtime-sof"
+      },
+      {
+        "family": "eve/socket",
+        "className": "_className",
+        "schema": "eve/_className.json",
+        "reason": "scanner macro placeholder, not a Carbon class"
+      },
+      {
+        "family": "include",
+        "className": "ITr2InstanceData",
+        "schema": "include/ITr2InstanceData.json",
+        "reason": "canonical runtime family is trinityCore"
+      },
+      {
+        "family": "include",
+        "className": "ITr2InteriorLight",
+        "schema": "include/ITr2InteriorLight.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "include",
+        "className": "TriColor",
+        "schema": "include/TriColor.json",
+        "reason": "canonical runtime family is trinityCore"
+      },
+      {
+        "family": "include",
+        "className": "TriMatrix",
+        "schema": "include/TriMatrix.json",
+        "reason": "canonical runtime family is trinityCore"
+      },
+      {
+        "family": "include",
+        "className": "TriQuaternion",
+        "schema": "include/TriQuaternion.json",
+        "reason": "canonical runtime family is trinityCore"
+      },
+      {
+        "family": "include",
+        "className": "TriVector",
+        "schema": "include/TriVector.json",
+        "reason": "canonical runtime family is trinityCore"
+      },
+      {
+        "family": "interior",
+        "className": "ITr2InteriorDynamic",
+        "schema": "interior/ITr2InteriorDynamic.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorLightSet",
+        "schema": "interior/Tr2InteriorLightSet.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorLightSource",
+        "schema": "interior/Tr2InteriorLightSource.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorPerLightPSData",
+        "schema": "interior/Tr2InteriorPerLightPSData.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorPerObjectLightData",
+        "schema": "interior/Tr2InteriorPerObjectLightData.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorPerObjectPSData",
+        "schema": "interior/Tr2InteriorPerObjectPSData.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorPerObjectVSData",
+        "schema": "interior/Tr2InteriorPerObjectVSData.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorPlaceable",
+        "schema": "interior/Tr2InteriorPlaceable.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2InteriorScene",
+        "schema": "interior/Tr2InteriorScene.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2IntKeyGenerator",
+        "schema": "interior/Tr2IntKeyGenerator.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2IntSkinnedObject",
+        "schema": "interior/Tr2IntSkinnedObject.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "interior",
+        "className": "Tr2PerObjectParticleVSData",
+        "schema": "interior/Tr2PerObjectParticleVSData.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "resources",
+        "className": "AudioGeometryResData",
+        "schema": "resources/AudioGeometryResData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "CmfVertexReader",
+        "schema": "resources/CmfVertexReader.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "GrannyDeprecationLevel",
+        "schema": "resources/GrannyDeprecationLevel.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "GStateBindingCallbackData",
+        "schema": "resources/GStateBindingCallbackData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "ITr2TexturePipelineStep",
+        "schema": "resources/ITr2TexturePipelineStep.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "ITr2TextureProvider",
+        "schema": "resources/ITr2TextureProvider.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "MeshDecalData",
+        "schema": "resources/MeshDecalData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "MeshDecalLodData",
+        "schema": "resources/MeshDecalLodData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2AsyncSave",
+        "schema": "resources/Tr2AsyncSave.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2CmfContents",
+        "schema": "resources/Tr2CmfContents.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2EffectRes",
+        "schema": "resources/Tr2EffectRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2GrannyIntersectionResult",
+        "schema": "resources/Tr2GrannyIntersectionResult.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2GrannyStateRes",
+        "schema": "resources/Tr2GrannyStateRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2ImageRes",
+        "schema": "resources/Tr2ImageRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2LightProfileRes",
+        "schema": "resources/Tr2LightProfileRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2LoadPrepareFence",
+        "schema": "resources/Tr2LoadPrepareFence.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2MaterialArea",
+        "schema": "resources/Tr2MaterialArea.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2MaterialMesh",
+        "schema": "resources/Tr2MaterialMesh.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2MaterialRes",
+        "schema": "resources/Tr2MaterialRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2ShaderPermutation",
+        "schema": "resources/Tr2ShaderPermutation.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TextureLodManager",
+        "schema": "resources/Tr2TextureLodManager.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TextureLodUpdateRequest",
+        "schema": "resources/Tr2TextureLodUpdateRequest.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePackChannel",
+        "schema": "resources/Tr2TexturePackChannel.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePipeline",
+        "schema": "resources/Tr2TexturePipeline.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePipelineParams",
+        "schema": "resources/Tr2TexturePipelineParams.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePipelineStepCompress",
+        "schema": "resources/Tr2TexturePipelineStepCompress.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePipelineStepGenerateMips",
+        "schema": "resources/Tr2TexturePipelineStepGenerateMips.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePipelineStepLimitSize",
+        "schema": "resources/Tr2TexturePipelineStepLimitSize.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePipelineStepLoad",
+        "schema": "resources/Tr2TexturePipelineStepLoad.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "Tr2TexturePipelineStepPack",
+        "schema": "resources/Tr2TexturePipelineStepPack.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriGeometryRes",
+        "schema": "resources/TriGeometryRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriGeometryResAreaData",
+        "schema": "resources/TriGeometryResAreaData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriGeometryResJointData",
+        "schema": "resources/TriGeometryResJointData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriGeometryResLodData",
+        "schema": "resources/TriGeometryResLodData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriGeometryResMeshData",
+        "schema": "resources/TriGeometryResMeshData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriGeometryResSkeletonData",
+        "schema": "resources/TriGeometryResSkeletonData.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriGrannyRes",
+        "schema": "resources/TriGrannyRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriJointBinding",
+        "schema": "resources/TriJointBinding.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriMorphTargetGeometryConstants",
+        "schema": "resources/TriMorphTargetGeometryConstants.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriRtGeometryConstants",
+        "schema": "resources/TriRtGeometryConstants.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "resources",
+        "className": "TriTextureRes",
+        "schema": "resources/TriTextureRes.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectConstant",
+        "schema": "shader/Tr2EffectConstant.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectDefine",
+        "schema": "shader/Tr2EffectDefine.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectDescription",
+        "schema": "shader/Tr2EffectDescription.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectLibrary",
+        "schema": "shader/Tr2EffectLibrary.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectParameterAnnotation",
+        "schema": "shader/Tr2EffectParameterAnnotation.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectResource",
+        "schema": "shader/Tr2EffectResource.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectStageInput",
+        "schema": "shader/Tr2EffectStageInput.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2EffectTechnique",
+        "schema": "shader/Tr2EffectTechnique.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2Pass",
+        "schema": "shader/Tr2Pass.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2SamplerSetup",
+        "schema": "shader/Tr2SamplerSetup.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "shader",
+        "className": "Tr2Shader",
+        "schema": "shader/Tr2Shader.json",
+        "reason": "owned by runtime-resource"
+      },
+      {
+        "family": "trinityAudio",
+        "className": "ITr2AudEmitter",
+        "schema": "trinityAudio/ITr2AudEmitter.json",
+        "reason": "owned by runtime-audio"
+      },
+      {
+        "family": "trinityAudio",
+        "className": "ITr2Audio",
+        "schema": "trinityAudio/ITr2Audio.json",
+        "reason": "owned by runtime-audio"
+      },
+      {
+        "family": "trinityAudio",
+        "className": "Tr2AudioStretchAuto",
+        "schema": "trinityAudio/Tr2AudioStretchAuto.json",
+        "reason": "owned by runtime-audio"
+      },
+      {
+        "family": "trinityAudio",
+        "className": "Tr2AudioStretchBase",
+        "schema": "trinityAudio/Tr2AudioStretchBase.json",
+        "reason": "owned by runtime-audio"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2DisplayMode",
+        "schema": "trinityCore/Tr2DisplayMode.json",
+        "reason": "owned by runtime-core"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2GStateAnimation",
+        "schema": "trinityCore/Tr2GStateAnimation.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2GStateParameter",
+        "schema": "trinityCore/Tr2GStateParameter.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2Model",
+        "schema": "trinityCore/Tr2Model.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2PlatformInfo",
+        "schema": "trinityCore/Tr2PlatformInfo.json",
+        "reason": "owned by runtime-core"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2SkinnedModel",
+        "schema": "trinityCore/Tr2SkinnedModel.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2SkinnedObject",
+        "schema": "trinityCore/Tr2SkinnedObject.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2VideoAdapter",
+        "schema": "trinityCore/Tr2VideoAdapter.json",
+        "reason": "owned by runtime-core"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2VideoAdapters",
+        "schema": "trinityCore/Tr2VideoAdapters.json",
+        "reason": "owned by runtime-core"
+      },
+      {
+        "family": "trinityCore",
+        "className": "Tr2VideoDriver",
+        "schema": "trinityCore/Tr2VideoDriver.json",
+        "reason": "owned by runtime-core"
+      },
+      {
+        "family": "trinityCore",
+        "className": "TriMatrix",
+        "schema": "trinityCore/TriMatrix.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "ui",
+        "className": "Tr2MainWindow",
+        "schema": "ui/Tr2MainWindow.json",
+        "reason": "owned by runtime-input"
+      },
+      {
+        "family": "ui",
+        "className": "Tr2MainWindowState",
+        "schema": "ui/Tr2MainWindowState.json",
+        "reason": "owned by runtime-input"
+      },
+      {
+        "family": "ui",
+        "className": "Tr2MouseCursor",
+        "schema": "ui/Tr2MouseCursor.json",
+        "reason": "owned by runtime-input"
+      },
+      {
+        "family": "ui",
+        "className": "UIScancode",
+        "schema": "ui/UIScancode.json",
+        "reason": "owned by runtime-input"
+      },
+      {
+        "family": "wod",
+        "className": "WodBakingScene",
+        "schema": "wod/WodBakingScene.json",
+        "reason": "owned by runtime-character"
+      },
+      {
+        "family": "wod",
+        "className": "WodPlaceableRes",
+        "schema": "wod/WodPlaceableRes.json",
+        "reason": "owned by runtime-resource"
+      }
+    ],
+    "errorsList": [],
+    "suppressedInheritedMethods": [
+      {
+        "family": "eve/child",
+        "className": "EveChildExplosion",
+        "method": "RebuildLocalTransform",
+        "baseClass": "EveChildContainer"
+      },
+      {
+        "family": "eve/child",
+        "className": "EveChildParticleSystem",
+        "method": "RebuildLocalTransform",
+        "baseClass": "EveChildTransform"
+      },
+      {
+        "family": "eve/child/procedural",
+        "className": "EveChildProceduralContainer",
+        "method": "RebuildLocalTransform",
+        "baseClass": "EveChildTransform"
+      },
+      {
+        "family": "eve/child",
+        "className": "EveChildQuad",
+        "method": "RebuildLocalTransform",
+        "baseClass": "EveChildTransform"
+      },
+      {
+        "family": "eve/child",
+        "className": "EveChildRef",
+        "method": "RebuildLocalTransform",
+        "baseClass": "EveChildTransform"
+      },
+      {
+        "family": "eve/child",
+        "className": "EveChildSocket",
+        "method": "RebuildLocalTransform",
+        "baseClass": "EveChildTransform"
+      }
+    ]
+  }
+}

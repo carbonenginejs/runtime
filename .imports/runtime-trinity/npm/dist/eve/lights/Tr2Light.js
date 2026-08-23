@@ -1,0 +1,215 @@
+import { identity as _identity, applyDecs2311 as _applyDecs2311 } from '../../_virtual/_rollupPluginBabelHelpers.js';
+import { CjsModel } from '@carbonenginejs/runtime-utils/model';
+import { mat4 } from '@carbonenginejs/runtime-utils/mat4';
+import { vec3 } from '@carbonenginejs/runtime-utils/vec3';
+import { type, carbon, impl } from '@carbonenginejs/runtime-utils/schema';
+import { PerLightShadowSetting } from '../../generated/eve/lights/enums.js';
+import { createCjsLightDataView, setCjsLightDataOwnerValues } from './CjsLightData.js';
+import { MatrixCopyFrom3x4, AreLightFlagsValid, AsPerPointLightData, AsPerSpotLightData, CreateLightRecord } from './lightConversion.js';
+
+let _initProto, _initClass, _init_name, _init_extra_name, _init_startTime, _init_extra_startTime, _init_isDynamic, _init_extra_isDynamic, _init_brightnessMultiplier, _init_extra_brightnessMultiplier, _init_boneTransform, _init_extra_boneTransform, _init_lightProfile, _init_extra_lightProfile, _init_lightProfilePath, _init_extra_lightProfilePath, _init_type, _init_extra_type;
+
+/**
+ * Base scene light: holds the authored light attributes, resolves its bone
+ * transform, and submits a converted point or spot record to the light manager
+ * each frame.
+ */
+let _Tr2Light;
+new class extends _identity {
+  static [class Tr2Light extends CjsModel {
+    static {
+      ({
+        e: [_init_name, _init_extra_name, _init_startTime, _init_extra_startTime, _init_isDynamic, _init_extra_isDynamic, _init_brightnessMultiplier, _init_extra_brightnessMultiplier, _init_boneTransform, _init_extra_boneTransform, _init_lightProfile, _init_extra_lightProfile, _init_lightProfilePath, _init_extra_lightProfilePath, _init_type, _init_extra_type, _initProto],
+        c: [_Tr2Light, _initClass]
+      } = _applyDecs2311(this, [type.define({
+        className: "Tr2Light",
+        family: "eve/lights"
+      })], [[[type, type.string], 16, "name"], [[type, type.float64], 16, "startTime"], [[type, type.boolean], 16, "isDynamic"], [[type, type.float32], 16, "brightnessMultiplier"], [[type, type.mat4], 16, "boneTransform"], [type.objectRef("Tr2LightProfileRes"), 0, "lightProfile"], [[type, type.string], 16, "lightProfilePath"], [[type, type.int32, void 0, type.enum("LIGHT_TYPE")], 16, "type"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetLightData"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetBrightnessMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "ChangeLightColor"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetLightData"], [[carbon, carbon.method, impl, impl.implemented], 18, "GetBrightnessMultiplier"], [[carbon, carbon.method, impl, impl.implemented], 18, "SetBoneMatrix"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The profile-index flag packing and half-float narrowing are renderer-backend concerns (record carries the profile by reference); the Perlin brightness flicker awaits the frame-clock seam (see lightConversion.js).")], 18, "AddLight"], [[carbon, carbon.method, impl, impl.adapted, void 0, impl.reason("The Perlin noise flicker (cpp:157-161) reads the global frame clock (BeOS GetCurrentFrameTime) - an engine seam; the base brightness is used until it lands.")], 18, "GetLight"], [[carbon, carbon.method, impl, impl.adapted], 18, "Initialize"]], 0, void 0, CjsModel));
+    }
+    name = (_initProto(this), _init_name(this, ""));
+    startTime = (_init_extra_name(this), _init_startTime(this, 0));
+    isDynamic = (_init_extra_startTime(this), _init_isDynamic(this, false));
+    brightnessMultiplier = (_init_extra_isDynamic(this), _init_brightnessMultiplier(this, 1));
+    boneTransform = (_init_extra_brightnessMultiplier(this), _init_boneTransform(this, mat4.create()));
+    lightProfile = (_init_extra_boneTransform(this), _init_lightProfile(this, null));
+    lightProfilePath = (_init_extra_lightProfile(this), _init_lightProfilePath(this, ""));
+    type = (_init_extra_lightProfilePath(this), _init_type(this, _Tr2Light.UNDEFINED_LIGHT));
+
+    // Compat view over the flattened light fields (2026-07-23 flatten
+    // decision): the flat decorated fields on the concrete light classes are
+    // the real storage; this keeps Carbon's GetLightData() reference surface
+    // and the runtime-sof separate-node hydration shape working.
+    #lightDataView = (_init_extra_type(this), null);
+
+    /**
+     * Compat LightData view over the concrete light's flattened fields, built on
+     * first access and redirecting both reads and writes back to this object.
+     */
+    get lightData() {
+      this.#lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
+      return this.#lightDataView;
+    }
+
+    /**
+     * Applies a value bag, first folding any nested `lightData` bag (the
+     * pre-flatten hydration shape) into the flattened fields so everything lands
+     * in one schema pass.
+     */
+    SetValues(values = {}, options = {}) {
+      return setCjsLightDataOwnerValues(this, values, options, (ownerValues, ownerOptions) => super.SetValues(ownerValues, ownerOptions), this.constructor.LightDataFields);
+    }
+
+    /** Applies a whole LightData bag onto the flattened light fields. */
+    SetLightData(lightData) {
+      return this.SetValues({
+        lightData
+      });
+    }
+
+    /**
+     * Sets the parent brightness factor, which scales the authored brightness only
+     * when the light record is built for submission.
+     */
+    SetBrightnessMultiplier(multiplier) {
+      this.SetValues({
+        brightnessMultiplier: Number(multiplier)
+      });
+    }
+
+    /** Sets the light colour, returning whether the value actually changed. */
+    ChangeLightColor(color) {
+      return this.SetValues({
+        color
+      }, {
+        returnBoolean: true
+      });
+    }
+
+    /**
+     * Returns the live LightData view, which aliases this light's fields instead
+     * of copying them.
+     */
+    GetLightData() {
+      return this.lightData;
+    }
+
+    /**
+     * Returns the parent brightness factor applied at submission time, not the
+     * authored brightness.
+     */
+    GetBrightnessMultiplier() {
+      return this.brightnessMultiplier;
+    }
+
+    /** Carbon Tr2Light::SetBoneMatrix (Tr2Light.cpp:98-106): only when
+     * 0 <= boneIndex < boneCount (note >= 0, unlike the packed sets' > 0 -
+     * bone 0 CAN drive a Tr2Light) - the Float4x3 bone is unpacked over an
+     * identity (column-stride, MatrixUtils.cpp:81-96). QUIRK: on a non-match
+     * the previous boneTransform STAYS (sticky, identity initially) - it is
+     * not reset per call. `bones` is a flat Float32Array, stride 12. */
+    SetBoneMatrix(bones, boneCount) {
+      const boneIndex = this.lightData.boneIndex ?? -1;
+      if (bones && boneIndex >= 0 && boneIndex < boneCount) {
+        mat4.identity(this.boneTransform);
+        MatrixCopyFrom3x4(this.boneTransform, bones, boneIndex);
+      }
+    }
+
+    /** Carbon Tr2Light::AddLight (Tr2Light.cpp:119-149): dynamic update hook,
+     * the ONLY entity-side flag validity check in the light family
+     * (AreLightFlagsValid, cpp:126-129), the bone refresh, then
+     * lightTransform = boneTransform * transform - Carbon row-vector, bone
+     * first, so the gl-matrix operands SWAP (cpp:132) - and the point/spot
+     * conversion submitted to the duck manager. QUIRKS: UNDEFINED_LIGHT
+     * submits NOTHING (a deserialized base light is silently inert); Carbon's
+     * profileIndex here is GetTextureIndex() + 1 while the packed sets use no
+     * +1 - moot in JS (the profile rides the record by reference) but
+     * recorded. The record is scratch; the manager must copy. */
+    AddLight(lightManager, transform, scale, bones = null, boneCount = 0) {
+      if (this.isDynamic) {
+        this.Update?.();
+      }
+      if (!AreLightFlagsValid(this.lightData.flags ?? 0)) {
+        return;
+      }
+      this.SetBoneMatrix(bones, boneCount);
+      // Carbon (row-vector): m_boneTransform * transform - bone first.
+      mat4.multiply(_Tr2Light.#lightTransformScratch, transform, this.boneTransform);
+      const features = _Tr2Light.#featuresScratch;
+      features.parentBrightness = this.brightnessMultiplier;
+      features.parentScale = scale;
+      const record = _Tr2Light.#lightRecord;
+      if (this.type === _Tr2Light.POINT_LIGHT) {
+        AsPerPointLightData(record, this.lightData, _Tr2Light.#lightTransformScratch, features, lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0);
+      } else if (this.type === _Tr2Light.SPOT_LIGHT) {
+        AsPerSpotLightData(record, this.lightData, _Tr2Light.#lightTransformScratch, features, lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0);
+      } else {
+        return;
+      }
+      record.lightType = this.type;
+      record.lightData = this.lightData;
+      record.lightProfile = this.lightProfile;
+      record.owner = this;
+      lightManager?.AddLight?.(record);
+    }
+
+    /** Carbon Tr2Light::GetLight (Tr2Light.cpp:152-163): position and radius
+     * straight from the light data, color = authored rgb * brightness. Carbon's
+     * three reference out-params become one out record (JS out-params go last
+     * and are returned). The color is the rgb triple - the alpha channel is
+     * unused by every Carbon consumer of this method (EveChildCloud2's light
+     * block takes GetXYZ). */
+    GetLight(out = {
+      position: vec3.create(),
+      radius: 0,
+      color: vec3.create()
+    }) {
+      const lightData = this.lightData;
+      const position = lightData.position;
+      if (position) {
+        vec3.copy(out.position, position);
+      }
+      out.radius = lightData.radius ?? 0;
+      const brightness = lightData.brightness ?? 0;
+      const color = lightData.color;
+      out.color[0] = (color?.[0] ?? 0) * brightness;
+      out.color[1] = (color?.[1] ?? 0) * brightness;
+      out.color[2] = (color?.[2] ?? 0) * brightness;
+      return out;
+    }
+
+    /**
+     * Reports the light ready; resolving the light profile is left to the
+     * resource/runtime adapter, so this always succeeds.
+     */
+    Initialize() {
+      // Light-profile resolution is supplied by the resource/runtime adapter.
+      return true;
+    }
+  }];
+  LightDataFields = [];
+  LightType = Object.freeze({
+    UNDEFINED_LIGHT: 0,
+    POINT_LIGHT: 1,
+    SPOT_LIGHT: 2,
+    COUNT: 3
+  });
+  UNDEFINED_LIGHT = 0;
+  POINT_LIGHT = 1;
+  SPOT_LIGHT = 2;
+  COUNT = 3;
+  LIGHT_TYPE = _Tr2Light.LightType;
+  PerLightShadowSetting = PerLightShadowSetting;
+  #lightTransformScratch = mat4.create();
+  #featuresScratch = {
+    parentBrightness: 1,
+    parentScale: 1
+  };
+  #lightRecord = CreateLightRecord();
+  constructor() {
+    super(_Tr2Light), _initClass();
+  }
+}();
+
+export { _Tr2Light as Tr2Light };
+//# sourceMappingURL=Tr2Light.js.map

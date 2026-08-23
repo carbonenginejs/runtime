@@ -1,0 +1,20 @@
+@carbonenginejs/runtime-trinity
+================================
+
+Copyright (c) 2026 CarbonEngineJS contributors.
+
+This package contains a JavaScript implementation of CarbonEngine Trinity and
+EVE object-graph classes. Current coverage includes controllers, curves, EVE
+scene objects and attachments, particles, post-process descriptions, render
+jobs, shader and effect graph data, and Trinity core and UI descriptions.
+
+CarbonEngine and Fenris Creations (CCP Games) names, formats, class names, and
+class semantics remain the property of their respective owners. These names are
+used for interoperability and provenance context. Ported source files identify
+their relevant CarbonEngine source paths in file-level provenance comments.
+
+This project is not affiliated with, endorsed by, or sponsored by CCP Games or
+CCP ehf. "EVE Online" and related marks are the property of their respective
+owners. No game assets are redistributed in this package.
+
+License: MIT. See LICENSE.

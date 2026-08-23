@@ -1,0 +1,43 @@
+{
+  "license": "MIT",
+  "exports": {
+    "./particle": "./dist/particle/index.js",
+    "./core": "./dist/core/index.js",
+    "./ui": "./dist/ui/index.js",
+    "./renderJob": "./dist/renderJob/index.js",
+    "./shader": "./dist/shader/index.js",
+    "./postProcess": "./dist/postProcess/index.js",
+    "./generated/*.js": "./dist/generated/*.js",
+    "./controllers": "./dist/controllers/index.js",
+    ".": "./dist/index.js",
+    "./utilities": "./dist/utilities/index.js",
+    "./curves": "./dist/curves/index.js",
+    "./generated/*": "./dist/generated/*/index.js",
+    "./generated": "./dist/generated/index.js",
+    "./eve": "./dist/eve/index.js",
+    "./perobject": "./dist/core/rawData/CjsPerObjectLayouts.js",
+    "./perframe": "./dist/core/rawData/CjsPerFrameLayouts.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "name": "@carbonenginejs/runtime-trinity",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.11.2",
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "dependencies": {
+    "@carbonenginejs/runtime-resource": "^0.22.0",
+    "@carbonenginejs/runtime-utils": "^0.1.6"
+  },
+  "type": "module",
+  "description": "CarbonEngineJS Trinity graph classes and JSON contract."
+}
