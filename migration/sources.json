@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "state": "planned-imports",
+  "state": "histories-imported",
   "destination": "@carbonenginejs/runtime",
   "baselineDate": "2026-08-23",
   "historyPolicy": "non-squashed-git-subtree",

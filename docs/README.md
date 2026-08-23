@@ -10,8 +10,9 @@ Summary: Explains the unpublished combined-runtime destination and routes reader
 `@carbonenginejs/runtime` is the accepted consolidation destination for the
 browser-safe CarbonEngineJS runtime family, renderer engines, and browser-safe
 tools. The repository currently owns only the executable dependency-layer
-contract and migration metadata; maintained runtime implementations still live
-in their donor repositories until imported with history.
+contract and migration metadata. All donor histories are now imported under
+temporary prefixes; maintained runtime implementations remain there until each
+reviewed source family is moved into its final layer.
 
 ## Use this package when
 
