@@ -1,3 +1,9 @@
+import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
+import { CjsTrinityBatchDispatcher } from "#trinity/core/batch/CjsTrinityBatchDispatcher";
+import { CjsTrinityBatchResolver } from "#trinity/core/batch/CjsTrinityBatchResolver";
+import { ITriRenderBatchAccumulator } from "#trinity/core/batch/ITriRenderBatchAccumulator";
+import { Tr2RenderBatch } from "#trinity/core/batch/Tr2RenderBatch";
+import { TriRenderBatchMap } from "#trinity/core/batch/TriRenderBatchMap";
 import { CjsWebgpuEncodeState, DeriveBatchGroups } from "./batchGroups.js";
 
 const MAX_GPU_SIZE_32 = 0xffffffff;
@@ -135,56 +141,45 @@ function pipelineRecipe(recipe, topology)
 }
 
 /**
- * Provisional engine-side adapter for the duck-typed `Tr2RenderBatch` shape.
+ * Engine-side adapter for canonical Trinity render batches.
  *
- * Trinity supplies transient CPU references and draw arguments. Injected
- * composition hooks resolve those references to WebGPU-owned material,
- * geometry, and binding objects without importing the runtime Trinity layer here.
+ * Trinity supplies transient CPU references and draw arguments. A nominal
+ * composition resolver maps those references to WebGPU-owned material,
+ * geometry, and binding objects.
  */
-export class CjsWebgpuTrinityBatchDispatcher
+export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
 {
   #webgpu;
 
-  #hooks;
+  #resolver;
 
   /**
-   * @param {object} webgpu CjsWebgpuDevice-compatible boundary.
-   * @param {object} hooks Backend composition hooks.
-   * @param {Function} hooks.ResolveMaterial Resolves batch material to
+   * @param {CjsWebgpuDevice} webgpu Canonical WebGPU device.
+   * @param {CjsTrinityBatchResolver} resolver Backend composition resolver.
+   * @param {Function} resolver.ResolveMaterial Resolves batch material to
    *   { pipeline, recipe, prepareOptions? }; receives immutable preparation
    *   context as its third argument.
-   * @param {Function} hooks.ResolveGeometry Resolves geometrySource to
+   * @param {Function} resolver.ResolveGeometry Resolves geometrySource to
    *   { geometry, indexed, draw? }; a draw override supplies arguments derived
    *   from deferred geometry areas and realized buffer packing. Receives
    *   preparation context as its third argument.
-   * @param {Function} hooks.ResolveBindings Resolves batch/object data to
+   * @param {Function} resolver.ResolveBindings Resolves batch/object data to
    *   { uniformData, resources }; receives preparation context as its third
    *   argument.
    */
-  constructor(webgpu, hooks = {})
+  constructor(webgpu, resolver)
   {
-    for (const method of [
-      "PreparePipeline",
-      "CreateRenderPipeline",
-      "CreateBindingSet",
-      "CreateDraw",
-      "EncodeDraw"
-    ])
+    super();
+    if (!(webgpu instanceof CjsWebgpuDevice))
     {
-      if (typeof webgpu?.[method] !== "function")
-      {
-        fail(`webgpu boundary requires ${method}`);
-      }
+      fail("webgpu boundary requires a CjsWebgpuDevice");
     }
-    for (const hook of [ "ResolveMaterial", "ResolveGeometry", "ResolveBindings" ])
+    if (!(resolver instanceof CjsTrinityBatchResolver))
     {
-      if (typeof hooks?.[hook] !== "function")
-      {
-        fail(`composition hooks require ${hook}`);
-      }
+      fail("composition resolver requires a CjsTrinityBatchResolver");
     }
     this.#webgpu = webgpu;
-    this.#hooks = hooks;
+    this.#resolver = resolver;
   }
 
   /**
@@ -195,7 +190,7 @@ export class CjsWebgpuTrinityBatchDispatcher
   async Prepare(batch, context = undefined)
   {
     const preparedContext = preparationContext(context);
-    if (!batch || typeof batch !== "object") fail("batch must be an object");
+    if (!(batch instanceof Tr2RenderBatch)) fail("batch must be a Tr2RenderBatch");
     if (batch.material === null || batch.material === undefined) fail("batch material is required");
     if (batch.geometrySource === null || batch.geometrySource === undefined)
     {
@@ -204,12 +199,12 @@ export class CjsWebgpuTrinityBatchDispatcher
     const topology = TOPOLOGIES[batch.topology];
     if (!topology) fail(`batch topology ${batch.topology} is unsupported`);
 
-    const material = await this.#hooks.ResolveMaterial(batch.material, batch, preparedContext);
+    const material = await this.#resolver.ResolveMaterial(batch.material, batch, preparedContext);
     if (!material || typeof material !== "object" || material.pipeline == null)
     {
       fail("ResolveMaterial must return a pipeline and recipe");
     }
-    const geometry = await this.#hooks.ResolveGeometry(
+    const geometry = await this.#resolver.ResolveGeometry(
       batch.geometrySource,
       batch,
       preparedContext
@@ -231,7 +226,7 @@ export class CjsWebgpuTrinityBatchDispatcher
       prepared,
       pipelineRecipe(material.recipe, topology)
     );
-    const bindings = await this.#hooks.ResolveBindings(batch, livePipeline, preparedContext);
+    const bindings = await this.#resolver.ResolveBindings(batch, batch.objectData, preparedContext);
     if (!bindings || typeof bindings !== "object")
     {
       fail("ResolveBindings must return uniformData and resources");
@@ -265,7 +260,7 @@ export class CjsWebgpuTrinityBatchDispatcher
     }
     catch (error)
     {
-      bindingSet?.Destroy?.();
+      if (bindingSet) bindingSet.Destroy();
       throw error;
     }
   }
@@ -317,17 +312,16 @@ export class CjsWebgpuTrinityBatchDispatcher
 
   /**
    * Snapshots and prepares both vectors of one finalized
-   * TriRenderBatchAccumulator-compatible object. GDPR batches retain their
+   * canonical Trinity batch accumulator. GDPR batches retain their
    * separate identity. Both vectors are grouped at encode time; preparation
    * stays per batch, because a binding set belongs to one batch.
    */
   async PrepareAccumulator(accumulator, context = undefined)
   {
     const preparedContext = preparationContext(context);
-    if (!accumulator || typeof accumulator.GetGdprBatches !== "function"
-      || typeof accumulator.GetBatches !== "function")
+    if (!(accumulator instanceof ITriRenderBatchAccumulator))
     {
-      fail("accumulator requires GetGdprBatches and GetBatches");
+      fail("accumulator must be an ITriRenderBatchAccumulator");
     }
     const gdprBatches = accumulator.GetGdprBatches();
     const batches = accumulator.GetBatches();
@@ -335,8 +329,7 @@ export class CjsWebgpuTrinityBatchDispatcher
     {
       fail("accumulator batch getters must return arrays");
     }
-    if (typeof accumulator.GetBatchCount === "function"
-      && accumulator.GetBatchCount() !== gdprBatches.length + batches.length)
+    if (accumulator.GetBatchCount() !== gdprBatches.length + batches.length)
     {
       fail("accumulator batch count does not match its batch vectors");
     }
@@ -416,15 +409,14 @@ export class CjsWebgpuTrinityBatchDispatcher
 
   /**
    * Snapshots and prepares every accumulator in one
-   * TriRenderBatchMap-compatible object without interpreting batch-type
+   * canonical TriRenderBatchMap without interpreting batch-type
    * meaning or selecting render passes.
    */
   async PrepareBatchMap(batchMap)
   {
-    if (!batchMap || typeof batchMap.GetBatchTypes !== "function"
-      || typeof batchMap.GetAccumulator !== "function")
+    if (!(batchMap instanceof TriRenderBatchMap))
     {
-      fail("batch map requires GetBatchTypes and GetAccumulator");
+      fail("batch map must be a TriRenderBatchMap");
     }
     const batchTypes = batchMap.GetBatchTypes();
     if (!Array.isArray(batchTypes)) fail("batch map GetBatchTypes must return an array");
@@ -457,8 +449,7 @@ export class CjsWebgpuTrinityBatchDispatcher
           + entry.accumulator.batches.length,
         0
       );
-      if (typeof batchMap.GetBatchCount === "function"
-        && batchMap.GetBatchCount() !== preparedCount)
+      if (batchMap.GetBatchCount() !== preparedCount)
       {
         fail("batch map count does not match its accumulators");
       }

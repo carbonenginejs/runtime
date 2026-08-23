@@ -31,6 +31,24 @@ function assertAlmostEquals(actual, expected, epsilon = 1e-6)
   }
 }
 
+function shaderReflection({ constants = [], resources = [] } = {})
+{
+  const stage = new Tr2EffectStageInput();
+  stage.constants = constants.map(value => Object.assign(new Tr2EffectConstant(), value));
+  stage.resources = new Map(resources.map((value, index) => [
+    index,
+    Object.assign(new Tr2EffectResource(), value)
+  ]));
+  const pass = new Tr2Pass();
+  pass.stageInputs = [stage];
+  const technique = new Tr2EffectTechnique();
+  technique.name = "Main";
+  technique.passes = [pass];
+  const shader = new Tr2Shader();
+  shader.effect.techniques = [technique];
+  return shader;
+}
+
 test("Trinity shader compatibility exports preserve canonical identity", () =>
 {
   assertEquals(Tr2Shader, ResourceShader.Tr2Shader);
@@ -124,12 +142,9 @@ test("shader TriFloatArrayParameter copies vector4 rows as graph data", () =>
   parameter.CopyValueToEffect(null, shortCopy, 20);
   assertAlmostEquals(shortCopy[0], 1);
   assertAlmostEquals(shortCopy[4], 5);
-  parameter.RebuildEffectHandles({
-    GetConstant(name)
-    {
-      return name === "LightProbe" ? {} : null;
-    }
-  });
+  parameter.RebuildEffectHandles(shaderReflection({
+    constants: [{ name: "LightProbe" }]
+  }));
   assert(parameter.usedByCurrentEffect);
   assert(parameter.usedByCurrentTechnique);
   parameter.name = "Missing";
@@ -290,14 +305,34 @@ test("io.always preserves repeated effect-path updates", () =>
   assertEquals(events.length, 2);
   assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.io?.always, true);
   effect.effectFilePath = "res:\\effect\\Ship\\main.sm_hi";
-  effect.effectResource = {
+  class TestEffectRes extends ResourceShader.Tr2EffectRes
+  {
     AddNotifyTarget()
     {
-      throw new Error("runtime-trinity must not own EffectRes notification lifecycle");
+      throw new Error("Trinity must not own EffectRes notification lifecycle");
     }
-  };
+  }
+  effect.effectResource = new TestEffectRes();
   effect.Initialize();
   assertEquals(effect.actualEffectFilePath, "res:/effect/Ship/main.sm_hi");
+});
+
+test("Tr2Effect rejects broken effect-resource shader identities", () =>
+{
+  class BrokenEffectRes extends ResourceShader.Tr2EffectRes
+  {
+    GetShader()
+    {
+      return { GetTechniqueIndex() { return 0; } };
+    }
+  }
+  const effect = new Tr2Effect();
+  effect.effectResource = new BrokenEffectRes();
+  let error = null;
+  try { effect.RebuildCachedData(); }
+  catch (caught) { error = caught; }
+  assert(error instanceof TypeError);
+  assert(/must return a Tr2Shader or null/u.test(error.message));
 });
 test("promoted shader graph containers track dirty resources", () =>
 {
@@ -542,12 +577,7 @@ test("shader Tr2RuntimeTextureParameter stays graph-only", () =>
   assertEquals(invalidations.length, 2);
   parameter.SetUavMipLevel(7);
   assertEquals(parameter.uavMipLevel, 7);
-  parameter.RebuildEffectHandles({
-    GetResource()
-    {
-      throw new Error("runtime graph shell should not bind resources");
-    }
-  });
+  parameter.RebuildEffectHandles(new Tr2Shader());
 });
 test("Tr2FloatParameter reroutes values and rebuilds effect usage", () =>
 {
@@ -573,12 +603,9 @@ test("Tr2FloatParameter reroutes values and rebuilds effect usage", () =>
   const copy = new Float32Array(1);
   parameter.CopyValueToEffect(null, copy);
   assertAlmostEquals(copy[0], 4);
-  parameter.RebuildEffectHandles({
-    GetConstant(name)
-    {
-      return name === "Glow" ? {} : null;
-    }
-  });
+  parameter.RebuildEffectHandles(shaderReflection({
+    constants: [{ name: "Glow" }]
+  }));
   assert(parameter.usedByCurrentEffect);
   parameter.RebuildEffectHandles(null);
   assert(!parameter.IsRerouted());
@@ -615,20 +642,13 @@ test("vector and matrix shader parameters mirror rerouted destinations", () =>
   const outMatrix = mat4.create();
   matrix.GetValue(outMatrix);
   assertAlmostEquals(outMatrix[13], 11);
-  matrix.RebuildEffectHandles({
-    getConstant(name)
-    {
-      return name === "World" ? {} : null;
-    }
+  const worldShader = shaderReflection({
+    constants: [{ name: "World" }]
   });
+  matrix.RebuildEffectHandles(worldShader);
   assert(!matrix.usedByCurrentEffect);
   matrix.name = "World";
-  matrix.RebuildEffectHandles({
-    getConstant(name)
-    {
-      return name === "World" ? {} : null;
-    }
-  });
+  matrix.RebuildEffectHandles(worldShader);
   assert(matrix.usedByCurrentEffect);
   assert(matrix.usedByCurrentTechnique);
 });
@@ -640,14 +660,9 @@ test("Tr2Vector4Parameter handles Carbon sRGB reroute rules", () =>
   const destination = new Float32Array(4);
   parameter.SetDestination(destination, 16);
   assert(parameter.IsRerouted());
-  parameter.RebuildEffectHandles({
-    GetConstant(name)
-    {
-      return name === "Tint" ? {
-        isSRGB: true
-      } : null;
-    }
-  });
+  parameter.RebuildEffectHandles(shaderReflection({
+    constants: [{ name: "Tint", isSRGB: true }]
+  }));
   assert(parameter.isSrgb);
   assert(!parameter.IsRerouted());
   assert(parameter.usedByCurrentEffect);
@@ -703,12 +718,9 @@ test("TriTextureParameter stays graph-owned and backend-free", () =>
   parameter.OnTextureChanged();
   assertEquals(materialEvents.join(","), "resource,dirty");
   parameter.OnRemovedFromMaterial(material);
-  parameter.RebuildEffectHandles({
-    GetResource(name)
-    {
-      return name === "DiffuseMap" ? {} : null;
-    }
-  });
+  parameter.RebuildEffectHandles(shaderReflection({
+    resources: [{ name: "DiffuseMap" }]
+  }));
   assert(parameter.usedByCurrentEffect);
   assert(parameter.usedByCurrentTechnique);
 });

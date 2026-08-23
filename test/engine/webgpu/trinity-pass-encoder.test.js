@@ -1,18 +1,45 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsWebgpuTrinityPassEncoder } from "#engine/webgpu/core/trinityPassEncoder";
+import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
+import {
+  CjsWebgpuTrinityBatchDispatcher,
+  CjsWebgpuTrinityPassEncoder
+} from "../../../npm/dist/engine/webgpu/internal.js";
+import { CjsTrinityBatchResolver } from "../../../npm/dist/trinity/core/index.js";
+
+
+class TestResolver extends CjsTrinityBatchResolver
+{
+  ResolveMaterial() {}
+  ResolveGeometry() {}
+  ResolveBindings() {}
+}
+
+
+class RecordingDispatcher extends CjsWebgpuTrinityBatchDispatcher
+{
+  constructor(calls, rejectType)
+  {
+    super(new CjsWebgpuDevice({
+      device: { createShaderModule() {} },
+      shaderStage: { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
+    }), new TestResolver());
+    this.calls = calls;
+    this.rejectType = rejectType;
+  }
+
+  EncodeBatchType(pass, preparedBatchMap, batchType)
+  {
+    this.calls.push([ "encode", pass, preparedBatchMap, batchType ]);
+    if (batchType === this.rejectType) throw new Error(`rejected type ${batchType}`);
+  }
+}
 
 function boundary(rejectType = null)
 {
   const calls = [];
-  const dispatcher = {
-    EncodeBatchType(pass, preparedBatchMap, batchType)
-    {
-      calls.push([ "encode", pass, preparedBatchMap, batchType ]);
-      if (batchType === rejectType) throw new Error(`rejected type ${batchType}`);
-    }
-  };
+  const dispatcher = new RecordingDispatcher(calls, rejectType);
   const commandEncoder = {
     beginRenderPass(descriptor)
     {

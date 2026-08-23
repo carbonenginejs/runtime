@@ -33,6 +33,8 @@
 // for WebGL and genuinely nothing to do here, and that asymmetry is expected
 // rather than a missing port.
 
+import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
+
 function fail(message)
 {
   const error = new Error(`CjsWebgpuRenderTarget: ${message}`);
@@ -83,7 +85,7 @@ export class CjsWebgpuRenderTarget
   #destroyed = false;
 
   /**
-   * @param {object} webgpu CjsWebgpuDevice-compatible boundary.
+   * @param {CjsWebgpuDevice} webgpu Canonical WebGPU device.
    * @param {object} options Target options.
    * @param {object} options.canvas Canvas or OffscreenCanvas to present to.
    * @param {object} [options.context] Pre-acquired WebGPU canvas context.
@@ -99,9 +101,9 @@ export class CjsWebgpuRenderTarget
    */
   constructor(webgpu, options = {})
   {
-    for (const method of [ "GetDevice", "GetGeneration" ])
+    if (!(webgpu instanceof CjsWebgpuDevice))
     {
-      if (typeof webgpu?.[method] !== "function") fail(`webgpu boundary requires ${method}`);
+      fail("webgpu boundary must be a CjsWebgpuDevice");
     }
     this.#webgpu = webgpu;
     this.#canvas = options.canvas ?? null;

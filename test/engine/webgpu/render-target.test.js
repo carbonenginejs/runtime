@@ -1,9 +1,31 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsWebgpuRenderTarget } from "#engine/webgpu/core/renderTarget";
+import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
+import { CjsWebgpuRenderTarget } from "../../../npm/dist/engine/webgpu/internal.js";
 
 const TEXTURE_USAGE = Object.freeze({ RENDER_ATTACHMENT: 16, TEXTURE_BINDING: 4, COPY_DST: 8 });
+const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
+
+
+class TestWebgpuDevice extends CjsWebgpuDevice
+{
+  constructor(device)
+  {
+    super({ device, shaderStage: SHADER_STAGE });
+    this.testGeneration = 1;
+  }
+
+  GetGeneration()
+  {
+    return this.testGeneration;
+  }
+
+  SetGeneration(value)
+  {
+    this.testGeneration = value;
+  }
+}
 
 function fakeTexture(label)
 {
@@ -21,6 +43,7 @@ function fakeSetup(options = {})
 {
   const created = [];
   const device = {
+    createShaderModule() {},
     createTexture(descriptor)
     {
       const texture = fakeTexture(descriptor.label);
@@ -30,12 +53,7 @@ function fakeSetup(options = {})
     }
   };
 
-  let generation = 1;
-  const webgpu = {
-    GetDevice: () => device,
-    GetGeneration: () => generation,
-    SetGeneration(value) { generation = value; }
-  };
+  const webgpu = new TestWebgpuDevice(device);
 
   let currentTexture = fakeTexture("canvas-0");
   let frameIndex = 0;

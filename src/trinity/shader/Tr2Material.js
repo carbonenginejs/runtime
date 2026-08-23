@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
 import { CjsModel } from "#model";
+import { Tr2Shader } from "#resource/shader";
 
 /** Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state. */
 @type.define({ className: "Tr2Material", family: "shader" })
@@ -159,7 +160,11 @@ export class Tr2Material extends CjsModel
     {
       return this.compatibleWithGdr;
     }
-    const techniqueIndex = this.shader?.GetTechniqueIndex?.(techniqueName) ?? -1;
+    if (this.shader !== null && !(this.shader instanceof Tr2Shader))
+    {
+      throw new TypeError("Tr2Material.shader must be a Tr2Shader or null.");
+    }
+    const techniqueIndex = this.shader === null ? -1 : this.shader.GetTechniqueIndex(techniqueName);
     if (techniqueIndex < 0)
     {
       return false;

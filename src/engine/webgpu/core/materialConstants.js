@@ -11,14 +11,14 @@
 // reflection belongs to `Tr2Shader` while the backend package owns only
 // physical topology - group, binding, visibility, register identity.
 //
-// The engine cannot import `Tr2Shader`: this package declares no runtime
-// dependencies, and that is deliberate. So the shape is duck-typed and the
-// caller supplies it, exactly as every other seam here works. `MaterialLayout`
-// is the boundary; where it came from is the caller's business.
+// The combined runtime has one canonical reflection identity. The engine
+// validates it once here, then calls the required reflection methods directly.
 //
 // A SECOND ENGINE MUST NOT COPY THE OLD SHORTCUT. That is written down in the
 // backend plan and in the reflection-ownership page, and it is the reason this
 // module names the correct source rather than quietly wrapping the wrong one.
+
+import { Tr2EffectStageInput, Tr2Shader } from "#resource/shader";
 
 function fail(message)
 {
@@ -37,9 +37,8 @@ const PIXEL_STAGE = 1;
  * Builds a material constant layout by walking a pass's stage inputs, which is
  * where Carbon reads them from.
  *
- * `shader` is duck-typed on purpose — this package declares no runtime
- * dependencies, so it cannot import `Tr2Shader` and does not need to. It needs
- * `GetTechniqueIndex` and either `GetEffect` or `GetEffectDescription`.
+ * `shader` must be the canonical resource-layer `Tr2Shader`. The engine
+ * validates that boundary once, then consumes its reflection model directly.
  *
  * TWO THINGS THIS DOES THAT THE OLD ANALYSIS PATH COULD NOT.
  *
@@ -59,9 +58,9 @@ export function MaterialLayoutFromShader(shader, options = {})
   const passIndex = options.pass ?? 0;
   const stageType = options.stage ?? PIXEL_STAGE;
 
-  if (typeof shader?.GetTechniqueIndex !== "function") fail("a Tr2Shader-shaped reflection object is required");
+  if (!(shader instanceof Tr2Shader)) fail("a Tr2Shader reflection object is required");
 
-  const effect = shader.GetEffect?.() ?? shader.GetEffectDescription?.();
+  const effect = shader.GetEffect();
   if (!effect) fail("the shader exposes no effect description");
 
   const techniqueIndex = shader.GetTechniqueIndex(technique);
@@ -73,10 +72,17 @@ export function MaterialLayoutFromShader(shader, options = {})
   // stageInputs is a fixed six-slot array indexed by stage type, with absent
   // stages present but empty, so `exists` is the only honest test.
   const stageInput = pass.stageInputs?.[stageType];
-  if (!stageInput?.exists) fail(`pass ${passIndex} has no stage ${stageType}`);
+  if (!(stageInput instanceof Tr2EffectStageInput) || !stageInput.exists)
+  {
+    fail(`pass ${passIndex} has no stage ${stageType}`);
+  }
 
   const constants = stageInput.constants ?? [];
   if (!constants.length) fail(`pass ${passIndex} stage ${stageType} declares no constants`);
+  if (stageInput.constantValues.byteLength < stageInput.constantValueSize)
+  {
+    fail(`pass ${passIndex} stage ${stageType} has a truncated constant default block`);
+  }
 
   // The extent belongs to the reflection, not to a backend: it is arithmetic
   // over the stage input's own constants and every backend gets the same
@@ -84,16 +90,14 @@ export function MaterialLayoutFromShader(shader, options = {})
   // rather than recomputing, and falls back only for a reflection object that
   // predates it. What IS this backend's business is alignment on top of the
   // extent, which is applied below.
-  let size = typeof stageInput.GetConstantBufferSize === "function"
-    ? stageInput.GetConstantBufferSize()
-    : constants.reduce((extent, constant) => Math.max(extent, (constant?.offset ?? 0) + (constant?.size ?? 0)), 0);
+  let size = stageInput.GetConstantBufferSize();
 
   size = Math.ceil(size / 4) * 4;
 
   return NormalizeMaterialLayout({
     size,
     constants,
-    defaults: stageInput.constantValues ?? null
+    defaults: stageInput.constantValueSize > 0 ? stageInput.constantValues : null
   });
 }
 

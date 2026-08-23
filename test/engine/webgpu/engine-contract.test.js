@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsWebgpuTrinityBatchDispatcher } from "#engine/webgpu/core/trinityBatchDispatcher";
-import { CjsWebgpuDevice } from "#engine/webgpu";
+import { CjsResource } from "../../../npm/dist/resource/index.js";
+import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
+import { CjsWebgpuTrinityBatchDispatcher } from "../../../npm/dist/engine/webgpu/internal.js";
+import {
+  CjsTrinityBatchResolver,
+  ITriRenderBatchAccumulator,
+  TriRenderBatchMap
+} from "../../../npm/dist/trinity/core/index.js";
 import { EngineContractChecks } from "./conformance/engineContract.js";
 
 // The adapter this file supplies is the whole point: it is how a backend
@@ -11,21 +17,39 @@ import { EngineContractChecks } from "./conformance/engineContract.js";
 
 function boundary()
 {
-  return {
-    PreparePipeline: async () => ({}),
-    CreateRenderPipeline: async () => ({}),
-    CreateBindingSet: () => ({ Destroy() {} }),
-    CreateDraw: () => ({}),
-    EncodeDraw: () => {}
-  };
+  return new CjsWebgpuDevice({
+    device: { createShaderModule: () => ({}) },
+    shaderStage: { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
+  });
+}
+
+
+class EmptyResolver extends CjsTrinityBatchResolver
+{
+  ResolveMaterial() { return {}; }
+  ResolveGeometry() { return {}; }
+  ResolveBindings() { return {}; }
+}
+
+
+class EmptyAccumulator extends ITriRenderBatchAccumulator
+{
+  GetGdprBatches() { return []; }
+  GetBatches() { return []; }
+  GetBatchCount() { return 0; }
 }
 
 const webgpu = {
   name: "WebGPU",
 
-  CreateDispatcher(hooks)
+  CreateResolver()
   {
-    return new CjsWebgpuTrinityBatchDispatcher(boundary(), hooks);
+    return new EmptyResolver();
+  },
+
+  CreateDispatcher(resolver)
+  {
+    return new CjsWebgpuTrinityBatchDispatcher(boundary(), resolver);
   },
 
   AssertResourceAdapter(resource)
@@ -41,29 +65,40 @@ const webgpu = {
     device.RealizeSampler(resource, { samplerKey: "s" });
   },
 
+  CreateResource()
+  {
+    return new CjsResource();
+  },
+
   IsAdapterRejection(message)
   {
-    return /adapter methods/i.test(message);
+    return /CjsResource/i.test(message);
+  },
+
+  CreateAccumulator()
+  {
+    return new EmptyAccumulator();
+  },
+
+  CreateBatchMap()
+  {
+    return new TriRenderBatchMap([]);
   },
 
   PrepareAccumulator(accumulator)
   {
-    const hooks = {
-      ResolveMaterial: async () => ({}),
-      ResolveGeometry: async () => ({}),
-      ResolveBindings: async () => ({})
-    };
-    return new CjsWebgpuTrinityBatchDispatcher(boundary(), hooks).PrepareAccumulator(accumulator);
+    return new CjsWebgpuTrinityBatchDispatcher(
+      boundary(),
+      new EmptyResolver()
+    ).PrepareAccumulator(accumulator);
   },
 
   PrepareBatchMap(batchMap)
   {
-    const hooks = {
-      ResolveMaterial: async () => ({}),
-      ResolveGeometry: async () => ({}),
-      ResolveBindings: async () => ({})
-    };
-    return new CjsWebgpuTrinityBatchDispatcher(boundary(), hooks).PrepareBatchMap(batchMap);
+    return new CjsWebgpuTrinityBatchDispatcher(
+      boundary(),
+      new EmptyResolver()
+    ).PrepareBatchMap(batchMap);
   }
 };
 

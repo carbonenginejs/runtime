@@ -18,9 +18,10 @@ packed geometry, texture data, sampler state, and uniform values.
 ## Where it fits
 
 The package owns the WebGPU device boundary and immutable Carbon WebGPU-facing
-descriptors. Format readers may be injected by callers. Resource acquisition,
-effect selection, renderer scheduling, scene extraction, and Trinity graph
-integration belong elsewhere and are not current dependencies.
+descriptors. It imports canonical resource and Trinity identities at the seams
+it consumes, validates them once, and calls their required methods directly.
+Format readers may be injected by callers. Resource acquisition, effect
+selection, renderer scheduling, and scene extraction remain outside the engine.
 
 ## Start here
 

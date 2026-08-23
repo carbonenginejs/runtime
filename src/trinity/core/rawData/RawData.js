@@ -1,3 +1,4 @@
+import { CjsConstantPayload } from "#contracts";
 import { CjsPerFrameLayouts } from "./CjsPerFrameLayouts.js";
 import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
 
@@ -182,7 +183,7 @@ export const RawDataEncoders = Object.freeze({
  * handed out by a TriPoolAllocator (transient, arena-backed) or constructed
  * directly by an object that owns a persistent buffer.
  */
-export class RawData
+export class RawData extends CjsConstantPayload
 {
   /** Resolved layout: { fields: { name -> { offset, size, elements, encoding } }, stride }. */
   #layout = null;
@@ -207,6 +208,7 @@ export class RawData
    */
   constructor(layout, floats, uints, struct = null)
   {
+    super();
     this.#layout = layout;
     this.#floats = floats;
     this.#uints = uints;
@@ -447,7 +449,12 @@ export class RawData
    */
   CopyFrom(other)
   {
-    const source = other?.GetLayout?.();
+    if (!(other instanceof RawData))
+    {
+      throw new Error("RawData: CopyFrom requires another RawData record");
+    }
+
+    const source = other.GetLayout();
 
     // A store-registered layout and a RawData.create layout are distinct
     // objects for the same struct, so identity cannot be the only test - but
@@ -455,12 +462,12 @@ export class RawData
     // EveSpaceObjectPSData are both 116 floats and share nothing else. The
     // struct name is the test; an unnamed ad-hoc record needs the same layout
     // object.
-    const sameStruct = this.#struct !== null && other.GetStruct?.() === this.#struct;
+    const sameStruct = this.#struct !== null && other.GetStruct() === this.#struct;
 
     if (!source || (!sameStruct && source !== this.#layout))
     {
       throw new Error(
-        `RawData: CopyFrom requires a record of the same struct (this "${this.#struct}", other "${other?.GetStruct?.() ?? "unknown"}")`
+        `RawData: CopyFrom requires a record of the same struct (this "${this.#struct}", other "${other.GetStruct() ?? "unknown"}")`
       );
     }
 

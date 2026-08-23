@@ -11,6 +11,7 @@ const unpublishedInputs = new Set([
     "src/trinity/generated/eve/EveDamageOverlay.js",
     "src/trinity/generated/eve/EveModularObjectModifier.js"
 ]);
+const privateInputs = [ "src/engine/webgpu/internal.js" ];
 
 function collectTargets(value, out = [])
 {
@@ -48,7 +49,10 @@ function expandTarget(target)
         .filter(file => pattern.test(file));
 }
 
-const input = Array.from(new Set(collectTargets(manifest.exports).flatMap(expandTarget)))
+const input = Array.from(new Set([
+    ...collectTargets(manifest.exports).flatMap(expandTarget),
+    ...privateInputs
+]))
     .filter(target => !unpublishedInputs.has(target));
 
 function packageName(id)

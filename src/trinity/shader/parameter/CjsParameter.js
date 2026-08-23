@@ -1,4 +1,15 @@
 import { CjsModel } from "#model";
+import { Tr2Shader } from "#resource/shader";
+
+
+function requireShaderOrNull(shader)
+{
+  if (shader !== null && !(shader instanceof Tr2Shader))
+  {
+    throw new TypeError("Shader reflection must be a Tr2Shader or null.");
+  }
+  return shader;
+}
 
 
 /**
@@ -104,31 +115,29 @@ export class CjsParameter extends CjsModel
   }
 
   /**
-   * The reflected constant description for a name, accepting either casing of
-   * the accessor; null when absent. Reflection metadata only - never a GPU
-   * handle.
+   * The canonical shader's reflected constant description for a name, or null
+   * when absent. Reflection metadata only - never a GPU handle.
    */
   static getEffectConstant(effectRes, name)
   {
-    const reader = effectRes;
-    return reader?.GetConstant?.(name) ?? reader?.getConstant?.(name) ?? null;
+    const shader = requireShaderOrNull(effectRes);
+    return shader === null ? null : shader.GetConstant(name);
   }
 
   /** Whether the shader reflects a resource of this name. */
   static hasEffectResource(effectRes, name)
   {
-    const reader = effectRes;
-    return !!(reader?.GetResource?.(name) ?? reader?.getResource?.(name));
+    return !!CjsParameter.getEffectResource(effectRes, name);
   }
 
   /**
-   * The reflected resource description for a name, accepting either casing of
-   * the accessor; null when absent.
+   * The canonical shader's reflected resource description for a name, or null
+   * when absent.
    */
   static getEffectResource(effectRes, name)
   {
-    const reader = effectRes;
-    return reader?.GetResource?.(name) ?? reader?.getResource?.(name) ?? null;
+    const shader = requireShaderOrNull(effectRes);
+    return shader === null ? null : shader.GetResource(name);
   }
 
   /**
@@ -137,8 +146,8 @@ export class CjsParameter extends CjsModel
    */
   static getEffectAnnotations(effectRes, name)
   {
-    const reader = effectRes;
-    return reader?.GetParameterAnnotations?.(name) ?? reader?.getParameterAnnotations?.(name) ?? null;
+    const shader = requireShaderOrNull(effectRes);
+    return shader === null ? null : shader.GetParameterAnnotations(name);
   }
 
   /**

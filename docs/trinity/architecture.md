@@ -67,21 +67,20 @@ live backend handles.
 in-progress cursors, nested result mapping, recurring and chained scheduling,
 and deterministic target/depth stack cleanup.
 
-`Run(realTime, simTime, executor)` receives an injected executor. A WebGL
-executor may perform work immediately while a WebGPU executor may encode pass
-boundaries, but both preserve the observable step order and yield boundary.
-The job snapshots its step list at the start of a run and retains its cursor
-when a step returns `RS_IN_PROGRESS`. Each enabled step is bracketed by
-begin/execute/end hooks; end still runs when execution throws. Nested jobs
-receive the same executor identity.
+`Run(realTime, simTime, context)` accepts either null or the canonical
+`Tr2RenderContext`; null selects the shared GPU-free context. The job snapshots
+its step list at the start of a run and retains its cursor when a step returns
+`RS_IN_PROGRESS`. Every scheduled entry must be a `TriRenderJob`, every enabled
+step must extend `TriRenderStep`, and invalid owned identities throw rather than
+being diagnosed and skipped. Each step is bracketed by begin/execute/end calls;
+end still runs when execution throws. Nested jobs receive the same context.
 
-Passing an executor directly to `Run` invokes its step hooks with
-`(step, realTime, simTime, job)`. An executor that also needs the active render
-context installs on that context with `SetStepExecutor(executor)`, and the job
-runs against the context. The context delegates implemented hooks with itself
-as a fifth argument and falls back to the step's own begin, execute, or end
-method for hooks the installed executor omits. Recorders that require render
-context state use this installed form rather than being passed directly.
+A render context owns one `CjsTrinityStepExecutor`. `SetStepExecutor` accepts
+only that nominal identity or null, with null restoring the shared
+`CjsDirectTrinityStepExecutor`. The context calls every required executor
+method directly and supplies itself as the fifth step argument. Concrete engine
+recorders extend the base; omitting a required method reaches the base method
+and throws instead of silently falling back or skipping work.
 
 With `stackGuard` enabled, a job records render-target and depth-stencil stack
 depths, diagnoses underflow, and unwinds surplus pushes to the entry depth on
@@ -92,7 +91,7 @@ The default `Tr2RenderContext` is a GPU-free intent and diagnostic surface.
 `GetIntents()` returns a copy of the full retained history. An executor uses
 `TakeIntents()` for incremental, exactly-once consumption; it advances the
 take cursor so nested jobs cannot realize the same intent twice. The package
-does not provide a production backend executor.
+keeps concrete backend recording and dispatch inside the selected engine.
 
 ## Vertex-declaration matching
 
@@ -120,13 +119,12 @@ GPU sync, profiler open, the frame-clock publication, the scene bracket, the
 reserved quad indices, the render jobs, then profiler close, the scene close,
 and the frame close.
 
-Current split-package code still accepts transitional optional hooks at parts
-of this boundary. The combined-runtime cutover replaces those hooks with
-nominal executor and context identities: composition validates required
-methods once, and the frame hot path calls them directly. A missing required
-method throws rather than silently omitting part of the frame. Nullable
-authored graph children and separately declared optional capabilities remain
-distinct from this required execution contract.
+`CjsFrameDriver` is the one remaining transitional hook bag at this boundary.
+Its move to core will introduce the nominal lifecycle identity, exact render
+context and render-job composition, and direct hot-path calls. That cutover is
+deferred to the runtime-core migration so the class lands under its final
+owner. Nullable authored graph children and separately declared optional
+capabilities remain distinct from the required execution contract.
 
 Two parts of that order are load-bearing. The entry and exit are deliberately
 asymmetric: the scene close rewinds the per-object pool before ending the

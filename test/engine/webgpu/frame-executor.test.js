@@ -1,8 +1,86 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsWebgpuFrameExecutor } from "#engine/webgpu/core/frameExecutor";
+import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
+import {
+  CjsWebgpuFrameExecutor,
+  CjsWebgpuRenderTarget,
+  CjsWebgpuTrinityBatchDispatcher,
+  CjsWebgpuTrinityPassEncoder
+} from "../../../npm/dist/engine/webgpu/internal.js";
+import { CjsTrinityBatchResolver } from "../../../npm/dist/trinity/core/index.js";
 import { PlanFrame } from "#engine/webgpu/core/framePlan";
+
+
+const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
+
+
+class TestResolver extends CjsTrinityBatchResolver
+{
+  ResolveMaterial() {}
+  ResolveGeometry() {}
+  ResolveBindings() {}
+}
+
+
+class TestDevice extends CjsWebgpuDevice
+{
+  constructor(device, calls)
+  {
+    super({ device, shaderStage: SHADER_STAGE });
+    this.calls = calls;
+  }
+
+  Submit(buffers)
+  {
+    this.calls.push([ "submit", buffers ]);
+  }
+}
+
+
+class TestRenderTarget extends CjsWebgpuRenderTarget
+{
+  constructor(webgpu, calls, frame)
+  {
+    super(webgpu, { context: {}, format: "rgba8unorm", textureUsage: {}, gpu: null });
+    this.calls = calls;
+    this.frame = frame;
+  }
+
+  AcquireFrame()
+  {
+    this.calls.push([ "acquire" ]);
+    return this.frame;
+  }
+
+  CreateRenderPassDescriptor(acquired, descriptorOptions)
+  {
+    this.calls.push([ "descriptor", acquired === this.frame, descriptorOptions ]);
+    return { label: descriptorOptions.label, colorAttachments: [ { view: acquired.colorView } ] };
+  }
+
+  ApplyViewport(_pass, viewportOptions)
+  {
+    this.calls.push([ "viewport", viewportOptions?.viewport ?? null ]);
+  }
+}
+
+
+class RecordingPassEncoder extends CjsWebgpuTrinityPassEncoder
+{
+  constructor(webgpu, calls)
+  {
+    super(new CjsWebgpuTrinityBatchDispatcher(webgpu, new TestResolver()));
+    this.calls = calls;
+  }
+
+  Encode(_encoder, passes)
+  {
+    this.calls.push([ "encode", passes[0].descriptor.label, passes[0].selections ]);
+    if (passes[0].configure) passes[0].configure({ setViewport() {} }, 0);
+    return passes[0].selections.length;
+  }
+}
 
 function segment(...intents)
 {
@@ -27,32 +105,19 @@ function setup(options = {})
     finish() { calls.push([ "finish" ]); return commandBuffer; }
   };
 
-  const webgpu = {
-    GetDevice: () => ({
-      createCommandEncoder(descriptor) { calls.push([ "createCommandEncoder", descriptor.label ]); return commandEncoder; }
-    }),
-    Submit(buffers) { calls.push([ "submit", buffers ]); }
-  };
-
-  const frame = { generation: 1, colorView: "color", resolveView: null, depthView: "depth" };
-  const renderTarget = {
-    AcquireFrame() { calls.push([ "acquire" ]); return frame; },
-    CreateRenderPassDescriptor(acquired, descriptorOptions)
+  const device = {
+    createShaderModule() {},
+    createCommandEncoder(descriptor)
     {
-      calls.push([ "descriptor", acquired === frame, descriptorOptions ]);
-      return { label: descriptorOptions.label, colorAttachments: [ { view: acquired.colorView } ] };
-    },
-    ApplyViewport(pass, viewportOptions) { calls.push([ "viewport", viewportOptions?.viewport ?? null ]); }
-  };
-
-  const passEncoder = {
-    Encode(encoder, passes)
-    {
-      calls.push([ "encode", passes[0].descriptor.label, passes[0].selections ]);
-      passes[0].configure?.({ setViewport() {} }, 0);
-      return passes[0].selections.length;
+      calls.push([ "createCommandEncoder", descriptor.label ]);
+      return commandEncoder;
     }
   };
+  const webgpu = new TestDevice(device, calls);
+
+  const frame = { generation: 1, colorView: "color", resolveView: null, depthView: "depth" };
+  const renderTarget = new TestRenderTarget(webgpu, calls, frame);
+  const passEncoder = new RecordingPassEncoder(webgpu, calls);
 
   const executor = new CjsWebgpuFrameExecutor(webgpu, {
     renderTarget,
@@ -63,7 +128,7 @@ function setup(options = {})
     ExecuteRegion: options.ExecuteRegion
   });
 
-  return { calls, commandBuffer, executor, frame, renderTarget };
+  return { calls, commandBuffer, executor, frame, passEncoder, renderTarget, webgpu };
 }
 
 test("CjsWebgpuFrameExecutor encodes one frame into one encoder and submits once", () =>
@@ -174,16 +239,14 @@ test("CjsWebgpuFrameExecutor lets a caller own the descriptor for offscreen targ
 
 test("CjsWebgpuFrameExecutor validates what it was composed with", () =>
 {
-  const { renderTarget } = setup();
-  const passEncoder = { Encode() {} };
-  const webgpu = { GetDevice: () => ({}), Submit() {} };
+  const { passEncoder, renderTarget, webgpu } = setup();
 
-  assert.throws(() => new CjsWebgpuFrameExecutor({}, { renderTarget, passEncoder, ResolveSelections: () => [] }), /GetDevice/);
-  assert.throws(() => new CjsWebgpuFrameExecutor(webgpu, { passEncoder, ResolveSelections: () => [] }), /render target requires/);
-  assert.throws(() => new CjsWebgpuFrameExecutor(webgpu, { renderTarget, ResolveSelections: () => [] }), /pass encoder requires Encode/);
+  assert.throws(() => new CjsWebgpuFrameExecutor({}, { renderTarget, passEncoder, ResolveSelections: () => [] }), /CjsWebgpuDevice/);
+  assert.throws(() => new CjsWebgpuFrameExecutor(webgpu, { renderTarget: {}, passEncoder, ResolveSelections: () => [] }), /CjsWebgpuRenderTarget/);
+  assert.throws(() => new CjsWebgpuFrameExecutor(webgpu, { renderTarget, passEncoder: {}, ResolveSelections: () => [] }), /CjsWebgpuTrinityPassEncoder/);
   assert.throws(() => new CjsWebgpuFrameExecutor(webgpu, { renderTarget, passEncoder }), /ResolveSelections is required/);
 
   const executor = new CjsWebgpuFrameExecutor(webgpu, { renderTarget, passEncoder, ResolveSelections: () => [] });
   assert.throws(() => executor.ExecuteFrame(null), /frame plan with regions/);
-  assert.throws(() => executor.ExecuteFrame({ regions: [] }), /createCommandEncoder is required/);
+  assert.deepEqual(executor.ExecuteFrame({ regions: [] }), { encodedRegions: 0, encodedSelections: 0, submitted: false });
 });

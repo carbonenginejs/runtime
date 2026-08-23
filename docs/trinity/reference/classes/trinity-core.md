@@ -762,6 +762,46 @@ The default variable wrapper: a name, a value and an inferred type tag, able to 
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsTrinityBatchDispatcher -->
+## `CjsTrinityBatchDispatcher`
+
+Minimum renderer contract for a finalized Trinity batch map.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/batch/CjsTrinityBatchDispatcher.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsTrinityBatchResolver -->
+## `CjsTrinityBatchResolver`
+
+Nominal composition boundary that resolves Trinity CPU batch references for a concrete renderer.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/batch/CjsTrinityBatchResolver.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsDirectTrinityStepExecutor -->
+## `CjsDirectTrinityStepExecutor`
+
+Direct GPU-free executor used whenever no engine recorder is installed.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/context/CjsDirectTrinityStepExecutor.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsTrinityStepExecutor -->
+## `CjsTrinityStepExecutor`
+
+Nominal renderer contract driven by Trinity render contexts and jobs.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/context/CjsTrinityStepExecutor.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsVariableStore -->
 ## `CjsVariableStore`
 

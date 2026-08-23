@@ -2,48 +2,48 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  Tr2EffectConstant,
+  Tr2EffectDescription,
+  Tr2EffectStageInput,
+  Tr2EffectTechnique,
+  Tr2Pass,
+  Tr2Shader
+} from "../../../npm/dist/resource/shader/index.js";
+import {
   MaterialLayoutFromShader,
   NormalizeMaterialLayout,
   PackMaterialConstants
-} from "#engine/webgpu/core/materialConstants";
+} from "../../../npm/dist/engine/webgpu/core/materialConstants.js";
 
-// A Tr2Shader-shaped stand-in. The engine declares no runtime dependencies and
-// cannot import the real one, which is exactly why the seam is duck-typed:
-// anything with this shape works, and runtime-resource's Tr2Shader has it.
+// A canonical resource reflection graph with compact test-owned values.
 function fakeShader(options = {})
 {
-  const constants = options.constants ?? [
+  const constants = (options.constants ?? [
     { name: "Mtl1DiffuseColor", offset: 0, size: 16, type: 0, dimension: 4, elements: 0 },
     { name: "Mtl1FresnelColor", offset: 16, size: 16, type: 0, dimension: 4, elements: 0 }
-  ];
+  ]).map(value => Object.assign(new Tr2EffectConstant(), value));
 
-  const stageInputs = new Array(6).fill(null).map((value, stageType) => ({
-    stageType,
-    exists: false,
-    constants: [],
-    constantValues: null
-  }));
+  const stageInputs = new Array(6).fill(null).map((_value, stageType) => Object.assign(
+    new Tr2EffectStageInput(),
+    { stageType, exists: false, constants: [], constantValues: new Uint8Array(0) }
+  ));
 
-  stageInputs[options.stage ?? 1] = {
+  stageInputs[options.stage ?? 1] = Object.assign(new Tr2EffectStageInput(), {
     stageType: options.stage ?? 1,
     exists: true,
     constants,
-    constantValues: options.defaults ?? null,
+    constantValues: options.defaults ?? new Uint8Array(0),
     // The authored default blob's length. Deliberately NOT the buffer size.
-    constantValueSize: options.defaults?.byteLength ?? 0,
-    // The real Tr2EffectStageInput owns this arithmetic, so the engine asks
-    // rather than recomputing and the stand-in has to answer it too.
-    GetConstantBufferSize()
-    {
-      const extent = constants.reduce((size, constant) => Math.max(size, constant.offset + constant.size), 0);
-      return Math.max(extent, options.defaults?.byteLength ?? 0);
-    }
-  };
+    constantValueSize: options.defaults?.byteLength ?? 0
+  });
 
-  return {
-    GetTechniqueIndex: (name) => (name === (options.technique ?? "Main") ? 0 : -1),
-    GetEffect: () => ({ techniques: [ { passes: [ { stageInputs } ] } ] })
-  };
+  const pass = Object.assign(new Tr2Pass(), { stageInputs });
+  const technique = Object.assign(new Tr2EffectTechnique(), {
+    name: options.technique ?? "Main",
+    passes: [ pass ]
+  });
+  const effect = Object.assign(new Tr2EffectDescription(), { techniques: [ technique ] });
+  return Object.assign(new Tr2Shader(), { effect });
 }
 
 test("MaterialLayoutFromShader reads the pass's stage inputs", () =>
@@ -76,7 +76,7 @@ test("MaterialLayoutFromShader refuses a stage or technique that is not there", 
   // stageInputs is a fixed six-slot array with absent stages present but empty,
   // so a missing stage is a populated object with exists === false.
   assert.throws(() => MaterialLayoutFromShader(fakeShader({ stage: 1 }), { stage: 0 }), /no stage 0/);
-  assert.throws(() => MaterialLayoutFromShader({}), /Tr2Shader-shaped/);
+  assert.throws(() => MaterialLayoutFromShader({}), /Tr2Shader reflection/);
   assert.throws(() => MaterialLayoutFromShader(fakeShader({ constants: [] })), /declares no constants/);
 });
 

@@ -1,115 +1,78 @@
 # Writing an engine adapter
 
 Status: Stable
-Scope: `@carbonenginejs/runtime/resource`, addressed to engine packages
-Audience: Anyone building `engine-webgl`, a second WebGPU engine, or any package that realizes CPU payloads into backend objects
-Summary: The coupling rules, the reflection/topology seam, and the two mistakes `engine-webgpu` already made that a second engine must not repeat.
+Scope: `@carbonenginejs/runtime/resource`, `@carbonenginejs/runtime/trinity`, and `@carbonenginejs/runtime/engine/*`
+Audience: Anyone adding or extending a renderer engine
+Summary: Defines dependency direction, nominal runtime contracts, resource realization, and reflection ownership for renderer engines.
 
-## Read this before writing a second engine
+## Dependency direction
 
-`engine-webgpu` is currently the only engine package. Most of its shape is right
-and worth copying. Two things are not, and both are easier to avoid than to undo.
-This document exists because the second engine is being written after the first
-one's mistakes were diagnosed but before they were fixed.
+An engine is a leaf renderer inside the combined runtime. It may import the
+GPU-free resource and Trinity classes it consumes, plus shared contracts from
+`@carbonenginejs/runtime/contracts`. It must not import `core`, because core is the composition
+root that selects engines and wires the application.
 
-## The coupling rule
+Use the identities we own:
 
-**Engine packages take functions and duck-typed objects. They do not import the
-layers above or beside them.**
+- resources presented for realization are `CjsResource` instances;
+- constant-buffer uploads are `CjsConstantPayload` instances;
+- effect reflection comes from `Tr2Shader` and its owned reflection classes;
+- render batches, accumulators, and batch maps use their Trinity classes;
+- injected material and geometry resolution extends the Trinity resolver base;
+- backend selection candidates extend `CjsBackendCandidate`.
 
-`engine-webgpu` declares this as a non-goal and holds it: no dependency on
-the `core`, `resource`, or `trinity` layers. Three existing seams
-show the pattern, and a new engine should reach for one of them rather than
-inventing a fourth:
+Validate those identities once when composing or accepting a public operation,
+then call required methods directly. A required base method throws until a
+concrete engine implements it. Repeated `typeof value.Method === "function"`
+checks and optional calls are not compatibility features for contracts owned by
+this runtime; they hide incomplete composition and add work to hot paths.
 
-| seam | shape |
+Structural checks remain correct at boundaries we do not own, such as WebGPU
+browser objects, host callbacks, decoded plain records, and caller-authored
+WebGPU descriptors.
+
+## Resource realization
+
+The resource layer owns identity, caching, CPU payload lifetime, format
+selection, and adapter-resource publication. The engine owns native GPU
+allocation and destruction.
+
+An engine realization method accepts a canonical `CjsResource`, reads its CPU
+payload, creates a complete backend candidate, checks that the resource is still
+current, and publishes the candidate with `SetAdapterResource`. It does not
+recreate a resource-shaped method bag or a second lifecycle state machine.
+
+Long-lived update queues remain resource-owned. For example, a texture-array
+resource owns its requested revision and the engine consumes and commits that
+revision. This preserves one lifecycle while keeping GPU calls in the engine.
+
+## Reflection and topology
+
+Carbon reflection belongs to `Tr2Shader`. Backend binding topology belongs to
+the lowered backend package:
+
+| Ask `Tr2Shader` | Ask the backend package |
 |---|---|
-| `CjsWebGPUPackage.fromBytes(bytes, { read })` | the format reader arrives as a **function** |
-| `CjsWebGPUTrinityBatchDispatcher(hooks)` | `ResolveMaterial` / `ResolveBindings` arrive as **hooks**; the batch is duck-typed on the `Tr2RenderBatch` shape |
-| `CjsTextureArrayRes` | the engine calls `ConsumeUpdateRequest()`, prepares a candidate, then `CommitPreparedAdapterRevision()` — **the resource layer owns the state machine and never holds engine code** |
+| constant name, offset, and size | bind group and binding |
+| resource type and `isSRGB` | generated symbol and resource kind |
+| parameter annotations | register index and register space |
+| effect description and stages | backend view dimension and visibility |
 
-The third is the most instructive. Realization is not a callback the resource
-layer fires into the engine; it is a request the engine consumes and a commit it
-returns. The engine drives its own frame, which is what an engine must do, while
-the resource layer keeps the queue, the revisions, and the failure handling.
+Do not read Carbon constant reflection from a format-package record. Do not
+reimplement effect permutation selection in an engine; resource-owned effects
+already select and cache permutations. Pipeline and bind-group creation remain
+engine work.
 
-## What the resource layer owns
+A format reader may still be injected into a one-shot package decoder. That is
+a data-acquisition seam, not permission to make runtime objects structural.
 
-Resource identity, the cache, CPU payload lifecycle, format selection, the
-load/publication queues, and **permutation selection**. It stops at a published
-CPU payload; it hands out objects and accepts commits.
+## Checklist
 
-It is GPU-free and stays that way. It does not define GPU-shaped interfaces for
-engines to implement, which is precisely why the consume/commit shape is used
-instead of an injected realizer.
-
-## The seam: reflection from the shader, topology from the package
-
-This is the distinction the first engine got wrong.
-
-**Carbon reflection belongs to `Tr2Shader`.** One file yields many shaders, one
-shader is one permutation, and many effects share them — see
-[shader-resource-model.md](shader-resource-model.md). The surface is
-`GetConstant(name)`, `GetResource(name)`, `GetParameterAnnotations(parameterName)`,
-`GetEffectDescription()` and `iterateStages()`, reachable through
-`Tr2EffectRes.DoLoad(bytes)` -> `Tr2Shader.fromCarbonBinary(reader, index)`.
-
-**Backend binding topology belongs to the package**, because it has no Carbon
-counterpart — it comes from the lowered IR, not from Carbon's D3D-era reflection.
-
-| ask the shader | ask the package |
-|---|---|
-| `constants[].{name, offset, size}` | `group`, `binding`, `visibility` |
-| resource `type`, `isSRGB` | `generatedSymbol`, `resourceKind` |
-| annotations | `registerIndex`, `registerSpace` |
-| the parameter's name | `viewDimension` |
-
-If you find yourself wanting *richer package reflection*, you are on the wrong
-side of this table. The data you want is on the shader, and it is there because
-Carbon put it there.
-
-## The two mistakes not to copy
-
-### 1. Do not read format-package records for Carbon reflection
-
-`engine-webgpu/src/core/packageHelpers.js` and
-`src/core/spaceObjectMainBindings.js` read `metadataName`, `heapView`,
-`carbon.type`, `carbon.isSRGB` and `carbon.constants[].{name, offset, size}`
-directly out of the format package, to pack real material uniform bytes. Twelve
-lines, two files, and a known layering defect: engine code must consume the
-resource-owned `Tr2Shader` reflection graph rather than make format-package
-records its material API.
-
-It is deferred rather than fixed because nothing can use that path until the
-shader work lands, so the break is theoretical. That is a reason not to rush it,
-not a reason to reproduce it.
-
-### 2. Do not reimplement permutation selection
-
-`Tr2EffectRes` already keeps a permutation-index-keyed shader cache and resolves
-options through it — Carbon's own mechanism, and ours matches. An engine that
-grows its own index-keyed resolution is writing a second copy of a tested thing.
-
-Building pipelines, bind groups and GPU objects is **not** duplication; that is
-the engine's whole job. The line falls exactly where the table above falls.
-
-## The core layer is optional
-
-The `core` layer wires named services by default — `RegisterResourceBehavior`
-registers "a structural request policy without importing its owner", and the
-resource manager, space-object factory and audio manager register the same way.
-It is a convenience wrapper, not a dependency.
-
-Every hook it registers can be passed by hand. An engine that only works when
-the `core` layer is present has taken a dependency through the back door.
-
-## Checklist for a new engine package
-
-- no imports of the `core` layer, or upward imports from `resource` or `trinity`
-- readers, material resolvers and batch shapes arrive injected or duck-typed
-- Carbon reflection is read from a shader object handed in, never from format
-  records
-- permutation selection is asked for, never reimplemented
-- long-lived state machines and queues stay in the resource layer; the engine
-  consumes requests and commits results
-- the engine works with the `core` layer absent
+- the engine imports only downward layers and never `core`;
+- every runtime-owned contract has one nominal base or canonical class;
+- required base methods throw and concrete engine methods are called directly;
+- structural validation is limited to external APIs and plain boundary data;
+- resource lifecycle and effect selection stay in their owning layers;
+- shader reflection comes from `Tr2Shader`;
+- backend topology and native objects remain engine-owned;
+- importing the engine subpath does not load `core` or another engine.

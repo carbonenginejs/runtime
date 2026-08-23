@@ -25,6 +25,16 @@ Engine-owned WebGPU device boundary.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsWebgpuBackendCandidate -->
+## `CjsWebgpuBackendCandidate`
+
+WebGPU participant in runtime backend selection.
+
+- Export: `@carbonenginejs/runtime/engine/webgpu`
+- Source: `src/engine/webgpu/CjsWebgpuBackendCandidate.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsWebgpuPipeline -->
 ## `CjsWebgpuPipeline`
 
@@ -138,7 +148,7 @@ Owns the presentation surface, depth and multisample attachments, pass descripto
 <!-- class:CjsWebgpuTrinityBatchDispatcher -->
 ## `CjsWebgpuTrinityBatchDispatcher`
 
-Internal conformance adapter from duck-typed Trinity batch maps to WebGPU draws.
+Engine-side adapter for canonical Trinity render batches.
 
 - Export: Not exported
 - Source: `src/engine/webgpu/core/trinityBatchDispatcher.js`
@@ -148,7 +158,7 @@ Internal conformance adapter from duck-typed Trinity batch maps to WebGPU draws.
 <!-- class:CjsWebgpuTrinityStepRecorder -->
 ## `CjsWebgpuTrinityStepRecorder`
 
-Internal ordered recorder for duck-typed Trinity render-step intents.
+Internal synchronous recorder for the nominal Trinity step-executor contract.
 
 - Export: Not exported
 - Source: `src/engine/webgpu/core/trinityStepRecorder.js`

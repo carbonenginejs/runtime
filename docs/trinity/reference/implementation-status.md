@@ -25,7 +25,7 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 173 explicit methods across 57 classes; and
+- 174 explicit methods across 58 classes; and
 - one unknown property, the transient `EveModularObjectModifier.object`
   member in generated intake.
 
@@ -73,11 +73,10 @@ and deliberately opaque native structs. It does not treat an `I*` identity as
 an acceptable duck type merely because JavaScript could call it structurally.
 
 The current source reports 42 references across 26 missing concrete model
-identities and 348 references across 62 nominal contract identities. Several
-contracts belong to donor layers that have not yet moved into the combined
-runtime, including audio and character-facing identities. Resolve each at its
-lowest owning layer, make organization-owned implementations extend that base,
-and call required methods directly. Opaque `@type.rawStruct` identities remain
+identities and 348 references across 62 nominal contract identities. Resolve
+each organization-owned contract at its lowest owning layer, make concrete
+implementations extend that base, validate identities at composition, and call
+required methods directly. Opaque `@type.rawStruct` identities remain
 informational because they describe native layouts rather than runtime classes.
 
 ## Controller compatibility proof
@@ -111,11 +110,11 @@ parity gate rather than incidental test behavior.
   suballocation bases are read from the geometry resource's allocations and are
   zero until an engine writes them, which is the correct answer for a backend
   that gives each mesh its own buffers rather than pooling.
-- The frame body is ordered by `CjsFrameDriver`. Current split-package code
-  still carries transitional injected hooks; combined-runtime cutover replaces
-  required hooks with nominal executors that are validated once and called
-  directly. Presentation is not part of the frame: the previous frame is
-  presented at the top of the next tick, and the tick is engine-owned.
+- The frame body is ordered by `CjsFrameDriver`, whose lifecycle hook bag
+  remains transitional until the class moves to core. That migration will add
+  the exact lifecycle, render-context, and render-job composition identities.
+  Presentation is not part of the frame: the previous frame is presented at
+  the top of the next tick, and the tick is engine-owned.
 - Vertex-declaration matching is resolved once, by semantic and index, into a
   binding plan engines consume. A shader input the mesh cannot supply is
   reported rather than resolved, because the two references legitimately differ

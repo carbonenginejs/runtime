@@ -27,6 +27,7 @@ import test from "node:test";
 
 import { Tr2Effect } from "../../../npm/dist/trinity/shader/index.js";
 import {
+  CjsTrinityBatchResolver,
   Tr2RenderBatch,
   TriRenderBatchAccumulator,
   TriRenderBatchMap
@@ -35,21 +36,23 @@ import {
 // packages in trinity 0.11.0, alongside `trinityCore` becoming `core`.
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 
-import { CjsWebgpuPackage } from "#engine/webgpu";
-import { CjsWebgpuTrinityBatchDispatcher } from "#engine/webgpu/core/trinityBatchDispatcher";
+import {
+  CjsWebgpuDevice,
+  CjsWebgpuPackage
+} from "../../../npm/dist/engine/webgpu/index.js";
+import { CjsWebgpuTrinityBatchDispatcher } from "../../../npm/dist/engine/webgpu/internal.js";
+import { Tr2EffectRes, Tr2Shader } from "../../../npm/dist/resource/shader/index.js";
 import { buildSelectedPackage, corpusSkipReason, manifestFixture } from "./support/effectPackages.js";
 
 const TRIANGLE_LIST = 4;
+const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
 
 const SKIP = corpusSkipReason();
 
 async function readerModules()
 {
-  const [ shader, webgpu ] = await Promise.all([
-    import("../../../npm/dist/resource/shader/index.js"),
-    import("../../../npm/dist/resource/formats/webgpu/index.js")
-  ]);
-  return { Tr2EffectRes: shader.Tr2EffectRes, CjsWebgpuFormat: webgpu.CjsWebgpuFormat };
+  const webgpu = await import("../../../npm/dist/resource/formats/webgpu/index.js");
+  return { CjsWebgpuFormat: webgpu.CjsWebgpuFormat };
 }
 
 function canonicalPackage()
@@ -111,19 +114,27 @@ function canonicalPackage()
   });
 }
 
-// The seam is Tr2Effect.RebuildCachedDataInternal, which duck-types the assigned
-// resource: GetShader(options), then getShader(options), then .shader. Nothing
-// requires a Tr2EffectRes class - there isn't one in runtime-trinity - so a
-// package-carrying resource satisfies it directly.
+// The test-only resource retains the canonical Trinity identities while mapping
+// the selected shader to the engine package built from the same artifact. The
+// engine projection is deliberately not substituted for Tr2Shader.
+class PackageEffectResource extends Tr2EffectRes
+{
+  constructor(pkg)
+  {
+    super();
+    this.package = pkg;
+    this.shader = new Tr2Shader();
+  }
+
+  GetShader()
+  {
+    return this.shader;
+  }
+}
+
 function effectResourceFor(pkg)
 {
-  return {
-    package: pkg,
-    GetShader()
-    {
-      return pkg;
-    }
-  };
+  return new PackageEffectResource(pkg);
 }
 
 function opaqueBatchFor(effect, geometry)
@@ -138,36 +149,73 @@ function opaqueBatchFor(effect, geometry)
   return batch;
 }
 
+class TestWebgpuDevice extends CjsWebgpuDevice
+{
+  constructor(calls)
+  {
+    super({
+      device: { createShaderModule() {}, lost: new Promise(() => {}) },
+      shaderStage: SHADER_STAGE
+    });
+    this.calls = calls;
+  }
+
+  async PreparePipeline(pipeline, prepareOptions)
+  {
+    this.calls.push([ "PreparePipeline", pipeline, prepareOptions ]);
+    return { pipeline, diagnostics: [] };
+  }
+
+  async CreateRenderPipeline(prepared, recipe)
+  {
+    this.calls.push([ "CreateRenderPipeline", prepared, recipe ]);
+    return { prepared, recipe };
+  }
+
+  CreateBindingSet()
+  {
+    return { Destroy() {} };
+  }
+
+  CreateDraw(livePipeline, values)
+  {
+    return { livePipeline, values };
+  }
+
+  EncodeDraw(pass, draw)
+  {
+    this.calls.push([ "EncodeDraw", pass, draw ]);
+  }
+}
+
+class TestResolver extends CjsTrinityBatchResolver
+{
+  constructor(callbacks)
+  {
+    super();
+    this.callbacks = callbacks;
+  }
+
+  ResolveMaterial(material, batch, context)
+  {
+    return this.callbacks.ResolveMaterial(material, batch, context);
+  }
+
+  ResolveGeometry(geometrySource, batch, context)
+  {
+    return this.callbacks.ResolveGeometry(geometrySource, batch, context);
+  }
+
+  ResolveBindings(batch, objectData, context)
+  {
+    return this.callbacks.ResolveBindings(batch, objectData, context);
+  }
+}
+
 function boundary()
 {
   const calls = [];
-  return {
-    calls,
-    webgpu: {
-      async PreparePipeline(pipeline, prepareOptions)
-      {
-        calls.push([ "PreparePipeline", pipeline, prepareOptions ]);
-        return { pipeline, diagnostics: [] };
-      },
-      async CreateRenderPipeline(prepared, recipe)
-      {
-        calls.push([ "CreateRenderPipeline", prepared, recipe ]);
-        return { prepared, recipe };
-      },
-      CreateBindingSet()
-      {
-        return { Destroy() {} };
-      },
-      CreateDraw(livePipeline, values)
-      {
-        return { livePipeline, values };
-      },
-      EncodeDraw(pass, draw)
-      {
-        calls.push([ "EncodeDraw", pass, draw ]);
-      }
-    }
-  };
+  return { calls, webgpu: new TestWebgpuDevice(calls) };
 }
 
 test("a real Tr2Effect resolves the package pipeline the fixture hook returns", () =>
@@ -186,7 +234,7 @@ test("a real Tr2Effect resolves the package pipeline the fixture hook returns", 
   const resource = effect.GetEffectRes();
   assert.ok(resource, "GetEffectRes must return the assigned resource");
   assert.equal(resource.package, pkg);
-  assert.equal(effect.shader, pkg, "the duck-typed GetShader must resolve the package");
+  assert.ok(effect.shader instanceof Tr2Shader, "the effect resolves a canonical Tr2Shader");
 
   const throughChain = effect.GetEffectRes().package.GetPipeline("Main", 0);
   assert.deepEqual(
@@ -249,7 +297,7 @@ test("the engine dispatcher reaches the package pipeline through a real batch ma
 
   const { calls, webgpu } = boundary();
   const resolvedMaterials = [];
-  const dispatcher = new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+  const dispatcher = new CjsWebgpuTrinityBatchDispatcher(webgpu, new TestResolver({
     // The same traversal the fixture hook performs today, except the material is
     // a real Tr2Effect instead of a package record.
     async ResolveMaterial(material, dispatched)
@@ -276,7 +324,7 @@ test("the engine dispatcher reaches the package pipeline through a real batch ma
     {
       return { uniformData: new Map(), resources: new Map() };
     }
-  });
+  }));
 
   const handle = await dispatcher.PrepareBatchMap(map);
   dispatcher.EncodeBatchType({ id: "pass" }, handle, TriBatchType.TRIBATCHTYPE_OPAQUE);
@@ -302,7 +350,7 @@ test("the engine dispatcher reaches the package pipeline through a real batch ma
 // there is no reader object to hand over and no method to duck-type off one.
 test("a real Tr2EffectRes resolves a shader from real container bytes", { skip: SKIP }, async () =>
 {
-  const { Tr2EffectRes, CjsWebgpuFormat } = await readerModules();
+  const { CjsWebgpuFormat } = await readerModules();
   const fixture = await manifestFixture("quadv5-ppt-main");
   const { bytes, source } = await buildSelectedPackage(CjsWebgpuFormat, fixture, "dx11");
 
@@ -315,8 +363,8 @@ test("a real Tr2EffectRes resolves a shader from real container bytes", { skip: 
 
   assert.equal(effect.GetEffectRes(), resource);
   assert.ok(effect.shader, "the effect must resolve a shader through Tr2EffectRes");
-  assert.equal(effect.shader.constructor.name, "Tr2Shader");
-  assert.equal(resource.GetShader([]).constructor.name, "Tr2Shader");
+  assert.ok(effect.shader instanceof Tr2Shader);
+  assert.ok(resource.GetShader([]) instanceof Tr2Shader);
 
   // One file, one read. The engine builds its own view from the same bytes for
   // binding; that view is a lossy derived projection, not a second artifact the

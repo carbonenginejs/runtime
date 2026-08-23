@@ -28,6 +28,8 @@
 // been uploaded". Filling a reused arena record on a later frame marks it dirty
 // again, so it cannot be skipped merely because an earlier lease was committed.
 
+import { CjsConstantPayload } from "#contracts";
+
 function fail(message)
 {
   const error = new Error(`CjsWebgpuPerObjectUploader: ${message}`);
@@ -39,10 +41,8 @@ function fail(message)
 /**
  * Collects the payloads that need uploading into one `uniformData` record.
  *
- * `pairs` is `[{ identity, payload }]`. During the pre-consolidation transition
- * this function still accepts the historical RawData-shaped payload and treats
- * a payload with no dirty protocol as always dirty. The combined runtime makes
- * `CjsConstantPayload` the required nominal identity and removes this fallback.
+ * `pairs` is `[{ identity, payload }]`, where every payload is a canonical
+ * `CjsConstantPayload` implementation.
  *
  * `force` uploads everything regardless, which is what a freshly created
  * binding set needs: its buffers hold nothing yet, so a clean payload is still
@@ -63,12 +63,11 @@ export function CollectPerObjectUploads(pairs, options = {})
     const payload = pair?.payload;
 
     if (typeof identity !== "string" || !identity) fail("every pair requires a binding identity");
-    if (typeof payload?.GetData !== "function") fail(`payload for ${identity} exposes no GetData`);
+    if (!(payload instanceof CjsConstantPayload)) fail(`payload for ${identity} is not a CjsConstantPayload`);
     if (seen.has(identity)) fail(`binding identity ${identity} is uploaded twice in one collection`);
     seen.add(identity);
 
-    const dirty = typeof payload.IsDirty === "function" ? payload.IsDirty() === true : true;
-    if (!force && !dirty) continue;
+    if (!force && payload.IsDirty() !== true) continue;
 
     const data = payload.GetData();
     if (!ArrayBuffer.isView(data)) fail(`payload for ${identity} did not return a typed array`);
@@ -90,16 +89,14 @@ export function CollectPerObjectUploads(pairs, options = {})
 /**
  * Marks collected payloads as uploaded.
  *
- * Call only after the write succeeded. The optional call is retained only for
- * the pre-consolidation structural compatibility path; the combined runtime's
- * nominal constant-payload contract requires `ClearDirty`.
+ * Call only after the write succeeded.
  */
 export function CommitPerObjectUploads(collection)
 {
   const pending = collection?.pending;
   if (!Array.isArray(pending)) fail("a collection from CollectPerObjectUploads is required");
 
-  for (const payload of pending) payload.ClearDirty?.();
+  for (const payload of pending) payload.ClearDirty();
 
   return pending.length;
 }

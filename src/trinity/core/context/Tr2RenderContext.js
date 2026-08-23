@@ -20,8 +20,14 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
+import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
 import { CjsShadowMapExecutor } from "./CjsShadowMapExecutor.js";
+import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
 import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
+import { Tr2RenderBatch } from "../batch/Tr2RenderBatch.js";
+import { Tr2Shader } from "#resource/shader";
+
+const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
 @type.define({ className: "Tr2RenderContext", family: "trinityCore" })
@@ -33,7 +39,7 @@ export class Tr2RenderContext extends CjsModel
 
   #diagnostics = [];
 
-  #stepExecutor = null;
+  #stepExecutor = DIRECT_STEP_EXECUTOR;
 
   #shadowMapExecutor = null;
 
@@ -118,16 +124,14 @@ export class Tr2RenderContext extends CjsModel
     TA_MIRROR_ONCE: 5
   });
 
-  // PRE-CONSOLIDATION TRANSITION: this nullable executor and the guarded
-  // fallbacks below describe the current recording shell, not the accepted
-  // contract. The combined runtime installs a nominal Trinity executor once;
-  // required BeginStep/ExecuteStep/EndStep and scene brackets are then direct
-  // calls and missing implementations fail loudly.
-
-  /** Installs the current transition executor; null restores step dispatch. */
+  /** Installs a nominal step executor; null restores direct step execution. */
   SetStepExecutor(executor)
   {
-    this.#stepExecutor = executor ?? null;
+    if (executor !== null && !(executor instanceof CjsTrinityStepExecutor))
+    {
+      throw new TypeError("Tr2RenderContext.SetStepExecutor expects a CjsTrinityStepExecutor or null.");
+    }
+    this.#stepExecutor = executor ?? DIRECT_STEP_EXECUTOR;
     return this;
   }
 
@@ -181,42 +185,39 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Delegates to the installed step executor when it implements BeginStep,
-   * otherwise calls the step's own BeginExecute.
+   * Delegates step setup to the installed nominal executor.
    */
   BeginStep(step, realTime, simTime, job)
   {
-    if (this.#stepExecutor?.BeginStep)
-    {
-      return this.#stepExecutor.BeginStep(step, realTime, simTime, job, this);
-    }
-    return step?.BeginExecute?.(this);
+    return this.#stepExecutor.BeginStep(step, realTime, simTime, job, this);
   }
 
   /**
-   * Delegates to the installed step executor when it implements ExecuteStep,
-   * otherwise calls the step's own Execute with the frame times.
+   * Delegates step execution to the installed nominal executor.
    */
   ExecuteStep(step, realTime, simTime, job)
   {
-    if (this.#stepExecutor?.ExecuteStep)
-    {
-      return this.#stepExecutor.ExecuteStep(step, realTime, simTime, job, this);
-    }
-    return step?.Execute?.(realTime, simTime, this);
+    return this.#stepExecutor.ExecuteStep(step, realTime, simTime, job, this);
   }
 
   /**
-   * Delegates to the installed step executor when it implements EndStep,
-   * otherwise calls the step's own EndExecute.
+   * Delegates step teardown to the installed nominal executor.
    */
   EndStep(step, realTime, simTime, job)
   {
-    if (this.#stepExecutor?.EndStep)
-    {
-      return this.#stepExecutor.EndStep(step, realTime, simTime, job, this);
-    }
-    return step?.EndExecute?.(this);
+    return this.#stepExecutor.EndStep(step, realTime, simTime, job, this);
+  }
+
+  /** Opens the render-job batch scope through the installed executor. */
+  BeginBatch(owner)
+  {
+    return this.#stepExecutor.BeginBatch(owner, this);
+  }
+
+  /** Closes the render-job batch scope through the installed executor. */
+  EndBatch(owner)
+  {
+    return this.#stepExecutor.EndBatch(owner, this);
   }
 
   // Carbon Tr2Renderer::GetCurrentFrameCounter (Tr2Renderer.cpp:1088-1091).
@@ -301,7 +302,7 @@ export class Tr2RenderContext extends CjsModel
    */
   BeginRenderContext()
   {
-    this.#stepExecutor?.BeginScene?.(this);
+    this.#stepExecutor.BeginScene(this);
     return this;
   }
 
@@ -337,8 +338,8 @@ export class Tr2RenderContext extends CjsModel
 
   // Carbon clears the pool in Tr2Renderer::EndRenderContext (cpp:1072-1081),
   // BEFORE EndScene, so every transient payload leased during the frame dies at
-  // one point. The frame driver calls this; nothing else may. The current body
-  // is incomplete because it has no matching executor EndScene call.
+  // one point. The frame driver calls this; nothing else may. EndScene is the
+  // required final operation even when resetting the transient pool throws.
 
   /**
    * Rewinds the per-object pool arena at the end of a frame, freeing every
@@ -347,7 +348,14 @@ export class Tr2RenderContext extends CjsModel
    */
   EndRenderContext()
   {
-    this.#poolAllocator?.Reset();
+    try
+    {
+      this.#poolAllocator?.Reset();
+    }
+    finally
+    {
+      this.#stepExecutor.EndScene(this);
+    }
     return this;
   }
 
@@ -1064,18 +1072,26 @@ export class Tr2RenderContext extends CjsModel
     let prevShader = null;
     for (const batch of batches)
     {
-      const shader = batch?.shader;
-      if (!shader || shader === prevShader)
+      if (!(batch instanceof Tr2RenderBatch))
+      {
+        throw new TypeError("Tr2RenderContext.TechniqueInBatch expects Tr2RenderBatch entries.");
+      }
+      const shader = batch.shader;
+      if (shader === null || shader === prevShader)
       {
         continue;
+      }
+      if (!(shader instanceof Tr2Shader))
+      {
+        throw new TypeError("Tr2RenderBatch.shader must be a Tr2Shader or null.");
       }
       prevShader = shader;
-      const technique = shader.GetTechniqueIndex?.(techniqueName);
-      if (technique === undefined || technique === null || technique < 0)
+      const technique = shader.GetTechniqueIndex(techniqueName);
+      if (technique < 0)
       {
         continue;
       }
-      if ((shader.GetPassCount?.(technique) ?? 0) > 0)
+      if (shader.GetPassCount(technique) > 0)
       {
         return true;
       }

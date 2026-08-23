@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EveCustomMask, EveSpaceObject2, Tr2ConstantEffectParameter, Tr2Effect, Tr2Vector4Parameter, createEveSpaceObjectMainPerObjectValues, extractTr2EffectConstantValues } from "../../npm/dist/trinity/index.js";
+import { EveCustomMask, EveSpaceObject2, Tr2ConstantEffectParameter, Tr2Effect, Tr2EffectConstant, Tr2EffectStageInput, Tr2EffectTechnique, Tr2Pass, Tr2Shader, Tr2Vector4Parameter, createEveSpaceObjectMainPerObjectValues, extractTr2EffectConstantValues } from "../../npm/dist/trinity/index.js";
 
 function matrix(first)
 {
@@ -11,6 +11,19 @@ function matrix(first)
 function reflected(name, dimension = 4)
 {
   return { name, type: 0, dimension, elements: 0 };
+}
+
+function shaderWithConstant(value)
+{
+  const stage = new Tr2EffectStageInput();
+  stage.constants = [Object.assign(new Tr2EffectConstant(), value)];
+  const pass = new Tr2Pass();
+  pass.stageInputs = [stage];
+  const technique = new Tr2EffectTechnique();
+  technique.passes = [pass];
+  const shader = new Tr2Shader();
+  shader.effect.techniques = [technique];
+  return shader;
 }
 
 test("Tr2Effect extraction preserves dynamic rerouting, sRGB conversion, and const parameters", () =>
@@ -25,12 +38,10 @@ test("Tr2Effect extraction preserves dynamic rerouting, sRGB conversion, and con
   const srgb = new Tr2Vector4Parameter();
   srgb.name = "Srgb";
   srgb.SetValue([0.5, 0.25, 0.75, 1]);
-  srgb.RebuildEffectHandles({
-    GetConstant(name)
-    {
-      return name === "Srgb" ? { isSRGB: true } : null;
-    }
-  });
+  srgb.RebuildEffectHandles(shaderWithConstant({
+    name: "Srgb",
+    isSRGB: true
+  }));
 
   const fixed = new Tr2ConstantEffectParameter();
   fixed.name = "Fixed";

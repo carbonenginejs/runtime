@@ -16,14 +16,18 @@ import {
   EveSocketParameterVector3,
   EveTransform,
   Tr2Effect,
+  Tr2EffectTechnique,
   Tr2InstancedMesh,
   Tr2MeshArea,
   Tr2ConstantEffectParameter,
   Tr2ParticleDirectForce,
   Tr2ParticleDragForce,
   Tr2ParticleSpring,
+  Tr2Pass,
+  Tr2RenderBatch,
   Tr2RenderContext,
   Tr2SamplerOverride,
+  Tr2Shader,
   Tr2Transform,
   Tr2Vector2Parameter,
   Tr2Vector4Parameter,
@@ -191,11 +195,23 @@ test("Tr2InstancedMesh bounds helpers follow Carbon's shapes", () =>
 
 test("Tr2RenderContext.TechniqueInBatch inspects batch shaders", () =>
 {
-  const shaderWith = { GetTechniqueIndex: () => 0, GetPassCount: () => 2 };
-  const shaderWithout = { GetTechniqueIndex: () => -1, GetPassCount: () => 0 };
-  assert.equal(Tr2RenderContext.TechniqueInBatch([{ shader: shaderWithout }], "Depth"), false);
-  assert.equal(Tr2RenderContext.TechniqueInBatch([{ shader: shaderWithout }, { shader: shaderWith }], "Depth"), true);
+  const shaderWith = new Tr2Shader();
+  const technique = new Tr2EffectTechnique();
+  technique.name = "Depth";
+  technique.passes = [new Tr2Pass(), new Tr2Pass()];
+  shaderWith.effect.techniques = [technique];
+  const shaderWithout = new Tr2Shader();
+  const batchWith = new Tr2RenderBatch();
+  batchWith.shader = shaderWith;
+  const batchWithout = new Tr2RenderBatch();
+  batchWithout.shader = shaderWithout;
+  assert.equal(Tr2RenderContext.TechniqueInBatch([batchWithout], "Depth"), false);
+  assert.equal(Tr2RenderContext.TechniqueInBatch([batchWithout, batchWith], "Depth"), true);
   assert.equal(Tr2RenderContext.TechniqueInBatch([], "Depth"), false);
+  assert.throws(
+    () => Tr2RenderContext.TechniqueInBatch([{ shader: shaderWith }], "Depth"),
+    /expects Tr2RenderBatch entries/u
+  );
 });
 
 test("Tr2RenderContext registers the objectId variable lazily", () =>

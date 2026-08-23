@@ -60,7 +60,11 @@ export class TriRenderJob extends CjsModel
   {
     if (!this.enabled) return TriRenderJob.Status.RJ_DONE;
 
-    const context = executor || Tr2RenderContext.GetDefault();
+    const context = executor ?? Tr2RenderContext.GetDefault();
+    if (!(context instanceof Tr2RenderContext))
+    {
+      throw new TypeError("TriRenderJob.Run expects a Tr2RenderContext.");
+    }
     const snapshot = this.steps.slice();
     if (this.status !== TriRenderJob.Status.RJ_IN_PROGRESS || this.#currentStep >= snapshot.length)
     {
@@ -163,54 +167,47 @@ export class TriRenderJob extends CjsModel
   }
 
   /**
-   * Treats a step as enabled through its IsEnabled method, or when it has none,
-   * through an enabled field that is not false.
+   * Validates the canonical step identity and reads its required enable method.
    */
   static #isStepEnabled(step)
   {
-    return step.IsEnabled?.() ?? step.enabled !== false;
+    if (!(step instanceof TriRenderStep))
+    {
+      throw new TypeError("TriRenderJob steps must extend TriRenderStep.");
+    }
+    return step.IsEnabled();
   }
 
   /**
-   * Gives the executor first refusal on step setup via BeginStep, and otherwise
-   * calls the step's own BeginExecute.
+   * Delegates step setup to the canonical render context.
    */
   static #beginStep(executor, step, realTime, simTime, job)
   {
-    if (executor?.BeginStep) return executor.BeginStep(step, realTime, simTime, job);
-    return step.BeginExecute?.(executor);
+    return executor.BeginStep(step, realTime, simTime, job);
   }
 
   /**
-   * Gives the executor first refusal on step execution via ExecuteStep, and
-   * otherwise calls the step's own Execute; the returned step result decides
-   * whether the job continues.
+   * Delegates step execution to the canonical render context.
    */
   static #executeStep(executor, step, realTime, simTime, job)
   {
-    if (executor?.ExecuteStep) return executor.ExecuteStep(step, realTime, simTime, job);
-    return step.Execute?.(realTime, simTime, executor);
+    return executor.ExecuteStep(step, realTime, simTime, job);
   }
 
   /**
-   * Gives the executor first refusal on step teardown via EndStep, and otherwise
-   * calls the step's own EndExecute; the caller runs this even when execution
-   * threw.
+   * Delegates step teardown to the canonical render context.
    */
   static #endStep(executor, step, realTime, simTime, job)
   {
-    if (executor?.EndStep) return executor.EndStep(step, realTime, simTime, job);
-    return step.EndExecute?.(executor);
+    return executor.EndStep(step, realTime, simTime, job);
   }
 
   /**
-   * Reads a stack depth off the executor, mapping a missing, negative or
-   * non-finite value to 0 so executors that do not track stacks never trip the
-   * guard.
+   * Reads a stack depth from the canonical context and normalizes its value.
    */
   static #stackSize(executor, method)
   {
-    const value = executor?.[method]?.();
+    const value = executor[method]();
     return Number.isFinite(value) && value >= 0 ? Math.trunc(value) : 0;
   }
 
@@ -238,7 +235,6 @@ export class TriRenderJob extends CjsModel
     if (size > baseline) TriRenderJob.#diagnose(executor, "stack-repair", { stack, job, expected: baseline, actual: size });
     while (size > baseline)
     {
-      if (!executor?.[popMethod]) break;
       executor[popMethod]();
       const next = TriRenderJob.#stackSize(executor, sizeMethod);
       if (next >= size) break;
@@ -247,12 +243,11 @@ export class TriRenderJob extends CjsModel
   }
 
   /**
-   * Forwards a typed diagnostic record to the executor when it exposes
-   * AddDiagnostic; Carbon asserts or logs at these same points.
+   * Forwards a typed diagnostic record to the canonical render context.
    */
   static #diagnose(executor, type, detail)
   {
-    executor?.AddDiagnostic?.({ type, ...detail });
+    executor.AddDiagnostic({ type, ...detail });
   }
 
   static TriRenderJobStatus = TriRenderJobStatus;

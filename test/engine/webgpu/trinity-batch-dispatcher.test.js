@@ -1,11 +1,158 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsWebgpuTrinityBatchDispatcher } from "#engine/webgpu/core/trinityBatchDispatcher";
+import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
+import { CjsWebgpuTrinityBatchDispatcher } from "../../../npm/dist/engine/webgpu/internal.js";
+import {
+  CjsTrinityBatchResolver,
+  ITriRenderBatchAccumulator,
+  Tr2RenderBatch,
+  TriRenderBatchMap
+} from "../../../npm/dist/trinity/core/index.js";
+
+
+const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
+
+
+class MockDevice extends CjsWebgpuDevice
+{
+  constructor(options, calls, bindingSets)
+  {
+    super({ device: { createShaderModule() {} }, shaderStage: SHADER_STAGE });
+    this.options = options;
+    this.calls = calls;
+    this.bindingSets = bindingSets;
+  }
+
+  async PreparePipeline(pipeline, prepareOptions)
+  {
+    this.calls.push([ "PreparePipeline", pipeline, prepareOptions ]);
+    return { pipeline, diagnostics: [] };
+  }
+
+  async CreateRenderPipeline(prepared, recipe)
+  {
+    this.calls.push([ "CreateRenderPipeline", prepared, recipe ]);
+    return { prepared, recipe };
+  }
+
+  CreateBindingSet(livePipeline, values)
+  {
+    this.calls.push([ "CreateBindingSet", livePipeline, values ]);
+    const bindingSet = {
+      destroyed: 0,
+      Destroy()
+      {
+        this.destroyed += 1;
+      }
+    };
+    this.bindingSets.push(bindingSet);
+    return bindingSet;
+  }
+
+  CreateDraw(livePipeline, values)
+  {
+    this.calls.push([ "CreateDraw", livePipeline, values ]);
+    if (this.options.rejectDraw || this.options.rejectDrawAt === this.bindingSets.length)
+    {
+      throw new Error("draw rejected");
+    }
+    return { livePipeline, values };
+  }
+
+  EncodeDraw(pass, draw)
+  {
+    this.calls.push([ "EncodeDraw", pass, draw ]);
+  }
+}
+
+
+class TestResolver extends CjsTrinityBatchResolver
+{
+  constructor(indexed = true, observedContexts = null, draw = undefined)
+  {
+    super();
+    this.indexed = indexed;
+    this.observedContexts = observedContexts;
+    this.draw = draw;
+  }
+
+  async ResolveMaterial(material, batch, context)
+  {
+    assert.equal(material, batch.material);
+    this.observedContexts?.push([ "material", context ]);
+    return {
+      pipeline: { key: "Main.pass0" },
+      recipe: {
+        vertex: { buffers: [ { arrayStride: 16, attributes: [] } ] },
+        fragment: { targets: [ { format: "rgba8unorm" } ] },
+        primitive: { cullMode: "none" }
+      }
+    };
+  }
+
+  async ResolveGeometry(source, batch, context)
+  {
+    assert.equal(source, batch.geometrySource);
+    this.observedContexts?.push([ "geometry", context ]);
+    return {
+      geometry: { id: "live-geometry" },
+      indexed: this.indexed,
+      ...(this.draw === undefined ? {} : { draw: this.draw })
+    };
+  }
+
+  async ResolveBindings(batch, objectData, context)
+  {
+    assert.equal(objectData, batch.objectData);
+    assert.equal(objectData.id, "object-data");
+    this.observedContexts?.push([ "bindings", context ]);
+    return {
+      uniformData: new Map([ [ "cb0", new Float32Array(4) ] ]),
+      resources: new Map([ [ "t0", { id: "texture" } ] ])
+    };
+  }
+}
+
+
+class TestAccumulator extends ITriRenderBatchAccumulator
+{
+  constructor(batches, gdprBatches = [])
+  {
+    super();
+    this.batches = batches;
+    this.gdprBatches = gdprBatches;
+  }
+
+  GetGdprBatches() { return this.gdprBatches; }
+  GetBatches() { return this.batches; }
+  GetBatchCount() { return this.batches.length + this.gdprBatches.length; }
+}
+
+
+class TestBatchMap extends TriRenderBatchMap
+{
+  constructor(batchTypes, lookup, count = undefined)
+  {
+    super([]);
+    this.batchTypes = batchTypes;
+    this.lookup = lookup;
+    this.count = count;
+  }
+
+  GetBatchTypes() { return this.batchTypes; }
+  GetAccumulator(batchType) { return this.lookup(batchType); }
+  GetBatchCount()
+  {
+    if (this.count !== undefined) return this.count;
+    return this.batchTypes.reduce((total, batchType) =>
+      total + this.lookup(batchType).GetBatchCount(), 0);
+  }
+}
 
 function indexedBatch(overrides = {})
 {
-  return {
+  return Object.assign(new Tr2RenderBatch(), {
     material: { id: "material" },
     geometrySource: { id: "geometry" },
     objectData: { id: "object-data" },
@@ -16,103 +163,28 @@ function indexedBatch(overrides = {})
     baseVertexLocation: 0xffffffff,
     startInstanceLocation: 1,
     ...overrides
-  };
+  });
 }
 
 function mockBoundary(options = {})
 {
   const calls = [];
   const bindingSets = [];
-  const webgpu = {
-    async PreparePipeline(pipeline, prepareOptions)
-    {
-      calls.push([ "PreparePipeline", pipeline, prepareOptions ]);
-      return { pipeline, diagnostics: [] };
-    },
-    async CreateRenderPipeline(prepared, recipe)
-    {
-      calls.push([ "CreateRenderPipeline", prepared, recipe ]);
-      return { prepared, recipe };
-    },
-    CreateBindingSet(livePipeline, values)
-    {
-      calls.push([ "CreateBindingSet", livePipeline, values ]);
-      const bindingSet = {
-        destroyed: 0,
-        Destroy()
-        {
-          this.destroyed += 1;
-        }
-      };
-      bindingSets.push(bindingSet);
-      return bindingSet;
-    },
-    CreateDraw(livePipeline, values)
-    {
-      calls.push([ "CreateDraw", livePipeline, values ]);
-      if (options.rejectDraw || options.rejectDrawAt === bindingSets.length)
-      {
-        throw new Error("draw rejected");
-      }
-      return { livePipeline, values };
-    },
-    EncodeDraw(pass, draw)
-    {
-      calls.push([ "EncodeDraw", pass, draw ]);
-    }
-  };
+  const webgpu = new MockDevice(options, calls, bindingSets);
   return { bindingSets, calls, webgpu };
 }
 
 function hooks(indexed = true, observedContexts = null, draw = undefined)
 {
-  return {
-    async ResolveMaterial(material, batch, context)
-    {
-      assert.equal(material, batch.material);
-      observedContexts?.push([ "material", context ]);
-      return {
-        pipeline: { key: "Main.pass0" },
-        recipe: {
-          vertex: { buffers: [ { arrayStride: 16, attributes: [] } ] },
-          fragment: { targets: [ { format: "rgba8unorm" } ] },
-          primitive: { cullMode: "none" }
-        }
-      };
-    },
-    async ResolveGeometry(source, batch, context)
-    {
-      assert.equal(source, batch.geometrySource);
-      observedContexts?.push([ "geometry", context ]);
-      return {
-        geometry: { id: "live-geometry" },
-        indexed,
-        ...(draw === undefined ? {} : { draw })
-      };
-    },
-    async ResolveBindings(batch, livePipeline, context)
-    {
-      assert.equal(batch.objectData.id, "object-data");
-      assert.equal(livePipeline.recipe.primitive.topology, "triangle-list");
-      observedContexts?.push([ "bindings", context ]);
-      return {
-        uniformData: new Map([ [ "cb0", new Float32Array(4) ] ]),
-        resources: new Map([ [ "t0", { id: "texture" } ] ])
-      };
-    }
-  };
+  return new TestResolver(indexed, observedContexts, draw);
 }
 
 function accumulator(batches, gdprBatches = [])
 {
-  return {
-    GetGdprBatches: () => gdprBatches,
-    GetBatches: () => batches,
-    GetBatchCount: () => batches.length + gdprBatches.length
-  };
+  return new TestAccumulator(batches, gdprBatches);
 }
 
-test("Trinity batch dispatcher resolves an indexed batch without importing Trinity", async () =>
+test("Trinity batch dispatcher resolves a canonical indexed batch", async () =>
 {
   const { bindingSets, calls, webgpu } = mockBoundary();
   const dispatcher = new CjsWebgpuTrinityBatchDispatcher(webgpu, hooks());
@@ -208,7 +280,14 @@ test("Trinity batch dispatcher fails closed on unsupported or conflicting contra
   const { webgpu } = mockBoundary();
   assert.throws(
     () => new CjsWebgpuTrinityBatchDispatcher(webgpu, {}),
-    /composition hooks require ResolveMaterial/u
+    /CjsTrinityBatchResolver/u
+  );
+  assert.throws(
+    () => new CjsWebgpuTrinityBatchDispatcher({
+      PreparePipeline() {}, CreateRenderPipeline() {}, CreateBindingSet() {},
+      CreateDraw() {}, EncodeDraw() {}
+    }, hooks()),
+    /CjsWebgpuDevice/u
   );
 
   const dispatcher = new CjsWebgpuTrinityBatchDispatcher(webgpu, hooks());
@@ -301,11 +380,11 @@ test("Trinity batch dispatcher snapshots batch maps and leaves pass choice exter
   );
   const opaque = accumulator([ indexedBatch({ material: { id: "opaque" } }) ]);
   const transparent = accumulator([ indexedBatch({ material: { id: "transparent" } }) ]);
-  const batchMap = {
-    GetBatchTypes: () => [ 0, 2 ],
-    GetAccumulator: (batchType) => batchType === 0 ? opaque : transparent,
-    GetBatchCount: () => 2
-  };
+  const batchMap = new TestBatchMap(
+    [ 0, 2 ],
+    (batchType) => batchType === 0 ? opaque : transparent,
+    2
+  );
 
   const prepared = await dispatcher.PrepareBatchMap(batchMap);
   assert.deepEqual(prepared.entries.map((entry) => entry.batchType), [ 0, 2 ]);
@@ -354,21 +433,18 @@ test("Trinity batch dispatcher validates batch-map identity and rolls back all t
   const boundary = mockBoundary();
   const dispatcher = new CjsWebgpuTrinityBatchDispatcher(boundary.webgpu, hooks());
   await assert.rejects(
-    dispatcher.PrepareBatchMap({
-      GetBatchTypes: () => [ 0, 0 ],
-      GetAccumulator: () => accumulator([])
-    }),
+    dispatcher.PrepareBatchMap(new TestBatchMap([ 0, 0 ], () => accumulator([]))),
     /duplicates batch type 0/u
   );
 
   await assert.rejects(
-    dispatcher.PrepareBatchMap({
-      GetBatchTypes: () => [ 0, 2 ],
-      GetAccumulator: (batchType) => batchType === 0
+    dispatcher.PrepareBatchMap(new TestBatchMap(
+      [ 0, 2 ],
+      (batchType) => batchType === 0
         ? accumulator([ indexedBatch() ])
         : accumulator([ indexedBatch({ geometrySource: null }) ]),
-      GetBatchCount: () => 2
-    }),
+      2
+    )),
     /geometrySource is required/u
   );
   assert.deepEqual(boundary.bindingSets.map((entry) => entry.destroyed), [ 1 ]);
@@ -376,12 +452,29 @@ test("Trinity batch dispatcher validates batch-map identity and rolls back all t
   const mismatched = mockBoundary();
   const mismatchedDispatcher = new CjsWebgpuTrinityBatchDispatcher(mismatched.webgpu, hooks());
   await assert.rejects(
-    mismatchedDispatcher.PrepareBatchMap({
-      GetBatchTypes: () => [ 0 ],
-      GetAccumulator: () => accumulator([ indexedBatch() ]),
-      GetBatchCount: () => 2
-    }),
+    mismatchedDispatcher.PrepareBatchMap(new TestBatchMap(
+      [ 0 ],
+      () => accumulator([ indexedBatch() ]),
+      2
+    )),
     /batch map count does not match/u
   );
   assert.deepEqual(mismatched.bindingSets.map((entry) => entry.destroyed), [ 1 ]);
+
+  await assert.rejects(
+    dispatcher.PrepareAccumulator({
+      GetGdprBatches: () => [], GetBatches: () => [], GetBatchCount: () => 0
+    }),
+    /ITriRenderBatchAccumulator/u
+  );
+  await assert.rejects(
+    dispatcher.PrepareBatchMap({
+      GetBatchTypes: () => [], GetAccumulator: () => null, GetBatchCount: () => 0
+    }),
+    /TriRenderBatchMap/u
+  );
+  await assert.rejects(
+    dispatcher.Prepare({ ...indexedBatch() }),
+    /Tr2RenderBatch/u
+  );
 });

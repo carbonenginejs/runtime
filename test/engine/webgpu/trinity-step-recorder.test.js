@@ -1,50 +1,67 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsWebgpuTrinityStepRecorder } from "#engine/webgpu/core/trinityStepRecorder";
+import { CjsWebgpuTrinityStepRecorder } from "../../../npm/dist/engine/webgpu/internal.js";
+import {
+  CjsTrinityStepExecutor,
+  Tr2RenderContext
+} from "../../../npm/dist/trinity/core/index.js";
+import { TriRenderJob, TriRenderStep } from "../../../npm/dist/trinity/renderJob/index.js";
 
-function context()
+
+class TestStep extends TriRenderStep
 {
-  const intents = [];
-  let cursor = 0;
-  return {
-    Emit(intent)
-    {
-      intents.push(intent);
-    },
-    TakeIntents()
-    {
-      const taken = intents.slice(cursor);
-      cursor = intents.length;
-      return taken;
-    }
-  };
+  constructor({ begin = null, execute = () => 0, end = null, id = "" } = {})
+  {
+    super();
+    this.begin = begin;
+    this.execute = execute;
+    this.end = end;
+    this.id = id;
+  }
+
+  BeginExecute(context)
+  {
+    return this.begin ? this.begin(context) : undefined;
+  }
+
+  Execute(realTime, simTime, context)
+  {
+    return this.execute(realTime, simTime, context);
+  }
+
+  EndExecute(context)
+  {
+    return this.end ? this.end(context) : undefined;
+  }
 }
 
 test("Trinity step recorder captures immutable begin, execute, and end segments", () =>
 {
-  const renderContext = context();
+  const renderContext = new Tr2RenderContext();
   const recorder = new CjsWebgpuTrinityStepRecorder();
-  const job = { id: "job" };
+  const job = new TriRenderJob();
   const color = [ 0.25, 0.5, 0.75, 1 ];
   const swapChain = { id: "swap-chain" };
-  const step = {
-    BeginExecute(received)
+  const step = new TestStep({
+    begin(received)
     {
       assert.equal(received, renderContext);
-      received.Emit({ type: "clear", color });
+      received.Clear({ color, clearColor: true });
     },
-    Execute(realTime, simTime, received)
+    execute(realTime, simTime, received)
     {
       assert.deepEqual([ realTime, simTime, received ], [ 1, 2, renderContext ]);
-      received.Emit({ type: "draw", count: 3 });
+      received.RenderObject({ id: "draw" }, { count: 3 });
       return 0;
     },
-    EndExecute(received)
+    end(received)
     {
-      received.Emit({ type: "present", swapChain });
+      received.PresentSwapChain(swapChain);
     }
-  };
+  });
+
+  assert.ok(recorder instanceof CjsTrinityStepExecutor);
 
   recorder.BeginStep(step, 1, 2, job, renderContext);
   assert.equal(recorder.ExecuteStep(step, 1, 2, job, renderContext), 0);
@@ -53,7 +70,7 @@ test("Trinity step recorder captures immutable begin, execute, and end segments"
 
   const segments = recorder.GetSegments();
   assert.deepEqual(segments.map((entry) => entry.phase), [ "begin", "execute", "end" ]);
-  assert.deepEqual(segments.map((entry) => entry.intents[0].type), [ "clear", "draw", "present" ]);
+  assert.deepEqual(segments.map((entry) => entry.intents[0].type), [ "clear", "render-object", "present-swap-chain" ]);
   assert.deepEqual(segments[0].intents[0].color, [ 0.25, 0.5, 0.75, 1 ]);
   assert.equal(Object.isFrozen(segments[0]), true);
   assert.equal(Object.isFrozen(segments[0].intents[0]), true);
@@ -64,39 +81,39 @@ test("Trinity step recorder captures immutable begin, execute, and end segments"
 
 test("Trinity step recorder preserves nested intent order and exactly-once takes", () =>
 {
-  const renderContext = context();
+  const renderContext = new Tr2RenderContext();
   const recorder = new CjsWebgpuTrinityStepRecorder();
-  const parentJob = { id: "parent-job" };
-  const childJob = { id: "child-job" };
-  const child = {
+  const parentJob = new TriRenderJob();
+  const childJob = new TriRenderJob();
+  const child = new TestStep({
     id: "child",
-    Execute(_realTime, _simTime, received)
+    execute(_realTime, _simTime, received)
     {
-      received.Emit({ type: "child" });
+      received.RenderObject({ id: "child" });
       return 0;
     }
-  };
-  const parent = {
+  });
+  const parent = new TestStep({
     id: "parent",
-    Execute(_realTime, _simTime, received)
+    execute(_realTime, _simTime, received)
     {
-      received.Emit({ type: "parent-before" });
+      received.RenderObject({ id: "parent-before" });
       recorder.BeginStep(child, 3, 4, childJob, received);
       recorder.ExecuteStep(child, 3, 4, childJob, received);
       recorder.EndStep(child, 3, 4, childJob, received);
-      received.Emit({ type: "parent-after" });
+      received.RenderObject({ id: "parent-after" });
       return 0;
     }
-  };
+  });
 
-  renderContext.Emit({ type: "frame-setup" });
+  renderContext.RenderObject({ id: "frame-setup" });
   recorder.BeginStep(parent, 1, 2, parentJob, renderContext);
   recorder.ExecuteStep(parent, 1, 2, parentJob, renderContext);
   recorder.EndStep(parent, 1, 2, parentJob, renderContext);
 
   const segments = recorder.TakeSegments();
   assert.deepEqual(
-    segments.flatMap((entry) => entry.intents.map((intent) => intent.type)),
+    segments.flatMap((entry) => entry.intents.map((intent) => intent.renderable.id)),
     [ "frame-setup", "parent-before", "child", "parent-after" ]
   );
   assert.deepEqual(
@@ -117,27 +134,27 @@ test("Trinity step recorder preserves nested intent order and exactly-once takes
 
 test("Trinity step recorder closes failed setup and enforces balanced ownership", () =>
 {
-  const renderContext = context();
+  const renderContext = new Tr2RenderContext();
   const recorder = new CjsWebgpuTrinityStepRecorder();
-  const job = { id: "job" };
-  const broken = {
-    BeginExecute(received)
+  const job = new TriRenderJob();
+  const broken = new TestStep({
+    begin(received)
     {
-      received.Emit({ type: "before-error" });
+      received.RenderObject({ id: "before-error" });
       throw new Error("setup failed");
     }
-  };
+  });
 
   assert.throws(
     () => recorder.BeginStep(broken, 0, 0, job, renderContext),
     /setup failed/u
   );
-  assert.equal(recorder.GetSegments()[0].intents[0].type, "before-error");
+  assert.equal(recorder.GetSegments()[0].intents[0].renderable.id, "before-error");
 
-  const next = { Execute: () => 0 };
+  const next = new TestStep();
   recorder.BeginStep(next, 0, 0, job, renderContext);
   assert.throws(
-    () => recorder.EndStep({}, 0, 0, job, renderContext),
+    () => recorder.EndStep(new TestStep(), 0, 0, job, renderContext),
     /step lifecycle is unbalanced/u
   );
   assert.throws(
@@ -147,9 +164,13 @@ test("Trinity step recorder closes failed setup and enforces balanced ownership"
   recorder.ExecuteStep(next, 0, 0, job, renderContext);
   recorder.EndStep(next, 0, 0, job, renderContext);
 
-  const otherContext = context();
+  const otherContext = new Tr2RenderContext();
   assert.throws(
     () => recorder.Flush(otherContext),
     /already bound to another context/u
+  );
+  assert.throws(
+    () => new CjsWebgpuTrinityStepRecorder().Flush({ TakeIntents: () => [] }),
+    /Tr2RenderContext/u
   );
 });

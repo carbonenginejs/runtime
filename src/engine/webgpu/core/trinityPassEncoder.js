@@ -1,3 +1,6 @@
+import { CjsWebgpuTrinityBatchDispatcher } from "./trinityBatchDispatcher.js";
+
+
 function fail(message)
 {
   const error = new Error(`CjsWebgpuTrinityPassEncoder: ${message}`);
@@ -70,9 +73,9 @@ export class CjsWebgpuTrinityPassEncoder
    */
   constructor(dispatcher)
   {
-    if (!dispatcher || typeof dispatcher.EncodeBatchType !== "function")
+    if (!(dispatcher instanceof CjsWebgpuTrinityBatchDispatcher))
     {
-      fail("dispatcher requires EncodeBatchType");
+      fail("dispatcher must be a CjsWebgpuTrinityBatchDispatcher");
     }
     this.#dispatcher = dispatcher;
   }

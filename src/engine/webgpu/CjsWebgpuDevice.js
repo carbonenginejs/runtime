@@ -1,5 +1,7 @@
+import { CjsResource } from "#resource/CjsResource";
 import { CanonicalKey, CjsWebgpuPipelineCache, RenderPipelineKey } from "./core/pipelineCache.js";
 import { AssertFormatFeature, PlanTextureUpload } from "./core/textureLayout.js";
+import { CjsWebgpuEncodeState } from "./core/batchGroups.js";
 
 const PREPARED_PIPELINES = new WeakMap();
 const LIVE_PIPELINES = new WeakMap();
@@ -737,16 +739,9 @@ function mapSamplerPayload(value, plan)
 
 function assertRealizationResource(resource)
 {
-  if (!resource || typeof resource.GetAdapterResource !== "function"
-    || typeof resource.SetAdapterResource !== "function"
-    || typeof resource.DestroyAdapterResource !== "function"
-    || typeof resource.GetPayload !== "function"
-    || typeof resource.IsCurrent !== "function"
-    || typeof resource.MarkLoaded !== "function"
-    || typeof resource.MarkPreparing !== "function"
-    || typeof resource.MarkPrepared !== "function")
+  if (!(resource instanceof CjsResource))
   {
-    fail("resource realization requires a current CPU resource with payload, state, and adapter methods");
+    fail("resource realization requires a CjsResource");
   }
   return resource;
 }
@@ -1100,11 +1095,23 @@ export class CjsWebgpuDevice
    */
   static async Request(options = {})
   {
-    const gpu = options.gpu || globalThis.navigator?.gpu;
-    if (!gpu || typeof gpu.requestAdapter !== "function") fail("WebGPU is unavailable");
-    const adapter = options.adapter || await gpu.requestAdapter(options.adapterOptions);
-    if (!adapter) fail("requestAdapter returned null");
-    const device = options.device || await adapter.requestDevice(options.deviceDescriptor);
+    const gpu = Object.prototype.hasOwnProperty.call(options, "gpu")
+      ? options.gpu
+      : globalThis.navigator?.gpu;
+    let adapter = options.adapter ?? null;
+    let device = options.device ?? null;
+
+    if (!device)
+    {
+      if (!adapter)
+      {
+        if (!gpu || typeof gpu.requestAdapter !== "function") fail("WebGPU is unavailable");
+        adapter = await gpu.requestAdapter(options.adapterOptions);
+        if (!adapter) fail("requestAdapter returned null");
+      }
+      if (typeof adapter.requestDevice !== "function") fail("the GPUAdapter cannot request a device");
+      device = await adapter.requestDevice(options.deviceDescriptor);
+    }
     return new CjsWebgpuDevice({ ...options, gpu, adapter, device });
   }
 
@@ -1839,7 +1846,7 @@ export class CjsWebgpuDevice
    * publication are delegated to {@link CjsWebgpuDevice#RealizeResource}.
    * Concurrent calls for the same resource and adapter key share one operation.
    *
-   * @param {object} resource Current loaded resource exposing `GetPayload()`.
+   * @param {CjsResource} resource Current loaded resource exposing `GetPayload()`.
    * @param {object} options Texture key, bundle label, and adapter slot.
    * @param {string} options.textureKey Binding/resource identity for the texture.
    * @param {string} [options.bundleLabel="prepared RGBA8 texture"] Diagnostic bundle label.
@@ -1859,7 +1866,7 @@ export class CjsWebgpuDevice
    * Selection and texture pairing remain caller policy; this method only maps,
    * allocates, and commits the selected sampler under the requested adapter key.
    *
-   * @param {object} resource Current loaded resource exposing `GetPayload()`.
+   * @param {CjsResource} resource Current loaded resource exposing `GetPayload()`.
    * @param {object} options Sampler key, bundle label, and adapter slot.
    * @param {string} options.samplerKey Binding/resource identity for the sampler.
    * @param {string} [options.bundleLabel="prepared WebGPU sampler"] Diagnostic bundle label.
@@ -1883,7 +1890,7 @@ export class CjsWebgpuDevice
    * a current failure restores any usable prior adapter and otherwise returns
    * the resource to `LOADED` without discarding its CPU payload.
    *
-   * @param {object} resource Current loaded resource receiving the adapter.
+   * @param {CjsResource} resource Current loaded resource receiving the adapter.
    * @param {object} value Plain geometry/texture/sampler bundle input. When omitted, the resource payload is used.
    * @param {object} [options={}] Adapter publication options.
    * @param {string} [options.adapterKey="webgpu"] Resource adapter slot.
@@ -2398,7 +2405,11 @@ export class CjsWebgpuDevice
     assertAdapterResources(wrapper.adapterResources, "draw");
     if (wrapper.geometryRecord?.destroyed) fail("draw geometry is destroyed");
     if (!pass || typeof pass.setPipeline !== "function") fail("a GPURenderPassEncoder is required");
-    const encodeState = state?.Require(pass) ?? null;
+    if (state !== null && !(state instanceof CjsWebgpuEncodeState))
+    {
+      throw new TypeError("CjsWebgpuDevice.EncodeDraw state must be a CjsWebgpuEncodeState or null.");
+    }
+    const encodeState = state === null ? null : state.Require(pass);
 
     if (!encodeState || encodeState.NeedsPipeline(draw.livePipeline.pipeline))
     {

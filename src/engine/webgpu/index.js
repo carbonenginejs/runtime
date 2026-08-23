@@ -1,4 +1,5 @@
 export { CjsWebgpuPackage } from "./CjsWebgpuPackage.js";
+export { CjsWebgpuBackendCandidate } from "./CjsWebgpuBackendCandidate.js";
 export { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 export { CjsWebgpuPipeline } from "./CjsWebgpuPipeline.js";
 export { CjsWebgpuShaderModule } from "./CjsWebgpuShaderModule.js";

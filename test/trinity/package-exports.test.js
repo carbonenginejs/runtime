@@ -35,6 +35,10 @@ test("published package resolves root, family, and deep generated exports", () =
         generatedChild.EveChildCloud !== child.EveChildCloud || !renderStep.TriStepRemoteUpdate ||
         !promoted.TriStepFilterVisibilityResults || !promoted.TriStepRenderScene ||
         !perFrame.CjsPerFrameLayouts || !perObject.CjsPerObjectLayouts ||
+        packageRoot.CjsTrinityBatchResolver !== core.CjsTrinityBatchResolver ||
+        packageRoot.CjsTrinityBatchDispatcher !== core.CjsTrinityBatchDispatcher ||
+        packageRoot.CjsTrinityStepExecutor !== core.CjsTrinityStepExecutor ||
+        packageRoot.CjsDirectTrinityStepExecutor !== core.CjsDirectTrinityStepExecutor ||
         packageRoot.Tr2Transform !== core.Tr2Transform || "Tr2Transform" in generatedCore ||
         packageRoot.Tr2ShadowMap !== core.Tr2ShadowMap || "Tr2ShadowMap" in generatedCore ||
         packageRoot.Tr2VolumetricsRenderer !== core.Tr2VolumetricsRenderer ||

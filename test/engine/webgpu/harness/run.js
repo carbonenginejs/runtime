@@ -1,5 +1,4 @@
-import { buildCopyblitDrawDescriptor } from "/packageDraw.js";
-import { createHarnessComputePipeline } from "/computePipeline.js";
+import { createHarnessComputePipeline } from "./computePipeline.js";
 import {
     DECAL_COUNTER_V5_TARGET_HEIGHT,
     DECAL_COUNTER_V5_TARGET_WIDTH,
@@ -7,7 +6,7 @@ import {
     createDecalCounterV5FixtureValues,
     getDecalCounterV5ResourcePlan,
     validateDecalCounterV5PackagePair
-} from "/decalCounterV5Fixture.js";
+} from "./decalCounterV5Fixture.js";
 import {
     DECAL_CYLINDRIC_V5_TARGET_HEIGHT,
     DECAL_CYLINDRIC_V5_TARGET_WIDTH,
@@ -15,7 +14,7 @@ import {
     createDecalCylindricV5FixtureValues,
     getDecalCylindricV5ResourcePlan,
     validateDecalCylindricV5PackagePair
-} from "/decalCylindricV5Fixture.js";
+} from "./decalCylindricV5Fixture.js";
 import {
     DECAL_HOLE_V5_AXIAL_TRANSPARENCY,
     DECAL_HOLE_V5_BASE_TRANSPARENCY,
@@ -29,7 +28,7 @@ import {
     createDecalHoleV5FixtureValues,
     getDecalHoleV5ResourcePlan,
     validateDecalHoleV5PackagePair
-} from "/decalHoleV5Fixture.js";
+} from "./decalHoleV5Fixture.js";
 import {
     DECAL_GLOW_V5_TARGET_HEIGHT,
     DECAL_GLOW_V5_TARGET_WIDTH,
@@ -37,7 +36,7 @@ import {
     createDecalGlowV5FixtureValues,
     getDecalGlowV5ResourcePlan,
     validateDecalGlowV5PackagePair
-} from "/decalGlowV5Fixture.js";
+} from "./decalGlowV5Fixture.js";
 import {
     DECAL_GLOW_CYLINDRIC_V5_TARGET_HEIGHT,
     DECAL_GLOW_CYLINDRIC_V5_TARGET_WIDTH,
@@ -45,7 +44,7 @@ import {
     createDecalGlowCylindricV5FixtureValues,
     getDecalGlowCylindricV5ResourcePlan,
     validateDecalGlowCylindricV5PackagePair
-} from "/decalGlowCylindricV5Fixture.js";
+} from "./decalGlowCylindricV5Fixture.js";
 import {
     DECALV5_CLEAR_TARGET,
     DECALV5_TARGET_HEIGHT,
@@ -54,22 +53,7 @@ import {
     createDecalV5FixtureValues,
     getDecalV5ResourcePlan,
     validateDecalV5PackagePair
-} from "/decalV5Fixture.js";
-import {
-    HULL_CLEAR_TARGETS,
-    HULL_DEPTH_FORMAT,
-    HULL_GEOMETRY_ASSETS,
-    HULL_TARGET_HEIGHT,
-    HULL_TARGET_WIDTH,
-    HULL_TEXTURE_ASSETS,
-    HULL_VERTEX_BUFFER_LAYOUT,
-    createHullBindingValues,
-    createHullPlaceholderTextures,
-    createHullSamplers,
-    getHullResourcePlan,
-    parseDdsTexture,
-    validateHullPackageRecord
-} from "/hullFixture.js";
+} from "./decalV5Fixture.js";
 import {
     QUADV5_CLEAR_TARGETS,
     QUADV5_TARGET_HEIGHT,
@@ -83,7 +67,7 @@ import {
     getQuadV5PackageTier,
     getQuadV5ResourcePlan,
     validateQuadV5PackagePair
-} from "/quadV5Fixture.js";
+} from "./quadV5Fixture.js";
 import {
     QUAD_DETAIL_V5_TARGET_HEIGHT,
     QUAD_DETAIL_V5_TARGET_WIDTH,
@@ -92,7 +76,7 @@ import {
     createQuadDetailV5FixtureValues,
     getQuadDetailV5ResourcePlan,
     validateQuadDetailV5PackagePair
-} from "/quadDetailV5Fixture.js";
+} from "./quadDetailV5Fixture.js";
 import {
     QUAD_GLASS_V5_CLEAR_TARGETS,
     QUAD_GLASS_V5_TARGET_HEIGHT,
@@ -103,7 +87,7 @@ import {
     getQuadGlassV5PrimitiveRecipe,
     getQuadGlassV5ResourcePlan,
     validateQuadGlassV5PackagePair
-} from "/quadGlassV5Fixture.js";
+} from "./quadGlassV5Fixture.js";
 import {
     QUAD_HEAT_V5_CASES,
     QUAD_HEAT_V5_CLEAR_TARGETS,
@@ -114,7 +98,7 @@ import {
     getQuadHeatV5PrimitiveRecipe,
     getQuadHeatV5ResourcePlan,
     validateQuadHeatV5PackagePair
-} from "/quadHeatV5Fixture.js";
+} from "./quadHeatV5Fixture.js";
 import {
     QUAD_OIL_V5_CLEAR_TARGETS,
     QUAD_OIL_V5_RESOURCE_VARIANTS,
@@ -125,7 +109,7 @@ import {
     createQuadOilV5FixtureValues,
     getQuadOilV5ResourcePlan,
     validateQuadOilV5PackagePair
-} from "/quadOilV5Fixture.js";
+} from "./quadOilV5Fixture.js";
 import {
     QUAD_SAILS_V5_CASES,
     QUAD_SAILS_V5_CLEAR_TARGETS,
@@ -138,11 +122,20 @@ import {
     getQuadSailsV5PrimitiveRecipe,
     getQuadSailsV5ResourcePlan,
     validateQuadSailsV5PackagePair
-} from "/quadSailsV5Fixture.js";
-import { CjsWebgpuDevice } from "/CjsWebgpuDevice.js";
-import { buildEveSpaceObjectMainUniformData, MaterialLayoutFromPackage } from "/spaceObjectMainUniforms.js";
-import { CjsWebgpuTrinityBatchDispatcher } from "/trinityBatchDispatcher.js";
-import { CjsWebgpuTrinityPassEncoder } from "/trinityPassEncoder.js";
+} from "./quadSailsV5Fixture.js";
+import {
+    CjsResource,
+    CjsTrinityBatchResolver,
+    CjsWebgpuDevice,
+    CjsWebgpuTrinityBatchDispatcher,
+    CjsWebgpuTrinityPassEncoder,
+    ITriRenderBatchAccumulator,
+    Tr2RenderBatch,
+    TriRenderBatchMap,
+    buildCopyblitDrawDescriptor,
+    buildEveSpaceObjectMainUniformData,
+    MaterialLayoutFromPackage
+} from "./runtimeBoundary.js";
 
 const WIDTH = QUADV5_TARGET_WIDTH;
 const HEIGHT = QUADV5_TARGET_HEIGHT;
@@ -151,7 +144,118 @@ const BYTES_PER_ROW = 256;
 const TRINITY_BATCH_TYPE_OPAQUE = 0;
 const TRINITY_BATCH_TYPE_DECAL = 1;
 const EXPECTED_PIXEL = Object.freeze([ 255, 0, 0, 255 ]);
-const CONFIG = await fetch("/config.json").then((response) => response.json());
+const HARNESS_RESOURCE_LIFECYCLE = Object.freeze({ isCurrent: () => true });
+const IS_BROWSER_HARNESS = typeof document !== "undefined";
+const CONFIG = IS_BROWSER_HARNESS
+    ? await fetch("/config.json").then((response) => response.json())
+    : Object.freeze({});
+
+class HarnessTrinityBatchResolver extends CjsTrinityBatchResolver
+{
+    constructor(implementation)
+    {
+        super();
+        for (const name of [ "ResolveMaterial", "ResolveGeometry", "ResolveBindings" ])
+        {
+            Assert(typeof implementation?.[name] === "function", `${name} is required`);
+        }
+        this.implementation = implementation;
+    }
+
+    ResolveMaterial(material, batch, context)
+    {
+        return this.implementation.ResolveMaterial(material, batch, context);
+    }
+
+    ResolveGeometry(geometrySource, batch, context)
+    {
+        return this.implementation.ResolveGeometry(geometrySource, batch, context);
+    }
+
+    ResolveBindings(batch, objectData, context)
+    {
+        return this.implementation.ResolveBindings(batch, objectData, context);
+    }
+}
+
+class HarnessTrinityBatchAccumulator extends ITriRenderBatchAccumulator
+{
+    constructor(source)
+    {
+        super();
+        this.batches = source.GetBatches().map(CanonicalizeTrinityBatch);
+        this.gdprBatches = source.GetGdprBatches().map(CanonicalizeTrinityBatch);
+    }
+
+    Clear()
+    {
+        this.batches.length = 0;
+        this.gdprBatches.length = 0;
+    }
+
+    Commit(batch)
+    {
+        this.batches.push(CanonicalizeTrinityBatch(batch));
+    }
+
+    GetGdprBatches()
+    {
+        return this.gdprBatches;
+    }
+
+    GetBatches()
+    {
+        return this.batches;
+    }
+
+    Finalize() {}
+
+    GetBatchCount()
+    {
+        return this.batches.length + this.gdprBatches.length;
+    }
+
+    IsChainedByEffect()
+    {
+        return false;
+    }
+
+    TransferFrom(source)
+    {
+        this.batches.push(...source.GetBatches());
+        this.gdprBatches.push(...source.GetGdprBatches());
+    }
+}
+
+function CanonicalizeTrinityBatch(value)
+{
+    if (value instanceof Tr2RenderBatch) return value;
+    return Object.assign(new Tr2RenderBatch(), value);
+}
+
+function CanonicalizeTrinityBatchMap(source)
+{
+    if (source instanceof TriRenderBatchMap) return source;
+    const batchTypes = source.GetBatchTypes();
+    const accumulators = new Map(batchTypes.map((batchType) => [
+        batchType,
+        new HarnessTrinityBatchAccumulator(source.GetAccumulator(batchType))
+    ]));
+    return new TriRenderBatchMap(batchTypes, (batchType) => accumulators.get(batchType));
+}
+
+class HarnessWebgpuTrinityBatchDispatcher extends CjsWebgpuTrinityBatchDispatcher
+{
+    constructor(webgpu, resolver)
+    {
+        super(webgpu, new HarnessTrinityBatchResolver(resolver));
+    }
+
+    PrepareBatchMap(batchMap, context = undefined)
+    {
+        return super.PrepareBatchMap(CanonicalizeTrinityBatchMap(batchMap), context);
+    }
+}
 const DECAL_FAMILY_V5_PROFILES = Object.freeze({
     standard: Object.freeze({
         label: "DecalV5",
@@ -376,49 +480,11 @@ async function CompileCandidate(device)
 
 function CreateAdapterResourceSlot(payload = null)
 {
-    const adapterResources = new Map();
-    return {
-        state: "loaded",
-        IsCurrent()
-        {
-            return true;
-        },
-        GetPayload()
-        {
-            return payload;
-        },
-        MarkLoaded()
-        {
-            this.state = "loaded";
-            return this;
-        },
-        MarkPreparing()
-        {
-            this.state = "preparing";
-            return this;
-        },
-        MarkPrepared()
-        {
-            this.state = "prepared";
-            return this;
-        },
-        GetAdapterResource(key)
-        {
-            return adapterResources.get(key) ?? null;
-        },
-        SetAdapterResource(key, value)
-        {
-            adapterResources.set(key, value);
-            return this;
-        },
-        DestroyAdapterResource(key)
-        {
-            const value = adapterResources.get(key);
-            adapterResources.delete(key);
-            value?.Destroy?.();
-            return this;
-        }
-    };
+    const resource = new CjsResource();
+    resource.SetLifecycleController(HARNESS_RESOURCE_LIFECYCLE);
+    resource.SetPayload(payload);
+    resource.MarkLoaded();
+    return resource;
 }
 
 async function PublishPreparedResourceBundle(webgpu, payload, name)
@@ -2473,7 +2539,7 @@ function CreateQuadV5TrinityBatchMap(record, fixture, renderCase)
 
 function CreateQuadV5TrinityDispatcher(webgpu, fixture)
 {
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+    return new HarnessWebgpuTrinityBatchDispatcher(webgpu, {
         ResolveMaterial(record, _batch, context)
         {
             Assert(
@@ -2517,7 +2583,7 @@ function CreateQuadV5TrinityDispatcher(webgpu, fixture)
                 }
             };
         },
-        ResolveBindings(batch, _livePipeline, context)
+        ResolveBindings(batch, _objectData, context)
         {
             const record = batch.material;
             Assert(
@@ -2587,7 +2653,7 @@ function CreateQuadDetailV5TrinityBatchMap(record, fixture, renderCase)
 
 function CreateQuadDetailV5TrinityDispatcher(webgpu, fixture)
 {
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+    return new HarnessWebgpuTrinityBatchDispatcher(webgpu, {
         ResolveMaterial(record, _batch, context)
         {
             Assert(
@@ -2630,7 +2696,7 @@ function CreateQuadDetailV5TrinityDispatcher(webgpu, fixture)
                 }
             };
         },
-        ResolveBindings(batch, _livePipeline, context)
+        ResolveBindings(batch, _objectData, context)
         {
             const record = batch.material;
             Assert(
@@ -2702,7 +2768,7 @@ function CreateQuadOilV5TrinityBatchMap(record, fixture, resourceVariant)
 
 function CreateQuadOilV5TrinityDispatcher(webgpu, fixture)
 {
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+    return new HarnessWebgpuTrinityBatchDispatcher(webgpu, {
         ResolveMaterial(record, _batch, context)
         {
             Assert(
@@ -2745,7 +2811,7 @@ function CreateQuadOilV5TrinityDispatcher(webgpu, fixture)
                 }
             };
         },
-        ResolveBindings(batch, _livePipeline, context)
+        ResolveBindings(batch, _objectData, context)
         {
             const record = batch.material;
             const variants = fixture.resourcesByBackend.get(record.backend);
@@ -2820,7 +2886,7 @@ function CreateQuadSailsV5TrinityBatchMap(record, fixture, renderCase)
 
 function CreateQuadSailsV5TrinityDispatcher(webgpu, fixture)
 {
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+    return new HarnessWebgpuTrinityBatchDispatcher(webgpu, {
         ResolveMaterial(record, _batch, context)
         {
             Assert(
@@ -2868,7 +2934,7 @@ function CreateQuadSailsV5TrinityDispatcher(webgpu, fixture)
                 }
             };
         },
-        ResolveBindings(batch, _livePipeline, context)
+        ResolveBindings(batch, _objectData, context)
         {
             const record = batch.material;
             Assert(
@@ -2945,7 +3011,7 @@ function CreateQuadGlassV5TrinityBatchMap(record, fixture, passIndex, resourceVa
 
 function CreateQuadGlassV5TrinityDispatcher(webgpu, fixture)
 {
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+    return new HarnessWebgpuTrinityBatchDispatcher(webgpu, {
         ResolveMaterial(material, _batch, context)
         {
             Assert(
@@ -2991,7 +3057,7 @@ function CreateQuadGlassV5TrinityDispatcher(webgpu, fixture)
                 }
             };
         },
-        ResolveBindings(batch, _livePipeline, context)
+        ResolveBindings(batch, _objectData, context)
         {
             const material = batch.material;
             const record = material.record;
@@ -3071,7 +3137,7 @@ function CreateQuadHeatV5TrinityBatchMap(record, fixture, heatCase)
 
 function CreateQuadHeatV5TrinityDispatcher(webgpu, fixture)
 {
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+    return new HarnessWebgpuTrinityBatchDispatcher(webgpu, {
         ResolveMaterial(record, _batch, context)
         {
             Assert(
@@ -3114,7 +3180,7 @@ function CreateQuadHeatV5TrinityDispatcher(webgpu, fixture)
                 }
             };
         },
-        ResolveBindings(batch, _livePipeline, context)
+        ResolveBindings(batch, _objectData, context)
         {
             const record = batch.material;
             Assert(
@@ -3191,7 +3257,7 @@ function CreateDecalV5TrinityBatchMap(record, fixture, resourceVariant)
 
 function CreateDecalV5TrinityDispatcher(webgpu, fixture)
 {
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
+    return new HarnessWebgpuTrinityBatchDispatcher(webgpu, {
         ResolveMaterial(record, _batch, context)
         {
             Assert(
@@ -3232,7 +3298,7 @@ function CreateDecalV5TrinityDispatcher(webgpu, fixture)
                 }
             };
         },
-        ResolveBindings(batch, _livePipeline, context)
+        ResolveBindings(batch, _objectData, context)
         {
             const record = batch.material;
             Assert(
@@ -4755,363 +4821,6 @@ function AssertDecalHoleProjection(instances)
         baseRgbMeanAbsoluteError,
         insideRgbMeanAbsoluteError
     };
-}
-
-/**
- * Draw one real EVE hull through the packed quadv5 PPT Main pass.
- *
- * Every other draw in this harness is a gate: it asserts pixels, and a change
- * in the engine that alters them fails the run. This one asserts only that the
- * frame is not empty. That is not laziness — there is no oracle for what a real
- * hull under an invented camera and a neutral scene should look like, and an
- * assertion invented to match today's output would be a golden that encodes a
- * bug as correct. What it does prove is the whole path: packed `.gr2` geometry,
- * block-compressed mip chains from the client's own compressor, the material
- * layout taken from the pass binding, and the Carbon per-frame and per-object
- * struct ABI, all reaching a pipeline built by the engine.
- *
- * @param {object} webgpu Engine device.
- * @returns {Promise<object|null>} Draw record, or null when the flag is absent.
- */
-async function RunHullDraw(webgpu)
-{
-    if (!CONFIG.drawHull) return null;
-    const response = await fetch("/draw-hull.json");
-    Assert(response.ok, `Failed to load the hull package record: HTTP ${response.status}`);
-    const record = await response.json();
-    validateHullPackageRecord(record);
-
-    const device = webgpu.GetDevice();
-    const width = HULL_TARGET_WIDTH;
-    const height = HULL_TARGET_HEIGHT;
-    const fixture = await CreateHullGpuResources(webgpu, record, width, height);
-    let dispatcher = null;
-    let passEncoder = null;
-    let preparedBatchMap = null;
-    const targets = [];
-    const readbacks = [];
-    let depth = null;
-    try
-    {
-        dispatcher = CreateHullTrinityDispatcher(webgpu, fixture);
-        passEncoder = new CjsWebgpuTrinityPassEncoder(dispatcher);
-        preparedBatchMap = await dispatcher.PrepareBatchMap(
-            CreateHullTrinityBatchMap(record, fixture)
-        );
-        for (let index = 0; index < HULL_CLEAR_TARGETS.length; index += 1)
-        {
-            targets.push(device.createTexture({
-                label: `Hull MRT${index}`,
-                size: { width, height, depthOrArrayLayers: 1 },
-                format: "rgba8unorm",
-                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
-            }));
-            readbacks.push(device.createBuffer({
-                label: `Hull MRT${index} readback`,
-                size: width * 4 * height,
-                usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
-            }));
-        }
-        // A closed hull is not convex and its own far side draws over its near
-        // side without this. The gate fixtures get away with no depth buffer
-        // because their geometry is a single flat silhouette.
-        depth = device.createTexture({
-            label: "Hull depth",
-            size: { width, height, depthOrArrayLayers: 1 },
-            format: HULL_DEPTH_FORMAT,
-            usage: GPUTextureUsage.RENDER_ATTACHMENT
-        });
-
-        const encoder = device.createCommandEncoder({ label: "Hull draw encoder" });
-        passEncoder.Encode(encoder, [ {
-            descriptor: {
-                label: "Hull Main.pass0",
-                colorAttachments: targets.map((texture, index) => ({
-                    view: texture.createView(),
-                    clearValue: {
-                        r: HULL_CLEAR_TARGETS[index][0] / 255,
-                        g: HULL_CLEAR_TARGETS[index][1] / 255,
-                        b: HULL_CLEAR_TARGETS[index][2] / 255,
-                        a: HULL_CLEAR_TARGETS[index][3] / 255
-                    },
-                    loadOp: "clear",
-                    storeOp: "store"
-                })),
-                depthStencilAttachment: {
-                    view: depth.createView(),
-                    depthClearValue: 1,
-                    depthLoadOp: "clear",
-                    depthStoreOp: "store"
-                }
-            },
-            selections: [ {
-                preparedBatchMap,
-                batchType: TRINITY_BATCH_TYPE_OPAQUE
-            } ]
-        } ]);
-        targets.forEach((texture, index) =>
-        {
-            encoder.copyTextureToBuffer(
-                { texture },
-                { buffer: readbacks[index], bytesPerRow: width * 4, rowsPerImage: height },
-                { width, height, depthOrArrayLayers: 1 }
-            );
-        });
-        webgpu.Submit([ encoder.finish() ]);
-        await device.queue.onSubmittedWorkDone();
-        await Promise.all(readbacks.map((buffer) => buffer.mapAsync(GPUMapMode.READ)));
-
-        const targetPixels = readbacks.map(
-            (buffer) => Array.from(new Uint8Array(buffer.getMappedRange()))
-        );
-        // The one assertion worth making. A frame identical to its clear colour
-        // means the draw produced nothing, and the two ways that happens here
-        // are a camera that faces away from the hull and a shadow map dark
-        // enough to make the shader discard every pixel. Both look like success
-        // to a run that only checks for thrown errors.
-        const clear = HULL_CLEAR_TARGETS[0];
-        let coverage = 0;
-        for (let index = 0; index < targetPixels[0].length; index += 4)
-        {
-            if (targetPixels[0][index] !== clear[0]
-                || targetPixels[0][index + 1] !== clear[1]
-                || targetPixels[0][index + 2] !== clear[2])
-            {
-                coverage += 1;
-            }
-        }
-        Assert(coverage > 0, "Hull draw produced a frame identical to its clear colour");
-        return {
-            label: record.label,
-            targetWidth: width,
-            targetHeight: height,
-            targetPixels,
-            coverage,
-            coverageFraction: coverage / (width * height),
-            indexCount: fixture.geometry.indexCount,
-            vertexCount: fixture.vertexCount
-        };
-    }
-    finally
-    {
-        for (const buffer of readbacks)
-        {
-            if (buffer.mapState === "mapped") buffer.unmap();
-            buffer.destroy();
-        }
-        for (const texture of targets) texture.destroy();
-        depth?.destroy();
-        if (preparedBatchMap && dispatcher) dispatcher.DestroyBatchMap(preparedBatchMap);
-        fixture.destroy();
-    }
-}
-
-async function CreateHullGpuResources(webgpu, record, width, height)
-{
-    const plan = getHullResourcePlan(record);
-    const [ vertexResponse, indexResponse, describeResponse ] = await Promise.all([
-        fetch(HULL_GEOMETRY_ASSETS.vertices),
-        fetch(HULL_GEOMETRY_ASSETS.indices),
-        fetch(HULL_GEOMETRY_ASSETS.describe)
-    ]);
-    for (const [ label, value ] of [
-        [ "vertices", vertexResponse ], [ "indices", indexResponse ], [ "describe", describeResponse ]
-    ])
-    {
-        Assert(value.ok, `Failed to load hull ${label}: HTTP ${value.status}`);
-    }
-    const vertices = new Uint8Array(await vertexResponse.arrayBuffer());
-    const indices = new Uint8Array(await indexResponse.arrayBuffer());
-    const describe = await describeResponse.json();
-    Assert(
-        vertices.byteLength === describe.count * HULL_VERTEX_BUFFER_LAYOUT.arrayStride,
-        "Hull vertex buffer does not match the declared stride and count"
-    );
-    Assert(
-        indices.byteLength === describe.indexCount * 2,
-        "Hull index buffer does not match the declared index count"
-    );
-
-    const textures = {};
-    await Promise.all(Object.entries(HULL_TEXTURE_ASSETS).map(async ([ name, url ]) =>
-    {
-        const binding = plan.textures.find((entry) => entry.name === name);
-        Assert(binding, `Hull package has no binding for ${name}`);
-        const mapResponse = await fetch(url);
-        Assert(mapResponse.ok, `Failed to load hull ${name}: HTTP ${mapResponse.status}`);
-        textures[name] = parseDdsTexture(
-            await mapResponse.arrayBuffer(), `Hull ${name}`, binding.isSRGB
-        );
-    }));
-    Object.assign(textures, createHullPlaceholderTextures());
-    for (const binding of plan.textures)
-    {
-        Assert(textures[binding.name], `Hull fixture has no texture for ${binding.name}`);
-    }
-
-    const bundle = await PublishPreparedResourceBundle(webgpu, {
-        label: "Hull resources",
-        geometries: {
-            main: {
-                label: "af1_t1 packed hull geometry",
-                vertexBuffers: [ {
-                    slot: 0,
-                    data: vertices,
-                    layout: HULL_VERTEX_BUFFER_LAYOUT
-                } ],
-                indexBuffer: { data: indices, format: "uint16" }
-            }
-        },
-        textures,
-        samplers: createHullSamplers()
-    }, "hull-resources");
-
-    const resources = new Map();
-    for (const binding of plan.textures)
-    {
-        const resource = bundle.textures[binding.name];
-        Assert(resource, `Hull bundle is missing texture ${binding.name}`);
-        resources.set(binding.scopeIdentity, resource);
-    }
-    for (const binding of plan.samplers)
-    {
-        const resource = bundle.samplers[binding.name];
-        Assert(resource, `Hull bundle is missing sampler ${binding.name}`);
-        resources.set(binding.scopeIdentity, resource);
-    }
-
-    const geometrySource = Object.freeze({ kind: "eve-hull", hull: "af1_t1" });
-    return {
-        // The hull's own SOF material, not Carbon's white defaults.
-        bindingValues: createHullBindingValues(record, width, height, { sof: true }),
-        materialLayout: MaterialLayoutFromPackage(record),
-        resources,
-        geometry: bundle.geometries.main,
-        geometrySource,
-        vertexCount: describe.count,
-        bundle,
-        destroy()
-        {
-            bundle.Destroy();
-        }
-    };
-}
-
-function CreateHullTrinityBatchMap(record, fixture)
-{
-    const batch = Object.freeze({
-        material: record,
-        shader: record.pipeline,
-        objectData: fixture.bindingValues,
-        geometrySource: Object.freeze({
-            geometry: fixture.geometrySource,
-            meshIndex: 0,
-            // Both of the hull's areas are drawn as one range. They differ only
-            // by material index, and this pass binds one material, so splitting
-            // them would issue two identical draws over disjoint ranges.
-            areaIndex: 0,
-            count: 1,
-            reversed: false
-        }),
-        topology: 4,
-        indexCountPerInstance: 0,
-        instanceCount: 0,
-        startIndexLocation: 0,
-        baseVertexLocation: 0,
-        startInstanceLocation: 0,
-        renderingMode: 0,
-        pickingData: 0,
-        groupCount: 1
-    });
-    const accumulator = Object.freeze({
-        GetBatchCount: () => 1,
-        // GDPR batches keep their own vector in Carbon and stay empty here: one
-        // hull is one ordinary opaque batch.
-        GetGdprBatches: () => [],
-        GetBatches: () => [ batch ]
-    });
-    const batchTypes = Object.freeze([ TRINITY_BATCH_TYPE_OPAQUE ]);
-    return Object.freeze({
-        GetBatchTypes: () => batchTypes,
-        GetAccumulator: (value) => value === TRINITY_BATCH_TYPE_OPAQUE ? accumulator : null,
-        GetBatchCount: () => accumulator.GetBatchCount()
-    });
-}
-
-function CreateHullTrinityDispatcher(webgpu, fixture)
-{
-    return new CjsWebgpuTrinityBatchDispatcher(webgpu, {
-        ResolveMaterial(record, _batch, context)
-        {
-            Assert(
-                context?.batchType === TRINITY_BATCH_TYPE_OPAQUE,
-                "Hull material resolved outside the opaque batch type"
-            );
-            return {
-                pipeline: record.pipeline,
-                prepareOptions: { warningsAsErrors: false },
-                recipe: {
-                    label: "Hull Main.pass0",
-                    vertex: { buffers: fixture.geometry.vertexBufferLayouts },
-                    fragment: {
-                        targets: [ { format: "rgba8unorm" }, { format: "rgba8unorm" } ]
-                    },
-                    // EVE hulls wind clockwise as seen from outside, which is
-                    // "front" in a left-handed convention.
-                    primitive: { cullMode: "back", frontFace: "cw" },
-                    depthStencil: {
-                        format: HULL_DEPTH_FORMAT,
-                        depthWriteEnabled: true,
-                        depthCompare: "less"
-                    }
-                }
-            };
-        },
-        ResolveGeometry(source, _batch, context)
-        {
-            Assert(
-                context?.batchType === TRINITY_BATCH_TYPE_OPAQUE
-                    && source?.geometry === fixture.geometrySource,
-                "Hull batch references an unknown geometry source"
-            );
-            return {
-                geometry: fixture.geometry,
-                indexed: true,
-                draw: {
-                    indexCount: fixture.geometry.indexCount,
-                    instanceCount: 1,
-                    firstIndex: 0,
-                    baseVertex: 0,
-                    firstInstance: 0
-                }
-            };
-        },
-        ResolveBindings(batch, _livePipeline, context)
-        {
-            const record = batch.material;
-            Assert(
-                context?.batchType === TRINITY_BATCH_TYPE_OPAQUE
-                    && batch.objectData === fixture.bindingValues,
-                "Hull batch references unknown object data"
-            );
-            return {
-                uniformData: ScopeFixtureBindingValues(
-                    record.pipeline,
-                    new Map(Object.entries(buildEveSpaceObjectMainUniformData(
-                        record,
-                        batch.objectData,
-                        { materialLayout: fixture.materialLayout }
-                    ))),
-                    "Hull uniform data"
-                ),
-                resources: ScopeFixtureBindingValues(
-                    record.pipeline,
-                    fixture.resources,
-                    "Hull resources"
-                )
-            };
-        }
-    });
 }
 
 async function RunQuadV5Comparison(webgpu)
@@ -6827,31 +6536,11 @@ async function RunHarness()
     let webgpu;
     try
     {
-        // The adapter is acquired first so the device request can ask for the
-        // features this run actually needs. Only the hull draw needs any: every
-        // other fixture authors uncompressed textures, while a real hull's maps
-        // are BC7 and BC5 as CCP's own compressor produced them, and there is
-        // no honest way to draw one without block compression. Asked for only
-        // when the adapter offers it, so an adapter without BC still runs the
-        // rest of the harness rather than failing at device creation.
         const adapter = await navigator.gpu.requestAdapter({ powerPreference: "low-power" });
         if (!adapter) return { status: "skipped", reason: "navigator.gpu.requestAdapter() returned null" };
-        const requiredFeatures = [];
-        if (CONFIG.drawHull)
-        {
-            if (!adapter.features?.has("texture-compression-bc"))
-            {
-                return {
-                    status: "skipped",
-                    reason: "the hull draw requires the texture-compression-bc adapter feature"
-                };
-            }
-            requiredFeatures.push("texture-compression-bc");
-        }
         webgpu = await CjsWebgpuDevice.Request({
             gpu: navigator.gpu,
             adapter,
-            deviceDescriptor: requiredFeatures.length ? { requiredFeatures } : undefined,
             shaderStage: GPUShaderStage
         });
     }
@@ -6870,7 +6559,6 @@ async function RunHarness()
     let readback = null;
     let generatedDraw = null;
     let phaseZeroDraw = null;
-    let hullDraw = null;
     let quadV5Comparison = null;
     let quadGlassV5Comparison = null;
     let quadHeatV5Comparison = null;
@@ -6894,7 +6582,6 @@ async function RunHarness()
         const arrayTextureDraw = await CreateArrayTextureDraw(webgpu);
         generatedDraw = await CreateGeneratedDraw(webgpu);
         phaseZeroDraw = generatedDraw ? null : await CreatePhaseZeroDraw(webgpu);
-        hullDraw = await RunHullDraw(webgpu);
         quadV5Comparison = await RunQuadV5Comparison(webgpu);
         quadGlassV5Comparison = await RunQuadGlassV5Comparison(webgpu);
         quadHeatV5Comparison = await RunQuadHeatV5Comparison(webgpu);
@@ -6995,7 +6682,6 @@ async function RunHarness()
             samplerPreparation: phaseZeroDraw
                 ? "complete selected WebGPU state -> sampler bundle -> atomic adapter slot"
                 : null,
-            hullDraw,
             quadV5Comparison,
             quadGlassV5Comparison,
             quadHeatV5Comparison,
@@ -7031,10 +6717,13 @@ async function RunHarness()
     }
 }
 
-globalThis.webgpuHarnessResult = RunHarness().catch((error) => ({
-    status: "failed",
-    error: error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error)
-}));
+if (IS_BROWSER_HARNESS)
+{
+    globalThis.webgpuHarnessResult = RunHarness().catch((error) => ({
+        status: "failed",
+        error: error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error)
+    }));
 
-const result = await globalThis.webgpuHarnessResult;
-document.querySelector("#result").textContent = JSON.stringify(result, null, 2);
+    const result = await globalThis.webgpuHarnessResult;
+    document.querySelector("#result").textContent = JSON.stringify(result, null, 2);
+}

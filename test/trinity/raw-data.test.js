@@ -2,6 +2,7 @@
 // reflected offsets; engines only realize and bind its terminal byte ranges.
 import test from "node:test";
 import assert from "node:assert/strict";
+import { CjsConstantPayload } from "../../npm/dist/global/contracts/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { RawData, TriPoolAllocator } from "../../npm/dist/trinity/index.js";
 
@@ -309,6 +310,15 @@ test("direct construction: a persistent (self-owned) payload bypasses the arena"
   const uints = new Uint32Array(floats.buffer);
   const payload = new RawData(layout, floats, uints);
 
+  assert.equal(payload instanceof CjsConstantPayload, true);
+  assert.throws(
+    () => payload.CopyFrom({
+      GetLayout: () => layout,
+      GetStruct: () => null,
+      GetData: () => floats
+    }),
+    /another RawData record/
+  );
   payload.SetAndTranspose("world", MakeWorld());
   assertClose(payload.GetData()[3], 10, "self-owned payload encodes identically");
 });

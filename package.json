@@ -201,6 +201,7 @@
     "#trinity": "./src/trinity/index.js",
     "#trinity/particle": "./src/trinity/particle/index.js",
     "#trinity/core": "./src/trinity/core/index.js",
+    "#trinity/core/*": "./src/trinity/core/*.js",
     "#trinity/ui": "./src/trinity/ui/index.js",
     "#trinity/renderJob": "./src/trinity/renderJob/index.js",
     "#trinity/shader": "./src/trinity/shader/index.js",
@@ -265,8 +266,9 @@
     "proof:audio:decorators": "node scripts/audio/proof_decorator_transform.js",
     "proof:character:decorators": "node scripts/character/proof_decorator_transform.js",
     "catalog:character": "node scripts/character/generate_class_catalog.js",
-    "test:webgpu": "node scripts/engine/webgpu/run-webgpu-harness.js",
-    "test:webgpu:required": "node scripts/engine/webgpu/run-webgpu-harness.js --required",
+    "build:webgpu:harness": "rollup -c rollup.webgpu-harness.config.mjs",
+    "test:webgpu": "npm run build:npm && npm run build:webgpu:harness && node scripts/engine/webgpu/run-webgpu-harness.js",
+    "test:webgpu:required": "npm run build:npm && npm run build:webgpu:harness && node scripts/engine/webgpu/run-webgpu-harness.js --required",
     "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test"
   },
   "engines": {

@@ -30,15 +30,40 @@ function assertEquals(actual, expected, message)
   if (actual !== expected) throw new Error(message || `expected ${String(expected)}, got ${String(actual)}`);
 }
 
+class TestRenderStep extends TriRenderStep
+{
+  constructor(name, execute, events)
+  {
+    super();
+    this.name = name;
+    this.execute = execute;
+    this.events = events;
+  }
+
+  BeginExecute(context)
+  {
+    this.events?.push(`begin:${this.name}`);
+    this.beginContext = context;
+  }
+
+  Execute(realTime, simTime, context)
+  {
+    this.events?.push(`execute:${this.name}`);
+    this.executeContext = context;
+    return this.execute?.(this, context, realTime, simTime) ?? TriRenderJob.StepResult.RS_OK;
+  }
+
+  EndExecute(context)
+  {
+    this.events?.push(`end:${this.name}`);
+    this.endContext = context;
+  }
+}
+
+
 function step(name, execute, events = null)
 {
-  return {
-    name,
-    enabled: true,
-    BeginExecute(context) { events?.push(`begin:${name}`); this.beginContext = context; },
-    Execute(realTime, simTime, context) { events?.push(`execute:${name}`); this.executeContext = context; return execute?.(this, context, realTime, simTime) ?? TriRenderJob.StepResult.RS_OK; },
-    EndExecute(context) { events?.push(`end:${name}`); this.endContext = context; }
-  };
+  return new TestRenderStep(name, execute, events);
 }
 
 test("generated render steps enforce format-carbon inheritance through maintained parents", () =>
@@ -272,7 +297,9 @@ test("TriRenderJob snapshots steps and preserves the in-progress cursor", () =>
   let attempts = 0;
   const yielding = step("yield", () => ++attempts === 1 ? TriRenderJob.StepResult.RS_IN_PROGRESS : TriRenderJob.StepResult.RS_OK, events);
   const tail = step("tail", null, events);
-  job.steps.push(null, { enabled: false }, yielding, tail);
+  const disabledStep = step("disabled");
+  disabledStep.enabled = false;
+  job.steps.push(null, disabledStep, yielding, tail);
 
   assertEquals(job.Run(1, 2, context), TriRenderJob.Status.RJ_IN_PROGRESS);
   assertEquals(events.join(","), "begin:yield,execute:yield,end:yield");
@@ -665,6 +692,17 @@ test("Tr2RenderJobs ends delegated batch scope when a job throws", () =>
   catch (caught) { error = caught; }
   assertEquals(error?.message, "batch-boom");
   assertEquals(events.join(","), "begin-batch,end-batch");
+});
+
+test("Tr2RenderJobs rejects entries outside the owned job contract", () =>
+{
+  const scheduler = new Tr2RenderJobs();
+  scheduler.recurring.push({ Run() { return TriRenderJob.Status.RJ_DONE; } });
+  let error = null;
+  try { scheduler.Run(0, 0, new Tr2RenderContext()); }
+  catch (caught) { error = caught; }
+  assertEquals(error instanceof TypeError, true);
+  assertEquals(/must contain TriRenderJob instances/u.test(error?.message), true);
 });
 
 test("maintained render-job sources remain backend-free", async () =>

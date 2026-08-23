@@ -38,17 +38,22 @@ export class Tr2RenderJobs extends CjsModel
   @impl.adapted
   Run(realTime, simTime, executor = null)
   {
-    const context = executor || Tr2RenderContext.GetDefault();
-    let batch = null;
+    const context = executor ?? Tr2RenderContext.GetDefault();
+    if (!(context instanceof Tr2RenderContext))
+    {
+      throw new TypeError("Tr2RenderJobs.Run expects a Tr2RenderContext.");
+    }
+    let beganBatch = false;
     try
     {
-      batch = Tr2RenderJobs.#beginBatch(context, this);
-      for (const job of this.recurring.slice()) Tr2RenderJobs.#runJob(job, realTime, simTime, context, this);
+      context.BeginBatch(this);
+      beganBatch = true;
+      for (const job of this.recurring.slice()) Tr2RenderJobs.#runJob(job, realTime, simTime, context);
 
       const continuedOnce = [];
       for (const job of this.once.slice())
       {
-        const status = Tr2RenderJobs.#runJob(job, realTime, simTime, context, this);
+        const status = Tr2RenderJobs.#runJob(job, realTime, simTime, context);
         if (status === TriRenderJob.Status.RJ_IN_PROGRESS) continuedOnce.push(job);
       }
       this.once = continuedOnce;
@@ -58,7 +63,7 @@ export class Tr2RenderJobs extends CjsModel
       for (let index = 0; index < chained.length; index++)
       {
         const job = chained[index];
-        const status = Tr2RenderJobs.#runJob(job, realTime, simTime, context, this);
+        const status = Tr2RenderJobs.#runJob(job, realTime, simTime, context);
         if (status === TriRenderJob.Status.RJ_IN_PROGRESS)
         {
           continuedChained.push(...chained.slice(index));
@@ -69,7 +74,7 @@ export class Tr2RenderJobs extends CjsModel
     }
     finally
     {
-      if (batch) Tr2RenderJobs.#endBatch(context, this, batch);
+      if (beganBatch) context.EndBatch(this);
     }
   }
 
@@ -82,63 +87,23 @@ export class Tr2RenderJobs extends CjsModel
   @impl.adapted
   RunUpdate(realTime, simTime, executor = null)
   {
-    const context = executor || Tr2RenderContext.GetDefault();
-    for (const job of this.updateRecurring.slice()) Tr2RenderJobs.#runJob(job, realTime, simTime, context, this);
+    const context = executor ?? Tr2RenderContext.GetDefault();
+    if (!(context instanceof Tr2RenderContext))
+    {
+      throw new TypeError("Tr2RenderJobs.RunUpdate expects a Tr2RenderContext.");
+    }
+    for (const job of this.updateRecurring.slice()) Tr2RenderJobs.#runJob(job, realTime, simTime, context);
   }
 
   /**
-   * Runs one scheduled job, reporting an invalid-render-job diagnostic and
-   * RJ_FAILED when the entry cannot be run.
+   * Runs one scheduled job and rejects entries outside the owned job contract.
    */
-  static #runJob(job, realTime, simTime, executor, owner)
+  static #runJob(job, realTime, simTime, executor)
   {
-    if (!job?.Run)
+    if (!(job instanceof TriRenderJob))
     {
-      executor?.AddDiagnostic?.({ type: "invalid-render-job", owner, job });
-      return TriRenderJob.Status.RJ_FAILED;
+      throw new TypeError("Tr2RenderJobs schedules must contain TriRenderJob instances.");
     }
     return job.Run(realTime, simTime, executor);
-  }
-
-  /**
-   * Opens the frame's target scope: delegates to the executor's BeginBatch when
-   * it has one, otherwise pushes a render-target and depth-stencil entry to
-   * snapshot the current binding, undoing whatever was pushed if the second push
-   * throws. The returned token tells #endBatch what to close.
-   */
-  static #beginBatch(executor, owner)
-  {
-    if (executor?.BeginBatch)
-    {
-      executor.BeginBatch(owner);
-      return { delegated: true };
-    }
-    let renderTargetPushed = false;
-    let depthStencilPushed = false;
-    try
-    {
-      executor?.PushRenderTarget?.(null, 0);
-      renderTargetPushed = !!executor?.PushRenderTarget;
-      executor?.PushDepthStencil?.(null);
-      depthStencilPushed = !!executor?.PushDepthStencil;
-      return { delegated: false, renderTargetPushed, depthStencilPushed };
-    }
-    catch (error)
-    {
-      if (depthStencilPushed) executor?.PopDepthStencil?.();
-      if (renderTargetPushed) executor?.PopRenderTarget?.(0);
-      throw error;
-    }
-  }
-
-  /**
-   * Closes the scope opened by #beginBatch, either delegating to EndBatch or
-   * popping the depth-stencil and render target in reverse order.
-   */
-  static #endBatch(executor, owner, batch)
-  {
-    if (batch.delegated) return executor?.EndBatch?.(owner);
-    if (batch.depthStencilPushed) executor?.PopDepthStencil?.();
-    if (batch.renderTargetPushed) executor?.PopRenderTarget?.(0);
   }
 }

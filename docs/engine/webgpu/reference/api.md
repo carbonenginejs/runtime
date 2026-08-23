@@ -20,9 +20,19 @@ injected reader function and optional reader options.
 ## Device boundary
 
 `CjsWebgpuDevice.Request(...)` acquires or accepts a WebGPU adapter and device.
+An injected device needs neither an adapter nor a GPU provider; an injected
+adapter needs no GPU provider. When acquisition is required, `adapterOptions`
+and `deviceDescriptor` are forwarded unchanged.
 The device prepares Carbon WebGPU pipelines, creates explicit geometry, RGBA8 2D or
 2D-array textures and samplers, builds binding sets, encodes draws, submits
 command buffers, and manages device generations.
+
+`CjsWebgpuBackendCandidate` is the nominal `CjsBackendCandidate` implementation
+for runtime composition. Its `limits`, `features`, and optional `label` describe
+content requirements to the composition layer. `Prove(context)` acquires and
+returns a ready `CjsWebgpuDevice`, forwarding the composition-resolved
+`context.descriptor` unchanged. Browser acquisition inputs belong in its
+separate `requestOptions` bag; that bag cannot provide `deviceDescriptor`.
 
 The resource helpers accept complete caller-owned data. They do not select
 effects, resolve paths, infer vertex layouts, or create production uniform
@@ -47,10 +57,11 @@ pipeline and one set of buffer bindings.
 Geometry resolution may additionally supply a validated `draw` override when
 the neutral batch carries an area range but no realized draw arguments.
 
-`CjsWebgpuTrinityStepRecorder` is another internal conformance prototype. It
-implements the duck-typed `Tr2RenderContext.SetStepExecutor(...)` callbacks,
-preserves nested render-step intent order, and defers asynchronous WebGPU work
-until after the synchronous render-job run.
+`CjsWebgpuTrinityStepRecorder` is another internal conformance component. It
+extends `CjsDirectTrinityStepExecutor`, is installed through
+`Tr2RenderContext.SetStepExecutor(...)`, preserves nested render-step intent
+order, and defers asynchronous WebGPU work until after the synchronous
+render-job run.
 
 `CjsWebgpuTrinityPassEncoder` synchronously encodes caller-authored pass
 descriptors and prepared batch-map selections into an existing command
@@ -59,7 +70,7 @@ encoder. It does not choose pass order, techniques, attachments, or submission.
 ## Space-object uniform serialization
 
 The bounded Eve space-object Main serializer is **no longer part of this
-package**. It was harness scaffolding that duplicated an ABI `runtime Trinity layer`
+package**. It was harness scaffolding that duplicated an ABI Trinity
 already owns in `CjsPerObjectLayouts`/`CjsPerFrameLayouts`, and it carried the
 format-record material read described under *Material constants*. It now lives
 beside the fixtures that use it, at `test/engine/webgpu/harness/spaceObjectMainUniforms.js`,
@@ -87,15 +98,10 @@ The serializer does not read SOF and does not supply production defaults.
 - `UploadPerObjectData(pairs, write, options)` does both around a caller's
   write, with the ordering built in.
 
-Current, before runtime consolidation: `payload` accepts the historical
-`RawData` shape with `GetData()`, and optional `IsDirty()` and `ClearDirty()`.
-A payload that cannot report dirtiness is always uploaded, because "cannot
-say" must not read as "unchanged".
-
-Planned at the combined-runtime cutover: payloads use the canonical
-`CjsConstantPayload` identity, all three methods are required, and the
-structural fallback is removed. The engine still receives terminal bytes and
-does not reinterpret their layout.
+`payload` must be a canonical `CjsConstantPayload`. `GetData()`, `IsDirty()`,
+and `ClearDirty()` are required by that nominal contract. The boundary is
+validated once and the upload path calls those methods directly. The engine
+still receives terminal bytes and does not reinterpret their layout.
 
 Two properties of the dirty flag matter to a caller. It **is a write barrier**:
 any field write arms it, so a clear flag means "not changed since the last
@@ -114,9 +120,8 @@ decided.
 
 - `MaterialLayoutFromShader(shader, { technique, pass, stage })` builds a named
   material-constant layout by walking a pass's stage inputs, which is where
-  Carbon reads them from. `shader` is duck-typed — this package declares no
-  runtime dependencies and cannot import `Tr2Shader`, so a caller supplies
-  anything with `GetTechniqueIndex` and `GetEffect`.
+  Carbon reads them from. `shader` must be the canonical resource-layer
+  `Tr2Shader`, and its stage input must be a canonical `Tr2EffectStageInput`.
 - `PackMaterialConstants(layout, values)` packs values matched **by name** into
   that layout, seeding the buffer from the pass's authored defaults so a caller
   names only what it overrides.
@@ -137,8 +142,8 @@ offers and there is nothing left for a second engine to copy.
 
 This package does not resolve effect paths and exports no helper for it. Which
 compiled effect tree an authored `/effect/` path resolves into is configuration,
-and the composition root owns it — see `ResolveEffectPath` in
-`@carbonenginejs/runtime/core`, or supply the resolved path yourself.
+and the composition root owns it. Until the core donor is physically moved into
+the combined runtime, callers must supply the resolved path themselves.
 
 The engine is handed a path or a package and validates what it receives,
 failing with a thrown error rather than rendering nothing when it is given
@@ -172,5 +177,6 @@ try {
 ```
 
 Pipeline state, resources, uniforms, draw encoding, and cleanup remain explicit
-steps because the current package does not define a renderer composition
-contract.
+steps because the package does not yet export a renderer-composition facade.
+Its public backend candidate and internal nominal Trinity seams establish the
+owned contracts that facade will compose.

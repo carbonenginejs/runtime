@@ -1,25 +1,33 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { CjsConstantPayload } from "#contracts";
 import {
   CollectPerObjectUploads,
   CommitPerObjectUploads,
   UploadPerObjectData
 } from "#engine/webgpu/core/perObjectUploader";
 
-// Transitional RawData-shaped fixture. The separate engine package cannot yet
-// share one nominal contract identity safely; the combined runtime replaces
-// this structural fixture with a CjsConstantPayload subclass.
+class TestConstantPayload extends CjsConstantPayload
+{
+  constructor(values = [ 1, 2, 3, 4 ], dirty = true)
+  {
+    super();
+    this.data = new Float32Array(values);
+    this.dirty = dirty;
+    this.cleared = 0;
+  }
+
+  GetData() { return this.data; }
+
+  IsDirty() { return this.dirty; }
+
+  ClearDirty() { this.dirty = false; this.cleared += 1; return this; }
+}
+
 function payload(values = [ 1, 2, 3, 4 ], dirty = true)
 {
-  return {
-    data: new Float32Array(values),
-    dirty,
-    cleared: 0,
-    GetData() { return this.data; },
-    IsDirty() { return this.dirty; },
-    ClearDirty() { this.dirty = false; this.cleared += 1; return this; }
-  };
+  return new TestConstantPayload(values, dirty);
 }
 
 test("CollectPerObjectUploads skips what has not changed", () =>
@@ -63,17 +71,14 @@ test("CollectPerObjectUploads uploads everything when forced", () =>
   assert.equal(collection.pending.length, 1);
 });
 
-test("CollectPerObjectUploads uploads a payload that cannot report dirtiness", () =>
+test("CollectPerObjectUploads rejects a structural payload", () =>
 {
-  // "Cannot say" must not read as "unchanged"; the cost of a redundant upload
-  // is a wasted write, and the cost of the opposite is a stale frame.
-  const bare = { GetData: () => new Float32Array(4) };
-  const collection = CollectPerObjectUploads([ { identity: "uniform-buffer:0:3", payload: bare } ]);
-
-  assert.equal(collection.isEmpty, false);
-  // And committing it is a no-op rather than an error, which is what lets a
-  // transient arena record share this path.
-  assert.equal(CommitPerObjectUploads(collection), 1);
+  assert.throws(
+    () => CollectPerObjectUploads([
+      { identity: "uniform-buffer:0:3", payload: { GetData: () => new Float32Array(4) } }
+    ]),
+    /not a CjsConstantPayload/
+  );
 });
 
 test("CommitPerObjectUploads clears only what was collected", () =>
@@ -143,9 +148,15 @@ test("the uploader refuses input it cannot use", () =>
 
   assert.throws(() => CollectPerObjectUploads(null), /pairs must be an array/);
   assert.throws(() => CollectPerObjectUploads([ { payload: one } ]), /requires a binding identity/);
-  assert.throws(() => CollectPerObjectUploads([ { identity: "a", payload: {} } ]), /exposes no GetData/);
+  assert.throws(() => CollectPerObjectUploads([ { identity: "a", payload: {} } ]), /not a CjsConstantPayload/);
   assert.throws(
-    () => CollectPerObjectUploads([ { identity: "a", payload: { GetData: () => [ 1, 2 ] } } ]),
+    () => CollectPerObjectUploads([
+      { identity: "a", payload: new class extends CjsConstantPayload {
+        GetData() { return [ 1, 2 ]; }
+        IsDirty() { return true; }
+        ClearDirty() { return this; }
+      }() }
+    ]),
     /did not return a typed array/
   );
   // Two payloads competing for one binding is a composition mistake; the last

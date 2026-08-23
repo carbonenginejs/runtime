@@ -1,3 +1,7 @@
+import { CjsDirectTrinityStepExecutor } from "#trinity/core/context/CjsDirectTrinityStepExecutor";
+import { Tr2RenderContext } from "#trinity/core/context/Tr2RenderContext";
+
+
 function fail(message)
 {
   const error = new Error(`CjsWebgpuTrinityStepRecorder: ${message}`);
@@ -32,14 +36,14 @@ function snapshotIntent(intent)
 }
 
 /**
- * Internal synchronous recorder for the duck-typed
- * `Tr2RenderContext.SetStepExecutor(...)` contract.
+ * Internal synchronous recorder for the nominal Trinity step-executor
+ * contract.
  *
  * It preserves ordered intent segments while render jobs run, including
  * re-entrant nested jobs. WebGPU preparation and encoding intentionally happen
  * later, after the synchronous Trinity run has returned.
  */
-export class CjsWebgpuTrinityStepRecorder
+export class CjsWebgpuTrinityStepRecorder extends CjsDirectTrinityStepExecutor
 {
   #context = null;
 
@@ -52,6 +56,7 @@ export class CjsWebgpuTrinityStepRecorder
   /** Creates an empty recorder that binds to its first render context. */
   constructor()
   {
+    super();
   }
 
   /**
@@ -86,7 +91,7 @@ export class CjsWebgpuTrinityStepRecorder
     let error = null;
     try
     {
-      result = step?.BeginExecute?.(context);
+      result = super.BeginStep(step, realTime, simTime, job, context);
     }
     catch (caught)
     {
@@ -125,7 +130,7 @@ export class CjsWebgpuTrinityStepRecorder
     let error = null;
     try
     {
-      result = step?.Execute?.(realTime, simTime, context);
+      result = super.ExecuteStep(step, realTime, simTime, job, context);
     }
     catch (caught)
     {
@@ -158,7 +163,7 @@ export class CjsWebgpuTrinityStepRecorder
     let error = null;
     try
     {
-      result = step?.EndExecute?.(context);
+      result = super.EndStep(step, realTime, simTime, job, context);
     }
     catch (caught)
     {
@@ -208,9 +213,9 @@ export class CjsWebgpuTrinityStepRecorder
   /** Binds this recorder to one intent-producing render context. */
   #BindContext(context)
   {
-    if (!context || typeof context.TakeIntents !== "function")
+    if (!(context instanceof Tr2RenderContext))
     {
-      fail("context requires TakeIntents");
+      fail("context must be a Tr2RenderContext");
     }
     if (this.#context && this.#context !== context)
     {

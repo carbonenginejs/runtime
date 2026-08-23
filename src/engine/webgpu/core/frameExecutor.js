@@ -22,7 +22,10 @@
 // Carbon's per-backend TriDevice owns for its API. Presentation is absent
 // deliberately: the browser presents a configured canvas after the submission
 // that drew into its current texture.
+import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
 import { IntentClass } from "./framePlan.js";
+import { CjsWebgpuRenderTarget } from "./renderTarget.js";
+import { CjsWebgpuTrinityPassEncoder } from "./trinityPassEncoder.js";
 
 function fail(message)
 {
@@ -41,13 +44,17 @@ export class CjsWebgpuFrameExecutor
 
   #passEncoder;
 
-  #hooks;
+  #resolveSelections;
+
+  #resolveDescriptor;
+
+  #executeRegion;
 
   /**
-   * @param {object} webgpu CjsWebgpuDevice-compatible boundary.
+   * @param {CjsWebgpuDevice} webgpu Canonical WebGPU device.
    * @param {object} options Composition.
-   * @param {object} options.renderTarget CjsWebgpuRenderTarget-compatible target.
-   * @param {object} options.passEncoder CjsWebgpuTrinityPassEncoder-compatible encoder.
+   * @param {CjsWebgpuRenderTarget} options.renderTarget Canonical render target.
+   * @param {CjsWebgpuTrinityPassEncoder} options.passEncoder Canonical pass encoder.
    * @param {Function} options.ResolveSelections Maps a render region to
    *   `[{ preparedBatchMap, batchType }]`. Returning an empty array is a
    *   legitimate answer and skips the pass.
@@ -59,25 +66,36 @@ export class CjsWebgpuFrameExecutor
    */
   constructor(webgpu, options = {})
   {
-    for (const method of [ "GetDevice", "Submit" ])
+    if (!(webgpu instanceof CjsWebgpuDevice))
     {
-      if (typeof webgpu?.[method] !== "function") fail(`webgpu boundary requires ${method}`);
+      fail("webgpu boundary must be a CjsWebgpuDevice");
     }
-    for (const method of [ "AcquireFrame", "CreateRenderPassDescriptor", "ApplyViewport" ])
+    if (!(options.renderTarget instanceof CjsWebgpuRenderTarget))
     {
-      if (typeof options.renderTarget?.[method] !== "function") fail(`render target requires ${method}`);
+      fail("render target must be a CjsWebgpuRenderTarget");
     }
-    if (typeof options.passEncoder?.Encode !== "function") fail("pass encoder requires Encode");
+    if (!(options.passEncoder instanceof CjsWebgpuTrinityPassEncoder))
+    {
+      fail("pass encoder must be a CjsWebgpuTrinityPassEncoder");
+    }
     if (typeof options.ResolveSelections !== "function") fail("ResolveSelections is required");
+    if (options.ResolveDescriptor !== undefined && typeof options.ResolveDescriptor !== "function")
+    {
+      fail("ResolveDescriptor must be a function when provided");
+    }
+    if (options.ExecuteRegion !== undefined && typeof options.ExecuteRegion !== "function")
+    {
+      fail("ExecuteRegion must be a function when provided");
+    }
 
     this.#webgpu = webgpu;
     this.#renderTarget = options.renderTarget;
     this.#passEncoder = options.passEncoder;
-    this.#hooks = {
-      ResolveSelections: options.ResolveSelections,
-      ResolveDescriptor: options.ResolveDescriptor ?? null,
-      ExecuteRegion: options.ExecuteRegion ?? null
-    };
+    this.#resolveSelections = options.ResolveSelections;
+    this.#resolveDescriptor = options.ResolveDescriptor ?? ((region, index, frame) =>
+      this.#DefaultDescriptor(region, index, frame));
+    this.#executeRegion = options.ExecuteRegion ?? ((_commandEncoder, region, index) =>
+      fail(`region ${index} is ${region.kind} work and no ExecuteRegion handler was supplied`));
   }
 
   /**
@@ -111,7 +129,7 @@ export class CjsWebgpuFrameExecutor
 
       if (region.kind === IntentClass.RENDER)
       {
-        const selections = this.#hooks.ResolveSelections(region, index);
+        const selections = this.#resolveSelections(region, index);
         if (!Array.isArray(selections)) fail(`ResolveSelections must return an array for region ${index}`);
         // An empty answer is legitimate - a region whose intents map to no
         // prepared batch type - and opening a pass to draw nothing is waste.
@@ -127,11 +145,7 @@ export class CjsWebgpuFrameExecutor
         continue;
       }
 
-      if (!this.#hooks.ExecuteRegion)
-      {
-        fail(`region ${index} is ${region.kind} work and no ExecuteRegion handler was supplied`);
-      }
-      this.#hooks.ExecuteRegion(commandEncoder, region, index);
+      this.#executeRegion(commandEncoder, region, index);
       encodedRegions += 1;
     }
 
@@ -144,16 +158,17 @@ export class CjsWebgpuFrameExecutor
   /** Resolves the render-pass descriptor for one planned frame region. */
   #Descriptor(region, index, frame)
   {
-    if (this.#hooks.ResolveDescriptor)
+    const descriptor = this.#resolveDescriptor(region, index, frame);
+    if (!descriptor || typeof descriptor !== "object")
     {
-      const descriptor = this.#hooks.ResolveDescriptor(region, index, frame);
-      if (!descriptor || typeof descriptor !== "object")
-      {
-        fail(`ResolveDescriptor must return a descriptor for region ${index}`);
-      }
-      return descriptor;
+      fail(`ResolveDescriptor must return a descriptor for region ${index}`);
     }
+    return descriptor;
+  }
 
+  /** Builds the target-owned default descriptor for a render region. */
+  #DefaultDescriptor(region, index, frame)
+  {
     // The planner already folded this region's clear into its load operations,
     // so nothing here decides whether to clear - it only spells the decision.
     const clear = region.clear ?? null;

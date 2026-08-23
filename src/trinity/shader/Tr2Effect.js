@@ -7,7 +7,7 @@ import { Tr2ConstantEffectParameter } from "./parameter/Tr2ConstantEffectParamet
 import { Tr2FloatParameter } from "./parameter/Tr2FloatParameter.js";
 import { Tr2GeometryBufferParameter } from "./parameter/Tr2GeometryBufferParameter.js";
 import { Tr2Matrix4Parameter } from "./parameter/Tr2Matrix4Parameter.js";
-import { Tr2EffectConstant } from "#resource/shader";
+import { Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#resource/shader";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
 import { Tr2Vector2Parameter } from "./parameter/Tr2Vector2Parameter.js";
@@ -19,6 +19,16 @@ import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
 import { CjsVariableStore } from "./CjsVariableStore.js";
+
+
+function requireShader(shader)
+{
+  if (!(shader instanceof Tr2Shader))
+  {
+    throw new TypeError("Shader reflection must be a Tr2Shader.");
+  }
+  return shader;
+}
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @type.define({ className: "Tr2Effect", family: "shader" })
@@ -265,7 +275,7 @@ export class Tr2Effect extends Tr2Material
   @impl.implemented
   IsParameterUsedByTechnique(parameterName)
   {
-    return !!this.shader?.GetConstant?.(parameterName);
+    return this.shader === null ? false : !!requireShader(this.shader).GetConstant(parameterName);
   }
 
   /** Carbon method StartUpdate (MAP_METHOD_AND_WRAP). */
@@ -333,7 +343,19 @@ export class Tr2Effect extends Tr2Material
       return;
     }
     this.parameterHash = 0xffffffff;
-    this.shader = this.effectResource?.GetShader?.(this.options) ?? this.effectResource?.getShader?.(this.options) ?? this.effectResource?.shader ?? this.shader ?? null;
+    if (this.effectResource !== null)
+    {
+      if (!(this.effectResource instanceof Tr2EffectRes))
+      {
+        throw new TypeError("Tr2Effect.effectResource must be a Tr2EffectRes or null.");
+      }
+      const shader = this.effectResource.GetShader(this.options);
+      if (shader !== null && !(shader instanceof Tr2Shader))
+      {
+        throw new TypeError("Tr2EffectRes.GetShader must return a Tr2Shader or null.");
+      }
+      this.shader = shader;
+    }
     this.lodTextureParameters = [];
     this.compatibleWithGdr = true;
     for (const parameter of this.parameters)
@@ -1050,7 +1072,8 @@ export class Tr2Effect extends Tr2Material
     {
       return false;
     }
-    return Tr2Effect.getBool(this.shader, name, "SasUiVisible", false) && !!(this.shader?.GetConstant?.(name) || this.shader?.GetResource?.(name));
+    const shader = requireShader(this.shader);
+    return Tr2Effect.getBool(shader, name, "SasUiVisible", false) && !!(shader.GetConstant(name) || shader.GetResource(name));
   }
 
   /** Normalizes an authored effect path's backslashes to forward slashes. */
@@ -1060,42 +1083,32 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Flattens a shader's technique/pass tree into a flat array of stage inputs,
-   * accepting either a GetEffectDescription accessor or a plain `effect` field.
+   * Flattens a canonical shader's technique/pass tree into stage inputs.
    */
   static iterateShaderStages(shader)
   {
     const stages = [];
-    const desc = shader?.GetEffectDescription?.() ?? shader?.effect ?? null;
-    for (const technique of desc?.techniques ?? [])
+    const desc = requireShader(shader).GetEffectDescription();
+    for (const technique of desc.techniques)
     {
-      for (const pass of technique?.passes ?? [])
+      for (const pass of technique.passes)
       {
-        stages.push(...pass?.stageInputs ?? []);
+        stages.push(...pass.stageInputs);
       }
     }
     return stages;
   }
 
   /**
-   * Normalizes a stage's resource collection - Map, array of entries, or plain
-   * object - into a flat array of resource descriptions.
+   * Returns a canonical stage resource map's descriptions in iteration order.
    */
   static iterateResources(values)
   {
-    if (!values)
+    if (!(values instanceof Map))
     {
-      return [];
+      throw new TypeError("Tr2Effect stage resources must be a Map.");
     }
-    if (values instanceof Map)
-    {
-      return [...values.values()];
-    }
-    if (Array.isArray(values))
-    {
-      return values.map(value => value?.[1] ?? value);
-    }
-    return Object.values(values);
+    return [...values.values()];
   }
 
   /**
@@ -1104,7 +1117,7 @@ export class Tr2Effect extends Tr2Material
    */
   static getBool(shader, parameterName, annotationName, defaultValue = false)
   {
-    const annotations = shader?.GetParameterAnnotations?.(parameterName);
+    const annotations = requireShader(shader).GetParameterAnnotations(parameterName);
     const values = annotations instanceof Map ? [...annotations.values()] : Array.isArray(annotations) ? annotations : Object.values(annotations ?? {});
     const annotation = values.find(value => value?.name === annotationName);
     if (!annotation)

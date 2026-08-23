@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsWebgpuDevice } from "#engine/webgpu";
-import { CjsWebgpuEncodeState } from "#engine/webgpu/core/batchGroups";
+import { CjsResource } from "../../../npm/dist/resource/index.js";
+import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
+import { CjsWebgpuEncodeState } from "../../../npm/dist/engine/webgpu/internal.js";
 
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
 const BUFFER_USAGE = Object.freeze({ UNIFORM: 16, COPY_DST: 32, VERTEX: 64, INDEX: 128 });
@@ -360,68 +361,54 @@ function samplerInputs()
   };
 }
 
+class TestAdapterResource extends CjsResource
+{
+  constructor()
+  {
+    super();
+    this.values = new Map();
+    this.history = [];
+    this.current = true;
+    this.state = CjsResource.State.LOADED;
+    this.payload = null;
+    this.setError = null;
+    this.setThenError = null;
+    this.ignoreSet = false;
+  }
+
+  IsCurrent() { return this.current; }
+
+  GetPayload() { return this.payload; }
+
+  GetAdapterResource(key) { return this.values.get(key) ?? null; }
+
+  SetAdapterResource(key, value)
+  {
+    this.history.push([ key, value ]);
+    if (this.setError) throw this.setError;
+    if (!this.ignoreSet) this.values.set(key, value);
+    if (this.setThenError)
+    {
+      const error = this.setThenError;
+      this.setThenError = null;
+      throw error;
+    }
+    return this;
+  }
+
+  DestroyAdapterResource(key)
+  {
+    this.history.push([ "destroy", key ]);
+    const value = this.values.get(key);
+    this.values.delete(key);
+    value?.Destroy?.();
+    return this;
+  }
+}
+
 function adapterResourceSlot()
 {
-  const values = new Map();
-  const history = [];
-  return {
-    values,
-    history,
-    current: true,
-    state: "loaded",
-    payload: null,
-    setError: null,
-    setThenError: null,
-    ignoreSet: false,
-    IsCurrent()
-    {
-      return this.current;
-    },
-    GetPayload()
-    {
-      return this.payload;
-    },
-    MarkLoaded()
-    {
-      this.state = "loaded";
-      return this;
-    },
-    MarkPreparing()
-    {
-      this.state = "preparing";
-      return this;
-    },
-    MarkPrepared()
-    {
-      this.state = "prepared";
-      return this;
-    },
-    GetAdapterResource(key)
-    {
-      return values.get(key) ?? null;
-    },
-    SetAdapterResource(key, value)
-    {
-      history.push([ key, value ]);
-      if (this.setError) throw this.setError;
-      if (!this.ignoreSet) values.set(key, value);
-      if (this.setThenError)
-      {
-        const error = this.setThenError;
-        this.setThenError = null;
-        throw error;
-      }
-      return this;
-    },
-    DestroyAdapterResource(key)
-    {
-      history.push([ "destroy", key ]);
-      const value = values.get(key);
-      values.delete(key);
-      value?.Destroy?.();
-      return this;
-    }
-  };
+  return new TestAdapterResource();
 }
 
 test("CjsWebgpuDevice prepares canonical layouts and realizes an explicit pipeline/draw recipe", async () =>
@@ -2065,7 +2052,7 @@ test("CjsWebgpuDevice resource publication descriptors and ownership fail closed
   assert.throws(() => foreign.DestroyResourceBundle(bundle), /belongs to another device/i);
   assert.throws(
     () => owner.RealizeResource({}, { textures: { main: textureInputs() } }),
-    /requires a current CPU resource/i
+    /requires a CjsResource/i
   );
   const occupied = adapterResourceSlot();
   occupied.values.set("webgpu", { Destroy() {} });
@@ -2473,6 +2460,23 @@ test("CjsWebgpuDevice.Request keeps adapter policy explicit and reports unavaila
   assert.deepEqual(seen, [ [ "adapter", adapterOptions ], [ "device", deviceDescriptor ] ]);
   assert.equal(webgpu.GetAdapter(), adapter);
   assert.equal(webgpu.GetDevice(), fake.device);
+
+  const injectedAdapter = await CjsWebgpuDevice.Request({
+    gpu: null,
+    adapter,
+    deviceDescriptor,
+    shaderStage: SHADER_STAGE
+  });
+  assert.equal(injectedAdapter.GetAdapter(), adapter);
+  assert.equal(injectedAdapter.GetDevice(), fake.device);
+
+  const injectedDevice = await CjsWebgpuDevice.Request({
+    gpu: null,
+    device: fake.device,
+    shaderStage: SHADER_STAGE
+  });
+  assert.equal(injectedDevice.GetAdapter(), null);
+  assert.equal(injectedDevice.GetDevice(), fake.device);
 });
 
 test("CjsWebgpuDevice elides the sets a run's first batch already performed", async () =>
@@ -2514,6 +2518,10 @@ test("CjsWebgpuDevice elides the sets a run's first batch already performed", as
   // applies per-object constants per batch for the same reason, so this is the
   // correct shape rather than a missed elision.
   passCalls.length = 0;
+  assert.throws(
+    () => webgpu.EncodeDraw(pass, first, { Require() { return this; } }),
+    /state must be a CjsWebgpuEncodeState or null/u
+  );
   const state = new CjsWebgpuEncodeState();
   webgpu.EncodeDraw(pass, first, state);
   webgpu.EncodeDraw(pass, second, state);

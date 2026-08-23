@@ -16,9 +16,7 @@
 //   - the entry and exit are DELIBERATELY ASYMMETRIC. Entry is profiler,
 //     BeginFrame, BeginRenderContext; exit is profiler, EndRenderContext,
 //     EndFrame. Carbon's EndRenderContext clears the frame pool allocator
-//     BEFORE EndScene. The current JS context resets the pool but has not yet
-//     ported the matching EndScene delegation; that is a real composition gap,
-//     not permission to omit the close.
+//     BEFORE EndScene; the JS context preserves that same order.
 //   - PRESENT IS NOT HERE. Carbon presents the PREVIOUS frame at the top of
 //     the NEXT tick, before Render, with a source comment explaining that it
 //     buys CPU/GPU overlap while the host script is pumped
