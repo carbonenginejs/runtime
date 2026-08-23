@@ -1,0 +1,36 @@
+engine-webgpu
+
+Copyright (c) CarbonEngineJS contributors.
+CarbonEngine source material, formats, class names, and schema semantics remain
+copyright their original CarbonEngine authors.
+Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
+and EVE-related data remain copyright their original holders.
+
+This package currently contains CarbonEngineJS original project code only. It
+implements CEWGPU descriptor normalization plus live WebGPU pipeline, resource,
+binding, and draw realization, together with Carbon-style effect path
+rewriting. CarbonEngine and Fenris Creations (CCP Games) are mentioned for
+interoperability, provenance, and behavioral reference context only. This
+package is not affiliated with or endorsed by CCP Games.
+
+Development tooling
+-------------------
+
+The optional WebGPU verification harness uses Microsoft Playwright as a
+development dependency to launch a browser. Playwright is licensed under the
+Apache License 2.0. It is not a runtime dependency and no Playwright source is
+copied into this package.
+
+Provenance and legal requirements
+---------------------------------
+
+If future work copies, ports, translates, or derives from CarbonEngine,
+ccpwgl, Fenris Creations (CCP Games) / EVE assets or tools, or any third-party
+library, update this NOTICE before committing that work with:
+
+- upstream copyright holders;
+- upstream project/repository, file path, and revision when known;
+- upstream license name, license text or required notice location, and any
+  redistribution obligations;
+- whether the material was copied/ported/adapted, or used only as a behavioral
+  reference with no copied expression.

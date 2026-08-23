@@ -1,0 +1,30 @@
+# Dependencies / caches
+node_modules/
+.deno/
+coverage/
+
+# Acquired game data. Anything using the tools-core client materialises this,
+# and it holds CCP bytes -- which this package, publishing to npm, must never
+# carry. Same rule and same anchoring as tools-core's own ignore file.
+/.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent / tool scratch — nested repos do NOT inherit the org-root .gitignore
+.agent/
+.agents/
+.claude/
+.codex/
+.skill/
+.skills/
+review/
+_review/
+carbonenginejs.md
+
+# Agent entry files. Generated per checkout by docs/tooling/bin/cjs-agent-entry.js
+# and deliberately local: they cite the private organization documentation, which
+# a published package must not point at.
+/AGENTS.md
+/CLAUDE.md

@@ -1,0 +1,462 @@
+import {
+  DECALV5_CLEAR_TARGET,
+  DECALV5_TARGET_HEIGHT,
+  DECALV5_TARGET_WIDTH,
+  DECALV5_VERTEX_BUFFER_LAYOUT,
+  createDecalV5FixtureValues
+} from "./decalV5Fixture.js";
+import { createQuadV5MainBindingValues } from "./quadV5Fixture.js";
+
+const TARGET_BODY_INDEX = 0;
+
+export const DECAL_COUNTER_V5_TARGET_WIDTH = DECALV5_TARGET_WIDTH;
+export const DECAL_COUNTER_V5_TARGET_HEIGHT = DECALV5_TARGET_HEIGHT;
+export const DECAL_COUNTER_V5_VERTEX_BUFFER_LAYOUT = DECALV5_VERTEX_BUFFER_LAYOUT;
+export const DECAL_COUNTER_V5_CLEAR_TARGET = DECALV5_CLEAR_TARGET;
+export const DECAL_COUNTER_V5_KILL_COUNT = 731;
+
+export const DECAL_COUNTER_V5_SELECTION = Object.freeze({
+  BINDLESS_RENDERING: "BINDLESS_RENDERING_DISABLED",
+  SPACE_OBJECT_CLIPPING: "SOC_DISABLED",
+  SPACE_OBJECT_INSTANCED_ATTACHMENT: "SOIA_DISABLED"
+});
+
+const SELECTION_PROVENANCE = Object.freeze({
+  BINDLESS_RENDERING: Object.freeze({
+    optionIndex: 0,
+    defaultOption: 0,
+    defaultValue: "BINDLESS_RENDERING_DISABLED"
+  }),
+  SPACE_OBJECT_CLIPPING: Object.freeze({
+    optionIndex: 0,
+    defaultOption: 0,
+    defaultValue: "SOC_DISABLED"
+  }),
+  SPACE_OBJECT_INSTANCED_ATTACHMENT: Object.freeze({
+    optionIndex: 0,
+    defaultOption: 0,
+    defaultValue: "SOIA_DISABLED"
+  })
+});
+
+const UNIFORMS = Object.freeze([
+  Object.freeze({ registerIndex: 0, binding: 0, visibility: "fragment", minBindingSize: 48 }),
+  Object.freeze({ registerIndex: 1, binding: 1, visibility: "vertex", minBindingSize: 384 }),
+  Object.freeze({ registerIndex: 2, binding: 2, visibility: "fragment", minBindingSize: 352 }),
+  Object.freeze({ registerIndex: 3, binding: 3, visibility: "vertex", minBindingSize: 320 }),
+  Object.freeze({ registerIndex: 4, binding: 4, visibility: "fragment", minBindingSize: 32 })
+].map((entry) => Object.freeze({
+  ...entry,
+  identity: `uniform-buffer:0:${entry.registerIndex}`,
+  scopeIdentity: `uniform-buffer:0:${entry.registerIndex}@${entry.visibility}`
+})));
+
+const MATERIAL_LAYOUT = Object.freeze({
+  dx11: Object.freeze([
+    Object.freeze({ name: "DecalTextureScaling", offset: 0 }),
+    Object.freeze({ name: "DecalIntensityData", offset: 16 }),
+    Object.freeze({ name: "DecalGlowColor", offset: 32 })
+  ]),
+  dx12: Object.freeze([
+    Object.freeze({ name: "DecalGlowColor", offset: 0 }),
+    Object.freeze({ name: "DecalTextureScaling", offset: 16 }),
+    Object.freeze({ name: "DecalIntensityData", offset: 32 })
+  ])
+});
+
+const TEXTURE = Object.freeze({
+  name: "DecalTransparencyMap",
+  identity: "sampled-resource:0:0",
+  scopeIdentity: "sampled-resource:0:0@fragment",
+  registerIndex: 0,
+  binding: 5,
+  viewDimension: "2d"
+});
+
+const SAMPLER = Object.freeze({
+  name: "Sampler0",
+  identity: "sampler:0:0",
+  scopeIdentity: "sampler:0:0@fragment",
+  registerIndex: 0,
+  binding: 6
+});
+
+function fail(message)
+{
+  throw new Error(`DecalCounterV5 fixture: ${message}`);
+}
+
+function normalizedPath(value)
+{
+  return typeof value === "string" ? value.replace(/\\/gu, "/").toLowerCase() : "";
+}
+
+function assertSelections(options, owner)
+{
+  if (!Array.isArray(options) || options.length !== Object.keys(DECAL_COUNTER_V5_SELECTION).length)
+  {
+    fail(`${owner} must contain every DecalCounterV5 permutation selection`);
+  }
+  const selected = new Map();
+  for (const entry of options)
+  {
+    if (typeof entry?.name !== "string" || selected.has(entry.name))
+    {
+      fail(`${owner} has malformed or duplicate selections`);
+    }
+    selected.set(entry.name, entry);
+  }
+  for (const [ name, value ] of Object.entries(DECAL_COUNTER_V5_SELECTION))
+  {
+    const entry = selected.get(name);
+    const provenance = SELECTION_PROVENANCE[name];
+    if (!entry) fail(`${owner} is missing ${name}`);
+    if (entry.value !== value) fail(`${owner} requires ${name}=${value}`);
+    // `source` is build-time policy (who chose the value), not container
+    // data; see quadV5Fixture.js. It cannot survive a read back from bytes.
+    if (entry.optionIndex !== provenance.optionIndex
+      || entry.defaultOption !== provenance.defaultOption
+      || entry.defaultValue !== provenance.defaultValue)
+    {
+      fail(`${owner} has unexpected provenance for ${name}`);
+    }
+  }
+}
+
+function assertBindingSlot(binding, expected, layoutKind, visibility)
+{
+  if (!binding || binding.identity !== expected.identity
+    || binding.scopeIdentity !== expected.scopeIdentity
+    || binding.registerSpace !== 0 || binding.registerIndex !== expected.registerIndex
+    || binding.sourceTruth !== "wgsl-layout" || binding.group !== 0
+    || binding.binding !== expected.binding || binding.dynamic !== false
+    || !Array.isArray(binding.visibility) || binding.visibility.length !== 1
+    || binding.visibility[0] !== visibility)
+  {
+    fail(`${expected.identity} has an unexpected slot, scope, register, or visibility`);
+  }
+  const layouts = Object.keys(binding.layout || {}).filter(
+    (key) => [ "buffer", "texture", "sampler" ].includes(key) && binding.layout[key]
+  );
+  if (layouts.length !== 1 || layouts[0] !== layoutKind)
+  {
+    fail(`${expected.identity} has an unexpected layout kind`);
+  }
+}
+
+function assertPipelineInputs(record)
+{
+  const vertex = record.analysis?.stages?.filter((stage) =>
+    stage?.techniqueName === "Main" && stage.passIndex === 0 && stage.stageName === "vertex");
+  if (!Array.isArray(vertex) || vertex.length !== 1)
+  {
+    fail("analysis must contain exactly one Main.pass0.vertex stage");
+  }
+  const active = (vertex[0].pipelineInputs || [])
+    .filter((entry) => entry.usedMask !== 0)
+    .map(({ registerIndex, dimension, type }) => ({ registerIndex, dimension, type }))
+    .sort((left, right) => left.registerIndex - right.registerIndex);
+  const expected = [
+    { registerIndex: 0, dimension: 3, type: 0 },
+    { registerIndex: 2, dimension: 2, type: 0 },
+    { registerIndex: 3, dimension: 3, type: 0 },
+    { registerIndex: 4, dimension: 3, type: 0 },
+    { registerIndex: 5, dimension: 3, type: 0 }
+  ];
+  if (JSON.stringify(active) !== JSON.stringify(expected))
+  {
+    fail("Main.pass0.vertex has an unexpected active input contract");
+  }
+}
+
+function assertShaderModules(record)
+{
+  const modules = record.pipeline?.shaderModules;
+  if (!Array.isArray(modules) || modules.length !== 2)
+  {
+    fail("Main.pass0 requires exactly vertex and pixel modules");
+  }
+  for (const stageName of [ "vertex", "pixel" ])
+  {
+    const matches = modules.filter((entry) => entry?.stageName === stageName);
+    const module = matches[0];
+    if (matches.length !== 1 || typeof module.wgsl !== "string" || !module.wgsl
+      || module.key !== `Main.pass0.${stageName}`
+      || module.techniqueName !== "Main" || module.passIndex !== 0
+      || module.stageType !== (stageName === "vertex" ? 0 : 1)
+      || module.entryPoint !== "main")
+    {
+      fail(`Main.pass0 requires one complete ${stageName} module`);
+    }
+    if (stageName === "vertex")
+    {
+      for (const location of [ 0, 2, 3, 4, 5 ])
+      {
+        if (!new RegExp(`@location\\(${location}\\)\\s+input${location}:`, "u").test(module.wgsl))
+        {
+          fail(`vertex WGSL is missing location ${location}`);
+        }
+      }
+    }
+    else if (!/@location\(0\)\s+output0:/u.test(module.wgsl)
+      || /@location\(1\)\s+output1:/u.test(module.wgsl))
+    {
+      fail("pixel WGSL must expose exactly the DecalCounterV5 color target");
+    }
+  }
+}
+
+function assertMaterialReflection(binding, backend)
+{
+  const carbon = binding?.carbon;
+  const constants = carbon?.constants;
+  const expected = MATERIAL_LAYOUT[backend];
+  if (carbon?.hasLocalConstants !== true || carbon.constantValueSize !== 48
+    || !Array.isArray(constants) || constants.length !== expected.length)
+  {
+    fail("cb0 has an unexpected reflected material layout");
+  }
+  constants.forEach((constant, index) =>
+  {
+    const layout = expected[index];
+    if (constant.name !== layout.name || constant.offset !== layout.offset
+      || constant.size !== 16 || constant.type !== 0
+      || constant.dimension !== 4 || constant.elements !== 0)
+    {
+      fail(`cb0 material constant ${layout.name} has an unexpected reflected layout`);
+    }
+  });
+}
+
+function assertAnalysisBindings(record)
+{
+  const stages = record.analysis?.stages;
+  const vertex = stages?.filter((stage) =>
+    stage?.techniqueName === "Main" && stage.passIndex === 0 && stage.stageName === "vertex");
+  const pixel = stages?.filter((stage) =>
+    stage?.techniqueName === "Main" && stage.passIndex === 0 && stage.stageName === "pixel");
+  if (!Array.isArray(vertex) || vertex.length !== 1
+    || !Array.isArray(pixel) || pixel.length !== 1)
+  {
+    fail("analysis must contain one Main.pass0 vertex/pixel pair");
+  }
+  for (const expected of UNIFORMS)
+  {
+    const stage = expected.visibility === "vertex" ? vertex[0] : pixel[0];
+    const matches = (stage.bindings || []).filter((entry) =>
+      entry?.kind === "constantBuffer" && entry.registerSpace === 0
+      && entry.registerIndex === expected.registerIndex);
+    if (matches.length !== 1) fail(`${expected.identity} has unexpected reflection`);
+    if (expected.registerIndex === 0) assertMaterialReflection(matches[0], record.backend);
+    else if (matches[0].carbon?.hasLocalConstants !== false)
+    {
+      fail(`${expected.identity} has unexpected local constants`);
+    }
+  }
+  const resources = (pixel[0].bindings || []).filter((entry) =>
+    entry?.kind === "resource" && entry.registerSpace === 0 && entry.registerIndex === 0);
+  if (resources.length !== 1 || resources[0].carbon?.name !== TEXTURE.name)
+  {
+    fail(`${TEXTURE.identity} must reflect ${TEXTURE.name}`);
+  }
+  const samplers = (pixel[0].bindings || []).filter((entry) =>
+    entry?.kind === "sampler" && entry.registerSpace === 0);
+  // Asserted for both backends; the DX12 early return skipped every check below.
+  const state = samplers.length === 1 && samplers[0].registerIndex === 0
+    ? samplers[0].carbon?.sampler
+    : null;
+  if (!state || state.comparison !== false
+    || state.minFilter !== 3 || state.magFilter !== 2 || state.mipFilter !== 2
+    || state.addressU !== 1 || state.addressV !== 1 || state.addressW !== 3
+    || state.mipLODBias !== -0.75 || state.maxAnisotropy !== 16
+    || state.isDynamic !== false)
+  {
+    fail("sampler:0:0 has unexpected static sampler state");
+  }
+}
+
+function assertBindings(record)
+{
+  const groups = record.pipeline?.bindGroups;
+  if (!Array.isArray(groups) || groups.length !== 1 || groups[0]?.group !== 0)
+  {
+    fail("Main.pass0 requires exactly canonical bind group 0");
+  }
+  const bindings = groups[0].bindings;
+  if (!Array.isArray(bindings) || bindings.length !== 7)
+  {
+    fail("Main.pass0 must contain five uniforms, one texture, and one sampler");
+  }
+  const byScope = new Map(bindings.map((entry) => [ entry.scopeIdentity, entry ]));
+  if (byScope.size !== bindings.length) fail("Main.pass0 contains duplicate binding scopes");
+  for (const expected of UNIFORMS)
+  {
+    const binding = byScope.get(expected.scopeIdentity);
+    assertBindingSlot(binding, expected, "buffer", expected.visibility);
+    if (binding.resourceKind !== "uniform-buffer"
+      || binding.layout.buffer.type !== "uniform"
+      || binding.layout.buffer.hasDynamicOffset !== false
+      || binding.layout.buffer.minBindingSize !== expected.minBindingSize)
+    {
+      fail(`${expected.identity} has an unexpected uniform-buffer layout`);
+    }
+  }
+  const texture = byScope.get(TEXTURE.scopeIdentity);
+  assertBindingSlot(texture, TEXTURE, "texture", "fragment");
+  if (texture.resourceKind !== "sampled-resource"
+    || texture.layout.texture.sampleType !== "float"
+    || texture.layout.texture.viewDimension !== TEXTURE.viewDimension
+    || texture.layout.texture.multisampled !== false)
+  {
+    fail(`${TEXTURE.identity} has an unexpected texture layout`);
+  }
+  const sampler = byScope.get(SAMPLER.scopeIdentity);
+  assertBindingSlot(sampler, SAMPLER, "sampler", "fragment");
+  if (sampler.resourceKind !== "sampler" || sampler.layout.sampler.type !== "filtering")
+  {
+    fail(`${SAMPLER.identity} has an unexpected sampler layout`);
+  }
+  assertAnalysisBindings(record);
+}
+
+/** Fail closed unless a record is the default non-bindless DecalCounterV5 Main pass. */
+export function validateDecalCounterV5PackageRecord(record)
+{
+  if (!record || typeof record !== "object") fail("package record is required");
+  if (record.backend !== "dx11" && record.backend !== "dx12")
+  {
+    fail("package backend must be dx11 or dx12");
+  }
+  const source = normalizedPath(record.analysis?.source);
+  const metadataSource = normalizedPath(record.metadata?.sourcePath);
+  const expectedSuffix =
+    `/effect.${record.backend}/managed/space/decals/v5/unpacked_decalcounterv5.sm_hi`;
+  if (!source || source !== metadataSource || !source.endsWith(expectedSuffix))
+  {
+    fail(`package source provenance must be canonical ${record.backend} unpacked_decalcounterv5`);
+  }
+  if (record.analysis?.bodyIndex !== TARGET_BODY_INDEX
+    || record.metadata?.bodyIndex !== TARGET_BODY_INDEX)
+  {
+    fail(`package must resolve body index ${TARGET_BODY_INDEX}`);
+  }
+  assertSelections(record.analysis.selectedOptions, "analysis.selectedOptions");
+  assertSelections(record.metadata.selectedOptions, "metadata.selectedOptions");
+  const selection = record.metadata.wgslSelection;
+  if (selection?.mode !== "explicit"
+    || selection.techniqueName !== "Main" || selection.passIndex !== 0
+    || selection.completePasses !== true
+    || !Array.isArray(selection.requestedStageNames)
+    || selection.requestedStageNames.length !== 2
+    || selection.requestedStageNames[0] !== "vertex"
+    || selection.requestedStageNames[1] !== "pixel"
+    || !Array.isArray(selection.selectedStageKeys)
+    || selection.selectedStageKeys.length !== 2
+    || !selection.selectedStageKeys.includes("Main.pass0.vertex")
+    || !selection.selectedStageKeys.includes("Main.pass0.pixel"))
+  {
+    fail("package selection must be the complete Main.pass0 vertex/pixel pair");
+  }
+  if (record.pipeline?.techniqueName !== "Main" || record.pipeline.passIndex !== 0)
+  {
+    fail("pipeline must be Main.pass0");
+  }
+  assertPipelineInputs(record);
+  assertShaderModules(record);
+  assertBindings(record);
+  return record;
+}
+
+/** Return the validated semantic texture and sampler identities. */
+export function getDecalCounterV5ResourcePlan(record)
+{
+  validateDecalCounterV5PackageRecord(record);
+  return Object.freeze({
+    textures: Object.freeze([ TEXTURE ]),
+    samplers: Object.freeze([ SAMPLER ])
+  });
+}
+
+/** Validate an ordered, distinct DX11/DX12 package pair before comparison. */
+export function validateDecalCounterV5PackagePair(records)
+{
+  if (!Array.isArray(records) || records.length !== 2)
+  {
+    fail("comparison requires exactly one DX11 and one DX12 package");
+  }
+  records.forEach(validateDecalCounterV5PackageRecord);
+  if (records[0].backend !== "dx11" || records[1].backend !== "dx12")
+  {
+    fail("comparison package order must be DX11 then DX12");
+  }
+  const physicalPaths = records.map((record) => normalizedPath(record.filePath));
+  if (physicalPaths.some((value) => !value) || physicalPaths[0] === physicalPaths[1])
+  {
+    fail("comparison requires distinct physical package files");
+  }
+  const resourcePaths = records.map((record) => normalizedPath(record.resourcePath));
+  if (resourcePaths.some((value) => !value) || resourcePaths[0] === resourcePaths[1])
+  {
+    fail("comparison requires distinct logical resource paths");
+  }
+  const payload = (record) => record.pipeline.shaderModules
+    .slice()
+    .sort((left, right) => left.stageName.localeCompare(right.stageName))
+    .map((entry) => `${entry.stageName}:${entry.wgsl}`)
+    .join("\n");
+  if (payload(records[0]) === payload(records[1]))
+  {
+    fail("DX11 and DX12 packages contain identical WGSL payloads");
+  }
+  return records;
+}
+
+/**
+ * Create semantic scene/object values plus the small counter-decal material
+ * and its one authored transparency texture.
+ */
+export function createDecalCounterV5FixtureValues(width, height)
+{
+  if (!Number.isInteger(width) || width < 1 || !Number.isInteger(height) || height < 1)
+  {
+    throw new TypeError("DecalCounterV5 fixture dimensions must be positive integers");
+  }
+  const base = createDecalV5FixtureValues(width, height);
+  const scene = createQuadV5MainBindingValues(width, height);
+  const decalVS = new Float32Array(384 / 4);
+  for (let matrix = 0; matrix < 6; matrix += 1)
+  {
+    const offset = matrix * 16;
+    decalVS[offset] = 1;
+    decalVS[offset + 5] = 1;
+    decalVS[offset + 10] = 1;
+    decalVS[offset + 15] = 1;
+  }
+  // The active DecalPSPerObjectData prefix is displayData then shipData. The
+  // counter shader displays 0..999; the runtime transports (rather than
+  // clamps) the ship value and widens it into displayData.x. Visibility is .y.
+  const decalPS = new Float32Array([
+    DECAL_COUNTER_V5_KILL_COUNT, 1, 0, 0,
+    0, 1, 0, 0
+  ]);
+  return Object.freeze({
+    vertices: base.vertices,
+    indices: base.indices,
+    bindingValues: Object.freeze({
+      ...scene,
+      material: Object.freeze({
+        DecalTextureScaling: [ 1, 1, 0, 0 ],
+        DecalIntensityData: [ 1, 1, 1, 1 ],
+        DecalGlowColor: [ 0.95, 0.22, 0.08, 1 ]
+      })
+    }),
+    decalUniformData: Object.freeze({
+      "uniform-buffer:0:3@vertex": new Uint8Array(decalVS.buffer),
+      "uniform-buffer:0:4@fragment": new Uint8Array(decalPS.buffer)
+    }),
+    textures: Object.freeze([
+      base.textures.find((entry) => entry.name === TEXTURE.name)
+    ]),
+    samplerNames: Object.freeze([ SAMPLER.name ])
+  });
+}
