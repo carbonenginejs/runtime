@@ -1,5 +1,8 @@
-// Browser adaptation of CarbonEngine trinity/trinity/UI/Tr2MainWindow.
-import { Tr2WindowMode, Tr2WindowShowState } from "@carbonenginejs/runtime-utils/render-context";
+// Source: trinity/trinity/UI/Tr2MainWindow.h
+// Source: trinity/trinity/UI/Tr2MainWindow.cpp
+// Source: trinity/trinity/UI/Tr2MainWindow_Windows.cpp
+// Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
+import { Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
 import { GetUIScancode, UIScancode } from "./UIScancode.js";
 import { Tr2MainWindowState } from "./Tr2MainWindowState.js";
 import { Tr2MouseCursor } from "./Tr2MouseCursor.js";
@@ -326,7 +329,7 @@ export class Tr2MainWindow
     /** Updates pressed and toggled keys before forwarding a key-down event. */
     #onKeyDown(event)
     {
-        const scancode = UIScancode.FromKeyboardEvent(event);
+        const scancode = UIScancode.fromKeyboardEvent(event);
         this.#pressed.add(scancode.browserCode);
         for (const key of [ "CapsLock", "NumLock", "ScrollLock" ])
         {
@@ -339,7 +342,7 @@ export class Tr2MainWindow
     /** Clears one pressed key before forwarding its key-up event. */
     #onKeyUp(event)
     {
-        const scancode = UIScancode.FromKeyboardEvent(event);
+        const scancode = UIScancode.fromKeyboardEvent(event);
         this.#pressed.delete(scancode.browserCode);
         this.#invoke("onKeyUp", scancode.mDIK, event);
     }

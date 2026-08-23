@@ -6,7 +6,7 @@ import {
     Tr2MainWindowState,
     Tr2MouseCursor,
     UIScancode
-} from "../src/index.js";
+} from "../../../npm/dist/input/index.js";
 
 class FakeTarget
 {
@@ -33,7 +33,7 @@ class FakeTarget
 
 test("UIScancode maps browser physical codes onto Carbon virtual-key vocabulary", () =>
 {
-    const key = UIScancode.FromKeyboardEvent({ code: "KeyA", key: "a", keyCode: 65 });
+    const key = UIScancode.fromKeyboardEvent({ code: "KeyA", key: "a", keyCode: 65 });
     assert.equal(key.mDIK, 65);
     assert.equal(key.mName, "VK_A");
     assert.equal(key.browserCode, "KeyA");

@@ -1,5 +1,7 @@
-// Ported from CarbonEngine trinity/trinity/UI/Tr2MainWindow.h/.cpp.
-import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "@carbonenginejs/runtime-utils/render-context";
+// Source: trinity/trinity/UI/Tr2MainWindow.h
+// Source: trinity/trinity/UI/Tr2MainWindow.cpp
+// Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
+import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
 
 /**
  * Carbon main-window state record for mode, size, position, and presentation settings.

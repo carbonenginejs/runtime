@@ -1,4 +1,6 @@
-// Browser adaptation of CarbonEngine trinity/trinity/UI/Tr2MouseCursor.
+// Source: trinity/trinity/UI/Tr2MouseCursor.h
+// Source: trinity/trinity/UI/Tr2MouseCursor.cpp
+// Source: trinity/trinity/UI/Tr2MouseCursor_Blue.cpp
 
 const CSS_CURSOR_KEYWORDS = new Set([
     "auto", "default", "none", "context-menu", "help", "pointer", "progress", "wait",

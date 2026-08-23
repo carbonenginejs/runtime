@@ -1,7 +1,7 @@
 # Architecture
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-input` implementation boundaries
+Scope: `@carbonenginejs/runtime/input` implementation boundaries
 Audience: Runtime integrators and maintainers
 Summary: Explains host injection, event normalization, state ownership, and unsupported native operations.
 

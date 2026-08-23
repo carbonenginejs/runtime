@@ -74,7 +74,7 @@ The browser platform/input classes are also deliberately not dropped.
 `Tr2VideoDriver` are maintained by `src/core`, which reports the
 capabilities and privacy-filtered adapter/display information actually exposed
 by a browser. `Tr2MainWindow`, `Tr2MainWindowState`, `Tr2MouseCursor`, and
-`UIScancode` are maintained by `runtime-input`, where native handles and
+`UIScancode` are maintained by `src/input`, where native handles and
 message pumps are adapted to DOM input, CSS cursors, Pointer Lock, Fullscreen,
 and injected browser host objects.
 

@@ -71,6 +71,23 @@ generated data-only classes live under `src/character/generated`.
 No acquired assets, decoded datasets, or game data are redistributed with the
 character capability.
 
+Input capability
+----------------
+
+Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
+
+The main-window state and keyboard-scancode vocabulary under `src/input`
+include JavaScript ports and adaptations of CarbonEngine UI behavior, released
+under the MIT License:
+
+    CarbonEngine - https://github.com/carbonengine
+    MIT License, Copyright (c) 2026 CCP Games
+
+The injected browser host, DOM event normalization, CSS cursor realization,
+Pointer Lock, and Fullscreen adapters are original CarbonEngineJS work. No
+acquired assets, decoded datasets, or game data are redistributed with the
+input capability.
+
 Resource capability
 -------------------
 

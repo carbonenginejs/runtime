@@ -1,4 +1,5 @@
-// Ported/adapted from CarbonEngine trinity/trinity/UI/Scancodes.h/.cpp.
+// Source: trinity/trinity/UI/Scancodes.h
+// Source: trinity/trinity/UI/Scancodes.cpp
 
 const DEFINITIONS = new Map();
 
@@ -98,7 +99,7 @@ export class UIScancode
     }
 
     /** Creates a scancode from a KeyboardEvent-like object. */
-    static FromKeyboardEvent(event)
+    static fromKeyboardEvent(event)
     {
         if (!event || typeof event !== "object") throw new TypeError("UIScancode requires a KeyboardEvent-like object.");
         const known = DEFINITIONS.get(event.code);

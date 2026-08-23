@@ -7,6 +7,8 @@ progress. It provides the executable layer boundary, migration metadata, the
 maintained global foundation, the resource/format capability, the migrated
 Trinity/EVE object graph, the standalone SOF data and graph builder, the
 complete headless-by-default audio domain, and the GPU-free character domain.
+The browser-facing input domain is also migrated and remains headless until a
+host is explicitly attached.
 `@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
@@ -22,7 +24,7 @@ npm install
 
 Current validation checks the internal dependency graph, package maps, the
 migrated foundation, all resource/format implementations, Trinity, SOF, audio,
-and character:
+character, and input:
 
 ```sh
 npm test
@@ -44,8 +46,10 @@ surfaces remain available through focused audio subpaths.
 Character consumers use `@carbonenginejs/runtime/character`; acquisition-free
 library building and reviewed generated source are also exposed through
 `/character/library-builder` and `/character/generated`.
+Input consumers use `@carbonenginejs/runtime/input` for host-window state,
+keyboard and pointer normalization, and browser cursor adapters.
 
-The remaining input, core, tools, and WebGPU imports become
+The remaining core, tools, and WebGPU imports become
 available only after their
 history-preserving migrations and the atomic consumer cutover. The WebGPU
 engine is not exported yet, and no WebGL placeholder is advertised before a
@@ -65,6 +69,8 @@ Audio ownership, import-time safety, and class catalogs are documented under
 [docs/audio](docs/audio/README.md).
 Character documents, native ownership, and renderer adoption gates are
 documented under [docs/character](docs/character/README.md).
+Input ownership and browser capability boundaries are documented under
+[docs/input](docs/input/README.md).
 
 ## License
 

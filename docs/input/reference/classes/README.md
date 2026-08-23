@@ -1,7 +1,7 @@
 # Class catalog
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-input` maintained classes
+Scope: `@carbonenginejs/runtime/input` maintained classes
 Audience: Users, maintainers, and automated readers
 Summary: Provides one-sentence purpose descriptors for every maintained class in the input package.
 
@@ -10,8 +10,8 @@ Summary: Provides one-sentence purpose descriptors for every maintained class in
 
 Browser adaptation of CarbonEngine's main-window state and input boundary.
 
-- Export: `@carbonenginejs/runtime-input`
-- Source: `src/Tr2MainWindow.js`
+- Export: `@carbonenginejs/runtime/input`
+- Source: `src/input/Tr2MainWindow.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -20,8 +20,8 @@ Browser adaptation of CarbonEngine's main-window state and input boundary.
 
 Carbon main-window state record for mode, size, position, and presentation settings.
 
-- Export: `@carbonenginejs/runtime-input`
-- Source: `src/Tr2MainWindowState.js`
+- Export: `@carbonenginejs/runtime/input`
+- Source: `src/input/Tr2MainWindowState.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
 
@@ -30,8 +30,8 @@ Carbon main-window state record for mode, size, position, and presentation setti
 
 Browser adaptation of CarbonEngine's mouse cursor using CSS cursor values.
 
-- Export: `@carbonenginejs/runtime-input`
-- Source: `src/Tr2MouseCursor.js`
+- Export: `@carbonenginejs/runtime/input`
+- Source: `src/input/Tr2MouseCursor.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -40,7 +40,7 @@ Browser adaptation of CarbonEngine's mouse cursor using CSS cursor values.
 
 Carbon-compatible keyboard scancode record with browser code mapping.
 
-- Export: `@carbonenginejs/runtime-input`
-- Source: `src/UIScancode.js`
+- Export: `@carbonenginejs/runtime/input`
+- Source: `src/input/UIScancode.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept

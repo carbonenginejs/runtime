@@ -96,6 +96,13 @@
       "commit": "0b3d283d3b26d38196306df9932985a1c33badee",
       "temporaryPrefix": ".imports/runtime-input",
       "destination": "src/input",
+      "sourceMoved": true,
+      "excluded": [
+        {
+          "paths": [ ".gitignore", ".npmrc", "package.json", "README.md", "LICENSE", "NOTICE", "test/.gitkeep" ],
+          "reason": "Combined packaging, repository metadata, license, and notices supersede the donor copies; the empty test placeholder is not source."
+        }
+      ],
       "baseline": { "command": "npm test", "passed": 4, "skipped": 0, "failed": 0 }
     },
     {

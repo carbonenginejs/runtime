@@ -16,7 +16,7 @@ entry points have separately constrained surfaces.
 
 The repository currently contains the maintained global foundation, resource
 capability, Trinity/EVE object graph, standalone SOF builder, complete audio
-domain, and GPU-free character domain; inert entry points for the remaining
+domain, GPU-free character domain, and browser input domain; inert entry points for the remaining
 accepted layers; the layer
 checker; a donor manifest; and the remaining unsquashed donor histories under
 temporary prefixes. The package is private and no engine subpath is public.

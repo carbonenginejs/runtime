@@ -1,7 +1,7 @@
 # Browser capability boundaries
 
 Status: Stable
-Scope: `@carbonenginejs/runtime-input` browser compatibility behavior
+Scope: `@carbonenginejs/runtime/input` browser compatibility behavior
 Audience: Runtime integrators
 Summary: Records where browser security and event-loop rules replace native main-window operations.
 

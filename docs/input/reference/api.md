@@ -1,7 +1,7 @@
 # API reference
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-input` package-root exports
+Scope: `@carbonenginejs/runtime/input` subpath exports
 Audience: Runtime integrators
 Summary: Documents the host-window, state, cursor, and keyboard-scancode exports.
 
@@ -53,7 +53,7 @@ to `target.style.cursor`, and `Destroy()` releases any object URL.
 ## Keyboard exports
 
 `UIScancode` stores `mDIK`, `mName`, `mDescription`, and `browserCode`.
-`UIScancode.FromKeyboardEvent(event)` returns a known mapping or a fallback
+`UIScancode.fromKeyboardEvent(event)` returns a known mapping or a fallback
 record.
 
 `SCANCODES` is the immutable maintained mapping list.
