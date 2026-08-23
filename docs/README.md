@@ -16,8 +16,8 @@ complete headless-by-default audio domain, and the GPU-free character domain.
 The browser host-window and input adaptation layer is also maintained here.
 The WebGPU renderer is maintained as an explicit, opt-in engine subpath.
 The GPU-free composition core and its browser platform snapshots are maintained
-here as well. The remaining tools donor stays under its temporary prefix until
-its reviewed source families are moved into their final layers.
+here as well. Browser-safe clients, inspectors, UI, and demo composition are
+maintained under the explicit `/tools` surface.
 
 ## Use this package when
 
@@ -51,11 +51,12 @@ npm test
 ```
 
 The global foundation, resource capability, Trinity graph, SOF layer, audio
-domain, character domain, input layer, WebGPU engine, and composition core are
+domain, character domain, input layer, WebGPU engine, composition core, and
+browser tools are
 now maintained source in this repository.
 Foundation, lifecycle, format, FSD, shader-translation, resource, Trinity, SOF,
-audio, character, input, WebGPU, and core tests run as part of the combined
-suite. The tools layer remains inert until its reviewed donor move lands.
+audio, character, input, WebGPU, core, and tools tests run as part of the
+combined suite.
 
 ## Documentation map
 
@@ -69,6 +70,7 @@ suite. The tools layer remains inert until its reviewed donor move lands.
 - [Input and browser host adapters](input/README.md)
 - [WebGPU engine](engine/webgpu/README.md)
 - [Core composition and platform capabilities](core/README.md)
+- [Browser-safe tools and demos](tools/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

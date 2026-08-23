@@ -54,7 +54,7 @@ test("every built advertised subpath imports independently", async () =>
 
     for (const [ name, target ] of Object.entries(manifest.exports))
     {
-        if (name.includes("*") || typeof target !== "string") continue;
+        if (name.includes("*") || typeof target !== "string" || !target.endsWith(".js")) continue;
         const module = await import(pathToFileURL(path.resolve(npmRoot, target)).href);
 
         assert.equal(typeof module, "object", name);

@@ -17,9 +17,9 @@ entry points have separately constrained surfaces.
 The repository currently contains the maintained global foundation, resource
 capability, Trinity/EVE object graph, standalone SOF builder, complete audio
 domain, GPU-free character domain, browser input domain, WebGPU engine, and
-GPU-free composition core; an inert tools entry point; the layer checker; a
-donor manifest; and the remaining unsquashed tools history under its temporary
-prefix. The package is private, and WebGPU remains an explicit engine subpath.
+GPU-free composition core; browser-safe tools and root demos; the layer checker;
+and a donor manifest. The package is private, and both WebGPU and tools remain
+explicit subpaths outside the aggregate surface.
 
 ## Dependency direction
 
@@ -66,8 +66,8 @@ headless and does not probe browser globals.
 
 ## Tools, demos, and generated source
 
-Browser-safe reusable helpers migrate from `tools-browser` into `src/tools`
-and stay off the default export surface. Standalone non-engine examples live
+Browser-safe reusable helpers live in `src/tools` and stay off the default
+export surface. Standalone non-engine examples live
 under the repository-root `demo/` directory. Engine-specific GPU harnesses stay
 with their engine layer.
 

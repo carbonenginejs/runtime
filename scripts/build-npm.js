@@ -63,6 +63,19 @@ for (const name of [ "README.md", "LICENSE", "NOTICE", "THIRD-PARTY-NOTICES.md" 
     await fs.copyFile(path.join(root, name), path.join(npmRoot, name));
 }
 
+for (const name of [
+    "tools/market/ui/market-window.css",
+    "tools/ship-show-info/ui/ship-show-info.css",
+    "tools/ship-tree/ui/ship-tree.css",
+    "tools/theme/eve.css"
+])
+{
+    const source = path.join(root, "src", name);
+    const destination = path.join(npmRoot, "dist", name);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.copyFile(source, destination);
+}
+
 await fs.cp(path.join(root, "docs"), path.join(npmRoot, "docs"), { recursive: true });
 await fs.cp(path.join(root, "format-notices"), path.join(npmRoot, "format-notices"), { recursive: true });
 await fs.cp(path.join(root, "migration"), path.join(npmRoot, "migration"), { recursive: true });

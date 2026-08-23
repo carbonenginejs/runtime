@@ -11,7 +11,8 @@ The browser-facing input domain is also migrated and remains headless until a
 host is explicitly attached. The WebGPU engine is available only through its
 explicit engine subpath and remains inert unless a consumer imports it. The
 GPU-free composition core is also maintained here and exposes its browser
-platform snapshots through a focused subpath.
+platform snapshots through a focused subpath. Browser-safe clients, inspectors,
+and demos are maintained under the explicit `/tools` surface.
 `@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
@@ -27,7 +28,7 @@ npm install
 
 Current validation checks the internal dependency graph, package maps, the
 migrated foundation, all resource/format implementations, Trinity, SOF, audio,
-character, input, WebGPU, and the composition core:
+character, input, WebGPU, composition core, and browser tools:
 
 ```sh
 npm test
@@ -55,11 +56,10 @@ WebGPU consumers use `@carbonenginejs/runtime/engine/webgpu`; the default
 runtime import does not acquire a GPU or load the engine.
 Composition consumers use `@carbonenginejs/runtime/core`; browser platform and
 adapter snapshots are also available through `/core/platform`.
-
-The remaining tools import becomes available only after its history-preserving
-migration and the atomic consumer cutover. The WebGPU engine has no root
-re-export, and no WebGL placeholder is advertised before a maintained
-implementation exists.
+Browser tools use `@carbonenginejs/runtime/tools` and focused family subpaths;
+they remain absent from the aggregate runtime export. The WebGPU engine likewise
+has no root re-export, and no WebGL placeholder is advertised before a
+maintained implementation exists.
 
 ## Documentation
 
@@ -81,6 +81,8 @@ WebGPU ownership, API, and verification are documented under
 [docs/engine/webgpu](docs/engine/webgpu/README.md).
 Core composition, platform snapshots, and request policy are documented under
 [docs/core](docs/core/README.md).
+Browser-safe tools and demo composition are documented under
+[docs/tools](docs/tools/README.md).
 
 ## License
 

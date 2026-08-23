@@ -19,6 +19,11 @@ test("published package exposes every declared subpath", async () =>
     {
       const targetPath = path.resolve(npmRoot, resolved.target);
       await access(targetPath);
+      if (resolved.target.endsWith(".css"))
+      {
+        assert.ok((await readFile(targetPath)).length > 0, `${resolved.subpath} must contain CSS`);
+        continue;
+      }
       const exports = await import(pathToFileURL(targetPath).href);
 
       assert.ok(

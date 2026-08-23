@@ -178,6 +178,29 @@
       "commit": "dfa77a9a6a2b54eb635a4ea6adb4285dc166a52b",
       "temporaryPrefix": ".imports/tools-browser",
       "destination": "src/tools and demo",
+      "sourceMoved": true,
+      "repositoryOnly": [
+        { "source": "examples/**", "destination": "demo/**" },
+        { "source": "test/**", "destination": "test/tools/tools-browser/**" }
+      ],
+      "relocated": [
+        { "source": "docs/**", "destination": "docs/tools/**" }
+      ],
+      "excluded": [
+        {
+          "paths": [
+            ".gitignore",
+            ".npmrc",
+            "package.json",
+            "package-lock.json",
+            "README.md",
+            "LICENSE",
+            "NOTICE",
+            "scripts/lint_package.js"
+          ],
+          "reason": "Combined packaging, legal files, repository metadata, and source checks supersede the donor copies. The donor notice is merged into the combined NOTICE."
+        }
+      ],
       "baseline": { "command": "npm test", "passed": 119, "skipped": 1, "failed": 0 }
     }
   ],

@@ -117,6 +117,17 @@ original CarbonEngineJS work. They compose caller-supplied services and report
 platform capabilities without creating a renderer device, loading resources,
 or acquiring browser state during module import.
 
+Browser tools capability
+------------------------
+
+Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
+
+The browser-safe clients, remote readers, inspectors, presentation-neutral
+controllers, optional UI, and demo composition under `src/tools` are original
+CarbonEngineJS work. They use browser-standard or injected Web APIs and bundle
+no credentials, acquired datasets, game assets, fonts, or remote media. Node.js
+and native acquisition/build tooling remain in the separate tools-core package.
+
 Resource capability
 -------------------
 
