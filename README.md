@@ -3,9 +3,9 @@
 Unpublished consolidation destination for the browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.
 
 Use this repository while the accepted combined-runtime migration is in
-progress. It currently provides the executable layer boundary and migration
-metadata, but no maintained runtime implementation. `@carbonenginejs/tools-core`
-remains a separate Node.js package.
+progress. It provides the executable layer boundary, migration metadata, and
+the maintained global foundation migrated from `runtime-utils`.
+`@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
 
@@ -18,12 +18,16 @@ npm install
 
 ## Quick start
 
-Current validation checks the proposed internal dependency graph and its
-package maps:
+Current validation checks the internal dependency graph, package maps, and the
+migrated foundation implementation:
 
 ```sh
 npm test
 ```
+
+Current foundation imports include `@carbonenginejs/runtime/math`,
+`@carbonenginejs/runtime/utils`, `@carbonenginejs/runtime/consts`,
+`@carbonenginejs/runtime/schema`, and `@carbonenginejs/runtime/model`.
 
 Planned public imports such as `@carbonenginejs/runtime/resource` and
 `@carbonenginejs/runtime/engine/webgpu` become available only after their
@@ -41,3 +45,6 @@ order, temporary history prefixes, and pre-migration test evidence.
 ## License
 
 MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for provenance and attribution.
+CarbonEngineJS includes JavaScript ports and adaptations of CarbonEngine
+behavior plus independently implemented interoperability code where noted. It
+is not affiliated with or endorsed by Fenris Creations or CCP Games.

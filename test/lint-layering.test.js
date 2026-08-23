@@ -43,11 +43,16 @@ async function fixture(t, options = {})
         name: "@carbonenginejs/runtime-test",
         type: "module",
         exports: { ".": "./src/index.js", ...(options.exports ?? {}) },
-        imports: { ...BASE_IMPORTS, ...(options.imports ?? {}) }
+        imports: { ...BASE_IMPORTS, ...(options.imports ?? {}) },
+        dependencies: { ...(options.dependencies ?? {}) }
     };
 
     await put(root, "package.json", JSON.stringify(manifest));
-    await put(root, "layers.json", JSON.stringify({ surfaces, layers }));
+    await put(root, "layers.json", JSON.stringify({
+        surfaces,
+        externalImports: options.externalImports ?? [],
+        layers
+    }));
     await put(root, "src/index.js");
     for (const layer of Object.keys(layers)) await put(root, `src/${layer}/index.js`);
     for (const [ path, source ] of Object.entries(options.files ?? {})) await put(root, `src/${path}`, source);
@@ -200,4 +205,24 @@ test("aggregate surfaces use an exhaustive layer allow-list", async t =>
 
     assert.match(problems, /surface "index\.js" may not import "tools"/u);
     assert.doesNotMatch(problems, /may not import "core"/u);
+});
+
+test("browser runtime source rejects Node built-ins and unapproved packages", async t =>
+{
+    const root = await fixture(t, {
+        dependencies: { "gl-matrix": "^3.4.4" },
+        externalImports: [ "gl-matrix" ],
+        files: {
+            "global/utils/index.js": `
+                import "gl-matrix";
+                import "left-pad";
+                import "node:fs";
+            `
+        }
+    });
+    const problems = (await validateLayering({ root })).problems.join("\n");
+
+    assert.doesNotMatch(problems, /external package "gl-matrix"/u);
+    assert.match(problems, /external package "left-pad" is not allowed/u);
+    assert.match(problems, /may not import Node built-in "node:fs"/u);
 });

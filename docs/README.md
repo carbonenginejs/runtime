@@ -45,13 +45,15 @@ Run the current structural checks from the repository root:
 npm test
 ```
 
-No maintained named source classes exist in this scaffold. Planned API
-examples are intentionally deferred until their donor implementation and
-public export have landed together.
+The global foundation is now maintained source in this repository. Its math,
+constants, contracts, schema, model, transitional hydration, and neutral
+utility tests run as part of the combined suite. Other runtime layers remain
+inert until their reviewed donor moves land.
 
 ## Documentation map
 
 - [Architecture and layer ownership](architecture.md)
+- [Global foundation](global/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

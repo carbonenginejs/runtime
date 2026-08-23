@@ -8,10 +8,12 @@
 import { parse } from "@babel/parser";
 import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
+import { builtinModules } from "node:module";
 import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_ROOT = fileURLToPath(new URL("..", import.meta.url));
+const NODE_BUILTINS = new Set(builtinModules.map(name => name.replace(/^node:/u, "")));
 
 function slash(value)
 {
@@ -268,9 +270,15 @@ function matchingImportEntry(specifier, imports)
     return matches[0] ?? null;
 }
 
+function externalPackageName(specifier)
+{
+    const parts = specifier.split("/");
+    return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
+}
+
 function resolveSpecifierLayers(specifier, file, context)
 {
-    const { root, sourceRoot, layerNames, surfaces, imports, problems, shown } = context;
+    const { root, sourceRoot, layerNames, surfaces, imports, externalImports, problems, shown } = context;
 
     if (specifier.startsWith("@carbonenginejs/"))
     {
@@ -309,6 +317,19 @@ function resolveSpecifierLayers(specifier, file, context)
     }
     else
     {
+        const unprefixed = specifier.replace(/^node:/u, "");
+        if (specifier.startsWith("node:") || NODE_BUILTINS.has(unprefixed))
+        {
+            problems.push(`${shown}: browser runtime source may not import Node built-in "${specifier}"`);
+        }
+        else
+        {
+            const packageName = externalPackageName(specifier);
+            if (!externalImports.has(packageName))
+            {
+                problems.push(`${shown}: external package "${packageName}" is not allowed by layers.json externalImports`);
+            }
+        }
         return [];
     }
 
@@ -347,6 +368,24 @@ export async function validateLayering(options = {})
     const layers = config.layers ?? {};
     const surfaces = config.surfaces ?? {};
     const imports = manifest.imports ?? {};
+    const externalImportValues = config.externalImports ?? [];
+    const externalImports = new Set(Array.isArray(externalImportValues) ? externalImportValues : []);
+
+    if (!Array.isArray(externalImportValues))
+    {
+        problems.push("layers.json externalImports must be an array");
+    }
+    for (const packageName of externalImports)
+    {
+        if (typeof packageName !== "string" || !packageName)
+        {
+            problems.push("layers.json externalImports entries must be non-empty package names");
+        }
+        else if (!Object.hasOwn(manifest.dependencies ?? {}, packageName))
+        {
+            problems.push(`layers.json externalImports names undeclared dependency "${packageName}"`);
+        }
+    }
 
     validatePackageMap("exports", manifest.exports, root, problems);
     validatePackageMap("imports", imports, root, problems);
@@ -385,6 +424,7 @@ export async function validateLayering(options = {})
                 layerNames,
                 surfaces,
                 imports,
+                externalImports,
                 problems,
                 shown
             });

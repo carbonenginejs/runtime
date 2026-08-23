@@ -14,10 +14,10 @@ entry points have separately constrained surfaces.
 
 ## Current structure
 
-The repository currently contains inert entry points for the accepted layers,
-the layer checker, a donor manifest, and all ten unsquashed donor histories
-under temporary prefixes. Reviewed source has not yet moved from those prefixes
-into the final layers. The package is private and no engine subpath is public.
+The repository currently contains the maintained global foundation, inert entry
+points for the remaining accepted layers, the layer checker, a donor manifest,
+and all ten unsquashed donor histories under temporary prefixes. The package is
+private and no engine subpath is public.
 
 ## Planned dependency direction
 

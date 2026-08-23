@@ -42,13 +42,18 @@
             ]
         }
     },
+    "externalImports": [
+        "gl-matrix"
+    ],
     "layers": {
         "global/utils": {
-            "mayImport": []
+            "mayImport": [
+                "global/math"
+            ]
         },
         "global/math": {
             "mayImport": [
-                "global/utils"
+                "global/consts"
             ]
         },
         "global/consts": {

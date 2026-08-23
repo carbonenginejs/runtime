@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "state": "histories-imported",
+  "state": "source-migration-in-progress",
   "destination": "@carbonenginejs/runtime",
   "baselineDate": "2026-08-23",
   "historyPolicy": "non-squashed-git-subtree",
@@ -12,6 +12,7 @@
       "commit": "2fc2ef81345ed70699c807899eec47d8aad49e26",
       "temporaryPrefix": ".imports/runtime-utils",
       "destination": "src/global",
+      "sourceMoved": true,
       "baseline": { "command": "npm test", "passed": 148, "skipped": 0, "failed": 0 }
     },
     {
