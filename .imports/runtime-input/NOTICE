@@ -1,0 +1,15 @@
+carbonenginejs/runtime-input
+================================
+
+Copyright (c) 2026 CarbonEngineJS contributors.
+
+This package implements browser-facing adaptations of Carbon/Trinity
+main-window, cursor, and keyboard-scancode concepts.
+
+CarbonEngine source material, class names, behavior, and schema semantics
+remain copyright their original CarbonEngine authors. Fenris Creations
+(CCP Games) source material, tools, assets, and related data remain copyright
+their original holders. These names are used for interoperability and
+provenance context.
+
+This project is not affiliated with or endorsed by CCP Games.

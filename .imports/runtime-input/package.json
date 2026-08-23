@@ -1,0 +1,40 @@
+{
+  "name": "@carbonenginejs/runtime-input",
+  "version": "0.1.1",
+  "description": "Browser host-window, keyboard, pointer, and cursor adapters for CarbonEngineJS.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check src/index.js && node --check src/Tr2MainWindow.js && node --check src/Tr2MainWindowState.js && node --check src/Tr2MouseCursor.js && node --check src/UIScancode.js"
+  },
+  "dependencies": {
+    "@carbonenginejs/runtime-utils": "^0.1.0"
+  },
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carbonenginejs/runtime-input.git"
+  },
+  "homepage": "https://github.com/carbonenginejs/runtime-input#readme",
+  "bugs": {
+    "url": "https://github.com/carbonenginejs/runtime-input/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
