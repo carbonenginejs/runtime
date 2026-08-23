@@ -1,0 +1,41 @@
+{
+  "name": "@carbonenginejs/runtime-sof",
+  "version": "0.3.5",
+  "private": true,
+  "description": "CarbonEngineJS Space Object Factory (SOF) data classes and JSON contract.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./data": "./src/data/index.js",
+    "./sof": "./src/sof/index.js",
+    "./sof/*": "./src/sof/*/index.js",
+    "./generated": "./src/generated/index.js",
+    "./generated/EveSOF": "./src/sof/EveSOF.js",
+    "./generated/EveSOFDNA": "./src/sof/EveSOFDNA.js",
+    "./generated/EveSOFDataMgr": "./src/sof/EveSOFDataMgr.js"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:npm": "node scripts/build_npm.js && rollup -c",
+    "proof:decorators": "node scripts/proof_decorator_transform.js",
+    "test": "npm run build:npm && npm run proof:decorators && node --test test/*.test.js",
+    "lint": "node --check scripts/build_npm.js && node --check scripts/proof_decorator_transform.js && node --check rollup.config.mjs && node --check test/data.test.js && node --check test/dna.test.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-proposal-decorators": "^7.29.7",
+    "@rollup/plugin-babel": "^7.1.0",
+    "rollup": "^4.62.2"
+  },
+  "dependencies": {
+    "@carbonenginejs/runtime-utils": "file:../runtime-utils",
+    "@carbonenginejs/runtime-resource": "file:../runtime-resource"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
