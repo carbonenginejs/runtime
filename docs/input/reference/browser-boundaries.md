@@ -27,6 +27,10 @@ or reject either request. Depending on the host API, these methods can return
 `UnclipCursor()` and `ExitFullscreen()` call the corresponding document
 methods when present.
 
+`beforeunload` requests route through the return-bearing close callback. A
+literal `false` veto calls the host event's cancellation method and sets its
+return value; notification callbacks use the separate void invocation path.
+
 ## Display state
 
 `GetWindowSizeOptions()` reports unique dimensions exposed by the current

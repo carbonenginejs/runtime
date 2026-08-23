@@ -72,7 +72,7 @@ The implemented package currently owns:
 - shared media, graphics, render-context, audio, shader, D3D, and WebGPU
   constants;
 - stable policy-free nominal bases for backend selection and terminal constant
-  payloads; and
+  payloads, plus Carbon-style script callback invocation; and
 - Carbon type descriptors, schema metadata, models, lifecycle state,
   documents, hydration, and dehydration.
 

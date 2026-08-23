@@ -38,7 +38,7 @@ combined package remains private until the atomic consumer cutover.
 | [`./utils/arrays`](../../../src/global/utils/arrays.js) | Normalizes nullable values and mutates writable array-like targets. | `toArray`, `copyArrayLike`, `fillArrayLike` |
 | [`./utils/bytes`](../../../src/global/utils/bytes.js) | Creates byte views, owned copies, exact buffers, and prefix checks. | `asUint8Array`, `copyBytes`, `toArrayBuffer`, `hasBytePrefix` |
 | [`./utils/compression`](../../../src/global/utils/compression.js) | Detects and decompresses gzip through Web-standard streams. | `isGzip`, `decompressBytes`, `decompressGzip`, `decompressGzipIfNeeded` |
-| [`./contracts`](../../../src/global/contracts/index.js) | Declares dependency-floor nominal obligations whose required base methods throw. | `CjsBackendCandidate`, `CjsConstantPayload` |
+| [`./contracts`](../../../src/global/contracts/index.js) | Declares dependency-floor nominal obligations whose required base methods throw. | `CjsBackendCandidate`, `CjsConstantPayload`, `CjsScriptCallback` |
 | [`./utils/errors`](../../../src/global/utils/errors/index.js) | Represents coded operational failures and Web-compatible cancellation without logging or transport policy. | `CjsError`, `CjsCancellationError`, `CJS_OPERATION_CANCELLED` |
 | [`./utils/is`](../../../src/global/utils/is.js) | Provides shared literal-boolean value predicates. | `isTypedArray`, `isArrayLike`, `isFunction`, `isNullish`, `isObject`, `isObjectLike`, `isPlainObject`, `isPromiseLike` |
 | [`./utils/json`](../../../src/global/utils/json.js) | Encodes and decodes JSON with explicit UTF-8 behavior. | `encodeJson`, `decodeJson` |

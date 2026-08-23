@@ -3,16 +3,31 @@
 // Source: trinity/trinity/UI/Tr2MainWindow_Windows.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
+import { CjsScriptCallback } from "#contracts";
 import { GetUIScancode, UIScancode } from "./UIScancode.js";
 import { Tr2MainWindowState } from "./Tr2MainWindowState.js";
 import { Tr2MouseCursor } from "./Tr2MouseCursor.js";
 
 const CALLBACK_FIELDS = Object.freeze([
-    "onSwapChainChange", "onBeforeSwapChainChange", "onWindowsMessage", "onKeyDown",
-    "onKeyUp", "onChar", "onMouseDown", "onMouseUp", "onMouseMove", "onMouseWheel",
-    "onClose", "onFocusChange", "onWindowStateChange", "onInsertTextIME_MacOS",
-    "onSetMarkedTextIME_MacOS", "onKeyboardLayoutChange_MacOS"
+    "onKeyDown", "onKeyUp", "onChar", "onMouseDown", "onMouseUp",
+    "onMouseMove", "onMouseWheel", "onClose", "onFocusChange",
+    "onWindowStateChange"
 ]);
+
+const EMPTY_CALLBACK = new class extends CjsScriptCallback
+{
+
+    Call()
+    {
+        return undefined;
+    }
+
+    CallVoid()
+    {
+        // Intentionally empty: optional callback fields always have a nominal target.
+    }
+
+}();
 
 /**
  * Browser adaptation of CarbonEngine's main-window state and input boundary.
@@ -22,7 +37,15 @@ export class Tr2MainWindow
     /** Creates a browser main-window adapter and optionally attaches host listeners. */
     constructor(options = {})
     {
-        for (const field of CALLBACK_FIELDS) this[field] = null;
+        for (const field of CALLBACK_FIELDS)
+        {
+            Object.defineProperty(this, field, {
+                enumerable: true,
+                get: () => this.#callbackValues.get(field),
+                set: value => this.#setCallback(field, value)
+            });
+            this[field] = null;
+        }
         this.imeState_MacOS = 0;
         this.#state = new Tr2MainWindowState(options.state);
         this.#storedStates = new Map();
@@ -53,6 +76,8 @@ export class Tr2MainWindow
     #listeners;
     #closed = false;
     #backBufferFormat;
+    #callbacks = new Map();
+    #callbackValues = new Map();
 
     /** Attaches keyboard, pointer, window, and visibility listeners to injected hosts. */
     Attach(options = {})
@@ -66,16 +91,16 @@ export class Tr2MainWindow
 
         this.#listen(this.#window, "keydown", event => this.#onKeyDown(event));
         this.#listen(this.#window, "keyup", event => this.#onKeyUp(event));
-        this.#listen(this.#window, "keypress", event => this.#invoke("onChar", event.key, event));
-        this.#listen(this.#window, "focus", event => this.#invoke("onFocusChange", true, event));
-        this.#listen(this.#window, "blur", event => this.#invoke("onFocusChange", false, event));
+        this.#listen(this.#window, "keypress", event => this.#invokeVoid("onChar", event.key, event));
+        this.#listen(this.#window, "focus", event => this.#invokeVoid("onFocusChange", true, event));
+        this.#listen(this.#window, "blur", event => this.#invokeVoid("onFocusChange", false, event));
         this.#listen(this.#window, "resize", event => this.#onResize(event));
-        this.#listen(this.#window, "beforeunload", event => this.#invoke("onClose", event));
+        this.#listen(this.#window, "beforeunload", event => this.#onBeforeUnload(event));
         this.#listen(this.#target, "pointermove", event => this.#onPointerMove(event));
-        this.#listen(this.#target, "pointerdown", event => this.#invoke("onMouseDown", event.button, event.clientX, event.clientY, event));
-        this.#listen(this.#target, "pointerup", event => this.#invoke("onMouseUp", event.button, event.clientX, event.clientY, event));
-        this.#listen(this.#target, "wheel", event => this.#invoke("onMouseWheel", event.deltaY, event));
-        this.#listen(this.#document, "visibilitychange", event => this.#invoke("onFocusChange", !this.IsHidden(), event));
+        this.#listen(this.#target, "pointerdown", event => this.#invokeVoid("onMouseDown", event.button, event.clientX, event.clientY, event));
+        this.#listen(this.#target, "pointerup", event => this.#invokeVoid("onMouseUp", event.button, event.clientX, event.clientY, event));
+        this.#listen(this.#target, "wheel", event => this.#invokeVoid("onMouseWheel", event.deltaY, event));
+        this.#listen(this.#document, "visibilitychange", event => this.#invokeVoid("onFocusChange", !this.IsHidden(), event));
         return this;
     }
 
@@ -114,15 +139,14 @@ export class Tr2MainWindow
         return this;
     }
 
-    /** Applies a sanitized window state and emits swap-chain callbacks. */
+    /** Applies changed sanitized window state and emits input-layer state intent. */
     SetWindowState(state)
     {
         const next = state instanceof Tr2MainWindowState ? state.Clone() : new Tr2MainWindowState(state);
         this.SanitizeState(next);
-        this.#invoke("onBeforeSwapChainChange", this.#state.Clone(), next.Clone());
+        if (statesEqual(this.#state, next)) return true;
         this.#state = next;
-        this.#invoke("onWindowStateChange", this.#state.Clone());
-        this.#invoke("onSwapChainChange", this.#state.Clone());
+        this.#invokeVoid("onWindowStateChange", this.#state.Clone());
         return true;
     }
 
@@ -136,11 +160,11 @@ export class Tr2MainWindow
     SanitizeState(state)
     {
         if (!(state instanceof Tr2MainWindowState)) throw new TypeError("Tr2MainWindow.SanitizeState requires Tr2MainWindowState.");
-        const maximumWidth = Number(this.#screen?.availWidth ?? this.#screen?.width ?? this.#window?.innerWidth) || Number.MAX_SAFE_INTEGER;
-        const maximumHeight = Number(this.#screen?.availHeight ?? this.#screen?.height ?? this.#window?.innerHeight) || Number.MAX_SAFE_INTEGER;
+        const maximumWidth = Number(this.#screen?.availWidth ?? this.#screen?.width ?? this.#window?.innerWidth) || 0;
+        const maximumHeight = Number(this.#screen?.availHeight ?? this.#screen?.height ?? this.#window?.innerHeight) || 0;
         state.adapter = 0;
-        state.width = Math.min(maximumWidth, Math.max(this.#minimumSize.width, Math.trunc(state.width || maximumWidth)));
-        state.height = Math.min(maximumHeight, Math.max(this.#minimumSize.height, Math.trunc(state.height || maximumHeight)));
+        state.width = sanitizeDimension(state.width, maximumWidth, this.#minimumSize.width);
+        state.height = sanitizeDimension(state.height, maximumHeight, this.#minimumSize.height);
         state.left = Math.trunc(Number(state.left) || 0);
         state.top = Math.trunc(Number(state.top) || 0);
         return state;
@@ -299,14 +323,14 @@ export class Tr2MainWindow
         return this.#document.exitFullscreen();
     }
 
-    /** Marks the adapter closed, emits its callback, and detaches listeners. */
+    /** Requests closure, then marks the adapter closed and detaches listeners unless vetoed. */
     Close()
     {
-        if (this.#closed) return this;
+        if (this.#closed) return true;
+        if (this.#invokeCall("onClose") === false) return false;
         this.#closed = true;
-        this.#invoke("onClose");
         this.Detach();
-        return this;
+        return true;
     }
 
     /** Registers one host listener for deterministic teardown. */
@@ -317,13 +341,32 @@ export class Tr2MainWindow
         this.#listeners.push([ target, type, listener ]);
     }
 
-    /** Invokes one configured callback through its supported callable form. */
-    #invoke(field, ...args)
+    /** Normalizes one external callback assignment at its boundary. */
+    #setCallback(field, value)
     {
-        const callback = this[field];
-        if (typeof callback === "function") return callback(...args);
-        if (callback && typeof callback.Call === "function") return callback.Call(...args);
-        return undefined;
+        const callback = CjsScriptCallback.from(value);
+        this.#callbackValues.set(field, value ?? null);
+        this.#callbacks.set(field, callback ?? EMPTY_CALLBACK);
+    }
+
+    /** Directly invokes one notification callback through its nominal target. */
+    #invokeVoid(field, ...args)
+    {
+        this.#callbacks.get(field).CallVoid(...args);
+    }
+
+    /** Directly invokes one return-bearing callback through its nominal target. */
+    #invokeCall(field, ...args)
+    {
+        return this.#callbacks.get(field).Call(...args);
+    }
+
+    /** Applies browser close-cancellation semantics to a beforeunload event. */
+    #onBeforeUnload(event)
+    {
+        if (this.#invokeCall("onClose", event) !== false) return;
+        event.preventDefault?.();
+        event.returnValue = "";
     }
 
     /** Updates pressed and toggled keys before forwarding a key-down event. */
@@ -336,7 +379,7 @@ export class Tr2MainWindow
             if (typeof event.getModifierState === "function" && event.getModifierState(key)) this.#toggled.add(key);
             else this.#toggled.delete(key);
         }
-        this.#invoke("onKeyDown", scancode.mDIK, event.repeat === true, event);
+        this.#invokeVoid("onKeyDown", scancode.mDIK, event.repeat === true, event);
     }
 
     /** Clears one pressed key before forwarding its key-up event. */
@@ -344,7 +387,7 @@ export class Tr2MainWindow
     {
         const scancode = UIScancode.fromKeyboardEvent(event);
         this.#pressed.delete(scancode.browserCode);
-        this.#invoke("onKeyUp", scancode.mDIK, event);
+        this.#invokeVoid("onKeyUp", scancode.mDIK, event);
     }
 
     /** Records and forwards one browser pointer movement. */
@@ -352,7 +395,7 @@ export class Tr2MainWindow
     {
         this.#cursorPosition[0] = Number(event.clientX) || 0;
         this.#cursorPosition[1] = Number(event.clientY) || 0;
-        this.#invoke("onMouseMove", this.#cursorPosition[0], this.#cursorPosition[1], Number(event.movementX) || 0, Number(event.movementY) || 0, event);
+        this.#invokeVoid("onMouseMove", this.#cursorPosition[0], this.#cursorPosition[1], Number(event.movementX) || 0, Number(event.movementY) || 0, event);
     }
 
     /** Synchronizes the window state with one browser resize. */
@@ -360,8 +403,27 @@ export class Tr2MainWindow
     {
         this.#state.width = Number(this.#window?.innerWidth) || this.#state.width;
         this.#state.height = Number(this.#window?.innerHeight) || this.#state.height;
-        this.#invoke("onWindowStateChange", this.#state.Clone(), event);
+        this.#invokeVoid("onWindowStateChange", this.#state.Clone(), event);
     }
+}
+
+function statesEqual(left, right)
+{
+    return left.adapter === right.adapter &&
+        left.presentInterval === right.presentInterval &&
+        left.height === right.height &&
+        left.width === right.width &&
+        left.left === right.left &&
+        left.showState === right.showState &&
+        left.windowMode === right.windowMode &&
+        left.top === right.top;
+}
+
+function sanitizeDimension(value, maximum, minimum)
+{
+    const requested = Math.max(0, Math.trunc(Number(value) || 0));
+    if (maximum <= 0) return requested;
+    return Math.min(maximum, Math.max(minimum, requested || maximum));
 }
 
 export default Tr2MainWindow;

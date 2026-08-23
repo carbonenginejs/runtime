@@ -111,17 +111,21 @@ export class UIScancode
     }
 }
 
-export const SCANCODES = Object.freeze(Array.from(DEFINITIONS.values(), definition => new UIScancode(
-    definition.virtualKey,
-    definition.name,
-    definition.description,
-    definition.browserCode
+export const SCANCODES = Object.freeze(Array.from(DEFINITIONS.values(), definition => Object.freeze(
+    new UIScancode(
+        definition.virtualKey,
+        definition.name,
+        definition.description,
+        definition.browserCode
+    )
 )));
 
 const BY_VALUE = new Map();
+const BY_NAME = new Map();
 for (const scancode of SCANCODES)
 {
     if (!BY_VALUE.has(scancode.mDIK)) BY_VALUE.set(scancode.mDIK, scancode);
+    if (!BY_NAME.has(scancode.mName)) BY_NAME.set(scancode.mName, scancode);
 }
 const BY_CODE = new Map(SCANCODES.map(scancode => [ scancode.browserCode, scancode ]));
 
@@ -130,6 +134,6 @@ export function GetUIScancode(value)
 {
     if (value instanceof UIScancode) return value;
     if (typeof value === "number") return BY_VALUE.get(value & 0xff) ?? null;
-    if (typeof value === "string") return BY_CODE.get(value) ?? SCANCODES.find(item => item.mName === value) ?? null;
+    if (typeof value === "string") return BY_CODE.get(value) ?? BY_NAME.get(value) ?? null;
     return null;
 }

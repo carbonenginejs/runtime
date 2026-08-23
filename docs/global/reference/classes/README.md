@@ -25,6 +25,34 @@ Terminal constant-buffer bytes with an explicit upload dirty lifecycle.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsScriptCallback -->
+## `CjsScriptCallback`
+
+Dependency-free callback identity for Carbon-style script invocation.
+
+- Export: `@carbonenginejs/runtime/contracts`
+- Source: `src/global/contracts/CjsScriptCallback.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFunctionScriptCallback -->
+## `CjsFunctionScriptCallback`
+
+Adapts one ordinary JavaScript function to the nominal callback contract.
+
+- Source: `src/global/contracts/CjsScriptCallback.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsExternalScriptCallback -->
+## `CjsExternalScriptCallback`
+
+Adapts one externally supplied callback object after boundary validation.
+
+- Source: `src/global/contracts/CjsScriptCallback.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
 <!-- class:CjsError -->
 ## `CjsError`
 

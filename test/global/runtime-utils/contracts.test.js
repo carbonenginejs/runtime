@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
     CjsBackendCandidate,
-    CjsConstantPayload
+    CjsConstantPayload,
+    CjsScriptCallback
 } from "@carbonenginejs/runtime/contracts";
 
 test("backend candidates require a concrete proof implementation", async () =>
@@ -85,4 +86,52 @@ test("concrete constant payloads retain byte identity and clear dirty state", ()
     assert.equal(payload.IsDirty(), true);
     assert.equal(payload.ClearDirty(), payload);
     assert.equal(payload.IsDirty(), false);
+});
+
+test("script callbacks require direct Call and CallVoid implementations", () =>
+{
+    const callback = new CjsScriptCallback();
+
+    assert.throws(() => callback.Call(), /CjsScriptCallback\.Call/u);
+    assert.throws(() => callback.CallVoid(), /CjsScriptCallback\.CallVoid/u);
+});
+
+test("script callbacks adapt external values once to one nominal identity", () =>
+{
+    const calls = [];
+    const fromFunction = CjsScriptCallback.from((...args) =>
+    {
+        calls.push(args);
+        return "function-result";
+    });
+
+    assert.ok(fromFunction instanceof CjsScriptCallback);
+    assert.equal(fromFunction.Call(1), "function-result");
+    assert.equal(fromFunction.CallVoid(2), undefined);
+
+    const external = {
+        Call(...args)
+        {
+            calls.push([ "Call", ...args ]);
+            return "external-result";
+        },
+        CallVoid(...args)
+        {
+            calls.push([ "CallVoid", ...args ]);
+        }
+    };
+    const adapted = CjsScriptCallback.from(external);
+
+    assert.ok(adapted instanceof CjsScriptCallback);
+    assert.equal(adapted.Call(3), "external-result");
+    assert.equal(adapted.CallVoid(4), undefined);
+    assert.equal(CjsScriptCallback.from(adapted), adapted);
+    assert.equal(CjsScriptCallback.from(null), null);
+    assert.throws(() => CjsScriptCallback.from({ Call() {} }), /Call and CallVoid/u);
+    assert.deepEqual(calls, [
+        [ 1 ],
+        [ 2 ],
+        [ "Call", 3 ],
+        [ "CallVoid", 4 ]
+    ]);
 });

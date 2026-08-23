@@ -60,6 +60,10 @@ export class Tr2MainWindowState
     /** Reports whether applying another state requires device reconfiguration. */
     RequiresDeviceReset(other)
     {
+        if (!(other instanceof Tr2MainWindowState))
+        {
+            throw new TypeError("Tr2MainWindowState.RequiresDeviceReset requires Tr2MainWindowState.");
+        }
         return this.windowMode !== other.windowMode || this.adapter !== other.adapter ||
             this.width !== other.width || this.height !== other.height ||
             this.presentInterval !== other.presentInterval;

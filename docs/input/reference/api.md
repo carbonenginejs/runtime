@@ -15,6 +15,9 @@ Construct with optional injected `window`, `document`, `screen`, `target`,
 - `IsActive()`, `HasFocus()`, and `IsHidden()` report host state.
 - `SetWindowState(state)`, `GetWindowState()`, `SanitizeState(state)`, and
   `GetDefaultState(mode)` manage cloned `Tr2MainWindowState` values.
+  Reapplying an equal state emits nothing; changed state emits
+  `onWindowStateChange`. Device reset and swap-chain callbacks belong to the
+  composition and engine layers, not this input adapter.
 - `SetMinimumSize(width, height)` and `GetWindowSizeOptions()` constrain and
   inspect browser-reported sizes.
 - `SetWindowTitle(title)` and `GetWindowTitle()` adapt the document title.
@@ -22,12 +25,17 @@ Construct with optional injected `window`, `document`, `screen`, `target`,
   `UnclipCursor()` manage CSS cursor and Pointer Lock behavior.
 - `GetCursorPos()`, `Key(value)`, `IsKeyToggled(value)`, and
   `GetKeyNameText(value)` expose normalized pointer and keyboard state.
-- `RequestFullscreen(options)`, `ExitFullscreen()`, and `Close()` adapt host
-  lifecycle operations.
+- `RequestFullscreen(options)` and `ExitFullscreen()` adapt host lifecycle
+  operations. `Close()` returns `false` when `onClose` vetoes the request and
+  `true` after closing or when already closed.
 
 Callbacks include key, character, pointer button, pointer movement, wheel,
-focus, close, resize, and swap-chain-change notifications. Assign either a
-function or an object with a `Call(...args)` method.
+focus, close, and resize notifications. Assign either a function, a
+`CjsScriptCallback`, or an external object with both `Call(...args)` and
+`CallVoid(...args)` methods. The assignment is normalized once. Notification
+events dispatch directly through `CallVoid`; return-bearing close callbacks
+dispatch through `Call`. Native message and IME callbacks are
+not exposed because those host facilities are outside the browser adapter.
 
 ## `Tr2MainWindowState`
 
@@ -37,7 +45,8 @@ The state record contains `adapter`, `presentInterval`, `height`, `width`,
 - `SetValues(values)` updates known numeric fields.
 - `GetValues()` returns a plain snapshot.
 - `Clone()` returns an independent state.
-- `RequiresDeviceReset(other)` compares reset-relevant fields.
+- `RequiresDeviceReset(other)` requires another `Tr2MainWindowState` and
+  compares reset-relevant fields.
 - `toString()` returns a readable summary.
 
 The class also exposes `PresentInterval`, `Tr2WindowMode`, and
@@ -56,7 +65,9 @@ to `target.style.cursor`, and `Destroy()` releases any object URL.
 `UIScancode.fromKeyboardEvent(event)` returns a known mapping or a fallback
 record.
 
-`SCANCODES` is the immutable maintained mapping list.
+`SCANCODES` is a deeply immutable, maintained browser-code mapping list. It is
+a bounded browser vocabulary, not a claim of complete native Carbon scancode
+table parity.
 `GetUIScancode(value)` looks up a `UIScancode`, numeric value, browser code,
 or maintained name and returns a matching record or `null`.
 

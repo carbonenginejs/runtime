@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
     GetUIScancode,
+    SCANCODES,
     Tr2MainWindow,
     Tr2MainWindowState,
     Tr2MouseCursor,
@@ -27,7 +28,9 @@ class FakeTarget
 
     dispatch(type, event = {})
     {
-        for (const listener of this.listeners.get(type) ?? []) listener({ type, ...event });
+        const dispatched = { type, ...event };
+        for (const listener of this.listeners.get(type) ?? []) listener(dispatched);
+        return dispatched;
     }
 }
 
@@ -39,6 +42,10 @@ test("UIScancode maps browser physical codes onto Carbon virtual-key vocabulary"
     assert.equal(key.browserCode, "KeyA");
     assert.equal(GetUIScancode("ArrowLeft").mDIK, 0x25);
     assert.equal(GetUIScancode(0x70).browserCode, "F1");
+    assert.equal(GetUIScancode("VK_RETURN").browserCode, "Enter");
+    assert.equal(GetUIScancode(0x0d).browserCode, "Enter");
+    assert.equal(SCANCODES.every(Object.isFrozen), true);
+    assert.throws(() => { GetUIScancode("ArrowLeft").mDIK = 0; }, TypeError);
 });
 
 test("Tr2MainWindowState retains Carbon defaults and reset comparison", () =>
@@ -57,6 +64,10 @@ test("Tr2MainWindowState retains Carbon defaults and reset comparison", () =>
     });
     assert.equal(windowed.__str__(), "windowed on adapter 0 1280x720, present interval one, position (-12, 34), maximized");
     assert.equal(windowed.RequiresDeviceReset(state), true);
+    assert.throws(
+        () => windowed.RequiresDeviceReset(state.GetValues()),
+        /requires Tr2MainWindowState/u
+    );
 });
 
 test("Tr2MouseCursor realizes browser CSS cursor state without native handles", () =>
@@ -126,4 +137,103 @@ test("Tr2MainWindow tracks browser input and exposes honest host limitations", a
 
     mainWindow.Close();
     assert.equal(mainWindow.ProcessMessages(), false);
+});
+
+test("Tr2MainWindow normalizes callbacks once and distinguishes CallVoid from Call", () =>
+{
+    const windowTarget = new FakeTarget();
+    const documentTarget = new FakeTarget();
+    const target = new FakeTarget();
+    const calls = [];
+    const callback = {
+        Call(...args)
+        {
+            calls.push([ "Call", ...args ]);
+            return false;
+        },
+        CallVoid(...args)
+        {
+            calls.push([ "CallVoid", ...args ]);
+        }
+    };
+    documentTarget.documentElement = target;
+    windowTarget.document = documentTarget;
+
+    const mainWindow = new Tr2MainWindow({
+        window: windowTarget,
+        document: documentTarget,
+        target,
+        onKeyDown: callback,
+        onClose: callback
+    });
+
+    windowTarget.dispatch("keydown", {
+        code: "KeyA",
+        key: "a",
+        keyCode: 65,
+        getModifierState: () => false
+    });
+    const beforeUnload = windowTarget.dispatch("beforeunload", {
+        preventDefault()
+        {
+            calls.push([ "preventDefault" ]);
+        }
+    });
+
+    assert.equal(calls[0][0], "CallVoid");
+    assert.equal(calls[1][0], "Call");
+    assert.deepEqual(calls[2], [ "preventDefault" ]);
+    assert.equal(beforeUnload.returnValue, "");
+    assert.equal(mainWindow.Close(), false);
+    assert.equal(mainWindow.ProcessMessages(), true);
+
+    mainWindow.onClose = () => true;
+    assert.equal(mainWindow.onClose instanceof Function, true);
+    assert.equal(mainWindow.Close(), true);
+    assert.equal(mainWindow.ProcessMessages(), false);
+    assert.throws(
+        () => { mainWindow.onKeyUp = { Call() {} }; },
+        /Call and CallVoid/u
+    );
+    assert.equal(mainWindow.onKeyUp, null);
+});
+
+test("Tr2MainWindow emits only changed state intent from the input layer", () =>
+{
+    const headlessChanges = [];
+    const headless = new Tr2MainWindow({
+        onWindowStateChange: state => headlessChanges.push(state)
+    });
+    assert.deepEqual(headless.GetDefaultState().GetValues(), new Tr2MainWindowState().GetValues());
+    assert.equal(headless.SetWindowState(headless.GetWindowState()), true);
+    assert.equal(headlessChanges.length, 0);
+
+    const windowTarget = new FakeTarget();
+    const documentTarget = new FakeTarget();
+    const target = new FakeTarget();
+    documentTarget.documentElement = target;
+    windowTarget.document = documentTarget;
+    windowTarget.innerWidth = 1280;
+    windowTarget.innerHeight = 720;
+    windowTarget.screen = { width: 1920, height: 1080, availWidth: 1900, availHeight: 1040 };
+
+    const changes = [];
+    const mainWindow = new Tr2MainWindow({
+        window: windowTarget,
+        document: documentTarget,
+        target,
+        state: { width: 1280, height: 720 },
+        onWindowStateChange: state => changes.push(state)
+    });
+
+    assert.equal(Object.hasOwn(mainWindow, "onBeforeSwapChainChange"), false);
+    assert.equal(Object.hasOwn(mainWindow, "onSwapChainChange"), false);
+    assert.equal(mainWindow.SetWindowState(mainWindow.GetWindowState()), true);
+    assert.equal(changes.length, 0);
+
+    const changed = mainWindow.GetWindowState();
+    changed.width = 900;
+    assert.equal(mainWindow.SetWindowState(changed), true);
+    assert.equal(changes.length, 1);
+    assert.equal(changes[0].width, 900);
 });

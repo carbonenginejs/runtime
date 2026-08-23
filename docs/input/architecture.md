@@ -12,6 +12,11 @@ and pointer event attachment, cursor realization, and the related
 Carbon-shaped callbacks. It does not own scene interaction, rendering,
 device-resource reset, or presentation orchestration.
 
+Changed window state is emitted as input-layer intent through
+`onWindowStateChange`. The input layer does not report before/after swap-chain
+events because it neither owns nor performs a device reset; composition and the
+selected engine own that lifecycle.
+
 ## Host adapters
 
 `Tr2MainWindow` accepts injected `window`, `document`, `screen`, and target
@@ -31,12 +36,18 @@ window/document/target
 listeners and clears pressed-key state. The package does not install global
 listeners merely by being imported.
 
+External functions and callback-shaped host objects are normalized once to the
+dependency-floor `CjsScriptCallback` contract when assigned. Event paths call
+its required `CallVoid` or `Call` method directly; they do not repeatedly probe
+owned callback shapes.
+
 ## State and vocabulary
 
 - `Tr2MainWindowState` owns window mode, size, position, adapter, visibility,
   and presentation interval values.
-- `UIScancode` maps `KeyboardEvent.code` values to the package's maintained
-  Carbon-compatible virtual-key vocabulary.
+- `UIScancode` maps `KeyboardEvent.code` values to the package's maintained,
+  bounded Carbon-compatible virtual-key vocabulary. Canonical records are
+  frozen because lookup maps share their identities.
 - `Tr2MouseCursor` converts supported cursor inputs into CSS cursor values and
   manages object-URL cleanup.
 

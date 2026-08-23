@@ -40,6 +40,10 @@ test("the input subpath is import-inert and shares root identities", () =>
                 "UIScancode"
             ])
             {
+                if (input[name] === undefined)
+                {
+                    throw new Error(\`Missing input export: \${name}\`);
+                }
                 if (root[name] !== input[name])
                 {
                     throw new Error(\`Input identity mismatch: \${name}\`);
