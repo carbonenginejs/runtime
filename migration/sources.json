@@ -76,6 +76,17 @@
       "commit": "2c642a5e3bdbb88d91c8d0119a3a4b045bd1448b",
       "temporaryPrefix": ".imports/runtime-character",
       "destination": "src/character",
+      "sourceMoved": true,
+      "excluded": [
+        {
+          "paths": [ "src/incarna/README.md", "src/trinity/README.md", "docs/reference/legacy-gles-character-reference.md" ],
+          "reason": "Source-internal and legacy-renderer research included exact evidence and fixture framing unsuitable for the public npm artifact; source-neutral ownership and renderer adoption gates remain in docs/character."
+        },
+        {
+          "paths": [ "scripts/build_npm.js", "npm/**", "package*.json", "npm.package.json", "rollup.config.mjs", ".npmrc", ".gitignore", "LICENSE", "NOTICE", "README.md" ],
+          "reason": "Combined packaging, notices, and repository metadata supersede the donor copies; generated npm output is rebuilt only from reviewed combined source."
+        }
+      ],
       "baseline": { "command": "npm test", "passed": 85, "skipped": 0, "failed": 0 }
     },
     {

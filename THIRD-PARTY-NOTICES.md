@@ -36,6 +36,16 @@ triangulation helper from the ccpwgl math tree.
 - License: ISC
 - Local license copy: `src/global/math/geometry/helpers/LICENSE`
 
+## ccpwgl historical Incarna curve adaptations
+
+The historical compatibility classes `Tr2ColorCurve`, `Tr2ColorKey`,
+`Tr2ScalarCurve`, and `Tr2ScalarKey` under `src/character/incarna/curves` are
+compact adaptations of CCPWGL curve implementations.
+
+- Project: <https://github.com/cppctamber/ccpwgl2>
+- Copyright: 2020 ccpgames rawrafox cppctamber
+- License: MIT; terms reproduced below
+
 ## Three.js-derived geometry helpers
 
 Math and geometry helpers in the extracted ccpwgl tree retain source comments

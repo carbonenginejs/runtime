@@ -11,8 +11,9 @@ Summary: Explains the unpublished combined-runtime destination and routes reader
 browser-safe CarbonEngineJS runtime family, renderer engines, and browser-safe
 tools. The repository owns the executable dependency-layer contract, migration
 metadata, the maintained global foundation, the resource/format capability,
-the Trinity/EVE object graph, the standalone SOF builder and data model, and
-the complete headless-by-default audio domain. Remaining donor implementations
+the Trinity/EVE object graph, the standalone SOF builder and data model, the
+complete headless-by-default audio domain, and the GPU-free character domain.
+Remaining donor implementations
 stay under temporary prefixes until each reviewed source family is moved into
 its final layer.
 
@@ -47,11 +48,11 @@ Run the current structural checks from the repository root:
 npm test
 ```
 
-The global foundation, resource capability, Trinity graph, SOF layer, and audio
-domain are now maintained source in this repository. Foundation, lifecycle,
-format, FSD, shader-translation, resource, Trinity, SOF, and audio tests run as
-part of the combined suite. Other runtime layers remain inert until their
-reviewed donor moves land.
+The global foundation, resource capability, Trinity graph, SOF layer, audio
+domain, and character domain are now maintained source in this repository.
+Foundation, lifecycle, format, FSD, shader-translation, resource, Trinity, SOF,
+audio, and character tests run as part of the combined suite. Other runtime
+layers remain inert until their reviewed donor moves land.
 
 ## Documentation map
 
@@ -61,6 +62,7 @@ reviewed donor moves land.
 - [Trinity and EVE graph](trinity/README.md)
 - [SOF builder and data model](sof/README.md)
 - [Audio graph and Web Audio realization](audio/README.md)
+- [Character documents and native graph](character/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

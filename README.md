@@ -5,8 +5,8 @@ Unpublished consolidation destination for the browser-safe CarbonEngineJS runtim
 Use this repository while the accepted combined-runtime migration is in
 progress. It provides the executable layer boundary, migration metadata, the
 maintained global foundation, the resource/format capability, the migrated
-Trinity/EVE object graph, the standalone SOF data and graph builder, and the
-complete headless-by-default audio domain.
+Trinity/EVE object graph, the standalone SOF data and graph builder, the
+complete headless-by-default audio domain, and the GPU-free character domain.
 `@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
@@ -21,8 +21,8 @@ npm install
 ## Quick start
 
 Current validation checks the internal dependency graph, package maps, the
-migrated foundation, all resource/format implementations, Trinity, SOF, and
-audio:
+migrated foundation, all resource/format implementations, Trinity, SOF, audio,
+and character:
 
 ```sh
 npm test
@@ -41,8 +41,11 @@ former lightweight data-model surface.
 Audio consumers use `@carbonenginejs/runtime/audio`; graph-only users can use
 `/audio/trinity`, while metadata, document, and acquisition-free builder
 surfaces remain available through focused audio subpaths.
+Character consumers use `@carbonenginejs/runtime/character`; acquisition-free
+library building and reviewed generated source are also exposed through
+`/character/library-builder` and `/character/generated`.
 
-The remaining character, input, core, tools, and WebGPU imports become
+The remaining input, core, tools, and WebGPU imports become
 available only after their
 history-preserving migrations and the atomic consumer cutover. The WebGPU
 engine is not exported yet, and no WebGL placeholder is advertised before a
@@ -60,6 +63,8 @@ SOF ownership, boundaries, and class catalog are documented under
 [docs/sof](docs/sof/README.md).
 Audio ownership, import-time safety, and class catalogs are documented under
 [docs/audio](docs/audio/README.md).
+Character documents, native ownership, and renderer adoption gates are
+documented under [docs/character](docs/character/README.md).
 
 ## License
 

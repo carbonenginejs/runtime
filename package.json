@@ -143,6 +143,9 @@
     "./audio/library": "./src/audio/library/index.js",
     "./audio/library-builder": "./src/audio/library-builder/index.js",
     "./character": "./src/character/index.js",
+    "./character/generated": "./src/character/generated/index.js",
+    "./character/generated/*": "./src/character/generated/*/index.js",
+    "./character/library-builder": "./src/character/library-builder/index.js",
     "./input": "./src/input/index.js",
     "./core": "./src/core/index.js",
     "./tools": "./src/tools/index.js"
@@ -223,6 +226,9 @@
     "#audio/library-builder": "./src/audio/library-builder/index.js",
     "#audio/*": "./src/audio/*.js",
     "#character": "./src/character/index.js",
+    "#character/generated": "./src/character/generated/index.js",
+    "#character/generated/*": "./src/character/generated/*/index.js",
+    "#character/library-builder": "./src/character/library-builder/index.js",
     "#character/*": "./src/character/*.js",
     "#input": "./src/input/index.js",
     "#input/*": "./src/input/*.js",
@@ -256,7 +262,9 @@
     "check": "npm run build:npm && npm run lint",
     "proof:sof:decorators": "node scripts/sof/proof_decorator_transform.js",
     "proof:audio:decorators": "node scripts/audio/proof_decorator_transform.js",
-    "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && node --test"
+    "proof:character:decorators": "node scripts/character/proof_decorator_transform.js",
+    "catalog:character": "node scripts/character/generate_class_catalog.js",
+    "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test"
   },
   "engines": {
     "node": ">=18"
