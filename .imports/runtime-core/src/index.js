@@ -1,0 +1,954 @@
+/**
+ * GPU-free CarbonEngineJS composition root.
+ *
+ * CjsLibrary owns service composition and resource-request policy. Resource
+ * loading, decoding, device creation, and backend realization remain in the
+ * supplied services.
+ */
+
+import { SelectBackend } from "./platform/backendSelection.js";
+import { Tr2PlatformInfo } from "./platform/Tr2PlatformInfo.js";
+
+export * from "./platform/index.js";
+
+export const CjsServiceKey = Object.freeze({
+    RESOURCE_MANAGER: "resourceManager",
+    SPACE_OBJECT_FACTORY: "spaceObjectFactory",
+    DEVICE: "device",
+    AUDIO_MANAGER: "audioManager",
+    INPUT_MANAGER: "inputManager"
+});
+
+const OPTION_KEYS = new Set([
+    "services",
+    "resourceManager",
+    "spaceObjectFactory",
+    "audioManager",
+    "capabilities",
+    "resourceDefaults",
+    "behaviors"
+]);
+
+const REQUEST_SELECTOR_KEYS = Object.freeze([ "behavior", "resourceBehavior" ]);
+
+/**
+ * GPU-free CarbonEngineJS composition root and runtime service registry.
+ */
+export class CjsLibrary
+{
+    #services = new Map();
+    #capabilities = new Map();
+    #resourceBehaviors = new Map();
+    #resourceDefaults = Object.freeze({});
+    #behaviorOrder = 0;
+    #resourceManager = null;
+    #spaceObjectFactory = null;
+    #audioManager = null;
+    #backendSelection = null;
+    #initialized = false;
+
+    /** Creates a composition root from optional services, capabilities, and request policies. */
+    constructor(options = {})
+    {
+        this.SetValues(options);
+    }
+
+    /** Applies validated composition options and returns this library. */
+    SetValues(options = {})
+    {
+        if (!options || typeof options !== "object" || Array.isArray(options))
+        {
+            throw new TypeError("CjsLibrary options must be an object.");
+        }
+        for (const key of Object.keys(options))
+        {
+            if (!OPTION_KEYS.has(key)) throw new TypeError(`CjsLibrary unknown option ${JSON.stringify(key)}.`);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "services"))
+        {
+            if (!options.services || typeof options.services !== "object" || Array.isArray(options.services))
+            {
+                throw new TypeError("CjsLibrary.services must be an object.");
+            }
+            for (const [ key, service ] of Object.entries(options.services)) this.SetService(key, service);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "resourceManager"))
+        {
+            this.SetResourceManager(options.resourceManager);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "spaceObjectFactory"))
+        {
+            this.SetSpaceObjectFactory(options.spaceObjectFactory);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "audioManager"))
+        {
+            this.SetAudioManager(options.audioManager);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "capabilities"))
+        {
+            this.RegisterCapabilities(options.capabilities);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "resourceDefaults"))
+        {
+            this.SetResourceDefaults(options.resourceDefaults);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "behaviors"))
+        {
+            RegisterBehaviorMap(this, options.behaviors);
+        }
+        return this;
+    }
+
+    /**
+     * Add service configuration using the same class-method vocabulary as the
+     * services being composed. Topic options are forwarded unchanged.
+     */
+    Register(options = {})
+    {
+        if (!options || typeof options !== "object" || Array.isArray(options))
+        {
+            throw new TypeError("CjsLibrary.Register options must be an object.");
+        }
+
+        const known = new Set([
+            "services",
+            "resourceManager",
+            "spaceObjectFactory",
+            "audioManager",
+            "capabilities",
+            "resourceDefaults",
+            "behaviors",
+            "resMan",
+            "sof",
+            "audio"
+        ]);
+        for (const key of Object.keys(options))
+        {
+            if (!known.has(key)) throw new TypeError(`CjsLibrary.Register unknown topic ${JSON.stringify(key)}.`);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(options, "services"))
+        {
+            this.SetValues({ services: options.services });
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "resourceManager"))
+        {
+            this.SetResourceManager(options.resourceManager);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "spaceObjectFactory"))
+        {
+            this.SetSpaceObjectFactory(options.spaceObjectFactory);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "audioManager"))
+        {
+            this.SetAudioManager(options.audioManager);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "capabilities"))
+        {
+            this.RegisterCapabilities(options.capabilities);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "resourceDefaults"))
+        {
+            this.SetResourceDefaults(options.resourceDefaults);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "behaviors"))
+        {
+            RegisterBehaviorMap(this, options.behaviors);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "resMan"))
+        {
+            ForwardRegistration(this.#resourceManager, "resMan", options.resMan);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "sof"))
+        {
+            ForwardRegistration(this.#spaceObjectFactory, "sof", options.sof);
+        }
+        if (Object.prototype.hasOwnProperty.call(options, "audio"))
+        {
+            ForwardAudioLibrary(this.#audioManager, options.audio);
+        }
+        return this;
+    }
+
+    /** Returns a snapshot of the configured services, capabilities, and request policies. */
+    GetValues()
+    {
+        return {
+            initialized: this.#initialized,
+            resourceManager: this.#resourceManager,
+            spaceObjectFactory: this.#spaceObjectFactory,
+            audioManager: this.#audioManager,
+            services: Object.fromEntries(this.#services),
+            capabilities: this.GetCapabilities(),
+            resourceDefaults: this.GetResourceDefaults(),
+            resourceBehaviors: this.GetResourceBehaviors()
+        };
+    }
+
+    /** Applies options and marks the composition root initialized. */
+    Initialize(options = {})
+    {
+        this.SetValues(options);
+        this.#initialized = true;
+        return this;
+    }
+
+    // THE JOIN BETWEEN PROBING AND SELECTION. Probing, capability recording and
+    // backend choice all belong to the library - it is the thing that decides
+    // what to test, what to load and what to fall back to - but the policy
+    // itself lives in `backendSelection.js` as a plain function, so a caller
+    // composing without `CjsLibrary` reaches the identical decision. This
+    // method is the default caller, not the owner.
+    //
+    // It records and applies; it does not create. The device or context proof
+    // is the candidate's own asynchronous `Prove`, because runtime-core must
+    // not create a GPU device and cannot import an engine to do it.
+
+    /**
+     * Probes the platform if it has not been told, then commits the library to
+     * exactly one backend from the candidates offered, recording the resulting
+     * capabilities. Returns the selection.
+     *
+     * `probe: false` skips detection and selects against already-registered
+     * capabilities, which is how a caller that probed elsewhere - or is
+     * replaying a known environment in a test - keeps one decision path.
+     */
+    async SelectBackendAsync(options = {})
+    {
+        assertPlainObject(options, "CjsLibrary.SelectBackendAsync options");
+
+        const { candidates, preference, probe, platform: supplied, ...detectOptions } = options;
+        let platform = supplied ?? null;
+
+        if (!platform && probe !== false)
+        {
+            platform = await Tr2PlatformInfo.Detect(detectOptions);
+        }
+
+        if (platform) this.RegisterCapabilities(platform.GetCapabilities());
+
+        const selection = await SelectBackend({
+            candidates,
+            preference,
+            platform,
+            capabilities: platform ? undefined : this.GetCapabilities()
+        });
+
+        // The committed name is a capability because that is how a resource
+        // behavior reads it; the proof itself is the caller's to hold, since a
+        // device is a service and not a capability value.
+        this.SetCapability("backend", selection.effective);
+        this.#backendSelection = selection;
+        return selection;
+    }
+
+    /** The committed backend selection, or null before one is made. */
+    GetBackendSelection()
+    {
+        return this.#backendSelection;
+    }
+
+    /** Initializes the library and optionally loads SOF data through the configured factory. */
+    async InitializeAsync(options = {})
+    {
+        const { dataPath, backend, ...libraryOptions } = options || {};
+        this.Initialize(libraryOptions);
+        if (backend !== undefined)
+        {
+            await this.SelectBackendAsync(backend === true ? {} : backend);
+        }
+        if (dataPath !== undefined)
+        {
+            const sof = this.#spaceObjectFactory;
+            if (!sof || typeof sof.LoadDataAsync !== "function")
+            {
+                const error = new Error("CjsLibrary cannot load SOF data without an async space object factory.");
+                error.code = "CJS_LIBRARY_SOF_MISSING";
+                throw error;
+            }
+            await sof.LoadDataAsync(dataPath);
+        }
+        return this;
+    }
+
+    /**
+     * Marks the composition root uninitialized and deactivates attached audio
+     * without disposing any caller-owned service.
+     */
+    Shutdown()
+    {
+        this.#audioManager?.Disable?.();
+        this.#audioManager?.Detach?.();
+        // Switching backend is shutdown-and-reinitialize, never a hot swap, so
+        // the commitment is released here and nowhere else.
+        this.#backendSelection = null;
+        this.RemoveCapability("backend");
+        this.#initialized = false;
+        return this;
+    }
+
+    /** Registers or removes one named caller-owned service. */
+    SetService(key, service)
+    {
+        const name = normalizeServiceKey(key);
+        if (service === null || service === undefined)
+        {
+            this.#services.delete(name);
+            if (name === CjsServiceKey.RESOURCE_MANAGER) this.#resourceManager = null;
+            if (name === CjsServiceKey.SPACE_OBJECT_FACTORY) this.#spaceObjectFactory = null;
+            if (name === CjsServiceKey.AUDIO_MANAGER) this.#audioManager = null;
+        }
+        else
+        {
+            this.#services.set(name, service);
+            if (name === CjsServiceKey.RESOURCE_MANAGER) this.#resourceManager = service;
+            if (name === CjsServiceKey.SPACE_OBJECT_FACTORY) this.#spaceObjectFactory = service;
+            if (name === CjsServiceKey.AUDIO_MANAGER) this.#audioManager = service;
+        }
+        return this;
+    }
+
+    /** Returns one named service, or null when it is not registered. */
+    GetService(key)
+    {
+        return this.#services.get(normalizeServiceKey(key)) ?? null;
+    }
+
+    /** Reports whether one named service is registered. */
+    HasService(key)
+    {
+        return this.#services.has(normalizeServiceKey(key));
+    }
+
+    /** Removes one named service and returns this library. */
+    RemoveService(key)
+    {
+        this.SetService(key, null);
+        return this;
+    }
+
+    /** Registers the resource-manager service. */
+    SetResourceManager(resourceManager)
+    {
+        return this.SetService(CjsServiceKey.RESOURCE_MANAGER, resourceManager);
+    }
+
+    /** Returns the registered resource-manager service. */
+    GetResourceManager()
+    {
+        return this.#resourceManager;
+    }
+
+    /** Registers the space-object-factory service. */
+    SetSpaceObjectFactory(spaceObjectFactory)
+    {
+        return this.SetService(CjsServiceKey.SPACE_OBJECT_FACTORY, spaceObjectFactory);
+    }
+
+    /** Returns the registered space-object-factory service. */
+    GetSpaceObjectFactory()
+    {
+        return this.#spaceObjectFactory;
+    }
+
+    /** Registers the browser audio-manager service. */
+    SetAudioManager(audioManager)
+    {
+        if (audioManager !== null
+            && audioManager !== undefined
+            && typeof audioManager.InstallLibrary !== "function")
+        {
+            throw new TypeError(
+                "CjsLibrary audioManager must provide InstallLibrary",
+            );
+        }
+        return this.SetService(CjsServiceKey.AUDIO_MANAGER, audioManager);
+    }
+
+    /** Returns the registered browser audio-manager service. */
+    GetAudioManager()
+    {
+        return this.#audioManager;
+    }
+
+    /** Merge an already-probed synchronous capability report. */
+    RegisterCapabilities(capabilities = {})
+    {
+        assertPlainObject(capabilities, "CjsLibrary capabilities");
+        for (const [ key, value ] of Object.entries(capabilities)) this.SetCapability(key, value);
+        return this;
+    }
+
+    /** Sets or removes one named runtime capability. */
+    SetCapability(key, value)
+    {
+        const name = normalizeCapabilityKey(key);
+        if (value === undefined) this.#capabilities.delete(name);
+        else this.#capabilities.set(name, value);
+        return this;
+    }
+
+    /** Returns one named capability value. */
+    GetCapability(key)
+    {
+        return this.#capabilities.get(normalizeCapabilityKey(key));
+    }
+
+    /** Reports whether one named capability is registered. */
+    HasCapability(key)
+    {
+        return this.#capabilities.has(normalizeCapabilityKey(key));
+    }
+
+    /** Removes one named capability and returns this library. */
+    RemoveCapability(key)
+    {
+        this.#capabilities.delete(normalizeCapabilityKey(key));
+        return this;
+    }
+
+    /** Returns an immutable snapshot of all registered capabilities. */
+    GetCapabilities()
+    {
+        return Object.freeze(Object.fromEntries(this.#capabilities));
+    }
+
+    /** Replaces the default options applied to resource requests. */
+    SetResourceDefaults(options = {})
+    {
+        assertPlainObject(options, "CjsLibrary resource defaults");
+        this.#resourceDefaults = freezeRequestOptions(stripRequestSelectors(options));
+        return this;
+    }
+
+    /** Returns the immutable default resource-request options. */
+    GetResourceDefaults()
+    {
+        return this.#resourceDefaults;
+    }
+
+    /** Register a structural request policy without importing its owner. */
+    RegisterResourceBehavior(name, behavior, options = {})
+    {
+        const behaviorName = normalizeBehaviorName(name);
+        assertPlainObject(behavior, `CjsLibrary resource behavior ${JSON.stringify(behaviorName)}`);
+        assertPlainObject(options, "CjsLibrary resource behavior registration options");
+        for (const key of Object.keys(options))
+        {
+            if (key !== "default" && key !== "priority")
+            {
+                throw new TypeError(`CjsLibrary resource behavior unknown registration option ${JSON.stringify(key)}.`);
+            }
+        }
+        if (Object.prototype.hasOwnProperty.call(behavior, "request"))
+        {
+            assertPlainObject(behavior.request, `CjsLibrary resource behavior ${JSON.stringify(behaviorName)} request`);
+        }
+        if (behavior.CanResolveResourceRequest !== undefined && typeof behavior.CanResolveResourceRequest !== "function")
+        {
+            throw new TypeError(`CjsLibrary resource behavior ${JSON.stringify(behaviorName)} CanResolveResourceRequest must be a function.`);
+        }
+        if (behavior.ResolveResourceRequest !== undefined && typeof behavior.ResolveResourceRequest !== "function")
+        {
+            throw new TypeError(`CjsLibrary resource behavior ${JSON.stringify(behaviorName)} ResolveResourceRequest must be a function.`);
+        }
+        if (behavior.request === undefined && behavior.ResolveResourceRequest === undefined)
+        {
+            throw new TypeError(`CjsLibrary resource behavior ${JSON.stringify(behaviorName)} must provide request or ResolveResourceRequest.`);
+        }
+
+        const isDefault = options.default ?? false;
+        const priority = options.priority ?? 0;
+        if (typeof isDefault !== "boolean") throw new TypeError("CjsLibrary resource behavior default must be boolean.");
+        if (!Number.isSafeInteger(priority)) throw new TypeError("CjsLibrary resource behavior priority must be a safe integer.");
+
+        this.#resourceBehaviors.set(behaviorName, Object.freeze({
+            name: behaviorName,
+            behavior,
+            default: isDefault,
+            priority,
+            order: this.#behaviorOrder++
+        }));
+        return this;
+    }
+
+    /** Returns one registered resource behavior, or null when absent. */
+    GetResourceBehavior(name)
+    {
+        return this.#resourceBehaviors.get(normalizeBehaviorName(name))?.behavior ?? null;
+    }
+
+    /** Reports whether one named resource behavior is registered. */
+    HasResourceBehavior(name)
+    {
+        return this.#resourceBehaviors.has(normalizeBehaviorName(name));
+    }
+
+    /** Removes one resource behavior and returns this library. */
+    RemoveResourceBehavior(name)
+    {
+        this.#resourceBehaviors.delete(normalizeBehaviorName(name));
+        return this;
+    }
+
+    /** Returns an immutable name-to-behavior snapshot. */
+    GetResourceBehaviors()
+    {
+        return Object.freeze(Object.fromEntries(
+            Array.from(this.#resourceBehaviors, ([ name, record ]) => [ name, record.behavior ])
+        ));
+    }
+
+    /**
+     * Resolve one final ResMan source path and promised-output request.
+     *
+     * A terminal `@output` suffix is removed before behavior matching and is
+     * applied last as both `variant` and `emit`. This makes the source path and
+     * its requested result explicit without teaching ResMan about specifier
+     * syntax.
+     */
+    ResolveResourceRequest(path, options = {})
+    {
+        if (typeof path !== "string" || path.trim() === "")
+        {
+            throw new TypeError("CjsLibrary resource path must be a non-empty string.");
+        }
+        assertPlainObject(options, "CjsLibrary resource request options");
+
+        const specifier = parseResourceSpecifier(path);
+        const requestedOptions = freezeRequestOptions(options);
+        const selector = getBehaviorSelector(options);
+        const callerOptions = stripRequestSelectors(options);
+        let selected = null;
+
+        const baseContext = Object.freeze({
+            path: specifier.path,
+            options: requestedOptions,
+            capabilities: this.GetCapabilities(),
+            services: Object.freeze(Object.fromEntries(this.#services)),
+            library: this
+        });
+
+        if (selector !== false)
+        {
+            if (selector !== undefined)
+            {
+                selected = this.#resourceBehaviors.get(normalizeBehaviorName(selector)) ?? null;
+                if (!selected)
+                {
+                    const error = new Error(`CjsLibrary resource behavior ${JSON.stringify(selector)} is not registered.`);
+                    error.code = "CJS_LIBRARY_BEHAVIOR_UNKNOWN";
+                    error.behavior = selector;
+                    throw error;
+                }
+            }
+            else
+            {
+                const candidates = [];
+                for (const record of this.#resourceBehaviors.values())
+                {
+                    if (!record.default) continue;
+                    const matcher = record.behavior.CanResolveResourceRequest;
+                    const matches = matcher ? assertSynchronousResult(
+                        matcher(Object.freeze({ ...baseContext, behaviorName: record.name })),
+                        record.name,
+                        "CanResolveResourceRequest"
+                    ) : true;
+                    if (typeof matches !== "boolean")
+                    {
+                        throw new TypeError(`CjsLibrary resource behavior ${JSON.stringify(record.name)} CanResolveResourceRequest must return boolean.`);
+                    }
+                    if (matches) candidates.push(record);
+                }
+                candidates.sort((a, b) => b.priority - a.priority || a.order - b.order);
+                if (candidates.length > 1 && candidates[0].priority === candidates[1].priority)
+                {
+                    const error = new Error(`CjsLibrary resource behavior is ambiguous at priority ${candidates[0].priority}.`);
+                    error.code = "CJS_LIBRARY_BEHAVIOR_AMBIGUOUS";
+                    error.behaviors = candidates
+                        .filter(record => record.priority === candidates[0].priority)
+                        .map(record => record.name);
+                    throw error;
+                }
+                selected = candidates[0] ?? null;
+            }
+        }
+
+        let resolvedPath = specifier.path;
+        let resolvedOutput = specifier.output;
+        let behaviorOptions = {};
+        if (selected)
+        {
+            if (selected.behavior.request !== undefined)
+            {
+                behaviorOptions = stripRequestSelectors(selected.behavior.request);
+            }
+            const resolver = selected.behavior.ResolveResourceRequest;
+            if (resolver)
+            {
+                const result = assertSynchronousResult(
+                    resolver(Object.freeze({ ...baseContext, behaviorName: selected.name })),
+                    selected.name,
+                    "ResolveResourceRequest"
+                );
+                if (result !== undefined)
+                {
+                    assertPlainObject(result, `CjsLibrary resource behavior ${JSON.stringify(selected.name)} result`);
+                    for (const key of Object.keys(result))
+                    {
+                        if (key !== "path" && key !== "options")
+                        {
+                            throw new TypeError(`CjsLibrary resource behavior ${JSON.stringify(selected.name)} returned unknown key ${JSON.stringify(key)}.`);
+                        }
+                    }
+                    if (result.path !== undefined)
+                    {
+                        if (typeof result.path !== "string" || result.path.trim() === "")
+                        {
+                            throw new TypeError(`CjsLibrary resource behavior ${JSON.stringify(selected.name)} path must be a non-empty string.`);
+                        }
+                        const resolvedSpecifier = parseResourceSpecifier(result.path);
+                        resolvedPath = resolvedSpecifier.path;
+                        if (resolvedOutput === null) resolvedOutput = resolvedSpecifier.output;
+                    }
+                    if (result.options !== undefined)
+                    {
+                        assertPlainObject(result.options, `CjsLibrary resource behavior ${JSON.stringify(selected.name)} result options`);
+                        behaviorOptions = mergeRequestOptions(behaviorOptions, stripRequestSelectors(result.options));
+                    }
+                }
+            }
+        }
+
+        const outputOptions = resolvedOutput === null
+            ? null
+            : { variant: resolvedOutput, emit: resolvedOutput };
+        const resolvedOptions = freezeRequestOptions(mergeRequestOptions(
+            this.#resourceDefaults,
+            behaviorOptions,
+            callerOptions,
+            outputOptions
+        ));
+        return Object.freeze({
+            sourcePath: specifier.path,
+            path: resolvedPath,
+            options: resolvedOptions,
+            behaviorName: selected?.name ?? null,
+            behavior: selected?.behavior ?? null
+        });
+    }
+
+    /** Resolves a request and obtains its resource handle synchronously. */
+    GetResource(path, options = {})
+    {
+        const request = this.ResolveResourceRequest(path, options);
+        return ForwardCall(this.#resourceManager, "GetResource", request.path, request.options);
+    }
+
+    /** Resolves a request and obtains its decoded object synchronously. */
+    GetObject(path, options = {})
+    {
+        const request = this.ResolveResourceRequest(path, options);
+        return ForwardCall(this.#resourceManager, "GetObject", request.path, request.options);
+    }
+
+    /** Resolves and asynchronously readies one resource handle. */
+    FetchResource(path, options = {})
+    {
+        const request = this.ResolveResourceRequest(path, options);
+        return FetchResolvedResource(this.#resourceManager, request);
+    }
+
+    /** Resolves and asynchronously obtains one decoded object. */
+    FetchObject(path, options = {})
+    {
+        const request = this.ResolveResourceRequest(path, options);
+        return FetchResolvedObject(this.#resourceManager, request);
+    }
+
+    /** Builds one plain SOF model-values graph through the configured factory. */
+    FetchDNA(dna, options = {})
+    {
+        const sof = this.#spaceObjectFactory;
+        if (!sof)
+        {
+            const error = new Error("CjsLibrary cannot build DNA without a configured space object factory.");
+            error.code = "CJS_LIBRARY_SOF_MISSING";
+            throw error;
+        }
+        if (typeof sof.BuildValuesFromDNAAsync === "function")
+        {
+            return sof.BuildValuesFromDNAAsync(dna, options);
+        }
+        if (typeof sof.BuildValuesFromDNA === "function")
+        {
+            return Promise.resolve(sof.BuildValuesFromDNA(dna, options));
+        }
+        return ForwardCall(sof, "BuildValuesFromDNAAsync", dna, options);
+    }
+
+    /** Fetches DNA, a resource, or a decoded object according to the request options. */
+    Fetch(value, options = {})
+    {
+        if (options.kind === "dna" || IsDNAString(value)) return this.FetchDNA(value, options);
+        const request = this.ResolveResourceRequest(value, options);
+        if (this.#resourceManager && typeof this.#resourceManager.Fetch === "function")
+        {
+            return this.#resourceManager.Fetch(request.path, request.options);
+        }
+        return request.options.resource === true
+            || request.options.requirement !== undefined
+            || request.options.payload !== undefined
+            ? FetchResolvedResource(this.#resourceManager, request)
+            : FetchResolvedObject(this.#resourceManager, request);
+    }
+
+    /** Reports whether this composition root has been initialized. */
+    IsInitialized()
+    {
+        return this.#initialized;
+    }
+}
+
+function normalizeServiceKey(key)
+{
+    if (typeof key !== "string" || key.trim() === "")
+    {
+        throw new TypeError("CjsLibrary service key must be a non-empty string.");
+    }
+    return key;
+}
+
+function normalizeCapabilityKey(key)
+{
+    if (typeof key !== "string" || key.trim() === "")
+    {
+        throw new TypeError("CjsLibrary capability key must be a non-empty string.");
+    }
+    return key;
+}
+
+function normalizeBehaviorName(name)
+{
+    if (typeof name !== "string" || name.trim() === "")
+    {
+        throw new TypeError("CjsLibrary resource behavior name must be a non-empty string.");
+    }
+    return name;
+}
+
+/**
+ * Split one CjsLibrary resource specifier into its source path and optional
+ * promised output suffix.
+ *
+ * The final `@tag` is reserved for output selection. Tags are normalized to
+ * lowercase and intentionally exclude path/query delimiters; source services
+ * therefore never see the suffix as part of the filename or extension.
+ *
+ * @param {string} value Non-empty resource specifier.
+ * @returns {Readonly<{path: string, output: string|null}>} Source path and explicit output.
+ * @throws {TypeError} If a present output suffix is malformed.
+ */
+function parseResourceSpecifier(value)
+{
+    const separator = value.lastIndexOf("@");
+    if (separator <= value.lastIndexOf("/"))
+    {
+        return Object.freeze({ path: value, output: null });
+    }
+
+    const path = value.slice(0, separator);
+    const output = value.slice(separator + 1).trim().toLowerCase();
+    if (!path || !/^[a-z0-9][a-z0-9._-]*$/u.test(output))
+    {
+        throw new TypeError("CjsLibrary resource @output must be a non-empty alphanumeric tag.");
+    }
+    return Object.freeze({ path, output });
+}
+
+function assertPlainObject(value, label)
+{
+    if (!value || typeof value !== "object" || Array.isArray(value))
+    {
+        throw new TypeError(`${label} must be an object.`);
+    }
+    return value;
+}
+
+function getBehaviorSelector(options)
+{
+    const hasBehavior = Object.prototype.hasOwnProperty.call(options, "behavior");
+    const hasResourceBehavior = Object.prototype.hasOwnProperty.call(options, "resourceBehavior");
+    if (hasBehavior && hasResourceBehavior && options.behavior !== options.resourceBehavior)
+    {
+        throw new TypeError("CjsLibrary resource request behavior selectors conflict.");
+    }
+    const selector = hasBehavior ? options.behavior : options.resourceBehavior;
+    if (selector !== undefined && selector !== false && (typeof selector !== "string" || selector.trim() === ""))
+    {
+        throw new TypeError("CjsLibrary resource request behavior must be a non-empty string or false.");
+    }
+    return selector;
+}
+
+function stripRequestSelectors(options)
+{
+    const result = { ...options };
+    for (const key of REQUEST_SELECTOR_KEYS) delete result[key];
+    if (Object.prototype.hasOwnProperty.call(result, "formatOptions") && result.formatOptions !== undefined)
+    {
+        assertPlainObject(result.formatOptions, "CjsLibrary resource request formatOptions");
+        result.formatOptions = { ...result.formatOptions };
+    }
+    return result;
+}
+
+function mergeRequestOptions(...sources)
+{
+    const result = {};
+    let formatOptions = null;
+    for (const source of sources)
+    {
+        if (!source) continue;
+        for (const [ key, value ] of Object.entries(source))
+        {
+            if (key === "formatOptions")
+            {
+                if (value === undefined)
+                {
+                    formatOptions = null;
+                    delete result.formatOptions;
+                    continue;
+                }
+                assertPlainObject(value, "CjsLibrary resource request formatOptions");
+                formatOptions = { ...(formatOptions ?? {}), ...value };
+                result.formatOptions = formatOptions;
+            }
+            else if (!REQUEST_SELECTOR_KEYS.includes(key))
+            {
+                result[key] = value;
+            }
+        }
+    }
+    return result;
+}
+
+function freezeRequestOptions(options)
+{
+    const result = stripRequestSelectors(options);
+    if (result.formatOptions) Object.freeze(result.formatOptions);
+    return Object.freeze(result);
+}
+
+function assertSynchronousResult(result, behaviorName, method)
+{
+    if (result && typeof result.then === "function")
+    {
+        const error = new Error(`CjsLibrary resource behavior ${JSON.stringify(behaviorName)} ${method} must be synchronous.`);
+        error.code = "CJS_LIBRARY_BEHAVIOR_ASYNC";
+        error.behavior = behaviorName;
+        error.method = method;
+        throw error;
+    }
+    return result;
+}
+
+function RegisterBehaviorMap(library, behaviors)
+{
+    assertPlainObject(behaviors, "CjsLibrary behaviors");
+    for (const [ name, definition ] of Object.entries(behaviors))
+    {
+        if (
+            definition &&
+            typeof definition === "object" &&
+            !Array.isArray(definition) &&
+            Object.prototype.hasOwnProperty.call(definition, "behavior")
+        )
+        {
+            library.RegisterResourceBehavior(name, definition.behavior, {
+                default: definition.default ?? false,
+                priority: definition.priority ?? 0
+            });
+        }
+        else
+        {
+            library.RegisterResourceBehavior(name, definition);
+        }
+    }
+}
+
+function ForwardRegistration(service, topic, options)
+{
+    if (!service || typeof service.Register !== "function")
+    {
+        const error = new Error(`CjsLibrary cannot register ${topic} options without a configured service.`);
+        error.code = "CJS_LIBRARY_SERVICE_MISSING";
+        error.topic = topic;
+        throw error;
+    }
+    service.Register(options);
+}
+
+function ForwardAudioLibrary(audioManager, library)
+{
+    if (!audioManager)
+    {
+        const error = new Error(
+            "CjsLibrary cannot register audio without an audio manager.",
+        );
+        error.code = "CJS_LIBRARY_SERVICE_MISSING";
+        error.topic = "audio";
+        throw error;
+    }
+    if (typeof audioManager.InstallLibrary !== "function")
+    {
+        const error = new Error(
+            "CjsLibrary audio manager does not provide InstallLibrary().",
+        );
+        error.code = "CJS_LIBRARY_REGISTER_UNSUPPORTED";
+        error.topic = "audio";
+        throw error;
+    }
+    audioManager.InstallLibrary(library);
+}
+
+function ForwardCall(service, method, ...args)
+{
+    if (!service || typeof service[method] !== "function")
+    {
+        const error = new Error(`CjsLibrary resource manager does not implement ${method}.`);
+        error.code = "CJS_LIBRARY_METHOD_MISSING";
+        error.method = method;
+        throw error;
+    }
+    return service[method](...args);
+}
+
+function FetchResolvedResource(resourceManager, request)
+{
+    if (resourceManager && typeof resourceManager.FetchResource === "function")
+    {
+        return resourceManager.FetchResource(request.path, request.options);
+    }
+    const resource = ForwardCall(resourceManager, "GetResource", request.path, request.options);
+    return resource && typeof resource.Ready === "function"
+        ? resource.Ready(request.options).then(() => resource)
+        : Promise.resolve(resource);
+}
+
+function FetchResolvedObject(resourceManager, request)
+{
+    if (resourceManager && typeof resourceManager.FetchObject === "function")
+    {
+        return resourceManager.FetchObject(request.path, request.options);
+    }
+    return Promise.resolve(ForwardCall(resourceManager, "GetObject", request.path, request.options));
+}
+
+function IsDNAString(value)
+{
+    if (typeof value !== "string" || value.includes(":/")) return false;
+    return value.split(":").length >= 3;
+}
+
+export default CjsLibrary;
