@@ -3454,7 +3454,7 @@ export class EveSOF extends CjsModel
     const factionData = this.dataMgr.GetFactionData(factionName);
     if (!factionData) return;
     const genericData = this.dataMgr.GetGenericData();
-    updateTurretEffect(turretSet, parameterName => findTurretFactionParameter(
+    turretSet.ApplySofTurretMaterial(parameterName => findTurretFactionParameter(
       this.dataMgr,
       genericData,
       factionData,
@@ -3472,42 +3472,9 @@ export class EveSOF extends CjsModel
   {
     const dna = this.CreateDna(dnaString);
     if (!dna) return;
-    updateTurretEffect(turretSet, parameterName => dna.GetFactionTurretParameters(parameterName));
+    turretSet.ApplySofTurretMaterial(parameterName => dna.GetFactionTurretParameters(parameterName));
   }
 
-}
-
-function updateTurretEffect(turretSet, resolveParameter)
-{
-  const effect = turretSet?.GetShader?.() ?? turretSet?.turretEffect ?? null;
-  if (!effect) return;
-
-  const constParameters = Array.isArray(effect.constParameters) ? effect.constParameters : [];
-  if (constParameters.length)
-  {
-    effect.StartUpdate?.();
-    try
-    {
-      for (const parameter of constParameters)
-      {
-        const value = resolveParameter(parameter?.name ?? "");
-        if (value) copyTurretParameterValue(parameter, value);
-      }
-    }
-    finally
-    {
-      effect.EndUpdate?.();
-    }
-    return;
-  }
-
-  for (const parameter of Array.isArray(effect.parameters) ? effect.parameters : [])
-  {
-    if (typeof parameter?.SetValue !== "function") continue;
-    const parameterName = parameter.GetParameterName?.() ?? parameter.name ?? "";
-    const value = resolveParameter(parameterName);
-    if (value) parameter.SetValue(value);
-  }
 }
 
 function findTurretFactionParameter(dataMgr, genericData, factionData, parameterName)
@@ -3548,21 +3515,6 @@ function findTurretAreaParameter(dataMgr, colors, areaMaterials, areaType, info)
     if (colorType !== undefined) return colors[colorType] ?? null;
   }
   return null;
-}
-
-function copyTurretParameterValue(parameter, value)
-{
-  if (parameter.value && typeof parameter.value.length === "number")
-  {
-    for (let index = 0; index < Math.min(4, parameter.value.length, value.length); index++)
-    {
-      parameter.value[index] = Number(value[index]);
-    }
-  }
-  else
-  {
-    parameter.value = Array.from(value);
-  }
 }
 
 function arrayValue(value, fallback)

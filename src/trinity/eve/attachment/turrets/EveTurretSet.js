@@ -13,6 +13,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { Tr2PerObjectData } from "../../../core/rawData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../../core/batch/Tr2RenderBatch.js";
+import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths
@@ -419,6 +420,64 @@ export class EveTurretSet extends EveEntity
     this.lodLevel = EveTurretSet.LOD.LOD_DISABLED;
     this.#highDetailFrozen = true;
     this.geometryResource?.Prepare?.();
+  }
+
+  /** Returns the turret effect Carbon exposes to SOF material setup. */
+  @carbon.method
+  @impl.implemented
+  GetShader()
+  {
+    return this.turretEffect;
+  }
+
+  /**
+   * Applies resolved SOF vec4 values to the turret effect's constant path, or
+   * to its nominal vector-parameter path when no constants are authored.
+   */
+  @impl.custom
+  @impl.reason("The combined runtime keeps SOF independently importable by putting the nominal Tr2Effect application boundary on the owning turret class.")
+  ApplySofTurretMaterial(resolveParameter)
+  {
+    const effect = this.GetShader();
+    if (!effect)
+    {
+      return false;
+    }
+
+    if (effect.constParameters.length)
+    {
+      effect.StartUpdate();
+      try
+      {
+        for (const parameter of effect.constParameters)
+        {
+          const value = resolveParameter(parameter.name);
+          if (value)
+          {
+            vec4.copy(parameter.value, value);
+          }
+        }
+      }
+      finally
+      {
+        effect.EndUpdate();
+      }
+      return true;
+    }
+
+    for (const parameter of effect.parameters)
+    {
+      if (!(parameter instanceof Tr2Vector4Parameter))
+      {
+        continue;
+      }
+      const value = resolveParameter(parameter.GetParameterName());
+      if (value)
+      {
+        parameter.SetValue(value);
+      }
+    }
+    return true;
   }
 
   /** Carbon method GetShotTimeVariance (MAP_METHOD_AND_WRAP). */

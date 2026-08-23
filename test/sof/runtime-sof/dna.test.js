@@ -32,6 +32,12 @@ import { EveSofDataMeshInstance } from "../../../npm/dist/sof/shared/EveSofDataM
 import { EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings } from "../../../npm/dist/sof/layout/EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.js";
 import { EveSOFDataHullExtensionBucket } from "../../../npm/dist/sof/layout/EveSOFDataHullExtensionBucket.js";
 import { EveSOFDataLogoSet } from "../../../npm/dist/sof/shared/EveSOFDataLogoSet.js";
+import {
+  EveTurretSet,
+  Tr2ConstantEffectParameter,
+  Tr2Effect,
+  Tr2Vector4Parameter,
+} from "../../../npm/dist/trinity/index.js";
 
 const trinityConsumerEntry = new URL("../../../npm/dist/trinity/index.js", import.meta.url);
 // Document-hydration compatibility tests require both migrated consumer
@@ -4797,37 +4803,43 @@ test("EveSOF applies faction and DNA turret materials to both effect parameter p
 
   let starts = 0;
   let ends = 0;
-  let ignoredDynamicWrites = 0;
-  const constantValue = new Float32Array(4);
-  const constantEffect = {
-    constParameters: [{ name: "Mtl1Diffuse", value: constantValue }],
-    parameters: [{ name: "Mtl1Diffuse", SetValue: () => ignoredDynamicWrites++ }],
-    StartUpdate: () => starts++,
-    EndUpdate: () => ends++,
-  };
-  sof.SetupTurretMaterialFromFaction({ turretEffect: constantEffect }, "minmatar");
-  assert.deepEqual(Array.from(constantValue), [0, 0, 1, 1]);
+  const constantSet = new EveTurretSet();
+  const constantEffect = new Tr2Effect();
+  const constantParameter = new Tr2ConstantEffectParameter();
+  constantParameter.name = "Mtl1Diffuse";
+  constantEffect.constParameters = [constantParameter];
+  const startUpdate = constantEffect.StartUpdate.bind(constantEffect);
+  const endUpdate = constantEffect.EndUpdate.bind(constantEffect);
+  constantEffect.StartUpdate = () => { starts++; startUpdate(); };
+  constantEffect.EndUpdate = () => { ends++; endUpdate(); };
+  constantSet.turretEffect = constantEffect;
+  assert.equal(constantSet.GetShader(), constantEffect);
+
+  sof.SetupTurretMaterialFromFaction(constantSet, "minmatar");
+  assert.deepEqual(Array.from(constantParameter.value), [0, 0, 1, 1]);
   assert.equal(starts, 1);
   assert.equal(ends, 1);
-  assert.equal(ignoredDynamicWrites, 0);
 
-  let dynamicValue = null;
-  const dynamicEffect = {
-    constParameters: [],
-    parameters: [
-      { GetParameterName: () => "Mtl1Diffuse", SetValue: value => dynamicValue = Array.from(value) },
-      { GetParameterName: () => "Mtl1Diffuse" },
-    ],
-  };
+  const dynamicSet = new EveTurretSet();
+  const dynamicEffect = new Tr2Effect();
+  const dynamicParameter = new Tr2Vector4Parameter();
+  dynamicParameter.name = "Mtl1Diffuse";
+  dynamicEffect.parameters = [dynamicParameter];
+  dynamicSet.turretEffect = dynamicEffect;
   sof.SetupTurretMaterialFromDNA(
-    { GetShader: () => dynamicEffect },
+    dynamicSet,
     "rifter:minmatar:minmatar:material?explicit0;explicit1",
   );
-  assert.deepEqual(dynamicValue, [0, 1, 0, 1]);
+  assert.deepEqual(Array.from(dynamicParameter.value), [0, 1, 0, 1]);
 
-  dynamicValue = null;
-  sof.SetupTurretMaterialFromDNA({ turretEffect: dynamicEffect }, "invalid");
-  assert.equal(dynamicValue, null);
+  dynamicParameter.SetValue([1, 1, 1, 1]);
+  sof.SetupTurretMaterialFromDNA(dynamicSet, "invalid");
+  assert.deepEqual(Array.from(dynamicParameter.value), [1, 1, 1, 1]);
+
+  assert.throws(
+    () => sof.SetupTurretMaterialFromFaction({}, "minmatar"),
+    TypeError,
+  );
 });
 
 test("EveSOFDNA texture inserts require an explicit resource-existence resolver", () => {
@@ -5497,8 +5509,8 @@ test("editor mode records Carbon placement metadata on layout children", () => {
 // its caller handed in the entire Trinity class library -- the requirement was
 // satisfied in spelling and broken in effect. This test states the executable
 // property instead: values build with nothing supplied. It must not be given a
-// registry, and it deliberately imports no Trinity entry point, so it fails the
-// moment a class library becomes necessary again.
+// registry, so it fails the moment a Trinity class library becomes a required
+// input again.
 test("values build with no registry, because SOF emits JSON and JSON needs no classes", () => {
   const data = createData();
   data.hull[0].soundEmitters = [{
