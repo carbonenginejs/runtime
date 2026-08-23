@@ -48,9 +48,9 @@ export class TnyMarketWindow
         {
             controller = new CjsMarketController({ marketSource });
         }
-        if (!(controller instanceof CjsMarketController))
+        if (typeof controller?.Start !== "function" || typeof controller?.Open !== "function")
         {
-            throw new TypeError("TnyMarketWindow requires a CjsMarketController");
+            throw new TypeError("TnyMarketWindow requires a Market controller");
         }
 
         this.root = root;

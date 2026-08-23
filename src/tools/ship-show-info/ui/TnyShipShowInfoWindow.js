@@ -62,9 +62,9 @@ export class TnyShipShowInfoWindow
         {
             controller = new CjsShipShowInfoController({ shipSource, renderer });
         }
-        if (!(controller instanceof CjsShipShowInfoController))
+        if (typeof controller?.Open !== "function" || typeof controller?.SelectPanel !== "function")
         {
-            throw new TypeError("TnyShipShowInfoWindow requires a CjsShipShowInfoController");
+            throw new TypeError("TnyShipShowInfoWindow requires a Show Info controller");
         }
 
         this.root = root;

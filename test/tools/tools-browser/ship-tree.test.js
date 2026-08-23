@@ -106,8 +106,8 @@ test("Ship Tree memory source preserves mutable answers and supports cancellatio
 
 test("Ship Tree public logic has no provider, DOM, engine, or raw-SDE dependency", async () =>
 {
-    const root = await import("../../../npm/dist/tools/index.js");
+    const root = await import("@carbonenginejs/runtime/tools");
 
-    assert.equal(root.CjsShipTreeController.name, CjsShipTreeController.name);
+    assert.equal(root.CjsShipTreeController, CjsShipTreeController);
     assert.equal(typeof root.layoutShipTree, "function");
 });

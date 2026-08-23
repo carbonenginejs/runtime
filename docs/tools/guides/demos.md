@@ -238,12 +238,12 @@ domain runtime or injected domain adapter
 demo presentation
 ```
 
-- `runtime-audio` owns audio graph/runtime behavior and its library-builder
-  input contract. `runtime/tools/audio` already reads prepared remote audio
-  documents and supplies browser media bytes.
-- `runtime-character` owns character planning, appearance behavior, and its
-  prepared library/plan contracts. A future browser adapter may read or install
-  those documents without moving character semantics here.
+- `@carbonenginejs/runtime/audio` owns audio graph/runtime behavior, prepared
+  library loading, and resource-backed library construction. Applications
+  inject any playback media provider directly into the audio runtime.
+- `@carbonenginejs/runtime/character` owns character planning, appearance
+  behavior, prepared-library hydration, and resource-backed construction.
+  Applications may inject prepared values or a resource source directly.
 - Graphics runtimes own scene and rendering behavior. A demo renderer adapter
   translates a demo request into that engine's native operations.
 

@@ -34,11 +34,6 @@ facilities, but no Node built-in enters `src/tools`.
 
 The implemented package currently owns:
 
-- remote schema-v2 audio-document acquisition and canonical installation;
-- caller-selected SoundbanksInfo, neutral enrichment, and remote file-index
-  projection into the runtime builder's plain input shape;
-- exact remote individual/whole-file and byte-range reads for
-  `CjsAudioMan`'s structural provider contract;
 - appfileindex and resfileindex parsing, discovery, immutable lookup, named
   overlays, and safe HTTP(S) source resolution;
 - naming, packing, synthesis, decoding, and shader inspection for Carbon
@@ -156,11 +151,6 @@ policy remains authoritative because blocked messages can be suppressed before
 they reach any browser. Provider credentials, upstream room sharing, supplier
 asset resolution, and moderation synchronization remain server concerns.
 
-Audio acquisition accepts caller-selected URLs, logical paths resolved through
-an injected remote file index, and fetch options. It does not discover
-installation paths, cache layouts, credentials, or service roots. It performs
-no audio-library construction or runtime selection.
-
 ## Environment contract
 
 JavaScript source is side-effect-free by public subpath and uses standard
@@ -177,7 +167,6 @@ remain valid dependencies.
 ## Related documentation
 
 - [Package documentation](README.md)
-- [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [Browser demo guide](guides/demos.md)
 - [Planned interactive diagram demos](guides/interactive-diagrams.md)

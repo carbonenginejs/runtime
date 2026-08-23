@@ -118,24 +118,22 @@ exists here because a *tool* may be handed either form.
 
 A custom mask owns writing its own slot into the parent's per-object structs,
 as it does in Carbon (`EveCustomMask.cpp:66-93`) and in Trinity
-(`EveCustomMask.FillPerObjectData` / `static ZeroPerObjectData`). The
-synthesizer runs Carbon's driver loop (`EveSpaceObject2.cpp:654-664` — every
-slot is filled or zeroed) through canonical `RawData`, then copies the terminal
-GPU-form fields into its tool-facing value bag. It carries no second fill.
+(`EveCustomMask.FillPerObjectData` / `static ZeroPerObjectData`). The tools
+layer runs Carbon's driver loop (`EveSpaceObject2.cpp:654-664` — every slot is
+filled or zeroed) and calls that protocol; it does not carry a second copy of
+the fill.
 
-Pass an exact `EveCustomMask` or a plain authored description:
+Pass mask objects that implement `FillPerObjectData(index, vsData, psData)`, or
+construct the synthesizer with the owning class:
 
 ```js
 import { EveCustomMask } from "@carbonenginejs/runtime/trinity/eve";
 import { CjsPerObjectSynthesizer } from "@carbonenginejs/runtime/tools/perobject";
 
-const mask = new EveCustomMask();
-mask.Setup(position, scaling, rotation, false, true, false, 2, targets);
-new CjsPerObjectSynthesizer().SynthesizeSpaceObject({ customMasks: [ mask ] });
+new CjsPerObjectSynthesizer({ customMask: EveCustomMask });
 ```
 
-Structural lookalikes are rejected; organization-owned behavior is never
-selected by method probing.
+A plain mask description with no class available throws rather than guessing.
 
 There are **0, 1 or 2** custom masks — never more. `EVE_SPACEOBJECT_CUSTOWMASK_MAX`
 is 2 (`EveSpaceObject2.h:49`), both structs reserve exactly two slots, and every

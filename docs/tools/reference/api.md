@@ -11,7 +11,6 @@ The package root re-exports the presentation-neutral browser tool families:
 
 ```js
 import {
-    CjsRemoteAudioLibrary,
     CjsChatClient,
     TnyDemoHost,
     CjsFileIndex,
@@ -36,7 +35,6 @@ import {
 | Subpath | Purpose | Exports |
 | --- | --- | --- |
 | `./tools` | Aggregates presentation-neutral browser tool families. | Logic exports below; optional UI and demo-app subpaths remain explicit. |
-| [`./tools/audio`](../../../src/tools/audio/index.js) | Reads remote audio documents, builder inputs, complete files, and ranges. | `CjsRemoteAudioLibrary`; `CjsAudioLibrary` is its donor-name identity alias. |
 | [`./tools/chat`](../../../src/tools/chat/index.js) | Requests and optionally filters provider-neutral chat rooms over one realtime client. | `CHAT_TOPICS`, `CjsChatBlockList`, `CjsChatClient`, `CjsChatContract`, `CjsChatRoomSubscription` |
 | [`./tools/demo-apps`](../../../src/tools/demo-apps/index.js) | Composes optional feature presentations for standalone or catalogue mounting. | `TnyMarketDetailsDemo`, `CreateMarketDetailsDemoDefinition`, `TnyShipShowInfoDemo`, `CreateShipShowInfoDemoDefinition` |
 | [`./tools/demos`](../../../src/tools/demos/index.js) | Hosts independent demos, selects browser data providers, and coordinates injected graphics adapters. | `TnyDemoDataService`, `TnyDemoHost`, `TnyDemoRenderer` |
@@ -53,7 +51,7 @@ import {
 | `./tools/ship-tree/ui.css` | Supplies scoped Ship Tree feature layout. | `.ship-tree-*` classes |
 | [`./tools/perobject`](../../../src/tools/perobject/index.js) | Names, synthesizes, packs, decodes, and inspects Carbon per-object constant-buffer layouts. | `CjsPerObjectDecoder`, `CjsPerObjectFieldType`, `CjsPerObjectLayoutError`, `CjsPerObjectLimits`, `CjsPerObjectPacker`, `CjsPerObjectRegister`, `CjsPerObjectSynthesizer`, `CjsPerObjectTypes`, `perObjectStruct`, `perObjectStructNames` |
 | [`./tools/realtime`](../../../src/tools/realtime/index.js) | Consumes Carbon realtime v1 with bounded lifecycle, pressure, reconnect, metrics, subscriptions, and snapshot recovery. | `CjsRealtimeClient`, `CjsRealtimeError`, `CjsRealtimeProtocol`, `CjsRealtimeSubscription`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
-| [`./tools/realtime/wire`](../../../src/tools/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
+| [`./tools/realtime/wire`](../../../src/tools/realtime/CjsRealtimeProtocol.js) | Exposes the side-effect-free Carbon realtime v1 wire constants, constructors, and structural validators. | `CjsRealtimeError`, `CjsRealtimeProtocol`, `REALTIME_PROTOCOL`, `REALTIME_PROTOCOL_VERSION`, `REALTIME_ROUTE`, `REALTIME_SUBPROTOCOL` |
 | `./tools/theme/eve.css` | Supplies an asset-free, scoped EVE-like token and primitive stylesheet. | CSS custom properties and `.cjs-eve-*` classes |
 
 The table lists canonical names. Compatibility aliases for published 0.1.x
@@ -64,10 +62,7 @@ demo and Show Info names remain identity aliases and are documented in the
 ## Environment contract
 
 Published source uses browser-standard or injected Web APIs and imports no Node
-built-ins. Audio and file-index URL loading require Fetch-compatible
-responses. `CjsRemoteAudioLibrary` accepts explicit HTTP(S) records or resolves
-logical paths through an injected remote `CjsFileIndexLibrary`; it
-structurally supplies `Read` and `ReadRange` to `CjsAudioMan`.
+built-ins. File-index URL loading requires Fetch-compatible responses.
 Realtime consumption requires WebSocket and uses Fetch for snapshot recovery
 when configured. Demo data providers may use caller-supplied documents, Fetch,
 IndexedDB, or other injected browser capabilities. Demo renderers receive an
@@ -83,10 +78,6 @@ importable from the package root and presentation-neutral feature subpaths.
 
 ## Errors
 
-Audio-library programmer-contract failures use `TypeError`, `RangeError`, or
-`SyntaxError`. Missing index records and unsuccessful remote responses throw
-labelled `Error` values.
-
 File-index helpers throw labelled `TypeError`, `RangeError`, or `Error`
 instances for malformed declarations, unsafe locations, ambiguous layers,
 failed HTTP responses, and unavailable Web APIs.
@@ -97,7 +88,6 @@ details.
 
 ## Related documentation
 
-- [Audio-library guide](../guides/audio-libraries.md)
 - [File-index guide](../guides/file-indexes.md)
 - [Regional-market guide](../guides/market.md)
 - [Ship Show Info guide](../guides/ship-show-info.md)

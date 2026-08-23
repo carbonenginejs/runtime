@@ -31,7 +31,7 @@ export class CjsFileIndexDiff
      * @param {CjsFileIndex} next
      * @returns {{added: Array<String>, removed: Array<String>, changed: Array<String>, indeterminate: Array<String>, unchanged: Number}}
      */
-    static between(previous, next)
+    static Between(previous, next)
     {
         const before = CjsFileIndexDiff.#addressesOf(previous);
         const after = CjsFileIndexDiff.#addressesOf(next);
@@ -90,7 +90,7 @@ export class CjsFileIndexDiff
      * @param {Iterable<String>} logicalPaths - the paths this consumer reads
      * @returns {Boolean}
      */
-    static mayHaveChanged(previous, next, logicalPaths)
+    static MayHaveChanged(previous, next, logicalPaths)
     {
         const before = CjsFileIndexDiff.#addressesOf(previous);
         const after = CjsFileIndexDiff.#addressesOf(next);
@@ -116,7 +116,7 @@ export class CjsFileIndexDiff
      * @param {CjsFileIndexEntry} entry
      * @returns {Boolean}
      */
-    static isComparable(entry)
+    static IsComparable(entry)
     {
         return CjsFileIndexDiff.#addressOf(entry) !== null;
     }

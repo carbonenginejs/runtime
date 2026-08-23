@@ -19,9 +19,7 @@
 // Carbon math is row-vector and runtime-utils (gl-matrix) is column-vector, so
 // every composition here swaps operands relative to the C++.
 
-import { mat4, vec3 } from "#math";
-import { RawData } from "#trinity/core";
-import { EveCustomMask } from "#trinity/eve";
+import { mat4, vec3, vec4 } from "#math";
 
 import { CjsPerObjectLimits, perObjectStruct } from "./CjsPerObjectAbi.js";
 
@@ -36,6 +34,15 @@ export class CjsPerObjectSynthesizer
 
     /** Fields the caller did not supply that fell back to a documented neutral. */
     #defaulted = [];
+
+    /** The class that owns filling a custom-mask slot, normally EveCustomMask. */
+    #customMask = null;
+
+    /** Creates a synthesizer with an optional custom-mask implementation. */
+    constructor(options = {})
+    {
+        this.#customMask = options.customMask ?? null;
+    }
 
     /**
      * Carbon's neutral value bag for one struct, straight from the ABI catalog.
@@ -295,8 +302,10 @@ export class CjsPerObjectSynthesizer
      */
     #CustomMasks(masks, vs, ps)
     {
-        const vsData = RawData.create("EveSpaceObjectVSData");
-        const psData = RawData.create("EveSpaceObjectPSData");
+        // Carbon's zero path leaves the clamps at whatever the buffer held; the
+        // synthesizer starts them at zero so a synthesized buffer is
+        // reproducible, then lets each filled mask write its own two lanes.
+        ps.customMaskClamps = Array.from(vec4.create());
 
         for (let slot = 0; slot < CjsPerObjectLimits.customMaskCount; slot++)
         {
@@ -304,50 +313,36 @@ export class CjsPerObjectSynthesizer
 
             if (mask)
             {
-                if (!mask.FillPerObjectData(slot, vsData, psData))
-                {
-                    throw new Error(`EveCustomMask could not fill per-object slot ${slot}.`);
-                }
+                mask.FillPerObjectData(slot, vs, ps);
                 continue;
             }
 
-            if (!EveCustomMask.ZeroPerObjectData(slot, vsData, psData))
-            {
-                throw new Error(`EveCustomMask could not clear per-object slot ${slot}.`);
-            }
+            this.#zero(slot, vs, ps);
         }
-
-        for (let slot = 0; slot < CjsPerObjectLimits.customMaskCount; slot++)
-        {
-            vs.customMaskMatrix[slot] = Array.from(vsData.GetTransposedIndex("customMaskMatrix", slot));
-            vs.customMaskData[slot] = Array.from(vsData.GetIndex("customMaskData", slot));
-            ps.customMaskMaterialIDs[slot] = Array.from(psData.GetIndex("customMaskMaterialIDs", slot));
-            ps.customMaskTargets[slot] = Array.from(psData.GetIndex("customMaskTargets", slot));
-        }
-        ps.customMaskClamps = Array.from(psData.Get("customMaskClamps"));
     }
 
     /**
-     * Resolves one authored description or exact `EveCustomMask` instance.
+     * Coerces one entry of `customMasks` into something implementing the fill
+     * protocol. An object that already implements it is used as-is, so a real
+     * `EveCustomMask` can be passed straight through.
      */
     #Mask(mask)
     {
-        if (mask instanceof EveCustomMask)
+        if (typeof mask?.FillPerObjectData === "function")
         {
             return mask;
         }
 
-        if (!mask || typeof mask !== "object")
+        if (!this.#customMask)
         {
-            throw new TypeError("A custom mask must be an EveCustomMask or an authored description.");
+            throw new Error(
+                "A plain custom-mask description needs the EveCustomMask class to fill it. Construct the "
+                + "synthesizer with { customMask: EveCustomMask } from @carbonenginejs/runtime/trinity/eve, or pass "
+                + "mask objects that implement FillPerObjectData(index, vsData, psData)."
+            );
         }
 
-        if ("FillPerObjectData" in mask)
-        {
-            throw new TypeError("A custom-mask implementation must be an exact EveCustomMask instance.");
-        }
-
-        const instance = new EveCustomMask();
+        const instance = new this.#customMask();
 
         instance.Setup(
             mask.position,
@@ -361,6 +356,27 @@ export class CjsPerObjectSynthesizer
         );
 
         return instance;
+    }
+
+    /**
+     * Clears one mask slot. Delegates to the owning class when it is available;
+     * otherwise takes the values straight from the ABI catalog, which records
+     * the same identity-plus-zeros that `EveCustomMask::ZeroPerObjectData`
+     * writes (EveCustomMask.cpp:88-93).
+     */
+    #zero(slot, vs, ps)
+    {
+        if (typeof this.#customMask?.ZeroPerObjectData === "function")
+        {
+            this.#customMask.ZeroPerObjectData(slot, vs, ps);
+
+            return;
+        }
+
+        vs.customMaskMatrix[slot] = Array.from(mat4.create());
+        vs.customMaskData[slot] = [0, 0, 0, 0];
+        ps.customMaskMaterialIDs[slot] = [0, 0, 0, 0];
+        ps.customMaskTargets[slot] = [0, 0, 0, 0];
     }
 
     /**

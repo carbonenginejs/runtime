@@ -194,7 +194,6 @@ test("logic families have no presentation dependency", async () =>
 test("every JavaScript public subpath imports independently", async () =>
 {
     for (const name of [
-        "audio",
         "chat",
         "demo-apps",
         "demos",
@@ -287,7 +286,6 @@ test("optional Show Info presentation consumes the controller boundary", async (
     ), "utf8");
 
     assert.match(source, /from "\.\.\/CjsShipShowInfoController\.js"/u);
-    assert.match(source, /controller instanceof CjsShipShowInfoController/u);
     assert.doesNotMatch(source, /this\.shipSource|PANEL_METHODS|\.FetchShip\s*\(/u);
     assert.match(css, /^\.ship-show-info-host\s*\{/u);
     assert.doesNotMatch(css, /@font-face|\burl\s*\(/u);
@@ -313,7 +311,6 @@ test("optional Market presentation consumes the controller boundary", async () =
     ), "utf8");
 
     assert.match(source, /from "\.\.\/CjsMarketController\.js"/u);
-    assert.match(source, /controller instanceof CjsMarketController/u);
     assert.doesNotMatch(source, /this\.source|\.GetRegions\s*\(|\.GetOrders\s*\(|\.GetHistory\s*\(/u);
     assert.match(css, /^\.market-window-host\s*\{/u);
     assert.doesNotMatch(css, /@font-face|\burl\s*\(/u);

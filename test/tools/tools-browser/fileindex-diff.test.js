@@ -16,11 +16,11 @@ test("an unchanged address is proven unchanged", () =>
     const a = Index([ [ "res:/a.dds", ADDRESSED ] ]);
     const b = Index([ [ "res:/a.dds", ADDRESSED ] ]);
 
-    const diff = CjsFileIndexDiff.between(a, b);
+    const diff = CjsFileIndexDiff.Between(a, b);
 
     assert.equal(diff.unchanged, 1);
     assert.deepEqual(diff.changed, []);
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/a.dds" ]), false);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/a.dds" ]), false);
 });
 
 test("a changed content hash is detected without reading anything", () =>
@@ -28,8 +28,8 @@ test("a changed content hash is detected without reading anything", () =>
     const a = Index([ [ "res:/a.dds", ADDRESSED ] ]);
     const b = Index([ [ "res:/a.dds", ADDRESSED_V2 ] ]);
 
-    assert.deepEqual(CjsFileIndexDiff.between(a, b).changed, [ "res:/a.dds" ]);
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/a.dds" ]), true);
+    assert.deepEqual(CjsFileIndexDiff.Between(a, b).changed, [ "res:/a.dds" ]);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/a.dds" ]), true);
 });
 
 test("added and removed paths are reported apart from changes", () =>
@@ -37,7 +37,7 @@ test("added and removed paths are reported apart from changes", () =>
     const a = Index([ [ "res:/gone.dds", ADDRESSED ] ]);
     const b = Index([ [ "res:/new.dds", ADDRESSED ] ]);
 
-    const diff = CjsFileIndexDiff.between(a, b);
+    const diff = CjsFileIndexDiff.Between(a, b);
 
     assert.deepEqual(diff.added, [ "res:/new.dds" ]);
     assert.deepEqual(diff.removed, [ "res:/gone.dds" ]);
@@ -51,11 +51,11 @@ test("a plain overlay row is indeterminate, never unchanged", () =>
     const a = Index([ [ "res:/a.dds", "overlay/a.dds" ] ]);
     const b = Index([ [ "res:/a.dds", "overlay/a.dds" ] ]);
 
-    const diff = CjsFileIndexDiff.between(a, b);
+    const diff = CjsFileIndexDiff.Between(a, b);
 
     assert.deepEqual(diff.indeterminate, [ "res:/a.dds" ]);
     assert.equal(diff.unchanged, 0, "an unaddressable row must never count as unchanged");
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/a.dds" ]), true);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/a.dds" ]), true);
 });
 
 test("one addressable side is still not proof", () =>
@@ -63,8 +63,8 @@ test("one addressable side is still not proof", () =>
     const a = Index([ [ "res:/a.dds", ADDRESSED ] ]);
     const b = Index([ [ "res:/a.dds", "overlay/a.dds" ] ]);
 
-    assert.deepEqual(CjsFileIndexDiff.between(a, b).indeterminate, [ "res:/a.dds" ]);
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/a.dds" ]), true);
+    assert.deepEqual(CjsFileIndexDiff.Between(a, b).indeterminate, [ "res:/a.dds" ]);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/a.dds" ]), true);
 });
 
 test("a checksum column counts when the location is not addressed", () =>
@@ -74,8 +74,8 @@ test("a checksum column counts when the location is not addressed", () =>
     const b = Index([ [ "res:/a.dds", "plain/a.dds", digest ] ]);
     const c = Index([ [ "res:/a.dds", "plain/a.dds", "0".repeat(32) ] ]);
 
-    assert.equal(CjsFileIndexDiff.between(a, b).unchanged, 1);
-    assert.deepEqual(CjsFileIndexDiff.between(a, c).changed, [ "res:/a.dds" ]);
+    assert.equal(CjsFileIndexDiff.Between(a, b).unchanged, 1);
+    assert.deepEqual(CjsFileIndexDiff.Between(a, c).changed, [ "res:/a.dds" ]);
 });
 
 test("a path absent from either side may have changed", () =>
@@ -83,8 +83,8 @@ test("a path absent from either side may have changed", () =>
     const a = Index([ [ "res:/a.dds", ADDRESSED ] ]);
     const b = Index([ [ "res:/b.dds", ADDRESSED ] ]);
 
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/a.dds" ]), true);
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/missing.dds" ]), true);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/a.dds" ]), true);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/missing.dds" ]), true);
 });
 
 test("a consumer only rebuilds for paths it actually reads", () =>
@@ -93,8 +93,8 @@ test("a consumer only rebuilds for paths it actually reads", () =>
     const b = Index([ [ "res:/mine.dds", ADDRESSED ], [ "res:/theirs.dds", ADDRESSED_V2 ] ]);
 
     // The whole point: a build changed, but not for this consumer.
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/mine.dds" ]), false);
-    assert.equal(CjsFileIndexDiff.mayHaveChanged(a, b, [ "res:/theirs.dds" ]), true);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/mine.dds" ]), false);
+    assert.equal(CjsFileIndexDiff.MayHaveChanged(a, b, [ "res:/theirs.dds" ]), true);
 });
 
 test("comparability is reported per entry", () =>
@@ -102,6 +102,6 @@ test("comparability is reported per entry", () =>
     const index = Index([ [ "res:/a.dds", ADDRESSED ], [ "res:/b.dds", "overlay/b.dds" ] ]);
     const [ addressed, plain ] = index.entries;
 
-    assert.equal(CjsFileIndexDiff.isComparable(addressed), true);
-    assert.equal(CjsFileIndexDiff.isComparable(plain), false);
+    assert.equal(CjsFileIndexDiff.IsComparable(addressed), true);
+    assert.equal(CjsFileIndexDiff.IsComparable(plain), false);
 });

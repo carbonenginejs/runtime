@@ -43,22 +43,13 @@ global/utils  audio  resource  trinity/perobject
 ```
 
 The package uses narrow browser-safe runtime subpaths when a domain tool needs
-an owning schema or reader. Its public families are remote audio acquisition,
-provider-neutral chat, browser demo hosting, regional-market data logic,
+an owning schema or reader. Its public families are provider-neutral chat,
+browser demo hosting, regional-market data logic,
 remote file-index handling, per-object shader inspection/packing,
 presentation-neutral Ship Show Info coordination, and the Carbon realtime v1
 client.
 
 ## Start here
-
-For remote audio documents, builder inputs, complete files, and ranges, start
-with:
-
-```js
-import {
-    CjsRemoteAudioLibrary
-} from "@carbonenginejs/runtime/tools/audio";
-```
 
 For file-index parsing and safe HTTP(S) resolution, start with:
 
@@ -143,7 +134,6 @@ import {
 ## Documentation map
 
 - [Architecture and boundaries](architecture.md)
-- [Audio-library guide](guides/audio-libraries.md)
 - [Chat guide](guides/chat.md)
 - [Browser demo guide](guides/demos.md)
 - [Planned interactive diagram demos](guides/interactive-diagrams.md)

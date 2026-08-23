@@ -47,12 +47,7 @@ export class CjsPerObjectDecoder
      */
     constructor(options = {})
     {
-        const packer = options.packer ?? new CjsPerObjectPacker();
-        if (!(packer instanceof CjsPerObjectPacker))
-        {
-            throw new TypeError("CjsPerObjectDecoder packer must be a CjsPerObjectPacker.");
-        }
-        this.#packer = packer;
+        this.#packer = options.packer ?? new CjsPerObjectPacker();
 
         const bindings = options.bindings ?? {
             [CjsPerObjectRegister.perObjectVS]: "EveSpaceObjectVSData",

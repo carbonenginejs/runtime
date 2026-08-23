@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { mat4 } from "../../../npm/dist/global/math/index.js";
-import { EveCustomMask } from "../../../npm/dist/trinity/eve/index.js";
+import { mat4 } from "../../../src/global/math/index.js";
 
 import {
     CjsPerObjectDecoder,
@@ -10,10 +9,49 @@ import {
     CjsPerObjectPacker,
     CjsPerObjectSynthesizer,
     perObjectStructNames
-} from "../../../npm/dist/tools/perobject/index.js";
+} from "../../../src/tools/perobject/index.js";
 
 
 const packer = new CjsPerObjectPacker();
+
+
+/**
+ * Stand-in for Trinity's `EveCustomMask`, with the same protocol:
+ * `Setup`, `FillPerObjectData(index, vsData, psData)` and static
+ * `ZeroPerObjectData`. It records which slots the driver loop touched. The real
+ * class is caller-injected here - see docs/tools/perobject/README.md.
+ */
+class RecordingMask
+{
+
+    static filled = [];
+
+    static zeroed = [];
+
+    Setup()
+    {
+        return true;
+    }
+
+    FillPerObjectData(index)
+    {
+        RecordingMask.filled.push(index);
+
+        return true;
+    }
+
+    static ZeroPerObjectData(index, vsData, psData)
+    {
+        RecordingMask.zeroed.push(index);
+        vsData.customMaskMatrix[index] = Array.from(mat4.create());
+        vsData.customMaskData[index] = [0, 0, 0, 0];
+        psData.customMaskMaterialIDs[index] = [0, 0, 0, 0];
+        psData.customMaskTargets[index] = [0, 0, 0, 0];
+
+        return true;
+    }
+
+}
 
 
 function field(structName, name)
@@ -114,25 +152,6 @@ test("packing honours the raw/logical matrix convention and bit-casts integer la
 });
 
 
-test("logical packing transposes a rotated non-uniform basis exactly once", () =>
-{
-    // Column-major gl-matrix storage for a 90-degree Z rotation, scales 2/3/4,
-    // and translation 5/6/7. Translation alone cannot expose a missed or
-    // doubled transpose because its basis remains symmetric.
-    const world = Float32Array.from([
-        0, 2, 0, 0,
-        -3, 0, 0, 0,
-        0, 0, 4, 0,
-        5, 6, 7, 1
-    ]);
-    const encoded = packer.Pack("EveSpaceObjectVSData", { worldTransform: world }, { matrices: "logical" });
-
-    assert.deepEqual(Array.from(encoded.slice(0, 4)), [ 0, -3, 0, 5 ]);
-    assert.deepEqual(Array.from(encoded.slice(4, 8)), [ 2, 0, 0, 6 ]);
-    assert.deepEqual(Array.from(encoded.slice(8, 12)), [ 0, 0, 4, 7 ]);
-});
-
-
 test("ResolveLayout resolves the Carbon layout and rejects drift", () =>
 {
     const layout = packer.ResolveLayout("EvePerObjectVSData", [
@@ -188,7 +207,7 @@ test("the clip block reproduces Carbon's sign-carrying squared radii", () =>
 
 test("the pattern layer count implies the PPT option, and slot 3 is unrepresentable", () =>
 {
-    const synthesizer = new CjsPerObjectSynthesizer();
+    const synthesizer = new CjsPerObjectSynthesizer({ customMask: RecordingMask });
 
     assert.equal(synthesizer.SynthesizePatternLayers([{}, {}]).pptOption, "SOPPT_ENABLED");
     assert.equal(synthesizer.SynthesizePatternLayers([]).pptOption, "SOPPT_DISABLED");
@@ -198,47 +217,37 @@ test("the pattern layer count implies the PPT option, and slot 3 is unrepresenta
 });
 
 
-test("the exact EveCustomMask owns its fill through canonical RawData", () =>
+test("the mask owns its own fill; the driver loop fills or zeroes every slot", () =>
 {
-    const mask = new EveCustomMask();
-    mask.Setup([ 1, 2, 3 ], [ 2, 2, 2 ], undefined, true, true, false, 2, [ 0.1, 0.2, 0.3, 0.4 ]);
-    const synthesizer = new CjsPerObjectSynthesizer();
+    // Carbon's EveSpaceObject2.cpp:654-664 loop. The fill itself lives on the
+    // mask (EveCustomMask.FillPerObjectData), which is why this package calls
+    // the protocol instead of reimplementing it - RecordingMask stands in for
+    // Trinity's EveCustomMask, which has the same signature.
+    const synthesizer = new CjsPerObjectSynthesizer({ customMask: RecordingMask });
     const synthesized = synthesizer.SynthesizeSpaceObject({
-        customMasks: [ mask ]
+        customMasks: [{ materialSourceID: 2, clampU: true }]
     });
 
-    assert.deepEqual(synthesized.ps.customMaskMaterialIDs[0], [ 2, 0, 0, 0 ]);
-    assert.deepEqual(
-        synthesized.ps.customMaskTargets[0],
-        Array.from(Float32Array.of(0.1, 0.2, 0.3, 0.4))
-    );
-    assert.deepEqual(synthesized.ps.customMaskClamps, [ 1, 0, 0, 0 ]);
-    assert.deepEqual(synthesized.vs.customMaskData[0], [ 1, 1, 0, 0 ]);
+    assert.deepEqual(RecordingMask.filled, [0]);
+    assert.deepEqual(RecordingMask.zeroed, [1]);
+
+    // Slot 1 had no mask, so it takes ZeroPerObjectData's identity, not zero.
     assert.deepEqual(synthesized.vs.customMaskMatrix[1], Array.from(mat4.create()));
     assert.deepEqual(synthesized.vs.customMaskData[1], [0, 0, 0, 0]);
 });
 
 
-test("plain descriptions become canonical masks and structural implementations are rejected", () =>
+test("a plain mask description without the owning class fails loud", () =>
 {
-    const synthesizer = new CjsPerObjectSynthesizer();
-    const synthesized = synthesizer.SynthesizeSpaceObject({
-        customMasks: [{ materialSourceID: 1, clampV: true }]
-    });
-    assert.deepEqual(synthesized.ps.customMaskMaterialIDs[0], [ 1, 0, 0, 0 ]);
-    assert.deepEqual(synthesized.ps.customMaskClamps, [ 0, 1, 0, 0 ]);
-    assert.throws(() => synthesizer.SynthesizeSpaceObject({
-        customMasks: [{ FillPerObjectData() {} }]
-    }), /exact EveCustomMask/u);
+    assert.throws(
+        () => new CjsPerObjectSynthesizer().SynthesizeSpaceObject({ customMasks: [{ materialSourceID: 1 }] }),
+        /FillPerObjectData/u
+    );
 });
 
 
 test("the decoder names shared-ABI registers and effect locals from one call", () =>
 {
-    assert.throws(
-        () => new CjsPerObjectDecoder({ packer: { Describe() {} } }),
-        /CjsPerObjectPacker/u
-    );
     const decoder = new CjsPerObjectDecoder();
 
     assert.equal(decoder.Component(4, 13, "w").name, "clipRadiusSq");

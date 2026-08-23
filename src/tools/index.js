@@ -1,4 +1,3 @@
-export * from "./audio/index.js";
 export * from "./chat/index.js";
 export * from "./demos/index.js";
 export * from "./diagrams/index.js";

@@ -167,9 +167,9 @@ test("diagram logic is DOM-, CSS-, engine-, and provider-independent", async () 
 
 test("the package root exports the reusable diagram foundation", async () =>
 {
-    const root = await import("../../../npm/dist/tools/index.js");
+    const root = await import("@carbonenginejs/runtime/tools");
 
-    assert.equal(root.CjsDiagramModel.name, CjsDiagramModel.name);
-    assert.equal(root.CjsDiagramViewport.name, CjsDiagramViewport.name);
-    assert.equal(root.CjsDiagramSelection.name, CjsDiagramSelection.name);
+    assert.equal(root.CjsDiagramModel, CjsDiagramModel);
+    assert.equal(root.CjsDiagramViewport, CjsDiagramViewport);
+    assert.equal(root.CjsDiagramSelection, CjsDiagramSelection);
 });

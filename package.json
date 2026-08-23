@@ -151,7 +151,6 @@
     "./core": "./src/core/index.js",
     "./core/platform": "./src/core/platform/index.js",
     "./tools": "./src/tools/index.js",
-    "./tools/audio": "./src/tools/audio/index.js",
     "./tools/chat": "./src/tools/chat/index.js",
     "./tools/demo-apps": "./src/tools/demo-apps/index.js",
     "./tools/demos": "./src/tools/demos/index.js",
