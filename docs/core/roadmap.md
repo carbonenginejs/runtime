@@ -16,7 +16,9 @@ The current package provides:
 - resource defaults and named request behaviors;
 - immediate and promise-facing resource and SOF facades;
 - basic initialization plus optional SOF data loading;
-- audio-manager disable/detach during shutdown without service disposal; and
+- audio-manager disable/detach during shutdown without service disposal;
+- one explicitly requested backend-neutral frame through exact lifecycle,
+  context, and render-job identities; and
 - privacy-filtered browser screen and WebGPU adapter snapshots that do not
   create a `GPUDevice`.
 
@@ -26,7 +28,7 @@ See [architecture](architecture.md), the
 
 The package does not currently export a service installer graph, immutable
 application configuration, preference store, preload groups, retention
-scopes, provider facade, renderer-selection policy, managed runner, or
+scopes, provider facade, managed runner, or
 easy-entry viewer preset.
 
 ## Approved composition direction

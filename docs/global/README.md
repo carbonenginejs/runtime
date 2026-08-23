@@ -36,7 +36,8 @@ families; its subpaths remain side-effect-free and independently importable.
 The `/utils/errors` family supplies coded operational failures without defining
 logging, transport, HTTP, or retry policy.
 The `/contracts` family supplies narrow nominal identities whose required base
-methods throw until a concrete owner overrides them.
+methods throw until a concrete owner overrides them, including the engine
+lifecycle required by core's frame driver.
 
 ```text
 runtime domains          browser tools

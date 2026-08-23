@@ -23,6 +23,8 @@ const library = new CjsLibrary({
 
 The package also exposes browser platform and WebGPU adapter snapshots. Those
 probes report capabilities but do not create a `GPUDevice`.
+`CjsFrameDriver` executes one explicitly requested backend-neutral frame against
+exact Trinity context/jobs and an engine-supplied `CjsFrameLifecycle`.
 
 ## Where it fits
 
@@ -32,7 +34,7 @@ probes report capabilities but do not create a `GPUDevice`.
   objects, and shutdown behavior.
 
 The package does not parse formats, manage a resource cache, decode media,
-hydrate a scene graph, or drive a frame loop.
+hydrate a scene graph, own presentation, or run a hidden frame loop.
 
 ## Start here
 

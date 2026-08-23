@@ -45,6 +45,18 @@ the configured `CjsAudioMan` through its required methods, then clears the
 initialized flag. It does not dispose caller-owned services or invent a general
 shutdown protocol for them.
 
+## Frame boundary
+
+`CjsFrameDriver` owns the backend-neutral order of one explicitly requested
+frame. Composition requires exact `Tr2RenderContext`, `Tr2RenderJobs`, and
+`CjsFrameLifecycle` instances once, then the hot path calls them directly.
+The lifecycle supplies pacing, GPU synchronization, viewport, profiling, and
+quad-index reservation; its base methods throw until an engine overrides them.
+
+The driver passes its exact bracketed context to `Tr2RenderJobs.Run`. Cleanup
+attempts every opened closer even when jobs or an earlier closer fail.
+Presentation, update jobs, and the outer tick remain engine-owned.
+
 ## Request-policy boundary
 
 Resource request resolution is synchronous so `GetResource()` can return an

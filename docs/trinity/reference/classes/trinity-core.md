@@ -25,16 +25,6 @@ Registers constant-data struct shapes and leases packed payloads from a per-engi
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsFrameDriver -->
-## `CjsFrameDriver`
-
-Runs Carbon's backend-neutral frame body in order, against injected engine hooks.
-
-- Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/context/CjsFrameDriver.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
 <!-- class:Tr2VertexDefinition -->
 ## `Tr2VertexDefinition`
 

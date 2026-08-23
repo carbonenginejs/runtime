@@ -110,11 +110,10 @@ parity gate rather than incidental test behavior.
   suballocation bases are read from the geometry resource's allocations and are
   zero until an engine writes them, which is the correct answer for a backend
   that gives each mesh its own buffers rather than pooling.
-- The frame body is ordered by `CjsFrameDriver`, whose lifecycle hook bag
-  remains transitional until the class moves to core. That migration will add
-  the exact lifecycle, render-context, and render-job composition identities.
-  Presentation is not part of the frame: the previous frame is presented at
-  the top of the next tick, and the tick is engine-owned.
+- The frame body is ordered by core's `CjsFrameDriver`, which requires exact
+  lifecycle, render-context, and render-job identities. Presentation is not
+  part of the frame: the previous frame is presented at the top of the next
+  tick, and the tick is engine-owned.
 - Vertex-declaration matching is resolved once, by semantic and index, into a
   binding plan engines consume. A shader input the mesh cannot supply is
   reported rather than resolved, because the two references legitimately differ

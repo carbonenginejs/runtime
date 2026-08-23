@@ -5,6 +5,16 @@ Scope: `@carbonenginejs/runtime/core` maintained classes
 Audience: Users, maintainers, and automated readers
 Summary: Provides one-sentence purpose descriptors for every maintained class in the core runtime package.
 
+<!-- class:CjsFrameDriver -->
+## `CjsFrameDriver`
+
+Runs Carbon's backend-neutral frame body against exact runtime identities.
+
+- Export: `@carbonenginejs/runtime/core`
+- Source: `src/core/CjsFrameDriver.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsLibrary -->
 ## `CjsLibrary`
 

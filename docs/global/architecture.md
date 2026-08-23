@@ -71,8 +71,8 @@ The implemented package currently owns:
   math;
 - shared media, graphics, render-context, audio, shader, D3D, and WebGPU
   constants;
-- stable policy-free nominal bases for backend selection and terminal constant
-  payloads, plus Carbon-style script callback invocation; and
+- stable policy-free nominal bases for backend selection, frame lifecycle, and
+  terminal constant payloads, plus Carbon-style script callback invocation; and
 - Carbon type descriptors, schema metadata, models, lifecycle state,
   documents, hydration, and dehydration.
 
@@ -88,7 +88,9 @@ calls required methods directly; repeated structural probes are not a contract.
 `CjsBackendCandidate` exposes only backend proof and is not a device or RHI
 superclass. `CjsConstantPayload` exposes terminal bytes and their dirty
 lifecycle; layout, packing, transpose, allocation, upload, and binding stay in
-their owning layers.
+their owning layers. `CjsFrameLifecycle` exposes only the required engine-facing
+steps within one requested frame; presentation and the outer tick stay with the
+engine.
 
 ## Ownership elsewhere
 
