@@ -1,0 +1,22 @@
+export { AudActionLogCB, AudActionRecord, AudActionRecordExecuteActionOnPlayingID, AudActionRecordPostEvent, AudActionRecordSetRTPC, AudActionRecordSetState, AudActionRecordSetSwitch } from './audio/AudActionLog.js';
+export { AudEmitter } from './audio/AudEmitter.js';
+export { AudEventCurve } from './audio/AudEventCurve.js';
+export { AudEventKey } from './audio/AudEventKey.js';
+export { AudGameObjResource, PrepareEvent } from './audio/AudGameObjResource.js';
+export { AudGeometry } from './audio/AudGeometry.js';
+export { AudListener } from './audio/AudListener.js';
+export { AudManager } from './audio/AudManager.js';
+export { AudMusicPlayer, MUSIC_GAME_OBJ_ID } from './audio/AudMusicPlayer.js';
+export { AudParameter } from './audio/AudParameter.js';
+export { AudPosition } from './audio/AudPosition.js';
+export { AudSettings } from './audio/AudSettings.js';
+export { AudStaticDataRepository } from './audio/AudStaticDataRepository.js';
+export { AudUIPlayer, UI_GAME_OBJ_ID } from './audio/AudUIPlayer.js';
+export { AudioCurveSetDriver } from './audio/AudioCurveSetDriver.js';
+export { LISTENER_GAME_OBJ_ID, SoundPrioritization } from './audio/SoundPrioritization.js';
+export { SpatialAudioSettings } from './audio/SpatialAudioSettings.js';
+export { StretchAudio } from './audio/StretchAudio.js';
+export { Tr2AudioStretchAuto } from './trinityAudio/Tr2AudioStretchAuto.js';
+export { Tr2AudioStretchBase } from './trinityAudio/Tr2AudioStretchBase.js';
+export { Tr2AudGeometryData } from './trinityAudioApi/Tr2AudGeometryData.js';
+//# sourceMappingURL=index.js.map

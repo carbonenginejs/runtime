@@ -1,0 +1,141 @@
+// Emits demo/audio-library.json - the COMMITTABLE demo copy of the audio
+// library with every optional culling-enrichment field stripped.
+//
+// Kept (SoundbanksInfo / resfileindex / bank-derived): event ids + bank
+// membership, wem file ids, bank/media storage paths, embeddedMedia (with
+// mediaType), eventMedia edges, authored SFX graph, and the music graph.
+// Stripped (optional audio metadata enrichment): per-event culling metadata
+// (maxRadiusAttenuation, isLoop, is2D, isVital, eventsStoppedBy) and
+// per-bank essential flags. The demo degrades gracefully without them:
+// sounds play, loops become one-shots, culling is less informed.
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { gzipSync } from "node:zlib";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const libraryPath = ReadOption("--library") ?? process.env.AUDIO_LIBRARY_PATH;
+
+if (!libraryPath)
+{
+  throw new Error("Pass --library <audio_v2.json> or set AUDIO_LIBRARY_PATH");
+}
+
+const library = JSON.parse(fs.readFileSync(libraryPath, "utf8"));
+
+if (library.schema !== "carbonenginejs.audioLibrary" || library.schemaVersion !== 2)
+{
+  throw new Error(`Unsupported audio library schema: ${library.schema ?? "<missing>"} v${library.schemaVersion ?? "<missing>"}`);
+}
+
+const events = {};
+for (const [ name, record ] of Object.entries(library.metadata?.Events ?? {}))
+{
+  events[name] = { eventID: record.eventID, soundbanks: record.soundbanks };
+}
+const soundBanks = {};
+for (const name of Object.keys(library.metadata?.SoundBanks ?? {}))
+{
+  soundBanks[name] = {};
+}
+const eventMedia = CreateSfxEventMediaTable(library.sfx);
+
+const demoLibrary = {
+  schema: library.schema,
+  schemaVersion: library.schemaVersion,
+  sourceTarget: library.sourceTarget,
+  sourceGame: library.sourceGame,
+  sourceProvider: library.sourceProvider,
+  sourceBuild: library.sourceBuild,
+  generatedAt: library.generatedAt,
+  hasOptionalEnrichment: false,
+  metadata: {
+    Events: events,
+    SoundBanks: soundBanks,
+    WemFileIDs: library.metadata?.WemFileIDs ?? {}
+  },
+  media: library.media,
+  banks: library.banks,
+  eventMedia,
+  eventMediaLanguage: library.eventMediaLanguage,
+  embeddedMedia: library.embeddedMedia,
+  sfx: library.sfx,
+  music: library.music,
+  // These catalogs are part of authored playback, not optional enrichment.
+  // Omitting them leaves ordinary demo events on the legacy dry path and
+  // makes only the synthetic Bus Graph lab exercise routing/effects.
+  busRtpcs: library.busRtpcs,
+  busStates: library.busStates,
+  busDucking: library.busDucking,
+  busEffects: library.busEffects,
+  busGraph: library.busGraph
+};
+
+const outPath = path.resolve(ReadOption("--out") ?? path.join(root, "demo", "audio-library.json"));
+const json = Buffer.from(JSON.stringify(demoLibrary));
+const gzipPath = `${outPath}.gz`;
+const gzip = gzipSync(json, { level: 9, mtime: 0 });
+
+fs.mkdirSync(path.dirname(outPath), { recursive: true });
+fs.writeFileSync(outPath, json);
+fs.writeFileSync(gzipPath, gzip);
+console.log("wrote", outPath, `${(json.byteLength / 1048576).toFixed(2)} MB`);
+console.log("wrote", gzipPath, `${(gzip.byteLength / 1048576).toFixed(2)} MB`);
+
+// Safety: the committed file must carry no optional enrichment keys.
+const text = fs.readFileSync(outPath, "utf8");
+for (const banned of [ "maxRadiusAttenuation", "isLoop", "is2D", "isVital", "eventsStoppedBy", "EssentialSoundBank" ])
+{
+  if (text.includes(`"${banned}"`)) throw new Error(`Optional enrichment field leaked into demo library: ${banned}`);
+}
+console.log("verified: no optional enrichment fields present");
+
+function ReadOption(name)
+{
+  const index = process.argv.indexOf(name);
+  return index === -1 ? null : process.argv[index + 1] ?? null;
+}
+
+/**
+ * Demo playback is intentionally restricted to the validated authored SFX
+ * graph. The legacy flat eventMedia table may contain false-positive ids from
+ * undecoded container-byte scans and is therefore not copied into the demo.
+ */
+function CreateSfxEventMediaTable(sfx)
+{
+  const table = {};
+  const events = sfx?.events ?? {};
+  const nodes = sfx?.nodes ?? {};
+
+  for (const eventName of Object.keys(events).sort())
+  {
+    const pending = events[eventName].map(child => String(child.nodeId));
+    const visited = new Set();
+    const media = new Set();
+
+    while (pending.length)
+    {
+      const id = pending.pop();
+      if (visited.has(id)) continue;
+      visited.add(id);
+
+      const node = nodes[id];
+      if (!node) throw new Error(`SFX event ${eventName} references missing node ${id}`);
+      if (node.type === "sound")
+      {
+        media.add(String(node.mediaId));
+        continue;
+      }
+      for (const child of node.children ?? []) pending.push(String(child.nodeId));
+      for (const child of Object.values(node.cases ?? {})) pending.push(String(child.nodeId));
+      if (node.default) pending.push(String(node.default.nodeId));
+    }
+
+    if (media.size)
+    {
+      table[eventName] = [ ...media ].sort((left, right) => Number(left) - Number(right));
+    }
+  }
+
+  return table;
+}

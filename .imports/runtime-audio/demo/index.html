@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>runtime-audio demo — authored SFX, music, and media delivery</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #e8e9e4;
+    --muted: #8b9696;
+    --dim: #606b6e;
+    --line: rgba(208, 224, 222, 0.12);
+    --line-strong: rgba(208, 224, 222, 0.2);
+    --surface: rgba(14, 20, 22, 0.92);
+    --surface-solid: #111719;
+    --field: #151d20;
+    --accent: #77d8c5;
+    --accent-deep: #183f3a;
+    --warm: #d7a55f;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { width: 100%; height: 100%; }
+
+  body {
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+    overflow: hidden;
+    background: #090d0f;
+    color: var(--ink);
+    font: 13px/1.45 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  }
+
+  button, input, select { font: inherit; }
+  button, select, input { accent-color: var(--accent); }
+
+  button {
+    min-height: 34px;
+    padding: 7px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: #20292c;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease, color 120ms ease, transform 120ms ease;
+  }
+
+  button:hover:not(:disabled) { border-color: rgba(119, 216, 197, 0.5); background: #263236; }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { color: #687275; background: #171d1f; cursor: default; }
+  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  #panel {
+    min-height: 0;
+    padding: 28px 22px 18px;
+    overflow-y: auto;
+    border-right: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(119, 216, 197, 0.035), transparent 220px),
+      #0d1214;
+  }
+
+  .libraryHeader { display: block; }
+  .eyebrow { margin: 0 0 1px; color: var(--accent); font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+  .libraryHeader h1 { margin: 0; font-size: 21px; font-weight: 520; letter-spacing: -0.03em; }
+  .libraryIntro { max-width: 250px; margin: 18px 0 20px; color: var(--muted); font-size: 12px; }
+
+  .searchBox { position: relative; }
+  .searchBox::before {
+    content: "";
+    position: absolute;
+    top: 13px;
+    left: 12px;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--dim);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .searchBox::after {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 21px;
+    width: 5px;
+    height: 1.5px;
+    background: var(--dim);
+    transform: rotate(45deg);
+    transform-origin: left center;
+    pointer-events: none;
+  }
+
+  input[type=search], select {
+    width: 100%;
+    min-height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--field);
+    color: var(--ink);
+  }
+  input[type=search] { padding: 8px 11px 8px 34px; }
+  input[type=search]::placeholder { color: #657174; }
+  select { padding: 7px 32px 7px 10px; }
+
+  .listMeta {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 4px 8px;
+    color: var(--dim);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  #eventCount { color: var(--muted); letter-spacing: 0.06em; }
+  #events { list-style: none; margin: 0; padding: 0; }
+  #events li {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 60px 38px;
+    gap: 8px;
+    align-items: baseline;
+    margin: 0 -8px;
+    padding: 7px 8px 7px 15px;
+    border-radius: 6px;
+    color: #c8cfce;
+    cursor: pointer;
+  }
+  #events li::before { content: ""; position: absolute; top: 13px; left: 5px; width: 3px; height: 3px; border-radius: 50%; background: #526064; }
+  #events li:hover, #events li:focus-visible { background: rgba(119, 216, 197, 0.075); color: #fff; outline: none; }
+  #events li:hover::before, #events li:focus-visible::before { background: var(--accent); }
+  #events li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #events .kind, #events .radius { color: var(--dim); white-space: nowrap; text-align: right; font-size: 10px; }
+
+  #stage {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 45% 42%, rgba(45, 76, 76, 0.16), transparent 42%),
+      #080c0e;
+  }
+  #stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255,255,255,0.025);
+    box-shadow: inset 0 0 120px rgba(0,0,0,0.34);
+    pointer-events: none;
+  }
+  canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+
+  .stageReadout {
+    position: absolute;
+    top: 20px;
+    left: 22px;
+    max-width: calc(100% - 410px);
+    padding: 8px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(10, 15, 17, 0.74);
+    backdrop-filter: blur(12px);
+    pointer-events: none;
+  }
+  #hud { color: #aab5b4; font-size: 11px; }
+  #musicHud { margin-top: 2px; color: #c7a6ed; font-size: 11px; white-space: nowrap; }
+
+  #controls {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    bottom: 18px;
+    z-index: 3;
+    width: 328px;
+    overflow-y: auto;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(18px);
+    scrollbar-color: #415052 transparent;
+    scrollbar-width: thin;
+  }
+  .consoleHeader {
+    padding: 18px 20px 15px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(135deg, rgba(119, 216, 197, 0.08), transparent 65%);
+  }
+  .consoleHeaderRow { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+  .consoleHeader h1 { margin: 2px 0 0; font-size: 20px; font-weight: 520; letter-spacing: -0.03em; }
+  .runtimeBadge { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 2px; color: var(--muted); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .runtimeBadge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(119, 216, 197, 0.1); }
+
+  .card { padding: 17px 20px 18px; border-bottom: 1px solid var(--line); }
+  .card:last-child { border-bottom: 0; }
+  .sectionHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .sectionTitle { display: flex; align-items: center; gap: 7px; }
+  .card h2 { margin: 0; color: var(--ink); font-size: 13px; font-weight: 610; letter-spacing: -0.01em; }
+  .sectionNote { margin: 2px 0 0; color: var(--dim); font-size: 10px; }
+  .headingActions { display: inline-flex; align-items: center; gap: 9px; }
+  .fieldRow { display: flex; align-items: center; gap: 8px; }
+  .fieldRow select { flex: 1; min-width: 0; }
+
+  .powerControl, .toggleRow { color: var(--muted); cursor: pointer; }
+  .powerControl { display: inline-flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .toggleRow { display: flex; align-items: center; justify-content: space-between; min-height: 31px; font-size: 11px; }
+  .powerControl input, .toggleRow input[type=checkbox] { position: absolute; opacity: 0; pointer-events: none; }
+  .toggleTrack { position: relative; flex: 0 0 auto; width: 31px; height: 17px; border: 1px solid #445053; border-radius: 10px; background: #171d1f; transition: 120ms ease; }
+  .toggleTrack::after { content: ""; position: absolute; top: 3px; left: 3px; width: 9px; height: 9px; border-radius: 50%; background: #788285; transition: 120ms ease; }
+  input:checked + .toggleTrack { border-color: rgba(119, 216, 197, 0.6); background: var(--accent-deep); }
+  input:checked + .toggleTrack::after { left: 17px; background: var(--accent); }
+  input:focus-visible + .toggleTrack { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  #mixTable { display: grid; gap: 8px; }
+  .rangeRow { display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; gap: 10px; color: var(--muted); font-size: 11px; }
+  input[type=range] { width: 100%; height: 16px; margin: 0; }
+  details.advanced { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); }
+  details.advanced summary { color: var(--dim); font-size: 10px; cursor: pointer; user-select: none; }
+  details.advanced[open] summary { margin-bottom: 9px; color: var(--muted); }
+  .advancedFields { display: grid; gap: 8px; }
+
+  .infoButton {
+    position: relative;
+    flex: 0 0 auto;
+    width: 18px;
+    min-height: 18px;
+    height: 18px;
+    padding: 0;
+    border: 1px solid #4c595c;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    font: 600 11px/16px Georgia, serif;
+    text-align: center;
+    cursor: help;
+  }
+  .infoButton:hover, .infoButton:focus-visible { border-color: var(--accent); background: transparent; color: var(--ink); outline: none; transform: none; }
+  .infoButton::after {
+    content: attr(data-tip);
+    position: absolute;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    top: calc(100% + 8px);
+    right: -1px;
+    width: 250px;
+    padding: 10px 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: #101719;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+    color: #c5cccb;
+    font: 11px/1.55 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: none;
+    white-space: pre-line;
+    pointer-events: none;
+    z-index: 20;
+    transition: opacity 100ms ease;
+  }
+  .infoButton.tipUp::after { top: auto; bottom: calc(100% + 8px); }
+  .infoButton:hover::after, .infoButton:focus::after { visibility: visible; opacity: 1; }
+
+  .buttonRow { display: flex; gap: 7px; margin-top: 9px; }
+  .buttonRow button { flex: 1; padding: 6px 7px; font-size: 11px; }
+  .buttonRow .primary { border-color: rgba(119, 216, 197, 0.48); background: var(--accent-deep); color: #c8fff4; }
+  .transport button { min-width: 0; padding-inline: 5px; color: #b8c1c0; }
+  .transport button:disabled {
+    border-color: rgba(83, 96, 99, 0.28);
+    background: rgba(20, 26, 28, 0.42);
+    color: rgba(184, 193, 192, 0.24);
+  }
+  #musicExampleDetail {
+    height: 44px;
+    overflow-y: auto;
+    scrollbar-color: #415052 transparent;
+    scrollbar-width: thin;
+  }
+  #musicRetry { width: 100%; margin-top: 8px; font-size: 11px; }
+  .hint { margin: 0; color: var(--dim); font-size: 10px; }
+  #jukeboxStatus { margin-top: 7px; }
+  #sfxStatus { margin-top: 8px; color: var(--accent); font-size: 10px; line-height: 1.45; }
+  .labStatus { margin: 0; padding: 8px 9px; border: 1px solid var(--line); border-radius: 7px; background: #12191b; color: var(--muted); font: 10px/1.45 ui-monospace, "Cascadia Code", monospace; }
+  .labStatus[data-state=pass] { border-color: rgba(119, 216, 197, 0.3); color: #9ee8da; }
+  .labStatus[data-state=failed], .labStatus[data-state=unavailable] { border-color: rgba(215, 165, 95, 0.35); color: #e4bc83; }
+  .labPlayback { min-height: 15px; margin: 7px 1px 0; color: var(--dim); font-size: 10px; }
+  .labButtons button { font-size: 10px; }
+  #sfxControls:empty { display: none; }
+  .sfxControl { display: block; margin-top: 8px; color: var(--muted); font-size: 10px; }
+  .sfxControl select, .sfxControl input[type=range] { width: 100%; }
+  .sfxControl output { float: right; color: var(--accent); }
+  #music .sfxControl select { margin-top: 5px; padding: 9px 36px 9px 12px; }
+  #music .unavailableField { margin-top: 5px; padding-inline: 12px; }
+  .unavailableField {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 7px 10px;
+    border: 1px solid rgba(64, 76, 79, 0.45);
+    border-radius: 7px;
+    background: rgba(20, 26, 28, 0.42);
+    color: rgba(184, 193, 192, 0.34);
+  }
+  .unavailableField[hidden] { display: none; }
+  .powerControl:has(input:disabled) { color: rgba(184, 193, 192, 0.34); cursor: default; }
+  .powerControl input:disabled + .toggleTrack { opacity: 0.35; }
+  .deliveryLabel { justify-content: space-between; margin: 12px 0 6px; color: var(--muted); font-size: 10px; }
+  .navigationCard { padding-block: 13px; background: rgba(119, 216, 197, 0.025); }
+  .navigationCard .sectionHeader { align-items: center; margin: 0; }
+
+  #tip {
+    position: absolute;
+    display: none;
+    z-index: 5;
+    padding: 9px 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: rgba(13, 20, 22, 0.96);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    color: #cbd1d0;
+    font-size: 10px;
+    line-height: 1.55;
+    pointer-events: none;
+    white-space: pre;
+  }
+  #tip .tipTitle { color: var(--accent); }
+  .loop { color: #6dd6a5; }
+  .vital { color: var(--warm); }
+  .flat { color: var(--dim); }
+  .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+  @media (max-width: 960px) {
+    body { grid-template-columns: 250px minmax(0, 1fr); }
+    #panel { padding-inline: 17px; }
+    #controls { width: 300px; }
+    .stageReadout { max-width: calc(100% - 350px); }
+  }
+
+  @media (max-width: 840px) {
+    body { display: block; height: auto; min-height: 100%; overflow: auto; }
+    #panel { height: 44vh; min-height: 320px; padding: 20px 18px; border-right: 0; border-bottom: 1px solid var(--line); }
+    .libraryIntro { margin-block: 12px 14px; }
+    #stage { width: 100%; min-height: 100vh; overflow: visible; }
+    canvas { height: 62vh; min-height: 420px; }
+    .stageReadout { top: 14px; left: 14px; max-width: calc(100% - 28px); }
+    #controls { position: relative; inset: auto; width: auto; margin: 12px; max-height: none; overflow: visible; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<aside id="panel" aria-label="Effect library">
+  <header class="libraryHeader">
+    <p class="eyebrow">@carbonenginejs</p>
+    <h1>runtime-audio</h1>
+  </header>
+  <p class="libraryIntro">Search the installed library, then click an event to place it in the listening field.</p>
+  <div class="searchBox">
+    <label class="srOnly" for="search">Filter effects</label>
+    <input id="search" type="search" placeholder="Filter effects">
+  </div>
+  <div class="listMeta"><span>Effect library</span><span id="eventCount">0 / 0</span></div>
+  <ul id="events"></ul>
+</aside>
+<main id="stage">
+  <canvas id="canvas"></canvas>
+  <div class="stageReadout">
+    <div id="hud"></div>
+    <div id="musicHud"></div>
+  </div>
+  <div id="tip"></div>
+  <aside id="controls" aria-label="Audio console">
+    <header class="consoleHeader">
+      <div class="consoleHeaderRow">
+        <div>
+          <p class="eyebrow">Demo session</p>
+          <h1>Mix &amp; playback</h1>
+        </div>
+        <span class="runtimeBadge">Web Audio</span>
+      </div>
+    </header>
+    <section class="card">
+      <div class="sectionHeader">
+        <div>
+          <div class="sectionTitle"><h2>Playback</h2><button class="infoButton" type="button" aria-label="About audio controls" data-tip="Enable starts browser audio. Max awake limits active emitters; the engine culls the rest. Volumes control the SFX and music buses. Ring opacity, world scale, and cull rings change only this visualization.">i</button></div>
+          <p class="sectionNote">Engine, mix, and voice budget</p>
+        </div>
+        <label class="powerControl" for="enable">Audio <input id="enable" type="checkbox"><span class="toggleTrack" aria-hidden="true"></span></label>
+      </div>
+      <div id="mixTable">
+        <label class="toggleRow" for="demoToggle"><span>Demo soundscape</span><span><input id="demoToggle" type="checkbox"><span class="toggleTrack" aria-hidden="true"></span></span></label>
+        <label class="rangeRow" for="maxAwake"><span>Voice budget</span><input id="maxAwake" type="range" min="1" max="75" value="6"></label>
+        <label class="rangeRow" for="sfxVol"><span>SFX volume</span><input id="sfxVol" type="range" min="0" max="100" value="100"></label>
+        <label class="rangeRow" for="musicVol"><span>Music volume</span><input id="musicVol" type="range" min="0" max="100" value="20"></label>
+      </div>
+      <details class="advanced">
+        <summary>Scene visualisation</summary>
+        <div class="advancedFields">
+          <label class="rangeRow" for="ringAlpha"><span>Ring opacity</span><input id="ringAlpha" type="range" min="0" max="60" value="10"></label>
+          <label class="rangeRow" for="worldScale"><span>World scale</span><input id="worldScale" type="range" min="25" max="400" value="100"></label>
+          <label class="toggleRow" for="cullRings"><span>Show cull rings</span><span><input id="cullRings" type="checkbox"><span class="toggleTrack" aria-hidden="true"></span></span></label>
+        </div>
+      </details>
+    </section>
+    <section class="card" id="busGraphLab">
+      <div class="sectionHeader">
+        <div>
+          <div class="sectionTitle"><h2>Wwise Bus graph lab</h2><button class="infoButton" type="button" aria-label="About the Wwise Bus graph lab" data-tip="Exercises the shared mixer with exact synthetic v150 Meter, Parametric EQ, Delay, and user-Aux records plus explicit browser approximation policies. Compressor and Peak Limiter preserve authored bus placement and slot order, Meter signal flow omits Game Parameter telemetry, and voice-count scheduling is ignored. Strict defaults reject both omissions.">i</button></div>
+          <p class="sectionNote">Exact routing plus explicit browser approximations</p>
+        </div>
+      </div>
+      <p id="busGraphStatus" class="labStatus" data-state="idle">enable audio to initialize the Bus graph lab</p>
+      <div class="buttonRow labButtons">
+        <button id="busGraphDry" type="button" disabled>dry sweep</button>
+        <button id="busGraphRouted" type="button" disabled>Meter → EQ</button>
+        <button id="busGraphDelay" type="button" disabled>220 ms Delay</button>
+        <button id="busGraphAux" type="button" disabled>0 dB Aux (+6 dB)</button>
+        <button id="busGraphDynamics" type="button" disabled>approx dynamics</button>
+        <button id="busGraphShared" type="button" disabled>shared pair</button>
+      </div>
+      <p id="busGraphPlayback" class="labPlayback" aria-live="polite"></p>
+    </section>
+    <section class="card" id="music">
+      <div class="sectionHeader">
+        <div>
+          <div class="sectionTitle"><h2>Authored music</h2><button class="infoButton" type="button" aria-label="About authored music" data-tip="Plays verified examples from the real EVE music graph and SoundBank WEM media: direct segments, all four playlist modes, switch/state routing, random and sequence tracks, and a transition-segment bridge. A bank recording may also exist in the external classic jukebox catalog; the playback paths remain separate. MIDI, Synth One, and stingers remain unsupported and are not offered.">i</button></div>
+          <p class="sectionNote">Real EVE graph and track families</p>
+        </div>
+        <label class="powerControl" for="musicToggle">Dynamic <input id="musicToggle" type="checkbox" disabled><span class="toggleTrack" aria-hidden="true"></span></label>
+      </div>
+      <label class="sfxControl" for="musicExamples">Example
+        <select id="musicExamples" title="authored music example" disabled><option>enable audio to load examples</option></select>
+      </label>
+      <p id="musicExampleDetail" class="hint">enable audio to inspect authored music</p>
+      <div class="buttonRow transport" role="group" aria-label="Authored music transport">
+        <button id="musicExamplePrevious" type="button" title="previous audio inside this authored example" disabled>previous</button>
+        <button id="musicExamplePlay" class="primary" type="button" title="play the selected authored example" disabled>play</button>
+        <button id="musicExamplePause" type="button" title="pause authored music" disabled>pause</button>
+        <button id="musicExampleNext" type="button" title="next audio inside this authored example" disabled>next</button>
+        <button id="musicExampleRandom" type="button" title="random audio inside this authored example" disabled>random</button>
+      </div>
+      <div class="buttonRow transport" role="group" aria-label="Bank-authored Wwise music actions">
+        <button id="musicAuthoredPause" type="button" title="post the bank-authored music_global_pause event" disabled>Wwise pause</button>
+        <button id="musicAuthoredResume" type="button" title="post the bank-authored music_global_resume event" disabled>Wwise resume</button>
+      </div>
+      <label class="sfxControl" for="moods">Dynamic mood
+        <select id="moods" title="dynamic mood" disabled><option>enable audio to load moods</option></select>
+        <span id="moodNotApplicable" class="unavailableField" hidden>not applicable</span>
+      </label>
+      <button id="musicRetry" type="button" hidden>retry music</button>
+    </section>
+    <section class="card" id="jukebox">
+      <div class="sectionHeader">
+        <div>
+          <div class="sectionTitle"><h2>Classic jukebox</h2><button class="infoButton" type="button" aria-label="About the classic jukebox" data-tip="Plays 75 external standalone tracks supplied as a separate, optional music library. A recording may duplicate music embedded in a SoundBank, but this control never supplies authored Wwise playback. Download the demo tracks with npm run demo:music before starting this demo. Unavailable tracks are not offered.">i</button></div>
+          <p class="sectionNote">Optional titled-track library</p>
+        </div>
+      </div>
+      <select id="jukeboxTracks" title="classic EVE track" disabled></select>
+      <div class="buttonRow transport">
+        <button id="jukeboxPrevious" type="button" title="previous track" disabled>previous</button>
+        <button id="jukeboxPlay" class="primary" type="button" disabled>play</button>
+        <button id="jukeboxPause" type="button" disabled>pause</button>
+        <button id="jukeboxNext" type="button" title="next track" disabled>next</button>
+      </div>
+      <div id="jukeboxStatus" class="hint">enable audio to use the jukebox</div>
+    </section>
+    <section class="card" id="sfx">
+      <div class="sectionHeader">
+        <div>
+          <h2>Authored SFX</h2>
+          <p class="sectionNote">Authored Wwise programs and bounded fallbacks</p>
+        </div>
+      </div>
+      <div class="fieldRow">
+        <select id="sfxExamples" title="authored SFX example" disabled><option>enable audio to load examples</option></select>
+        <button id="sfxInfo" class="infoButton" type="button" aria-label="About the selected authored SFX example" data-tip="">i</button>
+      </div>
+      <div id="sfxControls"></div>
+      <div class="buttonRow">
+        <button id="sfxPost" class="primary" type="button" disabled>post again</button>
+        <button id="sfxPause" type="button" hidden>pause voice</button>
+        <button id="sfxResume" type="button" hidden>resume voice</button>
+        <button id="sfxReset" type="button" disabled>reset object</button>
+      </div>
+      <div class="fieldRow deliveryLabel">
+        <label for="delivery">media delivery</label>
+        <button class="infoButton tipUp" type="button" aria-label="About media delivery" data-tip="Chooses how runtime-audio receives WEM bytes: automatic selection, an individual file, an exact byte range from the original bank, or the whole original bank with a local slice.">i</button>
+      </div>
+      <select id="delivery" title="CjsAudioMan media delivery" disabled>
+        <option value="auto">auto</option>
+        <option value="individual">individual file</option>
+        <option value="range">exact bank range</option>
+        <option value="whole">whole bank + local slice</option>
+      </select>
+      <div id="sfxStatus">enable audio to inspect authored SFX</div>
+    </section>
+    <section class="card navigationCard">
+      <div class="sectionHeader">
+        <div>
+          <h2>Navigate the field</h2>
+          <p class="sectionNote">Drag to move · wheel to zoom</p>
+        </div>
+        <button class="infoButton tipUp" type="button" aria-label="About scene controls and markers" data-tip="Click a library item to play it.&#10;Drag the listener, an emitter, or empty space to move around.&#10;Right-click an emitter to remove it.&#10;Wheel over an emitter to scale it; Alt + wheel rotates it. Wheel elsewhere zooms.&#10;&#10;Blue tick: effective direction&#10;White ring: hearing range&#10;Blue ring: engine cull range&#10;Purple: authored SFX (hollow when idle)&#10;Green: placed · amber: demo · grey: culled&#10;&#10;Hover any circle for its live engine details.">i</button>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<script type="importmap">
+{
+  "imports": {
+    "@carbonenginejs/runtime-utils/schema": "/runtime-utils/src/schema/index.js",
+    "@carbonenginejs/runtime-utils/model": "/runtime-utils/src/model/index.js",
+    "@carbonenginejs/runtime-utils/quat": "/runtime-utils/src/quat.js",
+    "@carbonenginejs/runtime-utils/vec3": "/runtime-utils/src/vec3.js",
+    "@carbonenginejs/runtime-utils/graphics": "/runtime-utils/src/graphics/index.js",
+    "@carbonenginejs/runtime-audio/library": "/runtime-audio/npm/dist/library/index.js",
+    "@carbonenginejs/runtime-resource/formats/wem": "/runtime-resource/npm/dist/formats/wem/index.js",
+    "@carbonenginejs/tools-browser/audio": "/tools-browser/src/audio/index.js",
+    "gl-matrix/": "/runtime-utils/node_modules/gl-matrix/"
+  }
+}
+</script>
+<script type="module" src="/runtime-audio/demo/demo.js"></script>
+</body>
+</html>
