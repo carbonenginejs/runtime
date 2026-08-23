@@ -137,6 +137,11 @@
     "./sof/*": "./src/sof/*/index.js",
     "./audio": "./src/audio/index.js",
     "./audio/trinity": "./src/audio/trinity/index.js",
+    "./audio/generated": "./src/audio/generated/index.js",
+    "./audio/generated/*": "./src/audio/generated/*/index.js",
+    "./audio/audioMetadata": "./src/audio/audioMetadata.js",
+    "./audio/library": "./src/audio/library/index.js",
+    "./audio/library-builder": "./src/audio/library-builder/index.js",
     "./character": "./src/character/index.js",
     "./input": "./src/input/index.js",
     "./core": "./src/core/index.js",
@@ -183,6 +188,7 @@
     "#resource/formats": "./src/resource/formats/index.js",
     "#resource/formats/black": "./src/resource/formats/black/index.js",
     "#resource/formats/bnk": "./src/resource/formats/bnk/index.js",
+    "#resource/formats/bnk/wwise": "./src/resource/formats/bnk/core/soundbanksInfo.js",
     "#resource/formats/wem": "./src/resource/formats/wem/index.js",
     "#resource/formats/fsd": "./src/resource/formats/fsd/index.js",
     "#resource/formats/fsd/64/readers": "./src/resource/formats/fsd/64/readers/index.js",
@@ -210,6 +216,11 @@
     "#sof/*": "./src/sof/*/index.js",
     "#audio": "./src/audio/index.js",
     "#audio/trinity": "./src/audio/trinity/index.js",
+    "#audio/generated": "./src/audio/generated/index.js",
+    "#audio/generated/*": "./src/audio/generated/*/index.js",
+    "#audio/audioMetadata": "./src/audio/audioMetadata.js",
+    "#audio/library": "./src/audio/library/index.js",
+    "#audio/library-builder": "./src/audio/library-builder/index.js",
     "#audio/*": "./src/audio/*.js",
     "#character": "./src/character/index.js",
     "#character/*": "./src/character/*.js",
@@ -244,7 +255,8 @@
     "catalog:trinity": "node scripts/trinity/generate_class_catalog.js",
     "check": "npm run build:npm && npm run lint",
     "proof:sof:decorators": "node scripts/sof/proof_decorator_transform.js",
-    "test": "npm run check && npm run proof:sof:decorators && node --test"
+    "proof:audio:decorators": "node scripts/audio/proof_decorator_transform.js",
+    "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && node --test"
   },
   "engines": {
     "node": ">=18"

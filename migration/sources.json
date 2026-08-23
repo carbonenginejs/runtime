@@ -52,6 +52,21 @@
       "commit": "145745ae5a0451f7a3fa4e4d9814f0e087d64f1c",
       "temporaryPrefix": ".imports/runtime-audio",
       "destination": "src/audio",
+      "sourceMoved": true,
+      "excluded": [
+        {
+          "paths": [ "demo/**", "test/audio-demo-library.test.js" ],
+          "reason": "The donor demo embeds decoded EVE audio metadata and an exact-corpus test. A consolidated public demo must use synthetic or caller-supplied data."
+        },
+        {
+          "paths": [ "scripts/generate_trinity.js", "scripts/generate_trinity_ownership.js" ],
+          "reason": "Source generation is owned by tools-core; the runtime retains only reviewed generated output."
+        },
+        {
+          "paths": [ "scripts/build_npm.js", "scripts/build_demo_library.js", "scripts/download_demo_music.js", "scripts/serve_demo.js" ],
+          "reason": "Combined packaging supersedes the donor build, while artifact acquisition and demo serving belong outside runtime source."
+        }
+      ],
       "baseline": { "command": "npm test", "passed": 631, "skipped": 0, "failed": 0 }
     },
     {

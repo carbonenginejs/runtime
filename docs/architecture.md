@@ -15,10 +15,10 @@ entry points have separately constrained surfaces.
 ## Current structure
 
 The repository currently contains the maintained global foundation, resource
-capability, Trinity/EVE object graph, and standalone SOF builder; inert entry
-points for the remaining accepted layers; the layer checker; a donor manifest;
-and the remaining unsquashed donor histories under temporary prefixes. The
-package is private and no engine subpath is public.
+capability, Trinity/EVE object graph, standalone SOF builder, and complete
+audio domain; inert entry points for the remaining accepted layers; the layer
+checker; a donor manifest; and the remaining unsquashed donor histories under
+temporary prefixes. The package is private and no engine subpath is public.
 
 ## Planned dependency direction
 
@@ -65,10 +65,13 @@ and stay off the default export surface. Standalone non-engine examples live
 under the repository-root `demo/` directory. Engine-specific GPU harnesses stay
 with their engine layer.
 
-Generators, builders, schemas, catalogs, acquisition, and Node.js or native
-dependencies remain in `@carbonenginejs/tools-core`. Reviewed generated source
-required at runtime lives beneath its owning layer under
-`src/**/generated`; build inputs do not become runtime dependencies.
+Source-code generators, acquisition-aware artifact builders, schemas,
+catalogs, caches, and Node.js or native dependencies remain in
+`@carbonenginejs/tools-core`. Browser-safe deterministic value builders may
+remain with the runtime format or domain they implement; audio's optional
+library builder is one such case. Reviewed generated source required at
+runtime lives beneath its owning layer under `src/**/generated`; build inputs
+do not become runtime dependencies.
 
 ## Migration constraint
 

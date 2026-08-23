@@ -34,6 +34,22 @@ structure, schema wiring, serialization, and independently verified
 interoperability behavior. No game assets are redistributed with the SOF
 capability.
 
+Audio capability
+----------------
+
+Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
+
+The audio graph under `src/audio/trinity` includes JavaScript ports and
+adaptations of CarbonEngine audio behavior, released under the MIT License:
+
+    CarbonEngine - https://github.com/carbonengine
+    MIT License, Copyright (c) 2026 CCP Games
+
+The browser-safe Web Audio realization, document model, and acquisition-free
+library builder are original CarbonEngineJS work. Generated data-only class
+shells live under `src/audio/generated`. No decoded game metadata, audio media,
+or other game assets are redistributed with the runtime package.
+
 Resource capability
 -------------------
 

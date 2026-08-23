@@ -5,7 +5,8 @@ Unpublished consolidation destination for the browser-safe CarbonEngineJS runtim
 Use this repository while the accepted combined-runtime migration is in
 progress. It provides the executable layer boundary, migration metadata, the
 maintained global foundation, the resource/format capability, the migrated
-Trinity/EVE object graph, and the standalone SOF data and graph builder.
+Trinity/EVE object graph, the standalone SOF data and graph builder, and the
+complete headless-by-default audio domain.
 `@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
@@ -20,7 +21,8 @@ npm install
 ## Quick start
 
 Current validation checks the internal dependency graph, package maps, the
-migrated foundation, all resource/format implementations, Trinity, and SOF:
+migrated foundation, all resource/format implementations, Trinity, SOF, and
+audio:
 
 ```sh
 npm test
@@ -36,8 +38,11 @@ Trinity consumers use `@carbonenginejs/runtime/trinity` and its focused family
 subpaths such as `/core`, `/eve`, `/renderJob`, and `/generated`.
 SOF consumers use `@carbonenginejs/runtime/sof`; its `/data` subpath retains the
 former lightweight data-model surface.
+Audio consumers use `@carbonenginejs/runtime/audio`; graph-only users can use
+`/audio/trinity`, while metadata, document, and acquisition-free builder
+surfaces remain available through focused audio subpaths.
 
-The remaining audio, character, input, core, tools, and WebGPU imports become
+The remaining character, input, core, tools, and WebGPU imports become
 available only after their
 history-preserving migrations and the atomic consumer cutover. The WebGPU
 engine is not exported yet, and no WebGL placeholder is advertised before a
@@ -53,6 +58,8 @@ Trinity ownership and its public class catalog are documented under
 [docs/trinity](docs/trinity/README.md).
 SOF ownership, boundaries, and class catalog are documented under
 [docs/sof](docs/sof/README.md).
+Audio ownership, import-time safety, and class catalogs are documented under
+[docs/audio](docs/audio/README.md).
 
 ## License
 
