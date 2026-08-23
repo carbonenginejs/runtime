@@ -1,0 +1,21 @@
+@carbonenginejs/runtime
+=======================
+
+Copyright (c) 2026 CarbonEngineJS contributors.
+
+This repository is the history-preserving consolidation destination for the
+CarbonEngineJS browser runtime, renderer engines, and browser-safe tools. Its
+donor histories and source-local provenance records identify the origin of
+migrated implementations.
+
+CarbonEngine and Fenris Creations (CCP Games) names, formats, class names, and
+class semantics remain the property of their respective owners. These names
+are used for interoperability and provenance context. Ported or adapted source
+files identify their relevant CarbonEngine source paths in file-level
+provenance comments.
+
+This project is not affiliated with, endorsed by, or sponsored by CCP Games or
+CCP ehf. "EVE Online" and related marks are the property of their respective
+owners. No game assets are redistributed in this package.
+
+License: MIT. See LICENSE.

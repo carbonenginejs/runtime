@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "state": "planned-imports",
+  "destination": "@carbonenginejs/runtime",
+  "baselineDate": "2026-08-23",
+  "historyPolicy": "non-squashed-git-subtree",
+  "donors": [
+    {
+      "order": 1,
+      "repository": "carbonenginejs/runtime-utils",
+      "branch": "main",
+      "commit": "2fc2ef81345ed70699c807899eec47d8aad49e26",
+      "temporaryPrefix": ".imports/runtime-utils",
+      "destination": "src/global",
+      "baseline": { "command": "npm test", "passed": 148, "skipped": 0, "failed": 0 }
+    },
+    {
+      "order": 2,
+      "repository": "carbonenginejs/runtime-resource",
+      "branch": "main",
+      "commit": "1dbaa3642706e8122efe844b25654aca2ea8de3e",
+      "temporaryPrefix": ".imports/runtime-resource",
+      "destination": "src/resource",
+      "baseline": { "command": "npm test", "passed": 1279, "skipped": 19, "failed": 0 }
+    },
+    {
+      "order": 3,
+      "repository": "carbonenginejs/runtime-trinity",
+      "branch": "main",
+      "commit": "8ce56a3efb42f0fac62f8ecb72a21674e88eaae6",
+      "temporaryPrefix": ".imports/runtime-trinity",
+      "destination": "src/trinity",
+      "baseline": { "command": "npm test", "passed": 856, "skipped": 0, "failed": 0 }
+    },
+    {
+      "order": 4,
+      "repository": "carbonenginejs/runtime-sof",
+      "branch": "main",
+      "commit": "b93ddb24d75284888853a9c7756236722919de83",
+      "temporaryPrefix": ".imports/runtime-sof",
+      "destination": "src/sof",
+      "baseline": { "command": "npm test", "passed": 107, "skipped": 22, "failed": 0 }
+    },
+    {
+      "order": 5,
+      "repository": "carbonenginejs/runtime-audio",
+      "branch": "main",
+      "commit": "145745ae5a0451f7a3fa4e4d9814f0e087d64f1c",
+      "temporaryPrefix": ".imports/runtime-audio",
+      "destination": "src/audio",
+      "baseline": { "command": "npm test", "passed": 631, "skipped": 0, "failed": 0 }
+    },
+    {
+      "order": 6,
+      "repository": "carbonenginejs/runtime-character",
+      "branch": "main",
+      "commit": "2c642a5e3bdbb88d91c8d0119a3a4b045bd1448b",
+      "temporaryPrefix": ".imports/runtime-character",
+      "destination": "src/character",
+      "baseline": { "command": "npm test", "passed": 85, "skipped": 0, "failed": 0 }
+    },
+    {
+      "order": 7,
+      "repository": "carbonenginejs/runtime-input",
+      "branch": "main",
+      "commit": "0b3d283d3b26d38196306df9932985a1c33badee",
+      "temporaryPrefix": ".imports/runtime-input",
+      "destination": "src/input",
+      "baseline": { "command": "npm test", "passed": 4, "skipped": 0, "failed": 0 }
+    },
+    {
+      "order": 8,
+      "repository": "carbonenginejs/engine-webgpu",
+      "branch": "main",
+      "commit": "513bef46fb3c02f37e59f683dff6902cf795a6fa",
+      "temporaryPrefix": ".imports/engine-webgpu",
+      "destination": "src/engine/webgpu",
+      "baseline": { "command": "npm test", "passed": 239, "skipped": 2, "failed": 0 }
+    },
+    {
+      "order": 9,
+      "repository": "carbonenginejs/runtime-core",
+      "branch": "main",
+      "commit": "0280c37c5c0aefd65a2aa34c36fcfd007b81ff6f",
+      "temporaryPrefix": ".imports/runtime-core",
+      "destination": "src/core",
+      "baseline": { "command": "npm test", "passed": 51, "skipped": 0, "failed": 0 }
+    },
+    {
+      "order": 10,
+      "repository": "carbonenginejs/tools-browser",
+      "branch": "main",
+      "commit": "dfa77a9a6a2b54eb635a4ea6adb4285dc166a52b",
+      "temporaryPrefix": ".imports/tools-browser",
+      "destination": "src/tools and demo",
+      "baseline": { "command": "npm test", "passed": 119, "skipped": 1, "failed": 0 }
+    }
+  ],
+  "totals": { "passed": 3519, "skipped": 44, "failed": 0, "tests": 3563 }
+}

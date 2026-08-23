@@ -1,0 +1,212 @@
+{
+    "//": [
+        "The layering contract, machine-readable because it is no longer enforced",
+        "for free.",
+        "",
+        "Today the package manager is the enforcement: runtime-sof cannot import",
+        "runtime-trinity because it is not a dependency, and no manifest edit passes",
+        "review unnoticed. Inside one package that guarantee disappears at exactly",
+        "the moment the barrier becomes a one-line import. This file replaces it.",
+        "",
+        "`mayImport` is exhaustive: a directory may import from itself and from the",
+        "layers listed, and from nothing else. Layer names are directory paths, so",
+        "the ordering INSIDE global is enforced too -- math is not allowed to reach",
+        "sideways into model just because both are global."
+    ],
+    "surfaces": {
+        "index.js": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource",
+                "trinity",
+                "sof",
+                "audio",
+                "character",
+                "input",
+                "core"
+            ]
+        },
+        "global/index.js": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model"
+            ]
+        }
+    },
+    "layers": {
+        "global/utils": {
+            "mayImport": []
+        },
+        "global/math": {
+            "mayImport": [
+                "global/utils"
+            ]
+        },
+        "global/consts": {
+            "mayImport": []
+        },
+        "global/schema": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts"
+            ]
+        },
+        "global/model": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/schema"
+            ]
+        },
+        "global/contracts": {
+            "mayImport": []
+        },
+        "resource": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model"
+            ]
+        },
+        "trinity": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource"
+            ]
+        },
+        "sof": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource"
+            ],
+            "why": [
+                "SOF is standalone and trinity is NOT in its list, which is the whole",
+                "point of writing this down. SOF emits a graph that names Trinity and",
+                "audio classes; naming a class is not importing it, and a consumer",
+                "supplies the constructors. The day someone 'just imports Trinity here'",
+                "the build fails instead of the property quietly disappearing."
+            ]
+        },
+        "audio": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource"
+            ]
+        },
+        "character": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource",
+                "trinity"
+            ]
+        },
+        "input": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model"
+            ]
+        },
+        "engine/webgpu": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource",
+                "trinity"
+            ],
+            "why": [
+                "The implemented backend extends canonical dependency-floor, resource,",
+                "and Trinity contracts. It never imports core, tools, or another engine."
+            ]
+        },
+        "core": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource",
+                "trinity",
+                "sof",
+                "audio",
+                "character",
+                "input",
+                "engine/webgpu"
+            ],
+            "why": [
+                "Composition. It is allowed to know about everything below it, which is",
+                "exactly why nothing below is allowed to know about it."
+            ]
+        },
+        "tools": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model",
+                "resource",
+                "trinity",
+                "sof",
+                "audio",
+                "character",
+                "input",
+                "engine/webgpu",
+                "core"
+            ],
+            "why": [
+                "The top layer, and off the default export surface. It may reach down to",
+                "everything; nothing may reach up to it. Browser-safe tooling only --",
+                "acquisition, emulation, realtime. The Node-only suite stays a separate",
+                "package, so this name must never become a home for native dependencies.",
+                "",
+                "A runtime module wanting something from here means the value belongs",
+                "lower down instead; tools/perobject is the live candidate."
+            ]
+        }
+    }
+}

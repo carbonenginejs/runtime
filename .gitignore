@@ -1,0 +1,12 @@
+node_modules/
+coverage/
+dist/
+npm/
+AGENTS.md
+CLAUDE.md
+.agents/
+.claude/
+.codex/
+.scratch/
+*.log
+*.tgz

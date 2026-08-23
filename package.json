@@ -1,0 +1,89 @@
+{
+  "name": "@carbonenginejs/runtime",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Unpublished consolidation destination for the browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.js",
+    "./global": "./src/global/index.js",
+    "./math": "./src/global/math/index.js",
+    "./utils": "./src/global/utils/index.js",
+    "./consts": "./src/global/consts/index.js",
+    "./contracts": "./src/global/contracts/index.js",
+    "./schema": "./src/global/schema/index.js",
+    "./model": "./src/global/model/index.js",
+    "./resource": "./src/resource/index.js",
+    "./trinity": "./src/trinity/index.js",
+    "./sof": "./src/sof/index.js",
+    "./audio": "./src/audio/index.js",
+    "./audio/trinity": "./src/audio/trinity/index.js",
+    "./character": "./src/character/index.js",
+    "./input": "./src/input/index.js",
+    "./core": "./src/core/index.js",
+    "./tools": "./src/tools/index.js",
+    "./tools/*": "./src/tools/*/index.js"
+  },
+  "imports": {
+    "#global": "./src/global/index.js",
+    "#math": "./src/global/math/index.js",
+    "#math/*": "./src/global/math/*.js",
+    "#utils": "./src/global/utils/index.js",
+    "#utils/*": "./src/global/utils/*.js",
+    "#consts": "./src/global/consts/index.js",
+    "#consts/*": "./src/global/consts/*.js",
+    "#contracts": "./src/global/contracts/index.js",
+    "#contracts/*": "./src/global/contracts/*.js",
+    "#schema": "./src/global/schema/index.js",
+    "#schema/*": "./src/global/schema/*.js",
+    "#model": "./src/global/model/index.js",
+    "#model/*": "./src/global/model/*.js",
+    "#resource": "./src/resource/index.js",
+    "#resource/*": "./src/resource/*.js",
+    "#trinity": "./src/trinity/index.js",
+    "#trinity/*": "./src/trinity/*.js",
+    "#sof": "./src/sof/index.js",
+    "#sof/*": "./src/sof/*.js",
+    "#audio": "./src/audio/index.js",
+    "#audio/*": "./src/audio/*.js",
+    "#character": "./src/character/index.js",
+    "#character/*": "./src/character/*.js",
+    "#input": "./src/input/index.js",
+    "#input/*": "./src/input/*.js",
+    "#engine/webgpu": "./src/engine/webgpu/index.js",
+    "#engine/webgpu/*": "./src/engine/webgpu/*.js",
+    "#core": "./src/core/index.js",
+    "#core/*": "./src/core/*.js",
+    "#tools": "./src/tools/index.js",
+    "#tools/*": "./src/tools/*.js"
+  },
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "lint": "npm run lint:layers",
+    "lint:layers": "node scripts/lint-layering.js",
+    "check": "npm test",
+    "test": "npm run lint:layers && node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/parser": "^7.28.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carbonenginejs/runtime.git"
+  },
+  "homepage": "https://github.com/carbonenginejs/runtime#readme",
+  "bugs": {
+    "url": "https://github.com/carbonenginejs/runtime/issues"
+  }
+}
