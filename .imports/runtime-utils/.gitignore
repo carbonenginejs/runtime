@@ -1,0 +1,18 @@
+node_modules/
+.agent/
+.agents/
+.claude/
+.codex/
+.skill/
+.skills/
+review/
+_review/
+carbonenginejs.md
+npm-debug.log*
+*.tgz
+/AGENTS.md
+/CLAUDE.md
+
+# Downloaded and generated caches - never committed or published.
+.cache/
+**/.cache/
