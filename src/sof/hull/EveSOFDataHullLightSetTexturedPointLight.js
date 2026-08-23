@@ -1,0 +1,21 @@
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
+// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { io, type } from "#schema";
+import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
+
+/** EveSOFDataHullLightSetTexturedPointLight (eve) - generated from schema shapeHash daa6d349.... */
+// Carbon derives this from EveSOFDataHullLightSetItem (EveSOFData.h:
+// 1410-1417) and re-maps the base surface WITHOUT lightColor, adding
+// texturePath (EveSOFData_Blue.cpp:1076-1094): a textured point light takes
+// its color from the texture, not the faction color set.
+@type.define({ className: "EveSOFDataHullLightSetTexturedPointLight", family: "eve" })
+@type.hideInherited(["lightColor"])
+export class EveSOFDataHullLightSetTexturedPointLight extends EveSOFDataHullLightSetItem
+{
+
+  /** m_data.texturePath (std::wstring) [READWRITE, PERSIST] */
+  @io.persist
+  @type.string
+  texturePath = "";
+
+}

@@ -15,10 +15,10 @@ entry points have separately constrained surfaces.
 ## Current structure
 
 The repository currently contains the maintained global foundation, resource
-capability, and Trinity/EVE object graph; inert entry points for the remaining
-accepted layers; the layer checker; a donor manifest; and the remaining
-unsquashed donor histories under temporary prefixes. The package is private
-and no engine subpath is public.
+capability, Trinity/EVE object graph, and standalone SOF builder; inert entry
+points for the remaining accepted layers; the layer checker; a donor manifest;
+and the remaining unsquashed donor histories under temporary prefixes. The
+package is private and no engine subpath is public.
 
 ## Planned dependency direction
 

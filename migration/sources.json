@@ -42,6 +42,7 @@
       "commit": "b93ddb24d75284888853a9c7756236722919de83",
       "temporaryPrefix": ".imports/runtime-sof",
       "destination": "src/sof",
+      "sourceMoved": true,
       "baseline": { "command": "npm test", "passed": 107, "skipped": 22, "failed": 0 }
     },
     {

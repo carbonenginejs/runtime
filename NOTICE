@@ -18,6 +18,22 @@ This project is not affiliated with, endorsed by, or sponsored by CCP Games or
 CCP ehf. "EVE Online" and related marks are the property of their respective
 owners. No game assets are redistributed in this package.
 
+Space Object Factory capability
+-------------------------------
+
+Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
+
+The SOF data model and builder under `src/sof` include JavaScript ports of
+CarbonEngine Space Object Factory behavior, released under the MIT License:
+
+    CarbonEngine - https://github.com/carbonengine
+    MIT License, Copyright (c) 2026 CCP Games
+
+Other SOF portions are original CarbonEngineJS work, including JavaScript
+structure, schema wiring, serialization, and independently verified
+interoperability behavior. No game assets are redistributed with the SOF
+capability.
+
 Resource capability
 -------------------
 

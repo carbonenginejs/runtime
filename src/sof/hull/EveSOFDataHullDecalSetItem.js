@@ -1,0 +1,92 @@
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
+// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import { io, type } from "#schema";
+import { CjsModel } from "#model";
+import { quat } from "#math/quat";
+import { vec3 } from "#math/vec3";
+
+/** EveSOFDataHullDecalSetItem (eve) - generated from schema shapeHash 246ca107.... */
+@type.define({ className: "EveSOFDataHullDecalSetItem", family: "eve" })
+export class EveSOFDataHullDecalSetItem extends CjsModel
+{
+
+  static Usage = Object.freeze({
+    USAGE_STANDARD: 0,
+    USAGE_KILLCOUNTER: 1,
+    USAGE_HOLE: 2,
+    USAGE_CYLINDRICAL: 3,
+    USAGE_GLOWCYLINDRICAL: 4,
+    USAGE_GLOWSTANDARD: 5,
+    USAGE_LOGO: 6,
+    USAGE_MAX: 7
+  });
+
+  /** m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM] */
+  @io.persist
+  @type.int32
+  @type.enum("LogoType")
+  logoType = 0;
+
+  /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
+  @io.persist
+  @type.int32
+  @type.enum("Usage")
+  usage = 0;
+
+  /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
+  @io.persist
+  @type.int32
+  @type.enum("ColorType")
+  glowColorType = 0;
+
+  /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
+  @io.persist
+  @type.int32
+  boneIndex = -1;
+
+  /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("EveSOFDataParameter")
+  parameters = [];
+
+  /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("EveSOFDataTexture")
+  textures = [];
+
+  /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("EveSOFDataDecalIndexBuffer")
+  indexBuffers = [];
+
+  /** m_multiHullIndexBuffers (PEveSOFDataMultiHullDecalIndexBuffersVector) [READ, PERSIST] */
+  @io.persist
+  @type.list("EveSOFDataMultiHullDecalIndexBuffers")
+  multiHullIndexBuffers = [];
+
+  /** m_name (std::string) [READWRITE, PERSIST] */
+  @io.persist
+  @type.string
+  name = "";
+
+  /** m_position (Vector3) [READWRITE, PERSIST] */
+  @io.persist
+  @type.vec3
+  position = vec3.create();
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @io.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] */
+  @io.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
+
+  /** m_meshIndex (int32_t) [READWRITE, PERSIST] */
+  @io.persist
+  @type.int32
+  meshIndex = -1;
+
+}

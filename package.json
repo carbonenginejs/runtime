@@ -129,6 +129,12 @@
     "./trinity/perobject": "./src/trinity/core/rawData/CjsPerObjectLayouts.js",
     "./trinity/perframe": "./src/trinity/core/rawData/CjsPerFrameLayouts.js",
     "./sof": "./src/sof/index.js",
+    "./sof/data": "./src/sof/data/index.js",
+    "./sof/generated": "./src/sof/generated/index.js",
+    "./sof/generated/EveSOF": "./src/sof/EveSOF.js",
+    "./sof/generated/EveSOFDNA": "./src/sof/EveSOFDNA.js",
+    "./sof/generated/EveSOFDataMgr": "./src/sof/EveSOFDataMgr.js",
+    "./sof/*": "./src/sof/*/index.js",
     "./audio": "./src/audio/index.js",
     "./audio/trinity": "./src/audio/trinity/index.js",
     "./character": "./src/character/index.js",
@@ -199,7 +205,9 @@
     "#trinity/perobject": "./src/trinity/core/rawData/CjsPerObjectLayouts.js",
     "#trinity/perframe": "./src/trinity/core/rawData/CjsPerFrameLayouts.js",
     "#sof": "./src/sof/index.js",
-    "#sof/*": "./src/sof/*.js",
+    "#sof/data": "./src/sof/data/index.js",
+    "#sof/generated": "./src/sof/generated/index.js",
+    "#sof/*": "./src/sof/*/index.js",
     "#audio": "./src/audio/index.js",
     "#audio/trinity": "./src/audio/trinity/index.js",
     "#audio/*": "./src/audio/*.js",
@@ -235,7 +243,8 @@
     "audit:trinity:types": "node scripts/trinity/audit_type_references.js",
     "catalog:trinity": "node scripts/trinity/generate_class_catalog.js",
     "check": "npm run build:npm && npm run lint",
-    "test": "npm run check && node --test"
+    "proof:sof:decorators": "node scripts/sof/proof_decorator_transform.js",
+    "test": "npm run check && npm run proof:sof:decorators && node --test"
   },
   "engines": {
     "node": ">=18"
