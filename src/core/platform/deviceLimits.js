@@ -16,7 +16,7 @@
 // the light-profile array to fit WebGL2's sixteen units, engine-webgpu binds
 // them natively and can instead ask for a higher sampled-texture limit. See
 // docs/contracts/webgl2-texture-budget.md. Baking that count in would make it
-// a fact about runtime-core, which it is not.
+// a fact about runtime core, which it is not.
 
 
 /**
@@ -86,14 +86,14 @@ export function ResolveRequiredLimits(demand = {}, adapterLimits = {})
 
         if (defaultValue === undefined)
         {
-            throw new RangeError(`runtime-core: "${name}" is not a negotiable WebGPU maximum limit`);
+            throw new RangeError(`runtime/core: "${name}" is not a negotiable WebGPU maximum limit`);
         }
 
         const value = Number(requested);
 
         if (!Number.isFinite(value))
         {
-            throw new RangeError(`runtime-core: limit "${name}" must be a finite number`);
+            throw new RangeError(`runtime/core: limit "${name}" must be a finite number`);
         }
 
         if (value <= defaultValue) continue;

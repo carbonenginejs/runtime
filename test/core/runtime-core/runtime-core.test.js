@@ -1,6 +1,25 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import CjsLibrary, { CjsLibrary as NamedCjsLibrary, CjsServiceKey } from "../../../src/core/index.js";
+import CjsLibrary, { CjsLibrary as NamedCjsLibrary, CjsServiceKey } from "../../../npm/dist/core/index.js";
+import { CjsResMan } from "../../../npm/dist/resource/index.js";
+import { EveSOF } from "../../../npm/dist/sof/index.js";
+import { CjsAudioMan } from "../../../npm/dist/audio/index.js";
+
+
+function resMan(methods = {})
+{
+    return Object.assign(new CjsResMan(), methods);
+}
+
+function sof(methods = {})
+{
+    return Object.assign(new EveSOF(), methods);
+}
+
+function audioMan(methods = {})
+{
+    return Object.assign(new CjsAudioMan(), methods);
+}
 
 test("exports the JS-only CjsLibrary composition root", () =>
 {
@@ -10,7 +29,7 @@ test("exports the JS-only CjsLibrary composition root", () =>
 
 test("registers services without creating backend objects", () =>
 {
-    const resourceManager = { name: "resources" };
+    const resourceManager = resMan({ name: "resources" });
     const library = new CjsLibrary({ resourceManager });
 
     assert.equal(library.GetResourceManager(), resourceManager);
@@ -18,10 +37,10 @@ test("registers services without creating backend objects", () =>
     assert.equal(library.HasService(CjsServiceKey.RESOURCE_MANAGER), true);
     assert.equal(library.IsInitialized(), false);
 
-    const audioManager = {
+    const audioManager = audioMan({
         name: "audio",
         InstallLibrary() {},
-    };
+    });
 
     library.SetAudioManager(audioManager).Initialize();
 
@@ -37,16 +56,16 @@ test("registers services without creating backend objects", () =>
 
 test("generic service registration keeps the resource and SOF facades synchronized", () =>
 {
-    const first = { GetResource: () => "first" };
-    const second = { GetResource: () => "second" };
-    const sof = {};
+    const first = resMan({ GetResource: () => "first" });
+    const second = resMan({ GetResource: () => "second" });
+    const spaceObjectFactory = sof();
     const library = new CjsLibrary({ services: {
         [CjsServiceKey.RESOURCE_MANAGER]: first,
-        [CjsServiceKey.SPACE_OBJECT_FACTORY]: sof
+        [CjsServiceKey.SPACE_OBJECT_FACTORY]: spaceObjectFactory
     } });
 
     assert.equal(library.GetResourceManager(), first);
-    assert.equal(library.GetSpaceObjectFactory(), sof);
+    assert.equal(library.GetSpaceObjectFactory(), spaceObjectFactory);
     assert.equal(library.GetResource("res:/one"), "first");
 
     library.SetService(CjsServiceKey.RESOURCE_MANAGER, second);
@@ -55,7 +74,7 @@ test("generic service registration keeps the resource and SOF facades synchroniz
 
     library.RemoveService(CjsServiceKey.RESOURCE_MANAGER);
     assert.equal(library.GetResourceManager(), null);
-    assert.throws(() => library.GetResource("res:/three"), error => error.code === "CJS_LIBRARY_METHOD_MISSING");
+    assert.throws(() => library.GetResource("res:/three"), TypeError);
 });
 
 test("Register forwards topic options unchanged to configured services", () =>
@@ -64,20 +83,20 @@ test("Register forwards topic options unchanged to configured services", () =>
     const sofOptions = { dataPath: "res:/sof/data.black" };
     let receivedResMan = null;
     let receivedSof = null;
-    const resourceManager = {
+    const resourceManager = resMan({
         Register(options)
         {
             receivedResMan = options;
             return this;
         }
-    };
-    const spaceObjectFactory = {
+    });
+    const spaceObjectFactory = sof({
         Register(options)
         {
             receivedSof = options;
             return this;
         }
-    };
+    });
     const library = new CjsLibrary({ resourceManager, spaceObjectFactory });
 
     assert.equal(library.Register({ resMan: resManOptions, sof: sofOptions }), library);
@@ -95,7 +114,7 @@ test("resource facade delegates synchronous handles and promise-shaped fetches",
             return this;
         }
     };
-    const resourceManager = {
+    const resourceManager = resMan({
         GetResource(path, options)
         {
             assert.equal(path, "res:/ship.gr2");
@@ -106,7 +125,7 @@ test("resource facade delegates synchronous handles and promise-shaped fetches",
         {
             return Promise.resolve({ path });
         }
-    };
+    });
     const library = new CjsLibrary({ resourceManager });
 
     assert.equal(library.GetResource("res:/ship.gr2", { requirement: "geometry" }), resource);
@@ -118,13 +137,13 @@ test("resource @output suffix forces a test outcome without changing the source 
 {
     const calls = [];
     const library = new CjsLibrary({
-        resourceManager: {
+        resourceManager: resMan({
             Fetch(path, options)
             {
                 calls.push({ path, options });
                 return Promise.resolve({ path, output: options.emit });
             }
-        },
+        }),
         behaviors: {
             geometry: {
                 behavior: {
@@ -162,7 +181,7 @@ test("resource @output suffix forces a test outcome without changing the source 
 test("Fetch routes DNA through the configured async SOF facade", async () =>
 {
     const seen = [];
-    const sof = {
+    const spaceObjectFactory = sof({
         async LoadDataAsync(path)
         {
             seen.push([ "data", path ]);
@@ -173,8 +192,8 @@ test("Fetch routes DNA through the configured async SOF facade", async () =>
             seen.push([ "dna", dna, options ]);
             return { _type: "EveShip2", dna };
         }
-    };
-    const library = new CjsLibrary({ spaceObjectFactory: sof });
+    });
+    const library = new CjsLibrary({ spaceObjectFactory });
 
     assert.equal(await library.InitializeAsync({ dataPath: "res:/sof/data.black" }), library);
     assert.deepEqual(await library.Fetch("rifter:minmatar:minmatar"), {
@@ -187,24 +206,11 @@ test("Fetch routes DNA through the configured async SOF facade", async () =>
     ]);
 });
 
-test("FetchDNA normalizes the synchronous SOF values fallback to a promise", async () =>
+test("owned service slots reject structural lookalikes", () =>
 {
-    const options = { editorMode: true };
-    const library = new CjsLibrary({
-        spaceObjectFactory: {
-            BuildValuesFromDNA(dna, received)
-            {
-                assert.equal(dna, "rifter:minmatar:minmatar");
-                assert.equal(received, options);
-                return { _type: "EveShip2", dna };
-            }
-        }
-    });
-
-    assert.deepEqual(await library.FetchDNA("rifter:minmatar:minmatar", options), {
-        _type: "EveShip2",
-        dna: "rifter:minmatar:minmatar"
-    });
+    assert.throws(() => new CjsLibrary({ resourceManager: { GetResource() {} } }), /CjsResMan/u);
+    assert.throws(() => new CjsLibrary({ spaceObjectFactory: { BuildValuesFromDNAAsync() {} } }), /EveSOF/u);
+    assert.throws(() => new CjsLibrary({ audioManager: { InstallLibrary() {} } }), /CjsAudioMan/u);
 });
 
 test("default resource behavior selects a presentation recipe before ResMan", () =>
@@ -226,13 +232,13 @@ test("default resource behavior selects a presentation recipe before ResMan", ()
         }
     };
     const library = new CjsLibrary({
-        resourceManager: {
+        resourceManager: resMan({
             GetResource(path, options)
             {
                 received = { path, options };
                 return "resource";
             }
-        },
+        }),
         capabilities: { dds: false },
         resourceDefaults: {
             payload: "texture",
@@ -267,13 +273,13 @@ test("default resource behavior selects a presentation recipe before ResMan", ()
 test("explicit behavior selection overrides defaults and false disables behavior", () =>
 {
     const calls = [];
-    const library = new CjsLibrary({ resourceManager: {
+    const library = new CjsLibrary({ resourceManager: resMan({
         GetObject(path, options)
         {
             calls.push({ path, options });
             return { path };
         }
-    } });
+    }) });
     library
         .RegisterResourceBehavior("native", {
             request: { requirement: "native", emit: "native" },
@@ -333,16 +339,16 @@ test("every resource facade resolves exactly once while DNA bypasses resource be
 {
     let matches = 0;
     const calls = [];
-    const resourceManager = {
+    const resourceManager = resMan({
         GetResource: (path, options) => (calls.push([ "GetResource", path, options ]), {}),
         GetObject: (path, options) => (calls.push([ "GetObject", path, options ]), {}),
         FetchResource: (path, options) => (calls.push([ "FetchResource", path, options ]), Promise.resolve({})),
         FetchObject: (path, options) => (calls.push([ "FetchObject", path, options ]), Promise.resolve({})),
         Fetch: (path, options) => (calls.push([ "Fetch", path, options ]), Promise.resolve({}))
-    };
+    });
     const library = new CjsLibrary({
         resourceManager,
-        spaceObjectFactory: { BuildValuesFromDNAAsync: async dna => ({ _type: "EveShip2", dna }) },
+        spaceObjectFactory: sof({ BuildValuesFromDNAAsync: async dna => ({ _type: "EveShip2", dna }) }),
         behaviors: {
             default: {
                 behavior: {
@@ -376,25 +382,18 @@ test("every resource facade resolves exactly once while DNA bypasses resource be
     assert.equal(calls.every(call => call[2].emit === "json"), true);
 });
 
-test("FetchResource fallback gives GetResource and Ready the same resolved request", async () =>
+test("FetchResource delegates the resolved request to canonical ResMan", async () =>
 {
-    let getOptions = null;
-    let readyOptions = null;
-    const resource = {
-        async Ready(options)
-        {
-            readyOptions = options;
-            return this;
-        }
-    };
+    let fetchOptions = null;
+    const resource = {};
     const library = new CjsLibrary({
-        resourceManager: {
-            GetResource(_path, options)
+        resourceManager: resMan({
+            FetchResource(_path, options)
             {
-                getOptions = options;
-                return resource;
+                fetchOptions = options;
+                return Promise.resolve(resource);
             }
-        },
+        }),
         resourceDefaults: { formatOptions: { source: "default" } },
         behaviors: {
             package: {
@@ -413,32 +412,26 @@ test("FetchResource fallback gives GetResource and Ready the same resolved reque
         behavior: "package",
         formatOptions: { source: "caller" }
     }), resource);
-    assert.equal(readyOptions, getOptions);
-    assert.deepEqual(getOptions, {
+    assert.deepEqual(fetchOptions, {
         requirement: "webgpu-package",
         formatOptions: { source: "caller", format: "behavior" }
     });
-    assert.equal(Object.prototype.hasOwnProperty.call(readyOptions, "behavior"), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(fetchOptions, "behavior"), false);
 });
 
-test("Fetch fallback routes from behavior-resolved options without resolving twice", async () =>
+test("Fetch delegates behavior-resolved options once to canonical ResMan", async () =>
 {
     let matches = 0;
     const calls = [];
-    const resource = { Ready: async () => resource };
+    const resource = {};
     const library = new CjsLibrary({
-        resourceManager: {
-            GetResource(path, options)
+        resourceManager: resMan({
+            Fetch(path, options)
             {
                 calls.push(["resource", path, options]);
-                return resource;
-            },
-            GetObject(path, options)
-            {
-                calls.push(["object", path, options]);
-                return {};
+                return Promise.resolve(resource);
             }
-        },
+        }),
         behaviors: {
             package: {
                 behavior: {
@@ -469,13 +462,13 @@ test("resource behavior keeps engine-owned methods out of ResMan options", () =>
         BuildUniformData
     };
     const library = new CjsLibrary({
-        resourceManager: {
+        resourceManager: resMan({
             GetResource(path, options)
             {
                 received = { path, options };
                 return {};
             }
-        },
+        }),
         behaviors: { main: { behavior, default: true } }
     });
 
@@ -492,13 +485,13 @@ test("validates service keys and option shapes", () =>
     assert.throws(() => new CjsLibrary({ services: [] }), /services must be an object/u);
     assert.throws(() => new CjsLibrary().SetService("", {}), /service key must be a non-empty string/u);
     assert.throws(() => new CjsLibrary({ unknown: true }), /unknown option/u);
-    assert.throws(() => new CjsLibrary().Register({ resMan: {} }), error => error.code === "CJS_LIBRARY_SERVICE_MISSING");
+    assert.throws(() => new CjsLibrary().Register({ resMan: {} }), TypeError);
 });
 
 test("audio registration forwards one document and shutdown deactivates without disposal", () =>
 {
     const calls = [];
-    const audioManager = {
+    const audioManager = audioMan({
         InstallLibrary(document)
         {
             calls.push([ "install", document ]);
@@ -515,7 +508,7 @@ test("audio registration forwards one document and shutdown deactivates without 
         {
             calls.push([ "dispose" ]);
         },
-    };
+    });
     const document = {
         schema: "carbonenginejs.audioLibrary",
     };

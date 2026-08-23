@@ -6,8 +6,8 @@ import {
     CjsLibrary,
     SelectBackend,
     Tr2PlatformInfo
-} from "../../../src/core/index.js";
-import { CjsBackendCandidate } from "../../../src/global/contracts/index.js";
+} from "../../../npm/dist/core/index.js";
+import { CjsBackendCandidate } from "../../../npm/dist/global/contracts/index.js";
 
 
 class TestBackendCandidate extends CjsBackendCandidate

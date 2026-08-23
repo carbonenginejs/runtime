@@ -59,8 +59,12 @@ Unknown option and topic names throw.
   resource slot.
 - `SetSpaceObjectFactory(value)` and `GetSpaceObjectFactory()` manage the
   dedicated SOF slot.
-- `SetAudioManager(value)` and `GetAudioManager()` manage the structural audio
-  manager slot; the value must provide `InstallLibrary(document)`.
+- `SetAudioManager(value)` and `GetAudioManager()` manage the dedicated audio
+  manager slot.
+
+The dedicated slots require exact `CjsResMan`, `EveSOF`, and `CjsAudioMan`
+instances, including when they are set through `SetService`. Arbitrary device
+and input registry values remain opaque.
 
 Setting a dedicated service through its conventional key keeps both views in
 sync. `Register({ audio: document })` forwards the complete document unchanged
@@ -92,13 +96,14 @@ failure behavior.
 - `GetResource(path, options)` and `GetObject(path, options)` call the
   configured resource manager.
 - `FetchResource(path, options)` and `FetchObject(path, options)` return
-  promise-facing results.
+  their canonical resource-manager promises.
 - `FetchDNA(dna, options)` calls the configured SOF service's
-  `BuildValuesFromDNA*` boundary and returns plain CjsModel-shaped values.
+  `BuildValuesFromDNAAsync` boundary and returns plain CjsModel-shaped values.
 - `Fetch(value, options)` selects DNA or resource behavior from the request.
 
-Missing required services or methods fail with errors carrying a
-`CJS_LIBRARY_*` code where the implementation defines one.
+Structural lookalikes fail at registration. A missing required service fails at
+the direct call site; core does not probe repeatedly for methods guaranteed by
+the registered identity.
 
 ## Related documentation
 

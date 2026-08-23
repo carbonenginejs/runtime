@@ -23,8 +23,9 @@ const library = new CjsLibrary({
 });
 ```
 
-Services are structural objects. Runtime-core does not require them to inherit
-from a common base class.
+The dedicated values are exact package identities: `CjsResMan`, `EveSOF`, and
+`CjsAudioMan`. Structural lookalikes are rejected when registered. Device and
+input entries remain opaque because core does not invoke methods on them.
 
 ## Register capabilities and service topics
 
@@ -45,8 +46,9 @@ library.Register({
 
 `resMan` and `sof` values are forwarded to the corresponding service's
 `Register()` method. `audio` is passed unchanged to the audio manager's
-`InstallLibrary()` method. Runtime-core never downloads or builds that
-document. A missing service or method fails explicitly.
+`InstallLibrary()` method. Runtime core never downloads or builds that
+document. A missing service fails explicitly; registered dedicated services
+already carry their required methods by identity.
 
 ## Initialize and request
 
@@ -61,10 +63,10 @@ const values = await library.FetchDNA("rifter:minmatar:minmatar");
 ```
 
 `GetResource()` and `GetObject()` are immediate service facades. The
-`FetchResource()`, `FetchObject()`, `FetchDNA()`, and `Fetch()` methods return
-promises or normalize service results to promises. `FetchDNA()` returns the
-plain CjsModel-shaped values produced by `BuildValuesFromDNA*`; it does not
-return a `carbon.document` node table.
+`FetchResource()`, `FetchObject()`, `FetchDNA()`, and `Fetch()` methods call the
+canonical asynchronous methods directly. `FetchDNA()` returns the plain
+CjsModel-shaped values produced by `BuildValuesFromDNAAsync`; it does not return
+a `carbon.document` node table.
 
 ## Inspect the composition
 

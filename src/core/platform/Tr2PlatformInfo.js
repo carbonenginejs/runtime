@@ -56,7 +56,7 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 // Authority: docs/documentation-rules.md, Independent corroboration.)
 //
 // So the backend supplies the DEFAULT and configuration wins, which is also
-// where the engine-backends plan puts it: runtime-core owns configuration, and
+// where the engine-backends plan puts it: runtime core owns configuration, and
 // an engine is told what to load rather than deciding it. A caller pointing a
 // WebGL backend at a different compiled-effect tree is a configuration choice,
 // not a different backend.

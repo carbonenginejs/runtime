@@ -12,7 +12,7 @@ import {
 import { buildCopyblitDrawDescriptor } from "./harness/support/packageDraw.js";
 
 // The effect-path helpers that used to be tested here have moved to
-// `@carbonenginejs/runtime-core/platform`. This engine never called them - it
+// `@carbonenginejs/runtime/core/platform`. This engine never called them - it
 // only re-exported them - and an engine that owns a path policy is an engine
 // deciding its own configuration. It is handed a resolved path, and it fails
 // loudly on anything it cannot load, which the package validation below covers.

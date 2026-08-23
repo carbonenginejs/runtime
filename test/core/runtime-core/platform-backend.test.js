@@ -9,7 +9,7 @@ import {
     Tr2PlatformInfo,
     WEBGL2_PARAMETERS,
     WEBGPU_DEFAULT_LIMITS
-} from "../../../src/core/index.js";
+} from "../../../npm/dist/core/index.js";
 
 function fakeAdapter()
 {

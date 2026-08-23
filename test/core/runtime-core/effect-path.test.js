@@ -5,7 +5,7 @@ import {
     ResolveEffectPath,
     ShaderModelSuffix,
     Tr2PlatformInfo
-} from "../../../src/core/index.js";
+} from "../../../npm/dist/core/index.js";
 
 test("ResolveEffectPath substitutes the platform name Carbon substitutes", () =>
 {

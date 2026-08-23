@@ -10,7 +10,8 @@ Summary: Separates the available composition root from approved browser-runtime 
 The current package provides:
 
 - a GPU-free `CjsLibrary` composition root;
-- structural resource, SOF, audio, device, and input service slots;
+- nominal `CjsResMan`, `EveSOF`, and `CjsAudioMan` service slots plus opaque
+  device and input registry values;
 - a synchronous capability registry;
 - resource defaults and named request behaviors;
 - immediate and promise-facing resource and SOF facades;
@@ -30,10 +31,10 @@ easy-entry viewer preset.
 
 ## Approved composition direction
 
-Runtime-core remains a browser-safe composition and policy layer. It may
+Runtime core remains a browser-safe composition and policy layer. It may
 coordinate package-owned services, but it does not absorb their implementation:
 
-- runtime-resource retains loading, cache, preparation, and retention
+- the runtime resource layer retains loading, cache, preparation, and retention
   mechanics;
 - domain packages retain graph and media meaning;
 - engines retain device creation, capability proof, GPU realization,
@@ -67,7 +68,7 @@ can become effective again when capabilities change.
 
 ## Planned lifecycle and installers
 
-The next lifecycle layer will add small structural installers with explicit
+The next lifecycle layer will add small nominal installers with explicit
 dependencies. It will:
 
 1. install services without side effects;
@@ -162,16 +163,16 @@ values. And the authored initial value is the fallback when a stored value
 fails validation, which means a namespace must be able to name an external
 default rather than only a literal one.
 
-Runtime-core owns the storage, validation, and persistence of chosen values.
+Runtime core owns the storage, validation, and persistence of chosen values.
 The owning package continues to own interpretation and application; see the
-`runtime-audio` compatibility reference for the inventory itself.
+runtime audio compatibility reference for the inventory itself.
 
 ## Planned providers and convenience surface
 
-Runtime-core may expose named browser data providers for generated or deployed
+Runtime core may expose named browser data providers for generated or deployed
 documents. Providers retain provenance, validate their inputs, and are
 replaceable. Structured application data remains separate from
-runtime-resource byte and lifecycle ownership.
+runtime resource byte and lifecycle ownership.
 
 A later easy-entry preset may install the supported browser stack and an
 optional managed runner. It must use the same public service and policy
@@ -208,7 +209,7 @@ runtime dependency.
 2. Add deterministic installers, lifecycle cleanup, configuration snapshots,
    and synthetic two-instance tests.
 3. Add preload groups and balanced retention scopes through a reviewed
-   runtime-resource contract.
+   runtime resource contract.
 4. Add capability proofs, requested/effective preferences, and renderer
    selection policy.
 5. Add replaceable static/HTTP data providers and one static easy-entry demo.

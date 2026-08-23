@@ -8,7 +8,8 @@ Summary: Documentation home for the GPU-free composition root, service registry,
 ## Purpose
 
 `@carbonenginejs/runtime/core` provides `CjsLibrary`, a small composition
-boundary for caller-owned services and capabilities.
+boundary for caller-owned services and capabilities. Its dedicated service
+slots require the canonical `CjsResMan`, `EveSOF`, and `CjsAudioMan` identities.
 
 ```js
 import CjsLibrary from "@carbonenginejs/runtime/core";

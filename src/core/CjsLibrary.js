@@ -8,6 +8,9 @@
 
 import { SelectBackend } from "./platform/backendSelection.js";
 import { Tr2PlatformInfo } from "./platform/Tr2PlatformInfo.js";
+import { CjsResMan } from "#resource/CjsResMan";
+import { EveSOF } from "../sof/EveSOF.js";
+import { CjsAudioMan } from "#audio/CjsAudioMan";
 
 export const CjsServiceKey = Object.freeze({
     RESOURCE_MANAGER: "resourceManager",
@@ -155,15 +158,15 @@ export class CjsLibrary
         }
         if (Object.prototype.hasOwnProperty.call(options, "resMan"))
         {
-            ForwardRegistration(this.#resourceManager, "resMan", options.resMan);
+            this.#resourceManager.Register(options.resMan);
         }
         if (Object.prototype.hasOwnProperty.call(options, "sof"))
         {
-            ForwardRegistration(this.#spaceObjectFactory, "sof", options.sof);
+            this.#spaceObjectFactory.Register(options.sof);
         }
         if (Object.prototype.hasOwnProperty.call(options, "audio"))
         {
-            ForwardAudioLibrary(this.#audioManager, options.audio);
+            this.#audioManager.InstallLibrary(options.audio);
         }
         return this;
     }
@@ -258,7 +261,7 @@ export class CjsLibrary
         if (dataPath !== undefined)
         {
             const sof = this.#spaceObjectFactory;
-            if (!sof || typeof sof.LoadDataAsync !== "function")
+            if (!sof)
             {
                 const error = new Error("CjsLibrary cannot load SOF data without an async space object factory.");
                 error.code = "CJS_LIBRARY_SOF_MISSING";
@@ -275,8 +278,11 @@ export class CjsLibrary
      */
     Shutdown()
     {
-        this.#audioManager?.Disable?.();
-        this.#audioManager?.Detach?.();
+        if (this.#audioManager)
+        {
+            this.#audioManager.Disable();
+            this.#audioManager.Detach();
+        }
         // Switching backend is shutdown-and-reinitialize, never a hot swap, so
         // the commitment is released here and nowhere else.
         this.#backendSelection = null;
@@ -289,6 +295,7 @@ export class CjsLibrary
     SetService(key, service)
     {
         const name = normalizeServiceKey(key);
+        assertOwnedService(name, service);
         if (service === null || service === undefined)
         {
             this.#services.delete(name);
@@ -352,14 +359,6 @@ export class CjsLibrary
     /** Registers the browser audio-manager service. */
     SetAudioManager(audioManager)
     {
-        if (audioManager !== null
-            && audioManager !== undefined
-            && typeof audioManager.InstallLibrary !== "function")
-        {
-            throw new TypeError(
-                "CjsLibrary audioManager must provide InstallLibrary",
-            );
-        }
         return this.SetService(CjsServiceKey.AUDIO_MANAGER, audioManager);
     }
 
@@ -640,28 +639,28 @@ export class CjsLibrary
     GetResource(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
-        return ForwardCall(this.#resourceManager, "GetResource", request.path, request.options);
+        return this.#resourceManager.GetResource(request.path, request.options);
     }
 
     /** Resolves a request and obtains its decoded object synchronously. */
     GetObject(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
-        return ForwardCall(this.#resourceManager, "GetObject", request.path, request.options);
+        return this.#resourceManager.GetObject(request.path, request.options);
     }
 
     /** Resolves and asynchronously readies one resource handle. */
     FetchResource(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
-        return FetchResolvedResource(this.#resourceManager, request);
+        return this.#resourceManager.FetchResource(request.path, request.options);
     }
 
     /** Resolves and asynchronously obtains one decoded object. */
     FetchObject(path, options = {})
     {
         const request = this.ResolveResourceRequest(path, options);
-        return FetchResolvedObject(this.#resourceManager, request);
+        return this.#resourceManager.FetchObject(request.path, request.options);
     }
 
     /** Builds one plain SOF model-values graph through the configured factory. */
@@ -674,15 +673,7 @@ export class CjsLibrary
             error.code = "CJS_LIBRARY_SOF_MISSING";
             throw error;
         }
-        if (typeof sof.BuildValuesFromDNAAsync === "function")
-        {
-            return sof.BuildValuesFromDNAAsync(dna, options);
-        }
-        if (typeof sof.BuildValuesFromDNA === "function")
-        {
-            return Promise.resolve(sof.BuildValuesFromDNA(dna, options));
-        }
-        return ForwardCall(sof, "BuildValuesFromDNAAsync", dna, options);
+        return sof.BuildValuesFromDNAAsync(dna, options);
     }
 
     /** Fetches DNA, a resource, or a decoded object according to the request options. */
@@ -690,15 +681,7 @@ export class CjsLibrary
     {
         if (options.kind === "dna" || IsDNAString(value)) return this.FetchDNA(value, options);
         const request = this.ResolveResourceRequest(value, options);
-        if (this.#resourceManager && typeof this.#resourceManager.Fetch === "function")
-        {
-            return this.#resourceManager.Fetch(request.path, request.options);
-        }
-        return request.options.resource === true
-            || request.options.requirement !== undefined
-            || request.options.payload !== undefined
-            ? FetchResolvedResource(this.#resourceManager, request)
-            : FetchResolvedObject(this.#resourceManager, request);
+        return this.#resourceManager.Fetch(request.path, request.options);
     }
 
     /** Reports whether this composition root has been initialized. */
@@ -715,6 +698,23 @@ function normalizeServiceKey(key)
         throw new TypeError("CjsLibrary service key must be a non-empty string.");
     }
     return key;
+}
+
+function assertOwnedService(name, service)
+{
+    if (service === null || service === undefined) return;
+
+    const expected = name === CjsServiceKey.RESOURCE_MANAGER
+        ? CjsResMan
+        : name === CjsServiceKey.SPACE_OBJECT_FACTORY
+            ? EveSOF
+            : name === CjsServiceKey.AUDIO_MANAGER
+                ? CjsAudioMan
+                : null;
+    if (expected && !(service instanceof expected))
+    {
+        throw new TypeError(`CjsLibrary service ${JSON.stringify(name)} must be a ${expected.name}.`);
+    }
 }
 
 function normalizeCapabilityKey(key)
@@ -873,74 +873,6 @@ function RegisterBehaviorMap(library, behaviors)
             library.RegisterResourceBehavior(name, definition);
         }
     }
-}
-
-function ForwardRegistration(service, topic, options)
-{
-    if (!service || typeof service.Register !== "function")
-    {
-        const error = new Error(`CjsLibrary cannot register ${topic} options without a configured service.`);
-        error.code = "CJS_LIBRARY_SERVICE_MISSING";
-        error.topic = topic;
-        throw error;
-    }
-    service.Register(options);
-}
-
-function ForwardAudioLibrary(audioManager, library)
-{
-    if (!audioManager)
-    {
-        const error = new Error(
-            "CjsLibrary cannot register audio without an audio manager.",
-        );
-        error.code = "CJS_LIBRARY_SERVICE_MISSING";
-        error.topic = "audio";
-        throw error;
-    }
-    if (typeof audioManager.InstallLibrary !== "function")
-    {
-        const error = new Error(
-            "CjsLibrary audio manager does not provide InstallLibrary().",
-        );
-        error.code = "CJS_LIBRARY_REGISTER_UNSUPPORTED";
-        error.topic = "audio";
-        throw error;
-    }
-    audioManager.InstallLibrary(library);
-}
-
-function ForwardCall(service, method, ...args)
-{
-    if (!service || typeof service[method] !== "function")
-    {
-        const error = new Error(`CjsLibrary resource manager does not implement ${method}.`);
-        error.code = "CJS_LIBRARY_METHOD_MISSING";
-        error.method = method;
-        throw error;
-    }
-    return service[method](...args);
-}
-
-function FetchResolvedResource(resourceManager, request)
-{
-    if (resourceManager && typeof resourceManager.FetchResource === "function")
-    {
-        return resourceManager.FetchResource(request.path, request.options);
-    }
-    const resource = ForwardCall(resourceManager, "GetResource", request.path, request.options);
-    return resource && typeof resource.Ready === "function"
-        ? resource.Ready(request.options).then(() => resource)
-        : Promise.resolve(resource);
-}
-
-function FetchResolvedObject(resourceManager, request)
-{
-    if (resourceManager && typeof resourceManager.FetchObject === "function")
-    {
-        return resourceManager.FetchObject(request.path, request.options);
-    }
-    return Promise.resolve(ForwardCall(resourceManager, "GetObject", request.path, request.options));
 }
 
 function IsDNAString(value)

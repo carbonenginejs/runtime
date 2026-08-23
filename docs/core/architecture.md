@@ -7,9 +7,9 @@ Summary: Explains service ownership, capability registration, lifecycle state, a
 
 ## Composition boundary
 
-`CjsLibrary` holds structural service references, capability values, resource
-defaults, and named resource behaviors. It forwards operations to the
-configured service rather than importing or constructing a concrete engine.
+`CjsLibrary` holds exact package-owned service identities, capability values,
+resource defaults, and named resource behaviors. It forwards operations to the
+configured service rather than constructing a concrete engine.
 
 ```text
 application configuration
@@ -18,13 +18,14 @@ application configuration
     -> caller-owned resource or SOF service
 ```
 
-The library has dedicated resource-manager and space-object-factory slots plus
-a general string-keyed service registry. `CjsServiceKey` supplies conventional
-keys for resource, SOF, device, audio, and input services.
+The dedicated slots require `CjsResMan`, `EveSOF`, and `CjsAudioMan` instances.
+The general string-keyed registry also carries opaque device and input values
+because core does not call methods on those engine- and host-owned objects.
+`CjsServiceKey` supplies the conventional keys.
 
 ## Service ownership
 
-Runtime-core does not take ownership of service internals:
+Runtime core does not take ownership of service internals:
 
 - Resource services own source reads, formats, caching, queues, and resource
   readiness.
@@ -40,9 +41,9 @@ the corresponding configured service's `Register()` method.
 `Initialize(options)` applies library values and marks the library initialized.
 `InitializeAsync({ dataPath, ...options })` additionally asks the configured
 SOF service to load the supplied data path. `Shutdown()` disables and detaches
-the configured audio manager when those structural methods are present, then
-clears the initialized flag. It does not dispose caller-owned services or
-invent a general shutdown protocol for them.
+the configured `CjsAudioMan` through its required methods, then clears the
+initialized flag. It does not dispose caller-owned services or invent a general
+shutdown protocol for them.
 
 ## Request-policy boundary
 

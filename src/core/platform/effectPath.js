@@ -56,7 +56,7 @@ export function ShaderModelSuffix(quality = "high")
 
     if (!suffix)
     {
-        throw new RangeError(`runtime-core: unknown shader quality ${JSON.stringify(quality)}`);
+        throw new RangeError(`runtime/core: unknown shader quality ${JSON.stringify(quality)}`);
     }
 
     return suffix;
@@ -93,7 +93,7 @@ export function ResolveEffectPath(path, options = {})
     if (!platformName)
     {
         throw new Error(
-            `runtime-core: cannot resolve ${JSON.stringify(path)} without a platform name; `
+            `runtime/core: cannot resolve ${JSON.stringify(path)} without a platform name; `
             + "no backend is committed, so there is no compiled effect tree to resolve into"
         );
     }
