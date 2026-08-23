@@ -149,6 +149,7 @@
     "./input": "./src/input/index.js",
     "./engine/webgpu": "./src/engine/webgpu/index.js",
     "./core": "./src/core/index.js",
+    "./core/platform": "./src/core/platform/index.js",
     "./tools": "./src/tools/index.js"
   },
   "imports": {
@@ -237,6 +238,7 @@
     "#engine/webgpu": "./src/engine/webgpu/index.js",
     "#engine/webgpu/*": "./src/engine/webgpu/*.js",
     "#core": "./src/core/index.js",
+    "#core/platform": "./src/core/platform/index.js",
     "#core/*": "./src/core/*.js",
     "#tools": "./src/tools/index.js",
     "#tools/*": "./src/tools/*/index.js"

@@ -9,7 +9,9 @@ Trinity/EVE object graph, the standalone SOF data and graph builder, the
 complete headless-by-default audio domain, and the GPU-free character domain.
 The browser-facing input domain is also migrated and remains headless until a
 host is explicitly attached. The WebGPU engine is available only through its
-explicit engine subpath and remains inert unless a consumer imports it.
+explicit engine subpath and remains inert unless a consumer imports it. The
+GPU-free composition core is also maintained here and exposes its browser
+platform snapshots through a focused subpath.
 `@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
@@ -25,7 +27,7 @@ npm install
 
 Current validation checks the internal dependency graph, package maps, the
 migrated foundation, all resource/format implementations, Trinity, SOF, audio,
-character, and input:
+character, input, WebGPU, and the composition core:
 
 ```sh
 npm test
@@ -51,11 +53,13 @@ Input consumers use `@carbonenginejs/runtime/input` for host-window state,
 keyboard and pointer normalization, and browser cursor adapters.
 WebGPU consumers use `@carbonenginejs/runtime/engine/webgpu`; the default
 runtime import does not acquire a GPU or load the engine.
+Composition consumers use `@carbonenginejs/runtime/core`; browser platform and
+adapter snapshots are also available through `/core/platform`.
 
-The remaining core and tools imports become available only after their
-history-preserving migrations and the atomic consumer cutover. The WebGPU
-engine has no root re-export, and no WebGL placeholder is advertised before a
-maintained implementation exists.
+The remaining tools import becomes available only after its history-preserving
+migration and the atomic consumer cutover. The WebGPU engine has no root
+re-export, and no WebGL placeholder is advertised before a maintained
+implementation exists.
 
 ## Documentation
 
@@ -75,6 +79,8 @@ Input ownership and browser capability boundaries are documented under
 [docs/input](docs/input/README.md).
 WebGPU ownership, API, and verification are documented under
 [docs/engine/webgpu](docs/engine/webgpu/README.md).
+Core composition, platform snapshots, and request policy are documented under
+[docs/core](docs/core/README.md).
 
 ## License
 

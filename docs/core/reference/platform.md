@@ -1,7 +1,7 @@
 # Browser platform capabilities
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-core/platform`
+Scope: `@carbonenginejs/runtime/core/platform`
 Audience: Runtime and engine integrators
 Summary: Documents privacy-respecting browser screen, WebGPU adapter, and WebGL2 snapshots, and the device requirement a library resolves for an engine, without device ownership.
 
@@ -27,7 +27,7 @@ import {
     Tr2VideoDriver,
     WEBGL2_PARAMETERS,
     WEBGPU_DEFAULT_LIMITS
-} from "@carbonenginejs/runtime-core/platform";
+} from "@carbonenginejs/runtime/core/platform";
 ```
 
 The same values are currently re-exported from the package root.
@@ -195,7 +195,7 @@ selection.candidates;   // per-candidate outcome and rejection reason
 
 The four stages stay separated: a cheap support report, then the candidate's
 **own** asynchronous `Prove`, then application policy ranking, then commitment.
-Stage two must not move into this package — runtime-core records and applies a
+Stage two must not move into core — the core layer records and applies a
 result, and does not create a GPU device or context.
 
 A candidate may be a bare name, in which case the support report is the only

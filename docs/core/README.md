@@ -1,17 +1,17 @@
 # Package documentation
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-core`
+Scope: `@carbonenginejs/runtime/core`
 Audience: Runtime integrators and maintainers
 Summary: Documentation home for the GPU-free composition root, service registry, and request-policy boundary.
 
 ## Purpose
 
-`@carbonenginejs/runtime-core` provides `CjsLibrary`, a small composition
+`@carbonenginejs/runtime/core` provides `CjsLibrary`, a small composition
 boundary for caller-owned services and capabilities.
 
 ```js
-import CjsLibrary from "@carbonenginejs/runtime-core";
+import CjsLibrary from "@carbonenginejs/runtime/core";
 
 const library = new CjsLibrary({
     resourceManager,

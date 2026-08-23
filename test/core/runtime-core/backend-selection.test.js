@@ -6,7 +6,7 @@ import {
     CjsLibrary,
     SelectBackend,
     Tr2PlatformInfo
-} from "../src/index.js";
+} from "../../../src/core/index.js";
 
 function capabilities(values = {})
 {

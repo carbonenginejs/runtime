@@ -8,7 +8,7 @@ import {
     Tr2VideoAdapter,
     Tr2VideoAdapters,
     Tr2VideoDriver
-} from "../src/index.js";
+} from "../../../src/core/index.js";
 
 function fakeAdapter()
 {

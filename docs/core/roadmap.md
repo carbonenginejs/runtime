@@ -1,7 +1,7 @@
 # Runtime-core roadmap
 
 Status: Evolving
-Scope: Planned `@carbonenginejs/runtime-core` composition work
+Scope: Planned `@carbonenginejs/runtime/core` composition work
 Audience: Runtime integrators and maintainers
 Summary: Separates the available composition root from approved browser-runtime lifecycle, policy, provider, and convenience work.
 
@@ -97,7 +97,7 @@ must release every acquired scope exactly once, and initialization must not
 implicitly pin every resource it touches.
 
 This work requires a reviewed handle or scope contract from the resource
-manager; runtime-core must not infer private cache or lock internals.
+manager; the core layer must not infer private cache or lock internals.
 
 ## Capability proof and selection
 
@@ -193,9 +193,9 @@ graph and first real consumer prove them.
 
 ## Browser gate
 
-Every published runtime-core subpath must import in a modern browser without
-Node globals or polyfills. Browser APIs remain lazy or injected so data-only
-surfaces can load in workers and headless environments.
+Every published `@carbonenginejs/runtime/core` subpath must import in a modern
+browser without Node globals or polyfills. Browser APIs remain lazy or injected
+so data-only surfaces can load in workers and headless environments.
 
 The package will add a real-browser import gate before a public convenience
 preset. Node may continue to run tests and development tooling; it is not a

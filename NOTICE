@@ -106,6 +106,17 @@ it is not a runtime dependency and no Playwright source or browser binary is
 redistributed in this package. No acquired GPU packages, effect bytes,
 geometry, textures, or other game assets are included.
 
+Core composition capability
+---------------------------
+
+Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
+
+The GPU-free composition root, resource-request policy, browser capability
+snapshots, display-mode models, and adapter records under `src/core` are
+original CarbonEngineJS work. They compose caller-supplied services and report
+platform capabilities without creating a renderer device, loading resources,
+or acquiring browser state during module import.
+
 Resource capability
 -------------------
 

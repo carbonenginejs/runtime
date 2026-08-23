@@ -9,8 +9,6 @@
 import { SelectBackend } from "./platform/backendSelection.js";
 import { Tr2PlatformInfo } from "./platform/Tr2PlatformInfo.js";
 
-export * from "./platform/index.js";
-
 export const CjsServiceKey = Object.freeze({
     RESOURCE_MANAGER: "resourceManager",
     SPACE_OBJECT_FACTORY: "spaceObjectFactory",

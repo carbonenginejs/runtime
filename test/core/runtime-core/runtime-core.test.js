@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import CjsLibrary, { CjsLibrary as NamedCjsLibrary, CjsServiceKey } from "../src/index.js";
+import CjsLibrary, { CjsLibrary as NamedCjsLibrary, CjsServiceKey } from "../../../src/core/index.js";
 
 test("exports the JS-only CjsLibrary composition root", () =>
 {

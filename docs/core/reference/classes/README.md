@@ -1,7 +1,7 @@
 # Class catalog
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-core` maintained classes
+Scope: `@carbonenginejs/runtime/core` maintained classes
 Audience: Users, maintainers, and automated readers
 Summary: Provides one-sentence purpose descriptors for every maintained class in the core runtime package.
 
@@ -10,8 +10,8 @@ Summary: Provides one-sentence purpose descriptors for every maintained class in
 
 GPU-free CarbonEngineJS composition root and runtime service registry.
 
-- Export: `@carbonenginejs/runtime-core`
-- Source: `src/index.js`
+- Export: `@carbonenginejs/runtime/core`
+- Source: `src/core/CjsLibrary.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -20,8 +20,8 @@ GPU-free CarbonEngineJS composition root and runtime service registry.
 
 Privacy-safe WebGL2 capability snapshot, reported under its own keys rather than as the absence of WebGPU.
 
-- Export: `@carbonenginejs/runtime-core/platform`
-- Source: `src/platform/CjsWebGLProbe.js`
+- Export: `@carbonenginejs/runtime/core/platform`
+- Source: `src/core/platform/CjsWebGLProbe.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -30,8 +30,8 @@ Privacy-safe WebGL2 capability snapshot, reported under its own keys rather than
 
 Current browser Screen snapshot; browsers do not expose a native mode list.
 
-- Export: `@carbonenginejs/runtime-core/platform`
-- Source: `src/platform/Tr2DisplayMode.js`
+- Export: `@carbonenginejs/runtime/core/platform`
+- Source: `src/core/platform/Tr2DisplayMode.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -40,8 +40,8 @@ Current browser Screen snapshot; browsers do not expose a native mode list.
 
 Browser feature report replacing Carbon's compile-time platform macros.
 
-- Export: `@carbonenginejs/runtime-core/platform`
-- Source: `src/platform/Tr2PlatformInfo.js`
+- Export: `@carbonenginejs/runtime/core/platform`
+- Source: `src/core/platform/Tr2PlatformInfo.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -50,8 +50,8 @@ Browser feature report replacing Carbon's compile-time platform macros.
 
 Privacy-respecting browser snapshot of Carbon's `Tr2VideoAdapter`.
 
-- Export: `@carbonenginejs/runtime-core/platform`
-- Source: `src/platform/Tr2VideoAdapter.js`
+- Export: `@carbonenginejs/runtime/core/platform`
+- Source: `src/core/platform/Tr2VideoAdapter.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -60,8 +60,8 @@ Privacy-respecting browser snapshot of Carbon's `Tr2VideoAdapter`.
 
 Browser adapter/display facade for Carbon's `Tr2VideoAdapters` surface.
 
-- Export: `@carbonenginejs/runtime-core/platform`
-- Source: `src/platform/Tr2VideoAdapters.js`
+- Export: `@carbonenginejs/runtime/core/platform`
+- Source: `src/core/platform/Tr2VideoAdapters.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -70,7 +70,7 @@ Browser adapter/display facade for Carbon's `Tr2VideoAdapters` surface.
 
 Browser-visible subset of Carbon's `Tr2VideoDriver`.
 
-- Export: `@carbonenginejs/runtime-core/platform`
-- Source: `src/platform/Tr2VideoDriver.js`
+- Export: `@carbonenginejs/runtime/core/platform`
+- Source: `src/core/platform/Tr2VideoDriver.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept

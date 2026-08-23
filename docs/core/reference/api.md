@@ -1,7 +1,7 @@
 # API reference
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-core` package-root exports
+Scope: `@carbonenginejs/runtime/core` exports
 Audience: Runtime integrators
 Summary: Documents the composition library, service keys, lifecycle, registries, and resource facades.
 
@@ -11,11 +11,11 @@ Summary: Documents the composition library, service keys, lifecycle, registries,
 import CjsLibrary, {
     CjsLibrary as NamedLibrary,
     CjsServiceKey
-} from "@carbonenginejs/runtime-core";
+} from "@carbonenginejs/runtime/core";
 ```
 
 The browser platform classes are also exported from the root, with
-`@carbonenginejs/runtime-core/platform` provided as the focused entry point.
+`@carbonenginejs/runtime/core/platform` provided as the focused entry point.
 
 ## `CjsServiceKey`
 

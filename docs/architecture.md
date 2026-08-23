@@ -16,12 +16,12 @@ entry points have separately constrained surfaces.
 
 The repository currently contains the maintained global foundation, resource
 capability, Trinity/EVE object graph, standalone SOF builder, complete audio
-domain, GPU-free character domain, browser input domain, and WebGPU engine;
-inert entry points for the remaining accepted layers; the layer checker; a
-donor manifest; and the remaining unsquashed donor histories under temporary
-prefixes. The package is private, and WebGPU is the only public engine subpath.
+domain, GPU-free character domain, browser input domain, WebGPU engine, and
+GPU-free composition core; an inert tools entry point; the layer checker; a
+donor manifest; and the remaining unsquashed tools history under its temporary
+prefix. The package is private, and WebGPU remains an explicit engine subpath.
 
-## Planned dependency direction
+## Dependency direction
 
 ```text
 global/{utils,math,consts,contracts,schema,model}
@@ -58,6 +58,11 @@ sibling engine, and live GPU objects remain engine-owned.
 The maintained WebGPU implementation is exposed only through
 `@carbonenginejs/runtime/engine/webgpu`. No WebGL export or placeholder is
 added before a maintained WebGL implementation exists.
+
+The composition layer is exposed through `@carbonenginejs/runtime/core`.
+Browser platform and adapter snapshots are also available through
+`@carbonenginejs/runtime/core/platform`; importing either subpath remains
+headless and does not probe browser globals.
 
 ## Tools, demos, and generated source
 

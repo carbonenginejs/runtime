@@ -131,6 +131,7 @@ export class Tr2VideoAdapters
         return new Tr2VideoAdapters(options).Refresh();
     }
 
+    /** Returns the configured or browser-preferred canvas format. */
     #preferredCanvasFormat(gpu)
     {
         if (this.#options.preferredCanvasFormat) return this.#options.preferredCanvasFormat;
@@ -144,6 +145,7 @@ export class Tr2VideoAdapters
         }
     }
 
+    /** Reports whether a configured format collection accepts a format. */
     #supportsFormat(optionName, format)
     {
         const configured = this.#options[optionName];

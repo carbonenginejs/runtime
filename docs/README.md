@@ -15,9 +15,9 @@ the Trinity/EVE object graph, the standalone SOF builder and data model, the
 complete headless-by-default audio domain, and the GPU-free character domain.
 The browser host-window and input adaptation layer is also maintained here.
 The WebGPU renderer is maintained as an explicit, opt-in engine subpath.
-Remaining donor implementations
-stay under temporary prefixes until each reviewed source family is moved into
-its final layer.
+The GPU-free composition core and its browser platform snapshots are maintained
+here as well. The remaining tools donor stays under its temporary prefix until
+its reviewed source families are moved into their final layers.
 
 ## Use this package when
 
@@ -51,10 +51,11 @@ npm test
 ```
 
 The global foundation, resource capability, Trinity graph, SOF layer, audio
-domain, character domain, and input layer are now maintained source in this repository.
+domain, character domain, input layer, WebGPU engine, and composition core are
+now maintained source in this repository.
 Foundation, lifecycle, format, FSD, shader-translation, resource, Trinity, SOF,
-audio, character, input, and WebGPU tests run as part of the combined suite. Other runtime
-layers remain inert until their reviewed donor moves land.
+audio, character, input, WebGPU, and core tests run as part of the combined
+suite. The tools layer remains inert until its reviewed donor move lands.
 
 ## Documentation map
 
@@ -67,6 +68,7 @@ layers remain inert until their reviewed donor moves land.
 - [Character documents and native graph](character/README.md)
 - [Input and browser host adapters](input/README.md)
 - [WebGPU engine](engine/webgpu/README.md)
+- [Core composition and platform capabilities](core/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

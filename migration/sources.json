@@ -156,6 +156,19 @@
       "commit": "0280c37c5c0aefd65a2aa34c36fcfd007b81ff6f",
       "temporaryPrefix": ".imports/runtime-core",
       "destination": "src/core",
+      "sourceMoved": true,
+      "repositoryOnly": [
+        { "source": "test/**", "destination": "test/core/runtime-core/**" }
+      ],
+      "relocated": [
+        { "source": "docs/**", "destination": "docs/core/**" }
+      ],
+      "excluded": [
+        {
+          "paths": [ ".gitignore", ".npmrc", "package.json", "README.md", "LICENSE", "NOTICE", "test/.gitkeep" ],
+          "reason": "Combined packaging, repository metadata, legal files, and documentation navigation supersede the donor copies. The donor notice is merged into the combined NOTICE."
+        }
+      ],
       "baseline": { "command": "npm test", "passed": 51, "skipped": 0, "failed": 0 }
     },
     {

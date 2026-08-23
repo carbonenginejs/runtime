@@ -17,9 +17,11 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
     Object.entries(PlatformStaticCap).map(([ name, value ]) => [ value, name ])
 ));
 
-// Ported from CarbonEngine (MIT, (c) 2026 CCP Games) - https://github.com/carbonengine/trinity
-//   trinity/Tr2PlatformInfo.h, trinity/Tr2PlatformInfo.cpp
-//   trinity/trinityal/include/TrinityALForward.h:50-90 (the platform macros)
+// Source: carbonengine/trinity/Tr2PlatformInfo.h
+// Source: carbonengine/trinity/Tr2PlatformInfo.cpp
+// Source: carbonengine/trinity/trinityal/include/TrinityALForward.h
+// CarbonEngine MIT adaptation; TrinityALForward.h:50-90 defines the platform
+// macros adapted below.
 //
 // Carbon's version is ENTIRELY COMPILE-TIME: every accessor returns a
 // preprocessor macro of whichever backend was linked, and there is no probing

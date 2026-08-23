@@ -1,7 +1,7 @@
 # Composing a library
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-core` library setup
+Scope: `@carbonenginejs/runtime/core` library setup
 Audience: Runtime integrators
 Summary: Shows service injection, registration forwarding, capability setup, initialization, and fetch workflows.
 
@@ -10,7 +10,7 @@ Summary: Shows service injection, registration forwarding, capability setup, ini
 ```js
 import CjsLibrary, {
     CjsServiceKey
-} from "@carbonenginejs/runtime-core";
+} from "@carbonenginejs/runtime/core";
 
 const library = new CjsLibrary({
     resourceManager,

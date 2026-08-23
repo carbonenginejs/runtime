@@ -1,7 +1,7 @@
 # Architecture
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime-core` composition boundaries
+Scope: `@carbonenginejs/runtime/core` composition boundaries
 Audience: Runtime integrators and maintainers
 Summary: Explains service ownership, capability registration, lifecycle state, and platform probing.
 
