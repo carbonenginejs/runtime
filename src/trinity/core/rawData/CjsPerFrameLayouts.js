@@ -37,7 +37,7 @@ import { IDENTITY, Types, ZERO4, buildLayouts, toRawLayout } from "./constantLay
  * field is `Sun.DirWorld`. The catalog resolves flat float offsets rather than
  * nested structs, but the NAME keeps the dot: collapsing it to `SunDirWorld`
  * invents an identifier Carbon does not have, and it disagreed with the dotted
- * form `engine-webgpu`'s bounded serializer already uses for the same field —
+ * form the WebGPU harness's bounded serializer already uses for the same field —
  * which surfaces as a bare `unknown field` from `RawData.Set` and costs real
  * time to trace.
  *

@@ -88,6 +88,24 @@ Pointer Lock, and Fullscreen adapters are original CarbonEngineJS work. No
 acquired assets, decoded datasets, or game data are redistributed with the
 input capability.
 
+WebGPU capability
+-----------------
+
+Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
+
+The WebGPU device, descriptor, resource, pipeline, binding, and draw
+realization under `src/engine/webgpu` is original CarbonEngineJS work. The
+adjacent-batch grouping behavior in `core/batchGroups.js` adapts the documented
+CarbonEngine `Tr2RenderContextBase::RenderBatchGroup` and `CanBeBinned`
+semantics; its exact source paths and deliberate WebGPU deviations are recorded
+in that file.
+
+The repository-only WebGPU verification harness uses Microsoft Playwright as a
+development dependency. Playwright is licensed under the Apache License 2.0;
+it is not a runtime dependency and no Playwright source or browser binary is
+redistributed in this package. No acquired GPU packages, effect bytes,
+geometry, textures, or other game assets are included.
+
 Resource capability
 -------------------
 

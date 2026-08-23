@@ -8,7 +8,8 @@ maintained global foundation, the resource/format capability, the migrated
 Trinity/EVE object graph, the standalone SOF data and graph builder, the
 complete headless-by-default audio domain, and the GPU-free character domain.
 The browser-facing input domain is also migrated and remains headless until a
-host is explicitly attached.
+host is explicitly attached. The WebGPU engine is available only through its
+explicit engine subpath and remains inert unless a consumer imports it.
 `@carbonenginejs/tools-core` remains a separate Node.js package.
 
 ## Install
@@ -48,11 +49,12 @@ library building and reviewed generated source are also exposed through
 `/character/library-builder` and `/character/generated`.
 Input consumers use `@carbonenginejs/runtime/input` for host-window state,
 keyboard and pointer normalization, and browser cursor adapters.
+WebGPU consumers use `@carbonenginejs/runtime/engine/webgpu`; the default
+runtime import does not acquire a GPU or load the engine.
 
-The remaining core, tools, and WebGPU imports become
-available only after their
+The remaining core and tools imports become available only after their
 history-preserving migrations and the atomic consumer cutover. The WebGPU
-engine is not exported yet, and no WebGL placeholder is advertised before a
+engine has no root re-export, and no WebGL placeholder is advertised before a
 maintained implementation exists.
 
 ## Documentation
@@ -71,6 +73,8 @@ Character documents, native ownership, and renderer adoption gates are
 documented under [docs/character](docs/character/README.md).
 Input ownership and browser capability boundaries are documented under
 [docs/input](docs/input/README.md).
+WebGPU ownership, API, and verification are documented under
+[docs/engine/webgpu](docs/engine/webgpu/README.md).
 
 ## License
 

@@ -147,6 +147,7 @@
     "./character/generated/*": "./src/character/generated/*/index.js",
     "./character/library-builder": "./src/character/library-builder/index.js",
     "./input": "./src/input/index.js",
+    "./engine/webgpu": "./src/engine/webgpu/index.js",
     "./core": "./src/core/index.js",
     "./tools": "./src/tools/index.js"
   },
@@ -264,6 +265,8 @@
     "proof:audio:decorators": "node scripts/audio/proof_decorator_transform.js",
     "proof:character:decorators": "node scripts/character/proof_decorator_transform.js",
     "catalog:character": "node scripts/character/generate_class_catalog.js",
+    "test:webgpu": "node scripts/engine/webgpu/run-webgpu-harness.js",
+    "test:webgpu:required": "node scripts/engine/webgpu/run-webgpu-harness.js --required",
     "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test"
   },
   "engines": {
@@ -280,6 +283,7 @@
     "@babel/plugin-proposal-decorators": "^7.29.7",
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-json": "^6.1.0",
+    "playwright": "^1.61.1",
     "rollup": "^4.62.2"
   },
   "repository": {

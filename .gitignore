@@ -8,5 +8,6 @@ CLAUDE.md
 .claude/
 .codex/
 .scratch/
+/.cache/
 *.log
 *.tgz

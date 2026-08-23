@@ -14,6 +14,7 @@ metadata, the maintained global foundation, the resource/format capability,
 the Trinity/EVE object graph, the standalone SOF builder and data model, the
 complete headless-by-default audio domain, and the GPU-free character domain.
 The browser host-window and input adaptation layer is also maintained here.
+The WebGPU renderer is maintained as an explicit, opt-in engine subpath.
 Remaining donor implementations
 stay under temporary prefixes until each reviewed source family is moved into
 its final layer.
@@ -52,7 +53,7 @@ npm test
 The global foundation, resource capability, Trinity graph, SOF layer, audio
 domain, character domain, and input layer are now maintained source in this repository.
 Foundation, lifecycle, format, FSD, shader-translation, resource, Trinity, SOF,
-audio, character, and input tests run as part of the combined suite. Other runtime
+audio, character, input, and WebGPU tests run as part of the combined suite. Other runtime
 layers remain inert until their reviewed donor moves land.
 
 ## Documentation map
@@ -65,6 +66,7 @@ layers remain inert until their reviewed donor moves land.
 - [Audio graph and Web Audio realization](audio/README.md)
 - [Character documents and native graph](character/README.md)
 - [Input and browser host adapters](input/README.md)
+- [WebGPU engine](engine/webgpu/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

@@ -112,6 +112,41 @@
       "commit": "513bef46fb3c02f37e59f683dff6902cf795a6fa",
       "temporaryPrefix": ".imports/engine-webgpu",
       "destination": "src/engine/webgpu",
+      "sourceMoved": true,
+      "repositoryOnly": [
+        { "source": "test/**", "destination": "test/engine/webgpu/**" },
+        { "source": "harness/webgpu/**", "destination": "test/engine/webgpu/harness/**" },
+        { "source": "scripts/run-webgpu-harness.js", "destination": "scripts/engine/webgpu/run-webgpu-harness.js" },
+        {
+          "source": [
+            "src/core/bodySetPipelines.js",
+            "src/core/matrixPipelines.js",
+            "src/core/packageDraw.js"
+          ],
+          "destination": "test/engine/webgpu/harness/support/**",
+          "reason": "These helpers have no production consumer; they build repository-only qualification inputs for tests and the browser harness."
+        }
+      ],
+      "excluded": [
+        {
+          "paths": [
+            ".gitignore",
+            ".npmrc",
+            "package.json",
+            "package-lock.json",
+            "LICENSE",
+            "NOTICE",
+            "README.md",
+            "WEBGPU-HARNESS.md",
+            "test/.gitkeep"
+          ],
+          "reason": "Combined packaging, repository metadata, legal files, and documentation navigation supersede the donor copies; the empty test placeholder is not source."
+        },
+        {
+          "paths": [ "scripts/prepare-hull-assets.js" ],
+          "reason": "Acquisition-aware downloading and artifact preparation belong to tools-core, not the browser-safe runtime."
+        }
+      ],
       "baseline": { "command": "npm test", "passed": 239, "skipped": 2, "failed": 0 }
     },
     {
