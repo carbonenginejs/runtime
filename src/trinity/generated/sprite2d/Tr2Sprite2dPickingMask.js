@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2Sprite2dPickingMask (sprite2d) - generated from schema shapeHash d6cf4584.... */
-@type.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d" })
+/** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
+@type.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
 export class Tr2Sprite2dPickingMask extends CjsModel
 {
 

@@ -4,7 +4,7 @@ import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2RenderContext } from "../../core/context/Tr2RenderContext.js";
 
-/** Tr2SamplerOverride (shader) - generated from schema shapeHash b3478476.... */
+/** Overrides one named sampler's address, filtering, LOD-bias, mip, and anisotropy settings. */
 @type.define({ className: "Tr2SamplerOverride", family: "shader" })
 export class Tr2SamplerOverride extends CjsModel
 {

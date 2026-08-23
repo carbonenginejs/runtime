@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
-/** Tr2PPSignalLossEffect (postProcess) - generated from schema shapeHash 87c0f0bf.... */
+/** Carries the strength of a display-gated post-process signal-loss effect. */
 @type.define({ className: "Tr2PPSignalLossEffect", family: "postProcess" })
 export class Tr2PPSignalLossEffect extends Tr2PPEffect
 {

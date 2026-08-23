@@ -3,8 +3,8 @@
 import { type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 
-/** Tr2TexturedSpriteObject (sprite2d) - generated from schema shapeHash 514b2638.... */
-@type.define({ className: "Tr2TexturedSpriteObject", family: "sprite2d" })
+/** Adds primary and secondary texture bindings to the shared 2D sprite render state. */
+@type.define({ className: "Tr2TexturedSpriteObject", family: "sprite2d", purpose: "Adds primary and secondary texture bindings to the shared 2D sprite render state." })
 export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {
 

@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2SBitWrapper (font) - generated from schema shapeHash c0b95eac.... */
-@type.define({ className: "Tr2SBitWrapper", family: "font" })
+/** Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points. */
+@type.define({ className: "Tr2SBitWrapper", family: "font", purpose: "Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points." })
 export class Tr2SBitWrapper extends CjsModel
 {
 

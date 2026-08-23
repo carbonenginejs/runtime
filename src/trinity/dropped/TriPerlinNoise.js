@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriPerlinNoise (include) - generated from schema shapeHash a520344a.... */
+/** Retains the incomplete scanner model for Carbon's seeded-noise utility, whose runtime behavior lives in maintained math functions. */
 @type.define({ className: "TriPerlinNoise", family: "include" })
 export class TriPerlinNoise extends CjsModel
 {

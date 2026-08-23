@@ -5,8 +5,8 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** Tr2ReflectionProbe (trinityCore) - generated from schema shapeHash 75d5a20a.... */
-@type.define({ className: "Tr2ReflectionProbe", family: "trinityCore" })
+/** Carries periodic reflection-capture textures, position locking, resolution, and backlight treatment. */
+@type.define({ className: "Tr2ReflectionProbe", family: "trinityCore", purpose: "Carries periodic reflection-capture textures, position locking, resolution, and backlight treatment." })
 export class Tr2ReflectionProbe extends CjsModel
 {
 

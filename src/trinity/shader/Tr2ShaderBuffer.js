@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2ShaderBuffer (shader) - generated from schema shapeHash 977c582f.... */
+/** Owns a detached byte payload for one shader stage while leaving device binding to the engine. */
 @type.define({ className: "Tr2ShaderBuffer", family: "shader" })
 export class Tr2ShaderBuffer extends CjsModel
 {

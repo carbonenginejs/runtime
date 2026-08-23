@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveOccluder (eve/effect) - generated from schema shapeHash fe89b1c5.... */
-@type.define({ className: "EveOccluder", family: "eve/effect" })
+/** Groups sprite occlusion elements that can be displayed as one named EVE scene effect. */
+@type.define({ className: "EveOccluder", family: "eve/effect", purpose: "Groups sprite occlusion elements that can be displayed as one named EVE scene effect." })
 export class EveOccluder extends CjsModel
 {
 

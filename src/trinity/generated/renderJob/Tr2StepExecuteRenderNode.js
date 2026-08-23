@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { TriRenderStep } from "../../renderJob/step/TriRenderStep.js";
 
-/** Tr2StepExecuteRenderNode (renderJob) - generated from schema shapeHash 94e1bbf3.... */
-@type.define({ className: "Tr2StepExecuteRenderNode", family: "renderJob" })
+/** Carries configuration for a render-job step that executes one render node into an optional destination target and clears it on failure. */
+@type.define({ className: "Tr2StepExecuteRenderNode", family: "renderJob", purpose: "Carries configuration for a render-job step that executes one render node into an optional destination target and clears it on failure." })
 export class Tr2StepExecuteRenderNode extends TriRenderStep
 {
 

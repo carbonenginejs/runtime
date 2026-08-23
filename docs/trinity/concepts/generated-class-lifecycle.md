@@ -19,7 +19,9 @@ edited class a stable, human-readable source tree.
 1. `@carbonenginejs/tools-core` scans Carbon declarations and compiles the
    reviewed schema.
 2. The class emitter produces schema-shaped JavaScript in its tooling-owned
-   output corpus.
+   output corpus. A reviewed family-qualified tools-core registry supplies the
+   optional class purpose carried by the scratch schema, generated JSDoc, and
+   `@type.define` metadata.
 3. Reviewed generated source is installed into `src/trinity/generated`;
    the runtime does not depend on the tooling workspace.
 4. Runtime work verifies portable behavior against the public source,
@@ -75,7 +77,8 @@ report them. Generated code must not silently invent device, resource,
 filesystem, or native behavior.
 
 Generated output is deterministic and should not be hand-edited as a
-substitute for changing its owning schema or emitter. Runtime-specific
+substitute for changing its owning schema, reviewed purpose registry, or
+emitter. Runtime-specific
 implementations belong in the maintained tree before the manual edit is made.
 
 `src/trinity/generated/summary.json` is the receipt from an earlier whole-tree install,
@@ -126,15 +129,17 @@ is actually deleted, the same record changes to removed status and receives
 its removal date. This metadata does not create a fourth source state:
 generated, maintained, and dropped remain mutually exclusive.
 
-## Planned class descriptors
+## Class descriptors
 
-The schema emitter is planned to carry a reviewed purpose, visibility, kind,
-source path, and public export for each generated class. That metadata will
-produce deterministic class-purpose catalogs without guessing responsibility
-from a class name.
+The schema emitter carries each reviewed generated-class purpose from
+tools-core's family-qualified registry into the scratch class schema. The class
+emitter writes that purpose into class JSDoc and `@type.define`, and CjsSchema
+retains it as class-specific metadata rather than inheriting it.
 
-The catalog becomes part of the documentation validation gate after the
-shared checker can exclude the deliberate dropped quarantine.
+Visibility, kind, source path, and public export remain consumer-owned catalog
+metadata because they describe the installed package graph, not Carbon's class
+schema. The documentation checker validates the complete catalog, including
+the deliberate dropped quarantine, against the installed source tree.
 
 ## Related documentation
 

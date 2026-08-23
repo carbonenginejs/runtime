@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveCloudEditableVolume (eve/child) - generated from schema shapeHash 24151bad.... */
-@type.define({ className: "EveCloudEditableVolume", family: "eve/child" })
+/** Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume. */
+@type.define({ className: "EveCloudEditableVolume", family: "eve/child", purpose: "Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume." })
 export class EveCloudEditableVolume extends CjsModel
 {
 

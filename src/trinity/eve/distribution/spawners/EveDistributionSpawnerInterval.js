@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveDistributionSpawnerInterval (eve/distribution/spawners) - generated from schema shapeHash b44c191b.... */
+/** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
 @type.define({ className: "EveDistributionSpawnerInterval", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerInterval extends CjsModel
 {

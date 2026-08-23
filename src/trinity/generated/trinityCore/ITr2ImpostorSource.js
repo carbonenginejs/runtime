@@ -4,8 +4,8 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** ITr2ImpostorSource (trinityCore) - generated from schema shapeHash f693d201.... */
-@type.define({ className: "ITr2ImpostorSource", family: "trinityCore" })
+/** Carries the view and up directions required to capture an object into an impostor atlas. */
+@type.define({ className: "ITr2ImpostorSource", family: "trinityCore", purpose: "Carries the view and up directions required to capture an object into an impostor atlas." })
 export class ITr2ImpostorSource extends CjsModel
 {
 

@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** CASConstants (postProcess) - generated from schema shapeHash af13b248.... */
+/** Retains the quarantined native CAS sharpening constants that renderer code replaces with packed numeric lanes. */
 @type.define({ className: "CASConstants", family: "postProcess" })
 export class CASConstants extends CjsModel
 {

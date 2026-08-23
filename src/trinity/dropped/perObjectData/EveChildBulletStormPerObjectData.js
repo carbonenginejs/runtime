@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 
-/** EveChildBulletStormPerObjectData (eve/perObjectData) - generated from schema shapeHash 49346bb7.... */
+/** Represents the retired bullet-storm payload for its world transform, effect metadata, and ten target positions now written through RawData. */
 @type.define({ className: "EveChildBulletStormPerObjectData", family: "eve/perObjectData" })
 export class EveChildBulletStormPerObjectData extends CjsModel
 {

@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
 import { vec4 } from "#math/vec4";
 
-/** Tr2Sprite2dD3DVertex (sprite2d) - generated from schema shapeHash 6e0618c5.... */
+/** Extends a Sprite2D vertex with the clip, glow, transform, blend, tiling, and outline data consumed by the renderer. */
 @type.define({ className: "Tr2Sprite2dD3DVertex", family: "sprite2d" })
 export class Tr2Sprite2dD3DVertex extends Tr2Sprite2dVertexBase
 {

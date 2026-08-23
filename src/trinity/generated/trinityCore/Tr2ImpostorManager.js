@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2ImpostorManager (trinityCore) - generated from schema shapeHash a983f61c.... */
-@type.define({ className: "Tr2ImpostorManager", family: "trinityCore" })
+/** Carries an impostor atlas, tile dimensions, capture effect, and per-frame update budget. */
+@type.define({ className: "Tr2ImpostorManager", family: "trinityCore", purpose: "Carries an impostor atlas, tile dimensions, capture effect, and per-frame update budget." })
 export class Tr2ImpostorManager extends CjsModel
 {
 

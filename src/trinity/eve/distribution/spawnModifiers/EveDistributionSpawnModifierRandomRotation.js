@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed, setYawPitchRoll } from "../../CjsDistributionRandom.js";
 
-/** EveDistributionSpawnModifierRandomRotation (eve/distribution/spawnModifiers) - generated from schema shapeHash 18d6f646.... */
+/** Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll. */
 @type.define({ className: "EveDistributionSpawnModifierRandomRotation", family: "eve/distribution/spawnModifiers" })
 export class EveDistributionSpawnModifierRandomRotation extends CjsModel
 {

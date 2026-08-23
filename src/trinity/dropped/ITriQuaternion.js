@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** ITriQuaternion (include) - generated from schema shapeHash bde34c69.... */
+/** Retains the retired Blue/Python quaternion interface superseded by runtime quat values and schema quaternion fields. */
 @type.define({ className: "ITriQuaternion", family: "include" })
 export class ITriQuaternion extends CjsModel
 {

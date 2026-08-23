@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2AtlasTexture (trinityCore) - generated from schema shapeHash 483a9389.... */
-@type.define({ className: "Tr2AtlasTexture", family: "trinityCore" })
+/** Describes one named subtexture's resource path, pixel rectangle, and owning atlas dimensions. */
+@type.define({ className: "Tr2AtlasTexture", family: "trinityCore", purpose: "Describes one named subtexture's resource path, pixel rectangle, and owning atlas dimensions." })
 export class Tr2AtlasTexture extends CjsModel
 {
 

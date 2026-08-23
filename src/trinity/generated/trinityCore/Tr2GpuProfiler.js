@@ -3,8 +3,8 @@
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2GpuProfiler (trinityCore) - generated from schema shapeHash 4a61268c.... */
-@type.define({ className: "Tr2GpuProfiler", family: "trinityCore" })
+/** Carries nested GPU timing zones, frame fences, messages, and capture state for one profiling owner. */
+@type.define({ className: "Tr2GpuProfiler", family: "trinityCore", purpose: "Carries nested GPU timing zones, frame fences, messages, and capture state for one profiling owner." })
 export class Tr2GpuProfiler extends CjsModel
 {
 

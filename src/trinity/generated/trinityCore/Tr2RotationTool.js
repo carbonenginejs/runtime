@@ -4,8 +4,8 @@ import { io, type } from "#schema";
 import { Tr2ManipulationTool } from "../../core/tool/Tr2ManipulationTool.js";
 import { quat } from "#math/quat";
 
-/** Tr2RotationTool (trinityCore) - generated from schema shapeHash 5ff9cfe6.... */
-@type.define({ className: "Tr2RotationTool", family: "trinityCore" })
+/** Extends the manipulation tool with quaternion rotation state and angular precision. */
+@type.define({ className: "Tr2RotationTool", family: "trinityCore", purpose: "Extends the manipulation tool with quaternion rotation state and angular precision." })
 export class Tr2RotationTool extends Tr2ManipulationTool
 {
 

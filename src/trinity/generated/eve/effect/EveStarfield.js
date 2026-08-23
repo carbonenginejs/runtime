@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveStarfield (eve/effect) - generated from schema shapeHash f4ffb492.... */
-@type.define({ className: "EveStarfield", family: "eve/effect" })
+/** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
+@type.define({ className: "EveStarfield", family: "eve/effect", purpose: "Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls." })
 export class EveStarfield extends CjsModel
 {
 

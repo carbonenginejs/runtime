@@ -4,8 +4,8 @@ import { io, type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { vec4 } from "#math/vec4";
 
-/** Tr2Sprite2dArc (sprite2d) - generated from schema shapeHash 946e291d.... */
-@type.define({ className: "Tr2Sprite2dArc", family: "sprite2d" })
+/** Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures. */
+@type.define({ className: "Tr2Sprite2dArc", family: "sprite2d", purpose: "Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures." })
 export class Tr2Sprite2dArc extends Tr2SpriteObject
 {
 

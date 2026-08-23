@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2DebugColor (include) - generated from schema shapeHash 9ab855e5.... */
+/** Retains the native debug-renderer color identity that engine adapters replace with plain value records. */
 @type.define({ className: "Tr2DebugColor", family: "include" })
 export class Tr2DebugColor extends CjsModel
 {

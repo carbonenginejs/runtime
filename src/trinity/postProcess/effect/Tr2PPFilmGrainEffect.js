@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
-/** Tr2PPFilmGrainEffect (postProcess) - generated from schema shapeHash e2a61b5a.... */
+/** Carries the density, size, contrast, color, brightness, and intensity settings for post-process film grain. */
 @type.define({ className: "Tr2PPFilmGrainEffect", family: "postProcess" })
 export class Tr2PPFilmGrainEffect extends Tr2PPEffect
 {

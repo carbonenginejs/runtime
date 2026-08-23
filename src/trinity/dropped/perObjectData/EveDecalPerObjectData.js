@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveDecalPerObjectData (eve/perObjectData) - generated from schema shapeHash 8d1f094d.... */
+/** Represents the retired decal wrapper that paired vertex- and pixel-stage payloads before producers returned RawData stage records. */
 @type.define({ className: "EveDecalPerObjectData", family: "eve/perObjectData" })
 export class EveDecalPerObjectData extends CjsModel
 {

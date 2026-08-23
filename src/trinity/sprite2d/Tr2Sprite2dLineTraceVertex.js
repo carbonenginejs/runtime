@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
-/** Tr2Sprite2dLineTraceVertex (sprite2d) - generated from schema shapeHash 9d769463.... */
+/** Stores one editable Sprite2D line-trace point's position, color, and optional name. */
 @type.define({ className: "Tr2Sprite2dLineTraceVertex", family: "sprite2d" })
 export class Tr2Sprite2dLineTraceVertex extends CjsModel
 {

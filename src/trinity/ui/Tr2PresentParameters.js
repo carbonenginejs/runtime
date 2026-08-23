@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2PresentParameters (ui) - generated from schema shapeHash 0f696098.... */
+/** Carries the software-device, back-buffer size, and windowed-mode values used when creating a rendering device. */
 @type.define({ className: "Tr2PresentParameters", family: "ui" })
 export class Tr2PresentParameters extends CjsModel
 {

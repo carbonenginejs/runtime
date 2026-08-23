@@ -4,8 +4,8 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { PixelFormat } from "#consts/render-context";
 
-/** Tr2StreamingBitmapSaver (trinityCore) - generated from schema shapeHash 95ea7d15.... */
-@type.define({ className: "Tr2StreamingBitmapSaver", family: "trinityCore" })
+/** Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points. */
+@type.define({ className: "Tr2StreamingBitmapSaver", family: "trinityCore", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
 export class Tr2StreamingBitmapSaver extends CjsModel
 {
 

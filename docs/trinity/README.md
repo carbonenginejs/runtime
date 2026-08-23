@@ -80,11 +80,16 @@ family. The root entry aggregates the complete public runtime.
 - [Eve runtime behavior](concepts/eve-runtime-behavior.md)
 - [Generated-class lifecycle](concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](reference/implementation-status.md)
+- [Controller and curve classes](reference/classes/curves-and-utilities.md)
 - [Eve runtime classes](reference/classes/eve-runtime.md)
+- [Generated schema-intake classes](reference/classes/generated.md)
+- [Particle classes and emitter contract](reference/classes/particle.md)
 - [Post-process classes](reference/classes/post-process.md)
+- [Render-job classes](reference/classes/render-job.md)
 - [Sprite2D classes](reference/classes/sprite2d.md)
-- [Trinity core classes](reference/classes/trinity-core.md)
+- [Trinity core, shader, and device classes](reference/classes/trinity-core.md)
+- [Dropped identity quarantine](reference/classes/dropped.md)
 
-A complete class-purpose catalog is planned after generated classes carry
-reviewed descriptor metadata and the shared documentation checker supports the
-package's deliberate dropped-class quarantine.
+The class-purpose catalog covers every current Trinity class. Generated classes
+remain generator-owned schema intake. Dropped identities are documented only
+for provenance and quarantine ownership; they are not supported package APIs.

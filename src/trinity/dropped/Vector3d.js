@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Vector3d (utilities) - generated from schema shapeHash 84b4dfee.... */
+/** Retains the native double-precision three-component value identity represented at runtime by numeric arrays or `Float64Array` values. */
 @type.define({ className: "Vector3d", family: "utilities" })
 export class Vector3d extends CjsModel
 {

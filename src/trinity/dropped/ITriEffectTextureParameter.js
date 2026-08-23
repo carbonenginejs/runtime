@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** ITriEffectTextureParameter (include) - generated from schema shapeHash 8e6f7285.... */
+/** Retains the pure texture-parameter interface identity superseded by maintained concrete texture-parameter graph classes. */
 @type.define({ className: "ITriEffectTextureParameter", family: "include" })
 export class ITriEffectTextureParameter extends CjsModel
 {

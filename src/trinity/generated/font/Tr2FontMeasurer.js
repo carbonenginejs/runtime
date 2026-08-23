@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2FontMeasurer (font) - generated from schema shapeHash 55a0402b.... */
-@type.define({ className: "Tr2FontMeasurer", family: "font" })
+/** Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text. */
+@type.define({ className: "Tr2FontMeasurer", family: "font", purpose: "Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text." })
 export class Tr2FontMeasurer extends CjsModel
 {
 

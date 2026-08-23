@@ -4,8 +4,8 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 
-/** Tr2RaytracingGeometry (raytracing) - generated from schema shapeHash f1bf3788.... */
-@type.define({ className: "Tr2RaytracingGeometry", family: "raytracing" })
+/** Collects mesh-area, material, transforms, skinning buffers, bindless resources, and acceleration-structure state for ray-traced geometry. */
+@type.define({ className: "Tr2RaytracingGeometry", family: "raytracing", purpose: "Collects mesh-area, material, transforms, skinning buffers, bindless resources, and acceleration-structure state for ray-traced geometry." })
 export class Tr2RaytracingGeometry extends CjsModel
 {
 

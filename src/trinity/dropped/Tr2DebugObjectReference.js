@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2DebugObjectReference (include) - generated from schema shapeHash e3a83946.... */
+/** Retains the native debug-renderer reference identity that engine adapters replace with plain reference records. */
 @type.define({ className: "Tr2DebugObjectReference", family: "include" })
 export class Tr2DebugObjectReference extends CjsModel
 {

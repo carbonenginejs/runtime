@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** MeshBoundsInfo (utilities) - generated from schema shapeHash 23a28ef4.... */
+/** Retains the quarantined pointer-and-count Granny mesh-bounds record that readers replace with detached array-backed data. */
 @type.define({ className: "MeshBoundsInfo", family: "utilities" })
 export class MeshBoundsInfo extends CjsModel
 {

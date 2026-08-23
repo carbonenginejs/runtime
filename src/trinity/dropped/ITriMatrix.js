@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** ITriMatrix (include) - generated from schema shapeHash ced99aa4.... */
+/** Retains the retired Blue/Python matrix interface superseded by runtime mat4 values and schema matrix fields. */
 @type.define({ className: "ITriMatrix", family: "include" })
 export class ITriMatrix extends CjsModel
 {

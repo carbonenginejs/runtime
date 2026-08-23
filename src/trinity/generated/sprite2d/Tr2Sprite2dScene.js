@@ -8,8 +8,8 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectPickState } from "./enums.js";
 
-/** Tr2Sprite2dScene (sprite2d) - generated from schema shapeHash ba1b8287.... */
-@type.define({ className: "Tr2Sprite2dScene", family: "sprite2d" })
+/** Owns a 2D sprite tree together with display transforms, clipping, picking, batching limits, background, and render-mode state. */
+@type.define({ className: "Tr2Sprite2dScene", family: "sprite2d", purpose: "Owns a 2D sprite tree together with display transforms, clipping, picking, batching limits, background, and render-mode state." })
 export class Tr2Sprite2dScene extends CjsModel
 {
 

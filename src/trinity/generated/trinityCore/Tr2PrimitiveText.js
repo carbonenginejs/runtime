@@ -5,8 +5,8 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { TriDebugFont } from "../include/enums.js";
 
-/** Tr2PrimitiveText (trinityCore) - generated from schema shapeHash 9b6c5ad5.... */
-@type.define({ className: "Tr2PrimitiveText", family: "trinityCore" })
+/** Positions a displayable text label with its font and content inside a primitive scene. */
+@type.define({ className: "Tr2PrimitiveText", family: "trinityCore", purpose: "Positions a displayable text label with its font and content inside a primitive scene." })
 export class Tr2PrimitiveText extends CjsModel
 {
 

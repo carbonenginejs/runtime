@@ -4,7 +4,7 @@ import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveDistributionSpawnerTriggerSnake (eve/distribution/spawners) - generated from schema shapeHash e942dd2e.... */
+/** Triggers a timed chain of nearby free placements, walking forward from each previously reached destination. */
 @type.define({ className: "EveDistributionSpawnerTriggerSnake", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerTriggerSnake extends CjsModel
 {

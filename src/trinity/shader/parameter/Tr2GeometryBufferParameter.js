@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsParameter } from "./CjsParameter.js";
 
-/** Tr2GeometryBufferParameter (shader) - generated from schema shapeHash bc9ed4c6.... */
+/** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
 @type.define({ className: "Tr2GeometryBufferParameter", family: "shader" })
 export class Tr2GeometryBufferParameter extends CjsParameter
 {

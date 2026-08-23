@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2ExternalParameter } from "../../core/binding/Tr2ExternalParameter.js";
 
-/** EveSocketParameterString (eve/socket) - generated from schema shapeHash d055ced5.... */
+/** Binds a named string socket value to external parameters while capturing defaults for restoration. */
 @type.define({ className: "EveSocketParameterString", family: "eve/socket" })
 export class EveSocketParameterString extends CjsModel
 {

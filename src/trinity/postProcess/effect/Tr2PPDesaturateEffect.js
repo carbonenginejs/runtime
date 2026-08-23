@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
-/** Tr2PPDesaturateEffect (postProcess) - generated from schema shapeHash 9546fd03.... */
+/** Carries the intensity of a post-process desaturation effect. */
 @type.define({ className: "Tr2PPDesaturateEffect", family: "postProcess" })
 export class Tr2PPDesaturateEffect extends Tr2PPEffect
 {

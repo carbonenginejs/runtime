@@ -667,6 +667,7 @@ test("registers classes, structs, schema metadata, and enums", () => {
     CjsSchema.define(DemoNode, {
         className: "DemoNode",
         family: "test",
+        purpose: "  Carries a reviewed\n demonstration purpose.  ",
         alias: "LegacyDemoNode"
     });
     CjsSchema.defineField(DemoNode, "name", "type", { kind: "string" });
@@ -687,6 +688,19 @@ test("registers classes, structs, schema metadata, and enums", () => {
     assert.equal(CjsSchema.GetConstructor("LegacyDemoNode"), DemoNode);
     assert.equal(CjsSchema.getField(DemoNode, "name").type.kind, "string");
     assert.equal(CjsSchema.getEnum(DemoEnum).name, "DemoEnum");
+    assert.equal(CjsSchema.getClassPurpose(DemoNode), "Carries a reviewed demonstration purpose.");
+    assert.equal(CjsSchema.getSchema(DemoNode).purpose, "Carries a reviewed demonstration purpose.");
+
+    class DemoChild extends DemoNode {}
+    assert.equal(CjsSchema.getClassFamily(DemoChild), "test");
+    assert.equal(CjsSchema.getClassPurpose(DemoChild), null);
+    assert.equal(CjsSchema.getSchema(DemoChild).purpose, undefined);
+
+    class InvalidPurpose {}
+    assert.throws(
+        () => CjsSchema.define(InvalidPurpose, { className: "InvalidPurpose", purpose: "Invalid */ purpose." }),
+        /cannot close a JSDoc comment/
+    );
     assert.equal(registry.GetConstructor("LegacyDemoNode"), DemoNode);
     assert.equal(structs.Has("LegacyStruct"), true);
 });

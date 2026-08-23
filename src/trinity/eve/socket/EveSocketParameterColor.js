@@ -5,9 +5,9 @@ import { carbon, impl, io, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /**
- * EveSocketParameterColor (eve/socket) - SOCKET_PARAMETER_DEFINE(Color,
- * (0, 0, 0, 0)). Carbon's Color is four floats; the JS port carries it as a
- * vec4 like the org's other color values.
+ * Binds a named four-component color socket value to external parameters,
+ * preserving defaults by copy for restoration. Carbon's Color is four floats;
+ * the JavaScript runtime carries it as a vec4 like its other color values.
  */
 @type.define({ className: "EveSocketParameterColor", family: "eve/socket" })
 export class EveSocketParameterColor extends EveSocketParameterBindingBase

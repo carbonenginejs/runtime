@@ -3,8 +3,8 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2RaytracingMesh (raytracing) - generated from schema shapeHash cfaecf2a.... */
-@type.define({ className: "Tr2RaytracingMesh", family: "raytracing" })
+/** Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD. */
+@type.define({ className: "Tr2RaytracingMesh", family: "raytracing", purpose: "Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD." })
 export class Tr2RaytracingMesh extends CjsModel
 {
 

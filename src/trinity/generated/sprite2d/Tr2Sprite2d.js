@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 
-/** Tr2Sprite2d (sprite2d) - generated from schema shapeHash 83f2a5f2.... */
-@type.define({ className: "Tr2Sprite2d", family: "sprite2d" })
+/** Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite. */
+@type.define({ className: "Tr2Sprite2d", family: "sprite2d", purpose: "Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite." })
 export class Tr2Sprite2d extends Tr2TexturedSpriteObject
 {
 

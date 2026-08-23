@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2PrimitiveScene (trinityCore) - generated from schema shapeHash bc11ea31.... */
-@type.define({ className: "Tr2PrimitiveScene", family: "trinityCore" })
+/** Groups display primitives, positioned text labels, and an optional manipulation tool into one scene. */
+@type.define({ className: "Tr2PrimitiveScene", family: "trinityCore", purpose: "Groups display primitives, positioned text labels, and an optional manipulation tool into one scene." })
 export class Tr2PrimitiveScene extends CjsModel
 {
 

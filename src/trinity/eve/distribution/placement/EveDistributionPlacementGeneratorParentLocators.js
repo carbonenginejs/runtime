@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
-/** EveDistributionPlacementGeneratorParentLocators (eve/distribution/placement) - generated from schema shapeHash ebb2456a.... */
+/** Builds distribution placements from a named locator set resolved on the parent space object. */
 @type.define({ className: "EveDistributionPlacementGeneratorParentLocators", family: "eve/distribution/placement" })
 export class EveDistributionPlacementGeneratorParentLocators extends CjsModel
 {

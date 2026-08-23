@@ -5,8 +5,8 @@ import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
-/** Tr2Sprite2dLine (sprite2d) - generated from schema shapeHash 678e9bc0.... */
-@type.define({ className: "Tr2Sprite2dLine", family: "sprite2d" })
+/** Defines a textured 2D line segment with endpoint positions, colors, widths, and texture offsets. */
+@type.define({ className: "Tr2Sprite2dLine", family: "sprite2d", purpose: "Defines a textured 2D line segment with endpoint positions, colors, widths, and texture offsets." })
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
 {
 

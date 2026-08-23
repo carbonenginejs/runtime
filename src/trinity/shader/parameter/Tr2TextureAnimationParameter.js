@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 
-/** Tr2TextureAnimationParameter (shader) - generated from schema shapeHash 609a4065.... */
+/** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
 @type.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
 export class Tr2TextureAnimationParameter extends CjsParameter
 {

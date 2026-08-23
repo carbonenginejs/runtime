@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSprite2dBracketRenderer (eve/ui) - generated from schema shapeHash eebbf21e.... */
-@type.define({ className: "EveSprite2dBracketRenderer", family: "eve/ui" })
+/** Binds a bracket collection and icon atlas for rendering EVE UI markers in the 2D sprite scene. */
+@type.define({ className: "EveSprite2dBracketRenderer", family: "eve/ui", purpose: "Binds a bracket collection and icon atlas for rendering EVE UI markers in the 2D sprite scene." })
 export class EveSprite2dBracketRenderer extends CjsModel
 {
 

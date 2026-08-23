@@ -4,7 +4,7 @@ import { io, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec3 } from "#math/vec3";
 
-/** Tr2PPColorCorrectionEffect (postProcess) - generated from schema shapeHash c6c9f3ca.... */
+/** Carries white-balance, saturation, contrast, gamma, gain, and offset settings for post-process color correction. */
 @type.define({ className: "Tr2PPColorCorrectionEffect", family: "postProcess" })
 export class Tr2PPColorCorrectionEffect extends Tr2PPEffect
 {

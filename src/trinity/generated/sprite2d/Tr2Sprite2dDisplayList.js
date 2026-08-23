@@ -5,8 +5,8 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 
-/** Tr2Sprite2dDisplayList (sprite2d) - generated from schema shapeHash 0206bb23.... */
-@type.define({ className: "Tr2Sprite2dDisplayList", family: "sprite2d" })
+/** Caches batched 2D sprite vertices, indices, textures, effect state, transforms, and draw ranges for one owner. */
+@type.define({ className: "Tr2Sprite2dDisplayList", family: "sprite2d", purpose: "Caches batched 2D sprite vertices, indices, textures, effect state, transforms, and draw ranges for one owner." })
 export class Tr2Sprite2dDisplayList extends CjsModel
 {
 

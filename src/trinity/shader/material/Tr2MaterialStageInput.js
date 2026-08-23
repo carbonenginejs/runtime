@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2MaterialStageInput (shader) - generated from schema shapeHash 8bae330e.... */
+/** Organizes one shader stage's constants, parameters, textures, UAVs, and CPU-side constant mirror. */
 @type.define({ className: "Tr2MaterialStageInput", family: "shader" })
 export class Tr2MaterialStageInput extends CjsModel
 {

@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2SharedConstantBuffers (shader) - generated from schema shapeHash 692b0743.... */
+/** Tracks shared constant-buffer contents by size and hash together with its backing buffer and reference count. */
 @type.define({ className: "Tr2SharedConstantBuffers", family: "shader" })
 export class Tr2SharedConstantBuffers extends CjsModel
 {

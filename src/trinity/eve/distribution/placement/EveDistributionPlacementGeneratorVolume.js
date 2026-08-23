@@ -7,7 +7,7 @@ import { CjsModel } from "#model";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
-/** EveDistributionPlacementGeneratorVolume (eve/distribution/placement) - generated from schema shapeHash d6e2cbac.... */
+/** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
 @type.define({ className: "EveDistributionPlacementGeneratorVolume", family: "eve/distribution/placement" })
 export class EveDistributionPlacementGeneratorVolume extends CjsModel
 {

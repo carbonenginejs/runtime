@@ -4,8 +4,8 @@ import { carbon, impl, io, type } from "#schema";
 import { PixelFormat } from "#consts/render-context";
 import { CjsModel } from "#model";
 
-/** Tr2HostBitmap (trinityCore) - generated from schema shapeHash fee9dda7.... */
-@type.define({ className: "Tr2HostBitmap", family: "trinityCore" })
+/** Describes a CPU-resident bitmap's dimensions, format, mip count, image type, and diagnostic name. */
+@type.define({ className: "Tr2HostBitmap", family: "trinityCore", purpose: "Describes a CPU-resident bitmap's dimensions, format, mip count, image type, and diagnostic name." })
 export class Tr2HostBitmap extends CjsModel
 {
 

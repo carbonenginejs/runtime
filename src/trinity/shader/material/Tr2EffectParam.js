@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2EffectParam (shader) - generated from schema shapeHash fdbc3137.... */
+/** Maps a named effect value onto a contiguous shader-register span. */
 @type.define({ className: "Tr2EffectParam", family: "shader" })
 export class Tr2EffectParam extends CjsModel
 {

@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 
-/** Tr2Sprite2dFrame (sprite2d) - generated from schema shapeHash c26e5d50.... */
-@type.define({ className: "Tr2Sprite2dFrame", family: "sprite2d" })
+/** Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls. */
+@type.define({ className: "Tr2Sprite2dFrame", family: "sprite2d", purpose: "Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls." })
 export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
 {
 

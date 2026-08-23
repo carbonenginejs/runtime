@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
-/** Tr2PPDynamicExposureEffect (postProcess) - generated from schema shapeHash a2cdf599.... */
+/** Carries the luminance range, adaptation speeds, brightness limits, and influence used for dynamic exposure. */
 @type.define({ className: "Tr2PPDynamicExposureEffect", family: "postProcess" })
 export class Tr2PPDynamicExposureEffect extends Tr2PPEffect
 {

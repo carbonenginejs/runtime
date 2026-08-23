@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** GaussianData (postProcess) - generated from schema shapeHash da83d9d1.... */
+/** Carries the packed weights, offsets, and tap count for one Gaussian blur pass. */
 @type.define({ className: "GaussianData", family: "postProcess" })
 export class GaussianData extends CjsModel
 {

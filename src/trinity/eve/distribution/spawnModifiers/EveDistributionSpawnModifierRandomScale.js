@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
 
-/** EveDistributionSpawnModifierRandomScale (eve/distribution/spawnModifiers) - generated from schema shapeHash 721180bc.... */
+/** Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values. */
 @type.define({ className: "EveDistributionSpawnModifierRandomScale", family: "eve/distribution/spawnModifiers" })
 export class EveDistributionSpawnModifierRandomScale extends CjsModel
 {

@@ -5,8 +5,8 @@ import { Tr2Sprite2dContainer } from "./Tr2Sprite2dContainer.js";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect } from "./enums.js";
 
-/** Tr2Sprite2dLayer (sprite2d) - generated from schema shapeHash 2e706a59.... */
-@type.define({ className: "Tr2Sprite2dLayer", family: "sprite2d" })
+/** Defines a sprite container layer with blend and effect state plus optional background clearing. */
+@type.define({ className: "Tr2Sprite2dLayer", family: "sprite2d", purpose: "Defines a sprite container layer with blend and effect state plus optional background clearing." })
 export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 {
 

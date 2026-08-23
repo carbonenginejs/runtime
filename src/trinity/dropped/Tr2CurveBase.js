@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2CurveBase (include) - generated from schema shapeHash 3878dbdd.... */
+/** Retains the rejected generic curve-template identity whose unresolved key types are represented by maintained concrete curves. */
 @type.define({ className: "Tr2CurveBase", family: "include" })
 export class Tr2CurveBase extends CjsModel
 {

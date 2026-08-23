@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2Sprite2dTriangle (sprite2d) - generated from schema shapeHash b41a9ed3.... */
+/** Stores the three uint16 vertex indices of one Sprite2D polygon triangle. */
 @type.define({ className: "Tr2Sprite2dTriangle", family: "sprite2d" })
 export class Tr2Sprite2dTriangle extends CjsModel
 {

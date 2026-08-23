@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** MergeMorphsConstantBuffer (eve/perObjectData) - generated from schema shapeHash d2be9c7e.... */
+/** Represents the retired morph-merge compute constants for buffer offsets, strides, active targets, and vertex counts now retained as a catalogued layout. */
 @type.define({ className: "MergeMorphsConstantBuffer", family: "eve/perObjectData" })
 export class MergeMorphsConstantBuffer extends CjsModel
 {

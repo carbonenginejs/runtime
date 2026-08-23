@@ -4,8 +4,8 @@ import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
-/** Tr2SSSSS (trinityCore) - generated from schema shapeHash 420c136f.... */
-@type.define({ className: "Tr2SSSSS", family: "trinityCore" })
+/** Configures screen-space subsurface scattering width, front-scatter color, scene presence, and enablement. */
+@type.define({ className: "Tr2SSSSS", family: "trinityCore", purpose: "Configures screen-space subsurface scattering width, front-scatter color, scene presence, and enablement." })
 export class Tr2SSSSS extends CjsModel
 {
 

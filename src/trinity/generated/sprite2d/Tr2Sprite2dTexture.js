@@ -4,8 +4,8 @@ import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 
-/** Tr2Sprite2dTexture (sprite2d) - generated from schema shapeHash 2861e5a5.... */
-@type.define({ className: "Tr2Sprite2dTexture", family: "sprite2d" })
+/** Describes a named 2D texture transform around separate rotation and scaling centers. */
+@type.define({ className: "Tr2Sprite2dTexture", family: "sprite2d", purpose: "Describes a named 2D texture transform around separate rotation and scaling centers." })
 export class Tr2Sprite2dTexture extends CjsModel
 {
 

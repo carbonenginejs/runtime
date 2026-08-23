@@ -1304,3 +1304,1223 @@ SwarmVehicleDebug (eve/spaceObject/swarm) - generated from schema shapeHash f53e
 - Source: src/trinity/eve/spaceObject/swarm/SwarmVehicleDebug.js
 - Visibility: Public
 - Kind: CarbonEngineJS
+
+<!-- class:EveBannerItem -->
+## `EveBannerItem`
+
+One authored banner quad: its bone attachment, placement, the two curvature angles that bend it, and the SOF reference id identifying which banner is shown.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/banner/EveBannerItem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveBannerLight -->
+## `EveBannerLight`
+
+The light one banner contributes, carrying its saturation, light profile and the bone matrix resolved for it each frame.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/banner/EveBannerLight.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveBannerSet -->
+## `EveBannerSet`
+
+A hull's authored banner quads, owning their static and per-bone bounds, the largest single banner radius its LOD is measured on, and the banner lights.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/banner/EveBannerSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveBoosterSet2 -->
+## `EveBoosterSet2`
+
+Owns a hull's authored booster placements and derives from them the glow flares, trails, set bounding sphere and flickering point lights that its renderable instances draw.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/booster/EveBoosterSet2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveBoosterSet2Item -->
+## `EveBoosterSet2Item`
+
+One authored booster placement: its local transform, functionality inputs, atlas slots, light scale and whether it emits a trail.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/booster/EveBoosterSet2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveBoosterSet2Renderable -->
+## `EveBoosterSet2Renderable`
+
+One ship's instance of a booster set: it carries the parent transform, speed and rotation, derives the booster and trail intensities, and maintains the five-point trail spline and its LOD flags.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/booster/EveBoosterSet2Renderable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveTrailsSet -->
+## `EveTrailsSet`
+
+Holds the booster trail placements a hull emits, together with the mesh resource and effect a renderer draws them with.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/booster/EveTrailsSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:DecalMeshCache -->
+## `DecalMeshCache`
+
+Stores the per-LOD clipped vertex and index buffers generated for one projected decal.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/decal/DecalMeshCache.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:DecalMeshCacheMeshBuffers -->
+## `DecalMeshCacheMeshBuffers`
+
+DecalMeshCache.MeshBuffers - one LOD's clipped decal buffers.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/decal/DecalMeshCache.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpaceObjectDecal -->
+## `EveSpaceObjectDecal`
+
+A decal projected onto a parent hull, owning its oriented projection matrix, optional bone attachment, per-LOD triangle index lists and screen-size visibility ramp.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/decal/EveSpaceObjectDecal.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveHazeSet -->
+## `EveHazeSet`
+
+A hull's authored haze volumes, owning their per-bone bounds and the point lights the haze emits.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/haze/EveHazeSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveHazeSetItem -->
+## `EveHazeSetItem`
+
+One authored haze volume: its bone attachment, placement, colour and the four-component haze shaping data.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/haze/EveHazeSetItem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveHazeSetLight -->
+## `EveHazeSetLight`
+
+The light one haze item contributes, carrying its booster-gain influence flag, light profile and the bone matrix resolved for it each frame.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/haze/EveHazeSetLight.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EvePlaneLight -->
+## `EvePlaneLight`
+
+The light one plane contributes, carrying its saturation, blink rate and phase, fade type, light profile and the bone matrix resolved for it each frame.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/plane/EvePlaneLight.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EvePlaneSet -->
+## `EvePlaneSet`
+
+A hull's authored textured planes, owning their static and per-bone bounds, the four shared texture parameters and the plane lights.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/plane/EvePlaneSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EvePlaneSetItem -->
+## `EvePlaneSetItem`
+
+One authored plane: its bone attachment, placement, colour, two independently transformed and scrolling texture layers, mask atlas slot and blink data.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/plane/EvePlaneSetItem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpotlightLight -->
+## `EveSpotlightLight`
+
+The spot light one spotlight item contributes, carrying its booster-gain influence flag, light profile and the bone matrix resolved for it each frame.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/spotlight/EveSpotlightLight.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpotlightSet -->
+## `EveSpotlightSet`
+
+A hull's authored spotlights, owning their static and per-bone bounds, the cone and glow effects that draw them, and the spot lights they emit.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/spotlight/EveSpotlightSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpotlightSetItem -->
+## `EveSpotlightSetItem`
+
+One authored spotlight: its bone attachment, placement matrix, the separate cone, flare and sprite colours drawn for it, and whether booster gain modulates it.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/spotlight/EveSpotlightSetItem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpriteLight -->
+## `EveSpriteLight`
+
+The light one sprite contributes, carrying the blink rate, phase and scale range that modulate its radius, plus its light profile and the bone matrix resolved for it each frame.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/sprite/EveSpriteLight.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpriteLineSet -->
+## `EveSpriteLineSet`
+
+A hull's authored sprite runs - lines and circles of evenly spaced sprites - owning their static and per-bone bounds and the point lights they emit.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/sprite/EveSpriteLineSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpriteLineSetItem -->
+## `EveSpriteLineSetItem`
+
+One authored run of identical sprites, laid out either evenly along a line or distributed around a circle, with the blink timing and colour they share.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/sprite/EveSpriteLineSetItem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpriteSet -->
+## `EveSpriteSet`
+
+A hull's authored blinking sprites, owning their static and per-bone bounds and the point lights the sprites emit.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/sprite/EveSpriteSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpriteSetItem -->
+## `EveSpriteSetItem`
+
+One authored sprite: its bone attachment, position, blink timing, scale range, falloff and normal and warp colours.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/sprite/EveSpriteSetItem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveTurretFiringFX -->
+## `EveTurretFiringFX`
+
+Coordinates a turret set's multi-muzzle firing effects, delays, stretch endpoints, observers, and impact timing.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/turrets/EveTurretFiringFX.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveTurretSet -->
+## `EveTurretSet`
+
+Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/turrets/EveTurretSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveTurretTarget -->
+## `EveTurretTarget`
+
+Tracks what a turret set is shooting at: the chosen damage locator, the resolved impact and miss positions, and the queue of hit/miss results the server has sent.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/turrets/EveTurretTarget.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:AudioGameObject -->
+## `AudioGameObject`
+
+A freely placed audio emitter driven by its own translation and rotation curves, so a sound can sit anywhere in a scene without being attached to an asset.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/AudioGameObject.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:BackAndForthData -->
+## `BackAndForthData`
+
+Per-agent scratch for the BackAndForth child behaviour: the locator the agent is travelling to, the direction it approaches from, and how far through the trip it is.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/BackAndForthData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveCamera -->
+## `EveCamera`
+
+Carbon's orbit camera and its CPU-side view/projection state.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/camera/EveCamera.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsEveThrottleableState -->
+## `CjsEveThrottleableState`
+
+The next-update clock behind EveThrottleable, held outside the schema so throttling state is never serialized or exported.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/CjsEveThrottleableState.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveDistributionModifierProcessLifetime -->
+## `EveDistributionModifierProcessLifetime`
+
+Ends or respawns a distributed placement with the authored lifetime event after its lifetime duration expires.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/attributeModifiers/EveDistributionModifierProcessLifetime.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionModifierScaleBySpaceObjectParent -->
+## `EveDistributionModifierScaleBySpaceObjectParent`
+
+Multiplies a distributed placement's additional scale from its parent space object's bounding radius or an authored scale curve.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/attributeModifiers/EveDistributionModifierScaleBySpaceObjectParent.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionModifierTransformOffset -->
+## `EveDistributionModifierTransformOffset`
+
+Accumulates authored or lifetime-sampled translation, rotation, and scale onto a distributed placement.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/attributeModifiers/EveDistributionModifierTransformOffset.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:InitialPlacement -->
+## `InitialPlacement`
+
+Pairs one pooled distribution placement with the timeout that controls when its location may be triggered again.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/attributeModifiers/InitialPlacement.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveBaseDistributionMethod -->
+## `EveBaseDistributionMethod`
+
+Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/EveBaseDistributionMethod.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionPlacementGeneratorLocators -->
+## `EveDistributionPlacementGeneratorLocators`
+
+Builds distribution placements from an authored locator list and requests regeneration when that list changes.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/placement/EveDistributionPlacementGeneratorLocators.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionPlacementGeneratorParentLocators -->
+## `EveDistributionPlacementGeneratorParentLocators`
+
+Builds distribution placements from a named locator set resolved on the parent space object.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/placement/EveDistributionPlacementGeneratorParentLocators.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionPlacementGeneratorVolume -->
+## `EveDistributionPlacementGeneratorVolume`
+
+Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/placement/EveDistributionPlacementGeneratorVolume.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnerBurst -->
+## `EveDistributionSpawnerBurst`
+
+Spawns a configured fraction of the free distribution placements in one delayed burst.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawners/EveDistributionSpawnerBurst.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnerControllerTrigger -->
+## `EveDistributionSpawnerControllerTrigger`
+
+Gates a nested set of distribution spawners from a named controller variable.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawners/EveDistributionSpawnerControllerTrigger.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnerInterval -->
+## `EveDistributionSpawnerInterval`
+
+Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawners/EveDistributionSpawnerInterval.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnerTriggerPlane -->
+## `EveDistributionSpawnerTriggerPlane`
+
+Triggers pooled placements in the order reached by a timed plane sweep.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawners/EveDistributionSpawnerTriggerPlane.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnerTriggerSnake -->
+## `EveDistributionSpawnerTriggerSnake`
+
+Triggers a timed chain of nearby free placements, walking forward from each previously reached destination.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawners/EveDistributionSpawnerTriggerSnake.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnerTriggerSphere -->
+## `EveDistributionSpawnerTriggerSphere`
+
+Triggers pooled placements in the order reached by a timed sphere expansion.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawners/EveDistributionSpawnerTriggerSphere.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnModifierLifeTimeOffset -->
+## `EveDistributionSpawnModifierLifeTimeOffset`
+
+Offsets each spawned placement's initial lifetime with random, normalized, or cascading timing.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawnModifiers/EveDistributionSpawnModifierLifeTimeOffset.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnModifierRandomOffset -->
+## `EveDistributionSpawnModifierRandomOffset`
+
+Adds a seeded random local translation offset to each spawned placement.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawnModifiers/EveDistributionSpawnModifierRandomOffset.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnModifierRandomRotation -->
+## `EveDistributionSpawnModifierRandomRotation`
+
+Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawnModifiers/EveDistributionSpawnModifierRandomRotation.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistributionSpawnModifierRandomScale -->
+## `EveDistributionSpawnModifierRandomScale`
+
+Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawnModifiers/EveDistributionSpawnModifierRandomScale.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveMultiEffect -->
+## `EveMultiEffect`
+
+A named bundle of curve sets, controllers and dynamic bindings that animates other space objects through typed parameter slots, without owning any geometry itself.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/effect/multiEffect/EveMultiEffect.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveMultiEffectParameter -->
+## `EveMultiEffectParameter`
+
+One named slot in an EveMultiEffect, holding the object bound to that name together with the object type the effect expects there.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/effect/multiEffect/EveMultiEffectParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveChildUpdateParams -->
+## `EveChildUpdateParams`
+
+The parameter block a parent passes down when updating a space-object child: the parent references, the parent's bone array, the child's world placement, and the owner's motion and activation state.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveChildUpdateParams.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveCustomMask -->
+## `EveCustomMask`
+
+One oriented box projected onto a hull that replaces a source material with a chosen blend of target materials inside it.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveCustomMask.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveDistanceField -->
+## `EveDistanceField`
+
+Tracks a set of moving points, estimates the volume covering them, and drives a curve set from the eased camera distance to that volume.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveDistanceField.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveEntity -->
+## `EveEntity`
+
+Base for Eve objects that publish themselves to a scene's component registry, tracking which registry they belong to and the slot index the registry assigned for each component type.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveEntity.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveImpactOverlay -->
+## `EveImpactOverlay`
+
+The damage presentation for one ship: shield, armour and hull impact resources, the faders driving hardening and repair effects, and the data-texture bookkeeping that feeds them.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveImpactOverlay.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveLineData -->
+## `EveLineData`
+
+One line in an EveLineSet: two endpoints, each with its own colour.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveLineData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveLODHelper -->
+## `EveLODHelper`
+
+Carbon's stateless LOD decision helper.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveLODHelper.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveThrottleable -->
+## `EveThrottleable`
+
+Update-rate state for objects that run at less than frame rate, mapping a normalized detail level onto an update frequency between authored bounds.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveThrottleable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveUpdateContext -->
+## `EveUpdateContext`
+
+Carries per-frame Eve timing, LOD, origin-rebasing, visibility, and runtime-composition state shared across scene updates.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveUpdateContext.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:FollowASplineData -->
+## `FollowASplineData`
+
+Per-agent scratch for the FollowASpline child behaviour: which tunnel the agent is locked onto and which point along it the agent is heading for.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/FollowASplineData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:FormationData -->
+## `FormationData`
+
+Per-agent scratch for the Formation child behaviour: the formation slot the agent has been assigned, or -1 while it has none.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/FormationData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:InertiaData -->
+## `InertiaData`
+
+Per-agent scratch for the Inertia child behaviour: the acceleration carried over from the previous update and the weight it is blended in with.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/InertiaData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveLocator2 -->
+## `EveLocator2`
+
+Named attachment point on a space object, carrying a full transform matrix rather than decomposed components.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/locator/EveLocator2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveLocatorSets -->
+## `EveLocatorSets`
+
+Named group of locators that a space object publishes for turrets, effects and distributions to attach to.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/locator/EveLocatorSets.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Locator -->
+## `Locator`
+
+Attachment point held as decomposed position, orientation, scale and bone index, as stored inside a locator set.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/locator/Locator.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:LocatorData -->
+## `LocatorData`
+
+Position and orientation pair handed to seek-target child behaviours.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/locator/LocatorData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveMeshOverlayEffect -->
+## `EveMeshOverlayEffect`
+
+Named overlay pass attached to a mesh, holding one effect list per batch type together with the curve set and controllers that animate them.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/overlays/EveMeshOverlayEffect.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveParticleDirectForce -->
+## `EveParticleDirectForce`
+
+Blue alias of Tr2ParticleDirectForce - Carbon registers the Eve name with zero attributes of its own and chains the whole exposure to the Tr2 class.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/particles/force/EveParticleDirectForce.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveParticleDragForce -->
+## `EveParticleDragForce`
+
+Blue alias of Tr2ParticleDragForce - Carbon registers the Eve name with zero attributes of its own and chains the whole exposure to the Tr2 class.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/particles/force/EveParticleDragForce.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveParticleSpring -->
+## `EveParticleSpring`
+
+Blue alias of Tr2ParticleSpring - Carbon registers the Eve name (from the ...SpringAttractor source files) with zero attributes of its own and chains the whole exposure to the Tr2 class.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/particles/force/EveParticleSpring.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSceneStaticParticles -->
+## `EveSceneStaticParticles`
+
+A scene-scale field of static particle clusters, held as CPU instance rows around a double-precision aggregate origin and drawn through a single instanced mesh.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/particles/static/EveSceneStaticParticles.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:PlacementDataWithIdentifier -->
+## `PlacementDataWithIdentifier`
+
+One generated placement in a distribution: the initial transform the generator produced, the extra translation, rotation and scale the attribute modifiers have accumulated, and the identity and lifetime that let those modifiers recognise the same placement between frames.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/PlacementDataWithIdentifier.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:PlayFXData -->
+## `PlayFXData`
+
+Per-agent scratch for the PlayFX child behaviour: whether the agent's effect is currently running and the target position it was last aimed at.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/PlayFXData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveFiringEffectElementContainer -->
+## `EveFiringEffectElementContainer`
+
+A top-level wrapper that hosts one firing-effect element for editing, owning the endpoint state that is pushed into that element every update.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/renderable/stretch/EveFiringEffectElementContainer.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveLocalPositionCurve -->
+## `EveLocalPositionCurve`
+
+A vector function that computes a point local to a model - a point on its bounding hull, a damage or firing locator, a turret muzzle, or an authored offset - selected by an authored behaviour.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/renderable/stretch/EveLocalPositionCurve.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveRemotePositionCurve -->
+## `EveRemotePositionCurve`
+
+A vector function that offsets a start-point curve by a vector sweeping from one authored direction to another over a fixed time, once or repeatedly.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/renderable/stretch/EveRemotePositionCurve.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveStretch -->
+## `EveStretch`
+
+An effect drawn between a source point and a destination point, hosting transform children pinned at each end, stretched along the span, and travelling from one end to the other.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/renderable/stretch/EveStretch.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveStretch2 -->
+## `EveStretch2`
+
+A simplified stretch that renders the span between two points as a strip of quads with its own effect, end emitters, observers and point lights, instead of hosting child objects.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/renderable/stretch/EveStretch2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveStretch3 -->
+## `EveStretch3`
+
+The current stretch effect: places space-object children at the source, across the span, at the destination and at a travelling point between them, driven by its own controllers, dynamic bindings and curve sets.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/renderable/stretch/EveStretch3.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSpaceScene -->
+## `EveSpaceScene`
+
+Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/scene/EveSpaceScene.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EvePickingContext -->
+## `EvePickingContext`
+
+Holds the outstanding picking readbacks and the most recent pick result - screen coordinates, hit object and hit area - for a scene.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/scene/picking/EvePickingContext.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriShadowFrustum -->
+## `TriShadowFrustum`
+
+Carbon's native perspective-shadow frustum adapter.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/scene/shadows/TriShadowFrustum.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriShadowOrthoFrustum -->
+## `TriShadowOrthoFrustum`
+
+Carbon's native orthographic-shadow frustum adapter.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/scene/shadows/TriShadowOrthoFrustum.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:SeekTargetData -->
+## `SeekTargetData`
+
+Per-agent scratch for the SeekTarget child behaviour: the locator being sought, the position and direction of the approach, and whether the agent has spawned and arrived.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/SeekTargetData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterBindingBase -->
+## `EveSocketParameterBindingBase`
+
+Provides named typed socket parameters with external-value binding, default capture, and propagation hooks.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterBindingBase.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterBool -->
+## `EveSocketParameterBool`
+
+Binds a named boolean socket value to external parameters, capturing and restoring each binding's previous value.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterBool.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterColor -->
+## `EveSocketParameterColor`
+
+Binds a named four-component color socket value to external parameters, preserving defaults by copy for restoration.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterColor.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterFilePath -->
+## `EveSocketParameterFilePath`
+
+Specializes the string socket parameter for authored file paths while retaining the same binding and restoration behavior.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterFilePath.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterFloat -->
+## `EveSocketParameterFloat`
+
+Binds a named float socket value to external parameters, capturing and restoring each binding's previous value.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterFloat.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterInt -->
+## `EveSocketParameterInt`
+
+Binds a named 32-bit integer socket value to external parameters, capturing and restoring each binding's previous value.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterInt.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterString -->
+## `EveSocketParameterString`
+
+Binds a named string socket value to external parameters while capturing defaults for restoration.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterString.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterVector2 -->
+## `EveSocketParameterVector2`
+
+Binds a named two-component vector socket value to external parameters, preserving defaults by copy for restoration.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterVector2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterVector3 -->
+## `EveSocketParameterVector3`
+
+Binds a named three-component vector socket value to external parameters, preserving defaults by copy for restoration.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterVector3.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSocketParameterVector4 -->
+## `EveSocketParameterVector4`
+
+Binds a named four-component vector socket value to external parameters, preserving defaults by copy for restoration.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/EveSocketParameterVector4.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveEllipseDefinition -->
+## `EveEllipseDefinition`
+
+One authored ellipse of an ellipse set - centre, plane normal, in-plane rotation in degrees and the two semi-axis lengths.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/ui/EveEllipseDefinition.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveEllipseSet -->
+## `EveEllipseSet`
+
+Transform child that owns a list of ellipse definitions and the effect they are drawn with, used for the ribbon rings of UI overlays.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/ui/EveEllipseSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSprite2dBracket -->
+## `EveSprite2dBracket`
+
+Screen-space bracket drawn from an atlas icon, carrying its own colour, 2D translation and display flag.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/ui/EveSprite2dBracket.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveUiObject -->
+## `EveUiObject`
+
+Represents an Eve UI space object whose mesh areas can be shown, hidden, and identified from picking ids.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/ui/EveUiObject.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourFloatAdd -->
+## `EveVirtualCameraBehaviourFloatAdd`
+
+Float behaviour that adds an authored constant, optionally shaped across the timeline by a scale curve.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourFloatAdd.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourFloatBase -->
+## `EveVirtualCameraBehaviourFloatBase`
+
+Base for the virtual camera behaviours that contribute a scalar delta to a camera's field of view or roll each update.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourFloatBase.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourFloatDamping -->
+## `EveVirtualCameraBehaviourFloatDamping`
+
+Float behaviour that lags a scalar camera value behind the value the other behaviours produced, smoothing sudden changes.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourFloatDamping.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourFloatNoise -->
+## `EveVirtualCameraBehaviourFloatNoise`
+
+Float behaviour that adds a Perlin-noise wobble to a scalar camera value such as field of view or roll.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourFloatNoise.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourFloatSet -->
+## `EveVirtualCameraBehaviourFloatSet`
+
+Float behaviour that overrides whatever the earlier behaviours accumulated with an authored constant.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourFloatSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3Base -->
+## `EveVirtualCameraBehaviourVector3Base`
+
+Base for the virtual camera behaviours that contribute a world-space vector3 offset to a camera's position or point of interest each update.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3Base.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3Damping -->
+## `EveVirtualCameraBehaviourVector3Damping`
+
+Vector3 behaviour that lags the camera position or point of interest behind its target, giving a smooth follow with no overshoot.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3Damping.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3Inertia -->
+## `EveVirtualCameraBehaviourVector3Inertia`
+
+Vector3 behaviour that gives the camera value momentum, so it accelerates towards its target and coasts rather than tracking it exactly.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3Inertia.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3MoveBetween -->
+## `EveVirtualCameraBehaviourVector3MoveBetween`
+
+Vector3 behaviour that sweeps the camera value from one authored endpoint to another across the animation timeline.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3MoveBetween.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3MoveForward -->
+## `EveVirtualCameraBehaviourVector3MoveForward`
+
+Vector3 behaviour that displaces the camera along its own forward axis by a curve-shaped distance, and the base for the sideways and vertical variants.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3MoveForward.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3MoveRight -->
+## `EveVirtualCameraBehaviourVector3MoveRight`
+
+Vector3 behaviour that displaces the camera sideways along its own right axis by a curve-shaped distance.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3MoveRight.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3MoveUp -->
+## `EveVirtualCameraBehaviourVector3MoveUp`
+
+Vector3 behaviour that displaces the camera along its own up axis by a curve-shaped distance.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3MoveUp.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3Offset -->
+## `EveVirtualCameraBehaviourVector3Offset`
+
+Vector3 behaviour that applies a fixed, time-independent displacement, either in world space or in the anchor's yaw frame.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3Offset.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3Orbit -->
+## `EveVirtualCameraBehaviourVector3Orbit`
+
+Vector3 behaviour that places the camera on a horizontal circle about the anchor, sweeping from a start to an end angle over the timeline.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3Orbit.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraBehaviourVector3Shake -->
+## `EveVirtualCameraBehaviourVector3Shake`
+
+Vector3 behaviour that shakes the camera with independent per-axis Perlin noise applied along the camera's own right, up and forward axes.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/behaviour/EveVirtualCameraBehaviourVector3Shake.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCamera -->
+## `EveVirtualCamera`
+
+Cinematic camera defined by a position, a point of interest, a field of view and a roll, each rebuilt every update from its own list of behaviours over a local timeline.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/EveVirtualCamera.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraSystem -->
+## `EveVirtualCameraSystem`
+
+Owns the registered virtual cameras plus the externally driven camera, and runs the transition that hands control from one to another.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/EveVirtualCameraSystem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraTransitionBase -->
+## `EveVirtualCameraTransitionBase`
+
+Base for camera hand-overs, owning the source and target cameras plus the temporary camera that is rendered while the hand-over runs.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/transition/EveVirtualCameraTransitionBase.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraTransitionCut -->
+## `EveVirtualCameraTransitionCut`
+
+Transition that hands control to the target camera on the frame it starts, with no blend.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/transition/EveVirtualCameraTransitionCut.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveVirtualCameraTransitionLerp -->
+## `EveVirtualCameraTransitionLerp`
+
+Transition that blends position, point of interest, field of view and roll from the source camera to the target camera over a fixed duration.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/virtualCamera/transition/EveVirtualCameraTransitionLerp.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveBoxVolume -->
+## `EveBoxVolume`
+
+Oriented box of influence with a hollow inner box, weighting points by falloff and seeding random points across its shell.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/volume/EveBoxVolume.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveEllipsoidVolume -->
+## `EveEllipsoidVolume`
+
+Oriented ellipsoid of influence with a hollow inner ellipsoid, weighting points by falloff and seeding random points between the two shells.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/volume/EveEllipsoidVolume.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSphereVolume -->
+## `EveSphereVolume`
+
+Sphere of influence with a solid inner radius and a falloff out to the outer radius, weighting points and seeding random ones inside it.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/volume/EveSphereVolume.js`
+- Visibility: Public
+- Kind: Carbon

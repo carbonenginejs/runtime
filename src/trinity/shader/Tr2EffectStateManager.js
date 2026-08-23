@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
 
-/** Tr2EffectStateManager (shader) - generated from schema shapeHash 6d2b836e.... */
+/** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect. */
 @type.define({ className: "Tr2EffectStateManager", family: "shader" })
 export class Tr2EffectStateManager extends CjsModel
 {

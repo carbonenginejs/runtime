@@ -3,8 +3,8 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2RaytracingPipelineStateManager (raytracing) - generated from schema shapeHash 2cdb201b.... */
-@type.define({ className: "Tr2RaytracingPipelineStateManager", family: "raytracing" })
+/** Tracks a ray-tracing pipeline descriptor, compiled state, pending name, and dirty-rebuild flag. */
+@type.define({ className: "Tr2RaytracingPipelineStateManager", family: "raytracing", purpose: "Tracks a ray-tracing pipeline descriptor, compiled state, pending name, and dirty-rebuild flag." })
 export class Tr2RaytracingPipelineStateManager extends CjsModel
 {
 

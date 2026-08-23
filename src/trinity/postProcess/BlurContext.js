@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { BlurChannel, BlurFinalize, BlurProcess, BlurType } from "../generated/postProcess/enums.js";
 
-/** BlurContext (postProcess) - generated from schema shapeHash 5d727dce.... */
+/** Describes one post-process blur variant and produces its stable cache key from type, channel, processing, and finalization modes. */
 @type.define({ className: "BlurContext", family: "postProcess" })
 export class BlurContext extends CjsModel
 {

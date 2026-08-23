@@ -7,8 +7,8 @@ import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from
 import { ShadowQuality, Tr2VolumerticQuality } from "../../trinityCore/enums.js";
 import { Quality } from "../../postProcess/enums.js";
 
-/** EveSpaceSceneRenderDriver (eve/scene) - generated from schema shapeHash 9eaa96eb.... */
-@type.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene" })
+/** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
+@type.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
 export class EveSpaceSceneRenderDriver extends CjsModel
 {
 

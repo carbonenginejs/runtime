@@ -3,8 +3,8 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TransientTextureReference (trinityCore) - generated from schema shapeHash 2df00c63.... */
-@type.define({ className: "Tr2TransientTextureReference", family: "trinityCore" })
+/** Models Carbon's caller-owned texture pointer wrapper without claiming responsibility for the texture's lifetime. */
+@type.define({ className: "Tr2TransientTextureReference", family: "trinityCore", purpose: "Models Carbon's caller-owned texture pointer wrapper without claiming responsibility for the texture's lifetime." })
 export class Tr2TransientTextureReference extends CjsModel
 {
 

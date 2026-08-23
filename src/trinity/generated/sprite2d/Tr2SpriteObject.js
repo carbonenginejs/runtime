@@ -6,8 +6,8 @@ import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from "./enums.js";
 
-/** Tr2SpriteObject (sprite2d) - generated from schema shapeHash e61ac2e6.... */
-@type.define({ className: "Tr2SpriteObject", family: "sprite2d" })
+/** Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites. */
+@type.define({ className: "Tr2SpriteObject", family: "sprite2d", purpose: "Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites." })
 export class Tr2SpriteObject extends Tr2SpriteObjectBase
 {
 

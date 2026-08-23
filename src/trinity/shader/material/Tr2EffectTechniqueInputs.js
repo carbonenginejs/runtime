@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2EffectTechniqueInputs (shader) - generated from schema shapeHash 6ea72a37.... */
+/** Groups the pass and library parameter records prepared for one effect technique. */
 @type.define({ className: "Tr2EffectTechniqueInputs", family: "shader" })
 export class Tr2EffectTechniqueInputs extends CjsModel
 {

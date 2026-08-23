@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 
-/** Tr2Sprite2dStretchVertical (sprite2d) - generated from schema shapeHash c2890eb5.... */
-@type.define({ className: "Tr2Sprite2dStretchVertical", family: "sprite2d" })
+/** Defines a vertically stretchable textured sprite with independent edge heights, center fill, opacity, and saturation. */
+@type.define({ className: "Tr2Sprite2dStretchVertical", family: "sprite2d", purpose: "Defines a vertically stretchable textured sprite with independent edge heights, center fill, opacity, and saturation." })
 export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
 {
 

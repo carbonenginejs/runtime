@@ -4,8 +4,8 @@ import { io, type } from "#schema";
 import { Tr2ManipulationTool } from "../../core/tool/Tr2ManipulationTool.js";
 import { vec3 } from "#math/vec3";
 
-/** Tr2TranslationTool (trinityCore) - generated from schema shapeHash 696038f5.... */
-@type.define({ className: "Tr2TranslationTool", family: "trinityCore" })
+/** Extends the manipulation tool with the current three-axis translation result. */
+@type.define({ className: "Tr2TranslationTool", family: "trinityCore", purpose: "Extends the manipulation tool with the current three-axis translation result." })
 export class Tr2TranslationTool extends Tr2ManipulationTool
 {
 

@@ -5,7 +5,7 @@ import { carbon, impl, io, type } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { TriBatchType } from "#consts/graphics";
 
-/** EveUiObject (eve/ui) - generated from schema shapeHash ea8f8922.... */
+/** Represents an Eve UI space object whose mesh areas can be shown, hidden, and identified from picking ids. */
 @type.define({ className: "EveUiObject", family: "eve/ui" })
 export class EveUiObject extends EveSpaceObject2
 {

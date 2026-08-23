@@ -30,7 +30,7 @@ function BoundingSphereTransform(transform, sphere)
   return sphere;
 }
 
-/** EveTurretSet (eve/attachment/turrets) - generated from schema shapeHash 51c12edb.... */
+/** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @type.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
 export class EveTurretSet extends EveEntity
 {

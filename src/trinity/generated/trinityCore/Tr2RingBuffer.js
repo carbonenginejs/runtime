@@ -3,8 +3,8 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2RingBuffer (trinityCore) - generated from schema shapeHash 55784187.... */
-@type.define({ className: "Tr2RingBuffer", family: "trinityCore" })
+/** Carries buffer storage, mirrored data, dirty and locked regions, frame, head, tail, stride, and offset for ring allocation. */
+@type.define({ className: "Tr2RingBuffer", family: "trinityCore", purpose: "Carries buffer storage, mirrored data, dirty and locked regions, frame, head, tail, stride, and offset for ring allocation." })
 export class Tr2RingBuffer extends CjsModel
 {
 

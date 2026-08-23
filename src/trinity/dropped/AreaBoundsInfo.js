@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** AreaBoundsInfo (utilities) - generated from schema shapeHash 45ca4425.... */
+/** Retains the quarantined native Granny area-bounds record that readers replace with detached bounds and vertex-count data. */
 @type.define({ className: "AreaBoundsInfo", family: "utilities" })
 export class AreaBoundsInfo extends CjsModel
 {

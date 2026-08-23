@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSpherePinIndexTree (eve/ui) - generated from schema shapeHash 71effefa.... */
+/** Retains the quarantined pointer-backed spherical geometry index whose realization belongs to resource or engine spatial indexing. */
 @type.define({ className: "EveSpherePinIndexTree", family: "eve/ui" })
 export class EveSpherePinIndexTree extends CjsModel
 {

@@ -6,6 +6,7 @@ import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
+/** Represents the dropped object-data record formerly used to carry missile world and size values. */
 @type.define({ className: "EveMissileWarheadPerObjectData", family: "eve/perObjectData" })
 export class EveMissileWarheadPerObjectData extends CjsModel
 {

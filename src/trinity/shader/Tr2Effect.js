@@ -20,7 +20,7 @@ import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
 import { CjsVariableStore } from "./CjsVariableStore.js";
 
-/** Tr2Effect (shader) - generated from schema shapeHash b0f86b00.... */
+/** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
 @type.define({ className: "Tr2Effect", family: "shader" })
 export class Tr2Effect extends Tr2Material
 {

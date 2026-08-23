@@ -8,7 +8,7 @@ import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
 import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 
-/** EveBaseDistributionMethod (eve/distribution) - generated from schema shapeHash 498ea86d.... */
+/** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
 @type.define({ className: "EveBaseDistributionMethod", family: "eve/distribution" })
 export class EveBaseDistributionMethod extends CjsModel
 {

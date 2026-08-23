@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2Denoiser (trinityCore) - generated from schema shapeHash b7eba500.... */
-@type.define({ className: "Tr2Denoiser", family: "trinityCore" })
+/** Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising. */
+@type.define({ className: "Tr2Denoiser", family: "trinityCore", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
 export class Tr2Denoiser extends CjsModel
 {
 

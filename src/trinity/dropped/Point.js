@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Point (include) - generated from schema shapeHash 9f264888.... */
+/** Retains the quarantined native integer point helper that adapter boundaries replace with plain x/y records. */
 @type.define({ className: "Point", family: "include" })
 export class Point extends CjsModel
 {

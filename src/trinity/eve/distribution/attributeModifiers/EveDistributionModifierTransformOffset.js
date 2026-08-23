@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveDistributionModifierTransformOffset (eve/distribution/attributeModifiers) - generated from schema shapeHash 6498e175.... */
+/** Accumulates authored or lifetime-sampled translation, rotation, and scale onto a distributed placement. */
 @type.define({ className: "EveDistributionModifierTransformOffset", family: "eve/distribution/attributeModifiers" })
 export class EveDistributionModifierTransformOffset extends CjsModel
 {

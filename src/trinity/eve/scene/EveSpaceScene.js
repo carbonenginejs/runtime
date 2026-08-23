@@ -120,7 +120,7 @@ const IDENTITY = mat4.create();
 // or culls them.
 // ---------------------------------------------------------------------------
 
-/** EveSpaceScene (eve/scene) - hand-maintained from schema shapeHash 571234b0.... */
+/** Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data. */
 @type.define({ className: "EveSpaceScene", family: "eve/scene" })
 export class EveSpaceScene extends CjsModel
 {

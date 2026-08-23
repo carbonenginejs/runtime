@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** EveDistributionSpawnerTriggerSphere (eve/distribution/spawners) - generated from schema shapeHash 2c01e5b2.... */
+/** Triggers pooled placements in the order reached by a timed sphere expansion. */
 @type.define({ className: "EveDistributionSpawnerTriggerSphere", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerTriggerSphere extends CjsModel
 {

@@ -5,7 +5,7 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
-/** Tr2PPVignetteEffect (postProcess) - generated from schema shapeHash 8d16cbb2.... */
+/** Carries the shape, detail textures, scrolling, color, opacity, and oscillation settings for a post-process vignette. */
 @type.define({ className: "Tr2PPVignetteEffect", family: "postProcess" })
 export class Tr2PPVignetteEffect extends Tr2PPEffect
 {

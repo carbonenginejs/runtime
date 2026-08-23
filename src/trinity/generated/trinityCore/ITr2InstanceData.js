@@ -3,8 +3,8 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** ITr2InstanceData (trinityCore) - generated from schema shapeHash bfecd5c1.... */
-@type.define({ className: "ITr2InstanceData", family: "trinityCore" })
+/** Describes a contiguous instance-data slice by buffer, byte offset, stride, and item count. */
+@type.define({ className: "ITr2InstanceData", family: "trinityCore", purpose: "Describes a contiguous instance-data slice by buffer, byte offset, stride, and item count." })
 export class ITr2InstanceData extends CjsModel
 {
 

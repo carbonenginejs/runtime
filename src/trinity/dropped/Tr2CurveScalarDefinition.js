@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2CurveScalarDefinition (curves) - generated from schema shapeHash 09171834.... */
+/** Retains the native scalar-curve definition identity consumed as a plain method record by `Tr2CurveScalar`. */
 @type.define({ className: "Tr2CurveScalarDefinition", family: "curves" })
 export class Tr2CurveScalarDefinition extends CjsModel
 {

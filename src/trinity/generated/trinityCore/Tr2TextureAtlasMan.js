@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TextureAtlasMan (trinityCore) - generated from schema shapeHash eb1502a3.... */
-@type.define({ className: "Tr2TextureAtlasMan", family: "trinityCore" })
+/** Holds the collection of texture atlases exposed through Carbon's atlas allocation service. */
+@type.define({ className: "Tr2TextureAtlasMan", family: "trinityCore", purpose: "Holds the collection of texture atlases exposed through Carbon's atlas allocation service." })
 export class Tr2TextureAtlasMan extends CjsModel
 {
 

@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2Material (shader) - generated from schema shapeHash 4fb63b7e.... */
+/** Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state. */
 @type.define({ className: "Tr2Material", family: "shader" })
 export class Tr2Material extends CjsModel
 {

@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2FontManager (font) - generated from schema shapeHash 0e73b15b.... */
-@type.define({ className: "Tr2FontManager", family: "font" })
+/** Tracks font-loading policy together with the glyph-cache memory budget and occupancy. */
+@type.define({ className: "Tr2FontManager", family: "font", purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
 export class Tr2FontManager extends CjsModel
 {
 

@@ -4,8 +4,8 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
-/** Tr2TextureArray (trinityCore) - generated from schema shapeHash 1f8d9e53.... */
-@type.define({ className: "Tr2TextureArray", family: "trinityCore" })
+/** Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback. */
+@type.define({ className: "Tr2TextureArray", family: "trinityCore", purpose: "Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback." })
 export class Tr2TextureArray extends CjsModel
 {
 

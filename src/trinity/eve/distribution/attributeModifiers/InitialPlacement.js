@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** InitialPlacement (eve/distribution/attributeModifiers) - generated from schema shapeHash f7f0f676.... */
+/** Pairs one pooled distribution placement with the timeout that controls when its location may be triggered again. */
 @type.define({ className: "InitialPlacement", family: "eve/distribution/attributeModifiers" })
 export class InitialPlacement extends CjsModel
 {

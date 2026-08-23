@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2GpuStructuredBuffer (trinityCore) - generated from schema shapeHash f559bb97.... */
-@type.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore" })
+/** Describes the element count, stride, and creation flags of a GPU structured buffer. */
+@type.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
 export class Tr2GpuStructuredBuffer extends CjsModel
 {
 

@@ -3,8 +3,8 @@
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TextureReference (trinityCore) - generated from schema shapeHash 4e082276.... */
-@type.define({ className: "Tr2TextureReference", family: "trinityCore" })
+/** Models Carbon's reference-counted texture holder and its texture-change notification surface. */
+@type.define({ className: "Tr2TextureReference", family: "trinityCore", purpose: "Models Carbon's reference-counted texture holder and its texture-change notification surface." })
 export class Tr2TextureReference extends CjsModel
 {
 

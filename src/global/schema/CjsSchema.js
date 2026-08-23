@@ -187,6 +187,12 @@ export class CjsSchema
         return null;
     }
 
+    /** Returns this constructor's own reviewed purpose without inheriting it. */
+    static getClassPurpose(Constructor)
+    {
+        return CLASS_SCHEMA.get(Constructor)?.purpose || null;
+    }
+
     /**
      * Reports whether a value is a live model, including one constructed by a
      * different copy of this package.
@@ -680,6 +686,7 @@ function defineClassMetadata(Constructor, definition)
         });
     }
     if (definition.family) schema.family = definition.family;
+    if (definition.purpose) schema.purpose = definition.purpose;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
     if (definition.aliases) schema.aliases = Object.freeze([...definition.aliases]);
 
@@ -869,6 +876,11 @@ function buildSchema(Constructor, namespaces)
         result.family = family;
     }
 
+    if (schema?.purpose)
+    {
+        result.purpose = schema.purpose;
+    }
+
     if (schema?.sourceClass && schema.sourceClass !== result.className)
     {
         result.sourceClass = schema.sourceClass;
@@ -967,6 +979,7 @@ function getOrCreateClassSchema(Constructor)
         schema = {
             className: null,
             family: null,
+            purpose: null,
             sourceClass: null,
             aliases: null,
             fields: [],
@@ -1051,6 +1064,18 @@ function normalizeClassDefinition(Constructor, definition)
         throw new TypeError("CjsSchema.define requires an explicit non-empty className.");
     }
     result.className = result.className.trim();
+    if (result.purpose !== undefined && result.purpose !== null)
+    {
+        if (typeof result.purpose !== "string" || !result.purpose.trim())
+        {
+            throw new TypeError("CjsSchema.define purpose must be a non-empty string when provided.");
+        }
+        result.purpose = result.purpose.trim().replace(/\s+/g, " ");
+        if (result.purpose.includes("*/"))
+        {
+            throw new TypeError("CjsSchema.define purpose cannot close a JSDoc comment.");
+        }
+    }
     if (!result.sourceClass && result.className) result.sourceClass = result.className;
     const aliases = [
         ...(result.aliases === undefined ? [] : Array.isArray(result.aliases) ? result.aliases : [result.aliases]),

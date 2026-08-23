@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2Rect (include) - generated from schema shapeHash 48e5ca2a.... */
+/** Retains the quarantined native integer rectangle helper that adapter boundaries replace with plain edge records. */
 @type.define({ className: "Tr2Rect", family: "include" })
 export class Tr2Rect extends CjsModel
 {

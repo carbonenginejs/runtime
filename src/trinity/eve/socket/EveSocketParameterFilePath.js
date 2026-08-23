@@ -4,9 +4,10 @@ import { type } from "#schema";
 import { EveSocketParameterString } from "./EveSocketParameterString.js";
 
 /**
- * EveSocketParameterFilePath (eve/socket) - Carbon derives it from
- * EveSocketParameterString with no members of its own (only the editor
- * widget differs).
+ * Specializes the string socket parameter for authored file paths while
+ * retaining the same binding and restoration behavior. Carbon derives it from
+ * EveSocketParameterString without adding members; only the editor widget
+ * differs.
  */
 @type.define({ className: "EveSocketParameterFilePath", family: "eve/socket" })
 export class EveSocketParameterFilePath extends EveSocketParameterString

@@ -6,8 +6,8 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** EveChildCloud (eve/child) - generated from schema shapeHash fc227af6.... */
-@type.define({ className: "EveChildCloud", family: "eve/child" })
+/** Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state. */
+@type.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
 export class EveChildCloud extends CjsModel
 {
 

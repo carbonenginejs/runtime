@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { EveTurretSetPSData } from "./EveTurretSetPSData.js";
 import { EveTurretSetVSData } from "./EveTurretSetVSData.js";
 
-/** EveTurretSetPerObjectData (eve/perObjectData) - generated from schema shapeHash e35c9e2a.... */
+/** Represents the retired turret wrapper that paired vertex- and pixel-stage payloads before its producer returned RawData stage records. */
 @type.define({ className: "EveTurretSetPerObjectData", family: "eve/perObjectData" })
 export class EveTurretSetPerObjectData extends CjsModel
 {

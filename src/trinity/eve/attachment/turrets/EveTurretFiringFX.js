@@ -8,7 +8,7 @@ import { vec3 } from "#math/vec3";
 import { getDeltaTime, getTime, translationMatrix } from "../../renderable/stretch/CjsStretchRuntime.js";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 
-/** EveTurretFiringFX (eve/attachment/turrets) - generated from schema shapeHash ae5459c6.... */
+/** Coordinates a turret set's multi-muzzle firing effects, delays, stretch endpoints, observers, and impact timing. */
 @type.define({ className: "EveTurretFiringFX", family: "eve/attachment/turrets" })
 export class EveTurretFiringFX extends EveEntity
 {

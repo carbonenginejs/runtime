@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { DistributionEntityLifeTimeEvent } from "./enums.js";
 
-/** EveDistributionModifierProcessLifetime (eve/distribution/attributeModifiers) - generated from schema shapeHash d0a7425c.... */
+/** Ends or respawns a distributed placement with the authored lifetime event after its lifetime duration expires. */
 @type.define({ className: "EveDistributionModifierProcessLifetime", family: "eve/distribution/attributeModifiers" })
 export class EveDistributionModifierProcessLifetime extends CjsModel
 {

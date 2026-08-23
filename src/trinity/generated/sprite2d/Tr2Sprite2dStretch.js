@@ -4,8 +4,8 @@ import { io, type } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { Tr2StretchScaleBehavior } from "./enums.js";
 
-/** Tr2Sprite2dStretch (sprite2d) - generated from schema shapeHash 0c6723b7.... */
-@type.define({ className: "Tr2Sprite2dStretch", family: "sprite2d" })
+/** Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling. */
+@type.define({ className: "Tr2Sprite2dStretch", family: "sprite2d", purpose: "Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling." })
 export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
 {
 

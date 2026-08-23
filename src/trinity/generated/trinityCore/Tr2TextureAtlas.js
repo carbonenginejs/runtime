@@ -4,8 +4,8 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { PixelFormat } from "#consts/render-context";
 
-/** Tr2TextureAtlas (trinityCore) - generated from schema shapeHash 5855bcfc.... */
-@type.define({ className: "Tr2TextureAtlas", family: "trinityCore" })
+/** Carries texture-atlas dimensions, format, mip levels, margins, empty-area painting, and removal-compaction policy. */
+@type.define({ className: "Tr2TextureAtlas", family: "trinityCore", purpose: "Carries texture-atlas dimensions, format, mip levels, margins, empty-area painting, and removal-compaction policy." })
 export class Tr2TextureAtlas extends CjsModel
 {
 

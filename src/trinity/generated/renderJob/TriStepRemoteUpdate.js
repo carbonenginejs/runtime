@@ -3,8 +3,8 @@
 import { carbon, impl, type } from "#schema";
 import { TriRenderStep } from "../../renderJob/step/TriRenderStep.js";
 
-/** TriStepRemoteUpdate (renderJob) - generated from schema shapeHash 818ed4d3.... */
-@type.define({ className: "TriStepRemoteUpdate", family: "renderJob" })
+/** Carries the view, projection, viewport, and shared-memory handles for a render step that publishes remote frame updates. */
+@type.define({ className: "TriStepRemoteUpdate", family: "renderJob", purpose: "Carries the view, projection, viewport, and shared-memory handles for a render step that publishes remote frame updates." })
 export class TriStepRemoteUpdate extends TriRenderStep
 {
 

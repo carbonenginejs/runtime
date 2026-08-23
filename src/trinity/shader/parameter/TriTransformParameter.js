@@ -7,7 +7,7 @@ import { vec3 } from "#math/vec3";
 import { CjsParameter } from "./CjsParameter.js";
 import { TriTransformBase } from "#consts/graphics";
 
-/** TriTransformParameter (shader) - generated from schema shapeHash de073c4a.... */
+/** Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant. */
 @type.define({ className: "TriTransformParameter", family: "shader" })
 export class TriTransformParameter extends CjsParameter
 {

@@ -4,6 +4,7 @@ import { CjsModel } from "#model";
 import { type } from "#schema";
 
 
+/** Represents the dropped object-data record formerly used to carry EveTransform world matrices. */
 @type.define({
   className: "EveBasicPerObjectData",
   family: "eve/perObjectData"

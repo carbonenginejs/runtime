@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2SamplerOverrideData (shader) - generated from schema shapeHash 0adbde3e.... */
+/** Associates a shader sampler register with the sampler-state object to bind. */
 @type.define({ className: "Tr2SamplerOverrideData", family: "shader" })
 export class Tr2SamplerOverrideData extends CjsModel
 {

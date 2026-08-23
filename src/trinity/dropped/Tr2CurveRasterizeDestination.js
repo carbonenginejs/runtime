@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2CurveRasterizeDestination (curves) - generated from schema shapeHash 8f44878c.... */
+/** Retains the native rasterization destination identity consumed as a plain method record by `Tr2CurveScalar`. */
 @type.define({ className: "Tr2CurveRasterizeDestination", family: "curves" })
 export class Tr2CurveRasterizeDestination extends CjsModel
 {

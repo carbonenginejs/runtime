@@ -5,6 +5,27 @@ Scope: `@carbonenginejs/runtime/trinity/particle`
 Audience: Effect authors and engine integrators
 Summary: Catalogs the CPU particle simulation - systems, emitters, attribute generators, forces and constraints.
 
+## Generic emitter contract
+
+`ITr2GenericEmitter` is both the generated interface identity used by particle
+owners and the record carrying Carbon's update arguments. Implementations
+provide these operations:
+
+- `Update(updateArguments)` receives `time` in seconds, the scene GPU particle
+  system (unused by CPU emitters), `parentTransform`, the world-origin shift
+  since the previous frame, and the LOD `emitCountFactor`;
+- `SpawnParticles(updateArguments, position, velocity, rateModifier)` handles
+  emit-during-lifetime and emit-on-death calls, where parent position and
+  velocity may be null and the modifier scales the configured rate;
+- the second `SpawnParticles` form receives begin/end positions and velocities
+  plus delta time for improved distribution; and
+- `SetThreadSafeFlag()` records Carbon's concurrent-spawn contract and is
+  vacuous for a single-threaded JavaScript implementation.
+
+The current CPU implementations also accept the reduced
+`SpawnParticles(position, velocity, rateModifier)` invocation used by particle
+systems and collision constraints.
+
 <!-- class:Tr2CapsuleShapeAttributeGenerator -->
 ## `Tr2CapsuleShapeAttributeGenerator`
 

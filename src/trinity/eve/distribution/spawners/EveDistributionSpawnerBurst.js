@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveDistributionSpawnerBurst (eve/distribution/spawners) - generated from schema shapeHash 690e01c9.... */
+/** Spawns a configured fraction of the free distribution placements in one delayed burst. */
 @type.define({ className: "EveDistributionSpawnerBurst", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerBurst extends CjsModel
 {

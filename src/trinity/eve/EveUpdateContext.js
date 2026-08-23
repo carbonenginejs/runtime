@@ -18,7 +18,7 @@ import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** EveUpdateContext (eve) - hand-maintained from schema shapeHash 227e2060.... */
+/** Carries per-frame Eve timing, LOD, origin-rebasing, visibility, and runtime-composition state shared across scene updates. */
 @type.define({ className: "EveUpdateContext", family: "eve" })
 export class EveUpdateContext extends CjsModel
 {

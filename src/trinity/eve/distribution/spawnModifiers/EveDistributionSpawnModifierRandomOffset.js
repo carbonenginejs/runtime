@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
 
-/** EveDistributionSpawnModifierRandomOffset (eve/distribution/spawnModifiers) - generated from schema shapeHash 65d2580b.... */
+/** Adds a seeded random local translation offset to each spawned placement. */
 @type.define({ className: "EveDistributionSpawnModifierRandomOffset", family: "eve/distribution/spawnModifiers" })
 export class EveDistributionSpawnModifierRandomOffset extends CjsModel
 {

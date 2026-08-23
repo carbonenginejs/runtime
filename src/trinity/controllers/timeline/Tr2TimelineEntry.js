@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 
 
-/** Tr2TimelineEntry (controllers) - generated from schema shapeHash 542611f6.... */
+/** Defines one action's authored start/end interval and track identifier within a timeline controller. */
 @type.define({
   className: "Tr2TimelineEntry",
   family: "controllers"

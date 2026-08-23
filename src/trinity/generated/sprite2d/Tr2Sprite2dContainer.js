@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { Tr2Sprite2dContainerBase } from "../../sprite2d/Tr2Sprite2dContainerBase.js";
 
-/** Tr2Sprite2dContainer (sprite2d) - generated from schema shapeHash ec0e9eb1.... */
-@type.define({ className: "Tr2Sprite2dContainer", family: "sprite2d" })
+/** Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching. */
+@type.define({ className: "Tr2Sprite2dContainer", family: "sprite2d", purpose: "Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching." })
 export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 {
 

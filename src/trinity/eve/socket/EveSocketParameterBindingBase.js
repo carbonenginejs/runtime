@@ -3,7 +3,7 @@
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSocketParameterBindingBase (eve/socket) - generated from schema shapeHash d75356dd.... */
+/** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
 @type.define({ className: "EveSocketParameterBindingBase", family: "eve/socket" })
 export class EveSocketParameterBindingBase extends CjsModel
 {

@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
-/** EveSocketParameterFloat (eve/socket) - SOCKET_PARAMETER_DEFINE(float, 0.0f). */
+/** Binds a named float socket value to external parameters, capturing and restoring each binding's previous value. */
 @type.define({ className: "EveSocketParameterFloat", family: "eve/socket" })
 export class EveSocketParameterFloat extends EveSocketParameterBindingBase
 {

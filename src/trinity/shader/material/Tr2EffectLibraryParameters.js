@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
-/** Tr2EffectLibraryParameters (shader) - generated from schema shapeHash b0b10bab.... */
+/** Collects one effect library's local and global stage inputs, rerouted parameters, and resource-set state. */
 @type.define({ className: "Tr2EffectLibraryParameters", family: "shader" })
 export class Tr2EffectLibraryParameters extends CjsModel
 {

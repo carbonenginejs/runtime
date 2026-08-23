@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2Key (curves) - generated from schema shapeHash 1a2121bf.... */
+/** Retains the rejected generic key-template identity whose unresolved value type is represented by maintained concrete key classes. */
 @type.define({ className: "Tr2Key", family: "curves" })
 export class Tr2Key extends CjsModel
 {

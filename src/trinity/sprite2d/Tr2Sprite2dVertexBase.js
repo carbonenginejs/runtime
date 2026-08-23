@@ -6,7 +6,7 @@ import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** Tr2Sprite2dVertexBase (sprite2d) - generated from schema shapeHash 3bb60192.... */
+/** Stores a Sprite2D vertex's position, color, and two texture-coordinate channels. */
 @type.define({ className: "Tr2Sprite2dVertexBase", family: "sprite2d" })
 export class Tr2Sprite2dVertexBase extends CjsModel
 {

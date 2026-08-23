@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveCloudVolumeTextureParameter (eve/child) - generated from schema shapeHash cba724f2.... */
-@type.define({ className: "EveCloudVolumeTextureParameter", family: "eve/child" })
+/** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
+@type.define({ className: "EveCloudVolumeTextureParameter", family: "eve/child", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
 export class EveCloudVolumeTextureParameter extends CjsModel
 {
 

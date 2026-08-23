@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** ITriVector (include) - generated from schema shapeHash 0d9037bc.... */
+/** Retains the retired Blue/Python vector interface superseded by runtime vec3 values and schema vector fields. */
 @type.define({ className: "ITriVector", family: "include" })
 export class ITriVector extends CjsModel
 {

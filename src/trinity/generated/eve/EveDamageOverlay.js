@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveDamageOverlay (eve) - generated from schema shapeHash ad0287c3.... */
-@type.define({ className: "EveDamageOverlay", family: "eve" })
+/** Carries armor-impact, repair, shader, and hull-damage state for a space object's self-contained damage surface. */
+@type.define({ className: "EveDamageOverlay", family: "eve", purpose: "Carries armor-impact, repair, shader, and hull-damage state for a space object's self-contained damage surface." })
 export class EveDamageOverlay extends CjsModel
 {
 

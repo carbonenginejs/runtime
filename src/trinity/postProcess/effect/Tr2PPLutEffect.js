@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
-/** Tr2PPLutEffect (postProcess) - generated from schema shapeHash 7000dd13.... */
+/** Carries a color lookup texture and influence for post-process grading. */
 @type.define({ className: "Tr2PPLutEffect", family: "postProcess" })
 export class Tr2PPLutEffect extends Tr2PPEffect
 {

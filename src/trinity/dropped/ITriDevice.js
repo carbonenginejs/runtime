@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** ITriDevice (include) - generated from schema shapeHash 3a872fd8.... */
+/** Retains the native device interface identity while maintained graph state and injected engines divide its former responsibilities. */
 @type.define({ className: "ITriDevice", family: "include" })
 export class ITriDevice extends CjsModel
 {

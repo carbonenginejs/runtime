@@ -1,9 +1,9 @@
-# Trinity core classes
+# Trinity core, shader, and device classes
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime/trinity/core`
+Scope: `@carbonenginejs/runtime/trinity/core`, `@carbonenginejs/runtime/trinity/shader`, `@carbonenginejs/runtime/trinity/ui`
 Audience: Engine authors and integrators
-Summary: Catalogs the GPU-free constant-data classes an engine binds when it realizes the Trinity graph.
+Summary: Catalogs GPU-free constant data, shader and material facades, and device-presentation records an engine realizes from the Trinity graph.
 
 <!-- class:RawData -->
 ## `RawData`
@@ -751,3 +751,331 @@ A light colour authored as a temperature in kelvin, a tint, and a white-balance 
 - Source: src/trinity/core/lighting/Tr2KelvinColor.js
 - Visibility: Public
 - Kind: CarbonEngineJS
+
+<!-- class:CjsStoredVariable -->
+## `CjsStoredVariable`
+
+The default variable wrapper: a name, a value and an inferred type tag, able to copy itself into an effect constant destination.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/CjsVariableStore.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsVariableStore -->
+## `CjsVariableStore`
+
+A named-variable table that TriVariableParameter values resolve against, plus the lazily created process-wide global instance effects fall back to.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/CjsVariableStore.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2EffectLibraryParameters -->
+## `Tr2EffectLibraryParameters`
+
+Collects one effect library's local and global stage inputs, rerouted parameters, and resource-set state.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/material/Tr2EffectLibraryParameters.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2EffectParam -->
+## `Tr2EffectParam`
+
+Maps a named effect value onto a contiguous shader-register span.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/material/Tr2EffectParam.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2EffectPassParameters -->
+## `Tr2EffectPassParameters`
+
+Collects one effect pass's per-stage inputs, rerouted parameters, used resources, and resource-set state.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/material/Tr2EffectPassParameters.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2EffectTechniqueInputs -->
+## `Tr2EffectTechniqueInputs`
+
+Groups the pass and library parameter records prepared for one effect technique.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/material/Tr2EffectTechniqueInputs.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2MaterialStageInput -->
+## `Tr2MaterialStageInput`
+
+Organizes one shader stage's constants, parameters, textures, UAVs, and CPU-side constant mirror.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/material/Tr2MaterialStageInput.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SharedConstantBuffers -->
+## `Tr2SharedConstantBuffers`
+
+Tracks shared constant-buffer contents by size and hash together with its backing buffer and reference count.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/material/Tr2SharedConstantBuffers.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsParameter -->
+## `CjsParameter`
+
+Shared base for the shader parameter models: destination-reroute plumbing, effect-reflection lookups and Carbon's FNV1 content hashing.
+
+- Source: `src/trinity/shader/parameter/CjsParameter.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsVectorParameter -->
+## `CjsVectorParameter`
+
+Base for the multi-component shader parameters, adding fixed-length destination reads and writes on top of CjsParameter.
+
+- Source: `src/trinity/shader/parameter/CjsVectorParameter.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2ConstantEffectParameter -->
+## `Tr2ConstantEffectParameter`
+
+Stores one named persistent vec4 constant authored directly on an effect.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2ConstantEffectParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2FloatParameter -->
+## `Tr2FloatParameter`
+
+Single float value for a named shader constant, with optional rerouting into an external scalar destination.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2FloatParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2GeometryBufferParameter -->
+## `Tr2GeometryBufferParameter`
+
+Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2GeometryBufferParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Matrix4Parameter -->
+## `Tr2Matrix4Parameter`
+
+4x4 matrix value for a named shader constant, with optional rerouting into an external 64-byte destination.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2Matrix4Parameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2RuntimeTextureParameter -->
+## `Tr2RuntimeTextureParameter`
+
+A named texture slot fed by a runtime-supplied texture provider rather than an authored res path.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2RuntimeTextureParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureAnimationParameter -->
+## `Tr2TextureAnimationParameter`
+
+Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2TextureAnimationParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Vector2Parameter -->
+## `Tr2Vector2Parameter`
+
+Two-component float value for a named shader constant, with sRGB gamma handling and optional rerouting into an external destination.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2Vector2Parameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Vector3Parameter -->
+## `Tr2Vector3Parameter`
+
+Three-component float value for a named shader constant, with sRGB gamma handling and optional rerouting into an external destination.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2Vector3Parameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Vector4Parameter -->
+## `Tr2Vector4Parameter`
+
+Four-component float value for a named shader constant, with sRGB gamma handling and optional rerouting into an external destination.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/Tr2Vector4Parameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriFloatArrayParameter -->
+## `TriFloatArrayParameter`
+
+An ordered list of vec4 rows uploaded into one named shader constant array.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/TriFloatArrayParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriTextureParameter -->
+## `TriTextureParameter`
+
+A named texture slot on an effect, owning the authored res path, the resolved texture provider and the UV-density scales that drive mip selection.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/TriTextureParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriTransformParameter -->
+## `TriTransformParameter`
+
+Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/TriTransformParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriVariableParameter -->
+## `TriVariableParameter`
+
+Forwards a named variable-store entry into a named effect constant or resource.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/TriVariableParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriVector4 -->
+## `TriVector4`
+
+One vec4 row of a TriFloatArrayParameter's value list.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/TriVector4.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ShaderOption -->
+## `Tr2ShaderOption`
+
+Mutable authored option on the Tr2Effect facade.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/reflection/Tr2ShaderOption.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SamplerOverride -->
+## `Tr2SamplerOverride`
+
+Overrides one named sampler's address, filtering, LOD-bias, mip, and anisotropy settings.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/sampler/Tr2SamplerOverride.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SamplerOverrideData -->
+## `Tr2SamplerOverrideData`
+
+Associates a shader sampler register with the sampler-state object to bind.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/sampler/Tr2SamplerOverrideData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2DataTextureManager -->
+## `Tr2DataTextureManager`
+
+Packs shader-readable data blocks into a shared texture, whose allocation an engine adapter owns.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/Tr2DataTextureManager.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Effect -->
+## `Tr2Effect`
+
+Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/Tr2Effect.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2EffectStateManager -->
+## `Tr2EffectStateManager`
+
+Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/Tr2EffectStateManager.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Material -->
+## `Tr2Material`
+
+Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/Tr2Material.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ShaderBuffer -->
+## `Tr2ShaderBuffer`
+
+Owns a detached byte payload for one shader stage while leaving device binding to the engine.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/Tr2ShaderBuffer.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2PresentParameters -->
+## `Tr2PresentParameters`
+
+Carries the software-device, back-buffer size, and windowed-mode values used when creating a rendering device.
+
+- Export: `@carbonenginejs/runtime/trinity/ui`
+- Source: `src/trinity/ui/Tr2PresentParameters.js`
+- Visibility: Public
+- Kind: Carbon

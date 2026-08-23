@@ -4,8 +4,8 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { Priority } from "../../postProcess/enums.js";
 
-/** IEveLightingOverride (eve/child) - generated from schema shapeHash 8e8125e0.... */
-@type.define({ className: "IEveLightingOverride", family: "eve/child" })
+/** Defines prioritized multipliers for sun, background, reflection, and aggregate lighting overrides on an EVE child. */
+@type.define({ className: "IEveLightingOverride", family: "eve/child", purpose: "Defines prioritized multipliers for sun, background, reflection, and aggregate lighting overrides on an EVE child." })
 export class IEveLightingOverride extends CjsModel
 {
 

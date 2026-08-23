@@ -3,8 +3,8 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EvePendingPickingReadback (eve/scene) - generated from schema shapeHash 9962b9a4.... */
-@type.define({ className: "EvePendingPickingReadback", family: "eve/scene" })
+/** Carries the coordinates, frame, buffers, decoded data, and debug geometry for a pending asynchronous picking readback. */
+@type.define({ className: "EvePendingPickingReadback", family: "eve/scene", purpose: "Carries the coordinates, frame, buffers, decoded data, and debug geometry for a pending asynchronous picking readback." })
 export class EvePendingPickingReadback extends CjsModel
 {
 

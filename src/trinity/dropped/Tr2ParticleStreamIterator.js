@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2ParticleStreamIterator (particle) - generated from schema shapeHash 85a64726.... */
+/** Retains the native typed-pointer iterator identity superseded by typed-array indexing in CPU particle simulation. */
 @type.define({ className: "Tr2ParticleStreamIterator", family: "particle" })
 export class Tr2ParticleStreamIterator extends CjsModel
 {

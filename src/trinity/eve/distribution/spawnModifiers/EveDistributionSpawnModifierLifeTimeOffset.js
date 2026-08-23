@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
 
-/** EveDistributionSpawnModifierLifeTimeOffset (eve/distribution/spawnModifiers) - generated from schema shapeHash 6a58acb7.... */
+/** Offsets each spawned placement's initial lifetime with random, normalized, or cascading timing. */
 @type.define({ className: "EveDistributionSpawnModifierLifeTimeOffset", family: "eve/distribution/spawnModifiers" })
 export class EveDistributionSpawnModifierLifeTimeOffset extends CjsModel
 {

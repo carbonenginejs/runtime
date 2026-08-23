@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
-/** EveSocketParameterBool (eve/socket) - SOCKET_PARAMETER_DEFINE(bool, false). */
+/** Binds a named boolean socket value to external parameters, capturing and restoring each binding's previous value. */
 @type.define({ className: "EveSocketParameterBool", family: "eve/socket" })
 export class EveSocketParameterBool extends EveSocketParameterBindingBase
 {

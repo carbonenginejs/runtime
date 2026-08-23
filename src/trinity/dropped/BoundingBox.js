@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** BoundingBox (utilities) - generated from schema shapeHash a1f4788e.... */
+/** Retains the quarantined native Granny minimum/maximum bounds record that readers replace with math or plain data. */
 @type.define({ className: "BoundingBox", family: "utilities" })
 export class BoundingBox extends CjsModel
 {

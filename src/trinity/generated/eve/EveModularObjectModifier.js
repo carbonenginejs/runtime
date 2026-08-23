@@ -3,8 +3,8 @@
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveModularObjectModifier (eve) - generated from schema shapeHash 24110de3.... */
-@type.define({ className: "EveModularObjectModifier", family: "eve" })
+/** Carries the object, part data, SOF builder, and instanced-mesh state associated with Carbon's transient modular-object edit session. */
+@type.define({ className: "EveModularObjectModifier", family: "eve", purpose: "Carries the object, part data, SOF builder, and instanced-mesh state associated with Carbon's transient modular-object edit session." })
 export class EveModularObjectModifier extends CjsModel
 {
 

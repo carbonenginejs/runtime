@@ -3,7 +3,7 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2PPEffect (postProcess) - generated from schema shapeHash 5a6b823d.... */
+/** Provides the shared display gate for a post-process effect. */
 @type.define({ className: "Tr2PPEffect", family: "postProcess" })
 export class Tr2PPEffect extends CjsModel
 {

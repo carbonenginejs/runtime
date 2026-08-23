@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriColor (trinityCore) - generated from schema shapeHash db7842a1.... */
+/** Retains the retired Blue/Python color wrapper identity superseded by runtime vec4 math. */
 @type.define({ className: "TriColor", family: "trinityCore" })
 export class TriColor extends CjsModel
 {

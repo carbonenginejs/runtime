@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { Tr2PrimitiveSet } from "../../core/line/Tr2PrimitiveSet.js";
 
-/** Tr2GrannyPrimitiveSet (trinityCore) - generated from schema shapeHash abcc3e58.... */
-@type.define({ className: "Tr2GrannyPrimitiveSet", family: "trinityCore" })
+/** Associates a primitive set with a Granny resource path and object while controlling solid rendering. */
+@type.define({ className: "Tr2GrannyPrimitiveSet", family: "trinityCore", purpose: "Associates a primitive set with a Granny resource path and object while controlling solid rendering." })
 export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 {
 

@@ -1,4 +1,4 @@
-// Maintained as runtime-trinity's backend-neutral booster constant-data contract.
+// Quarantined legacy class; maintained booster constant layouts are RawData records.
 //   trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h:51
 import { type } from "#schema";
 import { CjsModel } from "#model";

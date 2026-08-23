@@ -1,9 +1,9 @@
-# Curve and utility classes
+# Controller, curve, and utility classes
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime/trinity/curves`, `@carbonenginejs/runtime/trinity/utilities`
-Audience: Animation authors and engine integrators
-Summary: Catalogs the curve, sequencer and modifier vocabulary that drives animated values, and the small shared utility records.
+Scope: `@carbonenginejs/runtime/trinity/controllers`, `@carbonenginejs/runtime/trinity/curves`, `@carbonenginejs/runtime/trinity/utilities`
+Audience: Controller authors, animation authors, and engine integrators
+Summary: Catalogs controller state machines, the curve and sequencer vocabulary that drives animated values, and small shared utility records.
 
 <!-- class:CjsGrannyCurves -->
 ## `CjsGrannyCurves`
@@ -475,3 +475,352 @@ How far a material's shader displaces vertices, and the bounds growth that cover
 - Source: src/trinity/utilities/Tr2MaterialBoundsAdjustment.js
 - Visibility: Public
 - Kind: CarbonEngineJS
+
+<!-- class:ITr2ControllerAction -->
+## `ITr2ControllerAction`
+
+Shared JavaScript adapters for Carbon's ITr2ControllerAction contract.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/ITr2ControllerAction.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionAnimateCurveSet -->
+## `Tr2ActionAnimateCurveSet`
+
+Controller action that registers for per-frame updates and drives a curve set's playhead from an expression, by default the elapsed state time.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionAnimateCurveSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionAnimateValue -->
+## `Tr2ActionAnimateValue`
+
+Controller action that registers for per-frame updates and continuously writes an expression-driven value, by default the action's curve sampled at state time, into a bound destination property.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionAnimateValue.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionBindRTPC -->
+## `Tr2ActionBindRTPC`
+
+Controller action that registers for per-frame updates and pushes an expression-driven value into a named Wwise real-time parameter on a sound emitter.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionBindRTPC.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionCallback -->
+## `Tr2ActionCallback`
+
+Controller action that fires a named callback on its controller when the action starts, letting host code hook a point in a state machine or timeline.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionCallback.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionChildEffect -->
+## `Tr2ActionChildEffect`
+
+Controller action that attaches a child effect loaded from a resource path to its owner on start and detaches it on stop.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionChildEffect.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionOverlay -->
+## `Tr2ActionOverlay`
+
+Controller action that adds a named overlay effect to its owner when the action starts and removes it again when the action stops.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionOverlay.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionPlayCurveSet -->
+## `Tr2ActionPlayCurveSet`
+
+Controller action that plays a named curve set (optionally one named range) on its owner for the duration of the action, and can hold off state transitions until a synced range iteration has completed.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionPlayCurveSet.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionPlayMeshAnimation -->
+## `Tr2ActionPlayMeshAnimation`
+
+Controller action that plays or enqueues a named geometry animation on a destination object's animation controller when it starts, and stops or enqueues a stop when it ends.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionPlayMeshAnimation.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionPlaySound -->
+## `Tr2ActionPlaySound`
+
+Controller action that fires a one-shot audio event on a named emitter when the action starts; it has no stop behaviour.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionPlaySound.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionPython -->
+## `Tr2ActionPython`
+
+Controller action that delegates to a host-provided scripted action instance, forwarding link, start, stop and update callbacks and persisting the instance's own opaque state bytes.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionPython.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionResetClipSphereCenter -->
+## `Tr2ActionResetClipSphereCenter`
+
+Controller action that moves its owner's clip-sphere center on start, either back to the object center or onto a locator chosen from a named set or from the last damage-locator hit.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionResetClipSphereCenter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionSetAttenuationScaling -->
+## `Tr2ActionSetAttenuationScaling`
+
+Controller action that sets an audio emitter's distance-attenuation scaling factor on start, optionally multiplied by a named controller variable.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionSetAttenuationScaling.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionSetAudioEmitterPrefix -->
+## `Tr2ActionSetAudioEmitterPrefix`
+
+Controller action that sets the event-name prefix on a named audio emitter when it starts, changing which bank events later sounds resolve to.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionSetAudioEmitterPrefix.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionSetAudioSwitch -->
+## `Tr2ActionSetAudioSwitch`
+
+Controller action that sets a Wwise switch group to a given state on a named audio emitter when it starts.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionSetAudioSwitch.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionSetExternalControllerVariable -->
+## `Tr2ActionSetExternalControllerVariable`
+
+Controller action that writes a constant or source-variable value into a controller variable on a different object, named by destinationOwner among the owner's binding roots.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionSetExternalControllerVariable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionSetShaderOption -->
+## `Tr2ActionSetShaderOption`
+
+Controller action that sets a named shader option on its owner when it starts, changing which shader permutation the owner renders with.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionSetShaderOption.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionSetValue -->
+## `Tr2ActionSetValue`
+
+Controller action that evaluates a value expression once on start and writes the result into a bound destination property.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionSetValue.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ActionSpawnParticles -->
+## `Tr2ActionSpawnParticles`
+
+Controller action that emits a one-shot burst of particles from a dynamic emitter when it starts.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/action/Tr2ActionSpawnParticles.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsControllerExpressionCompileError -->
+## `CjsControllerExpressionCompileError`
+
+Error raised while tokenizing or parsing an expression, carrying the source text, the reason, and the character position at which parsing failed.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/expression/CjsControllerExpressionProgram.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsControllerExpressionEvaluateError -->
+## `CjsControllerExpressionEvaluateError`
+
+Error raised while evaluating a compiled expression, carrying the source text and the reason.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/expression/CjsControllerExpressionProgram.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsControllerExpressionParser -->
+## `CjsControllerExpressionParser`
+
+Recursive-descent parser turning expression source into the AST evaluated by CjsControllerExpressionProgram, collecting referenced variable and function names and rejecting identifiers that could reach the JavaScript prototype chain.
+
+- Source: `src/trinity/controllers/expression/CjsControllerExpressionProgram.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsControllerExpressionProgram -->
+## `CjsControllerExpressionProgram`
+
+Compiles a Carbon controller or curve expression into an AST and evaluates it without dynamic JavaScript eval, exposing the referenced variable and function names for dirty tracking.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/expression/CjsControllerExpressionProgram.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2BindingPoint -->
+## `Tr2BindingPoint`
+
+Resolves an authored `path`/`attribute` pair against named root objects into a concrete property, optionally a single swizzled component of a vector, and reads or writes it.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/expression/Tr2BindingPoint.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ControllerExpression -->
+## `Tr2ControllerExpression`
+
+Holds one compiled expression bound to a controller or state machine, together with the variable dirty mask that says when it needs re-evaluating.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/expression/Tr2ControllerExpression.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ControllerFloatVariable -->
+## `Tr2ControllerFloatVariable`
+
+One named float slot of a controller's variable set, mirroring its value into the controller's packed expression buffer and raising its dirty bit whenever it changes.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/expression/Tr2ControllerFloatVariable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2StateMachine -->
+## `Tr2StateMachine`
+
+Runs one state at a time from an authored state list, entering at the configured start state and following transitions as controller variables change.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/state/Tr2StateMachine.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2StateMachineState -->
+## `Tr2StateMachineState`
+
+One state of a Tr2StateMachine: starts and stops its action list on entry and exit, and evaluates its outgoing transitions each update to decide the next state.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/state/Tr2StateMachineState.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2StateMachineTransition -->
+## `Tr2StateMachineTransition`
+
+One outgoing edge of a state machine state: evaluates a boolean condition expression and, when it passes, names the destination state to switch to.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/state/Tr2StateMachineTransition.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TimelineController -->
+## `Tr2TimelineController`
+
+Plays a list of controller actions against a scrubbable timeline, starting and stopping each action as the current time enters and leaves its authored start/end range on an enabled track.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/timeline/Tr2TimelineController.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TimelineEntry -->
+## `Tr2TimelineEntry`
+
+Defines one action's authored start/end interval and track identifier within a timeline controller.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/timeline/Tr2TimelineEntry.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Controller -->
+## `Tr2Controller`
+
+Owns a set of state machines, float variables and event handlers, driving them against a linked owner object on a throttled update.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/Tr2Controller.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ControllerEventHandler -->
+## `Tr2ControllerEventHandler`
+
+Binds a named controller event to a list of actions that are run as a single one-shot pulse when the event fires.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/Tr2ControllerEventHandler.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ControllerReference -->
+## `Tr2ControllerReference`
+
+Stands in for a controller loaded from a resource path, forwarding the full controller lifecycle to whichever controller the path resolves to.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/Tr2ControllerReference.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SyncToAnimation -->
+## `Tr2SyncToAnimation`
+
+State finalizer that holds a state machine in its current state until the animation layer named by `mask` has finished playing.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/Tr2SyncToAnimation.js`
+- Visibility: Public
+- Kind: Carbon

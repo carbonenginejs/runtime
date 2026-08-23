@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsParameter } from "./CjsParameter.js";
 
-/** TriVariableParameter (shader) - generated from schema shapeHash c1071754.... */
+/** Forwards a named variable-store entry into a named effect constant or resource. */
 @type.define({ className: "TriVariableParameter", family: "shader" })
 export class TriVariableParameter extends CjsParameter
 {

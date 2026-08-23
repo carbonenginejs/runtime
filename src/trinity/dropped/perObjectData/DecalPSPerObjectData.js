@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** DecalPSPerObjectData (eve/perObjectData) - generated from schema shapeHash f9ea110d.... */
+/** Represents the retired pixel-stage decal payload for display, ship, clip, radius, and spherical-harmonic lighting values now written through RawData. */
 @type.define({ className: "DecalPSPerObjectData", family: "eve/perObjectData" })
 export class DecalPSPerObjectData extends CjsModel
 {

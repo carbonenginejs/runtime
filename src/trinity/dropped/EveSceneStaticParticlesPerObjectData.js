@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 
-/** EveSceneStaticParticlesPerObjectData (eve/perObjectData) - generated from schema shapeHash 9f2925d9.... */
+/** Represents the retired static-particle payload for current and previous world matrices now written through RawData. */
 @type.define({ className: "EveSceneStaticParticlesPerObjectData", family: "eve/perObjectData" })
 export class EveSceneStaticParticlesPerObjectData extends CjsModel
 {

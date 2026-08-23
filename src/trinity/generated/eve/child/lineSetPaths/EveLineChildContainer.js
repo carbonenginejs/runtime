@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { EveChildTransform } from "../../../../eve/child/EveChildTransform.js";
 
-/** EveLineChildContainer (eve/child/lineSetPaths) - generated from schema shapeHash 4739e982.... */
-@type.define({ className: "EveLineChildContainer", family: "eve/child/lineSetPaths" })
+/** Groups line-path children beneath an EveChildTransform with shared naming and visibility state. */
+@type.define({ className: "EveLineChildContainer", family: "eve/child/lineSetPaths", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
 export class EveLineChildContainer extends EveChildTransform
 {
 

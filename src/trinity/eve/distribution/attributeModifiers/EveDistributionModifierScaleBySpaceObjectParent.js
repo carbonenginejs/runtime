@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 
-/** EveDistributionModifierScaleBySpaceObjectParent (eve/distribution/attributeModifiers) - generated from schema shapeHash c3114e37.... */
+/** Multiplies a distributed placement's additional scale from its parent space object's bounding radius or an authored scale curve. */
 @type.define({ className: "EveDistributionModifierScaleBySpaceObjectParent", family: "eve/distribution/attributeModifiers" })
 export class EveDistributionModifierScaleBySpaceObjectParent extends CjsModel
 {

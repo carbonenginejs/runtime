@@ -4,8 +4,8 @@ import { io, type } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { Tr2SpriteObjectEffect } from "./enums.js";
 
-/** Tr2Sprite2dTextObject (sprite2d) - generated from schema shapeHash cebd28e9.... */
-@type.define({ className: "Tr2Sprite2dTextObject", family: "sprite2d" })
+/** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
+@type.define({ className: "Tr2Sprite2dTextObject", family: "sprite2d", purpose: "Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag." })
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {
 

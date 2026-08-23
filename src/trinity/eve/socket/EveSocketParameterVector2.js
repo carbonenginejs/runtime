@@ -4,7 +4,7 @@ import { vec2 } from "#math/vec2";
 import { carbon, impl, io, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
-/** EveSocketParameterVector2 (eve/socket) - SOCKET_PARAMETER_DEFINE(Vector2, (0, 0)). */
+/** Binds a named two-component vector socket value to external parameters, preserving defaults by copy for restoration. */
 @type.define({ className: "EveSocketParameterVector2", family: "eve/socket" })
 export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
 {

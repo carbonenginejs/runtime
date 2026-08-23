@@ -19,7 +19,7 @@ export class DecalMeshCacheMeshBuffers
 
 }
 
-/** DecalMeshCache (eve/attachment/decal) - generated from schema shapeHash 1a839484.... */
+/** Stores the per-LOD clipped vertex and index buffers generated for one projected decal. */
 @type.define({ className: "DecalMeshCache", family: "eve/attachment/decal" })
 export class DecalMeshCache extends CjsModel
 {

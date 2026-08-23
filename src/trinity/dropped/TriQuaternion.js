@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriQuaternion (trinityCore) - generated from schema shapeHash 3c717b89.... */
+/** Retains the retired Blue/Python quaternion wrapper identity superseded by runtime quat math. */
 @type.define({ className: "TriQuaternion", family: "trinityCore" })
 export class TriQuaternion extends CjsModel
 {

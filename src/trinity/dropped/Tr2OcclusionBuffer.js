@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2OcclusionBuffer (eve/scene) - generated from schema shapeHash 8bb43a7a.... */
+/** Retains the native GPU occlusion-buffer service identity whose allocation and effect processing belong to a renderer backend. */
 @type.define({ className: "Tr2OcclusionBuffer", family: "eve/scene" })
 export class Tr2OcclusionBuffer extends CjsModel
 {

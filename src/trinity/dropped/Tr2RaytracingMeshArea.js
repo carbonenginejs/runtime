@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2RaytracingMeshArea (raytracing) - generated from schema shapeHash 42a64c2d.... */
+/** Retains the native per-area acceleration-structure helper identity whose state belongs to a ray-tracing engine backend. */
 @type.define({ className: "Tr2RaytracingMeshArea", family: "raytracing" })
 export class Tr2RaytracingMeshArea extends CjsModel
 {

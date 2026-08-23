@@ -4,7 +4,7 @@ import { io, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { CjsParameter } from "./CjsParameter.js";
 
-/** Tr2ConstantEffectParameter (shader) - generated from schema shapeHash b4e14ee0.... */
+/** Stores one named persistent vec4 constant authored directly on an effect. */
 @type.define({ className: "Tr2ConstantEffectParameter", family: "shader" })
 export class Tr2ConstantEffectParameter extends CjsParameter
 {

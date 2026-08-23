@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriVector (trinityCore) - generated from schema shapeHash 56f8ea78.... */
+/** Retains the retired Blue/Python vector wrapper identity superseded by runtime vec3 math. */
 @type.define({ className: "TriVector", family: "trinityCore" })
 export class TriVector extends CjsModel
 {

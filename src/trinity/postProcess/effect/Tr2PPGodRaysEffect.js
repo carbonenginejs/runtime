@@ -4,7 +4,7 @@ import { io, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec4 } from "#math/vec4";
 
-/** Tr2PPGodRaysEffect (postProcess) - generated from schema shapeHash 14c380e1.... */
+/** Carries the color, intensity, and noise texture used for post-process god rays. */
 @type.define({ className: "Tr2PPGodRaysEffect", family: "postProcess" })
 export class Tr2PPGodRaysEffect extends Tr2PPEffect
 {

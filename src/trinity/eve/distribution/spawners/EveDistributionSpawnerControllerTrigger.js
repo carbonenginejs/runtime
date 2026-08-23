@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveDistributionSpawnerControllerTrigger (eve/distribution/spawners) - generated from schema shapeHash 67110969.... */
+/** Gates a nested set of distribution spawners from a named controller variable. */
 @type.define({ className: "EveDistributionSpawnerControllerTrigger", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerControllerTrigger extends CjsModel
 {

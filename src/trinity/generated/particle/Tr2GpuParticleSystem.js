@@ -3,8 +3,8 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2GpuParticleSystem (particle) - generated from schema shapeHash 6115dd0d.... */
-@type.define({ className: "Tr2GpuParticleSystem", family: "particle" })
+/** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */
+@type.define({ className: "Tr2GpuParticleSystem", family: "particle", purpose: "Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages." })
 export class Tr2GpuParticleSystem extends CjsModel
 {
 

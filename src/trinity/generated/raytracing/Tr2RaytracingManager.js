@@ -3,8 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2RaytracingManager (raytracing) - generated from schema shapeHash 5e5cd620.... */
-@type.define({ className: "Tr2RaytracingManager", family: "raytracing" })
+/** Carries shadow-effect, denoiser, enablement, and sun-angle state for Carbon's ray-tracing manager. */
+@type.define({ className: "Tr2RaytracingManager", family: "raytracing", purpose: "Carries shadow-effect, denoiser, enablement, and sun-angle state for Carbon's ray-tracing manager." })
 export class Tr2RaytracingManager extends CjsModel
 {
 

@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** ITriColor (include) - generated from schema shapeHash 30191a6b.... */
+/** Retains the retired Blue/Python color interface superseded by runtime vec4 values and schema color fields. */
 @type.define({ className: "ITriColor", family: "include" })
 export class ITriColor extends CjsModel
 {

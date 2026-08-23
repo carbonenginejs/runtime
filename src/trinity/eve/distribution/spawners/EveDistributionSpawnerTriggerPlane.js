@@ -5,7 +5,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 
-/** EveDistributionSpawnerTriggerPlane (eve/distribution/spawners) - generated from schema shapeHash f7abe103.... */
+/** Triggers pooled placements in the order reached by a timed plane sweep. */
 @type.define({ className: "EveDistributionSpawnerTriggerPlane", family: "eve/distribution/spawners" })
 export class EveDistributionSpawnerTriggerPlane extends CjsModel
 {

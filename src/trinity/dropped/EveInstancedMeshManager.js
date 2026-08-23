@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
-/** EveInstancedMeshManager (eve/scene) - generated from schema shapeHash 167badda.... */
+/** Retains the quarantined native GPU-backed instancing manager whose realization belongs to an engine backend. */
 @type.define({ className: "EveInstancedMeshManager", family: "eve/scene" })
 export class EveInstancedMeshManager extends CjsModel
 {

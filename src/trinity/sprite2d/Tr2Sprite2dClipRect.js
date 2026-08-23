@@ -3,7 +3,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2Sprite2dClipRect (sprite2d) - generated from schema shapeHash ed8305bc.... */
+/** Carries the left, top, right, and bottom bounds of one Sprite2D clipping rectangle. */
 @type.define({ className: "Tr2Sprite2dClipRect", family: "sprite2d" })
 export class Tr2Sprite2dClipRect extends CjsModel
 {
