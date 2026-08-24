@@ -80,12 +80,12 @@ library builder is one such case. Reviewed generated source required at
 runtime lives beneath its owning layer under `src/**/generated`; build inputs
 do not become runtime dependencies.
 
-## Migration constraint
+## History-preservation record
 
-Every donor enters under a temporary prefix through a non-squashed Git subtree
-import. Ordinary commits then move reviewed files into final layer paths. Plain
-filesystem copies and squashed imports are prohibited because they discard the
-origin history needed for provenance and future archaeology.
+Every donor entered under a temporary prefix through a non-squashed Git subtree
+import. Ordinary commits then moved reviewed files into final layer paths.
+Plain filesystem copies and squashed imports remain prohibited for any future
+donor because they discard origin history needed for provenance and archaeology.
 
 Consumer changes remain atomic and occur only after the combined package
 passes the donor baselines and the final package boundary is reviewed.

@@ -15,8 +15,9 @@ CarbonEngineJS data. Format packages can stop at plain JSON or a neutral
 
 ## Availability
 
-The combined package is private while migration is in progress. Use the local
-workspace package; no published installation command is supported yet.
+Source consolidation is complete, but the combined package remains private
+while consumer and registry cutover is prepared. Use the local workspace
+package; no published installation command is supported yet.
 
 ## What it owns
 

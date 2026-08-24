@@ -123,7 +123,7 @@ decrement a new owner's lock. Acquisition and release must never fetch,
 reconstruct, prepare, or release payload data themselves.
 
 The token is an async-safety replacement for exposing the existing raw lock
-count, not a new retention policy. For example, runtime-audio can hold
+count, not a new retention policy. For example, the audio layer can hold
 source/PCM payload through decode and release the token once it owns the
 resulting WebAudio `AudioBuffer`; keeping the resource locked for the full
 playback or decoded-cache lifetime would unnecessarily retain both

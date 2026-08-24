@@ -2,7 +2,7 @@
   "name": "@carbonenginejs/runtime",
   "version": "0.0.0",
   "private": true,
-  "description": "Unpublished consolidation destination for the browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.",
+  "description": "Private pre-release package for the consolidated browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.",
   "type": "module",
   "license": "MIT",
   "exports": {

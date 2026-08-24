@@ -60,7 +60,7 @@ package does not allocate or submit the corresponding GPU object.
 `test/character/runtime-character/cpu-gpu-boundary.test.js` guards the package source against engine,
 resource-runtime, and browser/Node tool imports and against concrete
 WebGL/WebGPU allocation, upload, and draw operations. Shared model, schema,
-path, and math functions remain GPU-free imports from `runtime-utils`.
+path, and math functions remain GPU-free imports from the `global` layer.
 
 ## Format pipeline
 
@@ -76,7 +76,7 @@ bytes -> generic format reader -> plain values/inspection
 
 The intended package split is:
 
-- `runtime-utils` owns the shared GPU-free model, schema, path, and math
+- the `global` layer owns the shared GPU-free model, schema, path, and math
   functions used by character models;
 - `@carbonenginejs/runtime/resource` owns the generic FSD pipeline and schema-driven cFSD
   readers; and

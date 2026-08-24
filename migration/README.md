@@ -1,11 +1,12 @@
 # History-preserving runtime migration
 
-The combined runtime is built from the clean donor revisions recorded in
-[`sources.json`](sources.json). Each donor is imported with its complete Git
-history under the manifest's temporary prefix. Reviewed files are then moved
-to their final layer paths with ordinary commits.
+Source consolidation completed on 2026-08-23 from the clean donor revisions
+recorded in [`sources.json`](sources.json). Each donor was imported with its
+complete Git history under the manifest's temporary prefix, then reviewed files
+were moved to their final layer paths with ordinary commits.
 
-The migration uses these constraints:
+The completed migration used these constraints, which remain mandatory for any
+future donor import:
 
 - never copy a donor tree into the destination without its Git history;
 - never squash a donor subtree import;

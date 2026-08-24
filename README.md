@@ -1,13 +1,15 @@
 # @carbonenginejs/runtime
 
-Unpublished consolidation destination for the browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.
+Private pre-release package for the consolidated browser-safe CarbonEngineJS
+runtime, renderer engines, and browser tools.
 
-Use this repository while the accepted combined-runtime migration is in
-progress. It provides the executable layer boundary, migration metadata, the
-maintained global foundation, the resource/format capability, the migrated
-Trinity/EVE object graph, the standalone SOF data and graph builder, the
+Source consolidation completed on 2026-08-23. Consumer and registry cutover,
+the first public version, and publication remain pending. This repository
+provides the executable layer boundary, migration metadata, the maintained
+global foundation, the resource/format capability, the Trinity/EVE object
+graph, the standalone SOF data and graph builder, the
 complete headless-by-default audio domain, and the GPU-free character domain.
-The browser-facing input domain is also migrated and remains headless until a
+The browser-facing input domain remains headless until a
 host is explicitly attached. The WebGPU engine is available only through its
 explicit engine subpath and remains inert unless a consumer imports it. The
 GPU-free composition core is also maintained here and exposes its browser

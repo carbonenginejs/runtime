@@ -112,7 +112,7 @@ await manager.LoadLibraryAsync("res:/character/character-library.json");
 ```
 
 The loader owns acquisition and decoding. It returns an object, not bytes.
-Runtime-character deduplicates equivalent in-flight loads but does not become a
+The character layer deduplicates equivalent in-flight loads but does not become a
 persistent resource cache. Starting a distinct asynchronous library request
 supersedes older pending requests, even when the newer loader returns no value;
 an older result never installs after a newer request has started.

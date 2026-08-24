@@ -36,11 +36,11 @@ creates two deliberate caches:
 Changing effect options therefore selects another shader from the same loaded
 file rather than loading another file.
 
-## Runtime-resource model
+## Resource-layer model
 
 `src/resource/shader/Tr2EffectRes.js` follows the same shape:
 
-| Carbon | Runtime-resource |
+| Carbon | Runtime resource layer |
 | --- | --- |
 | shader map keyed by permutation index | private `#shaders` map |
 | `GetShader(options, count)` | option resolution followed by `GetShaderByIndex` |

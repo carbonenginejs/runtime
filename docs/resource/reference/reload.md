@@ -97,7 +97,7 @@ This availability contract intentionally differs from Carbon.
 `BlueAsyncRes::Reload` cancels/joins work, releases dependent cached data, and
 reloads the same canonical object in place; failure can therefore leave that
 stable handle bad. Carbon MotherLode replacement also switches immediately and
-has no prepare-success gate or rollback. Runtime-resource instead preserves
+has no prepare-success gate or rollback. The resource layer instead preserves
 the last published good handle until a distinct candidate has succeeded, and
 never silently retargets existing JavaScript references.
 

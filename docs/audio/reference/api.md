@@ -362,7 +362,7 @@ synchronously, and are passed through by both `CjsAudioMan` and
 `CjsAudioSystem`.
 
 Constructor options `musicLibrary`, `loadMusicTrack`, and
-`isMusicTrackAvailable` opt into `audio.jukebox`. Runtime-audio never fetches
+`isMusicTrackAvailable` opt into `audio.jukebox`. The audio layer never fetches
 song `url` or `path` hints itself. `RefreshAvailability()` plus
 `GetPlaylistSongs({ includeUnavailable })` lets a UI hide or disable
 unreachable songs.

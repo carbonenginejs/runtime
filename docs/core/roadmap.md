@@ -1,4 +1,4 @@
-# Runtime-core roadmap
+# Core-layer roadmap
 
 Status: Evolving
 Scope: Planned `@carbonenginejs/runtime/core` composition work
@@ -85,8 +85,8 @@ instances must remain independent.
 
 ## Planned preload and retention policy
 
-Runtime-core will own preload intent and retention lifetime because it knows
-what must be ready for an application profile. Runtime-resource continues to
+The core layer will own preload intent and retention lifetime because it knows
+what must be ready for an application profile. The resource layer continues to
 own actual loading, cache identity, locks, payloads, and eviction.
 
 The planned descriptor distinguishes:
@@ -115,7 +115,7 @@ The selection flow separates:
 3. application policy that ranks proven candidates; and
 4. commitment of one selected backend.
 
-Runtime-core records and applies the result. It does not create a GPU device,
+The core layer records and applies the result. It does not create a GPU device,
 test format-specific bytes, or implement WebGL/WebGPU realization itself.
 Format and resource reports remain CPU-side evidence; the selected engine owns
 device-route proof.
@@ -212,8 +212,8 @@ runtime dependency.
    and synthetic two-instance tests.
 3. Add preload groups and balanced retention scopes through a reviewed
    runtime resource contract.
-4. Add capability proofs, requested/effective preferences, and renderer
-   selection policy.
+4. Extend the implemented capability-proof and renderer-selection flow with
+   requested/effective preferences and refresh policy.
 5. Add replaceable static/HTTP data providers and one static easy-entry demo.
 6. Add realtime invalidation only after an offline configuration remains fully
    functional.

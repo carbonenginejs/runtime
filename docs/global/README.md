@@ -26,8 +26,7 @@ Use the runtime global foundation when code:
 
 Do not use it merely as a convenient home for code without an owner.
 Browser-facing demos, clients, inspectors, and reusable browser helpers belong
-to this repository's `demo` and `src/tools` layers, respectively; their donor
-source has not migrated yet.
+to this repository's `demo` and `src/tools` layers, respectively.
 
 ## Where it fits
 

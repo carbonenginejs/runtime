@@ -109,7 +109,7 @@ the standard ancillary placement chunks when present:
 - `physicalPixelDimensions: { x, y, unit }` from `pHYs`, with unsigned 32-bit
   values.
 
-These are raw PNG facts. Runtime-resource does not assign character-atlas or
+These are raw PNG facts. The resource layer does not assign character-atlas or
 other domain semantics to their values.
 
 ## Black and Red reader boundary

@@ -212,7 +212,7 @@ unsupported.
 
 Carbon's 2026-08-04 `AudObstructionOcclusion` addition makes obstruction and
 occlusion a host-driven manager contract rather than a ray-casting feature.
-The game supplies one blockage value per emitter. Runtime-audio clamps it,
+The game supplies one blockage value per emitter. The audio layer clamps it,
 tracks and linearly fades the live value at one unit per second by default,
 suppresses occlusion while spatial geometry is enabled, and forwards changed
 awake values through the optional backend method
@@ -237,7 +237,7 @@ bounded form covers five zero-record Hangar Layers and 22 association-free
 ship-engine Layers in EVE build 3453885.
 
 An associated Continuous Layer is admitted only when every direct child has an
-explicit non-empty region and is proven infinite. Runtime-audio pre-starts
+explicit non-empty region and is proven infinite. The audio layer pre-starts
 those children, keeps the container
 alive until an authored Stop, and applies its gain plus supported property RTPC
 curves live. This is a browser approximation, not Wwise child admission:

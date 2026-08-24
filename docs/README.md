@@ -3,11 +3,11 @@
 Status: Experimental
 Scope: `@carbonenginejs/runtime`
 Audience: Runtime authors, engine authors, integrators, and maintainers
-Summary: Explains the unpublished combined-runtime destination and routes readers to its current structural contract.
+Summary: Explains the consolidated private runtime and routes readers to its current structural contract.
 
 ## Purpose
 
-`@carbonenginejs/runtime` is the accepted consolidation destination for the
+`@carbonenginejs/runtime` is the consolidated source package for the
 browser-safe CarbonEngineJS runtime family, renderer engines, and browser-safe
 tools. The repository owns the executable dependency-layer contract, migration
 metadata, the maintained global foundation, the resource/format capability,
@@ -21,9 +21,10 @@ maintained under the explicit `/tools` surface.
 
 ## Use this package when
 
-Current maintainers use this repository to validate the combined layer graph
-and to perform the history-preserving migration. Consumers continue using the
-published donor packages until the coordinated cutover.
+Source consolidation completed on 2026-08-23. Maintainers use this repository
+to validate the combined layer graph and prepare the coordinated consumer,
+registry, and first-release cutover. Registry consumers continue using the
+published donor packages until that cutover.
 
 After cutover, consumers will use focused runtime subpaths for math, schemas,
 resources, Trinity graphs, SOF, audio, character behavior, input, composition,

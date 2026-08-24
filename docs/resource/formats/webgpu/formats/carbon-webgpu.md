@@ -210,7 +210,7 @@ The set builder fails closed unless every recipe:
 - matches the binding's identity, view dimension, and layer count; and
 - removes only the later input scopes from that recipe's owning pass.
 
-`engine-webgpu` accepts WGSL-set versions 1, 2, and 3 and realizes the
+The `engine/webgpu` layer accepts WGSL-set versions 1, 2, and 3 and realizes the
 version-1 `texture-2d-array` recipe. Unsupported recipe kinds or versions fail
 closed.
 

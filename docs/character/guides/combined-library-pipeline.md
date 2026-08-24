@@ -112,7 +112,7 @@ await manager.LoadLibraryAsync("res:/character/character-library.json");
 ```
 
 The loader returns the decoded JSON object or an already hydrated
-`CjsCharacterLibrary`. Runtime-character does not own the transport, cache,
+`CjsCharacterLibrary`. The character layer does not own the transport, cache,
 JSON parser, resource decoder, or resource manager. Equivalent in-flight library
 loads are deduplicated; completed loads are not retained as an acquisition
 cache.

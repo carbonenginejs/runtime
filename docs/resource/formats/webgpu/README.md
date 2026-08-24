@@ -36,7 +36,7 @@ Use the WebGPU format subpath when you need to:
 Use `@carbonenginejs/runtime/resource/formats/hlsl` directly for effect metadata without WGSL
 conversion, and `@carbonenginejs/runtime/resource/formats/dxbc` directly for standalone DXBC
 inspection. GPU device, shader-module, bind-group, and pipeline realization
-belong in `@carbonenginejs/engine-webgpu`.
+belong in `@carbonenginejs/runtime/engine/webgpu`.
 
 ## Where it fits
 
@@ -54,7 +54,7 @@ compiled effect bytes
        analysis + WGSL + Carbon records
                        |
                        v
-                 engine-webgpu
+              engine/webgpu
 ```
 
 The package is browser-safe at its public source boundary. Repository-only

@@ -127,10 +127,10 @@ An embedded media record can be delivered in two ways:
 - `ReadRange(bankRecord, { offset, byteLength })` returns exactly that window.
 
 Individual source records always use `Read(sourceRecord)`. The provider owns
-URLs, credentials, fetch policy, and cancellation. Runtime-audio owns media
+URLs, credentials, fetch policy, and cancellation. The audio layer owns media
 choice, validation, preparation, decoding, and caches.
 
-Both provider routes receive an `AbortSignal`. Runtime-audio deduplicates
+Both provider routes receive an `AbortSignal`. The audio layer deduplicates
 concurrent media and complete-bank reads without sharing caller
 cancellation: one stopped event releases only its own lease, and the
 provider signal aborts when no active event still needs the pending read.
@@ -170,7 +170,7 @@ currently rendered.
 
 Carbon's newer line-of-sight subsystem does not ray cast either: the host
 supplies a normalized blockage value per emitter and `AudManager` fades the
-result before handing it to Wwise. Runtime-audio now preserves that manager
+result before handing it to Wwise. The audio layer now preserves that manager
 API and fade lifecycle. Call `SetEmitterLineOfSightBlockage(emitterID, value)`
 after registering the emitter; `GetEmitterOcclusion()` observes the live
 mid-fade value. An injected backend may accept

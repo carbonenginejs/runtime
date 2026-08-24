@@ -95,7 +95,7 @@ engine.
 ## Ownership elsewhere
 
 - Browser-facing reusable helpers belong in `src/tools`; non-engine examples
-  belong in the root `demo` tree. These donor sources have not migrated yet.
+  belong in the root `demo` tree.
 - Node filesystems, caches, credentials, servers, command-line interfaces, and
   build orchestration belong in `@carbonenginejs/tools-core`.
 - Runtime graph objects and domain readers belong in their owning runtime

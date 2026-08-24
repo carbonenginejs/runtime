@@ -37,7 +37,7 @@ The implemented package currently owns:
 - appfileindex and resfileindex parsing, discovery, immutable lookup, named
   overlays, and safe HTTP(S) source resolution;
 - naming, packing, synthesis, decoding, and shader inspection for Carbon
-  per-object constant-buffer layouts owned by runtime-trinity;
+  per-object constant-buffer layouts owned by the `trinity` layer;
 - provider-neutral chat-room selection, browser-local filtering, disposable
   room listeners, and consumption of server-resolved presentation assets;
 - independent demo registration, serialized parent-container switching, and
@@ -131,7 +131,7 @@ subpath, tests, documentation, and owned security boundary.
 - Textures, buffers, pipelines, and backend realization belong in explicit
   `engine/*` layers.
 - Audio and character library construction, planning, and runtime semantics
-  remain in their owning runtime packages. Demos may receive their prepared
+  remain in their owning runtime layers. Demos may receive their prepared
   documents and runtime capabilities without wrapping them in a graphics
   lifecycle.
 

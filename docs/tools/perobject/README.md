@@ -167,22 +167,24 @@ reserved, and are zeroed by `EveCustomMask::ZeroPerObjectData` when unused. It
 gates shader code, textures and samplers. `SynthesizePatternLayers` returns the
 implied option alongside the mask values so the two cannot drift apart.
 
-Do not assume PPT-on is a corpus-wide default. `engine-webgpu`'s harness notes
+Do not assume PPT-on is a corpus-wide default. The `engine/webgpu` harness notes
 record audited hulls authoring PPT **disabled**.
+
+## Per-frame coverage
+
+`CjsPerFrameLayouts`, exported from
+`@carbonenginejs/runtime/trinity/perframe`, owns both the legacy interior
+`Tr2PerFrame*` layouts and the larger EVE space-scene layouts. The space-scene
+VS and PS records contain 46 and 118 registers respectively. The catalog and
+scene fill paths are verified together by
+`test/trinity/per-frame-layouts.test.js`; engines consume those canonical
+layouts rather than carrying a second table.
+
+Do not substitute the legacy interior structs from
+`Tr2ConstantBufferFormats.h` for the EVE space-scene records.
 
 ## Not yet covered
 
-- `PerFrameVS` (`cb1`) and `PerFramePS` (`cb2`). **Do not read these from
-  `Tr2ConstantBufferFormats.h:53-92`** — that legacy pair is the INTERIOR path
-  (`Tr2InteriorScene`, `WodBakingScene`). Space scenes use the much larger
-  structs nested in `EveSpaceScene.h:240,300`, filled by
-  `EveSpaceScene::PopulatePerFrameVSData` / `PopulatePerFramePSData`
-  (`EveSpaceScene.cpp:3015`, `:3075`) and bound by `ApplyPerFrameData`
-  (`:815-826`) — 46 and 118 registers. `cb2: array<vec4<f32>, 22>` in the quad
-  exports is that PS struct truncated after `GammaBrightness` (352 bytes, the
-  end of the MiscData block); it is currently reported as `unknown`.
-  `engine-webgpu/src/core/spaceObjectMainBindings.js:26-96` already carries
-  both byte layouts.
 - Cross-checking the catalog against Trinity's
   `src/eve/perObjectData/*` declarations. `VerifyDefinition` exists for exactly
   this and will fail loud on drift, but no combined-runtime proof runs it yet.

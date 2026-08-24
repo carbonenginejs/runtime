@@ -1,12 +1,10 @@
 {
     "//": [
-        "The layering contract, machine-readable because it is no longer enforced",
-        "for free.",
+        "The combined runtime's machine-readable layering contract.",
         "",
-        "Today the package manager is the enforcement: runtime-sof cannot import",
-        "runtime-trinity because it is not a dependency, and no manifest edit passes",
-        "review unnoticed. Inside one package that guarantee disappears at exactly",
-        "the moment the barrier becomes a one-line import. This file replaces it.",
+        "Before consolidation the package manager made a forbidden layer edge",
+        "require a manifest edit. Inside one package this file and lint:layers",
+        "replace that enforcement explicitly.",
         "",
         "`mayImport` is exhaustive: a directory may import from itself and from the",
         "layers listed, and from nothing else. Layer names are directory paths, so",

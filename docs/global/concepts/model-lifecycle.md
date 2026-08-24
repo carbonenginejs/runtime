@@ -130,7 +130,7 @@ The `./lifecycle` subpath can install `CjsLifecycleState` into
 `destroying`, and `destroyed`.
 
 Installing this state is optional. An object without it is ordinarily alive
-and unmanaged. Runtime-utils does not provide a generic lifecycle manager or
+and unmanaged. The global layer does not provide a generic lifecycle manager or
 automatic transitions between these statuses.
 
 ## Asking whether a value is a model

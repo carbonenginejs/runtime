@@ -129,7 +129,7 @@ media provider   CjsAudioSystem
 ```
 
 The host may use a packaged artifact, a complete API result, the optional
-builder, or another source. Runtime-audio does not care how the document was
+builder, or another source. The audio layer does not care how the document was
 obtained. Provider calls receive exact document records and request either an
 individual file, a complete original file, or one exact byte range.
 

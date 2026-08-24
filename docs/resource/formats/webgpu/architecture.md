@@ -26,7 +26,7 @@ creating live GPU objects.
           +---- Carbon WebGPU bytes, analysis, WGSL, canonical layouts
           |
           v
-@carbonenginejs/engine-webgpu
+@carbonenginejs/runtime/engine/webgpu
 ```
 
 Node build tools may call the public byte-oriented API, but the format package
@@ -57,7 +57,7 @@ then package data to the engine.
 - `@carbonenginejs/runtime/resource/formats/hlsl` owns compiled-effect parsing, permutation resolution,
   unique-body enumeration, and binding-manifest interpretation.
 - `@carbonenginejs/runtime/resource/formats/dxbc` owns DXBC container and instruction decoding.
-- `@carbonenginejs/engine-webgpu` owns `GPUDevice`, shader-module compilation, bind groups,
+- `@carbonenginejs/runtime/engine/webgpu` owns `GPUDevice`, shader-module compilation, bind groups,
   pipelines, resource realization, device loss, and draw execution.
 - Node tooling owns indexed input acquisition, filesystem adapters, caching,
   build reports, and optional native comparison.

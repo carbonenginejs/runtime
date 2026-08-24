@@ -7,7 +7,7 @@ Summary: Describes the two supported music-engine integration paths and their li
 
 ## Purpose
 
-Runtime-audio can schedule a tools-generated authored music graph or delegate
+The audio layer can schedule a tools-generated authored music graph or delegate
 music playback to an application-owned engine. Both paths join the same master
 destination and event-routing lifecycle.
 

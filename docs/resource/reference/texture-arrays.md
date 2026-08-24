@@ -29,7 +29,7 @@ detail2.textureRes === textureArray; // true
 Proxy setters only update their source path and invalidate the parent. The
 parent is scheduled once even if several proxies change in the same frame.
 The next-frame consumer calls `Update()` or `ConsumeUpdateRequest()` to
-obtain one immutable ordered snapshot. Runtime-resource does not know which
+obtain one immutable ordered snapshot. The resource layer does not know which
 shader metadata caused the aggregate request; shader packages and engine
 adapters map public parameter names to layer indices.
 

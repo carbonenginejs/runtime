@@ -144,8 +144,8 @@ offers and there is nothing left for a second engine to copy.
 
 This package does not resolve effect paths and exports no helper for it. Which
 compiled effect tree an authored `/effect/` path resolves into is configuration,
-and the composition root owns it. Until the core donor is physically moved into
-the combined runtime, callers must supply the resolved path themselves.
+and the `@carbonenginejs/runtime/core/platform` composition layer owns it. The
+engine receives an already resolved path or package.
 
 The engine is handed a path or a package and validates what it receives,
 failing with a thrown error rather than rendering nothing when it is given

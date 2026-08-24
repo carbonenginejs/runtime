@@ -94,7 +94,7 @@ historical mapping.
   resources without selecting an engine. Trinity owns the mutable
   `Tr2Effect`/`Tr2Material` facade, parameters, options, and sampler overrides;
   it consumes the resource-owned shader graph.
-- `engine-webgpu` and future WebGL engines consume loaded resources and own
+- The `engine/webgpu` layer and any future WebGL engine layer consume loaded resources and own
   all backend allocations, preparation, replacement, and destruction.
 
 Concrete formats are not imported or registered by the package root; see

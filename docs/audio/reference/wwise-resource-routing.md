@@ -237,8 +237,8 @@ a nested exclusive `ship_Roll` curve drives LFO Frequency toward `100 Hz`.
 The object has zero attack, default Sine waveform, two-percent smoothing, and
 50-percent PWM.
 
-Runtime-resource currently identifies that v150 type-19 object but retains its
-96-byte payload raw. Runtime-audio does not duplicate the owning BNK decoder,
+The resource layer currently identifies that v150 type-19 object but retains its
+96-byte payload raw. The audio layer does not duplicate the owning BNK decoder,
 so this otherwise realizable Oscillator-to-biquad-gain adapter remains blocked
 until a typed LFO record is exposed. Exact scope sharing, phase/lifecycle,
 smoothing, and pause behavior must then be qualified before the 27 leaves can
@@ -621,7 +621,7 @@ The exact EVE dynamic exception is not a Wwise Modulator. Four v150 Flanger
 ShareSets use ordinary Game Parameter control `3712448215`, named
 `ship_Distance`, while STMG binds that parameter to built-in Distance `1`.
 Their additive scaling-0 `ParamID 1` and matching property ID `1` drive the
-decoded Wet/Dry Mix base. Runtime-audio admits only that complete shape and
+decoded Wet/Dry Mix base. The audio layer admits only that complete shape and
 evaluates it per voice from emitter/listener distance. Control type `4`, other
 bindings, ramps, names, targets, accumulations, scalings, and versions remain
 barriers.
@@ -690,7 +690,7 @@ global phase, omits the per-channel Random spread, and does not reproduce the
 native 35% smoothing. Those numeric targets and the single-curve preset are
 corpus-proven mappings, not universal Wwise enums. The builder also requires
 the matching base-Depth property and STMG ramp type 2 with the exact two-second
-up/down times. Runtime-audio approximates the control filter independently per
+up/down times. The audio layer approximates the control filter independently per
 voice with Wwise's documented
 99.5%-at-authored-time exponential law, samples the admitted curves, clamps Depth
 to `0..100` and Frequency to `0.02 Hz..Nyquist`, and automates the oscillator

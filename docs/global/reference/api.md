@@ -29,8 +29,8 @@ import { encodeUtf8 } from "@carbonenginejs/runtime/utils/text";
 
 ## Source-implemented exports
 
-These exports are implemented and tested in the migration workspace. The
-combined package remains private until the atomic consumer cutover.
+These exports are implemented and tested in the consolidated source tree. The
+package remains private until the atomic consumer and registry cutover.
 
 | Subpath | Purpose | Exports |
 | --- | --- | --- |

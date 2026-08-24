@@ -7,7 +7,7 @@ Summary: Supplies a neutral track catalog and caller-owned acquisition to `CjsJu
 
 ## Separate music systems
 
-Runtime-audio exposes two deliberately independent music paths:
+The audio layer exposes two deliberately independent music paths:
 
 - `CjsMusicEngine` interprets authored Wwise events, containers, switches,
   playlists, segments, and transitions from the complete audio document.

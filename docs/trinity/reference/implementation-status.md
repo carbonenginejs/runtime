@@ -124,9 +124,10 @@ parity gate rather than incidental test behavior.
   technique's shader-type mask. Carbon's `Standard` and `Skinned` per-object
   classes disagree on gating the pixel payload; this package takes the gated
   form for every struct.
-- The public class-purpose catalog remains substantially incomplete, so the
-  organization documentation checker still reports missing catalog markers for
-  classes that have not yet been through promotion review.
+- The public class-purpose catalog covers every current class with class-level
+  documentation. `npm run catalog:trinity` reports no missing catalog entry.
+  Promotion review must continue to install a descriptor before a new
+  maintained class is considered complete.
 - `EveSpaceScene` owns persistent per-frame record storage and fills scene,
   lighting, fog, shadow-quality, and volumetric values. Its fill methods
   consume stored history and jitter fields, but JavaScript does not yet
@@ -217,10 +218,9 @@ inherited or interface obligation, the maintained class remains promoted and
 the parity audit keeps that new gap explicit. Backend-only methods remain
 explicit until an owning engine exposes a proven capability.
 
-The public class-purpose catalog is populated as classes receive reviewed
-descriptors during promotion. Completing the remaining catalog still requires
-descriptor metadata and documentation validation that excludes the dropped
-quarantine.
+The public class-purpose catalog is current for documented classes. Promotion
+still requires reviewed descriptor metadata, catalog regeneration, and
+documentation validation; dropped quarantine classes remain excluded.
 
 ## Related documentation
 

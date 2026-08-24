@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "state": "source-migration-in-progress",
+  "state": "source-migration-complete",
   "destination": "@carbonenginejs/runtime",
   "baselineDate": "2026-08-23",
   "historyPolicy": "non-squashed-git-subtree",

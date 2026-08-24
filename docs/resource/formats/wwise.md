@@ -100,7 +100,7 @@ The same bank uses 22 global element Bus Volume actions across 11 events:
 object-scoped Set/Reset and global Reset All/All-Except aliases remain decoded;
 the nonexistent v150 game-object Reset All/All-Except aliases remain
 unsupported.
-Their runtime policy is owned by `runtime-audio`, not this container reader.
+Their runtime policy is owned by the `audio` layer, not this container reader.
 Exact v150 STMG chunks attach `globalSettings` to an inspection and expose
 state groups and custom transitions, switch groups and graph points, RTPC
 defaults and ramp policies, built-in parameter bindings, acoustic textures,

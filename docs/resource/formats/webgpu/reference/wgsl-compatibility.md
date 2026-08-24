@@ -1376,7 +1376,7 @@ occurrences and 2,240 passes, while DX12's expected unbounded-range backend
 boundary remains comparison-only for 480 pass occurrences.
 
 Explicit `SPACE_OBJECT_PPT_ENABLED=SOPPT_ENABLED` body-4 packages were then
-prepared through the unchanged engine-webgpu reader on a real WebGPU adapter.
+prepared through the unchanged engine/webgpu reader on a real WebGPU adapter.
 The DX11 package contains 144 reflected bodies and the DX12 package 288; each
 selected Main pass exposes two modules and 25 canonical bindings. Both browser
 gates compile with zero WGSL warnings.
@@ -1441,7 +1441,7 @@ extra.
 
 ## Consumer boundary: resource transforms
 
-`engine-webgpu` accepts `CJS_WGSL_SET` versions 1, 2 and 3, and realizes
+The `engine/webgpu` layer accepts `CJS_WGSL_SET` versions 1, 2 and 3, and realizes
 `texture-2d-array` resource transforms. The discriminator is the **feature**,
 never the document version and never `texture.viewDimension`:
 
@@ -1525,7 +1525,7 @@ identically and the bit-exact comparison would have stayed green.
 ## Verification contract
 
 Every shader-emission, layout, or transform compatibility change requires the
-package suite and a representative `engine-webgpu` browser gate on a real
+package suite and a representative `engine/webgpu` browser gate on a real
 WebGPU device with zero WGSL warnings. Format-level qualification cannot detect
 every WGSL scoping or validator failure, so browser validation remains part of
 the compiler contract. A reviewed record-layout or derived-view-only change

@@ -314,7 +314,7 @@ parameters 1 and 7 in this corpus are driven by Wwise Modulator objects, not
 Game Parameters. The largest exact case is effect `1738007123` on 27 Sounds
 across seven engine-on events: `ship_Roll` already controls Band 1 Frequency,
 while v150 LFO `841531431` drives Band 1 Gain from `+0.2` to `-24 dB` and has
-its own `ship_Roll` frequency curve from `0.2` to `100 Hz`. Runtime-resource
+its own `ship_Roll` frequency curve from `0.2` to `100 Hz`. The resource layer
 currently retains that HIRC object as raw payload rather than a typed
 modulator record. It remains unsupported until the owning resource decoder
 exposes the LFO fields and the audio layer owns its voice/event lifecycle; the
@@ -1335,7 +1335,7 @@ EVE build 3453885's `ship_module_shield_drain_play` mixes two Play actions.
 Action `960667829` reaches infinite Random `974515202`, whose 7000 ms amplitude
 Crossfade has trackless Layer/Blend `211616663` as its only child. Wwise
 [documents that Xfade fails when a Blend or Switch child plays](https://www.audiokinetic.com/en/public-library/2025.1.4_9062/?id=random_sequence_container_property_editor&source=Help).
-Runtime-audio therefore omits that invalid action instead of inventing a
+The audio layer therefore omits that invalid action instead of inventing a
 multi-voice crossfade. Its finite media `927964773` and `69501700`, infinite
 replay, and Crossfade envelope do not run.
 
@@ -1357,7 +1357,7 @@ the flat catalog useful to tools without allowing a value that merely
 resembled a WEM ID inside an undecoded payload to become audible.
 
 The caller may instead obtain a complete built library from an API and skip
-the builder. Runtime-audio performs no SFX metadata download or discovery.
+the builder. The audio layer performs no SFX metadata download or discovery.
 
 ## Related documentation
 
