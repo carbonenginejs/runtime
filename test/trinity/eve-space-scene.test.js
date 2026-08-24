@@ -7,6 +7,7 @@ import {
   EveChildModifierCameraOrientedRotationConstrained,
   EveComponentRegistry,
   EveEntity,
+  IEveBallpark,
   EveSpaceObject2,
   EveSpaceScene,
   Tr2RenderContext
@@ -14,6 +15,19 @@ import {
 
 
 const EPSILON = 1e-4;
+
+
+class TestBallpark extends IEveBallpark
+{
+  referencePoint = [100, 0, 0];
+
+  GetReferencePoint(_time, out)
+  {
+    out[0] = this.referencePoint[0];
+    out[1] = this.referencePoint[1];
+    out[2] = this.referencePoint[2];
+  }
+}
 
 /**
  * @param {number} actual
@@ -168,15 +182,7 @@ test("EveSpaceScene.Update tracks the origin and the sun direction", () =>
 {
   const scene = new EveSpaceScene();
 
-  scene.ballpark = {
-    referencePoint: [100, 0, 0],
-    GetReferencePoint(_time, out)
-    {
-      out[0] = this.referencePoint[0];
-      out[1] = this.referencePoint[1];
-      out[2] = this.referencePoint[2];
-    }
-  };
+  scene.ballpark = new TestBallpark();
   scene.sunBall = {
     Update(_time, out)
     {

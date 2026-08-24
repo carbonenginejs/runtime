@@ -1,3 +1,4 @@
+export * from "./ITr2ParticleForce.js";
 export * from "./Tr2ForceSphereVolume.js";
 export * from "./Tr2ParticleAttractorForce.js";
 export * from "./Tr2ParticleDirectForce.js";

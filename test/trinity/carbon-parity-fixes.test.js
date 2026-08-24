@@ -11,9 +11,11 @@ import {
   EveParticleDragForce,
   EveParticleSpring,
   EveSocketParameterBool,
+  EveSocketParameterBindingBase,
   EveSocketParameterFilePath,
   EveSocketParameterString,
   EveSocketParameterVector3,
+  IEveSocketParameter,
   EveTransform,
   Tr2Effect,
   Tr2EffectTechnique,
@@ -293,6 +295,12 @@ test("Eve particle force aliases hydrate as their Tr2 bases", () =>
 
 test("typed socket parameters bind, default, and reset like Carbon", () =>
 {
+  assert.ok(new EveSocketParameterBindingBase() instanceof IEveSocketParameter);
+  assert.ok(new EveSocketParameterBool() instanceof IEveSocketParameter);
+  assert.throws(
+    () => new EveSocketParameterBindingBase().ExtractDefault(null),
+    /must be implemented/
+  );
   const socket = new EveSocketParameterBool();
   socket.name = "enabled";
   socket.value = true;

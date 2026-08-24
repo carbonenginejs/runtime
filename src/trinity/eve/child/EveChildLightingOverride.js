@@ -149,7 +149,7 @@ export class EveChildLightingOverride extends EveChildTransform
 
     for (const volume of this.volumes)
     {
-      this.#overrideIntensity = Math.max(this.#overrideIntensity, Number(volume?.GetIntensity?.(localView)) || 0);
+      this.#overrideIntensity = Math.max(this.#overrideIntensity, Number(volume.GetIntensity(localView)) || 0);
       if (this.#overrideIntensity >= 1) break;
     }
     this.#overrideIntensity *= this.intensity;
@@ -224,7 +224,7 @@ export class EveChildLightingOverride extends EveChildTransform
 
     for (const volume of this.volumes)
     {
-      const sphere = volume?.GetBoundingSphere?.();
+      const sphere = volume.GetBoundingSphere();
       if (!sphere?.center || !Number.isFinite(sphere.radius) || sphere.radius < 0) continue;
       if (!target.initialized)
       {

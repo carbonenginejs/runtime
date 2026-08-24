@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBooster.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { carbon, impl, type } from "#schema";
 import { DistanceBase } from "./EveChildModifierTransformCommon.js";
 
@@ -15,7 +15,7 @@ import { DistanceBase } from "./EveChildModifierTransformCommon.js";
   className: "EveChildModifierBooster",
   family: "eve/child/modifiers"
 })
-export class EveChildModifierBooster extends CjsModel
+export class EveChildModifierBooster extends IEveChildTransformModifier
 {
   static scratch = {
     alignMat: mat4.create(),

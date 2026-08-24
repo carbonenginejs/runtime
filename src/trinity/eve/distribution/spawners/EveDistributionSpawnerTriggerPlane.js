@@ -2,12 +2,12 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { quat } from "#math/quat";
 
 /** Triggers pooled placements in the order reached by a timed plane sweep. */
 @type.define({ className: "EveDistributionSpawnerTriggerPlane", family: "eve/distribution/spawners" })
-export class EveDistributionSpawnerTriggerPlane extends CjsModel
+export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
 {
 
   #distSortedIndexes = [];

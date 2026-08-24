@@ -8,3 +8,4 @@ export * from "./EveSocketParameterString.js";
 export * from "./EveSocketParameterVector2.js";
 export * from "./EveSocketParameterVector3.js";
 export * from "./EveSocketParameterVector4.js";
+export * from "./IEveSocketParameter.js";

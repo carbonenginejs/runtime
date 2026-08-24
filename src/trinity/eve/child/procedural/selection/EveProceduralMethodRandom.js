@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandom.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 import { createMinStdRandom } from "../../../CjsDistributionRandom.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
@@ -10,7 +10,7 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodRandom (eve/child/procedural/selection) - generated from schema shapeHash 9e2d2332.... */
 @type.define({ className: "EveProceduralMethodRandom", family: "eve/child/procedural/selection" })
-export class EveProceduralMethodRandom extends CjsModel
+export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 {
 
   #selectedChildModified = false;

@@ -1,3 +1,6 @@
+import { impl } from "#schema";
+
+
 /**
  * Nominal backend contract for realizing Trinity's volumetric and froxel-fog
  * intents.
@@ -10,6 +13,7 @@
 export class CjsVolumetricsExecutor
 {
   /** Realizes Carbon's volumetric-renderable pass and returns its texture. */
+  @impl.abstract
   RenderVolumetrics(
     _renderer,
     _registry,
@@ -27,12 +31,14 @@ export class CjsVolumetricsExecutor
   }
 
   /** Returns the backend's shared empty volumetric texture. */
+  @impl.abstract
   GetEmptyVolumetricTexture(_gpuResourcePool)
   {
     throw new Error("CjsVolumetricsExecutor.GetEmptyVolumetricTexture must be implemented by an engine.");
   }
 
   /** Realizes the primary-view froxel fog pass and returns its texture. */
+  @impl.abstract
   RenderFog(
     _renderer,
     _renderContext,
@@ -56,6 +62,7 @@ export class CjsVolumetricsExecutor
   }
 
   /** Realizes the reflection-view froxel fog pass and returns its texture. */
+  @impl.abstract
   RenderFogIntoReflectionMap(
     _renderer,
     _renderContext,
@@ -73,24 +80,28 @@ export class CjsVolumetricsExecutor
   }
 
   /** Returns the backend's shared empty fog texture. */
+  @impl.abstract
   GetEmptyFogTexture(_gpuResourcePool)
   {
     throw new Error("CjsVolumetricsExecutor.GetEmptyFogTexture must be implemented by an engine.");
   }
 
   /** Realizes the Mie environment-map update. */
+  @impl.abstract
   UpdateFogEnvironmentMap(_renderer, _renderContext)
   {
     throw new Error("CjsVolumetricsExecutor.UpdateFogEnvironmentMap must be implemented by an engine.");
   }
 
   /** Publishes the engine's realized fog textures to its variable store. */
+  @impl.abstract
   UpdateVariableStore(_renderer, _renderContext)
   {
     throw new Error("CjsVolumetricsExecutor.UpdateVariableStore must be implemented by an engine.");
   }
 
   /** Realizes volumetric shadow batches. */
+  @impl.abstract
   RenderShadows(_renderer, _registry, _shadowMap, _renderContext)
   {
     throw new Error("CjsVolumetricsExecutor.RenderShadows must be implemented by an engine.");

@@ -91,7 +91,7 @@ export class InclusionVolume extends CjsModel
     centers.length = 0;
     for (const volume of this.inclusionVolumes)
     {
-      centers.push(volume?.GetBoundingSphere?.()?.center ?? null);
+      centers.push(volume.GetBoundingSphere().center);
     }
 
     for (const agent of agents)
@@ -101,7 +101,7 @@ export class InclusionVolume extends CjsModel
 
       for (let i = 0; i < this.inclusionVolumes.length; i++)
       {
-        const status = Number(this.inclusionVolumes[i]?.GetIntensity?.(agent.position) ?? 0);
+        const status = Number(this.inclusionVolumes[i].GetIntensity(agent.position));
 
         if (status === 1)
         {
@@ -158,7 +158,7 @@ export class InclusionVolume extends CjsModel
     }
     for (const volume of this.inclusionVolumes)
     {
-      volume?.RenderDebugInfo?.(renderer, parentWorldLocation);
+      volume.RenderDebugInfo(renderer, parentWorldLocation);
     }
   }
 

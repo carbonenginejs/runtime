@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierTransformOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Accumulates authored or lifetime-sampled translation, rotation, and scale onto a distributed placement. */
 @type.define({ className: "EveDistributionModifierTransformOffset", family: "eve/distribution/attributeModifiers" })
-export class EveDistributionModifierTransformOffset extends CjsModel
+export class EveDistributionModifierTransformOffset extends IEveDistributionModifier
 {
 
   /** m_rotationCurve (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */

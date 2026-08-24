@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume_Blue.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { IEveVolume } from "./IEveVolume.js";
 import { carbon, impl, io, type } from "#schema";
 
 
@@ -15,7 +15,7 @@ import { carbon, impl, io, type } from "#schema";
   className: "EveEllipsoidVolume",
   family: "eve/volume"
 })
-export class EveEllipsoidVolume extends CjsModel
+export class EveEllipsoidVolume extends IEveVolume
 {
   @io.persist
   @type.string

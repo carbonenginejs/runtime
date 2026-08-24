@@ -2,7 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { Tr2GpuSharedEmitter, Tr2GpuUniqueEmitter, Tr2ParticleAttractorForce, Tr2ParticleDirectForce, Tr2ParticleDragForce, Tr2ParticleFluidDragForce, Tr2ParticleSpring, Tr2ParticleVortexForce } from "../../npm/dist/trinity/index.js";
+import {
+  ITr2AttributeGenerator,
+  ITr2GenericParticleConstraint,
+  ITr2ParticleForce,
+  Tr2ConsecutiveIntegerAttributeGenerator,
+  Tr2GpuSharedEmitter,
+  Tr2GpuUniqueEmitter,
+  Tr2ParticleAttractorForce,
+  Tr2ParticleDirectForce,
+  Tr2ParticleDragForce,
+  Tr2ParticleFluidDragForce,
+  Tr2ParticleSpring,
+  Tr2ParticleVortexForce,
+  Tr2SphereConstraint
+} from "../../npm/dist/trinity/index.js";
 
 
 function assertVector(actual, expected)
@@ -15,6 +29,17 @@ function assertVector(actual, expected)
     }
   }
 }
+
+test("particle implementations inherit the required Carbon contracts", () =>
+{
+  assert.ok(new Tr2ConsecutiveIntegerAttributeGenerator() instanceof ITr2AttributeGenerator);
+  assert.ok(new Tr2SphereConstraint() instanceof ITr2GenericParticleConstraint);
+  assert.ok(new Tr2ParticleDirectForce() instanceof ITr2ParticleForce);
+
+  assert.throws(() => new ITr2AttributeGenerator().Bind(), /ITr2AttributeGenerator\.Bind/u);
+  assert.throws(() => new ITr2GenericParticleConstraint().ApplyConstraint(), /ITr2GenericParticleConstraint\.ApplyConstraint/u);
+  assert.throws(() => new ITr2ParticleForce().GetForce(), /ITr2ParticleForce\.GetForce/u);
+});
 
 test("particle direct and drag forces follow Carbon CPU formulas", () =>
 {

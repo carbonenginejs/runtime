@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSphere.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { vec3 } from "#math/vec3";
 
 /** Triggers pooled placements in the order reached by a timed sphere expansion. */
 @type.define({ className: "EveDistributionSpawnerTriggerSphere", family: "eve/distribution/spawners" })
-export class EveDistributionSpawnerTriggerSphere extends CjsModel
+export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
 {
 
   #distSortedIndexes = [];

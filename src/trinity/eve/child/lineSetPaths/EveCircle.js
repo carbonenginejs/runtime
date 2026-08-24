@@ -6,9 +6,8 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { EveChildTransform } from "../EveChildTransform.js";
+import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 
 /**
@@ -19,7 +18,7 @@ import { EveChildTransform } from "../EveChildTransform.js";
   className: "EveCircle",
   family: "eve/child/lineSetPaths"
 })
-export class EveCircle extends EveChildTransform
+export class EveCircle extends IEveLineSetPath
 {
   @io.persist
   @type.string
@@ -260,7 +259,7 @@ export class EveCircle extends EveChildTransform
     // Carbon (row-vector): m_localTransform * systemLocation - local first.
     const transform = mat4.multiply(mat4.create(), systemLocation, this.localTransform);
     const sphere = sph3.transformMat4(vec4.create(), this.#boundingSphere, transform);
-    this.isVisible = !!frustum?.IsSphereVisible?.(sphere);
+    this.isVisible = !!frustum.IsSphereVisible(sphere);
   }
 
   /**
@@ -309,29 +308,14 @@ export class EveCircle extends EveChildTransform
     return Math.trunc(this.scaleSegmentsByCompleteness ? (this.numSegments + 0.5) * completenessScale : this.numSegments + 0.5);
   }
 
-  /** Carbon EveCircle::UpdateBuffer (EveCircle.cpp:209-266, pure-virtual on
-   * IEveLineSetPath.h:10): fills the billboard-object instance buffer. The
-   * body carries real compositions - TransformationMatrix(sizeMod *
-   * objectScale, objRot, translation) * m_localTransform,
-   * Decompose(m_localTransform * systemLocation), TransformCoord with an
-   * inverse rotation, and a 12-float transposed pack - EVERY one of which
-   * must swap operands per the carbon-math conventions when this is ported. */
-  @carbon.method
-  @impl.notImplemented
-  UpdateBuffer(..._args)
-  {
-    throw new Error("EveCircle.UpdateBuffer is not implemented in CarbonEngineJS.");
-  }
-
   static #identityMatrix = mat4.create();
 
   /**
-   * Frame delta read from the update-context duck (GetDeltaT() or .deltaT),
-   * falling back to 0 when neither is present or the value is not finite.
+   * Finite frame delta read from the required update-context contract.
    */
   static #getDeltaT(context)
   {
-    const value = context?.GetDeltaT?.() ?? context?.deltaT ?? 0;
+    const value = context.GetDeltaT();
     return Number.isFinite(Number(value)) ? Number(value) : 0;
   }
 

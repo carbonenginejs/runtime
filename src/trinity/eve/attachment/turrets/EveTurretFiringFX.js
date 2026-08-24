@@ -286,7 +286,11 @@ export class EveTurretFiringFX extends EveEntity
     const span = this.maxRadius - this.minRadius;
     const amount = span ? (Number(radius) - this.minRadius) / span : 0;
     const scale = Math.max(this.minScale, Math.min(this.maxScale, this.minScale + amount * (this.maxScale - this.minScale)));
-    for (const stretch of this.stretch) stretch?.SetDestObjectScale?.(scale);
+    for (const stretch of this.stretch)
+    {
+      if (!stretch) continue;
+      stretch.SetDestObjectScale(scale);
+    }
     this.destinationObserver?.GetObserver?.()?.SetAttenuationScalingFactor?.(Number(radius));
   }
 
@@ -298,7 +302,11 @@ export class EveTurretFiringFX extends EveEntity
   @impl.implemented
   PrepareFiringEffectMoveObjects()
   {
-    for (const stretch of this.stretch) stretch?.StartMoving?.();
+    for (const stretch of this.stretch)
+    {
+      if (!stretch) continue;
+      stretch.StartMoving();
+    }
     this.isFiring = true;
   }
 
@@ -334,7 +342,11 @@ export class EveTurretFiringFX extends EveEntity
   GetCurveDuration()
   {
     let duration = 0;
-    for (const stretch of this.stretch) duration = Math.max(duration, Number(stretch?.GetCurveDuration?.() ?? 0));
+    for (const stretch of this.stretch)
+    {
+      if (!stretch) continue;
+      duration = Math.max(duration, Number(stretch.GetCurveDuration()));
+    }
     return duration;
   }
 
@@ -409,7 +421,7 @@ export class EveTurretFiringFX extends EveEntity
     this.#ensureMuzzleData();
     const data = this.#perMuzzleData[muzzleID];
     if (!data || !this.stretch[muzzleID]) return false;
-    this.stretch[muzzleID].StartFiring?.(data.currentStartDelay);
+    this.stretch[muzzleID].StartFiring(data.currentStartDelay);
     this.startCurveSet?.PlayFrom?.(-data.currentStartDelay);
     this.stopCurveSet?.Stop?.();
     data.started = true;
@@ -430,7 +442,8 @@ export class EveTurretFiringFX extends EveEntity
     this.#ensureMuzzleData();
     for (let index = 0; index < this.stretch.length; index++)
     {
-      this.stretch[index]?.StopFiring?.();
+      const stretch = this.stretch[index];
+      if (stretch) stretch.StopFiring();
       Object.assign(this.#perMuzzleData[index], { started: false, readyToStart: false, currentStartDelay: 0, elapsedTime: 0 });
     }
     this.startCurveSet?.Stop?.();
@@ -469,6 +482,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       const data = this.#perMuzzleData[index];
       const stretch = this.stretch[index];
+      if (!stretch) continue;
       if (data.started) data.elapsedTime += deltaTime;
       if (!(data.elapsedTime < this.firingDuration || this.isLoopFiring)) continue;
       if (this.isFiring)
@@ -490,10 +504,10 @@ export class EveTurretFiringFX extends EveEntity
           const source = this.useMuzzleTransform && data.muzzlePositionBoneID !== EveTurretFiringFX.INVALID_INDEX
             ? data.muzzleTransform
             : data.muzzleTransform.subarray(12, 15);
-          stretch?.SetFiringTransform?.(source, this.endPosition);
-          stretch?.DisplayEndPoints?.(this.#displaySourceObject, this.#displayDestObject);
+          stretch.SetFiringTransform(source, this.endPosition);
+          stretch.DisplayEndPoints(this.#displaySourceObject, this.#displayDestObject);
         }
-        stretch?.UpdateEffectAsync?.(context);
+        stretch.UpdateEffectAsync(context);
       }
     }
     const curveSet = this.isFiring ? this.startCurveSet : this.stopCurveSet;
@@ -517,7 +531,8 @@ export class EveTurretFiringFX extends EveEntity
     for (let index = 0; index < this.stretch.length; index++)
     {
       const data = this.#perMuzzleData[index];
-      if (data.elapsedTime < this.firingDuration || this.isLoopFiring) this.stretch[index]?.UpdateEffectSync?.(context);
+      const stretch = this.stretch[index];
+      if (stretch && (data.elapsedTime < this.firingDuration || this.isLoopFiring)) stretch.UpdateEffectSync(context);
     }
     return true;
   }
@@ -552,9 +567,10 @@ export class EveTurretFiringFX extends EveEntity
     for (let index = 0; index < this.stretch.length; index++)
     {
       const data = this.#perMuzzleData[index];
-      if (data.started && (data.elapsedTime <= this.firingDuration || this.isLoopFiring))
+      const stretch = this.stretch[index];
+      if (stretch && data.started && (data.elapsedTime <= this.firingDuration || this.isLoopFiring))
       {
-        this.stretch[index]?.UpdateVisibility?.(context, EveTurretFiringFX.#identity);
+        stretch.UpdateVisibility(context, EveTurretFiringFX.#identity);
         active.push(index);
       }
     }
@@ -570,7 +586,7 @@ export class EveTurretFiringFX extends EveEntity
     const angle = Math.atan(radius * 2 / (vec3.distance(viewPosition, EveTurretFiringFX.#center) + 1));
     const lodAngle = Number(frustum.fov ?? 1) * 0.002;
     const merge = angle <= lodAngle ? 0 : Math.min((angle - lodAngle) / lodAngle, 1);
-    active.forEach((index, order) => this.stretch[index]?.SetIntensity?.(order ? merge : active.length + (1 - active.length) * merge));
+    active.forEach((index, order) => this.stretch[index].SetIntensity(order ? merge : active.length + (1 - active.length) * merge));
   }
 
   /**
@@ -587,7 +603,8 @@ export class EveTurretFiringFX extends EveEntity
     for (let index = 0; index < this.stretch.length; index++)
     {
       const data = this.#perMuzzleData[index];
-      if (data.started && (data.elapsedTime <= this.firingDuration || this.isLoopFiring)) this.stretch[index]?.GetRenderables?.(out);
+      const stretch = this.stretch[index];
+      if (stretch && data.started && (data.elapsedTime <= this.firingDuration || this.isLoopFiring)) stretch.GetRenderables(out);
     }
     return out;
   }

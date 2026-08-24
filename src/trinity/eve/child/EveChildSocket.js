@@ -10,7 +10,7 @@ export class EveChildSocket extends EveChildTransform
 {
 
   /** Runtime resource-resolution seam supplied by an engine package. */
-  @type.objectRef("IEveChildResourceLoader")
+  @type.objectRef("CjsEveChildResourceLoader")
   resourceLoader = null;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
@@ -55,14 +55,14 @@ export class EveChildSocket extends EveChildTransform
   Rebind()
   {
     if (!this.plug) return false;
-    for (const parameter of this.parameters) parameter?.ClearBindings?.();
+    for (const parameter of this.parameters) parameter.ClearBindings();
     for (const external of this.plug.externalParameters ?? [])
     {
-      let bound = this.parameters.some(parameter => parameter?.BindToExternalParameter?.(external));
-      if (!bound && typeof external?.GetValue?.() === "string")
+      let bound = this.parameters.some(parameter => parameter.BindToExternalParameter(external));
+      if (!bound && typeof external.GetValue() === "string")
       {
         const parameter = new EveSocketParameterString();
-        parameter.SetName(external.GetName?.() ?? "");
+        parameter.SetName(external.GetName());
         bound = parameter.BindToExternalParameter(external);
         if (bound)
         {
@@ -79,8 +79,9 @@ export class EveChildSocket extends EveChildTransform
   @impl.adapted
   Reload()
   {
-    const next = this.resourceLoader?.LoadChild?.(this.resPath, this) ?? this.resourceLoader?.(this.resPath, this);
-    if (!next || typeof next.then === "function") return false;
+    if (!this.resourceLoader) return false;
+    const next = this.resourceLoader.LoadChild(this.resPath, this);
+    if (!next) return false;
     this.plug = next;
     this.Rebind();
     return true;

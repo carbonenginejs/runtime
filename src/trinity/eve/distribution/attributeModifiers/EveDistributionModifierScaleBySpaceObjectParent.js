@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierScaleBySpaceObjectParent.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 
 /** Multiplies a distributed placement's additional scale from its parent space object's bounding radius or an authored scale curve. */
 @type.define({ className: "EveDistributionModifierScaleBySpaceObjectParent", family: "eve/distribution/attributeModifiers" })
-export class EveDistributionModifierScaleBySpaceObjectParent extends CjsModel
+export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistributionModifier
 {
 
   /** m_scaleFactor (float) [READWRITE, PERSIST] */

@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
@@ -16,7 +16,7 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
  * lights the haze emits.
  */
 @type.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
-export class EveHazeSet extends EveEntity
+export class EveHazeSet extends IEveSpaceObjectAttachment
 {
   @io.rebuild("packedGeometry")
   @io.persist

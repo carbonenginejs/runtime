@@ -4,7 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js";
 
 /**
@@ -13,7 +13,7 @@ import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js"
  * screen-aligns and then re-aligns along the camera direction.
  */
 @type.define({ className: "EveChildModifierBillboard3D", family: "eve/child/modifiers" })
-export class EveChildModifierBillboard3D extends CjsModel
+export class EveChildModifierBillboard3D extends IEveChildTransformModifier
 {
   @io.persist
   @type.boolean

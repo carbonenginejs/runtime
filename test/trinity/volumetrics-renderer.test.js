@@ -55,7 +55,7 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
   assert.equal("ITr2FroxelFogSettings" in generatedCore, false);
   assert.ok(new eve.EveChildFogVolume() instanceof eve.ITr2FroxelFogSettings);
   const fogContract = new eve.ITr2FroxelFogSettings();
-  assert.equal(CjsSchema.getMethod(eve.ITr2FroxelFogSettings, "GetFroxelFogSettings")?.impl?.status, "notImplemented");
+  assert.equal(CjsSchema.getMethod(eve.ITr2FroxelFogSettings, "GetFroxelFogSettings")?.impl?.status, "abstract");
   assert.throws(() => fogContract.GetFroxelFogSettings(), /must be implemented/u);
   assert.equal("Tr2VolumetricsRenderer" in generatedCore, false);
   assert.equal(

@@ -2,11 +2,11 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Triggers a timed chain of nearby free placements, walking forward from each previously reached destination. */
 @type.define({ className: "EveDistributionSpawnerTriggerSnake", family: "eve/distribution/spawners" })
-export class EveDistributionSpawnerTriggerSnake extends CjsModel
+export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
 {
 
   #activeTargetUniqueID = 0;

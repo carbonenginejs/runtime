@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierNoise.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
+import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { carbonPerlin1D } from "#math/noise";
 
 /** EveSmartLightAttributeModifierNoise (eve/smartLights/attributeModifiers) - generated from schema shapeHash 60b52eeb.... */
 @type.define({ className: "EveSmartLightAttributeModifierNoise", family: "eve/smartLights/attributeModifiers" })
-export class EveSmartLightAttributeModifierNoise extends EveSmartLightBaseAttributeModifier
+export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_noiseAmplitude (float) [READWRITE, PERSIST] */
@@ -37,8 +37,8 @@ export class EveSmartLightAttributeModifierNoise extends EveSmartLightBaseAttrib
   @impl.reason("Carbon samples BeOS->GetCurrentFrameTime() inside ProcessAttributeModifier; the frame time is captured from the update context here because ProcessAttributeModifier carries no context.")
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
-    this.#frameTime = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0);
-    this.UpdateActivationStrength(activationMultiplier, updateContext?.GetDeltaT?.() ?? 0);
+    this.#frameTime = Number(updateContext.GetTime());
+    this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
   /**

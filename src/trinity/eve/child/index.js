@@ -1,3 +1,4 @@
+export * from "./CjsEveChildResourceLoader.js";
 export * from "./EveChildAudio.js";
 export * from "./EveChildBehaviorSystem.js";
 export * from "./EveChildBulletStorm.js";

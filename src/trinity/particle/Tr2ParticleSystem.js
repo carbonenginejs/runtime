@@ -147,7 +147,7 @@ export class Tr2ParticleSystem extends CjsModel
   {
     for (const constraint of this.constraints)
     {
-      constraint?.Bind?.(this);
+      constraint.Bind(this);
     }
   }
 
@@ -291,7 +291,7 @@ export class Tr2ParticleSystem extends CjsModel
     {
       for (const force of this.forces)
       {
-        force?.Update?.(deltaTime);
+        force.Update(deltaTime);
       }
       const forceValue = vec3.create();
       const forceContribution = vec3.create();
@@ -306,10 +306,6 @@ export class Tr2ParticleSystem extends CjsModel
           vec3.set(forceValue, 0, 0, 0);
           for (const force of this.forces)
           {
-            if (typeof force?.GetForce !== "function")
-            {
-              throw new TypeError("Particle forces must implement Carbon's GetForce contract.");
-            }
             vec3.set(forceContribution, 0, 0, 0);
             const result = force.GetForce(
               positionValue,
@@ -344,7 +340,7 @@ export class Tr2ParticleSystem extends CjsModel
     {
       for (const constraint of this.constraints)
       {
-        constraint?.ApplyConstraint?.(this.#buffers, this.#strides, this.aliveCount, deltaTime);
+        constraint.ApplyConstraint(this.#buffers, this.#strides, this.aliveCount, deltaTime);
       }
     }
     this.#updateBounds(position);
@@ -600,7 +596,7 @@ export class Tr2ParticleSystem extends CjsModel
    */
   #spawnEmitter(emitter, position, velocity, index, rate)
   {
-    if (!emitter?.SpawnParticles)
+    if (!emitter)
     {
       return;
     }

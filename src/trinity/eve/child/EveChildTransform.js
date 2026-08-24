@@ -214,10 +214,6 @@ export function applyTransformModifiers(child, context, boneCount, bones)
 
   for (const modifier of modifiers)
   {
-    if (!modifier?.ApplyTransform)
-    {
-      continue;
-    }
     modifier.ApplyTransform(context, source, boneCount, bones, target);
     const swap = source;
     source = target;

@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Particle/Tr2ElementBlendConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A constraint that rescales and offsets a single bound particle element by a constant factor and value each frame. */
 @type.define({ className: "Tr2ElementBlendConstraint", family: "particle" })
-export class Tr2ElementBlendConstraint extends CjsModel
+export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 {
 
   #element = null;

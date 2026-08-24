@@ -6,3 +6,4 @@ export * from "./EveProceduralMethodRandom.js";
 export * from "./EveProceduralMethodRandomParameter.js";
 export * from "./EveProceduralMethodThresholdParameter.js";
 export * from "./EveProceduralMethodThresholds.js";
+export * from "./IEveProceduralSelectionMethod.js";

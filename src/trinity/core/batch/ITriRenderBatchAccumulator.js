@@ -5,6 +5,7 @@
 // (TriRenderBatchAccumulator) implement Commit/Finalize/Get*/TransferFrom. This
 // stays GPU-free; dispatch to the device is the engine adapter's job.
 import { RenderingMode } from "#consts/graphics";
+import { impl } from "#schema";
 
 
 /**
@@ -105,7 +106,8 @@ export class ITriRenderBatchAccumulator
   /**
    * Abstract: concrete accumulators drop every collected batch and reset the
    * shared state.
-   */
+  */
+  @impl.abstract
   Clear()
   {
     throw new Error("ITriRenderBatchAccumulator.Clear is abstract");
@@ -114,31 +116,36 @@ export class ITriRenderBatchAccumulator
   /**
    * Abstract: concrete accumulators take ownership of a batch and file it for
    * sorting.
-   */
+  */
+  @impl.abstract
   Commit(_batch)
   {
     throw new Error("ITriRenderBatchAccumulator.Commit is abstract");
   }
 
   /** Abstract: the GDPR-eligible batch vector. */
+  @impl.abstract
   GetGdprBatches()
   {
     throw new Error("ITriRenderBatchAccumulator.GetGdprBatches is abstract");
   }
 
   /** Abstract: the plain batch vector. */
+  @impl.abstract
   GetBatches()
   {
     throw new Error("ITriRenderBatchAccumulator.GetBatches is abstract");
   }
 
   /** Abstract: concrete accumulators sort and group-count the collected batches. */
+  @impl.abstract
   Finalize()
   {
     throw new Error("ITriRenderBatchAccumulator.Finalize is abstract");
   }
 
   /** Abstract: total number of collected batches. */
+  @impl.abstract
   GetBatchCount()
   {
     throw new Error("ITriRenderBatchAccumulator.GetBatchCount is abstract");
@@ -147,13 +154,15 @@ export class ITriRenderBatchAccumulator
   /**
    * Abstract: whether the collected batches are effect-sorted rather than
    * order-preserving.
-   */
+  */
+  @impl.abstract
   IsChainedByEffect()
   {
     throw new Error("ITriRenderBatchAccumulator.IsChainedByEffect is abstract");
   }
 
   /** Abstract: folds another accumulator's batches into this one. */
+  @impl.abstract
   TransferFrom(_source)
   {
     throw new Error("ITriRenderBatchAccumulator.TransferFrom is abstract");

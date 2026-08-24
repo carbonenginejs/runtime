@@ -65,7 +65,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
     vec4.set(sphere, 0, 0, 0, 0);
     for (const volume of this.volumes)
     {
-      const volumeSphere = volume?.GetBoundingSphere?.();
+      const volumeSphere = volume.GetBoundingSphere();
       const center = volumeSphere?.center;
       const radius = Number(volumeSphere?.radius);
       if (!center || !(radius >= 0))
@@ -201,7 +201,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
     // Find the intensity within the volumes (cpp:123-132).
     for (const volume of this.volumes)
     {
-      attributes.intensity = Math.max(attributes.intensity, Number(volume?.GetIntensity?.(cameraInObjectSpace)) || 0);
+      attributes.intensity = Math.max(attributes.intensity, Number(volume.GetIntensity(cameraInObjectSpace)) || 0);
       if (attributes.intensity === 1)
       {
         break;
@@ -214,7 +214,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
       let negativeIntensity = 0;
       for (const volume of this.exclusionVolumes)
       {
-        negativeIntensity = Math.max(negativeIntensity, Number(volume?.GetIntensity?.(cameraInObjectSpace)) || 0);
+        negativeIntensity = Math.max(negativeIntensity, Number(volume.GetIntensity(cameraInObjectSpace)) || 0);
         if (negativeIntensity === 1)
         {
           break;

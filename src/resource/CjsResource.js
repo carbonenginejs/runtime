@@ -962,6 +962,7 @@ CjsSchema.define(CjsResource, {
     state: type.string
   },
   methods: {
+    DoLoad: [ impl.abstract ],
     Initialize: [ carbon.method, impl.adapted ],
     GetPath: [ carbon.method, impl.adapted ],
     GetExt: [ carbon.method, impl.adapted ],

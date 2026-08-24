@@ -21,6 +21,7 @@ import {
   EveSmartLightPointLight,
   EveSmartLightQuad,
   EveUpdateContext,
+  IEveSmartLightGroupAttributeModifier,
   PlacementDataWithIdentifier,
   Tr2Effect,
   Tr2FactionLight,
@@ -440,12 +441,14 @@ test("named SOF faction colors resolve across groups, modifiers, and faction lig
 
 test("smart-light list notifications preserve exact Carbon insertion and registry events", () =>
 {
-  const baseModifier = new EveSmartLightBaseAttributeModifier();
-  assert.doesNotThrow(() => baseModifier.SetControllerVariable("Intensity", 1));
-  assert.doesNotThrow(() => baseModifier.SetInheritProperties([]));
-  assert.throws(() => baseModifier.UpdateSyncronous({}, {}, 1), /must be implemented/);
+  const interfaceModifier = new IEveSmartLightGroupAttributeModifier();
+  assert.ok(interfaceModifier instanceof EveSmartLightBaseAttributeModifier);
+  assert.ok(new EveSmartLightAttributeModifierColor() instanceof IEveSmartLightGroupAttributeModifier);
+  assert.doesNotThrow(() => interfaceModifier.SetControllerVariable("Intensity", 1));
+  assert.doesNotThrow(() => interfaceModifier.SetInheritProperties([]));
+  assert.throws(() => interfaceModifier.UpdateSyncronous({}, {}, 1), /must be implemented/);
   assert.throws(
-    () => baseModifier.ProcessAttributeModifier(vec3.create(), {}, vec3.create(), vec3.create(), 1),
+    () => interfaceModifier.ProcessAttributeModifier(vec3.create(), {}, vec3.create(), vec3.create(), 1),
     /must be implemented/
   );
 

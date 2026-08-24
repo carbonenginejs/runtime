@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveSpriteSetItem } from "./EveSpriteSetItem.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -20,7 +20,7 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
  * and the point lights the sprites emit.
  */
 @type.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
-export class EveSpriteSet extends EveEntity
+export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
   @io.rebuild("packedGeometry")
   @io.notify

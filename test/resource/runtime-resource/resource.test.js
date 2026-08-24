@@ -1978,6 +1978,8 @@ test("a resource refuses to load bytes it was never taught to read", () =>
   // a completed one. See /docs/internal/decisions/resource-population.md.
   const resource = new CjsResource();
 
+  assert.equal(CjsSchema.getMethod(CjsResource, "DoLoad")?.impl?.status, "abstract");
+
   assert.throws(
     () => resource.DoLoad(new Uint8Array([ 1, 2, 3 ])),
     error => error.code === "CJS_RESOURCE_LOAD_NOT_IMPLEMENTED"

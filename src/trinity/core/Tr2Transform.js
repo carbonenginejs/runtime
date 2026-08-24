@@ -253,7 +253,7 @@ export class Tr2Transform extends CjsModel
 
   /** Abstract ITr2Renderable per-object-data obligation. */
   @carbon.method
-  @impl.notImplemented
+  @impl.abstract
   GetPerObjectData(..._args)
   {
     throw new Error("Tr2Transform.GetPerObjectData must be implemented by a scene-specific subclass.");

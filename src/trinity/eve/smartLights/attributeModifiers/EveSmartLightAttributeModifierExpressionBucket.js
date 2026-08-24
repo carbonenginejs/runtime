@@ -62,7 +62,8 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
     {
       return 0;
     }
-    return Number(this.expressionInputs[i]?.GetValueAt?.(time) ?? 0);
+    const input = this.expressionInputs[i];
+    return input ? Number(input.GetValueAt(time)) : 0;
   }
 
   /** Gets this bucket's random constant (cpp:123-126). */
@@ -177,7 +178,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
     this.finalAttributeMultiplier = activationMultiplier * this.attributeMultiplier * this.activationValue;
-    this.playTime += updateContext?.GetDeltaT?.() ?? 0;
+    this.playTime += updateContext.GetDeltaT();
 
     for (const attributeModifier of this.attributeModifiers)
     {

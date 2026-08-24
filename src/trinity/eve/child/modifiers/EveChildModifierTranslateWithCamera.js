@@ -3,14 +3,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTranslateWithCamera_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
  * Transform modifier that moves a child with the camera, either pinning its
  * translation to the view position or offsetting it by the view position.
  */
 @type.define({ className: "EveChildModifierTranslateWithCamera", family: "eve/child/modifiers" })
-export class EveChildModifierTranslateWithCamera extends CjsModel
+export class EveChildModifierTranslateWithCamera extends IEveChildTransformModifier
 {
   @io.persist
   @type.boolean

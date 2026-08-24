@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
+import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 
 /** EveSmartLightAttributeModifierBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash cade668b.... */
 @type.define({ className: "EveSmartLightAttributeModifierBucket", family: "eve/smartLights/attributeModifiers" })
-export class EveSmartLightAttributeModifierBucket extends EveSmartLightBaseAttributeModifier
+export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST, NOTIFY] */
@@ -67,7 +67,7 @@ export class EveSmartLightAttributeModifierBucket extends EveSmartLightBaseAttri
   @impl.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
-    this.UpdateActivationStrength(activationMultiplier, updateContext?.GetDeltaT?.() ?? 0);
+    this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
     const childMultiplier = activationMultiplier * this.finalAttributeMultiplier;
 
     for (const attributeModifier of this.attributeModifiers)

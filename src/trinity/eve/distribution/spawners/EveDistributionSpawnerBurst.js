@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerBurst.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns a configured fraction of the free distribution placements in one delayed burst. */
 @type.define({ className: "EveDistributionSpawnerBurst", family: "eve/distribution/spawners" })
-export class EveDistributionSpawnerBurst extends CjsModel
+export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
 {
 
   #localTimer = 0;

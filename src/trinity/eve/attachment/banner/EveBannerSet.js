@@ -6,7 +6,7 @@ import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -28,7 +28,7 @@ import {
  * largest single banner radius its LOD is measured on, and the banner lights.
  */
 @type.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
-export class EveBannerSet extends EveEntity
+export class EveBannerSet extends IEveSpaceObjectAttachment
 {
   @io.rebuild("packedGeometry")
   @io.persist

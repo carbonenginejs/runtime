@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierHalo.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { carbon, impl, type } from "#schema";
 
 
@@ -13,7 +13,7 @@ import { carbon, impl, type } from "#schema";
   className: "EveChildModifierHalo",
   family: "eve/child/modifiers"
 })
-export class EveChildModifierHalo extends CjsModel
+export class EveChildModifierHalo extends IEveChildTransformModifier
 {
   static scratch = {
     d: vec3.create(),

@@ -80,7 +80,13 @@
             ]
         },
         "global/contracts": {
-            "mayImport": []
+            "mayImport": [
+                "global/schema"
+            ],
+            "why": [
+                "Contract roots use schema implementation metadata so required",
+                "methods carry @impl.abstract as well as their throwing body."
+            ]
         },
         "resource": {
             "mayImport": [

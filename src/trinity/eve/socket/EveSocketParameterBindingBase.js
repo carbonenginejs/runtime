@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
 @type.define({ className: "EveSocketParameterBindingBase", family: "eve/socket" })
-export class EveSocketParameterBindingBase extends CjsModel
+export class EveSocketParameterBindingBase extends IEveSocketParameter
 {
 
   /** name (m_name =) */
@@ -48,24 +48,22 @@ export class EveSocketParameterBindingBase extends CjsModel
   @impl.adapted
   BindToExternalParameter(externalParameter)
   {
-    if (!externalParameter?.IsValid?.() || externalParameter.GetName?.() !== this.name) return false;
-    const binding = externalParameter.CreateBinding?.();
+    if (!externalParameter || !externalParameter.IsValid() || externalParameter.GetName() !== this.name) return false;
+    const binding = externalParameter.CreateBinding();
     if (!binding) return false;
-    binding.SetSource?.("value", this);
-    binding.Initialize?.();
-    if (!binding.IsValid?.() || !this.ExtractDefault(externalParameter)) return false;
+    binding.SetSource("value", this);
+    binding.Initialize();
+    if (!binding.IsValid() || !this.ExtractDefault(externalParameter)) return false;
     this.bindings.push(binding);
     return true;
   }
 
-  /**
-   * Hook where a typed subclass records the external parameter's current value
-   * as a restore default; the base captures nothing and refuses the bind by
-   * returning false.
-   */
+  /** Required hook where a typed subclass records the external parameter's current value as a restore default. */
+  @carbon.method
+  @impl.abstract
   ExtractDefault(_externalParameter)
   {
-    return false;
+    throw new Error("EveSocketParameterBindingBase.ExtractDefault must be implemented by a typed socket parameter.");
   }
 
   /** Reports whether anything is bound to this parameter. */
@@ -81,7 +79,7 @@ export class EveSocketParameterBindingBase extends CjsModel
   @impl.implemented
   Propagate()
   {
-    for (const binding of this.bindings) binding?.CopyValue?.();
+    for (const binding of this.bindings) binding.CopyValue();
   }
 
 }

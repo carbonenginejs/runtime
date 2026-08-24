@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.cpp
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 
@@ -16,7 +16,7 @@ const IDENTITY_TRANSFORM = mat4.create();
  * update for effect bindings to read.
  */
 @type.define({ className: "EveCameraFxAttributes", family: "eve/fxAttributes" })
-export class EveCameraFxAttributes extends CjsModel
+export class EveCameraFxAttributes extends IEveFxAttribute
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */

@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
 
 /** Adds a seeded random local translation offset to each spawned placement. */
 @type.define({ className: "EveDistributionSpawnModifierRandomOffset", family: "eve/distribution/spawnModifiers" })
-export class EveDistributionSpawnModifierRandomOffset extends CjsModel
+export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSpawnModifier
 {
 
   #timeSeed = Date.now() >>> 0;

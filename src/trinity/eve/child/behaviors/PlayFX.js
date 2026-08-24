@@ -112,14 +112,15 @@ export class PlayFX extends EveEntity
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's Be::Time 100ns clock maps to Date.now seconds against agent.fxStartTime; the firing effect elements are duck-typed.")
+  @impl.reason("Carbon's Be::Time 100ns clock maps to Date.now seconds against agent.fxStartTime.")
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
     if (this.behaviorWeight <= 0 || !this.enabled)
     {
       for (const fx of this.generatedFiringEffects)
       {
-        fx?.StopFiring?.();
+        if (!fx) continue;
+        fx.StopFiring();
       }
       return NO_FORCES;
     }
@@ -162,7 +163,7 @@ export class PlayFX extends EveEntity
       // Make sure the effect isn't showing when loading everything up
       if (data.droneArrived === false)
       {
-        firingEffect.SetDisplay?.(false);
+        firingEffect.SetDisplay(false);
       }
 
       // Drone has arrived at its target so play the effect
@@ -171,10 +172,10 @@ export class PlayFX extends EveEntity
         if (data.droneArrived === false)
         {
           data.droneArrived = true;
-          firingEffect.SetDisplay?.(true);
+          firingEffect.SetDisplay(true);
         }
 
-        firingEffect.StartFiring?.(0);
+        firingEffect.StartFiring(0);
         data.effectPlaying = true;
       }
 
@@ -189,18 +190,18 @@ export class PlayFX extends EveEntity
       // of the cooldown of the effect
       if (vec3.squaredLength(data.oldTarget) !== 0)
       {
-        firingEffect.SetFiringTransform?.(OFFSET_EFFECT_WS, data.oldTarget);
+        firingEffect.SetFiringTransform(OFFSET_EFFECT_WS, data.oldTarget);
       }
 
       if (data.effectPlaying)
       {
         vec3.transformMat4(AGENT_TARGET_WS, agent.target, worldTransform);
-        firingEffect.SetFiringTransform?.(OFFSET_EFFECT_WS, AGENT_TARGET_WS);
+        firingEffect.SetFiringTransform(OFFSET_EFFECT_WS, AGENT_TARGET_WS);
 
         const elapsed = Date.now() / 1000 - agent.fxStartTime;
         if (elapsed > this.sec)
         {
-          firingEffect.StopFiring?.();
+          firingEffect.StopFiring();
           data.effectPlaying = false;
           agent.playFX = false;
           vec3.copy(data.oldTarget, AGENT_TARGET_WS);
@@ -219,8 +220,9 @@ export class PlayFX extends EveEntity
   {
     for (const fx of this.generatedFiringEffects)
     {
-      fx?.UpdateEffectAsync?.(updateContext);
-      fx?.UpdateVisibility?.(updateContext, parentTransform);
+      if (!fx) continue;
+      fx.UpdateEffectAsync(updateContext);
+      fx.UpdateVisibility(updateContext, parentTransform);
     }
   }
 
@@ -231,7 +233,8 @@ export class PlayFX extends EveEntity
   {
     for (const fx of this.generatedFiringEffects)
     {
-      fx?.UpdateEffectSync?.(updateContext);
+      if (!fx) continue;
+      fx.UpdateEffectSync(updateContext);
     }
   }
 
@@ -242,7 +245,8 @@ export class PlayFX extends EveEntity
   {
     for (const fx of this.generatedFiringEffects)
     {
-      fx?.GetRenderables?.(renderables);
+      if (!fx) continue;
+      fx.GetRenderables(renderables);
     }
     return renderables;
   }

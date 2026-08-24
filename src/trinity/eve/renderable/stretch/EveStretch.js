@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import {
@@ -31,7 +31,7 @@ import {
  * travelling from one end to the other.
  */
 @type.define({ className: "EveStretch", family: "eve/renderable/stretch" })
-export class EveStretch extends EveEntity
+export class EveStretch extends IEveFiringEffectElement
 {
   @io.persist @type.string name = "";
   @io.persist @type.model("ITriVectorFunction") source = null;
@@ -107,7 +107,10 @@ export class EveStretch extends EveEntity
     updateChildAsync(this.stretchObject, context);
     updateChildAsync(this.moveObject, context);
     this.audio?.Update?.(this.#sourcePosition, this.#destinationPosition);
-    this.stretchAudio?.Update?.(this.#sourcePosition, this.#destinationPosition);
+    if (this.stretchAudio)
+    {
+      this.stretchAudio.Update(this.#sourcePosition, this.#destinationPosition);
+    }
     return true;
   }
 
@@ -392,7 +395,10 @@ export class EveStretch extends EveEntity
       else if (name === "play_loop") curveSet.PlayFrom?.(-delay);
       else if (name === "play_end") curveSet.Stop?.();
     }
-    this.stretchAudio?.Start?.();
+    if (this.stretchAudio)
+    {
+      this.stretchAudio.Start();
+    }
     this.audio?.TriggerOutburstEvent?.();
     this.audio?.TriggerImpactEvent?.();
     this.audio?.TriggerStretchEvent?.();
@@ -416,7 +422,10 @@ export class EveStretch extends EveEntity
       else if (name === "play_loop") curveSet.Stop?.();
       else if (name === "play_end") curveSet.Play?.();
     }
-    this.stretchAudio?.Stop?.();
+    if (this.stretchAudio)
+    {
+      this.stretchAudio.Stop();
+    }
   }
 
   /**

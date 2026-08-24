@@ -50,16 +50,6 @@ Defines prioritized multipliers for sun, background, reflection, and aggregate l
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:EveLineChildContainer -->
-## `EveLineChildContainer`
-
-Groups line-path children beneath an EveChildTransform with shared naming and visibility state.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/eve/child/lineSetPaths/EveLineChildContainer.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:EveOccluder -->
 ## `EveOccluder`
 

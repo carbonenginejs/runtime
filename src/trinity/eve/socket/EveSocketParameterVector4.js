@@ -37,7 +37,7 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
     for (let index = 0; index < this.bindings.length; index++)
     {
       vec4.copy(this.value, this.#defaults[index]);
-      this.bindings[index]?.CopyValue?.();
+      this.bindings[index].CopyValue();
     }
     this.ClearBindings();
   }

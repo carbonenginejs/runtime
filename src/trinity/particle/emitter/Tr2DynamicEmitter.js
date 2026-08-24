@@ -66,10 +66,6 @@ export class Tr2DynamicEmitter extends CjsModel
     const boundElements = new Set();
     for (const generator of this.generators)
     {
-      if (typeof generator?.Bind !== "function")
-      {
-        throw new TypeError("Particle generators must implement Carbon's Bind contract.");
-      }
       if (generator.Bind(this.particleSystem, boundElements) === false)
       {
         return false;
@@ -127,7 +123,7 @@ export class Tr2DynamicEmitter extends CjsModel
       this.Rebind();
       if (this.#isThreadSafe)
       {
-        this.particleSystem.SetThreadSafeFlag?.();
+        this.particleSystem.SetThreadSafeFlag();
       }
     }
     return true;
@@ -145,7 +141,7 @@ export class Tr2DynamicEmitter extends CjsModel
       this.Rebind();
       if (this.#isThreadSafe && this.particleSystem)
       {
-        this.particleSystem.SetThreadSafeFlag?.();
+        this.particleSystem.SetThreadSafeFlag();
       }
     }
     return true;
@@ -157,7 +153,7 @@ export class Tr2DynamicEmitter extends CjsModel
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;
-    this.particleSystem?.SetThreadSafeFlag?.();
+    if (this.particleSystem) this.particleSystem.SetThreadSafeFlag();
   }
 
   /**
@@ -203,7 +199,7 @@ export class Tr2DynamicEmitter extends CjsModel
     {
       return 0;
     }
-    if ((this.particleSystem.GetElementDeclarationHash?.() ?? 0) !== this.#declarationHash)
+    if (this.particleSystem.GetElementDeclarationHash() !== this.#declarationHash)
     {
       this.isValid = false;
       return 0;
@@ -225,16 +221,16 @@ export class Tr2DynamicEmitter extends CjsModel
     let spawned = 0;
     for (let index = 0; index < count; index++)
     {
-      const particleIndex = this.particleSystem.BeginSpawnParticle?.();
+      const particleIndex = this.particleSystem.BeginSpawnParticle();
       if (particleIndex === null || particleIndex === undefined)
       {
         break;
       }
       for (const generator of this.generators)
       {
-        generator?.Generate?.(position, velocity, particleIndex);
+        generator.Generate(position, velocity, particleIndex);
       }
-      this.particleSystem.EndSpawnParticle?.();
+      this.particleSystem.EndSpawnParticle();
       spawned++;
     }
     return spawned;

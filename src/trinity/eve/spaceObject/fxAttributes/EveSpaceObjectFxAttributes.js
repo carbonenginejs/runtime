@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.cpp
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -71,7 +71,7 @@ function RotationQuaternion(out, matrix)
  * bindings to read.
  */
 @type.define({ className: "EveSpaceObjectFxAttributes", family: "eve/fxAttributes" })
-export class EveSpaceObjectFxAttributes extends CjsModel
+export class EveSpaceObjectFxAttributes extends IEveFxAttribute
 {
 
   #initialized = false;

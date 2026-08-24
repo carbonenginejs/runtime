@@ -7,11 +7,6 @@
 // supplies the nominal device-facing lifecycle. Presentation is deliberately
 // absent: Carbon presents the previous frame at the top of the next engine tick
 // to overlap CPU and GPU work.
-import { CjsFrameLifecycle } from "#contracts";
-import { Tr2RenderContext } from "../trinity/core/context/Tr2RenderContext.js";
-import { Tr2RenderJobs } from "../trinity/renderJob/Tr2RenderJobs.js";
-
-
 /** Runs Carbon's backend-neutral frame body against exact runtime identities. */
 export class CjsFrameDriver
 {
@@ -27,10 +22,6 @@ export class CjsFrameDriver
      */
     constructor({ renderContext, renderJobs, frameLifecycle } = {})
     {
-        if (!(renderContext instanceof Tr2RenderContext))
-        {
-            throw new TypeError("CjsFrameDriver renderContext must be a Tr2RenderContext.");
-        }
         this.#renderContext = renderContext;
         this.SetRenderJobs(renderJobs);
         this.SetFrameLifecycle(frameLifecycle);
@@ -45,10 +36,6 @@ export class CjsFrameDriver
     /** Binds the exact render-job scheduler run each frame. */
     SetRenderJobs(renderJobs)
     {
-        if (!(renderJobs instanceof Tr2RenderJobs))
-        {
-            throw new TypeError("CjsFrameDriver renderJobs must be a Tr2RenderJobs.");
-        }
         this.#renderJobs = renderJobs;
         return this;
     }
@@ -56,10 +43,6 @@ export class CjsFrameDriver
     /** Binds the exact engine lifecycle used for device-facing frame work. */
     SetFrameLifecycle(frameLifecycle)
     {
-        if (!(frameLifecycle instanceof CjsFrameLifecycle))
-        {
-            throw new TypeError("CjsFrameDriver frameLifecycle must be a CjsFrameLifecycle.");
-        }
         this.#frameLifecycle = frameLifecycle;
         return this;
     }

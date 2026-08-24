@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
 @type.define({ className: "EveDistributionSpawnerControllerTrigger", family: "eve/distribution/spawners" })
-export class EveDistributionSpawnerControllerTrigger extends CjsModel
+export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpawner
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */

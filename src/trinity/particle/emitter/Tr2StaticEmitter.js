@@ -81,7 +81,7 @@ export class Tr2StaticEmitter extends CjsModel
     let spawned = 0;
     for (const particle of particles)
     {
-      if (this.particleSystem.SpawnParticle?.(particle) === null)
+      if (this.particleSystem.SpawnParticle(particle) === null)
       {
         break;
       }
@@ -101,7 +101,7 @@ export class Tr2StaticEmitter extends CjsModel
   {
     if (this.particleSystem && this.#isThreadSafe)
     {
-      this.particleSystem.SetThreadSafeFlag?.();
+      this.particleSystem.SetThreadSafeFlag();
     }
     return true;
   }
@@ -117,7 +117,7 @@ export class Tr2StaticEmitter extends CjsModel
   {
     if ((!propertyName || propertyName === "particleSystem") && this.#isThreadSafe && this.particleSystem)
     {
-      this.particleSystem.SetThreadSafeFlag?.();
+      this.particleSystem.SetThreadSafeFlag();
     }
     return true;
   }
@@ -131,7 +131,7 @@ export class Tr2StaticEmitter extends CjsModel
   SetThreadSafeFlag()
   {
     this.#isThreadSafe = true;
-    this.particleSystem?.SetThreadSafeFlag?.();
+    if (this.particleSystem) this.particleSystem.SetThreadSafeFlag();
   }
 
   /**

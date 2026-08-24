@@ -5,7 +5,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { EveBannerItem, EveBannerSet, TriFrustum } from "../../npm/dist/trinity/index.js";
+import { EveBannerItem, EveBannerSet, IEveSpaceObjectAttachment, TriFrustum } from "../../npm/dist/trinity/index.js";
 
 
 function assertClose(actual, expected, tolerance = 1e-5)
@@ -31,6 +31,7 @@ function nontrivialBanner()
 
 test("EveBannerSet.GetBannerAspectRatio handles flat authored scale", () =>
 {
+  assert.ok(new EveBannerSet() instanceof IEveSpaceObjectAttachment);
   const banner = nontrivialBanner();
   assert.equal(EveBannerSet.GetBannerAspectRatio(banner), 0.5);
   assert.equal(

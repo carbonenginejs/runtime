@@ -1,3 +1,4 @@
+export * from "./IEveChildTransformModifier.js";
 export * from "./EveChildModifierAttachToBone.js";
 export * from "./EveChildModifierBillboard2D.js";
 export * from "./EveChildModifierBillboard3D.js";

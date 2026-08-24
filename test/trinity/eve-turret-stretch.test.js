@@ -9,6 +9,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import {
   EveFiringEffectElementContainer,
+  IEveFiringEffectElement,
   EveLocalPositionCurve,
   EveRemotePositionCurve,
   EveStretch2,
@@ -21,6 +22,9 @@ import {
 
 test("stretch and turret classes are maintained in their Carbon families", () =>
 {
+  assert.ok(new EveStretch2() instanceof IEveFiringEffectElement);
+  assert.ok(new EveStretch3() instanceof IEveFiringEffectElement);
+  assert.throws(() => new IEveFiringEffectElement().StartFiring(0), /must be implemented/);
   for (const constructor of [
     EveFiringEffectElementContainer,
     EveLocalPositionCurve,
@@ -66,12 +70,15 @@ test("EveFiringEffectElementContainer owns active element lifecycle", () =>
 {
   const calls = [];
   const container = new EveFiringEffectElementContainer();
-  container.element = {
-    StartFiring(delay) { calls.push(["start", delay]); },
-    StopFiring() { calls.push(["stop"]); },
-    SetFiringTransform() { calls.push(["transform"]); },
+  container.element = new class extends IEveFiringEffectElement
+  {
+    StartFiring(delay) { calls.push(["start", delay]); }
+    StopFiring() { calls.push(["stop"]); }
+    SetFiringTransform() { calls.push(["transform"]); }
+    SetDestObjectScale() {}
+    DisplayEndPoints() {}
     Update() { calls.push(["update"]); }
-  };
+  }();
 
   container.StartFiring(0.25);
   container.UpdateSynchronous({});

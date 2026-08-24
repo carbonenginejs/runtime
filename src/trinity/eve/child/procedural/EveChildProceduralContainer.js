@@ -93,7 +93,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @impl.reason("Entity Register/UnRegister against the component registry is engine-owned; the variable replay and swap are ported.")
   ConfigureSelectedObject()
   {
-    const child = this.selectionMethod?.GetSelectedChild?.() ?? null;
+    const child = this.selectionMethod ? this.selectionMethod.GetSelectedChild() : null;
     if (child)
     {
       for (const [name, value] of this.#proceduralContainerVariables)
@@ -109,7 +109,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @impl.implemented
   GetMethodVariableName()
   {
-    return this.selectionMethod?.GetProceduralMethodVariable?.() ?? "methodUnassigned";
+    return this.selectionMethod ? this.selectionMethod.GetProceduralMethodVariable() : "methodUnassigned";
   }
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
@@ -136,7 +136,7 @@ export class EveChildProceduralContainer extends EveChildTransform
     const key = String(name);
     const next = Number(value);
     this.#proceduralContainerVariables.set(key, next);
-    this.selectionMethod?.SetProceduralMethodVariable?.(key, next);
+    if (this.selectionMethod) this.selectionMethod.SetProceduralMethodVariable(key, next);
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -166,7 +166,7 @@ export class EveChildProceduralContainer extends EveChildTransform
 
     this.selectedObject?.UpdateSyncronous?.(updateContext, newParams);
 
-    if (this.selectionMethod?.IsSelectedChildModified?.())
+    if (this.selectionMethod && this.selectionMethod.IsSelectedChildModified())
     {
       this.ConfigureSelectedObject();
     }
@@ -204,7 +204,7 @@ export class EveChildProceduralContainer extends EveChildTransform
 
     this.selectedObject?.UpdateAsyncronous?.(updateContext, newParams);
 
-    this.selectionMethod?.UpdateAsyncronous?.(updateContext, newParams);
+    if (this.selectionMethod) this.selectionMethod.UpdateAsyncronous(updateContext, newParams);
 
     return this.worldTransform;
   }

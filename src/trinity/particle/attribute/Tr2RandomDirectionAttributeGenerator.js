@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Particle/Tr2RandomDirectionAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute as a random unit vector spanning the bound element's dimension. */
 @type.define({ className: "Tr2RandomDirectionAttributeGenerator", family: "particle" })
-export class Tr2RandomDirectionAttributeGenerator extends CjsModel
+export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 {
 
   #element = null;

@@ -5,4 +5,5 @@ export * from "./EveSmartLightAttributeModifierControllerVariableListener.js";
 export * from "./EveSmartLightAttributeModifierExpressionBucket.js";
 export * from "./EveSmartLightAttributeModifierNoise.js";
 export * from "./EveSmartLightBaseAttributeModifier.js";
+export * from "./IEveSmartLightGroupAttributeModifier.js";
 export * from "./enums.js";

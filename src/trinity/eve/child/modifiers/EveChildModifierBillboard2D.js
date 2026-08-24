@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard2D.cpp
 import { mat4 } from "#math/mat4";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { carbon, impl, type } from "#schema";
 import { Billboard2D } from "./EveChildModifierTransformCommon.js";
 
@@ -13,7 +13,7 @@ import { Billboard2D } from "./EveChildModifierTransformCommon.js";
   className: "EveChildModifierBillboard2D",
   family: "eve/child/modifiers"
 })
-export class EveChildModifierBillboard2D extends CjsModel
+export class EveChildModifierBillboard2D extends IEveChildTransformModifier
 {
   /**
    * Screen-aligned billboard. Reproduces

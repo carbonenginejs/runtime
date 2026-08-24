@@ -44,11 +44,12 @@ runtime identities that composition resolves later.
 
 ## Contracts and engines
 
-`global/contracts` owns dependency-free base classes for organization-owned
-execution contracts. A required base method throws until an implementation
-overrides it. Composition validates required identities once, then hot paths
-call them directly. Optional chaining and structural method probes are not
-substitutes for a required organization-owned contract.
+`global/contracts` owns dependency-floor base classes for organization-owned
+execution contracts. It imports only schema metadata so a required root method
+can carry abstract implementation metadata and throw until a subclass overrides
+it. Owned consumers call required methods directly; optional chaining and
+structural method probes are not substitutes for a required organization-owned
+contract.
 
 Renderer engines are sibling implementations, not subclasses of a shared
 WebGL-shaped device or RHI. An engine may extend canonical contracts and import

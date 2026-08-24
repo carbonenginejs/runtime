@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Builds distribution placements from an authored locator list and requests regeneration when that list changes. */
 @type.define({ className: "EveDistributionPlacementGeneratorLocators", family: "eve/distribution/placement" })
-export class EveDistributionPlacementGeneratorLocators extends CjsModel
+export class EveDistributionPlacementGeneratorLocators extends IEveDistributionPlacementGenerators
 {
 
   #requestRegeneration = false;

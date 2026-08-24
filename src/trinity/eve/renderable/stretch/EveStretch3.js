@@ -11,7 +11,7 @@ import {
   BELIST_REMOVED,
   BELIST_UNLOADSTART
 } from "../../../controllers/contracts.js";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { EveChildUpdateParams } from "../../EveChildUpdateParams.js";
 import { StretchState } from "../../../generated/eve/renderable/stretch/enums.js";
@@ -37,7 +37,7 @@ import {
  * its own controllers, dynamic bindings and curve sets.
  */
 @type.define({ className: "EveStretch3", family: "eve/renderable/stretch" })
-export class EveStretch3 extends EveEntity
+export class EveStretch3 extends IEveFiringEffectElement
 {
   @io.read @type.vec3 sourcePosition = vec3.create();
   @io.read @type.vec3 destinationPosition = vec3.create();
@@ -326,7 +326,10 @@ export class EveStretch3 extends EveEntity
     mat4.copy(params.localToWorldTransform, destinationMatrix);
     updateChildAsync(this.destObject, context, params);
     this.audio?.Update?.(this.sourcePosition, this.destinationPosition);
-    this.stretchAudio?.Update?.(this.sourcePosition, this.destinationPosition);
+    if (this.stretchAudio)
+    {
+      this.stretchAudio.Update(this.sourcePosition, this.destinationPosition);
+    }
     return true;
   }
 
@@ -456,7 +459,10 @@ export class EveStretch3 extends EveEntity
   {
     this.#delay = Number(delay);
     this.#stretchState = EveStretch3.StretchState.STRETCH_STATE_STARTING;
-    this.stretchAudio?.Start?.();
+    if (this.stretchAudio)
+    {
+      this.stretchAudio.Start();
+    }
   }
 
   /**
@@ -467,7 +473,10 @@ export class EveStretch3 extends EveEntity
   StopFiring()
   {
     this.#stretchState = EveStretch3.StretchState.STRETCH_STATE_STOPPING;
-    this.stretchAudio?.Stop?.();
+    if (this.stretchAudio)
+    {
+      this.stretchAudio.Stop();
+    }
   }
 
   /**
@@ -631,7 +640,15 @@ export class EveStretch3 extends EveEntity
    */
   FindSoundEmitter(name)
   {
-    return this.audio?.FindEmitterByName?.(name) ?? this.stretchAudio?.FindEmitterByName?.(name) ?? null;
+    if (this.audio)
+    {
+      return this.audio.FindEmitterByName(name);
+    }
+    if (this.stretchAudio)
+    {
+      return this.stretchAudio.FindEmitterByName(name);
+    }
+    return null;
   }
 
   /** Carbon EveStretch3::RegisterComponents (cpp:721-734): forwards the

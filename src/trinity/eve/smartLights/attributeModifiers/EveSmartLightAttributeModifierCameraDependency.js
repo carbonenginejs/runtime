@@ -110,7 +110,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
     this.#renderContext = updateContext?.renderContext ?? null;
-    this.UpdateActivationStrength(activationMultiplier, updateContext?.GetDeltaT?.() ?? 0);
+    this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
   /**

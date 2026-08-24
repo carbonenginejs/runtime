@@ -147,8 +147,8 @@ export class EveUpdateContext extends CjsModel
    * per-frame origin shift (Carbon EveUpdateContext::UpdateOrigin): the
    * double-precision delta is split into a float32 shift plus a double residual
    * carried into the next frame; no shift is produced on the first stamped frame
-   * (origin still at the Infinity sentinel). The ballpark is duck-typed; per our
-   * out-last convention its reference-point read is
+   * (origin still at the Infinity sentinel). Per our out-last convention its
+   * reference-point read is
    * GetReferencePoint(time, outVector3d) (Carbon passes the out pointer first).
    * @param {Object|null} ballpark
    */
@@ -158,7 +158,7 @@ export class EveUpdateContext extends CjsModel
   {
     this.ballpark = ballpark ?? null;
 
-    if (!ballpark?.GetReferencePoint)
+    if (!ballpark)
     {
       return;
     }

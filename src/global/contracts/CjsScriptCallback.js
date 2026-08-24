@@ -1,3 +1,5 @@
+import { CjsSchema, impl } from "../schema/index.js";
+
 /**
  * Dependency-free callback identity for Carbon-style script invocation.
  *
@@ -107,3 +109,6 @@ class CjsExternalScriptCallback extends CjsScriptCallback
     }
 
 }
+
+CjsSchema.decorateMethod(CjsScriptCallback, "Call", impl.abstract);
+CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", impl.abstract);

@@ -36,7 +36,7 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
     for (let index = 0; index < this.bindings.length; index++)
     {
       this.value = this.#defaults[index];
-      this.bindings[index]?.CopyValue?.();
+      this.bindings[index].CopyValue();
     }
     this.ClearBindings();
   }

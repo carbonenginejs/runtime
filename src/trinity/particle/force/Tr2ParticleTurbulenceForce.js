@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { noise } from "#math/noise";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** A time-evolving four-dimensional Perlin turbulence force applied to particle motion. */
 @type.define({ className: "Tr2ParticleTurbulenceForce", family: "particle" })
-export class Tr2ParticleTurbulenceForce extends CjsModel
+export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 {
 
   #time = 0;

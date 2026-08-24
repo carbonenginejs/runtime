@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Particle/Tr2ParticleFluidDragForce.cpp
 // Source: trinity/trinity/Particle/Tr2ParticleFluidDragForce_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { carbon, impl, io, type } from "#schema";
 
 
@@ -14,7 +14,7 @@ import { carbon, impl, io, type } from "#schema";
   className: "Tr2ParticleFluidDragForce",
   family: "particle"
 })
-export class Tr2ParticleFluidDragForce extends CjsModel
+export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
 {
   @io.persist
   @type.float32

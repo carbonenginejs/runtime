@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { bindParticleElement } from "../element/particleElementBinding.js";
@@ -9,7 +9,7 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 
 /** Generates particle position and velocity offsets sampled within a capsule volume interpolated between a start and end transform. */
 @type.define({ className: "Tr2CapsuleShapeAttributeGenerator", family: "particle" })
-export class Tr2CapsuleShapeAttributeGenerator extends CjsModel
+export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 {
 
   #positionElement = null;

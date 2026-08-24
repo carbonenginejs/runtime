@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Fade, Saturate } from "../EveSpaceObjectAttachmentUtils.js";
@@ -25,7 +25,7 @@ const WHITE = new Float32Array([1, 1, 1, 1]);
  * the four shared texture parameters and the plane lights.
  */
 @type.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
-export class EvePlaneSet extends EveEntity
+export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
   @io.rebuild("packedGeometry")
   @io.notify

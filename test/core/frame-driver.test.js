@@ -138,26 +138,6 @@ test("CjsFrameLifecycle requires every engine-owned frame method", () =>
     }
 });
 
-test("CjsFrameDriver rejects structural lookalikes at composition", () =>
-{
-    const context = new Tr2RenderContext();
-    const jobs = new Tr2RenderJobs();
-    const lifecycle = new RecordingLifecycle([]);
-
-    assert.throws(
-        () => new CjsFrameDriver({ renderContext: {}, renderJobs: jobs, frameLifecycle: lifecycle }),
-        /Tr2RenderContext/u
-    );
-    assert.throws(
-        () => new CjsFrameDriver({ renderContext: context, renderJobs: { Run() {} }, frameLifecycle: lifecycle }),
-        /Tr2RenderJobs/u
-    );
-    assert.throws(
-        () => new CjsFrameDriver({ renderContext: context, renderJobs: jobs, frameLifecycle: { Throttle() {} } }),
-        /CjsFrameLifecycle/u
-    );
-});
-
 test("Render runs Carbon's complete neutral frame order", () =>
 {
     const { driver, renderContext, renderJobs, frameLifecycle, order } = makeDriver();

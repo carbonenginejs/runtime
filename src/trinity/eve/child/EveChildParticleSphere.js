@@ -119,11 +119,6 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     const boundElements = new Set();
     for (const generator of this.generators)
     {
-      if (typeof generator?.Bind !== "function")
-      {
-        this.#bindStatus = BIND_INVALID;
-        throw new TypeError("Particle generators must implement Carbon's Bind contract.");
-      }
       if (generator.Bind(this.particleSystem, boundElements) === false)
       {
         this.#bindStatus = BIND_INVALID;

@@ -2,14 +2,14 @@
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
+import { IStretchAudio } from "../trinityAudioApi/IStretchAudio.js";
 import { AudEmitter } from "./AudEmitter.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** StretchAudio (audio) - three-emitter beam audio (source/dest/stretch), listener projected onto the segment. */
 @type.define({ className: "StretchAudio", family: "audio" })
-export class StretchAudio extends CjsModel
+export class StretchAudio extends IStretchAudio
 {
 
   /** m_stretchEmitter (AudEmitterPtr) [READWRITE, PERSIST] */

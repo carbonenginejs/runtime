@@ -15,6 +15,7 @@ import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
 import { EveChildParticleSphere } from "../../npm/dist/trinity/eve/child/EveChildParticleSphere.js";
 import { EveChildRef } from "../../npm/dist/trinity/eve/child/EveChildRef.js";
 import { EveChildSocket } from "../../npm/dist/trinity/eve/child/EveChildSocket.js";
+import { CjsEveChildResourceLoader } from "../../npm/dist/trinity/eve/child/CjsEveChildResourceLoader.js";
 import { EveChildProceduralContainer } from "../../npm/dist/trinity/eve/child/procedural/EveChildProceduralContainer.js";
 import { EveMultiEffect } from "../../npm/dist/trinity/eve/effect/multiEffect/EveMultiEffect.js";
 import { EveShip2 } from "../../npm/dist/trinity/eve/spaceObject/EveShip2.js";
@@ -52,6 +53,22 @@ import { Tr2TextureAnimation } from "../../npm/dist/trinity/core/animation/Tr2Te
 import { Tr2FactionLight } from "../../npm/dist/trinity/eve/lights/Tr2FactionLight.js";
 import { EveSmartLightSpotLight } from "../../npm/dist/trinity/eve/smartLights/EveSmartLightSpotLight.js";
 import { Tr2Light } from "../../npm/dist/trinity/eve/lights/Tr2Light.js";
+import { EveBezierCurve, EveCircle, EveLineChildContainer, IEveLineSetPath } from "../../npm/dist/trinity/index.js";
+
+
+class TestEveChildResourceLoader extends CjsEveChildResourceLoader
+{
+  constructor(load)
+  {
+    super();
+    this.load = load;
+  }
+
+  LoadChild(resPath)
+  {
+    return this.load(resPath);
+  }
+}
 
 
 // A minimal accumulator duck carrying a fresh per-object store.
@@ -475,7 +492,7 @@ test("generated child wrappers propagate Carbon controller and socket calls", ()
   calls.length = 0;
   const ref = new EveChildRef();
   ref.resPath = "res:/child.red";
-  ref.resourceLoader = () => child;
+  ref.resourceLoader = new TestEveChildResourceLoader(() => child);
   assert.equal(ref.Reload(), true);
   ref.StartControllers();
   assert.deepEqual(calls[0], ["start"]);
@@ -489,7 +506,7 @@ test("generated child wrappers propagate Carbon controller and socket calls", ()
   socketPlug.externalParameters.push(external);
   const socket = new EveChildSocket();
   socket.resPath = "res:/plug.red";
-  socket.resourceLoader = () => socketPlug;
+  socket.resourceLoader = new TestEveChildResourceLoader(() => socketPlug);
   assert.equal(socket.Reload(), true);
   assert.equal(socket.parameters.length, 1);
   socket.parameters[0].value = "updated";
@@ -1095,11 +1112,6 @@ test("particle emitters and near-field spheres enforce Carbon's shared element c
   assert.equal(nearField.Refresh(), false);
   nearField.generators = [];
   assert.equal(nearField.Refresh(), false);
-  nearField.generators = [{}];
-  assert.throws(
-    () => nearField.Refresh(),
-    /Carbon's Bind contract/
-  );
 
   const emitter = new Tr2DynamicEmitter();
   const shape = new Tr2SphereShapeAttributeGenerator();
@@ -1197,12 +1209,6 @@ test("CPU particle forces use Carbon's GetForce contract and volume attenuation"
   system.UpdateSimulation(1);
   assert.deepEqual(Array.from(system.GetParticleElement(0, "velocity")), [2, 0, 0]);
   assert.deepEqual(Array.from(system.GetParticleElement(0, "position")), [2, 0, 0]);
-
-  system.forces[0] = { ApplyForce() {} };
-  assert.throws(
-    () => system.UpdateSimulation(1),
-    /Carbon's GetForce contract/
-  );
 });
 
 test("CPU plane and sphere constraints resolve penetrations and reflect velocity", () =>
@@ -1363,4 +1369,23 @@ test("low-hanging ports replace their generated staging files", () =>
     assert.equal(existsSync(new URL(`../../src/trinity/generated/${family}/${className}.js`, import.meta.url)), false, className);
     assert.equal(skipped.get(className)?.reason, "hand-maintained source exists", className);
   }
+});
+
+test("line-set paths inherit one abstract root contract", () =>
+{
+  assert.ok(new EveBezierCurve() instanceof IEveLineSetPath);
+  assert.ok(new EveCircle() instanceof IEveLineSetPath);
+  assert.ok(new EveLineChildContainer() instanceof IEveLineSetPath);
+  assert.throws(
+    () => new EveLineChildContainer().UpdateBuffer(null, 0, null, 0),
+    /must be implemented/
+  );
+  assert.equal(
+    existsSync(new URL("../../src/trinity/generated/eve/child/lineSetPaths/EveLineChildContainer.js", import.meta.url)),
+    false
+  );
+  assert.equal(
+    existsSync(new URL("../../src/trinity/eve/child/lineSetPaths/EveLineChildContainer.js", import.meta.url)),
+    true
+  );
 });

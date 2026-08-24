@@ -3,13 +3,13 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
 @type.define({ className: "EveDistributionPlacementGeneratorVolume", family: "eve/distribution/placement" })
-export class EveDistributionPlacementGeneratorVolume extends CjsModel
+export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPlacementGenerators
 {
 
   #isRequestingRegeneration = true;

@@ -5,6 +5,36 @@ Scope: `@carbonenginejs/runtime/trinity/particle`
 Audience: Effect authors and engine integrators
 Summary: Catalogs the CPU particle simulation - systems, emitters, attribute generators, forces and constraints.
 
+<!-- class:ITr2AttributeGenerator -->
+## `ITr2AttributeGenerator`
+
+Required particle-attribute generation contract.
+
+- Export: `@carbonenginejs/runtime/trinity/particle`
+- Source: `src/trinity/particle/attribute/ITr2AttributeGenerator.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2GenericParticleConstraint -->
+## `ITr2GenericParticleConstraint`
+
+Required particle-constraint contract.
+
+- Export: `@carbonenginejs/runtime/trinity/particle`
+- Source: `src/trinity/particle/constraint/ITr2GenericParticleConstraint.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2ParticleForce -->
+## `ITr2ParticleForce`
+
+Required particle-force contract.
+
+- Export: `@carbonenginejs/runtime/trinity/particle`
+- Source: `src/trinity/particle/force/ITr2ParticleForce.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 ## Generic emitter contract
 
 `ITr2GenericEmitter` is both the generated interface identity used by particle

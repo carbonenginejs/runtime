@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpotlightLight } from "./EveSpotlightLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
@@ -16,7 +16,7 @@ import { AsPerSpotLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../
  * cone and glow effects that draw them, and the spot lights they emit.
  */
 @type.define({ className: "EveSpotlightSet", family: "eve/attachment/spotlights" })
-export class EveSpotlightSet extends EveEntity
+export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
   @io.rebuild("packedGeometry")
   @io.persist

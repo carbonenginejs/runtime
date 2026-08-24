@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierColor.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
+import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../../resolveFactionColor.js";
 
 /** EveSmartLightAttributeModifierColor (eve/smartLights/attributeModifiers) - generated from schema shapeHash 1d22dfd5.... */
 @type.define({ className: "EveSmartLightAttributeModifierColor", family: "eve/smartLights/attributeModifiers" })
-export class EveSmartLightAttributeModifierColor extends EveSmartLightBaseAttributeModifier
+export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
@@ -84,7 +84,7 @@ export class EveSmartLightAttributeModifierColor extends EveSmartLightBaseAttrib
   @impl.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
-    this.UpdateActivationStrength(activationMultiplier, updateContext?.GetDeltaT?.() ?? 0);
+    this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
   /**

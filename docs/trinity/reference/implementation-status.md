@@ -25,7 +25,7 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 174 explicit methods across 58 classes; and
+- 165 explicit methods across 51 classes; and
 - one unknown property, the transient `EveModularObjectModifier.object`
   member in generated intake.
 
@@ -34,9 +34,9 @@ particle, scene-picking, smart-light, and related backend-facing families.
 Markers are intentional: the runtime does not fabricate behavior before a
 portable contract or engine seam is established.
 
-Two of those methods are the required throwing operations on
-`EveSmartLightBaseAttributeModifier`. Concrete smart-light modifiers override
-them; the base fails loudly when an incomplete extension is used.
+Required interface operations are not counted as implementation gaps. Their
+canonical root carries `@impl.abstract` and throws; a subclass that does not
+override the operation therefore inherits the failure.
 
 ## Promoted-class parity
 
@@ -73,11 +73,13 @@ and deliberately opaque native structs. It does not treat an `I*` identity as
 an acceptable duck type merely because JavaScript could call it structurally.
 
 The current source reports 42 references across 26 missing concrete model
-identities and 348 references across 62 nominal contract identities. Resolve
-each organization-owned contract at its lowest owning layer, make concrete
-implementations extend that base, validate identities at composition, and call
-required methods directly. Opaque `@type.rawStruct` identities remain
-informational because they describe native layouts rather than runtime classes.
+identities and 276 references across 43 nominal contract identities. Resolve
+each organization-owned contract at its lowest owning layer, put
+`@impl.abstract` and the throwing required method on that root, make concrete
+implementations extend it, and call required methods directly. Consumers do
+not preflight methods on organization-owned values. Opaque `@type.rawStruct`
+identities remain informational because they describe native layouts rather
+than runtime classes.
 
 ## Controller compatibility proof
 

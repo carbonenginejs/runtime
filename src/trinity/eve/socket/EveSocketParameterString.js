@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2ExternalParameter } from "../../core/binding/Tr2ExternalParameter.js";
+import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Binds a named string socket value to external parameters while capturing defaults for restoration. */
 @type.define({ className: "EveSocketParameterString", family: "eve/socket" })
-export class EveSocketParameterString extends CjsModel
+export class EveSocketParameterString extends IEveSocketParameter
 {
 
   /** m_name (std::string) */
@@ -86,7 +86,7 @@ export class EveSocketParameterString extends CjsModel
   BindToExternalParameter(externalParameter)
   {
     this.Initialize();
-    if (!externalParameter?.IsValid?.() || externalParameter.GetName?.() !== this.name) return false;
+    if (!externalParameter || !externalParameter.IsValid() || externalParameter.GetName() !== this.name) return false;
     if (!this.ExtractDefault(externalParameter)) return false;
     this.externalParameters.push(externalParameter);
     return true;
@@ -141,7 +141,7 @@ export class EveSocketParameterString extends CjsModel
     this.Initialize();
     if (!this.valueExposure.IsValid()) return;
     const value = this.valueExposure.GetValue();
-    for (const externalParameter of this.externalParameters) externalParameter?.SetValue?.(value);
+    for (const externalParameter of this.externalParameters) externalParameter.SetValue(value);
   }
 
 }

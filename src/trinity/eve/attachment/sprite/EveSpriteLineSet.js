@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
@@ -17,7 +17,7 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
  * owning their static and per-bone bounds and the point lights they emit.
  */
 @type.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
-export class EveSpriteLineSet extends EveEntity
+export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
   @io.rebuild("packedGeometry")
   @io.persist

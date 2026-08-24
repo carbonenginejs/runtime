@@ -2,7 +2,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { carbon, impl, type } from "#schema";
 
 
@@ -16,7 +16,7 @@ const UP = vec3.fromValues(0, 1, 0);
   className: "EveChildModifierCameraOrientedRotationConstrained",
   family: "eve/child/modifiers"
 })
-export class EveChildModifierCameraOrientedRotationConstrained extends CjsModel
+export class EveChildModifierCameraOrientedRotationConstrained extends IEveChildTransformModifier
 {
   static scratch = {
     rotation: quat.create(),

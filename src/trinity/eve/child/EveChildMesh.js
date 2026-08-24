@@ -493,7 +493,8 @@ export class EveChildMesh extends EveChildTransform
     }
     for (const attachment of this.attachments)
     {
-      attachment?.SetShaderOption?.(name, value);
+      if (!attachment) continue;
+      attachment.SetShaderOption(name, value);
     }
   }
 
@@ -709,7 +710,8 @@ export class EveChildMesh extends EveChildTransform
     // null until the JS animation seam exists.
     for (const attachment of this.attachments)
     {
-      attachment?.UpdateLights?.(this.worldTransform, null, 0, this.#activationStrength, 0);
+      if (!attachment) continue;
+      attachment.UpdateLights(this.worldTransform, null, 0, this.#activationStrength, 0);
     }
 
     this.UpdateMorphAnimationBuffer();
@@ -889,7 +891,8 @@ export class EveChildMesh extends EveChildTransform
 
     for (const attachment of this.attachments)
     {
-      attachment?.UpdateVisibility?.(updateContext, this.worldTransform, bones, boneCount);
+      if (!attachment) continue;
+      attachment.UpdateVisibility(updateContext, this.worldTransform, bones, boneCount);
     }
 
     if (this.#isVisible)
@@ -1036,7 +1039,8 @@ export class EveChildMesh extends EveChildTransform
     {
       for (const attachment of this.attachments)
       {
-        committed = attachment?.GetBatches?.(batches, batchType, perObjectData, reason) === true || committed;
+        if (!attachment) continue;
+        committed = attachment.GetBatches(batches, batchType, perObjectData, reason) === true || committed;
       }
     }
 

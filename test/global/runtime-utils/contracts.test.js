@@ -3,8 +3,26 @@ import test from "node:test";
 import {
     CjsBackendCandidate,
     CjsConstantPayload,
+    CjsFrameLifecycle,
     CjsScriptCallback
 } from "@carbonenginejs/runtime/contracts";
+import { CjsSchema } from "@carbonenginejs/runtime/schema";
+
+test("required contract roots carry abstract implementation metadata", () =>
+{
+    for (const [ Constructor, methods ] of [
+        [ CjsBackendCandidate, [ "Prove" ] ],
+        [ CjsConstantPayload, [ "GetData", "IsDirty", "ClearDirty" ] ],
+        [ CjsFrameLifecycle, [ "Throttle", "SyncToGpu", "GetViewport", "BeginProfileFrame", "EndProfileFrame", "ReserveQuadListIndexBuffer" ] ],
+        [ CjsScriptCallback, [ "Call", "CallVoid" ] ]
+    ])
+    {
+        for (const method of methods)
+        {
+            assert.equal(CjsSchema.getMethod(Constructor, method)?.impl?.status, "abstract");
+        }
+    }
+});
 
 test("backend candidates require a concrete proof implementation", async () =>
 {

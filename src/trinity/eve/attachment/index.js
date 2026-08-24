@@ -1,5 +1,6 @@
 export * from "./EveSpaceObjectAttachmentUtils.js";
 export * from "./itemSetBounds.js";
+export * from "./IEveSpaceObjectAttachment.js";
 export * from "./banner/index.js";
 export * from "./booster/index.js";
 export * from "./decal/index.js";

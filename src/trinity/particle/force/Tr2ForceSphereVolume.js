@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Particle/Tr2ForceSphereVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { vec3 } from "#math/vec3";
 
 /** Aggregates child forces within a spherical region, scaling their combined contribution by a falloff toward the sphere's edge. */
 @type.define({ className: "Tr2ForceSphereVolume", family: "particle" })
-export class Tr2ForceSphereVolume extends CjsModel
+export class Tr2ForceSphereVolume extends ITr2ParticleForce
 {
 
   // Per-instance scratch: volumes can nest other volumes, so a class-static
@@ -64,10 +64,6 @@ export class Tr2ForceSphereVolume extends CjsModel
     const contribution = this.#contribution;
     for (const force of this.forces)
     {
-      if (typeof force?.GetForce !== "function")
-      {
-        throw new TypeError("Sphere-volume forces must implement Carbon's GetForce contract.");
-      }
       vec3.set(contribution, 0, 0, 0);
       vec3.add(out, out, force.GetForce(position, velocity, dt, mass, contribution) ?? contribution);
     }

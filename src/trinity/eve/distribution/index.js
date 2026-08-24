@@ -1,3 +1,4 @@
+export * from "./IEveDistributionMethod.js";
 export * from "./EveBaseDistributionMethod.js";
 export * from "./attributeModifiers/index.js";
 export * from "./placement/index.js";

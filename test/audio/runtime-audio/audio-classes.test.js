@@ -15,6 +15,7 @@ import {
   AudParameter,
   AudPosition,
   AudUIPlayer,
+  IStretchAudio,
   SpatialAudioSettings,
   StretchAudio,
   Tr2AudioStretchAuto,
@@ -55,6 +56,8 @@ test("real Carbon audio classes are exported with their Carbon families", () =>
   assert.ok(new AudListener() instanceof AudGameObjResource, "AudListener extends AudGameObjResource");
   assert.ok(new AudMusicPlayer() instanceof AudEmitter, "AudMusicPlayer extends AudEmitter");
   assert.ok(new AudUIPlayer() instanceof AudEmitter, "AudUIPlayer extends AudEmitter");
+  assert.ok(new StretchAudio() instanceof IStretchAudio, "StretchAudio extends IStretchAudio");
+  assert.throws(() => new IStretchAudio().Start(), /must be implemented/);
   assert.ok(new Tr2AudioStretchAuto() instanceof Tr2AudioStretchBase, "Tr2AudioStretchAuto extends Tr2AudioStretchBase");
 });
 

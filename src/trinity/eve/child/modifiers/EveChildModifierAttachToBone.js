@@ -3,14 +3,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
  * Transform modifier that rigidly attaches a child to one bone of the parent's
  * animation bone palette.
  */
 @type.define({ className: "EveChildModifierAttachToBone", family: "eve/child/modifiers" })
-export class EveChildModifierAttachToBone extends CjsModel
+export class EveChildModifierAttachToBone extends IEveChildTransformModifier
 {
   @io.persist
   @type.int32

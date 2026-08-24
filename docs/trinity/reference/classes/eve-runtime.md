@@ -5,6 +5,186 @@ Scope: `@carbonenginejs/runtime/trinity/eve`
 Audience: Users and integrators
 Summary: Catalogs promoted Eve runtime classes with renderer-neutral behavior.
 
+<!-- class:CjsEveChildResourceLoader -->
+## `CjsEveChildResourceLoader`
+
+Trinity-owned synchronous child-resource resolution contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/CjsEveChildResourceLoader.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveLineChildContainer -->
+## `EveLineChildContainer`
+
+Groups line-path children beneath a shared transform with naming and visibility state.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/lineSetPaths/EveLineChildContainer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveBallpark -->
+## `IEveBallpark`
+
+Required host ballpark contract used by EVE scene updates.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/IEveBallpark.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveChildTransformModifier -->
+## `IEveChildTransformModifier`
+
+Required child-transform modifier contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/modifiers/IEveChildTransformModifier.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveDistributionMethod -->
+## `IEveDistributionMethod`
+
+Required distribution placement contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/IEveDistributionMethod.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveDistributionModifier -->
+## `IEveDistributionModifier`
+
+Required distribution attribute-modifier contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/attributeModifiers/IEveDistributionModifier.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveDistributionPlacementGenerators -->
+## `IEveDistributionPlacementGenerators`
+
+Required distribution placement-generator contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/placement/IEveDistributionPlacementGenerators.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveDistributionSpawner -->
+## `IEveDistributionSpawner`
+
+Distribution spawner contract with Carbon's optional no-op hooks.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawners/IEveDistributionSpawner.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveDistributionSpawnModifier -->
+## `IEveDistributionSpawnModifier`
+
+Required distribution spawn-modifier contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/distribution/spawnModifiers/IEveDistributionSpawnModifier.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveFiringEffectElement -->
+## `IEveFiringEffectElement`
+
+Required EVE firing-effect element contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/IEveFiringEffectElement.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveFxAttribute -->
+## `IEveFxAttribute`
+
+Required EVE effect-attribute update contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/spaceObject/fxAttributes/IEveFxAttribute.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveLineSetPath -->
+## `IEveLineSetPath`
+
+Required line-set path contract on the shared child-transform spine.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/lineSetPaths/IEveLineSetPath.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveProceduralSelectionMethod -->
+## `IEveProceduralSelectionMethod`
+
+Required procedural-child selection contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/procedural/selection/IEveProceduralSelectionMethod.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveReferencePoint -->
+## `IEveReferencePoint`
+
+Required time-varying world reference-point contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/IEveReferencePoint.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveSmartLightGroupAttributeModifier -->
+## `IEveSmartLightGroupAttributeModifier`
+
+Required smart-light group attribute-modifier contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/smartLights/attributeModifiers/IEveSmartLightGroupAttributeModifier.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveSocketParameter -->
+## `IEveSocketParameter`
+
+Carbon socket-parameter contract with its interface defaults.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/socket/IEveSocketParameter.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveSpaceObjectAttachment -->
+## `IEveSpaceObjectAttachment`
+
+Carbon space-object attachment contract with its interface defaults.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/IEveSpaceObjectAttachment.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:IEveVolume -->
+## `IEveVolume`
+
+Required EVE volume contract.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/volume/IEveVolume.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:EveSmartLightSpotLight -->
 ## `EveSmartLightSpotLight`
 

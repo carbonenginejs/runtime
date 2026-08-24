@@ -5,6 +5,16 @@ Scope: `@carbonenginejs/runtime/audio/trinity` classes under `src/audio/trinity/
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for maintained Carbon audio graph classes.
 
+<!-- class:IStretchAudio -->
+## `IStretchAudio`
+
+Required stretch-audio component contract.
+
+- Export: `@carbonenginejs/runtime/audio/trinity`
+- Source: `src/audio/trinity/trinityAudioApi/IStretchAudio.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:AudActionLogCB -->
 ## `AudActionLogCB`
 

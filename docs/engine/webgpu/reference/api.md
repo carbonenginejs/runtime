@@ -100,8 +100,10 @@ The serializer does not read SOF and does not supply production defaults.
 
 `payload` must be a canonical `CjsConstantPayload`. `GetData()`, `IsDirty()`,
 and `ClearDirty()` are required by that nominal contract. The boundary is
-validated once and the upload path calls those methods directly. The engine
-still receives terminal bytes and does not reinterpret their layout.
+encoded by inheritance: the root methods carry abstract metadata and throw,
+and a concrete payload overrides them. The upload path calls those methods
+directly without structural preflight. The engine still receives terminal
+bytes and does not reinterpret their layout.
 
 Two properties of the dirty flag matter to a caller. It **is a write barrier**:
 any field write arms it, so a clear flag means "not changed since the last

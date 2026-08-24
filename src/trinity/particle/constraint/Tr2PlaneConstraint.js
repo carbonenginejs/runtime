@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
 @type.define({ className: "Tr2PlaneConstraint", family: "particle" })
-export class Tr2PlaneConstraint extends CjsModel
+export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
 
   #normalizedPlane = vec4.fromValues(0, 1, 0, 0);
@@ -84,7 +84,7 @@ export class Tr2PlaneConstraint extends CjsModel
     this.#normalizePlane();
     for (const emitter of this.onCollisionEmitters)
     {
-      emitter?.SetThreadSafeFlag?.();
+      emitter.SetThreadSafeFlag();
     }
     return true;
   }
@@ -109,10 +109,10 @@ export class Tr2PlaneConstraint extends CjsModel
   Bind(particleSystem)
   {
     this.isValid = false;
-    this.#positionElement = particleSystem?.GetElement?.(Tr2ParticleElementDeclaration.Type.POSITION) ?? null;
-    this.#velocityElement = particleSystem?.GetElement?.(Tr2ParticleElementDeclaration.Type.VELOCITY) ?? null;
+    this.#positionElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.POSITION);
+    this.#velocityElement = particleSystem.GetElement(Tr2ParticleElementDeclaration.Type.VELOCITY);
     this.#radiusElement = this.particleRadiusComponent
-      ? particleSystem?.GetElement?.(this.particleRadiusComponent) ?? null
+      ? particleSystem.GetElement(this.particleRadiusComponent)
       : null;
     if (!this.#positionElement || (this.particleRadiusComponent && !this.#radiusElement))
     {
@@ -121,10 +121,6 @@ export class Tr2PlaneConstraint extends CjsModel
     const boundElements = new Set();
     for (const generator of this.generators)
     {
-      if (typeof generator?.Bind !== "function")
-      {
-        throw new TypeError("Particle generators must implement Carbon's Bind contract.");
-      }
       if (generator.Bind(particleSystem, boundElements) === false)
       {
         return false;
@@ -183,11 +179,11 @@ export class Tr2PlaneConstraint extends CjsModel
       }
       for (const generator of this.generators)
       {
-        generator?.Generate?.(position, velocity, index);
+        generator.Generate(position, velocity, index);
       }
       for (const emitter of this.onCollisionEmitters)
       {
-        emitter?.SpawnParticles?.(position, velocity, 1);
+        emitter.SpawnParticles(position, velocity, 1);
       }
     }
     return collisions;

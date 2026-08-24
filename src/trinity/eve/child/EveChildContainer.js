@@ -478,7 +478,8 @@ export class EveChildContainer extends EveChildTransform
     }
     for (const attachment of this.attachments)
     {
-      attachment?.SetShaderOption?.(name, value);
+      if (!attachment) continue;
+      attachment.SetShaderOption(name, value);
     }
   }
 
@@ -686,7 +687,7 @@ export class EveChildContainer extends EveChildTransform
 
     for (const fxAttribute of this.fxAttributes)
     {
-      fxAttribute?.UpdateAsyncronous?.(updateContext, newParams);
+      fxAttribute.UpdateAsyncronous(updateContext, newParams);
     }
 
     for (const light of this.lights)
@@ -696,7 +697,8 @@ export class EveChildContainer extends EveChildTransform
 
     for (const attachment of this.attachments)
     {
-      attachment?.UpdateLights?.(this.worldTransform, bones, boneCount, this.#activationStrength, 0);
+      if (!attachment) continue;
+      attachment.UpdateLights(this.worldTransform, bones, boneCount, this.#activationStrength, 0);
     }
 
     this.#hasUpdated = true;
@@ -739,7 +741,8 @@ export class EveChildContainer extends EveChildTransform
 
       for (const attachment of this.attachments)
       {
-        attachment?.UpdateVisibility?.(updateContext, this.worldTransform, bones, boneCount);
+        if (!attachment) continue;
+        attachment.UpdateVisibility(updateContext, this.worldTransform, bones, boneCount);
       }
     }
     return true;
@@ -876,7 +879,8 @@ export class EveChildContainer extends EveChildTransform
     let committed = false;
     for (const attachment of this.attachments)
     {
-      committed = attachment?.GetBatches?.(batches, batchType, perObjectData, reason) === true || committed;
+      if (!attachment) continue;
+      committed = attachment.GetBatches(batches, batchType, perObjectData, reason) === true || committed;
     }
     return committed;
   }

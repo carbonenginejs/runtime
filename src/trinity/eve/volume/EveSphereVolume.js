@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { IEveVolume } from "./IEveVolume.js";
 import { carbon, impl, io, type } from "#schema";
 
 
@@ -14,7 +14,7 @@ import { carbon, impl, io, type } from "#schema";
   className: "EveSphereVolume",
   family: "eve/volume"
 })
-export class EveSphereVolume extends CjsModel
+export class EveSphereVolume extends IEveVolume
 {
   @io.notify
   @io.persist

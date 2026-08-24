@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomScale.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values. */
 @type.define({ className: "EveDistributionSpawnModifierRandomScale", family: "eve/distribution/spawnModifiers" })
-export class EveDistributionSpawnModifierRandomScale extends CjsModel
+export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpawnModifier
 {
 
   #timeSeed = Date.now() >>> 0;

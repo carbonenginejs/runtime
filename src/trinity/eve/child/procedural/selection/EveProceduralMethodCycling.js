@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
 // persisted list hydrates carry this flag and must not trigger reselection.
@@ -9,7 +9,7 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
 @type.define({ className: "EveProceduralMethodCycling", family: "eve/child/procedural/selection" })
-export class EveProceduralMethodCycling extends CjsModel
+export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 {
 
   #selectedChildModified = false;

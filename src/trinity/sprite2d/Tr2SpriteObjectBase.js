@@ -13,7 +13,7 @@ export class Tr2SpriteObjectBase extends CjsModel
 
   /** Required ITr2SpriteObject traversal contract. */
   @carbon.method
-  @impl.notImplemented
+  @impl.abstract
   GatherSprites(..._args)
   {
     throw new Error("Tr2SpriteObjectBase.GatherSprites must be implemented by a concrete Sprite2D object.");
@@ -21,7 +21,7 @@ export class Tr2SpriteObjectBase extends CjsModel
 
   /** Required ITr2SpriteObject picking contract. */
   @carbon.method
-  @impl.notImplemented
+  @impl.abstract
   PickPoint(..._args)
   {
     throw new Error("Tr2SpriteObjectBase.PickPoint must be implemented by a concrete Sprite2D object.");

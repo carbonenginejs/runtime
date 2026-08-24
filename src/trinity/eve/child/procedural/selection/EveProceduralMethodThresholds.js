@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
 // persisted list hydrates carry this flag and must not trigger a re-sort.
@@ -16,7 +16,7 @@ function SelectiveParameterCompare(param1, param2)
 
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
 @type.define({ className: "EveProceduralMethodThresholds", family: "eve/child/procedural/selection" })
-export class EveProceduralMethodThresholds extends CjsModel
+export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 {
 
   #selectedChildModified = false;

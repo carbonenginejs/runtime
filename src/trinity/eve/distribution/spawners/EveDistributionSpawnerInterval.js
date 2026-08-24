@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerInterval.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
 @type.define({ className: "EveDistributionSpawnerInterval", family: "eve/distribution/spawners" })
-export class EveDistributionSpawnerInterval extends CjsModel
+export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
 {
 
   #localTimer = 0;

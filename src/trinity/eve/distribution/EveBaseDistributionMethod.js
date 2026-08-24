@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveDistributionMethod } from "./IEveDistributionMethod.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -10,7 +10,7 @@ import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 
 /** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
 @type.define({ className: "EveBaseDistributionMethod", family: "eve/distribution" })
-export class EveBaseDistributionMethod extends CjsModel
+export class EveBaseDistributionMethod extends IEveDistributionMethod
 {
 
   #initialPlacements = [];

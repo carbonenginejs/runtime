@@ -56,9 +56,9 @@ export class TriRenderStep extends CjsModel
    * Performs this step's work. Carbon declares this method pure virtual, so a
    * concrete step that omits it is an incomplete implementation and fails
    * loudly when executed.
-   */
+  */
   @carbon.method
-  @impl.notImplemented
+  @impl.abstract
   Execute(_realTime, _simTime, _context)
   {
     throw new Error("TriRenderStep.Execute must be implemented by a concrete render step.");

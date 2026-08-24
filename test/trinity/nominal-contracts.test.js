@@ -3,12 +3,19 @@ import test from "node:test";
 
 import {
   CjsDirectTrinityStepExecutor,
+  CjsShadowMapExecutor,
   CjsTrinityBatchDispatcher,
   CjsTrinityBatchResolver,
   CjsTrinityStepExecutor,
+  CjsVolumetricsExecutor,
+  ITriRenderBatchAccumulator,
+  Tr2Transform,
   Tr2RenderContext
 } from "../../npm/dist/trinity/core/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { ITr2FroxelFogSettings } from "../../npm/dist/trinity/eve/child/ITr2FroxelFogSettings.js";
 import { TriRenderStep } from "../../npm/dist/trinity/renderJob/index.js";
+import { Tr2SpriteObjectBase } from "../../npm/dist/trinity/sprite2d/Tr2SpriteObjectBase.js";
 
 
 class TestStep extends TriRenderStep
@@ -76,6 +83,34 @@ test("Trinity nominal bases fail loudly until extended", () =>
   }
 
   assert.throws(() => new TriRenderStep().Execute(), /TriRenderStep\.Execute/u);
+});
+
+
+test("required Trinity root methods carry abstract implementation metadata", () =>
+{
+  for (const [ Constructor, methods ] of [
+    [ CjsTrinityBatchResolver, [ "ResolveMaterial", "ResolveGeometry", "ResolveBindings" ] ],
+    [ CjsTrinityBatchDispatcher, [ "PrepareBatchMap", "EncodeBatchType", "DestroyBatchMap" ] ],
+    [ CjsTrinityStepExecutor, [ "BeginStep", "ExecuteStep", "EndStep", "BeginScene", "EndScene", "BeginBatch", "EndBatch" ] ],
+    [ CjsShadowMapExecutor, [ "PrepareShadowRendering", "BeginShadowRendering", "EndShadowRendering", "DrawToShadowMapResult" ] ],
+    [ CjsVolumetricsExecutor, [ "RenderVolumetrics", "GetEmptyVolumetricTexture", "RenderFog", "RenderFogIntoReflectionMap", "GetEmptyFogTexture", "UpdateFogEnvironmentMap", "UpdateVariableStore", "RenderShadows" ] ],
+    [ ITriRenderBatchAccumulator, [ "Clear", "Commit", "GetGdprBatches", "GetBatches", "Finalize", "GetBatchCount", "IsChainedByEffect", "TransferFrom" ] ],
+    [ TriRenderStep, [ "Execute" ] ],
+    [ Tr2Transform, [ "GetPerObjectData" ] ],
+    [ Tr2SpriteObjectBase, [ "GatherSprites", "PickPoint" ] ],
+    [ ITr2FroxelFogSettings, [ "GetFroxelFogSettings" ] ]
+  ])
+  {
+    new Constructor();
+    for (const method of methods)
+    {
+      assert.equal(
+        CjsSchema.getMethod(Constructor, method)?.impl?.status,
+        "abstract",
+        `${Constructor.name}.${method}`
+      );
+    }
+  }
 });
 
 

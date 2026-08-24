@@ -1128,7 +1128,8 @@ export class EveSpaceObject2 extends EveEntity
 
     for (const attachment of this.attachments)
     {
-      if (attachment?.UpdateVisibility?.(updateContext, this.worldTransform, bones, boneCount))
+      if (!attachment) continue;
+      if (attachment.UpdateVisibility(updateContext, this.worldTransform, bones, boneCount))
       {
         this.#isMeshVisible = true;
         this.isVisible = true;
@@ -1245,7 +1246,8 @@ export class EveSpaceObject2 extends EveEntity
     {
       for (const attachment of this.attachments)
       {
-        attachment?.GetBatches?.(batches, batchType, perObjectData, reason);
+        if (!attachment) continue;
+        attachment.GetBatches(batches, batchType, perObjectData, reason);
       }
     }
 

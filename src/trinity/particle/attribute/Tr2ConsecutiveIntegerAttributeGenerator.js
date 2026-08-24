@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Particle/Tr2ConsecutiveIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { vec4 } from "#math/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute as a cycling, wrapped incrementing integer counter within a range. */
 @type.define({ className: "Tr2ConsecutiveIntegerAttributeGenerator", family: "particle" })
-export class Tr2ConsecutiveIntegerAttributeGenerator extends CjsModel
+export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenerator
 {
 
   #currentValues = new Uint32Array(4);

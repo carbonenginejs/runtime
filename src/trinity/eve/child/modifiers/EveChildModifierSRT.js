@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { carbon, impl, io, type } from "#schema";
 
 
@@ -15,7 +15,7 @@ import { carbon, impl, io, type } from "#schema";
   className: "EveChildModifierSRT",
   family: "eve/child/modifiers"
 })
-export class EveChildModifierSRT extends CjsModel
+export class EveChildModifierSRT extends IEveChildTransformModifier
 {
   @io.persist
   @type.vec3

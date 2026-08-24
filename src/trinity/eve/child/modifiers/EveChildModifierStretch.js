@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
+import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
  * Transform modifier that stretches a child along the vector from its own
@@ -13,7 +13,7 @@ import { CjsModel } from "#model";
  * it on the midpoint.
  */
 @type.define({ className: "EveChildModifierStretch", family: "eve/child/modifiers" })
-export class EveChildModifierStretch extends CjsModel
+export class EveChildModifierStretch extends IEveChildTransformModifier
 {
   @io.persist
   @type.model("ITriVectorFunction")

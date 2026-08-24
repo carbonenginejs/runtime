@@ -78,14 +78,14 @@ export class CollisionAvoidance extends CjsModel
     centers.length = 0;
     for (const volume of this.exclusionVolumes)
     {
-      centers.push(volume?.GetBoundingSphere?.()?.center ?? null);
+      centers.push(volume.GetBoundingSphere().center);
     }
 
     for (const agent of agents)
     {
       for (let i = 0; i < this.exclusionVolumes.length; i++)
       {
-        const intensity = Number(this.exclusionVolumes[i]?.GetIntensity?.(agent.position) ?? 0);
+        const intensity = Number(this.exclusionVolumes[i].GetIntensity(agent.position));
         // we only want to continue if we are inside the outer radius
         if (intensity > 0 && centers[i])
         {
@@ -127,7 +127,7 @@ export class CollisionAvoidance extends CjsModel
     }
     for (const volume of this.exclusionVolumes)
     {
-      volume?.RenderDebugInfo?.(renderer, parentWorldLocation);
+      volume.RenderDebugInfo(renderer, parentWorldLocation);
     }
   }
 

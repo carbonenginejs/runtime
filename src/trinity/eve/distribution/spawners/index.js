@@ -4,3 +4,4 @@ export * from "./EveDistributionSpawnerInterval.js";
 export * from "./EveDistributionSpawnerTriggerPlane.js";
 export * from "./EveDistributionSpawnerTriggerSnake.js";
 export * from "./EveDistributionSpawnerTriggerSphere.js";
+export * from "./IEveDistributionSpawner.js";

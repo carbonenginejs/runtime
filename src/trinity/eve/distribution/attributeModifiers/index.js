@@ -3,3 +3,4 @@ export * from "./EveDistributionModifierScaleBySpaceObjectParent.js";
 export * from "./EveDistributionModifierTransformOffset.js";
 export * from "./InitialPlacement.js";
 export * from "./enums.js";
+export * from "./IEveDistributionModifier.js";

@@ -4,7 +4,6 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
-import { collectRenderables, updateChildAsync, updateChildSync } from "./CjsStretchRuntime.js";
 
 
 /**
@@ -30,24 +29,19 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Pushes the container's endpoint state - source transform or position,
    * destination scale and endpoint display flags - into the wrapped element,
    * then updates the element, but only while the container is firing.
-   */
+  */
   @carbon.method @impl.adapted
-  @impl.reason("JavaScript uses duck-typed firing elements rather than Carbon QueryInterface dispatch.")
+  @impl.reason("The browser runtime drives the nominal firing-element contract synchronously instead of Carbon task dispatch.")
   UpdateSynchronous(context)
   {
     if (!this.element) return true;
     const source = this.useSourceTransform ? this.sourceTransform : this.source;
-    this.element.SetFiringTransform?.(source, this.destination);
-    this.element.SetDestObjectScale?.(this.destinationScale);
-    this.element.DisplayEndPoints?.(this.displaySource, this.displayDestination);
+    this.element.SetFiringTransform(source, this.destination);
+    this.element.SetDestObjectScale(this.destinationScale);
+    this.element.DisplayEndPoints(this.displaySource, this.displayDestination);
     if (this.#active)
     {
-      if (typeof this.element.Update === "function") this.element.Update(context);
-      else
-      {
-        updateChildSync(this.element, context);
-        updateChildAsync(this.element, context);
-      }
+      this.element.Update(context);
     }
     return true;
   }
@@ -87,7 +81,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @impl.reason("Visibility is graph-owned; the renderer consumes the collected element later.")
   UpdateVisibility(context, transform)
   {
-    if (this.display) this.element?.UpdateVisibility?.(context, transform);
+    if (this.display && this.element) this.element.UpdateVisibility(context, transform);
   }
 
   /**
@@ -98,7 +92,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @impl.reason("Renderable collection is backend-neutral and leaves batch realization to the engine package.")
   GetRenderables(out = [])
   {
-    if (this.display) collectRenderables(this.element, out);
+    if (this.display && this.element) this.element.GetRenderables(out);
     return out;
   }
 
@@ -109,7 +103,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @carbon.method @impl.implemented
   StartFiring(delay = 0)
   {
-    this.element?.StartFiring?.(delay);
+    if (this.element) this.element.StartFiring(delay);
     this.#active = true;
   }
 
@@ -120,7 +114,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @carbon.method @impl.implemented
   StopFiring()
   {
-    this.element?.StopFiring?.();
+    if (this.element) this.element.StopFiring();
     this.#active = false;
   }
 
@@ -221,7 +215,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @carbon.method @impl.implemented
   GetCurveDuration()
   {
-    return Number(this.element?.GetCurveDuration?.() ?? 0);
+    return this.element ? Number(this.element.GetCurveDuration()) : 0;
   }
 
   /** Carbon EveFiringEffectElementContainer::RegisterComponents

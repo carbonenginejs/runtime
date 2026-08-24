@@ -15,8 +15,8 @@ test("Sprite2D bases start pickable and fail incomplete traversal contracts loud
   assert.equal(sprite.pickState, Tr2SpriteObjectPickState.TR2_SPS_ON);
   assert.throws(() => sprite.GatherSprites({}), /must be implemented/);
   assert.throws(() => sprite.PickPoint(0, 0, {}), /must be implemented/);
-  assert.equal(CjsSchema.getMethod(Tr2SpriteObjectBase, "GatherSprites")?.impl?.status, "notImplemented");
-  assert.equal(CjsSchema.getMethod(Tr2SpriteObjectBase, "PickPoint")?.impl?.status, "notImplemented");
+  assert.equal(CjsSchema.getMethod(Tr2SpriteObjectBase, "GatherSprites")?.impl?.status, "abstract");
+  assert.equal(CjsSchema.getMethod(Tr2SpriteObjectBase, "PickPoint")?.impl?.status, "abstract");
 });
 
 test("Tr2Sprite2dRenderJob gathers its required render job directly", () =>

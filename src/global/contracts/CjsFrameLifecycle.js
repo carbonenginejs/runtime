@@ -1,3 +1,5 @@
+import { CjsSchema, impl } from "../schema/index.js";
+
 /**
  * Dependency-free engine lifecycle required to execute one runtime frame.
  *
@@ -42,3 +44,10 @@ export class CjsFrameLifecycle
         throw new Error("CjsFrameLifecycle.ReserveQuadListIndexBuffer must be overridden by a concrete engine lifecycle.");
     }
 }
+
+CjsSchema.decorateMethod(CjsFrameLifecycle, "Throttle", impl.abstract);
+CjsSchema.decorateMethod(CjsFrameLifecycle, "SyncToGpu", impl.abstract);
+CjsSchema.decorateMethod(CjsFrameLifecycle, "GetViewport", impl.abstract);
+CjsSchema.decorateMethod(CjsFrameLifecycle, "BeginProfileFrame", impl.abstract);
+CjsSchema.decorateMethod(CjsFrameLifecycle, "EndProfileFrame", impl.abstract);
+CjsSchema.decorateMethod(CjsFrameLifecycle, "ReserveQuadListIndexBuffer", impl.abstract);

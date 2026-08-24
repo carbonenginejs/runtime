@@ -9,7 +9,7 @@ export class EveChildRef extends EveChildTransform
 {
 
   /** Runtime resource-resolution seam supplied by an engine package. */
-  @type.objectRef("IEveChildResourceLoader")
+  @type.objectRef("CjsEveChildResourceLoader")
   resourceLoader = null;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
@@ -45,8 +45,9 @@ export class EveChildRef extends EveChildTransform
   Reload(bypassAutoLoadBlocker = false)
   {
     if (!this.loadChildAutomatically && !bypassAutoLoadBlocker) return false;
-    const next = this.resourceLoader?.LoadChild?.(this.resPath, this) ?? this.resourceLoader?.(this.resPath, this);
-    if (!next || typeof next.then === "function") return false;
+    if (!this.resourceLoader) return false;
+    const next = this.resourceLoader.LoadChild(this.resPath, this);
+    if (!next) return false;
     this.child = next;
     return true;
   }

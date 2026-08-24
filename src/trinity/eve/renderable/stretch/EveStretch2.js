@@ -5,7 +5,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { carbon, impl, io, type } from "#schema";
-import { EveEntity } from "../../EveEntity.js";
+import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/Tr2RenderBatch.js";
@@ -18,7 +18,7 @@ import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, upda
  * of hosting child objects.
  */
 @type.define({ className: "EveStretch2", family: "eve/renderable/stretch" })
-export class EveStretch2 extends EveEntity
+export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
 
