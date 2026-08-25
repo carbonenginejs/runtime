@@ -51,12 +51,12 @@ function assertClose(actual, expected, what, epsilon = EPSILON)
 function placement(over = {})
 {
     return {
-        orbitA: 37.5,
-        orbitB: -22.25,
-        offsetA: 14.75,
-        offsetB: -8.5,
-        rotationA: 63,
-        scaleA: 12.25,
+        longitude: 37.5,
+        latitude: -22.25,
+        offsetU: 14.75,
+        offsetV: -8.5,
+        roll: 63,
+        scale: 12.25,
         depth: 148.6,
         ...over
     };
@@ -73,12 +73,12 @@ test("a placement survives a trip through a matrix", () =>
     const m = mat4.fromSkinr(new Float32Array(16), placement());
     const back = mat4.getSkinr({}, m);
 
-    assertAngle(back.orbitA, 37.5, "orbitA");
-    assertAngle(back.orbitB, -22.25, "orbitB");
-    assertAngle(back.rotationA, 63, "rotationA");
-    assertClose(back.offsetA, 14.75, "offsetA");
-    assertClose(back.offsetB, -8.5, "offsetB");
-    assertClose(back.scaleA, 12.25, "scaleA");
+    assertAngle(back.longitude, 37.5, "longitude");
+    assertAngle(back.latitude, -22.25, "latitude");
+    assertAngle(back.roll, 63, "roll");
+    assertClose(back.offsetU, 14.75, "offsetU");
+    assertClose(back.offsetV, -8.5, "offsetV");
+    assertClose(back.scale, 12.25, "scale");
     assertClose(back.depth, 148.6, "depth");
 });
 
@@ -89,14 +89,14 @@ test("the default placement round-trips, where a shortest-arc orbit does not", (
     // its singularity. It is also where real designs cluster, which is what made
     // this worth a test of its own: the arc form lost three digits HERE, on the
     // commonest placement there is, and nowhere a casual check would look.
-    const m = mat4.fromSkinr(new Float32Array(16), placement({ orbitA: 0, orbitB: 0 }));
+    const m = mat4.fromSkinr(new Float32Array(16), placement({ longitude: 0, latitude: 0 }));
     const back = mat4.getSkinr({}, m);
 
-    assertAngle(back.orbitA, 0, "orbitA");
-    assertAngle(back.orbitB, 0, "orbitB");
-    assertAngle(back.rotationA, 63, "rotationA");
-    assertClose(back.offsetA, 14.75, "offsetA");
-    assertClose(back.offsetB, -8.5, "offsetB");
+    assertAngle(back.longitude, 0, "longitude");
+    assertAngle(back.latitude, 0, "latitude");
+    assertAngle(back.roll, 63, "roll");
+    assertClose(back.offsetU, 14.75, "offsetU");
+    assertClose(back.offsetV, -8.5, "offsetV");
     assertClose(back.depth, 148.6, "depth");
 });
 
@@ -109,18 +109,18 @@ test("the offsets slide a flat plane, and leave the depth alone", () =>
     const a = mat4.getSkinr({}, mat4.fromSkinr(new Float32Array(16), placement()));
     const b = mat4.getSkinr({}, mat4.fromSkinr(
         new Float32Array(16),
-        placement({ offsetA: -60, offsetB: 95 })
+        placement({ offsetU: -60, offsetV: 95 })
     ));
 
     assertClose(b.depth, a.depth, "depth");
-    assertAngle(b.orbitA, a.orbitA, "orbitA");
-    assertAngle(b.orbitB, a.orbitB, "orbitB");
+    assertAngle(b.longitude, a.longitude, "longitude");
+    assertAngle(b.latitude, a.latitude, "latitude");
 });
 
 test("moving only the offsets moves the projector at a right angle to its axis", () =>
 {
-    const straight = mat4.fromSkinr(new Float32Array(16), placement({ offsetA: 0, offsetB: 0 }));
-    const slid = mat4.fromSkinr(new Float32Array(16), placement({ offsetA: 30, offsetB: -45 }));
+    const straight = mat4.fromSkinr(new Float32Array(16), placement({ offsetU: 0, offsetV: 0 }));
+    const slid = mat4.fromSkinr(new Float32Array(16), placement({ offsetU: 30, offsetV: -45 }));
 
     const axis = translation(straight);
     const moved = translation(slid).map((n, i) => n - axis[i]);
@@ -140,7 +140,7 @@ test("the orbit alone puts the projector where its longitude and latitude say", 
     // horizontal - and nowhere else.
     const depth = 100;
     const m = mat4.fromSkinr(new Float32Array(16), placement({
-        orbitA: 90, orbitB: 30, offsetA: 0, offsetB: 0, depth
+        longitude: 90, latitude: 30, offsetU: 0, offsetV: 0, depth
     }));
 
     const [ x, y, z ] = translation(m);
@@ -154,7 +154,7 @@ test("the orbit alone puts the projector where its longitude and latitude say", 
 
 test("the scale is uniform, as every sampled design's is", () =>
 {
-    const m = mat4.fromSkinr(new Float32Array(16), placement({ scaleA: 7.5 }));
+    const m = mat4.fromSkinr(new Float32Array(16), placement({ scale: 7.5 }));
     const scaling = mat4.getScaling(new Float32Array(3), m);
 
     assertClose(scaling[0], 7.5, "x");
@@ -162,30 +162,39 @@ test("the scale is uniform, as every sampled design's is", () =>
     assertClose(scaling[2], 7.5, "z");
 });
 
-test("a reflected frame is reported rather than folded into the rotation", () =>
+test("a placement never builds a reflected frame", () =>
 {
-    // A mirrored placement cannot be a rotation and a positive scale. Reporting
-    // it is what stops a caller producing a placement that reads as ordinary and
-    // draws inside out.
-    const m = mat4.fromSkinr(new Float32Array(16), placement());
+    // A well-formedness check on the pair, and the reason `getSkinr` can take
+    // the magnitude of the scale without losing anything. Note that a design's
+    // `mirrored` is a UV mirror rather than a reflected frame, so it has no
+    // bearing on this and none on the matrix.
+    for (const over of [ {}, { longitude: -140, latitude: 61 }, { roll: -95, scale: 0.25 } ])
+    {
+        const m = mat4.fromSkinr(new Float32Array(16), placement(over));
 
-    m[0] = -m[0];
-    m[1] = -m[1];
-    m[2] = -m[2];
-
-    assert.equal(mat4.getSkinr({}, m).mirrored, true);
-    assert.equal(mat4.getSkinr({}, mat4.fromSkinr(new Float32Array(16), placement())).mirrored, false);
+        assert.ok(
+            mat4.determinant(m) > 0,
+            `expected a right-handed frame, got determinant ${mat4.determinant(m)}`
+        );
+    }
 });
 
-test("the scale comes back positive even from a reflected frame", () =>
+test("at a pole the matrix still round-trips, though the angles need not", () =>
 {
-    const m = mat4.fromSkinr(new Float32Array(16), placement({ scaleA: 9 }));
+    // Straight up, a longitude names no direction and the two angles buy the
+    // same turn, so the pair that comes back is not always the pair that went
+    // in. What must hold is the MATRIX - and it is what a caller should compare,
+    // because about one sampled design in seventy sits within a degree of this.
+    for (const latitude of [ 90, -90, 89.999 ])
+    {
+        const m = mat4.fromSkinr(new Float32Array(16), placement({ latitude }));
+        const again = mat4.fromSkinr(new Float32Array(16), mat4.getSkinr({}, m));
 
-    m[0] = -m[0];
-    m[1] = -m[1];
-    m[2] = -m[2];
-
-    assertClose(mat4.getSkinr({}, m).scaleA, 9, "scaleA");
+        for (let i = 0; i < 16; i++)
+        {
+            assertClose(again[i], m[i], `element ${i} at latitude ${latitude}`, 1e-2);
+        }
+    }
 });
 
 test("placements right around the orbit all round-trip", () =>
@@ -194,14 +203,14 @@ test("placements right around the orbit all round-trip", () =>
     {
         for (let lat = -75; lat <= 75; lat += 15)
         {
-            const p = placement({ orbitA: lon, orbitB: lat });
+            const p = placement({ longitude: lon, latitude: lat });
             const back = mat4.getSkinr({}, mat4.fromSkinr(new Float32Array(16), p));
 
-            assertAngle(back.orbitA, lon, `orbitA at ${lon}/${lat}`);
-            assertAngle(back.orbitB, lat, `orbitB at ${lon}/${lat}`);
+            assertAngle(back.longitude, lon, `longitude at ${lon}/${lat}`);
+            assertAngle(back.latitude, lat, `latitude at ${lon}/${lat}`);
             assertClose(back.depth, p.depth, `depth at ${lon}/${lat}`);
-            assertClose(back.offsetA, p.offsetA, `offsetA at ${lon}/${lat}`);
-            assertClose(back.offsetB, p.offsetB, `offsetB at ${lon}/${lat}`);
+            assertClose(back.offsetU, p.offsetU, `offsetU at ${lon}/${lat}`);
+            assertClose(back.offsetV, p.offsetV, `offsetV at ${lon}/${lat}`);
         }
     }
 });

@@ -641,11 +641,23 @@ mat4.makeOrthographic = function (out, left, right, top, bottom, near, far)
  * a translation and a scale; the game's panel edits it as six numbers under
  * three tabs, and these two carry a placement between the two forms.
  *
- *     orbitA, orbitB    ORBITAL         longitude and latitude, in degrees
- *     offsetA, offsetB  OFFSET          across the projector's own plane
- *     rotationA         ROTATE & SCALE  roll about its own axis, in degrees
- *     scaleA            ROTATE & SCALE  uniform
- *     depth             not shown       the standoff, which no user can move
+ *     longitude, latitude  ORBITAL         where it sits, in degrees
+ *     offsetU, offsetV     OFFSET          across the projector's own plane
+ *     roll                 ROTATE & SCALE  about its own axis, in degrees
+ *     scale                ROTATE & SCALE  uniform
+ *     depth                not shown       the standoff, which no user can move
+ *
+ * There is no mirror here. A design's `mirrored` is a UV mirror - it doubles the
+ * pattern back across its own projection - and not a reflected transform, so it
+ * is a texturing concern that never reaches this matrix. Nothing to carry.
+ *
+ * ## At the poles, the longitude and the roll are not separable
+ *
+ * Straight up or straight down, a longitude names no direction and the two
+ * angles buy the same turn. `getSkinr` still returns a pair that rebuilds the
+ * matrix it was given, but not necessarily the pair that built it - so compare
+ * placements by the matrix, never angle by angle. About one in seventy sampled
+ * designs sits within a degree of a pole, so this is a case a caller meets.
  *
  * `depth` is not optional even though no panel shows it. Six sliders describe a
  * transform with seven degrees of freedom, and a caller that drops the seventh
@@ -663,14 +675,13 @@ mat4.makeOrthographic = function (out, left, right, top, bottom, near, far)
  * the hull's shape.
  *
  * @typedef {Object} skinr
- * @property {Number} orbitA
- * @property {Number} orbitB
- * @property {Number} offsetA
- * @property {Number} offsetB
- * @property {Number} rotationA
- * @property {Number} scaleA
+ * @property {Number} longitude
+ * @property {Number} latitude
+ * @property {Number} offsetU
+ * @property {Number} offsetV
+ * @property {Number} roll
+ * @property {Number} scale
  * @property {Number} depth
- * @property {Boolean} [mirrored]
  */
 
 const DEGREES = 180 / Math.PI;
@@ -723,7 +734,7 @@ mat4.fromSkinr = function (out, skinr)
     const scaling = pool.allocF32(3);
     const roll = pool.allocF32(4);
 
-    const half = skinr.rotationA * RADIANS / 2;
+    const half = skinr.roll * RADIANS / 2;
 
     // The roll is about the projector's own axis, which is its X.
     roll[0] = Math.sin(half);
@@ -731,15 +742,15 @@ mat4.fromSkinr = function (out, skinr)
     roll[2] = 0;
     roll[3] = Math.cos(half);
 
-    orbitQuat(rotation, skinr.orbitA, skinr.orbitB);
+    orbitQuat(rotation, skinr.longitude, skinr.latitude);
     multiplyQuat(rotation, rotation, roll);
 
     translation[0] = -skinr.depth;
-    translation[1] = skinr.offsetA;
-    translation[2] = skinr.offsetB;
+    translation[1] = skinr.offsetU;
+    translation[2] = skinr.offsetV;
     transformQuatVec3(translation, translation, rotation);
 
-    scaling[0] = scaling[1] = scaling[2] = skinr.scaleA;
+    scaling[0] = scaling[1] = scaling[2] = skinr.scale;
 
     mat4.fromRotationTranslationScale(out, rotation, translation, scaling);
 
@@ -754,9 +765,8 @@ mat4.fromSkinr = function (out, skinr)
 /**
  * A SKINR pattern placement from a matrix.
  *
- * `mirrored` is reported rather than folded in: a reflected frame cannot be a
- * rotation and a positive scale, so a caller that ignored it would get a
- * placement that looks ordinary and draws inside out.
+ * No mirror is read off the matrix - a design's mirror is a UV one, and never a
+ * property of the frame. See the note above the typedef.
  *
  * @param {skinr} out
  * @param {mat4} m
@@ -783,23 +793,23 @@ mat4.getSkinr = function (out, m)
     const axisY = -(2 * (rotation[0] * rotation[1] + rotation[3] * rotation[2]));
     const axisZ = -(2 * (rotation[0] * rotation[2] - rotation[3] * rotation[1]));
 
-    out.orbitA = Math.atan2(axisZ, axisX) * DEGREES;
-    out.orbitB = Math.asin(Math.min(1, Math.max(-1, axisY))) * DEGREES;
+    out.longitude = Math.atan2(axisZ, axisX) * DEGREES;
+    out.latitude = Math.asin(Math.min(1, Math.max(-1, axisY))) * DEGREES;
 
     // Whatever spin is left once the orbit is taken back off.
-    orbitQuat(inverse, out.orbitA, out.orbitB);
+    orbitQuat(inverse, out.longitude, out.latitude);
     conjugateQuat(inverse, inverse);
     multiplyQuat(inverse, inverse, rotation);
 
-    out.rotationA = 2 * Math.atan2(inverse[0], inverse[3]) * DEGREES;
-    out.offsetA = local[1];
-    out.offsetB = local[2];
+    out.roll = 2 * Math.atan2(inverse[0], inverse[3]) * DEGREES;
+    out.offsetU = local[1];
+    out.offsetV = local[2];
     out.depth = -local[0];
 
-    // `decompose` signs X negative for a reflected frame, so the scale wants its
-    // magnitude and the sign becomes the flag.
-    out.scaleA = Math.abs(scaling[0]);
-    out.mirrored = scaling[0] < 0;
+    // Its magnitude. `decompose` signs X negative for a reflected frame, which a
+    // placement never is, so a negative here is a malformed matrix rather than a
+    // case to carry - and a caller still gets the scale it asked for.
+    out.scale = Math.abs(scaling[0]);
 
     pool.freeType(rotation);
     pool.freeType(translation);
