@@ -61,7 +61,7 @@ class TestRenderTarget extends CjsWebgpuRenderTarget
 
   ApplyViewport(_pass, viewportOptions)
   {
-    this.calls.push([ "viewport", viewportOptions?.viewport ?? null ]);
+    this.calls.push([ "viewport", viewportOptions ]);
   }
 }
 
@@ -249,4 +249,29 @@ test("CjsWebgpuFrameExecutor validates what it was composed with", () =>
   const executor = new CjsWebgpuFrameExecutor(webgpu, { renderTarget, passEncoder, ResolveSelections: () => [] });
   assert.throws(() => executor.ExecuteFrame(null), /frame plan with regions/);
   assert.deepEqual(executor.ExecuteFrame({ regions: [] }), { encodedRegions: 0, encodedSelections: 0, submitted: false });
+});
+
+test("CjsWebgpuFrameExecutor applies the planner's viewport and full-target scissor", () =>
+{
+  const { calls, executor } = setup();
+  const plan = PlanFrame([ segment(
+    {
+      type: "set-viewport",
+      viewport: { x: 10, y: 20, width: 100, height: 50, minZ: 0.25, maxZ: 0.75 }
+    },
+    draw("a")
+  ) ]);
+
+  executor.ExecuteFrame(plan);
+  assert.deepEqual(calls.find(([ name ]) => name === "viewport"), [ "viewport", {
+    viewport: {
+      x: 10,
+      y: 20,
+      width: 100,
+      height: 50,
+      minDepth: 0.25,
+      maxDepth: 0.75
+    },
+    scissor: null
+  } ]);
 });

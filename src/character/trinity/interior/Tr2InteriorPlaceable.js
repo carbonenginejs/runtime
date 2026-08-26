@@ -2,10 +2,11 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
+import { withITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /** Authored state record for an interior placeable. */
 @type.define({ className: "Tr2InteriorPlaceable", family: "interior" })
-export class Tr2InteriorPlaceable extends CjsModel
+export class Tr2InteriorPlaceable extends withITr2Renderable(CjsModel)
 {
 
   /** m_placeableResPath (std::string) [READWRITE, PERSIST, NOTIFY] */

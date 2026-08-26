@@ -31,7 +31,11 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   @type.string
   texturePath = "";
 
+  @type.boolean
   isDynamic = true;
+
+  @type.int32
+  @type.enum("LIGHT_TYPE")
   type = Tr2Light.POINT_LIGHT;
 
   #saturation = 1;

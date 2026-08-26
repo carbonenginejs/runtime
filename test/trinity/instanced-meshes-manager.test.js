@@ -6,8 +6,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { CjsInstancedMeshManager } from "../../npm/dist/global/contracts/index.js";
 import {
   EveChildInstancedMeshes,
+  EveCustomMask,
+  EveSpaceObject2,
+  EveUpdateContext,
   INSTANCE_FLAG_CASTS_SHADOW,
   INSTANCE_FLAG_RENDER_IN_REFLECTION
 } from "../../npm/dist/trinity/index.js";
@@ -23,43 +27,64 @@ function assertClose(actual, expected, message, epsilon = EPSILON)
   );
 }
 
-function MakeManager()
+class TestInstancedMeshManager extends CjsInstancedMeshManager
 {
-  const calls = {
-    perObject: [], spheres: [], groups: [],
-    removedGroups: [], removedSpheres: [], removedPerObject: []
-  };
-  return {
-    calls,
+  constructor()
+  {
+    super();
+    this.calls = {
+      perObject: [], spheres: [], groups: [], updatedSpheres: [],
+      removedGroups: [], removedSpheres: [], removedPerObject: []
+    };
+  }
+
     AddPerObjectData(data)
     {
-      const handle = { kind: "pod", data };
-      calls.perObject.push(handle);
+      const handle = Object.freeze({ kind: "pod", data });
+      this.calls.perObject.push(handle);
       return handle;
-    },
+    }
+
     AddBoundingSphereGroup(bounds, flags, spheres, count)
     {
-      const handle = { kind: "sphere", bounds, flags, spheres, count };
-      calls.spheres.push(handle);
+      const handle = Object.freeze({ kind: "sphere", bounds, flags, spheres, count });
+      this.calls.spheres.push(handle);
       return handle;
-    },
+    }
+
     AddMeshGroup(...args)
     {
-      const handle = { kind: "group", args };
-      calls.groups.push(handle);
+      const handle = Object.freeze({ kind: "group", args });
+      this.calls.groups.push(handle);
       return handle;
-    },
-    RemoveMeshGroup(handle) { calls.removedGroups.push(handle); },
-    RemoveBoundingSphereGroup(handle) { calls.removedSpheres.push(handle); },
-    RemovePerObjectData(handle) { calls.removedPerObject.push(handle); }
-  };
+    }
+
+    SetSphereGroupBounds(handle, bounds, flags)
+    {
+      this.calls.updatedSpheres.push({ handle, bounds, flags });
+    }
+
+    RemoveMeshGroup(handle) { this.calls.removedGroups.push(handle); }
+
+    RemoveBoundingSphereGroup(handle) { this.calls.removedSpheres.push(handle); }
+
+    RemovePerObjectData(handle) { this.calls.removedPerObject.push(handle); }
 }
 
-const GEOMETRY = { GetMeshData: () => ({ minBounds: [-1, -1, -1], maxBounds: [1, 1, 1] }) };
+function MakeManager()
+{
+  return new TestInstancedMeshManager();
+}
+
+const GEOMETRY = {
+  IsGood: () => true,
+  GetMeshData: () => ({ minBounds: [-1, -1, -1], maxBounds: [1, 1, 1] })
+};
 
 function MakeProvider({ geometry = GEOMETRY } = {})
 {
   const provider = new EveChildInstancedMeshes();
+  const updateContext = new EveUpdateContext();
   const instance1 = mat4.create();
   mat4.translate(instance1, instance1, [10, 0, 0]);
   mat4.scale(instance1, instance1, [3, 3, 3]);
@@ -69,8 +94,8 @@ function MakeProvider({ geometry = GEOMETRY } = {})
     0,
     0,
     [
-      { effect: { name: "fx" }, batchType: 0, areaIndex: 0, areaCount: 1 },
-      { effect: { name: "fx2" }, batchType: 2, areaIndex: 1, areaCount: 2 }
+      { effect: createEffect("fx"), batchType: 0, areaIndex: 0, areaCount: 1 },
+      { effect: createEffect("fx2"), batchType: 2, areaIndex: 1, areaCount: 2 }
     ],
     [instance1, mat4.create()]
   );
@@ -81,9 +106,22 @@ function MakeProvider({ geometry = GEOMETRY } = {})
   const world = mat4.create();
   mat4.translate(world, world, [100, 0, 0]);
   mat4.scale(world, world, [2, 2, 2]);
-  provider.UpdateSyncronous(null, { localToWorldTransform: world });
-  provider.UpdateAsyncronous(null, {});
+  provider.UpdateSyncronous(updateContext, { localToWorldTransform: world });
+  provider.UpdateAsyncronous(updateContext, {});
   return provider;
+}
+
+function createEffect(name)
+{
+  return {
+    name,
+    SetOption(option, value)
+    {
+      this[option] = value;
+    },
+    GetHashValue: () => name.length,
+    GetShaderStateInterface: () => ({ name })
+  };
 }
 
 test("UpdateAsyncronous: instance cull spheres, combined world bounds, reflection flag (cpp:202-281)", () =>
@@ -119,7 +157,8 @@ test("AddMeshesToManager: full registration, add-once idempotence, hasUpdated ga
   const manager = MakeManager();
   provider.AddMeshesToManager(manager);
   assert.equal(manager.calls.perObject.length, 1, "one per-object registration");
-  assert.equal(manager.calls.perObject[0].data, provider, "per-object payload is the provider");
+  assert.equal(manager.calls.perObject[0].data.constructor.name, "RawData",
+    "per-object payload is the terminal CPU record");
   assert.equal(manager.calls.spheres.length, 1, "one sphere group per mesh");
   assert.equal(manager.calls.spheres[0].count, 2, "instance sphere count");
   assert.equal(manager.calls.groups.length, 2, "one mesh group per area");
@@ -206,4 +245,71 @@ test("Manager switch tears everything down through the old handles (cpp:478-481,
   assert.equal(first.calls.removedPerObject.length, 1, "old manager's per-object removed");
   assert.equal(second.calls.perObject.length, 1, "re-registered on the new manager");
   assert.equal(second.calls.groups.length, 2, "groups on the new manager");
+});
+
+test("Manager handles are opaque and may use zero-valued primitive identities", () =>
+{
+  class PrimitiveHandleManager extends CjsInstancedMeshManager
+  {
+    nextHandle = 0;
+
+    removed = [];
+
+    AddPerObjectData() { return this.nextHandle++; }
+
+    AddBoundingSphereGroup() { return this.nextHandle++; }
+
+    AddMeshGroup() { return this.nextHandle++; }
+
+    SetSphereGroupBounds() { }
+
+    RemoveMeshGroup(handle) { this.removed.push([ "mesh", handle ]); }
+
+    RemoveBoundingSphereGroup(handle) { this.removed.push([ "sphere", handle ]); }
+
+    RemovePerObjectData(handle) { this.removed.push([ "pod", handle ]); }
+  }
+
+  const provider = MakeProvider();
+  const manager = new PrimitiveHandleManager();
+  provider.AddMeshesToManager(manager);
+  provider.AddMeshesToManager(manager);
+  assert.equal(manager.nextHandle, 4, "zero-valued handles remain registered");
+
+  provider.UnregisterFromMeshManager();
+  assert.deepEqual(manager.removed, [
+    [ "mesh", 2 ], [ "mesh", 3 ], [ "sphere", 1 ], [ "pod", 0 ]
+  ]);
+});
+
+test("instanced per-object custom masks retain their terminal GPU orientation", () =>
+{
+  const provider = MakeProvider();
+  const parent = new EveSpaceObject2();
+  parent.boundingSphereRadius = 1;
+  const mask = new EveCustomMask();
+  mask.Setup(
+    [ 1, 2, 3 ],
+    [ 2, 3, 4 ],
+    [ 0, 0, 0.3826834323650898, 0.9238795325112867 ],
+    true, false, true, 2, [ 0.1, 0.2, 0.3, 0.4 ]);
+  parent.customMasks.push(mask);
+  parent.PrepareShaderData(new EveUpdateContext());
+  const parentVs = parent.GetPerObjectStructs().vs;
+
+  provider.UpdateAsyncronous(new EveUpdateContext(), { spaceObjectParent: parent });
+  const manager = MakeManager();
+  provider.AddMeshesToManager(manager);
+
+  assert.deepEqual(
+    Array.from(manager.calls.perObject[0].data.GetTransposedIndex("customMaskMatrix", 0)),
+    Array.from(parentVs.GetTransposedIndex("customMaskMatrix", 0)),
+    "the cross-layout copy does not transpose an already-transposed matrix twice");
+});
+
+test("instanced manager base methods fail loudly until an engine implements them", () =>
+{
+  const manager = new CjsInstancedMeshManager();
+  assert.throws(() => manager.AddPerObjectData({}), /must be implemented/);
+  assert.throws(() => manager.RemoveMeshGroup({}), /must be implemented/);
 });

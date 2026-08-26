@@ -45,7 +45,11 @@ export const IntentClass = Object.freeze({
   TARGET: "target",
   /** Clears, which fold into attachment load operations. */
   CLEAR: "clear",
-  /** Pass-local or frame-local state that forces no boundary. */
+  /** Dynamic pass state reduced into a backend-owned snapshot. */
+  DYNAMIC_STATE: "dynamic-state",
+  /** Pipeline state that requires a translator before it can be planned. */
+  PIPELINE_STATE: "pipeline-state",
+  /** Context or preparation state retained for the region consumer. */
   STATE: "state",
   /** Presentation, which ends the frame's encodable work. */
   PRESENT: "present"
@@ -79,14 +83,14 @@ const INTENT_CLASSES = Object.freeze({
 
   clear: IntentClass.CLEAR,
 
-  "set-viewport": IntentClass.STATE,
-  "set-fullscreen-viewport": IntentClass.STATE,
-  "set-render-state": IntentClass.STATE,
-  "apply-standard-states": IntentClass.STATE,
+  "set-viewport": IntentClass.DYNAMIC_STATE,
+  "set-fullscreen-viewport": IntentClass.DYNAMIC_STATE,
+  "set-render-state": IntentClass.PIPELINE_STATE,
+  "apply-standard-states": IntentClass.PIPELINE_STATE,
   "set-view": IntentClass.STATE,
   "set-projection": IntentClass.STATE,
   "set-view-transform": IntentClass.STATE,
-  "set-wireframe-rendering": IntentClass.STATE,
+  "set-wireframe-rendering": IntentClass.PIPELINE_STATE,
   "set-upscaling-context-id": IntentClass.STATE,
   "set-debug-renderer": IntentClass.STATE,
 
@@ -123,6 +127,7 @@ export function PlanFrame(segments, options = {})
     regions: [],
     current: null,
     target: options.target ?? null,
+    dynamicState: fullTargetDynamicState(),
     pendingClear: null,
     // State seen with no region open belongs to whichever region does the work.
     pendingState: null,
@@ -186,6 +191,21 @@ function applyIntent(state, intent, segment)
     return;
   }
 
+  if (kind === IntentClass.DYNAMIC_STATE)
+  {
+    // The current encoder abstraction configures a pass once before all of its
+    // selections. A viewport change after a draw must therefore begin another
+    // render region so the original ordering remains realizable.
+    if (state.current?.kind === IntentClass.RENDER) closeRegion(state);
+    state.dynamicState = nextDynamicState(state.dynamicState, intent);
+    return;
+  }
+
+  if (kind === IntentClass.PIPELINE_STATE)
+  {
+    fail(`intent type ${JSON.stringify(intent.type)} requires a WebGPU pipeline-state translator`);
+  }
+
   if (kind === IntentClass.STATE)
   {
     // State forces no boundary. It still belongs to a region, because viewport
@@ -210,6 +230,7 @@ function openRegion(state, kind, segment)
       kind,
       target: state.target,
       clear: kind === IntentClass.RENDER ? state.pendingClear : null,
+      ...(kind === IntentClass.RENDER ? { dynamicState: state.dynamicState } : {}),
       step: segment?.step ?? null,
       intents: state.pendingState ?? []
     };
@@ -267,4 +288,37 @@ function mergeClear(pending, intent)
   if (intent.clearStencil) merged.stencil = intent.stencil;
 
   return Object.keys(merged).length ? Object.freeze(merged) : pending;
+}
+
+
+function nextDynamicState(current, intent)
+{
+  if (intent.type === "set-fullscreen-viewport" || intent.viewport == null)
+  {
+    return fullTargetDynamicState();
+  }
+
+  const viewport = intent.viewport;
+  if (typeof viewport !== "object" || Array.isArray(viewport))
+  {
+    fail("set-viewport requires a viewport object or null");
+  }
+
+  return Object.freeze({
+    ...current,
+    viewport: Object.freeze({
+      x: viewport.x,
+      y: viewport.y,
+      width: viewport.width,
+      height: viewport.height,
+      minDepth: viewport.minDepth ?? viewport.minZ ?? 0,
+      maxDepth: viewport.maxDepth ?? viewport.maxZ ?? 1
+    })
+  });
+}
+
+
+function fullTargetDynamicState()
+{
+  return Object.freeze({ viewport: null, scissor: null });
 }

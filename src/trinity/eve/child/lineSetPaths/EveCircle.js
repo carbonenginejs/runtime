@@ -298,6 +298,13 @@ export class EveCircle extends IEveLineSetPath
     }
   }
 
+  /** Carbon declares no circle-specific debug options (cpp:269-271). */
+  @carbon.method
+  @impl.noop
+  GetDebugOptions(_options)
+  {
+  }
+
   /**
    * Rounded segment count, scaled down by how far completeness is from a full
    * sweep when scaleSegmentsByCompleteness is set.

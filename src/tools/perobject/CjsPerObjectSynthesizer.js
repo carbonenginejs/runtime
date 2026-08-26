@@ -16,7 +16,8 @@
 // The result therefore reports `matrices: "raw"`; pass that mode straight to
 // `CjsPerObjectPacker.Pack` and do not transpose the matrices again.
 //
-// Carbon math is row-vector and runtime-utils (gl-matrix) is column-vector, so
+// Carbon math is row-vector and the runtime math layer (gl-matrix) is
+// column-vector, so
 // every composition here swaps operands relative to the C++.
 
 import { mat4, vec3, vec4 } from "#math";
@@ -295,7 +296,7 @@ export class CjsPerObjectSynthesizer
      *
      * The FILL ITSELF IS NOT IMPLEMENTED HERE. A custom mask owns writing its
      * own slot into the parent's per-object structs, exactly as it does in
-     * Carbon (EveCustomMask.cpp:66-93) and in runtime-trinity
+     * Carbon (EveCustomMask.cpp:66-93) and in the runtime Trinity layer
      * (`EveCustomMask.FillPerObjectData` / `static ZeroPerObjectData`). This
      * package must not carry a second copy of that logic, so it calls the
      * protocol and nothing else.

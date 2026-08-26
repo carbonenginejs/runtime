@@ -96,12 +96,12 @@ export class Tr2RenderTarget extends CjsModel
     throw new Error("Tr2RenderTarget.Resolve is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method HasALObject (MAP_METHOD_AND_WRAP). */
+  /** Carbon Tr2RenderTarget::HasALObject always reports false (cpp:389-392). */
   @carbon.method
-  @impl.notImplemented
-  HasALObject(...args)
+  @impl.implemented
+  HasALObject(_type, _object)
   {
-    throw new Error("Tr2RenderTarget.HasALObject is not implemented in CarbonEngineJS.");
+    return false;
   }
 
   /** Carbon method sharedHandle -> GetSharedHandle (MAP_METHOD_AND_WRAP). */

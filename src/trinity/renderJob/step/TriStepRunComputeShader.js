@@ -58,11 +58,11 @@ export class TriStepRunComputeShader extends TriRenderStep
   {
     if (this.indirectionBuffer)
     {
-      executor?.RunComputeShaderIndirect?.(this.effect, this.indirectionBuffer, this.offsetForArgs);
+      executor.RunComputeShaderIndirect(this.effect, this.indirectionBuffer, this.offsetForArgs);
     }
     else
     {
-      executor?.RunComputeShader?.(this.effect, this.groupDimX, this.groupDimY, this.groupDimZ);
+      executor.RunComputeShader(this.effect, this.groupDimX, this.groupDimY, this.groupDimZ);
     }
     return TriRenderStep.Result.RS_OK;
   }

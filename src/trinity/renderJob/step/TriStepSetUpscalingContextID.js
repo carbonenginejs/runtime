@@ -28,7 +28,7 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
   @impl.adapted
   Execute(_realTime, _simTime, executor)
   {
-    executor?.SetUpscalingContextID?.(this.upscalingContextID);
+    executor.SetUpscalingContextID(this.upscalingContextID);
     return TriRenderStep.Result.RS_OK;
   }
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Include/TriMatrix.h
 // Maintained but intentionally unexported until the row-major Blue wrapper has
-// an explicit conversion contract with column-major runtime-utils matrices.
+// an explicit conversion contract with column-major runtime math matrices.
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 

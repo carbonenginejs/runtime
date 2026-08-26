@@ -266,6 +266,9 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
   assert.deepEqual(values.color, values.pinColor);
   assert.equal(CjsSchema.getField(EveChildSpherePin, "color")?.type?.kind, "color");
   assert.equal(CjsSchema.getField(EveChildSpherePin, "pinColor")?.type?.kind, "color");
+  const defaults = CjsSchema.getDefaults(EveChildSpherePin);
+  assert.deepEqual(defaults.color, [1, 1, 1, 1]);
+  assert.deepEqual(defaults.pinColor, [1, 1, 1, 1]);
 
   const curveUpdates = [];
   pin.curveSets.push({

@@ -1,11 +1,14 @@
 // EveShip2 CPU behavior: speed derivation, booster drive, per-object glow.
 import test from "node:test";
 import assert from "node:assert/strict";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { EveShip2, EveUpdateContext } from "../../npm/dist/trinity/index.js";
 
 test("EveShip2 derives speed and drives boosters from the position curve", () =>
 {
   const ship = new EveShip2();
+  assert.equal(CjsSchema.getField(EveShip2, "audioSpeedParameter")?.io?.write, true);
+  assert.equal(CjsSchema.getDefaults(EveShip2).audioSpeedParameter, null);
   ship.update = true;
   ship.maxSpeed = 100;
   ship.audioSpeedParameter = { value: -1 };

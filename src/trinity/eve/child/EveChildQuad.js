@@ -7,10 +7,11 @@ import { sph3 } from "#math/sph3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "./packQuadInstanceData.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
 @type.define({ className: "EveChildQuad", family: "eve/child" })
-export class EveChildQuad extends EveChildTransform
+export class EveChildQuad extends withITr2Renderable(EveChildTransform)
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */

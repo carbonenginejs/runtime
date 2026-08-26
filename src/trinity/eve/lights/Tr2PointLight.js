@@ -107,6 +107,8 @@ export class Tr2PointLight extends Tr2Light
   @type.boolean
   isVolumetric = false;
 
+  @type.int32
+  @type.enum("LIGHT_TYPE")
   type = Tr2Light.POINT_LIGHT;
 
 }

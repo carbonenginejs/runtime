@@ -272,7 +272,7 @@ export class CjsBnkFormat extends CjsFormat
      * The v150 authored-SFX decoders (`sfxNodesFromBanks` and the per-type
      * Global Settings, Event Action, Random/Sequence, Switch, Layer,
      * Actor-Mixer, and Attenuation parsers)
-     * preserve raw Wwise semantics for runtime-audio's optional builder.
+     * preserve raw Wwise semantics for the runtime audio layer's optional builder.
      * NodeBase facts, hierarchy-only Actor-Mixers, and attenuation objects
      * remain distinct from playable container behavior.
      *

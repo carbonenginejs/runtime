@@ -2,8 +2,9 @@
 //
 // An engine must not care about effect paths. Carbon puts the substitution in
 // Tr2Effect rather than in a backend, and the value it substitutes comes from
-// Tr2PlatformInfo - the backend is never asked. Ours had drifted: engine-webgpu
-// exported a rewriter carrying a hardcoded `/effect.webgpu/` default and its
+// Tr2PlatformInfo - the backend is never asked. Ours had drifted: the former
+// `engine-webgpu` donor exported a rewriter carrying a hardcoded
+// `/effect.webgpu/` default and its
 // own quality table, which is the engine deciding its own configuration. It
 // never called that rewriter itself; it only re-exported it. So this is the
 // policy moving to the package that owns configuration, not a reimplementation.

@@ -9,10 +9,13 @@ import { vec4 } from "#math/vec4";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @type.define({ className: "EveChildParticleSystem", family: "eve/child" })
-export class EveChildParticleSystem extends EveChildTransform
+export class EveChildParticleSystem extends withITr2Renderable(EveChildTransform)
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
@@ -249,12 +252,33 @@ export class EveChildParticleSystem extends EveChildTransform
     return false;
   }
 
-  /** Carbon method GetBatches (EveChildParticleSystem.cpp:165-171). */
+  /**
+   * Delegates the selected mesh areas at Carbon's maximum screen size, reversing
+   * winding for reflection renders (EveChildParticleSystem.cpp:155-161).
+   */
   @carbon.method
-  @impl.notImplemented
-  GetBatches(..._args)
+  @impl.adapted
+  @impl.reason("Returns whether JavaScript mesh delegation committed a batch; Carbon's void method exposes no result.")
+  GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
-    throw new Error("EveChildParticleSystem.GetBatches is not implemented in CarbonEngineJS.");
+    if (!this.display || !this.mesh)
+    {
+      return false;
+    }
+
+    const areas = this.mesh.GetAreas(batchType);
+    if (!areas.length)
+    {
+      return false;
+    }
+
+    return this.mesh.GetBatches(
+      batches,
+      areas,
+      perObjectData,
+      Infinity,
+      reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION
+    ) === true;
   }
 
   /** Distance from the view position to the world translation (EveChildParticleSystem.cpp:173-178). */
@@ -332,7 +356,7 @@ export class EveChildParticleSystem extends EveChildTransform
 
     for (const system of this.particleSystems)
     {
-      system?.UpdateTransform?.(this.worldTransform);
+      system.UpdateTransform(this.worldTransform);
     }
 
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0);
@@ -361,14 +385,13 @@ export class EveChildParticleSystem extends EveChildTransform
       }
       const args = EveChildParticleSystem.#emitterArgs;
       args.time = time;
-      args.gpuParticleSystem = gpuParticleSystem;
-      args.transform = this.worldTransform;
-      args.originShift = originShift;
+      args.system = gpuParticleSystem;
+      mat4.copy(args.parentTransform, this.worldTransform);
+      vec3.copy(args.originShift, originShift);
       args.emitCountFactor = emitCountFactor;
-      args.context = updateContext;
       for (const emitter of this.particleEmitters)
       {
-        emitter?.Update?.(args);
+        emitter.Update(args);
       }
     }
 
@@ -378,14 +401,13 @@ export class EveChildParticleSystem extends EveChildTransform
       // (EveChildParticleSystem.cpp:267-278).
       const args = EveChildParticleSystem.#systemArgs;
       args.time = time;
-      args.gpuParticleSystem = gpuParticleSystem;
-      args.transform = EveChildParticleSystem.#identity;
-      args.originShift = originShift;
+      args.system = gpuParticleSystem;
+      mat4.copy(args.parentTransform, EveChildParticleSystem.#identity);
+      vec3.copy(args.originShift, originShift);
       args.emitCountFactor = 1;
-      args.context = updateContext;
       for (const system of this.particleSystems)
       {
-        system?.Update?.(args);
+        system.Update(args);
       }
     }
 
@@ -419,7 +441,7 @@ export class EveChildParticleSystem extends EveChildTransform
     }
     for (const system of this.particleSystems)
     {
-      const original = Number(system?.GetOriginalMaxParticles?.() ?? 0) >>> 0;
+      const original = Number(system.GetOriginalMaxParticles()) >>> 0;
       let particleCount = original;
       if (lod === Tr2Lod.TR2_LOD_LOW)
       {
@@ -429,7 +451,7 @@ export class EveChildParticleSystem extends EveChildTransform
       {
         particleCount = Math.trunc(original * this.lodFactorMedium);
       }
-      system?.SetMaxParticleCount?.(particleCount);
+      system.SetMaxParticleCount(particleCount);
     }
   }
 
@@ -475,22 +497,8 @@ export class EveChildParticleSystem extends EveChildTransform
   // Reusable emitter/system argument records (backend-neutral mirror of
   // ITr2GenericEmitter::UpdateArguments); child updates run sequentially, so
   // the shared records are non-reentrant by design.
-  static #emitterArgs = {
-    time: 0,
-    gpuParticleSystem: null,
-    transform: null,
-    originShift: null,
-    emitCountFactor: 1,
-    context: null
-  };
+  static #emitterArgs = new ITr2GenericEmitterUpdateArguments();
 
-  static #systemArgs = {
-    time: 0,
-    gpuParticleSystem: null,
-    transform: null,
-    originShift: null,
-    emitCountFactor: 1,
-    context: null
-  };
+  static #systemArgs = new ITr2GenericEmitterUpdateArguments();
 
 }

@@ -38,7 +38,7 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   @impl.adapted
   Execute(_realTime, _simTime, executor)
   {
-    executor?.SetDebugRenderer?.(this.renderer);
+    executor.SetDebugRenderer(this.renderer);
     return TriRenderStep.Result.RS_OK;
   }
 

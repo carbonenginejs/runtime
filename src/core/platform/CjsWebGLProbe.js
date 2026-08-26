@@ -83,8 +83,8 @@ export class CjsWebGLProbe
     // diverge where they do. WebGL2 has no compute stage, no shader storage
     // buffers and no image load/store, so the three compute-family caps are
     // false by the API's definition rather than by measurement - which is
-    // exactly why engine-webgl must lower Carbon's structured buffers to data
-    // textures where engine-webgpu binds them natively.
+    // exactly why a WebGL2 engine must lower Carbon's structured buffers to
+    // data textures where the runtime WebGPU engine layer binds them natively.
 
     /** Carbon's static-capability vocabulary as WebGL2 answers it. */
     GetStaticCaps()

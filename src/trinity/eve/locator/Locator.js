@@ -30,4 +30,9 @@ export class Locator extends CjsModel
   @io.persist
   @type.int32
   boneIndex = -1;
+
+  /** Carbon modular-object ownership tag for this locator record. */
+  @io.persist
+  @type.uint32
+  partTag = 0;
 }

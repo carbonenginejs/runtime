@@ -40,6 +40,8 @@ export class EveSOFDataMgr extends CjsModel
 
   #genericData = createGenericData(null);
 
+  #hasGenericData = false;
+
   #resourceLoader = null;
 
   #loadOperations = new Map();
@@ -106,6 +108,7 @@ export class EveSOFDataMgr extends CjsModel
     if (!indexNamed(data.layout, this.#layoutData, projectLayout)) return false;
     if (!data.generic) return false;
     this.#genericData = createGenericData(data.generic);
+    this.#hasGenericData = true;
     return true;
   }
 
@@ -239,6 +242,12 @@ export class EveSOFDataMgr extends CjsModel
   GetGenericData()
   {
     return this.#genericData;
+  }
+
+  /** Reports whether generic catalog data has been installed. */
+  HasGenericData()
+  {
+    return this.#hasGenericData;
   }
 
   /** Lists canonical hull names for read-only catalog consumers. */
@@ -410,6 +419,7 @@ export class EveSOFDataMgr extends CjsModel
   {
     if (!value) return false;
     this.#genericData = createGenericData(value);
+    this.#hasGenericData = true;
     return true;
   }
 
@@ -426,6 +436,7 @@ export class EveSOFDataMgr extends CjsModel
     this.#patternData.clear();
     this.#layoutData.clear();
     this.#genericData = createGenericData(null);
+    this.#hasGenericData = false;
   }
 
 }

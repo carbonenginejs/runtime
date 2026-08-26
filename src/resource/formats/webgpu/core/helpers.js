@@ -40,7 +40,7 @@ const OPTION_KEYS = new Set([ "emit", "source", "decodeInstructions", "permutati
 //
 // A second `raw` emit used to hand back the live `CarbonWebgpuContainer` because
 // the chunk package's JSON could not express the body set. It became the only way
-// to reach a body, so `engine-webgpu` duck-typed the container instead of reading
+// to reach a body, so the former `engine-webgpu` donor duck-typed the container instead of reading
 // the document - and when the chunk package was replaced, the engine kept asking
 // for a shape the producer had stopped emitting. Both halves then failed, in
 // different directions, for weeks: the default emit built pipelines but resolved

@@ -1,4 +1,5 @@
 import test from "node:test";
+import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../../npm/dist/trinity/core/index.js";
@@ -258,6 +259,10 @@ test("callback, debug-renderer, and variable-store steps preserve Carbon behavio
   callback.__init__(() => callbackCount++);
   assertEquals(callback.Execute(0, 0, context), TriRenderStep.RS_OK);
   assertEquals(callbackCount, 1);
+  callback.__init__(() => { throw new Error("callback failed"); });
+  assertEquals(callback.Execute(0, 0, context), TriRenderStep.RS_OK);
+  assertEquals(context.GetDiagnostics().at(-1).type, "callback-error");
+  assertEquals(context.GetDiagnostics().at(-1).error.message, "callback failed");
 
   const renderer = { name: "debug" };
   const debug = new TriStepSetDebugRenderer();
@@ -692,6 +697,15 @@ test("Tr2RenderJobs ends delegated batch scope when a job throws", () =>
   catch (caught) { error = caught; }
   assertEquals(error?.message, "batch-boom");
   assertEquals(events.join(","), "begin-batch,end-batch");
+});
+
+test("render steps require the owned render-context contract", () =>
+{
+  assert.throws(() => new TriStepClear().Execute(0, 0, {}), /Clear/);
+  assert.throws(() => new TriStepSetViewport().Execute(0, 0, {}), /SetFullScreenViewport/);
+  const callback = new TriStepPythonCB();
+  callback.__init__(() => { throw new Error("callback failed"); });
+  assert.throws(() => callback.Execute(0, 0, null), /AddDiagnostic/);
 });
 
 test("Tr2RenderJobs rejects entries outside the owned job contract", () =>

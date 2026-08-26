@@ -661,7 +661,9 @@ test("TriObserverLocal maintains Carbon placement and mute state without creatin
   assertEquals(observer.SetMute(false), true);
   assertEquals(calls.slice(1).map(call => call[0]).join(","), "mute,unmute");
   assertEquals(CjsSchema.getField(TriObserverLocal, "observer")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(TriObserverLocal, "mute")?.io?.write, true);
   assertEquals(CjsSchema.getField(TriObserverLocal, "mute")?.io?.persist, undefined);
+  assertEquals(CjsSchema.getDefaults(TriObserverLocal).mute, false);
 });
 
 test("TriObserverLocal preserves Carbon's degenerate-front fallback", () =>

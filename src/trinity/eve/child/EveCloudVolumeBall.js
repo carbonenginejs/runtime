@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** EveCloudVolumeBall (eve/child) - generated from schema shapeHash 70440408.... */
+/** Runtime model for one editable cloud-volume ball. */
 @type.define({ className: "EveCloudVolumeBall", family: "eve/child" })
 export class EveCloudVolumeBall extends CjsModel
 {
@@ -32,7 +32,7 @@ export class EveCloudVolumeBall extends CjsModel
   @io.notify
   @io.persist
   @type.float32
-  falloff = 0;
+  falloff = 1;
 
   /** m_ballData.m_selfIllumination (Color) [READWRITE, PERSIST, NOTIFY] */
   @io.notify

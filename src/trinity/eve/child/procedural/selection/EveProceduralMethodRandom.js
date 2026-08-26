@@ -201,6 +201,14 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
     }
   }
 
+  /** Carbon returns the owned volume vector by reference (cpp:129-132). */
+  @carbon.method
+  @impl.implemented
+  GetDebugVolumes()
+  {
+    return this.debugVolumes;
+  }
+
   /** Carbon EveProceduralMethodRandom::SetProceduralMethodVariable
    * (cpp:134-144): only the named seed variable is accepted; a changed value
    * reselects. */

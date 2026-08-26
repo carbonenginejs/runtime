@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsModel } from "../../npm/dist/global/model/index.js";
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { quat } from "../../npm/dist/global/math/quat.js";
 import { EveChildEffectPropagator, EveBoosterSet2, EveLensflare, EveLineSet, EveLocator2, EveMultiEffectParameter, EveSceneStaticParticles, EveSocketParameterString, EveTurretFiringFX, EveTacticalTrails, EveUiObject, Tr2MaterialParameterStore, Tr2ExternalParameter, Tr2CurveVector3, Tr2InstancedMesh, Tr2Mesh, Tr2MeshArea, Tr2RuntimeInstanceData, Tr2Sprite2dContainerBase, Tr2Sprite2dLineTrace, Tr2Sprite2dPolygon, Tr2Sprite2dTransform, Tr2Sprite2dVertex, Tr2SpriteObjectBase, TriValueBinding } from "../../npm/dist/trinity/index.js";
 import { Tr2ParticleDirectForce } from "../../npm/dist/trinity/particle/force/Tr2ParticleDirectForce.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
@@ -15,6 +17,8 @@ import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
 import { EveChildParticleSphere } from "../../npm/dist/trinity/eve/child/EveChildParticleSphere.js";
 import { EveChildRef } from "../../npm/dist/trinity/eve/child/EveChildRef.js";
 import { EveChildSocket } from "../../npm/dist/trinity/eve/child/EveChildSocket.js";
+import { EveCloudVolumeBall } from "../../npm/dist/trinity/eve/child/EveCloudVolumeBall.js";
+import { EveSpaceObjectChild } from "../../npm/dist/trinity/eve/child/EveSpaceObjectChild.js";
 import { CjsEveChildResourceLoader } from "../../npm/dist/trinity/eve/child/CjsEveChildResourceLoader.js";
 import { EveChildProceduralContainer } from "../../npm/dist/trinity/eve/child/procedural/EveChildProceduralContainer.js";
 import { EveMultiEffect } from "../../npm/dist/trinity/eve/effect/multiEffect/EveMultiEffect.js";
@@ -24,6 +28,9 @@ import { EveSmartLightPointLight } from "../../npm/dist/trinity/eve/smartLights/
 import { BackAndForth } from "../../npm/dist/trinity/eve/child/behaviors/BackAndForth.js";
 import { SeekTarget } from "../../npm/dist/trinity/eve/child/behaviors/SeekTarget.js";
 import { EveProceduralMethodCycling } from "../../npm/dist/trinity/eve/child/procedural/selection/EveProceduralMethodCycling.js";
+import { EveProceduralMethodAttributeMap } from "../../npm/dist/trinity/eve/child/procedural/selection/EveProceduralMethodAttributeMap.js";
+import { EveProceduralMethodRandom } from "../../npm/dist/trinity/eve/child/procedural/selection/EveProceduralMethodRandom.js";
+import { EveProceduralMethodThresholds } from "../../npm/dist/trinity/eve/child/procedural/selection/EveProceduralMethodThresholds.js";
 import { Tr2CurveLineSet } from "../../npm/dist/trinity/core/line/Tr2CurveLineSet.js";
 import { EveChildBehaviorSystem } from "../../npm/dist/trinity/eve/child/EveChildBehaviorSystem.js";
 import { EveChildLineSet } from "../../npm/dist/trinity/eve/child/EveChildLineSet.js";
@@ -232,6 +239,10 @@ test("Sprite2D value helpers preserve Carbon vertices, transforms, and dirty sta
   polygon.AppendTriangles([[0, 1, 0]]);
   assert.equal(polygon.isDirty, true);
   assert.equal(polygon.vertices.length, 2);
+  assert.equal(polygon.GetVertexCount(), 2);
+  polygon.display = false;
+  assert.equal(polygon.GetVertexCount(), 0);
+  polygon.display = true;
   assert.deepEqual(Array.from(polygon.vertices[0].position), [11, 22, 0]);
   assert.deepEqual(Array.from(polygon.vertices[1].texCoord[0]), [1, 1]);
   assert.equal(polygon.triangles[0].index1, 1);
@@ -450,11 +461,11 @@ test("EveChildExplosion schedules local and global Carbon explosion children", (
 test("generated child wrappers propagate Carbon controller and socket calls", () =>
 {
   const calls = [];
-  const child = {
+  const child = Object.assign(new EveSpaceObjectChild(), {
     SetControllerVariable: (name, value) => calls.push(["set", name, value]),
     HandleControllerEvent: name => calls.push(["event", name]),
     StartControllers: () => calls.push(["start"])
-  };
+  });
   const instances = new EveChildInstanceContainer();
   instances.source = child;
   instances.instances.push(child);
@@ -701,6 +712,30 @@ test("generated drone behavior controls follow Carbon's direct graph mutations",
   assert.equal(cycling.selectedChild, 0);
   assert.equal(cycling.restart(101), true);
   assert.equal(cycling.selectedChild, 1);
+});
+
+test("procedural selectors return their live debug-volume collections", () =>
+{
+  const selectors = [
+    new EveProceduralMethodAttributeMap(),
+    new EveProceduralMethodCycling(),
+    new EveProceduralMethodRandom(),
+    new EveProceduralMethodThresholds()
+  ];
+
+  for (const selector of selectors)
+  {
+    const volumes = selector.GetDebugVolumes();
+    assert.equal(volumes, selector.debugVolumes);
+    volumes.push({ name: "debug-volume" });
+    assert.equal(selector.debugVolumes.length, 1);
+    assert.equal(CjsSchema.getMethod(selector.constructor, "GetDebugVolumes")?.impl?.status, "implemented");
+  }
+});
+
+test("EveCloudVolumeBall keeps Carbon's authored falloff default", () =>
+{
+  assert.equal(new EveCloudVolumeBall().falloff, 1);
 });
 
 test("SeekTarget partitions target locators along the longest local bounds axis", () =>
@@ -1376,8 +1411,14 @@ test("line-set paths inherit one abstract root contract", () =>
   assert.ok(new EveBezierCurve() instanceof IEveLineSetPath);
   assert.ok(new EveCircle() instanceof IEveLineSetPath);
   assert.ok(new EveLineChildContainer() instanceof IEveLineSetPath);
+  assert.doesNotThrow(() => new EveBezierCurve().GetDebugOptions(new Set()));
+  assert.doesNotThrow(() => new EveCircle().GetDebugOptions(new Set()));
   assert.throws(
     () => new EveLineChildContainer().UpdateBuffer(null, 0, null, 0),
+    /must be implemented/
+  );
+  assert.throws(
+    () => new EveLineChildContainer().RenderDebugInfo(null, null),
     /must be implemented/
   );
   assert.equal(
@@ -1388,4 +1429,57 @@ test("line-set paths inherit one abstract root contract", () =>
     existsSync(new URL("../../src/trinity/eve/child/lineSetPaths/EveLineChildContainer.js", import.meta.url)),
     true
   );
+});
+
+test("EveLineChildContainer owns portable child traversal and aggregate bounds", () =>
+{
+  const events = [];
+  const makePath = (sphere, pointCount) => ({
+    Update: () => false,
+    GeneratePoints: transform => events.push(["generate", transform]),
+    GetPointCount: () => pointCount,
+    CalculateBoundingSphere: (meshSize, recursive) => events.push(["bounds", meshSize, recursive]),
+    GetBoundingSphere: out => out.set(sphere),
+    UpdateVisibility: (_frustum, lod, location) => events.push(["visibility", lod, location]),
+    AddLinesToSet: (set, color, animationColor, speed) => events.push(["lines", set, color, animationColor, speed])
+  });
+
+  const container = new EveLineChildContainer();
+  container.lines.push(makePath([0, 0, 0, 1], 2), makePath([4, 0, 0, 2], 3));
+  container.OnModified();
+  assert.equal(container.Update({}, {}), true);
+  assert.equal(container.GetPointCount(), 5);
+  assert.deepEqual(Array.from(container.GetBoundingSphere()), [2, 0, 0, 4]);
+  assert.equal(events.filter(event => event[0] === "generate").length, 2);
+  assert.equal(events.filter(event => event[0] === "bounds").length, 2);
+
+  const location = {};
+  container.UpdateVisibility({ IsSphereVisible: () => true }, 3, location);
+  container.AddLinesToSet("set", "color", "animation", 2);
+  assert.equal(events.filter(event => event[0] === "visibility").length, 2);
+  assert.equal(events.filter(event => event[0] === "lines").length, 2);
+
+  container.UpdateVisibility({ IsSphereVisible: () => false }, 3, location);
+  container.AddLinesToSet("set", "color", "animation", 2);
+  assert.equal(container.isVisible, false);
+  assert.equal(events.filter(event => event[0] === "lines").length, 2);
+  assert.doesNotThrow(() => container.GetDebugOptions(new Set()));
+});
+
+test("EveLineChildContainer composes local before a rotating scaled parent", () =>
+{
+  const generated = [];
+  const container = new EveLineChildContainer();
+  container.translation.set([1, 2, 3]);
+  container.lines.push({ GeneratePoints: transform => generated.push(Array.from(transform)) });
+
+  const rotation = quat.setAxisAngle(quat.create(), [0, 0, 1], Math.PI / 2);
+  const parent = mat4.fromRotationTranslationScale(
+    mat4.create(), rotation, [10, 20, 30], [2, 3, 4]);
+  container.GeneratePoints(parent);
+
+  assert.ok(Math.abs(container.worldTransform[12] - 4) < 1e-5);
+  assert.ok(Math.abs(container.worldTransform[13] - 22) < 1e-5);
+  assert.ok(Math.abs(container.worldTransform[14] - 42) < 1e-5);
+  assert.deepEqual(generated[0], Array.from(container.worldTransform));
 });

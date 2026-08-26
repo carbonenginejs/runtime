@@ -164,4 +164,12 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     }
   }
 
+  /** Carbon returns the owned volume vector by reference (cpp:108-111). */
+  @carbon.method
+  @impl.implemented
+  GetDebugVolumes()
+  {
+    return this.debugVolumes;
+  }
+
 }

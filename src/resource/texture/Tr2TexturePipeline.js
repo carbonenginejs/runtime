@@ -53,7 +53,7 @@ export class Tr2TexturePipeline extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon fills an ImageIO::HostBitmap through blocking file reads; JavaScript resolves inputs asynchronously and returns the runtime-resource plain CPU payload.")
+  @impl.reason("Carbon fills an ImageIO::HostBitmap through blocking file reads; JavaScript resolves inputs asynchronously and returns the runtime resource layer's plain CPU payload.")
   async Execute(maxWidth = 0, maxHeight = 0, options = null)
   {
     return executeTexturePipeline(this.steps, { maxWidth, maxHeight }, options);

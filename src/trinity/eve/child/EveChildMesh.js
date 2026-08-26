@@ -21,6 +21,15 @@ import {
   inheritParentPerObjectData,
   stampChildTransforms
 } from "../perObjectData/childPerObjectRecords.js";
+import { Float4x3 } from "../../utilities/Float4x3.js";
+import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
+import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
+import {
+  CollectOverlayAreaBlocks,
+  EmitDamageOverlayBatches,
+  EmitOverlayBatches
+} from "../overlays/overlayBatches.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 // Module scratch for the hot per-frame visibility/shadow paths (allocation
 // rules: copy-into, never allocate per call; child updates run sequentially so
@@ -32,6 +41,7 @@ const SHADOW_SPHERE_SCRATCH = vec4.create();
 const BOX_CORNER_SCRATCH = vec3.create();
 const BOX_QUERY_SCRATCH = { min: vec3.create(), max: vec3.create() };
 const ZERO_VEC3 = vec3.create();
+const DAMAGE_BONE_SCRATCH = mat4.create();
 
 // Carbon's (nullptr, 0) bone result - frozen so callers cannot mutate it.
 const NO_BONE_TRANSFORMS = Object.freeze({ bones: null, boneCount: 0 });
@@ -43,7 +53,7 @@ const NO_BONE_TRANSFORMS = Object.freeze({ bones: null, boneCount: 0 });
  * state.
  */
 @type.define({ className: "EveChildMesh", family: "eve/child" })
-export class EveChildMesh extends EveChildTransform
+export class EveChildMesh extends withITr2Renderable(EveChildTransform)
 {
   #isMorphsBaked = false;
 
@@ -83,6 +93,18 @@ export class EveChildMesh extends EveChildTransform
   #worldBoundsValid = false;
 
   #worldBoundingSphere = vec4.create();
+
+  /** Identity rest-pose palette for skinned shaders without live animation. */
+  #restPoseBoneTransforms = null;
+
+  #parentOverlayEffects = null;
+
+  #overlayAreaBlocks = [ [], [] ];
+
+  #overlayAreaBlocksBuilt = false;
+
+  @type.list("EveLocatorSets")
+  ownedLocatorSets = [];
 
   /**
    * Clears the private visibility state for a derived child whose own Carbon
@@ -124,6 +146,18 @@ export class EveChildMesh extends EveChildTransform
   @io.persist
   @type.boolean
   display = true;
+
+  @io.persist
+  @type.boolean
+  inheritOverlayEffects = true;
+
+  @io.persist
+  @type.list("EveMeshOverlayEffect")
+  overlayEffects = [];
+
+  @io.persist
+  @type.objectRef("EveDamageOverlay")
+  damageOverlay = null;
 
   @io.notify
   @io.persist
@@ -316,6 +350,34 @@ export class EveChildMesh extends EveChildTransform
   SetMesh(mesh)
   {
     this.mesh = mesh ?? null;
+    this.#overlayAreaBlocksBuilt = false;
+    this.#restPoseBoneTransforms = null;
+  }
+
+  /** Appends an overlay owned by this child; inherited hull overlays render after it. */
+  @carbon.method
+  @impl.implemented
+  AddOverlayEffect(effect)
+  {
+    if (!effect) throw new TypeError("EveChildMesh overlay effect must not be null");
+    this.overlayEffects.push(effect);
+  }
+
+  /** Removes the first matching owned overlay. */
+  @carbon.method
+  @impl.implemented
+  RemoveOverlayEffect(effect)
+  {
+    const index = this.overlayEffects.indexOf(effect);
+    if (index !== -1) this.overlayEffects.splice(index, 1);
+  }
+
+  /** Returns the first owned overlay whose authored name matches. */
+  @carbon.method
+  @impl.implemented
+  GetOverlayEffectByName(name)
+  {
+    return this.overlayEffects.find(effect => effect.name === String(name)) ?? null;
   }
 
   /**
@@ -660,8 +722,12 @@ export class EveChildMesh extends EveChildTransform
   @carbon.method
   @impl.adapted
   @impl.reason("Audio-geometry registration is engine-owned and the animationUpdater branches await the JS animation seam; nothing else remains in Carbon's body.")
-  UpdateSyncronous(_updateContext, _params)
+  UpdateSyncronous(updateContext, _params)
   {
+    if (this.damageOverlay) this.damageOverlay.UpdateSyncronous(updateContext);
+
+    const time = updateContext.GetTime();
+    for (const overlay of this.overlayEffects) overlay.Update(time, time);
   }
 
   /**
@@ -700,10 +766,30 @@ export class EveChildMesh extends EveChildTransform
 
     // Carbon cpp:932-954: inherit the hull's per-object values, rebase the clip
     // data by this child's translation, then stamp our own transforms.
-    inheritParentPerObjectData(this.#perObjectData, params?.spaceObjectParent, this.translation);
+    const parent = params?.spaceObjectParent ?? null;
+    inheritParentPerObjectData(this.#perObjectData, parent, this.translation);
+    this.#parentOverlayEffects = this.inheritOverlayEffects && Array.isArray(parent?.overlayEffects)
+      ? parent.overlayEffects
+      : null;
+    if (parent && !this.inheritOverlayEffects)
+    {
+      this.#perObjectData.vs.Set("clipData", [ 0, 0, 0, 0 ]);
+      this.#perObjectData.ps.Set("clipRadiusSq", [ 0 ]);
+      this.#perObjectData.ps.Set("clipRadius2Sq", [ 0 ]);
+      this.#perObjectData.ps.Set("clipSphereFactor", [ 0 ]);
+      this.#perObjectData.ps.Set("clipSphereFactor2", [ 0 ]);
+    }
     stampChildTransforms(this.#perObjectData, this.worldTransform, this.#lastWorldTransform);
 
     this.#activationStrength = Number(params?.activationStrength ?? 1);
+    if (this.damageOverlay)
+    {
+      const flicker = this.damageOverlay.GetActivationStrength(updateContext);
+      this.#activationStrength *= flicker;
+      const shipData = this.#perObjectData.ps.Get("shipData");
+      this.#perObjectData.ps.Set("shipData", [ shipData[0], parent ? shipData[1] * flicker : flicker, shipData[2], shipData[3] ]);
+      this.#perObjectData.ps.Set("impactDataOffset", [ this.damageOverlay.GetDataTextureOffset() ]);
+    }
 
     // Carbon (cpp:962-970): attachments refresh their lights from the updated
     // world transform. Bones come from GetBoneTransforms (animationUpdater) -
@@ -718,11 +804,10 @@ export class EveChildMesh extends EveChildTransform
 
     // Carbon (cpp:974-997): world AABB from the mesh bounds, world sphere
     // enclosing it. The skinned GetBounds overload (animation transforms +
-    // morph targets, cpp:977-982) awaits the animation seam; Tr2MeshBase::
-    // GetBounds itself remains an explicit @impl.notImplemented gap, hence the
-    // duck call (Tr2InstancedMesh implements it).
+    // morph targets, cpp:977-982) awaits the animation seam; the maintained
+    // Tr2MeshBase GetBounds supplies the static/material bounds meanwhile.
     this.#worldBoundsValid = false;
-    const bounds = this.mesh?.GetBounds?.();
+    const bounds = this.mesh ? this.mesh.GetBounds() : null;
 
     if (bounds?.min && bounds?.max)
     {
@@ -746,6 +831,25 @@ export class EveChildMesh extends EveChildTransform
     else
     {
       sph3.set(this.#worldBoundingSphere, 0, 0, 0, 0);
+    }
+
+    if (this.damageOverlay)
+    {
+      const localSphere = vec4.fromValues(0, 0, 0, -1);
+      if (bounds?.min && bounds?.max)
+      {
+        const cx = (bounds.min[0] + bounds.max[0]) * 0.5;
+        const cy = (bounds.min[1] + bounds.max[1]) * 0.5;
+        const cz = (bounds.min[2] + bounds.max[2]) * 0.5;
+        vec4.set(localSphere, cx, cy, cz,
+          Math.hypot(bounds.max[0] - cx, bounds.max[1] - cy, bounds.max[2] - cz));
+      }
+      this.damageOverlay.UpdateAsyncronous(updateContext, {
+        boundingSphere: localSphere,
+        estimatedPixelDiameter: Math.max(this.currentScreenSize, 0),
+        isInFrustum: this.#isVisible,
+        getDamageLocatorPositionOS: (index, out) => this.GetDamageLocatorPositionLocal(index, out)
+      }, 0, false);
     }
 
     this.#hasUpdated = true;
@@ -774,30 +878,60 @@ export class EveChildMesh extends EveChildTransform
    * `Tr2AnimationMeshBinding` is unported - so a mesh relying on the second
    * gets no bones rather than the wrong ones.
    *
-   * Carbon also assigns `accumulatedTransforms` at cpp:1295 and never reads it;
-   * a dead local, not reproduced.
+   * Carbon also assigns `accumulatedTransforms` and never reads it; that dead
+   * local is not reproduced.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2AnimationMeshBinding is unported, so the second bone source (Carbon cpp:1303-1306) yields no bones rather than wrong ones.")
+  @impl.reason("Tr2AnimationMeshBinding remains unported; Carbon's identity rest-pose fallback is used when neither live palette source is available.")
   GetBoneTransforms()
   {
     const updater = this.animationUpdater;
 
-    if (!updater?.IsInitialized?.())
+    if (!updater || !updater.IsInitialized())
     {
-      return NO_BONE_TRANSFORMS;
+      return this.GetRestPoseBoneTransforms();
     }
 
     // cpp:1297-1302 - the updater's own palette when it binds to the mesh.
-    if (updater.HasMeshBinding?.())
+    if (updater.HasMeshBinding())
     {
       return getBoneList(updater);
     }
 
-    // cpp:1303-1306 would fall to a Tr2AnimationMeshBinding palette here. That
-    // class is unported, so this yields no bones rather than the wrong ones.
-    return NO_BONE_TRANSFORMS;
+    // A maintained Tr2AnimationMeshBinding would be consulted here. Until that
+    // source exists, Carbon's final identity rest-pose path is the safe result.
+    return this.GetRestPoseBoneTransforms();
+  }
+
+  /**
+   * Builds Carbon's identity Float4x3 rest-pose palette. Geometry with no bone
+   * bindings still receives one identity because skinned shaders read bone 0.
+   */
+  @impl.implemented
+  GetRestPoseBoneTransforms()
+  {
+    const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
+    if (!geometry)
+    {
+      return NO_BONE_TRANSFORMS;
+    }
+
+    const meshIndex = Number(this.mesh.GetMeshIndex()) >>> 0;
+    const mesh = geometry.GetMeshData(meshIndex);
+    const boneCount = Math.max(mesh?.boneBindings?.length ?? 0, 1);
+
+    if (!this.#restPoseBoneTransforms || this.#restPoseBoneTransforms.length !== boneCount * 12)
+    {
+      const identity = Float4x3.fromMat4(mat4.create());
+      this.#restPoseBoneTransforms = new Float32Array(boneCount * 12);
+      for (let index = 0; index < boneCount; index++)
+      {
+        this.#restPoseBoneTransforms.set(identity, index * 12);
+      }
+    }
+
+    return { bones: this.#restPoseBoneTransforms, boneCount };
   }
 
   /**
@@ -980,7 +1114,15 @@ export class EveChildMesh extends EveChildTransform
   {
     if (this.display && this.mesh)
     {
-      return (this.mesh.GetAreas?.(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0;
+      if ((this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0) return true;
+      for (const overlay of this.overlayEffects)
+      {
+        if (overlay.HasTransparentArea()) return true;
+      }
+      for (const overlay of this.#parentOverlayEffects ?? [])
+      {
+        if (overlay.HasTransparentArea()) return true;
+      }
     }
     return false;
   }
@@ -1044,6 +1186,53 @@ export class EveChildMesh extends EveChildTransform
       }
     }
 
+    committed = this.GetBatchesFromOverlayVector(batches, perObjectData, batchType) || committed;
+
+    return committed;
+  }
+
+  /** Emits damage, child-owned, then inherited parent overlays over this mesh. */
+  @carbon.method
+  @impl.adapted
+  GetBatchesFromOverlayVector(batches, perObjectData, batchType)
+  {
+    const damageEffect = this.damageOverlay
+      ? this.damageOverlay.GetArmorDamageShader(batchType)
+      : null;
+    const parentOverlays = this.#parentOverlayEffects;
+    if (!this.mesh || (!damageEffect && !this.overlayEffects.length && !parentOverlays?.length)) return false;
+
+    const geometry = this.mesh.GetGeometryResource();
+    if (!geometry || geometry.IsGood() === false) return false;
+
+    if (!this.#overlayAreaBlocksBuilt)
+    {
+      CollectOverlayAreaBlocks(this.mesh, this.#overlayAreaBlocks);
+      this.#overlayAreaBlocksBuilt = true;
+    }
+
+    const meshIndex = this.mesh.GetMeshIndex();
+    const lod = geometry.GetMeshLod(
+      meshIndex, Math.min(this.currentInstanceScreenSize, this.currentScreenSize));
+    let committed = false;
+
+    if (damageEffect)
+    {
+      committed = EmitDamageOverlayBatches(
+        batches, perObjectData, damageEffect, this.#overlayAreaBlocks, geometry, meshIndex, lod) || committed;
+    }
+    if (this.overlayEffects.length)
+    {
+      committed = EmitOverlayBatches(
+        batches, perObjectData, batchType, this.overlayEffects,
+        this.#overlayAreaBlocks, geometry, meshIndex, lod) || committed;
+    }
+    if (parentOverlays?.length)
+    {
+      committed = EmitOverlayBatches(
+        batches, perObjectData, batchType, parentOverlays,
+        this.#overlayAreaBlocks, geometry, meshIndex, lod) || committed;
+    }
     return committed;
   }
 
@@ -1109,9 +1298,9 @@ export class EveChildMesh extends EveChildTransform
     // Carbon seeds the baked-morph offset with UINT32_MAX, not zero.
     this.#perObjectData.vs.Set("bakedMorphTargetVertexDataOffset", [ 0xffffffff ]);
 
-    if (this.animationUpdater?.IsInitialized?.())
+    if (this.animationUpdater && this.animationUpdater.IsInitialized())
     {
-      const boneCount = this.animationUpdater.GetMeshBoneCount?.() ?? 0;
+      const boneCount = this.animationUpdater.GetMeshBoneCount();
       this.#perObjectData.vs.SetIndex("boneOffsets", 2, [ boneCount ]);
     }
 
@@ -1321,6 +1510,101 @@ export class EveChildMesh extends EveChildTransform
     return this;
   }
 
+  /** Invalidates merged locators on both the old and new owner. */
+  @carbon.method
+  @impl.implemented
+  SetOwner(owner)
+  {
+    if (this.GetOwner() === owner) return;
+    const oldOwner = this.GetOwner();
+    if (oldOwner) oldOwner.InvalidateMergedLocators("structure");
+    super.SetOwner(owner);
+    if (owner) owner.InvalidateMergedLocators("structure");
+  }
+
+  /** Contributes child-owned locator sets with the child-to-object transform. */
+  @carbon.method
+  @impl.adapted
+  CollectOwnedLocatorSets(parentTransform, out)
+  {
+    if (!this.ownedLocatorSets.length) return;
+    const local = this.RebuildLocalTransform();
+    const childToObject = mat4.create();
+    mat4.multiply(childToObject, parentTransform, local);
+    for (const sets of this.ownedLocatorSets)
+    {
+      out.push({ childToObject: mat4.clone(childToObject), owner: this, sets });
+    }
+  }
+
+  /** Contributes this child's geometry to the owner's merged raycast set. */
+  @carbon.method
+  @impl.adapted
+  CollectOwnedGeometry(parentTransform, out)
+  {
+    const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
+    if (!geometry) return;
+    const local = this.RebuildLocalTransform();
+    const childToObject = mat4.create();
+    mat4.multiply(childToObject, parentTransform, local);
+    out.push({ childToObject, geometry, owner: this, mesh: this.mesh });
+  }
+
+  /** Replaces the locator sets owned by this child and invalidates the owner. */
+  @carbon.method
+  @impl.adapted
+  SetOwnedLocatorSets(sets)
+  {
+    this.ownedLocatorSets = Array.from(sets ?? []);
+    const owner = this.GetOwner();
+    if (owner) owner.InvalidateMergedLocators("structure");
+  }
+
+  /** Returns this child mesh's armour and hull damage overlay. */
+  @carbon.method
+  @impl.implemented
+  GetDamageOverlay()
+  {
+    return this.damageOverlay;
+  }
+
+  /** Creates this child mesh's damage overlay when it does not yet exist. */
+  @carbon.method
+  @impl.implemented
+  EnsureDamageOverlay()
+  {
+    this.damageOverlay ??= new EveDamageOverlay();
+    return this.damageOverlay;
+  }
+
+  /** Resolves one damage locator in the child's local object space. */
+  @carbon.method
+  @impl.adapted
+  GetDamageLocatorPositionLocal(index, out = vec3.create())
+  {
+    const locatorIndex = Number(index) | 0;
+    if (locatorIndex < 0) return false;
+
+    for (const set of this.ownedLocatorSets)
+    {
+      if (!set.HasName("damage")) continue;
+      const locator = set.GetLocators()[locatorIndex];
+      if (!locator) return false;
+      vec3.copy(out, locator.position);
+
+      const updater = this.animationUpdater;
+      if (locator.boneIndex > 0 && updater && updater.IsInitialized() &&
+        locator.boneIndex < updater.GetMeshBoneCount())
+      {
+        MatrixCopyFrom3x4(
+          DAMAGE_BONE_SCRATCH, updater.GetMeshBoneMatrixList(), locator.boneIndex);
+        vec3.transformMat4(out, out, DAMAGE_BONE_SCRATCH);
+      }
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Carbon EveChildMesh::GetPickingBatches (cpp:862-889): collects the geometry
    * a pick pass should test, by mask. Unlike the hull's version this one has no
@@ -1388,16 +1672,16 @@ export class EveChildMesh extends EveChildTransform
       return;
     }
 
-    const geometry = this.mesh?.GetGeometryResource?.();
+    const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
 
     if (geometry)
     {
-      updater.SetUseMeshBinding?.(true);
-      updater.SetSharedGeometryRes?.(geometry);
+      updater.SetUseMeshBinding(true);
+      updater.SetSharedGeometryRes(geometry);
       return;
     }
 
-    updater.SetSharedGeometryRes?.(null);
+    updater.SetSharedGeometryRes(null);
   }
 
   /** Carbon BakeMorphs runs the merge-morphs GPU compute pass; GPU-owned. */

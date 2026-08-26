@@ -3,6 +3,10 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
+import {
+  convertProjectionCoordToWorldPickRay,
+  screenToProjection
+} from "../view/pickRay.js";
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
 @type.define({ className: "TriDevice", family: "trinityCore" })
@@ -214,6 +218,26 @@ export class TriDevice extends CjsModel
     out.x = (2 * vx) / (w - 1) - 1;
     out.y = -((2 * vy) / (h - 1) - 1);
     return out;
+  }
+
+  /**
+   * Returns Carbon's script-facing `[rayDirection, rayStart]` pair for a screen
+   * pixel under the supplied viewport and view/projection matrices.
+   *
+   * The returned vectors are detached from the picking helper's reusable
+   * scratch storage, so a later query cannot mutate an earlier result.
+   */
+  @carbon.method
+  @impl.adapted
+  GetPickRayFromViewport(x, y, viewport, view, projection)
+  {
+    const projected = screenToProjection(x, y, viewport);
+    const ray = convertProjectionCoordToWorldPickRay(projected.x, projected.y, projection, view);
+    if (!ray)
+    {
+      return null;
+    }
+    return [ new Float32Array(ray.direction), new Float32Array(ray.start) ];
   }
 
   /** Time in seconds, recentered regularly (once per hour). */

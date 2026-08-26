@@ -86,7 +86,7 @@ export class TriStepCopyRenderTarget extends TriRenderStep
   {
     const intent = this.GetCopyIntent();
     if (!intent) return TriRenderJob.StepResult.RS_OK;
-    const copied = executor?.CopyRenderTarget?.(intent);
+    const copied = executor.CopyRenderTarget(intent);
     return copied === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
   }
 

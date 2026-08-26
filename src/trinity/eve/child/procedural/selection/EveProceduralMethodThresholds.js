@@ -191,6 +191,14 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
     }
   }
 
+  /** Carbon returns the owned volume vector by reference (cpp:129-132). */
+  @carbon.method
+  @impl.implemented
+  GetDebugVolumes()
+  {
+    return this.debugVolumes;
+  }
+
   /** Carbon EveProceduralMethodThresholds::SetProceduralMethodVariable
    * (cpp:134-144): only the named threshold attribute is accepted; a changed
    * value reselects. */

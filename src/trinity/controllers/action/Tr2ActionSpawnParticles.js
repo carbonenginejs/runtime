@@ -2,8 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { ITr2GenericEmitter as Tr2GenericEmitterUpdateArguments } from "../../generated/particle/ITr2GenericEmitter.js";
-import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter.js";
 
 
 /**
@@ -31,7 +30,7 @@ export class Tr2ActionSpawnParticles extends CjsModel
   @impl.adapted
   Start(_controller)
   {
-    if (!ITr2ControllerAction.hasFunction(this.emitter, "SpawnParticles"))
+    if (!this.emitter)
     {
       return;
     }
@@ -44,7 +43,7 @@ export class Tr2ActionSpawnParticles extends CjsModel
    */
   static #createEmitterUpdateArguments()
   {
-    const args = new Tr2GenericEmitterUpdateArguments();
+    const args = new ITr2GenericEmitterUpdateArguments();
     args.emitCountFactor = 1;
     return args;
   }

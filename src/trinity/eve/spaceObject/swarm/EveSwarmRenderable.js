@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
-import { impl, type } from "#schema";
+import { carbon, impl, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { mat4 } from "#math/mat4";
@@ -9,13 +9,17 @@ import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { createChildPerObjectRecords, stampChildTransforms } from "../../perObjectData/childPerObjectRecords.js";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
+import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 // Packed (x, y, z, radius) cull-sphere scratch for IsCastingShadow.
 const SPHERE_SCRATCH = vec4.create();
+const TRANSPARENT_AABB_MIN = vec3.create();
+const TRANSPARENT_AABB_MAX = vec3.create();
+const TRANSPARENT_CENTER = vec3.create();
 
-/** EveSwarmRenderable (eve/spaceObject/swarm) - generated from schema shapeHash a22c3310.... */
+/** Runtime implementation of Carbon's swarm renderable component. */
 @type.define({ className: "EveSwarmRenderable", family: "eve/spaceObject/swarm" })
-export class EveSwarmRenderable extends EveEntity
+export class EveSwarmRenderable extends withITr2Renderable(EveEntity)
 {
 
   /** m_mesh (Tr2MeshBasePtr) */
@@ -133,7 +137,7 @@ export class EveSwarmRenderable extends EveEntity
   @impl.adapted
   InitDecals(decals)
   {
-    this.decals = decals.map(decal => decal?.Clone?.() ?? decal);
+    this.decals = decals.map(decal => decal.Clone());
   }
 
   /**
@@ -154,7 +158,101 @@ export class EveSwarmRenderable extends EveEntity
   @impl.adapted
   SetShaderOption(name, value)
   {
-    this.mesh?.SetShaderOption?.(name, value);
+    if (this.mesh)
+    {
+      this.mesh.SetShaderOption(name, value);
+    }
+  }
+
+  /**
+   * Carbon EveSwarmRenderable::GetBatches (EveSwarm.cpp:35-52): emits ordinary
+   * mesh areas directly and transparent areas back-to-front by their
+   * world-space bounding-box centres.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The render context supplies Carbon's renderer-global view position; GPU-free mesh batches retain geometry source descriptors for engine realization.")
+  GetBatches(batches, batchType, perObjectData, _reason, renderContext = null)
+  {
+    if (!this.mesh)
+    {
+      return false;
+    }
+
+    const areas = this.mesh.GetAreas(batchType);
+    if (!areas)
+    {
+      return false;
+    }
+
+    if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT)
+    {
+      return this.mesh.GetBatches(batches, areas, perObjectData);
+    }
+
+    const viewPosition = renderContext.GetViewPosition();
+    const geometry = this.mesh.GetGeometryResource();
+    const meshIndex = this.mesh.meshIndex ?? 0;
+    const lod = geometry ? geometry.GetMeshLod(meshIndex, Number.MAX_VALUE) : null;
+    const sorted = [];
+
+    for (const area of areas)
+    {
+      if (!area || area.GetDisplay() === false)
+      {
+        continue;
+      }
+
+      vec3.set(TRANSPARENT_CENTER, 0, 0, 0);
+      if (geometry && geometry.GetAreaBoundingBox(
+        meshIndex, area.GetIndex(), TRANSPARENT_AABB_MIN, TRANSPARENT_AABB_MAX))
+      {
+        vec3.add(TRANSPARENT_CENTER, TRANSPARENT_AABB_MIN, TRANSPARENT_AABB_MAX);
+        vec3.scale(TRANSPARENT_CENTER, TRANSPARENT_CENTER, 0.5);
+      }
+      vec3.transformMat4(TRANSPARENT_CENTER, TRANSPARENT_CENTER, this.worldTransform);
+      sorted.push({ area, distance: vec3.squaredDistance(viewPosition, TRANSPARENT_CENTER) });
+    }
+
+    sorted.sort((a, b) => b.distance - a.distance);
+
+    let committed = false;
+    for (const entry of sorted)
+    {
+      if (!entry.area.GetMaterialInterface())
+      {
+        continue;
+      }
+      const batch = this.mesh.CreateGeometryBatch(geometry, entry.area, perObjectData, false, lod);
+      if (batch)
+      {
+        committed = batches.Commit(batch) || committed;
+      }
+    }
+    return committed;
+  }
+
+  /** Carbon reports whether the shared fighter mesh has transparent areas. */
+  @carbon.method
+  @impl.implemented
+  HasTransparentBatches()
+  {
+    return this.mesh !== null
+      && this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length !== 0;
+  }
+
+  /** Distance from the active view position to this fighter's translation. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The render context replaces Carbon's Tr2Renderer global view-position accessor.")
+  GetSortValue(renderContext)
+  {
+    const viewPosition = renderContext.GetViewPosition();
+    return Math.hypot(
+      viewPosition[0] - this.worldTransform[12],
+      viewPosition[1] - this.worldTransform[13],
+      viewPosition[2] - this.worldTransform[14]
+    );
   }
 
   /** Carbon EveSwarmRenderable::RegisterComponents (EveSwarm.cpp:306-313):
@@ -192,7 +290,7 @@ export class EveSwarmRenderable extends EveEntity
     {
       return false;
     }
-    if (this.owner.GetBoundingSphere?.(SPHERE_SCRATCH) !== true)
+    if (this.owner.GetBoundingSphere(SPHERE_SCRATCH) !== true)
     {
       return false;
     }
@@ -205,7 +303,7 @@ export class EveSwarmRenderable extends EveEntity
     {
       sizeInShadowOut[0] = 0;
     }
-    if (shadowFrustum?.IsVisible?.(cameraFrustum, SPHERE_SCRATCH))
+    if (shadowFrustum.IsVisible(cameraFrustum, SPHERE_SCRATCH))
     {
       sizeInShadow = shadowFrustum.GetSizeInShadow(SPHERE_SCRATCH);
       if (sizeInShadowOut)
@@ -231,7 +329,7 @@ export class EveSwarmRenderable extends EveEntity
     {
       return false;
     }
-    return this.mesh.GetBatches?.(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData) === true;
+    return this.mesh.GetBatches(batches, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData) === true;
   }
 
   /**

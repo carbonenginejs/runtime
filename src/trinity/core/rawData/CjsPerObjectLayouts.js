@@ -386,7 +386,7 @@ export const EveSpacePerObject = Object.freeze({
  * Tr2ConstantBufferFormats.h:35. Catalogued but deliberately PRODUCERLESS in
  * this package: its only Carbon filler is `Tr2InteriorPlaceable::GetPerObjectData`
  * (Interior/Tr2InteriorPlaceable.cpp:555-585), and interior placeables are not
- * runtime-trinity classes. The layout lives here because the catalog is the
+ * Trinity-layer classes. The layout lives here because the catalog is the
  * org-wide truth, exported on the `/perobject` subpath; whichever package ports
  * the placeable consumes it from there rather than redeclaring it.
  */

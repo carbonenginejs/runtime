@@ -1,9 +1,15 @@
+import { defaultValueForCarbonField } from "./types/carbonTypes.js";
+
+
 const CLASS_SCHEMA = new WeakMap();
 
 // Exported schemas, memoized per class. SCHEMA_GENERATION is bumped by every
 // metadata definition (see getOrCreateClassSchema), which is what makes a stale
 // memo detectable without tracking which subclasses a base class change reaches.
 const SCHEMA_EXPORTS = new WeakMap();
+const DEFAULT_EXPORTS = new WeakMap();
+const FIELD_INITIAL_DEFAULTS = new WeakMap();
+const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
 const CONSTRUCTOR_BY_NAME = new Map();
@@ -341,6 +347,51 @@ export class CjsSchema
         return schema;
     }
 
+    /**
+     * Returns a fresh plain-values copy of one schema class's declared defaults.
+     *
+     * Decorated field initializers record their value before the constructor
+     * body can turn it into instance state (an audio game-object ID, for
+     * example). When no instance has exposed those initializers yet, the class
+     * is constructed once with zero arguments to trigger them. This never calls
+     * CjsModel.from, SetValues, Initialize, UpdateValues, or another lifecycle
+     * hook.
+     *
+     * The canonical template is cached by constructor and kept immutable. A
+     * caller always receives a copy so it cannot poison later expansions.
+     *
+     * @param {Function|string} ConstructorOrName Constructor or registered class name.
+     * @returns {object} A self-describing plain model-values template.
+     */
+    static getDefaults(ConstructorOrName)
+    {
+        return cloneDefaultValue(getDefaultsTemplate(ConstructorOrName));
+    }
+
+    /**
+     * Expands a sparse, self-describing model-values graph with schema defaults.
+     *
+     * Authored values win. Authored collections replace default collections;
+     * structs merge recursively; `_id` and `_ref` pass through unchanged. The
+     * operation is plain-data-only after each class's lazy default template has
+     * been captured and never constructs or initializes the authored graph.
+     *
+     * @param {object} values Sparse self-describing model values.
+     * @returns {object} A new default-expanded plain-values graph.
+     */
+    static applyDefaults(values)
+    {
+        if (!isPlainObject(values))
+        {
+            throw new TypeError("CjsSchema.applyDefaults requires a plain model-values object.");
+        }
+        if (typeof values._type !== "string" || !values._type.trim())
+        {
+            throw new TypeError("CjsSchema.applyDefaults requires a root _type.");
+        }
+        return expandDefaultValue(values, null, undefined, "$root");
+    }
+
 
     static type = Object.freeze({
         array: itemType => fieldDecorator("type", { kind: "array", itemType }),
@@ -488,6 +539,388 @@ export class CjsSchema
     static components = createComponentsNamespace();
 }
 
+function captureFieldInitialDefault(Constructor, fieldName, initialValue, declarationMetadata = null)
+{
+    if (typeof Constructor !== "function") return;
+
+    let fields = FIELD_INITIAL_DEFAULTS.get(Constructor);
+    if (!fields)
+    {
+        fields = new Map();
+        FIELD_INITIAL_DEFAULTS.set(Constructor, fields);
+    }
+    const existing = fields.get(fieldName);
+    if (existing)
+    {
+        const ownDeclaration = FIELD_DECLARATION_METADATA.get(Constructor)?.get(fieldName);
+        const replacesInheritedDefault = ownDeclaration &&
+            declarationMetadata === ownDeclaration &&
+            existing.declarationMetadata !== ownDeclaration;
+        if (!replacesInheritedDefault) return;
+    }
+
+    try
+    {
+        fields.set(fieldName, Object.freeze({
+            value: deepFreezeDefaultValue(snapshotSchemaDefault(initialValue)),
+            declarationMetadata
+        }));
+    }
+    catch (err)
+    {
+        // Schema capture must never make ordinary class construction fail. The
+        // explicit defaults request reports the unsupported value instead.
+        fields.set(fieldName, Object.freeze({
+            error: err instanceof Error ? err.message : String(err),
+            declarationMetadata
+        }));
+    }
+    DEFAULT_EXPORTS.delete(Constructor);
+}
+
+function getDefaultsTemplate(ConstructorOrName)
+{
+    const Constructor = resolveDefaultsConstructor(ConstructorOrName);
+    const memo = DEFAULT_EXPORTS.get(Constructor);
+    if (memo && memo.generation === SCHEMA_GENERATION) return memo.defaults;
+
+    let fields = getEffectiveFields(Constructor);
+    let captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
+    let instance = null;
+
+    if (fields.some(field => !captured?.has(field.name)))
+    {
+        try
+        {
+            // A bare constructor runs JavaScript field/constructor setup only.
+            // The CjsModel initialization lifecycle is driven by from(), not by
+            // `new`, and is deliberately absent from this operation.
+            instance = new Constructor();
+        }
+        catch (err)
+        {
+            const className = CjsSchema.getClassName(Constructor) || Constructor.name || "<anonymous>";
+            throw new TypeError(
+                `CjsSchema.getDefaults could not construct ${className} with zero arguments: ` +
+                `${err instanceof Error ? err.message : String(err)}`,
+                { cause: err }
+            );
+        }
+        fields = getEffectiveFields(Constructor);
+        captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
+    }
+
+    const className = CjsSchema.getClassName(Constructor);
+    if (!className)
+    {
+        throw new TypeError("CjsSchema.getDefaults requires a constructor with an explicit className.");
+    }
+
+    const defaults = { _type: className };
+    for (const field of fields)
+    {
+        const entry = captured?.get(field.name);
+        let value;
+        let hasValue = false;
+
+        if (entry?.error)
+        {
+            throw new TypeError(
+                `CjsSchema.getDefaults could not capture ${className}.${field.name}: ${entry.error}`
+            );
+        }
+        if (entry && Object.hasOwn(entry, "value"))
+        {
+            value = cloneDefaultValue(entry.value);
+            hasValue = true;
+        }
+        else if (instance)
+        {
+            value = snapshotSchemaDefault(instance[field.name]);
+            // Directly registered schema accessors are explicit declarations
+            // too. Their getter is the only authoritative default source even
+            // though the property lives on the prototype rather than as an
+            // own field (for example two Blue names sharing one color buffer).
+            hasValue = field.name in instance;
+        }
+
+        if (!hasValue)
+        {
+            value = snapshotSchemaDefault(defaultValueForCarbonField(field));
+        }
+        defaults[field.name] = value;
+    }
+
+    const frozen = deepFreezeDefaultValue(defaults);
+    DEFAULT_EXPORTS.set(Constructor, {
+        generation: SCHEMA_GENERATION,
+        defaults: frozen
+    });
+    return frozen;
+}
+
+function resolveDefaultsConstructor(ConstructorOrName)
+{
+    if (typeof ConstructorOrName === "function") return ConstructorOrName;
+    if (typeof ConstructorOrName !== "string" || !ConstructorOrName.trim())
+    {
+        throw new TypeError("CjsSchema.getDefaults requires a constructor or registered class name.");
+    }
+
+    const className = ConstructorOrName.trim();
+    const Constructor = CjsSchema.GetConstructor(className);
+    if (!Constructor)
+    {
+        throw new TypeError(`No CjsSchema constructor is registered for _type "${className}".`);
+    }
+    return Constructor;
+}
+
+function snapshotSchemaDefault(value, active = new WeakSet())
+{
+    if (value === null || value === undefined) return value;
+    if (typeof value === "bigint") return value.toString();
+    if (typeof value !== "object") return value;
+    if (ArrayBuffer.isView(value))
+    {
+        return Array.from(value, item => typeof item === "bigint" ? item.toString() : item);
+    }
+    if (active.has(value))
+    {
+        throw new TypeError("cyclic class defaults are not JSON-compatible");
+    }
+
+    active.add(value);
+    try
+    {
+        if (Array.isArray(value))
+        {
+            return value.map(item => snapshotSchemaDefault(item, active));
+        }
+        if (value instanceof Map)
+        {
+            return Object.fromEntries(Array.from(value.entries(), ([key, item]) => [
+                String(key),
+                snapshotSchemaDefault(item, active)
+            ]));
+        }
+        if (value instanceof Set)
+        {
+            return Array.from(value, item => snapshotSchemaDefault(item, active));
+        }
+
+        const Constructor = value.constructor;
+        const className = typeof Constructor === "function"
+            ? CjsSchema.getClassName(Constructor)
+            : null;
+        if (className)
+        {
+            const result = { _type: className };
+            const captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
+            for (const field of getEffectiveFields(Constructor))
+            {
+                const entry = captured?.get(field.name);
+                if (entry?.error)
+                {
+                    throw new TypeError(`${className}.${field.name}: ${entry.error}`);
+                }
+
+                let fieldValue = entry && Object.hasOwn(entry, "value")
+                    ? cloneDefaultValue(entry.value)
+                    : value[field.name];
+                if (fieldValue === undefined)
+                {
+                    fieldValue = defaultValueForCarbonField(field);
+                }
+                result[field.name] = snapshotSchemaDefault(fieldValue, active);
+            }
+            return result;
+        }
+
+        const result = {};
+        for (const [key, item] of Object.entries(value))
+        {
+            result[key] = snapshotSchemaDefault(item, active);
+        }
+        return result;
+    }
+    finally
+    {
+        active.delete(value);
+    }
+}
+
+function expandDefaultValue(value, declaredType, defaultValue, path)
+{
+    if (value === null || value === undefined) return value;
+    if (typeof value === "bigint") return value.toString();
+    if (typeof value !== "object") return value;
+    if (ArrayBuffer.isView(value))
+    {
+        return Array.from(value, item => typeof item === "bigint" ? item.toString() : item);
+    }
+
+    const kind = declaredType?.kind || null;
+    const itemType = declaredType?.itemType || null;
+    if (Array.isArray(value))
+    {
+        return value.map((item, index) => expandDefaultValue(
+            item,
+            kind === "list" || kind === "array" || kind === "set" ? itemType : null,
+            undefined,
+            `${path}[${index}]`
+        ));
+    }
+    if (value instanceof Set)
+    {
+        return Array.from(value, (item, index) => expandDefaultValue(
+            item,
+            itemType,
+            undefined,
+            `${path}[${index}]`
+        ));
+    }
+    if (value instanceof Map)
+    {
+        const result = {};
+        for (const [key, item] of value)
+        {
+            result[String(key)] = expandDefaultValue(
+                item,
+                declaredType?.valueType || null,
+                undefined,
+                `${path}.${String(key)}`
+            );
+        }
+        return result;
+    }
+
+    if (Object.hasOwn(value, "_ref"))
+    {
+        return cloneDefaultValue(value);
+    }
+
+    if (typeof value._type === "string" && value._type.trim())
+    {
+        const Constructor = CjsSchema.GetConstructor(value._type.trim());
+        if (!Constructor)
+        {
+            throw new TypeError(`${path} names unknown _type "${value._type.trim()}".`);
+        }
+        return expandSchemaObject(value, Constructor, path);
+    }
+
+    if ((kind === "list" || kind === "array" || kind === "set") && isPlainObject(value))
+    {
+        return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+            key,
+            expandDefaultValue(item, itemType, undefined, `${path}.${key}`)
+        ]));
+    }
+    if (kind === "map" && isPlainObject(value))
+    {
+        return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+            key,
+            expandDefaultValue(item, declaredType?.valueType || null, undefined, `${path}.${key}`)
+        ]));
+    }
+
+    const declaredClass = resolveDeclaredConstructor(declaredType);
+    if (declaredClass)
+    {
+        return expandSchemaObject(value, declaredClass, path);
+    }
+
+    if (isPlainObject(defaultValue))
+    {
+        return mergePlainDefaults(defaultValue, value, path);
+    }
+
+    const result = {};
+    for (const [key, item] of Object.entries(value))
+    {
+        result[key] = expandDefaultValue(item, null, undefined, `${path}.${key}`);
+    }
+    return result;
+}
+
+function expandSchemaObject(values, Constructor, path)
+{
+    if (!isPlainObject(values))
+    {
+        throw new TypeError(`${path} must be a plain object.`);
+    }
+
+    const result = cloneDefaultValue(getDefaultsTemplate(Constructor));
+    const schema = CjsSchema.getSchema(Constructor);
+    for (const [key, item] of Object.entries(values))
+    {
+        if (key === "_type" || key === "_id" || key === "_ref")
+        {
+            result[key] = cloneDefaultValue(item);
+            continue;
+        }
+
+        const field = schema.byName.get(key);
+        result[key] = expandDefaultValue(
+            item,
+            field?.type || null,
+            result[key],
+            `${path}.${key}`
+        );
+    }
+    return result;
+}
+
+function resolveDeclaredConstructor(type)
+{
+    let className = null;
+    if (typeof type === "string")
+    {
+        className = type;
+    }
+    else if (type && typeof type === "object")
+    {
+        if (["model", "objectRef", "struct"].includes(type.kind))
+        {
+            className = type.className || null;
+        }
+    }
+    return className ? CjsSchema.GetConstructor(className) : null;
+}
+
+function mergePlainDefaults(defaults, values, path)
+{
+    const result = cloneDefaultValue(defaults);
+    for (const [key, item] of Object.entries(values))
+    {
+        result[key] = expandDefaultValue(item, null, result[key], `${path}.${key}`);
+    }
+    return result;
+}
+
+function cloneDefaultValue(value)
+{
+    if (value === null || value === undefined) return value;
+    if (Array.isArray(value)) return value.map(cloneDefaultValue);
+    if (value && typeof value === "object")
+    {
+        return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+            key,
+            cloneDefaultValue(item)
+        ]));
+    }
+    return value;
+}
+
+function deepFreezeDefaultValue(value, seen = new WeakSet())
+{
+    if (!value || typeof value !== "object" || seen.has(value)) return value;
+    seen.add(value);
+    for (const item of Object.values(value)) deepFreezeDefaultValue(item, seen);
+    return Object.freeze(value);
+}
+
 function createComponentsNamespace()
 {
     const components = definition => fieldDecorator("components", normalizeComponentDefinition(definition));
@@ -547,6 +980,12 @@ function fieldDecorator(namespace, value)
             return function initializeSchemaFieldValue(initialValue)
             {
                 defineFieldMetadata(this.constructor, context.name, namespace, value);
+                captureFieldInitialDefault(
+                    this.constructor,
+                    context.name,
+                    initialValue,
+                    context.metadata
+                );
                 return initialValue;
             };
         }
@@ -1045,8 +1484,15 @@ function registerStage3FieldMetadata(Constructor, metadata)
     if (!metadata || typeof metadata !== "object") return;
     if (!Object.prototype.hasOwnProperty.call(metadata, STAGE3_FIELD_METADATA)) return;
 
+    let declarations = FIELD_DECLARATION_METADATA.get(Constructor);
+    if (!declarations)
+    {
+        declarations = new Map();
+        FIELD_DECLARATION_METADATA.set(Constructor, declarations);
+    }
     for (const field of metadata[STAGE3_FIELD_METADATA])
     {
+        declarations.set(field.name, metadata);
         defineFieldMetadata(Constructor, field.name, field.namespace, field.value);
     }
 }

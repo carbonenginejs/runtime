@@ -60,7 +60,7 @@ export class TriStepSetRenderState extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.SetRenderState?.(this.state, this.value);
+    executor.SetRenderState(this.state, this.value);
     return TriRenderJob.StepResult.RS_OK;
   }
 

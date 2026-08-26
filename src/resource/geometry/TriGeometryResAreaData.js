@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
-// Schema: format-carbon resources/TriGeometryResAreaData.json; maintained by runtime-resource.
+// Schema: format-carbon resources/TriGeometryResAreaData.json; maintained by the runtime resource layer.
 import { type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";

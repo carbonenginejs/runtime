@@ -404,7 +404,7 @@ export class Tr2RenderBatch
   //
   // LOD selection and the primitive-count sum are NOT here. Carbon declares
   // both beside TriGeometryRes (Resources/TriGeometryRes.h:202/:242), which
-  // runtime-resource owns.
+  // the runtime resource layer owns.
 
   /**
    * Carbon's indexed draw arguments for one mesh area of one LOD, or null when

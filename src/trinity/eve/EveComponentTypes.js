@@ -43,17 +43,15 @@ export const EveComponentType = Object.freeze({
 });
 
 /**
- * Required duck methods per component name: each Carbon interface's
+ * Required methods for component interfaces that do not yet have nominal
+ * runtime roots: each Carbon interface's
  * pure-virtual surface (methods Carbon gives default implementations - e.g.
  * ITr2Renderable::IsVisible, ITr2LightOwner::AddLight/ClearLights,
  * IEveShadowCaster::PushRtGeometry/MarkRtDirty/IsShadowCastingDirty and the
- * sphere-overload IsCastingShadow - are not required). Consumed fail-closed by
- * EveComponentRegistry.RegisterComponent.
+ * sphere-overload IsCastingShadow - are not required). ITr2Renderable and
+ * ITr2FroxelFogSettings are enforced nominally by EveComponentRegistry.
  */
 export const EveComponentRequiredMethods = Object.freeze({
-  /** ITr2Renderable.h:47-57 pure virtuals. */
-  ReflectionRenderable: Object.freeze(["GetBatches", "HasTransparentBatches", "GetSortValue", "GetPerObjectData"]),
-
   /** ITr2VolumetricRenderable.h:44-51 pure virtuals. */
   VolumetricRenderable: Object.freeze([
     "GetSortValue",

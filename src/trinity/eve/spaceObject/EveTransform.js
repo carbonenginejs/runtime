@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/EveTransform.h
 // Source: trinity/trinity/Eve/EveTransform.cpp
 import { mat4 } from "#math/mat4";
+import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
@@ -10,6 +11,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
+import { withITr2BoundingBox } from "#contracts";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).
@@ -22,7 +24,7 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * with its own frustum and LOD visibility pass.
  */
 @type.define({ className: "EveTransform", family: "eve/spaceObject" })
-export class EveTransform extends Tr2Transform
+export class EveTransform extends withITr2BoundingBox(Tr2Transform)
 {
 
   /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */
@@ -318,6 +320,42 @@ export class EveTransform extends Tr2Transform
     return this;
   }
 
+  /** Writes the override bounds, or the displayed mesh's local bounds when no override exists. */
+  @carbon.method
+  @impl.implemented
+  GetLocalBoundingBox(min, max)
+  {
+    if (!vec3.equals(this.overrideBoundsMin, this.overrideBoundsMax))
+    {
+      vec3.copy(min, this.overrideBoundsMin);
+      vec3.copy(max, this.overrideBoundsMax);
+      return true;
+    }
+    return this.mesh ? this.mesh.GetBoundingBox(min, max) : false;
+  }
+
+  /** Writes the direct local bounds transformed by the current world matrix. */
+  @carbon.method
+  @impl.implemented
+  GetWorldBoundingBox(min, max)
+  {
+    if (!this.GetLocalBoundingBox(min, max)) return false;
+    const bounds = EveTransform.#worldBounds;
+    box3.fromBounds(bounds, min, max);
+    box3.transformMat4(bounds, bounds, this.worldTransform);
+    vec3.set(min, bounds[0], bounds[1], bounds[2]);
+    vec3.set(max, bounds[3], bounds[4], bounds[5]);
+    return true;
+  }
+
+  /** Reports whether override or mesh bounds are currently available. */
+  @carbon.method
+  @impl.implemented
+  IsBoundingBoxReady()
+  {
+    return this.GetLocalBoundingBox(EveTransform.#boundsMin, EveTransform.#boundsMax);
+  }
+
   /**
    * Writes the world-space bounding sphere, taken from the override bounds when they differ and otherwise from the mesh bounding box, and unions in the children's spheres when a query is passed.
    * @param {vec4} out Caller-owned sphere; left untouched when no source produced one.
@@ -334,7 +372,7 @@ export class EveTransform extends Tr2Transform
       sph3.transformMat4(out, EveTransform.#localSphere, this.worldTransform);
       valid = true;
     }
-    else if (this.mesh?.GetBoundingBox?.(EveTransform.#boundsMin, EveTransform.#boundsMax))
+    else if (this.mesh && this.mesh.GetBoundingBox(EveTransform.#boundsMin, EveTransform.#boundsMax))
     {
       sph3.fromBounds(EveTransform.#localSphere, EveTransform.#boundsMin, EveTransform.#boundsMax);
       sph3.transformMat4(out, EveTransform.#localSphere, this.worldTransform);
@@ -468,4 +506,5 @@ export class EveTransform extends Tr2Transform
   static #childSphere = vec4.create();
   static #boundsMin = vec3.create();
   static #boundsMax = vec3.create();
+  static #worldBounds = box3.create();
 }

@@ -21,7 +21,9 @@ import {
   EveChildSocket,
   EveChildTransform,
   EveSpaceObjectChild,
-  IEveSpaceObjectChild
+  EveUpdateContext,
+  IEveSpaceObjectChild,
+  Locator
 } from "../../npm/dist/trinity/index.js";
 import { EveChildLineSet } from "../../npm/dist/trinity/eve/child/EveChildLineSet.js";
 
@@ -112,13 +114,15 @@ test("EveChildContainer owns Carbon quality defaults and effect-child recursion"
   const container = new EveChildContainer();
   assert.equal(container instanceof EveChildTransform, true);
   assert.equal(CjsSchema.GetConstructor("EveChildContainer"), EveChildContainer);
+  assert.equal(container.isRendering, container.IsRendering());
+  assert.equal(container.isUpdating, container.IsUpdating());
   assert.equal(container.displayFilter, EveChildContainer.DisplayQualityModifier.SHADER_ALL);
   assert.equal(EveChildContainer.DisplayQualityModifier.ONLY_REFLECTIONS, 6);
   assert.equal(Object.isFrozen(EveChildContainer.DisplayQualityModifier), true);
   assert.equal(container.Empty(), true);
 
   const calls = [];
-  const child = {
+  const child = Object.assign(new EveSpaceObjectChild(), {
     name: "Instanced Mesh",
     SetControllerVariable(name, value)
     {
@@ -140,7 +144,7 @@ test("EveChildContainer owns Carbon quality defaults and effect-child recursion"
     {
       calls.push(["mute", value]);
     }
-  };
+  });
 
   container.SetControllerVariable("speed", 4);
   container.AddToEffectChildrenList(child);
@@ -260,6 +264,8 @@ test("EveSpaceObjectChild owns Carbon's child identity and hierarchy state", () 
   assert.equal(parent.IsAlwaysOn(), false);
   assert.equal(CjsSchema.getField(EveSpaceObjectChild, "partTag")?.type?.kind, "uint32");
   assert.equal(CjsSchema.getField(EveSpaceObjectChild, "partTag")?.io?.read, true);
+  assert.equal(CjsSchema.getField(Locator, "partTag")?.type?.kind, "uint32");
+  assert.equal(Locator.from({ partTag: 29 }).partTag, 29);
 
   child.SetPartTag(17);
   parent.SetOwner(owner);
@@ -369,7 +375,8 @@ test("EveChildInstancedMeshes owns shared SOF mesh records without backend state
     [{ effect, batchType: 0, areaIndex: 4, areaCount: 2 }],
     [first, second],
     "hull_alpha",
-    "layout_a"
+    "layout_a",
+    17
   ), true);
   first[12] = 99;
   second[0] = 99;
@@ -377,6 +384,7 @@ test("EveChildInstancedMeshes owns shared SOF mesh records without backend state
   assert.equal(child.GetMeshCount(), 1);
   assert.ok(child.meshes[0] instanceof EveChildInstancedMesh);
   assert.ok(child.meshes[0].areas[0] instanceof EveChildInstancedMeshArea);
+  assert.equal(CjsSchema.getField(EveChildInstancedMeshArea, "effectHash")?.type?.kind, "uint64");
   assert.ok(child.meshes[0].instances[0] instanceof EveChildInstancedMeshInstance);
   assert.deepEqual(child.GetMeshInfo(0), ["res:/extension.gr2", null, 0, true, 2, 1, 2]);
   assert.deepEqual(child.GetAreaInfo(0, 0), [effect, 0, 4, 2]);
@@ -410,6 +418,7 @@ test("EveChildInstancedMeshes owns shared SOF mesh records without backend state
   assert.equal(values.meshes[0].geometryPath, "res:/extension.gr2");
   assert.equal(values.meshes[0].areas[0].areaIndex, 4);
   assert.deepEqual(values.meshes[0].instances[0].transform.slice(12, 15), [1, 2, 3]);
+  assert.deepEqual(values.meshes[0].partTags, [17, 17]);
 
   const restored = EveChildInstancedMeshes.from(values);
   assert.ok(restored.meshes[0] instanceof EveChildInstancedMesh);
@@ -417,17 +426,27 @@ test("EveChildInstancedMeshes owns shared SOF mesh records without backend state
   assert.ok(restored.meshes[0].instances[0] instanceof EveChildInstancedMeshInstance);
   assert.equal(restored.GetMeshCount(), 1);
   assert.deepEqual(Array.from(restored.meshes[0].instances[0].transform.slice(12, 15)), [1, 2, 3]);
+  assert.deepEqual(restored.meshes[0].partTags, [17, 17]);
+  restored.meshes[0].partTags[1] = 18;
+  assert.equal(restored.RemoveInstancesByPartTag(17), true);
+  assert.equal(restored.GetMeshCount(), 1);
+  assert.deepEqual(restored.meshes[0].partTags, [18]);
+  assert.equal(restored.meshes[0].instances[0].sphereIndex, 0);
+  assert.equal(restored.RemoveInstancesByPartTag(18), true);
+  assert.equal(restored.GetMeshCount(), 0);
+  assert.equal(restored.RemoveInstancesByPartTag(17), false);
 });
 
 test("EveChildInstancedMeshes follows Carbon child update semantics", () =>
 {
   const child = new EveChildInstancedMeshes();
+  const updateContext = new EveUpdateContext();
   const parentTransform = mat4.fromTranslation(mat4.create(), [4, 5, 6]);
-  child.UpdateSyncronous({}, { localToWorldTransform: parentTransform });
+  child.UpdateSyncronous(updateContext, { localToWorldTransform: parentTransform });
   parentTransform[12] = 100;
   assert.deepEqual(Array.from(child.GetLocalToWorldTransform().slice(12, 15)), [4, 5, 6]);
   assert.equal(child.hasUpdated, false);
-  child.UpdateAsyncronous();
+  child.UpdateAsyncronous(updateContext, {});
   assert.equal(child.hasUpdated, true);
   assert.equal(child.GetBoundingSphere(), false);
   assert.deepEqual(child.GetRenderables([]), []);
@@ -440,6 +459,7 @@ test("EveChildMesh passes Carbon's LOD screen size and mirrored-winding flag", (
   const child = new EveChildMesh();
   const seen = [];
   child.mesh = {
+    GetBounds: () => null,
     GetAreas: () => [],
     GetBatches(_batches, _areas, _perObjectData, screenSize, reverseWinding)
     {

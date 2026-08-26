@@ -43,8 +43,8 @@ export class TriStepSetViewport extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    if (this.viewport) executor?.SetViewport?.(this.viewport);
-    else executor?.SetFullScreenViewport?.();
+    if (this.viewport) executor.SetViewport(this.viewport);
+    else executor.SetFullScreenViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

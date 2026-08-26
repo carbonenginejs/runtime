@@ -279,18 +279,26 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  /** Carbon method RenderDebugInfo (EveChildSmartLightSet.cpp:180-189). */
+  /** Carbon debug-render fan-out for every light group at every placement. */
   @carbon.method
-  @impl.notImplemented
-  RenderDebugInfo(..._args)
+  @impl.implemented
+  RenderDebugInfo(renderer)
   {
-    throw new Error("EveChildSmartLightSet.RenderDebugInfo is not implemented in CarbonEngineJS.");
+    if (this.display && this.distribution)
+    {
+      const placements = this.distribution.GetPlacementData();
+      const size = this.distribution.GetNumberOfPlacements();
+      for (const group of this.lightGroups)
+      {
+        group.RenderDebugInfo(renderer, placements, size);
+      }
+    }
   }
 
-  /** Advertises the smartLightSets debug option (EveChildSmartLightSet.cpp:210-213); options is a Set-like bag. */
+  /** Advertises the smartLightSets debug option (EveChildSmartLightSet.cpp:210-213). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2DebugRendererOptions is a std::set of option names; the duck-typed bag accepts add or insert.")
+  @impl.reason("A JavaScript Set represents Carbon's Tr2DebugRendererOptions string set.")
   GetDebugOptions(options)
   {
     options.add("smartLightSets");

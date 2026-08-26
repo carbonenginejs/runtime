@@ -5,7 +5,9 @@
 // GetPerObjectData returns and a batch references via SetPerObjectData. The
 // concrete GPU upload path (Carbon SetPerObjectDataToDevice / ApplyConstantBuffers,
 // which write Tr2ConstantBufferAL) is engine-owned and intentionally not modelled
-// here; the engine reads whatever data a concrete subclass exposes at dispatch.
+// here; the engine reads the canonical CjsConstantPayload at dispatch.
+
+import { CjsConstantPayload } from "#contracts";
 
 /**
  * GPU-free base for per-object render data, carrying the object id a batch is
@@ -102,7 +104,7 @@ export class Tr2PerObjectData
 
     for (const payload of Tr2PerObjectData.#payloadsOf(objectData))
     {
-      const stages = payload?.GetLayout?.()?.stages;
+      const stages = payload.GetLayout().stages;
 
       if (!stages) continue;
 
@@ -119,7 +121,12 @@ export class Tr2PerObjectData
 
       if (stageMask)
       {
-        records.push({ stageMask, data: payload.GetData(), struct: payload.GetStruct() });
+        records.push({
+          stageMask,
+          payload,
+          data: payload.GetData(),
+          struct: payload.GetStruct()
+        });
       }
     }
 
@@ -129,7 +136,7 @@ export class Tr2PerObjectData
   /** The payloads carried by a single record or a { vs, ps } pair. */
   static #payloadsOf(objectData)
   {
-    if (typeof objectData.GetLayout === "function") return [ objectData ];
+    if (objectData instanceof CjsConstantPayload) return [ objectData ];
 
     return [ objectData.vs, objectData.ps ].filter(Boolean);
   }

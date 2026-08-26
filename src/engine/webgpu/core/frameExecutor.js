@@ -137,7 +137,7 @@ export class CjsWebgpuFrameExecutor
 
         this.#passEncoder.Encode(commandEncoder, [ {
           descriptor: this.#Descriptor(region, index, frame),
-          configure: (pass) => this.#renderTarget.ApplyViewport(pass, { viewport: region.viewport ?? null }),
+          configure: (pass) => this.#renderTarget.ApplyViewport(pass, region.dynamicState),
           selections
         } ]);
         encodedSelections += selections.length;

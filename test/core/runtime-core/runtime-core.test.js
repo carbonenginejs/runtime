@@ -206,6 +206,22 @@ test("Fetch routes DNA through the configured async SOF facade", async () =>
     ]);
 });
 
+test("InitializeAsync boots configured SOF lazy data when no monolithic path is supplied", async () =>
+{
+    let initializeCount = 0;
+    const spaceObjectFactory = sof({
+        async InitializeAsync()
+        {
+            initializeCount++;
+            return this;
+        }
+    });
+    const library = new CjsLibrary({ spaceObjectFactory });
+
+    assert.equal(await library.InitializeAsync(), library);
+    assert.equal(initializeCount, 1);
+});
+
 test("owned service slots reject structural lookalikes", () =>
 {
     assert.throws(() => new CjsLibrary({ resourceManager: { GetResource() {} } }), /CjsResMan/u);

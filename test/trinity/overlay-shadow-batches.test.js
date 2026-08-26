@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  EveImpactOverlay,
   EveMeshOverlayEffect,
   EveSpaceObject2,
   Tr2Mesh,
   Tr2MeshArea,
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/index.js";
+import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 
@@ -23,6 +25,24 @@ function area(effect, { index = 0, count = 1, castsShadows = true } = {})
   meshArea.SetCount(count);
   meshArea.SetCastsShadows(castsShadows);
   return meshArea;
+}
+
+function geometry(primitiveCount = 1)
+{
+  const resource = new TriGeometryRes().Initialize("res:/geometry/overlay.cmf");
+  resource.SetPayload({
+    version: 1,
+    sourceFormat: "cmf",
+    meshes: [ {
+      minBounds: [ -1, -1, -1 ],
+      maxBounds: [ 1, 1, 1 ],
+      positions: [ -1, -1, 0, 1, -1, 0, 0, 1, 0 ],
+      indices: [ 0, 1, 2 ],
+      lods: [ { maxScreenSize: 1000, areas: [ { firstIndex: 0, primitiveCount } ] } ]
+    } ]
+  });
+  resource.MarkPrepared();
+  return resource;
 }
 
 test("CollectAreaBlocks skips non-shadow-casting OPAQUE areas only", () =>
@@ -81,7 +101,7 @@ test("GetShadowBatches emits one batch per coalesced shared-material block", () 
   );
 });
 
-test("overlay effects route per batch type with the display gate; impact overlay draws last-priority", () =>
+test("overlay effects route per batch type with the display gate; DECAL damage draws last-priority", () =>
 {
   const hullFx = { id: "hull" };
   const overlayFx = { id: "overlay" };
@@ -89,32 +109,37 @@ test("overlay effects route per batch type with the display gate; impact overlay
 
   const object = new EveSpaceObject2();
   object.mesh = new Tr2Mesh();
+  object.mesh.geometry = geometry();
   object.mesh.AddArea(OPAQUE, area(hullFx, { index: 0 }));
 
   const overlay = new EveMeshOverlayEffect();
   overlay.opaqueEffects.push(overlayFx);
   object.overlayEffects.push(overlay);
-  object.impactOverlay = {
-    GetArmorDamageShader()
+  object.impactOverlay = Object.assign(new EveImpactOverlay(), {
+    GetArmorDamageShader(batchType)
     {
-      return damageFx;
+      return batchType === DECAL ? damageFx : null;
     }
-  };
+  });
 
   const accumulator = new TriRenderBatchAccumulator();
   object.GetBatches(accumulator, OPAQUE, null, 0);
 
   const batches = accumulator.GetBatches();
   const ids = batches.map(batch => batch.material.id).sort();
-  assert.deepEqual(ids, [ "damage", "hull", "overlay" ]);
-  const damage = batches.find(batch => batch.material === damageFx);
+  assert.deepEqual(ids, [ "hull", "overlay" ]);
+
+  const damageAccumulator = new TriRenderBatchAccumulator();
+  object.GetBatches(damageAccumulator, DECAL, null, 0);
+  const damage = damageAccumulator.GetBatches().find(batch => batch.material === damageFx);
+  assert.ok(damage);
   assert.equal(damage.priority, 0xFFFFFFFF, "impact overlay draws at maximum priority");
 
   // Hidden overlay contributes nothing (the Carbon display gate).
   overlay.display = false;
   const hidden = new TriRenderBatchAccumulator();
   object.GetBatches(hidden, OPAQUE, null, 0);
-  assert.deepEqual(hidden.GetBatches().map(batch => batch.material.id).sort(), [ "damage", "hull" ]);
+  assert.deepEqual(hidden.GetBatches().map(batch => batch.material.id).sort(), [ "hull" ]);
 });
 
 test("HasTransparentBatches includes the overlay transparent contribution", () =>
@@ -127,6 +152,21 @@ test("HasTransparentBatches includes the overlay transparent contribution", () =
   overlay.transparentEffects.push({ id: "t" });
   object.overlayEffects.push(overlay);
   assert.equal(object.HasTransparentBatches(), true, "overlay with transparent effects counts");
+});
+
+test("overlay blocks with no realized primitives do not commit a batch", () =>
+{
+  const object = new EveSpaceObject2();
+  object.mesh = new Tr2Mesh();
+  object.mesh.geometry = geometry(0);
+  object.mesh.AddArea(OPAQUE, area({ id: "hull" }, { index: 1 }));
+  const overlay = new EveMeshOverlayEffect();
+  overlay.opaqueEffects.push({ id: "overlay" });
+  object.overlayEffects.push(overlay);
+
+  const accumulator = new TriRenderBatchAccumulator();
+  object.GetBatchesFromOverlayVector(accumulator, null, OPAQUE, object.mesh);
+  assert.equal(accumulator.GetBatchCount(), 0);
 });
 
 test("RebuildCachedData refreshes the cached blocks after mesh edits", () =>

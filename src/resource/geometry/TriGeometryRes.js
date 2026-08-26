@@ -10,6 +10,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsResource } from "../CjsResource.js";
+import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import {
   assertResourcePayloadArray,
   assertResourcePayloadObject,
@@ -22,7 +23,7 @@ import {
  * skeletons and animations) and LOD-force metadata, while engine packages
  * decide device buffers, vertex declarations, and draw-time state.
  *
- * Geometry inspection composes the generic math supplied by runtime-utils
+ * Geometry inspection composes the generic math supplied by the runtime global layer
  * with resource-specific payload traversal.
  */
 export class TriGeometryRes extends CjsResource
@@ -30,6 +31,12 @@ export class TriGeometryRes extends CjsResource
   forceLod = false;
   forcedLodIndex = -1;
   name = "";
+
+  #raycastGeometry = null;
+
+  #raycastUsers = 0;
+
+  #raycastPreparationFailed = false;
 
   /** Creates a TriGeometryRes with caller-provided initial state. */
   constructor(values = null)
@@ -51,6 +58,12 @@ export class TriGeometryRes extends CjsResource
    */
   SetPayload(payload = null, options = null)
   {
+    if (this.#raycastUsers !== 0)
+    {
+      throw new Error("TriGeometryRes payload cannot change during an active raycast session.");
+    }
+    this.#raycastGeometry = null;
+    this.#raycastPreparationFailed = false;
     if (payload === null)
     {
       super.SetPayload(null);
@@ -128,6 +141,24 @@ export class TriGeometryRes extends CjsResource
   {
     const mesh = this.GetPayload()?.meshes?.[meshIndex];
     return mesh?.areas?.length || 0;
+  }
+
+  /** Returns one decoded CPU mesh record, or null when the index is absent. */
+  GetMeshData(meshIndex = 0)
+  {
+    return this.GetPayload()?.meshes?.[meshIndex] ?? null;
+  }
+
+  /** Returns the decoded CMF-shaped payload used by Carbon mesh consumers. */
+  GetCMFData()
+  {
+    return this.GetPayload();
+  }
+
+  /** Whether the resident payload has Carbon's CMF mesh collection shape. */
+  IsUsingCMF()
+  {
+    return Array.isArray(this.GetPayload()?.meshes);
   }
 
   // Carbon TriGeometryRes.cpp:294-319. Walks LODs from the LOWEST quality up
@@ -405,6 +436,93 @@ export class TriGeometryRes extends CjsResource
       direction,
       areaIndex
     );
+  }
+
+  /** Opens one borrowed CPU-raycast session over the resident geometry. */
+  PrepareRayCaster()
+  {
+    this.#raycastUsers++;
+    if (this.#raycastGeometry || this.#raycastPreparationFailed) return;
+
+    try
+    {
+      this.RequireIntersectionMeshes();
+      this.#raycastGeometry = new Tr2RaycastGeometryRes().SetSource(this);
+    }
+    catch (_error)
+    {
+      this.#raycastPreparationFailed = true;
+    }
+  }
+
+  /** Closes exactly one raycast session and drops the derived acceleration resource at zero. */
+  ResetRayCaster()
+  {
+    if (this.#raycastUsers === 0)
+    {
+      throw new Error("TriGeometryRes.ResetRayCaster called without a matching PrepareRayCaster.");
+    }
+    this.#raycastUsers--;
+    if (this.#raycastUsers === 0)
+    {
+      this.#raycastGeometry = null;
+      this.#raycastPreparationFailed = false;
+    }
+  }
+
+  /** Reports whether the reference-counted CPU raycast resource is ready. */
+  IsRayCasterReady()
+  {
+    return this.#raycastGeometry !== null;
+  }
+
+  /** Reports whether the current raycast preparation session failed. */
+  HasRayCasterPreparationFailed()
+  {
+    return this.#raycastPreparationFailed;
+  }
+
+  /** Public Carbon query; requires a matching active raycast session. */
+  GetIntersectionPoints(position, direction, result = {}, areaIndex = -1, rayLength = Infinity)
+  {
+    if (!this.#raycastGeometry)
+    {
+      throw new Error("TriGeometryRes.GetIntersectionPoints requires a prepared raycast session.");
+    }
+    return this.#raycastGeometry.GetIntersectionPoints(
+      position, direction, result, areaIndex, rayLength);
+  }
+
+  /** Internal implementation borrowed by Tr2RaycastGeometryRes. */
+  _IntersectRaycastGeometry(position, direction, result, areaIndex, rayLength)
+  {
+    const hit = TriGeometryRes.intersectGeometry(
+      this.RequireIntersectionMeshes(), position, direction, areaIndex);
+    if (!hit.hit) return false;
+
+    const dx = hit.point[0] - position[0];
+    const dy = hit.point[1] - position[1];
+    const dz = hit.point[2] - position[2];
+    const denominator = direction[0] * direction[0] +
+      direction[1] * direction[1] + direction[2] * direction[2];
+    const distance = denominator
+      ? (dx * direction[0] + dy * direction[1] + dz * direction[2]) / denominator
+      : Infinity;
+    if (distance < 0 || distance > rayLength) return false;
+
+    result.distance = distance;
+    result.position = result.position ?? result.point ?? vec3.create();
+    result.point = result.point ?? result.position;
+    result.normal = result.normal ?? vec3.create();
+    result.unnormalizedNormal = result.unnormalizedNormal ?? vec3.create();
+    vec3.copy(result.position, hit.point);
+    vec3.copy(result.point, hit.point);
+    vec3.copy(result.normal, hit.normal);
+    vec3.copy(result.unnormalizedNormal, hit.unnormalizedNormal);
+    result.meshIndex = hit.meshIndex;
+    result.areaIndex = hit.areaIndex;
+    result.boneIndex = hit.boneIndex;
+    return true;
   }
 
   /**
@@ -811,11 +929,15 @@ export class TriGeometryRes extends CjsResource
           );
         }
       }
-      return nearest || {
+      if (nearest) return nearest;
+      const hitPosition = [ 0, 0, 0 ];
+      return {
         hit: false,
         boneIndex: -1,
-        point: [ 0, 0, 0 ],
+        position: hitPosition,
+        point: hitPosition,
         normal: [ 0, 0, 0 ],
+        unnormalizedNormal: [ 0, 0, 0 ],
         distance: Infinity,
         meshIndex: -1,
         areaIndex
@@ -910,18 +1032,30 @@ export class TriGeometryRes extends CjsResource
       if (nearest && nearest.distance <= distance) continue;
       if (!nearest)
       {
+        const hitPosition = [ 0, 0, 0 ];
         nearest = {
           hit: true,
           boneIndex: -1,
-          point: [ 0, 0, 0 ],
+          position: hitPosition,
+          point: hitPosition,
           normal: [ 0, 0, 0 ],
+          unnormalizedNormal: [ 0, 0, 0 ],
           distance,
           meshIndex,
           areaIndex
         };
       }
       nearest.boneIndex = this.getMeshBoneIndex(mesh, vertexIndexA);
-      vec3.copy(nearest.point, point);
+      vec3.copy(nearest.position, point);
+      nearest.unnormalizedNormal[0] =
+        (vertexB[1] - vertexA[1]) * (vertexC[2] - vertexA[2]) -
+        (vertexB[2] - vertexA[2]) * (vertexC[1] - vertexA[1]);
+      nearest.unnormalizedNormal[1] =
+        (vertexB[2] - vertexA[2]) * (vertexC[0] - vertexA[0]) -
+        (vertexB[0] - vertexA[0]) * (vertexC[2] - vertexA[2]);
+      nearest.unnormalizedNormal[2] =
+        (vertexB[0] - vertexA[0]) * (vertexC[1] - vertexA[1]) -
+        (vertexB[1] - vertexA[1]) * (vertexC[0] - vertexA[0]);
       triangleNormalTo(normal, vertexA, vertexB, vertexC);
       vec3.copy(nearest.normal, normal);
       nearest.distance = distance;
@@ -1009,6 +1143,11 @@ CjsSchema.define(TriGeometryRes, {
     Reload: [ carbon.method, impl.notSupported ],
     GetIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
     GetAreaIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
+    PrepareRayCaster: [ carbon.method, impl.adapted ],
+    ResetRayCaster: [ carbon.method, impl.adapted ],
+    IsRayCasterReady: [ carbon.method, impl.adapted ],
+    HasRayCasterPreparationFailed: [ carbon.method, impl.adapted ],
+    GetIntersectionPoints: [ carbon.method, impl.adapted ],
     GetMeshVertexElements: [ carbon.method, impl.adapted ],
     SaveMesh: [ carbon.method, impl.notSupported ]
   }

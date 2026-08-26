@@ -90,7 +90,10 @@ function morphAnimation(name, value)
 test("Tr2GrannyAnimation builds and samples browser bone matrices", () =>
 {
   const animation = new Tr2GrannyAnimation();
+  assert.equal(animation.resPath, "");
+  assert.equal(animation.model, "");
   animation.model_ = "Ship";
+  assert.equal(animation.model, "Ship");
   assert.equal(animation.SetGrannyResource(createResource()), true);
   assert.equal(animation.IsInitialized(), true);
   assert.ok(animation.boneOffset instanceof GrannyBoneOffset);

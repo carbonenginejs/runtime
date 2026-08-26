@@ -5,6 +5,16 @@ Scope: `@carbonenginejs/runtime/sof` classes under `src/sof/`
 Audience: Users, maintainers, and automated readers
 Summary: Provides one-sentence purpose descriptors for SOF builder, DNA, catalog, manager, internal document-builder, and layout-planner helper classes.
 
+<!-- class:CjsSofLibraryBuilder -->
+## `CjsSofLibraryBuilder`
+
+Builds and grows a serializable partial SOF catalog from `generic.black` and individually requested named Black records, publishing each record into an `EveSOFDataMgr`.
+
+- Export: `@carbonenginejs/runtime/sof`
+- Source: `src/sof/CjsSofLibraryBuilder.js`
+- Visibility: Public
+- Kind: CarbonEngineJS implementation helper
+
 <!-- class:EveSOF -->
 ## `EveSOF`
 

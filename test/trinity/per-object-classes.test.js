@@ -26,6 +26,8 @@ test("getConstantRecords binds a vs payload to the whole non-pixel family", () =
   const records = Tr2PerObjectData.getConstantRecords(payload, GS);
   assert.equal(records.length, 1);
   assert.equal(records[0].stageMask, GS, "bound to the stage the technique actually has");
+  assert.equal(records[0].payload, payload, "the engine receives the canonical dirty-lifecycle owner");
+  assert.equal(records[0].data, payload.GetData());
   assert.equal(records[0].struct, "Only");
 
   assert.deepEqual(Tr2PerObjectData.getConstantRecords(payload, PS), [],

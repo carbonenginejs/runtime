@@ -11,6 +11,7 @@ import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../core/batch/Tr2RenderBatch.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
 import { Tr2RenderReason, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 // Carbon std::numeric_limits<float>::max() (cpp:916). The renderable-side sort
 // value is a finite float32, NOT Infinity - downstream distance sums must stay
@@ -104,7 +105,7 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @type.define({ className: "EveChildCloud2", family: "eve/child" })
-export class EveChildCloud2 extends EveSpaceObjectChild
+export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */

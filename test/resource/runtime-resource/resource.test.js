@@ -2217,8 +2217,10 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
     {
       hit: true,
       boneIndex: 7,
+      position: [ 0.25, 0.25, 0 ],
       point: [ 0.25, 0.25, 0 ],
       normal: [ 0, 0, 1 ],
+      unnormalizedNormal: [ 0, 0, 1 ],
       distance: 1,
       meshIndex: 0,
       areaIndex: 0

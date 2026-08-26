@@ -63,12 +63,12 @@ export class Tr2DepthStencil extends CjsModel
     throw new Error("Tr2DepthStencil.Create is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method HasALObject (MAP_METHOD_AND_WRAP). */
+  /** Carbon Tr2DepthStencil::HasALObject always reports false (cpp:124-127). */
   @carbon.method
-  @impl.notImplemented
-  HasALObject(...args)
+  @impl.implemented
+  HasALObject(_type, _object)
   {
-    throw new Error("Tr2DepthStencil.HasALObject is not implemented in CarbonEngineJS.");
+    return false;
   }
 
   /** Carbon method sharedHandle -> GetSharedHandle (MAP_METHOD_AND_WRAP). */

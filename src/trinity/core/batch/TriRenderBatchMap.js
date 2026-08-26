@@ -91,10 +91,10 @@ export class TriRenderBatchMap
     {
       if (!renderable) continue;
 
-      const perObjectData = renderable.GetPerObjectData?.(poolAccumulator) ?? null;
+      const perObjectData = renderable.GetPerObjectData(poolAccumulator);
       for (const [ batchType, accumulator ] of this.accumulators)
       {
-        renderable.GetBatches?.(accumulator, batchType, perObjectData, reason);
+        renderable.GetBatches(accumulator, batchType, perObjectData, reason);
       }
     }
   }

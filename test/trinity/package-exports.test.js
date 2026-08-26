@@ -18,7 +18,6 @@ test("published package resolves root, family, and deep generated exports", () =
     const packageRoot = await import("@carbonenginejs/runtime/trinity");
     const eve = await import("@carbonenginejs/runtime/trinity/generated/eve");
     const generatedChild = await import("@carbonenginejs/runtime/trinity/generated/eve/child");
-    const child = await import("@carbonenginejs/runtime/trinity/generated/eve/child/EveChildCloud.js");
     const eveFamily = await import("@carbonenginejs/runtime/trinity/eve");
     const renderStep = await import("@carbonenginejs/runtime/trinity/generated/renderJob/TriStepRemoteUpdate.js");
     const promoted = await import("@carbonenginejs/runtime/trinity/renderJob");
@@ -32,7 +31,8 @@ test("published package resolves root, family, and deep generated exports", () =
     if (!packageRoot.Tr2Effect || !packageRoot.TriVectorSequencer || !packageRoot.TriColorSequencer ||
         !packageRoot.Tr2PostProcess || !packageRoot.EveSprite2dBracket || !packageRoot.Tr2Sprite2dRenderJob ||
         !eveFamily.EveChildRef || !eveFamily.EveChildLineSet ||
-        generatedChild.EveChildCloud !== child.EveChildCloud || !renderStep.TriStepRemoteUpdate ||
+        packageRoot.EveChildCloud !== eveFamily.EveChildCloud || "EveChildCloud" in generatedChild ||
+        !renderStep.TriStepRemoteUpdate ||
         !promoted.TriStepFilterVisibilityResults || !promoted.TriStepRenderScene ||
         !perFrame.CjsPerFrameLayouts || !perObject.CjsPerObjectLayouts ||
         packageRoot.CjsTrinityBatchResolver !== core.CjsTrinityBatchResolver ||
@@ -87,7 +87,8 @@ test("published package resolves root, family, and deep generated exports", () =
     }
     for (const hiddenPath of [
       "@carbonenginejs/runtime/trinity/generated/eve/EveDamageOverlay.js",
-      "@carbonenginejs/runtime/trinity/generated/eve/EveModularObjectModifier.js"
+      "@carbonenginejs/runtime/trinity/generated/eve/EveModularObjectModifier.js",
+      "@carbonenginejs/runtime/trinity/generated/eve/child/EveChildCloud.js"
     ])
     {
       let importError = null;

@@ -175,11 +175,7 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
         const name = GetMemberName(member);
         if (name) methods.set(name, { hasCarbon: HasDecorator(member, "carbon", "method") });
       }
-      const localBase = declaration.superClass?.type === "Identifier"
-        ? declaration.superClass.name
-        : declaration.superClass?.type === "MemberExpression" && !declaration.superClass.computed
-          ? declaration.superClass.property?.name ?? null
-          : null;
+      const localBase = GetSuperClassName(declaration.superClass);
       const baseClass = localBase ? imports.get(localBase) ?? localBase : null;
       const record = { className, baseClass, methods, file: relativeFile };
       const existing = records.get(className);
@@ -187,6 +183,28 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
     }
   }
   return records;
+}
+
+/**
+ * Resolves the inherited class through ordinary and contract-mixin forms.
+ * A mixin such as withITr2BoundingBox(Tr2Transform) adds obligations without
+ * replacing the concrete method owner represented by its first argument.
+ *
+ * @param {object|null} expression
+ * @returns {string|null}
+ */
+function GetSuperClassName(expression)
+{
+  if (expression?.type === "Identifier") return expression.name;
+  if (expression?.type === "MemberExpression" && !expression.computed)
+  {
+    return expression.property?.name ?? null;
+  }
+  if (expression?.type === "CallExpression")
+  {
+    return GetSuperClassName(expression.arguments?.[0] ?? null);
+  }
+  return null;
 }
 
 /** @param {object} ast */

@@ -70,6 +70,29 @@ export class EveChildInstanceContainer extends EveChildTransform
   @type.enum("Origin")
   origin = 0;
 
+  /** Propagates the owning space object to the source and live instances. */
+  @carbon.method
+  @impl.implemented
+  SetOwner(owner)
+  {
+    if (this.GetOwner() === owner) return;
+    super.SetOwner(owner);
+    for (const child of this.instances) child.SetOwner(owner);
+    if (this.source) this.source.SetOwner(owner);
+  }
+
+  /** Propagates a modular part tag to the source and live instances. */
+  @carbon.method
+  @impl.implemented
+  SetPartTag(tag)
+  {
+    const next = Number(tag) >>> 0;
+    if (this.GetPartTag() === next) return;
+    super.SetPartTag(next);
+    for (const child of this.instances) child.SetPartTag(next);
+    if (this.source) this.source.SetPartTag(next);
+  }
+
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented

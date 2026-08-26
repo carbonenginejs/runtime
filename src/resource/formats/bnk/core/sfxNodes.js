@@ -118,7 +118,7 @@ export function parseSfxAttenuation(
  * Decodes typed SFX nodes, events, and actions across inspected v150 banks.
  *
  * Raw Wwise identities and semantics are preserved. Runtime schema lowering
- * and optional authoring-name enrichment belong to runtime-audio's builder.
+ * and optional authoring-name enrichment belong to the runtime audio builder.
  */
 export function sfxNodesFromBanks(inspections)
 {

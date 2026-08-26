@@ -5,6 +5,7 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Carbon PARTICLE_CLUSTER_MIN_SIZE (EveSceneStaticParticles.cpp:14, a
  * file-scope const - NOT in the header): the pixel-size floor, scaled by the
@@ -40,7 +41,7 @@ function randomGauss(random, deviation)
  * instanced mesh.
  */
 @type.define({ className: "EveSceneStaticParticles", family: "eve/scene" })
-export class EveSceneStaticParticles extends CjsModel
+export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
 {
 
   /** Carbon ClusterData records retained on the CPU. */

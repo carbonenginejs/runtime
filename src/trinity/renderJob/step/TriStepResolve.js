@@ -43,16 +43,13 @@ export class TriStepResolve extends TriRenderStep
   Execute(_realTime, _simTime, executor)
   {
     if (!this.source || !this.destination) return TriRenderJob.StepResult.RS_OK;
-    if (executor?.IsRenderTargetValid)
+    if (!executor.IsRenderTargetValid(this.source) || !executor.IsRenderTargetValid(this.destination))
     {
-      if (!executor.IsRenderTargetValid(this.source) || !executor.IsRenderTargetValid(this.destination))
-      {
-        return TriRenderJob.StepResult.RS_OK;
-      }
+      return TriRenderJob.StepResult.RS_OK;
     }
-    const resolved = executor?.ResolveRenderTarget?.(this.source, this.destination);
+    const resolved = executor.ResolveRenderTarget(this.source, this.destination);
     if (resolved === false) return TriRenderJob.StepResult.RS_FAILED;
-    if (this.generateMipmap) executor?.GenerateMipMaps?.(this.destination);
+    if (this.generateMipmap) executor.GenerateMipMaps(this.destination);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

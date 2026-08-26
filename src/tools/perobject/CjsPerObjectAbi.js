@@ -1,19 +1,19 @@
-// Carbon per-object constant-buffer ABI, sourced from runtime-trinity.
+// Carbon per-object constant-buffer ABI, sourced from the runtime Trinity layer.
 //
-// The layouts themselves are NOT declared here. `runtime-trinity` owns them, in
-// `CjsPerObjectLayouts`, and this module imports that one leaf file through the
-// package's narrow `./perobject` subpath - it has no imports of its own, so
-// nothing else in runtime-trinity comes with it.
+// The layouts themselves are NOT declared here. `runtime/src/trinity` owns
+// them in `CjsPerObjectLayouts`, and this module imports that one leaf through
+// the narrow internal per-object subpath. The leaf has no imports of its own,
+// so the rest of the Trinity layer does not come with it.
 //
 // This file adds only what a TOOL needs and a runtime does not:
 //
 //   - the HLSL names a shader declares, for naming an anonymous `cbN[i]` slot
 //   - the constant-buffer register each stage binds to
 //   - byte-level geometry (byte offsets, register/component positions), which
-//     runtime-trinity has no use for because it writes through named fields
+//     the Trinity layer has no use for because it writes through named fields
 //
 // This module previously carried a second copy of the layouts, kept in step
-// with runtime-trinity's by a test. That fork is gone.
+// with the former `runtime-trinity` donor's by a test. That fork is gone.
 
 import { CjsPerObjectLayouts } from "#trinity/perobject";
 
@@ -24,8 +24,8 @@ export const CjsPerObjectTypes = CjsPerObjectLayouts.Types;
 
 /**
  * Bytes per declared type, and the encoder kind that writes it. Sizes are
- * derived rather than declared: a type's float count is runtime-trinity's, so
- * the two cannot disagree.
+ * derived rather than declared: a type's float count comes from the Trinity
+ * layout catalog, so the two cannot disagree.
  */
 export const CjsPerObjectFieldType = Object.freeze({
     matrix4: { floats: 16, bytes: 64 },
@@ -112,7 +112,7 @@ export function perObjectStructNames()
 
 
 /**
- * One struct's ABI: runtime-trinity's layout plus this package's byte-level
+ * One struct's ABI: the Trinity layout plus the tools layer's byte-level
  * geometry and shader-side names. Null when the struct is not catalogued -
  * callers must treat that as "not covered" and fail rather than guess.
  */

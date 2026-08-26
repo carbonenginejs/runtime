@@ -4,7 +4,9 @@ import {
     CjsBackendCandidate,
     CjsConstantPayload,
     CjsFrameLifecycle,
-    CjsScriptCallback
+    CjsInstancedMeshManager,
+    CjsScriptCallback,
+    ITr2BoundingBox
 } from "@carbonenginejs/runtime/contracts";
 import { CjsSchema } from "@carbonenginejs/runtime/schema";
 
@@ -14,6 +16,8 @@ test("required contract roots carry abstract implementation metadata", () =>
         [ CjsBackendCandidate, [ "Prove" ] ],
         [ CjsConstantPayload, [ "GetData", "IsDirty", "ClearDirty" ] ],
         [ CjsFrameLifecycle, [ "Throttle", "SyncToGpu", "GetViewport", "BeginProfileFrame", "EndProfileFrame", "ReserveQuadListIndexBuffer" ] ],
+        [ CjsInstancedMeshManager, [ "AddPerObjectData", "AddBoundingSphereGroup", "AddMeshGroup", "SetSphereGroupBounds", "RemoveMeshGroup", "RemoveBoundingSphereGroup", "RemovePerObjectData" ] ],
+        [ ITr2BoundingBox, [ "GetWorldBoundingBox", "IsBoundingBoxReady" ] ],
         [ CjsScriptCallback, [ "Call", "CallVoid" ] ]
     ])
     {
@@ -22,6 +26,22 @@ test("required contract roots carry abstract implementation metadata", () =>
             assert.equal(CjsSchema.getMethod(Constructor, method)?.impl?.status, "abstract");
         }
     }
+});
+
+test("Trinity engine and bounding-box contracts fail loudly at their roots", () =>
+{
+    const manager = new CjsInstancedMeshManager();
+    assert.throws(() => manager.AddPerObjectData({}), /CjsInstancedMeshManager\.AddPerObjectData/u);
+    assert.throws(() => manager.AddBoundingSphereGroup([], [], [], 0), /CjsInstancedMeshManager\.AddBoundingSphereGroup/u);
+    assert.throws(() => manager.AddMeshGroup(), /CjsInstancedMeshManager\.AddMeshGroup/u);
+    assert.throws(() => manager.SetSphereGroupBounds(0, [], []), /CjsInstancedMeshManager\.SetSphereGroupBounds/u);
+    assert.throws(() => manager.RemoveMeshGroup(0), /CjsInstancedMeshManager\.RemoveMeshGroup/u);
+    assert.throws(() => manager.RemoveBoundingSphereGroup(0), /CjsInstancedMeshManager\.RemoveBoundingSphereGroup/u);
+    assert.throws(() => manager.RemovePerObjectData(0), /CjsInstancedMeshManager\.RemovePerObjectData/u);
+
+    const bounds = new ITr2BoundingBox();
+    assert.throws(() => bounds.GetWorldBoundingBox([], []), /ITr2BoundingBox\.GetWorldBoundingBox/u);
+    assert.throws(() => bounds.IsBoundingBoxReady(), /ITr2BoundingBox\.IsBoundingBoxReady/u);
 });
 
 test("backend candidates require a concrete proof implementation", async () =>

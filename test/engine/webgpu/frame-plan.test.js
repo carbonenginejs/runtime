@@ -94,24 +94,94 @@ test("PlanFrame cuts a region when the attachments change", () =>
   assert.equal(plan.regions[1].target.depthStencil, "depth", "depth survives a colour-target change");
 });
 
-test("PlanFrame keeps state with the work it applies to, and forces no boundary", () =>
+test("PlanFrame snapshots the live viewport shape for the render region", () =>
 {
   const plan = PlanFrame([ segment(
-    { type: "set-viewport", x: 0, y: 0 },
-    { type: "apply-standard-states", mode: 1 },
+    {
+      type: "set-viewport",
+      viewport: { x: 10, y: 20, width: 100, height: 50, minZ: 0.25, maxZ: 0.75 }
+    },
+    draw("a")
+  ) ]);
+
+  assert.deepEqual(kinds(plan), [ IntentClass.RENDER ]);
+  assert.deepEqual(plan.regions[0].intents.map(intent => intent.type), [ "render-object" ]);
+  assert.deepEqual(plan.regions[0].dynamicState, {
+    viewport: {
+      x: 10,
+      y: 20,
+      width: 100,
+      height: 50,
+      minDepth: 0.25,
+      maxDepth: 0.75
+    },
+    scissor: null
+  });
+  assert.equal(Object.isFrozen(plan.regions[0].dynamicState), true);
+  assert.equal(Object.isFrozen(plan.regions[0].dynamicState.viewport), true);
+});
+
+test("PlanFrame cuts a render region when the viewport changes after a draw", () =>
+{
+  const viewport = { x: 5, y: 6, width: 70, height: 80, minZ: 0, maxZ: 1 };
+  const plan = PlanFrame([ segment(
     draw("a"),
-    { type: "set-render-state", state: 7, value: 1 },
+    { type: "set-viewport", viewport },
     draw("b")
   ) ]);
 
-  assert.deepEqual(kinds(plan), [ IntentClass.RENDER ], "state alone never cuts a pass");
-  assert.deepEqual(plan.regions[0].intents.map(intent => intent.type), [
-    "set-viewport",
-    "apply-standard-states",
-    "render-object",
-    "set-render-state",
-    "render-object"
-  ]);
+  assert.deepEqual(kinds(plan), [ IntentClass.RENDER, IntentClass.RENDER ]);
+  assert.equal(plan.regions[0].dynamicState.viewport, null);
+  assert.deepEqual(plan.regions[1].dynamicState.viewport, {
+    x: 5,
+    y: 6,
+    width: 70,
+    height: 80,
+    minDepth: 0,
+    maxDepth: 1
+  });
+  assert.deepEqual(plan.regions.map(region => region.intents.map(intent => intent.renderable)), [ [ "a" ], [ "b" ] ]);
+});
+
+test("PlanFrame preserves a viewport across compute and later render regions", () =>
+{
+  const plan = PlanFrame([ segment(
+    { type: "set-viewport", viewport: { x: 1, y: 2, width: 30, height: 40 } },
+    draw("a"),
+    { type: "run-compute-shader", effect: "cs", groupDimX: 1, groupDimY: 1, groupDimZ: 1 },
+    draw("b")
+  ) ]);
+
+  assert.deepEqual(kinds(plan), [ IntentClass.RENDER, IntentClass.COMPUTE, IntentClass.RENDER ]);
+  assert.deepEqual(plan.regions[0].dynamicState, plan.regions[2].dynamicState);
+});
+
+test("PlanFrame restores the full target after a fullscreen viewport intent", () =>
+{
+  const plan = PlanFrame([ segment(
+    { type: "set-viewport", viewport: { x: 1, y: 2, width: 30, height: 40 } },
+    { type: "set-fullscreen-viewport" },
+    draw("a")
+  ) ]);
+
+  assert.deepEqual(plan.regions[0].dynamicState, { viewport: null, scissor: null });
+});
+
+test("PlanFrame refuses pipeline state until a WebGPU translator exists", () =>
+{
+  const intents = [
+    { type: "set-render-state", state: 7, value: 1 },
+    { type: "apply-standard-states", renderingMode: 1 },
+    { type: "set-wireframe-rendering", enabled: true }
+  ];
+
+  for (const intent of intents)
+  {
+    assert.throws(
+      () => PlanFrame([ segment(intent, draw("a")) ]),
+      error => error.message.includes(intent.type) && error.message.includes("pipeline-state translator")
+    );
+  }
 });
 
 test("PlanFrame emits nothing for a frame that only changed state", () =>

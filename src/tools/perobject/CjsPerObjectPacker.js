@@ -8,7 +8,7 @@
 //
 // HISTORY (2026-07-28): this began as the packer `RawDataStore` required and no
 // package supplied. That requirement is gone, and so is the seam it filled -
-// runtime-trinity computes the offsets itself from `CjsPerObjectLayouts`,
+// the Trinity layer computes the offsets itself from `CjsPerObjectLayouts`,
 // because the physical layout turned out not to be backend-specific (WGSL
 // declares `array<vec4<f32>, N>`, GLSL declares `vec4 cbN[N]` or a std140 block
 // wrapping `vec4 data[N]`, and std140's stride for an array of vec4 matches
@@ -273,8 +273,8 @@ export class CjsPerObjectPacker
      * looking right (carbon-math-conventions F6). `CjsPerObjectSynthesizer`
      * reports its convention on every result.
      *
-     * runtime-trinity has no equivalent choice: its records are always
-     * GPU-form, and `SetAndTranspose`/`GetTransposed` are the only matrix
+     * Trinity has no equivalent choice: its records are always GPU-form, and
+     * `SetAndTranspose`/`GetTransposed` are the only matrix
      * accessors. This option exists because a tool may be handed either.
      *
      * Unwritten fields are ZERO here, which is a deliberate deviation: Carbon

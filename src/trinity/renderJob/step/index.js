@@ -1,4 +1,5 @@
 export * from "./TriRenderStep.js";
+export * from "./Tr2StepExecuteRenderNode.js";
 export * from "./TriStepClear.js";
 export * from "./TriStepClearUav.js";
 export * from "./TriStepCopyRenderTarget.js";

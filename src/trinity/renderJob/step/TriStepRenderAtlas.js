@@ -71,7 +71,7 @@ export class TriStepRenderAtlas extends TriRenderStep
   @impl.adapted
   Execute(_realTime, _simTime, executor)
   {
-    if (this.atlas) executor?.RenderAtlas?.(this);
+    if (this.atlas) executor.RenderAtlas(this);
     return TriRenderStep.Result.RS_OK;
   }
 

@@ -89,7 +89,7 @@ export class CjsLightData extends CjsModel
  *
  * The 2026-07-23 flatten decision makes the flat decorated fields the real
  * storage on every light parent; this view keeps the Carbon
- * `GetLightData() -> const LightData&` surface (and the runtime-sof
+ * `GetLightData() -> const LightData&` surface (and the SOF layer's
  * separate-node hydration contract) alive by redirecting the owner's
  * flattened field names into the owner. Fields the owner does not flatten
  * keep their own constructor-default storage on the view.
@@ -120,7 +120,7 @@ export function createCjsLightDataView(owner, fieldNames)
 
 /**
  * Routes a nested `lightData` value bag (the pre-flatten hydration shape,
- * still emitted by runtime-sof) into the owner's flattened fields, then
+ * still emitted by the SOF layer) into the owner's flattened fields, then
  * applies everything through one schema-backed SetValues pass. Explicit flat
  * keys win over the nested bag.
  */

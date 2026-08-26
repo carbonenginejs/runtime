@@ -8,6 +8,12 @@ import { carbon, impl, io, type } from "#schema";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { RawData } from "../../core/rawData/RawData.js";
+import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
+import {
+  CollectInstancedOverlayAreaBlocks,
+  EmitOverlayBatches
+} from "../overlays/overlayBatches.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /** Carbon EveInstancedMeshManager::InstanceFlags (EveInstancedMeshManager.h:
  * 13-26, cpp:998-1048): a uint32 bitfield - bit (1 << batchType) per present
@@ -16,6 +22,12 @@ export const INSTANCE_FLAG_CASTS_SHADOW = 0x40000000;
 export const INSTANCE_FLAG_RENDER_IN_REFLECTION = 0x80000000;
 
 const POSITION_SCRATCH = vec3.create();
+const OVERLAY_LOCAL_SCRATCH = mat4.create();
+const OVERLAY_WORLD_SCRATCH = mat4.create();
+const OVERLAY_WORLD_LAST_SCRATCH = mat4.create();
+const OVERLAY_INV_WORLD_SCRATCH = mat4.create();
+const OVERLAY_INV_LOCAL_SCRATCH = mat4.create();
+const OVERLAY_CLIP_SCRATCH = vec3.create();
 
 
 /**
@@ -47,12 +59,11 @@ export class EveChildInstancedMeshArea extends CjsModel
   areaCount = 1;
 
   @io.read
-  @type.float32
+  @type.uint64
   effectHash = 0;
 
-  /** Carbon MeshArea::meshGroupHandle (EveChildInstancedMeshes.h:72) - the
-   * manager registration handle; runtime state, not persisted. Truthy handles
-   * carry .owner for the removal routing (EveInstancedMeshManager.h:41-72). */
+  /** Carbon MeshArea::meshGroupHandle (EveChildInstancedMeshes.h:72) - an
+   * opaque manager registration handle; runtime state, not persisted. */
   meshGroupHandle = null;
 }
 
@@ -108,6 +119,11 @@ export class EveChildInstancedMesh extends CjsModel
   @type.list("EveChildInstancedMeshInstance")
   instances = [];
 
+  /** Carbon's one-to-one modular ownership tag array for instances. */
+  @io.persist
+  @type.array("uint32")
+  partTags = [];
+
   @io.persist
   @type.string
   sofHullName = "";
@@ -119,6 +135,20 @@ export class EveChildInstancedMesh extends CjsModel
   @io.persist
   @type.boolean
   display = true;
+
+  @io.persist
+  @type.boolean
+  inheritOverlayEffects = true;
+
+  @io.persist
+  @type.list("EveMeshOverlayEffect")
+  ownOverlayEffects = [];
+
+  overlayAreaBlocks = [ [], [] ];
+
+  overlayAreaBlocksBuilt = false;
+
+  overlayPods = null;
 
   /** Carbon Mesh::sphereHandle (h:110) - manager registration handle;
    * runtime state, not persisted. */
@@ -166,7 +196,7 @@ export class EveChildInstancedMesh extends CjsModel
  * world cull bounds.
  */
 @type.define({ className: "EveChildInstancedMeshes", family: "eve/child" })
-export class EveChildInstancedMeshes extends EveSpaceObjectChild
+export class EveChildInstancedMeshes extends withITr2Renderable(EveSpaceObjectChild)
 {
   @io.persist
   @type.string
@@ -195,7 +225,23 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    */
   #perObjectData = RawData.create("EveSpacePerObjectData");
 
+  /** Base-hull record used by meshes that opt out of the parent's clip. */
+  #perObjectDataNoClip = RawData.create("EveSpacePerObjectData");
+
+  #perObjectDataNoClipHandle = null;
+
+  /** Engine manager that owns every currently retained opaque handle. */
+  #meshManager = null;
+
+  #parentOverlayEffects = null;
+
+  #lastCameraFrustum = null;
+
+  #lastInvLodFactor = 1;
+
   static #inverseScratch = mat4.create();
+
+  static #customMaskScratch = mat4.create();
 
   /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49). */
   static CUSTOM_MASK_COUNT = 2;
@@ -231,8 +277,10 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    */
   @carbon.method
   @impl.adapted
-  UpdateVisibility()
+  UpdateVisibility(updateContext)
   {
+    this.#lastCameraFrustum = updateContext.GetFrustum();
+    this.#lastInvLodFactor = updateContext.GetInvLodFactor();
   }
 
   /**
@@ -244,6 +292,12 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   @impl.implemented
   GetRenderables(renderables = [])
   {
+    if (this.hasUpdated &&
+      ((this.#parentOverlayEffects?.length && this.#AnyMeshInheritsOverlayEffects()) ||
+        this.#HasAnyOwnOverlayEffects()))
+    {
+      renderables.push(this);
+    }
     return renderables;
   }
 
@@ -270,8 +324,10 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   {
     const record = this.#perObjectData;
 
-    // cpp:211: the STORED (already transposed) transform rolls into last.
-    record.SetAndTranspose("worldTransformLast", record.GetTransposed("worldTransform"));
+    // Recover the previous logical transform from its stored transposed bytes,
+    // then encode it into worldTransformLast.
+    mat4.transpose(EveChildInstancedMeshes.#inverseScratch, record.GetTransposed("worldTransform"));
+    record.SetAndTranspose("worldTransformLast", EveChildInstancedMeshes.#inverseScratch);
     record.SetAndTranspose("worldTransform", this.worldTransform);
 
     // cpp:214 inverts the transposed matrix; by carbon-math-conventions F2 that
@@ -283,9 +339,10 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     }
     record.SetAndTranspose("invWorldTransform", inverse);
 
-    if (typeof parent?.GetPerObjectStructs !== "function")
+    if (!parent)
     {
-      return;
+      this.#perObjectDataNoClip.CopyFrom(record);
+      return { vs: RawData.create("EveSpaceObjectVSData"), ps: RawData.create("EveSpaceObjectPSData") };
     }
 
     const { vs, ps } = parent.GetPerObjectStructs();
@@ -304,7 +361,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
     for (let slot = 0; slot < EveChildInstancedMeshes.CUSTOM_MASK_COUNT; slot++)
     {
-      record.SetAndTransposeIndex("customMaskMatrix", slot, vs.GetTransposedIndex("customMaskMatrix", slot));
+      mat4.transpose(
+        EveChildInstancedMeshes.#customMaskScratch,
+        vs.GetTransposedIndex("customMaskMatrix", slot));
+      record.SetAndTransposeIndex(
+        "customMaskMatrix", slot, EveChildInstancedMeshes.#customMaskScratch);
       record.SetIndex("customMaskData", slot, vs.GetIndex("customMaskData", slot));
       record.SetIndex("customMaskMaterialIDs", slot, ps.GetIndex("customMaskMaterialIDs", slot));
       record.SetIndex("customMaskTargets", slot, ps.GetIndex("customMaskTargets", slot));
@@ -312,6 +373,13 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
     // cpp:238: the PS record's coefficients land in the record's shLighting.
     record.Set("shLighting", ps.Get("shLightingCoefficients"));
+
+    this.#perObjectDataNoClip.CopyFrom(record);
+    this.#perObjectDataNoClip.Set("clipRadiusSq", [ 0 ]);
+    this.#perObjectDataNoClip.Set("clipRadius2Sq", [ 0 ]);
+    this.#perObjectDataNoClip.Set("clipSphereFactor", [ 0 ]);
+    this.#perObjectDataNoClip.Set("clipSphereFactor2", [ 0 ]);
+    return { vs, ps };
   }
 
   /**
@@ -321,11 +389,17 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    */
   @carbon.method
   @impl.implemented
-  UpdateSyncronous(_updateContext, params)
+  UpdateSyncronous(updateContext, params)
   {
     if (params?.localToWorldTransform?.length === 16)
     {
       mat4.copy(this.worldTransform, params.localToWorldTransform);
+    }
+
+    const time = updateContext.GetTime();
+    for (const mesh of this.meshes)
+    {
+      for (const overlay of mesh.ownOverlayEffects) overlay.Update(time, time);
     }
   }
 
@@ -345,8 +419,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   @carbon.method
   @impl.adapted
   @impl.reason("Trinity owns the CPU per-object field copy; the raytracing mesh build (cpp:283-327) remains engine-owned. Mesh bounds come from a GetMeshData duck ({minBounds, maxBounds}) and meshes without one are skipped fail-closed.")
-  UpdateAsyncronous(_updateContext, _params)
+  UpdateAsyncronous(_updateContext, params)
   {
+    const previousWorldTransform = mat4.create();
+    mat4.transpose(previousWorldTransform, this.#perObjectData.GetTransposed("worldTransform"));
+    const parentRecords = this.#UpdatePerObjectData(params?.spaceObjectParent ?? null);
     const w = this.worldTransform;
     // cpp:240-242 - worldScale from the world transform's basis rows.
     const worldScale = Math.max(
@@ -358,7 +435,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     for (const mesh of this.meshes)
     {
       const geometry = mesh.GetGeometryResource();
-      if (!geometry || geometry.IsGood?.() === false)
+      if (!geometry || geometry.IsGood() === false)
       {
         continue;
       }
@@ -368,9 +445,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         ? (mesh.flags | INSTANCE_FLAG_RENDER_IN_REFLECTION) >>> 0
         : (mesh.flags & ~INSTANCE_FLAG_RENDER_IN_REFLECTION) >>> 0;
 
-      const meshData = geometry.GetMeshData?.(mesh.meshIndex);
-      const minBounds = meshData?.minBounds ?? meshData?.m_minBounds;
-      const maxBounds = meshData?.maxBounds ?? meshData?.m_maxBounds;
+      const meshData = geometry.GetMeshData(mesh.meshIndex);
+      const minBounds = meshData.minBounds;
+      const maxBounds = meshData.maxBounds;
       if (!minBounds || !maxBounds)
       {
         continue;
@@ -428,14 +505,103 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
           Math.hypot(boundsMaxX - boundsMinX, boundsMaxY - boundsMinY, boundsMaxZ - boundsMinZ) * 0.5;
 
         // cpp:272-278 - live refresh of a registered sphere group.
-        if (mesh.sphereHandle)
+        if (mesh.sphereHandle !== null)
         {
-          mesh.sphereHandle.owner?.SetSphereGroupBounds?.(mesh.sphereHandle, mesh.worldBoundingSphere, mesh.flags);
+          this.#meshManager.SetSphereGroupBounds(
+            mesh.sphereHandle, mesh.worldBoundingSphere, mesh.flags);
         }
       }
     }
 
+    const parent = params?.spaceObjectParent ?? null;
+    this.#parentOverlayEffects = Array.isArray(parent?.overlayEffects) && parent.overlayEffects.length
+      ? parent.overlayEffects
+      : null;
+    if ((this.#parentOverlayEffects && this.#AnyMeshInheritsOverlayEffects()) ||
+      this.#HasAnyOwnOverlayEffects())
+    {
+      this.#UpdateOverlayInstanceData(parentRecords.vs, parentRecords.ps, previousWorldTransform);
+    }
+
     this.hasUpdated = true;
+  }
+
+  /** Builds one persistent VS/PS record pair per authored instance. */
+  #UpdateOverlayInstanceData(parentVs, parentPs, previousWorldTransform)
+  {
+    for (const mesh of this.meshes)
+    {
+      if (!mesh.instances.length || !mesh.display || !this.#MeshHasActiveOverlayEffects(mesh)) continue;
+
+      if (!mesh.overlayPods || mesh.overlayPods.length !== mesh.instances.length)
+      {
+        mesh.overlayPods = Array.from({ length: mesh.instances.length }, () => ({
+          vs: RawData.create("EveSpaceObjectVSData"),
+          ps: RawData.create("EveSpaceObjectPSData"),
+          framePod: null
+        }));
+      }
+
+      for (let index = 0; index < mesh.instances.length; index++)
+      {
+        const local = mat4.copy(OVERLAY_LOCAL_SCRATCH, mesh.instances[index].transform);
+        const world = mat4.multiply(OVERLAY_WORLD_SCRATCH, this.worldTransform, local);
+        const worldLast = mat4.multiply(
+          OVERLAY_WORLD_LAST_SCRATCH, previousWorldTransform, local);
+        if (!mat4.invert(OVERLAY_INV_WORLD_SCRATCH, world)) mat4.identity(OVERLAY_INV_WORLD_SCRATCH);
+        if (!mat4.invert(OVERLAY_INV_LOCAL_SCRATCH, local)) mat4.identity(OVERLAY_INV_LOCAL_SCRATCH);
+
+        const pod = mesh.overlayPods[index];
+        pod.vs.CopyFrom(parentVs);
+        pod.ps.CopyFrom(parentPs);
+        pod.vs.SetAndTranspose("worldTransform", world);
+        pod.vs.SetAndTranspose("worldTransformLast", worldLast);
+        pod.vs.SetAndTranspose("invWorldTransform", OVERLAY_INV_WORLD_SCRATCH);
+        pod.ps.SetAndTranspose("worldTransform", world);
+        pod.ps.SetAndTranspose("worldTransformLast", worldLast);
+        pod.ps.SetAndTranspose("invWorldTransform", OVERLAY_INV_WORLD_SCRATCH);
+
+        const clipData = pod.vs.Get("clipData");
+        vec3.set(OVERLAY_CLIP_SCRATCH, clipData[0], clipData[1], clipData[2]);
+        vec3.transformMat4(OVERLAY_CLIP_SCRATCH, OVERLAY_CLIP_SCRATCH, OVERLAY_INV_LOCAL_SCRATCH);
+        pod.vs.Set("clipData", [
+          OVERLAY_CLIP_SCRATCH[0], OVERLAY_CLIP_SCRATCH[1], OVERLAY_CLIP_SCRATCH[2], clipData[3]
+        ]);
+
+        vec3.copy(OVERLAY_CLIP_SCRATCH, pod.ps.Get("clipSphereCenter"));
+        vec3.transformMat4(OVERLAY_CLIP_SCRATCH, OVERLAY_CLIP_SCRATCH, OVERLAY_INV_LOCAL_SCRATCH);
+        pod.ps.Set("clipSphereCenter", OVERLAY_CLIP_SCRATCH);
+
+        if (!mesh.inheritOverlayEffects)
+        {
+          const neutralClip = pod.vs.Get("clipData");
+          pod.vs.Set("clipData", [ neutralClip[0], neutralClip[1], neutralClip[2], 0 ]);
+          pod.ps.Set("clipRadiusSq", [ 0 ]);
+          pod.ps.Set("clipRadius2Sq", [ 0 ]);
+          pod.ps.Set("clipSphereFactor", [ 0 ]);
+          pod.ps.Set("clipSphereFactor2", [ 0 ]);
+        }
+      }
+    }
+  }
+
+  /** Reports whether any instanced mesh owns an overlay effect. */
+  #HasAnyOwnOverlayEffects()
+  {
+    return this.meshes.some(mesh => mesh.ownOverlayEffects.length !== 0);
+  }
+
+  /** Reports whether any instanced mesh inherits its parent's overlays. */
+  #AnyMeshInheritsOverlayEffects()
+  {
+    return this.meshes.some(mesh => mesh.inheritOverlayEffects);
+  }
+
+  /** Reports whether one mesh has an own or inherited overlay path. */
+  #MeshHasActiveOverlayEffects(mesh)
+  {
+    return mesh.ownOverlayEffects.length !== 0 ||
+      (this.#parentOverlayEffects !== null && mesh.inheritOverlayEffects);
   }
 
   /**
@@ -503,18 +669,18 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Sphere/per-object handles deliberately stay registered. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon dereferences area.effect unguarded; the JS option write is optional-chained. Handle removal + latch clear are ported.")
+  @impl.reason("Handle invalidation after manager removal is explicit in JavaScript; the option write, hash refresh and registration lifecycle otherwise follow Carbon.")
   SetShaderOption(name, value)
   {
     for (const mesh of this.meshes)
     {
       for (const area of mesh.areas)
       {
-        area.effect?.SetOption?.(name, value);
+        area.effect.SetOption(name, value);
         area.effectHash = EveChildInstancedMeshes.#GetEffectHash(area.effect);
-        if (area.meshGroupHandle)
+        if (area.meshGroupHandle !== null)
         {
-          area.meshGroupHandle.owner?.RemoveMeshGroup?.(area.meshGroupHandle);
+          this.#meshManager.RemoveMeshGroup(area.meshGroupHandle);
           area.meshGroupHandle = null;
           this.#allRegistered = false;
         }
@@ -527,6 +693,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms, stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:418-425), and clears the registration latch so the next AddMeshesToManager pass picks it up.
    * @param {Iterable} areas - area ducks ({effect, batchType, areaIndex, areaCount})
    * @param {Iterable<Float32Array>} instanceTransforms - 16-value matrices; copied, not retained
+   * @param {Number} partTag - modular owner shared by every appended instance
    * @returns {Boolean} false when no areas or no instances were supplied (nothing is added)
    */
   @carbon.method
@@ -539,7 +706,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     areas,
     instanceTransforms,
     sofHullName = "",
-    sofLocatorSetName = ""
+    sofLocatorSetName = "",
+    partTag = 0
   )
   {
     const sourceAreas = Array.from(areas ?? []);
@@ -569,6 +737,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     mesh.meshIndex = Number(meshIndex) >>> 0;
     mesh.areas = normalizedAreas;
     mesh.instances = instances;
+    mesh.partTags = instances.map(() => Number(partTag) >>> 0);
     mesh.sofHullName = String(sofHullName ?? "");
     mesh.sofLocatorSetName = String(sofLocatorSetName ?? "");
     // Carbon (cpp:418-425): the CASTS_SHADOW flag and one bit per area batch
@@ -586,6 +755,69 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     this.#allRegistered = false;
     this.#revision++;
     return true;
+  }
+
+  /**
+   * Removes every instance owned by a modular part, dropping empty meshes and
+   * invalidating manager registrations.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("JavaScript explicitly nulls manager handles after removal; Carbon invalidates them by reference.")
+  RemoveInstancesByPartTag(partTag)
+  {
+    const tag = Number(partTag) >>> 0;
+    let changed = false;
+    for (let meshIndex = this.meshes.length - 1; meshIndex >= 0; meshIndex--)
+    {
+      const mesh = this.meshes[meshIndex];
+      const keptInstances = [];
+      const keptTags = [];
+      for (let instanceIndex = 0; instanceIndex < mesh.instances.length; instanceIndex++)
+      {
+        const instanceTag = Number(mesh.partTags[instanceIndex] ?? 0) >>> 0;
+        if (instanceTag === tag)
+        {
+          changed = true;
+          continue;
+        }
+        keptInstances.push(mesh.instances[instanceIndex]);
+        keptTags.push(instanceTag);
+      }
+      if (keptInstances.length === mesh.instances.length) continue;
+
+      if (mesh.sphereHandle !== null)
+      {
+        this.#meshManager.RemoveBoundingSphereGroup(mesh.sphereHandle);
+        mesh.sphereHandle = null;
+      }
+      for (const area of mesh.areas)
+      {
+        if (area.meshGroupHandle !== null)
+        {
+          this.#meshManager.RemoveMeshGroup(area.meshGroupHandle);
+          area.meshGroupHandle = null;
+        }
+      }
+      if (keptInstances.length === 0)
+      {
+        this.meshes.splice(meshIndex, 1);
+        continue;
+      }
+      mesh.instances = keptInstances;
+      mesh.partTags = keptTags;
+      mesh.instanceSpheres.length = keptInstances.length;
+      for (let instanceIndex = 0; instanceIndex < keptInstances.length; instanceIndex++)
+      {
+        keptInstances[instanceIndex].sphereIndex = instanceIndex;
+      }
+    }
+    if (changed)
+    {
+      this.#allRegistered = false;
+      this.#revision++;
+    }
+    return changed;
   }
 
   /**
@@ -697,22 +929,84 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       this.#allRegistered = false;
       if (!next)
       {
-        if (mesh.sphereHandle)
+        if (mesh.sphereHandle !== null)
         {
-          mesh.sphereHandle.owner?.RemoveBoundingSphereGroup?.(mesh.sphereHandle);
+          this.#meshManager.RemoveBoundingSphereGroup(mesh.sphereHandle);
           mesh.sphereHandle = null;
         }
         for (const area of mesh.areas)
         {
-          if (area.meshGroupHandle)
+          if (area.meshGroupHandle !== null)
           {
-            area.meshGroupHandle.owner?.RemoveMeshGroup?.(area.meshGroupHandle);
+            this.#meshManager.RemoveMeshGroup(area.meshGroupHandle);
             area.meshGroupHandle = null;
           }
         }
       }
       this.#revision++;
     }
+  }
+
+  /** Returns whether one instanced mesh inherits parent overlay effects. */
+  @carbon.method
+  @impl.implemented
+  GetMeshInheritOverlayEffects(meshId)
+  {
+    return EveChildInstancedMeshes.#GetMesh(this.meshes, meshId).inheritOverlayEffects;
+  }
+
+  /** Enables or disables parent-overlay inheritance for one mesh. */
+  @carbon.method
+  @impl.implemented
+  SetMeshInheritOverlayEffects(meshId, inherit)
+  {
+    const mesh = EveChildInstancedMeshes.#GetMesh(this.meshes, meshId);
+    const next = !!inherit;
+    if (mesh.inheritOverlayEffects === next) return;
+
+    mesh.inheritOverlayEffects = next;
+    this.#allRegistered = false;
+    for (const area of mesh.areas)
+    {
+      if (area.meshGroupHandle === null) continue;
+      this.#meshManager.RemoveMeshGroup(area.meshGroupHandle);
+      area.meshGroupHandle = null;
+    }
+  }
+
+  /** Adds an overlay effect owned by one instanced mesh. */
+  @carbon.method
+  @impl.implemented
+  AddMeshOverlayEffect(meshId, overlayEffect)
+  {
+    if (!overlayEffect) throw new TypeError("overlayEffect must not be null");
+    EveChildInstancedMeshes.#GetMesh(this.meshes, meshId).ownOverlayEffects.push(overlayEffect);
+  }
+
+  /** Removes an overlay effect owned by one instanced mesh. */
+  @carbon.method
+  @impl.implemented
+  RemoveMeshOverlayEffect(meshId, overlayEffect)
+  {
+    const overlays = EveChildInstancedMeshes.#GetMesh(this.meshes, meshId).ownOverlayEffects;
+    const index = overlays.indexOf(overlayEffect);
+    if (index !== -1) overlays.splice(index, 1);
+  }
+
+  /** Removes every overlay effect owned by one instanced mesh. */
+  @carbon.method
+  @impl.implemented
+  ClearMeshOverlayEffects(meshId)
+  {
+    EveChildInstancedMeshes.#GetMesh(this.meshes, meshId).ownOverlayEffects.length = 0;
+  }
+
+  /** Returns the number of overlay effects owned by one instanced mesh. */
+  @carbon.method
+  @impl.implemented
+  GetMeshOverlayEffectCount(meshId)
+  {
+    return EveChildInstancedMeshes.#GetMesh(this.meshes, meshId).ownOverlayEffects.length;
   }
 
   /**
@@ -756,6 +1050,122 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     return this.#revision;
   }
 
+  /** Reports whether any active own or inherited overlay has a transparent pass. */
+  @carbon.method
+  @impl.implemented
+  HasTransparentBatches()
+  {
+    for (const overlay of this.#parentOverlayEffects ?? [])
+    {
+      if (this.#AnyMeshInheritsOverlayEffects() && overlay.HasTransparentArea()) return true;
+    }
+    for (const mesh of this.meshes)
+    {
+      for (const overlay of mesh.ownOverlayEffects)
+      {
+        if (overlay.HasTransparentArea()) return true;
+      }
+    }
+    return false;
+  }
+
+  /** Returns the squared camera distance used to sort transparent overlays. */
+  @carbon.method
+  @impl.adapted
+  GetSortValue(renderContext = null)
+  {
+    const viewPosition = renderContext?.GetViewPosition?.() ?? [ 0, 0, 0 ];
+    return Math.hypot(
+      viewPosition[0] - this.worldTransform[12],
+      viewPosition[1] - this.worldTransform[13],
+      viewPosition[2] - this.worldTransform[14]);
+  }
+
+  /** Exposes stable per-instance CPU record pairs for this frame's overlay batches. */
+  @carbon.method
+  @impl.adapted
+  GetPerObjectData(_accumulator = null)
+  {
+    if ((!this.#parentOverlayEffects || !this.#AnyMeshInheritsOverlayEffects()) &&
+      !this.#HasAnyOwnOverlayEffects()) return null;
+
+    let first = null;
+    for (const mesh of this.meshes)
+    {
+      if (!mesh.overlayPods) continue;
+      if (!mesh.display || !this.#MeshHasActiveOverlayEffects(mesh))
+      {
+        for (const pod of mesh.overlayPods) pod.framePod = null;
+        continue;
+      }
+      for (const pod of mesh.overlayPods)
+      {
+        pod.framePod = { vs: pod.vs, ps: pod.ps };
+        first ??= pod.framePod;
+      }
+    }
+    return first;
+  }
+
+  /** Emits child-owned then inherited overlays per visible instance and LOD. */
+  @carbon.method
+  @impl.adapted
+  GetBatches(
+    batches,
+    batchType,
+    _perObjectData = null,
+    reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
+  {
+    if (!this.hasUpdated) return false;
+    let committed = false;
+
+    for (const mesh of this.meshes)
+    {
+      const inherited = this.#parentOverlayEffects && mesh.inheritOverlayEffects
+        ? this.#parentOverlayEffects
+        : null;
+      if ((!inherited?.length && !mesh.ownOverlayEffects.length) || !mesh.display || !mesh.overlayPods) continue;
+      if (reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION && !ShouldReflect(mesh.reflectionMode)) continue;
+
+      const geometry = mesh.GetGeometryResource();
+      if (!geometry || geometry.IsGood() === false) continue;
+      if (!mesh.overlayAreaBlocksBuilt)
+      {
+        CollectInstancedOverlayAreaBlocks(mesh, mesh.overlayAreaBlocks);
+        mesh.overlayAreaBlocksBuilt = true;
+      }
+
+      for (let index = 0; index < mesh.overlayPods.length; index++)
+      {
+        const pod = mesh.overlayPods[index];
+        if (!pod.framePod) continue;
+        const sphere = mesh.instanceSpheres[index];
+        if (!sphere) continue;
+        if (this.#lastCameraFrustum &&
+          this.#lastCameraFrustum.IsSphereVisible(sphere.center, sphere.radius) === false) continue;
+
+        const screenSize = this.#lastCameraFrustum
+          ? this.#lastCameraFrustum.GetPixelSizeAccrossEst(sphere.center, sphere.radius) * this.#lastInvLodFactor
+          : Infinity;
+        const lod = geometry.GetMeshLod(mesh.meshIndex, screenSize);
+
+        if (mesh.ownOverlayEffects.length)
+        {
+          committed = EmitOverlayBatches(
+            batches, pod.framePod, batchType, mesh.ownOverlayEffects,
+            mesh.overlayAreaBlocks, geometry, mesh.meshIndex, lod) || committed;
+        }
+        if (inherited?.length)
+        {
+          committed = EmitOverlayBatches(
+            batches, pod.framePod, batchType, inherited,
+            mesh.overlayAreaBlocks, geometry, mesh.meshIndex, lod) || committed;
+        }
+      }
+    }
+    return committed;
+  }
+
   /** Carbon EveChildInstancedMeshes::RegisterComponents (cpp:36-43):
    * unconditional InstancedMeshProvider + ShadowCaster leaf
    * self-registration. */
@@ -783,8 +1193,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   /** Carbon EveChildInstancedMeshes::UnregisterFromMeshManager (cpp:50-71):
    * every registered mesh-group / sphere-group / per-object handle is removed
-   * through ITS OWN handle.owner (handles may span managers after a switch),
-   * then the latch clears. */
+   * through the manager that issued the opaque handles, then the latch clears. */
   @carbon.method
   @impl.adapted
   @impl.reason("Handle invalidation after removal is explicit (Carbon's DataHandle is invalidated by the manager by reference).")
@@ -794,23 +1203,29 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     {
       for (const area of mesh.areas)
       {
-        if (area.meshGroupHandle)
+        if (area.meshGroupHandle !== null)
         {
-          area.meshGroupHandle.owner?.RemoveMeshGroup?.(area.meshGroupHandle);
+          this.#meshManager.RemoveMeshGroup(area.meshGroupHandle);
           area.meshGroupHandle = null;
         }
       }
-      if (mesh.sphereHandle)
+      if (mesh.sphereHandle !== null)
       {
-        mesh.sphereHandle.owner?.RemoveBoundingSphereGroup?.(mesh.sphereHandle);
+        this.#meshManager.RemoveBoundingSphereGroup(mesh.sphereHandle);
         mesh.sphereHandle = null;
       }
     }
-    if (this.#perObjectDataHandle)
+    if (this.#perObjectDataHandle !== null)
     {
-      this.#perObjectDataHandle.owner?.RemovePerObjectData?.(this.#perObjectDataHandle);
+      this.#meshManager.RemovePerObjectData(this.#perObjectDataHandle);
       this.#perObjectDataHandle = null;
     }
+    if (this.#perObjectDataNoClipHandle !== null)
+    {
+      this.#meshManager.RemovePerObjectData(this.#perObjectDataNoClipHandle);
+      this.#perObjectDataNoClipHandle = null;
+    }
+    this.#meshManager = null;
     this.#allRegistered = false;
   }
 
@@ -830,14 +1245,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * meshIndex<<16 decode). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The manager is an injected engine duck returning handles (out-params become returns; .owner is stamped when the duck omits it); Carbon's combinedVertexDeclaration gate (cpp:499, a D3D declaration handle rebuilt in RebuildCachedData cpp:435-457) reduces to geometry presence + IsGood, and the declaration argument is passed as 0 for the engine to rebuild; GetRawRoot() becomes the object itself as picking owner.")
+  @impl.reason("The manager is an injected CjsInstancedMeshManager implementation returning opaque handles (out-params become returns); Carbon's combinedVertexDeclaration gate (cpp:499, a D3D declaration handle rebuilt in RebuildCachedData cpp:435-457) reduces to geometry presence + IsGood, and the declaration argument is passed as 0 for the engine to rebuild; GetRawRoot() becomes the object itself as picking owner.")
   AddMeshesToManager(manager)
   {
     if (!this.hasUpdated)
     {
       return;
     }
-    if (this.#perObjectDataHandle && this.#perObjectDataHandle.owner !== manager)
+    if (this.#meshManager !== null && this.#meshManager !== manager)
     {
       this.UnregisterFromMeshManager();
     }
@@ -846,14 +1261,17 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       return;
     }
 
-    if (!this.#perObjectDataHandle)
+    this.#meshManager = manager;
+
+    if (this.#perObjectDataHandle === null)
     {
-      const handle = manager?.AddPerObjectData?.(this) ?? null;
-      if (handle && typeof handle === "object" && !handle.owner)
-      {
-        handle.owner = manager;
-      }
-      this.#perObjectDataHandle = handle;
+      this.#perObjectDataHandle = manager.AddPerObjectData(this.#perObjectData);
+    }
+
+    if (this.meshes.some(mesh => !mesh.inheritOverlayEffects) &&
+      this.#perObjectDataNoClipHandle === null)
+    {
+      this.#perObjectDataNoClipHandle = manager.AddPerObjectData(this.#perObjectDataNoClip);
     }
 
     this.#allRegistered = true;
@@ -865,7 +1283,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         continue;
       }
       const geometry = mesh.GetGeometryResource();
-      if (!geometry || geometry.IsGood?.() === false)
+      if (!geometry || geometry.IsGood() === false)
       {
         this.#allRegistered = false;
         continue;
@@ -881,33 +1299,28 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         continue;
       }
 
-      if (!mesh.sphereHandle)
+      if (mesh.sphereHandle === null)
       {
-        const handle = manager?.AddBoundingSphereGroup?.(
+        mesh.sphereHandle = manager.AddBoundingSphereGroup(
           mesh.worldBoundingSphere,
           mesh.flags,
           mesh.instanceSpheres,
           mesh.instanceSpheres.length
-        ) ?? null;
-        if (handle && typeof handle === "object" && !handle.owner)
-        {
-          handle.owner = manager;
-        }
-        mesh.sphereHandle = handle;
+        );
       }
 
       for (const area of mesh.areas)
       {
-        if (area.meshGroupHandle)
+        if (area.meshGroupHandle !== null)
         {
           continue;
         }
-        if (!area.effect)
+        if (!area.effect || !area.effect.GetShaderStateInterface())
         {
           this.#allRegistered = false;
           continue;
         }
-        const handle = manager?.AddMeshGroup?.(
+        area.meshGroupHandle = manager.AddMeshGroup(
           geometry,
           0,
           area.batchType,
@@ -916,18 +1329,13 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
           area.areaCount,
           area.effect,
           area.effectHash,
-          this.#perObjectDataHandle,
+          mesh.inheritOverlayEffects ? this.#perObjectDataHandle : this.#perObjectDataNoClipHandle,
           mesh.sphereHandle,
           mesh.instances,
           mesh.instances.length,
           this,
           meshIndex
-        ) ?? null;
-        if (handle && typeof handle === "object" && !handle.owner)
-        {
-          handle.owner = manager;
-        }
-        area.meshGroupHandle = handle;
+        );
       }
     }
   }
@@ -1006,6 +1414,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         transform: mat4.clone(instance.transform),
         sphereIndex: instance.sphereIndex
       })),
+      partTags: mesh.partTags.slice(),
       sofHullName: mesh.sofHullName,
       sofLocatorSetName: mesh.sofLocatorSetName,
       display: mesh.display
@@ -1013,14 +1422,12 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Reads an effect's hash through GetHashValue() or a .hash field, yielding 0
-   * when neither is available so a hashless effect still registers
-   * deterministically.
+   * Reads an owned effect's stable registration hash; null areas retain the
+   * Carbon zero hash until their effect arrives.
    */
   static #GetEffectHash(effect)
   {
-    const hash = effect?.GetHashValue?.() ?? effect?.hash ?? 0;
-    return Number(hash) || 0;
+    return effect ? Number(effect.GetHashValue()) || 0 : 0;
   }
 
 }

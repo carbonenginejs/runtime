@@ -17,7 +17,7 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
   @io.notify
   @io.persist
-  @type.model("EveChild")
+  @type.model("EveChildRef")
   child = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
@@ -58,21 +58,14 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
    * value argument follows the repo's OnModified duck. */
   @carbon.method
   @impl.adapted
-  @impl.reason("SetAutoLoadBlocker is inlined onto loadChildAutomatically when the staged EveChildRef lacks the method.")
+  @impl.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
     if (value === "child" || (value && value === this.child))
     {
       if (this.child)
       {
-        if (typeof this.child.SetAutoLoadBlocker === "function")
-        {
-          this.child.SetAutoLoadBlocker(true);
-        }
-        else
-        {
-          this.child.loadChildAutomatically = false;
-        }
+        this.child.SetAutoLoadBlocker(true);
       }
     }
 

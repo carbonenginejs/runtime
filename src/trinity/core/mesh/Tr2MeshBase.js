@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Tr2MeshBase.cpp
 // Source: trinity/trinity/Tr2MeshBase_Blue.cpp
 import { CjsModel } from "#model";
+import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/Tr2RenderBatch.js";
@@ -130,6 +131,57 @@ export class Tr2MeshBase extends CjsModel
   GetMeshIndex()
   {
     return this.meshIndex;
+  }
+
+  /**
+   * Returns the geometry bounds after applying Carbon's material-driven local
+   * scale, displacement, and vertex-rotation expansion.
+   */
+  @carbon.method
+  @impl.adapted
+  GetBounds()
+  {
+    const geometry = this.GetGeometryResource();
+    if (!geometry) return null;
+    const source = geometry.GetBoundingBox(this.meshIndex);
+    if (!source) return null;
+
+    const min = vec3.clone(source.min ?? source.minBounds);
+    const max = vec3.clone(source.max ?? source.maxBounds);
+    const scale = this.maxVertexScale;
+
+    for (let index = 0; index < 3; index++)
+    {
+      const scaledMin = min[index] * scale;
+      const scaledMax = max[index] * scale;
+      min[index] = Math.min(scaledMin, scaledMax) - this.maxVertexDisplacement;
+      max[index] = Math.max(scaledMin, scaledMax) + this.maxVertexDisplacement;
+    }
+
+    if (this.rotatesVertices)
+    {
+      const radius = Math.hypot(
+        Math.max(Math.abs(min[0]), Math.abs(max[0])),
+        Math.max(Math.abs(min[1]), Math.abs(max[1])),
+        Math.max(Math.abs(min[2]), Math.abs(max[2]))
+      );
+      vec3.set(min, -radius, -radius, -radius);
+      vec3.set(max, radius, radius, radius);
+    }
+
+    return { min, max };
+  }
+
+  /** Writes the adjusted mesh bounds into caller-owned minimum and maximum vectors. */
+  @carbon.method
+  @impl.implemented
+  GetBoundingBox(min, max)
+  {
+    const bounds = this.GetBounds();
+    if (!bounds) return false;
+    vec3.copy(min, bounds.min);
+    vec3.copy(max, bounds.max);
+    return true;
   }
 
   /**

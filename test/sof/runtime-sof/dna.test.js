@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { CjsClassRegistry, CjsDocumentHydrator } from "../../../npm/dist/global/model/document/index.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 import {
+  CjsSofLibraryBuilder,
   EveSOF,
   EveSOFDNA,
   EveSOFDataMgr,
@@ -101,7 +102,10 @@ function createManager()
 }
 
 test("EveSOFDataMgr indexes every top-level SOF catalog", () => {
+  const emptyManager = new EveSOFDataMgr();
+  assert.equal(emptyManager.HasGenericData(), false);
   const manager = createManager();
+  assert.equal(manager.HasGenericData(), true);
   assert.equal(manager.HasHullData("rifter"), true);
   assert.equal(manager.HasHullData("Rifter"), false);
   assert.equal(manager.GetFactionData("minmatar").name, "minmatar");
@@ -148,6 +152,118 @@ test("a mesh command carries one material per prefix, exactly like material", ()
   // An explicit `material` command still wins when both are present.
   const both = sof.CreateDna("rifter:minmatar:minmatar:mesh?rust;rust:material?paint;paint");
   assert.deepEqual(both.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_MATERIAL), [ "paint", "paint" ]);
+});
+
+test("lazy SOF data boots generic and publishes each requested catalog record once", async () => {
+  const data = createData();
+  Object.assign(data.faction[0], {
+    defaultPatternName: "stripes",
+    defaultPatternLayer1MaterialName: "paint",
+    areaTypes: {
+      Primary: { material1: "factioncoat" },
+    },
+  });
+  data.generic.genericWreckMaterial = { material1: "wreckcoat" };
+  data.material.push(
+    { name: "factioncoat", parameters: [] },
+    { name: "wreckcoat", parameters: [] },
+  );
+  data.layout[0].placements = [{
+    name: "nested",
+    locatorSetName: "missing",
+    descriptor: {
+      hull: "rifter2",
+      faction: "",
+      race: "",
+      material1: "rust",
+      pattern: "stripes",
+      layout: "cargo",
+    },
+  }];
+  const records = new Map([
+    ["res:/dx9/model/spaceobjectfactory/generic.black", data.generic],
+    ["res:/dx9/model/spaceobjectfactory/hulls/rifter.black", data.hull[0]],
+    ["res:/dx9/model/spaceobjectfactory/hulls/rifter2.black", data.hull[1]],
+    ["res:/dx9/model/spaceobjectfactory/factions/minmatar.black", data.faction[0]],
+    ["res:/dx9/model/spaceobjectfactory/races/minmatar.black", data.race[0]],
+    ["res:/dx9/model/spaceobjectfactory/materials/rust.black", data.material[0]],
+    ["res:/dx9/model/spaceobjectfactory/materials/paint.black", data.material[1]],
+    ["res:/dx9/model/spaceobjectfactory/materials/factioncoat.black", data.material[2]],
+    ["res:/dx9/model/spaceobjectfactory/materials/wreckcoat.black", data.material[3]],
+    ["res:/dx9/model/spaceobjectfactory/patterns/stripes.black", data.pattern[0]],
+    ["res:/dx9/model/spaceobjectfactory/layouts/antennae.black", data.layout[0]],
+    ["res:/dx9/model/spaceobjectfactory/layouts/cargo.black", data.layout[1]],
+  ]);
+  const calls = [];
+  const sof = new EveSOF();
+  sof.Register({
+    resources: {
+      async getObject(path, context)
+      {
+        calls.push({ path, context });
+        if (!records.has(path)) throw new Error(`missing lazy SOF fixture ${path}`);
+        return records.get(path);
+      },
+    },
+    lazyData: true,
+  });
+
+  assert.ok(sof.GetSofLibraryBuilder() instanceof CjsSofLibraryBuilder);
+  await sof.InitializeAsync();
+  assert.deepEqual(calls.map(call => call.path), [
+    "res:/dx9/model/spaceobjectfactory/generic.black",
+    "res:/dx9/model/spaceobjectfactory/materials/wreckcoat.black",
+  ]);
+  assert.equal(sof.dataMgr.HasGenericData(), true);
+  assert.deepEqual(sof.dataMgr.ListHullDataNames(), []);
+
+  const dna = "rifter:minmatar:minmatar:layout?antennae";
+  const [first, second] = await Promise.all([
+    sof.BuildValuesFromDNAAsync(dna),
+    sof.BuildValuesFromDNAAsync(dna),
+  ]);
+  assert.equal(first._type, "EveShip2");
+  assert.deepEqual(second, first);
+  assert.deepEqual(sof.dataMgr.ListHullDataNames(), ["rifter", "rifter2"]);
+  assert.deepEqual(sof.dataMgr.ListFactionDataNames(), ["minmatar"]);
+  assert.deepEqual(sof.dataMgr.ListRaceDataNames(), ["minmatar"]);
+  assert.deepEqual(sof.dataMgr.ListMaterialDataNames(), ["factioncoat", "paint", "rust", "wreckcoat"]);
+  assert.deepEqual(sof.dataMgr.ListPatternDataNames(), ["stripes"]);
+  assert.deepEqual(sof.dataMgr.ListLayoutDataNames(), ["antennae", "cargo"]);
+
+  const counts = new Map();
+  for (const { path, context } of calls)
+  {
+    counts.set(path, (counts.get(path) ?? 0) + 1);
+    assert.equal(context.role, "sofCatalog");
+    assert.equal(context.output, "runtime");
+  }
+  for (const path of records.keys()) assert.equal(counts.get(path), 1, path);
+
+  const builder = sof.GetSofLibraryBuilder();
+  const replacement = { ...data.hull[0], boundingSphere: [9, 8, 7, 6] };
+  records.set("res:/dx9/model/spaceobjectfactory/hulls/rifter.black", replacement);
+  assert.equal(await builder.FetchHull("rifter"), data.hull[0]);
+  assert.equal(await builder.FetchHull("rifter", { force: true }), replacement);
+  assert.deepEqual(sof.dataMgr.GetHullData("rifter").boundingSphere, [9, 8, 7, 6]);
+  assert.equal(counts.get("res:/dx9/model/spaceobjectfactory/generic.black"), 1);
+});
+
+test("lazy SOF DNA requirements include multi-hull and command catalogs", () => {
+  assert.deepEqual(
+    CjsSofLibraryBuilder.ParseDnaRequirements(
+      "Rifter;Rifter2:Minmatar:Minmatar:MESH?Rust;Paint:PATTERN?Stripes;Paint;None:LAYOUT?Antennae;Cargo",
+    ),
+    {
+      dna: "rifter;rifter2:minmatar:minmatar:mesh?rust;paint:pattern?stripes;paint;none:layout?antennae;cargo",
+      hulls: ["rifter", "rifter2"],
+      faction: "minmatar",
+      race: "minmatar",
+      materials: ["rust", "paint"],
+      patterns: ["stripes"],
+      layouts: ["antennae", "cargo"],
+    },
+  );
 });
 
 // Designs in the live feed carry `MATERIAL?...`. Carbon compares command names
@@ -5552,6 +5668,185 @@ test("values build with no registry, because SOF emits JSON and JSON needs no cl
   // A class name is written as data; nothing resolves it here.
   assert.equal(values.observers[0].observer._type, "AudEmitter");
   assert.equal(values.observers[0].observer.eventPrefix, "ship_");
+});
+
+test("values build can opt into defaults from caller-registered class families", {
+  skip: !hasHydrationConsumerBundles,
+}, () => {
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(createData()), true);
+
+  const sparse = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+  const expanded = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
+    populateDefaults: true,
+  });
+
+  assert.equal(Object.hasOwn(sparse, "name"), false);
+  assert.equal(Object.hasOwn(sparse, "display"), false);
+  assert.equal(expanded.name, "");
+  assert.equal(expanded.display, true);
+  assert.equal(expanded.dna, "rifter:minmatar:minmatar");
+  assert.equal(expanded.mesh._type, "Tr2Mesh");
+  assert.equal(expanded.mesh.display, true);
+
+  assert.throws(
+    () => sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
+      populateDefaults: "yes",
+    }),
+    /populateDefaults option must be a boolean/,
+  );
+});
+
+test("BuildChild composes modular values with transformed bounds and part tags", {
+  skip: !hasHydrationConsumerBundles,
+}, async () => {
+  const data = createData();
+  data.hull[0].boundingSphere = [1, 2, 3, 4];
+  data.hull[0].locatorSets = [{
+    name: "damage",
+    locators: [{
+      position: [1, 0, 0],
+      rotation: [0, 0, 0, 1],
+      scaling: [1, 2, 3],
+      boneIndex: 7,
+    }],
+  }];
+  data.hull[0].opaqueAreas = [{
+    name: "Hull",
+    index: 0,
+    count: 1,
+    areaType: 0,
+    blockedMaterials: 0,
+    shader: "modular.fx",
+    textures: [],
+    parameters: [],
+  }];
+  data.generic.areaShaderLocation = "res:/effect";
+  data.generic.shaderPrefix = "static_";
+  data.generic.areaShaders = [{
+    shader: "modular.fx",
+    parameters: [],
+    defaultParameters: [],
+    defaultTextures: [],
+    doGenerateDepthArea: false,
+    transparencyTextureName: "",
+  }];
+
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+  const owner = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+  const before = JSON.parse(JSON.stringify(owner));
+  const transform = [
+    0, 2, 0, 0,
+    -3, 0, 0, 0,
+    0, 0, 4, 0,
+    10, 20, 30, 1,
+  ];
+
+  const composed = sof.BuildChildValues(
+    owner,
+    "rifter:minmatar:minmatar",
+    23,
+    transform,
+  );
+  assert.deepEqual(owner, before, "the immutable values helper leaves its input unchanged");
+  assert.deepEqual(composed.boundingSphereCenter, [4, 22, 42]);
+  assert.equal(composed.boundingSphereRadius, 16);
+
+  const shared = composed.effectChildren.find(child => child._type === "EveChildInstancedMeshes");
+  assert.ok(shared);
+  assert.equal(shared.meshes.length, 1);
+  assert.deepEqual(shared.meshes[0].partTags, [23]);
+  assert.deepEqual(shared.meshes[0].instances[0].transform, transform);
+  const damage = composed.locatorSets.find(set => set.name === "damage");
+  assert.ok(damage);
+  assert.deepEqual(damage.locators.at(-1).position, [10, 22, 30]);
+  assert.equal(damage.locators.at(-1).partTag, 23);
+
+  const mutable = JSON.parse(JSON.stringify(owner));
+  assert.equal(sof.BuildChild(mutable, "rifter:minmatar:minmatar", 23, transform), true);
+  assert.deepEqual(mutable, composed);
+
+  const trinity = await import(trinityConsumerEntry);
+  const audioTrinity = await import(audioTrinityConsumerEntry);
+  const registry = CjsClassRegistry.fromMaps({ constructors: { ...trinity, ...audioTrinity } });
+  const RootClass = registry.GetConstructor(owner._type);
+  const liveOwner = RootClass.from(JSON.parse(JSON.stringify(owner)), { registry });
+  assert.equal(sof.BuildChild(
+    liveOwner,
+    "rifter:minmatar:minmatar",
+    23,
+    transform,
+    { registry },
+  ), true);
+  const liveValues = liveOwner.GetValues({ refs: true, forceTypeTags: true });
+  const liveShared = liveValues.effectChildren.find(child => child._type === "EveChildInstancedMeshes");
+  assert.deepEqual(liveShared.meshes[0].partTags, [23]);
+  assert.deepEqual(liveValues.boundingSphereCenter, [4, 22, 42]);
+
+  const unchanged = JSON.parse(JSON.stringify(mutable));
+  assert.equal(sof.BuildChild(mutable, "missing:minmatar:minmatar", 24, transform), false);
+  assert.deepEqual(mutable, unchanged);
+  assert.throws(
+    () => sof.BuildChildValues(owner, "rifter:minmatar:minmatar", -1, transform),
+    /unsigned 32-bit integer/,
+  );
+});
+
+test("BuildChild stamps animated and nested layout children with one modular part tag", () => {
+  const data = createData();
+  Object.assign(data.hull[1], {
+    geometryResFilePath: "res:/model/animated-extension.gr2",
+    boundingSphere: [0, 0, 0, 1],
+    shapeEllipsoidCenter: [0, 0, 0],
+    shapeEllipsoidRadius: [1, 1, 1],
+    castShadow: true,
+    isSkinned: true,
+    opaqueAreas: [],
+    locatorSets: [{
+      name: "nested",
+      locators: [{
+        position: [2, 0, 0],
+        rotation: [0, 0, 0, 1],
+        scaling: [1, 1, 1],
+        boneIndex: -1,
+      }],
+    }],
+  });
+  data.layout = [{
+    name: "modular",
+    placements: [{
+      name: "nested",
+      locatorSetName: "nested",
+      descriptor: { hull: "rifter" },
+      isInstanced: false,
+      isShared: false,
+    }],
+  }];
+
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+  const owner = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+  const transform = [
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    5, 6, 7, 1,
+  ];
+  const composed = sof.BuildChildValues(
+    owner,
+    "rifter2:minmatar:minmatar:layout?modular",
+    91,
+    transform,
+  );
+  const placement = composed.effectChildren.find(child => (
+    child._type === "EveChildContainer" && child.partTag === 91
+  ));
+  assert.ok(placement);
+  assert.deepEqual(placement.translation, [5, 6, 7]);
+  assert.equal(placement.objects.length, 2);
+  assert.ok(placement.objects.every(child => child.partTag === 91));
+  assert.deepEqual(placement.objects[1].translation, [7, 6, 7]);
 });
 
 test("BuildValuesFromDNA emits plain model values with parity to document hydration", {

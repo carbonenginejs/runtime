@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.h
-// Schema: format-carbon resources/Tr2TexturePipelineStepLimitSize.json; maintained by runtime-resource.
+// Schema: format-carbon resources/Tr2TexturePipelineStepLimitSize.json; maintained by the runtime resource layer.
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 

@@ -6,6 +6,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
+import { withITr2GenericEmitter } from "../ITr2GenericEmitter.js";
 
 
 /**
@@ -14,7 +15,7 @@ import { carbon, impl, io, type } from "#schema";
  * turbulence and gravity terms the simulation applies.
  */
 @type.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
-export class Tr2GpuSharedEmitter extends CjsModel
+export class Tr2GpuSharedEmitter extends withITr2GenericEmitter(CjsModel)
 {
   @io.persist
   @type.string
@@ -268,6 +269,12 @@ export class Tr2GpuSharedEmitter extends CjsModel
   GetRevision()
   {
     return this.#revision;
+  }
+
+  /** Carbon's GPU emitter thread-safety hook is intentionally empty. */
+  @impl.noop
+  SetThreadSafeFlag()
+  {
   }
 
   static #zero3 = vec3.create();

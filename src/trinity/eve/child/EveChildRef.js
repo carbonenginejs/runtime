@@ -48,8 +48,39 @@ export class EveChildRef extends EveChildTransform
     if (!this.resourceLoader) return false;
     const next = this.resourceLoader.LoadChild(this.resPath, this);
     if (!next) return false;
+    if (this.child) this.UnregisterChild(this.child);
     this.child = next;
+    this.RegisterChild(this.child);
     return true;
+  }
+
+  /** Carbon EveChildRef::SetAutoLoadBlocker (cpp:47-50). */
+  @carbon.method
+  @impl.implemented
+  SetAutoLoadBlocker(shouldBlockAutoLoad)
+  {
+    this.loadChildAutomatically = !shouldBlockAutoLoad;
+  }
+
+  /** Propagates the owning space object to the resolved child. */
+  @carbon.method
+  @impl.implemented
+  SetOwner(owner)
+  {
+    if (this.GetOwner() === owner) return;
+    super.SetOwner(owner);
+    if (this.child) this.child.SetOwner(owner);
+  }
+
+  /** Propagates a modular part tag to the resolved child. */
+  @carbon.method
+  @impl.implemented
+  SetPartTag(tag)
+  {
+    const next = Number(tag) >>> 0;
+    if (this.GetPartTag() === next) return;
+    super.SetPartTag(next);
+    if (this.child) this.child.SetPartTag(next);
   }
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */

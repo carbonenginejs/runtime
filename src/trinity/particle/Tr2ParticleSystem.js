@@ -6,10 +6,12 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "./element/Tr2ParticleElementDeclaration.js";
+import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "../core/mesh/ITr2InstanceData.js";
+import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter.js";
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @type.define({ className: "Tr2ParticleSystem", family: "particle" })
-export class Tr2ParticleSystem extends CjsModel
+export class Tr2ParticleSystem extends withITr2InstanceData(CjsModel)
 {
 
   #buffers = [null, null];
@@ -29,6 +31,18 @@ export class Tr2ParticleSystem extends CjsModel
   #shouldSortVisible = true;
 
   #updatePeriod = 1;
+
+  #updatePeriodClock = 0;
+
+  #lastUpdate = 0;
+
+  #updateArguments = new ITr2GenericEmitterUpdateArguments();
+
+  #instanceData = new ITr2InstanceDataInstanceData();
+
+  #instanceBounds = { min: vec3.create(), max: vec3.create() };
+
+  #gpuDeclaration = Object.freeze([]);
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
   @io.persist
@@ -129,6 +143,55 @@ export class Tr2ParticleSystem extends CjsModel
   @type.uint32
   originalMaxParticles = 0;
 
+  /**
+   * Rebuilds the CPU element buffers at Carbon's capped particle count,
+   * clearing all live particles while retaining the authored original count.
+   */
+  @impl.adapted
+  @impl.reason("Carbon rebuilds AL buffers; the runtime rebuilds the existing CPU element streams at the same capped count.")
+  SetMaxParticleCount(value)
+  {
+    this.maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
+    this.aliveCount = 0;
+    for (let index = 0; index < this.#buffers.length; index++)
+    {
+      const stride = this.#strides[index];
+      this.#buffers[index] = stride && this.maxParticleCount
+        ? new Float32Array(stride * this.maxParticleCount)
+        : null;
+    }
+    for (const element of this.#runtimeElements)
+    {
+      element.buffer = this.#buffers[element.bufferIndex];
+    }
+    vec3.set(this.aabbMin, 0, 0, 0);
+    vec3.set(this.aabbMax, 0, 0, 0);
+    return this.maxParticleCount;
+  }
+
+  /** Returns the currently active, possibly LOD-clamped particle budget. */
+  @impl.implemented
+  GetMaxParticleCount()
+  {
+    return this.maxParticleCount;
+  }
+
+  /** Returns the particle budget captured when the declaration was built. */
+  @impl.implemented
+  GetOriginalMaxParticles()
+  {
+    return this.originalMaxParticles;
+  }
+
+  /**
+   * Carbon allocates an insertion mutex; JavaScript simulation is single
+   * threaded, so the contract is an exact no-op at this layer.
+   */
+  @impl.noop
+  SetThreadSafeFlag()
+  {
+  }
+
   /** Carbon method ClearParticles (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented
@@ -180,6 +243,7 @@ export class Tr2ParticleSystem extends CjsModel
     this.#semanticElements.fill(null);
     this.#strides.fill(0);
     this.#buffers.fill(null);
+    this.#gpuDeclaration = Object.freeze([]);
     if (this.elements.length === 0)
     {
       return false;
@@ -250,6 +314,16 @@ export class Tr2ParticleSystem extends CjsModel
       element.instanceStride = this.#strides[element.bufferIndex];
       element.buffer = this.#buffers[element.bufferIndex];
     }
+    this.#gpuDeclaration = Object.freeze(this.#runtimeElements
+      .filter(element => element.usedByGPU)
+      .map(element => Object.freeze({
+        elementType: element.elementType,
+        customName: element.customName,
+        dimension: element.dimension,
+        usageIndex: element.usageIndex,
+        offset: element.startOffset * 4,
+        stride: element.instanceStride * 4
+      })));
     this.originalMaxParticles = this.maxParticleCount;
     this.#declarationHash++;
     this.isValid = true;
@@ -261,7 +335,7 @@ export class Tr2ParticleSystem extends CjsModel
   @carbon.method
   @impl.adapted
   @impl.reason("Runs Carbon's aging, force, movement, emitter, constraint, and bounds stages against CPU particle mirrors.")
-  UpdateSimulation(dt)
+  UpdateSimulation(dt, updateArguments = Tr2ParticleSystem.#defaultUpdateArguments)
   {
     if (!this.isValid)
     {
@@ -281,7 +355,7 @@ export class Tr2ParticleSystem extends CjsModel
         lifetime.buffer[offset] += deltaTime / lifetime.buffer[offset + 1];
         if (lifetime.buffer[offset] >= 1)
         {
-          this.#spawnEmitter(this.emitParticleOnDeathEmitter, position, velocity, index, 1);
+          this.#spawnEmitter(updateArguments, this.emitParticleOnDeathEmitter, position, velocity, index, 1);
           this.#removeParticle(index--);
         }
       }
@@ -324,7 +398,7 @@ export class Tr2ParticleSystem extends CjsModel
         positionValue[0] += velocityValue[0] * deltaTime;
         positionValue[1] += velocityValue[1] * deltaTime;
         positionValue[2] += velocityValue[2] * deltaTime;
-        this.#spawnEmitter(this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
+        this.#spawnEmitter(updateArguments, this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
       }
     }
     else if (this.emitParticleDuringLifeEmitter)
@@ -332,7 +406,7 @@ export class Tr2ParticleSystem extends CjsModel
       const activeCount = this.aliveCount;
       for (let index = 0; index < activeCount; index++)
       {
-        this.#spawnEmitter(this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
+        this.#spawnEmitter(updateArguments, this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
       }
     }
 
@@ -345,6 +419,86 @@ export class Tr2ParticleSystem extends CjsModel
     }
     this.#updateBounds(position);
     return this.aliveCount;
+  }
+
+  /**
+   * Carbon's per-frame system update: stamps the system world transform into a
+   * nominal emitter argument record, applies the visibility-driven update
+   * cadence, clamps the elapsed simulation time, and advances CPU particles.
+   */
+  @impl.adapted
+  @impl.reason("Motion-vector buffer mirroring and sorting hysteresis are engine realization; CPU cadence, timing, transform, and emitter propagation are retained.")
+  Update(globalArguments)
+  {
+    const argumentsValue = this.#updateArguments;
+    argumentsValue.time = globalArguments.time;
+    argumentsValue.system = globalArguments.system;
+    mat4.copy(argumentsValue.parentTransform, this.#worldTransform);
+    vec3.copy(argumentsValue.originShift, globalArguments.originShift);
+    argumentsValue.emitCountFactor = globalArguments.emitCountFactor;
+
+    if (this.#updatePeriod > 1)
+    {
+      this.#updatePeriodClock = (this.#updatePeriodClock + 1) % this.#updatePeriod;
+      if (this.#updatePeriodClock !== 0)
+      {
+        return this.aliveCount;
+      }
+    }
+
+    const time = Number(argumentsValue.time) || 0;
+    if (this.#lastUpdate === 0)
+    {
+      this.#lastUpdate = time;
+    }
+    const dt = Math.min(time - this.#lastUpdate, 1 / 3);
+    this.#lastUpdate = time;
+    return this.UpdateSimulation(dt, argumentsValue);
+  }
+
+  /** Whether the CPU GPU-stream mirror and its declaration are ready. */
+  @impl.adapted
+  @impl.reason("Trinity reports its published CPU stream; the selected engine owns physical vertex-buffer readiness.")
+  IsInstanceDataReady()
+  {
+    return this.isValid && this.#gpuDeclaration.length > 0 && this.#buffers[0] !== null;
+  }
+
+  /** Returns the borrowed CPU GPU-stream mirror and live instance count. */
+  @impl.adapted
+  @impl.reason("The Float32Array stream replaces Carbon's borrowed Tr2BufferAL reference until an engine realizes it.")
+  GetInstanceData(_bufferIndex = 0, _screenSize = 0)
+  {
+    this.#instanceData.buffer = this.#buffers[0];
+    this.#instanceData.offset = 0;
+    this.#instanceData.stride = this.#strides[0] * 4;
+    this.#instanceData.count = this.aliveCount;
+    return this.#instanceData;
+  }
+
+  /** Returns the normalized GPU element declaration for engine realization. */
+  @impl.adapted
+  @impl.reason("The normalized CPU declaration replaces Carbon's engine-owned numeric declaration handle.")
+  GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
+  {
+    return this.#gpuDeclaration;
+  }
+
+  /** Returns the current particle bounds, or Carbon's zero box when empty. */
+  @impl.adapted
+  GetInstanceBufferBoundingBox(_bufferIndex = 0)
+  {
+    if (this.aliveCount > 0)
+    {
+      vec3.copy(this.#instanceBounds.min, this.aabbMin);
+      vec3.copy(this.#instanceBounds.max, this.aabbMax);
+    }
+    else
+    {
+      vec3.set(this.#instanceBounds.min, 0, 0, 0);
+      vec3.set(this.#instanceBounds.max, 0, 0, 0);
+    }
+    return this.#instanceBounds;
   }
 
   /**
@@ -594,13 +748,14 @@ export class Tr2ParticleSystem extends CjsModel
   /**
    * Runs one emitter's spawn pass for the frame.
    */
-  #spawnEmitter(emitter, position, velocity, index, rate)
+  #spawnEmitter(updateArguments, emitter, position, velocity, index, rate)
   {
     if (!emitter)
     {
       return;
     }
     emitter.SpawnParticles(
+      updateArguments,
       position ? this.#getElementView(position, index) : null,
       velocity ? this.#getElementView(velocity, index) : null,
       rate
@@ -638,5 +793,9 @@ export class Tr2ParticleSystem extends CjsModel
   static #extent = vec3.create();
 
   static #boundingSphere = vec4.create();
+
+  static #defaultUpdateArguments = new ITr2GenericEmitterUpdateArguments();
+
+  static MAX_PARTICLE_COUNT = 10000;
 
 }

@@ -143,7 +143,7 @@ export class Tr2VertexDefinition
   // which is precisely Carbon's DX11 cache key: an ID3D11InputLayout per
   // (declaration, vertex-shader pipeline-input hash) pair, created lazily and
   // reused across every draw of that pair (Tr2VertexLayoutALDx11.cpp:157-226).
-  // engine-webgl caches the same plan as a VAO.
+  // a WebGL engine caches the same plan as a VAO.
 
   /**
    * Resolves a mesh's element list against a vertex shader's declared pipeline

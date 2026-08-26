@@ -251,3 +251,74 @@ test("EveSwarmRenderable.GetPerObjectData record + shadow forward (EveSwarm.cpp:
   assert.equal(data.ps.GetStruct(), "EveSpaceObjectPSData", "the PS half");
   assert.equal(renderable.GetPerObjectData().vs, data.vs, "same record both ways");
 });
+
+test("EveSwarmRenderable emits ordinary batches and sorts transparent areas back-to-front", () =>
+{
+  const renderable = new EveSwarmRenderable();
+  const opaque = { name: "opaque" };
+  const near = {
+    name: "near",
+    GetDisplay: () => true,
+    GetIndex: () => 0,
+    GetMaterialInterface: () => ({})
+  };
+  const far = {
+    name: "far",
+    GetDisplay: () => true,
+    GetIndex: () => 1,
+    GetMaterialInterface: () => ({})
+  };
+  const geometry = {
+    GetMeshLod: () => "lod",
+    GetAreaBoundingBox(_meshIndex, areaIndex, outMin, outMax)
+    {
+      const x = areaIndex === 0 ? 1 : 10;
+      vec3.set(outMin, x, 0, 0);
+      vec3.set(outMax, x, 0, 0);
+      return true;
+    }
+  };
+  const ordinaryCalls = [];
+  renderable.mesh = {
+    meshIndex: 0,
+    GetAreas: batchType => batchType === TriBatchType.TRIBATCHTYPE_TRANSPARENT
+      ? [ near, far ]
+      : [ opaque ],
+    GetBatches(...args)
+    {
+      ordinaryCalls.push(args);
+      return true;
+    },
+    GetGeometryResource: () => geometry,
+    CreateGeometryBatch: (_geometry, area) => ({ area })
+  };
+
+  const perObjectData = {};
+  assert.equal(
+    renderable.GetBatches({}, TriBatchType.TRIBATCHTYPE_OPAQUE, perObjectData, 0),
+    true
+  );
+  assert.deepEqual(ordinaryCalls[0][1], [ opaque ]);
+  assert.equal(renderable.HasTransparentBatches(), true);
+
+  const committed = [];
+  const accumulator = {
+    Commit(batch)
+    {
+      committed.push(batch.area.name);
+      return true;
+    }
+  };
+  const renderContext = { GetViewPosition: () => [ 0, 0, 0 ] };
+  assert.equal(
+    renderable.GetBatches(
+      accumulator, TriBatchType.TRIBATCHTYPE_TRANSPARENT, perObjectData, 0, renderContext),
+    true
+  );
+  assert.deepEqual(committed, [ "far", "near" ]);
+
+  renderable.worldTransform[12] = 3;
+  renderable.worldTransform[13] = 4;
+  renderable.worldTransform[14] = 12;
+  assert.equal(renderable.GetSortValue(renderContext), 13);
+});

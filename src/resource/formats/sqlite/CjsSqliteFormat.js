@@ -22,7 +22,7 @@ const MASTER_ROOT_PAGE = 1;
  * them are here. Index b-tree pages are never visited: an index holds no data a
  * table scan does not already produce.
  *
- * It exists because `runtime-resource` is browser-safe and ships no SQLite
+ * It exists because the runtime resource layer is browser-safe and ships no SQLite
  * engine, so `.static` containers of the SQLite family previously needed a
  * driver injected by the caller — which meant Node, and in practice the
  * experimental `node:sqlite`. Nothing here touches a filesystem or a binding.

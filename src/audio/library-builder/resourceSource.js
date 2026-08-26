@@ -93,6 +93,10 @@ function resolveResourceUrl(path, options)
     return `${base}/${relative}`;
 }
 
+/**
+ * Normalizes a fetch response, byte wrapper, or buffer view to a Uint8Array
+ * window.
+ */
 export async function normalizeAudioResourceBytes(value, path)
 {
     let input = value;

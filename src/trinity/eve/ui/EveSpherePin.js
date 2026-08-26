@@ -7,10 +7,11 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @type.define({ className: "EveSpherePin", family: "eve/ui" })
-export class EveSpherePin extends CjsModel
+export class EveSpherePin extends withITr2Renderable(CjsModel)
 {
 
   /** m_primitiveCount (int) [READ] */
@@ -185,12 +186,12 @@ export class EveSpherePin extends CjsModel
     throw new Error("EveSpherePin.GetPickingBatches is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon ITr2Pickable::GetID - the native picking identity contract. */
+  /** Carbon EveSpherePin::GetID uses the pin itself as its picking identity. */
   @carbon.method
-  @impl.notImplemented
+  @impl.implemented
   GetID()
   {
-    throw new Error("EveSpherePin.GetID is not implemented in CarbonEngineJS.");
+    return this;
   }
 
   /** Carbon EveSpherePin::UpdateViewDependentData (cpp:243-251):

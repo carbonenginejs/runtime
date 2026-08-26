@@ -32,7 +32,7 @@ export class TriStepPresentSwapChain extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    if (this.swapChain) executor?.PresentSwapChain?.(this.swapChain);
+    if (this.swapChain) executor.PresentSwapChain(this.swapChain);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

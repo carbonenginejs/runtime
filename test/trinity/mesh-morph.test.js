@@ -17,6 +17,15 @@ function CreateGeometry(names, baked = names.map(() => false))
     GetPayload()
     {
       return { meshes: [ { lods: [ lod ] } ] };
+    },
+    GetBoundingBox(_meshIndex, outMin = null, outMax = null)
+    {
+      const min = [ -1, -1, -1 ];
+      const max = [ 1, 1, 1 ];
+      if (!outMin && !outMax) return { min, max };
+      outMin.set(min);
+      outMax.set(max);
+      return true;
     }
   };
 }

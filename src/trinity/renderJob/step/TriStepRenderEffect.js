@@ -47,7 +47,7 @@ export class TriStepRenderEffect extends TriRenderStep
   {
     if (this.effect)
     {
-      executor?.DrawEffect?.(this.effect, this.shaderBuffer, this.tlTexCoord, this.brTexCoord);
+      executor.DrawEffect(this.effect, this.shaderBuffer, this.tlTexCoord, this.brTexCoord);
     }
     return TriRenderStep.Result.RS_OK;
   }

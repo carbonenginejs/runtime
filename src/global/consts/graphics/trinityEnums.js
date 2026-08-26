@@ -18,7 +18,7 @@ export const TriBatchType = Object.freeze({
 });
 
 /** Trinity standard render-state selector from Shader/Tr2EffectStateManager.h.
- * Cross-package: runtime-trinity batches/accumulators and engine dispatch both
+ * Cross-layer: Trinity batches/accumulators and engine dispatch both
  * key on it. Distinct from TriBatchType (batch bucket) — a render-state mode.
  * Unscoped Carbon enum: values are sequential from RM_ANY = 0. */
 export const RenderingMode = Object.freeze({

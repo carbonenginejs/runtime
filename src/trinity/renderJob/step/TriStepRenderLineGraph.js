@@ -90,7 +90,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
         else this.scaleChangeCallback?.CallVoid?.();
       }
     }
-    executor?.RenderLineGraphs?.(this);
+    executor.RenderLineGraphs(this);
     return TriRenderStep.Result.RS_OK;
   }
 

@@ -5,3 +5,5 @@ export * from "./Tr2InstancedMesh.js";
 export * from "./Tr2SerializedMorphAnimation.js";
 export * from "./Tr2DirectInstanceData.js";
 export * from "./Tr2RuntimeInstanceData.js";
+export * from "./ITr2InstanceData.js";
+export * from "./ITr2ImpostorSource.js";

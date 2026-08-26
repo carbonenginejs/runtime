@@ -2,10 +2,11 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
+import { withITr2RenderNode } from "#contracts/ITr2RenderNode";
 
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
 @type.define({ className: "Tr2RenderNodeSprite2dScene", family: "renderJob" })
-export class Tr2RenderNodeSprite2dScene extends CjsModel
+export class Tr2RenderNodeSprite2dScene extends withITr2RenderNode(CjsModel)
 {
 
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */
@@ -38,12 +39,12 @@ export class Tr2RenderNodeSprite2dScene extends CjsModel
   @impl.reason("Carbon asserts before returning false on an empty destination list; the port returns false without asserting and lets the caller decide.")
   Validate(destinationDimensions, outputs, realTime, simTime)
   {
-    if (!destinationDimensions?.length) return false;
+    if (!destinationDimensions.length) return false;
     if (!this.scene) return false;
 
     if (this.background)
     {
-      return this.background.Validate?.(destinationDimensions, [], realTime, simTime) !== false;
+      return this.background.Validate(destinationDimensions, [], realTime, simTime);
     }
 
     return true;

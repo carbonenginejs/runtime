@@ -65,7 +65,7 @@ export class Tr2Light extends CjsModel
   // Compat view over the flattened light fields (2026-07-23 flatten
   // decision): the flat decorated fields on the concrete light classes are
   // the real storage; this keeps Carbon's GetLightData() reference surface
-  // and the runtime-sof separate-node hydration shape working.
+  // and the SOF layer's separate-node hydration shape working.
   #lightDataView = null;
 
   /**

@@ -115,7 +115,7 @@ export class TriStepRenderDebug extends TriRenderStep
   @impl.adapted
   Execute(_realTime, _simTime, executor)
   {
-    executor?.RenderDebug?.(this);
+    executor.RenderDebug(this);
     if (this.autoClear) this.Clear();
     return TriRenderStep.Result.RS_OK;
   }

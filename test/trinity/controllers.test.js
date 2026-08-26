@@ -1,5 +1,5 @@
 import test from "node:test";
-import { BELIST_INSERTED, BELIST_REMOVED, CjsControllerExpressionProgram, EveChildUpdateParams, ITr2GenericEmitter, TR2_DIRTY_ALL, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
+import { BELIST_INSERTED, BELIST_REMOVED, CjsControllerExpressionProgram, EveChildUpdateParams, ITr2GenericEmitterUpdateArguments, TR2_DIRTY_ALL, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsModel } from "../../npm/dist/global/model/index.js";
 
@@ -388,6 +388,12 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   assert(!controller.IsLinked());
   assertEquals(CjsSchema.getField(Tr2Controller, "stateMachines")?.type.kind, "list");
   assertEquals(CjsSchema.getField(Tr2Controller, "isPlaying")?.type.kind, "boolean");
+  assertEquals(CjsSchema.getField(Tr2Controller, "updateThrottle")?.io?.persist, true);
+  const defaults = CjsSchema.getDefaults(Tr2Controller);
+  assertEquals(defaults.currentUpdateFrequency, 10);
+  assertEquals(defaults.updateThrottle, true);
+  assertEquals(defaults.maxUpdateFrequency, 20);
+  assertEquals(defaults.minUpdateFrequency, 2);
   assertEquals(controller.currentUpdateFrequency, 10);
 });
 test("Tr2Controller applies Carbon EveThrottleable update gating", () =>
@@ -803,11 +809,17 @@ test("Tr2TimelineController applies Carbon EveThrottleable update gating", () =>
   timeline.Start();
   timeline.Update(1);
   timeline.Update(1);
+  assertEquals(timeline.time, timeline.GetTime());
   assertEquals(updateCount, 1);
   assertEquals(timeline.currentUpdateFrequency, 20);
   timeline.updateThrottle = false;
   timeline.Update(1);
   assertEquals(updateCount, 2);
+  const defaults = CjsSchema.getDefaults(Tr2TimelineController);
+  assertEquals(defaults.currentUpdateFrequency, 10);
+  assertEquals(defaults.updateThrottle, true);
+  assertEquals(defaults.maxUpdateFrequency, 20);
+  assertEquals(defaults.minUpdateFrequency, 2);
 });
 test("Tr2ControllerReference clears stale controller on path changes", () =>
 {
@@ -967,7 +979,7 @@ test("Tr2ActionSpawnParticles calls the Carbon emitter shape once", () =>
   assert(calls[0][0] !== calls[1][0]);
   assertEquals(calls[1][0].emitCountFactor, 1);
   action.emitter = {};
-  action.Start();
+  assertThrows(() => action.Start(), "SpawnParticles");
   assertEquals(calls.length, 2);
 });
 test("generated context packets keep Carbon constructor defaults", () =>
@@ -976,7 +988,7 @@ test("generated context packets keep Carbon constructor defaults", () =>
   assertEquals(childParams.activationStrength, 1);
   assertEquals(childParams.controllerUpdateFrequency, 0.5);
   assertEquals(childParams.isVisible, true);
-  const emitterArgs = new ITr2GenericEmitter();
+  const emitterArgs = new ITr2GenericEmitterUpdateArguments();
   assertEquals(emitterArgs.emitCountFactor, 1);
 });
 test("Tr2ActionPlayMeshAnimation uses Carbon animation layer calls", () =>

@@ -40,7 +40,9 @@ the corresponding configured service's `Register()` method.
 
 `Initialize(options)` applies library values and marks the library initialized.
 `InitializeAsync({ dataPath, ...options })` additionally asks the configured
-SOF service to load the supplied data path. `Shutdown()` disables and detaches
+SOF service to load the supplied data path. Without `dataPath`, it calls the
+SOF initialization boundary so an installed partial-catalog builder can boot
+`generic.black`. `Shutdown()` disables and detaches
 the configured `CjsAudioMan` through its required methods, then clears the
 initialized flag. It does not dispose caller-owned services or invent a general
 shutdown protocol for them.

@@ -141,7 +141,7 @@ export class Tr2PlatformInfo
 
     // The WebGL keys are SEPARATE keys, not a reinterpretation of the WebGPU
     // ones. `webgpu === false` states only that WebGPU is absent; it is not
-    // evidence that WebGL2 is present, and a behavior selecting engine-webgl
+    // evidence that WebGL2 is present, and a behavior selecting a WebGL engine
     // needs the positive fact. docs/engine-backends-plan.md decision 7.
 
     /** Returns an immutable capability record suitable for CjsLibrary. */

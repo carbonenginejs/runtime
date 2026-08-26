@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   Tr2RenderBatch,
   Tr2PerObjectData,
+  ITr2Renderable,
   TriRenderBatchMap,
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/core/index.js";
@@ -27,7 +28,7 @@ function validBatch()
 function makeRenderable(counts)
 {
   const seen = { podCalls: 0, pool: null, perObjectData: null, reasons: new Set() };
-  return {
+  return Object.assign(new ITr2Renderable(), {
     seen,
     GetPerObjectData(accumulator)
     {
@@ -49,7 +50,7 @@ function makeRenderable(counts)
         accumulator.Commit(batch);
       }
     }
-  };
+  });
 }
 
 const BATCH_TYPES = [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_TRANSPARENT ];

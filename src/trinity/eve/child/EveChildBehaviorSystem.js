@@ -8,13 +8,14 @@ import {
   createChildPerObjectRecords,
   inheritParentPerObjectData
 } from "../perObjectData/childPerObjectRecords.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /**
  * A child that drives behaviour groups - swarms, drones and the like - from its
  * own placement under the hull.
  */
 @type.define({ className: "EveChildBehaviorSystem", family: "eve/child" })
-export class EveChildBehaviorSystem extends EveChildTransform
+export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform)
 {
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */

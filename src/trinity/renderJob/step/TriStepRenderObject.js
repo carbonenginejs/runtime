@@ -55,7 +55,7 @@ export class TriStepRenderObject extends TriRenderStep
   {
     if (this.renderable)
     {
-      executor?.RenderObject?.(this.renderable, {
+      executor.RenderObject(this.renderable, {
         effectOverride: this.effectOverride,
         renderOpaque: this.renderOpaque,
         renderDecal: this.renderDecal,

@@ -32,7 +32,9 @@ export class EveShip2 extends EveMobile
   @type.objectRef("TriFloat")
   speed = null;
 
-  /** audioSpeedParameter (MAP_PROPERTY) - duck-typed audio value holder. */
+  /** audioSpeedParameter (MAP_PROPERTY) - root audio value holder. */
+  @io.readwrite
+  @type.objectRef("IRoot")
   audioSpeedParameter = null;
 
   /** m_acceleration - second derivative of the position curve, fed to boosters. */
@@ -236,7 +238,7 @@ export class EveShip2 extends EveMobile
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Blue FindEntry member binding becomes a duck-typed value holder; runtime-audio owns the emitter side.")
+  @impl.reason("Blue FindEntry member binding becomes a duck-typed value holder; the runtime audio layer owns the emitter side.")
   UpdateShipSpeedForAudio()
   {
     if (this.maxSpeed === 0 || !this.boosters)

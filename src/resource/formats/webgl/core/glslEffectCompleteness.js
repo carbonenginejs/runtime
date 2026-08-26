@@ -175,7 +175,7 @@ export function isComputeFragmentContract(value)
  * not be. A transform naming registers the shader still binds separately has not
  * happened; a carrier the shader never declares cannot be bound.
  *
- * engine-webgpu makes equivalent checks when it realizes a package, and they are
+ * the runtime WebGPU engine layer makes equivalent checks when it realizes a package, and they are
  * mostly about the emitted artefacts rather than the device. WebGL has no engine
  * to make them, so a container can currently ship a transform nothing agrees
  * with. Checking here covers both, and covers WebGL at the only point that

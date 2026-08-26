@@ -6,10 +6,12 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import {
   EveEffectRoot2,
   EveEntity,
+  EveImpactOverlay,
   EveLocatorSets,
   EveLocator2,
   EvePlanet,
   EveRootTransform,
+  EveSpaceObjectChild,
   EveSpaceObject2,
   Tr2RenderContext,
   Tr2Lod,
@@ -392,13 +394,13 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
 
   let childWasInserted = null;
   const futureChildCalls = [];
-  const futureChild = {
+  const futureChild = Object.assign(new EveSpaceObjectChild(), {
     SetInheritProperties(properties)
     {
       childWasInserted = object.effectChildren.includes(futureChild);
       futureChildCalls.push(properties);
     }
-  };
+  });
   object.AddToEffectChildrenList(futureChild);
   assert.equal(childWasInserted, false);
   assert.equal(object.effectChildren.at(-1), futureChild);
@@ -471,7 +473,7 @@ test("EveSpaceObject2 owns the Carbon controller graph and mesh alias", () =>
       calls.push(["controller-start"]);
     }
   };
-  const child = {
+  const child = Object.assign(new EveSpaceObjectChild(), {
     name: "child",
     SetVariable(name, value)
     {
@@ -493,7 +495,7 @@ test("EveSpaceObject2 owns the Carbon controller graph and mesh alias", () =>
     {
       calls.push(["procedural", name, value]);
     }
-  };
+  });
   const overlay = {
     SetControllerVariable(name, value)
     {
@@ -514,6 +516,8 @@ test("EveSpaceObject2 owns the Carbon controller graph and mesh alias", () =>
   object.SetMesh(mesh);
   assert.equal(object.GetMesh(), mesh);
   assert.equal(object.meshLod, mesh);
+  assert.equal(CjsSchema.getField(EveSpaceObject2, "meshLod")?.io?.persist, true);
+  assert.equal(CjsSchema.getDefaults(EveSpaceObject2).meshLod, null);
   object.meshLod = null;
   assert.equal(object.mesh, null);
 
@@ -678,7 +682,7 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
   });
   object.estimatedPixelDiameter = 50;
   const childUpdates = [];
-  object.effectChildren.push({
+  object.effectChildren.push(Object.assign(new EveSpaceObjectChild(), {
     IsAlwaysOn()
     {
       return false;
@@ -691,7 +695,7 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
     {
       childUpdates.push(["asynchronous", context, params]);
     }
-  });
+  }));
 
   const synchronousContext = { currentTime: 4 };
   assert.equal(object.UpdateSyncronous(synchronousContext), true);
@@ -1106,12 +1110,12 @@ test("EveSpaceObject2 routes impact effects through the impact overlay", () =>
   object.SetImpactAnimation("boosters", true, 1);
   assert.equal(object.IsImpostor(), false);
 
-  object.locatorSets.push(makeLocatorSet("damage", [
+  object.AddLocatorSet("damage", [
     { position: [0, 0, -5], direction: [1, 0, 0, 0], boneIndex: 0 },
     { position: [0, 0, 5], direction: [0.7071067811865476, 0, 0, 0.7071067811865476], boneIndex: 0 }
-  ]));
+  ]);
   const calls = [];
-  object.impactOverlay = {
+  object.impactOverlay = Object.assign(new EveImpactOverlay(), {
     CreateImpact(...args)
     {
       calls.push(["impact", ...args]);
@@ -1125,7 +1129,7 @@ test("EveSpaceObject2 routes impact effects through the impact overlay", () =>
     {
       calls.push(["toggle", name, on, duration]);
     }
-  };
+  });
   assert.equal(object.CreateImpact(1, [0, 0, 1], 2, 3), 42);
   // The position sits in front of locator 1 (which faces +Z); the facing
   // gate picks it.

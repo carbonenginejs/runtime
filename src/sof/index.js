@@ -2,6 +2,7 @@ export { EveSOF } from "./EveSOF.js";
 export { EveSOFData } from "./EveSOFData.js";
 export { EveSOFDNA } from "./EveSOFDNA.js";
 export { EveSOFDataMgr } from "./EveSOFDataMgr.js";
+export { CjsSofLibraryBuilder } from "./CjsSofLibraryBuilder.js";
 export { createSofHydrationAdapter } from "./createSofHydrationAdapter.js";
 export * from "./faction/index.js";
 export * from "./generic/index.js";

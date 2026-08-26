@@ -17,7 +17,7 @@ export class TriStepPopViewTransform extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.PopViewTransform?.();
+    executor.PopViewTransform();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

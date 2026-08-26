@@ -3,10 +3,11 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
+import { withITr2RenderNode } from "#contracts/ITr2RenderNode";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
 @type.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })
-export class Tr2RenderNodeEffect extends CjsModel
+export class Tr2RenderNodeEffect extends withITr2RenderNode(CjsModel)
 {
 
   /** Carbon's grouped source/parameter bindings. */
@@ -33,6 +34,45 @@ export class Tr2RenderNodeEffect extends CjsModel
   @io.persist
   @type.list("ITr2RenderNode")
   inputNodes = [];
+
+  /** Carbon Tr2RenderNodeEffect::Validate (cpp:15-46). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Tr2BitmapDimensions spans are represented by JavaScript arrays of value records.")
+  Validate(destinationDimensions, outputs, realTime, simTime)
+  {
+    if (!destinationDimensions.length || outputs.length)
+    {
+      return false;
+    }
+    if (!this.effect || !this.effect.GetShaderStateInterface())
+    {
+      return false;
+    }
+    if (this.viewport && (this.viewport.width <= 0 || this.viewport.height <= 0))
+    {
+      return false;
+    }
+
+    for (const source of this.sources)
+    {
+      let dimensions = destinationDimensions[0];
+      if (this.viewport)
+      {
+        dimensions = {
+          ...dimensions,
+          width: Math.max(0, this.viewport.width),
+          height: Math.max(0, this.viewport.height),
+          depth: 1
+        };
+      }
+      if (!source.node.Validate([dimensions], source.outputNames, realTime, simTime))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /** Carbon method AddSource (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
   @carbon.method

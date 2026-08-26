@@ -8,6 +8,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "../view/Tr2PickType.js";
+import { withITr2Renderable } from "../ITr2Renderable.js";
 
 
 const ARC_AXIS = vec3.create();
@@ -81,7 +82,7 @@ function sphericalToCartesian(value, center)
 
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @type.define({ className: "Tr2CurveLineSet", family: "trinityCore" })
-export class Tr2CurveLineSet extends CjsModel
+export class Tr2CurveLineSet extends withITr2Renderable(CjsModel)
 {
 
   /** CPU-side Carbon LineData records; live vertex buffers belong to a renderer. */

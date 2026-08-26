@@ -5,13 +5,14 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsCharacterRigBinding } from "../../controls/CjsCharacterRigBinding.js";
 import { Tr2SkinnedObjectLod } from "./Tr2SkinnedObjectLod.js";
+import { withITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /**
  * Skinned character object managing whole-model LOD selection and an immediate
  * CPU skinning palette.
  */
 @type.define({ className: "Tr2SkinnedObject", family: "trinityCore" })
-export class Tr2SkinnedObject extends CjsModel
+export class Tr2SkinnedObject extends withITr2Renderable(CjsModel)
 {
 
   #lod = new Tr2SkinnedObjectLod();

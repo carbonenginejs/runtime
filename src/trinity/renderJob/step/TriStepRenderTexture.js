@@ -71,7 +71,7 @@ export class TriStepRenderTexture extends TriRenderStep
       const width = Number(source.GetWidth?.() ?? source.width ?? 0);
       const height = Number(source.GetHeight?.() ?? source.height ?? 0);
       vec2.set(this.textureSize, width, height);
-      executor?.RenderTexture?.(source, {
+      executor.RenderTexture(source, {
         tlTexCoord: this.tlTexCoord,
         brTexCoord: this.brTexCoord,
         failClearColor: this.failClearColor

@@ -17,7 +17,7 @@ export class TriStepPopProjection extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.PopProjection?.();
+    executor.PopProjection();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -152,7 +152,7 @@ export class CjsBatchManager
   // 1. Per renderable: run the engine's Realize hook when its producer
   //    registered one (the realizer fast-exits when current), obtain per-object
   //    data once (pool = OPAQUE accumulator), then dispatch the registered Build
-  //    hook or fall back to the duck-typed GetBatches per NON-TRANSPARENT batch
+  //    hook or fall back to the renderable's GetBatches per NON-TRANSPARENT batch
   //    type. Renderables reporting HasTransparentBatches are gathered with
   //    their GetSortValue distance.
   // 2. Transparent pass: sort front-to-back, iterate back-to-front, allocating
@@ -198,13 +198,13 @@ export class CjsBatchManager
         const producer = this.#ProducerFor(renderable);
         if (producer?.Realize) producer.Realize(renderable);
 
-        const perObjectData = renderable.GetPerObjectData?.(poolAccumulator) ?? null;
+        const perObjectData = renderable.GetPerObjectData(poolAccumulator);
 
         if (producer)
         {
           producer.Build(renderable, batchMap, perObjectData, reason);
         }
-        else if (typeof renderable.GetBatches === "function")
+        else
         {
           for (const batchType of this.#batchTypes)
           {
@@ -214,11 +214,11 @@ export class CjsBatchManager
           }
         }
 
-        if (collectsTransparent && renderable.HasTransparentBatches?.())
+        if (collectsTransparent && renderable.HasTransparentBatches())
         {
           transparents.push({
             renderable,
-            distance: renderable.GetSortValue?.(renderContext) ?? 0
+            distance: renderable.GetSortValue(renderContext)
           });
         }
       }
@@ -231,8 +231,8 @@ export class CjsBatchManager
       for (let index = transparents.length - 1; index >= 0; index--)
       {
         const renderable = transparents[index].renderable;
-        const perObjectData = renderable.GetPerObjectData?.(transparentAccumulator) ?? null;
-        renderable.GetBatches?.(transparentAccumulator, TRANSPARENT, perObjectData, reason, renderContext);
+        const perObjectData = renderable.GetPerObjectData(transparentAccumulator);
+        renderable.GetBatches(transparentAccumulator, TRANSPARENT, perObjectData, reason, renderContext);
       }
     }
 
@@ -264,12 +264,12 @@ export class CjsBatchManager
   }
 
   // A renderable DECLARES its producer type (method or plain property); it never
-  // owns builder code. Returns null when undeclared (duck-typed GetBatches
-  // fallback applies).
+  // owns builder code. Returns null when undeclared (the renderable's own
+  // GetBatches implementation applies).
 
   /**
    * Looks up the producer a renderable declares through GetBatchProducerType or
-   * a batchProducerType property; null means the duck-typed GetBatches fallback
+   * a batchProducerType property; null means the renderable's GetBatches path
    * applies.
    */
   #ProducerFor(renderable)

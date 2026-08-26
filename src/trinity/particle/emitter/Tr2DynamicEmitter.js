@@ -3,10 +3,11 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { hasUnboundParticleElements } from "../element/particleElementBinding.js";
+import { ITr2GenericEmitterUpdateArguments, withITr2GenericEmitter } from "../ITr2GenericEmitter.js";
 
 /** A continuous-rate particle emitter that binds attribute generators to a particle system and spawns particles over time from an accumulated emission rate. */
 @type.define({ className: "Tr2DynamicEmitter", family: "particle" })
-export class Tr2DynamicEmitter extends CjsModel
+export class Tr2DynamicEmitter extends withITr2GenericEmitter(CjsModel)
 {
 
   #accumulatedRate = 0;
@@ -94,21 +95,21 @@ export class Tr2DynamicEmitter extends CjsModel
    * emit-count factor.
    */
   @impl.adapted
-  @impl.reason("Be::Time arrives as float seconds on the duck-typed update-arguments record instead of Carbon's native UpdateArguments struct.")
+  @impl.reason("Be::Time is represented as float seconds on the nominal JavaScript update-arguments record.")
   Update(updateArguments)
   {
     if (!this.isValid || !this.particleSystem)
     {
       return;
     }
-    const time = Number(updateArguments?.time) || 0;
+    const time = Number(updateArguments.time) || 0;
     if (this.#lastUpdate === 0)
     {
       this.#lastUpdate = time;
     }
     const dt = Math.min(time - this.#lastUpdate, 0.3);
     this.#lastUpdate = time;
-    const emitCountFactor = Number(updateArguments?.emitCountFactor ?? 1);
+    const emitCountFactor = Number(updateArguments.emitCountFactor);
     this.UpdateSimulation(dt * emitCountFactor);
   }
 
@@ -158,22 +159,22 @@ export class Tr2DynamicEmitter extends CjsModel
 
   /**
    * Both Carbon SpawnParticles overloads (Tr2DynamicEmitter.cpp:150-221)
-   * collapse into one duck-typed entry point:
+   * collapse into one nominally dispatched entry point:
    * - (position, velocity, rateModifier) - the Tr2ParticleSystem CPU call shape;
    * - (updateArguments, position, velocity, rateModifier) - Carbon overload 1;
    * - (updateArguments, positionStart, positionEnd, velocityStart, velocityEnd,
    *   deltaTime) - Carbon overload 2, which forwards the end-of-frame values to
    *   overload 1 exactly as Tr2DynamicEmitter.cpp:213-221 does.
-   * An update-arguments record is recognized as a leading non-array-like object.
+   * The Carbon overloads are selected by the leading update-arguments class.
    */
   @impl.adapted
-  @impl.reason("JavaScript cannot overload; Carbon's signatures are distinguished by duck-typing the leading update-arguments record and the argument count.")
+  @impl.reason("JavaScript cannot overload; Carbon's signatures are distinguished by the nominal leading update-arguments record and the argument count.")
   SpawnParticles(a = null, b = null, c = undefined, d = undefined, e = undefined, f = undefined)
   {
     let position;
     let velocity;
     let rateModifier;
-    if (a !== null && typeof a === "object" && typeof a.length !== "number")
+    if (a instanceof ITr2GenericEmitterUpdateArguments)
     {
       // Carbon signature with the UpdateArguments record first.
       if (f !== undefined)

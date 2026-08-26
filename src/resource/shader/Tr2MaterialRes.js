@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
-// Schema: format-carbon resources/Tr2MaterialRes.json; maintained by runtime-resource.
+// Schema: format-carbon resources/Tr2MaterialRes.json; maintained by the runtime resource layer.
 import { CjsSchema, io, type } from "#schema";
 import { CjsModel } from "#model";
 

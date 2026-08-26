@@ -25,6 +25,16 @@ A render-graph node that binds named sources onto an effect and produces its out
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:Tr2StepExecuteRenderNode -->
+## `Tr2StepExecuteRenderNode`
+
+Executes one render-graph node into a destination target, optionally clearing the target when the node is absent or fails validation.
+
+- Export: `@carbonenginejs/runtime/trinity/renderJob`
+- Source: `src/trinity/renderJob/step/Tr2StepExecuteRenderNode.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:TriRenderJob -->
 ## `TriRenderJob`
 

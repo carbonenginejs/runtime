@@ -4,6 +4,7 @@ import { vec3 } from "#math/vec3";
 import { carbon, io, type } from "#schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveEllipseDefinition } from "./EveEllipseDefinition.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 
 /**
@@ -11,7 +12,7 @@ import { EveEllipseDefinition } from "./EveEllipseDefinition.js";
  * are drawn with, used for the ribbon rings of UI overlays.
  */
 @type.define({ className: "EveEllipseSet", family: "eve/ui" })
-export class EveEllipseSet extends EveChildTransform
+export class EveEllipseSet extends withITr2Renderable(EveChildTransform)
 {
   #geometryDirty = true;
 
@@ -77,7 +78,7 @@ export class EveEllipseSet extends EveChildTransform
   __init__()
   {
     // Carbon creates the configured default effect here. Resource lookup is
-    // runtime-resource/engine work; a persisted or caller-assigned effect is
+    // resource/engine-layer work; a persisted or caller-assigned effect is
     // retained and the CPU definitions are rebound after hydration.
     for (const ellipse of this.ellipses)
     {

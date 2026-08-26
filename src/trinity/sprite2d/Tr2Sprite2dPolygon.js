@@ -105,6 +105,14 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
     this.SetDirty();
   }
 
+  /** Carbon returns no vertices while hidden, otherwise the authored count. */
+  @carbon.method
+  @impl.implemented
+  GetVertexCount()
+  {
+    return this.display ? this.vertices.length : 0;
+  }
+
   /** Normalizes a constant or per-vertex polygon input. */
   static #PrepareSource(value, width, name, required = false)
   {

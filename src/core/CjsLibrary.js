@@ -269,6 +269,10 @@ export class CjsLibrary
             }
             await sof.LoadDataAsync(dataPath);
         }
+        else if (this.#spaceObjectFactory)
+        {
+            await this.#spaceObjectFactory.InitializeAsync();
+        }
         return this;
     }
 

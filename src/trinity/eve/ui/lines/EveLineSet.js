@@ -6,10 +6,11 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Stores editable tactical line records before renderer submission. */
 @type.define({ className: "EveLineSet", family: "eve/ui" })
-export class EveLineSet extends CjsModel
+export class EveLineSet extends withITr2Renderable(CjsModel)
 {
 
   /** Carbon's pending CPU line records. */

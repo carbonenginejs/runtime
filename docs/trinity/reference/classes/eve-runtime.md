@@ -15,6 +15,26 @@ Trinity-owned synchronous child-resource resolution contract.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:IEveLightingOverride -->
+## `IEveLightingOverride`
+
+Contract for an EVE entity that contributes a weighted lighting override.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/IEveLightingOverride.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveSprite2dBracketRenderer -->
+## `EveSprite2dBracketRenderer`
+
+Binds a bracket collection and icon atlas for rendering EVE UI markers in a Sprite2D scene.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/ui/EveSprite2dBracketRenderer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:EveLineChildContainer -->
 ## `EveLineChildContainer`
 
@@ -1795,6 +1815,16 @@ The next-update clock behind EveThrottleable, held outside the schema so throttl
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:EveChildCloud -->
+## `EveChildCloud`
+
+Legacy volumetric-cloud child with authored cloud fields plus maintained ownership, parent, part-tag, CPU SRT composition, visibility, world-transform, and bounding-sphere behavior; GPU tessellation remains engine-owned.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/EveChildCloud.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:EveDistributionModifierProcessLifetime -->
 ## `EveDistributionModifierProcessLifetime`
 
@@ -2044,6 +2074,26 @@ The damage presentation for one ship: shield, armour and hull impact resources, 
 - Source: `src/trinity/eve/EveImpactOverlay.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:EveDamageOverlay -->
+## `EveDamageOverlay`
+
+Maintains armour and hull damage state, locator masks, impact records, shared data-texture rows, faders, and the batches consumed by ship and child overlays.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/overlays/EveDamageOverlay.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:EveModularObjectModifier -->
+## `EveModularObjectModifier`
+
+Transient modular-object edit session that adds, removes, and transforms parts through an injected SOF builder, reacquires records replaced by values hydration, and maintains aggregate sphere and Carbon inner-ellipsoid bounds without introducing a Trinity-to-SOF dependency.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveModularObjectModifier.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
 
 <!-- class:EveLineData -->
 ## `EveLineData`

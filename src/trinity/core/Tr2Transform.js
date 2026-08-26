@@ -3,12 +3,13 @@
 // Source: trinity/trinity/Tr2Transform_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; complete portable behavior lives here.
 import { TriBatchType } from "#consts/graphics";
-import { mat4 } from "#math/mat4";
 import { CjsModel } from "#model";
+import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { carbon, impl, io, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
+import { withITr2Renderable } from "./ITr2Renderable.js";
 
 
 // Carbon uses row vectors. A single matrix has the same flat bytes as our
@@ -125,7 +126,7 @@ function carbonLookAt(out, eye, target, up, forward, right, realUp)
 
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
 @type.define({ className: "Tr2Transform", family: "trinityCore" })
-export class Tr2Transform extends CjsModel
+export class Tr2Transform extends withITr2Renderable(CjsModel)
 {
 
   /** Advances authored curve sets while update is enabled. */

@@ -45,6 +45,16 @@ A Sprite2D leaf that executes an authored render job.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:Tr2Sprite2dScene -->
+## `Tr2Sprite2dScene`
+
+Owns a 2D sprite tree together with display transforms, clipping, picking, batching limits, background, and render-mode state.
+
+- Export: `@carbonenginejs/runtime/trinity`
+- Source: `src/trinity/sprite2d/Tr2Sprite2dScene.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Tr2Sprite2dTransform -->
 ## `Tr2Sprite2dTransform`
 

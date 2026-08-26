@@ -321,7 +321,10 @@ test("parent locator generators resolve and rebuild the Carbon locator-set contr
 
   const parent = new EveSpaceObject2();
   parent.locatorSets.push(damage, weapon);
-  assert.equal(parent.GetLocatorsForSet("damage"), damage.locators);
+  const mergedDamage = parent.GetLocatorsForSet("damage");
+  assert.notEqual(mergedDamage, damage.locators,
+    "Carbon publishes a rebuilt merged locator list rather than the authored storage");
+  assert.deepEqual(mergedDamage, damage.locators);
   assert.equal(parent.GetLocatorsForSet("missing"), null);
 
   const generator = new EveDistributionPlacementGeneratorParentLocators();
@@ -350,7 +353,10 @@ test("parent locator generators resolve and rebuild the Carbon locator-set contr
 
   const third = new Locator();
   third.position.set([7, 8, 9]);
-  weapon.locators.push(third);
+  const additionalWeaponLocators = new EveLocatorSets();
+  additionalWeaponLocators.name = "weapon";
+  additionalWeaponLocators.locators.push(third);
+  parent.MergeToLocatorSet(additionalWeaponLocators);
   generator.OnStructureListModified(0, third, 1, weapon.locators);
   distribution.UpdateSyncronous(context, params);
   assert.equal(distribution.GetFreePlacementCount(), 2);

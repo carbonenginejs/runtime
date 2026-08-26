@@ -29,7 +29,7 @@ export class TriStepGenerateMipMaps extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    if (this.renderTarget) executor?.GenerateMipMaps?.(this.renderTarget);
+    if (this.renderTarget) executor.GenerateMipMaps(this.renderTarget);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

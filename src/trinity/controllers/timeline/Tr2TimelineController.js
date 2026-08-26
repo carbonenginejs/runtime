@@ -1,9 +1,8 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
-import { CjsEveThrottleableState } from "../../eve/CjsEveThrottleableState.js";
+import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
 import { UnlinkReason } from "../enums.js";
 
@@ -17,7 +16,7 @@ import { UnlinkReason } from "../enums.js";
   className: "Tr2TimelineController",
   family: "controllers"
 })
-export class Tr2TimelineController extends CjsModel
+export class Tr2TimelineController extends EveThrottleable
 {
   @io.persistOnly
   @type.list("ITr2ControllerAction")
@@ -51,16 +50,6 @@ export class Tr2TimelineController extends CjsModel
   @type.boolean
   isPaused = false;
 
-  currentUpdateFrequency = 10;
-
-  updateThrottle = true;
-
-  maxUpdateFrequency = 20;
-
-  minUpdateFrequency = 2;
-
-  #throttle = new CjsEveThrottleableState();
-
   #owner = null;
 
   #time = 0;
@@ -80,6 +69,18 @@ export class Tr2TimelineController extends CjsModel
   #tempArena = new ArrayBuffer(0);
 
   #bindingPathRoots = [];
+
+  /** Blue property alias for the controller's runtime timeline clock. */
+  get time()
+  {
+    return this.GetTime();
+  }
+
+  /** Sets the Blue timeline-clock alias through Carbon's SetTime path. */
+  set time(value)
+  {
+    this.SetTime(value);
+  }
 
   /**
    * Links actions, variables, and event handlers to an owner.
@@ -213,7 +214,7 @@ export class Tr2TimelineController extends CjsModel
       return;
     }
     const actualTime = GetControllerActualTimeSeconds();
-    if (this.#throttle.ShouldSkipUpdate(this, normalizedUpdateFrequency, actualTime))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, actualTime))
     {
       return;
     }

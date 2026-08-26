@@ -51,6 +51,44 @@ const sof = EveSOF.Create({
 const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
 ```
 
+For a partial lazy catalog, provide the ordinary decoded-object resource seam
+and enable `lazyData`:
+
+```js
+const sof = new EveSOF().Register({
+  resources: {
+    getObject: (path, context) => library.FetchObject(path, context)
+  },
+  lazyData: true
+});
+
+await sof.InitializeAsync(); // generic.black only
+const values = await sof.BuildValuesFromDNAAsync(
+  "rifter:minmatar:minmatar"
+); // named hull/faction/race and their dependency closure
+```
+
+Individual records can also be requested or replaced explicitly through
+`sof.GetSofLibraryBuilder().FetchHull()`, `FetchFaction()`, `FetchRace()`,
+`FetchMaterial()`, `FetchPattern()`, and `FetchLayout()`.
+
+Sparse output is canonical. Offline consumers that need explicit class defaults
+may import the graph class families they consume and opt into the final
+plain-data overlay:
+
+```js
+import "@carbonenginejs/runtime/trinity";
+import "@carbonenginejs/runtime/audio/trinity";
+
+const expanded = sof.BuildValuesFromDNA("rifter:minmatar:minmatar", {
+  populateDefaults: true
+});
+```
+
+This does not hydrate or initialize the graph. An unknown `_type` fails instead
+of being guessed, so resolver-provided extension classes must also be imported
+before requesting expanded output.
+
 ## Documentation map
 
 - [Architecture and boundaries](architecture.md)

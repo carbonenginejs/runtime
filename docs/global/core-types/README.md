@@ -120,6 +120,61 @@ Generated code and other tools may register a complete class with
 through `decorateField` and `decorateMethod`; those helpers do not require
 decorator syntax.
 
+`CjsSchema.define` also accepts name-keyed `fields` and `methods` objects. Key
+order is declaration order and therefore drives `GetValues()` export order.
+Each member value may be one decorator, a namespace object, or an array mixing
+both forms, so imperative definitions reuse the same vocabulary instead of
+inventing a parallel metadata spelling:
+
+```js
+CjsSchema.define(DemoNode, {
+  className: "DemoNode",
+  family: "example",
+  fields: {
+    count: type.uint32
+  },
+  methods: {
+    GetCount: [carbon.method, impl.implemented]
+  }
+});
+```
+
+The older array-of-`{ name, ... }` records remain supported. Decorator syntax
+is still the ordinary source convention; the object form is useful for bounded
+declaration-only modules that must load without a decorator transform.
+
+### Expand class defaults without hydrating a graph
+
+`CjsSchema.getDefaults(ConstructorOrName)` returns a fresh, self-describing
+plain-values template for one registered class. Stage-3 field decorators retain
+their initializer value before the constructor body can replace it with
+instance state. If no instance has exposed those initializers yet, the schema
+constructs the class once with zero arguments, caches an immutable template,
+and returns a copy. JavaScript still runs that constructor body; the operation
+does not call `CjsModel.from`, `SetValues`, `Initialize`, `UpdateValues`, or any
+other model lifecycle hook.
+
+`CjsSchema.applyDefaults(values)` applies those templates to a sparse
+self-describing values graph. Authored fields win, authored collections replace
+default collections, plain structs merge recursively, and `_id`/`_ref` topology
+is preserved. An unknown `_type` is an error. This is intended for deterministic
+JSON consumers that need the declared class shape without constructing the
+authored graph as live runtime objects.
+
+```js
+const shipDefaults = CjsSchema.getDefaults("EveShip2");
+const expandedShipValues = CjsSchema.applyDefaults(sparseShipValues);
+```
+
+Known limitation: exported method metadata is not inheritance-aware. Fields
+resolve through the class lineage, while `getSchema(Constructor).methods`
+currently reads only that class's stored method list. Stage-3 method
+initializers can also register a base declaration on an instance's concrete
+constructor, making decorated method ownership construction-order dependent.
+No current runtime consumer reads exported `.methods`; tools-core derives its
+method catalog from source. Fixing this requires a scoped schema change because
+it changes exported metadata for every decorated class.
+
 `defineEnum(values, definition)` registers a stable enum name and optional
 member, source, family, and line metadata. Registration works for frozen enum
 objects through the schema registry; extensible objects also receive the

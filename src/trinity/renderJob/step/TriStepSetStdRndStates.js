@@ -66,7 +66,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.ApplyStandardStates?.(this.renderingMode);
+    executor.ApplyStandardStates(this.renderingMode);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

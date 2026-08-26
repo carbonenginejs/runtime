@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
-// Schema: format-carbon resources/TriGeometryResJointData.json; maintained by runtime-resource.
+// Schema: format-carbon resources/TriGeometryResJointData.json; maintained by the runtime resource layer.
 import { type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";

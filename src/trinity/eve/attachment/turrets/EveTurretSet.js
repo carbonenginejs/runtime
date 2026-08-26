@@ -14,6 +14,7 @@ import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { Tr2PerObjectData } from "../../../core/rawData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../../core/batch/Tr2RenderBatch.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
+import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths
@@ -33,7 +34,7 @@ function BoundingSphereTransform(transform, sphere)
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @type.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
-export class EveTurretSet extends EveEntity
+export class EveTurretSet extends withITr2Renderable(EveEntity)
 {
 
   /** m_impactBehaviour (ImpactBehaviour::Type - enum ImpactBehaviour) [READWRITE, NOTIFY, PERSIST, ENUM] */
@@ -370,7 +371,7 @@ export class EveTurretSet extends EveEntity
   /** Carbon method RebuildBoundingSphere (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Geometry resources are duck-typed; runtime-trinity stores their computed sphere without realizing render buffers.")
+  @impl.reason("Geometry resources are duck-typed; the runtime Trinity layer stores their computed sphere without realizing render buffers.")
   RebuildBoundingSphere()
   {
     const resource = this.geometryResource;

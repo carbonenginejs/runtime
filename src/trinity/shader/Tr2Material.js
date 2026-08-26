@@ -14,11 +14,11 @@ export class Tr2Material extends CjsModel
   shader = null;
 
   /** m_parametersForPasses (Tr2EffectTechniqueParametersVector) */
-  @type.list("Tr2EffectTechniqueParameters")
+  @type.list("Tr2EffectTechniqueInputs")
   parametersForPasses = [];
 
   /** m_parametersForLibraries (Tr2EffectTechniqueParametersVector) */
-  @type.list("Tr2EffectTechniqueParameters")
+  @type.list("Tr2EffectTechniqueInputs")
   parametersForLibraries = [];
 
   /** m_lodTextureParameters (std::vector<ITriEffectTextureParameterPtr>) */

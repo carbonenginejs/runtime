@@ -160,7 +160,7 @@ export class EveStretch extends IEveFiringEffectElement
    * StartMoving.
    */
   @carbon.method @impl.adapted
-  @impl.reason("Curve LOD is renderer policy in Carbon; runtime-trinity retains the authored gate and updates graph curves without device globals.")
+  @impl.reason("Curve LOD is renderer policy in Carbon; the runtime Trinity layer retains the authored gate and updates graph curves without device globals.")
   UpdateCurves(context)
   {
     const time = getTime(context);

@@ -2,11 +2,13 @@
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
 import { mat4 } from "#math/mat4";
+import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
+import { withITr2BoundingBox } from "#contracts";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -20,7 +22,7 @@ import { EveComponentType } from "../EveComponentTypes.js";
  * attached to a hull.
  */
 @type.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
-export class EveEffectRoot2 extends EveEntity
+export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
 {
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
@@ -377,12 +379,26 @@ export class EveEffectRoot2 extends EveEntity
     return vec3.transformMat4(out, this.boundingSphereCenter, this.#lastUpdateMatrix);
   }
 
-  /** Effect roots do not expose a local AABB in Carbon. */
+  /** Writes the authored sphere's local axis-aligned bounds when its radius is valid. */
   @carbon.method
-  @impl.noop
-  GetLocalBoundingBox(_min, _max)
+  @impl.implemented
+  GetLocalBoundingBox(min, max)
   {
-    return false;
+    if (this.boundingSphereRadius <= 0) return false;
+    const radius = this.boundingSphereRadius;
+    vec3.set(
+      min,
+      this.boundingSphereCenter[0] - radius,
+      this.boundingSphereCenter[1] - radius,
+      this.boundingSphereCenter[2] - radius
+    );
+    vec3.set(
+      max,
+      this.boundingSphereCenter[0] + radius,
+      this.boundingSphereCenter[1] + radius,
+      this.boundingSphereCenter[2] + radius
+    );
+    return true;
   }
 
   /** Returns the last composed local-to-world transform. */
@@ -392,6 +408,28 @@ export class EveEffectRoot2 extends EveEntity
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this.#lastUpdateMatrix);
+  }
+
+  /** Writes the authored sphere's bounds transformed by the last composed root matrix. */
+  @carbon.method
+  @impl.implemented
+  GetWorldBoundingBox(min, max)
+  {
+    if (!this.GetLocalBoundingBox(min, max)) return false;
+    const bounds = EveEffectRoot2.#bounds;
+    box3.fromBounds(bounds, min, max);
+    box3.transformMat4(bounds, bounds, this.#lastUpdateMatrix);
+    vec3.set(min, bounds[0], bounds[1], bounds[2]);
+    vec3.set(max, bounds[3], bounds[4], bounds[5]);
+    return true;
+  }
+
+  /** Reports whether the authored sphere can currently supply a bounding box. */
+  @carbon.method
+  @impl.implemented
+  IsBoundingBoxReady()
+  {
+    return this.boundingSphereRadius > 0;
   }
 
   /** Protected-equivalent read of Carbon's m_worldTransform
@@ -1036,6 +1074,7 @@ export class EveEffectRoot2 extends EveEntity
 
   static #identity = mat4.create();
   static #centerTransform = mat4.create();
+  static #bounds = box3.create();
   static #localSphere = vec4.create();
   static #worldSphere = vec4.create();
   static #zero = vec3.create();

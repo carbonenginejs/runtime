@@ -28,7 +28,7 @@ export class TriStepEnableWireframeMode extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.SetWireframeRendering?.(this.enableWireframe);
+    executor.SetWireframeRendering(this.enableWireframe);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -10,6 +10,8 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/Tr2RenderBatch.js";
 import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
+import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter.js";
 
 
 /**
@@ -18,7 +20,7 @@ import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, upda
  * of hosting child objects.
  */
 @type.define({ className: "EveStretch2", family: "eve/renderable/stretch" })
-export class EveStretch2 extends IEveFiringEffectElement
+export class EveStretch2 extends withITr2Renderable(IEveFiringEffectElement)
 {
   static MAX_QUAD_COUNT = 128;
 
@@ -64,7 +66,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * a model update and throws a RangeError when it is exceeded.
    */
   @carbon.method @impl.adapted
-  @impl.reason("Carbon rebuilds procedural GPU buffers here; runtime-trinity only enforces the authored 128-quad contract.")
+  @impl.reason("Carbon rebuilds procedural GPU buffers here; the runtime Trinity layer only enforces the authored 128-quad contract.")
   OnModified()
   {
     if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
@@ -187,7 +189,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * end observers and GPU emitters from them.
    */
   @carbon.method @impl.adapted
-  @impl.reason("Generic emitters receive a plain update descriptor instead of Carbon's native UpdateArguments structure.")
+  @impl.reason("Generic emitters receive the nominal JavaScript mirror of Carbon's UpdateArguments structure.")
   Update(context)
   {
     const time = getTime(context);
@@ -204,8 +206,26 @@ export class EveStretch2 extends IEveFiringEffectElement
     this.destinationObserver?.Update?.(this.#destinationTransform);
     const gpuParticleSystem = context?.GetGpuParticleSystem?.() ?? context?.gpuParticleSystem ?? null;
     const originShift = getOriginShift(context);
-    this.sourceEmitter?.Update?.({ time, gpuParticleSystem, transform: this.#sourceTransform, originShift });
-    this.destinationEmitter?.Update?.({ time, gpuParticleSystem, transform: this.#destinationTransform, originShift });
+    if (this.sourceEmitter)
+    {
+      const argumentsValue = EveStretch2.#sourceEmitterArguments;
+      argumentsValue.time = time;
+      argumentsValue.system = gpuParticleSystem;
+      mat4.copy(argumentsValue.parentTransform, this.#sourceTransform);
+      vec3.copy(argumentsValue.originShift, originShift);
+      argumentsValue.emitCountFactor = 1;
+      this.sourceEmitter.Update(argumentsValue);
+    }
+    if (this.destinationEmitter)
+    {
+      const argumentsValue = EveStretch2.#destinationEmitterArguments;
+      argumentsValue.time = time;
+      argumentsValue.system = gpuParticleSystem;
+      mat4.copy(argumentsValue.parentTransform, this.#destinationTransform);
+      vec3.copy(argumentsValue.originShift, originShift);
+      argumentsValue.emitCountFactor = 1;
+      this.destinationEmitter.Update(argumentsValue);
+    }
     return true;
   }
 
@@ -375,4 +395,8 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   /** Deferred descriptor for Carbon's MAX_QUAD_COUNT float2 vertex buffer. */
   static VertexSource = Object.freeze({ eveStretch2Buffer: "quad-vertices", maxQuadCount: EveStretch2.MAX_QUAD_COUNT });
+
+  static #sourceEmitterArguments = new ITr2GenericEmitterUpdateArguments();
+
+  static #destinationEmitterArguments = new ITr2GenericEmitterUpdateArguments();
 }

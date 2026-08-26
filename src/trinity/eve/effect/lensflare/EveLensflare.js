@@ -5,10 +5,11 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Represents a lens-flare graph with CPU-side visibility and controller state. */
 @type.define({ className: "EveLensflare", family: "eve/effect" })
-export class EveLensflare extends CjsModel
+export class EveLensflare extends withITr2Renderable(CjsModel)
 {
 
   #controllerVariables = new Map();

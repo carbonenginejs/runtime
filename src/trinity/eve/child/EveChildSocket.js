@@ -82,9 +82,32 @@ export class EveChildSocket extends EveChildTransform
     if (!this.resourceLoader) return false;
     const next = this.resourceLoader.LoadChild(this.resPath, this);
     if (!next) return false;
+    if (this.plug) this.UnregisterChild(this.plug);
     this.plug = next;
+    this.RegisterChild(this.plug);
     this.Rebind();
     return true;
+  }
+
+  /** Propagates the owning space object to the loaded plug. */
+  @carbon.method
+  @impl.implemented
+  SetOwner(owner)
+  {
+    if (this.GetOwner() === owner) return;
+    super.SetOwner(owner);
+    if (this.plug) this.plug.SetOwner(owner);
+  }
+
+  /** Propagates a modular part tag to the loaded plug. */
+  @carbon.method
+  @impl.implemented
+  SetPartTag(tag)
+  {
+    const next = Number(tag) >>> 0;
+    if (this.GetPartTag() === next) return;
+    super.SetPartTag(next);
+    if (this.plug) this.plug.SetPartTag(next);
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */

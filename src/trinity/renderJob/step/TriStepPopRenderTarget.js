@@ -32,7 +32,7 @@ export class TriStepPopRenderTarget extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.PopRenderTarget?.(this.slot);
+    executor.PopRenderTarget(this.slot);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -90,6 +90,7 @@ test("scene audio wrappers delegate through an optional runtime-audio emitter", 
   assert(calls.includes("mute"));
 
   const child = new EveChildAudio();
+  assertEquals(CjsSchema.getDefaults(EveChildAudio).name, "EveChildAudio");
   child.audioEmitter = emitter;
   child.SetEmitterName("child");
   child.UpdateSyncronous(null, { localToWorldTransform: mat4.fromTranslation(mat4.create(), [4, 5, 6]) });
@@ -616,6 +617,12 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   assertEquals(textured.isDynamic, true);
   assertEquals(textured.texture, null);
   assertEquals(textured.Initialize(), true);
+
+  assertEquals(CjsSchema.getDefaults(Tr2PointLight).type, Tr2Light.POINT_LIGHT);
+  assertEquals(CjsSchema.getDefaults(Tr2SpotLight).type, Tr2Light.SPOT_LIGHT);
+  const texturedDefaults = CjsSchema.getDefaults(Tr2TexturedPointLight);
+  assertEquals(texturedDefaults.type, Tr2Light.POINT_LIGHT);
+  assertEquals(texturedDefaults.isDynamic, true);
 
   // Flattened storage (2026-07-23 decision): the Blue-mapped LightData
   // members are real decorated fields on the concrete light classes.

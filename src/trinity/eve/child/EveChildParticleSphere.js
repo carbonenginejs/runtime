@@ -8,6 +8,7 @@ import {
 } from "../../particle/element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 
 const BIND_PENDING = 0;
@@ -16,7 +17,7 @@ const BIND_INVALID = 2;
 
 /** A model that binds a particle system's position, velocity and lifetime elements and its attribute generators for a sphere-distributed ambient effect. */
 @type.define({ className: "EveChildParticleSphere", family: "eve/child" })
-export class EveChildParticleSphere extends EveSpaceObjectChild
+export class EveChildParticleSphere extends withITr2Renderable(EveSpaceObjectChild)
 {
 
   #bindStatus = BIND_PENDING;

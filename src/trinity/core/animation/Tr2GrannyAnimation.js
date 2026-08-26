@@ -130,6 +130,36 @@ export class Tr2GrannyAnimation extends CjsModel
   @type.string
   model_ = "";
 
+  /**
+   * Blue property alias for the persisted resPath_ backing field. It is not a
+   * separate schema field: exporting both names would create conflicting keys
+   * when sparse model values author only the canonical persisted name.
+   */
+  get resPath()
+  {
+    return this.resPath_;
+  }
+
+  /** Sets the Blue resource-path alias and rebuilds cached animation data. */
+  set resPath(value)
+  {
+    this.resPath_ = String(value ?? "");
+    this.Initialize();
+  }
+
+  /** Blue property alias for the persisted model_ backing field. */
+  get model()
+  {
+    return this.model_;
+  }
+
+  /** Sets the Blue model alias and rebuilds cached animation data. */
+  set model(value)
+  {
+    this.model_ = String(value ?? "");
+    this.Initialize();
+  }
+
   /** m_grannyRes (TriGrannyResPtr) [READ] */
   @io.read
   @type.objectRef("TriGrannyRes")
@@ -338,7 +368,7 @@ export class Tr2GrannyAnimation extends CjsModel
   /** Carbon method AddSecondaryResPath (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Resource loading stays runtime-resource-owned; registered decoded resources are attached synchronously when available.")
+  @impl.reason("Resource loading stays resource-layer-owned; registered decoded resources are attached synchronously when available.")
   AddSecondaryResPath(resPath)
   {
     const path = String(resPath ?? "");
@@ -803,7 +833,7 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       // Granny composite applies ScaleShear FIRST, then Orientation, then
       // Position (row-vector SS*R*T - authority: the validated gr2->CMF
-      // converter, runtime-resource formats/cmf/core/gr2Anim.js composeTrs).
+      // converter, runtime resource formats/cmf/core/gr2Anim.js composeTrs).
       // In gl-matrix that is local = R . SS with the translation stamped in.
       // Order-insensitive for identity scaleShear (all EVE skeletons).
       mat4.fromMat3(bone.localTransform, bone.scaleShear);

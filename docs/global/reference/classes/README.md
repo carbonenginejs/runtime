@@ -35,6 +35,36 @@ Dependency-free engine lifecycle required to execute one runtime frame.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsInstancedMeshManager -->
+## `CjsInstancedMeshManager`
+
+Dependency-free contract through which Trinity registers CPU instancing data with an engine-owned realization and receives opaque handles that Trinity never inspects or mutates.
+
+- Export: `@carbonenginejs/runtime/contracts`
+- Source: `src/global/contracts/CjsInstancedMeshManager.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2BoundingBox -->
+## `ITr2BoundingBox`
+
+Dependency-free abstract contract for objects that publish ready world-space axis-aligned bounds, with a mixin for providers that already inherit a model base.
+
+- Export: `@carbonenginejs/runtime/contracts`
+- Source: `src/global/contracts/ITr2BoundingBox.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2RenderNode -->
+## `ITr2RenderNode`
+
+Dependency-free contract for one node in a Trinity render graph.
+
+- Export: `@carbonenginejs/runtime/contracts`
+- Source: `src/global/contracts/ITr2RenderNode.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsScriptCallback -->
 ## `CjsScriptCallback`
 

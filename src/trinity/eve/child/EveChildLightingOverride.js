@@ -7,6 +7,7 @@ import { impl, io, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Priority } from "../../generated/postProcess/enums.js";
+import { withIEveLightingOverride } from "./IEveLightingOverride.js";
 
 
 /**
@@ -15,7 +16,7 @@ import { Priority } from "../../generated/postProcess/enums.js";
  * volumes it owns.
  */
 @type.define({ className: "EveChildLightingOverride", family: "eve/child" })
-export class EveChildLightingOverride extends EveChildTransform
+export class EveChildLightingOverride extends withIEveLightingOverride(EveChildTransform)
 {
   #overrideIntensity = 0;
   #boundingSphere = { center: vec3.create(), radius: 0, initialized: false };

@@ -67,11 +67,11 @@ export class Tr2ManipulationTool extends CjsModel
     {
       return false;
     }
-    this.ResetPrimitiveColors?.();
+    this.ResetPrimitiveColors();
     const yellow = vec4.fromValues(1, 1, 0.01, 1);
     for (const primitive of selected)
     {
-      primitive.SetCurrentColor?.(yellow);
+      primitive.SetCurrentColor(yellow);
     }
     this.selectedAxis = axisName;
     return true;
@@ -85,12 +85,40 @@ export class Tr2ManipulationTool extends CjsModel
     mat4.copy(this.localTransform, initialTransform);
   }
 
-  /** Carbon method Move -> PyMove (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
-  Move(...args)
+  /** Required per-frame manipulator update contract (Tr2ManipulationTool.h:37). */
+  @impl.abstract
+  Update(..._args)
   {
-    throw new Error("Tr2ManipulationTool.Move is not implemented in CarbonEngineJS.");
+    throw new Error("Tr2ManipulationTool.Update must be implemented by a concrete manipulation tool.");
+  }
+
+  /** Required guide-geometry construction contract (Tr2ManipulationTool.h:38). */
+  @impl.abstract
+  GenLineSets(..._args)
+  {
+    throw new Error("Tr2ManipulationTool.GenLineSets must be implemented by a concrete manipulation tool.");
+  }
+
+  /** Required primitive-colour reset contract (Tr2ManipulationTool.h:39). */
+  @impl.abstract
+  ResetPrimitiveColors(..._args)
+  {
+    throw new Error("Tr2ManipulationTool.ResetPrimitiveColors must be implemented by a concrete manipulation tool.");
+  }
+
+  /** Required visible-primitive collection contract (Tr2ManipulationTool.h:40). */
+  @impl.abstract
+  GetPrimitivesToRender(..._args)
+  {
+    throw new Error("Tr2ManipulationTool.GetPrimitivesToRender must be implemented by a concrete manipulation tool.");
+  }
+
+  /** Carbon's pure-virtual Move contract, exposed through PyMove. */
+  @carbon.method
+  @impl.abstract
+  Move(..._args)
+  {
+    throw new Error("Tr2ManipulationTool.Move must be implemented by a concrete manipulation tool.");
   }
 
   /** Invokes Carbon's move veto callback with current and proposed transforms. */

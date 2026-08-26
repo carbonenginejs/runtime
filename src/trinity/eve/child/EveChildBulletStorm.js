@@ -6,10 +6,11 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
 @type.define({ className: "EveChildBulletStorm", family: "eve/child" })
-export class EveChildBulletStorm extends EveSpaceObjectChild
+export class EveChildBulletStorm extends withITr2Renderable(EveSpaceObjectChild)
 {
 
   #changingClipSphere = false;

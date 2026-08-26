@@ -67,6 +67,69 @@ Nominal backend contract for realizing Trinity's volumetric and froxel-fog inten
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ITr2Renderable -->
+## `ITr2Renderable`
+
+Trinity-owned contract for objects collected through the renderable path.
+
+Its Carbon visibility default is concrete; required batch, transparency,
+sorting, and per-object-data methods throw until a provider implements them.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/ITr2Renderable.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2ImpostorSource -->
+## `ITr2ImpostorSource`
+
+Contract for an object that can be captured into an impostor atlas.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/mesh/ITr2ImpostorSource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2ImpostorSourceImpostorHash -->
+## `ITr2ImpostorSourceImpostorHash`
+
+Camera directions used to decide when an impostor must be recaptured.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/mesh/ITr2ImpostorSource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2InstanceData -->
+## `ITr2InstanceData`
+
+Contract for a provider of instance-stream data and layout metadata.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/mesh/ITr2InstanceData.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2InstanceDataInstanceData -->
+## `ITr2InstanceDataInstanceData`
+
+One realized instance-buffer slice returned by an ITr2InstanceData provider.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/mesh/ITr2InstanceData.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2UpscalingTechniqueInfo -->
+## `Tr2UpscalingTechniqueInfo`
+
+One device-reported upscaling technique and the quality settings and frame generation support available for it.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2UpscalingTechniqueInfo.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Tr2Transform -->
 ## `Tr2Transform`
 
@@ -473,6 +536,16 @@ Tr2RuntimeGpuBuffer (trinityCore) - generated from schema shapeHash 0cb23744....
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:Tr2RotationTool -->
+## `Tr2RotationTool`
+
+Extends the manipulation tool with quaternion rotation state and angular precision.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/tool/Tr2RotationTool.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Tr2RuntimeInstanceData -->
 ## `Tr2RuntimeInstanceData`
 
@@ -749,6 +822,16 @@ The default variable wrapper: a name, a value and an inferred type tag, able to 
 
 - Export: `@carbonenginejs/runtime/trinity/shader`
 - Source: `src/trinity/shader/CjsVariableStore.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2TranslationTool -->
+## `Tr2TranslationTool`
+
+Extends the manipulation tool with the current three-axis translation result.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/tool/Tr2TranslationTool.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

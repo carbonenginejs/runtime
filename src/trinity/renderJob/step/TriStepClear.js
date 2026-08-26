@@ -63,7 +63,7 @@ export class TriStepClear extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.Clear?.({
+    executor.Clear({
       color: Array.from(this.color, TriStepClear.#clampColor),
       depth: this.depth,
       stencil: this.stencil,

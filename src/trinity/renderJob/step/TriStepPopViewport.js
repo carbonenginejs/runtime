@@ -17,7 +17,7 @@ export class TriStepPopViewport extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.PopViewport?.();
+    executor.PopViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

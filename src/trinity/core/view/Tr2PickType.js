@@ -10,8 +10,8 @@
  * Vocabulary rather than a class member: Carbon declares it beside the
  * renderable interface, and it is consumed by every pickable. Its sibling
  * `TriBatchType` lives in `#consts/graphics`; this one
- * stays here while runtime-trinity is its only consumer, and belongs beside
- * that sibling once an engine's picking pass needs it too.
+ * stays in the Trinity layer while it is the only consumer, and belongs beside
+ * that sibling once an engine-layer picking pass needs it too.
  */
 export const Tr2PickType = Object.freeze({
   /** Geometry authored specifically for picking. */

@@ -15,7 +15,7 @@ const BUILT_IN_PARAMETERS = new Set([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]);
  *
  * Other versions, truncated tables, invalid enums or floats, impossible
  * counts, and trailing bytes return null. Numeric enum values are retained so
- * runtime-resource remains a lossless typed reader rather than a policy layer.
+ * the runtime resource layer remains a lossless typed reader rather than a policy layer.
  *
  * @param {Uint8Array} payload STMG payload bytes after the chunk header.
  * @param {object} [options] Decode options.

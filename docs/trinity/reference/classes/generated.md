@@ -10,16 +10,6 @@ behavior is still generator-owned. Package visibility is recorded from the
 actual export graph; a source-level `export class` alone does not make a class
 part of the public package API.
 
-<!-- class:EveChildCloud -->
-## `EveChildCloud`
-
-Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/eve/child/EveChildCloud.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:EveCloudEditableVolume -->
 ## `EveCloudEditableVolume`
 
@@ -37,16 +27,6 @@ Binds an editable cloud volume to a named effect texture parameter and records w
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/eve/child/EveCloudVolumeTextureParameter.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:IEveLightingOverride -->
-## `IEveLightingOverride`
-
-Defines prioritized multipliers for sun, background, reflection, and aggregate lighting overrides on an EVE child.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/eve/child/IEveLightingOverride.js`
 - Visibility: Public
 - Kind: Carbon generated
 
@@ -70,24 +50,6 @@ Defines a procedurally seeded starfield with distance, flashing, effect, and sta
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:EveDamageOverlay -->
-## `EveDamageOverlay`
-
-Carries armor-impact, repair, shader, and hull-damage state for a space object's self-contained damage surface.
-
-- Source: `src/trinity/generated/eve/EveDamageOverlay.js`
-- Visibility: Internal
-- Kind: Carbon generated
-
-<!-- class:EveModularObjectModifier -->
-## `EveModularObjectModifier`
-
-Carries the object, part data, SOF builder, and instanced-mesh state associated with Carbon's transient modular-object edit session.
-
-- Source: `src/trinity/generated/eve/EveModularObjectModifier.js`
-- Visibility: Internal
-- Kind: Carbon generated
-
 <!-- class:EvePendingPickingReadback -->
 ## `EvePendingPickingReadback`
 
@@ -105,16 +67,6 @@ Collects camera, quality, pass-toggle, overlay, background, and post-process sta
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/eve/scene/EveSpaceSceneRenderDriver.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:EveSprite2dBracketRenderer -->
-## `EveSprite2dBracketRenderer`
-
-Binds a bracket collection and icon atlas for rendering EVE UI markers in the 2D sprite scene.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/eve/ui/EveSprite2dBracketRenderer.js`
 - Visibility: Public
 - Kind: Carbon generated
 
@@ -145,16 +97,6 @@ Models Carbon's cached font-glyph wrapper, including placement coordinates and b
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/font/Tr2SBitWrapper.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:ITr2GenericEmitter -->
-## `ITr2GenericEmitter`
-
-Defines the update and particle-spawn contract shared by emitters attached to Tr2ParticleSystem.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/particle/ITr2GenericEmitter.js`
 - Visibility: Public
 - Kind: Carbon generated
 
@@ -205,16 +147,6 @@ Tracks a ray-tracing pipeline descriptor, compiled state, pending name, and dirt
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/raytracing/Tr2RaytracingPipelineStateManager.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:Tr2StepExecuteRenderNode -->
-## `Tr2StepExecuteRenderNode`
-
-Carries configuration for a render-job step that executes one render node into an optional destination target and clears it on failure.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/renderJob/Tr2StepExecuteRenderNode.js`
 - Visibility: Public
 - Kind: Carbon generated
 
@@ -308,16 +240,6 @@ Defines channel, threshold, edge, and texture-mask constraints used when hit-tes
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2Sprite2dScene -->
-## `Tr2Sprite2dScene`
-
-Owns a 2D sprite tree together with display transforms, clipping, picking, batching limits, background, and render-mode state.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/sprite2d/Tr2Sprite2dScene.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2Sprite2dStretch -->
 ## `Tr2Sprite2dStretch`
 
@@ -375,26 +297,6 @@ Adds primary and secondary texture bindings to the shared 2D sprite render state
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/sprite2d/Tr2TexturedSpriteObject.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:ITr2ImpostorSource -->
-## `ITr2ImpostorSource`
-
-Carries the view and up directions required to capture an object into an impostor atlas.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/ITr2ImpostorSource.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:ITr2InstanceData -->
-## `ITr2InstanceData`
-
-Describes a contiguous instance-data slice by buffer, byte offset, stride, and item count.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/ITr2InstanceData.js`
 - Visibility: Public
 - Kind: Carbon generated
 
@@ -508,16 +410,6 @@ Carries buffer storage, mirrored data, dirty and locked regions, frame, head, ta
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2RotationTool -->
-## `Tr2RotationTool`
-
-Extends the manipulation tool with quaternion rotation state and angular precision.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2RotationTool.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2SSSSS -->
 ## `Tr2SSSSS`
 
@@ -585,15 +477,5 @@ Models Carbon's caller-owned texture pointer wrapper without claiming responsibi
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/trinityCore/Tr2TransientTextureReference.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:Tr2TranslationTool -->
-## `Tr2TranslationTool`
-
-Extends the manipulation tool with the current three-axis translation result.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2TranslationTool.js`
 - Visibility: Public
 - Kind: Carbon generated

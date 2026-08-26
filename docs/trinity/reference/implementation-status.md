@@ -25,14 +25,34 @@ properties in generated and maintained source. It excludes the deliberate
 
 The current source contains:
 
-- 165 explicit methods across 51 classes; and
-- one unknown property, the transient `EveModularObjectModifier.object`
-  member in generated intake.
+- 142 explicit methods across 44 classes; and
+- zero unknown properties.
 
 The remaining methods are concentrated in native, GPU, font, bitmap/atlas,
 particle, scene-picking, smart-light, and related backend-facing families.
 Markers are intentional: the runtime does not fabricate behavior before a
 portable contract or engine seam is established.
+
+The 2026-08-26 portable pass closed nine markers, corrected
+`Tr2ManipulationTool`'s five pure virtuals to abstract throwing root methods,
+and added the missing `Tr2UpscalingTechniqueInfo` schema class. Four generated
+records that conflated an interface with its nested data structure are now
+maintained nominal contracts with separately named packets. The promoted
+`Tr2Sprite2dScene` also exposes `displayX` and `displayY` as Carbon's scalar
+aliases of `translation`; its picking method remains explicit engine work.
+`EveSprite2dBracketRenderer` now has its real Sprite2D parent and makes the
+previously silent GPU submission gap explicit, while
+`Tr2StepExecuteRenderNode` now fulfills its inherited step contract through
+the runtime render context and nominal render-node interface.
+The emitter promotion also replaced incompatible ad-hoc update records with
+the registered `ITr2GenericEmitterUpdateArguments` packet and restored the
+previously absent `Tr2ParticleSystem.Update` CPU path; child particle systems
+now call both emitters and systems directly.
+`ITr2InstanceData` likewise separates the provider contract from its returned
+instance-data packet. `Tr2RuntimeInstanceData` and `Tr2ParticleSystem` now
+publish their ready CPU buffers, normalized layouts, counts, and bounds through
+that contract; `Tr2DirectInstanceData` deliberately inherits the throwing
+buffer/readiness methods until an engine supplies its physical realization.
 
 Required interface operations are not counted as implementation gaps. Their
 canonical root carries `@impl.abstract` and throws; a subclass that does not
@@ -60,6 +80,60 @@ missing or ambiguous schemas, or unresolved non-`CjsModel` base classes.
 descriptors retain Carbon's bucket, material, geometry, instance-count, and
 draw-count contracts while leaving physical buffers to the selected engine.
 
+## 2026-08-25 Carbon closure
+
+The current Carbon child, damage, modular, raycast, and bounding-box tranche is
+implemented in maintained source:
+
+- `EveDamageOverlay` owns damage state, faders, impacts, locator masks, packed
+  data rows, and shader selection; `EveImpactOverlay` composes it, maintains
+  shield ellipsoid intersections and header/impact rows, applies Carbon's
+  squared shield-damage colour fade, enablement, LOD, reuse, lifetime, and
+  maximum-impact rules, and preserves the legacy proxy surface.
+- Child meshes and instanced child meshes own and inherit overlay effects,
+  emit overlay and damage batches, apply LOD/culling, and transform clip data by
+  the full inverse local matrix.
+- Space-object roots propagate child ownership and part tags, merge child
+  locator/geometry ranges, invalidate those merged views, route child damage,
+  and run the damage-locator filter through the resource-owned raycast session.
+- `Tr2RaycastGeometryRes` is a maintained resource and `TriGeometryRes` owns the
+  prepare/reset/readiness/failure/intersection lifecycle. Hit results expose
+  Carbon's canonical `position`, unit `normal`, and actual edge-cross-product
+  `unnormalizedNormal`; `point` remains a compatibility alias.
+- `EveModularObjectModifier` uses an injected SOF `BuildChild` capability;
+  Trinity does not import SOF. Successful mutations immediately maintain
+  aggregate sphere and Carbon inner-ellipsoid bounds, reacquire graph records
+  replaced by values hydration, failed builds are atomic, and transient
+  edit-session state is private rather than schema data.
+- `EveChildCloud` now inherits the maintained `EveSpaceObjectChild` contract
+  and owns its CPU SRT composition, world bounds, visibility gate, and exposed
+  transform/sphere queries; its GPU cloud realization remains engine-owned.
+- `CjsInstancedMeshManager` is the dependency-free CPU registration contract.
+  Trinity calls it directly, registers terminal `RawData`, and retains the
+  issuing manager separately from opaque handles; production engine
+  realization remains open in the supporting engines.
+- `ITr2BoundingBox` is a dependency-free global contract. Effect roots,
+  transforms, planets, root transforms, and space objects inherit its abstract
+  methods through dependency-safe contract mixins and override the Carbon
+  provider surface. Mesh bounds include Carbon's material scale, displacement,
+  and rotating-vertex expansion. Character/interior providers remain separate
+  character work.
+- `ITr2Renderable` is a Trinity-owned nominal contract with Carbon's concrete
+  default visibility and four throwing required methods. Its 28 direct Carbon
+  provider classes inherit the contract without branding broad model or entity
+  roots. Batch collection calls it directly, and reflection-component
+  registration rejects structural lookalikes.
+- Child meshes without a live animation updater use Carbon's identity rest-pose
+  palette, and overlay collection stops when geometry is unavailable.
+
+Focused regressions cover shield rows, colour fade and impact reuse, null-draw
+overlay suppression, custom-mask matrix orientation, opaque zero/frozen
+manager handles, terminal instance-data registration, raycast result shape,
+modular hydration identity, inner-ellipsoid bounds and failure atomicity,
+legacy-cloud CPU behavior, nominal Trinity bounding providers, promoted child
+ownership, and package-export tombstones. Exact suite counts belong in the
+verification record for the source change, not this page.
+
 ## Type and nominal-contract gaps
 
 Run:
@@ -72,8 +146,14 @@ The type audit distinguishes concrete model omissions, nominal contract gaps,
 and deliberately opaque native structs. It does not treat an `I*` identity as
 an acceptable duck type merely because JavaScript could call it structurally.
 
-The current source reports 42 references across 26 missing concrete model
-identities and 276 references across 43 nominal contract identities. Resolve
+The refreshed `npm/dist` snapshot reports 31 references across 21 missing
+concrete model identities and 274 references across 41 nominal contract
+identities. The source contract surfaces now include `ITr2BoundingBox` and
+`ITr2RenderNode` globally,
+plus `ITr2Renderable`, `ITr2InstanceData`, `ITr2ImpostorSource`, and
+`ITr2GenericEmitter` in their owning Trinity families. Focused runtime tests
+must additionally prove provider ancestry because the type audit does not
+inspect assignability. Resolve
 each organization-owned contract at its lowest owning layer, put
 `@impl.abstract` and the throwing required method on that root, make concrete
 implementations extend it, and call required methods directly. Consumers do
@@ -123,7 +203,9 @@ parity gate rather than incidental test behavior.
 - Per-object constant records join the layout's declared stages to a
   technique's shader-type mask. Carbon's `Standard` and `Skinned` per-object
   classes disagree on gating the pixel payload; this package takes the gated
-  form for every struct.
+  form for every struct. Each joined record retains its canonical
+  `CjsConstantPayload` alongside the terminal byte view, so an engine can honor
+  dirty/upload/commit lifecycle without reconstructing the owner.
 - The public class-purpose catalog covers every current class with class-level
   documentation. `npm run catalog:trinity` reports no missing catalog entry.
   Promotion review must continue to install a descriptor before a new
@@ -165,7 +247,7 @@ parity gate rather than incidental test behavior.
   `Tr2VolumetricsRenderer` now owns per-attribute fog blending, quality and
   planet state, and the terminal froxel per-frame RawData writes. The scene
   owns one renderer by default and calls its per-frame fill directly; the
-  promoted scene driver still needs to schedule the fog blend. Physical
+  future scene driver still needs to schedule the fog blend. Physical
   fog/volumetric resources and passes delegate through a nominal throwing
   `CjsVolumetricsExecutor`. The remaining generated methods are explicit
   throwing obligations; the generated tree no longer owns manual behavior.

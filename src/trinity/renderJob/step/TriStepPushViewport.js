@@ -17,7 +17,7 @@ export class TriStepPushViewport extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.PushViewport?.();
+    executor.PushViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -253,7 +253,7 @@ function WritePaletteMatrix(palette, index, value)
 
     // Carbon Float4x3 packs (_11,_21,_31,_41) per row (MatrixUtils.cpp:6-20),
     // which on the shared byte layout is the COLUMN stride (v[0],v[4],v[8],
-    // v[12]) - the same 3x4 layout as granny_matrix_3x4 and runtime-sof's
+    // v[12]) - the same 3x4 layout as granny_matrix_3x4 and the SOF layer's
     // packInstanceMatrix. Row-stride packing transposes the rotation block.
     palette[offset] = value[0];
     palette[offset + 1] = value[4];

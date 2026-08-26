@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
-// Schema: format-carbon resources/Tr2GrannyIntersectionResult.json; maintained by runtime-resource.
+// Schema: format-carbon resources/Tr2GrannyIntersectionResult.json; maintained by the runtime resource layer.
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";

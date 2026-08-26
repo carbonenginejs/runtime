@@ -136,4 +136,12 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
     }
   }
 
+  /** Carbon returns the owned volume vector by reference (cpp:93-96). */
+  @carbon.method
+  @impl.implemented
+  GetDebugVolumes()
+  {
+    return this.debugVolumes;
+  }
+
 }

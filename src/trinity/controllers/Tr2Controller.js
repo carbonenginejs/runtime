@@ -1,10 +1,9 @@
 // Source: trinity/trinity/Controllers/Tr2Controller.h
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
-import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "./contracts.js";
-import { CjsEveThrottleableState } from "../eve/CjsEveThrottleableState.js";
+import { EveThrottleable } from "../eve/EveThrottleable.js";
 import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 
 
@@ -16,7 +15,7 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
   className: "Tr2Controller",
   family: "controllers"
 })
-export class Tr2Controller extends CjsModel
+export class Tr2Controller extends EveThrottleable
 {
   @io.persist
   @type.list("Tr2StateMachine")
@@ -41,16 +40,6 @@ export class Tr2Controller extends CjsModel
   @io.persist
   @type.boolean
   isShared = false;
-
-  currentUpdateFrequency = 10;
-
-  updateThrottle = true;
-
-  maxUpdateFrequency = 20;
-
-  minUpdateFrequency = 2;
-
-  #throttle = new CjsEveThrottleableState();
 
   #updateables = new Set();
 
@@ -260,7 +249,7 @@ export class Tr2Controller extends CjsModel
       return;
     }
     const actualTime = GetControllerActualTimeSeconds();
-    if (this.#throttle.ShouldSkipUpdate(this, normalizedUpdateFrequency, actualTime))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, actualTime))
     {
       return;
     }

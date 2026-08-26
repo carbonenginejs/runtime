@@ -3,10 +3,11 @@
 import { carbon, impl, io, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { vec4 } from "#math/vec4";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /** A child that renders a set of curved and sphere-projected line paths, as object geometry, as dedicated line rendering, or both. */
 @type.define({ className: "EveChildLineSet", family: "eve/child" })
-export class EveChildLineSet extends EveChildTransform
+export class EveChildLineSet extends withITr2Renderable(EveChildTransform)
 {
 
   /** m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY] */

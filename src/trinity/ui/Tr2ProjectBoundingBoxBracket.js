@@ -3,11 +3,13 @@
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { mat4 } from "#math/mat4";
+import { ITr2BoundingBox } from "#contracts";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, io, type } from "#schema";
 
 
 const CLIP_EPSILON = 1e-5;
+const BOUNDING_BOX_TYPE = CjsSchema.getClassName(ITr2BoundingBox);
 const CLIP_LEFT = 1 << 0;
 const CLIP_RIGHT = 1 << 1;
 const CLIP_BOTTOM = 1 << 2;
@@ -422,7 +424,7 @@ export class Tr2ProjectBoundingBoxBracket extends CjsModel
   name = "";
 
   @io.readwrite
-  @type.objectRef("ITr2BoundingBox")
+  @type.objectRef(BOUNDING_BOX_TYPE)
   object = null;
 
   @io.readwrite

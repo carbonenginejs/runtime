@@ -42,11 +42,11 @@ export class TriStepPythonCB extends TriRenderStep
     try
     {
       if (typeof this.callback === "function") this.callback();
-      else this.callback?.CallVoid?.();
+      else if (this.callback) this.callback.CallVoid();
     }
     catch (error)
     {
-      executor?.ReportDiagnostic?.({ type: "callback-error", step: this, error });
+      executor.AddDiagnostic({ type: "callback-error", step: this, error });
     }
     return TriRenderStep.Result.RS_OK;
   }

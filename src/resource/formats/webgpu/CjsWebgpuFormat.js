@@ -25,7 +25,7 @@ const FORMAT_NAME = "CjsWebgpuFormat";
 
 /**
  * CarbonEngineJS-facing format surface for `.carbonwebgpu` WebGPU packages, plus an
- * offline effect-analysis helper built on the runtime-resource HLSL and DXBC
+ * offline effect-analysis helper built on the runtime resource HLSL and DXBC
  * format subpaths.
  *
  * The package owns read/build, normalized shader analysis, and the current

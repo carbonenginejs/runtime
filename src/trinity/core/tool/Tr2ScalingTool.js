@@ -4,6 +4,14 @@ import { carbon, impl, io, type } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
+
+const AXIS_COLORS = Object.freeze({
+  x: vec4.fromValues(1, 0.01, 0.01, 1),
+  y: vec4.fromValues(0.01, 1, 0.01, 1),
+  z: vec4.fromValues(0.01, 0.01, 1, 1),
+  w: vec4.fromValues(0, 1, 1, 1)
+});
 
 /** An interactive scaling manipulator that turns pointer drags along a selected axis into a scale. */
 @type.define({ className: "Tr2ScalingTool", family: "trinityCore" })
@@ -41,6 +49,37 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
       }
     }
     this.UpdateLines?.();
+  }
+
+  /** Returns the full tool, or the captured axis, guide and centre primitives. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("JavaScript returns a fresh array instead of Carbon's reused private visible-object vector.")
+  GetPrimitivesToRender()
+  {
+    if (!this.captured || this.selectedAxis === "w")
+    {
+      return Array.from(this.primitives);
+    }
+    return this.primitives.filter(primitive =>
+      primitive.name === "w"
+      || primitive.name === this.selectedAxis
+      || primitive.name === `_${this.selectedAxis}`);
+  }
+
+  /** Restores Carbon's authored axis and centre colours. */
+  @carbon.method
+  @impl.implemented
+  ResetPrimitiveColors()
+  {
+    for (const primitive of this.primitives)
+    {
+      const color = AXIS_COLORS[primitive.name];
+      if (color)
+      {
+        primitive.SetCurrentColor(color);
+      }
+    }
   }
 
 }

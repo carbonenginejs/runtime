@@ -29,11 +29,11 @@ layouts, packed geometry, texture pixels, sampler descriptors, resource
 bindings, and complete uniform values. The device does not infer those values
 from shader names, SOF data, or scene objects.
 
-Uniform packing is backend-specific. The bounded space-object Main serializer
-owns WebGPU's Carbon cbuffer byte layout and performs the required logical
-matrix-to-register-row encoding. The WebGPU device upload itself remains a
-byte copy. An already encoded `RawData` payload must therefore not pass through
-the semantic serializer or be transposed a second time.
+Uniform packing is runtime-owned and backend-neutral. Trinity's canonical
+`RawData` layouts perform the required logical matrix-to-register-row encoding;
+the WebGPU device upload itself remains a byte copy. An already encoded
+`RawData` payload must therefore not pass through a semantic serializer or be
+transposed a second time.
 
 ## Per-object data boundary
 
@@ -231,9 +231,20 @@ executor may plan far enough to form legal passes, provided observable Trinity
 ordering survives it.
 
 It is needed because a render pass has fixed attachments and several things
-Carbon does mid-pass are illegal inside one. Four cases cut a region: changing a
-render target or depth-stencil, compute work, transfer work such as copies,
-resolves and mip generation, and presentation.
+Carbon does mid-pass are illegal inside one. Target/depth changes, compute,
+transfer work, and presentation cut regions. A viewport change after render
+work also cuts the current region: WebGPU could change it inside one open pass,
+but the current encoder configures each region once before its selections, so a
+conservative pass cut is the only way to preserve the recorded order.
+
+Viewport state is normalized into a frozen `{ viewport, scissor }` snapshot on
+each render region and persists across target, compute, and transfer boundaries.
+`TriViewport.minZ/maxZ` become WebGPU's `minDepth/maxDepth`. Trinity currently
+has no scissor intent, so `scissor` remains `null` and means the full target.
+Raw render-state assignments, standard-state blocks, and wireframe changes are
+rejected until the engine has a translator that can include them in the actual
+pipeline recipe; retaining those intents while drawing with the previous
+pipeline would be a silent state error.
 
 Clears become attachment load operations. A clear at the head of a region folds
 into its load ops for free; a clear arriving after work in the same region cuts

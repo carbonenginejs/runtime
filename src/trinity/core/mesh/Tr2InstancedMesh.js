@@ -153,8 +153,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     }
 
     const instanceResource = this.GetInstanceGeometryResource();
-    const source = instanceResource?.GetInstanceBufferBoundingBox?.(this.instanceMeshIndex) ??
-      instanceResource?.GetBoundingBox?.();
+    if (!instanceResource)
+    {
+      return Tr2InstancedMesh.#cloneBounds(Tr2InstancedMesh.#zero, Tr2InstancedMesh.#zero);
+    }
+    const source = instanceResource.GetInstanceBufferBoundingBox(this.instanceMeshIndex);
     if (!source)
     {
       return Tr2InstancedMesh.#cloneBounds(Tr2InstancedMesh.#zero, Tr2InstancedMesh.#zero);

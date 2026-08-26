@@ -17,7 +17,7 @@ export class TriStepPushProjection extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, executor)
   {
-    executor?.PushProjection?.();
+    executor.PushProjection();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

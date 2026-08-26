@@ -5,6 +5,7 @@ import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
+import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "./ITr2InstanceData.js";
 
 
 /**
@@ -13,7 +14,7 @@ import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2Particl
  * particle system on demand.
  */
 @type.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
-export class Tr2RuntimeInstanceData extends CjsModel
+export class Tr2RuntimeInstanceData extends withITr2InstanceData(CjsModel)
 {
   @io.persist
   @type.string
@@ -68,6 +69,8 @@ export class Tr2RuntimeInstanceData extends CjsModel
   #dirty = false;
 
   #dataRevision = 0;
+
+  #instanceData = new ITr2InstanceDataInstanceData();
 
   /** True when rows or layout have changed since the last UpdateData. */
   get dirty()
@@ -351,6 +354,29 @@ export class Tr2RuntimeInstanceData extends CjsModel
   IsInstanceDataReady()
   {
     return this.#layout.length > 0 && this.#data !== null && !this.#dirty;
+  }
+
+  /**
+   * Returns the published CPU byte buffer and its row geometry. The buffer is
+   * borrowed, matching Carbon's borrowed AL buffer reference.
+   */
+  @impl.adapted
+  @impl.reason("The CPU ArrayBuffer replaces Carbon's realized Tr2BufferAL; the selected engine uploads or aliases it.")
+  GetInstanceData(_bufferIndex = 0, _screenSize = 0)
+  {
+    this.#instanceData.buffer = this.#data;
+    this.#instanceData.offset = 0;
+    this.#instanceData.stride = this.#stride;
+    this.#instanceData.count = this.count;
+    return this.#instanceData;
+  }
+
+  /** Returns the normalized CPU vertex layout an engine must realize. */
+  @impl.adapted
+  @impl.reason("The normalized layout replaces Carbon's engine-owned numeric vertex-declaration handle.")
+  GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
+  {
+    return this.#layout;
   }
 
   /**

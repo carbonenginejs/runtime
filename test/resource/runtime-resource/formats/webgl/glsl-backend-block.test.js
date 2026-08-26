@@ -50,7 +50,14 @@ const BLOCK = {
         pixel: {
             bindings: [
                 { kind: "constantBuffer", registerIndex: 0, name: "cb7", sizeInVec4: 14, style: "array" },
-                { kind: "resource", registerIndex: 0, name: "s0", samplerType: "samplerCube", dimensionName: "texturecube" },
+                {
+                    kind: "resource",
+                    registerIndex: 0,
+                    name: "s0",
+                    samplerType: "samplerCube",
+                    dimensionName: "texturecube",
+                    pairedSamplerRegisters: [ 0, 3 ]
+                },
                 {
                     kind: "resource",
                     registerIndex: 4,
@@ -58,7 +65,8 @@ const BLOCK = {
                     samplerType: "sampler2DShadow",
                     dimensionName: "texture2d",
                     comparison: true,
-                    samplerRegisterIndices: [ 1, 2 ]
+                    samplerRegisterIndices: [ 1, 2 ],
+                    pairedSamplerRegisters: [ 1, 2 ]
                 },
                 {
                     kind: "structuredTexture",

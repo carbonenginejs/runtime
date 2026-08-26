@@ -1,6 +1,6 @@
 # Dropped Carbon resource shapes
 
-This directory preserves source-backed Carbon shapes that runtime-resource does
+This directory preserves source-backed Carbon shapes that the runtime resource layer does
 not use as public JavaScript classes. Files here are provenance/reference only:
 they are not exported, bundled, or part of the supported package API.
 
@@ -20,7 +20,7 @@ Replacement surfaces:
 ## Tr2LoadPrepareFence
 
 Carbon's helper inserts callbacks into separate load and prepare queues. The
-general runtime-resource prepare graph was removed. `CjsResMan.Wait()` now owns
+general resource-layer prepare graph was removed. `CjsResMan.Wait()` now owns
 the JavaScript snapshot-fence contract for active queued resource roots, so the
 Carbon helper must not be exported as a second fence model.
 

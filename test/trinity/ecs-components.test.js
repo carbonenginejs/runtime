@@ -33,11 +33,13 @@ test("EveComponentType carries the nine Carbon component-name strings verbatim",
   assert.ok(Object.isFrozen(EveComponentRequiredMethods));
   for (const name of Object.values(EveComponentType))
   {
+    if (name === EveComponentType.ReflectionRenderable) continue;
     assert.ok(
       Array.isArray(EveComponentRequiredMethods[name]) && EveComponentRequiredMethods[name].length > 0,
       `required-method duck list exists for ${name}`
     );
   }
+  assert.equal(Object.hasOwn(EveComponentRequiredMethods, EveComponentType.ReflectionRenderable), false);
 });
 
 test("reflection setting defaults to HIGH (Carbon's REFLECT_NEVER==3 init quirk, EveSpaceScene.cpp:112)", () =>
@@ -110,6 +112,24 @@ test("RegisterComponent throws fail-closed when the entity misses the interface 
 
   // Names outside the Carbon vocabulary carry no duck requirements.
   assert.equal(registry.RegisterComponent("CustomCollection", new EveEntity()), true);
+});
+
+test("ReflectionRenderable registration requires the nominal Trinity contract", () =>
+{
+  const registry = new EveComponentRegistry();
+  const structural = {
+    GetBatches() {},
+    HasTransparentBatches() { return false; },
+    GetSortValue() { return 0; },
+    GetPerObjectData() { return null; }
+  };
+
+  assert.throws(
+    () => registry.RegisterComponent(EveComponentType.ReflectionRenderable, structural),
+    /expects an ITr2Renderable/u);
+
+  const object = new EveSpaceObject2();
+  assert.equal(registry.RegisterComponent(EveComponentType.ReflectionRenderable, object), true);
 });
 
 test("EveSpaceObject2 leaf self-registration: castShadow gates ShadowCaster, display gates everything", () =>

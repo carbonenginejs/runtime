@@ -60,16 +60,16 @@ export class Tr2Effect extends Tr2Material
   @type.list("Tr2ConstantEffectParameter")
   constParameters = [];
 
-  /** m_parameters (EffectParameterList) [READ, PERSIST] */
+  /** m_parameters (PITriEffectParameterVector) [READ, PERSIST] */
   @io.rebuild("bindings")
   @io.persist
-  @type.list("EffectParameter")
+  @type.list("ITriEffectParameter")
   parameters = [];
 
-  /** m_resources (EffectResourceList) [READ, PERSIST] */
+  /** m_resources (PITriEffectResourceParameterVector) [READ, PERSIST] */
   @io.rebuild("bindings")
   @io.persist
-  @type.list("EffectResource")
+  @type.list("ITriEffectResourceParameter")
   resources = [];
 
   /** m_effectResource (Tr2EffectResPtr) [READ] */

@@ -72,7 +72,7 @@ export function peekBackendEngineId(bytes)
  * Consumers split two ways, and neither wants one. ccpwgl builds a container and
  * reads it back in the same process (`Tw2EffectRes` calls `buildEffect` then
  * `read` on the result), so writer and reader are always the same build.
- * engine-webgpu's harness does consume a stored file — `--draw-cewgpu <path>` —
+ * the runtime WebGPU harness does consume a stored file — `--draw-cewgpu <path>` —
  * but that file is a disposable operator-built input regenerated on demand, not
  * a shipped asset, and a skew there already fails at the CONTAINER magic long
  * before any block is parsed. A per-block version would not have caught it.

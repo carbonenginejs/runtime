@@ -29,6 +29,7 @@ export class TriObserverLocal extends CjsModel
   @type.objectRef("IBluePlacementObserver")
   observer = null;
 
+  @io.readwrite
   @type.boolean
   mute = false;
 

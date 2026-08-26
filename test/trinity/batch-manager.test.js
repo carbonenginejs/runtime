@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   CjsBatchManager,
+  ITr2Renderable,
   Tr2RenderBatch,
   TriRenderBatchMap
 } from "../../npm/dist/trinity/core/index.js";
@@ -11,6 +12,33 @@ import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 
 const OPAQUE = TriBatchType.TRIBATCHTYPE_OPAQUE;
 const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
+
+class TestRenderable extends ITr2Renderable
+{
+  GetPerObjectData()
+  {
+    return null;
+  }
+
+  GetBatches()
+  {
+  }
+
+  HasTransparentBatches()
+  {
+    return false;
+  }
+
+  GetSortValue()
+  {
+    return 0;
+  }
+}
+
+function makeRenderable(values = {})
+{
+  return Object.assign(new TestRenderable(), values);
+}
 
 function validBatch(perObjectData = null)
 {
@@ -83,14 +111,14 @@ test("registered producers get Realize before Build, with per-object data and re
 
   const perObjectData = { id: "pod" };
   const seenPool = [];
-  const renderable = {
+  const renderable = makeRenderable({
     batchProducerType: "geometry",
     GetPerObjectData(accumulator)
     {
       seenPool.push(accumulator);
       return perObjectData;
     }
-  };
+  });
 
   const batchMap = manager.Collect([ renderable ], 7);
 
@@ -109,12 +137,12 @@ test("GetBatchProducerType() method form also dispatches", () =>
   const manager = new CjsBatchManager();
   manager.Register([ producer ]).Initialize();
 
-  manager.Collect([ {
+  manager.Collect([ makeRenderable({
     GetBatchProducerType()
     {
       return "geometry";
     }
-  } ]);
+  }) ]);
   assert.equal(producer.calls.build.length, 1);
 });
 
@@ -124,7 +152,7 @@ test("undeclared renderables fall back to Carbon-style GetBatches per batch type
   manager.Initialize();
 
   const seen = [];
-  const renderable = {
+  const renderable = makeRenderable({
     GetPerObjectData()
     {
       return { id: "pod" };
@@ -134,7 +162,7 @@ test("undeclared renderables fall back to Carbon-style GetBatches per batch type
       seen.push({ batchType, perObjectData, reason });
       if (batchType === OPAQUE) accumulator.Commit(validBatch(perObjectData));
     }
-  };
+  });
 
   const batchMap = manager.Collect([ renderable ]);
   // TRANSPARENT is excluded from the main pass (Carbon emits it exclusively via
@@ -169,7 +197,7 @@ test("scene-global collectors run after the per-renderable pass", () =>
   });
   manager.Initialize();
 
-  const batchMap = manager.Collect([ { batchProducerType: "geometry" } ]);
+  const batchMap = manager.Collect([ makeRenderable({ batchProducerType: "geometry" }) ]);
   assert.deepEqual(order, [ "build", "collector" ]);
   assert.equal(batchMap.GetAccumulator(TRANSPARENT).GetBatchCount(), 1);
 
@@ -183,7 +211,7 @@ test("Collect clears prior frame state and finalizes", () =>
 {
   const manager = new CjsBatchManager();
   manager.Register([ makeProducer("geometry", { withRealize: false }) ]).Initialize();
-  const renderable = { batchProducerType: "geometry" };
+  const renderable = makeRenderable({ batchProducerType: "geometry" });
 
   const first = manager.Collect([ renderable ]);
   assert.equal(first.GetBatchCount(), 1);

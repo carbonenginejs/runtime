@@ -36,6 +36,66 @@ export class EveChildPlug extends EveChildTransform
   @type.list("ITr2Controller")
   controllers = [];
 
+  /** Registers hydrated children and links hydrated controllers. */
+  @carbon.method
+  @impl.implemented
+  Initialize()
+  {
+    this.RegisterChildren(this.objects);
+    for (const controller of this.controllers)
+    {
+      if (!controller.IsLinked()) controller.Link(this);
+    }
+    return true;
+  }
+
+  /** Appends and registers one plugged child. */
+  @carbon.method
+  @impl.implemented
+  AddToEffectChildrenList(child)
+  {
+    this.objects.push(child);
+    this.RegisterChild(child);
+    for (const [name, value] of this.#controllerVariables)
+    {
+      child.SetControllerVariable(name, value);
+    }
+    return child;
+  }
+
+  /** Removes and unregisters one plugged child. */
+  @carbon.method
+  @impl.implemented
+  RemoveFromEffectChildrenList(child)
+  {
+    const index = this.objects.indexOf(child);
+    if (index === -1) return false;
+    this.UnregisterChild(child);
+    this.objects.splice(index, 1);
+    return true;
+  }
+
+  /** Propagates the owning space object through the plugged subtree. */
+  @carbon.method
+  @impl.implemented
+  SetOwner(owner)
+  {
+    if (this.GetOwner() === owner) return;
+    super.SetOwner(owner);
+    for (const child of this.objects) child.SetOwner(owner);
+  }
+
+  /** Propagates a modular part tag through the plugged subtree. */
+  @carbon.method
+  @impl.implemented
+  SetPartTag(tag)
+  {
+    const next = Number(tag) >>> 0;
+    if (this.GetPartTag() === next) return;
+    super.SetPartTag(next);
+    for (const child of this.objects) child.SetPartTag(next);
+  }
+
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented

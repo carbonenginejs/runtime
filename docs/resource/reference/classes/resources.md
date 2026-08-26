@@ -448,12 +448,12 @@ Data record mirroring Carbon's ray-tracing geometry constants: index/vertex buff
 <!-- class:Tr2RaycastGeometryRes -->
 ## `Tr2RaycastGeometryRes`
 
-Carries generated raycast-geometry LOD indices and opaque bounding-volume-hierarchy intake for later maintained realization.
+Owns a prepared CPU raycast session over one geometry resource, including readiness/failure state, area filtering, parametric hit distance, canonical hit position, and both unit and unnormalized triangle normals.
 
-- Export: `@carbonenginejs/runtime/resource/generated`
-- Source: `src/resource/generated/resources/Tr2RaycastGeometryRes.js`
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/geometry/Tr2RaycastGeometryRes.js`
 - Visibility: Public
-- Kind: Generated Carbon schema intake
+- Kind: Faithful Carbon port
 
 <!-- class:TriTextureRes -->
 ## `TriTextureRes`

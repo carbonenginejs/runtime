@@ -79,7 +79,7 @@ export class TriStepClearUav extends TriRenderStep
       const value = this.clearWithFloat
         ? this.floatValue
         : [this.bitValue0, this.bitValue1, this.bitValue2, this.bitValue3];
-      executor?.ClearUav?.(this.buffer, value, this.clearWithFloat);
+      executor.ClearUav(this.buffer, value, this.clearWithFloat);
     }
     return TriRenderStep.Result.RS_OK;
   }

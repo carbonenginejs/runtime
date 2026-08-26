@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h
-// Schema: format-carbon resources/Tr2TexturePipelineParams.json; maintained by runtime-resource.
+// Schema: format-carbon resources/Tr2TexturePipelineParams.json; maintained by the runtime resource layer.
 import { type } from "#schema";
 import { CjsModel } from "#model";
 

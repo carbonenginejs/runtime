@@ -332,12 +332,19 @@ export class EveSmartLightColorShareGroup extends EveEntity
     }
   }
 
-  /** Carbon method RenderDebugInfo (EveSmartLightColorShareGroup.cpp:200-211). */
+  /** Carbon debug-render fan-out, gated by this group's display flag. */
   @carbon.method
-  @impl.notImplemented
-  RenderDebugInfo(..._args)
+  @impl.implemented
+  RenderDebugInfo(renderer, placements, size)
   {
-    throw new Error("EveSmartLightColorShareGroup.RenderDebugInfo is not implemented in CarbonEngineJS.");
+    if (!this.display)
+    {
+      return;
+    }
+    for (const group of this.lightGroups)
+    {
+      group.RenderDebugInfo(renderer, placements, size);
+    }
   }
 
   /** Visibility fan-out (EveSmartLightColorShareGroup.cpp:213-219). */

@@ -312,6 +312,13 @@ export class EveBezierCurve extends IEveLineSetPath
     }
   }
 
+  /** Carbon declares no Bezier-specific debug options (cpp:292-295). */
+  @carbon.method
+  @impl.noop
+  GetDebugOptions(_options)
+  {
+  }
+
   /**
    * Rounded segment count, scaled down by how far completeness is from a full
    * sweep when scaleSegmentsByCompleteness is set.

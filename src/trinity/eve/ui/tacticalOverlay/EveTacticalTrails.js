@@ -3,10 +3,11 @@
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
+import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Tracks tactical trail objects without requiring a graphics device. */
 @type.define({ className: "EveTacticalTrails", family: "eve/ui" })
-export class EveTacticalTrails extends CjsModel
+export class EveTacticalTrails extends withITr2Renderable(CjsModel)
 {
 
   @type.list("EveTacticalTrailTrackedObject")

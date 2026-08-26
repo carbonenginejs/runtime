@@ -1,6 +1,7 @@
 export * from "./MeshDecalData.js";
 export * from "./MeshDecalLodData.js";
 export * from "./TriGeometryRes.js";
+export * from "./Tr2RaycastGeometryRes.js";
 export * from "./TriGeometryResAreaData.js";
 export * from "./TriGeometryResJointData.js";
 export * from "./TriGeometryResLodData.js";

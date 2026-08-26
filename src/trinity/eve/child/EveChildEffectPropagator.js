@@ -807,15 +807,18 @@ export class EveChildEffectPropagator extends EveChildContainer
     return this.effect;
   }
 
-  /** Carbon EveChildEffectPropagator::SetEffect (cpp:645-654): Carbon brackets
-   * the swap with UnRegisterComponents/RegisterComponents against the scene
-   * component registry. */
+  /** Carbon EveChildEffectPropagator::SetEffect (cpp:645-654): unregisters
+   * the current effect from both the component registry and child hierarchy,
+   * installs the replacement, then registers it with both owners. */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Component-registry re-registration is engine-owned (registry system unported); the effect swap itself is ported.")
+  @impl.implemented
   SetEffect(effect)
   {
+    this.UnRegisterComponents();
+    this.UnregisterChild(this.effect);
     this.effect = effect ?? null;
+    this.RegisterChild(this.effect);
+    this.RegisterComponents();
   }
 
   /** Carbon EveChildEffectPropagator::SetControllerVariable (cpp:656-662):
@@ -827,23 +830,26 @@ export class EveChildEffectPropagator extends EveChildContainer
     this.effect?.SetControllerVariable?.(String(name ?? ""), Number(value));
   }
 
-  /** Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51) registers
-   * the effect with the scene component registry - unported system. */
+  /** Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51). */
   @carbon.method
-  @impl.notImplemented
-  RegisterComponents(..._args)
+  @impl.implemented
+  RegisterComponents()
   {
-    throw new Error("EveChildEffectPropagator.RegisterComponents is not implemented in CarbonEngineJS (component registry unported).");
+    if (this.IsInRegistry() && this.effect)
+    {
+      this.effect.Register(this.GetComponentRegistry());
+    }
   }
 
-  /** Carbon EveChildEffectPropagator::UnRegisterComponents (cpp:53-59)
-   * unregisters the effect from the scene component registry - unported
-   * system. */
+  /** Carbon EveChildEffectPropagator::UnRegisterComponents (cpp:53-59). */
   @carbon.method
-  @impl.notImplemented
-  UnRegisterComponents(..._args)
+  @impl.implemented
+  UnRegisterComponents()
   {
-    throw new Error("EveChildEffectPropagator.UnRegisterComponents is not implemented in CarbonEngineJS (component registry unported).");
+    if (this.IsInRegistry() && this.effect)
+    {
+      this.effect.UnRegister(this.GetComponentRegistry());
+    }
   }
 
   static PropagationType = PropagationType;

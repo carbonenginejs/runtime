@@ -21,6 +21,7 @@ import {
   inheritParentPerObjectData,
   stampChildTransforms
 } from "../perObjectData/childPerObjectRecords.js";
+import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
@@ -33,7 +34,7 @@ const ZERO_VEC3 = vec3.create();
  * modifiers, and gating them on a display-quality filter.
  */
 @type.define({ className: "EveChildContainer", family: "eve/child" })
-export class EveChildContainer extends EveChildTransform
+export class EveChildContainer extends withITr2Renderable(EveChildTransform)
 {
   @io.notify
   @io.persist
@@ -169,6 +170,18 @@ export class EveChildContainer extends EveChildTransform
 
   #hasUpdated = false;
 
+  /** Blue read-only property alias for IsRendering. */
+  get isRendering()
+  {
+    return this.IsRendering();
+  }
+
+  /** Blue read-only property alias for IsUpdating. */
+  get isUpdating()
+  {
+    return this.IsUpdating();
+  }
+
   /**
    * Links every authored controller that is not already linked to this
    * container, so controller variables and events reach them.
@@ -177,6 +190,7 @@ export class EveChildContainer extends EveChildTransform
   @impl.adapted
   Initialize()
   {
+    this.RegisterChildren(this.objects);
     for (const controller of this.controllers)
     {
       if (!controller?.IsLinked?.())
@@ -443,6 +457,7 @@ export class EveChildContainer extends EveChildTransform
   AddToEffectChildrenList(child)
   {
     this.objects.push(child);
+    this.RegisterChild(child);
     for (const [name, value] of this.#controllerVariables)
     {
       child?.SetControllerVariable?.(name, value);
@@ -458,6 +473,7 @@ export class EveChildContainer extends EveChildTransform
     const index = this.objects.indexOf(child);
     if (index !== -1)
     {
+      this.UnregisterChild(child);
       this.objects.splice(index, 1);
       return true;
     }
@@ -1227,6 +1243,47 @@ export class EveChildContainer extends EveChildTransform
   GetOwnerMaxSpeed()
   {
     return this.#ownerMaxSpeed;
+  }
+
+  /** Propagates the owning space object through the complete child subtree. */
+  @carbon.method
+  @impl.implemented
+  SetOwner(owner)
+  {
+    if (this.GetOwner() === owner) return;
+    super.SetOwner(owner);
+    for (const child of this.objects) child.SetOwner(owner);
+  }
+
+  /** Propagates a modular part tag through the complete child subtree. */
+  @carbon.method
+  @impl.implemented
+  SetPartTag(tag)
+  {
+    const next = Number(tag) >>> 0;
+    if (this.GetPartTag() === next) return;
+    super.SetPartTag(next);
+    for (const child of this.objects) child.SetPartTag(next);
+  }
+
+  /** Collects locator sets owned by nested children in object-local space. */
+  @carbon.method
+  @impl.implemented
+  CollectOwnedLocatorSets(parentTransform, out)
+  {
+    const childToObject = mat4.create();
+    mat4.multiply(childToObject, parentTransform, this.RebuildLocalTransform());
+    for (const child of this.objects) child.CollectOwnedLocatorSets(childToObject, out);
+  }
+
+  /** Collects geometry owned by nested children in object-local space. */
+  @carbon.method
+  @impl.implemented
+  CollectOwnedGeometry(parentTransform, out)
+  {
+    const childToObject = mat4.create();
+    mat4.multiply(childToObject, parentTransform, this.RebuildLocalTransform());
+    for (const child of this.objects) child.CollectOwnedGeometry(childToObject, out);
   }
 
   /** Carbon EveChildContainer::SetInheritProperties (cpp:1017-1040): lazily

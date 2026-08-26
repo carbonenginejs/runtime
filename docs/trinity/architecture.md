@@ -165,12 +165,29 @@ hook before `Build`, or falls back to the renderable's `GetBatches`. It then
 collects transparent work back-to-front, invokes global collectors, and calls
 `Finalize` before returning the map.
 
+Every object admitted to that path implements the Trinity-owned
+`ITr2Renderable` contract. Carbon's default `IsVisible` remains concrete; the
+four required batch, transparency, sorting, and per-object-data methods throw
+on the root. Carbon's direct providers inherit the contract through a mixin so
+their existing model ancestry remains intact. The batch map, batch manager,
+and `ReflectionRenderable` component registration call or validate that owned
+contract directly; they do not capability-probe required methods.
+
 Backend realization, finalized-batch dispatch, pass policy, production
 composition, and concrete global collectors remain engine or application
 work. Rebuild tokens stay on the object or child that declared them; a realizer
 consumes the tokens for work it successfully completes.
 
 ### Instance-stream contract
+
+`CjsInstancedMeshManager` is the dependency-free registration boundary between
+Trinity's CPU object graph and engine-owned physical instancing. Trinity calls
+the required methods directly, registers terminal `RawData` rather than a
+duck-typed provider, and retains only opaque handles for later update/removal.
+The child retains the issuing manager independently; it never reads or repairs
+handle fields, so frozen objects and primitive handles are valid. Each
+supporting engine must extend the contract and realize those handles; Trinity
+does not own the GPU manager.
 
 `EveChildInstanceMeshRenderer` and `Tr2RuntimeInstanceData` own the logical
 current/previous transforms, bone index, 100-byte record packing, bounds, and

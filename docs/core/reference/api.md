@@ -56,7 +56,8 @@ Unknown option and topic names throw.
 ## Lifecycle
 
 - `Initialize(options)` applies values and marks the library initialized.
-- `InitializeAsync(options)` also loads `dataPath` through the SOF service.
+- `InitializeAsync(options)` loads an explicit `dataPath` through the SOF
+  service, or otherwise boots its configured lazy partial catalog.
 - `Shutdown()` disables and detaches the audio manager, then clears the
   initialized flag without disposing the externally owned manager.
 - `IsInitialized()` reports that flag.

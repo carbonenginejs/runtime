@@ -2,7 +2,7 @@
  * Granny animation-curve decoding authored by cppctamber for ccpwgl2.
  *
  * This local copy decodes and samples already-materialized curve data without
- * coupling runtime-trinity to a GR2 container reader. The former format-gr2
+ * coupling the Trinity layer to a GR2 container reader. The former format-gr2
  * licensing boundary is resolved: its BitKnit2 decoder was replaced by a
  * clean-room implementation, the package is MIT, and the canonical reader now
  * lives at #resource/formats/gr2.

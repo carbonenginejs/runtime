@@ -35,11 +35,32 @@ Required particle-force contract.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ITr2GenericEmitter -->
+## `ITr2GenericEmitter`
+
+Contract shared by CPU and GPU particle emitters.
+
+- Export: `@carbonenginejs/runtime/trinity/particle`
+- Source: `src/trinity/particle/ITr2GenericEmitter.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2GenericEmitterUpdateArguments -->
+## `ITr2GenericEmitterUpdateArguments`
+
+Per-frame values passed to an ITr2GenericEmitter update or spawn call.
+
+- Export: `@carbonenginejs/runtime/trinity/particle`
+- Source: `src/trinity/particle/ITr2GenericEmitter.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 ## Generic emitter contract
 
-`ITr2GenericEmitter` is both the generated interface identity used by particle
-owners and the record carrying Carbon's update arguments. Implementations
-provide these operations:
+`ITr2GenericEmitter` is the nominal interface used by particle owners;
+`ITr2GenericEmitterUpdateArguments` is the separately registered record that
+carries Carbon's nested update structure. Implementations provide these
+operations:
 
 - `Update(updateArguments)` receives `time` in seconds, the scene GPU particle
   system (unused by CPU emitters), `parentTransform`, the world-origin shift

@@ -26,6 +26,8 @@ export {
 export * as errors from "./utils/errors/index.js";
 export * from "./utils/errors/index.js";
 
+export * from "./contracts/index.js";
+
 export * as constants from "./consts/index.js";
 export * from "./consts/index.js";
 

@@ -5,6 +5,7 @@ export * from "./Tr2Sprite2dLineTrace.js";
 export * from "./Tr2Sprite2dLineTraceVertex.js";
 export * from "./Tr2Sprite2dPolygon.js";
 export * from "./Tr2Sprite2dRenderJob.js";
+export * from "./Tr2Sprite2dScene.js";
 export * from "./Tr2Sprite2dTriangle.js";
 export * from "./Tr2Sprite2dTransform.js";
 export * from "./Tr2Sprite2dVertex.js";

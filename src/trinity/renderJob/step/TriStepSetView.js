@@ -53,15 +53,15 @@ export class TriStepSetView extends TriRenderStep
   {
     if (this.view)
     {
-      executor?.SetViewTransform?.(TriStepSetView.#getTransform(this.view), this.view);
+      executor.SetViewTransform(TriStepSetView.#getTransform(this.view), this.view);
     }
     else if (this.camera)
     {
-      const viewport = executor?.GetViewport?.();
+      const viewport = executor.GetViewport();
       const aspectRatio = viewport?.height ? viewport.width / viewport.height : 1;
       this.camera.Update?.(simTime, aspectRatio, realTime);
       const viewMatrix = this.camera.GetViewMatrix?.() ?? this.camera.viewMatrix ?? null;
-      executor?.SetViewTransform?.(TriStepSetView.#getTransform(viewMatrix), this.camera);
+      executor.SetViewTransform(TriStepSetView.#getTransform(viewMatrix), this.camera);
     }
     return TriRenderJob.StepResult.RS_OK;
   }
