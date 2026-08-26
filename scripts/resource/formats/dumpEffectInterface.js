@@ -44,6 +44,9 @@
  *        [--pass N]                default 0
  *        [--stage NAME]            default pixel
  *        [--glsl <dir>]            also write the translated stage source
+ *        [--annotate]              with --glsl, rewrite positional identifiers
+ *                                  into reflected names, which is what makes
+ *                                  two members of one family diffable
  *        [--axes]                  list every option axis and its values, then stop
  *        [--json]                  emit one JSON document instead of text
  *
@@ -84,6 +87,7 @@ function parseArguments(argv)
         stage: "pixel",
         glslDir: null,
         axes: false,
+        annotate: false,
         json: false
     };
 
@@ -105,6 +109,7 @@ function parseArguments(argv)
             case "--stage": parsed.stage = argv[++index]; break;
             case "--glsl": parsed.glslDir = argv[++index]; break;
             case "--axes": parsed.axes = true; break;
+            case "--annotate": parsed.annotate = true; break;
             case "--json": parsed.json = true; break;
             default:
                 if (argument.startsWith("--")) throw new Error(`Unknown flag "${argument}"`);
@@ -237,15 +242,128 @@ function describeContainer(file, parsed)
         unmatchedOptions: selection.unmatched,
         axes,
         resources,
-        buffers
+        buffers,
+        annotations: readAnnotations(shader.GetEffect())
     };
 
     if (parsed.glslDir)
     {
-        record.glsl = emitStageSource(bytes, source, selection.index, parsed);
+        // A resource at register i is emitted as `s<i>`, or `sb<i>` when it is a
+        // structured buffer lowered to a sampler for WebGL2.
+        const textures = new Map();
+        for (const resource of resources)
+        {
+            if (!resource.name) continue;
+            textures.set(`s${resource.register}`, resource.name);
+            textures.set(`sb${resource.register}`, resource.name);
+        }
+        const constants = new Map(
+            buffers[0].constants.map((constant) => [ constant.vec4, constant.name ])
+        );
+        record.glsl = emitStageSource(bytes, source, selection.index, {
+            ...parsed,
+            names: { textures, constants }
+        });
     }
 
     return record;
+}
+
+/** Carbon annotation value types, as stored in the reflection graph. */
+const ANNOTATION_BOOL = 0;
+const ANNOTATION_FLOAT = 2;
+const ANNOTATION_STRING = 3;
+
+/**
+ * Reads the authored annotations, keyed by parameter name.
+ *
+ * These are Carbon's own metadata about what each parameter MEANS, and they
+ * answer questions that are otherwise guessed at or measured the hard way:
+ *
+ *   - `Tr2sRGB` says which textures are sRGB. Nothing else does, and getting it
+ *     wrong is invisible on a normal map until the lighting looks subtly flat.
+ *   - `AutoRegister` marks a resource the engine supplies rather than the
+ *     material, which is how scene inputs are told apart from authored maps.
+ *   - `LodUvScale0` carries per-texture UV scaling -- `DustNoiseMap` declares
+ *     20, which is the same tiling that appears as a literal in the emitted
+ *     GLSL. An independent statement of the same fact.
+ *   - `Group`, `SasUiDescription`, `UIWidget` and `Component1..4` name and
+ *     describe each parameter and its vec4 lanes, so a consumer building a UI
+ *     does not have to invent labels.
+ *
+ * They are authoring metadata: useful for building an interface and for
+ * reverse-engineering intent, never something to make rendering depend on.
+ *
+ * @param {object} effect Effect description.
+ * @returns {object} Annotations by parameter name.
+ */
+function readAnnotations(effect)
+{
+    const source = effect?.annotations;
+    if (!source) return {};
+
+    const entries = source instanceof Map ? [ ...source.entries() ] : Object.entries(source);
+    const out = {};
+
+    for (const [ parameter, list ] of entries)
+    {
+        const values = {};
+        for (const annotation of (list || []))
+        {
+            values[annotation.name] = annotation.type === ANNOTATION_STRING ? annotation.stringValue
+                : annotation.type === ANNOTATION_FLOAT ? annotation.floatValue
+                : annotation.type === ANNOTATION_BOOL ? annotation.boolValue
+                : annotation.intValue;
+        }
+        out[parameter] = values;
+    }
+
+    return out;
+}
+
+/**
+ * Rewrites positional identifiers in emitted GLSL into reflected names.
+ *
+ * A translated body addresses everything by position -- `s7` for a texture,
+ * `cb7[14]` for a constant -- and those positions are properties of the BODY,
+ * not of the shader. Insert one texture and every later sampler renumbers, so
+ * two members of the same family produce sources that differ everywhere while
+ * computing the same thing.
+ *
+ * That makes the raw sources close to undiffable, which matters because the
+ * quad family shares its methods and differs only by which features it enables:
+ * the cheap way to isolate a feature is to diff a member against the base.
+ * Naming the positional identifiers first is what makes that diff mean
+ * something.
+ *
+ * Only reflected names are substituted -- textures and the material constant
+ * buffer. `cb2` and `cb4` are per-frame and per-object layouts that reflection
+ * does not carry, so they are left alone rather than guessed at.
+ *
+ * @param {string} source Emitted GLSL.
+ * @param {{textures: Map<string,string>, constants: Map<number,string>}} names Substitutions.
+ * @returns {string} GLSL with reflected names in place of positional ones.
+ */
+function annotateSource(source, names)
+{
+    if (!names) return source;
+
+    let text = source;
+
+    // Longest symbol first: replacing `s1` before `s11` would corrupt it.
+    const symbols = [ ...names.textures.keys() ].sort((a, b) => b.length - a.length);
+    for (const symbol of symbols)
+    {
+        text = text.replace(new RegExp(`\\b${symbol}\\b`, "g"), names.textures.get(symbol));
+    }
+
+    text = text.replace(/\bcb7\[(\d+)\]/g, (match, index) =>
+    {
+        const name = names.constants.get(Number(index));
+        return name ? `cb7_${name}` : match;
+    });
+
+    return text;
 }
 
 /**
@@ -335,7 +453,10 @@ function emitStageSource(bytes, source, permutationIndex, parsed)
 
     const name = `${source}.${parsed.technique}.pass${parsed.pass}.${parsed.stage}.glsl`;
     const path = join(parsed.glslDir, name);
-    writeFileSync(path, shader.source || "");
+    const text = parsed.annotate
+        ? annotateSource(shader.source || "", parsed.names)
+        : (shader.source || "");
+    writeFileSync(path, text);
 
     return {
         path,
