@@ -188,15 +188,18 @@ function describeContainer(file, parsed)
 
     const selection = resolveSelection(axes, parsed.options);
     const shader = effect.GetShader(parsed.options);
-    const values = shader.GetValues();
 
-    const technique = values.effect.techniques.find((entry) => entry.name === parsed.technique);
-    const pass = technique && technique.passes[parsed.pass];
+    // The live reflection graph, not GetValues(): the stage input owns the
+    // buffer extent through GetConstantBufferSize(), and that is a question to
+    // ask rather than arithmetic to repeat.
+    const techniqueIndex = shader.GetTechniqueIndex(parsed.technique);
+    const pass = techniqueIndex >= 0
+        ? shader.GetEffect()?.techniques?.[techniqueIndex]?.passes?.[parsed.pass]
+        : null;
     const stageType = STAGE_TYPES.get(parsed.stage);
-    const stage = pass && toArray(pass.stageInputs)
-        .find((entry) => entry && entry.stageType === stageType && entry.exists);
+    const stage = pass?.stageInputs?.[stageType];
 
-    if (!stage)
+    if (!stage || !stage.exists)
     {
         return { source, axes, selection, error: `No ${parsed.technique}.pass${parsed.pass}.${parsed.stage} stage.` };
     }
@@ -213,7 +216,12 @@ function describeContainer(file, parsed)
     const floats = decodeConstantValues(stage.constantValues);
     const buffers = [ {
         symbol: "cb0",
-        sizeInBytes: stage.constantValueSize || 0,
+        // The extent the buffer must be allocated at, and separately the length
+        // of the authored default block. These are different quantities that
+        // happen to coincide on much of the quad family, so using one for the
+        // other is right by luck rather than by rule.
+        sizeInBytes: stage.GetConstantBufferSize(),
+        defaultBlockBytes: stage.constantValueSize || 0,
         constants: toArray(stage.constants).map((constant) => ({
             name: constant.name,
             offset: constant.offset,
@@ -385,7 +393,10 @@ function printRecord(record, parsed)
     for (const buffer of record.buffers)
     {
         if (!buffer.constants.length) continue;
-        console.log(`\n  ${buffer.symbol} -- ${buffer.sizeInBytes} bytes / ${buffer.sizeInBytes / 16} vec4, with Carbon's defaults:`);
+        const blob = buffer.defaultBlockBytes === buffer.sizeInBytes
+            ? "default block covers all of it"
+            : `default block is ${buffer.defaultBlockBytes} bytes`;
+        console.log(`\n  ${buffer.symbol} -- extent ${buffer.sizeInBytes} bytes / ${buffer.sizeInBytes / 16} vec4, ${blob}:`);
         for (const constant of buffer.constants)
         {
             const value = constant.defaultValue.map((entry) => entry.toFixed(4)).join(", ");
