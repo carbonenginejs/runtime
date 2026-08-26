@@ -257,7 +257,13 @@ function describeContainer(file, parsed)
 function toArray(value)
 {
     if (!value) return [];
-    return Array.isArray(value) ? value : Object.values(value);
+    if (Array.isArray(value)) return value;
+    // The reflection graph is not uniform: a stage input's `resources` is a Map
+    // keyed by name while its `constants` is a plain array. `Object.values` on a
+    // Map returns an empty list rather than failing, so a helper that does not
+    // test for it reports a stage with no resources at all.
+    if (value instanceof Map) return [ ...value.values() ];
+    return Object.values(value);
 }
 
 /**
