@@ -1538,11 +1538,13 @@ export class EveSOF extends CjsModel
 
           const constParameters = [];
           const parameterNames = new Set();
+          const selectorFields = {};
           if (usage !== EveSOFDataHullDecalSetItem.Usage.USAGE_STANDARD && usage !== EveSOFDataHullDecalSetItem.Usage.USAGE_LOGO)
           {
             const color = dna.GetColorSet()[item.glowColorType];
             if (color)
             {
+              selectorFields._glowColorType = Number(item.glowColorType ?? 0);
               parameterNames.add("DecalGlowColor");
               constParameters.push(document.AddNode("Tr2ConstantEffectParameter", {
                 name: "DecalGlowColor",
@@ -1594,6 +1596,7 @@ export class EveSOF extends CjsModel
           if (usage === EveSOFDataHullDecalSetItem.Usage.USAGE_LOGO)
           {
             const logo = dna.GetLogo(item.logoType);
+            selectorFields._logoType = Number(item.logoType ?? 0);
             for (const name of sortedKeys(logo.textures)) addResource(name, logo.textures.get(name).resFilePath);
           }
 
@@ -1607,6 +1610,9 @@ export class EveSOF extends CjsModel
           addOffset(position, hullOffset);
           const indexBuffers = selectDecalIndexBuffers(item, dna.GetMultiHullCount(), combinedGeometryPath);
           rootFields.decals.push(document.AddNode("EveSpaceObjectDecal", {
+            // These underscored fields retain the original SOF selectors in
+            // JSON only; target Trinity classes intentionally ignore them.
+            ...selectorFields,
             position,
             rotation: arrayValue(item.rotation, [0, 0, 0, 1]),
             scaling: arrayValue(item.scaling, [1, 1, 1]),
@@ -2831,6 +2837,7 @@ export class EveSOF extends CjsModel
             if (dna.UsingSof6()) color = saturateColor(color, item.saturation);
 
             sprites.push(document.AddNode("EveSpriteSetItem", {
+              _colorType: Number(item.colorType ?? 0),
               blinkPhase: Number(item.blinkPhase ?? 0),
               blinkRate: Number(item.blinkRate ?? 0.1),
               boneIndex: Number(item.boneIndex ?? 0),
@@ -2847,6 +2854,7 @@ export class EveSOF extends CjsModel
               {
                 const lightColor = saturateColor(color, item.light.saturation);
                 lights.push(document.AddNode("EveSpriteLight", {
+                  _colorType: Number(item.colorType ?? 0),
                   lightData: {
                     position: [
                       Number(item.light.translation?.[0] ?? 0) + position[0],
@@ -2952,6 +2960,9 @@ export class EveSOF extends CjsModel
               spriteColor = multiplyColor(faction.spriteColor, item.spriteIntensity);
               lightColor = faction.coneColor;
             }
+            const selectorFields = dna.UsingSof6()
+              ? { _colorType: Number(item.colorType ?? 0) }
+              : {};
 
             const transform = arrayValue(item.transform, identityMatrix());
             mat4.multiply(
@@ -2965,6 +2976,7 @@ export class EveSOF extends CjsModel
             transform[14] += hullOffset[2];
 
             spotlightItems.push(document.AddNode("EveSpotlightSetItem", {
+              ...selectorFields,
               boneIndex: Number(item.boneIndex ?? 0),
               boosterGainInfluence: item.boosterGainInfluence === true,
               coneColor,
@@ -2993,6 +3005,7 @@ export class EveSOF extends CjsModel
                 );
                 vec3.add(localPosition, localPosition, position);
                 lights.push(document.AddNode("EveSpotlightLight", {
+                  ...selectorFields,
                   lightData: {
                     position: Array.from(localPosition),
                     rotation: Array.from(rotation),
@@ -3120,11 +3133,13 @@ export class EveSOF extends CjsModel
             decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
 
             let color;
+            let selectorFields = {};
             if (dna.UsingSof6())
             {
               const sourceColor = dna.GetColorSet()[item.colorType];
               if (!sourceColor) continue;
               color = saturateColor(multiplyColor(sourceColor, item.intensity), item.saturation);
+              selectorFields = { _colorType: Number(item.colorType ?? 0) };
             }
             else
             {
@@ -3140,6 +3155,7 @@ export class EveSOF extends CjsModel
               Number(item.blinkMode ?? 0)
             ];
             planes.push(document.AddNode("EvePlaneSetItem", {
+              ...selectorFields,
               boneIndex: Number(item.boneIndex ?? -1),
               color,
               layer1Scroll: arrayValue(item.layer1Scroll, [0, 0, 0, 0]),
@@ -3174,6 +3190,7 @@ export class EveSOF extends CjsModel
                 );
                 vec3.add(lightPosition, lightPosition, position);
                 lights.push(document.AddNode("EvePlaneLight", {
+                  ...selectorFields,
                   lightData: {
                     position: Array.from(lightPosition),
                     rotation: Array.from(lightRotation),
@@ -3267,6 +3284,7 @@ export class EveSOF extends CjsModel
             const ignoredScale = vec3.create();
             decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
             const line = {
+              _colorType: Number(item.colorType ?? 0),
               blinkPhase: Number(item.blinkPhase ?? 0),
               blinkPhaseShift: Number(item.blinkPhaseShift ?? 0),
               blinkRate: Number(item.blinkRate ?? 0.1),
@@ -3297,6 +3315,7 @@ export class EveSOF extends CjsModel
                     quat.multiply(quat.create(), line.rotation, lightRotation)
                   ));
                   lights.push(document.AddNode("EveSpriteLight", {
+                    _colorType: Number(item.colorType ?? 0),
                     lightData: {
                       position: [
                         Number(item.light.translation?.[0] ?? 0) + positions[spriteIndex][0] + line.position[0],
@@ -3411,6 +3430,7 @@ export class EveSOF extends CjsModel
             if (dna.UsingSof6()) color = saturateColor(color, item.saturation);
 
             hazes.push(document.AddNode("EveHazeSetItem", {
+              _colorType: Number(item.colorType ?? 0),
               color,
               rotation: Array.from(rotation),
               scaling: arrayValue(item.scaling, [1, 1, 1]),
@@ -3445,6 +3465,7 @@ export class EveSOF extends CjsModel
                   )
                 );
                 lights.push(document.AddNode("EveHazeSetLight", {
+                  _colorType: Number(item.colorType ?? 0),
                   lightData: {
                     position: Array.from(lightPosition),
                     rotation: Array.from(lightRotation),
@@ -3658,6 +3679,9 @@ export class EveSOF extends CjsModel
             // until their classes migrate. startTime carries the injected
             // buildTime, matching Carbon's GetCurrentTime() stamp at build.
             const lightFields = {
+              ...(lightKind.className !== "Tr2TexturedPointLight"
+                ? { _lightColor: Number(item.lightColor ?? 0) }
+                : {}),
               startTime: this.buildTime,
               flags: Number(item.flags ?? 1),
               position: Array.from(position),
@@ -4355,6 +4379,7 @@ function buildMeshArea(document, dna, area, shaderData, batchType, meshIndexOffs
     samplerOverrides
   });
   const fields = {
+    _areaType: Number(area.areaType ?? 0),
     name: area.name,
     index: area.index + meshIndexOffset,
     count: area.count,

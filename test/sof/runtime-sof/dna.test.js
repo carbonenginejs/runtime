@@ -2662,6 +2662,7 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
   assert.deepEqual(buffer.GetIndices(), [0, 1, 70000]);
 
   const data = createData();
+  data.hull[0].sof6 = true;
   data.hull[0].opaqueAreas = [{
     name: "Hull",
     index: 9,
@@ -2694,9 +2695,19 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
       ],
       indexBuffers: [{ indexBuffer: new Uint32Array([0, 1, 70000]) }],
       multiHullIndexBuffers: [],
+    }, {
+      usage: EveSOFDataHullDecalSetItem.Usage.USAGE_LOGO,
+      logoType: EveSOFDataLogoSet.LogoType.TYPE_PRIMARY,
+      indexBuffers: [{ indexBuffer: new Uint32Array([3, 4, 5]) }],
+      multiHullIndexBuffers: [],
     }],
   }];
   data.faction[0].colorSet = { Killmark: [0.25, 0.5, 0.75, 1] };
+  data.faction[0].logoSet = {
+    Primary: {
+      textures: [{ name: "LogoMap", resFilePath: "res:/logo.dds" }],
+    },
+  };
   data.faction[0].visibilityGroupSet = { visibilityGroups: [{ str: "primary" }] };
   data.generic.areaShaderLocation = "res:/area";
   data.generic.decalShaderLocation = "res:/decal";
@@ -2724,6 +2735,8 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
   assert.equal(sof.dataMgr.SetData(data), true);
   const document = sof.Build("rifter", "minmatar", "minmatar");
   const decalNode = referencedNode(document, rootNode(document).fields.decals[0]);
+  assert.equal(decalNode.fields._glowColorType, 17);
+  assert.equal(Object.hasOwn(decalNode.fields, "_logoType"), false);
   assert.deepEqual(decalNode.fields.position, [1, 2, 3]);
   assert.equal(decalNode.fields.parentBoneIndex, 7);
   assert.equal(decalNode.fields.minScreenSize, 10);
@@ -2739,6 +2752,18 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
     { name: "DefaultMap", resourcePath: "res:/default.dds" },
     { name: "ParentMap", resourcePath: "res:/parent.dds" },
   ]);
+  const logoDecalNode = referencedNode(document, rootNode(document).fields.decals[1]);
+  assert.equal(logoDecalNode.fields._logoType, EveSOFDataLogoSet.LogoType.TYPE_PRIMARY);
+  assert.equal(Object.hasOwn(logoDecalNode.fields, "_glowColorType"), false);
+  const logoEffect = referencedNode(document, logoDecalNode.fields.decalEffect);
+  assert.deepEqual(logoEffect.fields.resources.map(ref => referencedNode(document, ref).fields), [{
+    name: "LogoMap",
+    resourcePath: "res:/logo.dds",
+  }]);
+
+  const values = sof.BuildValuesFromDNA("rifter:minmatar:minmatar");
+  assert.equal(values.decals[0]._glowColorType, 17);
+  assert.equal(values.decals[1]._logoType, EveSOFDataLogoSet.LogoType.TYPE_PRIMARY);
 
   const trinity = await import(new URL("../../../npm/dist/trinity/index.js", import.meta.url));
   const audioTrinity = await import(new URL("../../../npm/dist/audio/trinity/index.js", import.meta.url));
@@ -2749,6 +2774,8 @@ test("SOF emits and hydrates Carbon decal sets with uint32 static indices", {
   });
   assert.deepEqual(hydrated.reports, []);
   const decal = hydrated.root.decals[0];
+  assert.equal(Object.hasOwn(decal, "_glowColorType"), false);
+  assert.equal(Object.hasOwn(hydrated.root.decals[1], "_logoType"), false);
   assert.deepEqual(decal.GetStaticIndexBuffers(), [[0, 1, 70000]]);
   assert.deepEqual(Array.from(decal.GetPosition()), [1, 2, 3]);
   assert.equal(decal.batchType, 1);
@@ -2854,6 +2881,7 @@ test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
   assert.equal(effect.fields.effectFilePath, "res:/graphics/effect/managed/space/spaceobject/fx/blinkinglightspool.fx");
 
   const first = referencedNode(document, attachments[0].fields.sprites[0]);
+  assert.equal(first.fields._colorType, 0);
   assert.deepEqual(first.fields.position, [1, 0, 0]);
   assert.ok(Math.abs(first.fields.color[0] - 0.598) < 1e-12);
   assert.ok(Math.abs(first.fields.color[1] - 0.598) < 1e-12);
@@ -2865,6 +2893,7 @@ test("SOF emits and hydrates Carbon sprite sets with SOF6 light metadata", {
   assert.equal(attachments[0].fields.lights.length, 1);
   const spriteLight = referencedNode(document, attachments[0].fields.lights[0]);
   assert.equal(spriteLight.kind, "EveSpriteLight");
+  assert.equal(spriteLight.fields._colorType, 0);
   assert.equal(spriteLight.fields.index, 1);
   assert.equal(spriteLight.fields.lightProfilePath, "res:/profile.red");
   assert.deepEqual(spriteLight.fields.lightData.position, [2.5, 1, 0]);
@@ -2992,6 +3021,7 @@ test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights
   });
 
   const item = referencedNode(document, attachments[0].fields.spotlightItems[1]);
+  assert.equal(item.fields._colorType, 12);
   assert.deepEqual(item.fields.spriteScale, [5, 6, 7]);
   assert.deepEqual(item.fields.coneColor, [1, 0.8125, 0.625, 2]);
   assert.deepEqual(item.fields.flareColor, [3, 2.25, 1.5, 3]);
@@ -3006,6 +3036,7 @@ test("SOF emits and hydrates Carbon SOF6 spotlight sets with public typed lights
   const spotlightLight = referencedNode(document, attachments[0].fields.lights[0]);
   const baseAngle = Math.atan(4 / 16) * 180 / Math.PI;
   assert.equal(spotlightLight.kind, "EveSpotlightLight");
+  assert.equal(spotlightLight.fields._colorType, 12);
   assert.equal(spotlightLight.fields.index, 1);
   assert.equal(spotlightLight.fields.boosterGainInfluence, true);
   assert.equal(spotlightLight.fields.lightProfilePath, "res:/spotlight.profile");
@@ -3150,6 +3181,7 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
     resourcePath: "res:/mask.dds",
   }]);
   const item = referencedNode(document, attachments[0].fields.planes[0]);
+  assert.equal(item.fields._colorType, 0);
   assert.deepEqual(item.fields.position, [1, 0, 0]);
   assert.deepEqual(item.fields.blinkData, [0.25, 0.5, 1, 1]);
   assert.ok(Math.abs(item.fields.color[0] - 0.598) < 1e-12);
@@ -3166,6 +3198,7 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
   assert.equal(attachments[0].fields.lights.length, 1);
   const planeLight = referencedNode(document, attachments[0].fields.lights[0]);
   assert.equal(planeLight.kind, "EvePlaneLight");
+  assert.equal(planeLight.fields._colorType, 0);
   assert.equal(planeLight.fields.index, 0);
   assert.equal(planeLight.fields.blinkPhase, 0.5);
   assert.equal(planeLight.fields.blinkRate, 0.25);
@@ -3271,6 +3304,7 @@ test("SOF emits Carbon sprite-line sets with shared effects and per-sprite SOF6 
   assert.equal(attachments[1].fields.skinned, true);
   assert.equal(attachments[1].fields.spriteLines.length, 2);
   const line = referencedNode(document, attachments[1].fields.spriteLines[1]);
+  assert.equal(line.fields._colorType, 0);
   assert.deepEqual(line.fields.position, [2, 0, 0]);
   assert.deepEqual(line.fields.scaling, [3, 1, 1]);
   assert.ok(Math.abs(line.fields.color[0] - 0.598) < 1e-12);
@@ -3282,6 +3316,7 @@ test("SOF emits Carbon sprite-line sets with shared effects and per-sprite SOF6 
   assert.equal(lights.length, 3);
   assert.deepEqual(lights.map(light => light.kind), ["EveSpriteLight", "EveSpriteLight", "EveSpriteLight"]);
   assert.deepEqual(lights.map(light => light.fields.index), [1, 1, 1]);
+  assert.deepEqual(lights.map(light => light.fields._colorType), [0, 0, 0]);
   assert.deepEqual(lights.map(light => light.fields.blinkPhase), [0.5, 0.6, 0.7]);
   assert.deepEqual(lights.map(light => light.fields.lightData.position), [
     [4.5, 0, 0],
@@ -3385,6 +3420,7 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   assert.equal(halfEffect.fields.effectFilePath, "res:/graphics/effect/managed/space/spaceobject/fx/hazehalfspherical.fx");
 
   const haze = referencedNode(document, attachments[0].fields.hazes[0]);
+  assert.equal(haze.fields._colorType, 0);
   assert.deepEqual(haze.fields.position, [1, 2, 3]);
   assert.deepEqual(haze.fields.scaling, [2, 4, 3]);
   assert.deepEqual(haze.fields.hazeData, [8, 0.5, 3, 1]);
@@ -3397,6 +3433,7 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   const lights = attachments[0].fields.lights.map(ref => referencedNode(document, ref));
   assert.equal(lights.length, 1);
   assert.equal(lights[0].kind, "EveHazeSetLight");
+  assert.equal(lights[0].fields._colorType, 0);
   assert.deepEqual(lights[0].fields.lightData.position, [2, 2, 3]);
   assert.deepEqual(lights[0].fields.lightData.color, [0.526, 0.526, 0.526, 1]);
   assert.equal(lights[0].fields.lightData.innerRadius, 4);
@@ -3631,6 +3668,7 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
   assert.equal(Object.isFrozen(EveSOFDataHullLightSetItem.LightType), true);
 
   const data = createData();
+  data.hull[0].sof6 = true;
   const textured = Object.assign(new EveSOFDataHullLightSetTexturedPointLight(), {
     position: [2, 0, 0],
     lightColor: 18,
@@ -3689,6 +3727,7 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
     "Tr2PointLight",
   ]);
   assert.deepEqual(lights.map(node => node.fields.type), [1, 1, 2, 1]);
+  assert.deepEqual(lights.map(node => node.fields._lightColor), [18, undefined, 18, 18]);
   assert.equal(lights[1].fields.isDynamic, true);
 
   // Flattened emission (2026-07-23 decision): hull lights carry Carbon's
@@ -3718,6 +3757,7 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
     adapter: createSofHydrationAdapter(),
   });
   assert.deepEqual(hydrated.reports, []);
+  assert.equal(Object.hasOwn(hydrated.root.lights[0], "_lightColor"), false);
   assert.equal(hydrated.root.lights[0].lightData.constructor.name, "CjsLightData");
   assert.deepEqual(Array.from(hydrated.root.lights[0].lightData.position), [1, 2, 3]);
   assert.equal(hydrated.root.lights[1].isDynamic, true);
@@ -4039,7 +4079,7 @@ test("EveSOF stamps Carbon mesh-area shadow, depth, and LOD state", () => {
   const makeData = () => {
     const data = createData();
     const area = (name, index, shader) => ({
-      name, index, count: 1, areaType: 0, shader, textures: [], parameters: [],
+      name, index, count: 1, areaType: index, shader, textures: [], parameters: [],
     });
     data.hull[0].opaqueAreas = [area("hull", 0, "ship.fx")];
     data.hull[0].decalAreas = [area("decal", 1, "ship.fx")];
@@ -4061,21 +4101,26 @@ test("EveSOF stamps Carbon mesh-area shadow, depth, and LOD state", () => {
   const areaFields = (list, index = 0) => referencedNode(document, mesh.fields[list][index]).fields;
 
   const opaque = areaFields("opaqueAreas", 0);
+  assert.equal(opaque._areaType, 0);
   assert.equal(opaque.castsShadows, true);
   assert.equal(opaque.generateDepthArea, false);
   assert.equal(opaque.minLod, -1);
   // Decal areas append to the opaque vector; the setting defaults to false.
   const decal = areaFields("opaqueAreas", 1);
+  assert.equal(decal._areaType, 1);
   assert.equal(decal.castsShadows, false);
   const glass = areaFields("transparentAreas");
+  assert.equal(glass._areaType, 2);
   assert.equal(glass.castsShadows, false);
   assert.equal(glass.generateDepthArea, true);
   assert.equal(glass.minLod, -1);
   const warp = areaFields("distortionAreas");
+  assert.equal(warp._areaType, 3);
   assert.equal(warp.castsShadows, false);
   assert.equal(warp.minLod, 2);
   // Carbon depth clones copy the transparent source area's runtime state.
   const depth = areaFields("depthAreas");
+  assert.equal(depth._areaType, 2);
   assert.equal(depth.castsShadows, false);
   assert.equal(depth.generateDepthArea, true);
 
@@ -5449,6 +5494,7 @@ test("SOF carbon.document hydrates through the sibling Trinity and audio consume
   assert.equal(hydrated.root.constructor.name, "EveShip2");
   assert.equal(hydrated.root.mesh.constructor.name, "Tr2Mesh");
   assert.equal(hydrated.root.mesh.opaqueAreas[0].constructor.name, "Tr2MeshArea");
+  assert.equal(Object.hasOwn(hydrated.root.mesh.opaqueAreas[0].GetValues(), "_areaType"), false);
   assert.equal(hydrated.root.mesh.opaqueAreas[0].effect.constructor.name, "Tr2Effect");
   assert.equal(hydrated.root.locators[0].constructor.name, "EveLocator2");
   assert.equal(hydrated.root.locatorSets[0].constructor.name, "EveLocatorSets");
@@ -5882,6 +5928,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   // The shared sprite pool effect stays one object via _id/_ref.
   const spriteSets = transported.attachments.filter(item => item._type === "EveSpriteSet");
   assert.equal(spriteSets.length, 2);
+  assert.equal(spriteSets[0].sprites[0]._colorType, 0);
   assert.notEqual(spriteSets[0].effect._id, undefined);
   assert.deepEqual(spriteSets[1].effect, { _ref: spriteSets[0].effect._id });
 
@@ -5892,6 +5939,7 @@ test("BuildValuesFromDNA emits plain model values with parity to document hydrat
   const fromValues = RootClass.from(transported, { registry });
   const hydratedSets = fromValues.attachments.filter(item => item.constructor.name === "EveSpriteSet");
   assert.equal(hydratedSets[0].effect, hydratedSets[1].effect);
+  assert.equal(Object.hasOwn(hydratedSets[0].sprites[0], "_colorType"), false);
 
   const document = sof.BuildFromDNA("rifter:minmatar:minmatar");
   const hydrated = CjsDocumentHydrator.hydrate(document, { registry, adapter: createSofHydrationAdapter() });

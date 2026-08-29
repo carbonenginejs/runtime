@@ -63,6 +63,23 @@ runtime global/model+schema      runtime resource/formats/black
 - Imported legacy document fragments may preserve `raw` data; SOF-authored
   audio uses ordinary declared values instead.
 
+## Source selector provenance
+
+SOF values retain the original selector when the builder resolves an authored
+SOF6 enum into output data. The annotation is written beside the resolved value
+with the source member's exact name and an underscore prefix: `_colorType`,
+`_glowColorType`, `_logoType`, `_areaType`, or `_lightColor`. For example, an
+`EveSpotlightSetItem` has one `_colorType` for its derived `coneColor`,
+`flareColor`, and `spriteColor`, while an `EveSpaceObjectDecal` carries the
+`_glowColorType` or `_logoType` used by its decal usage.
+
+These annotations belong only to the plain JSON output contract. Trinity target
+classes do not declare them and ignore them during hydration. SOF does not infer
+selectors by comparing resolved vectors with a faction palette: output colors
+authored directly as vectors have no selector annotation. In particular, this
+avoids manufacturing provenance for race booster colors, banner-light colors,
+or generic damage-emitter colors.
+
 ## Modular child construction
 
 `EveSOF.BuildChild(owner, dna, partTag, transform)` ports Carbon's modular
