@@ -117,12 +117,17 @@ function buildMesh(mesh)
 
 function normalizeSharedMeshTangents(mesh)
 {
-    const vertex = normalizeSharedVertexTangents(mesh.vertex ?? {});
+    const vertex = normalizeSharedVertex(mesh.vertex ?? {});
     const morphTargets = (mesh.morphTargets ?? []).map(target => ({
         ...target,
         vertex: normalizeSharedVertexTangents(target.vertex ?? {})
     }));
     return { ...mesh, vertex, morphTargets };
+}
+
+function normalizeSharedVertex(vertex)
+{
+    return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex));
 }
 
 function normalizeSharedVertexTangents(vertex)
@@ -138,6 +143,26 @@ function normalizeSharedVertexTangents(vertex)
     }
     const normalized = { ...vertex, tangent: tangent.slice() };
     unpackMeshTangents({ vertex: normalized });
+    return normalized;
+}
+
+function normalizeSharedVertexSkin(vertex)
+{
+    const
+        positionCount = (vertex.position ?? []).length / 3,
+        blendIndice = vertex.blendIndice ?? [],
+        blendWeight = vertex.blendWeight ?? [];
+
+    if (!positionCount || blendIndice.length !== positionCount * 4 || blendWeight.length)
+    {
+        return vertex;
+    }
+
+    // Carbon CMF treats BoneIndices without BoneWeights as rigid skinning.
+    // Its geometry exporters synthesize (1, 0, 0, 0) before targeting formats
+    // such as glTF/FBX that require explicit weights.
+    const normalized = { ...vertex, blendWeight: new Array(positionCount * 4).fill(0) };
+    for (let i = 0; i < positionCount; i++) normalized.blendWeight[i * 4] = 1;
     return normalized;
 }
 
@@ -192,13 +217,19 @@ function buildDecl(vertex)
 {
     const decl = [];
     let offset = 0;
+    const vertexCount = (vertex.position ?? []).length / 3;
     for (const channel of VERTEX_CHANNELS)
     {
-        const [ name, usage, count, usageIndex = 0, type = "Float32" ] = channel;
+        const [ name, usage, defaultCount, usageIndex = 0, type = "Float32" ] = channel;
         if (!Array.isArray(vertex[name]) || vertex[name].length === 0)
         {
             continue;
         }
+
+        const count = (name === "tangent" || name === "binormal") &&
+            vertexCount > 0 && vertex[name].length === vertexCount * 4
+            ? 4
+            : defaultCount;
 
         decl.push({ usage, usageIndex, type, elementCount: count, offset });
         offset += count * elementTypeSize(type);

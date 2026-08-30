@@ -80,6 +80,14 @@ function string(value)
     return { type: "S", value: String(value) };
 }
 
+function objectName(name, className)
+{
+    // Binary FBX stores an object's display name and object class in one string.
+    // DCC importers split this exact marker; the human-readable `Class::Name`
+    // spelling belongs to ASCII FBX syntax and is not interchangeable on wire.
+    return string(`${name}\0\x01${className}`);
+}
+
 function integer(value)
 {
     return { type: "I", value: Number(value) | 0 };
@@ -301,7 +309,17 @@ function validateMesh(mesh, meshIndex)
     {
         const values = vertexData(mesh)[channel] ?? [];
         if (!values.length || channel === "position") continue;
-        validateFiniteArray(values, vertexCount * width, `mesh ${meshIndex} ${channel}`);
+        const validLengths = channel === "tangent" || channel === "binormal"
+            ? [ vertexCount * 3, vertexCount * 4 ]
+            : [ vertexCount * width ];
+        if (!Array.isArray(values) || !validLengths.includes(values.length))
+        {
+            throw writeError(`mesh ${meshIndex} ${channel} must contain ${validLengths.join(" or ")} values`);
+        }
+        for (let index = 0; index < values.length; index++)
+        {
+            if (!Number.isFinite(values[index])) throw writeError(`mesh ${meshIndex} ${channel} value ${index} is not finite`);
+        }
     }
 }
 
@@ -324,9 +342,12 @@ function polygonVertexChannel(mesh, channel, width, meshIndex)
     const source = vertexData(mesh)[channel] ?? [];
     if (!source.length) return [];
     const vertexCount = (vertexData(mesh).position ?? []).length / 3;
-    if (!Array.isArray(source) || source.length !== vertexCount * width)
+    const sourceWidth = (channel === "tangent" || channel === "binormal") && source.length === vertexCount * 4
+        ? 4
+        : width;
+    if (!Array.isArray(source) || source.length !== vertexCount * sourceWidth)
     {
-        throw writeError(`mesh ${meshIndex} ${channel} must contain ${vertexCount} vec${width} values`);
+        throw writeError(`mesh ${meshIndex} ${channel} must contain ${vertexCount} vec${sourceWidth} values`);
     }
     for (let index = 0; index < source.length; index++)
     {
@@ -340,7 +361,7 @@ function polygonVertexChannel(mesh, channel, width, meshIndex)
     {
         for (const vertexIndex of group.faces ?? [])
         {
-            const offset = vertexIndex * width;
+            const offset = vertexIndex * sourceWidth;
             for (let component = 0; component < width; component++) output.push(source[offset + component]);
         }
     }
@@ -350,6 +371,8 @@ function polygonVertexChannel(mesh, channel, width, meshIndex)
 function layerElement(name, valueName, values)
 {
     return node(name, [ integer(0) ], [
+        node("Version", [ integer(101) ]),
+        node("Name", [ string("") ]),
         node("MappingInformationType", [ string("ByPolygonVertex") ]),
         node("ReferenceInformationType", [ string("Direct") ]),
         node(valueName, [ doubleArray(values) ])
@@ -388,6 +411,8 @@ function geometryChildren(mesh, meshIndex, options)
             for (let index = 1; index < values.length; index += 2) values[index] = 1 - values[index];
         }
         children.push(node("LayerElementUV", [ integer(usageIndex) ], [
+            node("Version", [ integer(101) ]),
+            node("Name", [ string(usageIndex ? `UVMap_${usageIndex}` : "UVMap") ]),
             node("MappingInformationType", [ string("ByPolygonVertex") ]),
             node("ReferenceInformationType", [ string("Direct") ]),
             node("UV", [ doubleArray(values) ])
@@ -404,6 +429,8 @@ function geometryChildren(mesh, meshIndex, options)
     if (materialIndices.length)
     {
         children.push(node("LayerElementMaterial", [ integer(0) ], [
+            node("Version", [ integer(101) ]),
+            node("Name", [ string("") ]),
             node("MappingInformationType", [ string("ByPolygon") ]),
             node("ReferenceInformationType", [ string("IndexToDirect") ]),
             node("Materials", [ intArray(materialIndices) ])
@@ -611,7 +638,7 @@ function appendSkeletons(cmf, objects, connections, allocateId)
             const parent = parents[boneIndex];
             objects.push(node(
                 "Model",
-                [ long(ids[boneIndex]), string(`Model::${bones[boneIndex]}`), string("LimbNode") ],
+                [ long(ids[boneIndex]), objectName(bones[boneIndex], "Model"), string("LimbNode") ],
                 [ boneProperties(skeleton, boneIndex) ]
             ));
             connections.push(node("C", [
@@ -648,7 +675,7 @@ function appendSkeletons(cmf, objects, connections, allocateId)
             const poseId = allocateId();
             objects.push(node(
                 "Pose",
-                [ long(poseId), string(`Pose::${skeleton.name || `Skeleton_${skeletonIndex}`}`), string("BindPose") ],
+                [ long(poseId), objectName(skeleton.name || `Skeleton_${skeletonIndex}`, "Pose"), string("BindPose") ],
                 poseChildren
             ));
         }
@@ -726,20 +753,16 @@ function appendSkin(mesh, meshIndex, geometryId, cmf, skeletonBoneIds, objects, 
             throw writeError(`mesh ${meshIndex} vertex ${vertexIndex} blend weights sum to ${totalWeight}, not 1`);
         }
     }
-    if (usedBindings.size !== bindings.length)
-    {
-        throw writeError(`mesh ${meshIndex} contains a bone binding with no positive vertex influence`);
-    }
-
     const skinId = allocateId();
     objects.push(node(
         "Deformer",
-        [ long(skinId), string(`Deformer::${mesh.name || `Mesh_${meshIndex}`}`), string("Skin") ],
+        [ long(skinId), objectName(mesh.name || `Mesh_${meshIndex}`, "Deformer"), string("Skin") ],
         [ node("Version", [ integer(101) ]), node("Link_DeformAcuracy", [ double(50) ]) ]
     ));
     connections.push(node("C", [ string("OO"), long(skinId), long(geometryId) ]));
     for (let bindingIndex = 0; bindingIndex < bindings.length; bindingIndex++)
     {
+        if (!usedBindings.has(bindingIndex)) continue;
         const name = bindingNames[bindingIndex];
         const boneIndex = boneNames.indexOf(name);
         if (boneIndex < 0)
@@ -762,7 +785,7 @@ function appendSkin(mesh, meshIndex, geometryId, cmf, skeletonBoneIds, objects, 
         const linkMatrix = transposeMatrix4(invertMatrix4(skeleton.invBindTransforms[boneIndex]));
         objects.push(node(
             "Deformer",
-            [ long(clusterId), string(`SubDeformer::${name}`), string("Cluster") ],
+            [ long(clusterId), objectName(name, "SubDeformer"), string("Cluster") ],
             [
                 node("Version", [ integer(100) ]),
                 node("UserData", [ string(""), string("") ]),
@@ -834,7 +857,11 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
 
     const customProperties = [];
     const blendShapeId = allocateId();
-    objects.push(node("Deformer", [ long(blendShapeId), string(`Deformer::${mesh.name || meshIndex}`), string("BlendShape") ]));
+    objects.push(node("Deformer", [
+        long(blendShapeId),
+        objectName(mesh.name || String(meshIndex), "Deformer"),
+        string("BlendShape")
+    ]));
     connections.push(node("C", [ string("OO"), long(blendShapeId), long(geometryId) ]));
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++)
     {
@@ -913,7 +940,7 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
         const shapeId = allocateId();
         objects.push(node(
             "Deformer",
-            [ long(channelId), string(`SubDeformer::${name}`), string("BlendShapeChannel") ],
+            [ long(channelId), objectName(name, "SubDeformer"), string("BlendShapeChannel") ],
             [ node("FullWeights", [ doubleArray([ 100 ]) ]) ]
         ));
         const shapeChildren = [
@@ -927,7 +954,7 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
         }
         objects.push(node(
             "Geometry",
-            [ long(shapeId), string(`Geometry::${name}`), string("Shape") ],
+            [ long(shapeId), objectName(name, "Geometry"), string("Shape") ],
             shapeChildren
         ));
         connections.push(node("C", [ string("OO"), long(channelId), long(blendShapeId) ]));
@@ -1188,7 +1215,7 @@ function appendAnimationCurve(
     const curveId = allocateId();
     objects.push(node(
         "AnimationCurve",
-        [ long(curveId), string(`AnimCurve::${label}`), string("") ],
+        [ long(curveId), objectName(label, "AnimCurve"), string("") ],
         animationCurveNodeChildren(curve, component)
     ));
     connections.push(node("C", [ string("OP"), long(curveId), long(curveNodeId), string(property) ]));
@@ -1226,7 +1253,7 @@ function appendAnimations(
         const name = animation.name || `Animation_${animationIndex}`;
         objects.push(node(
             "AnimationStack",
-            [ long(stackId), string(`AnimStack::${name}`), string("") ],
+            [ long(stackId), objectName(name, "AnimStack"), string("") ],
             [ node("Properties70", [], [
                 timePropertyNode("LocalStart", 0),
                 timePropertyNode("LocalStop", durationTick)
@@ -1234,7 +1261,7 @@ function appendAnimations(
         ));
         objects.push(node(
             "AnimationLayer",
-            [ long(layerId), string("AnimLayer::BaseLayer"), string("") ],
+            [ long(layerId), objectName("BaseLayer", "AnimLayer"), string("") ],
             [],
             true
         ));
@@ -1260,7 +1287,7 @@ function appendAnimations(
             if (!target) throw writeError(`animation ${animationIndex} channel ${channelIndex} target is empty`);
             objects.push(node(
                 "AnimationCurveNode",
-                [ long(curveNodeId), string(`AnimCurveNode::${target}_${channel.targetType}`), string("") ]
+                [ long(curveNodeId), objectName(`${target}_${channel.targetType}`, "AnimCurveNode"), string("") ]
             ));
             connections.push(node("C", [ string("OO"), long(curveNodeId), long(layerId) ]));
 
@@ -1467,10 +1494,10 @@ function buildDocument(cmf, options)
         const name = mesh.name || `Mesh_${meshIndex}`;
         objects.push(node(
             "Geometry",
-            [ long(geometryId), string(`Geometry::${name}`), string("Mesh") ],
+            [ long(geometryId), objectName(name, "Geometry"), string("Mesh") ],
             geometryChildren(mesh, meshIndex, options)
         ));
-        const model = node("Model", [ long(modelId), string(`Model::${name}`), string("Mesh") ]);
+        const model = node("Model", [ long(modelId), objectName(name, "Model"), string("Mesh") ]);
         objects.push(model);
         connections.push(node("C", [ string("OO"), long(geometryId), long(modelId) ]));
         connections.push(node("C", [ string("OO"), long(modelId), long(0) ]));
@@ -1479,7 +1506,7 @@ function buildDocument(cmf, options)
         {
             const materialId = allocateId();
             const materialName = indexGroups(mesh)[groupIndex].name ?? `Material_${groupIndex}`;
-            objects.push(node("Material", [ long(materialId), string(`Material::${materialName}`), string("") ]));
+            objects.push(node("Material", [ long(materialId), objectName(materialName, "Material"), string("") ]));
             connections.push(node("C", [ string("OO"), long(materialId), long(modelId) ]));
         }
         appendSkin(mesh, meshIndex, geometryId, cmf, skeletonBoneIds, objects, connections, allocateId);

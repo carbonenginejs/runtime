@@ -154,6 +154,73 @@ test("resamples quadratic curves within tolerance including discontinuities", ()
     }
 });
 
+test("clips quantized quadratic knots beyond the playable duration", () =>
+{
+    const curve = {
+        knots: [ 0, 0.5, 1.005 ],
+        controls: [
+            0, 0, 0,
+            1, 2, 3,
+            2, 4, 6
+        ],
+        dimension: 3,
+        degree: 2
+    };
+    const converted = convertGr2Animation({
+        name: "quantized-end",
+        duration: 1,
+        trackGroups: [ {
+            name: "group",
+            transformTracks: [ { name: "bone", position: curve } ]
+        } ]
+    });
+    const knots = floats(converted.curves[0].knots);
+    const values = floats(converted.curves[0].values);
+    assert.equal(knots.at(-1), 1);
+    assert.equal(knots.every(knot => knot >= 0 && knot <= 1), true);
+    assert.equal(knots.every((knot, index) => index === 0 || knot > knots[index - 1]), true);
+
+    const time = 0.99;
+    let hi = 0;
+    while (hi < knots.length - 1 && knots[hi] < time) hi++;
+    const lo = hi === 0 ? 0 : hi - 1;
+    const alpha = (time - knots[lo]) / (knots[hi] - knots[lo]);
+    const approximation = values[lo * 3] * (1 - alpha) + values[hi * 3] * alpha;
+    const reference = evaluateDecodedCurve(curve, time, [ 0, 0, 0 ], 1)[0];
+    assert.ok(Math.abs(approximation - reference) < 2e-3);
+
+    assert.throws(() => convertGr2Animation({
+        name: "entirely-after-duration",
+        duration: 1,
+        trackGroups: [ {
+            name: "group",
+            transformTracks: [ { name: "bone", position: { ...curve, knots: [ 1.1, 1.5, 2 ] } } ]
+        } ]
+    }), /keys outside its duration/u);
+});
+
+test("deduplicates adaptive knots that collide after Float32 quantization", () =>
+{
+    const converted = convertGr2Animation({
+        name: "close-knots",
+        duration: 2,
+        trackGroups: [ {
+            name: "group",
+            transformTracks: [ {
+                name: "bone",
+                position: {
+                    knots: [ 0, 1, 1 + 1e-8, 2 ],
+                    controls: [ 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0 ],
+                    dimension: 3,
+                    degree: 2
+                }
+            } ]
+        } ]
+    });
+    const knots = floats(converted.curves[0].knots);
+    assert.equal(knots.every((knot, index) => index === 0 || knot > knots[index - 1]), true);
+});
+
 test("decodes packed keyframes with Granny frame timing", () =>
 {
     const animation = {
@@ -227,7 +294,7 @@ test("shares a model skeleton only when the source object identity is shared", (
     assert.deepEqual(converted.meshes.map((mesh) => mesh.skeleton), [ 0, 0 ]);
 });
 
-test("rejects conflicting and invalid GR2 model mesh bindings", () =>
+test("skips omitted GR2 model meshes and rejects invalid mesh bindings", () =>
 {
     const first = { name: "A", bones: [ { name: "a", parentIndex: -1 } ] };
     const second = { name: "B", bones: [ { name: "b", parentIndex: -1 } ] };
@@ -239,10 +306,16 @@ test("rejects conflicting and invalid GR2 model mesh bindings", () =>
         ]
     }), /mesh 0 is bound to skeleton 0 by model 0 and skeleton 1 by model 1/u);
 
+    const omitted = convertGr2SkeletonsAndAnimations({
+        meshes: [ { boneBindings: [ { name: "a" } ] } ],
+        models: [ { skeleton: first, meshBindings: [ -1, 0, -1 ] } ]
+    });
+    assert.equal(omitted.meshes[0].skeleton, 0);
+
     assert.throws(() => convertGr2SkeletonsAndAnimations({
         meshes: [ {} ],
-        models: [ { skeleton: first, meshBindings: [ -1 ] } ]
-    }), /model 0 mesh binding 0 references mesh -1 outside 0\.\.0/u);
+        models: [ { skeleton: first, meshBindings: [ -2 ] } ]
+    }), /model 0 mesh binding 0 references mesh -2 outside 0\.\.0/u);
 });
 
 test("preserves root skeleton order while appending model-only skeletons", () =>

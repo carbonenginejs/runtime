@@ -182,8 +182,15 @@ test("writes deterministic reader-compatible binary FBX 7400 geometry", () =>
     ]);
     const objects = document.nodes.find(entry => entry.name === "Objects");
     const geometry = objects.children.find(entry => entry.name === "Geometry");
+    assert.equal(geometry.properties[1], "Triangle\0\x01Geometry");
     assert.ok(geometry.children.some(entry => entry.name === "Layer"));
+    for (const layer of geometry.children.filter(entry => entry.name.startsWith("LayerElement")))
+    {
+        assert.equal(layer.children.find(entry => entry.name === "Version")?.properties[0], 101);
+        assert.equal(typeof layer.children.find(entry => entry.name === "Name")?.properties[0], "string");
+    }
     const model = objects.children.find(entry => entry.name === "Model" && entry.properties[2] === "Mesh");
+    assert.equal(model.properties[1], "Triangle\0\x01Model");
     const connections = document.nodes.find(entry => entry.name === "Connections");
     assert.ok(connections.children.some(entry =>
         entry.name === "C" && entry.properties[0] === "OO" &&
@@ -197,6 +204,31 @@ test("writes deterministic reader-compatible binary FBX 7400 geometry", () =>
     assert.equal(gr2.meshes[0].name, "Triangle");
     assert.deepEqual(gr2.meshes[0].vertex.position, [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ]);
     assert.deepEqual(gr2.meshes[0].indices[0].faces, [ 0, 1, 2 ]);
+});
+
+test("writes binary FBX object names with DCC-compatible class separators", () =>
+{
+    const document = CjsFbxFormat.read(CjsFbxFormat.write(addAnimations(makeDeformedCmf())), { emit: "fbxJson" });
+    const objects = document.nodes.find(entry => entry.name === "Objects").children;
+    const expectedClasses = {
+        AnimationCurve: new Set([ "AnimCurve" ]),
+        AnimationCurveNode: new Set([ "AnimCurveNode" ]),
+        AnimationLayer: new Set([ "AnimLayer" ]),
+        AnimationStack: new Set([ "AnimStack" ]),
+        Deformer: new Set([ "Deformer", "SubDeformer" ]),
+        Geometry: new Set([ "Geometry" ]),
+        Material: new Set([ "Material" ]),
+        Model: new Set([ "Model" ]),
+        Pose: new Set([ "Pose" ])
+    };
+
+    for (const object of objects)
+    {
+        const parts = object.properties[1].split("\0\x01");
+        assert.equal(parts.length, 2, `${object.name} must contain one FBX name/class separator`);
+        assert.ok(parts[0], `${object.name} must contain a display name`);
+        assert.ok(expectedClasses[object.name]?.has(parts[1]), `${object.name} has unexpected object class ${parts[1]}`);
+    }
 });
 
 test("routes GR2-shaped shared geometry through CMF before writing FBX", () =>
@@ -297,6 +329,29 @@ test("unpacks GR2 tangent frames through the shared CMF boundary", () =>
     ]);
 });
 
+test("exports explicitly unpacked GR2 tangent and binormal vec4 channels", () =>
+{
+    const bytes = CjsFbxFormat.writeShared({
+        meshes: [ {
+            name: "Unpacked",
+            vertex: {
+                position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
+                normal: [ 0, 0, 1, 0, 0, 1, 0, 0, 1 ],
+                tangent: [ 1, 0, 0, 7, 1, 0, 0, 8, 1, 0, 0, 9 ],
+                binormal: [ 0, 1, 0, 4, 0, 1, 0, 5, 0, 1, 0, 6 ]
+            },
+            indices: [ { name: "main", faces: [ 0, 1, 2 ] } ]
+        } ]
+    });
+    const mesh = CjsFbxFormat.read(bytes, {
+        emit: "gr2",
+        classes: { Root, Mesh, IndexGroup }
+    }).meshes[0];
+
+    assert.deepEqual(mesh.vertex.tangent, [ 1, 0, 0, 1, 0, 0, 1, 0, 0 ]);
+    assert.deepEqual(mesh.vertex.binormal, [ 0, 1, 0, 0, 1, 0, 0, 1, 0 ]);
+});
+
 test("round-trips CMF vertex layers and material areas", () =>
 {
     const cmf = makeCmf();
@@ -357,6 +412,40 @@ test("round-trips CMF skeletons, skin clusters, bind poses, and morph deltas", (
         0, 0, 0,
         0, 0, 1,
         0, 0, 0
+    ]);
+});
+
+test("omits unused CMF bone bindings while preserving skin influences", () =>
+{
+    const source = makeDeformedCmf();
+    source.skeletons[0].bones.push("Unused");
+    source.skeletons[0].parents.push(0);
+    source.skeletons[0].restTransforms.push({
+        position: [ 0, 0, 3 ], rotation: [ 0, 0, 0, 1 ], scale: [ 1, 1, 1 ]
+    });
+    source.skeletons[0].invBindTransforms.push([
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        -1, 0, -3, 1
+    ]);
+    source.meshes[0].boneBindings.push({ name: "Unused" });
+
+    const bytes = CjsFbxFormat.write(source);
+    const support = CjsFbxFormat.getSupport(bytes);
+    const cmf = CjsFbxFormat.read(bytes, { emit: "cmf", classes: { Root, Mesh } });
+
+    assert.equal(support.warnings.some(warning => /no Indexes|no positive Weights/u.test(warning)), false);
+    assert.deepEqual(cmf.meshes[0].boneBindings.map(binding => binding.name), [ "BoneA", "BoneB" ]);
+    assert.deepEqual(cmf.meshes[0].lods[0].vertex.blendIndice, [
+        0, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0
+    ]);
+    assert.deepEqual(cmf.meshes[0].lods[0].vertex.blendWeight, [
+        1, 0, 0, 0,
+        0.75, 0.25, 0, 0,
+        1, 0, 0, 0
     ]);
 });
 

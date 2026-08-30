@@ -330,8 +330,12 @@ function convertCurve(curve, targetDimension, duration, sampleRate, quaternion =
     // interpolation tracks the quadratic within `tolerance`; intervals that
     // never converge are true discontinuities and snap to one float32 ULP
     // before the jump knot
-    const start = curve.knots[0];
-    const end = Math.max(curve.knots[knotCount - 1], duration || 0);
+    const start = Math.max(curve.knots[0], 0);
+    // Quantized Granny degree-2 knots can land slightly beyond the authored
+    // animation duration. Those keys shape the visible final segment but are
+    // not themselves playable CMF times, so sample through duration and clip
+    // the emitted linear approximation there.
+    const end = duration > 0 ? duration : curve.knots[knotCount - 1];
     const span = Math.max(end - start, 0);
     const tolerance = 1e-3;
     const minStep = 4e-6;
@@ -419,8 +423,24 @@ function convertCurve(curve, targetDimension, duration, sampleRate, quaternion =
         previousValue = value;
     }
 
+    const quantizedTimes = [];
+    const quantizedValues = [];
+    for (let index = 0; index < outTimes.length; index++)
+    {
+        const time = Math.fround(outTimes[index]);
+        if (quantizedTimes.length && time === quantizedTimes[quantizedTimes.length - 1])
+        {
+            quantizedValues[quantizedValues.length - 1] = outValues[index];
+        }
+        else
+        {
+            quantizedTimes.push(time);
+            quantizedValues.push(outValues[index]);
+        }
+    }
+
     const values = [];
-    for (const entry of outValues) values.push(...entry);
+    for (const entry of quantizedValues) values.push(...entry);
     if (quaternion) normalizeQuaternionValues(values);
 
     return {
@@ -428,8 +448,8 @@ function convertCurve(curve, targetDimension, duration, sampleRate, quaternion =
         interpolation: "Linear",
         knotType: "Float32",
         valueType: "Float32",
-        knotCount: outTimes.length,
-        knots: floatBytes(outTimes),
+        knotCount: quantizedTimes.length,
+        knots: floatBytes(quantizedTimes),
         values: floatBytes(values),
         plainValues: values
     };
@@ -471,8 +491,12 @@ export function convertGr2Animation(animation, options = {})
 
     const addChannel = (target, targetType, decoded, targetDimension) =>
     {
-        if (!decoded.keyframed &&
-            (decoded.knots[0] < 0 || decoded.knots[decoded.knots.length - 1] > duration))
+        if (!decoded.keyframed && (
+            decoded.knots[0] < 0 ||
+            decoded.knots[0] > duration ||
+            decoded.knots[decoded.knots.length - 1] > duration &&
+                (decoded.degree <= 1 || duration === 0)
+        ))
         {
             throw convertError(`animation "${animation.name || ""}" ${targetType} target "${target}" has keys outside its duration`);
         }
@@ -590,6 +614,9 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
         for (let bindingIndex = 0; bindingIndex < bindings.length; bindingIndex++)
         {
             const meshIndex = bindings[bindingIndex];
+            // The GR2 JSON emitter uses -1 when a model binding points at a
+            // mesh omitted from this file, as EVE low-detail hull files do.
+            if (meshIndex === -1) continue;
             if (!Number.isInteger(meshIndex) || meshIndex < 0 || meshIndex >= sourceMeshes.length)
             {
                 throw convertError(

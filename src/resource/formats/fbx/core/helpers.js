@@ -3134,30 +3134,54 @@ function buildSkeletonContext(objectIndex, connections, sceneTransform, modelWor
 
 function buildSkeleton(root, objectIndex, connections, sceneTransform, modelWorldCache, bindPoseMatrices, visited)
 {
-    const records = [];
+    const
+        records = [],
+        componentKeys = new Set(),
+        collectBone = (bone) =>
+        {
+            if (!bone || componentKeys.has(bone.key)) return;
+            componentKeys.add(bone.key);
+            for (const child of connectedChildObjects(bone, objectIndex, connections, "Model").filter(isBoneModel))
+            {
+                collectBone(child);
+            }
+        };
+    collectBone(root);
 
-    const importBone = (bone, parentIndex) =>
+    const
+        pending = objectIndex.list.filter(entry =>
+            isBoneModel(entry) && componentKeys.has(entry.key) && !visited.has(entry.key)),
+        recordIndexByKey = new Map();
+    while (pending.length)
     {
-        if (!bone || visited.has(bone.key))
+        let progressed = false;
+        for (let index = 0; index < pending.length; index++)
         {
-            return;
+            const
+                bone = pending[index],
+                parent = connectedParentObjects(bone, objectIndex, connections, "Model")
+                    .find(entry => isBoneModel(entry) && componentKeys.has(entry.key));
+            if (parent && !recordIndexByKey.has(parent.key)) continue;
+
+            const
+                parentIndex = parent ? recordIndexByKey.get(parent.key) : -1,
+                localMatrix = buildBoneLocalMatrix(bone, parentIndex, objectIndex, connections, sceneTransform, modelWorldCache),
+                transform = decomposeMatrix4(localMatrix),
+                recordIndex = records.length;
+
+            visited.add(bone.key);
+            recordIndexByKey.set(bone.key, recordIndex);
+            records.push({ bone, parentIndex, localMatrix, transform });
+            pending.splice(index, 1);
+            index--;
+            progressed = true;
         }
 
-        visited.add(bone.key);
-        const
-            localMatrix = buildBoneLocalMatrix(bone, parentIndex, objectIndex, connections, sceneTransform, modelWorldCache),
-            transform = decomposeMatrix4(localMatrix),
-            recordIndex = records.length;
-
-        records.push({ bone, parentIndex, localMatrix, transform });
-
-        for (const child of connectedChildObjects(bone, objectIndex, connections, "Model").filter(isBoneModel))
+        if (!progressed)
         {
-            importBone(child, recordIndex);
+            throw new Error(`fbx: skeleton ${JSON.stringify(root.name || root.key)} contains a cyclic bone hierarchy`);
         }
-    };
-
-    importBone(root, -1);
+    }
 
     const
         authoredName = readProperties70(root.node).properties.CjsSkeletonName?.value,
@@ -5638,4 +5662,3 @@ function readF64LE(bytes, offset)
 {
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 8).getFloat64(0, true);
 }
-

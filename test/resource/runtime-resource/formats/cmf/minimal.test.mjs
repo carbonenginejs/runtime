@@ -162,6 +162,32 @@ test("loads shared skinned geometry into CMF-native JSON", () =>
     assert.equal(mesh.lods[0].vb.stride, 36);
 });
 
+test("synthesizes rigid weights for shared BoneIndices without BoneWeights", () =>
+{
+    const result = CjsCmfFormat.loadShared({
+        meshes: [ {
+            name: "rigid",
+            boneBindings: [ { name: "root" }, { name: "moving" } ],
+            vertex: {
+                position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
+                blendIndice: [
+                    0, 0, 0, 0,
+                    1, 0, 0, 0,
+                    1, 0, 0, 0
+                ]
+            },
+            indices: [ { name: "main", bytesPerIndex: 2, faces: [ 0, 1, 2 ] } ]
+        } ]
+    });
+
+    assert.deepEqual(result.meshes[0].vertex.blendWeight, [
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0
+    ]);
+    assert.equal(result.meshes[0].decl.some(element => element.usage === "BoneWeights"), true);
+});
+
 test("loads shared morph targets into CMF-native JSON", () =>
 {
     const result = CjsCmfFormat.loadShared({
