@@ -1,3 +1,5 @@
+import { asUint8Array } from "#utils/bytes";
+
 /**
  * STL read/write and printability inspection helpers.
  */
@@ -237,13 +239,7 @@ class DisjointSet
  *
  * @param {string|Uint8Array|ArrayBuffer|DataView} input STL text or bytes.
  * @returns {Uint8Array|null} Bytes when input is byte-like.
- */
-export function toBytes(input)
-{
-    return binaryBytes(input);
-}
-
-/**
+ *//**
  * Convert supported input into text.
  *
  * @param {string|Uint8Array|ArrayBuffer|DataView} input STL text or bytes.
@@ -843,3 +839,4 @@ export function inspectTriangles(triangles, values, source = {})
         issues
     };
 }
+

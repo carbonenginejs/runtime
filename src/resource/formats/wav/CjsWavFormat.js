@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -10,7 +11,6 @@ import {
     isWAV,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -175,7 +175,7 @@ export class CjsWavFormat extends CjsFormat
     {
         try
         {
-            return isWAV(toBytes(input));
+            return isWAV(asUint8Array(input, "Audio input"));
         }
         catch
         {

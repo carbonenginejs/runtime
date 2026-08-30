@@ -1,4 +1,4 @@
-import { readFourCc } from "#utils/bytes";
+import { asUint8Array, readFourCc } from "#utils/bytes";
 import { parseEventAction } from "./eventAction.js";
 import { parseGlobalSettings } from "./globalSettings.js";
 
@@ -78,16 +78,7 @@ export function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the BNK format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("Bnk input must be Uint8Array, ArrayBuffer, or DataView");
-}
-
-/**
+/** Returns a byte view over the supplied binary input for the BNK format reader. *//**
  * Test for a Wwise soundbank BKHD signature.
  *
  * @param {Uint8Array} bytes Candidate bytes.
@@ -426,7 +417,7 @@ function readNameTable(bytes, dataOffset, size)
 /** Inspects input using normalized format options for the BNK format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Bnk input");
     if (!isBNK(bytes))
     {
         throw new TypeError("CjsBnkFormat: expected a Wwise soundbank starting with a BKHD chunk");
@@ -531,7 +522,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 /** Reads input using normalized format options for the BNK format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Bnk input");
     const metadata = inspectWithValues(bytes, values);
     if (values.emit === OUTPUT_BNK_JSON) return metadata;
     if (values.emit === OUTPUT_MEDIA)
@@ -578,3 +569,4 @@ function readU32(bytes, offset)
 {
     return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;
 }
+

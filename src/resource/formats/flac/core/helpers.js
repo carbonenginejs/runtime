@@ -1,4 +1,4 @@
-import { readU16BE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
+import { asUint8Array, readU16BE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
 
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_PCM = "pcm";
@@ -27,16 +27,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the FLAC format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("FLAC input must be Uint8Array, ArrayBuffer, or DataView");
-}
-
-/** Reports whether the current FLAC format reader satisfies FLAC. */
+/** Returns a byte view over the supplied binary input for the FLAC format reader. *//** Reports whether the current FLAC format reader satisfies FLAC. */
 export function isFLAC(bytes)
 {
     return bytes.byteLength >= 4 && bytes[0] === 0x66 && bytes[1] === 0x4c && bytes[2] === 0x61 && bytes[3] === 0x43;
@@ -45,7 +36,7 @@ export function isFLAC(bytes)
 /** Inspects input using normalized format options for the FLAC format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "FLAC input");
     if (!isFLAC(bytes)) throw new TypeError("CjsFlacFormat: input is not a FLAC stream");
     const sourceFormat = expectedType || values.inputType || "flac";
     if (sourceFormat !== "flac") throw new TypeError(`CjsFlacFormat: expected ${sourceFormat}, got flac`);
@@ -103,7 +94,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
 /** Reads input using normalized format options for the FLAC format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "FLAC input");
     const metadata = inspectWithValues(bytes, values, expectedType);
     if (values.emit === OUTPUT_JSON || values.emit === DEBUG_OUTPUT) return metadata;
     if (values.emit === OUTPUT_PCM)
@@ -298,3 +289,4 @@ function readU64BE(bytes, offset)
     const low = readU32BE(bytes, offset + 4);
     return high > 0x1fffff ? null : high * 0x100000000 + low;
 }
+

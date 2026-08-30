@@ -1,4 +1,4 @@
-import { readFourCc, readU16BE, readU32BE } from "#utils/bytes";
+import { asUint8Array, readFourCc, readU16BE, readU32BE } from "#utils/bytes";
 export const OUTPUT_VIDEO = "video";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
@@ -37,19 +37,10 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the MP4 format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("Video input must be Uint8Array, ArrayBuffer, or DataView");
-}
-
-/** Inspects input using normalized format options for the MP4 format reader. */
+/** Returns a byte view over the supplied binary input for the MP4 format reader. *//** Inspects input using normalized format options for the MP4 format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Video input");
     const metadata = inspectBytes(bytes);
     if (expectedType && metadata.sourceFormat && metadata.sourceFormat !== expectedType)
     {
@@ -133,7 +124,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
 /** Reads input using normalized format options for the MP4 format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Video input");
     const metadata = inspectWithValues(bytes, values, expectedType);
     if (values.emit === OUTPUT_RAW)
     {
@@ -488,3 +479,4 @@ function readU64BE(bytes, offset)
 {
     return readU32BE(bytes, offset) * 0x100000000 + readU32BE(bytes, offset + 4);
 }
+

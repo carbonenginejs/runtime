@@ -1,4 +1,4 @@
-import { readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
+import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
 import { decodeBc6h } from "./bc6h.js";
 import { decodeBc7 } from "./bc7.js";
 
@@ -132,19 +132,10 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the DDS format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("Image input must be Uint8Array, ArrayBuffer, or DataView");
-}
-
-/** Inspects input using normalized format options for the DDS format reader. */
+/** Returns a byte view over the supplied binary input for the DDS format reader. *//** Inspects input using normalized format options for the DDS format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Image input");
     const detected = inspectBytes(bytes);
     const sourceFormat = expectedType || values.inputType || detected.sourceFormat;
 
@@ -248,7 +239,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
 /** Reads input using normalized format options for the DDS format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Image input");
     const metadata = inspectWithValues(bytes, values, expectedType);
 
     if (values.emit === OUTPUT_RAW)
@@ -1263,3 +1254,4 @@ function capitalize(value)
 {
     return value ? value[0].toUpperCase() + value.slice(1) : "Image";
 }
+

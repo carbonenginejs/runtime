@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -10,7 +11,6 @@ import {
     isTGA,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -174,7 +174,7 @@ export class CjsTgaFormat extends CjsFormat
     {
         try
         {
-            return isTGA(toBytes(input));
+            return isTGA(asUint8Array(input, "Image input"));
         }
         catch
         {

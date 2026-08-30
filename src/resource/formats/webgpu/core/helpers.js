@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import CjsDxbcFormat from "../../dxbc/index.js";
 import { normalizeBytecodeBytes, readEffectAnalysis } from "./effectAnalysis.js";
 
@@ -165,16 +166,7 @@ export function normalizeValues(base, options = {}, classKeys = [], readerName =
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {Uint8Array} The payload bytes.
- */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("CjsWebgpuFormat: input must be Carbon WebGPU package bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
-}
-
-/**
+ *//**
  * Reports whether a payload has the Carbon v15 container shape.
  *
  * This is a **shape** check, not an identity check. Our containers are stock
@@ -190,7 +182,7 @@ export function isCarbonWebgpu(input)
 {
     try
     {
-        return looksLikeCarbonWebgpuContainer(toBytes(input));
+        return looksLikeCarbonWebgpuContainer(asUint8Array(input, "CjsWebgpuFormat input"));
     }
     catch
     {
@@ -207,7 +199,7 @@ export function isCarbonWebgpu(input)
  */
 export function readRaw(input, values)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "CjsWebgpuFormat input");
     const container = new CarbonWebgpuContainer();
     const ok = container.Read(bytes, { sourcePath: values.source });
 
@@ -547,3 +539,4 @@ export function toJsonValue(value)
 }
 
 export { WebgpuReadError };
+

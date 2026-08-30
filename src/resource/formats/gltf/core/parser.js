@@ -1,3 +1,5 @@
+import { asUint8Array } from "#utils/bytes";
+
 /**
  * glTF/GLB parser that emits the shared CarbonEngineJS geometry JSON shape.
  */
@@ -51,19 +53,7 @@ function createVertexChannels()
     return channels;
 }
 
-/** Returns a byte view over the supplied binary input for the glTF format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(input))
-    {
-        return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    }
-    throw new TypeError("CjsGltfFormat: input must be glTF JSON, GLB bytes, UTF-8 bytes, or a glTF object");
-}
-
-function toUtf8(bytes)
+/** Returns a byte view over the supplied binary input for the glTF format reader. */function toUtf8(bytes)
 {
     return new TextDecoder().decode(bytes);
 }
@@ -78,7 +68,7 @@ export function isGlb(input)
 {
     try
     {
-        return isGlbBytes(toBytes(input));
+        return isGlbBytes(asUint8Array(input, "CjsGltfFormat input"));
     }
     catch
     {
@@ -110,7 +100,7 @@ export function parseInput(input)
         return { gltf: parseJsonText(input), binaryChunk: null, format: "gltf" };
     }
 
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "CjsGltfFormat input");
     if (isGlbBytes(bytes)) return parseGlb(bytes);
     return { gltf: parseJsonText(toUtf8(bytes)), binaryChunk: null, format: "gltf" };
 }
@@ -181,7 +171,7 @@ function decodeDataUri(uri)
 function normalizeBuffer(value)
 {
     if (value === undefined || value === null) return null;
-    return toBytes(value);
+    return asUint8Array(value, "CjsGltfFormat input");
 }
 
 function bufferFromOptions(options, index, uri)
@@ -821,3 +811,4 @@ export function inspectGltf(gltf, { format = "gltf", source = "memory" } = {})
         }))
     };
 }
+

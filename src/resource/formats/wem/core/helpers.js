@@ -1,4 +1,4 @@
-import { readFourCc } from "#utils/bytes";
+import { asUint8Array, readFourCc } from "#utils/bytes";
 import { convertWemToOgg } from "./wemToOgg.js";
 import { decodePtadpcm } from "./ptadpcm.js";
 
@@ -57,16 +57,7 @@ export function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the WEM format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("Wem input must be Uint8Array, ArrayBuffer, or DataView");
-}
-
-/**
+/** Returns a byte view over the supplied binary input for the WEM format reader. *//**
  * Test for a Wwise RIFF/RIFX WAVE signature.
  *
  * @param {Uint8Array} bytes Candidate bytes.
@@ -194,7 +185,7 @@ export function inspectWEM(bytes)
 /** Inspects input using normalized format options for the WEM format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Wem input");
     if (!isWEM(bytes))
     {
         throw new TypeError("CjsWemFormat: expected a RIFF/RIFX WAVE (wem) container");
@@ -360,7 +351,7 @@ function getOggSupport(metadata)
 /** Reads input using normalized format options for the WEM format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Wem input");
     const metadata = inspectWithValues(bytes, values);
     if (values.emit === OUTPUT_WEM_JSON) return metadata;
     if (values.emit === OUTPUT_OGG)
@@ -453,3 +444,4 @@ function readU32(bytes, offset, littleEndian)
         ? (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0
         : ((bytes[offset] * 0x1000000) + (bytes[offset + 1] << 16) + (bytes[offset + 2] << 8) + bytes[offset + 3]) >>> 0;
 }
+

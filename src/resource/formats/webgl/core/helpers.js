@@ -1,3 +1,5 @@
+import { asUint8Array } from "#utils/bytes";
+
 /**
  * Internal glue for CjsWebglFormat.
  *
@@ -69,16 +71,7 @@ export function normalizeValues(base, options = {}, readerName = "CjsWebglFormat
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {Uint8Array} The payload bytes.
- */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("CjsWebglFormat: input must be effect container bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
-}
-
-/**
+ *//**
  * Reports whether a payload has the Carbon effect container shape.
  *
  * A shape check, not an identity check: our files are stock Carbon containers,
@@ -92,7 +85,7 @@ export function isWebglEffectContainer(input)
 {
     try
     {
-        return looksLikeCarbonEffectContainer(toBytes(input));
+        return looksLikeCarbonEffectContainer(asUint8Array(input, "CjsWebglFormat input"));
     }
     catch
     {
@@ -219,3 +212,4 @@ export function toJsonValue(value)
 }
 
 export { WebglReadError };
+

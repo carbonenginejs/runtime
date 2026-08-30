@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -10,7 +11,6 @@ import {
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -121,7 +121,7 @@ export class CjsGifFormat extends CjsFormat
     {
         try
         {
-            return isGIF(toBytes(input));
+            return isGIF(asUint8Array(input, "GIF input"));
         }
         catch
         {

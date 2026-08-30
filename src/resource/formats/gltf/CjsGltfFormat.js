@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing glTF/GLB format class.
@@ -19,7 +20,6 @@ import {
     isGlb,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue,
     validateClass,
     validateClassKey
@@ -254,7 +254,7 @@ export class CjsGltfFormat extends CjsFormat
             {
                 return !!(input.asset && String(input.asset.version || "").startsWith("2"));
             }
-            const text = typeof input === "string" ? input : new TextDecoder().decode(toBytes(input));
+            const text = typeof input === "string" ? input : new TextDecoder().decode(asUint8Array(input, "CjsGltfFormat input"));
             const json = JSON.parse(text);
             return !!(json.asset && String(json.asset.version || "").startsWith("2"));
         }

@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import {
     generateBiNormals,
     generateNormals,
@@ -222,25 +223,7 @@ export function normalizeEmit(emit, readerName)
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input Binary input.
  * @returns {Uint8Array} Byte view.
- */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array)
-    {
-        return input;
-    }
-    if (input instanceof ArrayBuffer)
-    {
-        return new Uint8Array(input);
-    }
-    if (ArrayBuffer.isView(input))
-    {
-        return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    }
-    throw new TypeError("FBX input must be Uint8Array, ArrayBuffer, or DataView");
-}
-
-/**
+ *//**
  * Read FBX bytes with normalized values.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
@@ -249,7 +232,7 @@ export function toBytes(input)
  */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Fbx input");
 
     if (values.emit === OUTPUT_RAW)
     {
@@ -284,7 +267,7 @@ export function readWithValues(input, values = DEFAULT_VALUES)
  */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Fbx input");
     const detected = inspectBytes(bytes);
 
     return {
@@ -345,7 +328,7 @@ export function readCmfWithValues(input, values = DEFAULT_VALUES)
 
 function parseDocumentWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Fbx input");
     if (bytes.byteLength > values.maxBytes)
     {
         throw new Error(`fbx: input exceeds maxBytes (${values.maxBytes})`);
@@ -370,7 +353,7 @@ function parseDocumentWithValues(input, values = DEFAULT_VALUES)
 
 function parseGr2DocumentWithValues(input, values)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Fbx input");
     if (bytes.byteLength > values.maxBytes)
     {
         throw new Error(`fbx: input exceeds maxBytes (${values.maxBytes})`);
@@ -455,7 +438,7 @@ function inspectFbxFeatureSupport(input, values, metadata)
     try
     {
         const
-            bytes = toBytes(input),
+            bytes = asUint8Array(input, "Fbx input"),
             targetNames = new Set(FEATURE_SCAN_ROOT_NODES),
             nodes = metadata.encoding === "binary"
                 ? readBinaryTargetNodes(bytes, metadata, values, targetNames)
@@ -719,7 +702,7 @@ export function inspectBytes(bytes)
  */
 export function isFBX(input)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Fbx input");
     return isBinaryFBX(bytes) || isAsciiFBXText(decodeAsciiPrefix(bytes, ASCII_PREFIX_LENGTH));
 }
 
@@ -5655,3 +5638,4 @@ function readF64LE(bytes, offset)
 {
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 8).getFloat64(0, true);
 }
+

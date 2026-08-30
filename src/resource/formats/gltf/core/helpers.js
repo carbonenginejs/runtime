@@ -4,7 +4,12 @@
 
 import { CLASS_KEYS as GR2_CLASS_KEYS, hydrateJson } from "./json.js";
 import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
-import { inspectGltf, isGlb, parseGltfToJson, parseInput, toBytes } from "./parser.js";
+import {
+    inspectGltf,
+    isGlb,
+    parseGltfToJson,
+    parseInput
+} from "./parser.js";
 import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
 import {
     generateBiNormals,
@@ -24,7 +29,7 @@ export const CLASS_KEYS = Object.freeze(Array.from(new Set([
     ...CMF_CLASS_KEYS
 ])));
 
-export { isGlb, toBytes };
+export { isGlb };
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_GLTF_JSON = "gltfJson";

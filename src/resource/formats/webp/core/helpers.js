@@ -1,4 +1,4 @@
-import { readU16LE, readU24LE, readU32LE } from "#utils/bytes";
+import { asUint8Array, readU16LE, readU24LE, readU32LE } from "#utils/bytes";
 
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
@@ -32,16 +32,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the WebP format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("WebP input must be Uint8Array, ArrayBuffer, or a view");
-}
-
-/**
+/** Returns a byte view over the supplied binary input for the WebP format reader. *//**
  * Reports whether the supplied bytes have a RIFF/WebP header for the WebP format
  * reader.
  */
@@ -54,7 +45,7 @@ export function isWebP(bytes)
 /** Inspects input using normalized format options for the WebP format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "webp")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "WebP input");
     if (!isWebP(bytes)) throw new TypeError("CjsWebpFormat: input is not a RIFF WebP container");
     const metadata = inspectWebP(bytes);
     if (expectedType && metadata.sourceFormat !== expectedType)
@@ -115,7 +106,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 /** Reads input using normalized format options for the WebP format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "WebP input");
     const metadata = inspectWithValues(bytes, values);
     if (values.emit === OUTPUT_RAW)
     {
@@ -238,4 +229,5 @@ function ascii(bytes, offset, length)
 {
     return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
+
 

@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -8,7 +9,6 @@ import {
     isWebP,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -119,7 +119,7 @@ export class CjsWebpFormat extends CjsFormat
     {
         try
         {
-            return isWebP(toBytes(input));
+            return isWebP(asUint8Array(input, "WebP input"));
         }
         catch
         {

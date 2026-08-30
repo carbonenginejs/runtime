@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -9,7 +10,6 @@ import {
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -101,7 +101,7 @@ export class CjsFlacFormat extends CjsFormat
     /** Checks whether caller-provided bytes carry the expected FLAC signature. */
     static isFLAC(input)
     {
-        try { return isFLAC(toBytes(input)); }
+        try { return isFLAC(asUint8Array(input, "FLAC input")); }
         catch { return false; }
     }
 

@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -12,7 +13,6 @@ import {
     isWEM,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 import { probeCodecSupportWithValues } from "./core/probeCodecSupport.js";
@@ -191,7 +191,7 @@ export class CjsWemFormat extends CjsFormat
     {
         try
         {
-            return isWEM(toBytes(input));
+            return isWEM(asUint8Array(input, "Wem input"));
         }
         catch
         {

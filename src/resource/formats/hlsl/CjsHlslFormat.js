@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing Tr2 effect container format class.
@@ -18,7 +19,6 @@ import {
     inspectWithValues,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue,
     validateClass,
     validateClassKey
@@ -202,7 +202,7 @@ export class CjsHlslFormat extends CjsFormat
     {
         try
         {
-            const bytes = toBytes(input);
+            const bytes = asUint8Array(input, "CjsHlslFormat input");
             return new HlslEffectRes().DoLoad(bytes, { source: "probeSupport" });
         }
         catch

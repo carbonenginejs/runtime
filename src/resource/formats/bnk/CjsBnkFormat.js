@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     buildSoundbanksCatalog,
@@ -20,7 +21,6 @@ import {
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 import { eventMediaFromBanks } from "./core/graph.js";
@@ -215,7 +215,7 @@ export class CjsBnkFormat extends CjsFormat
      */
     static extractMedia(input, mediaId)
     {
-        const bytes = toBytes(input);
+        const bytes = asUint8Array(input, "Bnk input");
         const metadata = inspectWithValues(bytes, DEFAULT_VALUES);
         return extractMedia(bytes, metadata, mediaId);
     }
@@ -241,7 +241,7 @@ export class CjsBnkFormat extends CjsFormat
     {
         try
         {
-            return isBNK(toBytes(input));
+            return isBNK(asUint8Array(input, "Bnk input"));
         }
         catch
         {

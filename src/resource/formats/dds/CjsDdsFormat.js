@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -11,7 +12,6 @@ import {
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -177,7 +177,7 @@ export class CjsDdsFormat extends CjsFormat
     {
         try
         {
-            return isDDS(toBytes(input));
+            return isDDS(asUint8Array(input, "Image input"));
         }
         catch
         {

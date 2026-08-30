@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsHlslFormat } from "../../hlsl/index.js";
 import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
 import { HlslRenderContextEnum, hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
@@ -349,7 +350,7 @@ function normalizeOptions(input, options)
         throw new TypeError("Carbon WebGL effect options must be an object");
     }
 
-    const sourceBytes = toBytes(input);
+    const sourceBytes = asUint8Array(input, "CjsWebglFormat input");
     const source = String(options.source ?? "memory").trim() || "memory";
     const selection = Object.freeze({
         technique: options.technique === undefined || options.technique === null
@@ -431,28 +432,7 @@ function selectionCoversWholeEffect(selection)
         && selection.pass === null
         && selection.stage === null;
 }
-
-function toBytes(input)
-{
-    if (input instanceof Uint8Array)
-    {
-        return input;
-    }
-
-    if (input instanceof ArrayBuffer)
-    {
-        return new Uint8Array(input);
-    }
-
-    if (ArrayBuffer.isView(input))
-    {
-        return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    }
-
-    throw new TypeError("Carbon WebGL effect input must be Uint8Array, ArrayBuffer, or ArrayBufferView bytes");
-}
-
-function defaultPermutationIndex(permutations)
+function defaultPermutationIndex(permutations)
 {
     let multiplier = 1;
     let index = 0;

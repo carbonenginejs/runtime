@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -9,7 +10,6 @@ import {
     isWebM,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -174,7 +174,7 @@ export class CjsWebmFormat extends CjsFormat
     {
         try
         {
-            return isWebM(toBytes(input));
+            return isWebM(asUint8Array(input, "Video input"));
         }
         catch
         {

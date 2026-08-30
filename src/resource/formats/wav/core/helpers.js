@@ -1,4 +1,4 @@
-import { readFourCc, readU16LE, readU32LE } from "#utils/bytes";
+import { asUint8Array, readFourCc, readU16LE, readU32LE } from "#utils/bytes";
 export const OUTPUT_AUDIO = "audio";
 export const OUTPUT_PCM = "pcm";
 export const OUTPUT_RAW = "raw";
@@ -43,19 +43,10 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the WAV format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("Audio input must be Uint8Array, ArrayBuffer, or DataView");
-}
-
-/** Inspects input using normalized format options for the WAV format reader. */
+/** Returns a byte view over the supplied binary input for the WAV format reader. *//** Inspects input using normalized format options for the WAV format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Audio input");
     const metadata = inspectBytes(bytes);
     if (expectedType && metadata.sourceFormat && metadata.sourceFormat !== expectedType)
     {
@@ -129,7 +120,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
 /** Reads input using normalized format options for the WAV format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "Audio input");
     const metadata = inspectWithValues(bytes, values, expectedType);
     if (values.emit === OUTPUT_RAW)
     {
@@ -404,3 +395,4 @@ function channelLayoutFromMask(mask, channels)
     const layout = names.filter(([ bit ]) => mask & bit).map(([ , name ]) => name);
     return layout.length === channels ? layout : layout.length ? layout : "unspecified";
 }
+

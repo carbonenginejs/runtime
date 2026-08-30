@@ -1,3 +1,5 @@
+import { asUint8Array } from "#utils/bytes";
+
 /**
  * Internal read-pipeline glue for CjsDxbcFormat.
  *
@@ -61,16 +63,7 @@ export function normalizeValues(base, options = {}, readerName = "CjsDxbcFormat"
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {Uint8Array} The payload bytes.
- */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("CjsDxbcFormat: input must be DXBC bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
-}
-
-/**
+ *//**
  * Read a signature chunk group from a container if present.
  *
  * @param {DxbcContainer} container Parsed container.
@@ -97,7 +90,7 @@ function readSignature(container, tags, source)
  */
 export function readRaw(input, values)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "CjsDxbcFormat input");
     const source = values.source;
     const container = new DxbcContainer().Read(bytes, { source });
     const shex = container.getChunk("SHEX") || container.getChunk("SHDR");
@@ -221,3 +214,4 @@ export function toJsonValue(value)
 }
 
 export { DxbcReadError };
+

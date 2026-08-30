@@ -1,4 +1,4 @@
-import { readU16BE, readU16LE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
+import { asUint8Array, readU16BE, readU16LE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
 import { decodeVorbis } from "./vorbis.js";
 
 export const OUTPUT_RAW = "raw";
@@ -35,16 +35,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the Ogg format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("OGG input must be Uint8Array, ArrayBuffer, or a view");
-}
-
-/**
+/** Returns a byte view over the supplied binary input for the Ogg format reader. *//**
  * Reports whether the supplied bytes begin with an Ogg page signature for the
  * Ogg format reader.
  */
@@ -56,7 +47,7 @@ export function isOGG(bytes)
 /** Inspects input using normalized format options for the Ogg format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "ogg")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "OGG input");
     if (!isOGG(bytes)) throw new TypeError("CjsOggFormat: input is not an Ogg container");
     const metadata = inspectOgg(bytes);
     if (expectedType && metadata.sourceFormat !== expectedType)
@@ -138,7 +129,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 /** Reads input using normalized format options for the Ogg format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "OGG input");
     const metadata = inspectWithValues(bytes, values);
     if (values.emit === OUTPUT_RAW)
     {
@@ -444,3 +435,4 @@ function readU64LE(bytes, offset)
     if (value === 0xffffffffffffffffn) return null;
     return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value.toString();
 }
+

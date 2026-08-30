@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     CLASS_KEYS,
@@ -12,7 +13,6 @@ import {
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue,
     validateClass,
     validateClassKey
@@ -267,7 +267,7 @@ export class CjsFbxFormat extends CjsFormat
     {
         try
         {
-            return isFBX(toBytes(input));
+            return isFBX(asUint8Array(input, "Fbx input"));
         }
         catch
         {

@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -11,7 +12,6 @@ import {
     normalizeValues,
     readWithValues,
     readWithValuesAsync,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -176,7 +176,7 @@ export class CjsPngFormat extends CjsFormat
     {
         try
         {
-            return isPNG(toBytes(input));
+            return isPNG(asUint8Array(input, "Image input"));
         }
         catch
         {

@@ -1,4 +1,4 @@
-import { readU16LE } from "#utils/bytes";
+import { asUint8Array, readU16LE } from "#utils/bytes";
 
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_RGBA = "rgba";
@@ -34,16 +34,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the GIF format reader. */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("GIF input must be Uint8Array, ArrayBuffer, or a view");
-}
-
-/** Reports whether the current GIF format reader satisfies GIF. */
+/** Returns a byte view over the supplied binary input for the GIF format reader. *//** Reports whether the current GIF format reader satisfies GIF. */
 export function isGIF(bytes)
 {
     return bytes.byteLength >= 13 && (ascii(bytes, 0, 6) === "GIF87a" || ascii(bytes, 0, 6) === "GIF89a");
@@ -52,7 +43,7 @@ export function isGIF(bytes)
 /** Inspects input using normalized format options for the GIF format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "gif")
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "GIF input");
     if (!isGIF(bytes)) throw new TypeError("CjsGifFormat: input is not a GIF87a/GIF89a image");
     const metadata = inspectGif(bytes);
     if (expectedType && metadata.sourceFormat !== expectedType)
@@ -108,7 +99,7 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 /** Reads input using normalized format options for the GIF format reader. */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "GIF input");
     const metadata = inspectWithValues(bytes, values);
     if (values.emit === OUTPUT_RAW)
     {
@@ -398,4 +389,5 @@ function ascii(bytes, offset, length)
 {
     return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
+
 

@@ -1,3 +1,4 @@
+import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
@@ -9,7 +10,6 @@ import {
     probeSupportWithValues,
     normalizeValues,
     readWithValues,
-    toBytes,
     toJsonValue
 } from "./core/helpers.js";
 
@@ -174,7 +174,7 @@ export class CjsMp4Format extends CjsFormat
     {
         try
         {
-            return isMP4(toBytes(input));
+            return isMP4(asUint8Array(input, "Video input"));
         }
         catch
         {

@@ -1,3 +1,5 @@
+import { asUint8Array } from "#utils/bytes";
+
 /**
  * Internal read-pipeline glue for CjsHlslFormat.
  *
@@ -140,16 +142,7 @@ export function normalizeValues(base, options = {}, readerName = "CjsHlslFormat"
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {Uint8Array} The payload bytes.
- */
-export function toBytes(input)
-{
-    if (input instanceof Uint8Array) return input;
-    if (typeof ArrayBuffer !== "undefined" && input instanceof ArrayBuffer) return new Uint8Array(input);
-    if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-    throw new TypeError("CjsHlslFormat: input must be Tr2 effect bytes (Uint8Array, Buffer, DataView or ArrayBuffer)");
-}
-
-/**
+ *//**
  * The shared read path used by the instance Read, Inspect, and the static
  * one-shots: normalizes input bytes and loads a HlslEffectRes graph. This is
  * internal parsing machinery — the documented public contract is the plain
@@ -161,7 +154,7 @@ export function toBytes(input)
  */
 export function readRaw(input, values)
 {
-    const bytes = toBytes(input);
+    const bytes = asUint8Array(input, "CjsHlslFormat input");
     const effect = new HlslEffectRes();
     const ok = effect.DoLoad(bytes, { source: values.source });
 
@@ -308,3 +301,4 @@ export function toJsonValue(value)
 
 export { HlslEffectReadError };
 export { CLASS_KEYS };
+
