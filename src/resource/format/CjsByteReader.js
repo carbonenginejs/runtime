@@ -20,8 +20,8 @@ const textDecoder = new TextDecoder("utf-8", { fatal: false });
  * }
  * ```
  *
- * The arena primitives (`readString`, `readStringAt`, `readStringOptional`,
- * `readTableBlob`, `readTableBlobOptional`) model Carbon's string table, where a
+ * The arena primitives (`ReadString`, `ReadStringAt`, `ReadStringOptional`,
+ * `ReadTableBlob`, `ReadTableBlobOptional`) model Carbon's string table, where a
  * single `uint32` offset resolves either to a NUL-terminated string or to a
  * sized blob inside the same arena (`trinity/shadercompiler/StringTable.cpp`).
  */
@@ -64,7 +64,7 @@ export class CjsByteReader extends CjsReader
      * @param {ArrayBuffer|ArrayBufferView|Uint8Array} bytes Arena bytes.
      * @param {number|null} [size] Valid arena byte count.
      */
-    setStringTable(bytes, size = null)
+    SetStringTable(bytes, size = null)
     {
         this.stringTable = asUint8Array(bytes);
         this.stringTableSize = Number.isInteger(size) ? size : this.stringTable.length;
@@ -85,7 +85,7 @@ export class CjsByteReader extends CjsReader
      *
      * @param {number} size Byte count to skip.
      */
-    skip(size)
+    Skip(size)
     {
         this._require(size);
         this.offset += size;
@@ -97,7 +97,7 @@ export class CjsByteReader extends CjsReader
      * @param {number} size Byte count to read.
      * @returns {Uint8Array} View over the read bytes.
      */
-    readRaw(size)
+    ReadRaw(size)
     {
         this._require(size);
         const start = this.offset;
@@ -110,7 +110,7 @@ export class CjsByteReader extends CjsReader
      *
      * @returns {number} Integer value.
      */
-    readUint8()
+    ReadUint8()
     {
         this._require(1);
         const value = this.view.getUint8(this.offset);
@@ -123,7 +123,7 @@ export class CjsByteReader extends CjsReader
      *
      * @returns {number} Integer value.
      */
-    readUint16()
+    ReadUint16()
     {
         this._require(2);
         const value = this.view.getUint16(this.offset, true);
@@ -136,7 +136,7 @@ export class CjsByteReader extends CjsReader
      *
      * @returns {number} Integer value.
      */
-    readUint32()
+    ReadUint32()
     {
         this._require(4);
         const value = this.view.getUint32(this.offset, true);
@@ -149,7 +149,7 @@ export class CjsByteReader extends CjsReader
      *
      * @returns {number} Integer value.
      */
-    readInt32()
+    ReadInt32()
     {
         this._require(4);
         const value = this.view.getInt32(this.offset, true);
@@ -162,7 +162,7 @@ export class CjsByteReader extends CjsReader
      *
      * @returns {number} Float value.
      */
-    readFloat32()
+    ReadFloat32()
     {
         this._require(4);
         const value = this.view.getFloat32(this.offset, true);
@@ -175,9 +175,9 @@ export class CjsByteReader extends CjsReader
      *
      * @returns {boolean} Boolean value.
      */
-    readBool()
+    ReadBool()
     {
-        return this.readUint8() !== 0;
+        return this.ReadUint8() !== 0;
     }
 
     /**
@@ -186,10 +186,10 @@ export class CjsByteReader extends CjsReader
      * @param {number} [sizeHint] Optional maximum byte span for bounds checking.
      * @returns {string} Decoded string.
      */
-    readString(sizeHint = 0)
+    ReadString(sizeHint = 0)
     {
-        const offset = this.readUint32();
-        return this.readStringAt(offset, sizeHint);
+        const offset = this.ReadUint32();
+        return this.ReadStringAt(offset, sizeHint);
     }
 
     /**
@@ -203,14 +203,14 @@ export class CjsByteReader extends CjsReader
      * @param {number} length Source field length.
      * @returns {string|null} Decoded string or null.
      */
-    readStringOptional(length)
+    ReadStringOptional(length)
     {
-        const offset = this.readUint32();
+        const offset = this.ReadUint32();
         if (length === 0)
         {
             return null;
         }
-        return this.readStringAt(offset, length);
+        return this.ReadStringAt(offset, length);
     }
 
     /**
@@ -219,9 +219,9 @@ export class CjsByteReader extends CjsReader
      * @param {number} size Blob byte count.
      * @returns {{offset:number,bytes:Uint8Array}} Blob location and bytes.
      */
-    readTableBlob(size)
+    ReadTableBlob(size)
     {
-        const offset = this.readUint32();
+        const offset = this.ReadUint32();
         this._requireStringTable(offset, size);
         return {
             offset,
@@ -235,9 +235,9 @@ export class CjsByteReader extends CjsReader
      * @param {number} size Blob byte count.
      * @returns {{offset:number,bytes:Uint8Array}} Blob location and bytes.
      */
-    readTableBlobOptional(size)
+    ReadTableBlobOptional(size)
     {
-        const offset = this.readUint32();
+        const offset = this.ReadUint32();
         if (size === 0)
         {
             return {
@@ -259,7 +259,7 @@ export class CjsByteReader extends CjsReader
      * @param {number} [sizeHint] Optional maximum byte span for bounds checking.
      * @returns {string} Decoded string.
      */
-    readStringAt(offset, sizeHint = 0)
+    ReadStringAt(offset, sizeHint = 0)
     {
         this._requireStringTable(offset, sizeHint);
         let end = offset;

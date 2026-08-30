@@ -63,14 +63,14 @@ test("CjsByteWriter and CjsByteReader agree on every field width", () =>
     writer.bytes(Uint8Array.of(9, 8));
 
     const reader = new CjsByteReader(writer.toBytes());
-    assert.equal(reader.readUint8(), 200);
-    assert.equal(reader.readUint16(), 60000);
-    assert.equal(reader.readUint32(), 4000000000);
-    assert.equal(reader.readInt32(), -7);
-    assert.equal(reader.readFloat32(), 0.5);
-    assert.equal(reader.readBool(), true);
-    assert.equal(reader.readBool(), false);
-    assert.deepEqual(Array.from(reader.readRaw(2)), [ 9, 8 ]);
+    assert.equal(reader.ReadUint8(), 200);
+    assert.equal(reader.ReadUint16(), 60000);
+    assert.equal(reader.ReadUint32(), 4000000000);
+    assert.equal(reader.ReadInt32(), -7);
+    assert.equal(reader.ReadFloat32(), 0.5);
+    assert.equal(reader.ReadBool(), true);
+    assert.equal(reader.ReadBool(), false);
+    assert.deepEqual(Array.from(reader.ReadRaw(2)), [ 9, 8 ]);
     assert.equal(reader.remaining, 0);
 });
 
@@ -191,7 +191,7 @@ test("CjsStringTable round-trips through the reader's arena primitives", () =>
         stringTable: table.toBytes(),
         stringTableSize: table.byteLength
     });
-    assert.equal(reader.readStringAt(table.offsetOf(name)), "Main");
+    assert.equal(reader.ReadStringAt(table.offsetOf(name)), "Main");
     const blob = reader.stringTable.subarray(table.offsetOf(payload), table.offsetOf(payload) + 4);
     assert.deepEqual(Array.from(blob), [ 0x44, 0x58, 0x42, 0x43 ]);
 });

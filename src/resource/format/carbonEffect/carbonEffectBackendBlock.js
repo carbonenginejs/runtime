@@ -313,21 +313,21 @@ export function readBackendBlock(bytes, options = {})
     readBackendEngineId(reader, CARBON_BACKEND_ENGINE_ID.webgpu, options.source ?? "backend block");
 
     const bindGroups = [];
-    const groupCount = reader.readUint8();
+    const groupCount = reader.ReadUint8();
     for (let groupIndex = 0; groupIndex < groupCount; groupIndex += 1)
     {
-        const group = reader.readUint8();
+        const group = reader.ReadUint8();
         const bindings = [];
-        const bindingCount = reader.readUint8();
+        const bindingCount = reader.ReadUint8();
         for (let index = 0; index < bindingCount; index += 1)
         {
-            const resourceKind = CARBON_BACKEND_RESOURCE_KIND[reader.readUint8()];
-            const registerSpace = reader.readUint8();
-            const binding = reader.readUint8();
-            const visibility = unpackVisibility(reader.readUint8());
-            const registerIndex = reader.readUint32();
-            const structureStride = reader.readUint32();
-            const arrayLayerCount = reader.readUint8();
+            const resourceKind = CARBON_BACKEND_RESOURCE_KIND[reader.ReadUint8()];
+            const registerSpace = reader.ReadUint8();
+            const binding = reader.ReadUint8();
+            const visibility = unpackVisibility(reader.ReadUint8());
+            const registerIndex = reader.ReadUint32();
+            const structureStride = reader.ReadUint32();
+            const arrayLayerCount = reader.ReadUint8();
             const type = readInlineString(reader);
             const generatedSymbol = readInlineString(reader);
             const transformId = readInlineString(reader);

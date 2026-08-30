@@ -247,8 +247,8 @@ export function collectArena(table)
  */
 function readStringRef(reader)
 {
-    const offset = reader.readUint32();
-    return { offset, value: reader.readStringAt(offset) };
+    const offset = reader.ReadUint32();
+    return { offset, value: reader.ReadStringAt(offset) };
 }
 
 /**
@@ -259,8 +259,8 @@ function readStringRef(reader)
  */
 function readBlobRef(reader)
 {
-    const size = reader.readUint32();
-    const blob = reader.readTableBlobOptional(size);
+    const size = reader.ReadUint32();
+    const blob = reader.ReadTableBlobOptional(size);
     return { size, offset: blob.offset, bytes: blob.bytes };
 }
 
@@ -362,19 +362,19 @@ function sanityCheck(value, field, makeError)
  */
 function readAnnotations(reader)
 {
-    const count = reader.readUint8();
+    const count = reader.ReadUint8();
     const annotations = [];
     for (let index = 0; index < count; index += 1)
     {
         const name = readStringRef(reader);
-        const type = reader.readUint8();
+        const type = reader.ReadUint8();
         if (type === CARBON_ANNOTATION_TYPE.STRING)
         {
             annotations.push({ name, type, stringValue: readStringRef(reader), rawValue: null });
         }
         else
         {
-            annotations.push({ name, type, stringValue: null, rawValue: Uint8Array.from(reader.readRaw(4)) });
+            annotations.push({ name, type, stringValue: null, rawValue: Uint8Array.from(reader.ReadRaw(4)) });
         }
     }
     return annotations;
@@ -433,18 +433,18 @@ function mapOldConstantType(value)
 function readConstant(reader, version)
 {
     const name = readStringRef(reader);
-    const offset = reader.readUint32();
-    const size = reader.readUint32();
-    const rawType = reader.readUint8();
+    const offset = reader.ReadUint32();
+    const size = reader.ReadUint32();
+    const rawType = reader.ReadUint8();
     return {
         name,
         offset,
         size,
         type: version < 11 ? mapOldConstantType(rawType) : rawType,
-        dimension: reader.readUint8(),
-        elements: reader.readUint32(),
-        isSRGB: reader.readUint8(),
-        isAutoregister: reader.readUint8()
+        dimension: reader.ReadUint8(),
+        elements: reader.ReadUint32(),
+        isSRGB: reader.ReadUint8(),
+        isAutoregister: reader.ReadUint8()
     };
 }
 
@@ -481,10 +481,10 @@ function readTexture(reader, version)
 {
     return {
         name: readStringRef(reader),
-        type: reader.readUint8(),
-        count: version >= 13 ? reader.readUint32() : 1,
-        isSRGB: reader.readUint8(),
-        isAutoregister: reader.readUint8()
+        type: reader.ReadUint8(),
+        count: version >= 13 ? reader.ReadUint32() : 1,
+        isSRGB: reader.ReadUint8(),
+        isAutoregister: reader.ReadUint8()
     };
 }
 
@@ -522,9 +522,9 @@ function readUav(reader, version)
 {
     return {
         name: readStringRef(reader),
-        type: reader.readUint8(),
-        count: version >= 13 ? reader.readUint32() : 1,
-        isAutoregister: reader.readUint8()
+        type: reader.ReadUint8(),
+        count: version >= 13 ? reader.ReadUint32() : 1,
+        isAutoregister: reader.ReadUint8()
     };
 }
 
@@ -562,28 +562,28 @@ function readSampler(reader, version)
 {
     const record = {
         name: readStringRef(reader),
-        comparison: reader.readUint8(),
-        minFilter: reader.readUint8(),
-        magFilter: reader.readUint8(),
-        mipFilter: reader.readUint8(),
-        addressU: reader.readUint8(),
-        addressV: reader.readUint8(),
-        addressW: reader.readUint8(),
-        mipLODBias: reader.readFloat32(),
-        maxAnisotropy: reader.readUint8(),
-        comparisonFunc: reader.readUint8(),
+        comparison: reader.ReadUint8(),
+        minFilter: reader.ReadUint8(),
+        magFilter: reader.ReadUint8(),
+        mipFilter: reader.ReadUint8(),
+        addressU: reader.ReadUint8(),
+        addressV: reader.ReadUint8(),
+        addressW: reader.ReadUint8(),
+        mipLODBias: reader.ReadFloat32(),
+        maxAnisotropy: reader.ReadUint8(),
+        comparisonFunc: reader.ReadUint8(),
         borderColor: [
-            reader.readFloat32(),
-            reader.readFloat32(),
-            reader.readFloat32(),
-            reader.readFloat32()
+            reader.ReadFloat32(),
+            reader.ReadFloat32(),
+            reader.ReadFloat32(),
+            reader.ReadFloat32()
         ],
-        minLOD: reader.readFloat32(),
-        maxLOD: reader.readFloat32()
+        minLOD: reader.ReadFloat32(),
+        maxLOD: reader.ReadFloat32()
     };
     if (version > 12)
     {
-        record.isDynamic = reader.readUint8();
+        record.isDynamic = reader.ReadUint8();
     }
     return record;
 }
@@ -628,21 +628,21 @@ function writeSampler(writer, arena, sampler)
 function readStaticSampler(reader)
 {
     return {
-        registerIndex: reader.readUint32(),
-        registerSpace: reader.readUint8(),
-        comparison: reader.readUint8(),
-        minFilter: reader.readUint8(),
-        magFilter: reader.readUint8(),
-        mipFilter: reader.readUint8(),
-        addressU: reader.readUint8(),
-        addressV: reader.readUint8(),
-        addressW: reader.readUint8(),
-        mipLODBias: reader.readFloat32(),
-        maxAnisotropy: reader.readUint8(),
-        comparisonFunc: reader.readUint8(),
-        borderColor: reader.readUint8(),
-        minLOD: reader.readFloat32(),
-        maxLOD: reader.readFloat32()
+        registerIndex: reader.ReadUint32(),
+        registerSpace: reader.ReadUint8(),
+        comparison: reader.ReadUint8(),
+        minFilter: reader.ReadUint8(),
+        magFilter: reader.ReadUint8(),
+        mipFilter: reader.ReadUint8(),
+        addressU: reader.ReadUint8(),
+        addressV: reader.ReadUint8(),
+        addressW: reader.ReadUint8(),
+        mipLODBias: reader.ReadFloat32(),
+        maxAnisotropy: reader.ReadUint8(),
+        comparisonFunc: reader.ReadUint8(),
+        borderColor: reader.ReadUint8(),
+        minLOD: reader.ReadFloat32(),
+        maxLOD: reader.ReadFloat32()
     };
 }
 
@@ -704,19 +704,19 @@ function mapOldRegisterType(value)
 function readSignature(reader, version, stageType)
 {
     const registers = [];
-    const registerCount = reader.readUint8();
+    const registerCount = reader.ReadUint8();
     for (let index = 0; index < registerCount; index += 1)
     {
-        const rawType = reader.readUint8();
+        const rawType = reader.ReadUint8();
         const registerType = version > 9 ? rawType : mapOldRegisterType(rawType);
-        const registerIndex = reader.readUint32();
+        const registerIndex = reader.ReadUint32();
         if (version > 12)
         {
             registers.push({
                 registerType,
                 registerIndex,
-                registerCount: reader.readUint32(),
-                registerSpace: reader.readUint8()
+                registerCount: reader.ReadUint32(),
+                registerSpace: reader.ReadUint8()
             });
         }
         else
@@ -733,7 +733,7 @@ function readSignature(reader, version, stageType)
     const staticSamplers = [];
     if (version > 12)
     {
-        const staticSamplerCount = reader.readUint8();
+        const staticSamplerCount = reader.ReadUint8();
         for (let index = 0; index < staticSamplerCount; index += 1)
         {
             staticSamplers.push(readStaticSampler(reader));
@@ -756,7 +756,7 @@ function readSignature(reader, version, stageType)
 function readStageResources(reader, version, makeError)
 {
     const constants = [];
-    const constantCount = reader.readUint32();
+    const constantCount = reader.ReadUint32();
     for (let index = 0; index < constantCount; index += 1)
     {
         constants.push(readConstant(reader, version));
@@ -765,26 +765,26 @@ function readStageResources(reader, version, makeError)
     const defaultValues = readBlobRef(reader);
 
     const textures = [];
-    const textureCount = sanityCheck(reader.readUint8(), "textures", makeError);
+    const textureCount = sanityCheck(reader.ReadUint8(), "textures", makeError);
     for (let index = 0; index < textureCount; index += 1)
     {
-        const registerIndex = reader.readUint8();
+        const registerIndex = reader.ReadUint8();
         textures.push({ registerIndex, ...readTexture(reader, version) });
     }
 
     const samplers = [];
-    const samplerCount = sanityCheck(reader.readUint8(), "samplers", makeError);
+    const samplerCount = sanityCheck(reader.ReadUint8(), "samplers", makeError);
     for (let index = 0; index < samplerCount; index += 1)
     {
-        const registerIndex = reader.readUint8();
+        const registerIndex = reader.ReadUint8();
         samplers.push({ registerIndex, ...readSampler(reader, version) });
     }
 
     const uavs = [];
-    const uavCount = sanityCheck(reader.readUint8(), "uavs", makeError);
+    const uavCount = sanityCheck(reader.ReadUint8(), "uavs", makeError);
     for (let index = 0; index < uavCount; index += 1)
     {
-        const registerIndex = reader.readUint8();
+        const registerIndex = reader.ReadUint8();
         uavs.push({ registerIndex, ...readUav(reader, version) });
     }
 
@@ -902,13 +902,13 @@ function writeStageData(writer, arena, stageData)
 function readPipelineInputs(reader, version, makeError)
 {
     const pipelineInputs = [];
-    const pipelineInputCount = sanityCheck(reader.readUint8(), "pipelineInputs", makeError);
+    const pipelineInputCount = sanityCheck(reader.ReadUint8(), "pipelineInputs", makeError);
     for (let index = 0; index < pipelineInputCount; index += 1)
     {
-        const usage = reader.readUint8();
-        const registerIndex = reader.readUint8();
-        const usageIndex = reader.readUint8();
-        const usedMask = reader.readUint8();
+        const usage = reader.ReadUint8();
+        const registerIndex = reader.ReadUint8();
+        const usageIndex = reader.ReadUint8();
+        const usedMask = reader.ReadUint8();
         if (version > 10)
         {
             pipelineInputs.push({
@@ -916,8 +916,8 @@ function readPipelineInputs(reader, version, makeError)
                 registerIndex,
                 usageIndex,
                 usedMask,
-                type: reader.readUint8(),
-                dimension: reader.readUint8()
+                type: reader.ReadUint8(),
+                dimension: reader.ReadUint8()
             });
         }
         else
@@ -957,7 +957,7 @@ function readPipelineInputs(reader, version, makeError)
  */
 function readStage(reader, version, makeError)
 {
-    const type = reader.readUint8();
+    const type = reader.ReadUint8();
 
     let pipelineInputs = [];
     let signature = { registers: [], staticSamplers: [] };
@@ -973,10 +973,10 @@ function readStage(reader, version, makeError)
     const shaderData = readBlobRef(reader);
     if (version < 12)
     {
-        reader.readUint32();
-        reader.readUint32();
+        reader.ReadUint32();
+        reader.ReadUint32();
     }
-    const threadGroupSize = [ reader.readUint32(), reader.readUint32(), reader.readUint32() ];
+    const threadGroupSize = [ reader.ReadUint32(), reader.ReadUint32(), reader.ReadUint32() ];
 
     if (version >= 14)
     {
@@ -1036,17 +1036,17 @@ function writeStage(writer, arena, stage)
 function readPass(reader, version, makeError, backend)
 {
     const stages = [];
-    const stageCount = sanityCheck(reader.readUint8(), "stages", makeError);
+    const stageCount = sanityCheck(reader.ReadUint8(), "stages", makeError);
     for (let index = 0; index < stageCount; index += 1)
     {
         stages.push(readStage(reader, version, makeError));
     }
 
     const renderStates = [];
-    const stateCount = sanityCheck(reader.readUint8(), "renderStates", makeError);
+    const stateCount = sanityCheck(reader.ReadUint8(), "renderStates", makeError);
     for (let index = 0; index < stateCount; index += 1)
     {
-        renderStates.push({ state: reader.readUint32(), value: reader.readUint32() });
+        renderStates.push({ state: reader.ReadUint32(), value: reader.ReadUint32() });
     }
 
     // The one optional trailing block, present only in our own containers. A
@@ -1096,14 +1096,14 @@ function writePass(writer, arena, pass, backend)
  */
 function readLibrary(reader, version, makeError)
 {
-    const payloadSize = reader.readUint32();
+    const payloadSize = reader.ReadUint32();
     const shaderData = readBlobRef(reader);
 
     const exports = [];
-    const exportCount = reader.readUint32();
+    const exportCount = reader.ReadUint32();
     for (let index = 0; index < exportCount; index += 1)
     {
-        exports.push({ type: reader.readUint8(), name: readStringRef(reader) });
+        exports.push({ type: reader.ReadUint8(), name: readStringRef(reader) });
     }
 
     // Libraries exist only from v14, so the pre-v13 register-space default in
@@ -1174,13 +1174,13 @@ export function readEffectDescription(reader, options = {})
     }
 
     const techniques = [];
-    const techniqueCount = reader.readUint8();
+    const techniqueCount = reader.ReadUint8();
     for (let techniqueIndex = 0; techniqueIndex < techniqueCount; techniqueIndex += 1)
     {
         const name = readStringRef(reader);
 
         const passes = [];
-        const passCount = sanityCheck(reader.readUint8(), "passes", makeError);
+        const passCount = sanityCheck(reader.ReadUint8(), "passes", makeError);
         for (let passIndex = 0; passIndex < passCount; passIndex += 1)
         {
             passes.push(readPass(reader, version, makeError, backend));
@@ -1191,7 +1191,7 @@ export function readEffectDescription(reader, options = {})
         const libraries = [];
         if (version > 13)
         {
-            const libraryCount = reader.readUint8();
+            const libraryCount = reader.ReadUint8();
             for (let libraryIndex = 0; libraryIndex < libraryCount; libraryIndex += 1)
             {
                 libraries.push(readLibrary(reader, version, makeError));
@@ -1202,7 +1202,7 @@ export function readEffectDescription(reader, options = {})
     }
 
     const annotations = [];
-    const parameterCount = sanityCheck(reader.readUint16(), "effectAnnotations", makeError);
+    const parameterCount = sanityCheck(reader.ReadUint16(), "effectAnnotations", makeError);
     for (let index = 0; index < parameterCount; index += 1)
     {
         annotations.push({ name: readStringRef(reader), annotations: readAnnotations(reader) });

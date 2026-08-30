@@ -87,7 +87,7 @@ export function peekBackendEngineId(bytes)
  */
 export function readBackendEngineId(reader, expected, source)
 {
-    const type = reader.readUint8();
+    const type = reader.ReadUint8();
 
     if (type !== expected)
     {

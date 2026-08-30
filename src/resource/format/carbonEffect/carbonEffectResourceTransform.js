@@ -161,8 +161,8 @@ export function writeInlineString(writer, value)
  */
 export function readInlineString(reader)
 {
-    const length = reader.readUint16();
-    return new TextDecoder("utf-8", { fatal: false }).decode(reader.readRaw(length));
+    const length = reader.ReadUint16();
+    return new TextDecoder("utf-8", { fatal: false }).decode(reader.ReadRaw(length));
 }
 
 /**
@@ -227,11 +227,11 @@ export function writeTransformSection(writer, transforms)
 export function readTransformSection(reader, layoutKey)
 {
     const transforms = [];
-    const transformCount = reader.readUint8();
+    const transformCount = reader.ReadUint8();
 
     for (let index = 0; index < transformCount; index += 1)
     {
-        const family = CARBON_BACKEND_TRANSFORM_FAMILY[reader.readUint8()];
+        const family = CARBON_BACKEND_TRANSFORM_FAMILY[reader.ReadUint8()];
         const defaults = TRANSFORM_DEFAULTS_BY_FAMILY[family];
         if (!defaults)
         {
@@ -241,11 +241,11 @@ export function readTransformSection(reader, layoutKey)
         }
         const id = readInlineString(reader);
         const inputs = [];
-        const inputCount = reader.readUint8();
+        const inputCount = reader.ReadUint8();
         for (let layer = 0; layer < inputCount; layer += 1)
         {
-            const registerSpace = reader.readUint8();
-            const registerIndex = reader.readUint8();
+            const registerSpace = reader.ReadUint8();
+            const registerIndex = reader.ReadUint8();
             const parameter = readInlineString(reader);
             const identity = `sampled-resource:${registerSpace}:${registerIndex}`;
             inputs.push({

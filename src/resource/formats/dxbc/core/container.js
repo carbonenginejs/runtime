@@ -72,8 +72,8 @@ export class DxbcContainer
 
         const reader = new DxbcReader(this.bytes, { source: this.source, offset: DXBC_MAGIC.length });
         this.checksum = reader.ReadRaw(16).slice();
-        this.version = reader.readUint32();
-        this.totalSize = reader.readUint32();
+        this.version = reader.ReadUint32();
+        this.totalSize = reader.ReadUint32();
         if (this.totalSize > this.bytes.length)
         {
             throw new DxbcReadError("DXBC container size exceeds the payload", {
@@ -83,7 +83,7 @@ export class DxbcContainer
             });
         }
 
-        const chunkCount = reader.readUint32();
+        const chunkCount = reader.ReadUint32();
         if (DXBC_HEADER_SIZE + chunkCount * 4 > this.totalSize)
         {
             throw new DxbcReadError("DXBC chunk directory exceeds the container size", {
@@ -96,7 +96,7 @@ export class DxbcContainer
         this.chunks = [];
         for (let index = 0; index < chunkCount; index += 1)
         {
-            const offset = reader.readUint32();
+            const offset = reader.ReadUint32();
             this.chunks.push(this._readChunkAt(offset, index));
         }
         return this;
@@ -149,7 +149,7 @@ export class DxbcContainer
         }
         const reader = new DxbcReader(this.bytes, { source: this.source, offset });
         const fourCC = fourCCDecoder.decode(reader.ReadRaw(4));
-        const size = reader.readUint32();
+        const size = reader.ReadUint32();
         if (offset + DXBC_CHUNK_HEADER_SIZE + size > this.totalSize)
         {
             throw new DxbcReadError("DXBC chunk payload lies outside the container", {

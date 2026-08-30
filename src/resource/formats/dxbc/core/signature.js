@@ -65,8 +65,8 @@ export class DxbcSignatureChunk
 
         const bytes = chunk.bytes;
         const reader = new DxbcReader(bytes, { source: this.source });
-        const elementCount = reader.readUint32();
-        const elementOffset = reader.readUint32() || SIGNATURE_TABLE_HEADER_SIZE;
+        const elementCount = reader.ReadUint32();
+        const elementOffset = reader.ReadUint32() || SIGNATURE_TABLE_HEADER_SIZE;
         if (elementOffset + elementCount * layout.stride > bytes.length)
         {
             throw new DxbcReadError("DXBC signature elements lie outside the chunk", {
@@ -82,16 +82,16 @@ export class DxbcSignatureChunk
         reader.offset = elementOffset;
         for (let index = 0; index < elementCount; index += 1)
         {
-            const stream = layout.hasStream ? reader.readUint32() : 0;
-            const semanticNameOffset = reader.readUint32();
-            const semanticIndex = reader.readUint32();
-            const systemValueType = reader.readUint32();
-            const componentType = reader.readUint32();
-            const registerIndex = reader.readUint32();
-            const mask = reader.readUint8();
-            const readWriteMask = reader.readUint8();
+            const stream = layout.hasStream ? reader.ReadUint32() : 0;
+            const semanticNameOffset = reader.ReadUint32();
+            const semanticIndex = reader.ReadUint32();
+            const systemValueType = reader.ReadUint32();
+            const componentType = reader.ReadUint32();
+            const registerIndex = reader.ReadUint32();
+            const mask = reader.ReadUint8();
+            const readWriteMask = reader.ReadUint8();
             reader.Skip(2);
-            const minPrecision = layout.hasMinPrecision ? reader.readUint32() : 0;
+            const minPrecision = layout.hasMinPrecision ? reader.ReadUint32() : 0;
 
             this.elements.push({
                 semanticName: this._readSemanticName(bytes, semanticNameOffset, index),

@@ -86,7 +86,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
     {
         super(bytes, options);
 
-        this.version = this.readUint32();
+        this.version = this.ReadUint32();
         if (this.version < CARBON_EFFECT_MIN_DATA_VERSION || this.version > CARBON_EFFECT_DATA_VERSION)
         {
             throw this._error(
@@ -99,8 +99,8 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
         // an older header goes straight from the version to the arena.
         if (this.version === CARBON_EFFECT_DATA_VERSION)
         {
-            this.compilerVersion = Array.from(this.readRaw(4));
-            this.sourceHash = Uint8Array.from(this.readRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
+            this.compilerVersion = Array.from(this.ReadRaw(4));
+            this.sourceHash = Uint8Array.from(this.ReadRaw(CARBON_EFFECT_SOURCE_HASH_BYTES));
         }
         else
         {
@@ -108,7 +108,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             this.sourceHash = null;
         }
 
-        this.stringTableSize = this.readUint32();
+        this.stringTableSize = this.ReadUint32();
         if (this.offset + this.stringTableSize > this.bytes.length)
         {
             throw this._error("Invalid Carbon effect string-table size", {
@@ -117,8 +117,8 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
             });
         }
         this.stringTableBytes = this.bytes.subarray(this.offset, this.offset + this.stringTableSize);
-        this.skip(this.stringTableSize);
-        this.setStringTable(this.stringTableBytes, this.stringTableSize);
+        this.Skip(this.stringTableSize);
+        this.SetStringTable(this.stringTableBytes, this.stringTableSize);
 
         this.permutations = this.#readPermutations();
         this.records = this.#readRecords();
@@ -295,22 +295,22 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
     #readPermutations()
     {
         const permutations = [];
-        const count = this.readUint8();
+        const count = this.ReadUint8();
         for (let index = 0; index < count; index += 1)
         {
-            const nameOffset = this.readUint32();
-            const name = this.readStringAt(nameOffset);
-            const defaultOption = this.readUint8();
-            const descriptionOffset = this.readUint32();
-            const description = this.readStringAt(descriptionOffset);
-            const type = this.readUint8();
+            const nameOffset = this.ReadUint32();
+            const name = this.ReadStringAt(nameOffset);
+            const defaultOption = this.ReadUint8();
+            const descriptionOffset = this.ReadUint32();
+            const description = this.ReadStringAt(descriptionOffset);
+            const type = this.ReadUint8();
 
             const options = [];
-            const optionCount = this.readUint8();
+            const optionCount = this.ReadUint8();
             for (let optionIndex = 0; optionIndex < optionCount; optionIndex += 1)
             {
-                const offset = this.readUint32();
-                options.push({ offset, value: this.readStringAt(offset) });
+                const offset = this.ReadUint32();
+                options.push({ offset, value: this.ReadStringAt(offset) });
             }
 
             permutations.push({
@@ -332,7 +332,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      */
     #readRecords()
     {
-        const count = this.readUint32();
+        const count = this.ReadUint32();
         if (count === 0)
         {
             throw this._error("Carbon effect contains no compiled bodies");
@@ -349,9 +349,9 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
         for (let index = 0; index < count; index += 1)
         {
             records.push({
-                index: this.readUint32(),
-                offset: this.readUint32(),
-                size: this.readUint32()
+                index: this.ReadUint32(),
+                offset: this.ReadUint32(),
+                size: this.ReadUint32()
             });
         }
         return records;

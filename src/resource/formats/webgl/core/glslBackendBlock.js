@@ -212,14 +212,14 @@ function writeLocalLightRecord(writer, binding)
  */
 function readLocalLightRecord(reader)
 {
-    if (!reader.readUint8()) return null;
+    if (!reader.ReadUint8()) return null;
 
-    const role = GLSL_LOCAL_LIGHT_ROLE[reader.readUint8()];
-    const lightIndexRegister = reader.readUint8();
-    const lightDataRegister = reader.readUint8();
-    const profile = reader.readUint8();
-    const dataTexelBase = reader.readUint32();
-    const capacityLights = reader.readUint16();
+    const role = GLSL_LOCAL_LIGHT_ROLE[reader.ReadUint8()];
+    const lightIndexRegister = reader.ReadUint8();
+    const lightDataRegister = reader.ReadUint8();
+    const profile = reader.ReadUint8();
+    const dataTexelBase = reader.ReadUint32();
+    const capacityLights = reader.ReadUint16();
 
     return {
         localLightRole: role,
@@ -314,27 +314,27 @@ function readBindingBody(reader, kind)
     switch (kind)
     {
         case "constantBuffer": {
-            const sizeInVec4 = reader.readUint16();
-            const style = GLSL_BACKEND_CONSTANT_BUFFER_STYLE[reader.readUint8()];
+            const sizeInVec4 = reader.ReadUint16();
+            const style = GLSL_BACKEND_CONSTANT_BUFFER_STYLE[reader.ReadUint8()];
             return { sizeInVec4, style, ...(readLocalLightRecord(reader) ?? {}) };
         }
         case "resource": {
-            const dimension = reader.readUint8();
-            const samplerCount = reader.readUint8();
+            const dimension = reader.ReadUint8();
+            const samplerCount = reader.ReadUint8();
             const samplerRegisterIndices = [];
             for (let index = 0; index < samplerCount; index += 1)
             {
-                samplerRegisterIndices.push(reader.readUint8());
+                samplerRegisterIndices.push(reader.ReadUint8());
             }
             // Comparison is its own fact rather than "the register list above is
             // non-empty", which is what frees the pairing below to be written
             // for ordinary textures too.
-            const comparison = reader.readUint8() === 1;
+            const comparison = reader.ReadUint8() === 1;
             const pairedSamplerRegisters = [];
-            const pairedCount = reader.readUint8();
+            const pairedCount = reader.ReadUint8();
             for (let index = 0; index < pairedCount; index += 1)
             {
-                pairedSamplerRegisters.push(reader.readUint8());
+                pairedSamplerRegisters.push(reader.ReadUint8());
             }
             const samplerType = comparison
                 ? SHADOW_SAMPLER_TYPE_BY_DIMENSION[dimension]
@@ -358,12 +358,12 @@ function readBindingBody(reader, kind)
         case "bufferTexture":
             return {
                 format: DATA_TEXTURE_FORMAT.bufferTexture,
-                width: reader.readUint16(),
+                width: reader.ReadUint16(),
                 returnTypes: readStringList(reader)
             };
         case "structuredTexture": {
-            const strideBytes = reader.readUint32();
-            const width = reader.readUint16();
+            const strideBytes = reader.ReadUint32();
+            const width = reader.ReadUint16();
             return {
                 strideBytes,
                 format: DATA_TEXTURE_FORMAT.structuredTexture,
@@ -373,14 +373,14 @@ function readBindingBody(reader, kind)
         }
         case "structuredUbo":
             return {
-                strideBytes: reader.readUint32(),
-                capacityElements: reader.readUint16()
+                strideBytes: reader.ReadUint32(),
+                capacityElements: reader.ReadUint16()
             };
         case "uavTexture": {
-            const slice = reader.readUint8();
+            const slice = reader.ReadUint8();
             return {
                 slice: slice === ABSENT_U8 ? null : slice,
-                location: reader.readUint8(),
+                location: reader.ReadUint8(),
                 returnTypes: readStringList(reader)
             };
         }
@@ -412,7 +412,7 @@ function writeStringList(writer, values)
  */
 function readStringList(reader)
 {
-    const count = reader.readUint8();
+    const count = reader.ReadUint8();
     if (!count) return null;
 
     const values = [];
@@ -459,23 +459,23 @@ function writeComputeFragment(writer, computeFragment)
  */
 function readComputeFragment(reader)
 {
-    if (!reader.readUint8()) return null;
+    if (!reader.ReadUint8()) return null;
 
-    const threadGroup = reader.readUint8()
-        ? [ reader.readUint16(), reader.readUint16(), reader.readUint16() ]
+    const threadGroup = reader.ReadUint8()
+        ? [ reader.ReadUint16(), reader.ReadUint16(), reader.ReadUint16() ]
         : null;
     const dispatchOriginUniform = readInlineString(reader);
 
     const uavOutputs = [];
-    const outputCount = reader.readUint8();
+    const outputCount = reader.ReadUint8();
     for (let index = 0; index < outputCount; index += 1)
     {
-        const register = reader.readUint8();
-        const slice = reader.readUint8();
+        const register = reader.ReadUint8();
+        const slice = reader.ReadUint8();
         uavOutputs.push({
             register,
             slice: slice === ABSENT_U8 ? null : slice,
-            location: reader.readUint8(),
+            location: reader.ReadUint8(),
             glslName: readInlineString(reader)
         });
     }
@@ -579,18 +579,18 @@ export function readGlslBackendBlock(bytes, options = {})
     readBackendEngineId(reader, CARBON_BACKEND_ENGINE_ID.webgl2, options.source ?? "glsl backend block");
 
     const stages = {};
-    const stageCount = reader.readUint8();
+    const stageCount = reader.ReadUint8();
 
     for (let index = 0; index < stageCount; index += 1)
     {
-        const stageName = GLSL_BACKEND_STAGE[reader.readUint8()];
+        const stageName = GLSL_BACKEND_STAGE[reader.ReadUint8()];
 
         const bindings = [];
-        const bindingCount = reader.readUint8();
+        const bindingCount = reader.ReadUint8();
         for (let bindingIndex = 0; bindingIndex < bindingCount; bindingIndex += 1)
         {
-            const kind = GLSL_BACKEND_BINDING_KIND[reader.readUint8()];
-            const registerIndex = reader.readUint8();
+            const kind = GLSL_BACKEND_BINDING_KIND[reader.ReadUint8()];
+            const registerIndex = reader.ReadUint8();
             const name = readInlineString(reader);
             bindings.push({
                 kind,
@@ -601,16 +601,16 @@ export function readGlslBackendBlock(bytes, options = {})
         }
 
         const stageInputs = [];
-        const stageInputCount = reader.readUint8();
+        const stageInputCount = reader.ReadUint8();
         for (let inputIndex = 0; inputIndex < stageInputCount; inputIndex += 1)
         {
             stageInputs.push({
-                register: reader.readUint8(),
+                register: reader.ReadUint8(),
                 name: readInlineString(reader),
                 semanticName: readInlineString(reader),
-                semanticIndex: reader.readUint8(),
-                componentTypeName: DxbcComponentTypeNames[reader.readUint8()],
-                mask: reader.readUint8()
+                semanticIndex: reader.ReadUint8(),
+                componentTypeName: DxbcComponentTypeNames[reader.ReadUint8()],
+                mask: reader.ReadUint8()
             });
         }
 
