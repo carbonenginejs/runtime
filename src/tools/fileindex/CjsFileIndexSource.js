@@ -14,7 +14,7 @@ export class CjsFileIndexSource
         this.id = CjsFileIndexSource.normalizeID(id);
         this.baseURL = normalizeHTTPURL(baseURL);
 
-        Object.freeze(this);
+        this;
     }
 
     /**
@@ -70,10 +70,10 @@ export class CjsFileIndexSource
         const location = CjsFileIndexEntry.normalizeLocation(value);
         const match = location.match(/^([a-z0-9][a-z0-9._-]*):\/(.+)$/iu);
 
-        return Object.freeze({
+        return {
             sourceID: match ? CjsFileIndexSource.normalizeID(match[1]) : null,
             path: match ? match[2] : location
-        });
+        };
     }
 
 }

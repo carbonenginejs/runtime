@@ -21,18 +21,18 @@ function snapshotIntent(intent)
   {
     if (Array.isArray(value))
     {
-      snapshot[key] = Object.freeze(value.slice());
+      snapshot[key] = value.slice();
     }
     else if (ArrayBuffer.isView(value) && typeof value.length === "number")
     {
-      snapshot[key] = Object.freeze(Array.from(value));
+      snapshot[key] = Array.from(value);
     }
     else
     {
       snapshot[key] = value;
     }
   }
-  return Object.freeze(snapshot);
+  return snapshot;
 }
 
 /**
@@ -244,14 +244,14 @@ export class CjsWebgpuTrinityStepRecorder extends CjsDirectTrinityStepExecutor
     if (!intents.length) return null;
 
     const entry = this.#stack.at(-1) ?? null;
-    const segment = Object.freeze({
+    const segment = {
       step: entry?.step ?? null,
       job: entry?.job ?? null,
       realTime: entry?.realTime ?? null,
       simTime: entry?.simTime ?? null,
       phase: entry?.phase ?? "setup",
-      intents: Object.freeze(intents.map(snapshotIntent))
-    });
+      intents: intents.map(snapshotIntent)
+    };
     this.#segments.push(segment);
     return segment;
   }

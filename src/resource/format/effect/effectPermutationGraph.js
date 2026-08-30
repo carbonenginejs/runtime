@@ -94,11 +94,11 @@ export function buildEffectPermutationGraph(effectRes)
             {
                 body = {
                     bytes: bodyBytes,
-                    record: Object.freeze({
+                    record: {
                         key: `body${bodies.length}`,
                         byteLength: bodyBytes.byteLength,
                         sha256: digest
-                    })
+                    }
                 };
                 bodyCandidatesByDigest.set(digest, [ body ]);
                 bodies.push(body.record);
@@ -106,29 +106,29 @@ export function buildEffectPermutationGraph(effectRes)
             bodyBySourceRecord.set(sourceRecordKey, body);
         }
 
-        return Object.freeze({
+        return {
             permutationIndex,
-            optionIndices: Object.freeze(decodeOptionIndices(
+            optionIndices: decodeOptionIndices(
                 permutationIndex,
                 axes
-            )),
+            ),
             bodyKey: body.record.key,
             sourceRecord
-        });
+        };
     });
 
-    const graph = Object.freeze({
+    const graph = {
         format: EFFECT_PERMUTATION_GRAPH_FORMAT,
         formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
-        coverage: Object.freeze({
+        coverage: {
             permutations: "complete",
             bodies: "identity-only",
             reflection: "absent"
-        }),
-        axes: Object.freeze(axes),
-        variants: Object.freeze(variants),
-        bodies: Object.freeze(bodies)
-    });
+        },
+        axes: axes,
+        variants: variants,
+        bodies: bodies
+    };
 
     validateEffectPermutationGraph(graph, {
         sourceByteLength: sourceBytes.byteLength
@@ -253,10 +253,10 @@ export function validateEffectPermutationGraph(graph, options = {})
         }
     }
 
-    return Object.freeze({
+    return {
         permutationCount,
         uniqueBodyCount: bodies.size
-    });
+    };
 }
 
 function normalizeAxes(value)
@@ -299,14 +299,14 @@ function normalizeAxes(value)
             options.add(option);
         }
 
-        return Object.freeze({
+        return {
             index,
             name: axis.name,
-            options: Object.freeze(axis.options.slice()),
+            options: axis.options.slice(),
             defaultOption: axis.defaultOption,
             description: axis.description,
             type: axis.type
-        });
+        };
     });
 }
 
@@ -397,10 +397,10 @@ function normalizeSourceRecord(record, permutationIndex, sourceByteLength)
         );
     }
 
-    return Object.freeze({
+    return {
         offset: record.offset,
         byteLength: record.size
-    });
+    };
 }
 
 function validateGraphSourceRecord(record, permutationIndex, sourceByteLength)

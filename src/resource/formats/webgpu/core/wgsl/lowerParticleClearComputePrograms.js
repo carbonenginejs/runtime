@@ -64,16 +64,16 @@ function expectedOperand(
     resourceReference = null
 )
 {
-    return Object.freeze({
+    return {
         typeName,
         registerIndex,
         componentCount,
         selectionModeName,
         selector,
-        indices: Object.freeze(indices),
-        immediateValues: Object.freeze(immediateValues),
+        indices: indices,
+        immediateValues: immediateValues,
         resourceReference
-    });
+    };
 }
 
 function registerOperand(typeName, registerIndex, selector, destination = false)
@@ -119,41 +119,41 @@ function immediate(...values)
 
 function sm51UavReference(registerIndex)
 {
-    return Object.freeze({
+    return {
         bindingModel: "sm5.1-range",
         rangeId: registerIndex,
         nonUniform: false,
-        absoluteIndex: Object.freeze({
+        absoluteIndex: {
             dimension: 1,
             representation: 0,
-            values: Object.freeze([ registerIndex ]),
+            values: [ registerIndex ],
             relative: null
-        }),
+        },
         bufferIndex: null,
         vectorOffset: null
-    });
+    };
 }
 
 function sm51ConstantBufferReference()
 {
-    return Object.freeze({
+    return {
         bindingModel: "sm5.1-range",
         rangeId: 0,
         nonUniform: false,
         absoluteIndex: null,
-        bufferIndex: Object.freeze({
+        bufferIndex: {
             dimension: 1,
             representation: 0,
-            values: Object.freeze([ 3 ]),
+            values: [ 3 ],
             relative: null
-        }),
-        vectorOffset: Object.freeze({
+        },
+        vectorOffset: {
             dimension: 2,
             representation: 0,
-            values: Object.freeze([ 0 ]),
+            values: [ 0 ],
             relative: null
-        })
-    });
+        }
+    };
 }
 
 function uav(registerIndex, selector, minor, destination = false, atomic = false)
@@ -186,16 +186,16 @@ function constantBuffer(minor)
 
 function body(opcodeName, operands = [], testBoolean = null)
 {
-    return Object.freeze({
+    return {
         opcodeName,
-        operands: Object.freeze(operands),
+        operands: operands,
         testBoolean
-    });
+    };
 }
 
 function clearBody(minor)
 {
-    return Object.freeze([
+    return [
         body("ushr", [
             temp(0, "x", true),
             constantBuffer(minor),
@@ -292,7 +292,7 @@ function clearBody(minor)
         body("endloop"),
         body("endif"),
         body("ret")
-    ]);
+    ];
 }
 
 function buildBlocks(instructions)
@@ -1117,8 +1117,8 @@ export function preflightParticleClearEffectProfile(
     }
     validateResetProgram(reset);
     validateClearProgram(clear);
-    const resetProof = Object.freeze({});
-    const clearProof = Object.freeze({});
+    const resetProof = {};
+    const clearProof = {};
     proofRecords.set(resetProof, {
         proofClass: PROOF_CLASS,
         role: "reset",
@@ -1129,7 +1129,7 @@ export function preflightParticleClearEffectProfile(
         role: "clear",
         program: clear
     });
-    const context = Object.freeze({});
+    const context = {};
     contextRecords.set(context, {
         proofClass: PROOF_CLASS,
         proofs: new Map([

@@ -55,7 +55,7 @@ export class CjsWebgpuResource
     this.arrayLayerCount = Number.isInteger(values.arrayLayerCount) ? values.arrayLayerCount : null;
     if (new.target === CjsWebgpuResource)
     {
-      Object.freeze(this);
+      this;
     }
   }
 

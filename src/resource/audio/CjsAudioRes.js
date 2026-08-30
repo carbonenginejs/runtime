@@ -47,7 +47,7 @@ export class CjsAudioRes extends CjsResource
             throw new TypeError("CjsAudioRes info must be an object");
         }
 
-        this.#audioInfo = Object.freeze({ ...values });
+        this.#audioInfo = { ...values };
         return this;
     }
 
@@ -196,7 +196,7 @@ export class CjsAudioRes extends CjsResource
             const start = this.#offset + range.offset;
             const bytes = source.slice(start, start + range.byteLength).buffer;
 
-            return Object.freeze({
+            return {
                 ...this.#audioInfo,
                 bytes,
                 offset: range.offset,
@@ -204,7 +204,7 @@ export class CjsAudioRes extends CjsResource
                 totalByteLength,
                 complete: range.offset === 0
                     && bytes.byteLength === totalByteLength,
-            });
+            };
         }
         finally
         {

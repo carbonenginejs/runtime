@@ -149,10 +149,10 @@ export class CjsWebgpuFrameExecutor
       encodedRegions += 1;
     }
 
-    if (!encodedRegions) return Object.freeze({ encodedRegions: 0, encodedSelections: 0, submitted: false });
+    if (!encodedRegions) return { encodedRegions: 0, encodedSelections: 0, submitted: false };
 
     this.#webgpu.Submit([ commandEncoder.finish() ]);
-    return Object.freeze({ encodedRegions, encodedSelections, submitted: true });
+    return { encodedRegions, encodedSelections, submitted: true };
   }
 
   /** Resolves the render-pass descriptor for one planned frame region. */

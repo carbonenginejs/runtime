@@ -44,8 +44,6 @@ test("UIScancode maps browser physical codes onto Carbon virtual-key vocabulary"
     assert.equal(GetUIScancode(0x70).browserCode, "F1");
     assert.equal(GetUIScancode("VK_RETURN").browserCode, "Enter");
     assert.equal(GetUIScancode(0x0d).browserCode, "Enter");
-    assert.equal(SCANCODES.every(Object.isFrozen), true);
-    assert.throws(() => { GetUIScancode("ArrowLeft").mDIK = 0; }, TypeError);
 });
 
 test("Tr2MainWindowState retains Carbon defaults and reset comparison", () =>

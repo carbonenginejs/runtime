@@ -29,7 +29,7 @@ export class CjsFileIndexOverlay
             ? null
             : CjsFileIndexSource.normalizeID(sourceID);
 
-        Object.freeze(this);
+        this;
     }
 
     /**

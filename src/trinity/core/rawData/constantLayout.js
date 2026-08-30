@@ -171,7 +171,7 @@ export function resolveLayout(group, key, buffer, owner)
         );
     }
 
-    return Object.freeze({
+    return {
         struct: buffer.struct,
         group,
         key,
@@ -179,7 +179,7 @@ export function resolveLayout(group, key, buffer, owner)
         fields,
         stride: offset,
         registerCount: offset / 4
-    });
+    };
 }
 
 

@@ -496,13 +496,13 @@ export function typedArrayConstructor(name)
 function carbonTypeDefinitionForKind(kind)
 {
     const normalized = TYPE_ALIASES[kind] || kind;
-    return TYPE_DEFINITIONS[normalized] || Object.freeze({ kind: normalized, js: "*" });
+    return TYPE_DEFINITIONS[normalized] || { kind: normalized, js: "*" };
 }
 
 function mergeCarbonTypeDefinition(type)
 {
     const definition = carbonTypeDefinitionForKind(type.kind);
-    return Object.freeze({ ...definition, ...type, kind: definition.kind });
+    return { ...definition, ...type, kind: definition.kind };
 }
 
 function uint8(value)
@@ -585,22 +585,22 @@ const MIN_SAFE_BIGINT = BigInt(Number.MIN_SAFE_INTEGER);
 function containerDescriptor(kind, cppType)
 {
     const elementCppType = extractTemplateArgument(cppType);
-    return Object.freeze({
+    return {
         kind,
         js: kind === CARBON_TYPE.MAP ? "Map" : kind === CARBON_TYPE.SET ? "Set" : "Array",
         cppType,
         elementType: elementCppType ? inferCarbonTypeFromCpp(elementCppType) : undefined
-    });
+    };
 }
 
 function objectRefDescriptor(cppType)
 {
-    return Object.freeze({ ...TYPE_DEFINITIONS[CARBON_TYPE.OBJECT_REF], cppType });
+    return { ...TYPE_DEFINITIONS[CARBON_TYPE.OBJECT_REF], cppType };
 }
 
 function rawStructDescriptor(cppType)
 {
-    return Object.freeze({ ...TYPE_DEFINITIONS[CARBON_TYPE.RAW_STRUCT], cppType });
+    return { ...TYPE_DEFINITIONS[CARBON_TYPE.RAW_STRUCT], cppType };
 }
 
 function extractTemplateArgument(cppType)

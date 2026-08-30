@@ -26,7 +26,7 @@ export class CjsWebgpuShaderModule
     this.entryPoint = String(values.entryPoint || "main");
     this.sourceMap = cloneJson(values.sourceMap || []);
     this.shaderRecord = cloneJson(values.shaderRecord || null);
-    Object.freeze(this);
+    this;
   }
 
   /**

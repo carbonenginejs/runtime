@@ -148,7 +148,7 @@ export class Tr2PlatformInfo
     GetCapabilities()
     {
         const adapter = this.adapter;
-        return Object.freeze({
+        return {
             backend: this.backend,
             webgpu: adapter !== null,
             ...(this.webgl?.GetCapabilities() ?? { webgl2: false }),
@@ -159,10 +159,10 @@ export class Tr2PlatformInfo
             textureArrays: this.GetStaticCap(PlatformStaticCap.TEXTURE_ARRAYS),
             msaaSample: this.GetStaticCap(PlatformStaticCap.MSAA_SAMPLE),
             taa: this.GetStaticCap(PlatformStaticCap.TAA),
-            webgpuFeatures: adapter?.features ?? Object.freeze([]),
-            webgpuLimits: adapter?.limits ?? Object.freeze({}),
+            webgpuFeatures: adapter?.features ?? [],
+            webgpuLimits: adapter?.limits ?? {},
             lowPerformance: this.isLowPerformance
-        });
+        };
     }
 
     /** Registers the detected capabilities with a CjsLibrary-like registry. */

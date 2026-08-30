@@ -18,7 +18,7 @@ export class CjsFsd64Format extends CjsFormat
     {
         const binary = new CjsFsd64Binary(input, { path: options.path });
 
-        return Object.freeze({
+        return {
             family: "fsd",
             variant: VARIANT,
             bitWidth: 64,
@@ -28,7 +28,7 @@ export class CjsFsd64Format extends CjsFormat
             layoutID: binary.LayoutID,
             schemaID: binary.SchemaID,
             decodable: true,
-        });
+        };
     }
 
     /**

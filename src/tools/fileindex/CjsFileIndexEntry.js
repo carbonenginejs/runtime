@@ -35,7 +35,7 @@ export class CjsFileIndexEntry
         this.binaryOperation = normalizeOptionalInteger(binaryOperation, "binaryOperation", lineNumber);
         this.lineNumber = lineNumber;
 
-        Object.freeze(this);
+        this;
     }
 
     /**

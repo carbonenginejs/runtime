@@ -111,14 +111,14 @@ export class CjsRealtimeProtocol
                 throw new CjsRealtimeError("invalid_request", "hello.client must be an object");
             }
 
-            return Object.freeze({
+            return {
                 type: "hello",
                 protocolVersion: value.protocolVersion,
                 capability: value.capability,
                 client: value.client === undefined
                     ? null
                     : CjsRealtimeProtocol.cloneJson(value.client)
-            });
+            };
         }
 
         CjsRealtimeProtocol.assertRequestId(value.requestId);
@@ -164,26 +164,26 @@ export class CjsRealtimeProtocol
                 type: "subscribe",
                 requestId: value.requestId,
                 serviceId: value.serviceId,
-                topics: Object.freeze([ ...topics ])
+                topics: [ ...topics ]
             };
 
             if (targeted)
             {
-                message.target = Object.freeze(CjsRealtimeProtocol.cloneJson(value.target));
+                message.target = CjsRealtimeProtocol.cloneJson(value.target);
             }
 
-            return Object.freeze(message);
+            return message;
         }
 
         if (value.type === "unsubscribe")
         {
             CjsRealtimeProtocol.assertString(value.subscriptionId, "subscriptionId", 1, 128);
 
-            return Object.freeze({
+            return {
                 type: "unsubscribe",
                 requestId: value.requestId,
                 subscriptionId: value.subscriptionId
-            });
+            };
         }
 
         if (value.type === "command")
@@ -198,14 +198,14 @@ export class CjsRealtimeProtocol
 
             CjsRealtimeProtocol.validateJson(value.data ?? null);
 
-            return Object.freeze({
+            return {
                 type: "command",
                 requestId: value.requestId,
                 serviceId: value.serviceId,
                 action: value.action,
                 operationId: value.operationId ?? null,
                 data: CjsRealtimeProtocol.cloneJson(value.data ?? null)
-            });
+            };
         }
 
         throw new CjsRealtimeError("invalid_message", "Unsupported realtime message type", {
@@ -224,12 +224,12 @@ export class CjsRealtimeProtocol
             throw new CjsRealtimeError("invalid_request", "hello.client must be an object");
         }
 
-        return Object.freeze({
+        return {
             type: "hello",
             protocolVersion: REALTIME_PROTOCOL_VERSION,
             capability,
             client: client === null ? null : CjsRealtimeProtocol.freezeJson(client)
-        });
+        };
     }
 
     /** Constructs one exact or targeted service/topic subscription request. */
@@ -258,15 +258,15 @@ export class CjsRealtimeProtocol
             );
         }
 
-        return Object.freeze({
+        return {
             type: target === null ? "subscribe" : "subscribe-targeted",
             requestId,
             serviceId,
-            topics: Object.freeze([ ...normalized ]),
+            topics: [ ...normalized ],
             ...(target === null
                 ? {}
                 : { target: CjsRealtimeProtocol.freezeJson(target) })
-        });
+        };
     }
 
     /** Constructs one subscription removal request. */
@@ -275,7 +275,7 @@ export class CjsRealtimeProtocol
         CjsRealtimeProtocol.assertRequestId(requestId);
         CjsRealtimeProtocol.assertString(subscriptionId, "subscriptionId", 1, 128);
 
-        return Object.freeze({ type: "unsubscribe", requestId, subscriptionId });
+        return { type: "unsubscribe", requestId, subscriptionId };
     }
 
     /** Constructs one authoritative service command request. */
@@ -290,14 +290,14 @@ export class CjsRealtimeProtocol
             CjsRealtimeProtocol.assertString(operationId, "operationId", 1, 128);
         }
 
-        return Object.freeze({
+        return {
             type: "command",
             requestId,
             serviceId,
             action,
             operationId,
             data: CjsRealtimeProtocol.freezeJson(data)
-        });
+        };
     }
 
     /** Normalizes one server-to-client message. */
@@ -325,7 +325,7 @@ export class CjsRealtimeProtocol
             CjsRealtimeProtocol.assertString(value.connectionId, "connectionId", 1, 128);
             CjsRealtimeProtocol.assertString(value.discoveryRef, "discoveryRef", 1, 1024);
 
-            return Object.freeze({
+            return {
                 type: "hello",
                 protocol: value.protocol,
                 protocolVersion: value.protocolVersion,
@@ -335,7 +335,7 @@ export class CjsRealtimeProtocol
                 discoveryRef: value.discoveryRef,
                 limits: CjsRealtimeProtocol.freezeJson(value.limits ?? {}),
                 heartbeat: CjsRealtimeProtocol.freezeJson(value.heartbeat ?? {})
-            });
+            };
         }
 
         if (value.type === "result")
@@ -343,12 +343,12 @@ export class CjsRealtimeProtocol
             CjsRealtimeProtocol.assertRequestId(value.requestId);
             CjsRealtimeProtocol.assertString(value.status, "result.status", 1, 64);
 
-            return Object.freeze({
+            return {
                 type: "result",
                 requestId: value.requestId,
                 status: value.status,
                 data: CjsRealtimeProtocol.freezeJson(value.data ?? null)
-            });
+            };
         }
 
         if (value.type === "error")
@@ -369,7 +369,7 @@ export class CjsRealtimeProtocol
                 });
             }
 
-            return Object.freeze({
+            return {
                 type: "error",
                 requestId: value.requestId,
                 code: value.code,
@@ -377,7 +377,7 @@ export class CjsRealtimeProtocol
                 retryable: value.retryable,
                 connectionUsable: value.connectionUsable,
                 details: CjsRealtimeProtocol.freezeJson(value.details ?? null)
-            });
+            };
         }
 
         if (value.type === "event")
@@ -416,7 +416,7 @@ export class CjsRealtimeProtocol
         CjsRealtimeProtocol.assertName(value.payload.schema, "payload schema");
         CjsRealtimeProtocol.assertPositiveInteger(value.payload.version, "payload.version");
 
-        return Object.freeze({
+        return {
             type: "event",
             subscriptionId: value.subscriptionId,
             eventId: value.eventId,
@@ -428,12 +428,12 @@ export class CjsRealtimeProtocol
             occurredAt: value.occurredAt,
             publishedAt: value.publishedAt,
             actor: CjsRealtimeProtocol.freezeJson(value.actor ?? null),
-            payload: Object.freeze({
+            payload: {
                 schema: value.payload.schema,
                 version: value.payload.version,
                 data: CjsRealtimeProtocol.freezeJson(value.payload.data ?? null)
-            })
-        });
+            }
+        };
     }
 
     /** Normalizes one cursor-stamped service snapshot. */
@@ -461,17 +461,17 @@ export class CjsRealtimeProtocol
         CjsRealtimeProtocol.assertName(value.payload.schema, "snapshot payload schema");
         CjsRealtimeProtocol.assertPositiveInteger(value.payload.version, "snapshot payload.version");
 
-        return Object.freeze({
+        return {
             schema: value.schema,
             version: value.version,
             service,
             cursor: CjsRealtimeProtocol.normalizeCursor(value.cursor),
-            payload: Object.freeze({
+            payload: {
                 schema: value.payload.schema,
                 version: value.payload.version,
                 data: CjsRealtimeProtocol.freezeJson(value.payload.data ?? null)
-            })
-        });
+            }
+        };
     }
 
     /** Normalizes one service stream cursor. */
@@ -499,11 +499,11 @@ export class CjsRealtimeProtocol
             topicSequences[topic] = sequence;
         }
 
-        return Object.freeze({
+        return {
             streamId: value.streamId,
             sequence: value.sequence,
-            topicSequences: Object.freeze(topicSequences)
-        });
+            topicSequences: topicSequences
+        };
     }
 
     /** Normalizes the stable identity shared by discovery, snapshots, and events. */
@@ -519,12 +519,12 @@ export class CjsRealtimeProtocol
         CjsRealtimeProtocol.assertName(value.kind, "service kind");
         CjsRealtimeProtocol.assertPositiveInteger(value.familyVersion, "service familyVersion");
 
-        return Object.freeze({
+        return {
             family: value.family,
             familyVersion: value.familyVersion,
             kind: value.kind,
             id: value.id
-        });
+        };
     }
 
     /** Returns the stable identity portion of a normalized service value. */
@@ -532,12 +532,12 @@ export class CjsRealtimeProtocol
     {
         const service = CjsRealtimeProtocol.normalizeServiceIdentity(value);
 
-        return Object.freeze({
+        return {
             family: service.family,
             familyVersion: service.familyVersion,
             kind: service.kind,
             id: service.id
-        });
+        };
     }
 
     /** Creates an immutable JSON-compatible clone. */
@@ -694,7 +694,7 @@ export class CjsRealtimeProtocol
             CjsRealtimeProtocol.freezeValue(item, seen);
         }
 
-        return Object.freeze(value);
+        return value;
     }
 
     /**

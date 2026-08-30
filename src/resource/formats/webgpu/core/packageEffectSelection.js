@@ -14,7 +14,7 @@ export function normalizeEffectPermutation(value)
 {
     if (value === undefined || value === null)
     {
-        return Object.freeze([]);
+        return [];
     }
 
     const entries = value instanceof Map
@@ -26,7 +26,7 @@ export function normalizeEffectPermutation(value)
         throw new TypeError("Effect permutation policy must be an array or Map");
     }
 
-    return Object.freeze(entries.map((entry) =>
+    return entries.map((entry) =>
     {
         if (!entry || typeof entry !== "object" || Array.isArray(entry)
             || typeof entry.name !== "string" || !entry.name
@@ -35,11 +35,11 @@ export function normalizeEffectPermutation(value)
             throw new TypeError("Requested effect permutation is malformed");
         }
 
-        return Object.freeze({
+        return {
             name: entry.name,
             value: entry.value
-        });
-    }));
+        };
+    });
 }
 
 /**

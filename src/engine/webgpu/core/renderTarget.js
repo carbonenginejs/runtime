@@ -128,7 +128,7 @@ export class CjsWebgpuRenderTarget
   /** The current attachment size. */
   GetSize()
   {
-    return Object.freeze({ width: this.#width, height: this.#height });
+    return { width: this.#width, height: this.#height };
   }
 
   /** The multisample count every attachment is created with. */
@@ -230,7 +230,7 @@ export class CjsWebgpuRenderTarget
       depthView: this.#depth ? this.#depth.view : null
     };
 
-    return Object.freeze({ ...this.#frame });
+    return { ...this.#frame };
   }
 
   /**

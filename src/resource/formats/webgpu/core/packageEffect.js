@@ -199,12 +199,12 @@ export function buildEffectPackage(input, options = {})
             bindingPolicy: options.bindingPolicy
         })
         : null;
-    const completeness = Object.freeze({
+    const completeness = {
         packageValid: true,
         sourceComplete,
         backendComplete: false,
         runtimeComplete: false
-    });
+    };
     const info = {
         format: "CARBON_WEBGPU",
         formatVersion: EFFECT_INFO_VERSION,
@@ -223,13 +223,13 @@ export function buildEffectPackage(input, options = {})
         backendPackageVersion: FORMAT_WEBGPU_PACKAGE_VERSION,
         translator: DXBC_WGSL_TRANSLATOR_NAME,
         translatorVersion: DXBC_WGSL_TRANSLATOR_VERSION,
-        permutationGraph: Object.freeze({
+        permutationGraph: {
             format: EFFECT_PERMUTATION_GRAPH_FORMAT,
             formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
             sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),
             permutationCount: permutationGraph.variants.length,
             uniqueBodyCount: permutationGraph.bodies.length
-        }),
+        },
         ...(sourceComplete
             ? {
                 sourceBodyCoverage: "all-unique",
@@ -240,14 +240,14 @@ export function buildEffectPackage(input, options = {})
             : {}),
         ...(backendBodySet
             ? {
-                backendBodySet: Object.freeze({
+                backendBodySet: {
                     format: EFFECT_BACKEND_BODY_SET_FORMAT,
                     formatVersion: EFFECT_BACKEND_BODY_SET_VERSION,
                     sha256: sha256Utf8(`${JSON.stringify(backendBodySet)}\n`),
                     bodyCount: backendBodySet.bodyCount,
                     translatedBodyCount: backendBodySet.translatedBodyCount,
                     passUnitCount: backendBodySet.passUnitCount
-                })
+                }
             }
             : {}),
         bodyMode: mode,
@@ -291,7 +291,7 @@ export function buildEffectPackage(input, options = {})
         source,
         emit: "json"
     });
-    const qualification = Object.freeze({
+    const qualification = {
         ok: true,
         level: "structural",
         validator: "carbon-webgpu-structural",
@@ -308,19 +308,19 @@ export function buildEffectPackage(input, options = {})
             }
             : {}),
         nativeComparison: false
-    });
+    };
 
-    return Object.freeze({
+    return {
         bytes,
-        info: Object.freeze(info),
-        metadata: Object.freeze(metadata),
+        info: info,
+        metadata: metadata,
         permutationGraph,
         analysis,
         wgsl,
         backendBodySet,
-        inspection: Object.freeze(inspection),
+        inspection: inspection,
         qualification
-    });
+    };
 }
 
 /**
@@ -482,11 +482,11 @@ function normalizeSelection(value)
         throw new TypeError("Effect stageNames require an exact passIndex");
     }
 
-    return Object.freeze({
+    return {
         techniqueName,
         passIndex,
-        stageNames: Object.freeze([ ...new Set(stageNames) ])
-    });
+        stageNames: [ ...new Set(stageNames) ]
+    };
 }
 
 function normalizeSourceIdentity(value, source, input)
@@ -519,7 +519,7 @@ function normalizeSourceIdentity(value, source, input)
         );
     }
 
-    return Object.freeze({
+    return {
         logicalPath: value?.logicalPath ?? source,
         game: value?.game ?? null,
         client: value?.client ?? null,
@@ -527,5 +527,5 @@ function normalizeSourceIdentity(value, source, input)
         byteLength: bytes.byteLength,
         md5: value?.md5 ?? null,
         sha256
-    });
+    };
 }

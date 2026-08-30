@@ -43,10 +43,10 @@ export class CjsResManWorkerLoader
     }
     this.workerUrl = options.workerUrl
       || new URL("./CjsResManWorker.js", import.meta.url);
-    this.workerOptions = Object.freeze({
+    this.workerOptions = {
       ...DEFAULT_WORKER_OPTIONS,
       ...(options.workerOptions || {})
-    });
+    };
     this.enabled = options.enabled !== false;
     this.failed = false;
     this.worker = options.worker || null;
@@ -386,17 +386,17 @@ function normalizeFormatWorkerDeclaration(descriptor) {
     ? { module: declaration }
     : declaration;
   if (!value || typeof value !== "object" || !value.module) return null;
-  return Object.freeze({
+  return {
     module: String(value.module),
     exportName: String(value.exportName || Format?.name || "default"),
     outputTypes: Array.isArray(value.outputTypes)
-      ? Object.freeze(value.outputTypes.map(String))
+      ? value.outputTypes.map(String)
       : null,
     defaultOutput: value.defaultOutput === undefined
       ? undefined
       : String(value.defaultOutput),
     transferInput: value.transferInput === true
-  });
+  };
 }
 
 function isWorkerFormatOutputSupported(declaration, formatOptions) {

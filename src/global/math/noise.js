@@ -198,7 +198,7 @@ noise.createPerlinNoise1D = function(seed = Math.floor(Math.random() * 0x1000000
         return sum;
     };
 
-    return Object.freeze({ sample, fractalSum });
+    return { sample, fractalSum };
 };
 
 const s_fixedPerlinNoise1D = noise.createPerlinNoise1D(0);

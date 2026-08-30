@@ -82,12 +82,12 @@ export function DeriveBatchGroups(batches, resolveDraw = handle => handle?.draw)
 
     if (isEnd || !shares)
     {
-      if (index > start) groups.push(Object.freeze({ start, end: index, length: index - start }));
+      if (index > start) groups.push({ start, end: index, length: index - start });
       start = index;
     }
   }
 
-  return Object.freeze(groups);
+  return groups;
 }
 
 

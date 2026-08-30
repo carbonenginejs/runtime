@@ -22,11 +22,11 @@ export class CjsFileIndex
         this.kind = options.kind ?? `${this.root}fileindex`;
         this.name = normalizeName(options.name ?? (this.root === "app" ? "app" : "main"));
         this.sourceURL = normalizeSourceURL(options.sourceURL);
-        this.entries = Object.freeze(Array.from(entries, entry =>
+        this.entries = Array.from(entries, entry =>
             entry instanceof CjsFileIndexEntry
                 ? entry
                 : new CjsFileIndexEntry({ ...entry, root: this.root })
-        ));
+        );
         this.count = this.entries.length;
         this.#entriesByPath = new Map();
 
@@ -45,7 +45,7 @@ export class CjsFileIndex
             this.#entriesByPath.set(entry.logicalPath, entry);
         }
 
-        Object.freeze(this);
+        this;
     }
 
     /**
@@ -241,10 +241,10 @@ export class CjsFileIndex
             }
 
             names.add(name);
-            declarations.push(Object.freeze({ name, entry }));
+            declarations.push({ name, entry });
         }
 
-        return Object.freeze(declarations);
+        return declarations;
     }
 
     /**
@@ -274,10 +274,10 @@ export class CjsFileIndex
                 requestInit: options.requestInit
             });
 
-            return Object.freeze({ name: declaration.name, declaration: declaration.entry, index });
+            return { name: declaration.name, declaration: declaration.entry, index };
         }));
 
-        return Object.freeze(loaded);
+        return loaded;
     }
 
     /**

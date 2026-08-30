@@ -823,7 +823,7 @@ export class CjsMotherLode
    */
   GetKeys()
   {
-    return Object.freeze([ ...this.#entries.keys() ]);
+    return [ ...this.#entries.keys() ];
   }
 
   /**
@@ -833,7 +833,7 @@ export class CjsMotherLode
    */
   GetValues()
   {
-    return Object.freeze([ ...this.#entries.values() ].map(record => record.resource));
+    return [ ...this.#entries.values() ].map(record => record.resource);
   }
 
   /**
@@ -881,7 +881,7 @@ export class CjsMotherLode
       states[state] = (states[state] || 0) + 1;
     }
 
-    return Object.freeze({
+    return {
       count: this.#entries.size,
       size: this.#entries.size,
       live: this.#entries.size - cached,
@@ -892,9 +892,9 @@ export class CjsMotherLode
       cacheBytes,
       cacheSize: this.#cacheSize,
       activityFrame: this.#activityFrame,
-      states: Object.freeze(states),
-      paths: Object.freeze([ ...paths ])
-    });
+      states: states,
+      paths: [ ...paths ]
+    };
   }
 
   /**
@@ -1384,7 +1384,7 @@ function assertResource(resource)
  * @returns {void}
  */function freezeInsertResult(key, resource, inserted, replaced, displaced)
 {
-  return Object.freeze({ key, resource, inserted, replaced, displaced });
+  return { key, resource, inserted, replaced, displaced };
 }
 
 /**
@@ -1398,7 +1398,7 @@ function assertResource(resource)
  */
 function freezeConditionalReplaceResult(key, committed, resource, displaced)
 {
-  return Object.freeze({ key, committed, resource, displaced });
+  return { key, committed, resource, displaced };
 }
 
 /**
@@ -1413,15 +1413,15 @@ function freezeConditionalReplaceResult(key, committed, resource, displaced)
  */
 function freezePurgeResult(frame, time, purgedKeys, payloadKeys, locked)
 {
-  return Object.freeze({
+  return {
     frame,
     time,
     purged: purgedKeys.length,
     payloadsReleased: payloadKeys.length,
     locked,
-    purgedKeys: Object.freeze(purgedKeys),
-    payloadKeys: Object.freeze(payloadKeys)
-  });
+    purgedKeys: purgedKeys,
+    payloadKeys: payloadKeys
+  };
 }
 
 /**
@@ -1444,7 +1444,7 @@ function freezeCacheTrimResult(
   failedKeys
 )
 {
-  return Object.freeze({
+  return {
     cacheSize,
     beforeBytes,
     afterBytes,
@@ -1452,9 +1452,9 @@ function freezeCacheTrimResult(
     overBudget: afterBytes > cacheSize,
     evicted: evictedKeys.length,
     failed: failedKeys.length,
-    evictedKeys: Object.freeze(evictedKeys),
-    failedKeys: Object.freeze(failedKeys)
-  });
+    evictedKeys: evictedKeys,
+    failedKeys: failedKeys
+  };
 }
 
 function motherLodeInactiveError()

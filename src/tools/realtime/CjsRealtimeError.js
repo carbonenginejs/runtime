@@ -40,7 +40,7 @@ export class CjsRealtimeError extends Error
     /** Returns a secret-free error-shaped record for application observers. */
     ToRecord()
     {
-        return Object.freeze({
+        return {
             code: this.code,
             message: this.message,
             retryable: this.retryable,
@@ -48,7 +48,7 @@ export class CjsRealtimeError extends Error
             statusCode: this.statusCode,
             closeCode: this.closeCode,
             details: CjsRealtimeError.cloneDetails(this.details)
-        });
+        };
     }
 
     /** Converts an unknown failure without reflecting unsafe provider details. */

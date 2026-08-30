@@ -25,7 +25,7 @@ export class CjsAudioBufferRes extends CjsResource
     {
         if (values === null || values === undefined)
         {
-            this.#audioInfo = Object.freeze({});
+            this.#audioInfo = {};
             return this;
         }
         if (!values || typeof values !== "object" || Array.isArray(values))
@@ -33,7 +33,7 @@ export class CjsAudioBufferRes extends CjsResource
             throw new TypeError("CjsAudioBufferRes info must be an object");
         }
 
-        this.#audioInfo = Object.freeze({ ...values });
+        this.#audioInfo = { ...values };
         return this;
     }
 

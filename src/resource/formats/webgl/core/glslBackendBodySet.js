@@ -150,13 +150,13 @@ export function buildGlslBackendBodySet(input)
 
         if (body.error)
         {
-            emittedBodies.push(Object.freeze({
+            emittedBodies.push({
                 bodyKey: graphBodyKey,
                 representativePermutationIndex,
                 status: "unsupported",
                 error: body.error,
-                passes: Object.freeze([])
-            }));
+                passes: []
+            });
             continue;
         }
 
@@ -233,30 +233,30 @@ export function buildGlslBackendBodySet(input)
             {
                 unitKey = `unit${passUnits.length}`;
                 unitKeyBySignature.set(signature, unitKey);
-                passUnits.push(Object.freeze({ key: unitKey, ...unit }));
+                passUnits.push({ key: unitKey, ...unit });
             }
 
-            bodyPasses.push(Object.freeze({ passKey: pass.passKey, unitKey }));
+            bodyPasses.push({ passKey: pass.passKey, unitKey });
         }
 
-        emittedBodies.push(Object.freeze({
+        emittedBodies.push({
             bodyKey: graphBodyKey,
             representativePermutationIndex,
             status: translatedPassCount ? "translated" : "unsupported",
             error: translatedPassCount ? null : "no pass produced a translated program",
-            passes: Object.freeze(bodyPasses)
-        }));
+            passes: bodyPasses
+        });
     }
 
-    return Object.freeze({
+    return {
         format: "CJS_GLSL_BODY_SET",
         formatVersion: 1,
         bodyCount: emittedBodies.length,
         translatedBodyCount: emittedBodies.filter((body) => body.status === "translated").length,
         passUnitCount: passUnits.length,
-        passUnits: Object.freeze(passUnits),
-        bodies: Object.freeze(emittedBodies)
-    });
+        passUnits: passUnits,
+        bodies: emittedBodies
+    };
 }
 
 export default buildGlslBackendBodySet;

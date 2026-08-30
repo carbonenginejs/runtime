@@ -88,7 +88,7 @@ function cloneNumericValue(value, label)
   if (Array.isArray(value) || ArrayBuffer.isView(value))
   {
     if (typeof value.length !== "number") fail(`${label} must be a numeric array`);
-    return Object.freeze(Array.from(value, (entry, index) => cloneNumericValue(entry, `${label}[${index}]`)));
+    return Array.from(value, (entry, index) => cloneNumericValue(entry, `${label}[${index}]`));
   }
   fail(`${label} must be numeric data`);
 }
@@ -231,8 +231,8 @@ export function createEveSpaceObjectMainPerObjectValues(options = {})
 
   applyOverrides(vsOverrides, VS_FIELDS, perObjectVS, "vsOverrides");
   applyOverrides(psOverrides, PS_FIELDS, perObjectPS, "psOverrides");
-  return Object.freeze({
-    perObjectVS: Object.freeze(perObjectVS),
-    perObjectPS: Object.freeze(perObjectPS)
-  });
+  return {
+    perObjectVS: perObjectVS,
+    perObjectPS: perObjectPS
+  };
 }

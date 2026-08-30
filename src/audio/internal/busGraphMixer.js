@@ -602,7 +602,7 @@ export class CjsSharedBusMixer
                     "Audio Bus distributed control catalog is incomplete",
                 );
             }
-            effects = Object.freeze(effects);
+            effects = effects;
         }
         catch
         {
@@ -625,7 +625,7 @@ export class CjsSharedBusMixer
         {
             return null;
         }
-        if (this.#HasOnlySilentUserAuxSends(route)) return Object.freeze([]);
+        if (this.#HasOnlySilentUserAuxSends(route)) return [];
         if (route.userAuxSends.length !== 1
             || Number(route.authoredBusMakeUpGainDb ?? 0) !== 0
             || Number(route.authoredOutputBusVolumeDb ?? 0) !== 0)
@@ -727,12 +727,12 @@ export class CjsSharedBusMixer
                 return null;
             }
         }
-        return Object.freeze([ Object.freeze({
+        return [ {
             targetBusId: String(send.targetBusId),
             gainDb: Number(send.gainDb),
-            dryPathIds: Object.freeze(dryPath),
-            wetPathIds: Object.freeze(wetPath),
-        }) ]);
+            dryPathIds: dryPath,
+            wetPathIds: wetPath,
+        } ];
     }
 
     /** Proves one combined dry/wet ancestry can separate duck properties. */
@@ -1029,7 +1029,7 @@ export class CjsSharedBusMixer
     /** Creates the additive LPF/HPF pair for one complete dry or wet leg. */
     #CreateRouteFilters(busPathIds)
     {
-        const path = Object.freeze((busPathIds ?? []).map(String));
+        const path = (busPathIds ?? []).map(String);
         const lowPassFilter = busStatePathUses(
             this.#busStates,
             path,
@@ -1104,7 +1104,7 @@ export class CjsSharedBusMixer
         }
         const record = {
             node: this.#context.createGain(),
-            busPathIds: Object.freeze(busPathIds.map(String)),
+            busPathIds: busPathIds.map(String),
         };
 
         this.#ScheduleRouteDuckGain(record);

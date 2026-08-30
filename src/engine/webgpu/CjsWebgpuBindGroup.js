@@ -16,7 +16,7 @@ export class CjsWebgpuBindGroup
     this.passIndex = Number.isInteger(values.passIndex) ? values.passIndex : 0;
     this.group = Number.isInteger(values.group) ? values.group : null;
     this.bindings = Array.isArray(values.bindings) ? values.bindings.slice() : [];
-    Object.freeze(this);
+    this;
   }
 
   /**

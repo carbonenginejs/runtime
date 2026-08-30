@@ -5,7 +5,7 @@ const DEFINITIONS = new Map();
 
 function define(browserCode, virtualKey, name, description)
 {
-    DEFINITIONS.set(browserCode, Object.freeze({ browserCode, virtualKey, name, description }));
+    DEFINITIONS.set(browserCode, { browserCode, virtualKey, name, description });
 }
 
 for (let index = 0; index <= 9; index++)
@@ -111,14 +111,12 @@ export class UIScancode
     }
 }
 
-export const SCANCODES = Object.freeze(Array.from(DEFINITIONS.values(), definition => Object.freeze(
-    new UIScancode(
+export const SCANCODES = Object.freeze(Array.from(DEFINITIONS.values(), definition => new UIScancode(
         definition.virtualKey,
         definition.name,
         definition.description,
         definition.browserCode
-    )
-)));
+    )));
 
 const BY_VALUE = new Map();
 const BY_NAME = new Map();

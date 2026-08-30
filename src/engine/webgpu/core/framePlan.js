@@ -149,11 +149,11 @@ export function PlanFrame(segments, options = {})
 
   closeRegion(state);
 
-  return Object.freeze({
-    regions: Object.freeze(state.regions),
+  return {
+    regions: state.regions,
     intentCount: state.intentCount,
     presented: state.presented
-  });
+  };
 }
 
 
@@ -259,8 +259,8 @@ function closeRegion(state)
     return;
   }
 
-  region.intents = Object.freeze(region.intents.slice());
-  state.regions.push(Object.freeze(region));
+  region.intents = region.intents.slice();
+  state.regions.push(region);
 }
 
 
@@ -270,12 +270,12 @@ function nextTarget(target, intent)
 
   if (intent.type === "set-depth-stencil")
   {
-    return Object.freeze({ ...current, depthStencil: intent.depthStencil ?? null });
+    return { ...current, depthStencil: intent.depthStencil ?? null };
   }
 
   const colorTargets = current.colorTargets.slice();
   colorTargets[intent.slot ?? 0] = intent.renderTarget ?? null;
-  return Object.freeze({ ...current, colorTargets: Object.freeze(colorTargets) });
+  return { ...current, colorTargets: colorTargets };
 }
 
 
@@ -287,7 +287,7 @@ function mergeClear(pending, intent)
   if (intent.clearDepth) merged.depth = intent.depth;
   if (intent.clearStencil) merged.stencil = intent.stencil;
 
-  return Object.keys(merged).length ? Object.freeze(merged) : pending;
+  return Object.keys(merged).length ? merged : pending;
 }
 
 
@@ -304,21 +304,21 @@ function nextDynamicState(current, intent)
     fail("set-viewport requires a viewport object or null");
   }
 
-  return Object.freeze({
+  return {
     ...current,
-    viewport: Object.freeze({
+    viewport: {
       x: viewport.x,
       y: viewport.y,
       width: viewport.width,
       height: viewport.height,
       minDepth: viewport.minDepth ?? viewport.minZ ?? 0,
       maxDepth: viewport.maxDepth ?? viewport.maxZ ?? 1
-    })
-  });
+    }
+  };
 }
 
 
 function fullTargetDynamicState()
 {
-  return Object.freeze({ viewport: null, scissor: null });
+  return { viewport: null, scissor: null };
 }

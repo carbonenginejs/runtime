@@ -793,7 +793,7 @@ export class CjsResource extends CjsEventEmitter
       throw new TypeError("CjsResource.SetObjectLoader request must be an object or null.");
     }
     this.__objectLoader = loader;
-    this.__objectRequest = request === null ? null : Object.freeze({ ...request });
+    this.__objectRequest = request === null ? null : { ...request };
     return this;
   }
 

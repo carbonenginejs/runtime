@@ -76,13 +76,13 @@ export function CollectPerObjectUploads(pairs, options = {})
     pending.push(payload);
   }
 
-  return Object.freeze({
+  return {
     uniformData,
-    pending: Object.freeze(pending),
+    pending: pending,
     // A collection with nothing in it is the normal steady state for a static
     // object, and skipping the write entirely is the whole point of the flag.
     isEmpty: pending.length === 0
-  });
+  };
 }
 
 

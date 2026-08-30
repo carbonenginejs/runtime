@@ -1044,7 +1044,7 @@ export class CjsAudioMan
                     source.sourceID ?? `media:${mediaID}:${index}`,
                 );
 
-                candidates.push(Object.freeze({
+                candidates.push({
                     mediaID,
                     sourceID,
                     selectionKey: SelectionKey(
@@ -1062,7 +1062,7 @@ export class CjsAudioMan
                     ),
                     source,
                     bank: null,
-                }));
+                });
             }
         }
 
@@ -1130,7 +1130,7 @@ export class CjsAudioMan
                 ?? `embedded:${mediaID}:${String(source.bank)}:${index}`,
             );
 
-            candidates.push(Object.freeze({
+            candidates.push({
                 mediaID,
                 sourceID,
                 selectionKey: SelectionKey(mediaID, sourceID, route),
@@ -1144,7 +1144,7 @@ export class CjsAudioMan
                 byteLength,
                 source,
                 bank,
-            }));
+            });
         }
 
         return candidates;
@@ -1412,11 +1412,11 @@ export class CjsAudioMan
 
         if (this.#selectEventMedia)
         {
-            mediaID = this.#selectEventMedia(Object.freeze({
+            mediaID = this.#selectEventMedia({
                 eventID,
                 eventName,
-                mediaIDs: Object.freeze([ ...values ]),
-            }));
+                mediaIDs: [ ...values ],
+            });
         }
 
         const id = NormalizeMediaID(mediaID);

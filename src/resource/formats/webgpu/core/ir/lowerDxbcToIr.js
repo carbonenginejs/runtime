@@ -317,14 +317,14 @@ function extractConstTables(declarationInstructions, executable)
             }
         }
 
-        tables.push(Object.freeze({
+        tables.push({
             kind: "const-table",
             registerIndex,
             symbol: `xt${registerIndex}`,
             slotCount: declaration.slotCount,
             laneMask: laneMask || "",
             rows: rows.map((row) => row.map((value) => value ?? { uint32: 0, float32: 0 }))
-        }));
+        });
     }
 
     return tables.length ? { tables, removed } : { tables: null, removed: null };

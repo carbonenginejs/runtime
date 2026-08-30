@@ -93,7 +93,7 @@ export class Tr2DirectInstanceData extends withITr2InstanceData(CjsModel)
       const byteSize = Number(element?.byteSize) || 0;
       stride = Math.max(stride, offset + byteSize);
     }
-    this.#layout = Object.freeze(layout.slice());
+    this.#layout = layout.slice();
     this.#stride = stride;
   }
 

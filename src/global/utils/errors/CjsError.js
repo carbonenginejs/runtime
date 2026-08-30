@@ -168,7 +168,7 @@ export class CjsError extends Error
             : CjsError.#CloneDetailsRecord(value, path, active);
 
         active.delete(value);
-        return Object.freeze(clone);
+        return clone;
     }
 
     /** Clones one dense JSON-safe details array. */

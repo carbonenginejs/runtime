@@ -1,7 +1,7 @@
 /** Returns an immutable snapshot of readable primitive WebIDL properties. */
 export function snapshotWebIdl(value)
 {
-    if (!value || (typeof value !== "object" && typeof value !== "function")) return Object.freeze({});
+    if (!value || (typeof value !== "object" && typeof value !== "function")) return {};
 
     const names = new Set(Object.keys(value));
     let prototype = Object.getPrototypeOf(value);
@@ -27,14 +27,14 @@ export function snapshotWebIdl(value)
             // Privacy-gated WebIDL attributes may throw when read.
         }
     }
-    return Object.freeze(result);
+    return result;
 }
 
 /** Returns a sorted immutable snapshot of an iterable Web feature set. */
 export function snapshotFeatures(features)
 {
-    if (!features || typeof features[Symbol.iterator] !== "function") return Object.freeze([]);
-    return Object.freeze(Array.from(features, String).sort());
+    if (!features || typeof features[Symbol.iterator] !== "function") return [];
+    return Array.from(features, String).sort();
 }
 
 /** Normalizes a finite numeric value or returns the supplied fallback. */

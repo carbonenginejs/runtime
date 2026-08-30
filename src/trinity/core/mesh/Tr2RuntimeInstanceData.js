@@ -605,11 +605,11 @@ export class Tr2RuntimeInstanceData extends withITr2InstanceData(CjsModel)
     {
       const descriptor = Tr2RuntimeInstanceData.#normalizeElement(value, index, offset);
       offset += descriptor.byteSize;
-      return Object.freeze(descriptor);
+      return descriptor;
     });
 
     this.layout = normalized.map(Tr2RuntimeInstanceData.#describeElement);
-    this.#layout = Object.freeze(normalized);
+    this.#layout = normalized;
     this.#stride = offset;
   }
 
@@ -773,12 +773,12 @@ export class Tr2RuntimeInstanceData extends withITr2InstanceData(CjsModel)
    */
   static #describeElement(value)
   {
-    return Object.freeze({
+    return {
       usage: value.usage,
       usageIndex: value.usageIndex,
       type: value.type,
       name: value.name
-    });
+    };
   }
 
   /**

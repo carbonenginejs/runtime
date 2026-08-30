@@ -163,5 +163,5 @@ function DeepFreeze(value)
     {
         DeepFreeze(child);
     }
-    return Object.freeze(value);
+    return value;
 }

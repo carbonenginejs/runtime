@@ -23,10 +23,10 @@ function normalizeSelection(selection, passIndex, selectionIndex)
   {
     fail(`pass ${passIndex} selection ${selectionIndex} batchType must be a non-negative integer`);
   }
-  return Object.freeze({
+  return {
     preparedBatchMap: selection.preparedBatchMap,
     batchType: selection.batchType
-  });
+  };
 }
 
 function normalizePass(entry, index)
@@ -47,13 +47,13 @@ function normalizePass(entry, index)
   {
     fail(`pass ${index} configure must be a function when provided`);
   }
-  return Object.freeze({
+  return {
     descriptor: entry.descriptor,
     configure: entry.configure ?? null,
-    selections: Object.freeze(entry.selections.map(
+    selections: entry.selections.map(
       (selection, selectionIndex) => normalizeSelection(selection, index, selectionIndex)
-    ))
-  });
+    )
+  };
 }
 
 /**

@@ -14,7 +14,7 @@ export class CjsAudioLibrary
     constructor(values)
     {
         Object.assign(this, installAudioLibraryDocument(values));
-        Object.freeze(this);
+        this;
     }
 
     /** Hydrates imported, fetched, or freshly built audio-library values. */

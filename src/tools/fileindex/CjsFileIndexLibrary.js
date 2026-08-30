@@ -31,18 +31,18 @@ export class CjsFileIndexLibrary
         this.buildReference = freezeDeep(buildReference);
         this.build = buildReference.build;
         this.appIndex = appIndex;
-        this.resFileIndexes = Object.freeze(Array.from(resFileIndexes, normalizeLoadedIndex));
-        this.overlays = Object.freeze(Array.from(overlays, overlay =>
+        this.resFileIndexes = Array.from(resFileIndexes, normalizeLoadedIndex);
+        this.overlays = Array.from(overlays, overlay =>
             overlay instanceof CjsFileIndexOverlay ? overlay : new CjsFileIndexOverlay(overlay)
-        ));
-        this.sources = Object.freeze([
+        );
+        this.sources = [
             new CjsFileIndexSource({ id: "default", baseURL: this.provider.remote.resBaseURL }),
             ...Array.from(sources, source =>
                 source instanceof CjsFileIndexSource ? source : new CjsFileIndexSource(source)
             )
-        ]);
-        this.indexNames = Object.freeze(this.resFileIndexes.map(item => item.name));
-        this.overlayNames = Object.freeze(this.overlays.map(item => item.name));
+        ];
+        this.indexNames = this.resFileIndexes.map(item => item.name);
+        this.overlayNames = this.overlays.map(item => item.name);
         this.#resFileIndexesByName = new Map();
         this.#overlaysByName = new Map();
         this.#sourcesByID = new Map();
@@ -77,7 +77,7 @@ export class CjsFileIndexLibrary
             this.#sourcesByID.set(source.id, source);
         }
 
-        Object.freeze(this);
+        this;
     }
 
     /**
@@ -208,7 +208,7 @@ export class CjsFileIndexLibrary
             throw new Error(`Unknown file-index source ID: ${sourceID}`);
         }
 
-        return Object.freeze({
+        return {
             logicalPath,
             indexName: layer.name,
             overlay: isOverlay,
@@ -216,7 +216,7 @@ export class CjsFileIndexLibrary
             sourceID,
             sourceURL: source.Resolve(entry.location),
             entry
-        });
+        };
     }
 
     /**
@@ -324,14 +324,14 @@ function normalizeLoadedIndex(value)
         throw new TypeError("CjsFileIndexLibrary resFileIndexes must contain resfileindexes.");
     }
 
-    return Object.freeze({
+    return {
         name: normalizeName(value.name),
         declaration: value.declaration ?? null,
         sourceID: value.sourceID === undefined || value.sourceID === null
             ? null
             : CjsFileIndexSource.normalizeID(value.sourceID),
         index: value.index
-    });
+    };
 }
 
 function ensureSingleMatch(matches, logicalPath, label)
@@ -365,14 +365,14 @@ function normalizeProvider(value)
     {
         const id = normalizeName(rawID);
         const metadataToken = normalizeRequiredString(rawClient?.metadataToken, `provider client ${id} metadataToken`);
-        const aliases = Object.freeze(Array.from(new Set(Array.from(rawClient.aliases ?? [], normalizeBuildReference))));
+        const aliases = Array.from(new Set(Array.from(rawClient.aliases ?? [], normalizeBuildReference)));
 
-        clients[id] = Object.freeze({
+        clients[id] = {
             id,
             metadataToken,
             aliases,
-            references: Object.freeze([ ...new Set([ id, metadataToken.toLowerCase(), ...aliases ]) ])
-        });
+            references: [ ...new Set([ id, metadataToken.toLowerCase(), ...aliases ]) ]
+        };
     }
 
     return freezeDeep({
@@ -494,5 +494,5 @@ function freezeDeep(value, seen = new Set())
     if (!value || typeof value !== "object" || seen.has(value)) return value;
     seen.add(value);
     for (const item of Object.values(value)) freezeDeep(item, seen);
-    return Object.freeze(value);
+    return value;
 }

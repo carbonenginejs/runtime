@@ -279,7 +279,7 @@ export function readGlslEffectContainer(input, values = {})
     {
         bodies.push({
             key,
-            permutationIndices: Object.freeze(permutationIndicesByOffset.get(offset) ?? [])
+            permutationIndices: permutationIndicesByOffset.get(offset) ?? []
         });
     }
 

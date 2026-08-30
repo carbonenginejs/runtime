@@ -68,7 +68,7 @@ class CjsFormatRoute
         + `${Object.keys(Format.outputs || {}).map(value => JSON.stringify(value)).join(", ")}.`
       );
     }
-    Object.freeze(this);
+    this;
   }
 
   /**

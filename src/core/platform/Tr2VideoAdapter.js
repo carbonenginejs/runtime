@@ -25,8 +25,8 @@ export class Tr2VideoAdapter
         this.architecture = optionalString(values.architecture);
         this.deviceIdentifier = optionalString(values.deviceIdentifier);
         this.isFallbackAdapter = values.isFallbackAdapter ?? false;
-        this.features = Object.freeze(Array.from(values.features ?? [], String).sort());
-        this.limits = Object.freeze({ ...(values.limits ?? {}) });
+        this.features = Array.from(values.features ?? [], String).sort();
+        this.limits = { ...(values.limits ?? {}) };
         this.driverInfo = values.driverInfo instanceof Tr2VideoDriver
             ? values.driverInfo
             : new Tr2VideoDriver(values.driverInfo);

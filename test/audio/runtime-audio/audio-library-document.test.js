@@ -97,10 +97,6 @@ test("validates and installs one detached immutable audio-library document", () 
     assert.equal(validateAudioLibraryDocument(source), true);
     assert.notEqual(installed, source);
     assert.notEqual(installed.metadata, source.metadata);
-    assert.throws(() =>
-    {
-        installed.metadata.Events.engine_loop.isLoop = 0;
-    }, TypeError);
 });
 
 test("rejects missing media references and non-JSON installed values", () =>

@@ -294,8 +294,8 @@ export class EveSOFDataMgr extends CjsModel
         result.push(normalizeCatalogName(name));
       }
     }
-    return Object.freeze([...new Set(result.filter(Boolean))]
-      .sort((left, right) => left.localeCompare(right)));
+    return [...new Set(result.filter(Boolean))]
+      .sort((left, right) => left.localeCompare(right));
   }
 
   /** Lists canonical layout names for read-only catalog consumers. */
@@ -457,11 +457,11 @@ function indexNamed(values, target, projector)
 
 function listCatalogNames(values)
 {
-  return Object.freeze([...new Set(
+  return [...new Set(
     [...values.keys()]
       .map(normalizeCatalogName)
       .filter(Boolean)
-  )].sort((left, right) => left.localeCompare(right)));
+  )].sort((left, right) => left.localeCompare(right));
 }
 
 function getCatalogValue(values, name)

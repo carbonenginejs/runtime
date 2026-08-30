@@ -61,7 +61,7 @@ export class CjsWebgpuPackage
     this.bindGroups = bindGroups;
     this.backendBodySource = createBackendBodySource(value);
     this._json = buildPackageJson(normalized, shaderModules, pipelines, bindGroups);
-    Object.freeze(this);
+    this;
   }
 
   /**

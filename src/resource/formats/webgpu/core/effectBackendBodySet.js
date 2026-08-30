@@ -310,14 +310,14 @@ export function buildEffectBackendBodySet(effectRes, permutationGraph, options =
         {
             // Stage selection and profile preflight fail closed per body: an
             // unsupported stage kind in one body must not fail the package.
-            bodies.push(Object.freeze({
+            bodies.push({
                 bodyKey: graphBody.key,
                 representativePermutationIndex: group.permutationIndex,
                 status: "unsupported",
                 error: String(error?.message ?? error),
                 passCount: 0,
-                passes: Object.freeze([])
-            }));
+                passes: []
+            });
             continue;
         }
 
@@ -362,17 +362,17 @@ export function buildEffectBackendBodySet(effectRes, permutationGraph, options =
                 passUnits.push(unit);
             }
 
-            bodyPasses.push(Object.freeze({ passKey: pass.passKey, unitKey: unit.key }));
+            bodyPasses.push({ passKey: pass.passKey, unitKey: unit.key });
         }
 
-        bodies.push(Object.freeze(failure
+        bodies.push(failure
             ? {
                 bodyKey: graphBody.key,
                 representativePermutationIndex: group.permutationIndex,
                 status: "unsupported",
                 error: failure,
                 passCount: 0,
-                passes: Object.freeze([])
+                passes: []
             }
             : {
                 bodyKey: graphBody.key,
@@ -380,8 +380,8 @@ export function buildEffectBackendBodySet(effectRes, permutationGraph, options =
                 status: "translated",
                 error: null,
                 passCount: bodyPasses.length,
-                passes: Object.freeze(bodyPasses)
-            }));
+                passes: bodyPasses
+            });
     }
 
     const translatedCount = bodies.filter((body) => body.status === "translated").length;
@@ -393,17 +393,17 @@ export function buildEffectBackendBodySet(effectRes, permutationGraph, options =
         );
     }
 
-    return Object.freeze({
+    return {
         format: EFFECT_BACKEND_BODY_SET_FORMAT,
         formatVersion: EFFECT_BACKEND_BODY_SET_VERSION,
-        coverage: Object.freeze({
+        coverage: {
             bodies: translatedCount === bodies.length ? "all-unique" : "partial",
             programs: "complete-for-translated"
-        }),
+        },
         bodyCount: bodies.length,
         translatedBodyCount: translatedCount,
         passUnitCount: passUnits.length,
-        passUnits: Object.freeze(passUnits.map((unit) => Object.freeze(unit))),
-        bodies: Object.freeze(bodies)
-    });
+        passUnits: passUnits.map((unit) => unit),
+        bodies: bodies
+    };
 }

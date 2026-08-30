@@ -68,7 +68,7 @@ export class CjsAudioBackendSfxVoice
         this.actionTime = descriptor.actionTime;
         this.matchIds = descriptor.matchIds;
         this.busPathIds = descriptor.busPathIds;
-        this.switchPath = descriptor.switchPath ?? Object.freeze([]);
+        this.switchPath = descriptor.switchPath ?? [];
         this.switchGeneration = Math.max(
             0,
             Number(descriptor.switchGeneration) || 0,

@@ -200,10 +200,10 @@ export class CjsSofLibraryBuilder
     ]);
     await this.#EnsureFactionDependencies(faction, options);
 
-    const layoutContext = Object.freeze({
+    const layoutContext = {
       faction: requirements.faction,
       race: requirements.race
-    });
+    };
     const visitedLayouts = new Set();
     await Promise.all(requirements.layouts.map(name =>
       this.#EnsureLayout(name, layoutContext, visitedLayouts, options)));
@@ -272,7 +272,7 @@ export class CjsSofLibraryBuilder
     }
 
     const patternArgs = commands.get("pattern") ?? [];
-    return Object.freeze({
+    return {
       dna,
       hulls: freezeNames(splitCarbon(parts[0], ";")),
       faction: normalizeCatalogName(parts[1], "faction"),
@@ -283,7 +283,7 @@ export class CjsSofLibraryBuilder
       ]),
       patterns: freezeNames(patternArgs.slice(0, 1)),
       layouts: freezeNames(commands.get("layout") ?? [])
-    });
+    };
   }
 
   /** Loads, normalizes, and publishes one named catalog record. */
@@ -399,10 +399,10 @@ export class CjsSofLibraryBuilder
       const nestedLayout = optionalCatalogName(descriptor.layout);
       if (nestedLayout)
       {
-        await this.#EnsureLayout(nestedLayout, Object.freeze({
+        await this.#EnsureLayout(nestedLayout, {
           faction: factionName,
           race: raceName
-        }), visited, options);
+        }, visited, options);
       }
     }
   }
@@ -455,13 +455,13 @@ function normalizeNamedRequest(kind, nameOrPath, basePath)
     ? normalizedPath.slice(normalizedPath.lastIndexOf("/") + 1).replace(/\.black$/iu, "")
     : text;
   const name = normalizeCatalogName(leaf, kind);
-  return Object.freeze({
+  return {
     name,
     path: isPath
       ? normalizedPath
       : `${basePath}/${CATALOGS[kind].directory}/${name}.black`,
     isPath
-  });
+  };
 }
 
 function normalizeCatalogName(value, label)
@@ -482,9 +482,9 @@ function optionalCatalogName(value)
 
 function freezeNames(values)
 {
-  return Object.freeze([...new Set((values ?? [])
+  return [...new Set((values ?? [])
     .map(optionalCatalogName)
-    .filter(Boolean))]);
+    .filter(Boolean))];
 }
 
 function findNamedRecord(values, name)

@@ -128,7 +128,7 @@ export class Tr2ExternalParameter extends CjsModel
     this.#destinationOffset = parsed.offset;
     this.#destinationEntry = field ?? {
       name: parsed.name,
-      type: Object.freeze({ kind: valueType.kind })
+      type: { kind: valueType.kind }
     };
     this.#destinationType = valueType;
     this.valid = true;

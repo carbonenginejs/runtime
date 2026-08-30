@@ -1222,10 +1222,10 @@ function addExplicitUpdateProperties(target, properties)
 
 function createModifiedPayload(properties, source)
 {
-    return Object.freeze({
+    return {
         properties: new Set(properties),
         source
-    });
+    };
 }
 
 function areEquivalentSourceValues(a, b)

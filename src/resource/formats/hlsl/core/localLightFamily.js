@@ -75,16 +75,14 @@ export function recogniseLocalLightFamily(resources)
 
     const profile = byName.get(LIGHT_PROFILE_ARRAY);
 
-    return Object.freeze({
+    return {
         indexRegister: index.registerIndex,
         dataRegister: data.registerIndex,
         profileRegister: Number.isInteger(profile?.registerIndex) ? profile.registerIndex : null,
-        registers: Object.freeze(
-            [ index.registerIndex, data.registerIndex, profile?.registerIndex ]
+        registers: [ index.registerIndex, data.registerIndex, profile?.registerIndex ]
                 .filter((register) => Number.isInteger(register))
                 .sort((a, b) => a - b)
-        )
-    });
+    };
 }
 
 /**

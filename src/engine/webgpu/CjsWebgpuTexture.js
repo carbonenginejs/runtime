@@ -16,7 +16,7 @@ export class CjsWebgpuTexture extends CjsWebgpuResource
     this.textureKind = String(values.textureKind || "2d");
     this.arrayElements = Number.isInteger(values.arrayElements) ? values.arrayElements : 1;
     this.isSRGB = Boolean(values.isSRGB);
-    Object.freeze(this);
+    this;
   }
 
   /**

@@ -155,9 +155,9 @@ export function ResolveDeviceRequirements(demand = {}, adapter = null)
     if (features.requiredFeatures.length) descriptor.requiredFeatures = features.requiredFeatures;
     if (demand.label !== undefined && demand.label !== null) descriptor.label = String(demand.label);
 
-    return Object.freeze({
-        descriptor: Object.freeze(descriptor),
-        unsatisfiedLimits: Object.freeze(limits.unsatisfied),
-        unavailableFeatures: Object.freeze(features.unavailable)
-    });
+    return {
+        descriptor: descriptor,
+        unsatisfiedLimits: limits.unsatisfied,
+        unavailableFeatures: features.unavailable
+    };
 }

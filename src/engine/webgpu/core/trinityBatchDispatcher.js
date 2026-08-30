@@ -65,7 +65,7 @@ function preparationContext(value)
   {
     fail("preparation context batchType must be a non-negative integer");
   }
-  return Object.freeze(context);
+  return context;
 }
 
 function geometryDraw(value, indexed)
@@ -76,20 +76,20 @@ function geometryDraw(value, indexed)
   }
   if (indexed)
   {
-    return Object.freeze({
+    return {
       indexCount: gpuSize32(value.indexCount, "indexCount", "resolved geometry draw"),
       instanceCount: gpuSize32(value.instanceCount, "instanceCount", "resolved geometry draw"),
       firstIndex: gpuSize32(value.firstIndex, "firstIndex", "resolved geometry draw"),
       baseVertex: signedOffset32(value.baseVertex, "baseVertex"),
       firstInstance: gpuSize32(value.firstInstance, "firstInstance", "resolved geometry draw")
-    });
+    };
   }
-  return Object.freeze({
+  return {
     vertexCount: gpuSize32(value.vertexCount, "vertexCount", "resolved geometry draw"),
     instanceCount: gpuSize32(value.instanceCount, "instanceCount", "resolved geometry draw"),
     firstVertex: gpuSize32(value.firstVertex, "firstVertex", "resolved geometry draw"),
     firstInstance: gpuSize32(value.firstInstance, "firstInstance", "resolved geometry draw")
-  });
+  };
 }
 
 function batchDraw(batch, indexed)
@@ -100,20 +100,20 @@ function batchDraw(batch, indexed)
   const firstInstance = gpuSize32(batch.startInstanceLocation, "startInstanceLocation");
   if (indexed)
   {
-    return Object.freeze({
+    return {
       indexCount: count,
       instanceCount,
       firstIndex: first,
       baseVertex: signedBaseVertex(batch.baseVertexLocation),
       firstInstance
-    });
+    };
   }
-  return Object.freeze({
+  return {
     vertexCount: count,
     instanceCount,
     firstVertex: first,
     firstInstance
-  });
+  };
 }
 
 function pipelineRecipe(recipe, topology)
@@ -244,14 +244,14 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
         geometry: geometry.geometry,
         draw: drawArguments
       });
-      const handle = Object.freeze({
+      const handle = {
         batch,
         context: preparedContext,
         prepared,
         livePipeline,
         bindingSet,
         draw
-      });
+      };
       PREPARED_BATCHES.set(handle, {
         owner: this,
         destroyed: false
@@ -346,12 +346,12 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
       {
         preparedBatches.push(await this.Prepare(batch, preparedContext));
       }
-      const handle = Object.freeze({
+      const handle = {
         accumulator,
         context: preparedContext,
-        gdprBatches: Object.freeze(preparedGdprBatches.slice()),
-        batches: Object.freeze(preparedBatches.slice())
-      });
+        gdprBatches: preparedGdprBatches.slice(),
+        batches: preparedBatches.slice()
+      };
       PREPARED_ACCUMULATORS.set(handle, {
         owner: this,
         destroyed: false
@@ -438,10 +438,10 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
       {
         const accumulator = batchMap.GetAccumulator(batchType);
         if (!accumulator) fail(`batch map has no accumulator for type ${batchType}`);
-        entries.push(Object.freeze({
+        entries.push({
           batchType,
           accumulator: await this.PrepareAccumulator(accumulator, { batchType })
-        }));
+        });
       }
       const preparedCount = entries.reduce(
         (count, entry) => count
@@ -453,10 +453,10 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
       {
         fail("batch map count does not match its accumulators");
       }
-      const handle = Object.freeze({
+      const handle = {
         batchMap,
-        entries: Object.freeze(entries.slice())
-      });
+        entries: entries.slice()
+      };
       PREPARED_BATCH_MAPS.set(handle, {
         owner: this,
         destroyed: false,

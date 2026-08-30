@@ -181,12 +181,12 @@ export function PlanTextureUpload(options = {})
     for (let level = 0; level < mipLevelCount; level += 1)
     {
       const layout = LevelLayout(format, width, height, level);
-      writes.push(Object.freeze({ ...layout, layer, offset }));
+      writes.push({ ...layout, layer, offset });
       offset += layout.byteLength;
     }
   }
 
-  return Object.freeze({
+  return {
     format,
     formatName: options.format,
     width,
@@ -195,8 +195,8 @@ export function PlanTextureUpload(options = {})
     viewDimension,
     mipLevelCount,
     byteLength: offset,
-    writes: Object.freeze(writes)
-  });
+    writes: writes
+  };
 }
 
 

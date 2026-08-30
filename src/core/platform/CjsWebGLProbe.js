@@ -61,8 +61,8 @@ export class CjsWebGLProbe
     {
         this.available = values.available === true;
         this.contextType = values.contextType ?? null;
-        this.limits = Object.freeze({ ...(values.limits ?? {}) });
-        this.extensions = Object.freeze(Array.from(values.extensions ?? [], String).sort());
+        this.limits = { ...(values.limits ?? {}) };
+        this.extensions = Array.from(values.extensions ?? [], String).sort();
         this.probeError = values.probeError ?? null;
     }
 
@@ -89,7 +89,7 @@ export class CjsWebGLProbe
     /** Carbon's static-capability vocabulary as WebGL2 answers it. */
     GetStaticCaps()
     {
-        return Object.freeze({
+        return {
             // WebGL2 buffer uploads are synchronous against the context.
             NON_SYNCHRONIZED_LOCKS: false,
             BUFFER_SHADER_RESOURCES: false,
@@ -99,7 +99,7 @@ export class CjsWebGLProbe
             MSAA_SAMPLE: this.available && this.GetLimit("MAX_SAMPLES") > 1,
             // TAA is an application feature, not a browser API capability.
             TAA: false
-        });
+        };
     }
 
     /**
@@ -109,11 +109,11 @@ export class CjsWebGLProbe
      */
     GetCapabilities()
     {
-        return Object.freeze({
+        return {
             webgl2: this.available,
             webgl2Limits: this.limits,
             webgl2Extensions: this.extensions
-        });
+        };
     }
 
     /** Returns a detached record of the probed values. */

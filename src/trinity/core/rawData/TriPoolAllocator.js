@@ -409,7 +409,7 @@ export class TriPoolAllocator
       throw new Error(`TriPoolAllocator: struct "${structName}" declares a duplicate stage`);
     }
 
-    return Object.freeze([...stages]);
+    return [...stages];
   }
 
   static defaultStages = Object.freeze(["vs"]);

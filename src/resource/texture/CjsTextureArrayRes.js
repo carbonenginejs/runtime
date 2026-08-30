@@ -284,13 +284,13 @@ export class CjsTextureArrayRes extends CjsResource
   ConsumeUpdateRequest()
   {
     if (!this.#updateScheduled && this.#dirtyLayers.size === 0) return null;
-    const request = Object.freeze({
+    const request = {
       revision: this.#requestedRevision,
-      paths: Object.freeze(this.GetLayerResourcePaths()),
-      resources: Object.freeze(this.#layers.map(layer => layer.resource)),
-      dirtyLayers: Object.freeze([ ...this.#dirtyLayers ].sort((a, b) => a - b)),
+      paths: this.GetLayerResourcePaths(),
+      resources: this.#layers.map(layer => layer.resource),
+      dirtyLayers: [ ...this.#dirtyLayers ].sort((a, b) => a - b),
       topologyChanged: this.#topologyChanged
-    });
+    };
     this.#dirtyLayers.clear();
     this.#topologyChanged = false;
     this.#updateScheduled = false;
@@ -363,7 +363,7 @@ export class CjsTextureArrayRes extends CjsResource
     {
       if (inFlight) this.#inFlightRequests.delete(revision);
       if (options.destroyRejected !== false) destroyAdapterValue(candidate);
-      return Object.freeze({ published: false, revision, displaced: null });
+      return { published: false, revision, displaced: null };
     }
 
     const displaced = this.GetAdapterResource(adapterKey);
@@ -379,11 +379,11 @@ export class CjsTextureArrayRes extends CjsResource
     this.MarkPrepared();
     this.EmitEvent("revisionprepared", this, revision, adapterKey, candidate);
     this.#ResolveReadyWaiters(revision);
-    return Object.freeze({
+    return {
       published: true,
       revision,
       displaced: displaced === candidate ? null : displaced
-    });
+    };
   }
 
   /** Destroy an unusable adapter allocation and request a complete rebuild. */
@@ -486,9 +486,9 @@ export class CjsTextureArrayRes extends CjsResource
     this.#failedError = null;
     this.#requestedRevision += 1;
     this.#ScheduleUpdate();
-    this.EmitEvent("invalidated", this, Object.freeze(changed), this.#requestedRevision, Object.freeze({
+    this.EmitEvent("invalidated", this, changed, this.#requestedRevision, {
       topologyChanged: this.#topologyChanged
-    }));
+    });
   }
 
   /** Schedules the coalesced texture-array update for the texture-array resource. */

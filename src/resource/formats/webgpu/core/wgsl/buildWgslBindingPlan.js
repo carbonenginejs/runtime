@@ -189,7 +189,7 @@ export function buildWgslBindingPlan(programs, options = {})
     return {
         format: "CJS_WGSL_BINDING_PLAN",
         formatVersion: resourceTransformPlan ? 3 : 2,
-        ...(sharedIdentities.size ? { sharedIdentities: Object.freeze([ ...sharedIdentities ].sort()) } : {}),
+        ...(sharedIdentities.size ? { sharedIdentities: [ ...sharedIdentities ].sort() } : {}),
         ...(Object.keys(varyingInterpolation).length ? { varyingInterpolation } : {}),
         ...(resourceTransformPlan
             ? { resourceTransforms: resourceTransformPlan.resourceTransforms }

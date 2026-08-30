@@ -329,18 +329,18 @@ export function buildEffectPackage(input, options = {})
         source: values.source
     });
 
-    return Object.freeze({
+    return {
         bytes,
         permutationCount: container.permutationCount,
         bodyCount: container.bodyCount,
         backendBodySet,
-        info: Object.freeze(info),
-        metadata: Object.freeze(metadata),
+        info: info,
+        metadata: metadata,
         permutationGraph,
-        glsl: Object.freeze(glsl),
-        inspection: Object.freeze(inspection),
-        qualification: Object.freeze(qualification)
-    });
+        glsl: glsl,
+        inspection: inspection,
+        qualification: qualification
+    };
 }
 
 function normalizeOptions(input, options)
@@ -352,7 +352,7 @@ function normalizeOptions(input, options)
 
     const sourceBytes = asUint8Array(input, "CjsWebglFormat input");
     const source = String(options.source ?? "memory").trim() || "memory";
-    const selection = Object.freeze({
+    const selection = {
         technique: options.technique === undefined || options.technique === null
             ? null
             : String(options.technique),
@@ -360,7 +360,7 @@ function normalizeOptions(input, options)
         stage: options.stage === undefined || options.stage === null
             ? null
             : String(options.stage).toLowerCase()
-    });
+    };
 
     if (selection.pass !== null
         && (!Number.isSafeInteger(selection.pass) || selection.pass < 0))
@@ -432,7 +432,7 @@ function selectionCoversWholeEffect(selection)
         && selection.pass === null
         && selection.stage === null;
 }
-function defaultPermutationIndex(permutations)
+function defaultPermutationIndex(permutations)
 {
     let multiplier = 1;
     let index = 0;
@@ -1181,7 +1181,7 @@ function normalizeSourceIdentity(values)
         );
     }
 
-    return Object.freeze({
+    return {
         filePath: identity?.filePath ?? values.source,
         logicalPath: identity?.logicalPath ?? values.source,
         game: identity?.game ?? null,
@@ -1192,7 +1192,7 @@ function normalizeSourceIdentity(values)
         byteLength: values.sourceBytes.byteLength,
         md5: identity?.md5 ?? null,
         sha256
-    });
+    };
 }
 
 function qualifyEffectPackage({
@@ -1246,7 +1246,7 @@ function qualifyEffectPackage({
     return {
         ok: errors.length === 0,
         level: errors.length ? "diagnostic" : "structural",
-        errors: Object.freeze(errors),
-        incompletePasses: Object.freeze(rasterCompleteness.incompletePasses)
+        errors: errors,
+        incompletePasses: rasterCompleteness.incompletePasses
     };
 }

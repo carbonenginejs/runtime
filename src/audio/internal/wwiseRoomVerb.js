@@ -232,7 +232,7 @@ export function normalizeWwiseRoomVerbEffect(effect, label)
 
     RequireAuditedChannelShape(normalized, label);
     RequireTuningFingerprint(normalized, label);
-    return Object.freeze(normalized);
+    return normalized;
 }
 
 /**
@@ -269,7 +269,7 @@ export function prepareWwiseRoomVerbApproximation(
         cache = new Map();
         IMPULSE_CACHE.set(context, cache);
     }
-    return Object.freeze({
+    return {
         early: effect.earlyReflectionsEnabled
             && effect.earlyReflectionsLevelDb > -96
             ? GetCachedImpulse(
@@ -288,7 +288,7 @@ export function prepareWwiseRoomVerbApproximation(
             LateImpulseKey(effect, channels, sampleRate),
             () => CreateLateImpulse(context, effect, channels, sampleRate),
         ),
-    });
+    };
 }
 
 /** Creates the live nodes for one prepared procedural RoomVerb stage. */
@@ -533,13 +533,13 @@ function NormalizeFilters(value, label)
     {
         throw new TypeError(`${label} toneFilters must contain three bands`);
     }
-    return Object.freeze(value.map((filter, index) =>
+    return value.map((filter, index) =>
     {
         if (!filter || typeof filter !== "object" || Array.isArray(filter))
         {
             throw new TypeError(`${label} toneFilters[${index}] is invalid`);
         }
-        return Object.freeze({
+        return {
             index: Integer(
                 filter.index,
                 index,
@@ -574,8 +574,8 @@ function NormalizeFilters(value, label)
                 FILTER_INSERTS,
                 `${label} toneFilters[${index}] insert`,
             ),
-        });
-    }));
+        };
+    });
 }
 
 function NormalizeTunings(effect, label)

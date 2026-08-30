@@ -13,7 +13,7 @@ export class CjsWebgpuSampler extends CjsWebgpuResource
   constructor(values = {})
   {
     super(values);
-    Object.freeze(this);
+    this;
   }
 
   /**

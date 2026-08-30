@@ -674,10 +674,10 @@ export class CjsResMan extends CjsEventEmitter
    */
   GetQueueStats(queue = null) {
     if (queue !== null && queue !== undefined) return this.GetWorkQueue(queue).GetStats();
-    return Object.freeze({
+    return {
       loads: this._loadQueue.GetStats(),
       prepares: this._prepareQueue.GetStats()
-    });
+    };
   }
 
   /**
@@ -1069,15 +1069,15 @@ export class CjsResMan extends CjsEventEmitter
     }
     validateOrderedExtensionFormats(formats, ext);
 
-    const route = Object.freeze({
+    const route = {
       extension: ext,
       Handler,
       handlerMode,
       loader,
-      formats: Object.freeze([ ...formats ]),
+      formats: [ ...formats ],
       Target,
       Identify
-    });
+    };
     this.#extensionRoutes.set(ext, route);
     return this;
   }
@@ -1190,11 +1190,11 @@ export class CjsResMan extends CjsEventEmitter
       this.motherLode.KeepAlive?.(cacheKey);
       const expectedOwnership = this.#RequireResourceOwnership(existing, "reload-candidate:create");
       const generation = this.#nextResourceReloadGeneration++;
-      const loaderOptions = Object.freeze(getResourceLoaderOptions(
+      const loaderOptions = getResourceLoaderOptions(
         options,
         options.source || this.source
-      ));
-      const candidate = Object.freeze({
+      );
+      const candidate = {
         reloadCandidate: true,
         generation,
         owner: this.motherLode,
@@ -1203,7 +1203,7 @@ export class CjsResMan extends CjsEventEmitter
         expectedOwnership,
         resource,
         loaderOptions
-      });
+      };
       this.#reloadCandidates.set(resource, candidate);
       this.#reloadGenerations.set(cacheKey, generation);
 
@@ -2051,13 +2051,13 @@ export class CjsResMan extends CjsEventEmitter
     if (!route || (!route.Target && !route.Identify)) return values;
 
     const Format = resolved.descriptor?.Format || null;
-    const context = Object.freeze({
+    const context = {
       ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options)),
       Format,
       format: Format?.id || Format?.name || "",
       options,
       resMan: this
-    });
+    };
 
     let Target = route.Target;
     if (route.Identify)
@@ -2492,12 +2492,12 @@ export class CjsResMan extends CjsEventEmitter
     const source = options.source || this.source;
     if (!source)
     {
-      return Object.freeze({
+      return {
         path: normalizedPath,
         queuedSource: 0,
         source: 0,
         format: 0
-      });
+      };
     }
     if ((typeof source !== "object" && typeof source !== "function")
       || typeof source.Read !== "function")
@@ -2569,7 +2569,7 @@ export class CjsResMan extends CjsEventEmitter
     const fileName = getResourceFileName(normalizedPath);
     const requiresUrl = sourceRequiresUrl(source);
     const url = requiresUrl ? this.BuildUrl(normalizedPath) : null;
-    const context = Object.freeze({
+    const context = {
       resMan: this,
       source,
       path: normalizedPath,
@@ -2580,7 +2580,7 @@ export class CjsResMan extends CjsEventEmitter
       sourcePath: url || normalizedPath,
       sourceRevision,
       revisionKey
-    });
+    };
     READ_CONTEXTS.set(operationOptions, context);
 
     if (options.reload === true)
@@ -2753,7 +2753,7 @@ export class CjsResMan extends CjsEventEmitter
       }
       if (descriptors.size === 0) this.formatOperations.delete(source);
     }
-    return Object.freeze({ path, queuedSource, source: sourceCount, format });
+    return { path, queuedSource, source: sourceCount, format };
   }
 
   /**
@@ -3213,12 +3213,12 @@ export class CjsResMan extends CjsEventEmitter
       || ownership.resource !== resource
       || !this.#IsResourceOwnershipCurrent(ownership))
     {
-      ownership = Object.freeze({
+      ownership = {
         generation: this.#nextResourceOwnershipGeneration++,
         owner,
         key,
         resource
-      });
+      };
       this.#resourceOwnership.set(resource, ownership);
       this.#invalidResourceOwnership.delete(resource);
     }
@@ -3228,7 +3228,7 @@ export class CjsResMan extends CjsEventEmitter
     resource?.SetReloadHook?.(() => this.#ReloadPurgedResource(key, resource));
 
     if (typeof resource?.SetLifecycleController !== "function") return resource;
-    resource.SetLifecycleController(Object.freeze({
+    resource.SetLifecycleController({
       isCurrent: () => this.#IsResourceOwnershipCurrent(ownership),
       keepAlive: options => this.#IsResourceOwnershipCurrent(ownership)
         ? owner.KeepAlive?.(key, options)
@@ -3248,7 +3248,7 @@ export class CjsResMan extends CjsEventEmitter
       unlock: () => this.#IsResourceOwnershipCurrent(ownership)
         ? owner.Unlock?.(key) || 0
         : 0
-    }));
+    });
     if (resource.HasPayload?.() && this.#IsResourceOwnershipCurrent(ownership))
     {
       owner.KeepPayloadAlive?.(key);
@@ -3397,7 +3397,7 @@ function snapshotFormatDefaultValue(value, seen, path)
       }
       snapshot.push(snapshotFormatDefaultValue(value[index], seen, `${path}[${index}]`));
     }
-    return Object.freeze(snapshot);
+    return snapshot;
   }
 
   const prototype = Object.getPrototypeOf(value);
@@ -3421,7 +3421,7 @@ function snapshotFormatDefaultValue(value, seen, path)
     }
     snapshot[key] = snapshotFormatDefaultValue(descriptor.value, seen, `${path}.${key}`);
   }
-  return Object.freeze(snapshot);
+  return snapshot;
 }
 
 /**
@@ -4003,14 +4003,14 @@ function normalizeResourceVariant(value)
 
 function createPrepareContext(resMan, resource, bytes, options, stage)
 {
-  return Object.freeze({
+  return {
     ...options,
     ...createResourcePathContext(resource.GetPath(), READ_CONTEXTS.get(options)),
     stage,
     bytes,
     resource,
     resMan
-  });
+  };
 }
 
 /**
@@ -4024,13 +4024,13 @@ function createPrepareContext(resMan, resource, bytes, options, stage)
 function createResourcePathContext(path, readContext = null)
 {
   const resFilePath = normalizeResourcePath(path);
-  return Object.freeze({
+  return {
     path: resFilePath,
     resFilePath,
     ext: readContext?.ext ?? getResourceExtension(resFilePath),
     fileName: getResourceFileName(resFilePath),
     url: readContext?.url ?? null
-  });
+  };
 }
 
 /**
@@ -4166,7 +4166,7 @@ function normalizeAutoPurgePolicy(policy)
     throw new TypeError("CjsResMan autoPurgePolicy.now must be a function.");
   }
 
-  return Object.freeze({
+  return {
     intervalMilliseconds,
     maxIdleMilliseconds: policy.maxIdleMilliseconds,
     payloadMaxIdleMilliseconds: policy.payloadMaxIdleMilliseconds,
@@ -4174,7 +4174,7 @@ function normalizeAutoPurgePolicy(policy)
     releasePayload: policy.releasePayload ?? true,
     ...(policy.cleanup === undefined ? {} : { cleanup: policy.cleanup }),
     now: policy.now || defaultAutoPurgeNow
-  });
+  };
 }
 
 /**
@@ -4578,10 +4578,10 @@ function createFormatDescriptor(Format, defaults = {})
   {
     throw new TypeError("CjsResMan format descriptor requires a format class.");
   }
-  return Object.freeze({
+  return {
     Format,
     defaults: snapshotFormatDefaults(defaults)
-  });
+  };
 }
 
 function createExtensionFormatDescriptor(entry, defaults, label)

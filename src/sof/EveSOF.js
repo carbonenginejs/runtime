@@ -367,10 +367,10 @@ export class EveSOF extends CjsModel
         ? resources.exists ?? null
         : this.#asyncResources.exists;
       if (exists !== this.#asyncResources.exists) this.#existingFilesCache.clear();
-      this.#asyncResources = Object.freeze({
+      this.#asyncResources = {
         getObject,
         exists
-      });
+      };
     }
     if (Object.prototype.hasOwnProperty.call(options, "lazyData"))
     {
@@ -639,17 +639,17 @@ export class EveSOF extends CjsModel
     }
 
     const authored = [...new Set(sets.map(item => item.visibilityGroup))].sort();
-    return Object.freeze({
+    return {
       dna: String(dnaString),
-      hulls: Object.freeze([...(dna.hullNames ?? [])]),
+      hulls: [...(dna.hullNames ?? [])],
       faction: String(dna.factionName ?? ""),
       race: String(dna.raceName ?? ""),
-      declared: Object.freeze(declared),
-      authored: Object.freeze(authored),
-      visible: Object.freeze(authored.filter(name => declaredSet.has(name))),
-      hidden: Object.freeze(authored.filter(name => !declaredSet.has(name))),
-      sets: Object.freeze(sets.map(item => Object.freeze(item)))
-    });
+      declared: declared,
+      authored: authored,
+      visible: authored.filter(name => declaredSet.has(name)),
+      hidden: authored.filter(name => !declaredSet.has(name)),
+      sets: sets.map(item => item)
+    };
   }
 
   /** Inspects one DNA selection without creating a graph or runtime values. */
@@ -659,11 +659,11 @@ export class EveSOF extends CjsModel
     dna.Setup(dnaString, this.dataMgr);
     const buildable = dna.IsValid();
     const valid = buildable && dna.ValidateContent();
-    return Object.freeze({
+    return {
       buildable,
       valid,
       error: dna.GetParseError() ?? (valid ? null : "invalid-content")
-    });
+    };
   }
 
   /** Performs Carbon's separate slow/offline DNA validation path. */

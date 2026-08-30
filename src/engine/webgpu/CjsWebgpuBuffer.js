@@ -14,7 +14,7 @@ export class CjsWebgpuBuffer extends CjsWebgpuResource
   {
     super(values);
     this.bufferKind = String(values.bufferKind || "buffer");
-    Object.freeze(this);
+    this;
   }
 
   /**

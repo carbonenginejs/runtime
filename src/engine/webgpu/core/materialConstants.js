@@ -166,7 +166,7 @@ export function NormalizeMaterialLayout(layout)
 
     names.add(name);
     ranges.push([ offset, offset + byteSize ]);
-    normalized.push(Object.freeze({ name, offset, size: byteSize, dimension }));
+    normalized.push({ name, offset, size: byteSize, dimension });
   }
 
   // The authored default block may be shorter than the buffer - it covers the
@@ -178,7 +178,7 @@ export function NormalizeMaterialLayout(layout)
     fail("layout defaults must be a typed array when present");
   }
 
-  return Object.freeze({ size, constants: Object.freeze(normalized), defaults });
+  return { size, constants: normalized, defaults };
 }
 
 

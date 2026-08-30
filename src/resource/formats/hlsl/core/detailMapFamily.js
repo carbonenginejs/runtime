@@ -97,14 +97,14 @@ export function recogniseDetailMapFamily(resources, options = {})
         layers.push({ parameter, layer, registerIndex, registerSpace: space });
     }
 
-    return Object.freeze({
+    return {
         family: DETAIL_MAP_ARRAY_FAMILY,
         outputName: DETAIL_MAP_ARRAY_NAME,
         registerSpace,
         layerCount: layers.length,
-        layers: Object.freeze(layers.map((entry) => Object.freeze(entry))),
-        registers: Object.freeze(layers.map((entry) => entry.registerIndex))
-    });
+        layers: layers.map((entry) => entry),
+        registers: layers.map((entry) => entry.registerIndex)
+    };
 }
 
 /**

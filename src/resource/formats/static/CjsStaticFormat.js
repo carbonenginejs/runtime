@@ -93,7 +93,7 @@ export class CjsStaticFormat extends CjsFormat
 
     if (MatchesSqlite(bytes))
     {
-      return Object.freeze({
+      return {
         family: CJS_STATIC_FAMILIES.SQLITE,
         byteLength: bytes.byteLength,
         payloadOffset: 0,
@@ -105,14 +105,14 @@ export class CjsStaticFormat extends CjsFormat
         decodable: true,
         requires: null,
         reason: "Recognized a SQLite container."
-      });
+      };
     }
 
     if (MatchesPickle(bytes))
     {
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
-      return Object.freeze({
+      return {
         family: CJS_STATIC_FAMILIES.PICKLE,
         byteLength: bytes.byteLength,
         payloadOffset: PICKLE_PREFIX_BYTES,
@@ -120,10 +120,10 @@ export class CjsStaticFormat extends CjsFormat
         decodable: true,
         requires: null,
         reason: null
-      });
+      };
     }
 
-    return Object.freeze({
+    return {
       family: CJS_STATIC_FAMILIES.UNKNOWN,
       byteLength: bytes.byteLength,
       payloadOffset: 0,
@@ -136,7 +136,7 @@ export class CjsStaticFormat extends CjsFormat
       // closes that gap - with the companion, CjsSchemaBoundFormat decodes it.
       reason: "No signature. A schema-bound container needs its .schema companion, "
         + "which is YAML describing the layout. CjsSchemaBoundFormat reads it from there."
-    });
+    };
   }
 
   /**

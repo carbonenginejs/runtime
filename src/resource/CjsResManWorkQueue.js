@@ -178,13 +178,13 @@ export class CjsResManWorkQueue
     }
 
     this.#Compact();
-    return Object.freeze({
+    return {
       processed,
       queued: this.GetQueuedCount(),
       active: this.GetActiveCount(),
       pending: this.GetPendingCount(),
       paused: this.#paused
-    });
+    };
   }
 
   /**
@@ -192,7 +192,7 @@ export class CjsResManWorkQueue
    * work queue.
    */
   GetStats() {
-    return Object.freeze({
+    return {
       name: this.#name,
       nextId: this.#nextId,
       concurrency: this.#concurrency,
@@ -200,7 +200,7 @@ export class CjsResManWorkQueue
       active: this.GetActiveCount(),
       pending: this.GetPendingCount(),
       paused: this.#paused
-    });
+    };
   }
 
   /** Removes and returns the next runnable work item for the resource work queue. */
@@ -221,11 +221,11 @@ export class CjsResManWorkQueue
 
     let result;
     try {
-      result = item.callback.call(item.context, Object.freeze({
+      result = item.callback.call(item.context, {
         id: item.id,
         queue: item.queue,
         metadata: item.metadata
-      }));
+      });
     } catch (error) {
       this.#Settle(item, false, error);
       return;

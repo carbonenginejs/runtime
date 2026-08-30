@@ -212,17 +212,17 @@ export class CjsFormat
       const message = report.output
         ? `${this.name} declares no output ${JSON.stringify(report.output)}.`
         : `${this.name} declares no verifiable default output.`;
-      return Object.freeze({
+      return {
         ...report,
         supported: false,
         verified: true,
         reason: message,
-        error: Object.freeze({
+        error: {
           name: "Error",
           code: "CJS_FORMAT_OUTPUT_UNDECLARED",
           message
-        })
-      });
+        }
+      };
     }
 
     try
@@ -276,7 +276,7 @@ export class CjsFormat
       }
       if (definition.default === true) defaults++;
       const probes = definition.probes ?? definition.probe ?? output;
-      outputs[output] = Object.freeze({
+      outputs[output] = {
         output,
         payloadType: definition.payloadType || output,
         role,
@@ -284,16 +284,16 @@ export class CjsFormat
         decoded: definition.decoded === true,
         passthrough: definition.passthrough === true,
         default: definition.default === true,
-        probes: Object.freeze((Array.isArray(probes) ? probes : [ probes ]).map(String)),
-        requires: Object.freeze([ ...(definition.requires || []) ])
-      });
+        probes: (Array.isArray(probes) ? probes : [ probes ]).map(String),
+        requires: [ ...(definition.requires || []) ]
+      };
     }
     if (defaults > 1) throw new TypeError("A format may declare only one default output.");
     if (Object.keys(outputs).length > 0 && defaults !== 1)
     {
       throw new TypeError("A format with outputs must declare exactly one default output.");
     }
-    return Object.freeze(outputs);
+    return outputs;
   }
 
   /** Assert the canonical format surface without requiring optional outputs. */
@@ -307,10 +307,9 @@ export class CjsFormat
     {
       throw new TypeError(`${Constructor.name} must declare a non-empty id.`);
     }
-    if (!Array.isArray(Constructor.mediaTypes) || Constructor.mediaTypes.length === 0
-      || !Object.isFrozen(Constructor.mediaTypes))
+    if (!Array.isArray(Constructor.mediaTypes) || Constructor.mediaTypes.length === 0)
     {
-      throw new TypeError(`${Constructor.name} must declare frozen non-empty mediaTypes.`);
+      throw new TypeError(`${Constructor.name} must declare non-empty mediaTypes.`);
     }
     for (const mediaType of Constructor.mediaTypes)
     {
@@ -319,14 +318,14 @@ export class CjsFormat
         throw new TypeError(`${Constructor.name} media type ${JSON.stringify(mediaType)} is not canonical.`);
       }
     }
-    if (!Array.isArray(Constructor.extensions) || !Object.isFrozen(Constructor.extensions))
+    if (!Array.isArray(Constructor.extensions))
     {
-      throw new TypeError(`${Constructor.name} must declare frozen extensions.`);
+      throw new TypeError(`${Constructor.name} must declare extensions.`);
     }
     if (!Constructor.outputs || typeof Constructor.outputs !== "object"
-      || Array.isArray(Constructor.outputs) || !Object.isFrozen(Constructor.outputs))
+      || Array.isArray(Constructor.outputs))
     {
-      throw new TypeError(`${Constructor.name} must declare frozen outputs.`);
+      throw new TypeError(`${Constructor.name} must declare outputs.`);
     }
     if (typeof Constructor.requestResponseType !== "string" || !Constructor.requestResponseType)
     {
@@ -334,13 +333,13 @@ export class CjsFormat
     }
     if (Constructor.worker !== null)
     {
-      if (!Constructor.worker || typeof Constructor.worker !== "object" || !Object.isFrozen(Constructor.worker))
+      if (!Constructor.worker || typeof Constructor.worker !== "object")
       {
-        throw new TypeError(`${Constructor.name}.worker must be null or a frozen descriptor.`);
+        throw new TypeError(`${Constructor.name}.worker must be null or a descriptor object.`);
       }
       if (typeof Constructor.worker.module !== "string" || !Constructor.worker.module
         || typeof Constructor.worker.exportName !== "string" || !Constructor.worker.exportName
-        || !Array.isArray(Constructor.worker.outputTypes) || !Object.isFrozen(Constructor.worker.outputTypes))
+        || !Array.isArray(Constructor.worker.outputTypes))
       {
         throw new TypeError(`${Constructor.name}.worker has an invalid execution descriptor.`);
       }
@@ -366,10 +365,6 @@ export class CjsFormat
     let defaults = 0;
     for (const [ output, capability ] of Object.entries(Constructor.outputs))
     {
-      if (!Object.isFrozen(capability))
-      {
-        throw new TypeError(`${Constructor.name} output capabilities must be frozen.`);
-      }
       if (capability.output !== output)
       {
         throw new TypeError(`${Constructor.name} output ${output} has a mismatched descriptor.`);
@@ -434,7 +429,7 @@ function normalizeSupportReport(Format, rawReport, options)
     const supported = variant
       ? variant.supported === true
       : recognized && (legacyVariants.length === 0 ? raw.supported !== false && raw.supported !== "none" : false);
-    return Object.freeze({
+    return {
       ...entry,
       supported,
       verified: false,
@@ -442,8 +437,8 @@ function normalizeSupportReport(Format, rawReport, options)
       reason: variant?.reason
         || raw.reason
         || (supported ? "Output appears usable from structural evidence." : "Output was not supported by the structural probe."),
-      requires: Object.freeze([ ...(variant?.requires || entry.requires) ])
-    });
+      requires: [ ...(variant?.requires || entry.requires) ]
+    };
   });
 
   const selected = capability
@@ -454,7 +449,7 @@ function normalizeSupportReport(Format, rawReport, options)
     || outputs.find(entry => entry.supported)?.output
     || "";
 
-  return Object.freeze({
+  return {
     format: Format.id || raw.format || Format.name,
     source: raw.source || options.source || "buffer",
     recognized,
@@ -465,11 +460,11 @@ function normalizeSupportReport(Format, rawReport, options)
     reason: selected?.reason || raw.reason || (recognized ? "Input recognized." : "Input not recognized."),
     metadata: raw.metadata ?? null,
     capability: selected,
-    outputs: Object.freeze(outputs),
-    warnings: Object.freeze([ ...(raw.warnings || []) ]),
-    errors: Object.freeze([ ...(raw.errors || []) ]),
+    outputs: outputs,
+    warnings: [ ...(raw.warnings || []) ],
+    errors: [ ...(raw.errors || []) ],
     error: null
-  });
+  };
 }
 
 function recognizesProbe(report)
@@ -515,24 +510,24 @@ function freezeVerification(report, capability, supported, error)
 {
   const errorReport = error ? serializeError(error) : null;
   const outputs = report.outputs.map(entry => entry.output === capability.output
-    ? Object.freeze({
+    ? {
       ...entry,
       supported,
       verified: true,
       reason: supported ? "The real asynchronous read path completed successfully." : errorReport.message
-    })
+    }
     : entry);
-  return Object.freeze({
+  return {
     ...report,
     recognized: supported ? true : report.recognized,
     supported,
     verified: true,
     reason: supported ? "The real asynchronous read path completed successfully." : errorReport.message,
     capability: outputs.find(entry => entry.output === capability.output) || null,
-    outputs: Object.freeze(outputs),
-    errors: errorReport ? Object.freeze([ ...report.errors, errorReport.message ]) : report.errors,
+    outputs: outputs,
+    errors: errorReport ? [ ...report.errors, errorReport.message ] : report.errors,
     error: errorReport
-  });
+  };
 }
 
 function serializeError(error)
@@ -543,19 +538,19 @@ function serializeError(error)
     if ([ "name", "code", "message", "cause" ].includes(key)) continue;
     details[key] = value;
   }
-  return Object.freeze({
+  return {
     name: error?.name || "Error",
     code: error?.code || "CJS_FORMAT_VERIFY_FAILED",
     message: error?.message || String(error),
-    details: Object.freeze(details),
+    details: details,
     cause: error?.cause
-      ? Object.freeze({
+      ? {
         name: error.cause.name || "Error",
         code: error.cause.code || "",
         message: error.cause.message || String(error.cause)
-      })
+      }
       : null
-  });
+  };
 }
 
 export const CjsFormatOutputRole = Object.freeze({

@@ -301,7 +301,7 @@ function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel)
     const bandIndices = new Set(bands.map(band => band.index));
     const targets = new Set();
 
-    return Object.freeze(value.map((rawCurve, index) =>
+    return value.map((rawCurve, index) =>
     {
         const label = `${ownerLabel} rtpcCurve ${index}`;
         const curve = RequireRecord(rawCurve, label);
@@ -378,7 +378,7 @@ function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel)
                 throw new TypeError(`${label} interpolation is unsupported`);
             }
             previous = x;
-            return Object.freeze({ x, value: output, interpolation });
+            return { x, value: output, interpolation };
         });
         const defaultValue = curve.defaultValue === undefined
             ? undefined
@@ -392,7 +392,7 @@ function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel)
             curve.controlTransition,
             `${label} controlTransition`,
         );
-        return Object.freeze({
+        return {
             rtpc,
             scope,
             bandIndex,
@@ -403,9 +403,9 @@ function NormalizeParametricEqRtpcCurves(value, bands, ownerLabel)
             ...(controlTransition === undefined
                 ? {}
                 : { controlTransition }),
-            points: Object.freeze(points),
-        });
-    }));
+            points: points,
+        };
+    });
 }
 
 function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel)
@@ -459,7 +459,7 @@ function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel)
             throw new TypeError(`${ownerLabel} points are invalid`);
         }
         previous = x;
-        return Object.freeze({ x, value: output, interpolation });
+        return { x, value: output, interpolation };
     });
     const defaultValue = curve.defaultValue === undefined
         ? undefined
@@ -473,7 +473,7 @@ function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel)
         curve.controlTransition,
         `${ownerLabel} controlTransition`,
     );
-    return Object.freeze({
+    return {
         rtpc,
         scope,
         accumulation,
@@ -482,8 +482,8 @@ function NormalizeGuitarDistortionDriveRtpcCurve(value, ownerLabel)
         ...(controlTransition === undefined
             ? {}
             : { controlTransition }),
-        points: Object.freeze(points),
-    });
+        points: points,
+    };
 }
 
 /** Validates one optional Wwise Filtering Over Time control law. */
@@ -502,11 +502,11 @@ function NormalizeControlTransition(value, ownerLabel, required = false)
     {
         throw new TypeError(`${ownerLabel} is unsupported`);
     }
-    return Object.freeze({
+    return {
         type: "filtering-over-time",
         rampUpSeconds,
         rampDownSeconds,
-    });
+    };
 }
 
 function NormalizeFlangerWetDryMixRtpcCurve(value, ownerLabel)
@@ -558,7 +558,7 @@ function NormalizeFlangerWetDryMixRtpcCurve(value, ownerLabel)
             throw new TypeError(`${ownerLabel} points are invalid`);
         }
         previous = x;
-        return Object.freeze({ x, value: output, interpolation });
+        return { x, value: output, interpolation };
     });
     const defaultValue = Number(curve.defaultValue);
 
@@ -566,7 +566,7 @@ function NormalizeFlangerWetDryMixRtpcCurve(value, ownerLabel)
     {
         throw new TypeError(`${ownerLabel} defaultValue must be zero`);
     }
-    return Object.freeze({
+    return {
         rtpc,
         scope,
         controlSource,
@@ -574,8 +574,8 @@ function NormalizeFlangerWetDryMixRtpcCurve(value, ownerLabel)
         accumulation,
         scaling,
         defaultValue,
-        points: Object.freeze(points),
-    });
+        points: points,
+    };
 }
 
 function NormalizeTremoloRtpcCurves(value, ownerLabel)
@@ -630,7 +630,7 @@ function NormalizeTremoloRtpcCurves(value, ownerLabel)
                 throw new TypeError(`${label} points are invalid`);
             }
             previous = x;
-            return Object.freeze({ x, value: output, interpolation });
+            return { x, value: output, interpolation };
         });
         const defaultValue = curve.defaultValue === undefined
             ? undefined
@@ -645,7 +645,7 @@ function NormalizeTremoloRtpcCurves(value, ownerLabel)
             `${label} controlTransition`,
             true,
         );
-        return Object.freeze({
+        return {
             rtpc,
             scope: "object",
             property,
@@ -653,8 +653,8 @@ function NormalizeTremoloRtpcCurves(value, ownerLabel)
             scaling,
             ...(defaultValue === undefined ? {} : { defaultValue }),
             controlTransition: transition,
-            points: Object.freeze(points),
-        });
+            points: points,
+        };
     });
 
     if (!targets.has("modulationDepthPercent")
@@ -667,7 +667,7 @@ function NormalizeTremoloRtpcCurves(value, ownerLabel)
     {
         throw new TypeError(`${ownerLabel} must share one filtered control`);
     }
-    return Object.freeze(curves);
+    return curves;
 }
 
 function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
@@ -709,7 +709,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
             {
                 throw new TypeError(`${label} feedbackEnabled must be boolean`);
             }
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "delay",
@@ -739,7 +739,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 ),
                 feedbackEnabled: effect.feedbackEnabled,
                 processLfe: true,
-            });
+            };
         }
         if (allowSourceEffects && effect.type === "compressor")
         {
@@ -749,7 +749,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${label} requires unsupported independent dynamics channels`,
                 );
             }
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "compressor",
@@ -785,7 +785,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 ),
                 processLfe: true,
                 channelLink: true,
-            });
+            };
         }
         if (allowSourceEffects && effect.type === "peak-limiter")
         {
@@ -795,7 +795,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${label} requires unsupported independent dynamics channels`,
                 );
             }
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "peak-limiter",
@@ -831,7 +831,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 ),
                 processLfe: true,
                 channelLink: true,
-            });
+            };
         }
         if (allowSourceEffects && effect.type === "flanger")
         {
@@ -850,7 +850,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${label} wetDryMixRtpcCurve`,
                 );
 
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "flanger",
@@ -908,7 +908,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 ...(wetDryMixRtpcCurve === undefined
                     ? {}
                     : { wetDryMixRtpcCurve }),
-            });
+            };
         }
         if (allowSourceEffects && effect.type === "tremolo")
         {
@@ -972,7 +972,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${label} has an unsupported non-sine Tremolo shape`,
                 );
             }
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "tremolo",
@@ -1009,7 +1009,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                         `${label} rtpcCurves`,
                     ),
                 }),
-            });
+            };
         }
         if (allowSourceEffects && effect.type === "guitar-distortion")
         {
@@ -1037,7 +1037,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${label} driveRtpcCurve`,
                 );
 
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "guitar-distortion",
@@ -1077,7 +1077,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 ...(driveRtpcCurve === undefined
                     ? {}
                     : { driveRtpcCurve }),
-            });
+            };
         }
         if (allowSourceEffects && effect.type === "matrix-reverb")
         {
@@ -1091,7 +1091,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${label} has unsupported Matrix Reverb routing`,
                 );
             }
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "matrix-reverb",
@@ -1128,7 +1128,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 ),
                 processLfe: true,
                 delayLengthsMode: "default",
-            });
+            };
         }
         if (allowSourceEffects && effect.type === "roomverb")
         {
@@ -1177,7 +1177,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
             {
                 throw new TypeError(`${label} minimum exceeds maximum`);
             }
-            return Object.freeze({
+            return {
                 effectId,
                 slotIndex,
                 type: "meter",
@@ -1211,7 +1211,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     0xffffffff,
                     `${label} gameParameterId`,
                 ),
-            });
+            };
         }
         if (effect.type !== "parametric-eq")
         {
@@ -1246,7 +1246,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${bandLabel} has unsupported filterType ${filterType}`,
                 );
             }
-            return Object.freeze({
+            return {
                 index,
                 filterType,
                 gainDb: FiniteGain(band.gainDb, `${bandLabel} gainDb`),
@@ -1255,7 +1255,7 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                     `${bandLabel} frequencyHz`,
                 ),
                 q: PositiveFinite(band.q, `${bandLabel} q`),
-            });
+            };
         }).sort((left, right) => left.index - right.index);
 
         if (effect.processLfe !== true
@@ -1279,21 +1279,21 @@ function NormalizeStaticWwiseEffectChain(value, ownerLabel, allowSourceEffects)
                 label,
             );
 
-        return Object.freeze({
+        return {
             effectId,
             slotIndex,
             type: "parametric-eq",
-            bands: Object.freeze(bands),
+            bands: bands,
             outputGainDb: FiniteGain(
                 effect.outputGainDb,
                 `${label} outputGainDb`,
             ),
             processLfe: effect.processLfe,
             ...(rtpcCurves === undefined ? {} : { rtpcCurves }),
-        });
+        };
     }).sort((left, right) => left.slotIndex - right.slotIndex);
 
-    return Object.freeze(effects);
+    return effects;
 }
 
 /** Creates a distributable static effect chain for one collapsed dry route. */
@@ -3222,7 +3222,7 @@ function NormalizeGuitarDistortionBands(value, label)
                 `${bandLabel} has unsupported filterType ${filterType}`,
             );
         }
-        return Object.freeze({
+        return {
             index,
             filterType,
             gainDb: FiniteGain(band.gainDb, `${bandLabel} gainDb`),
@@ -3231,10 +3231,10 @@ function NormalizeGuitarDistortionBands(value, label)
                 `${bandLabel} frequencyHz`,
             ),
             q: PositiveFinite(band.q, `${bandLabel} q`),
-        });
+        };
     }).sort((left, right) => left.index - right.index);
 
-    return Object.freeze(bands);
+    return bands;
 }
 
 function CanonicalPositiveId(value, label)

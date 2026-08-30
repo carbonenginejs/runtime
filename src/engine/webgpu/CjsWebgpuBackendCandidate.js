@@ -4,13 +4,13 @@ import { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 
 function freezeLimits(value)
 {
-  return value == null ? value : Object.freeze({ ...value });
+  return value == null ? value : { ...value };
 }
 
 
 function freezeFeatures(value)
 {
-  return value == null ? value : Object.freeze(Array.from(value, String));
+  return value == null ? value : Array.from(value, String);
 }
 
 
@@ -51,7 +51,7 @@ export class CjsWebgpuBackendCandidate extends CjsBackendCandidate
     this.label = options.label == null ? options.label : String(options.label);
     this.limits = freezeLimits(options.limits);
     this.features = freezeFeatures(options.features);
-    this.requestOptions = Object.freeze({ ...requestOptions });
+    this.requestOptions = { ...requestOptions };
   }
 
   /**

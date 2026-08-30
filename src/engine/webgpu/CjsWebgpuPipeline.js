@@ -23,7 +23,7 @@ export class CjsWebgpuPipeline
     // requirement travels with the pipeline rather than being inferred from the
     // binding's view dimension - a source-declared array needs no assembly.
     this.resourceTransforms = cloneJson(values.resourceTransforms || []);
-    Object.freeze(this);
+    this;
   }
 
   /**

@@ -105,22 +105,22 @@ export function indexBusDuckingCatalog(value)
                     `${label} targetProperty must be voice-volume or bus-volume`,
                 );
             }
-            return Object.freeze({
+            return {
                 targetBusId,
                 volumeDb,
                 fadeOutMs,
                 fadeInMs,
                 curve,
                 targetProperty,
-            });
+            };
         });
 
-        result.set(sourceBusId, Object.freeze({
+        result.set(sourceBusId, {
             sourceBusId,
             recoveryMs,
             maxDuckVolumeDb,
-            targets: Object.freeze(targets),
-        }));
+            targets: targets,
+        });
     }
     return result;
 }
@@ -281,10 +281,10 @@ export class CjsBusDuckingController
         }
         this.#Notify();
 
-        return Object.freeze({
+        return {
             End: at => this.#Settle(record, at, false),
             Cancel: at => this.#Settle(record, at, true),
-        });
+        };
     }
 
     /** Evaluates the combined authored attenuation for one collapsed route. */
@@ -568,7 +568,7 @@ function GainToDb(value)
 
 function NullToken()
 {
-    return Object.freeze({ End: () => false, Cancel: () => false });
+    return { End: () => false, Cancel: () => false };
 }
 
 function RequireRecord(value, label)

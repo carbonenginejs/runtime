@@ -403,7 +403,7 @@ export class CjsLibrary
     /** Returns an immutable snapshot of all registered capabilities. */
     GetCapabilities()
     {
-        return Object.freeze(Object.fromEntries(this.#capabilities));
+        return Object.fromEntries(this.#capabilities);
     }
 
     /** Replaces the default options applied to resource requests. */
@@ -455,13 +455,13 @@ export class CjsLibrary
         if (typeof isDefault !== "boolean") throw new TypeError("CjsLibrary resource behavior default must be boolean.");
         if (!Number.isSafeInteger(priority)) throw new TypeError("CjsLibrary resource behavior priority must be a safe integer.");
 
-        this.#resourceBehaviors.set(behaviorName, Object.freeze({
+        this.#resourceBehaviors.set(behaviorName, {
             name: behaviorName,
             behavior,
             default: isDefault,
             priority,
             order: this.#behaviorOrder++
-        }));
+        });
         return this;
     }
 
@@ -487,9 +487,9 @@ export class CjsLibrary
     /** Returns an immutable name-to-behavior snapshot. */
     GetResourceBehaviors()
     {
-        return Object.freeze(Object.fromEntries(
+        return Object.fromEntries(
             Array.from(this.#resourceBehaviors, ([ name, record ]) => [ name, record.behavior ])
-        ));
+        );
     }
 
     /**
@@ -514,13 +514,13 @@ export class CjsLibrary
         const callerOptions = stripRequestSelectors(options);
         let selected = null;
 
-        const baseContext = Object.freeze({
+        const baseContext = {
             path: specifier.path,
             options: requestedOptions,
             capabilities: this.GetCapabilities(),
-            services: Object.freeze(Object.fromEntries(this.#services)),
+            services: Object.fromEntries(this.#services),
             library: this
-        });
+        };
 
         if (selector !== false)
         {
@@ -543,7 +543,7 @@ export class CjsLibrary
                     if (!record.default) continue;
                     const matcher = record.behavior.CanResolveResourceRequest;
                     const matches = matcher ? assertSynchronousResult(
-                        matcher(Object.freeze({ ...baseContext, behaviorName: record.name })),
+                        matcher({ ...baseContext, behaviorName: record.name }),
                         record.name,
                         "CanResolveResourceRequest"
                     ) : true;
@@ -580,7 +580,7 @@ export class CjsLibrary
             if (resolver)
             {
                 const result = assertSynchronousResult(
-                    resolver(Object.freeze({ ...baseContext, behaviorName: selected.name })),
+                    resolver({ ...baseContext, behaviorName: selected.name }),
                     selected.name,
                     "ResolveResourceRequest"
                 );
@@ -622,13 +622,13 @@ export class CjsLibrary
             callerOptions,
             outputOptions
         ));
-        return Object.freeze({
+        return {
             sourcePath: specifier.path,
             path: resolvedPath,
             options: resolvedOptions,
             behaviorName: selected?.name ?? null,
             behavior: selected?.behavior ?? null
-        });
+        };
     }
 
     /** Resolves a request and obtains its resource handle synchronously. */
@@ -736,7 +736,7 @@ function parseResourceSpecifier(value)
     const separator = value.lastIndexOf("@");
     if (separator <= value.lastIndexOf("/"))
     {
-        return Object.freeze({ path: value, output: null });
+        return { path: value, output: null };
     }
 
     const path = value.slice(0, separator);
@@ -745,7 +745,7 @@ function parseResourceSpecifier(value)
     {
         throw new TypeError("CjsLibrary resource @output must be a non-empty alphanumeric tag.");
     }
-    return Object.freeze({ path, output });
+    return { path, output };
 }
 
 function getBehaviorSelector(options)
@@ -809,8 +809,8 @@ function mergeRequestOptions(...sources)
 function freezeRequestOptions(options)
 {
     const result = stripRequestSelectors(options);
-    if (result.formatOptions) Object.freeze(result.formatOptions);
-    return Object.freeze(result);
+    if (result.formatOptions) result.formatOptions;
+    return result;
 }
 
 function assertSynchronousResult(result, behaviorName, method)

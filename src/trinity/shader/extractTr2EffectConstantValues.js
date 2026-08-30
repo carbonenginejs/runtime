@@ -33,7 +33,7 @@ function indexParameters(effect)
       {
         fail(`parameter ${JSON.stringify(name)} is duplicated across effect constant collections`, "CJS_TRINITY_EFFECT_CONSTANT_DUPLICATE");
       }
-      result.set(name, Object.freeze({ parameter, collectionName }));
+      result.set(name, { parameter, collectionName });
     }
   }
   return result;
@@ -52,7 +52,7 @@ function validateConstant(constant, names)
   {
     fail(`reflected constant ${JSON.stringify(name)} has an unsupported layout`, "CJS_TRINITY_EFFECT_CONSTANT_LAYOUT");
   }
-  return Object.freeze({ name, type: constant.type, dimension: constant.dimension });
+  return { name, type: constant.type, dimension: constant.dimension };
 }
 
 function normalizeValue(value, dimension, name, allowPrefix = false)
@@ -97,7 +97,7 @@ function copyParameterValue(entry, constant)
       fail(`parameter ${JSON.stringify(constant.name)} value ${index} is not a finite float32`, "CJS_TRINITY_EFFECT_CONSTANT_VALUE");
     }
   }
-  return Object.freeze(values);
+  return values;
 }
 
 /**
@@ -138,5 +138,5 @@ export function extractTr2EffectConstantValues(effect, reflectedConstants)
       writable: false
     });
   }
-  return Object.freeze(result);
+  return result;
 }

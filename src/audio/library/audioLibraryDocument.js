@@ -1461,8 +1461,8 @@ function CloneJSONValue(value, label)
 
     if (Array.isArray(value))
     {
-        return Object.freeze(value.map((entry, index) =>
-            CloneJSONValue(entry, `${label}[${index}]`)));
+        return value.map((entry, index) =>
+            CloneJSONValue(entry, `${label}[${index}]`));
     }
 
     if (!value || typeof value !== "object")
@@ -1477,5 +1477,5 @@ function CloneJSONValue(value, label)
         result[key] = CloneJSONValue(value[key], `${label}.${key}`);
     }
 
-    return Object.freeze(result);
+    return result;
 }

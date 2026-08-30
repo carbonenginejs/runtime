@@ -114,7 +114,7 @@ export function createBackendBodySource(value)
 
   const bodyCount = bodiesByKey.size;
 
-  return Object.freeze({
+  return {
     sourcePath: value.sourcePath,
     bodyCount,
     unitCount: unitsByKey.size,
@@ -151,13 +151,13 @@ export function createBackendBodySource(value)
       // the reason; never crash on it and never silently skip it.
       if (body.status !== "translated")
       {
-        return Object.freeze({
+        return {
           permutationIndex,
           bodyKey,
           status: body.status,
           error: body.error ?? null,
-          passes: Object.freeze([])
-        });
+          passes: []
+        };
       }
 
       // The units are shared by construction - one unit backs every body that
@@ -172,7 +172,7 @@ export function createBackendBodySource(value)
             `Carbon WebGPU body ${bodyKey} references missing translation unit ${pass.unitKey}`
           );
         }
-        return Object.freeze({
+        return {
           passKey: pass.passKey,
           unitKey: pass.unitKey,
           sha256: unit.sha256,
@@ -180,16 +180,16 @@ export function createBackendBodySource(value)
           shaders: cloneJson(unit.shaders || []),
           layouts: cloneJson(unit.layouts || []),
           resourceTransforms: unit.resourceTransforms ? cloneJson(unit.resourceTransforms) : null
-        });
+        };
       });
 
-      return Object.freeze({
+      return {
         permutationIndex,
         bodyKey,
         status: body.status,
         error: null,
-        passes: Object.freeze(passes)
-      });
+        passes: passes
+      };
     }
-  });
+  };
 }
