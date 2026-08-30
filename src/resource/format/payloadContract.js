@@ -1,4 +1,4 @@
-import { assertPositiveInteger } from "#utils/validation";
+import { assertNonEmptyString, assertPlainObject, assertPositiveInteger } from "#utils/validation";
 /**
  * The `payloadType` vocabulary shared by the format readers and the resources
  * they populate, plus validators for the shapes that carry structure worth
@@ -70,10 +70,10 @@ export const ResourcePayloadValues = Object.freeze({
  */
 export function validateRgbaPayload(payload, options = null)
 {
-    const value = assertObject(payload, "RGBA payload");
+    const value = assertPlainObject(payload, "RGBA payload");
     assertPayloadType(value, ResourcePayloadType.RGBA, "RGBA payload");
     assertDimensions(value, "RGBA payload");
-    assertString(value.pixelFormat, "RGBA payload.pixelFormat");
+    assertNonEmptyString(value.pixelFormat, "RGBA payload.pixelFormat");
     const layout = {
         rgba8unorm: { bytesPerPixel: 4, arrayType: Uint8Array },
         rgba32float: { bytesPerPixel: 16, arrayType: Float32Array }
@@ -115,11 +115,11 @@ export function validateRgbaPayload(payload, options = null)
  */
 export function validateTexturePayload(payload)
 {
-    const value = assertObject(payload, "Texture payload");
+    const value = assertPlainObject(payload, "Texture payload");
     assertPayloadType(value, ResourcePayloadType.TEXTURE, "Texture payload");
     assertDimensions(value, "Texture payload");
     assertEnum(value.dimension, ResourcePayloadValues.textureDimensions, "Texture payload.dimension");
-    assertString(value.pixelFormat, "Texture payload.pixelFormat");
+    assertNonEmptyString(value.pixelFormat, "Texture payload.pixelFormat");
     if (typeof value.isCompressed !== "boolean")
     {
         throw new TypeError("Texture payload.isCompressed must be boolean.");
@@ -144,7 +144,7 @@ export function validateTexturePayload(payload)
  */
 export function validateAudioPayload(payload)
 {
-    const value = assertObject(payload, "Audio payload");
+    const value = assertPlainObject(payload, "Audio payload");
     if (![ ResourcePayloadType.AUDIO, ResourcePayloadType.PCM ].includes(value.payloadType))
     {
         throw new TypeError("Audio payload.payloadType must be \"audio\" or \"pcm\".");
@@ -152,7 +152,7 @@ export function validateAudioPayload(payload)
     assertPositiveInteger(value.sampleRate, "Audio payload.sampleRate");
     assertPositiveInteger(value.channels, "Audio payload.channels");
     assertPositiveOrZeroInteger(value.frameCount, "Audio payload.frameCount");
-    assertString(value.sampleFormat, "Audio payload.sampleFormat");
+    assertNonEmptyString(value.sampleFormat, "Audio payload.sampleFormat");
     assertBytesOrTypedArray(value.data, "Audio payload.data");
     assertPositiveOrZeroNumber(value.durationSeconds, "Audio payload.durationSeconds");
     return value;
@@ -164,9 +164,9 @@ export function validateAudioPayload(payload)
  */
 export function validateVideoPayload(payload)
 {
-    const value = assertObject(payload, "Video payload");
+    const value = assertPlainObject(payload, "Video payload");
     assertPayloadType(value, ResourcePayloadType.VIDEO, "Video payload");
-    assertString(value.sourceFormat, "Video payload.sourceFormat");
+    assertNonEmptyString(value.sourceFormat, "Video payload.sourceFormat");
     assertPositiveInteger(value.durationTimescale, "Video payload.durationTimescale");
     assertPositiveOrZeroInteger(value.duration, "Video payload.duration");
     if (!Array.isArray(value.tracks))
@@ -179,7 +179,7 @@ export function validateVideoPayload(payload)
 function validateTextureSubresource(value, index, dataByteLength)
 {
     const prefix = `Texture payload.subresources[${index}]`;
-    assertObject(value, prefix);
+    assertPlainObject(value, prefix);
     assertPositiveOrZeroInteger(value.mip, `${prefix}.mip`);
     assertPositiveOrZeroInteger(value.layer, `${prefix}.layer`);
     assertPositiveOrZeroInteger(value.offset, `${prefix}.offset`);
@@ -192,15 +192,6 @@ function validateTextureSubresource(value, index, dataByteLength)
     {
         throw new RangeError(`${prefix} exceeds Texture payload.data.`);
     }
-}
-
-function assertObject(value, label)
-{
-    if (!value || typeof value !== "object" || Array.isArray(value))
-    {
-        throw new TypeError(`${label} must be an object.`);
-    }
-    return value;
 }
 
 function assertPayloadType(value, expected, label)
@@ -230,14 +221,6 @@ function assertBytesOrTypedArray(value, label)
     if (!ArrayBuffer.isView(value) || value instanceof DataView)
     {
         throw new TypeError(`${label} must be a typed array.`);
-    }
-}
-
-function assertString(value, label)
-{
-    if (typeof value !== "string" || value.length === 0)
-    {
-        throw new TypeError(`${label} must be a non-empty string.`);
     }
 }
 
