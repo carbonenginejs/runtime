@@ -47,15 +47,15 @@ function expectedOperand(
     componentCount = 4
 )
 {
-    return Object.freeze({
+    return {
         typeName,
         registerIndex,
         componentCount,
         selectionModeName,
         selector,
-        immediateValues: Object.freeze(immediateValues),
+        immediateValues: immediateValues,
         modifierName
-    });
+    };
 }
 
 const mask = (typeName, registerIndex, selector) =>
@@ -78,9 +78,9 @@ const immediate = (...values) => expectedOperand(
     "none",
     values.length
 );
-const body = (opcodeName, operands = [], options = {}) => Object.freeze({
+const body = (opcodeName, operands = [], options = {}) => ({
     opcodeName,
-    operands: Object.freeze(operands),
+    operands: operands,
     saturate: options.saturate === true,
     testBoolean: options.testBoolean ?? null,
     resinfoReturnTypeName: options.resinfoReturnTypeName

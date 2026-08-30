@@ -155,12 +155,12 @@ export async function SelectBackend(options = {})
             continue;
         }
 
-        committed = Object.freeze({
+        committed = {
             name: candidate.name,
             proof: proof.value,
             proven: true,
             ...requirement
-        });
+        };
         evaluated.push({ name: candidate.name, committed: true });
     }
 
@@ -168,19 +168,19 @@ export async function SelectBackend(options = {})
     {
         const error = new Error("CjsLibrary found no backend it could commit to.");
         error.code = "CJS_LIBRARY_BACKEND_UNAVAILABLE";
-        error.candidates = Object.freeze(evaluated.map(entry => Object.freeze({ ...entry })));
+        error.candidates = evaluated.map(entry => ({ ...entry }));
         throw error;
     }
 
     // Requested and effective stay separately inspectable, so a preference that
     // is temporarily unavailable can become effective again when capabilities
     // change rather than being overwritten by discovery.
-    return Object.freeze({
-        requested: Object.freeze(preference ? [ ...preference ] : null),
+    return {
+        requested: preference ? [ ...preference ] : null,
         effective: committed.name,
         backend: committed,
-        candidates: Object.freeze(evaluated.map(entry => Object.freeze({ ...entry })))
-    });
+        candidates: evaluated.map(entry => ({ ...entry }))
+    };
 }
 
 
@@ -236,13 +236,13 @@ function ResolveCandidateRequirement(candidate, platform)
 {
     if (candidate.limits == null && candidate.features == null)
     {
-        return { descriptor: null, unsatisfiedLimits: Object.freeze([]), unavailableFeatures: Object.freeze([]) };
+        return { descriptor: null, unsatisfiedLimits: [], unavailableFeatures: [] };
     }
 
     const info = platform instanceof Tr2PlatformInfo ? platform : null;
     const resolved = info
         ? info.ResolveDeviceRequirements(candidate)
-        : { descriptor: Object.freeze({}), unsatisfiedLimits: Object.freeze([]), unavailableFeatures: Object.freeze([]) };
+        : { descriptor: {}, unsatisfiedLimits: [], unavailableFeatures: [] };
 
     return {
         descriptor: resolved.descriptor,
@@ -261,7 +261,7 @@ async function ProveCandidate(candidate, context)
 {
     try
     {
-        const value = await candidate.Prove(Object.freeze(context));
+        const value = await candidate.Prove(context);
         return value === false || value === null || value === undefined
             ? { proven: false, value: null, error: null }
             : { proven: true, value, error: null };

@@ -2249,7 +2249,7 @@ export class CjsAudioBackend
 
                 return {
                     ...operation,
-                    selections: Object.freeze(selections),
+                    selections: selections,
                 };
             });
         }
@@ -2371,15 +2371,13 @@ export class CjsAudioBackend
                             ? Math.min(...selections.map(selection =>
                                 Number(selection.leafIndex)))
                             : 0;
-                        const matchIds = Object.freeze(
-                            [ ...new Set([
+                        const matchIds = [ ...new Set([
                                 ...(continuation.matchIds ?? [])
                                     .map(String),
                                 ...selections.flatMap(selection =>
                                     (selection.matchIds ?? [])
                                         .map(String)),
-                            ]) ],
-                        );
+                            ]) ];
                         const slot = new CjsAudioBackendSfxProgramSlot({
                             id,
                             playingID,
@@ -2392,11 +2390,9 @@ export class CjsAudioBackend
                                     selection => selection.actionTime,
                                 ))
                                 : record.postContextTime,
-                            continuousMatchIds: Object.freeze(
-                                (continuation.matchIds ?? []).map(String),
-                            ),
+                            continuousMatchIds: (continuation.matchIds ?? []).map(String),
                             matchIds,
-                            selections: Object.freeze(selectionMetadata),
+                            selections: selectionMetadata,
                             cancelledSelectionKeys:
                                 CreateProgramCancelledSelectionKeys(
                                     selectionMetadata,
@@ -2484,13 +2480,11 @@ export class CjsAudioBackend
                                     `Duplicate SFX program slot ${id}`,
                                 );
                             }
-                            existing.matchIds = Object.freeze(
-                                [ ...new Set([
+                            existing.matchIds = [ ...new Set([
                                     ...existing.matchIds,
                                     ...(selection.matchIds ?? [])
                                         .map(String),
-                                ]) ],
-                            );
+                                ]) ];
                             continue;
                         }
 
@@ -2502,13 +2496,11 @@ export class CjsAudioBackend
                                 actionIndex,
                                 leafIndex,
                                 actionTime: selectionMetadata.actionTime,
-                                matchIds: Object.freeze(
-                                    (selection.matchIds ?? [])
+                                matchIds: (selection.matchIds ?? [])
                                         .map(String),
-                                ),
-                                selections: Object.freeze([
+                                selections: [
                                     selectionMetadata,
-                                ]),
+                                ],
                                 cancelledSelectionKeys:
                                     CreateProgramCancelledSelectionKeys([
                                         selectionMetadata,
@@ -3658,7 +3650,7 @@ export class CjsAudioBackend
         slot.switchGroups = NormalizeContinuousSwitchGroups(
             continuation.switchGroups,
         );
-        slot.selections = Object.freeze(selectionMetadata);
+        slot.selections = selectionMetadata;
         slot.cancelledSelectionKeys =
             CreateProgramCancelledSelectionKeys(selectionMetadata);
         slot.selectionControllers = CreateProgramSelectionControllers(
@@ -3672,14 +3664,12 @@ export class CjsAudioBackend
             ? Math.min(...selectionMetadata.map(selection =>
                 selection.actionTime))
             : now;
-        slot.matchIds = Object.freeze([ ...new Set([
+        slot.matchIds = [ ...new Set([
             ...(continuation.matchIds ?? []).map(String),
             ...selectionMetadata.flatMap(selection =>
                 selection.matchIds),
-        ]) ]);
-        slot.continuousMatchIds = Object.freeze(
-            (continuation.matchIds ?? []).map(String),
-        );
+        ]) ];
+        slot.continuousMatchIds = (continuation.matchIds ?? []).map(String);
         slot.state = "active";
 
         for (const voice of slot.voices)
@@ -4407,7 +4397,7 @@ export class CjsAudioBackend
         record = null,
     )
     {
-        return Object.freeze({
+        return {
             gameObjID,
             signal,
             installSfxProgram: program =>
@@ -4497,7 +4487,7 @@ export class CjsAudioBackend
 
                 return selectionSignal ?? slot?.controller?.signal ?? signal;
             },
-        });
+        };
     }
 
     /** Gets or creates one graph-backed route branch within an emitter generation. */
@@ -5552,7 +5542,7 @@ export class CjsAudioBackend
                 batchStartContextTime,
             ));
 
-        slot.selections = Object.freeze(selectionMetadata);
+        slot.selections = selectionMetadata;
         slot.cancelledSelectionKeys =
             CreateProgramCancelledSelectionKeys(selectionMetadata);
         slot.selectionControllers = CreateProgramSelectionControllers(
@@ -5566,10 +5556,8 @@ export class CjsAudioBackend
             ? Math.min(...selectionMetadata.map(selection =>
                 selection.actionTime))
             : batchStartContextTime;
-        slot.matchIds = Object.freeze(
-            [ ...new Set(selectionMetadata.flatMap(selection =>
-                selection.matchIds)) ],
-        );
+        slot.matchIds = [ ...new Set(selectionMetadata.flatMap(selection =>
+                selection.matchIds)) ];
         this.#DisposeEndedSlotVoices(record, slot);
         const overlappingBatch = IsOverlappingAdvanceMode(
             slot.advanceMode,
@@ -5822,7 +5810,7 @@ export class CjsAudioBackend
                 ? Math.min(...selectionMetadata.map(selection =>
                     selection.actionTime))
                 : batchStartContextTime,
-            selections: Object.freeze(selectionMetadata),
+            selections: selectionMetadata,
             selectionControllers,
             cancelledSelectionKeys,
             controller,
@@ -5849,10 +5837,8 @@ export class CjsAudioBackend
             ? Math.min(...selectionMetadata.map(selection =>
                 selection.leafIndex))
             : 0;
-        slot.matchIds = Object.freeze(
-            [ ...new Set(selectionMetadata.flatMap(selection =>
-                selection.matchIds)) ],
-        );
+        slot.matchIds = [ ...new Set(selectionMetadata.flatMap(selection =>
+                selection.matchIds)) ];
         slot.continuation = continuation?.token ?? null;
         slot.exhausted = !continuation
             || continuation.doneAfterBatch === true;
@@ -6160,7 +6146,7 @@ export class CjsAudioBackend
         const batch = slot.CreateBatch({
             id: continuation.programBatchId,
             actionTime: selectionMetadata[0].actionTime,
-            selections: Object.freeze(selectionMetadata),
+            selections: selectionMetadata,
             selectionControllers,
             cancelledSelectionKeys,
             controller,
@@ -8215,7 +8201,7 @@ function ApplySlotPauseDepth(voice, slot)
 
 function CreateProgramSelectionMetadata(selection, baseContextTime)
 {
-    return Object.freeze({
+    return {
         actionIndex: Number(selection.actionIndex),
         leafIndex: Number(selection.leafIndex),
         ...(selection.programBatchId === undefined
@@ -8236,15 +8222,11 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
                 0,
                 Number(selection.delayMs) || 0,
             ) / 1000,
-        matchIds: Object.freeze(
-            (selection.matchIds ?? []).map(String),
-        ),
+        matchIds: (selection.matchIds ?? []).map(String),
         ...(selection.busRouteNodeId === undefined
             ? {}
             : { busRouteNodeId: String(selection.busRouteNodeId) }),
-        busPathIds: Object.freeze(
-            (selection.busPathIds ?? []).map(String),
-        ),
+        busPathIds: (selection.busPathIds ?? []).map(String),
         ...(selection.sourceEffects === undefined
             ? {}
             : { sourceEffects: selection.sourceEffects }),
@@ -8274,28 +8256,28 @@ function CreateProgramSelectionMetadata(selection, baseContextTime)
             0,
             Number(selection.switchFadeInMs) || 0,
         ),
-    });
+    };
 }
 
 function NormalizeContinuousSwitchGroups(value)
 {
     if (!Array.isArray(value))
     {
-        return Object.freeze([]);
+        return [];
     }
-    return Object.freeze(value.map(item => Object.freeze({
+    return value.map(item => ({
         scope: item?.scope === "state" ? "state" : "switch",
         group: String(item?.group ?? ""),
-    })).filter(item => item.group));
+    })).filter(item => item.group);
 }
 
 function NormalizeSwitchPath(value)
 {
     if (!Array.isArray(value))
     {
-        return Object.freeze([]);
+        return [];
     }
-    return Object.freeze(value.map(item => Object.freeze({
+    return value.map(item => ({
         containerId: String(item.containerId),
         scope: item.scope === "state" ? "state" : "switch",
         group: String(item.group),
@@ -8303,7 +8285,7 @@ function NormalizeSwitchPath(value)
         childId: String(item.childId),
         fadeOutMs: Math.max(0, Number(item.fadeOutMs) || 0),
         fadeInMs: Math.max(0, Number(item.fadeInMs) || 0),
-    })));
+    }));
 }
 
 function CreateProgramSelectionControllers(selections)
@@ -8629,11 +8611,9 @@ function NormalizeVoiceDescriptors(result, eventLoop)
             fadeCurve,
             actionIndex,
             leafIndex,
-            matchIds: Object.freeze(
-                (value.matchIds ?? []).map(String),
-            ),
+            matchIds: (value.matchIds ?? []).map(String),
             ...(busRouteNodeId === undefined ? {} : { busRouteNodeId }),
-            busPathIds: Object.freeze(busPathIds),
+            busPathIds: busPathIds,
             ...(value.busVoiceVolumeActionControlled === true
                 ? { busVoiceVolumeActionControlled: true }
                 : {}),
@@ -8717,13 +8697,13 @@ function NormalizeVoiceDryVolumeCurve(value, index)
             );
         }
         previous = x;
-        return Object.freeze({ x, value: curveValue, interpolation });
+        return { x, value: curveValue, interpolation };
     });
 
-    return Object.freeze({
+    return {
         scaling: 2,
-        points: Object.freeze(points),
-    });
+        points: points,
+    };
 }
 
 function ApplyVoiceVolumeAction(states, targetId, action)

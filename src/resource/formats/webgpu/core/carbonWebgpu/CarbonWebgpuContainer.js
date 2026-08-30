@@ -213,7 +213,7 @@ export class CarbonWebgpuContainer
         for (const [ offset, key ] of bodyKeys)
         {
             const record = this.carbon.records.find((entry) => entry.offset === offset);
-            bodies.push(Object.freeze({
+            bodies.push({
                 key,
                 offset,
                 byteLength: record.size,
@@ -226,10 +226,10 @@ export class CarbonWebgpuContainer
                 sha256: sha256Bytes(this.bytes.subarray(offset, offset + record.size)),
                 permutationCount: this.carbon.records
                     .filter((entry) => entry.offset === offset).length
-            }));
+            });
         }
 
-        return Object.freeze({
+        return {
             // The envelope the chunk `PGRF` document carried. Not provenance:
             // `Tr2EffectRes.SetPayload` validates it before accepting a payload
             // at all, so a graph without it is refused outright.
@@ -238,39 +238,37 @@ export class CarbonWebgpuContainer
             // Fixed by construction rather than recorded. A container always
             // carries every permutation, the offset table gives body identity
             // only, and source reflection is not a separate document.
-            coverage: Object.freeze({
+            coverage: {
                 permutations: "complete",
                 bodies: "identity-only",
                 reflection: "absent"
-            }),
-            axes: Object.freeze(this.carbon.permutations.map((axis, index) => Object.freeze({
+            },
+            axes: this.carbon.permutations.map((axis, index) => ({
                 index,
                 name: axis.name.value,
                 defaultOption: axis.defaultOption,
                 description: axis.description.value,
                 type: axis.type,
-                options: Object.freeze(axis.options.map((option) => option.value))
-            }))),
-            variants: Object.freeze(this.carbon.records.map((record, permutationIndex) =>
-                Object.freeze({
+                options: axis.options.map((option) => option.value)
+            })),
+            variants: this.carbon.records.map((record, permutationIndex) =>
+                ({
                     permutationIndex,
                     bodyKey: bodyKeys.get(record.offset),
                     // Mixed-radix decomposition of the index over the axes, which
                     // is the inverse of the sum Carbon's GetShader() builds when
                     // it walks options in declaration order.
-                    optionIndices: Object.freeze(
-                        optionIndicesFor(this.carbon.permutations, permutationIndex)
-                    ),
+                    optionIndices: optionIndicesFor(this.carbon.permutations, permutationIndex),
                     // The offset-table row itself. Aliased permutations share a
                     // stored record, so the consumer can prove that two
                     // permutations resolve to the same emitted bytes.
-                    sourceRecord: Object.freeze({
+                    sourceRecord: {
                         offset: record.offset,
                         byteLength: record.size
-                    })
-                }))),
-            bodies: Object.freeze(bodies)
-        });
+                    }
+                })),
+            bodies: bodies
+        };
     }
 
     /**
@@ -307,7 +305,7 @@ export class CarbonWebgpuContainer
                     const stageName = WEBGPU_STAGE_NAME[stage.type];
                     if (!stageName || stage.shaderData.size === 0) continue;
                     translated = true;
-                    shaders.push(Object.freeze({
+                    shaders.push({
                         key: `${passKey}.${stageName}`,
                         techniqueName: technique.name.value,
                         passIndex,
@@ -319,7 +317,7 @@ export class CarbonWebgpuContainer
                         ...(stageName === "compute"
                             ? { threadGroupSize: [ ...stage.threadGroupSize ] }
                             : {})
-                    }));
+                    });
                 }
 
                 if (!shaders.length) continue;
@@ -341,31 +339,31 @@ export class CarbonWebgpuContainer
                     })
                     : null;
 
-                passes.push(Object.freeze({
+                passes.push({
                     passKey,
-                    shaders: Object.freeze(shaders),
-                    layouts: Object.freeze(block
-                        ? [ Object.freeze({
+                    shaders: shaders,
+                    layouts: block
+                        ? [ {
                             key: passKey,
                             techniqueName: technique.name.value,
                             passIndex,
                             bindGroups: block.bindGroups
-                        }) ]
-                        : []),
+                        } ]
+                        : [],
                     ...(block?.transforms?.length
-                        ? { resourceTransforms: Object.freeze(block.transforms) }
+                        ? { resourceTransforms: block.transforms }
                         : {})
-                }));
+                });
             }
         }
 
-        return Object.freeze({
+        return {
             permutationIndex,
             bodyKey,
             status: translated ? "translated" : "unsupported",
             error: translated ? null : "body carries no translated programs",
-            passes: Object.freeze(passes)
-        });
+            passes: passes
+        };
     }
 
     /**
@@ -390,19 +388,19 @@ export class CarbonWebgpuContainer
     get info()
     {
         const bodyKeys = this.bodyKeyByOffset;
-        return Object.freeze({
+        return {
             format: "CARBON_WEBGPU",
             // Carbon's own version dword, always 15. There is no container
             // version of ours: see buildCarbonEffectContainer for why nothing
             // announces the payload, and why identity comes from the path.
             containerVersion: this.containerVersion,
             sourcePath: this.sourcePath,
-            compilerVersion: Object.freeze([ ...this.carbon.compilerVersion ]),
+            compilerVersion: [ ...this.carbon.compilerVersion ],
             sourceHash: textDecoder.decode(this.carbon.sourceHash),
             permutationCount: this.carbon.records.length,
             uniqueBodyCount: bodyKeys.size,
             axisCount: this.carbon.permutations.length
-        });
+        };
     }
 }
 

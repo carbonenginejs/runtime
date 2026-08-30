@@ -125,16 +125,16 @@ function frozenRecord(entries)
       value
     });
   }
-  return Object.freeze(result);
+  return result;
 }
 
 function snapshotPlain(value)
 {
   if (!value || typeof value !== "object") return value;
-  if (Array.isArray(value)) return Object.freeze(value.map(snapshotPlain));
+  if (Array.isArray(value)) return value.map(snapshotPlain);
   const result = {};
   for (const [ key, entry ] of Object.entries(value)) result[key] = snapshotPlain(entry);
-  return Object.freeze(result);
+  return result;
 }
 
 function samePlain(left, right)
@@ -240,7 +240,7 @@ function canonicalVertexLayouts(values, label)
       shaderLocations.add(attribute.shaderLocation);
     }
   }
-  return Object.freeze(layouts);
+  return layouts;
 }
 
 function normalizeGeometry(options)
@@ -571,18 +571,18 @@ function normalizeResourceBundle(options)
     {
       if (key.trim() === "") fail(`resource bundle ${category} keys must be non-empty`);
       assertPlainObject(value, `resource bundle ${category}.${key}`);
-      definitions.push(Object.freeze({
+      definitions.push({
         category,
         kind,
         key,
         options: value.label === undefined
           ? { ...value, label: `${label}.${kind}.${key}` }
           : value
-      }));
+      });
     }
   }
   if (!definitions.length) fail("resource bundle must contain at least one geometry, texture, or sampler");
-  return Object.freeze({ label, definitions: Object.freeze(definitions) });
+  return { label, definitions: definitions };
 }
 
 function normalizeResourceRealizationOptions(options)
@@ -594,7 +594,7 @@ function normalizeResourceRealizationOptions(options)
   {
     fail("resource realization adapterKey must be a non-empty string");
   }
-  return Object.freeze({ adapterKey });
+  return { adapterKey };
 }
 
 function normalizeRgba8TextureRealizationOptions(options)
@@ -616,7 +616,7 @@ function normalizeRgba8TextureRealizationOptions(options)
   {
     fail("RGBA8 texture realization adapterKey must be a non-empty string");
   }
-  return Object.freeze({ name: "RGBA8 texture realization", textureKey, bundleLabel, adapterKey });
+  return { name: "RGBA8 texture realization", textureKey, bundleLabel, adapterKey };
 }
 
 function normalizeSamplerRealizationOptions(options)
@@ -638,7 +638,7 @@ function normalizeSamplerRealizationOptions(options)
   {
     fail("sampler realization adapterKey must be a non-empty string");
   }
-  return Object.freeze({ name: "sampler realization", samplerKey, bundleLabel, adapterKey });
+  return { name: "sampler realization", samplerKey, bundleLabel, adapterKey };
 }
 
 function mapRgba8TexturePayload(value, plan)
@@ -693,17 +693,17 @@ function mapRgba8TexturePayload(value, plan)
     fail(`${label} alphaMode must be straight or opaque`);
   }
 
-  const texture = Object.freeze({
+  const texture = {
     width: value.width,
     height: value.height,
     format: value.colorSpace === "srgb" ? "rgba8unorm-srgb" : "rgba8unorm",
     bytesPerRow: value.strideBytes,
     data: value.data
-  });
-  return Object.freeze({
+  };
+  return {
     label: plan.bundleLabel,
     textures: frozenRecord([ [ plan.textureKey, texture ] ])
-  });
+  };
 }
 
 function mapSamplerPayload(value, plan)
@@ -723,14 +723,14 @@ function mapSamplerPayload(value, plan)
   }
   const { payloadType: _payloadType, ...descriptor } = value;
   const normalized = normalizeSampler(descriptor);
-  const sampler = Object.freeze({
+  const sampler = {
     label: normalized.label,
     ...normalized.semantic
-  });
-  return Object.freeze({
+  };
+  return {
     label: plan.bundleLabel,
     samplers: frozenRecord([ [ plan.samplerKey, sampler ] ])
-  });
+  };
 }
 
 function assertRealizationResource(resource)
@@ -744,14 +744,14 @@ function assertRealizationResource(resource)
 
 function cloneDiagnostics(messages)
 {
-  return Object.freeze((messages || []).map((message) => Object.freeze({
+  return (messages || []).map((message) => ({
     type: String(message.type || "info"),
     message: String(message.message || ""),
     lineNum: Number.isInteger(message.lineNum) ? message.lineNum : null,
     linePos: Number.isInteger(message.linePos) ? message.linePos : null,
     offset: Number.isInteger(message.offset) ? message.offset : null,
     length: Number.isInteger(message.length) ? message.length : null
-  })));
+  }));
 }
 
 function visibilityFlags(visibility, shaderStage)
@@ -813,9 +813,9 @@ function normalizePipeline(pipeline, shaderStage)
     if (group?.group !== groupIndex) fail("canonical bind groups must be contiguous from group 0");
     const bindings = Array.isArray(group.bindings) ? group.bindings.slice() : [];
     bindings.sort((left, right) => left.binding - right.binding);
-    return Object.freeze({
+    return {
       group: group.group,
-      entries: Object.freeze(bindings.map((binding) =>
+      entries: bindings.map((binding) =>
       {
         if (binding?.group !== group.group || !Number.isInteger(binding.binding) || binding.binding < 0)
         {
@@ -836,31 +836,31 @@ function normalizePipeline(pipeline, shaderStage)
           fail(`canonical layout mixes shared and stage-scoped forms for ${baseIdentity}`);
         }
         scopes.add(identity);
-        return Object.freeze({
+        return {
           binding: binding.binding,
           identity,
-          descriptor: Object.freeze({
+          descriptor: {
             binding: binding.binding,
             visibility: visibilityFlags(binding.visibility, shaderStage),
             ...bindingLayout(binding)
-          })
-        });
-      }))
-    });
+          }
+        };
+      })
+    };
   });
 
-  const stageSnapshot = (shader) => Object.freeze({
+  const stageSnapshot = (shader) => ({
     key: String(shader.key || ""),
     stageName: String(shader.stageName || ""),
     wgsl: shader.wgsl,
     entryPoint: shader.entryPoint
   });
-  return Object.freeze({
+  return {
     key: String(value.key || ""),
     vertex: stageSnapshot(vertex[0]),
     fragment: stageSnapshot(fragment[0]),
-    groups: Object.freeze(normalizedGroups)
-  });
+    groups: normalizedGroups
+  };
 }
 
 function findResource(resources, identity)
@@ -1050,7 +1050,7 @@ function resolveDynamicOffsets(record, offsets, device)
       values.push(value);
     }
 
-    perGroup[group.group] = Object.freeze(values);
+    perGroup[group.group] = values;
   }
 
   if (supplied)
@@ -1061,7 +1061,7 @@ function resolveDynamicOffsets(record, offsets, device)
     }
   }
 
-  return anyDynamic ? Object.freeze(perGroup) : null;
+  return anyDynamic ? perGroup : null;
 }
 
 function assertAdapterResources(records, label)
@@ -1229,7 +1229,7 @@ export class CjsWebgpuDevice
             label: `${descriptor.key || "pipeline"}.${stageName}`,
             code: shader.wgsl
           });
-          modules[stageName] = Object.freeze({ module, entryPoint: shader.entryPoint });
+          modules[stageName] = { module, entryPoint: shader.entryPoint };
         }
         this._AssertGeneration(generation);
         const bindGroupLayouts = descriptor.groups.map((group) => device.createBindGroupLayout({
@@ -1246,7 +1246,7 @@ export class CjsWebgpuDevice
           const module = modules[stageName].module;
           const messages = typeof module.getCompilationInfo === "function"
             ? cloneDiagnostics((await module.getCompilationInfo()).messages)
-            : Object.freeze([]);
+            : [];
           return { stageName, messages };
         }));
         const [ compilation, validationError ] = await Promise.all([ compilationPromise, validationPromise ]);
@@ -1254,7 +1254,7 @@ export class CjsWebgpuDevice
         const diagnostics = [];
         for (const { stageName, messages } of compilation)
         {
-          diagnostics.push(...messages.map((message) => Object.freeze({ stage: stageName, ...message })));
+          diagnostics.push(...messages.map((message) => ({ stage: stageName, ...message })));
           const errors = messages.filter((message) => message.type === "error");
           const warnings = messages.filter((message) => message.type === "warning");
           if (errors.length || (prepareOptions.warningsAsErrors && warnings.length))
@@ -1264,13 +1264,13 @@ export class CjsWebgpuDevice
           }
         }
         this._AssertGeneration(generation);
-        const prepared = Object.freeze({
+        const prepared = {
           key: descriptor.key,
           generation,
-          diagnostics: Object.freeze(diagnostics),
-          bindGroupLayouts: Object.freeze(bindGroupLayouts.slice()),
+          diagnostics: diagnostics,
+          bindGroupLayouts: bindGroupLayouts.slice(),
           pipelineLayout
-        });
+        };
         PREPARED_PIPELINES.set(prepared, {
           owner: this,
           generation,
@@ -1339,12 +1339,12 @@ export class CjsWebgpuDevice
         const [ gpuPipeline, validationError ] = await Promise.all([ pipelinePromise, validationPromise ]);
         if (validationError) fail(`render-pipeline validation failed: ${validationError.message || validationError}`);
         this._AssertGeneration(record.generation);
-        const livePipeline = Object.freeze({
+        const livePipeline = {
           key: record.descriptor.key,
           generation: record.generation,
           prepared,
           pipeline: gpuPipeline
-        });
+        };
         LIVE_PIPELINES.set(livePipeline, { ...record, livePipeline, pipeline: gpuPipeline, pipelineRecipe });
         return livePipeline;
       }
@@ -1417,7 +1417,7 @@ export class CjsWebgpuDevice
 
       try
       {
-        const vertexBuffers = plan.vertexBuffers.map((entry) => Object.freeze({
+        const vertexBuffers = plan.vertexBuffers.map((entry) => ({
           slot: entry.slot,
           buffer: upload(entry.label || `${plan.label}.vertex${entry.slot}`, entry.data, "VERTEX"),
           offset: 0,
@@ -1426,13 +1426,13 @@ export class CjsWebgpuDevice
           stepMode: entry.layout.stepMode
         }));
         const indexBuffer = plan.indexBuffer
-          ? Object.freeze({
+          ? {
             buffer: upload(plan.indexBuffer.label || `${plan.label}.index`, plan.indexBuffer.data, "INDEX"),
             format: plan.indexBuffer.format,
             offset: 0,
             size: plan.indexBuffer.data.byteLength,
             count: plan.indexBuffer.data.byteLength / (plan.indexBuffer.format === "uint16" ? 2 : 4)
-          })
+          }
           : null;
         const validationPromise = popScope("validation");
         const memoryPromise = popScope("memory");
@@ -1446,14 +1446,14 @@ export class CjsWebgpuDevice
           fail(`geometry validation failed: ${validationError.message || validationError}`);
         }
         this._AssertGeneration(generation);
-        const vertexBufferLayouts = Object.freeze(plan.vertexBuffers.map((entry) => entry.layout));
+        const vertexBufferLayouts = plan.vertexBuffers.map((entry) => entry.layout);
         const minimumCapacity = (stepMode) =>
         {
           const capacities = vertexBuffers.filter((entry) => entry.stepMode === stepMode).map((entry) => entry.capacity);
           return capacities.length ? Math.min(...capacities) : null;
         };
         let geometry;
-        geometry = Object.freeze({
+        geometry = {
           label: plan.label,
           generation,
           vertexBufferCount: vertexBuffers.length,
@@ -1464,14 +1464,14 @@ export class CjsWebgpuDevice
           indexFormat: indexBuffer?.format || null,
           indexCount: indexBuffer?.count || 0,
           Destroy: () => this.DestroyGeometry(geometry)
-        });
+        };
         GEOMETRIES.set(geometry, {
           owner: this,
           generation,
-          vertexBuffers: Object.freeze(vertexBuffers),
+          vertexBuffers: vertexBuffers,
           vertexBufferLayouts,
           indexBuffer,
-          ownedBuffers: Object.freeze(ownedBuffers.slice()),
+          ownedBuffers: ownedBuffers.slice(),
           destroyed: false
         });
         return geometry;
@@ -1606,7 +1606,7 @@ export class CjsWebgpuDevice
         }
         this._AssertGeneration(generation);
         let texture;
-        texture = Object.freeze({
+        texture = {
           label: plan.label,
           generation,
           width: plan.width,
@@ -1619,7 +1619,7 @@ export class CjsWebgpuDevice
           format: plan.formatName,
           isSRGB: plan.format.isSRGB,
           Destroy: () => this.DestroyTexture(texture)
-        });
+        };
         TEXTURES.set(texture, {
           kind: "texture",
           owner: this,
@@ -1690,7 +1690,7 @@ export class CjsWebgpuDevice
             fail(`sampler validation failed: ${validationError.message || validationError}`);
           }
           this._AssertGeneration(generation);
-          cached = Object.freeze({ generation, sampler: nativeSampler });
+          cached = { generation, sampler: nativeSampler };
           this._samplerCache.set(plan.cacheKey, cached);
         }
         catch (error)
@@ -1705,14 +1705,14 @@ export class CjsWebgpuDevice
       }
 
       let sampler;
-      sampler = Object.freeze({
+      sampler = {
         label: plan.label,
         generation,
         ...plan.semantic,
         isComparison: plan.isComparison,
         isFiltering: plan.isFiltering,
         Destroy: () => this.DestroySampler(sampler)
-      });
+      };
       SAMPLERS.set(sampler, {
         kind: "sampler",
         owner: this,
@@ -1753,11 +1753,11 @@ export class CjsWebgpuDevice
       if (definition.kind === "geometry") promise = this.CreateGeometry(definition.options);
       else if (definition.kind === "texture") promise = this.CreateTexture(definition.options);
       else promise = this.CreateSampler(definition.options);
-      return Object.freeze({ definition, promise });
+      return { definition, promise };
     });
     const results = await Promise.allSettled(tasks.map((task) => task.promise));
     const fulfilled = results.flatMap((result, index) => result.status === "fulfilled"
-      ? [ Object.freeze({ definition: tasks[index].definition, resource: result.value }) ]
+      ? [ { definition: tasks[index].definition, resource: result.value } ]
       : []);
     const failure = results.find((result) => result.status === "rejected");
     let generationError = null;
@@ -1791,18 +1791,18 @@ export class CjsWebgpuDevice
     const textures = frozenRecord(categoryEntries.textures);
     const samplers = frozenRecord(categoryEntries.samplers);
     let bundle;
-    bundle = Object.freeze({
+    bundle = {
       label: plan.label,
       generation,
       geometries,
       textures,
       samplers,
       Destroy: () => this.DestroyResourceBundle(bundle)
-    });
+    };
     RESOURCE_BUNDLES.set(bundle, {
       owner: this,
       generation,
-      resources: Object.freeze(fulfilled.map((entry) => entry.resource)),
+      resources: fulfilled.map((entry) => entry.resource),
       destroyed: false
     });
     return bundle;
@@ -2127,7 +2127,7 @@ export class CjsWebgpuDevice
         }))
       }));
       let bindingSet;
-      bindingSet = Object.freeze({
+      bindingSet = {
         key: record.descriptor.key,
         generation: record.generation,
         Update: (uniformData) =>
@@ -2136,15 +2136,15 @@ export class CjsWebgpuDevice
           return bindingSet;
         },
         Destroy: () => this.DestroyBindingSet(bindingSet)
-      });
+      };
       BINDING_SETS.set(bindingSet, {
         owner: this,
         generation: record.generation,
         livePipeline,
-        bindGroups: Object.freeze(bindGroups),
-        buffers: Object.freeze(buffers.slice()),
+        bindGroups: bindGroups,
+        buffers: buffers.slice(),
         uniforms,
-        adapterResources: Object.freeze(Array.from(adapterResources)),
+        adapterResources: Array.from(adapterResources),
         destroyed: false
       });
       return bindingSet;
@@ -2225,7 +2225,7 @@ export class CjsWebgpuDevice
       {
         fail("draw geometry vertex layouts do not match the live pipeline");
       }
-      vertexBuffers = geometryRecord.vertexBuffers.map(({ slot, buffer, offset, size }) => Object.freeze({
+      vertexBuffers = geometryRecord.vertexBuffers.map(({ slot, buffer, offset, size }) => ({
         slot,
         buffer,
         offset,
@@ -2239,7 +2239,7 @@ export class CjsWebgpuDevice
         if (!Number.isInteger(entry?.slot) || entry.slot < 0 || !entry.buffer) fail("draw has an invalid vertex buffer");
         if (Object.hasOwn(entry, "offset") && (!Number.isSafeInteger(entry.offset) || entry.offset < 0)) fail("draw has an invalid vertex-buffer offset");
         if (Object.hasOwn(entry, "size") && (!Number.isSafeInteger(entry.size) || entry.size < 0)) fail("draw has an invalid vertex-buffer size");
-        return Object.freeze({ ...entry });
+        return { ...entry };
       });
     }
     const vertexSlots = new Set();
@@ -2293,7 +2293,7 @@ export class CjsWebgpuDevice
     const suppliedIndexBuffer = geometryRecord?.indexBuffer || options.indexBuffer;
     if (!indexed && suppliedIndexBuffer) fail("non-indexed draw cannot include an index buffer");
     if (indexed && (!suppliedIndexBuffer?.buffer || !suppliedIndexBuffer.format)) fail("indexed draw requires an index buffer and format");
-    const indexBuffer = indexed ? Object.freeze({ ...suppliedIndexBuffer }) : null;
+    const indexBuffer = indexed ? { ...suppliedIndexBuffer } : null;
     if (indexBuffer && Object.hasOwn(indexBuffer, "offset") && (!Number.isSafeInteger(indexBuffer.offset) || indexBuffer.offset < 0)) fail("draw has an invalid index-buffer offset");
     if (indexBuffer && Object.hasOwn(indexBuffer, "size") && (!Number.isSafeInteger(indexBuffer.size) || indexBuffer.size < 0)) fail("draw has an invalid index-buffer size");
     if (geometryRecord)
@@ -2356,24 +2356,24 @@ export class CjsWebgpuDevice
       }));
     }
 
-    const draw = Object.freeze({
+    const draw = {
       key: record.descriptor.key,
       generation: record.generation,
       livePipeline,
-      bindGroups: Object.freeze(bindGroups),
+      bindGroups: bindGroups,
       dynamicOffsets: resolveDynamicOffsets(record, options.dynamicOffsets, this.GetDevice()),
-      vertexBuffers: Object.freeze(vertexBuffers),
+      vertexBuffers: vertexBuffers,
       indexed,
       indexBuffer,
-      draw: Object.freeze(normalizedDraw)
-    });
+      draw: normalizedDraw
+    };
     DRAWS.set(draw, {
       owner: this,
       generation: record.generation,
       record,
       bindingSetRecord,
       geometryRecord,
-      adapterResources: Object.freeze(Array.from(adapterResources)),
+      adapterResources: Array.from(adapterResources),
       draw
     });
     return draw;

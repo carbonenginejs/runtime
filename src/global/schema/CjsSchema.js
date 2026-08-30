@@ -516,7 +516,7 @@ export class CjsSchema
             const base = methodDecorator("carbon", {
                 method: true,
                 contextual: true,
-                contextTiers: Object.freeze(normalized)
+                contextTiers: normalized
             });
             const described = getDecoratorMetadata(base);
             return describeDecorator(function contextualMethodDecorator(targetOrValue, contextOrMethodName)
@@ -561,19 +561,19 @@ function captureFieldInitialDefault(Constructor, fieldName, initialValue, declar
 
     try
     {
-        fields.set(fieldName, Object.freeze({
+        fields.set(fieldName, {
             value: deepFreezeDefaultValue(snapshotSchemaDefault(initialValue)),
             declarationMetadata
-        }));
+        });
     }
     catch (err)
     {
         // Schema capture must never make ordinary class construction fail. The
         // explicit defaults request reports the unsupported value instead.
-        fields.set(fieldName, Object.freeze({
+        fields.set(fieldName, {
             error: err instanceof Error ? err.message : String(err),
             declarationMetadata
-        }));
+        });
     }
     DEFAULT_EXPORTS.delete(Constructor);
 }
@@ -918,7 +918,7 @@ function deepFreezeDefaultValue(value, seen = new WeakSet())
     if (!value || typeof value !== "object" || seen.has(value)) return value;
     seen.add(value);
     for (const item of Object.values(value)) deepFreezeDefaultValue(item, seen);
-    return Object.freeze(value);
+    return value;
 }
 
 function createComponentsNamespace()
@@ -929,7 +929,7 @@ function createComponentsNamespace()
         indices: { value: getComponentIndices },
         set: { value: setComponentValue }
     });
-    return Object.freeze(components);
+    return components;
 }
 
 // Every decorator carries the namespace and value it would install. That is
@@ -1127,7 +1127,7 @@ function defineClassMetadata(Constructor, definition)
     if (definition.family) schema.family = definition.family;
     if (definition.purpose) schema.purpose = definition.purpose;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
-    if (definition.aliases) schema.aliases = Object.freeze([...definition.aliases]);
+    if (definition.aliases) schema.aliases = [...definition.aliases];
 
     for (const field of definition.fields || [])
     {
@@ -1448,7 +1448,7 @@ function normalizeHiddenInheritedFields(fieldNames)
         return fieldName.trim();
     });
 
-    return Object.freeze([...new Set(normalized)]);
+    return [...new Set(normalized)];
 }
 
 function recordStage3FieldMetadata(context, namespace, value)
@@ -1658,8 +1658,8 @@ function normalizeEnumSchema(values, definition)
 {
     const type = values?.Type || values;
     const members = Array.isArray(definition.members)
-        ? Object.freeze(definition.members.map(member => Object.freeze({ ...member })))
-        : Object.freeze([]);
+        ? definition.members.map(member => ({ ...member }))
+        : [];
     const result = {
         name: definition.name || values?.[CJS_ENUM_NAME] || values?.Source?.name || values?.name || null,
         type,
@@ -1670,14 +1670,14 @@ function normalizeEnumSchema(values, definition)
     if (definition.family) result.family = definition.family;
     if (definition.line !== undefined && definition.line !== null) result.line = definition.line;
 
-    return Object.freeze(result);
+    return result;
 }
 
 function normalizeEnumDefinition(values)
 {
     if (typeof values === "string")
     {
-        return Object.freeze({ enumType: values });
+        return { enumType: values };
     }
 
     const type = values?.Type || (isPlainObject(values) ? values : null);
@@ -1688,10 +1688,10 @@ function normalizeEnumDefinition(values)
         };
         const enumType = CjsSchema.getEnumName(values);
         if (enumType) result.enumType = enumType;
-        return Object.freeze(result);
+        return result;
     }
 
-    return Object.freeze({ values });
+    return { values };
 }
 
 function normalizeComponentDefinition(definition)
@@ -1701,15 +1701,15 @@ function normalizeComponentDefinition(definition)
         throw new TypeError("CjsSchema.components requires a plain object definition.");
     }
 
-    return Object.freeze(Object.fromEntries(Object.entries(definition).map(([swizzle, value]) => [
+    return Object.fromEntries(Object.entries(definition).map(([swizzle, value]) => [
         normalizeSwizzle(swizzle),
         normalizeComponentEntry(value)
-    ])));
+    ]));
 }
 
 function normalizeComponentEntry(value)
 {
-    if (typeof value === "string") return Object.freeze({ name: value });
+    if (typeof value === "string") return { name: value };
     if (isPlainObject(value)) return cloneSchemaValue(value);
     return value;
 }
@@ -1757,7 +1757,7 @@ function setComponentValue(target, swizzle, value)
 
 function getComponentIndices(swizzle)
 {
-    return Object.freeze([...normalizeSwizzle(swizzle)].map(componentIndex));
+    return [...normalizeSwizzle(swizzle)].map(componentIndex);
 }
 
 function normalizeSwizzle(swizzle)
@@ -1829,14 +1829,14 @@ function enrichEnumField(exported, Constructor)
         current = Object.getPrototypeOf(current);
     }
 
-    return Object.freeze({
+    return {
         ...exported,
-        enum: Object.freeze({
+        enum: {
             ...exported.enum,
             identity: `${CjsSchema.getClassName(owner) || owner.name}.${enumType}`,
             members
-        })
-    });
+        }
+    };
 }
 
 function exportField(field, namespaces)
@@ -1863,8 +1863,8 @@ function normalizeNamespaces(namespaces)
 
 function cloneSchemaValue(value)
 {
-    if (Array.isArray(value)) return Object.freeze(value.map(cloneSchemaValue));
-    if (isPlainObject(value)) return Object.freeze(Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneSchemaValue(item)])));
+    if (Array.isArray(value)) return value.map(cloneSchemaValue);
+    if (isPlainObject(value)) return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneSchemaValue(item)]));
     return value;
 }
 

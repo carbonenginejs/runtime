@@ -26,7 +26,7 @@ export class CjsBusGraphRuntime
             throw new TypeError("Audio Bus graph runtime requires a version-1 route catalog");
         }
         this.#catalog = value;
-        this.#routes = value.routes.map((route, index) => Object.freeze({
+        this.#routes = value.routes.map((route, index) => ({
             index,
             route,
         }));

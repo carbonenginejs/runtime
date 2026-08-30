@@ -140,7 +140,7 @@ class CjsSfxEngineSelectionTransactionLedger
 
         let settled = false;
 
-        return Object.freeze({
+        return {
             program,
             commit: () =>
             {
@@ -163,7 +163,7 @@ class CjsSfxEngineSelectionTransactionLedger
                 this.#leasedTokens.delete(token);
                 this.#ReleaseSelectionReservations(transaction);
             },
-        });
+        };
     }
 
     /** Captures one selection-state key before speculative mutation. */
@@ -464,12 +464,10 @@ export class CjsSfxEngine
                         matchIds: _matchIds,
                         programBatchId: _programBatchId,
                         ...selection
-                    }, index, selections) => Object.freeze(
-                        PreserveAuthoredPitch(
+                    }, index, selections) => PreserveAuthoredPitch(
                             selections[index],
                             selection,
-                        ),
-                    ))
+                        ))
                     : []);
     }
 
@@ -580,7 +578,7 @@ export class CjsSfxEngine
                     )
                     : null;
 
-                continuations.push(Object.freeze({
+                continuations.push({
                     programSlotId,
                     programBatchId,
                     token: branch.token,
@@ -618,9 +616,9 @@ export class CjsSfxEngine
                     ...(switchSession
                         ? {
                             advance: "switch",
-                            matchIds: Object.freeze([
+                            matchIds: [
                                 ...branch.token.active,
-                            ]),
+                            ],
                             switchGroups: ContinuousSwitchGroups(
                                 branch.token.route,
                             ),
@@ -641,26 +639,24 @@ export class CjsSfxEngine
                                 }
                             : {}
                         )),
-                }));
+                });
             }
-            operations.push(Object.freeze({
+            operations.push({
                 kind: "play",
                 actionIndex,
-                selections: Object.freeze(resolved.map(
-                    (selection, leafIndex) => Object.freeze(
-                        PreserveAuthoredPitch(selection, {
+                selections: resolved.map(
+                    (selection, leafIndex) => PreserveAuthoredPitch(selection, {
                             ...selection,
                             actionIndex,
                             leafIndex,
                         }),
-                    ),
-                )),
+                ),
                 ...(continuations.length
                     ? {
-                        continuations: Object.freeze(continuations),
+                        continuations: continuations,
                     }
                     : {}),
-            }));
+            });
         };
 
         if (program !== null)
@@ -761,10 +757,10 @@ export class CjsSfxEngine
                 {
                     if (Number(action.delayMs) > 0)
                     {
-                        operations.push(Object.freeze({
+                        operations.push({
                             ...action,
                             actionIndex,
-                        }));
+                        });
                     }
                     else
                     {
@@ -778,14 +774,14 @@ export class CjsSfxEngine
                     );
                 }
             }
-            return Object.freeze(operations);
+            return operations;
         }
 
         if (roots.length)
         {
             addPlay(roots, 0);
         }
-        return Object.freeze(operations);
+        return operations;
     }
 
     /**
@@ -821,7 +817,7 @@ export class CjsSfxEngine
         this.#selectionLedger.AssertContinuationAvailable(token);
         if (token.done)
         {
-            return Object.freeze([]);
+            return [];
         }
         if (token.kind === "switch")
         {
@@ -863,7 +859,7 @@ export class CjsSfxEngine
 
         if (selections === null)
         {
-            return Object.freeze([]);
+            return [];
         }
         if (token.kind === "nested-trigger-rate-delay"
             && token.continuationTerms.delayMs !== 0)
@@ -890,23 +886,21 @@ export class CjsSfxEngine
                 () => this.#SampleUnit(),
             )
             : 0);
-        return Object.freeze([
-            Object.freeze({
+        return [
+            {
                 kind: "play",
                 actionIndex: token.actionIndex,
-                selections: Object.freeze(selections.map(
-                    (selection, leafIndex) => Object.freeze(
-                        PreserveAuthoredPitch(selection, {
+                selections: selections.map(
+                    (selection, leafIndex) => PreserveAuthoredPitch(selection, {
                             ...selection,
                             actionIndex: token.actionIndex,
                             leafIndex,
                             programSlotId: token.programSlotId,
                             programBatchId,
                         }),
-                    ),
-                )),
-                continuations: Object.freeze([
-                    Object.freeze({
+                ),
+                continuations: [
+                    {
                         programSlotId: token.programSlotId,
                         programBatchId,
                         token,
@@ -936,10 +930,10 @@ export class CjsSfxEngine
                                     nestedContinuation.crossfadeMode,
                             }
                             : {}),
-                    }),
-                ]),
-            }),
-        ]);
+                    },
+                ],
+            },
+        ];
     }
 
     /**
@@ -1254,22 +1248,22 @@ export class CjsSfxEngine
 
         if (node.type === "sound" || node.type === "timed-silence")
         {
-            const rtpcCurves = Object.freeze([
+            const rtpcCurves = [
                 ...terms.rtpcCurves,
-            ]);
-            const stateProperties = Object.freeze([
+            ];
+            const stateProperties = [
                 ...terms.stateProperties,
-            ]);
+            ];
             const dynamicPitch = HasStateCaseField(
                 stateProperties,
                 "pitchCents",
             )
                 || rtpcCurves.some(curve =>
                     curve.property === "pitch");
-            const matchIds = Object.freeze([ ...new Set([
+            const matchIds = [ ...new Set([
                 ...nextActive,
                 ...(node.matchIds ?? []),
-            ]) ]);
+            ]) ];
             const hasLowPass = terms.hasLowPass
                 || HasStateCaseField(stateProperties, "lowPass")
                 || rtpcCurves.some(curve =>
@@ -1301,9 +1295,7 @@ export class CjsSfxEngine
                 ...(node.outputBusId === undefined
                     ? {}
                     : {
-                        busPathIds: Object.freeze(
-                            node.busPathIds.map(String),
-                        ),
+                        busPathIds: node.busPathIds.map(String),
                         ...(node.busPathIds.some(value =>
                             this.#busVoiceVolumeTargets.has(String(value)))
                             ? { busVoiceVolumeActionControlled: true }
@@ -1347,7 +1339,7 @@ export class CjsSfxEngine
                     ? {}
                     : { voiceLimit: node.voiceLimit }),
                 gainDb: terms.gainDb,
-                gainCurves: Object.freeze([ ...terms.gainCurves ]),
+                gainCurves: [ ...terms.gainCurves ],
                 ...(rtpcCurves.length ? { rtpcCurves } : {}),
                 ...(stateProperties.length ? { stateProperties } : {}),
                 ...(dynamicPitch
@@ -1383,7 +1375,7 @@ export class CjsSfxEngine
                 selection,
                 controls,
             );
-            selections.push(Object.freeze(selection));
+            selections.push(selection);
             return;
         }
         if (node.type === "silence")
@@ -1568,7 +1560,7 @@ export class CjsSfxEngine
                 fadeInMs: 0,
             },
             active,
-            route: Object.freeze([]),
+            route: [],
             actionIndex: -1,
             programSlotId: "",
             batchIndex: 0,
@@ -1618,13 +1610,13 @@ export class CjsSfxEngine
             );
         }
 
-        const route = Object.freeze(session.route.map(Object.freeze));
+        const route = session.route.map(Object.freeze);
         return {
             route,
             selections: selections.map(selection =>
             {
                 const matchIDs = new Set(selection.matchIds.map(String));
-                const switchPath = Object.freeze(route.flatMap(decision =>
+                const switchPath = route.flatMap(decision =>
                 {
                     const childID = Object.keys(
                         decision.node.continuous.transitions,
@@ -1637,7 +1629,7 @@ export class CjsSfxEngine
                     const transition =
                         decision.node.continuous.transitions[childID];
 
-                    return [ Object.freeze({
+                    return [ {
                         containerId: decision.nodeID,
                         scope: decision.scope,
                         group: decision.group,
@@ -1645,13 +1637,13 @@ export class CjsSfxEngine
                         childId: childID,
                         fadeOutMs: Number(transition.fadeOutMs) || 0,
                         fadeInMs: Number(transition.fadeInMs) || 0,
-                    }) ];
-                }));
+                    } ];
+                });
 
-                return Object.freeze(PreserveAuthoredPitch(selection, {
+                return PreserveAuthoredPitch(selection, {
                     ...selection,
                     switchPath,
-                }));
+                });
             }),
         };
     }
@@ -1710,7 +1702,7 @@ export class CjsSfxEngine
 
         if (changedIndex === -1)
         {
-            return Object.freeze([]);
+            return [];
         }
 
         const changedContainerId = String(
@@ -1726,25 +1718,25 @@ export class CjsSfxEngine
                 const transition = selection.switchPath.find(value =>
                     value.containerId === changedContainerId);
 
-                return Object.freeze(PreserveAuthoredPitch(selection, {
+                return PreserveAuthoredPitch(selection, {
                     ...selection,
                     actionIndex: token.actionIndex,
                     leafIndex,
                     programSlotId: token.programSlotId,
                     programBatchId,
                     switchFadeInMs: transition?.fadeInMs ?? 0,
-                }));
+                });
             },
         );
 
         token.route = resolved.route;
-        return Object.freeze([
-            Object.freeze({
+        return [
+            {
                 kind: "play",
                 actionIndex: token.actionIndex,
-                selections: Object.freeze(selections),
-                continuations: Object.freeze([
-                    Object.freeze({
+                selections: selections,
+                continuations: [
+                    {
                         programSlotId: token.programSlotId,
                         programBatchId,
                         token,
@@ -1752,17 +1744,17 @@ export class CjsSfxEngine
                         delayMs: 0,
                         doneAfterBatch: false,
                         advance: "switch",
-                        matchIds: Object.freeze([
+                        matchIds: [
                             ...token.active,
-                        ]),
+                        ],
                         switchGroups: ContinuousSwitchGroups(
                             token.route,
                         ),
                         changedContainerId,
-                    }),
-                ]),
-            }),
-        ]);
+                    },
+                ],
+            },
+        ];
     }
 
     /** Creates one per-post Continuous container traversal. */
@@ -2222,7 +2214,7 @@ export class CjsSfxEngine
             return null;
         }
 
-        return Object.freeze({
+        return {
             kind: action.kind,
             actionIndex,
             targetId: String(Number(action.targetId) >>> 0),
@@ -2244,16 +2236,16 @@ export class CjsSfxEngine
                 action.actionFlags
                 ?? (action.kind === "pause" ? 7 : 6),
             ),
-            exceptions: Object.freeze(action.exceptions.map(exception =>
-                Object.freeze({
+            exceptions: action.exceptions.map(exception =>
+                ({
                     targetId: String(
                         Number(exception.targetId) >>> 0,
                     ),
                     targetFlags: Number(
                         exception.targetFlags ?? 0,
                     ),
-                }))),
-        });
+                })),
+        };
     }
 
     /** Samples one authored Voice Volume action once for this post. */
@@ -2271,7 +2263,7 @@ export class CjsSfxEngine
             ))
             : 0;
 
-        return Object.freeze({
+        return {
             kind: action.kind,
             actionIndex,
             targetId: String(Number(action.targetId) >>> 0),
@@ -2295,7 +2287,7 @@ export class CjsSfxEngine
                     volumeDb,
                 }
                 : {}),
-        });
+        };
     }
 
     /** Samples one authored Bus Volume action once for this post. */
@@ -2312,7 +2304,7 @@ export class CjsSfxEngine
             ))
             : 0;
 
-        return Object.freeze({
+        return {
             kind: action.kind,
             actionIndex,
             targetId: String(Number(action.targetId) >>> 0),
@@ -2330,20 +2322,20 @@ export class CjsSfxEngine
                 () => this.#SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
-            exceptions: Object.freeze(action.exceptions.map(exception =>
-                Object.freeze({
+            exceptions: action.exceptions.map(exception =>
+                ({
                     targetId: String(
                         Number(exception.targetId) >>> 0,
                     ),
                     targetFlags: Number(exception.targetFlags),
-                }))),
+                })),
             ...(setting
                 ? {
                     valueMode: action.valueMode,
                     busVolumeDb,
                 }
                 : {}),
-        });
+        };
     }
 
     /** Samples one authored Voice Pitch action once for this post. */
@@ -2360,7 +2352,7 @@ export class CjsSfxEngine
             ))
             : 0;
 
-        return Object.freeze({
+        return {
             kind: action.kind,
             actionIndex,
             targetId: String(Number(action.targetId) >>> 0),
@@ -2384,7 +2376,7 @@ export class CjsSfxEngine
                     pitchCents,
                 }
                 : {}),
-        });
+        };
     }
 
     /** Samples one authored Voice LPF or HPF action once per post. */
@@ -2404,7 +2396,7 @@ export class CjsSfxEngine
             ))
             : 0;
 
-        return Object.freeze({
+        return {
             kind: action.kind,
             actionIndex,
             targetId: String(Number(action.targetId) >>> 0),
@@ -2422,20 +2414,20 @@ export class CjsSfxEngine
                 () => this.#SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
-            exceptions: Object.freeze(action.exceptions.map(exception =>
-                Object.freeze({
+            exceptions: action.exceptions.map(exception =>
+                ({
                     targetId: String(
                         Number(exception.targetId) >>> 0,
                     ),
                     targetFlags: Number(exception.targetFlags ?? 0),
-                }))),
+                })),
             ...(setting
                 ? {
                     valueMode: action.valueMode,
                     [property]: filterValue,
                 }
                 : {}),
-        });
+        };
     }
 
     /** Samples one authored Set or Reset Game Parameter action per post. */
@@ -2450,7 +2442,7 @@ export class CjsSfxEngine
             )
             : 0;
 
-        return Object.freeze({
+        return {
             kind: action.kind,
             actionIndex,
             rtpc: String(action.rtpc),
@@ -2478,7 +2470,7 @@ export class CjsSfxEngine
                     gameParameterValue: value,
                 }
                 : {}),
-        });
+        };
     }
 
     /** Returns one finite random sample clamped to Wwise's [0, 1) domain. */
@@ -3104,7 +3096,7 @@ function ContinuousSwitchGroups(route)
 {
     const seen = new Set();
 
-    return Object.freeze(route.flatMap(decision =>
+    return route.flatMap(decision =>
     {
         const key = `${decision.scope}\0${decision.group}`;
 
@@ -3113,11 +3105,11 @@ function ContinuousSwitchGroups(route)
             return [];
         }
         seen.add(key);
-        return [ Object.freeze({
+        return [ {
             scope: decision.scope,
             group: decision.group,
-        }) ];
-    }));
+        } ];
+    });
 }
 
 function StateKey(gameObjID, nodeID)

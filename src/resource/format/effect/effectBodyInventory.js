@@ -42,10 +42,10 @@ function normalizeBodySourceRecord(record, permutationIndex, sourceByteLength)
             `Effect body index ${permutationIndex} disagrees with its source record`
         );
     }
-    return Object.freeze({
+    return {
         offset: record.offset,
         byteLength: record.size
-    });
+    };
 }
 
 /**
@@ -185,12 +185,12 @@ export function enumerateUniqueEffectBodies(effectRes)
         });
     }
 
-    return Object.freeze(groups.map((group) => Object.freeze({
+    return groups.map((group) => ({
         permutationIndex: group.permutationIndex,
         sourceRecord: group.sourceRecord,
-        variants: Object.freeze(group.variants.map((variant) =>
-            Object.freeze(variant)))
-    })));
+        variants: group.variants.map((variant) =>
+            variant)
+    }));
 }
 
 export default enumerateUniqueEffectBodies;

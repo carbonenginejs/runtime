@@ -243,7 +243,7 @@ export class Tr2ParticleSystem extends withITr2InstanceData(CjsModel)
     this.#semanticElements.fill(null);
     this.#strides.fill(0);
     this.#buffers.fill(null);
-    this.#gpuDeclaration = Object.freeze([]);
+    this.#gpuDeclaration = [];
     if (this.elements.length === 0)
     {
       return false;
@@ -314,16 +314,16 @@ export class Tr2ParticleSystem extends withITr2InstanceData(CjsModel)
       element.instanceStride = this.#strides[element.bufferIndex];
       element.buffer = this.#buffers[element.bufferIndex];
     }
-    this.#gpuDeclaration = Object.freeze(this.#runtimeElements
+    this.#gpuDeclaration = this.#runtimeElements
       .filter(element => element.usedByGPU)
-      .map(element => Object.freeze({
+      .map(element => ({
         elementType: element.elementType,
         customName: element.customName,
         dimension: element.dimension,
         usageIndex: element.usageIndex,
         offset: element.startOffset * 4,
         stride: element.instanceStride * 4
-      })));
+      }));
     this.originalMaxParticles = this.maxParticleCount;
     this.#declarationHash++;
     this.isValid = true;
