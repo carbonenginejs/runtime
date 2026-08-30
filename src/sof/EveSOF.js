@@ -1,3 +1,5 @@
+import { normalizeResourcePath } from "#utils/path";
+
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF_Blue.cpp
@@ -341,7 +343,7 @@ export class EveSOF extends CjsModel
 
     if (Object.prototype.hasOwnProperty.call(options, "dataPath"))
     {
-      this.#dataPath = normalizeSofResourcePath(options.dataPath);
+      this.#dataPath = normalizeResourcePath(options.dataPath);
     }
     if (Object.prototype.hasOwnProperty.call(options, "resources"))
     {
@@ -551,7 +553,7 @@ export class EveSOF extends CjsModel
   /** Load SOF data through the configured promise-capable object resolver. */
   async LoadDataAsync(filePath = this.#dataPath)
   {
-    const path = normalizeSofResourcePath(filePath);
+    const path = normalizeResourcePath(filePath);
     if (!path) throw new TypeError("EveSOF.LoadDataAsync requires a data path");
     const getObject = this.#asyncResources.getObject;
     if (!getObject)
@@ -5387,23 +5389,16 @@ function createSwarmBehaviorFields(source)
   return result;
 }
 
-function normalizeSofResourcePath(value)
-{
-  return String(value ?? "")
-    .trim()
-    .replace(/\\/g, "/")
-    .replace(/\/+/g, "/")
-    .toLowerCase();
-}
+
 
 function SofRequestKey(path, output)
 {
-  return `${normalizeSofResourcePath(path)}\0${output}`;
+  return `${normalizeResourcePath(path)}\0${output}`;
 }
 
 function CollectSofRequest(requests, path, output, role, context = null)
 {
-  const normalizedPath = normalizeSofResourcePath(path);
+  const normalizedPath = normalizeResourcePath(path);
   if (!normalizedPath) return null;
   const key = SofRequestKey(normalizedPath, output);
   if (!requests.has(key))

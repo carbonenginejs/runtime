@@ -1,3 +1,4 @@
+import { normalizeResourcePath } from "#utils/path";
 import { CjsBlackFormat } from "#resource/formats/black";
 import { EveSOFData } from "./EveSOFData.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
@@ -79,7 +80,7 @@ export class CjsSofLibraryBuilder
     }
 
     this.#dataMgr = dataMgr;
-    this.basePath = normalizeSofPath(basePath).replace(/\/+$/u, "");
+    this.basePath = normalizeResourcePath(basePath).replace(/\/+$/u, "");
     if (!this.basePath)
     {
       throw new TypeError("CjsSofLibraryBuilder basePath must be a non-empty resource path.");
@@ -449,7 +450,7 @@ function normalizeNamedRequest(kind, nameOrPath, basePath)
   const text = String(nameOrPath ?? "").trim();
   if (!text) throw new TypeError(`SOF ${kind} name or path must be non-empty.`);
   const isPath = text.includes("/") || /\.black$/iu.test(text);
-  const normalizedPath = isPath ? normalizeSofPath(text) : "";
+  const normalizedPath = isPath ? normalizeResourcePath(text) : "";
   const leaf = isPath
     ? normalizedPath.slice(normalizedPath.lastIndexOf("/") + 1).replace(/\.black$/iu, "")
     : text;
@@ -534,11 +535,3 @@ function splitCarbon(value, separator)
   return result;
 }
 
-function normalizeSofPath(value)
-{
-  return String(value ?? "")
-    .trim()
-    .replace(/\\/gu, "/")
-    .replace(/\/{2,}/gu, "/")
-    .toLowerCase();
-}

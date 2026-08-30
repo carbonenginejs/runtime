@@ -1,3 +1,4 @@
+import { normalizeResourcePath } from "#utils/path";
 import { CjsSchema, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
@@ -459,7 +460,7 @@ function NormalizeLookupRecordID(value)
 
 function NormalizeTextureResource(value)
 {
-    const path = String(value ?? "").replace(/\\/gu, "/").toLowerCase();
+    const path = normalizeResourcePath(value);
     if (!/^res:\/.+$/u.test(path) || /[?#]/u.test(path))
     {
         throw new TypeError("Character resource inspection requires a res:/ path");

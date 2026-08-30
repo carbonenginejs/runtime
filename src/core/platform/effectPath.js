@@ -1,3 +1,5 @@
+import { normalizeResourcePath } from "#utils/path";
+
 // Where an authored effect path resolves to, decided once, here.
 //
 // An engine must not care about effect paths. Carbon puts the substitution in
@@ -45,7 +47,7 @@ export const ShaderModelSuffixes = Object.freeze({
 /** Lowercases and slash-normalizes a resource path for routing. */
 export function NormalizeResourcePath(path)
 {
-    return String(path ?? "").trim().replaceAll("\\", "/").toLowerCase();
+    return normalizeResourcePath(path);
 }
 
 

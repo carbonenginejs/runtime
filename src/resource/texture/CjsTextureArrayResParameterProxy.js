@@ -1,3 +1,4 @@
+import { normalizeResourcePath } from "#utils/path";
 import { CjsEventEmitter } from "#model";
 
 /**
@@ -141,7 +142,7 @@ export class CjsTextureArrayResParameterProxy extends CjsEventEmitter
   /** Compares value with the current texture parameter proxy value. */
   EqualsValue(value)
   {
-    return String(value ?? "").trim().replace(/\\/gu, "/").replace(/\/+/gu, "/").toLowerCase() === this.GetResourcePath();
+    return normalizeResourcePath(value) === this.GetResourcePath();
   }
 
   /** Return the aggregate texture resource used by the shader binding. */

@@ -1,3 +1,5 @@
+import { normalizeResourcePath } from "#utils/path";
+
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr_Blue.cpp
@@ -76,7 +78,7 @@ export class EveSOFDataMgr extends CjsModel
   {
     const loader = this.#resourceLoader;
     if (!loader) return false;
-    const key = normalizeSofResourcePath(filePath);
+    const key = normalizeResourcePath(filePath);
     const existing = this.#loadOperations.get(key);
     if (existing) return existing;
 
@@ -441,14 +443,7 @@ export class EveSOFDataMgr extends CjsModel
 
 }
 
-function normalizeSofResourcePath(value)
-{
-  return String(value ?? "")
-    .trim()
-    .replace(/\\/g, "/")
-    .replace(/\/+/g, "/")
-    .toLowerCase();
-}
+
 
 function indexNamed(values, target, projector)
 {
