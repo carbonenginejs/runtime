@@ -56,10 +56,6 @@ export function toYamlSourceText(value, readerName = "CjsYamlFormat")
     }
 }
 
-function hasOwn(value, key)
-{
-    return Object.prototype.hasOwnProperty.call(value, key);
-}
 
 function defineMappingValue(target, key, value)
 {
@@ -158,12 +154,12 @@ export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat"
         tagHandlers: base.tagHandlers instanceof Map ? new Map(base.tagHandlers) : { ...base.tagHandlers }
     };
 
-    if (hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
-    if (hasOwn(options, "tagPolicy")) values.tagPolicy = normalizeTagPolicy(options.tagPolicy, readerName);
-    if (hasOwn(options, "allowedTags")) values.allowedTags = normalizeAllowedTags(options.allowedTags, readerName);
-    if (hasOwn(options, "tagHandlers")) values.tagHandlers = normalizeTagHandlers(options.tagHandlers, readerName);
-    if (hasOwn(options, "sourceName")) values.sourceName = options.sourceName == null ? null : String(options.sourceName);
-    if (hasOwn(options, "maxAliasCount"))
+    if (Object.hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
+    if (Object.hasOwn(options, "tagPolicy")) values.tagPolicy = normalizeTagPolicy(options.tagPolicy, readerName);
+    if (Object.hasOwn(options, "allowedTags")) values.allowedTags = normalizeAllowedTags(options.allowedTags, readerName);
+    if (Object.hasOwn(options, "tagHandlers")) values.tagHandlers = normalizeTagHandlers(options.tagHandlers, readerName);
+    if (Object.hasOwn(options, "sourceName")) values.sourceName = options.sourceName == null ? null : String(options.sourceName);
+    if (Object.hasOwn(options, "maxAliasCount"))
     {
         if (!Number.isInteger(options.maxAliasCount) || options.maxAliasCount < 0)
         {
@@ -171,14 +167,14 @@ export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat"
         }
         values.maxAliasCount = options.maxAliasCount;
     }
-    if (hasOwn(options, "uniqueKeys"))
+    if (Object.hasOwn(options, "uniqueKeys"))
     {
         values.uniqueKeys = normalizeBoolean(options.uniqueKeys, "uniqueKeys", readerName);
     }
 
     for (const name of [ "idField", "refField", "valuesField", "tagField", "valueField" ])
     {
-        if (hasOwn(options, name)) values[name] = normalizeField(options[name], name, readerName);
+        if (Object.hasOwn(options, name)) values[name] = normalizeField(options[name], name, readerName);
     }
 
     return values;

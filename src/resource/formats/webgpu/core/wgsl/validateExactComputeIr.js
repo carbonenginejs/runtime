@@ -54,16 +54,12 @@ function fail(context, message)
     throw new Error(`${context} ${message}`);
 }
 
-function hasOwn(value, property)
-{
-    return Object.prototype.hasOwnProperty.call(value, property);
-}
 
 function isDenseArrayOfLength(value, length)
 {
     return Array.isArray(value)
         && value.length === length
-        && Array.from({ length }, (_, index) => hasOwn(value, index))
+        && Array.from({ length }, (_, index) => Object.hasOwn(value, index))
             .every(Boolean);
 }
 
@@ -87,8 +83,8 @@ function fixedRegisterRange(data, binding, context)
 {
     const registerIndex = data?.registerIndex;
     if (!data
-        || hasOwn(data, "bindingModel")
-        || hasOwn(data, "bindingRange")
+        || Object.hasOwn(data, "bindingModel")
+        || Object.hasOwn(data, "bindingRange")
         || !Number.isInteger(registerIndex) || registerIndex < 0)
     {
         fail(context, `binding ${binding.id || "<unknown>"} has an invalid fixed register declaration`);
@@ -108,8 +104,8 @@ function finiteRange(data, binding, context)
 {
     const range = data?.bindingRange;
     if (!data
-        || !hasOwn(data, "bindingModel")
-        || !hasOwn(data, "bindingRange")
+        || !Object.hasOwn(data, "bindingModel")
+        || !Object.hasOwn(data, "bindingRange")
         || data.bindingModel !== "sm5.1-range"
         || range?.bindingModel !== "sm5.1-range"
         || !Number.isInteger(range.rangeId) || range.rangeId < 0
@@ -128,7 +124,7 @@ function finiteRange(data, binding, context)
 function declarationRange(declaration, binding, context)
 {
     const data = declaration.data;
-    return data && (hasOwn(data, "bindingModel") || hasOwn(data, "bindingRange"))
+    return data && (Object.hasOwn(data, "bindingModel") || Object.hasOwn(data, "bindingRange"))
         ? finiteRange(declaration.data, binding, context)
         : fixedRegisterRange(declaration.data, binding, context);
 }

@@ -2484,7 +2484,7 @@ export class CjsResMan extends CjsEventEmitter
       throw new TypeError("CjsResMan.InvalidateReadCache options must be an object.");
     }
     const normalizedPath = normalizeResourcePath(path);
-    const hasRevision = hasOwn(options, "sourceRevision");
+    const hasRevision = Object.hasOwn(options, "sourceRevision");
     const revisionKey = hasRevision
       ? normalizeSourceRevision(options.sourceRevision)
       : null;
@@ -2857,7 +2857,7 @@ export class CjsResMan extends CjsEventEmitter
     {
       throw new TypeError("CjsResMan resource variant options must be an object.");
     }
-    if (hasOwn(options, "variant")
+    if (Object.hasOwn(options, "variant")
       && options.variant !== undefined)
     {
       if (typeof options.variant !== "string" || options.variant.trim() === "")
@@ -3390,7 +3390,7 @@ function snapshotFormatDefaultValue(value, seen, path)
     seen.set(value, snapshot);
     for (let index = 0; index < value.length; index += 1)
     {
-      if (!hasOwn(value, index))
+      if (!Object.hasOwn(value, index))
       {
         throw new TypeError(`CjsResMan format ${path} must not contain sparse arrays.`);
       }
@@ -3700,7 +3700,7 @@ function getResourceLoaderOptions(options = {}, effectiveSource = null)
   if (effectiveSource) loaderOptions.source = effectiveSource;
   for (const key of [ "sourceRevision", "ext" ])
   {
-    if (hasOwn(options, key))
+    if (Object.hasOwn(options, key))
     {
       loaderOptions[key] = options[key];
     }
@@ -3724,14 +3724,14 @@ function mergeResourceLoaderOptions(base, overrides = {})
 {
   const result = { ...base, ...overrides };
   const pinsOutput = RESOURCE_OUTPUT_OPTION_KEYS.some(key =>
-    hasOwn(base, key)
+    Object.hasOwn(base, key)
       && base[key] !== undefined
   );
   if (pinsOutput)
   {
     for (const key of RESOURCE_OUTPUT_OPTION_KEYS)
     {
-      if (hasOwn(base, key) && base[key] !== undefined)
+      if (Object.hasOwn(base, key) && base[key] !== undefined)
       {
         result[key] = base[key];
       }
@@ -3743,7 +3743,7 @@ function mergeResourceLoaderOptions(base, overrides = {})
   }
   for (const key of RESOURCE_PROVENANCE_OPTION_KEYS)
   {
-    if (hasOwn(base, key)) result[key] = base[key];
+    if (Object.hasOwn(base, key)) result[key] = base[key];
   }
   return result;
 }
@@ -4430,10 +4430,6 @@ function sourceRequiresUrl(source)
  * @param {string|number|symbol} property Property key.
  * @returns {boolean}
  */
-function hasOwn(object, property)
-{
-  return Object.prototype.hasOwnProperty.call(object, property);
-}
 
 /**
  * Normalizes one resource-path scheme key.

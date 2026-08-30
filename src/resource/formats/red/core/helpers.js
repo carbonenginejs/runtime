@@ -20,10 +20,6 @@ export const DEFAULT_VALUES = Object.freeze({
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
 
-function hasOwn(value, key)
-{
-    return Object.prototype.hasOwnProperty.call(value, key);
-}
 
 function normalizeEmit(emit, readerName)
 {
@@ -120,11 +116,11 @@ export function normalizeValues(base, options, classKeys, readerName)
     assertKnownOptions(options, readerName);
 
     const values = cloneValues(base);
-    if (hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
-    if (hasOwn(options, "schema")) values.schema = options.schema ?? null;
-    if (hasOwn(options, "registry")) values.registry = options.registry ?? null;
-    if (hasOwn(options, "firstId")) values.firstId = options.firstId ?? 1;
-    if (hasOwn(options, "parse"))
+    if (Object.hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
+    if (Object.hasOwn(options, "schema")) values.schema = options.schema ?? null;
+    if (Object.hasOwn(options, "registry")) values.registry = options.registry ?? null;
+    if (Object.hasOwn(options, "firstId")) values.firstId = options.firstId ?? 1;
+    if (Object.hasOwn(options, "parse"))
     {
         if (options.parse !== null && options.parse !== undefined && typeof options.parse !== "function")
         {
@@ -132,13 +128,13 @@ export function normalizeValues(base, options, classKeys, readerName)
         }
         values.parse = options.parse ?? null;
     }
-    if (hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
-    if (hasOwn(options, "adapters")) values.adapters = options.adapters ?? null;
-    if (hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
-    if (hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
-    if (hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
-    if (hasOwn(options, "payloadValuesField")) values.payloadValuesField = options.payloadValuesField;
-    if (hasOwn(options, "classes")) mergeClasses(values, options.classes, classKeys, readerName);
+    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
+    if (Object.hasOwn(options, "adapters")) values.adapters = options.adapters ?? null;
+    if (Object.hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
+    if (Object.hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
+    if (Object.hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
+    if (Object.hasOwn(options, "payloadValuesField")) values.payloadValuesField = options.payloadValuesField;
+    if (Object.hasOwn(options, "classes")) mergeClasses(values, options.classes, classKeys, readerName);
     return values;
 }
 

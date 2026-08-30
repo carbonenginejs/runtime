@@ -38,10 +38,6 @@ export const DEFAULT_VALUES = Object.freeze({
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
 
-function hasOwn(value, key)
-{
-    return Object.prototype.hasOwnProperty.call(value, key);
-}
 
 function normalizeEmit(emit, readerName)
 {
@@ -159,32 +155,32 @@ export function normalizeValues(base, options, classKeys, readerName)
     assertKnownOptions(options, readerName);
 
     const values = cloneValues(base);
-    if (hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
-    if (hasOwn(options, "schema")) values.schema = options.schema ?? null;
-    if (hasOwn(options, "registry")) values.registry = options.registry ?? null;
-    if (hasOwn(options, "sourceShapes")) values.sourceShapes = options.sourceShapes ?? null;
-    if (hasOwn(options, "rootName")) values.rootName = options.rootName ?? "default";
-    if (hasOwn(options, "firstId")) values.firstId = options.firstId ?? 1;
-    if (hasOwn(options, "metadata")) values.metadata = options.metadata ?? null;
-    if (hasOwn(options, "includeMetadata")) values.includeMetadata = Boolean(options.includeMetadata);
-    if (hasOwn(options, "includeClassMetadata")) values.includeClassMetadata = Boolean(options.includeClassMetadata);
-    if (hasOwn(options, "includeFieldTrace")) values.includeFieldTrace = Boolean(options.includeFieldTrace);
-    if (hasOwn(options, "includeRefIndex")) values.includeRefIndex = Boolean(options.includeRefIndex);
-    if (hasOwn(options, "trace")) values.trace = Boolean(options.trace);
-    if (hasOwn(options, "debug")) values.debug = Boolean(options.debug);
-    if (hasOwn(options, "decodeBinaryBlocks")) values.decodeBinaryBlocks = Boolean(options.decodeBinaryBlocks);
-    if (hasOwn(options, "captureUnknownBlackFields")) values.captureUnknownBlackFields = Boolean(options.captureUnknownBlackFields);
-    if (hasOwn(options, "captureUnknownResourceFields")) values.captureUnknownResourceFields = Boolean(options.captureUnknownResourceFields);
-    if (hasOwn(options, "captureUnknownWhenNoBlackFields")) values.captureUnknownWhenNoBlackFields = Boolean(options.captureUnknownWhenNoBlackFields);
-    if (hasOwn(options, "allowUnknownStringFallback")) values.allowUnknownStringFallback = Boolean(options.allowUnknownStringFallback);
-    if (hasOwn(options, "rootFields")) values.rootFields = cloneListOrValue(options.rootFields);
-    if (hasOwn(options, "payloadRootFields")) values.payloadRootFields = cloneListOrValue(options.payloadRootFields);
-    if (hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
-    if (hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
-    if (hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
-    if (hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
-    if (hasOwn(options, "adapters")) values.adapters = options.adapters ?? null;
-    if (hasOwn(options, "pathHandler"))
+    if (Object.hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
+    if (Object.hasOwn(options, "schema")) values.schema = options.schema ?? null;
+    if (Object.hasOwn(options, "registry")) values.registry = options.registry ?? null;
+    if (Object.hasOwn(options, "sourceShapes")) values.sourceShapes = options.sourceShapes ?? null;
+    if (Object.hasOwn(options, "rootName")) values.rootName = options.rootName ?? "default";
+    if (Object.hasOwn(options, "firstId")) values.firstId = options.firstId ?? 1;
+    if (Object.hasOwn(options, "metadata")) values.metadata = options.metadata ?? null;
+    if (Object.hasOwn(options, "includeMetadata")) values.includeMetadata = Boolean(options.includeMetadata);
+    if (Object.hasOwn(options, "includeClassMetadata")) values.includeClassMetadata = Boolean(options.includeClassMetadata);
+    if (Object.hasOwn(options, "includeFieldTrace")) values.includeFieldTrace = Boolean(options.includeFieldTrace);
+    if (Object.hasOwn(options, "includeRefIndex")) values.includeRefIndex = Boolean(options.includeRefIndex);
+    if (Object.hasOwn(options, "trace")) values.trace = Boolean(options.trace);
+    if (Object.hasOwn(options, "debug")) values.debug = Boolean(options.debug);
+    if (Object.hasOwn(options, "decodeBinaryBlocks")) values.decodeBinaryBlocks = Boolean(options.decodeBinaryBlocks);
+    if (Object.hasOwn(options, "captureUnknownBlackFields")) values.captureUnknownBlackFields = Boolean(options.captureUnknownBlackFields);
+    if (Object.hasOwn(options, "captureUnknownResourceFields")) values.captureUnknownResourceFields = Boolean(options.captureUnknownResourceFields);
+    if (Object.hasOwn(options, "captureUnknownWhenNoBlackFields")) values.captureUnknownWhenNoBlackFields = Boolean(options.captureUnknownWhenNoBlackFields);
+    if (Object.hasOwn(options, "allowUnknownStringFallback")) values.allowUnknownStringFallback = Boolean(options.allowUnknownStringFallback);
+    if (Object.hasOwn(options, "rootFields")) values.rootFields = cloneListOrValue(options.rootFields);
+    if (Object.hasOwn(options, "payloadRootFields")) values.payloadRootFields = cloneListOrValue(options.payloadRootFields);
+    if (Object.hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
+    if (Object.hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
+    if (Object.hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
+    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
+    if (Object.hasOwn(options, "adapters")) values.adapters = options.adapters ?? null;
+    if (Object.hasOwn(options, "pathHandler"))
     {
         if (options.pathHandler !== null && options.pathHandler !== undefined && typeof options.pathHandler !== "function")
         {
@@ -192,7 +188,7 @@ export function normalizeValues(base, options, classKeys, readerName)
         }
         values.pathHandler = options.pathHandler ?? null;
     }
-    if (hasOwn(options, "classes")) mergeClasses(values, options.classes, classKeys, readerName);
+    if (Object.hasOwn(options, "classes")) mergeClasses(values, options.classes, classKeys, readerName);
     return values;
 }
 

@@ -49,10 +49,6 @@ const OPTION_KEYS = new Set([ "emit", "source", "decodeInstructions", "permutati
 // Neither is reachable now. The container stays internal to this module.
 const VALID_EMITS = new Set([ OUTPUT_JSON ]);
 
-function hasOwn(value, key)
-{
-    return Object.prototype.hasOwnProperty.call(value, key);
-}
 
 function normalizeEmit(emit, readerName)
 {
@@ -155,12 +151,12 @@ export function normalizeValues(base, options = {}, classKeys = [], readerName =
     assertKnownOptions(options, readerName);
 
     const values = cloneValues(base);
-    if (hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
-    if (hasOwn(options, "source")) values.source = typeof options.source === "string" && options.source ? options.source : DEFAULT_VALUES.source;
-    if (hasOwn(options, "decodeInstructions")) values.decodeInstructions = !!options.decodeInstructions;
-    if (hasOwn(options, "permutation")) values.permutation = options.permutation ?? null;
-    if (hasOwn(options, "schema")) values.schema = options.schema ?? null;
-    if (hasOwn(options, "classes")) mergeClasses(values, options.classes, classKeys, readerName);
+    if (Object.hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit, readerName);
+    if (Object.hasOwn(options, "source")) values.source = typeof options.source === "string" && options.source ? options.source : DEFAULT_VALUES.source;
+    if (Object.hasOwn(options, "decodeInstructions")) values.decodeInstructions = !!options.decodeInstructions;
+    if (Object.hasOwn(options, "permutation")) values.permutation = options.permutation ?? null;
+    if (Object.hasOwn(options, "schema")) values.schema = options.schema ?? null;
+    if (Object.hasOwn(options, "classes")) mergeClasses(values, options.classes, classKeys, readerName);
     return values;
 }
 

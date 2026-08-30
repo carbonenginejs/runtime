@@ -104,10 +104,6 @@ function bindingIdentity(binding)
   return scopeIdentity;
 }
 
-function own(value, key)
-{
-  return Object.prototype.hasOwnProperty.call(value, key);
-}
 
 function assertPlainObject(value, label)
 {
@@ -399,11 +395,11 @@ function normalizeTexture(options)
     format: options.format,
     width: options.width,
     height: options.height,
-    layers: own(options, "layers") && options.layers !== undefined ? options.layers : undefined,
-    viewDimension: own(options, "viewDimension") && options.viewDimension !== undefined
+    layers: Object.hasOwn(options, "layers") && options.layers !== undefined ? options.layers : undefined,
+    viewDimension: Object.hasOwn(options, "viewDimension") && options.viewDimension !== undefined
       ? options.viewDimension
       : undefined,
-    mipLevelCount: own(options, "mipLevelCount") && options.mipLevelCount !== undefined
+    mipLevelCount: Object.hasOwn(options, "mipLevelCount") && options.mipLevelCount !== undefined
       ? options.mipLevelCount
       : undefined
   });
@@ -413,7 +409,7 @@ function normalizeTexture(options)
   // the format implies rather than trusted, and it has no meaning once a mip
   // chain is involved because each level has its own stride.
   let bytesPerRow = plan.writes[0].bytesPerRow;
-  if (own(options, "bytesPerRow") && options.bytesPerRow !== undefined)
+  if (Object.hasOwn(options, "bytesPerRow") && options.bytesPerRow !== undefined)
   {
     if (plan.mipLevelCount > 1)
     {
@@ -485,7 +481,7 @@ function normalizeSampler(options)
   }
   const enumValue = (name, allowed, fallback) =>
   {
-    const value = own(options, name) && options[name] !== undefined ? options[name] : fallback;
+    const value = Object.hasOwn(options, name) && options[name] !== undefined ? options[name] : fallback;
     if (!allowed.has(value)) fail(`sampler ${name} has unsupported ${String(value)}`);
     return value;
   };
@@ -497,7 +493,7 @@ function normalizeSampler(options)
   const mipmapFilter = enumValue("mipmapFilter", SAMPLER_FILTER_MODES, "nearest");
   const numberValue = (name, fallback) =>
   {
-    const input = own(options, name) && options[name] !== undefined ? options[name] : fallback;
+    const input = Object.hasOwn(options, name) && options[name] !== undefined ? options[name] : fallback;
     if (typeof input !== "number" || !Number.isFinite(input)) fail(`sampler ${name} must be finite`);
     const value = Math.fround(input);
     if (!Number.isFinite(value)) fail(`sampler ${name} must fit a finite float32 value`);
@@ -507,7 +503,7 @@ function normalizeSampler(options)
   const lodMaxClamp = numberValue("lodMaxClamp", 32);
   if (lodMinClamp < 0) fail("sampler lodMinClamp must be nonnegative");
   if (lodMaxClamp < lodMinClamp) fail("sampler lodMaxClamp must be at least lodMinClamp");
-  const maxAnisotropy = own(options, "maxAnisotropy") && options.maxAnisotropy !== undefined
+  const maxAnisotropy = Object.hasOwn(options, "maxAnisotropy") && options.maxAnisotropy !== undefined
     ? options.maxAnisotropy
     : 1;
   if (!Number.isInteger(maxAnisotropy) || maxAnisotropy < 1 || maxAnisotropy > 0xFFFF)
@@ -520,7 +516,7 @@ function normalizeSampler(options)
     fail("sampler anisotropy requires linear magFilter, minFilter, and mipmapFilter");
   }
   let compare;
-  if (own(options, "compare") && options.compare !== undefined)
+  if (Object.hasOwn(options, "compare") && options.compare !== undefined)
   {
     compare = options.compare;
     if (!SAMPLER_COMPARE_FUNCTIONS.has(compare))
@@ -567,7 +563,7 @@ function normalizeResourceBundle(options)
     [ "samplers", "sampler" ]
   ])
   {
-    const values = own(options, category) && options[category] !== undefined
+    const values = Object.hasOwn(options, category) && options[category] !== undefined
       ? options[category]
       : {};
     assertPlainObject(values, `resource bundle ${category}`);
@@ -657,7 +653,7 @@ function mapRgba8TexturePayload(value, plan)
   }
   if (value.containerOnly !== false) fail(`${label} containerOnly must be false`);
   if (value.isDecoded !== true) fail(`${label} isDecoded must be true`);
-  if (own(value, "rgbaDecodeSupported") && value.rgbaDecodeSupported !== true)
+  if (Object.hasOwn(value, "rgbaDecodeSupported") && value.rgbaDecodeSupported !== true)
   {
     fail(`${label} rgbaDecodeSupported must be true when provided`);
   }
@@ -720,7 +716,7 @@ function mapSamplerPayload(value, plan)
   }
   for (const key of SELECTED_SAMPLER_REQUIRED_KEYS)
   {
-    if (!own(value, key) || value[key] === undefined)
+    if (!Object.hasOwn(value, key) || value[key] === undefined)
     {
       fail(`${plan.name} payload must provide ${key}`);
     }
@@ -870,7 +866,7 @@ function normalizePipeline(pipeline, shaderStage)
 function findResource(resources, identity)
 {
   if (resources instanceof Map) return resources.get(identity);
-  if (resources && typeof resources === "object" && own(resources, identity)) return resources[identity];
+  if (resources && typeof resources === "object" && Object.hasOwn(resources, identity)) return resources[identity];
   return undefined;
 }
 
@@ -891,8 +887,8 @@ function validateRecipe(recipe)
     fail("recipe.fragment.targets must be a non-empty array");
   }
   if (!recipe.primitive || typeof recipe.primitive !== "object") fail("recipe.primitive is required");
-  if (own(recipe, "layout") || own(recipe.vertex, "module") || own(recipe.vertex, "entryPoint")
-    || own(recipe.fragment, "module") || own(recipe.fragment, "entryPoint"))
+  if (Object.hasOwn(recipe, "layout") || Object.hasOwn(recipe.vertex, "module") || Object.hasOwn(recipe.vertex, "entryPoint")
+    || Object.hasOwn(recipe.fragment, "module") || Object.hasOwn(recipe.fragment, "entryPoint"))
   {
     fail("recipe cannot replace package shader modules, entry points, or canonical layout");
   }
@@ -2241,8 +2237,8 @@ export class CjsWebgpuDevice
       vertexBuffers = (Array.isArray(options.vertexBuffers) ? options.vertexBuffers : []).map((entry) =>
       {
         if (!Number.isInteger(entry?.slot) || entry.slot < 0 || !entry.buffer) fail("draw has an invalid vertex buffer");
-        if (own(entry, "offset") && (!Number.isSafeInteger(entry.offset) || entry.offset < 0)) fail("draw has an invalid vertex-buffer offset");
-        if (own(entry, "size") && (!Number.isSafeInteger(entry.size) || entry.size < 0)) fail("draw has an invalid vertex-buffer size");
+        if (Object.hasOwn(entry, "offset") && (!Number.isSafeInteger(entry.offset) || entry.offset < 0)) fail("draw has an invalid vertex-buffer offset");
+        if (Object.hasOwn(entry, "size") && (!Number.isSafeInteger(entry.size) || entry.size < 0)) fail("draw has an invalid vertex-buffer size");
         return Object.freeze({ ...entry });
       });
     }
@@ -2256,8 +2252,8 @@ export class CjsWebgpuDevice
 
     const drawCall = options.draw;
     if (!drawCall || typeof drawCall !== "object") fail("draw call is required");
-    const hasIndexCount = own(drawCall, "indexCount");
-    const hasVertexCount = own(drawCall, "vertexCount");
+    const hasIndexCount = Object.hasOwn(drawCall, "indexCount");
+    const hasVertexCount = Object.hasOwn(drawCall, "vertexCount");
     if (hasIndexCount === hasVertexCount) fail("draw requires exactly one of indexCount or vertexCount");
     const indexed = hasIndexCount;
     const count = indexed ? drawCall.indexCount : drawCall.vertexCount;
@@ -2267,7 +2263,7 @@ export class CjsWebgpuDevice
     }
     const uintValue = (key, fallback) =>
     {
-      const value = own(drawCall, key) ? drawCall[key] : fallback;
+      const value = Object.hasOwn(drawCall, key) ? drawCall[key] : fallback;
       if (!Number.isSafeInteger(value) || value < 0 || value > MAX_GPU_SIZE_32)
       {
         fail(`draw ${key} must be a GPUSize32 value`);
@@ -2279,7 +2275,7 @@ export class CjsWebgpuDevice
         indexCount: count,
         instanceCount: uintValue("instanceCount", 1),
         firstIndex: uintValue("firstIndex", 0),
-        baseVertex: own(drawCall, "baseVertex") ? drawCall.baseVertex : 0,
+        baseVertex: Object.hasOwn(drawCall, "baseVertex") ? drawCall.baseVertex : 0,
         firstInstance: uintValue("firstInstance", 0)
       }
       : {
@@ -2298,8 +2294,8 @@ export class CjsWebgpuDevice
     if (!indexed && suppliedIndexBuffer) fail("non-indexed draw cannot include an index buffer");
     if (indexed && (!suppliedIndexBuffer?.buffer || !suppliedIndexBuffer.format)) fail("indexed draw requires an index buffer and format");
     const indexBuffer = indexed ? Object.freeze({ ...suppliedIndexBuffer }) : null;
-    if (indexBuffer && own(indexBuffer, "offset") && (!Number.isSafeInteger(indexBuffer.offset) || indexBuffer.offset < 0)) fail("draw has an invalid index-buffer offset");
-    if (indexBuffer && own(indexBuffer, "size") && (!Number.isSafeInteger(indexBuffer.size) || indexBuffer.size < 0)) fail("draw has an invalid index-buffer size");
+    if (indexBuffer && Object.hasOwn(indexBuffer, "offset") && (!Number.isSafeInteger(indexBuffer.offset) || indexBuffer.offset < 0)) fail("draw has an invalid index-buffer offset");
+    if (indexBuffer && Object.hasOwn(indexBuffer, "size") && (!Number.isSafeInteger(indexBuffer.size) || indexBuffer.size < 0)) fail("draw has an invalid index-buffer size");
     if (geometryRecord)
     {
       if (indexed && normalizedDraw.firstIndex + normalizedDraw.indexCount > geometryRecord.indexBuffer.count)
@@ -2492,8 +2488,8 @@ export class CjsWebgpuDevice
     const previous = this._device;
     const gpu = options.gpu || this._gpu;
     if (!gpu || typeof gpu.requestAdapter !== "function") fail("recreation requires the original GPU provider");
-    const adapterOptions = own(options, "adapterOptions") ? options.adapterOptions : this._adapterOptions;
-    const deviceDescriptor = own(options, "deviceDescriptor") ? options.deviceDescriptor : this._deviceDescriptor;
+    const adapterOptions = Object.hasOwn(options, "adapterOptions") ? options.adapterOptions : this._adapterOptions;
+    const deviceDescriptor = Object.hasOwn(options, "deviceDescriptor") ? options.deviceDescriptor : this._deviceDescriptor;
     const adapter = options.adapter || await gpu.requestAdapter(adapterOptions);
     if (!adapter) fail("requestAdapter returned null during recreation");
     const device = options.device || await adapter.requestDevice(deviceDescriptor);
