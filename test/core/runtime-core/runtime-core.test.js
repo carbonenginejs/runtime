@@ -498,7 +498,7 @@ test("resource behavior keeps engine-owned methods out of ResMan options", () =>
 
 test("validates service keys and option shapes", () =>
 {
-    assert.throws(() => new CjsLibrary({ services: [] }), /services must be an object/u);
+    assert.throws(() => new CjsLibrary({ services: [] }), /services must be a plain object/u);
     assert.throws(() => new CjsLibrary().SetService("", {}), /service key must be a non-empty string/u);
     assert.throws(() => new CjsLibrary({ unknown: true }), /unknown option/u);
     assert.throws(() => new CjsLibrary().Register({ resMan: {} }), TypeError);

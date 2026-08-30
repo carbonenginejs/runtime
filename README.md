@@ -1,10 +1,10 @@
 # @carbonenginejs/runtime
 
-Private pre-release package for the consolidated browser-safe CarbonEngineJS
-runtime, renderer engines, and browser tools.
+The consolidated browser-safe CarbonEngineJS runtime, renderer engines, and
+browser tools. This repository is public; the npm package is not released yet.
 
-Source consolidation completed on 2026-08-23. Consumer and registry cutover,
-the first public version, and publication remain pending. This repository
+Source consolidation completed on 2026-08-23. The first npm version, its
+publication, and the consumer cutover remain pending. This repository
 provides the executable layer boundary, migration metadata, the maintained
 global foundation, the resource/format capability, the Trinity/EVE object
 graph, the standalone SOF data and graph builder, the
@@ -19,8 +19,9 @@ and demos are maintained under the explicit `/tools` surface.
 
 ## Install
 
-The package is private and is not published or installable yet. Development
-dependencies can be installed from this repository with:
+The source is public here, but the package is not on npm yet, so it is not
+installable by name. Clone this repository and install its development
+dependencies with:
 
 ```sh
 npm install

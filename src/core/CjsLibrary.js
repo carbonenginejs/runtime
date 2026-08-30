@@ -6,6 +6,7 @@
  * supplied services.
  */
 
+import { assertNonEmptyString, assertPlainObject } from "#utils/validation";
 import { SelectBackend } from "./platform/backendSelection.js";
 import { Tr2PlatformInfo } from "./platform/Tr2PlatformInfo.js";
 import { CjsResMan } from "#resource/CjsResMan";
@@ -57,20 +58,14 @@ export class CjsLibrary
     /** Applies validated composition options and returns this library. */
     SetValues(options = {})
     {
-        if (!options || typeof options !== "object" || Array.isArray(options))
-        {
-            throw new TypeError("CjsLibrary options must be an object.");
-        }
+        assertPlainObject(options, "CjsLibrary options");
         for (const key of Object.keys(options))
         {
             if (!OPTION_KEYS.has(key)) throw new TypeError(`CjsLibrary unknown option ${JSON.stringify(key)}.`);
         }
         if (Object.prototype.hasOwnProperty.call(options, "services"))
         {
-            if (!options.services || typeof options.services !== "object" || Array.isArray(options.services))
-            {
-                throw new TypeError("CjsLibrary.services must be an object.");
-            }
+            assertPlainObject(options.services, "CjsLibrary.services");
             for (const [ key, service ] of Object.entries(options.services)) this.SetService(key, service);
         }
         if (Object.prototype.hasOwnProperty.call(options, "resourceManager"))
@@ -106,10 +101,7 @@ export class CjsLibrary
      */
     Register(options = {})
     {
-        if (!options || typeof options !== "object" || Array.isArray(options))
-        {
-            throw new TypeError("CjsLibrary.Register options must be an object.");
-        }
+        assertPlainObject(options, "CjsLibrary.Register options");
 
         const known = new Set([
             "services",
@@ -697,11 +689,7 @@ export class CjsLibrary
 
 function normalizeServiceKey(key)
 {
-    if (typeof key !== "string" || key.trim() === "")
-    {
-        throw new TypeError("CjsLibrary service key must be a non-empty string.");
-    }
-    return key;
+    return assertNonEmptyString(key, "CjsLibrary service key");
 }
 
 function assertOwnedService(name, service)
@@ -723,20 +711,12 @@ function assertOwnedService(name, service)
 
 function normalizeCapabilityKey(key)
 {
-    if (typeof key !== "string" || key.trim() === "")
-    {
-        throw new TypeError("CjsLibrary capability key must be a non-empty string.");
-    }
-    return key;
+    return assertNonEmptyString(key, "CjsLibrary capability key");
 }
 
 function normalizeBehaviorName(name)
 {
-    if (typeof name !== "string" || name.trim() === "")
-    {
-        throw new TypeError("CjsLibrary resource behavior name must be a non-empty string.");
-    }
-    return name;
+    return assertNonEmptyString(name, "CjsLibrary resource behavior name");
 }
 
 /**
@@ -766,15 +746,6 @@ function parseResourceSpecifier(value)
         throw new TypeError("CjsLibrary resource @output must be a non-empty alphanumeric tag.");
     }
     return Object.freeze({ path, output });
-}
-
-function assertPlainObject(value, label)
-{
-    if (!value || typeof value !== "object" || Array.isArray(value))
-    {
-        throw new TypeError(`${label} must be an object.`);
-    }
-    return value;
 }
 
 function getBehaviorSelector(options)
