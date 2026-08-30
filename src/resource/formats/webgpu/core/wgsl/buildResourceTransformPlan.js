@@ -1,3 +1,4 @@
+import { deepFreeze } from "#utils/object";
 import { compareUtf8 } from "../../../../format/compareUtf8.js";
 import {
     DETAIL_MAP_ARRAY_NAME,
@@ -6,13 +7,6 @@ import {
 
 const RESOURCE_IDENTITY = /^sampled-resource:(\d+):(\d+)$/u;
 const SAMPLE_OPCODES = new Set([ "sample_b" ]);
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
-}
 
 function bindingRegister(binding)
 {

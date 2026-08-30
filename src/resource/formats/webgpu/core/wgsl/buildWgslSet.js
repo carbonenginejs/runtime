@@ -1,3 +1,4 @@
+import { clonePlain, deepFreeze } from "#utils/object";
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 import { compareUtf8 } from "../../../../format/compareUtf8.js";
 
@@ -9,23 +10,6 @@ const STAGE_TYPES = Object.freeze({ vertex: 0, pixel: 1, compute: 2 });
 const STAGE_NAME_ORDER = Object.freeze([ "vertex", "pixel", "compute" ]);
 
 const VISIBILITY_ORDER = Object.freeze([ "vertex", "fragment", "compute" ]);
-
-function clonePlain(value)
-{
-    if (Array.isArray(value)) return value.map(clonePlain);
-    if (value && typeof value === "object")
-    {
-        return Object.fromEntries(Object.entries(value).map(([ key, entry ]) => [ key, clonePlain(entry) ]));
-    }
-    return value;
-}
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
-}
 
 function normalizeEntry(entry, index)
 {

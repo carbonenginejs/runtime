@@ -1,3 +1,4 @@
+import { deepFreeze } from "#utils/object";
 import { fixedSourceLanes } from "../ir/sourceLanes.js";
 import {
     validateIndexableTempOperand,
@@ -1152,13 +1153,6 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
 
     const statements = writes.flatMap((write) => lowerWrite(write));
     return statements.length === 1 ? statements[0] : statements;
-}
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
 }
 
 /**

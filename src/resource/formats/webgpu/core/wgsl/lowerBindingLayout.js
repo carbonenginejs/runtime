@@ -1,3 +1,4 @@
+import { deepFreeze } from "#utils/object";
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 
 const KIND_ORDER = Object.freeze({
@@ -299,13 +300,6 @@ function lowerOne(program, binding, bindingIndex, policy)
             : {}),
         ...layout
     };
-}
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
 }
 
 function normalizeBindingPlan(plan, stage)

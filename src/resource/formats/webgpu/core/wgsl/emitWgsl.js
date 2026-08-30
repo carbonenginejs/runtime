@@ -1,3 +1,4 @@
+import { deepFreeze } from "#utils/object";
 import { lowerDxbcToIr } from "../ir/lowerDxbcToIr.js";
 import { lowerComputeProgram } from "./lowerComputeProgram.js";
 import { lowerFragmentProgram } from "./lowerFragmentProgram.js";
@@ -89,13 +90,6 @@ function emitStruct(lines, name, fields, invariantPosition = false)
         lines.push(`    ${attribute(field, invariantPosition)} ${field.name}: ${field.type},`);
     }
     lines.push("};", "");
-}
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
 }
 
 /**

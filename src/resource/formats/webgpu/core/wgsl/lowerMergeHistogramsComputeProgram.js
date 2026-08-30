@@ -1,3 +1,4 @@
+import { clonePlain, deepFreeze } from "#utils/object";
 import { analyzeRegisterValues } from "../ir/analyzeRegisterValues.js";
 import { buildControlFlow } from "../ir/buildControlFlow.js";
 import { inferValueTypes } from "../ir/inferValueTypes.js";
@@ -84,25 +85,6 @@ const CONTROL_KIND = Object.freeze({
     ret: "termination"
 });
 const SELECTION_STARTS = Object.freeze([ 1, 8, 30 ]);
-
-function clonePlain(value)
-{
-    if (Array.isArray(value)) return value.map(clonePlain);
-    if (value && typeof value === "object")
-    {
-        return Object.fromEntries(
-            Object.entries(value).map(([ key, entry ]) => [ key, clonePlain(entry) ])
-        );
-    }
-    return value;
-}
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
-}
 
 function buildBlocks(instructions)
 {

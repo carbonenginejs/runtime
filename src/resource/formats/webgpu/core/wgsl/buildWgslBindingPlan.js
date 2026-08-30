@@ -1,3 +1,4 @@
+import { deepFreeze } from "#utils/object";
 import { lowerBindingLayout } from "./lowerBindingLayout.js";
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 import { compareUtf8 } from "../../../../format/compareUtf8.js";
@@ -50,13 +51,6 @@ function portableBinding(binding)
 function fingerprint(binding)
 {
     return JSON.stringify(binding);
-}
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
 }
 
 /**

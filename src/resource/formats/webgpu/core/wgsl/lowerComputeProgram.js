@@ -1,3 +1,4 @@
+import { deepFreeze } from "#utils/object";
 import { requireRefactoringAllowed } from "./precisionControls.js";
 import {
     validateExactComputeEnvelope,
@@ -88,13 +89,6 @@ const SUPPORTED_OPCODES = new Set([
 ]);
 const KIND_ORDER = Object.freeze({ "sampled-resource": 0, "storage-resource": 1 });
 const KIND_PREFIX = Object.freeze({ "sampled-resource": "t", "storage-resource": "u" });
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
-}
 
 function scalarTypeName(type)
 {

@@ -1,3 +1,4 @@
+import { clonePlain, deepFreeze } from "#utils/object";
 import CjsDxbcFormat from "../../../dxbc/index.js";
 import { analyzeRegisterValues, operandRoles } from "./analyzeRegisterValues.js";
 import { buildControlFlow } from "./buildControlFlow.js";
@@ -24,20 +25,6 @@ const BLOCK_AFTER = new Set([
     "if", "loop", "switch", "break", "breakc", "continue", "continuec",
     "ret", "retc", "discard", "else", "endif", "endloop", "case", "default", "endswitch"
 ]);
-
-function clonePlain(value)
-{
-    if (value === null || value === undefined) return value ?? null;
-    if (ArrayBuffer.isView(value)) return Array.from(value);
-    if (Array.isArray(value)) return value.map(clonePlain);
-    if (typeof value === "object")
-    {
-        const out = {};
-        for (const [ key, entry ] of Object.entries(value)) out[key] = clonePlain(entry);
-        return out;
-    }
-    return value;
-}
 
 function readDecoded(input, options)
 {
@@ -519,13 +506,6 @@ function validateProgram(program)
             throw new Error("Shader IR instruction has an invalid bitcast type");
         }
     }
-}
-
-function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
 }
 
 /**

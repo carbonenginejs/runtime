@@ -37,3 +37,45 @@ export function hasOwnThen(source, handlers, context = null)
 
     return invoked;
 }
+
+/**
+ * Recursively freezes a value and every object reachable from it.
+ *
+ * Already-frozen values short-circuit, so freezing a structure that contains
+ * frozen sub-trees does not re-walk them. There is deliberately no cycle
+ * guard: callers freeze structures they have just built, and a back-edge is a
+ * construction bug that should surface immediately rather than be tolerated.
+ *
+ * @param {*} value Value to freeze.
+ * @returns {*} The same value, deeply frozen.
+ */
+export function deepFreeze(value)
+{
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    for (const entry of Object.values(value)) deepFreeze(entry);
+    return Object.freeze(value);
+}
+
+/**
+ * Deep-copies a plain data tree of objects, arrays, and primitives.
+ *
+ * Typed arrays and other views become plain arrays, and `undefined` becomes
+ * `null`, so the result is always safe to serialize. Class instances, maps,
+ * and sets are not handled: this is for plain interchange data, not models.
+ *
+ * @param {*} value Value to copy.
+ * @returns {*} An independent copy.
+ */
+export function clonePlain(value)
+{
+    if (value === null || value === undefined) return value ?? null;
+    if (ArrayBuffer.isView(value)) return Array.from(value);
+    if (Array.isArray(value)) return value.map(clonePlain);
+    if (typeof value === "object")
+    {
+        const out = {};
+        for (const [ key, entry ] of Object.entries(value)) out[key] = clonePlain(entry);
+        return out;
+    }
+    return value;
+}
