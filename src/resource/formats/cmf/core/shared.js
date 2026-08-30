@@ -1,10 +1,31 @@
+import { unpackMeshTangents } from "#math/tangent";
+import { convertGr2SkeletonsAndAnimations } from "./gr2Anim.js";
+import { canonicalMorphVertex, maxMorphDisplacement } from "./utils/morph.js";
+import { bytesPerIndex, firstTriangle, totalIndexCount } from "./utils/indices.js";
+import { elementTypeSize, estimateStrideFromDecl } from "./utils/vertex.js";
+
+const VERTEX_CHANNELS = Object.freeze([
+    [ "position", "Position", 3 ],
+    [ "normal", "Normal", 3 ],
+    [ "tangent", "Tangent", 3 ],
+    [ "binormal", "Binormal", 3 ],
+    [ "texcoord0", "TexCoord", 2, 0 ],
+    [ "texcoord1", "TexCoord", 2, 1 ],
+    [ "color0", "Color", 4, 0 ],
+    [ "blendIndice", "BoneIndices", 4, 0, "UInt16" ],
+    [ "blendWeight", "BoneWeights", 4, 0 ],
+    [ "packedTangent", "PackedTangent", 4, 0, "Int16Norm" ],
+    [ "packedTangentLegacy", "PackedTangentLegacy", 4, 0, "UInt16Norm" ]
+]);
+
 /**
  * Builds a CMF document from normalized shared geometry for the CMF format
  * reader.
  */
-export function buildCmfFromShared(input)
+export function buildCmfFromShared(input, options = {})
 {
-    const root = input && input.meshes ? input : { meshes: [ input ] };
+    const source = input && input.meshes ? input : { meshes: [ input ] };
+    const root = convertGr2SkeletonsAndAnimations(source, options);
     return {
         version: 1,
         metadata: normalizeMetadata(root.metadata),
@@ -32,6 +53,7 @@ export function buildSharedFromCmf(raw, classes, hydrationOptions = {})
 
 function buildMesh(mesh)
 {
+    mesh = normalizeSharedMeshTangents(mesh);
     const
         vertex = mesh.vertex ?? {},
         position = vertex.position ?? [],
@@ -93,6 +115,32 @@ function buildMesh(mesh)
     };
 }
 
+function normalizeSharedMeshTangents(mesh)
+{
+    const vertex = normalizeSharedVertexTangents(mesh.vertex ?? {});
+    const morphTargets = (mesh.morphTargets ?? []).map(target => ({
+        ...target,
+        vertex: normalizeSharedVertexTangents(target.vertex ?? {})
+    }));
+    return { ...mesh, vertex, morphTargets };
+}
+
+function normalizeSharedVertexTangents(vertex)
+{
+    const
+        positionCount = (vertex.position ?? []).length / 3,
+        tangent = vertex.tangent ?? [];
+
+    if (!positionCount || tangent.length !== positionCount * 4 ||
+        (vertex.normal ?? []).length || (vertex.binormal ?? []).length)
+    {
+        return vertex;
+    }
+    const normalized = { ...vertex, tangent: tangent.slice() };
+    unpackMeshTangents({ vertex: normalized });
+    return normalized;
+}
+
 function buildMorphTargets(mesh)
 {
     const targets = mesh.morphTargets ?? [];
@@ -102,20 +150,23 @@ function buildMorphTargets(mesh)
     }
 
     const
-        firstVertex = targets.find((target) => target.vertex)?.vertex ?? {},
-        decl = buildDecl(firstVertex),
+        morphSpecs = VERTEX_CHANNELS
+            .filter(([ name ]) => targets.some((target) => (target.vertex?.[name] ?? []).length))
+            .map(([ name, , elementCount, , type = "Float32" ]) => ({ name, elementCount, type })),
+        vertices = targets.map((target) => canonicalMorphVertex(mesh.vertex ?? {}, target, morphSpecs)),
+        decl = buildDecl(Object.fromEntries(morphSpecs.map((spec) => [ spec.name, [ 0 ] ]))),
         stride = estimateStrideFromDecl(decl);
 
     return {
         decl,
-        targets: targets.map((target) => ({
+        targets: targets.map((target, index) => ({
             name: target.name ?? "",
-            maxDisplacement: target.maxDisplacement ?? maxDisplacement(mesh.vertex?.position ?? [], target.vertex?.position ?? [])
+            maxDisplacement: target.maxDisplacement ?? maxMorphDisplacement(vertices[index].position)
         })),
-        lods: targets.map((target) =>
+        lods: targets.map((target, index) =>
         {
             const
-                morphVertex = target.vertex ?? {},
+                morphVertex = vertices[index],
                 vertexCount = Math.floor((morphVertex.position ?? []).length / 3);
 
             return {
@@ -141,19 +192,7 @@ function buildDecl(vertex)
 {
     const decl = [];
     let offset = 0;
-    for (const channel of [
-        [ "position", "Position", 3 ],
-        [ "normal", "Normal", 3 ],
-        [ "tangent", "Tangent", 3 ],
-        [ "binormal", "Binormal", 3 ],
-        [ "texcoord0", "TexCoord", 2, 0 ],
-        [ "texcoord1", "TexCoord", 2, 1 ],
-        [ "color0", "Color", 4, 0 ],
-        [ "blendIndice", "BoneIndices", 4, 0, "UInt16" ],
-        [ "blendWeight", "BoneWeights", 4, 0 ],
-        [ "packedTangent", "PackedTangent", 4, 0, "Int16Norm" ],
-        [ "packedTangentLegacy", "PackedTangentLegacy", 4, 0, "UInt16Norm" ]
-    ])
+    for (const channel of VERTEX_CHANNELS)
     {
         const [ name, usage, count, usageIndex = 0, type = "Float32" ] = channel;
         if (!Array.isArray(vertex[name]) || vertex[name].length === 0)
@@ -172,56 +211,12 @@ function estimateVertexStride(vertex)
     return estimateStrideFromDecl(buildDecl(vertex));
 }
 
-function estimateStrideFromDecl(decl)
-{
-    return decl.reduce((stride, element) => Math.max(stride, element.offset + element.elementCount * elementTypeSize(element.type)), 0);
-}
-
-function elementTypeSize(type)
-{
-    return type === "Float32" ? 4 : type.includes("16") ? 2 : 1;
-}
-
-function totalIndexCount(indices = [])
-{
-    return indices.reduce((total, group) => total + (group.faces?.length ?? 0), 0);
-}
-
-function bytesPerIndex(indices = [])
-{
-    return indices.some((group) => group.bytesPerIndex === 4 || (group.faces ?? []).some((index) => index > 0xffff)) ? 4 : 2;
-}
-
-function firstTriangle(indices = [], areaIndex)
-{
-    let first = 0;
-    for (let i = 0; i < areaIndex; i++)
-    {
-        first += Math.floor((indices[i].faces ?? []).length / 3);
-    }
-    return first;
-}
-
 function boundsFromShared(mesh)
 {
     return {
         min: mesh.minBounds ?? mesh.bounds?.min ?? [ 0, 0, 0 ],
         max: mesh.maxBounds ?? mesh.bounds?.max ?? [ 0, 0, 0 ]
     };
-}
-
-function maxDisplacement(basePositions, targetPositions)
-{
-    let max = 0;
-    for (let i = 0; i < Math.min(basePositions.length, targetPositions.length); i += 3)
-    {
-        max = Math.max(max, Math.hypot(
-            targetPositions[i] - basePositions[i],
-            targetPositions[i + 1] - basePositions[i + 1],
-            targetPositions[i + 2] - basePositions[i + 2]
-        ));
-    }
-    return max;
 }
 
 function normalizeMetadata(metadata)
@@ -242,6 +237,7 @@ function hydrateSharedMesh(mesh, classes)
         name: mesh.name,
         morphTargets: mesh.morphTargets.targets.map((target, index) => hydrate("MorphTarget", {
             ...target,
+            dataIsDeltas: true,
             vertex: mesh.lods[0]?.morphTargets[index]?.vertex ?? null
         }, classes)),
         minBounds: mesh.bounds.min,

@@ -3,51 +3,39 @@ import {
     generateNormals,
     generateTangents
 } from "#math/mesh";
+import { CMF_CLASS_KEYS, GR2_CLASS_KEYS } from "../../cmf/core/constants.js";
+import { buildGr2Animations } from "../../cmf/core/gr2Compat.js";
+import {
+    bytesPerIndex as cmfBytesPerIndex,
+    firstTriangle,
+    totalIndexCount
+} from "../../cmf/core/utils/indices.js";
+import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
+import {
+    invertMatrix4 as invertSharedMatrix4,
+    multiplyMatrix4,
+    transposeMatrix4
+} from "../../cmf/core/utils/matrix.js";
+import { canonicalMorphVertex, maxMorphDisplacement } from "../../cmf/core/utils/morph.js";
+import {
+    normalizeQuaternionSeries,
+    normalizedLerpQuaternion,
+    quaternionAngularDifference,
+    quaternionSegmentMidpointTick,
+    quaternionSegmentNeedsSubdivision
+} from "../../cmf/core/utils/quaternion.js";
+import {
+    elementTypeSize as cmfElementTypeSize,
+    estimateStrideFromDecl
+} from "../../cmf/core/utils/vertex.js";
+
+export { CMF_CLASS_KEYS, GR2_CLASS_KEYS };
 
 export const OUTPUT_CMF = "cmf";
 export const OUTPUT_GR2 = "gr2";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 export const OUTPUT_FBX_JSON = "fbxJson";
-
-export const GR2_CLASS_KEYS = Object.freeze([
-    "Root",
-    "Mesh",
-    "BoneBinding",
-    "IndexGroup",
-    "MorphTarget",
-    "Model",
-    "Skeleton",
-    "Bone",
-    "Animation",
-    "TrackGroup",
-    "TransformTrack",
-    "Curve"
-]);
-
-export const CMF_CLASS_KEYS = Object.freeze([
-    "Root",
-    "Section",
-    "Metadata",
-    "MetadataEntry",
-    "Mesh",
-    "IndexGroup",
-    "VertexElement",
-    "MeshLod",
-    "MeshArea",
-    "LodMeshArea",
-    "BoneBinding",
-    "MorphTargets",
-    "MorphTarget",
-    "LodMorphTarget",
-    "AudioOcclusionMesh",
-    "Skeleton",
-    "BoneMask",
-    "BoneWeight",
-    "Animation",
-    "AnimationChannel",
-    "AnimationCurve"
-]);
 
 export const CLASS_KEYS = Object.freeze(Array.from(new Set([
     ...GR2_CLASS_KEYS,
@@ -161,7 +149,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     values.maxProperties = normalizeIntegerLimit(values.maxProperties, "maxProperties", readerName);
     values.maxArrayLength = normalizeIntegerLimit(values.maxArrayLength, "maxArrayLength", readerName);
     values.flipV = normalizeBooleanOption(values.flipV, "flipV", readerName);
-    values.classes = hasOwn(options, "classes")
+    values.classes = Object.hasOwn(options, "classes")
         ? mergeClasses(baseValues.classes || {}, options.classes, readerName)
         : normalizeClasses(baseValues.classes || {}, readerName);
     if ((values.emit === OUTPUT_GR2 || values.emit === OUTPUT_CMF) && !hasClasses(values.classes))
@@ -347,7 +335,12 @@ export function readGr2WithValues(input, values = DEFAULT_VALUES)
 export function readCmfWithValues(input, values = DEFAULT_VALUES)
 {
     const document = parseGr2DocumentWithValues(input, values);
-    return hydrateCmf(buildCmfFromShared(buildGr2FromFbxNodes(document.nodes, values)), values.classes, { source: values.source });
+    return hydrateCmf(
+        buildCmfFromShared(buildGr2FromFbxNodes(document.nodes, values)),
+        values.classes,
+        { source: values.source },
+        "CjsFbxFormat"
+    );
 }
 
 function parseDocumentWithValues(input, values = DEFAULT_VALUES)
@@ -1558,6 +1551,7 @@ function parseAsciiDocument(bytes, metadata, values)
         const node = parseAsciiLine(line, values);
         if (!node)
         {
+            appendAsciiArrayContinuation(stack, line, values);
             continue;
         }
 
@@ -1662,6 +1656,7 @@ function readAsciiTargetNodes(bytes, values, targetNames)
         const node = parseAsciiLine(line, values);
         if (!node)
         {
+            appendAsciiArrayContinuation(stack, line, values);
             continue;
         }
 
@@ -1728,15 +1723,30 @@ function buildGr2FromFbxNodes(nodes, values)
         throw new Error("fbx: no supported Geometry mesh nodes found");
     }
 
-    return {
+    const cmfAnimations = readCmfAnimations(
+        objectIndex,
+        connections,
+        meshes,
+        skeletonContext,
+        sceneTransform
+    );
+    const root = {
         grannyFileFormatRevision: 0,
         grannyFileSource: values.source || "memory",
         meshes,
         models: buildGr2Models(skeletonContext.skeletons, meshes),
         skeletons: skeletonContext.skeletons.map(skeleton => skeleton.cmfSkeleton),
         animations: [],
-        cmfAnimations: readCmfAnimations(objectIndex, connections, meshes, skeletonContext, sceneTransform)
+        cmfAnimations
     };
+    if (values.emit === OUTPUT_GR2)
+    {
+        root.animations = buildGr2Animations({
+            skeletons: root.skeletons,
+            animations: cmfAnimations
+        });
+    }
+    return root;
 }
 
 function buildGr2MeshFromGeometry(geometry, owner, objectIndex, connections, sceneTransform, modelWorldCache, skeletonContext, values)
@@ -1755,17 +1765,20 @@ function buildGr2MeshFromGeometry(geometry, owner, objectIndex, connections, sce
         meshTransform = buildMeshGeometryToWorld(owner, objectIndex, connections, modelWorldCache),
         positions = transformPoints(decoded.positions, meshTransform, sceneTransform),
         normal = transformDirections(readLayerElementChannel(geometry.node, "LayerElementNormal", 0, [ "Normals" ], [ "NormalsIndex", "NormalIndex" ], 3, decoded, "Normals"), meshTransform, sceneTransform, true),
-        explicitTangent = transformDirections(readLayerElementChannel(geometry.node, "LayerElementTangent", 0, [ "Tangents" ], [ "TangentsIndex", "TangentIndex" ], 3, decoded, "Tangents"), meshTransform, sceneTransform, true),
-        explicitBinormal = transformDirections(readLayerElementChannel(geometry.node, "LayerElementBinormal", 0, [ "Binormals" ], [ "BinormalsIndex", "BinormalIndex" ], 3, decoded, "Binormals"), meshTransform, sceneTransform, true),
+        explicitTangent = transformDirections(readLayerElementChannel(geometry.node, "LayerElementTangent", 0, [ "Tangents" ], [ "TangentsIndex", "TangentIndex" ], 3, decoded, "Tangents"), meshTransform, sceneTransform, false),
+        explicitBinormal = transformDirections(readLayerElementChannel(geometry.node, "LayerElementBinormal", 0, [ "Binormals" ], [ "BinormalsIndex", "BinormalIndex" ], 3, decoded, "Binormals"), meshTransform, sceneTransform, false),
         texcoord0 = readUvLayerElementChannel(geometry.node, 0, decoded, values),
         texcoord1 = readUvLayerElementChannel(geometry.node, 1, decoded, values),
         color0 = readLayerElementChannel(geometry.node, "LayerElementColor", 0, [ "Colors" ], [ "ColorIndex", "ColorsIndex", "ColorIndices" ], 4, decoded, "Colors"),
-        polygonTriangles = triangulatePolygonList(decoded.polygons, decoded.positions),
+        polygonTriangles = orientPolygonTriangles(
+            triangulatePolygonList(decoded.polygons, decoded.positions),
+            isReflectedTransform(meshTransform, sceneTransform)
+        ),
         triangleFaces = flattenPolygonTriangles(polygonTriangles),
         tangent = explicitTangent.length ? explicitTangent : generateBaseTangents(positions, normal, texcoord0, triangleFaces),
         binormal = explicitBinormal.length ? explicitBinormal : generateBaseBinormals(normal, tangent),
-        materialNames = readPolygonMaterialNames(geometry, owner, objectIndex, connections, decoded.polygons.length),
-        indices = buildIndexGroups(polygonTriangles, materialNames),
+        materialSelection = readPolygonMaterials(geometry, owner, objectIndex, connections, decoded.polygons.length),
+        indices = buildIndexGroups(polygonTriangles, materialSelection),
         skin = readSkinning(geometry, objectIndex, connections, decoded, positions, sceneTransform, modelWorldCache, skeletonContext),
         morphTargets = readMorphTargets(
             geometry,
@@ -1959,7 +1972,19 @@ function buildMorphTarget(shape, channel, geometry, owner, decoded, controlPoint
     const
         positions = transformPoints(expanded, meshTransform, sceneTransform),
         name = shape.name || channel.name || "morph_target",
-        vertexChannels = buildMorphTargetVertexChannels(name, geometry, owner, decoded, meshTransform, sceneTransform, positions, triangleFaces, baseVertex);
+        vertexChannels = buildMorphTargetVertexChannels(
+            name,
+            shape,
+            indexes,
+            geometry,
+            owner,
+            decoded,
+            meshTransform,
+            sceneTransform,
+            positions,
+            triangleFaces,
+            baseVertex
+        );
 
     return {
         name,
@@ -1969,9 +1994,13 @@ function buildMorphTarget(shape, channel, geometry, owner, decoded, controlPoint
     };
 }
 
-function buildMorphTargetVertexChannels(name, geometry, owner, decoded, meshTransform, sceneTransform, positions, triangleFaces, baseVertex)
+function buildMorphTargetVertexChannels(name, shape, indexes, geometry, owner, decoded, meshTransform, sceneTransform, positions, triangleFaces, baseVertex)
 {
-    let normal = readMorphTargetCustomNormals(name, geometry, owner, decoded, meshTransform, sceneTransform);
+    let normal = readMorphTargetShapeNormals(shape, indexes, decoded, meshTransform, sceneTransform, baseVertex);
+    if (!normal.length)
+    {
+        normal = readMorphTargetCustomNormals(name, geometry, owner, decoded, meshTransform, sceneTransform);
+    }
     if (!normal.length && hasArrayValues(baseVertex.normal))
     {
         normal = cleanNumericArray(generateNormals(positions, triangleFaces));
@@ -1985,6 +2014,36 @@ function buildMorphTargetVertexChannels(name, geometry, owner, decoded, meshTran
         : [];
 
     return { normal, tangent, binormal };
+}
+
+function readMorphTargetShapeNormals(shape, indexes, decoded, meshTransform, sceneTransform, baseVertex)
+{
+    const values = readChildArray(shape.node, "Normals") || [];
+    if (!values.length) return [];
+    if (!hasArrayValues(baseVertex.normal))
+    {
+        throw new Error(`fbx: morph target ${JSON.stringify(shape.name || shape.key)} has Normals without base normals`);
+    }
+    if (values.length !== indexes.length * 3)
+    {
+        throw new Error(`fbx: morph target ${JSON.stringify(shape.name || shape.key)} Normals length does not match Indexes`);
+    }
+    const byControlPoint = new Map();
+    for (let index = 0; index < indexes.length; index++)
+    {
+        byControlPoint.set(integerNumber(indexes[index], "Indexes"), [
+            finiteNumber(values[index * 3], "Normals"),
+            finiteNumber(values[index * 3 + 1], "Normals"),
+            finiteNumber(values[index * 3 + 2], "Normals")
+        ]);
+    }
+    const expanded = [];
+    for (const corner of decoded.corners)
+    {
+        expanded.push(...(byControlPoint.get(corner.controlPointIndex) || [ 0, 0, 0 ]));
+    }
+    const deltas = transformDirectionDeltas(expanded, meshTransform, sceneTransform, true);
+    return baseVertex.normal.map((value, index) => value + deltas[index]);
 }
 
 function readMorphTargetCustomNormals(name, geometry, owner, decoded, meshTransform, sceneTransform)
@@ -2139,8 +2198,13 @@ function buildCmfBoneTargetMap(skeletonContext)
 
 function readCmfAnimation(stack, objectIndex, connections, morphTargetNames, boneTargets, sceneTransform)
 {
+    const layers = connectedChildObjects(stack, objectIndex, connections, "AnimationLayer");
+    if (layers.length > 1)
+    {
+        throw new Error(`fbx: animation stack ${JSON.stringify(stack.name || stack.key)} has multiple layers`);
+    }
+    if (layers.length) validateAnimationLayer(layers[0]);
     const
-        layers = connectedChildObjects(stack, objectIndex, connections, "AnimationLayer"),
         curveNodeParents = layers.length ? layers : [ stack ],
         curveNodes = uniqueEntries(curveNodeParents.flatMap(parent => connectedChildObjects(parent, objectIndex, connections, "AnimationCurveNode"))),
         records = [];
@@ -2163,6 +2227,14 @@ function readCmfAnimation(stack, objectIndex, connections, morphTargetNames, bon
     }
 
     const stackTimeSpan = readAnimationStackTimeSpan(stack, records);
+    for (const record of records)
+    {
+        if (record.curve.ticks.some(tick => tick < stackTimeSpan.startTick ||
+            stackTimeSpan.stopTick !== null && tick > stackTimeSpan.stopTick))
+        {
+            throw new Error(`fbx: animation curve for ${JSON.stringify(record.target)} lies outside its stack time span`);
+        }
+    }
 
     const
         channels = [],
@@ -2187,7 +2259,7 @@ function readCmfAnimation(stack, objectIndex, connections, morphTargetNames, bon
         }
         curves.push({
             valueDimension: record.valueDimension,
-            interpolation: "Linear",
+            interpolation: record.curve.interpolation ?? "Linear",
             knotType: "Float32",
             valueType: "Float32",
             knotCount: knots.length,
@@ -2209,6 +2281,30 @@ function readCmfAnimation(stack, objectIndex, connections, morphTargetNames, bon
     };
 }
 
+function validateAnimationLayer(layer)
+{
+    const properties = readProperties70(layer.node).properties;
+    const weight = propertyNumber(properties, "Weight", 100);
+    if (weight !== 100)
+    {
+        throw new Error(`fbx: animation layer ${JSON.stringify(layer.name || layer.key)} has unsupported weight ${weight}`);
+    }
+    for (const name of [ "Mute", "Solo", "Lock" ])
+    {
+        if (propertyNumber(properties, name, 0))
+        {
+            throw new Error(`fbx: animation layer ${JSON.stringify(layer.name || layer.key)} uses ${name}`);
+        }
+    }
+    for (const name of [ "BlendMode", "RotationAccumulationMode", "ScaleAccumulationMode" ])
+    {
+        if (propertyNumber(properties, name, 0) !== 0)
+        {
+            throw new Error(`fbx: animation layer ${JSON.stringify(layer.name || layer.key)} uses unsupported ${name}`);
+        }
+    }
+}
+
 function readAnimationStackTimeSpan(stack, records)
 {
     const
@@ -2216,10 +2312,19 @@ function readAnimationStackTimeSpan(stack, records)
         start = propertyNumber(properties, "LocalStart", propertyNumber(properties, "ReferenceStart", null)),
         stop = propertyNumber(properties, "LocalStop", propertyNumber(properties, "ReferenceStop", null));
 
-    if (start !== null && stop !== null && stop >= start)
+    if ((start === null) !== (stop === null) || start !== null && stop < start)
     {
+        throw new Error(`fbx: animation stack ${JSON.stringify(stack.name || stack.key)} has an invalid time span`);
+    }
+    if (start !== null && stop !== null)
+    {
+        if (!Number.isSafeInteger(start) || !Number.isSafeInteger(stop))
+        {
+            throw new Error(`fbx: animation stack ${JSON.stringify(stack.name || stack.key)} exceeds the safe tick range`);
+        }
         return {
             startTick: start,
+            stopTick: stop,
             duration: (stop - start) / FBX_TICKS_PER_SECOND
         };
     }
@@ -2234,6 +2339,7 @@ function readAnimationStackTimeSpan(stack, records)
     }
     return {
         startTick,
+        stopTick: null,
         duration: null
     };
 }
@@ -2374,7 +2480,8 @@ function readScalarAnimationCurve(curve, scale)
         keyValueFloat = readChildArray(curve.node, "KeyValueFloat"),
         keyValue = readChildArray(curve.node, "KeyValue"),
         valueFeature = hasArrayValues(keyValueFloat) ? "KeyValueFloat" : "KeyValue",
-        values = hasArrayValues(keyValueFloat) ? keyValueFloat : hasArrayValues(keyValue) ? keyValue : [];
+        values = hasArrayValues(keyValueFloat) ? keyValueFloat : hasArrayValues(keyValue) ? keyValue : [],
+        interpolation = readAnimationCurveInterpolation(curve.node, ticks.length);
 
     if (!ticks.length || !values.length)
     {
@@ -2385,15 +2492,74 @@ function readScalarAnimationCurve(curve, scale)
         throw new Error(`fbx: animation curve ${JSON.stringify(curve.name || curve.key)} has mismatched KeyTime and ${valueFeature} lengths`);
     }
 
-    const pairs = ticks.map((tick, index) => ({
-        tick: finiteNumber(tick, "KeyTime"),
-        value: finiteNumber(values[index], valueFeature) * scale
-    })).sort((a, b) => a.tick - b.tick);
+    const pairs = ticks.map((tick, index) =>
+    {
+        const time = finiteNumber(tick, "KeyTime");
+        if (!Number.isSafeInteger(time)) throw new Error("fbx: KeyTime exceeds the safe integer range");
+        return {
+            tick: time,
+            value: finiteNumber(values[index], valueFeature) * scale
+        };
+    }).sort((a, b) => a.tick - b.tick);
+    for (let index = 1; index < pairs.length; index++)
+    {
+        if (pairs[index].tick === pairs[index - 1].tick)
+        {
+            throw new Error(`fbx: animation curve ${JSON.stringify(curve.name || curve.key)} has duplicate KeyTime values`);
+        }
+    }
 
     return {
         ticks: pairs.map(pair => pair.tick),
-        values: pairs.map(pair => pair.value)
+        values: pairs.map(pair => pair.value),
+        interpolation
     };
+}
+
+function readAnimationCurveInterpolation(curveNode, keyCount)
+{
+    const flags = readChildArray(curveNode, "KeyAttrFlags") || [];
+    if (!flags.length) return "Linear";
+    const referenceCounts = readChildArray(curveNode, "KeyAttrRefCount") || [];
+    const expanded = [];
+    if (flags.length === keyCount)
+    {
+        expanded.push(...flags);
+    }
+    else if (referenceCounts.length === flags.length)
+    {
+        for (let index = 0; index < flags.length; index++)
+        {
+            const count = integerNumber(referenceCounts[index], "KeyAttrRefCount");
+            for (let repeat = 0; repeat < count; repeat++) expanded.push(flags[index]);
+        }
+    }
+    else if (flags.length === 1)
+    {
+        for (let index = 0; index < keyCount; index++) expanded.push(flags[0]);
+    }
+    else
+    {
+        throw new Error("fbx: animation curve has malformed KeyAttrFlags/KeyAttrRefCount lengths");
+    }
+    if (expanded.length !== keyCount)
+    {
+        throw new Error(`fbx: animation curve attributes cover ${expanded.length} keys instead of ${keyCount}`);
+    }
+    const numericFlags = expanded.map(flag => integerNumber(flag, "KeyAttrFlags"));
+    const modes = new Set(numericFlags.map(flag => flag & 0x0e));
+    if (modes.size !== 1)
+    {
+        throw new Error("fbx: mixed animation interpolation modes are not supported");
+    }
+    const mode = [ ...modes ][0];
+    if (mode === 0x02 && numericFlags.some(flag => flag & 0x100))
+    {
+        throw new Error("fbx: ConstantNext animation interpolation is not supported");
+    }
+    if (mode === 0x02) return "Step";
+    if (mode === 0x04) return "Linear";
+    throw new Error(`fbx: animation interpolation mode ${mode} is not supported`);
 }
 
 function readBoneAnimationRecord(curveNode, objectIndex, connections, boneTargets, sceneTransform)
@@ -2441,20 +2607,23 @@ function readBoneAnimationRecord(curveNode, objectIndex, connections, boneTarget
             valueDimension: 3,
             curve: {
                 ticks: vectorCurve.ticks,
-                values: packBonePositionValues(vectorCurve.values, sceneTransform, target.isRoot)
+                values: packBonePositionValues(vectorCurve.values, sceneTransform, target.isRoot),
+                interpolation: vectorCurve.interpolation
             }
         };
     }
 
     if (property === "rotation")
     {
+        const baked = packBoneRotationCurve(bone, vectorCurve, sceneTransform, target.isRoot);
         return {
             target: target.name,
             targetType: "BoneRotation",
             valueDimension: 4,
             curve: {
-                ticks: vectorCurve.ticks,
-                values: packBoneRotationValues(bone, vectorCurve.values, sceneTransform, target.isRoot)
+                ticks: baked.ticks,
+                values: baked.values,
+                interpolation: vectorCurve.interpolation
             }
         };
     }
@@ -2465,7 +2634,8 @@ function readBoneAnimationRecord(curveNode, objectIndex, connections, boneTarget
         valueDimension: 3,
         curve: {
             ticks: vectorCurve.ticks,
-            values: vectorCurve.values.map(cleanFloat)
+            values: vectorCurve.values.map(cleanFloat),
+            interpolation: vectorCurve.interpolation
         }
     };
 }
@@ -2545,7 +2715,12 @@ function readVectorAnimationCurve(curveNode, objectIndex, connections, fallback)
             values.push(sampleScalarAnimationCurve(components[axis], tick, fallback[axis]));
         }
     }
-    return { ticks, values };
+    const interpolations = new Set(components.filter(Boolean).map((component) => component.interpolation));
+    if (interpolations.size > 1)
+    {
+        throw new Error("fbx: vector animation components use mixed interpolation modes");
+    }
+    return { ticks, values, interpolation: [ ...interpolations ][0] ?? "Linear" };
 }
 
 function animationCurveAxis(property)
@@ -2607,6 +2782,8 @@ function sampleScalarAnimationCurve(curve, tick, fallback)
             return values[i];
         }
 
+        if (curve.interpolation === "Step") return values[i - 1];
+
         const amount = (tick - ticks[i - 1]) / (ticks[i] - ticks[i - 1]);
         return values[i - 1] + (values[i] - values[i - 1]) * amount;
     }
@@ -2645,7 +2822,76 @@ function packBoneRotationValues(bone, values, sceneTransform, isRoot)
 
         output.push(...rotation);
     }
-    return output;
+    return normalizeQuaternionSeries(output, "FBX animation rotation");
+}
+
+function packBoneRotationCurve(bone, curve, sceneTransform, isRoot)
+{
+    const quaternions = packBoneRotationValues(bone, curve.values, sceneTransform, isRoot);
+    if (curve.interpolation === "Step" || curve.ticks.length < 2)
+    {
+        return { ticks: curve.ticks, values: quaternions };
+    }
+    const source = curve.ticks.map((tick, index) => ({
+        tick,
+        euler: curve.values.slice(index * 3, index * 3 + 3),
+        quaternion: quaternions.slice(index * 4, index * 4 + 4)
+    }));
+    const output = [ source[0] ];
+    for (let sourceIndex = 1; sourceIndex < source.length; sourceIndex++)
+    {
+        const sourceStart = source[sourceIndex - 1];
+        const sourceEnd = source[sourceIndex];
+        const appendSegment = (start, end, alpha0, alpha1, depth) =>
+        {
+            const tick = quaternionSegmentMidpointTick(start.tick, end.tick);
+            if (tick <= start.tick || tick >= end.tick)
+            {
+                output.push(end);
+                return;
+            }
+            const authoredTurnRequiresSubdivision = sourceStart.euler.some((value, axis) =>
+                Math.abs((sourceEnd.euler[axis] - value) * (alpha1 - alpha0)) > 90
+            );
+            const needsSubdivision = authoredTurnRequiresSubdivision ||
+                quaternionSegmentNeedsSubdivision(start.tick, end.tick, (_tick, local) =>
+            {
+                const
+                    alpha = alpha0 + (alpha1 - alpha0) * local,
+                    euler = sourceStart.euler.map((value, axis) =>
+                        value + (sourceEnd.euler[axis] - value) * alpha
+                    ),
+                    quaternion = packBoneRotationValues(bone, euler, sceneTransform, isRoot),
+                    interpolated = normalizedLerpQuaternion(start.quaternion, end.quaternion, local);
+                return quaternionAngularDifference(quaternion, interpolated);
+            });
+            if (!needsSubdivision)
+            {
+                output.push(end);
+                return;
+            }
+            if (depth >= 12)
+            {
+                throw new Error("fbx: rotation curve requires more than 4096 baked keys per source segment");
+            }
+            const
+                local = (tick - start.tick) / (end.tick - start.tick),
+                alpha = alpha0 + (alpha1 - alpha0) * local,
+                euler = sourceStart.euler.map((value, axis) =>
+                    value + (sourceEnd.euler[axis] - value) * alpha
+                ),
+                quaternion = packBoneRotationValues(bone, euler, sceneTransform, isRoot);
+            const middle = { tick, euler, quaternion };
+            appendSegment(start, middle, alpha0, alpha, depth + 1);
+            appendSegment(middle, end, alpha, alpha1, depth + 1);
+        };
+        appendSegment(sourceStart, sourceEnd, 0, 1, 0);
+    }
+    const values = output.flatMap(key => key.quaternion);
+    return {
+        ticks: output.map(key => key.tick),
+        values: normalizeQuaternionSeries(values, "FBX animation rotation")
+    };
 }
 
 function isBlendShapeChannel(entry)
@@ -2874,7 +3120,7 @@ function buildSkeletonContext(objectIndex, connections, sceneTransform, modelWor
         roots = objectIndex.list
             .filter(isBoneModel)
             .filter(bone => !connectedParentObjects(bone, objectIndex, connections, "Model").some(isBoneModel)),
-        bindPoseMatrices = readBindPoseMatrices(objectIndex, sceneTransform),
+        bindPoseMatrices = readBindPoseMatrices(objectIndex, connections, sceneTransform),
         skeletons = [],
         boneToSkeletonIndex = new Map(),
         visited = new Set();
@@ -2931,7 +3177,8 @@ function buildSkeleton(root, objectIndex, connections, sceneTransform, modelWorl
     importBone(root, -1);
 
     const
-        name = root.name || "fbx_skeleton",
+        authoredName = readProperties70(root.node).properties.CjsSkeletonName?.value,
+        name = authoredName === undefined ? root.name || "fbx_skeleton" : String(authoredName),
         invBindTransforms = buildInvBindTransforms(records, bindPoseMatrices);
 
     return {
@@ -3057,25 +3304,27 @@ function buildBoneLocalMatrix(bone, parentIndex, objectIndex, connections, scene
 
 function buildInvBindTransforms(records, bindPoseMatrices)
 {
-    const poseMatrices = records.map(record => bindPoseMatrices.get(record.bone.key));
-    if (poseMatrices.every(Boolean))
-    {
-        return poseMatrices.map(matrix => cleanMatrix4(invertMatrix4(matrix)));
-    }
-
     const invBindTransforms = [];
     for (const record of records)
     {
-        const
-            parentInvTransform = record.parentIndex === -1 ? IDENTITY_MATRIX4 : invBindTransforms[record.parentIndex],
-            invLocalTransform = invertMatrix4(record.localMatrix);
-
-        invBindTransforms.push(cleanMatrix4(multiplyMatrix4(parentInvTransform, invLocalTransform)));
+        const poseMatrix = bindPoseMatrices.get(record.bone.key);
+        if (poseMatrix)
+        {
+            invBindTransforms.push(cleanMatrix4(invertMatrix4(poseMatrix)));
+            continue;
+        }
+        const parentInvTransform = record.parentIndex === -1
+            ? IDENTITY_MATRIX4
+            : invBindTransforms[record.parentIndex];
+        invBindTransforms.push(cleanMatrix4(multiplyMatrix4(
+            invertMatrix4(record.localMatrix),
+            parentInvTransform
+        )));
     }
-    return invBindTransforms;
+    return invBindTransforms.map((matrix) => transposeMatrix4(matrix));
 }
 
-function readBindPoseMatrices(objectIndex, sceneTransform)
+function readBindPoseMatrices(objectIndex, connections, sceneTransform)
 {
     const matrices = new Map();
     for (const pose of objectIndex.list.filter(entry => entry.nodeName === "Pose"))
@@ -3099,6 +3348,20 @@ function readBindPoseMatrices(objectIndex, sceneTransform)
 
             matrices.set(toObjectKey(nodeId), transformMatrixScene(matrix, sceneTransform));
         }
+    }
+    for (const cluster of objectIndex.list.filter(entry => entry.nodeName === "Deformer" && isClusterDeformer(entry)))
+    {
+        const
+            bone = clusterBone(cluster, objectIndex, connections),
+            matrix = readChildArray(cluster.node, "TransformLink");
+        if (!bone || matrices.has(bone.key) || !Array.isArray(matrix) || matrix.length !== 16)
+        {
+            continue;
+        }
+        matrices.set(bone.key, transformMatrixScene(
+            matrix.map(value => finiteNumber(value, "TransformLink")),
+            sceneTransform
+        ));
     }
     return matrices;
 }
@@ -3237,9 +3500,9 @@ function composeModelTransform(properties, overrides = {})
         translationMatrix4(overrides.translation ?? propertyVector3(properties, "Lcl Translation", [ 0, 0, 0 ])),
         translationMatrix4(propertyVector3(properties, "RotationOffset", [ 0, 0, 0 ])),
         translationMatrix4(rotationPivot),
-        rotationMatrix4(propertyVector3(properties, "PreRotation", [ 0, 0, 0 ]), rotationOrder),
+        rotationMatrix4(propertyVector3(properties, "PreRotation", [ 0, 0, 0 ]), DEFAULT_ROTATION_ORDER),
         rotationMatrix4(overrides.rotation ?? propertyVector3(properties, "Lcl Rotation", [ 0, 0, 0 ]), rotationOrder),
-        inverseRotationMatrix4(propertyVector3(properties, "PostRotation", [ 0, 0, 0 ]), rotationOrder),
+        inverseRotationMatrix4(propertyVector3(properties, "PostRotation", [ 0, 0, 0 ]), DEFAULT_ROTATION_ORDER),
         translationMatrix4(negateVector3(rotationPivot)),
         translationMatrix4(propertyVector3(properties, "ScalingOffset", [ 0, 0, 0 ])),
         translationMatrix4(scalingPivot),
@@ -3538,84 +3801,32 @@ function axisRotationMatrix4(axis, radians)
     }
 }
 
-function multiplyMatrix4(a, b)
-{
-    const output = new Array(16).fill(0);
-    for (let row = 0; row < 4; row++)
-    {
-        for (let column = 0; column < 4; column++)
-        {
-            for (let k = 0; k < 4; k++)
-            {
-                output[row * 4 + column] += a[row * 4 + k] * b[k * 4 + column];
-            }
-        }
-    }
-    return output;
-}
-
 function invertMatrix4(matrix)
 {
-    const
-        a = [
-            matrix.slice(0, 4),
-            matrix.slice(4, 8),
-            matrix.slice(8, 12),
-            matrix.slice(12, 16)
-        ],
-        inverse = [
-            [ 1, 0, 0, 0 ],
-            [ 0, 1, 0, 0 ],
-            [ 0, 0, 1, 0 ],
-            [ 0, 0, 0, 1 ]
-        ];
-
-    for (let column = 0; column < 4; column++)
+    try
     {
-        let pivotRow = column;
-        for (let row = column + 1; row < 4; row++)
-        {
-            if (Math.abs(a[row][column]) > Math.abs(a[pivotRow][column]))
-            {
-                pivotRow = row;
-            }
-        }
-
-        const pivot = a[pivotRow][column];
-        if (Math.abs(pivot) < Number.EPSILON)
-        {
-            throw new Error("fbx: transform matrix is not invertible");
-        }
-
-        if (pivotRow !== column)
-        {
-            [ a[column], a[pivotRow] ] = [ a[pivotRow], a[column] ];
-            [ inverse[column], inverse[pivotRow] ] = [ inverse[pivotRow], inverse[column] ];
-        }
-
-        for (let i = 0; i < 4; i++)
-        {
-            a[column][i] /= pivot;
-            inverse[column][i] /= pivot;
-        }
-
-        for (let row = 0; row < 4; row++)
-        {
-            if (row === column)
-            {
-                continue;
-            }
-
-            const factor = a[row][column];
-            for (let i = 0; i < 4; i++)
-            {
-                a[row][i] -= factor * a[column][i];
-                inverse[row][i] -= factor * inverse[column][i];
-            }
-        }
+        return cleanMatrix4(invertSharedMatrix4(matrix));
     }
+    catch
+    {
+        throw new Error("fbx: transform matrix is not invertible");
+    }
+}
 
-    return cleanMatrix4(inverse.flat());
+function transformDirectionDeltas(values, matrix, sceneTransform, useNormalMatrix)
+{
+    const
+        directionMatrix = useNormalMatrix ? normalMatrix3(matrix) : null,
+        output = [];
+    for (let index = 0; index < values.length; index += 3)
+    {
+        const source = [ values[index], values[index + 1], values[index + 2] ];
+        const vector = useNormalMatrix
+            ? transformVectorMatrix3(source, directionMatrix)
+            : transformVectorMatrix4(source, matrix);
+        output.push(...transformSceneVector(vector, sceneTransform));
+    }
+    return output;
 }
 
 function transformPointMatrix4(point, matrix)
@@ -3892,7 +4103,7 @@ function decodePolygonCorners(controlPoints, polygonVertexIndex, geometry)
 
 function readLayerElementChannel(geometryNode, layerName, layerIndex, valueNames, indexNames, elementSize, decoded, feature)
 {
-    const layer = findLayerElementNode(geometryNode, layerName, layerIndex);
+    const layer = findRoutedLayerElementNode(geometryNode, layerName, layerIndex);
     if (!layer)
     {
         return [];
@@ -3968,6 +4179,30 @@ function findLayerElementNode(geometryNode, layerName, layerIndex)
     }) || layers[layerIndex] || null;
 }
 
+function findRoutedLayerElementNode(geometryNode, layerName, layerIndex)
+{
+    const layerNodes = geometryNode.children.filter(child => child.name === "Layer");
+    const layerNode = layerNodes.find((child, index) =>
+    {
+        const id = child.properties.length ? Number(child.properties[0]) : index;
+        return Number.isFinite(id) && id === layerIndex;
+    }) || layerNodes[layerIndex];
+
+    if (layerNode)
+    {
+        for (const reference of layerNode.children.filter(child => child.name === "LayerElement"))
+        {
+            if (String(readFirstChildProperty(reference, "Type") || "") !== layerName) continue;
+            const typedIndex = integerNumber(
+                readFirstChildProperty(reference, "TypedIndex") ?? 0,
+                "TypedIndex"
+            );
+            return findLayerElementNode(geometryNode, layerName, typedIndex);
+        }
+    }
+    return findLayerElementNode(geometryNode, layerName, layerIndex);
+}
+
 function readFirstChildArray(node, childNames)
 {
     for (const childName of childNames)
@@ -4034,18 +4269,26 @@ function appendLayerElement(output, values, directIndex, elementSize, feature)
     }
 }
 
-function buildIndexGroups(polygonTriangles, materialNames)
+function buildIndexGroups(polygonTriangles, materialSelection)
 {
-    const groups = [];
-    const groupByName = new Map();
+    const groups = materialSelection.slots.map(slot => ({
+        name: slot.name,
+        bytesPerIndex: 2,
+        faces: []
+    }));
     let maxIndex = 0;
 
     for (let polygonIndex = 0; polygonIndex < polygonTriangles.length; polygonIndex++)
     {
         const
             triangles = polygonTriangles[polygonIndex],
-            name = materialNames[polygonIndex] || "default",
-            group = getIndexGroup(groups, groupByName, name);
+            slot = materialSelection.polygonSlots[polygonIndex] ?? 0,
+            group = groups[slot];
+
+        if (!group)
+        {
+            throw new Error(`fbx: polygon ${polygonIndex} references missing material slot ${slot}`);
+        }
 
         for (const triangle of triangles)
         {
@@ -4141,6 +4384,36 @@ function flattenPolygonTriangles(polygonTriangles)
         }
     }
     return faces;
+}
+
+function orientPolygonTriangles(polygonTriangles, reflected)
+{
+    if (!reflected) return polygonTriangles;
+    return polygonTriangles.map(triangles => triangles.map(triangle => [
+        triangle[0], triangle[2], triangle[1]
+    ]));
+}
+
+function isReflectedTransform(matrix, sceneTransform)
+{
+    const matrixDeterminant = determinant3(
+        matrix[0], matrix[1], matrix[2],
+        matrix[4], matrix[5], matrix[6],
+        matrix[8], matrix[9], matrix[10]
+    );
+    const sceneDeterminant = determinant3(
+        ...sceneTransform.right,
+        ...sceneTransform.up,
+        ...sceneTransform.forward
+    ) * sceneTransform.scale ** 3;
+    return matrixDeterminant * sceneDeterminant < 0;
+}
+
+function determinant3(a00, a01, a02, a10, a11, a12, a20, a21, a22)
+{
+    return a00 * (a11 * a22 - a12 * a21) -
+        a01 * (a10 * a22 - a12 * a20) +
+        a02 * (a10 * a21 - a11 * a20);
 }
 
 function triangulatePolygonFan(polygon)
@@ -4274,56 +4547,48 @@ function pointInTriangle2D(point, a, b, c)
     return !(hasNegative && hasPositive);
 }
 
-function getIndexGroup(groups, groupByName, name)
+function readPolygonMaterials(geometry, owner, objectIndex, connections, polygonCount)
 {
-    let group = groupByName.get(name);
-    if (!group)
+    const slots = readMaterialSlots(geometry, owner, objectIndex, connections);
+    if (!slots.length)
     {
-        group = { name, bytesPerIndex: 2, faces: [] };
-        groupByName.set(name, group);
-        groups.push(group);
-    }
-    return group;
-}
-
-function readPolygonMaterialNames(geometry, owner, objectIndex, connections, polygonCount)
-{
-    const materialSlots = readMaterialSlotNames(geometry, owner, objectIndex, connections);
-    if (!materialSlots.length)
-    {
-        return new Array(polygonCount).fill("default");
+        slots.push({ key: "default", name: "default" });
     }
 
-    const layer = findFirstNode(geometry.node.children, "LayerElementMaterial");
+    const layer = findRoutedLayerElementNode(geometry.node, "LayerElementMaterial", 0);
     if (!layer)
     {
-        return new Array(polygonCount).fill(materialSlots[0] || "default");
+        return { slots, polygonSlots: new Array(polygonCount).fill(0) };
     }
 
     const
         mapping = String(readFirstChildProperty(layer, "MappingInformationType") || "AllSame"),
         materials = readChildArray(layer, "Materials") || [],
-        names = [];
+        polygonSlots = [];
 
     for (let i = 0; i < polygonCount; i++)
     {
         const slot = mapping === "ByPolygon"
             ? integerNumber(materials[i] ?? 0, "Materials")
             : integerNumber(materials[0] ?? 0, "Materials");
-        names.push(slot >= 0 ? materialSlots[slot] || `material_${slot}` : "default");
+        if (slot < 0 || slot >= slots.length)
+        {
+            throw new Error(`fbx: Materials slot ${slot} is outside 0..${slots.length - 1}`);
+        }
+        polygonSlots.push(slot);
     }
 
-    return names;
+    return { slots, polygonSlots };
 }
 
-function readMaterialSlotNames(geometry, owner, objectIndex, connections)
+function readMaterialSlots(geometry, owner, objectIndex, connections)
 {
     const materials = [
         ...connectedChildObjects(owner, objectIndex, connections, "Material"),
         ...connectedChildObjects(geometry, objectIndex, connections, "Material")
     ];
     const seen = new Set();
-    const names = [];
+    const slots = [];
 
     for (const material of materials)
     {
@@ -4332,10 +4597,10 @@ function readMaterialSlotNames(geometry, owner, objectIndex, connections)
             continue;
         }
         seen.add(material.key);
-        names.push(material.name || `material_${names.length}`);
+        slots.push({ key: material.key, name: material.name ?? `material_${slots.length}` });
     }
 
-    return names;
+    return slots;
 }
 
 function meshNameFromFbx(geometry, owner)
@@ -4404,8 +4669,28 @@ function hydrateGr2(root, classes, hydrationOptions = {})
             indices: mesh.indices.map(group => hydrate("IndexGroup", group, hydrationClasses))
         }, hydrationClasses)),
         models: root.models.map(model => hydrateGr2Model(model, hydrationClasses)),
-        animations: root.animations
+        animations: root.animations.map(animation => hydrateGr2Animation(animation, hydrationClasses))
     }, hydrationClasses, hydrationOptions);
+}
+
+function hydrateGr2Animation(animation, classes)
+{
+    return hydrate("Animation", {
+        ...animation,
+        trackGroups: (animation.trackGroups ?? []).map(trackGroup => hydrate("TrackGroup", {
+            ...trackGroup,
+            transformTracks: (trackGroup.transformTracks ?? []).map(track => hydrate("TransformTrack", {
+                ...track,
+                orientation: hydrate("Curve", track.orientation, classes),
+                position: hydrate("Curve", track.position, classes),
+                scaleShear: hydrate("Curve", track.scaleShear, classes)
+            }, classes)),
+            vectorTracks: (trackGroup.vectorTracks ?? []).map(track => hydrate("VectorTrack", {
+                ...track,
+                valueCurve: hydrate("Curve", track.valueCurve, classes)
+            }, classes))
+        }, classes))
+    }, classes);
 }
 
 function hydrateGr2Model(model, classes)
@@ -4508,7 +4793,7 @@ function buildCmfMeshArea(group, mesh, morphTargets)
         bounds: cmfAreaBounds(group, mesh),
         bones,
         affectedByBones: bones.length > 0,
-        affectedByMorphTargets: isCmfAreaAffectedByMorphTargets(group, mesh.vertex ?? {}, morphTargets.lods)
+        affectedByMorphTargets: isCmfAreaAffectedByMorphTargets(group, morphTargets.lods)
     };
 }
 
@@ -4541,9 +4826,8 @@ function buildCmfAreaBones(group, vertex)
     return Array.from(bones);
 }
 
-function isCmfAreaAffectedByMorphTargets(group, baseVertex, morphLods)
+function isCmfAreaAffectedByMorphTargets(group, morphLods)
 {
-    const basePositions = baseVertex.position ?? [];
     for (const lod of morphLods)
     {
         const positions = lod.vertex?.position ?? [];
@@ -4551,9 +4835,9 @@ function isCmfAreaAffectedByMorphTargets(group, baseVertex, morphLods)
         {
             const offset = vertexIndex * 3;
             if (
-                positions[offset] !== basePositions[offset] ||
-                positions[offset + 1] !== basePositions[offset + 1] ||
-                positions[offset + 2] !== basePositions[offset + 2]
+                positions[offset] !== 0 ||
+                positions[offset + 1] !== 0 ||
+                positions[offset + 2] !== 0
             )
             {
                 return true;
@@ -4572,20 +4856,20 @@ function buildCmfMorphTargets(mesh)
     }
 
     const
-        targetVertices = targets.map(target => target.vertex ?? {}),
+        targetVertices = targets.map(target => canonicalMorphVertex(mesh.vertex ?? {}, target)),
         decl = buildCmfDeclFromVertices(targetVertices),
         stride = estimateStrideFromDecl(decl);
 
     return {
         decl,
-        targets: targets.map(target => ({
+        targets: targets.map((target, index) => ({
             name: target.name ?? "",
-            maxDisplacement: target.maxDisplacement ?? computeMaxDisplacement(mesh.vertex?.position ?? [], target.vertex?.position ?? [])
+            maxDisplacement: target.maxDisplacement ?? maxMorphDisplacement(targetVertices[index].position)
         })),
-        lods: targets.map(target =>
+        lods: targets.map((_, index) =>
         {
             const
-                morphVertex = target.vertex ?? {},
+                morphVertex = targetVertices[index],
                 vertexCount = Math.floor((morphVertex.position ?? []).length / 3);
 
             return {
@@ -4652,36 +4936,6 @@ function estimateVertexStride(vertex)
     return estimateStrideFromDecl(buildCmfDecl(vertex));
 }
 
-function estimateStrideFromDecl(decl)
-{
-    return decl.reduce((stride, element) => Math.max(stride, element.offset + element.elementCount * cmfElementTypeSize(element.type)), 0);
-}
-
-function cmfElementTypeSize(type)
-{
-    return type === "Float32" ? 4 : type.includes("16") ? 2 : 1;
-}
-
-function totalIndexCount(indices)
-{
-    return indices.reduce((total, group) => total + (group.faces?.length ?? 0), 0);
-}
-
-function cmfBytesPerIndex(indices)
-{
-    return indices.some(group => group.bytesPerIndex === 4 || (group.faces ?? []).some(index => index > 0xffff)) ? 4 : 2;
-}
-
-function firstTriangle(indices, areaIndex)
-{
-    let first = 0;
-    for (let i = 0; i < areaIndex; i++)
-    {
-        first += Math.floor((indices[i].faces ?? []).length / 3);
-    }
-    return first;
-}
-
 function cmfBounds(mesh)
 {
     return {
@@ -4710,65 +4964,6 @@ function cmfAreaBounds(group, mesh)
         min: bounds.minBounds,
         max: bounds.maxBounds
     };
-}
-
-function hydrateCmf(root, classes, hydrationOptions = {})
-{
-    const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
-    return hydrate("Root", {
-        ...root,
-        metadata: root.metadata ? hydrateCmfMetadata(root.metadata, hydrationClasses) : null,
-        meshes: root.meshes.map(mesh => hydrateCmfMesh(mesh, hydrationClasses)),
-        skeletons: root.skeletons.map(skeleton => hydrateCmfSkeleton(skeleton, hydrationClasses)),
-        animations: root.animations.map(animation => hydrateCmfAnimation(animation, hydrationClasses))
-    }, hydrationClasses, hydrationOptions);
-}
-
-function hydrateCmfMetadata(metadata, classes)
-{
-    return hydrate("Metadata", {
-        entries: (metadata.entries ?? []).map(entry => hydrate("MetadataEntry", entry, classes))
-    }, classes);
-}
-
-function hydrateCmfMesh(mesh, classes)
-{
-    return hydrate("Mesh", {
-        ...mesh,
-        decl: mesh.decl.map(element => hydrate("VertexElement", element, classes)),
-        lods: mesh.lods.map(lod => hydrate("MeshLod", {
-            ...lod,
-            areas: lod.areas.map(area => hydrate("LodMeshArea", area, classes)),
-            morphTargets: lod.morphTargets.map(target => hydrate("LodMorphTarget", target, classes))
-        }, classes)),
-        areas: mesh.areas.map(area => hydrate("MeshArea", area, classes)),
-        boneBindings: mesh.boneBindings.map(binding => hydrate("BoneBinding", binding, classes)),
-        morphTargets: hydrate("MorphTargets", {
-            decl: mesh.morphTargets.decl.map(element => hydrate("VertexElement", element, classes)),
-            targets: mesh.morphTargets.targets.map(target => hydrate("MorphTarget", target, classes))
-        }, classes),
-        audioOcclusionMesh: hydrate("AudioOcclusionMesh", mesh.audioOcclusionMesh, classes)
-    }, classes);
-}
-
-function hydrateCmfSkeleton(skeleton, classes)
-{
-    return hydrate("Skeleton", {
-        ...skeleton,
-        boneMasks: skeleton.boneMasks.map(mask => hydrate("BoneMask", {
-            ...mask,
-            weights: mask.weights.map(weight => hydrate("BoneWeight", weight, classes))
-        }, classes))
-    }, classes);
-}
-
-function hydrateCmfAnimation(animation, classes)
-{
-    return hydrate("Animation", {
-        ...animation,
-        channels: animation.channels.map(channel => hydrate("AnimationChannel", channel, classes)),
-        curves: animation.curves.map(curve => hydrate("AnimationCurve", curve, classes))
-    }, classes);
 }
 
 function hydrate(type, fields, classes, hydrationOptions = {})
@@ -5029,6 +5224,20 @@ function toObjectKey(value)
     return value === undefined || value === null ? "" : String(value);
 }
 
+function appendAsciiArrayContinuation(stack, line, values)
+{
+    const
+        siblings = stack[stack.length - 1].children,
+        arrayNode = siblings[siblings.length - 1];
+
+    if (arrayNode?.name !== "a") return;
+    arrayNode.properties.push(...parseAsciiProperties(line));
+    if (arrayNode.properties.length > values.maxProperties)
+    {
+        throw new Error(`fbx: ASCII node a exceeds maxProperties (${values.maxProperties})`);
+    }
+}
+
 function parseAsciiLine(line, values)
 {
     const match = /^([A-Za-z_][\w.]*)\s*:\s*(.*)$/u.exec(line);
@@ -5101,7 +5310,7 @@ function splitAsciiProperties(body)
         current += char;
     }
 
-    if (current.trim() || body.endsWith(","))
+    if (current.trim())
     {
         parts.push(current.trim());
     }
@@ -5118,6 +5327,11 @@ function parseAsciiValue(value)
     if (/^(true|false)$/iu.test(value))
     {
         return value.toLowerCase() === "true";
+    }
+    if (/^[+-]?\d+$/u.test(value))
+    {
+        const number = Number(value);
+        return Number.isSafeInteger(number) ? number : BigInt(value).toString();
     }
     if (/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/iu.test(value))
     {
@@ -5312,11 +5526,6 @@ function normalizeBooleanOption(value, fieldName, readerName)
     throw new TypeError(`${readerName}: ${fieldName} must be a boolean`);
 }
 
-function hasOwn(value, key)
-{
-    return Object.prototype.hasOwnProperty.call(value, key);
-}
-
 function normalizeClasses(classes, readerName)
 {
     if (!classes)
@@ -5428,17 +5637,13 @@ function readU64LEAsNumber(bytes, offset)
 
 function readI64LEValue(bytes, offset)
 {
-    const low = readU32LE(bytes, offset);
-    const highUnsigned = readU32LE(bytes, offset + 4);
-    const negative = !!(highUnsigned & 0x80000000);
-    let value = highUnsigned * 0x100000000 + low;
+    const
+        low = BigInt(readU32LE(bytes, offset)),
+        high = BigInt(readU32LE(bytes, offset + 4)),
+        value = BigInt.asIntN(64, low | (high << 32n)),
+        number = Number(value);
 
-    if (negative)
-    {
-        value -= 0x10000000000000000;
-    }
-
-    return Number.isSafeInteger(value) ? value : String(value);
+    return Number.isSafeInteger(number) ? number : value.toString();
 }
 
 function readF32LE(bytes, offset)

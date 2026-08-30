@@ -12,45 +12,12 @@ import {
 import {
     packTangentFrames
 } from "#math/tangent";
+import { CMF_CLASS_KEYS, GR2_CLASS_KEYS } from "../../cmf/core/constants.js";
+import { bytesPerIndex, firstTriangle, totalIndexCount } from "../../cmf/core/utils/indices.js";
+import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
+import { elementTypeSize, estimateStrideFromDecl } from "../../cmf/core/utils/vertex.js";
 
-export const GR2_CLASS_KEYS = Object.freeze([
-    "Root",
-    "Mesh",
-    "BoneBinding",
-    "IndexGroup",
-    "MorphTarget",
-    "Model",
-    "Skeleton",
-    "Bone",
-    "Animation",
-    "TrackGroup",
-    "TransformTrack",
-    "Curve"
-]);
-
-export const CMF_CLASS_KEYS = Object.freeze([
-    "Root",
-    "Section",
-    "Metadata",
-    "MetadataEntry",
-    "Mesh",
-    "IndexGroup",
-    "VertexElement",
-    "MeshLod",
-    "MeshArea",
-    "LodMeshArea",
-    "BoneBinding",
-    "MorphTargets",
-    "MorphTarget",
-    "LodMorphTarget",
-    "AudioOcclusionMesh",
-    "Skeleton",
-    "BoneMask",
-    "BoneWeight",
-    "Animation",
-    "AnimationChannel",
-    "AnimationCurve"
-]);
+export { CMF_CLASS_KEYS, GR2_CLASS_KEYS };
 
 export const CLASS_KEYS = Object.freeze(Array.from(new Set([
     ...GR2_CLASS_KEYS,
@@ -443,7 +410,15 @@ export function readWithValues(format, input, values, readerName = "CjsObjFormat
     const text = toText(input);
     const json = parseObjText(text, { source: values.source });
     rebuildMissingMeshData(format, json, values);
-    if (values.emit === OUTPUT_CMF) return hydrateCmf(buildCmfFromShared(json), values.classes, { source: values.source });
+    if (values.emit === OUTPUT_CMF)
+    {
+        return hydrateCmf(
+            buildCmfFromShared(json),
+            values.classes,
+            { source: values.source },
+            "CjsObjFormat CMF"
+        );
+    }
     return hydrateJson(json, { classes: values.classes, source: values.source });
 }
 
@@ -530,29 +505,7 @@ function buildCmfDecl(vertex)
 
 function estimateVertexStride(vertex)
 {
-    return buildCmfDecl(vertex).reduce((stride, element) => Math.max(stride, element.offset + element.elementCount * elementTypeSize(element.type)), 0);
-}
-
-function elementTypeSize(type)
-{
-    return type === "Float32" ? 4 : type.includes("16") ? 2 : 1;
-}
-
-function totalIndexCount(indices)
-{
-    return indices.reduce((total, group) => total + (group.faces?.length ?? 0), 0);
-}
-
-function bytesPerIndex(indices)
-{
-    return indices.some((group) => group.bytesPerIndex === 4 || (group.faces ?? []).some((index) => index > 0xffff)) ? 4 : 2;
-}
-
-function firstTriangle(indices, areaIndex)
-{
-    let first = 0;
-    for (let i = 0; i < areaIndex; i++) first += Math.floor((indices[i].faces ?? []).length / 3);
-    return first;
+    return estimateStrideFromDecl(buildCmfDecl(vertex));
 }
 
 function cmfBounds(mesh)
@@ -561,62 +514,6 @@ function cmfBounds(mesh)
         min: mesh.minBounds ?? [ 0, 0, 0 ],
         max: mesh.maxBounds ?? [ 0, 0, 0 ]
     };
-}
-
-function hydrateCmf(root, classes, hydrationOptions = {})
-{
-    const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
-    return hydrateCmfNode("Root", {
-        ...root,
-        metadata: root.metadata ? hydrateCmfNode("Metadata", root.metadata, hydrationClasses) : null,
-        meshes: root.meshes.map((mesh) => hydrateCmfMesh(mesh, hydrationClasses)),
-        skeletons: root.skeletons.map((skeleton) => hydrateCmfNode("Skeleton", skeleton, hydrationClasses)),
-        animations: root.animations.map((animation) => hydrateCmfNode("Animation", animation, hydrationClasses))
-    }, hydrationClasses, hydrationOptions);
-}
-
-function hydrateCmfMesh(mesh, classes)
-{
-    return hydrateCmfNode("Mesh", {
-        ...mesh,
-        decl: mesh.decl.map((element) => hydrateCmfNode("VertexElement", element, classes)),
-        lods: mesh.lods.map((lod) => hydrateCmfNode("MeshLod", {
-            ...lod,
-            areas: lod.areas.map((area) => hydrateCmfNode("LodMeshArea", area, classes)),
-            morphTargets: lod.morphTargets.map((target) => hydrateCmfNode("LodMorphTarget", target, classes))
-        }, classes)),
-        areas: mesh.areas.map((area) => hydrateCmfNode("MeshArea", area, classes)),
-        boneBindings: mesh.boneBindings.map((binding) => hydrateCmfNode("BoneBinding", binding, classes)),
-        morphTargets: hydrateCmfNode("MorphTargets", {
-            decl: mesh.morphTargets.decl.map((element) => hydrateCmfNode("VertexElement", element, classes)),
-            targets: mesh.morphTargets.targets.map((target) => hydrateCmfNode("MorphTarget", target, classes))
-        }, classes),
-        audioOcclusionMesh: hydrateCmfNode("AudioOcclusionMesh", mesh.audioOcclusionMesh, classes)
-    }, classes);
-}
-
-function hydrateCmfNode(type, fields, classes, hydrationOptions = {})
-{
-    const Class = classes?.[type];
-    const options = Object.keys(hydrationOptions).length > 0 ? hydrationOptions : classes?.__hydrationOptions || {};
-    return Class ? populateCmfNode(new Class(), fields, options) : fields;
-}
-
-function populateCmfNode(instance, fields, hydrationOptions = {})
-{
-    if (!instance || typeof instance.SetValues !== "function")
-    {
-        throw new TypeError("CjsObjFormat CMF class population requires classes to implement SetValues(values)");
-    }
-    instance.SetValues(fields, { ...hydrationOptions, skipUpdate: true, skipEvents: true });
-    return instance;
-}
-
-function createHydrationClasses(classes, hydrationOptions)
-{
-    const map = Object.create(classes || null);
-    Object.defineProperty(map, "__hydrationOptions", { value: hydrationOptions, enumerable: false });
-    return map;
 }
 
 /**

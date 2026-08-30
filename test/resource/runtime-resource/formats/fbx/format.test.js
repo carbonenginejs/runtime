@@ -1076,16 +1076,16 @@ test("emits cmf skeleton rest and inverse bind transforms for skinned limb hiera
     ]);
     assert.deepEqual(cmf.skeletons[0].invBindTransforms, [
         [
-            1, 0, 0, -1,
+            1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
-            0, 0, 0, 1
+            -1, 0, 0, 1
         ],
         [
-            1, 0, 0, -1,
-            0, 1, 0, -2,
+            1, 0, 0, 0,
+            0, 1, 0, 0,
             0, 0, 1, 0,
-            0, 0, 0, 1
+            -1, -2, 0, 1
         ]
     ]);
 });
@@ -1224,17 +1224,43 @@ test("uses fbx bind pose matrices for cmf inverse bind transforms", () =>
     ]);
     assert.deepEqual(cmf.skeletons[0].invBindTransforms, [
         [
-            1, 0, 0, -3,
+            1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
-            0, 0, 0, 1
+            -3, 0, 0, 1
         ],
         [
-            1, 0, 0, -3,
-            0, 1, 0, -4,
+            1, 0, 0, 0,
+            0, 1, 0, 0,
             0, 0, 1, 0,
-            0, 0, 0, 1
+            -3, -4, 0, 1
         ]
+    ]);
+});
+
+test("composes missing child inverse binds after a non-commuting parent bind pose", () =>
+{
+    const Root = makeValueClass();
+    const Skeleton = makeValueClass();
+    const cmf = CjsFbxFormat.read(makeSkinnedHierarchyFBX({
+        bindPose: true,
+        partialBindPose: true
+    }), {
+        emit: "cmf",
+        classes: { Root, Skeleton }
+    });
+
+    assertFloatArrayClose(cmf.skeletons[0].invBindTransforms[0], [
+        0, -1 / 3, 0, 0,
+        1 / 2, 0, 0, 0,
+        0, 0, 1 / 4, 0,
+        0, 1 / 3, 0, 1
+    ]);
+    assertFloatArrayClose(cmf.skeletons[0].invBindTransforms[1], [
+        0, -1 / 3, 0, 0,
+        1 / 2, 0, 0, 0,
+        0, 0, 1 / 4, 0,
+        0, -5 / 3, 0, 1
     ]);
 });
 
@@ -1357,8 +1383,8 @@ test("emits blend shape geometry as cmf morph target payloads", () =>
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 12);
     assert.deepEqual(mesh.lods[0].morphTargets[0].vertex.position, [
         0, 0, 0,
-        1, 0, 1,
-        0, 1, 0
+        0, 0, 1,
+        0, 0, 0
     ]);
 });
 
@@ -1624,9 +1650,9 @@ test("emits generated morph tangent space as cmf morph target payloads", () =>
     ]);
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 48);
     assertFloatArrayClose(mesh.lods[0].morphTargets[0].vertex.normal, [
-        -Math.SQRT1_2, 0, Math.SQRT1_2,
-        -Math.SQRT1_2, 0, Math.SQRT1_2,
-        -Math.SQRT1_2, 0, Math.SQRT1_2
+        -Math.SQRT1_2, 0, Math.SQRT1_2 - 1,
+        -Math.SQRT1_2, 0, Math.SQRT1_2 - 1,
+        -Math.SQRT1_2, 0, Math.SQRT1_2 - 1
     ]);
 });
 
@@ -1714,6 +1740,66 @@ test("emits blend shape weight animation as cmf animation curves", () =>
     });
     assert.deepEqual(cmf.animations[0].curves[0].knots, float32Bytes([ 0, 1 ]));
     assert.deepEqual(cmf.animations[0].curves[0].values, float32Bytes([ 0, 1 ]));
+});
+
+test("accepts realistic FBX linear key flags that include tangent-mode bits", () =>
+{
+    const Root = makeValueClass();
+    const Animation = makeValueClass();
+    const AnimationChannel = makeValueClass();
+    const AnimationCurve = makeValueClass();
+    const cmf = CjsFbxFormat.read(makeAnimatedMorphedTriangleFBX({
+        keyAttrFlags: [ 0x2104, 0x6104 ]
+    }), {
+        emit: "cmf",
+        classes: { Root, Animation, AnimationChannel, AnimationCurve }
+    });
+
+    assert.equal(cmf.animations[0].curves[0].interpolation, "Linear");
+});
+
+test("rejects ConstantNext only when the interpolation mode is constant", () =>
+{
+    assert.throws(() => CjsFbxFormat.read(makeAnimatedMorphedTriangleFBX({
+        keyAttrFlags: [ 0x0102, 0x0102 ]
+    }), {
+        emit: "cmf",
+        classes: { Root: makeValueClass() }
+    }), /ConstantNext animation interpolation is not supported/u);
+});
+
+test("emits FBX animation through the GR2 compatibility target", () =>
+{
+    const
+        Root = makeValueClass(),
+        Animation = makeValueClass(),
+        TrackGroup = makeValueClass(),
+        VectorTrack = makeValueClass(),
+        Curve = makeValueClass();
+
+    const gr2 = CjsFbxFormat.read(makeAnimatedMorphedTriangleFBX(), {
+        emit: "gr2",
+        classes: { Root, Animation, TrackGroup, VectorTrack, Curve }
+    });
+    const animation = gr2.animations[0];
+    const group = animation.trackGroups[0];
+    const track = group.vectorTracks[0];
+
+    assert.equal(animation instanceof Animation, true);
+    assert.equal(group instanceof TrackGroup, true);
+    assert.equal(track instanceof VectorTrack, true);
+    assert.equal(track.valueCurve instanceof Curve, true);
+    assert.equal(animation.name, "Take 001");
+    assert.equal(animation.duration, 1);
+    assert.equal(group.name, "root");
+    assert.equal(track.name, "Smile");
+    assert.equal(track.dimension, 1);
+    assert.deepEqual(track.valueCurve, Object.assign(new Curve(), {
+        format: 1,
+        degree: 1,
+        knots: [ 0, 1 ],
+        controls: [ 0, 1 ]
+    }));
 });
 
 test("sorts blend shape animation keys and accepts KeyValue fallback", () =>
@@ -1846,26 +1932,24 @@ test("emits bone transform animation as cmf animation curves", () =>
         interpolation: curve.interpolation,
         knotType: curve.knotType,
         valueType: curve.valueType,
-        knotCount: curve.knotCount,
         curveClass: curve instanceof AnimationCurve
     })), [
-        { valueDimension: 3, interpolation: "Linear", knotType: "Float32", valueType: "Float32", knotCount: 2, curveClass: true },
-        { valueDimension: 4, interpolation: "Linear", knotType: "Float32", valueType: "Float32", knotCount: 2, curveClass: true },
-        { valueDimension: 3, interpolation: "Linear", knotType: "Float32", valueType: "Float32", knotCount: 2, curveClass: true }
+        { valueDimension: 3, interpolation: "Linear", knotType: "Float32", valueType: "Float32", curveClass: true },
+        { valueDimension: 4, interpolation: "Linear", knotType: "Float32", valueType: "Float32", curveClass: true },
+        { valueDimension: 3, interpolation: "Linear", knotType: "Float32", valueType: "Float32", curveClass: true }
     ]);
-    assert.deepEqual(animation.curves.map(curve => float32Values(curve.knots)), [
-        [ 0, 1 ],
-        [ 0, 1 ],
-        [ 0, 1 ]
-    ]);
+    assert.deepEqual(animation.curves.map(curve => curve.knotCount === 2), [ true, false, true ]);
+    assert.deepEqual(animation.curves.map(curve => {
+        const knots = float32Values(curve.knots);
+        return [ knots[0], knots.at(-1) ];
+    }), [ [ 0, 1 ], [ 0, 1 ], [ 0, 1 ] ]);
     assert.deepEqual(float32Values(animation.curves[0].values), [
         0, 2, 0,
         0, 4, 0
     ]);
-    assertFloatArrayClose(float32Values(animation.curves[1].values), [
-        0, 0, 0, 1,
-        0, 0, Math.SQRT1_2, Math.SQRT1_2
-    ]);
+    const rotationValues = float32Values(animation.curves[1].values);
+    assertFloatArrayClose(rotationValues.slice(0, 4), [ 0, 0, 0, 1 ]);
+    assertFloatArrayClose(rotationValues.slice(-4), [ 0, 0, Math.SQRT1_2, Math.SQRT1_2 ]);
     assert.deepEqual(float32Values(animation.curves[2].values), [
         1, 1, 1,
         2, 1, 1
@@ -2099,6 +2183,82 @@ test("parses binary fbx node and property tree", () =>
     assert.deepEqual(json.root.connections.childrenByParent["456"], [ "123" ]);
 });
 
+test("bakes linear Euler animation for CMF quaternion fidelity", () =>
+{
+    for (const { options, sample, expectedZ, checkHemisphere } of [
+        { options: { multiAxisRotation: true }, sample: 0.5 },
+        { options: { rotationZEnd: 170 }, sample: 0.25, expectedZ: 42.5 },
+        { options: { rotationZEnd: 360 }, sample: 0.25, expectedZ: 90, checkHemisphere: true },
+        { options: { rotationZEnd: 1440 }, sample: 0.125, expectedZ: 180 }
+    ])
+    {
+        const Root = makeValueClass();
+        const Animation = makeValueClass();
+        const AnimationCurve = makeValueClass();
+        const cmf = CjsFbxFormat.read(makeSkinnedHierarchyFBX({
+            animation: true,
+            ...options
+        }), {
+            emit: "cmf",
+            classes: { Root, Animation, AnimationCurve }
+        });
+        const rotation = cmf.animations[0].curves.find(curve => curve.valueDimension === 4);
+        assert.ok(rotation.knotCount > 2);
+        const knots = float32Values(rotation.knots);
+        const values = float32Values(rotation.values);
+        const sampleIndex = knots.findIndex(value => Math.abs(value - sample) < 1e-6);
+        assert.ok(sampleIndex >= 0);
+        if (expectedZ !== undefined)
+        {
+            const radians = expectedZ * Math.PI / 360;
+            const expected = [ 0, 0, Math.sin(radians), Math.cos(radians) ];
+            const actual = values.slice(sampleIndex * 4, sampleIndex * 4 + 4);
+            const dot = Math.abs(actual.reduce((sum, value, index) => sum + value * expected[index], 0));
+            assert.ok(dot > 1 - 1e-5);
+        }
+        if (checkHemisphere)
+        {
+            for (let index = 4; index < values.length; index += 4)
+            {
+                const dot = values.slice(index - 4, index).reduce((sum, value, component) =>
+                    sum + value * values[index + component], 0
+                );
+                assert.ok(dot >= 0);
+            }
+        }
+    }
+});
+
+test("preserves unsafe signed 64-bit FBX object identifiers exactly", () =>
+{
+    const id = 9007199254740993n;
+    const bytes = makeBinaryFBX(7400, [
+        makeBinaryNode7400("Objects", [], [
+            makeBinaryNode7400("Model", [ makeInt64(id), "Model::ExactId", "Null" ])
+        ])
+    ]);
+    const json = CjsFbxFormat.read(bytes, { emit: "fbxJson" });
+
+    assert.equal(json.nodes[0].children[0].properties[0], id.toString());
+    assert.equal(json.root.objects.byId[id.toString()].name, "ExactId");
+});
+
+test("preserves unsafe signed 64-bit ASCII FBX object identifiers exactly", () =>
+{
+    const bytes = new TextEncoder().encode(
+        "; FBX 7.4.0 project file\n" +
+        "FBXHeaderExtension: {\n" +
+        "    FBXVersion: 7400\n" +
+        "}\n" +
+        "Objects: {\n" +
+        "    Model: 9007199254740993, \"Model::ExactId\", \"Null\" {\n" +
+        "    }\n" +
+        "}\n"
+    );
+    const json = CjsFbxFormat.read(bytes, { emit: "fbxJson" });
+    assert.equal(json.root.objects.byId["9007199254740993"].name, "ExactId");
+});
+
 test("normalizes binary fbx object names with embedded class separators", () =>
 {
     const
@@ -2286,7 +2446,9 @@ test("inspects ascii fbx version as debug json", () =>
         "Objects:  {\n" +
         "    Geometry: 123, \"Geometry::Mesh\", \"Mesh\" {\n" +
         "        Vertices: *9 {\n" +
-        "            a: 0,0,0,1,0,0,0,1,0\n" +
+        "            a: 0,0,0,\n" +
+        "               1,0,0,\n" +
+        "               0,1,0\n" +
         "        }\n" +
         "        PolygonVertexIndex: *3 {\n" +
         "            a: 0,1,-3\n" +
@@ -2872,7 +3034,10 @@ function makeAnimatedMorphedTriangleFBX(options = {})
             makeBinaryNode7400("AnimationCurveNode", [ 822, "AnimCurveNode::Smile", "" ]),
             makeBinaryNode7400("AnimationCurve", [ 823, "AnimCurve::Smile", "" ], [
                 makeBinaryNode7400("KeyTime", [ new Float64Array(animationTicks) ]),
-                makeBinaryNode7400(animationValueNodeName, [ new Float64Array(animationValueArray) ])
+                makeBinaryNode7400(animationValueNodeName, [ new Float64Array(animationValueArray) ]),
+                ...(options.keyAttrFlags
+                    ? [ makeBinaryNode7400("KeyAttrFlags", [ new Int32Array(options.keyAttrFlags) ]) ]
+                    : [])
             ])
         ]),
         makeBinaryNode7400("Connections", [], [
@@ -2949,6 +3114,14 @@ function makeSkinnedHierarchyFBX(options = {})
         boneBProperties = [
             makeBinaryNode7400("P", [ "Lcl Translation", "Lcl Translation", "", "A", 0, 2, 0 ])
         ];
+
+    if (options.partialBindPose)
+    {
+        boneAProperties.push(
+            makeBinaryNode7400("P", [ "Lcl Rotation", "Lcl Rotation", "", "A", 0, 0, 90 ]),
+            makeBinaryNode7400("P", [ "Lcl Scaling", "Lcl Scaling", "", "A", 2, 3, 4 ])
+        );
+    }
 
     if (options.rootMorphAnimation)
     {
@@ -3053,9 +3226,22 @@ function makeSkinnedHierarchyFBX(options = {})
                 makeBinaryNode7400("KeyValueFloat", [ new Float64Array(translationYValues) ])
             ]),
             makeBinaryNode7400("AnimationCurveNode", [ 824, "AnimCurveNode::BoneBRotation", "" ]),
+            ...(options.multiAxisRotation ? [
+                makeBinaryNode7400("AnimationCurve", [ 828, "AnimCurve::BoneBRotationX", "" ], [
+                    makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
+                    makeBinaryNode7400("KeyValueFloat", [ new Float64Array([ 0, 120 ]) ])
+                ]),
+                makeBinaryNode7400("AnimationCurve", [ 829, "AnimCurve::BoneBRotationY", "" ], [
+                    makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
+                    makeBinaryNode7400("KeyValueFloat", [ new Float64Array([ 0, 80 ]) ])
+                ])
+            ] : []),
             makeBinaryNode7400("AnimationCurve", [ 825, "AnimCurve::BoneBRotationZ", "" ], [
                 makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
-                makeBinaryNode7400("KeyValueFloat", [ new Float64Array([ 0, 90 ]) ])
+                makeBinaryNode7400("KeyValueFloat", [ new Float64Array([
+                    0,
+                    options.rotationZEnd ?? (options.multiAxisRotation ? 45 : 90)
+                ]) ])
             ]),
             makeBinaryNode7400("AnimationCurveNode", [ 826, "AnimCurveNode::BoneBScale", "" ], scaleCurveNodeChildren),
             makeBinaryNode7400("AnimationCurve", [ 827, "AnimCurve::BoneBScaleX", "" ], [
@@ -3067,26 +3253,36 @@ function makeSkinnedHierarchyFBX(options = {})
 
     if (options.bindPose)
     {
+        const parentMatrix = options.partialBindPose
+            ? [
+                0, -3, 0, 1,
+                2, 0, 0, 0,
+                0, 0, 4, 0,
+                0, 0, 0, 1
+            ]
+            : [
+                1, 0, 0, 3,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            ];
         objects.push(makeBinaryNode7400("Pose", [ 1000, "Pose::BindPose", "BindPose" ], [
             makeBinaryNode7400("Type", [ "BindPose" ]),
-            makeBinaryNode7400("NbPoseNodes", [ 2 ]),
+            makeBinaryNode7400("NbPoseNodes", [ options.partialBindPose ? 1 : 2 ]),
             makeBinaryNode7400("PoseNode", [], [
                 makeBinaryNode7400("Node", [ 900 ]),
-                makeBinaryNode7400("Matrix", [ new Float64Array([
-                    1, 0, 0, 3,
-                    0, 1, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1
-                ]) ])
+                makeBinaryNode7400("Matrix", [ new Float64Array(parentMatrix) ])
             ]),
-            makeBinaryNode7400("PoseNode", [], [
-                makeBinaryNode7400("Node", [ 901 ]),
-                makeBinaryNode7400("Matrix", [ new Float64Array([
-                    1, 0, 0, 3,
-                    0, 1, 0, 4,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1
-                ]) ])
+            ...(options.partialBindPose ? [] : [
+                makeBinaryNode7400("PoseNode", [], [
+                    makeBinaryNode7400("Node", [ 901 ]),
+                    makeBinaryNode7400("Matrix", [ new Float64Array([
+                        1, 0, 0, 3,
+                        0, 1, 0, 4,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1
+                    ]) ])
+                ])
             ])
         ]));
     }
@@ -3115,6 +3311,10 @@ function makeSkinnedHierarchyFBX(options = {})
             makeBinaryNode7400("C", [ "OP", 823, 822, "d|Y" ]),
             makeBinaryNode7400("C", [ "OO", 824, 821 ]),
             makeBinaryNode7400("C", [ "OP", 824, 901, "Lcl Rotation" ]),
+            ...(options.multiAxisRotation ? [
+                makeBinaryNode7400("C", [ "OP", 828, 824, "d|X" ]),
+                makeBinaryNode7400("C", [ "OP", 829, 824, "d|Y" ])
+            ] : []),
             makeBinaryNode7400("C", [ "OP", 825, 824, "d|Z" ]),
             makeBinaryNode7400("C", [ "OO", 826, 821 ]),
             makeBinaryNode7400("C", [ "OP", 826, 901, "Lcl Scaling" ]),
@@ -3338,15 +3538,10 @@ function writeI32LE(bytes, offset, value)
 function writeI64LE(bytes, offset, value)
 {
     const
-        sign = value < 0 ? -1 : 1,
-        absolute = Math.abs(value),
-        low = absolute % 0x100000000,
-        high = Math.floor(absolute / 0x100000000);
+        bits = BigInt.asUintN(64, BigInt(value)),
+        low = Number(bits & 0xffffffffn),
+        high = Number(bits >> 32n);
 
-    if (sign < 0)
-    {
-        throw new RangeError("Synthetic FBX int64 helper only supports non-negative values");
-    }
     writeU32LE(bytes, offset, low);
     writeU32LE(bytes, offset + 4, high);
 }

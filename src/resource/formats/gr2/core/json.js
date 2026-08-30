@@ -46,7 +46,7 @@ const
  */
 export const CLASS_KEYS = Object.freeze([
     "Root", "Mesh", "BoneBinding", "IndexGroup", "MorphTarget", "Model",
-    "Skeleton", "Bone", "Animation", "TrackGroup", "TransformTrack", "Curve"
+    "Skeleton", "Bone", "Animation", "TrackGroup", "TransformTrack", "VectorTrack", "Curve"
 ]);
 
 /**
@@ -280,7 +280,7 @@ function emitCurve(curve2, classes = {})
             break;
 
         case F.D4Constant32f:
-            o.controls = (cd.Controls || [ 0, 0, 0, 0 ]).slice(0, 4).map(x => sf(fr(x)));
+            o.controls = (cd.Controls || [ 0, 0, 0, 1 ]).slice(0, 4).map(x => sf(fr(x)));
             break;
 
         case F.DaK32fC32f:
@@ -553,13 +553,22 @@ function emitSkeleton(skel, classes = {})
  * @param {object} model Reflected Granny model object.
  * @param {object} fileInfo Root reflected Granny file-info object.
  * @param {Gr2NodeClasses} [classes] Opt-in node class map.
+ * @param {WeakMap<object, object>} [skeletonCache] Emitted skeleton identity cache.
  * @returns {object} Emitted model record.
  */
-function emitModel(model, fileInfo, classes = {})
+function emitModel(model, fileInfo, classes = {}, skeletonCache = new WeakMap())
 {
     const o = {};
     o.name = model.Name ?? "";
-    o.skeleton = emitSkeleton(model.Skeleton, classes);
+    if (model.Skeleton && skeletonCache.has(model.Skeleton))
+    {
+        o.skeleton = skeletonCache.get(model.Skeleton);
+    }
+    else
+    {
+        o.skeleton = emitSkeleton(model.Skeleton, classes);
+        if (model.Skeleton) skeletonCache.set(model.Skeleton, o.skeleton);
+    }
     const meshes = fileInfo.Meshes || [];
     o.meshBindings = (model.MeshBindings || []).map(mb =>
     {
@@ -589,6 +598,22 @@ function emitTransformTrack(tt, classes = {})
 }
 
 /**
+ * Emit a reflected Granny vector-track in GR2 JSON shape.
+ *
+ * @param {object} vt Reflected Granny vector-track object.
+ * @param {Gr2NodeClasses} [classes] Opt-in node class map.
+ * @returns {object} Emitted vector-track record.
+ */
+function emitVectorTrack(vt, classes = {})
+{
+    return build(classes, "VectorTrack", {
+        name: vt.Name ?? "",
+        dimension: vt.Dimension | 0,
+        valueCurve: emitCurve(vt.ValueCurve, classes)
+    });
+}
+
+/**
  * Emit a reflected Granny track group in GR2 JSON shape.
  *
  * @param {object} tg Reflected Granny track-group object.
@@ -599,7 +624,8 @@ function emitTrackGroup(tg, classes = {})
 {
     return build(classes, "TrackGroup", {
         name: tg.Name ?? "",
-        transformTracks: (tg.TransformTracks || []).map(tt => emitTransformTrack(tt, classes))
+        transformTracks: (tg.TransformTracks || []).map(tt => emitTransformTrack(tt, classes)),
+        vectorTracks: (tg.VectorTracks || []).map(vt => emitVectorTrack(vt, classes))
     });
 }
 
@@ -645,11 +671,12 @@ function emitAnimation(anim, classes = {})
 export function emitJson(fileInfo, version, options = {})
 {
     const { classes = {}, ...hydrationOptions } = options;
+    const skeletonCache = new WeakMap();
     return build(classes, "Root", {
         grannyFileFormatRevision: version | 0,
         grannyFileSource: fileInfo.FromFileName ?? "",
         meshes: (fileInfo.Meshes || []).filter(m => m).map(m => emitMesh(m, classes)),
-        models: (fileInfo.Models || []).filter(m => m).map(m => emitModel(m, fileInfo, classes)),
+        models: (fileInfo.Models || []).filter(m => m).map(m => emitModel(m, fileInfo, classes, skeletonCache)),
         animations: (fileInfo.Animations || []).filter(a => a).map(a => emitAnimation(a, classes))
     }, hydrationOptions);
 }

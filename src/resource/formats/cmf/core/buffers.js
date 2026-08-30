@@ -1,5 +1,7 @@
 import { MeshoptDecoder } from "meshoptimizer/decoder";
 
+import { elementTypeSize, readElementComponent as readCmfElementComponent } from "./utils/vertex.js";
+
 const CHANNEL_NAMES = Object.freeze({
     Position: "position",
     Normal: "normal",
@@ -241,73 +243,7 @@ function createVertexChannels()
 function readElementComponent(reader, base, type, component)
 {
     const offset = base + component * elementTypeSize(type);
-    switch (type)
-    {
-        case "Float32":
-            return reader.getFloat32(offset, true);
-        case "Float16":
-            return halfToFloat(reader.getUint16(offset, true));
-        case "UInt16Norm":
-            return reader.getUint16(offset, true) / 65535;
-        case "UInt16":
-            return reader.getUint16(offset, true);
-        case "Int16Norm":
-            return Math.max(reader.getInt16(offset, true) / 32767, -1);
-        case "Int16":
-            return reader.getInt16(offset, true);
-        case "UInt8Norm":
-            return reader.getUint8(offset) / 255;
-        case "UInt8":
-            return reader.getUint8(offset);
-        case "Int8Norm":
-            return Math.max(reader.getInt8(offset) / 127, -1);
-        case "Int8":
-            return reader.getInt8(offset);
-        default:
-            throw new Error(`Unsupported CMF vertex element type "${type}"`);
-    }
-}
-
-function elementTypeSize(type)
-{
-    switch (type)
-    {
-        case "Float32":
-            return 4;
-        case "Float16":
-        case "UInt16Norm":
-        case "UInt16":
-        case "Int16Norm":
-        case "Int16":
-            return 2;
-        case "UInt8Norm":
-        case "UInt8":
-        case "Int8Norm":
-        case "Int8":
-            return 1;
-        default:
-            throw new Error(`Unsupported CMF vertex element type "${type}"`);
-    }
-}
-
-function halfToFloat(value)
-{
-    const
-        sign = (value & 0x8000) ? -1 : 1,
-        exponent = (value >> 10) & 0x1f,
-        fraction = value & 0x03ff;
-
-    if (exponent === 0)
-    {
-        return sign * Math.pow(2, -14) * (fraction / 1024);
-    }
-
-    if (exponent === 31)
-    {
-        return fraction ? NaN : sign * Infinity;
-    }
-
-    return sign * Math.pow(2, exponent - 15) * (1 + fraction / 1024);
+    return readCmfElementComponent(reader, offset, type);
 }
 
 function lowerFirst(value)

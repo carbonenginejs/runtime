@@ -1035,6 +1035,10 @@ export function decompressAnimationCurves(json)
                 decorate(tt.position, 3);
                 decorate(tt.scaleShear, 9);
             }
+            for (const vt of tg.vectorTracks || [])
+            {
+                decorate(vt.valueCurve, vt.dimension | 0);
+            }
         }
     }
 

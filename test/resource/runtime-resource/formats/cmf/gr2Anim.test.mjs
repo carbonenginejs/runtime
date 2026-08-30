@@ -4,6 +4,7 @@ import CjsCmfFormat from "../../../../../src/resource/formats/cmf/index.js";
 import {
     convertGr2Animation,
     convertGr2Skeleton,
+    convertGr2SkeletonsAndAnimations,
     evaluateDecodedCurve,
     isGr2Animation,
     isGr2Skeleton
@@ -12,6 +13,31 @@ import {
 function floats(bytes)
 {
     return Array.from(new Float32Array(new Uint8Array(bytes).buffer));
+}
+
+function makeGr2SharedAnimation()
+{
+    return {
+        meshes: [],
+        skeletons: [ {
+            name: "skel",
+            bones: [
+                { name: "root", parentIndex: -1 },
+                { name: "arm", parentIndex: 0, position: [ 0, 2, 0 ] }
+            ]
+        } ],
+        animations: [ {
+            name: "wave",
+            duration: 1,
+            trackGroups: [ {
+                name: "group",
+                transformTracks: [ {
+                    name: "arm",
+                    position: { knots: [ 0, 1 ], controls: [ 0, 2, 0, 0, 3, 0 ], dimension: 3, degree: 1 }
+                } ]
+            } ]
+        } ]
+    };
 }
 
 test("converts a GR2 skeleton with parents, rest pose, and inverse binds", () =>
@@ -128,45 +154,217 @@ test("resamples quadratic curves within tolerance including discontinuities", ()
     }
 });
 
-test("rejects undecoded packed curves with a clear error", () =>
+test("decodes packed keyframes with Granny frame timing", () =>
 {
     const animation = {
-        name: "anim",
-        duration: 1,
+        name: "packed-keyframes",
+        duration: 2,
         trackGroups: [ {
             name: "group",
             transformTracks: [ {
                 name: "boneA",
-                position: { format: 17, degree: 2, knotsControls: [ 1, 2, 3, 4 ] }
+                position: {
+                    format: 0,
+                    degree: 0,
+                    dimension: 3,
+                    controls: [ 0, 0, 0, 10, 0, 0, 20, 0, 0, 30, 0, 0 ]
+                }
             } ]
         } ]
     };
-    assert.throws(() => convertGr2Animation(animation), /decompressCurves/u);
+
+    const converted = convertGr2Animation(animation);
+    assert.equal(converted.curves[0].interpolation, "Step");
+    assert.deepEqual(floats(converted.curves[0].knots), [ 0, 0.5, 1, 1.5 ]);
+    assert.deepEqual(floats(converted.curves[0].values), [
+        0, 0, 0, 10, 0, 0, 20, 0, 0, 30, 0, 0
+    ]);
+
+    assert.throws(
+        () => convertGr2Animation({ ...animation, duration: 0 }),
+        /multiple controls at zero duration/u
+    );
+
+    animation.trackGroups[0].transformTracks[0].position.controls = [ 0, 1, 2, 3 ];
+    assert.throws(
+        () => convertGr2Animation(animation),
+        /track "boneA" position curve.*not divisible by 3/u
+    );
+});
+
+test("binds distinct same-name model skeletons by identity and mesh binding", () =>
+{
+    const first = { name: "Rig", bones: [ { name: "rootA", parentIndex: -1 } ] };
+    const second = { name: "Rig", bones: [ { name: "rootB", parentIndex: -1 } ] };
+    const input = {
+        meshes: [ { name: "a", boneBindings: [ { name: "rootA" } ] }, { name: "b", boneBindings: [ { name: "rootB" } ] } ],
+        models: [
+            { skeleton: first, meshBindings: [ 0 ] },
+            { skeleton: second, meshBindings: [ 1 ] }
+        ]
+    };
+    const snapshot = structuredClone(input);
+
+    const converted = convertGr2SkeletonsAndAnimations(input);
+    assert.equal(converted.skeletons.length, 2);
+    assert.deepEqual(converted.skeletons.map((skeleton) => skeleton.bones), [ [ "rootA" ], [ "rootB" ] ]);
+    assert.deepEqual(converted.meshes.map((mesh) => mesh.skeleton), [ 0, 1 ]);
+    assert.deepEqual(input, snapshot);
+});
+
+test("shares a model skeleton only when the source object identity is shared", () =>
+{
+    const shared = { name: "Rig", bones: [ { name: "root", parentIndex: -1 } ] };
+    const converted = convertGr2SkeletonsAndAnimations({
+        meshes: [ {}, {} ],
+        models: [
+            { skeleton: shared, meshBindings: [ 0 ] },
+            { skeleton: shared, meshBindings: [ 1 ] }
+        ]
+    });
+
+    assert.equal(converted.skeletons.length, 1);
+    assert.deepEqual(converted.meshes.map((mesh) => mesh.skeleton), [ 0, 0 ]);
+});
+
+test("rejects conflicting and invalid GR2 model mesh bindings", () =>
+{
+    const first = { name: "A", bones: [ { name: "a", parentIndex: -1 } ] };
+    const second = { name: "B", bones: [ { name: "b", parentIndex: -1 } ] };
+    assert.throws(() => convertGr2SkeletonsAndAnimations({
+        meshes: [ {} ],
+        models: [
+            { skeleton: first, meshBindings: [ 0 ] },
+            { skeleton: second, meshBindings: [ 0 ] }
+        ]
+    }), /mesh 0 is bound to skeleton 0 by model 0 and skeleton 1 by model 1/u);
+
+    assert.throws(() => convertGr2SkeletonsAndAnimations({
+        meshes: [ {} ],
+        models: [ { skeleton: first, meshBindings: [ -1 ] } ]
+    }), /model 0 mesh binding 0 references mesh -1 outside 0\.\.0/u);
+});
+
+test("preserves root skeleton order while appending model-only skeletons", () =>
+{
+    const rootA = { name: "rootA", bones: [ { name: "a", parentIndex: -1 } ] };
+    const rootB = { name: "rootB", bones: [ { name: "b", parentIndex: -1 } ] };
+    const appended = { name: "extra", bones: [ { name: "c", parentIndex: -1 } ] };
+    const converted = convertGr2SkeletonsAndAnimations({
+        skeletons: [ rootA, rootB ],
+        meshes: [ {}, {} ],
+        models: [
+            { skeleton: rootB, meshBindings: [ 0 ] },
+            { skeleton: appended, meshBindings: [ 1 ] }
+        ]
+    });
+
+    assert.deepEqual(converted.skeletons.map((skeleton) => skeleton.name), [ "rootA", "rootB", "extra" ]);
+    assert.deepEqual(converted.meshes.map((mesh) => mesh.skeleton), [ 1, 2 ]);
+});
+
+test("normalizes packed quaternion curves and keeps adjacent controls in one hemisphere", () =>
+{
+    const converted = convertGr2Animation({
+        name: "continuous-rotation",
+        duration: 2,
+        trackGroups: [ {
+            name: "model",
+            transformTracks: [ {
+                name: "boneA",
+                orientation: {
+                    format: 1,
+                    degree: 1,
+                    knots: [ 0, 1, 2 ],
+                    controls: [
+                        0, 0, 0, 2,
+                        0, 0, 0, -3,
+                        0, -Math.SQRT2, 0, -Math.SQRT2
+                    ]
+                }
+            } ]
+        } ]
+    });
+
+    const values = floats(converted.curves[0].values);
+    assert.deepEqual(values, [
+        0, 0, 0, 1,
+        0, 0, 0, 1,
+        0, Math.fround(Math.SQRT1_2), 0, Math.fround(Math.SQRT1_2)
+    ]);
+    for (let i = 0; i < values.length; i += 4)
+    {
+        assert.ok(Math.abs(Math.hypot(...values.slice(i, i + 4)) - 1) < 1e-6);
+        if (i)
+        {
+            const previous = values.slice(i - 4, i);
+            const current = values.slice(i, i + 4);
+            assert.ok(previous.reduce((dot, value, index) => dot + value * current[index], 0) >= 0);
+        }
+    }
+
+    assert.throws(() => convertGr2Animation({
+        duration: 1,
+        trackGroups: [ {
+            transformTracks: [ {
+                name: "boneA",
+                orientation: { format: 5, degree: 0, controls: [ 0, 0, 0, 0 ] }
+            } ]
+        } ]
+    }), /zero quaternion/u);
+});
+
+test("maps scalar root vector tracks to CMF morph animation channels", () =>
+{
+    const converted = convertGr2Animation({
+        name: "face",
+        duration: 2,
+        trackGroups: [ {
+            name: "root",
+            transformTracks: [],
+            vectorTracks: [ {
+                name: "Smile",
+                dimension: 1,
+                valueCurve: { format: 0, degree: 0, dimension: 1, controls: [ 0, 0.25, 0.75, 1 ] }
+            }, {
+                name: "Blink",
+                dimension: 1,
+                valueCurve: { format: 3, degree: 0, controls: [ 0.375 ] }
+            } ]
+        }, {
+            name: "Root",
+            vectorTracks: [ {
+                name: "WrongCase",
+                dimension: 1,
+                valueCurve: { format: 3, degree: 0, controls: [ 1 ] }
+            } ]
+        } ]
+    });
+
+    assert.deepEqual(converted.channels, [
+        { target: "Smile", targetType: "MorphTarget", curveIndex: 0 },
+        { target: "Blink", targetType: "MorphTarget", curveIndex: 1 },
+        { target: "WrongCase", targetType: "MorphTarget", curveIndex: 2 }
+    ]);
+    assert.deepEqual(floats(converted.curves[0].knots), [ 0, 0.5, 1, 1.5 ]);
+    assert.deepEqual(floats(converted.curves[0].values), [ 0, 0.25, 0.75, 1 ]);
+    assert.deepEqual(floats(converted.curves[1].values), [ 0.375 ]);
+    assert.deepEqual(floats(converted.curves[2].values), [ 1 ]);
+
+    assert.throws(() => convertGr2Animation({
+        trackGroups: [ {
+            vectorTracks: [ {
+                name: "NotScalar",
+                dimension: 3,
+                valueCurve: { format: 4, degree: 0, controls: [ 1, 2, 3 ] }
+            } ]
+        } ]
+    }), /unsupported dimension 3/u);
 });
 
 test("writeShared converts GR2 skeletons and animations end to end", () =>
 {
-    const shared = {
-        meshes: [],
-        skeletons: [ {
-            name: "skel",
-            bones: [
-                { name: "root", parentIndex: -1 },
-                { name: "arm", parentIndex: 0, position: [ 0, 2, 0 ] }
-            ]
-        } ],
-        animations: [ {
-            name: "wave",
-            duration: 1,
-            trackGroups: [ {
-                name: "group",
-                transformTracks: [ {
-                    name: "arm",
-                    position: { knots: [ 0, 1 ], controls: [ 0, 2, 0, 0, 3, 0 ], dimension: 3, degree: 1 }
-                } ]
-            } ]
-        } ]
-    };
+    const shared = makeGr2SharedAnimation();
 
     const bytes = CjsCmfFormat.writeShared(shared);
     const back = CjsCmfFormat.read(bytes, { emit: "raw" });
@@ -183,4 +381,16 @@ test("writeShared converts GR2 skeletons and animations end to end", () =>
     const curve = back.animations[0].curves[0];
     assert.equal(curve.knotCount, 2);
     assert.deepEqual(floats(curve.values), [ 0, 2, 0, 0, 3, 0 ]);
+});
+
+test("loadShared uses the same GR2 skeleton and animation conversion", () =>
+{
+    const graph = CjsCmfFormat.loadShared(makeGr2SharedAnimation());
+
+    assert.deepEqual(graph.skeletons[0].bones, [ "root", "arm" ]);
+    assert.deepEqual(graph.skeletons[0].parents, [ 0xffffffff, 0 ]);
+    assert.equal(graph.animations[0].name, "wave");
+    assert.equal(graph.animations[0].channels[0].target, "arm");
+    assert.equal(graph.animations[0].channels[0].targetType, "BonePosition");
+    assert.deepEqual(floats(graph.animations[0].curves[0].values), [ 0, 2, 0, 0, 3, 0 ]);
 });

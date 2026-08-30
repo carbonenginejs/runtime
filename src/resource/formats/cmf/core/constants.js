@@ -127,6 +127,7 @@ export const GR2_CLASS_KEYS = Object.freeze([
     "Animation",
     "TrackGroup",
     "TransformTrack",
+    "VectorTrack",
     "Curve"
 ]);
 

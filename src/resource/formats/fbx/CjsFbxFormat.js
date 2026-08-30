@@ -17,15 +17,16 @@ import {
     validateClass,
     validateClassKey
 } from "./core/helpers.js";
+import { writeFbx, writeSharedFbx } from "./core/writer.js";
 
 const FORMAT_NAME = "CjsFbxFormat";
 
 /**
  * CarbonEngineJS-facing FBX format surface.
  *
- * FBX is recognized and inspected in-browser. Basic static mesh GR2/CMF output
- * is available; full CarbonEngine-equivalent FBX import still follows the
- * cmfprocessor/ufbx importer behavior and needs more pure JS coverage.
+ * FBX is recognized, inspected, imported into CMF/GR2 compatibility graphs,
+ * and exported from native CMF in pure JavaScript. Geometry, skeletons, skin,
+ * morph targets, and their animations are in scope; cameras and lights are not.
  */
 export class CjsFbxFormat extends CjsFormat
 {
@@ -138,6 +139,18 @@ export class CjsFbxFormat extends CjsFormat
         return readWithValues(input, this.GetValues(options));
     }
 
+    /** Write a native CMF graph as deterministic binary FBX 7400 bytes. */
+    Write(input, options = {})
+    {
+        return writeFbx(input, options);
+    }
+
+    /** Convert shared or GR2-shaped geometry through CMF and write FBX. */
+    WriteShared(input, options = {})
+    {
+        return writeSharedFbx(input, options);
+    }
+
     /**
      * Read FBX bytes asynchronously with this profile.
      *
@@ -183,6 +196,18 @@ export class CjsFbxFormat extends CjsFormat
     static read(input, options = {})
     {
         return readWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "fbx", ...options }, FORMAT_NAME));
+    }
+
+    /** Write a native CMF graph as deterministic binary FBX 7400 bytes. */
+    static write(input, options = {})
+    {
+        return writeFbx(input, options);
+    }
+
+    /** Convert shared or GR2-shaped geometry through CMF and write FBX. */
+    static writeShared(input, options = {})
+    {
+        return writeSharedFbx(input, options);
     }
 
     /**

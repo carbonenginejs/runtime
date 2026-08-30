@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import CjsGr2Format, { CjsGr2Format as NamedCjsGr2Format } from "../../../../../src/resource/formats/gr2/index.js";
+import { decompressAnimationCurves } from "../../../../../src/resource/formats/gr2/core/curves.js";
 import { CLASS_KEYS, emitJson } from "../../../../../src/resource/formats/gr2/core/json.js";
 
 class TestModel
@@ -28,11 +29,12 @@ class Bone extends TestModel {}
 class Animation extends TestModel {}
 class TrackGroup extends TestModel {}
 class TransformTrack extends TestModel {}
+class VectorTrack extends TestModel {}
 class Curve extends TestModel {}
 
 const CLASSES = {
     Root, Mesh, BoneBinding, IndexGroup, MorphTarget, Model, Skeleton, Bone,
-    Animation, TrackGroup, TransformTrack, Curve
+    Animation, TrackGroup, TransformTrack, VectorTrack, Curve
 };
 
 function buildFileInfo()
@@ -54,7 +56,7 @@ function buildFileInfo()
 
     const bone = {
         Name: "root",
-        ParentIndex: 255,
+        ParentIndex: -1,
         LocalTransform: {
             flags: 7,
             position: [ 1, 2, 3 ],
@@ -84,6 +86,16 @@ function buildFileInfo()
                 OrientationCurve: null,
                 PositionCurve: null,
                 ScaleShearCurve: null
+            } ],
+            VectorTracks: [ {
+                Name: "Blink",
+                Dimension: 1,
+                ValueCurve: {
+                    CurveData: {
+                        CurveDataHeaderDaConstant32f: { Format: 3, Degree: 0 },
+                        Controls: [ 0.375 ]
+                    }
+                }
             } ]
         } ]
     };
@@ -198,7 +210,7 @@ test("CLASS_KEYS lists the recognized node keys", () =>
 {
     assert.deepEqual([ ...CLASS_KEYS ].sort(), [
         "Animation", "Bone", "BoneBinding", "Curve", "IndexGroup", "Mesh",
-        "MorphTarget", "Model", "Root", "Skeleton", "TrackGroup", "TransformTrack"
+        "MorphTarget", "Model", "Root", "Skeleton", "TrackGroup", "TransformTrack", "VectorTrack"
     ].sort());
 });
 
@@ -213,6 +225,19 @@ test("emitJson without options.classes returns plain objects (default, unchanged
     assert.equal(json.models[0].constructor, Object);
     assert.equal(json.models[0].skeleton.bones[0].constructor, Object);
     assert.equal(json.animations[0].constructor, Object);
+});
+
+test("emitJson preserves shared reflected skeleton identity across models", () =>
+{
+    const fileInfo = buildFileInfo();
+    fileInfo.Models.push({
+        Name: "SecondModel",
+        Skeleton: fileInfo.Models[0].Skeleton,
+        MeshBindings: []
+    });
+
+    const json = emitJson(fileInfo, 7);
+    assert.equal(json.models[0].skeleton, json.models[1].skeleton);
 });
 
 test("emitJson with options.classes hydrates registered node types", () =>
@@ -248,7 +273,7 @@ test("emitJson with options.classes hydrates registered node types", () =>
     const bone = skeleton.bones[0];
     assert.ok(bone instanceof Bone);
     assert.equal(bone.name, "root");
-    assert.equal(bone.parentIndex, 255);
+    assert.equal(bone.parentIndex, -1);
     assert.deepEqual(bone.position, [ 1, 2, 3 ]);
 
     const animation = json.animations[0];
@@ -267,6 +292,16 @@ test("emitJson with options.classes hydrates registered node types", () =>
     assert.equal(track.orientation.error, "no curve data");
     assert.ok(track.position instanceof Curve);
     assert.ok(track.scaleShear instanceof Curve);
+
+    const vectorTrack = trackGroup.vectorTracks[0];
+    assert.ok(vectorTrack instanceof VectorTrack);
+    assert.equal(vectorTrack.name, "Blink");
+    assert.equal(vectorTrack.dimension, 1);
+    assert.ok(vectorTrack.valueCurve instanceof Curve);
+    assert.deepEqual(vectorTrack.valueCurve.controls, [ 0.375 ]);
+    decompressAnimationCurves(json);
+    assert.deepEqual(vectorTrack.valueCurve.knots, [ 0 ]);
+    assert.equal(vectorTrack.valueCurve.dimension, 1);
 });
 
 test("emitJson with a partial classes map only hydrates the given keys", () =>
@@ -384,6 +419,15 @@ test("CjsGr2Format static read emits explicit GR2 and CMF class targets", () =>
         { name: "root", bounds: { min: [ 0, 0, 0 ], max: [ 1, 1, 1 ] } }
     ]);
     assert.equal(cmf.meshes[0].areas[0].affectedByBones, true);
+    assert.equal(cmf.meshes[0].skeleton, 0);
+    assert.deepEqual(cmf.skeletons[0].bones, [ "root" ]);
+    assert.deepEqual(cmf.skeletons[0].parents, [ 0xffffffff ]);
+    assert.equal(cmf.animations[0].name, "anim1");
+    assert.deepEqual(cmf.animations[0].channels, [ {
+        target: "Blink",
+        targetType: "MorphTarget",
+        curveIndex: 0
+    } ]);
     assert.equal(cmf.version, 1);
 });
 

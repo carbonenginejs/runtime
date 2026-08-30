@@ -7,7 +7,6 @@ import { CjsFormat } from "../../format/CjsFormat.js";
  * data by default.
  */
 
-import { convertGr2SkeletonsAndAnimations } from "./core/gr2Anim.js";
 import { packGraphBuffers } from "./core/pack.js";
 import { buildCmfFromShared } from "./core/shared.js";
 import { writeCmf, writeCmfAsync } from "./core/writer.js";
@@ -485,9 +484,7 @@ export class CjsCmfFormat extends CjsFormat
      */
     static writeShared(input, options = {})
     {
-        const root = input && input.meshes ? input : { meshes: [ input ] };
-        const converted = convertGr2SkeletonsAndAnimations(root, options);
-        const packed = packGraphBuffers(buildCmfFromShared(converted));
+        const packed = packGraphBuffers(buildCmfFromShared(input, options));
         return writeCmf({ ...packed.graph, buffers: packed.buffers }, options);
     }
 
@@ -501,9 +498,7 @@ export class CjsCmfFormat extends CjsFormat
      */
     static async writeSharedAsync(input, options = {})
     {
-        const root = input && input.meshes ? input : { meshes: [ input ] };
-        const converted = convertGr2SkeletonsAndAnimations(root, options);
-        const packed = packGraphBuffers(buildCmfFromShared(converted));
+        const packed = packGraphBuffers(buildCmfFromShared(input, options));
         return writeCmfAsync({ ...packed.graph, buffers: packed.buffers }, options);
     }
 

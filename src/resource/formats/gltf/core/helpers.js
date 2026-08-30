@@ -3,8 +3,9 @@
  */
 
 import { CLASS_KEYS as GR2_CLASS_KEYS, hydrateJson } from "./json.js";
-import { buildCmfFromShared, CMF_CLASS_KEYS, hydrateCmf } from "./targets.js";
+import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
 import { inspectGltf, isGlb, parseGltfToJson, parseInput, toBytes } from "./parser.js";
+import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
 import {
     generateBiNormals,
     generateNormals,
@@ -342,7 +343,15 @@ export function readWithValues(format, input, values)
         buffers: values.buffers
     });
     rebuildMissingMeshData(format, json, values);
-    if (values.emit === OUTPUT_CMF) return hydrateCmf(buildCmfFromShared(json), values.classes, { source: values.source });
+    if (values.emit === OUTPUT_CMF)
+    {
+        return hydrateCmf(
+            buildCmfFromShared(json),
+            values.classes,
+            { source: values.source },
+            "CjsGltfFormat CMF"
+        );
+    }
     return hydrateJson(json, { classes: values.classes, source: values.source });
 }
 

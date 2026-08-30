@@ -3,7 +3,9 @@
  */
 
 import { hydrateJson } from "./json.js";
-import { buildCmfFromShared, CMF_CLASS_KEYS, hydrateCmf } from "./targets.js";
+import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
+import { GR2_CLASS_KEYS } from "../../cmf/core/constants.js";
+import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
 import {
     inspectTriangles,
     isBinaryStl,
@@ -17,20 +19,7 @@ import {
     writeBinaryStl
 } from "./stl.js";
 
-export const GR2_CLASS_KEYS = Object.freeze([
-    "Root",
-    "Mesh",
-    "BoneBinding",
-    "IndexGroup",
-    "MorphTarget",
-    "Model",
-    "Skeleton",
-    "Bone",
-    "Animation",
-    "TrackGroup",
-    "TransformTrack",
-    "Curve"
-]);
+export { GR2_CLASS_KEYS };
 
 export const CLASS_KEYS = Object.freeze(Array.from(new Set([
     ...GR2_CLASS_KEYS,
@@ -232,7 +221,15 @@ export function readWithValues(format, input, values)
     void format;
     const parsed = parseStl(input);
     const json = trianglesToJson(parsed.triangles, values, parsed);
-    if (values.emit === OUTPUT_CMF) return hydrateCmf(buildCmfFromShared(json), values.classes, { source: values.source });
+    if (values.emit === OUTPUT_CMF)
+    {
+        return hydrateCmf(
+            buildCmfFromShared(json),
+            values.classes,
+            { source: values.source },
+            "CjsStlFormat CMF"
+        );
+    }
     return hydrateJson(json, { classes: values.classes, source: values.source });
 }
 

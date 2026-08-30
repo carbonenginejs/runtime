@@ -1,26 +1,9 @@
-export const CMF_CLASS_KEYS = Object.freeze([
-    "Root",
-    "Section",
-    "Metadata",
-    "MetadataEntry",
-    "Mesh",
-    "IndexGroup",
-    "VertexElement",
-    "MeshLod",
-    "MeshArea",
-    "LodMeshArea",
-    "BoneBinding",
-    "MorphTargets",
-    "MorphTarget",
-    "LodMorphTarget",
-    "AudioOcclusionMesh",
-    "Skeleton",
-    "BoneMask",
-    "BoneWeight",
-    "Animation",
-    "AnimationChannel",
-    "AnimationCurve"
-]);
+export { CMF_CLASS_KEYS } from "../../cmf/core/constants.js";
+
+import { convertGr2SkeletonsAndAnimations } from "../../cmf/core/gr2Anim.js";
+import { bytesPerIndex, firstTriangle, totalIndexCount } from "../../cmf/core/utils/indices.js";
+import { canonicalMorphVertex, maxMorphDisplacement } from "../../cmf/core/utils/morph.js";
+import { elementTypeSize, estimateStrideFromDecl } from "../../cmf/core/utils/vertex.js";
 
 const CHANNELS = Object.freeze([
     { name: "position", usage: "Position", elementCount: 3 },
@@ -40,15 +23,15 @@ const CHANNELS = Object.freeze([
  */
 export function buildCmfFromShared(root)
 {
+    const converted = convertGr2SkeletonsAndAnimations(root);
     return {
         version: 1,
         metadata: null,
-        meshes: (root.meshes ?? []).map((mesh) => buildMesh(mesh)),
-        skeletons: [],
-        animations: []
+        meshes: (converted.meshes ?? []).map((mesh) => buildMesh(mesh)),
+        skeletons: converted.skeletons,
+        animations: converted.animations
     };
 }
-
 function buildMesh(mesh)
 {
     const
@@ -96,7 +79,7 @@ function buildMesh(mesh)
             bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] }
         },
         topology: "TriangleList",
-        skeleton: null,
+        skeleton: mesh.skeleton ?? null,
         vertex,
         indices
     };
@@ -122,7 +105,7 @@ function buildMorphTargets(mesh)
         decl,
         targets: targets.map((target, index) => ({
             name: target.name ?? "",
-            maxDisplacement: target.maxDisplacement ?? maxDisplacement(vertices[index].position ?? [])
+            maxDisplacement: target.maxDisplacement ?? maxMorphDisplacement(vertices[index].position ?? [])
         })),
         lods: vertices.map((vertex) => ({
             vb: { index: 0, offset: 0, size: vertexCount * stride, stride },
@@ -152,46 +135,6 @@ function morphChannelSpecs(targets, baseVertex, vertexCount)
         }
         return [ { ...spec, elementCount } ];
     });
-}
-
-function canonicalMorphVertex(baseVertex, target, specs, vertexCount)
-{
-    const
-        sourceVertex = target.vertex ?? {},
-        vertexIndices = Array.isArray(target.vertexIndices) ? target.vertexIndices : null,
-        sourceCount = targetSourceCount(target, vertexCount),
-        result = {};
-
-    for (const spec of specs)
-    {
-        const
-            source = sourceVertex[spec.name] ?? [],
-            output = new Array(vertexCount * spec.elementCount).fill(0),
-            sourceWidth = channelWidth(spec, sourceVertex, sourceCount),
-            base = baseVertex[spec.name] ?? [],
-            baseWidth = channelWidth(spec, baseVertex, vertexCount),
-            rowCount = Math.min(sourceCount, sourceWidth ? Math.floor(source.length / sourceWidth) : 0);
-
-        for (let row = 0; row < rowCount; row++)
-        {
-            const vertexIndex = vertexIndices ? vertexIndices[row] : row;
-            if (!Number.isInteger(vertexIndex) || vertexIndex < 0 || vertexIndex >= vertexCount) continue;
-
-            const count = Math.min(sourceWidth, spec.elementCount);
-            for (let component = 0; component < count; component++)
-            {
-                const
-                    sourceValue = source[row * sourceWidth + component],
-                    baseValue = base[vertexIndex * baseWidth + component] ?? 0;
-                output[vertexIndex * spec.elementCount + component] = target.dataIsDeltas === false
-                    ? sourceValue - baseValue
-                    : sourceValue;
-            }
-        }
-        result[spec.name] = output;
-    }
-
-    return result;
 }
 
 function targetSourceCount(target, fallbackCount)
@@ -274,111 +217,10 @@ function estimateVertexStride(vertex, vertexCount)
     return estimateStrideFromDecl(buildDecl(vertex, vertexCount));
 }
 
-function estimateStrideFromDecl(decl)
-{
-    return decl.reduce((stride, element) => Math.max(stride, element.offset + element.elementCount * elementTypeSize(element.type)), 0);
-}
-
-function elementTypeSize(type)
-{
-    return type === "Float32" ? 4 : type.includes("16") ? 2 : 1;
-}
-
-function totalIndexCount(indices)
-{
-    return indices.reduce((total, group) => total + (group.faces?.length ?? 0), 0);
-}
-
-function bytesPerIndex(indices)
-{
-    return indices.some((group) => group.bytesPerIndex === 4 || (group.faces ?? []).some((index) => index > 0xffff)) ? 4 : 2;
-}
-
-function firstTriangle(indices, areaIndex)
-{
-    let first = 0;
-    for (let i = 0; i < areaIndex; i++) first += Math.floor((indices[i].faces ?? []).length / 3);
-    return first;
-}
-
 function bounds(mesh)
 {
     return {
         min: mesh.minBounds ?? [ 0, 0, 0 ],
         max: mesh.maxBounds ?? [ 0, 0, 0 ]
     };
-}
-
-function maxDisplacement(deltaPositions)
-{
-    let max = 0;
-    for (let i = 0; i + 2 < deltaPositions.length; i += 3)
-    {
-        max = Math.max(max, Math.hypot(
-            deltaPositions[i],
-            deltaPositions[i + 1],
-            deltaPositions[i + 2]
-        ));
-    }
-    return max;
-}
-
-/**
- * Hydrates a CMF document through the configured runtime-class resolver for the
- * GR2 shared-geometry adapter.
- */
-export function hydrateCmf(root, classes, hydrationOptions = {})
-{
-    const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
-    return hydrate("Root", {
-        ...root,
-        metadata: root.metadata ? hydrate("Metadata", root.metadata, hydrationClasses) : null,
-        meshes: root.meshes.map((mesh) => hydrateMesh(mesh, hydrationClasses)),
-        skeletons: root.skeletons.map((skeleton) => hydrate("Skeleton", skeleton, hydrationClasses)),
-        animations: root.animations.map((animation) => hydrate("Animation", animation, hydrationClasses))
-    }, hydrationClasses, hydrationOptions);
-}
-
-function hydrateMesh(mesh, classes)
-{
-    return hydrate("Mesh", {
-        ...mesh,
-        decl: mesh.decl.map((element) => hydrate("VertexElement", element, classes)),
-        lods: mesh.lods.map((lod) => hydrate("MeshLod", {
-            ...lod,
-            areas: lod.areas.map((area) => hydrate("LodMeshArea", area, classes)),
-            morphTargets: lod.morphTargets.map((target) => hydrate("LodMorphTarget", target, classes))
-        }, classes)),
-        areas: mesh.areas.map((area) => hydrate("MeshArea", area, classes)),
-        boneBindings: mesh.boneBindings.map((binding) => hydrate("BoneBinding", binding, classes)),
-        morphTargets: hydrate("MorphTargets", {
-            decl: mesh.morphTargets.decl.map((element) => hydrate("VertexElement", element, classes)),
-            targets: mesh.morphTargets.targets.map((target) => hydrate("MorphTarget", target, classes))
-        }, classes),
-        audioOcclusionMesh: hydrate("AudioOcclusionMesh", mesh.audioOcclusionMesh, classes)
-    }, classes);
-}
-
-function hydrate(type, fields, classes, hydrationOptions = {})
-{
-    const Class = classes?.[type];
-    const options = Object.keys(hydrationOptions).length > 0 ? hydrationOptions : classes?.__hydrationOptions || {};
-    return Class ? populate(new Class(), fields, options) : fields;
-}
-
-function populate(instance, fields, hydrationOptions = {})
-{
-    if (!instance || typeof instance.SetValues !== "function")
-    {
-        throw new TypeError("CjsGr2Format CMF class population requires classes to implement SetValues(values)");
-    }
-    instance.SetValues(fields, { ...hydrationOptions, skipUpdate: true, skipEvents: true });
-    return instance;
-}
-
-function createHydrationClasses(classes, hydrationOptions)
-{
-    const map = Object.create(classes || null);
-    Object.defineProperty(map, "__hydrationOptions", { value: hydrationOptions, enumerable: false });
-    return map;
 }

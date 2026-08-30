@@ -2,7 +2,8 @@ import { readGr2Raw } from "./reader.js";
 import { emitJson, CLASS_KEYS as GR2_CLASS_KEYS } from "./json.js";
 import { tangents } from "./tangents.js";
 import { decompressAnimationCurves } from "./curves.js";
-import { buildCmfFromShared, CMF_CLASS_KEYS, hydrateCmf } from "./targets.js";
+import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
+import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
 
 export const CLASS_KEYS = Object.freeze(Array.from(new Set([
     ...GR2_CLASS_KEYS,
@@ -43,11 +44,6 @@ function normalizeEmit(emit)
     if (emit === OUTPUT_CMF) return OUTPUT_CMF;
     if (emit === OUTPUT_RAW) return OUTPUT_RAW;
     throw new Error(`CjsGr2Format unknown emit value "${emit}"`);
-}
-
-function hasOwn(value, key)
-{
-    return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 function classMap(values)
@@ -133,7 +129,7 @@ function optionValue(options, keys)
 {
     for (const key of keys)
     {
-        if (hasOwn(options, key)) return options[key];
+        if (Object.hasOwn(options, key)) return options[key];
     }
     return undefined;
 }
@@ -153,8 +149,8 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {})
 
     const values = cloneValues(base);
 
-    if (hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit);
-    if (hasOwn(options, "decompressCurves"))
+    if (Object.hasOwn(options, "emit")) values.emit = normalizeEmit(options.emit);
+    if (Object.hasOwn(options, "decompressCurves"))
     {
         values.decompressCurves = validateBoolean("decompressCurves", options.decompressCurves);
     }
@@ -183,7 +179,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {})
         values.rebuildMissingBiNormals = validateRule("rebuildMissingBiNormals", rebuildMissingBiNormals);
     }
 
-    if (hasOwn(options, "classes"))
+    if (Object.hasOwn(options, "classes"))
     {
         mergeClasses(values, options.classes);
     }
@@ -262,7 +258,10 @@ function triangleFaces(mesh, meshIndex, feature)
     const faces = [];
     for (const group of mesh.indices || [])
     {
-        if (group && group.faces) faces.push(...group.faces);
+        for (const index of group?.faces ?? [])
+        {
+            faces.push(index);
+        }
     }
 
     if (faces.length === 0)
@@ -397,7 +396,12 @@ export function readWithValues(reader, input, values)
     if (values.emit === OUTPUT_RAW) return parsed;
     const json = buildJson(reader, parsed, values);
     return values.emit === OUTPUT_CMF
-        ? hydrateCmf(buildCmfFromShared(json), values.classes, { source: values.source })
+        ? hydrateCmf(
+            buildCmfFromShared(json),
+            values.classes,
+            { source: values.source },
+            "CjsGr2Format CMF"
+        )
         : json;
 }
 

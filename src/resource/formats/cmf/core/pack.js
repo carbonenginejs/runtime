@@ -10,6 +10,9 @@
  * (GR2 bone/track conversion is a separate adapter).
  */
 
+import { bytesPerIndex } from "./utils/indices.js";
+import { elementTypeSize, estimateStrideFromDecl } from "./utils/vertex.js";
+
 const CHANNEL_NAMES = Object.freeze({
     Position: "position",
     Normal: "normal",
@@ -39,21 +42,15 @@ function channelName(element)
     return base;
 }
 
-function elementTypeSize(type)
+function packedElementTypeSize(type)
 {
-    switch (type)
+    try
     {
-        case "Float32": return 4;
-        case "Float16":
-        case "UInt16Norm":
-        case "UInt16":
-        case "Int16Norm":
-        case "Int16": return 2;
-        case "UInt8Norm":
-        case "UInt8":
-        case "Int8Norm":
-        case "Int8": return 1;
-        default: throw packError(`unsupported vertex element type ${JSON.stringify(type)}`);
+        return elementTypeSize(type);
+    }
+    catch
+    {
+        throw packError(`unsupported vertex element type ${JSON.stringify(type)}`);
     }
 }
 
@@ -115,7 +112,14 @@ function vertexCountFor(decl, vertex)
 
 function strideFor(decl)
 {
-    return decl.reduce((stride, element) => Math.max(stride, (element.offset || 0) + element.elementCount * elementTypeSize(element.type)), 0);
+    try
+    {
+        return estimateStrideFromDecl(decl);
+    }
+    catch (error)
+    {
+        throw packError(error.message.replace(/^Unsupported CMF /u, "unsupported "));
+    }
 }
 
 /**
@@ -136,7 +140,7 @@ export function packVertexBuffer(decl, vertex)
     {
         const channel = (vertex || {})[channelName(element)];
         if (!Array.isArray(channel) || channel.length === 0) continue;
-        const size = elementTypeSize(element.type);
+        const size = packedElementTypeSize(element.type);
         for (let i = 0; i < count; i++)
         {
             const base = i * stride + (element.offset || 0);
@@ -162,8 +166,8 @@ export function packIndexBuffer(groups)
     {
         for (const index of group.faces || []) faces.push(index);
     }
-    const wide = groups?.some((group) => group.bytesPerIndex === 4) || faces.some((index) => index > 0xffff);
-    const stride = wide ? 4 : 2;
+    const stride = bytesPerIndex(groups);
+    const wide = stride === 4;
     const bytes = new Uint8Array(faces.length * stride);
     const view = new DataView(bytes.buffer);
     for (let i = 0; i < faces.length; i++)

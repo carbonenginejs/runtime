@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import CjsCmfFormat from "../../../../../src/resource/formats/cmf/index.js";
+import { bytesPerIndex, firstTriangle, totalIndexCount } from "../../../../../src/resource/formats/cmf/core/utils/indices.js";
+import {
+    decodeElementArray,
+    elementTypeSize,
+    estimateStrideFromDecl
+} from "../../../../../src/resource/formats/cmf/core/utils/vertex.js";
 
 function makeGraph()
 {
@@ -83,6 +89,52 @@ function triangles(faces)
     }
     return result;
 }
+
+test("shares strict CMF vertex and index layout utilities", () =>
+{
+    assert.deepEqual([
+        "Float32",
+        "Float16",
+        "UInt16Norm",
+        "UInt16",
+        "Int16Norm",
+        "Int16",
+        "UInt8Norm",
+        "UInt8",
+        "Int8Norm",
+        "Int8"
+    ].map(elementTypeSize), [ 4, 2, 2, 2, 2, 2, 1, 1, 1, 1 ]);
+    assert.throws(() => elementTypeSize("Future32"), /Unsupported CMF vertex element type/u);
+    assert.equal(estimateStrideFromDecl([
+        { type: "Float32", elementCount: 3, offset: 0 },
+        { type: "UInt16", elementCount: 4, offset: 12 }
+    ]), 20);
+
+    const groups = [
+        { bytesPerIndex: 2, faces: [ 0, 1, 2, 2, 3, 0 ] },
+        { bytesPerIndex: 2, faces: [ 0, 0x10000, 1 ] }
+    ];
+    assert.equal(totalIndexCount(groups), 9);
+    assert.equal(firstTriangle(groups, 1), 2);
+    assert.equal(bytesPerIndex(groups), 4);
+    assert.equal(bytesPerIndex([ { bytesPerIndex: 4, faces: [ 0, 1, 2 ] } ]), 4);
+
+    assert.deepEqual(decodeElementArray([ 0, 60, 0, 192 ], "Float16"), [ 1, -2 ]);
+    assert.deepEqual(decodeElementArray([ 1, 0, 0, 1 ], "UInt16"), [ 1, 256 ]);
+    assert.deepEqual(decodeElementArray([ 0, 255 ], "UInt8Norm"), [ 0, 1 ]);
+    assert.throws(() => decodeElementArray([ 0 ], "Float32"), /not divisible by 4/u);
+});
+
+test("preserves CMF packer errors for unknown vertex element types", async () =>
+{
+    const { packVertexBuffer } = await import("../../../../../src/resource/formats/cmf/core/pack.js");
+    assert.throws(
+        () => packVertexBuffer([
+            { usage: "Position", usageIndex: 0, type: "Future32", elementCount: 3, offset: 0 }
+        ], { position: [ 0, 0, 0 ] }),
+        error => error?.code === "CJS_FORMAT_WRITE_ERROR" && /unsupported vertex element type/u.test(error.message)
+    );
+});
 
 test("writes an uncompressed CMF that reads back field-for-field", () =>
 {

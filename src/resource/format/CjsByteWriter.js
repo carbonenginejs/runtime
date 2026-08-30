@@ -70,6 +70,19 @@ export class CjsByteWriter
     }
 
     /**
+     * Appends a little-endian signed 16-bit integer.
+     *
+     * @param {number} value Integer value.
+     * @returns {number} Offset the value was written at.
+     */
+    i16(value)
+    {
+        const offset = this.#advance(2);
+        this.#view.setInt16(offset, value | 0, true);
+        return offset;
+    }
+
+    /**
      * Appends a little-endian unsigned 32-bit integer.
      *
      * @param {number} value Integer value.
@@ -96,6 +109,19 @@ export class CjsByteWriter
     }
 
     /**
+     * Appends a little-endian signed 64-bit integer.
+     *
+     * @param {bigint|number} value Integer value.
+     * @returns {number} Offset the value was written at.
+     */
+    i64(value)
+    {
+        const offset = this.#advance(8);
+        this.#view.setBigInt64(offset, BigInt(value), true);
+        return offset;
+    }
+
+    /**
      * Appends a little-endian 32-bit float.
      *
      * @param {number} value Float value.
@@ -105,6 +131,19 @@ export class CjsByteWriter
     {
         const offset = this.#advance(4);
         this.#view.setFloat32(offset, Number(value) || 0, true);
+        return offset;
+    }
+
+    /**
+     * Appends a little-endian 64-bit float.
+     *
+     * @param {number} value Float value.
+     * @returns {number} Offset the value was written at.
+     */
+    f64(value)
+    {
+        const offset = this.#advance(8);
+        this.#view.setFloat64(offset, Number(value) || 0, true);
         return offset;
     }
 

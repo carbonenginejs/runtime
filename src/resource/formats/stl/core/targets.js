@@ -1,26 +1,7 @@
-export const CMF_CLASS_KEYS = Object.freeze([
-    "Root",
-    "Section",
-    "Metadata",
-    "MetadataEntry",
-    "Mesh",
-    "IndexGroup",
-    "VertexElement",
-    "MeshLod",
-    "MeshArea",
-    "LodMeshArea",
-    "BoneBinding",
-    "MorphTargets",
-    "MorphTarget",
-    "LodMorphTarget",
-    "AudioOcclusionMesh",
-    "Skeleton",
-    "BoneMask",
-    "BoneWeight",
-    "Animation",
-    "AnimationChannel",
-    "AnimationCurve"
-]);
+export { CMF_CLASS_KEYS } from "../../cmf/core/constants.js";
+
+import { bytesPerIndex, firstTriangle, totalIndexCount } from "../../cmf/core/utils/indices.js";
+import { elementTypeSize, estimateStrideFromDecl } from "../../cmf/core/utils/vertex.js";
 
 /**
  * Builds a CMF document from normalized shared geometry for the STL
@@ -36,7 +17,6 @@ export function buildCmfFromShared(root)
         animations: []
     };
 }
-
 function buildMesh(mesh)
 {
     const
@@ -109,29 +89,7 @@ function buildDecl(vertex)
 
 function estimateVertexStride(vertex)
 {
-    return buildDecl(vertex).reduce((stride, element) => Math.max(stride, element.offset + element.elementCount * elementTypeSize(element.type)), 0);
-}
-
-function elementTypeSize(type)
-{
-    return type === "Float32" ? 4 : type.includes("16") ? 2 : 1;
-}
-
-function totalIndexCount(indices)
-{
-    return indices.reduce((total, group) => total + (group.faces?.length ?? 0), 0);
-}
-
-function bytesPerIndex(indices)
-{
-    return indices.some((group) => group.bytesPerIndex === 4 || (group.faces ?? []).some((index) => index > 0xffff)) ? 4 : 2;
-}
-
-function firstTriangle(indices, areaIndex)
-{
-    let first = 0;
-    for (let i = 0; i < areaIndex; i++) first += Math.floor((indices[i].faces ?? []).length / 3);
-    return first;
+    return estimateStrideFromDecl(buildDecl(vertex));
 }
 
 function bounds(mesh)
@@ -140,64 +98,4 @@ function bounds(mesh)
         min: mesh.minBounds ?? [ 0, 0, 0 ],
         max: mesh.maxBounds ?? [ 0, 0, 0 ]
     };
-}
-
-/**
- * Hydrates a CMF document through the configured runtime-class resolver for the
- * STL shared-geometry adapter.
- */
-export function hydrateCmf(root, classes, hydrationOptions = {})
-{
-    const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
-    return hydrate("Root", {
-        ...root,
-        metadata: root.metadata ? hydrate("Metadata", root.metadata, hydrationClasses) : null,
-        meshes: root.meshes.map((mesh) => hydrateMesh(mesh, hydrationClasses)),
-        skeletons: root.skeletons.map((skeleton) => hydrate("Skeleton", skeleton, hydrationClasses)),
-        animations: root.animations.map((animation) => hydrate("Animation", animation, hydrationClasses))
-    }, hydrationClasses, hydrationOptions);
-}
-
-function hydrateMesh(mesh, classes)
-{
-    return hydrate("Mesh", {
-        ...mesh,
-        decl: mesh.decl.map((element) => hydrate("VertexElement", element, classes)),
-        lods: mesh.lods.map((lod) => hydrate("MeshLod", {
-            ...lod,
-            areas: lod.areas.map((area) => hydrate("LodMeshArea", area, classes)),
-            morphTargets: lod.morphTargets.map((target) => hydrate("LodMorphTarget", target, classes))
-        }, classes)),
-        areas: mesh.areas.map((area) => hydrate("MeshArea", area, classes)),
-        boneBindings: mesh.boneBindings.map((binding) => hydrate("BoneBinding", binding, classes)),
-        morphTargets: hydrate("MorphTargets", {
-            decl: mesh.morphTargets.decl.map((element) => hydrate("VertexElement", element, classes)),
-            targets: mesh.morphTargets.targets.map((target) => hydrate("MorphTarget", target, classes))
-        }, classes),
-        audioOcclusionMesh: hydrate("AudioOcclusionMesh", mesh.audioOcclusionMesh, classes)
-    }, classes);
-}
-
-function hydrate(type, fields, classes, hydrationOptions = {})
-{
-    const Class = classes?.[type];
-    const options = Object.keys(hydrationOptions).length > 0 ? hydrationOptions : classes?.__hydrationOptions || {};
-    return Class ? populate(new Class(), fields, options) : fields;
-}
-
-function populate(instance, fields, hydrationOptions = {})
-{
-    if (!instance || typeof instance.SetValues !== "function")
-    {
-        throw new TypeError("CjsStlFormat CMF class population requires classes to implement SetValues(values)");
-    }
-    instance.SetValues(fields, { ...hydrationOptions, skipUpdate: true, skipEvents: true });
-    return instance;
-}
-
-function createHydrationClasses(classes, hydrationOptions)
-{
-    const map = Object.create(classes || null);
-    Object.defineProperty(map, "__hydrationOptions", { value: hydrationOptions, enumerable: false });
-    return map;
 }

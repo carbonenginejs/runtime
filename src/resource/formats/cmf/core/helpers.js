@@ -1,6 +1,8 @@
 import { CLASS_KEYS, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_NATIVE, OUTPUT_RAW, OUTPUT_SHARED } from "./constants.js";
 import { inspectCmf, readCmf } from "./schema.js";
 import { buildCmfFromShared, buildSharedFromCmf } from "./shared.js";
+import { buildGr2Animations, buildGr2Models } from "./gr2Compat.js";
+import { hydrateCmf } from "./utils/hydration.js";
 
 export { CLASS_KEYS, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_NATIVE, OUTPUT_RAW, OUTPUT_SHARED };
 
@@ -153,16 +155,8 @@ function buildGr2FromCmf(raw, classes, hydrationOptions = {})
         grannyFileFormatRevision: raw.version,
         grannyFileSource: "cmf",
         meshes: raw.meshes.map((mesh) => hydrateGr2Mesh(mesh, hydrationClasses)),
-        models: [],
-        animations: raw.animations.map((animation) => hydrate("Animation", {
-            name: animation.name ?? "",
-            duration: animation.duration ?? 0,
-            timeStep: 0,
-            oversampling: 0,
-            defaultLoopCount: 0,
-            flags: 0,
-            trackGroups: []
-        }, hydrationClasses))
+        models: buildGr2Models(raw).map((model) => hydrateGr2Model(model, hydrationClasses)),
+        animations: buildGr2Animations(raw).map((animation) => hydrateGr2Animation(animation, hydrationClasses))
     }, hydrationClasses, hydrationOptions);
 }
 
@@ -170,10 +164,10 @@ function hydrateGr2Mesh(mesh, classes)
 {
     return hydrate("Mesh", {
         name: mesh.name,
-        morphTargets: (mesh.morphTargets?.targets ?? []).map((target) => hydrate("MorphTarget", {
+        morphTargets: (mesh.morphTargets?.targets ?? []).map((target, index) => hydrate("MorphTarget", {
             ...target,
             dataIsDeltas: true,
-            vertex: target.vertex ?? null
+            vertex: mesh.lods?.[0]?.morphTargets?.[index]?.vertex ?? target.vertex ?? null
         }, classes)),
         minBounds: mesh.bounds?.min ?? [ 0, 0, 0 ],
         maxBounds: mesh.bounds?.max ?? [ 0, 0, 0 ],
@@ -187,6 +181,37 @@ function hydrateGr2Mesh(mesh, classes)
             name: group.name ?? "",
             bytesPerIndex: group.bytesPerIndex ?? 2,
             faces: group.faces ?? []
+        }, classes))
+    }, classes);
+}
+
+function hydrateGr2Model(model, classes)
+{
+    return hydrate("Model", {
+        ...model,
+        skeleton: hydrate("Skeleton", {
+            ...model.skeleton,
+            bones: model.skeleton.bones.map((bone) => hydrate("Bone", bone, classes))
+        }, classes)
+    }, classes);
+}
+
+function hydrateGr2Animation(animation, classes)
+{
+    return hydrate("Animation", {
+        ...animation,
+        trackGroups: animation.trackGroups.map((group) => hydrate("TrackGroup", {
+            ...group,
+            transformTracks: group.transformTracks.map((track) => hydrate("TransformTrack", {
+                ...track,
+                orientation: hydrate("Curve", track.orientation, classes),
+                position: hydrate("Curve", track.position, classes),
+                scaleShear: hydrate("Curve", track.scaleShear, classes)
+            }, classes)),
+            vectorTracks: group.vectorTracks.map((track) => hydrate("VectorTrack", {
+                ...track,
+                valueCurve: hydrate("Curve", track.valueCurve, classes)
+            }, classes))
         }, classes))
     }, classes);
 }
@@ -270,75 +295,17 @@ function validateClasses(classes)
 
 function hydrateNativeRoot(raw, classes, hydrationOptions = {})
 {
-    const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
-    return hydrate("Root", {
+    return hydrateCmf({
         signature: raw.signature,
         version: raw.version,
         headerSize: raw.headerSize,
         crc32: raw.crc32,
-        sections: (raw.sections ?? []).map((section) => hydrate("Section", section, hydrationClasses)),
-        metadata: raw.metadata ? hydrateMetadata(raw.metadata, hydrationClasses) : null,
-        meshes: raw.meshes.map((mesh) => hydrateMesh(mesh, hydrationClasses)),
-        skeletons: raw.skeletons.map((skeleton) => hydrateSkeleton(skeleton, hydrationClasses)),
-        animations: raw.animations.map((animation) => hydrateAnimation(animation, hydrationClasses))
-    }, hydrationClasses, hydrationOptions);
-}
-
-function hydrateMetadata(metadata, classes)
-{
-    return hydrate("Metadata", {
-        entries: metadata.entries.map((entry) => hydrate("MetadataEntry", entry, classes))
-    }, classes);
-}
-
-function hydrateMesh(mesh, classes)
-{
-    return hydrate("Mesh", {
-        ...mesh,
-        decl: mesh.decl.map((element) => hydrate("VertexElement", element, classes)),
-        lods: mesh.lods.map((lod) => hydrateMeshLod(lod, classes)),
-        areas: mesh.areas.map((area) => hydrate("MeshArea", area, classes)),
-        boneBindings: mesh.boneBindings.map((binding) => hydrate("BoneBinding", binding, classes)),
-        morphTargets: hydrateMorphTargets(mesh.morphTargets, classes),
-        audioOcclusionMesh: hydrate("AudioOcclusionMesh", mesh.audioOcclusionMesh, classes)
-    }, classes);
-}
-
-function hydrateMeshLod(lod, classes)
-{
-    return hydrate("MeshLod", {
-        ...lod,
-        areas: lod.areas.map((area) => hydrate("LodMeshArea", area, classes)),
-        morphTargets: lod.morphTargets.map((target) => hydrate("LodMorphTarget", target, classes))
-    }, classes);
-}
-
-function hydrateMorphTargets(morphTargets, classes)
-{
-    return hydrate("MorphTargets", {
-        decl: morphTargets.decl.map((element) => hydrate("VertexElement", element, classes)),
-        targets: morphTargets.targets.map((target) => hydrate("MorphTarget", target, classes))
-    }, classes);
-}
-
-function hydrateSkeleton(skeleton, classes)
-{
-    return hydrate("Skeleton", {
-        ...skeleton,
-        boneMasks: skeleton.boneMasks.map((mask) => hydrate("BoneMask", {
-            ...mask,
-            weights: mask.weights.map((weight) => hydrate("BoneWeight", weight, classes))
-        }, classes))
-    }, classes);
-}
-
-function hydrateAnimation(animation, classes)
-{
-    return hydrate("Animation", {
-        ...animation,
-        channels: animation.channels.map((channel) => hydrate("AnimationChannel", channel, classes)),
-        curves: animation.curves.map((curve) => hydrate("AnimationCurve", curve, classes))
-    }, classes);
+        sections: raw.sections ?? [],
+        metadata: raw.metadata ?? null,
+        meshes: raw.meshes ?? [],
+        skeletons: raw.skeletons ?? [],
+        animations: raw.animations ?? []
+    }, classes, hydrationOptions);
 }
 
 function hydrate(type, fields, classes, hydrationOptions = {})
