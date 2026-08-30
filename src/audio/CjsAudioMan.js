@@ -1,3 +1,4 @@
+import { coerceNonNegativeInteger, coercePositiveInteger } from "#utils/validation";
 import { throwIfAborted } from "#utils/errors";
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
@@ -1080,11 +1081,11 @@ export class CjsAudioMan
                 continue;
             }
 
-            const offset = NormalizeNonNegativeInteger(
+            const offset = coerceNonNegativeInteger(
                 source.offset,
                 `Audio media ${mediaID} embedded offset`,
             );
-            const byteLength = NormalizePositiveInteger(
+            const byteLength = coercePositiveInteger(
                 source.byteLength,
                 `Audio media ${mediaID} embedded byteLength`,
             );
@@ -1739,31 +1740,8 @@ function NormalizeOptionalByteLength(value)
     {
         return null;
     }
-    return NormalizeNonNegativeInteger(value, "Audio media byteLength");
+    return coerceNonNegativeInteger(value, "Audio media byteLength");
 }
-
-function NormalizeNonNegativeInteger(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isSafeInteger(number) || number < 0)
-    {
-        throw new TypeError(`${label} must be a non-negative integer`);
-    }
-    return number;
-}
-
-function NormalizePositiveInteger(value, label)
-{
-    const number = NormalizeNonNegativeInteger(value, label);
-
-    if (number === 0)
-    {
-        throw new TypeError(`${label} must be greater than zero`);
-    }
-    return number;
-}
-
 function IsAbortError(error)
 {
     return error?.name === "AbortError";

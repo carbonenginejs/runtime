@@ -1,3 +1,4 @@
+import { coerceFiniteNumber, coerceNonNegativeInteger, coercePositiveInteger } from "#utils/validation";
 import { normalizeStaticSourceEffectChain } from "../internal/busEffects.js";
 
 const SFX_SCHEMA_VERSION = 2;
@@ -180,7 +181,7 @@ export function validateSfxGraph(
             }
             if (node.playCount !== undefined)
             {
-                NormalizePositiveInteger(
+                coercePositiveInteger(
                     node.playCount,
                     `Audio library SFX sound ${id} playCount`,
                 );
@@ -316,7 +317,7 @@ export function validateSfxGraph(
 
         if (node.type === "random" && node.avoidRepeat !== undefined)
         {
-            NormalizeNonNegativeInteger(
+            coerceNonNegativeInteger(
                 node.avoidRepeat,
                 `Audio library SFX random ${id} avoidRepeat`,
             );
@@ -849,11 +850,11 @@ function ValidateContinuousSwitch(value, nodes, label, node)
             `${label} transition ${id}`,
         );
 
-        NormalizeNonNegativeInteger(
+        coerceNonNegativeInteger(
             transition.fadeOutMs,
             `${label} transition ${id} fadeOutMs`,
         );
-        NormalizeNonNegativeInteger(
+        coerceNonNegativeInteger(
             transition.fadeInMs,
             `${label} transition ${id} fadeInMs`,
         );
@@ -896,7 +897,7 @@ function ValidateContinuousContainer(value, label, type)
 {
     const continuous = RequireRecord(value, label);
 
-    const loopCount = NormalizeNonNegativeInteger(
+    const loopCount = coerceNonNegativeInteger(
         continuous.loopCount,
         `${label} loopCount`,
     );
@@ -925,7 +926,7 @@ function ValidateContinuousContainer(value, label, type)
     }
     else
     {
-        const transitionMs = NormalizeFiniteNumber(
+        const transitionMs = coerceFiniteNumber(
             continuous.transitionMs ?? 0,
             `${label} transitionMs`,
         );
@@ -944,11 +945,11 @@ function ValidateContinuousContainer(value, label, type)
                 continuous.transitionRangeMs,
                 `${label} transitionRangeMs`,
             );
-            const min = NormalizeFiniteNumber(
+            const min = coerceFiniteNumber(
                 range.min,
                 `${label} transitionRangeMs min`,
             );
-            const max = NormalizeFiniteNumber(
+            const max = coerceFiniteNumber(
                 range.max,
                 `${label} transitionRangeMs max`,
             );
@@ -1665,7 +1666,7 @@ function ValidateGameParameterAction(value, label)
     }
     else
     {
-        NormalizeFiniteNumber(
+        coerceFiniteNumber(
             action.defaultValue,
             `${label} defaultValue`,
         );
@@ -1680,7 +1681,7 @@ function ValidateGameParameterAction(value, label)
                 `${label} valueMode must be absolute or relative`,
             );
         }
-        NormalizeFiniteNumber(
+        coerceFiniteNumber(
             action.gameParameterValue,
             `${label} gameParameterValue`,
         );
@@ -1690,11 +1691,11 @@ function ValidateGameParameterAction(value, label)
                 action.gameParameterRange,
                 `${label} gameParameterRange`,
             );
-            const min = NormalizeFiniteNumber(
+            const min = coerceFiniteNumber(
                 range.min,
                 `${label} gameParameterRange min`,
             );
-            const max = NormalizeFiniteNumber(
+            const max = coerceFiniteNumber(
                 range.max,
                 `${label} gameParameterRange max`,
             );
@@ -1729,7 +1730,7 @@ function ValidateGameParameterAction(value, label)
 
 function ValidateVoiceVolumeDb(value, label)
 {
-    const number = NormalizeFiniteNumber(value, label);
+    const number = coerceFiniteNumber(value, label);
 
     if (number < -200 || number > 200)
     {
@@ -1840,7 +1841,7 @@ function ValidateVoicePitchAction(value, label)
 
 function ValidateVoicePitchCents(value, label)
 {
-    const number = NormalizeFiniteNumber(value, label);
+    const number = coerceFiniteNumber(value, label);
 
     if (number < -2400 || number > 2400)
     {
@@ -2030,7 +2031,7 @@ function ValidateVoiceFilterAction(value, label)
 
 function ValidateVoiceFilterPercent(value, label)
 {
-    const number = NormalizeFiniteNumber(value, label);
+    const number = coerceFiniteNumber(value, label);
 
     if (number < -100 || number > 100)
     {
@@ -2525,7 +2526,7 @@ function ValidateActionTiming(value, label)
     {
         if (value[field] !== undefined)
         {
-            const number = NormalizeFiniteNumber(
+            const number = coerceFiniteNumber(
                 value[field],
                 `${label} ${description}`,
             );
@@ -2550,11 +2551,11 @@ function ValidateActionTiming(value, label)
             value[field],
             `${label} ${field}`,
         );
-        const min = NormalizeFiniteNumber(
+        const min = coerceFiniteNumber(
             range.min,
             `${label} ${field} min`,
         );
-        const max = NormalizeFiniteNumber(
+        const max = coerceFiniteNumber(
             range.max,
             `${label} ${field} max`,
         );
@@ -2569,7 +2570,7 @@ function ValidateActionTiming(value, label)
 
     if (value.probability !== undefined)
     {
-        const probability = NormalizeFiniteNumber(
+        const probability = coerceFiniteNumber(
             value.probability,
             `${label} probability`,
         );
@@ -2596,7 +2597,7 @@ function ValidateGain(value, label)
 {
     if (value.gainDb !== undefined)
     {
-        NormalizeFiniteNumber(value.gainDb, `${label} gainDb`);
+        coerceFiniteNumber(value.gainDb, `${label} gainDb`);
     }
     ValidateRandomRanges(
         value.gainDbRanges,
@@ -2634,7 +2635,7 @@ function ValidateGain(value, label)
         }
         if (curve.defaultValue !== undefined)
         {
-            NormalizeFiniteNumber(
+            coerceFiniteNumber(
                 curve.defaultValue,
                 `${label} gain curve ${index} defaultValue`,
             );
@@ -2651,7 +2652,7 @@ function ValidateGain(value, label)
                 curve.points[pointIndex],
                 `${label} gain curve ${index} point ${pointIndex}`,
             );
-            const x = NormalizeFiniteNumber(
+            const x = coerceFiniteNumber(
                 point.x,
                 `${label} gain curve ${index} point ${pointIndex} x`,
             );
@@ -2682,7 +2683,7 @@ function ValidateGain(value, label)
 
             if (hasGain)
             {
-                const gain = NormalizeFiniteNumber(
+                const gain = coerceFiniteNumber(
                     point.gain,
                     `${label} gain curve ${index} point ${pointIndex} gain`,
                 );
@@ -2697,7 +2698,7 @@ function ValidateGain(value, label)
             }
             else
             {
-                NormalizeFiniteNumber(
+                coerceFiniteNumber(
                     point.gainDb,
                     `${label} gain curve ${index} point ${pointIndex} gainDb`,
                 );
@@ -2729,13 +2730,13 @@ function ValidateNodePlaybackProperties(value, label)
 {
     if (value.pitchCents !== undefined)
     {
-        NormalizeFiniteNumber(
+        coerceFiniteNumber(
             value.pitchCents,
             `${label} pitchCents`,
         );
     }
     if (value.initialDelayMs !== undefined
-        && NormalizeFiniteNumber(
+        && coerceFiniteNumber(
             value.initialDelayMs,
             `${label} initialDelayMs`,
         ) < 0)
@@ -2748,7 +2749,7 @@ function ValidateNodePlaybackProperties(value, label)
     {
         if (value[field] !== undefined)
         {
-            NormalizeFiniteNumber(value[field], `${label} ${field}`);
+            coerceFiniteNumber(value[field], `${label} ${field}`);
         }
     }
 
@@ -2813,21 +2814,21 @@ function ValidatePhysicalLeafIdentity(node, id, label)
         }
         if (node.authoredBusVolumeDb !== undefined)
         {
-            NormalizeFiniteNumber(
+            coerceFiniteNumber(
                 node.authoredBusVolumeDb,
                 `${label} authoredBusVolumeDb`,
             );
         }
         if (node.authoredBusMakeUpGainDb !== undefined)
         {
-            NormalizeFiniteNumber(
+            coerceFiniteNumber(
                 node.authoredBusMakeUpGainDb,
                 `${label} authoredBusMakeUpGainDb`,
             );
         }
         if (node.authoredOutputBusVolumeDb !== undefined)
         {
-            NormalizeFiniteNumber(
+            coerceFiniteNumber(
                 node.authoredOutputBusVolumeDb,
                 `${label} authoredOutputBusVolumeDb`,
             );
@@ -2911,7 +2912,7 @@ function ValidateRtpcCurves(value, label)
         }
         if (curve.defaultValue !== undefined)
         {
-            NormalizeFiniteNumber(
+            coerceFiniteNumber(
                 curve.defaultValue,
                 `${label} ${index} defaultValue`,
             );
@@ -2931,12 +2932,12 @@ function ValidateRtpcCurves(value, label)
                 curve.points[pointIndex],
                 `${label} ${index} point ${pointIndex}`,
             );
-            const x = NormalizeFiniteNumber(
+            const x = coerceFiniteNumber(
                 point.x,
                 `${label} ${index} point ${pointIndex} x`,
             );
 
-            NormalizeFiniteNumber(
+            coerceFiniteNumber(
                 point.value,
                 `${label} ${index} point ${pointIndex} value`,
             );
@@ -2986,7 +2987,7 @@ function ValidateDryVolumeCurve(value, label)
             curve.points[index],
             `${label} point ${index}`,
         );
-        const x = NormalizeFiniteNumber(
+        const x = coerceFiniteNumber(
             point.x,
             `${label} point ${index} x`,
         );
@@ -2999,7 +3000,7 @@ function ValidateDryVolumeCurve(value, label)
         {
             throw new TypeError(`${label} points must have non-decreasing x`);
         }
-        NormalizeFiniteNumber(
+        coerceFiniteNumber(
             point.value,
             `${label} point ${index} value`,
         );
@@ -3082,28 +3083,28 @@ function ValidateStateProperties(value, label)
             }
             if (hasGain)
             {
-                NormalizeFiniteNumber(
+                coerceFiniteNumber(
                     stateCase.gainDb,
                     `${label} ${index} case ${name} gainDb`,
                 );
             }
             if (hasPitch)
             {
-                NormalizeFiniteNumber(
+                coerceFiniteNumber(
                     stateCase.pitchCents,
                     `${label} ${index} case ${name} pitchCents`,
                 );
             }
             if (hasLowPass)
             {
-                NormalizeFiniteNumber(
+                coerceFiniteNumber(
                     stateCase.lowPass,
                     `${label} ${index} case ${name} lowPass`,
                 );
             }
             if (hasHighPass)
             {
-                NormalizeFiniteNumber(
+                coerceFiniteNumber(
                     stateCase.highPass,
                     `${label} ${index} case ${name} highPass`,
                 );
@@ -3364,11 +3365,11 @@ function ValidateRandomRanges(value, label)
     for (let index = 0; index < value.length; index++)
     {
         const range = RequireRecord(value[index], `${label} ${index}`);
-        const min = NormalizeFiniteNumber(
+        const min = coerceFiniteNumber(
             range.min,
             `${label} ${index} min`,
         );
-        const max = NormalizeFiniteNumber(
+        const max = coerceFiniteNumber(
             range.max,
             `${label} ${index} max`,
         );
@@ -3706,18 +3707,6 @@ function NormalizeName(value, label)
     }
     return name;
 }
-
-function NormalizeFiniteNumber(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isFinite(number))
-    {
-        throw new TypeError(`${label} must be a finite number`);
-    }
-    return number;
-}
-
 function NormalizeUint32Number(value, label)
 {
     const number = Number(value);
@@ -3733,33 +3722,11 @@ function NormalizeUint32Number(value, label)
 
 function NormalizePositiveNumber(value, label)
 {
-    const number = NormalizeFiniteNumber(value, label);
+    const number = coerceFiniteNumber(value, label);
 
     if (number <= 0)
     {
         throw new TypeError(`${label} must be greater than zero`);
-    }
-    return number;
-}
-
-function NormalizeNonNegativeInteger(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isSafeInteger(number) || number < 0)
-    {
-        throw new TypeError(`${label} must be a non-negative integer`);
-    }
-    return number;
-}
-
-function NormalizePositiveInteger(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isSafeInteger(number) || number <= 0)
-    {
-        throw new TypeError(`${label} must be a positive integer`);
     }
     return number;
 }

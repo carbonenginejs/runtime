@@ -1,3 +1,5 @@
+import { finiteNumberOr } from "#utils/validation";
+
 /**
  * Readers for Wwise SoundbanksInfo metadata (the `soundbanksinfo.json` file
  * generated next to soundbanks).
@@ -144,7 +146,7 @@ function normalizeBank(bank)
         events: events.map((entry) => ({
             id: String(entry.Id ?? ""),
             name: entry.Name || "",
-            maxAttenuation: finiteNumber(entry.MaxAttenuation, 0)
+            maxAttenuation: finiteNumberOr(entry.MaxAttenuation, 0)
         })),
         switchGroups: (bank.SwitchGroups || []).map((group) => ({
             id: String(group.Id ?? ""),
@@ -168,14 +170,6 @@ function normalizeBank(bank)
         }))
     };
 }
-
-function finiteNumber(value, fallback)
-{
-    const number = Number(value);
-
-    return Number.isFinite(number) ? number : fallback;
-}
-
 /**
  * Build id-keyed lookup tables from SoundbanksInfo.
  *

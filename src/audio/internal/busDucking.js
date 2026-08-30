@@ -1,3 +1,4 @@
+import { coerceNonNegativeInteger } from "#utils/validation";
 import { evaluateWwiseInterpolation } from "./wwiseCurve.js";
 
 const MIN_GAIN_DB = -200;
@@ -35,7 +36,7 @@ export function indexBusDuckingCatalog(value)
             rawSource,
             `Audio Bus ducking source ${sourceBusId}`,
         );
-        const recoveryMs = NonNegativeInteger(
+        const recoveryMs = coerceNonNegativeInteger(
             source.recoveryMs,
             `Audio Bus ducking source ${sourceBusId} recoveryMs`,
         );
@@ -66,11 +67,11 @@ export function indexBusDuckingCatalog(value)
                 `${label} bus id`,
             );
             const volumeDb = FiniteDb(target.volumeDb, `${label} volumeDb`);
-            const fadeOutMs = NonNegativeInteger(
+            const fadeOutMs = coerceNonNegativeInteger(
                 target.fadeOutMs,
                 `${label} fadeOutMs`,
             );
-            const fadeInMs = NonNegativeInteger(
+            const fadeInMs = coerceNonNegativeInteger(
                 target.fadeInMs,
                 `${label} fadeInMs`,
             );
@@ -593,18 +594,6 @@ function CanonicalPositiveId(value, label)
     }
     return text;
 }
-
-function NonNegativeInteger(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isSafeInteger(number) || number < 0)
-    {
-        throw new TypeError(`${label} must be a nonnegative integer`);
-    }
-    return number;
-}
-
 function FiniteDb(value, label)
 {
     const number = Number(value);

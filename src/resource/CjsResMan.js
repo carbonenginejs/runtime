@@ -1,3 +1,4 @@
+import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
 import { CjsEventEmitter } from "#model";
 import { hasOwnThen } from "#utils/object";
@@ -315,18 +316,18 @@ export class CjsResMan extends CjsEventEmitter
       useWorkerLoading: this.UseWorkerLoading,
       maxConcurrentLoads: value =>
       {
-        assertPositiveInteger(value, "maxConcurrentLoads");
+        assertPositiveInteger(value, "CjsResMan maxConcurrentLoads");
         this.maxConcurrentLoads = value;
         this._loadQueue.SetConcurrency(value);
       },
       maxPrepareTime: value =>
       {
-        assertNonNegativeNumber(value, "maxPrepareTime");
+        assertNonNegativeNumber(value, "CjsResMan maxPrepareTime");
         this.maxPrepareTime = value;
       },
       maxPrepareItemsPerTick: value =>
       {
-        assertNonNegativeInteger(value, "maxPrepareItemsPerTick");
+        assertNonNegativeInteger(value, "CjsResMan maxPrepareItemsPerTick");
         this.maxPrepareItemsPerTick = value;
       },
       autoPumpMainThreadQueue: value =>
@@ -2414,7 +2415,7 @@ export class CjsResMan extends CjsEventEmitter
     if (!policy) return null;
 
     const time = pump.time === undefined ? policy.now() : pump.time;
-    assertNonNegativeNumber(time, "automatic purge time");
+    assertNonNegativeNumber(time, "CjsResMan automatic purge time");
 
     if (this.#lastAutoPurgeTime !== null)
     {
@@ -4097,26 +4098,11 @@ function getPublishedResourceObject(resource, route = null, handlerMode = null)
   return mode === ResourceHandlerMode.RESOURCE ? resource : resource.GetPayload();
 }
 
-function assertPositiveInteger(value, name)
-{
-  if (!Number.isInteger(value) || value < 1) {
-    throw new TypeError(`CjsResMan ${name} must be a positive integer.`);
-  }
-}
 
-function assertNonNegativeInteger(value, name)
-{
-  if (!Number.isInteger(value) || value < 0) {
-    throw new TypeError(`CjsResMan ${name} must be a non-negative integer.`);
-  }
-}
 
-function assertNonNegativeNumber(value, name)
-{
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
-    throw new TypeError(`CjsResMan ${name} must be a non-negative finite number.`);
-  }
-}
+
+
+
 
 /**
  * Normalize and freeze an opt-in time-based automatic purge policy.
@@ -4149,12 +4135,12 @@ function normalizeAutoPurgePolicy(policy)
   }
 
   const intervalMilliseconds = policy.intervalMilliseconds ?? 1000;
-  assertNonNegativeNumber(intervalMilliseconds, "autoPurgePolicy.intervalMilliseconds");
+  assertNonNegativeNumber(intervalMilliseconds, "CjsResMan autoPurgePolicy.intervalMilliseconds");
   for (const name of [ "maxIdleMilliseconds", "payloadMaxIdleMilliseconds" ])
   {
     if (policy[name] !== undefined)
     {
-      assertNonNegativeNumber(policy[name], `autoPurgePolicy.${name}`);
+      assertNonNegativeNumber(policy[name], `CjsResMan autoPurgePolicy.${name}`);
     }
   }
   if (policy.maxIdleMilliseconds === undefined
@@ -4211,7 +4197,7 @@ function normalizeAutoPurgePumpOptions(options)
   }
   if (options.time !== undefined)
   {
-    assertNonNegativeNumber(options.time, "automatic purge time");
+    assertNonNegativeNumber(options.time, "CjsResMan automatic purge time");
   }
   return options;
 }

@@ -1,3 +1,4 @@
+import { assertFiniteNumber } from "#utils/validation";
 import { asUint8Array } from "#utils/bytes";
 
 /**
@@ -27,15 +28,6 @@ function makeDecoder()
 function makeEncoder()
 {
     return new TextEncoder();
-}
-
-function assertFiniteNumber(value, feature)
-{
-    if (typeof value !== "number" || !Number.isFinite(value))
-    {
-        throw new TypeError(`CjsStlFormat: ${feature} must contain finite numbers`);
-    }
-    return value;
 }
 
 /**
@@ -239,7 +231,7 @@ class DisjointSet
  *
  * @param {string|Uint8Array|ArrayBuffer|DataView} input STL text or bytes.
  * @returns {Uint8Array|null} Bytes when input is byte-like.
- *//**
+ *//**
  * Convert supported input into text.
  *
  * @param {string|Uint8Array|ArrayBuffer|DataView} input STL text or bytes.

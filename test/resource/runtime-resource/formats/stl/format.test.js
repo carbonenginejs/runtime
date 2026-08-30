@@ -175,7 +175,7 @@ test("writer preserves requested normals and rejects lossy numeric output", () =
     };
     assert.throws(
         () => CjsStlFormat.write(scaleOverflow, { binary: false, scale: Number.MAX_VALUE }),
-        /scaled vertex must contain finite numbers/u
+        /scaled vertex must be a finite number/u
     );
 });
 

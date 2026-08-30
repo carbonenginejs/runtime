@@ -1,3 +1,5 @@
+import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
+
 // Source: blue/include/IMotherLode.h
 // Source: blue/src/MotherLode.h
 // Source: blue/src/MotherLode.cpp
@@ -797,7 +799,7 @@ export class CjsMotherLode
    */
   SetCacheSize(bytes, options = {})
   {
-    assertNonNegativeSafeInteger(bytes, "CjsMotherLode cache size");
+    assertNonNegativeInteger(bytes, "CjsMotherLode cache size");
     const policy = normalizeOptions(options, "set cache size");
     this.#cacheSize = bytes;
     this.TrimCache(policy);
@@ -986,7 +988,7 @@ export class CjsMotherLode
   {
     if (options.bytes !== undefined)
     {
-      assertNonNegativeSafeInteger(options.bytes, "CjsMotherLode entry bytes");
+      assertNonNegativeInteger(options.bytes, "CjsMotherLode entry bytes");
       record.bytes = options.bytes;
     }
     if (options.cacheable !== undefined) record.cacheable = Boolean(options.cacheable);
@@ -1054,7 +1056,7 @@ export class CjsMotherLode
   #TouchRecord(record, options)
   {
     const frame = options.frame === undefined ? this.#activityFrame + 1 : options.frame;
-    assertNonNegativeSafeInteger(frame, "CjsMotherLode activity frame");
+    assertNonNegativeInteger(frame, "CjsMotherLode activity frame");
     this.#activityFrame = Math.max(this.#activityFrame, frame);
     record.lastUsedFrame = frame;
 
@@ -1260,23 +1262,23 @@ function normalizePurgeOptions(options, activityFrame, now)
 {
   const policy = normalizeOptions(options, "purge");
   const frame = policy.frame === undefined ? activityFrame + 1 : policy.frame;
-  assertNonNegativeSafeInteger(frame, "CjsMotherLode purge frame");
+  assertNonNegativeInteger(frame, "CjsMotherLode purge frame");
 
   const time = policy.time === undefined ? now() : policy.time;
-  assertNonNegativeFiniteNumber(time, "CjsMotherLode purge time");
+  assertNonNegativeNumber(time, "CjsMotherLode purge time");
 
   for (const name of [ "maxIdleFrames", "payloadMaxIdleFrames" ])
   {
     if (policy[name] !== undefined)
     {
-      assertNonNegativeSafeInteger(policy[name], `CjsMotherLode ${name}`);
+      assertNonNegativeInteger(policy[name], `CjsMotherLode ${name}`);
     }
   }
   for (const name of [ "maxIdleMilliseconds", "payloadMaxIdleMilliseconds" ])
   {
     if (policy[name] !== undefined)
     {
-      assertNonNegativeFiniteNumber(policy[name], `CjsMotherLode ${name}`);
+      assertNonNegativeNumber(policy[name], `CjsMotherLode ${name}`);
     }
   }
 
@@ -1374,31 +1376,13 @@ function assertResource(resource)
     throw new TypeError("CjsMotherLode requires a resource object.");
   }
 }
-
-function assertNonNegativeSafeInteger(value, label)
-{
-  if (!Number.isSafeInteger(value) || value < 0)
-  {
-    throw new TypeError(`${label} must be a non-negative safe integer.`);
-  }
-}
-
 /**
  * Validate a non-negative finite number with a contextual error label.
  *
  * @param {*} value Candidate numeric value.
  * @param {string} label Error-message field name.
  * @returns {void}
- */
-function assertNonNegativeFiniteNumber(value, label)
-{
-  if (typeof value !== "number" || !Number.isFinite(value) || value < 0)
-  {
-    throw new TypeError(`${label} must be a non-negative finite number.`);
-  }
-}
-
-function freezeInsertResult(key, resource, inserted, replaced, displaced)
+ */function freezeInsertResult(key, resource, inserted, replaced, displaced)
 {
   return Object.freeze({ key, resource, inserted, replaced, displaced });
 }

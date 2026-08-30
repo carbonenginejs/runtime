@@ -1,3 +1,4 @@
+import { assertPositiveInteger } from "#utils/validation";
 /**
  * The `payloadType` vocabulary shared by the format readers and the resources
  * they populate, plus validators for the shapes that carry structure worth
@@ -248,13 +249,7 @@ function assertEnum(value, allowed, label)
     }
 }
 
-function assertPositiveInteger(value, label)
-{
-    if (!Number.isSafeInteger(value) || value <= 0)
-    {
-        throw new TypeError(`${label} must be a positive safe integer.`);
-    }
-}
+
 
 function assertPositiveOrZeroInteger(value, label)
 {

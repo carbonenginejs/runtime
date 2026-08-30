@@ -1,3 +1,4 @@
+import { coerceNonNegativeInteger, coercePositiveInteger } from "#utils/validation";
 import {
     normalizeSfxGraph,
     ValidateStateTransitions,
@@ -878,11 +879,11 @@ function ValidateEmbeddedMedia(embeddedMedia, banks)
                 );
             }
 
-            NormalizeNonNegativeInteger(
+            coerceNonNegativeInteger(
                 record.offset,
                 `Audio library embedded media ${mediaID} offset`,
             );
-            NormalizePositiveInteger(
+            coercePositiveInteger(
                 record.byteLength,
                 `Audio library embedded media ${mediaID} byteLength`,
             );
@@ -1102,11 +1103,11 @@ function ValidateMusic(music, media, embeddedMedia)
                     );
                 }
             }
-            const groupId = NormalizeNonNegativeInteger(
+            const groupId = coerceNonNegativeInteger(
                 setter.groupId,
                 `${label} groupId`,
             );
-            const targetId = NormalizeNonNegativeInteger(
+            const targetId = coerceNonNegativeInteger(
                 setter.targetId,
                 `${label} targetId`,
             );
@@ -1184,7 +1185,7 @@ function ValidateMusicPrograms(
                 action.targetId,
                 `${label} targetId`,
             );
-            const curve = NormalizeNonNegativeInteger(
+            const curve = coerceNonNegativeInteger(
                 action.curve,
                 `${label} curve`,
             );
@@ -1406,31 +1407,6 @@ function NormalizePositiveID(value, label)
 
     return id;
 }
-
-function NormalizeNonNegativeInteger(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isSafeInteger(number) || number < 0)
-    {
-        throw new TypeError(`${label} must be a non-negative integer`);
-    }
-
-    return number;
-}
-
-function NormalizePositiveInteger(value, label)
-{
-    const number = NormalizeNonNegativeInteger(value, label);
-
-    if (number === 0)
-    {
-        throw new TypeError(`${label} must be greater than zero`);
-    }
-
-    return number;
-}
-
 function NormalizeLanguage(value)
 {
     const language = String(value ?? "")

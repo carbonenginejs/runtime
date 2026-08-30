@@ -1,3 +1,4 @@
+import { assertPositiveInteger } from "#utils/validation";
 import { AssertFlags, ReadRequiredString } from "./fsd64Records.js";
 import { CjsFsd64Binary } from "./CjsFsd64Binary.js";
 
@@ -343,7 +344,7 @@ function ValidateSchema(schema)
 
     if (rootType === CjsFsd64Binary.Type.OBJECT)
     {
-        AssertPositiveInteger(schema.container.headerSize, "container.headerSize");
+        assertPositiveInteger(schema.container.headerSize, "container.headerSize");
         ValidateObjectDescriptor(schema.container, schema.container.headerSize, "container");
 
         return;
@@ -354,7 +355,7 @@ function ValidateSchema(schema)
 
 function ValidateMapDescriptor(descriptor, label)
 {
-    AssertPositiveInteger(descriptor.recordSize, `${label}.recordSize`);
+    assertPositiveInteger(descriptor.recordSize, `${label}.recordSize`);
     ValidateValueDescriptor(descriptor.key, descriptor.recordSize, `${label}.key`);
 
     if (descriptor.value !== undefined)
@@ -528,11 +529,11 @@ function ValidateValueDescriptor(descriptor, availableSize, label)
 
     if (type === CjsFsd64Binary.Type.LIST)
     {
-        AssertPositiveInteger(descriptor.itemSize, `${label}.itemSize`);
+        assertPositiveInteger(descriptor.itemSize, `${label}.itemSize`);
 
         if (descriptor.maximumCount !== undefined)
         {
-            AssertPositiveInteger(descriptor.maximumCount, `${label}.maximumCount`);
+            assertPositiveInteger(descriptor.maximumCount, `${label}.maximumCount`);
         }
 
         ValidateValueDescriptor(descriptor.item, descriptor.itemSize, `${label}.item`);
@@ -586,15 +587,6 @@ function AssertOffset(value, label)
         throw SchemaError(`${label} must be a non-negative safe integer.`);
     }
 }
-
-function AssertPositiveInteger(value, label)
-{
-    if (!Number.isSafeInteger(value) || value < 1)
-    {
-        throw SchemaError(`${label} must be a positive safe integer.`);
-    }
-}
-
 function AssertSafeMask(value, label)
 {
     if (!Number.isSafeInteger(value) || value < 0)

@@ -1,3 +1,5 @@
+import { finiteNumberOr } from "#utils/validation";
+
 // CarbonEngineJS original. Builds the AudStaticDataRepository input (the
 // "audioMetadata" shape: Events / SoundBanks / WemFileIDs) from publishable
 // sources, while optional caller-supplied enrichment remains separate from
@@ -47,7 +49,7 @@ export function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = nul
             }
             const record = events[name] ?? (events[name] = {
                 eventID: Number(entry.Id) >>> 0,
-                maxRadiusAttenuation: FiniteNumber(
+                maxRadiusAttenuation: finiteNumberOr(
                     entry.MaxAttenuation,
                     0,
                 ),
@@ -61,7 +63,7 @@ export function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = nul
             {
                 record.maxRadiusAttenuation = Math.max(
                     record.maxRadiusAttenuation,
-                    FiniteNumber(entry.MaxAttenuation, 0),
+                    finiteNumberOr(entry.MaxAttenuation, 0),
                 );
             }
             if (bankName && !record.soundbanks.includes(bankName))
@@ -82,14 +84,6 @@ export function audioMetadataFromSoundbanksInfo(soundbanksInfo, enrichment = nul
     const metadata = { Events: events, SoundBanks: soundBanks, WemFileIDs: wemFileIDs };
     return enrichment ? MergeEnrichment(metadata, enrichment) : metadata;
 }
-
-function FiniteNumber(value, fallback)
-{
-    const number = Number(value);
-
-    return Number.isFinite(number) ? number : fallback;
-}
-
 function BankFileName(bank)
 {
     const path = String(bank.Path || bank.ShortName || "");

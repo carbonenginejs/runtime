@@ -1,3 +1,5 @@
+import { coerceFiniteNumber, coerceNonNegativeInteger } from "#utils/validation";
+
 const BUS_TYPES = new Set([ "audio-bus", "auxiliary-bus" ]);
 const EFFECT_TYPES = new Set([ "effect-custom", "effect-share-set" ]);
 const PROCESSING_REASONS = new Set([
@@ -57,7 +59,7 @@ export function normalizeBusGraphCatalog(value, embeddedMedia = {})
             raw.parametersBase64,
             `Audio Bus graph effect ${effectId} parametersBase64`,
         );
-        const parameterByteLength = NonNegativeInteger(
+        const parameterByteLength = coerceNonNegativeInteger(
             raw.parameterByteLength,
             `Audio Bus graph effect ${effectId} parameterByteLength`,
         );
@@ -123,19 +125,19 @@ export function normalizeBusGraphCatalog(value, embeddedMedia = {})
             parametersBase64,
             media,
             controls: {
-                rtpcCount: NonNegativeInteger(
+                rtpcCount: coerceNonNegativeInteger(
                     controls.rtpcCount,
                     `Audio Bus graph effect ${effectId} controls.rtpcCount`,
                 ),
-                statePropertyCount: NonNegativeInteger(
+                statePropertyCount: coerceNonNegativeInteger(
                     controls.statePropertyCount,
                     `Audio Bus graph effect ${effectId} controls.statePropertyCount`,
                 ),
-                stateGroupCount: NonNegativeInteger(
+                stateGroupCount: coerceNonNegativeInteger(
                     controls.stateGroupCount,
                     `Audio Bus graph effect ${effectId} controls.stateGroupCount`,
                 ),
-                propertyValueCount: NonNegativeInteger(
+                propertyValueCount: coerceNonNegativeInteger(
                     controls.propertyValueCount,
                     `Audio Bus graph effect ${effectId} controls.propertyValueCount`,
                 ),
@@ -274,7 +276,7 @@ export function normalizeBusGraphCatalog(value, embeddedMedia = {})
         {
             if (raw[field] !== undefined)
             {
-                bus[field] = FiniteNumber(
+                bus[field] = coerceFiniteNumber(
                     raw[field],
                     `Audio Bus graph bus ${busId} ${field}`,
                 );
@@ -489,7 +491,7 @@ function NormalizeAuxSends(values, label)
         return {
             slotIndex,
             targetBusId: CanonicalPositiveId(value.targetBusId, `${sendLabel} targetBusId`),
-            gainDb: FiniteNumber(value.gainDb, `${sendLabel} gainDb`),
+            gainDb: coerceFiniteNumber(value.gainDb, `${sendLabel} gainDb`),
             lowPass: BoundedFinite(value.lowPass, 0, 100, `${sendLabel} lowPass`),
             highPass: BoundedFinite(value.highPass, 0, 100, `${sendLabel} highPass`),
             dynamic: BooleanValue(value.dynamic, `${sendLabel} dynamic`),
@@ -506,7 +508,7 @@ function NormalizeReflectionSend(raw, label)
             value.targetBusId,
             `${label} reflectionsAuxSend targetBusId`,
         ),
-        gainDb: FiniteNumber(value.gainDb, `${label} reflectionsAuxSend gainDb`),
+        gainDb: coerceFiniteNumber(value.gainDb, `${label} reflectionsAuxSend gainDb`),
         dynamic: BooleanValue(value.dynamic, `${label} reflectionsAuxSend dynamic`),
     };
 }
@@ -639,7 +641,7 @@ function NormalizeRoutes(values, buses)
         {
             if (value[field] !== undefined)
             {
-                route[field] = FiniteNumber(value[field], `${label} ${field}`);
+                route[field] = coerceFiniteNumber(value[field], `${label} ${field}`);
             }
         }
         if (value.reflectionsAuxSend !== undefined)
@@ -819,18 +821,6 @@ function UnsignedInteger(value, label)
 {
     return BoundedInteger(value, 0, 0xffffffff, label);
 }
-
-function NonNegativeInteger(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isSafeInteger(number) || number < 0)
-    {
-        throw new TypeError(`${label} must be a nonnegative integer`);
-    }
-    return number;
-}
-
 function BoundedInteger(value, min, max, label)
 {
     const number = Number(value);
@@ -841,18 +831,9 @@ function BoundedInteger(value, min, max, label)
     }
     return number;
 }
-
-function FiniteNumber(value, label)
-{
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) throw new TypeError(`${label} must be finite`);
-    return number;
-}
-
 function BoundedFinite(value, min, max, label)
 {
-    const number = FiniteNumber(value, label);
+    const number = coerceFiniteNumber(value, label);
 
     if (number < min || number > max) throw new TypeError(`${label} must be from ${min} to ${max}`);
     return number;
