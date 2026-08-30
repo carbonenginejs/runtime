@@ -29,7 +29,7 @@ export function buildCmfFromShared(input, options = {})
     return {
         version: 1,
         metadata: normalizeMetadata(root.metadata),
-        meshes: (root.meshes ?? []).map((mesh) => buildMesh(mesh)),
+        meshes: (root.meshes ?? []).map((mesh) => buildMesh(mesh, options)),
         skeletons: root.skeletons ?? [],
         animations: root.animations ?? []
     };
@@ -51,9 +51,9 @@ export function buildSharedFromCmf(raw, classes, hydrationOptions = {})
     }, hydrationClasses, hydrationOptions);
 }
 
-function buildMesh(mesh)
+function buildMesh(mesh, options = {})
 {
-    mesh = normalizeSharedMeshTangents(mesh);
+    mesh = normalizeSharedMeshTangents(mesh, options);
     const
         vertex = mesh.vertex ?? {},
         position = vertex.position ?? [],
@@ -115,22 +115,22 @@ function buildMesh(mesh)
     };
 }
 
-function normalizeSharedMeshTangents(mesh)
+function normalizeSharedMeshTangents(mesh, options)
 {
-    const vertex = normalizeSharedVertex(mesh.vertex ?? {});
+    const vertex = normalizeSharedVertex(mesh.vertex ?? {}, options);
     const morphTargets = (mesh.morphTargets ?? []).map(target => ({
         ...target,
-        vertex: normalizeSharedVertexTangents(target.vertex ?? {})
+        vertex: normalizeSharedVertexTangents(target.vertex ?? {}, options)
     }));
     return { ...mesh, vertex, morphTargets };
 }
 
-function normalizeSharedVertex(vertex)
+function normalizeSharedVertex(vertex, options)
 {
-    return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex));
+    return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex, options));
 }
 
-function normalizeSharedVertexTangents(vertex)
+function normalizeSharedVertexTangents(vertex, options = {})
 {
     const
         positionCount = (vertex.position ?? []).length / 3,
@@ -140,6 +140,10 @@ function normalizeSharedVertexTangents(vertex)
         (vertex.normal ?? []).length || (vertex.binormal ?? []).length)
     {
         return vertex;
+    }
+    if (options.preservePackedTangents)
+    {
+        return { ...vertex, tangent: [], packedTangentLegacy: tangent.slice() };
     }
     const normalized = { ...vertex, tangent: tangent.slice() };
     unpackMeshTangents({ vertex: normalized });
@@ -192,7 +196,10 @@ function buildMorphTargets(mesh)
         {
             const
                 morphVertex = vertices[index],
-                vertexCount = Math.floor((morphVertex.position ?? []).length / 3);
+                vertexCount = morphSpecs.reduce((count, spec) => Math.max(
+                    count,
+                    Math.floor((morphVertex[spec.name] ?? []).length / spec.elementCount)
+                ), 0);
 
             return {
                 vb: { index: 0, offset: 0, size: vertexCount * stride, stride },

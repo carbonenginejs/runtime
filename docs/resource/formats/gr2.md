@@ -3,13 +3,17 @@
 Status: Evolving  
 Scope: `@carbonenginejs/runtime/resource/formats/gr2`
 Audience: Users and integrators  
-Summary: Defines the pure-JavaScript GR2/GSF reader, its output modes, conversion options, graph shape, and class-hydration boundary.
+Summary: Defines the pure-JavaScript GR2/GSF reader, CMF-first GR2 writer, output modes, conversion options, graph shape, and class-hydration boundary.
 
 ## Purpose
 
 `CjsGr2Format` reads Granny 3D `.gr2` geometry, skeleton, animation, and
 morph-target data, plus Granny State `.gsf` profiles. It runs in Node and the
 browser without `granny2.dll`, native addons, a GPU, or private assets.
+
+It also writes geometry and animation GR2 files from native CMF or shared
+geometry. Writing is pure JavaScript and uses CMF as the interchange boundary;
+cameras and lights are outside this geometry-format contract.
 
 The reader owns Granny container parsing, reflected type-tree walking, section
 decompression, JSON projection, optional curve and vertex-channel conversion,
@@ -97,6 +101,65 @@ const first = reader.Read(firstBytes);
 const second = reader.Read(secondBytes);
 ```
 
+## Writing GR2
+
+`write` accepts a native CMF v1 graph. `writeShared` accepts shared geometry or
+the GR2 JSON shape and converts it through CMF first:
+
+```js
+const bytesFromCmf = CjsGr2Format.write(cmf, {
+  tangentMode: "preserve",
+  compressedCurves: true
+});
+
+const bytesFromShared = CjsGr2Format.writeShared(sharedGeometry);
+
+const writer = new CjsGr2Format();
+const instanceBytes = writer.Write(cmf);
+```
+
+The output is a version-7, 32-bit little-endian Granny container with the
+standard reflected `granny_file_info` geometry and animation graph. The first
+implementation uses one uncompressed outer section, canonical pointer and
+mixed-marshalling fixups, a version-2.12 type tag, and the required file CRC.
+Animation curves are independently compressed; outer section compression and
+curve compression are separate concerns.
+
+| Writer option | Default | Effect |
+|---|---:|---|
+| `tangentMode` | `"preserve"` | `"packed"` writes one normalized-uint8 `Tangent[4]` frame, `"unpacked"` writes separate float normal/tangent/binormal channels, and `"preserve"` retains the source layout when it is known |
+| `compressedCurves` | `true` | Quantizes eligible curves into Granny constant, identity, D3K16, D4n16, D9I1/D9I3-16, or DaK16 data; `false` writes float knot/control curves |
+| `positionTolerance` | `0.1` | Maximum accepted position packing error before float fallback |
+| `orientationTolerance` | `0.1` degrees in radians | Maximum accepted shortest quaternion angular error before fallback |
+| `scaleShearTolerance` | `0.1` | Maximum accepted scale/shear packing error before float fallback |
+| `sourceName` | `""` | Value written to `FromFileName` |
+
+CMF's `PackedTangent` quaternion and `PackedTangentLegacy` angle encodings are
+both accepted. Packed GR2 output uses the legacy angle frame found in the EVE
+ship corpus. `writeShared` retains an incoming GR2 packed frame as CMF
+`PackedTangentLegacy`, so the CMF interim does not erase this choice.
+
+The writer expands CMF LOD geometry into separate Granny meshes, writes
+materials and mesh bindings, skin and inverse-bind data, morph targets, and
+skeletal or scalar-morph animation channels. Current boundaries are explicit:
+
+- CMF v1 stores Step and Linear curves only. Incoming Granny degree-2 curves
+  are adaptively baked while entering CMF, then repacked as degree 0 or 1;
+  original B-spline controls cannot be reconstructed.
+- Curve packing is implemented, but Granny-style degree-2 fitting and control
+  reduction are a later size optimization.
+- CMF v1 does not retain Granny track-group layering, accumulation and loop
+  metadata, text tracks, or arbitrary vector tracks.
+- EVE `MeshBoundsInfo` extended data is not emitted yet, so LOD threshold,
+  bounds, area metadata, and UV-density parity are not complete.
+- GSF writing, cameras, lights, textures, and outer-section compression are not
+  part of this writer pass.
+
+Generated files round-trip through the JavaScript reader and the pinned
+FAUX/T3 corpus. Qualification through the proprietary Granny 2.12 SDK remains
+pending because no SDK validator is installed; the in-project reader cannot by
+itself prove native pointer-size marshalling.
+
 ## JSON graph and hydration
 
 The default graph has this general shape:
@@ -132,8 +195,8 @@ Constructors must therefore support zero-argument construction and
 `HasClass` on reusable reader instances.
 
 `ToJSON(value)` and static `toJSON(value)` convert hydrated output into a
-JSON-compatible value. They do not write a binary `.gr2` file or return JSON
-text.
+JSON-compatible value. They do not return JSON text; binary output uses
+`Write`/`write`.
 
 ## Granny State
 

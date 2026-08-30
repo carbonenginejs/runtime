@@ -122,6 +122,41 @@ function strideFor(decl)
     }
 }
 
+/** Pack semantic CMF element values while preserving already-packed byte payloads. */
+function packElementArray(values, type, elementCount)
+{
+    const size = packedElementTypeSize(type);
+    if (values instanceof Uint8Array) return values;
+    if (values instanceof ArrayBuffer) return new Uint8Array(values);
+    if (values instanceof DataView) return new Uint8Array(values.buffer, values.byteOffset, values.byteLength);
+    const source = Array.isArray(values) || ArrayBuffer.isView(values) ? Array.from(values) : [];
+    if (size > 1 && source.length === elementCount * size &&
+        source.every((value) => Number.isInteger(value) && value >= 0 && value <= 255))
+    {
+        return Uint8Array.from(source);
+    }
+    const bytes = new Uint8Array(source.length * size);
+    const view = new DataView(bytes.buffer);
+    for (let index = 0; index < source.length; index++)
+    {
+        writeComponent(view, index * size, type, source[index]);
+    }
+    return bytes;
+}
+
+/** Pack every native CMF animation curve's knot and value payloads. */
+function packAnimationCurves(animations)
+{
+    return (animations || []).map((animation) => ({
+        ...animation,
+        curves: (animation.curves || []).map((curve) => ({
+            ...curve,
+            knots: packElementArray(curve.knots, curve.knotType, curve.knotCount),
+            values: packElementArray(curve.values, curve.valueType, curve.knotCount * curve.valueDimension)
+        }))
+    }));
+}
+
 /**
  * Interleave deinterleaved channels into vertex-buffer bytes per `decl`.
  *
@@ -252,7 +287,7 @@ export function packGraphBuffers(graph)
     });
 
     return {
-        graph: { ...graph, meshes },
+        graph: { ...graph, meshes, animations: packAnimationCurves(graph.animations) },
         buffers
     };
 }

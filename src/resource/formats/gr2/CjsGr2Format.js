@@ -4,6 +4,7 @@ import { curves } from "./core/curves.js";
 import { GR2_MAGICS, bytesToHex } from "./core/reader.js";
 import { tangents } from "./core/tangents.js";
 import { inspectGsfRaw, isGsfRaw, projectGsf } from "./core/gsf.js";
+import { writeGr2, writeSharedGr2 } from "./core/writer.js";
 import {
     CLASS_KEYS,
     DEFAULT_VALUES,
@@ -22,12 +23,13 @@ import {
 } from "./core/helpers.js";
 
 /**
- * CarbonEngineJS-facing GR2 (Granny 3D) and GSF (Granny State) reader.
+ * CarbonEngineJS-facing GR2/GSF reader and CMF-first GR2 geometry writer.
  *
  * The Cjs prefix marks this as a JavaScript format/construction boundary. It
  * reads `.gr2` geometry/skeleton/animation graphs and `.gsf` state profiles,
- * emitting GR2 JSON, hydrated caller-supplied classes, or CMF-shaped output,
- * without pretending those classes are the engine runtime itself.
+ * emits GR2 JSON, hydrated caller-supplied classes, or CMF-shaped output, and
+ * writes pure-JavaScript GR2 geometry from CMF without pretending those
+ * classes are the engine runtime itself.
  */
 export class CjsGr2Format extends CjsFormat
 {
@@ -160,6 +162,30 @@ export class CjsGr2Format extends CjsFormat
     }
 
     /**
+     * Serialize a native CMF graph as 32-bit little-endian GR2 bytes.
+     *
+     * @param {object} input Native CMF v1 graph.
+     * @param {object} [options] Tangent and curve-packing options.
+     * @returns {Uint8Array} Complete GR2 file bytes.
+     */
+    Write(input, options = {})
+    {
+        return writeGr2(input, options);
+    }
+
+    /**
+     * Convert shared or GR2-shaped geometry through CMF and serialize GR2.
+     *
+     * @param {object} input Shared geometry root or GR2 JSON graph.
+     * @param {object} [options] Tangent and curve-packing options.
+     * @returns {Uint8Array} Complete GR2 file bytes.
+     */
+    WriteShared(input, options = {})
+    {
+        return writeSharedGr2(input, options);
+    }
+
+    /**
      * Parse a .gr2 buffer into the reflected Granny object graph.
      *
      * @param {Uint8Array|Buffer|object} input Raw .gr2 bytes or an existing raw read result.
@@ -221,6 +247,30 @@ export class CjsGr2Format extends CjsFormat
     static read(input, options = {})
     {
         return readWithValues(CjsGr2Format, input, normalizeValues(DEFAULT_VALUES, options));
+    }
+
+    /**
+     * Serialize a native CMF graph as 32-bit little-endian GR2 bytes.
+     *
+     * @param {object} input Native CMF v1 graph.
+     * @param {object} [options] Tangent and curve-packing options.
+     * @returns {Uint8Array} Complete GR2 file bytes.
+     */
+    static write(input, options = {})
+    {
+        return writeGr2(input, options);
+    }
+
+    /**
+     * Convert shared or GR2-shaped geometry through CMF and serialize GR2.
+     *
+     * @param {object} input Shared geometry root or GR2 JSON graph.
+     * @param {object} [options] Tangent and curve-packing options.
+     * @returns {Uint8Array} Complete GR2 file bytes.
+     */
+    static writeShared(input, options = {})
+    {
+        return writeSharedGr2(input, options);
     }
 
     /**

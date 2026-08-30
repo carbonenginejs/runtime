@@ -479,6 +479,8 @@ test("CjsGr2Format instances expose only the PascalCase public profile API", () 
         "SetClasses",
         "SetValues",
         "ToJSON",
+        "Write",
+        "WriteShared",
         "constructor"
     ].sort());
 

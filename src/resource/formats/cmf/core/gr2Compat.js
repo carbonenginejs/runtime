@@ -18,6 +18,15 @@ function expandScaleControls(values)
     return expanded;
 }
 
+function decodeCurveArray(input, type, expectedLength)
+{
+    if (Array.isArray(input) && input.length === expectedLength && input.every(Number.isFinite))
+    {
+        return input.slice();
+    }
+    return decodeElementArray(input, type);
+}
+
 function convertCurve(curve, targetDimension, expandScale = false, normalizeRotation = false)
 {
     if (!curve) return copyNoCurve();
@@ -25,8 +34,12 @@ function convertCurve(curve, targetDimension, expandScale = false, normalizeRota
     {
         throw new Error(`CMF to GR2: unsupported animation interpolation "${curve.interpolation}"`);
     }
-    const knots = decodeElementArray(curve.knots, curve.knotType);
-    let controls = decodeElementArray(curve.values, curve.valueType);
+    const knots = decodeCurveArray(curve.knots, curve.knotType, curve.knotCount);
+    let controls = decodeCurveArray(
+        curve.values,
+        curve.valueType,
+        curve.knotCount * curve.valueDimension
+    );
     if (knots.length !== curve.knotCount)
     {
         throw new Error(`CMF to GR2: curve declares ${curve.knotCount} knots but contains ${knots.length}`);

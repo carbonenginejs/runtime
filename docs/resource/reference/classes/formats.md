@@ -950,12 +950,22 @@ glTF/GLB format class that parses documents, decodes accessors, and converts mes
 <!-- class:CjsGr2Format -->
 ## `CjsGr2Format`
 
-Runtime GR2/GSF format class that wraps the migrated `format-gr2` engine under core/ with the resource format-contract statics ResMan uses for byte probing and async reads.
+CarbonEngineJS-facing GR2/GSF reader and CMF-first GR2 geometry writer.
 
 - Export: `@carbonenginejs/runtime/resource/formats/gr2`
 - Source: `src/resource/formats/gr2/CjsGr2Format.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
+
+<!-- class:SectionSerializer -->
+## `SectionSerializer`
+
+Serializes one reflected Granny object graph into relocatable section data.
+
+- Export: `None`
+- Source: `src/resource/formats/gr2/core/container.js`
+- Visibility: Internal
+- Kind: Internal implementation class
 
 <!-- class:Decoder -->
 ## `Decoder`
