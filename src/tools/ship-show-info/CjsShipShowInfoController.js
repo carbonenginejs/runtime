@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 export const SHIP_SHOW_INFO_PANEL_METHODS = {
     overview: "FetchOverview",
     attributes: "FetchAttributes",
@@ -98,7 +100,7 @@ export class CjsShipShowInfoController
 
         try
         {
-            ThrowIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "Show Info request aborted");
 
             const ship = await this.shipSource.FetchShip({
                 typeID: selectedTypeID,
@@ -157,7 +159,7 @@ export class CjsShipShowInfoController
     async SelectPanel(panel, { signal = null } = {})
     {
         this.#AssertReady();
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Show Info request aborted");
 
         const selectedPanel = NormalizePanel(panel);
 
@@ -174,7 +176,7 @@ export class CjsShipShowInfoController
             await AwaitWithSignal(selection, signal);
         }
 
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Show Info request aborted");
         this.#Emit("panel-selection", { panel: selectedPanel });
 
         return this.FetchPanel(selectedPanel, { signal });
@@ -184,7 +186,7 @@ export class CjsShipShowInfoController
     FetchPanel(panel, { signal = null } = {})
     {
         this.#AssertReady();
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Show Info request aborted");
 
         const selectedPanel = NormalizePanel(panel);
 
@@ -207,7 +209,7 @@ export class CjsShipShowInfoController
     FetchPrice({ signal = null } = {})
     {
         this.#AssertReady();
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Show Info request aborted");
 
         if (typeof this.shipSource.FetchPrice !== "function")
         {
@@ -221,7 +223,7 @@ export class CjsShipShowInfoController
     async SelectSkin(skin = null, { signal = null } = {})
     {
         this.#AssertReady();
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Show Info request aborted");
 
         if (typeof this.renderer?.FetchSkin === "function")
         {
@@ -234,7 +236,7 @@ export class CjsShipShowInfoController
             await AwaitWithSignal(selection, signal);
         }
 
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Show Info request aborted");
         this.selectedSkin = skin;
         this.#Emit("skin", { skin });
 
@@ -463,22 +465,7 @@ function ThrowIfStale(generation, currentGeneration, signal)
         throw AbortError("Show Info request was superseded");
     }
 
-    ThrowIfAborted(signal);
-}
-
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-
-    throw AbortError("Show Info request aborted");
+    throwIfAborted(signal, "Show Info request aborted");
 }
 
 function AbortError(message)

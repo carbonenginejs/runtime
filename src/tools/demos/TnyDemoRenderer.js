@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 /** Coordinates one browser demo with one caller-supplied rendering adapter. */
 export class TnyDemoRenderer
 {
@@ -60,7 +62,7 @@ export class TnyDemoRenderer
 
         try
         {
-            throwIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "Renderer operation aborted");
 
             const result = await this.#adapter.Load(request, adapterOptions);
 
@@ -69,7 +71,7 @@ export class TnyDemoRenderer
                 throw createAbortError("Renderer load was superseded");
             }
 
-            throwIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "Renderer operation aborted");
 
             return result;
         }
@@ -226,21 +228,6 @@ function forwardAbort(signal, controller)
     signal.addEventListener("abort", onAbort, { once: true });
 
     return () => signal.removeEventListener("abort", onAbort);
-}
-
-function throwIfAborted(signal)
-{
-    if (!signal.aborted)
-    {
-        return;
-    }
-
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-
-    throw createAbortError("Renderer operation aborted");
 }
 
 function createAbortError(message)

@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
 // composition root that installs one complete semantic library and owns
 // media selection, delivery, preparation, and decoded-buffer retention.
@@ -595,7 +597,7 @@ export class CjsAudioMan
         try
         {
             selection = this.ResolveMedia(mediaID, options);
-            ThrowIfAborted(options.signal);
+            throwIfAborted(options.signal, "Aborted");
         }
         catch (error)
         {
@@ -1440,7 +1442,7 @@ export class CjsAudioMan
     /** Reads and decodes one selected media representation. */
     async #ReadAndDecode(selection, signal)
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Aborted");
 
         let result;
 
@@ -1480,13 +1482,13 @@ export class CjsAudioMan
             result = bytes.slice(selection.offset, end);
         }
 
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Aborted");
         const decoded = await this.#DecodeResult(
             result,
             selection.mediaType,
         );
 
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Aborted");
         return decoded;
     }
 
@@ -1760,25 +1762,6 @@ function NormalizePositiveInteger(value, label)
         throw new TypeError(`${label} must be greater than zero`);
     }
     return number;
-}
-
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-    throw signal.reason ?? new DOMException("Aborted", "AbortError");
-}
-
-function AbortReason(signal)
-{
-    return signal?.reason
-        ?? new DOMException("Aborted", "AbortError");
 }
 
 function IsAbortError(error)

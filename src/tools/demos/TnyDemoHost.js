@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 /** Mounts independently constructible browser demos into one shared container. */
 export class TnyDemoHost
 {
@@ -130,7 +132,7 @@ export class TnyDemoHost
                 }
 
                 await this.#CloseActive();
-                throwIfAborted(controller.signal);
+                throwIfAborted(controller.signal, "Operation aborted");
                 instance = await definition.create({
                     id: definition.id,
                     context: this.context,
@@ -153,7 +155,7 @@ export class TnyDemoHost
                     signal: controller.signal
                 });
 
-                throwIfAborted(controller.signal);
+                throwIfAborted(controller.signal, "Operation aborted");
 
                 return instance;
             }
@@ -323,20 +325,3 @@ function forwardAbort(signal, controller)
     return () => signal.removeEventListener("abort", onAbort);
 }
 
-function throwIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-
-    const error = new Error("Operation aborted");
-
-    error.name = "AbortError";
-    throw error;
-}

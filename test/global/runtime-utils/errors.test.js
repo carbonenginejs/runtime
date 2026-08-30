@@ -4,7 +4,8 @@ import test from "node:test";
 import {
     CJS_OPERATION_CANCELLED,
     CjsCancellationError,
-    CjsError
+    CjsError,
+    throwIfAborted
 } from "../../../npm/dist/global/utils/errors/index.js";
 
 test("CjsError preserves stable operational identity and detached safe details", () =>
@@ -130,6 +131,43 @@ test("CjsCancellationError uses stable and platform-compatible cancellation iden
     assert.equal(CjsCancellationError.is({ name: "AbortError" }), true);
     assert.equal(CjsCancellationError.is({ code: CJS_OPERATION_CANCELLED }), true);
     assert.equal(CjsCancellationError.is(new Error("other")), false);
+});
+
+test("throwIfAborted preserves the caller's abort reason", () =>
+{
+    // Nothing to abort.
+    assert.doesNotThrow(() => throwIfAborted());
+    assert.doesNotThrow(() => throwIfAborted(null));
+    assert.doesNotThrow(() => throwIfAborted(new AbortController().signal));
+
+    // A platform signal throws its own reason through the native path.
+    assert.throws(() => throwIfAborted(AbortSignal.abort()), { name: "AbortError" });
+
+    // An Error reason is rethrown by identity, never wrapped. Callers match on
+    // these messages, so substituting an equivalent error is not good enough.
+    const
+        reason = new Error("cancelled by the caller"),
+        controller = new AbortController();
+
+    controller.abort(reason);
+    assert.throws(() => throwIfAborted(controller.signal), (error) => error === reason);
+
+    // A non-Error reason is carried as the cause rather than discarded.
+    const plain = new AbortController();
+
+    plain.abort("just a string");
+    assert.throws(() => throwIfAborted(plain.signal, "Widget load aborted"), (error) =>
+        error instanceof CjsCancellationError
+        && error.name === "AbortError"
+        && error.code === CJS_OPERATION_CANCELLED
+        && error.message === "Widget load aborted"
+        && error.cause === "just a string");
+
+    // A signal without the native method still reports an abort.
+    assert.throws(
+        () => throwIfAborted({ aborted: true }, "Bare signal aborted"),
+        { name: "AbortError", message: "Bare signal aborted" }
+    );
 });
 
 test("errors are available from the common root without environment initialization", async () =>

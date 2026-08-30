@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 const READY_PRESENCES = new Set([ "value", "empty", "omitted" ]);
 const TERMINAL_STATUSES = new Set([
     "ready",
@@ -80,7 +82,7 @@ export class TnyDemoDataService
      */
     async Read(request, { signal = null } = {})
     {
-        throwIfAborted(signal);
+        throwIfAborted(signal, "Data request aborted");
 
         for (const provider of this.#providers)
         {
@@ -91,7 +93,7 @@ export class TnyDemoDataService
                 accepted = await provider.CanRead(request, { signal });
             }
 
-            throwIfAborted(signal);
+            throwIfAborted(signal, "Data request aborted");
 
             if (!accepted)
             {
@@ -121,7 +123,7 @@ export class TnyDemoDataService
                 };
             }
 
-            throwIfAborted(signal);
+            throwIfAborted(signal, "Data request aborted");
 
             return normalizeResult(value, provider.id);
         }
@@ -205,24 +207,6 @@ function normalizeResult(value, providerID)
     }
 
     return result;
-}
-
-function throwIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-
-    const error = new Error("Data request aborted");
-
-    error.name = "AbortError";
-    throw error;
 }
 
 function isAbortError(error)

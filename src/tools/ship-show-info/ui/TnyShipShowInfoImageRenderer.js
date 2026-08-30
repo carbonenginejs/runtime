@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 /**
  * Browser-image fallback for Show Info hosts that do not inject a 3D engine.
  *
@@ -72,7 +74,7 @@ export class TnyShipShowInfoImageRenderer
             image.draggable = false;
 
             await LoadImage(image, url, controller.signal);
-            ThrowIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "Operation aborted");
 
             if (typeof image.decode === "function")
             {
@@ -80,7 +82,7 @@ export class TnyShipShowInfoImageRenderer
                 catch { /* A successful load remains usable when decode is unsupported. */ }
             }
 
-            ThrowIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "Operation aborted");
             this.container.replaceChildren(image);
             this.image = image;
             this.ship = ship || null;
@@ -96,7 +98,7 @@ export class TnyShipShowInfoImageRenderer
     /** Loads normalized skin data from the configured ship-detail source. */
     async FetchSkin({ skin, signal = null } = {})
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Operation aborted");
 
         if (skin?.renderURL)
         {
@@ -148,7 +150,7 @@ export class TnyShipShowInfoImageRenderer
 
 function LoadImage(image, url, signal)
 {
-    ThrowIfAborted(signal);
+    throwIfAborted(signal, "Operation aborted");
 
     return new Promise((resolve, reject) =>
     {
@@ -188,11 +190,6 @@ function ForwardAbort(source, target)
 
     source.addEventListener("abort", forward, { once: true });
     return () => source.removeEventListener("abort", forward);
-}
-
-function ThrowIfAborted(signal)
-{
-    if (signal?.aborted) throw signal.reason || AbortError("Operation aborted");
 }
 
 function AbortError(message)

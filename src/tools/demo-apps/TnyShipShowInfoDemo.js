@@ -1,3 +1,4 @@
+import { throwIfAborted } from "#utils/errors";
 import { TnyShipShowInfoWindow } from "../ship-show-info/ui/TnyShipShowInfoWindow.js";
 
 /** Composes one independently mountable Ship Show Info presentation. */
@@ -33,7 +34,7 @@ export class TnyShipShowInfoDemo
             throw new Error("TnyShipShowInfoDemo is already mounted");
         }
 
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Demo mount aborted");
         const window = new TnyShipShowInfoWindow(Object.assign({}, this.options, {
             root: container
         }));
@@ -43,7 +44,7 @@ export class TnyShipShowInfoDemo
         try
         {
             await AwaitWithSignal(window.Start(), signal);
-            ThrowIfAborted(signal);
+            throwIfAborted(signal, "Demo mount aborted");
 
             return window;
         }
@@ -142,16 +143,6 @@ function AwaitWithSignal(value, signal)
             signal.removeEventListener("abort", onAbort);
         });
     });
-}
-
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    throw signal.reason ?? AbortError("Demo mount aborted");
 }
 
 function AbortError(message)

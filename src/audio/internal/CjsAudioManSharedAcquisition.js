@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 // CarbonEngineJS original (no Carbon counterpart). Internal lease owner for
 // one deduplicated CjsAudioMan media or whole-bank acquisition.
 
@@ -65,8 +67,8 @@ export class CjsAudioManSharedAcquisition
     /** Returns one independently abortable lease over the shared result. */
     Subscribe(signal)
     {
-        ThrowIfAborted(signal);
-        ThrowIfAborted(this.#controller.signal);
+        throwIfAborted(signal, "Audio media load aborted");
+        throwIfAborted(this.#controller.signal, "Audio media load aborted");
         this.#leases++;
 
         return new Promise((resolve, reject) =>
@@ -144,19 +146,6 @@ export class CjsAudioManSharedAcquisition
             this.Abort(reason);
         }
     }
-}
-
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-    throw AbortReason(signal);
 }
 
 function AbortReason(signal)

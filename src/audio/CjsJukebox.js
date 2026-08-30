@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 // CarbonEngineJS original (no Carbon counterpart). Browser-only sequential
 // playlist playback over a caller-supplied catalog and acquisition function.
 import { installMusicLibrary } from "./library/musicLibrary.js";
@@ -251,7 +253,7 @@ export class CjsJukebox
                     }
                 }),
             ));
-            ThrowIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "The operation was aborted");
         }
         finally
         {
@@ -647,9 +649,9 @@ export class CjsJukebox
                 playlist: this.#playlist,
                 library: this.#library,
             });
-            ThrowIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "The operation was aborted");
             const buffer = await DecodeTrack(this.#context, loaded);
-            ThrowIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "The operation was aborted");
 
             if (requestID !== this.#requestID)
             {
@@ -914,19 +916,6 @@ function NormalizeIndex(value, length)
 function AvailabilityKey(playlistID, songID)
 {
     return `${playlistID}\0${songID}`;
-}
-
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-    if (signal.reason instanceof Error)
-    {
-        throw signal.reason;
-    }
-    throw new DOMException("The operation was aborted", "AbortError");
 }
 
 function SetAudioParam(param, value, context)

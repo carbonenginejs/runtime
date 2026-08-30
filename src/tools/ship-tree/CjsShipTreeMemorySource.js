@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 /** Supplies authored Ship Tree answers from caller-owned browser-memory data. */
 export class CjsShipTreeMemorySource
 {
@@ -14,7 +16,7 @@ export class CjsShipTreeMemorySource
     /** Returns one mutable tree answer for the requested faction or authority. */
     async FetchTree({ factionID = null, signal } = {})
     {
-        throwIfAborted(signal);
+        throwIfAborted(signal, "Ship Tree request was aborted");
 
         const tree = this.trees.find(item => sameID(item?.factionID ?? null, factionID));
 
@@ -76,12 +78,3 @@ function sameID(left, right)
     return left === right || String(left) === String(right);
 }
 
-function throwIfAborted(signal)
-{
-    if (!signal?.aborted) return;
-
-    const error = new Error("Ship Tree request was aborted");
-
-    error.name = "AbortError";
-    throw error;
-}

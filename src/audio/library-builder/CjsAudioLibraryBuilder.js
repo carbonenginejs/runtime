@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 // Browser-safe audio-library construction. The high-level resource seam uses
 // fetch by default and accepts an injected byte source for local/tool callers.
 import { audioMetadataFromSoundbanksInfo } from "../audioMetadata.js";
@@ -1166,7 +1168,7 @@ class CjsAudioLibraryBuilderBankInspectionSession
 
         for (const [ sourceID, bank ] of Object.entries(library.banks))
         {
-            throwIfAborted(this.#signal);
+            throwIfAborted(this.#signal, "Audio-library construction was aborted");
 
             let loaded;
 
@@ -1185,7 +1187,7 @@ class CjsAudioLibraryBuilderBankInspectionSession
                 );
             }
 
-            throwIfAborted(this.#signal);
+            throwIfAborted(this.#signal, "Audio-library construction was aborted");
 
             const source = bankSourceName(bank.resPath);
             const prepared = normalizeLoadedBank(loaded, sourceID);
@@ -8167,24 +8169,6 @@ function normalizeEventMediaLanguage(value)
     }
 
     return language;
-}
-
-function throwIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    if (signal.reason instanceof Error)
-    {
-        throw signal.reason;
-    }
-
-    const error = new Error("Audio-library construction was aborted");
-
-    error.name = "AbortError";
-    throw error;
 }
 
 function normalizeIndexEntries(value)

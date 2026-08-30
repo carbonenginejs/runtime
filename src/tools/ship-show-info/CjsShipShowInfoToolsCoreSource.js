@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 const EVE_IMAGE_SERVER = "https://images.evetech.net";
 
 const DEFAULT_TOOLS_CORE_URL = "";
@@ -303,7 +305,7 @@ export class CjsShipShowInfoToolsCoreSource
 
             for (let index = 1; index <= 6; index++)
             {
-                ThrowIfAborted(signal);
+                throwIfAborted(signal, "The operation was aborted");
                 const skillID = PositiveID(values[`requiredSkill${index}`]);
                 const level = SkillLevel(values[`requiredSkill${index}Level`]);
 
@@ -449,7 +451,7 @@ export class CjsShipShowInfoToolsCoreSource
     /** Assembles normalized ship-detail output from the current source records. */
     async #Build(signal)
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "The operation was aborted");
         if (!this.#buildPromise)
         {
             this.#buildPromise = this.source
@@ -472,7 +474,7 @@ export class CjsShipShowInfoToolsCoreSource
             this.#buildPromise = null;
             throw error;
         }
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "The operation was aborted");
         if (!/^\d+$/u.test(build)) throw new Error("tools-core did not resolve an exact SDE build");
         return build;
     }
@@ -1324,11 +1326,6 @@ async function MapConcurrent(records, concurrency, mapper)
 function EscapeRegExp(value)
 {
     return String(value).replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
-}
-
-function ThrowIfAborted(signal)
-{
-    if (signal?.aborted) throw signal.reason || new DOMException("The operation was aborted", "AbortError");
 }
 
 function SkinIconURL(iconPath, graphicMaterialSetID)

@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 /** Provides caller-owned Show Info records without transport or presentation. */
 export class CjsESIShipShowInfoMemorySource
 {
@@ -73,7 +75,7 @@ export class CjsESIShipShowInfoMemorySource
     /** Loads normalized fetch data from the configured ship-detail source. */
     #Fetch({ typeID, signal } = {}, name, required = false)
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Show Info memory request aborted");
 
         const selectedTypeID = PositiveID(typeID);
         const record = this.records.find(item => Number(item?.ship?.typeID) === selectedTypeID);
@@ -133,20 +135,3 @@ function CopyRecord(value)
     return result;
 }
 
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-
-    const error = new Error("Show Info memory request aborted");
-
-    error.name = "AbortError";
-    throw error;
-}

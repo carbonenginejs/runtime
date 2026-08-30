@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 const REQUIRED_SOURCE_METHODS = [
     "GetRegions",
     "BrowseTypes",
@@ -85,7 +87,7 @@ export class CjsMarketController
                 this.marketSource.BrowseTypes.call(this.marketSource, context)
             ]);
 
-            ThrowIfAborted(controller.signal);
+            throwIfAborted(controller.signal, "Market request aborted");
 
             const regions = results[0];
             const browse = results[1];
@@ -389,26 +391,12 @@ function ForwardAbort(signal, controller)
 
 function ThrowIfStale(generation, currentGeneration, signal)
 {
-    ThrowIfAborted(signal);
+    throwIfAborted(signal, "Market request aborted");
 
     if (generation !== currentGeneration)
     {
         throw AbortError("Market request superseded");
     }
-}
-
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-
-    throw signal.reason ?? AbortError("Market request aborted");
 }
 
 function AbortError(message)

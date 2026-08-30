@@ -1,3 +1,4 @@
+import { throwIfAborted } from "#utils/errors";
 import { TnyShipTreeWindow } from "../ship-tree/ui/TnyShipTreeWindow.js";
 
 /** Composes one independently mountable Ship Tree presentation. */
@@ -33,7 +34,7 @@ export class TnyShipTreeDemo
             throw new Error("TnyShipTreeDemo is already mounted");
         }
 
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Demo mount aborted");
         const window = new TnyShipTreeWindow(this.options);
 
         this.window = window;
@@ -41,7 +42,7 @@ export class TnyShipTreeDemo
         try
         {
             await AwaitWithSignal(window.Mount(container), signal);
-            ThrowIfAborted(signal);
+            throwIfAborted(signal, "Demo mount aborted");
 
             return window;
         }
@@ -129,16 +130,6 @@ function AwaitWithSignal(value, signal)
             signal.removeEventListener("abort", onAbort);
         });
     });
-}
-
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    throw signal.reason ?? AbortError("Demo mount aborted");
 }
 
 function AbortError(message)

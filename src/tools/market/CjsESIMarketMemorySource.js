@@ -1,3 +1,5 @@
+import { throwIfAborted } from "#utils/errors";
+
 /** Provides deterministic caller-owned market records without transport or UI. */
 export class CjsESIMarketMemorySource
 {
@@ -17,7 +19,7 @@ export class CjsESIMarketMemorySource
     /** Returns the configured region summaries. */
     async GetRegions({ signal } = {})
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Market request aborted");
 
         return CopyRecords(this.regions);
     }
@@ -25,7 +27,7 @@ export class CjsESIMarketMemorySource
     /** Returns the configured initial type shelf. */
     async BrowseTypes({ signal } = {})
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Market request aborted");
 
         return this.types.map(SummarizeType);
     }
@@ -33,7 +35,7 @@ export class CjsESIMarketMemorySource
     /** Searches configured types by exact ID or case-insensitive name fragment. */
     async SearchTypes(query, { signal } = {})
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Market request aborted");
 
         const value = String(query ?? "").trim().toLocaleLowerCase();
         const result = [];
@@ -55,7 +57,7 @@ export class CjsESIMarketMemorySource
     /** Returns one configured type detail record. */
     async GetType(typeID, { signal } = {})
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Market request aborted");
 
         const id = PositiveID(typeID, "typeID");
         const type = this.types.find(item => Number(item.typeID) === id);
@@ -74,7 +76,7 @@ export class CjsESIMarketMemorySource
     /** Returns configured orders matching one type and region. */
     async GetOrders({ typeID, regionID, signal } = {})
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Market request aborted");
 
         const selectedTypeID = PositiveID(typeID, "typeID");
         const selectedRegionID = PositiveID(regionID, "regionID");
@@ -97,7 +99,7 @@ export class CjsESIMarketMemorySource
     /** Returns configured history matching one type and region. */
     async GetHistory({ typeID, regionID, signal } = {})
     {
-        ThrowIfAborted(signal);
+        throwIfAborted(signal, "Market request aborted");
 
         const selectedTypeID = PositiveID(typeID, "typeID");
         const selectedRegionID = PositiveID(regionID, "regionID");
@@ -176,20 +178,3 @@ function CopyRecord(record)
     return result;
 }
 
-function ThrowIfAborted(signal)
-{
-    if (!signal?.aborted)
-    {
-        return;
-    }
-
-    if (typeof signal.throwIfAborted === "function")
-    {
-        signal.throwIfAborted();
-    }
-
-    const error = new Error("Market request aborted");
-
-    error.name = "AbortError";
-    throw error;
-}
