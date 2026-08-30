@@ -1,7 +1,7 @@
 # @carbonenginejs/runtime
 
-The consolidated browser-safe CarbonEngineJS runtime, renderer engines, and
-browser tools. This repository is public; the npm package is not released yet.
+The consolidated browser-safe CarbonEngineJS runtime and renderer engines.
+This repository is public; the npm package is not released yet.
 
 Source consolidation completed on 2026-08-23. The first npm version, its
 publication, and the consumer cutover remain pending. This repository
@@ -13,9 +13,10 @@ The browser-facing input domain remains headless until a
 host is explicitly attached. The WebGPU engine is available only through its
 explicit engine subpath and remains inert unless a consumer imports it. The
 GPU-free composition core is also maintained here and exposes its browser
-platform snapshots through a focused subpath. Browser-safe clients, inspectors,
-and demos are maintained under the explicit `/tools` surface.
-`@carbonenginejs/tools-core` remains a separate Node.js package.
+platform snapshots through a focused subpath. The file index and the realtime
+wire contract are the only tooling kept here, behind the explicit `/tools`
+surface. `@carbonenginejs/tools-core` remains a separate Node.js package, and
+the demo suite moved to `@carbonenginejs/demos` on 2026-08-30.
 
 ## Install
 
@@ -59,8 +60,9 @@ WebGPU consumers use `@carbonenginejs/runtime/engine/webgpu`; the default
 runtime import does not acquire a GPU or load the engine.
 Composition consumers use `@carbonenginejs/runtime/core`; browser platform and
 adapter snapshots are also available through `/core/platform`.
-Browser tools use `@carbonenginejs/runtime/tools` and focused family subpaths;
-they remain absent from the aggregate runtime export. The WebGPU engine likewise
+The file index and the realtime wire contract use
+`@carbonenginejs/runtime/tools` and its two focused subpaths; they remain absent
+from the aggregate runtime export. The WebGPU engine likewise
 has no root re-export, and no WebGL placeholder is advertised before a
 maintained implementation exists.
 
@@ -84,8 +86,6 @@ WebGPU ownership, API, and verification are documented under
 [docs/engine/webgpu](docs/engine/webgpu/README.md).
 Core composition, platform snapshots, and request policy are documented under
 [docs/core](docs/core/README.md).
-Browser-safe tools and demo composition are documented under
-[docs/tools](docs/tools/README.md).
 
 ## License
 

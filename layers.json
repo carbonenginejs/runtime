@@ -197,29 +197,18 @@
         },
         "tools": {
             "mayImport": [
-                "global/utils",
-                "global/math",
-                "global/consts",
-                "global/contracts",
-                "global/schema",
-                "global/model",
-                "resource",
-                "trinity",
-                "sof",
-                "audio",
-                "character",
-                "input",
-                "engine/webgpu",
-                "core"
+                "global/utils"
             ],
             "why": [
-                "The top layer, and off the default export surface. It may reach down to",
-                "everything; nothing may reach up to it. Browser-safe tooling only --",
-                "acquisition, emulation, realtime. The Node-only suite stays a separate",
-                "package, so this name must never become a home for native dependencies.",
+                "Acquisition and the realtime wire contract only. The demo suite left for",
+                "the separate carbonenginejs/demos repository on 2026-08-30, taking the",
+                "market, Show Info, Ship Tree, chat, diagram and demo-host families with",
+                "it, and per-object tooling was retired to trinity documentation.",
                 "",
-                "A runtime module wanting something from here means the value belongs",
-                "lower down instead; tools/perobject is the live candidate."
+                "mayImport is exhaustive, so narrowing it IS the enforcement. Anything",
+                "here that needs resource, trinity, or core is not a tool -- it is either",
+                "a demo, which belongs in the demos repository, or a runtime value that",
+                "belongs lower down."
             ]
         }
     }

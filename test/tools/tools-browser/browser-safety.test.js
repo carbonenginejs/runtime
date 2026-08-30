@@ -121,92 +121,41 @@ test("the combined manifest exposes focused tools without a tools-core dependenc
     const manifest = JSON.parse(await fs.readFile(path.join(packageRoot, "package.json"), "utf8"));
 
     assert.equal(manifest.dependencies?.["@carbonenginejs/tools-core"], undefined);
-    assert.equal(
-        manifest.exports["./tools/market/ui.css"],
-        "./src/tools/market/ui/market-window.css"
-    );
-    assert.equal(
-        manifest.exports["./tools/ship-show-info/ui.css"],
-        "./src/tools/ship-show-info/ui/ship-show-info.css"
-    );
-    assert.equal(manifest.exports["./tools/diagrams"], "./src/tools/diagrams/index.js");
-    assert.equal(manifest.exports["./tools/ship-tree"], "./src/tools/ship-tree/index.js");
-    assert.equal(manifest.exports["./tools/ship-tree/ui"], "./src/tools/ship-tree/ui/index.js");
-    assert.equal(manifest.exports["./tools/ship-tree/ui.css"], "./src/tools/ship-tree/ui/ship-tree.css");
-    assert.equal(manifest.exports["./tools/theme/eve.css"], "./src/tools/theme/eve.css");
+    assert.equal(manifest.exports["./tools/fileindex"], "./src/tools/fileindex/index.js");
+    assert.equal(manifest.exports["./tools/realtime/wire"], "./src/tools/realtime/CjsRealtimeProtocol.js");
     assert.equal(Object.hasOwn(manifest, "sideEffects"), false);
-});
 
-test("generated tools CSS exports are exact copies and stay conservatively side-effectful", async () =>
-{
-    const sourceManifest = JSON.parse(await fs.readFile(path.join(packageRoot, "package.json"), "utf8"));
-    const npmManifest = JSON.parse(await fs.readFile(path.join(npmRoot, "package.json"), "utf8"));
-    const styles = {
-        "./tools/market/ui.css": "tools/market/ui/market-window.css",
-        "./tools/ship-show-info/ui.css": "tools/ship-show-info/ui/ship-show-info.css",
-        "./tools/ship-tree/ui.css": "tools/ship-tree/ui/ship-tree.css",
-        "./tools/theme/eve.css": "tools/theme/eve.css"
-    };
-
-    assert.equal(Object.hasOwn(sourceManifest, "sideEffects"), false);
-    assert.equal(Object.hasOwn(npmManifest, "sideEffects"), false);
-    for (const [ subpath, relative ] of Object.entries(styles))
+    // The demo suite left for carbonenginejs/demos on 2026-08-30. These
+    // subpaths are asserted absent rather than merely deleted, because a
+    // reintroduced one would be a demo creeping back into the runtime.
+    for (const gone of [
+        "./tools/chat",
+        "./tools/demo-apps",
+        "./tools/demos",
+        "./tools/diagrams",
+        "./tools/market",
+        "./tools/market/ui",
+        "./tools/market/ui.css",
+        "./tools/perobject",
+        "./tools/ship-show-info",
+        "./tools/ship-show-info/ui",
+        "./tools/ship-show-info/ui.css",
+        "./tools/ship-tree",
+        "./tools/ship-tree/ui",
+        "./tools/ship-tree/ui.css",
+        "./tools/theme/eve.css"
+    ])
     {
-        assert.equal(sourceManifest.exports[subpath], `./src/${relative}`);
-        assert.equal(npmManifest.exports[subpath], `./dist/${relative}`);
-        assert.deepEqual(
-            await fs.readFile(path.join(packageRoot, "src", relative)),
-            await fs.readFile(path.join(npmRoot, "dist", relative)),
-            subpath
-        );
-    }
-});
-
-test("the public theme is scoped and carries no external assets", async () =>
-{
-    const source = await fs.readFile(path.join(packageRoot, "src", "tools", "theme", "eve.css"), "utf8");
-
-    assert.match(source, /^\.cjs-eve-theme\s*\{/u);
-    assert.doesNotMatch(source, /@font-face|\burl\s*\(|(?:^|[},]\s*)(?:html|body)\b/imu);
-    assert.match(source, /prefers-reduced-motion/u);
-});
-
-test("logic families have no presentation dependency", async () =>
-{
-    for (const family of [ "demos", "diagrams", "market", "ship-show-info", "ship-tree" ])
-    {
-        const sourceRoot = path.join(packageRoot, "src", "tools", family);
-        const files = await fs.readdir(sourceRoot);
-
-        for (const name of files.filter(item => item.endsWith(".js")))
-        {
-            const source = withoutComments(await fs.readFile(path.join(sourceRoot, name), "utf8"));
-
-            assert.doesNotMatch(
-                source,
-                /(?:from|import\s*\()\s*["'][^"']*\.css["']|\b(?:document|window|HTMLElement|customElements)\b|\.innerHTML\b|\.classList\b|\.createElement\s*\(/u,
-                `${family}/${name} crosses the logic/UI boundary.`
-            );
-        }
+        assert.equal(manifest.exports[gone], undefined, gone);
     }
 });
 
 test("every JavaScript public subpath imports independently", async () =>
 {
     for (const name of [
-        "chat",
-        "demo-apps",
-        "demos",
-        "diagrams",
         "fileindex",
-        "market",
-        "market/ui",
         "realtime",
-        "realtime/wire",
-        "ship-show-info",
-        "ship-show-info/ui",
-        "ship-tree",
-        "ship-tree/ui"
+        "realtime/wire"
     ])
     {
         const module = await import(`@carbonenginejs/runtime/tools/${name}`);
@@ -215,103 +164,16 @@ test("every JavaScript public subpath imports independently", async () =>
     }
 
     const root = await import("../../../npm/dist/tools/index.js");
-    const perobject = await import("../../../npm/dist/tools/perobject/index.js");
     const aggregate = await import("../../../npm/dist/index.js");
 
     assert.ok(Object.keys(root).length > 0, "root");
-    assert.ok(Object.keys(perobject).length > 0, "perobject");
-    assert.equal(root.TnyMarketWindow, undefined);
-    assert.equal(root.TnyMarketDetailsDemo, undefined);
-    assert.equal(root.TnyShipShowInfoWindow, undefined);
-    assert.equal(root.TnyShipShowInfoDemo, undefined);
-    assert.equal(root.TnyShipTreeWindow, undefined);
-    assert.equal(aggregate.CjsDiagramModel, undefined);
+
+    // Tools stay off the aggregate surface, and the realtime CLIENT is gone
+    // entirely -- only the wire contract remains, because tools-core's server
+    // is conformance-tested against it.
     assert.equal(aggregate.CjsFileIndex, undefined);
-    assert.equal(aggregate.CjsRealtimeClient, undefined);
-});
-
-test("optional Ship Tree presentation consumes the controller boundary", async () =>
-{
-    const source = await fs.readFile(path.join(
-        packageRoot,
-        "src",
-        "tools",
-        "ship-tree",
-        "ui",
-        "TnyShipTreeWindow.js"
-    ), "utf8");
-    const css = await fs.readFile(path.join(
-        packageRoot,
-        "src",
-        "tools",
-        "ship-tree",
-        "ui",
-        "ship-tree.css"
-    ), "utf8");
-
-    assert.match(source, /from "\.\.\/CjsShipTreeController\.js"/u);
-    assert.doesNotMatch(source, /this\.source|\/sde\//u);
-    assert.match(css, /^\.ship-tree-host\s*\{/u);
-    assert.doesNotMatch(css, /@font-face|url\(\s*["']?(?:https?:|\/|res:)/u);
-});
-
-test("published Show Info presentation aliases resolve to the canonical Tny window", async () =>
-{
-    const presentation = await import("@carbonenginejs/runtime/tools/ship-show-info/ui");
-
-    assert.equal(presentation.TnyShipShowInfoWindow.name, "TnyShipShowInfoWindow");
-    assert.equal(
-        presentation.CjsESIShipShowInfoUIWindow,
-        presentation.TnyShipShowInfoWindow
-    );
-});
-
-test("optional Show Info presentation consumes the controller boundary", async () =>
-{
-    const source = await fs.readFile(path.join(
-        packageRoot,
-        "src",
-        "tools",
-        "ship-show-info",
-        "ui",
-        "TnyShipShowInfoWindow.js"
-    ), "utf8");
-    const css = await fs.readFile(path.join(
-        packageRoot,
-        "src",
-        "tools",
-        "ship-show-info",
-        "ui",
-        "ship-show-info.css"
-    ), "utf8");
-
-    assert.match(source, /from "\.\.\/CjsShipShowInfoController\.js"/u);
-    assert.doesNotMatch(source, /this\.shipSource|PANEL_METHODS|\.FetchShip\s*\(/u);
-    assert.match(css, /^\.ship-show-info-host\s*\{/u);
-    assert.doesNotMatch(css, /@font-face|\burl\s*\(/u);
-});
-
-test("optional Market presentation consumes the controller boundary", async () =>
-{
-    const source = await fs.readFile(path.join(
-        packageRoot,
-        "src",
-        "tools",
-        "market",
-        "ui",
-        "TnyMarketWindow.js"
-    ), "utf8");
-    const css = await fs.readFile(path.join(
-        packageRoot,
-        "src",
-        "tools",
-        "market",
-        "ui",
-        "market-window.css"
-    ), "utf8");
-
-    assert.match(source, /from "\.\.\/CjsMarketController\.js"/u);
-    assert.doesNotMatch(source, /this\.source|\.GetRegions\s*\(|\.GetOrders\s*\(|\.GetHistory\s*\(/u);
-    assert.match(css, /^\.market-window-host\s*\{/u);
-    assert.doesNotMatch(css, /@font-face|\burl\s*\(/u);
+    assert.equal(aggregate.CjsRealtimeProtocol, undefined);
+    assert.equal(root.CjsRealtimeClient, undefined);
+    assert.equal(root.TnyMarketWindow, undefined);
+    assert.equal(root.TnyShipTreeWindow, undefined);
 });

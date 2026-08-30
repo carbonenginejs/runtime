@@ -78,6 +78,7 @@ family. The root entry aggregates the complete public runtime.
 - [Current API](reference/api.md)
 - [Main semantic extraction](reference/main-semantic-extraction.md)
 - [Eve runtime behavior](concepts/eve-runtime-behavior.md)
+- [The per-object constant-buffer ABI](concepts/per-object-abi.md)
 - [Generated-class lifecycle](concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](reference/implementation-status.md)
 - [Controller and curve classes](reference/classes/curves-and-utilities.md)
