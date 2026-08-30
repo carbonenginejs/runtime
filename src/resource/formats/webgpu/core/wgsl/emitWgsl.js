@@ -1,4 +1,3 @@
-import { deepFreeze } from "#utils/object";
 import { lowerDxbcToIr } from "../ir/lowerDxbcToIr.js";
 import { lowerComputeProgram } from "./lowerComputeProgram.js";
 import { lowerFragmentProgram } from "./lowerFragmentProgram.js";
@@ -457,7 +456,7 @@ export function buildWgsl(input, options = {})
     for (const statement of program.statements) emitStatement(statement, 1);
     lines.push("}", "");
 
-    return deepFreeze({
+    return {
         kind: "wgsl-shader",
         format: "CJS_WGSL_SHADER",
         formatVersion: 1,
@@ -468,5 +467,5 @@ export function buildWgsl(input, options = {})
         sourceMap,
         ...(compute ? { threadGroupSize: program.threadGroupSize } : {}),
         program
-    });
+    };
 }

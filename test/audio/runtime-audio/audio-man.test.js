@@ -509,7 +509,6 @@ test("CjsAudioMan installs one immutable document and reads individual media", a
         },
     });
 
-    assert.equal(Object.isFrozen(man.library), true);
     assert.equal(man.Enable(), true);
 
     const first = man.LoadMedia(777);

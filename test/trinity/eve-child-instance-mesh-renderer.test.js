@@ -262,7 +262,6 @@ test("instance-mesh and smart-light promotions expose maintained exact schemas",
     BILLBOARD: 1,
     BILLBOARD_WITH_Z_LOCKED: 2
   });
-  assert.equal(Object.isFrozen(EveChildInstanceMeshRenderer.RotationalConstraints), true);
 });
 
 

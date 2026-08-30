@@ -1,4 +1,4 @@
-import { clonePlain, deepFreeze } from "#utils/object";
+import { clonePlain } from "#utils/object";
 import CjsDxbcFormat from "../../../dxbc/index.js";
 import { analyzeRegisterValues, operandRoles } from "./analyzeRegisterValues.js";
 import { buildControlFlow } from "./buildControlFlow.js";
@@ -570,5 +570,5 @@ export function lowerDxbcToIr(input, options = {})
     resolveRegisterFlow(program);
     inferValueTypes(program);
     validateProgram(program);
-    return deepFreeze(program);
+    return program;
 }

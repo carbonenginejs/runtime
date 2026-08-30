@@ -165,7 +165,6 @@ function uintAt(data, byteOffset)
 test("space-object Main serializer emits full Carbon buffers at canonical identities", () =>
 {
   const result = buildEveSpaceObjectMainUniformData(packageRecord(), bindingValues());
-  assert.equal(Object.isFrozen(result), true);
   assert.deepEqual(EVE_SPACE_OBJECT_MAIN_BUFFER_SIZES, {
     perFrameVS: 736,
     perFramePS: 1888,

@@ -80,7 +80,6 @@ test("BuildWgslSet freezes deterministic copyblit shaders and layouts", () =>
         "sampled-resource:0:0@fragment",
         "sampler:0:0@fragment"
     ]);
-    assert.equal(Object.isFrozen(set.layouts[0].bindGroups[0].bindings[0].buffer), true);
     assert.deepEqual(CjsWebgpuFormat.buildWgslSet([ pixel, vertex ]), set);
 
     // The package round trip that used to close this test is gone with the chunk
@@ -149,7 +148,6 @@ test("BuildWgslSet accepts a structured SRV as a sampled-resource read-only buff
     assert.equal(result.scopeIdentity, "sampled-resource:0:0@vertex");
     assert.equal(result.structureStride, 48);
     assert.deepEqual(result.buffer, structured.buffer);
-    assert.equal(Object.isFrozen(result.buffer), true);
 });
 
 test("BuildWgslSet preserves compute stage metadata and compute-only visibility", () =>

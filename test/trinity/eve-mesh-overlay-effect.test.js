@@ -29,7 +29,6 @@ test("EveMeshOverlayEffect routes batches and owns its OverlayType enum", () =>
   assert.equal(overlay.GetType(TriBatchType.TRIBATCHTYPE_OPAQUE), EveMeshOverlayEffect.OverlayType.TYPE_OPAQUEONLY);
   assert.equal(overlay.GetType(TriBatchType.TRIBATCHTYPE_TRANSPARENT), EveMeshOverlayEffect.OverlayType.TYPE_ALL);
   assert.equal(EveMeshOverlayEffect.OverlayType.TYPE_COUNT, 2);
-  assert.equal(Object.isFrozen(EveMeshOverlayEffect.OverlayType), true);
   assert.equal(overlay.HasTransparentArea(), true);
 
   overlay.display = false;

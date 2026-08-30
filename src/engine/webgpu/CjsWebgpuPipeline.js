@@ -1,4 +1,4 @@
-import { cloneJson, deepFreeze } from "./core/freeze.js";
+import { cloneJson } from "./core/freeze.js";
 
 /**
  * Immutable WebGPU-facing pass/pipeline descriptor.
@@ -15,14 +15,14 @@ export class CjsWebgpuPipeline
     this.techniqueName = String(values.techniqueName || "");
     this.passIndex = Number.isInteger(values.passIndex) ? values.passIndex : 0;
     this.renderStates = Number.isInteger(values.renderStates) ? values.renderStates : 0;
-    this.states = deepFreeze(cloneJson(values.states || []));
-    this.shaderModules = deepFreeze(Array.isArray(values.shaderModules) ? values.shaderModules.slice() : []);
-    this.bindGroups = deepFreeze(Array.isArray(values.bindGroups) ? values.bindGroups.slice() : []);
+    this.states = cloneJson(values.states || []);
+    this.shaderModules = Array.isArray(values.shaderModules) ? values.shaderModules.slice() : [];
+    this.bindGroups = Array.isArray(values.bindGroups) ? values.bindGroups.slice() : [];
     // Validated merges this pass's bind group needs a consumer to assemble. A
     // transformed binding cannot be filled from a single source texture, so the
     // requirement travels with the pipeline rather than being inferred from the
     // binding's view dimension - a source-declared array needs no assembly.
-    this.resourceTransforms = deepFreeze(cloneJson(values.resourceTransforms || []));
+    this.resourceTransforms = cloneJson(values.resourceTransforms || []);
     Object.freeze(this);
   }
 

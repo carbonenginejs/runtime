@@ -39,24 +39,6 @@ export function hasOwnThen(source, handlers, context = null)
 }
 
 /**
- * Recursively freezes a value and every object reachable from it.
- *
- * Already-frozen values short-circuit, so freezing a structure that contains
- * frozen sub-trees does not re-walk them. There is deliberately no cycle
- * guard: callers freeze structures they have just built, and a back-edge is a
- * construction bug that should surface immediately rather than be tolerated.
- *
- * @param {*} value Value to freeze.
- * @returns {*} The same value, deeply frozen.
- */
-export function deepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
-    for (const entry of Object.values(value)) deepFreeze(entry);
-    return Object.freeze(value);
-}
-
-/**
  * Deep-copies a plain data tree of objects, arrays, and primitives.
  *
  * Typed arrays and other views become plain arrays, and `undefined` becomes

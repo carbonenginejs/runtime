@@ -1,4 +1,4 @@
-import { clonePlain, deepFreeze } from "#utils/object";
+import { clonePlain } from "#utils/object";
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 import { compareUtf8 } from "../../../../format/compareUtf8.js";
 
@@ -362,11 +362,11 @@ export function buildWgslSet(input)
     validatePassTopologies(entries);
     const layouts = buildLayouts(entries);
     const resourceTransforms = buildResourceTransforms(entries, layouts);
-    return deepFreeze({
+    return {
         format: "CJS_WGSL_SET",
         formatVersion: WGSL_SET_VERSION,
         shaders,
         layouts,
         ...(resourceTransforms.length ? { resourceTransforms } : {})
-    });
+    };
 }

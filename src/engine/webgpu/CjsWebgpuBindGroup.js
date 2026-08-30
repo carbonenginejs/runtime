@@ -1,4 +1,4 @@
-import { cloneJson, deepFreeze } from "./core/freeze.js";
+import { cloneJson } from "./core/freeze.js";
 
 /**
  * Immutable WebGPU-facing bind-group descriptor.
@@ -15,7 +15,7 @@ export class CjsWebgpuBindGroup
     this.techniqueName = String(values.techniqueName || "");
     this.passIndex = Number.isInteger(values.passIndex) ? values.passIndex : 0;
     this.group = Number.isInteger(values.group) ? values.group : null;
-    this.bindings = deepFreeze(Array.isArray(values.bindings) ? values.bindings.slice() : []);
+    this.bindings = Array.isArray(values.bindings) ? values.bindings.slice() : [];
     Object.freeze(this);
   }
 

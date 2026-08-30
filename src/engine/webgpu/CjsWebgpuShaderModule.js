@@ -1,4 +1,4 @@
-import { cloneJson, deepFreeze } from "./core/freeze.js";
+import { cloneJson } from "./core/freeze.js";
 
 /**
  * Immutable WebGPU-facing shader-module descriptor.
@@ -16,16 +16,16 @@ export class CjsWebgpuShaderModule
     this.passIndex = Number.isInteger(values.passIndex) ? values.passIndex : 0;
     this.stageName = String(values.stageName || "");
     this.stageType = Number.isInteger(values.stageType) ? values.stageType : null;
-    this.pipelineInputs = deepFreeze(cloneJson(values.pipelineInputs || []));
-    this.threadGroupSize = deepFreeze(cloneJson(values.threadGroupSize || null));
-    this.bindings = deepFreeze(cloneJson(values.bindings || []));
-    this.dxbc = deepFreeze(cloneJson(values.dxbc || null));
-    this.dxbcError = deepFreeze(cloneJson(values.dxbcError || null));
-    this.shaderBytecode = deepFreeze(cloneJson(values.shaderBytecode || null));
+    this.pipelineInputs = cloneJson(values.pipelineInputs || []);
+    this.threadGroupSize = cloneJson(values.threadGroupSize || null);
+    this.bindings = cloneJson(values.bindings || []);
+    this.dxbc = cloneJson(values.dxbc || null);
+    this.dxbcError = cloneJson(values.dxbcError || null);
+    this.shaderBytecode = cloneJson(values.shaderBytecode || null);
     this.wgsl = typeof values.wgsl === "string" && values.wgsl ? values.wgsl : null;
     this.entryPoint = String(values.entryPoint || "main");
-    this.sourceMap = deepFreeze(cloneJson(values.sourceMap || []));
-    this.shaderRecord = deepFreeze(cloneJson(values.shaderRecord || null));
+    this.sourceMap = cloneJson(values.sourceMap || []);
+    this.shaderRecord = cloneJson(values.shaderRecord || null);
     Object.freeze(this);
   }
 

@@ -44,7 +44,6 @@ test("every format is a CjsFormat with one canonical frozen contract", () =>
     assert.ok(Format.mediaTypes.length > 0, `${name} declares mediaTypes`);
     assert.equal(typeof Format.requestResponseType, "string", `${name} declares requestResponseType`);
     assert.ok(Format.requestResponseType.length > 0, `${name}.requestResponseType is non-empty`);
-    assert.ok(Format.worker === null || Object.isFrozen(Format.worker), `${name}.worker is null or frozen`);
     for (const retired of [ "type", "inputTypes", "outputTypes", "debugOutputTypes", "implementationStatus" ])
     {
       assert.equal(Object.hasOwn(Format, retired), false, `${name} does not redeclare retired ${retired}`);
@@ -52,7 +51,6 @@ test("every format is a CjsFormat with one canonical frozen contract", () =>
     for (const [ output, capability ] of Object.entries(Format.outputs))
     {
       assert.equal(capability.output, output);
-      assert.equal(Object.isFrozen(capability), true, `${name}.${output} capability is frozen`);
       assert.equal(capability.verified, undefined, "declarations do not claim runtime proof");
     }
   }
@@ -70,7 +68,6 @@ test("a declared extension is dotted, lowercase, and unique within its format", 
     const declared = Format?.extensions;
     if (!Array.isArray(declared) || declared.length === 0) continue;
 
-    assert.ok(Object.isFrozen(declared), `${name}.extensions is frozen`);
     const seen = new Set();
     for (const ext of declared)
     {

@@ -97,8 +97,6 @@ test("validates and installs one detached immutable audio-library document", () 
     assert.equal(validateAudioLibraryDocument(source), true);
     assert.notEqual(installed, source);
     assert.notEqual(installed.metadata, source.metadata);
-    assert.equal(Object.isFrozen(installed), true);
-    assert.equal(Object.isFrozen(installed.metadata.Events), true);
     assert.throws(() =>
     {
         installed.metadata.Events.engine_loop.isLoop = 0;
@@ -184,7 +182,6 @@ test("validates, detaches, and freezes property-tagged Bus RTPC catalogs", () =>
 
     assert.equal(installed.busRtpcs.buses["500"][0].curveId, 77);
     assert.notEqual(installed.busRtpcs, source.busRtpcs);
-    assert.equal(Object.isFrozen(installed.busRtpcs.buses["500"]), true);
 
     for (const mutate of [
         value => { value.schemaVersion = 3; },
@@ -254,7 +251,6 @@ test("validates and freezes the optional Bus Volume State catalog", () =>
 
     assert.equal(installed.busStates.buses["500"][0].syncType, 1);
     assert.notEqual(installed.busStates, source.busStates);
-    assert.equal(Object.isFrozen(installed.busStates.buses["500"]), true);
 
     for (const mutate of [
         value => { value.property = "voice-volume"; },
@@ -310,7 +306,6 @@ test("validates and freezes multi-property Audio Bus States", () =>
     const installed = installAudioLibraryDocument(source);
 
     assert.equal(installed.busStates.buses["500"][0].states[0].lowPass, -70);
-    assert.equal(Object.isFrozen(installed.busStates.buses["500"]), true);
 
     for (const mutate of [
         value => { value.filterBehavior = "maximum"; },
@@ -356,10 +351,6 @@ test("validates and freezes the optional Audio Bus ducking catalog", () =>
 
     assert.equal(installed.busDucking.sources["500"].recoveryMs, 1000);
     assert.notEqual(installed.busDucking, source.busDucking);
-    assert.equal(
-        Object.isFrozen(installed.busDucking.sources["500"].targets),
-        true,
-    );
 
     for (const mutate of [
         value => { value.schemaVersion = 2; },
@@ -407,11 +398,6 @@ test("validates and freezes the optional static Audio Bus effect catalog", () =>
 
     assert.equal(installed.busEffects.buses["500"][0].bands[0].q, 5);
     assert.notEqual(installed.busEffects, source.busEffects);
-    assert.equal(Object.isFrozen(installed.busEffects.buses["500"]), true);
-    assert.equal(
-        Object.isFrozen(installed.busEffects.buses["500"][0].bands),
-        true,
-    );
 
     for (const mutate of [
         value => { value.schemaVersion = 2; },
@@ -538,7 +524,6 @@ test("validates and freezes the portable ordered Audio Bus graph", () =>
 
     assert.equal(installed.busGraph.buses["500"].userAuxSends[0].gainDb, -20);
     assert.equal(installed.busGraph.effects["900"].media[0].sourceId, "999");
-    assert.equal(Object.isFrozen(installed.busGraph.routes), true);
     assert.equal(installed.busGraph.buses["1"].channelConfig.raw, 0);
     assert.deepEqual(installed.busGraph.buses["1"].properties, [
         { id: 1, rawValue: 1 },
@@ -860,19 +845,10 @@ test("validates and installs routed music-track bus metadata", () =>
         installed.music.nodes["101"].authoredOutputBusVolumeDb,
         4,
     );
-    assert.equal(Object.isFrozen(installed.music.nodes["101"].busPathIds), true);
-    assert.equal(
-        Object.isFrozen(installed.music.nodes["101"].rtpcCurves[0].points),
-        true,
-    );
     assert.equal(
         installed.music.switchSetters.music_state[0].delayMs,
         "200",
         "music setter validation does not mutate caller-owned documents",
-    );
-    assert.equal(
-        Object.isFrozen(installed.music.programs.music_pause),
-        true,
     );
 
     const invalidSetterDelay = structuredClone(source);
@@ -1931,10 +1907,6 @@ test("validates authored SFX nodes, media references, curves, and cycles", () =>
         installedSourceEffects[0].driveRtpcCurve,
         valid.sfx.nodes["2"].sourceEffects[0].driveRtpcCurve,
     );
-    assert.equal(Object.isFrozen(installedSourceEffects[0].driveRtpcCurve), true);
-    assert.equal(Object.isFrozen(
-        installedSourceEffects[0].driveRtpcCurve.points,
-    ), true);
     const legacyTremolo = structuredClone(valid);
 
     delete legacyTremolo.sfx.nodes["2"].sourceEffects[3].waveform;

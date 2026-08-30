@@ -771,17 +771,12 @@ test("QuadV5 heat-detail fixture exposes ordered isolated binding cases", () =>
     QUADV5_TARGET_WIDTH,
     QUADV5_TARGET_HEIGHT
   );
-  assert.equal(Object.isFrozen(cases), true);
-  assert.equal(Object.isFrozen(cases.caseNames), true);
-  assert.equal(Object.isFrozen(cases.bindingValuesByCase), true);
   assert.deepEqual(cases.caseNames, [ "surface", "detail", "hotDetail" ]);
 
   const expectedMaterialNames = HEAT_DETAIL_MATERIAL_CONSTANTS.map(([ name ]) => name);
   for (const caseName of cases.caseNames)
   {
     const values = cases.bindingValuesByCase[caseName];
-    assert.equal(Object.isFrozen(values), true);
-    assert.equal(Object.isFrozen(values.material), true);
     assert.deepEqual(Object.keys(values.material), expectedMaterialNames);
     assert.equal(Object.hasOwn(values.material, "GeneralGlowColor"), false);
     assert.equal(Object.keys(values.material).length, 31);
@@ -802,17 +797,12 @@ test("QuadV5 heat fixture exposes exact ordered cold and hot binding cases", () 
     QUADV5_TARGET_WIDTH,
     QUADV5_TARGET_HEIGHT
   );
-  assert.equal(Object.isFrozen(cases), true);
-  assert.equal(Object.isFrozen(cases.caseNames), true);
-  assert.equal(Object.isFrozen(cases.bindingValuesByCase), true);
   assert.deepEqual(cases.caseNames, [ "cold", "hot" ]);
 
   const expectedMaterialNames = HEAT_MATERIAL_CONSTANTS.map(([ name ]) => name);
   for (const caseName of cases.caseNames)
   {
     const values = cases.bindingValuesByCase[caseName];
-    assert.equal(Object.isFrozen(values), true);
-    assert.equal(Object.isFrozen(values.material), true);
     assert.deepEqual(Object.keys(values.material), expectedMaterialNames);
     assert.equal(Object.keys(values.material).length, 24);
     assert.equal(Object.hasOwn(values.material, "GeneralGlowColor"), false);

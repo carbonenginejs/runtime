@@ -1,4 +1,4 @@
-import { clonePlain, deepFreeze } from "#utils/object";
+import { clonePlain } from "#utils/object";
 import { analyzeRegisterValues } from "../ir/analyzeRegisterValues.js";
 import { buildControlFlow } from "../ir/buildControlFlow.js";
 import { inferValueTypes } from "../ir/inferValueTypes.js";
@@ -1512,7 +1512,7 @@ export function lowerParticleClearResetComputeProgram(program, options = {})
         policy
     );
     validateResetBindings(bindings);
-    return deepFreeze({
+    return {
         kind: "typed-shader-program",
         format: "CJS_TYPED_SHADER",
         formatVersion: 1,
@@ -1525,7 +1525,7 @@ export function lowerParticleClearResetComputeProgram(program, options = {})
             call(program, 0, "atomicStore(&u0[0u], 0i)"),
             { kind: "return", ...location(program, 1) }
         ]
-    });
+    };
 }
 
 /**
@@ -1550,7 +1550,7 @@ export function lowerParticleClearInitializeComputeProgram(
         policy
     );
     validateClearBindings(bindings);
-    return deepFreeze({
+    return {
         kind: "typed-shader-program",
         format: "CJS_TYPED_SHADER",
         formatVersion: 1,
@@ -1567,5 +1567,5 @@ export function lowerParticleClearInitializeComputeProgram(
         threadGroupSize: [ 16, 16, 1 ],
         bindings,
         statements: lowerClearBody(program)
-    });
+    };
 }

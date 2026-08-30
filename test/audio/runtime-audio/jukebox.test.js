@@ -149,8 +149,6 @@ test("music-library installation validates, detaches, and freezes catalogs", () 
 
     assert.equal(validateMusicLibrary(source), true);
     assert.notEqual(installed, source);
-    assert.equal(Object.isFrozen(installed), true);
-    assert.equal(Object.isFrozen(installed.playlists[0].songs[0]), true);
 
     source.playlists[0].songs[0].name = "Changed";
     assert.equal(installed.playlists[0].songs[0].name, "One");

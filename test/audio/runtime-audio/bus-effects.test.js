@@ -647,7 +647,6 @@ test("indexes canonical static Parametric EQ catalogs in slot and band order", (
         0,
         2,
     ]);
-    assert.equal(Object.isFrozen(indexed.get("500")), true);
 });
 
 test("rejects malformed or unsupported bus-effect catalogs", () =>

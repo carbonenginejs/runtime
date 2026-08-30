@@ -1,4 +1,3 @@
-import { deepFreeze } from "#utils/object";
 import { fixedSourceLanes } from "../ir/sourceLanes.js";
 import {
     validateIndexableTempOperand,
@@ -1499,7 +1498,7 @@ export function lowerVertexProgram(program, options = {})
     if (!terminatesAllPaths(lowered)) throw new Error("WGSL vertex path must end in return");
     const statements = hoistEscapingValues(lowered);
 
-    return deepFreeze({
+    return {
         kind: "typed-shader-program",
         format: "CJS_TYPED_SHADER",
         formatVersion: 1,
@@ -1511,5 +1510,5 @@ export function lowerVertexProgram(program, options = {})
         immediateConstantBuffer: program.immediateConstantBuffer || null,
         constTables: program.constTables || null,
         statements
-    });
+    };
 }

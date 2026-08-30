@@ -1,4 +1,3 @@
-import { deepFreeze } from "#utils/object";
 import { fixedSourceLanes } from "../ir/sourceLanes.js";
 import {
     validateIndexableTempOperand,
@@ -1827,7 +1826,7 @@ export function lowerFragmentProgram(program, options = {})
     const lowered = lowerRange(0, program.instructions.length, written);
     if (!terminatesAllPaths(lowered)) throw new Error("WGSL fragment path must end in return");
     const statements = hoistEscapingValues(lowered);
-    return deepFreeze({
+    return {
         kind: "typed-shader-program",
         format: "CJS_TYPED_SHADER",
         formatVersion: 1,
@@ -1843,5 +1842,5 @@ export function lowerFragmentProgram(program, options = {})
         constTables: program.constTables || null,
         requiresDerivativeUniformityOptOut: context.requiresDerivativeUniformityOptOut,
         statements
-    });
+    };
 }

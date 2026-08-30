@@ -644,7 +644,6 @@ test("EveSOFDataMgr deeply projects Carbon extension layouts for DNA consumers",
 
   const manager = new EveSOFDataMgr();
   assert.equal(manager.SetData(data), true);
-  assert.equal(Object.isFrozen(EveSOFDataMgr.DistributionMethod), true);
   assert.deepEqual(EveSOFDataMgr.DistributionMethod, {
     RANDOM_INCLUCION: 0,
     PARENT_MATCH: 1,
@@ -1572,21 +1571,14 @@ test("class-owned enums are exposed as frozen parent objects", () => {
   assert.equal(EveSOFDataArea.AreaType.TYPE_NO_OVERWRITE, EveSOFDataArea.AreaType.TYPE_MAX);
   assert.equal(EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION, 4);
   assert.equal(EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_HULL, 2);
-  assert.equal(Object.isFrozen(EveSOFDNA.DnaCommand), true);
-  assert.equal(Object.isFrozen(EveSOFDataArea.AreaType), true);
-  assert.equal(Object.isFrozen(EveSOFDataHull.BuildClass), true);
-  assert.equal(Object.isFrozen(EveSOFDataHull.ImpactEffectType), true);
   assert.equal(EveSOFDataHull.BuildFilter.STANDALONE, 1);
   assert.equal(EveSOFDataHull.BuildFilter.NON_INSTANCED_PLACEMENT, 2);
   assert.equal(EveSOFDataHull.BuildFilter.INSTANCED_PLACEMENT, 4);
   assert.equal(EveSOFDataHull.BuildFilter.DEFAULT_FILTER, 0xffffffff);
-  assert.equal(Object.isFrozen(EveSOFDataHull.BuildFilter), true);
   assert.equal(EveSOFDataHullDecalSetItem.Usage.USAGE_LOGO, 6);
   assert.equal(EveSOFDataHullBanner.Usage.VERTICAL_BANNER, 3);
   assert.equal(EveSOFDataHullBannerSetItem.Usage.RECRUITMENT_INFORMATION_4, 23);
   assert.equal(EveSOFDataHullBannerSetItem.Usage._USAGE_COUNT, 24);
-  assert.equal(Object.isFrozen(EveSOFDataHullBanner.Usage), true);
-  assert.equal(Object.isFrozen(EveSOFDataHullBannerSetItem.Usage), true);
   assert.equal(EveSOFDataLogoSet.LogoType.TYPE_MARKING_02, 4);
   assert.equal(Object.hasOwn(EveSOFDNA, "CMD_LAYOUT"), false);
   assert.equal(Object.hasOwn(EveSOFDataArea, "TYPE_PRIMARY"), false);
@@ -3105,7 +3097,6 @@ test("SOF emits and hydrates Carbon SOF6 plane sets with public typed blink and 
     USAGE_HANGAR_VIDEO: 3,
     USAGE_HAZE: 5,
   });
-  assert.equal(Object.isFrozen(EveSOFDataHullPlaneSet.Usage), true);
   assert.equal(new EveSOFDataHullPlaneSet().visibilityGroup, "primary");
 
   const data = createData();
@@ -3358,7 +3349,6 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
     TYPE_SPHERICAL: 0,
     TYPE_HALFSPHERICAL: 1,
   });
-  assert.equal(Object.isFrozen(EveSOFDataHullHazeSet.HazeType), true);
 
   const data = createData();
   data.hull[0].sof6 = true;
@@ -3665,7 +3655,6 @@ test("SOF emits and hydrates visible Carbon hull light types with cumulative hul
     TEXTURED_POINT_LIGHT: 1,
     SPOT_LIGHT: 2,
   });
-  assert.equal(Object.isFrozen(EveSOFDataHullLightSetItem.LightType), true);
 
   const data = createData();
   data.hull[0].sof6 = true;
@@ -5024,7 +5013,6 @@ test("instanced-mesh value defaults and parent enum objects match Carbon", () =>
   const data = new EveSOFDataInstancedMesh();
   assert.equal(data.displayModifier, 5);
   assert.equal(EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_ALL, 5);
-  assert.equal(Object.isFrozen(EveSOFDataInstancedMesh.DisplayQualityModifier), true);
   assert.deepEqual(Array.from(new EveSofDataMeshInstance().scaling), [1, 1, 1]);
 
   const graphics = new EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings();

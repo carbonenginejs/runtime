@@ -1,6 +1,5 @@
 import { buildPackageJson, buildPipelines, buildShaderModules, normalizePackageShape } from "./core/packageHelpers.js";
 import { createBackendBodySource } from "./core/backendBodySource.js";
-import { deepFreeze } from "./core/freeze.js";
 
 /**
  * Immutable descriptor-only consumer for `Carbon WebGPU` package data.
@@ -53,13 +52,13 @@ export class CjsWebgpuPackage
     this.format = normalized.format;
     this.version = normalized.version;
     this.sourcePath = normalized.sourcePath;
-    this.info = deepFreeze(normalized.info);
-    this.metadata = deepFreeze(normalized.metadata);
-    this.analysis = deepFreeze(normalized.analysis);
-    this.wgsl = deepFreeze(normalized.wgsl);
-    this.shaderModules = deepFreeze(shaderModules);
-    this.pipelines = deepFreeze(pipelines);
-    this.bindGroups = deepFreeze(bindGroups);
+    this.info = normalized.info;
+    this.metadata = normalized.metadata;
+    this.analysis = normalized.analysis;
+    this.wgsl = normalized.wgsl;
+    this.shaderModules = shaderModules;
+    this.pipelines = pipelines;
+    this.bindGroups = bindGroups;
     this.backendBodySource = createBackendBodySource(value);
     this._json = buildPackageJson(normalized, shaderModules, pipelines, bindGroups);
     Object.freeze(this);

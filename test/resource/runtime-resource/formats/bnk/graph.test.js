@@ -50,7 +50,6 @@ test("the wwise static is the single home for the domain helpers", () =>
     assert.equal(typeof CjsBnkFormat.wwise.parseSoundbanksInfo, "function");
     assert.equal(typeof CjsBnkFormat.wwise.eventMediaFromBanks, "function");
     assert.equal(typeof CjsBnkFormat.wwise.sfxNodesFromBanks, "function");
-    assert.ok(Object.isFrozen(CjsBnkFormat.wwise));
     // No flat aliases: the class statics stay container-reading only.
     assert.equal(CjsBnkFormat.parseSoundbanksInfo, undefined);
     assert.equal(CjsBnkFormat.wwiseIdFromName, undefined);

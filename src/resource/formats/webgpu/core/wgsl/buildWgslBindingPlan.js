@@ -1,4 +1,3 @@
-import { deepFreeze } from "#utils/object";
 import { lowerBindingLayout } from "./lowerBindingLayout.js";
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 import { compareUtf8 } from "../../../../format/compareUtf8.js";
@@ -187,7 +186,7 @@ export function buildWgslBindingPlan(programs, options = {})
         }
     }
 
-    return deepFreeze({
+    return {
         format: "CJS_WGSL_BINDING_PLAN",
         formatVersion: resourceTransformPlan ? 3 : 2,
         ...(sharedIdentities.size ? { sharedIdentities: Object.freeze([ ...sharedIdentities ].sort()) } : {}),
@@ -196,5 +195,5 @@ export function buildWgslBindingPlan(programs, options = {})
             ? { resourceTransforms: resourceTransformPlan.resourceTransforms }
             : {}),
         bindings: plannedBindings
-    });
+    };
 }

@@ -509,7 +509,6 @@ test("CjsWebgpuDevice owns explicit geometry uploads and integrates them with in
   const geometryPromise = webgpu.CreateGeometry(inputs);
   inputs.vertexBuffers[0].data[0] = 99;
   const geometry = await geometryPromise;
-  assert.equal(Object.isFrozen(geometry), true);
   assert.equal(geometry.generation, 1);
   assert.equal(geometry.vertexBufferCount, 1);
   assert.equal(geometry.vertexCapacity, 3);
@@ -890,7 +889,6 @@ test("CjsWebgpuDevice owns explicit 2D texture uploads and unwraps them for bind
   const texturePromise = webgpu.CreateTexture(inputs);
   inputs.data[0] = 0;
   const texture = await texturePromise;
-  assert.equal(Object.isFrozen(texture), true);
   assert.deepEqual({
     width: texture.width,
     height: texture.height,
@@ -1244,7 +1242,6 @@ test("CjsWebgpuDevice normalizes, caches, unwraps, and logically releases sample
   const [ first, second ] = await Promise.all([ firstPromise, secondPromise ]);
 
   assert.notEqual(first, second);
-  assert.equal(Object.isFrozen(first), true);
   assert.deepEqual({
     label: first.label,
     addressModeU: first.addressModeU,
@@ -1738,10 +1735,6 @@ test("CjsWebgpuDevice atomically realizes and owns keyed prepared resource bundl
     }
   });
 
-  assert.equal(Object.isFrozen(bundle), true);
-  assert.equal(Object.isFrozen(bundle.geometries), true);
-  assert.equal(Object.isFrozen(bundle.textures), true);
-  assert.equal(Object.isFrozen(bundle.samplers), true);
   assert.equal(bundle.label, "prepared QuadV5");
   assert.equal(bundle.generation, 1);
   assert.deepEqual(Object.keys(bundle.geometries), [ "main" ]);
@@ -2076,7 +2069,6 @@ test("CjsWebgpuDevice owns validated uniform buffers through opaque binding sets
   data[3] = 7;
   const inputs = bindingSetInputs(data);
   const bindingSet = webgpu.CreateBindingSet(live, inputs);
-  assert.equal(Object.isFrozen(bindingSet), true);
   assert.equal(bindingSet.generation, 1);
 
   const bufferCall = fake.device.calls.find(([ kind ]) => kind === "createBuffer");
@@ -2154,7 +2146,6 @@ test("CjsWebgpuDevice consumes stage-scoped structured and texture t0 resources"
   const direct = new Map(inputs.resources);
   direct.set("uniform-buffer:0:1@vertex", { buffer: { kind: "uniformBuffer" } });
   const draw = webgpu.CreateDraw(live, { resources: direct, draw: { vertexCount: 3 } });
-  assert.equal(Object.isFrozen(draw), true);
   bindingSet.Destroy();
 });
 

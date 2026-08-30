@@ -117,8 +117,6 @@ test("PlanFrame snapshots the live viewport shape for the render region", () =>
     },
     scissor: null
   });
-  assert.equal(Object.isFrozen(plan.regions[0].dynamicState), true);
-  assert.equal(Object.isFrozen(plan.regions[0].dynamicState.viewport), true);
 });
 
 test("PlanFrame cuts a render region when the viewport changes after a draw", () =>

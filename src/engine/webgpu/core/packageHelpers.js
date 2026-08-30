@@ -1,4 +1,4 @@
-import { cloneJson, deepFreeze } from "./freeze.js";
+import { cloneJson } from "./freeze.js";
 import { CjsWebgpuBindGroup } from "../CjsWebgpuBindGroup.js";
 import { CjsWebgpuBuffer } from "../CjsWebgpuBuffer.js";
 import { CjsWebgpuPipeline } from "../CjsWebgpuPipeline.js";
@@ -292,7 +292,7 @@ function normalizeResourceTransforms(wgsl)
       }
     }
 
-    transforms.push(deepFreeze({
+    transforms.push({
       id,
       kind: entry.kind,
       version: entry.version,
@@ -315,7 +315,7 @@ function normalizeResourceTransforms(wgsl)
         identity: input.identity,
         scopeIdentity: input.scopeIdentity
       }))
-    }));
+    });
   }
 
   // A binding cannot claim a transform the document never declared, and an
@@ -469,7 +469,7 @@ export function buildPipelines(normalized, shaderModules)
  */
 export function buildPackageJson(normalized, shaderModules, pipelines, bindGroups)
 {
-  return deepFreeze({
+  return {
     format: normalized.format,
     version: normalized.version,
     sourcePath: normalized.sourcePath,
@@ -482,7 +482,7 @@ export function buildPackageJson(normalized, shaderModules, pipelines, bindGroup
     layouts: cloneJson(normalized.layouts),
     pipelines: pipelines.map((entry) => entry.ToJSON()),
     bindGroups: bindGroups.map((entry) => entry.ToJSON())
-  });
+  };
 }
 
 const RESOURCE_KIND_TO_CARBON = Object.freeze({
@@ -958,7 +958,7 @@ function uniqueStages(stages)
     out.push(cloneJson(stage));
   }
 
-  return deepFreeze(out);
+  return out;
 }
 
 function buildStageKey(stage)

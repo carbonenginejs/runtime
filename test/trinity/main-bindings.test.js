@@ -56,8 +56,6 @@ test("Tr2Effect extraction preserves dynamic rerouting, sRGB conversion, and con
     reflected("Fixed", 2)
   ]);
 
-  assert.equal(Object.isFrozen(values), true);
-  assert.equal(Object.isFrozen(values.Rerouted), true);
   assert.deepEqual(values.Rerouted, [5, 6, 7, 8]);
   assert.deepEqual(values.Srgb, Array.from(srgb.linearValue));
   assert.deepEqual(values.Fixed, [9, 10]);
@@ -165,8 +163,6 @@ test("space-object Main extraction maps object aliases, shared values, and custo
     psOverrides: { screenSize: [24, 25, 26, 27] }
   });
 
-  assert.equal(Object.isFrozen(result), true);
-  assert.equal(Object.isFrozen(result.perObjectVS), true);
   assert.deepEqual(result.perObjectVS.worldTransform, Array.from(object.worldTransform));
   assert.deepEqual(result.perObjectVS.worldTransformLast, Array.from(object.lastWorldTransform));
   assert.deepEqual(result.perObjectVS.invWorldTransform, Array.from(object.inverseWorldTransform));

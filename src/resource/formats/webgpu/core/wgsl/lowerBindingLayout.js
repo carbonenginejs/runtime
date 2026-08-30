@@ -1,4 +1,3 @@
-import { deepFreeze } from "#utils/object";
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 
 const KIND_ORDER = Object.freeze({
@@ -534,14 +533,14 @@ export function lowerBindingLayout(
         }
         symbols.set(binding.generatedSymbol, identity);
     }
-    if (!planned) return deepFreeze(lowered);
+    if (!planned) return lowered;
     if (planned.exactStageCoverage && planned.bindings.size !== lowered.length)
     {
         const declared = new Set(lowered.map(bindingIdentity));
         const unexpected = Array.from(planned.bindings.keys()).find((identity) => !declared.has(identity));
         throw new Error(`WGSL binding plan contains unexpected ${lowered[0]?.visibility || STAGE_VISIBILITY[program.stage]} identity ${unexpected || "unknown"}`);
     }
-    return deepFreeze(lowered.map((binding) =>
+    return lowered.map((binding) =>
     {
         const identity = bindingIdentity(binding);
         const entry = planned.bindings.get(identity);
@@ -557,5 +556,5 @@ export function lowerBindingLayout(
             group: entry.group,
             binding: entry.binding
         };
-    }));
+    });
 }

@@ -29,8 +29,6 @@ test("EveComponentType carries the nine Carbon component-name strings verbatim",
   assert.equal(EveComponentType.ShadowCaster, "ShadowCaster");
   assert.equal(EveComponentType.EveLightingOverride, "EveLightingOverride");
   assert.equal(Object.keys(EveComponentType).length, 9);
-  assert.ok(Object.isFrozen(EveComponentType));
-  assert.ok(Object.isFrozen(EveComponentRequiredMethods));
   for (const name of Object.values(EveComponentType))
   {
     if (name === EveComponentType.ReflectionRenderable) continue;

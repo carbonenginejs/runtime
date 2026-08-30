@@ -53,8 +53,6 @@ test("package-effect parses exact repeatable permutation assertions", () =>
         { name: "BINDLESS_RENDERING", value: "BINDLESS_RENDERING_DISABLED" },
         { name: "SPACE_OBJECT_PPT_ENABLED", value: "SOPPT_ENABLED" }
     ]);
-    assert.equal(Object.isFrozen(parsed.permutation), true);
-    assert.equal(Object.isFrozen(parsed.permutation[0]), true);
 });
 
 test("package-effect selects one explicitly asserted complete pass in ANLS order", () =>

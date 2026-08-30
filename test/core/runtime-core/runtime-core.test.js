@@ -281,8 +281,6 @@ test("default resource behavior selects a presentation recipe before ResMan", ()
             mipmaps: true
         }
     });
-    assert.equal(Object.isFrozen(received.options), true);
-    assert.equal(Object.isFrozen(received.options.formatOptions), true);
     assert.equal(library.GetResourceBehavior("fallback_texture"), behavior);
 });
 

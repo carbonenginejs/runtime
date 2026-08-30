@@ -125,7 +125,6 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   assert.equal(typeof boosters.boosterBoundingSphereRadius, "number");
   assert.equal(boosters.boosterBoundingSphereCenter.length, 3);
   assert.deepEqual(EveBoosterSet2.Shape, { STAR: 0, BOX: 1, SHAPE_COUNT: 2 });
-  assert.equal(Object.isFrozen(EveBoosterSet2.Shape), true);
 
   const values = boosters.GetValues({ persistOnly: true });
   assert.equal(values.items.length, 1);

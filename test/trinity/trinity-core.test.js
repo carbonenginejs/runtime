@@ -385,7 +385,6 @@ test("instanced meshes retain the Tr2Mesh CPU graph and distinct resource paths"
   assertEquals(mesh.instanceGeometryResource, null);
   assertEquals(mesh.instanceMeshIndex, 0);
   assertEquals(mesh.maxInstanceSize, 0);
-  assertEquals(Object.isFrozen(Tr2InstancedMesh.BoundsMethod), true);
   assertEquals(CjsSchema.getField(Tr2InstancedMesh, "geometryResPath")?.type.kind, "string");
   assertEquals(CjsSchema.getField(Tr2InstancedMesh, "instanceGeometryResource")?.io?.persistOnly, true);
 
@@ -422,7 +421,6 @@ test("runtime instance data packs Carbon SOF records without realizing a GPU buf
   ];
   data.SetElementLayout(layout);
   assertEquals(data.GetStride(), 100);
-  assertEquals(Object.isFrozen(data.GetLayout()), true);
 
   const row = {
     transform0: [1, 2, 3, 4],

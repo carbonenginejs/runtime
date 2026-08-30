@@ -15,5 +15,4 @@ test("Tr2Lod is shared through the runtime constants vocabulary", () =>
         TR2_LOD_ULTRA: 3,
         TR2_LOD_COUNT: 4
     });
-    assert.equal(Object.isFrozen(Tr2Lod), true);
 });

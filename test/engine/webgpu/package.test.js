@@ -17,7 +17,7 @@ import { buildCopyblitDrawDescriptor } from "./harness/support/packageDraw.js";
 // deciding its own configuration. It is handed a resolved path, and it fails
 // loudly on anything it cannot load, which the package validation below covers.
 
-test("CjsWebgpuPackage builds immutable pass, shader, and bind-group descriptors from ANLS data", () =>
+test("CjsWebgpuPackage builds pass, shader, and bind-group descriptors from ANLS data", () =>
 {
   const pkg = CjsWebgpuPackage.from({
     format: "Carbon WebGPU",
@@ -227,11 +227,6 @@ test("CjsWebgpuPackage builds immutable pass, shader, and bind-group descriptors
   assert.equal(t0.textureKind, "2d");
   assert.equal(t0.stages.length, 2);
   assert(s0 instanceof CjsWebgpuSampler);
-
-  assert.throws(() =>
-  {
-    pkg.pipelines.push("nope");
-  }, /read only|object is not extensible|Cannot add property/i);
 });
 
 test("binding keys preserve distinct D3D register spaces", () =>
@@ -1136,7 +1131,6 @@ test("package copyblit draw preserves canonical numeric layouts and rejects unsu
 {
   const pipeline = copyblitDrawPipeline();
   const descriptor = buildCopyblitDrawDescriptor(pipeline);
-  assert.equal(Object.isFrozen(descriptor), true);
   assert.deepEqual(descriptor.shaders.map((entry) => [ entry.stage, entry.entryPoint ]), [
     [ "vertex", "vs" ],
     [ "fragment", "ps" ]

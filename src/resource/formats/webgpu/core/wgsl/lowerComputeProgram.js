@@ -1,4 +1,3 @@
-import { deepFreeze } from "#utils/object";
 import { requireRefactoringAllowed } from "./precisionControls.js";
 import {
     validateExactComputeEnvelope,
@@ -707,7 +706,7 @@ export function lowerComputeBindingLayout(program, bindingPlan = null)
             }
         };
     });
-    return deepFreeze(applyBindingPlan(lowered, bindingPlan));
+    return applyBindingPlan(lowered, bindingPlan);
 }
 
 function bindingForOperand(bindings, resourceKind, operand, instruction, operandIndex)
@@ -1055,7 +1054,7 @@ function lowerScalarWordComputeProgram(program, options = {})
         throw new Error("WGSL compute program contains an unowned instruction-write value");
     }
     validateBlockOutput(program, state);
-    return deepFreeze({
+    return {
         kind: "typed-shader-program",
         format: "CJS_TYPED_SHADER",
         formatVersion: 1,
@@ -1065,7 +1064,7 @@ function lowerScalarWordComputeProgram(program, options = {})
         threadGroupSize: [ 1, 1, 1 ],
         bindings,
         statements
-    });
+    };
 }
 
 /**

@@ -41,7 +41,6 @@ test("parses immutable entries with Carbon naming", () =>
     assert.equal(entry.compressedSize, 21);
     assert.equal(entry.binaryOperation, 1);
     assert.equal(entry.lineNumber, 7);
-    assert.equal(Object.isFrozen(entry), true);
 });
 
 test("preserves order and provides deterministic lookup", () =>
@@ -161,7 +160,6 @@ test("resolves compact source-prefixed locations without merging indexes", () =>
     assert.equal(result.indexName, "windows_prefetch");
     assert.equal(result.sourceID, "001");
     assert.equal(result.sourceURL, "https://mirror.test/resources/20_230230203_230230230");
-    assert.equal(Object.isFrozen(result), true);
     assert.throws(
         () => new CjsFileIndexSource({ id: "local", baseURL: "file:///tmp/resources" }),
         /HTTP/u

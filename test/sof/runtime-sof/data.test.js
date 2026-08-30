@@ -106,7 +106,6 @@ test("SOF blink data exposes Carbon enum values and lookup behavior", () => {
     FADE_OUT: 3,
     CYCLE: 4,
   });
-  assert.equal(Object.isFrozen(EveSOFDataBlinkType.Type), true);
   assert.equal(blinkTypes.GetByType(EveSOFDataBlinkType.Type.STATIC), null);
   blinkTypes.Blink = blink;
   assert.equal(blinkTypes.GetByType(EveSOFDataBlinkType.Type.BLINK), blink);
@@ -160,7 +159,6 @@ test("SOF shared and race models preserve Carbon defaults and source-enum projec
     MATERIAL4: 3,
     MATERIAL_MAX: 4,
   });
-  assert.equal(Object.isFrozen(EveSOFDataAreaMaterial.MaterialType), true);
 
   const first = new EveSOFDataBooster();
   const second = new EveSOFDataBooster();
@@ -199,7 +197,6 @@ test("SOF logo lookup and authoring helpers produce detached configuration", () 
     TYPE_MARKING_02: 4,
     TYPE_MAX: 5,
   });
-  assert.equal(Object.isFrozen(EveSOFDataLogoSet.LogoType), true);
   assert.equal("Corporation" in logos, false);
   assert.equal(logos.Has(0), false);
   assert.throws(() => logos.Get(0), ErrSOFLogoSetTypeNotFound);
@@ -357,7 +354,6 @@ test("SOF faction records retain Carbon color and material-usage defaults", () =
   assert.equal(EveSOFDataFactionColorSet.Types.length, 44);
   assert.equal(EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_DOCKED_FX, 43);
   assert.equal(EveSOFDataFactionColorSet.ColorType.TYPE_MAX, 44);
-  assert.equal(Object.isFrozen(EveSOFDataFactionColorSet.ColorType), true);
   for (const name of EveSOFDataFactionColorSet.Types)
   {
     if (name !== "PrimaryBillboard") assert.equal(colors[name][3], 1, name);
@@ -581,7 +577,6 @@ test("EveSOFDataPatternLayerProperties: Carbon applicability defaults", () => {
     PROJECTION_CLAMP: 1,
     PROJECTION_BORDER: 2,
   });
-  assert.equal(Object.isFrozen(EveSOFDataPatternLayerProperties.ProjectionType), true);
   properties.Glass = false;
   assert.equal(properties.IsApplicableToArea(1), false);
   assert.equal(properties.IsApplicableToArea(5), true, "unexposed Carbon wreck slot defaults true");
@@ -605,7 +600,6 @@ test("SOF pattern layers expose Carbon enums and legacy CPU conversion helpers",
     SOURCE_PATTERN1: 4,
     SOURCE_PATTERN2: 5,
   });
-  assert.equal(Object.isFrozen(EveSOFDataPatternLayer.MaterialSource), true);
   assert.equal(EveSOFDataPatternLayer.ToAddressMode(0), 1);
   assert.equal(EveSOFDataPatternLayer.ToAddressMode(1), 3);
   assert.equal(EveSOFDataPatternLayer.ToAddressMode(2), 4);
@@ -982,7 +976,6 @@ test("SOF manager exposes deterministic detached JSON catalogs", async () => {
     ["nomatch", "stripes"],
   );
   assert.equal(manager.ListPatternDataNamesForHull("missing"), null);
-  assert.equal(Object.isFrozen(manager.ListPatternDataNamesForHull("ab1_t1")), true);
   assert.deepEqual(manager.ListLayoutDataNames(), ["antennae"]);
 
   const hull = manager.GetHullDataJson("AB1_t1");

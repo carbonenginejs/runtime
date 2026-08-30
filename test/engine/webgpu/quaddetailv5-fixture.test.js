@@ -653,7 +653,6 @@ test("QuadDetailV5 exact static body4 records and resource plans validate", () =
   const arrayBinding = dx11Plan.textures.at(-1);
   assert.equal(arrayBinding.viewDimension, "2d-array");
   assert.equal(arrayBinding.arrayLayerCount, 3);
-  assert.equal(Object.isFrozen(dx12Plan), true);
   assert.equal(QUAD_DETAIL_V5_SELECTION, QUAD_DETAIL_V5_SELECTIONS.static);
 });
 
@@ -865,8 +864,6 @@ test("QuadDetailV5 cases isolate pattern surface and individual detail weights",
 {
   const cases = createQuadDetailV5BindingCases(64, 64);
   assert.deepEqual(cases.caseNames, [ "pptNeutral", "surface", "detail1", "detail2" ]);
-  assert.equal(Object.isFrozen(cases), true);
-  assert.equal(Object.isFrozen(cases.bindingValuesByCase), true);
   const { pptNeutral, surface, detail1, detail2 } = cases.bindingValuesByCase;
 
   assert.deepEqual(changedMaterialFields(pptNeutral, surface), [

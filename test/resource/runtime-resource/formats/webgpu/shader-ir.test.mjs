@@ -15,8 +15,6 @@ test("BuildShaderIr lowers SM5.0 DXBC into immutable front-end records", () =>
     assert.equal(ir.declarations[0].opcodeName, "dcl_temps");
     assert.deepEqual(ir.instructions.map((instruction) => instruction.opcodeName), [ "ret", "ret" ]);
     assert.deepEqual(ir.blocks.map((block) => block.instructionIndices), [ [ 0 ], [ 1 ] ]);
-    assert.equal(Object.isFrozen(ir), true);
-    assert.throws(() => ir.instructions.push({}), /read only|extensible|frozen|object/i);
     assert.deepEqual(
         CjsWebgpuFormat.buildShaderIr(buildMinimalVertexDxbc(), { source: "synthetic-vs" }),
         ir

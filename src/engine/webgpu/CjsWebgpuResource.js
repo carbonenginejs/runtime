@@ -1,4 +1,4 @@
-import { cloneJson, deepFreeze } from "./core/freeze.js";
+import { cloneJson } from "./core/freeze.js";
 
 /**
  * Immutable WebGPU-facing binding/resource descriptor.
@@ -36,17 +36,17 @@ export class CjsWebgpuResource
     this.dynamic = Boolean(values.dynamic);
     this.heapView = Boolean(values.heapView);
     this.metadataName = values.metadataName ? String(values.metadataName) : null;
-    this.carbon = deepFreeze(cloneJson(values.carbon || null));
-    this.annotations = deepFreeze(cloneJson(values.annotations || []));
+    this.carbon = cloneJson(values.carbon || null);
+    this.annotations = cloneJson(values.annotations || []);
     this.sourceTruth = String(values.sourceTruth || "unknown");
-    this.stages = deepFreeze(cloneJson(values.stages || []));
+    this.stages = cloneJson(values.stages || []);
     this.resourceKind = String(values.resourceKind || "");
     this.identity = values.identity === undefined ? "" : values.identity;
     this.scopeIdentity = values.scopeIdentity === undefined ? this.identity : values.scopeIdentity;
     this.group = Number.isInteger(values.group) ? values.group : null;
     this.binding = Number.isInteger(values.binding) ? values.binding : null;
-    this.visibility = deepFreeze(cloneJson(values.visibility || []));
-    this.layout = deepFreeze(cloneJson(values.layout || null));
+    this.visibility = cloneJson(values.visibility || []);
+    this.layout = cloneJson(values.layout || null);
     this.structureStride = Number.isInteger(values.structureStride) ? values.structureStride : null;
     // Set only when the producer merged several source textures into this one
     // array binding. A consumer must then assemble the layers rather than bind a

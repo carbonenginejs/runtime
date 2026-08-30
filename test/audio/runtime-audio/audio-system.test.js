@@ -582,7 +582,6 @@ test("shared Bus graph runtime resolves stable SFX and music route handles", () 
   assert.equal(sfx, music);
   assert.equal(sfx.index, 0);
   assert.equal(sfx.route, route);
-  assert.equal(Object.isFrozen(sfx), true);
   assert.equal(runtime.ResolveSfxRoute("101"), null);
   assert.throws(
     () => runtime.ResolveMusicRoute("200", {

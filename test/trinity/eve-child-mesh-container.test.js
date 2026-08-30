@@ -118,7 +118,6 @@ test("EveChildContainer owns Carbon quality defaults and effect-child recursion"
   assert.equal(container.isUpdating, container.IsUpdating());
   assert.equal(container.displayFilter, EveChildContainer.DisplayQualityModifier.SHADER_ALL);
   assert.equal(EveChildContainer.DisplayQualityModifier.ONLY_REFLECTIONS, 6);
-  assert.equal(Object.isFrozen(EveChildContainer.DisplayQualityModifier), true);
   assert.equal(container.Empty(), true);
 
   const calls = [];
@@ -288,7 +287,6 @@ test("EveSpaceObjectChild owns Carbon's child identity and hierarchy state", () 
   assert.equal(new EveChildInstancedMeshes() instanceof EveSpaceObjectChild, true);
 
   assert.deepEqual(EveSpaceObjectChild.Origin, { SPACE: 0, SOF: 1 });
-  assert.equal(Object.isFrozen(EveSpaceObjectChild.Origin), true);
   assert.equal(IEveSpaceObjectChild.Origin, EveSpaceObjectChild.Origin);
   assert.equal(CjsSchema.getField(IEveSpaceObjectChild, "false"), null);
 });

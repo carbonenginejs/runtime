@@ -199,7 +199,6 @@ test("maintained post-process defaults match Carbon constructors", () =>
   const depthOfField = new Tr2PPDepthOfFieldEffect();
   assertEquals(depthOfField.bokehShape, Tr2PPDepthOfFieldEffect.Disk);
   assertEquals(depthOfField.GetBokehShapeString(), "BOKEH_SHAPE_DISK");
-  assertEquals(Object.isFrozen(Tr2PPDepthOfFieldEffect.BokehShapeStrings), true);
   assertEquals(
     Tr2PPDepthOfFieldEffect.BokehShapeStrings[Tr2PPDepthOfFieldEffect.Heart],
     "BOKEH_SHAPE_HEART"

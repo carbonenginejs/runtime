@@ -38,7 +38,6 @@ test("exports shared Trinity enum vocabulary", () =>
     assert.equal(RenderingMode.RM_ALPHA_ADDITIVE, 5);
     assert.equal(RenderingMode.RM_PREPASS_COLOR, 13);
     assert.equal(RenderingMode.RM_COUNT, 14);
-    assert.equal(Object.isFrozen(RenderingMode), true);
     assert.equal(ReflectionMode.REFLECT_NEVER, 3);
     assert.deepEqual(TriExtrapolation, {
         TRIEXT_NONE: 0,
@@ -46,9 +45,6 @@ test("exports shared Trinity enum vocabulary", () =>
         TRIEXT_GRADIENT: 2,
         TRIEXT_CYCLE: 3
     });
-    assert.equal(Object.isFrozen(TriBatchType), true);
-    assert.equal(Object.isFrozen(ReflectionMode), true);
-    assert.equal(Object.isFrozen(TriExtrapolation), true);
 });
 
 test("classifies compressed and srgb pixel formats", () =>

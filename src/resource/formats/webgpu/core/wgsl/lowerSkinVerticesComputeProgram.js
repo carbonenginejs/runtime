@@ -1,4 +1,4 @@
-import { clonePlain, deepFreeze } from "#utils/object";
+import { clonePlain } from "#utils/object";
 import { analyzeRegisterValues } from "../ir/analyzeRegisterValues.js";
 import { buildControlFlow } from "../ir/buildControlFlow.js";
 import { inferValueTypes } from "../ir/inferValueTypes.js";
@@ -899,7 +899,7 @@ export function lowerSkinVerticesComputeProgram(program, options = {})
     const bindings = lowerBindingLayout(program, options.bindingPlan ?? null);
     validateBindings(bindings);
     const statements = lowerBody(program, bindings);
-    return deepFreeze({
+    return {
         kind: "typed-shader-program",
         format: "CJS_TYPED_SHADER",
         formatVersion: 1,
@@ -914,5 +914,5 @@ export function lowerSkinVerticesComputeProgram(program, options = {})
         threadGroupSize: [ 64, 1, 1 ],
         bindings,
         statements
-    });
+    };
 }

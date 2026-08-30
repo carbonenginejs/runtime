@@ -168,7 +168,6 @@ test("detail resource planning recognizes ordered two- and three-layer sample fa
         const plan = planFor(fixture);
         const transform = plan.resourceTransforms[0];
 
-        assert.equal(Object.isFrozen(plan), true);
         assert.equal(transform.output.layerCount, layerCount);
         assert.deepEqual(transform.inputs.map((input) => [ input.parameter, input.layer ]), Array.from(
             { length: layerCount },

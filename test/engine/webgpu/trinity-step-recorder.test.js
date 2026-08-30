@@ -72,9 +72,6 @@ test("Trinity step recorder captures immutable begin, execute, and end segments"
   assert.deepEqual(segments.map((entry) => entry.phase), [ "begin", "execute", "end" ]);
   assert.deepEqual(segments.map((entry) => entry.intents[0].type), [ "clear", "render-object", "present-swap-chain" ]);
   assert.deepEqual(segments[0].intents[0].color, [ 0.25, 0.5, 0.75, 1 ]);
-  assert.equal(Object.isFrozen(segments[0]), true);
-  assert.equal(Object.isFrozen(segments[0].intents[0]), true);
-  assert.equal(Object.isFrozen(segments[0].intents[0].color), true);
   assert.equal(segments[2].intents[0].swapChain, swapChain);
   assert.equal(Object.isFrozen(swapChain), false);
 });

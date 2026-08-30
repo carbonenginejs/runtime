@@ -122,7 +122,6 @@ test("BuildWgsl emits deterministic straight-line copyblit vertex WGSL", () =>
         { line: 19, instructionIndex: 2, dxbcOffset: 26 }
     ]);
     assert.equal(shader.program.statements[1].expression.code, "vec2<f32>(input.input1.x, input.input1.y)");
-    assert.equal(Object.isFrozen(shader), true);
     assert.deepEqual(CjsWebgpuFormat.buildWgsl(ir), shader);
 });
 

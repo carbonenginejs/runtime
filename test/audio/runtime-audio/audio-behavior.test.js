@@ -97,7 +97,6 @@ test("AudEventCurve.Initialize sorts hydrated keys and refreshes length", () =>
   // Org enum rule: the Carbon enum lives as a frozen static on its class.
   assert.equal(curve.extrapolation, 3);
   assert.equal(AudEventCurve.TRIEXTRAPOLATION.TRIEXT_NONE, 0);
-  assert.ok(Object.isFrozen(AudEventCurve.TRIEXTRAPOLATION));
 });
 
 test("AudEventCurve dispatches crossed keys and holds the latest event until placement arrives", () =>

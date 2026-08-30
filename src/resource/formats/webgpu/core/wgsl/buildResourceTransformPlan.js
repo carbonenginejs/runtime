@@ -1,4 +1,3 @@
-import { deepFreeze } from "#utils/object";
 import { compareUtf8 } from "../../../../format/compareUtf8.js";
 import {
     DETAIL_MAP_ARRAY_NAME,
@@ -139,11 +138,11 @@ export function normalizeResourceTransformPlan(value, layoutKey = null)
             throw new Error(`WGSL resource transform ${transform.id} targets ${transform.layoutKey}, expected ${layoutKey}`);
         }
     }
-    return deepFreeze({
+    return {
         format: "CJS_WGSL_RESOURCE_TRANSFORM_PLAN",
         formatVersion: 1,
         resourceTransforms
-    });
+    };
 }
 
 function bindingMatchesForOperand(program, resourceKind, operand)

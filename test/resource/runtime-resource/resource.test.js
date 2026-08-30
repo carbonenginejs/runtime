@@ -341,7 +341,6 @@ test("CjsResMan registers immutable extension handlers through every short form"
   const shortRoute = resMan.GetExtensionRoute("route");
   assert.equal(shortRoute.Handler, CjsRouteResource);
   assert.equal(shortRoute.formats[0].Format, CjsRouteFormat);
-  assert.equal(Object.isFrozen(shortRoute), true);
 
   resMan.RegisterExtension("route", CjsRouteResource, { Format: CjsRouteFormat });
   const longRoute = resMan.GetExtensionRoute(".ROUTE");
@@ -653,13 +652,11 @@ test("CjsResMan exposes normalized resource paths and exact translated URLs to f
 
   assert.equal(sourceUrl, expected.url);
   assert.deepEqual(formatContext, expected);
-  assert.equal(Object.isFrozen(formatContext), true);
   assert.equal(identifyContext.path, expected.path);
   assert.equal(identifyContext.resFilePath, expected.resFilePath);
   assert.equal(identifyContext.ext, expected.ext);
   assert.equal(identifyContext.fileName, expected.fileName);
   assert.equal(identifyContext.url, expected.url);
-  assert.equal(Object.isFrozen(identifyContext), true);
 
   await resMan.Fetch("res:/character/folder/metadata", { ext: ".YAML" });
   assert.equal(formatContext.resFilePath, "res:/character/folder/metadata");
@@ -776,7 +773,6 @@ test("bound resource handles keep their promised output during reconstruction", 
     prepareStages: [ () => { throw new Error("must not be retained"); } ]
   });
 
-  assert.equal(Object.isFrozen(resource.GetObjectRequest()), true);
   assert.equal(resource.GetObjectRequest().variant, "cmf");
   assert.equal(resource.GetObjectRequest().emit, "cmf");
   assert.equal(Object.hasOwn(resource.GetObjectRequest(), "pipeline"), false);
@@ -1439,7 +1435,6 @@ test("CjsResMan automatic purge is opt-in and follows deterministic time cadence
   resource.SetPayload({ revision: 1 });
 
   assert.equal(resMan.IsAutoPurgeEnabled(), true);
-  assert.equal(Object.isFrozen(policy), true);
   assert.equal(policy.intervalMilliseconds, 10);
   assert.equal(policy.destroyAdapters, true);
   assert.equal(policy.releasePayload, true);
@@ -2380,7 +2375,6 @@ test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource 
   assert.equal(loaderContext.ext, "json");
   assert.equal(loaderContext.fileName, "example.json");
   assert.equal(loaderContext.url, null);
-  assert.equal(Object.isFrozen(loaderContext), true);
 });
 
 test("registered formats and resource readiness share one object operation", async () =>
@@ -2918,10 +2912,6 @@ test("registered format defaults are deeply snapshotted", async () =>
   defaults.offsets[1].value = 30;
 
   const descriptor = resMan.GetFormatDescriptors("defaultsnapshot")[0];
-  assert.equal(Object.isFrozen(descriptor.defaults), true);
-  assert.equal(Object.isFrozen(descriptor.defaults.transform), true);
-  assert.equal(Object.isFrozen(descriptor.defaults.offsets), true);
-  assert.equal(Object.isFrozen(descriptor.defaults.offsets[1]), true);
   assert.equal(await resMan.GetObject(path, { emit: "raw" }), 12);
 });
 

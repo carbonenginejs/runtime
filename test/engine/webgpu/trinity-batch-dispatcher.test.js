@@ -399,7 +399,6 @@ test("Trinity batch dispatcher snapshots batch maps and leaves pass choice exter
       [ "bindings", 2 ]
     ]
   );
-  assert.equal(Object.isFrozen(observedContexts[0][1]), true);
   assert.deepEqual(
     prepared.entries.map((entry) => entry.accumulator.context.batchType),
     [ 0, 2 ]

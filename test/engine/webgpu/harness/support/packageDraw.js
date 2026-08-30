@@ -1,4 +1,4 @@
-import { cloneJson, deepFreeze } from "#engine/webgpu/core/freeze";
+import { cloneJson } from "#engine/webgpu/core/freeze";
 
 const REQUIRED_IDENTITIES = Object.freeze(new Map([
   [ "uniform-buffer:0:0", "buffer" ],
@@ -129,7 +129,7 @@ function translateBlend(pipeline)
  * The result is browser-safe JSON; numeric slots are preserved verbatim.
  *
  * @param {object} pipeline CjsWebgpuPipeline.ToJSON() output.
- * @returns {object} Frozen package draw descriptor.
+ * @returns {object} Package draw descriptor.
  */
 export function buildCopyblitDrawDescriptor(pipeline)
 {
@@ -160,12 +160,12 @@ export function buildCopyblitDrawDescriptor(pipeline)
   }
   if (identities.size !== REQUIRED_IDENTITIES.size) fail("contains unexpected fixture resources");
 
-  return deepFreeze({
+  return {
     key: String(pipeline.key || ""),
     techniqueName: String(pipeline.techniqueName || ""),
     passIndex: Number.isInteger(pipeline.passIndex) ? pipeline.passIndex : 0,
     blend: translateBlend(pipeline),
     shaders: [ shaderFor(pipeline, "vertex"), shaderFor(pipeline, "pixel") ],
     bindGroups
-  });
+  };
 }
