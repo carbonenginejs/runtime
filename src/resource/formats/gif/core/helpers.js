@@ -1,3 +1,5 @@
+import { readU16LE } from "#utils/bytes";
+
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_RGBA = "rgba";
 export const OUTPUT_RAW = "raw";
@@ -397,7 +399,3 @@ function ascii(bytes, offset, length)
     return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
 
-function readU16LE(bytes, offset)
-{
-    return bytes[offset] | (bytes[offset + 1] << 8);
-}

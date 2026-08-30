@@ -54,3 +54,69 @@ export function hasBytePrefix(value, prefix)
 
     return true;
 }
+
+/**
+ * Reads a fixed-length ASCII tag, as container formats use for chunk names.
+ *
+ * Missing bytes read as zero rather than throwing, because a truncated tag is
+ * a failed match at the call site, not an error in the read.
+ *
+ * @param {Uint8Array} bytes Source bytes.
+ * @param {number} offset Byte offset to read from.
+ * @param {number} [length=4] Tag length in bytes.
+ * @returns {string} The decoded tag.
+ */
+export function readFourCc(bytes, offset, length = 4)
+{
+    let value = "";
+    for (let i = 0; i < length; i++) value += String.fromCharCode(bytes[offset + i] || 0);
+    return value;
+}
+
+// Container formats read fixed-width big- and little-endian integers
+// constantly, and every reader had grown its own copy. Missing bytes read as
+// zero, matching what the shifting forms already did: `>>> 0` turns the NaN a
+// truncated multiply produces back into a number, so only the two flac copies
+// that omitted it ever returned NaN, and flac bounds-checks before every read.
+
+/** Reads an unsigned big-endian 16-bit integer. */
+export function readU16BE(bytes, offset)
+{
+    return ((bytes[offset] || 0) << 8) | (bytes[offset + 1] || 0);
+}
+
+/** Reads an unsigned little-endian 16-bit integer. */
+export function readU16LE(bytes, offset)
+{
+    return (bytes[offset] || 0) | ((bytes[offset + 1] || 0) << 8);
+}
+
+/** Reads an unsigned big-endian 24-bit integer. */
+export function readU24BE(bytes, offset)
+{
+    return ((bytes[offset] || 0) * 0x10000) + ((bytes[offset + 1] || 0) << 8) + (bytes[offset + 2] || 0);
+}
+
+/** Reads an unsigned little-endian 24-bit integer. */
+export function readU24LE(bytes, offset)
+{
+    return (bytes[offset] || 0) + ((bytes[offset + 1] || 0) << 8) + ((bytes[offset + 2] || 0) * 0x10000);
+}
+
+/** Reads an unsigned big-endian 32-bit integer. */
+export function readU32BE(bytes, offset)
+{
+    return (((bytes[offset] || 0) * 0x1000000)
+        + ((bytes[offset + 1] || 0) << 16)
+        + ((bytes[offset + 2] || 0) << 8)
+        + (bytes[offset + 3] || 0)) >>> 0;
+}
+
+/** Reads an unsigned little-endian 32-bit integer. */
+export function readU32LE(bytes, offset)
+{
+    return ((bytes[offset] || 0)
+        + ((bytes[offset + 1] || 0) << 8)
+        + ((bytes[offset + 2] || 0) << 16)
+        + ((bytes[offset + 3] || 0) * 0x1000000)) >>> 0;
+}

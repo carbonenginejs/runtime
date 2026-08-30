@@ -1,3 +1,4 @@
+import { readU16BE, readU16LE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
 import { decodeVorbis } from "./vorbis.js";
 
 export const OUTPUT_RAW = "raw";
@@ -425,35 +426,10 @@ function ascii(bytes, offset, length)
     return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
 
-function readU16LE(bytes, offset)
-{
-    return (bytes[offset] || 0) | ((bytes[offset + 1] || 0) << 8);
-}
-
-function readU16BE(bytes, offset)
-{
-    return ((bytes[offset] || 0) << 8) | (bytes[offset + 1] || 0);
-}
-
-function readU24BE(bytes, offset)
-{
-    return ((bytes[offset] || 0) * 0x10000) + ((bytes[offset + 1] || 0) << 8) + (bytes[offset + 2] || 0);
-}
-
 function readS16LE(bytes, offset)
 {
     const value = readU16LE(bytes, offset);
     return value & 0x8000 ? value - 0x10000 : value;
-}
-
-function readU32LE(bytes, offset)
-{
-    return ((bytes[offset] || 0) | ((bytes[offset + 1] || 0) << 8) | ((bytes[offset + 2] || 0) << 16) | ((bytes[offset + 3] || 0) * 0x1000000)) >>> 0;
-}
-
-function readU32BE(bytes, offset)
-{
-    return (((bytes[offset] || 0) * 0x1000000) + ((bytes[offset + 1] || 0) << 16) + ((bytes[offset + 2] || 0) << 8) + (bytes[offset + 3] || 0)) >>> 0;
 }
 
 function readS32LE(bytes, offset)

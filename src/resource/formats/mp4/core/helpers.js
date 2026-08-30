@@ -1,3 +1,4 @@
+import { readFourCc, readU16BE, readU32BE } from "#utils/bytes";
 export const OUTPUT_VIDEO = "video";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
@@ -210,7 +211,7 @@ export function inspectBytes(bytes)
  */
 export function isMP4(bytes)
 {
-    return bytes.byteLength >= 12 && fourCc(bytes, 4) === "ftyp";
+    return bytes.byteLength >= 12 && readFourCc(bytes, 4) === "ftyp";
 }
 
 /**
@@ -244,7 +245,7 @@ function inspectMP4(bytes)
     const movie = moov ? inspectMp4Movie(bytes, moov) : { duration: 0, durationTimescale: 1, tracks: [] };
     return {
         sourceFormat: "mp4",
-        brand: ftyp ? fourCc(bytes, ftyp.dataStart) : fourCc(bytes, 8),
+        brand: ftyp ? readFourCc(bytes, ftyp.dataStart) : readFourCc(bytes, 8),
         compatibleBrands: ftyp ? readMp4Brands(bytes, ftyp) : [],
         container: "isobmff",
         ...movie
@@ -270,7 +271,7 @@ function inspectMp4Track(bytes, trak)
     const stsd = stbl ? findMp4Child(bytes, stbl, "stsd") : null;
     const sampleTable = stbl ? readMp4SampleTable(bytes, stbl) : null;
     const timing = mdhd ? readMp4Timing(bytes, mdhd) : { duration: 0, durationTimescale: 1 };
-    const handler = hdlr && hdlr.dataLength >= 12 ? fourCc(bytes, hdlr.dataStart + 8) : "";
+    const handler = hdlr && hdlr.dataLength >= 12 ? readFourCc(bytes, hdlr.dataStart + 8) : "";
     const sample = stsd ? readMp4SampleEntry(bytes, stsd) : null;
     const track = {
         id: tkhd ? readMp4TrackId(bytes, tkhd) : 0,
@@ -413,7 +414,7 @@ function readMp4SampleEntry(bytes, stsd)
     if (!entryCount) return null;
     const entry = readMp4Boxes(bytes, stsd.dataStart + 8, stsd.end)[0];
     if (!entry) return null;
-    const result = { codec: fourCc(bytes, entry.start + 4) };
+    const result = { codec: readFourCc(bytes, entry.start + 4) };
     if (result.codec === "avc1" || result.codec === "avc3" || result.codec === "hvc1" || result.codec === "hev1" || result.codec === "vp09" || result.codec === "av01")
     {
         result.width = readU16BE(bytes, entry.dataStart + 16);
@@ -432,7 +433,7 @@ function readMp4Brands(bytes, ftyp)
     const brands = [];
     for (let offset = ftyp.dataStart + 8; offset + 4 <= ftyp.end; offset += 4)
     {
-        brands.push(fourCc(bytes, offset));
+        brands.push(readFourCc(bytes, offset));
     }
     return brands;
 }
@@ -444,7 +445,7 @@ function readMp4Boxes(bytes, start, end)
     while (offset + 8 <= end)
     {
         let size = readU32BE(bytes, offset);
-        const type = fourCc(bytes, offset + 4);
+        const type = readFourCc(bytes, offset + 4);
         let headerSize = 8;
         if (size === 1 && offset + 16 <= end)
         {
@@ -477,20 +478,6 @@ function inspectWebM()
     };
 }
 
-function fourCc(bytes, offset)
-{
-    return String.fromCharCode(bytes[offset] || 0, bytes[offset + 1] || 0, bytes[offset + 2] || 0, bytes[offset + 3] || 0);
-}
-
-function readU16BE(bytes, offset)
-{
-    return ((bytes[offset] || 0) << 8) | (bytes[offset + 1] || 0);
-}
-
-function readU32BE(bytes, offset)
-{
-    return (((bytes[offset] || 0) * 0x1000000) + ((bytes[offset + 1] || 0) << 16) + ((bytes[offset + 2] || 0) << 8) + (bytes[offset + 3] || 0)) >>> 0;
-}
 
 function readI32BE(bytes, offset)
 {

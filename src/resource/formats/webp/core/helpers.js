@@ -1,3 +1,5 @@
+import { readU16LE, readU24LE, readU32LE } from "#utils/bytes";
+
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 
@@ -237,17 +239,3 @@ function ascii(bytes, offset, length)
     return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
 
-function readU16LE(bytes, offset)
-{
-    return bytes[offset] | (bytes[offset + 1] << 8);
-}
-
-function readU24LE(bytes, offset)
-{
-    return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16);
-}
-
-function readU32LE(bytes, offset)
-{
-    return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;
-}

@@ -1,3 +1,5 @@
+import { readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
+
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
 export const OUTPUT_RGBA = "rgba";
@@ -558,26 +560,6 @@ function pngChannels(colorType)
     if (colorType === 4) return 2;
     if (colorType === 6) return 4;
     return 0;
-}
-
-function readU16BE(bytes, offset)
-{
-    return (bytes[offset] << 8) | bytes[offset + 1];
-}
-
-function readU16LE(bytes, offset)
-{
-    return bytes[offset] | (bytes[offset + 1] << 8);
-}
-
-function readU32BE(bytes, offset)
-{
-    return ((bytes[offset] * 0x1000000) + ((bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3])) >>> 0;
-}
-
-function readU32LE(bytes, offset)
-{
-    return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;
 }
 
 function capitalize(value)

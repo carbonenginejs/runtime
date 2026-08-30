@@ -1,3 +1,4 @@
+import { readFourCc, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
 export const OUTPUT_AUDIO = "audio";
 export const OUTPUT_PCM = "pcm";
 export const OUTPUT_RAW = "raw";
@@ -180,7 +181,7 @@ export function inspectBytes(bytes)
  */
 export function isWAV(bytes)
 {
-    return bytes.byteLength >= 12 && fourCc(bytes, 0) === "RIFF" && fourCc(bytes, 8) === "WAVE";
+    return bytes.byteLength >= 12 && readFourCc(bytes, 0) === "RIFF" && readFourCc(bytes, 8) === "WAVE";
 }
 
 /**
@@ -190,7 +191,7 @@ export function isWAV(bytes)
 export function isMP3(bytes)
 {
     return bytes.byteLength >= 3 &&
-        (fourCc(bytes, 0, 3) === "ID3" || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0));
+        (readFourCc(bytes, 0, 3) === "ID3" || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0));
 }
 
 function inspectWAV(bytes)
@@ -199,7 +200,7 @@ function inspectWAV(bytes)
     const info = { sourceFormat: "wav", audioFormat: "wav", sampleRate: 0, channels: 0, bitsPerSample: 0, dataBytes: 0 };
     while (offset + 8 <= bytes.byteLength)
     {
-        const id = fourCc(bytes, offset), size = readU32LE(bytes, offset + 4), dataOffset = offset + 8;
+        const id = readFourCc(bytes, offset), size = readU32LE(bytes, offset + 4), dataOffset = offset + 8;
         if (id === "fmt " && dataOffset + 16 <= bytes.byteLength)
         {
             info.formatTag = readU16LE(bytes, dataOffset);
@@ -271,7 +272,7 @@ function inspectMP3(bytes)
 
 function readId3Header(bytes)
 {
-    if (bytes.byteLength < 10 || fourCc(bytes, 0, 3) !== "ID3") return null;
+    if (bytes.byteLength < 10 || readFourCc(bytes, 0, 3) !== "ID3") return null;
     return {
         version: bytes[3],
         revision: bytes[4],
@@ -288,7 +289,7 @@ function readVbrHeader(bytes, frame)
     const xingOffset = frame.offset + 4 + sideInfoLength;
     for (const kind of [ "Xing", "Info" ])
     {
-        if (fourCc(bytes, xingOffset, 4) !== kind) continue;
+        if (readFourCc(bytes, xingOffset, 4) !== kind) continue;
         const flags = readU32BE(bytes, xingOffset + 4);
         const frameCount = (flags & 1) !== 0 ? readU32BE(bytes, xingOffset + 8) : 0;
         const byteCount = (flags & 2) !== 0 ? readU32BE(bytes, xingOffset + 12) : 0;
@@ -297,7 +298,7 @@ function readVbrHeader(bytes, frame)
     }
 
     const vbriOffset = frame.offset + 36;
-    if (fourCc(bytes, vbriOffset, 4) === "VBRI")
+    if (readFourCc(bytes, vbriOffset, 4) === "VBRI")
     {
         return {
             kind: "VBRI",
@@ -316,7 +317,7 @@ function readLameGapless(bytes, searchStart)
     const end = Math.min(bytes.byteLength - 3, searchStart + 160);
     for (let offset = searchStart; offset < end; offset++)
     {
-        if (fourCc(bytes, offset, 4) !== "LAME") continue;
+        if (readFourCc(bytes, offset, 4) !== "LAME") continue;
         const value = (bytes[offset + 0x15] << 16) | (bytes[offset + 0x16] << 8) | bytes[offset + 0x17];
         return {
             encoderDelay: (value >>> 12) & 0xfff,
@@ -329,7 +330,7 @@ function readLameGapless(bytes, searchStart)
 function findMp3FrameOffset(bytes)
 {
     let offset = 0;
-    if (fourCc(bytes, 0, 3) === "ID3" && bytes.byteLength >= 10)
+    if (readFourCc(bytes, 0, 3) === "ID3" && bytes.byteLength >= 10)
     {
         const size = (bytes[6] << 21) | (bytes[7] << 14) | (bytes[8] << 7) | bytes[9];
         offset = 10 + size + (bytes[5] & 0x10 ? 10 : 0);
@@ -383,24 +384,4 @@ function readMp3FrameHeader(bytes, offset)
     };
 }
 
-function fourCc(bytes, offset, length = 4)
-{
-    let value = "";
-    for (let i = 0; i < length; i++) value += String.fromCharCode(bytes[offset + i] || 0);
-    return value;
-}
 
-function readU16LE(bytes, offset)
-{
-    return bytes[offset] | (bytes[offset + 1] << 8);
-}
-
-function readU32LE(bytes, offset)
-{
-    return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;
-}
-
-function readU32BE(bytes, offset)
-{
-    return ((bytes[offset] * 0x1000000) + ((bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3])) >>> 0;
-}

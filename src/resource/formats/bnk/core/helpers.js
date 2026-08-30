@@ -1,3 +1,4 @@
+import { readFourCc } from "#utils/bytes";
 import { parseEventAction } from "./eventAction.js";
 import { parseGlobalSettings } from "./globalSettings.js";
 
@@ -94,7 +95,7 @@ export function toBytes(input)
  */
 export function isBNK(bytes)
 {
-    return bytes.byteLength >= 8 && fourCc(bytes, 0) === "BKHD";
+    return bytes.byteLength >= 8 && readFourCc(bytes, 0) === "BKHD";
 }
 
 /**
@@ -134,7 +135,7 @@ export function inspectBNK(bytes)
 
     while (offset + 8 <= bytes.byteLength)
     {
-        const id = fourCc(bytes, offset);
+        const id = readFourCc(bytes, offset);
         const size = readU32(bytes, offset + 4);
         const dataOffset = offset + 8;
         if (dataOffset + size > bytes.byteLength)
@@ -462,8 +463,8 @@ export function extractMedia(bytes, metadata, mediaId)
             id: entry.id,
             length: entry.length,
             isWem: payload.length >= 12 &&
-                (fourCc(payload, 0) === "RIFF" || fourCc(payload, 0) === "RIFX") &&
-                fourCc(payload, 8) === "WAVE",
+                (readFourCc(payload, 0) === "RIFF" || readFourCc(payload, 0) === "RIFX") &&
+                readFourCc(payload, 8) === "WAVE",
             bytes: payload
         });
     }
@@ -572,12 +573,6 @@ function asciiString(bytes, offset, length)
     return value;
 }
 
-function fourCc(bytes, offset, length = 4)
-{
-    let value = "";
-    for (let i = 0; i < length; i++) value += String.fromCharCode(bytes[offset + i] || 0);
-    return value;
-}
 
 function readU32(bytes, offset)
 {

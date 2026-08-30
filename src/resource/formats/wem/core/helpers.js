@@ -1,3 +1,4 @@
+import { readFourCc } from "#utils/bytes";
 import { convertWemToOgg } from "./wemToOgg.js";
 import { decodePtadpcm } from "./ptadpcm.js";
 
@@ -74,8 +75,8 @@ export function toBytes(input)
 export function isWEM(bytes)
 {
     if (bytes.byteLength < 12) return false;
-    const container = fourCc(bytes, 0);
-    return (container === "RIFF" || container === "RIFX") && fourCc(bytes, 8) === "WAVE";
+    const container = readFourCc(bytes, 0);
+    return (container === "RIFF" || container === "RIFX") && readFourCc(bytes, 8) === "WAVE";
 }
 
 /**
@@ -90,10 +91,10 @@ export function isWEM(bytes)
  */
 export function inspectWEM(bytes)
 {
-    const littleEndian = fourCc(bytes, 0) !== "RIFX";
+    const littleEndian = readFourCc(bytes, 0) !== "RIFX";
     const info = {
         sourceFormat: "wem",
-        container: fourCc(bytes, 0),
+        container: readFourCc(bytes, 0),
         littleEndian,
         riffSize: readU32(bytes, 4, littleEndian),
         codec: "",
@@ -120,7 +121,7 @@ export function inspectWEM(bytes)
 
     while (offset + 8 <= bytes.byteLength)
     {
-        const id = fourCc(bytes, offset);
+        const id = readFourCc(bytes, offset);
         const size = readU32(bytes, offset + 4, littleEndian);
         const dataOffset = offset + 8;
         if (dataOffset + size > bytes.byteLength)
@@ -438,12 +439,6 @@ export function toJsonValue(value)
     return value;
 }
 
-function fourCc(bytes, offset, length = 4)
-{
-    let value = "";
-    for (let i = 0; i < length; i++) value += String.fromCharCode(bytes[offset + i] || 0);
-    return value;
-}
 
 function readU16(bytes, offset, littleEndian)
 {

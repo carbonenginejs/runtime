@@ -1,3 +1,4 @@
+import { readFourCc } from "#utils/bytes";
 export const OUTPUT_VIDEO = "video";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
@@ -209,7 +210,7 @@ export function inspectBytes(bytes)
  */
 export function isMP4(bytes)
 {
-    return bytes.byteLength >= 12 && fourCc(bytes, 4) === "ftyp";
+    return bytes.byteLength >= 12 && readFourCc(bytes, 4) === "ftyp";
 }
 
 /**
@@ -239,7 +240,7 @@ function inspectMP4(bytes)
 {
     return {
         sourceFormat: "mp4",
-        brand: fourCc(bytes, 8),
+        brand: readFourCc(bytes, 8),
         container: "isobmff"
     };
 }
@@ -559,7 +560,3 @@ function readEbmlStringValue(bytes, element)
     return new TextDecoder().decode(bytes.subarray(element.dataStart, element.end));
 }
 
-function fourCc(bytes, offset)
-{
-    return String.fromCharCode(bytes[offset] || 0, bytes[offset + 1] || 0, bytes[offset + 2] || 0, bytes[offset + 3] || 0);
-}

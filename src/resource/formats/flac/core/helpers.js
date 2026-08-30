@@ -1,3 +1,5 @@
+import { readU16BE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
+
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_PCM = "pcm";
 export const OUTPUT_JSON = "json";
@@ -290,10 +292,6 @@ function readPicture(bytes, start, end)
     return { pictureType, mimeType, description, width, height, colorDepth, colors, dataByteLength: dataLength };
 }
 
-function readU16BE(bytes, offset) { return (bytes[offset] << 8) | bytes[offset + 1]; }
-function readU24BE(bytes, offset) { return bytes[offset] * 0x10000 + bytes[offset + 1] * 0x100 + bytes[offset + 2]; }
-function readU32BE(bytes, offset) { return bytes[offset] * 0x1000000 + bytes[offset + 1] * 0x10000 + bytes[offset + 2] * 0x100 + bytes[offset + 3]; }
-function readU32LE(bytes, offset) { return bytes[offset] + bytes[offset + 1] * 0x100 + bytes[offset + 2] * 0x10000 + bytes[offset + 3] * 0x1000000; }
 function readU64BE(bytes, offset)
 {
     const high = readU32BE(bytes, offset);

@@ -1,3 +1,4 @@
+import { readFourCc, readU16LE, readU32LE } from "#utils/bytes";
 export const OUTPUT_AUDIO = "audio";
 export const OUTPUT_PCM = "pcm";
 export const OUTPUT_RAW = "raw";
@@ -190,7 +191,7 @@ export function inspectBytes(bytes)
  */
 export function isWAV(bytes)
 {
-    return bytes.byteLength >= 12 && fourCc(bytes, 0) === "RIFF" && fourCc(bytes, 8) === "WAVE";
+    return bytes.byteLength >= 12 && readFourCc(bytes, 0) === "RIFF" && readFourCc(bytes, 8) === "WAVE";
 }
 
 /**
@@ -200,7 +201,7 @@ export function isWAV(bytes)
 export function isMP3(bytes)
 {
     return bytes.byteLength >= 3 &&
-        (fourCc(bytes, 0, 3) === "ID3" || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0));
+        (readFourCc(bytes, 0, 3) === "ID3" || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0));
 }
 
 function inspectWAV(bytes)
@@ -224,7 +225,7 @@ function inspectWAV(bytes)
     };
     while (offset + 8 <= bytes.byteLength)
     {
-        const id = fourCc(bytes, offset), size = readU32LE(bytes, offset + 4), dataOffset = offset + 8;
+        const id = readFourCc(bytes, offset), size = readU32LE(bytes, offset + 4), dataOffset = offset + 8;
         if (id === "fmt " && dataOffset + 16 <= bytes.byteLength)
         {
             const containerFormatTag = readU16LE(bytes, dataOffset);
@@ -263,26 +264,10 @@ function inspectMP3(bytes)
     return {
         sourceFormat: "mp3",
         audioFormat: "mp3",
-        hasId3: fourCc(bytes, 0, 3) === "ID3"
+        hasId3: readFourCc(bytes, 0, 3) === "ID3"
     };
 }
 
-function fourCc(bytes, offset, length = 4)
-{
-    let value = "";
-    for (let i = 0; i < length; i++) value += String.fromCharCode(bytes[offset + i] || 0);
-    return value;
-}
-
-function readU16LE(bytes, offset)
-{
-    return bytes[offset] | (bytes[offset + 1] << 8);
-}
-
-function readU32LE(bytes, offset)
-{
-    return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;
-}
 
 function canEmitWavPcm(metadata)
 {
