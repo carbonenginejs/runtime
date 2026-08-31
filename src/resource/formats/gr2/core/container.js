@@ -1,5 +1,6 @@
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import { CjsFormatWriteError } from "../../../format/CjsFormatError.js";
+import { encodeBitKnit2Raw } from "./bitknit2.js";
 import { GRANNY_MEMBER_TYPES } from "./reader.js";
 
 const M = GRANNY_MEMBER_TYPES;
@@ -13,6 +14,8 @@ const SECTION_DIRECTORY_OFFSET = 104;
 const SECTION_RECORD_SIZE = 44;
 const TYPE_TAG_2_12 = 0x80000039;
 const UTF8 = new TextEncoder();
+export const GR2_SECTION_COMPRESSION_NONE = "none";
+export const GR2_SECTION_COMPRESSION_BITKNIT2_RAW = "bitknit2Raw";
 
 function align(value, alignment)
 {
@@ -456,29 +459,79 @@ class SectionSerializer
     }
 }
 
-/** Serialize one standard reflected graph as a canonical 32-bit little-endian GR2 file. */
-export function writeGr2Container(rootType, root, types)
+function pointerFixupBytes(fixups)
 {
-    const section = new SectionSerializer(types).Serialize(rootType, root);
-    const headerSize = SECTION_DIRECTORY_OFFSET + SECTION_RECORD_SIZE;
-    const pointerFixupOffset = headerSize + section.bytes.length;
-    const mixedFixupOffset = pointerFixupOffset + section.fixups.length * 12;
-    const writer = new CjsByteWriter(mixedFixupOffset + section.mixedFixups.length * 16);
-    writer.reserve(headerSize);
-    writer.bytes(section.bytes);
-    for (const fixup of section.fixups)
+    const writer = new CjsByteWriter(fixups.length * 12);
+    for (const fixup of fixups)
     {
         writer.u32(fixup.from);
         writer.u32(0);
         writer.u32(fixup.target);
     }
-    for (const fixup of section.mixedFixups)
+    return writer.toBytes();
+}
+
+function mixedFixupBytes(fixups)
+{
+    const writer = new CjsByteWriter(fixups.length * 16);
+    for (const fixup of fixups)
     {
         writer.u32(fixup.count);
         writer.u32(fixup.offset);
         writer.u32(0);
         writer.u32(fixup.typeOffset);
     }
+    return writer.toBytes();
+}
+
+function alignWriter(writer, alignment)
+{
+    writer.reserve(align(writer.length, alignment) - writer.length);
+}
+
+function appendFixups(writer, bytes, compressed)
+{
+    if (!bytes.length) return 0;
+    alignWriter(writer, 4);
+    const offset = writer.length;
+    if (compressed)
+    {
+        const packed = encodeBitKnit2Raw(bytes);
+        writer.u32(packed.length);
+        writer.bytes(packed);
+    }
+    else
+    {
+        writer.bytes(bytes);
+    }
+    return offset;
+}
+
+/**
+ * Serialize one standard reflected graph as a 32-bit little-endian GR2 file.
+ *
+ * @param {object} rootType Reflected root type.
+ * @param {object} root Root object graph.
+ * @param {object[]} types Closed reflected type set.
+ * @param {{sectionCompression?: "none"|"bitknit2Raw"}} [options] Outer-section storage.
+ * @returns {Uint8Array} Complete GR2 file bytes.
+ */
+export function writeGr2Container(rootType, root, types, options = {})
+{
+    const section = new SectionSerializer(types).Serialize(rootType, root);
+    const headerSize = SECTION_DIRECTORY_OFFSET + SECTION_RECORD_SIZE;
+    const sectionCompression = options.sectionCompression ?? GR2_SECTION_COMPRESSION_NONE;
+    if (![ GR2_SECTION_COMPRESSION_NONE, GR2_SECTION_COMPRESSION_BITKNIT2_RAW ].includes(sectionCompression))
+    {
+        throw new CjsFormatWriteError(`GR2 container unknown sectionCompression "${sectionCompression}"`);
+    }
+    const compressed = sectionCompression === GR2_SECTION_COMPRESSION_BITKNIT2_RAW;
+    const sectionBytes = compressed ? encodeBitKnit2Raw(section.bytes) : section.bytes;
+    const writer = new CjsByteWriter(headerSize + sectionBytes.length);
+    writer.reserve(headerSize);
+    writer.bytes(sectionBytes);
+    const pointerFixupOffset = appendFixups(writer, pointerFixupBytes(section.fixups), compressed);
+    const mixedFixupOffset = appendFixups(writer, mixedFixupBytes(section.mixedFixups), compressed);
 
     const totalSize = writer.length;
     writer.patchBytes(0, MAGIC_32_LE);
@@ -493,9 +546,9 @@ export function writeGr2Container(rootType, root, types)
     writer.patchU32(FILE_HEADER_OFFSET + 32, section.rootOffset);
     writer.patchU32(FILE_HEADER_OFFSET + 36, TYPE_TAG_2_12);
 
-    writer.patchU32(SECTION_DIRECTORY_OFFSET, 0);
+    writer.patchU32(SECTION_DIRECTORY_OFFSET, compressed ? 4 : 0);
     writer.patchU32(SECTION_DIRECTORY_OFFSET + 4, headerSize);
-    writer.patchU32(SECTION_DIRECTORY_OFFSET + 8, section.bytes.length);
+    writer.patchU32(SECTION_DIRECTORY_OFFSET + 8, sectionBytes.length);
     writer.patchU32(SECTION_DIRECTORY_OFFSET + 12, section.bytes.length);
     writer.patchU32(SECTION_DIRECTORY_OFFSET + 16, 4);
     writer.patchU32(SECTION_DIRECTORY_OFFSET + 28, section.fixups.length ? pointerFixupOffset : 0);
@@ -510,6 +563,8 @@ export function writeGr2Container(rootType, root, types)
 
 export const container = {
     MAGIC_32_LE,
+    GR2_SECTION_COMPRESSION_NONE,
+    GR2_SECTION_COMPRESSION_BITKNIT2_RAW,
     TYPE_TAG_2_12,
     crc32,
     gr2Type,

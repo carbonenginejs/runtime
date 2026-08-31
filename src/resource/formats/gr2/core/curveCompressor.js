@@ -2,28 +2,43 @@ import {
     D4N_OFFSET_TABLE,
     D4N_SCALE_TABLE,
     D4N_SCALE_TABLE_MULTIPLIER_16,
+    D4N_SCALE_TABLE_MULTIPLIER_8,
     FORMAT_D3_CONSTANT_32F,
+    FORMAT_D3I1_K16U_C16U,
+    FORMAT_D3I1_K32F_C32F,
+    FORMAT_D3I1_K8U_C8U,
     FORMAT_D3_K16U_C16U,
+    FORMAT_D3_K8U_C8U,
     FORMAT_D4_CONSTANT_32F,
     FORMAT_D4N_K16U_C15U,
+    FORMAT_D4N_K8U_C7U,
     FORMAT_D9I1_K16U_C16U,
+    FORMAT_D9I1_K8U_C8U,
     FORMAT_D9I3_K16U_C16U,
+    FORMAT_D9I3_K8U_C8U,
     FORMAT_DA_CONSTANT_32F,
     FORMAT_DA_IDENTITY,
     FORMAT_DA_K16U_C16U,
     FORMAT_DA_K32F_C32F,
+    FORMAT_DA_K8U_C8U,
     decodeCurve,
-    knotScaleFromTrunc
+    knotScaleFromTrunc,
+    sampleDecodedCurve
 } from "./curves.js";
 import {
+    maximumQuaternionLerpAngularDifference,
+    normalizeQuaternion,
     normalizeQuaternionSeries,
-    quaternionAngularDifference
+    quaternionAngularDifference,
+    QUATERNION_SEGMENT_SAMPLE_FRACTIONS
 } from "../../cmf/core/utils/quaternion.js";
 
 const DEFAULT_LINEAR_TOLERANCE = 0.1;
 const DEFAULT_ORIENTATION_TOLERANCE = Math.PI / 1800;
 const UINT16_MAX = 0xffff;
+const UINT8_MAX = 0xff;
 const CONTROL15_MAX = 0x7fff;
+const CONTROL7_MAX = 0x7f;
 const FLOAT_BITS = new DataView(new ArrayBuffer(4));
 
 function assertCurve(curve, dimension)
@@ -72,9 +87,92 @@ function uncompressedCurve(curve)
     };
 }
 
-function candidateWithinTolerance(source, candidate, dimension, tolerance)
+function alignedPayloadBytes(length, componentSize)
+{
+    return Math.ceil(length * componentSize / 4) * 4;
+}
+
+function estimatedCurveBytes(curve)
+{
+    const count = curve.knotsControls?.length ?? 0;
+    switch (curve.format)
+    {
+        case FORMAT_DA_K32F_C32F:
+            return 44 + curve.knots.length * 4 + curve.controls.length * 4;
+
+        case FORMAT_DA_IDENTITY:
+            return 4;
+
+        case FORMAT_DA_CONSTANT_32F:
+            return 24 + curve.controls.length * 4;
+
+        case FORMAT_D3_CONSTANT_32F:
+            return 16;
+
+        case FORMAT_D4_CONSTANT_32F:
+            return 20;
+
+        case FORMAT_DA_K16U_C16U:
+            return 44 + curve.controlScaleOffsets.length * 4 + alignedPayloadBytes(count, 2);
+
+        case FORMAT_DA_K8U_C8U:
+            return 44 + curve.controlScaleOffsets.length * 4 + alignedPayloadBytes(count, 1);
+
+        case FORMAT_D4N_K16U_C15U:
+            return 28 + alignedPayloadBytes(count, 2);
+
+        case FORMAT_D4N_K8U_C7U:
+            return 28 + alignedPayloadBytes(count, 1);
+
+        case FORMAT_D3_K16U_C16U:
+        case FORMAT_D3I1_K16U_C16U:
+        case FORMAT_D9I3_K16U_C16U:
+            return 48 + alignedPayloadBytes(count, 2);
+
+        case FORMAT_D3_K8U_C8U:
+        case FORMAT_D3I1_K8U_C8U:
+        case FORMAT_D9I3_K8U_C8U:
+            return 48 + alignedPayloadBytes(count, 1);
+
+        case FORMAT_D9I1_K16U_C16U:
+            return 32 + alignedPayloadBytes(count, 2);
+
+        case FORMAT_D9I1_K8U_C8U:
+            return 32 + alignedPayloadBytes(count, 1);
+
+        case FORMAT_D3I1_K32F_C32F:
+            return 48 + count * 4;
+
+        default:
+            return Infinity;
+    }
+}
+
+function valuesWithinTolerance(source, decoded, dimension, tolerance, asQuaternion)
+{
+    if (asQuaternion)
+    {
+        return quaternionAngularDifference(
+            normalizeQuaternion(source, "source GR2 orientation"),
+            normalizeQuaternion(decoded, "decoded GR2 orientation")
+        ) <= tolerance;
+    }
+    let squareError = 0;
+    for (let component = 0; component < dimension; component++)
+    {
+        const difference = source[component] - decoded[component];
+        squareError += difference * difference;
+    }
+    return Math.sqrt(squareError) <= tolerance;
+}
+
+function candidateWithinTolerance(source, candidate, dimension, tolerance, duration, asQuaternion)
 {
     const decoded = decodeCurve(candidate, dimension);
+    if (decoded.knots.length !== source.knots.length || decoded.controls.length !== source.controls.length)
+    {
+        return false;
+    }
     for (let index = 1; index < decoded.knots.length; index++)
     {
         if ((source.degree | 0) <= 1 && decoded.knots[index] <= decoded.knots[index - 1]) return false;
@@ -82,23 +180,87 @@ function candidateWithinTolerance(source, candidate, dimension, tolerance)
     for (let key = 0; key < source.knots.length; key++)
     {
         const offset = key * dimension;
-        if (dimension === 4)
+        if (!valuesWithinTolerance(
+            source.controls.slice(offset, offset + dimension),
+            decoded.controls.slice(offset, offset + dimension),
+            dimension,
+            tolerance,
+            asQuaternion
+        )) return false;
+    }
+
+    const boundaries = [ 0, ...source.knots, ...decoded.knots ];
+    if (Number.isFinite(duration) && duration >= 0) boundaries.push(duration);
+    boundaries.sort((a, b) => a - b);
+    const uniqueBoundaries = boundaries.filter((time, index) => index === 0 || time !== boundaries[index - 1]);
+    const fractions = asQuaternion ? QUATERNION_SEGMENT_SAMPLE_FRACTIONS : [ 0.5 ];
+    const sampleTimes = [];
+    for (let index = 0; index < uniqueBoundaries.length; index++)
+    {
+        const time = uniqueBoundaries[index];
+        if (index)
         {
-            if (quaternionAngularDifference(
-                source.controls.slice(offset, offset + 4),
-                decoded.controls.slice(offset, offset + 4)
-            ) > tolerance) return false;
-            continue;
+            const previous = uniqueBoundaries[index - 1];
+            for (const fraction of fractions) sampleTimes.push(previous + (time - previous) * fraction);
         }
-        let squareError = 0;
-        for (let component = 0; component < dimension; component++)
+        sampleTimes.push(time);
+    }
+    const sourceCurve = { ...source, dimension };
+    const sourceValue = new Array(dimension);
+    const decodedValue = new Array(dimension);
+    const curveDuration = duration ?? source.knots[source.knots.length - 1];
+    for (const time of sampleTimes)
+    {
+        sampleDecodedCurve(sourceValue, sourceCurve, time, false, curveDuration);
+        sampleDecodedCurve(decodedValue, decoded, time, false, curveDuration);
+        if (!valuesWithinTolerance(sourceValue, decodedValue, dimension, tolerance, asQuaternion)) return false;
+    }
+    if (asQuaternion && (source.degree | 0) === 1)
+    {
+        const sourceStart = new Array(4);
+        const sourceEnd = new Array(4);
+        const decodedStart = new Array(4);
+        const decodedEnd = new Array(4);
+        for (let index = 1; index < uniqueBoundaries.length; index++)
         {
-            const difference = source.controls[offset + component] - decoded.controls[offset + component];
-            squareError += difference * difference;
+            const start = uniqueBoundaries[index - 1];
+            const end = uniqueBoundaries[index];
+            sampleDecodedCurve(sourceStart, sourceCurve, start, false, curveDuration);
+            sampleDecodedCurve(sourceEnd, sourceCurve, end, false, curveDuration);
+            sampleDecodedCurve(decodedStart, decoded, start, false, curveDuration);
+            sampleDecodedCurve(decodedEnd, decoded, end, false, curveDuration);
+            try
+            {
+                if (maximumQuaternionLerpAngularDifference(
+                    sourceStart, sourceEnd, decodedStart, decodedEnd
+                ) > tolerance) return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        if (Math.sqrt(squareError) > tolerance) return false;
     }
     return true;
+}
+
+function selectSmallestCandidate(source, candidates, dimension, tolerance, duration, asQuaternion = false)
+{
+    let best = uncompressedCurve(source);
+    let bestSize = estimatedCurveBytes(best);
+    for (const candidate of candidates)
+    {
+        if (!candidate || !candidateWithinTolerance(
+            source, candidate, dimension, tolerance, duration, asQuaternion
+        )) continue;
+        const size = estimatedCurveBytes(candidate);
+        if (size < bestSize)
+        {
+            best = candidate;
+            bestSize = size;
+        }
+    }
+    return best;
 }
 
 function high16(value)
@@ -167,27 +329,21 @@ function allControlsEqual(controls, dimension)
 {
     for (let index = dimension; index < controls.length; index++)
     {
-        if (Math.abs(controls[index] - controls[index % dimension]) > 1e-7) return false;
+        if (controls[index] !== controls[index % dimension]) return false;
     }
     return true;
 }
 
-function isIdentity(controls, dimension)
+function isIdentity(controls, identity)
 {
-    const identity = dimension === 3
-        ? [ 0, 0, 0 ]
-        : dimension === 4
-            ? [ 0, 0, 0, 1 ]
-            : dimension === 9
-                ? [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]
-                : null;
-    return !!identity && identity.every((value, index) => Math.abs(controls[index] - value) <= 1e-7);
+    return Array.isArray(identity) && identity.length === controls.length &&
+        identity.every((value, index) => controls[index] === value);
 }
 
-function constantCurve(curve, dimension)
+function constantCurve(curve, dimension, identity)
 {
     const controls = curve.controls.slice(0, dimension).map(Math.fround);
-    if (isIdentity(controls, dimension))
+    if (isIdentity(controls, identity))
     {
         return { format: FORMAT_DA_IDENTITY, degree: 0, dimension };
     }
@@ -196,12 +352,12 @@ function constantCurve(curve, dimension)
     return { format: FORMAT_DA_CONSTANT_32F, degree: 0, controls };
 }
 
-function encodeDaK16(curve, dimension)
+function encodeDaK(curve, dimension, maximum, format)
 {
-    const knots = knotPacking(curve.knots, UINT16_MAX);
-    const controls = componentPacking(curve.controls, dimension, UINT16_MAX);
+    const knots = knotPacking(curve.knots, maximum);
+    const controls = componentPacking(curve.controls, dimension, maximum);
     return {
-        format: FORMAT_DA_K16U_C16U,
+        format,
         degree: curve.degree | 0,
         oneOverKnotScaleTrunc: knots.oneOverKnotScaleTrunc,
         controlScaleOffsets: [ ...controls.scales, ...controls.offsets ],
@@ -209,17 +365,99 @@ function encodeDaK16(curve, dimension)
     };
 }
 
-function encodeD3K16(curve)
+function encodeD3K(curve, maximum, format)
 {
-    const knots = knotPacking(curve.knots, UINT16_MAX);
-    const controls = componentPacking(curve.controls, 3, UINT16_MAX);
+    const knots = knotPacking(curve.knots, maximum);
+    const controls = componentPacking(curve.controls, 3, maximum);
     return {
-        format: FORMAT_D3_K16U_C16U,
+        format,
         degree: curve.degree | 0,
         oneOverKnotScaleTrunc: knots.oneOverKnotScaleTrunc,
         controlScales: controls.scales,
         controlOffsets: controls.offsets,
         knotsControls: [ ...knots.values, ...controls.values ]
+    };
+}
+
+function d3I1Shape(controls)
+{
+    const count = controls.length / 3;
+    let dominant = 0;
+    let dominantMinimum = Infinity;
+    let dominantMaximum = -Infinity;
+    let dominantRange = -Infinity;
+    let minimumIndex = 0;
+    let maximumIndex = 0;
+
+    for (let component = 0; component < 3; component++)
+    {
+        let minimum = Infinity;
+        let maximum = -Infinity;
+        let lowIndex = 0;
+        let highIndex = 0;
+        for (let key = 0; key < count; key++)
+        {
+            const value = controls[key * 3 + component];
+            if (value < minimum)
+            {
+                minimum = value;
+                lowIndex = key;
+            }
+            if (value > maximum)
+            {
+                maximum = value;
+                highIndex = key;
+            }
+        }
+        const range = maximum - minimum;
+        if (range > dominantRange)
+        {
+            dominant = component;
+            dominantMinimum = minimum;
+            dominantMaximum = maximum;
+            dominantRange = range;
+            minimumIndex = lowIndex;
+            maximumIndex = highIndex;
+        }
+    }
+
+    const span = dominantMaximum - dominantMinimum;
+    if (!(span > 0)) return null;
+    const offsets = controls.slice(minimumIndex * 3, minimumIndex * 3 + 3).map(Math.fround);
+    const maximumControl = controls.slice(maximumIndex * 3, maximumIndex * 3 + 3);
+    const scales = maximumControl.map((value, component) => Math.fround(value - offsets[component]));
+    const parameters = new Array(count);
+    for (let key = 0; key < count; key++)
+    {
+        parameters[key] = (controls[key * 3 + dominant] - dominantMinimum) / span;
+    }
+    return { offsets, scales, parameters };
+}
+
+function encodeD3I1Float(curve, shape)
+{
+    return {
+        format: FORMAT_D3I1_K32F_C32F,
+        degree: curve.degree | 0,
+        controlScales: shape.scales,
+        controlOffsets: shape.offsets,
+        knotsControls: [ ...curve.knots.map(Math.fround), ...shape.parameters.map(Math.fround) ]
+    };
+}
+
+function encodeD3I1(curve, shape, maximum, format)
+{
+    const knots = knotPacking(curve.knots, maximum);
+    return {
+        format,
+        degree: curve.degree | 0,
+        oneOverKnotScaleTrunc: knots.oneOverKnotScaleTrunc,
+        controlScales: shape.scales.map(value => Math.fround(value / maximum)),
+        controlOffsets: shape.offsets,
+        knotsControls: [
+            ...knots.values,
+            ...shape.parameters.map(value => Math.max(0, Math.min(maximum, Math.round(value * maximum))))
+        ]
     };
 }
 
@@ -241,16 +479,16 @@ function scaleCurveShape(controls)
     return uniform ? "uniform" : "diagonal";
 }
 
-function encodeD9I16(curve, shape)
+function encodeD9I(curve, shape, maximum, uniformFormat, diagonalFormat)
 {
-    const knots = knotPacking(curve.knots, UINT16_MAX);
+    const knots = knotPacking(curve.knots, maximum);
     if (shape === "uniform")
     {
         const diagonal = [];
         for (let index = 0; index < curve.controls.length; index += 9) diagonal.push(curve.controls[index]);
-        const packed = componentPacking(diagonal, 1, UINT16_MAX);
+        const packed = componentPacking(diagonal, 1, maximum);
         return {
-            format: FORMAT_D9I1_K16U_C16U,
+            format: uniformFormat,
             degree: curve.degree | 0,
             oneOverKnotScaleTrunc: knots.oneOverKnotScaleTrunc,
             controlScales: packed.scales,
@@ -264,9 +502,9 @@ function encodeD9I16(curve, shape)
     {
         diagonal.push(curve.controls[index], curve.controls[index + 4], curve.controls[index + 8]);
     }
-    const packed = componentPacking(diagonal, 3, UINT16_MAX);
+    const packed = componentPacking(diagonal, 3, maximum);
     return {
-        format: FORMAT_D9I3_K16U_C16U,
+        format: diagonalFormat,
         degree: curve.degree | 0,
         oneOverKnotScaleTrunc: knots.oneOverKnotScaleTrunc,
         controlScales: packed.scales,
@@ -275,15 +513,15 @@ function encodeD9I16(curve, shape)
     };
 }
 
-function selectorForRange(minimum, maximum)
+function selectorForRange(minimum, maximum, multiplier, controlMaximum)
 {
     let best = null;
     for (let selector = 0; selector < D4N_SCALE_TABLE.length; selector++)
     {
         const
-            scale = Math.fround(D4N_SCALE_TABLE[selector] * D4N_SCALE_TABLE_MULTIPLIER_16),
+            scale = Math.fround(D4N_SCALE_TABLE[selector] * multiplier),
             offset = D4N_OFFSET_TABLE[selector],
-            end = CONTROL15_MAX * scale + offset,
+            end = controlMaximum * scale + offset,
             lower = Math.min(offset, end) - Math.abs(scale) * 0.51,
             upper = Math.max(offset, end) + Math.abs(scale) * 0.51;
         if (minimum < lower || maximum > upper) continue;
@@ -292,7 +530,7 @@ function selectorForRange(minimum, maximum)
     return best;
 }
 
-function encodeD4n16(curve, tolerance)
+function encodeD4n(curve, tolerance, maximum, controlMaximum, multiplier, format)
 {
     const controls = normalizeQuaternionSeries(curve.controls.slice(), "GR2 orientation compression");
     const omitted = new Array(controls.length / 4);
@@ -316,11 +554,11 @@ function encodeD4n16(curve, tolerance)
     }
 
     const selectors = ranges.map((range) => range.minimum === Infinity
-        ? { selector: 7, scale: Math.fround(D4N_SCALE_TABLE[7] * D4N_SCALE_TABLE_MULTIPLIER_16), offset: D4N_OFFSET_TABLE[7] }
-        : selectorForRange(range.minimum, range.maximum));
+        ? { selector: 7, scale: Math.fround(D4N_SCALE_TABLE[7] * multiplier), offset: D4N_OFFSET_TABLE[7] }
+        : selectorForRange(range.minimum, range.maximum, multiplier, controlMaximum));
     if (selectors.some((selector) => !selector)) return null;
 
-    const knots = floatKnotPacking(curve.knots, UINT16_MAX);
+    const knots = floatKnotPacking(curve.knots, maximum);
     const packedControls = new Array(omitted.length * 3);
     for (let key = 0; key < omitted.length; key++)
     {
@@ -334,17 +572,20 @@ function encodeD4n16(curve, tolerance)
         const quantize = component =>
         {
             const entry = selectors[component];
-            return Math.max(0, Math.min(CONTROL15_MAX,
+            return Math.max(0, Math.min(controlMaximum,
                 Math.round((controls[controlOffset + component] - entry.offset) / entry.scale)));
         };
+        const signBit = maximum === UINT8_MAX ? 0x80 : 0x8000;
+        const selectorShift = maximum === UINT8_MAX ? 6 : 14;
+        const lowSelectorShift = maximum === UINT8_MAX ? 7 : 15;
         packedControls[packedOffset] = quantize(swizzle2) |
-            (controls[controlOffset + swizzle1] < 0 ? 0x8000 : 0);
-        packedControls[packedOffset + 1] = quantize(swizzle3) | ((swizzle1 & 2) << 14);
-        packedControls[packedOffset + 2] = quantize(swizzle4) | ((swizzle1 & 1) << 15);
+            (controls[controlOffset + swizzle1] < 0 ? signBit : 0);
+        packedControls[packedOffset + 1] = quantize(swizzle3) | ((swizzle1 & 2) << selectorShift);
+        packedControls[packedOffset + 2] = quantize(swizzle4) | ((swizzle1 & 1) << lowSelectorShift);
     }
 
     const candidate = {
-        format: FORMAT_D4N_K16U_C15U,
+        format,
         degree: curve.degree | 0,
         scaleOffsetTableEntries: selectors.reduce((value, entry, component) =>
             value | (entry.selector << (component * 4)), 0),
@@ -361,7 +602,7 @@ function encodeD4n16(curve, tolerance)
         const offset = key * 4;
         if (quaternionAngularDifference(
             controls.slice(offset, offset + 4),
-            decoded.controls.slice(offset, offset + 4)
+            normalizeQuaternion(decoded.controls.slice(offset, offset + 4), "decoded GR2 orientation")
         ) > tolerance)
         {
             return null;
@@ -380,43 +621,65 @@ function encodeD4n16(curve, tolerance)
 export function compressGr2Curve(curve, dimension, options = {})
 {
     assertCurve(curve, dimension);
-    if (curve.knots.length === 1 || allControlsEqual(curve.controls, dimension))
+    const asQuaternion = options.asQuaternion === true;
+    if (asQuaternion && dimension !== 4)
     {
-        return constantCurve(curve, dimension);
+        throw new TypeError("GR2 quaternion compression requires dimension 4");
     }
-    if (options.compressed === false)
+    const source = asQuaternion
+        ? {
+            ...curve,
+            controls: normalizeQuaternionSeries(curve.controls.slice(), "GR2 orientation compression")
+        }
+        : curve;
+    if (source.knots.length === 1 || allControlsEqual(source.controls, dimension))
     {
-        return uncompressedCurve(curve);
+        return constantCurve(source, dimension, options.identity);
     }
-    if (dimension === 4)
+    if (options.compressed === false || (source.degree | 0) > 1)
+    {
+        return uncompressedCurve(source);
+    }
+    if (asQuaternion)
     {
         const tolerance = options.orientationTolerance ?? DEFAULT_ORIENTATION_TOLERANCE;
-        const packed = encodeD4n16(curve, tolerance);
-        if (packed) return packed;
-        const general = encodeDaK16(curve, dimension);
-        return candidateWithinTolerance(curve, general, dimension, tolerance) ? general : uncompressedCurve(curve);
+        return selectSmallestCandidate(source, [
+            encodeD4n(source, tolerance, UINT8_MAX, CONTROL7_MAX,
+                D4N_SCALE_TABLE_MULTIPLIER_8, FORMAT_D4N_K8U_C7U),
+            encodeD4n(source, tolerance, UINT16_MAX, CONTROL15_MAX,
+                D4N_SCALE_TABLE_MULTIPLIER_16, FORMAT_D4N_K16U_C15U)
+        ], dimension, tolerance, options.duration, true);
     }
     if (dimension === 3)
     {
-        const candidate = encodeD3K16(curve);
         const tolerance = options.positionTolerance ?? DEFAULT_LINEAR_TOLERANCE;
-        return candidateWithinTolerance(curve, candidate, dimension, tolerance) ? candidate : uncompressedCurve(curve);
+        const shape = d3I1Shape(source.controls);
+        return selectSmallestCandidate(source, [
+            shape && encodeD3I1(source, shape, UINT8_MAX, FORMAT_D3I1_K8U_C8U),
+            shape && encodeD3I1(source, shape, UINT16_MAX, FORMAT_D3I1_K16U_C16U),
+            encodeD3K(source, UINT8_MAX, FORMAT_D3_K8U_C8U),
+            encodeD3K(source, UINT16_MAX, FORMAT_D3_K16U_C16U),
+            shape && encodeD3I1Float(source, shape)
+        ], dimension, tolerance, options.duration);
     }
     if (dimension === 9)
     {
-        const shape = scaleCurveShape(curve.controls);
+        const shape = scaleCurveShape(source.controls);
         const tolerance = options.scaleShearTolerance ?? DEFAULT_LINEAR_TOLERANCE;
-        if (shape)
-        {
-            const candidate = encodeD9I16(curve, shape);
-            if (candidateWithinTolerance(curve, candidate, dimension, tolerance)) return candidate;
-        }
-        const general = encodeDaK16(curve, dimension);
-        return candidateWithinTolerance(curve, general, dimension, tolerance) ? general : uncompressedCurve(curve);
+        return selectSmallestCandidate(source, [
+            shape && encodeD9I(source, shape, UINT8_MAX,
+                FORMAT_D9I1_K8U_C8U, FORMAT_D9I3_K8U_C8U),
+            shape && encodeD9I(source, shape, UINT16_MAX,
+                FORMAT_D9I1_K16U_C16U, FORMAT_D9I3_K16U_C16U),
+            encodeDaK(source, dimension, UINT8_MAX, FORMAT_DA_K8U_C8U),
+            encodeDaK(source, dimension, UINT16_MAX, FORMAT_DA_K16U_C16U)
+        ], dimension, tolerance, options.duration);
     }
-    const general = encodeDaK16(curve, dimension);
     const tolerance = options.tolerance ?? DEFAULT_LINEAR_TOLERANCE;
-    return candidateWithinTolerance(curve, general, dimension, tolerance) ? general : uncompressedCurve(curve);
+    return selectSmallestCandidate(source, [
+        encodeDaK(source, dimension, UINT8_MAX, FORMAT_DA_K8U_C8U),
+        encodeDaK(source, dimension, UINT16_MAX, FORMAT_DA_K16U_C16U)
+    ], dimension, tolerance, options.duration);
 }
 
 /** Return the default Carbon curve tolerances used by the pure-JS writer. */

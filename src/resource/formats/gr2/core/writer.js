@@ -4,15 +4,25 @@ import { buildCmfFromShared, buildSharedFromCmf } from "../../cmf/core/shared.js
 import { buildGr2Animations } from "../../cmf/core/gr2Compat.js";
 import { composeCmfTransform, invertMatrix4, multiplyMatrix4 } from "../../cmf/core/utils/matrix.js";
 import { compressGr2Curve } from "./curveCompressor.js";
-import { gr2Type, gr2Variant, writeGr2Container } from "./container.js";
+import {
+    GR2_SECTION_COMPRESSION_BITKNIT2_RAW,
+    GR2_SECTION_COMPRESSION_NONE,
+    gr2Type,
+    gr2Variant,
+    writeGr2Container
+} from "./container.js";
+import { CURVE_FORMATS as F } from "./curves.js";
 import { GRANNY_MEMBER_TYPES as M } from "./reader.js";
 
+const POSITION_IDENTITY = Object.freeze([ 0, 0, 0 ]);
+const ORIENTATION_IDENTITY = Object.freeze([ 0, 0, 0, 1 ]);
+const SCALE_SHEAR_IDENTITY = Object.freeze([ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]);
 const member = (type, name, ref = null, arrayWidth = 0) => ({ type, name, ref, arrayWidth });
 const identityTransform = () => ({
     flags: 7,
-    position: [ 0, 0, 0 ],
-    orientation: [ 0, 0, 0, 1 ],
-    scaleShear: [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]
+    position: [ ...POSITION_IDENTITY ],
+    orientation: [ ...ORIENTATION_IDENTITY ],
+    scaleShear: [ ...SCALE_SHEAR_IDENTITY ]
 });
 
 const Int32Element = gr2Type("Int32Element", [ member(M.Int32, "Int32") ]);
@@ -26,6 +36,11 @@ const CurveDataHeader = gr2Type("CurveDataHeader", [
     member(M.UInt8, "Degree")
 ]);
 
+const CurveDataDaKeyframes32f = gr2Type("CurveDataDaKeyframes32f", [
+    member(M.Inline, "CurveDataHeader_DaKeyframes32f", CurveDataHeader),
+    member(M.Int16, "Dimension"),
+    member(M.ReferenceToArray, "Controls", Real32Element)
+]);
 const CurveDataDaIdentity = gr2Type("CurveDataDaIdentity", [
     member(M.Inline, "CurveDataHeader_DaIdentity", CurveDataHeader),
     member(M.Int16, "Dimension")
@@ -57,11 +72,23 @@ const CurveDataDaK16uC16u = gr2Type("CurveDataDaK16uC16u", [
     member(M.ReferenceToArray, "ControlScaleOffsets", Real32Element),
     member(M.ReferenceToArray, "KnotsControls", UInt16Element)
 ]);
+const CurveDataDaK8uC8u = gr2Type("CurveDataDaK8uC8u", [
+    member(M.Inline, "CurveDataHeader_DaK8uC8u", CurveDataHeader),
+    member(M.UInt16, "OneOverKnotScaleTrunc"),
+    member(M.ReferenceToArray, "ControlScaleOffsets", Real32Element),
+    member(M.ReferenceToArray, "KnotsControls", UInt8Element)
+]);
 const CurveDataD4nK16uC15u = gr2Type("CurveDataD4nK16uC15u", [
     member(M.Inline, "CurveDataHeader_D4nK16uC15u", CurveDataHeader),
     member(M.UInt16, "ScaleOffsetTableEntries"),
     member(M.Real32, "OneOverKnotScale"),
     member(M.ReferenceToArray, "KnotsControls", UInt16Element)
+]);
+const CurveDataD4nK8uC7u = gr2Type("CurveDataD4nK8uC7u", [
+    member(M.Inline, "CurveDataHeader_D4nK8uC7u", CurveDataHeader),
+    member(M.UInt16, "ScaleOffsetTableEntries"),
+    member(M.Real32, "OneOverKnotScale"),
+    member(M.ReferenceToArray, "KnotsControls", UInt8Element)
 ]);
 const CurveDataD3K16uC16u = gr2Type("CurveDataD3K16uC16u", [
     member(M.Inline, "CurveDataHeader_D3K16uC16u", CurveDataHeader),
@@ -70,6 +97,13 @@ const CurveDataD3K16uC16u = gr2Type("CurveDataD3K16uC16u", [
     member(M.Real32, "ControlOffsets", null, 3),
     member(M.ReferenceToArray, "KnotsControls", UInt16Element)
 ]);
+const CurveDataD3K8uC8u = gr2Type("CurveDataD3K8uC8u", [
+    member(M.Inline, "CurveDataHeader_D3K8uC8u", CurveDataHeader),
+    member(M.UInt16, "OneOverKnotScaleTrunc"),
+    member(M.Real32, "ControlScales", null, 3),
+    member(M.Real32, "ControlOffsets", null, 3),
+    member(M.ReferenceToArray, "KnotsControls", UInt8Element)
+]);
 const CurveDataD9I1K16uC16u = gr2Type("CurveDataD9I1K16uC16u", [
     member(M.Inline, "CurveDataHeader_D9I1K16uC16u", CurveDataHeader),
     member(M.UInt16, "OneOverKnotScaleTrunc"),
@@ -77,12 +111,47 @@ const CurveDataD9I1K16uC16u = gr2Type("CurveDataD9I1K16uC16u", [
     member(M.Real32, "ControlOffset"),
     member(M.ReferenceToArray, "KnotsControls", UInt16Element)
 ]);
+const CurveDataD9I1K8uC8u = gr2Type("CurveDataD9I1K8uC8u", [
+    member(M.Inline, "CurveDataHeader_D9I1K8uC8u", CurveDataHeader),
+    member(M.UInt16, "OneOverKnotScaleTrunc"),
+    member(M.Real32, "ControlScale"),
+    member(M.Real32, "ControlOffset"),
+    member(M.ReferenceToArray, "KnotsControls", UInt8Element)
+]);
 const CurveDataD9I3K16uC16u = gr2Type("CurveDataD9I3K16uC16u", [
     member(M.Inline, "CurveDataHeader_D9I3K16uC16u", CurveDataHeader),
     member(M.UInt16, "OneOverKnotScaleTrunc"),
     member(M.Real32, "ControlScales", null, 3),
     member(M.Real32, "ControlOffsets", null, 3),
     member(M.ReferenceToArray, "KnotsControls", UInt16Element)
+]);
+const CurveDataD9I3K8uC8u = gr2Type("CurveDataD9I3K8uC8u", [
+    member(M.Inline, "CurveDataHeader_D9I3K8uC8u", CurveDataHeader),
+    member(M.UInt16, "OneOverKnotScaleTrunc"),
+    member(M.Real32, "ControlScales", null, 3),
+    member(M.Real32, "ControlOffsets", null, 3),
+    member(M.ReferenceToArray, "KnotsControls", UInt8Element)
+]);
+const CurveDataD3I1K32fC32f = gr2Type("CurveDataD3I1K32fC32f", [
+    member(M.Inline, "CurveDataHeader_D3I1K32fC32f", CurveDataHeader),
+    member(M.Int16, "Padding"),
+    member(M.Real32, "ControlScales", null, 3),
+    member(M.Real32, "ControlOffsets", null, 3),
+    member(M.ReferenceToArray, "KnotsControls", Real32Element)
+]);
+const CurveDataD3I1K16uC16u = gr2Type("CurveDataD3I1K16uC16u", [
+    member(M.Inline, "CurveDataHeader_D3I1K16uC16u", CurveDataHeader),
+    member(M.UInt16, "OneOverKnotScaleTrunc"),
+    member(M.Real32, "ControlScales", null, 3),
+    member(M.Real32, "ControlOffsets", null, 3),
+    member(M.ReferenceToArray, "KnotsControls", UInt16Element)
+]);
+const CurveDataD3I1K8uC8u = gr2Type("CurveDataD3I1K8uC8u", [
+    member(M.Inline, "CurveDataHeader_D3I1K8uC8u", CurveDataHeader),
+    member(M.UInt16, "OneOverKnotScaleTrunc"),
+    member(M.Real32, "ControlScales", null, 3),
+    member(M.Real32, "ControlOffsets", null, 3),
+    member(M.ReferenceToArray, "KnotsControls", UInt8Element)
 ]);
 const Curve = gr2Type("Curve", [ member(M.VariantReference, "CurveData") ]);
 const TransformTrack = gr2Type("TransformTrack", [
@@ -289,10 +358,7 @@ const FileInfo = gr2Type("FileInfo", [
 
 const STATIC_TYPES = [
     Int32Element, Int16Element, UInt16Element, UInt8Element, Real32Element, StringElement,
-    CurveDataHeader, CurveDataDaIdentity, CurveDataDaConstant32f, CurveDataD3Constant32f,
-    CurveDataD4Constant32f, CurveDataDaK32fC32f, CurveDataDaK16uC16u,
-    CurveDataD4nK16uC15u, CurveDataD3K16uC16u, CurveDataD9I1K16uC16u,
-    CurveDataD9I3K16uC16u, Curve, TransformTrack, VectorTrack, TransformLodError,
+    CurveDataHeader, Curve, TransformTrack, VectorTrack, TransformLodError,
     TextTrackEntry, TextTrack, PeriodicLoop, TrackGroup, Animation, ArtToolInfo,
     ExporterInfo, TextureLayout, TextureMipLevel, TextureImage, Texture, MaterialMap,
     Material, Bone, Skeleton, VertexAnnotationSet, VertexData, TriMaterialGroup,
@@ -307,9 +373,16 @@ function validateOptions(options)
     {
         throw new CjsFormatWriteError(`GR2 writer unknown tangentMode "${tangentMode}"`);
     }
+    const sectionCompression = options.sectionCompression ?? GR2_SECTION_COMPRESSION_NONE;
+    if (![ GR2_SECTION_COMPRESSION_NONE, GR2_SECTION_COMPRESSION_BITKNIT2_RAW ].includes(sectionCompression))
+    {
+        throw new CjsFormatWriteError(`GR2 writer unknown sectionCompression "${sectionCompression}"`);
+    }
     return {
         tangentMode,
+        sectionCompression,
         compressedCurves: options.compressedCurves !== false,
+        tolerance: options.tolerance,
         positionTolerance: options.positionTolerance,
         orientationTolerance: options.orientationTolerance,
         scaleShearTolerance: options.scaleShearTolerance,
@@ -606,55 +679,83 @@ function buildSkeletons(cmf)
     });
 }
 
-function curveVariant(curve)
+function curveVariant(curve, dynamicTypes)
 {
     const header = { Format: curve.format, Degree: curve.degree | 0 };
+    const variant = (type, value) =>
+    {
+        if (!dynamicTypes.includes(type)) dynamicTypes.push(type);
+        return gr2Variant(type, value);
+    };
     switch (curve.format)
     {
-        case 1:
-            return gr2Variant(CurveDataDaK32fC32f, {
+        case F.DA_KEYFRAMES_32F:
+            return variant(CurveDataDaKeyframes32f, {
+                CurveDataHeader_DaKeyframes32f: header,
+                Dimension: curve.dimension,
+                Controls: curve.controls
+            });
+
+        case F.DA_K32F_C32F:
+            return variant(CurveDataDaK32fC32f, {
                 CurveDataHeader_DaK32fC32f: header, Padding: 0,
                 Knots: curve.knots, Controls: curve.controls
             });
 
-        case 2:
-            return gr2Variant(CurveDataDaIdentity, {
+        case F.DA_IDENTITY:
+            return variant(CurveDataDaIdentity, {
                 CurveDataHeader_DaIdentity: header, Dimension: curve.dimension
             });
 
-        case 3:
-            return gr2Variant(CurveDataDaConstant32f, {
+        case F.DA_CONSTANT_32F:
+            return variant(CurveDataDaConstant32f, {
                 CurveDataHeader_DaConstant32f: header, Padding: 0, Controls: curve.controls
             });
 
-        case 4:
-            return gr2Variant(CurveDataD3Constant32f, {
+        case F.D3_CONSTANT_32F:
+            return variant(CurveDataD3Constant32f, {
                 CurveDataHeader_D3Constant32f: header, Padding: 0, Controls: curve.controls
             });
 
-        case 5:
-            return gr2Variant(CurveDataD4Constant32f, {
+        case F.D4_CONSTANT_32F:
+            return variant(CurveDataD4Constant32f, {
                 CurveDataHeader_D4Constant32f: header, Padding: 0, Controls: curve.controls
             });
 
-        case 6:
-            return gr2Variant(CurveDataDaK16uC16u, {
+        case F.DA_K16U_C16U:
+            return variant(CurveDataDaK16uC16u, {
                 CurveDataHeader_DaK16uC16u: header,
                 OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
                 ControlScaleOffsets: curve.controlScaleOffsets,
                 KnotsControls: curve.knotsControls
             });
 
-        case 8:
-            return gr2Variant(CurveDataD4nK16uC15u, {
+        case F.DA_K8U_C8U:
+            return variant(CurveDataDaK8uC8u, {
+                CurveDataHeader_DaK8uC8u: header,
+                OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
+                ControlScaleOffsets: curve.controlScaleOffsets,
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D4N_K16U_C15U:
+            return variant(CurveDataD4nK16uC15u, {
                 CurveDataHeader_D4nK16uC15u: header,
                 ScaleOffsetTableEntries: curve.scaleOffsetTableEntries,
                 OneOverKnotScale: curve.oneOverKnotScale,
                 KnotsControls: curve.knotsControls
             });
 
-        case 10:
-            return gr2Variant(CurveDataD3K16uC16u, {
+        case F.D4N_K8U_C7U:
+            return variant(CurveDataD4nK8uC7u, {
+                CurveDataHeader_D4nK8uC7u: header,
+                ScaleOffsetTableEntries: curve.scaleOffsetTableEntries,
+                OneOverKnotScale: curve.oneOverKnotScale,
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D3_K16U_C16U:
+            return variant(CurveDataD3K16uC16u, {
                 CurveDataHeader_D3K16uC16u: header,
                 OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
                 ControlScales: curve.controlScales,
@@ -662,8 +763,17 @@ function curveVariant(curve)
                 KnotsControls: curve.knotsControls
             });
 
-        case 12:
-            return gr2Variant(CurveDataD9I1K16uC16u, {
+        case F.D3_K8U_C8U:
+            return variant(CurveDataD3K8uC8u, {
+                CurveDataHeader_D3K8uC8u: header,
+                OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
+                ControlScales: curve.controlScales,
+                ControlOffsets: curve.controlOffsets,
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D9I1_K16U_C16U:
+            return variant(CurveDataD9I1K16uC16u, {
                 CurveDataHeader_D9I1K16uC16u: header,
                 OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
                 ControlScale: curve.controlScales[0],
@@ -671,9 +781,54 @@ function curveVariant(curve)
                 KnotsControls: curve.knotsControls
             });
 
-        case 13:
-            return gr2Variant(CurveDataD9I3K16uC16u, {
+        case F.D9I3_K16U_C16U:
+            return variant(CurveDataD9I3K16uC16u, {
                 CurveDataHeader_D9I3K16uC16u: header,
+                OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
+                ControlScales: curve.controlScales,
+                ControlOffsets: curve.controlOffsets,
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D9I1_K8U_C8U:
+            return variant(CurveDataD9I1K8uC8u, {
+                CurveDataHeader_D9I1K8uC8u: header,
+                OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
+                ControlScale: curve.controlScales[0],
+                ControlOffset: curve.controlOffsets[0],
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D9I3_K8U_C8U:
+            return variant(CurveDataD9I3K8uC8u, {
+                CurveDataHeader_D9I3K8uC8u: header,
+                OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
+                ControlScales: curve.controlScales,
+                ControlOffsets: curve.controlOffsets,
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D3I1_K32F_C32F:
+            return variant(CurveDataD3I1K32fC32f, {
+                CurveDataHeader_D3I1K32fC32f: header,
+                Padding: 0,
+                ControlScales: curve.controlScales,
+                ControlOffsets: curve.controlOffsets,
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D3I1_K16U_C16U:
+            return variant(CurveDataD3I1K16uC16u, {
+                CurveDataHeader_D3I1K16uC16u: header,
+                OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
+                ControlScales: curve.controlScales,
+                ControlOffsets: curve.controlOffsets,
+                KnotsControls: curve.knotsControls
+            });
+
+        case F.D3I1_K8U_C8U:
+            return variant(CurveDataD3I1K8uC8u, {
+                CurveDataHeader_D3I1K8uC8u: header,
                 OneOverKnotScaleTrunc: curve.oneOverKnotScaleTrunc,
                 ControlScales: curve.controlScales,
                 ControlOffsets: curve.controlOffsets,
@@ -685,22 +840,29 @@ function curveVariant(curve)
     }
 }
 
-function writeCurve(source, dimension, options)
+function writeCurve(source, dimension, duration, options, dynamicTypes, curveOptions = {})
 {
     const explicit = source?.error
-        ? { degree: 0, knots: [ 0 ], controls: dimension === 3 ? [ 0, 0, 0 ] :
-            dimension === 4 ? [ 0, 0, 0, 1 ] : dimension === 9 ? [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ] : [ 0 ] }
+        ? {
+            degree: 0,
+            knots: [ 0 ],
+            controls: [ ...(curveOptions.identity ?? new Array(dimension).fill(0)) ]
+        }
         : source;
     const packed = compressGr2Curve(explicit, dimension, {
         compressed: options.compressedCurves,
+        duration,
+        tolerance: options.tolerance,
         positionTolerance: options.positionTolerance,
         orientationTolerance: options.orientationTolerance,
-        scaleShearTolerance: options.scaleShearTolerance
+        scaleShearTolerance: options.scaleShearTolerance,
+        asQuaternion: curveOptions.asQuaternion === true,
+        identity: curveOptions.identity
     });
-    return { CurveData: curveVariant(packed) };
+    return { CurveData: curveVariant(packed, dynamicTypes) };
 }
 
-function buildAnimations(cmf, options)
+function buildAnimations(cmf, options, dynamicTypes)
 {
     const animations = buildGr2Animations(cmf).map((animation) => ({
         Name: animation.name,
@@ -713,14 +875,21 @@ function buildAnimations(cmf, options)
                 Name: track.name,
                 TrackKey: 0,
                 Dimension: track.dimension,
-                ValueCurve: writeCurve(track.valueCurve, track.dimension, options)
+                ValueCurve: writeCurve(track.valueCurve, track.dimension, animation.duration, options, dynamicTypes)
             })),
             TransformTracks: group.transformTracks.map((track) => ({
                 Name: track.name,
                 Flags: track.flags,
-                OrientationCurve: writeCurve(track.orientation, 4, options),
-                PositionCurve: writeCurve(track.position, 3, options),
-                ScaleShearCurve: writeCurve(track.scaleShear, 9, options)
+                OrientationCurve: writeCurve(track.orientation, 4, animation.duration, options, dynamicTypes, {
+                    asQuaternion: true,
+                    identity: ORIENTATION_IDENTITY
+                }),
+                PositionCurve: writeCurve(track.position, 3, animation.duration, options, dynamicTypes, {
+                    identity: POSITION_IDENTITY
+                }),
+                ScaleShearCurve: writeCurve(track.scaleShear, 9, animation.duration, options, dynamicTypes, {
+                    identity: SCALE_SHEAR_IDENTITY
+                })
             })),
             TransformLODErrors: [],
             TextTracks: [],
@@ -756,7 +925,7 @@ function buildFileInfo(cmf, shared, options)
             .map(mesh => ({ Mesh: mesh })),
         ExtendedData: null
     }));
-    const animation = buildAnimations(cmf, options);
+    const animation = buildAnimations(cmf, options, dynamicTypes);
     return {
         types: [ ...STATIC_TYPES, ...dynamicTypes ],
         root: {
@@ -784,7 +953,7 @@ function buildFileInfo(cmf, shared, options)
     };
 }
 
-/** Serialize a native CMF graph to a canonical uncompressed-section GR2 file. */
+/** Serialize a native CMF graph to a canonical 32-bit little-endian GR2 file. */
 export function writeGr2(input, writerOptions = {})
 {
     const options = validateOptions(writerOptions);
@@ -794,7 +963,9 @@ export function writeGr2(input, writerOptions = {})
     }
     const shared = buildSharedFromCmf(input, {});
     const fileInfo = buildFileInfo(input, shared, options);
-    return writeGr2Container(FileInfo, fileInfo.root, fileInfo.types);
+    return writeGr2Container(FileInfo, fileInfo.root, fileInfo.types, {
+        sectionCompression: options.sectionCompression
+    });
 }
 
 /** Convert shared or GR2-shaped geometry through CMF, then serialize GR2. */

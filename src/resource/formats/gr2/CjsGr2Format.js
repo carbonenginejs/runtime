@@ -165,7 +165,7 @@ export class CjsGr2Format extends CjsFormat
      * Serialize a native CMF graph as 32-bit little-endian GR2 bytes.
      *
      * @param {object} input Native CMF v1 graph.
-     * @param {object} [options] Tangent and curve-packing options.
+     * @param {object} [options] Tangent, curve-packing, and section-storage options.
      * @returns {Uint8Array} Complete GR2 file bytes.
      */
     Write(input, options = {})
@@ -177,7 +177,7 @@ export class CjsGr2Format extends CjsFormat
      * Convert shared or GR2-shaped geometry through CMF and serialize GR2.
      *
      * @param {object} input Shared geometry root or GR2 JSON graph.
-     * @param {object} [options] Tangent and curve-packing options.
+     * @param {object} [options] Tangent, curve-packing, and section-storage options.
      * @returns {Uint8Array} Complete GR2 file bytes.
      */
     WriteShared(input, options = {})
@@ -253,7 +253,7 @@ export class CjsGr2Format extends CjsFormat
      * Serialize a native CMF graph as 32-bit little-endian GR2 bytes.
      *
      * @param {object} input Native CMF v1 graph.
-     * @param {object} [options] Tangent and curve-packing options.
+     * @param {object} [options] Tangent, curve-packing, and section-storage options.
      * @returns {Uint8Array} Complete GR2 file bytes.
      */
     static write(input, options = {})
@@ -265,7 +265,7 @@ export class CjsGr2Format extends CjsFormat
      * Convert shared or GR2-shaped geometry through CMF and serialize GR2.
      *
      * @param {object} input Shared geometry root or GR2 JSON graph.
-     * @param {object} [options] Tangent and curve-packing options.
+     * @param {object} [options] Tangent, curve-packing, and section-storage options.
      * @returns {Uint8Array} Complete GR2 file bytes.
      */
     static writeShared(input, options = {})

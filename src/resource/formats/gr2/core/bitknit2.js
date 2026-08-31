@@ -1,15 +1,52 @@
-// Clean-room BitKnit2 (Granny .gr2 section format 4) decompressor.
+// Clean-room BitKnit2 (Granny .gr2 section format 4) codec support.
 //
-// Original CarbonEngineJS implementation written solely from the published
-// format specification (docs/formats/bitknit2.md) by an isolated agent with
-// no access to any other BitKnit implementation, then validated byte-exact
-// against 539 real EVE .gr2 BitKnit2 streams (sections and pointer-fixup
-// blocks) plus synthetic raw-quantum streams. Replaced the prior EUPL-derived
-// port on 2026-07-24; see THIRD-PARTY-NOTICES.md.
+// The decoder was written solely from the published format specification
+// (docs/formats/bitknit2.md) by an isolated agent with no access to any other
+// BitKnit implementation, then validated byte-exact against 539 real EVE .gr2
+// streams. The raw-quantum encoder is the direct inverse of the decoder's raw
+// branch and is covered by exact vectors and quantum-boundary tests. Replaced
+// the prior EUPL-derived port on 2026-07-24; see THIRD-PARTY-NOTICES.md.
 
 const TOTAL = 0x8000;
 const QUANTUM_BYTES = 0x10000;
 const MAGIC = 0x75B1;
+
+/**
+ * Store bytes as a valid BitKnit2 stream made entirely of raw quanta.
+ *
+ * This supplies Granny format-4 framing without entropy/LZ coding. It is
+ * useful for container interoperability, but is deliberately not described as
+ * size compression because the magic, quantum markers, and final padding make
+ * the result slightly larger than the input.
+ *
+ * @param {Uint8Array} bytes Raw bytes.
+ * @returns {Uint8Array} BitKnit2 raw-quantum stream.
+ */
+export function encodeBitKnit2Raw(bytes)
+{
+    if (!(bytes instanceof Uint8Array))
+    {
+        throw new TypeError("BitKnit2 raw encoding requires Uint8Array input");
+    }
+    if (!bytes.length) return new Uint8Array();
+
+    const quantumCount = Math.ceil(bytes.length / QUANTUM_BYTES);
+    const out = new Uint8Array(2 + quantumCount * 2 + bytes.length + (bytes.length & 1));
+    out[0] = MAGIC & 0xff;
+    out[1] = MAGIC >>> 8;
+    let sourceOffset = 0;
+    let targetOffset = 2;
+    while (sourceOffset < bytes.length)
+    {
+        targetOffset += 2; // Zero-filled raw-quantum marker.
+        const length = Math.min(QUANTUM_BYTES, bytes.length - sourceOffset);
+        out.set(bytes.subarray(sourceOffset, sourceOffset + length), targetOffset);
+        sourceOffset += length;
+        targetOffset += length;
+        if (length & 1) targetOffset++;
+    }
+    return out;
+}
 
 // Powers of two as exact doubles, indexed 0..32. All entropy-state values are
 // unsigned 32-bit; floor division by these avoids signed-shift pitfalls.

@@ -119,16 +119,20 @@ const instanceBytes = writer.Write(cmf);
 ```
 
 The output is a version-7, 32-bit little-endian Granny container with the
-standard reflected `granny_file_info` geometry and animation graph. The first
-implementation uses one uncompressed outer section, canonical pointer and
-mixed-marshalling fixups, a version-2.12 type tag, and the required file CRC.
-Animation curves are independently compressed; outer section compression and
-curve compression are separate concerns.
+standard reflected `granny_file_info` geometry and animation graph. It uses one
+outer section, canonical pointer and mixed-marshalling fixups, a version-2.12
+type tag, and the required file CRC. The default section is uncompressed; the
+writer can also experimentally frame the section and both fixup tables as
+BitKnit2 raw quanta for the in-project reader.
+Animation curves are independently compressed; outer section storage and curve
+compression are separate concerns.
 
 | Writer option | Default | Effect |
 |---|---:|---|
 | `tangentMode` | `"preserve"` | `"packed"` writes one normalized-uint8 `Tangent[4]` frame, `"unpacked"` writes separate float normal/tangent/binormal channels, and `"preserve"` retains the source layout when it is known |
-| `compressedCurves` | `true` | Quantizes eligible curves into Granny constant, identity, D3K16, D4n16, D9I1/D9I3-16, or DaK16 data; `false` writes float knot/control curves |
+| `sectionCompression` | `"none"` | `"bitknit2Raw"` experimentally emits format-4 raw-quantum storage accepted by the in-project reader; this adds framing bytes and is not size compression |
+| `compressedCurves` | `true` | Selects the smallest validated Granny constant, identity, D3I1 float/8/16, D3 8/16, D4n 8/16, D9I1/D9I3 8/16, or general DaK 8/16 representation; `false` writes float knot/control curves |
+| `tolerance` | `0.1` | Maximum accepted packing error for scalar and other general-dimensional curves before float fallback |
 | `positionTolerance` | `0.1` | Maximum accepted position packing error before float fallback |
 | `orientationTolerance` | `0.1` degrees in radians | Maximum accepted shortest quaternion angular error before fallback |
 | `scaleShearTolerance` | `0.1` | Maximum accepted scale/shear packing error before float fallback |
@@ -139,6 +143,18 @@ both accepted. Packed GR2 output uses the legacy angle frame found in the EVE
 ship corpus. `writeShared` retains an incoming GR2 packed frame as CMF
 `PackedTangentLegacy`, so the CMF interim does not erase this choice.
 
+Each curve candidate is decoded through the shared reader implementation and
+compared with the source at its control knots, decoded knots, animation-domain
+boundaries, and representative interval samples. Orientation validation reuses
+the shared quarter/midpoint sampling policy and checks every stationary point
+of the normalized-linear segment error. The writer therefore moves from 8-bit
+to 16-bit to float storage as needed to satisfy the relevant tolerance. Granny
+format 0
+(`DaKeyframes32f`) has a reflected serializer, but is not selected
+automatically: its implicit timing and interpolation depend on file-level
+`TimeStep` semantics that have not yet been established from a real format-0
+asset or the Granny SDK.
+
 The writer expands CMF LOD geometry into separate Granny meshes, writes
 materials and mesh bindings, skin and inverse-bind data, morph targets, and
 skeletal or scalar-morph animation channels. Current boundaries are explicit:
@@ -146,14 +162,17 @@ skeletal or scalar-morph animation channels. Current boundaries are explicit:
 - CMF v1 stores Step and Linear curves only. Incoming Granny degree-2 curves
   are adaptively baked while entering CMF, then repacked as degree 0 or 1;
   original B-spline controls cannot be reconstructed.
-- Curve packing is implemented, but Granny-style degree-2 fitting and control
-  reduction are a later size optimization.
+- All explicit-knot compressed curve families are emitted. Granny-style
+  degree-2 fitting and control reduction are a later size optimization.
 - CMF v1 does not retain Granny track-group layering, accumulation and loop
   metadata, text tracks, or arbitrary vector tracks.
 - EVE `MeshBoundsInfo` extended data is not emitted yet, so LOD threshold,
   bounds, area metadata, and UV-density parity are not complete.
-- GSF writing, cameras, lights, textures, and outer-section compression are not
-  part of this writer pass.
+- GSF writing, cameras, lights, and textures are not part of this writer pass.
+  The reader supports Oodle1 and coded BitKnit2 sections, but the runtime does
+  not contain their corresponding size-reducing encoders. `"bitknit2Raw"`
+  supplies format-4 framing without claiming size compression. Its section
+  width-stop metadata and native Granny SDK compatibility are not yet proven.
 
 Generated files round-trip through the JavaScript reader and the pinned
 FAUX/T3 corpus. Qualification through the proprietary Granny 2.12 SDK remains
