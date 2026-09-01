@@ -15,6 +15,7 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
+import { CullMode } from "#consts/render-context";
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition.js";
 import { Tr2RenderStateSetup } from "#resource/shader";
 
@@ -28,6 +29,39 @@ import { Tr2RenderStateSetup } from "#resource/shader";
 // Trinity in one binary. Ours is a sibling layer, so the engine keeps its own
 // handle-to-object map and Trinity never has a field a device object could
 // occupy. Same indirection, boundary drawn at our layering.
+
+// Carbon's UNKNOWN (.h:56), module scope so the reset factory can reach it.
+const UNKNOWN = 0xFFFFFFFF;
+
+// Carbon's VERTEX_STREAM_MAX_COUNT (.h:55).
+const VERTEX_STREAM_MAX_COUNT = 4;
+
+/**
+ * A reset redundancy cache (`CurrentValues::Reset`, cpp:415-431).
+ *
+ * Every handle starts UNKNOWN rather than zero, because zero is a VALID handle
+ * - it is RM_ANY's empty render-state setup and the first interned program -
+ * so a zeroed cache would filter out the very first bind of a span.
+ */
+function NewCurrentValues()
+{
+  const streams = [];
+
+  for (let i = 0; i < VERTEX_STREAM_MAX_COUNT; i++)
+  {
+    streams.push({ vertexBuffer: null, offset: UNKNOWN, stride: UNKNOWN });
+  }
+
+  return {
+    shaderProgram: UNKNOWN,
+    vertexDeclaration: UNKNOWN,
+    streams,
+    indexBuffer: null,
+    indexStride: 0,
+    renderingMode: UNKNOWN,
+    renderStateSetup: UNKNOWN
+  };
+}
 
 /** Registered shader identities; the index is the handle. */
 const shaders = [];
@@ -108,70 +142,40 @@ export class Tr2EffectStateManager extends CjsModel
   @type.rawStruct("Tr2ConstantBufferAL")
   perObjectConstantBuffers = null;
 
-  /** m_shaderProgram (uint32_t) */
-  @type.uint32
-  shaderProgram = 0;
+  // Carbon's CurrentValues and RenderStates are PRIVATE nested structs
+  // (Tr2EffectStateManager.h:171-206), and nothing serializes a state manager:
+  // it is a runtime object, not a resource. The generator had flattened both
+  // structs into schema properties, which declared persisted defaults for state
+  // that is neither persisted nor reachable from outside. They are private
+  // instance fields here, in Carbon's own shape.
 
-  /** m_vertexDeclaration (uint32_t) */
-  @type.uint32
-  vertexDeclaration = 0;
+  /** m_currentValues - the redundancy cache (.h:193). */
+  #currentValues = NewCurrentValues();
 
-  /** m_vertexBuffer (Tr2BufferAL) */
-  @type.rawStruct("Tr2BufferAL")
-  vertexBuffer = null;
+  /** m_isManagedRendering (.h:195). */
+  #isManagedRendering = false;
 
-  /** m_offset (uint32_t) */
-  @type.uint32
-  offset = 0;
-
-  /** m_stride (uint32_t) */
-  @type.uint32
-  stride = 0;
-
-  /** m_streams (HalStream) */
-  @type.rawStruct("HalStream")
-  streams = null;
-
-  /** m_indexBuffer (Tr2BufferAL) */
-  @type.rawStruct("Tr2BufferAL")
-  indexBuffer = null;
-
-  /** m_indexStride (uint32_t) */
-  @type.uint32
-  indexStride = 0;
-
-  /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) */
-  @type.int32
-  @type.enum("RenderingMode")
-  renderingMode = 0;
-
-  /** m_renderStateSetup (uint32_t) */
-  @type.uint32
-  renderStateSetup = 0;
-
-  /** m_currentValues (CurrentValues) */
-  @type.rawStruct("CurrentValues")
-  currentValues = null;
-
-  /** m_isManagedRendering (bool) */
-  @type.boolean
-  isManagedRendering = false;
-
-  /** states (std::vector<uint32_t>) */
-  @type.list("uint32_t")
-  states = [];
-
-  /** dirty (bool) */
-  @type.boolean
-  dirty = false;
-
-  /** m_renderStates (std::vector<RenderStates>) */
-  @type.list("RenderStates")
-  renderStates = [];
-
-  /** m_renderStateOverrides (const uint32_t*) */
-  @type.objectRef("uint32_t")
-  renderStateOverrides = null;
+  /**
+   * m_renderStateOverrides (.h:209), as FLAGS rather than as value tables.
+   *
+   * Carbon holds an array of `const uint32_t*` indexed by render state, each
+   * pointing at a table indexed by the AUTHORED VALUE, and resolves authored
+   * pairs through it at apply time (cpp:722-753). It caches the resolved pairs
+   * per setup behind a dirty flag because it re-resolves on every draw.
+   *
+   * Ours cannot use that table: a registered setup is interpreted ONCE at
+   * registration into named values, so there are no raw pairs left to index.
+   * The equivalent tables live in interpreted space on Tr2RenderStateSetup, and
+   * this holds only which of them apply. Carbon's per-setup cache has no
+   * counterpart either, and needs none: the projection feeds a pipeline key
+   * that already includes the flags' effect, so the two variants are distinct
+   * cache entries rather than one entry that must be invalidated.
+   *
+   * Wireframe (`SetWireframeRendering`, cpp:800-812) is deliberately absent.
+   * Neither backend has a fill mode, so the toggle could only ever throw at
+   * projection time. Add it with the backend that can honour it.
+   */
+  #overrides = { invertedDepthTest: false, invertedCullMode: false };
 
   /** m_renderTargetWidth (int) */
   @type.int32
@@ -207,7 +211,7 @@ export class Tr2EffectStateManager extends CjsModel
    * `0xFFFFFFFF` rather than `-1`, or the unsigned range checks below flip
    * sign.
    */
-  static Unknown = 0xFFFFFFFF;
+  static Unknown = UNKNOWN;
 
   /**
    * Bind an empty vertex layout (`NULL_DECLARATION`, .h:82).
@@ -470,4 +474,210 @@ export class Tr2EffectStateManager extends CjsModel
     renderStateSetups.length = RenderingMode.RM_COUNT;
   }
 
+
+  /**
+   * Begins a managed-rendering span, in which redundant applies are filtered.
+   *
+   * Carbon resets the redundancy cache and unbinds the shader program first
+   * (cpp:670-694), because outside a span nothing tracks what the device holds
+   * and a stale cache would skip a needed bind.
+   *
+   * The cull-mode argument is not a state to set: it selects mirroring, so
+   * `CULLMODE_CCW` means "this span is mirrored" and `CULLMODE_NONE` leaves the
+   * current setting alone.
+   *
+   * @param {number} [cullMode] A `CullMode` member.
+   * @returns {void}
+   */
+  BeginManagedRendering(cullMode = CullMode.CULLMODE_NONE)
+  {
+    this.#currentValues = NewCurrentValues();
+    this.#isManagedRendering = true;
+
+    if (cullMode === CullMode.CULLMODE_CW) this.SetInvertedCullMode(false);
+    else if (cullMode === CullMode.CULLMODE_CCW) this.SetInvertedCullMode(true);
+  }
+
+  /**
+   * Ends the span. The overrides survive it, as they do in Carbon.
+   *
+   * @returns {void}
+   */
+  EndManagedRendering()
+  {
+    this.#isManagedRendering = false;
+  }
+
+  /**
+   * Whether redundant applies are currently being filtered.
+   *
+   * @returns {boolean}
+   */
+  IsManagedRendering()
+  {
+    return this.#isManagedRendering;
+  }
+
+  /**
+   * Draws this span with the depth comparison reversed.
+   *
+   * Carbon installs a table over RS_ZFUNC that swaps LESS with GREATER and
+   * LEQUAL with GEQUAL, leaving NEVER, EQUAL, NOTEQUAL and ALWAYS untouched
+   * (cpp:834-856). It is a per-manager setting rather than authored per pass,
+   * because the same registered setup is drawn both ways.
+   *
+   * @param {boolean} inverted
+   * @returns {void}
+   */
+  SetInvertedDepthTest(inverted)
+  {
+    this.#overrides.invertedDepthTest = !!inverted;
+  }
+
+  /**
+   * @returns {boolean} Whether the depth comparison is reversed.
+   */
+  IsDepthTestInverted()
+  {
+    return this.#overrides.invertedDepthTest;
+  }
+
+  /**
+   * Draws this span mirrored, swapping the two winding orders and leaving NONE
+   * alone (cpp:815-827).
+   *
+   * @param {boolean} inverted
+   * @returns {void}
+   */
+  SetInvertedCullMode(inverted)
+  {
+    this.#overrides.invertedCullMode = !!inverted;
+  }
+
+  /**
+   * @returns {boolean} Whether the winding order is mirrored.
+   */
+  IsCullModeInverted()
+  {
+    return this.#overrides.invertedCullMode;
+  }
+
+  /**
+   * Which of Carbon's render-state overrides this manager currently applies.
+   *
+   * This is where Carbon's DoApplyRenderStates would land, and deliberately
+   * stops short of it. Carbon resolves authored pairs against its override
+   * tables and submits them to the render context; a backend that bakes the
+   * same states into a pipeline has no such call, and one that sets them
+   * imperatively wants them in its own vocabulary. So the manager hands over
+   * WHICH overrides are active and the backend's projection applies them - the
+   * inversion tables live in interpreted space on Tr2RenderStateSetup, beside
+   * the values they rewrite.
+   *
+   * Carbon's dirty-flagged per-setup cache has no counterpart and needs none: a
+   * projected state set feeds a pipeline key that already includes the flags'
+   * effect, so the two variants are distinct entries rather than one entry that
+   * must be invalidated.
+   *
+   * @returns {{invertedDepthTest: boolean, invertedCullMode: boolean}} A copy.
+   */
+  GetRenderStateOverrides()
+  {
+    return { ...this.#overrides };
+  }
+
+  /**
+   * Records the rendering mode and returns whether its standard states must be
+   * applied.
+   *
+   * Carbon re-applies the mode's states ahead of every pass setup rather than
+   * restoring after one (cpp:703-719), which is why a pass's states leak into
+   * whatever draws next without an intervening ApplyRenderStates. It then sets
+   * the current setup to UNKNOWN, so the next ApplyRenderStates cannot be
+   * filtered out.
+   *
+   * @param {number} renderingMode A `RenderingMode` member.
+   * @returns {boolean} Whether the mode carries states to apply.
+   */
+  ApplyStandardStates(renderingMode)
+  {
+    this.#currentValues.renderingMode = renderingMode;
+    this.#currentValues.renderStateSetup = Tr2EffectStateManager.Unknown;
+
+    return renderingMode > RenderingMode.RM_ANY && renderingMode < RenderingMode.RM_COUNT;
+  }
+
+  /**
+   * Whether this render-state handle needs applying, recording it either way.
+   *
+   * @param {number} handle Render-state handle.
+   * @returns {boolean} False when the handle is already current in a managed span.
+   */
+  ApplyRenderStates(handle)
+  {
+    if (this.#isManagedRendering && handle === this.#currentValues.renderStateSetup) return false;
+
+    this.#currentValues.renderStateSetup = handle;
+
+    return handle < Tr2EffectStateManager.getRenderStateSetupCount();
+  }
+
+  /**
+   * Whether this shader program needs binding.
+   *
+   * Carbon updates the cached value only INSIDE the managed branch (cpp:758-771)
+   * and this keeps that asymmetry: outside a span nothing tracks the device, so
+   * recording a value there would let the next span's first bind be skipped.
+   *
+   * @param {number} handle Shader-program handle.
+   * @returns {boolean}
+   */
+  ApplyShaderProgram(handle)
+  {
+    if (this.#isManagedRendering)
+    {
+      if (handle === this.#currentValues.shaderProgram) return false;
+
+      this.#currentValues.shaderProgram = handle;
+    }
+
+    return true;
+  }
+
+  /**
+   * Whether this vertex declaration needs binding.
+   *
+   * @param {number} handle Vertex-declaration handle.
+   * @returns {boolean}
+   */
+  ApplyVertexDeclaration(handle)
+  {
+    if (this.#isManagedRendering && handle === this.#currentValues.vertexDeclaration) return false;
+
+    this.#currentValues.vertexDeclaration = handle;
+
+    return handle !== Tr2EffectStateManager.Unknown;
+  }
+
+  /**
+   * The current redundancy cache, for a caller that must reason about what is
+   * bound. A copy, because it is this class's private state.
+   *
+   * @returns {object}
+   */
+  GetCurrentValues()
+  {
+    return { ...this.#currentValues, streams: this.#currentValues.streams.map(s => ({ ...s })) };
+  }
+
+  /**
+   * How many render-state handles are registered, which is the range
+   * `ApplyRenderStates` checks against.
+   *
+   * @returns {number}
+   */
+  static getRenderStateSetupCount()
+  {
+    return renderStateSetups.length;
+  }
 }
