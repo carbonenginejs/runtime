@@ -329,6 +329,72 @@ export class Tr2EffectStateManager extends CjsModel
   }
 
   /**
+   * Stamps every pass of a resolved shader with its registration handles.
+   *
+   * Carbon does this inside `Tr2EffectDescription::Read`
+   * (Tr2EffectDescription.cpp:587-666), because there the shader body and the
+   * registration tables are on the same side of the layering. Ours are not:
+   * `Tr2Pass` belongs to the resource layer's reflection, and the resource
+   * layer may not import Trinity. So the stamp happens at the Trinity boundary
+   * instead, on the first rebuild that resolves a shader.
+   *
+   * That is a timing difference with no behavioural one. Registration interns
+   * identity and creates nothing, so it neither needs a device nor makes the
+   * reflection graph device-dependent, and interning is idempotent: re-stamping
+   * the same shader yields the same handles.
+   *
+   * Program members are collected in the pass's retained file order, not by
+   * stage type, because Carbon indexes its handle array by position while
+   * reading (`shaderHandles[stageIx]`, Tr2EffectDescription.cpp:592) and the
+   * program key is order-sensitive. `Tr2Pass.stageOrder` exists precisely
+   * because that ordering is authored rather than derivable.
+   *
+   * @param {object} shader Resolved `Tr2Shader`.
+   * @returns {object} The same shader, stamped.
+   */
+  static registerShaderHandles(shader)
+  {
+    const techniques = shader?.GetEffect?.()?.techniques ?? [];
+
+    for (const technique of techniques)
+    {
+      for (const pass of technique?.passes ?? [])
+      {
+        const stageInputs = pass?.stageInputs ?? [];
+        const ordered = pass?.stageOrder?.length
+          ? pass.stageOrder
+          : stageInputs.map((_, stageType) => stageType).filter(stageType => stageInputs[stageType]?.exists);
+
+        const programMembers = [];
+
+        for (const stageType of ordered)
+        {
+          const stage = stageInputs[stageType];
+          if (!stage?.exists) continue;
+
+          const handle = Tr2EffectStateManager.registerShader(
+            stageType,
+            stage.sourceProgram?.bytes ?? null,
+            stage.signature
+          );
+
+          stage.shader = handle;
+          programMembers.push(handle);
+        }
+
+        pass.shaderProgram = Tr2EffectStateManager.registerShaderProgram(programMembers);
+        pass.renderStates = Tr2EffectStateManager.registerRenderStateSetup(pass);
+      }
+    }
+
+    // Carbon packs the sort key from the handles it has just assigned
+    // (Tr2Shader.cpp:235-240); until they exist the key is unavoidably zero.
+    shader?.ProcessEffect?.();
+
+    return shader;
+  }
+
+  /**
    * The handle for a mesh's vertex declaration.
    *
    * Carbon `GetVertexDeclarationHandle` (Tr2EffectStateManager.cpp:863-877).

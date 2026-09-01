@@ -8,6 +8,7 @@ import { Tr2FloatParameter } from "./parameter/Tr2FloatParameter.js";
 import { Tr2GeometryBufferParameter } from "./parameter/Tr2GeometryBufferParameter.js";
 import { Tr2Matrix4Parameter } from "./parameter/Tr2Matrix4Parameter.js";
 import { Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#resource/shader";
+import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
 import { Tr2Vector2Parameter } from "./parameter/Tr2Vector2Parameter.js";
@@ -355,6 +356,11 @@ export class Tr2Effect extends Tr2Material
         throw new TypeError("Tr2EffectRes.GetShader must return a Tr2Shader or null.");
       }
       this.shader = shader;
+      // Carbon stamps registration handles while reading the description; the
+      // resource layer cannot reach Trinity's tables, so the stamp happens here
+      // on the first rebuild that resolves a shader. Interning is idempotent,
+      // so a rebuild that re-resolves the same permutation is a no-op.
+      if (shader !== null) Tr2EffectStateManager.registerShaderHandles(shader);
     }
     this.lodTextureParameters = [];
     this.compatibleWithGdr = true;

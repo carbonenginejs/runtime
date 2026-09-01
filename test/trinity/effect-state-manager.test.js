@@ -230,3 +230,98 @@ test("the two sentinels are distinct and are not minus one", () =>
   assert.equal(Tr2EffectStateManager.NullDeclaration, 0xFFFFFFFE);
   assert.notEqual(Tr2EffectStateManager.Unknown, Tr2EffectStateManager.NullDeclaration);
 });
+
+/** A minimal reflected pass carrying two stages in an explicit file order. */
+function stagedPass(vertexBytes, pixelBytes, stageOrder = [ VERTEX, PIXEL ])
+{
+  const stage = bytes => ({ exists: true, shader: 0xFFFFFFFF, signature: null, sourceProgram: { bytes } });
+  const stageInputs = [];
+  stageInputs[VERTEX] = stage(vertexBytes);
+  stageInputs[PIXEL] = stage(pixelBytes);
+  return { stageInputs, stageOrder, renderStateValues: [], shaderProgram: 0, renderStates: 0 };
+}
+
+/** A shader-shaped object over one technique. */
+function shaderOver(passes)
+{
+  return { GetEffect: () => ({ techniques: [ { passes } ] }), ProcessEffect() {} };
+}
+
+test("stamping assigns stage, program and render-state handles to every pass", () =>
+{
+  reset();
+
+  const pass = stagedPass(body(1, 1), body(2, 2));
+  Tr2EffectStateManager.registerShaderHandles(shaderOver([ pass ]));
+
+  assert.equal(pass.stageInputs[VERTEX].shader, 0);
+  assert.equal(pass.stageInputs[PIXEL].shader, 1);
+  assert.equal(pass.shaderProgram, 0);
+  assert.equal(pass.renderStates, 0);
+  assert.notEqual(pass.stageInputs[VERTEX].shader, Tr2EffectStateManager.Unknown);
+});
+
+test("stamping is idempotent, so a rebuild does not grow the tables", () =>
+{
+  reset();
+
+  const first = stagedPass(body(1, 1), body(2, 2));
+  const second = stagedPass(body(1, 1), body(2, 2));
+
+  Tr2EffectStateManager.registerShaderHandles(shaderOver([ first ]));
+  Tr2EffectStateManager.registerShaderHandles(shaderOver([ second ]));
+
+  assert.equal(second.stageInputs[VERTEX].shader, first.stageInputs[VERTEX].shader);
+  assert.equal(second.shaderProgram, first.shaderProgram);
+});
+
+test("program members follow the pass's authored stage order, not stage type", () =>
+{
+  // The program key is order-sensitive and Carbon fills its array by position
+  // while reading. Tr2Pass.stageOrder exists because that order is authored:
+  // measured over the shipped corpus, some passes put geometry before pixel.
+  reset();
+
+  const forward = stagedPass(body(1), body(2), [ VERTEX, PIXEL ]);
+  const reversed = stagedPass(body(1), body(2), [ PIXEL, VERTEX ]);
+
+  Tr2EffectStateManager.registerShaderHandles(shaderOver([ forward ]));
+  Tr2EffectStateManager.registerShaderHandles(shaderOver([ reversed ]));
+
+  assert.notEqual(forward.shaderProgram, reversed.shaderProgram);
+  assert.deepEqual(
+    Tr2EffectStateManager.getShaderProgramRecord(reversed.shaderProgram).shaderHandles,
+    [ ...Tr2EffectStateManager.getShaderProgramRecord(forward.shaderProgram).shaderHandles ].reverse()
+  );
+});
+
+test("a stage with no body leaves the pass without a program", () =>
+{
+  reset();
+
+  const pass = stagedPass(null, body(2));
+  Tr2EffectStateManager.registerShaderHandles(shaderOver([ pass ]));
+
+  // registerShader refuses the absent body, and the sentinel member then fails
+  // the program's range check rather than interning a half-built program.
+  assert.equal(pass.stageInputs[VERTEX].shader, Tr2EffectStateManager.Unknown);
+  assert.equal(pass.shaderProgram, Tr2EffectStateManager.Unknown);
+});
+
+test("stamping makes the shader sort value non-zero", async () =>
+{
+  // The payoff: Tr2Shader.ProcessEffect packs the key from stage handles and
+  // bails on 0xFFFFFFFF, so sortValue was permanently zero before registration
+  // existed. Batch sorting degenerates without it.
+  const { Tr2Shader } = await import("../../npm/dist/resource/shader/index.js");
+  reset();
+
+  const shader = new Tr2Shader();
+  shader.effect.techniques = [ { passes: [ stagedPass(body(3, 3), body(4, 4)) ] } ];
+
+  shader.ProcessEffect();
+  assert.equal(shader.sortValue, 0);
+
+  Tr2EffectStateManager.registerShaderHandles(shader);
+  assert.notEqual(shader.sortValue, 0);
+});
