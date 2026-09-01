@@ -1156,7 +1156,7 @@ Owns the mutable effect facade: shader path and options, authored parameters and
 <!-- class:Tr2EffectStateManager -->
 ## `Tr2EffectStateManager`
 
-Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect.
+Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect; the shader, shader-program and render-state registration tables its handle fields index are not implemented yet.
 
 - Export: `@carbonenginejs/runtime/trinity/shader`
 - Source: `src/trinity/shader/Tr2EffectStateManager.js`

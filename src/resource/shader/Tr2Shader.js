@@ -87,7 +87,7 @@ export class Tr2Shader extends CjsModel
     );
   }
 
-  /** The packed draw-sort key; 0 until ProcessEffect has run. */
+  /** The packed draw-sort key; 0 until ProcessEffect runs with registered stage handles. */
   GetSortValue()
   {
     return this.sortValue;
@@ -115,7 +115,9 @@ export class Tr2Shader extends CjsModel
 
   /**
    * Pack the first technique/pass's renderer handles into Carbon's sort key.
-   * A device-free source graph retains 0 while its handles remain invalid.
+   * Retains 0 while the stage handles are still 0xffffffff, which is the case
+   * until shader registration assigns them; that is a missing table, not a
+   * consequence of the graph being device-free.
    */
   ProcessEffect()
   {
@@ -346,7 +348,7 @@ CjsSchema.define(Tr2Shader, {
     GetEffectDescription: [ carbon.method, impl.implemented ],
     GetEffect: [ carbon.method, impl.implemented ],
     GetShaderTypeMask: [ carbon.method, impl.adapted, UNVALIDATED_TECHNIQUE_INDEX ],
-    ProcessEffect: [ carbon.method, impl.adapted, impl.reason("Carbon packs renderer handles assigned while reading; the device-free graph leaves the sort key zero until an engine assigns valid handles.") ],
+    ProcessEffect: [ carbon.method, impl.adapted, impl.reason("Carbon packs renderer handles assigned while reading; here registration happens at prepare, so the sort key stays zero until the shader-registration tables assign stage handles. The difference is timing and table ownership, not device-freeness.") ],
     HasVertexBufferAccessInRtShadow: [ carbon.method, impl.implemented ]
   }
 });

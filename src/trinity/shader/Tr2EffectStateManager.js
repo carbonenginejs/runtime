@@ -1,10 +1,22 @@
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+//
+// INCOMPLETE, not finished-by-design. Carbon's registration tables behind
+// `shaderProgram`, `vertexDeclaration` and `renderStates` are absent:
+// RegisterShader, RegisterShaderProgram, RegisterRenderStateSetup,
+// GetVertexDeclarationHandle, GetShaderProgram and the Apply* surface are all
+// unimplemented. A Trinity class may carry behaviour, so nothing about this
+// layer requires the class to stay a bare field list. Trinity stays GPU-free
+// by holding uint32 handles into engine-owned tables, never a device object.
+//
+// This class declares no @carbon.method, so the parity audit cannot see it:
+// an entirely unimplemented class reports clean. Do not read a green audit as
+// evidence that this file is finished.
 import { type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
 
-/** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect. */
+/** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect; the shader, shader-program and render-state registration tables its handle fields index are not implemented yet. */
 @type.define({ className: "Tr2EffectStateManager", family: "shader" })
 export class Tr2EffectStateManager extends CjsModel
 {

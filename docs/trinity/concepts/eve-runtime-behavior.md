@@ -36,9 +36,9 @@ controller and curve propagation, targetable-sphere behavior, child update and
 renderable traversal, and authored effect level of detail.
 
 Native pose realization, geometry loading, quad submission, device buffers,
-and shader upload remain outside this package. A data-only generated child
-does not gain invented rendering behavior merely because a maintained root
-traverses it.
+and shader upload remain outside this package. A generated child that has not
+been promoted yet does not gain invented rendering behavior merely because a
+maintained root traverses it.
 
 ## Animation and morph state
 

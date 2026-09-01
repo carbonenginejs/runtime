@@ -40,6 +40,11 @@ The current package owns:
 - portable lifecycle, distribution, post-process graph, and scene behavior;
 - generated schema intake and the maintained implementations promoted from it.
 
+Trinity classes may carry behaviour. The constraint on this package is that it
+stays GPU-free — no live backend handle in a persisted field — not that it is a
+values graph. A class that needs methods to match Carbon gets them, and a class
+that is currently only fields is incomplete rather than finished.
+
 `TriDevice`, render contexts, targets, authored shader options, effect/material
 facades, parameters, buffers, and presentation records remain Trinity graph
 classes. Canonical `Tr2EffectRes`, `Tr2Shader`, and immutable reflection records
