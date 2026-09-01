@@ -20,6 +20,8 @@ import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/Tr2RenderBatch.js";
+import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition.js";
+import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
@@ -1550,11 +1552,29 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     if (!geometry || geometry.IsGood() === false) return false;
     const meshIndex = mesh.meshIndex ?? 0;
 
+    // Carbon resolves the LOD ONCE for the whole overlay walk
+    // (EveSpaceObject2.cpp:1198) and returns early when there is none. Resolving
+    // it per block instead re-walks the LOD list for every block of every effect
+    // of every overlay; EveChildMesh already hoists it, and this path was the
+    // outlier.
+    const lod = geometry.GetMeshLod?.(meshIndex, this.#meshScreenSize) ?? null;
+    if (!lod) return false;
+
+    // Carbon binds lod->m_mesh->m_vertexDeclarationHandle onto every block batch
+    // exactly as onto a mesh area batch (cpp:1214). Leaving it zero makes every
+    // overlay look like one declaration, and the handle is what binning and
+    // sorting compare - so blocks of different layouts would share a bin.
+    const overlayElements = CarbonVertexElements(geometry.GetMeshVertexElements?.(meshIndex));
+    const overlayDeclaration = overlayElements.length
+      ? Tr2VertexDefinition.getHandle(overlayElements)
+      : 0;
+
     if (impactEffect)
     {
       for (const block of this.#overlayMeshAreaBlocks[OVERLAY_TYPE_ALL])
       {
-        this.#CommitBlockBatch(batches, impactEffect, geometry, meshIndex, block, perObjectData, 0xFFFFFFFF);
+        this.#CommitBlockBatch(
+          batches, impactEffect, geometry, meshIndex, block, perObjectData, 0xFFFFFFFF, lod, overlayDeclaration);
       }
     }
 
@@ -1569,7 +1589,8 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       {
         for (const block of blocks)
         {
-          this.#CommitBlockBatch(batches, effect, geometry, meshIndex, block, perObjectData, 0);
+          this.#CommitBlockBatch(
+            batches, effect, geometry, meshIndex, block, perObjectData, 0, lod, overlayDeclaration);
         }
       }
     }
@@ -1582,15 +1603,15 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
    * the given material and optional priority, skipping the block when the
    * material yields no valid batch.
    */
-  #CommitBlockBatch(batches, material, geometry, meshIndex, block, perObjectData, priority)
+  #CommitBlockBatch(batches, material, geometry, meshIndex, block, perObjectData, priority, lod, vertexDeclaration)
   {
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(material);
     if (!batch.IsValid()) return;
     if (priority !== 0) batch.SetPriority(priority);
     batch.SetGeometrySource(geometry, meshIndex, block.startIndex, block.count, false);
+    batch.SetVertexDeclaration(vertexDeclaration);
     batch.SetPerObjectData(perObjectData ?? null);
-    const lod = geometry.GetMeshLod(meshIndex, this.#meshScreenSize);
     const draw = Tr2RenderBatch.resolveDrawArguments(
       lod, block.startIndex, block.count, false);
     if (!draw) return;

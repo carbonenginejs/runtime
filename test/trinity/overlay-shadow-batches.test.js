@@ -10,6 +10,7 @@ import {
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
+import { Tr2VertexDefinition, CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 
@@ -188,4 +189,64 @@ test("RebuildCachedData refreshes the cached blocks after mesh edits", () =>
   const second = new TriRenderBatchAccumulator();
   object.GetShadowBatches(second, null, 512);
   assert.equal(second.GetBatchCount(), 2, "non-adjacent areas stay separate blocks after rebuild");
+});
+
+test("an overlay block batch carries the mesh's vertex declaration", () =>
+{
+  // Carbon binds lod->m_mesh->m_vertexDeclarationHandle onto a block batch just
+  // as onto an area batch (EveSpaceObject2.cpp:1214). This path never set it, so
+  // every overlay batch carried handle 0 - and the handle is what binning and
+  // sorting compare, so blocks of different layouts shared a bin. Silent: a
+  // wrong bin still draws.
+  // Intern something else FIRST, so the declaration under test cannot land on
+  // handle 0 and let an unset handle pass by coincidence.
+  Tr2VertexDefinition.getHandle([ { usage: 0, usageIndex: 7, type: "Float32", elementCount: 1, offset: 0 } ]);
+
+  const object = new EveSpaceObject2();
+  object.mesh = new Tr2Mesh();
+  object.mesh.geometry = geometry(1);
+  object.mesh.geometry.GetMeshVertexElements = () => [
+    { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 99 }
+  ];
+  object.mesh.AddArea(OPAQUE, area({ id: "hull" }, { index: 0 }));
+
+  const overlay = new EveMeshOverlayEffect();
+  overlay.opaqueEffects.push({ id: "overlay" });
+  object.overlayEffects.push(overlay);
+
+  const accumulator = new TriRenderBatchAccumulator();
+  object.GetBatchesFromOverlayVector(accumulator, null, OPAQUE, object.mesh);
+
+  const [ batch ] = accumulator.GetBatches();
+  assert(batch, "the overlay commits a batch");
+
+  // Not "not zero": zero is a LEGITIMATE handle, the first declaration ever
+  // interned. The claim is that the batch carries the handle this declaration
+  // actually interns to, so compare against it.
+  const expected = Tr2VertexDefinition.getHandle(CarbonVertexElements([
+    { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 99 }
+  ]));
+
+  assert.notEqual(expected, 0, "the control declaration must not be handle 0");
+  assert.equal(batch.vertexDeclaration, expected);
+});
+
+test("an overlay walk with no resolvable LOD commits nothing", () =>
+{
+  // Carbon returns early on a missing LOD for the whole walk (cpp:1198-1202)
+  // rather than testing per block.
+  const object = new EveSpaceObject2();
+  object.mesh = new Tr2Mesh();
+  object.mesh.geometry = geometry(1);
+  object.mesh.geometry.GetMeshLod = () => null;
+  object.mesh.AddArea(OPAQUE, area({ id: "hull" }, { index: 0 }));
+
+  const overlay = new EveMeshOverlayEffect();
+  overlay.opaqueEffects.push({ id: "overlay" });
+  object.overlayEffects.push(overlay);
+
+  const accumulator = new TriRenderBatchAccumulator();
+
+  assert.equal(object.GetBatchesFromOverlayVector(accumulator, null, OPAQUE, object.mesh), false);
+  assert.equal(accumulator.GetBatches().length, 0);
 });
