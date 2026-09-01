@@ -189,6 +189,51 @@ let nextLocalValueIdentity = 1;
 export class CjsResMan extends CjsEventEmitter
 {
 
+  // Carbon reaches its manager through the process-wide `BeResMan`
+  // (Tr2Effect.cpp:397). Ours needs the same reach for the same reason: a
+  // Tr2Effect arrives from schema hydration, so nobody holds it at construction
+  // to inject a manager into, and it must be able to acquire its own effect
+  // resource during Initialize.
+  //
+  // Read at CALL time, never captured, exactly as the global variable store is
+  // (CjsVariableStore.GetGlobalStore) - an installer that swaps the manager has
+  // to be seen by objects already built. Null is a real state: no manager
+  // installed means a caller composing by hand, and the caller assigns
+  // resources itself.
+  static #global = null;
+
+  /**
+   * Installs the manager that hydrated objects acquire their resources from.
+   *
+   * Composition owns this. Passing null uninstalls, which is how a test or a
+   * hand-composed caller keeps the global path from firing at all.
+   *
+   * @param {CjsResMan|null} resourceManager Manager to install.
+   * @returns {void}
+   */
+  static SetGlobal(resourceManager = null)
+  {
+    if (resourceManager !== null && !(resourceManager instanceof CjsResMan))
+    {
+      throw new TypeError("CjsResMan.SetGlobal expects a CjsResMan or null.");
+    }
+    CjsResMan.#global = resourceManager;
+  }
+
+  /**
+   * The installed manager, or null when none is.
+   *
+   * Unlike the variable store this does NOT create one on demand: a resource
+   * manager carries configuration, sources and a cache, so a fabricated default
+   * would be a silently wrong one.
+   *
+   * @returns {CjsResMan|null} Installed manager.
+   */
+  static GetGlobal()
+  {
+    return CjsResMan.#global;
+  }
+
   #autoPurgePolicy = null;
   #activeResourceOperations = 0;
   #invalidResourceOwnership = new WeakSet();

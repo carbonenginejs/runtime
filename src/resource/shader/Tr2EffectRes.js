@@ -84,6 +84,19 @@ export class Tr2EffectRes extends CjsResource
    */
   SetPayload(payload = null, options = null)
   {
+    // Container bytes route to DoLoad rather than being rejected as a malformed
+    // payload. The resource manager publishes by calling SetPayload, and this
+    // class is the one resource whose payload is DERIVED from bytes it must go
+    // on holding: DoLoad retains the reader so bodies decode one at a time, as
+    // Carbon's Tr2EffectRes.cpp:137 does. Without this the manager would load
+    // the bytes and the publish step would immediately clear the reader below,
+    // leaving GetShaderByIndex returning null for a resource that reported
+    // good. That is the whole reason this class had bypassed the manager.
+    if (payload instanceof ArrayBuffer || ArrayBuffer.isView(payload))
+    {
+      return this.DoLoad(payload, options);
+    }
+
     if (payload === null)
     {
       this.#shaders.clear();

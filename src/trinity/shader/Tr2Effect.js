@@ -8,6 +8,7 @@ import { Tr2FloatParameter } from "./parameter/Tr2FloatParameter.js";
 import { Tr2GeometryBufferParameter } from "./parameter/Tr2GeometryBufferParameter.js";
 import { Tr2Matrix4Parameter } from "./parameter/Tr2Matrix4Parameter.js";
 import { Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#resource/shader";
+import { CjsResMan, ResourceRequirement } from "#resource";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
@@ -299,8 +300,52 @@ export class Tr2Effect extends Tr2Material
       resource?.OnAddedToMaterial?.(this);
     }
     this.actualEffectFilePath = this.effectFilePath ? Tr2Effect.convertEffectPath(this.effectFilePath) : "";
+    this.#AcquireEffectResource();
     this.RebuildCachedDataInternal();
     return true;
+  }
+
+  /**
+   * Acquires the effect resource for the resolved path, if a manager is
+   * installed and this effect has not been handed one already.
+   *
+   * Carbon fetches through the process-wide manager and registers a notify
+   * target (`BeResMan->GetResource(...)` then `AddNotifyTarget(this)`,
+   * Tr2Effect.cpp:397-402). That mechanism is not ported: this runtime replaced
+   * notify targets with events, `CjsResource` is a `CjsEventEmitter`, and
+   * nothing in `src` has an `AddNotifyTarget`. The equivalent is subscribing to
+   * the resource's `completed` event through `OnCompleted`, which replays for a
+   * late subscriber - so a resource that is already prepared rebuilds
+   * immediately rather than waiting for a state change that has been and gone.
+   *
+   * The resource owns the subscription, which is what keeps Trinity out of the
+   * lifecycle; `shader.test.js` asserts exactly that by throwing from an
+   * `AddNotifyTarget` on a test resource.
+   *
+   * Does nothing when no manager is installed or the path did not resolve.
+   * Both are real states - a caller composing by hand assigns `effectResource`
+   * itself, and an unresolved path means no backend is committed - and neither
+   * is an error worth throwing during hydration.
+   *
+   * @returns {void}
+   */
+  #AcquireEffectResource()
+  {
+    const resourceManager = CjsResMan.GetGlobal();
+
+    if (!resourceManager || !this.actualEffectFilePath) return;
+    // A caller that assigned a resource by hand owns it; do not replace it.
+    if (this.effectResource !== null) return;
+
+    const resource = resourceManager.GetResource(this.actualEffectFilePath, {
+      requirement: ResourceRequirement.SHADER
+    });
+
+    this.effectResource = resource;
+    // `source` is this effect, so a later Initialize can drop the subscription
+    // in one call rather than tracking listeners individually.
+    resource.OnCompleted(() => this.RebuildCachedDataAsync(), this);
+    resource.Ready?.();
   }
 
   /** Re-runs Initialize after notified fields change; always returns true. */
