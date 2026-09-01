@@ -428,7 +428,9 @@ export class Tr2RenderBatch
 
     if (reversed && lod.reversedIndicesValid === false) return null;
 
-    const firstIndex = lod.areas?.[index]?.firstIndex ?? 0;
+    // Not `area.firstIndex` directly: a CMF-shaped LOD writes the area start as
+    // a first TRIANGLE, and the geometry layer owns that conversion.
+    const firstIndex = TriGeometryRes.getAreaFirstIndex(lod.areas?.[index]);
 
     // Carbon binds the FORWARD index allocation on both paths and only reads
     // the reversed allocation for the start index (Tr2MeshBase.cpp:371/375).
@@ -437,7 +439,7 @@ export class Tr2RenderBatch
     const indices = reversed ? lod.reversedIndexAllocation : lod.indexAllocation;
 
     const startIndexLocation = reversed
-      ? Tr2RenderBatch.startIndexOf(indices) + lod.primitiveCount * 3 - firstIndex - primitiveCount * 3
+      ? Tr2RenderBatch.startIndexOf(indices) + TriGeometryRes.getLodPrimitiveCount(lod) * 3 - firstIndex - primitiveCount * 3
       : Tr2RenderBatch.startIndexOf(indices) + firstIndex;
 
     return {

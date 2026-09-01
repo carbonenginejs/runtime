@@ -623,10 +623,76 @@ export class TriGeometryRes extends CjsResource
 
     for (let offset = 0; offset < run; offset++)
     {
-      primitiveCount += areas[index + offset]?.primitiveCount ?? 0;
+      primitiveCount += TriGeometryRes.getAreaPrimitiveCount(areas[index + offset]);
     }
 
     return primitiveCount;
+  }
+
+  // A CMF LOD AREA IS NOT A CARBON AREA, AND THE DIFFERENCE IS A FACTOR OF THREE.
+  //
+  // Carbon converts at the read boundary (TriGeometryRes.cpp:905-906):
+  //
+  //     area.m_firstIndex     = cmfLodMeshArea.firstElement * 3;
+  //     area.m_primitiveCount = cmfLodMeshArea.elementCount;
+  //
+  // `firstElement` counts TRIANGLES and `m_firstIndex` counts INDICES, so the
+  // start converts and the count does not. Reading `firstElement` as an index
+  // would draw the right number of triangles from a third of the way into the
+  // area - plausible geometry, wrong geometry, and no error anywhere.
+  //
+  // Both names are accepted for the same reason `decl`/`vertexElements` are
+  // accepted above: the name is the producer's. A payload built by a reader
+  // that already speaks Carbon's vocabulary is passed through unconverted.
+
+  /**
+   * One area's primitive count, under whichever name the producer used.
+   *
+   * @param {object|null} area
+   * @returns {number} Triangle count; zero when the area is absent or unnamed.
+   */
+  static getAreaPrimitiveCount(area)
+  {
+    return area?.primitiveCount ?? area?.elementCount ?? 0;
+  }
+
+  /**
+   * One area's first INDEX, converting a CMF first-triangle when that is what
+   * the producer wrote.
+   *
+   * @param {object|null} area
+   * @returns {number} Index offset into the LOD's index buffer.
+   */
+  static getAreaFirstIndex(area)
+  {
+    if (area?.firstIndex !== undefined) return area.firstIndex;
+    if (area?.firstElement !== undefined) return area.firstElement * 3;
+
+    return 0;
+  }
+
+  /**
+   * A LOD's total primitive count.
+   *
+   * Carbon takes this from the index stream rather than from the areas
+   * (`GetStreamElementCount( cmfLod.ib ) / 3`, TriGeometryRes.cpp:890), because
+   * an area list need not cover every triangle. Falling back to the area sum
+   * keeps a payload that carries areas but no index-stream extent usable, and
+   * only the reversed draw path reads this at all.
+   *
+   * @param {object|null} lod
+   * @returns {number}
+   */
+  static getLodPrimitiveCount(lod)
+  {
+    if (lod?.primitiveCount !== undefined) return lod.primitiveCount;
+
+    const stride = lod?.ib?.stride ?? 0;
+    const size = lod?.ib?.size ?? 0;
+
+    if (stride > 0 && size > 0) return Math.floor(size / stride / 3);
+
+    return TriGeometryRes.getPrimitiveCount(lod, 0, lod?.areas?.length ?? 0);
   }
 
   /**
