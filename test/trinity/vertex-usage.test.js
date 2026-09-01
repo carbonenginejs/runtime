@@ -121,3 +121,35 @@ test("a storage-only channel has no usage", () =>
   assert.equal(CarbonUsageFromChannel("packedTangentLegacy"), null);
   assert.equal(CarbonUsageFromChannel(""), null);
 });
+
+test("translating the same declaration twice returns the SAME array", () =>
+{
+  // Not an optimisation detail - a correctness-adjacent invariant.
+  // Tr2VertexDefinition.getHandle memoises on the element array's IDENTITY, and
+  // its linear intern scan is only affordable because of that memo. A fresh
+  // array per call defeats it, and every batch of every mesh rescans the whole
+  // intern table element by element. Invisible at a few meshes; quadratic per
+  // frame at the several hundred a real scene carries.
+  const decl = [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ];
+
+  assert.equal(CarbonVertexElements(decl), CarbonVertexElements(decl));
+});
+
+test("the memo is keyed per declaration, not shared across meshes", () =>
+{
+  const one = [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ];
+  const two = [ { usage: "Normal", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ];
+
+  assert.notEqual(CarbonVertexElements(one), CarbonVertexElements(two));
+  assert.equal(CarbonVertexElements(two)[0].usage, 2);
+});
+
+test("interning a translated declaration twice yields one handle and one entry", () =>
+{
+  const decl = [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 4242 } ];
+
+  const first = Tr2VertexDefinition.getHandle(CarbonVertexElements(decl));
+  const second = Tr2VertexDefinition.getHandle(CarbonVertexElements(decl));
+
+  assert.equal(first, second);
+});

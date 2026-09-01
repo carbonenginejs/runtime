@@ -83,6 +83,22 @@ export function CarbonUsageFromCmf(usage)
 }
 
 
+// THE RESULT MUST HAVE A STABLE IDENTITY, not merely stable contents.
+//
+// Tr2VertexDefinition.getHandle interns by linear scan and memoises on the
+// element array's IDENTITY, which is what makes its own comment true: "the scan
+// is amortised because a declaration is interned once per distinct mesh layout,
+// not per draw". A translation that allocated a fresh array per call would
+// defeat that memo, and every batch of every mesh would rescan the whole intern
+// table comparing element by element. At a few meshes that is invisible; at the
+// several hundred a real scene carries it is quadratic work per frame.
+//
+// A geometry resource hands back the same declaration array for the life of the
+// payload, so keying on it collapses the whole cost to once per mesh layout.
+// Weak, because the entry must not outlive the payload it describes.
+const translations = new WeakMap();
+
+
 /**
  * Rewrites a CMF declaration's elements into Carbon's usage vocabulary.
  *
@@ -99,9 +115,15 @@ export function CarbonUsageFromCmf(usage)
  */
 export function CarbonVertexElements(elements)
 {
+  if (!elements) return [];
+
+  const memoised = translations.get(elements);
+
+  if (memoised !== undefined) return memoised;
+
   const translated = [];
 
-  for (const element of elements ?? [])
+  for (const element of elements)
   {
     const usage = CarbonUsageFromCmf(element?.usage);
 
@@ -109,6 +131,8 @@ export function CarbonVertexElements(elements)
 
     translated.push({ ...element, usage });
   }
+
+  translations.set(elements, translated);
 
   return translated;
 }

@@ -26,6 +26,14 @@ import { WebgpuVertexBufferLayout } from "./vertexFormat.js";
  * arrives with a null element, and the result is a geometry with no attributes
  * that the device then rejects.
  *
+ * CALL THIS ONCE PER GEOMETRY, NOT ONCE PER BATCH. It interleaves the whole
+ * vertex buffer, so a scene of several hundred meshes calling it per draw would
+ * repack every mesh every frame. The caller caches the DEVICE GEOMETRY it gets
+ * back from CreateGeometry, keyed by the batch geometry source; caching the
+ * packed bytes instead would be worse than not caching, because it keeps a
+ * second full copy of every vertex buffer in memory for the life of the mesh
+ * while the GPU already holds the only copy that gets drawn.
+ *
  * @param {object} mesh Decoded mesh carrying a declaration and channels.
  * @param {Array<object>} bindingPlan Entries from `Tr2VertexDefinition.resolveBindingPlan`.
  * @param {object} [options]
