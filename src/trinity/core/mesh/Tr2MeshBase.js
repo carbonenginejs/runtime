@@ -7,6 +7,7 @@ import { carbon, impl, io, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/Tr2RenderBatch.js";
 import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition.js";
+import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 
 
 /**
@@ -394,9 +395,16 @@ export class Tr2MeshBase extends CjsModel
     // leaving it zero makes every mesh look like one declaration.
     const elements = geometry?.GetMeshVertexElements?.(this.meshIndex);
 
-    if (elements?.length)
+    // The geometry layer hands back the PRODUCER's vocabulary - a CMF decl names
+    // its usages - and a shader input carries Carbon's numeric UsageCode. The
+    // two numberings collide rather than merely differ, so this translates
+    // before interning: an untranslated decl interns to a handle that no shader
+    // input can ever match, and `findElement` fails silently for every mesh.
+    const carbonElements = CarbonVertexElements(elements);
+
+    if (carbonElements.length)
     {
-      batch.SetVertexDeclaration(Tr2VertexDefinition.getHandle(elements));
+      batch.SetVertexDeclaration(Tr2VertexDefinition.getHandle(carbonElements));
     }
 
     // Carbon computes the draw arguments here, from the resolved LOD. Without a

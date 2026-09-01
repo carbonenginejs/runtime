@@ -19,11 +19,16 @@
 // normals would bind to the shader's colour input and draw something plausible
 // and wrong.
 //
-// Two entry points, because the two geometry formats hand over different
-// things. CMF carries a declaration, so its elements translate. GR2 carries
-// NO declaration at all - only deinterleaved channels - so its geometry is
-// addressed by channel name and a declaration has to be built rather than
-// translated. EVE ships are GR2 today; CMF is the Frontier path.
+// Two entry points, because a decoded payload arrives in one of two shapes,
+// and which one is the CALLER'S choice rather than the format's. A GR2 read
+// emits deinterleaved channels with no declaration by default, and emits a
+// CMF-shaped declaration when asked for one (`emit: "cmf"`, or the `@cmf`
+// request suffix), because the GR2 reader builds through the CMF builder.
+// EVE ships are GR2 today; CMF is the Frontier path; both reach both shapes.
+//
+// So: a payload carrying a declaration translates its elements, and a payload
+// carrying only channels is addressed by channel name and has a declaration
+// built rather than translated.
 //
 // The two formats already agree on channel names (`position`, `normal`,
 // `tangent`, `binormal`, `texcoord0`, `texcoord1`, `blendIndice`,
@@ -66,6 +71,12 @@ const CARBON_USAGE_BY_CMF_NAME = Object.freeze({
  */
 export function CarbonUsageFromCmf(usage)
 {
+  // A producer that already speaks Carbon's vocabulary is passed through, which
+  // makes translation idempotent. Without this a numeric usage would miss the
+  // name table and be DROPPED, so running a Carbon-shaped declaration through
+  // here twice would empty it.
+  if (typeof usage === "number") return usage;
+
   const code = CARBON_USAGE_BY_CMF_NAME[usage];
 
   return code === undefined ? null : code;
