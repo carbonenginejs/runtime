@@ -1,0 +1,151 @@
+// Source: trinity/trinityal/Tr2VertexDefinition.h:17-30 (Carbon UsageCode)
+//   against runtime/src/resource/formats/cmf/core/constants.js (CMF Usage).
+//
+// Two vocabularies name the same semantics and agree on almost nothing.
+//
+// CMF stores a usage as a byte and its reader turns that into a NAME, so a decl
+// element carries `usage: "Position"`. A shader's pipeline input carries a
+// NUMBER - Carbon's UsageCode - because that is what the effect container
+// stores. `Tr2VertexDefinition.findElement` compares the two with `===`, so a
+// CMF element cannot match any shader input until one is translated.
+//
+// Passing the CMF byte through untranslated would be worse than not matching,
+// because the two numberings COLLIDE rather than merely disagree:
+//
+//   CMF     0 Position  1 Normal  2 Tangent  3 Binormal  4 TexCoord  5 Color
+//   Carbon  0 POSITION  1 COLOR   2 NORMAL   3 TANGENT   4 BITANGENT 5 TEXCOORD
+//
+// Only Position, BoneIndices and BoneWeights land on the same number. A mesh's
+// normals would bind to the shader's colour input and draw something plausible
+// and wrong.
+//
+// Two entry points, because the two geometry formats hand over different
+// things. CMF carries a declaration, so its elements translate. GR2 carries
+// NO declaration at all - only deinterleaved channels - so its geometry is
+// addressed by channel name and a declaration has to be built rather than
+// translated. EVE ships are GR2 today; CMF is the Frontier path.
+//
+// The two formats already agree on channel names (`position`, `normal`,
+// `tangent`, `binormal`, `texcoord0`, `texcoord1`, `blendIndice`,
+// `blendWeight`), which is what makes one channel mapping serve both.
+//
+// This lives beside Tr2VertexDefinition because matching is its job, and
+// because the resource layer may not import Trinity to reach the usage codes.
+import { Tr2RuntimeInstanceData } from "../mesh/Tr2RuntimeInstanceData.js";
+
+
+const { POSITION, COLOR, NORMAL, TANGENT, BITANGENT, TEXCOORD, BLENDINDICES, BLENDWEIGHTS } =
+  Tr2RuntimeInstanceData.UsageCode;
+
+
+/**
+ * CMF usage names to Carbon's `UsageCode`.
+ *
+ * `PackedTangent` and `PackedTangentLegacy` are deliberately absent. Carbon has
+ * no usage for either: they are a CMF storage optimisation, not a semantic, and
+ * a mesh carrying them must be unpacked into `Tangent`/`Binormal` before its
+ * elements can match a shader input.
+ */
+const CARBON_USAGE_BY_CMF_NAME = Object.freeze({
+  Position: POSITION,
+  Color: COLOR,
+  Normal: NORMAL,
+  Tangent: TANGENT,
+  Binormal: BITANGENT,
+  TexCoord: TEXCOORD,
+  BoneIndices: BLENDINDICES,
+  BoneWeights: BLENDWEIGHTS
+});
+
+
+/**
+ * Translates one CMF usage name into Carbon's numeric usage code.
+ *
+ * @param {string} usage CMF usage name.
+ * @returns {number|null} Carbon usage code, or null when there is no counterpart.
+ */
+export function CarbonUsageFromCmf(usage)
+{
+  const code = CARBON_USAGE_BY_CMF_NAME[usage];
+
+  return code === undefined ? null : code;
+}
+
+
+/**
+ * Rewrites a CMF declaration's elements into Carbon's usage vocabulary.
+ *
+ * The result is what `Tr2VertexDefinition` can intern and match: same order,
+ * same offsets, same types, with `usage` translated. An element with no Carbon
+ * counterpart is DROPPED rather than passed through, because a passed-through
+ * CMF byte would collide with a different Carbon usage and bind silently.
+ *
+ * Dropping is safe for matching and lossy for round-tripping, so this is for
+ * the binding path only - never write a CMF file from the result.
+ *
+ * @param {Array} elements CMF declaration elements.
+ * @returns {Array} Elements carrying Carbon usage codes.
+ */
+export function CarbonVertexElements(elements)
+{
+  const translated = [];
+
+  for (const element of elements ?? [])
+  {
+    const usage = CarbonUsageFromCmf(element?.usage);
+
+    if (usage === null) continue;
+
+    translated.push({ ...element, usage });
+  }
+
+  return translated;
+}
+
+
+/**
+ * Decoded channel names to Carbon's `UsageCode` and semantic index.
+ *
+ * Both geometry readers emit these names (`runtime/src/resource/formats/gr2/core/json.js`
+ * `VERTEX_CHANNELS` and the CMF equivalent), so one table serves both. The
+ * trailing digit on a texture-coordinate or colour channel is the SEMANTIC
+ * INDEX, which is why the mapping yields a pair rather than a code: `texcoord1`
+ * is TEXCOORD at usage index 1, and matching needs both halves.
+ *
+ * `packedTangent` and `packedTangentLegacy` are absent for the same reason as
+ * above - they are storage, not semantics.
+ */
+const CARBON_USAGE_BY_CHANNEL = Object.freeze({
+  position: POSITION,
+  normal: NORMAL,
+  tangent: TANGENT,
+  binormal: BITANGENT,
+  color: COLOR,
+  texcoord: TEXCOORD,
+  blendindice: BLENDINDICES,
+  blendweight: BLENDWEIGHTS
+});
+
+
+/**
+ * Translates a decoded channel name into a Carbon usage and semantic index.
+ *
+ * Handles the trailing-index convention: `texcoord0` and `texcoord1` are the
+ * same usage at different indices, and a bare `position` is index 0.
+ *
+ * @param {string} channel Decoded channel name.
+ * @returns {{usage: number, usageIndex: number}|null} Usage pair, or null.
+ */
+export function CarbonUsageFromChannel(channel)
+{
+  const name = String(channel ?? "");
+  const match = /^([a-z]+?)(\d*)$/u.exec(name.toLowerCase());
+
+  if (!match) return null;
+
+  const usage = CARBON_USAGE_BY_CHANNEL[match[1]];
+
+  if (usage === undefined) return null;
+
+  return { usage, usageIndex: match[2] ? Number(match[2]) : 0 };
+}
