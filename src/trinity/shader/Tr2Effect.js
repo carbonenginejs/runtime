@@ -7,7 +7,10 @@ import { Tr2ConstantEffectParameter } from "./parameter/Tr2ConstantEffectParamet
 import { Tr2FloatParameter } from "./parameter/Tr2FloatParameter.js";
 import { Tr2GeometryBufferParameter } from "./parameter/Tr2GeometryBufferParameter.js";
 import { Tr2Matrix4Parameter } from "./parameter/Tr2Matrix4Parameter.js";
-import { Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#resource/shader";
+import { ShaderStageType, Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#resource/shader";
+import { Tr2EffectParam } from "./material/Tr2EffectParam.js";
+import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
+import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
 import { CjsResMan, ResourceRequirement } from "#resource";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
@@ -23,6 +26,16 @@ import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
 import { CjsVariableStore } from "./CjsVariableStore.js";
 
+
+/**
+ * Carbon's sRGB resource flag (`ITr2EffectValue.h:18`).
+ *
+ * A mapped resource stores this in `registerCount`, which for resources is a
+ * flag word rather than a count. The field name is Carbon's and it means
+ * something different here than it does for a constant, where it is a byte
+ * size.
+ */
+const RESOURCE_FLAG_SRGB = 1;
 
 function requireShader(shader)
 {
@@ -306,6 +319,273 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
+   * Builds the per-technique, per-pass parameter mapping from the resolved
+   * shader (Carbon `Tr2Effect::RebuildCachedDataInternal`, Tr2Effect.cpp:693-795).
+   *
+   * The outer list is per TECHNIQUE, each holding `passes` and `libraries`.
+   * That is the shape `Tr2Material`'s readers already expect, so this
+   * assembles the existing material models rather than inventing a structure.
+   *
+   * Device work is deliberately absent. Carbon creates a constant buffer, a
+   * resource set and sampler-state objects in this same loop; here only the
+   * CPU mirror is allocated, through `Tr2MaterialStageInput`'s own
+   * `AllocateConstants` / `GetSharedConstantBuffer`, which exist for exactly
+   * this reason. An engine realizes the rest from what is recorded.
+   *
+   * @returns {void}
+   */
+  #BuildParametersForPasses()
+  {
+    this.parametersForPasses = [];
+
+    const techniques = this.shader?.GetEffect?.()?.techniques ?? [];
+
+    for (const technique of techniques)
+    {
+      const inputs = new Tr2EffectTechniqueInputs();
+
+      for (const pass of technique?.passes ?? [])
+      {
+        const passParameters = new Tr2EffectPassParameters();
+
+        // Carbon copies the reflection's description because sampler overrides
+        // then mutate the copy; the pass reflection itself is never written.
+        passParameters.resourceSetDesc = pass?.resourceSetDesc ?? null;
+        passParameters.resourceSetHash = 0;
+        passParameters.resourceSetDirty = true;
+        passParameters.compatibleWithGdr = true;
+
+        const stageInputs = pass?.stageInputs ?? [];
+
+        for (let stageType = 0; stageType < stageInputs.length; stageType += 1)
+        {
+          const stage = stageInputs[stageType];
+
+          if (!stage?.exists) continue;
+
+          // A stage Carbon's GDR path cannot express: anything but vertex,
+          // pixel or compute (Tr2Effect.cpp:723-726).
+          if (stageType !== ShaderStageType.VERTEX_SHADER
+            && stageType !== ShaderStageType.PIXEL_SHADER
+            && stageType !== ShaderStageType.COMPUTE_SHADER)
+          {
+            passParameters.compatibleWithGdr = false;
+          }
+
+          this.#MapPassParameters(stage, passParameters.stageInput[stageType], passParameters);
+          this.#MapPassResources(stage.resources, passParameters.stageInput[stageType].textures, passParameters);
+          this.#MapPassResources(stage.uavs, passParameters.stageInput[stageType].uavs, passParameters);
+        }
+
+        if (!passParameters.compatibleWithGdr) this.compatibleWithGdr = false;
+
+        inputs.passes.push(passParameters);
+      }
+
+      this.parametersForPasses.push(inputs);
+    }
+  }
+
+  /**
+   * Maps one stage's authored constants onto byte offsets in its CPU mirror
+   * (Carbon `MapPassParameters`, Tr2Effect.cpp:1722-2025).
+   *
+   * `registerIndex` and `registerCount` on a stored parameter are BYTE OFFSET
+   * and BYTE SIZE, not a register index and count. Carbon's field names are
+   * historical and mean something different here than they do for resources.
+   *
+   * Every constant contributes to the buffer size whether or not anything
+   * binds it, because the shader may sample an unbound constant and expect a
+   * default. `GetConstantBufferSize` already carries that rule.
+   *
+   * A stage whose values are entirely static takes a shared, deduplicated
+   * mirror; one with variable parameters gets its own. That split is Carbon's
+   * and it is why `Tr2MaterialStageInput` has both methods.
+   *
+   * @param {object} stage Reflected stage input.
+   * @param {object} stageInput Material stage input to populate.
+   * @param {object} passParameters Owning pass parameters.
+   * @returns {void}
+   */
+  #MapPassParameters(stage, stageInput, passParameters)
+  {
+    const constantSize = stage.GetConstantBufferSize?.() ?? 0;
+    const constants = stage.constants ?? [];
+    const constParameters = this.GetConstParameters();
+    const bound = new Map();
+    let hasVariableParams = false;
+
+    for (let index = 0; index < constants.length; index += 1)
+    {
+      const constant = constants[index];
+      const name = constant?.name ?? "";
+
+      if (!name) continue;
+      // Authored constants are baked into the mirror rather than bound, so
+      // they do not make the stage variable.
+      if (constParameters.some(parameter => parameter?.name === name)) continue;
+
+      const value = this.FindParameterByName(name)
+        ?? this.#ResolveResourceValue(name, passParameters)
+        ?? this.GetVariableStore().FindVariable?.(name)
+        ?? (constant.isAutoregister ? CjsVariableStore.GetGlobalStore().GetVariable?.(name) : null)
+        ?? null;
+
+      if (value)
+      {
+        bound.set(index, value);
+        hasVariableParams = true;
+      }
+    }
+
+    if (constantSize === 0) return;
+
+    const defaults = stage.constantValues ?? new Uint8Array(0);
+    const mirror = new Uint8Array(constantSize);
+
+    mirror.set(defaults.subarray(0, Math.min(defaults.length, constantSize)));
+    Tr2Effect.#BakeConstantParameters(mirror, constants, constParameters);
+
+    if (!hasVariableParams)
+    {
+      // Fully static: Carbon takes a shared buffer keyed on the contents.
+      stageInput.GetSharedConstantBuffer(mirror, constantSize);
+      return;
+    }
+
+    stageInput.AllocateConstants(constantSize);
+    stageInput.constantMirror?.set(mirror.subarray(0, stageInput.constantMirror.length));
+
+    for (const [ index, value ] of bound)
+    {
+      const constant = constants[index];
+      const parameter = new Tr2EffectParam();
+
+      parameter.sourceName = constant.name;
+      parameter.sourceValue = value;
+      parameter.registerIndex = constant.offset;
+      parameter.registerCount = constant.size;
+
+      value.RebuildEffectHandles?.(this.shader);
+
+      if (value.SupportsDirtyNotification?.())
+      {
+        stageInput.shaderParametersWithNotification.push(parameter);
+      }
+      else
+      {
+        stageInput.shaderParameters.push(parameter);
+      }
+    }
+  }
+
+  /**
+   * Maps a stage's texture or UAV registers onto authored values
+   * (Carbon `MapPassResources`, Tr2Effect.cpp:1436-1489).
+   *
+   * Here `registerIndex` really is the register, and `registerCount` is
+   * overloaded as a flag word carrying only the sRGB bit. Unresolved names
+   * produce no entry, so this vector is sparse where the constant one is not.
+   *
+   * Binding from the effect's own resources or from an effect parameter clears
+   * GDR compatibility, because a general draw cannot know those values.
+   *
+   * @param {Map} resources Register-keyed reflected resources.
+   * @param {Array} into Parameter vector to fill.
+   * @param {object} passParameters Owning pass parameters.
+   * @returns {void}
+   */
+  #MapPassResources(resources, into, passParameters)
+  {
+    if (!resources || typeof resources.entries !== "function") return;
+
+    // Carbon iterates a register-ordered map; ours is unordered, so sort to
+    // keep the emitted order stable between runs.
+    const entries = [ ...resources.entries() ].sort((left, right) => Number(left[0]) - Number(right[0]));
+
+    for (const [ register, resource ] of entries)
+    {
+      const name = resource?.name ?? "";
+
+      if (!name) continue;
+
+      let value = this.GetResourceByName(name) ?? null;
+
+      if (value)
+      {
+        passParameters.compatibleWithGdr = false;
+      }
+      else
+      {
+        const parameter = this.FindParameterByName(name);
+
+        if (parameter instanceof TriVariableParameter)
+        {
+          value = parameter;
+          passParameters.compatibleWithGdr = false;
+        }
+        else
+        {
+          value = this.GetVariableStore().FindVariable?.(name)
+            ?? (resource.isAutoregister ? this.GetVariableStore().GetVariable?.(name) : null)
+            ?? null;
+        }
+      }
+
+      if (!value) continue;
+
+      const stored = new Tr2EffectParam();
+
+      stored.sourceName = name;
+      stored.sourceValue = value;
+      stored.registerIndex = Number(register);
+      stored.registerCount = resource.isSRGB ? RESOURCE_FLAG_SRGB : 0;
+      into.push(stored);
+    }
+  }
+
+  /**
+   * Resolves a named effect resource and records the pass's use of it.
+   *
+   * @param {string} name Constant name.
+   * @param {object} passParameters Owning pass parameters.
+   * @returns {object|null} Resolved value.
+   */
+  #ResolveResourceValue(name, passParameters)
+  {
+    const resource = this.GetResourceByName(name);
+
+    if (!resource) return null;
+    if (!passParameters.usedResources.includes(resource)) passParameters.usedResources.push(resource);
+    passParameters.usedTexturesDirty = true;
+
+    return resource;
+  }
+
+  /**
+   * Bakes authored constant-parameter values into a stage mirror.
+   *
+   * @param {Uint8Array} mirror Stage constant mirror.
+   * @param {Array} constants Reflected constants.
+   * @param {Array} constParameters Authored constant parameters.
+   * @returns {void}
+   */
+  static #BakeConstantParameters(mirror, constants, constParameters)
+  {
+    for (const constant of constants)
+    {
+      const authored = constParameters.find(parameter => parameter?.name === constant?.name);
+
+      if (!authored) continue;
+
+      const values = authored.value ?? [];
+      const floats = new Float32Array(mirror.buffer, mirror.byteOffset + constant.offset, Math.min(values.length, constant.size / 4));
+
+      floats.set(values.slice(0, floats.length));
+    }
+  }
+
+  /**
    * Acquires the effect resource for the resolved path, if a manager is
    * installed and this effect has not been handed one already.
    *
@@ -409,7 +689,11 @@ export class Tr2Effect extends Tr2Material
       if (shader !== null) Tr2EffectStateManager.registerShaderHandles(shader);
     }
     this.lodTextureParameters = [];
+    // Carbon initialises the flag here and every rule below only ever CLEARS
+    // it (Tr2Effect.cpp:676). Keeping the assignment is right; what was missing
+    // is everything that clears it.
     this.compatibleWithGdr = true;
+    this.#BuildParametersForPasses();
     for (const parameter of this.parameters)
     {
       if (parameter instanceof TriVariableParameter)

@@ -8,3 +8,4 @@ export * from "./Tr2EffectStageInput.js";
 export * from "./Tr2EffectTechnique.js";
 export * from "./Tr2Pass.js";
 export * from "./Tr2RenderStateSetup.js";
+export * from "./shaderStage.js";
