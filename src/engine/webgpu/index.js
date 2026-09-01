@@ -17,6 +17,7 @@ export {
   WebgpuVertexFormat,
   WebgpuVertexBufferLayout
 } from "./core/vertexFormat.js";
+export { WebgpuGeometryOptions } from "./core/geometryPlan.js";
 export {
   MaterialLayoutFromShader,
   NormalizeMaterialLayout,

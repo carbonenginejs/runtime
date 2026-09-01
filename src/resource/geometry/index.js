@@ -12,3 +12,4 @@ export * from "./TriMorphTargetGeometryConstants.js";
 export * from "./TriRtGeometryConstants.js";
 export * from "./granny/index.js";
 export * from "./vertexElementType.js";
+export * from "./packGeometry.js";
