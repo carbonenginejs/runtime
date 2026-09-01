@@ -314,7 +314,11 @@ test("io.always preserves repeated effect-path updates", () =>
   }
   effect.effectResource = new TestEffectRes();
   effect.Initialize();
-  assertEquals(effect.actualEffectFilePath, "res:/effect/Ship/main.sm_hi");
+  // Lowercased, because Carbon's ConvertEffectPath lowercases before it
+  // substitutes (Tr2Effect.cpp:309-370) and resource routing is
+  // case-insensitive. Already carrying a shader-model suffix, this path needs
+  // no platform substitution and so resolves without a committed backend.
+  assertEquals(effect.actualEffectFilePath, "res:/effect/ship/main.sm_hi");
 });
 
 test("Tr2Effect rejects broken effect-resource shader identities", () =>

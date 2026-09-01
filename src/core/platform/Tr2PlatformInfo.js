@@ -1,6 +1,6 @@
 import { CjsWebGLProbe } from "./CjsWebGLProbe.js";
 import { ResolveDeviceRequirements } from "./deviceLimits.js";
-import { ResolveEffectPath } from "./effectPath.js";
+import { ResolveEffectPath } from "#utils/effectPath";
 import { Tr2VideoAdapter } from "./Tr2VideoAdapter.js";
 
 export const PlatformStaticCap = Object.freeze({

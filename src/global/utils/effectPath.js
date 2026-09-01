@@ -15,9 +15,16 @@ import { normalizeResourcePath } from "#utils/path";
 // handed something it cannot load, it fails LOUDLY rather than guessing or
 // silently rendering nothing. Path policy in, hard failure out.
 //
-// STANDALONE, like the rest of this directory. A caller composing without
-// CjsLibrary passes `platformName` by hand and gets the same answer, and this
-// module imports nothing, so the cycle with Tr2PlatformInfo cannot form.
+// STANDALONE. A caller composing without CjsLibrary passes `platformName` by
+// hand and gets the same answer, and this module imports nothing but path
+// normalization, so the cycle with Tr2PlatformInfo cannot form.
+//
+// It lives in global/utils rather than in core because Carbon substitutes in
+// `Tr2Effect`, and Trinity may not import core. Moving the pure transform down
+// does not move the policy: the VALUES it substitutes - platform name and
+// quality tier - are still configuration, still owned by core's
+// `Tr2PlatformInfo`, and still passed in. An engine is handed a resolved path
+// and is never asked which one it wants.
 
 
 /**
@@ -102,4 +109,44 @@ export function ResolveEffectPath(path, options = {})
     }
 
     return `${base.replace("/effect/", `/effect.${platformName}/`)}.${suffix}`;
+}
+
+// The values Carbon reads from globals when it substitutes: the platform name
+// (`TRINITY_PLATFORM_NAME`) and the quality tier (`Tr2Renderer::GetShaderModel`).
+// `Tr2Effect` needs them at the moment it converts a path, and it cannot reach
+// core to ask, so they are installed here by whoever owns configuration and
+// read at call time. Same shape as the global variable store, and the same
+// reason: an installer that swaps them must be seen by effects already built.
+//
+// Nothing is defaulted. A platform name that is absent means no backend is
+// committed, which is a real state and not a value to guess.
+let defaults = { platformName: null, shaderModel: "high" };
+
+
+/**
+ * Installs the platform name and quality tier path conversion substitutes.
+ *
+ * Configuration owns these. Passing null clears them, which returns the module
+ * to its uncommitted state rather than to a guess.
+ *
+ * @param {object|null} values `{ platformName, shaderModel }`.
+ * @returns {void}
+ */
+export function SetEffectPathDefaults(values = null)
+{
+    defaults = {
+        platformName: values?.platformName ?? null,
+        shaderModel: values?.shaderModel ?? "high"
+    };
+}
+
+
+/**
+ * The installed platform name and quality tier.
+ *
+ * @returns {object} `{ platformName, shaderModel }`.
+ */
+export function GetEffectPathDefaults()
+{
+    return { ...defaults };
 }

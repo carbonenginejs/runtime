@@ -8,6 +8,7 @@ import { Tr2FloatParameter } from "./parameter/Tr2FloatParameter.js";
 import { Tr2GeometryBufferParameter } from "./parameter/Tr2GeometryBufferParameter.js";
 import { Tr2Matrix4Parameter } from "./parameter/Tr2Matrix4Parameter.js";
 import { Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#resource/shader";
+import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
@@ -1082,10 +1083,44 @@ export class Tr2Effect extends Tr2Material
     return Tr2Effect.getBool(shader, name, "SasUiVisible", false) && !!(shader.GetConstant(name) || shader.GetResource(name));
   }
 
-  /** Normalizes an authored effect path's backslashes to forward slashes. */
-  static convertEffectPath(path)
+  /**
+   * Resolves an authored effect path to the compiled path a backend loads.
+   *
+   * Carbon's `ConvertEffectPath` (Tr2Effect.cpp:309-370) does three things:
+   * lowercases, substitutes `/effect/` for `/effect.<platform>/`, and replaces
+   * the extension with the shader-model suffix. This did only the first half of
+   * the first one - a backslash swap - so `actualEffectFilePath` still ended in
+   * `.fx` and no extension route could ever match it.
+   *
+   * Carbon returns false when it cannot substitute, and `Initialize` then
+   * blanks the path rather than fetching. The same happens here: with no
+   * platform name installed there is no committed backend, so an authored
+   * `/effect/*.fx` has no compiled tree to resolve into and yields "". The
+   * resolver itself throws in that case by design, and that loud failure is
+   * right for a caller that named a path deliberately; it is wrong for
+   * hydration, which may build an effect long before a backend exists.
+   *
+   * @param {string} path Authored effect path.
+   * @param {object} [options] Overrides for the installed configuration.
+   * @returns {string} Compiled path, or "" when none can be resolved.
+   */
+  static convertEffectPath(path, options = {})
   {
-    return String(path).replaceAll("\\", "/");
+    const authored = String(path ?? "");
+
+    if (!authored) return "";
+
+    const installed = GetEffectPathDefaults();
+    const platformName = options.platformName ?? installed.platformName ?? null;
+    const shaderModel = options.shaderModel ?? installed.shaderModel ?? "high";
+    const normalized = NormalizeResourcePath(authored);
+
+    if (!platformName && normalized.endsWith(".fx") && normalized.includes("/effect/"))
+    {
+      return "";
+    }
+
+    return ResolveEffectPath(normalized, { platformName, shaderModel });
   }
 
   /**
