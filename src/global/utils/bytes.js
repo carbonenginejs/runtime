@@ -120,3 +120,20 @@ export function readU32LE(bytes, offset)
         + ((bytes[offset + 2] || 0) << 16)
         + ((bytes[offset + 3] || 0) * 0x1000000)) >>> 0;
 }
+
+/**
+ * Reinterprets the bits of an unsigned 32-bit integer as a float32.
+ *
+ * Carbon stores float-valued render states and annotation payloads as raw
+ * uint32 bit patterns, so a consumer that needs the number rather than the
+ * pattern must reinterpret rather than convert.
+ *
+ * @param {number} value Unsigned 32-bit integer containing float bits.
+ * @returns {number} Float value represented by the same bits.
+ */
+export function float32FromBits(value)
+{
+    const view = new DataView(new ArrayBuffer(4));
+    view.setUint32(0, value >>> 0, true);
+    return view.getFloat32(0, true);
+}

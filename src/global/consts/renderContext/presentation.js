@@ -120,5 +120,7 @@ export const RenderState = Object.freeze({
     // but not in Carbon's Tr2RenderContextEnum::RenderState. Kept commented in
     // case a consumer needs the D3D9 scissor-test state later.
     RS_MAX_STATE: 210,
-    RS_FORCE_DWORD: 0
+    // C enum-width padding rather than vocabulary, kept to mirror the header.
+    // Carbon declares 0x7fffffff; this read 0 until 2026-09-01.
+    RS_FORCE_DWORD: 0x7fffffff
 });
