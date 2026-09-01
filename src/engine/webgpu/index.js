@@ -14,6 +14,10 @@ export {
   UploadPerObjectData
 } from "./core/perObjectUploader.js";
 export {
+  WebgpuVertexFormat,
+  WebgpuVertexBufferLayout
+} from "./core/vertexFormat.js";
+export {
   MaterialLayoutFromShader,
   NormalizeMaterialLayout,
   PackMaterialConstants

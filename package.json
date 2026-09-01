@@ -198,6 +198,7 @@
         "#resource/generated/*": "./src/resource/generated/*/index.js",
         "#resource/audio": "./src/resource/audio/index.js",
         "#resource/geometry": "./src/resource/geometry/index.js",
+        "#resource/geometry/vertex": "./src/resource/geometry/vertexElementType.js",
         "#resource/geometry/granny": "./src/resource/geometry/granny/index.js",
         "#resource/shader": "./src/resource/shader/index.js",
         "#resource/texture": "./src/resource/texture/index.js",
