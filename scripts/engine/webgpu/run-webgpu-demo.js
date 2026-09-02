@@ -157,10 +157,10 @@ if (!outcome?.ok)
   console.error("\nDemo failed.");
   process.exitCode = 1;
 }
-else if (outcome.screenshotBytes !== undefined && outcome.screenshotBytes < DRAWN_PNG_BYTES)
+else if (!outcome.report?.litPixels)
 {
   // Green intents with a uniform canvas means the frame ran and drew nothing,
   // which is the failure this demo exists to catch.
-  console.error(`\nDemo ran but the canvas is flat (${outcome.screenshotBytes} bytes): nothing was drawn.`);
+  console.error("\nDemo ran but every pixel is the clear colour: nothing was drawn.");
   process.exitCode = 1;
 }

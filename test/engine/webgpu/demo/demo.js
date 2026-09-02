@@ -36,6 +36,8 @@ import { Tr2MeshBase } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
 import { CjsWebgpuFormat } from "../../../../npm/dist/resource/formats/webgpu/index.js";
+import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
+import { buildCmfFromShared } from "../../../../src/resource/formats/cmf/core/shared.js";
 import { CjsWebgpuPackage } from "../../../../npm/dist/engine/webgpu/index.js";
 import { TriBatchType, RenderingMode } from "../../../../npm/dist/global/consts/graphics/index.js";
 
@@ -97,17 +99,64 @@ function blobMesh(points = 24)
 }
 
 /** A geometry resource of the shape the resolver and Tr2MeshBase ask for. */
-function geometryResource(mesh)
+function geometryResource(mesh, path)
 {
-  const lod = mesh.lods[0];
+  const lod = mesh.lods?.[0] ?? null;
 
   return {
-    GetPath: () => "res:/demo/blob.cmf",
+    GetPath: () => path,
     IsGood: () => true,
     GetPayload: () => ({ meshes: [ mesh ] }),
     GetMeshVertexElements: () => mesh.decl,
     GetMeshLod: () => lod
   };
+}
+
+/**
+ * A real EVE hull, decoded in the browser.
+ *
+ * GR2 emits deinterleaved channels with no declaration; the CMF builder is what
+ * produces one, and it is the same builder the runtime uses - so the
+ * declaration binding sees here is the one a loaded ship would carry, packed
+ * tangents unpacked and all.
+ *
+ * Scaled into clip space because this demo has no projection: the point is the
+ * declaration, the packing and the draw arguments, not the camera.
+ *
+ * @param {Uint8Array} bytes Container bytes.
+ * @returns {object} CMF-shaped mesh.
+ */
+function hullMesh(bytes)
+{
+  const graph = buildCmfFromShared(CjsGr2Format.read(CjsGr2Format.readRaw(bytes), { emit: "json" }));
+  const mesh = graph.meshes[0];
+  const position = mesh.vertex.position;
+
+  let extent = 0;
+
+  for (const value of position) extent = Math.max(extent, Math.abs(value));
+
+  if (extent > 0)
+  {
+    const scale = 0.9 / extent;
+
+    // Side-on. A hull is long in Z, so viewing down Z with no projection shows
+    // only its front cross-section - which is what the first render was, and it
+    // looked like nothing. Swapping Z into screen X puts the length across the
+    // view so the silhouette is the ship.
+    for (let i = 0; i < position.length; i += 3)
+    {
+      const x = position[i] * scale;
+      const y = position[i + 1] * scale;
+      const z = position[i + 2] * scale;
+
+      position[i] = z;
+      position[i + 1] = y;
+      position[i + 2] = x;
+    }
+  }
+
+  return mesh;
 }
 
 /** The shader inputs this WGSL declares, in Carbon usage codes. */
@@ -179,6 +228,57 @@ function blobRenderable(material, geometry)
   };
 }
 
+/**
+ * How many pixels differ from the clear colour.
+ *
+ * Read from the GPU rather than inferred from a screenshot: every cheaper proxy
+ * has given a wrong answer at least once, in both directions.
+ *
+ * @param {GPUDevice} device Live device.
+ * @param {GPUCanvasContext} context Configured canvas context.
+ * @param {HTMLCanvasElement} canvas The canvas drawn into.
+ * @returns {Promise<number>} Count of non-clear pixels.
+ */
+async function CountDrawnPixels(device, context, canvas)
+{
+  const bytesPerRow = Math.ceil(canvas.width * 4 / 256) * 256;
+  const buffer = device.createBuffer({
+    size: bytesPerRow * canvas.height,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
+  });
+
+  const encoder = device.createCommandEncoder();
+
+  encoder.copyTextureToBuffer(
+    { texture: context.getCurrentTexture() },
+    { buffer, bytesPerRow },
+    { width: canvas.width, height: canvas.height }
+  );
+
+  device.queue.submit([ encoder.finish() ]);
+
+  await buffer.mapAsync(GPUMapMode.READ);
+
+  const pixels = new Uint8Array(buffer.getMappedRange());
+  const clear = [ pixels[0], pixels[1], pixels[2] ];
+  let drawn = 0;
+
+  for (let y = 0; y < canvas.height; y++)
+  {
+    for (let x = 0; x < canvas.width; x++)
+    {
+      const at = y * bytesPerRow + x * 4;
+
+      if (pixels[at] !== clear[0] || pixels[at + 1] !== clear[1] || pixels[at + 2] !== clear[2]) drawn++;
+    }
+  }
+
+  buffer.unmap();
+  buffer.destroy();
+
+  return drawn;
+}
+
 /** Composes and runs one frame. Returns a short report for the page. */
 export async function RunDemo(canvas)
 {
@@ -190,11 +290,25 @@ export async function RunDemo(canvas)
   const context = canvas.getContext("webgpu");
   const format = navigator.gpu.getPreferredCanvasFormat();
 
-  context.configure({ device, format, alphaMode: "opaque" });
+  // COPY_SRC so the frame can be read back and counted; a demo that cannot
+  // prove it drew is a demo that will one day quietly stop drawing.
+  context.configure({
+    device,
+    format,
+    alphaMode: "opaque",
+    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
+  });
 
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
-  const mesh = blobMesh();
-  const geometry = geometryResource(mesh);
+  // A real hull, fetched through the same proxy as the effect.
+  const geometryPath = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
+  const geometryResponse = await fetch(`/resource/${geometryPath}`);
+
+  if (!geometryResponse.ok) throw new Error(`geometry fetch failed: ${geometryResponse.status}`);
+
+  const geometryBytes = new Uint8Array(await geometryResponse.arrayBuffer());
+  const mesh = hullMesh(geometryBytes);
+  const geometry = geometryResource(mesh, `res:/${geometryPath}`);
 
   // The real effect, fetched through the runner's resource proxy so no client
   // bytes are committed with the demo.
@@ -314,8 +428,16 @@ export async function RunDemo(canvas)
     .flatMap(group => group.bindings ?? [])
     .map(binding => binding.scopeIdentity ?? binding.name);
 
+  const lod = mesh.lods[0];
+
   return {
+    litPixels: await CountDrawnPixels(device, context, canvas),
     effect: effectPath,
+    geometry: geometryPath,
+    geometryBytes: geometryBytes.length,
+    declaration: mesh.decl.map(element => `${element.usage}${element.usageIndex}:${element.type}x${element.elementCount}`),
+    meshes: 1,
+    areas: lod.areas.length,
     declaredBindings: declared,
     containerBytes: containerBytes.length,
     translatedBytes: translated.bytes.length,
@@ -325,6 +447,6 @@ export async function RunDemo(canvas)
     intents: intents.map(intent => intent.type),
     submissions: submissions.length,
     drawn,
-    triangles: mesh.lods[0].areas[0].elementCount
+    triangles: lod.areas.reduce((total, area) => total + (area.elementCount ?? 0), 0)
   };
 }
