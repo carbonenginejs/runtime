@@ -74,6 +74,60 @@ export function ShaderModelSuffix(quality = "high")
 
 
 /**
+ * Effect trees whose containers carry a per-pass backend block.
+ *
+ * Ours are translated: the block records what translation decided - which
+ * resources became data textures, which detail maps merged into which array
+ * layer, whether local lights were packed - none of which is derivable from the
+ * shader. Carbon's own trees (`dx11`, `dx12`, `metal`) carry stock bodies with
+ * no block.
+ */
+export const TranslatedEffectPlatforms = Object.freeze([ "webgl", "webgl2", "webgpu" ]);
+
+
+/**
+ * The platform tree a resolved effect path names, or null when it names none.
+ *
+ * This is the inverse of `ResolveEffectPath`, and it exists because the loader
+ * is the one party that knows. Backend selection is by resource path, so by the
+ * time bytes arrive the path already says which tree they came from - but
+ * nothing could read that back, so every body was parsed twice on the chance it
+ * carried a backend block.
+ *
+ * @param {string} path Resource path.
+ * @returns {string|null} Platform name such as `webgpu`, or null.
+ */
+export function EffectPlatformFromPath(path)
+{
+    const normalized = NormalizeResourcePath(path);
+
+    if (!normalized) return null;
+
+    const match = /\/effect\.([a-z0-9_]+)\//iu.exec(normalized);
+
+    return match ? match[1].toLowerCase() : null;
+}
+
+
+/**
+ * Whether the container at this path carries a per-pass backend block.
+ *
+ * Null when the path names no effect tree, which is the reader's cue to detect
+ * for itself: tooling, caches and inspection legitimately arrive without a
+ * path, and guessing on their behalf would be worse than probing.
+ *
+ * @param {string} path Resource path.
+ * @returns {boolean|null} Whether to expect the block, or null when unknown.
+ */
+export function EffectCarriesBackendBlock(path)
+{
+    const platform = EffectPlatformFromPath(path);
+
+    return platform === null ? null : TranslatedEffectPlatforms.includes(platform);
+}
+
+
+/**
  * Resolves an authored `/effect/*.fx` path to the compiled path a backend
  * loads, substituting the platform name exactly as Carbon does.
  *

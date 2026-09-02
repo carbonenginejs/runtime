@@ -7,6 +7,7 @@ import { validateResourcePayload } from "../resourceBoundary.js";
 import { CjsCarbonEffectReader } from "../format/carbonEffect/CjsCarbonEffectReader.js";
 import { Tr2Shader } from "./Tr2Shader.js";
 import { ResourceRequirement } from "../ResourceRequirement.js";
+import { EffectCarriesBackendBlock } from "#utils/effectPath";
 
 const globalEffectOptions = [];
 
@@ -22,6 +23,9 @@ export class Tr2EffectRes extends CjsResource
   #shaders = new Map();
 
   #reader = null;
+
+  /** Whether this container carries per-pass backend blocks; null when unknown. */
+  #carriesBackendBlock = null;
 
   /**
    * Read a Carbon effect container and take ownership of its reader.
@@ -51,6 +55,16 @@ export class Tr2EffectRes extends CjsResource
     const reader = new CjsCarbonEffectReader(data);
     this.#shaders.clear();
     this.#reader = reader;
+
+    // WHAT KIND OF SHADER WAS THIS. The path names the tree the bytes came
+    // from, because backend selection is by resource path, and the tree decides
+    // whether a body carries a per-pass backend block. Recording it here is
+    // what lets every later read skip the reader's parse-twice fallback.
+    //
+    // Null for a container that arrived without a path - tooling and tests do -
+    // and the reader then detects for itself, which is what that fallback is
+    // for.
+    this.#carriesBackendBlock = EffectCarriesBackendBlock(this.GetPath());
     super.SetPayload({
       permutations: reader.permutations.map(axis => ({
         name: axis.name.value,
@@ -101,6 +115,7 @@ export class Tr2EffectRes extends CjsResource
     {
       this.#shaders.clear();
       this.#reader = null;
+      this.#carriesBackendBlock = null;
       super.SetPayload(null);
       return this;
     }
@@ -182,6 +197,17 @@ export class Tr2EffectRes extends CjsResource
    * @param {number} index Exact permutation index.
    * @returns {Tr2Shader|null} Canonical shader or null when reflection is absent.
    */
+  /**
+   * Whether this container's bodies carry a per-pass backend block, or null
+   * when the resource arrived with no path to tell.
+   *
+   * @returns {boolean|null}
+   */
+  CarriesBackendBlock()
+  {
+    return this.#carriesBackendBlock;
+  }
+
   GetShaderByIndex(index)
   {
     if (!Number.isSafeInteger(index) || index < 0)
@@ -207,7 +233,7 @@ export class Tr2EffectRes extends CjsResource
       return null;
     }
 
-    const shader = Tr2Shader.fromCarbonBinary(this.#reader, index);
+    const shader = Tr2Shader.fromCarbonBinary(this.#reader, index, this.#carriesBackendBlock);
     this.#shaders.set(index, shader);
     return shader;
   }

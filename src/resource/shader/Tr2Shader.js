@@ -214,15 +214,23 @@ export class Tr2Shader extends CjsModel
    * retains that block without interpreting it. What can be *realized* from the
    * result is the engine's question, not the reader's.
    *
+   * `backend` says whether the body carries a per-pass backend block. The
+   * resource knows, because backend selection is by resource path and the path
+   * names the tree the bytes came from. Without it the reader parses every body
+   * twice - plain Carbon first, then again assuming a block - which is the
+   * fallback it documents for bytes that arrive with no context at all:
+   * tooling, caches, inspection. A loader is not one of those.
+   *
    * @param {object} reader Container reader owned by the resource.
    * @param {number} index Permutation index within the container.
+   * @param {boolean|null} [backend] Whether to expect a per-pass backend block.
    * @returns {Tr2Shader} Canonical selected shader.
    */
-  static fromCarbonBinary(reader, index)
+  static fromCarbonBinary(reader, index, backend = null)
   {
     const shader = new this();
     shader.effect = Tr2EffectDescription.fromCarbonBinary(
-      reader.readDescription(index)
+      reader.readDescription(index, backend === null ? {} : { backend })
     );
     shader.ProcessEffect();
     return shader;
