@@ -6,5 +6,6 @@ export { CjsWebgpuEncodeState } from "./core/batchGroups.js";
 export { CjsWebgpuRenderTarget } from "./core/renderTarget.js";
 export { CjsWebgpuTrinityBatchDispatcher } from "./core/trinityBatchDispatcher.js";
 export { CjsWebgpuTrinityBatchResolver } from "./core/trinityBatchResolver.js";
+export { CjsWebgpuTextureSource } from "./core/textureSource.js";
 export { CjsWebgpuTrinityPassEncoder } from "./core/trinityPassEncoder.js";
 export { CjsWebgpuTrinityStepRecorder } from "./core/trinityStepRecorder.js";

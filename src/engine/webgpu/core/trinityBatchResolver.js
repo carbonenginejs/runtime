@@ -280,7 +280,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       }
     }
 
-    return { uniformData, resources: this.#ResolveResources(material, passIndex) };
+    return { uniformData, resources: await this.#ResolveResources(material, passIndex) };
   }
 
   /**
@@ -293,9 +293,9 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    *
    * @param {object} material Trinity material.
    * @param {number} passIndex Pass within the technique.
-   * @returns {Map} Resource bindings by identity.
+   * @returns {Promise<Map>} Resource bindings by identity.
    */
-  #ResolveResources(material, passIndex)
+  async #ResolveResources(material, passIndex)
   {
     const pass = this.#PassOf(material, passIndex);
     const resources = new Map();
@@ -317,7 +317,10 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
           );
         }
 
-        resources.set(`t${registerIndex}`, this.#resolveTexture(name, material));
+        // Awaited because a texture arrives over the network: the first frame
+        // that wants one may be earlier than the frame that has it. Carbon
+        // binds an already-created texture and never waits.
+        resources.set(`t${registerIndex}`, await this.#resolveTexture(name, material));
       }
     }
 
