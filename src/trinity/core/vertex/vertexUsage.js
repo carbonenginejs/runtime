@@ -46,10 +46,19 @@ const { POSITION, COLOR, NORMAL, TANGENT, BITANGENT, TEXCOORD, BLENDINDICES, BLE
 /**
  * CMF usage names to Carbon's `UsageCode`.
  *
- * `PackedTangent` and `PackedTangentLegacy` are deliberately absent. Carbon has
- * no usage for either: they are a CMF storage optimisation, not a semantic, and
- * a mesh carrying them must be unpacked into `Tangent`/`Binormal` before its
- * elements can match a shader input.
+ * This is Carbon's own switch, case for case
+ * (`BuildFromCMFVertexDecl`, trinity/trinity/Tr2VertexDefinitionUtilities.cpp:336-369).
+ *
+ * A PACKED TANGENT IS A TANGENT, NOT A STORAGE DETAIL. Carbon maps both packed
+ * usages onto `TANGENT` (:363-368) and lets the element's four-component type
+ * carry the difference. It has no packed usage code because it needs none.
+ *
+ * There are dedicated shader variants for the two layouts, so the distinction
+ * is real and must survive: the `quad*v5` family declares `TANGENT0` as a
+ * float4 and no NORMAL or BITANGENT at all, while the `unpacked_quad*v5` family
+ * declares three-component NORMAL, TANGENT and BITANGENT separately. Dropping
+ * the element leaves a packed mesh with no tangent frame whatsoever, and the
+ * packed variant's only frame input bound to nothing.
  */
 const CARBON_USAGE_BY_CMF_NAME = Object.freeze({
   Position: POSITION,
@@ -59,7 +68,9 @@ const CARBON_USAGE_BY_CMF_NAME = Object.freeze({
   Binormal: BITANGENT,
   TexCoord: TEXCOORD,
   BoneIndices: BLENDINDICES,
-  BoneWeights: BLENDWEIGHTS
+  BoneWeights: BLENDWEIGHTS,
+  PackedTangent: TANGENT,
+  PackedTangentLegacy: TANGENT
 });
 
 
@@ -107,8 +118,15 @@ const translations = new WeakMap();
  * counterpart is DROPPED rather than passed through, because a passed-through
  * CMF byte would collide with a different Carbon usage and bind silently.
  *
- * Dropping is safe for matching and lossy for round-tripping, so this is for
- * the binding path only - never write a CMF file from the result.
+ * Every usage the format defines now has a counterpart, so nothing is dropped
+ * in practice; the guard remains for a payload naming something this does not
+ * know. Dropping is lossy for round-tripping, so this is for the binding path
+ * only - never write a CMF file from the result.
+ *
+ * Offsets are preserved rather than recomputed. Carbon repacks them from its
+ * own type sizes (Tr2VertexDefinitionUtilities.cpp:330-334) because it lays the
+ * buffer out itself; our packer writes at the declaration's offsets, so keeping
+ * them is what makes the layout describe the bytes.
  *
  * @param {Array} elements CMF declaration elements.
  * @returns {Array} Elements carrying Carbon usage codes.
@@ -147,8 +165,10 @@ export function CarbonVertexElements(elements)
  * INDEX, which is why the mapping yields a pair rather than a code: `texcoord1`
  * is TEXCOORD at usage index 1, and matching needs both halves.
  *
- * `packedTangent` and `packedTangentLegacy` are absent for the same reason as
- * above - they are storage, not semantics.
+ * `packedtangent` and `packedtangentlegacy` map to TANGENT for the same reason
+ * as above. Note a packed frame usually arrives in the ORDINARY `tangent`
+ * channel at four components rather than under a packed name, so the component
+ * count is what identifies it, not the channel.
  */
 const CARBON_USAGE_BY_CHANNEL = Object.freeze({
   position: POSITION,
@@ -158,7 +178,9 @@ const CARBON_USAGE_BY_CHANNEL = Object.freeze({
   color: COLOR,
   texcoord: TEXCOORD,
   blendindice: BLENDINDICES,
-  blendweight: BLENDWEIGHTS
+  blendweight: BLENDWEIGHTS,
+  packedtangent: TANGENT,
+  packedtangentlegacy: TANGENT
 });
 
 

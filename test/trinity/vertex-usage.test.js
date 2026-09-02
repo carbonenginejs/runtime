@@ -44,11 +44,22 @@ test("only three usages survive a raw byte passthrough", () =>
   assert.deepEqual(agreeing, [ "Position", "BoneIndices", "BoneWeights" ]);
 });
 
-test("packed tangents have no Carbon counterpart", () =>
+test("a packed tangent IS a tangent", () =>
 {
-  // A CMF storage optimisation, not a semantic. Carbon has no usage for it.
-  assert.equal(CarbonUsageFromCmf("PackedTangent"), null);
-  assert.equal(CarbonUsageFromCmf("PackedTangentLegacy"), null);
+  // Carbon maps both packed usages onto TANGENT and lets the four-component
+  // type carry the difference (Tr2VertexDefinitionUtilities.cpp:363-368). It
+  // has no packed usage code because it needs none.
+  //
+  // This matters because there are dedicated shader variants: the quad*v5
+  // family declares TANGENT0 as a float4 with no NORMAL or BITANGENT at all,
+  // while unpacked_quad*v5 declares all three separately. Dropping the element
+  // leaves a packed mesh with no tangent frame and that input bound to nothing.
+  assert.equal(CarbonUsageFromCmf("PackedTangent"), TANGENT);
+  assert.equal(CarbonUsageFromCmf("PackedTangentLegacy"), TANGENT);
+});
+
+test("a usage this does not know still has no counterpart", () =>
+{
   assert.equal(CarbonUsageFromCmf("Nonsense"), null);
 });
 
@@ -65,11 +76,28 @@ test("translating a declaration keeps order, offsets and types", () =>
   ]);
 });
 
-test("an element with no counterpart is dropped, not passed through", () =>
+test("a packed tangent survives translation, carrying its four components", () =>
 {
   const elements = CarbonVertexElements([
     { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 },
     { usage: "PackedTangent", usageIndex: 0, type: "Int16Norm", elementCount: 4, offset: 12 }
+  ]);
+
+  assert.equal(elements.length, 2);
+  assert.equal(elements[1].usage, TANGENT);
+  // The type is what tells a packed frame from an unpacked one, so it must not
+  // be rewritten on the way through.
+  assert.equal(elements[1].elementCount, 4);
+  assert.equal(elements[1].type, "Int16Norm");
+});
+
+test("an element this does not know is dropped, not passed through", () =>
+{
+  // A passed-through CMF byte would collide with a different Carbon usage and
+  // bind silently, which is worse than not binding.
+  const elements = CarbonVertexElements([
+    { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 },
+    { usage: "Nonsense", usageIndex: 0, type: "Float32", elementCount: 2, offset: 12 }
   ]);
 
   assert.equal(elements.length, 1);
@@ -115,10 +143,10 @@ test("a trailing digit is the semantic index, not part of the name", () =>
   );
 });
 
-test("a storage-only channel has no usage", () =>
+test("a packed tangent channel is a tangent channel", () =>
 {
-  assert.equal(CarbonUsageFromChannel("packedTangent"), null);
-  assert.equal(CarbonUsageFromChannel("packedTangentLegacy"), null);
+  assert.deepEqual(CarbonUsageFromChannel("packedTangent"), { usage: TANGENT, usageIndex: 0 });
+  assert.deepEqual(CarbonUsageFromChannel("packedTangentLegacy"), { usage: TANGENT, usageIndex: 0 });
   assert.equal(CarbonUsageFromChannel(""), null);
 });
 
