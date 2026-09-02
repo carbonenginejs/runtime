@@ -34,27 +34,32 @@ import {
 import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
 import { Tr2MeshBase } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../../../npm/dist/trinity/shader/index.js";
-import { Tr2Shader } from "../../../../npm/dist/resource/shader/index.js";
+import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
+import { CjsWebgpuFormat } from "../../../../npm/dist/resource/formats/webgpu/index.js";
+import { CjsWebgpuPackage } from "../../../../npm/dist/engine/webgpu/index.js";
 import { TriBatchType, RenderingMode } from "../../../../npm/dist/global/consts/graphics/index.js";
 
 
+// Position only, because the vertex layout is built from the REAL container's
+// declared inputs and ui/simple declares POSITION alone. The shader has to
+// agree with the reflection, not the other way round - which is the point.
 const WGSL = `
-struct VertexOut { @builtin(position) position : vec4f, @location(0) normal : vec3f };
+struct VertexOut { @builtin(position) position : vec4f, @location(0) local : vec3f };
 
 @vertex
-fn vs(@location(0) position : vec3f, @location(1) normal : vec3f) -> VertexOut
+fn vs(@location(0) position : vec3f) -> VertexOut
 {
     var out : VertexOut;
     out.position = vec4f(position, 1.0);
-    out.normal = normal;
+    out.local = position;
     return out;
 }
 
 @fragment
 fn fs(in : VertexOut) -> @location(0) vec4f
 {
-    let lit = clamp(dot(normalize(in.normal), normalize(vec3f(0.3, 0.5, 1.0))), 0.15, 1.0);
-    return vec4f(vec3f(0.15, 0.45, 0.9) * lit, 1.0);
+    let radius = clamp(length(in.local.xy) * 1.6, 0.0, 1.0);
+    return vec4f(mix(vec3f(0.35, 0.75, 1.0), vec3f(0.05, 0.15, 0.45), radius), 1.0);
 }
 `;
 
@@ -72,7 +77,10 @@ function blobMesh(points = 24)
 
     position.push(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
     normal.push(Math.cos(angle) * 0.6, Math.sin(angle) * 0.6, 0.5);
-    faces.push(0, 1 + i, 1 + ((i + 1) % points));
+    // CLOCKWISE. The effect authors cullMode back with frontFace cw, so a
+    // counter-clockwise fan is entirely back-facing and every triangle is
+    // culled - which is what a blank canvas meant the first time.
+    faces.push(0, 1 + ((i + 1) % points), 1 + i);
   }
 
   const decl = [
@@ -108,29 +116,34 @@ const INPUTS = [
   { usage: 2, usageIndex: 0, registerIndex: 1 }
 ];
 
-/** A material with one technique of one pass, carrying real registered render states. */
-function blobMaterial()
+/**
+ * A material read from a REAL Carbon effect container.
+ *
+ * The container is a stock dx11 one, which is what Tr2EffectRes reads: the
+ * translated tree carries the same reflection, and translation is what produces
+ * the WGSL. So the reflection driving the pipeline - its inputs, its render
+ * states, its stage layout - is the shipped effect's own, not a hand-written
+ * stand-in.
+ *
+ * @param {Uint8Array} bytes Container bytes.
+ * @param {string} path Resource path the container came from.
+ * @returns {object} Trinity material.
+ */
+function containerMaterial(bytes, path)
 {
-  const shader = new Tr2Shader();
+  const resource = new Tr2EffectRes().Initialize(path);
 
-  shader.effect.techniques = [ {
-    name: "Main",
-    passes: [ {
-      // Registered, so the handle is a real setup rather than a reserved mode
-      // slot, and the recipe is RM_OPAQUE's states with these overlaid.
-      renderStates: Tr2EffectStateManager.registerRenderStateSetup({
-        renderStateValues: [ { state: 22, value: 1 } ]   // RS_CULLMODE = CULLMODE_NONE
-      }),
-      stageInputs: [
-        { exists: true, pipelineInputs: INPUTS, resources: new Map(), constants: [] },
-        { exists: false, pipelineInputs: [], resources: new Map(), constants: [] }
-      ]
-    } ]
-  } ];
+  resource.DoLoad(bytes);
+
+  const shader = resource.GetShaderByIndex(0);
+
+  // Stamps the registration handles onto the passes, which is what makes the
+  // render-state handle a real setup rather than the reserved RM_ANY slot.
+  Tr2EffectStateManager.registerShaderHandles(shader);
 
   return {
-    id: "blob",
-    GetEffectRes: () => ({ GetContainerBytes: () => new Uint8Array([ 15, 0, 0, 0 ]) }),
+    id: path,
+    GetEffectRes: () => resource,
     GetValues: () => ({}),
     GetShaderStateInterface: () => shader
   };
@@ -182,11 +195,21 @@ export async function RunDemo(canvas)
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
   const mesh = blobMesh();
   const geometry = geometryResource(mesh);
-  const material = blobMaterial();
 
-  // The package the resolver would read from a container; hand-written here so
-  // this demo proves the frame rather than the container read.
-  const pipeline = {
+  // The real effect, fetched through the runner's resource proxy so no client
+  // bytes are committed with the demo.
+  const effectPath = "graphics/effect.dx11/ui/simple.sm_hi";
+  const response = await fetch(`/resource/${effectPath}`);
+
+  if (!response.ok) throw new Error(`effect fetch failed: ${response.status}`);
+
+  const containerBytes = new Uint8Array(await response.arrayBuffer());
+  const material = containerMaterial(containerBytes, `res:/${effectPath}`);
+
+  // Translated from the same container, in the browser. This is the whole
+  // point of the exercise: the WGSL the device compiles is produced from the
+  // shipped effect's DXBC rather than written by hand.
+  const blobPipeline = {
     label: "blob",
     shaderModules: [
       { stageName: "vertex", wgsl: WGSL, entryPoint: "vs" },
@@ -194,6 +217,18 @@ export async function RunDemo(canvas)
     ],
     bindGroups: []
   };
+
+  // Translated in the browser from the shipped container's DXBC. Not drawn -
+  // proving the read is a separate claim from proving the frame - but the
+  // pipeline it yields is inspected below.
+  const translated = CjsWebgpuFormat.buildEffect(containerBytes, {
+    source: `res:/${effectPath}`,
+    permutationMode: "selected"
+  });
+
+  const translatedPipeline = CjsWebgpuPackage
+    .fromBytes(translated.bytes, { read: CjsWebgpuFormat.read })
+    .GetPipeline("Main", 0);
 
   // RM_OPAQUE authors depth test and write, so a frame drawing it needs a depth
   // attachment. The resolver refuses rather than dropping the state, which is
@@ -206,7 +241,10 @@ export async function RunDemo(canvas)
   });
 
   const resolver = new CjsWebgpuTrinityBatchResolver(webgpu, {
-    CreatePackage: () => ({ GetPipeline: () => pipeline }),
+    // The blob's own WGSL, so the CANVAS proves the frame. The container path
+    // below proves the read, and neither claim rests on the other: a UI shader
+    // drawn over this geometry would paint or not for reasons of its own.
+    CreatePackage: () => ({ GetPipeline: () => blobPipeline }),
     targets: [ { format } ],
     depthFormat
   });
@@ -271,7 +309,19 @@ export async function RunDemo(canvas)
     drawn += prepared.batches.length;
   }
 
+  const pass = material.GetShaderStateInterface().GetEffect().techniques[0].passes[0];
+  const declared = (translatedPipeline?.bindGroups ?? [])
+    .flatMap(group => group.bindings ?? [])
+    .map(binding => binding.scopeIdentity ?? binding.name);
+
   return {
+    effect: effectPath,
+    declaredBindings: declared,
+    containerBytes: containerBytes.length,
+    translatedBytes: translated.bytes.length,
+    inputs: (pass.stageInputs[0]?.signature?.pipelineInputs ?? [])
+      .map(input => `usage${input.usage}.${input.usageIndex}@${input.registerIndex}`),
+    renderStateHandle: pass.renderStates,
     intents: intents.map(intent => intent.type),
     submissions: submissions.length,
     drawn,

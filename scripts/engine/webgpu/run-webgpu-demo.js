@@ -28,8 +28,36 @@ const TYPES = new Map([
   [ ".png", "image/png" ]
 ]);
 
+// Client resources are proxied rather than copied in. They are not ours to
+// commit, and a demo needing a checked-in shader would drift from the real one
+// the moment a build moved.
+const TOOLS_CORE = process.env.CJS_TOOLS_CORE ?? "http://127.0.0.1:5510/eve/3487903/resources/";
+
 const server = createServer(async (request, response) =>
 {
+  const requested = new URL(request.url, "http://localhost");
+
+  if (requested.pathname.startsWith("/resource/"))
+  {
+    const source = TOOLS_CORE + requested.pathname.slice("/resource/".length);
+
+    try
+    {
+      const upstream = await fetch(source);
+
+      if (!upstream.ok) throw new Error(`upstream ${upstream.status}`);
+
+      response.writeHead(200, { "content-type": "application/octet-stream" });
+      response.end(Buffer.from(await upstream.arrayBuffer()));
+    }
+    catch (error)
+    {
+      response.writeHead(502).end(`resource proxy: ${error.message}`);
+    }
+
+    return;
+  }
+
   // Confined to the repository: a demo server that could read outside it would
   // be a hole in a developer's machine, not a convenience.
   const path = normalize(decodeURIComponent(new URL(request.url, "http://localhost").pathname));
@@ -58,14 +86,16 @@ const server = createServer(async (request, response) =>
  * How many distinct byte values a PNG carries, as a cheap "is it uniform" test.
  * A cleared canvas compresses to very few; anything drawn carries many.
  */
-function distinctPixelCount(png)
-{
-  const seen = new Set();
-
-  for (const byte of png) seen.add(byte);
-
-  return seen.size;
-}
+/**
+ * Whether a canvas screenshot shows anything but the clear colour.
+ *
+ * By ENCODED SIZE, not by reading pixels. Two cheaper checks were tried and
+ * both lied: drawImage into a 2D context yields nothing at all for a WebGPU
+ * canvas, and counting distinct BYTES passed a blank frame because PNG noise
+ * in a near-black gradient is plenty of distinct bytes. A flat frame
+ * compresses to a fraction of a drawn one - measured, 1.9 KB against 27 KB.
+ */
+const DRAWN_PNG_BYTES = 8000;
 
 await new Promise(done => server.listen(0, "127.0.0.1", done));
 
@@ -107,7 +137,7 @@ try
   {
     const png = await page.locator("#view").screenshot();
 
-    outcome.pixels = distinctPixelCount(png);
+    outcome.screenshotBytes = png.length;
   }
 
   if (HEADED) await page.waitForTimeout(20000);
@@ -127,10 +157,10 @@ if (!outcome?.ok)
   console.error("\nDemo failed.");
   process.exitCode = 1;
 }
-else if (outcome.pixels !== undefined && outcome.pixels < 2)
+else if (outcome.screenshotBytes !== undefined && outcome.screenshotBytes < DRAWN_PNG_BYTES)
 {
   // Green intents with a uniform canvas means the frame ran and drew nothing,
   // which is the failure this demo exists to catch.
-  console.error("\nDemo ran but the canvas is uniform: nothing was drawn.");
+  console.error(`\nDemo ran but the canvas is flat (${outcome.screenshotBytes} bytes): nothing was drawn.`);
   process.exitCode = 1;
 }

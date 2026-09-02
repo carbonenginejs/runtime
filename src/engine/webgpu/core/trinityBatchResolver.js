@@ -167,7 +167,12 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    */
   async #GeometryFor(source, pass)
   {
-    const inputs = pass?.stageInputs?.[0]?.pipelineInputs ?? [];
+    // Under `signature`, not on the stage input itself: the reflection groups a
+    // stage's declared inputs with the rest of its signature. Reading the wrong
+    // level yields an empty list, a binding plan that matches nothing, and a
+    // geometry with no attributes - found against real containers, where every
+    // effect reported no inputs at all.
+    const inputs = pass?.stageInputs?.[0]?.signature?.pipelineInputs ?? [];
     const geometry = source?.geometry;
 
     if (!geometry) fail("batch geometry source carries no geometry resource");
@@ -244,87 +249,95 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
   {
     const passIndex = context?.passIndex ?? 0;
     const material = batch.material;
-    const shader = material.GetShaderStateInterface?.();
+    const pipeline = this.#PackageFor(material).GetPipeline(this.#techniqueName, passIndex);
+
+    // BIND WHAT THE PIPELINE DECLARES. Inventing keys and hoping they match is
+    // how this first failed against a real container: the device wanted
+    // "uniform-buffer:0:0@fragment" and was handed "cb0". The binding record
+    // carries its own identity, so there is nothing to guess.
     const uniformData = new Map();
-
-    // b0, the effect's own constants, per Carbon's
-    // CONSTANT_BUFFER_FOR_EFFECT_PARAMETERS. A pass with no pixel stage has
-    // none to pack - a depth-only pass is the ordinary case - and that is an
-    // absence rather than a failure.
-    const pass = this.#PassOf(material, passIndex);
-    const layout = pass?.stageInputs?.[1]?.exists
-      ? MaterialLayoutFromShader(shader, { technique: this.#techniqueName, pass: passIndex })
-      : null;
-
-    if (layout?.size)
-    {
-      uniformData.set("cb0", PackMaterialConstants(layout, material.GetValues?.() ?? {}));
-    }
-
-    // b3 and b4, the per-object blocks, gated on the technique's stage mask the
-    // way Carbon gates SetPerObjectDataToDevice.
-    const techniqueIndex = shader?.GetTechniqueIndex?.(this.#techniqueName) ?? -1;
-    const mask = techniqueIndex < 0 ? 0 : (shader.GetShaderTypeMask?.(techniqueIndex) ?? 0);
-    const records = Tr2PerObjectData.getConstantRecords(objectData, mask);
-
-    if (records.length)
-    {
-      const collected = CollectPerObjectUploads(records.map((record, index) => ({
-        identity: record.identity ?? `perObject${index}`,
-        payload: record.payload
-      })));
-
-      for (const [ identity, value ] of Object.entries(collected.uniformData ?? {}))
-      {
-        uniformData.set(identity, value);
-      }
-    }
-
-    return { uniformData, resources: await this.#ResolveResources(material, passIndex) };
-  }
-
-  /**
-   * The pass's texture and sampler bindings.
-   *
-   * Carbon rebuilds a resource set only when its description changed and reuses
-   * it otherwise (Tr2Material.cpp:239-250); the dispatcher creates one binding
-   * set per prepared batch, so the reuse that matters is the TEXTURE's, which
-   * belongs to whatever supplies it.
-   *
-   * @param {object} material Trinity material.
-   * @param {number} passIndex Pass within the technique.
-   * @returns {Promise<Map>} Resource bindings by identity.
-   */
-  async #ResolveResources(material, passIndex)
-  {
-    const pass = this.#PassOf(material, passIndex);
     const resources = new Map();
 
-    for (const stage of pass?.stageInputs ?? [])
+    for (const group of pipeline?.bindGroups ?? [])
     {
-      for (const [ registerIndex, resource ] of stage?.resources ?? [])
+      for (const binding of group.bindings ?? [])
       {
-        const name = resource?.name;
+        const identity = binding.scopeIdentity
+          ?? `${binding.resourceKind}:${binding.registerSpace}:${binding.registerIndex}`;
 
-        if (!name) continue;
+        if (binding.bindingKind === "constantBuffer" || binding.resourceKind === "uniform-buffer")
+        {
+          const value = await this.#ConstantsFor(binding, material, objectData, passIndex);
+
+          if (value) uniformData.set(identity, value);
+
+          continue;
+        }
 
         if (!this.#resolveTexture)
         {
           fail(
-            `pass binds texture "${name}" and no ResolveTexture was supplied. `
+            `pass binds ${binding.name ?? identity} and no ResolveTexture was supplied. `
             + "An effect with resources cannot be drawn without one, and binding "
             + "nothing would draw the wrong thing rather than fail."
           );
         }
 
-        // Awaited because a texture arrives over the network: the first frame
-        // that wants one may be earlier than the frame that has it. Carbon
-        // binds an already-created texture and never waits.
-        resources.set(`t${registerIndex}`, await this.#resolveTexture(name, material));
+        resources.set(identity, await this.#resolveTexture(binding.name, material));
       }
     }
 
-    return resources;
+    return { uniformData, resources };
+  }
+
+  /**
+   * The bytes for one declared constant buffer.
+   *
+   * Which buffer it is comes from its register, using Carbon's slot map
+   * (Tr2RenderContextEnum.h:406, Tr2Renderer.cpp:38-43): b0 is the effect's own
+   * parameters, b3 and b4 are the per-object blocks. Per-frame b1 and b2 belong
+   * to the scene and are bound by whoever owns the frame, not per batch.
+   *
+   * @param {object} binding Declared binding record.
+   * @param {object} material Trinity material.
+   * @param {object} objectData Per-object data for this batch.
+   * @param {number} passIndex Pass within the technique.
+   * @returns {Promise<ArrayBufferView|null>} Bytes, or null when nothing supplies it.
+   */
+  async #ConstantsFor(binding, material, objectData, passIndex)
+  {
+    const shader = material.GetShaderStateInterface?.();
+    const pass = this.#PassOf(material, passIndex);
+
+    if (binding.registerIndex === 0)
+    {
+      // b0, the effect's own constants. A pass with no pixel stage has none to
+      // pack - a depth-only pass is the ordinary case - and that is an absence
+      // rather than a failure.
+      if (!pass?.stageInputs?.[1]?.exists) return null;
+
+      const layout = MaterialLayoutFromShader(shader, {
+        technique: this.#techniqueName,
+        pass: passIndex
+      });
+
+      return layout?.size ? PackMaterialConstants(layout, material.GetValues?.() ?? {}) : null;
+    }
+
+    // b3 and b4, gated on the technique's stage mask the way Carbon gates
+    // SetPerObjectDataToDevice.
+    const techniqueIndex = shader?.GetTechniqueIndex?.(this.#techniqueName) ?? -1;
+    const mask = techniqueIndex < 0 ? 0 : (shader.GetShaderTypeMask?.(techniqueIndex) ?? 0);
+    const records = Tr2PerObjectData.getConstantRecords(objectData, mask);
+
+    if (!records.length) return null;
+
+    const collected = CollectPerObjectUploads(records.map((record, index) => ({
+      identity: record.identity ?? `perObject${index}`,
+      payload: record.payload
+    })));
+
+    return Object.values(collected.uniformData ?? {})[0] ?? null;
   }
 
   /** Releases every geometry this resolver realized. */

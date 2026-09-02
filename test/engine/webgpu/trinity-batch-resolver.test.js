@@ -47,8 +47,10 @@ function reflectedPass({ resources = new Map(), renderStateValues = AUTHORED } =
 {
   return {
     renderStates: Tr2EffectStateManager.registerRenderStateSetup({ renderStateValues }),
-    stageInputs: [ { pipelineInputs: INPUTS, resources: new Map(), constants: [] },
-      { pipelineInputs: [], resources, constants: [] } ]
+    stageInputs: [
+      { exists: true, signature: { pipelineInputs: INPUTS }, resources: new Map(), constants: [] },
+      { exists: false, signature: { pipelineInputs: [] }, resources, constants: [] }
+    ]
   };
 }
 
@@ -107,9 +109,22 @@ class TestDevice extends CjsWebgpuDevice
 }
 
 /** The package factory, which the resolver takes rather than importing a format. */
-const CreatePackage = () => ({
-  GetPipeline: (technique, passIndex) => ({ key: `${technique}.pass${passIndex}` })
-});
+/**
+ * A package whose pipeline declares its bindings, as a translated one does.
+ * The resolver binds what the pipeline asks for, so a fixture that declares
+ * nothing is a pipeline that needs nothing.
+ */
+function packageDeclaring(bindings = [])
+{
+  return () => ({
+    GetPipeline: (technique, passIndex) => ({
+      key: `${technique}.pass${passIndex}`,
+      bindGroups: bindings.length ? [ { group: 0, bindings } ] : []
+    })
+  });
+}
+
+const CreatePackage = packageDeclaring();
 
 function resolverOver(device, options = {})
 {
@@ -201,26 +216,64 @@ test("draw arguments are left to the batch, not derived a second time", async ()
 test("an effect binding a texture refuses to draw without a texture source", async () =>
 {
   // Binding nothing would draw the wrong thing rather than fail.
-  const resolver = resolverOver(new TestDevice());
-  const pass = reflectedPass({ resources: new Map([ [ 3, { name: "DiffuseMap" } ] ]) });
-  const batch = batchFor(materialWith([ pass ]));
+  const resolver = resolverOver(new TestDevice(), {
+    CreatePackage: packageDeclaring([ {
+      name: "DiffuseMap",
+      bindingKind: "sampledTexture",
+      resourceKind: "sampled-resource",
+      registerSpace: 0,
+      registerIndex: 3
+    } ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
 
   await assert.rejects(
     resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 }),
-    /binds texture "DiffuseMap" and no ResolveTexture was supplied/
+    /no ResolveTexture was supplied/
   );
 });
 
-test("a supplied texture source is bound at the shader's register", async () =>
+test("a supplied texture is bound at the identity the pipeline declares", async () =>
 {
+  // Not a key of our own invention: the device computes this identity from the
+  // binding record, and handing it a different one fails at draw.
   const texture = { id: "diffuse" };
-  const resolver = resolverOver(new TestDevice(), { ResolveTexture: () => texture });
-  const pass = reflectedPass({ resources: new Map([ [ 3, { name: "DiffuseMap" } ] ]) });
-  const batch = batchFor(materialWith([ pass ]));
+  const resolver = resolverOver(new TestDevice(), {
+    ResolveTexture: () => texture,
+    CreatePackage: packageDeclaring([ {
+      name: "DiffuseMap",
+      bindingKind: "sampledTexture",
+      resourceKind: "sampled-resource",
+      registerSpace: 0,
+      registerIndex: 3
+    } ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
 
   const bindings = await resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 });
 
-  assert.equal(bindings.resources.get("t3"), texture);
+  assert.equal(bindings.resources.get("sampled-resource:0:3"), texture);
+});
+
+test("a declared scope identity is used verbatim", () =>
+{
+  // A stage-scoped binding carries its own identity, and the device compares it
+  // exactly; recomputing one would drop the @stage suffix.
+  const resolver = resolverOver(new TestDevice(), {
+    ResolveTexture: () => ({ id: "t" }),
+    CreatePackage: packageDeclaring([ {
+      name: "DiffuseMap",
+      bindingKind: "sampledTexture",
+      resourceKind: "sampled-resource",
+      registerSpace: 0,
+      registerIndex: 3,
+      scopeIdentity: "sampled-resource:0:3@fragment"
+    } ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
+
+  return resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 })
+    .then(bindings => assert.ok(bindings.resources.has("sampled-resource:0:3@fragment")));
 });
 
 test("a material declaring no such pass says so rather than drawing", async () =>
