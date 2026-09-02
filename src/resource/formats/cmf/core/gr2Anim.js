@@ -489,7 +489,7 @@ export function convertGr2Animation(animation, options = {})
     const curves = [];
     const channelKeys = new Set();
 
-    const addChannel = (target, targetType, decoded, targetDimension) =>
+    const addChannel = (target, targetType, decoded, targetDimension, tolerateDuplicate = false) =>
     {
         if (!decoded.keyframed && (
             decoded.knots[0] < 0 ||
@@ -507,6 +507,22 @@ export function convertGr2Animation(animation, options = {})
         const key = `${targetType}\0${target}`;
         if (channelKeys.has(key))
         {
+            // A repeated name is a genuine conflict for a bone channel: two
+            // curves would drive one bone and neither wins.
+            //
+            // It is NORMAL for a Granny vector track. Those carry rig driver
+            // channels - real ship hulls ship `ikRotateX` sixteen times and
+            // `blendAim1` twice, one per driven bone - and the name is a
+            // channel label rather than a key. Carbon simply scans for the
+            // first match and returns
+            // (trinity/trinity/Curves/Tr2GrannyVectorTrack.cpp:41-54), never
+            // reaching the later ones, so keeping the first reproduces its
+            // behaviour exactly.
+            //
+            // Rejecting them cost five real hull variants - cc1_t1, conf5_t1,
+            // mc2_t2c, mf2_t1 and mf2_t2b, each with its _lowdetail sibling -
+            // which could not be decoded at all.
+            if (tolerateDuplicate) return;
             throw convertError(`animation "${animation.name || ""}" contains duplicate ${targetType} target "${target}"`);
         }
         const converted = convertCurve(
@@ -551,7 +567,7 @@ export function convertGr2Animation(animation, options = {})
                 throw convertError(`vector track "${track.name || ""}" has unsupported dimension ${dimension}`);
             }
             const value = decodeTrackCurve(track.valueCurve, 1, track.name, "value");
-            if (value) addChannel(track.name, "MorphTarget", value, 1);
+            if (value) addChannel(track.name, "MorphTarget", value, 1, true);
         }
     }
 
