@@ -381,7 +381,7 @@ has no shader storage buffers** — `buffer` blocks require GLSL ES 3.10+ or des
 above for a WebGL2 target; it will not compile. The proven working path for this
 project is a **package-time ABI rewrite**, not a change to this opcode's GLSL
 lowering:
-- `CARBONENGINEJS-FORK.md` / `016-cewg-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`
+- `CARBONENGINEJS-FORK.md` / `016-carbonwebgl-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`
   / `TRANSPILING-GAPS.md`: drop the `t0` SSBO declaration entirely, grow the
   paired `ConstantBuffer3` (`cb3`) to at least `vec4 data[200]`, and rewrite every
   `ld_structured` row load against `t0` into `cb3.data[26 + blendIndex * 3 + row]`
@@ -622,7 +622,7 @@ attribute channels, including blend indices, as float vertex attributes via
 `gl.vertexAttribPointer` (not `vertexAttribIPointer`)** — a real `uvec4 in_...`
 declaration either fails to link against that float-typed buffer binding, or links
 but silently produces garbage/invisible geometry
-(`028-cewg-skinned-blend-index-abi-lowering.md`: "Raw Carbon WebGL validation can link
+(`028-carbonwebgl-skinned-blend-index-abi-lowering.md`: "Raw Carbon WebGL validation can link
 integer attributes, but ccpwgl runtime binding can still fail or produce invisible
 geometry if the source reaches compile as `uvec4`."). The proven, validated fix
 (`028-...md`; `TRANSPILING-GAPS.md` "Ranked helper action plan" documents the general

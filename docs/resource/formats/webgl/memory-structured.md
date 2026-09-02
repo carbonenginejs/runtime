@@ -195,13 +195,13 @@ runnable WebGL2 GLSL for, restricted to the `BoneTransforms` skinning case
       `vec4 data[max(existingSize, 200)]` (`packageTr2WebglEffect.js:836-839`) —
       this is where `JointMat` lives at `cb3.data[26..199]` per the ccpwgl runtime
       ABI (`cb3[26..199]`, 58 joints × 12 floats = 696 floats,
-      `AGENT-FINDINGS/decisions/016-cewg-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`
+      `AGENT-FINDINGS/decisions/016-carbonwebgl-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`
       and `015-joint-matrix-jointmat-findings-ccpwgl-runtime-truth.md`).
    5. Convert `uvec4`/`ivec4` (or `uvec2/3`, `ivec2/3`) `in_BLENDINDICES<n>` vertex
       inputs to plain `vec<N>` (regex at `packageTr2WebglEffect.js:840-843`) —
       ccpwgl binds GR2 mesh blend indices as float attributes via
       `vertexAttribPointer`, not `vertexAttribIPointer`
-      (`AGENT-FINDINGS/decisions/028-cewg-skinned-blend-index-abi-lowering.md`).
+      (`AGENT-FINDINGS/decisions/028-carbonwebgl-skinned-blend-index-abi-lowering.md`).
    6. Strip the DX11 global bone-offset add HLSLcc emits when combining
       `in_BLENDINDICES0` with a `cb3.data[26]` offset uniform (two regex forms at
       `packageTr2WebglEffect.js:845-852`, covering both the scalar `int(...)  +
@@ -321,7 +321,7 @@ in `scripts/stubLightResources.js`).
 ### Confidence
 **High** for the `BoneTransforms`/`cb3` path (validated end-to-end:
 `336/336` and `240/240` WebGL2 program links per
-`TRANSPILING-GAPS.md:60-63` and `016-cewg-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`).
+`TRANSPILING-GAPS.md:60-63` and `016-carbonwebgl-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`).
 **Low** for non-skinning `ld_structured` in pixel stages — no validated WebGL2
 lowering exists; treat as blocked pending a decision.
 
@@ -880,7 +880,7 @@ backend, but must never be emitted as final WebGL2 output):
 `toGLSLOperand.cpp`, `toGLSLDeclaration.cpp`, `HLSLccToolkit.cpp`,
 `internal_includes/languages.h`; `vendor/HLSLcc/CARBONENGINEJS-FORK.md`;
 `../shaderdiscovery/TRANSPILING-GAPS.md`; `../shaderdiscovery/AGENT-FINDINGS/decisions/005-`,
-`016-`, `028-cewg-*`, `014-`/`015-`/`016-`/`017-joint-matrix-*`;
+`016-`, `028-carbonwebgl-*`, `014-`/`015-`/`016-`/`017-joint-matrix-*`;
 `../shaderdiscovery/src/core/transpiler/gles/Dx11GlesDraftTranspiler.js` (hints
 only); `scripts/packageTr2WebglEffect.js`;
 `../shaderdiscovery/artifacts/dx11-instruction-coverage.json` (per-instruction

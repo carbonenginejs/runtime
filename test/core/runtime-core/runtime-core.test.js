@@ -422,7 +422,7 @@ test("FetchResource delegates the resolved request to canonical ResMan", async (
         }
     });
 
-    assert.equal(await library.FetchResource("res:/effect.cewgpu", {
+    assert.equal(await library.FetchResource("res:/effect.carbonwebgpu", {
         behavior: "package",
         formatOptions: { source: "caller" }
     }), resource);
@@ -461,7 +461,7 @@ test("Fetch delegates behavior-resolved options once to canonical ResMan", async
         }
     });
 
-    assert.equal(await library.Fetch("res:/effect.cewgpu"), resource);
+    assert.equal(await library.Fetch("res:/effect.carbonwebgpu"), resource);
     assert.equal(matches, 1);
     assert.deepEqual(calls.map(call => call[0]), ["resource"]);
     assert.equal(calls[0][2].requirement, "webgpu-package");
@@ -486,8 +486,8 @@ test("resource behavior keeps engine-owned methods out of ResMan options", () =>
         behaviors: { main: { behavior, default: true } }
     });
 
-    const resolved = library.ResolveResourceRequest("res:/effect.cewgpu");
-    library.GetResource("res:/effect.cewgpu");
+    const resolved = library.ResolveResourceRequest("res:/effect.carbonwebgpu");
+    library.GetResource("res:/effect.carbonwebgpu");
 
     assert.equal(resolved.behavior, behavior);
     assert.equal(resolved.behavior.BuildUniformData, BuildUniformData);

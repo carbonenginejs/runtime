@@ -73,7 +73,7 @@ export function resolveStubLightRegisters(record)
 
 /**
  * Drops the tiled-lighting `resource` bindings from a manifest JSON so the Carbon WebGL
- * runtime (`Tw2CewgReader.buildTexturesAndSamplers`) does not synthesize texture
+ * runtime (ccpwgl's WebGL effect reader) does not synthesize texture
  * definitions for the light buffers the emitter no longer declares. Without this
  * the runtime tries to build a sampler for LightBuffer/LightIndexBuffer and
  * throws "Invalid shader texture definition" (glType 0). Mutates in place.

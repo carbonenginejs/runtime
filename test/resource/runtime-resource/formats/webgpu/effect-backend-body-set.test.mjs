@@ -172,7 +172,7 @@ test("unknown package modes still fail closed", () =>
 test("body accounting cannot disagree with the bodies, because there is one document", () =>
 {
     // Three tests stood here: a tampered WGSB body set, a selected-mode package
-    // smuggling an all-body graph, and CewgpuPackage's hydration gate. All three
+    // smuggling an all-body graph, and CarbonWebgpuPackage's hydration gate. All three
     // asserted that separate projections of one effect still agreed with each
     // other -- WGSB against PGRF, INFO/META bodyMode against WGSB.
     //

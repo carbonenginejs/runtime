@@ -463,7 +463,7 @@ async function main() {
   const packageBytes = await readFile(packagePath);
   // The package is container bytes. There is no chunk-cardinality check to run
   // first: the reader refuses to construct on a malformed container at all,
-  // which is what `inspectCewgCoreChunks` was approximating by counting tags.
+  // which is what the removed core-chunk inspector was approximating by counting tags.
   const decoded = readGlslEffectContainer(packageBytes, { source: packagePath });
 
   const programs = packagePrograms(decoded);

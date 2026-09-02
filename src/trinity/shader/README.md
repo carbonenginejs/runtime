@@ -22,7 +22,7 @@ reflection.
 - portable-reflection hydration.
 
 `@carbonenginejs/runtime/resource/formats/hlsl` owns compiled-effect binary
-parsing and the validated plain portable-reflection schema. CEWG and CEWGPU packages expose
+parsing and the validated plain portable-reflection schema. Carbon WebGL and WebGPU packages expose
 that portable reflection. WebGL/WebGPU engines own program/module creation,
 layouts, bindings, uploads, pipelines, draws, and device recovery.
 
@@ -38,7 +38,7 @@ imports Trinity.
 format-hlsl portable plain reflection
     |
     v
-CEWG / CEWGPU package
+Carbon WebGL / WebGPU package
     |
     v
 src/resource Tr2EffectRes -> canonical Tr2Shader graph
