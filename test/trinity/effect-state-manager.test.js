@@ -3,6 +3,8 @@ import { test } from "node:test";
 
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
+const { RenderingMode } = Tr2EffectStateManager;
+
 const VERTEX = 0;
 const PIXEL = 1;
 
@@ -182,8 +184,54 @@ test("a registered setup exposes its interpreted form", () =>
   const handle = Tr2EffectStateManager.registerRenderStateSetup(pass([ [ 22, 1 ] ]));
 
   assert.equal(Tr2EffectStateManager.getRenderStateSetup(handle).cull, "none");
-  // A reserved built-in slot has no ported state list yet.
-  assert.equal(Tr2EffectStateManager.getRenderStateSetup(1), null);
+});
+
+test("a rendering mode IS a render-state handle, and carries Carbon's own list", () =>
+{
+  // The built-in slots are no longer reserved placeholders: Carbon's mode
+  // setups occupy handles 0..RM_COUNT-1, so the enum value is the handle
+  // (Tr2EffectStateManager.cpp:379-410).
+  const opaque = Tr2EffectStateManager.getRenderStateSetup(RenderingMode.RM_OPAQUE);
+
+  assert.equal(opaque.cull, "cw");
+  assert.equal(opaque.depth.test, true);
+  assert.equal(opaque.depth.write, true);
+  assert.equal(opaque.depth.compare, "lessEqual");
+  assert.equal(opaque.blend, null, "opaque does not blend");
+
+  const additive = Tr2EffectStateManager.getRenderStateSetup(RenderingMode.RM_ALPHA_ADDITIVE);
+
+  assert.equal(additive.cull, "none");
+  assert.equal(additive.depth.write, false, "additive tests depth but never writes it");
+  assert.equal(additive.colorWrite.alpha, false, "additive writes RGB only");
+
+  const depthOnly = Tr2EffectStateManager.getRenderStateSetup(RenderingMode.RM_DEPTH_ONLY);
+
+  assert.equal(depthOnly.depth.write, true);
+  assert.equal(depthOnly.colorWrite.red, false, "depth-only writes no colour at all");
+});
+
+test("RM_ANY contributes nothing, which is its meaning", () =>
+{
+  // "The caller does not care", not "no state" - Carbon leaves whatever was
+  // last applied in place.
+  assert.deepEqual(Tr2EffectStateManager.getRenderStateSetup(RenderingMode.RM_ANY).Key().length > 0, true);
+  assert.equal(Tr2EffectStateManager.resolveRenderStates(RenderingMode.RM_ANY), null);
+});
+
+test("a pass's states are merged OVER its rendering mode's, never instead of", () =>
+{
+  reset();
+
+  // Carbon re-applies the mode's standard states before the pass's own, every
+  // time (cpp:703-720). A pass that authors only a cull mode must still get the
+  // mode's depth state, or the pipeline is missing most of its state.
+  const handle = Tr2EffectStateManager.registerRenderStateSetup(pass([ [ 22, 1 ] ]));
+  const merged = Tr2EffectStateManager.resolveRenderStates(RenderingMode.RM_OPAQUE, handle);
+
+  assert.equal(merged.cull, "none", "the pass overrides the mode");
+  assert.equal(merged.depth.compare, "lessEqual", "and inherits everything it did not author");
+  assert.equal(merged.depth.write, true);
 });
 
 test("vertex declarations delegate to the existing intern table", () =>

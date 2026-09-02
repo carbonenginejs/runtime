@@ -15,7 +15,14 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
-import { CullMode } from "#consts/render-context";
+import {
+  BlendMode,
+  BlendOperation,
+  CompareFunc,
+  CullMode,
+  FillMode,
+  RenderState
+} from "#consts/render-context";
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition.js";
 import { Tr2RenderStateSetup } from "#resource/shader";
 
@@ -69,6 +76,114 @@ const shaders = [];
 /** Registered shader programs; the index is the handle. */
 const shaderPrograms = [];
 
+// Carbon's built-in rendering-mode state lists, ported pair for pair from
+// Tr2EffectStateManager.cpp:29-393. A mode's list occupies the render-state
+// handle equal to its own enum value, which is why the table below is indexed
+// by RenderingMode and why registration begins after RM_COUNT.
+//
+// These are the base layer of every draw. Carbon re-applies the current mode's
+// list immediately before a pass's own states, every time
+// (Tr2EffectStateManager.cpp:716), so a pass that authors only a blend mode
+// still gets this mode's depth, cull and colour-write. Reading a pass's states
+// alone yields a pipeline missing most of its state.
+//
+// RM_ANY is deliberately empty: it means "the caller does not care", not "no
+// state", and Carbon leaves whatever was last applied in place.
+const { RS_CULLMODE, RS_FILLMODE, RS_ALPHABLENDENABLE, RS_ALPHATESTENABLE, RS_ALPHAFUNC,
+  RS_ALPHAREF, RS_ZENABLE, RS_ZWRITEENABLE, RS_ZFUNC, RS_COLORWRITEENABLE, RS_DEPTHBIAS,
+  RS_SLOPESCALEDEPTHBIAS, RS_SEPARATEALPHABLENDENABLE, RS_SRCBLEND, RS_DESTBLEND, RS_BLENDOP,
+  RS_BLENDOPALPHA, RS_SRCBLENDALPHA, RS_DESTBLENDALPHA } = RenderState;
+
+const { CULLMODE_CW, CULLMODE_NONE } = CullMode;
+const { FM_SOLID } = FillMode;
+const { CMP_LESSEQUAL, CMP_GREATER, CMP_ALWAYS, CMP_EQUAL } = CompareFunc;
+const { BM_ONE, BM_SRCALPHA, BM_INVSRCALPHA } = BlendMode;
+const { BO_ADD } = BlendOperation;
+
+const ALL_CHANNELS = 0x0f;
+const RGB_CHANNELS = 0x7;
+const FALSE = 0;
+const TRUE = 1;
+
+/** Indexed by RenderingMode; the index IS the render-state handle. */
+const STANDARD_MODE_PAIRS = Object.freeze([
+  // RM_ANY
+  [],
+  // RM_OPAQUE
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, FALSE,
+    RS_ALPHATESTENABLE, FALSE, RS_ZENABLE, TRUE, RS_ZWRITEENABLE, TRUE,
+    RS_ZFUNC, CMP_LESSEQUAL, RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0, RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_DECAL
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, FALSE,
+    RS_ALPHATESTENABLE, TRUE, RS_ALPHAFUNC, CMP_GREATER, RS_ALPHAREF, 127,
+    RS_ZENABLE, TRUE, RS_ZWRITEENABLE, TRUE, RS_ZFUNC, CMP_LESSEQUAL,
+    RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0, RS_SLOPESCALEDEPTHBIAS, 0,
+    RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_DECAL_NO_DEPTH
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, FALSE,
+    RS_ALPHATESTENABLE, TRUE, RS_ALPHAFUNC, CMP_GREATER, RS_ALPHAREF, 127,
+    RS_ZENABLE, TRUE, RS_ZWRITEENABLE, FALSE, RS_ZFUNC, CMP_LESSEQUAL,
+    RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0, RS_SLOPESCALEDEPTHBIAS, 0,
+    RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_ALPHA
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, TRUE,
+    RS_SRCBLEND, BM_SRCALPHA, RS_DESTBLEND, BM_INVSRCALPHA, RS_BLENDOP, BO_ADD,
+    RS_ZENABLE, TRUE, RS_ZWRITEENABLE, FALSE, RS_ZFUNC, CMP_LESSEQUAL,
+    RS_ALPHATESTENABLE, FALSE, RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0, RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_ALPHA_ADDITIVE - note the colour write is RGB only, alpha is left alone.
+  [ RS_FILLMODE, FM_SOLID, RS_CULLMODE, CULLMODE_NONE, RS_ALPHABLENDENABLE, TRUE,
+    RS_SRCBLEND, BM_ONE, RS_DESTBLEND, BM_ONE, RS_BLENDOP, BO_ADD,
+    RS_ZENABLE, TRUE, RS_ZWRITEENABLE, FALSE, RS_ZFUNC, CMP_LESSEQUAL,
+    RS_ALPHATESTENABLE, FALSE, RS_COLORWRITEENABLE, RGB_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0, RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_DEPTH_ONLY - writes depth and no colour at all.
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, FALSE,
+    RS_ALPHATESTENABLE, FALSE, RS_ZENABLE, TRUE, RS_ZWRITEENABLE, TRUE,
+    RS_ZFUNC, CMP_LESSEQUAL, RS_COLORWRITEENABLE, 0, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0, RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_PICKING
+  [ RS_CULLMODE, CULLMODE_CW, RS_ALPHABLENDENABLE, FALSE, RS_ALPHATESTENABLE, FALSE,
+    RS_ZENABLE, TRUE, RS_ZWRITEENABLE, TRUE, RS_ZFUNC, CMP_LESSEQUAL,
+    RS_FILLMODE, FM_SOLID, RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0, RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_FULLSCREEN - no depth at all, and Carbon authors no separate-alpha pair.
+  [ RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, FALSE, RS_ALPHATESTENABLE, FALSE,
+    RS_CULLMODE, CULLMODE_NONE, RS_ZENABLE, FALSE, RS_ZWRITEENABLE, FALSE,
+    RS_ZFUNC, CMP_ALWAYS, RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0 ],
+  // RM_SPRITE2D - Carbon writes RS_CULLMODE twice; the second wins, so the
+  // effective cull is NONE. Kept verbatim rather than tidied.
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, TRUE,
+    RS_SRCBLEND, BM_ONE, RS_DESTBLEND, BM_INVSRCALPHA, RS_BLENDOP, BO_ADD,
+    RS_ALPHATESTENABLE, FALSE, RS_CULLMODE, CULLMODE_NONE, RS_ZENABLE, FALSE,
+    RS_ZWRITEENABLE, FALSE, RS_ZFUNC, CMP_ALWAYS, RS_COLORWRITEENABLE, ALL_CHANNELS,
+    RS_DEPTHBIAS, 0, RS_SLOPESCALEDEPTHBIAS, 0, RS_SEPARATEALPHABLENDENABLE, FALSE ],
+  // RM_CULL - the one-state mode, cull only.
+  [ RS_CULLMODE, CULLMODE_CW ],
+  // RM_LIGHT - the only mode authoring separate alpha blending. Carbon repeats
+  // RS_SLOPESCALEDEPTHBIAS; harmless and kept.
+  [ RS_FILLMODE, FM_SOLID, RS_CULLMODE, CULLMODE_NONE, RS_ALPHABLENDENABLE, TRUE,
+    RS_SRCBLEND, BM_ONE, RS_DESTBLEND, BM_ONE, RS_BLENDOP, BO_ADD,
+    RS_ZWRITEENABLE, FALSE, RS_ZFUNC, CMP_LESSEQUAL, RS_ZENABLE, TRUE,
+    RS_ALPHATESTENABLE, FALSE, RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0, RS_SLOPESCALEDEPTHBIAS, 0,
+    RS_SEPARATEALPHABLENDENABLE, TRUE, RS_BLENDOPALPHA, BO_ADD,
+    RS_SRCBLENDALPHA, BM_ONE, RS_DESTBLENDALPHA, BM_ONE ],
+  // RM_ERASE - always passes depth and rewrites it.
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, FALSE,
+    RS_ALPHATESTENABLE, FALSE, RS_ZENABLE, TRUE, RS_ZWRITEENABLE, TRUE,
+    RS_ZFUNC, CMP_ALWAYS, RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0 ],
+  // RM_PREPASS_COLOR - tests equal against the prepass depth and never writes.
+  [ RS_CULLMODE, CULLMODE_CW, RS_FILLMODE, FM_SOLID, RS_ALPHABLENDENABLE, FALSE,
+    RS_ALPHATESTENABLE, FALSE, RS_ZENABLE, TRUE, RS_ZWRITEENABLE, FALSE,
+    RS_ZFUNC, CMP_EQUAL, RS_COLORWRITEENABLE, ALL_CHANNELS, RS_DEPTHBIAS, 0,
+    RS_SLOPESCALEDEPTHBIAS, 0, RS_SEPARATEALPHABLENDENABLE, FALSE ]
+].map(pairs => Object.freeze(pairs)));
+
+
 // Carbon seeds this table with RM_COUNT built-in rendering-mode setups, so
 // handle `i` IS mode `i` for i < RM_COUNT (Tr2EffectStateManager.cpp:397-410),
 // and truncates back to them on device loss rather than emptying (:1012).
@@ -76,12 +191,10 @@ const shaderPrograms = [];
 // than filled: reserving now keeps every later handle stable when they land.
 // Slot 0 carries RM_ANY's genuinely empty list, which is what makes an
 // unauthored setup intern to 0 exactly as Carbon's does.
-const renderStateSetups = [ { keyValues: [], setup: null } ];
-
-while (renderStateSetups.length < RenderingMode.RM_COUNT)
-{
-  renderStateSetups.push({ keyValues: null, setup: null });
-}
+const renderStateSetups = STANDARD_MODE_PAIRS.map(keyValues => ({
+  keyValues,
+  setup: Tr2RenderStateSetup.fromKeyValues(keyValues)
+}));
 
 /**
  * Whether two byte sequences are identical.
@@ -452,6 +565,38 @@ export class Tr2EffectStateManager extends CjsModel
   {
     return renderStateSetups[handle]?.setup ?? null;
   }
+
+  /**
+   * The effective render state for a pass drawn in a rendering mode.
+   *
+   * Carbon does not choose between the two: `ApplyRenderStates` re-applies the
+   * current mode's standard states and THEN the pass's own, every time
+   * (Tr2EffectStateManager.cpp:703-720). So a pass authoring only a blend mode
+   * still draws with its mode's depth, cull and colour-write, and reading the
+   * pass alone yields a pipeline missing most of its state.
+   *
+   * Merging is concatenation because a repeated state id overwrites the earlier
+   * one. RM_ANY contributes nothing, which is its meaning.
+   *
+   * @param {number} renderingMode A `RenderingMode` member.
+   * @param {number} [handle] Registered pass render-state handle.
+   * @returns {Tr2RenderStateSetup|null} Merged setup, or null when neither exists.
+   */
+  static resolveRenderStates(renderingMode, handle = Tr2EffectStateManager.Unknown)
+  {
+    const standard = STANDARD_MODE_PAIRS[renderingMode] ?? [];
+    const pass = renderStateSetups[handle]?.keyValues ?? null;
+
+    // A handle inside the reserved range IS a mode, already covered by the
+    // standard half; merging it with itself would be harmless but confusing.
+    if (!pass || handle < RenderingMode.RM_COUNT)
+    {
+      return standard.length ? Tr2RenderStateSetup.fromKeyValues(standard) : null;
+    }
+
+    return Tr2RenderStateSetup.fromKeyValues([ ...standard, ...pass ]);
+  }
+
 
   /**
    * Drops every registered identity, as Carbon does on device loss.

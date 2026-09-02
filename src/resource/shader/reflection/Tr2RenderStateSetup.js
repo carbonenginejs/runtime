@@ -392,6 +392,40 @@ export class Tr2RenderStateSetup
   static ColorWriteEnable = ColorWriteEnable;
 
   /**
+   * Interprets a flat `[state, value, state, value, ...]` list, which is how
+   * Carbon stores its built-in rendering-mode setups.
+   *
+   * MERGING IS CONCATENATION. Carbon re-applies a rendering mode's standard
+   * states immediately before a pass's own every time it applies them
+   * (Tr2EffectStateManager.cpp:716), so the effective state is the mode's list
+   * with the pass's overlaid. Passing `[...standard, ...pass]` yields exactly
+   * that, because a repeated state id overwrites the earlier one.
+   *
+   * @param {Array<number>} keyValues Flat state/value pairs.
+   * @returns {Tr2RenderStateSetup} Interpreted setup.
+   * @throws {RangeError} When the list has an odd length.
+   */
+  static fromKeyValues(keyValues)
+  {
+    const pairs = keyValues ?? [];
+
+    if (pairs.length % 2 !== 0)
+    {
+      throw new RangeError("a render-state key/value list must have an even length");
+    }
+
+    const renderStateValues = [];
+
+    for (let i = 0; i < pairs.length; i += 2)
+    {
+      renderStateValues.push({ state: pairs[i], value: pairs[i + 1] });
+    }
+
+    return this.fromPass({ renderStateValues });
+  }
+
+
+  /**
    * Interprets one reflected pass's authored render states.
    *
    * `depth.test` folds D3D's ZENABLE, including `D3DZB_USEW` (2), which enables
