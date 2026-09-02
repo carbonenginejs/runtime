@@ -60,6 +60,7 @@ export const IntentClass = Object.freeze({
 // and throws rather than being guessed at: silently treating an unknown intent
 // as harmless state is how something illegal ends up inside a pass.
 const INTENT_CLASSES = Object.freeze({
+  "render-batches": IntentClass.RENDER,
   "render-object": IntentClass.RENDER,
   "draw-effect": IntentClass.RENDER,
   "draw-line-set": IntentClass.RENDER,

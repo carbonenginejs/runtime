@@ -29,6 +29,9 @@ import { Tr2Shader } from "#resource/shader";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 
+/** Carbon DEFAULT_TECHNIQUE (Tr2RenderContext.h:37). */
+const DEFAULT_TECHNIQUE = "Main";
+
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
 @type.define({ className: "Tr2RenderContext", family: "trinityCore" })
 export class Tr2RenderContext extends CjsModel
@@ -507,6 +510,76 @@ export class Tr2RenderContext extends CjsModel
    * Records a render-object intent naming a renderable, with any extra options
    * merged into the intent.
    */
+  /**
+   * Records a submission of one finalized batch accumulator.
+   *
+   * Carbon's RenderBatches (Tr2RenderContext.h:37-52) walks the accumulator and
+   * issues draws immediately. Ours records the intent and an engine drains it,
+   * for the reason this whole class records rather than executes: a WebGPU pass
+   * is an object with a fixed attachment set, so the submission point is decided
+   * when the frame is planned rather than when Trinity asks.
+   *
+   * The accumulator is passed by reference, not copied. It is finalized by the
+   * time it arrives - sorting and grouping are Trinity's - and copying it would
+   * lose the group runs that Finalize wrote.
+   *
+   * @param {object} batches Finalized accumulator.
+   * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @returns {boolean} Whether the submission was recorded.
+   */
+  RenderBatches(batches, techniqueName = DEFAULT_TECHNIQUE)
+  {
+    if (!batches) return false;
+
+    this.#intents.push({ type: "render-batches", batches, techniqueName });
+    return true;
+  }
+
+  /**
+   * Records a submission drawn with a material substituted for every batch's
+   * own, which is how Carbon renders a depth or picking pass over geometry
+   * authored for colour (RenderBatchesWithOverride, Tr2RenderContext.cpp:806).
+   *
+   * A null override is Carbon's own no-op: it falls straight through to
+   * RenderBatches (cpp:810-814), and a port that treated null as "no draw"
+   * would silently drop the default visualizer path.
+   *
+   * @param {object} batches Finalized accumulator.
+   * @param {object|null} overrideMaterial Material to substitute, or null.
+   * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @returns {boolean} Whether the submission was recorded.
+   */
+  RenderBatchesWithOverride(batches, overrideMaterial = null, techniqueName = DEFAULT_TECHNIQUE)
+  {
+    if (!batches) return false;
+    if (!overrideMaterial) return this.RenderBatches(batches, techniqueName);
+
+    this.#intents.push({
+      type: "render-batches",
+      batches,
+      techniqueName,
+      overrideMaterial
+    });
+    return true;
+  }
+
+  /**
+   * Records a submission for picking, which Carbon separates because it reads
+   * the batch's user data as an object id rather than shading it
+   * (RenderBatchesForPicking, Tr2RenderContext.h:44).
+   *
+   * @param {object} batches Finalized accumulator.
+   * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @returns {boolean} Whether the submission was recorded.
+   */
+  RenderBatchesForPicking(batches, techniqueName = DEFAULT_TECHNIQUE)
+  {
+    if (!batches) return false;
+
+    this.#intents.push({ type: "render-batches", batches, techniqueName, picking: true });
+    return true;
+  }
+
   RenderObject(renderable, options = {})
   {
     this.#intents.push({ type: "render-object", renderable, ...options });
