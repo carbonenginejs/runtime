@@ -198,6 +198,20 @@ export class Tr2EffectRes extends CjsResource
    * @returns {Tr2Shader|null} Canonical shader or null when reflection is absent.
    */
   /**
+   * The container bytes this resource loaded, or null once released.
+   *
+   * The reader already holds them - a body cannot be read without the arena
+   * they live in - so a backend that must read the same container reads THESE
+   * rather than fetching the file a second time.
+   *
+   * @returns {Uint8Array|null}
+   */
+  GetContainerBytes()
+  {
+    return this.#reader?.bytes ?? null;
+  }
+
+  /**
    * Whether this container's bodies carry a per-pass backend block, or null
    * when the resource arrived with no path to tell.
    *
