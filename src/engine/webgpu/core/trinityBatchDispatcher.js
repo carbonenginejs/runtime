@@ -68,6 +68,33 @@ function preparationContext(value)
   return context;
 }
 
+/** Carbon's DEFAULT_TECHNIQUE (Tr2RenderContext.h:37). */
+const DEFAULT_TECHNIQUE = "Main";
+
+/**
+ * How many passes this batch's material draws, the way Carbon asks
+ * (Tr2RenderContext.cpp:463-471): the material's shader state interface for the
+ * technique index, then its pass count, returning zero for either miss so the
+ * batch emits nothing.
+ *
+ * A material that cannot answer draws ONE pass. Carbon has no such material -
+ * it always holds a Tr2Material - but a caller that resolves its own pipeline
+ * without Trinity reflection means exactly one thing to draw, and refusing it
+ * would reject the composition boundary's whole point.
+ */
+function passCountOf(material, techniqueName)
+{
+  const shader = material.GetShaderStateInterface?.();
+
+  if (!shader || typeof shader.GetTechniqueIndex !== "function") return 1;
+
+  const techniqueIndex = shader.GetTechniqueIndex(techniqueName);
+
+  if (!Number.isInteger(techniqueIndex) || techniqueIndex < 0) return 0;
+
+  return shader.GetPassCount?.(techniqueIndex) ?? 0;
+}
+
 function geometryDraw(value, indexed)
 {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -199,7 +226,17 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
     const topology = TOPOLOGIES[batch.topology];
     if (!topology) fail(`batch topology ${batch.topology} is unsupported`);
 
-    const material = await this.#resolver.ResolveMaterial(batch.material, batch, preparedContext);
+    // Carbon bails before touching the device when the technique is absent or
+    // draws nothing (Tr2RenderContext.cpp:465-471), and so does this.
+    const passCount = passCountOf(batch.material, preparedContext.techniqueName ?? DEFAULT_TECHNIQUE);
+
+    if (!passCount) return null;
+
+    const material = await this.#resolver.ResolveMaterial(
+      batch.material,
+      batch,
+      { ...preparedContext, passIndex: 0 }
+    );
     if (!material || typeof material !== "object" || material.pipeline == null)
     {
       fail("ResolveMaterial must return a pipeline and recipe");
@@ -218,51 +255,86 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
       ? batchDraw(batch, geometry.indexed)
       : geometryDraw(geometry.draw, geometry.indexed);
 
-    const prepared = await this.#webgpu.PreparePipeline(
-      material.pipeline,
-      material.prepareOptions ?? { warningsAsErrors: true }
-    );
-    const livePipeline = await this.#webgpu.CreateRenderPipeline(
-      prepared,
-      pipelineRecipe(material.recipe, topology)
-    );
-    const bindings = await this.#resolver.ResolveBindings(batch, batch.objectData, preparedContext);
-    if (!bindings || typeof bindings !== "object")
-    {
-      fail("ResolveBindings must return uniformData and resources");
-    }
+    // Carbon resolves the shader program and render states per PASS and the
+    // material data per pass as well (Tr2RenderContext.cpp:472-535), so a
+    // multi-pass technique yields one pipeline and one binding set per pass over
+    // the same geometry and the same draw arguments.
+    const passes = [];
 
-    let bindingSet = null;
     try
     {
-      bindingSet = this.#webgpu.CreateBindingSet(livePipeline, {
-        uniformData: bindings.uniformData,
-        resources: bindings.resources
-      });
-      const draw = this.#webgpu.CreateDraw(livePipeline, {
-        bindingSet,
-        geometry: geometry.geometry,
-        draw: drawArguments
-      });
-      const handle = {
-        batch,
-        context: preparedContext,
-        prepared,
-        livePipeline,
-        bindingSet,
-        draw
-      };
-      PREPARED_BATCHES.set(handle, {
-        owner: this,
-        destroyed: false
-      });
-      return handle;
+      for (let passIndex = 0; passIndex < passCount; passIndex += 1)
+      {
+        const passContext = { ...preparedContext, passIndex };
+
+        const perPass = passIndex === 0
+          ? material
+          : await this.#resolver.ResolveMaterial(batch.material, batch, passContext);
+
+        if (!perPass || typeof perPass !== "object" || perPass.pipeline == null)
+        {
+          fail(`ResolveMaterial must return a pipeline and recipe for pass ${passIndex}`);
+        }
+
+        const prepared = await this.#webgpu.PreparePipeline(
+          perPass.pipeline,
+          perPass.prepareOptions ?? { warningsAsErrors: true }
+        );
+        const livePipeline = await this.#webgpu.CreateRenderPipeline(
+          prepared,
+          pipelineRecipe(perPass.recipe, topology)
+        );
+        const bindings = await this.#resolver.ResolveBindings(batch, batch.objectData, passContext);
+
+        if (!bindings || typeof bindings !== "object")
+        {
+          fail("ResolveBindings must return uniformData and resources");
+        }
+
+        // Recorded BEFORE the draw is made, so a rejected draw still leaves its
+        // binding set owned and destroyable by the rollback below.
+        const entry = {
+          passIndex,
+          prepared,
+          livePipeline,
+          bindingSet: this.#webgpu.CreateBindingSet(livePipeline, {
+            uniformData: bindings.uniformData,
+            resources: bindings.resources
+          }),
+          draw: null
+        };
+
+        passes.push(entry);
+
+        entry.draw = this.#webgpu.CreateDraw(livePipeline, {
+          bindingSet: entry.bindingSet,
+          geometry: geometry.geometry,
+          draw: drawArguments
+        });
+      }
     }
     catch (error)
     {
-      if (bindingSet) bindingSet.Destroy();
+      for (const entry of passes) entry.bindingSet.Destroy();
       throw error;
     }
+
+    const handle = {
+      batch,
+      context: preparedContext,
+      passes,
+      // The first pass's members stay on the handle: grouping compares draws,
+      // and a single-pass batch - which is nearly all of them - reads exactly
+      // as it did before passes existed.
+      prepared: passes[0].prepared,
+      livePipeline: passes[0].livePipeline,
+      bindingSet: passes[0].bindingSet,
+      draw: passes[0].draw
+    };
+
+    PREPARED_BATCHES.set(handle, { owner: this, destroyed: false });
+
+    return handle;
   }
 
   /**
@@ -277,7 +349,15 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
     const state = PREPARED_BATCHES.get(handle);
     if (!state || state.owner !== this) fail("prepared batch belongs to another dispatcher");
     if (state.destroyed) fail("prepared batch is destroyed");
-    this.#webgpu.EncodeDraw(pass, handle.draw, encodeState);
+    for (const entry of handle.passes) this.#webgpu.EncodeDraw(pass, entry.draw, encodeState);
+  }
+
+  /** Encodes one pass of a prepared batch, for the grouped pass-major walk. */
+  #EncodePass(pass, handle, passIndex, encodeState)
+  {
+    const entry = handle.passes[passIndex];
+
+    if (entry) this.#webgpu.EncodeDraw(pass, entry.draw, encodeState);
   }
 
   /**
@@ -293,9 +373,23 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
   {
     for (const group of DeriveBatchGroups(batches, handle => handle?.draw))
     {
+      // PASS-MAJOR, as Carbon's RenderBatchGroup is: every batch of the group
+      // draws pass 0, then every batch draws pass 1
+      // (Tr2RenderContext.cpp:472-535). Encoding batch-major instead would
+      // interleave a two-pass effect's passes between objects and change what
+      // lands on screen.
+      let passCount = 0;
       for (let index = group.start; index < group.end; index += 1)
       {
-        this.Encode(pass, batches[index], encodeState);
+        passCount = Math.max(passCount, batches[index]?.passes?.length ?? 0);
+      }
+
+      for (let passIndex = 0; passIndex < passCount; passIndex += 1)
+      {
+        for (let index = group.start; index < group.end; index += 1)
+        {
+          this.#EncodePass(pass, batches[index], passIndex, encodeState);
+        }
       }
     }
   }
@@ -307,7 +401,7 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
     if (!state || state.owner !== this) fail("prepared batch belongs to another dispatcher");
     if (state.destroyed) return;
     state.destroyed = true;
-    handle.bindingSet.Destroy();
+    for (const entry of handle.passes) entry.bindingSet.Destroy();
   }
 
   /**

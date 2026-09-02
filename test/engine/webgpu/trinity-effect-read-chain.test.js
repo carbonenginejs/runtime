@@ -124,6 +124,12 @@ class PackageEffectResource extends Tr2EffectRes
     super();
     this.package = pkg;
     this.shader = new Tr2Shader();
+
+    // A technique the dispatcher can count passes for. Carbon returns before
+    // touching the device when a material reports no technique
+    // (Tr2RenderContext.cpp:465-471), so a shader with no techniques is a
+    // material that draws nothing - correct, but not what this test is about.
+    this.shader.effect.techniques = [ { name: "Main", passes: [ {} ] } ];
   }
 
   GetShader()
