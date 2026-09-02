@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <title>CarbonEngineJS WebGPU demo</title>
+    <style>
+        body { margin: 0; background: #0b0d12; color: #cfd6e4; font: 13px/1.5 ui-monospace, monospace; }
+        main { display: flex; gap: 16px; padding: 16px; align-items: flex-start; }
+        canvas { background: #05070c; border: 1px solid #1d2531; }
+        pre { margin: 0; white-space: pre-wrap; }
+        .fail { color: #ff8080; }
+    </style>
+</head>
+<body>
+    <main>
+        <canvas id="view" width="512" height="512"></canvas>
+        <pre id="result">Running…</pre>
+    </main>
+    <script type="module">
+        import { RunDemo } from "./demo.bundle.js";
+
+        const result = document.getElementById("result");
+
+        try
+        {
+            const report = await RunDemo(document.getElementById("view"));
+
+            result.textContent = JSON.stringify(report, null, 2);
+            window.__demo = { ok: true, report };
+        }
+        catch (error)
+        {
+            result.textContent = `${error.message}\n\n${error.stack ?? ""}`;
+            result.className = "fail";
+            window.__demo = { ok: false, error: error.message };
+        }
+    </script>
+</body>
+</html>

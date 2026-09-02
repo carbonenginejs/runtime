@@ -45,20 +45,34 @@ function runtimeResolver()
     };
 }
 
-export default {
+const shared = {
+    onwarn(warning, warn)
+    {
+        if (warning.code === "UNRESOLVED_IMPORT")
+        {
+            throw new Error(`Unresolved WebGPU import: ${warning.source}`);
+        }
+        warn(warning);
+    },
+    plugins: [ runtimeResolver() ]
+};
+
+export default [ {
+    ...shared,
     input: path.join(root, "test/engine/webgpu/harness/runtimeBoundary.js"),
     output: {
         file: path.join(root, ".cache/engine/webgpu/harness-runtime.js"),
         format: "esm",
         inlineDynamicImports: true
     },
-    onwarn(warning, warn)
-    {
-        if (warning.code === "UNRESOLVED_IMPORT")
-        {
-            throw new Error(`Unresolved WebGPU harness import: ${warning.source}`);
-        }
-        warn(warning);
-    },
-    plugins: [ runtimeResolver() ]
-};
+}, {
+    // The composed-frame demo. Bundled for the same reason the harness is: dist
+    // keeps subpath imports, which no browser resolves.
+    ...shared,
+    input: path.join(root, "test/engine/webgpu/demo/demo.js"),
+    output: {
+        file: path.join(root, "test/engine/webgpu/demo/demo.bundle.js"),
+        format: "esm",
+        inlineDynamicImports: true
+    }
+} ];
