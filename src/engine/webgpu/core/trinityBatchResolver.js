@@ -29,6 +29,7 @@ import { Tr2VertexDefinition } from "#trinity/core/vertex/Tr2VertexDefinition";
 import { CarbonVertexElements } from "#trinity/core/vertex/vertexUsage";
 
 import { CjsWebgpuPackage } from "../CjsWebgpuPackage.js";
+import { CONSTANT_SLOTS, UNSOURCED_SLOTS } from "./constantSlots.js";
 import { WebgpuGeometryOptions } from "./geometryPlan.js";
 import { MaterialLayoutFromShader, PackMaterialConstants } from "./materialConstants.js";
 import { CollectPerObjectUploads } from "./perObjectUploader.js";
@@ -42,29 +43,6 @@ function fail(message)
 }
 
 
-/**
- * Carbon's constant-buffer registers, by number (`Tr2Renderer.cpp:38-43`).
- *
- * Carbon never asks what a register is. Each producer names the slot it owns
- * when it fills it - EveSpaceScene writes 1 and 2, a per-object record writes
- * 3 and 4 - so the buffer arrives already labelled and nothing downstream
- * classifies anything.
- *
- * Reading a pipeline's declared bindings is the other direction, and it does
- * have to ask. So the map is written down here rather than guessed at: this
- * used to read "anything past b2 is per-object", which is right for 3 and 4
- * and silently wrong for every other register.
- */
-const CONSTANT_SLOTS = Object.freeze({
-  0: "effect",
-  1: "perFrameVS",
-  2: "perFramePS",
-  3: "perObjectVS",
-  4: "perObjectPS",
-  5: "perObjectRTVertexBufferData",
-  6: "perObjectVSGUI",
-  8: "emulatedAddressing"
-});
 
 /** Resolves Trinity batches against one WebGPU device. */
 export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
@@ -413,7 +391,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       );
     }
 
-    if (slot === "perObjectRTVertexBufferData" || slot === "perObjectVSGUI" || slot === "emulatedAddressing")
+    if (UNSOURCED_SLOTS.includes(slot))
     {
       fail(`pass binds b${binding.registerIndex} (${slot}), which has no source yet`);
     }

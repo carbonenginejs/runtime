@@ -11,3 +11,5 @@ export { CjsWebgpuTrinityPassEncoder } from "./core/trinityPassEncoder.js";
 export { CjsWebgpuTrinityStepRecorder } from "./core/trinityStepRecorder.js";
 export { CarbonSamplerDescriptor, IsEmulatedAddressMode, EMULATED_ADDRESS_MODES } from "./core/samplerDescriptor.js";
 export { CjsWebgpuSamplerSource } from "./core/samplerSource.js";
+export { CjsWebgpuPerFrameSource } from "./core/perFrameSource.js";
+export { CONSTANT_SLOTS, PER_FRAME_PS, PER_FRAME_VS } from "./core/constantSlots.js";
