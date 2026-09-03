@@ -57,6 +57,10 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 
   #resolveTexture;
 
+  #resolveSampler;
+
+  #resolveStorageBuffer;
+
   /** Effect resource to the package read from its own container bytes. */
   #packages = new WeakMap();
 
@@ -78,6 +82,10 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    * @param {string|null} [options.depthFormat] Depth attachment format, or null
    *   when the pass has none.
    * @param {string} [options.techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @param {Function} [options.ResolveSampler] Supplies a device sampler for a
+   *   declared sampler binding.
+   * @param {Function} [options.ResolveStorageBuffer] Supplies a storage buffer
+   *   binding, such as a bone palette.
    * @param {Function} [options.ResolveTexture] Supplies a device texture for a
    *   named effect resource. Absent means this resolver draws only effects that
    *   bind none, and says so rather than binding nothing.
@@ -107,6 +115,8 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     this.#depthFormat = options.depthFormat === undefined ? "depth24plus" : options.depthFormat;
     this.#techniqueName = options.techniqueName ?? "Main";
     this.#resolveTexture = options.ResolveTexture ?? null;
+    this.#resolveSampler = options.ResolveSampler ?? null;
+    this.#resolveStorageBuffer = options.ResolveStorageBuffer ?? null;
   }
 
   /**
@@ -274,20 +284,56 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
           continue;
         }
 
-        if (!this.#resolveTexture)
+        // A BINDING IS NOT ALWAYS A TEXTURE. A quad pass declares storage
+        // buffers and samplers alongside its textures, and routing all three
+        // to a texture source would hand a sampler request to something that
+        // resolves texture paths.
+        const source = this.#SourceFor(binding);
+
+        if (!source)
         {
           fail(
-            `pass binds ${binding.name ?? identity} and no ResolveTexture was supplied. `
-            + "An effect with resources cannot be drawn without one, and binding "
-            + "nothing would draw the wrong thing rather than fail."
+            `pass binds ${binding.name ?? identity} and no source was supplied for a `
+            + `${binding.resourceKind}. An effect with resources cannot be drawn without `
+            + "one, and binding nothing would draw the wrong thing rather than fail."
           );
         }
 
-        resources.set(identity, await this.#resolveTexture(binding.name, material));
+        resources.set(identity, await source(binding.name, material, binding));
       }
     }
 
     return { uniformData, resources };
+  }
+
+  /**
+   * The caller-supplied source for one declared binding, by kind.
+   *
+   * Kinds are kept apart because they are answered by different things: a
+   * texture comes from a resource path, a sampler from authored state, a
+   * storage buffer from whatever produced its contents. Carbon keeps the same
+   * separation - SetSrv, SetSampler and the buffer overload are distinct calls
+   * on the resource-set description (Tr2ResourceSetAL.h:57-64).
+   *
+   * KIND ALONE DOES NOT SEPARATE A TEXTURE FROM A BUFFER. A structured buffer
+   * such as a bone palette is declared through an SRV, so it arrives as a
+   * "sampled-resource" exactly like a texture does; only the declared type
+   * tells them apart. The bind-group layout draws the same line at the same
+   * place (carbonEffectBackendBlock.js:168-180), so both agree by construction.
+   *
+   * @param {object} binding Declared binding record.
+   * @returns {Function|null} Source for this kind, or null when none was given.
+   */
+  #SourceFor(binding)
+  {
+    if (binding.resourceKind === "sampler") return this.#resolveSampler;
+
+    if (binding.resourceKind === "sampled-resource" && binding.type?.startsWith("texture_"))
+    {
+      return this.#resolveTexture;
+    }
+
+    return this.#resolveStorageBuffer;
   }
 
   /**
