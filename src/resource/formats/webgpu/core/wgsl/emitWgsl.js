@@ -1,3 +1,4 @@
+import { EmulatedAddressingHelpers } from "./emulatedAddressing.js";
 import { lowerDxbcToIr } from "../ir/lowerDxbcToIr.js";
 import { lowerComputeProgram } from "./lowerComputeProgram.js";
 import { lowerFragmentProgram } from "./lowerFragmentProgram.js";
@@ -327,6 +328,12 @@ export function buildWgsl(input, options = {})
         lines.push(`@group(${binding.group}) @binding(${binding.binding}) ${binding.declaration} ${binding.generatedSymbol}: ${binding.type};`);
     }
     if (program.bindings?.length) lines.push("");
+
+    // Reserved for the emulated-addressing helpers, spliced in at the end once
+    // the body has been generated and it is known whether anything called them.
+    // WGSL needs a function declared before its call, and the body comes later.
+    const helperInsertionPoint = lines.length;
+
     if (compute)
     {
         const size = program.threadGroupSize;
@@ -455,6 +462,18 @@ export function buildWgsl(input, options = {})
 
     for (const statement of program.statements) emitStatement(statement, 1);
     lines.push("}", "");
+
+    const usedAddressHelpers = new Set();
+
+    for (const line of lines)
+    {
+        for (const name of line.match(/cjsAddress[A-Za-z0-9]*/gu) ?? []) usedAddressHelpers.add(name);
+    }
+
+    if (usedAddressHelpers.size)
+    {
+        lines.splice(helperInsertionPoint, 0, ...EmulatedAddressingHelpers(usedAddressHelpers));
+    }
 
     return {
         kind: "wgsl-shader",

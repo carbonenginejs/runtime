@@ -1,3 +1,12 @@
+import {
+    ADDRESS_BORDER_2,
+    ADDRESS_BORDER_3,
+    ADDRESS_COORD_2,
+    ADDRESS_COORD_3,
+    BorderColorLiteral,
+    ModesExpression,
+    ShouldEmulate
+} from "./emulatedAddressing.js";
 import { fixedSourceLanes } from "../ir/sourceLanes.js";
 import {
     validateIndexableTempOperand,
@@ -1059,6 +1068,35 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         }
         const tex = `${textureBinding.generatedSymbol}, ${samplerBinding.generatedSymbol}`;
         const offsetArg = sampleOffsetArgument(instruction, viewDimension);
+
+        // WebGPU has no border and no mirror-once address mode, and no feature
+        // adds them, so a sampler declaring either is honoured here instead.
+        // The mapping from resource to sampler exists only in the DXBC, which
+        // is why this must happen in the emitter: the caller knows the modes
+        // and not the mapping, and DXBC carries no sampler state.
+        const profile = program.emulatedAddressing ?? null;
+        const declared = profile?.samplerModes?.[sampler] ?? null;
+        const axes = [ declared?.u, declared?.v, declared?.w ];
+        const forced = profile?.textures?.find((entry) => entry.registerIndex === resource) ?? null;
+        const emulated = Boolean(profile) && !transformed && ShouldEmulate(axes, forced);
+        let modes = null;
+
+        if (emulated)
+        {
+            const modesBuffer = bindingForOperand(bindings, "uniform-buffer", profile.bufferRegister ?? 8);
+
+            if (!modesBuffer)
+            {
+                throw new Error(
+                    `WGSL fragment instruction ${instruction.index} needs emulated addressing but the `
+                    + `modes buffer at register ${profile.bufferRegister ?? 8} is not bound`
+                );
+            }
+
+            modes = ModesExpression(modesBuffer.generatedSymbol, resource, coordComponents);
+            coord = `${coordComponents === 2 ? ADDRESS_COORD_2 : ADDRESS_COORD_3}(${coord}, ${modes})`;
+        }
+
         const sampled = op === "sample_b"
             ? `textureSampleBias(${tex}, ${coord}${arrayArg}, ${source(4, 1)}${offsetArg})`
             : op === "sample_l"
@@ -1066,8 +1104,14 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
                 : op === "sample_d"
                     ? `textureSampleGrad(${tex}, ${coord}${arrayArg}, ${source(4, gradientComponents)}, ${source(5, gradientComponents)}${offsetArg})`
                     : `textureSample(${tex}, ${coord}${arrayArg}${offsetArg})`;
+        // Applied to the already sampled value so it composes with every sample
+        // form above rather than needing a variant of each.
+        const bordered = emulated
+            ? `${coordComponents === 2 ? ADDRESS_BORDER_2 : ADDRESS_BORDER_3}(${sampled}, ${coord}, `
+                + `${modes}, ${BorderColorLiteral(forced?.borderColor)})`
+            : sampled;
         const components = rawSelectedComponents(resource, mask, count);
-        return count === 4 && components.join("") === "xyzw" ? sampled : `${sampled}.${components.join("")}`;
+        return count === 4 && components.join("") === "xyzw" ? bordered : `${bordered}.${components.join("")}`;
     }
     throw new Error(`WGSL fragment opcode ${op} at instruction ${instruction.index} is not supported`);
 }
