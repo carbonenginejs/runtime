@@ -80,6 +80,22 @@ authored directly as vectors have no selector annotation. In particular, this
 avoids manufacturing provenance for race booster colors, banner-light colors,
 or generic damage-emitter colors.
 
+## Attachment-set identity metadata
+
+An SOF hull attachment set's authored `name` is required metadata. This applies
+to the named decal, light, sprite, spotlight, plane, sprite-line, and haze set
+families. The name is not cosmetic: editors and downstream runtimes use it to
+identify a set across rebuilds, compare projections, present meaningful
+diagnostics, and retain the author's grouping even when two sets otherwise have
+the same render properties.
+
+Every catalog, detached-data, values, document, and HTTP projection must
+preserve the exact authored name. A projection must not drop it as a default,
+replace it with an array position or visibility-group hash, or synthesize one
+from textures or set contents. A missing or empty name is incomplete input and
+must remain observable as such; it must not make multiple sets silently share
+one runtime identity.
+
 ## Modular child construction
 
 `EveSOF.BuildChild(owner, dna, partTag, transform)` ports Carbon's modular
