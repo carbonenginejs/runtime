@@ -165,6 +165,142 @@ tri3.fromVertices = function(out, v1, v2, v3)
  * @param {number} [offset=0]
  * @returns {tri3} out
  */
+/**
+ * Whether a triangle overlaps an axis-aligned box.
+ *
+ * A cheap reject only: it tests the box's three slabs and answers true whenever
+ * no slab separates the triangle, so a triangle that straddles a corner without
+ * touching the box still passes. Carbon uses it as the broad phase in front of
+ * the oriented-box test (BoundingBox.cpp:569-588) and so should any caller.
+ *
+ * @param {tri3} a
+ * @param {vec3} min
+ * @param {vec3} max
+ * @returns {boolean} false only when a slab separates the triangle
+ */
+tri3.intersectsBounds = function(a, min, max)
+{
+    for (let axis = 0; axis < 3; axis++)
+    {
+        const lo = min[axis];
+        const hi = max[axis];
+
+        if (a[axis] < lo && a[axis + 3] < lo && a[axis + 6] < lo) return false;
+        if (a[axis] > hi && a[axis + 3] > hi && a[axis + 6] > hi) return false;
+    }
+
+    return true;
+};
+
+/**
+ * Whether a triangle overlaps an oriented box, by separating-axis test.
+ *
+ * The box is given as the INVERSE of the transform that maps the unit box
+ * (-1,-1,-1)..(1,1,1) onto it, so the triangle is moved into unit-box space and
+ * tested there - which is why no box axes appear below.
+ *
+ * Ported from Carbon (BoundingBox.cpp:626-732) including the vertex pairs its
+ * edge tests use. Those pairs are NOT the symmetric set a textbook
+ * separating-axis test would pick, and two of them look like slips; they are
+ * reproduced exactly because this decides which hull triangles a decal covers,
+ * and a "corrected" test would silently disagree with the client about where a
+ * decal reaches.
+ *
+ * @param {tri3} a
+ * @param {mat4} invOrientedBox inverse of the box transform
+ * @returns {boolean} true when no separating axis was found
+ */
+tri3.intersectsOrientedBox = (function()
+{
+    const v = [ vec3.create(), vec3.create(), vec3.create() ];
+    const e = [ vec3.create(), vec3.create(), vec3.create() ];
+    const normal = vec3.create();
+    const vmin = vec3.create();
+    const vmax = vec3.create();
+
+    // Nine edge-cross axes, with Carbon's own vertex pairs. Built once: the
+    // vectors are stable across calls, and a decal tests every triangle of a
+    // hull against this.
+    const edgeAxes = [
+        [ e[0], v[0], v[2], v[0], v[2], v[1], v[2] ],
+        [ e[1], v[0], v[2], v[0], v[2], v[0], v[1] ],
+        [ e[2], v[0], v[1], v[0], v[1], v[1], v[2] ]
+    ];
+
+    // A separating plane at the cross product of a triangle edge and a unit-box
+    // axis. The box half-extent is 1 on every axis, so the radius is just
+    // |a| + |b| (Carbon's AxisTest, BoundingBox.cpp:601-611).
+    function axisTest(ca, cb, fa, fb, p, q, axis0, axis1)
+    {
+        let p0 = ca * p[axis0] + cb * p[axis1];
+        let p2 = ca * q[axis0] + cb * q[axis1];
+
+        if (p2 < p0)
+        {
+            const swap = p0;
+            p0 = p2;
+            p2 = swap;
+        }
+
+        const rad = fa + fb;
+
+        return !(p0 > rad || p2 < -rad);
+    }
+
+    return function(a, invOrientedBox)
+    {
+        for (let i = 0; i < 3; i++)
+        {
+            vec3.set(v[i], a[i * 3], a[i * 3 + 1], a[i * 3 + 2]);
+            vec3.transformMat4(v[i], v[i], invOrientedBox);
+        }
+
+        // The unit box's own six faces.
+        for (let axis = 0; axis < 3; axis++)
+        {
+            if (v[0][axis] < -1 && v[1][axis] < -1 && v[2][axis] < -1) return false;
+            if (v[0][axis] > 1 && v[1][axis] > 1 && v[2][axis] > 1) return false;
+        }
+
+        vec3.subtract(e[0], v[1], v[0]);
+        vec3.subtract(e[1], v[2], v[1]);
+        vec3.subtract(e[2], v[0], v[2]);
+
+        // The triangle's own plane.
+        vec3.cross(normal, e[0], e[1]);
+
+        for (let i = 0; i < 3; i++)
+        {
+            if (normal[i] > 0)
+            {
+                vmin[i] = -1 - v[0][i];
+                vmax[i] = 1 - v[0][i];
+            }
+            else
+            {
+                vmin[i] = 1 - v[0][i];
+                vmax[i] = -1 - v[0][i];
+            }
+        }
+
+        if (vec3.dot(vmin, normal) > 0) return false;
+        if (vec3.dot(vmax, normal) < 0) return false;
+
+        for (const [ edge, ax, bx, ay, by, az, bz ] of edgeAxes)
+        {
+            const fex = Math.abs(edge[0]);
+            const fey = Math.abs(edge[1]);
+            const fez = Math.abs(edge[2]);
+
+            if (!axisTest(edge[2], -edge[1], fez, fey, ax, bx, 1, 2)) return false;
+            if (!axisTest(-edge[2], edge[0], fez, fex, ay, by, 0, 2)) return false;
+            if (!axisTest(edge[1], -edge[0], fey, fex, az, bz, 0, 1)) return false;
+        }
+
+        return true;
+    };
+})();
+
 tri3.fromArray = mat3.fromArray;
 
 /**
@@ -638,6 +774,8 @@ export const {
     getNormalFromVertices,
     getNormal,
     getV1,
+    intersectsBounds,
+    intersectsOrientedBox,
     getV2,
     getV3,
     setV1,
