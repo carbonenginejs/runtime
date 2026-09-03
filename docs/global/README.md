@@ -37,9 +37,11 @@ library (matrix, quaternion, vectors, plane, sphere, boxes, ellipsoid, ray,
 color, float16) keeping Carbon's names, argument orders, row-vector
 composition semantics, and exact arithmetic. Its values share gl-matrix's
 byte layout, so the two vocabularies interoperate freely; only the
-composition conventions differ. Ports may transcribe Carbon expressions in
-source order through it instead of hand-swapping operands. It changes and
-depends on none of the existing math families.
+composition conventions differ. It changes and depends on none of the
+existing math families, and no runtime code consumes it yet: mixing the two
+composition conventions across call sites is deliberately avoided, so
+adoption waits for a single coordinated migration rather than happening
+piecemeal. Until then, composition code continues in gl-matrix convention.
 The `/utils/errors` family supplies coded operational failures without defining
 logging, transport, HTTP, or retry policy.
 The `/contracts` family supplies narrow nominal identities whose required base
