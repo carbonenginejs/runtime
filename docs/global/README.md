@@ -32,6 +32,14 @@ to this repository's `demo` and `src/tools` layers, respectively.
 
 The global layer has no higher runtime dependencies. It uses `gl-matrix` for the math
 families; its subpaths remain side-effect-free and independently importable.
+The `math` barrel also exposes `carbon`: a literal port of Carbon's own math
+library (matrix, quaternion, vectors, plane, sphere, boxes, ellipsoid, ray,
+color, float16) keeping Carbon's names, argument orders, row-vector
+composition semantics, and exact arithmetic. Its values share gl-matrix's
+byte layout, so the two vocabularies interoperate freely; only the
+composition conventions differ. Ports may transcribe Carbon expressions in
+source order through it instead of hand-swapping operands. It changes and
+depends on none of the existing math families.
 The `/utils/errors` family supplies coded operational failures without defining
 logging, transport, HTTP, or retry policy.
 The `/contracts` family supplies narrow nominal identities whose required base
