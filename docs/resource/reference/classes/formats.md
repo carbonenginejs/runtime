@@ -1261,6 +1261,18 @@ Bit-level reader over JPEG entropy-coded data that handles byte stuffing and res
 - Visibility: Internal
 - Kind: Internal implementation class
 
+### jsonl
+
+<!-- class:CjsJsonlFormat -->
+## `CjsJsonlFormat`
+
+JSON Lines format profile that reads one standalone JSON value per non-blank line into an ordered record array, inspects record counts without parsing every line, and serializes iterables back to JSON Lines text. Its canonical instances are CCP's official static-data export tables.
+
+- Export: `@carbonenginejs/runtime/resource/formats/jsonl`
+- Source: `src/resource/formats/jsonl/CjsJsonlFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 ### mp3
 
 <!-- class:CjsMp3Format -->

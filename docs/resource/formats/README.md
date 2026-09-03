@@ -74,6 +74,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | glTF (`.gltf`/`.glb`) | `CjsGltfFormat` | `@carbonenginejs/runtime/resource/formats/gltf` |
 | Granny GR2/GSF (`.gr2`/`.gsf`) | `CjsGr2Format` | `@carbonenginejs/runtime/resource/formats/gr2` |
 | JPEG (`.jpg`/`.jpeg`) | `CjsJpegFormat` | `@carbonenginejs/runtime/resource/formats/jpeg` |
+| JSON Lines (`.jsonl`) | `CjsJsonlFormat` | `@carbonenginejs/runtime/resource/formats/jsonl` |
 | MP3 (`.mp3`) | `CjsMp3Format` | `@carbonenginejs/runtime/resource/formats/mp3` |
 | MP4 (`.mp4`) | `CjsMp4Format` | `@carbonenginejs/runtime/resource/formats/mp4` |
 | OBJ (`.obj`) | `CjsObjFormat` | `@carbonenginejs/runtime/resource/formats/obj` |
