@@ -42,6 +42,12 @@ function fail(message)
 }
 
 
+/** Carbon's fixed constant-buffer slots (Tr2Renderer). */
+const PER_FRAME_VS = 1;
+
+/** @see PER_FRAME_VS */
+const PER_FRAME_PS = 2;
+
 /** Resolves Trinity batches against one WebGPU device. */
 export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 {
@@ -54,6 +60,8 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
   #targets;
 
   #depthFormat;
+
+  #resolvePerFrame;
 
   #resolveTexture;
 
@@ -82,6 +90,8 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    * @param {string|null} [options.depthFormat] Depth attachment format, or null
    *   when the pass has none.
    * @param {string} [options.techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @param {Function} [options.ResolvePerFrame] Supplies the packed bytes for a
+   *   per-frame constant slot, which the scene owns.
    * @param {Function} [options.ResolveSampler] Supplies a device sampler for a
    *   declared sampler binding.
    * @param {Function} [options.ResolveStorageBuffer] Supplies a storage buffer
@@ -114,6 +124,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     this.#targets = options.targets;
     this.#depthFormat = options.depthFormat === undefined ? "depth24plus" : options.depthFormat;
     this.#techniqueName = options.techniqueName ?? "Main";
+    this.#resolvePerFrame = options.ResolvePerFrame ?? null;
     this.#resolveTexture = options.ResolveTexture ?? null;
     this.#resolveSampler = options.ResolveSampler ?? null;
     this.#resolveStorageBuffer = options.ResolveStorageBuffer ?? null;
@@ -367,6 +378,25 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       });
 
       return layout?.size ? PackMaterialConstants(layout, material.GetValues?.() ?? {}) : null;
+    }
+
+    // b1 and b2 are PER FRAME, not per object. Carbon fixes the slots -
+    // b0 effect, b1 perFrameVS, b2 perFramePS, b3 perObjectVS, b4 perObjectPS -
+    // and every v5 shader binds all five. Letting anything past b0 fall through
+    // to the per-object path filled the two frame slots with object bytes, which
+    // draws a wrong picture rather than failing.
+    if (binding.registerIndex === PER_FRAME_VS || binding.registerIndex === PER_FRAME_PS)
+    {
+      if (!this.#resolvePerFrame)
+      {
+        fail(
+          `pass binds b${binding.registerIndex}, which is per-frame data owned by the`
+          + " scene, and no ResolvePerFrame was supplied. The scene holds it;"
+          + " the resolver cannot invent it."
+        );
+      }
+
+      return this.#resolvePerFrame(binding.registerIndex, binding);
     }
 
     // b3 and b4, gated on the technique's stage mask the way Carbon gates

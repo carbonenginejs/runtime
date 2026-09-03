@@ -219,6 +219,13 @@ const SAMPLER = Object.freeze({
   sampler: Object.freeze({ type: "filtering" })
 });
 
+const UNIFORM_BUFFER = Object.freeze({
+  type: "array<vec4<f32>, 32>",
+  buffer: Object.freeze({ type: "uniform", hasDynamicOffset: false, minBindingSize: 512 }),
+  texture: null,
+  sampler: null
+});
+
 const READ_ONLY_STORAGE = Object.freeze({
   type: "array<vec4<f32>>",
   buffer: Object.freeze({ type: "read-only-storage", hasDynamicOffset: false, minBindingSize: 16 }),
@@ -322,6 +329,50 @@ test("a sampler and a storage buffer are answered by their own sources", async (
   await resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 });
 
   assert.deepEqual(asked, [ "texture:AlbedoMap", "storage:BoneTransforms", "sampler:s0" ]);
+});
+
+test("a per-frame slot is filled from the scene, not from object data", async () =>
+{
+  // Carbon fixes b1 and b2 as per-frame. They used to fall through to the
+  // per-object path, which filled them with object bytes and drew a wrong
+  // picture instead of failing - every v5 shader binds both.
+  const asked = [];
+  const bytes = new Float32Array(4);
+  const resolver = resolverOver(new TestDevice(), {
+    ResolvePerFrame: slot => { asked.push(slot); return bytes; },
+    CreatePackage: packageDeclaring([ {
+      name: "cb1",
+      resourceKind: "uniform-buffer",
+      registerSpace: 0,
+      registerIndex: 1,
+      layout: UNIFORM_BUFFER
+    } ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
+
+  const bindings = await resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 });
+
+  assert.deepEqual(asked, [ 1 ]);
+  assert.equal(bindings.uniformData.get("uniform-buffer:0:1"), bytes);
+});
+
+test("a per-frame slot with no scene source refuses rather than guessing", async () =>
+{
+  const resolver = resolverOver(new TestDevice(), {
+    CreatePackage: packageDeclaring([ {
+      name: "cb2",
+      resourceKind: "uniform-buffer",
+      registerSpace: 0,
+      registerIndex: 2,
+      layout: UNIFORM_BUFFER
+    } ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
+
+  await assert.rejects(
+    resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 }),
+    /per-frame data owned by the scene/
+  );
 });
 
 test("a material declaring no such pass says so rather than drawing", async () =>
