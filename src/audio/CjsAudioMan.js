@@ -1,5 +1,6 @@
 import { coerceNonNegativeInteger, coercePositiveInteger } from "#utils/validation";
 import { throwIfAborted } from "#utils/errors";
+import { normalizeResourcePath } from "#utils/path";
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only audio
 // composition root that installs one complete semantic library and owns
@@ -70,6 +71,12 @@ export class CjsAudioMan
 
     #mediaProvider = null;
 
+    #resourceLoader = null;
+
+    #loadOperations = new Map();
+
+    #installGeneration = 0;
+
     #banksWaitingToLoad = new Set();
 
     #selectEventMedia = null;
@@ -94,6 +101,7 @@ export class CjsAudioMan
      */
     constructor(library = null, {
         mediaProvider = null,
+        resourceLoader = null,
         createContext = CreateBrowserAudioContext,
         delivery = "auto",
         languages = null,
@@ -188,6 +196,10 @@ export class CjsAudioMan
         if (mediaProvider !== null)
         {
             this.SetMediaProvider(mediaProvider);
+        }
+        if (resourceLoader !== null)
+        {
+            this.SetResourceLoader(resourceLoader);
         }
         if (library !== null)
         {
@@ -294,6 +306,7 @@ export class CjsAudioMan
             );
         }
 
+        this.#installGeneration += 1;
         const installed = installAudioLibraryDocument(library);
         const stateTransitions = MergeStateTransitions(
             installed.sfx?.stateTransitions,
@@ -391,6 +404,133 @@ export class CjsAudioMan
         }
 
         return installed;
+    }
+
+    /** Supplies the object loader used to obtain a complete library document. */
+    SetResourceLoader(loader)
+    {
+        if (loader !== null && typeof loader !== "function")
+        {
+            throw new TypeError(
+                "Audio library resource loader must be a function or null",
+            );
+        }
+
+        this.#resourceLoader = loader;
+        return this;
+    }
+
+    /** Loads and installs a complete library through the configured synchronous loader. */
+    LoadLibrary(filePath)
+    {
+        if (!this.#resourceLoader)
+        {
+            return false;
+        }
+
+        const path = NormalizeLibraryPath(filePath);
+        const value = this.#resourceLoader(path);
+
+        if (value && typeof value.then === "function")
+        {
+            throw new TypeError(
+                "CjsAudioMan.LoadLibrary requires a synchronous loader",
+            );
+        }
+
+        if (!value)
+        {
+            return false;
+        }
+
+        this.InstallLibrary(value);
+        return true;
+    }
+
+    /** Loads and installs one complete library while deduplicating equivalent in-flight paths. */
+    async LoadLibraryAsync(filePath)
+    {
+        const loader = this.#resourceLoader;
+
+        if (!loader)
+        {
+            return false;
+        }
+
+        const path = NormalizeLibraryPath(filePath);
+        const existing = this.#loadOperations.get(path);
+
+        if (existing)
+        {
+            return existing;
+        }
+
+        const generation = ++this.#installGeneration;
+        const operation = Promise.resolve()
+            .then(() => loader(path))
+            .then(value =>
+            {
+                if (!value)
+                {
+                    return false;
+                }
+                if (this.#installGeneration !== generation)
+                {
+                    return false;
+                }
+
+                this.InstallLibrary(value);
+                return true;
+            });
+        this.#loadOperations.set(path, operation);
+
+        const clear = () =>
+        {
+            if (this.#loadOperations.get(path) === operation)
+            {
+                this.#loadOperations.delete(path);
+            }
+        };
+
+        operation.then(clear, clear);
+        return operation;
+    }
+
+    /**
+     * Builds and installs a library from raw resources through the domain
+     * builder, defaulting its byte source to the installed media provider.
+     *
+     * Raw builds decode the FSD metadata and open every selected bank on the
+     * client; a prepared document through LoadLibraryAsync stays the fast
+     * path for applications.
+     */
+    async BuildLibraryFromResources(options = {})
+    {
+        const { CjsAudioLibraryBuilder } = await import(
+            "#audio/library-builder"
+        );
+        const provider = this.#mediaProvider;
+        const hasSource = options.source !== undefined
+            || options.read !== undefined
+            || options.fetch !== undefined;
+        const generation = ++this.#installGeneration;
+        const library = await CjsAudioLibraryBuilder.buildFromResources(
+            !hasSource && provider && typeof provider.Read === "function"
+                ? {
+                    ...options,
+                    source: (path, context = {}) =>
+                        provider.Read(path, context),
+                }
+                : options,
+        );
+
+        if (this.#installGeneration !== generation)
+        {
+            return false;
+        }
+
+        this.InstallLibrary(library.GetValues());
+        return true;
     }
 
     /** Installs or replaces the optional neutral music-library catalog. */
@@ -1545,6 +1685,23 @@ export class CjsAudioMan
 
         return DecodeAudioData(this.#context, bytes);
     }
+}
+
+function NormalizeLibraryPath(value)
+{
+    if (typeof value !== "string" || !value.trim())
+    {
+        throw new TypeError("Audio library path must be a non-empty string");
+    }
+
+    const path = normalizeResourcePath(value);
+
+    if (!path)
+    {
+        throw new TypeError("Audio library path must be a non-empty string");
+    }
+
+    return path;
 }
 
 /** Creates the browser's supported AudioContext without touching it at import time. */

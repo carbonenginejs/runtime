@@ -2100,6 +2100,105 @@ test("two events share acquisition until the final playing record stops", async 
     man.Dispose();
 });
 
+test("the resource loader installs a complete document synchronously", () =>
+{
+    const requested = [];
+    const man = new CjsAudioMan(null, {
+        resourceLoader: path =>
+        {
+            requested.push(path);
+            return CreateDocument();
+        },
+    });
+
+    assert.equal(man.library, null);
+    assert.equal(man.LoadLibrary("res:/Audio/Library.json"), true);
+    assert.deepEqual(requested, [ "res:/audio/library.json" ]);
+    assert.equal(man.library.schema, "carbonenginejs.audioLibrary");
+    assert.equal(new CjsAudioMan().LoadLibrary("res:/audio/library.json"), false);
+    assert.throws(
+        () => new CjsAudioMan(null, {
+            resourceLoader: async () => CreateDocument(),
+        }).LoadLibrary("res:/audio/library.json"),
+        { name: "TypeError" },
+    );
+});
+
+test("the async loader deduplicates in-flight paths and installs once", async () =>
+{
+    let calls = 0;
+    const man = new CjsAudioMan(null, {
+        resourceLoader: async () =>
+        {
+            calls += 1;
+            return CreateDocument();
+        },
+    });
+
+    const first = man.LoadLibraryAsync("res:/audio/library.json");
+    const second = man.LoadLibraryAsync("res:/AUDIO/library.json");
+
+    assert.equal(await first, true);
+    assert.equal(await second, true);
+    assert.equal(calls, 1);
+    assert.equal(man.library.schema, "carbonenginejs.audioLibrary");
+});
+
+test("a direct install supersedes an in-flight async load", async () =>
+{
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    const man = new CjsAudioMan(null, {
+        resourceLoader: () => gate.then(() => CreateDocument()),
+    });
+
+    const pending = man.LoadLibraryAsync("res:/audio/library.json");
+    const direct = man.InstallLibrary(CreateDocument({
+        direct: {
+            sourceID: "direct:777",
+            resPath: "res:/audio/777.wem",
+            mediaType: "wem",
+        },
+    }));
+
+    release();
+    assert.equal(await pending, false);
+    assert.equal(man.library, direct);
+});
+
+test("resource builds default their byte source to the media provider", async () =>
+{
+    const requested = [];
+    const man = new CjsAudioMan(null, {
+        mediaProvider: {
+            Read(path, context)
+            {
+                requested.push([ path, context.kind ]);
+                return new TextEncoder().encode(
+                    "res:/audio/524.bnk,aa/524.bnk,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,1000",
+                );
+            },
+        },
+    });
+
+    assert.equal(await man.BuildLibraryFromResources({
+        metadata: { Events: {}, SoundBanks: {}, WemFileIDs: {} },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "524",
+                    ShortName: "524",
+                    Path: "SoundBanks\\524.bnk",
+                } ],
+            },
+        },
+        inspectBanks: false,
+    }), true);
+    assert.deepEqual(requested, [ [ "resfileindex.txt", "audioIndex" ] ]);
+    assert.equal(man.library.schema, "carbonenginejs.audioLibrary");
+    assert.ok(man.library.banks["524:0"]);
+});
+
 function CreatePcmWem()
 {
     const bytes = new Uint8Array(48);

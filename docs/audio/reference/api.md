@@ -204,6 +204,17 @@ replacement invalidate all pending acquisitions.
 3. Create/adopt emitters and drive `Process(updateContext)`.
 4. Release emitters/media or call `Dispose()`.
 
+A document can also be obtained through the manager itself, matching the
+character library manager's shape. Constructor option `resourceLoader` (or
+`SetResourceLoader(loader)`) supplies a structural loader from a normalized
+path to parsed document values; `LoadLibrary(path)` installs through a
+synchronous loader and `LoadLibraryAsync(path)` deduplicates equivalent
+in-flight paths, resolving `false` when a later install supersedes the load.
+`BuildLibraryFromResources(options)` builds a document through the domain
+builder's raw-resource path and installs it, defaulting the builder's byte
+source to the installed media provider's `Read`; raw builds decode metadata
+and banks on the client, so a prepared document remains the fast path.
+
 The update context is optional. It may expose Carbon-style getters or
 equivalent `time`, `realTime`, `deltaTime`, and `frame` properties. When it is
 omitted, the system advances its own monotonic context. `Process()` returns the
