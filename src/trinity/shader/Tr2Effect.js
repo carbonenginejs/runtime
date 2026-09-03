@@ -163,13 +163,20 @@ export class Tr2Effect extends Tr2Material
    *
    * Both are consulted until the two are merged into one store.
    *
+   * ONLY ONE OF THEM ACTUALLY AUTOREGISTERS. Carbon's autoregistration IS
+   * Tr2VariableStore::GetVariable: a miss RESERVES the name with the INVALID
+   * type, and that reserved variable is the shared slot the scene fills later -
+   * which is how EveSpaceSceneShadowMap reaches an effect at all.
+   * CjsVariableStore.GetVariable carries the same name but returns null on a
+   * miss, so it reserves nothing and this path registered nothing.
+   *
    * @param {string} name Variable name.
-   * @returns {object|null} The variable, or null when neither store has it.
+   * @returns {object|null} The variable, reserved if it did not exist.
    */
   static #GlobalVariable(name)
   {
     return CjsVariableStore.GetGlobalStore().GetVariable?.(name)
-      ?? Tr2VariableStore.GlobalStore().FindVariable?.(name)
+      ?? Tr2VariableStore.GlobalStore().GetVariable?.(name)
       ?? null;
   }
 
