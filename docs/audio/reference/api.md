@@ -419,6 +419,20 @@ SoundbanksInfo, and indexed banks through fetch by default or a structural
 return contract. `inspectBanks: false` returns the cFSD/SoundbanksInfo catalog
 without opening bank bytes; graph extraction opts into bank inspection.
 
+Each located resource has an optional path override, and a value option that
+supplies the decoded input and skips its read entirely:
+
+| Input | Path option (default) | Value option |
+| --- | --- | --- |
+| audio metadata FSD | `audioMetadataPath` (`res:/staticdata/audiometadata.fsdbinary`) | `metadata` |
+| resource index | `indexPath` (`resfileindex.txt`) | `indexEntries` or `indexText` |
+| SoundbanksInfo | `soundbanksInfoPath` (auto-discovered from the index) | `soundbanksInfo` |
+
+The metadata default is the reader's own schema-declared location, and the
+FSD is decoded under that canonical logical path regardless of where the
+bytes were read from; a path override changes only what is asked of the byte
+source, whose read context still carries the `logicalPath` identity.
+
 The builder does no installation discovery, provider selection, cache access,
 or Node filesystem work. `fsdOptions: { bitWidth: 32 }` identifies legacy FSD
 through the normal format pipeline and currently throws the explicit
