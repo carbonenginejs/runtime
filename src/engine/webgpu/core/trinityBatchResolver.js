@@ -42,11 +42,29 @@ function fail(message)
 }
 
 
-/** Carbon's fixed constant-buffer slots (Tr2Renderer). */
-const PER_FRAME_VS = 1;
-
-/** @see PER_FRAME_VS */
-const PER_FRAME_PS = 2;
+/**
+ * Carbon's constant-buffer registers, by number (`Tr2Renderer.cpp:38-43`).
+ *
+ * Carbon never asks what a register is. Each producer names the slot it owns
+ * when it fills it - EveSpaceScene writes 1 and 2, a per-object record writes
+ * 3 and 4 - so the buffer arrives already labelled and nothing downstream
+ * classifies anything.
+ *
+ * Reading a pipeline's declared bindings is the other direction, and it does
+ * have to ask. So the map is written down here rather than guessed at: this
+ * used to read "anything past b2 is per-object", which is right for 3 and 4
+ * and silently wrong for every other register.
+ */
+const CONSTANT_SLOTS = Object.freeze({
+  0: "effect",
+  1: "perFrameVS",
+  2: "perFramePS",
+  3: "perObjectVS",
+  4: "perObjectPS",
+  5: "perObjectRTVertexBufferData",
+  6: "perObjectVSGUI",
+  8: "emulatedAddressing"
+});
 
 /** Resolves Trinity batches against one WebGPU device. */
 export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
@@ -385,7 +403,22 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     // and every v5 shader binds all five. Letting anything past b0 fall through
     // to the per-object path filled the two frame slots with object bytes, which
     // draws a wrong picture rather than failing.
-    if (binding.registerIndex === PER_FRAME_VS || binding.registerIndex === PER_FRAME_PS)
+    const slot = CONSTANT_SLOTS[binding.registerIndex];
+
+    if (!slot)
+    {
+      fail(
+        `pass binds b${binding.registerIndex}, which is not one of Carbon's constant-buffer `
+        + "registers. Filling it with anything would draw a wrong picture rather than fail."
+      );
+    }
+
+    if (slot === "perObjectRTVertexBufferData" || slot === "perObjectVSGUI" || slot === "emulatedAddressing")
+    {
+      fail(`pass binds b${binding.registerIndex} (${slot}), which has no source yet`);
+    }
+
+    if (slot === "perFrameVS" || slot === "perFramePS")
     {
       if (!this.#resolvePerFrame)
       {

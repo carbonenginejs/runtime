@@ -375,6 +375,48 @@ test("a per-frame slot with no scene source refuses rather than guessing", async
   );
 });
 
+test("a register Carbon does not assign refuses rather than guessing", async () =>
+{
+  // This used to read "anything past b2 is per-object", which is right for b3
+  // and b4 and silently wrong for the rest. Carbon assigns 0..6 and 8.
+  const resolver = resolverOver(new TestDevice(), {
+    CreatePackage: packageDeclaring([ {
+      name: "cb9",
+      resourceKind: "uniform-buffer",
+      registerSpace: 0,
+      registerIndex: 9,
+      layout: UNIFORM_BUFFER
+    } ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
+
+  await assert.rejects(
+    resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 }),
+    /not one of Carbon's constant-buffer registers/
+  );
+});
+
+test("a mapped register with no source names itself", async () =>
+{
+  // b5, b6 and b8 are real Carbon registers we do not fill yet. Saying so
+  // beats handing them per-object bytes.
+  const resolver = resolverOver(new TestDevice(), {
+    CreatePackage: packageDeclaring([ {
+      name: "cb8",
+      resourceKind: "uniform-buffer",
+      registerSpace: 0,
+      registerIndex: 8,
+      layout: UNIFORM_BUFFER
+    } ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
+
+  await assert.rejects(
+    resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 }),
+    /b8 .*has no source yet/
+  );
+});
+
 test("a material declaring no such pass says so rather than drawing", async () =>
 {
   const resolver = resolverOver(new TestDevice());
