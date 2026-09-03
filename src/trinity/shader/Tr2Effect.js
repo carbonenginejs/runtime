@@ -25,6 +25,7 @@ import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
 import { CjsVariableStore } from "./CjsVariableStore.js";
+import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 
 
 /**
@@ -149,6 +150,27 @@ export class Tr2Effect extends Tr2Material
   SetVariableStore(store)
   {
     this.variableStore = store ?? null;
+  }
+
+  /**
+   * An autoregistered name from whichever global store holds it.
+   *
+   * There are two, which is a defect rather than a design: the render path
+   * registers into Tr2VariableStore's global (Tr2ShadowMap registers
+   * EveSpaceSceneShadowMap there) while effect binding searched only
+   * CjsVariableStore's. A name registered in one was invisible to the other,
+   * so an autoregistered scene texture could never resolve.
+   *
+   * Both are consulted until the two are merged into one store.
+   *
+   * @param {string} name Variable name.
+   * @returns {object|null} The variable, or null when neither store has it.
+   */
+  static #GlobalVariable(name)
+  {
+    return CjsVariableStore.GetGlobalStore().GetVariable?.(name)
+      ?? Tr2VariableStore.GlobalStore().FindVariable?.(name)
+      ?? null;
   }
 
   /** The effect's store, falling back to the global store at call time. */
@@ -428,7 +450,7 @@ export class Tr2Effect extends Tr2Material
       const value = this.FindParameterByName(name)
         ?? this.#ResolveResourceValue(name, passParameters)
         ?? this.GetVariableStore().FindVariable?.(name)
-        ?? (constant.isAutoregister ? CjsVariableStore.GetGlobalStore().GetVariable?.(name) : null)
+        ?? (constant.isAutoregister ? Tr2Effect.#GlobalVariable(name) : null)
         ?? null;
 
       if (value)
@@ -527,7 +549,7 @@ export class Tr2Effect extends Tr2Material
         else
         {
           value = this.GetVariableStore().FindVariable?.(name)
-            ?? (resource.isAutoregister ? this.GetVariableStore().GetVariable?.(name) : null)
+            ?? (resource.isAutoregister ? Tr2Effect.#GlobalVariable(name) : null)
             ?? null;
         }
       }
