@@ -2174,29 +2174,47 @@ test("resource builds default their byte source to the media provider", async ()
             Read(path, context)
             {
                 requested.push([ path, context.kind ]);
-                return new TextEncoder().encode(
-                    "res:/audio/524.bnk,aa/524.bnk,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,1000",
-                );
+                return new TextEncoder().encode(JSON.stringify({
+                    SoundBanksInfo: {
+                        SoundBanks: [ {
+                            Id: "524",
+                            Language: "SFX",
+                            ShortName: "Ships",
+                            Path: "Ships.bnk",
+                            Media: [ {
+                                Id: "777",
+                                Streaming: "true",
+                            } ],
+                        } ],
+                    },
+                }));
             },
         },
     });
 
     assert.equal(await man.BuildLibraryFromResources({
-        metadata: { Events: {}, SoundBanks: {}, WemFileIDs: {} },
-        soundbanksInfo: {
-            SoundBanksInfo: {
-                SoundBanks: [ {
-                    Id: "524",
-                    ShortName: "524",
-                    Path: "SoundBanks\\524.bnk",
-                } ],
-            },
+        metadata: {
+            Events: {},
+            SoundBanks: {},
+            WemFileIDs: { 777: { SoundBank: "Ships.bnk", IsEssential: 1 } },
         },
         inspectBanks: false,
     }), true);
-    assert.deepEqual(requested, [ [ "resfileindex.txt", "audioIndex" ] ]);
+    assert.deepEqual(requested, [
+        [ "res:/audio/soundbanksinfo.json", "soundbanksInfo" ],
+    ]);
     assert.equal(man.library.schema, "carbonenginejs.audioLibrary");
-    assert.ok(man.library.banks["524:0"]);
+    assert.equal(
+        Object.values(man.library.banks)
+            .find(bank => bank.bankID === "524")
+            ?.resPath,
+        "res:/audio/essential_media/ships.bnk",
+    );
+    assert.equal(
+        man.library.media["777"].resPath,
+        "res:/audio/essential_media/777.wem",
+    );
+    assert.equal(man.library.media["777"].essential, true);
 });
 
 function CreatePcmWem()

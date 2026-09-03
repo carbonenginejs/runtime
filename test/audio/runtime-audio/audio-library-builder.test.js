@@ -116,6 +116,77 @@ test("resource builder can decode FSD without inspecting indexed banks", async (
     assert.equal(library.banks["200:0"].resPath, "res:/audio/common.bnk");
 });
 
+test("without an index, discovery derives from default resource paths", async () =>
+{
+    const library = await CjsAudioLibraryBuilder.buildFromResources({
+        metadata: {
+            Events: {},
+            SoundBanks: {},
+            WemFileIDs: {
+                101: { SoundBank: "Ships.bnk", IsEssential: 1 },
+                102: { SoundBank: "Ships.bnk", IsEssential: 0 },
+            },
+        },
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [
+                    {
+                        Id: "200",
+                        Language: "SFX",
+                        ShortName: "Ships",
+                        Path: "Ships.bnk",
+                        Media: [
+                            { Id: "101", Streaming: "true" },
+                            { Id: "102", Streaming: "true" },
+                            { Id: "103", Streaming: "false" },
+                        ],
+                    },
+                    {
+                        Id: "300",
+                        Language: "German",
+                        ShortName: "Voice",
+                        Path: "German\\Voice.bnk",
+                    },
+                ],
+            },
+        },
+        inspectBanks: false,
+        music: false,
+    });
+
+    const banks = Object.values(library.banks);
+
+    assert.equal(
+        banks.find(bank => bank.bankID === "200")?.resPath,
+        "res:/audio/essential_media/ships.bnk",
+    );
+    assert.equal(
+        banks.find(bank => bank.resPath === "res:/audio/german/voice.bnk")
+            ?.bankID,
+        "300",
+    );
+    assert.equal(
+        library.media["101"].resPath,
+        "res:/audio/essential_media/101.wem",
+    );
+    assert.equal(library.media["101"].essential, true);
+    assert.equal(library.media["102"].resPath, "res:/audio/media/102.wem");
+    assert.equal(library.media["102"].essential, false);
+    assert.equal(library.media["103"], undefined);
+});
+
+test("an index-less build requires SoundbanksInfo listings", async () =>
+{
+    await assert.rejects(
+        CjsAudioLibraryBuilder.buildFromResources({
+            metadata: { Events: {}, SoundBanks: {}, WemFileIDs: {} },
+            soundbanksInfo: {},
+            inspectBanks: false,
+        }),
+        /require SoundbanksInfo/,
+    );
+});
+
 test("resource builder uses one injected source for JSON and bank bytes", async () =>
 {
     const requested = [];

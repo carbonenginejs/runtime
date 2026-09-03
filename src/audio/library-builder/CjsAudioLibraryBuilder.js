@@ -162,7 +162,7 @@ export class CjsAudioLibraryBuilder
             .Register(metadataReader.constructor.path, metadataReader);
         const metadataPath = options.audioMetadataPath
             ?? metadataReader.constructor.path;
-        const indexEntries = await ResolveResourceIndexEntries(
+        const resolvedIndexEntries = await ResolveResourceIndexEntries(
             options,
             read,
             signal,
@@ -181,10 +181,12 @@ export class CjsAudioLibraryBuilder
         );
         const soundbanksInfo = await ResolveSoundbanksInfo(
             options,
-            indexEntries,
+            resolvedIndexEntries,
             read,
             signal,
         );
+        const indexEntries = resolvedIndexEntries
+            ?? DeriveDefaultPathIndexEntries(soundbanksInfo, metadata);
         const buildOptions = OmitResourceOptions(options);
 
         // Catalog-only builds still decode the authoritative FSD metadata, but
@@ -1032,13 +1034,88 @@ async function ResolveResourceIndexEntries(options, read, signal)
         return CjsAudioLibraryBuilder.parseIndexEntries(options.indexEntries);
     }
 
-    const path = options.indexPath ?? "resfileindex.txt";
+    // Without an explicit index the build stays on default resource paths:
+    // discovery derives from SoundbanksInfo and the FSD metadata instead,
+    // which is all a plain fetch consumer can reach.
+    if (options.indexPath === undefined)
+    {
+        return null;
+    }
+
     return CjsAudioLibraryBuilder.parseIndexEntries(decodeAudioResourceText(
-        await read(path, {
+        await read(options.indexPath, {
             kind: "audioIndex",
             signal,
         }),
     ));
+}
+
+/**
+ * Derives the resource listing an index would have provided, from default
+ * paths alone: banks from each SoundbanksInfo `Path` (bare names live under
+ * `essential_media/`), and streamed media from each bank's `Media` rows with
+ * the metadata `WemFileIDs` `IsEssential` flag selecting between the
+ * `media/` and `essential_media/` directories. Validated exact against the
+ * shipped resfileindex (3186/3186 audio entries, build 3489895).
+ */
+function DeriveDefaultPathIndexEntries(soundbanksInfo, metadata)
+{
+    const banks = soundbanksInfo?.SoundBanksInfo?.SoundBanks;
+
+    if (!Array.isArray(banks))
+    {
+        throw new TypeError(
+            "Audio builds without an index require SoundbanksInfo bank and"
+            + " streamed-media listings at their default resource paths",
+        );
+    }
+
+    const entries = new Map();
+
+    for (const bank of banks)
+    {
+        const path = String(bank?.Path ?? "")
+            .trim()
+            .replaceAll("\\", "/")
+            .toLowerCase();
+
+        if (!path)
+        {
+            continue;
+        }
+
+        const logicalPath = `res:/audio/${path.includes("/")
+            ? path
+            : `essential_media/${path}`}`;
+
+        entries.set(logicalPath, { logicalPath });
+
+        for (const media of bank?.Media ?? [])
+        {
+            if (String(media?.Streaming).toLowerCase() !== "true")
+            {
+                continue;
+            }
+
+            const id = String(media?.Id ?? "").trim();
+
+            if (!id)
+            {
+                continue;
+            }
+
+            const essential = Number(
+                metadata?.WemFileIDs?.[id]?.IsEssential ?? 0,
+            ) !== 0;
+            const wemPath = `res:/audio/${essential
+                ? "essential_media"
+                : "media"}/${id}.wem`;
+
+            entries.set(wemPath, { logicalPath: wemPath });
+        }
+    }
+
+    return CjsAudioLibraryBuilder.parseIndexEntries([ ...entries.values() ]);
 }
 
 async function ResolveSoundbanksInfo(options, indexEntries, read, signal)
@@ -1051,8 +1128,10 @@ async function ResolveSoundbanksInfo(options, indexEntries, read, signal)
     const explicit = options.soundbanksInfoPath;
     const entry = explicit
         ? { logicalPath: explicit }
-        : indexEntries.find(value =>
-            value.logicalPath.toLowerCase().endsWith("/soundbanksinfo.json"));
+        : indexEntries === null
+            ? { logicalPath: "res:/audio/soundbanksinfo.json" }
+            : indexEntries.find(value =>
+                value.logicalPath.toLowerCase().endsWith("/soundbanksinfo.json"));
 
     if (!entry)
     {

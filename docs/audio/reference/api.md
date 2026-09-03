@@ -425,8 +425,15 @@ supplies the decoded input and skips its read entirely:
 | Input | Path option (default) | Value option |
 | --- | --- | --- |
 | audio metadata FSD | `audioMetadataPath` (`res:/staticdata/audiometadata.fsdbinary`) | `metadata` |
-| resource index | `indexPath` (`resfileindex.txt`) | `indexEntries` or `indexText` |
-| SoundbanksInfo | `soundbanksInfoPath` (auto-discovered from the index) | `soundbanksInfo` |
+| resource index | `indexPath` (none — the index is optional) | `indexEntries` |
+| SoundbanksInfo | `soundbanksInfoPath` (`res:/audio/soundbanksinfo.json` without an index; discovered from the index otherwise) | `soundbanksInfo` |
+
+The index is optional: without one, every input sits at a default resource
+path, and bank and streamed-media discovery derives from SoundbanksInfo with
+the metadata `WemFileIDs` `IsEssential` flag selecting each loose file's
+`media/` or `essential_media/` directory — validated exact against a shipped
+resfileindex. An index still contributes what only it has: storage paths,
+checksums, and byte lengths.
 
 The metadata default is the reader's own schema-declared location, and the
 FSD is decoded under that canonical logical path regardless of where the
