@@ -9,3 +9,5 @@ export { CjsWebgpuTrinityBatchResolver } from "./core/trinityBatchResolver.js";
 export { CjsWebgpuTextureSource } from "./core/textureSource.js";
 export { CjsWebgpuTrinityPassEncoder } from "./core/trinityPassEncoder.js";
 export { CjsWebgpuTrinityStepRecorder } from "./core/trinityStepRecorder.js";
+export { CarbonSamplerDescriptor, IsEmulatedAddressMode, EMULATED_ADDRESS_MODES } from "./core/samplerDescriptor.js";
+export { CjsWebgpuSamplerSource } from "./core/samplerSource.js";
