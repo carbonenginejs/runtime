@@ -55,16 +55,31 @@ export function isGr2Animation(animation)
 }
 
 const IDENTITY_MATRIX = Object.freeze([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);
+const FLOAT32_EPSILON = 2 ** -23;
+const SCALE_SHEAR_RELATIVE_EPSILONS = 4;
+const SCALE_SHEAR_OFF_DIAGONALS = Object.freeze([ 1, 2, 3, 5, 6, 7 ]);
+
+function containsScaleShear(values, offset = 0)
+{
+    let magnitude = 1;
+    for (let component = 0; component < 9; component++)
+    {
+        magnitude = Math.max(magnitude, Math.abs(values[offset + component] ?? 0));
+    }
+    const tolerance = SCALE_SHEAR_RELATIVE_EPSILONS * FLOAT32_EPSILON * magnitude;
+    return SCALE_SHEAR_OFF_DIAGONALS.some(
+        component => Math.abs(values[offset + component] ?? 0) > tolerance
+    );
+}
 
 function boneRestTransform(bone)
 {
     const scaleShear = bone.scaleShear || [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
-    for (const index of [ 1, 2, 3, 5, 6, 7 ])
+    // Granny stores Float32 scale/shear. Transform decomposition leaves a few
+    // relative ULPs off-diagonal even when the authored result is diagonal.
+    if (containsScaleShear(scaleShear))
     {
-        if (Math.abs(scaleShear[index] ?? 0) > 1e-7)
-        {
-            throw convertError(`bone "${bone.name || ""}" rest transform contains shear`);
-        }
+        throw convertError(`bone "${bone.name || ""}" rest transform contains shear`);
     }
     return {
         position: (bone.position || [ 0, 0, 0 ]).slice(0, 3),
@@ -145,14 +160,28 @@ function validateScaleShearCurve(curve, track)
 {
     for (let offset = 0; offset < curve.controls.length; offset += 9)
     {
-        for (const component of [ 1, 2, 3, 5, 6, 7 ])
+        if (containsScaleShear(curve.controls, offset))
         {
-            if (Math.abs(curve.controls[offset + component] ?? 0) > 1e-7)
-            {
-                throw convertError(`track "${track}" scaleShear curve contains shear`);
-            }
+            throw convertError(`track "${track}" scaleShear curve contains shear`);
         }
     }
+}
+
+function skeletonBoneNames(skeleton)
+{
+    return new Set((skeleton?.bones || []).map(bone =>
+        (typeof bone === "string" ? bone : bone?.name || "")
+    ));
+}
+
+function meshBoneBindingNames(mesh)
+{
+    return (mesh?.boneBindings || []).map(binding => binding?.name || "");
+}
+
+function skeletonContainsBindings(names, bindings)
+{
+    return bindings.every(name => names.has(name));
 }
 
 function floatBytes(values)
@@ -584,9 +613,9 @@ export function convertGr2Animation(animation, options = {})
  * CMF-native ones untouched.
  *
  * GR2 files frequently carry their skeleton under `models[].skeleton` rather
- * than a root skeleton list. Model skeletons are unioned by object identity,
- * and `meshBindings` determine each mesh's CMF skeleton index. With exactly
- * one skeleton, an otherwise-unbound skinned mesh is bound to it.
+ * than a root skeleton list. Model skeletons are unioned by object identity.
+ * Model mesh bindings select among skeletons compatible with the mesh's bone
+ * palette; a unique palette match resolves otherwise-unbound skinned meshes.
  *
  * @param {object} root Shared geometry root.
  * @param {object} [options] Conversion options (`sampleRate`).
@@ -620,6 +649,21 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
     }
 
     const sourceMeshes = Array.isArray(root.meshes) ? root.meshes : [];
+    const boneNamesBySkeleton = sourceSkeletons.map(skeletonBoneNames);
+    const bindingNamesByMesh = sourceMeshes.map(meshBoneBindingNames);
+    const compatibleSkeletonsByMesh = bindingNamesByMesh.map(bindings =>
+    {
+        if (!bindings.length) return [];
+        const compatible = [];
+        for (let skeletonIndex = 0; skeletonIndex < boneNamesBySkeleton.length; skeletonIndex++)
+        {
+            if (skeletonContainsBindings(boneNamesBySkeleton[skeletonIndex], bindings))
+            {
+                compatible.push(skeletonIndex);
+            }
+        }
+        return compatible;
+    });
     const modelAssignments = new Array(sourceMeshes.length).fill(null);
     const assignmentModels = new Array(sourceMeshes.length).fill(null);
     for (let modelIndex = 0; modelIndex < models.length; modelIndex++)
@@ -641,6 +685,12 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
             }
             const skeletonIndex = modelSkeletonIndices[modelIndex];
             if (skeletonIndex === null) continue;
+            // A model list expresses scene membership, not a usable skin by
+            // itself. CMF can bind only a skeleton containing every palette
+            // name, so stale or duplicate incompatible model claims are not
+            // candidates for this mesh.
+            if (bindingNamesByMesh[meshIndex].length &&
+                !compatibleSkeletonsByMesh[meshIndex].includes(skeletonIndex)) continue;
             if (modelAssignments[meshIndex] !== null && modelAssignments[meshIndex] !== skeletonIndex)
             {
                 throw convertError(
@@ -657,12 +707,18 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
     {
         const authored = mesh?.skeleton;
         const assigned = modelAssignments[meshIndex];
+        const bindings = bindingNamesByMesh[meshIndex];
+        const compatible = compatibleSkeletonsByMesh[meshIndex];
         let skeleton = authored;
         if (authored !== null && authored !== undefined)
         {
             if (!Number.isInteger(authored) || authored < 0 || authored >= sourceSkeletons.length)
             {
                 throw convertError(`mesh ${meshIndex} has skeleton index ${authored} outside 0..${sourceSkeletons.length - 1}`);
+            }
+            if (bindings.length && !compatible.includes(authored))
+            {
+                throw convertError(`mesh ${meshIndex} declares skeleton ${authored} which does not contain all bone bindings`);
             }
             if (assigned !== null && assigned !== authored)
             {
@@ -675,12 +731,16 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
         {
             skeleton = assigned;
         }
-        else if ((mesh?.boneBindings || []).length)
+        else if (bindings.length)
         {
-            if (sourceSkeletons.length === 1) skeleton = 0;
-            else if (sourceSkeletons.length > 1)
+            if (compatible.length === 1) skeleton = compatible[0];
+            else if (compatible.length > 1)
             {
-                throw convertError(`mesh ${meshIndex} has bone bindings but no unambiguous skeleton`);
+                throw convertError(`mesh ${meshIndex} has bone bindings but no unambiguous compatible skeleton`);
+            }
+            else if (sourceSkeletons.length)
+            {
+                throw convertError(`mesh ${meshIndex} has bone bindings but no compatible skeleton`);
             }
         }
         return skeleton === authored ? mesh : { ...mesh, skeleton };

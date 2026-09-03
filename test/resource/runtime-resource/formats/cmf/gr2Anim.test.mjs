@@ -62,6 +62,61 @@ test("converts a GR2 skeleton with parents, rest pose, and inverse binds", () =>
     assert.deepEqual(invBind.slice(0, 3), [ 1, 0, 0 ]);
 });
 
+test("accepts Float32 scale decomposition residue but rejects material shear", () =>
+{
+    const converted = convertGr2Skeleton({
+        name: "reflected",
+        bones: [ {
+            name: "root",
+            parentIndex: -1,
+            scaleShear: [
+                1.6937123537063599, -1.9196272660337854e-7, -0.0000019073486328125,
+                -6.167545762991722e-8, 5.271618843078613, -0.00003497683792375028,
+                2.9802322387695312e-8, 0.0000018438450979374466, -100.00003051757812
+            ]
+        } ]
+    });
+    assert.deepEqual(converted.restTransforms[0].scale, [
+        1.6937123537063599,
+        5.271618843078613,
+        -100.00003051757812
+    ]);
+
+    assert.throws(() => convertGr2Skeleton({
+        name: "sheared",
+        bones: [ {
+            name: "root",
+            parentIndex: -1,
+            scaleShear: [ 1, 0.0001, 0, 0, 1, 0, 0, 0, 1 ]
+        } ]
+    }), /rest transform contains shear/u);
+});
+
+test("uses the same Float32-relative shear test for animation scale curves", () =>
+{
+    const animation = scaleShear => ({
+        duration: 1,
+        trackGroups: [ {
+            transformTracks: [ {
+                name: "root",
+                scaleShear: { knots: [ 0 ], controls: scaleShear, dimension: 9, degree: 0 }
+            } ]
+        } ]
+    });
+    const converted = convertGr2Animation(animation([
+        100, 0.00003, 0,
+        0, 2, 0,
+        0, 0, -3
+    ]));
+    assert.deepEqual(floats(converted.curves[0].values), [ 100, 2, -3 ]);
+
+    assert.throws(() => convertGr2Animation(animation([
+        1, 0.0001, 0,
+        0, 1, 0,
+        0, 0, 1
+    ])), /scaleShear curve contains shear/u);
+});
+
 test("evaluates decoded curves: step, linear, quadratic, extrapolation", () =>
 {
     const out = [ 0, 0, 0 ];
@@ -292,6 +347,54 @@ test("shares a model skeleton only when the source object identity is shared", (
 
     assert.equal(converted.skeletons.length, 1);
     assert.deepEqual(converted.meshes.map((mesh) => mesh.skeleton), [ 0, 0 ]);
+});
+
+test("ignores model skeleton claims incompatible with the mesh bone palette", () =>
+{
+    const compatible = { name: "compatible", bones: [ { name: "meshBone", parentIndex: -1 } ] };
+    const incompatible = { name: "incompatible", bones: [ { name: "otherBone", parentIndex: -1 } ] };
+    const converted = convertGr2SkeletonsAndAnimations({
+        meshes: [ { boneBindings: [ { name: "meshBone" } ] } ],
+        models: [
+            { skeleton: compatible, meshBindings: [ 0 ] },
+            { skeleton: incompatible, meshBindings: [ 0 ] }
+        ]
+    });
+
+    assert.equal(converted.meshes[0].skeleton, 0);
+});
+
+test("resolves an unbound skinned mesh from its unique compatible skeleton", () =>
+{
+    const first = { name: "first", bones: [ { name: "firstBone", parentIndex: -1 } ] };
+    const second = { name: "second", bones: [ { name: "trailBone", parentIndex: -1 } ] };
+    const converted = convertGr2SkeletonsAndAnimations({
+        meshes: [ { boneBindings: [ { name: "trailBone" } ] } ],
+        models: [
+            { skeleton: first, meshBindings: [] },
+            { skeleton: second, meshBindings: [] }
+        ]
+    });
+
+    assert.equal(converted.meshes[0].skeleton, 1);
+});
+
+test("rejects bone palettes with zero or multiple compatible skeletons", () =>
+{
+    const first = { name: "first", bones: [ { name: "sharedBone", parentIndex: -1 } ] };
+    const second = { name: "second", bones: [ { name: "sharedBone", parentIndex: -1 } ] };
+    assert.throws(() => convertGr2SkeletonsAndAnimations({
+        meshes: [ { boneBindings: [ { name: "sharedBone" } ] } ],
+        models: [
+            { skeleton: first, meshBindings: [] },
+            { skeleton: second, meshBindings: [] }
+        ]
+    }), /no unambiguous compatible skeleton/u);
+
+    assert.throws(() => convertGr2SkeletonsAndAnimations({
+        meshes: [ { boneBindings: [ { name: "missingBone" } ] } ],
+        models: [ { skeleton: first, meshBindings: [] } ]
+    }), /no compatible skeleton/u);
 });
 
 test("skips omitted GR2 model meshes and rejects invalid mesh bindings", () =>
