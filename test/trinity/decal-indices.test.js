@@ -5,6 +5,7 @@ import { mat4 } from "../../npm/dist/global/math/index.js";
 import {
   BuildDecalGeometry,
   DecalWorldBounds,
+  BuildStaticDecalGeometry,
   FindCachedDecalGeometry,
   SelectDecalTriangles
 } from "../../src/trinity/eve/attachment/decal/decalIndices.js";
@@ -159,4 +160,54 @@ test("a volume already built is reused rather than reselected", () =>
   assert.equal(FindCachedDecalGeometry([ entry ], other), null);
   assert.equal(FindCachedDecalGeometry([], inverse), null);
   assert.equal(FindCachedDecalGeometry(null, inverse), null);
+});
+
+test("the static path concatenates the SOF's own index lists", () =>
+{
+  // This is the path a ship takes. Carbon checks for these FIRST and only
+  // falls back to selection behind a global flag.
+  const mesh = { decl: DECL, lods: [ {}, {}, {} ] };
+  const buffers = [ [ 0, 1, 2 ], [ 3, 4, 5, 6, 7, 8 ], [ 9, 10, 11 ] ];
+
+  const built = BuildStaticDecalGeometry(mesh, buffers);
+
+  assert.deepEqual(built.lods, [
+    { startIndex: 0, primitiveCount: 1 },
+    { startIndex: 3, primitiveCount: 2 },
+    { startIndex: 9, primitiveCount: 1 }
+  ]);
+  assert.deepEqual([ ...built.indices ], [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ]);
+});
+
+test("a mesh with more LODs than precomputed lists stops rather than skipping", () =>
+{
+  // Carbon breaks here, and says why: precomputed decal LODs OMIT any LOD whose
+  // index buffer came out empty, so a missing entry marks the end of the set
+  // rather than a hole in it. Skipping would pair later LODs with the wrong
+  // lists.
+  const mesh = { decl: DECL, lods: [ {}, {}, {}, {} ] };
+
+  const built = BuildStaticDecalGeometry(mesh, [ [ 0, 1, 2 ], [ 3, 4, 5 ] ]);
+
+  assert.equal(built.lods.length, 2);
+});
+
+test("the static path indexes by original LOD index, not by position", () =>
+{
+  // LOD generation can drop parts of a model, so the two diverge. Using the
+  // position would pair a LOD with another LOD's triangles.
+  const mesh = { decl: DECL, lods: [ { originalLodIndex: 1 }, { originalLodIndex: 2 } ] };
+  const buffers = [ [ 90, 91, 92 ], [ 0, 1, 2 ], [ 3, 4, 5 ] ];
+
+  const built = BuildStaticDecalGeometry(mesh, buffers);
+
+  assert.deepEqual([ ...built.indices ], [ 0, 1, 2, 3, 4, 5 ]);
+});
+
+test("no static lists yields nothing rather than throwing", () =>
+{
+  const built = BuildStaticDecalGeometry({ decl: DECL, lods: [ {} ] }, null);
+
+  assert.deepEqual(built.lods, []);
+  assert.equal(built.indices.length, 0);
 });

@@ -22,7 +22,7 @@
 // always 32-bit. Carbon collects into a `vector<uint32_t>` and allocates stride
 // 4 even when the source mesh indexes at 16 bits, so a decal on a small mesh
 // still produces a wide buffer.
-import { mat4, tri3 } from "#math";
+import { mat4, tri3, vec3 } from "#math";
 
 
 /** Carbon's unit decal volume, before the decal matrix places it. */
@@ -39,6 +39,16 @@ const UNIT_MAX = Object.freeze([ 1, 1, 1 ]);
  * eight corners and takes their extent - not the box's own min and max through
  * the matrix, which would be wrong under rotation.
  *
+ * The corner transform goes through `vec3.transformMat4`, which IS Carbon's
+ * `TransformCoord` on the shared byte layout. Row-vector Carbon and
+ * column-vector gl-matrix agree for a single matrix and disagree for every
+ * composition, so the one place worth being explicit is which of the two this
+ * is. See the carbon-math-conventions skill.
+ *
+ * The `[-1, 1]` box is not arbitrary: it is the same box the decal's own
+ * projection uses, dotting the position with rows 1 and 2 of the inverse decal
+ * matrix. /docs/research/quad-family-blender-port.md carries the measurement.
+ *
  * @param {mat4} decalMatrix Places the unit volume in the hull's space.
  * @returns {{min: number[], max: number[]}} Axis-aligned world bounds.
  */
@@ -46,24 +56,23 @@ export function DecalWorldBounds(decalMatrix)
 {
     const min = [ Infinity, Infinity, Infinity ];
     const max = [ -Infinity, -Infinity, -Infinity ];
-    const corner = [ 0, 0, 0 ];
+    const corner = vec3.create();
 
     for (let index = 0; index < 8; index++)
     {
-        corner[0] = (index & 1) ? UNIT_MAX[0] : UNIT_MIN[0];
-        corner[1] = (index & 2) ? UNIT_MAX[1] : UNIT_MIN[1];
-        corner[2] = (index & 4) ? UNIT_MAX[2] : UNIT_MIN[2];
+        vec3.set(
+            corner,
+            (index & 1) ? UNIT_MAX[0] : UNIT_MIN[0],
+            (index & 2) ? UNIT_MAX[1] : UNIT_MIN[1],
+            (index & 4) ? UNIT_MAX[2] : UNIT_MIN[2]
+        );
+        vec3.transformMat4(corner, corner, decalMatrix);
 
-        const x = corner[0] * decalMatrix[0] + corner[1] * decalMatrix[4] + corner[2] * decalMatrix[8] + decalMatrix[12];
-        const y = corner[0] * decalMatrix[1] + corner[1] * decalMatrix[5] + corner[2] * decalMatrix[9] + decalMatrix[13];
-        const z = corner[0] * decalMatrix[2] + corner[1] * decalMatrix[6] + corner[2] * decalMatrix[10] + decalMatrix[14];
-
-        if (x < min[0]) min[0] = x;
-        if (y < min[1]) min[1] = y;
-        if (z < min[2]) min[2] = z;
-        if (x > max[0]) max[0] = x;
-        if (y > max[1]) max[1] = y;
-        if (z > max[2]) max[2] = z;
+        for (let axis = 0; axis < 3; axis++)
+        {
+            if (corner[axis] < min[axis]) min[axis] = corner[axis];
+            if (corner[axis] > max[axis]) max[axis] = corner[axis];
+        }
     }
 
     return { min, max };
@@ -226,4 +235,56 @@ export function FindCachedDecalGeometry(cached, inverseDecalMatrix)
     }
 
     return null;
+}
+
+/**
+ * Builds decal geometry from index lists the SOF already computed.
+ *
+ * THIS IS THE PATH A SHIP TAKES. Every decal on a shipped hull arrives with
+ * `staticIndexBuffers` populated - all eleven of af1_t1's do, five to seven
+ * groups each - and Carbon checks for them FIRST, falling back to triangle
+ * selection only behind the `g_buildDecalBuffers` global
+ * (`EveSpaceObjectDecal.cpp:196-207`). Selection is for a decal placed at
+ * runtime; this is for one that shipped.
+ *
+ * Two details are Carbon's and are easy to get wrong:
+ *
+ *   - The lists are indexed by the LOD's ORIGINAL index, not by its position in
+ *     the mesh's LOD list. LOD generation can drop parts of a model, so the two
+ *     diverge.
+ *   - An out-of-range original index STOPS the loop rather than skipping that
+ *     LOD. Carbon's own comment explains why: precomputed decal LODs omit any
+ *     LOD whose index buffer came out empty, so the absence marks the end of
+ *     the precomputed set rather than a hole in it.
+ *
+ * @param {object} mesh Decoded mesh carrying `lods`.
+ * @param {Array<Array<number>>} staticIndexBuffers Per-LOD index lists.
+ * @returns {{lods: Array<{startIndex: number, primitiveCount: number}>, indices: Uint32Array}}
+ */
+export function BuildStaticDecalGeometry(mesh, staticIndexBuffers)
+{
+    const buffers = staticIndexBuffers ?? [];
+    const lods = [];
+    const all = [];
+
+    let position = 0;
+
+    for (const lod of mesh?.lods ?? [])
+    {
+        // A decoded CMF payload carries its LODs as authored, so the position
+        // IS the original index unless something upstream says otherwise.
+        const originalIndex = lod?.originalLodIndex ?? position;
+
+        if (originalIndex >= buffers.length) break;
+
+        const buffer = buffers[originalIndex] ?? [];
+
+        lods.push({ startIndex: all.length, primitiveCount: Math.trunc(buffer.length / 3) });
+
+        for (const index of buffer) all.push(index);
+
+        position += 1;
+    }
+
+    return { lods, indices: new Uint32Array(all) };
 }
