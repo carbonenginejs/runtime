@@ -1256,12 +1256,15 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     if (this.mesh && this.#isMeshVisible)
     {
-      const geometryResource = this.mesh.GetGeometryResource?.();
+      // Not optional-chained: a mesh HAS a geometry resource accessor and a
+      // decal HAS GetRenderables. Guarding them turned a missing method into a
+      // decal that drew nothing and reported nothing.
+      const geometryResource = this.mesh.GetGeometryResource();
       if (geometryResource)
       {
         for (const decal of this.decals)
         {
-          decal?.GetRenderables?.(out, null, geometryResource, this.#meshScreenSize);
+          decal.GetRenderables(out, null, geometryResource, this.#meshScreenSize);
         }
       }
     }

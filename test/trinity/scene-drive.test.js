@@ -217,6 +217,14 @@ test("UpdateVisibility + GetRenderables cull real EveSpaceObject2s through a rea
       IsLoading()
       {
         return false;
+      },
+      GetGeometryResource()
+      {
+        return null;
+      },
+      UseWithScreenSize()
+      {
+        return true;
       }
     };
     object.SetBoundingSphereInformation(new Float32Array([0, 0, 0, 10]));

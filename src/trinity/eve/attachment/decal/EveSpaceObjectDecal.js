@@ -681,7 +681,7 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
       this.#baseGeometryResource = geometryResource;
     }
 
-    const mesh = geometryResource.GetMeshData?.(0) ?? null;
+    const mesh = geometryResource.GetMeshData(0);
 
     if (!this.#decalGeometry || (mesh && mesh.lodMask !== this.#decalGeometry.lodMask))
     {
@@ -692,7 +692,7 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
 
     this.#geometryLodIndex = this.#isGeometryFrozen
       ? 0
-      : (geometryResource.GetLodIndexForScreenSize?.(0, screenSize) ?? 0);
+      : geometryResource.GetLodIndexForScreenSize(0, screenSize);
 
     const lod = this.#decalGeometry.lods?.[this.#geometryLodIndex];
 
