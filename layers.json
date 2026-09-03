@@ -200,10 +200,11 @@
                 "global/utils"
             ],
             "why": [
-                "Acquisition and the realtime wire contract only. The demo suite left for",
-                "the separate carbonenginejs/demos repository on 2026-08-30, taking the",
-                "market, Show Info, Ship Tree, chat, diagram and demo-host families with",
-                "it, and per-object tooling was retired to trinity documentation.",
+                "Acquisition only. The demo suite left for the separate",
+                "carbonenginejs/demos repository on 2026-08-30, taking the market,",
+                "Show Info, Ship Tree, chat, diagram and demo-host families with it;",
+                "the realtime wire contract followed once the server lived there too,",
+                "and per-object tooling was retired to trinity documentation.",
                 "",
                 "mayImport is exhaustive, so narrowing it IS the enforcement. Anything",
                 "here that needs resource, trinity, or core is not a tool -- it is either",

@@ -16,26 +16,15 @@ catalogs.
 
 - [class catalog](reference/classes/fileindex.md)
 
-## Realtime wire contract
-
-`@carbonenginejs/runtime/tools/realtime/wire` is the v1 message contract:
-`CjsRealtimeProtocol`, `CjsRealtimeError` and the four protocol constants. It
-imports no transport, and a test asserts that importing it touches neither
-`WebSocket` nor `fetch`.
-
-It stays because realtime is a capability that cannot exist without a server,
-and its two implementations live in different packages. A conformance test
-drives both halves against one recorded transcript, which is what stops the
-format drifting.
-
-- [class catalog](reference/classes/realtime.md)
-
 ## What left
 
 The demo suite — market, Show Info, Ship Tree, chat, diagrams, the demo host and
 the EVE theme, together with the realtime client — moved to
 `@carbonenginejs/demos` on 2026-08-30. It was roughly 84 percent of this layer
-while none of it was a runtime dependency.
+while none of it was a runtime dependency. The realtime wire contract followed
+it there once the server also lived in that package: realtime is optional, not
+a runtime requirement, and both halves of the protocol are now owned and
+conformance-tested in one place.
 
 Per-object tooling was retired at the same time. Trinity owns the layout in
 `CjsPerObjectLayouts`; the reference knowledge that only existed in that

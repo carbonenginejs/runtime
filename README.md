@@ -13,10 +13,10 @@ The browser-facing input domain remains headless until a
 host is explicitly attached. The WebGPU engine is available only through its
 explicit engine subpath and remains inert unless a consumer imports it. The
 GPU-free composition core is also maintained here and exposes its browser
-platform snapshots through a focused subpath. The file index and the realtime
-wire contract are the only tooling kept here, behind the explicit `/tools`
+platform snapshots through a focused subpath. The file index is the only
+tooling kept here, behind the explicit `/tools`
 surface. `@carbonenginejs/tools-core` remains a separate Node.js package, and
-the demo suite moved to `@carbonenginejs/demos` on 2026-08-30.
+the demo suite and the realtime protocol moved to `@carbonenginejs/demos`.
 
 ## Install
 
@@ -60,8 +60,8 @@ WebGPU consumers use `@carbonenginejs/runtime/engine/webgpu`; the default
 runtime import does not acquire a GPU or load the engine.
 Composition consumers use `@carbonenginejs/runtime/core`; browser platform and
 adapter snapshots are also available through `/core/platform`.
-The file index and the realtime wire contract use
-`@carbonenginejs/runtime/tools` and its two focused subpaths; they remain absent
+The file index uses
+`@carbonenginejs/runtime/tools` and its focused subpath; it remains absent
 from the aggregate runtime export. The WebGPU engine likewise
 has no root re-export, and no WebGL placeholder is advertised before a
 maintained implementation exists.

@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
@@ -79,56 +78,21 @@ function withoutComments(source)
         .join("\n");
 }
 
-test("the wire-only subpath does not read WebSocket or Fetch while importing", () =>
-{
-    const probe = spawnSync(process.execPath, [
-        "--input-type=module",
-        "--eval",
-        `
-            for (const name of [ "WebSocket", "fetch" ])
-            {
-                Object.defineProperty(globalThis, name, {
-                    configurable: true,
-                    get()
-                    {
-                        throw new Error(\`Wire import touched \${name}\`);
-                    }
-                });
-            }
-
-            const wire = await import("@carbonenginejs/runtime/tools/realtime/wire");
-
-            if (wire.REALTIME_SUBPROTOCOL !== "carbon.tools.realtime.v1")
-            {
-                throw new Error("Unexpected realtime subprotocol");
-            }
-
-            if (typeof wire.CjsRealtimeProtocol.parseText !== "function")
-            {
-                throw new Error("Missing realtime protocol");
-            }
-        `
-    ], {
-        cwd: packageRoot,
-        encoding: "utf8"
-    });
-
-    assert.equal(probe.status, 0, probe.stderr || probe.stdout);
-});
-
 test("the combined manifest exposes focused tools without a tools-core dependency", async () =>
 {
     const manifest = JSON.parse(await fs.readFile(path.join(packageRoot, "package.json"), "utf8"));
 
     assert.equal(manifest.dependencies?.["@carbonenginejs/tools-core"], undefined);
     assert.equal(manifest.exports["./tools/fileindex"], "./src/tools/fileindex/index.js");
-    assert.equal(manifest.exports["./tools/realtime/wire"], "./src/tools/realtime/CjsRealtimeProtocol.js");
     assert.equal(Object.hasOwn(manifest, "sideEffects"), false);
 
-    // The demo suite left for carbonenginejs/demos on 2026-08-30. These
-    // subpaths are asserted absent rather than merely deleted, because a
-    // reintroduced one would be a demo creeping back into the runtime.
+    // The demo suite left for carbonenginejs/demos on 2026-08-30, and the
+    // realtime client wire followed it there. These subpaths are asserted
+    // absent rather than merely deleted, because a reintroduced one would be
+    // a demo creeping back into the runtime.
     for (const gone of [
+        "./tools/realtime",
+        "./tools/realtime/wire",
         "./tools/chat",
         "./tools/demo-apps",
         "./tools/demos",
@@ -153,9 +117,7 @@ test("the combined manifest exposes focused tools without a tools-core dependenc
 test("every JavaScript public subpath imports independently", async () =>
 {
     for (const name of [
-        "fileindex",
-        "realtime",
-        "realtime/wire"
+        "fileindex"
     ])
     {
         const module = await import(`@carbonenginejs/runtime/tools/${name}`);
@@ -168,11 +130,11 @@ test("every JavaScript public subpath imports independently", async () =>
 
     assert.ok(Object.keys(root).length > 0, "root");
 
-    // Tools stay off the aggregate surface, and the realtime CLIENT is gone
-    // entirely -- only the wire contract remains, because tools-core's server
-    // is conformance-tested against it.
+    // Tools stay off the aggregate surface, and realtime is gone entirely --
+    // both halves of that protocol live in carbonenginejs/demos now.
     assert.equal(aggregate.CjsFileIndex, undefined);
     assert.equal(aggregate.CjsRealtimeProtocol, undefined);
+    assert.equal(root.CjsRealtimeProtocol, undefined);
     assert.equal(root.CjsRealtimeClient, undefined);
     assert.equal(root.TnyMarketWindow, undefined);
     assert.equal(root.TnyShipTreeWindow, undefined);
