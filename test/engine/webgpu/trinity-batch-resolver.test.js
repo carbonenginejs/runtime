@@ -201,6 +201,31 @@ test("the declaration is translated before it is bound", async () =>
   assert.deepEqual(attributes.map(a => a.format), [ "float32x3", "float32x3", "float32x2" ]);
 });
 
+// Layout descriptors as the package emits them, copied in shape from a real
+// quadv5.sm_hi binding. The layout is what separates a texture from a buffer:
+// a structured buffer is declared through an SRV and so carries the same
+// "sampled-resource" kind that a texture does.
+const TEXTURE_2D = Object.freeze({
+  type: "texture_2d<f32>",
+  buffer: null,
+  texture: Object.freeze({ sampleType: "float", viewDimension: "2d", multisampled: false }),
+  sampler: null
+});
+
+const SAMPLER = Object.freeze({
+  type: "sampler",
+  buffer: null,
+  texture: null,
+  sampler: Object.freeze({ type: "filtering" })
+});
+
+const READ_ONLY_STORAGE = Object.freeze({
+  type: "array<vec4<f32>>",
+  buffer: Object.freeze({ type: "read-only-storage", hasDynamicOffset: false, minBindingSize: 16 }),
+  texture: null,
+  sampler: null
+});
+
 test("draw arguments are left to the batch, not derived a second time", async () =>
 {
   // Tr2MeshBase already resolved them from the LOD's areas; deriving them again
@@ -219,8 +244,8 @@ test("an effect binding a texture refuses to draw without a texture source", asy
   const resolver = resolverOver(new TestDevice(), {
     CreatePackage: packageDeclaring([ {
       name: "DiffuseMap",
-      bindingKind: "sampledTexture",
       resourceKind: "sampled-resource",
+      layout: TEXTURE_2D,
       registerSpace: 0,
       registerIndex: 3
     } ])
@@ -229,7 +254,7 @@ test("an effect binding a texture refuses to draw without a texture source", asy
 
   await assert.rejects(
     resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 }),
-    /no ResolveTexture was supplied/
+    /no source was supplied for a sampled-resource/
   );
 });
 
@@ -242,8 +267,8 @@ test("a supplied texture is bound at the identity the pipeline declares", async 
     ResolveTexture: () => texture,
     CreatePackage: packageDeclaring([ {
       name: "DiffuseMap",
-      bindingKind: "sampledTexture",
       resourceKind: "sampled-resource",
+      layout: TEXTURE_2D,
       registerSpace: 0,
       registerIndex: 3
     } ])
@@ -263,8 +288,8 @@ test("a declared scope identity is used verbatim", () =>
     ResolveTexture: () => ({ id: "t" }),
     CreatePackage: packageDeclaring([ {
       name: "DiffuseMap",
-      bindingKind: "sampledTexture",
       resourceKind: "sampled-resource",
+      layout: TEXTURE_2D,
       registerSpace: 0,
       registerIndex: 3,
       scopeIdentity: "sampled-resource:0:3@fragment"
@@ -274,6 +299,29 @@ test("a declared scope identity is used verbatim", () =>
 
   return resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 })
     .then(bindings => assert.ok(bindings.resources.has("sampled-resource:0:3@fragment")));
+});
+
+test("a sampler and a storage buffer are answered by their own sources", async () =>
+{
+  // All three arrive as bindings and only the layout tells them apart. Routing
+  // on resource kind alone hands a bone palette to whatever resolves texture
+  // paths, which is how this started.
+  const asked = [];
+  const resolver = resolverOver(new TestDevice(), {
+    ResolveTexture: name => { asked.push("texture:" + name); return { id: name }; },
+    ResolveSampler: name => { asked.push("sampler:" + name); return { id: name }; },
+    ResolveStorageBuffer: name => { asked.push("storage:" + name); return { id: name }; },
+    CreatePackage: packageDeclaring([
+      { name: "AlbedoMap", resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 3, layout: TEXTURE_2D },
+      { name: "BoneTransforms", resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 4, layout: READ_ONLY_STORAGE },
+      { name: "s0", resourceKind: "sampler", registerSpace: 0, registerIndex: 0, layout: SAMPLER }
+    ])
+  });
+  const batch = batchFor(materialWith([ reflectedPass() ]));
+
+  await resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 });
+
+  assert.deepEqual(asked, [ "texture:AlbedoMap", "storage:BoneTransforms", "sampler:s0" ]);
 });
 
 test("a material declaring no such pass says so rather than drawing", async () =>

@@ -317,21 +317,20 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    *
    * KIND ALONE DOES NOT SEPARATE A TEXTURE FROM A BUFFER. A structured buffer
    * such as a bone palette is declared through an SRV, so it arrives as a
-   * "sampled-resource" exactly like a texture does; only the declared type
-   * tells them apart. The bind-group layout draws the same line at the same
-   * place (carbonEffectBackendBlock.js:168-180), so both agree by construction.
+   * "sampled-resource" exactly like a texture does. The binding's LAYOUT is
+   * what tells them apart, and the package already computed it - it is the
+   * same descriptor the bind-group layout is created from, so reading it here
+   * cannot disagree with what the pipeline was built to accept.
    *
    * @param {object} binding Declared binding record.
    * @returns {Function|null} Source for this kind, or null when none was given.
    */
   #SourceFor(binding)
   {
-    if (binding.resourceKind === "sampler") return this.#resolveSampler;
+    const layout = binding.layout;
 
-    if (binding.resourceKind === "sampled-resource" && binding.type?.startsWith("texture_"))
-    {
-      return this.#resolveTexture;
-    }
+    if (layout?.sampler) return this.#resolveSampler;
+    if (layout?.texture) return this.#resolveTexture;
 
     return this.#resolveStorageBuffer;
   }
