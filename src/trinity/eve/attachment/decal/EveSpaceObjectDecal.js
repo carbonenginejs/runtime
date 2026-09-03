@@ -10,6 +10,7 @@ import { carbon, impl, io, type } from "#schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { BuildDecalGeometry, BuildStaticDecalGeometry } from "./decalIndices.js";
 
 
 /**
@@ -85,6 +86,18 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
   #inverseDecalMatrix = mat4.create();
 
   #priority = 0;
+
+  /** m_baseGeometryResource (TriGeometryResPtr) - the hull's, not the decal's. */
+  #baseGeometryResource = null;
+
+  /** m_geometryLodIndex (int) */
+  #geometryLodIndex = 0;
+
+  /** m_decalGeometry (std::shared_ptr<MeshDecalData>) */
+  #decalGeometry = null;
+
+  /** m_isGeometryFrozen (bool) - pins the decal to LOD 0. */
+  #isGeometryFrozen = false;
 
   /** m_parentData (EveSpaceObjectDecal.h:178) - copied by value from the
    * owning space object each frame; zeroed with an identity transform by
@@ -631,6 +644,102 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
     ps.Set("shLightingCoefficients", coefficients);
 
     return { vs, ps };
+  }
+
+  /**
+   * Adds this decal to the renderable list once its geometry is ready.
+   *
+   * Carbon EveSpaceObjectDecal::GetRenderables (cpp:182-225). EveSpaceObject2
+   * already calls this per decal with the hull's geometry resource and mesh
+   * screen size (cpp:1578-1591); ours does the same.
+   *
+   * The decal is a RENDERABLE, not a batch source the parent drains: it puts
+   * itself in the list and the renderer asks it for batches later, which is why
+   * everything expensive happens here and GetBatches only submits.
+   *
+   * @param {Array} out Renderable list.
+   * @param {object} _meshCache Carbon's DecalMeshCache, only used by the
+   *   selection path to avoid re-mapping hull buffers; unused here because a
+   *   decoded payload is already CPU-side.
+   * @param {object} geometryResource The hull's geometry.
+   * @param {number} screenSize The parent's mesh screen size, for LOD choice.
+   * @returns {boolean} Whether the decal was added.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Trinity selects the LOD and builds the index list; the engine owns the device index buffer, so validity is judged on the built list rather than on a GPU allocation.")
+  GetRenderables(out = [], _meshCache = null, geometryResource = null, screenSize = Infinity)
+  {
+    if (this.#isVisible <= 0 || !geometryResource) return false;
+
+    // A NEW MESH INVALIDATES THE BUILD. Carbon's comment calls this out as slow
+    // and to be avoided, which is why it is keyed on identity rather than
+    // rebuilt every frame.
+    if (geometryResource !== this.#baseGeometryResource)
+    {
+      this.#decalGeometry = null;
+      this.#baseGeometryResource = geometryResource;
+    }
+
+    const mesh = geometryResource.GetMeshData?.(0) ?? null;
+
+    if (!this.#decalGeometry || (mesh && mesh.lodMask !== this.#decalGeometry.lodMask))
+    {
+      this.#decalGeometry = this.#BuildGeometry(mesh);
+    }
+
+    if (!this.#decalGeometry) return false;
+
+    this.#geometryLodIndex = this.#isGeometryFrozen
+      ? 0
+      : (geometryResource.GetLodIndexForScreenSize?.(0, screenSize) ?? 0);
+
+    const lod = this.#decalGeometry.lods?.[this.#geometryLodIndex];
+
+    // A LOD the decal does not reach carries zero primitives, which is how
+    // Carbon says "not covered here" - hence testing the count, not the buffer.
+    if (!lod || !lod.primitiveCount) return false;
+
+    out.push(this);
+
+    return true;
+  }
+
+  /**
+   * Builds the decal's index list for the hull it is attached to.
+   *
+   * The static lists win when present, exactly as Carbon orders it: every decal
+   * on a shipped hull arrives with them, and triangle selection sits behind the
+   * g_buildDecalBuffers global for decals placed at runtime (cpp:196-207).
+   *
+   * @param {object} mesh Decoded mesh data.
+   * @returns {object|null} Built geometry, or null when there is nothing to draw.
+   */
+  #BuildGeometry(mesh)
+  {
+    if (!mesh) return null;
+
+    const built = this.HasStaticIndexBuffers()
+      ? BuildStaticDecalGeometry(mesh, this.staticIndexBuffers)
+      : BuildDecalGeometry(mesh, this.#decalMatrix, this.#inverseDecalMatrix);
+
+    if (!built.indices.length) return null;
+
+    return {
+      inverseDecalMatrix: mat4.clone(this.#inverseDecalMatrix),
+      lodMask: mesh.lodMask ?? 0,
+      lods: built.lods,
+      indices: built.indices
+    };
+  }
+
+  /** Carbon EveSpaceObjectDecal::SetHighDetailDecalState (cpp:514-517). */
+  @carbon.method
+  @impl.implemented
+  SetHighDetailDecalState(isFrozen)
+  {
+    this.#isGeometryFrozen = !!isFrozen;
+    return true;
   }
 
   /** Carbon EveSpaceObjectDecal::GetBatches (cpp:250-331) submits the packed

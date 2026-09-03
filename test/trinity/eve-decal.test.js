@@ -197,3 +197,147 @@ test("EveSpaceObjectDecal.UpdateVisibility leaves parent data stale on a cull (c
   assert.equal(displayData[0], 7, "stale parent data is retained across a cull");
   assert.equal(displayData[1], 0, "visibility is cleared");
 });
+
+
+/** A decal made visible the way UpdateVisibility does, with an effect bound. */
+function visibleDecal()
+{
+  const decal = new EveSpaceObjectDecal();
+
+  decal.decalEffect = {};
+  decal.Initialize();
+  assert.equal(decal.UpdateVisibility({}, new IEveSpaceObject2ParentData()), true);
+
+  return decal;
+}
+
+/** A hull geometry resource of the shape GetRenderables reads. */
+const hullOf = (lodMask = 1, lodCount = 1) => ({
+  GetMeshData: () => ({ lodMask, lods: Array.from({ length: lodCount }, () => ({})) }),
+  GetLodIndexForScreenSize: () => 0
+});
+
+test("EveSpaceObjectDecal.GetRenderables adds itself once its geometry is built (cpp:182-225)", () =>
+{
+  // The decal is a RENDERABLE: it puts itself in the list and is asked for
+  // batches later, which is why the build happens here.
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [ 0, 1, 2 ] ]);
+
+  const out = [];
+
+  assert.equal(decal.GetRenderables(out, null, hullOf(), 100), true);
+  assert.deepEqual(out, [ decal ]);
+});
+
+test("a culled decal contributes no renderable", () =>
+{
+  // UpdateVisibility was never accepted, so m_isVisible is still zero.
+  const decal = new EveSpaceObjectDecal();
+
+  decal.Initialize();
+  decal.SetIndices([ [ 0, 1, 2 ] ]);
+
+  const out = [];
+
+  assert.equal(decal.GetRenderables(out, null, hullOf(), 100), false);
+  assert.equal(out.length, 0);
+});
+
+test("no geometry resource yields no renderable rather than throwing", () =>
+{
+  // The ordinary first frame: the hull has not arrived.
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [ 0, 1, 2 ] ]);
+
+  assert.equal(decal.GetRenderables([], null, null, 100), false);
+});
+
+test("a decal whose LOD carries no triangles is not submitted", () =>
+{
+  // Carbon judges this on the primitive COUNT, not on the buffer, because a
+  // LOD the decal does not reach is recorded with a start index and zero
+  // primitives.
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [] ]);
+
+  assert.equal(decal.GetRenderables([], null, hullOf(), 100), false);
+});
+
+test("the static index lists are preferred over selecting triangles", () =>
+{
+  // Every decal on a shipped hull arrives with them, and Carbon checks for
+  // them first (cpp:196-207). Selection would need vertex positions, which
+  // this hull deliberately does not supply - so reaching it would throw or
+  // select nothing, and the decal drawing proves the static path ran.
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [ 5, 6, 7 ] ]);
+
+  assert.equal(decal.GetRenderables([], null, hullOf(), 100), true);
+});
+
+test("a new hull invalidates the built geometry rather than reusing it", () =>
+{
+  // Carbon's own comment calls the rebuild slow and to be avoided, which is why
+  // it keys on resource IDENTITY. Observed through the result rather than by
+  // counting GetMeshData calls: Carbon reads the mesh every frame to compare
+  // lod masks, so that call count says nothing about whether a build happened.
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [ 0, 1, 2 ] ]);
+
+  const good = hullOf();
+
+  assert.equal(decal.GetRenderables([], null, good, 100), true);
+  assert.equal(decal.GetRenderables([], null, good, 100), true, "the same hull keeps working");
+
+  // A hull with no mesh data at all. If the old build were kept, this would
+  // still report true.
+  const empty = { GetMeshData: () => null, GetLodIndexForScreenSize: () => 0 };
+
+  assert.equal(decal.GetRenderables([], null, empty, 100), false, "a new hull discards the old build");
+});
+
+test("a changed LOD mask rebuilds against the same hull", () =>
+{
+  // Carbon compares the mesh's lodMask with the built geometry's and rebuilds
+  // when they differ, because a LOD arriving late changes what exists.
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [ 0, 1, 2 ] ]);
+
+  let mask = 1;
+  const shifting = {
+    GetMeshData: () => ({ lodMask: mask, lods: mask === 1 ? [ {} ] : [] }),
+    GetLodIndexForScreenSize: () => 0
+  };
+
+  assert.equal(decal.GetRenderables([], null, shifting, 100), true);
+
+  mask = 2;
+
+  assert.equal(decal.GetRenderables([], null, shifting, 100), false, "the mask change forced a rebuild");
+});
+
+test("SetHighDetailDecalState pins the decal to LOD zero (cpp:514-517)", () =>
+{
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [ 0, 1, 2 ], [] ]);
+
+  // Unfrozen, the hull picks LOD 1, which carries no triangles.
+  const hull = {
+    GetMeshData: () => ({ lodMask: 1, lods: [ {}, {} ] }),
+    GetLodIndexForScreenSize: () => 1
+  };
+
+  assert.equal(decal.GetRenderables([], null, hull, 100), false);
+
+  decal.SetHighDetailDecalState(true);
+
+  assert.equal(decal.GetRenderables([], null, hull, 100), true, "frozen ignores the screen size");
+});
