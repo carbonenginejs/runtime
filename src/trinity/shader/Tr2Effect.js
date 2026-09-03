@@ -24,7 +24,6 @@ import { TriTextureParameter } from "./parameter/TriTextureParameter.js";
 import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
-import { CjsVariableStore } from "./CjsVariableStore.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 
 
@@ -155,29 +154,18 @@ export class Tr2Effect extends Tr2Material
   /**
    * An autoregistered name from whichever global store holds it.
    *
-   * There are two, which is a defect rather than a design: the render path
-   * registers into Tr2VariableStore's global (Tr2ShadowMap registers
-   * EveSpaceSceneShadowMap there) while effect binding searched only
-   * CjsVariableStore's. A name registered in one was invisible to the other,
-   * so an autoregistered scene texture could never resolve.
-   *
-   * Both are consulted until the two are merged into one store.
-   *
-   * ONLY ONE OF THEM ACTUALLY AUTOREGISTERS. Carbon's autoregistration IS
-   * Tr2VariableStore::GetVariable: a miss RESERVES the name with the INVALID
-   * type, and that reserved variable is the shared slot the scene fills later -
-   * which is how EveSpaceSceneShadowMap reaches an effect at all.
-   * CjsVariableStore.GetVariable carries the same name but returns null on a
-   * miss, so it reserves nothing and this path registered nothing.
+   * Carbon's autoregistration IS Tr2VariableStore::GetVariable: a miss
+   * RESERVES the name with the INVALID type, and that reserved variable is the
+   * shared slot the scene fills later - which is how EveSpaceSceneShadowMap
+   * reaches an effect at all. Tr2ShadowMap registers into this same global
+   * store, so a registration and a lookup now meet.
    *
    * @param {string} name Variable name.
    * @returns {object|null} The variable, reserved if it did not exist.
    */
   static #GlobalVariable(name)
   {
-    return CjsVariableStore.GetGlobalStore().GetVariable?.(name)
-      ?? Tr2VariableStore.GlobalStore().GetVariable?.(name)
-      ?? null;
+    return Tr2VariableStore.GlobalStore().GetVariable?.(name) ?? null;
   }
 
   /** The effect's store, falling back to the global store at call time. */
@@ -185,7 +173,7 @@ export class Tr2Effect extends Tr2Material
   @impl.implemented
   GetVariableStore()
   {
-    return this.variableStore ?? CjsVariableStore.GetGlobalStore();
+    return this.variableStore ?? Tr2VariableStore.GlobalStore();
   }
 
   /**

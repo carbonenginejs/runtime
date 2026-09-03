@@ -37,7 +37,6 @@ export * from "./parameter/TriVector4.js";
 export * from "./reflection/Tr2ShaderOption.js";
 export * from "./sampler/Tr2SamplerOverride.js";
 export * from "./sampler/Tr2SamplerOverrideData.js";
-export * from "./CjsVariableStore.js";
 export * from "./Tr2DataTextureManager.js";
 export * from "./Tr2EffectStateManager.js";
 export * from "./Tr2ShaderBuffer.js";

@@ -3,6 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsParameter } from "./CjsParameter.js";
+import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Forwards a named variable-store entry into a named effect constant or resource. */
 @type.define({ className: "TriVariableParameter", family: "shader" })
@@ -113,7 +114,9 @@ export class TriVariableParameter extends CjsParameter
       return;
     }
     const type = this.GetVariableType();
-    const isResource = type === "texture" || type === "textureRes" || type === "gpuBuffer" || type === 4 || type === 5;
+    const isResource = type === TriVariableContentType.TRIVARIABLE_TEXTURE_RES
+      || type === TriVariableContentType.TRIVARIABLE_GPUBUFFER
+      || type === "texture" || type === "textureRes" || type === "gpuBuffer";
     const used = isResource ? !!CjsParameter.getEffectResource(effectRes, this.name) : !!CjsParameter.getEffectConstant(effectRes, this.name);
     this.usedByCurrentEffect = used;
     this.usedByCurrentTechnique = used;

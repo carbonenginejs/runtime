@@ -247,6 +247,33 @@ export class Tr2VariableStore extends CjsModel
   static #creatingGlobalStore = false;
 
   /**
+   * Replaces the root of the store graph, returning the new root.
+   *
+   * Carbon has no such call - its global store is created once and lives for
+   * the process. This exists so a test can isolate itself from whatever the
+   * rest of the suite has registered, and so a host can reset between scenes.
+   * Nothing in a frame should call it.
+   *
+   * @param {Tr2VariableStore} [store] The new root; a fresh store when omitted.
+   * @returns {Tr2VariableStore} The store now acting as the root.
+   */
+  static SetGlobalStore(store = null)
+  {
+    if (store)
+    {
+      // The root keeps no parent, as Carbon enforces for the global store.
+      store.parentVariableStore = null;
+      Tr2VariableStore.#global = store;
+
+      return store;
+    }
+
+    Tr2VariableStore.#global = null;
+
+    return Tr2VariableStore.GlobalStore();
+  }
+
+  /**
    * The root of the variable-store graph (Carbon's GlobalStore()).
    */
   static GlobalStore()

@@ -196,7 +196,7 @@ export class CjsResMan extends CjsEventEmitter
   // resource during Initialize.
   //
   // Read at CALL time, never captured, exactly as the global variable store is
-  // (CjsVariableStore.GetGlobalStore) - an installer that swaps the manager has
+  // (Tr2VariableStore.GlobalStore) - an installer that swaps the manager has
   // to be seen by objects already built. Null is a real state: no manager
   // installed means a caller composing by hand, and the caller assigns
   // resources itself.

@@ -177,6 +177,44 @@ export class TriVariable extends CjsModel
   }
 
   /**
+   * Copies the value into an effect constant destination.
+   *
+   * Clamped to the destination length, the source length, and `size` BYTES at
+   * four bytes per float - `size` is a byte budget, not a component count. A
+   * scalar writes one component.
+   *
+   * Lives here because an effect binds a VARIABLE and then copies from it, so
+   * the variable has to be able to answer. It used to live only on a parallel
+   * store's own variable class, which is why binding could not use Carbon's.
+   *
+   * @param {*} _inputType Accepted and ignored, matching the parameter shape.
+   * @param {ArrayLike} destination Constant destination.
+   * @param {number} [size] Byte budget in the destination.
+   * @returns {boolean} Whether anything was written.
+   */
+  CopyValueToEffect(_inputType, destination, size = Number.POSITIVE_INFINITY)
+  {
+    if (!destination || typeof destination.length !== "number") return false;
+
+    const source = this.GetValue();
+
+    if (typeof source === "number")
+    {
+      destination[0] = source;
+      return true;
+    }
+
+    if (!source || typeof source.length !== "number") return false;
+
+    const byteLimit = Number.isFinite(size) ? Math.max(0, size) : Infinity;
+    const count = Math.min(destination.length, source.length, Math.floor(byteLimit / 4));
+
+    for (let i = 0; i < count; i++) destination[i] = source[i];
+
+    return count > 0;
+  }
+
+  /**
    * Carbon's display name for a content type; an unrecognised type falls back to
    * the INVALID label.
    */

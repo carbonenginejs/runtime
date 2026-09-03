@@ -1,6 +1,6 @@
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
-import { CjsVariableStore, Tr2Effect, Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectLibraryParameters, Tr2EffectParameterAnnotation, Tr2EffectPassParameters, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2FloatParameter, Tr2GeometryBufferParameter, Tr2Material, Tr2MaterialStageInput, Tr2Matrix4Parameter, Tr2Pass, Tr2RuntimeTextureParameter, Tr2SamplerOverride, Tr2SamplerSetup, Tr2Shader, Tr2ShaderBuffer, Tr2TextureAnimationParameter, Tr2Vector2Parameter, Tr2Vector3Parameter, Tr2Vector4Parameter, TriFloatArrayParameter, TriTextureParameter, TriTransformParameter, TriVariableParameter, TriVector4 } from "../../npm/dist/trinity/index.js";
+import { Tr2VariableStore, Tr2Effect, Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectLibraryParameters, Tr2EffectParameterAnnotation, Tr2EffectPassParameters, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2FloatParameter, Tr2GeometryBufferParameter, Tr2Material, Tr2MaterialStageInput, Tr2Matrix4Parameter, Tr2Pass, Tr2RuntimeTextureParameter, Tr2SamplerOverride, Tr2SamplerSetup, Tr2Shader, Tr2ShaderBuffer, Tr2TextureAnimationParameter, Tr2Vector2Parameter, Tr2Vector3Parameter, Tr2Vector4Parameter, TriFloatArrayParameter, TriTextureParameter, TriTransformParameter, TriVariableParameter, TriVector4 } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
@@ -446,13 +446,12 @@ test("promoted shader resource parameters stay graph-only", () =>
 });
 test("promoted variable, transform, and shader buffer classes expose graph behavior", () =>
 {
-  const previousStore = CjsVariableStore.GetGlobalStore();
-  const globalStore = CjsVariableStore.SetGlobalStore(new CjsVariableStore());
-  globalStore.SetVariable("EnvMapTransform", {
-    type: "texture",
-    GetType()
+  const previousStore = Tr2VariableStore.GlobalStore();
+  const globalStore = Tr2VariableStore.SetGlobalStore(new Tr2VariableStore());
+  globalStore.RegisterVariable("EnvMapTransform", {
+    GetTexture()
     {
-      return "texture";
+      return null;
     },
     CopyToResourceSet()
     {
@@ -462,16 +461,15 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
   const variable = new TriVariableParameter();
   variable.name = "Env";
   variable.variableName = "EnvMapTransform";
-  const explicitStore = new CjsVariableStore();
-  explicitStore.SetVariable("EnvMapTransform", {
-    type: "texture",
+  const explicitStore = new Tr2VariableStore();
+  explicitStore.RegisterVariable("EnvMapTransform", {
     GetVariable()
     {
-      throw new Error("stored variables should be returned directly");
+      throw new Error("a stored value must not be re-searched as a store");
     },
-    GetType()
+    GetTexture()
     {
-      return "texture";
+      return null;
     },
     CopyToResourceSet()
     {
@@ -516,7 +514,7 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
   effect.RebuildCachedDataInternal();
   assert(effect.parameters[0].variable);
   assert(effect.parameters[0].usedByCurrentEffect);
-  CjsVariableStore.SetGlobalStore(previousStore);
+  Tr2VariableStore.SetGlobalStore(previousStore);
   const transform = new TriTransformParameter();
   transform.translation = vec3.fromValues(1, 2, 3);
   const copied = new Float32Array(16);
