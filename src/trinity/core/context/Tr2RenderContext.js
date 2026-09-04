@@ -403,35 +403,63 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Pushes a render target onto the balance-guard stack for one slot, creating
-   * that slot's stack on first use; it records no intent, only SetRenderTarget
-   * does.
+   * Saves the target currently bound to a slot, and binds a new one if given.
+   *
+   * TWO CARBON CALLS IN ONE, AND THAT SPLIT MATTERS. Carbon's abstraction layer
+   * takes only a SLOT and saves whatever is bound there
+   * (`Tr2RenderContextDx11.cpp:2178-2188`). The two-argument form is the effect
+   * state manager's convenience, and it is push THEN set
+   * (`Tr2EffectStateManager.cpp:1048-1052`). This context carries the state
+   * manager's verbs, so it does both here and asks the backend only to push.
+   *
+   * This previously pushed the SUPPLIED target and bound nothing, which meant a
+   * render job that pushed a target went on drawing into the previous one -
+   * silently, and exactly where an offscreen pass would notice least.
    */
   PushRenderTarget(renderTarget = null, slot = 0)
   {
-    if (this.#al) return this.#al.PushRenderTarget(renderTarget, slot);
-
     const index = Number(slot) >>> 0;
-    let stack = this.#renderTargetStacks.get(index);
-    if (!stack)
+
+    if (this.#al)
     {
-      stack = [];
-      this.#renderTargetStacks.set(index, stack);
+      this.#al.PushRenderTarget(index);
     }
-    stack.push(renderTarget);
+    else
+    {
+      let stack = this.#renderTargetStacks.get(index);
+      if (!stack)
+      {
+        stack = [];
+        this.#renderTargetStacks.set(index, stack);
+      }
+      stack.push(this.#renderTargets.get(index) ?? null);
+    }
+
+    if (renderTarget != null) this.SetRenderTarget(index, renderTarget);
+
     return true;
   }
 
   /**
-   * Pops the top render target off one slot's stack, or null when that stack is
-   * empty.
+   * Restores the target saved for a slot, binding it again.
+   *
+   * Carbon's pop rebinds (`Tr2RenderContextDx11.cpp:2190-2206` ends in
+   * `SetRtDsToDevice`), so restoring without binding would leave the pushed
+   * target live for the rest of the frame.
+   *
+   * @returns {boolean} False when nothing was pushed for that slot.
    */
   PopRenderTarget(slot = 0)
   {
     if (this.#al) return this.#al.PopRenderTarget(slot);
 
     const stack = this.#renderTargetStacks.get(Number(slot) >>> 0);
-    return stack?.length ? stack.pop() : null;
+
+    if (!stack?.length) return false;
+
+    this.SetRenderTarget(slot, stack.pop());
+
+    return true;
   }
 
   /** Depth of one slot's render-target stack; zero for a slot never pushed to. */
@@ -441,23 +469,36 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Pushes a depth-stencil onto the balance-guard stack; it records no intent,
-   * only SetDepthStencil does.
+   * Saves the bound depth-stencil, and binds a new one if given.
+   *
+   * The same split as `PushRenderTarget`: Carbon's AL push takes no argument
+   * and saves what is bound, while the state manager's one-argument form is
+   * push then set (`Tr2EffectStateManager.cpp:1031-1036`).
    */
   PushDepthStencil(depthStencil = null)
   {
-    if (this.#al) return this.#al.PushDepthStencil(depthStencil);
+    if (this.#al) this.#al.PushDepthStencil();
+    else this.#depthStencilStack.push(this.#depthStencil);
 
-    this.#depthStencilStack.push(depthStencil);
+    if (depthStencil != null) this.SetDepthStencil(depthStencil);
+
     return true;
   }
 
-  /** Pops the top depth-stencil, or null when the stack is empty. */
+  /**
+   * Restores the saved depth-stencil, binding it again.
+   *
+   * @returns {boolean} False when nothing was pushed.
+   */
   PopDepthStencil()
   {
     if (this.#al) return this.#al.PopDepthStencil();
 
-    return this.#depthStencilStack.length ? this.#depthStencilStack.pop() : null;
+    if (!this.#depthStencilStack.length) return false;
+
+    this.SetDepthStencil(this.#depthStencilStack.pop());
+
+    return true;
   }
 
   /** Depth of the depth-stencil stack. */

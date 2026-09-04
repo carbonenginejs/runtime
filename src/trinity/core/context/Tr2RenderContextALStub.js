@@ -246,17 +246,26 @@ export class Tr2RenderContextALStub
   }
 
   /**
-   * Pushes the current target and binds a new one.
+   * Saves the target bound to a slot.
    *
-   * @param {object|null} renderTarget The target to bind.
+   * CARBON'S PUSH TAKES ONLY A SLOT (`Tr2RenderContextDx11.cpp:2178-2188`). It
+   * binds nothing: the "push this target" convenience belongs to the effect
+   * state manager, which pushes and then sets. Folding that into the backend
+   * here would put a Trinity-level verb in the abstraction layer.
+   *
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
-  PushRenderTarget(renderTarget = null, slot = 0)
+  PushRenderTarget(slot = 0)
   {
+    if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_RENDER_TARGET)
+    {
+      fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
+    }
+
     this.#renderTargetStack.push({ slot, renderTarget: this.#boundRenderTargets[slot] ?? null });
 
-    return this.SetRenderTarget(slot, renderTarget);
+    return true;
   }
 
   /**
@@ -305,16 +314,15 @@ export class Tr2RenderContextALStub
   }
 
   /**
-   * Pushes the current depth-stencil and binds a new one.
+   * Saves the bound depth-stencil. Binds nothing; see `PushRenderTarget`.
    *
-   * @param {object|null} depthStencil The surface to bind.
    * @returns {boolean} True.
    */
-  PushDepthStencil(depthStencil = null)
+  PushDepthStencil()
   {
     this.#depthStencilStack.push(this.#depthStencil);
 
-    return this.SetDepthStencil(depthStencil);
+    return true;
   }
 
   /** Restores the depth-stencil beneath the top of the stack. */

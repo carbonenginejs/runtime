@@ -47,7 +47,8 @@ test("the render target stack restores what it replaced", () =>
   const second = { id: "second" };
 
   al.SetRenderTarget(0, first);
-  al.PushRenderTarget(second, 0);
+  al.PushRenderTarget(0);
+  al.SetRenderTarget(0, second);
 
   assert.equal(al.GetRenderTarget(0), second);
   assert.equal(al.GetStackSizeRT(), 1);
@@ -64,7 +65,8 @@ test("the depth stencil stack behaves the same way", () =>
   const first = { id: "first" };
 
   al.SetDepthStencil(first);
-  al.PushDepthStencil({ id: "second" });
+  al.PushDepthStencil();
+  al.SetDepthStencil({ id: "second" });
 
   assert.equal(al.GetStackSizeDS(), 1);
 
@@ -136,7 +138,7 @@ test("Destroy clears the bindings and drops validity", () =>
   const al = ready();
 
   al.SetRenderTarget(0, { id: "colour" });
-  al.PushRenderTarget({ id: "other" }, 0);
+  al.PushRenderTarget(0);
   al.Destroy();
 
   assert.equal(al.IsValid(), false);
@@ -159,7 +161,12 @@ test("a context driven by the stub keeps real state and records no intents", () 
   context.SetRenderTarget(0, target);
   context.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
   context.Clear({ clearColor: true, color: [ 0, 0, 0, 1 ] });
-  context.PushRenderTarget({ id: "offscreen" }, 0);
+  const offscreen = { id: "offscreen" };
+
+  context.PushRenderTarget(offscreen, 0);
+
+  assert.equal(al.GetRenderTarget(0), offscreen, "a pushed target is BOUND, not just saved");
+
   context.PopRenderTarget(0);
 
   assert.equal(al.GetRenderTarget(0), target, "the backend holds the state");
@@ -272,4 +279,60 @@ test("capabilities are reached through the context, and only with a backend", ()
   assert.equal(caps, al.GetCaps(), "the context owns one caps object, as Carbon's does");
   assert.equal(caps.SupportsRaytracing(), false);
   assert.equal(caps.SupportsVertexShaderTextures(), true, "not everything is a no");
+});
+
+test("pushing a target BINDS it, and popping restores the one beneath", () =>
+{
+  // THE DEFECT THIS REPLACES. Push used to save the SUPPLIED target and bind
+  // nothing, so a render job that pushed an offscreen target went on drawing
+  // into the previous one. Carbon's state manager pushes then sets
+  // (Tr2EffectStateManager.cpp:1048-1052), and its pop rebinds.
+  const context = new Tr2RenderContext();
+  const main = { id: "main" };
+  const offscreen = { id: "offscreen" };
+
+  context.SetRenderTarget(0, main);
+  context.PushRenderTarget(offscreen, 0);
+
+  assert.equal(context.GetRenderTarget(0), offscreen);
+  assert.equal(context.GetStackSizeRT(), 1);
+
+  assert.equal(context.PopRenderTarget(0), true);
+  assert.equal(context.GetRenderTarget(0), main, "the target beneath is bound again");
+  assert.equal(context.GetStackSizeRT(), 0);
+  assert.equal(context.PopRenderTarget(0), false, "an empty stack says so");
+});
+
+test("pushing with no target saves the bound one and changes nothing", () =>
+{
+  // Carbon's one-argument state-manager form, and the batch bracket's own use:
+  // CjsDirectTrinityStepExecutor.BeginBatch pushes null purely as a guard.
+  const context = new Tr2RenderContext();
+  const main = { id: "main" };
+
+  context.SetRenderTarget(0, main);
+  context.PushRenderTarget(null, 0);
+
+  assert.equal(context.GetRenderTarget(0), main);
+  assert.equal(context.GetStackSizeRT(), 1);
+
+  context.PopRenderTarget(0);
+
+  assert.equal(context.GetRenderTarget(0), main);
+});
+
+test("the depth stencil pushes and pops the same way", () =>
+{
+  const context = new Tr2RenderContext();
+  const main = { id: "main" };
+  const shadow = { id: "shadow" };
+
+  context.SetDepthStencil(main);
+  context.PushDepthStencil(shadow);
+
+  assert.equal(context.GetDepthStencil(), shadow);
+
+  assert.equal(context.PopDepthStencil(), true);
+  assert.equal(context.GetDepthStencil(), main);
+  assert.equal(context.PopDepthStencil(), false);
 });
