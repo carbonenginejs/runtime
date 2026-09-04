@@ -26,7 +26,8 @@ import {
 // 64 bytes, 16 four-byte lanes per instance.
 export const CHILD_BOOSTER_INSTANCE_STRIDE = 16;
 
-// Tr2RingBufferOffsets::INVALID_OFFSET (Tr2RingBuffer.h:95).
+// Tr2RingBufferOffsets::INVALID_OFFSET (Tr2RingBuffer.h:95); moves onto
+// the Tr2RingBufferOffsets class as its owner once the AL lane ships it.
 export const INVALID_RING_OFFSET = 0xffffffff;
 
 const SPHERE_SCRATCH = vec4.create();
@@ -192,12 +193,15 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
 
   #instanceCount = 0;
 
-  // The AL ring buffer, when the engine installs one; null keeps the
-  // frame offset INVALID and the set undrawn, exactly as Carbon's invalid
-  // ring offset does.
+  // The AL ring buffer (Carbon's Tr2RingBuffer singleton) and this set's
+  // per-consumer cursor (Carbon m_ringBufferOffsets, a Tr2RingBufferOffsets
+  // value member, EveChildBoosterSet.h:229). Until the AL lane ships the
+  // real classes the engine installs both; a null pair keeps the frame
+  // offset INVALID and the set undrawn, exactly as Carbon's invalid ring
+  // offset does.
   #ringBuffer = null;
 
-  #instanceOffset = INVALID_RING_OFFSET;
+  #ringBufferOffsets = null;
 
   #parentTransform = mat4.create();
 
@@ -261,18 +265,29 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
   }
 
   /**
-   * Installs the AL ring-buffer offsets object this set uploads its
-   * instance rows through. The contract is NOMINAL, not duck-typed: an
-   * installed object MUST provide Carbon's Tr2RingBufferOffsets surface -
-   * AdvanceFrame() and UploadTransforms(data, count) returning the frame
-   * offset (Tr2RingBuffer.h:84-99; both names are Carbon's own). Only the
-   * OBJECT is nullable - null means no AL backend, Carbon's invalid-offset
-   * undrawn state.
+   * Installs the AL ring buffer and this set's per-consumer offsets cursor.
+   * Both contracts are NOMINAL, not duck-typed: the offsets object MUST
+   * provide Carbon's Tr2RingBufferOffsets surface - AdvanceFrame(),
+   * UploadTransforms(ringBuffer, data, count) returning void, and
+   * GetCurrentFrameOffset()/GetPreviousFrameOffset() (Tr2RingBuffer.h:
+   * 84-99; all Carbon's own names). Only the OBJECTS are nullable - null
+   * means no AL backend, Carbon's invalid-offset undrawn state. Once the
+   * AL lane ships Tr2RingBufferOffsets as a runtime class, this set will
+   * construct its own cursor by value as Carbon does and this method will
+   * take only the ring.
    */
-  SetRingBuffer(ringBuffer)
+  SetRingBuffer(ringBuffer, ringBufferOffsets = null)
   {
     this.#ringBuffer = ringBuffer ?? null;
-    if (!this.#ringBuffer) this.#instanceOffset = INVALID_RING_OFFSET;
+    this.#ringBufferOffsets = this.#ringBuffer ? (ringBufferOffsets ?? null) : null;
+  }
+
+  /** The current ring frame offset, INVALID without an AL backend. */
+  #CurrentFrameOffset()
+  {
+    return this.#ringBufferOffsets
+      ? this.#ringBufferOffsets.GetCurrentFrameOffset()
+      : INVALID_RING_OFFSET;
   }
 
   /** The packed instance rows and lane count for the AL upload. */
@@ -296,11 +311,11 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
   @impl.reason("Ring-buffer AdvanceFrame/UploadTransforms are the AL backend's; the CPU packs the rows and the offset stays INVALID (Carbon's own no-draw state) until a ring buffer is installed.")
   UpdateAsyncronous(_updateContext = null, params = null)
   {
-    // Carbon cpp:103; the installed offsets object owns both methods -
-    // nullability is state, method existence is contract.
-    if (this.#ringBuffer)
+    // Carbon cpp:103; the offsets cursor owns its methods - nullability is
+    // state, method existence is contract.
+    if (this.#ringBufferOffsets)
     {
-      this.#ringBuffer.AdvanceFrame();
+      this.#ringBufferOffsets.AdvanceFrame();
     }
 
     if (params?.isVisible)
@@ -336,11 +351,12 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
       }
       this.#instanceCount = this.#singleBoosters.length;
 
-      if (this.#ringBuffer)
+      if (this.#ringBuffer && this.#ringBufferOffsets)
       {
-        const offset = this.#ringBuffer.UploadTransforms(
-          this.GetInstanceBufferData().data, this.#instanceCount);
-        this.#instanceOffset = Number.isInteger(offset) ? offset : INVALID_RING_OFFSET;
+        // Carbon cpp:118: offsets.UploadTransforms(ring, data, count) is
+        // void; the frame offset is read back from the cursor.
+        this.#ringBufferOffsets.UploadTransforms(
+          this.#ringBuffer, this.GetInstanceBufferData().data, this.#instanceCount);
       }
     }
 
@@ -371,7 +387,6 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
     this.#boosterBoundingSphereInitialized = false;
     vec4.set(this.#boosterBoundingSphere, 0, 0, 0, 0);
     this.#instanceCount = 0;
-    this.#instanceOffset = INVALID_RING_OFFSET;
   }
 
   /**
@@ -660,7 +675,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
     if (!this.display) return;
-    if (this.#instanceOffset === INVALID_RING_OFFSET) return;
+    if (this.#CurrentFrameOffset() === INVALID_RING_OFFSET) return;
     if (!this.#singleBoosters.length) return;
     if (!this.#boostersVisible) return;
 
@@ -687,7 +702,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
     const ps = accumulator.Alloc("EveChildBoosterSetPSData");
     vs.SetAndTranspose("worldMatrix", this.#parentTransform);
     vs.Set("maxBoosterSize", this.maxSize);
-    vs.Set("instanceOffset", this.#instanceOffset);
+    vs.Set("instanceOffset", this.#CurrentFrameOffset());
     ps.Set("warpIntensity", this.warpIntensity);
     return { vs, ps };
   }

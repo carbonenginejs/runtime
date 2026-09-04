@@ -84,7 +84,15 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
 
   // With a ring buffer the offset lands in the per-object data and the
   // additive batch draws 36 indices per instance.
-  set.SetRingBuffer({ AdvanceFrame() {}, UploadTransforms: () => 7 });
+  const ring = { name: 'ring' };
+  const offsets = {
+    frameOffset: 0xffffffff,
+    AdvanceFrame() {},
+    UploadTransforms(target, _data, _count) { assert.equal(target, ring); this.frameOffset = 7; },
+    GetCurrentFrameOffset() { return this.frameOffset; },
+    GetPreviousFrameOffset() { return 0xffffffff; }
+  };
+  set.SetRingBuffer(ring, offsets);
   set.effect = { name: "booster-effect" };
   set.UpdateAsyncronous(null, updateParams());
   set.UpdateVisibility({
@@ -112,7 +120,7 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
   assertNear(records.vs.Get("maxBoosterSize")[0], 2);
   assertNear(records.ps.Get("warpIntensity")[0], 0);
 
-  // Clearing the ring buffer returns the set to the undrawable state.
+  // Clearing the ring pair returns the set to the undrawable state.
   set.SetRingBuffer(null);
   set.GetPerObjectData({ Alloc: name => store.Alloc(name) });
   assert.equal(set.GetInstanceBufferData().count, 1);
