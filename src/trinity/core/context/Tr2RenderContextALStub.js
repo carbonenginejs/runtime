@@ -28,6 +28,10 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2TextureALStub } from "../al/index.js";
+import { PixelFormat, Tr2GpuUsage } from "../../../global/consts/renderContext/index.js";
+
+
 function fail(message)
 {
   const error = new Error(`Tr2RenderContextALStub: ${message}`);
@@ -69,18 +73,109 @@ export class Tr2RenderContextALStub
   /** Every draw the context was asked for, so a headless caller can assert. */
   #drawCount = 0;
 
+  /** m_defaultBackBuffer - a real texture, so size and format read back. */
+  #defaultBackBuffer = new Tr2TextureALStub();
+
   /**
    * Brings the context up. Carbon's `CreateDevice` sets validity and installs
-   * the present parameters (`Tr2RenderContextStub.cpp:216-227`); every resource
+   * the present parameters (`Tr2RenderContextStub.cpp:230-243`); every resource
    * `Create` then refuses unless `IsValid()`.
    *
-   * @param {object} [presentParameters] Back buffer description.
+   * THE ORDER MATTERS AND IS CARBON'S. Validity is set BEFORE the present
+   * parameters, because creating the back buffer is a resource create and so
+   * asks this same context whether it is valid yet.
+   *
+   * @param {object} [presentParameters] Present parameters, as the AL shapes
+   * them: `{ mode: { width, height } }`.
    * @returns {boolean} True once valid.
    */
   CreateDevice(presentParameters = null)
   {
     this.#isValid = true;
-    this.#viewport = presentParameters?.viewport ?? null;
+
+    if (presentParameters) this.SetPresentParameters(presentParameters);
+
+    return true;
+  }
+
+  /**
+   * Creates the default back buffer and binds it to slot zero.
+   *
+   * Carbon's back buffer is `B8G8R8A8_UNORM` with one mip
+   * (`Tr2RenderContextStub.cpp:249-260`), and the create is checked: a mode
+   * with no size produces no back buffer rather than a zero-sized one.
+   *
+   * @param {object} presentParameters `{ mode: { width, height } }`.
+   * @returns {number} An `ALResult` value.
+   */
+  SetPresentParameters(presentParameters)
+  {
+    const { mode } = presentParameters;
+
+    const result = this.#defaultBackBuffer.Create(
+      Tr2BitmapDimensions.Texture2D(mode.width, mode.height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+      { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
+      this
+    );
+
+    if (Failed(result)) return result;
+
+    this.SetRenderTarget(0, this.#defaultBackBuffer);
+
+    return ALResult.S_OK;
+  }
+
+  /**
+   * The default back buffer.
+   *
+   * @returns {Tr2TextureALStub} The back buffer, created or not.
+   */
+  GetBackBuffer()
+  {
+    return this.#defaultBackBuffer;
+  }
+
+  /**
+   * The back buffer's pixel format.
+   *
+   * @returns {number} A `PixelFormat` value.
+   */
+  GetBackBufferFormat()
+  {
+    return this.#defaultBackBuffer.GetFormat();
+  }
+
+  /**
+   * The size of a bound render target.
+   *
+   * Carbon separates the two failures deliberately: a slot past the end of the
+   * array is `E_FAIL`, while an empty slot is `E_INVALIDCALL` - the caller
+   * asked a reasonable question about a target that is not there.
+   *
+   * @param {number} [slot] Target slot.
+   * @returns {{result: number, width: number, height: number}} The size.
+   */
+  GetRenderTargetSize(slot = 0)
+  {
+    if (slot >= MAX_RENDER_TARGET) return { result: ALResult.E_FAIL, width: 0, height: 0 };
+
+    const target = this.#boundRenderTargets[slot];
+
+    if (!target || !target.IsValid()) return { result: ALResult.E_INVALIDCALL, width: 0, height: 0 };
+
+    return { result: ALResult.S_OK, width: target.GetWidth(), height: target.GetHeight() };
+  }
+
+  /**
+   * Releases every bound target and the back buffer, as a device loss does.
+   *
+   * @returns {boolean} True.
+   */
+  ReleaseDeviceResources()
+  {
+    this.#boundRenderTargets.fill(null);
+    this.#defaultBackBuffer.Destroy();
+    this.#defaultBackBuffer = new Tr2TextureALStub();
 
     return true;
   }

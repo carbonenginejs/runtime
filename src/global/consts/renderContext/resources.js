@@ -24,3 +24,65 @@ export const Tr2GpuUsage = Object.freeze({
     ACCELERATION_STRUCTURE: 256,
     SHARED: 512
 });
+
+
+// Carbon declares these inside the same namespaces as the flags they test
+// (`Tr2RenderContextEnum.h:455-514`), so they belong beside them here.
+
+/**
+ * Whether every bit of `flag` is set in `value`.
+ *
+ * Carbon's test is `( value & flag ) == flag`, NOT a non-zero check: the
+ * composite flags matter. `READ_OFTEN` is `READ | 4`, so a resource marked
+ * merely `READ` must not answer true to `READ_OFTEN`.
+ *
+ * @param {number} value A usage bit set.
+ * @param {number} flag The flag to test for.
+ * @returns {boolean} True when fully set.
+ */
+export function HasFlag(value, flag)
+{
+    return (value & flag) === flag;
+}
+
+/**
+ * Whether the GPU may write this resource.
+ *
+ * @param {number} value A `Tr2GpuUsage` bit set.
+ * @returns {boolean} True for render target, depth stencil, UAV or copy target.
+ */
+export function IsWritable(value)
+{
+    const writable = Tr2GpuUsage.RENDER_TARGET |
+        Tr2GpuUsage.DEPTH_STENCIL |
+        Tr2GpuUsage.UNORDERED_ACCESS |
+        Tr2GpuUsage.COPY_DESTINATION;
+
+    return (value & writable) !== 0;
+}
+
+/**
+ * Whether the usage names a buffer rather than a texture.
+ *
+ * @param {number} value A `Tr2GpuUsage` bit set.
+ * @returns {boolean} True for vertex, index or indirect-argument buffers.
+ */
+export function HasBufferFlags(value)
+{
+    const buffers = Tr2GpuUsage.VERTEX_BUFFER |
+        Tr2GpuUsage.INDEX_BUFFER |
+        Tr2GpuUsage.DRAW_INDIRECT_ARGS;
+
+    return (value & buffers) !== 0;
+}
+
+/**
+ * Whether the usage names a render target or depth stencil.
+ *
+ * @param {number} value A `Tr2GpuUsage` bit set.
+ * @returns {boolean} True for either.
+ */
+export function HasTextureFlags(value)
+{
+    return (value & (Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.DEPTH_STENCIL)) !== 0;
+}

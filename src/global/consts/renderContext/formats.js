@@ -143,3 +143,181 @@ export const TextureType = Object.freeze({
     TEX_TYPE_RAYTRACING_ACCELERATION_STRUCTURE: 16,
     TEX_TYPE_INVALID: 17
 });
+
+
+// Carbon keeps the three functions below in the same header as the enum they
+// switch over (`imageio/include/PixelFormat.h:119-295`), so they live here too.
+// They are tables, not policy: every value is transcribed, including the ones
+// that look wrong.
+
+const COMPRESSED_FORMATS = new Set([
+    PixelFormat.PIXEL_FORMAT_BC1_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC1_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB,
+    PixelFormat.PIXEL_FORMAT_BC2_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC2_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC2_UNORM_SRGB,
+    PixelFormat.PIXEL_FORMAT_BC3_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC3_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC3_UNORM_SRGB,
+    PixelFormat.PIXEL_FORMAT_BC4_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC4_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC4_SNORM,
+    PixelFormat.PIXEL_FORMAT_BC5_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC5_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC5_SNORM,
+    PixelFormat.PIXEL_FORMAT_BC6H_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC6H_UF16,
+    PixelFormat.PIXEL_FORMAT_BC6H_SF16,
+    PixelFormat.PIXEL_FORMAT_BC7_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC7_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC7_UNORM_SRGB
+]);
+
+/** Eight-byte block formats; every other compressed format is sixteen. */
+const EIGHT_BYTE_BLOCK_FORMATS = new Set([
+    PixelFormat.PIXEL_FORMAT_BC1_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC1_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB,
+    PixelFormat.PIXEL_FORMAT_BC4_TYPELESS,
+    PixelFormat.PIXEL_FORMAT_BC4_UNORM,
+    PixelFormat.PIXEL_FORMAT_BC4_SNORM
+]);
+
+/**
+ * Whether a format stores blocks rather than pixels.
+ *
+ * @param {number} format A `PixelFormat` value.
+ * @returns {boolean} True for the BC family.
+ */
+export function IsCompressedFormat(format)
+{
+    return COMPRESSED_FORMATS.has(format);
+}
+
+/**
+ * Bytes in one compressed block, or 0 when the format is not a block image.
+ *
+ * @param {number} format A `PixelFormat` value.
+ * @returns {number} Block size in bytes.
+ */
+export function GetBlockByteSize(format)
+{
+    if (!COMPRESSED_FORMATS.has(format)) return 0;
+
+    return EIGHT_BYTE_BLOCK_FORMATS.has(format) ? 8 : 16;
+}
+
+// CARBON'S TABLE, INCLUDING THE THREE-CHANNEL ENTRY. The R32G32B32 formats are
+// listed with the four-channel ones and so report 16 bytes rather than 12
+// (`PixelFormat.h:203-215`). That is deliberate transcription, not an oversight:
+// changing it here would make our mip pitch disagree with the engine we mirror.
+const BYTES_PER_PIXEL = new Map([
+    [ 16, [
+        PixelFormat.PIXEL_FORMAT_R32G32B32A32_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT,
+        PixelFormat.PIXEL_FORMAT_R32G32B32A32_SINT,
+        PixelFormat.PIXEL_FORMAT_R32G32B32_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R32G32B32_UINT,
+        PixelFormat.PIXEL_FORMAT_R32G32B32_SINT
+    ] ],
+    [ 8, [
+        PixelFormat.PIXEL_FORMAT_R16G16B16A16_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM,
+        PixelFormat.PIXEL_FORMAT_R16G16B16A16_UINT,
+        PixelFormat.PIXEL_FORMAT_R16G16B16A16_SNORM,
+        PixelFormat.PIXEL_FORMAT_R16G16B16A16_SINT,
+        PixelFormat.PIXEL_FORMAT_R32G32_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R32G32_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R32G32_UINT,
+        PixelFormat.PIXEL_FORMAT_R32G32_SINT,
+        PixelFormat.PIXEL_FORMAT_R32G8X24_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_D32_FLOAT_S8X24_UINT,
+        PixelFormat.PIXEL_FORMAT_R32_FLOAT_X8X24_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_X32_TYPELESS_G8X24_UINT
+    ] ],
+    [ 4, [
+        PixelFormat.PIXEL_FORMAT_R10G10B10A2_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R10G10B10A2_UNORM,
+        PixelFormat.PIXEL_FORMAT_R10G10B10A2_UINT,
+        PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R8G8B8A8_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+        PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB,
+        PixelFormat.PIXEL_FORMAT_R8G8B8A8_UINT,
+        PixelFormat.PIXEL_FORMAT_R8G8B8A8_SNORM,
+        PixelFormat.PIXEL_FORMAT_R8G8B8A8_SINT,
+        PixelFormat.PIXEL_FORMAT_R16G16_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R16G16_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R16G16_UNORM,
+        PixelFormat.PIXEL_FORMAT_R16G16_UINT,
+        PixelFormat.PIXEL_FORMAT_R16G16_SNORM,
+        PixelFormat.PIXEL_FORMAT_R16G16_SINT,
+        PixelFormat.PIXEL_FORMAT_R32_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_D32_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R32_FLOAT,
+        PixelFormat.PIXEL_FORMAT_R32_UINT,
+        PixelFormat.PIXEL_FORMAT_R32_SINT,
+        PixelFormat.PIXEL_FORMAT_R24G8_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT,
+        PixelFormat.PIXEL_FORMAT_R24_UNORM_X8_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_X24_TYPELESS_G8_UINT,
+        PixelFormat.PIXEL_FORMAT_R9G9B9E5_SHAREDEXP,
+        PixelFormat.PIXEL_FORMAT_R8G8_B8G8_UNORM,
+        PixelFormat.PIXEL_FORMAT_G8R8_G8B8_UNORM,
+        PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM,
+        PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM,
+        PixelFormat.PIXEL_FORMAT_R10G10B10_XR_BIAS_A2_UNORM,
+        PixelFormat.PIXEL_FORMAT_B8G8R8A8_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM_SRGB,
+        PixelFormat.PIXEL_FORMAT_B8G8R8X8_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM_SRGB
+    ] ],
+    [ 2, [
+        PixelFormat.PIXEL_FORMAT_R8G8_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R8G8_UNORM,
+        PixelFormat.PIXEL_FORMAT_R8G8_UINT,
+        PixelFormat.PIXEL_FORMAT_R8G8_SNORM,
+        PixelFormat.PIXEL_FORMAT_R8G8_SINT,
+        PixelFormat.PIXEL_FORMAT_R16_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R16_FLOAT,
+        PixelFormat.PIXEL_FORMAT_D16_UNORM,
+        PixelFormat.PIXEL_FORMAT_R16_UNORM,
+        PixelFormat.PIXEL_FORMAT_R16_UINT,
+        PixelFormat.PIXEL_FORMAT_R16_SNORM,
+        PixelFormat.PIXEL_FORMAT_R16_SINT,
+        PixelFormat.PIXEL_FORMAT_B5G6R5_UNORM,
+        PixelFormat.PIXEL_FORMAT_B5G5R5A1_UNORM
+    ] ],
+    [ 1, [
+        PixelFormat.PIXEL_FORMAT_R8_TYPELESS,
+        PixelFormat.PIXEL_FORMAT_R8_UNORM,
+        PixelFormat.PIXEL_FORMAT_R8_UINT,
+        PixelFormat.PIXEL_FORMAT_R8_SNORM,
+        PixelFormat.PIXEL_FORMAT_R8_SINT,
+        PixelFormat.PIXEL_FORMAT_A8_UNORM
+    ] ]
+]);
+
+const BYTES_BY_FORMAT = new Map();
+
+for (const [ bytes, formats ] of BYTES_PER_PIXEL)
+{
+    for (const format of formats) BYTES_BY_FORMAT.set(format, bytes);
+}
+
+/**
+ * Bytes in one pixel, or 0 for a compressed or unknown format.
+ *
+ * @param {number} format A `PixelFormat` value.
+ * @returns {number} Size in bytes.
+ */
+export function GetBytesPerPixel(format)
+{
+    const bytes = BYTES_BY_FORMAT.get(format);
+
+    return bytes === undefined ? 0 : bytes;
+}
