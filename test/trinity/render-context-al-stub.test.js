@@ -177,3 +177,78 @@ test("with no backend the context still records, so nothing broke on the way", (
 
   assert.ok(context.GetIntents().length > 0);
 });
+
+test("with a backend installed the context's getters report the backend", () =>
+{
+  // THE SPLIT CARBON DOES NOT HAVE. Carbon's Tr2RenderContext IS the base plus
+  // the AL, so there is one piece of state. Ours composes them, and a getter
+  // answering from the recording path while the backend holds the real binding
+  // would name a target nothing is drawing to.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 800, height: 600 } });
+  context.SetRenderContextAL(al);
+
+  const target = { id: "colour" };
+  const depth = { id: "depth" };
+
+  context.SetRenderTarget(1, target);
+  context.SetDepthStencil(depth);
+  context.SetViewport({ x: 0, y: 0, width: 32, height: 32 });
+
+  assert.equal(context.GetRenderTarget(1), target);
+  assert.equal(context.GetDepthStencil(), depth);
+  assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 32, height: 32 });
+});
+
+test("a full-screen viewport resolves through the backend rather than deferring", () =>
+{
+  // With a backend there is nothing to defer - it knows the bound target's
+  // extent - so "full screen" becomes an ordinary viewport here.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 1280, height: 720 } });
+  context.SetRenderContextAL(al);
+
+  assert.equal(context.SetFullScreenViewport(), true);
+  assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 1280, height: 720 });
+});
+
+test("a full-screen viewport with nothing bound fails rather than guessing", () =>
+{
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  assert.equal(context.SetFullScreenViewport(), false);
+});
+
+test("the viewport stack restores through the backend", () =>
+{
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  context.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
+  context.PushViewport();
+  context.SetViewport({ x: 0, y: 0, width: 16, height: 16 });
+
+  assert.equal(context.PopViewport(), true);
+  assert.deepEqual(al.GetViewport(), { x: 0, y: 0, width: 64, height: 64 });
+  assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 64, height: 64 });
+});
+
+test("with no backend the recording path still defers a full-screen viewport", () =>
+{
+  const context = new Tr2RenderContext();
+
+  assert.equal(context.SetFullScreenViewport(), true);
+  assert.equal(context.GetViewport(), null);
+  assert.ok(context.GetIntents().some(intent => intent.type === "set-fullscreen-viewport"));
+});

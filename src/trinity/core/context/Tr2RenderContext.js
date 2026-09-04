@@ -18,6 +18,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { Failed } from "../al/ALResult.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
@@ -482,9 +483,17 @@ export class Tr2RenderContext extends CjsModel
   /**
    * The render target currently bound to a slot, or null when that slot was
    * never set.
+   *
+   * THE BACKEND OWNS THE BINDING WHEN THERE IS ONE. Carbon has no split to
+   * bridge here - its `Tr2RenderContext` IS `Tr2RenderContextBase` plus
+   * `Tr2RenderContextAL`, so there is one piece of state. Ours composes the two,
+   * and a getter that answered from the recording path while the backend held
+   * the real binding would report a target nothing is drawing to.
    */
   GetRenderTarget(slot = 0)
   {
+    if (this.#al) return this.#al.GetRenderTarget(slot);
+
     return this.#renderTargets.get(Number(slot) >>> 0) ?? null;
   }
 
@@ -501,6 +510,8 @@ export class Tr2RenderContext extends CjsModel
   /** The currently bound depth-stencil surface, or null. */
   GetDepthStencil()
   {
+    if (this.#al) return this.#al.GetDepthStencil();
+
     return this.#depthStencil;
   }
 
@@ -792,6 +803,19 @@ export class Tr2RenderContext extends CjsModel
    */
   SetFullScreenViewport()
   {
+    // With a backend installed there is nothing to defer: it knows the bound
+    // target's extent, so "full screen" resolves here and becomes an ordinary
+    // viewport. Without one the extent is not known until realization, which is
+    // why the recording path defers it as its own intent.
+    if (this.#al)
+    {
+      const size = this.#al.GetRenderTargetSize(0);
+
+      if (Failed(size.result)) return false;
+
+      return this.#al.SetViewport({ x: 0, y: 0, width: size.width, height: size.height });
+    }
+
     this.#viewport = null;
     this.#intents.push({ type: "set-fullscreen-viewport" });
     return true;
@@ -803,6 +827,8 @@ export class Tr2RenderContext extends CjsModel
    */
   GetViewport()
   {
+    if (this.#al) return this.#al.GetViewport();
+
     return this.#viewport;
   }
 
@@ -817,7 +843,7 @@ export class Tr2RenderContext extends CjsModel
    */
   PushViewport()
   {
-    this.#viewportStack.push(this.#viewport);
+    this.#viewportStack.push(this.GetViewport());
     return true;
   }
 
@@ -828,8 +854,12 @@ export class Tr2RenderContext extends CjsModel
   PopViewport()
   {
     if (!this.#viewportStack.length) return false;
-    this.#viewport = this.#viewportStack.pop();
-    this.#intents.push({ type: "set-viewport", viewport: this.#viewport });
+
+    // Through the setter, so a restored viewport reaches the backend when one
+    // is installed and the intent queue when one is not. The stack itself stays
+    // here either way: Carbon's viewport save/restore is Trinity's, not the
+    // abstraction layer's.
+    this.SetViewport(this.#viewportStack.pop());
     return true;
   }
 
