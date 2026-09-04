@@ -6,6 +6,7 @@ import {
     createGeometryCorpusProgress,
     fetchGeometryCorpusBytes,
     fetchGeometryCorpusJson,
+    geometryCorpusExpectedMeshCount,
     geometryCorpusFailed,
     geometryCorpusMeshCountMatches,
     isRetryableGeometryCorpusFetch,
@@ -103,6 +104,20 @@ test("geometry corpus mesh coverage rejects absent and dropped CMF meshes", () =
     assert.equal(geometryCorpusMeshCountMatches(raw, { meshes: [ {}, {} ] }), true);
     assert.equal(geometryCorpusMeshCountMatches(raw, { meshes: [ {} ] }), false);
     assert.equal(geometryCorpusMeshCountMatches(raw, null), false);
+});
+
+test("geometry corpus mesh coverage counts exact Granny LOD siblings inside their base", () =>
+{
+    const raw = { fileInfo: { Meshes: [
+        { Name: "Hull" },
+        { Name: "Hull LOD 160" },
+        { Name: "Hull LOD 80" },
+        { Name: "Other" },
+        { Name: "Loose LOD 20" }
+    ] } };
+    assert.equal(geometryCorpusExpectedMeshCount(raw), 3);
+    assert.equal(geometryCorpusMeshCountMatches(raw, { meshes: [ {}, {}, {} ] }), true);
+    assert.equal(geometryCorpusMeshCountMatches(raw, { meshes: [ {}, {}, {}, {}, {} ] }), false);
 });
 
 test("geometry corpus progress reports intervals and the final result", () =>

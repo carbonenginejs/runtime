@@ -407,6 +407,33 @@ test("resolves an unbound skinned mesh from its unique compatible skeleton", () 
     assert.equal(converted.meshes[0].skeleton, 1);
 });
 
+test("drops a projected GR2 rigid palette while retaining its skeleton relationship", () =>
+{
+    const skeleton = { name: "Root", bones: [
+        { name: "Root", parentIndex: -1 },
+        { name: "joint2", parentIndex: 0 }
+    ] };
+    const converted = convertGr2SkeletonsAndAnimations({
+        grannyFileFormatRevision: 7,
+        meshes: [ {
+            vertex: { position: [ 0, 0, 0 ], blendIndice: [] },
+            boneBindings: [ { name: "joint2" } ]
+        } ],
+        models: [ { skeleton, meshBindings: [ 0 ] } ]
+    });
+
+    assert.equal(converted.meshes[0].skeleton, 0);
+    assert.deepEqual(converted.meshes[0].boneBindings, []);
+    assert.deepEqual(converted.skeletons[0].bones, [ "Root", "joint2" ]);
+});
+
+test("does not relax generic shared geometry with bindings but no bone indices", () =>
+{
+    const mesh = { vertex: { position: [ 0, 0, 0 ] }, boneBindings: [ { name: "root" } ] };
+    const converted = convertGr2SkeletonsAndAnimations({ meshes: [ mesh ] });
+    assert.equal(converted.meshes[0], mesh);
+});
+
 test("rejects bone palettes with zero or multiple compatible skeletons", () =>
 {
     const first = { name: "first", bones: [ { name: "sharedBone", parentIndex: -1 } ] };
@@ -565,6 +592,68 @@ test("maps scalar root vector tracks to CMF morph animation channels", () =>
             } ]
         } ]
     }), /unsupported dimension 3/u);
+});
+
+test("root conversion keeps only vector tracks resolving to real morph targets", () =>
+{
+    const converted = convertGr2SkeletonsAndAnimations({
+        meshes: [ { morphTargets: [ { name: "Smile" } ] } ],
+        animations: [ {
+            name: "face",
+            duration: 1,
+            trackGroups: [ {
+                transformTracks: [ {
+                    name: "root",
+                    position: { knots: [ 0 ], controls: [ 1, 2, 3 ], dimension: 3, degree: 0 }
+                } ],
+                vectorTracks: [ {
+                    name: "Smile",
+                    dimension: 1,
+                    valueCurve: { knots: [ 0 ], controls: [ 0.5 ], dimension: 1, degree: 0 }
+                }, {
+                    name: "bindInverseScaleX",
+                    dimension: 1,
+                    valueCurve: { knots: [ 0 ], controls: [ 1 ], dimension: 1, degree: 0 }
+                } ]
+            } ]
+        } ]
+    });
+
+    assert.deepEqual(converted.animations[0].channels.map(channel => [
+        channel.targetType,
+        channel.target
+    ]), [
+        [ "BonePosition", "root" ],
+        [ "MorphTarget", "Smile" ]
+    ]);
+});
+
+test("projected GR2 root conversion preserves authored identity transform components", () =>
+{
+    const converted = convertGr2SkeletonsAndAnimations({
+        grannyFileFormatRevision: 7,
+        animations: [ {
+            name: "idle",
+            duration: 1,
+            trackGroups: [ { transformTracks: [ {
+                name: "root",
+                position: { knots: [ 0 ], controls: [ 0, 0, 0 ], dimension: 3, degree: 0 },
+                orientation: { knots: [ 0 ], controls: [ 0, 0, 0, 1 ], dimension: 4, degree: 0 },
+                scaleShear: {
+                    knots: [ 0 ],
+                    controls: [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ],
+                    dimension: 9,
+                    degree: 0
+                }
+            } ] } ]
+        } ]
+    });
+
+    assert.deepEqual(converted.animations[0].channels.map(channel => channel.targetType), [
+        "BonePosition",
+        "BoneRotation",
+        "BoneScale"
+    ]);
 });
 
 test("rejects GR2 animations that cannot form a valid CMF animation", () =>

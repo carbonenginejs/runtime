@@ -468,6 +468,11 @@ test("CjsGr2Format static read emits explicit GR2 and CMF class targets", () =>
     assert.ok(gr2 instanceof Root);
     assert.ok(gr2.meshes[0] instanceof Mesh);
 
+    // The shared projection fixture carries a metadata-only morph descriptor
+    // with no vertex data. CMF has no empty morph-descriptor representation;
+    // leave this target-shape test to exercise the valid remainder.
+    raw.fileInfo.Meshes[0].MorphTargets = [];
+    raw.fileInfo.Meshes[0].PrimaryTopology = { Indices: [], Groups: [] };
     const cmf = CjsGr2Format.read(raw, {
         emit: "cmf",
         classes: { Root: CmfRoot, Mesh: CmfMesh }
@@ -475,19 +480,14 @@ test("CjsGr2Format static read emits explicit GR2 and CMF class targets", () =>
     assert.ok(cmf instanceof CmfRoot);
     assert.ok(cmf.meshes[0] instanceof CmfMesh);
     assert.deepEqual(cmf.meshes[0].decl, []);
-    assert.deepEqual(cmf.meshes[0].boneBindings, [
-        { name: "root", bounds: { min: [ 0, 0, 0 ], max: [ 1, 1, 1 ] } }
-    ]);
-    assert.equal(cmf.meshes[0].areas[0].affectedByBones, true);
+    assert.deepEqual(cmf.meshes[0].boneBindings, []);
+    assert.deepEqual(cmf.meshes[0].areas, []);
     assert.equal(cmf.meshes[0].skeleton, 0);
     assert.deepEqual(cmf.skeletons[0].bones, [ "root" ]);
     assert.deepEqual(cmf.skeletons[0].parents, [ 0xffffffff ]);
-    assert.equal(cmf.animations[0].name, "anim1");
-    assert.deepEqual(cmf.animations[0].channels, [ {
-        target: "Blink",
-        targetType: "MorphTarget",
-        curveIndex: 0
-    } ]);
+    // `Blink` is arbitrary Granny numeric metadata here: this fixture has no
+    // morph target with that name, so CMF cannot label it as morph animation.
+    assert.deepEqual(cmf.animations, []);
     assert.equal(cmf.version, 1);
 });
 
@@ -518,9 +518,28 @@ test("CjsGr2Format CMF target preserves morph target payloads", () =>
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 12);
     assert.deepEqual(mesh.lods[0].morphTargets[0].vertex.position, [
         0, 0, 0,
-        0, 0, 1,
-        0, 0, 0
+        1, 0, 1,
+        0, 1, 0
     ]);
+});
+
+test("CjsGr2Format CMF target reassembles exact in-file Granny LOD siblings", () =>
+{
+    class CmfRoot extends TestModel {}
+    class CmfMesh extends TestModel {}
+
+    const raw = buildGeometryRaw();
+    const sibling = buildGeometryRaw().fileInfo.Meshes[0];
+    raw.fileInfo.Meshes[0].Name = "Hull";
+    sibling.Name = "Hull LOD 160";
+    raw.fileInfo.Meshes.push(sibling);
+
+    const cmf = CjsGr2Format.read(raw, {
+        emit: "cmf",
+        classes: { Root: CmfRoot, Mesh: CmfMesh }
+    });
+    assert.equal(cmf.meshes.length, 1);
+    assert.deepEqual(cmf.meshes[0].lods.map(lod => lod.threshold), [ 0xffffffff, 160 ]);
 });
 
 test("CMF emission preserves packed tangents unless GR2 unpacking is explicit", () =>
@@ -533,7 +552,9 @@ test("CMF emission preserves packed tangents unless GR2 unpacking is explicit", 
     const preserved = CjsGr2Format.read(raw, { emit: "cmf", classes });
     assert.equal(preserved.meshes[0].decl.some(element => element.usage === "PackedTangentLegacy"), true);
     assert.equal(preserved.meshes[0].decl.some(element => element.usage === "Normal"), false);
-    assert.deepEqual(preserved.meshes[0].morphTargets.decl.map(element => element.usage), [ "PackedTangentLegacy" ]);
+    assert.deepEqual(preserved.meshes[0].morphTargets.decl.map(element => element.usage), [
+        "Position", "PackedTangentLegacy"
+    ]);
 
     const unpacked = CjsGr2Format.read(raw, { emit: "cmf", classes, unpackTangents: true });
     assert.equal(unpacked.meshes[0].decl.some(element => element.usage === "PackedTangentLegacy"), false);
@@ -544,7 +565,7 @@ test("CMF emission preserves packed tangents unless GR2 unpacking is explicit", 
     );
     assert.deepEqual(
         unpacked.meshes[0].morphTargets.decl.map(element => element.usage),
-        [ "Normal", "Tangent", "Binormal" ]
+        [ "Position", "Normal", "Tangent", "Binormal" ]
     );
 });
 
@@ -587,6 +608,7 @@ test("direct CMF emission retains reflected tangent-only x3 widths", () =>
         { usage: "Tangent", elementCount: 3 }
     ]);
     assert.deepEqual(cmf.meshes[0].morphTargets.decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "Position", elementCount: 3 },
         { usage: "Tangent", elementCount: 3 }
     ]);
 });

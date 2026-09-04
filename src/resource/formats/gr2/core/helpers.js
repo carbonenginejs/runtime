@@ -3,7 +3,7 @@ import { emitJson } from "./json.js";
 import { projectShared, CLASS_KEYS as GR2_CLASS_KEYS } from "./shared.js";
 import { tangents } from "./tangents.js";
 import { decompressAnimationCurves } from "./curves.js";
-import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
+import { buildCmfFromShared, CMF_CLASS_KEYS, reassembleGr2Lods } from "./targets.js";
 import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
 
 export const CLASS_KEYS = Object.freeze(Array.from(new Set([
@@ -410,7 +410,7 @@ function buildCmf(reader, raw, values)
         values
     );
     return hydrateCmf(
-        buildCmfFromShared(shared),
+        buildCmfFromShared(reassembleGr2Lods(shared)),
         values.classes,
         { source: values.source },
         "CjsGr2Format CMF"

@@ -169,6 +169,22 @@ The writer expands CMF LOD geometry into separate Granny meshes, writes
 materials and mesh bindings, skin and inverse-bind data, morph targets, and
 skeletal or scalar-morph animation channels. Current boundaries are explicit:
 
+- When GR2 is converted to CMF, exact in-file siblings named
+  `BaseName LOD <decimal threshold>` are reassembled beneath the unique
+  unsuffixed base mesh. `_lowdetail` resource names are separate files and do
+  not participate in this rule.
+- Granny may attach a rigid one-bone palette to vertices which have no
+  `BoneIndices`. CMF retains the model/skeleton relationship but omits that
+  palette because CMF requires bone bindings and bone indices together.
+- Scalar Granny vector tracks become CMF morph channels only when their names
+  resolve to morph targets in the converted geometry. Other numeric-property
+  tracks, including DCC bind and camera metadata, are dropped as arbitrary
+  vector tracks rather than mislabeled as morph animation. An animation with
+  no channels after that filtering is omitted from the CMF result.
+- Carbon's Granny publishing path retains position, rotation, and scale for
+  every authored transform track, including constant identity components; the
+  GR2-to-CMF path does the same.
+
 - CMF v1 stores Step and Linear curves only. Incoming Granny degree-2 curves
   are adaptively baked while entering CMF, then repacked as degree 0 or 1;
   original B-spline controls cannot be reconstructed.

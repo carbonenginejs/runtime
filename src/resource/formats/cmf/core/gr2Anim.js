@@ -197,6 +197,12 @@ function meshBoneBindingNames(mesh)
     return (mesh?.boneBindings || []).map(binding => binding?.name || "");
 }
 
+function meshHasBoneIndices(mesh)
+{
+    if ((mesh?.vertex?.blendIndice ?? []).length) return true;
+    return (mesh?.lods ?? []).some(lod => (lod?.vertex?.blendIndice ?? []).length > 0);
+}
+
 function skeletonContainsBindings(names, bindings)
 {
     return bindings.every(name => names.has(name));
@@ -518,12 +524,14 @@ function float32UlpBefore(value)
  * Convert a GR2-shaped animation into a CMF-native animation.
  *
  * @param {object} animation GR2 animation with decoded curves.
- * @param {object} [options] `sampleRate` (Hz, default 30) for degree-2 resampling.
- * @returns {object} CMF-native animation with channels and curves.
+ * @param {object} [options] `sampleRate` (Hz, default 30) for degree-2 resampling;
+ * `dropEmpty` returns null when filtering leaves no channels.
+ * @returns {object|null} CMF-native animation with channels and curves, or null when requested.
  */
 export function convertGr2Animation(animation, options = {})
 {
     const sampleRate = options.sampleRate ?? 30;
+    const morphTargetNames = options.morphTargetNames;
     const duration = animation.duration ?? 0;
     if (!Number.isFinite(sampleRate) || sampleRate <= 0)
     {
@@ -586,9 +594,9 @@ export function convertGr2Animation(animation, options = {})
             targetType === "BoneRotation"
         );
         // constant identity channels carry no information
-        if (!decoded.preserveIdentity && converted.knotCount === 1 &&
+        if (!options.preserveIdentity && !decoded.preserveIdentity && converted.knotCount === 1 &&
             targetType === "BoneRotation" && isIdentityValue(converted.plainValues, 4)) return;
-        if (!decoded.preserveIdentity && converted.knotCount === 1 && targetType === "BoneScale" &&
+        if (!options.preserveIdentity && !decoded.preserveIdentity && converted.knotCount === 1 && targetType === "BoneScale" &&
             converted.plainValues.every((value) => Math.abs(value - 1) < 1e-7)) return;
         delete converted.plainValues;
         channelKeys.add(key);
@@ -615,6 +623,10 @@ export function convertGr2Animation(animation, options = {})
 
         for (const track of trackGroup.vectorTracks || [])
         {
+            // A Granny vector track is a generic numeric-property carrier.
+            // Only a name resolving to geometry in this conversion is a CMF
+            // MorphTarget channel; Maya bind/camera metadata is not.
+            if (morphTargetNames && !morphTargetNames.has(track.name ?? "")) continue;
             const dimension = Number(track.dimension ?? track.valueCurve?.dimension);
             if (dimension !== 1)
             {
@@ -627,6 +639,7 @@ export function convertGr2Animation(animation, options = {})
 
     if (!channels.length)
     {
+        if (options.dropEmpty) return null;
         throw convertError(`animation "${animation.name || ""}" contains no non-identity channels`);
     }
 
@@ -653,6 +666,7 @@ export function convertGr2Animation(animation, options = {})
  */
 export function convertGr2SkeletonsAndAnimations(root, options = {})
 {
+    const projectedFromGr2 = Number.isInteger(root?.grannyFileFormatRevision);
     const sourceSkeletons = Array.isArray(root.skeletons) ? [ ...root.skeletons ] : [];
     const skeletonIndexByIdentity = new Map();
     for (let index = 0; index < sourceSkeletons.length; index++)
@@ -773,13 +787,32 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
                 throw convertError(`mesh ${meshIndex} has bone bindings but no compatible skeleton`);
             }
         }
-        return skeleton === authored ? mesh : { ...mesh, skeleton };
+        let converted = skeleton === authored ? mesh : { ...mesh, skeleton };
+        if (projectedFromGr2 && bindings.length && !meshHasBoneIndices(mesh))
+        {
+            // Granny permits a rigid mesh to carry a one-bone palette even
+            // though its vertices have no BoneIndices. Carbon's published CMF
+            // keeps the model/skeleton relationship but omits that palette;
+            // CMF requires BoneBindings and BoneIndices to appear together.
+            converted = { ...converted, boneBindings: [] };
+        }
+        return converted;
     });
 
     const skeletons = sourceSkeletons.map((skeleton) =>
         (isGr2Skeleton(skeleton) ? convertGr2Skeleton(skeleton) : skeleton));
+    const morphTargetNames = new Set(sourceMeshes.flatMap(mesh =>
+        (mesh?.morphTargets ?? []).map(target => target?.name ?? "")));
+    // Carbon's Granny-to-CMF publishing path writes one P/R/S channel for
+    // every authored transform track, including constant identity components.
+    const animationOptions = {
+        ...options,
+        morphTargetNames,
+        preserveIdentity: projectedFromGr2,
+        dropEmpty: projectedFromGr2
+    };
     const animations = (root.animations || []).map((animation) =>
-        (isGr2Animation(animation) ? convertGr2Animation(animation, options) : animation));
+        (isGr2Animation(animation) ? convertGr2Animation(animation, animationOptions) : animation)).filter(Boolean);
 
     const boneTargetCounts = new Map();
     for (const skeleton of skeletons)

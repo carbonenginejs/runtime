@@ -32,6 +32,7 @@ import {
     createGeometryCorpusProgress,
     fetchGeometryCorpusBytes,
     fetchGeometryCorpusJson,
+    geometryCorpusExpectedMeshCount,
     geometryCorpusFailed,
     geometryCorpusMeshCountMatches,
     isRetryableGeometryCorpusFetch,
@@ -277,9 +278,9 @@ async function processEntry(entry, retryQueue)
         graph = buildCmfFromRaw(raw);
         if (!geometryCorpusMeshCountMatches(raw, graph))
         {
-            const sourceMeshCount = (raw.fileInfo?.Meshes ?? []).filter(Boolean).length;
+            const sourceMeshCount = geometryCorpusExpectedMeshCount(raw);
             throw new Error(
-                `CMF mesh count ${graph?.meshes?.length ?? "missing"} does not match source ${sourceMeshCount}`
+                `CMF mesh count ${graph?.meshes?.length ?? "missing"} does not match normalized source ${sourceMeshCount}`
             );
         }
         totals.cmfBuilt++;

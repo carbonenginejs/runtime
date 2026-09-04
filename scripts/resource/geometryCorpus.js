@@ -208,11 +208,40 @@ export function createGeometryCorpusProgress(total, interval, write, now = () =>
     };
 }
 
-/** Whether a CMF projection retained every non-null reflected GR2 mesh. */
+/** Count CMF mesh containers after exact Granny in-file LOD reassembly. */
+export function geometryCorpusExpectedMeshCount(raw)
+{
+    const meshes = (raw?.fileInfo?.Meshes ?? []).filter(Boolean);
+    const baseCounts = new Map();
+    for (const mesh of meshes)
+    {
+        const name = mesh.Name ?? "";
+        if (/^(.*?) LOD (\d+)$/u.test(name)) continue;
+        baseCounts.set(name, (baseCounts.get(name) ?? 0) + 1);
+    }
+    const siblingThresholds = new Map();
+    for (const mesh of meshes)
+    {
+        const match = /^(.*?) LOD (\d+)$/u.exec(mesh.Name ?? "");
+        if (!match || baseCounts.get(match[1]) !== 1) continue;
+        const values = siblingThresholds.get(match[1]) ?? [];
+        values.push(Number(match[2]));
+        siblingThresholds.set(match[1], values);
+    }
+    const combinable = new Set([ ...siblingThresholds ].filter(([, values ]) =>
+        new Set(values).size === values.length).map(([ name ]) => name));
+    const attached = meshes.filter(mesh =>
+    {
+        const match = /^(.*?) LOD (\d+)$/u.exec(mesh.Name ?? "");
+        return match && combinable.has(match[1]);
+    }).length;
+    return meshes.length - attached;
+}
+
+/** Whether a CMF projection retained every conceptual GR2 mesh/LOD family. */
 export function geometryCorpusMeshCountMatches(raw, graph)
 {
-    const sourceCount = (raw?.fileInfo?.Meshes ?? []).filter(Boolean).length;
-    return Array.isArray(graph?.meshes) && graph.meshes.length === sourceCount;
+    return Array.isArray(graph?.meshes) && graph.meshes.length === geometryCorpusExpectedMeshCount(raw);
 }
 
 /** Whether a completed report invalidates the geometry corpus gate. */
