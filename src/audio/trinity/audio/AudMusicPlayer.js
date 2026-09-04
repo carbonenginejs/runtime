@@ -1,6 +1,6 @@
 // Source: audio/src/AudMusicPlayer.h + AudMusicPlayer.cpp
 // Hand-owned since 2026-07-19 (behavior port); the generator skips this file.
-import { type } from "#schema";
+import { carbon, impl, type } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
 export const MUSIC_GAME_OBJ_ID = 3;
@@ -24,6 +24,14 @@ export class AudMusicPlayer extends AudEmitter
     this.name = "Music";
     this.additionalCullingWeight = FLOAT_MAX;
     this.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
+  }
+
+  /** The music player has no world placement. Source: AudMusicPlayer.cpp:17-20 (commit 2756050). */
+  @carbon.method
+  @impl.implemented
+  HasUsableWorldPosition()
+  {
+    return false;
   }
 
 }

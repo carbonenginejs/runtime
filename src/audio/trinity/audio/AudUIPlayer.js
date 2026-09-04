@@ -29,6 +29,14 @@ export class AudUIPlayer extends AudEmitter
     this.SetPosition([ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 0 ]);
   }
 
+  /** The UI player has no world placement. Source: AudUIPlayer.cpp:20-23 (commit 2756050). */
+  @carbon.method
+  @impl.implemented
+  HasUsableWorldPosition()
+  {
+    return false;
+  }
+
   /** Carbon method GetEventPlayPosition (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented

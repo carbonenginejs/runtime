@@ -5,6 +5,14 @@ import { CjsModel } from "#model";
 
 // Audio2.h:19 - the listener's fixed game-object id.
 export const LISTENER_GAME_OBJ_ID = 4;
+// Audio2.h:21 - ids below this are reserved (UI 2, music 3, listener 4).
+export const START_GAME_OBJ_COUNT = 5;
+
+/** Whether an id belongs to a reserved built-in game object. Source: Audio2.h:24. */
+export function IsReservedGameObjectID(id)
+{
+  return id < START_GAME_OBJ_COUNT;
+}
 const FLOAT_MAX = 3.4028234663852886e38;
 
 function DefaultSettings()
@@ -326,6 +334,20 @@ export class SoundPrioritization extends CjsModel
   GetPrioritizedAudioObjects()
   {
     return this.#gameObjects.slice();
+  }
+
+  /** Carbon method ForEachAwakeAudioObject: visits every non-culled tracked object. Source: SoundPrioritization.h:264-274 (commit c9b986d). */
+  @carbon.method
+  @impl.implemented
+  ForEachAwakeAudioObject(visitor)
+  {
+    for (const gameObject of this.#gameObjects)
+    {
+      if (!gameObject.IsCulled())
+      {
+        visitor(gameObject);
+      }
+    }
   }
 
   /** Carbon static CalculateObjectWeight: lower weight = higher priority; pure subtraction, no clamps. */

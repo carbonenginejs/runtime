@@ -11,7 +11,7 @@ import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
 import { AudObstructionOcclusion } from "./AudObstructionOcclusion.js";
-import { LISTENER_GAME_OBJ_ID, SoundPrioritization } from "./SoundPrioritization.js";
+import { IsReservedGameObjectID, LISTENER_GAME_OBJ_ID, SoundPrioritization } from "./SoundPrioritization.js";
 import { SpatialAudioSettings } from "./SpatialAudioSettings.js";
 
 // C++ ComputeWwiseHashForSoundBank strips from the first "." then hashes via
@@ -892,6 +892,23 @@ export class AudManager extends CjsModel
   SetMaxAwakeGameObjects(value)
   {
     this.soundPrioritization.SetMaxAwakeGameObjects(value);
+  }
+
+  /** Returns the non-reserved awake emitters. Source: AudManager.cpp:1247-1258 (commit c9b986d). */
+  @carbon.method
+  @impl.implemented
+  GetAwakeAudioEmitters()
+  {
+    const result = [];
+
+    this.soundPrioritization.ForEachAwakeAudioObject(gameObject =>
+    {
+      if (!IsReservedGameObjectID(gameObject.GetID()))
+      {
+        result.push(gameObject);
+      }
+    });
+    return result;
   }
 
   /** Carbon method StopAll: every prioritized emitter stops everything. */

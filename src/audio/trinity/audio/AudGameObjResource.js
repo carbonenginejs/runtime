@@ -16,6 +16,17 @@ import { SoundPrioritization } from "./SoundPrioritization.js";
 
 // Wwise AK_INVALID_PLAYING_ID.
 const INVALID_PLAYING_ID = 0;
+// Audio2.h:31 WWISE_INIT_POSITION - the FLT_MAX far-away init sentinel.
+const WWISE_INIT_POSITION = 3.4028234663852886e38;
+
+/** Whether a position is a real world placement. Source: Audio2.h:35 IsUsableWorldPosition. */
+function IsUsableWorldPosition(position)
+{
+  const [ x, y, z ] = position;
+
+  return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)
+    && !(x === WWISE_INIT_POSITION && y === WWISE_INIT_POSITION && z === WWISE_INIT_POSITION);
+}
 // Audio2.h:20 START_GAME_OBJ_COUNT - ids below are reserved (listener is 4).
 let nextEntityID = 5;
 
@@ -467,6 +478,14 @@ export class AudGameObjResource extends CjsModel
   Wake()
   {
     if (!AudGameObjResource.manager?.enabled || this.forceCullingState || this.#muted || !this.#hasReceivedPosition)
+    {
+      return;
+    }
+    // AudGameObjResource.cpp:641 (commit 2756050): a NaN/infinite position
+    // must not wake and register - Carbon culls it. Carbon calls the FREE
+    // function on m_position here, not the virtual accessor, so the UI and
+    // music players' always-false overrides do not block their wake.
+    if (!IsUsableWorldPosition(this.position))
     {
       return;
     }
@@ -1011,6 +1030,19 @@ export class AudGameObjResource extends CjsModel
   HasReceivedPosition()
   {
     return this.#hasReceivedPosition;
+  }
+
+  /**
+   * Whether the position is a real world placement: finite on all three
+   * components and not Carbon's FLT_MAX WWISE_INIT_POSITION sentinel.
+   * Source: audio/src/Audio2.h:35 IsUsableWorldPosition,
+   * AudGameObjResource.cpp:1067 (commit 2756050).
+   */
+  @carbon.method
+  @impl.implemented
+  HasUsableWorldPosition()
+  {
+    return IsUsableWorldPosition(this.position);
   }
 
   /** Values settle hook: refresh notified event-name and rotation consequences. */

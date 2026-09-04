@@ -6,7 +6,9 @@ import {
   AudGameObjResource,
   AudListener,
   AudManager,
+  AudMusicPlayer,
   AudStaticDataRepository,
+  AudUIPlayer,
   SoundPrioritization
 } from "../../../npm/dist/audio/index.js";
 
@@ -609,6 +611,57 @@ test("AudManager exposes portable culling/debug methods and marks native device 
     assert.equal(CjsSchema.getMethod(AudManager, "StartProfilerCapture").impl.status, "notSupported");
     assert.equal(manager.SpatialAudioIsSupported(), false);
     assert.equal(manager.IsProfilerCapturing(), false);
+  }
+  finally
+  {
+    teardown();
+  }
+});
+
+test("a non-finite position cannot wake, and the awake set is enumerable without reserved ids", () =>
+{
+  const manager = new AudManager();
+  const repository = new AudStaticDataRepository();
+  repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
+  AudGameObjResource.manager = manager;
+  AudGameObjResource.staticDataRepository = repository;
+  AudGameObjResource.backend = {};
+  try
+  {
+    manager.Enable();
+    const emitter = new AudEmitter();
+    emitter.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ 5, 0, 0 ]);
+    assert.equal(emitter.HasUsableWorldPosition(), true);
+
+    // Audio2.h:35 / AudGameObjResource.cpp:641 (commit 2756050): a NaN or
+    // infinite position is culled, never registered.
+    const broken = new AudEmitter();
+    broken.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ], [ NaN, 0, 0 ]);
+    assert.equal(broken.HasUsableWorldPosition(), false);
+    broken.Cull();
+    broken.Wake();
+    assert.equal(broken.IsCulled(), true, "non-finite position must not wake");
+
+    const sentinel = new AudEmitter();
+    sentinel.SetPosition([ 0, 0, 1 ], [ 0, 1, 0 ],
+      [ 3.4028234663852886e38, 3.4028234663852886e38, 3.4028234663852886e38 ]);
+    assert.equal(sentinel.HasUsableWorldPosition(), false, "WWISE_INIT_POSITION is not usable");
+
+    // AudUIPlayer.cpp:20-23 / AudMusicPlayer.cpp:17-20: fixed-id players
+    // report no usable world placement.
+    assert.equal(new AudUIPlayer().HasUsableWorldPosition(), false);
+    assert.equal(new AudMusicPlayer().HasUsableWorldPosition(), false);
+
+    // AudManager.cpp:1247-1258: only non-reserved awake emitters enumerate.
+    manager.DisableAudioCulling();
+    const awake = manager.GetAwakeAudioEmitters();
+    assert.ok(awake.includes(emitter), "awake emitter enumerates");
+    for (const gameObject of awake)
+    {
+      assert.ok(gameObject.GetID() >= 5, "reserved ids are filtered");
+    }
+    emitter.Cull();
+    assert.ok(!manager.GetAwakeAudioEmitters().includes(emitter), "culled emitter drops out");
   }
   finally
   {
