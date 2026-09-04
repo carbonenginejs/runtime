@@ -67,9 +67,10 @@ no choice about this — its records are always GPU-form and `SetAndTranspose` /
 
 Transposing an already-transposed value **corrupts the rotation block while
 leaving the translation column looking correct**, which is why this fails as a
-subtly wrong image rather than as an error. See
-[the Carbon math conventions](../../../../docs/architecture/class-ownership.md)
-for the row-vector versus column-vector rule behind it.
+subtly wrong image rather than as an error. The rule behind it: Carbon
+composes with row vectors (`v' = v * M`) while gl-matrix composes with column
+vectors, so the byte layouts coincide and only compositions swap operand
+order - a transpose is a real representation change, never a no-op.
 
 ## Custom masks fill their own slots
 
