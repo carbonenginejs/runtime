@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  CjsWebgpuPerFrameSource,
-  PER_FRAME_PS,
-  PER_FRAME_VS
-} from "../../../npm/dist/engine/webgpu/internal.js";
+import { CjsWebgpuPerFrameSource } from "../../../npm/dist/engine/webgpu/internal.js";
+// The register map is Trinity's, not a backend's: Carbon keeps these numbers
+// as Tr2Renderer statics because they are the contract between Trinity and
+// EVERY backend (Tr2Renderer.cpp:38-43).
+import { PER_FRAME_PS, PER_FRAME_VS } from "../../../npm/dist/trinity/core/index.js";
 
 const recordOf = data => ({ GetData: () => data });
 

@@ -29,7 +29,7 @@ import { Tr2VertexDefinition } from "#trinity/core/vertex/Tr2VertexDefinition";
 import { CarbonVertexElements } from "#trinity/core/vertex/vertexUsage";
 
 import { CjsWebgpuPackage } from "../CjsWebgpuPackage.js";
-import { CONSTANT_SLOTS, UNSOURCED_SLOTS } from "./constantSlots.js";
+import { CONSTANT_SLOTS, UNSOURCED_SLOTS } from "#trinity/core/Tr2Renderer";
 import { WebgpuGeometryOptions } from "./geometryPlan.js";
 import { MaterialLayoutFromShader, PackMaterialConstants } from "./materialConstants.js";
 

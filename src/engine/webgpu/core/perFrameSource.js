@@ -14,7 +14,7 @@
 // (`RawData.create`), so this hands back a live view rather than a copy: two
 // batches in one frame read the same bytes, which is the point of a per-frame
 // buffer.
-import { PER_FRAME_PS, PER_FRAME_VS } from "./constantSlots.js";
+import { PER_FRAME_PS, PER_FRAME_VS } from "#trinity/core/Tr2Renderer";
 
 
 function fail(message)

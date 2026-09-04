@@ -1362,3 +1362,13 @@ One consumer's cursor into a ring buffer, holding where its rows landed this fra
 - Source: `src/trinity/core/device/Tr2RingBuffer.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:Tr2Renderer -->
+## `Tr2Renderer`
+
+Renderer-wide state: the constant-buffer register map that is the contract between Trinity and every backend.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2Renderer.js`
+- Visibility: Public
+- Kind: Carbon
