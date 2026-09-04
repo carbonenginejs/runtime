@@ -10,12 +10,11 @@ import { carbon, impl, io, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
-
-/** Carbon's process-global booster light-noise table (EveBoosterSet2.cpp:
- * 44-46, lazily filled with rand()/RAND_MAX in the ctor path cpp:700-707). */
-const LIGHT_NOISE_SIZE = 128;
-const LIGHT_NOISE = new Float32Array(LIGHT_NOISE_SIZE);
-let LIGHT_NOISE_INITIALIZED = false;
+import {
+  AddBoosterLights,
+  CreateBoosterFlares,
+  GenerateBoosterLightPhase
+} from "./boosterUtilities.js";
 
 
 /**
@@ -330,7 +329,7 @@ export class EveBoosterSet2 extends EveEntity
       this.glows.Clear?.();
       for (const booster of this.#singleBoosters)
       {
-        EveBoosterSet2.#CreateFlares(this, booster);
+        CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2.#GetFlareParams(this));
       }
       this.glows.Rebuild?.();
     }
@@ -524,7 +523,7 @@ export class EveBoosterSet2 extends EveEntity
       functionality: vec4.clone(item.functionality),
       lightPosition,
       lightRadius: scale * item.lightScale,
-      lightPhase: 128 * Math.random(),
+      lightPhase: GenerateBoosterLightPhase(),
       atlasIndex0: item.atlasIndex0,
       atlasIndex1: item.atlasIndex1,
       hasTrail: item.hasTrail
@@ -533,7 +532,7 @@ export class EveBoosterSet2 extends EveEntity
 
     if (owner.glows)
     {
-      EveBoosterSet2.#CreateFlares(owner, booster);
+      CreateBoosterFlares(owner.glows, booster.transform, EveBoosterSet2.#GetFlareParams(owner));
     }
     if (owner.trails && item.hasTrail)
     {
@@ -821,19 +820,23 @@ export class EveBoosterSet2 extends EveEntity
     {
       return;
     }
-
-    if (!LIGHT_NOISE_INITIALIZED)
+    if (typeof lightManager?.AddPointLight !== "function")
     {
-      LIGHT_NOISE_INITIALIZED = true;
-      for (let index = 0; index < LIGHT_NOISE_SIZE; index++)
-      {
-        LIGHT_NOISE[index] = Math.random();
-      }
+      return;
     }
 
-    const time = lightManager?.GetAnimationTime?.() ?? 0;
-    const position = EveBoosterSet2.#lightPositionScratch;
-    const color = EveBoosterSet2.#lightColorScratch;
+    const time = lightManager.GetAnimationTime?.() ?? 0;
+    // Carbon EveBoosterSet2.cpp:1186: radii deliberately UNSCALED here (the
+    // child booster set pre-multiplies by its parent scale; this class does
+    // not - do not unify).
+    const params = {
+      lightRadius: this.lightRadius,
+      lightColor: this.lightColor,
+      lightWarpRadius: this.lightWarpRadius,
+      lightWarpColor: this.lightWarpColor,
+      lightFlickerAmplitude: this.lightFlickerAmplitude,
+      lightFlickerFrequency: this.lightFlickerFrequency
+    };
 
     for (const renderable of this.instances)
     {
@@ -841,93 +844,33 @@ export class EveBoosterSet2 extends EveEntity
       {
         continue;
       }
-
-      const warpIntensity = Math.min(Math.max(this.warpIntensity, 0), 1);
-      let radiusFactor = this.lightRadius * (1 - warpIntensity) + this.lightWarpRadius * warpIntensity;
-      radiusFactor *= renderable.overallIntensity;
-      for (let channel = 0; channel < 4; channel++)
-      {
-        color[channel] = this.lightColor[channel] * (1 - warpIntensity) + this.lightWarpColor[channel] * warpIntensity;
-      }
       const transform = renderable.GetParentTransform?.();
       if (!transform)
       {
         continue;
       }
-
-      for (const booster of this.#singleBoosters)
-      {
-        const phase = (booster.lightPhase + time) * this.lightFlickerFrequency;
-        const p0 = LIGHT_NOISE[Math.trunc(phase) % LIGHT_NOISE_SIZE];
-        const p1 = LIGHT_NOISE[(Math.trunc(phase) + 1) % LIGHT_NOISE_SIZE];
-        const t = phase - Math.floor(phase);
-        const flicker = 1 + this.lightFlickerAmplitude * 2 * (p0 * (1 - t) + p1 * t) - this.lightFlickerAmplitude;
-        vec3.transformMat4(position, booster.lightPosition, transform);
-        lightManager?.AddPointLight?.(
-          position,
-          booster.lightRadius * radiusFactor,
-          vec4.set(EveBoosterSet2.#flickerColorScratch,
-            color[0] * flicker, color[1] * flicker, color[2] * flicker, color[3] * flicker)
-        );
-      }
+      AddBoosterLights(
+        lightManager, this.#singleBoosters, transform,
+        renderable.overallIntensity, this.warpIntensity, params, time);
     }
   }
 
-  static #lightPositionScratch = vec3.create();
-
-  static #lightColorScratch = vec4.create();
-
-  static #flickerColorScratch = vec4.create();
-
   /**
-   * Adds the three flare sprites Carbon authors per booster - the glow, the
-   * symmetric halo and the separately scaled X/Y halo - placed at increasing
-   * distances back along the booster axis and sharing one random blink seed; the
-   * axis is shortened for boosters below scale 3.
+   * The flare parameters CreateBoosterFlares consumes, in Carbon's
+   * EveBoosterFlareParams shape (EveBoosterSet2.cpp:739-742).
    */
-  static #CreateFlares(owner, booster)
+  static #GetFlareParams(owner)
   {
-    const transform = booster.transform;
-    const position = vec3.fromValues(transform[12], transform[13], transform[14]);
-    const direction = vec3.fromValues(transform[8], transform[9], transform[10]);
-    const scale = Math.max(
-      Math.hypot(transform[0], transform[1], transform[2]),
-      Math.hypot(transform[4], transform[5], transform[6])
-    );
-    if (vec3.squaredLength(direction))
-    {
-      vec3.normalize(direction, direction);
-    }
-    if (scale < 3)
-    {
-      vec3.scale(direction, direction, scale / 3);
-    }
-    const seed = Math.random() * 0.7;
-    EveBoosterSet2.#AddFlare(owner, position, direction, 2.5, seed, seed,
-      scale * owner.glowScale, scale * owner.glowScale, owner.glowColor, owner.warpGlowColor);
-    EveBoosterSet2.#AddFlare(owner, position, direction, 3, seed, 1 + seed,
-      scale * owner.symHaloScale, scale * owner.symHaloScale, owner.haloColor, owner.warpHaloColor);
-    EveBoosterSet2.#AddFlare(owner, position, direction, 3.01, seed, 1 + seed,
-      scale * owner.haloScaleX, scale * owner.haloScaleY, owner.haloColor, owner.warpHaloColor);
-  }
-
-  /**
-   * Adds one flare sprite to the glow set, offset back along the booster
-   * direction by distance and carrying its normal and warp colours.
-   */
-  static #AddFlare(owner, position, direction, distance, blinkRate, blinkPhase, minScale, maxScale, color, warpColor)
-  {
-    const spritePosition = vec3.scaleAndAdd(vec3.create(), position, direction, -distance);
-    owner.glows.Add?.(
-      spritePosition,
-      blinkRate,
-      blinkPhase,
-      minScale,
-      maxScale,
-      0,
-      color,
-      warpColor
-    );
+    return {
+      warpGlowColor: owner.warpGlowColor,
+      glowScale: owner.glowScale,
+      glowColor: owner.glowColor,
+      haloScaleX: owner.haloScaleX,
+      haloScaleY: owner.haloScaleY,
+      symHaloScale: owner.symHaloScale,
+      haloColor: owner.haloColor,
+      warpHaloColor: owner.warpHaloColor
+    };
   }
 
   /**
