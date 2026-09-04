@@ -32,7 +32,6 @@ import { CjsWebgpuPackage } from "../CjsWebgpuPackage.js";
 import { CONSTANT_SLOTS, UNSOURCED_SLOTS } from "./constantSlots.js";
 import { WebgpuGeometryOptions } from "./geometryPlan.js";
 import { MaterialLayoutFromShader, PackMaterialConstants } from "./materialConstants.js";
-import { CollectPerObjectUploads } from "./perObjectUploader.js";
 
 
 function fail(message)
@@ -418,12 +417,27 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 
     if (!records.length) return null;
 
-    const collected = CollectPerObjectUploads(records.map((record, index) => ({
-      identity: record.identity ?? `perObject${index}`,
-      payload: record.payload
-    })));
+    // WHICH RECORD, NOT THE FIRST ONE. b3 is the per-object VERTEX block and b4
+    // the pixel one. A renderable's GetPerObjectData returns a { vs, ps } pair,
+    // so getConstantRecords yields two records, and taking [0] handed b4 the
+    // vertex record's bytes - a wrong picture rather than a failure.
+    //
+    // A "vs" payload declares the whole non-pixel family, because those stages
+    // share the per-object vertex register (Tr2PerObjectData.cpp:49-54).
+    const wanted = slot === "perObjectVS"
+      ? Tr2PerObjectData.VertexFamilyMask
+      : Tr2PerObjectData.StageBits.ps;
 
-    return Object.values(collected.uniformData ?? {})[0] ?? null;
+    const record = records.find(candidate => (candidate.stageMask & wanted) !== 0);
+
+    if (!record) return null;
+
+    // READ THE BYTES; DO NOT ASK THE UPLOADER FOR THEM. CollectPerObjectUploads
+    // is the upload path and deliberately skips a payload that is not dirty,
+    // which is right for "what changed since the last write" and wrong for
+    // "what is bound on this draw". Going through it meant a payload that had
+    // settled bound nothing at all.
+    return record.data;
   }
 
   /** Releases every geometry this resolver realized. */

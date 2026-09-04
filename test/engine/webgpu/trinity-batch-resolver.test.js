@@ -7,7 +7,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
 import { CjsWebgpuTrinityBatchResolver } from "../../../npm/dist/engine/webgpu/internal.js";
-import { Tr2RenderBatch, Tr2PerObjectData } from "../../../npm/dist/trinity/core/index.js";
+import { Tr2RenderBatch, Tr2PerObjectData, TriPoolAllocator } from "../../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../../npm/dist/trinity/shader/index.js";
 import { Tr2Shader } from "../../../npm/dist/resource/shader/index.js";
 
@@ -426,4 +426,92 @@ test("a material declaring no such pass says so rather than drawing", async () =
     resolver.ResolveMaterial(batch.material, batch, { passIndex: 4 }),
     /declares no pass 4 of technique Main/
   );
+});
+
+// The per-object pair. b3 is the vertex block and b4 the pixel one, and both
+// were resolved by taking the FIRST record either way.
+
+const VS_BIT = Tr2PerObjectData.StageBits.vs;
+const PS_BIT = Tr2PerObjectData.StageBits.ps;
+
+/** A { vs, ps } pair whose two halves carry distinguishable bytes. */
+function perObjectPair()
+{
+  const store = new TriPoolAllocator().Register({
+    ObjVS: { def: [ { name: "world", size: 16, encoding: TriPoolAllocator.Type.MATRIX } ], stages: [ "vs" ] },
+    ObjPS: { def: [ { name: "world", size: 16, encoding: TriPoolAllocator.Type.MATRIX } ], stages: [ "ps" ] }
+  });
+  const pair = { vs: store.Alloc("ObjVS"), ps: store.Alloc("ObjPS") };
+
+  pair.vs.GetData()[0] = 11;
+  pair.ps.GetData()[0] = 22;
+
+  return pair;
+}
+
+/** A material whose technique declares both stages, so both records survive. */
+function pairedMaterial()
+{
+  const material = materialWith([ reflectedPass() ]);
+  const shader = material.GetShaderStateInterface();
+
+  shader.effect.techniques[0].shaderTypeMask = VS_BIT | PS_BIT;
+
+  return material;
+}
+
+const PER_OBJECT_PACKAGE = packageDeclaring([
+  { name: "cb3", resourceKind: "uniform-buffer", registerSpace: 0, registerIndex: 3, layout: UNIFORM_BUFFER },
+  { name: "cb4", resourceKind: "uniform-buffer", registerSpace: 0, registerIndex: 4, layout: UNIFORM_BUFFER }
+]);
+
+test("b3 gets the vertex record and b4 the pixel one", async () =>
+{
+  // THE DEFECT THIS REPLACES. Both slots ended with
+  // Object.values(uniformData)[0], so b4 - the pixel block - received the
+  // vertex record's bytes. Nothing failed; the picture was wrong.
+  const resolver = resolverOver(new TestDevice(), { CreatePackage: PER_OBJECT_PACKAGE });
+  const batch = batchFor(pairedMaterial());
+  const pair = perObjectPair();
+
+  const bindings = await resolver.ResolveBindings(batch, pair, { passIndex: 0 });
+
+  assert.equal(bindings.uniformData.get("uniform-buffer:0:3")[0], 11, "b3 is the vertex block");
+  assert.equal(bindings.uniformData.get("uniform-buffer:0:4")[0], 22, "b4 is the pixel block");
+});
+
+test("a settled payload is still bound, because binding is not uploading", async () =>
+{
+  // The second half of the defect. Resolution went through
+  // CollectPerObjectUploads, which deliberately skips a payload that is not
+  // dirty - right for "what changed since the last write", wrong for "what is
+  // bound on this draw". A payload that had settled bound nothing at all.
+  const resolver = resolverOver(new TestDevice(), { CreatePackage: PER_OBJECT_PACKAGE });
+  const batch = batchFor(pairedMaterial());
+  const pair = perObjectPair();
+
+  pair.vs.ClearDirty();
+  pair.ps.ClearDirty();
+
+  assert.equal(pair.vs.IsDirty(), false, "the negative control: the payload really is clean");
+
+  const bindings = await resolver.ResolveBindings(batch, pair, { passIndex: 0 });
+
+  assert.equal(bindings.uniformData.get("uniform-buffer:0:3")[0], 11);
+  assert.equal(bindings.uniformData.get("uniform-buffer:0:4")[0], 22);
+});
+
+test("a technique with no pixel stage leaves b4 unbound rather than aliased", async () =>
+{
+  // The vertex-only case must not fill the pixel slot with vertex bytes, which
+  // is exactly what taking the first record did.
+  const resolver = resolverOver(new TestDevice(), { CreatePackage: PER_OBJECT_PACKAGE });
+  const material = materialWith([ reflectedPass() ]);
+
+  material.GetShaderStateInterface().effect.techniques[0].shaderTypeMask = VS_BIT;
+
+  const bindings = await resolver.ResolveBindings(batchFor(material), perObjectPair(), { passIndex: 0 });
+
+  assert.equal(bindings.uniformData.get("uniform-buffer:0:3")[0], 11);
+  assert.equal(bindings.uniformData.has("uniform-buffer:0:4"), false);
 });
