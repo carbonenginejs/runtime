@@ -1,6 +1,24 @@
+// Source: parser/include/ccpparser.h (CcpParser::Parse, Program, Observer)
 // Behavioral reference: ccpwgl/src/unsupported/state/expression/Tr2ExpressionProgram.js
-// JS-only controller expression helper. Carbon has Tr2ControllerExpression, not
-// a Tr2ExpressionProgram runtime class.
+//
+// This IS a port of Carbon's expression program, and the contract is Carbon's:
+// parse an expression against a set of externals, evaluate it, and report the
+// variables and functions it referenced. Carbon reports those through
+// Observer::OnVariable/OnFunction; we expose the same names for dirty tracking.
+//
+// THE REPRESENTATION DIFFERS, AND THAT IS THE BROWSER CONSTRAINT. Carbon
+// compiles to bytecode - Program holds a std::vector<uint8_t> and evaluates it
+// with a caller-supplied temp arena (ccpparser.h:26-40). The JavaScript
+// shortcut equivalent to that is new Function / eval, which is unavailable
+// under a content security policy and is a code-injection surface for
+// expressions arriving in asset data. So this compiles to an AST and walks it.
+// The file is long because the bytecode VM is absent, not because it is a
+// second design.
+//
+// An earlier version of this comment said Carbon has Tr2ControllerExpression
+// and no Tr2ExpressionProgram runtime class. That is true of trinity/ and
+// false of Carbon: CcpParser lives in the parser repo. It was read as evidence
+// of invention during the 2026-09-04 fidelity audit. Carbon is 32 repositories.
 
 const BLOCKED_IDENTIFIERS = new Set(["__proto__", "prototype", "constructor", "Function", "eval", "process", "global", "globalThis", "window", "document", "this"]);
 const CONSTANTS = {
