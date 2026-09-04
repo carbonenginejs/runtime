@@ -17,7 +17,8 @@ export class TriStepPushViewport extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    renderContext.PushViewport();
+    // The manager owns the viewport save stack (`TriStepPushViewport.cpp:9`).
+    renderContext.GetEffectStateManager().PushViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

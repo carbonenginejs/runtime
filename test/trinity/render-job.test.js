@@ -456,9 +456,13 @@ test("P0 render steps preserve Carbon null rules and emit backend-neutral intent
   const setViewport = new TriStepSetViewport();
   setViewport.Execute(0, 0, context);
   assertEquals(context.GetIntents().at(-1).type, "set-fullscreen-viewport");
-  setViewport.__init__(viewport);
+  setViewport.__init__({ x: 0, y: 0, width: 64, height: 32 });
   setViewport.Execute(0, 0, context);
-  assertEquals(context.GetViewport(), viewport);
+  // The step authors through the state manager, which normalises the six
+  // members and derives the device viewport the context is handed - so the
+  // context no longer holds the caller's own object.
+  assertEquals(context.GetEffectStateManager().GetViewport().width, 64);
+  assertEquals(context.GetViewport().height, 32);
 
   const setProjection = new TriStepSetProjection();
   setProjection.__init__(projection);
@@ -702,7 +706,7 @@ test("Tr2RenderJobs ends delegated batch scope when a job throws", () =>
 test("render steps require the owned render-context contract", () =>
 {
   assert.throws(() => new TriStepClear().Execute(0, 0, {}), /Clear/);
-  assert.throws(() => new TriStepSetViewport().Execute(0, 0, {}), /SetFullScreenViewport/);
+  assert.throws(() => new TriStepSetViewport().Execute(0, 0, {}), /GetEffectStateManager/);
   const callback = new TriStepPythonCB();
   callback.__init__(() => { throw new Error("callback failed"); });
   assert.throws(() => callback.Execute(0, 0, null), /AddDiagnostic/);

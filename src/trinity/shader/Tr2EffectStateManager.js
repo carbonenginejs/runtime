@@ -242,6 +242,13 @@ function samplerSignatureKey(samplers)
   return JSON.stringify(entries);
 }
 
+function failState(message)
+{
+  const error = new Error(`Tr2EffectStateManager: ${message}`);
+  error.code = "CJS_EFFECT_STATE_INVALID";
+  throw error;
+}
+
 /** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect, and owns the process-wide shader, shader-program and render-state registration tables its handle fields index; the Apply* surface that consumes those handles is not implemented yet. */
 @type.define({ className: "Tr2EffectStateManager", family: "shader" })
 export class Tr2EffectStateManager extends CjsModel
@@ -635,6 +642,211 @@ export class Tr2EffectStateManager extends CjsModel
     renderStateSetups.length = RenderingMode.RM_COUNT;
   }
 
+
+  // ---------------------------------------------------------------------
+  // The viewport family (Tr2EffectStateManager.cpp:1065-1245).
+  //
+  // TWO VIEWPORTS, AND THAT IS THE POINT. `viewport` is what the caller asked
+  // for and is what `GetViewport` returns. `viewportOnDevice` is that CLIPPED
+  // to the bound render target, and it is the only one the backend ever sees.
+  // Carbon derives the second from the first on every set, so a caller may
+  // author a viewport larger than its target and still produce a legal draw.
+  //
+  // The clip floors each edge at one pixel, with Carbon's reason attached:
+  // "using zero edge length causes dx error". A browser refuses it too, so the
+  // floor earns its place here rather than being D3D trivia.
+  //
+  // These live HERE and not on the render context because that is where Carbon
+  // puts them: the context is the abstraction layer, and its `SetViewport`
+  // takes the already-clipped device viewport.
+
+  /** The render context this manager applies state to (Carbon's m_renderContext). */
+  #renderContext = null;
+
+  /**
+   * Binds the render context this manager applies state through.
+   *
+   * Carbon constructs the manager as a member of the context
+   * (`Tr2RenderContext.h:35`), so the pairing is fixed there; ours is composed,
+   * so it is bound once and never rebound.
+   *
+   * @param {object} renderContext The owning render context.
+   * @returns {Tr2EffectStateManager} This manager.
+   */
+  SetRenderContext(renderContext)
+  {
+    this.#renderContext = renderContext;
+
+    return this;
+  }
+
+  /**
+   * The viewport as authored, which is not necessarily the one being drawn.
+   *
+   * @returns {object|null} The authored viewport, or null before one is set.
+   */
+  GetViewport()
+  {
+    return this.viewport;
+  }
+
+  /**
+   * The viewport actually handed to the backend, clipped to the render target.
+   *
+   * @returns {object|null} The device viewport, or null before one is set.
+   */
+  GetDeviceViewport()
+  {
+    return this.viewportOnDevice;
+  }
+
+  /**
+   * Sets the authored viewport and derives the device one.
+   *
+   * @param {object} viewport `{ x, y, width, height, minZ, maxZ }`.
+   * @returns {void}
+   */
+  SetViewport(viewport)
+  {
+    this.viewport = {
+      x: viewport.x ?? 0,
+      y: viewport.y ?? 0,
+      width: viewport.width ?? 0,
+      height: viewport.height ?? 0,
+      minZ: viewport.minZ ?? 0,
+      maxZ: viewport.maxZ ?? 1
+    };
+
+    this.SetupViewport();
+  }
+
+  /**
+   * Sets the authored viewport to the whole render target.
+   *
+   * @returns {void}
+   */
+  SetFullScreenViewport()
+  {
+    this.viewport = {
+      x: 0,
+      y: 0,
+      width: this.renderTargetWidth,
+      height: this.renderTargetHeight,
+      minZ: 0,
+      maxZ: 1
+    };
+
+    this.SetupViewport();
+  }
+
+  /**
+   * Clips the authored viewport to the render target and hands it to the
+   * backend.
+   *
+   * @returns {void}
+   */
+  SetupViewport()
+  {
+    const authored = this.viewport;
+
+    if (!authored) failState("SetupViewport needs an authored viewport");
+
+    const x1 = authored.x + authored.width;
+    const y1 = authored.y + authored.height;
+    const x = Math.max(authored.x, 0);
+    const y = Math.max(authored.y, 0);
+
+    // ONE DEPARTURE, AND IT IS A REFUSAL TO INVENT. Carbon always has a render
+    // target, so its extent is always known and the clip always applies. Ours
+    // can be asked before anything is bound, and clipping to an extent of zero
+    // would floor the viewport at ONE PIXEL - a frame that draws, in the wrong
+    // place, silently. With no extent recorded the authored viewport passes
+    // through unclipped; once a target is bound the clip is Carbon's exactly.
+    const clipped = this.renderTargetWidth > 0 && this.renderTargetHeight > 0;
+
+    this.viewportOnDevice = {
+      x,
+      y,
+      // Floored at one: a zero edge is refused by the backend, not merely odd.
+      width: clipped ? Math.max(Math.min(x1, this.renderTargetWidth) - x, 1) : authored.width,
+      height: clipped ? Math.max(Math.min(y1, this.renderTargetHeight) - y, 1) : authored.height,
+      minZ: authored.minZ,
+      maxZ: authored.maxZ
+    };
+
+    // Carbon assigns a Vector4 of the AUTHORED extent and the target's
+    // (cpp:1242). Note it uses the DEVICE extent in UpdateRenderTargetViewport
+    // instead - transcribed as it stands rather than made consistent.
+    this.viewportSizeVar = [
+      authored.width,
+      authored.height,
+      this.renderTargetWidth,
+      this.renderTargetHeight
+    ];
+
+    if (this.#renderContext) this.#renderContext.SetViewport(this.viewportOnDevice);
+  }
+
+  /**
+   * Records the bound render target's extent and resets both viewports to it.
+   *
+   * Carbon writes both viewports directly here rather than going through
+   * `SetupViewport`, and does NOT push to the backend: the target bind that
+   * called this carries the viewport with it (cpp:1193-1214).
+   *
+   * @param {number} width Render target width.
+   * @param {number} height Render target height.
+   * @returns {void}
+   */
+  UpdateRenderTargetViewport(width, height)
+  {
+    if (!(width > 0) || !(height > 0)) failState("a render target's viewport needs a non-zero extent");
+
+    this.renderTargetWidth = width;
+    this.renderTargetHeight = height;
+
+    this.viewport = { x: 0, y: 0, width, height, minZ: 0, maxZ: 1 };
+    this.viewportOnDevice = { x: 0, y: 0, width, height, minZ: 0, maxZ: 1 };
+    this.viewportSizeVar = [ width, height, width, height ];
+  }
+
+  /**
+   * Saves the authored viewport.
+   *
+   * @returns {void}
+   */
+  PushViewport()
+  {
+    if (!Array.isArray(this.viewportStack)) this.viewportStack = [];
+
+    this.viewportStack.push(this.viewport);
+  }
+
+  /**
+   * Restores the last saved viewport, deriving the device one again.
+   *
+   * @returns {boolean} False when nothing was saved.
+   */
+  PopViewport()
+  {
+    if (!Array.isArray(this.viewportStack) || !this.viewportStack.length) return false;
+
+    const restored = this.viewportStack.pop();
+
+    if (restored) this.SetViewport(restored);
+
+    return true;
+  }
+
+  /**
+   * Depth of the viewport save stack.
+   *
+   * @returns {number} Saved viewports.
+   */
+  GetStackSizeViewport()
+  {
+    return Array.isArray(this.viewportStack) ? this.viewportStack.length : 0;
+  }
 
   /**
    * Begins a managed-rendering span, in which redundant applies are filtered.

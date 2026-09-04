@@ -17,7 +17,8 @@ export class TriStepPopViewport extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    renderContext.PopViewport();
+    // The manager owns the viewport save stack (`TriStepPopViewport.cpp:9`).
+    renderContext.GetEffectStateManager().PopViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

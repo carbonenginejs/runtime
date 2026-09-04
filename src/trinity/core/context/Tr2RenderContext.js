@@ -27,6 +27,7 @@ import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
 import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
 import { Tr2RenderBatch } from "../batch/Tr2RenderBatch.js";
 import { Tr2Shader } from "#resource/shader";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 
@@ -65,6 +66,15 @@ export class Tr2RenderContext extends CjsModel
    */
   #al = null;
 
+  // Carbon's context OWNS its state manager as a public member
+  // (`Tr2RenderContext.h:35`), and its render steps reach the Trinity-level
+  // verbs through it - `renderContext.m_esm.SetViewport(...)`
+  // (`TriStepSetViewport.cpp:25`). Ours composes rather than inherits, so the
+  // manager is bound to this context once and never rebound.
+
+  /** m_esm */
+  #esm = new Tr2EffectStateManager().SetRenderContext(this);
+
   #intents = [];
 
   #renderTargets = new Map();
@@ -95,7 +105,6 @@ export class Tr2RenderContext extends CjsModel
 
   #hasViewMatrix = false;
 
-  #viewportStack = [];
 
   #projectionStack = [];
 
@@ -566,7 +575,12 @@ export class Tr2RenderContext extends CjsModel
 
     if (Failed(size.result)) return;
 
-    this.#al.SetViewport({ x: 0, y: 0, width: size.width, height: size.height, minZ: 0, maxZ: 1 });
+    // The manager records the extent and resets both viewports to it; Carbon
+    // stops there because its backend applies the viewport as part of the
+    // target bind. Ours does not, so SetupViewport pushes it - the one place
+    // this differs, and it differs because the backend does.
+    this.#esm.UpdateRenderTargetViewport(size.width, size.height);
+    this.#esm.SetupViewport();
   }
 
   /**
@@ -646,6 +660,16 @@ export class Tr2RenderContext extends CjsModel
     }
 
     return this.#al.GetCaps();
+  }
+
+  /**
+   * The effect state manager this context owns.
+   *
+   * @returns {Tr2EffectStateManager} The manager.
+   */
+  GetEffectStateManager()
+  {
+    return this.#esm;
   }
 
   /** GPU-free validity check: any non-null render target counts as valid. */
@@ -915,16 +939,19 @@ export class Tr2RenderContext extends CjsModel
   SetFullScreenViewport()
   {
     // With a backend installed there is nothing to defer: it knows the bound
-    // target's extent, so "full screen" resolves here and becomes an ordinary
-    // viewport. Without one the extent is not known until realization, which is
-    // why the recording path defers it as its own intent.
+    // target's extent, so "full screen" resolves here. Without one the extent
+    // is not known until realization, which is why the recording path defers it
+    // as its own intent.
     if (this.#al)
     {
       const size = this.#al.GetRenderTargetSize(0);
 
       if (Failed(size.result)) return false;
 
-      return this.#al.SetViewport({ x: 0, y: 0, width: size.width, height: size.height, minZ: 0, maxZ: 1 });
+      this.#esm.UpdateRenderTargetViewport(size.width, size.height);
+      this.#esm.SetupViewport();
+
+      return true;
     }
 
     this.#viewport = null;
@@ -943,42 +970,10 @@ export class Tr2RenderContext extends CjsModel
     return this.#viewport;
   }
 
-  // Save/restore stack for the current viewport (Carbon Push/PopViewport). The
-  // step calls these with no argument: push saves the current viewport, pop
-  // restores it and re-records the set-viewport intent so realization sees the
-  // restored value. Independent of the RT/DS balance-guard stacks.
-
-  /**
-   * Saves the current viewport on its own save/restore stack, independent of the
-   * render-target and depth-stencil balance guards.
-   */
-  PushViewport()
-  {
-    this.#viewportStack.push(this.GetViewport());
-    return true;
-  }
-
-  /**
-   * Restores the last pushed viewport and re-records a set-viewport intent so
-   * realization sees the restored value; returns false when the stack is empty.
-   */
-  PopViewport()
-  {
-    if (!this.#viewportStack.length) return false;
-
-    // Through the setter, so a restored viewport reaches the backend when one
-    // is installed and the intent queue when one is not. The stack itself stays
-    // here either way: Carbon's viewport save/restore is Trinity's, not the
-    // abstraction layer's.
-    this.SetViewport(this.#viewportStack.pop());
-    return true;
-  }
-
-  /** Depth of the viewport save/restore stack. */
-  GetStackSizeViewport()
-  {
-    return this.#viewportStack.length;
-  }
+  // The viewport save stack is the effect state manager's, not this context's
+  // (`TriStepPushViewport.cpp:9` pushes through `renderContext.m_esm`). It used
+  // to live here, which put the authored viewport in one place and the stack
+  // that saves it in another.
 
   /**
    * Caches the view/camera/simTime record, refreshes the cached view matrix and

@@ -245,21 +245,26 @@ test("a full-screen viewport with nothing bound fails rather than guessing", () 
   assert.equal(context.SetFullScreenViewport(), false);
 });
 
-test("the viewport stack restores through the backend", () =>
+test("the viewport stack lives on the state manager, and restores through it", () =>
 {
+  // Carbon's steps push and pop through renderContext.m_esm
+  // (TriStepPushViewport.cpp:9), because the manager owns the AUTHORED viewport
+  // while the context's own SetViewport takes an already-clipped device one.
   const context = new Tr2RenderContext();
   const al = new Tr2RenderContextALStub();
 
-  al.CreateDevice();
+  al.CreateDevice({ mode: { width: 256, height: 256 } });
   context.SetRenderContextAL(al);
 
-  context.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
-  context.PushViewport();
-  context.SetViewport({ x: 0, y: 0, width: 16, height: 16 });
+  const states = context.GetEffectStateManager();
 
-  assert.equal(context.PopViewport(), true);
-  assert.deepEqual(al.GetViewport(), { x: 0, y: 0, width: 64, height: 64 });
-  assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 64, height: 64 });
+  states.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
+  states.PushViewport();
+  states.SetViewport({ x: 0, y: 0, width: 16, height: 16 });
+
+  assert.equal(states.PopViewport(), true);
+  assert.equal(states.GetViewport().width, 64, "the authored viewport came back");
+  assert.equal(al.GetViewport().width, 64, "and reached the backend");
 });
 
 test("with no backend the recording path still defers a full-screen viewport", () =>
@@ -461,4 +466,66 @@ test("only slot zero moves the viewport, and a caller can decline", () =>
   context.SetRenderTarget(0, renderTarget(256, 256), false);
 
   assert.equal(context.GetViewport().width, 512, "updateViewport: false leaves it alone");
+});
+
+test("an authored viewport is clipped to the render target, never to nothing", () =>
+{
+  // Carbon's SetupViewport (cpp:1221-1245) clips to the bound target and floors
+  // each edge at one, because a zero edge is refused. Ours adds one refusal of
+  // its own: with no extent recorded it does NOT clip, since clipping to zero
+  // would floor a real viewport to a single pixel and draw silently.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 256, height: 256 } });
+  context.SetRenderContextAL(al);
+
+  const states = context.GetEffectStateManager();
+
+  states.SetViewport({ x: 0, y: 0, width: 1024, height: 1024 });
+
+  assert.equal(states.GetViewport().width, 1024, "the authored viewport is kept as authored");
+  assert.equal(states.GetDeviceViewport().width, 1024, "and unclipped while no extent is known");
+
+  context.SetRenderTarget(0, al.GetBackBuffer());
+  states.SetViewport({ x: 0, y: 0, width: 1024, height: 1024 });
+
+  assert.equal(states.GetViewport().width, 1024);
+  assert.equal(states.GetDeviceViewport().width, 256, "clipped to the target once it is known");
+  assert.equal(al.GetViewport().width, 256, "and only the clipped one reaches the backend");
+});
+
+test("a viewport starting outside the target still has a legal extent", () =>
+{
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 256, height: 256 } });
+  context.SetRenderContextAL(al);
+  context.SetRenderTarget(0, al.GetBackBuffer());
+
+  const states = context.GetEffectStateManager();
+
+  states.SetViewport({ x: 300, y: 300, width: 64, height: 64 });
+
+  assert.equal(states.GetDeviceViewport().width, 1, "floored at one, not zero or negative");
+  assert.equal(states.GetDeviceViewport().height, 1);
+});
+
+test("the manager reports the viewport and target sizes shaders read", () =>
+{
+  // Carbon sets m_viewportSizeVar to (viewport, renderTarget) on every setup
+  // (cpp:1242), so a pass reading it sees both.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 256, height: 128 } });
+  context.SetRenderContextAL(al);
+  context.SetRenderTarget(0, al.GetBackBuffer());
+
+  const states = context.GetEffectStateManager();
+
+  states.SetViewport({ x: 0, y: 0, width: 64, height: 32 });
+
+  assert.deepEqual(states.viewportSizeVar, [ 64, 32, 256, 128 ]);
 });

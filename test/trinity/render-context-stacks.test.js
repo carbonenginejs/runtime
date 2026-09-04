@@ -15,31 +15,39 @@ function viewWithTranslationX(tx)
 
 test("PushViewport/PopViewport save and restore the current viewport", () =>
 {
+  // The stack belongs to the effect state manager, as Carbon's steps assume
+  // (TriStepPushViewport.cpp:9). The context's own SetViewport is the
+  // abstraction layer's and takes an already-clipped device viewport.
   const context = new Tr2RenderContext();
-  context.SetViewport({ id: "a" });
-  assert.equal(context.GetStackSizeViewport(), 0);
+  const states = context.GetEffectStateManager();
 
-  context.PushViewport();
-  assert.equal(context.GetStackSizeViewport(), 1);
+  states.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
+  assert.equal(states.GetStackSizeViewport(), 0);
 
-  context.SetViewport({ id: "b" });
-  assert.equal(context.GetViewport().id, "b");
+  states.PushViewport();
+  assert.equal(states.GetStackSizeViewport(), 1);
+
+  states.SetViewport({ x: 0, y: 0, width: 32, height: 32 });
+  assert.equal(states.GetViewport().width, 32);
 
   context.ClearIntents();
-  assert.equal(context.PopViewport(), true);
-  assert.equal(context.GetStackSizeViewport(), 0);
-  assert.equal(context.GetViewport().id, "a", "viewport restored");
+  assert.equal(states.PopViewport(), true);
+  assert.equal(states.GetStackSizeViewport(), 0);
+  assert.equal(states.GetViewport().width, 64, "viewport restored");
 
   const intents = context.GetIntents();
   assert.equal(intents.at(-1).type, "set-viewport", "restore is exposed to realization");
-  assert.equal(intents.at(-1).viewport.id, "a");
+  assert.equal(intents.at(-1).viewport.width, 64);
 });
+
 
 test("PopViewport on an empty stack returns false and does not throw", () =>
 {
   const context = new Tr2RenderContext();
-  assert.equal(context.PopViewport(), false);
+
+  assert.equal(context.GetEffectStateManager().PopViewport(), false);
 });
+
 
 test("PushProjection/PopProjection save and restore the current projection", () =>
 {

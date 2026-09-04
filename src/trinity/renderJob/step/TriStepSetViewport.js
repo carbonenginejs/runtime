@@ -43,7 +43,13 @@ export class TriStepSetViewport extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    if (this.viewport) renderContext.SetViewport(this.viewport);
+    // Through the effect state manager, as Carbon's step does
+    // (`TriStepSetViewport.cpp:25,29` call `renderContext.m_esm`). The context's
+    // own SetViewport is the abstraction layer's and takes an already-clipped
+    // device viewport; the manager owns the authored one and derives it.
+    const states = renderContext.GetEffectStateManager();
+
+    if (this.viewport) states.SetViewport(this.viewport);
     else renderContext.SetFullScreenViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
