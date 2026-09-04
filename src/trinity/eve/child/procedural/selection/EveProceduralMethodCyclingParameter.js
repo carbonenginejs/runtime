@@ -124,7 +124,7 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
     {
       if (this.restartRequired)
       {
-        this.child?.StartControllers?.();
+        this.child?.StartControllers();
         this.child?.PlayAllCurveSets?.();
       }
       return;

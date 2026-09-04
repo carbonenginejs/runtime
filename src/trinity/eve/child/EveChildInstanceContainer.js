@@ -98,7 +98,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @impl.implemented
   HandleControllerEvent(name)
   {
-    for (const instance of this.instances) instance?.HandleControllerEvent?.(name);
+    for (const instance of this.instances) instance?.HandleControllerEvent(name);
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -108,9 +108,9 @@ export class EveChildInstanceContainer extends EveChildTransform
   {
     const key = String(name);
     const next = Number(value);
-    this.source?.SetControllerVariable?.(key, next);
+    this.source?.SetControllerVariable(key, next);
     this.#controllerVariables.set(key, next);
-    for (const instance of this.instances) instance?.SetControllerVariable?.(key, next);
+    for (const instance of this.instances) instance?.SetControllerVariable(key, next);
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -118,7 +118,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @impl.implemented
   StartControllers()
   {
-    for (const instance of this.instances) instance?.StartControllers?.();
+    for (const instance of this.instances) instance?.StartControllers();
   }
 
   /** Carbon EveChildInstanceContainer::RegisterComponents (cpp:83-103):

@@ -377,7 +377,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     }
     for (const child of this.objects)
     {
-      child?.SetControllerVariable?.(key, next);
+      child?.SetControllerVariable(key, next);
     }
   }
 
@@ -396,7 +396,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     }
     for (const child of this.objects)
     {
-      child?.HandleControllerEvent?.(eventName);
+      child?.HandleControllerEvent(eventName);
     }
   }
 
@@ -411,7 +411,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     }
     for (const child of this.objects)
     {
-      child?.StartControllers?.();
+      child?.StartControllers();
     }
   }
 
@@ -460,7 +460,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     this.RegisterChild(child);
     for (const [name, value] of this.#controllerVariables)
     {
-      child?.SetControllerVariable?.(name, value);
+      child?.SetControllerVariable(name, value);
     }
     return child;
   }

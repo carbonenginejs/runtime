@@ -117,7 +117,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @impl.implemented
   HandleControllerEvent(name)
   {
-    this.selectedObject?.HandleControllerEvent?.(name);
+    this.selectedObject?.HandleControllerEvent(name);
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -125,7 +125,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @impl.implemented
   SetControllerVariable(name, value)
   {
-    this.selectedObject?.SetControllerVariable?.(name, value);
+    this.selectedObject?.SetControllerVariable(name, value);
   }
 
   /** Carbon method SetProceduralContainerVariable (MAP_METHOD_AND_WRAP). */
@@ -144,7 +144,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @impl.implemented
   StartControllers()
   {
-    this.selectedObject?.StartControllers?.();
+    this.selectedObject?.StartControllers();
   }
 
   /**

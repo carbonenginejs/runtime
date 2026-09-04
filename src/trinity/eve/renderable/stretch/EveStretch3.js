@@ -538,7 +538,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   SetControllerVariable(name, value)
   {
-    for (const component of this.#components()) component?.SetControllerVariable?.(name, value);
+    for (const component of this.#components()) component?.SetControllerVariable(name, value);
     for (const controller of this.controllers) controller?.SetVariable(name, value);
   }
 
@@ -550,7 +550,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   HandleControllerEvent(name)
   {
-    for (const component of this.#components()) component?.HandleControllerEvent?.(name);
+    for (const component of this.#components()) component?.HandleControllerEvent(name);
     for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
@@ -559,7 +559,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   StartControllers()
   {
-    for (const component of this.#components()) component?.StartControllers?.();
+    for (const component of this.#components()) component?.StartControllers();
     for (const controller of this.controllers) controller?.Start();
   }
 

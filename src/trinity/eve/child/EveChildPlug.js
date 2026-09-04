@@ -113,7 +113,7 @@ export class EveChildPlug extends EveChildTransform
     const next = Number(value);
     this.#controllerVariables.set(key, next);
     for (const controller of this.controllers) controller?.SetVariable(key, next);
-    for (const object of this.objects) object?.SetControllerVariable?.(key, next);
+    for (const object of this.objects) object?.SetControllerVariable(key, next);
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */

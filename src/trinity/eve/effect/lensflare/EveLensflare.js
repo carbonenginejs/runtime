@@ -164,6 +164,22 @@ export class EveLensflare extends withITr2Renderable(CjsModel)
     for (const controller of this.controllers) controller?.SetVariable(key, next);
   }
 
+  /**
+   * Carbon EveLensflare::HandleControllerEvent (cpp:497-503).
+   *
+   * MISSING UNTIL 2026-09-05. Carbon declares it beside SetControllerVariable
+   * and StartControllers, both of which were ported; this one was not, and the
+   * hedge at every call site meant a lens flare silently ignored every
+   * controller event rather than failing.
+   */
+  @carbon.method
+  @impl.implemented
+  HandleControllerEvent(name)
+  {
+    const key = String(name);
+    for (const controller of this.controllers) controller?.HandleEvent(key);
+  }
+
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented

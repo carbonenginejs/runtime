@@ -665,8 +665,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   @impl.reason("Controller ownership is represented by direct firing/ambient child forwarding.")
   HandleControllerEvent(name)
   {
-    this.firingEffect?.HandleControllerEvent?.(name);
-    this.#ambientEffect()?.HandleControllerEvent?.(name);
+    this.firingEffect?.HandleControllerEvent(name);
+    this.#ambientEffect()?.HandleControllerEvent(name);
   }
 
   /** Carbon method GetFiringBoneWorldTransform (MAP_METHOD_AND_WRAP). */
@@ -731,8 +731,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   @impl.reason("Controller ownership is represented by direct firing/ambient child forwarding.")
   SetControllerVariable(name, value)
   {
-    this.firingEffect?.SetControllerVariable?.(name, value);
-    this.#ambientEffect()?.SetControllerVariable?.(name, value);
+    this.firingEffect?.SetControllerVariable(name, value);
+    this.#ambientEffect()?.SetControllerVariable(name, value);
   }
 
   /** Carbon method SetShotMissed (MAP_METHOD_AND_WRAP). */
@@ -749,8 +749,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   @impl.reason("Controller ownership is represented by direct firing/ambient child forwarding.")
   StartControllers()
   {
-    this.firingEffect?.StartControllers?.();
-    this.#ambientEffect()?.StartControllers?.();
+    this.firingEffect?.StartControllers();
+    this.#ambientEffect()?.StartControllers();
   }
 
   /**
@@ -1377,7 +1377,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     const ambient = this.#ambientEffect();
     if (ambient)
     {
-      ambient.SetControllerVariable?.("TurretState", this.state === EveTurretSet.State.STATE_FIRING ? EveTurretSet.State.STATE_TARGETING : this.state);
+      ambient.SetControllerVariable("TurretState", this.state === EveTurretSet.State.STATE_FIRING ? EveTurretSet.State.STATE_TARGETING : this.state);
       ambient.SetControllerVariableOnInstance?.(this.#activeTurret, "TurretState", EveTurretSet.State.STATE_FIRING);
       ambient.SetControllerVariableOnInstance?.(this.#activeTurret, "FiringDelay", this.randomFiringDelay);
     }
@@ -1485,7 +1485,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
    */
   #setAmbientState()
   {
-    this.#ambientEffect()?.SetControllerVariable?.("TurretState", this.state);
+    this.#ambientEffect()?.SetControllerVariable("TurretState", this.state);
   }
 
   /**

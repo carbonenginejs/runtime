@@ -46,7 +46,7 @@ export class EveChildSocket extends EveChildTransform
   @impl.implemented
   HandleControllerEvent(name)
   {
-    this.plug?.HandleControllerEvent?.(name);
+    this.plug?.HandleControllerEvent(name);
   }
 
   /** Carbon method Rebind -> BindParameters (MAP_METHOD_AND_WRAP). */
@@ -115,7 +115,7 @@ export class EveChildSocket extends EveChildTransform
   @impl.implemented
   SetControllerVariable(name, value)
   {
-    this.plug?.SetControllerVariable?.(name, value);
+    this.plug?.SetControllerVariable(name, value);
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -123,7 +123,7 @@ export class EveChildSocket extends EveChildTransform
   @impl.implemented
   StartControllers()
   {
-    this.plug?.StartControllers?.();
+    this.plug?.StartControllers();
   }
 
   /** Carbon EveChildSocket::RegisterComponents (cpp:212-221): forward-only to

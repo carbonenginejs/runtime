@@ -692,7 +692,7 @@ export class EveTurretFiringFX extends EveEntity
   @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
   SetControllerVariable(name, value)
   {
-    for (const stretch of this.stretch) stretch?.SetControllerVariable?.(name, value);
+    for (const stretch of this.stretch) stretch?.SetControllerVariable(name, value);
   }
 
   /** Forwards a named controller event to every stretch element. */
@@ -701,7 +701,7 @@ export class EveTurretFiringFX extends EveEntity
   @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
   HandleControllerEvent(name)
   {
-    for (const stretch of this.stretch) stretch?.HandleControllerEvent?.(name);
+    for (const stretch of this.stretch) stretch?.HandleControllerEvent(name);
   }
 
   /** Starts the controllers on every stretch element. */
@@ -710,7 +710,7 @@ export class EveTurretFiringFX extends EveEntity
   @impl.reason("Controller ownership is represented by direct firing-element method forwarding.")
   StartControllers()
   {
-    for (const stretch of this.stretch) stretch?.StartControllers?.();
+    for (const stretch of this.stretch) stretch?.StartControllers();
   }
 
   /** Carbon EveTurretFiringFX::RegisterComponents (cpp:739-752): forwards the

@@ -1055,7 +1055,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     this.PrepareShaderData(updateContext);
     if (previousActivationStrength !== this.spaceObjectShipData[1])
     {
-      this.SetControllerVariable?.("ActivationStrength", this.spaceObjectShipData[1]);
+      this.SetControllerVariable("ActivationStrength", this.spaceObjectShipData[1]);
     }
 
     this.#psData.Set("shipData", this.spaceObjectShipData);
@@ -2869,11 +2869,11 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     for (const child of this.effectChildren)
     {
-      child?.HandleControllerEvent?.(eventName);
+      child?.HandleControllerEvent(eventName);
     }
     for (const overlay of this.overlayEffects)
     {
-      overlay?.HandleControllerEvent?.(eventName);
+      overlay?.HandleControllerEvent(eventName);
     }
   }
 
@@ -3276,11 +3276,11 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     for (const child of this.effectChildren)
     {
-      child?.SetControllerVariable?.(key, next);
+      child?.SetControllerVariable(key, next);
     }
     for (const overlay of this.overlayEffects)
     {
-      overlay?.SetControllerVariable?.(key, next);
+      overlay?.SetControllerVariable(key, next);
     }
   }
 
@@ -3312,11 +3312,11 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     for (const child of this.effectChildren)
     {
-      child?.StartControllers?.();
+      child?.StartControllers();
     }
     for (const overlay of this.overlayEffects)
     {
-      overlay?.StartControllers?.();
+      overlay?.StartControllers();
     }
   }
 

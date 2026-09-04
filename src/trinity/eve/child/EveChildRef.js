@@ -88,7 +88,7 @@ export class EveChildRef extends EveChildTransform
   @impl.implemented
   HandleControllerEvent(name)
   {
-    this.child?.HandleControllerEvent?.(name);
+    this.child?.HandleControllerEvent(name);
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -96,7 +96,7 @@ export class EveChildRef extends EveChildTransform
   @impl.implemented
   SetControllerVariable(name, value)
   {
-    this.child?.SetControllerVariable?.(name, value);
+    this.child?.SetControllerVariable(name, value);
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -104,7 +104,7 @@ export class EveChildRef extends EveChildTransform
   @impl.implemented
   StartControllers()
   {
-    this.child?.StartControllers?.();
+    this.child?.StartControllers();
   }
 
   /** Carbon EveChildRef::RegisterComponents (cpp:87-96): forward-only to the

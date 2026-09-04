@@ -876,7 +876,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     const next = Number(value);
     this.#controllerVariables.set(key, next);
     for (const controller of this.controllers) controller?.SetVariable(key, next);
-    for (const child of this.effectChildren) child?.SetControllerVariable?.(key, next);
+    for (const child of this.effectChildren) child?.SetControllerVariable(key, next);
   }
 
   /** Propagates an event to controllers and effect children. */
@@ -886,7 +886,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   {
     const eventName = String(name ?? "");
     for (const controller of this.controllers) controller?.HandleEvent(eventName);
-    for (const child of this.effectChildren) child?.HandleControllerEvent?.(eventName);
+    for (const child of this.effectChildren) child?.HandleControllerEvent(eventName);
   }
 
   /** Starts controllers on the root and its effect children. */
@@ -895,7 +895,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
-    for (const child of this.effectChildren) child?.StartControllers?.();
+    for (const child of this.effectChildren) child?.StartControllers();
   }
 
   /** Finds a named direct effect child. */
@@ -919,7 +919,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   {
     this.effectChildren.push(child);
     EveEffectRoot2.#ApplyControllerVariables(child, this.#controllerVariables, "SetControllerVariable");
-    child?.StartControllers?.();
+    child?.StartControllers();
     return child;
   }
 

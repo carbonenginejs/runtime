@@ -827,7 +827,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @impl.implemented
   SetControllerVariable(name, value)
   {
-    this.effect?.SetControllerVariable?.(String(name ?? ""), Number(value));
+    this.effect?.SetControllerVariable(String(name ?? ""), Number(value));
   }
 
   /** Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51). */

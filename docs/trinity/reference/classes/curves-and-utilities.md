@@ -805,6 +805,16 @@ Binds a named controller event to a list of actions that are run as a single one
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2ControllerOwner -->
+## `ITr2ControllerOwner`
+
+Contract for an object that owns controllers, sets and reads their variables, handles their events and names the roots a dynamic binding path may start from; every method has a default, so an owner with no controllers inherits six harmless ones.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/ITr2ControllerOwner.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITr2Controller -->
 ## `ITr2Controller`
 

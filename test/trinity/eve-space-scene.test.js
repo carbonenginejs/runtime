@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { withITr2ControllerOwner } from "../../npm/dist/trinity/controllers/ITr2ControllerOwner.js";
 import {
   EveChildMesh,
   EveChildModifierCameraOrientedRotationConstrained,
@@ -255,12 +256,19 @@ test("object-level curve sets and overlays receive the context time as both cloc
       calls.push(["curveSet", realTime, simTime]);
     }
   });
-  object.overlayEffects.push({
+  // AN OVERLAY FAKE HAS TO BE A CONTROLLER OWNER. Carbon's EveMeshOverlayEffect
+  // implements ITr2ControllerOwner, and EveSpaceObject2.SetControllerVariable
+  // calls straight through to every overlay (cpp:4263). This was a bare literal
+  // with Update alone, which only worked while the call site was hedged.
+  class OverlayFake extends withITr2ControllerOwner(Object)
+  {
     Update(realTime, simTime)
     {
       calls.push(["overlay", realTime, simTime]);
     }
-  });
+  }
+
+  object.overlayEffects.push(new OverlayFake());
 
   // Distinct clocks: scene realTime 7, simTime 3. Carbon passes the CONTEXT
   // time (simTime) as BOTH arguments to object-level curve sets and overlay

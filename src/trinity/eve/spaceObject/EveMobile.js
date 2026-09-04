@@ -322,7 +322,7 @@ export class EveMobile extends EveSpaceObject2
   SetControllerVariable(name, value)
   {
     super.SetControllerVariable(name, value);
-    for (const turretSet of this.turretSets) turretSet?.SetControllerVariable?.(name, value);
+    for (const turretSet of this.turretSets) turretSet?.SetControllerVariable(name, value);
   }
 
   /** Raises a controller event on the hull and forwards it to every turret set. */
@@ -331,7 +331,7 @@ export class EveMobile extends EveSpaceObject2
   HandleControllerEvent(name)
   {
     super.HandleControllerEvent(name);
-    for (const turretSet of this.turretSets) turretSet?.HandleControllerEvent?.(name);
+    for (const turretSet of this.turretSets) turretSet?.HandleControllerEvent(name);
   }
 
   /** Starts the hull's controllers and every turret set's controllers. */
@@ -340,7 +340,7 @@ export class EveMobile extends EveSpaceObject2
   StartControllers()
   {
     super.StartControllers();
-    for (const turretSet of this.turretSets) turretSet?.StartControllers?.();
+    for (const turretSet of this.turretSets) turretSet?.StartControllers();
   }
 
   /**
