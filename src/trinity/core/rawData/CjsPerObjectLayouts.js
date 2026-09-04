@@ -203,6 +203,34 @@ export const EveBoosterSet = Object.freeze({
 
 
 /**
+ * EveChildBoosterSet.h:39-56. `worldMatrix` is written with SetAndTranspose
+ * from the LOGICAL parent transform (Carbon Transpose at cpp:543);
+ * `instanceOffset` is the ring-buffer frame offset the AL backend supplies.
+ */
+export const EveChildBoosterSet = Object.freeze({
+    vs: {
+        struct: "EveChildBoosterSetVSData",
+        fields: {
+            worldMatrix: { type: Types.MATRIX4, default: IDENTITY },
+            padding0: { type: Types.FLOAT },
+            padding1: { type: Types.FLOAT },
+            maxBoosterSize: { type: Types.FLOAT },
+            instanceOffset: { type: Types.UINT32 }
+        }
+    },
+    ps: {
+        struct: "EveChildBoosterSetPSData",
+        fields: {
+            padding0: { type: Types.FLOAT },
+            padding1: { type: Types.FLOAT },
+            warpIntensity: { type: Types.FLOAT },
+            padding2: { type: Types.FLOAT }
+        }
+    }
+});
+
+
+/**
  * EveChildBulletStorm.h:20 - VS only. `targetPositionsWS` slots past the filled
  * target count stay allocator garbage (cpp:403-407); the bound is a bare
  * literal `[10]` in Carbon, not a named constant.
@@ -413,6 +441,7 @@ const GROUPS = Object.freeze({
     EveChildSpherePin,
     EveSpaceObjectDecal,
     EveBoosterSet,
+    EveChildBoosterSet,
     EveChildBulletStorm,
     EveStretch2,
     EveSpaceObject,

@@ -6436,3 +6436,96 @@ test("typed EveSOFDataParameter subclasses flatten with Carbon's GetValue rules"
     assert.equal(typeof CjsSchema.GetConstructor(name), "function", name);
   }
 });
+
+
+test("BuildChildValues emits the child booster set into the placement container", () => {
+  const data = createData();
+  data.hull[0].boundingSphere = [0, 0, 0, 4];
+  data.hull[0].booster = {
+    alwaysOn: false,
+    hasTrails: false,
+    driveName: "",
+    effectPath: "",
+    items: [{
+      transform: [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        1, 2, 3, 1,
+      ],
+      functionality: [0, 1, 1, 1],
+      hasTrail: false,
+      atlasIndex0: 6,
+      atlasIndex1: 7,
+      lightScale: 1.25,
+    }],
+  };
+  const shape = (speed, color) => ({
+    noiseFunction: 1,
+    noiseSpeed: speed,
+    noiseAmplitureStart: [1, 2, 3, 4],
+    noiseAmplitureEnd: [5, 6, 7, 8],
+    noiseFrequency: [9, 10, 11, 12],
+    color,
+  });
+  data.race[0].booster = {
+    scale: [1, 1, 1, 1],
+    glowScale: 2,
+    glowColor: [0.1, 0.2, 0.3, 0.4],
+    warpGlowColor: [0.5, 0.6, 0.7, 0.8],
+    symHaloScale: 3,
+    haloScaleX: 4,
+    haloScaleY: 5,
+    haloColor: [0.2, 0.3, 0.4, 0.5],
+    trailColor: [0, 0, 0, 0],
+    trailSize: [0, 0, 0, 0],
+    shape0: shape(1, [1, 0, 0, 1]),
+    shape1: shape(2, [0, 1, 0, 1]),
+    warpShape0: shape(3, [0, 0, 1, 1]),
+    warpShape1: shape(4, [1, 1, 0, 1]),
+    shapeAtlasResPath: "res:/booster/shape.dds",
+    gradient0ResPath: "res:/booster/g0.dds",
+    gradient1ResPath: "res:/booster/g1.dds",
+    shapeAtlasHeight: 8,
+    shapeAtlasCount: 16,
+    lightOffset: 1,
+    lightRadius: 2,
+    lightWarpRadius: 3,
+    lightFlickerAmplitude: 0.5,
+    lightFlickerFrequency: 4,
+    lightColor: [1, 0, 0, 1],
+    lightWarpColor: [0, 0, 1, 1],
+  };
+
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+  const owner = {
+    _type: "EveSpaceObject2",
+    kind: "EveSpaceObject2",
+    effectChildren: [],
+    locatorSets: [],
+    boundingSphereCenter: [0, 0, 0],
+    boundingSphereRadius: 0,
+    shapeEllipsoidCenter: [0, 0, 0],
+    shapeEllipsoidRadius: [0, 0, 0],
+  };
+  const composed = sof.BuildChildValues(owner, "rifter:minmatar:minmatar", 5, [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const container = composed.effectChildren.find(child => child._type === "EveChildContainer");
+  assert.ok(container, "hasBoosters forces the placement container");
+  const boosterSet = container.objects.find(child => child._type === "EveChildBoosterSet");
+  assert.ok(boosterSet, "the child booster set lands in the placement container");
+  assert.equal(boosterSet.name, "Boosters");
+  // Empty per-hull overrides fall back to the EveChildBoosterSet defaults.
+  assert.equal(boosterSet.driveName, "ThrustMain");
+  assert.equal(boosterSet.effect.effectFilePath,
+    "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx");
+  assert.equal(boosterSet.effectFar.effectFilePath,
+    "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx");
+  assert.equal(boosterSet.glowScale, 2);
+  assert.equal(boosterSet.lightRadius, 2);
+  assert.equal(boosterSet.items.length, 1);
+  assert.deepEqual(boosterSet.items[0].transform.slice(12, 15), [1, 2, 3]);
+  assert.equal(boosterSet.items[0].atlasIndex0, 6);
+  assert.equal(boosterSet.items[0].lightScale, 1.25);
+  assert.ok(boosterSet.glows, "one glow sprite set rides along");
+});

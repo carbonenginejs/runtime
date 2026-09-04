@@ -42,6 +42,8 @@ const SIZES = [
   [ "DecalPSPerObjectData", 44, "EveSpaceObjectDecal.h:37" ],
   [ "EveBoosterSetVSData", 60, "EveBoosterSet2.h:51 - Matrix + 4 float + 2x Vector4[5]" ],
   [ "EveBoosterSetPSData", 4, "EveBoosterSet2.h:66" ],
+  [ "EveChildBoosterSetVSData", 20, "EveChildBoosterSet.h:39-49 - Matrix + 3 float + uint32" ],
+  [ "EveChildBoosterSetPSData", 4, "EveChildBoosterSet.h:50-56" ],
   [ "EveChildBulletStormPerObjectData", 60, "EveChildBulletStorm.h:20 - Vector4[10]" ],
   [ "EveStretch2PerObjectData", 16, "EveStretch2.h:105-109" ],
   [ "EveSpaceObjectVSData", 116, "EveSpaceObject2.h:99" ],

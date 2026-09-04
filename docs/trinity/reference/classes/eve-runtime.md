@@ -1745,6 +1745,16 @@ One authored sprite: its bone attachment, position, blink timing, scale range, f
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:EveChildBoosterSet -->
+## `EveChildBoosterSet`
+
+The child-graph booster set: instanced exhaust geometry packed as 64-byte ring-buffer rows, the lensflare sprite set at each exhaust point, and flickering point lights scaled by the parent transform; without an installed AL ring buffer the set stays undrawn, which is Carbon's own invalid-offset state.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/EveChildBoosterSet.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:EveChildTurret -->
 ## `EveChildTurret`
 

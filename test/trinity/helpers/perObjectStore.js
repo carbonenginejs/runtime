@@ -140,7 +140,9 @@ const CATALOG_PER_OBJECT_STRUCTS = [
   "EveSpaceObjectVSData",
   "EveSpaceObjectPSData",
   "EveTurretSetVSData",
-  "EveTurretSetPSData"
+  "EveTurretSetPSData",
+  "EveChildBoosterSetVSData",
+  "EveChildBoosterSetPSData"
 ];
 
 

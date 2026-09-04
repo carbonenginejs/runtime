@@ -1160,8 +1160,10 @@ export class EveSOF extends CjsModel
       }
     }
 
+    // hasBoosters forces the placement container, as in Carbon (EveSOF.cpp:360).
+    const hasBoosters = dna.GetHullBoosterCount() > 0;
     const needsPlacementContainer = hasControllers || hasAnimation || hasEmitters ||
-      hasChildEffects || hasLayouts || hasAttachments;
+      hasChildEffects || hasLayouts || hasAttachments || hasBoosters;
     const buildFlags = hasAnimation
       ? EveSOFDataHull.BuildFilter.NON_INSTANCED_PLACEMENT
       : EveSOFDataHull.BuildFilter.INSTANCED_PLACEMENT;
@@ -1268,6 +1270,10 @@ export class EveSOF extends CjsModel
     if (placementFields)
     {
       this.SetupAudio(document, placementFields, dna, transform);
+    }
+    if (hasBoosters && placementFields)
+    {
+      this.SetupChildBoosters(document, placementFields, dna);
     }
     if (hasChildEffects)
     {
@@ -2645,6 +2651,101 @@ export class EveSOF extends CjsModel
       items
     });
     return rootFields.boosters;
+  }
+
+  /**
+   * Emits the child-graph booster set into a placement container (Carbon
+   * EveSOF::SetupChildBoosters, EveSOF.cpp:3049-3132): per-hull
+   * driveName/effectPath/parameter/texture overrides with the
+   * EveChildBoosterSet defaults as fallback, the LOD effect pair, one glow
+   * sprite set, and every hull's items with the cumulative multi-hull
+   * offset. Quad-renderer registration and PrepareResources are engine
+   * realizations; the booster set node carries everything else.
+   */
+  @carbon.method
+  @impl.adapted
+  SetupChildBoosters(document, placementFields, dna)
+  {
+    if (dna.GetHullBoosterCount() === 0) return null;
+    const race = dna.GetRaceBoosterData();
+    if (!race) return null;
+    const hull0 = dna.GetHullBoosterData(0) ?? {};
+
+    // EveChildBoosterSet.DEFAULT_DRIVE_NAME / DEFAULT_EFFECT_PATH
+    // (EveChildBoosterSet.h:94-96); SOF stays import-free of trinity.
+    const driveName = hull0.driveName || "ThrustMain";
+    const effectPath = hull0.effectPath ||
+      "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx";
+    const effect = createBoosterEffect(
+      document, race, "BOOSTER_LOD_HIGH", effectPath, hull0.parameters, hull0.textures);
+    const effectFar = createBoosterEffect(
+      document, race, "BOOSTER_LOD_LOW", effectPath, hull0.parameters, hull0.textures);
+
+    const glowEffect = document.AddNode("Tr2Effect", {
+      effectFilePath: "res:/Graphics/Effect/Managed/Space/Booster/BoosterGlowAnimated.fx",
+      options: [],
+      constParameters: [],
+      parameters: [],
+      resources: [
+        document.AddNode("TriTextureParameter", {
+          name: "NoiseMap",
+          resourcePath: "res:/Texture/global/noise.dds"
+        }),
+        document.AddNode("TriTextureParameter", {
+          name: "DiffuseMap",
+          resourcePath: "res:/Texture/Particle/whitesharp.dds"
+        })
+      ],
+      samplerOverrides: []
+    });
+    const glows = document.AddNode("EveSpriteSet", { sprites: [], effect: glowEffect });
+
+    const items = [];
+    const hullOffset = [0, 0, 0];
+    for (let hullIndex = 0; hullIndex < dna.GetMultiHullCount(); hullIndex++)
+    {
+      const hull = dna.GetHullBoosterData(hullIndex) ?? { items: [] };
+      for (const item of hull.items ?? [])
+      {
+        const transform = arrayValue(item.transform, identityMatrix());
+        transform[12] += hullOffset[0];
+        transform[13] += hullOffset[1];
+        transform[14] += hullOffset[2];
+        items.push(document.AddNode("EveBoosterSet2Item", {
+          transform,
+          atlasIndex0: Number(item.atlasIndex0 ?? 0) >>> 0,
+          atlasIndex1: Number(item.atlasIndex1 ?? 0) >>> 0,
+          lightScale: Number(item.lightScale ?? 1)
+        }));
+      }
+      addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));
+    }
+
+    const ref = document.AddNode("EveChildBoosterSet", {
+      name: "Boosters",
+      driveName,
+      glowScale: Number(race.glowScale ?? 1),
+      glowColor: arrayValue(race.glowColor, [0, 0, 0, 0]),
+      warpGlowColor: arrayValue(race.warpGlowColor, [0, 0, 0, 0]),
+      symHaloScale: Number(race.symHaloScale ?? 1),
+      haloScaleX: Number(race.haloScaleX ?? 1),
+      haloScaleY: Number(race.haloScaleY ?? 1),
+      haloColor: arrayValue(race.haloColor, [0, 0, 0, 0]),
+      warpHaloColor: arrayValue(race.warpHaloColor, [0, 0, 0, 0]),
+      lightOffset: Number(race.lightOffset ?? 0),
+      lightFlickerAmplitude: Number(race.lightFlickerAmplitude ?? 0),
+      lightFlickerFrequency: Number(race.lightFlickerFrequency ?? 0),
+      lightRadius: Number(race.lightRadius ?? 0),
+      lightColor: arrayValue(race.lightColor, [0, 0, 0, 0]),
+      lightWarpRadius: Number(race.lightWarpRadius ?? 0),
+      lightWarpColor: arrayValue(race.lightWarpColor, [0, 0, 0, 0]),
+      effect,
+      effectFar,
+      glows,
+      items
+    });
+    placementFields.objects.push(ref);
+    return ref;
   }
 
   /**
@@ -4969,7 +5070,7 @@ function createInstancedMeshArea(document, dna, source, shaderData, resolveTextu
 // always use the defaults.
 function createBoosterEffect(document, race, lodOption,
   effectPath = "res:/Graphics/Effect/Managed/Space/Booster/BoosterVolumetric.fx",
-  parameters = null)
+  parameters = null, textureOverrides = null)
 {
   const constParameters = [];
   const add = (name, value) => {
@@ -5003,6 +5104,22 @@ function createBoosterEffect(document, race, lodOption,
   add("ShapeAtlasSize", [race.shapeAtlasHeight, race.shapeAtlasCount, 0, 0]);
   add("BoosterScale", race.scale);
 
+  // Per-hull texture overrides replace a default by name or append (Carbon
+  // SetResourceTexture2D semantics, EveSOF.cpp:3095-3099).
+  const textures = new Map([
+    [ "ShapeMap", String(race.shapeAtlasResPath ?? "") ],
+    [ "GradientMap0", String(race.gradient0ResPath ?? "") ],
+    [ "GradientMap1", String(race.gradient1ResPath ?? "") ],
+    [ "NoiseMap", "res:/Texture/Global/noise32cube_volume.dds" ]
+  ]);
+  if (textureOverrides)
+  {
+    for (const [ name, record ] of textureOverrides)
+    {
+      textures.set(String(name), String(record?.resFilePath ?? record ?? ""));
+    }
+  }
+
   return document.AddNode("Tr2Effect", {
     effectFilePath: effectPath,
     options: [document.AddNode("Tr2ShaderOption", {
@@ -5011,24 +5128,8 @@ function createBoosterEffect(document, race, lodOption,
     })],
     constParameters,
     parameters: [],
-    resources: [
-      document.AddNode("TriTextureParameter", {
-        name: "ShapeMap",
-        resourcePath: String(race.shapeAtlasResPath ?? "")
-      }),
-      document.AddNode("TriTextureParameter", {
-        name: "GradientMap0",
-        resourcePath: String(race.gradient0ResPath ?? "")
-      }),
-      document.AddNode("TriTextureParameter", {
-        name: "GradientMap1",
-        resourcePath: String(race.gradient1ResPath ?? "")
-      }),
-      document.AddNode("TriTextureParameter", {
-        name: "NoiseMap",
-        resourcePath: "res:/Texture/Global/noise32cube_volume.dds"
-      })
-    ],
+    resources: [...textures].map(([ name, resourcePath ]) =>
+      document.AddNode("TriTextureParameter", { name, resourcePath })),
     samplerOverrides: []
   });
 }
