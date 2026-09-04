@@ -165,7 +165,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   {
     for (const controller of this.controllers)
     {
-      if (!controller?.IsLinked?.()) controller?.Link?.(this);
+      if (!controller?.IsLinked()) controller?.Link(this);
       EveEffectRoot2.#ApplyControllerVariables(controller, this.#controllerVariables, "SetVariable");
     }
     return true;
@@ -178,7 +178,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   AddController(controller)
   {
     this.controllers.push(controller);
-    if (!controller?.IsLinked?.()) controller?.Link?.(this);
+    if (!controller?.IsLinked()) controller?.Link(this);
     EveEffectRoot2.#ApplyControllerVariables(controller, this.#controllerVariables, "SetVariable");
     return controller;
   }
@@ -192,7 +192,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     const index = this.controllers.indexOf(controller);
     if (index === -1) return false;
     this.controllers.splice(index, 1);
-    controller?.Unlink?.();
+    controller?.Unlink();
     return true;
   }
 
@@ -304,7 +304,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   @impl.implemented
   UpdateControllers(updateFrequency)
   {
-    for (const controller of this.controllers) controller?.Update?.(updateFrequency);
+    for (const controller of this.controllers) controller?.Update(updateFrequency);
   }
 
   /** Returns the authored local bounding sphere. */
@@ -875,7 +875,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     const key = String(name ?? "");
     const next = Number(value);
     this.#controllerVariables.set(key, next);
-    for (const controller of this.controllers) controller?.SetVariable?.(key, next);
+    for (const controller of this.controllers) controller?.SetVariable(key, next);
     for (const child of this.effectChildren) child?.SetControllerVariable?.(key, next);
   }
 
@@ -885,7 +885,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   HandleControllerEvent(name)
   {
     const eventName = String(name ?? "");
-    for (const controller of this.controllers) controller?.HandleEvent?.(eventName);
+    for (const controller of this.controllers) controller?.HandleEvent(eventName);
     for (const child of this.effectChildren) child?.HandleControllerEvent?.(eventName);
   }
 
@@ -894,7 +894,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   @impl.implemented
   StartControllers()
   {
-    for (const controller of this.controllers) controller?.Start?.();
+    for (const controller of this.controllers) controller?.Start();
     for (const child of this.effectChildren) child?.StartControllers?.();
   }
 

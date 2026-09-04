@@ -7,15 +7,22 @@
 // only held while somebody remembered it, and by 2026-09-05 there were 1699
 // sites across 209 files.
 //
-// WHAT IT CATCHES. An optional call whose method name is PascalCase, in either
-// spelling: `thing?.DoWork( ... )` and `thing.DoWork?.( ... )`. PascalCase is
-// this runtime's instance-method convention, so a PascalCase name is a method on
-// a class we own - and if it might be missing, the class is the thing to fix.
-// camelCase optional calls are left alone: those are caller-supplied callbacks
-// and host-object probes, which the rule explicitly permits.
+// WHAT IT CATCHES, AND THE DISTINCTION THAT MATTERS. Only the METHOD hedge:
+// `thing.DoWork?.( ... )`, which says "call this if the method happens to
+// exist". PascalCase is this runtime's instance-method convention, so a
+// PascalCase name is a method on a class we own, and a class we own either has
+// the method or is the thing to fix. camelCase is left alone: those are
+// caller-supplied callbacks and host-object probes, which the rule permits.
 //
-// A NOTE ON `?.` THAT IS NOT A CALL. `thing?.property` is untouched. A nullable
-// OBJECT is an ordinary fact. A nullable METHOD on an object we defined is not.
+// `thing?.DoWork()` IS NOT COUNTED, and the first version of this script got
+// that wrong. A nullable OBJECT is an ordinary fact - a list can hold a null, a
+// reference can be unresolved - and guarding it says nothing about whether the
+// method exists. The rule is about hiding a missing IMPLEMENTATION. Counting the
+// receiver guard also made the checker useless for measuring progress: turning
+// `thing?.DoWork?.()` into `thing?.DoWork()` is exactly the fix, and the count
+// did not move.
+//
+// `thing?.property` is untouched for the same reason.
 //
 // HOW THE BASELINE WORKS. Rewriting 1699 sites at once would be sixteen hundred
 // judgement calls made in a hurry, and removing a `?.` that was load-bearing
@@ -31,8 +38,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = path.join(root, "src");
 const baselineFile = path.join(root, "scripts", "optional-call-baseline.json");
 
-/** `thing?.DoWork(` and `thing.DoWork?.(`, the two spellings of the same mistake. */
-const OPTIONAL_OWNED_CALL = /\?\.[A-Z][A-Za-z0-9_]*\(|\.[A-Z][A-Za-z0-9_]*\?\.\(/gu;
+/** `thing.DoWork?.(` - the method itself hedged, whatever the receiver. */
+const OPTIONAL_OWNED_CALL = /\.[A-Z][A-Za-z0-9_]*\?\.\(/gu;
 
 const BLOCK_COMMENT = /\/\*[\s\S]*?\*\//gu;
 const LINE_COMMENT = /^[ \t]*\/\/.*$/gmu;

@@ -3,6 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
+import { withITr2ActionController } from "../ITr2Controller.js";
 import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
 import { UnlinkReason } from "../enums.js";
 
@@ -16,7 +17,7 @@ import { UnlinkReason } from "../enums.js";
   className: "Tr2TimelineController",
   family: "controllers"
 })
-export class Tr2TimelineController extends EveThrottleable
+export class Tr2TimelineController extends withITr2ActionController(EveThrottleable)
 {
   @io.persistOnly
   @type.list("ITr2ControllerAction")

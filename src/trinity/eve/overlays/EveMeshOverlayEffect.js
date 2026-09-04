@@ -128,7 +128,7 @@ export class EveMeshOverlayEffect extends CjsModel
   {
     for (const controller of this.controllers)
     {
-      if (!controller?.IsLinked?.()) controller?.Link?.(this);
+      if (!controller?.IsLinked()) controller?.Link(this);
     }
     return true;
   }
@@ -154,7 +154,7 @@ export class EveMeshOverlayEffect extends CjsModel
         value?.Unlink?.();
         break;
       case BELIST_UNLOADSTART:
-        for (const controller of this.controllers) controller?.Unlink?.();
+        for (const controller of this.controllers) controller?.Unlink();
         break;
     }
   }
@@ -164,7 +164,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   SetControllerVariable(name, value)
   {
-    for (const controller of this.controllers) controller?.SetVariable?.(name, value);
+    for (const controller of this.controllers) controller?.SetVariable(name, value);
   }
 
   /** Forwards a named event to every controller. */
@@ -172,7 +172,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   HandleControllerEvent(name)
   {
-    for (const controller of this.controllers) controller?.HandleEvent?.(name);
+    for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
   /** Starts every controller attached to the overlay. */
@@ -180,7 +180,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   StartControllers()
   {
-    for (const controller of this.controllers) controller?.Start?.();
+    for (const controller of this.controllers) controller?.Start();
   }
 
   /**
@@ -246,7 +246,7 @@ export class EveMeshOverlayEffect extends CjsModel
   {
     if (!this.update || !this.curveSet) return;
     this.curveSet.Update(realTime, simTime, renderContext);
-    for (const controller of this.controllers) controller?.Update?.(0.5);
+    for (const controller of this.controllers) controller?.Update(0.5);
   }
 
   /**

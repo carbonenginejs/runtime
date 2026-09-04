@@ -1,3 +1,4 @@
+export * from "./ITr2Controller.js";
 export * from "./ITr2ControllerOwner.js";
 export * from "./Tr2Controller.js";
 export * from "./Tr2ControllerEventHandler.js";

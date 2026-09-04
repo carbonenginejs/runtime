@@ -18,6 +18,7 @@ import {
   TriObserverLocal
 } from "../../npm/dist/trinity/index.js";
 import { EveChildInheritProperties } from "../../npm/dist/trinity/eve/child/EveChildInheritProperties.js";
+import { withITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 
 
@@ -675,12 +676,25 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
       out[2] = 30;
     }
   };
-  object.controllers.push({
+  // A CONTROLLER FAKE HAS TO BE A CONTROLLER. This was a bare object literal
+  // carrying Update alone, and the production code only tolerated it because
+  // every call site read `controller?.SetVariable?.()`. The contract supplies
+  // Carbon's empty bodies for the verbs this fake does not care about, which is
+  // exactly what those hedges were emulating one call site at a time.
+  class FrequencyController extends withITr2Controller(Object)
+  {
+    IsLinked()
+    {
+      return true;
+    }
+
     Update(frequency)
     {
       calls.push(["frequency", frequency]);
     }
-  });
+  }
+
+  object.controllers.push(new FrequencyController());
   object.estimatedPixelDiameter = 50;
   const childUpdates = [];
   object.effectChildren.push(Object.assign(new EveSpaceObjectChild(), {

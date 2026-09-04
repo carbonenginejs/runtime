@@ -161,7 +161,7 @@ export class EveLensflare extends withITr2Renderable(CjsModel)
     const key = String(name);
     const next = Number(value);
     this.#controllerVariables.set(key, next);
-    for (const controller of this.controllers) controller?.SetVariable?.(key, next);
+    for (const controller of this.controllers) controller?.SetVariable(key, next);
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -169,7 +169,7 @@ export class EveLensflare extends withITr2Renderable(CjsModel)
   @impl.implemented
   StartControllers()
   {
-    for (const controller of this.controllers) controller?.Start?.();
+    for (const controller of this.controllers) controller?.Start();
   }
 
   /** Carbon EveLensflare::GetBatches delegates the selected mesh areas (cpp:381-387). */

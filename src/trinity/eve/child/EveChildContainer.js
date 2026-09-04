@@ -193,9 +193,9 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     this.RegisterChildren(this.objects);
     for (const controller of this.controllers)
     {
-      if (!controller?.IsLinked?.())
+      if (!controller?.IsLinked())
       {
-        controller?.Link?.(this);
+        controller?.Link(this);
       }
     }
     return true;
@@ -352,10 +352,10 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
   AddController(controller)
   {
     this.controllers.push(controller);
-    controller?.Link?.(this);
+    controller?.Link(this);
     for (const [name, value] of this.#controllerVariables)
     {
-      controller?.SetVariable?.(name, value);
+      controller?.SetVariable(name, value);
     }
   }
 
@@ -373,7 +373,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     this.#controllerVariables.set(key, next);
     for (const controller of this.controllers)
     {
-      controller?.SetVariable?.(key, next);
+      controller?.SetVariable(key, next);
     }
     for (const child of this.objects)
     {
@@ -392,7 +392,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     const eventName = String(name ?? "");
     for (const controller of this.controllers)
     {
-      controller?.HandleEvent?.(eventName);
+      controller?.HandleEvent(eventName);
     }
     for (const child of this.objects)
     {
@@ -407,7 +407,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
   {
     for (const controller of this.controllers)
     {
-      controller?.Start?.();
+      controller?.Start();
     }
     for (const child of this.objects)
     {
@@ -637,7 +637,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     const frequency = params?.controllerUpdateFrequency ?? 0.5;
     for (const controller of this.controllers)
     {
-      controller?.Update?.(frequency);
+      controller?.Update(frequency);
     }
 
     // Carbon's DoUpdateAsyncronous overrides boneCount/bones from this

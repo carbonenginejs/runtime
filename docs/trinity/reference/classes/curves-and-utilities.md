@@ -805,6 +805,26 @@ Binds a named controller event to a list of actions that are run as a single one
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2Controller -->
+## `ITr2Controller`
+
+Contract for an object that controls another between Start and Stop; only IsLinked has no default, the other seven verbs inherit Carbon's empty bodies.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/ITr2Controller.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITr2ActionController -->
+## `ITr2ActionController`
+
+Contract for a controller that also drives controller actions, adding the owner, callback, updateable-registration and expression-variable surface that has no sensible default.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/ITr2Controller.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2ControllerReference -->
 ## `Tr2ControllerReference`
 

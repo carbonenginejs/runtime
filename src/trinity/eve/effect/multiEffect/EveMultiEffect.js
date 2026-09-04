@@ -86,7 +86,7 @@ export class EveMultiEffect extends CjsModel
     }
     if (!onlyUpdateBindings)
     {
-      for (const controller of this.controllers) controller?.Link?.(this);
+      for (const controller of this.controllers) controller?.Link(this);
     }
   }
 
@@ -132,7 +132,7 @@ export class EveMultiEffect extends CjsModel
       else if (maskedEvent === BELIST_REMOVED) value?.Unlink?.();
       else if (maskedEvent === BELIST_UNLOADSTART)
       {
-        for (const controller of this.controllers) controller?.Unlink?.();
+        for (const controller of this.controllers) controller?.Unlink();
       }
     }
     this.Rebind();
@@ -143,7 +143,7 @@ export class EveMultiEffect extends CjsModel
   @impl.implemented
   HandleControllerEvent(name)
   {
-    for (const controller of this.controllers) controller?.HandleEvent?.(name);
+    for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -151,7 +151,7 @@ export class EveMultiEffect extends CjsModel
   @impl.implemented
   SetControllerVariable(name, value)
   {
-    for (const controller of this.controllers) controller?.SetVariable?.(name, value);
+    for (const controller of this.controllers) controller?.SetVariable(name, value);
   }
 
   /** Carbon method SetParameter (MAP_METHOD_AND_WRAP). */
@@ -174,7 +174,7 @@ export class EveMultiEffect extends CjsModel
   @impl.implemented
   StartControllers()
   {
-    for (const controller of this.controllers) controller?.Start?.();
+    for (const controller of this.controllers) controller?.Start();
   }
 
   /** First parameter slot with the given name, or null. */
@@ -301,7 +301,7 @@ export class EveMultiEffect extends CjsModel
   {
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
     for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
-    for (const controller of this.controllers) controller?.Update?.(0.5);
+    for (const controller of this.controllers) controller?.Update(0.5);
     for (const binding of this.bindings) binding?.Update?.(time);
   }
 

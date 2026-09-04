@@ -3,6 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
+import { withITr2Controller } from "./ITr2Controller.js";
 
 
 /**
@@ -13,7 +14,7 @@ import { UnlinkReason } from "./enums.js";
   className: "Tr2ControllerReference",
   family: "controllers"
 })
-export class Tr2ControllerReference extends CjsModel
+export class Tr2ControllerReference extends withITr2Controller(CjsModel)
 {
   static #resourceResolver = null;
 
@@ -82,7 +83,7 @@ export class Tr2ControllerReference extends CjsModel
     }
     if (this.controller && this.#owner)
     {
-      this.controller.Link?.(this.#owner);
+      this.controller.Link(this.#owner);
     }
     return true;
   }
@@ -95,7 +96,7 @@ export class Tr2ControllerReference extends CjsModel
   Link(owner)
   {
     this.#owner = owner;
-    this.controller?.Link?.(owner);
+    this.controller?.Link(owner);
   }
 
   /**
@@ -105,7 +106,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
-    this.controller?.Unlink?.(reason);
+    this.controller?.Unlink(reason);
     this.#owner = null;
   }
 
@@ -126,7 +127,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   Start()
   {
-    this.controller?.Start?.();
+    this.controller?.Start();
   }
 
   /**
@@ -136,7 +137,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   Stop()
   {
-    this.controller?.Stop?.();
+    this.controller?.Stop();
   }
 
   /**
@@ -146,7 +147,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   Update(normalizedUpdateFrequency = 0)
   {
-    this.controller?.Update?.(normalizedUpdateFrequency);
+    this.controller?.Update(normalizedUpdateFrequency);
   }
 
   /**
@@ -156,7 +157,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   SetVariable(name, value)
   {
-    this.controller?.SetVariable?.(name, value);
+    this.controller?.SetVariable(name, value);
   }
 
   /**
@@ -166,7 +167,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   HandleEvent(eventName)
   {
-    this.controller?.HandleEvent?.(eventName);
+    this.controller?.HandleEvent(eventName);
   }
 
   /**

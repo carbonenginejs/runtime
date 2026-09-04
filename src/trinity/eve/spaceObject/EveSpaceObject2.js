@@ -495,9 +495,9 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   {
     for (const controller of this.controllers)
     {
-      if (!controller?.IsLinked?.())
+      if (!controller?.IsLinked())
       {
-        controller?.Link?.(this);
+        controller?.Link(this);
       }
     }
     // Authored inherit properties propagate as part of the lifecycle so a
@@ -558,9 +558,9 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   AddController(controller)
   {
     this.controllers.push(controller);
-    if (!controller?.IsLinked?.())
+    if (!controller?.IsLinked())
     {
-      controller?.Link?.(this);
+      controller?.Link(this);
     }
     EveSpaceObject2.#ApplyControllerVariables(controller, this.#controllerVariables, "SetVariable");
     return controller;
@@ -1043,7 +1043,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       : 0;
     for (const controller of this.controllers)
     {
-      controller?.Update?.(frequency);
+      controller?.Update(frequency);
     }
 
     // Carbon cpp:626-663: the persistent buffers are invalidated once per
@@ -2865,7 +2865,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     const eventName = String(name ?? "");
     for (const controller of this.controllers)
     {
-      controller?.HandleEvent?.(eventName);
+      controller?.HandleEvent(eventName);
     }
     for (const child of this.effectChildren)
     {
@@ -3272,7 +3272,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     this.#controllerVariables.set(key, next);
     for (const controller of this.controllers)
     {
-      controller?.SetVariable?.(key, next);
+      controller?.SetVariable(key, next);
     }
     for (const child of this.effectChildren)
     {
@@ -3308,7 +3308,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   {
     for (const controller of this.controllers)
     {
-      controller?.Start?.();
+      controller?.Start();
     }
     for (const child of this.effectChildren)
     {

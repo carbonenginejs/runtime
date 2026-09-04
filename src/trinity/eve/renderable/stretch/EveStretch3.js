@@ -77,7 +77,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     for (const controller of this.controllers)
     {
-      if (!controller?.IsLinked?.()) controller?.Link?.(this);
+      if (!controller?.IsLinked()) controller?.Link(this);
     }
     this.#InitializeBindings();
     return true;
@@ -137,7 +137,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     }
     if (!onlyUpdateBindings)
     {
-      for (const controller of this.controllers) controller?.Link?.(this);
+      for (const controller of this.controllers) controller?.Link(this);
     }
   }
 
@@ -204,7 +204,7 @@ export class EveStretch3 extends IEveFiringEffectElement
       else if (maskedEvent === BELIST_REMOVED) value?.Unlink?.();
       else if (maskedEvent === BELIST_UNLOADSTART)
       {
-        for (const controller of this.controllers) controller?.Unlink?.();
+        for (const controller of this.controllers) controller?.Unlink();
       }
     }
     else if (list === this.dynamicBindings)
@@ -251,7 +251,7 @@ export class EveStretch3 extends IEveFiringEffectElement
 
     const time = getTime(context);
     for (const binding of this.dynamicBindings) binding?.Update?.(time);
-    for (const controller of this.controllers) controller?.Update?.(0.5);
+    for (const controller of this.controllers) controller?.Update(0.5);
     if (this.source) sampleVector(this.source, time, this.sourcePosition);
     if (this.dest) sampleVector(this.dest, time, this.destinationPosition);
     this.length.value = vec3.distance(this.sourcePosition, this.destinationPosition);
@@ -539,7 +539,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   SetControllerVariable(name, value)
   {
     for (const component of this.#components()) component?.SetControllerVariable?.(name, value);
-    for (const controller of this.controllers) controller?.SetVariable?.(name, value);
+    for (const controller of this.controllers) controller?.SetVariable(name, value);
   }
 
   /**
@@ -551,7 +551,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   HandleControllerEvent(name)
   {
     for (const component of this.#components()) component?.HandleControllerEvent?.(name);
-    for (const controller of this.controllers) controller?.HandleEvent?.(name);
+    for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
   /** Starts every child's controllers and this stretch's own. */
@@ -560,7 +560,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   StartControllers()
   {
     for (const component of this.#components()) component?.StartControllers?.();
-    for (const controller of this.controllers) controller?.Start?.();
+    for (const controller of this.controllers) controller?.Start();
   }
 
   /**
