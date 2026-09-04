@@ -47,58 +47,19 @@ export class HlslShader
         return technique ? technique.passes.length : 0;
     }
 
-    /**
-   * Applies shader program and render-state handles for one pass to a render context.
-   *
-   * @param {number} techniqueIndex Technique index.
-   * @param {number} passIndex Pass index.
-   * @param {object} renderContext Render context with an `m_esm` state manager.
-   * @returns {boolean} True when the pass existed.
-   */
-    ApplyAllStateForPass(techniqueIndex, passIndex, renderContext)
-    {
-        const pass = this.m_effect.techniques[techniqueIndex]?.passes?.[passIndex];
-        if (!pass) return false;
-        renderContext?.m_esm?.ApplyShaderProgram?.(pass.shaderProgram);
-        renderContext?.m_esm?.ApplyRenderStates?.(pass.renderStates);
-        return true;
-    }
-
-    /**
-   * Applies only render-state handles for one pass to a render context.
-   *
-   * @param {number} techniqueIndex Technique index.
-   * @param {number} passIndex Pass index.
-   * @param {object} renderContext Render context with an `m_esm` state manager.
-   * @returns {boolean} True when the pass existed.
-   */
-    ApplyRenderStates(techniqueIndex, passIndex, renderContext)
-    {
-        const pass = this.m_effect.techniques[techniqueIndex]?.passes?.[passIndex];
-        if (!pass) return false;
-        renderContext?.m_esm?.ApplyRenderStates?.(pass.renderStates);
-        return true;
-    }
-
-    /**
-   * Registers and applies a shader program override for a pass.
-   *
-   * @param {number} techniqueIndex Base technique index.
-   * @param {number} passIndex Base pass index.
-   * @param {HlslShader} overrideShader Shader providing the override program.
-   * @param {number} overridePassIndex Override pass index.
-   * @param {object} renderContext Render context with an `m_esm` state manager.
-   * @returns {number} Override program handle, or 0 when unavailable.
-   */
-    ApplyShaderOverride(techniqueIndex, passIndex, overrideShader, overridePassIndex, renderContext)
-    {
-        const program = this.m_effect.techniques[techniqueIndex]?.passes?.[passIndex]?.shaderProgram;
-        const overrideProgram = overrideShader?.m_effect?.techniques?.[0]?.passes?.[overridePassIndex]?.shaderProgram;
-        if (!program || !overrideProgram) return 0;
-        const combined = renderContext?.m_esm?.RegisterShaderProgramOverride?.(program, overrideProgram) || 0;
-        renderContext?.m_esm?.ApplyShaderProgram?.(combined);
-        return combined;
-    }
+    // THREE METHODS ARE GONE FROM HERE, and this note is why they should not
+    // come back. ApplyAllStateForPass, ApplyRenderStates and ApplyShaderOverride
+    // mirrored Tr2Shader and reached the state manager as
+    // `renderContext?.m_esm?.ApplyShaderProgram?.(...)`. Tr2RenderContext has no
+    // `m_esm` property - the manager is private behind GetEffectStateManager() -
+    // so every one of those calls short-circuited to nothing while
+    // ApplyAllStateForPass still returned true. Nothing ever called them.
+    //
+    // The placement is the root cause: a format reader has no live render context
+    // to import, so the calls had to be duck-typed, and once they were duck-typed
+    // the optional chain hid the fact that they never worked. Applying pass state
+    // belongs to Tr2Shader on the Trinity side, which is where the effect read
+    // path settled it.
 
     /**
    * Returns the shader-stage bit mask for a technique.

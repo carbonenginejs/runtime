@@ -269,7 +269,8 @@
     ],
     "scripts": {
         "build:npm": "node scripts/build-npm.js && rollup -c",
-        "lint": "npm run lint:layers && npm run lint:source && npm run lint:trinity",
+        "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:trinity",
+        "lint:optional-calls": "node scripts/lint-optional-calls.js",
         "lint:layers": "node scripts/lint-layering.js",
         "lint:source": "node scripts/lint-source.js",
         "lint:trinity": "node scripts/trinity/lint_source_style.js",
