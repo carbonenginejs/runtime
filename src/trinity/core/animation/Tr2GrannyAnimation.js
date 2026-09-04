@@ -116,6 +116,16 @@ export class Tr2GrannyAnimation extends CjsModel
 
   #paused = false;
 
+  /**
+   * Carbon m_poseModifier (Tr2GrannyAnimation.h:230): a NON-OWNING
+   * ITr2PoseModifier registration - the modifier must outlive it or be
+   * cleared with SetPoseModifier(null) before it goes away.
+   */
+  #poseModifier = null;
+
+  /** The cached skeleton/pose ducks handed to the pose modifier. */
+  #poseModifierView = null;
+
   #runtimeModel = null;
 
   #secondaryResources = new Map();
@@ -310,9 +320,69 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       this.#sampleLayer(layer, this.#additiveMode);
     }
+    // Carbon PrePhysicsAnimation (cpp:1704-1723) runs ModifyPose after
+    // sampling and before bone offsets. Carbon restores m_sampledPose before
+    // sampling so the modifier never compounds onto its own output; the
+    // #resetPose above already re-establishes that invariant every frame, so
+    // no snapshot/restore pair is needed here.
+    if (this.#poseModifier)
+    {
+      const view = this.#GetPoseModifierView();
+      this.#poseModifier.ModifyPose(view.skeleton, view.pose);
+    }
     this.#applyBoneOffsets();
     this.#composePose();
     return true;
+  }
+
+  /** The registered pose modifier, or null (Carbon Tr2GrannyAnimation.cpp:2170-2173). */
+  @carbon.method
+  @impl.implemented
+  GetPoseModifier()
+  {
+    return this.#poseModifier;
+  }
+
+  /**
+   * Registers the non-owning modify-the-sampled-pose hook (Carbon
+   * Tr2GrannyAnimation.cpp:2175-2178); pass null to clear it.
+   */
+  @carbon.method
+  @impl.implemented
+  SetPoseModifier(poseModifier)
+  {
+    this.#poseModifier = poseModifier ?? null;
+  }
+
+  /**
+   * The skeleton/pose ducks the modifier receives: bone names plus
+   * boneTransforms entries whose position/rotation/scaleShear ALIAS the live
+   * runtime bone arrays, so in-place modification lands in the composed
+   * pose exactly as Carbon's cmf::SkeletonPose& does. Rebuilt only when the
+   * runtime model changes.
+   */
+  #GetPoseModifierView()
+  {
+    const model = this.#runtimeModel;
+    if (!this.#poseModifierView || this.#poseModifierView.model !== model)
+    {
+      const bones = model?.bones ?? [];
+      this.#poseModifierView = {
+        model,
+        skeleton: {
+          bones: bones.map(bone => bone.name),
+          parents: bones.map(bone => bone.parentIndex)
+        },
+        pose: {
+          boneTransforms: bones.map(bone => ({
+            position: bone.position,
+            rotation: bone.orientation,
+            scaleShear: bone.scaleShear
+          }))
+        }
+      };
+    }
+    return this.#poseModifierView;
   }
 
   /** Carbon method PlayAnimationEx (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
@@ -427,6 +497,33 @@ export class Tr2GrannyAnimation extends CjsModel
   ClearAnimations()
   {
     this.#baseLayer.queue.length = 0;
+  }
+
+  /**
+   * Stops all base-layer animations, current and queued, `delay` seconds from
+   * now (Carbon Tr2GrannyAnimation.cpp:1510-1513 delegating to the layer's
+   * queue clear + per-player stop time, Tr2GrannyAnimationLayer.cpp:462-475).
+   * A non-positive delay removes the active animation immediately, morphs
+   * included; a positive delay pins its stop time so playback holds its last
+   * sampled value until then. Distinct from EndAnimation (finish the current
+   * loop) and ClearAnimations (drop everything with no delay bookkeeping).
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon pins a stop time per sequencer player; the browser layer's single active request carries the stop as a stopAt clock value with the pending queue dropped.")
+  StopAnimations(delay = 0)
+  {
+    const layer = this.#baseLayer;
+    const request = layer.queue[0];
+    layer.queue.length = 0;
+    const stopDelay = Number(delay) || 0;
+    if (request && stopDelay > 0)
+    {
+      // Carbon: player.SetStopTime(animationTime + delay) - the layer clock
+      // and our request.elapsed advance in the same unscaled seconds.
+      request.stopAt = request.elapsed + stopDelay;
+      layer.queue.push(request);
+    }
   }
 
   /** Carbon method ClearAnimationLayers (MAP_METHOD_AND_WRAP). */
@@ -783,6 +880,13 @@ export class Tr2GrannyAnimation extends CjsModel
       return;
     }
     request.elapsed += dt;
+    // Carbon cmf::AnimationSequencer::RemoveFinishedAnimations erases a
+    // player once its pinned stop time is reached (animation.cpp:821-827).
+    if (request.stopAt !== undefined && request.elapsed >= request.stopAt)
+    {
+      layer.queue.shift();
+      return;
+    }
     const duration = this.#getAnimationDuration(request.animation);
     const speed = Math.abs(request.speed);
     if (duration <= 0 || request.elapsed < 0 || request.loopCount <= 0)
@@ -1131,6 +1235,12 @@ export class Tr2GrannyAnimation extends CjsModel
     const request = layer.queue[0];
     const animation = request?.animation;
     if (!animation || request.elapsed < 0)
+    {
+      return;
+    }
+    // Carbon cmf::AnimationPlayer::Sample returns false past the pinned stop
+    // time (animation.cpp:734-743), leaving the bone at its reset value.
+    if (request.stopAt !== undefined && request.elapsed >= request.stopAt)
     {
       return;
     }

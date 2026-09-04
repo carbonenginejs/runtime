@@ -224,3 +224,76 @@ test("Tr2GrannyAnimation handles reverse, paused, and masked-layer playback", ()
   animation.ClearAnimationLayers();
   assert.equal(animation.GetLayerWeight("upper"), 0);
 });
+
+
+test("Tr2GrannyAnimation runs the pose modifier after sampling without compounding", () =>
+{
+  const animation = new Tr2GrannyAnimation();
+  animation.model_ = "Ship";
+  animation.SetGrannyResource(createResource());
+  animation.PlayAnimation("Move", true, 0, 0, 1, false);
+
+  const seen = [];
+  const modifier = {
+    ModifyPose(skeleton, pose)
+    {
+      seen.push(skeleton.bones.slice());
+      // In-place modification aliases the live pose (Carbon cmf::SkeletonPose&).
+      pose.boneTransforms[0].position[0] += 100;
+    }
+  };
+  assert.equal(animation.GetPoseModifier(), null);
+  animation.SetPoseModifier(modifier);
+  assert.equal(animation.GetPoseModifier(), modifier);
+
+  animation.Update(1);
+  let bones = animation.GetMeshBoneMatrixList();
+  assert.ok(Math.abs(bones[3] - 105) < 1e-6, "sampled 5 plus the modifier's 100");
+
+  // A second frame at the same clock must NOT compound the modifier's own
+  // output (Carbon restores the sampled pose; the per-frame reset covers it).
+  animation.Update(0);
+  bones = animation.GetMeshBoneMatrixList();
+  assert.ok(Math.abs(bones[3] - 105) < 1e-6, "no frame-over-frame compounding");
+  assert.equal(seen.length, 2);
+  assert.deepEqual(seen[0], ["Root", "Child"]);
+
+  animation.SetPoseModifier(null);
+  animation.Update(0);
+  bones = animation.GetMeshBoneMatrixList();
+  assert.ok(Math.abs(bones[3] - 5) < 1e-6, "cleared modifier leaves the sampled pose");
+});
+
+
+test("Tr2GrannyAnimation.StopAnimations pins a stop time and clears the queue", () =>
+{
+  // Immediate stop: the active animation is removed and the pose resets.
+  const immediate = new Tr2GrannyAnimation();
+  immediate.model_ = "Ship";
+  immediate.SetGrannyResource(createResource());
+  immediate.PlayAnimation("Move", true, 0, 0, 1, false);
+  immediate.Update(1);
+  assert.ok(Math.abs(immediate.GetMeshBoneMatrixList()[3] - 5) < 1e-6);
+  immediate.StopAnimations(0);
+  immediate.Update(0);
+  assert.ok(Math.abs(immediate.GetMeshBoneMatrixList()[3]) < 1e-6, "immediate stop resets the pose");
+
+  // Delayed stop: playback continues until the pinned stop time, then ends;
+  // pending queue entries are dropped at the call.
+  const delayed = new Tr2GrannyAnimation();
+  delayed.model_ = "Ship";
+  delayed.SetGrannyResource(createResource());
+  delayed.PlayAnimation("Move", true, 0, 0, 1, false);
+  delayed.PlayAnimation("Move", true, 0, 0, 1, false);
+  delayed.Update(1);
+  delayed.StopAnimations(1);
+  delayed.Update(0.5);
+  assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6,
+    "still sampling before the stop time");
+  delayed.Update(0.6);
+  assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3]) < 1e-6,
+    "past the stop time the animation is retired, queue included");
+  delayed.Update(1);
+  assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3]) < 1e-6,
+    "the pending entry was dropped by the stop, not resumed");
+});
