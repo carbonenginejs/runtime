@@ -464,3 +464,13 @@ Resource record that owns Carbon-style texture identity and validated texture, R
 - Source: `src/resource/texture/TriTextureRes.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
+
+<!-- class:Tr2RenderStateSetup -->
+## `Tr2RenderStateSetup`
+
+One pass's authored render states, interpreted once so two backends cannot disagree about what a Carbon render-state id means.
+
+- Export: `@carbonenginejs/runtime/resource/shader`
+- Source: `src/resource/shader/reflection/Tr2RenderStateSetup.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept

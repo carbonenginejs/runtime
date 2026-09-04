@@ -825,16 +825,6 @@ A light colour authored as a temperature in kelvin, a tint, and a white-balance 
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsStoredVariable -->
-## `CjsStoredVariable`
-
-The default variable wrapper: a name, a value and an inferred type tag, able to copy itself into an effect constant destination.
-
-- Export: `@carbonenginejs/runtime/trinity/shader`
-- Source: `src/trinity/shader/CjsVariableStore.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
 <!-- class:Tr2TranslationTool -->
 ## `Tr2TranslationTool`
 
@@ -882,16 +872,6 @@ Nominal renderer contract driven by Trinity render contexts and jobs.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/context/CjsTrinityStepExecutor.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsVariableStore -->
-## `CjsVariableStore`
-
-A named-variable table that TriVariableParameter values resolve against, plus the lazily created process-wide global instance effects fall back to.
-
-- Export: `@carbonenginejs/runtime/trinity/shader`
-- Source: `src/trinity/shader/CjsVariableStore.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -1200,5 +1180,165 @@ Carries the software-device, back-buffer size, and windowed-mode values used whe
 
 - Export: `@carbonenginejs/runtime/trinity/ui`
 - Source: `src/trinity/ui/Tr2PresentParameters.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2BaseDeviceResourceAL -->
+## `Tr2BaseDeviceResourceAL`
+
+Base of every abstraction-layer resource, with the registry that makes live resources enumerable and releasable by memory class.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2DeviceResourceAL.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2BitmapDimensions -->
+## `Tr2BitmapDimensions`
+
+Texture type, format, size and mip layout, with the mip arithmetic every create, map and copy is described in.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2BitmapDimensions.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2MsaaDesc -->
+## `Tr2MsaaDesc`
+
+Multisample sample count and quality level.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2HalHelperStructures.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureCoordBox -->
+## `Tr2TextureCoordBox`
+
+A box within a texture, in pixels.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2HalHelperStructures.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureSubresource -->
+## `Tr2TextureSubresource`
+
+The range of faces, mip levels and pixels a map, update or copy applies to; unset means the whole resource.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2HalHelperStructures.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2BufferDescriptionAL -->
+## `Tr2BufferDescriptionAL`
+
+How a buffer is laid out and what may touch it: format or stride, element count, and the GPU and CPU usage flags.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2BufferALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureALStub -->
+## `Tr2TextureALStub`
+
+GPU-free texture that enforces Carbon's creation rules and holds its pixels on the CPU.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2TextureALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2BufferALStub -->
+## `Tr2BufferALStub`
+
+GPU-free vertex, index, structured or indirect-argument buffer whose bytes survive a map, a write and a second map.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2BufferALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ConstantBufferALStub -->
+## `Tr2ConstantBufferALStub`
+
+GPU-free constant buffer holding the shadow copy behind a constant register.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2ConstantBufferALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2CapsALStub -->
+## `Tr2CapsALStub`
+
+What the GPU-free backend reports it can do, which is deliberately not "nothing".
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2CapsALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SwapChainALStub -->
+## `Tr2SwapChainALStub`
+
+GPU-free swap chain owning one back buffer, whose presents complete immediately.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2SwapChainALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ShaderALStub -->
+## `Tr2ShaderALStub`
+
+A compiled shader for one pipeline stage, keeping its own copy of the bytecode.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2ShaderALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ShaderProgramALStub -->
+## `Tr2ShaderProgramALStub`
+
+A linked program that refuses a second shader for a stage it already has.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2ShaderProgramALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SamplerStateALStub -->
+## `Tr2SamplerStateALStub`
+
+A created sampler state, holding the description it was created from.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2SamplerStateALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2VertexLayoutALStub -->
+## `Tr2VertexLayoutALStub`
+
+A vertex definition the backend has accepted, copied so a caller's later edit cannot reach it.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2VertexLayoutALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2RenderContextALStub -->
+## `Tr2RenderContextALStub`
+
+GPU-free render context keeping real render-target and depth-stencil state, and a real back buffer, while drawing nothing.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/context/Tr2RenderContextALStub.js`
 - Visibility: Public
 - Kind: Carbon

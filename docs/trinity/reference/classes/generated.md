@@ -60,16 +60,6 @@ Carries the coordinates, frame, buffers, decoded data, and debug geometry for a 
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:EveSpaceSceneRenderDriver -->
-## `EveSpaceSceneRenderDriver`
-
-Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/eve/scene/EveSpaceSceneRenderDriver.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2FontManager -->
 ## `Tr2FontManager`
 

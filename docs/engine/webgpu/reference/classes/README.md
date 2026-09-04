@@ -174,3 +174,43 @@ Internal encoder for caller-owned WebGPU pass plans over prepared Trinity batch 
 - Source: `src/engine/webgpu/core/trinityPassEncoder.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
+
+<!-- class:CjsWebgpuTrinityBatchResolver -->
+## `CjsWebgpuTrinityBatchResolver`
+
+Resolves a Trinity batch to a WebGPU pipeline, device geometry and the bindings the pipeline declares.
+
+- Export: Not exported
+- Source: `src/engine/webgpu/core/trinityBatchResolver.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWebgpuTextureSource -->
+## `CjsWebgpuTextureSource`
+
+Realizes an authored texture path into a device texture, once per resource.
+
+- Export: Not exported
+- Source: `src/engine/webgpu/core/textureSource.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWebgpuSamplerSource -->
+## `CjsWebgpuSamplerSource`
+
+Creates and shares device samplers, keyed on authored sampler state rather than on a binding name.
+
+- Export: Not exported
+- Source: `src/engine/webgpu/core/samplerSource.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWebgpuPerFrameSource -->
+## `CjsWebgpuPerFrameSource`
+
+Supplies the packed per-frame constant bytes for a frame slot, which the scene owns rather than the batch.
+
+- Export: Not exported
+- Source: `src/engine/webgpu/core/perFrameSource.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS

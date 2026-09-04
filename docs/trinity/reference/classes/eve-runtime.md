@@ -2774,3 +2774,13 @@ Sphere of influence with a solid inner radius and a falloff out to the outer rad
 - Source: `src/trinity/eve/volume/EveSphereVolume.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:EveSpaceSceneRenderDriver -->
+## `EveSpaceSceneRenderDriver`
+
+Drives one EVE space-scene frame: camera, quality, pass toggles, overlay, background and post-process state, then collects the scene's renderables into batches.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/scene/EveSpaceSceneRenderDriver.js`
+- Visibility: Public
+- Kind: Carbon
