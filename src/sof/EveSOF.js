@@ -2464,7 +2464,12 @@ export class EveSOF extends CjsModel
             ? TriBatchType.TRIBATCHTYPE_OPAQUE
             : batchType,
           areaIndex: Number(built.fields.index) >>> 0,
-          areaCount: Number(built.fields.count) >>> 0
+          areaCount: Number(built.fields.count) >>> 0,
+          // Carbon EveSOF.cpp:434-440/4069-4075 copies the built area's
+          // cutout/winding flags so instanced occluder raycasts classify
+          // backfaces correctly.
+          alphaCutout: !!built.fields.alphaCutout,
+          reversed: !!built.fields.reversed
         }));
       }
     }
@@ -4463,6 +4468,9 @@ function buildMeshArea(document, dna, area, shaderData, batchType, meshIndexOffs
     index: area.index + meshIndexOffset,
     count: area.count,
     reversed: false,
+    // Decal areas fold into opaque as one-sided alpha cutouts
+    // (Carbon EveSOF.cpp:883); occluder backface tests skip them.
+    alphaCutout: batchType === TriBatchType.TRIBATCHTYPE_DECAL,
     useSHLighting: false,
     castsShadows,
     generateDepthArea: Boolean(shaderData.doGenerateDepthArea),

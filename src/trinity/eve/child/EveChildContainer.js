@@ -1279,11 +1279,11 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
   /** Collects geometry owned by nested children in object-local space. */
   @carbon.method
   @impl.implemented
-  CollectOwnedGeometry(parentTransform, out)
+  CollectOwnedGeometry(type, parentTransform, out, areaPool)
   {
     const childToObject = mat4.create();
     mat4.multiply(childToObject, parentTransform, this.RebuildLocalTransform());
-    for (const child of this.objects) child.CollectOwnedGeometry(childToObject, out);
+    for (const child of this.objects) child.CollectOwnedGeometry(type, childToObject, out, areaPool);
   }
 
   /** Carbon EveChildContainer::SetInheritProperties (cpp:1017-1040): lazily

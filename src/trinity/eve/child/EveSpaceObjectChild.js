@@ -2,6 +2,31 @@ import { carbon, impl, io, type } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 
+/**
+ * Appends one batch type's areas of a mesh to the shared area pool as plain
+ * {index, count, alphaCutout, reversed} records (Carbon free function
+ * EveCollectAreas, EveSpaceObjectChild.cpp:138-161; the EveChildGeometryArea
+ * POD is EveSpaceObjectChild.h:21-34).
+ *
+ * @param {Number} type - a TriBatchType
+ * @param {Object|null} mesh - a Tr2MeshBase duck with GetAreas(type)
+ * @param {Array} areaPool - the pool records are appended to
+ */
+export function EveCollectAreas(type, mesh, areaPool)
+{
+  const areas = mesh?.GetAreas?.(type);
+  if (!areas) return;
+  for (const area of areas)
+  {
+    areaPool.push({
+      index: Number(area.GetIndex()) >>> 0,
+      count: Number(area.GetCount()) >>> 0,
+      alphaCutout: !!area.IsAlphaCutout(),
+      reversed: !!area.IsReversed()
+    });
+  }
+}
+
 
 /**
  * Nominal base for every live space-object child.
@@ -178,8 +203,13 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   {
   }
 
-  /** Provides the Carbon default no-op geometry collection. */
-  CollectOwnedGeometry(_parentTransform, _out)
+  /**
+   * Provides the Carbon default no-op geometry collection
+   * (EveSpaceObjectChild.h:284-291): records land in `out` as
+   * {geometry, childToObject, areaStart, areaCount} and their areas in the
+   * shared `areaPool`.
+   */
+  CollectOwnedGeometry(_type, _parentTransform, _out, _areaPool)
   {
   }
 

@@ -22,6 +22,7 @@ import {
   stampChildTransforms
 } from "../perObjectData/childPerObjectRecords.js";
 import { Float4x3 } from "../../utilities/Float4x3.js";
+import { EveCollectAreas } from "./EveSpaceObjectChild.js";
 import { EveGetLocatorPose } from "../locator/EveLocatorSets.js";
 import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
 import {
@@ -1545,17 +1546,23 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
     }
   }
 
-  /** Contributes this child's geometry to the owner's merged raycast set. */
+  /**
+   * Contributes this child's geometry to the owner's merged raycast set
+   * (Carbon EveChildMesh.cpp:2061-2077): one record per mesh, its areas
+   * appended to the shared pool by batch type.
+   */
   @carbon.method
-  @impl.adapted
-  CollectOwnedGeometry(parentTransform, out)
+  @impl.implemented
+  CollectOwnedGeometry(type, parentTransform, out, areaPool)
   {
     const geometry = this.mesh ? this.mesh.GetGeometryResource() : null;
     if (!geometry) return;
     const local = this.RebuildLocalTransform();
     const childToObject = mat4.create();
     mat4.multiply(childToObject, parentTransform, local);
-    out.push({ childToObject, geometry, owner: this, mesh: this.mesh });
+    const areaStart = areaPool.length;
+    EveCollectAreas(type, this.mesh, areaPool);
+    out.push({ geometry, childToObject, areaStart, areaCount: areaPool.length - areaStart });
   }
 
   /** Replaces the locator sets owned by this child and invalidates the owner. */

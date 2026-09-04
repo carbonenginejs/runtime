@@ -189,6 +189,13 @@ export class EveModularObjectModifier extends CjsModel
       {
         child.Setup(scale, rotation, position, Tr2Lod.TR2_LOD_LOW);
       }
+      // OUTSIDE the partTag gate (Carbon EveModularObjectModifier.cpp:225-228,
+      // PLAT-11963): the shared instanced child carries many parts' instances
+      // under its own aggregate tag; the per-part filter lives in the method.
+      if (child instanceof EveChildInstancedMeshes)
+      {
+        child.SetInstanceTransformByPartTag(part.partId, position, rotation, scale);
+      }
     }
     this.#object.InvalidateMergedLocators("partMoved");
     this.ApplyBounds();

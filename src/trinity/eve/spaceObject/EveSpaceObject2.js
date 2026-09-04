@@ -26,6 +26,7 @@ import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { EveCustomMask } from "../EveCustomMask.js";
+import { EveCollectAreas } from "../child/EveSpaceObjectChild.js";
 import { EveGetLocatorPose, EveLocatorSets } from "../locator/EveLocatorSets.js";
 import { Locator } from "../locator/Locator.js";
 import { TriPerlinCurve } from "../../curves/curve/TriPerlinCurve.js";
@@ -420,6 +421,10 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   #damageLocatorFilterRequested = false;
 
   #damageFilterOccluders = [];
+
+  // Carbon m_damageFilterAreas (EveSpaceObject2.h:829): the shared area pool
+  // the occluders' areaStart/areaCount ranges index into.
+  #damageFilterAreas = [];
 
   // 0 idle, 1 pending, 2 active raycast session. Carbon initializes Idle
   // (EveSpaceObject2.cpp:208); SOF's eager RunDamageLocatorFilter was removed
@@ -2108,38 +2113,61 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     if (this.#damageFilterState !== 2) return;
     for (const occluder of this.#damageFilterOccluders) occluder.geometry.ResetRayCaster();
     this.#damageFilterOccluders.length = 0;
+    this.#damageFilterAreas.length = 0;
   }
 
-  /** Collects prepared hull and child geometry and opens raycast sessions. */
+  /**
+   * Collects prepared hull and child geometry and opens raycast sessions
+   * (Carbon CollectOccluders, EveSpaceObject2.cpp:1960-2028): occluders carry
+   * areaStart/areaCount ranges into the shared #damageFilterAreas pool, and
+   * records with no matching areas are skipped rather than raycast whole.
+   */
   #CollectDamageFilterOccluders()
   {
     this.#damageFilterOccluders.length = 0;
+    this.#damageFilterAreas.length = 0;
     if (this.mesh)
     {
       const geometry = this.mesh.GetGeometryResource();
       if (geometry)
       {
-        if (!geometry.IsPrepared()) return false;
+        if (!geometry.IsPrepared())
+        {
+          return false;
+        }
         if (geometry.IsGood())
         {
-          this.#damageFilterOccluders.push({
-            geometry,
-            fromObject: mat4.create(),
-            mesh: this.mesh
-          });
+          const areaStart = this.#damageFilterAreas.length;
+          EveCollectAreas(TriBatchType.TRIBATCHTYPE_OPAQUE, this.mesh, this.#damageFilterAreas);
+          const areaCount = this.#damageFilterAreas.length - areaStart;
+          if (areaCount !== 0)
+          {
+            this.#damageFilterOccluders.push({
+              geometry,
+              fromObject: mat4.create(),
+              areaStart,
+              areaCount
+            });
+          }
         }
       }
     }
 
     const childGeometry = [];
     const identity = mat4.create();
-    for (const child of this.effectChildren) child.CollectOwnedGeometry(identity, childGeometry);
+    for (const child of this.effectChildren)
+    {
+      child.CollectOwnedGeometry(
+        TriBatchType.TRIBATCHTYPE_OPAQUE, identity, childGeometry, this.#damageFilterAreas);
+    }
 
     for (const source of childGeometry)
     {
+      if (source.areaCount === 0) continue;
       if (!source.geometry.IsPrepared())
       {
         this.#damageFilterOccluders.length = 0;
+        this.#damageFilterAreas.length = 0;
         return false;
       }
       if (!source.geometry.IsGood()) continue;
@@ -2149,7 +2177,8 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       this.#damageFilterOccluders.push({
         geometry: source.geometry,
         fromObject,
-        mesh: source.mesh
+        areaStart: source.areaStart,
+        areaCount: source.areaCount
       });
     }
 
@@ -2189,8 +2218,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
       for (const occluder of this.#damageFilterOccluders)
       {
-        const areas = occluder.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_OPAQUE);
-        if (!areas?.length) continue;
+        if (occluder.areaCount === 0) continue;
 
         const rayOrigin = vec3.transformMat4(vec3.create(), origin, occluder.fromObject);
         const rayDirection = vec3.fromValues(
@@ -2198,20 +2226,29 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
           occluder.fromObject[1] * direction[0] + occluder.fromObject[5] * direction[1] + occluder.fromObject[9] * direction[2],
           occluder.fromObject[2] * direction[0] + occluder.fromObject[6] * direction[1] + occluder.fromObject[10] * direction[2]);
 
-        for (const area of areas)
+        // Carbon EveSpaceObject2.cpp:2100-2122: the outer loop walks the
+        // occluder's pool range, the INNER loop every sub-area
+        // (area.index .. index+count) - a single GetIndex() raycast
+        // under-tests multi-area geometry.
+        for (let poolIndex = occluder.areaStart; poolIndex < occluder.areaStart + occluder.areaCount; poolIndex++)
         {
-          const hit = {};
-          if (!occluder.geometry.GetIntersectionPoints(
-            rayOrigin, rayDirection, hit, area.GetIndex(), rayLength)) continue;
-
-          rayLength = hit.distance;
-          backfacing = !area.IsAlphaCutout() &&
-            ((vec3.dot(hit.unnormalizedNormal, rayDirection) > 0) !== area.IsReversed());
-          if (rayLength < frontFaceMinDistance)
+          const area = this.#damageFilterAreas[poolIndex];
+          for (let areaIndex = area.index; areaIndex < area.index + area.count; areaIndex++)
           {
-            occluded = true;
-            break;
+            const hit = {};
+            if (!occluder.geometry.GetIntersectionPoints(
+              rayOrigin, rayDirection, hit, areaIndex, rayLength)) continue;
+
+            rayLength = hit.distance;
+            backfacing = !area.alphaCutout &&
+              ((vec3.dot(hit.unnormalizedNormal, rayDirection) > 0) !== area.reversed);
+            if (rayLength < frontFaceMinDistance)
+            {
+              occluded = true;
+              break;
+            }
           }
+          if (occluded) break;
         }
         if (occluded) break;
       }

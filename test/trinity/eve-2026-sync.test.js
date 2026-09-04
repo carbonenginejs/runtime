@@ -653,3 +653,188 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   assertVectorClose(max, [ 6, 7, 8 ], "planet world maximum");
   assert.equal(planet.IsBoundingBoxReady(), true);
 });
+
+
+test("SetTransform moves shared instanced-part geometry outside the child partTag gate", () =>
+{
+  const object = new EveStation2();
+  object.Initialize();
+
+  // The shared instanced child carries many parts' instances under its own
+  // aggregate tag, which never equals a part id (PLAT-11963).
+  const shared = new EveChildInstancedMeshes();
+  shared.SetPartTag(99);
+  const areas = [ { effect: null, batchType: TriBatchType.TRIBATCHTYPE_OPAQUE, areaIndex: 0, areaCount: 1 } ];
+  shared.AddMesh("res:/a.cmf", false, 3, 0, areas, [ mat4.create(), mat4.create() ], "", "", 1);
+  shared.AddMesh("res:/b.cmf", false, 3, 0, areas, [ mat4.create() ], "", "", 2);
+
+  const sof = {
+    BuildChild(target, _dna, partTag)
+    {
+      const child = new EveChildMesh();
+      child.SetPartTag(partTag);
+      target.AddToEffectChildrenList(child);
+      target.AddToEffectChildrenList(shared);
+      target.SetBoundingSphereInformation([ 0, 0, 0, 1 ]);
+      return true;
+    }
+  };
+  const modifier = new EveModularObjectModifier().Create(object, sof);
+  const partData = object.effectChildren.find(child => child instanceof EveChildPartData);
+  partData.faction = "amarr";
+  partData.race = "race";
+  const id = modifier.AddHull("hull", "", "", [ 0, 0, 0 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]);
+  assert.equal(id, 1);
+
+  modifier.SetTransform(id, [ 4, 5, 6 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]);
+
+  // Both instances of the part's mesh get the ABSOLUTE new transform.
+  for (const instance of shared.meshes[0].instances)
+  {
+    assertVectorClose(
+      [ instance.transform[12], instance.transform[13], instance.transform[14] ],
+      [ 4, 5, 6 ], "moved instance translation");
+  }
+  // The other part's instances stay put.
+  assertVectorClose(
+    [ shared.meshes[1].instances[0].transform[12],
+      shared.meshes[1].instances[0].transform[13],
+      shared.meshes[1].instances[0].transform[14] ],
+    [ 0, 0, 0 ], "unmoved instance translation");
+
+  const decomposed = shared.GetInstancesTransforms(0);
+  assert.equal(decomposed.length, 2);
+  assertVectorClose(decomposed[0].translation, [ 4, 5, 6 ], "decomposed translation");
+  assert.throws(() => shared.GetInstancesTransforms(9), RangeError);
+});
+
+
+test("CollectOwnedGeometry pools areas by batch type and shares them across instances", () =>
+{
+  const geometry = { token: "geo" };
+  const mesh = new Tr2Mesh();
+  const opaque = new Tr2MeshArea();
+  opaque.index = 0;
+  opaque.count = 2;
+  const cutout = new Tr2MeshArea();
+  cutout.index = 3;
+  cutout.count = 1;
+  cutout.alphaCutout = true;
+  cutout.reversed = true;
+  mesh.opaqueAreas.push(opaque, cutout);
+  mesh.SetGeometryRes(geometry);
+
+  const child = new EveChildMesh();
+  child.mesh = mesh;
+  child.translation = [ 5, 0, 0 ];
+  const container = new EveChildContainer();
+  container.translation = [ 0, 7, 0 ];
+  container.objects.push(child);
+
+  const out = [];
+  const pool = [];
+  container.CollectOwnedGeometry(TriBatchType.TRIBATCHTYPE_OPAQUE, mat4.create(), out, pool);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].geometry, geometry);
+  assert.equal(out[0].areaStart, 0);
+  assert.equal(out[0].areaCount, 2);
+  assertVectorClose(
+    [ out[0].childToObject[12], out[0].childToObject[13], out[0].childToObject[14] ],
+    [ 5, 7, 0 ], "container-composed childToObject translation");
+  assert.deepEqual(pool, [
+    { index: 0, count: 2, alphaCutout: false, reversed: false },
+    { index: 3, count: 1, alphaCutout: true, reversed: true }
+  ]);
+
+  // A batch type the mesh has no areas for contributes a zero-area record.
+  const emptyOut = [];
+  const emptyPool = [];
+  child.CollectOwnedGeometry(TriBatchType.TRIBATCHTYPE_DISTORTION, mat4.create(), emptyOut, emptyPool);
+  assert.equal(emptyOut.length, 1);
+  assert.equal(emptyOut[0].areaCount, 0);
+  assert.equal(emptyPool.length, 0);
+
+  // Instanced meshes emit their areas ONCE and share the range per instance;
+  // composition is gl multiply(parent, instance) per the Carbon row order.
+  const instanced = new EveChildInstancedMeshes();
+  const transformA = mat4.fromTranslation(mat4.create(), [ 1, 0, 0 ]);
+  const transformB = mat4.fromTranslation(mat4.create(), [ 0, 1, 0 ]);
+  instanced.AddMesh("res:/a.cmf", false, 3, 0, [
+    { effect: null, batchType: TriBatchType.TRIBATCHTYPE_OPAQUE, areaIndex: 2, areaCount: 2, alphaCutout: true },
+    { effect: null, batchType: TriBatchType.TRIBATCHTYPE_TRANSPARENT, areaIndex: 9, areaCount: 1 }
+  ], [ transformA, transformB ], "", "", 0);
+  instanced.meshes[0].SetGeometryResource(geometry);
+
+  const instancedOut = [];
+  const instancedPool = [];
+  const parent = mat4.fromTranslation(mat4.create(), [ 10, 0, 0 ]);
+  instanced.CollectOwnedGeometry(TriBatchType.TRIBATCHTYPE_OPAQUE, parent, instancedOut, instancedPool);
+  assert.equal(instancedOut.length, 2);
+  assert.deepEqual(instancedPool, [ { index: 2, count: 2, alphaCutout: true, reversed: false } ]);
+  assert.equal(instancedOut[0].areaStart, 0);
+  assert.equal(instancedOut[0].areaCount, 1);
+  assert.equal(instancedOut[1].areaStart, 0);
+  assert.equal(instancedOut[1].areaCount, 1);
+  assertVectorClose(
+    [ instancedOut[0].childToObject[12], instancedOut[0].childToObject[13], instancedOut[0].childToObject[14] ],
+    [ 11, 0, 0 ], "instance A childToObject");
+  assertVectorClose(
+    [ instancedOut[1].childToObject[12], instancedOut[1].childToObject[13], instancedOut[1].childToObject[14] ],
+    [ 10, 1, 0 ], "instance B childToObject");
+
+  // A mesh whose areas do not match the batch type contributes nothing at all.
+  const noneOut = [];
+  const nonePool = [];
+  instanced.CollectOwnedGeometry(TriBatchType.TRIBATCHTYPE_DISTORTION, mat4.create(), noneOut, nonePool);
+  assert.equal(noneOut.length, 0);
+  assert.equal(nonePool.length, 0);
+});
+
+
+test("damage-locator filtering raycasts every sub-area of a pooled area", () =>
+{
+  const raycastAreas = [];
+  const geometry = {
+    IsPrepared: () => true,
+    IsGood: () => true,
+    PrepareRayCaster() {},
+    ResetRayCaster() {},
+    HasRayCasterPreparationFailed: () => false,
+    IsRayCasterReady: () => true,
+    // Only sub-area 1 occludes; the pooled area is {index:0, count:2}, so the
+    // pre-340250f2 GetIndex()-only raycast never saw it.
+    GetIntersectionPoints(rayOrigin, _rayDirection, hit, areaIndex, _rayLength)
+    {
+      raycastAreas.push(areaIndex);
+      if (areaIndex !== 1) return false;
+      if (Math.abs(rayOrigin[0]) > 10) return false;
+      hit.distance = 0.01;
+      hit.unnormalizedNormal = [ 0, -1, 0 ];
+      return true;
+    }
+  };
+  const mesh = new Tr2Mesh();
+  const area = new Tr2MeshArea();
+  area.index = 0;
+  area.count = 2;
+  mesh.opaqueAreas.push(area);
+  mesh.SetGeometryRes(geometry);
+
+  const object = new EveSpaceObject2();
+  object.mesh = mesh;
+  object.SetBoundingSphereInformation([ 0, 0, 0, 10 ]);
+  const damage = new EveLocatorSets();
+  damage.SetName("damage");
+  damage.Append([
+    { position: [ 0, 0, 0 ], direction: [ 0, 0, 0, 1 ], boneIndex: 0 },
+    { position: [ 50, 0, 0 ], direction: [ 0, 0, 0, 1 ], boneIndex: 0 }
+  ]);
+  object.locatorSets.push(damage);
+
+  object.RunDamageLocatorFilter();
+  object.UpdateDamageLocatorFilter();
+
+  assert.ok(raycastAreas.includes(1), "the inner loop reaches sub-area 1");
+  // Locator 0 is occluded and filtered out of closest-locator queries.
+  assert.equal(object.GetCloseLocatorIndex([ 0, 0, 1 ], "damage"), 1);
+});

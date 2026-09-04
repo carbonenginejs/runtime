@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes_Blue.cpp
 import { mat4 } from "#math/mat4";
+import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
@@ -57,6 +58,18 @@ export class EveChildInstancedMeshArea extends CjsModel
   @io.persist
   @type.uint32
   areaCount = 1;
+
+  /** Carbon MeshArea::alphaCutout (h:78) - one-sided cutout areas are ignored
+   * for backface classification when raycasting occluders. */
+  @io.persist
+  @type.boolean
+  alphaCutout = false;
+
+  /** Carbon MeshArea::reversed (h:79) - winding-reversed areas flip the
+   * backface test during occluder raycasts. */
+  @io.persist
+  @type.boolean
+  reversed = false;
 
   @io.read
   @type.uint64
@@ -821,6 +834,99 @@ export class EveChildInstancedMeshes extends withITr2Renderable(EveSpaceObjectCh
   }
 
   /**
+   * Contributes every instance of every mesh to the owner's merged raycast set
+   * (Carbon EveChildInstancedMeshes.cpp:1279-1324): the type-matching areas
+   * are appended ONCE per mesh and shared by all of that mesh's instance
+   * records via areaStart/areaCount; meshes with no matching areas contribute
+   * nothing. Carbon row-vector instanceTransform * parentTransform maps to
+   * gl-matrix multiply(out, parentTransform, instanceTransform).
+   */
+  @carbon.method
+  @impl.implemented
+  CollectOwnedGeometry(type, parentTransform, out, areaPool)
+  {
+    for (const mesh of this.meshes)
+    {
+      const geometry = mesh.GetGeometryResource();
+      if (!geometry || !mesh.instances.length) continue;
+
+      const areaStart = areaPool.length;
+      for (const area of mesh.areas)
+      {
+        if (area.batchType !== type) continue;
+        areaPool.push({
+          index: area.areaIndex,
+          count: area.areaCount,
+          alphaCutout: !!area.alphaCutout,
+          reversed: !!area.reversed
+        });
+      }
+      const areaCount = areaPool.length - areaStart;
+      if (areaCount === 0) continue;
+
+      for (const instance of mesh.instances)
+      {
+        const childToObject = mat4.create();
+        mat4.multiply(childToObject, parentTransform, instance.transform);
+        out.push({ geometry, childToObject, areaStart, areaCount });
+      }
+    }
+  }
+
+  /**
+   * Overwrites the transform of every instance owned by a modular part with an
+   * ABSOLUTE new transform (Carbon EveChildInstancedMeshes.cpp:591-605,
+   * PLAT-11963). Carbon writes only the instance transform: no dirty flag, no
+   * handle teardown - the per-frame async pass refreshes the cull spheres from
+   * the live transforms, and the per-part filter lives HERE, not at the call
+   * site (the shared child carries many parts' instances).
+   */
+  @carbon.method
+  @impl.implemented
+  SetInstanceTransformByPartTag(partTag, translation, rotation, scale)
+  {
+    const tag = Number(partTag) >>> 0;
+    const transform = mat4.fromRotationTranslationScale(mat4.create(), rotation, translation, scale);
+    for (const mesh of this.meshes)
+    {
+      for (let index = 0; index < mesh.instances.length; index++)
+      {
+        if ((Number(mesh.partTags[index] ?? 0) >>> 0) === tag)
+        {
+          mat4.copy(mesh.instances[index].transform, transform);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns one [translation, rotation, scale] decomposition per instance of a
+   * mesh (Carbon EveChildInstancedMeshes.cpp:781-806, script-exposed tooling);
+   * throws RangeError where Carbon raises IndexError.
+   */
+  @carbon.method
+  @impl.adapted
+  GetInstancesTransforms(meshId)
+  {
+    const index = Number(meshId) >>> 0;
+    if (index >= this.meshes.length)
+    {
+      throw new RangeError("Mesh index out of range");
+    }
+    return this.meshes[index].instances.map(instance =>
+    {
+      const translation = vec3.create();
+      const rotation = quat.create();
+      const scale = vec3.create();
+      mat4.getTranslation(translation, instance.transform);
+      mat4.getRotation(rotation, instance.transform);
+      quat.normalize(rotation, rotation);
+      mat4.getScaling(scale, instance.transform);
+      return { translation, rotation, scale };
+    });
+  }
+
+  /**
    * Drops every mesh and clears the hasUpdated stamp so nothing re-registers
    * until another update pass runs; registration handles are NOT released here,
    * so call UnregisterFromMeshManager first when a manager still holds them.
@@ -1393,6 +1499,8 @@ export class EveChildInstancedMeshes extends withITr2Renderable(EveSpaceObjectCh
     area.batchType = Number(source.batchType) >>> 0;
     area.areaIndex = Number(source.areaIndex) >>> 0;
     area.areaCount = source.areaCount === undefined ? 1 : Number(source.areaCount) >>> 0;
+    area.alphaCutout = !!source.alphaCutout;
+    area.reversed = !!source.reversed;
     area.effectHash = EveChildInstancedMeshes.#GetEffectHash(area.effect);
     return area;
   }
