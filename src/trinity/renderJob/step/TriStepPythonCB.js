@@ -37,7 +37,7 @@ export class TriStepPythonCB extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     try
     {
@@ -46,7 +46,7 @@ export class TriStepPythonCB extends TriRenderStep
     }
     catch (error)
     {
-      executor.AddDiagnostic({ type: "callback-error", step: this, error });
+      renderContext.AddDiagnostic({ type: "callback-error", step: this, error });
     }
     return TriRenderStep.Result.RS_OK;
   }

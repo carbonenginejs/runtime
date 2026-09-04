@@ -6,7 +6,7 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 
 /**
- * Step that pops one slot off the executor's render-target stack, undoing an
+ * Step that pops one slot off the render context's render-target stack, undoing an
  * earlier push.
  */
 @type.define({ className: "TriStepPopRenderTarget", family: "renderJob" })
@@ -30,9 +30,9 @@ export class TriStepPopRenderTarget extends TriRenderStep
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.PopRenderTarget(this.slot);
+    renderContext.PopRenderTarget(this.slot);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

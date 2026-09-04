@@ -51,11 +51,11 @@ export class TriStepRenderObject extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     if (this.renderable)
     {
-      executor.RenderObject(this.renderable, {
+      renderContext.RenderObject(this.renderable, {
         effectOverride: this.effectOverride,
         renderOpaque: this.renderOpaque,
         renderDecal: this.renderDecal,

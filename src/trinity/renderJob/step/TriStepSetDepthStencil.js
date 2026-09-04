@@ -26,13 +26,13 @@ export class TriStepSetDepthStencil extends TriRenderStep
 
   /**
    * Binds the depth-stencil, including null to unbind; an explicit false from
-   * the executor is RS_FAILED.
+   * the render context is RS_FAILED.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    const accepted = executor.SetDepthStencil(this.depthStencil);
+    const accepted = renderContext.SetDepthStencil(this.depthStencil);
     return accepted === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -30,9 +30,9 @@ export class TriStepSetRenderTarget extends TriRenderStep
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    if (this.renderTarget) executor.SetRenderTarget(0, this.renderTarget);
+    if (this.renderTarget) renderContext.SetRenderTarget(0, this.renderTarget);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

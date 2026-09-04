@@ -37,12 +37,12 @@ export class TriStepSetProjection extends TriRenderStep
   }
 
   /**
-   * Installs the projection on the executor when one is authored, leaving the
+   * Installs the projection on the render context when one is authored, leaving the
    * current projection untouched otherwise.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     if (this.projection)
     {
@@ -62,7 +62,7 @@ export class TriStepSetProjection extends TriRenderStep
             : 0;
           break;
       }
-      executor.SetProjection(this.#transform, fieldOfView);
+      renderContext.SetProjection(this.#transform, fieldOfView);
     }
     return TriRenderJob.StepResult.RS_OK;
   }

@@ -26,7 +26,7 @@ export class TriStepTestBlocking extends TriRenderStep
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon logs the outcome through its own logger on each call; logging is a host concern.")
-  Execute(_realTime, _simTime, _executor)
+  Execute(_realTime, _simTime, _renderContext)
   {
     return this.inProgress ? TriRenderStep.Result.RS_IN_PROGRESS : TriRenderStep.Result.RS_OK;
   }

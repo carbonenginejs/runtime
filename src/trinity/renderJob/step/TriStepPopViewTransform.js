@@ -6,7 +6,7 @@ import { TriRenderJob } from "../TriRenderJob.js";
 // transform (Tr2Renderer::PopViewTransform).
 
 /**
- * Step that pops the executor's view-transform stack, restoring the view saved
+ * Step that pops the render context's view-transform stack, restoring the view saved
  * by an earlier push.
  */
 @type.define({ className: "TriStepPopViewTransform", family: "renderJob" })
@@ -15,9 +15,9 @@ export class TriStepPopViewTransform extends TriRenderStep
   /** Restores the view transform saved by the matching push step. */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.PopViewTransform();
+    renderContext.PopViewTransform();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

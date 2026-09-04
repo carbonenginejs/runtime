@@ -22,13 +22,13 @@ export class TriStepRenderScene extends TriRenderStep
   }
 
   /**
-   * Renders the bound scene through the executor and reports the step complete.
+   * Renders the bound scene through the render context and reports the step complete.
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    this.scene?.Render?.(executor);
+    this.scene?.Render?.(renderContext);
     return TriRenderStep.Result.RS_OK;
   }
 

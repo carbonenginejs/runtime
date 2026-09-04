@@ -5,7 +5,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
 
-/** Step that pushes a render target onto the executor's stack for a given slot. */
+/** Step that pushes a render target onto the render context's stack for a given slot. */
 @type.define({ className: "TriStepPushRenderTarget", family: "renderJob" })
 export class TriStepPushRenderTarget extends TriRenderStep
 {
@@ -32,9 +32,9 @@ export class TriStepPushRenderTarget extends TriRenderStep
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.PushRenderTarget(this.renderTarget, this.slot);
+    renderContext.PushRenderTarget(this.renderTarget, this.slot);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

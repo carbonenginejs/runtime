@@ -45,7 +45,7 @@ export class TriStepSetVisualizationMode extends TriRenderStep
 
   /**
    * Pushes the mode straight onto the target object; unlike most steps this one
-   * does not go through the executor.
+   * does not go through the render context.
    */
   @carbon.method
   @impl.implemented

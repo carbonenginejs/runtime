@@ -39,15 +39,15 @@ export class TriStepRenderEffect extends TriRenderStep
   }
 
   /**
-   * Draws the bound effect, passing its shader buffer and texture coordinates to the executor.
+   * Draws the bound effect, passing its shader buffer and texture coordinates to the render context.
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     if (this.effect)
     {
-      executor.DrawEffect(this.effect, this.shaderBuffer, this.tlTexCoord, this.brTexCoord);
+      renderContext.DrawEffect(this.effect, this.shaderBuffer, this.tlTexCoord, this.brTexCoord);
     }
     return TriRenderStep.Result.RS_OK;
   }

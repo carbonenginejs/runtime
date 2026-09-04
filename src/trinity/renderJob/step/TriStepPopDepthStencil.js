@@ -5,7 +5,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
 
-/** Step that pops the executor's depth-stencil stack, undoing an earlier push. */
+/** Step that pops the render context's depth-stencil stack, undoing an earlier push. */
 @type.define({ className: "TriStepPopDepthStencil", family: "renderJob" })
 export class TriStepPopDepthStencil extends TriRenderStep
 {
@@ -15,9 +15,9 @@ export class TriStepPopDepthStencil extends TriRenderStep
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.PopDepthStencil();
+    renderContext.PopDepthStencil();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -59,7 +59,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     if (this.autoScale)
     {
@@ -90,7 +90,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
         else this.scaleChangeCallback?.CallVoid?.();
       }
     }
-    executor.RenderLineGraphs(this);
+    renderContext.RenderLineGraphs(this);
     return TriRenderStep.Result.RS_OK;
   }
 

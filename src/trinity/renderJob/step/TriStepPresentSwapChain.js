@@ -25,14 +25,14 @@ export class TriStepPresentSwapChain extends TriRenderStep
   }
 
   /**
-   * Asks the executor to present the swap chain; with none set the step is a
+   * Asks the render context to present the swap chain; with none set the step is a
    * no-op.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    if (this.swapChain) executor.PresentSwapChain(this.swapChain);
+    if (this.swapChain) renderContext.PresentSwapChain(this.swapChain);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

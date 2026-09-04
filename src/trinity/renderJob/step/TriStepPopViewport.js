@@ -6,7 +6,7 @@ import { TriRenderJob } from "../TriRenderJob.js";
 // render context's ESM stack.
 
 /**
- * Step that pops the executor's viewport stack, restoring the viewport saved by
+ * Step that pops the render context's viewport stack, restoring the viewport saved by
  * an earlier push.
  */
 @type.define({ className: "TriStepPopViewport", family: "renderJob" })
@@ -15,9 +15,9 @@ export class TriStepPopViewport extends TriRenderStep
   /** Restores the viewport saved by the matching push step. */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.PopViewport();
+    renderContext.PopViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

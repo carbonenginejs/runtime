@@ -26,7 +26,7 @@ export class TriStepUpdate extends TriRenderStep
    */
   @carbon.method
   @impl.implemented
-  Execute(realTime, simTime, _executor)
+  Execute(realTime, simTime, _renderContext)
   {
     this.object?.Update?.(realTime, simTime);
     return TriRenderStep.Result.RS_OK;

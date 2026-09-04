@@ -34,9 +34,9 @@ export class TriStepRenderPass extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    const result = this.scene?.RenderPass?.(this.passType, executor);
+    const result = this.scene?.RenderPass?.(this.passType, renderContext);
     return result === 1 ? TriRenderStep.Result.RS_TERMINATE : TriRenderStep.Result.RS_OK;
   }
 

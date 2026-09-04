@@ -5,7 +5,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 import { TriLineSet } from "../../core/line/TriLineSet.js";
 import { vec3 } from "#math/vec3";
 
-/** A render step that accumulates debug lines, boxes and 2D/3D text for one frame and hands them to the executor to draw. */
+/** A render step that accumulates debug lines, boxes and 2D/3D text for one frame and hands them to the render context to draw. */
 @type.define({ className: "TriStepRenderDebug", family: "renderJob" })
 export class TriStepRenderDebug extends TriRenderStep
 {
@@ -109,13 +109,13 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /**
-   * Hands the accumulated debug lines and text to the executor, then clears them for the next frame.
+   * Hands the accumulated debug lines and text to the render context, then clears them for the next frame.
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.RenderDebug(this);
+    renderContext.RenderDebug(this);
     if (this.autoClear) this.Clear();
     return TriRenderStep.Result.RS_OK;
   }

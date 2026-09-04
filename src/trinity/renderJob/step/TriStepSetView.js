@@ -42,26 +42,26 @@ export class TriStepSetView extends TriRenderStep
 
   /**
    * Sets the view transform from the view when one is authored; otherwise
-   * updates the camera using the executor viewport's aspect ratio (1 when the
+   * updates the camera using the render context viewport's aspect ratio (1 when the
    * viewport is missing or has no height) and sets the resulting view matrix.
    * The second argument to SetViewTransform identifies the source object the
-   * executor should associate with the transform.
+   * render context should associate with the transform.
    */
   @carbon.method
   @impl.implemented
-  Execute(realTime, simTime, executor)
+  Execute(realTime, simTime, renderContext)
   {
     if (this.view)
     {
-      executor.SetViewTransform(TriStepSetView.#getTransform(this.view), this.view);
+      renderContext.SetViewTransform(TriStepSetView.#getTransform(this.view), this.view);
     }
     else if (this.camera)
     {
-      const viewport = executor.GetViewport();
+      const viewport = renderContext.GetViewport();
       const aspectRatio = viewport?.height ? viewport.width / viewport.height : 1;
       this.camera.Update?.(simTime, aspectRatio, realTime);
       const viewMatrix = this.camera.GetViewMatrix?.() ?? this.camera.viewMatrix ?? null;
-      executor.SetViewTransform(TriStepSetView.#getTransform(viewMatrix), this.camera);
+      renderContext.SetViewTransform(TriStepSetView.#getTransform(viewMatrix), this.camera);
     }
     return TriRenderJob.StepResult.RS_OK;
   }

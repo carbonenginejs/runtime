@@ -36,15 +36,15 @@ export class TriStepSetViewport extends TriRenderStep
   }
 
   /**
-   * Sets the authored viewport, or asks the executor for its full-screen
+   * Sets the authored viewport, or asks the render context for its full-screen
    * viewport when none is set.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    if (this.viewport) executor.SetViewport(this.viewport);
-    else executor.SetFullScreenViewport();
+    if (this.viewport) renderContext.SetViewport(this.viewport);
+    else renderContext.SetFullScreenViewport();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

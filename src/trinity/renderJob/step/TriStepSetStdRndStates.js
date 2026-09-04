@@ -59,14 +59,14 @@ export class TriStepSetStdRndStates extends TriRenderStep
   }
 
   /**
-   * Asks the executor to apply the standard state block for the selected
-   * rendering mode; which states that block contains is the executor's concern.
+   * Asks the render context to apply the standard state block for the selected
+   * rendering mode; which states that block contains is the render context's concern.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.ApplyStandardStates(this.renderingMode);
+    renderContext.ApplyStandardStates(this.renderingMode);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

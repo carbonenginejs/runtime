@@ -69,9 +69,9 @@ export class TriStepRenderAtlas extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    if (this.atlas) executor.RenderAtlas(this);
+    if (this.atlas) renderContext.RenderAtlas(this);
     return TriRenderStep.Result.RS_OK;
   }
 

@@ -10,14 +10,14 @@ import { TriRenderJob } from "../TriRenderJob.js";
 export class TriStepPushViewTransform extends TriRenderStep
 {
   /**
-   * Pushes the executor's current view transform; the value is not supplied by
+   * Pushes the render context's current view transform; the value is not supplied by
    * the step, only the intent to save it.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.PushViewTransform();
+    renderContext.PushViewTransform();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

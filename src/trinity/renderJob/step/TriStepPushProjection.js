@@ -10,14 +10,14 @@ import { TriRenderJob } from "../TriRenderJob.js";
 export class TriStepPushProjection extends TriRenderStep
 {
   /**
-   * Pushes the executor's current projection; the value is not supplied by the
+   * Pushes the render context's current projection; the value is not supplied by the
    * step, only the intent to save it.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.PushProjection();
+    renderContext.PushProjection();
     return TriRenderJob.StepResult.RS_OK;
   }
 }

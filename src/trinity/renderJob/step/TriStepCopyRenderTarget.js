@@ -76,22 +76,22 @@ export class TriStepCopyRenderTarget extends TriRenderStep
   }
 
   /**
-   * Builds the copy intent and hands it to the executor's CopyRenderTarget;
+   * Builds the copy intent and hands it to the render context's CopyRenderTarget;
    * incomplete operands yield no intent and are a no-op that still reports
-   * RS_OK, while an explicit false from the executor is RS_FAILED.
+   * RS_OK, while an explicit false from the render context is RS_FAILED.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     const intent = this.GetCopyIntent();
     if (!intent) return TriRenderJob.StepResult.RS_OK;
-    const copied = executor.CopyRenderTarget(intent);
+    const copied = renderContext.CopyRenderTarget(intent);
     return copied === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
   }
 
   /**
-   * Carbon TriStepCopyRenderTarget::Execute (cpp:13-95): resolves the operands and viewports into a plain copy description the executor performs, with destinationType distinguishing the render-target path from the texture path.
+   * Carbon TriStepCopyRenderTarget::Execute (cpp:13-95): resolves the operands and viewports into a plain copy description the render context performs, with destinationType distinguishing the render-target path from the texture path.
    * @returns {object|null} the copy intent, or null when the source or both destinations are missing
    */
   @carbon.method

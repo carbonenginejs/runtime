@@ -26,9 +26,9 @@ export class TriStepRenderSceneDebug extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    this.scene?.RenderDebugInfo?.(executor);
+    this.scene?.RenderDebugInfo?.(renderContext);
     return TriRenderStep.Result.RS_OK;
   }
 

@@ -30,16 +30,16 @@ export class TriStepRunJob extends TriRenderStep
   }
 
   /**
-   * Runs the nested job with the same executor and maps its job status onto a
+   * Runs the nested job with the same render context and maps its job status onto a
    * step result, so a nested job that is still in progress leaves the owning job
    * in progress too and resumes at this same step next frame.
    */
   @carbon.method
   @impl.implemented
-  Execute(realTime, simTime, executor)
+  Execute(realTime, simTime, renderContext)
   {
     if (!this.job) return TriRenderJob.StepResult.RS_OK;
-    switch (this.job.Run(realTime, simTime, executor))
+    switch (this.job.Run(realTime, simTime, renderContext))
     {
       case TriRenderJob.Status.RJ_DONE: return TriRenderJob.StepResult.RS_OK;
       case TriRenderJob.Status.RJ_IN_PROGRESS: return TriRenderJob.StepResult.RS_IN_PROGRESS;

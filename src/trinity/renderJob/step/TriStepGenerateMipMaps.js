@@ -22,14 +22,14 @@ export class TriStepGenerateMipMaps extends TriRenderStep
   }
 
   /**
-   * Asks the executor to regenerate the target's mip maps; with no target set
+   * Asks the render context to regenerate the target's mip maps; with no target set
    * the step is a no-op.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    if (this.renderTarget) executor.GenerateMipMaps(this.renderTarget);
+    if (this.renderTarget) renderContext.GenerateMipMaps(this.renderTarget);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

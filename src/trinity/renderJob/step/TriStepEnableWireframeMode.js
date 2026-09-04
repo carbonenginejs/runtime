@@ -21,14 +21,14 @@ export class TriStepEnableWireframeMode extends TriRenderStep
   }
 
   /**
-   * Forwards the flag to the executor; nothing restores the previous mode, so a
+   * Forwards the flag to the render context; nothing restores the previous mode, so a
    * matching step is needed to turn wireframe back off.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.SetWireframeRendering(this.enableWireframe);
+    renderContext.SetWireframeRendering(this.enableWireframe);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

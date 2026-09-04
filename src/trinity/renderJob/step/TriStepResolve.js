@@ -34,22 +34,22 @@ export class TriStepResolve extends TriRenderStep
   }
 
   /**
-   * Skips silently with RS_OK when either operand is missing or the executor
+   * Skips silently with RS_OK when either operand is missing or the render context
    * reports it invalid; otherwise resolves and, when requested, regenerates the
    * destination's mip maps. An explicit false from the resolve is RS_FAILED.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     if (!this.source || !this.destination) return TriRenderJob.StepResult.RS_OK;
-    if (!executor.IsRenderTargetValid(this.source) || !executor.IsRenderTargetValid(this.destination))
+    if (!renderContext.IsRenderTargetValid(this.source) || !renderContext.IsRenderTargetValid(this.destination))
     {
       return TriRenderJob.StepResult.RS_OK;
     }
-    const resolved = executor.ResolveRenderTarget(this.source, this.destination);
+    const resolved = renderContext.ResolveRenderTarget(this.source, this.destination);
     if (resolved === false) return TriRenderJob.StepResult.RS_FAILED;
-    if (this.generateMipmap) executor.GenerateMipMaps(this.destination);
+    if (this.generateMipmap) renderContext.GenerateMipMaps(this.destination);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -32,13 +32,13 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   }
 
   /**
-   * Installs the bound debug renderer on the executor.
+   * Installs the bound debug renderer on the render context.
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.SetDebugRenderer(this.renderer);
+    renderContext.SetDebugRenderer(this.renderer);
     return TriRenderStep.Result.RS_OK;
   }
 

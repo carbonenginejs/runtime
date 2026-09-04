@@ -54,15 +54,15 @@ export class TriStepRunComputeShader extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
     if (this.indirectionBuffer)
     {
-      executor.RunComputeShaderIndirect(this.effect, this.indirectionBuffer, this.offsetForArgs);
+      renderContext.RunComputeShaderIndirect(this.effect, this.indirectionBuffer, this.offsetForArgs);
     }
     else
     {
-      executor.RunComputeShader(this.effect, this.groupDimX, this.groupDimY, this.groupDimZ);
+      renderContext.RunComputeShader(this.effect, this.groupDimX, this.groupDimY, this.groupDimZ);
     }
     return TriRenderStep.Result.RS_OK;
   }

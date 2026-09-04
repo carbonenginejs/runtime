@@ -26,9 +26,9 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.SetUpscalingContextID(this.upscalingContextID);
+    renderContext.SetUpscalingContextID(this.upscalingContextID);
     return TriRenderStep.Result.RS_OK;
   }
 

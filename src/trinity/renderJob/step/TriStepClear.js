@@ -55,15 +55,15 @@ export class TriStepClear extends TriRenderStep
   }
 
   /**
-   * Hands the executor a clear description with the colour clamped to 0..1 and
+   * Hands the render context a clear description with the colour clamped to 0..1 and
    * one enable flag per channel; which attachments those apply to is the
-   * executor's decision.
+   * render context's decision.
    */
   @carbon.method
   @impl.implemented
-  Execute(_realTime, _simTime, executor)
+  Execute(_realTime, _simTime, renderContext)
   {
-    executor.Clear({
+    renderContext.Clear({
       color: Array.from(this.color, TriStepClear.#clampColor),
       depth: this.depth,
       stencil: this.stencil,
