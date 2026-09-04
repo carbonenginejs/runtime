@@ -337,6 +337,37 @@ test("writeShared packs channel geometry into a readable CMF", () =>
     assert.equal(new Set(viewKeys.flatMap((key) => key.split("/"))).size, 4);
 });
 
+test("preserves PointList material areas through shared read and rewrite", () =>
+{
+    const shared = {
+        meshes: [ {
+            name: "points",
+            topology: "PointList",
+            minBounds: [ 0, 0, 0 ],
+            maxBounds: [ 2, 0, 0 ],
+            vertex: { position: [ 0, 0, 0, 1, 0, 0, 2, 0, 0 ] },
+            indices: [ { name: "particles", firstElement: 0, pointCount: 3, faces: [] } ]
+        } ],
+        skeletons: [],
+        animations: []
+    };
+
+    const decoded = CjsCmfFormat.read(CjsCmfFormat.writeShared(shared), { emit: "shared" });
+    assert.deepEqual(decoded.meshes[0].indices, [ {
+        name: "particles",
+        bytesPerIndex: 0,
+        firstElement: 0,
+        elementCount: 3,
+        pointCount: 3,
+        faces: []
+    } ]);
+
+    const rewritten = CjsCmfFormat.read(CjsCmfFormat.writeShared(decoded), { emit: "shared" });
+    assert.equal(rewritten.meshes[0].topology, "PointList");
+    assert.equal(rewritten.meshes[0].indices[0].name, "particles");
+    assert.equal(rewritten.meshes[0].indices[0].pointCount, 3);
+});
+
 test("writeShared widens index buffers when indices exceed u16", () =>
 {
     const vertexCount = 0x10003;

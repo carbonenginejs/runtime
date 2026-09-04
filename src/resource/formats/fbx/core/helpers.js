@@ -29,6 +29,7 @@ import {
     elementTypeSize as cmfElementTypeSize,
     estimateStrideFromDecl
 } from "../../cmf/core/utils/vertex.js";
+import { calculateUvDensities } from "../../cmf/core/utils/uvDensity.js";
 
 export { CMF_CLASS_KEYS, GR2_CLASS_KEYS };
 
@@ -102,6 +103,7 @@ const CMF_VERTEX_CHANNELS = Object.freeze([
     [ "blendIndice", "BoneIndices", 4, 0, "UInt8" ],
     [ "blendWeight", "BoneWeights", 4, 0 ]
 ]);
+const CMF_MORPH_CHANNELS = Object.freeze(CMF_VERTEX_CHANNELS.slice(0, 4));
 const FEATURE_SCAN_ROOT_NODES = Object.freeze([ "GlobalSettings", "Objects", "Connections" ]);
 const SUPPORTED_GEOMETRY_CLASSES = new Set([ "", "Mesh", "Shape" ]);
 const SUPPORTED_LAYER_ELEMENTS = new Set([
@@ -477,6 +479,7 @@ function collectFbxFeatureSupport(nodes)
     collectLayerElementFeatureWarnings(objectIndex, warnings);
     collectSkinFeatureWarnings(objectIndex, connections, warnings);
     collectBlendShapeFeatureWarnings(objectIndex, connections, warnings);
+    collectAnimationFeatureWarnings(objectIndex, connections, warnings);
 
     return {
         warnings,
@@ -652,6 +655,42 @@ function collectBlendShapeFeatureWarnings(objectIndex, connections, warnings)
         if (isUnsupportedBlendShapeInBetween(channel, shapes))
         {
             addWarning(warnings, `fbx: BlendShapeChannel ${objectLabel(channel)} is skipped because in-between morph interpolation is not implemented.`);
+        }
+    }
+}
+
+function collectAnimationFeatureWarnings(objectIndex, connections, warnings)
+{
+    for (const stack of objectIndex.list.filter(entry => entry.nodeName === "AnimationStack"))
+    {
+        const layers = connectedChildObjects(stack, objectIndex, connections, "AnimationLayer");
+        if (layers.length > 1)
+        {
+            addWarning(warnings, `fbx: AnimationStack ${objectLabel(stack)} has ${layers.length} layers; GR2/CMF output does not evaluate layered animation.`);
+        }
+        for (const layer of layers)
+        {
+            try
+            {
+                validateAnimationLayer(layer);
+            }
+            catch (error)
+            {
+                addWarning(warnings, `${error.message}.`);
+            }
+        }
+    }
+
+    for (const curve of objectIndex.list.filter(entry => entry.nodeName === "AnimationCurve"))
+    {
+        const keyCount = (readChildArray(curve.node, "KeyTime") || []).length;
+        try
+        {
+            readAnimationCurveInterpolation(curve.node, keyCount);
+        }
+        catch (error)
+        {
+            addWarning(warnings, `${error.message} AnimationCurve ${objectLabel(curve)} is not imported by GR2/CMF output.`);
         }
     }
 }
@@ -1747,9 +1786,9 @@ function buildGr2MeshFromGeometry(geometry, owner, objectIndex, connections, sce
         decoded = decodePolygonCorners(controlPoints, polygonVertexIndex, geometry),
         meshTransform = buildMeshGeometryToWorld(owner, objectIndex, connections, modelWorldCache),
         positions = transformPoints(decoded.positions, meshTransform, sceneTransform),
-        normal = transformDirections(readLayerElementChannel(geometry.node, "LayerElementNormal", 0, [ "Normals" ], [ "NormalsIndex", "NormalIndex" ], 3, decoded, "Normals"), meshTransform, sceneTransform, true),
-        explicitTangent = transformDirections(readLayerElementChannel(geometry.node, "LayerElementTangent", 0, [ "Tangents" ], [ "TangentsIndex", "TangentIndex" ], 3, decoded, "Tangents"), meshTransform, sceneTransform, false),
-        explicitBinormal = transformDirections(readLayerElementChannel(geometry.node, "LayerElementBinormal", 0, [ "Binormals" ], [ "BinormalsIndex", "BinormalIndex" ], 3, decoded, "Binormals"), meshTransform, sceneTransform, false),
+        normal = transformDirections(readLayerElementChannel(geometry.node, "LayerElementNormal", 0, [ "Normals" ], [ "NormalsIndex", "NormalIndex" ], 3, decoded, "Normals"), meshTransform, sceneTransform),
+        explicitTangent = transformDirections(readLayerElementChannel(geometry.node, "LayerElementTangent", 0, [ "Tangents" ], [ "TangentsIndex", "TangentIndex" ], 3, decoded, "Tangents"), meshTransform, sceneTransform),
+        explicitBinormal = transformDirections(readLayerElementChannel(geometry.node, "LayerElementBinormal", 0, [ "Binormals" ], [ "BinormalsIndex", "BinormalIndex" ], 3, decoded, "Binormals"), meshTransform, sceneTransform),
         texcoord0 = readUvLayerElementChannel(geometry.node, 0, decoded, values),
         texcoord1 = readUvLayerElementChannel(geometry.node, 1, decoded, values),
         color0 = readLayerElementChannel(geometry.node, "LayerElementColor", 0, [ "Colors" ], [ "ColorIndex", "ColorsIndex", "ColorIndices" ], 4, decoded, "Colors"),
@@ -2025,7 +2064,7 @@ function readMorphTargetShapeNormals(shape, indexes, decoded, meshTransform, sce
     {
         expanded.push(...(byControlPoint.get(corner.controlPointIndex) || [ 0, 0, 0 ]));
     }
-    const deltas = transformDirectionDeltas(expanded, meshTransform, sceneTransform, true);
+    const deltas = transformDirectionDeltas(expanded, meshTransform, sceneTransform);
     return baseVertex.normal.map((value, index) => value + deltas[index]);
 }
 
@@ -2040,8 +2079,7 @@ function readMorphTargetCustomNormals(name, geometry, owner, decoded, meshTransf
     return transformDirections(
         decodeBase64Float32Vector3Array(encoded, decoded.corners.length, `morph target custom normals ${JSON.stringify(name)}`),
         meshTransform,
-        sceneTransform,
-        true
+        sceneTransform
     );
 }
 
@@ -2936,7 +2974,9 @@ function packFloat32Values(values)
 
 function buildSkinClusterRecords(clusters, objectIndex, connections)
 {
-    const records = [];
+    const
+        records = [],
+        recordsByBone = new Map();
     for (const cluster of clusters)
     {
         const
@@ -2949,14 +2989,27 @@ function buildSkinClusterRecords(clusters, objectIndex, connections)
             continue;
         }
 
-        records.push({
-            cluster,
-            bone,
-            boneKey: bone.key,
-            boneName: bone.name || cluster.name || `bone_${records.length}`,
-            indexes,
-            weights
-        });
+        const existing = recordsByBone.get(bone.key);
+        if (existing)
+        {
+            // Carbon assigns palette entries by linked bone, not by cluster.
+            // Multiple clusters for one bone contribute to that one entry.
+            existing.indexes.push(...indexes);
+            existing.weights.push(...weights);
+        }
+        else
+        {
+            const record = {
+                cluster,
+                bone,
+                boneKey: bone.key,
+                boneName: bone.name || cluster.name || `bone_${records.length}`,
+                indexes: [ ...indexes ],
+                weights: [ ...weights ]
+            };
+            recordsByBone.set(bone.key, record);
+            records.push(record);
+        }
     }
     return records;
 }
@@ -2995,7 +3048,15 @@ function buildControlPointInfluences(records)
                 continue;
             }
 
-            list.push({ boneIndex, boneKey: record.boneKey, boneName: record.boneName, weight });
+            const existing = list.find(influence => influence.boneIndex === boneIndex);
+            if (existing)
+            {
+                existing.weight += weight;
+            }
+            else
+            {
+                list.push({ boneIndex, boneKey: record.boneKey, boneName: record.boneName, weight });
+            }
             controlPointInfluences.set(controlPointIndex, list);
         }
     });
@@ -3537,22 +3598,21 @@ function transformPoints(values, matrix, sceneTransform)
     return output;
 }
 
-function transformDirections(values, matrix, sceneTransform, useNormalMatrix)
+function transformDirections(values, matrix, sceneTransform)
 {
     if (!values.length)
     {
         return values;
     }
 
-    const
-        normalMatrix = useNormalMatrix ? normalMatrix3(matrix) : null,
-        output = [];
+    // Carbon's Matrix::TransformNormal applies the ordinary upper 3x3 and the
+    // FBX importer uses it for normals and tangents. Keep that convention here
+    // even though an inverse-transpose is common in other render pipelines.
+    const output = [];
 
     for (let i = 0; i < values.length; i += 3)
     {
-        const vector = useNormalMatrix
-            ? transformVectorMatrix3([ values[i], values[i + 1], values[i + 2] ], normalMatrix)
-            : transformVectorMatrix4([ values[i], values[i + 1], values[i + 2] ], matrix);
+        const vector = transformVectorMatrix4([ values[i], values[i + 1], values[i + 2] ], matrix);
         output.push(...normalizeVector3(transformSceneVector(vector, sceneTransform)));
     }
 
@@ -3820,17 +3880,13 @@ function invertMatrix4(matrix)
     }
 }
 
-function transformDirectionDeltas(values, matrix, sceneTransform, useNormalMatrix)
+function transformDirectionDeltas(values, matrix, sceneTransform)
 {
-    const
-        directionMatrix = useNormalMatrix ? normalMatrix3(matrix) : null,
-        output = [];
+    const output = [];
     for (let index = 0; index < values.length; index += 3)
     {
         const source = [ values[index], values[index + 1], values[index + 2] ];
-        const vector = useNormalMatrix
-            ? transformVectorMatrix3(source, directionMatrix)
-            : transformVectorMatrix4(source, matrix);
+        const vector = transformVectorMatrix4(source, matrix);
         output.push(...transformSceneVector(vector, sceneTransform));
     }
     return output;
@@ -3851,51 +3907,6 @@ function transformVectorMatrix4(vector, matrix)
         matrix[0] * vector[0] + matrix[1] * vector[1] + matrix[2] * vector[2],
         matrix[4] * vector[0] + matrix[5] * vector[1] + matrix[6] * vector[2],
         matrix[8] * vector[0] + matrix[9] * vector[1] + matrix[10] * vector[2]
-    ];
-}
-
-function normalMatrix3(matrix)
-{
-    const
-        a00 = matrix[0],
-        a01 = matrix[1],
-        a02 = matrix[2],
-        a10 = matrix[4],
-        a11 = matrix[5],
-        a12 = matrix[6],
-        a20 = matrix[8],
-        a21 = matrix[9],
-        a22 = matrix[10],
-        b01 = a22 * a11 - a12 * a21,
-        b11 = -a22 * a10 + a12 * a20,
-        b21 = a21 * a10 - a11 * a20,
-        determinant = a00 * b01 + a01 * b11 + a02 * b21;
-
-    if (Math.abs(determinant) < Number.EPSILON)
-    {
-        throw new Error("fbx: model transform is not invertible");
-    }
-
-    const inverseDeterminant = 1 / determinant;
-    return [
-        b01 * inverseDeterminant,
-        (-a22 * a01 + a02 * a21) * inverseDeterminant,
-        (a12 * a01 - a02 * a11) * inverseDeterminant,
-        b11 * inverseDeterminant,
-        (a22 * a00 - a02 * a20) * inverseDeterminant,
-        (-a12 * a00 + a02 * a10) * inverseDeterminant,
-        b21 * inverseDeterminant,
-        (-a21 * a00 + a01 * a20) * inverseDeterminant,
-        (a11 * a00 - a01 * a10) * inverseDeterminant
-    ];
-}
-
-function transformVectorMatrix3(vector, matrix)
-{
-    return [
-        matrix[0] * vector[0] + matrix[3] * vector[1] + matrix[6] * vector[2],
-        matrix[1] * vector[0] + matrix[4] * vector[1] + matrix[7] * vector[2],
-        matrix[2] * vector[0] + matrix[5] * vector[1] + matrix[8] * vector[2]
     ];
 }
 
@@ -4749,17 +4760,19 @@ function buildCmfMetadata(root)
 function buildCmfMesh(mesh)
 {
     const
-        vertex = mesh.vertex ?? {},
         indices = mesh.indices ?? [],
+        vertex = buildCmfBaseVertex(mesh, indices),
+        cmfMesh = { ...mesh, vertex },
+        decl = buildCmfDecl(vertex),
         boneBindings = (mesh.boneBindings ?? []).map(binding => buildCmfBoneBinding(binding)),
-        morphTargets = buildCmfMorphTargets(mesh),
-        areas = indices.map(group => buildCmfMeshArea(group, mesh, morphTargets)),
+        morphTargets = buildCmfMorphTargets(cmfMesh),
+        areas = indices.map(group => buildCmfMeshArea(group, cmfMesh, morphTargets)),
         stride = estimateVertexStride(vertex),
         vertexCount = stride === 0 ? 0 : Math.floor((vertex.position ?? []).length / 3);
 
     return {
         name: mesh.name ?? "",
-        decl: buildCmfDecl(vertex),
+        decl,
         lods: [ {
             vb: { index: 1, offset: 0, size: vertexCount * stride, stride },
             ib: { index: 2, offset: 0, size: totalIndexCount(indices) * cmfBytesPerIndex(indices), stride: cmfBytesPerIndex(indices) },
@@ -4778,7 +4791,7 @@ function buildCmfMesh(mesh)
             decl: morphTargets.decl,
             targets: morphTargets.targets
         },
-        uvDensities: [],
+        uvDensities: calculateUvDensities(vertex, indices, decl),
         bounds: cmfBounds(mesh),
         audioOcclusionMesh: {
             vertices: [],
@@ -4792,6 +4805,26 @@ function buildCmfMesh(mesh)
     };
 }
 
+function buildCmfBaseVertex(mesh, indices)
+{
+    const vertex = mesh.vertex ?? {};
+    if (hasArrayValues(vertex.normal) ||
+        !(mesh.morphTargets ?? []).some(target => hasArrayValues(target.vertex?.normal)))
+    {
+        return vertex;
+    }
+
+    // Carbon imports normals by default. Custom FBX morph normals therefore
+    // require a generated base channel before they can enter the CMF subset.
+    return {
+        ...vertex,
+        normal: cleanNumericArray(generateNormals(
+            vertex.position ?? [],
+            indices.flatMap(group => group.faces ?? [])
+        ))
+    };
+}
+
 function buildCmfMeshArea(group, mesh, morphTargets)
 {
     const bones = buildCmfAreaBones(group, mesh.vertex ?? {});
@@ -4800,7 +4833,11 @@ function buildCmfMeshArea(group, mesh, morphTargets)
         bounds: cmfAreaBounds(group, mesh),
         bones,
         affectedByBones: bones.length > 0,
-        affectedByMorphTargets: isCmfAreaAffectedByMorphTargets(group, morphTargets.lods)
+        affectedByMorphTargets: isCmfAreaAffectedByMorphTargets(
+            group,
+            mesh.vertex?.position ?? [],
+            morphTargets.lods
+        )
     };
 }
 
@@ -4833,7 +4870,7 @@ function buildCmfAreaBones(group, vertex)
     return Array.from(bones);
 }
 
-function isCmfAreaAffectedByMorphTargets(group, morphLods)
+function isCmfAreaAffectedByMorphTargets(group, basePositions, morphLods)
 {
     for (const lod of morphLods)
     {
@@ -4842,9 +4879,9 @@ function isCmfAreaAffectedByMorphTargets(group, morphLods)
         {
             const offset = vertexIndex * 3;
             if (
-                positions[offset] !== 0 ||
-                positions[offset + 1] !== 0 ||
-                positions[offset + 2] !== 0
+                positions[offset] !== basePositions[offset] ||
+                positions[offset + 1] !== basePositions[offset + 1] ||
+                positions[offset + 2] !== basePositions[offset + 2]
             )
             {
                 return true;
@@ -4863,8 +4900,18 @@ function buildCmfMorphTargets(mesh)
     }
 
     const
-        targetVertices = targets.map(target => canonicalMorphVertex(mesh.vertex ?? {}, target)),
-        decl = buildCmfDeclFromVertices(targetVertices),
+        morphSpecs = CMF_MORPH_CHANNELS
+            .filter(([ name ]) => name === "position" || targets.some(target => hasArrayValues(target.vertex?.[name])))
+            .filter(([ name ]) => hasArrayValues(mesh.vertex?.[name]))
+            .map(([ name, usage, elementCount, usageIndex = 0, type = "Float32" ]) => ({
+                name,
+                usage,
+                usageIndex,
+                elementCount,
+                type
+            })),
+        targetVertices = targets.map(target => canonicalMorphVertex(mesh.vertex ?? {}, target, morphSpecs)),
+        decl = buildCmfDeclFromSpecs(morphSpecs),
         stride = estimateStrideFromDecl(decl);
 
     return {
@@ -4888,6 +4935,17 @@ function buildCmfMorphTargets(mesh)
             };
         })
     };
+}
+
+function buildCmfDeclFromSpecs(specs)
+{
+    let offset = 0;
+    return specs.map(({ usage, usageIndex, type, elementCount }) =>
+    {
+        const element = { usage, usageIndex, type, elementCount, offset };
+        offset += elementCount * cmfElementTypeSize(type);
+        return element;
+    });
 }
 
 function buildCmfBoneBinding(binding)

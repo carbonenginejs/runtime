@@ -530,6 +530,9 @@ function hydrateSharedMesh(mesh, classes)
         indices: (mesh.indices ?? []).map((group) => hydrate("IndexGroup", {
             name: group.name,
             bytesPerIndex: group.bytesPerIndex,
+            firstElement: group.firstElement,
+            elementCount: group.elementCount,
+            pointCount: group.pointCount,
             faces: group.faces
         }, classes)),
         lods: mesh.lods,

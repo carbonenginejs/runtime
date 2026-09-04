@@ -152,6 +152,18 @@ function readVertexChannels(decl, view, sectionData)
 
 function readIndexGroups(mesh, lod, sectionData)
 {
+    if (mesh.topology === "PointList")
+    {
+        return lod.areas.map((area, areaIndex) => ({
+            name: mesh.areas[areaIndex]?.name ?? "",
+            bytesPerIndex: 0,
+            firstElement: area.firstElement,
+            elementCount: area.elementCount,
+            pointCount: area.elementCount,
+            faces: []
+        }));
+    }
+
     const bytes = viewData(lod.ib, sectionData);
     if (!bytes || lod.ib.stride === 0)
     {

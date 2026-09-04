@@ -529,9 +529,9 @@ export function convertGr2Animation(animation, options = {})
     {
         throw convertError("sampleRate must be a positive finite number");
     }
-    if (!Number.isFinite(duration) || duration < 0)
+    if (!Number.isFinite(duration) || duration <= 0)
     {
-        throw convertError(`animation "${animation.name || ""}" duration must be finite and non-negative`);
+        throw convertError(`animation "${animation.name || ""}" duration must be positive and finite`);
     }
     const channels = [];
     const curves = [];
@@ -623,6 +623,11 @@ export function convertGr2Animation(animation, options = {})
             const value = decodeTrackCurve(track.valueCurve, 1, track.name, "value");
             if (value) addChannel(track.name, "MorphTarget", value, 1, true);
         }
+    }
+
+    if (!channels.length)
+    {
+        throw convertError(`animation "${animation.name || ""}" contains no non-identity channels`);
     }
 
     return {

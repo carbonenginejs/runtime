@@ -585,6 +585,46 @@ test("applies model transforms and global unit scale to static meshes", () =>
     assert.deepEqual(mesh.maxBounds, [ 5, 1, 0 ]);
 });
 
+test("matches Carbon direction transforms under non-uniform model scale", () =>
+{
+    const
+        Root = makeValueClass(),
+        Mesh = makeValueClass(),
+        IndexGroup = makeValueClass(),
+        bytes = makeBinaryFBX(7400, [
+            makeBinaryNode7400("Objects", [], [
+                makeBinaryNode7400("Geometry", [ 123, "Geometry::ScaledNormal", "Mesh" ], [
+                    makeBinaryNode7400("Vertices", [ new Float64Array([
+                        0, 0, 0,
+                        1, 0, 0,
+                        0, 1, 0
+                    ]) ]),
+                    makeBinaryNode7400("PolygonVertexIndex", [ new Int32Array([ 0, 1, -3 ]) ]),
+                    makeBinaryNode7400("LayerElementNormal", [ 0 ], [
+                        makeBinaryNode7400("MappingInformationType", [ "AllSame" ]),
+                        makeBinaryNode7400("ReferenceInformationType", [ "Direct" ]),
+                        makeBinaryNode7400("Normals", [ new Float64Array([ 1, 1, 0 ]) ])
+                    ])
+                ]),
+                makeBinaryNode7400("Model", [ 456, "Model::ScaledNormal", "Mesh" ], [
+                    makeBinaryNode7400("Properties70", [], [
+                        makeBinaryNode7400("P", [ "Lcl Scaling", "Lcl Scaling", "", "A", 2, 3, 4 ])
+                    ])
+                ])
+            ]),
+            makeBinaryNode7400("Connections", [], [
+                makeBinaryNode7400("C", [ "OO", 123, 456 ])
+            ])
+        ]),
+        mesh = CjsFbxFormat.read(bytes, {
+            emit: "gr2",
+            classes: { Root, Mesh, IndexGroup }
+        }).meshes[0],
+        expected = [ 2 / Math.sqrt(13), 3 / Math.sqrt(13), 0 ];
+
+    assertFloatArrayClose(mesh.vertex.normal, [ ...expected, ...expected, ...expected ]);
+});
+
 test("applies FBX rotation pivots pre post rotations and geometric transforms", () =>
 {
     const
@@ -1330,6 +1370,44 @@ test("emits Carbon custom morph normals as gr2 morph target channels", () =>
     ]);
 });
 
+test("deduplicates multiple skin clusters linked to the same bone", () =>
+{
+    const
+        Root = makeValueClass(),
+        Mesh = makeValueClass(),
+        IndexGroup = makeValueClass(),
+        BoneBinding = makeValueClass(),
+        mesh = CjsFbxFormat.read(makeSkinnedHierarchyFBX({ duplicateBoneCluster: true }), {
+            emit: "gr2",
+            classes: { Root, Mesh, IndexGroup, BoneBinding }
+        }).meshes[0];
+
+    assert.deepEqual(mesh.boneBindings.map(binding => binding.name), [ "BoneA", "BoneB" ]);
+    assert.deepEqual(mesh.vertex.blendIndice.slice(8, 12), [ 1, 0, 0, 0 ]);
+    assertFloatArrayClose(mesh.vertex.blendWeight.slice(8, 12), [ 2 / 3, 1 / 3, 0, 0 ]);
+});
+
+test("transforms Carbon custom morph normals with Carbon matrix semantics", () =>
+{
+    const
+        Root = makeValueClass(),
+        Mesh = makeValueClass(),
+        IndexGroup = makeValueClass(),
+        MorphTarget = makeValueClass(),
+        sourceNormal = [ 1, 1, 0 ],
+        expected = [ 2 / Math.sqrt(13), 3 / Math.sqrt(13), 0 ];
+
+    const mesh = CjsFbxFormat.read(makeMorphedTriangleFBX({
+        modelScale: [ 2, 3, 4 ],
+        customMorphNormals: [ ...sourceNormal, ...sourceNormal, ...sourceNormal ]
+    }), {
+        emit: "gr2",
+        classes: { Root, Mesh, IndexGroup, MorphTarget }
+    }).meshes[0];
+
+    assertFloatArrayClose(mesh.morphTargets[0].vertex.normal, [ ...expected, ...expected, ...expected ]);
+});
+
 test("emits blend shape geometry as cmf morph target payloads", () =>
 {
     const
@@ -1383,8 +1461,8 @@ test("emits blend shape geometry as cmf morph target payloads", () =>
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 12);
     assert.deepEqual(mesh.lods[0].morphTargets[0].vertex.position, [
         0, 0, 0,
-        0, 0, 1,
-        0, 0, 0
+        1, 0, 1,
+        0, 1, 0
     ]);
 });
 
@@ -1435,6 +1513,7 @@ test("emits Carbon custom morph normals as cmf morph target payloads", () =>
         { usage: "Position", type: "Float32", elementCount: 3, offset: 0 },
         { usage: "Normal", type: "Float32", elementCount: 3, offset: 12 }
     ]);
+    assert.equal(mesh.decl.some(element => element.usage === "Normal"), true);
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 24);
     assert.deepEqual(mesh.lods[0].morphTargets[0].vertex.normal, [
         0, 0, 1,
@@ -1559,9 +1638,9 @@ test("builds cmf morph declaration from all morph target channels", () =>
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 24);
     assert.equal(mesh.lods[0].morphTargets[1].vb.stride, 24);
     assert.deepEqual(mesh.lods[0].morphTargets[0].vertex.normal, [
-        0, 0, 0,
-        0, 0, 0,
-        0, 0, 0
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1
     ]);
     assert.deepEqual(mesh.lods[0].morphTargets[1].vertex.normal, [
         0, 0, -1,
@@ -1650,10 +1729,11 @@ test("emits generated morph tangent space as cmf morph target payloads", () =>
     ]);
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 48);
     assertFloatArrayClose(mesh.lods[0].morphTargets[0].vertex.normal, [
-        -Math.SQRT1_2, 0, Math.SQRT1_2 - 1,
-        -Math.SQRT1_2, 0, Math.SQRT1_2 - 1,
-        -Math.SQRT1_2, 0, Math.SQRT1_2 - 1
+        -Math.SQRT1_2, 0, Math.SQRT1_2,
+        -Math.SQRT1_2, 0, Math.SQRT1_2,
+        -Math.SQRT1_2, 0, Math.SQRT1_2
     ]);
+    assertFloatArrayClose(mesh.uvDensities, [ Math.SQRT2 ]);
 });
 
 test("rejects malformed Carbon custom morph normals", () =>
@@ -2345,6 +2425,14 @@ test("reports partial FBX feature warnings in support probe", () =>
             makeBinaryNode7400("Geometry", [ 813, "Geometry::SmileWide", "Shape" ], [
                 makeBinaryNode7400("Indexes", [ new Int32Array([ 1 ]) ]),
                 makeBinaryNode7400("Vertices", [ new Float64Array([ 0, 0, 2 ]) ])
+            ]),
+            makeBinaryNode7400("AnimationStack", [ 1000, "AnimStack::Layered", "" ]),
+            makeBinaryNode7400("AnimationLayer", [ 1001, "AnimLayer::Base", "" ]),
+            makeBinaryNode7400("AnimationLayer", [ 1002, "AnimLayer::Overlay", "" ]),
+            makeBinaryNode7400("AnimationCurve", [ 1003, "AnimCurve::Cubic", "" ], [
+                makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
+                makeBinaryNode7400("KeyValueFloat", [ new Float64Array([ 0, 1 ]) ]),
+                makeBinaryNode7400("KeyAttrFlags", [ new Int32Array([ 0x08, 0x08 ]) ])
             ])
         ]),
         makeBinaryNode7400("Connections", [], [
@@ -2359,7 +2447,9 @@ test("reports partial FBX feature warnings in support probe", () =>
             makeBinaryNode7400("C", [ "OO", 810, 123 ]),
             makeBinaryNode7400("C", [ "OO", 811, 810 ]),
             makeBinaryNode7400("C", [ "OO", 812, 811 ]),
-            makeBinaryNode7400("C", [ "OO", 813, 811 ])
+            makeBinaryNode7400("C", [ "OO", 813, 811 ]),
+            makeBinaryNode7400("C", [ "OO", 1001, 1000 ]),
+            makeBinaryNode7400("C", [ "OO", 1002, 1000 ])
         ])
     ]);
 
@@ -2378,6 +2468,8 @@ test("reports partial FBX feature warnings in support probe", () =>
     assert.equal(support.warnings.some(message => message.includes("NoIndexes") && message.includes("no Indexes")), true);
     assert.equal(support.warnings.some(message => message.includes("ZeroWeights") && message.includes("no positive Weights")), true);
     assert.equal(support.warnings.some(message => message.includes("in-between morph interpolation")), true);
+    assert.equal(support.warnings.some(message => message.includes("2 layers")), true);
+    assert.equal(support.warnings.some(message => message.includes("interpolation mode 8")), true);
 });
 
 test("inflates compressed binary arrays for debug and runtime outputs", () =>
@@ -2878,6 +2970,10 @@ function makeMorphedTriangleFBX(options = {})
     }
 
     const modelProperties = [];
+    if (options.modelScale)
+    {
+        modelProperties.push(makeBinaryNode7400("P", [ "Lcl Scaling", "Lcl Scaling", "", "A", ...options.modelScale ]));
+    }
     if (options.customMorphNormals)
     {
         modelProperties.push(makeBinaryNode7400("P", [ "bsNormals_Smile", "KString", "", "U", float32Base64(options.customMorphNormals) ]));
@@ -3193,6 +3289,14 @@ function makeSkinnedHierarchyFBX(options = {})
         ]));
     }
 
+    if (options.duplicateBoneCluster)
+    {
+        objects.push(makeBinaryNode7400("Deformer", [ 805, "SubDeformer::BoneAExtra", "Cluster" ], [
+            makeBinaryNode7400("Indexes", [ new Int32Array([ 2 ]) ]),
+            makeBinaryNode7400("Weights", [ new Float64Array([ 0.5 ]) ])
+        ]));
+    }
+
     if (options.animation)
     {
         const
@@ -3300,6 +3404,14 @@ function makeSkinnedHierarchyFBX(options = {})
     if (options.unusableCluster)
     {
         connections.push(makeBinaryNode7400("C", [ "OO", 803, 800 ]));
+    }
+
+    if (options.duplicateBoneCluster)
+    {
+        connections.push(
+            makeBinaryNode7400("C", [ "OO", 805, 800 ]),
+            makeBinaryNode7400("C", [ "OO", 900, 805 ])
+        );
     }
 
     if (options.animation)

@@ -332,7 +332,7 @@ test("decodes packed keyframes with Granny frame timing", () =>
 
     assert.throws(
         () => convertGr2Animation({ ...animation, duration: 0 }),
-        /multiple controls at zero duration/u
+        /duration must be positive and finite/u
     );
 
     animation.trackGroups[0].transformTracks[0].position.controls = [ 0, 1, 2, 3 ];
@@ -556,6 +556,7 @@ test("maps scalar root vector tracks to CMF morph animation channels", () =>
     assert.deepEqual(floats(converted.curves[2].values), [ 1 ]);
 
     assert.throws(() => convertGr2Animation({
+        duration: 1,
         trackGroups: [ {
             vectorTracks: [ {
                 name: "NotScalar",
@@ -564,6 +565,27 @@ test("maps scalar root vector tracks to CMF morph animation channels", () =>
             } ]
         } ]
     }), /unsupported dimension 3/u);
+});
+
+test("rejects GR2 animations that cannot form a valid CMF animation", () =>
+{
+    assert.throws(() => convertGr2Animation({
+        name: "zero",
+        duration: 0,
+        trackGroups: []
+    }), /duration must be positive and finite/u);
+
+    assert.throws(() => convertGr2Animation({
+        name: "identity-only",
+        duration: 1,
+        trackGroups: [ {
+            transformTracks: [ {
+                name: "root",
+                orientation: { knots: [ 0 ], controls: [ 0, 0, 0, 1 ], dimension: 4, degree: 0 },
+                scaleShear: { knots: [ 0 ], controls: [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ], dimension: 9, degree: 0 }
+            } ]
+        } ]
+    }), /contains no non-identity channels/u);
 });
 
 test("writeShared converts GR2 skeletons and animations end to end", () =>
