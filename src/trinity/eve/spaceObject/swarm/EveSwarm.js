@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
 import { EveShip2 } from "../EveShip2.js";
+import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { EveSwarmRenderable } from "./EveSwarmRenderable.js";
@@ -229,6 +230,30 @@ export class EveSwarm extends EveShip2
     return true;
   }
 
+  /**
+   * Carbon EveSwarm::GetLocatorInObjectSpace (EveSwarm.cpp:1082-1090): the
+   * base resolution, then re-based from the ship's object space into the
+   * TARGET swarmer's - impacts land on the vehicle being shot, not on the
+   * invisible aggregate hull. Row-vector renderableWorld * invWorld maps to
+   * gl multiply(out, inverseWorldTransform, renderableWorld).
+   */
+  @carbon.method
+  @impl.implemented
+  GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
+  {
+    super.GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex);
+    if (this.count)
+    {
+      const local = EveSwarm.#localTransformScratch;
+      mat4.multiply(local, this.inverseWorldTransform, this.renderables[this.targetIndex].worldTransform);
+      vec3.transformMat4(outPosition, outPosition, local);
+      const [ x, y, z ] = outDirection;
+      outDirection[0] = local[0] * x + local[4] * y + local[8] * z;
+      outDirection[1] = local[1] * x + local[5] * y + local[9] * z;
+      outDirection[2] = local[2] * x + local[6] * y + local[10] * z;
+    }
+  }
+
   /** Carbon method AddSwarmer (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
@@ -335,5 +360,7 @@ export class EveSwarm extends EveShip2
   }
 
   static #shipSphereScratch = new Float32Array(4);
+
+  static #localTransformScratch = mat4.create();
 
 }

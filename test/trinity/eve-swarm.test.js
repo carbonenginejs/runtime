@@ -60,3 +60,29 @@ test("EveSwarm behavior fields use Carbon BehaviorProperties defaults", () =>
     formationDistance: 50
   });
 });
+
+
+test("EveSwarm re-bases damage locators into the target swarmer's space", async () =>
+{
+  const { EveLocatorSets } = await import("../../npm/dist/trinity/index.js");
+  const { mat4 } = await import("../../npm/dist/global/math/mat4.js");
+
+  const swarm = new EveSwarm();
+  const damage = new EveLocatorSets();
+  damage.SetName("damage");
+  damage.Append([{ position: [ 1, 0, 0 ], direction: [ 0, 0, 0, 1 ], boneIndex: 0 }]);
+  swarm.locatorSets.push(damage);
+
+  // Zero swarmers: the base ship resolution answers unmodified.
+  swarm.count = 0;
+  assert.deepEqual(Array.from(swarm.GetDamageLocator(0)), [ 1, 0, 0 ]);
+
+  // One swarmer 10 units out: impacts land on the vehicle being shot.
+  swarm.AddSwarmer();
+  swarm.targetIndex = 0;
+  mat4.fromTranslation(swarm.renderables[0].worldTransform, [ 10, 0, 0 ]);
+  const position = swarm.GetDamageLocator(0);
+  assert.deepEqual(Array.from(position), [ 11, 0, 0 ]);
+  const direction = swarm.GetDamageLocatorDirection(0);
+  assert.deepEqual(Array.from(direction), [ 0, 1, 0 ]);
+});
