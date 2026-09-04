@@ -28,11 +28,14 @@ import {
 const FORMAT_NAME = "CjsGltfFormat";
 
 /**
- * CarbonEngineJS-facing glTF/GLB format surface.
+ * glTF/GLB format class that parses documents, decodes accessors, and converts
+ * meshes, skins, and animations into shared-mesh, GR2, or CMF output plus debug
+ * JSON.
  *
  * The Cjs prefix marks this as a JavaScript format/construction boundary.
- * glTF is the import source; the public read contract is the shared
- * CarbonEngineJS JSON mesh, skeleton, and animation schema.
+ * glTF is the import source; the default public read contract is the shared
+ * CarbonEngineJS mesh, skeleton, and animation graph. JSON is an explicit
+ * debug/output projection rather than an intermediate format contract.
  */
 export class CjsGltfFormat extends CjsFormat
 {
@@ -278,11 +281,11 @@ export class CjsGltfFormat extends CjsFormat
     static id = "gltf";
     static mediaTypes = Object.freeze([ "geometry" ]);
     static outputs = CjsFormat.defineOutputs({
-        shared: { decoded: true },
+        shared: { default: true, decoded: true },
         gr2: { decoded: true },
         cmf: { decoded: true },
         json: { role: "debug", decoded: true },
-        gltfJson: { role: "debug", default: true, decoded: true }
+        gltfJson: { role: "debug", decoded: true }
     });
     static extensions = Object.freeze([ ".gltf", ".glb" ]);
 

@@ -269,8 +269,8 @@ test("loads shared morph targets into CMF-native JSON", () =>
     assert.equal(mesh.lods[0].morphTargets[0].vb.stride, 12);
     assert.deepEqual(mesh.lods[0].morphTargets[0].vertex.position, [
         0, 0, 0,
-        0, 0, 1,
-        0, 0, 0
+        1, 0, 1,
+        0, 1, 0
     ]);
 });
 

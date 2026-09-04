@@ -4871,7 +4871,10 @@ function buildCmfMorphTargets(mesh)
         decl,
         targets: targets.map((target, index) => ({
             name: target.name ?? "",
-            maxDisplacement: target.maxDisplacement ?? maxMorphDisplacement(targetVertices[index].position)
+            maxDisplacement: target.maxDisplacement ?? maxMorphDisplacement(
+                targetVertices[index].position,
+                mesh.vertex?.position
+            )
         })),
         lods: targets.map((_, index) =>
         {

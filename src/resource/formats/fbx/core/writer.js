@@ -880,14 +880,17 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
                 throw writeError(`mesh ${meshIndex} morph target "${name}" channel "${channel}" is not supported`);
             }
         }
-        const deltas = targetVertex.position?.length
+        const absolutePositions = targetVertex.position?.length
             ? targetVertex.position
-            : new Array(base.length).fill(0);
-        if (!Array.isArray(deltas) || deltas.length !== base.length)
+            : base;
+        if (!Array.isArray(absolutePositions) || absolutePositions.length !== base.length)
         {
             throw writeError(`mesh ${meshIndex} morph target "${name}" positions do not match the base mesh`);
         }
-        validateFiniteArray(deltas, base.length, `mesh ${meshIndex} morph target "${name}" position`);
+        validateFiniteArray(absolutePositions, base.length, `mesh ${meshIndex} morph target "${name}" position`);
+        const deltas = absolutePositions.length
+            ? absolutePositions.map((value, index) => value - base[index])
+            : new Array(base.length).fill(0);
         const displacement = maxMorphDisplacement(deltas);
         if (!Number.isFinite(targets[targetIndex].maxDisplacement) ||
             Math.abs(targets[targetIndex].maxDisplacement - displacement) > Math.max(1e-5, displacement * 1e-5))
@@ -895,13 +898,14 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
             throw writeError(`mesh ${meshIndex} morph target "${name}" maxDisplacement does not match its deltas`);
         }
 
-        const normalDeltas = targetVertex.normal ?? [];
-        if (normalDeltas.length)
+        const absoluteNormals = targetVertex.normal ?? [];
+        let normalDeltas = [];
+        if (absoluteNormals.length)
         {
             const baseNormals = vertexData(mesh).normal ?? [];
             validateFiniteArray(baseNormals, base.length, `mesh ${meshIndex} base normal`);
-            validateFiniteArray(normalDeltas, base.length, `mesh ${meshIndex} morph target "${name}" normal`);
-            const absoluteNormals = normalDeltas.map((value, index) => value + baseNormals[index]);
+            validateFiniteArray(absoluteNormals, base.length, `mesh ${meshIndex} morph target "${name}" normal`);
+            normalDeltas = absoluteNormals.map((value, index) => value - baseNormals[index]);
             customProperties.push(stringPropertyNode(
                 `bsNormals_${name}`,
                 base64Float32(expandPolygonVertexValues(mesh, absoluteNormals, 3))

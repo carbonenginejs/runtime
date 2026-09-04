@@ -1,6 +1,7 @@
 import { convertGr2SkeletonsAndAnimations } from "./gr2Anim.js";
 import { canonicalMorphVertex, maxMorphDisplacement } from "./utils/morph.js";
 import { bytesPerIndex, firstTriangle, totalIndexCount } from "./utils/indices.js";
+import { calculateUvDensities } from "./utils/uvDensity.js";
 import { elementTypeSize, estimateStrideFromDecl } from "./utils/vertex.js";
 
 const VERTEX_CHANNELS = Object.freeze([
@@ -52,43 +53,37 @@ export function buildSharedFromCmf(raw, classes, hydrationOptions = {})
 
 function buildMesh(mesh)
 {
-    mesh = normalizeSharedMeshTangents(mesh);
+    const lodSources = sharedLodSources(mesh);
+    const builtLods = lodSources.map((source, index) => buildLod(source, index));
+    const base = builtLods[0];
+    assertCompatibleLods(builtLods);
+
     const
-        vertex = mesh.vertex ?? {},
-        position = vertex.position ?? [],
+        vertex = base.vertex,
         boneBindings = (mesh.boneBindings ?? []).map((binding) => buildBoneBinding(binding)),
         affectedByBones = boneBindings.length > 0,
-        morphTargets = buildMorphTargets(mesh),
+        morphTargets = {
+            ...base.morphTargetSet,
+            targets: base.morphTargetSet.targets.map((target, targetIndex) => ({
+                ...target,
+                maxDisplacement: Math.max(...builtLods.map(lod =>
+                    lod.morphTargetSet.targets[targetIndex].maxDisplacement))
+            }))
+        },
         affectedByMorphTargets = morphTargets.targets.length > 0,
-        stride = estimateVertexStride(vertex),
-        vertexCount = stride === 0 ? 0 : Math.floor(position.length / 3);
+        decl = base.decl,
+        topology = base.topology;
+
+    if (affectedByBones !== decl.some(element => element.usage === "BoneIndices"))
+    {
+        throw new Error("CMF bone bindings and BoneIndices must either both be present or both be absent");
+    }
 
     return {
         name: mesh.name ?? "",
-        decl: buildDecl(vertex),
-        lods: [ {
-            vb: {
-                index: 1,
-                offset: 0,
-                size: vertexCount * stride,
-                stride
-            },
-            ib: {
-                index: 2,
-                offset: 0,
-                size: totalIndexCount(mesh.indices) * bytesPerIndex(mesh.indices),
-                stride: bytesPerIndex(mesh.indices)
-            },
-            areas: (mesh.indices ?? []).map((group, index) => ({
-                firstElement: firstTriangle(mesh.indices, index),
-                elementCount: Math.floor((group.faces ?? []).length / 3)
-            })),
-            morphTargets: morphTargets.lods,
-            threshold: 0xffffffff,
-            vertex,
-            indices: mesh.indices ?? []
-        } ],
-        areas: (mesh.indices ?? []).map((group) => ({
+        decl,
+        lods: builtLods.map(({ decl: _decl, topology: _topology, morphTargetSet: _morphTargetSet, ...lod }) => lod),
+        areas: (base.indices ?? []).map((group) => ({
             name: group.name ?? "",
             bounds: boundsFromShared(mesh),
             bones: [],
@@ -100,18 +95,167 @@ function buildMesh(mesh)
             decl: morphTargets.decl,
             targets: morphTargets.targets
         },
-        uvDensities: [],
+        uvDensities: calculateUvDensities(vertex, mesh.indices, decl),
         bounds: boundsFromShared(mesh),
         audioOcclusionMesh: {
             vertices: [],
             indices: [],
             bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] }
         },
-        topology: "TriangleList",
+        topology,
         skeleton: mesh.skeleton ?? null,
         vertex,
-        indices: mesh.indices ?? []
+        indices: base.indices
     };
+}
+
+function sharedLodSources(mesh)
+{
+    const lods = Array.isArray(mesh.lods) && mesh.lods.length ? mesh.lods : [ mesh ];
+    return lods.map((lod, index) =>
+    {
+        const baseTargets = mesh.morphTargets ?? [];
+        const lodTargets = lod.morphTargets ?? (index === 0 ? baseTargets : []);
+        const morphTargets = lodTargets.map((target, targetIndex) => ({
+            ...(baseTargets[targetIndex] ?? {}),
+            ...target,
+            vertex: target.vertex ?? baseTargets[targetIndex]?.vertex ?? {}
+        }));
+        return normalizeSharedMeshTangents({
+            ...mesh,
+            ...lod,
+            name: mesh.name,
+            boneBindings: mesh.boneBindings,
+            skeleton: mesh.skeleton,
+            morphTargets
+        });
+    });
+}
+
+function buildLod(mesh, index)
+{
+    const
+        vertex = mesh.vertex ?? {},
+        position = vertex.position ?? [],
+        decl = buildDecl(vertex),
+        stride = estimateVertexStride(vertex),
+        vertexCount = stride === 0 ? 0 : Math.floor(position.length / 3),
+        indices = mesh.indices ?? [],
+        topology = mesh.topology ?? "TriangleList",
+        pointList = topology === "PointList",
+        morphTargets = buildMorphTargets(mesh),
+        indexStride = pointList ? 0 : bytesPerIndex(indices);
+
+    if (position.length % 3)
+    {
+        throw new Error("CMF Position channel length must be divisible by three");
+    }
+    if (topology !== "TriangleList" && !pointList)
+    {
+        throw new Error(`CMF shared geometry topology ${JSON.stringify(topology)} is not supported`);
+    }
+    if (pointList && totalIndexCount(indices))
+    {
+        throw new Error("CMF PointList geometry cannot contain an index buffer");
+    }
+    for (const group of indices)
+    {
+        const faces = group.faces ?? [];
+        if (!pointList && faces.length % 3)
+        {
+            throw new Error("CMF triangle index groups must contain complete triangles");
+        }
+        if (faces.some(value => !Number.isInteger(value) || value < 0 || value >= vertexCount))
+        {
+            throw new Error("CMF index is outside the vertex range");
+        }
+    }
+
+    return {
+        decl,
+        topology,
+        vb: {
+            index: 1,
+            offset: 0,
+            size: vertexCount * stride,
+            stride
+        },
+        ib: pointList ? {
+            index: 0,
+            offset: 0,
+            size: 0,
+            stride: 0
+        } : {
+            index: 2,
+            offset: 0,
+            size: totalIndexCount(indices) * indexStride,
+            stride: indexStride
+        },
+        areas: buildLodAreas(indices, topology, vertexCount),
+        morphTargets: morphTargets.lods,
+        morphTargetSet: morphTargets,
+        threshold: mesh.threshold ?? (index === 0 ? 0xffffffff : 0),
+        vertex,
+        indices
+    };
+}
+
+function buildLodAreas(groups, topology, vertexCount)
+{
+    if (topology === "PointList")
+    {
+        let firstElement = 0;
+        return groups.map((group, index) =>
+        {
+            const elementCount = group.pointCount ?? (index === 0 ? vertexCount : 0);
+            const area = { firstElement, elementCount };
+            firstElement += elementCount;
+            return area;
+        });
+    }
+    return groups.map((group, index) => ({
+        firstElement: firstTriangle(groups, index),
+        elementCount: Math.floor((group.faces ?? []).length / 3)
+    }));
+}
+
+function sameDeclaration(left, right)
+{
+    return left.length === right.length && left.every((element, index) =>
+    {
+        const other = right[index];
+        return element.usage === other.usage && element.usageIndex === other.usageIndex &&
+            element.type === other.type && element.elementCount === other.elementCount &&
+            element.offset === other.offset;
+    });
+}
+
+function assertCompatibleLods(lods)
+{
+    const base = lods[0];
+    for (let index = 1; index < lods.length; index++)
+    {
+        const lod = lods[index];
+        if (lod.topology !== base.topology || !sameDeclaration(lod.decl, base.decl))
+        {
+            throw new Error(`CMF LOD ${index} must use the base LOD topology and vertex declaration`);
+        }
+        if (lod.areas.length !== base.areas.length)
+        {
+            throw new Error(`CMF LOD ${index} must contain ${base.areas.length} material areas`);
+        }
+        if (!sameDeclaration(lod.morphTargetSet.decl, base.morphTargetSet.decl) ||
+            lod.morphTargetSet.targets.length !== base.morphTargetSet.targets.length ||
+            lod.morphTargetSet.targets.some((target, targetIndex) =>
+                target.name !== base.morphTargetSet.targets[targetIndex].name))
+        {
+            throw new Error(`CMF LOD ${index} must use the base LOD morph declaration and target count`);
+        }
+        if (lod.threshold >= lods[index - 1].threshold)
+        {
+            throw new Error("CMF LOD thresholds must be strictly descending");
+        }
+    }
 }
 
 function normalizeSharedMeshTangents(mesh)
@@ -184,10 +328,30 @@ function buildMorphTargets(mesh)
     {
         return { decl: [], targets: [], lods: [] };
     }
+    if (!(mesh.vertex?.position ?? []).length)
+    {
+        throw new Error("CMF morph targets require a base position channel");
+    }
+    const targetNames = targets.map(target => target.name ?? "");
+    if (new Set(targetNames).size !== targetNames.length)
+    {
+        throw new Error("CMF morph target names must be unique within a mesh");
+    }
+    for (const target of targets)
+    {
+        for (const [ name ] of VERTEX_CHANNELS)
+        {
+            if ((target.vertex?.[name] ?? []).length && !(mesh.vertex?.[name] ?? []).length)
+            {
+                throw new Error(`CMF morph ${name} is absent from the base vertex declaration`);
+            }
+        }
+    }
 
     const
         morphSpecs = VERTEX_CHANNELS
-            .filter(([ name ]) => targets.some((target) => (target.vertex?.[name] ?? []).length))
+            .filter(([ name ]) => name === "position" || targets.some((target) => (target.vertex?.[name] ?? []).length))
+            .filter(([ name ]) => (mesh.vertex?.[name] ?? []).length)
             .map(([ name, usage, defaultCount, usageIndex = 0, type = "Float32" ]) => ({
                 name,
                 usage,
@@ -199,12 +363,21 @@ function buildMorphTargets(mesh)
         decl = buildMorphDecl(morphSpecs),
         stride = estimateStrideFromDecl(decl);
 
+    const targetRecords = targets.map((target, index) => ({
+        name: target.name ?? "",
+        maxDisplacement: target.maxDisplacement ?? maxMorphDisplacement(
+            vertices[index].position,
+            mesh.vertex?.position
+        )
+    }));
+    if (targetRecords.some(target => !Number.isFinite(target.maxDisplacement) || target.maxDisplacement < 0))
+    {
+        throw new Error("CMF morph target maxDisplacement values must be finite and non-negative");
+    }
+
     return {
         decl,
-        targets: targets.map((target, index) => ({
-            name: target.name ?? "",
-            maxDisplacement: target.maxDisplacement ?? maxMorphDisplacement(vertices[index].position)
-        })),
+        targets: targetRecords,
         lods: targets.map((target, index) =>
         {
             const
@@ -265,7 +438,33 @@ function buildDecl(vertex)
     const decl = [];
     let offset = 0;
     const vertexCount = (vertex.position ?? []).length / 3;
-    for (const channel of VERTEX_CHANNELS)
+    const dynamicChannels = [];
+    for (const name of Object.keys(vertex))
+    {
+        let match = /^texcoord([0-9]+)$/u.exec(name);
+        if (match)
+        {
+            dynamicChannels.push([ name, "TexCoord", 2, Number(match[1]) ]);
+            continue;
+        }
+        match = /^color([0-9]+)$/u.exec(name);
+        if (match) dynamicChannels.push([ name, "Color", 4, Number(match[1]) ]);
+    }
+    dynamicChannels.sort((left, right) =>
+        (left[1] === "TexCoord" ? 0 : 1) - (right[1] === "TexCoord" ? 0 : 1) ||
+        left[3] - right[3]);
+
+    for (const channel of [
+        [ "position", "Position", 3 ],
+        [ "normal", "Normal", 3 ],
+        [ "tangent", "Tangent", 3 ],
+        [ "binormal", "Binormal", 3 ],
+        ...dynamicChannels,
+        [ "blendIndice", "BoneIndices", 4, 0, "UInt16" ],
+        [ "blendWeight", "BoneWeights", 4, 0 ],
+        [ "packedTangent", "PackedTangent", 4, 0, "Int16Norm" ],
+        [ "packedTangentLegacy", "PackedTangentLegacy", 4, 0, "UInt16Norm" ]
+    ])
     {
         const [ name, usage, defaultCount, usageIndex = 0, type = "Float32" ] = channel;
         if (!Array.isArray(vertex[name]) || vertex[name].length === 0)
@@ -273,10 +472,12 @@ function buildDecl(vertex)
             continue;
         }
 
-        const count = (name === "tangent" || name === "binormal") &&
+        const count = (name === "tangent" || name === "binormal" || usage === "Color") &&
             vertexCount > 0 && vertex[name].length === vertexCount * 4
             ? 4
-            : defaultCount;
+            : usage === "Color" && vertexCount > 0 && vertex[name].length === vertexCount * 3
+                ? 3
+                : defaultCount;
 
         decl.push({ usage, usageIndex, type, elementCount: count, offset });
         offset += count * elementTypeSize(type);
@@ -315,7 +516,7 @@ function hydrateSharedMesh(mesh, classes)
         name: mesh.name,
         morphTargets: mesh.morphTargets.targets.map((target, index) => hydrate("MorphTarget", {
             ...target,
-            dataIsDeltas: true,
+            dataIsDeltas: false,
             vertex: mesh.lods[0]?.morphTargets[index]?.vertex ?? null
         }, classes)),
         minBounds: mesh.bounds.min,

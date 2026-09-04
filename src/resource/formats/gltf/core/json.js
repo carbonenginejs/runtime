@@ -1,10 +1,10 @@
 /**
- * JSON hydration helpers for the shared CarbonEngineJS mesh/animation schema.
+ * Hydration helpers for the shared CarbonEngineJS mesh/animation schema.
  */
 
 export const CLASS_KEYS = Object.freeze([
     "Root", "Mesh", "BoneBinding", "IndexGroup", "MorphTarget", "Model",
-    "Skeleton", "Bone", "Animation", "TrackGroup", "TransformTrack", "Curve"
+    "Skeleton", "Bone", "Animation", "TrackGroup", "TransformTrack", "VectorTrack", "Curve"
 ]);
 
 function build(classes, key, props, hydrationOptions = {})
@@ -29,19 +29,33 @@ function hydrateCurve(curve, classes, hydrationOptions)
 }
 
 /**
- * Hydrate the plain shared JSON schema with caller-supplied classes.
+ * Hydrate the plain shared graph with caller-supplied classes.
  *
  * @param {object} root Plain JSON graph.
  * @param {object} [options] Hydration options.
  * @param {object} [options.classes] Node constructor map.
  * @returns {object} Hydrated graph.
  */
-export function hydrateJson(root, { classes = {}, ...hydrationOptions } = {})
+export function hydrateShared(root, { classes = {}, ...hydrationOptions } = {})
 {
+    const skeletons = new Map();
+    const hydrateSkeleton = (skeleton) =>
+    {
+        if (skeletons.has(skeleton)) return skeletons.get(skeleton);
+        const hydrated = build(classes, "Skeleton", {
+            ...skeleton,
+            bones: skeleton.bones.map(bone => build(classes, "Bone", bone, hydrationOptions))
+        }, hydrationOptions);
+        skeletons.set(skeleton, hydrated);
+        return hydrated;
+    };
+
     return build(classes, "Root", {
+        ...root,
         grannyFileFormatRevision: root.grannyFileFormatRevision,
         grannyFileSource: root.grannyFileSource,
         meshes: root.meshes.map(mesh => build(classes, "Mesh", {
+            ...mesh,
             name: mesh.name,
             morphTargets: mesh.morphTargets.map(target => build(classes, "MorphTarget", target, hydrationOptions)),
             minBounds: mesh.minBounds,
@@ -51,14 +65,13 @@ export function hydrateJson(root, { classes = {}, ...hydrationOptions } = {})
             indices: mesh.indices.map(group => build(classes, "IndexGroup", group, hydrationOptions))
         }, hydrationOptions)),
         models: root.models.map(model => build(classes, "Model", {
+            ...model,
             name: model.name,
-            skeleton: build(classes, "Skeleton", {
-                name: model.skeleton.name,
-                bones: model.skeleton.bones.map(bone => build(classes, "Bone", bone, hydrationOptions))
-            }, hydrationOptions),
+            skeleton: hydrateSkeleton(model.skeleton),
             meshBindings: model.meshBindings
         }, hydrationOptions)),
         animations: root.animations.map(animation => build(classes, "Animation", {
+            ...animation,
             name: animation.name,
             duration: animation.duration,
             timeStep: animation.timeStep,
@@ -66,13 +79,19 @@ export function hydrateJson(root, { classes = {}, ...hydrationOptions } = {})
             defaultLoopCount: animation.defaultLoopCount,
             flags: animation.flags,
             trackGroups: animation.trackGroups.map(group => build(classes, "TrackGroup", {
+                ...group,
                 name: group.name,
                 transformTracks: group.transformTracks.map(track => build(classes, "TransformTrack", {
+                    ...track,
                     name: track.name,
                     flags: track.flags,
                     orientation: hydrateCurve(track.orientation, classes, hydrationOptions),
                     position: hydrateCurve(track.position, classes, hydrationOptions),
                     scaleShear: hydrateCurve(track.scaleShear, classes, hydrationOptions)
+                }, hydrationOptions)),
+                vectorTracks: (group.vectorTracks ?? []).map(track => build(classes, "VectorTrack", {
+                    ...track,
+                    valueCurve: hydrateCurve(track.valueCurve, classes, hydrationOptions)
                 }, hydrationOptions))
             }, hydrationOptions))
         }, hydrationOptions))

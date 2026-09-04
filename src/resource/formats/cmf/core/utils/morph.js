@@ -27,7 +27,24 @@ function channelWidth(values, count, channel)
     return values.length / count;
 }
 
-/** Canonicalize a shared morph target to full per-vertex CMF delta channels. */
+function baseChannelValues(baseVertex, channel, vertexCount, width)
+{
+    const base = baseVertex?.[channel] ?? [];
+    if (!base.length) return new Array(vertexCount * width).fill(0);
+
+    const baseWidth = channelWidth(base, vertexCount, channel);
+    const values = new Array(vertexCount * width).fill(0);
+    for (let row = 0; row < vertexCount; row++)
+    {
+        for (let component = 0; component < width; component++)
+        {
+            values[row * width + component] = base[row * baseWidth + component] ?? 0;
+        }
+    }
+    return values;
+}
+
+/** Canonicalize a shared morph target to full per-vertex CMF absolute channels. */
 export function canonicalMorphVertex(baseVertex, target, specs = null, explicitVertexCount = null)
 {
     const vertexCount = explicitVertexCount ?? vertexCountOf(baseVertex);
@@ -36,25 +53,38 @@ export function canonicalMorphVertex(baseVertex, target, specs = null, explicitV
     const indices = Array.isArray(target.vertexIndices) ? target.vertexIndices : null;
     const output = {};
 
-    const channels = specs ?? Object.keys(sourceVertex).map((name) => ({ name }));
+    const channels = specs ?? [
+        ...(baseVertex?.position?.length ? [ { name: "position", elementCount: 3 } ] : []),
+        ...Object.keys(sourceVertex)
+            .filter(name => name !== "position")
+            .map((name) => ({ name }))
+    ];
     for (const spec of channels)
     {
         const channel = spec.name;
         const source = sourceVertex[channel] ?? [];
-        if (specs && !source.length)
+        const base = baseVertex?.[channel] ?? [];
+        if (!base.length && source.length)
         {
-            output[channel] = new Array(vertexCount * spec.elementCount).fill(0);
+            throw new Error(`CMF morph ${channel} is absent from the base vertex declaration`);
+        }
+        if (!Array.isArray(source)) throw new TypeError(`CMF morph ${channel} must be an array`);
+        const width = spec.elementCount ?? (
+            source.length
+                ? channelWidth(source, sourceCount, channel)
+                : channelWidth(base, vertexCount, channel)
+        );
+        const values = baseChannelValues(baseVertex, channel, vertexCount, width);
+        if (!source.length)
+        {
+            output[channel] = values;
             continue;
         }
-        if (!Array.isArray(source) || !source.length) continue;
-        const width = spec.elementCount ?? channelWidth(source, sourceCount, channel);
         if (source.length !== sourceCount * width)
         {
             throw new Error(`CMF morph ${channel} length ${source.length} does not match ${sourceCount} vec${width} values`);
         }
-        const base = baseVertex?.[channel] ?? [];
         const baseWidth = base.length ? channelWidth(base, vertexCount, channel) : width;
-        const values = new Array(vertexCount * width).fill(0);
         for (let row = 0; row < sourceCount; row++)
         {
             const vertexIndex = indices ? indices[row] : row;
@@ -67,8 +97,8 @@ export function canonicalMorphVertex(baseVertex, target, specs = null, explicitV
                 const sourceValue = source[row * width + component];
                 const baseValue = base[vertexIndex * baseWidth + component] ?? 0;
                 values[vertexIndex * width + component] = target.dataIsDeltas === false
-                    ? sourceValue - baseValue
-                    : sourceValue;
+                    ? sourceValue
+                    : sourceValue + baseValue;
             }
         }
         output[channel] = values;
@@ -76,16 +106,16 @@ export function canonicalMorphVertex(baseVertex, target, specs = null, explicitV
     return output;
 }
 
-/** Maximum Euclidean displacement in a flat vec3 delta channel. */
-export function maxMorphDisplacement(position = [])
+/** Maximum Euclidean displacement between flat vec3 absolute and base channels. */
+export function maxMorphDisplacement(position = [], basePosition = [])
 {
     let maximum = 0;
     for (let index = 0; index < position.length; index += 3)
     {
         maximum = Math.max(maximum, Math.hypot(
-            position[index] ?? 0,
-            position[index + 1] ?? 0,
-            position[index + 2] ?? 0
+            (position[index] ?? 0) - (basePosition[index] ?? 0),
+            (position[index + 1] ?? 0) - (basePosition[index + 1] ?? 0),
+            (position[index + 2] ?? 0) - (basePosition[index + 2] ?? 0)
         ));
     }
     return maximum;

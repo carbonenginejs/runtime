@@ -2,12 +2,13 @@
  * Internal read-pipeline glue for CjsGltfFormat.
  */
 
-import { CLASS_KEYS as GR2_CLASS_KEYS, hydrateJson } from "./json.js";
-import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
+import { CLASS_KEYS as GR2_CLASS_KEYS, hydrateShared } from "./json.js";
+import { buildCmfFromShared } from "../../cmf/core/shared.js";
+import { CMF_CLASS_KEYS } from "../../cmf/core/constants.js";
 import {
     inspectGltf,
     isGlb,
-    parseGltfToJson,
+    parseGltfToShared,
     parseInput
 } from "./parser.js";
 import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
@@ -38,7 +39,7 @@ export const OUTPUT_GR2 = "gr2";
 export const OUTPUT_CMF = "cmf";
 
 export const DEFAULT_VALUES = Object.freeze({
-    emit: OUTPUT_GLTF_JSON,
+    emit: OUTPUT_SHARED,
     source: "memory",
     buffers: null,
     packTangents: false,
@@ -162,11 +163,9 @@ export function normalizeValues(base, options = {}, readerName = "CjsGltfFormat"
 
 function normalizeEmit(emit, readerName)
 {
-    if (emit === undefined || emit === null || emit === OUTPUT_JSON || emit === OUTPUT_GLTF_JSON || emit === OUTPUT_SHARED)
-    {
-        return OUTPUT_GLTF_JSON;
-    }
-    if (emit === OUTPUT_GR2 || emit === OUTPUT_CMF) return emit;
+    if (emit === undefined || emit === null) return OUTPUT_SHARED;
+    if (emit === OUTPUT_JSON || emit === OUTPUT_GLTF_JSON || emit === OUTPUT_SHARED ||
+        emit === OUTPUT_GR2 || emit === OUTPUT_CMF) return emit;
     throw new TypeError(`${readerName}: emit must be "${OUTPUT_SHARED}", "${OUTPUT_GLTF_JSON}", "${OUTPUT_GR2}", or "${OUTPUT_CMF}", got ${JSON.stringify(emit)}`);
 }
 
@@ -280,60 +279,74 @@ function generatedBiNormalsForMesh(mesh, values)
     return out;
 }
 
-function rebuildMissingMeshData(format, json, values)
+function rebuildMeshData(format, root, mesh, meshIndex, lodIndex, values)
 {
-    for (let meshIndex = 0; meshIndex < json.meshes.length; meshIndex++)
+    const
+        common = { options: values, raw: null, shared: root, mesh, meshIndex, lodIndex },
+        shouldPackTangents = shouldApplyMeshRule(
+            format,
+            values.packTangents,
+            { ...common, feature: "packTangents", channel: "tangent" }
+        );
+
+    if (!hasVertexChannel(mesh, "normal") && (shouldApplyMeshRule(
+        format,
+        values.rebuildMissingNormals,
+        { ...common, feature: "rebuildMissingNormals", channel: "normal" }) || shouldPackTangents))
     {
-        const
-            mesh = json.meshes[meshIndex],
-            common = { options: values, raw: null, json, mesh, meshIndex },
-            shouldPackTangents = shouldApplyMeshRule(
-                format,
-                values.packTangents,
-                { ...common, feature: "packTangents", channel: "tangent" }
-            );
+        mesh.vertex.normal = generateNormals(
+            requireVertexChannel(mesh, meshIndex, "position", "rebuildMissingNormals"),
+            triangleFaces(mesh, meshIndex, "rebuildMissingNormals")
+        );
+    }
 
-        if (!hasVertexChannel(mesh, "normal") && (shouldApplyMeshRule(
-            format,
-            values.rebuildMissingNormals,
-            { ...common, feature: "rebuildMissingNormals", channel: "normal" }) || shouldPackTangents))
+    if (!hasVertexChannel(mesh, "tangent") && (shouldApplyMeshRule(
+        format,
+        values.rebuildMissingTangents,
+        { ...common, feature: "rebuildMissingTangents", channel: "tangent" }) || shouldPackTangents))
+    {
+        mesh.vertex.tangent = generateTangents(
+            requireVertexChannel(mesh, meshIndex, "position", "rebuildMissingTangents"),
+            requireVertexChannel(mesh, meshIndex, "normal", "rebuildMissingTangents"),
+            requireVertexChannel(mesh, meshIndex, "texcoord0", "rebuildMissingTangents"),
+            triangleFaces(mesh, meshIndex, "rebuildMissingTangents")
+        );
+    }
+
+    if (!hasVertexChannel(mesh, "binormal") && (shouldApplyMeshRule(
+        format,
+        values.rebuildMissingBiNormals,
+        { ...common, feature: "rebuildMissingBiNormals", channel: "binormal" }) || shouldPackTangents))
+    {
+        mesh.vertex.binormal = generatedBiNormalsForMesh(mesh, values);
+    }
+
+    if (shouldPackTangents)
+    {
+        mesh.vertex.tangent = packTangentFrames(
+            requireVertexChannel(mesh, meshIndex, "normal", "packTangents"),
+            tangentXyz(mesh),
+            requireVertexChannel(mesh, meshIndex, "binormal", "packTangents")
+        );
+        mesh.vertex.normal = [];
+        mesh.vertex.binormal = [];
+    }
+}
+
+function rebuildMissingMeshData(format, shared, values)
+{
+    for (let meshIndex = 0; meshIndex < shared.meshes.length; meshIndex++)
+    {
+        const mesh = shared.meshes[meshIndex];
+        const lods = mesh.lods?.length ? mesh.lods : [ mesh ];
+        for (let lodIndex = 0; lodIndex < lods.length; lodIndex++)
         {
-            mesh.vertex.normal = generateNormals(
-                requireVertexChannel(mesh, meshIndex, "position", "rebuildMissingNormals"),
-                triangleFaces(mesh, meshIndex, "rebuildMissingNormals")
-            );
+            rebuildMeshData(format, shared, lods[lodIndex], meshIndex, lodIndex, values);
         }
-
-        if (!hasVertexChannel(mesh, "tangent") && (shouldApplyMeshRule(
-            format,
-            values.rebuildMissingTangents,
-            { ...common, feature: "rebuildMissingTangents", channel: "tangent" }) || shouldPackTangents))
+        if (mesh.lods?.length)
         {
-            mesh.vertex.tangent = generateTangents(
-                requireVertexChannel(mesh, meshIndex, "position", "rebuildMissingTangents"),
-                requireVertexChannel(mesh, meshIndex, "normal", "rebuildMissingTangents"),
-                requireVertexChannel(mesh, meshIndex, "texcoord0", "rebuildMissingTangents"),
-                triangleFaces(mesh, meshIndex, "rebuildMissingTangents")
-            );
-        }
-
-        if (!hasVertexChannel(mesh, "binormal") && (shouldApplyMeshRule(
-            format,
-            values.rebuildMissingBiNormals,
-            { ...common, feature: "rebuildMissingBiNormals", channel: "binormal" }) || shouldPackTangents))
-        {
-            mesh.vertex.binormal = generatedBiNormalsForMesh(mesh, values);
-        }
-
-        if (shouldPackTangents)
-        {
-            mesh.vertex.tangent = packTangentFrames(
-                requireVertexChannel(mesh, meshIndex, "normal", "packTangents"),
-                tangentXyz(mesh),
-                requireVertexChannel(mesh, meshIndex, "binormal", "packTangents")
-            );
-            mesh.vertex.normal = [];
-            mesh.vertex.binormal = [];
+            mesh.vertex = mesh.lods[0].vertex;
+            mesh.indices = mesh.lods[0].indices;
         }
     }
 }
@@ -342,22 +355,26 @@ function rebuildMissingMeshData(format, json, values)
 export function readWithValues(format, input, values)
 {
     const parsed = parseInput(input);
-    const json = parseGltfToJson(parsed.gltf, {
+    const shared = parseGltfToShared(parsed.gltf, {
         binaryChunk: parsed.binaryChunk,
         source: values.source,
         buffers: values.buffers
     });
-    rebuildMissingMeshData(format, json, values);
+    rebuildMissingMeshData(format, shared, values);
     if (values.emit === OUTPUT_CMF)
     {
         return hydrateCmf(
-            buildCmfFromShared(json),
+            buildCmfFromShared(shared),
             values.classes,
             { source: values.source },
             "CjsGltfFormat CMF"
         );
     }
-    return hydrateJson(json, { classes: values.classes, source: values.source });
+    if (values.emit === OUTPUT_JSON || values.emit === OUTPUT_GLTF_JSON)
+    {
+        return toJsonValue(shared);
+    }
+    return hydrateShared(shared, { classes: values.classes, source: values.source });
 }
 
 /** Inspects input using normalized format options for the glTF format reader. */
@@ -389,4 +406,3 @@ export function toJsonValue(value)
     }
     return out;
 }
-

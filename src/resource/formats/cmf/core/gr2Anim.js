@@ -124,12 +124,30 @@ export function convertGr2Skeleton(skeleton)
             : multiplyMatrix4(local, worldTransforms[parents[i]]);
     }
 
+    const suppliedInverseBinds = Array.isArray(skeleton.invBindTransforms)
+        ? skeleton.invBindTransforms
+        : [];
+    if (suppliedInverseBinds.length && suppliedInverseBinds.length !== bones.length)
+    {
+        throw convertError(`skeleton "${skeleton.name || ""}" inverse bind count does not match its bones`);
+    }
+    const invBindTransforms = worldTransforms.map((world, index) =>
+    {
+        const supplied = suppliedInverseBinds[index];
+        if (supplied === null || supplied === undefined) return invertMatrix4(world);
+        if (!Array.isArray(supplied) || supplied.length !== 16 || supplied.some(value => !Number.isFinite(value)))
+        {
+            throw convertError(`skeleton "${skeleton.name || ""}" inverse bind ${index} is not a finite matrix`);
+        }
+        return supplied.slice();
+    });
+
     return {
         name: skeleton.name || "",
         bones: boneNames,
         parents,
         restTransforms,
-        invBindTransforms: worldTransforms.map((world) => invertMatrix4(world)),
+        invBindTransforms,
         boneMasks: []
     };
 }
@@ -223,7 +241,8 @@ function decodeTrackCurve(curve, expectedDimension, track, kind)
                 knots: curve.knots.slice(),
                 controls: curve.controls.slice(),
                 degree: curve.degree | 0,
-                dimension: curve.dimension | 0
+                dimension: curve.dimension | 0,
+                preserveIdentity: curve.preserveIdentity === true
             };
         }
         else if (typeof curve.format === "number")
@@ -567,8 +586,9 @@ export function convertGr2Animation(animation, options = {})
             targetType === "BoneRotation"
         );
         // constant identity channels carry no information
-        if (converted.knotCount === 1 && targetType === "BoneRotation" && isIdentityValue(converted.plainValues, 4)) return;
-        if (converted.knotCount === 1 && targetType === "BoneScale" &&
+        if (!decoded.preserveIdentity && converted.knotCount === 1 &&
+            targetType === "BoneRotation" && isIdentityValue(converted.plainValues, 4)) return;
+        if (!decoded.preserveIdentity && converted.knotCount === 1 && targetType === "BoneScale" &&
             converted.plainValues.every((value) => Math.abs(value - 1) < 1e-7)) return;
         delete converted.plainValues;
         channelKeys.add(key);

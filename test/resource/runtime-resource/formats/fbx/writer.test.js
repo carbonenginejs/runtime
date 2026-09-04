@@ -91,7 +91,7 @@ function makeDeformedCmf()
         vertex: mesh.vertex,
         indices: mesh.indices,
         morphTargets: [ {
-            vertex: { position: [ 0, 0, 0, 0, 0, 1, 0, 0, 0 ] }
+            vertex: { position: [ 0, 0, 0, 1, 0, 1, 0, 1, 0 ] }
         } ]
     } ];
     cmf.skeletons = [ {
@@ -410,8 +410,8 @@ test("round-trips CMF skeletons, skin clusters, bind poses, and morph deltas", (
     assert.deepEqual(cmf.meshes[0].morphTargets.targets.map((target) => target.name), [ "Smile" ]);
     assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[0].vertex.position, [
         0, 0, 0,
-        0, 0, 1,
-        0, 0, 0
+        1, 0, 1,
+        0, 1, 0
     ]);
 });
 
@@ -461,9 +461,9 @@ test("round-trips CMF morph normal deltas through Carbon FBX properties", () =>
         usage: "Normal", usageIndex: 0, type: "Float32", elementCount: 3, offset: 12
     });
     source.meshes[0].lods[0].morphTargets[0].vertex.normal = [
-        0, 1, -1,
-        0, 0, 0,
-        0, 0, 0
+        0, 1, 0,
+        0, 0, 1,
+        0, 0, 1
     ];
 
     const bytes = CjsFbxFormat.write(source);
@@ -477,9 +477,9 @@ test("round-trips CMF morph normal deltas through Carbon FBX properties", () =>
         classes: { Root, Mesh }
     });
     assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[0].vertex.normal, [
-        0, 1, -1,
-        0, 0, 0,
-        0, 0, 0
+        0, 1, 0,
+        0, 0, 1,
+        0, 0, 1
     ]);
 });
 

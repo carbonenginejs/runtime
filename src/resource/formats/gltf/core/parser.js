@@ -1,4 +1,5 @@
 import { asUint8Array } from "#utils/bytes";
+import { mat4 } from "#math/mat4";
 
 /**
  * glTF/GLB parser that emits the shared CarbonEngineJS geometry JSON shape.
@@ -7,6 +8,7 @@ import { asUint8Array } from "#utils/bytes";
 const GLB_MAGIC = 0x46546c67;
 const GLB_JSON = 0x4e4f534a;
 const GLB_BIN = 0x004e4942;
+const FLOAT32_EPSILON = 2 ** -23;
 
 const COMPONENT_SIZES = Object.freeze({
     5120: 1,
@@ -34,6 +36,7 @@ const CHANNEL_TEMPLATE = Object.freeze({
     normal: null,
     texcoord0: null,
     texcoord1: null,
+    color0: null,
     binormal: null,
     blendWeight: null
 });
@@ -311,6 +314,15 @@ function readAccessor(gltf, buffers, accessorIndex, options)
 
 function readIndices(gltf, buffers, accessorIndex, vertexCount, mode)
 {
+    if (mode === 0)
+    {
+        if (accessorIndex !== undefined)
+        {
+            throw new Error("CjsGltfFormat: indexed POINTS require vertex unindexing before CMF conversion");
+        }
+        return [];
+    }
+
     const raw = accessorIndex === undefined
         ? Array.from({ length: vertexCount }, (_, i) => i)
         : readAccessor(gltf, buffers, accessorIndex, { normalize: false }).map(value => value >>> 0);
@@ -346,6 +358,64 @@ function copyAttribute(gltf, buffers, attributes, gltfKey)
 {
     if (!attributes || attributes[gltfKey] === undefined) return [];
     return readAccessor(gltf, buffers, attributes[gltfKey]);
+}
+
+function normalizedDirection(values, offset, fallback)
+{
+    const
+        x = values[offset],
+        y = values[offset + 1],
+        z = values[offset + 2],
+        squaredLength = x * x + y * y + z * z;
+
+    if (!Number.isFinite(squaredLength) || squaredLength < FLOAT32_EPSILON) return fallback.slice();
+    if (Math.abs(squaredLength - 1) <= FLOAT32_EPSILON) return [ x, y, z ];
+    const length = Math.sqrt(squaredLength);
+    return [ fr(x / length), fr(y / length), fr(z / length) ];
+}
+
+function splitTangentFrames(vertex)
+{
+    if (!vertex.tangent.length) return;
+
+    const vertexCount = vertex.position.length / 3;
+    if (vertex.tangent.length !== vertexCount * 4)
+    {
+        throw new Error("CjsGltfFormat: TANGENT must contain one VEC4 per vertex");
+    }
+    if (vertex.normal.length !== vertexCount * 3)
+    {
+        throw new Error("CjsGltfFormat: TANGENT requires a matching NORMAL channel");
+    }
+
+    const tangents = new Array(vertexCount * 3);
+    const binormals = new Array(vertexCount * 3);
+    const normals = new Array(vertexCount * 3);
+    for (let index = 0; index < vertexCount; index++)
+    {
+        const
+            sourceNormalOffset = index * 3,
+            sourceTangentOffset = index * 4,
+            normal = normalizedDirection(vertex.normal, sourceNormalOffset, [ 0, 1, 0 ]),
+            tangent = normalizedDirection(vertex.tangent, sourceTangentOffset, [ 1, 0, 0 ]),
+            sign = vertex.tangent[sourceTangentOffset + 3] < 0 ? -1 : 1,
+            binormal = normalizedDirection([
+                normal[1] * tangent[2] - normal[2] * tangent[1],
+                normal[2] * tangent[0] - normal[0] * tangent[2],
+                normal[0] * tangent[1] - normal[1] * tangent[0]
+            ], 0, [ 0, 0, 0 ]);
+
+        for (let component = 0; component < 3; component++)
+        {
+            normals[sourceNormalOffset + component] = normal[component];
+            tangents[sourceNormalOffset + component] = tangent[component];
+            const signedBinormal = binormal[component] * sign;
+            binormals[sourceNormalOffset + component] = signedBinormal === 0 ? 0 : fr(signedBinormal);
+        }
+    }
+    vertex.normal = normals;
+    vertex.tangent = tangents;
+    vertex.binormal = binormals;
 }
 
 function computeBounds(positions)
@@ -403,7 +473,65 @@ function buildMorphTargets(gltf, buffers, primitive, mesh)
     }));
 }
 
-function buildMeshPrimitive(gltf, buffers, meshIndex, primitiveIndex, nodeIndex, boneBindings)
+function meshMorphTargetNames(mesh)
+{
+    const counts = (mesh.primitives ?? []).map(primitive => (primitive.targets ?? []).length);
+    const count = counts[0] ?? 0;
+    if (counts.some(value => value !== count))
+    {
+        throw new Error("CjsGltfFormat: every primitive in an animated mesh must use the same morph target count");
+    }
+    const authored = mesh.extras?.targetNames ?? [];
+    return Array.from({ length: count }, (_, index) => authored[index] || `target_${index}`);
+}
+
+function normalizeSkinning(vertex, attributes, skinContext)
+{
+    for (const key of Object.keys(attributes ?? {}))
+    {
+        if (/^(JOINTS|WEIGHTS)_[1-9][0-9]*$/u.test(key))
+        {
+            throw new Error(`CjsGltfFormat: ${key} requires reducing influences to CMF's four-weight palette`);
+        }
+    }
+
+    const hasIndices = vertex.blendIndice.length > 0;
+    const hasWeights = vertex.blendWeight.length > 0;
+    if (hasIndices !== hasWeights)
+    {
+        throw new Error("CjsGltfFormat: JOINTS_0 and WEIGHTS_0 must be present together");
+    }
+    if (!hasIndices && skinContext)
+    {
+        throw new Error("CjsGltfFormat: a skinned mesh must provide JOINTS_0 and WEIGHTS_0");
+    }
+    if (hasIndices && !skinContext)
+    {
+        throw new Error("CjsGltfFormat: JOINTS_0 requires a mesh node with a skin");
+    }
+    if (!hasIndices) return;
+    if (vertex.blendIndice.length !== vertex.blendWeight.length || vertex.blendIndice.length % 4)
+    {
+        throw new Error("CjsGltfFormat: skin influences must contain matching VEC4 indices and weights");
+    }
+
+    const paletteSize = skinContext.boneBindings.length;
+    for (let index = 0; index < vertex.blendIndice.length; index++)
+    {
+        if (vertex.blendWeight[index] === 0)
+        {
+            vertex.blendIndice[index] = 0;
+            continue;
+        }
+        const joint = vertex.blendIndice[index];
+        if (!Number.isInteger(joint) || joint < 0 || joint >= paletteSize)
+        {
+            throw new Error(`CjsGltfFormat: JOINTS_0 index ${joint} is outside skin palette 0..${paletteSize - 1}`);
+        }
+    }
+}
+
+function buildMeshPrimitive(gltf, buffers, meshIndex, primitiveIndex, nodeIndex, skinContext)
 {
     const
         mesh = gltf.meshes[meshIndex],
@@ -413,10 +541,17 @@ function buildMeshPrimitive(gltf, buffers, meshIndex, primitiveIndex, nodeIndex,
     vertex.position = copyAttribute(gltf, buffers, primitive.attributes, "POSITION");
     vertex.normal = copyAttribute(gltf, buffers, primitive.attributes, "NORMAL");
     vertex.tangent = copyAttribute(gltf, buffers, primitive.attributes, "TANGENT");
-    vertex.texcoord0 = copyAttribute(gltf, buffers, primitive.attributes, "TEXCOORD_0");
-    vertex.texcoord1 = copyAttribute(gltf, buffers, primitive.attributes, "TEXCOORD_1");
+    for (const [ attribute ] of Object.entries(primitive.attributes ?? {}))
+    {
+        const match = /^(TEXCOORD|COLOR)_([0-9]+)$/u.exec(attribute);
+        if (!match) continue;
+        const channel = `${match[1] === "TEXCOORD" ? "texcoord" : "color"}${Number(match[2])}`;
+        vertex[channel] = copyAttribute(gltf, buffers, primitive.attributes, attribute);
+    }
     vertex.blendIndice = copyAttribute(gltf, buffers, primitive.attributes, "JOINTS_0");
     vertex.blendWeight = copyAttribute(gltf, buffers, primitive.attributes, "WEIGHTS_0");
+    normalizeSkinning(vertex, primitive.attributes, skinContext);
+    splitTangentFrames(vertex);
 
     const
         vertexCount = vertex.position.length / 3,
@@ -429,11 +564,13 @@ function buildMeshPrimitive(gltf, buffers, meshIndex, primitiveIndex, nodeIndex,
         morphTargets: buildMorphTargets(gltf, buffers, primitive, mesh),
         minBounds,
         maxBounds,
-        boneBindings,
+        topology: primitive.mode === 0 ? "PointList" : "TriangleList",
+        boneBindings: skinContext?.boneBindings ?? [],
         vertex,
         indices: [ {
             name: materialName(gltf, primitive, primitiveIndex),
             bytesPerIndex,
+            ...(primitive.mode === 0 ? { pointCount: vertexCount } : {}),
             faces
         } ]
     };
@@ -483,135 +620,359 @@ function nodeTransform(node)
 
 function decomposeMatrix(matrix)
 {
+    if (matrix.length !== 16 || matrix.some(value => !Number.isFinite(value)))
+    {
+        throw new Error("CjsGltfFormat: node.matrix must contain 16 finite components");
+    }
     const
-        position = [ fr(matrix[12] || 0), fr(matrix[13] || 0), fr(matrix[14] || 0) ],
-        sx = Math.hypot(matrix[0], matrix[1], matrix[2]) || 1,
-        sy = Math.hypot(matrix[4], matrix[5], matrix[6]) || 1,
-        sz = Math.hypot(matrix[8], matrix[9], matrix[10]) || 1;
+        source = Float32Array.from(matrix),
+        orientation = new Float32Array(4),
+        position = new Float32Array(3),
+        scale = new Float32Array(3),
+        recomposed = mat4.create();
+    mat4.decompose(source, orientation, position, scale);
+    mat4.fromRotationTranslationScale(recomposed, orientation, position, scale);
+
+    const tolerance = 1e-5;
+    if ([ ...orientation, ...position, ...scale ].some(value => !Number.isFinite(value)) ||
+        source.some((value, index) => !Number.isFinite(recomposed[index]) ||
+            Math.abs(value - recomposed[index]) > tolerance))
+    {
+        throw new Error("CjsGltfFormat: sheared node.matrix cannot be represented by CMF rest transforms");
+    }
 
     return {
-        position,
-        orientation: [ 0, 0, 0, 1 ],
+        position: Array.from(position, fr),
+        orientation: Array.from(orientation, fr),
         scaleShear: [
-            fr(sx), 0, 0,
-            0, fr(sy), 0,
-            0, 0, fr(sz)
+            fr(scale[0]), 0, 0,
+            0, fr(scale[1]), 0,
+            0, 0, fr(scale[2])
         ]
     };
 }
 
-function buildSkeleton(gltf, skinIndex, parents)
+function isTransformNode(node)
 {
-    const
-        skin = gltf.skins[skinIndex],
-        joints = skin.joints || [],
-        jointLookup = new Map(joints.map((nodeIndex, index) => [ nodeIndex, index ]));
-
-    return {
-        name: skin.name || `skin_${skinIndex}`,
-        bones: joints.map(nodeIndex =>
-        {
-            const
-                node = gltf.nodes[nodeIndex] || {},
-                parentIndex = jointLookup.has(parents.get(nodeIndex)) ? jointLookup.get(parents.get(nodeIndex)) : -1,
-                transform = nodeTransform(node);
-
-            return {
-                name: nodeName(gltf, nodeIndex),
-                parentIndex,
-                flag: 7,
-                position: transform.position,
-                orientation: transform.orientation,
-                scaleShear: transform.scaleShear,
-                extendedData: {
-                    gltfNode: nodeIndex
-                }
-            };
-        })
-    };
+    return node && node.mesh === undefined && node.camera === undefined && node.skin === undefined;
 }
 
-function buildBoneBindings(skeleton)
+function isIdentityTransform(node)
 {
-    return skeleton.bones.map(bone => ({
-        name: bone.name,
-        minBounds: [ 0, 0, 0 ],
-        maxBounds: [ 0, 0, 0 ]
-    }));
+    if (node.matrix)
+    {
+        const identity = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
+        return node.matrix.length === 16 && node.matrix.every((value, index) => value === identity[index]);
+    }
+    const
+        translation = node.translation ?? [ 0, 0, 0 ],
+        rotation = node.rotation ?? [ 0, 0, 0, 1 ],
+        scale = node.scale ?? [ 1, 1, 1 ];
+    return translation.length === 3 && translation.every(value => value === 0) &&
+        rotation.length === 4 && rotation[0] === 0 && rotation[1] === 0 && rotation[2] === 0 && rotation[3] === 1 &&
+        scale.length === 3 && scale.every(value => value === 1);
+}
+
+function collectDescendants(gltf, rootIndex)
+{
+    const ordered = [];
+    const visited = new Set();
+    const visit = (nodeIndex) =>
+    {
+        if (visited.has(nodeIndex)) return;
+        visited.add(nodeIndex);
+        const node = gltf.nodes?.[nodeIndex];
+        if (!node || !isTransformNode(node)) return;
+        ordered.push(nodeIndex);
+        for (const child of node.children ?? []) visit(child);
+    };
+    visit(rootIndex);
+    return ordered;
+}
+
+function collectSkeletonNodes(gltf, skinIndices, parents)
+{
+    const
+        firstSkin = gltf.skins[skinIndices[0]],
+        rootIndex = firstSkin.skeleton,
+        isCarbon = gltf.asset?.generator === "cmfprocessor";
+
+    if (isCarbon && Number.isInteger(rootIndex))
+    {
+        const nodes = collectDescendants(gltf, rootIndex);
+        const root = gltf.nodes[rootIndex] ?? {};
+        const allJoints = new Set(skinIndices.flatMap(index => gltf.skins[index].joints ?? []));
+        const syntheticRoot = !allJoints.has(rootIndex) && isIdentityTransform(root) &&
+            skinIndices.some(index => root.name === `${gltf.skins[index].name || `skin_${index}`}_root`);
+        return syntheticRoot ? nodes.filter(index => index !== rootIndex) : nodes;
+    }
+
+    const included = new Set();
+    for (const skinIndex of skinIndices)
+    {
+        for (const joint of gltf.skins[skinIndex].joints ?? [])
+        {
+            let nodeIndex = joint;
+            while (Number.isInteger(nodeIndex))
+            {
+                const node = gltf.nodes?.[nodeIndex];
+                if (!isTransformNode(node)) break;
+                included.add(nodeIndex);
+                if (nodeIndex === rootIndex) break;
+                nodeIndex = parents.get(nodeIndex);
+            }
+        }
+    }
+
+    const ordered = [];
+    const visited = new Set();
+    const visit = (nodeIndex) =>
+    {
+        if (visited.has(nodeIndex) || !included.has(nodeIndex)) return;
+        visited.add(nodeIndex);
+        const parent = parents.get(nodeIndex);
+        if (included.has(parent)) visit(parent);
+        ordered.push(nodeIndex);
+    };
+    for (const nodeIndex of included) visit(nodeIndex);
+    return ordered;
+}
+
+function readSkinInverseBinds(gltf, buffers, skinIndex)
+{
+    const skin = gltf.skins[skinIndex];
+    if (skin.inverseBindMatrices === undefined)
+    {
+        return (skin.joints ?? []).map(() => [
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ]);
+    }
+
+    const decoded = readAccessorRaw(gltf, buffers, skin.inverseBindMatrices);
+    if (decoded.accessor.type !== "MAT4" || decoded.accessor.componentType !== 5126 ||
+        decoded.accessor.count !== (skin.joints ?? []).length)
+    {
+        throw new Error(`CjsGltfFormat: skin ${skinIndex} inverseBindMatrices must be FLOAT MAT4 with one entry per joint`);
+    }
+    return (skin.joints ?? []).map((_, index) => decoded.values.slice(index * 16, index * 16 + 16));
+}
+
+function equalMatrix(left, right)
+{
+    return left.length === 16 && right.length === 16 &&
+        left.every((value, index) => value === right[index]);
+}
+
+function buildSkinContexts(gltf, buffers, skinIndices, parents)
+{
+    const groups = new Map();
+    for (const skinIndex of skinIndices)
+    {
+        const skin = gltf.skins?.[skinIndex];
+        if (!skin) throw new Error(`CjsGltfFormat: missing skin ${skinIndex}`);
+        if (!(skin.joints ?? []).length) throw new Error(`CjsGltfFormat: skin ${skinIndex} has no joints`);
+        if (new Set(skin.joints).size !== skin.joints.length)
+        {
+            throw new Error(`CjsGltfFormat: skin ${skinIndex} contains duplicate joints`);
+        }
+        const key = Number.isInteger(skin.skeleton) ? `root:${skin.skeleton}` : `skin:${skinIndex}`;
+        const group = groups.get(key) ?? [];
+        group.push(skinIndex);
+        groups.set(key, group);
+    }
+
+    const contexts = new Map();
+    for (const groupedSkinIndices of groups.values())
+    {
+        const
+            nodeIndices = collectSkeletonNodes(gltf, groupedSkinIndices, parents),
+            boneIndexByNode = new Map(nodeIndices.map((nodeIndex, index) => [ nodeIndex, index ])),
+            inverseByNode = new Map();
+
+        for (const skinIndex of groupedSkinIndices)
+        {
+            const skin = gltf.skins[skinIndex];
+            const matrices = readSkinInverseBinds(gltf, buffers, skinIndex);
+            for (let index = 0; index < skin.joints.length; index++)
+            {
+                const joint = skin.joints[index];
+                if (!boneIndexByNode.has(joint))
+                {
+                    throw new Error(`CjsGltfFormat: skin ${skinIndex} joint ${joint} is outside its skeleton hierarchy`);
+                }
+                const previous = inverseByNode.get(joint);
+                if (previous && !equalMatrix(previous, matrices[index]))
+                {
+                    throw new Error(`CjsGltfFormat: joint ${joint} has conflicting inverse bind matrices`);
+                }
+                inverseByNode.set(joint, matrices[index]);
+            }
+        }
+
+        const firstSkin = gltf.skins[groupedSkinIndices[0]];
+        const skeleton = {
+            name: firstSkin.name || `skin_${groupedSkinIndices[0]}`,
+            bones: nodeIndices.map(nodeIndex =>
+            {
+                const
+                    node = gltf.nodes[nodeIndex] ?? {},
+                    parentIndex = boneIndexByNode.get(parents.get(nodeIndex)) ?? -1,
+                    transform = nodeTransform(node);
+
+                return {
+                    name: nodeName(gltf, nodeIndex),
+                    parentIndex,
+                    flag: 7,
+                    position: transform.position,
+                    orientation: transform.orientation,
+                    scaleShear: transform.scaleShear,
+                    extendedData: { gltfNode: nodeIndex }
+                };
+            }),
+            invBindTransforms: nodeIndices.map(nodeIndex => inverseByNode.get(nodeIndex) ?? null)
+        };
+
+        const boneNames = skeleton.bones.map(bone => bone.name);
+        if (new Set(boneNames).size !== boneNames.length)
+        {
+            throw new Error(`CjsGltfFormat: skeleton ${JSON.stringify(skeleton.name)} contains duplicate bone names`);
+        }
+
+        for (const skinIndex of groupedSkinIndices)
+        {
+            const skin = gltf.skins[skinIndex];
+            contexts.set(skinIndex, {
+                skeleton,
+                boneBindings: skin.joints.map(nodeIndex => ({
+                    name: skeleton.bones[boneIndexByNode.get(nodeIndex)].name,
+                    minBounds: [ 0, 0, 0 ],
+                    maxBounds: [ 0, 0, 0 ]
+                }))
+            });
+        }
+    }
+    return contexts;
 }
 
 function collectMeshNodes(gltf)
 {
-    const nodes = [];
-    for (let i = 0; i < (gltf.nodes || []).length; i++)
+    if (!(gltf.scenes ?? []).length)
     {
-        if (gltf.nodes[i].mesh !== undefined) nodes.push(i);
+        const nodes = [];
+        for (let index = 0; index < (gltf.nodes ?? []).length; index++)
+        {
+            if (gltf.nodes[index].mesh !== undefined) nodes.push(index);
+        }
+        if (nodes.length) return nodes;
+        return (gltf.meshes || []).map((_, index) => ({ meshIndex: index }));
     }
-    if (nodes.length) return nodes;
-    return (gltf.meshes || []).map((_, index) => ({ meshIndex: index }));
+
+    const sceneIndex = gltf.scene ?? 0;
+    const scene = gltf.scenes[sceneIndex];
+    if (!scene) throw new Error(`CjsGltfFormat: default scene ${sceneIndex} does not exist`);
+
+    const ordered = [];
+    const visited = new Set();
+    const visit = (nodeIndex) =>
+    {
+        if (visited.has(nodeIndex)) return;
+        const node = gltf.nodes?.[nodeIndex];
+        if (!node) throw new Error(`CjsGltfFormat: scene references missing node ${nodeIndex}`);
+        visited.add(nodeIndex);
+        if (node.mesh !== undefined) ordered.push(nodeIndex);
+        for (const child of node.children ?? []) visit(child);
+    };
+    for (const nodeIndex of scene.nodes ?? []) visit(nodeIndex);
+
+    const lowerLods = new Set();
+    for (const nodeIndex of ordered)
+    {
+        for (const lower of gltf.nodes[nodeIndex].extensions?.MSFT_lod?.ids ?? []) lowerLods.add(lower);
+    }
+    return ordered.filter(nodeIndex => !lowerLods.has(nodeIndex));
 }
 
-function makeCurve(path, dimension, knots, controls, interpolation, generated = false)
+function lodNodeIndices(gltf, nodeIndex)
+{
+    if (!Number.isInteger(nodeIndex)) return [ nodeIndex ];
+    const ids = gltf.nodes[nodeIndex]?.extensions?.MSFT_lod?.ids ?? [];
+    const result = [ nodeIndex ];
+    for (const lowerNodeIndex of ids)
+    {
+        if (!Number.isInteger(lowerNodeIndex) || !gltf.nodes?.[lowerNodeIndex])
+        {
+            throw new Error(`CjsGltfFormat: MSFT_lod references missing node ${lowerNodeIndex}`);
+        }
+        if (result.includes(lowerNodeIndex))
+        {
+            throw new Error("CjsGltfFormat: MSFT_lod node chain contains a cycle or duplicate");
+        }
+        result.push(lowerNodeIndex);
+    }
+    return result;
+}
+
+function lodThresholds(gltf, nodeIndex, lodCount)
+{
+    if (lodCount === 1) return [ 0xffffffff ];
+    const coverage = gltf.nodes[nodeIndex]?.extras?.MSFT_screencoverage;
+    if (!Array.isArray(coverage) || coverage.length !== lodCount)
+    {
+        throw new Error("CjsGltfFormat: MSFT_lod requires one MSFT_screencoverage value per LOD plus its final sentinel");
+    }
+
+    const thresholds = [ 0xffffffff ];
+    for (let index = 0; index < lodCount - 1; index++)
+    {
+        const value = coverage[index];
+        if (!Number.isFinite(value) || value < 0 || value > 1)
+        {
+            throw new Error("CjsGltfFormat: MSFT_screencoverage values must be finite values from zero through one");
+        }
+        thresholds.push(Math.round(value * 2048));
+    }
+    if (!Number.isFinite(coverage[lodCount - 1]) || coverage[lodCount - 1] < 0 ||
+        coverage[lodCount - 1] > 1)
+    {
+        throw new Error("CjsGltfFormat: MSFT_screencoverage sentinel must be a finite value from zero through one");
+    }
+    for (let index = 1; index < thresholds.length; index++)
+    {
+        if (thresholds[index] >= thresholds[index - 1])
+        {
+            throw new Error("CjsGltfFormat: reconstructed CMF LOD thresholds must be strictly descending");
+        }
+    }
+    return thresholds;
+}
+
+function makeCurve(path, dimension, knots, controls, interpolation)
 {
     return {
-        source: {
-            format: 1,
-            degree: interpolation === "STEP" ? 0 : 1,
-            interpolation,
-            path,
-            generated
-        },
-        uncompressed: {
-            dimension,
-            knots: knots.map(fr),
-            controls: controls.map(fr)
-        }
+        format: 1,
+        degree: interpolation === "STEP" ? 0 : 1,
+        interpolation,
+        path,
+        preserveIdentity: true,
+        dimension,
+        knots: knots.map(fr),
+        controls: controls.map(fr)
     };
 }
 
-function identityCurve(path, duration)
+function scaleToScaleShear(values)
 {
-    if (path === "position")
-    {
-        return makeCurve(path, 3, [ 0, duration ], [ 0, 0, 0, 0, 0, 0 ], "STEP", true);
-    }
-    if (path === "orientation")
-    {
-        return makeCurve(path, 4, [ 0, duration ], [ 0, 0, 0, 1, 0, 0, 0, 1 ], "STEP", true);
-    }
-    return makeCurve(path, 9, [ 0, duration ], [
-        1, 0, 0, 0, 1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1, 0, 0, 0, 1
-    ], "STEP", true);
-}
-
-function scaleToScaleShear(values, interpolation)
-{
-    const controls = interpolation === "CUBICSPLINE"
-        ? cubicSplineValues(values, 3)
-        : values;
-
     const out = [];
-    for (let i = 0; i < controls.length; i += 3)
+    for (let i = 0; i < values.length; i += 3)
     {
         out.push(
-            controls[i], 0, 0,
-            0, controls[i + 1], 0,
-            0, 0, controls[i + 2]
+            values[i], 0, 0,
+            0, values[i + 1], 0,
+            0, 0, values[i + 2]
         );
-    }
-    return out;
-}
-
-function cubicSplineValues(values, dimension)
-{
-    const out = [];
-    for (let i = 0; i < values.length; i += dimension * 3)
-    {
-        for (let c = 0; c < dimension; c++)
-        {
-            out.push(values[i + dimension + c]);
-        }
     }
     return out;
 }
@@ -625,49 +986,117 @@ function channelCurve(gltf, buffers, animation, channel)
         rawControls = readAccessor(gltf, buffers, sampler.output),
         path = channel.target.path;
 
+    if (interpolation === "CUBICSPLINE")
+    {
+        throw new Error(`CjsGltfFormat: CUBICSPLINE ${path} animation requires resampling and is not supported`);
+    }
+
     if (path === "translation")
     {
-        const controls = interpolation === "CUBICSPLINE" ? cubicSplineValues(rawControls, 3) : rawControls;
-        return { path: "position", curve: makeCurve("position", 3, knots, controls, interpolation) };
+        return { path: "position", curve: makeCurve("position", 3, knots, rawControls, interpolation) };
     }
 
     if (path === "rotation")
     {
-        const controls = interpolation === "CUBICSPLINE" ? cubicSplineValues(rawControls, 4) : rawControls;
-        return { path: "orientation", curve: makeCurve("orientation", 4, knots, controls, interpolation) };
+        return { path: "orientation", curve: makeCurve("orientation", 4, knots, rawControls, interpolation) };
     }
 
     if (path === "scale")
     {
-        return { path: "scaleShear", curve: makeCurve("scaleShear", 9, knots, scaleToScaleShear(rawControls, interpolation), interpolation) };
+        return { path: "scaleShear", curve: makeCurve("scaleShear", 9, knots, scaleToScaleShear(rawControls), interpolation) };
     }
 
     return null;
 }
 
-function buildAnimations(gltf, buffers, modelTargets)
+function sameCurve(left, right)
+{
+    return left.degree === right.degree && left.dimension === right.dimension &&
+        left.knots.length === right.knots.length && left.controls.length === right.controls.length &&
+        left.knots.every((value, index) => value === right.knots[index]) &&
+        left.controls.every((value, index) => value === right.controls[index]);
+}
+
+function weightCurves(gltf, buffers, animation, channel, targetNames)
+{
+    const
+        sampler = animation.samplers[channel.sampler],
+        interpolation = sampler.interpolation || "LINEAR",
+        knots = readAccessor(gltf, buffers, sampler.input),
+        controls = readAccessor(gltf, buffers, sampler.output),
+        targetCount = targetNames.length;
+
+    if (interpolation === "CUBICSPLINE")
+    {
+        throw new Error("CjsGltfFormat: CUBICSPLINE weights animation requires resampling and is not supported");
+    }
+    if (!targetCount || controls.length !== knots.length * targetCount)
+    {
+        throw new Error("CjsGltfFormat: weights animation output must contain one value per morph target and key");
+    }
+
+    return targetNames.map((name, targetIndex) =>
+    {
+        const values = knots.map((_, knotIndex) => controls[knotIndex * targetCount + targetIndex]);
+        return {
+            name: name.endsWith("Shape") ? name.slice(0, -5) : name,
+            dimension: 1,
+            valueCurve: makeCurve("value", 1, knots, values, interpolation)
+        };
+    });
+}
+
+function buildAnimations(gltf, buffers, modelTargets, morphTargets)
 {
     return (gltf.animations || []).map((animation, animationIndex) =>
     {
         const
             duration = animationDuration(gltf, buffers, animation),
-            groups = new Map();
+            groups = new Map(),
+            morphTracks = new Map();
 
         for (const channel of animation.channels || [])
         {
+            if (channel.target.path === "weights")
+            {
+                const names = morphTargets.get(channel.target.node);
+                if (!names)
+                {
+                    throw new Error(`CjsGltfFormat: weights animation targets node ${channel.target.node} without morph targets`);
+                }
+                for (const track of weightCurves(gltf, buffers, animation, channel, names))
+                {
+                    const previous = morphTracks.get(track.name);
+                    if (previous && !sameCurve(previous.valueCurve, track.valueCurve))
+                    {
+                        throw new Error(`CjsGltfFormat: conflicting morph animation curves target ${JSON.stringify(track.name)}`);
+                    }
+                    if (!previous) morphTracks.set(track.name, track);
+                }
+                continue;
+            }
+
             const mapped = modelTargets.get(channel.target.node);
-            if (!mapped) continue;
+            if (!mapped)
+            {
+                throw new Error(
+                    `CjsGltfFormat: ${channel.target.path} animation targets node ${channel.target.node} outside a CMF skeleton`
+                );
+            }
 
             const curve = channelCurve(gltf, buffers, animation, channel);
-            if (!curve) continue;
+            if (!curve)
+            {
+                throw new Error(`CjsGltfFormat: animation target path ${JSON.stringify(channel.target.path)} is not supported`);
+            }
 
             for (const target of mapped)
             {
-                let group = groups.get(target.modelName);
+                let group = groups.get(target.skeleton);
                 if (!group)
                 {
-                    group = { name: target.modelName, tracks: new Map() };
-                    groups.set(target.modelName, group);
+                    group = { name: target.groupName, tracks: new Map() };
+                    groups.set(target.skeleton, group);
                 }
 
                 let track = group.tracks.get(target.boneName);
@@ -681,6 +1110,24 @@ function buildAnimations(gltf, buffers, modelTargets)
             }
         }
 
+        const trackGroups = Array.from(groups.values()).map(group => ({
+            name: group.name,
+            transformTracks: Array.from(group.tracks.values()),
+            vectorTracks: []
+        }));
+        if (morphTracks.size)
+        {
+            trackGroups.push({
+                name: "MorphTargets",
+                transformTracks: [],
+                vectorTracks: Array.from(morphTracks.values())
+            });
+        }
+        if (trackGroups.length && !(duration > 0))
+        {
+            throw new Error("CjsGltfFormat: CMF animations require a positive duration");
+        }
+
         return {
             name: animation.name || `animation_${animationIndex}`,
             duration,
@@ -688,16 +1135,7 @@ function buildAnimations(gltf, buffers, modelTargets)
             oversampling: 1,
             defaultLoopCount: 0,
             flags: 0,
-            trackGroups: Array.from(groups.values()).map(group => ({
-                name: group.name,
-                transformTracks: Array.from(group.tracks.values()).map(track => ({
-                    name: track.name,
-                    flags: track.flags,
-                    orientation: track.orientation || identityCurve("orientation", duration),
-                    position: track.position || identityCurve("position", duration),
-                    scaleShear: track.scaleShear || identityCurve("scaleShear", duration)
-                }))
-            }))
+            trackGroups
         };
     }).filter(animation => animation.trackGroups.length);
 }
@@ -723,16 +1161,31 @@ function registerModelTargets(modelTargets, model)
         const nodeIndex = bone.extendedData && bone.extendedData.gltfNode;
         if (nodeIndex === undefined) continue;
         const targets = modelTargets.get(nodeIndex) || [];
-        targets.push({ modelName: model.name, boneName: bone.name });
+        if (!targets.some(target => target.skeleton === model.skeleton && target.boneName === bone.name))
+        {
+            targets.push({
+                skeleton: model.skeleton,
+                groupName: model.skeleton.name || model.name,
+                boneName: bone.name
+            });
+        }
         modelTargets.set(nodeIndex, targets);
     }
 }
 
+function registerMorphTargets(morphTargets, gltf, nodeIndex)
+{
+    if (!Number.isInteger(nodeIndex)) return;
+    const mesh = gltf.meshes?.[gltf.nodes?.[nodeIndex]?.mesh];
+    if (!mesh) return;
+    const names = meshMorphTargetNames(mesh);
+    if (names.length) morphTargets.set(nodeIndex, names);
+}
+
 /**
- * Parses glTF or GLB input into its normalized JSON document for the glTF format
- * reader.
+ * Parses glTF or GLB input into the normalized shared geometry graph.
  */
-export function parseGltfToJson(gltf, { binaryChunk = null, source = "memory", buffers: providedBuffers = null } = {})
+export function parseGltfToShared(gltf, { binaryChunk = null, source = "memory", buffers: providedBuffers = null } = {})
 {
     if (!gltf.asset || !String(gltf.asset.version || "").startsWith("2"))
     {
@@ -749,26 +1202,96 @@ export function parseGltfToJson(gltf, { binaryChunk = null, source = "memory", b
             models: [],
             animations: []
         },
-        modelTargets = new Map();
+        modelTargets = new Map(),
+        morphTargets = new Map(),
+        meshNodes = collectMeshNodes(gltf),
+        meshNodeChains = meshNodes.map(meshNode => typeof meshNode === "number"
+            ? lodNodeIndices(gltf, meshNode)
+            : [ meshNode ]),
+        usedSkinIndices = new Set();
 
-    for (const meshNode of collectMeshNodes(gltf))
+    for (const chain of meshNodeChains)
+    {
+        for (const meshNode of chain)
+        {
+            if (typeof meshNode !== "number") continue;
+            const skinIndex = gltf.nodes[meshNode]?.skin;
+            if (skinIndex !== undefined) usedSkinIndices.add(skinIndex);
+        }
+    }
+    const skinContexts = buildSkinContexts(gltf, buffers, usedSkinIndices, parents);
+
+    for (const chain of meshNodeChains)
     {
         const
+            meshNode = chain[0],
             nodeIndex = typeof meshNode === "number" ? meshNode : undefined,
             node = nodeIndex === undefined ? null : gltf.nodes[nodeIndex],
             meshIndex = node ? node.mesh : meshNode.meshIndex,
             mesh = gltf.meshes && gltf.meshes[meshIndex],
             skinIndex = node && node.skin,
-            skeleton = skinIndex === undefined ? null : buildSkeleton(gltf, skinIndex, parents),
-            boneBindings = skeleton ? buildBoneBindings(skeleton) : [],
+            skinContext = skinIndex === undefined ? null : skinContexts.get(skinIndex),
+            skeleton = skinContext?.skeleton ?? null,
+            thresholds = lodThresholds(gltf, nodeIndex, chain.length),
             meshBindings = [];
 
         if (!mesh) continue;
 
+        const lodMeshes = chain.map((lodNode, lodIndex) =>
+        {
+            if (typeof lodNode !== "number") return mesh;
+            const lodNodeData = gltf.nodes[lodNode];
+            if (!isIdentityTransform(lodNodeData))
+            {
+                throw new Error("CjsGltfFormat: mesh-node transforms must be baked before CMF conversion");
+            }
+            const lodMesh = gltf.meshes?.[lodNodeData.mesh];
+            if (!lodMesh)
+            {
+                throw new Error(`CjsGltfFormat: LOD ${lodIndex} node ${lodNode} has no mesh`);
+            }
+            if (lodMesh.primitives.length !== mesh.primitives.length)
+            {
+                throw new Error(`CjsGltfFormat: LOD ${lodIndex} must contain ${mesh.primitives.length} primitives`);
+            }
+            const lodSkinIndex = gltf.nodes[lodNode].skin;
+            const lodSkinContext = lodSkinIndex === undefined ? null : skinContexts.get(lodSkinIndex);
+            if ((lodSkinContext?.skeleton ?? null) !== skeleton)
+            {
+                throw new Error("CjsGltfFormat: every LOD of a skinned mesh must use the same skeleton");
+            }
+            const basePalette = skinContext?.boneBindings.map(binding => binding.name) ?? [];
+            const lodPalette = lodSkinContext?.boneBindings.map(binding => binding.name) ?? [];
+            if (basePalette.length !== lodPalette.length ||
+                basePalette.some((name, index) => name !== lodPalette[index]))
+            {
+                throw new Error("CjsGltfFormat: every LOD of a skinned mesh must use the same joint palette");
+            }
+            return lodMesh;
+        });
+        for (const lodNode of chain) registerMorphTargets(morphTargets, gltf, lodNode);
+
         for (let primitiveIndex = 0; primitiveIndex < mesh.primitives.length; primitiveIndex++)
         {
+            const lodParts = chain.map((lodNode, lodIndex) =>
+            {
+                const lodNodeIndex = typeof lodNode === "number" ? lodNode : undefined;
+                const lodSkinIndex = lodNodeIndex === undefined ? undefined : gltf.nodes[lodNodeIndex].skin;
+                return {
+                    ...buildMeshPrimitive(
+                        gltf,
+                        buffers,
+                        lodMeshes[lodIndex] === mesh ? meshIndex : gltf.nodes[lodNodeIndex].mesh,
+                        primitiveIndex,
+                        lodNodeIndex,
+                        lodSkinIndex === undefined ? null : skinContexts.get(lodSkinIndex)
+                    ),
+                    threshold: thresholds[lodIndex]
+                };
+            });
+            const sharedMesh = { ...lodParts[0], lods: lodParts };
             meshBindings.push(root.meshes.length);
-            root.meshes.push(buildMeshPrimitive(gltf, buffers, meshIndex, primitiveIndex, nodeIndex, boneBindings));
+            root.meshes.push(sharedMesh);
         }
 
         if (skeleton)
@@ -783,7 +1306,7 @@ export function parseGltfToJson(gltf, { binaryChunk = null, source = "memory", b
         }
     }
 
-    root.animations = buildAnimations(gltf, buffers, modelTargets);
+    root.animations = buildAnimations(gltf, buffers, modelTargets, morphTargets);
     return root;
 }
 
@@ -811,4 +1334,3 @@ export function inspectGltf(gltf, { format = "gltf", source = "memory" } = {})
         }))
     };
 }
-

@@ -84,13 +84,13 @@ test("vertex annotation sets emit compact sparse delta targets", () =>
     const cmf = buildCmfFromShared({ meshes: [ mesh ] });
     assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[0].vertex.position, [
         1, 0, 0,
-        0, 0, 0,
-        0, 0, 2
+        1, 0, 0,
+        0, 1, 2
     ]);
     assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[0].vertex.normal, [
-        0.25, 0, 0,
-        0, 0, 0,
-        0, 0.5, 0
+        0.25, 0, 1,
+        0, 0, 1,
+        0, 0.5, 1
     ]);
     assert.equal(cmf.meshes[0].morphTargets.targets[0].maxDisplacement, 2);
 });
@@ -142,20 +142,20 @@ test("CMF morph targets canonicalize absolute values and union target channels",
         { usage: "Normal", elementCount: 3 }
     ]);
     assert.deepEqual(mesh.lods[0].morphTargets[0].vertex, {
-        position: [ 0, 0, 0, 0, 2, 0 ],
-        normal: [ 0, 0, 0, 0, 0, 0 ]
+        position: [ 0, 0, 0, 1, 2, 0 ],
+        normal: [ 0, 0, 1, 0, 0, 1 ]
     });
     assert.deepEqual(mesh.lods[0].morphTargets[1].vertex, {
-        position: [ 0, 0, 0, 0, 0, 0 ],
-        normal: [ 0, 1, 0, 0, 0.5, 0 ]
+        position: [ 0, 0, 0, 1, 0, 0 ],
+        normal: [ 0, 1, 1, 0, 0.5, 1 ]
     });
     assert.equal(mesh.lods[0].morphTargets[0].vb.size, 48);
     assert.equal(mesh.morphTargets.targets[0].maxDisplacement, 2);
 });
 
-test("CMF target vertex counts do not require a position channel", () =>
+test("CMF morph targets require the base Position declaration", () =>
 {
-    const cmf = buildCmfFromShared({ meshes: [ {
+    assert.throws(() => buildCmfFromShared({ meshes: [ {
         name: "Normals",
         vertex: { normal: [ 0, 0, 1, 0, 0, 1 ] },
         indices: [],
@@ -164,42 +164,45 @@ test("CMF target vertex counts do not require a position channel", () =>
             dataIsDeltas: true,
             vertex: { normal: [ 0, 1, 0, 0, 0.5, 0 ] }
         } ]
-    } ] });
-
-    const target = cmf.meshes[0].lods[0].morphTargets[0];
-    assert.equal(target.vb.stride, 12);
-    assert.equal(target.vb.size, 24);
-    assert.deepEqual(target.vertex.normal, [ 0, 1, 0, 0, 0.5, 0 ]);
+    } ] }), /require a base position channel/u);
 });
 
 test("three-component tangent targets retain a three-component declaration", () =>
 {
     const cmf = buildCmfFromShared({ meshes: [ {
         name: "Tangents",
-        vertex: { position: [ 0, 0, 0, 1, 0, 0 ] },
+        vertex: {
+            position: [ 0, 0, 0, 1, 0, 0 ],
+            tangent: [ 1, 0, 0, 0, 1, 0 ]
+        },
         indices: [],
         morphTargets: [ {
             name: "TangentOnly",
-            dataIsDeltas: true,
+            dataIsDeltas: false,
             vertex: { tangent: [ 1, 0, 0, 0, 1, 0 ] }
         } ]
     } ] });
 
     assert.deepEqual(cmf.meshes[0].morphTargets.decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "Position", elementCount: 3 },
         { usage: "Tangent", elementCount: 3 }
     ]);
-    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 12);
+    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 24);
 });
 
 test("four-component unpacked tangent morph channels retain their authored width", () =>
 {
     const cmf = buildCmfFromShared({ meshes: [ {
         name: "TangentFrames",
-        vertex: { position: [ 0, 0, 0, 1, 0, 0 ] },
+        vertex: {
+            position: [ 0, 0, 0, 1, 0, 0 ],
+            tangent: [ 1, 0, 0, 1, 0, 1, 0, -1 ],
+            binormal: [ 0, 1, 0, 1, 0, 0, 1, -1 ]
+        },
         indices: [],
         morphTargets: [ {
             name: "FrameDelta",
-            dataIsDeltas: true,
+            dataIsDeltas: false,
             vertex: {
                 tangent: [ 1, 0, 0, 1, 0, 1, 0, -1 ],
                 binormal: [ 0, 1, 0, 1, 0, 0, 1, -1 ]
@@ -208,27 +211,31 @@ test("four-component unpacked tangent morph channels retain their authored width
     } ] });
 
     assert.deepEqual(cmf.meshes[0].morphTargets.decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "Position", elementCount: 3 },
         { usage: "Tangent", elementCount: 4 },
         { usage: "Binormal", elementCount: 4 }
     ]);
-    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 32);
+    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 44);
 });
 
-test("tangent-only morph targets preserve packed frames without a position channel", () =>
+test("packed morph frames retain their declaration and sparse base values", () =>
 {
     const cmf = buildCmfFromShared({ meshes: [ {
         name: "Tangents",
-        vertex: { position: [ 0, 0, 0, 1, 0, 0 ] },
+        vertex: {
+            position: [ 0, 0, 0, 1, 0, 0 ],
+            tangent: [ 0.25, 0, 0, 1, 0.5, 0, 0, 1 ]
+        },
         indices: [],
         morphTargets: [
             {
                 name: "DensePacked",
-                dataIsDeltas: true,
+                dataIsDeltas: false,
                 vertex: { tangent: [ 0, 0, 0, 1, 0, 0, 0, 1 ] }
             },
             {
                 name: "SparsePacked",
-                dataIsDeltas: true,
+                dataIsDeltas: false,
                 vertex: { tangent: [ 0, 0, 0, 1 ] },
                 vertexIndices: [ 1 ]
             }
@@ -236,15 +243,16 @@ test("tangent-only morph targets preserve packed frames without a position chann
     } ] });
 
     assert.deepEqual(cmf.meshes[0].morphTargets.decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "Position", elementCount: 3 },
         { usage: "PackedTangentLegacy", elementCount: 4 }
     ]);
-    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 8);
+    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 20);
     assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[0].vertex.packedTangentLegacy, [
         0, 0, 0, 1,
         0, 0, 0, 1
     ]);
     assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[1].vertex.packedTangentLegacy, [
-        0, 0, 0, 0,
+        0.25, 0, 0, 1,
         0, 0, 0, 1
     ]);
 });
