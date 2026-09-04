@@ -1745,6 +1745,16 @@ One authored sprite: its bone attachment, position, blink timing, scale range, f
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:EveTurretAiming -->
+## `EveTurretAiming`
+
+Sysbone aiming math and tuning values shared by turret hosts: yaw, counter-rotation, pitch, and height system bones posed toward a target with per-bone factor, offset, clamp, and tracking-influence rules.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/attachment/turrets/EveTurretAiming.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:EveTurretFiringFX -->
 ## `EveTurretFiringFX`
 
@@ -1772,6 +1782,16 @@ Tracks what a turret set is shooting at: the chosen damage locator, the resolved
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
 - Source: `src/trinity/eve/attachment/turrets/EveTurretTarget.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveTriggerVolume -->
+## `EveTriggerVolume`
+
+A standalone spatial trigger that fires a script callback when a tracked position enters or exits its volumes: broad-phase bounding-sphere gate, exclusion-volume subtraction, and an edge-triggered enter/exit callback.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/EveTriggerVolume.js`
 - Visibility: Public
 - Kind: Carbon
 

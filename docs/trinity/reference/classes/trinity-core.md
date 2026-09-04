@@ -331,6 +331,16 @@ Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45....
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ITr2PoseModifier -->
+## `ITr2PoseModifier`
+
+Carbon's canonical modify-the-sampled-pose hook: implemented by consumers that adjust a freshly sampled animation pose in place (turret aiming, character look-at fixups) and registered non-owning on the animation host.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/animation/ITr2PoseModifier.js
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2GrannyAnimation -->
 ## `Tr2GrannyAnimation`
 

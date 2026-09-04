@@ -23,6 +23,18 @@ controller forwarding.
 impact-material data, and the shield-ellipsoid collision surface consumed by
 turrets and missiles.
 
+Locator sets merge at runtime: the object combines its own authored sets with
+sets owned by child meshes and nested containers, lifted through each child's
+live transform. Damage locators contributed by a child resolve against that
+child's own skeleton before entering object space, so impacts and decals track
+animated modular parts; the bind-pose position (`GetDamageLocatorBindPosition`)
+is the stable seed overlays use. Non-instanced SOF layout placements deliver
+their locator sets on the child (`ownedLocatorSets`) for exactly this reason;
+only instanced placements bake locators into the root sets at build time. A
+child that owns damage locators also carries its own armour-damage shader, and
+damage-locator filtering raycasts every sub-area of the collected occluder
+geometry, instanced meshes included.
+
 `EveTransform`, `EveMissile`, and `EveMissileWarhead` own CPU transforms,
 launch, eject, and tracking state, fixed-seed Perlin path offsets, target
 switching, impacts, explosion callbacks, particles, visibility, and dynamic

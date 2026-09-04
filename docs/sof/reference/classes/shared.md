@@ -178,12 +178,72 @@ Represents the 44-byte SOF mesh-instance record containing rotation, scale, tran
 <!-- class:EveSOFDataParameter -->
 ## `EveSOFDataParameter`
 
-Stores a named vector parameter and supports assignment and composition.
+Stores a named vector parameter and supports assignment and composition; the typed subclasses below flatten to a shader vec4 through `GetValue()`.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/shared/EveSOFDataParameter.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
+
+<!-- class:EveSOFDataParameterBool -->
+## `EveSOFDataParameterBool`
+
+Boolean shader parameter whose `GetValue()` broadcasts 1 or 0 to all four components; persists under the same `{name, value}` shape as the base parameter.
+
+- Export: `@carbonenginejs/runtime/sof`
+- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSOFDataParameterInt -->
+## `EveSOFDataParameterInt`
+
+Integer shader parameter whose `GetValue()` broadcasts the value to all four components.
+
+- Export: `@carbonenginejs/runtime/sof`
+- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSOFDataParameterFloat -->
+## `EveSOFDataParameterFloat`
+
+Float shader parameter whose `GetValue()` broadcasts the value to all four components.
+
+- Export: `@carbonenginejs/runtime/sof`
+- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSOFDataParameterVector2 -->
+## `EveSOFDataParameterVector2`
+
+Two-component shader parameter whose `GetValue()` zero-pads z and w.
+
+- Export: `@carbonenginejs/runtime/sof`
+- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSOFDataParameterVector3 -->
+## `EveSOFDataParameterVector3`
+
+Three-component shader parameter whose `GetValue()` zero-pads w with 0, not 1.
+
+- Export: `@carbonenginejs/runtime/sof`
+- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EveSOFDataParameterColor -->
+## `EveSOFDataParameterColor`
+
+Color shader parameter whose `GetValue()` passes its four components through unchanged.
+
+- Export: `@carbonenginejs/runtime/sof`
+- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Visibility: Public
+- Kind: Carbon
 
 <!-- class:EveSOFDataPointLightAttachment -->
 ## `EveSOFDataPointLightAttachment`
