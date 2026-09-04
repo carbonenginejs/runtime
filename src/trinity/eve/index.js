@@ -5,6 +5,7 @@ export * from "./EveComponentTypes.js";
 export * from "./EveCustomMask.js";
 export * from "./EveImpactOverlay.js";
 export * from "./EveModularObjectModifier.js";
+export * from "./EveTriggerVolume.js";
 export * from "./EveLineData.js";
 export * from "./EveThrottleable.js";
 export * from "./EveUpdateContext.js";
