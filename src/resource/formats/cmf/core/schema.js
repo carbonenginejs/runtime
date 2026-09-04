@@ -20,18 +20,26 @@ import {
     readVector3
 } from "./binary.js";
 import { decodeGeometryAsync, decodeGeometrySync } from "./buffers.js";
+import { validateCmfGraph, validateCmfSections } from "./validate.js";
 
 /** Reads and validates a CMF document synchronously for the CMF format reader. */
 export function readCmf(input, options = {})
 {
     const reader = new BinaryReader(input);
+    reader.require(0, STRUCT_SIZE.Header, "header");
     const header = readHeader(reader);
     validateHeader(reader, header, options);
 
     const dataSection = header.sections[0];
-    const root = readData(reader, dataSection.offset);
+    requireSectionRoot(reader, dataSection, STRUCT_SIZE.Data, "Data");
+    const root = withSpanRange(reader, dataSection.offset, dataSection.uncompressedSize, "Data", () =>
+        readData(reader, dataSection.offset));
     const metadataSection = header.sections.find((section) => section.type === "Metadata");
-    const metadata = metadataSection ? readMetadata(reader, metadataSection.offset) : null;
+    if (metadataSection) requireSectionRoot(reader, metadataSection, STRUCT_SIZE.Metadata, "Metadata");
+    const metadata = metadataSection
+        ? withSpanRange(reader, metadataSection.offset, metadataSection.uncompressedSize, "Metadata", () =>
+            readMetadata(reader, metadataSection.offset))
+        : null;
 
     const result = {
         signature: header.signature,
@@ -45,20 +53,33 @@ export function readCmf(input, options = {})
         animations: root.animations
     };
 
-    return options.decodeBuffers ? decodeGeometrySync(result, reader.bytes) : result;
+    validateCmfGraph(result, { phase: "read" });
+    if (options.decodeBuffers)
+    {
+        decodeGeometrySync(result, reader.bytes);
+        validateCmfGraph(result, { phase: "read" });
+    }
+    return result;
 }
 
 /** Reads and validates a CMF document asynchronously for the CMF format reader. */
 export async function readCmfAsync(input, options = {})
 {
     const reader = new BinaryReader(input);
+    reader.require(0, STRUCT_SIZE.Header, "header");
     const header = readHeader(reader);
     validateHeader(reader, header, options);
 
     const dataSection = header.sections[0];
-    const root = readData(reader, dataSection.offset);
+    requireSectionRoot(reader, dataSection, STRUCT_SIZE.Data, "Data");
+    const root = withSpanRange(reader, dataSection.offset, dataSection.uncompressedSize, "Data", () =>
+        readData(reader, dataSection.offset));
     const metadataSection = header.sections.find((section) => section.type === "Metadata");
-    const metadata = metadataSection ? readMetadata(reader, metadataSection.offset) : null;
+    if (metadataSection) requireSectionRoot(reader, metadataSection, STRUCT_SIZE.Metadata, "Metadata");
+    const metadata = metadataSection
+        ? withSpanRange(reader, metadataSection.offset, metadataSection.uncompressedSize, "Metadata", () =>
+            readMetadata(reader, metadataSection.offset))
+        : null;
 
     const result = {
         signature: header.signature,
@@ -72,7 +93,22 @@ export async function readCmfAsync(input, options = {})
         animations: root.animations
     };
 
-    return options.decodeBuffers ? await decodeGeometryAsync(result, reader.bytes) : result;
+    validateCmfGraph(result, { phase: "read" });
+    if (options.decodeBuffers)
+    {
+        await decodeGeometryAsync(result, reader.bytes);
+        validateCmfGraph(result, { phase: "read" });
+    }
+    return result;
+}
+
+function requireSectionRoot(reader, section, size, label)
+{
+    if (section.uncompressedSize < size)
+    {
+        throw new Error(`Invalid CMF: ${label} section is smaller than its root structure`);
+    }
+    reader.require(section.offset, size, `${label} root`);
 }
 
 /** Reads header from the current CMF format reader. */
@@ -82,8 +118,15 @@ export function readHeader(reader)
     const version = reader.u32(4);
     const headerSize = reader.u32(8);
     const fileCrc32 = reader.u32(12);
-    const sectionsSpan = readSpan(reader, 16, STRUCT_SIZE.Section);
-    const sections = readArray(reader, sectionsSpan, readSection);
+    if (headerSize < STRUCT_SIZE.Header || headerSize > reader.bytes.byteLength)
+    {
+        throw new Error("Invalid CMF: headerSize is outside the file");
+    }
+    const sections = withSpanRange(reader, 0, headerSize, "Header", () =>
+    {
+        const sectionsSpan = readSpan(reader, 16, STRUCT_SIZE.Section, 4);
+        return readArray(reader, sectionsSpan, readSection);
+    });
 
     return {
         signature,
@@ -150,36 +193,9 @@ function validateHeader(reader, header, options)
         throw new Error(`Unsupported CMF version ${header.version}`);
     }
 
-    if (header.headerSize > reader.bytes.byteLength)
-    {
-        throw new Error("CMF headerSize exceeds file size");
-    }
+    validateCmfSections(header, reader.bytes.byteLength, { phase: "read" });
 
-    if (header.sections.length === 0)
-    {
-        throw new Error("CMF header contains no sections");
-    }
-
-    if (header.sections[0].type !== "Data")
-    {
-        throw new Error("CMF first section must be Data");
-    }
-
-    for (let i = 0; i < header.sections.length; i++)
-    {
-        const section = header.sections[i];
-        if (section.offset + section.compressedSize > reader.bytes.byteLength)
-        {
-            throw new Error(`CMF section ${i} exceeds file bounds`);
-        }
-
-        if (section.type === "Metadata" && i !== header.sections.length - 1)
-        {
-            throw new Error("CMF Metadata section must be last");
-        }
-    }
-
-    if (options.validateCrc !== false && header.crc32 !== 0)
+    if (options.validateCrc !== false)
     {
         const actual = crc32(reader.bytes, 16, reader.bytes.byteLength);
         if (actual !== header.crc32)
@@ -204,16 +220,16 @@ function readSection(reader, offset)
 function readData(reader, offset)
 {
     return {
-        meshes: readArray(reader, readSpan(reader, offset, STRUCT_SIZE.Mesh), readMesh),
-        skeletons: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.Skeleton), readSkeleton),
-        animations: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.Animation), readAnimation)
+        meshes: readArray(reader, readSpan(reader, offset, STRUCT_SIZE.Mesh, 8), readMesh),
+        skeletons: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.Skeleton, 8), readSkeleton),
+        animations: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.Animation, 8), readAnimation)
     };
 }
 
 function readMetadata(reader, offset)
 {
     return {
-        entries: readArray(reader, readSpan(reader, offset, STRUCT_SIZE.MetadataEntry), readMetadataEntry)
+        entries: readArray(reader, readSpan(reader, offset, STRUCT_SIZE.MetadataEntry, 8), readMetadataEntry)
     };
 }
 
@@ -229,12 +245,12 @@ function readMesh(reader, offset)
 {
     return {
         name: readString(reader, offset),
-        decl: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.VertexElement), readVertexElement),
-        lods: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.MeshLod), readMeshLod),
-        areas: readArray(reader, readSpan(reader, offset + 48, STRUCT_SIZE.MeshArea), readMeshArea),
-        boneBindings: readArray(reader, readSpan(reader, offset + 64, STRUCT_SIZE.BoneBinding), readBoneBinding),
+        decl: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.VertexElement, 4), readVertexElement),
+        lods: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.MeshLod, 8), readMeshLod),
+        areas: readArray(reader, readSpan(reader, offset + 48, STRUCT_SIZE.MeshArea, 8), readMeshArea),
+        boneBindings: readArray(reader, readSpan(reader, offset + 64, STRUCT_SIZE.BoneBinding, 8), readBoneBinding),
         morphTargets: readMorphTargets(reader, offset + 80),
-        uvDensities: readFloatArray(reader, readSpan(reader, offset + 112, 4)),
+        uvDensities: readFloatArray(reader, readSpan(reader, offset + 112, 4, 4)),
         bounds: readBounds(reader, offset + 128),
         audioOcclusionMesh: readAudioOcclusionMesh(reader, offset + 152),
         topology: enumName(MeshTopology, reader.u8(offset + 208)),
@@ -258,7 +274,7 @@ function readMeshArea(reader, offset)
     return {
         name: readString(reader, offset),
         bounds: readBounds(reader, offset + 16),
-        bones: readUint16Array(reader, readSpan(reader, offset + 40, 2)),
+        bones: readUint16Array(reader, readSpan(reader, offset + 40, 2, 2)),
         affectedByBones: !!reader.u8(offset + 56),
         affectedByMorphTargets: !!reader.u8(offset + 57)
     };
@@ -283,8 +299,8 @@ function readBoneBinding(reader, offset)
 function readMorphTargets(reader, offset)
 {
     return {
-        decl: readArray(reader, readSpan(reader, offset, STRUCT_SIZE.VertexElement), readVertexElement),
-        targets: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.MorphTarget), readMorphTarget)
+        decl: readArray(reader, readSpan(reader, offset, STRUCT_SIZE.VertexElement, 4), readVertexElement),
+        targets: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.MorphTarget, 8), readMorphTarget)
     };
 }
 
@@ -301,8 +317,8 @@ function readMeshLod(reader, offset)
     return {
         vb: readBufferView(reader, offset),
         ib: readBufferView(reader, offset + 16),
-        areas: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.LodMeshArea), readLodMeshArea),
-        morphTargets: readArray(reader, readSpan(reader, offset + 48, STRUCT_SIZE.LodMorphTarget), readLodMorphTarget),
+        areas: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.LodMeshArea, 4), readLodMeshArea),
+        morphTargets: readArray(reader, readSpan(reader, offset + 48, STRUCT_SIZE.LodMorphTarget, 4), readLodMorphTarget),
         threshold: reader.u32(offset + 64)
     };
 }
@@ -316,10 +332,10 @@ function readLodMorphTarget(reader, offset)
 
 function readAudioOcclusionMesh(reader, offset)
 {
-    const verticesSpan = readSpan(reader, offset, 12);
+    const verticesSpan = readSpan(reader, offset, 12, 4);
     return {
         vertices: readArray(reader, verticesSpan, readVector3),
-        indices: readUint16Array(reader, readSpan(reader, offset + 16, 2)),
+        indices: readUint16Array(reader, readSpan(reader, offset + 16, 2, 2)),
         bounds: readBounds(reader, offset + 32)
     };
 }
@@ -328,11 +344,11 @@ function readSkeleton(reader, offset)
 {
     return {
         name: readString(reader, offset),
-        bones: readArray(reader, readSpan(reader, offset + 16, 16), readString),
-        parents: readUint32Array(reader, readSpan(reader, offset + 32, 4)),
-        restTransforms: readArray(reader, readSpan(reader, offset + 48, STRUCT_SIZE.Transform), readTransform),
-        invBindTransforms: readArray(reader, readSpan(reader, offset + 64, 64), readMatrix),
-        boneMasks: readArray(reader, readSpan(reader, offset + 80, STRUCT_SIZE.BoneMask), readBoneMask)
+        bones: readArray(reader, readSpan(reader, offset + 16, 16, 8), readString),
+        parents: readUint32Array(reader, readSpan(reader, offset + 32, 4, 4)),
+        restTransforms: readArray(reader, readSpan(reader, offset + 48, STRUCT_SIZE.Transform, 4), readTransform),
+        invBindTransforms: readArray(reader, readSpan(reader, offset + 64, 64, 4), readMatrix),
+        boneMasks: readArray(reader, readSpan(reader, offset + 80, STRUCT_SIZE.BoneMask, 8), readBoneMask)
     };
 }
 
@@ -349,7 +365,7 @@ function readBoneMask(reader, offset)
 {
     return {
         name: readString(reader, offset),
-        weights: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.BoneWeight), readBoneWeight)
+        weights: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.BoneWeight, 4), readBoneWeight)
     };
 }
 
@@ -365,8 +381,8 @@ function readAnimation(reader, offset)
 {
     return {
         name: readString(reader, offset),
-        channels: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.AnimationChannel), readAnimationChannel),
-        curves: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.AnimationCurve), readAnimationCurve),
+        channels: readArray(reader, readSpan(reader, offset + 16, STRUCT_SIZE.AnimationChannel, 8), readAnimationChannel),
+        curves: readArray(reader, readSpan(reader, offset + 32, STRUCT_SIZE.AnimationCurve, 8), readAnimationCurve),
         duration: reader.f32(offset + 48)
     };
 }
@@ -388,8 +404,8 @@ function readAnimationCurve(reader, offset)
         knotType: enumName(ElementType, reader.u8(offset + 2)),
         valueType: enumName(ElementType, reader.u8(offset + 3)),
         knotCount: reader.u32(offset + 4),
-        knots: readByteArray(reader, readSpan(reader, offset + 8, 1)),
-        values: readByteArray(reader, readSpan(reader, offset + 24, 1))
+        knots: readByteArray(reader, readSpan(reader, offset + 8, 1, 1)),
+        values: readByteArray(reader, readSpan(reader, offset + 24, 1, 1))
     };
 }
 
@@ -403,21 +419,42 @@ function readBufferView(reader, offset)
     };
 }
 
-function readSpan(reader, offset, elementSize)
+function readSpan(reader, offset, elementSize, alignment = Math.min(elementSize, 8))
 {
-    const rawOffset = reader.i64(offset);
     const byteSize = reader.u64(offset + 8);
-    const isOffset = (rawOffset & 1) !== 0;
-    const dataOffset = byteSize === 0 ? null : isOffset ? offset + (rawOffset & ~1) : rawOffset;
+    if (byteSize === 0)
+    {
+        return {
+            offset: null,
+            byteSize: 0,
+            count: 0,
+            elementSize,
+            addressMode: "empty"
+        };
+    }
+
+    const rawOffset = reader.i64(offset);
+    const isOffset = rawOffset % 2 !== 0;
+    if (!isOffset)
+    {
+        throw new Error(`Invalid CMF: nonempty span at ${offset} contains a process pointer`);
+    }
+    const dataOffset = offset + rawOffset - 1;
 
     if (byteSize % elementSize !== 0)
     {
         throw new Error(`CMF span byteSize ${byteSize} is not a multiple of element size ${elementSize}`);
     }
 
-    if (dataOffset !== null)
+    reader.require(dataOffset, byteSize, "span");
+    if (dataOffset % alignment)
     {
-        reader.require(dataOffset, byteSize, "span");
+        throw new Error(`Invalid CMF: span at ${offset} is not aligned to ${alignment}`);
+    }
+    const range = reader.spanRange;
+    if (range && (dataOffset < range.start || dataOffset + byteSize > range.end))
+    {
+        throw new Error(`Invalid CMF: span at ${offset} leaves its ${range.label} section`);
     }
 
     return {
@@ -427,6 +464,20 @@ function readSpan(reader, offset, elementSize)
         elementSize,
         addressMode: isOffset ? "offset" : "pointer"
     };
+}
+
+function withSpanRange(reader, start, size, label, callback)
+{
+    const previous = reader.spanRange;
+    reader.spanRange = { start, end: start + size, label };
+    try
+    {
+        return callback();
+    }
+    finally
+    {
+        reader.spanRange = previous;
+    }
 }
 
 function readArray(reader, span, readElement)

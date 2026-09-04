@@ -352,21 +352,48 @@ test("exports explicitly unpacked GR2 tangent and binormal vec4 channels", () =>
     assert.deepEqual(mesh.vertex.binormal, [ 0, 1, 0, 0, 1, 0, 0, 1, 0 ]);
 });
 
+test("routes indexed vec4 tangent frames through the canonical CMF builder", () =>
+{
+    const bytes = CjsFbxFormat.writeShared({
+        meshes: [ {
+            name: "IndexedFrame",
+            vertex: {
+                position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
+                tangent1: [ 1, 0, 0, 4, 1, 0, 0, 5, 1, 0, 0, 6 ],
+                binormal1: [ 0, 1, 0, 4, 0, 1, 0, 5, 0, 1, 0, 6 ]
+            },
+            indices: [ { name: "main", faces: [ 0, 1, 2 ] } ]
+        } ]
+    });
+    const mesh = CjsFbxFormat.read(bytes, {
+        emit: "gr2",
+        classes: { Root, Mesh, IndexGroup }
+    }).meshes[0];
+    assert.deepEqual(mesh.vertex.tangent1, [ 1, 0, 0, 1, 0, 0, 1, 0, 0 ]);
+    assert.deepEqual(mesh.vertex.binormal1, [ 0, 1, 0, 0, 1, 0, 0, 1, 0 ]);
+});
+
 test("round-trips CMF vertex layers and material areas", () =>
 {
     const cmf = makeCmf();
     cmf.meshes[0].vertex = {
         position: [ 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0 ],
         normal: [ 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 ],
+        normal1: [ 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0 ],
+        tangent1: [ 1, 0, 0, 4, 1, 0, 0, 5, 1, 0, 0, 6, 1, 0, 0, 7 ],
+        binormal1: [ 0, 0, 1, 4, 0, 0, 1, 5, 0, 0, 1, 6, 0, 0, 1, 7 ],
         texcoord0: [ 0, 0, 1, 0, 1, 1, 0, 1 ],
-        color0: [ 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1 ]
+        texcoord2: [ 0, 0, 2, 0, 2, 2, 0, 2 ],
+        color0: [ 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1 ],
+        color1: [ 0, 0, 0, 0.25, 0.25, 0.25, 0.5, 0.5, 0.5, 1, 1, 1 ]
     };
     cmf.meshes[0].indices = [
         { name: "Red", faces: [ 0, 1, 2 ] },
         { name: "Blue", faces: [ 0, 2, 3 ] }
     ];
 
-    const gr2 = CjsFbxFormat.read(CjsFbxFormat.write(cmf), {
+    const bytes = CjsFbxFormat.write(cmf);
+    const gr2 = CjsFbxFormat.read(bytes, {
         emit: "gr2",
         classes: { Root, Mesh, IndexGroup }
     });
@@ -378,13 +405,37 @@ test("round-trips CMF vertex layers and material areas", () =>
         0, 0, 1, 0, 1, 1,
         0, 0, 1, 1, 0, 1
     ]);
+    assert.equal(gr2.meshes[0].vertex.normal1.length, 18);
+    assert.deepEqual(gr2.meshes[0].vertex.tangent1, [
+        1, 0, 0, 1, 0, 0, 1, 0, 0,
+        1, 0, 0, 1, 0, 0, 1, 0, 0
+    ]);
+    assert.deepEqual(gr2.meshes[0].vertex.binormal1, [
+        0, 0, 1, 0, 0, 1, 0, 0, 1,
+        0, 0, 1, 0, 0, 1, 0, 0, 1
+    ]);
+    assert.deepEqual(gr2.meshes[0].vertex.texcoord2, [
+        0, 0, 2, 0, 2, 2,
+        0, 0, 2, 2, 0, 2
+    ]);
+    assert.equal(gr2.meshes[0].vertex.color1.length, 24);
+    const native = CjsFbxFormat.read(bytes, { emit: "cmf", classes: { Root, Mesh } });
+    assert.deepEqual(native.meshes[0].decl.filter(element => element.usageIndex > 0).map(element =>
+        [ element.usage, element.usageIndex ]), [
+        [ "Normal", 1 ],
+        [ "Tangent", 1 ],
+        [ "Binormal", 1 ],
+        [ "TexCoord", 2 ],
+        [ "Color", 1 ]
+    ]);
     assert.deepEqual(gr2.meshes[0].indices.map((group) => group.name), [ "Red", "Blue" ]);
     assert.deepEqual(gr2.meshes[0].indices.map((group) => group.faces), [ [ 0, 1, 2 ], [ 3, 4, 5 ] ]);
 });
 
 test("round-trips CMF skeletons, skin clusters, bind poses, and morph deltas", () =>
 {
-    const cmf = CjsFbxFormat.read(CjsFbxFormat.write(makeDeformedCmf()), {
+    const bytes = CjsFbxFormat.write(makeDeformedCmf());
+    const cmf = CjsFbxFormat.read(bytes, {
         emit: "cmf",
         classes: { Root, Mesh }
     });
@@ -397,6 +448,12 @@ test("round-trips CMF skeletons, skin clusters, bind poses, and morph deltas", (
     assert.deepEqual(cmf.skeletons[0].invBindTransforms, makeDeformedCmf().skeletons[0].invBindTransforms);
     assert.equal(cmf.meshes[0].skeleton, 0);
     assert.deepEqual(cmf.meshes[0].boneBindings.map((binding) => binding.name), [ "BoneA", "BoneB" ]);
+    const carbon = CjsFbxFormat.read(bytes, {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root, Mesh }
+    });
+    assert.equal(carbon.skeletons[0].name, "BoneA");
     assert.deepEqual(cmf.meshes[0].lods[0].vertex.blendIndice, [
         0, 0, 0, 0,
         1, 0, 0, 0,
@@ -595,6 +652,237 @@ test("round-trips CMF bone and morph animations with interpolation", () =>
     ]);
 });
 
+test("dual-authors Carbon morph animation on the skeleton root", () =>
+{
+    const bytes = CjsFbxFormat.write(addAnimations(makeDeformedCmf()), { compatibility: "carbon" });
+    const source = CjsFbxFormat.read(bytes, {
+        emit: "cmf",
+        compatibility: "source",
+        classes: { Root, Mesh }
+    });
+    const carbon = CjsFbxFormat.read(bytes, {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root, Mesh }
+    });
+    const sourceMorphs = source.animations[0].channels.filter(channel => channel.targetType === "MorphTarget");
+    const carbonMorphs = carbon.animations[0].channels.filter(channel => channel.targetType === "MorphTarget");
+    assert.deepEqual(sourceMorphs.map(channel => channel.target), [ "Smile" ]);
+    assert.deepEqual(carbonMorphs.map(channel => channel.target), [ "Smile" ]);
+    assert.deepEqual(
+        Array.from(new Float32Array(new Uint8Array(carbon.animations[0].curves[carbonMorphs[0].curveIndex].values).buffer)),
+        [ 0, 0, 1, 1, 0.25 ]
+    );
+    assert.equal(carbon.animations[0].curves[carbonMorphs[0].curveIndex].interpolation, "Linear");
+    assert.deepEqual(carbon.animations[0].channels.map(channel => channel.targetType), [
+        "BonePosition", "BoneRotation", "BoneScale", "MorphTarget"
+    ]);
+    assert.deepEqual(carbon.skeletons[0].restTransforms[0].position, [ 0, 0, 0 ]);
+    assert.deepEqual(carbon.skeletons[0].restTransforms[0].rotation, [ 0, 0, 0, 1 ]);
+
+    const rewritten = CjsFbxFormat.read(CjsFbxFormat.write(carbon, { compatibility: "carbon" }), {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root, Mesh }
+    });
+    const rewrittenMorph = rewritten.animations[0].channels.find(channel => channel.targetType === "MorphTarget");
+    assert.deepEqual(
+        Array.from(new Float32Array(new Uint8Array(rewritten.animations[0].curves[rewrittenMorph.curveIndex].values).buffer)),
+        [ 0, 0, 1, 1, 0.25 ]
+    );
+});
+
+test("Carbon compatibility makes root motion relative with non-commuting rotation order", () =>
+{
+    const source = makeDeformedCmf();
+    source.animations = [ {
+        name: "RootMotion",
+        duration: 1,
+        channels: [
+            { target: "BoneA", targetType: "BonePosition", curveIndex: 0 },
+            { target: "BoneA", targetType: "BoneRotation", curveIndex: 1 }
+        ],
+        curves: [
+            {
+                valueDimension: 3,
+                interpolation: "Linear",
+                knotType: "Float32",
+                valueType: "Float32",
+                knotCount: 2,
+                knots: floatBytes([ 0, 1 ]),
+                values: floatBytes([ 5, 2, 0, 8, 6, 0 ])
+            },
+            {
+                valueDimension: 4,
+                interpolation: "Linear",
+                knotType: "Float32",
+                valueType: "Float32",
+                knotCount: 2,
+                knots: floatBytes([ 0, 1 ]),
+                values: floatBytes([
+                    Math.SQRT1_2, 0, 0, Math.SQRT1_2,
+                    0, Math.SQRT1_2, 0, Math.SQRT1_2
+                ])
+            }
+        ]
+    } ];
+    const cmf = CjsFbxFormat.read(CjsFbxFormat.write(source), {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root, Mesh }
+    });
+    const position = cmf.animations[0].channels.find(channel => channel.targetType === "BonePosition");
+    const rotation = cmf.animations[0].channels.find(channel => channel.targetType === "BoneRotation");
+    assert.deepEqual(cmf.animations[0].channels.filter(channel => channel.target === "BoneA").map(channel => channel.targetType), [
+        "BonePosition", "BoneRotation", "BoneScale"
+    ]);
+    const positionValues = Array.from(new Float32Array(new Uint8Array(cmf.animations[0].curves[position.curveIndex].values).buffer));
+    const rotationValues = Array.from(new Float32Array(new Uint8Array(cmf.animations[0].curves[rotation.curveIndex].values).buffer));
+    assert.deepEqual(positionValues, [ 0, 0, 0, 3, 4, 0 ]);
+    assert.ok(rotationValues.slice(0, 4).every((value, index) => Math.abs(value - [ 0, 0, 0, 1 ][index]) < 1e-6));
+    const last = rotationValues.slice(-4);
+    assert.ok(last.every((value, index) => Math.abs(value - [ -0.5, 0.5, -0.5, 0.5 ][index]) < 1e-5));
+});
+
+test("Carbon compatibility bakes a one-key bone channel as a Linear P/R/S triplet", () =>
+{
+    const source = makeDeformedCmf();
+    source.animations = [ {
+        name: "Single",
+        duration: 1,
+        channels: [ { target: "BoneA", targetType: "BonePosition", curveIndex: 0 } ],
+        curves: [ {
+            valueDimension: 3,
+            interpolation: "Step",
+            knotType: "Float32",
+            valueType: "Float32",
+            knotCount: 1,
+            knots: floatBytes([ 0 ]),
+            values: floatBytes([ 4, 5, 6 ])
+        } ]
+    } ];
+    const cmf = CjsFbxFormat.read(CjsFbxFormat.write(source), {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root, Mesh }
+    });
+    assert.deepEqual(cmf.animations[0].channels.map(channel => channel.targetType), [
+        "BonePosition", "BoneRotation", "BoneScale"
+    ]);
+    assert.deepEqual(cmf.animations[0].curves.map(curve => curve.interpolation), [
+        "Linear", "Linear", "Linear"
+    ]);
+});
+
+test("round-trips component-mixed Linear and Step motion through FBX key flags", () =>
+{
+    const source = makeDeformedCmf();
+    source.animations = [ {
+        name: "Mixed",
+        duration: 1,
+        channels: [ { target: "BoneB", targetType: "BonePosition", curveIndex: 0 } ],
+        curves: [ {
+            valueDimension: 3,
+            interpolation: "Linear",
+            knotType: "Float32",
+            valueType: "Float32",
+            knotCount: 4,
+            knots: floatBytes([ 0, 0.5, 0.5, 1 ]),
+            values: floatBytes([
+                0, 0, 0,
+                0, 0.5, 0,
+                1, 0.5, 0,
+                2, 1, 0
+            ])
+        } ]
+    } ];
+
+    const readPosition = (cmf) =>
+    {
+        const channel = cmf.animations[0].channels.find(item => item.targetType === "BonePosition");
+        const curve = cmf.animations[0].curves[channel.curveIndex];
+        return {
+            knots: Array.from(new Float32Array(new Uint8Array(curve.knots).buffer)),
+            values: Array.from(new Float32Array(new Uint8Array(curve.values).buffer))
+        };
+    };
+    const expected = {
+        knots: [ 0, 0.5, 0.5, 1 ],
+        values: [
+            0, 0, 0,
+            0, 0.5, 0,
+            1, 0.5, 0,
+            2, 1, 0
+        ]
+    };
+    const bytes = CjsFbxFormat.write(source);
+    assert.deepEqual(readPosition(CjsFbxFormat.read(bytes, {
+        emit: "cmf",
+        compatibility: "source",
+        classes: { Root, Mesh }
+    })), expected);
+
+    const carbon = CjsFbxFormat.read(bytes, {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root, Mesh }
+    });
+    assert.deepEqual(readPosition(carbon), expected);
+    const rewritten = CjsFbxFormat.read(CjsFbxFormat.write(carbon, { compatibility: "carbon" }), {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root, Mesh }
+    });
+    assert.deepEqual(readPosition(rewritten), expected);
+});
+
+test("Carbon compatibility reverses the final FBX animation list", () =>
+{
+    const source = addAnimations(makeDeformedCmf());
+    source.animations = [
+        { ...structuredClone(source.animations[0]), name: "First" },
+        { ...structuredClone(source.animations[0]), name: "Second" }
+    ];
+    const bytes = CjsFbxFormat.write(source);
+    const options = { emit: "cmf", classes: { Root, Mesh } };
+    assert.deepEqual(CjsFbxFormat.read(bytes, {
+        ...options,
+        compatibility: "source"
+    }).animations.map(animation => animation.name), [ "First", "Second" ]);
+    assert.deepEqual(CjsFbxFormat.read(bytes, {
+        ...options,
+        compatibility: "carbon"
+    }).animations.map(animation => animation.name), [ "Second", "First" ]);
+});
+
+test("rejects a linear arrival plus identical-time jump that FBX cannot encode", () =>
+{
+    const source = makeDeformedCmf();
+    source.animations = [ {
+        name: "Unrepresentable",
+        duration: 1,
+        channels: [ { target: "BoneB", targetType: "BonePosition", curveIndex: 0 } ],
+        curves: [ {
+            valueDimension: 3,
+            interpolation: "Linear",
+            knotType: "Float32",
+            valueType: "Float32",
+            knotCount: 4,
+            knots: floatBytes([ 0, 0.5, 0.5, 1 ]),
+            values: floatBytes([
+                0, 0, 0,
+                0.25, 0.5, 0,
+                1, 0.5, 0,
+                2, 1, 0
+            ])
+        } ]
+    } ];
+    assert.throws(
+        () => CjsFbxFormat.write(source),
+        /linear arrival with an identical-time discontinuity that FBX cannot represent/u
+    );
+});
+
 test("rejects unsupported or malformed CMF geometry", () =>
 {
     const cmf = makeCmf();
@@ -604,6 +892,36 @@ test("rejects unsupported or malformed CMF geometry", () =>
         error => error?.name === "CjsFormatWriteError" && /references vertex 3 outside 0\.\.2/u.test(error.message)
     );
     assert.throws(() => CjsFbxFormat.write(makeCmf(), { version: 7500 }), /only binary FBX 7400/u);
+    assert.throws(() => CjsFbxFormat.write(makeCmf(), { compatibility: "guess" }), /compatibility/u);
+
+    const outOfRangeSet = makeCmf();
+    outOfRangeSet.meshes[0].vertex.color256 = new Array(9).fill(1);
+    assert.throws(() => CjsFbxFormat.write(outOfRangeSet), /usage index outside 0\.\.255/u);
+
+    const fractionalDeclaration = makeCmf();
+    fractionalDeclaration.meshes[0].decl = [ {
+        usage: "Color",
+        usageIndex: 1.5,
+        type: "Float32",
+        elementCount: 3,
+        offset: 0
+    } ];
+    assert.throws(() => CjsFbxFormat.write(fractionalDeclaration), /declaration Color\[1\.5\].*not supported/u);
+
+    const noMorphCarrier = addAnimations(makeDeformedCmf());
+    noMorphCarrier.meshes[0].skeleton = null;
+    noMorphCarrier.meshes[0].boneBindings = [];
+    delete noMorphCarrier.meshes[0].vertex.blendIndice;
+    delete noMorphCarrier.meshes[0].vertex.blendWeight;
+    delete noMorphCarrier.meshes[0].lods[0].vertex.blendIndice;
+    delete noMorphCarrier.meshes[0].lods[0].vertex.blendWeight;
+    noMorphCarrier.skeletons = [];
+    noMorphCarrier.animations[0].channels = noMorphCarrier.animations[0].channels.filter(channel =>
+        channel.targetType === "MorphTarget");
+    assert.throws(
+        () => CjsFbxFormat.write(noMorphCarrier, { compatibility: "carbon" }),
+        /requires one skeleton carrier/u
+    );
 
     const multipleLods = makeCmf();
     multipleLods.meshes[0].lods = [
@@ -619,6 +937,26 @@ test("rejects unsupported or malformed CMF geometry", () =>
     const invalidMorph = makeDeformedCmf();
     invalidMorph.meshes[0].lods[0].morphTargets[0].vertex.tangent = new Array(9).fill(0);
     assert.throws(() => CjsFbxFormat.write(invalidMorph), /tangent deltas cannot be represented exactly/u);
+    const invalidMorphBinormal = makeDeformedCmf();
+    invalidMorphBinormal.meshes[0].lods[0].morphTargets[0].vertex.binormal = new Array(9).fill(0);
+    assert.throws(() => CjsFbxFormat.write(invalidMorphBinormal), /binormal deltas cannot be represented exactly/u);
+
+    for (const name of [ "Lcl Translation", "CjsSkeletonName" ])
+    {
+        const reservedMorph = addAnimations(makeDeformedCmf());
+        const morphChannel = reservedMorph.animations[0].channels.find(channel => channel.targetType === "MorphTarget");
+        morphChannel.target = name;
+        assert.throws(
+            () => CjsFbxFormat.write(reservedMorph, { compatibility: "carbon" }),
+            /collides with a reserved Model property/u
+        );
+    }
+
+    const duplicateAnimatedMorph = addAnimations(makeDeformedCmf());
+    duplicateAnimatedMorph.animations[0].channels.push({
+        ...duplicateAnimatedMorph.animations[0].channels.find(channel => channel.targetType === "MorphTarget")
+    });
+    assert.throws(() => CjsFbxFormat.write(duplicateAnimatedMorph), /authors MorphTarget target "Smile" more than once/u);
 
     for (const names of [ [ "Smile", "Smile" ], [ "", "Morph_0" ] ])
     {

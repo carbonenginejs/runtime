@@ -3,6 +3,7 @@ import { inspectCmf, readCmf } from "./schema.js";
 import { buildCmfFromShared, buildSharedFromCmf } from "./shared.js";
 import { buildGr2Animations, buildGr2Models } from "./gr2Compat.js";
 import { hydrateCmf } from "./utils/hydration.js";
+import { validateCmfGraph } from "./validate.js";
 
 export { CLASS_KEYS, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_NATIVE, OUTPUT_RAW, OUTPUT_SHARED };
 
@@ -60,7 +61,7 @@ export function readRawInput(input, options = {})
 {
     if (input && typeof input === "object" && Array.isArray(input.sections) && Array.isArray(input.meshes))
     {
-        return input;
+        return validateCmfGraph(input, { phase: "read" });
     }
 
     return readCmf(input, options);
@@ -71,7 +72,7 @@ export async function readRawInputAsync(input, options = {})
 {
     if (input && typeof input === "object" && Array.isArray(input.sections) && Array.isArray(input.meshes))
     {
-        return input;
+        return validateCmfGraph(input, { phase: "read" });
     }
 
     const { readCmfAsync } = await import("./schema.js");

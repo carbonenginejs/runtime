@@ -1,4 +1,5 @@
 import { convertGr2SkeletonsAndAnimations } from "./gr2Anim.js";
+import { Usage } from "./constants.js";
 import { canonicalMorphVertex, maxMorphDisplacement } from "./utils/morph.js";
 import { bytesPerIndex, firstTriangle, totalIndexCount } from "./utils/indices.js";
 import { calculateUvDensities } from "./utils/uvDensity.js";
@@ -29,7 +30,7 @@ export function buildCmfFromShared(input, options = {})
     return {
         version: 1,
         metadata: normalizeMetadata(root.metadata),
-        meshes: (root.meshes ?? []).map((mesh) => buildMesh(mesh)),
+        meshes: (root.meshes ?? []).map((mesh) => buildMesh(mesh, options)),
         skeletons: root.skeletons ?? [],
         animations: root.animations ?? []
     };
@@ -51,10 +52,10 @@ export function buildSharedFromCmf(raw, classes, hydrationOptions = {})
     }, hydrationClasses, hydrationOptions);
 }
 
-function buildMesh(mesh)
+function buildMesh(mesh, options)
 {
     const lodSources = sharedLodSources(mesh);
-    const builtLods = lodSources.map((source, index) => buildLod(source, index));
+    const builtLods = lodSources.map((source, index) => buildLod(source, index, options));
     const base = builtLods[0];
     assertCompatibleLods(builtLods);
 
@@ -70,9 +71,9 @@ function buildMesh(mesh)
                     lod.morphTargetSet.targets[targetIndex].maxDisplacement))
             }))
         },
-        affectedByMorphTargets = morphTargets.targets.length > 0,
         decl = base.decl,
-        topology = base.topology;
+        topology = base.topology,
+        areas = base.indices.map((group, areaIndex) => buildMeshArea(mesh, builtLods, group, areaIndex));
 
     if (affectedByBones !== decl.some(element => element.usage === "BoneIndices"))
     {
@@ -83,21 +84,15 @@ function buildMesh(mesh)
         name: mesh.name ?? "",
         decl,
         lods: builtLods.map(({ decl: _decl, topology: _topology, morphTargetSet: _morphTargetSet, ...lod }) => lod),
-        areas: (base.indices ?? []).map((group) => ({
-            name: group.name ?? "",
-            bounds: boundsFromShared(mesh),
-            bones: [],
-            affectedByBones,
-            affectedByMorphTargets
-        })),
+        areas,
         boneBindings,
         morphTargets: {
             decl: morphTargets.decl,
             targets: morphTargets.targets
         },
-        uvDensities: calculateUvDensities(vertex, mesh.indices, decl),
+        uvDensities: calculateUvDensities(vertex, base.indices, decl),
         bounds: boundsFromShared(mesh),
-        audioOcclusionMesh: {
+        audioOcclusionMesh: mesh.audioOcclusionMesh ?? {
             vertices: [],
             indices: [],
             bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] }
@@ -132,13 +127,13 @@ function sharedLodSources(mesh)
     });
 }
 
-function buildLod(mesh, index)
+function buildLod(mesh, index, options)
 {
     const
         vertex = mesh.vertex ?? {},
         position = vertex.position ?? [],
-        decl = buildDecl(vertex),
-        stride = estimateVertexStride(vertex),
+        decl = buildDecl(vertex, options),
+        stride = estimateStrideFromDecl(decl),
         vertexCount = stride === 0 ? 0 : Math.floor(position.length / 3),
         indices = mesh.indices ?? [],
         topology = mesh.topology ?? "TriangleList",
@@ -194,10 +189,105 @@ function buildLod(mesh, index)
         areas: buildLodAreas(indices, topology, vertexCount),
         morphTargets: morphTargets.lods,
         morphTargetSet: morphTargets,
-        threshold: mesh.threshold ?? (index === 0 ? 0xffffffff : 0),
+        threshold: lodThreshold(mesh, index),
         vertex,
         indices
     };
+}
+
+function lodThreshold(mesh, index)
+{
+    if (mesh.threshold !== undefined && mesh.threshold !== null) return mesh.threshold;
+    if (index === 0) return 0xffffffff;
+    throw new Error(`CMF LOD ${index} requires an explicit descending threshold`);
+}
+
+function buildMeshArea(mesh, lods, group, areaIndex)
+{
+    const source = mesh.areas?.[areaIndex] ?? group;
+    const bones = source.bones ?? Array.from(new Set(lods.flatMap(lod =>
+        areaBones(lod.indices[areaIndex], lod.vertex, lod.topology))));
+    const affectedByMorphTargets = source.affectedByMorphTargets ?? lods.some(lod =>
+        areaAffectedByMorphTargets(
+            lod.indices[areaIndex],
+            lod.vertex?.position ?? [],
+            lod.morphTargetSet.lods,
+            lod.topology
+        ));
+    return {
+        name: source.name ?? group.name ?? "",
+        bounds: source.bounds ?? boundsForArea(group, lods[0].vertex, mesh),
+        bones,
+        affectedByBones: source.affectedByBones ?? bones.length > 0,
+        affectedByMorphTargets
+    };
+}
+
+function areaVertexIndices(group, topology, vertexCount)
+{
+    if (topology !== "PointList") return group?.faces ?? [];
+    const first = group?.firstElement ?? 0;
+    const count = group?.pointCount ?? group?.elementCount ?? vertexCount;
+    return Array.from({ length: count }, (_, index) => first + index);
+}
+
+function areaBones(group, vertex, topology)
+{
+    const boneIndices = vertex?.blendIndice ?? [];
+    if (!boneIndices.length) return [];
+    const boneWeights = vertex?.blendWeight ?? [];
+    const vertexCount = (vertex?.position ?? []).length / 3;
+    const bones = new Set();
+    for (const vertexIndex of areaVertexIndices(group, topology, vertexCount))
+    {
+        const offset = vertexIndex * 4;
+        for (let component = 0; component < 4; component++)
+        {
+            const weight = boneWeights.length ? boneWeights[offset + component] ?? 0 : component === 0 ? 1 : 0;
+            if (weight > 0) bones.add(boneIndices[offset + component] ?? 0);
+        }
+    }
+    return Array.from(bones);
+}
+
+function areaAffectedByMorphTargets(group, basePositions, morphLods, topology)
+{
+    const vertexCount = basePositions.length / 3;
+    for (const morph of morphLods)
+    {
+        const positions = morph.vertex?.position ?? [];
+        for (const vertexIndex of areaVertexIndices(group, topology, vertexCount))
+        {
+            const offset = vertexIndex * 3;
+            if (positions[offset] !== basePositions[offset] ||
+                positions[offset + 1] !== basePositions[offset + 1] ||
+                positions[offset + 2] !== basePositions[offset + 2]) return true;
+        }
+    }
+    return false;
+}
+
+function boundsForArea(group, vertex, mesh)
+{
+    const positions = vertex?.position ?? [];
+    const selected = [];
+    for (const vertexIndex of areaVertexIndices(group, mesh.topology ?? "TriangleList", positions.length / 3))
+    {
+        const offset = vertexIndex * 3;
+        if (offset + 2 < positions.length) selected.push(positions[offset], positions[offset + 1], positions[offset + 2]);
+    }
+    if (!selected.length) return boundsFromShared(mesh);
+    const min = [ Infinity, Infinity, Infinity ];
+    const max = [ -Infinity, -Infinity, -Infinity ];
+    for (let offset = 0; offset < selected.length; offset += 3)
+    {
+        for (let axis = 0; axis < 3; axis++)
+        {
+            min[axis] = Math.min(min[axis], selected[offset + axis]);
+            max[axis] = Math.max(max[axis], selected[offset + axis]);
+        }
+    }
+    return { min, max };
 }
 
 function buildLodAreas(groups, topology, vertexCount)
@@ -337,9 +427,10 @@ function buildMorphTargets(mesh)
     {
         throw new Error("CMF morph target names must be unique within a mesh");
     }
+    const channelSpecs = morphChannelSpecs(mesh.vertex ?? {}, targets);
     for (const target of targets)
     {
-        for (const [ name ] of VERTEX_CHANNELS)
+        for (const [ name ] of channelSpecs)
         {
             if ((target.vertex?.[name] ?? []).length && !(mesh.vertex?.[name] ?? []).length)
             {
@@ -349,7 +440,7 @@ function buildMorphTargets(mesh)
     }
 
     const
-        morphSpecs = VERTEX_CHANNELS
+        morphSpecs = channelSpecs
             .filter(([ name ]) => name === "position" || targets.some((target) => (target.vertex?.[name] ?? []).length))
             .filter(([ name ]) => (mesh.vertex?.[name] ?? []).length)
             .map(([ name, usage, defaultCount, usageIndex = 0, type = "Float32" ]) => ({
@@ -395,6 +486,26 @@ function buildMorphTargets(mesh)
     };
 }
 
+function morphChannelSpecs(baseVertex, targets)
+{
+    const specs = [ ...VERTEX_CHANNELS ];
+    const known = new Set(specs.map(([ name ]) => name));
+    for (const vertex of [ baseVertex, ...targets.map(target => target.vertex ?? {}) ])
+    {
+        for (const name of Object.keys(vertex))
+        {
+            if (known.has(name)) continue;
+            const match = /^(normal|tangent|binormal)([1-9][0-9]*)$/u.exec(name);
+            if (!match) continue;
+            const usage = match[1][0].toUpperCase() + match[1].slice(1);
+            specs.push([ name, usage, 3, Number(match[2]) ]);
+            known.add(name);
+        }
+    }
+    return specs.sort((left, right) =>
+        Usage.indexOf(left[1]) - Usage.indexOf(right[1]) || (left[3] ?? 0) - (right[3] ?? 0));
+}
+
 function buildMorphDecl(specs)
 {
     let offset = 0;
@@ -408,7 +519,7 @@ function buildMorphDecl(specs)
 
 function morphChannelElementCount(mesh, targets, name, defaultCount)
 {
-    if (name !== "tangent" && name !== "binormal") return defaultCount;
+    if (!/^tangent(?:[1-9][0-9]*)?$/u.test(name) && !/^binormal(?:[1-9][0-9]*)?$/u.test(name)) return defaultCount;
 
     for (const target of targets)
     {
@@ -433,7 +544,7 @@ function buildBoneBinding(binding)
     };
 }
 
-function buildDecl(vertex)
+function buildDecl(vertex, options = {})
 {
     const decl = [];
     let offset = 0;
@@ -441,17 +552,22 @@ function buildDecl(vertex)
     const dynamicChannels = [];
     for (const name of Object.keys(vertex))
     {
-        let match = /^texcoord([0-9]+)$/u.exec(name);
+        const match = /^(normal|tangent|binormal|texcoord|color)([0-9]+)$/u.exec(name);
         if (match)
         {
-            dynamicChannels.push([ name, "TexCoord", 2, Number(match[1]) ]);
-            continue;
+            const usage = {
+                normal: "Normal",
+                tangent: "Tangent",
+                binormal: "Binormal",
+                texcoord: "TexCoord",
+                color: "Color"
+            }[match[1]];
+            const defaultCount = usage === "TexCoord" ? 2 : usage === "Color" ? 4 : 3;
+            dynamicChannels.push([ name, usage, defaultCount, Number(match[2]) ]);
         }
-        match = /^color([0-9]+)$/u.exec(name);
-        if (match) dynamicChannels.push([ name, "Color", 4, Number(match[1]) ]);
     }
     dynamicChannels.sort((left, right) =>
-        (left[1] === "TexCoord" ? 0 : 1) - (right[1] === "TexCoord" ? 0 : 1) ||
+        Usage.indexOf(left[1]) - Usage.indexOf(right[1]) ||
         left[3] - right[3]);
 
     for (const channel of [
@@ -460,7 +576,7 @@ function buildDecl(vertex)
         [ "tangent", "Tangent", 3 ],
         [ "binormal", "Binormal", 3 ],
         ...dynamicChannels,
-        [ "blendIndice", "BoneIndices", 4, 0, "UInt16" ],
+        [ "blendIndice", "BoneIndices", 4, 0, options.boneIndexType ?? "UInt16" ],
         [ "blendWeight", "BoneWeights", 4, 0 ],
         [ "packedTangent", "PackedTangent", 4, 0, "Int16Norm" ],
         [ "packedTangentLegacy", "PackedTangentLegacy", 4, 0, "UInt16Norm" ]
@@ -472,7 +588,8 @@ function buildDecl(vertex)
             continue;
         }
 
-        const count = (name === "tangent" || name === "binormal" || usage === "Color") &&
+        const direction4 = /^(?:tangent|binormal)(?:[1-9][0-9]*)?$/u.test(name);
+        const count = (direction4 || usage === "Color") &&
             vertexCount > 0 && vertex[name].length === vertexCount * 4
             ? 4
             : usage === "Color" && vertexCount > 0 && vertex[name].length === vertexCount * 3
@@ -483,11 +600,6 @@ function buildDecl(vertex)
         offset += count * elementTypeSize(type);
     }
     return decl;
-}
-
-function estimateVertexStride(vertex)
-{
-    return estimateStrideFromDecl(buildDecl(vertex));
 }
 
 function boundsFromShared(mesh)

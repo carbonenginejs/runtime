@@ -376,16 +376,32 @@ function normalizedDirection(values, offset, fallback)
 
 function splitTangentFrames(vertex)
 {
-    if (!vertex.tangent.length) return;
-
     const vertexCount = vertex.position.length / 3;
-    if (vertex.tangent.length !== vertexCount * 4)
+    const tangentChannels = Object.keys(vertex).filter(name => name === "tangent" || /^tangent[1-9][0-9]*$/u.test(name));
+    for (const tangentName of tangentChannels)
     {
-        throw new Error("CjsGltfFormat: TANGENT must contain one VEC4 per vertex");
+        if (!vertex[tangentName].length) continue;
+        const suffix = tangentName === "tangent" ? "" : tangentName.slice("tangent".length);
+        splitTangentFrame(vertex, tangentName, suffix ? `normal${suffix}` : "normal", suffix ? `binormal${suffix}` : "binormal", vertexCount);
     }
-    if (vertex.normal.length !== vertexCount * 3)
+}
+
+function splitTangentFrame(vertex, tangentName, normalName, binormalName, vertexCount)
+{
+    const tangentLabel = tangentName === "tangent" ? "TANGENT" : tangentName;
+    const normalLabel = normalName === "normal" ? "NORMAL channel" : normalName;
+    if (vertex[tangentName].length !== vertexCount * 4)
     {
-        throw new Error("CjsGltfFormat: TANGENT requires a matching NORMAL channel");
+        throw new Error(`CjsGltfFormat: ${tangentLabel} must contain one VEC4 per vertex`);
+    }
+    const sourceNormalName = vertex[normalName]?.length === vertexCount * 3
+        ? normalName
+        : normalName !== "normal" && vertex.normal?.length === vertexCount * 3
+            ? "normal"
+            : null;
+    if (!sourceNormalName)
+    {
+        throw new Error(`CjsGltfFormat: ${tangentLabel} requires a matching ${normalLabel}`);
     }
 
     const tangents = new Array(vertexCount * 3);
@@ -396,9 +412,9 @@ function splitTangentFrames(vertex)
         const
             sourceNormalOffset = index * 3,
             sourceTangentOffset = index * 4,
-            normal = normalizedDirection(vertex.normal, sourceNormalOffset, [ 0, 1, 0 ]),
-            tangent = normalizedDirection(vertex.tangent, sourceTangentOffset, [ 1, 0, 0 ]),
-            sign = vertex.tangent[sourceTangentOffset + 3] < 0 ? -1 : 1,
+            normal = normalizedDirection(vertex[sourceNormalName], sourceNormalOffset, [ 0, 1, 0 ]),
+            tangent = normalizedDirection(vertex[tangentName], sourceTangentOffset, [ 1, 0, 0 ]),
+            sign = vertex[tangentName][sourceTangentOffset + 3] < 0 ? -1 : 1,
             binormal = normalizedDirection([
                 normal[1] * tangent[2] - normal[2] * tangent[1],
                 normal[2] * tangent[0] - normal[0] * tangent[2],
@@ -413,9 +429,9 @@ function splitTangentFrames(vertex)
             binormals[sourceNormalOffset + component] = signedBinormal === 0 ? 0 : fr(signedBinormal);
         }
     }
-    vertex.normal = normals;
-    vertex.tangent = tangents;
-    vertex.binormal = binormals;
+    if (sourceNormalName === normalName) vertex[normalName] = normals;
+    vertex[tangentName] = tangents;
+    vertex[binormalName] = binormals;
 }
 
 function computeBounds(positions)
@@ -457,10 +473,9 @@ function materialName(gltf, primitive, primitiveIndex)
 function buildMorphTargets(gltf, buffers, primitive, mesh)
 {
     const targetNames = (mesh.extras && mesh.extras.targetNames) || [];
-    return (primitive.targets || []).map((target, index) => ({
-        name: targetNames[index] || `target_${index}`,
-        dataIsDeltas: true,
-        vertex: {
+    return (primitive.targets || []).map((target, index) =>
+    {
+        const vertex = {
             position: copyAttribute(gltf, buffers, target, "POSITION"),
             blendIndice: [],
             tangent: copyAttribute(gltf, buffers, target, "TANGENT"),
@@ -469,8 +484,14 @@ function buildMorphTargets(gltf, buffers, primitive, mesh)
             texcoord1: [],
             binormal: [],
             blendWeight: []
-        }
-    }));
+        };
+        copyCarbonIndexedDirections(gltf, buffers, target, vertex);
+        return {
+            name: targetNames[index] || `target_${index}`,
+            dataIsDeltas: true,
+            vertex
+        };
+    });
 }
 
 function meshMorphTargetNames(mesh)
@@ -545,9 +566,15 @@ function buildMeshPrimitive(gltf, buffers, meshIndex, primitiveIndex, nodeIndex,
     {
         const match = /^(TEXCOORD|COLOR)_([0-9]+)$/u.exec(attribute);
         if (!match) continue;
-        const channel = `${match[1] === "TEXCOORD" ? "texcoord" : "color"}${Number(match[2])}`;
+        const usageIndex = Number(match[2]);
+        if (usageIndex > 255)
+        {
+            throw new Error(`CjsGltfFormat: attribute ${attribute} has a usage index outside 0..255`);
+        }
+        const channel = `${match[1] === "TEXCOORD" ? "texcoord" : "color"}${usageIndex}`;
         vertex[channel] = copyAttribute(gltf, buffers, primitive.attributes, attribute);
     }
+    copyCarbonIndexedDirections(gltf, buffers, primitive.attributes, vertex);
     vertex.blendIndice = copyAttribute(gltf, buffers, primitive.attributes, "JOINTS_0");
     vertex.blendWeight = copyAttribute(gltf, buffers, primitive.attributes, "WEIGHTS_0");
     normalizeSkinning(vertex, primitive.attributes, skinContext);
@@ -574,6 +601,22 @@ function buildMeshPrimitive(gltf, buffers, meshIndex, primitiveIndex, nodeIndex,
             faces
         } ]
     };
+}
+
+function copyCarbonIndexedDirections(gltf, buffers, attributes, vertex)
+{
+    for (const attribute of Object.keys(attributes ?? {}))
+    {
+        const match = /^_(NORMAL|TANGENT)_([1-9][0-9]*)$/u.exec(attribute);
+        if (!match) continue;
+        const usageIndex = Number(match[2]);
+        if (usageIndex > 255)
+        {
+            throw new Error(`CjsGltfFormat: attribute ${attribute} has a usage index outside 0..255`);
+        }
+        const channel = `${match[1] === "NORMAL" ? "normal" : "tangent"}${usageIndex}`;
+        vertex[channel] = copyAttribute(gltf, buffers, attributes, attribute);
+    }
 }
 
 function parentMap(gltf)
@@ -977,6 +1020,134 @@ function scaleToScaleShear(values)
     return out;
 }
 
+function resampleCubicSpline(knots, controls, dimension, label, normalize = false)
+{
+    if (controls.length !== knots.length * dimension * 3)
+    {
+        throw new Error(`CjsGltfFormat: CUBICSPLINE ${label} output has an invalid length`);
+    }
+    if (!knots.length || knots.some((value, index) => !Number.isFinite(value) || index && value <= knots[index - 1]))
+    {
+        throw new Error(`CjsGltfFormat: CUBICSPLINE ${label} input times must be finite and strictly increasing`);
+    }
+
+    const valueAtKey = (key) => controls.slice((key * 3 + 1) * dimension, (key * 3 + 2) * dimension);
+    const sample = (segment, amount) =>
+    {
+        const duration = knots[segment + 1] - knots[segment];
+        const p0 = valueAtKey(segment);
+        const p1 = valueAtKey(segment + 1);
+        const m0 = controls.slice((segment * 3 + 2) * dimension, (segment * 3 + 3) * dimension);
+        const m1 = controls.slice(((segment + 1) * 3) * dimension, ((segment + 1) * 3 + 1) * dimension);
+        const amount2 = amount * amount;
+        const amount3 = amount2 * amount;
+        const h00 = 2 * amount3 - 3 * amount2 + 1;
+        const h10 = amount3 - 2 * amount2 + amount;
+        const h01 = -2 * amount3 + 3 * amount2;
+        const h11 = amount3 - amount2;
+        const value = p0.map((component, index) =>
+            component * h00 + m0[index] * duration * h10 + p1[index] * h01 + m1[index] * duration * h11
+        );
+        return normalize ? normalizeVector(value, label) : value;
+    };
+    const normalizeValue = value => normalize ? normalizeVector(value, label) : value;
+    if (knots.length === 1)
+    {
+        return { knots: [ fr(knots[0]) ], controls: normalizeValue(valueAtKey(0)).map(fr) };
+    }
+    const output = [ { time: knots[0], value: normalizeValue(valueAtKey(0)) } ];
+    const tolerance = 1e-4;
+
+    for (let segment = 0; segment < knots.length - 1; segment++)
+    {
+        const start = { amount: 0, time: knots[segment], value: normalizeValue(valueAtKey(segment)) };
+        const end = { amount: 1, time: knots[segment + 1], value: normalizeValue(valueAtKey(segment + 1)) };
+        let segmentKeyCount = 1;
+        const append = (left, right, depth) =>
+        {
+            const amount = (left.amount + right.amount) * 0.5;
+            const middle = {
+                amount,
+                time: knots[segment] + (knots[segment + 1] - knots[segment]) * amount,
+                value: sample(segment, amount)
+            };
+            let error = 0;
+            for (const local of [ 0.25, 0.5, 0.75 ])
+            {
+                const probeAmount = left.amount + (right.amount - left.amount) * local;
+                const actual = local === 0.5 ? middle.value : sample(segment, probeAmount);
+                error = Math.max(error, normalize
+                    ? quaternionInterpolationError(actual, left.value, right.value, local, label)
+                    : Math.hypot(...actual.map((value, index) =>
+                        value - (left.value[index] + (right.value[index] - left.value[index]) * local))));
+            }
+            if (error <= tolerance)
+            {
+                segmentKeyCount++;
+                if (segmentKeyCount > 4096)
+                {
+                    throw new Error(`CjsGltfFormat: CUBICSPLINE ${label} requires more than 4096 baked keys per segment`);
+                }
+                output.push({ time: right.time, value: right.value });
+                return;
+            }
+            if (depth >= 12)
+            {
+                throw new Error(`CjsGltfFormat: CUBICSPLINE ${label} requires more than 4096 baked keys per segment`);
+            }
+            append(left, middle, depth + 1);
+            append(middle, right, depth + 1);
+        };
+        append(start, end, 0);
+    }
+    if (normalize)
+    {
+        for (let index = 1; index < output.length; index++)
+        {
+            if (dot(output[index - 1].value, output[index].value) < 0)
+            {
+                output[index].value = output[index].value.map(value => -value);
+            }
+        }
+    }
+    return {
+        knots: output.map(entry => fr(entry.time)),
+        controls: output.flatMap(entry => entry.value.map(fr))
+    };
+}
+
+function dot(left, right)
+{
+    return left.reduce((sum, value, index) => sum + value * right[index], 0);
+}
+
+function quaternionInterpolationError(actual, left, right, amount, label)
+{
+    const alignedRight = dot(left, right) < 0 ? right.map(value => -value) : right;
+    const linear = normalizeVector(left.map((value, index) =>
+        value + (alignedRight[index] - value) * amount), label);
+    const cosine = Math.min(1, Math.abs(dot(actual, linear)));
+    return 2 * Math.acos(cosine);
+}
+
+function validateSamplerInterpolation(interpolation)
+{
+    if (![ "STEP", "LINEAR", "CUBICSPLINE" ].includes(interpolation))
+    {
+        throw new Error(`CjsGltfFormat: animation sampler interpolation ${JSON.stringify(interpolation)} is not supported`);
+    }
+}
+
+function normalizeVector(value, label)
+{
+    const length = Math.hypot(...value);
+    if (!(length > 0) || !Number.isFinite(length))
+    {
+        throw new Error(`CjsGltfFormat: CUBICSPLINE ${label} produced a zero or non-finite quaternion`);
+    }
+    return value.map(component => component / length);
+}
+
 function channelCurve(gltf, buffers, animation, channel)
 {
     const
@@ -985,25 +1156,26 @@ function channelCurve(gltf, buffers, animation, channel)
         knots = readAccessor(gltf, buffers, sampler.input),
         rawControls = readAccessor(gltf, buffers, sampler.output),
         path = channel.target.path;
-
-    if (interpolation === "CUBICSPLINE")
-    {
-        throw new Error(`CjsGltfFormat: CUBICSPLINE ${path} animation requires resampling and is not supported`);
-    }
+    validateSamplerInterpolation(interpolation);
+    const dimension = path === "rotation" ? 4 : 3;
+    const sampled = interpolation === "CUBICSPLINE"
+        ? resampleCubicSpline(knots, rawControls, dimension, path, path === "rotation")
+        : { knots, controls: rawControls };
+    const curveInterpolation = interpolation === "CUBICSPLINE" ? "LINEAR" : interpolation;
 
     if (path === "translation")
     {
-        return { path: "position", curve: makeCurve("position", 3, knots, rawControls, interpolation) };
+        return { path: "position", curve: makeCurve("position", 3, sampled.knots, sampled.controls, curveInterpolation) };
     }
 
     if (path === "rotation")
     {
-        return { path: "orientation", curve: makeCurve("orientation", 4, knots, rawControls, interpolation) };
+        return { path: "orientation", curve: makeCurve("orientation", 4, sampled.knots, sampled.controls, curveInterpolation) };
     }
 
     if (path === "scale")
     {
-        return { path: "scaleShear", curve: makeCurve("scaleShear", 9, knots, scaleToScaleShear(rawControls), interpolation) };
+        return { path: "scaleShear", curve: makeCurve("scaleShear", 9, sampled.knots, scaleToScaleShear(sampled.controls), curveInterpolation) };
     }
 
     return null;
@@ -1023,25 +1195,29 @@ function weightCurves(gltf, buffers, animation, channel, targetNames)
         sampler = animation.samplers[channel.sampler],
         interpolation = sampler.interpolation || "LINEAR",
         knots = readAccessor(gltf, buffers, sampler.input),
-        controls = readAccessor(gltf, buffers, sampler.output),
+        rawControls = readAccessor(gltf, buffers, sampler.output),
         targetCount = targetNames.length;
-
-    if (interpolation === "CUBICSPLINE")
-    {
-        throw new Error("CjsGltfFormat: CUBICSPLINE weights animation requires resampling and is not supported");
-    }
-    if (!targetCount || controls.length !== knots.length * targetCount)
+    validateSamplerInterpolation(interpolation);
+    if (!targetCount)
     {
         throw new Error("CjsGltfFormat: weights animation output must contain one value per morph target and key");
     }
+    const sampled = interpolation === "CUBICSPLINE"
+        ? resampleCubicSpline(knots, rawControls, targetCount, "weights")
+        : { knots, controls: rawControls };
+    if (sampled.controls.length !== sampled.knots.length * targetCount)
+    {
+        throw new Error("CjsGltfFormat: weights animation output must contain one value per morph target and key");
+    }
+    const curveInterpolation = interpolation === "CUBICSPLINE" ? "LINEAR" : interpolation;
 
     return targetNames.map((name, targetIndex) =>
     {
-        const values = knots.map((_, knotIndex) => controls[knotIndex * targetCount + targetIndex]);
+        const values = sampled.knots.map((_, knotIndex) => sampled.controls[knotIndex * targetCount + targetIndex]);
         return {
             name: name.endsWith("Shape") ? name.slice(0, -5) : name,
             dimension: 1,
-            valueCurve: makeCurve("value", 1, knots, values, interpolation)
+            valueCurve: makeCurve("value", 1, sampled.knots, values, curveInterpolation)
         };
     });
 }

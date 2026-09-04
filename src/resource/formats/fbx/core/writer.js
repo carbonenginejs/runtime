@@ -216,10 +216,22 @@ function declarationChannel(element)
     const mapping = DECL_CHANNELS[element?.usage];
     if (!mapping) return null;
     const usageIndex = element.usageIndex ?? 0;
-    if (mapping[1] !== null && usageIndex !== mapping[1]) return null;
-    if (element.usage === "TexCoord" && usageIndex < 2) return `${mapping[0]}${usageIndex}`;
-    if (element.usage === "Color" && usageIndex === 0) return "color0";
-    return mapping[0];
+    if (!Number.isInteger(usageIndex)) return null;
+    if (mapping[1] !== null && usageIndex !== mapping[1] &&
+        ![ "Normal", "Tangent", "Binormal" ].includes(element.usage)) return null;
+    if (usageIndex < 0 || usageIndex > 255) return null;
+    if ([ "TexCoord", "Color" ].includes(element.usage)) return `${mapping[0]}${usageIndex}`;
+    return usageIndex ? `${mapping[0]}${usageIndex}` : mapping[0];
+}
+
+function vertexChannelWidth(channel)
+{
+    if (Object.hasOwn(SUPPORTED_VERTEX_CHANNELS, channel)) return SUPPORTED_VERTEX_CHANNELS[channel];
+    const match = /^(normal|tangent|binormal|texcoord|color)([0-9]+)$/u.exec(channel);
+    if (!match) return null;
+    if (match[1] === "texcoord") return 2;
+    if (match[1] === "color") return 4;
+    return 3;
 }
 
 function validateVertexDeclaration(mesh, meshIndex)
@@ -228,7 +240,7 @@ function validateVertexDeclaration(mesh, meshIndex)
     for (const [ channel, values ] of Object.entries(vertex))
     {
         if (!Array.isArray(values) || !values.length) continue;
-        if (!Object.hasOwn(SUPPORTED_VERTEX_CHANNELS, channel))
+        if (vertexChannelWidth(channel) === null)
         {
             throw writeError(`mesh ${meshIndex} vertex channel "${channel}" is not supported by FBX export`);
         }
@@ -306,12 +318,15 @@ function validateMesh(mesh, meshIndex)
         }
     }
 
-    for (const [ channel, width ] of Object.entries(SUPPORTED_VERTEX_CHANNELS))
+    for (const [ channel, values ] of Object.entries(vertexData(mesh)))
     {
-        const values = vertexData(mesh)[channel] ?? [];
+        const width = vertexChannelWidth(channel);
+        if (width === null) continue;
         if (!values.length || channel === "position") continue;
-        const validLengths = channel === "tangent" || channel === "binormal"
+        const validLengths = /^(?:tangent|binormal)(?:[0-9]+)?$/u.test(channel)
             ? [ vertexCount * 3, vertexCount * 4 ]
+            : /^color(?:[0-9]+)?$/u.test(channel)
+                ? [ vertexCount * 3, vertexCount * 4 ]
             : [ vertexCount * width ];
         if (!Array.isArray(values) || !validLengths.includes(values.length))
         {
@@ -343,8 +358,10 @@ function polygonVertexChannel(mesh, channel, width, meshIndex)
     const source = vertexData(mesh)[channel] ?? [];
     if (!source.length) return [];
     const vertexCount = (vertexData(mesh).position ?? []).length / 3;
-    const sourceWidth = (channel === "tangent" || channel === "binormal") && source.length === vertexCount * 4
+    const sourceWidth = /^(?:tangent|binormal)(?:[1-9][0-9]*)?$/u.test(channel) && source.length === vertexCount * 4
         ? 4
+        : /^color(?:[0-9]+)?$/u.test(channel) && source.length === vertexCount * 3
+            ? 3
         : width;
     if (!Array.isArray(source) || source.length !== vertexCount * sourceWidth)
     {
@@ -363,17 +380,20 @@ function polygonVertexChannel(mesh, channel, width, meshIndex)
         for (const vertexIndex of group.faces ?? [])
         {
             const offset = vertexIndex * sourceWidth;
-            for (let component = 0; component < width; component++) output.push(source[offset + component]);
+            for (let component = 0; component < width; component++)
+            {
+                output.push(component < sourceWidth ? source[offset + component] : 1);
+            }
         }
     }
     return output;
 }
 
-function layerElement(name, valueName, values)
+function layerElement(name, valueName, values, usageIndex)
 {
-    return node(name, [ integer(0) ], [
+    return node(name, [ integer(usageIndex) ], [
         node("Version", [ integer(101) ]),
-        node("Name", [ string("") ]),
+        node("Name", [ string(usageIndex ? `${valueName}_${usageIndex}` : "") ]),
         node("MappingInformationType", [ string("ByPolygonVertex") ]),
         node("ReferenceInformationType", [ string("Direct") ]),
         node(valueName, [ doubleArray(values) ])
@@ -386,25 +406,30 @@ function geometryChildren(mesh, meshIndex, options)
         node("Vertices", [ doubleArray(vertexData(mesh).position ?? []) ]),
         node("PolygonVertexIndex", [ intArray(polygonVertexIndices(mesh)) ])
     ];
-    const layers = [ [], [] ];
-    for (const [ channel, elementName, valueName, width ] of [
+    const layers = new Map();
+    const addLayerReference = (usageIndex, reference) =>
+    {
+        if (!layers.has(usageIndex)) layers.set(usageIndex, []);
+        layers.get(usageIndex).push(reference);
+    };
+    for (const [ prefix, elementName, valueName, width ] of [
         [ "normal", "LayerElementNormal", "Normals", 3 ],
         [ "tangent", "LayerElementTangent", "Tangents", 3 ],
         [ "binormal", "LayerElementBinormal", "Binormals", 3 ],
-        [ "color0", "LayerElementColor", "Colors", 4 ]
+        [ "color", "LayerElementColor", "Colors", 4 ]
     ])
     {
-        const values = polygonVertexChannel(mesh, channel, width, meshIndex);
-        if (values.length)
+        for (const [ usageIndex, channel ] of vertexChannelUsages(mesh, prefix))
         {
-            children.push(layerElement(elementName, valueName, values));
-            layers[0].push(layerElementReference(elementName, 0));
+            const values = polygonVertexChannel(mesh, channel, width, meshIndex);
+            if (!values.length) continue;
+            children.push(layerElement(elementName, valueName, values, usageIndex));
+            addLayerReference(usageIndex, layerElementReference(elementName, usageIndex));
         }
     }
 
-    for (let usageIndex = 0; usageIndex < 2; usageIndex++)
+    for (const [ usageIndex, channel ] of vertexChannelUsages(mesh, "texcoord"))
     {
-        const channel = `texcoord${usageIndex}`;
         const values = polygonVertexChannel(mesh, channel, 2, meshIndex);
         if (!values.length) continue;
         if (options.flipV !== false)
@@ -418,7 +443,7 @@ function geometryChildren(mesh, meshIndex, options)
             node("ReferenceInformationType", [ string("Direct") ]),
             node("UV", [ doubleArray(values) ])
         ]));
-        layers[usageIndex].push(layerElementReference("LayerElementUV", usageIndex));
+        addLayerReference(usageIndex, layerElementReference("LayerElementUV", usageIndex));
     }
 
     const materialIndices = [];
@@ -436,17 +461,44 @@ function geometryChildren(mesh, meshIndex, options)
             node("ReferenceInformationType", [ string("IndexToDirect") ]),
             node("Materials", [ intArray(materialIndices) ])
         ]));
-        layers[0].push(layerElementReference("LayerElementMaterial", 0));
+        addLayerReference(0, layerElementReference("LayerElementMaterial", 0));
     }
-    for (let layerIndex = 0; layerIndex < layers.length; layerIndex++)
+    for (const [ layerIndex, references ] of Array.from(layers).sort((left, right) => left[0] - right[0]))
     {
-        if (!layers[layerIndex].length) continue;
         children.push(node("Layer", [ integer(layerIndex) ], [
             node("Version", [ integer(100) ]),
-            ...layers[layerIndex]
+            ...references
         ]));
     }
     return children;
+}
+
+function vertexChannelUsages(mesh, prefix)
+{
+    const vertex = vertexData(mesh);
+    const byIndex = new Map();
+    const baseName = prefix === "texcoord" || prefix === "color" ? `${prefix}0` : prefix;
+    for (const name of Object.keys(vertex))
+    {
+        let usageIndex = null;
+        if (name === baseName) usageIndex = 0;
+        else
+        {
+            const match = new RegExp(`^${prefix}([0-9]+)$`, "u").exec(name);
+            if (match) usageIndex = Number(match[1]);
+        }
+        if (usageIndex === null || !(vertex[name]?.length)) continue;
+        if (usageIndex > 255)
+        {
+            throw writeError(`vertex channel ${name} has a usage index outside 0..255`);
+        }
+        if (byIndex.has(usageIndex) && byIndex.get(usageIndex) !== name)
+        {
+            throw writeError(`vertex channels ${byIndex.get(usageIndex)} and ${name} use the same ${prefix} index`);
+        }
+        byIndex.set(usageIndex, name);
+    }
+    return Array.from(byIndex).sort((left, right) => left[0] - right[0]);
 }
 
 function layerElementReference(type, typedIndex)
@@ -603,7 +655,7 @@ function validateSkeleton(skeleton, skeletonIndex)
     }
 }
 
-function boneProperties(skeleton, boneIndex)
+function boneProperties(skeleton, boneIndex, morphProperties = [])
 {
     const rest = skeleton.restTransforms?.[boneIndex] ?? {};
     const children = [
@@ -611,9 +663,14 @@ function boneProperties(skeleton, boneIndex)
         propertyNode("Lcl Rotation", "Lcl Rotation", "A", quaternionToEulerXyz(rest.rotation ?? [ 0, 0, 0, 1 ])),
         propertyNode("Lcl Scaling", "Lcl Scaling", "A", rest.scale ?? [ 1, 1, 1 ])
     ];
-    if (boneIndex === 0)
+    if (skeleton.parents?.[boneIndex] === 0xffffffff)
     {
         children.push(stringPropertyNode("CjsSkeletonName", skeleton.name ?? ""));
+        for (const name of morphProperties.filter(name => !(skeleton.boneMasks ?? []).some(mask =>
+            mask.name === name && (mask.weights ?? []).some(weight => weight.index === boneIndex))))
+        {
+            children.push(propertyNode(name, "Number", "U", [ 0 ]));
+        }
     }
     for (const mask of skeleton.boneMasks ?? [])
     {
@@ -623,7 +680,7 @@ function boneProperties(skeleton, boneIndex)
     return node("Properties70", [], children);
 }
 
-function appendSkeletons(cmf, objects, connections, allocateId)
+function appendSkeletons(cmf, objects, connections, allocateId, morphCarrier)
 {
     const skeletonBoneIds = [];
     for (let skeletonIndex = 0; skeletonIndex < (cmf.skeletons ?? []).length; skeletonIndex++)
@@ -640,7 +697,11 @@ function appendSkeletons(cmf, objects, connections, allocateId)
             objects.push(node(
                 "Model",
                 [ long(ids[boneIndex]), objectName(bones[boneIndex], "Model"), string("LimbNode") ],
-                [ boneProperties(skeleton, boneIndex) ]
+                [ boneProperties(
+                    skeleton,
+                    boneIndex,
+                    morphCarrier?.skeletonIndex === skeletonIndex ? morphCarrier.names : []
+                ) ]
             ));
             connections.push(node("C", [
                 string("OO"),
@@ -1016,9 +1077,9 @@ function decodeAnimationCurve(curve, animationIndex, channelIndex)
     const ticks = knots.map((knot, index) => animationTick(knot, `animation ${animationIndex} knot ${index}`));
     for (let index = 1; index < ticks.length; index++)
     {
-        if (ticks[index] <= ticks[index - 1])
+        if (ticks[index] < ticks[index - 1])
         {
-            throw writeError(`animation ${animationIndex} knots must produce strictly ascending FBX ticks`);
+            throw writeError(`animation ${animationIndex} knots must produce ascending FBX ticks`);
         }
     }
     if (values.some((value) => !Number.isFinite(value)))
@@ -1030,6 +1091,62 @@ function decodeAnimationCurve(curve, animationIndex, channelIndex)
         throw writeError(`animation ${animationIndex} channel ${channelIndex} has no keys`);
     }
     return { ...curve, knots, ticks, values };
+}
+
+function encodeAnimationCurveComponent(curve, component)
+{
+    const sourceValues = [];
+    for (let index = component; index < curve.values.length; index += curve.valueDimension)
+    {
+        sourceValues.push(curve.values[index]);
+    }
+    const ticks = [];
+    const values = [];
+    const flags = [];
+    for (let index = 0; index < curve.ticks.length;)
+    {
+        const tick = curve.ticks[index];
+        let end = index + 1;
+        while (end < curve.ticks.length && curve.ticks[end] === tick) end++;
+        const count = end - index;
+        if (!ticks.length)
+        {
+            if (count !== 1) throw writeError("animation curve has a malformed first identical-time key");
+            ticks.push(tick);
+            values.push(sourceValues[index]);
+            flags.push(curve.interpolation === "Step" ? 0x02 : 0x04);
+        }
+        else
+        {
+            const before = sourceValues[index];
+            if (count === 1)
+            {
+                ticks.push(tick);
+                values.push(before);
+                flags.push(curve.interpolation === "Step" ? 0x02 : 0x04);
+                index = end;
+                continue;
+            }
+            if (curve.interpolation !== "Linear" || count !== 2)
+            {
+                throw writeError("animation curve has non-canonical identical-time keys");
+            }
+            const after = sourceValues[index + 1];
+            if (before !== after)
+            {
+                if (before !== values[values.length - 1])
+                {
+                    throw writeError("animation curve combines a linear arrival with an identical-time discontinuity that FBX cannot represent");
+                }
+                flags[flags.length - 1] = 0x02;
+            }
+            ticks.push(tick);
+            values.push(after);
+            flags.push(0x04);
+        }
+        index = end;
+    }
+    return { ticks, values, flags };
 }
 
 function nearestAngle(value, reference)
@@ -1185,19 +1302,15 @@ function bakeQuaternionCurveToEuler(curve)
 
 function animationCurveNodeChildren(curve, component)
 {
-    const values = [];
-    for (let index = component; index < curve.values.length; index += curve.valueDimension)
-    {
-        values.push(curve.values[index]);
-    }
+    const { ticks, values, flags } = encodeAnimationCurveComponent(curve, component);
     return [
         node("Default", [ double(values[0] ?? 0) ]),
         node("KeyVer", [ integer(4009) ]),
-        node("KeyTime", [ longArray(curve.ticks) ]),
+        node("KeyTime", [ longArray(ticks) ]),
         node("KeyValueFloat", [ floatArray(values) ]),
-        node("KeyAttrFlags", [ intArray([ curve.interpolation === "Step" ? 0x02 : 0x04 ]) ]),
-        node("KeyAttrDataFloat", [ floatArray([ 0, 0, 0, 0 ]) ]),
-        node("KeyAttrRefCount", [ intArray([ curve.ticks.length ]) ])
+        node("KeyAttrFlags", [ intArray(flags) ]),
+        node("KeyAttrDataFloat", [ floatArray(new Array(flags.length * 4).fill(0)) ]),
+        node("KeyAttrRefCount", [ intArray(new Array(flags.length).fill(1)) ])
     ];
 }
 
@@ -1232,7 +1345,8 @@ function appendAnimations(
     connections,
     allocateId,
     skeletonBoneIds,
-    morphChannels
+    morphChannels,
+    morphCarrier
 )
 {
     const boneTargets = buildBoneTargetMap(cmf, skeletonBoneIds);
@@ -1273,6 +1387,7 @@ function appendAnimations(
         connections.push(node("C", [ string("OO"), long(layerId), long(stackId) ]));
 
         const usedCurves = new Set();
+        const authoredTargets = new Set();
         for (let channelIndex = 0; channelIndex < (animation.channels ?? []).length; channelIndex++)
         {
             const channel = animation.channels[channelIndex];
@@ -1290,6 +1405,12 @@ function appendAnimations(
             const target = channel.target ?? "";
             validateName(target, `animation ${animationIndex} channel ${channelIndex} target`);
             if (!target) throw writeError(`animation ${animationIndex} channel ${channelIndex} target is empty`);
+            const targetKey = `${channel.targetType}\0${target}`;
+            if (authoredTargets.has(targetKey))
+            {
+                throw writeError(`animation ${animationIndex} authors ${channel.targetType} target ${JSON.stringify(target)} more than once`);
+            }
+            authoredTargets.add(targetKey);
             objects.push(node(
                 "AnimationCurveNode",
                 [ long(curveNodeId), objectName(`${target}_${channel.targetType}`, "AnimCurveNode"), string("") ]
@@ -1301,6 +1422,7 @@ function appendAnimations(
                 if (curve.valueDimension !== 1) throw writeError(`morph animation "${target}" must have dimension 1`);
                 const targets = morphChannels.get(target) ?? [];
                 if (!targets.length) throw writeError(`morph animation target "${target}" was not exported`);
+                const carbonCurve = { ...curve, values: [ ...curve.values ] };
                 curve.values = curve.values.map((value) => value * 100);
                 for (const channelId of targets)
                 {
@@ -1316,6 +1438,36 @@ function appendAnimations(
                     0,
                     "d|DeformPercent"
                 );
+                if (morphCarrier)
+                {
+                    const rootBoneId = skeletonBoneIds[morphCarrier.skeletonIndex]?.[morphCarrier.rootBoneIndex];
+                    if (rootBoneId === undefined)
+                    {
+                        throw writeError("Carbon morph animation carrier root was not exported");
+                    }
+                    const carbonCurveNodeId = allocateId();
+                    objects.push(node(
+                        "AnimationCurveNode",
+                        [ long(carbonCurveNodeId), objectName(`${target}_Carbon`, "AnimCurveNode"), string("") ]
+                    ));
+                    connections.push(node("C", [ string("OO"), long(carbonCurveNodeId), long(layerId) ]));
+                    connections.push(node("C", [
+                        string("OP"),
+                        long(carbonCurveNodeId),
+                        long(rootBoneId),
+                        string(target)
+                    ]));
+                    appendAnimationCurve(
+                        objects,
+                        connections,
+                        allocateId,
+                        carbonCurveNodeId,
+                        `${name}_${target}_Carbon`,
+                        carbonCurve,
+                        0,
+                        "d|X"
+                    );
+                }
                 continue;
             }
 
@@ -1473,6 +1625,76 @@ function takesNode(animations)
     return node("Takes", [], children);
 }
 
+function animatedMorphTargetNames(cmf)
+{
+    const names = new Set();
+    for (const animation of cmf.animations ?? [])
+    {
+        for (const channel of animation.channels ?? [])
+        {
+            if (channel?.targetType === "MorphTarget" && channel.target) names.add(channel.target);
+        }
+    }
+    return Array.from(names);
+}
+
+function resolveMorphAnimationCarrier(cmf, options)
+{
+    const names = animatedMorphTargetNames(cmf);
+    if (options.compatibility !== "carbon" || !names.length) return null;
+    const reserved = names.find(name => FBX_RESERVED_BONE_MASK_PROPERTY_NAMES.includes(name));
+    if (reserved)
+    {
+        throw writeError(`Carbon morph animation target ${JSON.stringify(reserved)} collides with a reserved Model property`);
+    }
+
+    const skeletons = cmf.skeletons ?? [];
+    let skeletonIndex = null;
+    if (options.morphAnimationRoot !== undefined && options.morphAnimationRoot !== null)
+    {
+        const requested = options.morphAnimationRoot;
+        const matches = skeletons.flatMap((skeleton, index) =>
+            requested === index || requested === skeleton.name ||
+            (typeof requested === "string" && skeleton.bones?.some((bone, boneIndex) =>
+                skeleton.parents?.[boneIndex] === 0xffffffff && bone === requested))
+                ? [ index ]
+                : []
+        );
+        if (matches.length !== 1)
+        {
+            throw writeError(`morphAnimationRoot ${JSON.stringify(requested)} resolves to ${matches.length} skeletons`);
+        }
+        skeletonIndex = matches[0];
+    }
+    else
+    {
+        const candidates = new Set();
+        for (const mesh of cmf.meshes ?? [])
+        {
+            if (!(mesh.morphTargets?.targets ?? []).some(target => names.includes(target.name))) continue;
+            if (Number.isInteger(mesh.skeleton)) candidates.add(mesh.skeleton);
+        }
+        if (candidates.size !== 1)
+        {
+            throw writeError(
+                `Carbon morph animation requires one skeleton carrier; found ${candidates.size} (set morphAnimationRoot explicitly)`
+            );
+        }
+        [ skeletonIndex ] = candidates;
+    }
+
+    const skeleton = skeletons[skeletonIndex];
+    if (!skeleton || !skeleton.bones?.length)
+    {
+        throw writeError(`Carbon morph animation carrier skeleton ${skeletonIndex} is empty`);
+    }
+    return {
+        skeletonIndex,
+        rootBoneIndex: skeleton.parents.findIndex(parent => parent === 0xffffffff),
+        names
+    };
+}
+
 function buildDocument(cmf, options)
 {
     if (!cmf || !Array.isArray(cmf.meshes))
@@ -1488,7 +1710,8 @@ function buildDocument(cmf, options)
     const connections = [];
     let nextId = 1n;
     const allocateId = () => nextId++;
-    const skeletonBoneIds = appendSkeletons(cmf, objects, connections, allocateId);
+    const morphCarrier = resolveMorphAnimationCarrier(cmf, options);
+    const skeletonBoneIds = appendSkeletons(cmf, objects, connections, allocateId, morphCarrier);
     const morphChannels = new Map();
     for (let meshIndex = 0; meshIndex < cmf.meshes.length; meshIndex++)
     {
@@ -1526,7 +1749,7 @@ function buildDocument(cmf, options)
         );
         if (morphProperties.length) model.children.push(node("Properties70", [], morphProperties));
     }
-    appendAnimations(cmf, objects, connections, allocateId, skeletonBoneIds, morphChannels);
+    appendAnimations(cmf, objects, connections, allocateId, skeletonBoneIds, morphChannels, morphCarrier);
 
     return [
         ...headerNodes(options.version ?? VERSION_7400),
@@ -1629,7 +1852,8 @@ function writeNode(writer, value)
  */
 export function writeFbx(cmf, options = {})
 {
-    const version = options.version ?? VERSION_7400;
+    const normalizedOptions = normalizeWriteOptions(options);
+    const version = normalizedOptions.version;
     if (version !== VERSION_7400)
     {
         throw writeError(`only binary FBX ${VERSION_7400} is supported`);
@@ -1638,7 +1862,7 @@ export function writeFbx(cmf, options = {})
     const writer = new CjsByteWriter();
     writer.utf8(BINARY_SIGNATURE);
     writer.u32(version);
-    for (const root of buildDocument(cmf, options)) writeNode(writer, root);
+    for (const root of buildDocument(cmf, normalizedOptions)) writeNode(writer, root);
     writer.reserve(NULL_RECORD_SIZE);
     writer.bytes(FOOT_ID);
     writer.u32(0);
@@ -1649,6 +1873,28 @@ export function writeFbx(cmf, options = {})
     writer.reserve(120);
     writer.bytes(FOOT_MAGIC);
     return writer.toBytes();
+}
+
+function normalizeWriteOptions(options)
+{
+    if (!options || typeof options !== "object") throw new TypeError("CjsFbxFormat: options must be an object");
+    const compatibility = options.compatibility ?? "source";
+    if (compatibility !== "source" && compatibility !== "carbon")
+    {
+        throw new TypeError('CjsFbxFormat: compatibility must be "source" or "carbon"');
+    }
+    const morphAnimationRoot = options.morphAnimationRoot;
+    if (morphAnimationRoot !== undefined && morphAnimationRoot !== null &&
+        !Number.isInteger(morphAnimationRoot) && typeof morphAnimationRoot !== "string")
+    {
+        throw new TypeError("CjsFbxFormat: morphAnimationRoot must be a skeleton index or name");
+    }
+    return {
+        ...options,
+        version: options.version ?? VERSION_7400,
+        compatibility,
+        morphAnimationRoot
+    };
 }
 
 function unpackSharedVertexForFbx(source, vertexCount)

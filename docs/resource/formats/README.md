@@ -93,7 +93,8 @@ metadata. Worker eligibility never changes the format's direct API; see
 | Wwise media (`.wem`) | `CjsWemFormat` | `@carbonenginejs/runtime/resource/formats/wem` |
 | YAML (`.yaml`/`.yml`) | `CjsYamlFormat` | `@carbonenginejs/runtime/resource/formats/yaml` |
 
-Detailed pages: [Granny GR2 and GSF](gr2.md),
+Detailed pages: [CMF, FBX, and glTF geometry interchange](geometry-interchange.md),
+[Granny GR2 and GSF](gr2.md),
 [FSD and cFSD](fsd.md),
 [data-only pickle protocol 0](pickle.md),
 [client `.static` container identification](static.md),

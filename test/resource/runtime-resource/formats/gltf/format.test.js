@@ -29,6 +29,21 @@ function overwriteFloatAccessor(gltf, buffer, accessorIndex, values)
     accessor.count = values.length / width;
 }
 
+function appendFloatAccessor(gltf, buffer, values, type)
+{
+    const offset = align4(buffer.byteLength);
+    const bytes = new Uint8Array(offset + values.length * 4);
+    bytes.set(buffer);
+    new Float32Array(bytes.buffer, offset, values.length).set(values);
+    const bufferView = gltf.bufferViews.length;
+    gltf.bufferViews.push({ buffer: 0, byteOffset: offset, byteLength: values.length * 4 });
+    const width = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }[type];
+    const accessor = gltf.accessors.length;
+    gltf.accessors.push({ bufferView, componentType: 5126, count: values.length / width, type });
+    gltf.buffers[0].byteLength = bytes.byteLength;
+    return { buffer: bytes, accessor };
+}
+
 function buildFixture({ skin = false, sharedSkins = false } = {})
 {
     const withSkin = skin || sharedSkins;
@@ -414,7 +429,7 @@ test("decomposes rotated skeleton matrices and rejects unrepresentable node tran
     );
 });
 
-test("preserves authored identity animation channels and rejects silent cubic linearization", () =>
+test("preserves authored identity animation channels and adaptively bakes cubic splines", () =>
 {
     const identityFixture = buildFixture({ skin: true });
     const sampler = identityFixture.gltf.animations[0].samplers[0];
@@ -430,10 +445,53 @@ test("preserves authored identity animation channels and rejects silent cubic li
     assert.deepEqual(cmf.animations[0].channels.map(channel => channel.targetType), [ "BoneRotation" ]);
 
     const cubicFixture = buildFixture({ skin: true });
+    const cubic = appendFloatAccessor(cubicFixture.gltf, cubicFixture.buffer, [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+        0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0
+    ], "VEC4");
     cubicFixture.gltf.animations[0].samplers[0].interpolation = "CUBICSPLINE";
+    cubicFixture.gltf.animations[0].samplers[0].output = cubic.accessor;
+    const shared = CjsGltfFormat.read(cubicFixture.gltf, { buffers: [ cubic.buffer ] });
+    const curve = shared.animations[0].trackGroups[0].transformTracks[0].orientation;
+    assert.equal(curve.degree, 1);
+    assert.equal(curve.interpolation, "LINEAR");
+    assert.ok(curve.knots.length > 2);
+    assert.deepEqual(curve.knots.slice(0, 1), [ 0 ]);
+    assert.deepEqual(curve.knots.slice(-1), [ 1 ]);
+
+    const midpointFixture = buildFixture({ skin: true });
+    midpointFixture.gltf.animations[0].channels[0].target.path = "translation";
+    const midpointCubic = appendFloatAccessor(midpointFixture.gltf, midpointFixture.buffer, [
+        0, 0, 0, 0, 0, 0, 0.5, 0, 0,
+        0.5, 0, 0, 0, 0, 0, 0, 0, 0
+    ], "VEC3");
+    midpointFixture.gltf.animations[0].samplers[0].interpolation = "CUBICSPLINE";
+    midpointFixture.gltf.animations[0].samplers[0].output = midpointCubic.accessor;
+    const midpointCurve = CjsGltfFormat.read(midpointFixture.gltf, {
+        buffers: [ midpointCubic.buffer ]
+    }).animations[0].trackGroups[0].transformTracks[0].position;
+    assert.ok(midpointCurve.knots.length > 2);
+    assert.ok(midpointCurve.controls.some(value => Math.abs(value) > 1e-4));
+
+    const singleFixture = buildFixture({ skin: true });
+    singleFixture.gltf.animations[0].channels[0].target.path = "translation";
+    overwriteFloatAccessor(singleFixture.gltf, singleFixture.buffer, singleFixture.gltf.animations[0].samplers[0].input, [ 1 ]);
+    const singleCubic = appendFloatAccessor(singleFixture.gltf, singleFixture.buffer, [
+        0, 0, 0, 2, 3, 4, 0, 0, 0
+    ], "VEC3");
+    singleFixture.gltf.animations[0].samplers[0].interpolation = "CUBICSPLINE";
+    singleFixture.gltf.animations[0].samplers[0].output = singleCubic.accessor;
+    const singleCurve = CjsGltfFormat.read(singleFixture.gltf, {
+        buffers: [ singleCubic.buffer ]
+    }).animations[0].trackGroups[0].transformTracks[0].position;
+    assert.deepEqual(singleCurve.knots, [ 1 ]);
+    assert.deepEqual(singleCurve.controls, [ 2, 3, 4 ]);
+
+    const unknownFixture = buildFixture({ skin: true });
+    unknownFixture.gltf.animations[0].samplers[0].interpolation = "CATMULLROM";
     assert.throws(
-        () => CjsGltfFormat.read(cubicFixture.gltf, { buffers: [ cubicFixture.buffer ] }),
-        /CUBICSPLINE rotation animation requires resampling/u
+        () => CjsGltfFormat.read(unknownFixture.gltf, { buffers: [ unknownFixture.buffer ] }),
+        /sampler interpolation "CATMULLROM" is not supported/u
     );
 });
 
@@ -491,6 +549,13 @@ test("imports dynamic UV/color channels and rejects unsupported extra influence 
     ]);
     assert.equal(cmf.meshes[0].uvDensities.length, 3);
     assert.equal(cmf.meshes[0].uvDensities[1], 0);
+
+    attributes.TEXCOORD_256 = attributes.TEXCOORD_0;
+    assert.throws(
+        () => CjsGltfFormat.read(gltf, { buffers: [ buffer ] }),
+        /attribute TEXCOORD_256 has a usage index outside 0\.\.255/u
+    );
+    delete attributes.TEXCOORD_256;
 
     const skinnedFixture = buildFixture({ skin: true });
     const skinnedAttributes = skinnedFixture.gltf.meshes[0].primitives[0].attributes;
@@ -573,6 +638,40 @@ test("uses glTF tangent handedness and never treats tangent VEC4 as packed geome
     assert.throws(
         () => CjsGltfFormat.read(gltf, { buffers: [ buffer ] }),
         /TANGENT requires a matching NORMAL channel/u
+    );
+});
+
+test("imports Carbon indexed normal and tangent attributes", () =>
+{
+    const fixture = buildFixture();
+    const normals = appendFloatAccessor(fixture.gltf, fixture.buffer, [
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0
+    ], "VEC3");
+    const tangents = appendFloatAccessor(fixture.gltf, normals.buffer, [
+        1, 0, 0, -1,
+        1, 0, 0, -1,
+        1, 0, 0, -1
+    ], "VEC4");
+    const attributes = fixture.gltf.meshes[0].primitives[0].attributes;
+    attributes._NORMAL_1 = normals.accessor;
+    attributes._TANGENT_1 = tangents.accessor;
+
+    const mesh = CjsGltfFormat.read(fixture.gltf, { buffers: [ tangents.buffer ] }).meshes[0];
+    assert.deepEqual(mesh.vertex.normal1, [ 0, 1, 0, 0, 1, 0, 0, 1, 0 ]);
+    assert.deepEqual(mesh.vertex.tangent1, [ 1, 0, 0, 1, 0, 0, 1, 0, 0 ]);
+    assert.deepEqual(mesh.vertex.binormal1, [ 0, 0, 1, 0, 0, 1, 0, 0, 1 ]);
+
+    delete attributes._NORMAL_1;
+    const fallback = CjsGltfFormat.read(fixture.gltf, { buffers: [ tangents.buffer ] }).meshes[0];
+    assert.equal(fallback.vertex.normal1, undefined);
+    assert.deepEqual(fallback.vertex.binormal1, [ 0, -1, 0, 0, -1, 0, 0, -1, 0 ]);
+
+    attributes._TANGENT_256 = tangents.accessor;
+    assert.throws(
+        () => CjsGltfFormat.read(fixture.gltf, { buffers: [ tangents.buffer ] }),
+        /attribute _TANGENT_256 has a usage index outside 0\.\.255/u
     );
 });
 

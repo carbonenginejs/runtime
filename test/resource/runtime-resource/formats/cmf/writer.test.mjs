@@ -10,17 +10,32 @@ import {
 
 function makeGraph()
 {
-    const vertexData = new Uint8Array(new Float32Array([
+    const positions = [
         0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1
-    ]).buffer);
+    ];
+    const vertexData = new Uint8Array(6 * 32);
+    const vertexView = new DataView(vertexData.buffer);
+    for (let vertex = 0; vertex < 6; vertex++)
+    {
+        for (let component = 0; component < 3; component++)
+        {
+            vertexView.setFloat32(vertex * 32 + component * 4, positions[vertex * 3 + component], true);
+        }
+        vertexView.setUint8(vertex * 32 + 12, 0);
+        vertexView.setFloat32(vertex * 32 + 16, 1, true);
+    }
     const indexData = new Uint8Array(new Uint16Array([ 0, 1, 2, 2, 1, 3, 3, 4, 5, 0, 2, 4 ]).buffer);
     return {
         metadata: { entries: [ { key: "tool", value: "writer-test" }, { key: "unit", value: "meters" } ] },
         meshes: [ {
             name: "testMesh",
-            decl: [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ],
+            decl: [
+                { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 },
+                { usage: "BoneIndices", usageIndex: 0, type: "UInt8", elementCount: 4, offset: 12 },
+                { usage: "BoneWeights", usageIndex: 0, type: "Float32", elementCount: 4, offset: 16 }
+            ],
             lods: [ {
-                vb: { index: 1, offset: 0, size: vertexData.byteLength, stride: 12 },
+                vb: { index: 1, offset: 0, size: vertexData.byteLength, stride: 32 },
                 ib: { index: 2, offset: 0, size: indexData.byteLength, stride: 2 },
                 areas: [ { firstElement: 0, elementCount: 4 } ],
                 morphTargets: [],
@@ -29,13 +44,13 @@ function makeGraph()
             areas: [ {
                 name: "hull",
                 bounds: { min: [ 0, 0, 0 ], max: [ 1, 1, 1 ] },
-                bones: [ 0, 3 ],
+                bones: [ 0 ],
                 affectedByBones: true,
                 affectedByMorphTargets: false
             } ],
             boneBindings: [ { name: "root", bounds: { min: [ -1, -1, -1 ], max: [ 1, 1, 1 ] } } ],
             morphTargets: { decl: [], targets: [] },
-            uvDensities: [ 0.5, 1.5 ],
+            uvDensities: [],
             bounds: { min: [ 0, 0, 0 ], max: [ 1, 1, 1 ] },
             audioOcclusionMesh: {
                 vertices: [ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 0, 1, 0 ] ],
@@ -179,11 +194,11 @@ test("writes an uncompressed CMF that reads back field-for-field", () =>
     assert.equal(mesh.lods.length, 1);
     assert.deepEqual(mesh.lods[0].areas, graph.meshes[0].lods[0].areas);
     assert.equal(mesh.lods[0].threshold, 0xffffffff);
-    assert.deepEqual(mesh.areas[0].bones, [ 0, 3 ]);
+    assert.deepEqual(mesh.areas[0].bones, [ 0 ]);
     assert.equal(mesh.areas[0].affectedByBones, true);
     assert.equal(mesh.areas[0].affectedByMorphTargets, false);
     assert.deepEqual(mesh.boneBindings[0], graph.meshes[0].boneBindings[0]);
-    assert.deepEqual(mesh.uvDensities, [ 0.5, 1.5 ]);
+    assert.deepEqual(mesh.uvDensities, []);
     assert.deepEqual(mesh.bounds, graph.meshes[0].bounds);
     assert.deepEqual(mesh.audioOcclusionMesh.vertices, graph.meshes[0].audioOcclusionMesh.vertices);
     assert.deepEqual(mesh.audioOcclusionMesh.indices, [ 0, 1, 2 ]);
@@ -216,7 +231,7 @@ test("writes meshoptimizer-compressed CMF that decodes equivalently", async () =
         back.sections.map((section) => section.compression),
         [ "None", "MeshOptimizerVertexBuffer", "MeshOptimizerIndexBuffer", "None" ]
     );
-    assert.equal(back.sections[1].gpuAlignment, 12);
+    assert.equal(back.sections[1].gpuAlignment, 32);
     assert.equal(back.sections[2].gpuAlignment, 2);
 
     const reference = CjsCmfFormat.read(CjsCmfFormat.write(graph), { emit: "raw" });
@@ -256,14 +271,14 @@ test("deduplicates identical leaf chunks", () =>
 {
     const longName = "x".repeat(512);
     const withSharedNames = makeGraph();
-    withSharedNames.meshes[0].boneBindings = [
-        { name: longName, bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] } },
-        { name: longName, bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] } }
+    withSharedNames.metadata.entries = [
+        { key: "a", value: longName },
+        { key: "b", value: longName }
     ];
     const withDistinctNames = makeGraph();
-    withDistinctNames.meshes[0].boneBindings = [
-        { name: `${longName}a`, bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] } },
-        { name: `${longName.replace(/^x/u, "y")}b`, bounds: { min: [ 0, 0, 0 ], max: [ 0, 0, 0 ] } }
+    withDistinctNames.metadata.entries = [
+        { key: "a", value: `${longName}a` },
+        { key: "b", value: `${longName.replace(/^x/u, "y")}b` }
     ];
 
     const shared = CjsCmfFormat.write(withSharedNames);
@@ -271,8 +286,8 @@ test("deduplicates identical leaf chunks", () =>
     assert.ok(shared.byteLength <= distinct.byteLength - 500, `dedup did not share chunks (${shared.byteLength} vs ${distinct.byteLength})`);
 
     const back = CjsCmfFormat.read(shared, { emit: "raw" });
-    assert.equal(back.meshes[0].boneBindings[0].name, longName);
-    assert.equal(back.meshes[0].boneBindings[1].name, longName);
+    assert.equal(back.metadata.entries[0].value, longName);
+    assert.equal(back.metadata.entries[1].value, longName);
 });
 
 test("shared buffers with conflicting strides fall back to uncompressed", async () =>
@@ -280,6 +295,7 @@ test("shared buffers with conflicting strides fall back to uncompressed", async 
     const graph = makeGraph();
     // point ib at the same buffer as vb with a different stride
     graph.meshes[0].lods[0].ib = { index: 1, offset: 0, size: 12, stride: 2 };
+    graph.meshes[0].lods[0].areas[0].elementCount = 2;
     graph.buffers = [ null, graph.buffers[1] ];
 
     const bytes = await CjsCmfFormat.writeAsync(graph);
@@ -412,13 +428,9 @@ test("writes empty graphs and empty spans", () =>
     assert.deepEqual(back.animations, []);
     assert.equal(back.metadata, null);
 
-    const sparseMesh = CjsCmfFormat.write({
+    assert.throws(() => CjsCmfFormat.write({
         meshes: [ { name: "", decl: [], lods: [], areas: [], boneBindings: [], morphTargets: { decl: [], targets: [] }, uvDensities: [], skeleton: null } ],
         skeletons: [],
         animations: []
-    });
-    const sparseBack = CjsCmfFormat.read(sparseMesh, { emit: "raw" });
-    assert.equal(sparseBack.meshes[0].name, "");
-    assert.equal(sparseBack.meshes[0].skeleton, null);
-    assert.deepEqual(sparseBack.meshes[0].lods, []);
+    }), /declaration is empty|has no LODs/u);
 });

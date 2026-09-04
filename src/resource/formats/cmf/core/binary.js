@@ -40,7 +40,8 @@ export class BinaryReader
      */
     require(offset, size, label = "read")
     {
-        if (!Number.isInteger(offset) || offset < 0 || offset + size > this.bytes.byteLength)
+        if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(size) ||
+            offset < 0 || size < 0 || offset > this.bytes.byteLength - size)
         {
             throw new RangeError(`CMF ${label} is outside file bounds`);
         }

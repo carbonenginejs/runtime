@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MeshoptEncoder } from "meshoptimizer/encoder";
 import CjsCmfFormat, { CjsCmfFormat as NamedCjsCmfFormat } from "../../../../../src/resource/formats/cmf/index.js";
+import { crc32 } from "../../../../../src/resource/formats/cmf/core/binary.js";
 
 test("exports default and named CjsCmfFormat", () =>
 {
@@ -319,6 +320,8 @@ function makeMinimalCmf()
     view.setUint8(46, 0);
     view.setUint8(47, 0);
 
+    view.setUint32(12, crc32(bytes, 16, bytes.byteLength), true);
+
     return bytes;
 }
 
@@ -326,7 +329,7 @@ function makeTriangleCmf(compressed)
 {
     const
         dataOffset = 80,
-        dataSize = 348,
+        dataSize = 352,
         vbPlain = floatBytes([ 1, 2, 3 ]),
         ibPlain = uint16Bytes([ 0, 0, 0 ]),
         vbPayload = compressed ? MeshoptEncoder.encodeVertexBuffer(vbPlain, 1, 12) : vbPlain,
@@ -349,7 +352,7 @@ function makeTriangleCmf(compressed)
         meshOffset = dataOffset + 48,
         nameOffset = meshOffset + 216,
         declOffset = nameOffset + 4,
-        lodOffset = declOffset + 8;
+        lodOffset = align(declOffset + 8, 8);
 
     writeSpan(view, dataOffset, meshOffset, 216);
     writeSpan(view, dataOffset + 16, 0, 0);
@@ -382,6 +385,8 @@ function makeTriangleCmf(compressed)
     writeSpan(view, lodOffset + 32, 0, 0);
     writeSpan(view, lodOffset + 48, 0, 0);
     view.setUint32(lodOffset + 64, 0xffffffff, true);
+
+    view.setUint32(12, crc32(bytes, 16, bytes.byteLength), true);
 
     return bytes;
 }

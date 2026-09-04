@@ -356,7 +356,7 @@ test("emits gr2 normals uvs and material index groups", () =>
                 makeBinaryNode7400("LayerElementBinormal", [ 0 ], [
                     makeBinaryNode7400("MappingInformationType", [ "AllSame" ]),
                     makeBinaryNode7400("ReferenceInformationType", [ "Direct" ]),
-                    makeBinaryNode7400("Binormals", [ new Float64Array([ 0, 1, 0 ]) ])
+                    makeBinaryNode7400("Binormals", [ new Float64Array([ 0, -1, 0 ]) ])
                 ]),
                 makeBinaryNode7400("LayerElementUV", [ 0 ], [
                     makeBinaryNode7400("MappingInformationType", [ "ByPolygonVertex" ]),
@@ -428,6 +428,19 @@ test("emits gr2 normals uvs and material index groups", () =>
         1, 0, 0
     ]);
     assert.deepEqual(mesh.vertex.binormal, [
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0
+    ]);
+    const carbonMesh = CjsFbxFormat.read(bytes, {
+        emit: "gr2",
+        compatibility: "carbon",
+        classes: { Root, Mesh, IndexGroup }
+    }).meshes[0];
+    assert.deepEqual(carbonMesh.vertex.binormal, [
         0, 1, 0,
         0, 1, 0,
         0, 1, 0,
@@ -459,6 +472,74 @@ test("emits gr2 normals uvs and material index groups", () =>
         { name: "Steel", bytesPerIndex: 2, faces: [ 0, 1, 2 ] },
         { name: "Glass", bytesPerIndex: 2, faces: [ 3, 4, 5 ] }
     ]);
+});
+
+test("routes layer channels by TypedIndex rather than enclosing Layer number", () =>
+{
+    const Root = makeValueClass();
+    const Mesh = makeValueClass();
+    const IndexGroup = makeValueClass();
+    const layerReference = (type, typedIndex) => makeBinaryNode7400("LayerElement", [], [
+        makeBinaryNode7400("Type", [ type ]),
+        makeBinaryNode7400("TypedIndex", [ typedIndex ])
+    ]);
+    const makeRoutedBytes = (uvTypedIndex) => makeBinaryFBX(7400, [
+        makeBinaryNode7400("Objects", [], [
+            makeBinaryNode7400("Geometry", [ 123, "Geometry::Routed", "Mesh" ], [
+                makeBinaryNode7400("Vertices", [ new Float64Array([
+                    0, 0, 0,
+                    1, 0, 0,
+                    0, 1, 0
+                ]) ]),
+                makeBinaryNode7400("PolygonVertexIndex", [ new Int32Array([ 0, 1, -3 ]) ]),
+                makeBinaryNode7400("LayerElementUV", [ 2 ], [
+                    makeBinaryNode7400("MappingInformationType", [ "ByPolygonVertex" ]),
+                    makeBinaryNode7400("ReferenceInformationType", [ "Direct" ]),
+                    makeBinaryNode7400("UV", [ new Float64Array([ 0, 0, 2, 0, 0, 2 ]) ])
+                ]),
+                makeBinaryNode7400("LayerElementTangent", [ 3 ], [
+                    makeBinaryNode7400("MappingInformationType", [ "AllSame" ]),
+                    makeBinaryNode7400("ReferenceInformationType", [ "Direct" ]),
+                    makeBinaryNode7400("Tangents", [ new Float64Array([ 1, 0, 0 ]) ])
+                ]),
+                makeBinaryNode7400("LayerElementColor", [ 1 ], [
+                    makeBinaryNode7400("MappingInformationType", [ "AllSame" ]),
+                    makeBinaryNode7400("ReferenceInformationType", [ "Direct" ]),
+                    makeBinaryNode7400("Colors", [ new Float64Array([ 0.25, 0.5, 0.75, 1 ]) ])
+                ]),
+                makeBinaryNode7400("Layer", [ 0 ], [
+                    layerReference("LayerElementUV", uvTypedIndex),
+                    layerReference("LayerElementTangent", 3),
+                    layerReference("LayerElementColor", 1)
+                ])
+            ]),
+            makeBinaryNode7400("Model", [ 456, "Model::Routed", "Mesh" ])
+        ]),
+        makeBinaryNode7400("Connections", [], [
+            makeBinaryNode7400("C", [ "OO", 123, 456 ])
+        ])
+    ]);
+    const bytes = makeRoutedBytes(2);
+    const mesh = CjsFbxFormat.read(bytes, {
+        emit: "gr2",
+        flipV: false,
+        classes: { Root, Mesh, IndexGroup }
+    }).meshes[0];
+    assert.deepEqual(mesh.vertex.texcoord2, [ 0, 0, 2, 0, 0, 2 ]);
+    assert.deepEqual(mesh.vertex.tangent3, [ 1, 0, 0, 1, 0, 0, 1, 0, 0 ]);
+    assert.deepEqual(mesh.vertex.color1, [
+        0.25, 0.5, 0.75, 1,
+        0.25, 0.5, 0.75, 1,
+        0.25, 0.5, 0.75, 1
+    ]);
+    assert.deepEqual(mesh.vertex.texcoord0, []);
+    assert.throws(
+        () => CjsFbxFormat.read(makeRoutedBytes(256), {
+            emit: "gr2",
+            classes: { Root, Mesh, IndexGroup }
+        }),
+        /LayerElementUV TypedIndex 256 is outside CMF usage range 0\.\.255/u
+    );
 });
 
 test("flips FBX UV V coordinates by default and supports raw V override", () =>
@@ -2036,6 +2117,27 @@ test("emits bone transform animation as cmf animation curves", () =>
     ]);
 });
 
+test("Carbon compatibility bakes rotation-pivot motion into a P/R/S triplet", () =>
+{
+    const Root = makeValueClass();
+    const cmf = CjsFbxFormat.read(makeSkinnedHierarchyFBX({
+        animation: true,
+        animationRoot: true,
+        rotationOnly: true,
+        rootRotationPivot: true
+    }), {
+        emit: "cmf",
+        compatibility: "carbon",
+        classes: { Root }
+    });
+    assert.deepEqual(cmf.animations[0].channels.map(channel => channel.targetType), [
+        "BonePosition", "BoneRotation", "BoneScale"
+    ]);
+    const position = cmf.animations[0].channels.find(channel => channel.targetType === "BonePosition");
+    const values = float32Values(cmf.animations[0].curves[position.curveIndex].values);
+    assert.ok(values.slice(-3).some(value => Math.abs(value) > 1e-4));
+});
+
 test("uses animation curve node defaults for missing bone animation axes", () =>
 {
     const
@@ -2472,6 +2574,23 @@ test("reports partial FBX feature warnings in support probe", () =>
     assert.equal(support.warnings.some(message => message.includes("interpolation mode 8")), true);
 });
 
+test("rejects FBX animation semantics that require ufbx baking", () =>
+{
+    const Root = makeValueClass();
+    assert.throws(() => CjsFbxFormat.read(makeAnimatedMorphedTriangleFBX({
+        secondAnimationLayer: true
+    }), {
+        emit: "cmf",
+        classes: { Root }
+    }), /multiple layers/u);
+    assert.throws(() => CjsFbxFormat.read(makeAnimatedMorphedTriangleFBX({
+        keyAttrFlags: [ 0x08, 0x08 ]
+    }), {
+        emit: "cmf",
+        classes: { Root }
+    }), /interpolation mode 8 is not supported/u);
+});
+
 test("inflates compressed binary arrays for debug and runtime outputs", () =>
 {
     const
@@ -2883,7 +3002,8 @@ function makeSkinnedTriangleFBX()
             makeBinaryNode7400("C", [ "OO", 801, 800 ]),
             makeBinaryNode7400("C", [ "OO", 802, 800 ]),
             makeBinaryNode7400("C", [ "OO", 900, 801 ]),
-            makeBinaryNode7400("C", [ "OO", 901, 802 ])
+            makeBinaryNode7400("C", [ "OO", 901, 802 ]),
+            makeBinaryNode7400("C", [ "OO", 901, 900 ])
         ])
     ]);
 }
@@ -3127,6 +3247,9 @@ function makeAnimatedMorphedTriangleFBX(options = {})
                 : []),
             makeBinaryNode7400("AnimationStack", [ 820, "AnimStack::Take 001", "" ], stackChildren),
             makeBinaryNode7400("AnimationLayer", [ 821, "AnimLayer::BaseLayer", "" ]),
+            ...(options.secondAnimationLayer
+                ? [ makeBinaryNode7400("AnimationLayer", [ 824, "AnimLayer::Overlay", "" ]) ]
+                : []),
             makeBinaryNode7400("AnimationCurveNode", [ 822, "AnimCurveNode::Smile", "" ]),
             makeBinaryNode7400("AnimationCurve", [ 823, "AnimCurve::Smile", "" ], [
                 makeBinaryNode7400("KeyTime", [ new Float64Array(animationTicks) ]),
@@ -3143,6 +3266,7 @@ function makeAnimatedMorphedTriangleFBX(options = {})
             makeBinaryNode7400("C", [ "OO", 812, 811 ]),
             ...(options.inBetweenMorph ? [ makeBinaryNode7400("C", [ "OO", 813, 811 ]) ] : []),
             makeBinaryNode7400("C", [ "OO", 821, 820 ]),
+            ...(options.secondAnimationLayer ? [ makeBinaryNode7400("C", [ "OO", 824, 820 ]) ] : []),
             makeBinaryNode7400("C", [ "OO", 822, 821 ]),
             makeBinaryNode7400("C", [ "OP", 822, 811, "DeformPercent" ]),
             makeBinaryNode7400("C", [ "OP", 823, 822, "d|DeformPercent" ])
@@ -3288,6 +3412,10 @@ function makeSkinnedHierarchyFBX(options = {})
             makeBinaryNode7400("Weights", [ new Float64Array([ 1 ]) ])
         ]));
     }
+    if (options.rootRotationPivot)
+    {
+        boneAProperties.push(makeBinaryNode7400("P", [ "RotationPivot", "Vector3D", "Vector", "A", 1, 0, 0 ]));
+    }
 
     if (options.duplicateBoneCluster)
     {
@@ -3324,11 +3452,13 @@ function makeSkinnedHierarchyFBX(options = {})
         objects.push(
             makeBinaryNode7400("AnimationStack", [ 820, "AnimStack::Take 001", "" ]),
             makeBinaryNode7400("AnimationLayer", [ 821, "AnimLayer::BaseLayer", "" ]),
-            makeBinaryNode7400("AnimationCurveNode", [ 822, "AnimCurveNode::BoneBTranslation", "" ], translationCurveNodeChildren),
-            makeBinaryNode7400("AnimationCurve", [ 823, "AnimCurve::BoneBTranslationY", "" ], [
-                makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
-                makeBinaryNode7400("KeyValueFloat", [ new Float64Array(translationYValues) ])
-            ]),
+            ...(!options.rotationOnly ? [
+                makeBinaryNode7400("AnimationCurveNode", [ 822, "AnimCurveNode::BoneBTranslation", "" ], translationCurveNodeChildren),
+                makeBinaryNode7400("AnimationCurve", [ 823, "AnimCurve::BoneBTranslationY", "" ], [
+                    makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
+                    makeBinaryNode7400("KeyValueFloat", [ new Float64Array(translationYValues) ])
+                ])
+            ] : []),
             makeBinaryNode7400("AnimationCurveNode", [ 824, "AnimCurveNode::BoneBRotation", "" ]),
             ...(options.multiAxisRotation ? [
                 makeBinaryNode7400("AnimationCurve", [ 828, "AnimCurve::BoneBRotationX", "" ], [
@@ -3347,11 +3477,13 @@ function makeSkinnedHierarchyFBX(options = {})
                     options.rotationZEnd ?? (options.multiAxisRotation ? 45 : 90)
                 ]) ])
             ]),
-            makeBinaryNode7400("AnimationCurveNode", [ 826, "AnimCurveNode::BoneBScale", "" ], scaleCurveNodeChildren),
-            makeBinaryNode7400("AnimationCurve", [ 827, "AnimCurve::BoneBScaleX", "" ], [
-                makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
-                makeBinaryNode7400("KeyValueFloat", [ new Float64Array(scaleXValues) ])
-            ])
+            ...(!options.rotationOnly ? [
+                makeBinaryNode7400("AnimationCurveNode", [ 826, "AnimCurveNode::BoneBScale", "" ], scaleCurveNodeChildren),
+                makeBinaryNode7400("AnimationCurve", [ 827, "AnimCurve::BoneBScaleX", "" ], [
+                    makeBinaryNode7400("KeyTime", [ new Float64Array([ 0, FBX_TICKS_PER_SECOND ]) ]),
+                    makeBinaryNode7400("KeyValueFloat", [ new Float64Array(scaleXValues) ])
+                ])
+            ] : [])
         );
     }
 
@@ -3416,21 +3548,26 @@ function makeSkinnedHierarchyFBX(options = {})
 
     if (options.animation)
     {
+        const animatedBone = options.animationRoot ? 900 : 901;
         connections.push(
             makeBinaryNode7400("C", [ "OO", 821, 820 ]),
-            makeBinaryNode7400("C", [ "OO", 822, 821 ]),
-            makeBinaryNode7400("C", [ "OP", 822, 901, "Lcl Translation" ]),
-            makeBinaryNode7400("C", [ "OP", 823, 822, "d|Y" ]),
+            ...(!options.rotationOnly ? [
+                makeBinaryNode7400("C", [ "OO", 822, 821 ]),
+                makeBinaryNode7400("C", [ "OP", 822, animatedBone, "Lcl Translation" ]),
+                makeBinaryNode7400("C", [ "OP", 823, 822, "d|Y" ])
+            ] : []),
             makeBinaryNode7400("C", [ "OO", 824, 821 ]),
-            makeBinaryNode7400("C", [ "OP", 824, 901, "Lcl Rotation" ]),
+            makeBinaryNode7400("C", [ "OP", 824, animatedBone, "Lcl Rotation" ]),
             ...(options.multiAxisRotation ? [
                 makeBinaryNode7400("C", [ "OP", 828, 824, "d|X" ]),
                 makeBinaryNode7400("C", [ "OP", 829, 824, "d|Y" ])
             ] : []),
             makeBinaryNode7400("C", [ "OP", 825, 824, "d|Z" ]),
-            makeBinaryNode7400("C", [ "OO", 826, 821 ]),
-            makeBinaryNode7400("C", [ "OP", 826, 901, "Lcl Scaling" ]),
-            makeBinaryNode7400("C", [ "OP", 827, 826, "d|X" ])
+            ...(!options.rotationOnly ? [
+                makeBinaryNode7400("C", [ "OO", 826, 821 ]),
+                makeBinaryNode7400("C", [ "OP", 826, animatedBone, "Lcl Scaling" ]),
+                makeBinaryNode7400("C", [ "OP", 827, 826, "d|X" ])
+            ] : [])
         );
     }
 

@@ -12,6 +12,8 @@ import {
     Usage
 } from "./constants.js";
 import { crc32 } from "./binary.js";
+import { readCmf } from "./schema.js";
+import { validateCmfGraph } from "./validate.js";
 
 /**
  * Binary CMF v1 writer.
@@ -26,6 +28,7 @@ import { crc32 } from "./binary.js";
  */
 
 const textEncoder = new TextEncoder();
+const FLOAT32_MAX = 3.4028234663852886e38;
 
 let encoderReady = false;
 MeshoptEncoder.ready.then(() => { encoderReady = true; });
@@ -108,13 +111,13 @@ class Flattener
      * Writes an unsigned 32-bit little-endian integer into the output buffer for
      * the CMF binary writer.
      */
-    u32(offset, value) { this.#view.setUint32(offset, value >>> 0, true); }
+    u32(offset, value) { this.#view.setUint32(offset, value, true); }
 
     /**
      * Writes a 32-bit little-endian float into the output buffer for the CMF
      * binary writer.
      */
-    f32(offset, value) { this.#view.setFloat32(offset, value || 0, true); }
+    f32(offset, value) { this.#view.setFloat32(offset, value ?? 0, true); }
 
     /**
      * Writes a signed 64-bit little-endian integer into the output buffer for
@@ -166,20 +169,20 @@ class Flattener
             const cached = this.#chunkCache.get(key);
             if (cached !== undefined && bytesEqual(this.#bytes, cached, chunk))
             {
-                this.i64(fieldOffset, ((cached - fieldOffset) | 1));
+                this.i64(fieldOffset, cached - fieldOffset + 1);
                 this.u64(fieldOffset + 8, byteSize);
                 return;
             }
             const chunkOffset = this.reserveAligned(byteSize);
             this.setBytes(chunkOffset, chunk);
             this.#chunkCache.set(key, chunkOffset);
-            this.i64(fieldOffset, ((chunkOffset - fieldOffset) | 1));
+            this.i64(fieldOffset, chunkOffset - fieldOffset + 1);
             this.u64(fieldOffset + 8, byteSize);
             return;
         }
 
         const chunkOffset = this.reserveAligned(byteSize);
-        this.i64(fieldOffset, ((chunkOffset - fieldOffset) | 1));
+        this.i64(fieldOffset, chunkOffset - fieldOffset + 1);
         this.u64(fieldOffset + 8, byteSize);
         for (let i = 0; i < count; i++) writeElement(this, chunkOffset + i * elementSize, elements[i]);
     }
@@ -226,8 +229,8 @@ function bytesEqual(target, offset, chunk)
 
 function writeBounds(buffer, offset, bounds)
 {
-    const min = bounds?.min || [ 0, 0, 0 ];
-    const max = bounds?.max || [ 0, 0, 0 ];
+    const min = bounds?.min ?? [ FLOAT32_MAX, FLOAT32_MAX, FLOAT32_MAX ];
+    const max = bounds?.max ?? [ -FLOAT32_MAX, -FLOAT32_MAX, -FLOAT32_MAX ];
     for (let i = 0; i < 3; i++) buffer.f32(offset + i * 4, min[i]);
     for (let i = 0; i < 3; i++) buffer.f32(offset + 12 + i * 4, max[i]);
 }
@@ -289,7 +292,7 @@ function writeData(buffer, offset, graph, remap)
         target.span(meshOffset + 96, mesh.morphTargets?.targets || [], STRUCT_SIZE.MorphTarget, (morphTarget, morphOffset, morph) =>
         {
             morphTarget.string(morphOffset, morph.name);
-            morphTarget.f32(morphOffset + 16, morph.maxDisplacement || 0);
+            morphTarget.f32(morphOffset + 16, morph.maxDisplacement ?? 0);
         });
         target.span(meshOffset + 112, mesh.uvDensities || [], 4, (densityTarget, densityOffset, value) => densityTarget.f32(densityOffset, value), { dedup: true });
         writeBounds(target, meshOffset + 128, mesh.bounds);
@@ -358,7 +361,7 @@ function writeData(buffer, offset, graph, remap)
             curveTarget.span(curveOffset + 8, curve.knots || [], 1, (knotTarget, knotOffset, knot) => knotTarget.u8(knotOffset, knot), { dedup: true });
             curveTarget.span(curveOffset + 24, curve.values || [], 1, (valueTarget, valueOffset, value) => valueTarget.u8(valueOffset, value), { dedup: true });
         });
-        target.f32(animationOffset + 48, animation.duration || 0);
+        target.f32(animationOffset + 48, animation.duration ?? 0);
     };
 
     buffer.span(offset, graph.meshes || [], STRUCT_SIZE.Mesh, writeMesh);
@@ -483,6 +486,14 @@ export function writeCmf(graph, options = {})
     {
         throw writeError("input graph must be an object");
     }
+    if ((graph.skeletons ?? []).some(skeleton =>
+        (skeleton?.bones ?? []).some(bone => typeof bone !== "string")))
+    {
+        throw writeError(
+            "skeleton bones must be name strings; GR2-shaped skeletons need conversion (use writeShared) before writing"
+        );
+    }
+    validateCmfGraph(graph, { phase: "write" });
     const compress = options.compress === true;
 
     const records = collectBufferRecords(graph, compress);
@@ -569,6 +580,10 @@ export function writeCmf(graph, options = {})
 
     const checksum = crc32(file, 16, file.byteLength);
     new DataView(file.buffer).setUint32(12, checksum, true);
+    // Carbon validates every produced file at its save boundary. Re-read the
+    // structural result here as the writer's equivalent postcondition; source
+    // buffer finiteness was already checked by validateCmfGraph above.
+    readCmf(file, { decodeBuffers: false, validateCrc: true });
     return file;
 }
 
