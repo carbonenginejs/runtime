@@ -284,9 +284,27 @@ export class Tr2EffectStateManager extends CjsModel
    * that already includes the flags' effect, so the two variants are distinct
    * cache entries rather than one entry that must be invalidated.
    *
-   * Wireframe (`SetWireframeRendering`, cpp:800-812) is deliberately absent.
-   * Neither backend has a fill mode, so the toggle could only ever throw at
-   * projection time. Add it with the backend that can honour it.
+   * Wireframe (`SetWireframeRendering`, cpp:800-812) is NOT YET PORTED, which
+   * is different from being unwanted - it is a working tool for anyone looking
+   * at geometry.
+   *
+   * An earlier note here said it was "deliberately absent" because neither
+   * backend has a fill mode. Half of that is true and the conclusion is not.
+   * Neither WebGL2 nor WebGPU has `glPolygonMode`, so Carbon's render-state
+   * route genuinely cannot be projected - but wireframe does not need one:
+   *
+   *   - LINE TOPOLOGY. Already reachable today: the WebGPU dispatcher maps
+   *     Carbon's topology 2 and 3 to `line-list`/`line-strip`
+   *     (`engine/webgpu/core/trinityBatchDispatcher.js:12-13`), so a pass can
+   *     be drawn as lines by choosing the topology in the pipeline recipe.
+   *     Edges are shared, so a triangle list drawn this way is not a true
+   *     wireframe without an index rebuild.
+   *   - BARYCENTRIC EDGES in the fragment shader. No new geometry and no
+   *     index rebuild, and it gives usable line widths. This is what a
+   *     browser renderer normally does.
+   *
+   * So the blocker is a decision about which route to take, not a missing
+   * capability. What must NOT happen is the toggle silently doing nothing.
    */
   #overrides = { invertedDepthTest: false, invertedCullMode: false };
 
