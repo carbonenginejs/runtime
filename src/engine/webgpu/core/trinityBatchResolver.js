@@ -29,7 +29,7 @@ import { Tr2VertexDefinition } from "#trinity/core/vertex/Tr2VertexDefinition";
 import { CarbonVertexElements } from "#trinity/core/vertex/vertexUsage";
 
 import { CjsWebgpuPackage } from "../CjsWebgpuPackage.js";
-import { CONSTANT_SLOTS, UNSOURCED_SLOTS } from "#trinity/core/Tr2Renderer";
+import { EFFECT_CONSTANTS, Tr2Renderer } from "#trinity/core/Tr2Renderer";
 import { WebgpuGeometryOptions } from "./geometryPlan.js";
 import { MaterialLayoutFromShader, PackMaterialConstants } from "./materialConstants.js";
 
@@ -63,6 +63,9 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
   #resolveSampler;
 
   #resolveStorageBuffer;
+
+  /** The renderer whose register map says which constant buffer is which. */
+  #renderer;
 
   /** Effect resource to the package read from its own container bytes. */
   #packages = new WeakMap();
@@ -123,6 +126,11 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     this.#resolveTexture = options.ResolveTexture ?? null;
     this.#resolveSampler = options.ResolveSampler ?? null;
     this.#resolveStorageBuffer = options.ResolveStorageBuffer ?? null;
+
+    // Defaulted rather than required: the register map is fixed, so a caller
+    // with no renderer to hand gets the same answers. A composed one arrives
+    // when the library owns the renderer.
+    this.#renderer = options.renderer ?? new Tr2Renderer();
   }
 
   /**
@@ -360,7 +368,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     const shader = material.GetShaderStateInterface?.();
     const pass = this.#PassOf(material, passIndex);
 
-    if (binding.registerIndex === 0)
+    if (binding.registerIndex === EFFECT_CONSTANTS)
     {
       // b0, the effect's own constants. A pass with no pixel stage has none to
       // pack - a depth-only pass is the ordinary case - and that is an absence
@@ -375,27 +383,15 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       return layout?.size ? PackMaterialConstants(layout, material.GetValues?.() ?? {}) : null;
     }
 
-    // b1 and b2 are PER FRAME, not per object. Carbon fixes the slots -
-    // b0 effect, b1 perFrameVS, b2 perFramePS, b3 perObjectVS, b4 perObjectPS -
-    // and every v5 shader binds all five. Letting anything past b0 fall through
-    // to the per-object path filled the two frame slots with object bytes, which
-    // draws a wrong picture rather than failing.
-    const slot = CONSTANT_SLOTS[binding.registerIndex];
+    // ASK THE RENDERER WHICH REGISTER IS WHICH. It owns the numbers
+    // (Tr2Renderer.cpp:38-43) and Carbon compares against them exactly like
+    // this. b1 and b2 are PER FRAME, not per object, and letting anything past
+    // b0 fall through to the per-object path filled the two frame slots with
+    // object bytes - a wrong picture rather than a failure.
+    const renderer = this.#renderer;
+    const register = binding.registerIndex;
 
-    if (!slot)
-    {
-      fail(
-        `pass binds b${binding.registerIndex}, which is not one of Carbon's constant-buffer `
-        + "registers. Filling it with anything would draw a wrong picture rather than fail."
-      );
-    }
-
-    if (UNSOURCED_SLOTS.includes(slot))
-    {
-      fail(`pass binds b${binding.registerIndex} (${slot}), which has no source yet`);
-    }
-
-    if (slot === "perFrameVS" || slot === "perFramePS")
+    if (register === renderer.GetPerFrameVSStartRegister() || register === renderer.GetPerFramePSStartRegister())
     {
       if (!this.#resolvePerFrame)
       {
@@ -407,6 +403,21 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       }
 
       return this.#resolvePerFrame(binding.registerIndex, binding);
+    }
+
+    // Everything else Carbon assigns - b5 ray-traced vertex data, b6 the GUI's
+    // per-object block - and b8, which is ours for emulated addressing. None has
+    // a source here, and filling one with per-object bytes would draw a wrong
+    // picture rather than fail.
+    if (register !== renderer.GetPerObjectVSStartRegister() && register !== renderer.GetPerObjectPSStartRegister())
+    {
+      fail(
+        `pass binds b${register}, and nothing here fills it. Sourced registers are `
+        + `b${EFFECT_CONSTANTS} effect, b${renderer.GetPerFrameVSStartRegister()} and `
+        + `b${renderer.GetPerFramePSStartRegister()} per frame, and `
+        + `b${renderer.GetPerObjectVSStartRegister()} and `
+        + `b${renderer.GetPerObjectPSStartRegister()} per object.`
+      );
     }
 
     // b3 and b4, gated on the technique's stage mask the way Carbon gates
@@ -424,7 +435,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     //
     // A "vs" payload declares the whole non-pixel family, because those stages
     // share the per-object vertex register (Tr2PerObjectData.cpp:49-54).
-    const wanted = slot === "perObjectVS"
+    const wanted = register === renderer.GetPerObjectVSStartRegister()
       ? Tr2PerObjectData.VertexFamilyMask
       : Tr2PerObjectData.StageBits.ps;
 

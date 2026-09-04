@@ -40,29 +40,12 @@ export const PER_FRAME_PS = 2;
 /** The effect's own constants. */
 export const EFFECT_CONSTANTS = 0;
 
-// Carbon never asks "what is register N" - each producer names the slot it
-// fills, so a buffer arrives already labelled. Reading a pipeline's DECLARED
-// bindings runs the other way and does have to ask, which is why the reverse
-// map exists here and has no Carbon counterpart.
-
-/** Registers by number, for a reader that has a register and needs its meaning. */
-export const CONSTANT_SLOTS = Object.freeze({
-  0: "effect",
-  1: "perFrameVS",
-  2: "perFramePS",
-  3: "perObjectVS",
-  4: "perObjectPS",
-  5: "perObjectRTVertexBufferData",
-  6: "perObjectVSGUI",
-  8: "emulatedAddressing"
-});
-
-/** Mapped registers nothing fills yet, kept apart from an unmapped one. */
-export const UNSOURCED_SLOTS = Object.freeze([
-  "perObjectRTVertexBufferData",
-  "perObjectVSGUI",
-  "emulatedAddressing"
-]);
+// THERE WAS A REVERSE MAP HERE AND IT IS GONE. A register-number-to-name table
+// looked necessary because a caller reading a pipeline's DECLARED bindings has a
+// number and wants to know what it means. It is not: the numbers are fixed and
+// this class owns them, so the question is answered by comparing against the
+// accessors below - which is how Carbon answers it, and why Carbon has no such
+// table. The names only ever reached a diagnostic string.
 
 
 /**

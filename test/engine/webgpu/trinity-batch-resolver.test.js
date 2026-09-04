@@ -375,10 +375,11 @@ test("a per-frame slot with no scene source refuses rather than guessing", async
   );
 });
 
-test("a register Carbon does not assign refuses rather than guessing", async () =>
+test("a register nothing fills refuses rather than guessing", async () =>
 {
   // This used to read "anything past b2 is per-object", which is right for b3
-  // and b4 and silently wrong for the rest. Carbon assigns 0..6 and 8.
+  // and b4 and silently wrong for the rest. The renderer owns the numbers, so
+  // the check compares against them rather than consulting a table.
   const resolver = resolverOver(new TestDevice(), {
     CreatePackage: packageDeclaring([ {
       name: "cb9",
@@ -392,14 +393,14 @@ test("a register Carbon does not assign refuses rather than guessing", async () 
 
   await assert.rejects(
     resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 }),
-    /not one of Carbon's constant-buffer registers/
+    /nothing here fills it/
   );
 });
 
-test("a mapped register with no source names itself", async () =>
+test("a Carbon register with no source here says which ones do have one", async () =>
 {
-  // b5, b6 and b8 are real Carbon registers we do not fill yet. Saying so
-  // beats handing them per-object bytes.
+  // b5 and b6 are Carbon registers, b8 is ours for emulated addressing, and
+  // none has a source here. Saying so beats handing them per-object bytes.
   const resolver = resolverOver(new TestDevice(), {
     CreatePackage: packageDeclaring([ {
       name: "cb8",
@@ -413,7 +414,7 @@ test("a mapped register with no source names itself", async () =>
 
   await assert.rejects(
     resolver.ResolveBindings(batch, batch.objectData, { passIndex: 0 }),
-    /b8 .*has no source yet/
+    /pass binds b8, and nothing here fills it/
   );
 });
 

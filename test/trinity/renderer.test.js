@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CONSTANT_SLOTS, PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../npm/dist/trinity/core/index.js";
+import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../npm/dist/trinity/core/index.js";
 
 test("the constant registers are Carbon's, and they are Trinity's to own", () =>
 {
@@ -36,13 +36,15 @@ test("two renderers do not share a register map", () =>
   assert.notEqual(new Tr2Renderer(), new Tr2Renderer());
 });
 
-test("the reverse map answers what a declared register means", () =>
+test("a register's meaning comes from the accessors, not a lookup table", () =>
 {
-  // No Carbon counterpart: Carbon never asks, because each producer names the
-  // slot it fills. Reading a pipeline's DECLARED bindings runs the other way.
-  assert.equal(CONSTANT_SLOTS[PER_FRAME_VS], "perFrameVS");
-  assert.equal(CONSTANT_SLOTS[PER_FRAME_PS], "perFramePS");
-  assert.equal(CONSTANT_SLOTS[3], "perObjectVS");
-  assert.equal(CONSTANT_SLOTS[4], "perObjectPS");
-  assert.equal(CONSTANT_SLOTS[7], undefined, "seven is not one of Carbon's");
+  // There was a register-to-name table here and it is gone. The numbers are
+  // fixed and this class owns them, so a caller with a register compares
+  // against the accessors - which is how Carbon answers the same question, and
+  // why Carbon has no such table.
+  const renderer = new Tr2Renderer();
+
+  assert.equal(renderer.GetPerFrameVSStartRegister(), PER_FRAME_VS);
+  assert.equal(renderer.GetPerFramePSStartRegister(), PER_FRAME_PS);
+  assert.notEqual(renderer.GetPerObjectVSStartRegister(), PER_FRAME_VS);
 });
