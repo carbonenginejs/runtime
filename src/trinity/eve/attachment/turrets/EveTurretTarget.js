@@ -36,6 +36,10 @@ export class EveTurretTarget extends CjsModel
   #randomMissDistanceOffset = 0.5;
   #randomMissPositionOffset = vec3.create();
 
+  // Carbon m_fadeOnLocatorChange (EveTurretTarget.h:84) - default off; only
+  // EveChildTurret enables it, so ship turrets keep the snap behaviour.
+  #fadeOnLocatorChange = false;
+
   /**
    * The targetable record this tracker is following, or null when it has no
    * target.
@@ -78,6 +82,17 @@ export class EveTurretTarget extends CjsModel
   }
 
   /**
+   * Smooths the aim over locator changes instead of snapping (Carbon
+   * EveTurretTarget.cpp:98-105): firing at or leaving a locator seeds the
+   * position blend from the current tracking position.
+   */
+  @carbon.method @impl.implemented
+  SetFadeOnLocatorChange(fade)
+  {
+    this.#fadeOnLocatorChange = !!fade;
+  }
+
+  /**
    * Begins a shot at a locator: rolls this burst's random miss distance and
    * offset, and, when the shot is not a queued miss and an impact size is
    * authored, either creates the impact immediately (zero delay under
@@ -88,6 +103,13 @@ export class EveTurretTarget extends CjsModel
   StartFireAtLocator(locator, delay, length, source = EveTurretTarget.#zero)
   {
     this.locator = Number(locator) | 0;
+    // Carbon EveTurretTarget.cpp:116-120: fading turrets blend out of the
+    // CURRENT tracking position when the locator changes.
+    if (this.#fadeOnLocatorChange)
+    {
+      vec3.copy(this.positionOld, this.position);
+      this.positionOldInfluence = 1;
+    }
     this.#randomMissDistanceOffset = Math.random();
     const u = Math.random();
     const v = Math.random();
@@ -122,7 +144,17 @@ export class EveTurretTarget extends CjsModel
   StopFireAtLocator()
   {
     this.locator = -1;
-    this.positionOldInfluence = -1;
+    // Carbon EveTurretTarget.cpp:166-174: fading turrets ease out of the
+    // last tracking position; others snap by disabling the blend.
+    if (this.#fadeOnLocatorChange)
+    {
+      vec3.copy(this.positionOld, this.position);
+      this.positionOldInfluence = 1;
+    }
+    else
+    {
+      this.positionOldInfluence = -1;
+    }
     this.#lastShotMissed = false;
     this.#missQueue.length = 0;
   }
@@ -274,6 +306,16 @@ export class EveTurretTarget extends CjsModel
   {
     this.#laserMissBehaviour = !!laserMiss;
     this.#projectileMissBehaviour = !!projectileMiss;
+    this.SetImpactBehaviour(impactSize, impactBehaviour);
+  }
+
+  /**
+   * Sets only the impact configuration, leaving miss behaviour untouched
+   * (Carbon EveTurretTarget.cpp:365-369, split out for EveChildTurret).
+   */
+  @carbon.method @impl.implemented
+  SetImpactBehaviour(impactSize, impactBehaviour)
+  {
     this.#impactSize = Number(impactSize);
     this.behaviour = Number(impactBehaviour) | 0;
   }

@@ -15,7 +15,15 @@ export {
   EveSOFDataLogoSet
 } from "./EveSOFDataLogoSet.js";
 export { EveSOFDataMaterial } from "./EveSOFDataMaterial.js";
-export { EveSOFDataParameter } from "./EveSOFDataParameter.js";
+export {
+  EveSOFDataParameter,
+  EveSOFDataParameterBool,
+  EveSOFDataParameterColor,
+  EveSOFDataParameterFloat,
+  EveSOFDataParameterInt,
+  EveSOFDataParameterVector2,
+  EveSOFDataParameterVector3
+} from "./EveSOFDataParameter.js";
 export { EveSOFDataPointLightAttachment } from "./EveSOFDataPointLightAttachment.js";
 export { EveSOFDataSpotLightAttachment } from "./EveSOFDataSpotlightAttachment.js";
 export { EveSOFDataTexture } from "./EveSOFDataTexture.js";

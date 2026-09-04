@@ -5239,6 +5239,13 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   data.hull[1].booster = {
     alwaysOn: false,
     hasTrails: true,
+    driveName: "ThrustCustom",
+    effectPath: "res:/booster/custom.fx",
+    parameters: [
+      { name: "CustomScalar", value: 3 },
+      { name: "CustomColor", value: [1, 2, 3, 4] },
+    ],
+    textures: [{ name: "CustomMap", resFilePath: "res:/booster/custom.dds" }],
     items: [{
       transform: [
         2, 0, 0, 0,
@@ -5297,6 +5304,18 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   assert.equal(dna.GetHullBoosterCount(), 2);
   assert.deepEqual(dna.GetRaceBoosterData().warpHaloColor, [0.6, 0.7, 0.8, 0.9]);
   assert.equal(dna.GetHullBoosterData(1).items[0].atlasIndex1, 7);
+  // Per-hull booster overrides (Carbon EveSOFData.h:1088-1092) project
+  // through; the scalar parameter broadcasts like the typed GetValue does,
+  // and hulls without overrides project empty defaults.
+  const hullBooster = dna.GetHullBoosterData(1);
+  assert.equal(hullBooster.driveName, "ThrustCustom");
+  assert.equal(hullBooster.effectPath, "res:/booster/custom.fx");
+  assert.deepEqual(hullBooster.parameters.get("CustomScalar"), [3, 3, 3, 3]);
+  assert.deepEqual(hullBooster.parameters.get("CustomColor"), [1, 2, 3, 4]);
+  assert.deepEqual(hullBooster.textures.get("CustomMap"), { resFilePath: "res:/booster/custom.dds" });
+  assert.equal(dna.GetHullBoosterData(0).driveName, "");
+  assert.equal(dna.GetHullBoosterData(0).effectPath, "");
+  assert.equal(dna.GetHullBoosterData(0).parameters.size, 0);
 
   data.race[0].booster.glowColor[0] = 99;
   data.hull[0].booster.items[0].transform[12] = 99;
@@ -6367,4 +6386,53 @@ test("DNA visibility groups report what a faction turns on and off", () => {
   assert.deepEqual(police.hidden, ["holiday_19", "primary"]);
 
   assert.equal(sof.GetDnaVisibilityGroups("missing:minmatar:minmatar"), null);
+});
+
+
+test("typed EveSOFDataParameter subclasses flatten with Carbon's GetValue rules", async () => {
+  const {
+    EveSOFDataParameter,
+    EveSOFDataParameterBool,
+    EveSOFDataParameterColor,
+    EveSOFDataParameterFloat,
+    EveSOFDataParameterInt,
+    EveSOFDataParameterVector2,
+    EveSOFDataParameterVector3,
+  } = await import("../../../npm/dist/sof/shared/index.js");
+
+  const flatten = (Type, value) => {
+    const parameter = new Type();
+    parameter.name = "p";
+    parameter.value = value;
+    return Array.from(parameter.GetValue());
+  };
+
+  // Bool/Int/Float broadcast; Vector2 zero-pads z,w; Vector3 zero-pads w
+  // (0, not 1); Color passes through (Carbon EveSOFData.cpp:85-102).
+  assert.deepEqual(flatten(EveSOFDataParameterBool, true), [1, 1, 1, 1]);
+  assert.deepEqual(flatten(EveSOFDataParameterBool, false), [0, 0, 0, 0]);
+  assert.deepEqual(flatten(EveSOFDataParameterInt, 7), [7, 7, 7, 7]);
+  assert.deepEqual(flatten(EveSOFDataParameterFloat, 2.5), [2.5, 2.5, 2.5, 2.5]);
+  assert.deepEqual(flatten(EveSOFDataParameterVector2, [3, 4]), [3, 4, 0, 0]);
+  assert.deepEqual(flatten(EveSOFDataParameterVector3, [3, 4, 5]), [3, 4, 5, 0]);
+  assert.deepEqual(flatten(EveSOFDataParameterColor, [0.1, 0.2, 0.3, 0.4]),
+    Array.from(new Float32Array([0.1, 0.2, 0.3, 0.4])));
+  assert.deepEqual(flatten(EveSOFDataParameter, [1, 2, 3, 4]), [1, 2, 3, 4]);
+
+  // Assign flows through the virtual GetValue, so a typed scalar lands as a
+  // broadcast vec4 rather than a corrupt entry.
+  const scalar = new EveSOFDataParameterFloat();
+  scalar.name = "Intensity";
+  scalar.value = 2;
+  assert.deepEqual(scalar.Assign({}, "Pfx"), { PfxIntensity: [2, 2, 2, 2] });
+
+  // Every subclass registers under its own class name for document hydration.
+  const { CjsSchema } = await import("../../../npm/dist/global/schema/index.js");
+  for (const name of [
+    "EveSOFDataParameterBool", "EveSOFDataParameterInt", "EveSOFDataParameterFloat",
+    "EveSOFDataParameterVector2", "EveSOFDataParameterVector3", "EveSOFDataParameterColor",
+  ])
+  {
+    assert.equal(typeof CjsSchema.GetConstructor(name), "function", name);
+  }
 });

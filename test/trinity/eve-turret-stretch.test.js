@@ -236,3 +236,55 @@ test("EveTurretSet exposes Carbon state values and portable firing transforms", 
   assert.equal(set.state, EveTurretSet.State.STATE_TARGETING);
   assert.equal(set.GetShotTimeVariance(), 0.6);
 });
+
+
+test("EveTurretTarget fades over locator changes only when opted in", () =>
+{
+  const targetable = {
+    GetDamageLocatorPosition(_index, _inWorldSpace, out)
+    {
+      out[0] = 100; out[1] = 0; out[2] = 0;
+      return true;
+    },
+    GetWorldPosition(out)
+    {
+      out[0] = 100; out[1] = 0; out[2] = 0;
+      return out;
+    }
+  };
+
+  // Default behaviour: stopping fire snaps (influence disabled).
+  const snapping = new EveTurretTarget();
+  assert.equal(snapping.SetTargetable(targetable), true);
+  snapping.positionOldInfluence = -1;
+  snapping.Update(0.25, [ 0, 0, 0 ]);
+  snapping.StopFireAtLocator();
+  assert.equal(snapping.positionOldInfluence, -1);
+
+  // Opted in (Carbon EveTurretTarget.cpp:98-105,162-174): both firing at a
+  // locator and stopping seed the blend from the current tracking position.
+  const fading = new EveTurretTarget();
+  assert.equal(fading.SetTargetable(targetable), true);
+  fading.SetFadeOnLocatorChange(true);
+  fading.positionOldInfluence = -1;
+  fading.Update(0.25, [ 0, 0, 0 ]);
+  fading.StopFireAtLocator();
+  assert.equal(fading.positionOldInfluence, 1);
+  assert.deepEqual(Array.from(fading.positionOld), Array.from(fading.position));
+
+  fading.positionOldInfluence = -1;
+  fading.StartFireAtLocator(0, 0, 0, [ 0, 0, 0 ]);
+  assert.equal(fading.positionOldInfluence, 1);
+
+  // SetImpactBehaviour sets only the impact half; miss behaviour is untouched
+  // (Carbon EveTurretTarget.cpp:350-369).
+  const split = new EveTurretTarget();
+  split.SetBehaviour(true, true, 5, EveTurretTarget.ImpactBehaviour.CENTER);
+  split.SetImpactBehaviour(9, EveTurretTarget.ImpactBehaviour.SHIELD_ELLIPSOID);
+  assert.equal(split.behaviour, EveTurretTarget.ImpactBehaviour.SHIELD_ELLIPSOID);
+  assert.equal(split.SetTargetable(targetable), true);
+  split.SetShotMissed(true);
+  split.PopShotMissed();
+  // projectile miss behaviour survives the impact-only setter
+  assert.equal(split.ShowDestObject(), false);
+});

@@ -4961,7 +4961,15 @@ function createInstancedMeshArea(document, dna, source, shaderData, resolveTextu
   });
 }
 
-function createBoosterEffect(document, race, lodOption)
+// Carbon EveSOF::CreateBoosterEffect (EveSOF.cpp:2853-2899, EveSOF.h:145):
+// the path defaults to the ship booster shader, and per-hull DNA parameters
+// are added BEFORE the race-shape parameters, matching Carbon's insertion
+// order. Only SetupChildBoosters passes overrides (with
+// EveChildBoosterSet.DEFAULT_EFFECT_PATH as its own fallback); ship boosters
+// always use the defaults.
+function createBoosterEffect(document, race, lodOption,
+  effectPath = "res:/Graphics/Effect/Managed/Space/Booster/BoosterVolumetric.fx",
+  parameters = null)
 {
   const constParameters = [];
   const add = (name, value) => {
@@ -4970,6 +4978,10 @@ function createBoosterEffect(document, race, lodOption)
       : [Number(value ?? 0), Number(value ?? 0), Number(value ?? 0), Number(value ?? 0)];
     constParameters.push(document.AddNode("Tr2ConstantEffectParameter", { name, value: vector }));
   };
+  if (parameters)
+  {
+    for (const [ name, value ] of parameters) add(name, value);
+  }
   add("NoiseSpeed0", race.shape0.noiseSpeed);
   add("NoiseAmplitudeStart0", race.shape0.noiseAmplitureStart);
   add("NoiseAmplitudeEnd0", race.shape0.noiseAmplitureEnd);
@@ -4992,7 +5004,7 @@ function createBoosterEffect(document, race, lodOption)
   add("BoosterScale", race.scale);
 
   return document.AddNode("Tr2Effect", {
-    effectFilePath: "res:/Graphics/Effect/Managed/Space/Booster/BoosterVolumetric.fx",
+    effectFilePath: effectPath,
     options: [document.AddNode("Tr2ShaderOption", {
       name: "BOOSTER_LOD",
       value: lodOption

@@ -740,6 +740,13 @@ function projectHullBooster(value)
   return {
     alwaysOn: value?.alwaysOn === true,
     hasTrails: value?.hasTrails !== false,
+    // Per-hull booster overrides (Carbon EveSOFDataHullBooster,
+    // EveSOFData.h:1088-1092; read at EveSOFDataMgr.cpp:695-709): empty
+    // strings mean the EveChildBoosterSet defaults apply.
+    driveName: String(value?.driveName ?? ""),
+    effectPath: String(value?.effectPath ?? ""),
+    parameters: projectParameterMap(value?.parameters),
+    textures: projectTextureMap(value?.textures),
     items: (Array.isArray(value?.items) ? value.items : []).filter(Boolean).map(item => ({
       transform: copyArray(item.transform, identityMatrix()),
       functionality: copyArray(item.functionality, [0, 1, 1, 1]),
@@ -1323,7 +1330,7 @@ function projectParameterMap(values)
   const result = new Map();
   for (const value of Array.isArray(values) ? values : [])
   {
-    if (value) result.set(String(value.name ?? ""), copyVector(value.value));
+    if (value) result.set(String(value.name ?? ""), flattenParameterValue(value));
   }
   return new Map([...result].sort(([a], [b]) => a.localeCompare(b)));
 }
@@ -1343,9 +1350,9 @@ function projectMaterial(value)
   const parameters = new Map();
   for (const parameter of Array.isArray(value.parameters) ? value.parameters : [])
   {
-    // Carbon copies the Vector4 by value into the map
-    // (EveSOFDataMgr.cpp:1845-1855); do not alias the authored array.
-    if (parameter) parameters.set(String(parameter.name), copyArray(parameter.value, [0, 0, 0, 0]));
+    // Carbon copies the Vector4 by value into the map through the virtual
+    // GetValue (EveSOFDataMgr.cpp:1845-1855); do not alias the authored array.
+    if (parameter) parameters.set(String(parameter.name), flattenParameterValue(parameter));
   }
   return { ...value, parameters };
 }
@@ -1790,7 +1797,7 @@ function projectHullArea(value)
   const parameters = new Map();
   for (const parameter of Array.isArray(value?.parameters) ? value.parameters : [])
   {
-    if (parameter) parameters.set(String(parameter.name), copyVector(parameter.value));
+    if (parameter) parameters.set(String(parameter.name), flattenParameterValue(parameter));
   }
   return {
     index: Number(value?.index ?? 0),
@@ -1814,7 +1821,7 @@ function projectGenericShader(value)
   const defaultParameters = new Map();
   for (const parameter of Array.isArray(value.defaultParameters) ? value.defaultParameters : [])
   {
-    if (parameter) defaultParameters.set(String(parameter.name), copyVector(parameter.value));
+    if (parameter) defaultParameters.set(String(parameter.name), flattenParameterValue(parameter));
   }
   const parameters = (Array.isArray(value.parameters) ? value.parameters : [])
     .map(item => typeof item === "string" ? item : String(item?.str ?? ""));
@@ -1985,6 +1992,29 @@ function isVector4(value)
 function copyVector(value)
 {
   return value ? Array.from(value) : [0, 0, 0, 0];
+}
+
+/**
+ * Flattens one authored parameter record to a shader vec4 the way Carbon's
+ * virtual EveSOFDataParameter::GetValue does (EveSOFData.cpp:85-102): typed
+ * records answer through GetValue when they are live class instances, and
+ * plain data flattens by value shape - booleans and numbers broadcast to all
+ * four components, two-component values zero-pad z and w, three-component
+ * values zero-pad w (0, not 1), four-component values copy through.
+ */
+function flattenParameterValue(parameter)
+{
+  if (typeof parameter?.GetValue === "function") return Array.from(parameter.GetValue());
+  const value = parameter?.value;
+  if (typeof value === "boolean")
+  {
+    const scalar = value ? 1 : 0;
+    return [scalar, scalar, scalar, scalar];
+  }
+  if (typeof value === "number") return [value, value, value, value];
+  if (value?.length === 2) return [Number(value[0]), Number(value[1]), 0, 0];
+  if (value?.length === 3) return [Number(value[0]), Number(value[1]), Number(value[2]), 0];
+  return copyArray(value, [0, 0, 0, 0]);
 }
 
 function copyArray(value, fallback)
