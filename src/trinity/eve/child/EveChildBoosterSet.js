@@ -261,10 +261,13 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
   }
 
   /**
-   * Installs the AL ring buffer this set uploads its instance rows through
-   * - a duck with UploadTransforms(data, laneCount) returning the frame
-   * offset, and optionally AdvanceFrame(). The engine's AL backend supplies
-   * it; nothing in the browser runtime does.
+   * Installs the AL ring-buffer offsets object this set uploads its
+   * instance rows through. The contract is NOMINAL, not duck-typed: an
+   * installed object MUST provide Carbon's Tr2RingBufferOffsets surface -
+   * AdvanceFrame() and UploadTransforms(data, count) returning the frame
+   * offset (Tr2RingBuffer.h:84-99; both names are Carbon's own). Only the
+   * OBJECT is nullable - null means no AL backend, Carbon's invalid-offset
+   * undrawn state.
    */
   SetRingBuffer(ringBuffer)
   {
@@ -293,7 +296,9 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
   @impl.reason("Ring-buffer AdvanceFrame/UploadTransforms are the AL backend's; the CPU packs the rows and the offset stays INVALID (Carbon's own no-draw state) until a ring buffer is installed.")
   UpdateAsyncronous(_updateContext = null, params = null)
   {
-    if (typeof this.#ringBuffer?.AdvanceFrame === "function")
+    // Carbon cpp:103; the installed offsets object owns both methods -
+    // nullability is state, method existence is contract.
+    if (this.#ringBuffer)
     {
       this.#ringBuffer.AdvanceFrame();
     }

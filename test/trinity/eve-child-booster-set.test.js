@@ -84,7 +84,7 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
 
   // With a ring buffer the offset lands in the per-object data and the
   // additive batch draws 36 indices per instance.
-  set.SetRingBuffer({ UploadTransforms: () => 7 });
+  set.SetRingBuffer({ AdvanceFrame() {}, UploadTransforms: () => 7 });
   set.effect = { name: "booster-effect" };
   set.UpdateAsyncronous(null, updateParams());
   set.UpdateVisibility({
