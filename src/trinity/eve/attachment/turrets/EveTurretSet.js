@@ -4,6 +4,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveTurretAiming } from "./EveTurretAiming.js";
 import { EveTurretTarget } from "./EveTurretTarget.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -430,6 +431,34 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   {
     return this.turretEffect;
   }
+
+  /**
+   * The shared sysbone aiming math, synced from this set's flat tuning
+   * fields. Carbon embeds EveTurretAiming by value (EveTurretSet.h:425) and
+   * re-exposes its members as these flat Blue attributes; pose-owning
+   * consumers of the UpdateTrackingPose seam use THIS object so both hosts
+   * run identical math.
+   */
+  @impl.adapted
+  @impl.reason("Carbon's by-value embed becomes an accessor because the pose pipeline (the aiming consumer) lives behind the animation seam.")
+  GetAiming()
+  {
+    const aiming = this.#aiming;
+    aiming.sysBoneHeight = this.sysBoneHeight;
+    aiming.sysBonePitchOffset = this.sysBonePitchOffset;
+    aiming.sysBonePitchFactor = this.sysBonePitchFactor;
+    aiming.sysBonePitchMin = this.sysBonePitchMin;
+    aiming.sysBonePitchMax = this.sysBonePitchMax;
+    aiming.sysBonePitch01Offset = this.sysBonePitch01Offset;
+    aiming.sysBonePitch01Factor = this.sysBonePitch01Factor;
+    aiming.sysBonePitch02Offset = this.sysBonePitch02Offset;
+    aiming.sysBonePitch02Factor = this.sysBonePitch02Factor;
+    aiming.sysBonePitch03Offset = this.sysBonePitch03Offset;
+    aiming.sysBonePitch03Factor = this.sysBonePitch03Factor;
+    return aiming;
+  }
+
+  #aiming = new EveTurretAiming();
 
   /**
    * Applies resolved SOF vec4 values to the turret effect's constant path, or
@@ -1490,24 +1519,9 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     LOD_DISABLED: 3,
   });
 
-  static SystemBones = Object.freeze({
-    SYSBONE_INVALID: 0,
-    SYSBONE_ROTATION: 1,
-    SYSBONE_ROTATION01: 2,
-    SYSBONE_ROTATION02: 3,
-    SYSBONE_COUNTER_ROTATION: 4,
-    SYSBONE_PITCH: 5,
-    SYSBONE_PITCH1: 6,
-    SYSBONE_PITCH2: 7,
-    SYSBONE_SCALED_HEIGHT: 8,
-    SYSBONE_SCALED_PITCH01: 9,
-    SYSBONE_SCALED_PITCH02: 10,
-    SYSBONE_SCALED_PITCH03: 11,
-    SYSBONE_SCALED_PITCH04: 12,
-    SYSBONE_SCALED_PITCH05: 13,
-    SYSBONE_SCALED_PITCH06: 14,
-    SYSBONE_MAX: 15,
-  });
+  // The enum belongs to the extracted aiming math (EveTurretAiming.h:13-31);
+  // the alias keeps this host's established surface on one identity.
+  static SystemBones = EveTurretAiming.SystemBones;
 
   static State = Object.freeze({
     STATE_INVALID: 0,
