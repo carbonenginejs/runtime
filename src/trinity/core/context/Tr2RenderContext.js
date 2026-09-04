@@ -530,6 +530,21 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Whether a device exists behind this context.
+   *
+   * Carbon's context answers this because it INHERITS the abstraction layer,
+   * so every AL call that takes a context - a buffer create, a texture map -
+   * can be handed the Trinity one. Ours composes instead, so the question is
+   * forwarded rather than inherited, and the callers read the same.
+   *
+   * @returns {boolean} True once a backend is installed and has a device.
+   */
+  IsValid()
+  {
+    return this.#al ? this.#al.IsValid() : false;
+  }
+
+  /**
    * The extent of a bound render target.
    *
    * Carbon's context answers this because it IS the abstraction layer

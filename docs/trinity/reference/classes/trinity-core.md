@@ -1342,3 +1342,23 @@ GPU-free render context keeping real render-target and depth-stencil state, and 
 - Source: `src/trinity/core/context/Tr2RenderContextALStub.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:Tr2RingBuffer -->
+## `Tr2RingBuffer`
+
+One upload arena per data type, fenced by frame, so many objects share one buffer and are handed an offset each.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2RingBuffer.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2RingBufferOffsets -->
+## `Tr2RingBufferOffsets`
+
+One consumer's cursor into a ring buffer, holding where its rows landed this frame and last.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2RingBuffer.js`
+- Visibility: Public
+- Kind: Carbon

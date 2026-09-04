@@ -390,16 +390,6 @@ Carries periodic reflection-capture textures, position locking, resolution, and 
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2RingBuffer -->
-## `Tr2RingBuffer`
-
-Carries buffer storage, mirrored data, dirty and locked regions, frame, head, tail, stride, and offset for ring allocation.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2RingBuffer.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2SSSSS -->
 ## `Tr2SSSSS`
 

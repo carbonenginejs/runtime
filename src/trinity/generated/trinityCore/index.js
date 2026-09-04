@@ -8,7 +8,6 @@ export * from "./Tr2ImpostorManager.js";
 export * from "./Tr2PrimitiveScene.js";
 export * from "./Tr2PrimitiveText.js";
 export * from "./Tr2ReflectionProbe.js";
-export * from "./Tr2RingBuffer.js";
 export * from "./Tr2SSSSS.js";
 export * from "./Tr2StreamingBitmapSaver.js";
 export * from "./Tr2TextureArray.js";
