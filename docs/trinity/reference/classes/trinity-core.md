@@ -1233,6 +1233,26 @@ The range of faces, mip levels and pixels a map, update or copy applies to; unse
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2DepthAttachment -->
+## `Tr2DepthAttachment`
+
+What a render pass does with its depth attachment at both edges: the load action, the store action, and the depth a clear starts from.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2RenderPassAL.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ColorAttachment -->
+## `Tr2ColorAttachment`
+
+What a render pass does with one colour attachment at both edges: the load action, the store action, and the packed colour a clear starts from.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2RenderPassAL.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2BufferDescriptionAL -->
 ## `Tr2BufferDescriptionAL`
 

@@ -3,11 +3,20 @@ import test from "node:test";
 
 import {
   Tr2BitmapDimensions,
+  Tr2ColorAttachment,
+  Tr2DepthAttachment,
   Tr2RenderContext,
   Tr2RenderContextALStub,
   Tr2TextureALStub
 } from "../../npm/dist/trinity/core/index.js";
-import { PixelFormat, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
+import {
+  PixelFormat,
+  ShaderType,
+  Topology,
+  Tr2GpuUsage,
+  Tr2LoadAction,
+  Tr2StoreAction
+} from "../../npm/dist/global/consts/renderContext/index.js";
 
 const ready = () =>
 {
@@ -528,4 +537,101 @@ test("the manager reports the viewport and target sizes shaders read", () =>
   states.SetViewport({ x: 0, y: 0, width: 64, height: 32 });
 
   assert.deepEqual(states.viewportSizeVar, [ 64, 32, 256, 128 ]);
+});
+
+test("the binding family accepts what a draw needs bound", () =>
+{
+  // These are the verbs a real backend implements and our port was missing:
+  // Carbon's SubmitGeometry (`Tr2RenderContext.cpp:83-103`) reaches every one
+  // of them between picking a batch and drawing it.
+  const al = ready();
+
+  assert.equal(al.BeginScene(), true);
+  assert.equal(al.SetVertexLayout({ id: "layout" }), true);
+  assert.equal(al.SetStreamSource(0, { id: "vertices" }, 0, 32), true);
+  assert.equal(al.SetIndices({ id: "indices" }, 2), true);
+  assert.equal(al.SetShaderProgram({ id: "program" }), true);
+  assert.equal(al.SetResourceSet({ id: "resources" }), true);
+  assert.equal(al.SetConstants({ id: "perObject" }, ShaderType.PIXEL_SHADER, 4), true);
+  assert.equal(al.SetRenderStates([ 1, 2 ], 1), true);
+  assert.equal(al.EndScene(), true);
+});
+
+test("topology is the one bound argument the stub checks", () =>
+{
+  // Carbon validates exactly this and nothing else in the binding family
+  // (`Tr2RenderContextStub.cpp:112-119`), so a topology the AL has no name for
+  // fails rather than reaching a backend that would guess.
+  const al = ready();
+
+  assert.equal(al.SetTopology(Topology.TOP_TRIANGLES), true);
+  assert.equal(al.SetTopology(Topology.TOP_POINTS), true);
+  assert.equal(al.SetTopology(Topology.TOP_MAX_TOPOLOGY), false);
+  assert.equal(al.SetTopology(99), false);
+});
+
+test("a user-pointer draw with nothing behind the pointer fails", () =>
+{
+  // The asymmetry is Carbon's: the INDEXED user-pointer draw validates and the
+  // non-indexed one does not (`cpp:165-199`). Transcribed rather than tidied,
+  // because tidying it would change which calls a backend sees.
+  const al = ready();
+  const indices = new Uint16Array([ 0, 1, 2 ]);
+  const vertices = new Float32Array(9);
+
+  assert.equal(al.DrawIndexedPrimitiveUP(3, 1, indices, vertices, 12), true);
+  assert.equal(al.DrawIndexedPrimitiveUP(3, 1, null, vertices, 12), false);
+  assert.equal(al.DrawIndexedPrimitiveUP(3, 1, indices, null, 12), false);
+  assert.equal(al.DrawPrimitiveUP(1, null, 12), true, "Carbon does not check this one");
+
+  assert.equal(al.GetDrawCount(), 2, "a refused draw is not a draw");
+});
+
+test("the draws that need a GPU to read their arguments are refused", () =>
+{
+  // Carbon refuses both indirect draws in the stub header itself
+  // (`Tr2RenderContextStub.h:161-169`), because the argument buffer only exists
+  // on a device.
+  const al = ready();
+
+  assert.equal(al.DrawIndexedInstancedIndirect({ id: "args" }, 0), false);
+  assert.equal(al.DrawInstancedIndirect({ id: "args" }, 0), false);
+  assert.equal(al.CopySubBuffer({}, 0, {}, 0, 16), false);
+  assert.equal(al.GetDrawCount(), 0);
+});
+
+test("the pass hint is accepted and read-only depth is refused", () =>
+{
+  // RenderPassHint is CARBON'S, not an extension: empty on DX11 and DX12, and
+  // the pass descriptor on Metal. A WebGPU backend consumes it the Metal way,
+  // so the verb has to exist on the contract even where it does nothing.
+  const al = ready();
+
+  assert.equal(
+    al.RenderPassHint(
+      new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE),
+      new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 1)
+    ),
+    undefined
+  );
+  assert.equal(al.EndRenderPassHint(), undefined);
+
+  al.SetReadOnlyDepth(true);
+  assert.equal(al.GetReadOnlyDepth(), false, "the stub has no read-only depth path");
+  assert.equal(al.SupportsBindlessTextures(), false);
+  assert.equal(al.UseResources(), true, "a residency hint, not a bind");
+});
+
+test("an attachment says nothing until it is told to", () =>
+{
+  // Carbon's defaults are DONT_CARE/DONT_CARE, which is why an empty `{}` reads
+  // as "this attachment is not part of the hint" at every EveSpaceScene call.
+  const colour = new Tr2ColorAttachment();
+  const depth = new Tr2DepthAttachment();
+
+  assert.equal(colour.load, Tr2LoadAction.DONT_CARE);
+  assert.equal(colour.store, Tr2StoreAction.DONT_CARE);
+  assert.equal(colour.clearColor, 0);
+  assert.equal(depth.load, Tr2LoadAction.DONT_CARE);
+  assert.equal(depth.clearValue, 0);
 });

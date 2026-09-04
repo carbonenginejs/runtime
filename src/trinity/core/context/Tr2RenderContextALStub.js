@@ -29,7 +29,7 @@
 
 
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2CapsALStub, Tr2TextureALStub } from "../al/index.js";
-import { PixelFormat, Tr2GpuUsage } from "../../../global/consts/renderContext/index.js";
+import { PixelFormat, Topology, Tr2GpuUsage } from "../../../global/consts/renderContext/index.js";
 
 
 function fail(message)
@@ -445,6 +445,244 @@ export class Tr2RenderContextALStub
   }
 
   /**
+   * Opens the device's scene. Carbon's stub accepts it and does nothing
+   * (`cpp:267-270`).
+   *
+   * BeginScene/EndScene is where a deferred backend has its frame boundary:
+   * DX11 uses the pair for nothing, and a command-encoder backend creates its
+   * command buffer on the first and submits on the second.
+   *
+   * @returns {boolean} True.
+   */
+  BeginScene()
+  {
+    return true;
+  }
+
+  /** @see BeginScene */
+  EndScene()
+  {
+    return true;
+  }
+
+  /**
+   * Binds the vertex declaration a following draw reads its streams through.
+   *
+   * @param {object} _layout A `Tr2VertexLayoutAL`.
+   * @returns {boolean} True.
+   */
+  SetVertexLayout(_layout)
+  {
+    return true;
+  }
+
+  /**
+   * Binds one vertex stream.
+   *
+   * @param {number} _stream The stream index.
+   * @param {object} _buffer A `Tr2BufferAL`.
+   * @param {number} _offset Byte offset into the buffer.
+   * @param {number} _stride Bytes per vertex.
+   * @returns {boolean} True.
+   */
+  SetStreamSource(_stream, _buffer, _offset, _stride)
+  {
+    return true;
+  }
+
+  /**
+   * Binds the index buffer.
+   *
+   * Carbon has a stride-less overload as well; the stride defaults here rather
+   * than duplicating the method, because both bodies are the same.
+   *
+   * @param {object} _buffer A `Tr2BufferAL`.
+   * @param {number} [_stride] Bytes per index.
+   * @returns {boolean} True.
+   */
+  SetIndices(_buffer, _stride = 0)
+  {
+    return true;
+  }
+
+  /**
+   * Sets the primitive topology for following draws.
+   *
+   * THE ONE ARGUMENT CARBON'S STUB ACTUALLY VALIDATES (`cpp:112-119`), and the
+   * value is a `Topology`, not a D3D topology. Our own batches currently carry
+   * `D3dPrimitiveTopology`, so a caller reaching this from a batch has a
+   * translation to do; Carbon's batch holds the AL value directly
+   * (`Tr2RenderContext.cpp:86`).
+   *
+   * @param {number} topology A `Topology` value.
+   * @returns {boolean} Whether the topology is one the AL knows.
+   */
+  SetTopology(topology)
+  {
+    return topology < Topology.TOP_MAX_TOPOLOGY;
+  }
+
+  /**
+   * Binds the vertex and pixel shader pair following draws run.
+   *
+   * @param {object} _shaderProgram A `Tr2ShaderProgramAL`.
+   * @returns {boolean} True.
+   */
+  SetShaderProgram(_shaderProgram)
+  {
+    return true;
+  }
+
+  /**
+   * Binds a prepared set of textures, samplers and buffers in one call.
+   *
+   * This is the verb the resource-set caching exists for: Carbon builds a
+   * `Tr2ResourceSetAL` once and rebinds it per draw, rather than binding each
+   * resource individually.
+   *
+   * @param {object} _resourceSet A `Tr2ResourceSetAL`.
+   * @returns {boolean} True.
+   */
+  SetResourceSet(_resourceSet)
+  {
+    return true;
+  }
+
+  /**
+   * Binds a constant buffer at one register for one shader stage.
+   *
+   * The register is the one `Tr2Renderer` names - b0 effect, b1/b2 per frame,
+   * b3/b4 per object - so this is where that map meets the device.
+   *
+   * @param {object} _buffer A `Tr2ConstantBufferAL`.
+   * @param {number} _constantType A `ShaderType`.
+   * @param {number} _registerIndex The constant-buffer register.
+   * @param {number} [_maxRegisterCount] Zero means the buffer's own size.
+   * @returns {boolean} True.
+   */
+  SetConstants(_buffer, _constantType, _registerIndex, _maxRegisterCount = 0)
+  {
+    return true;
+  }
+
+  /**
+   * Sets several render states from packed id/value pairs.
+   *
+   * @param {number[]} _stateValuePairs Alternating state id and value.
+   * @param {number} [_count] How many pairs to read.
+   * @returns {boolean} True.
+   */
+  SetRenderStates(_stateValuePairs, _count = 0)
+  {
+    return true;
+  }
+
+  /**
+   * REFUSED, as Carbon refuses it (`cpp:97-101`). A buffer-to-buffer copy needs
+   * a real backend, and succeeding silently would hide that.
+   *
+   * @returns {boolean} False, always.
+   */
+  CopySubBuffer()
+  {
+    return false;
+  }
+
+  /**
+   * Whether the bound depth buffer is readable while it is also bound.
+   *
+   * Carbon's stub keeps no state here and always answers false (`cpp:211-217`),
+   * so a caller that needs read-only depth needs a real backend.
+   *
+   * @param {boolean} _enable Ignored.
+   */
+  SetReadOnlyDepth(_enable)
+  {
+  }
+
+  /** @see SetReadOnlyDepth @returns {boolean} False, always. */
+  GetReadOnlyDepth()
+  {
+    return false;
+  }
+
+  /**
+   * DECLARES what the next pass does with its attachments at both edges.
+   *
+   * THIS IS THE VERB A COMMAND-ENCODER BACKEND IS BUILT AROUND, and it is
+   * Carbon's, not an extension. DX11 and DX12 implement it as an empty function
+   * (`Tr2RenderContextDx11.cpp:2414`); Metal folds it into the pass descriptor
+   * it opens the next render encoder with. Trinity declares the actions from
+   * `EveSpaceScene`, `Tr2PostProcessRenderer`, `Tr2Denoiser` and
+   * `Tr2ReflectionProbe`, so the load and store actions are DECLARED by the
+   * caller rather than inferred from what follows.
+   *
+   * Carbon's two overloads differ only in how many colour attachments they
+   * carry, so they collapse into one variadic list here.
+   *
+   * @param {...object} _attachments `Tr2ColorAttachment`s then one
+   *   `Tr2DepthAttachment`.
+   */
+  RenderPassHint(..._attachments)
+  {
+  }
+
+  /**
+   * Ends the declared pass, so anything after it opens a new one.
+   *
+   * @see RenderPassHint
+   */
+  EndRenderPassHint()
+  {
+  }
+
+  /**
+   * Names a point in the command stream for a GPU debugger.
+   *
+   * All three marker verbs are empty in Carbon's stub (`cpp:399-410`), and they
+   * are ported because a backend that drops them silently loses every capture
+   * label - which is only ever noticed while debugging something else.
+   *
+   * @param {string} _marker The label.
+   */
+  AddGpuMarker(_marker)
+  {
+  }
+
+  /** @see AddGpuMarker @param {string} _marker The label. */
+  PushGpuMarker(_marker)
+  {
+  }
+
+  /** @see AddGpuMarker */
+  PopGpuMarker()
+  {
+  }
+
+  /**
+   * Whether the backend can address textures without binding them.
+   *
+   * @returns {boolean} False; the stub has no bindless path.
+   */
+  SupportsBindlessTextures()
+  {
+    return false;
+  }
+
+  /**
+   * Declares that a bindless resource collection is about to be read.
+   *
+   * Carbon's stub accepts it (`cpp:436-439`) even though it has no bindless
+   * path, because the declaration is a residency hint rather than a bind.
+   *
+   * @returns {boolean} True.
+   */
+  UseResources()
+  {
+    return true;
+  }
+
+  /**
    * Accepts a render state. Carbon's stub validates the topology enum and
    * accepts the rest (`cpp:112-119`); state values are not interpreted.
    *
@@ -478,7 +716,7 @@ export class Tr2RenderContextALStub
    *
    * @returns {boolean} True.
    */
-  DrawIndexedInstanced()
+  DrawIndexedInstanced(_indexCountPerInstance, _instanceCount, _startIndexLocation, _baseVertexLocation, _startInstanceLocation)
   {
     this.#drawCount += 1;
 
@@ -486,11 +724,102 @@ export class Tr2RenderContextALStub
   }
 
   /** @see DrawIndexedInstanced */
-  DrawInstanced()
+  DrawInstanced(_vertexCountPerInstance, _instanceCount, _startVertexLocation, _startInstanceLocation)
   {
     this.#drawCount += 1;
 
     return true;
+  }
+
+  /**
+   * Counts an indexed draw with no instancing.
+   *
+   * @param {number} _numVertices Vertices the index range spans.
+   * @param {number} _startIndex First index to read.
+   * @param {number} _primitiveCount Primitives to draw.
+   * @param {number} [_minimumIndex] Lowest index value present.
+   * @returns {boolean} True.
+   */
+  DrawIndexedPrimitive(_numVertices, _startIndex, _primitiveCount, _minimumIndex = 0)
+  {
+    this.#drawCount += 1;
+
+    return true;
+  }
+
+  /**
+   * Counts a non-indexed draw with no instancing.
+   *
+   * @param {number} _startVertex First vertex to read.
+   * @param {number} _primitiveCount Primitives to draw.
+   * @returns {boolean} True.
+   */
+  DrawPrimitive(_startVertex, _primitiveCount)
+  {
+    this.#drawCount += 1;
+
+    return true;
+  }
+
+  /**
+   * Counts an indexed draw from caller-supplied memory.
+   *
+   * VALIDATES ITS POINTERS, which Carbon's stub does and does nowhere else
+   * (`cpp:172-199`): a user-pointer draw with nothing behind the pointer is a
+   * caller error the backend can catch without a GPU.
+   *
+   * Carbon's two overloads differ only in 16- versus 32-bit index data, which
+   * is carried by the array's own type here.
+   *
+   * @param {number} _numVertices Vertices the index data spans.
+   * @param {number} _primitiveCount Primitives to draw.
+   * @param {ArrayBufferView} indexData The indices.
+   * @param {ArrayBufferView} vertexStreamZeroData The vertices.
+   * @param {number} _vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} Whether both pointers were supplied.
+   */
+  DrawIndexedPrimitiveUP(_numVertices, _primitiveCount, indexData, vertexStreamZeroData, _vertexStreamZeroStride)
+  {
+    if (!indexData || !vertexStreamZeroData) return false;
+
+    this.#drawCount += 1;
+
+    return true;
+  }
+
+  /**
+   * Counts a non-indexed draw from caller-supplied memory.
+   *
+   * Carbon does NOT validate here, unlike its indexed counterpart
+   * (`cpp:165-171`), and the asymmetry is transcribed rather than tidied.
+   *
+   * @param {number} _primitiveCount Primitives to draw.
+   * @param {ArrayBufferView} _vertexStreamZeroData The vertices.
+   * @param {number} _vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} True.
+   */
+  DrawPrimitiveUP(_primitiveCount, _vertexStreamZeroData, _vertexStreamZeroStride)
+  {
+    this.#drawCount += 1;
+
+    return true;
+  }
+
+  /**
+   * REFUSED, as Carbon refuses both indirect draws (`Tr2RenderContextStub.h:161-169`).
+   * Reading the draw arguments from a buffer needs a GPU.
+   *
+   * @returns {boolean} False, always.
+   */
+  DrawIndexedInstancedIndirect()
+  {
+    return false;
+  }
+
+  /** @see DrawIndexedInstancedIndirect @returns {boolean} False, always. */
+  DrawInstancedIndirect()
+  {
+    return false;
   }
 
   /** How many draws this context was asked for. */
