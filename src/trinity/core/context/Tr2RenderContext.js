@@ -671,6 +671,126 @@ export class Tr2RenderContext extends CjsModel
     return this.#al.GetCaps();
   }
 
+  // THE GEOMETRY BINDING FAMILY, which forwards to the AL and fails without one.
+  //
+  // Every other verb here has a recording fallback, because the intent stream
+  // has a vocabulary for it. These have none, and inventing one would be
+  // building exactly what the WebGPU AL is about to replace. Carbon's
+  // `SubmitGeometry` (`Tr2RenderContext.cpp:83-103`) is the sequence they
+  // exist for: topology, then the declaration, streams and indices through the
+  // state manager's `Apply*` redundancy filter, then the draw.
+
+  /**
+   * Sets the primitive topology for following draws.
+   *
+   * @param {number} topology A `Topology` value, NOT a `D3dPrimitiveTopology`.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  SetTopology(topology)
+  {
+    return this.#requireAL("SetTopology").SetTopology(topology);
+  }
+
+  /**
+   * Binds one vertex stream. Reached through `ApplyStreamSource`, which filters
+   * a redundant bind out first.
+   *
+   * @param {number} stream The stream index.
+   * @param {object} buffer A `Tr2BufferAL`.
+   * @param {number} offset Byte offset into the buffer.
+   * @param {number} stride Bytes per vertex.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  SetStreamSource(stream, buffer, offset, stride)
+  {
+    return this.#requireAL("SetStreamSource").SetStreamSource(stream, buffer, offset, stride);
+  }
+
+  /**
+   * Binds the index buffer. Reached through `ApplyIndexBuffer`.
+   *
+   * @param {object} buffer A `Tr2BufferAL`.
+   * @param {number} [stride] Bytes per index.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  SetIndices(buffer, stride = 0)
+  {
+    return this.#requireAL("SetIndices").SetIndices(buffer, stride);
+  }
+
+  /**
+   * Binds the vertex declaration. Reached through `ApplyVertexDeclaration`.
+   *
+   * @param {object} layout A `Tr2VertexLayoutAL`.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  SetVertexLayout(layout)
+  {
+    return this.#requireAL("SetVertexLayout").SetVertexLayout(layout);
+  }
+
+  /**
+   * Draws the bound geometry, indexed.
+   *
+   * @param {number} indexCountPerInstance Indices each instance reads.
+   * @param {number} instanceCount Instances to draw.
+   * @param {number} startIndexLocation First index to read.
+   * @param {number} baseVertexLocation Value added to every index.
+   * @param {number} startInstanceLocation First instance id.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  DrawIndexedInstanced(
+    indexCountPerInstance,
+    instanceCount,
+    startIndexLocation,
+    baseVertexLocation,
+    startInstanceLocation
+  )
+  {
+    return this.#requireAL("DrawIndexedInstanced").DrawIndexedInstanced(
+      indexCountPerInstance,
+      instanceCount,
+      startIndexLocation,
+      baseVertexLocation,
+      startInstanceLocation
+    );
+  }
+
+  /**
+   * Draws the bound geometry, non-indexed.
+   *
+   * @param {number} vertexCountPerInstance Vertices each instance reads.
+   * @param {number} instanceCount Instances to draw.
+   * @param {number} startVertexLocation First vertex to read.
+   * @param {number} startInstanceLocation First instance id.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation)
+  {
+    return this.#requireAL("DrawInstanced").DrawInstanced(
+      vertexCountPerInstance,
+      instanceCount,
+      startVertexLocation,
+      startInstanceLocation
+    );
+  }
+
+  /**
+   * The installed backend, or a failure naming the verb that needed one.
+   *
+   * @param {string} verb The verb being forwarded.
+   * @returns {object} The render-context AL.
+   */
+  #requireAL(verb)
+  {
+    if (!this.#al)
+    {
+      throw new Error(`Tr2RenderContext has no render-context AL installed; ${verb} binds on a device.`);
+    }
+
+    return this.#al;
+  }
+
   /**
    * The effect state manager this context owns.
    *

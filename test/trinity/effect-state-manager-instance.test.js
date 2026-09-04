@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
-import { CullMode } from "../../npm/dist/global/consts/renderContext/index.js";
+import { Tr2RenderContext, Tr2RenderContextALStub } from "../../npm/dist/trinity/core/index.js";
+import { CullMode, Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const { Unknown, RenderingMode } = Tr2EffectStateManager;
 
@@ -139,4 +140,88 @@ test("an unset vertex declaration is not applied", () =>
 
   assert.equal(manager.ApplyVertexDeclaration(Unknown), false);
   assert.equal(manager.ApplyVertexDeclaration(0), true);
+});
+
+test("a stream bind is filtered only inside a managed span", () =>
+{
+  // Carbon caches the value ONLY in the managed branch (cpp:930-948). Outside a
+  // span nothing tracks the device, so every call has to reach it - recording
+  // one there would let the next span skip a bind it needs.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  const states = context.GetEffectStateManager();
+  const buffer = { id: "vertices" };
+
+  assert.equal(states.ApplyStreamSource(0, buffer, 0, 32), true, "unmanaged: always binds");
+  assert.equal(states.ApplyStreamSource(0, buffer, 0, 32), true, "unmanaged: still binds");
+
+  states.BeginManagedRendering();
+
+  assert.equal(states.ApplyStreamSource(0, buffer, 0, 32), true, "managed: first bind");
+  assert.equal(states.ApplyStreamSource(0, buffer, 0, 32), false, "managed: redundant");
+  assert.equal(states.ApplyStreamSource(0, buffer, 16, 32), true, "a different offset is a different bind");
+  assert.equal(states.ApplyStreamSource(1, buffer, 0, 32), true, "streams cache separately");
+});
+
+test("an index bind is filtered the same way, and a one-byte stride fails", () =>
+{
+  // Carbon warns "Oh no! This is a big bug!" and carries on (cpp:963-966). No
+  // backend has 8-bit indices, so the value can only be uninitialised; a bind
+  // that cannot be right should not reach a device.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  const states = context.GetEffectStateManager();
+  const indices = { id: "indices" };
+
+  states.BeginManagedRendering();
+
+  assert.equal(states.ApplyIndexBuffer(indices, 2), true);
+  assert.equal(states.ApplyIndexBuffer(indices, 2), false);
+  assert.equal(states.ApplyIndexBuffer(indices, 4), true, "a different stride is a different bind");
+
+  assert.throws(() => states.ApplyIndexBuffer(indices, 1), /one-byte index stride/);
+});
+
+test("the binding verbs fail without a backend rather than recording", () =>
+{
+  // Every other verb on the context has a recording fallback because the intent
+  // stream has a vocabulary for it. These have none, and inventing one would be
+  // building what the WebGPU AL is about to replace.
+  const context = new Tr2RenderContext();
+
+  assert.throws(() => context.SetTopology(1), /no render-context AL installed/);
+  assert.throws(() => context.SetStreamSource(0, {}, 0, 32), /no render-context AL installed/);
+  assert.throws(() => context.DrawIndexedInstanced(3, 1, 0, 0, 0), /no render-context AL installed/);
+});
+
+test("the batch-to-draw sequence reaches the device", () =>
+{
+  // Carbon's SubmitGeometry (`Tr2RenderContext.cpp:83-103`) in order: topology,
+  // then the declaration, streams and indices through the redundancy filter,
+  // then the draw.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  const states = context.GetEffectStateManager();
+
+  states.BeginManagedRendering();
+
+  assert.equal(context.SetTopology(Topology.TOP_TRIANGLES), true);
+  assert.equal(states.ApplyVertexDeclaration(0), true);
+  assert.equal(states.ApplyStreamSource(0, { id: "vertices" }, 0, 32), true);
+  assert.equal(states.ApplyIndexBuffer({ id: "indices" }, 2), true);
+  assert.equal(context.DrawIndexedInstanced(36, 1, 0, 0, 0), true);
+
+  assert.equal(al.GetDrawCount(), 1);
 });

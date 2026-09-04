@@ -1,13 +1,17 @@
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 //
-// STILL INCOMPLETE, and not finished-by-design. The registration half is
-// implemented: registerShader, registerShaderProgram, registerRenderStateSetup
-// and getVertexDeclarationHandle intern identities and hand back Carbon's
-// handles. The APPLICATION half is not: ApplyShaderProgram, ApplyRenderStates,
-// ApplyVertexDeclaration, ApplyStandardStates and the m_currentValues
-// redundancy cache are absent, and so is RegisterShaderProgramOverride, which
-// costs the pixel-shader override path. Those need the executor seam.
+// STILL INCOMPLETE, and not finished-by-design - but much less so than this
+// note used to claim, and the claim was left standing long after it stopped
+// being true. Implemented: the registration half (registerShader,
+// registerShaderProgram, registerRenderStateSetup, getVertexDeclarationHandle),
+// the m_currentValues redundancy cache, ApplyShaderProgram, ApplyRenderStates,
+// ApplyVertexDeclaration, ApplyStandardStates, ApplyStreamSource,
+// ApplyIndexBuffer, and the viewport and render-target families.
+//
+// Still absent: RegisterShaderProgramOverride, which costs the pixel-shader
+// override path, and DoApplyRenderStates, which is where a state handle turns
+// into the AL's SetRenderStates.
 //
 // This class declares no @carbon.method, so the parity audit cannot see it:
 // an entirely unimplemented class reports clean. Do not read a green audit as
@@ -250,7 +254,7 @@ function failState(message)
   throw error;
 }
 
-/** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect, and owns the process-wide shader, shader-program and render-state registration tables its handle fields index; the Apply* surface that consumes those handles is not implemented yet. */
+/** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect, owns the process-wide shader, shader-program and render-state registration tables its handle fields index, and filters redundant binds out of the Apply* surface that carries those handles to the abstraction layer. */
 @type.define({ className: "Tr2EffectStateManager", family: "shader" })
 export class Tr2EffectStateManager extends CjsModel
 {
@@ -1144,6 +1148,78 @@ export class Tr2EffectStateManager extends CjsModel
     this.#currentValues.vertexDeclaration = handle;
 
     return handle !== Tr2EffectStateManager.Unknown;
+  }
+
+  /**
+   * Binds one vertex stream unless it is already bound.
+   *
+   * THE FILTER ONLY RUNS INSIDE A MANAGED SPAN (cpp:930-948). Outside one
+   * nothing tracks what the device holds, so every call must reach it; a
+   * cached value recorded there would let the next span skip a bind it needs.
+   *
+   * Carbon's suballocated-buffer overload just unpacks the allocation and calls
+   * this, so it is not a second method here.
+   *
+   * @param {number} stream The stream index.
+   * @param {object} buffer A `Tr2BufferAL`.
+   * @param {number} offset Byte offset into the buffer.
+   * @param {number} stride Bytes per vertex.
+   * @returns {boolean} False when the bind was filtered out as redundant.
+   */
+  ApplyStreamSource(stream, buffer, offset, stride)
+  {
+    const current = this.#currentValues.streams[stream];
+
+    if (!current) throw new Error(`Tr2EffectStateManager: no vertex stream ${stream}.`);
+
+    if (this.#isManagedRendering)
+    {
+      if (buffer === current.vertexBuffer && offset === current.offset && stride === current.stride)
+      {
+        return false;
+      }
+
+      current.vertexBuffer = buffer;
+      current.offset = offset;
+      current.stride = stride;
+    }
+
+    this.#renderContext.SetStreamSource(stream, buffer, offset, stride);
+
+    return true;
+  }
+
+  /**
+   * Binds the index buffer unless it is already bound.
+   *
+   * A ONE-BYTE INDEX STRIDE IS A BUG, and Carbon says so at the top of this
+   * method - "Oh no! This is a big bug!" (cpp:963-966) - because no backend has
+   * 8-bit indices and the value can only have come from an uninitialised
+   * description. It warns and carries on there; here it fails, because a bind
+   * that cannot be right should not reach a device.
+   *
+   * @param {object} indices A `Tr2BufferAL`.
+   * @param {number} stride Bytes per index.
+   * @returns {boolean} False when the bind was filtered out as redundant.
+   */
+  ApplyIndexBuffer(indices, stride)
+  {
+    if (stride === 1) throw new Error("Tr2EffectStateManager: a one-byte index stride is never right.");
+
+    if (this.#isManagedRendering)
+    {
+      if (indices === this.#currentValues.indexBuffer && stride === this.#currentValues.indexStride)
+      {
+        return false;
+      }
+
+      this.#currentValues.indexBuffer = indices;
+      this.#currentValues.indexStride = stride;
+    }
+
+    this.#renderContext.SetIndices(indices, stride);
+
+    return true;
   }
 
   /**
