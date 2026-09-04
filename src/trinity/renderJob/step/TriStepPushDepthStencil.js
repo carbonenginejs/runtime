@@ -42,7 +42,7 @@ export class TriStepPushDepthStencil extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    const accepted = renderContext.PushDepthStencil(this.pushCurrent ? undefined : this.depthStencil);
+    const accepted = renderContext.GetEffectStateManager().PushDepthStencilBuffer(this.pushCurrent ? undefined : this.depthStencil);
     return accepted === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
   }
 }

@@ -32,7 +32,7 @@ export class TriStepSetRenderTarget extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    if (this.renderTarget) renderContext.SetRenderTarget(0, this.renderTarget);
+    if (this.renderTarget) renderContext.GetEffectStateManager().SetRenderTarget(0, this.renderTarget);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

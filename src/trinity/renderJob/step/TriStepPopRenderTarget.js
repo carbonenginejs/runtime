@@ -32,7 +32,7 @@ export class TriStepPopRenderTarget extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    renderContext.PopRenderTarget(this.slot);
+    renderContext.GetEffectStateManager().PopRenderTarget(this.slot);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

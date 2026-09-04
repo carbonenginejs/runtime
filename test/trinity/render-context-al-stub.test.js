@@ -166,16 +166,16 @@ test("a context driven by the stub keeps real state and records no intents", () 
   // target's extent to reset the viewport, so a plain object is not a stand-in.
   const target = renderTarget(128, 128);
 
-  context.SetRenderTarget(0, target);
+  context.GetEffectStateManager().SetRenderTarget(0, target);
   context.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
   context.Clear({ clearColor: true, color: [ 0, 0, 0, 1 ] });
   const offscreen = renderTarget(32, 32);
 
-  context.PushRenderTarget(offscreen, 0);
+  context.GetEffectStateManager().PushRenderTarget(offscreen, 0);
 
   assert.equal(al.GetRenderTarget(0), offscreen, "a pushed target is BOUND, not just saved");
 
-  context.PopRenderTarget(0);
+  context.GetEffectStateManager().PopRenderTarget(0);
 
   assert.equal(al.GetRenderTarget(0), target, "the backend holds the state");
   assert.equal(al.GetViewport().width, 128, "and the restored target's viewport with it");
@@ -208,8 +208,8 @@ test("with a backend installed the context's getters report the backend", () =>
   const target = { id: "colour" };
   const depth = { id: "depth" };
 
-  context.SetRenderTarget(1, target);
-  context.SetDepthStencil(depth);
+  context.GetEffectStateManager().SetRenderTarget(1, target);
+  context.GetEffectStateManager().SetDepthStencilBuffer(depth);
   context.SetViewport({ x: 0, y: 0, width: 32, height: 32 });
 
   assert.equal(context.GetRenderTarget(1), target);
@@ -307,16 +307,16 @@ test("pushing a target BINDS it, and popping restores the one beneath", () =>
   const main = { id: "main" };
   const offscreen = { id: "offscreen" };
 
-  context.SetRenderTarget(0, main);
-  context.PushRenderTarget(offscreen, 0);
+  context.GetEffectStateManager().SetRenderTarget(0, main);
+  context.GetEffectStateManager().PushRenderTarget(offscreen, 0);
 
   assert.equal(context.GetRenderTarget(0), offscreen);
   assert.equal(context.GetStackSizeRT(), 1);
 
-  assert.equal(context.PopRenderTarget(0), true);
+  assert.equal(context.GetEffectStateManager().PopRenderTarget(0), true);
   assert.equal(context.GetRenderTarget(0), main, "the target beneath is bound again");
   assert.equal(context.GetStackSizeRT(), 0);
-  assert.equal(context.PopRenderTarget(0), false, "an empty stack says so");
+  assert.equal(context.GetEffectStateManager().PopRenderTarget(0), false, "an empty stack says so");
 });
 
 test("pushing with no target saves the bound one and changes nothing", () =>
@@ -326,13 +326,13 @@ test("pushing with no target saves the bound one and changes nothing", () =>
   const context = new Tr2RenderContext();
   const main = { id: "main" };
 
-  context.SetRenderTarget(0, main);
-  context.PushRenderTarget(null, 0);
+  context.GetEffectStateManager().SetRenderTarget(0, main);
+  context.GetEffectStateManager().PushRenderTarget(null, 0);
 
   assert.equal(context.GetRenderTarget(0), main);
   assert.equal(context.GetStackSizeRT(), 1);
 
-  context.PopRenderTarget(0);
+  context.GetEffectStateManager().PopRenderTarget(0);
 
   assert.equal(context.GetRenderTarget(0), main);
 });
@@ -343,14 +343,14 @@ test("the depth stencil pushes and pops the same way", () =>
   const main = { id: "main" };
   const shadow = { id: "shadow" };
 
-  context.SetDepthStencil(main);
-  context.PushDepthStencil(shadow);
+  context.GetEffectStateManager().SetDepthStencilBuffer(main);
+  context.GetEffectStateManager().PushDepthStencilBuffer(shadow);
 
   assert.equal(context.GetDepthStencil(), shadow);
 
-  assert.equal(context.PopDepthStencil(), true);
+  assert.equal(context.GetEffectStateManager().PopDepthStencilBuffer(), true);
   assert.equal(context.GetDepthStencil(), main);
-  assert.equal(context.PopDepthStencil(), false);
+  assert.equal(context.GetEffectStateManager().PopDepthStencilBuffer(), false);
 });
 
 test("each slot has its own stack, so interleaved pushes unwind correctly", () =>
@@ -397,14 +397,14 @@ test("stack depth is reported by the backend when one is installed", () =>
   al.CreateDevice();
   context.SetRenderContextAL(al);
 
-  context.PushRenderTarget(null, 0);
-  context.PushDepthStencil(null);
+  context.GetEffectStateManager().PushRenderTarget(null, 0);
+  context.GetEffectStateManager().PushDepthStencilBuffer(null);
 
   assert.equal(context.GetStackSizeRT(0), 1);
   assert.equal(context.GetStackSizeDS(), 1);
 
-  context.PopRenderTarget(0);
-  context.PopDepthStencil();
+  context.GetEffectStateManager().PopRenderTarget(0);
+  context.GetEffectStateManager().PopDepthStencilBuffer();
 
   assert.equal(context.GetStackSizeRT(0), 0);
   assert.equal(context.GetStackSizeDS(), 0);
@@ -437,15 +437,15 @@ test("binding a target to slot zero resets the viewport to its size", () =>
   al.CreateDevice();
   context.SetRenderContextAL(al);
 
-  context.SetRenderTarget(0, renderTarget(512, 512));
+  context.GetEffectStateManager().SetRenderTarget(0, renderTarget(512, 512));
 
   assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 512, height: 512, minZ: 0, maxZ: 1 });
 
-  context.PushRenderTarget(renderTarget(2048, 2048), 0);
+  context.GetEffectStateManager().PushRenderTarget(renderTarget(2048, 2048), 0);
 
   assert.equal(context.GetViewport().width, 2048, "the offscreen pass gets its own viewport");
 
-  context.PopRenderTarget(0);
+  context.GetEffectStateManager().PopRenderTarget(0);
 
   assert.equal(context.GetViewport().width, 512, "and the main target gets its own back");
 });
@@ -458,12 +458,12 @@ test("only slot zero moves the viewport, and a caller can decline", () =>
   al.CreateDevice();
   context.SetRenderContextAL(al);
 
-  context.SetRenderTarget(0, renderTarget(512, 512));
-  context.SetRenderTarget(1, renderTarget(64, 64));
+  context.GetEffectStateManager().SetRenderTarget(0, renderTarget(512, 512));
+  context.GetEffectStateManager().SetRenderTarget(1, renderTarget(64, 64));
 
   assert.equal(context.GetViewport().width, 512, "a second colour attachment is not the viewport");
 
-  context.SetRenderTarget(0, renderTarget(256, 256), false);
+  context.GetEffectStateManager().SetRenderTarget(0, renderTarget(256, 256), false);
 
   assert.equal(context.GetViewport().width, 512, "updateViewport: false leaves it alone");
 });
@@ -487,7 +487,7 @@ test("an authored viewport is clipped to the render target, never to nothing", (
   assert.equal(states.GetViewport().width, 1024, "the authored viewport is kept as authored");
   assert.equal(states.GetDeviceViewport().width, 1024, "and unclipped while no extent is known");
 
-  context.SetRenderTarget(0, al.GetBackBuffer());
+  context.GetEffectStateManager().SetRenderTarget(0, al.GetBackBuffer());
   states.SetViewport({ x: 0, y: 0, width: 1024, height: 1024 });
 
   assert.equal(states.GetViewport().width, 1024);
@@ -502,7 +502,7 @@ test("a viewport starting outside the target still has a legal extent", () =>
 
   al.CreateDevice({ mode: { width: 256, height: 256 } });
   context.SetRenderContextAL(al);
-  context.SetRenderTarget(0, al.GetBackBuffer());
+  context.GetEffectStateManager().SetRenderTarget(0, al.GetBackBuffer());
 
   const states = context.GetEffectStateManager();
 
@@ -521,7 +521,7 @@ test("the manager reports the viewport and target sizes shaders read", () =>
 
   al.CreateDevice({ mode: { width: 256, height: 128 } });
   context.SetRenderContextAL(al);
-  context.SetRenderTarget(0, al.GetBackBuffer());
+  context.GetEffectStateManager().SetRenderTarget(0, al.GetBackBuffer());
 
   const states = context.GetEffectStateManager();
 

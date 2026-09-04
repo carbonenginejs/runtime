@@ -18,7 +18,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { Failed } from "../al/ALResult.js";
+import { ALResult, Failed } from "../al/ALResult.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
@@ -425,26 +425,21 @@ export class Tr2RenderContext extends CjsModel
    * render job that pushed a target went on drawing into the previous one -
    * silently, and exactly where an offscreen pass would notice least.
    */
-  PushRenderTarget(renderTarget = null, slot = 0)
+  PushRenderTarget(slot = 0)
   {
     const index = Number(slot) >>> 0;
 
-    if (this.#al)
+    if (this.#al) return this.#al.PushRenderTarget(index);
+
+    let stack = this.#renderTargetStacks.get(index);
+
+    if (!stack)
     {
-      this.#al.PushRenderTarget(index);
-    }
-    else
-    {
-      let stack = this.#renderTargetStacks.get(index);
-      if (!stack)
-      {
-        stack = [];
-        this.#renderTargetStacks.set(index, stack);
-      }
-      stack.push(this.#renderTargets.get(index) ?? null);
+      stack = [];
+      this.#renderTargetStacks.set(index, stack);
     }
 
-    if (renderTarget != null) this.SetRenderTarget(index, renderTarget);
+    stack.push(this.#renderTargets.get(index) ?? null);
 
     return true;
   }
@@ -460,16 +455,7 @@ export class Tr2RenderContext extends CjsModel
    */
   PopRenderTarget(slot = 0)
   {
-    if (this.#al)
-    {
-      const popped = this.#al.PopRenderTarget(slot);
-
-      // Carbon updates the viewport here as well as on a bind, because its pop
-      // goes straight to the backend (Tr2EffectStateManager.cpp:1054-1063).
-      this.#UpdateRenderTargetViewport(Number(slot) >>> 0, true);
-
-      return popped;
-    }
+    if (this.#al) return this.#al.PopRenderTarget(slot);
 
     const stack = this.#renderTargetStacks.get(Number(slot) >>> 0);
 
@@ -495,12 +481,11 @@ export class Tr2RenderContext extends CjsModel
    * and saves what is bound, while the state manager's one-argument form is
    * push then set (`Tr2EffectStateManager.cpp:1031-1036`).
    */
-  PushDepthStencil(depthStencil = null)
+  PushDepthStencil()
   {
-    if (this.#al) this.#al.PushDepthStencil();
-    else this.#depthStencilStack.push(this.#depthStencil);
+    if (this.#al) return this.#al.PushDepthStencil();
 
-    if (depthStencil != null) this.SetDepthStencil(depthStencil);
+    this.#depthStencilStack.push(this.#depthStencil);
 
     return true;
   }
@@ -533,18 +518,11 @@ export class Tr2RenderContext extends CjsModel
    * Binds a render target to a slot and records a set-render-target intent for
    * the engine to realize.
    */
-  SetRenderTarget(slot, renderTarget, updateViewport = true)
+  SetRenderTarget(slot, renderTarget)
   {
     const index = Number(slot) >>> 0;
 
-    if (this.#al)
-    {
-      const bound = this.#al.SetRenderTarget(index, renderTarget);
-
-      this.#UpdateRenderTargetViewport(index, updateViewport);
-
-      return bound;
-    }
+    if (this.#al) return this.#al.SetRenderTarget(index, renderTarget);
 
     this.#renderTargets.set(index, renderTarget ?? null);
     this.#intents.push({ type: "set-render-target", slot: index, renderTarget: renderTarget ?? null });
@@ -552,35 +530,23 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Resets the viewport to the target now bound to slot zero.
+   * The extent of a bound render target.
    *
-   * CARBON DOES THIS ON EVERY BIND, and forgetting it is the bug where a pass
-   * renders into a corner. `Tr2EffectStateManager::SetRenderTarget` updates the
-   * viewport whenever slot zero changes (`Tr2EffectStateManager.cpp:1133-1149`),
-   * and `PopRenderTarget` does the same on the way back (`:1054-1063`), so a
-   * 2048-wide shadow pass leaves the viewport at 2048 without it.
+   * Carbon's context answers this because it IS the abstraction layer
+   * (`Tr2RenderContextDx11.cpp` GetRenderTargetSize), and the effect state
+   * manager asks it rather than measuring a texture, because a bound target
+   * may be a null one.
    *
-   * IT ASKS THE CONTEXT FOR THE SIZE, NOT THE TEXTURE. Carbon's comment says
-   * why: "don't use rt.GetWidth/Height, rt may be nullRT".
-   *
-   * Only possible with a backend installed, since nothing else knows a bound
-   * target's extent - which is the same reason `SetFullScreenViewport` defers
-   * on the recording path.
+   * @param {number} [slot] Target slot.
+   * @returns {{result: number, width: number, height: number}} The extent.
    */
-  #UpdateRenderTargetViewport(slot, updateViewport)
+  GetRenderTargetSize(slot = 0)
   {
-    if (slot !== 0 || !updateViewport) return;
+    if (this.#al) return this.#al.GetRenderTargetSize(slot);
 
-    const size = this.#al.GetRenderTargetSize(0);
-
-    if (Failed(size.result)) return;
-
-    // The manager records the extent and resets both viewports to it; Carbon
-    // stops there because its backend applies the viewport as part of the
-    // target bind. Ours does not, so SetupViewport pushes it - the one place
-    // this differs, and it differs because the backend does.
-    this.#esm.UpdateRenderTargetViewport(size.width, size.height);
-    this.#esm.SetupViewport();
+    // Nothing knows a bound target's extent on the recording path; that is
+    // why SetFullScreenViewport defers there rather than answering.
+    return { result: ALResult.E_FAIL, width: 0, height: 0 };
   }
 
   /**

@@ -38,10 +38,10 @@ export class CjsDirectTrinityStepExecutor extends CjsTrinityStepExecutor
   /** Pushes the default render-target and depth-stencil batch state. */
   BeginBatch(_owner, context)
   {
-    context.PushRenderTarget(null, 0);
+    context.PushRenderTarget(0);
     try
     {
-      context.PushDepthStencil(null);
+      context.PushDepthStencil();
     }
     catch (error)
     {

@@ -25,6 +25,7 @@ import {
 } from "#consts/render-context";
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition.js";
 import { Tr2RenderStateSetup } from "#resource/shader";
+import { Failed } from "../core/al/ALResult.js";
 
 // Carbon's tables are file-scope statics shared across every state manager
 // (Tr2EffectStateManager.cpp:17-27, "These are shared across managers."). Ours
@@ -678,6 +679,119 @@ export class Tr2EffectStateManager extends CjsModel
     this.#renderContext = renderContext;
 
     return this;
+  }
+
+  /**
+   * Binds a render target to a slot and refreshes the viewport for slot zero.
+   *
+   * Carbon's is `SetRenderTarget(index, rt, updateViewport, slice)`
+   * (cpp:1133-1152): it sets through the abstraction layer and then, for slot
+   * zero only, asks the CONTEXT for the target's extent. Its comment says why
+   * the context and not the texture: "don't use rt.GetWidth/Height, rt may be
+   * nullRT".
+   *
+   * @param {number} index Target slot.
+   * @param {object|null} renderTarget The target.
+   * @param {boolean} [updateViewport] Whether slot zero moves the viewport.
+   * @returns {boolean} Whether the bind was accepted.
+   */
+  SetRenderTarget(index, renderTarget, updateViewport = true)
+  {
+    const bound = this.#renderContext.SetRenderTarget(index, renderTarget);
+
+    if (index === 0 && updateViewport) this.#RefreshRenderTargetViewport();
+
+    return bound;
+  }
+
+  /**
+   * Saves the target bound to a slot, and binds a new one if given.
+   *
+   * Carbon's two overloads (cpp:1043-1052): the slot-only form saves and binds
+   * nothing, the two-argument form saves and then sets.
+   *
+   * @param {object|null} [renderTarget] The target to bind after saving.
+   * @param {number} [slot] Target slot.
+   * @returns {boolean} True.
+   */
+  PushRenderTarget(renderTarget = null, slot = 0)
+  {
+    this.#renderContext.PushRenderTarget(slot);
+
+    if (renderTarget != null) this.SetRenderTarget(slot, renderTarget);
+
+    return true;
+  }
+
+  /**
+   * Restores the target saved for a slot and refreshes the viewport.
+   *
+   * @param {number} [slot] Target slot.
+   * @returns {boolean} False when nothing was saved.
+   */
+  PopRenderTarget(slot = 0)
+  {
+    const popped = this.#renderContext.PopRenderTarget(slot);
+
+    if (slot === 0) this.#RefreshRenderTargetViewport();
+
+    return popped;
+  }
+
+  /**
+   * Binds the depth-stencil surface.
+   *
+   * @param {object|null} depthStencil The surface, or null to unbind.
+   * @returns {boolean} Whether the bind was accepted.
+   */
+  SetDepthStencilBuffer(depthStencil)
+  {
+    return this.#renderContext.SetDepthStencil(depthStencil);
+  }
+
+  /**
+   * Saves the bound depth-stencil, and binds another if one is given.
+   *
+   * Carbon has three overloads and the difference between two of them matters:
+   * no argument saves and binds nothing, while an explicitly EMPTY texture
+   * saves and then unbinds (`TriStepPushDepthStencil.cpp:44,48`). Passing
+   * `undefined` is the first; passing `null` is the second.
+   *
+   * @param {object|null} [depthStencil] The surface to bind after saving.
+   * @returns {boolean} True.
+   */
+  PushDepthStencilBuffer(depthStencil = undefined)
+  {
+    this.#renderContext.PushDepthStencil();
+
+    if (depthStencil !== undefined) this.SetDepthStencilBuffer(depthStencil);
+
+    return true;
+  }
+
+  /**
+   * Restores the saved depth-stencil.
+   *
+   * @returns {boolean} False when nothing was saved.
+   */
+  PopDepthStencilBuffer()
+  {
+    return this.#renderContext.PopDepthStencil();
+  }
+
+  /** Reads the bound target's extent and resets the viewport to it. */
+  #RefreshRenderTargetViewport()
+  {
+    const size = this.#renderContext.GetRenderTargetSize(0);
+
+    if (Failed(size.result)) return;
+
+    this.UpdateRenderTargetViewport(size.width, size.height);
+
+    // Carbon stops at the update, because its backend applies the viewport as
+    // part of the target bind. Ours does not, so the derived viewport is pushed
+    // here - the backend forces this, not preference.
+    this.SetupViewport();
   }
 
   /**

@@ -32,7 +32,7 @@ export class TriStepSetDepthStencil extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    const accepted = renderContext.SetDepthStencil(this.depthStencil);
+    const accepted = renderContext.GetEffectStateManager().SetDepthStencilBuffer(this.depthStencil);
     return accepted === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
   }
 }

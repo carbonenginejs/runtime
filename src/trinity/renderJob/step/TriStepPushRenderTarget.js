@@ -34,7 +34,7 @@ export class TriStepPushRenderTarget extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    renderContext.PushRenderTarget(this.renderTarget, this.slot);
+    renderContext.GetEffectStateManager().PushRenderTarget(this.renderTarget, this.slot);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

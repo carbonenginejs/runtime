@@ -17,7 +17,7 @@ export class TriStepPopDepthStencil extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    renderContext.PopDepthStencil();
+    renderContext.GetEffectStateManager().PopDepthStencilBuffer();
     return TriRenderJob.StepResult.RS_OK;
   }
 }
