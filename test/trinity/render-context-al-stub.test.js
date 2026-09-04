@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Tr2RenderContextALStub } from "../../src/trinity/core/context/Tr2RenderContextALStub.js";
+import { Tr2RenderContext, Tr2RenderContextALStub } from "../../npm/dist/trinity/core/index.js";
 
 const ready = () =>
 {
@@ -142,4 +142,38 @@ test("Destroy clears the bindings and drops validity", () =>
   assert.equal(al.IsValid(), false);
   assert.equal(al.GetRenderTarget(0), null);
   assert.equal(al.GetStackSizeRT(), 0);
+});
+
+test("a context driven by the stub keeps real state and records no intents", () =>
+{
+  // The point of the port: with a backend installed the context CALLS it, as
+  // Carbon's does, instead of writing the call down for someone to replay.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  const target = { id: "colour" };
+
+  context.SetRenderTarget(0, target);
+  context.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
+  context.Clear({ clearColor: true, color: [ 0, 0, 0, 1 ] });
+  context.PushRenderTarget({ id: "offscreen" }, 0);
+  context.PopRenderTarget(0);
+
+  assert.equal(al.GetRenderTarget(0), target, "the backend holds the state");
+  assert.deepEqual(al.GetViewport(), { x: 0, y: 0, width: 64, height: 64 });
+  assert.equal(context.GetIntents().length, 0, "nothing was recorded");
+});
+
+test("with no backend the context still records, so nothing broke on the way", () =>
+{
+  // The fallback is what every existing caller uses until a backend exists;
+  // removing it before the WebGPU backend lands would stop the engine drawing.
+  const context = new Tr2RenderContext();
+
+  context.Clear({ clearColor: true });
+
+  assert.ok(context.GetIntents().length > 0);
 });

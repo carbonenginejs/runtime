@@ -48,6 +48,22 @@ export class Tr2RenderContext extends CjsModel
 
   #volumetricsExecutor = null;
 
+  /**
+   * The abstraction-layer backend, when one is installed.
+   *
+   * Carbon's Tr2RenderContext IS Tr2RenderContextBase + Tr2RenderContextAL: the
+   * base adds the RenderBatches family and the AL supplies every other verb.
+   * This field is that AL half. With a backend installed the verbs CALL it, as
+   * Carbon does; with none they fall back to recording, which is what this
+   * class did for every caller before the AL existed.
+   *
+   * The recording is on its way out - see
+   * /docs/research/carbon-fidelity-audit-2026-09-04.md section 1b, which found
+   * that all 28 intent types are AL verbs, RenderBatches, or TriStep/
+   * Tr2EffectStateManager methods, and none is a feature worth keeping.
+   */
+  #al = null;
+
   #intents = [];
 
   #renderTargets = new Map();
@@ -198,6 +214,29 @@ export class Tr2RenderContext extends CjsModel
   /**
    * Delegates step execution to the installed nominal executor.
    */
+  /**
+   * Installs the abstraction-layer backend this context drives.
+   *
+   * `Tr2RenderContextALStub` gives a headless context that still carries
+   * correct data; an engine installs its own. Passing null restores the
+   * recording fallback.
+   *
+   * @param {object|null} al The backend.
+   * @returns {object|null} The backend now installed.
+   */
+  SetRenderContextAL(al = null)
+  {
+    this.#al = al ?? null;
+
+    return this.#al;
+  }
+
+  /** The installed backend, or null while recording. */
+  GetRenderContextAL()
+  {
+    return this.#al;
+  }
+
   ExecuteStep(step, realTime, simTime, job)
   {
     return this.#stepExecutor.ExecuteStep(step, realTime, simTime, job, this);
@@ -369,6 +408,8 @@ export class Tr2RenderContext extends CjsModel
    */
   PushRenderTarget(renderTarget = null, slot = 0)
   {
+    if (this.#al) return this.#al.PushRenderTarget(renderTarget, slot);
+
     const index = Number(slot) >>> 0;
     let stack = this.#renderTargetStacks.get(index);
     if (!stack)
@@ -386,6 +427,8 @@ export class Tr2RenderContext extends CjsModel
    */
   PopRenderTarget(slot = 0)
   {
+    if (this.#al) return this.#al.PopRenderTarget(slot);
+
     const stack = this.#renderTargetStacks.get(Number(slot) >>> 0);
     return stack?.length ? stack.pop() : null;
   }
@@ -402,6 +445,8 @@ export class Tr2RenderContext extends CjsModel
    */
   PushDepthStencil(depthStencil = null)
   {
+    if (this.#al) return this.#al.PushDepthStencil(depthStencil);
+
     this.#depthStencilStack.push(depthStencil);
     return true;
   }
@@ -409,6 +454,8 @@ export class Tr2RenderContext extends CjsModel
   /** Pops the top depth-stencil, or null when the stack is empty. */
   PopDepthStencil()
   {
+    if (this.#al) return this.#al.PopDepthStencil();
+
     return this.#depthStencilStack.length ? this.#depthStencilStack.pop() : null;
   }
 
@@ -424,6 +471,8 @@ export class Tr2RenderContext extends CjsModel
    */
   SetRenderTarget(slot, renderTarget)
   {
+    if (this.#al) return this.#al.SetRenderTarget(slot, renderTarget);
+
     const index = Number(slot) >>> 0;
     this.#renderTargets.set(index, renderTarget ?? null);
     this.#intents.push({ type: "set-render-target", slot: index, renderTarget: renderTarget ?? null });
@@ -442,6 +491,8 @@ export class Tr2RenderContext extends CjsModel
   /** Binds the depth-stencil surface and records a set-depth-stencil intent. */
   SetDepthStencil(depthStencil)
   {
+    if (this.#al) return this.#al.SetDepthStencil(depthStencil);
+
     this.#depthStencil = depthStencil ?? null;
     this.#intents.push({ type: "set-depth-stencil", depthStencil: this.#depthStencil });
     return true;
@@ -460,6 +511,8 @@ export class Tr2RenderContext extends CjsModel
    */
   Clear(options)
   {
+    if (this.#al) return this.#al.Clear(options);
+
     const intent = {
       type: "clear",
       color: options?.color ? Array.from(options.color) : null,
@@ -476,6 +529,8 @@ export class Tr2RenderContext extends CjsModel
   /** GPU-free validity check: any non-null render target counts as valid. */
   IsRenderTargetValid(renderTarget)
   {
+    if (this.#al) return this.#al.IsRenderTargetValid(renderTarget);
+
     return renderTarget != null;
   }
 
@@ -485,6 +540,8 @@ export class Tr2RenderContext extends CjsModel
    */
   ResolveRenderTarget(source, destination)
   {
+    if (this.#al) return this.#al.ResolveRenderTarget(source, destination);
+
     this.#intents.push({ type: "resolve-render-target", source, destination });
     return true;
   }
@@ -495,6 +552,8 @@ export class Tr2RenderContext extends CjsModel
    */
   CopyRenderTarget(intent)
   {
+    if (this.#al) return this.#al.CopyRenderTarget(intent);
+
     this.#intents.push({ type: "copy-render-target", ...intent });
     return true;
   }
@@ -502,6 +561,8 @@ export class Tr2RenderContext extends CjsModel
   /** Records a generate-mipmaps intent for a render target. */
   GenerateMipMaps(renderTarget)
   {
+    if (this.#al) return this.#al.GenerateMipMaps(renderTarget);
+
     this.#intents.push({ type: "generate-mipmaps", renderTarget });
     return true;
   }
@@ -615,6 +676,8 @@ export class Tr2RenderContext extends CjsModel
    */
   ClearUav(buffer, value, clearWithFloat = false)
   {
+    if (this.#al) return this.#al.ClearUav(buffer, value, clearWithFloat);
+
     this.#intents.push({ type: "clear-uav", buffer, value: Array.from(value), clearWithFloat: !!clearWithFloat });
     return true;
   }
@@ -664,6 +727,8 @@ export class Tr2RenderContext extends CjsModel
    */
   RunComputeShader(effect, groupDimX = 1, groupDimY = 1, groupDimZ = 1)
   {
+    if (this.#al) return this.#al.RunComputeShader(effect, groupDimX, groupDimY, groupDimZ);
+
     this.#intents.push({ type: "run-compute-shader", effect, groupDimX, groupDimY, groupDimZ });
     return true;
   }
@@ -674,6 +739,8 @@ export class Tr2RenderContext extends CjsModel
    */
   RunComputeShaderIndirect(effect, indirectionBuffer, offsetForArgs = 0)
   {
+    if (this.#al) return this.#al.RunComputeShaderIndirect(effect, indirectionBuffer, offsetForArgs);
+
     this.#intents.push({ type: "run-compute-shader-indirect", effect, indirectionBuffer, offsetForArgs });
     return true;
   }
@@ -700,6 +767,8 @@ export class Tr2RenderContext extends CjsModel
   /** Records the end-of-frame present intent for a swap chain. */
   PresentSwapChain(swapChain)
   {
+    if (this.#al) return this.#al.PresentSwapChain(swapChain);
+
     this.#intents.push({ type: "present-swap-chain", swapChain });
     return true;
   }
@@ -710,6 +779,8 @@ export class Tr2RenderContext extends CjsModel
    */
   SetViewport(viewport)
   {
+    if (this.#al) return this.#al.SetViewport(viewport);
+
     this.#viewport = viewport ?? null;
     this.#intents.push({ type: "set-viewport", viewport: this.#viewport });
     return true;
