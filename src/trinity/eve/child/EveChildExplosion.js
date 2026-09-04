@@ -165,7 +165,7 @@ export class EveChildExplosion extends EveChildContainer
   {
     if (this.generatedGlobalExplosions)
     {
-      this.generatedGlobalExplosions.UnRegister?.(this.GetComponentRegistry());
+      this.generatedGlobalExplosions.UnRegister(this.GetComponentRegistry());
     }
     super.UnRegisterComponents();
   }

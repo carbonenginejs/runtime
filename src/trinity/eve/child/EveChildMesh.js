@@ -1462,7 +1462,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
 
       for (const attachment of this.attachments)
       {
-        attachment?.Register?.(registry);
+        attachment?.Register(registry);
       }
     }
   }
@@ -1480,7 +1480,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
     {
       for (const attachment of this.attachments)
       {
-        attachment?.UnRegister?.(registry);
+        attachment?.UnRegister(registry);
       }
     }
   }

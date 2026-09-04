@@ -115,7 +115,7 @@ export class EveChildRef extends EveChildTransform
   {
     if (this.IsInRegistry() && this.child !== null && this.display)
     {
-      this.child.Register?.(this.GetComponentRegistry());
+      this.child.Register(this.GetComponentRegistry());
     }
   }
 
@@ -127,7 +127,7 @@ export class EveChildRef extends EveChildTransform
   {
     if (this.IsInRegistry() && this.child !== null)
     {
-      this.child.UnRegister?.(this.GetComponentRegistry());
+      this.child.UnRegister(this.GetComponentRegistry());
     }
   }
 

@@ -134,12 +134,12 @@ export class EveChildInstanceContainer extends EveChildTransform
       const registry = this.GetComponentRegistry();
       for (const instance of this.instances)
       {
-        instance?.Register?.(registry);
+        instance?.Register(registry);
       }
 
       if (!this.instances.length && !this.disableEditMode)
       {
-        this.source?.Register?.(registry);
+        this.source?.Register(registry);
       }
     }
   }
@@ -155,9 +155,9 @@ export class EveChildInstanceContainer extends EveChildTransform
       const registry = this.GetComponentRegistry();
       for (const instance of this.instances)
       {
-        instance?.UnRegister?.(registry);
+        instance?.UnRegister(registry);
       }
-      this.source?.UnRegister?.(registry);
+      this.source?.UnRegister(registry);
     }
   }
 

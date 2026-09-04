@@ -187,7 +187,7 @@ export class EveSwarm extends EveShip2
       registry.UnRegisterAllComponents(this);
       for (const renderable of this.renderables)
       {
-        renderable?.Register?.(registry);
+        renderable?.Register(registry);
       }
     }
   }
@@ -204,7 +204,7 @@ export class EveSwarm extends EveShip2
     {
       for (const renderable of this.renderables)
       {
-        renderable?.UnRegister?.(registry);
+        renderable?.UnRegister(registry);
       }
     }
   }

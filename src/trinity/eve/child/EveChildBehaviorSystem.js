@@ -307,7 +307,7 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
   /** Carbon EveChildBehaviorSystem::RegisterComponents (cpp:686-700). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon multiple-inherits EveEntity; the JS class reaches the registry through the optional GetComponentRegistry duck.")
+  @impl.reason("Carbon multiple-inherits EveEntity per concrete child; the JS port hoists it to the child root instead, so this class INHERITS GetComponentRegistry rather than probing for it.")
   RegisterComponents()
   {
     if (!this.display)
@@ -315,14 +315,14 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
       return;
     }
 
-    const registry = this.GetComponentRegistry?.() ?? null;
+    const registry = this.GetComponentRegistry() ?? null;
     if (!registry)
     {
       return;
     }
     for (const group of this.behaviorGroups)
     {
-      group?.Register?.(registry);
+      group?.Register(registry);
     }
   }
 
@@ -339,7 +339,7 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
     }
     for (const group of this.behaviorGroups)
     {
-      group?.UnRegister?.(registry);
+      group?.UnRegister(registry);
     }
   }
 

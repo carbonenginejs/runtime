@@ -165,12 +165,12 @@ export class EveShip2 extends EveMobile
     const registry = this.GetComponentRegistry?.();
     if (registry)
     {
-      this.boosters?.UnRegister?.(registry);
+      this.boosters?.UnRegister(registry);
     }
     this.boosters = boosters ?? null;
     if (registry)
     {
-      this.boosters?.Register?.(registry);
+      this.boosters?.Register(registry);
     }
   }
 
@@ -184,7 +184,7 @@ export class EveShip2 extends EveMobile
     const registry = this.GetComponentRegistry();
     if (registry && this.boosters)
     {
-      this.boosters.Register?.(registry);
+      this.boosters.Register(registry);
     }
   }
 
@@ -198,7 +198,7 @@ export class EveShip2 extends EveMobile
     const registry = this.GetComponentRegistry();
     if (registry && this.boosters)
     {
-      this.boosters.UnRegister?.(registry);
+      this.boosters.UnRegister(registry);
     }
   }
 

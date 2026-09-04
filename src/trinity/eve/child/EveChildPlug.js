@@ -135,7 +135,7 @@ export class EveChildPlug extends EveChildTransform
     {
       for (const object of this.objects)
       {
-        object?.Register?.(registry);
+        object?.Register(registry);
       }
     }
   }
@@ -151,7 +151,7 @@ export class EveChildPlug extends EveChildTransform
     {
       for (const object of this.objects)
       {
-        object?.UnRegister?.(registry);
+        object?.UnRegister(registry);
       }
     }
   }

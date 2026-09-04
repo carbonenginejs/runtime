@@ -1008,12 +1008,12 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
 
       for (const object of this.objects)
       {
-        object?.Register?.(registry);
+        object?.Register(registry);
       }
 
       for (const attachment of this.attachments)
       {
-        attachment?.Register?.(registry);
+        attachment?.Register(registry);
       }
     }
   }
@@ -1031,12 +1031,12 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     {
       for (const object of this.objects)
       {
-        object?.UnRegister?.(registry);
+        object?.UnRegister(registry);
       }
 
       for (const attachment of this.attachments)
       {
-        attachment?.UnRegister?.(registry);
+        attachment?.UnRegister(registry);
       }
     }
   }

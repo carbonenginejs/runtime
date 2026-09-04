@@ -479,7 +479,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
       }
       for (const child of this.effectChildren)
       {
-        child?.Register?.(registry);
+        child?.Register(registry);
       }
     }
   }
@@ -496,7 +496,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     {
       for (const child of this.effectChildren)
       {
-        child?.UnRegister?.(registry);
+        child?.UnRegister(registry);
       }
     }
   }

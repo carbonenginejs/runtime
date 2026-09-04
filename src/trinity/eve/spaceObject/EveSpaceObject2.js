@@ -1814,12 +1814,12 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
       for (const child of this.effectChildren)
       {
-        child?.Register?.(registry);
+        child?.Register(registry);
       }
 
       for (const attachment of this.attachments)
       {
-        attachment?.Register?.(registry);
+        attachment?.Register(registry);
       }
     }
   }
@@ -1838,12 +1838,12 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     {
       for (const child of this.effectChildren)
       {
-        child?.UnRegister?.(registry);
+        child?.UnRegister(registry);
       }
 
       for (const attachment of this.attachments)
       {
-        attachment?.UnRegister?.(registry);
+        attachment?.UnRegister(registry);
       }
     }
   }

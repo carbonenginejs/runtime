@@ -1109,8 +1109,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     if (registry && this.display)
     {
       registry.RegisterComponent(EveComponentType.ShadowCaster, this);
-      this.firingEffect?.Register?.(registry);
-      this.#ambientEffect()?.Register?.(registry);
+      this.firingEffect?.Register(registry);
+      this.#ambientEffect()?.Register(registry);
     }
   }
 
@@ -1124,8 +1124,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      this.firingEffect?.UnRegister?.(registry);
-      this.#ambientEffect()?.UnRegister?.(registry);
+      this.firingEffect?.UnRegister(registry);
+      this.#ambientEffect()?.UnRegister(registry);
     }
   }
 

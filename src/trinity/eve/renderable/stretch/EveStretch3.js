@@ -660,9 +660,9 @@ export class EveStretch3 extends IEveFiringEffectElement
     const registry = this.GetComponentRegistry();
     if (registry && this.display)
     {
-      this.sourceObject?.Register?.(registry);
-      this.destObject?.Register?.(registry);
-      this.stretchObject?.Register?.(registry);
+      this.sourceObject?.Register(registry);
+      this.destObject?.Register(registry);
+      this.stretchObject?.Register(registry);
     }
   }
 
@@ -674,9 +674,9 @@ export class EveStretch3 extends IEveFiringEffectElement
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      this.sourceObject?.UnRegister?.(registry);
-      this.destObject?.UnRegister?.(registry);
-      this.stretchObject?.UnRegister?.(registry);
+      this.sourceObject?.UnRegister(registry);
+      this.destObject?.UnRegister(registry);
+      this.stretchObject?.UnRegister(registry);
     }
   }
 

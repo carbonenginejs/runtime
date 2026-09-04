@@ -9,13 +9,24 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 // Carbon's registered space-object children multiple-inherit EveEntity
 // alongside EveChildTransform (e.g. EveChildMesh.h:56-64, EveChildContainer.h
-// :33-41); JavaScript single inheritance flattens the EveEntity registration
-// lifecycle (Register/UnRegister/GetComponentRegistry/component state) into
-// this shared child base so container RegisterComponents overrides can forward
-// child?.Register?.(registry) exactly like Carbon's BlueCastPtr<EveEntity>
-// fan-out. Children whose Carbon class is not an EveEntity simply never get
-// forwarded a registry (Carbon's BlueCastPtr fails; JS registers them with no
-// components, base RegisterComponents being a no-op).
+// :33-41). JavaScript single inheritance cannot express that, so the port
+// HOISTS the EveEntity registration lifecycle
+// (Register/UnRegister/GetComponentRegistry/component state) to the child
+// root at IEveSpaceObjectChild, and every child reaches it from there.
+//
+// THIS IS A DELIBERATE OVER-APPROXIMATION, and the consequence is worth
+// stating plainly: Carbon fans out through BlueCastPtr<EveEntity>, which
+// FAILS for a child whose class is not an EveEntity, so that child is never
+// registered. Here the cast cannot fail, so such a child registers anyway -
+// with no components, base RegisterComponents being a no-op. Same observable
+// result today; not the same rule.
+//
+// A NOTE THAT USED TO LIVE HERE SAID THE `child?.Register?.()` HEDGES WERE
+// STANDING IN FOR THAT CAST. They were not, and the claim outlived its own
+// premise: once EveEntity sits at the child root, every element of every
+// child list has Register, and the hedge could not fire. The method guards
+// were dropped on 2026-09-05. The one that survives is in BehaviorGroup,
+// which resolves its target by STRING NAME rather than by type.
 
 /**
  * Shared base for space-object children: holds the SRT values, local and world

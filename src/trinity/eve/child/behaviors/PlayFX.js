@@ -261,7 +261,7 @@ export class PlayFX extends EveEntity
     {
       for (const fx of this.generatedFiringEffects)
       {
-        fx?.Register?.(registry);
+        fx?.Register(registry);
       }
     }
   }
@@ -276,7 +276,7 @@ export class PlayFX extends EveEntity
     {
       for (const fx of this.generatedFiringEffects)
       {
-        fx?.UnRegister?.(registry);
+        fx?.UnRegister(registry);
       }
     }
   }

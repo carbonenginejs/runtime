@@ -62,7 +62,7 @@ export class EveMobile extends EveSpaceObject2
     {
       for (const turretSet of this.turretSets)
       {
-        turretSet?.Register?.(registry);
+        turretSet?.Register(registry);
       }
     }
   }
@@ -79,7 +79,7 @@ export class EveMobile extends EveSpaceObject2
     {
       for (const turretSet of this.turretSets)
       {
-        turretSet?.UnRegister?.(registry);
+        turretSet?.UnRegister(registry);
       }
     }
   }

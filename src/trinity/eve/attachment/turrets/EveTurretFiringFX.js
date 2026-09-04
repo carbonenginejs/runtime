@@ -724,7 +724,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        element?.Register?.(registry);
+        element?.Register(registry);
       }
     }
   }
@@ -740,7 +740,7 @@ export class EveTurretFiringFX extends EveEntity
     {
       for (const element of this.stretch)
       {
-        element?.UnRegister?.(registry);
+        element?.UnRegister(registry);
       }
     }
   }

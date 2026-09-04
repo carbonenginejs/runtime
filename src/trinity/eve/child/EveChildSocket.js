@@ -134,7 +134,7 @@ export class EveChildSocket extends EveChildTransform
   {
     if (this.IsInRegistry() && this.plug !== null && this.display)
     {
-      this.plug.Register?.(this.GetComponentRegistry());
+      this.plug.Register(this.GetComponentRegistry());
     }
   }
 
@@ -146,7 +146,7 @@ export class EveChildSocket extends EveChildTransform
   {
     if (this.IsInRegistry() && this.plug)
     {
-      this.plug.UnRegister?.(this.GetComponentRegistry());
+      this.plug.UnRegister(this.GetComponentRegistry());
     }
   }
 

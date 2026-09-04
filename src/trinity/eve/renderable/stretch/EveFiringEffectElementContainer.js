@@ -224,7 +224,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @carbon.method @impl.implemented
   RegisterComponents()
   {
-    this.element?.Register?.(this.GetComponentRegistry());
+    this.element?.Register(this.GetComponentRegistry());
   }
 
   /** Carbon EveFiringEffectElementContainer::UnRegisterComponents
@@ -232,7 +232,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @carbon.method @impl.implemented
   UnRegisterComponents()
   {
-    this.element?.UnRegister?.(this.GetComponentRegistry());
+    this.element?.UnRegister(this.GetComponentRegistry());
   }
 
   static #zero = vec3.create();

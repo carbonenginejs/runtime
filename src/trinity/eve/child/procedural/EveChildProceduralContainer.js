@@ -387,7 +387,7 @@ export class EveChildProceduralContainer extends EveChildTransform
     const registry = this.GetComponentRegistry();
     if (registry && this.display)
     {
-      this.selectedObject?.Register?.(registry);
+      this.selectedObject?.Register(registry);
     }
   }
 
@@ -400,7 +400,7 @@ export class EveChildProceduralContainer extends EveChildTransform
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      this.selectedObject?.UnRegister?.(registry);
+      this.selectedObject?.UnRegister(registry);
     }
   }
 
