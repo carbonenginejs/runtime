@@ -16,9 +16,10 @@ geometry. Writing is pure JavaScript and uses CMF as the interchange boundary;
 cameras and lights are outside this geometry-format contract.
 
 The reader owns Granny container parsing, reflected type-tree walking, section
-decompression, JSON projection, optional curve and vertex-channel conversion,
-GSF projection, and caller-class hydration. Resource caching and publication
-remain with `CjsResMan`; GPU realization remains with engine packages.
+decompression, shared graph projection, JSON output, optional curve and
+vertex-channel conversion, GSF projection, and caller-class hydration. Resource
+caching and publication remain with `CjsResMan`; GPU realization remains with
+engine packages.
 
 Supported section compression is None, Oodle1, and the in-project clean-room
 BitKnit2 decoder. Licensing and migration history are recorded in
@@ -74,6 +75,11 @@ Concrete formats are not imported or registered by the package root.
 supplied with `"json"`/`"gr2Json"` to hydrate selected JSON nodes while
 leaving omitted nodes as plain objects.
 
+JSON is an output, not a CMF interchange format. After raw reflection the read
+path branches: JSON passes the shared projection to the JSON adapter, while CMF
+passes that projection directly to the CMF builder and hydrator. CMF therefore
+does not call or pass through the JSON output adapter.
+
 ## Conversion options
 
 | Option | Default | Effect |
@@ -86,8 +92,12 @@ leaving omitted nodes as plain objects.
 | `classes` | `{}` | Maps supported graph node keys to constructors |
 
 Tangent unpacking and missing-channel rebuild options may be functions when a
-caller needs per-mesh policy. Rebuild options fill absent data; they do not
-repair authored channels that are present but incorrect.
+caller needs per-mesh policy. Packed primary and morph-target frames are
+preserved through CMF by default; when `unpackTangents` selects a mesh, both are
+expanded together. Reflected three-component tangent and binormal members keep
+their authored width rather than being padded to four before packed-frame
+classification. Rebuild options fill absent data; they do not repair authored
+channels that are present but incorrect.
 
 A reusable reader profile can hold these defaults:
 
@@ -199,7 +209,23 @@ Root
 Vertex channels include positions, normals, tangents, binormals, UVs, blend
 indices, and blend weights when available. `IndexGroup.faces` is a flat array
 of triangle indices. Sparse morph targets carry `vertexIndices`; native and
-annotation-set morph targets share the same projected shape.
+annotation-set morph targets share the same projected shape. Morph tangent and
+binormal channels retain an authored three- or four-component width; a
+four-component tangent is recognized as a packed frame only when normal and
+binormal are both absent.
+
+The raw output retains reflected non-finite numbers. The shared projection used
+by JSON and CMF cannot preserve useful non-finite transforms, so it uses the
+semantic identity for their components: zero position, identity orientation,
+and identity scale/shear. Untyped non-finite projected values retain the
+established scalar-zero fallback. This does not weaken CMF validation of
+genuinely authored zero quaternions.
+
+Compressed Granny knot scales may decode a terminal knot slightly beyond the
+animation duration. A positive duration remains the playable boundary, while
+degree-0/1 knots and controls are preserved exactly; degree-2 curves are baked
+only over the playable interval. Curves that begin outside the interval, and
+zero-duration curves with later knots, remain conversion errors.
 
 For each registered class key, hydration constructs the class without
 arguments and calls:
@@ -233,6 +259,11 @@ The stable GSF projection contains container revision data, model and
 retarget hints, the state machine, animation slots and sets, referenced
 relative `.gr2` files, token count, editor data, and extended data.
 `readGsfAsync` provides the equivalent promise-facing entry point.
+
+Reflected object traversal retains a finite malformed-input depth guard. The
+limit is above the deepest valid GState graph in the pinned corpus; object
+identity caching is installed before member traversal so ordinary cycles do not
+consume that depth repeatedly.
 
 ## Related documentation
 

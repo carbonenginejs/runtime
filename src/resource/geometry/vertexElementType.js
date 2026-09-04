@@ -77,7 +77,8 @@ export function VertexElementType(element)
  * Whether a type name is one this layer can describe.
  *
  * `PackedTangent` and `PackedTangentLegacy` are usages rather than types, so
- * they do not appear here; a packed frame is unpacked before it is bound.
+ * they do not appear here. Their component type still passes through this
+ * table when the preserved packed channel is bound.
  *
  * @param {string} type Element type name.
  * @returns {boolean}

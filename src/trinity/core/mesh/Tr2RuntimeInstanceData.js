@@ -5,6 +5,7 @@ import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
+import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
 import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "./ITr2InstanceData.js";
 
 
@@ -953,16 +954,7 @@ export class Tr2RuntimeInstanceData extends withITr2InstanceData(CjsModel)
 
   static #zero = vec3.create();
 
-  static UsageCode = Object.freeze({
-    POSITION: 0,
-    COLOR: 1,
-    NORMAL: 2,
-    TANGENT: 3,
-    BITANGENT: 4,
-    TEXCOORD: 5,
-    BLENDINDICES: 6,
-    BLENDWEIGHTS: 7
-  });
+  static UsageCode = Tr2VertexUsageCode;
 
   static DataType = Object.freeze({
     BYTE_1: 0,

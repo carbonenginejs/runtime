@@ -29,7 +29,7 @@
 // and never frees it). Whether ours should be per-library instead is an open
 // question in docs/engine-backends-plan.md; it is a static here because a
 // handle must outlive any one library for batch sort keys to stay comparable.
-import { Tr2RuntimeInstanceData } from "../mesh/Tr2RuntimeInstanceData.js";
+import { Tr2VertexUsageCode } from "./usageCode.js";
 
 
 /** The interned declarations, index-addressed: the index IS the handle. */
@@ -50,7 +50,7 @@ export class Tr2VertexDefinition
   // transposed and translates at its reader boundary.
 
   /** Carbon's vertex-usage vocabulary, in its declared order. */
-  static UsageCode = Tr2RuntimeInstanceData.UsageCode;
+  static UsageCode = Tr2VertexUsageCode;
 
   // Carbon compares ALL SIX item fields for equality (Tr2VertexDefinition.cpp:25-33)
   // because two meshes sharing semantics but differing in offset or stream need

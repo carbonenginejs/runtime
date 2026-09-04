@@ -99,15 +99,41 @@ function clampRound(value, min, max)
 
 function vertexCountFor(decl, vertex)
 {
-    let count = 0;
+    // One declaration describes one vertex row count. Taking the shortest
+    // channel would silently discard valid vertices from every longer channel.
+    let count = null;
+    let countChannel = "";
     for (const element of decl)
     {
-        const channel = vertex[channelName(element)];
-        if (!Array.isArray(channel) || channel.length === 0) continue;
-        const channelCount = Math.floor(channel.length / element.elementCount);
-        count = count === 0 ? channelCount : Math.min(count, channelCount);
+        const name = channelName(element);
+        const channel = vertex[name];
+        if (!Array.isArray(channel))
+        {
+            throw packError(`missing declared vertex channel ${JSON.stringify(name)}`);
+        }
+        if (channel.length % element.elementCount)
+        {
+            throw packError(
+                `vertex channel ${JSON.stringify(name)} length ${channel.length} is not divisible by ` +
+                `${element.elementCount} components`
+            );
+        }
+
+        const channelCount = channel.length / element.elementCount;
+        if (count === null)
+        {
+            count = channelCount;
+            countChannel = name;
+        }
+        else if (channelCount !== count)
+        {
+            throw packError(
+                `vertex channel ${JSON.stringify(name)} has ${channelCount} vertices; expected ${count} ` +
+                `from ${JSON.stringify(countChannel)}`
+            );
+        }
     }
-    return count;
+    return count ?? 0;
 }
 
 function strideFor(decl)
@@ -163,6 +189,8 @@ function packAnimationCurves(animations)
  * @param {Array<object>} decl Vertex declaration.
  * @param {object} vertex Channel-name-keyed flat arrays.
  * @returns {object} `{ bytes, stride, count }`.
+ * @throws {Error} When a declared channel is missing, partial, or has a
+ * different vertex count from its peers.
  */
 export function packVertexBuffer(decl, vertex)
 {

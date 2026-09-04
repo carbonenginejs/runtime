@@ -295,6 +295,11 @@ test("preserves a shared GR2 packed tangent frame through the CMF interim", () =
     assert.deepEqual(raw.fileInfo.Meshes[0].PrimaryVertexData.Vertices.__type.map(item => item.name), [
         "Position", "Tangent", "TextureCoordinates0"
     ]);
+
+    const unpacked = CjsGr2Format.readRaw(CjsGr2Format.writeShared(shared, { tangentMode: "unpacked" }));
+    assert.deepEqual(unpacked.fileInfo.Meshes[0].PrimaryVertexData.Vertices.__type.map(item => item.name), [
+        "Position", "Normal", "Tangent", "Binormal", "TextureCoordinates0"
+    ]);
 });
 
 test("writes compressed transform curves, skeleton inverse binds and model bindings", () =>

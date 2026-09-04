@@ -136,6 +136,31 @@ test("preserves CMF packer errors for unknown vertex element types", async () =>
     );
 });
 
+test("rejects missing, partial, and mismatched declared vertex channels", async () =>
+{
+    const { packVertexBuffer } = await import("../../../../../src/resource/formats/cmf/core/pack.js");
+    const decl = [
+        { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 },
+        { usage: "Normal", usageIndex: 0, type: "Float32", elementCount: 3, offset: 12 }
+    ];
+
+    assert.throws(
+        () => packVertexBuffer(decl, { position: [ 0, 0, 0 ] }),
+        /missing declared vertex channel "normal"/u
+    );
+    assert.throws(
+        () => packVertexBuffer(decl, { position: [ 0, 0, 0 ], normal: [ 0, 0 ] }),
+        /length 2 is not divisible by 3 components/u
+    );
+    assert.throws(
+        () => packVertexBuffer(decl, {
+            position: [ 0, 0, 0, 1, 0, 0 ],
+            normal: [ 0, 0, 1 ]
+        }),
+        /"normal" has 1 vertices; expected 2 from "position"/u
+    );
+});
+
 test("writes an uncompressed CMF that reads back field-for-field", () =>
 {
     const graph = makeGraph();

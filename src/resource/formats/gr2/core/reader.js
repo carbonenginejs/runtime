@@ -57,6 +57,11 @@ const MAGICS = GR2_MAGICS;
 
 const HEX_BYTES = Array.from({ length: 256 }, (_, value) => value.toString(16).padStart(2, "0"));
 const UTF8_DECODER = new TextDecoder("utf-8");
+// Valid GState graphs in the pinned EVE corpus reach 210 unique reflected
+// objects along one path. Keep a substantially higher finite guard so malformed
+// input cannot exhaust the JavaScript stack while legitimate SDK-readable
+// state resources remain readable.
+const MAX_OBJECT_GRAPH_DEPTH = 512;
 
 /**
  * Convert bytes to a lowercase hexadecimal string without relying on Node's Buffer.
@@ -567,7 +572,7 @@ export function readGr2Raw(buf)
             if (cached !== undefined) return cached;
         }
 
-        if (++depth > 200) { depth--; throw new Error("recursion too deep"); }
+        if (++depth > MAX_OBJECT_GRAPH_DEPTH) { depth--; throw new Error("recursion too deep"); }
 
         const obj = {};
         byOff.set(objOff, obj);

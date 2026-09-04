@@ -36,11 +36,11 @@
 //
 // This lives beside Tr2VertexDefinition because matching is its job, and
 // because the resource layer may not import Trinity to reach the usage codes.
-import { Tr2RuntimeInstanceData } from "../mesh/Tr2RuntimeInstanceData.js";
+import { Tr2VertexUsageCode } from "./usageCode.js";
 
 
 const { POSITION, COLOR, NORMAL, TANGENT, BITANGENT, TEXCOORD, BLENDINDICES, BLENDWEIGHTS } =
-  Tr2RuntimeInstanceData.UsageCode;
+  Tr2VertexUsageCode;
 
 
 /**
@@ -159,7 +159,7 @@ export function CarbonVertexElements(elements)
 /**
  * Decoded channel names to Carbon's `UsageCode` and semantic index.
  *
- * Both geometry readers emit these names (`runtime/src/resource/formats/gr2/core/json.js`
+ * Both geometry readers emit these names (`runtime/src/resource/formats/gr2/core/shared.js`
  * `VERTEX_CHANNELS` and the CMF equivalent), so one table serves both. The
  * trailing digit on a texture-coordinate or colour channel is the SEMANTIC
  * INDEX, which is why the mapping yields a pair rather than a code: `texcoord1`

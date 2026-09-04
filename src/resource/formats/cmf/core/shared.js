@@ -1,4 +1,3 @@
-import { unpackMeshTangents } from "#math/tangent";
 import { convertGr2SkeletonsAndAnimations } from "./gr2Anim.js";
 import { canonicalMorphVertex, maxMorphDisplacement } from "./utils/morph.js";
 import { bytesPerIndex, firstTriangle, totalIndexCount } from "./utils/indices.js";
@@ -29,7 +28,7 @@ export function buildCmfFromShared(input, options = {})
     return {
         version: 1,
         metadata: normalizeMetadata(root.metadata),
-        meshes: (root.meshes ?? []).map((mesh) => buildMesh(mesh, options)),
+        meshes: (root.meshes ?? []).map((mesh) => buildMesh(mesh)),
         skeletons: root.skeletons ?? [],
         animations: root.animations ?? []
     };
@@ -51,9 +50,9 @@ export function buildSharedFromCmf(raw, classes, hydrationOptions = {})
     }, hydrationClasses, hydrationOptions);
 }
 
-function buildMesh(mesh, options = {})
+function buildMesh(mesh)
 {
-    mesh = normalizeSharedMeshTangents(mesh, options);
+    mesh = normalizeSharedMeshTangents(mesh);
     const
         vertex = mesh.vertex ?? {},
         position = vertex.position ?? [],
@@ -115,25 +114,36 @@ function buildMesh(mesh, options = {})
     };
 }
 
-function normalizeSharedMeshTangents(mesh, options)
+function normalizeSharedMeshTangents(mesh)
 {
-    const vertex = normalizeSharedVertex(mesh.vertex ?? {}, options);
+    const vertex = normalizeSharedVertex(mesh.vertex ?? {});
     const morphTargets = (mesh.morphTargets ?? []).map(target => ({
         ...target,
-        vertex: normalizeSharedVertexTangents(target.vertex ?? {}, options)
+        vertex: normalizeSharedVertexTangents(target.vertex ?? {}, morphTargetVertexCount(mesh, target))
     }));
     return { ...mesh, vertex, morphTargets };
 }
 
-function normalizeSharedVertex(vertex, options)
+function morphTargetVertexCount(mesh, target)
 {
-    return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex, options));
+    const indices = target.vertexIndices ?? [];
+    if (indices.length) return indices.length;
+
+    const position = target.vertex?.position ?? [];
+    if (position.length) return Math.floor(position.length / 3);
+
+    return Math.floor((mesh.vertex?.position ?? []).length / 3);
 }
 
-function normalizeSharedVertexTangents(vertex, options = {})
+function normalizeSharedVertex(vertex)
+{
+    return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex));
+}
+
+function normalizeSharedVertexTangents(vertex, vertexCount)
 {
     const
-        positionCount = (vertex.position ?? []).length / 3,
+        positionCount = vertexCount ?? (vertex.position ?? []).length / 3,
         tangent = vertex.tangent ?? [];
 
     if (!positionCount || tangent.length !== positionCount * 4 ||
@@ -141,13 +151,10 @@ function normalizeSharedVertexTangents(vertex, options = {})
     {
         return vertex;
     }
-    if (options.preservePackedTangents)
-    {
-        return { ...vertex, tangent: [], packedTangentLegacy: tangent.slice() };
-    }
-    const normalized = { ...vertex, tangent: tangent.slice() };
-    unpackMeshTangents({ vertex: normalized });
-    return normalized;
+    // The source channels are the layout authority. GR2's explicit
+    // `unpackTangents` conversion runs before this boundary when requested;
+    // CMF construction must not silently expand an otherwise packed frame.
+    return { ...vertex, tangent: [], packedTangentLegacy: tangent.slice() };
 }
 
 function normalizeSharedVertexSkin(vertex)
@@ -181,9 +188,15 @@ function buildMorphTargets(mesh)
     const
         morphSpecs = VERTEX_CHANNELS
             .filter(([ name ]) => targets.some((target) => (target.vertex?.[name] ?? []).length))
-            .map(([ name, , elementCount, , type = "Float32" ]) => ({ name, elementCount, type })),
+            .map(([ name, usage, defaultCount, usageIndex = 0, type = "Float32" ]) => ({
+                name,
+                usage,
+                usageIndex,
+                elementCount: morphChannelElementCount(mesh, targets, name, defaultCount),
+                type
+            })),
         vertices = targets.map((target) => canonicalMorphVertex(mesh.vertex ?? {}, target, morphSpecs)),
-        decl = buildDecl(Object.fromEntries(morphSpecs.map((spec) => [ spec.name, [ 0 ] ]))),
+        decl = buildMorphDecl(morphSpecs),
         stride = estimateStrideFromDecl(decl);
 
     return {
@@ -207,6 +220,33 @@ function buildMorphTargets(mesh)
             };
         })
     };
+}
+
+function buildMorphDecl(specs)
+{
+    let offset = 0;
+    return specs.map(({ usage, usageIndex, type, elementCount }) =>
+    {
+        const element = { usage, usageIndex, type, elementCount, offset };
+        offset += elementCount * elementTypeSize(type);
+        return element;
+    });
+}
+
+function morphChannelElementCount(mesh, targets, name, defaultCount)
+{
+    if (name !== "tangent" && name !== "binormal") return defaultCount;
+
+    for (const target of targets)
+    {
+        const values = target.vertex?.[name] ?? [];
+        const vertexCount = morphTargetVertexCount(mesh, target);
+        if (!values.length || !vertexCount || values.length % vertexCount) continue;
+
+        const width = values.length / vertexCount;
+        if (width === 3 || width === 4) return width;
+    }
+    return defaultCount;
 }
 
 function buildBoneBinding(binding)

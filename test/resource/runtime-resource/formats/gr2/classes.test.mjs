@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import CjsGr2Format, { CjsGr2Format as NamedCjsGr2Format } from "../../../../../src/resource/formats/gr2/index.js";
+import { buildCmfFromRaw } from "../../../../../src/resource/formats/gr2/core/targets.js";
 import { decompressAnimationCurves } from "../../../../../src/resource/formats/gr2/core/curves.js";
 import { CLASS_KEYS, emitJson } from "../../../../../src/resource/formats/gr2/core/json.js";
 
@@ -115,6 +116,49 @@ function buildRaw()
     return { version: 7, secCount: 3, fileInfo: buildFileInfo() };
 }
 
+test("projects non-finite transform controls to typed identities", () =>
+{
+    const fileInfo = buildFileInfo();
+    fileInfo.Meshes = [];
+    fileInfo.Models[0].MeshBindings = [];
+    fileInfo.Models[0].Skeleton.Bones[0].LocalTransform = {
+        flags: 7,
+        position: new Array(3).fill(Number.NaN),
+        orientation: new Array(4).fill(Number.NaN),
+        scaleShear: new Array(9).fill(Number.NaN)
+    };
+    fileInfo.Animations[0].TrackGroups[0].VectorTracks = [];
+    const track = fileInfo.Animations[0].TrackGroups[0].TransformTracks[0];
+    const curve = (controls) => ({
+        CurveData: {
+            CurveDataHeaderDaK32fC32f: { Format: 1, Degree: 1 },
+            Knots: [ 0, 1 ],
+            Controls: controls
+        }
+    });
+    track.PositionCurve = curve(new Array(6).fill(Number.NaN));
+    track.OrientationCurve = curve(new Array(8).fill(Number.NaN));
+    track.ScaleShearCurve = curve(new Array(18).fill(Number.NaN));
+
+    const json = emitJson(fileInfo, 7);
+    const emitted = json.animations[0].trackGroups[0].transformTracks[0];
+    const bone = json.models[0].skeleton.bones[0];
+    assert.deepEqual(bone.position, [ 0, 0, 0 ]);
+    assert.deepEqual(bone.orientation, [ 0, 0, 0, 1 ]);
+    assert.deepEqual(bone.scaleShear, [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]);
+    assert.deepEqual(emitted.position.controls, [ 0, 0, 0, 0, 0, 0 ]);
+    assert.deepEqual(emitted.orientation.controls, [ 0, 0, 0, 1, 0, 0, 0, 1 ]);
+    assert.deepEqual(emitted.scaleShear.controls, [
+        1, 0, 0, 0, 1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1, 0, 0, 0, 1
+    ]);
+
+    const cmf = buildCmfFromRaw({ fileInfo, version: 7 });
+    assert.equal(cmf.skeletons.length, 1);
+    assert.equal(cmf.animations.length, 1);
+    assert.equal(cmf.animations[0].channels.length, 3);
+});
+
 function withVertexType(vertices, members)
 {
     Object.defineProperty(vertices, "__type", { value: members, configurable: true });
@@ -127,9 +171,11 @@ function buildGeometryRaw(options = {})
         {
             positions = true,
             normals = false,
+            packedTangents = false,
             texcoord0 = true,
             indices = true,
-            morphTargets = false
+            morphTargets = false,
+            packedMorphTangents = false
         } = options,
         vertices = [
             {},
@@ -137,7 +183,7 @@ function buildGeometryRaw(options = {})
             {}
         ],
         members = [],
-        addMember = (name, arrayWidth) => members.push({ name, arrayWidth, type: 10 });
+        addMember = (name, arrayWidth, type = 10) => members.push({ name, arrayWidth, type });
 
     if (positions)
     {
@@ -155,6 +201,14 @@ function buildGeometryRaw(options = {})
         addMember("Normal", 3);
     }
 
+    if (packedTangents)
+    {
+        vertices[0].Tangent = [ 0, 0, 0, 255 ];
+        vertices[1].Tangent = [ 0, 0, 0, 255 ];
+        vertices[2].Tangent = [ 0, 0, 0, 255 ];
+        addMember("Tangent", 4, 14);
+    }
+
     if (texcoord0)
     {
         vertices[0].TextureCoordinates0 = [ 0, 0 ];
@@ -169,16 +223,22 @@ function buildGeometryRaw(options = {})
         PrimaryVertexData: {
             Vertices: withVertexType(vertices, members)
         },
-        MorphTargets: morphTargets
+        MorphTargets: morphTargets || packedMorphTangents
             ? [ {
                 ScalarName: "Smile",
                 DataIsDeltas: 0,
                 VertexData: {
-                    Vertices: withVertexType([
-                        { Position: [ 0, 0, 0 ] },
-                        { Position: [ 1, 0, 1 ] },
-                        { Position: [ 0, 1, 0 ] }
-                    ], [ { name: "Position", arrayWidth: 3, type: 10 } ])
+                    Vertices: packedMorphTangents
+                        ? withVertexType([
+                            { Tangent: [ 0, 0, 0, 255 ] },
+                            { Tangent: [ 0, 0, 0, 255 ] },
+                            { Tangent: [ 0, 0, 0, 255 ] }
+                        ], [ { name: "Tangent", arrayWidth: 4, type: 14 } ])
+                        : withVertexType([
+                            { Position: [ 0, 0, 0 ] },
+                            { Position: [ 1, 0, 1 ] },
+                            { Position: [ 0, 1, 0 ] }
+                        ], [ { name: "Position", arrayWidth: 3, type: 10 } ])
                 }
             } ]
             : [],
@@ -460,6 +520,74 @@ test("CjsGr2Format CMF target preserves morph target payloads", () =>
         0, 0, 0,
         0, 0, 1,
         0, 0, 0
+    ]);
+});
+
+test("CMF emission preserves packed tangents unless GR2 unpacking is explicit", () =>
+{
+    class CmfRoot extends TestModel {}
+    class CmfMesh extends TestModel {}
+
+    const raw = buildGeometryRaw({ packedTangents: true, packedMorphTangents: true });
+    const classes = { Root: CmfRoot, Mesh: CmfMesh };
+    const preserved = CjsGr2Format.read(raw, { emit: "cmf", classes });
+    assert.equal(preserved.meshes[0].decl.some(element => element.usage === "PackedTangentLegacy"), true);
+    assert.equal(preserved.meshes[0].decl.some(element => element.usage === "Normal"), false);
+    assert.deepEqual(preserved.meshes[0].morphTargets.decl.map(element => element.usage), [ "PackedTangentLegacy" ]);
+
+    const unpacked = CjsGr2Format.read(raw, { emit: "cmf", classes, unpackTangents: true });
+    assert.equal(unpacked.meshes[0].decl.some(element => element.usage === "PackedTangentLegacy"), false);
+    assert.deepEqual(
+        unpacked.meshes[0].decl.filter(element => [ "Normal", "Tangent", "Binormal" ].includes(element.usage))
+            .map(element => element.usage),
+        [ "Normal", "Tangent", "Binormal" ]
+    );
+    assert.deepEqual(
+        unpacked.meshes[0].morphTargets.decl.map(element => element.usage),
+        [ "Normal", "Tangent", "Binormal" ]
+    );
+});
+
+test("direct CMF emission retains reflected tangent-only x3 widths", () =>
+{
+    const vertices = withVertexType([
+        { Position: [ 0, 0, 0 ], Tangent: [ 1, 0, 0 ] },
+        { Position: [ 1, 0, 0 ], Tangent: [ 1, 0, 0 ] }
+    ], [
+        { name: "Position", arrayWidth: 3, type: 10 },
+        { name: "Tangent", arrayWidth: 3, type: 10 }
+    ]);
+    const morphVertices = withVertexType([
+        { Tangent: [ 0, 1, 0 ] },
+        { Tangent: [ 0, 1, 0 ] }
+    ], [ { name: "Tangent", arrayWidth: 3, type: 10 } ]);
+    const raw = {
+        version: 7,
+        fileInfo: {
+            FromFileName: "tangent-x3.gr2",
+            Meshes: [ {
+                Name: "TangentX3",
+                BoneBindings: [],
+                PrimaryVertexData: { Vertices: vertices },
+                MorphTargets: [ {
+                    ScalarName: "Frame",
+                    DataIsDeltas: 1,
+                    VertexData: { Vertices: morphVertices }
+                } ],
+                PrimaryTopology: { Indices16: [ 0, 1, 1 ], Groups: [ { MaterialIndex: 0, TriFirst: 0, TriCount: 1 } ] }
+            } ],
+            Models: [],
+            Animations: []
+        }
+    };
+
+    const cmf = buildCmfFromRaw(raw);
+    assert.deepEqual(cmf.meshes[0].decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "Position", elementCount: 3 },
+        { usage: "Tangent", elementCount: 3 }
+    ]);
+    assert.deepEqual(cmf.meshes[0].morphTargets.decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "Tangent", elementCount: 3 }
     ]);
 });
 

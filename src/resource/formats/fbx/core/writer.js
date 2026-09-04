@@ -1,5 +1,6 @@
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import { CjsFormatWriteError } from "../../../format/CjsFormatError.js";
+import { unpackMeshTangents } from "#math/tangent";
 import { FBX_RESERVED_BONE_MASK_PROPERTY_NAMES } from "./constants.js";
 import { buildCmfFromShared } from "../../cmf/core/shared.js";
 import {
@@ -1646,10 +1647,55 @@ export function writeFbx(cmf, options = {})
     return writer.toBytes();
 }
 
+function unpackSharedVertexForFbx(source, vertexCount)
+{
+    const vertex = { ...(source ?? {}) };
+    const packed = vertex.packedTangentLegacy;
+
+    if (Array.isArray(packed) && packed.length &&
+        !(vertex.tangent?.length) && !(vertex.normal?.length) && !(vertex.binormal?.length))
+    {
+        vertex.tangent = packed;
+        if (unpackMeshTangents({ vertex }, vertexCount)) delete vertex.packedTangentLegacy;
+    }
+    else
+    {
+        unpackMeshTangents({ vertex }, vertexCount);
+    }
+    return vertex;
+}
+
+function unpackSharedTangentsForFbx(input)
+{
+    return {
+        ...input,
+        meshes: (input.meshes ?? []).map(mesh =>
+        {
+            const vertexCount = Math.floor((mesh.vertex?.position ?? []).length / 3);
+            return {
+                ...mesh,
+                vertex: unpackSharedVertexForFbx(mesh.vertex, vertexCount),
+                morphTargets: (mesh.morphTargets ?? []).map(target =>
+                {
+                    const targetCount = (target.vertexIndices ?? []).length ||
+                        Math.floor((target.vertex?.position ?? []).length / 3) || vertexCount;
+                    return {
+                        ...target,
+                        vertex: unpackSharedVertexForFbx(target.vertex, targetCount)
+                    };
+                })
+            };
+        })
+    };
+}
+
 /** Convert shared/GR2-shaped geometry through CMF and write binary FBX. */
 export function writeSharedFbx(input, options = {})
 {
-    return writeFbx(buildCmfFromShared(input, options), options);
+    // FBX has no packed-tangent representation. CMF correctly preserves the
+    // shared source layout, so this destination-specific writer owns the
+    // explicit, non-mutating expansion before CMF construction.
+    return writeFbx(buildCmfFromShared(unpackSharedTangentsForFbx(input), options), options);
 }
 
 export default writeFbx;

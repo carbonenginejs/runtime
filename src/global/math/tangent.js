@@ -130,24 +130,26 @@ export function encodeTangentFrame(T, B, N)
     return [ enc(a0), enc(a1), enc(a2), enc(a3) ];
 }
 
-function vertexCount(mesh)
+function vertexCount(mesh, count)
 {
+    if (count !== undefined) return count;
     const p = mesh.vertex && mesh.vertex.position;
     return p ? (p.length / 3) | 0 : 0;
 }
 
 /**
- * Is this shared JSON mesh's tangent frame packed?
+ * Is this shared mesh's tangent frame packed?
  *
- * @param {object} mesh Shared JSON mesh.
+ * @param {object} mesh Shared mesh.
+ * @param {number} [count] Vertex count when the payload has no position channel.
  * @returns {boolean} Whether the mesh has packed tangent frames.
  */
-export function isPacked(mesh)
+export function isPacked(mesh, count)
 {
     const v = mesh.vertex;
     if (!v || !v.tangent || !v.tangent.length) return false;
 
-    const n = vertexCount(mesh);
+    const n = vertexCount(mesh, count);
     if (!n) return false;
 
     const
@@ -158,18 +160,19 @@ export function isPacked(mesh)
 }
 
 /**
- * Unpack a packed shared JSON mesh in place.
+ * Unpack a packed shared mesh in place.
  *
- * @param {object} mesh Shared JSON mesh to mutate.
+ * @param {object} mesh Shared mesh to mutate.
+ * @param {number} [count] Vertex count when the payload has no position channel.
  * @returns {boolean} Whether unpacking happened.
  */
-export function unpackMeshTangents(mesh)
+export function unpackMeshTangents(mesh, count)
 {
-    if (!isPacked(mesh)) return false;
+    if (!isPacked(mesh, count)) return false;
 
     const
         v = mesh.vertex,
-        n = vertexCount(mesh),
+        n = vertexCount(mesh, count),
         src = v.tangent,
         normal = new Array(n * 3),
         tangent = new Array(n * 3),

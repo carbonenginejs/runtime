@@ -972,10 +972,7 @@ export function writeGr2(input, writerOptions = {})
 export function writeSharedGr2(input, writerOptions = {})
 {
     const options = validateOptions(writerOptions);
-    const cmf = buildCmfFromShared(input, {
-        ...writerOptions,
-        preservePackedTangents: options.tangentMode === "preserve"
-    });
+    const cmf = buildCmfFromShared(input, writerOptions);
     return writeGr2(cmf, options);
 }
 

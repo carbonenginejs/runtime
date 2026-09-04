@@ -254,6 +254,34 @@ test("clips quantized quadratic knots beyond the playable duration", () =>
     }), /keys outside its duration/u);
 });
 
+test("preserves quantized linear knots beyond the playable duration", () =>
+{
+    const duration = Math.fround(1 / 3);
+    const converted = convertGr2Animation({
+        name: "quantized-linear-end",
+        duration,
+        trackGroups: [ {
+            name: "group",
+            transformTracks: [ {
+                name: "bone",
+                position: {
+                    format: 18,
+                    degree: 1,
+                    oneOverKnotScaleTrunc: 17471,
+                    controlScales: [ 1, 2, 3 ],
+                    controlOffsets: [ 0, 0, 0 ],
+                    knotsControls: [ 0, 255, 0, 255 ]
+                }
+            } ]
+        } ]
+    });
+
+    assert.equal(converted.duration, 0.3333333432674408);
+    assert.equal(converted.curves[0].interpolation, "Linear");
+    assert.deepEqual(floats(converted.curves[0].knots), [ 0, 0.33376961946487427 ]);
+    assert.deepEqual(floats(converted.curves[0].values), [ 0, 0, 0, 255, 510, 765 ]);
+});
+
 test("deduplicates adaptive knots that collide after Float32 quantization", () =>
 {
     const converted = convertGr2Animation({

@@ -4,6 +4,8 @@ import CjsGr2Format, {
     CjsGr2Format as NamedCjsGr2Format
 } from "../../../../../src/resource/formats/gr2/index.js";
 import { CjsFormat } from "../../../../../src/resource/format/CjsFormat.js";
+import { gr2Type, writeGr2Container } from "../../../../../src/resource/formats/gr2/core/container.js";
+import { GRANNY_MEMBER_TYPES } from "../../../../../src/resource/formats/gr2/core/reader.js";
 
 const MAGIC_32 = "29de6cc0baa4532b25f5b7a5f666e2ee";
 
@@ -43,6 +45,24 @@ function createMinimalGr2()
     view.setUint32(pointerFixupOffset + 4, 0, true);
     view.setUint32(pointerFixupOffset + 8, 40, true);
     return bytes;
+}
+
+function createReferenceChain(length)
+{
+    const nodeType = gr2Type("Node", [ {
+        type: GRANNY_MEMBER_TYPES.Reference,
+        name: "Next"
+    } ]);
+    nodeType.members[0].ref = nodeType;
+
+    const root = {};
+    let node = root;
+    for (let index = 1; index < length; index++)
+    {
+        node.Next = {};
+        node = node.Next;
+    }
+    return writeGr2Container(nodeType, root, [ nodeType ]);
 }
 
 test("exports one public class as default and named", () =>
@@ -96,6 +116,26 @@ test("reads browser byte inputs without a Buffer global", () =>
     {
         globalThis.Buffer = previousBuffer;
     }
+});
+
+test("reads valid reflected object graphs deeper than the former safety limit", () =>
+{
+    let node = CjsGr2Format.readRaw(createReferenceChain(210)).fileInfo;
+    let count = 0;
+    while (node)
+    {
+        count++;
+        node = node.Next;
+    }
+    assert.equal(count, 210);
+});
+
+test("rejects reflected object graphs beyond the safety limit", () =>
+{
+    assert.throws(
+        () => CjsGr2Format.readRaw(createReferenceChain(513)),
+        /recursion too deep/
+    );
 });
 
 test("readAsync resolves the same result as read", async () =>

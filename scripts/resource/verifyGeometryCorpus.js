@@ -2,200 +2,347 @@
 //
 // Every vertex layout in this repository was a hand-authored fixture until
 // 2026-09-02, and three separate defects survived a green suite because of it.
-// Synthetic geometry cannot tell you which element types real hulls actually
-// use, which spelling their areas carry, or whether a stride a device will
-// accept ever comes out of the packer. This asks the corpus instead.
+// Synthetic geometry cannot tell us which element types, area spellings and
+// device strides the real corpus carries.
 //
-// Bytes come from tools-core, which holds the client resources; nothing is
-// committed and no cache directory is read directly. Start the service first:
+// Bytes come from tools-core; no cache directory is read directly. Start the
+// service first:
 //
-//   cd tools-core && node bin/cjs-tools-service.js --host 127.0.0.1 --port 5510 \
+//   cd tools-core
+//   node bin/cjs-tools-service.js --host 127.0.0.1 --port 5510 \
 //     --cache <cache> --data <data> --no-audio-auto-prepare --no-sde-auto-prepare
 //
-// Then, from runtime/ (npm/dist must be built - the model classes carry
-// decorators and cannot be imported from src):
+// Then run from runtime/. The gate deliberately imports the narrow,
+// undecorated GR2, CMF, packing and binding modules from source so it exercises
+// the worktree without requiring a package build:
 //
+//   node scripts/resource/verifyGeometryCorpus.js
 //   node scripts/resource/verifyGeometryCorpus.js --limit 900
-//   node scripts/resource/verifyGeometryCorpus.js --prefix res:/dx9/model/structure
+//   node scripts/resource/verifyGeometryCorpus.js --prefix res:/dx9/model/structure/
+//   node scripts/resource/verifyGeometryCorpus.js --prefix res:/ --progress 500
 //
-// The build is PINNED rather than "latest", so a rerun is comparable and the
-// service never has to consult remote metadata.
-import { CjsGr2Format } from "../../npm/dist/resource/formats/index.js";
-import { CarbonVertexElements, Tr2VertexDefinition } from "../../npm/dist/trinity/core/index.js";
-import { WebgpuVertexFormat } from "../../npm/dist/engine/webgpu/index.js";
-import { PackLodGeometry, TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
-// The CMF emit hydrates into model classes, which this does not need; the
-// runtime builds the plain graph first and hydrates after, so stop at the graph.
-import { buildCmfFromShared } from "../../src/resource/formats/cmf/core/shared.js";
+// The build is pinned rather than "latest", so reruns remain comparable.
+import { CjsGr2Format } from "../../src/resource/formats/gr2/index.js";
+import { buildCmfFromRaw } from "../../src/resource/formats/gr2/core/targets.js";
+import { CarbonVertexElements } from "../../src/trinity/core/vertex/vertexUsage.js";
+import { Tr2VertexDefinition } from "../../src/trinity/core/vertex/Tr2VertexDefinition.js";
+import { WebgpuVertexFormat } from "../../src/engine/webgpu/core/vertexFormat.js";
+import { PackLodGeometry } from "../../src/resource/geometry/packGeometry.js";
+import {
+    createGeometryCorpusProgress,
+    fetchGeometryCorpusBytes,
+    fetchGeometryCorpusJson,
+    geometryCorpusFailed,
+    geometryCorpusMeshCountMatches,
+    isRetryableGeometryCorpusFetch,
+    parseGeometryCorpusOptions,
+    runGeometryCorpusWorkers,
+    selectGeometryPaths
+} from "./geometryCorpus.js";
 
-const options = { build: "3487903", host: "http://127.0.0.1:5510", target: "eve", prefix: "res:/dx9/model/ship", limit: 0, concurrency: 8 };
-
-for (let i = 2; i < process.argv.length; i += 2)
-{
-  const name = process.argv[i].replace(/^--/, "");
-  if (!(name in options)) throw new Error(`unknown option --${name}`);
-  const value = process.argv[i + 1];
-  options[name] = typeof options[name] === "number" ? Number(value) : value;
-}
-
-const base = `${options.host}/${options.target}/${options.build}`;
-
+const options = parseGeometryCorpusOptions(process.argv.slice(2));
+const base = `${options.host.replace(/\/$/, "")}/${options.target}/${options.build}`;
 const counters = new Map();
-const bump = (name, key) =>
+
+function bump(name, key)
 {
-  const map = counters.get(name) ?? counters.set(name, new Map()).get(name);
-  map.set(key, (map.get(key) ?? 0) + 1);
+    const map = counters.get(name) ?? counters.set(name, new Map()).get(name);
+    map.set(key, (map.get(key) ?? 0) + 1);
+}
+
+function table(name, count = 15)
+{
+    return [ ...(counters.get(name) ?? []) ].sort((a, b) => b[1] - a[1]).slice(0, count);
+}
+
+const totals = {
+    files: 0,
+    completed: 0,
+    passed: 0,
+    fetched: 0,
+    fetchRetried: 0,
+    fetchRecovered: 0,
+    fetchFailed: 0,
+    decoded: 0,
+    decodeFailed: 0,
+    cmfBuilt: 0,
+    cmfFailed: 0,
+    bindingFailed: 0,
+    meshes: 0,
+    areas: 0,
+    noDeclaration: 0,
+    droppedUsages: 0,
+    noWebgpuFormat: 0,
+    unalignedStride: 0,
+    packFailures: 0,
+    problems: 0
 };
-const table = (name, n = 15) => [ ...(counters.get(name) ?? []) ].sort((a, b) => b[1] - a[1]).slice(0, n);
 
-const totals = { files: 0, decoded: 0, fetchFailed: 0, decodeFailed: 0, meshes: 0, areas: 0, noDeclaration: 0, unalignedStride: 0 };
-
-async function fetchBytes(path)
+function inspectMesh(mesh, path)
 {
-  const url = `${base}/resources/${path.replace(/^res:\//, "")}`;
+    totals.meshes++;
+    let valid = true;
+    const declaration = mesh?.decl;
 
-  // A few requests fail transiently with a bare "fetch failed"; retry rather
-  // than recording a resource as missing.
-  for (let attempt = 0; ; attempt++)
-  {
+    if (!declaration?.length)
+    {
+        totals.noDeclaration++;
+        bump("noDeclarations", path);
+        return false;
+    }
+
+    bump("declarations", declaration.map(element =>
+        `${element.usage}${element.usageIndex}:${element.type}x${element.elementCount}`).join(","));
+
+    for (const element of declaration)
+    {
+        bump("elementTypes", `${element.type}x${element.elementCount}`);
+        try { WebgpuVertexFormat(element); }
+        catch
+        {
+            totals.noWebgpuFormat++;
+            valid = false;
+            bump("noWebgpuFormat", `${path}: ${element.type}x${element.elementCount}`);
+        }
+    }
+
+    const elements = CarbonVertexElements(declaration);
+    if (elements.length !== declaration.length)
+    {
+        const dropped = declaration.length - elements.length;
+        totals.droppedUsages += dropped;
+        valid = false;
+        bump("droppedUsages", `${path}: ${dropped}`);
+    }
+
+    if (CarbonVertexElements(declaration) !== elements)
+    {
+        totals.problems++;
+        valid = false;
+        bump("problems", `${path}: translation identity is unstable`);
+    }
+
+    try { Tr2VertexDefinition.getHandle(elements); }
+    catch (error)
+    {
+        totals.problems++;
+        valid = false;
+        bump("problems", `${path}: ${String(error.message).slice(0, 300)}`);
+    }
+
+    const lods = mesh.lods?.length ? mesh.lods : [ null ];
+    for (const lod of lods)
+    {
+        for (const area of lod.areas ?? [])
+        {
+            totals.areas++;
+            bump("areaFields", Object.keys(area).sort().join(","));
+        }
+    }
+
+    for (let lodIndex = 0; lodIndex < lods.length; lodIndex++)
+    {
+        try
+        {
+            const
+                lod = lods[lodIndex],
+                packed = PackLodGeometry(mesh, lodIndex),
+                source = lod?.vertex ?? mesh.vertex ?? {},
+                positionCount = Math.floor((source.position ?? []).length / 3),
+                descriptor = lod?.vb,
+                expectedCount = descriptor?.stride
+                    ? descriptor.size / descriptor.stride
+                    : positionCount;
+
+            if (!Number.isSafeInteger(expectedCount) || packed.vertex.count !== expectedCount)
+            {
+                throw new Error(
+                    `LOD ${lodIndex} packed ${packed.vertex.count} vertices; descriptor expects ${expectedCount}`
+                );
+            }
+            if (packed.vertex.bytes.byteLength !== packed.vertex.count * packed.vertex.stride)
+            {
+                throw new Error(`LOD ${lodIndex} vertex byte length does not match its count and stride`);
+            }
+
+            const indexDescriptor = lod?.ib;
+            if (indexDescriptor?.stride)
+            {
+                const expectedIndices = indexDescriptor.size / indexDescriptor.stride;
+                if (!Number.isSafeInteger(expectedIndices) || (packed.index?.count ?? 0) !== expectedIndices)
+                {
+                    throw new Error(
+                        `LOD ${lodIndex} packed ${packed.index?.count ?? 0} indices; ` +
+                        `descriptor expects ${expectedIndices}`
+                    );
+                }
+            }
+
+            bump("strides", packed.vertex.stride);
+            if (packed.vertex.stride % 4 !== 0)
+            {
+                totals.unalignedStride++;
+                valid = false;
+                bump("unalignedStrides", `${path}: ${packed.vertex.stride}`);
+            }
+            if (packed.index) bump("indexFormats", packed.index.format);
+        }
+        catch (error)
+        {
+            totals.packFailures++;
+            valid = false;
+            bump("packFailures", `${path}: ${String(error.message).slice(0, 300)}`);
+        }
+    }
+
+    return valid;
+}
+
+function inspectGeometry(graph, path)
+{
+    if (!Array.isArray(graph?.meshes)) return false;
+    let valid = true;
+    for (const mesh of graph.meshes)
+    {
+        if (!inspectMesh(mesh, path)) valid = false;
+    }
+    return valid;
+}
+
+const paths = selectGeometryPaths(
+    await fetchGeometryCorpusJson(`${base}/resfiles`, fetch, options.timeout),
+    options
+);
+totals.files = paths.length;
+
+console.error(
+    `selected ${paths.length} GR2 files for ${options.prefix} at build ${options.build}; ` +
+    `concurrency ${options.concurrency}`
+);
+
+const progress = createGeometryCorpusProgress(paths.length, options.progress, message => console.error(message));
+const complete = () =>
+{
+    totals.completed++;
+    progress(totals.completed, totals);
+};
+
+async function processEntry(entry, retryQueue)
+{
+    entry.attempts++;
+    let bytes;
     try
     {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return new Uint8Array(await response.arrayBuffer());
+        const resourcePath = entry.path.replace(/^res:\//i, "");
+        bytes = await fetchGeometryCorpusBytes(`${base}/resources/${resourcePath}`, fetch, options.timeout);
     }
     catch (error)
     {
-      if (attempt === 2) throw error;
-      await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
+        if (entry.attempts < 3 && isRetryableGeometryCorpusFetch(error))
+        {
+            if (!entry.retried)
+            {
+                entry.retried = true;
+                totals.fetchRetried++;
+            }
+            retryQueue.push(entry);
+            return;
+        }
+        totals.fetchFailed++;
+        bump("fetchFailures", `${entry.path}: ${String(error.message).slice(0, 300)}`);
+        complete();
+        return;
     }
-  }
-}
 
-function inspectMesh(mesh)
-{
-  totals.meshes++;
+    totals.fetched++;
+    if (entry.retried) totals.fetchRecovered++;
 
-  const declaration = mesh?.decl;
-
-  if (!declaration?.length)
-  {
-    totals.noDeclaration++;
-    return;
-  }
-
-  bump("declarations", declaration.map(e => `${e.usage}${e.usageIndex}:${e.type}x${e.elementCount}`).join(","));
-
-  for (const element of declaration)
-  {
-    bump("elementTypes", `${element.type}x${element.elementCount}`);
-
-    try { WebgpuVertexFormat(element); }
-    catch { bump("noWebgpuFormat", `${element.type}x${element.elementCount}`); }
-  }
-
-  // What the usage translation cannot carry into Carbon's vocabulary.
-  const elements = CarbonVertexElements(declaration);
-  if (elements.length !== declaration.length) bump("droppedUsages", declaration.length - elements.length);
-
-  // Identity, not equality: the intern memo depends on it.
-  if (CarbonVertexElements(declaration) !== elements) bump("problems", "translation identity is unstable");
-
-  Tr2VertexDefinition.getHandle(elements);
-
-  for (const lod of mesh.lods ?? [])
-  {
-    for (const area of lod.areas ?? [])
-    {
-      totals.areas++;
-      bump("areaFields", Object.keys(area).sort().join(","));
-    }
-  }
-
-  try
-  {
-    const packed = PackLodGeometry(mesh, 0);
-
-    bump("strides", packed.vertex.stride);
-    if (packed.vertex.stride % 4 !== 0) totals.unalignedStride++;
-    if (packed.index) bump("indexFormats", packed.index.format);
-  }
-  catch (error)
-  {
-    bump("packFailures", String(error.message).slice(0, 90));
-  }
-}
-
-const listing = await fetch(`${base}/resfiles`);
-const paths = (await listing.json()).filter(path => path.startsWith(options.prefix) && path.toLowerCase().endsWith(".gr2"));
-
-// Stratified rather than the first N alphabetically: hull, lowdetail and
-// effects geometry carry noticeably different layouts, and taking a prefix of a
-// sorted list would sample one race's ships and call it the corpus.
-const bucketOf = path => (/\/effects\//i.test(path) ? "effects" : /_lowdetail\.gr2$/i.test(path) ? "lowdetail" : "hull");
-const queue = [];
-
-if (options.limit > 0 && options.limit < paths.length)
-{
-  const buckets = new Map();
-  for (const path of paths) (buckets.get(bucketOf(path)) ?? buckets.set(bucketOf(path), []).get(bucketOf(path))).push(path);
-
-  const share = Math.ceil(options.limit / buckets.size);
-  for (const list of buckets.values())
-  {
-    const step = Math.max(1, Math.floor(list.length / share));
-    for (let i = 0; i < list.length && queue.length < options.limit; i += step) queue.push(list[i]);
-  }
-}
-else queue.push(...paths);
-
-const total = queue.length;
-
-await Promise.all(Array.from({ length: options.concurrency }, async () =>
-{
-  while (queue.length)
-  {
-    const path = queue.shift();
-    totals.files++;
-
-    let bytes = null;
-    try { bytes = await fetchBytes(path); }
-    catch { totals.fetchFailed++; continue; }
-
+    let raw;
     try
     {
-      const graph = buildCmfFromShared(CjsGr2Format.read(CjsGr2Format.readRaw(bytes), { emit: "json" }));
-      for (const mesh of graph?.meshes ?? []) inspectMesh(mesh);
-      totals.decoded++;
+        raw = CjsGr2Format.readRaw(bytes);
+        totals.decoded++;
     }
     catch (error)
     {
-      totals.decodeFailed++;
-      bump("decodeFailures", String(error.message).slice(0, 90));
+        totals.decodeFailed++;
+        bump("decodeFailures", `${entry.path}: ${String(error.message).slice(0, 300)}`);
+        complete();
+        return;
     }
-  }
-}));
 
-const problems = table("problems").concat(table("noWebgpuFormat")).concat(table("packFailures"));
+    let graph;
+    try
+    {
+        graph = buildCmfFromRaw(raw);
+        if (!geometryCorpusMeshCountMatches(raw, graph))
+        {
+            const sourceMeshCount = (raw.fileInfo?.Meshes ?? []).filter(Boolean).length;
+            throw new Error(
+                `CMF mesh count ${graph?.meshes?.length ?? "missing"} does not match source ${sourceMeshCount}`
+            );
+        }
+        totals.cmfBuilt++;
+    }
+    catch (error)
+    {
+        totals.cmfFailed++;
+        bump("cmfFailures", `${entry.path}: ${String(error.message).slice(0, 300)}`);
+        complete();
+        return;
+    }
 
-console.log(JSON.stringify({
-  target: options.target,
-  build: options.build,
-  prefix: options.prefix,
-  selected: total,
-  ...totals,
-  distinctDeclarations: (counters.get("declarations")?.size ?? 0),
-  declarations: table("declarations", 20),
-  elementTypes: table("elementTypes"),
-  strides: table("strides"),
-  indexFormats: table("indexFormats"),
-  areaFields: table("areaFields"),
-  droppedUsages: table("droppedUsages"),
-  noWebgpuFormat: table("noWebgpuFormat"),
-  packFailures: table("packFailures"),
-  decodeFailures: table("decodeFailures", 20)
-}, null, 1));
+    try
+    {
+        if (inspectGeometry(graph, entry.path)) totals.passed++;
+        else totals.bindingFailed++;
+    }
+    catch (error)
+    {
+        totals.bindingFailed++;
+        bump("bindingFailures", `${entry.path}: ${String(error.message).slice(0, 300)}`);
+    }
+    complete();
+}
 
-// A binding-path problem is a failure; a reader problem is reported and does
-// not fail the run, because the reader is a separate contract.
-if (problems.length || totals.unalignedStride) process.exitCode = 1;
+let pending = paths.map(path => ({ path, attempts: 0, retried: false }));
+let retryRound = 0;
+while (pending.length)
+{
+    if (retryRound)
+    {
+        await new Promise(resolve => setTimeout(resolve, retryRound * 300));
+    }
+    const retryQueue = [];
+    const concurrency = retryRound ? Math.min(3, options.concurrency) : options.concurrency;
+    await runGeometryCorpusWorkers(pending, concurrency, entry => processEntry(entry, retryQueue));
+    pending = retryQueue;
+    retryRound++;
+}
+
+const report = {
+    target: options.target,
+    build: options.build,
+    prefix: options.prefix,
+    selected: paths.length,
+    ...totals,
+    distinctDeclarations: counters.get("declarations")?.size ?? 0,
+    declarations: table("declarations", 20),
+    elementTypes: table("elementTypes"),
+    strides: table("strides"),
+    indexFormats: table("indexFormats"),
+    areaFields: table("areaFields"),
+    droppedUsageKinds: table("droppedUsages"),
+    noDeclarations: table("noDeclarations", 20),
+    noWebgpuFormats: table("noWebgpuFormat"),
+    unalignedStrides: table("unalignedStrides", 20),
+    packFailureKinds: table("packFailures"),
+    fetchFailures: table("fetchFailures", 20),
+    decodeFailures: table("decodeFailures", 20),
+    cmfFailures: table("cmfFailures", 20),
+    bindingFailures: table("bindingFailures", 20),
+    problemKinds: table("problems", 20)
+};
+
+console.log(JSON.stringify(report, null, 1));
+if (geometryCorpusFailed(report)) process.exitCode = 1;

@@ -1,5 +1,6 @@
 import { readGr2Raw } from "./reader.js";
-import { emitJson, CLASS_KEYS as GR2_CLASS_KEYS } from "./json.js";
+import { emitJson } from "./json.js";
+import { projectShared, CLASS_KEYS as GR2_CLASS_KEYS } from "./shared.js";
 import { tangents } from "./tangents.js";
 import { decompressAnimationCurves } from "./curves.js";
 import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
@@ -301,6 +302,15 @@ function unpackMeshTangents(reader, json, raw, values)
         }))
         {
             tangents.unpack(mesh);
+            for (const target of mesh.morphTargets ?? [])
+            {
+                const
+                    indices = target.vertexIndices ?? [],
+                    positions = target.vertex?.position ?? [],
+                    count = indices.length || Math.floor(positions.length / 3) ||
+                        Math.floor((mesh.vertex?.position ?? []).length / 3);
+                tangents.unpack({ vertex: target.vertex }, count);
+            }
         }
     }
 }
@@ -371,22 +381,40 @@ function processMeshData(reader, json, raw, values)
     rebuildMissingMeshData(reader, json, raw, values);
 }
 
+function finishProjection(reader, projected, raw, values)
+{
+    if (values.decompressCurves)
+    {
+        decompressAnimationCurves(projected);
+    }
+
+    processMeshData(reader, projected, raw, values);
+    return projected;
+}
+
 function buildJson(reader, raw, values)
 {
-    const json = emitJson(raw.fileInfo, raw.version, {
+    return finishProjection(reader, emitJson(raw.fileInfo, raw.version, {
         classes: values.emit === OUTPUT_GR2 || ((values.emit === OUTPUT_JSON || values.emit === OUTPUT_GR2_JSON) && hasClasses(values.classes))
             ? values.classes
             : {}
-    });
+    }), raw, values);
+}
 
-    if (values.decompressCurves)
-    {
-        decompressAnimationCurves(json);
-    }
-
-    processMeshData(reader, json, raw, values);
-
-    return json;
+function buildCmf(reader, raw, values)
+{
+    const shared = finishProjection(
+        reader,
+        projectShared(raw.fileInfo, raw.version),
+        raw,
+        values
+    );
+    return hydrateCmf(
+        buildCmfFromShared(shared),
+        values.classes,
+        { source: values.source },
+        "CjsGr2Format CMF"
+    );
 }
 
 /** Reads input using normalized format options for the GR2 format reader. */
@@ -394,15 +422,8 @@ export function readWithValues(reader, input, values)
 {
     const parsed = readRawInput(input);
     if (values.emit === OUTPUT_RAW) return parsed;
-    const json = buildJson(reader, parsed, values);
-    return values.emit === OUTPUT_CMF
-        ? hydrateCmf(
-            buildCmfFromShared(json),
-            values.classes,
-            { source: values.source },
-            "CjsGr2Format CMF"
-        )
-        : json;
+    if (values.emit === OUTPUT_CMF) return buildCmf(reader, parsed, values);
+    return buildJson(reader, parsed, values);
 }
 
 /** Converts a parsed payload into a JSON-safe value for the GR2 format reader. */

@@ -37,7 +37,7 @@ import { Tr2EffectStateManager } from "../../../../npm/dist/trinity/shader/index
 import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
 import { CjsWebgpuFormat } from "../../../../npm/dist/resource/formats/webgpu/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
-import { buildCmfFromShared } from "../../../../src/resource/formats/cmf/core/shared.js";
+import { buildCmfFromRaw } from "../../../../src/resource/formats/gr2/core/targets.js";
 import { CjsWebgpuPackage } from "../../../../npm/dist/engine/webgpu/index.js";
 import { TriBatchType, RenderingMode } from "../../../../npm/dist/global/consts/graphics/index.js";
 
@@ -115,10 +115,9 @@ function geometryResource(mesh, path)
 /**
  * A real EVE hull, decoded in the browser.
  *
- * GR2 emits deinterleaved channels with no declaration; the CMF builder is what
- * produces one, and it is the same builder the runtime uses - so the
- * declaration binding sees here is the one a loaded ship would carry, packed
- * tangents unpacked and all.
+ * GR2 reflection emits no CMF declaration; the direct raw-to-CMF path is the
+ * same projection and builder the runtime uses, so the declaration binding
+ * seen here is the one a loaded ship carries, including packed tangents.
  *
  * Scaled into clip space because this demo has no projection: the point is the
  * declaration, the packing and the draw arguments, not the camera.
@@ -128,7 +127,7 @@ function geometryResource(mesh, path)
  */
 function hullMesh(bytes)
 {
-  const graph = buildCmfFromShared(CjsGr2Format.read(CjsGr2Format.readRaw(bytes), { emit: "json" }));
+  const graph = buildCmfFromRaw(CjsGr2Format.readRaw(bytes));
   const mesh = graph.meshes[0];
   const position = mesh.vertex.position;
 

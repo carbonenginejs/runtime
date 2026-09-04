@@ -116,6 +116,41 @@ test("loads shared geometry into CMF-native JSON", () =>
     assert.deepEqual(result.meshes[0].indices[0].faces, [ 0, 1, 2 ]);
 });
 
+test("preserves shared packed tangent frames through native and binary CMF", () =>
+{
+    const packedTangent = [
+        0, 0, 0, 1,
+        0, 0, 0, 1,
+        0, 0, 0, 1
+    ];
+    const shared = {
+        meshes: [ {
+            name: "packed",
+            vertex: {
+                position: [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
+                tangent: packedTangent
+            },
+            indices: [ { name: "main", bytesPerIndex: 2, faces: [ 0, 1, 2 ] } ]
+        } ]
+    };
+
+    const native = CjsCmfFormat.loadShared(shared);
+    assert.deepEqual(native.meshes[0].vertex.packedTangentLegacy, packedTangent);
+    assert.deepEqual(native.meshes[0].vertex.tangent, []);
+    assert.deepEqual(native.meshes[0].decl.find(element => element.usage === "PackedTangentLegacy"), {
+        usage: "PackedTangentLegacy",
+        usageIndex: 0,
+        type: "UInt16Norm",
+        elementCount: 4,
+        offset: 12
+    });
+
+    const binary = CjsCmfFormat.read(CjsCmfFormat.writeShared(shared), { emit: "raw" });
+    assert.deepEqual(binary.meshes[0].vertex.packedTangentLegacy, packedTangent);
+    assert.equal(binary.meshes[0].decl.some(element => element.usage === "Normal"), false);
+    assert.equal(binary.meshes[0].decl.some(element => element.usage === "Binormal"), false);
+});
+
 test("loads shared skinned geometry into CMF-native JSON", () =>
 {
     const result = CjsCmfFormat.loadShared({

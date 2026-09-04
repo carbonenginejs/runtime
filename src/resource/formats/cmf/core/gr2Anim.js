@@ -520,11 +520,16 @@ export function convertGr2Animation(animation, options = {})
 
     const addChannel = (target, targetType, decoded, targetDimension, tolerateDuplicate = false) =>
     {
+        // Granny's truncated reciprocal knot scale can decode the terminal
+        // knot slightly past a positive animation duration. Carbon treats the
+        // duration as the playable boundary and CMF permits such finite,
+        // ascending knots, so preserve them for exact degree-0/1 conversion.
+        // A curve that starts outside the playable interval is still invalid;
+        // zero-duration curves cannot carry a later knot.
         if (!decoded.keyframed && (
             decoded.knots[0] < 0 ||
             decoded.knots[0] > duration ||
-            decoded.knots[decoded.knots.length - 1] > duration &&
-                (decoded.degree <= 1 || duration === 0)
+            duration === 0 && decoded.knots[decoded.knots.length - 1] > duration
         ))
         {
             throw convertError(`animation "${animation.name || ""}" ${targetType} target "${target}" has keys outside its duration`);

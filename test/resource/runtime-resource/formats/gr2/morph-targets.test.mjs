@@ -190,3 +190,61 @@ test("three-component tangent targets retain a three-component declaration", () 
     ]);
     assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 12);
 });
+
+test("four-component unpacked tangent morph channels retain their authored width", () =>
+{
+    const cmf = buildCmfFromShared({ meshes: [ {
+        name: "TangentFrames",
+        vertex: { position: [ 0, 0, 0, 1, 0, 0 ] },
+        indices: [],
+        morphTargets: [ {
+            name: "FrameDelta",
+            dataIsDeltas: true,
+            vertex: {
+                tangent: [ 1, 0, 0, 1, 0, 1, 0, -1 ],
+                binormal: [ 0, 1, 0, 1, 0, 0, 1, -1 ]
+            }
+        } ]
+    } ] });
+
+    assert.deepEqual(cmf.meshes[0].morphTargets.decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "Tangent", elementCount: 4 },
+        { usage: "Binormal", elementCount: 4 }
+    ]);
+    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 32);
+});
+
+test("tangent-only morph targets preserve packed frames without a position channel", () =>
+{
+    const cmf = buildCmfFromShared({ meshes: [ {
+        name: "Tangents",
+        vertex: { position: [ 0, 0, 0, 1, 0, 0 ] },
+        indices: [],
+        morphTargets: [
+            {
+                name: "DensePacked",
+                dataIsDeltas: true,
+                vertex: { tangent: [ 0, 0, 0, 1, 0, 0, 0, 1 ] }
+            },
+            {
+                name: "SparsePacked",
+                dataIsDeltas: true,
+                vertex: { tangent: [ 0, 0, 0, 1 ] },
+                vertexIndices: [ 1 ]
+            }
+        ]
+    } ] });
+
+    assert.deepEqual(cmf.meshes[0].morphTargets.decl.map(({ usage, elementCount }) => ({ usage, elementCount })), [
+        { usage: "PackedTangentLegacy", elementCount: 4 }
+    ]);
+    assert.equal(cmf.meshes[0].lods[0].morphTargets[0].vb.stride, 8);
+    assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[0].vertex.packedTangentLegacy, [
+        0, 0, 0, 1,
+        0, 0, 0, 1
+    ]);
+    assert.deepEqual(cmf.meshes[0].lods[0].morphTargets[1].vertex.packedTangentLegacy, [
+        0, 0, 0, 0,
+        0, 0, 0, 1
+    ]);
+});
