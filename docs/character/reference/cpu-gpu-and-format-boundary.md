@@ -46,6 +46,35 @@ A realizer owns:
 - mesh replacement/finalization and animation attachment; and
 - backend limits, fallbacks, and readiness or loss handling.
 
+Backends may be implemented beneath `src/character/gles`,
+`src/character/webgl2`, or `src/character/webgpu` when they exist. Those
+folders are isolated realization ALs: the root `@carbonenginejs/runtime/character`
+entry point remains CPU/data-only and does not eagerly import or re-export a
+backend. A character CPU coordinator retains an opaque realized stage and calls
+the injected AL lifecycle (`Prepare`, `Commit`, `Release`, and optional handoff,
+morph, warmup, or diagnostics methods); it never reads or mutates GPU state.
+
+The GLES reference helpers make this concrete. `CjsCharacterGlesAtlasPlacement`
+and `CjsCharacterGlesAtlasPlanning` are pure metadata/planning code;
+`CjsCharacterGlesAtlasRenderer` receives all target/effect work from an
+injected atlas host. `CjsCharacterGlesPaletteCompatibility`,
+`CjsCharacterGlesTriangleCoverage`, and `CjsCharacterGlesMorphDeformation`
+may inspect the decoded mesh shape needed for their policy, but receive all
+native operations through an injected geometry host. The host supplies:
+The `CjsCharacterGlesAppearanceAL` receives scene/resource work
+through separate injected resource, visual, and configured-operation hosts.
+
+- `GetMeshes(geometryResource)` and `EnsureSystemMirror(geometryResource)`;
+- `UploadIndices(mesh)` and `UploadVertices(mesh)`;
+- `GetVertexChannelDeclaration(mesh, channel)` for backend vertex-layout
+  interpretation; and
+- `RebuildMeshBounds(mesh)` and `RebuildBounds(geometryResource)`.
+
+This lets the GLES adapter bridge existing Tw2/GR2/WebGL objects today without
+making those objects, their global facade, or a local-file fallback part of the
+CPU library or plan contract. A WebGL2 or WebGPU AL supplies an equivalent host
+for its own live representation.
+
 The plan must not contain a canvas, rendering context, device, command encoder,
 live resource handle, decoded byte buffer, cache lease, or renderer callback.
 Pass-array order is authoritative, but the implementation used to execute a
@@ -57,10 +86,13 @@ data layouts, and neutral batch intent. A field typed as a texture, effect,
 geometry resource, or render target is a hydrated reference contract; this
 package does not allocate or submit the corresponding GPU object.
 
-`test/character/runtime-character/cpu-gpu-boundary.test.js` guards the package source against engine,
-resource-runtime, and browser/Node tool imports and against concrete
-WebGL/WebGPU allocation, upload, and draw operations. Shared model, schema,
-path, and math functions remain GPU-free imports from the `global` layer.
+`test/character/runtime-character/cpu-gpu-boundary.test.js` guards the CPU/data
+surface against engine, resource-runtime, browser/Node tool imports, local Node
+file loading, and concrete WebGL/WebGPU allocation, upload, or draw operations.
+It permits those operations only beneath an isolated character backend AL
+folder; every backend still uses injected browser/resource access rather than a
+Node fallback. Shared model, schema, path, and math functions remain GPU-free
+imports from the `global` layer.
 
 ## Format pipeline
 

@@ -16,8 +16,9 @@ entry points have separately constrained surfaces.
 
 The repository currently contains the maintained global foundation, resource
 capability, Trinity/EVE object graph, standalone SOF builder, complete audio
-domain, GPU-free character domain, browser input domain, WebGPU engine, and
-GPU-free composition core; browser-safe tools and root demos; the layer checker;
+domain, CPU/data character domain with isolated backend appearance-AL subpaths,
+browser input domain, WebGPU engine, and GPU-free composition core; browser-safe
+tools and root demos; the layer checker;
 and a donor manifest. The package is private, and both WebGPU and tools remain
 explicit subpaths outside the aggregate surface.
 

@@ -100,6 +100,57 @@ texture roles, coverage, targets, bindings, and composition passes remain
 unresolved. It emits diagnostics rather than promoting the working demo's
 heuristics into source data. There is no plan execution adapter.
 
+## Appearance realization boundary
+
+`CjsCharacter`, `CjsCharacterAppearanceConstruction`, and
+`CjsCharacterAppearanceManager` form the shared CPU lifecycle. They resolve
+source-backed selections, build serializable construction intent, serialize
+revisions, and retain an opaque committed stage. They do not fetch asset bytes,
+decode GR2, allocate GPU resources, bind effects, or examine the stage.
+
+An injected appearance AL owns `Prepare`, `Commit`, and `Release` for that
+opaque stage. A backend may add an implementation beneath
+`src/character/gles`, `src/character/webgl2`, or a future implemented
+`src/character/webgpu` directory. It receives its resource access and native
+factories from the host; there is no Node/local-file fallback. Backend modules
+are explicit subpath imports and must not be re-exported by
+`src/character/index.js`.
+
+`@carbonenginejs/runtime/character/gles` currently contains a small, explicit
+reference backend seam rather than a monolithic adapter:
+
+- `CjsCharacterGlesAppearanceAL` owns the backend Prepare →
+  Commit/Handoff → Release transaction while hosts own all Tw2 scene/resource work;
+- `CjsCharacterGlesFoundationTranslator` converts neutral foundation intent
+  into the reviewed GLES operation shape;
+- `CjsCharacterGlesAtlasPlacement` preserves and validates authored
+  normalized atlas placement without loading a resource or touching a target;
+- `CjsCharacterGlesPaletteCompatibility` applies the temporary 58-bone
+  right-hand workaround;
+- `CjsCharacterGlesAtlasPlanning` turns retained metadata into detached
+  texture-composition pass descriptors; and
+- `CjsCharacterGlesAtlasRenderer` executes those descriptors only through
+  an injected atlas host and guarantees reverse-order cleanup;
+- `CjsCharacterGlesTriangleCoverage` owns reversible coverage leases for
+  realized index buffers; and
+- `CjsCharacterGlesMorphDeformation` owns reversible vertex morph leases.
+
+The palette, coverage, and morph helpers operate only through an injected geometry host. That host
+provides mesh discovery, system-mirror readiness, vertex-layout lookup, buffer
+upload, and bounds rebuilding; it is the only code that knows about Tw2/GR2 or
+the current WebGL context. The helpers retain no global facade and cannot read
+files or fetch assets. The atlas renderer has a separate injected host for target
+creation, effect preparation, pass execution, finalization, and reverse-order
+cleanup. The remaining legacy configured-material execution, resource acquisition,
+and Ccpwgl scene attachment are host implementations behind this same AL boundary.
+
+Foundation and texture policy remain CPU data outputs: they identify resource
+paths, selected texture candidates, coverage roles, and provenance. A backend
+translator selects its own shader, proof surface, palette workaround, mask
+implementation, and GPU resource representation. This lets the current GLES
+reference and the WebGL2/DX11 target consume one construction sequence without
+making either renderer's implementation detail a character-library fact.
+
 ## Current Carbon boundary
 
 Every current Carbon-derived `Tr2*`, `Tri*`, interface, helper struct, enum, and

@@ -1,6 +1,13 @@
 const publicExport = "`@carbonenginejs/runtime/character`";
 
+const glesExport = "`@carbonenginejs/runtime/character/gles`";
+
+const webgl2Export = "`@carbonenginejs/runtime/character/webgl2`";
+
 const carbonEngineJs = [
+    ["CjsCharacter", "src/character/CjsCharacter.js"],
+    ["CjsCharacterAppearanceConstruction", "src/character/CjsCharacterAppearanceConstruction.js"],
+    ["CjsCharacterAppearanceManager", "src/character/CjsCharacterAppearanceManager.js"],
     ["CjsCharacterAncestry", "src/character/model/demographics/CjsCharacterAncestry.js"],
     ["CjsCharacterAppearanceBinding", "src/character/model/planning/CjsCharacterAppearanceBinding.js"],
     ["CjsCharacterAppearanceColorSelection", "src/character/model/planning/CjsCharacterAppearanceColorSelection.js"],
@@ -22,6 +29,9 @@ const carbonEngineJs = [
     ["CjsCharacterCompositionTarget", "src/character/model/planning/CjsCharacterCompositionTarget.js"],
     ["CjsCharacterCoverage", "src/character/model/planning/CjsCharacterCoverage.js"],
     ["CjsCharacterDefinition", "src/character/model/catalog/CjsCharacterDefinition.js"],
+    ["CjsCharacterDiagnostics", "src/character/CjsCharacterDiagnostics.js"],
+    ["CjsCharacterFoundationConstruction", "src/character/CjsCharacterFoundationConstruction.js"],
+    ["CjsCharacterFoundationCoveragePolicy", "src/character/CjsCharacterFoundationCoveragePolicy.js"],
     ["CjsCharacterLibrary", "src/character/library/CjsCharacterLibrary.js"],
     ["CjsCharacterLibraryBuilder", "src/character/library-builder/CjsCharacterLibraryBuilder.js"],
     ["CjsCharacterLibraryDocuments", "src/character/library/CjsCharacterLibraryDocuments.js"],
@@ -52,7 +62,10 @@ const carbonEngineJs = [
     ["CjsCharacterSculptSelection", "src/character/model/appearance/CjsCharacterSculptSelection.js"],
     ["CjsCharacterTextureAsset", "src/character/model/planning/CjsCharacterTextureAsset.js"],
     ["CjsCharacterTextureChannel", "src/character/model/planning/CjsCharacterTextureChannel.js"],
+    ["CjsCharacterTextureContributions", "src/character/CjsCharacterTextureContributions.js"],
     ["CjsCharacterTextureMetadata", "src/character/model/catalog/CjsCharacterTextureMetadata.js"],
+    ["CjsCharacterTexturePolicy", "src/character/CjsCharacterTexturePolicy.js"],
+    ["CjsCharacterTextureQuality", "src/character/CjsCharacterTextureQuality.js"],
     ["CjsCharacterOrigin", "src/character/model/planning/CjsCharacterOrigin.js"]
 ];
 
@@ -89,12 +102,42 @@ const historicalIncarna = [
     ["Tr2ScalarKey", "src/character/incarna/curves/Tr2ScalarKey.js"]
 ];
 
+const glesBackend = [
+    ["CjsCharacterGlesAppearanceAL", "src/character/gles/CjsCharacterGlesAppearanceAL.js"],
+    ["CjsCharacterGlesAtlasPlacement", "src/character/gles/CjsCharacterGlesAtlasPlacement.js"],
+    ["CjsCharacterGlesAtlasPlanning", "src/character/gles/CjsCharacterGlesAtlasPlanning.js"],
+    ["CjsCharacterGlesAtlasRenderer", "src/character/gles/CjsCharacterGlesAtlasRenderer.js"],
+    ["CjsCharacterGlesFoundationTranslator", "src/character/gles/CjsCharacterGlesFoundationTranslator.js"],
+    ["CjsCharacterGlesLegacyConstructionTranslator", "src/character/gles/CjsCharacterGlesLegacyConstructionTranslator.js"],
+    ["CjsCharacterGlesMorphDeformation", "src/character/gles/CjsCharacterGlesMorphDeformation.js"],
+    ["CjsCharacterGlesPaletteCompatibility", "src/character/gles/CjsCharacterGlesPaletteCompatibility.js"],
+    ["CjsCharacterGlesTriangleCoverage", "src/character/gles/CjsCharacterGlesTriangleCoverage.js"]
+];
+
+const webgl2Backend = [
+    ["CjsCharacterWebgl2EffectRouter", "src/character/webgl2/CjsCharacterWebgl2EffectRouter.js"]
+];
+
 export const classCatalogMetadata = [
     ...carbonEngineJs.map(([name, source]) => ({
         name,
         source,
         visibility: "Public",
         export: publicExport,
+        kind: "CarbonEngineJS"
+    })),
+    ...glesBackend.map(([name, source]) => ({
+        name,
+        source,
+        visibility: "Public",
+        export: glesExport,
+        kind: "CarbonEngineJS"
+    })),
+    ...webgl2Backend.map(([name, source]) => ({
+        name,
+        source,
+        visibility: "Public",
+        export: webgl2Export,
         kind: "CarbonEngineJS"
     })),
     ...adaptedCarbon.map(([name, source]) => ({

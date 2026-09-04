@@ -10,6 +10,9 @@ const SOURCE_ROOT = path.join(PACKAGE_ROOT, "src", "character");
 const PACKAGE_IMPORT = /(?:from\s+|import\s*\()\s*["'](#[^"']+)["']/gu;
 const FORBIDDEN_RUNTIME_DEPENDENCY = /^#(?:engine|core|tools|audio|sof|input)(?:\/|$)/u;
 const RESOURCE_DEPENDENCY = /^#resource(?:\/|$)/u;
+const NODE_FILE_DEPENDENCY = /(?:from\s+|import\s*\()\s*["'](?:node:)?(?:fs|path|os|child_process)["']/u;
+const LEGACY_TW2_GLOBAL_ACCESS = /(?:import\s*\{\s*tw2\s*\}\s*from\s*["']global["']|\btw2\s*(?:\?\.|\.))/u;
+const BACKEND_DIRECTORIES = new Set([ "gles", "webgl2", "webgpu" ]);
 const LIVE_GPU_OPERATIONS = [
     /\bWebGL2?RenderingContext\b/u,
     /\bGPU(?:Adapter|BindGroup|Buffer|CommandEncoder|Device|Pipeline|Queue|Texture)\b/u,
@@ -17,7 +20,7 @@ const LIVE_GPU_OPERATIONS = [
     /\.(?:bufferData|drawArrays|drawElements|texImage2D)\s*\(/u
 ];
 
-test("the character layer keeps upper layers and resource decoding outside its model graph", async () =>
+test("the character CPU/data layer stays backend- and Node-loader-free", async () =>
 {
     const files = await ListJavaScriptFiles(SOURCE_ROOT);
     const failures = [];
@@ -25,6 +28,7 @@ test("the character layer keeps upper layers and resource decoding outside its m
     for (const filePath of files)
     {
         const source = await readFile(filePath, "utf8");
+        const backendRealizer = IsBackendRealizer(filePath);
 
         for (const match of source.matchAll(PACKAGE_IMPORT))
         {
@@ -40,8 +44,16 @@ test("the character layer keeps upper layers and resource decoding outside its m
                 );
             }
         }
+        if (NODE_FILE_DEPENDENCY.test(source))
+        {
+            failures.push(`${Relative(filePath)} imports a Node local-file dependency`);
+        }
+        if (backendRealizer && LEGACY_TW2_GLOBAL_ACCESS.test(source))
+        {
+            failures.push(`${Relative(filePath)} reaches for the legacy Tw2 global facade`);
+        }
 
-        for (const operation of LIVE_GPU_OPERATIONS)
+        if (!backendRealizer) for (const operation of LIVE_GPU_OPERATIONS)
         {
             if (operation.test(source))
             {
@@ -73,6 +85,16 @@ test("the character layer contract excludes upper and sibling runtime layers", a
     assert.deepEqual(failures, []);
 });
 
+test("the root character entry point remains CPU/data-only", async () =>
+{
+    const source = await readFile(path.join(SOURCE_ROOT, "index.js"), "utf8");
+
+    for (const directory of BACKEND_DIRECTORIES)
+    {
+        assert.equal(source.includes(`./${directory}/`), false);
+    }
+});
+
 async function ListJavaScriptFiles(directory)
 {
     const result = [];
@@ -96,4 +118,10 @@ async function ListJavaScriptFiles(directory)
 function Relative(filePath)
 {
     return path.relative(PACKAGE_ROOT, filePath).replaceAll("\\", "/");
+}
+
+function IsBackendRealizer(filePath)
+{
+    const relative = path.relative(SOURCE_ROOT, filePath);
+    return BACKEND_DIRECTORIES.has(relative.split(path.sep)[0]);
 }

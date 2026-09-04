@@ -23,6 +23,10 @@ Summary: Tracks evidence-backed work after replacing the speculative v1/v2 chara
   configuration/geometry candidates, and bounded exact typed dependency
   contributions;
 - verified GPU-free modifier-order and shared-atlas layout policy;
+- one CPU character construction/appearance lifecycle with opaque injected
+  realization stages; backend AL implementations may live in `gles`, `webgl2`,
+  or a future implemented `webgpu` subpath without entering the root character
+  entry point;
 - current source-backed native character/interior classes under `src/character/trinity`;
 - exact-name CPU rig binding used by `Tr2SkinnedObject`; and
 - a bounded `src/character/incarna` tranche for recovered historical-only identities.

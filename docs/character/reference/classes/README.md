@@ -10,6 +10,16 @@ Generated from reviewed class-level JSDoc and explicit export metadata in
 `scripts/character/generate_class_catalog.js`.
 Update source purposes and regenerate; do not edit catalog entries directly.
 
+<!-- class:CjsCharacter -->
+## `CjsCharacter`
+
+Owns one selected paper doll and its current resolved appearance state.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacter.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterAncestry -->
 ## `CjsCharacterAncestry`
 
@@ -40,6 +50,16 @@ One plan-local authored paper-doll colour selection.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterAppearanceConstruction -->
+## `CjsCharacterAppearanceConstruction`
+
+Combines injected foundation construction with resolved plan parts into one renderer-neutral appearance construction sequence.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterAppearanceConstruction.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterAppearanceDiagnostic -->
 ## `CjsCharacterAppearanceDiagnostic`
 
@@ -57,6 +77,16 @@ Appearance contribution separating selection ownership from the asset that suppl
 
 - Export: `@carbonenginejs/runtime/character`
 - Source: `src/character/model/planning/CjsCharacterAppearanceLayer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterAppearanceManager -->
+## `CjsCharacterAppearanceManager`
+
+Serializes one character's appearance realization and publishes only complete staged revisions.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterAppearanceManager.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -227,6 +257,126 @@ Lossless JSON value decoded from one indexed character definition file.
 
 - Export: `@carbonenginejs/runtime/character`
 - Source: `src/character/model/catalog/CjsCharacterDefinition.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterDiagnostics -->
+## `CjsCharacterDiagnostics`
+
+Creates a detached proof snapshot from one resolved character session.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterDiagnostics.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterFoundationConstruction -->
+## `CjsCharacterFoundationConstruction`
+
+Produces renderer-neutral skeleton, foundation geometry, and selected skin descriptors from one paper doll, plan, and hydrated character library.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterFoundationConstruction.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterFoundationCoveragePolicy -->
+## `CjsCharacterFoundationCoveragePolicy`
+
+Resolves retained character metadata into renderer-neutral foundation coverage intent.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterFoundationCoveragePolicy.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesAppearanceAL -->
+## `CjsCharacterGlesAppearanceAL`
+
+GLES realization application layer.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesAppearanceAL.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesAtlasPlacement -->
+## `CjsCharacterGlesAtlasPlacement`
+
+Pure GLES atlas-placement helpers.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesAtlasPlacement.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesAtlasPlanning -->
+## `CjsCharacterGlesAtlasPlanning`
+
+Builds renderer-neutral GLES atlas pass descriptors from retained authored metadata.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesAtlasPlanning.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesAtlasRenderer -->
+## `CjsCharacterGlesAtlasRenderer`
+
+Executes prepared GLES atlas pass descriptors through an injected native host.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesAtlasRenderer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesFoundationTranslator -->
+## `CjsCharacterGlesFoundationTranslator`
+
+Translates renderer-neutral foundation construction into the reviewed GLES operation shape without acquiring resources or mutating live geometry.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesFoundationTranslator.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesLegacyConstructionTranslator -->
+## `CjsCharacterGlesLegacyConstructionTranslator`
+
+Lowers neutral character construction to the narrow contract implemented by the retained GLES renderer.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesLegacyConstructionTranslator.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesMorphDeformation -->
+## `CjsCharacterGlesMorphDeformation`
+
+Reversibly realizes exact morph requests on cached GLES geometry.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesMorphDeformation.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesPaletteCompatibility -->
+## `CjsCharacterGlesPaletteCompatibility`
+
+Applies reviewed GLES palette-capacity policies to realized geometry.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesPaletteCompatibility.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterGlesTriangleCoverage -->
+## `CjsCharacterGlesTriangleCoverage`
+
+Reversibly masks triangles for reviewed GLES foundation-coverage policies.
+
+- Export: `@carbonenginejs/runtime/character/gles`
+- Source: `src/character/gles/CjsCharacterGlesTriangleCoverage.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -530,6 +680,16 @@ Reference to one logical channel of a resolved character texture.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterTextureContributions -->
+## `CjsCharacterTextureContributions`
+
+Validates the one-to-one identity relationship between plan layers and textures.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterTextureContributions.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterTextureMetadata -->
 ## `CjsCharacterTextureMetadata`
 
@@ -537,6 +697,36 @@ Inspected source-image facts and normalized character-atlas placement.
 
 - Export: `@carbonenginejs/runtime/character`
 - Source: `src/character/model/catalog/CjsCharacterTextureMetadata.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterTexturePolicy -->
+## `CjsCharacterTexturePolicy`
+
+Labels retained character texture candidates without fetching or creating a renderer resource.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterTexturePolicy.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterTextureQuality -->
+## `CjsCharacterTextureQuality`
+
+Chooses retained character texture variants without coupling selection to a resource manager or renderer.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/CjsCharacterTextureQuality.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCharacterWebgl2EffectRouter -->
+## `CjsCharacterWebgl2EffectRouter`
+
+Backend-only router from audited avatar effects to DX11 shader paths, which the resource host overlays to WebGL2.
+
+- Export: `@carbonenginejs/runtime/character/webgl2`
+- Source: `src/character/webgl2/CjsCharacterWebgl2EffectRouter.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

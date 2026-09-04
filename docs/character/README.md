@@ -3,14 +3,19 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime/character`
 Audience: Character-runtime integrators and maintainers
-Summary: Documents model-shaped character JSON and current native character/interior classes.
+Summary: Documents model-shaped character JSON, backend-neutral appearance
+construction, realization ALs, and current native character/interior classes.
 
 ## Purpose
 
 The combined runtime's character layer owns a source-neutral schema-v10 character document format,
 a separate schema-v4 resolved appearance-plan format, and the current Carbon
-character/interior identities assigned to this package. It is GPU-free;
-its builder reads the twelve modern cFSD source documents through fetch or an
+character/interior identities assigned to this package. Its root CPU/data
+surface is GPU-free; backend realization ALs may live in isolated `gles/`,
+`webgl2/`, or future `webgpu/` subdirectories without being re-exported by the
+root entry point. A realizer receives one resolved plan and owns every live
+resource, texture, buffer, pipeline, and stage it creates. Its builder reads
+the twelve modern cFSD source documents through fetch or an
 injected byte source, while applications retain endpoint and asset-lifecycle
 policy.
 
