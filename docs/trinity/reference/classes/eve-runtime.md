@@ -1745,6 +1745,16 @@ One authored sprite: its bone attachment, position, blink timing, scale range, f
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:EveChildTurret -->
+## `EveChildTurret`
+
+A single animated turret living as a space-object child: it owns its target tracker, sysbone aiming, deploy/pack/fire animation state machine, firing effect and movement audio, and implements the pose-modifier hook so its barrels aim inside the sampled animation pose.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/child/EveChildTurret.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:EveTurretAiming -->
 ## `EveTurretAiming`
 

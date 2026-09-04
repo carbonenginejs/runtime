@@ -13,6 +13,7 @@ export * from "./EveChildInstancedMeshes.js";
 export * from "./EveChildLightingOverride.js";
 export * from "./EveChildLink.js";
 export * from "./EveChildMesh.js";
+export * from "./EveChildTurret.js";
 export * from "./EveChildSpherePin.js";
 export * from "./EveSpaceObjectChild.js";
 export * from "./EveChildTransform.js";
