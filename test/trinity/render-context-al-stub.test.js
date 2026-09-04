@@ -336,3 +336,60 @@ test("the depth stencil pushes and pops the same way", () =>
   assert.equal(context.GetDepthStencil(), main);
   assert.equal(context.PopDepthStencil(), false);
 });
+
+test("each slot has its own stack, so interleaved pushes unwind correctly", () =>
+{
+  // Carbon's stacks are m_stackRT[MAX_RENDER_TARGET]. One shared stack pops the
+  // most recent push whatever slot it names, so pushing slot 0 then slot 1 and
+  // popping slot 0 restores the wrong surface into the wrong slot.
+  const al = ready();
+  const zero = { id: "zero" };
+  const one = { id: "one" };
+
+  al.SetRenderTarget(0, zero);
+  al.SetRenderTarget(1, one);
+
+  al.PushRenderTarget(0);
+  al.PushRenderTarget(1);
+
+  al.SetRenderTarget(0, { id: "zero-offscreen" });
+  al.SetRenderTarget(1, { id: "one-offscreen" });
+
+  assert.equal(al.GetStackSizeRT(0), 1);
+  assert.equal(al.GetStackSizeRT(1), 1);
+
+  al.PopRenderTarget(0);
+
+  assert.equal(al.GetRenderTarget(0), zero, "slot 0 restored its own target");
+  assert.equal(al.GetRenderTarget(1).id, "one-offscreen", "slot 1 is untouched");
+  assert.equal(al.GetStackSizeRT(0), 0);
+  assert.equal(al.GetStackSizeRT(1), 1);
+
+  al.PopRenderTarget(1);
+
+  assert.equal(al.GetRenderTarget(1), one);
+});
+
+test("stack depth is reported by the backend when one is installed", () =>
+{
+  // The same seam bug the getters had: the context's own stacks stay empty
+  // while the backend holds the real ones, so an unbalance guard reading zero
+  // would never fire.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  context.PushRenderTarget(null, 0);
+  context.PushDepthStencil(null);
+
+  assert.equal(context.GetStackSizeRT(0), 1);
+  assert.equal(context.GetStackSizeDS(), 1);
+
+  context.PopRenderTarget(0);
+  context.PopDepthStencil();
+
+  assert.equal(context.GetStackSizeRT(0), 0);
+  assert.equal(context.GetStackSizeDS(), 0);
+});

@@ -465,6 +465,8 @@ export class Tr2RenderContext extends CjsModel
   /** Depth of one slot's render-target stack; zero for a slot never pushed to. */
   GetStackSizeRT(slot = 0)
   {
+    if (this.#al) return this.#al.GetStackSizeRT(slot);
+
     return this.#renderTargetStacks.get(Number(slot) >>> 0)?.length ?? 0;
   }
 
@@ -504,6 +506,8 @@ export class Tr2RenderContext extends CjsModel
   /** Depth of the depth-stencil stack. */
   GetStackSizeDS()
   {
+    if (this.#al) return this.#al.GetStackSizeDS();
+
     return this.#depthStencilStack.length;
   }
 

@@ -63,8 +63,12 @@ export class Tr2RenderContextALStub
 
   #depthStencil = null;
 
+  // ONE STACK PER SLOT, as Carbon has (`m_stackRT[MAX_RENDER_TARGET]`). A single
+  // shared stack pops the most recent push regardless of slot, so pushing slot 0
+  // then slot 1 and popping slot 0 restores the wrong surface.
+
   /** Carbon keeps real stacks and reports their depth (GetStackSizeRT/DS). */
-  #renderTargetStack = [];
+  #renderTargetStacks = Array.from({ length: MAX_RENDER_TARGET }, () => []);
 
   #depthStencilStack = [];
 
@@ -202,7 +206,7 @@ export class Tr2RenderContextALStub
   {
     this.#boundRenderTargets.fill(null);
     this.#depthStencil = null;
-    this.#renderTargetStack.length = 0;
+    for (const stack of this.#renderTargetStacks) stack.length = 0;
     this.#depthStencilStack.length = 0;
     this.#isValid = false;
 
@@ -263,35 +267,45 @@ export class Tr2RenderContextALStub
       fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
     }
 
-    this.#renderTargetStack.push({ slot, renderTarget: this.#boundRenderTargets[slot] ?? null });
+    this.#renderTargetStacks[slot].push(this.#boundRenderTargets[slot] ?? null);
 
     return true;
   }
 
   /**
-   * Restores the target beneath the top of the stack.
+   * Restores the target saved for a slot, binding it again.
    *
-   * @param {number} [slot] Target slot, for the message only.
+   * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
   PopRenderTarget(slot = 0)
   {
-    const restored = this.#renderTargetStack.pop();
+    if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_RENDER_TARGET)
+    {
+      fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
+    }
+
+    const stack = this.#renderTargetStacks[slot];
 
     // Carbon reports the stack depth rather than guarding, but an unbalanced
     // pop is a caller bug and silence here would leave the wrong target bound
     // for the rest of the frame.
-    if (!restored) fail(`render target stack is empty, popping slot ${slot}`);
+    if (!stack.length) fail(`render target stack is empty, popping slot ${slot}`);
 
-    this.#boundRenderTargets[restored.slot] = restored.renderTarget;
+    this.#boundRenderTargets[slot] = stack.pop();
 
     return true;
   }
 
-  /** Carbon's GetStackSizeRT. */
-  GetStackSizeRT()
+  /**
+   * Carbon's GetStackSizeRT, which is per slot.
+   *
+   * @param {number} [slot] Target slot.
+   * @returns {number} Saved targets for that slot.
+   */
+  GetStackSizeRT(slot = 0)
   {
-    return this.#renderTargetStack.length;
+    return this.#renderTargetStacks[slot]?.length ?? 0;
   }
 
   /**
