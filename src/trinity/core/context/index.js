@@ -5,3 +5,4 @@ export * from "./CjsDirectTrinityStepExecutor.js";
 export * from "./CjsShadowMapExecutor.js";
 export * from "./CjsTrinityStepExecutor.js";
 export * from "./CjsVolumetricsExecutor.js";
+export * from "./Tr2RenderContextALStub.js";
