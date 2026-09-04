@@ -537,6 +537,28 @@ export class Tr2RenderContext extends CjsModel
     return true;
   }
 
+  /**
+   * What the installed backend can do.
+   *
+   * Carbon reaches capabilities through the context and nowhere else
+   * (`TriDevice.cpp:1295-1300,1399-1403` both read
+   * `renderContext.GetCaps().SupportsX()`), so this is the only door.
+   *
+   * With no backend there is nothing to ask, and answering anyway would mean
+   * inventing a capability set - so it fails rather than guessing.
+   *
+   * @returns {object} The backend capabilities.
+   */
+  GetCaps()
+  {
+    if (!this.#al)
+    {
+      throw new Error("Tr2RenderContext has no render-context AL installed; capabilities belong to one.");
+    }
+
+    return this.#al.GetCaps();
+  }
+
   /** GPU-free validity check: any non-null render target counts as valid. */
   IsRenderTargetValid(renderTarget)
   {

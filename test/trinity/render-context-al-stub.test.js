@@ -252,3 +252,24 @@ test("with no backend the recording path still defers a full-screen viewport", (
   assert.equal(context.GetViewport(), null);
   assert.ok(context.GetIntents().some(intent => intent.type === "set-fullscreen-viewport"));
 });
+
+test("capabilities are reached through the context, and only with a backend", () =>
+{
+  // Carbon reads renderContext.GetCaps().SupportsX() and never touches a caps
+  // object directly (TriDevice.cpp:1295-1300, 1399-1403), so the context is the
+  // only door. Without a backend there is nothing behind it.
+  const context = new Tr2RenderContext();
+
+  assert.throws(() => context.GetCaps(), /no render-context AL installed/);
+
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  const caps = context.GetCaps();
+
+  assert.equal(caps, al.GetCaps(), "the context owns one caps object, as Carbon's does");
+  assert.equal(caps.SupportsRaytracing(), false);
+  assert.equal(caps.SupportsVertexShaderTextures(), true, "not everything is a no");
+});

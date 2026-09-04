@@ -28,7 +28,7 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2TextureALStub } from "../al/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2CapsALStub, Tr2TextureALStub } from "../al/index.js";
 import { PixelFormat, Tr2GpuUsage } from "../../../global/consts/renderContext/index.js";
 
 
@@ -72,6 +72,9 @@ export class Tr2RenderContextALStub
 
   /** Every draw the context was asked for, so a headless caller can assert. */
   #drawCount = 0;
+
+  /** m_caps - the context owns its capabilities, as Carbon's does. */
+  #caps = new Tr2CapsALStub();
 
   /** m_defaultBackBuffer - a real texture, so size and format read back. */
   #defaultBackBuffer = new Tr2TextureALStub();
@@ -123,6 +126,20 @@ export class Tr2RenderContextALStub
     this.SetRenderTarget(0, this.#defaultBackBuffer);
 
     return ALResult.S_OK;
+  }
+
+  /**
+   * What this backend can do.
+   *
+   * Carbon's context owns its caps and hands out a reference
+   * (`Tr2RenderContextStub.h:70`); a caller asks the context, never the caps
+   * object directly, which is why this lives here rather than on a factory.
+   *
+   * @returns {Tr2CapsALStub} The capabilities.
+   */
+  GetCaps()
+  {
+    return this.#caps;
   }
 
   /**
