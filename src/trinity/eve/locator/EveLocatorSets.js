@@ -1,9 +1,51 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
+import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
+
+const UNIT_Y = vec3.fromValues(0, 1, 0);
+const POSE_BONE_SCRATCH = mat4.create();
+
+/**
+ * Resolves a locator to its posed position and direction, transformed by the
+ * animation updater's mesh bone when the locator is bone-attached.
+ *
+ * Carbon `EveGetLocatorPose` (EveLocatorSets.cpp:11-27). The direction is +Y
+ * rotated by the authored quaternion. Carbon assumes bone 0 is unanimated for
+ * performance, so only `boneIndex > 0` applies a bone matrix, and the
+ * direction is deliberately NOT normalized here - the merged-damage caller in
+ * EveSpaceObject2 normalizes after its own transform, and other callers take
+ * the raw basis-transformed value.
+ *
+ * @param {Float32Array} outPosition - receives the object-space position
+ * @param {Float32Array} outDirection - receives the unnormalized direction
+ * @param {Object|null} animationUpdater - Tr2GrannyAnimation or null
+ * @param {Object} locator - a Locator record
+ */
+export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, locator)
+{
+  vec3.copy(outPosition, locator.position);
+  vec3.transformQuat(outDirection, UNIT_Y, locator.direction);
+
+  if (locator.boneIndex > 0 && animationUpdater && animationUpdater.IsInitialized() &&
+    locator.boneIndex < animationUpdater.GetMeshBoneCount())
+  {
+    const bones = animationUpdater.GetMeshBoneMatrixList();
+    // Carbon leaves the outputs caller-uninitialized when the palette is
+    // absent; CarbonEngineJS keeps the unskinned values instead.
+    if (!bones || (locator.boneIndex + 1) * 12 > bones.length) return;
+    MatrixCopyFrom3x4(POSE_BONE_SCRATCH, bones, locator.boneIndex);
+    vec3.transformMat4(outPosition, locator.position, POSE_BONE_SCRATCH);
+    const [ x, y, z ] = outDirection;
+    outDirection[0] = POSE_BONE_SCRATCH[0] * x + POSE_BONE_SCRATCH[4] * y + POSE_BONE_SCRATCH[8] * z;
+    outDirection[1] = POSE_BONE_SCRATCH[1] * x + POSE_BONE_SCRATCH[5] * y + POSE_BONE_SCRATCH[9] * z;
+    outDirection[2] = POSE_BONE_SCRATCH[2] * x + POSE_BONE_SCRATCH[6] * y + POSE_BONE_SCRATCH[10] * z;
+  }
+}
 
 
 /**

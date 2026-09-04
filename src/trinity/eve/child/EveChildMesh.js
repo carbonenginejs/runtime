@@ -22,7 +22,7 @@ import {
   stampChildTransforms
 } from "../perObjectData/childPerObjectRecords.js";
 import { Float4x3 } from "../../utilities/Float4x3.js";
-import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
+import { EveGetLocatorPose } from "../locator/EveLocatorSets.js";
 import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
 import {
   CollectOverlayAreaBlocks,
@@ -41,7 +41,6 @@ const SHADOW_SPHERE_SCRATCH = vec4.create();
 const BOX_CORNER_SCRATCH = vec3.create();
 const BOX_QUERY_SCRATCH = { min: vec3.create(), max: vec3.create() };
 const ZERO_VEC3 = vec3.create();
-const DAMAGE_BONE_SCRATCH = mat4.create();
 
 // Carbon's (nullptr, 0) bone result - frozen so callers cannot mutate it.
 const NO_BONE_TRANSFORMS = Object.freeze({ bones: null, boneCount: 0 });
@@ -103,8 +102,15 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
 
   #overlayAreaBlocksBuilt = false;
 
+  // Carbon sets these two programmatically from SOF (EveSOF.cpp:3971-3972);
+  // CarbonEngineJS delivers built objects as documents, so both persist.
+  @io.persist
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
+
+  @io.persist
+  @type.objectRef("Tr2Effect")
+  armorDamageShader = null;
 
   /**
    * Clears the private visibility state for a derived child whose own Carbon
@@ -848,7 +854,9 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
         boundingSphere: localSphere,
         estimatedPixelDiameter: Math.max(this.currentScreenSize, 0),
         isInFrustum: this.#isVisible,
-        getDamageLocatorPositionOS: (index, out) => this.GetDamageLocatorPositionLocal(index, out)
+        // Bind pose, not animated: the overlay seeds decals at the stable
+        // authored position (Carbon EveChildMesh.cpp:1130, commit 98ee5e08).
+        getDamageLocatorPositionOS: (index, out) => this.GetDamageLocatorBindPositionLocal(index, out)
       }, 0, false);
     }
 
@@ -1577,32 +1585,67 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
     return this.damageOverlay;
   }
 
-  /** Resolves one damage locator in the child's local object space. */
+  /** Sets the per-part armour damage shader stamped by SOF placement creation. */
   @carbon.method
-  @impl.adapted
-  GetDamageLocatorPositionLocal(index, out = vec3.create())
+  @impl.implemented
+  SetArmorDamageShaderEffect(effect)
   {
-    const locatorIndex = Number(index) | 0;
-    if (locatorIndex < 0) return false;
+    this.armorDamageShader = effect ?? null;
+  }
 
+  /** Returns the per-part armour damage shader, or null when the part has none. */
+  @carbon.method
+  @impl.implemented
+  GetArmorDamageShaderEffect()
+  {
+    return this.armorDamageShader;
+  }
+
+  /**
+   * Returns the locator list of this child's own damage set, or null when the
+   * child owns no damage locators (Carbon EveChildMesh.cpp:2117-2127).
+   */
+  @carbon.method
+  @impl.implemented
+  GetOwnedDamageLocators()
+  {
     for (const set of this.ownedLocatorSets)
     {
-      if (!set.HasName("damage")) continue;
-      const locator = set.GetLocators()[locatorIndex];
-      if (!locator) return false;
-      vec3.copy(out, locator.position);
-
-      const updater = this.animationUpdater;
-      if (locator.boneIndex > 0 && updater && updater.IsInitialized() &&
-        locator.boneIndex < updater.GetMeshBoneCount())
-      {
-        MatrixCopyFrom3x4(
-          DAMAGE_BONE_SCRATCH, updater.GetMeshBoneMatrixList(), locator.boneIndex);
-        vec3.transformMat4(out, out, DAMAGE_BONE_SCRATCH);
-      }
-      return true;
+      if (set.HasName("damage")) return set.GetLocators();
     }
-    return false;
+    return null;
+  }
+
+  /**
+   * Resolves one damage locator's BIND-pose position in the child's local
+   * space - no bone transform, the stable overlay seed position (Carbon
+   * EveChildMesh.cpp:2129-2139).
+   */
+  @carbon.method
+  @impl.implemented
+  GetDamageLocatorBindPositionLocal(index, out = vec3.create())
+  {
+    const locators = this.GetOwnedDamageLocators();
+    const locatorIndex = Number(index) | 0;
+    if (!locators || locatorIndex < 0 || locatorIndex >= locators.length) return false;
+    vec3.copy(out, locators[locatorIndex].position);
+    return true;
+  }
+
+  /**
+   * Resolves one damage locator's animated position and direction in the
+   * child's local space, posed by this child's own animation updater (Carbon
+   * EveChildMesh.cpp:2141-2151).
+   */
+  @carbon.method
+  @impl.implemented
+  GetDamageLocatorAnimatedLocal(index, outPosition, outDirection)
+  {
+    const locators = this.GetOwnedDamageLocators();
+    const locatorIndex = Number(index) | 0;
+    if (!locators || locatorIndex < 0 || locatorIndex >= locators.length) return false;
+    EveGetLocatorPose(outPosition, outDirection, this.animationUpdater, locators[locatorIndex]);
+    return true;
   }
 
   /**

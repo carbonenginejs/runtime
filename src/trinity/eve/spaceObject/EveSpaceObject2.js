@@ -26,7 +26,7 @@ import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { EveCustomMask } from "../EveCustomMask.js";
-import { EveLocatorSets } from "../locator/EveLocatorSets.js";
+import { EveGetLocatorPose, EveLocatorSets } from "../locator/EveLocatorSets.js";
 import { Locator } from "../locator/Locator.js";
 import { TriPerlinCurve } from "../../curves/curve/TriPerlinCurve.js";
 import { withITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -421,8 +421,10 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
   #damageFilterOccluders = [];
 
-  // 0 idle, 1 pending, 2 active raycast session.
-  #damageFilterState = 1;
+  // 0 idle, 1 pending, 2 active raycast session. Carbon initializes Idle
+  // (EveSpaceObject2.cpp:208); SOF's eager RunDamageLocatorFilter was removed
+  // upstream (ae5680b3), so filtering runs only when requested or auto-enabled.
+  #damageFilterState = 0;
 
   // Carbon m_localAabbMin/Max: cached so GetLocalBoundingBox can answer before
   // LOD selection assigns a mesh (at worst it lags one frame).
@@ -2088,7 +2090,11 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
           owner: source.owner,
           partTag: source.owner.GetPartTag(),
           start,
-          count: sourceSet.GetLocators().length
+          count: sourceSet.GetLocators().length,
+          // Carbon LocatorSourceRange.childToObject (EveSpaceObject2.cpp:1938):
+          // lets GetLocatorInObjectSpace pose merged damage locators against
+          // the owning child's skeleton, then lift them into object space.
+          childToObject: source.childToObject
         });
       }
     }
@@ -2448,7 +2454,8 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     {
       if (locatorSetName === EveSpaceObject2.#damageLocatorSetName &&
         index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
-      this.#GetLocatorInObjectSpace(locatorPosition, locatorDirection, locators[index]);
+      this.GetLocatorInObjectSpace(locatorPosition, locatorDirection, locators[index],
+        locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
       const distance = vec3.squaredDistance(locatorPosition, posInObjectSpace);
       if (distance < closestLength)
       {
@@ -2490,7 +2497,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       return targetableCall ? false : out;
     }
     const position = vec3.create();
-    this.#GetLocatorInObjectSpace(position, out, locators[index]);
+    this.GetLocatorInObjectSpace(position, out, locators[index], index);
     if (inWorldSpace) EveSpaceObject2.#TransformNormal(out, out, this.worldTransform);
     return targetableCall ? true : out;
   }
@@ -2508,8 +2515,27 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       else vec3.set(out, 0, 0, 0);
       return false;
     }
-    this.#GetLocatorInObjectSpace(out, EveSpaceObject2.#locatorDirection, locators[index]);
+    this.GetLocatorInObjectSpace(out, EveSpaceObject2.#locatorDirection, locators[index], index);
     if (inWorldSpace) vec3.transformMat4(out, out, this.worldTransform);
+    return true;
+  }
+
+  /**
+   * Gets a damage locator's BIND position in object space - the merged set's
+   * authored position, no animation (Carbon EveSpaceObject2.cpp:2785-2796).
+   * Impact overlays seed decals here so they stay put on animated parts.
+   */
+  @carbon.method
+  @impl.implemented
+  GetDamageLocatorBindPosition(index, out = vec3.create())
+  {
+    const locators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    if (!locators || !(index >= 0 && index < locators.length))
+    {
+      vec3.set(out, 0, 0, 0);
+      return false;
+    }
+    vec3.copy(out, locators[index].position);
     return true;
   }
 
@@ -2539,7 +2565,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     {
       if (index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
       const locator = locators[index];
-      this.#GetLocatorInObjectSpace(EveSpaceObject2.#locatorPosition, EveSpaceObject2.#locatorDirection, locator);
+      this.GetLocatorInObjectSpace(EveSpaceObject2.#locatorPosition, EveSpaceObject2.#locatorDirection, locator, index);
       if (!EveSpaceObject2.#IsLocatorFacingPosition(EveSpaceObject2.#locatorDirection, objectPosition)) continue;
       vec3.subtract(EveSpaceObject2.#locatorOffset, EveSpaceObject2.#locatorPosition, objectPosition);
       const distance = vec3.length(EveSpaceObject2.#locatorOffset);
@@ -2555,7 +2581,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     for (let index = 0; index < locators.length; index++)
     {
       if (index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
-      this.#GetLocatorInObjectSpace(EveSpaceObject2.#locatorPosition, EveSpaceObject2.#locatorDirection, locators[index]);
+      this.GetLocatorInObjectSpace(EveSpaceObject2.#locatorPosition, EveSpaceObject2.#locatorDirection, locators[index], index);
       if (!EveSpaceObject2.#IsLocatorFacingPosition(EveSpaceObject2.#locatorDirection, objectPosition)) continue;
       vec3.subtract(EveSpaceObject2.#locatorOffset, EveSpaceObject2.#locatorPosition, objectPosition);
       const distance = vec3.length(EveSpaceObject2.#locatorOffset);
@@ -2707,7 +2733,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       return vec3.set(out, 0, 0, 0);
     }
     const direction = vec3.create();
-    this.#GetLocatorInObjectSpace(out, direction, locators[index]);
+    this.GetLocatorInObjectSpace(out, direction, locators[index], index);
     return out;
   }
 
@@ -2725,7 +2751,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       return vec3.set(out, 0, 0, 0);
     }
     const direction = vec3.create();
-    this.#GetLocatorInObjectSpace(out, direction, locators[index]);
+    this.GetLocatorInObjectSpace(out, direction, locators[index], index);
     return vec3.transformMat4(out, out, this.worldTransform);
   }
 
@@ -2759,7 +2785,8 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       return vec3.set(out, 0, 0, 0);
     }
     const direction = vec3.create();
-    this.#GetLocatorInObjectSpace(out, direction, locators[index]);
+    this.GetLocatorInObjectSpace(out, direction, locators[index],
+      locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
     if (inWorldSpace)
     {
       vec3.transformMat4(out, out, this.worldTransform);
@@ -2781,7 +2808,8 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       return vec3.set(out, 0, 1, 0);
     }
     const position = vec3.create();
-    this.#GetLocatorInObjectSpace(position, out, locators[index]);
+    this.GetLocatorInObjectSpace(position, out, locators[index],
+      locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
     if (inWorldSpace)
     {
       EveSpaceObject2.#TransformNormal(out, out, this.worldTransform);
@@ -3177,7 +3205,10 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     {
       overlay = range.owner.EnsureDamageOverlay();
       const shipDamage = this.impactOverlay.GetDamageOverlay();
-      overlay.SetArmorDamageShaderEffect(shipDamage.GetArmorDamageShaderEffect());
+      // The part's OWN armour shader (Carbon EveSpaceObject2.cpp:3529, commit
+      // 6975d9f1): an animated part needs the skinned variant, which the
+      // ship-wide effect is not.
+      overlay.SetArmorDamageShaderEffect(range.owner.GetArmorDamageShaderEffect());
       const flicker = shipDamage.GetHullDamageFlickerCurve();
       if (flicker) overlay.SetHullDamageFlickerCurve(TriPerlinCurve.from(flicker.GetValues()));
       overlay.SetSeed(shipDamage.GetSeed() + range.owner.GetPartTag());
@@ -3354,35 +3385,44 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     return null;
   }
 
-  // Carbon GetLocatorInObjectSpace: the direction is +Y rotated by the
-  // authored quaternion; bone-attached locators additionally apply the mesh
-  // bone matrix. Carbon leaves the outputs untouched (caller-uninitialized)
-  // when bone data is missing; CarbonEngineJS keeps the unskinned values.
-
   /**
-   * Writes a locator's object-space position and its direction, which is +Y
-   * rotated by the authored quaternion, applying the mesh bone matrix for
-   * bone-attached locators; where Carbon leaves the outputs untouched when bone
-   * data is missing, this keeps the unskinned values.
+   * Writes a locator's object-space position and direction (Carbon
+   * EveSpaceObject2.cpp:3751-3772, rewritten upstream by 3d988b1d).
+   *
+   * A merged damage locator (mergedDamageIndex >= 0, indexing the merged
+   * damage set) delegates to the owning child's animated pose - the locator's
+   * boneIndex addresses the CHILD's skeleton, never this object's - then
+   * lifts the result through the range's childToObject transform; Carbon
+   * normalizes the direction HERE but not in EveGetLocatorPose, and that
+   * asymmetry is preserved. Every other locator resolves against this
+   * object's own animation updater.
+   *
+   * Overridable on purpose: Carbon's EveSwarm overrides this.
    */
-  #GetLocatorInObjectSpace(outPosition, outDirection, locator)
+  @carbon.method
+  @impl.implemented
+  GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
   {
-    vec3.transformQuat(outDirection, EveSpaceObject2.#unitY, locator.direction);
-    vec3.copy(outPosition, locator.position);
-    const updater = this.animationUpdater;
-    if (locator.boneIndex > 0 && updater?.IsInitialized?.())
+    if (mergedDamageIndex >= 0)
     {
-      const boneCount = Number(updater.GetMeshBoneCount?.() ?? 0);
-      if (locator.boneIndex < boneCount)
+      this.EnsureChildLocatorMerged();
+      for (const range of this.#mergedDamageLocatorSources)
       {
-        const bone = EveSpaceObject2.#GetBoneMatrix(updater, locator.boneIndex);
-        if (bone)
+        if (range.owner && mergedDamageIndex >= range.start && mergedDamageIndex < range.start + range.count)
         {
-          vec3.transformMat4(outPosition, locator.position, bone);
-          EveSpaceObject2.#TransformNormal(outDirection, outDirection, bone);
+          if (range.owner.GetDamageLocatorAnimatedLocal(mergedDamageIndex - range.start, outPosition, outDirection))
+          {
+            vec3.transformMat4(outPosition, outPosition, range.childToObject);
+            EveSpaceObject2.#TransformNormal(outDirection, outDirection, range.childToObject);
+            vec3.normalize(outDirection, outDirection);
+            return;
+          }
+          break;
         }
       }
     }
+
+    EveGetLocatorPose(outPosition, outDirection, this.animationUpdater, locator);
   }
 
   // Carbon GetClosestLocatorIndex: facing-gated closest search; 0 when the
@@ -3409,7 +3449,8 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     {
       if (locatorSetName === EveSpaceObject2.#damageLocatorSetName &&
         index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
-      this.#GetLocatorInObjectSpace(locatorPosition, locatorDirection, locators[index]);
+      this.GetLocatorInObjectSpace(locatorPosition, locatorDirection, locators[index],
+        locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
       if (!EveSpaceObject2.#IsLocatorFacingPosition(locatorDirection, posInObjectSpace))
       {
         continue;

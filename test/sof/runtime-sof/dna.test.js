@@ -1212,18 +1212,29 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
     .map(ref => referencedNode(document, ref))
     .find(node => node.fields.name === "damage");
   assert.ok(damageSet);
-  assert.equal(damageSet.fields.locators.length, 6);
+  // Only the ship's own and INSTANCED placements' damage locators bake into
+  // the root set; non-instanced placements own theirs on the child and the
+  // object merges them at runtime (Carbon EveSOF.cpp:4171-4174).
+  assert.equal(damageSet.fields.locators.length, 5);
   const damageLocators = damageSet.fields.locators.map(ref => referencedNode(document, ref).fields);
-  assert.deepEqual(damageLocators.slice(2, 4).map(locator => locator.position), [
+  assert.deepEqual(damageLocators.slice(1, 3).map(locator => locator.position), [
     [6, 0, 0],
     [8, 0, 0],
   ]);
-  assert.deepEqual(damageLocators.slice(4).map(locator => locator.position), [
+  assert.deepEqual(damageLocators.slice(3).map(locator => locator.position), [
     [1, 9, 0],
     [1, 11, 0],
   ]);
   assert.deepEqual(damageLocators[1].scale, [3, 4, 5]);
   assert.equal(damageLocators[1].boneIndex, 15);
+  const ordinaryOwnedSets = ordinary.fields.ownedLocatorSets
+    .map(ref => referencedNode(document, ref));
+  const ordinaryOwnedDamage = ordinaryOwnedSets.find(node => node.fields.name === "damage");
+  assert.ok(ordinaryOwnedDamage);
+  const ordinaryOwnedLocator = referencedNode(document, ordinaryOwnedDamage.fields.locators[0]).fields;
+  assert.deepEqual(ordinaryOwnedLocator.position, [1, 0, 0]);
+  assert.deepEqual(ordinaryOwnedLocator.scale, [3, 4, 5]);
+  assert.equal(ordinaryOwnedLocator.boneIndex, 15);
 
   const trinity = await import(trinityConsumerEntry);
   const audioTrinity = await import(audioTrinityConsumerEntry);
@@ -1255,8 +1266,18 @@ test("SOF emits and hydrates non-instanced, instanced, and shared layout placeme
   assert.equal(hydratedShared.meshes[0].constructor.name, "EveChildInstancedMesh");
   assert.equal(hydratedShared.meshes[0].instances[0].constructor.name, "EveChildInstancedMeshInstance");
   const hydratedDamage = hydrated.root.locatorSets.find(set => set.name === "damage");
-  assert.equal(hydratedDamage.locators.length, 6);
+  assert.equal(hydratedDamage.locators.length, 5);
   assert.deepEqual(Array.from(hydratedDamage.locators[1].scale), [3, 4, 5]);
+  // The non-instanced placement's damage locator lives on the child and the
+  // object lifts it into object space at runtime through the child transform.
+  const hydratedOrdinary = hydratedLayouts.objects[0];
+  assert.equal(hydratedOrdinary.ownedLocatorSets.some(set => set.name === "damage"), true);
+  const mergedCount = hydrated.root.GetDamageLocatorCount();
+  assert.ok(mergedCount > 5, `merged damage count ${mergedCount} should exceed the root's 5`);
+  const mergedOrdinary = hydrated.root.GetDamageLocator(5);
+  [3, 2, 3].forEach((value, index) => {
+    assert.ok(Math.abs(mergedOrdinary[index] - value) < 1e-5, `merged position[${index}] ${mergedOrdinary[index]}`);
+  });
 });
 
 test("EveSOFDataMgr recursively normalizes locator sets in Carbon order", () => {
@@ -1354,21 +1375,29 @@ test("SOF locator sets apply Carbon placement matrix order and retain authored m
   const plan = sof.PlanLayoutFromDNA(dna, { offsets: [nestedOffset] });
   assert.deepEqual(plan.placements[0].transform.slice(12, 15), [110, 22, 30]);
   const document = sof.BuildFromDNA(dna, { offsets: [nestedOffset] });
-  const damage = rootNode(document).fields.locatorSets
+  // A non-instanced placement no longer bakes its locators into the root
+  // sets: the child owns them UNTRANSFORMED and the object merges through
+  // the child's live transform at runtime (Carbon EveSOF.cpp:4171-4174).
+  const rootDamage = rootNode(document).fields.locatorSets
     .map(ref => referencedNode(document, ref))
     .find(node => node.fields.name === "damage");
-  assert.ok(damage);
-  assert.equal(damage.fields.locators.length, 1);
-  const locator = referencedNode(document, damage.fields.locators[0]).fields;
-  locator.position.forEach((value, index) => {
-    assert.ok(Math.abs(value - [110, 24, 30][index]) < 1e-5, `position[${index}]`);
+  assert.equal(rootDamage, undefined);
+  const placedChild = document.nodes.find(node =>
+    node.kind === "EveChildMesh" && node.fields.name === "Hull");
+  assert.ok(placedChild);
+  // The placement matrix order lands on the child transform: offset *
+  // locator * nestedOffset, decomposed (matches the plan transform above).
+  placedChild.fields.translation.forEach((value, index) => {
+    assert.ok(Math.abs(value - [110, 22, 30][index]) < 1e-5, `translation[${index}]`);
   });
-  const expectedDirection = [0, 0, halfSqrt, halfSqrt];
-  const directionDot = locator.direction.reduce(
-    (sum, value, index) => sum + value * expectedDirection[index],
-    0,
-  );
-  assert.ok(Math.abs(directionDot) > 1 - 1e-5, "direction quaternion");
+  const ownedDamage = placedChild.fields.ownedLocatorSets
+    .map(ref => referencedNode(document, ref))
+    .find(node => node.fields.name === "damage");
+  assert.ok(ownedDamage);
+  assert.equal(ownedDamage.fields.locators.length, 1);
+  const locator = referencedNode(document, ownedDamage.fields.locators[0]).fields;
+  assert.deepEqual(locator.position, [1, 0, 0]);
+  assert.deepEqual(locator.direction, [0, 0, 0, 1]);
   assert.deepEqual(locator.scale, [7, 8, 9]);
   assert.equal(locator.boneIndex, 11);
 });

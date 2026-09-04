@@ -1657,12 +1657,7 @@ export class EveSOF extends CjsModel
       });
     }
 
-    const armorDamageShader = document.AddNode("Tr2Effect", {
-      effectFilePath: dna.GetCompleteShaderPath(damage.armorShader),
-      constParameters: effectParameters(document, raceDamage.armorDamageParameters),
-      parameters: [],
-      resources: effectResources(document, raceDamage.armorDamageTextures)
-    });
+    const armorDamageShader = this.CreateArmorDamageEffect(document, dna);
     const armorImpactEmitter = createImpactEmitter(document, {
       rate: damage.armorParticleRate,
       angle: damage.armorParticleAngle,
@@ -2304,6 +2299,13 @@ export class EveSOF extends CjsModel
       }
       else
       {
+        // Non-instanced placements own their locator sets and, when they own
+        // damage locators, their own armour-damage shader; the parent merges
+        // and poses them at runtime (Carbon EveSOF.cpp:3899-3908,3971-3972).
+        const ownedLocatorSets = this.BuildHullLocalLocatorSets(document, extensionDna);
+        const partArmorDamageShader = extensionDna.GetLocatorCount("damage") > 0
+          ? this.CreateArmorDamageEffect(document, extensionDna)
+          : null;
         for (let occurrenceIndex = 0; occurrenceIndex < occurrences.length; occurrenceIndex++)
         {
           const occurrence = occurrences[occurrenceIndex];
@@ -2314,6 +2316,8 @@ export class EveSOF extends CjsModel
           const childFields = {
             name: "Hull",
             ...(hasPartTag ? { partTag: fixedPartTag } : {}),
+            ownedLocatorSets,
+            armorDamageShader: partArmorDamageShader,
             mesh: this.CreateMesh(extensionDna, document),
             castShadow: extensionDna.CastShadow(),
             reflectionMode: extensionDna.GetReflectionMode(),
@@ -2393,13 +2397,19 @@ export class EveSOF extends CjsModel
         }
       }
       this.SetupInstancedMeshes(document, rootFields, extensionDna, transforms);
-      this.SetupLocatorSets(
-        document,
-        rootFields,
-        extensionDna,
-        transforms,
-        hasPartTag ? fixedPartTag : null
-      );
+      // Only instanced placements bake their locators into the root sets;
+      // non-instanced children own theirs and the object merges them at
+      // runtime (Carbon EveSOF.cpp:4171-4174).
+      if (first.isInstanced)
+      {
+        this.SetupLocatorSets(
+          document,
+          rootFields,
+          extensionDna,
+          transforms,
+          hasPartTag ? fixedPartTag : null
+        );
+      }
     }
 
     if (!targetFields && layoutFields.objects.length !== 0)
@@ -3753,6 +3763,73 @@ export class EveSOF extends CjsModel
       }
       addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));
     }
+  }
+
+  /**
+   * Builds the armour-damage shader effect node, or null when the DNA lacks
+   * damage data (Carbon EveSOF.cpp:2579-2603 CreateArmorDamageEffect; the
+   * ArmorDamageEffectCache keyed on race+animated is a performance follow-up).
+   */
+  @carbon.method
+  @impl.adapted
+  CreateArmorDamageEffect(document, dna)
+  {
+    const damage = dna.GetGenericDamageData();
+    const raceDamage = dna.GetRaceDamageData();
+    if (!damage || !raceDamage) return null;
+    return document.AddNode("Tr2Effect", {
+      effectFilePath: dna.GetCompleteShaderPath(damage.armorShader),
+      constParameters: effectParameters(document, raceDamage.armorDamageParameters),
+      parameters: [],
+      resources: effectResources(document, raceDamage.armorDamageTextures)
+    });
+  }
+
+  /**
+   * Emits the hull's locator sets UNTRANSFORMED - only the multi-hull offset
+   * applied - for a placement child to own, so the object merges them at
+   * runtime through the child's live transform and skeleton (Carbon
+   * EveSOF.cpp:3384-3432 BuildHullLocalLocatorSets). Same-name sets across
+   * hulls merge into one node; bone indices stay authored because they
+   * address the CHILD's skeleton.
+   */
+  @carbon.method
+  @impl.adapted
+  BuildHullLocalLocatorSets(document, dna)
+  {
+    const bySetName = new Map();
+    const result = [];
+    const hullOffset = [0, 0, 0];
+    for (let hullIndex = 0; hullIndex < dna.GetMultiHullCount(); hullIndex++)
+    {
+      for (const name of dna.GetHullLocatorSetNames(hullIndex))
+      {
+        const locators = dna.GetHullLocators(name, hullIndex) ?? [];
+        if (!locators.length) continue;
+        let target = bySetName.get(name);
+        if (!target)
+        {
+          target = [];
+          bySetName.set(name, target);
+          result.push(document.AddNode("EveLocatorSets", { name, locators: target }));
+        }
+        for (const locator of locators)
+        {
+          target.push(document.AddNode("Locator", {
+            position: [
+              Number(locator.position?.[0] ?? 0) + hullOffset[0],
+              Number(locator.position?.[1] ?? 0) + hullOffset[1],
+              Number(locator.position?.[2] ?? 0) + hullOffset[2]
+            ],
+            direction: arrayValue(locator.rotation, [0, 0, 0, 1]),
+            scale: arrayValue(locator.scaling, [1, 1, 1]),
+            boneIndex: Number(locator.boneIndex ?? -1)
+          }));
+        }
+      }
+      addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));
+    }
+    return result;
   }
 
   /** Merges same-name locator sets across all hulls in Carbon map order. */

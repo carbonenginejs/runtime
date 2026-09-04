@@ -607,7 +607,9 @@ export class EveImpactOverlay extends CjsModel
       boundingSphere,
       estimatedPixelDiameter: parent.estimatedPixelDiameter,
       isInFrustum: parent.IsInFrustum(),
-      getDamageLocatorPositionOS: (index, out) => parent.GetDamageLocatorPosition(index, false, out)
+      // Bind position, not the animated pose (Carbon EveImpactOverlay.cpp:189,
+      // commit 3d988b1d): decals seeded here must not swim with animation.
+      getDamageLocatorPositionOS: (index, out) => parent.GetDamageLocatorBindPosition(index, out)
     }, this.#shieldImpacts.size, this.HasShieldActivity());
 
     const header = this.damageOverlay.HeaderRow();

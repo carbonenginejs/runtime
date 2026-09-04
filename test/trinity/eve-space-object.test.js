@@ -18,6 +18,7 @@ import {
   TriObserverLocal
 } from "../../npm/dist/trinity/index.js";
 import { EveChildInheritProperties } from "../../npm/dist/trinity/eve/child/EveChildInheritProperties.js";
+import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 
 
 const assertVecNear = (actual, expected, epsilon = 1e-6) =>
@@ -1189,4 +1190,46 @@ test("EveSpaceObject2 transforms locator records and freezes high detail meshes"
   });
   object.FreezeHighDetailMesh();
   assert.deepEqual(decalStates, [true]);
+});
+
+test("merged damage locators resolve against the owning child's skeleton, not the parent's", () =>
+{
+  // A modular part 5 units along +X whose second damage locator rides bone 1;
+  // the bone palette moves bone 1 by +2 on Y (Float4x3: rows of [R|t]).
+  const child = new EveChildMesh();
+  child.translation = [ 5, 0, 0 ];
+  child.ownedLocatorSets.push(makeLocatorSet("damage", [
+    { position: [ 1, 0, 0 ], direction: [ 0, 0, 0, 1 ], boneIndex: 0 },
+    { position: [ 1, 0, 0 ], direction: [ 0, 0, 0, 1 ], boneIndex: 1 }
+  ]));
+  child.animationUpdater = {
+    IsInitialized: () => true,
+    GetMeshBoneCount: () => 2,
+    GetMeshBoneMatrixList: () => new Float32Array([
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
+      1, 0, 0, 0, 0, 1, 0, 2, 0, 0, 1, 0
+    ])
+  };
+
+  const object = new EveSpaceObject2();
+  object.locatorSets.push(makeLocatorSet("damage", [
+    { position: [ 9, 9, 9 ], direction: [ 0, 0, 0, 1 ], boneIndex: 0 }
+  ]));
+  object.effectChildren.push(child);
+
+  assert.equal(object.GetDamageLocatorCount(), 3);
+  // Bone 0 is assumed unanimated: the merged position is the bind pose
+  // lifted by childToObject.
+  assertVecNear(object.GetDamageLocator(1), [ 6, 0, 0 ]);
+  // Bone 1 poses in the CHILD's skeleton first, then lifts into object
+  // space - the parent's own (absent) skeleton never applies.
+  assertVecNear(object.GetDamageLocator(2), [ 6, 2, 0 ]);
+  assertVecNear(object.GetDamageLocatorDirection(2), [ 0, 1, 0 ]);
+
+  // The bind position ignores the child's animation entirely.
+  const bind = new Float32Array(3);
+  assert.equal(object.GetDamageLocatorBindPosition(2, bind), true);
+  assertVecNear(bind, [ 6, 0, 0 ]);
+  assert.equal(object.GetDamageLocatorBindPosition(9, bind), false);
+  assertVecNear(bind, [ 0, 0, 0 ]);
 });
