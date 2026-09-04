@@ -8,6 +8,7 @@ export * from "./TriSettings.js";
 export * from "./animation/index.js";
 export * from "./batch/index.js";
 export * from "./binding/index.js";
+export * from "./al/index.js";
 export * from "./context/index.js";
 export * from "./device/index.js";
 export * from "./lighting/index.js";
