@@ -30,9 +30,10 @@
 // - Carbon reaches a process-wide render context through a macro; we have none,
 //   so the context is supplied to `GetInstance` and kept. Same reason
 //   `TriDevice`'s capability methods are still unimplemented.
-// - Carbon seeds the frame numbers from the context's recording and rendered
-//   frame counters. We have neither yet, so a new ring starts at frame zero and
-//   the caller drives `SetFrameNumbers`.
+// - Carbon drives the fence from EveSpaceScene::Update, which reaches the
+//   process-wide render context (`EveSpaceScene.cpp:441-445`). We have no
+//   process-wide context, so nothing ticks a ring per frame yet and a caller
+//   must drive `SetFrameNumbers` itself. The seeding at creation IS Carbon's.
 // - Carbon's `SetFrameNumbers` erases consumed locked regions only when it finds
 //   an incomplete one, so a ring whose regions all complete erases none and the
 //   list grows for the life of the process. That is survivable in a game
@@ -221,6 +222,11 @@ export class Tr2RingBuffer extends CjsModel
     created.stride = stride;
     created.SetName(key);
     created.#renderContext = renderContext;
+
+    // Carbon seeds the fence from the context before the first sizing
+    // (`Tr2RingBuffer.cpp:121`), so a ring created mid-session does not think
+    // every frame ever recorded is still in flight.
+    created.SetFrameNumbers(renderContext.GetRecordingFrameNumber(), renderContext.GetRenderedFrameNumber());
     created.Resize(INITIAL_SIZE);
 
     Tr2RingBuffer.#instances.set(key, created);

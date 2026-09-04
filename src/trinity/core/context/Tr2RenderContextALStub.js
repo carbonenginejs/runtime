@@ -77,6 +77,17 @@ export class Tr2RenderContextALStub
   /** Every draw the context was asked for, so a headless caller can assert. */
   #drawCount = 0;
 
+  // m_frameNumber. THIS IS NOT THE TRINITY FRAME COUNTER. Trinity's counts
+  // frames the render path has begun (`Tr2Renderer::GetCurrentFrameCounter`);
+  // this one counts frames the DEVICE has finished, and the gap between them is
+  // what a ring buffer fences against. Carbon's stub keeps one number and
+  // derives both: recording is the next frame, rendered is this one
+  // (`Tr2RenderContextStub.cpp:453-456,500-503`), which is the same as saying
+  // the stub always finishes a frame before the next begins.
+
+  /** m_frameNumber - frames the device has finished. */
+  #frameNumber = 0;
+
   /** m_caps - the context owns its capabilities, as Carbon's does. */
   #caps = new Tr2CapsALStub();
 
@@ -488,9 +499,39 @@ export class Tr2RenderContextALStub
     return this.#drawCount;
   }
 
-  /** Presenting has nothing to show, but the frame still completed. */
+  /**
+   * Presenting has nothing to show, but the frame still completed.
+   *
+   * Carbon's stub advances its frame number here and nowhere else
+   * (`Tr2RenderContextStub.cpp:277-281`), which makes Present the frame
+   * boundary a fence can be measured against.
+   *
+   * @returns {boolean} True.
+   */
   PresentSwapChain()
   {
+    this.#frameNumber += 1;
+
     return true;
+  }
+
+  /**
+   * The frame being recorded now.
+   *
+   * @returns {number} One past the finished frame.
+   */
+  GetRecordingFrameNumber()
+  {
+    return this.#frameNumber + 1;
+  }
+
+  /**
+   * The last frame the device has finished.
+   *
+   * @returns {number} The finished frame.
+   */
+  GetRenderedFrameNumber()
+  {
+    return this.#frameNumber;
   }
 }

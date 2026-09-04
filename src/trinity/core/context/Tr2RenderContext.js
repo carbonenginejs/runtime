@@ -529,6 +529,34 @@ export class Tr2RenderContext extends CjsModel
     return true;
   }
 
+  // THE BACKEND'S FRAME CLOCK, WHICH IS NOT THE ONE ABOVE. `AdvanceFrame` and
+  // `GetCurrentFrameCounter` are Trinity's - frames the render path has begun,
+  // driven by the frame driver. These two are the DEVICE's, and the gap between
+  // them is what a ring buffer fences against: rows recorded for a frame cannot
+  // be reused until the device reports that frame finished. Carbon keeps them
+  // per backend (`Tr2PrimaryRenderContextDx11.h:46-47`), so they are the
+  // abstraction layer's to answer and this only forwards.
+
+  /**
+   * The frame the device is recording now.
+   *
+   * @returns {number} The frame number, or zero with no backend installed.
+   */
+  GetRecordingFrameNumber()
+  {
+    return this.#al ? this.#al.GetRecordingFrameNumber() : 0;
+  }
+
+  /**
+   * The last frame the device has finished.
+   *
+   * @returns {number} The frame number, or zero with no backend installed.
+   */
+  GetRenderedFrameNumber()
+  {
+    return this.#al ? this.#al.GetRenderedFrameNumber() : 0;
+  }
+
   /**
    * Whether a device exists behind this context.
    *

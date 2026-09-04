@@ -154,3 +154,60 @@ test("the ring holds a real backend buffer, named after its data type", () =>
   assert.equal(gpu.GetDesc().stride, STRIDE);
   assert.equal(buffer.name, "Boosters");
 });
+
+test("a new ring seeds its fence from the context rather than assuming frame zero", () =>
+{
+  // Carbon seeds before the first sizing (Tr2RingBuffer.cpp:121). Without it a
+  // ring created mid-session believes every frame ever recorded is still in
+  // flight, and never reclaims anything.
+  Tr2RingBuffer.ResetInstances();
+
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+  context.SetRenderContextAL(al);
+
+  for (let frame = 0; frame < 5; frame += 1) al.PresentSwapChain();
+
+  assert.equal(context.GetRenderedFrameNumber(), 5, "the device finished five frames");
+  assert.equal(context.GetRecordingFrameNumber(), 6, "and is recording the sixth");
+
+  const buffer = Tr2RingBuffer.GetInstance("Seeded", STRIDE, context);
+
+  buffer.UploadTransforms(rows(2, 1), 2);
+  buffer.PrepareBuffer(context);
+
+  // The upload was locked at frame 6; two frames later it is reclaimable.
+  buffer.SetFrameNumbers(context.GetRecordingFrameNumber(), context.GetRenderedFrameNumber());
+
+  assert.equal(buffer.tail, buffer.size, "nothing reclaimed yet");
+
+  al.PresentSwapChain();
+  al.PresentSwapChain();
+  buffer.SetFrameNumbers(context.GetRecordingFrameNumber(), context.GetRenderedFrameNumber());
+
+  assert.equal(buffer.tail, 2, "and then the rows are released");
+});
+
+test("the device's frame clock is not Trinity's", () =>
+{
+  // Two clocks on purpose: Trinity counts frames the render path has BEGUN,
+  // the device counts frames it has FINISHED, and a ring fences on the gap.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  context.AdvanceFrame(1.5);
+  context.AdvanceFrame(2.5);
+
+  assert.equal(context.GetCurrentFrameCounter(), 2, "Trinity began two frames");
+  assert.equal(context.GetRenderedFrameNumber(), 0, "the device has finished none of them");
+
+  al.PresentSwapChain();
+
+  assert.equal(context.GetRenderedFrameNumber(), 1);
+  assert.equal(context.GetCurrentFrameCounter(), 2, "and Trinity's clock did not move");
+});
