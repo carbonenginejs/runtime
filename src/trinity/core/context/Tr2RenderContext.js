@@ -451,7 +451,16 @@ export class Tr2RenderContext extends CjsModel
    */
   PopRenderTarget(slot = 0)
   {
-    if (this.#al) return this.#al.PopRenderTarget(slot);
+    if (this.#al)
+    {
+      const popped = this.#al.PopRenderTarget(slot);
+
+      // Carbon updates the viewport here as well as on a bind, because its pop
+      // goes straight to the backend (Tr2EffectStateManager.cpp:1054-1063).
+      this.#UpdateRenderTargetViewport(Number(slot) >>> 0, true);
+
+      return popped;
+    }
 
     const stack = this.#renderTargetStacks.get(Number(slot) >>> 0);
 
@@ -515,14 +524,49 @@ export class Tr2RenderContext extends CjsModel
    * Binds a render target to a slot and records a set-render-target intent for
    * the engine to realize.
    */
-  SetRenderTarget(slot, renderTarget)
+  SetRenderTarget(slot, renderTarget, updateViewport = true)
   {
-    if (this.#al) return this.#al.SetRenderTarget(slot, renderTarget);
-
     const index = Number(slot) >>> 0;
+
+    if (this.#al)
+    {
+      const bound = this.#al.SetRenderTarget(index, renderTarget);
+
+      this.#UpdateRenderTargetViewport(index, updateViewport);
+
+      return bound;
+    }
+
     this.#renderTargets.set(index, renderTarget ?? null);
     this.#intents.push({ type: "set-render-target", slot: index, renderTarget: renderTarget ?? null });
     return true;
+  }
+
+  /**
+   * Resets the viewport to the target now bound to slot zero.
+   *
+   * CARBON DOES THIS ON EVERY BIND, and forgetting it is the bug where a pass
+   * renders into a corner. `Tr2EffectStateManager::SetRenderTarget` updates the
+   * viewport whenever slot zero changes (`Tr2EffectStateManager.cpp:1133-1149`),
+   * and `PopRenderTarget` does the same on the way back (`:1054-1063`), so a
+   * 2048-wide shadow pass leaves the viewport at 2048 without it.
+   *
+   * IT ASKS THE CONTEXT FOR THE SIZE, NOT THE TEXTURE. Carbon's comment says
+   * why: "don't use rt.GetWidth/Height, rt may be nullRT".
+   *
+   * Only possible with a backend installed, since nothing else knows a bound
+   * target's extent - which is the same reason `SetFullScreenViewport` defers
+   * on the recording path.
+   */
+  #UpdateRenderTargetViewport(slot, updateViewport)
+  {
+    if (slot !== 0 || !updateViewport) return;
+
+    const size = this.#al.GetRenderTargetSize(0);
+
+    if (Failed(size.result)) return;
+
+    this.#al.SetViewport({ x: 0, y: 0, width: size.width, height: size.height, minZ: 0, maxZ: 1 });
   }
 
   /**
@@ -880,7 +924,7 @@ export class Tr2RenderContext extends CjsModel
 
       if (Failed(size.result)) return false;
 
-      return this.#al.SetViewport({ x: 0, y: 0, width: size.width, height: size.height });
+      return this.#al.SetViewport({ x: 0, y: 0, width: size.width, height: size.height, minZ: 0, maxZ: 1 });
     }
 
     this.#viewport = null;

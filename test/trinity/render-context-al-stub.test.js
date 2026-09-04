@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Tr2RenderContext, Tr2RenderContextALStub } from "../../npm/dist/trinity/core/index.js";
+import {
+  Tr2BitmapDimensions,
+  Tr2RenderContext,
+  Tr2RenderContextALStub,
+  Tr2TextureALStub
+} from "../../npm/dist/trinity/core/index.js";
+import { PixelFormat, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const ready = () =>
 {
@@ -156,12 +162,14 @@ test("a context driven by the stub keeps real state and records no intents", () 
   al.CreateDevice();
   context.SetRenderContextAL(al);
 
-  const target = { id: "colour" };
+  // Real textures, because a render target IS one: the backend reads a bound
+  // target's extent to reset the viewport, so a plain object is not a stand-in.
+  const target = renderTarget(128, 128);
 
   context.SetRenderTarget(0, target);
   context.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
   context.Clear({ clearColor: true, color: [ 0, 0, 0, 1 ] });
-  const offscreen = { id: "offscreen" };
+  const offscreen = renderTarget(32, 32);
 
   context.PushRenderTarget(offscreen, 0);
 
@@ -170,7 +178,7 @@ test("a context driven by the stub keeps real state and records no intents", () 
   context.PopRenderTarget(0);
 
   assert.equal(al.GetRenderTarget(0), target, "the backend holds the state");
-  assert.deepEqual(al.GetViewport(), { x: 0, y: 0, width: 64, height: 64 });
+  assert.equal(al.GetViewport().width, 128, "and the restored target's viewport with it");
   assert.equal(context.GetIntents().length, 0, "nothing was recorded");
 });
 
@@ -220,7 +228,10 @@ test("a full-screen viewport resolves through the backend rather than deferring"
   context.SetRenderContextAL(al);
 
   assert.equal(context.SetFullScreenViewport(), true);
-  assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 1280, height: 720 });
+  assert.deepEqual(
+    context.GetViewport(),
+    { x: 0, y: 0, width: 1280, height: 720, minZ: 0, maxZ: 1 }
+  );
 });
 
 test("a full-screen viewport with nothing bound fails rather than guessing", () =>
@@ -392,4 +403,62 @@ test("stack depth is reported by the backend when one is installed", () =>
 
   assert.equal(context.GetStackSizeRT(0), 0);
   assert.equal(context.GetStackSizeDS(), 0);
+});
+
+/** A render target of a given size, valid enough to report its extent. */
+function renderTarget(width, height)
+{
+  const texture = new Tr2TextureALStub();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  texture.Create(
+    Tr2BitmapDimensions.Texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+    { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
+    al
+  );
+
+  return texture;
+}
+
+test("binding a target to slot zero resets the viewport to its size", () =>
+{
+  // CARBON DOES THIS ON EVERY BIND (Tr2EffectStateManager.cpp:1133-1149), and
+  // forgetting it is the bug where a pass renders into a corner: a 2048-wide
+  // shadow pass would leave the viewport at 2048 for the frame that follows.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  context.SetRenderTarget(0, renderTarget(512, 512));
+
+  assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 512, height: 512, minZ: 0, maxZ: 1 });
+
+  context.PushRenderTarget(renderTarget(2048, 2048), 0);
+
+  assert.equal(context.GetViewport().width, 2048, "the offscreen pass gets its own viewport");
+
+  context.PopRenderTarget(0);
+
+  assert.equal(context.GetViewport().width, 512, "and the main target gets its own back");
+});
+
+test("only slot zero moves the viewport, and a caller can decline", () =>
+{
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  context.SetRenderTarget(0, renderTarget(512, 512));
+  context.SetRenderTarget(1, renderTarget(64, 64));
+
+  assert.equal(context.GetViewport().width, 512, "a second colour attachment is not the viewport");
+
+  context.SetRenderTarget(0, renderTarget(256, 256), false);
+
+  assert.equal(context.GetViewport().width, 512, "updateViewport: false leaves it alone");
 });
