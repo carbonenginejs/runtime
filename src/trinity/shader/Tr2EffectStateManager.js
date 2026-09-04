@@ -289,19 +289,17 @@ export class Tr2EffectStateManager extends CjsModel
    * at geometry.
    *
    * An earlier note here said it was "deliberately absent" because neither
-   * backend has a fill mode. Half of that is true and the conclusion is not.
-   * Neither WebGL2 nor WebGPU has `glPolygonMode`, so Carbon's render-state
-   * route genuinely cannot be projected - but wireframe does not need one:
+   * browser backend has a fill mode. Half of that is true and the conclusion
+   * is not. Neither has an equivalent of `glPolygonMode`, so Carbon's
+   * render-state route genuinely cannot be projected - but wireframe does not
+   * need one:
    *
-   *   - LINE TOPOLOGY. Already reachable today: the WebGPU dispatcher maps
-   *     Carbon's topology 2 and 3 to `line-list`/`line-strip`
-   *     (`engine/webgpu/core/trinityBatchDispatcher.js:12-13`), so a pass can
-   *     be drawn as lines by choosing the topology in the pipeline recipe.
-   *     Edges are shared, so a triangle list drawn this way is not a true
-   *     wireframe without an index rebuild.
-   *   - BARYCENTRIC EDGES in the fragment shader. No new geometry and no
-   *     index rebuild, and it gives usable line widths. This is what a
-   *     browser renderer normally does.
+   *   - LINE TOPOLOGY, reachable today. Carbon's topology 2 and 3 already map
+   *     to line primitives in the engine layer, so a pass can be drawn as
+   *     lines by choosing its topology. Edges are shared, so a triangle list
+   *     drawn this way is not a true wireframe without an index rebuild.
+   *   - BARYCENTRIC EDGES in the fragment shader. No new geometry, no index
+   *     rebuild, and usable line widths. This is the usual browser answer.
    *
    * So the blocker is a decision about which route to take, not a missing
    * capability. What must NOT happen is the toggle silently doing nothing.
