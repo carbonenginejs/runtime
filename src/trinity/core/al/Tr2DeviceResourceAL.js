@@ -66,6 +66,7 @@ export class Tr2BaseDeviceResourceAL
 {
   #registered = false;
 
+  /** Registers the resource, as Carbon's constructor does. */
   constructor()
   {
     ALL_RESOURCES.add(this);

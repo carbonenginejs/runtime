@@ -5,6 +5,17 @@ Scope: `@carbonenginejs/runtime`
 Audience: Runtime authors, engine authors, integrators, and maintainers
 Summary: Explains the consolidated private runtime and routes readers to its current structural contract.
 
+> **This tree is the package's PUBLIC documentation. It ships inside the npm
+> artifact**, so it carries nothing private — no machine paths, no credentials,
+> no internal-only material — and it describes what the shipped package does:
+> its concepts, references, guides and published roadmap.
+>
+> Internal decisions, direction and research are kept separately and are not in
+> this tree. The two are split by audience, not by topic, which means **a
+> question can be owned here and be invisible from there, and the reverse**. If
+> you are looking for what this package does or refuses to do, this tree is
+> authoritative — check it before concluding a page does not exist.
+
 ## Purpose
 
 `@carbonenginejs/runtime` is the consolidated source package for the
