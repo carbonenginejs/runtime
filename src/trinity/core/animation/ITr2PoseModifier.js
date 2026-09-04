@@ -8,7 +8,7 @@ import { carbon, impl, type } from "#schema";
  * Tr2GrannyAnimation, called after sampling with the mesh skeleton and the
  * freshly sampled pose. First implementor upstream is EveChildTurret;
  * character look-at/IK fixups implement THIS rather than inventing a
- * parallel hook (see /docs research: carbon-new-classes-port-spec.md).
+ * parallel hook.
  */
 @type.define({ className: "ITr2PoseModifier", family: "trinityCore/animation" })
 export class ITr2PoseModifier extends CjsModel
