@@ -13,3 +13,4 @@ export { CarbonSamplerDescriptor, IsEmulatedAddressMode, EMULATED_ADDRESS_MODES 
 export { CjsWebgpuSamplerSource } from "./core/samplerSource.js";
 export { CjsWebgpuPerFrameSource } from "./core/perFrameSource.js";
 
+export { CjsWebgpuWorkQueue, EncoderType, ApplyRenderPassHint } from "./core/workQueue.js";
