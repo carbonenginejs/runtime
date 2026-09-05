@@ -182,6 +182,16 @@ async function ReadJavaScriptClasses(directory)
       const methods = new Set();
       for (const member of declaration.body.body)
       {
+        // A `#Method` credits its Carbon name: Carbon's counterparts are
+        // `private:` in C++ too (Tr2ShadowMap.SetStaticShadowSplits and the
+        // EveSmartLightAttributeModifierCameraDependency amplitudes were
+        // ported as private and misreported as gaps).
+        if (member.type === "ClassPrivateMethod" && member.kind !== "constructor")
+        {
+          const privateName = member.key?.id?.name;
+          if (privateName) methods.add(privateName);
+          continue;
+        }
         if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = MemberName(member);
         if (!name) continue;

@@ -35,7 +35,6 @@
     "InitLowLevel",
     "InitMusic",
     "InitSound",
-    "InitSpatialAudioGeometry",
     "LoadBankCallback",
     "MethodName",
     "OnTick",
@@ -68,29 +67,21 @@
   ],
   "BackAndForth": [
     "GetDebugOptions",
-    "GetLocatorsForSet",
     "GetParentLocatorPosition",
     "GetTargetLocatorPosition",
     "RenderDebugInfo"
   ],
   "BehaviorGroup": [
-    "AddAgentPrivate",
-    "AddAgentsByCount",
-    "GetBlendModifier",
     "GetDebugOptions",
     "GetVertexDeclarationHandle",
-    "OnAgentCountChanged",
     "RebuildCachedData",
     "ReleaseCachedData",
-    "RemoveAgentsByCount",
     "RenderDebugInfo",
     "SetupRenderables",
     "void"
   ],
   "BehaviorGroupBooster": [
     "AdjustFlareLists",
-    "CreateBoosterEffect",
-    "CreateFlareEffect",
     "GetVertexDeclaration",
     "InitializeAmbientFlare",
     "InitializeHaloFlare",
@@ -123,22 +114,15 @@
   ],
   "EveBoosterSet2": [
     "AddToQuadRenderer",
-    "GetFlareParams",
     "OnPrepareResources",
     "RebuildInstanceData",
     "RegisterWithQuadRenderer",
     "ReleaseResources",
     "RenderDebugInfo"
   ],
-  "EveBoosterSet2Renderable": [
-    "CalculateSplineData"
-  ],
   "EveBoxVolume": [
     "Setup",
     "void"
-  ],
-  "EveCamera": [
-    "CapPitchAndYaw"
   ],
   "EveChildAudio": [
     "GetDebugOptions",
@@ -154,12 +138,10 @@
     "OnPrepareResources",
     "ReleaseResources",
     "RenderDebugInfo",
-    "UpdateAgents",
     "UpdateBuffer"
   ],
   "EveChildBoosterSet": [
     "GetDebugOptions",
-    "GetFlareParams",
     "OnPrepareResources",
     "ReleaseResources",
     "RenderDebugInfo"
@@ -198,10 +180,8 @@
     "RenderDebugInfo"
   ],
   "EveChildExplosion": [
-    "CalculateExplosionTimes",
     "CopyElement",
     "FindSharedObjects",
-    "SpawnLocalExplosion",
     "UpdateEmitter"
   ],
   "EveChildFogVolume": [
@@ -232,7 +212,6 @@
     "PopFront",
     "RemoveFromEffectChildrenList",
     "RenderDebugInfo",
-    "RunOnInstances",
     "SetControllerVariableForInstance",
     "SetInheritProperties",
     "SetSource",
@@ -243,11 +222,8 @@
     "UpdateInstance"
   ],
   "EveChildInstancedMeshes": [
-    "AnyMeshInheritsOverlayEffects",
     "GetDebugOptions",
     "GetPerObjectDataSize",
-    "HasAnyOwnOverlayEffects",
-    "MeshHasActiveOverlayEffects",
     "OnPrepareResources",
     "PushRtGeometry",
     "RebuildCachedData",
@@ -255,12 +231,10 @@
     "ReleaseCachedData",
     "ReleaseResources",
     "RenderDebugInfo",
-    "UpdateOverlayInstanceData",
     "UpdatePerObjectBuffer"
   ],
   "EveChildLightingOverride": [
     "GetDebugOptions",
-    "RebuildBoundingSphere",
     "RenderDebugInfo"
   ],
   "EveChildLineSet": [
@@ -343,8 +317,7 @@
   ],
   "EveChildPostProcessVolume": [
     "GetDebugOptions",
-    "RenderDebugInfo",
-    "UpdateTransformFromParent"
+    "RenderDebugInfo"
   ],
   "EveChildProceduralContainer": [
     "GetDebugOptions",
@@ -397,8 +370,6 @@
   ],
   "EveChildTurret": [
     "GetDebugOptions",
-    "GetFireAnimationName",
-    "PlayAnimation",
     "RenderDebugInfo"
   ],
   "EveCloudEditableVolume": [
@@ -461,7 +432,6 @@
     "CommitRibbonBatch",
     "GetID",
     "GetPickingBatches",
-    "MarkGeometryDirty",
     "OnListModified",
     "OnPrepareResources",
     "RebuildGeometry",
@@ -483,20 +453,10 @@
     "GetShieldImpactPosition"
   ],
   "EveKDdroneManagementTree": [
-    "AddAgentToSearchLists",
-    "ChangeAgentsIntoAgentRefs",
-    "CompareNodeToChildren",
     "DrawDebugTree",
     "DrawSquareInnerLines",
-    "FindClosestAgentRecursive",
-    "FindNextSplitAxis",
-    "IsBiggestOnAxis",
-    "IsSmallestOnAxis",
     "RenderDebugInfo",
-    "SearchThroughTree",
-    "SearchThroughTreeHelperFunction",
-    "SortByAxis",
-    "SplitSort"
+    "SearchThroughTree"
   ],
   "EveLensflare": [
     "GetCurveSetDuration",
@@ -538,9 +498,7 @@
     "ValidateTurretLocatorName"
   ],
   "EveModularObjectModifier": [
-    "AllocatePartId",
-    "FindPartData",
-    "UpdateImpactOverlayLocatorCount"
+    "FindPartData"
   ],
   "EveOccluder": [
     "RunQuery"
@@ -640,12 +598,6 @@
   "EveSmartLightAttributeModifierBucket": [
     "OnListModified"
   ],
-  "EveSmartLightAttributeModifierCameraDependency": [
-    "GetActivationValue",
-    "GetDistanceAmplitude",
-    "GetLookAtAmplitude",
-    "GetPlacementAmplitude"
-  ],
   "EveSpaceObject2": [
     "AddAttachment",
     "AddCurveSet",
@@ -662,12 +614,10 @@
     "CountLocatorsByPrefix",
     "DetermineLocatorType",
     "EnableDynamicBoundingSphere",
-    "EnsureChildDamageOverlay",
     "FindLocatorJointByName",
     "FindLocatorTransformByName",
     "GetAnimationController",
     "GetAudioGeometry",
-    "GetClosestLocatorIndex",
     "GetControllerValueByName",
     "GetCurveSetDuration",
     "GetDamageLocatorDirectionLocal",
@@ -699,10 +649,8 @@
     "PushRenderables",
     "PushRtGeometry",
     "PyTransformLocators",
-    "RefreshDamageLocatorMask",
     "RegisterAudioGeometry",
     "RegisterSecondaryLightSource",
-    "ReleaseDamageFilterSessions",
     "RemoveOverlayEffect",
     "RenderDebugInfo",
     "ResetClipSphereCenter",
@@ -814,7 +762,6 @@
     "PropagateSettings",
     "ReleaseResources",
     "RenderSSAO",
-    "SetCameraToRenderer",
     "SetDebugMode",
     "SetScene",
     "SetSettings",
@@ -883,7 +830,6 @@
     "GetMoveObject",
     "GetSourceObject",
     "GetStretchObject",
-    "InitializeBindings",
     "RenderDebugInfo",
     "RunOnComponents",
     "RunOnComponentsGetMax",
@@ -913,9 +859,7 @@
     "UpdatePerObjectBuffer"
   ],
   "EveTacticalOverlay": [
-    "GetDefinition",
-    "RegisterVariables",
-    "SetVariableStore"
+    "GetDefinition"
   ],
   "EveTacticalTrails": [
     "OnPrepareResources",
@@ -938,12 +882,7 @@
   ],
   "EveTriggerVolume": [
     "GetDebugOptions",
-    "GetMaxIntensity",
-    "InvokeCallback",
-    "RebuildBoundingSphere",
-    "RenderDebugInfo",
-    "UpdateTriggerState",
-    "UpdateWorldTransform"
+    "RenderDebugInfo"
   ],
   "EveTurretFiringFX": [
     "AddQuadsToQuadRenderer",
@@ -1023,25 +962,14 @@
     "Matrix"
   ],
   "FollowASpline": [
-    "CheckForAndUpdateFormation",
     "GetDebugOptions",
     "OnListModified",
-    "ProcessAssignedTunnel",
-    "ProcessTunnelEntrances",
-    "ReassignTunnelIDsAndAddSystemTunnels",
     "RenderDebugInfo",
     "UpdateTunnelRegistry"
   ],
   "Formation": [
-    "AssignSlots",
-    "BreakFormation",
-    "CheckIfFormalizing",
-    "CreateFormationGrid",
     "GetDebugOptions",
-    "InitializeFormation",
     "RenderDebugInfo",
-    "UpdateAgents",
-    "UpdateFormation",
     "calculateFormationInertia"
   ],
   "IEveTransform": [
@@ -1050,17 +978,9 @@
   "Inertia": [
     "RenderDebugInfo"
   ],
-  "PlayFX": [
-    "CheckCount"
-  ],
   "ProcessLifetime": [
-    "FindASpawnPoint",
-    "FindAndAssignAnExitTunnel",
-    "FindInitialSpawnPoint",
     "GetPotentialPoints",
-    "GetRandomOffset",
-    "ProcessTunnel",
-    "ReassignTunnelIDsAndAddSystemTunnels"
+    "GetRandomOffset"
   ],
   "SeekTarget": [
     "CalculateBehavior",
@@ -1175,10 +1095,6 @@
     "AddKey_",
     "Interpolate"
   ],
-  "Tr2BoundingLineSet": [
-    "AddBox",
-    "AddPickingBox"
-  ],
   "Tr2CmfContents": [
     "GetData",
     "GetSection",
@@ -1205,9 +1121,7 @@
     "ReleaseResources",
     "SetLineEffect",
     "SetPickEffect",
-    "WriteParticleVerticesToBuffer",
-    "addLineData",
-    "isValidLineID"
+    "WriteParticleVerticesToBuffer"
   ],
   "Tr2CurveVector3Expression": [
     "GetExpression",
@@ -2021,11 +1935,6 @@
   "Tr2PrimitiveText": [
     "Render"
   ],
-  "Tr2ProjectBoundingBoxBracket": [
-    "ConstrainProjection",
-    "PublishProjection",
-    "SetFullViewportProjection"
-  ],
   "Tr2QuadRenderer": [
     "GetInstanceBufferSize",
     "OnPrepareResources",
@@ -2286,18 +2195,12 @@
   "Tr2SerializedMorphAnimation": [
     "m_weight"
   ],
-  "Tr2ShLightingManager": [
-    "CalculateSecondaryLighting"
-  ],
   "Tr2Shader": [
     "ApplyRenderStates",
     "ApplyShaderOverride"
   ],
   "Tr2ShaderBuffer": [
     "SetDataFromScript"
-  ],
-  "Tr2ShadowMap": [
-    "SetStaticShadowSplits"
   ],
   "Tr2SharedConstantBuffers": [
     "GetBuffer",
@@ -2564,9 +2467,6 @@
   "Tr2StaticEmitter": [
     "DoSpawn"
   ],
-  "Tr2StepExecuteRenderNode": [
-    "ClearOnFailure"
-  ],
   "Tr2StreamingBitmapSaver": [
     "HasStartedBatch",
     "IsSaving",
@@ -2725,7 +2625,6 @@
   ],
   "Tr2VariableStore": [
     "RegisterVariableInternal",
-    "RegisterVariableType",
     "SetValue"
   ],
   "Tr2Vector2Parameter": [
@@ -2818,9 +2717,6 @@
     "Throttle",
     "UnregisterResource",
     "Update"
-  ],
-  "TriFrustum": [
-    "CacheTransformationData"
   ],
   "TriGeometryRes": [
     "ClearCMFData",
