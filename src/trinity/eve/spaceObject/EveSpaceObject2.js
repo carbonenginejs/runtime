@@ -1014,7 +1014,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       for (const child of this.effectChildren)
       {
         params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn?.());
-        child?.UpdateSyncronous?.(updateContext, params);
+        child?.UpdateSyncronous(updateContext, params);
       }
     }
 
@@ -1122,7 +1122,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       for (const child of this.effectChildren)
       {
         params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn?.());
-        child?.UpdateAsyncronous?.(updateContext, params);
+        child?.UpdateAsyncronous(updateContext, params);
       }
     }
 
@@ -1221,7 +1221,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     for (const child of this.effectChildren)
     {
-      child?.UpdateVisibility?.(updateContext, this.worldTransform, this.#lodLevelWithChildren);
+      child?.UpdateVisibility(updateContext, this.worldTransform, this.#lodLevelWithChildren);
     }
 
     if (this.mesh && this.#boundingSphereWorldRadius > 0)
@@ -1259,7 +1259,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     for (const child of this.effectChildren)
     {
-      if (this.DisplayChildren() || child?.IsAlwaysOn?.()) child?.GetRenderables?.(out);
+      if (this.DisplayChildren() || child?.IsAlwaysOn?.()) child?.GetRenderables(out);
     }
     if (this.mesh && this.#isMeshVisible)
     {
@@ -1344,7 +1344,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   #GetSortedTransparentBatches(areas, batches, perObjectData, renderContext)
   {
     const geometry = this.mesh.GetGeometryResource?.() ?? null;
-    const viewPosition = renderContext?.GetViewPosition?.();
+    const viewPosition = renderContext?.GetViewPosition();
     const meshIndex = this.mesh.meshIndex ?? 0;
 
     // Carbon resolves the LOD once for the whole sorted list (cpp:72) and
@@ -1674,7 +1674,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   @impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   GetSortValue(renderContext = null)
   {
-    const viewPosition = renderContext?.GetViewPosition?.();
+    const viewPosition = renderContext?.GetViewPosition();
     const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
     const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
     const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];

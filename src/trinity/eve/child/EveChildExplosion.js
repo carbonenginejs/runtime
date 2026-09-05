@@ -231,7 +231,7 @@ export class EveChildExplosion extends EveChildContainer
       this.#countdownToGlobalExplosionStart -= deltaTime;
       if (this.#countdownToGlobalExplosionStart < 0 && !this.globalExplosionInstances.length) this.#SpawnGlobalExplosions();
     }
-    for (const object of this.objects) object?.UpdateSyncronous?.(updateContext, params);
+    for (const object of this.objects) object?.UpdateSyncronous(updateContext, params);
     if (this.playTime > this.totalDuration) this.Stop();
   }
 

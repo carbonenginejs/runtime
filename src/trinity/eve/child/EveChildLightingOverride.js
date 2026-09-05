@@ -142,7 +142,7 @@ export class EveChildLightingOverride extends withIEveLightingOverride(EveChildT
     }
 
     this.#overrideIntensity = 0;
-    const viewPosition = updateContext?.renderContext?.GetViewPosition?.();
+    const viewPosition = updateContext?.renderContext?.GetViewPosition();
     const inverse = mat4.invert(mat4.create(), this.worldTransform);
     if (!viewPosition || !inverse || !this.#boundingSphere.initialized) return;
     const localView = vec3.transformMat4(vec3.create(), viewPosition, inverse);

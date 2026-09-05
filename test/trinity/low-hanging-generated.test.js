@@ -431,8 +431,23 @@ test("EveChildBulletStorm rebuilds locator instances and transitions its clip sp
 test("EveChildExplosion schedules local and global Carbon explosion children", () =>
 {
   const setups = [];
+
+  // A CLONE THAT LANDS IN `objects` HAS TO BE A CHILD. EveChildExplosion
+  // schedules its clones and then drives them with the four child verbs, so a
+  // bare literal only worked while those calls were hedged. Extending
+  // EveSpaceObjectChild inherits Carbon's do-nothing defaults for all four.
+  class ExplosionClone extends EveSpaceObjectChild
+  {
+    constructor(name, onSetup)
+    {
+      super();
+      this.name = name;
+      this.Setup = onSetup;
+    }
+  }
+
   const makeEffect = name => ({
-    Clone: () => ({ name, Setup: (...args) => setups.push([name, ...args]) })
+    Clone: () => new ExplosionClone(name, (...args) => setups.push([ name, ...args ]))
   });
   const explosion = new EveChildExplosion();
   explosion.localExplosion = makeEffect("local");

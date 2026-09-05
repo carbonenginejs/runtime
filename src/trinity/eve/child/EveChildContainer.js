@@ -587,7 +587,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
 
     for (const child of this.objects)
     {
-      child?.UpdateSyncronous?.(updateContext, newParams);
+      child?.UpdateSyncronous(updateContext, newParams);
     }
     for (const observer of this.observers)
     {
@@ -687,7 +687,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
 
     for (const child of this.objects)
     {
-      child?.UpdateAsyncronous?.(updateContext, newParams);
+      child?.UpdateAsyncronous(updateContext, newParams);
     }
 
     // Carbon (cpp:617-624): container-owned curve sets tick with the frame
@@ -746,7 +746,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
 
     for (const child of this.objects)
     {
-      child?.UpdateVisibility?.(updateContext, parentTransform, parentLod);
+      child?.UpdateVisibility(updateContext, parentTransform, parentLod);
     }
 
     if (this.HasRenderables())
@@ -786,7 +786,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
 
     for (const child of this.objects)
     {
-      child?.GetRenderables?.(out);
+      child?.GetRenderables(out);
     }
     return out;
   }

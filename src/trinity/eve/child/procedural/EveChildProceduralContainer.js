@@ -164,7 +164,7 @@ export class EveChildProceduralContainer extends EveChildTransform
     newParams.childParent = this;
     mat4.copy(newParams.localToWorldTransform, this.worldTransform);
 
-    this.selectedObject?.UpdateSyncronous?.(updateContext, newParams);
+    this.selectedObject?.UpdateSyncronous(updateContext, newParams);
 
     if (this.selectionMethod && this.selectionMethod.IsSelectedChildModified())
     {
@@ -202,7 +202,7 @@ export class EveChildProceduralContainer extends EveChildTransform
     newParams.childParent = this;
     mat4.copy(newParams.localToWorldTransform, this.worldTransform);
 
-    this.selectedObject?.UpdateAsyncronous?.(updateContext, newParams);
+    this.selectedObject?.UpdateAsyncronous(updateContext, newParams);
 
     if (this.selectionMethod) this.selectionMethod.UpdateAsyncronous(updateContext, newParams);
 
@@ -221,7 +221,7 @@ export class EveChildProceduralContainer extends EveChildTransform
       return;
     }
 
-    this.selectedObject?.UpdateVisibility?.(updateContext, parentTransform, parentLod);
+    this.selectedObject?.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
   /** Carbon EveChildProceduralContainer::GetRenderables (cpp:51-57). */
@@ -231,7 +231,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   {
     if (this.display && this.selectedObject)
     {
-      this.selectedObject.GetRenderables?.(out);
+      this.selectedObject.GetRenderables(out);
     }
     return out;
   }

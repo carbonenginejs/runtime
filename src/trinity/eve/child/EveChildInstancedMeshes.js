@@ -1180,7 +1180,7 @@ export class EveChildInstancedMeshes extends withITr2Renderable(EveSpaceObjectCh
   @impl.adapted
   GetSortValue(renderContext = null)
   {
-    const viewPosition = renderContext?.GetViewPosition?.() ?? [ 0, 0, 0 ];
+    const viewPosition = renderContext?.GetViewPosition() ?? [ 0, 0, 0 ];
     return Math.hypot(
       viewPosition[0] - this.worldTransform[12],
       viewPosition[1] - this.worldTransform[13],

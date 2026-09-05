@@ -154,7 +154,7 @@ export class EveSpherePin extends withITr2Renderable(CjsModel)
   @impl.reason("Carbon reads the Tr2Renderer view-position static; the batch collector supplies the render context explicitly.")
   GetSortValue(renderContext = null)
   {
-    const viewPosition = renderContext?.GetViewPosition?.();
+    const viewPosition = renderContext?.GetViewPosition();
 
     if (!viewPosition)
     {

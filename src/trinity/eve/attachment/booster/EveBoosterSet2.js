@@ -727,7 +727,7 @@ export class EveBoosterSet2 extends EveEntity
 
     for (const renderable of this.instances)
     {
-      renderable?.UpdateVisibility?.(updateContext);
+      renderable?.UpdateVisibility(updateContext);
     }
 
     if (this.glows)
@@ -781,7 +781,7 @@ export class EveBoosterSet2 extends EveEntity
     }
     for (const renderable of this.instances)
     {
-      renderable?.GetRenderables?.(out);
+      renderable?.GetRenderables(out);
     }
     return out;
   }

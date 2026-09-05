@@ -984,7 +984,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
         {
           mat4.identity(INVERSE_WORLD_SCRATCH);
         }
-        const viewPos = frustum?.m_viewPos ?? frustum?.viewPos ?? frustum?.GetViewPosition?.() ?? ZERO_VEC3;
+        const viewPos = frustum?.viewPos ?? ZERO_VEC3;
         vec3.transformMat4(LOCAL_VIEW_SCRATCH, viewPos, INVERSE_WORLD_SCRATCH);
         instanceBounds = this.mesh.GetInstanceBoundsClosestToPoint(LOCAL_VIEW_SCRATCH);
       }
@@ -1272,7 +1272,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
   @impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   GetSortValue(renderContext = null)
   {
-    const viewPosition = renderContext?.GetViewPosition?.();
+    const viewPosition = renderContext?.GetViewPosition();
     const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
     const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
     const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];

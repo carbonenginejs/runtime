@@ -382,7 +382,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     {
       this.#frustum.DeriveFrustum(
         view,
-        renderContext.GetViewPosition?.() ?? null,
+        renderContext.GetViewPosition() ?? null,
         projection,
         viewport
       );

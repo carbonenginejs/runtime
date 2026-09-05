@@ -210,7 +210,7 @@ export class EveChildQuad extends withITr2Renderable(EveChildTransform)
   @impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   GetSortValue(renderContext = null)
   {
-    const viewPosition = renderContext?.GetViewPosition?.();
+    const viewPosition = renderContext?.GetViewPosition();
     const x = (viewPosition?.[0] ?? 0) - this.worldTransform[12];
     const y = (viewPosition?.[1] ?? 0) - this.worldTransform[13];
     const z = (viewPosition?.[2] ?? 0) - this.worldTransform[14];

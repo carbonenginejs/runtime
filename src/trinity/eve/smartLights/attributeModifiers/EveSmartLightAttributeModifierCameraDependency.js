@@ -140,7 +140,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    */
   #GetActivationValue(objectPosition, entityDirection)
   {
-    const camPos = this.#renderContext?.GetViewPosition?.() ?? EveSmartLightAttributeModifierCameraDependency.#zero;
+    const camPos = this.#renderContext?.GetViewPosition() ?? EveSmartLightAttributeModifierCameraDependency.#zero;
     const vec2obj = EveSmartLightAttributeModifierCameraDependency.#vec2obj;
     if (this.overwritePosition)
     {

@@ -175,7 +175,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
     }
 
     attributes.intensity = 0;
-    const viewPosition = updateContext?.renderContext?.GetViewPosition?.();
+    const viewPosition = updateContext?.renderContext?.GetViewPosition();
     if (!viewPosition)
     {
       return;

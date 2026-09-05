@@ -978,7 +978,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
     // cpp:550 - TransformCoord(viewPosition, Inverse(world)) - single matrix;
     // same singular-input mirror.
     data.viewPosition = vec3.create();
-    const viewPosition = renderContext?.GetViewPosition?.();
+    const viewPosition = renderContext?.GetViewPosition();
     if (viewPosition)
     {
       const inverseWorld = mat4.invert(INV_SCRATCH, w) ?? w;

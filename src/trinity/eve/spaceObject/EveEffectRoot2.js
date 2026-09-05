@@ -214,7 +214,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     if (this.effectChildren.length)
     {
       const params = this.#CreateChildUpdateParams();
-      for (const child of this.effectChildren) child?.UpdateSyncronous?.(updateContext, params);
+      for (const child of this.effectChildren) child?.UpdateSyncronous(updateContext, params);
     }
     return true;
   }
@@ -246,7 +246,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     {
       const params = this.#CreateChildUpdateParams();
       params.controllerUpdateFrequency = frequency;
-      for (const child of this.effectChildren) child?.UpdateAsyncronous?.(updateContext, params);
+      for (const child of this.effectChildren) child?.UpdateAsyncronous(updateContext, params);
     }
     return frequency;
   }
@@ -279,7 +279,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
 
     for (const child of this.effectChildren)
     {
-      child?.UpdateVisibility?.(updateContext, parentTransform, this.lodLevel);
+      child?.UpdateVisibility(updateContext, parentTransform, this.lodLevel);
     }
     return true;
   }
@@ -295,7 +295,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
       this.#changeLOD = false;
       for (const child of this.effectChildren) child?.ChangeLOD?.(this.lodLevel);
     }
-    for (const child of this.effectChildren) child?.GetRenderables?.(out);
+    for (const child of this.effectChildren) child?.GetRenderables(out);
     return out;
   }
 
