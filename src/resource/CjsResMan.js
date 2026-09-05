@@ -1,6 +1,6 @@
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
-import { CjsEventEmitter } from "#model";
+import { compose } from "#schema";
 import { hasOwnThen } from "#utils/object";
 import {
   getResourceExtension,
@@ -186,7 +186,7 @@ let nextLocalValueIdentity = 1;
  * @typedef {CjsResourceOwnership|CjsResourceReloadCandidate} CjsResourceMutationAuthority
  */
 
-export class CjsResMan extends CjsEventEmitter
+export class CjsResMan
 {
 
   // Carbon reaches its manager through the process-wide `BeResMan`
@@ -259,7 +259,6 @@ export class CjsResMan extends CjsEventEmitter
    * @throws {TypeError} If registration, queue, source, or format options are invalid.
    */
   constructor(options = {}) {
-    super();
     this.motherLode = new CjsMotherLode();
     this.source = null;
     this.paths = new Map();
@@ -3387,6 +3386,11 @@ export class CjsResMan extends CjsEventEmitter
     return record.promise;
   }
 }
+
+// The notify surface arrives by composition rather than `extends
+// CjsEventEmitter` - functional form so the resource tree stays plain ESM
+// that loads from source without a transform.
+compose.notify(CjsResMan);
 
 /**
  * Copy supported registered format defaults into a deeply frozen snapshot.

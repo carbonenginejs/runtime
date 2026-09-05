@@ -1,5 +1,5 @@
 import { normalizeResourcePath } from "#utils/path";
-import { CjsEventEmitter } from "#model";
+import { compose } from "#schema";
 
 /**
  * `CjsTextureArrayRes`-owned parameter facade for one array layer that mirrors
@@ -10,7 +10,7 @@ import { CjsEventEmitter } from "#model";
  * Engines bridge public parameters into it; it does not replace persisted
  * parameter entries or their individual source resources.
  */
-export class CjsTextureArrayResParameterProxy extends CjsEventEmitter
+export class CjsTextureArrayResParameterProxy
 {
   #parent;
   #layer;
@@ -19,7 +19,6 @@ export class CjsTextureArrayResParameterProxy extends CjsEventEmitter
   /** Creates a CjsTextureArrayResParameterProxy with caller-provided initial state. */
   constructor(parent, layer, options = {})
   {
-    super();
     if (!parent || typeof parent.SetLayerResourcePath !== "function")
     {
       throw new TypeError("CjsTextureArrayResParameterProxy requires a CjsTextureArrayRes-compatible parent.");
@@ -205,3 +204,8 @@ export class CjsTextureArrayResParameterProxy extends CjsEventEmitter
     return this.#parent.Ready(options);
   }
 }
+
+// The notify surface arrives by composition rather than `extends
+// CjsEventEmitter` - functional form so the resource tree stays plain ESM
+// that loads from source without a transform.
+compose.notify(CjsTextureArrayResParameterProxy);

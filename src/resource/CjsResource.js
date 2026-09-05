@@ -1,10 +1,9 @@
-import { CjsEventEmitter } from "#model";
 import {
   getResourceExtension,
   normalizeResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema, carbon, impl, type } from "#schema";
+import { CjsSchema, carbon, compose, impl, type } from "#schema";
 import { CjsFormatRoute } from "./format/CjsFormatStore.js";
 import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
 
@@ -37,7 +36,7 @@ import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
  * paths (including empty paths), while CjsResMan constructs, initializes,
  * caches, and hydrates the corresponding runtime resource instances.
  */
-export class CjsResource extends CjsEventEmitter
+export class CjsResource
 {
   #payload = null;
 
@@ -86,7 +85,6 @@ export class CjsResource extends CjsEventEmitter
    * @param {object|null} [values=null] Initial decorated schema-field values.
    */
   constructor(values = null) {
-    super();
     Object.defineProperty(this, "__adapterResources", {
       value: Object.create(null),
       enumerable: false,
@@ -946,6 +944,12 @@ export class CjsResource extends CjsEventEmitter
       || state === CjsResource.State.UNLOADED;
   }
 }
+
+// The notify surface arrives by composition rather than `extends
+// CjsEventEmitter`, keeping the inheritance slot free. Functional form, not
+// decorator syntax, for the same reason the schema below is data: the resource
+// tree stays plain ESM that loads from source without a transform.
+compose.notify(CjsResource);
 
 // Declared as data rather than with decorators, so the resource tree stays
 // plain ESM that loads from source without a transform. Resources are not model

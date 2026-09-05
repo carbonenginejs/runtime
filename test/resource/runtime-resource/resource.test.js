@@ -673,7 +673,11 @@ test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
     states.push([ state, previous ]);
   });
 
-  assert.equal(resource instanceof CjsEventEmitter, true);
+  // Composed, not inherited: the notify surface is the SAME functions the
+  // emitter base carries, installed by compose.notify with the extends gone.
+  assert.equal(resource instanceof CjsEventEmitter, false);
+  assert.equal(resource.OnEvent, CjsEventEmitter.prototype.OnEvent);
+  assert.equal(resource.EmitEvent, CjsEventEmitter.prototype.EmitEvent);
   assert.equal(Object.prototype.hasOwnProperty.call(resource, "__state"), true);
   assert.equal(resource.__state.events instanceof Map, true);
   assert.equal(Object.prototype.hasOwnProperty.call(resource.__state, "dirty"), false);
@@ -708,7 +712,8 @@ test("CjsMotherLode cache is reused through CjsResMan.GetResource", () => {
   const b = resMan.GetResource("RES:/texture/ship.dds");
 
   assert.equal(a, b);
-  assert.equal(resMan instanceof CjsEventEmitter, true);
+  assert.equal(resMan instanceof CjsEventEmitter, false);
+  assert.equal(resMan.OnEvent, CjsEventEmitter.prototype.OnEvent);
   assert.equal(resMan.motherLode.GetCount(), 1);
 });
 
