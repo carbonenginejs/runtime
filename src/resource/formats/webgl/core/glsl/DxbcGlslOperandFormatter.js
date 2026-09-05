@@ -98,25 +98,34 @@ export class DxbcGlslOperandFormatter
         const suffix = this._swizzleSuffix(operand, destMask);
         let expression = this.registerReference(operand) + suffix;
 
-        // DXBC operand modifiers (neg/abs/absneg) are FLOAT operations on the
-        // operand's value, applied before the consuming instruction's typed
-        // read. They must wrap the float expression and the `as` conversion
-        // must wrap the modifier: emitting `abs(floatBitsToUint(x))` instead
-        // of `floatBitsToUint(abs(x))` is invalid GLSL ES 3.00 (abs is
-        // undefined for genUType) and the neg form flips the -0.0 edge.
+        // Modifier placement is PER MODIFIER on a typed read, and getting it
+        // wrong has broken shipped shaders in both directions:
+        //
+        // - `neg` on an integer read is DXBC's integer negation - two's
+        //   complement AFTER the reinterpret (`iadd r, -a, b` emits
+        //   `(-floatBitsToInt(a)) + ...`). Applying it in float space merely
+        //   flips the sign bit and broke every lines3d instance offset.
+        // - `abs`/`absneg` have no integer form in DXBC; they appear on
+        //   typed reads only as FLOAT modifiers (condition tests, f16tof32
+        //   sources) and must wrap the float expression INSIDE the bitcast:
+        //   `abs(floatBitsToUint(x))` is invalid GLSL ES 3.00 (abs is
+        //   undefined for genUType) and failed the whole effect at compile.
         const modifierName = operand.modifierName;
-        const hasModifier = modifierName === "neg" || modifierName === "abs" || modifierName === "absneg";
-        if (modifierName === "neg")
+        const floatSpaceModifier = as === "float" || modifierName === "abs" || modifierName === "absneg";
+        if (floatSpaceModifier)
         {
-            expression = `(-${expression})`;
-        }
-        else if (modifierName === "abs")
-        {
-            expression = `abs(${expression})`;
-        }
-        else if (modifierName === "absneg")
-        {
-            expression = `(-abs(${expression}))`;
+            if (modifierName === "neg")
+            {
+                expression = `(-${expression})`;
+            }
+            else if (modifierName === "abs")
+            {
+                expression = `abs(${expression})`;
+            }
+            else if (modifierName === "absneg")
+            {
+                expression = `(-abs(${expression}))`;
+            }
         }
 
         if (as !== "float")
@@ -125,12 +134,11 @@ export class DxbcGlslOperandFormatter
                 ? this.integerInputs.get(operand.registerIndex)
                 : undefined;
 
-            if (operand.type === 0 && this.integerTemps && !hasModifier)
+            if (operand.type === 0 && this.integerTemps && !floatSpaceModifier)
             {
-                // Raw integer companion: only valid for an unmodified read -
-                // a float modifier forces the float register through the
-                // bitcast branch below, matching DXBC's float-modifier
-                // semantics.
+                // Raw integer companion. An integer `neg` applies to it
+                // directly below; a float-space abs forces the float register
+                // through the bitcast branch instead.
                 const raw = `cjsBitsR${operand.registerIndex}${suffix}`;
                 const width = suffix ? suffix.length - 1 : 4;
                 expression = as === "uint" ? raw : `${VEC_TYPE_BY_KIND.int[width - 1]}(${raw})`;
@@ -146,6 +154,12 @@ export class DxbcGlslOperandFormatter
             else
             {
                 expression = `${BITCAST_FROM_FLOAT[as]}(${expression})`;
+            }
+
+            if (modifierName === "neg")
+            {
+                // Integer negation of the typed read (two's complement).
+                expression = `(-${expression})`;
             }
         }
         return expression;

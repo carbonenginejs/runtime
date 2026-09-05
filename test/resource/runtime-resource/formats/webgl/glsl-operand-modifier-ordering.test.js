@@ -4,18 +4,20 @@ import assert from "node:assert/strict";
 import { DxbcGlslOperandFormatter } from "../../../../../src/resource/formats/webgl/core/glsl/DxbcGlslOperandFormatter.js";
 
 /**
- * DXBC operand modifiers (neg/abs/absneg) are FLOAT operations applied to
- * the operand's value before the consuming instruction's typed read. The
- * emitted GLSL must therefore wrap the float expression in the modifier and
- * the modifier in the bitcast: `floatBitsToUint(abs(r0.x))`.
+ * Modifier placement on a typed read is PER MODIFIER, and both wrong
+ * placements have broken shipped shaders:
  *
- * The 5a5ef833 integer-preservation rework briefly inverted that ordering
- * through `sourceExpression(..., { as: "uint" })`, emitting
- * `abs(floatBitsToUint(r0.x))` - and `abs()` is undefined for genUType in
- * GLSL ES 3.00, a compile error on every shader whose if_nz/breakc condition
- * (or f16tof32 source) carries an abs modifier. The neg form stayed legal
- * but flipped the -0.0 edge: floatBitsToUint(-0.0) is 0x80000000 (nonzero)
- * while -floatBitsToUint(0.0) is 0. These tests pin the ordering.
+ * - `neg` on an integer read is DXBC integer negation - two's complement
+ *   AFTER the reinterpret. `iadd r, -a, b` must emit
+ *   `(-floatBitsToInt(a)) + ...`; the float-space form
+ *   `floatBitsToInt((-a))` merely flips the sign bit and broke every
+ *   lines3d instance offset (child line sets vanished, 2026-09-06).
+ * - `abs`/`absneg` have no integer form in DXBC and appear on typed reads
+ *   only as FLOAT modifiers (if_nz/breakc conditions, f16tof32 sources).
+ *   They must wrap the float expression INSIDE the bitcast:
+ *   `abs(floatBitsToUint(x))` is invalid GLSL ES 3.00 (abs is undefined
+ *   for genUType) and failed the whole effect at compile (5a5ef833's
+ *   integer-preservation rework emitted exactly that).
  */
 
 /**
@@ -39,6 +41,19 @@ function tempOperand(modifierName)
     };
 }
 
+test("neg on an integer read is integer negation outside the bitcast", () =>
+{
+    const formatter = new DxbcGlslOperandFormatter();
+    assert.equal(
+        formatter.sourceExpression(tempOperand("neg"), { destMask: "x", as: "int" }),
+        "(-floatBitsToInt(r0.x))"
+    );
+    assert.equal(
+        formatter.sourceExpression(tempOperand("neg"), { destMask: "x", as: "uint" }),
+        "(-floatBitsToUint(r0.x))"
+    );
+});
+
 test("an abs modifier wraps the float expression, inside the uint bitcast", () =>
 {
     const formatter = new DxbcGlslOperandFormatter();
@@ -46,14 +61,7 @@ test("an abs modifier wraps the float expression, inside the uint bitcast", () =
     assert.equal(text, "floatBitsToUint(abs(r0.x))");
 });
 
-test("a neg modifier stays inside the uint bitcast, preserving the -0.0 edge", () =>
-{
-    const formatter = new DxbcGlslOperandFormatter();
-    const text = formatter.sourceExpression(tempOperand("neg"), { destMask: "x", as: "uint" });
-    assert.equal(text, "floatBitsToUint((-r0.x))");
-});
-
-test("an absneg modifier stays inside the uint bitcast", () =>
+test("an absneg modifier stays fully in float space inside the bitcast", () =>
 {
     const formatter = new DxbcGlslOperandFormatter();
     const text = formatter.sourceExpression(tempOperand("absneg"), { destMask: "x", as: "uint" });
@@ -63,8 +71,8 @@ test("an absneg modifier stays inside the uint bitcast", () =>
 test("modifiers still wrap plain float reads unchanged", () =>
 {
     const formatter = new DxbcGlslOperandFormatter();
-    const text = formatter.sourceExpression(tempOperand("abs"), { destMask: "x", as: "float" });
-    assert.equal(text, "abs(r0.x)");
+    assert.equal(formatter.sourceExpression(tempOperand("abs"), { destMask: "x", as: "float" }), "abs(r0.x)");
+    assert.equal(formatter.sourceExpression(tempOperand("neg"), { destMask: "x", as: "float" }), "(-r0.x)");
 });
 
 test("an unmodified uint read under integer preservation uses the raw companion", () =>
@@ -74,11 +82,19 @@ test("an unmodified uint read under integer preservation uses the raw companion"
     assert.equal(text, "cjsBitsR0.x");
 });
 
-test("a float modifier forces the float register even under integer preservation", () =>
+test("integer neg negates the raw companion directly under preservation", () =>
 {
-    // A modifier is a float operation, so the raw integer companion cannot
-    // serve the read: the float register goes through the modifier and the
-    // bitcast, exactly as without preservation.
+    const formatter = new DxbcGlslOperandFormatter({ integerTemps: true });
+    assert.equal(
+        formatter.sourceExpression(tempOperand("neg"), { destMask: "x", as: "uint" }),
+        "(-cjsBitsR0.x)"
+    );
+});
+
+test("a float abs forces the float register even under integer preservation", () =>
+{
+    // abs is a float operation, so the raw integer companion cannot serve
+    // the read: the float register goes through abs and the bitcast.
     const formatter = new DxbcGlslOperandFormatter({ integerTemps: true });
     const text = formatter.sourceExpression(tempOperand("abs"), { destMask: "x", as: "uint" });
     assert.equal(text, "floatBitsToUint(abs(r0.x))");
