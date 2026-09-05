@@ -97,14 +97,40 @@ export class DxbcGlslOperandFormatter
 
         const suffix = this._swizzleSuffix(operand, destMask);
         let expression = this.registerReference(operand) + suffix;
+
+        // DXBC operand modifiers (neg/abs/absneg) are FLOAT operations on the
+        // operand's value, applied before the consuming instruction's typed
+        // read. They must wrap the float expression and the `as` conversion
+        // must wrap the modifier: emitting `abs(floatBitsToUint(x))` instead
+        // of `floatBitsToUint(abs(x))` is invalid GLSL ES 3.00 (abs is
+        // undefined for genUType) and the neg form flips the -0.0 edge.
+        const modifierName = operand.modifierName;
+        const hasModifier = modifierName === "neg" || modifierName === "abs" || modifierName === "absneg";
+        if (modifierName === "neg")
+        {
+            expression = `(-${expression})`;
+        }
+        else if (modifierName === "abs")
+        {
+            expression = `abs(${expression})`;
+        }
+        else if (modifierName === "absneg")
+        {
+            expression = `(-abs(${expression}))`;
+        }
+
         if (as !== "float")
         {
             const integerInputKind = operand.type === 1 && this.integerInputs
                 ? this.integerInputs.get(operand.registerIndex)
                 : undefined;
 
-            if (operand.type === 0 && this.integerTemps)
+            if (operand.type === 0 && this.integerTemps && !hasModifier)
             {
+                // Raw integer companion: only valid for an unmodified read -
+                // a float modifier forces the float register through the
+                // bitcast branch below, matching DXBC's float-modifier
+                // semantics.
                 const raw = `cjsBitsR${operand.registerIndex}${suffix}`;
                 const width = suffix ? suffix.length - 1 : 4;
                 expression = as === "uint" ? raw : `${VEC_TYPE_BY_KIND.int[width - 1]}(${raw})`;
@@ -121,18 +147,6 @@ export class DxbcGlslOperandFormatter
             {
                 expression = `${BITCAST_FROM_FLOAT[as]}(${expression})`;
             }
-        }
-        if (operand.modifierName === "neg")
-        {
-            expression = `(-${expression})`;
-        }
-        else if (operand.modifierName === "abs")
-        {
-            expression = `abs(${expression})`;
-        }
-        else if (operand.modifierName === "absneg")
-        {
-            expression = `(-abs(${expression}))`;
         }
         return expression;
     }
