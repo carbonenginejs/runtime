@@ -284,12 +284,24 @@ export class CjsWebgpuRenderContextAL
    * resource on this path already behaves, and is why a ship fades in rather
    * than blocking the first frame.
    *
+   * WHAT IS NOT IMPLEMENTED REFUSES RATHER THAN DRAWS. Carbon has two
+   * variants this backend cannot honour yet - a substituted override material
+   * (`RenderBatchesWithOverride`) and picking, which reads the batch's user
+   * data as an object id instead of shading it. Both would otherwise fall
+   * through and draw an ordinary colour pass: a depth prepass rendered as
+   * colour, or a picking read that returns pixels. Silently wrong is worse
+   * than absent, so they throw and name themselves.
+   *
    * @param {object} accumulator A finalized `ITriRenderBatchAccumulator`.
    * @param {string} techniqueName The technique to draw.
+   * @param {object} [options] Carbon's variants: `overrideMaterial`, `picking`.
    * @returns {boolean} Whether anything was encoded this call.
    */
-  RenderBatches(accumulator, techniqueName)
+  RenderBatches(accumulator, techniqueName, options = {})
   {
+    if (options.overrideMaterial) fail("RenderBatchesWithOverride is not implemented by this backend");
+    if (options.picking) fail("RenderBatchesForPicking is not implemented by this backend");
+
     if (!this.#dispatcher) return false;
 
     const handle = this.#PreparedFor(accumulator, techniqueName);

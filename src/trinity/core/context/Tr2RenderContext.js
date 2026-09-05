@@ -932,10 +932,14 @@ export class Tr2RenderContext extends CjsModel
    * Records a submission of one finalized batch accumulator.
    *
    * Carbon's RenderBatches (Tr2RenderContext.h:37-52) walks the accumulator and
-   * issues draws immediately. Ours records the intent and an engine drains it,
-   * for the reason this whole class records rather than executes: a WebGPU pass
-   * is an object with a fixed attachment set, so the submission point is decided
-   * when the frame is planned rather than when Trinity asks.
+   * issues draws immediately, and so does ours once a backend is installed.
+   *
+   * THE OLD REASON FOR RECORDING WAS WRONG. It said a WebGPU pass has a fixed
+   * attachment set, so the submission point must be decided when the frame is
+   * PLANNED rather than when Trinity asks. Metal has exactly the same
+   * constraint and Carbon does not plan: its work queue opens a pass lazily, at
+   * the moment work needs one. Ours does the same, so there is nothing to
+   * decide ahead of time.
    *
    * The accumulator is passed by reference, not copied. It is finalized by the
    * time it arrives - sorting and grouping are Trinity's - and copying it would
@@ -948,6 +952,8 @@ export class Tr2RenderContext extends CjsModel
   RenderBatches(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     if (!batches) return false;
+
+    if (this.#al) return this.#al.RenderBatches(batches, techniqueName);
 
     this.#intents.push({ type: "render-batches", batches, techniqueName });
     return true;
@@ -972,6 +978,8 @@ export class Tr2RenderContext extends CjsModel
     if (!batches) return false;
     if (!overrideMaterial) return this.RenderBatches(batches, techniqueName);
 
+    if (this.#al) return this.#al.RenderBatches(batches, techniqueName, { overrideMaterial });
+
     this.#intents.push({
       type: "render-batches",
       batches,
@@ -993,6 +1001,8 @@ export class Tr2RenderContext extends CjsModel
   RenderBatchesForPicking(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     if (!batches) return false;
+
+    if (this.#al) return this.#al.RenderBatches(batches, techniqueName, { picking: true });
 
     this.#intents.push({ type: "render-batches", batches, techniqueName, picking: true });
     return true;

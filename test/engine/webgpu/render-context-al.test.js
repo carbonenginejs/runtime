@@ -407,3 +407,16 @@ test("the same batches under two techniques prepare separately", () =>
   // so one prepared handle cannot serve both.
   assert.equal(log.filter(entry => entry === "prepare").length, 2);
 });
+
+test("the variants this backend cannot honour refuse instead of drawing", () =>
+{
+  const { al } = composed();
+
+  al.CreateDevice();
+  al.BeginScene();
+
+  // Both would otherwise fall through to an ordinary colour pass - a depth
+  // prepass rendered as colour, or a picking read that returns pixels.
+  assert.throws(() => al.RenderBatches({}, "Main", { overrideMaterial: {} }), /RenderBatchesWithOverride/u);
+  assert.throws(() => al.RenderBatches({}, "Main", { picking: true }), /RenderBatchesForPicking/u);
+});
