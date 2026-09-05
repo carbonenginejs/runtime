@@ -35,7 +35,8 @@ const verbose = process.argv.includes("--verbose");
 
 // Schema entries that are not portable method obligations: constructors,
 // destructors, exposure macros, operators, and the scanner's own artifacts.
-const NON_METHOD = /^(~|operator\b|EXPOSE_TO_BLUE$|TYPEDEF_|BLUE_|Py__|PyNew$)/;
+// `bool` is the scanner's artifact for C++ `operator bool` conversions.
+const NON_METHOD = /^(~|operator\b|EXPOSE_TO_BLUE$|TYPEDEF_|BLUE_|Py__|PyNew$|bool$)/;
 
 const classes = await ReadJavaScriptClasses(sourceRoot);
 const schema = await ReadSchemaClasses(schemaRoot);

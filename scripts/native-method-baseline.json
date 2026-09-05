@@ -404,9 +404,6 @@
     "AnimateSegment",
     "CalculateSideAndFront"
   ],
-  "EveDamageOverlay": [
-    "bool"
-  ],
   "EveDistanceField": [
     "CalculateFieldCoverageAndDistance",
     "CreateCurveSet",
@@ -1091,6 +1088,9 @@
     "GetResourceMemoryClass",
     "IsResourceValid"
   ],
+  "Tr2Blitter": [
+    "OnPrepareResources"
+  ],
   "Tr2BoneMatrixCurve": [
     "AddKey_",
     "Interpolate"
@@ -1099,8 +1099,7 @@
     "GetData",
     "GetSection",
     "GetViewData",
-    "UnloadGpuBuffers",
-    "bool"
+    "UnloadGpuBuffers"
   ],
   "Tr2ControllerExpression": [
     "CreateParser"
@@ -1647,7 +1646,6 @@
     "DeleteInstance",
     "DoUpdateLists",
     "GetInstance",
-    "GetLightProfileArray",
     "GetOrCreateInstance",
     "GetRaytracingPipelineManager",
     "GetRaytracingShaderTableDesc",
@@ -1667,7 +1665,6 @@
     "BakeLightProfile",
     "DoPrepare",
     "GetMemoryUsage",
-    "GetTextureIndex",
     "GetThumbnail",
     "IsMemoryUsageKnown",
     "ParseIes"
@@ -2013,8 +2010,7 @@
     "StartRenderFace"
   ],
   "Tr2RenderBatch": [
-    "SetInidices",
-    "bool"
+    "SetInidices"
   ],
   "Tr2RenderContext": [
     "BeginParallelEncoding",
@@ -2497,21 +2493,10 @@
     "Write"
   ],
   "Tr2TextureArray": [
-    "AddElement",
     "CreateTexture",
-    "GetArraySize",
-    "GetDimensions",
-    "GetElementCount",
-    "GetFormat",
-    "GetHeight",
-    "GetMipCount",
     "GetTexture",
-    "GetWidth",
     "OnPrepareResources",
-    "OnTextureChange",
-    "ReleaseResources",
-    "RemoveElement",
-    "SetExpectedElementDimensions"
+    "ReleaseResources"
   ],
   "Tr2TextureAtlas": [
     "CollapseAreas",
@@ -2959,7 +2944,6 @@
   ],
   "TriStepRenderTexture": [
     "BlankOut",
-    "ClearIfFail",
     "SetTexture"
   ],
   "TriStepResolve": [
