@@ -149,7 +149,7 @@ export class EveLensflare extends withITr2Renderable(CjsModel)
     this.isVisible = viewDotDir >= 0;
     for (const flare of this.flares)
     {
-      flare?.UpdateVisibility?.(updateContext, this.transform);
+      flare?.UpdateVisibility(updateContext, this.transform);
     }
   }
 

@@ -330,8 +330,10 @@ export class EveMissileWarhead extends EveTransform
   }
 
   /**
-   * Appends the warhead mesh and its sprite set; nothing is appended while the
-   * warhead is invisible or at low LOD.
+   * Appends the warhead mesh; nothing is appended while the warhead is
+   * invisible or at low LOD. The sprite set is NOT gathered here: Carbon's
+   * EveMissileWarhead::GetRenderables never touches it, and EveSpriteSet has
+   * no GetRenderables at all - attachments render through the batch path.
    */
   @carbon.method
   @impl.implemented
@@ -339,7 +341,6 @@ export class EveMissileWarhead extends EveTransform
   {
     if (!this.#isVisible || this.lodLevel <= EveTransform.Tr2Lod.TR2_LOD_LOW) return out;
     if (this.mesh) out.push(this);
-    this.spriteSet?.GetRenderables?.(out);
     return out;
   }
 

@@ -108,18 +108,18 @@ export class EveStretch2 extends withITr2Renderable(IEveFiringEffectElement)
   StartFiring(delay = 0)
   {
     this.#effectData[0][3] = Math.random();
-    this.start?.PlayFrom?.(-delay);
-    this.loop?.PlayFrom?.(-delay);
-    this.end?.Stop?.();
+    this.start?.PlayFrom(-delay);
+    this.loop?.PlayFrom(-delay);
+    this.end?.Stop();
   }
 
   /** Ends a shot: stops the start and loop sets and plays the end set. */
   @carbon.method @impl.implemented
   StopFiring()
   {
-    this.start?.Stop?.();
-    this.loop?.Stop?.();
-    this.end?.Play?.();
+    this.start?.Stop();
+    this.loop?.Stop();
+    this.end?.Play();
   }
 
   /**

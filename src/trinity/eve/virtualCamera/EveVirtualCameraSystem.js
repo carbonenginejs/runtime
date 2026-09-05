@@ -170,9 +170,9 @@ export class EveVirtualCameraSystem extends CjsModel
     this.#lastUpdate = time;
     for (const camera of this.cameras)
     {
-      camera?.Update?.(deltaTime);
+      camera?.Update(deltaTime);
     }
-    this.externalCamera?.Update?.(deltaTime);
+    this.externalCamera?.Update(deltaTime);
     if (this.transition)
     {
       this.transition.Update(deltaTime);

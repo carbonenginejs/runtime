@@ -152,7 +152,7 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.UpdateSyncronous?.(updateContext, params);
+      group?.UpdateSyncronous(updateContext, params);
     }
 
     const deltaTime = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0) || 0;
@@ -218,7 +218,7 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.UpdateAsyncronous?.(updateContext);
+      group?.UpdateAsyncronous(updateContext);
     }
 
     this.#hasUpdated = true;
@@ -237,7 +237,7 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.UpdateVisibility?.(updateContext, this.worldTransform);
+      group?.UpdateVisibility(updateContext, this.worldTransform);
     }
   }
 
@@ -269,7 +269,7 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
 
     for (const group of this.behaviorGroups)
     {
-      group?.GetRenderables?.(renderables);
+      group?.GetRenderables(renderables);
     }
     return renderables;
   }

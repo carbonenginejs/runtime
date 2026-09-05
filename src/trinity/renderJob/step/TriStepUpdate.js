@@ -28,7 +28,7 @@ export class TriStepUpdate extends TriRenderStep
   @impl.implemented
   Execute(realTime, simTime, _renderContext)
   {
-    this.object?.Update?.(realTime, simTime);
+    this.object?.Update(realTime, simTime);
     return TriRenderStep.Result.RS_OK;
   }
 

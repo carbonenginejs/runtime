@@ -85,6 +85,9 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
   });
   scene.objects.push(MakeObjectStub("object0"), MakeObjectStub("object1"));
   scene.staticParticles.push({
+    Update(_updateContext)
+    {
+    },
     UpdateVisibility(...args)
     {
       log.push({ name: "staticParticles", method: "UpdateVisibility", args });

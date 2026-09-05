@@ -612,14 +612,14 @@ export class EveSpaceScene extends CjsModel
 
     for (const staticParticles of this.staticParticles)
     {
-      staticParticles?.Update?.(context);
+      staticParticles?.Update(context);
     }
 
-    this.dataTextureMgr?.Update?.(context);
+    this.dataTextureMgr?.Update(context);
 
     for (const distanceField of this.distanceFields)
     {
-      distanceField?.Update?.(context);
+      distanceField?.Update(context);
     }
 
     for (const lensflare of this.lensflares)
@@ -627,7 +627,7 @@ export class EveSpaceScene extends CjsModel
       lensflare?.Update?.(realTime, simTime);
     }
 
-    this.virtualCameraSystem?.Update?.(realTime);
+    this.virtualCameraSystem?.Update(realTime);
 
     for (const curveSet of this.curveSets)
     {
@@ -749,13 +749,13 @@ export class EveSpaceScene extends CjsModel
     }
 
     this.cameraAttachmentParent?.SetTransform?.(inverseView);
-    this.cameraAttachmentParent?.UpdateSyncronous?.(this.updateContext);
-    this.cameraAttachmentParent?.UpdateAsyncronous?.(this.updateContext);
-    this.cameraAttachmentParent?.UpdateVisibility?.(this.updateContext, IDENTITY);
+    this.cameraAttachmentParent?.UpdateSyncronous(this.updateContext);
+    this.cameraAttachmentParent?.UpdateAsyncronous(this.updateContext);
+    this.cameraAttachmentParent?.UpdateVisibility(this.updateContext, IDENTITY);
 
     for (const staticParticles of this.staticParticles)
     {
-      staticParticles?.UpdateVisibility?.(this.updateContext);
+      staticParticles?.UpdateVisibility(this.updateContext);
     }
 
     for (const planet of this.planets)
@@ -767,7 +767,7 @@ export class EveSpaceScene extends CjsModel
     // lensflares we just do it in a list" (cpp:1462-1466).
     for (const lensflare of this.lensflares)
     {
-      lensflare?.UpdateVisibility?.(this.updateContext);
+      lensflare?.UpdateVisibility(this.updateContext);
     }
   }
 
@@ -791,10 +791,10 @@ export class EveSpaceScene extends CjsModel
     }
 
     for (const object of this.objects) object?.GetRenderables?.(out);
-    this.cameraAttachmentParent?.GetRenderables?.(out);
+    this.cameraAttachmentParent?.GetRenderables(out);
     for (const staticParticles of this.staticParticles)
     {
-      staticParticles?.GetRenderables?.(this.updateContext.GetFrustum(), out);
+      staticParticles?.GetRenderables(this.updateContext.GetFrustum(), out);
     }
     return out;
   }

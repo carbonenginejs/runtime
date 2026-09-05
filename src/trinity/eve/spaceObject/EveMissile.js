@@ -155,7 +155,7 @@ export class EveMissile extends EveSpaceObject2
   @impl.implemented
   GetRenderables(out = [])
   {
-    for (const warhead of this.warheads) warhead?.GetRenderables?.(out);
+    for (const warhead of this.warheads) warhead?.GetRenderables(out);
     return out;
   }
 

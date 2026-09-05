@@ -200,8 +200,8 @@ export class EveStretch3 extends IEveFiringEffectElement
     const maskedEvent = event & BELIST_EVENTMASK;
     if (list === this.controllers)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.Link?.(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.Unlink?.();
+      if (maskedEvent === BELIST_INSERTED) value?.Link(this);
+      else if (maskedEvent === BELIST_REMOVED) value?.Unlink();
       else if (maskedEvent === BELIST_UNLOADSTART)
       {
         for (const controller of this.controllers) controller?.Unlink();

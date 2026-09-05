@@ -422,8 +422,8 @@ export class EveTurretFiringFX extends EveEntity
     const data = this.#perMuzzleData[muzzleID];
     if (!data || !this.stretch[muzzleID]) return false;
     this.stretch[muzzleID].StartFiring(data.currentStartDelay);
-    this.startCurveSet?.PlayFrom?.(-data.currentStartDelay);
-    this.stopCurveSet?.Stop?.();
+    this.startCurveSet?.PlayFrom(-data.currentStartDelay);
+    this.stopCurveSet?.Stop();
     data.started = true;
     data.readyToStart = false;
     return true;
@@ -446,8 +446,8 @@ export class EveTurretFiringFX extends EveEntity
       if (stretch) stretch.StopFiring();
       Object.assign(this.#perMuzzleData[index], { started: false, readyToStart: false, currentStartDelay: 0, elapsedTime: 0 });
     }
-    this.startCurveSet?.Stop?.();
-    this.stopCurveSet?.Play?.();
+    this.startCurveSet?.Stop();
+    this.stopCurveSet?.Play();
     this.isFiring = false;
   }
 

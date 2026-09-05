@@ -235,7 +235,7 @@ export class EveMobile extends EveSpaceObject2
         }
         turretSet.UpdateTurretTransforms?.(this.GetTurretTransform(turretSet.swarmID));
       }
-      turretSet.UpdateSyncronous?.(context, this.GetTurretTransform(turretSet.swarmID));
+      turretSet.UpdateSyncronous(context, this.GetTurretTransform(turretSet.swarmID));
     }
     this.ActiveTurretCount = activeCount;
     return true;
@@ -259,7 +259,7 @@ export class EveMobile extends EveSpaceObject2
   @impl.reason("Carbon's native ParentData constant buffers collapse to the portable parent transform required by turret graph updates.")
   UpdateTurretsAsyncronous(context)
   {
-    for (const turretSet of this.turretSets) turretSet?.UpdateAsyncronous?.(context, { transform: this.GetTurretTransform(turretSet.swarmID) });
+    for (const turretSet of this.turretSets) turretSet?.UpdateAsyncronous(context, { transform: this.GetTurretTransform(turretSet.swarmID) });
     return true;
   }
 
@@ -273,7 +273,7 @@ export class EveMobile extends EveSpaceObject2
   {
     const visible = super.UpdateVisibility(context, _parentTransform);
     if (!this.display) return false;
-    for (const turretSet of this.turretSets) turretSet?.UpdateVisibility?.(context);
+    for (const turretSet of this.turretSets) turretSet?.UpdateVisibility(context);
     return visible;
   }
 
@@ -287,7 +287,7 @@ export class EveMobile extends EveSpaceObject2
   {
     if (!this.display) return out;
     super.GetRenderables(out);
-    for (const turretSet of this.turretSets) turretSet?.GetRenderables?.(out);
+    for (const turretSet of this.turretSets) turretSet?.GetRenderables(out);
     return out;
   }
 

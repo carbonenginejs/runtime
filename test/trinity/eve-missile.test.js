@@ -10,6 +10,7 @@ import {
   EveLocator2,
   EveLocatorSets,
   EveMissile,
+  ITr2GenericEmitter,
   EveMissileWarhead,
   EveMobile,
   EveSpaceObject2,
@@ -65,7 +66,16 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   const events = [];
   const warhead = new EveMissileWarhead();
   warhead.id = 4;
-  warhead.particleEmitters.push({ Enable(value) { events.push(value); } });
+  warhead.particleEmitters.push(new (class extends ITr2GenericEmitter
+  {
+    Enable(value)
+    {
+      events.push(value);
+    }
+    Update(_arguments)
+    {
+    }
+  })());
   warhead.PrepareLaunch();
   const launch = mat4.fromTranslation(mat4.create(), vec3.fromValues(3, 4, 5));
   warhead.Launch(launch);

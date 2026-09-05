@@ -392,7 +392,7 @@ export class EveBoosterSet2 extends EveEntity
     {
       return false;
     }
-    this.instances[index]?.Update?.(
+    this.instances[index]?.Update(
       deltaTime,
       time,
       parentMatrix,
@@ -420,7 +420,7 @@ export class EveBoosterSet2 extends EveEntity
     {
       updated = renderable?.UpdateTrails?.(deltaTime, time) || updated;
     }
-    this.trails.Update?.(time);
+    this.trails.Update(time);
     return updated;
   }
 

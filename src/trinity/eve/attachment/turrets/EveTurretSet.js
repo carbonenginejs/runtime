@@ -975,8 +975,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     }
     vec3.set(EveTurretSet.#sourcePosition, this.#parentTransform[12], this.#parentTransform[13], this.#parentTransform[14]);
     this.firingEffect?.GetStartPosition?.(EveTurretSet.#sourcePosition);
-    this.target?.Update?.(deltaTime, EveTurretSet.#sourcePosition);
-    this.#ambientEffect()?.UpdateSyncronous?.(context, { isVisible: this.display, localToWorldTransform: this.#parentTransform });
+    this.target?.Update(deltaTime, EveTurretSet.#sourcePosition);
+    this.#ambientEffect()?.UpdateSyncronous(context, { isVisible: this.display, localToWorldTransform: this.#parentTransform });
     if (this.#turrets.length) this.turretMovementObserver?.Update(this.#turrets[0].worldMatrix);
     return true;
   }
@@ -1062,7 +1062,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
       this.firingEffect.SetDisplayDestObject?.(this.target?.ShowDestObject?.() ?? true);
       this.firingEffect.UpdateAsynchronous?.(context);
     }
-    this.#ambientEffect()?.UpdateAsyncronous?.(context, { isVisible: this.display, localToWorldTransform: this.#parentTransform });
+    this.#ambientEffect()?.UpdateAsyncronous(context, { isVisible: this.display, localToWorldTransform: this.#parentTransform });
     return true;
   }
 
@@ -1076,8 +1076,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   GetRenderables(out = [])
   {
     if (!this.display) return out;
-    if (this.displayEffects) this.firingEffect?.GetRenderables?.(out);
-    if (this.#ambientEffect() && this.displayEffects) this.#ambientEffect().GetRenderables?.(out);
+    if (this.displayEffects) this.firingEffect?.GetRenderables(out);
+    if (this.#ambientEffect() && this.displayEffects) this.#ambientEffect().GetRenderables(out);
     return out;
   }
 
@@ -1092,8 +1092,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   UpdateVisibility(context)
   {
     if (!this.display) return false;
-    if (this.displayEffects) this.firingEffect?.UpdateVisibility?.(context);
-    if (this.displayEffects) this.#ambientEffect()?.UpdateVisibility?.(context, this.#parentTransform);
+    if (this.displayEffects) this.firingEffect?.UpdateVisibility(context);
+    if (this.displayEffects) this.#ambientEffect()?.UpdateVisibility(context, this.#parentTransform);
     return true;
   }
 

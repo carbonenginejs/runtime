@@ -128,8 +128,8 @@ export class EveMultiEffect extends CjsModel
     }
     else if (list === this.controllers && (event & BELIST_LOADING) === 0)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.Link?.(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.Unlink?.();
+      if (maskedEvent === BELIST_INSERTED) value?.Link(this);
+      else if (maskedEvent === BELIST_REMOVED) value?.Unlink();
       else if (maskedEvent === BELIST_UNLOADSTART)
       {
         for (const controller of this.controllers) controller?.Unlink();

@@ -1000,7 +1000,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
       this.#lastCurveUpdateTime = time;
       for (const overlay of this.overlayEffects)
       {
-        overlay?.Update?.(time, time);
+        overlay?.Update(time, time);
       }
     }
 

@@ -287,7 +287,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   {
     if (!renderContext || !this.Validate()) return false;
 
-    this.camera?.Update?.(simTime);
+    this.camera?.Update(simTime);
 
     // Carbon sets the camera onto the renderer before the scene updates, so the
     // scene's own update reads this frame's view (cpp:476 -> 479).
@@ -299,13 +299,13 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
     renderContext.Clear({ color: this.clearColor ?? null, depth: 1 });
 
-    this.scene.Update?.(realTime, simTime);
+    this.scene.Update(realTime, simTime);
 
     if (!this.enableRendering) return false;
 
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
-    this.scene.BlendLightingOverrides?.();
-    this.scene.UpdateFogSettings?.();
+    this.scene.BlendLightingOverrides();
+    this.scene.UpdateFogSettings();
     this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
     const submitted = this.#Submit(this.scene.GetRenderables?.([]) ?? [], renderContext);

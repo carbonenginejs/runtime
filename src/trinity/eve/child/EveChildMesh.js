@@ -1046,7 +1046,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
         // - skipped until the JS animation seam exists. Carbon passes
         // &m_parentData (per-object shading struct, GPU seam); the owning
         // child stands in as the duck-typed parent.
-        decal?.UpdateVisibility?.(updateContext, this);
+        decal?.UpdateVisibility(updateContext, this);
       }
     }
 
@@ -1094,7 +1094,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
       {
         for (const decal of this.decals)
         {
-          decal?.GetRenderables?.(out, null, geometryResource, this.currentScreenSize);
+          decal?.GetRenderables(out, null, geometryResource, this.currentScreenSize);
         }
       }
     }

@@ -1,5 +1,6 @@
 export * from "./Tr2MaterialParameterStore.js";
 export * from "./ITr2Renderable.js";
+export * from "./ITr2Updateable.js";
 export * from "./Tr2QuadRenderer.js";
 export * from "./Tr2Transform.js";
 export * from "./Tr2ShadowMap.js";

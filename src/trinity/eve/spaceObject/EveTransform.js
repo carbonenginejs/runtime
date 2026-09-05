@@ -159,13 +159,13 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
     for (const child of this.children) child?.Update?.(context);
     for (const system of this.particleSystems)
     {
-      system?.UpdateTransform?.(this.worldTransform);
-      system?.Update?.(context);
+      system?.UpdateTransform(this.worldTransform);
+      system?.Update(context);
     }
     const originShift = context?.GetOriginShift?.() ?? context?.originShift ?? EveTransform.#zero;
     for (const emitter of this.particleEmitters)
     {
-      emitter?.Update?.({ time, transform: this.worldTransform, originShift, context });
+      emitter?.Update({ time, transform: this.worldTransform, originShift, context });
     }
     return true;
   }

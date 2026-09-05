@@ -59,7 +59,7 @@ export class TriStepSetView extends TriRenderStep
     {
       const viewport = renderContext.GetViewport();
       const aspectRatio = viewport?.height ? viewport.width / viewport.height : 1;
-      this.camera.Update?.(simTime, aspectRatio, realTime);
+      this.camera.Update(simTime, aspectRatio, realTime);
       const viewMatrix = this.camera.GetViewMatrix?.() ?? this.camera.viewMatrix ?? null;
       renderContext.SetViewTransform(TriStepSetView.#getTransform(viewMatrix), this.camera);
     }

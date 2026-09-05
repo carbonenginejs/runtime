@@ -76,8 +76,8 @@ export class EveLineSet extends withITr2Renderable(CjsModel)
     const translation = vec3.create();
     const time = updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0;
 
-    this.translationCurve?.Update?.(translation, time);
-    this.rotationCurve?.Update?.(rotation, time);
+    this.translationCurve?.Update(time, translation);
+    this.rotationCurve?.Update(time, rotation);
 
     mat4.fromRotationTranslationScale(this.worldTransform, rotation, translation, this.scaling);
   }

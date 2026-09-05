@@ -372,7 +372,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       }
     }
 
-    this.effect?.UpdateSyncronous?.(updateContext, params);
+    this.effect?.UpdateSyncronous(updateContext, params);
 
     if (!this.isPlaying)
     {
@@ -573,7 +573,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return this.worldTransform;
     }
 
-    this.effect?.UpdateAsyncronous?.(updateContext, params);
+    this.effect?.UpdateAsyncronous(updateContext, params);
 
     return super.UpdateAsyncronous(updateContext, params);
   }
@@ -584,7 +584,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @impl.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
-    this.effect?.UpdateVisibility?.(updateContext, parentTransform, parentLod);
+    this.effect?.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
   /** Carbon EveChildEffectPropagator::GetRenderables (cpp:397-408): nothing
@@ -599,7 +599,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return out;
     }
 
-    this.effect?.GetRenderables?.(out);
+    this.effect?.GetRenderables(out);
     return out;
   }
 

@@ -218,8 +218,8 @@ export class AudioGameObject extends CjsModel
   {
     const translation = vec3.clone(this.translation);
     const rotation = quat.clone(this.rotation);
-    this.translationCurve?.Update?.(translation, time);
-    this.rotationCurve?.Update?.(rotation, time);
+    this.translationCurve?.Update(time, translation);
+    this.rotationCurve?.Update(time, rotation);
     mat4.fromRotationTranslation(this.#worldTransform, rotation, translation);
     return this.#worldTransform;
   }

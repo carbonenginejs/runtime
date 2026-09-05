@@ -148,10 +148,10 @@ export class EveMeshOverlayEffect extends CjsModel
     switch (event & BELIST_EVENTMASK)
     {
       case BELIST_INSERTED:
-        value?.Link?.(this);
+        value?.Link(this);
         break;
       case BELIST_REMOVED:
-        value?.Unlink?.();
+        value?.Unlink();
         break;
       case BELIST_UNLOADSTART:
         for (const controller of this.controllers) controller?.Unlink();
@@ -210,7 +210,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   StopCurveSet(name)
   {
-    this.#matchingCurveSet(name)?.Stop?.();
+    this.#matchingCurveSet(name)?.Stop();
   }
 
   /**

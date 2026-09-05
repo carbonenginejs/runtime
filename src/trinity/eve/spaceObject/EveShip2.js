@@ -125,7 +125,7 @@ export class EveShip2 extends EveMobile
     }
     if (this.DisplayBoosters())
     {
-      this.boosters.UpdateVisibility?.(updateContext);
+      this.boosters.UpdateVisibility(updateContext);
     }
   }
 
@@ -141,7 +141,7 @@ export class EveShip2 extends EveMobile
     super.GetRenderables(out);
     if (this.DisplayBoosters())
     {
-      this.boosters.GetRenderables?.(out);
+      this.boosters.GetRenderables(out);
     }
     return out;
   }

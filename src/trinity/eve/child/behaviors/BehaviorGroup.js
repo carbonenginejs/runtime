@@ -9,6 +9,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { ProcessPriority } from "./enums.js";
 import { EveKDdroneManagementTree } from "../../../eve/child/behaviors/EveKDdroneManagementTree.js";
+import { PlayFX } from "./PlayFX.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 
 // Module scratch for the per-agent integration and visibility loops (child
@@ -686,7 +687,7 @@ export class BehaviorGroup extends EveEntity
   {
     if (this.#playFXBehavior !== null)
     {
-      this.#playFXBehavior.GetRenderables?.(renderables);
+      this.#playFXBehavior.GetRenderables(renderables);
     }
     return renderables;
   }
@@ -703,7 +704,7 @@ export class BehaviorGroup extends EveEntity
 
     if (this.#playFXBehavior !== null)
     {
-      this.#playFXBehavior.UpdateAsyncronous?.(updateContext, this.#parentTransform);
+      this.#playFXBehavior.UpdateAsyncronous(updateContext, this.#parentTransform);
     }
   }
 
@@ -725,7 +726,7 @@ export class BehaviorGroup extends EveEntity
 
     if (this.#playFXBehavior !== null)
     {
-      this.#playFXBehavior.UpdateSyncronous?.(updateContext);
+      this.#playFXBehavior.UpdateSyncronous(updateContext);
     }
 
     if (this.#parent === null && params?.spaceObjectParent)
@@ -767,13 +768,16 @@ export class BehaviorGroup extends EveEntity
   }
 
   /** Carbon BehaviorGroup::SetPlayFXBehavior (cpp:968-988): caches the PlayFX
-   * behavior and swaps its component registration. */
+   * behavior and swaps its component registration. The instanceof gate is
+   * Carbon's dynamic_cast<PlayFX*> (cpp:973): the behaviors list is typed
+   * IBehavior and resolved by string name, so a mis-named behavior of another
+   * class must never land in the PlayFX slot. */
   @carbon.method
   @impl.implemented
   SetPlayFXBehavior()
   {
     const behavior = this.GetBehaviorByName("PlayFX");
-    if (behavior !== null)
+    if (behavior instanceof PlayFX)
     {
       const registry = this.GetComponentRegistry();
       if (registry && this.#playFXBehavior)

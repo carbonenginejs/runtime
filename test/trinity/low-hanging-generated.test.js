@@ -365,7 +365,7 @@ test("EveLineSet retains editable CPU lines before renderer submission", () =>
 
   // Update stamps the world transform from the curves and scaling (cpp:97-114).
   lines.scaling.set([2, 2, 2]);
-  lines.translationCurve = { Update: (out, _time) => out.set([3, 4, 5]) };
+  lines.translationCurve = { Update: (_time, out) => out.set([3, 4, 5]) };
   lines.Update({ GetTime: () => 1 });
   assert.deepEqual(Array.from(lines.worldTransform.slice(12, 15)), [3, 4, 5], "translation stamped");
   assert.equal(lines.worldTransform[0], 2, "scaling stamped");

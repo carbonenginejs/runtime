@@ -88,7 +88,7 @@ export class EvePlanet extends EveEffectRoot2
   @impl.implemented
   UpdateZOnlyVisibility(updateContext)
   {
-    this.zOnlyModel?.UpdateVisibility?.(
+    this.zOnlyModel?.UpdateVisibility(
       updateContext,
       this.GetWorldTransform(EvePlanet.#worldTransformScratch),
       this.lodLevel
