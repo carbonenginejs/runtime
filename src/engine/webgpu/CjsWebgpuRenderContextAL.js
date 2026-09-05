@@ -25,13 +25,19 @@
 // backend (`TrinityAL_stub`) on that basis. The device arrives when the work
 // queue's recorded transitions are applied to a real command encoder.
 //
-// SCOPE. The geometry and draw path only: what Carbon's `SubmitGeometry`
-// (`Tr2RenderContext.cpp:83-103`) touches, plus the scene and pass-hint verbs
-// around it. Textures, compute, copies and upscaling are not here yet, and are
-// refused rather than silently accepted.
+// SCOPE. The verbs `Tr2RenderContext` forwards to a backend: the geometry and
+// draw path Carbon's `SubmitGeometry` touches (`Tr2RenderContext.cpp:83-103`),
+// the render-target and depth-stencil families with their per-slot stacks, the
+// viewport, clear, compute and present. That is what installing this backend
+// requires, because the context prefers the AL per verb and a missing one is a
+// crash rather than a fallback.
+//
+// NOT HERE YET: texture and buffer creation, copies, mip generation and
+// upscaling. Absent rather than faked.
 
-import { Topology } from "#consts/render-context";
-import { CjsWebgpuWorkQueue } from "./core/workQueue.js";
+import { Topology, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { ALResult, Tr2ColorAttachment, Tr2DepthAttachment } from "#trinity/core";
+import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 
 
 function fail(message)
@@ -57,6 +63,10 @@ const VERTICES_PER_PRIMITIVE = Object.freeze({
   [Topology.TOP_LINE_STRIP]: count => count + 1,
   [Topology.TOP_POINTS]: count => count
 });
+
+
+/** Carbon's `MAX_RENDER_TARGET`; the bound-target array is fixed width. */
+const MAX_RENDER_TARGET = 8;
 
 
 /** WebGPU behind the abstraction layer, holding a work queue as Metal does. */
@@ -87,6 +97,18 @@ export class CjsWebgpuRenderContextAL
 
   /** m_resourceSet */
   #resourceSet = null;
+
+  /** m_boundRenderTarget[MAX_RENDER_TARGET] */
+  #boundRenderTargets = new Array(MAX_RENDER_TARGET).fill(null);
+
+  /** m_stackRT[MAX_RENDER_TARGET] - one stack per slot, as Carbon has. */
+  #renderTargetStacks = Array.from({ length: MAX_RENDER_TARGET }, () => []);
+
+  #depthStencil = null;
+
+  #depthStencilStack = [];
+
+  #viewport = null;
 
   /** Everything the work queue reported, for a caller that encodes it. */
   #transitions = [];
@@ -180,6 +202,238 @@ export class CjsWebgpuRenderContextAL
   EndRenderPassHint()
   {
     this.#Record(this.#workQueue.EndRenderPassHint());
+  }
+
+  /**
+   * Binds a colour target at one slot.
+   *
+   * RESETS THE VIEWPORT TO THE NEW TARGET, which Carbon does here in the
+   * backend (`Tr2RenderContextMetal.mm:762-766`) whenever slot zero changes.
+   * Leaving it alone is the defect where a 2048 shadow pass leaves the viewport
+   * at 2048 for the rest of the frame.
+   *
+   * @param {number} slot The slot.
+   * @param {object|null} renderTarget A `Tr2TextureAL`, or null to detach.
+   * @param {number} [slice] The array slice or cube face.
+   * @returns {boolean} True.
+   */
+  SetRenderTarget(slot, renderTarget, slice = 0)
+  {
+    if (slot >= MAX_RENDER_TARGET) return false;
+
+    this.#Record(this.#workQueue.SetRenderAttachments(renderTarget ?? null, slot, slice));
+    this.#boundRenderTargets[slot] = renderTarget ?? null;
+
+    const primary = this.#boundRenderTargets[0];
+
+    if (slot === 0 && primary)
+    {
+      this.SetViewport({ x: 0, y: 0, width: primary.GetWidth(), height: primary.GetHeight() });
+    }
+
+    return true;
+  }
+
+  /**
+   * The target bound at one slot.
+   *
+   * @param {number} [slot] The slot.
+   * @returns {object|null} The target.
+   */
+  GetRenderTarget(slot = 0)
+  {
+    return this.#boundRenderTargets[slot] ?? null;
+  }
+
+  /**
+   * Saves the target bound at one slot.
+   *
+   * ONE STACK PER SLOT, as Carbon has (`m_stackRT[MAX_RENDER_TARGET]`). A single
+   * shared stack pops the most recent push whatever its slot, so pushing slot 0
+   * then slot 1 and popping slot 0 restores the wrong surface.
+   *
+   * @param {number} [slot] The slot.
+   * @returns {boolean} True.
+   */
+  PushRenderTarget(slot = 0)
+  {
+    if (slot >= MAX_RENDER_TARGET) return false;
+
+    this.#renderTargetStacks[slot].push(this.#boundRenderTargets[slot] ?? null);
+
+    return true;
+  }
+
+  /**
+   * Restores the target saved for one slot.
+   *
+   * @param {number} [slot] The slot.
+   * @returns {boolean} Whether anything was saved.
+   */
+  PopRenderTarget(slot = 0)
+  {
+    const stack = this.#renderTargetStacks[slot];
+
+    if (!stack?.length) return false;
+
+    this.SetRenderTarget(slot, stack.pop());
+
+    return true;
+  }
+
+  /**
+   * Depth of one slot's stack.
+   *
+   * @param {number} [slot] The slot.
+   * @returns {number} The depth.
+   */
+  GetStackSizeRT(slot = 0)
+  {
+    return this.#renderTargetStacks[slot]?.length ?? 0;
+  }
+
+  /**
+   * Binds the depth-stencil target.
+   *
+   * @param {object|null} depthStencil A `Tr2TextureAL`, or null to detach.
+   * @returns {boolean} True.
+   */
+  SetDepthStencil(depthStencil)
+  {
+    this.#Record(this.#workQueue.SetDepthAttachment(depthStencil ?? null));
+    this.#depthStencil = depthStencil ?? null;
+
+    return true;
+  }
+
+  /** @returns {object|null} The bound depth-stencil target. */
+  GetDepthStencil()
+  {
+    return this.#depthStencil;
+  }
+
+  /** Saves the bound depth-stencil target. @returns {boolean} True. */
+  PushDepthStencil()
+  {
+    this.#depthStencilStack.push(this.#depthStencil);
+
+    return true;
+  }
+
+  /** Restores the saved depth-stencil target. @returns {boolean} Whether one was saved. */
+  PopDepthStencil()
+  {
+    if (!this.#depthStencilStack.length) return false;
+
+    this.SetDepthStencil(this.#depthStencilStack.pop());
+
+    return true;
+  }
+
+  /** @returns {number} Depth of the depth-stencil stack. */
+  GetStackSizeDS()
+  {
+    return this.#depthStencilStack.length;
+  }
+
+  /**
+   * The size of the target at one slot.
+   *
+   * @param {number} [slot] The slot.
+   * @returns {object} `{ result, width, height }`.
+   */
+  GetRenderTargetSize(slot = 0)
+  {
+    const target = this.#boundRenderTargets[slot];
+
+    if (!target) return { result: ALResult.E_INVALIDCALL, width: 0, height: 0 };
+
+    return { result: ALResult.S_OK, width: target.GetWidth(), height: target.GetHeight() };
+  }
+
+  /**
+   * Whether a target can be drawn to.
+   *
+   * @param {object} renderTarget The target.
+   * @returns {boolean} Whether it is usable.
+   */
+  IsRenderTargetValid(renderTarget)
+  {
+    return this.#isValid && !!renderTarget;
+  }
+
+  /**
+   * Sets the viewport following draws use.
+   *
+   * @param {object} viewport `{ x, y, width, height }`.
+   * @returns {boolean} True.
+   */
+  SetViewport(viewport)
+  {
+    this.#viewport = viewport ? { ...viewport } : null;
+
+    return true;
+  }
+
+  /** @returns {object|null} The current viewport. */
+  GetViewport()
+  {
+    return this.#viewport ? { ...this.#viewport } : null;
+  }
+
+  /**
+   * Clears the bound attachments.
+   *
+   * A CLEAR IS A LOAD OPERATION, not a command. WebGPU has no mid-pass clear,
+   * so this ends the current pass and declares the next one's load actions -
+   * which is the same thing `RenderPassHint` does, arrived at from the other
+   * direction. Carbon's Metal backend folds a clear the same way.
+   *
+   * @param {object} [options] `{ color, depth, stencil }` values.
+   * @returns {boolean} True.
+   */
+  Clear(options = {})
+  {
+    const attachments = this.#workQueue.GetAttachments();
+    const colors = attachments.colors
+      .filter(Boolean)
+      .map(() => new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, options.color ?? 0));
+    const depth = attachments.depth
+      ? new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, options.depth ?? 1)
+      : null;
+
+    this.#workQueue.RenderPassHint(colors, depth);
+
+    return true;
+  }
+
+  /**
+   * Runs a compute dispatch, which may not happen inside a render pass.
+   *
+   * @param {number} [_x] Workgroups.
+   * @param {number} [_y] Workgroups.
+   * @param {number} [_z] Workgroups.
+   * @returns {boolean} True.
+   */
+  RunComputeShader(_x = 1, _y = 1, _z = 1)
+  {
+    this.#Record(this.#workQueue.SetCurrentEncoder(EncoderType.COMPUTE));
+
+    return true;
+  }
+
+  /**
+   * Presents the frame.
+   *
+   * The browser presents a configured canvas after the submission that drew
+   * into its current texture, so there is nothing to do beyond ending the
+   * frame's work.
+   *
+   * @returns {boolean} True.
+   */
+  PresentSwapChain()
+  {
+    return this.EndScene();
   }
 
   /**

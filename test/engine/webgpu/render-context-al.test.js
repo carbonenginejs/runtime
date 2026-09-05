@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CjsWebgpuRenderContextAL } from "../../../npm/dist/engine/webgpu/internal.js";
-import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../npm/dist/trinity/core/index.js";
+import { ALResult, Tr2ColorAttachment, Tr2DepthAttachment } from "../../../npm/dist/trinity/core/index.js";
 import { Topology, Tr2LoadAction, Tr2StoreAction } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 const ready = () =>
@@ -156,4 +156,141 @@ test("the bound state is what a following draw would encode", () =>
 test("a scene cannot open before a device exists", () =>
 {
   assert.throws(() => new CjsWebgpuRenderContextAL().BeginScene(), /before CreateDevice/);
+});
+
+const target = (width, height) => ({ GetWidth: () => width, GetHeight: () => height });
+
+test("binding a target resets the viewport to it", () =>
+{
+  // Carbon does this in the backend (Tr2RenderContextMetal.mm:762-766) whenever
+  // slot zero changes. Leaving it alone is the defect where a 2048 shadow pass
+  // leaves the viewport at 2048 for the rest of the frame.
+  const al = ready();
+
+  al.SetRenderTarget(0, target(1920, 1080));
+  assert.deepEqual(al.GetViewport(), { x: 0, y: 0, width: 1920, height: 1080 });
+
+  al.SetRenderTarget(0, target(2048, 2048));
+  assert.equal(al.GetViewport().width, 2048, "a shadow target takes the viewport");
+
+  al.SetRenderTarget(1, target(64, 64));
+  assert.equal(al.GetViewport().width, 2048, "only slot zero moves it");
+});
+
+test("rebinding the same target does not cut a pass", () =>
+{
+  // Carbon returns early when the texture is already attached
+  // (MetalWorkQueue.mm:2006-2009). A step re-binding what it inherited is
+  // common, and cutting a pass for it would double the pass count for nothing.
+  const al = ready();
+  const colour = target(512, 512);
+
+  al.SetRenderTarget(0, colour);
+  geometry(al);
+  al.DrawIndexedInstanced(3, 1);
+
+  assert.equal(al.GetWorkQueue().GetPassCount(), 1);
+
+  al.SetRenderTarget(0, colour);
+  al.DrawIndexedInstanced(3, 1);
+
+  assert.equal(al.GetWorkQueue().GetPassCount(), 1, "same texture, same pass");
+
+  al.SetRenderTarget(0, target(512, 512));
+  al.DrawIndexedInstanced(3, 1);
+
+  assert.equal(al.GetWorkQueue().GetPassCount(), 2, "a different texture cuts one");
+});
+
+test("render-target stacks are per slot", () =>
+{
+  // A single shared stack pops the most recent push whatever its slot, so
+  // pushing slot 0 then slot 1 and popping slot 0 restores the wrong surface.
+  const al = ready();
+  const first = target(100, 100);
+  const second = target(200, 200);
+
+  al.SetRenderTarget(0, first);
+  al.SetRenderTarget(1, second);
+
+  al.PushRenderTarget(0);
+  al.PushRenderTarget(1);
+
+  assert.equal(al.GetStackSizeRT(0), 1);
+  assert.equal(al.GetStackSizeRT(1), 1);
+
+  al.SetRenderTarget(0, target(300, 300));
+  al.PopRenderTarget(0);
+
+  assert.equal(al.GetRenderTarget(0), first, "slot zero restored its own");
+  assert.equal(al.GetRenderTarget(1), second, "slot one untouched");
+  assert.equal(al.PopRenderTarget(0), false, "nothing left");
+});
+
+test("the depth-stencil target stacks too", () =>
+{
+  const al = ready();
+  const depth = target(512, 512);
+
+  al.SetDepthStencil(depth);
+  al.PushDepthStencil();
+  al.SetDepthStencil(null);
+
+  assert.equal(al.GetDepthStencil(), null);
+  assert.equal(al.GetStackSizeDS(), 1);
+  assert.equal(al.PopDepthStencil(), true);
+  assert.equal(al.GetDepthStencil(), depth);
+  assert.equal(al.PopDepthStencil(), false);
+});
+
+test("a clear becomes the next pass's load operation", () =>
+{
+  // WebGPU has no mid-pass clear, so a clear ends the current pass and declares
+  // the next one's load actions - the same thing RenderPassHint does, reached
+  // from the other direction.
+  const al = ready();
+
+  al.SetRenderTarget(0, target(64, 64));
+  al.SetDepthStencil(target(64, 64));
+  al.DrainTransitions();
+
+  al.Clear({ color: 0xff00ff00, depth: 1 });
+
+  geometry(al);
+  al.DrawIndexedInstanced(3, 1);
+
+  const open = al.DrainTransitions().find(event => event.type === "open");
+
+  assert.equal(open.attachments.colors[0].loadOp, "clear");
+  assert.equal(open.attachments.colors[0].clearValue, 0xff00ff00);
+  assert.equal(open.attachments.depth.loadOp, "clear");
+});
+
+test("compute may not run inside a render pass", () =>
+{
+  const al = ready();
+
+  geometry(al);
+  al.DrawIndexedInstanced(3, 1);
+  al.DrainTransitions();
+
+  al.RunComputeShader(1, 1, 1);
+
+  const events = al.DrainTransitions();
+
+  assert.deepEqual(events.map(event => event.type), [ "close", "open" ]);
+  assert.equal(events[1].encoderType, "compute");
+});
+
+test("the target size is refused when nothing is bound", () =>
+{
+  const al = ready();
+
+  assert.equal(al.GetRenderTargetSize(0).result, ALResult.E_INVALIDCALL);
+
+  al.SetRenderTarget(0, target(800, 600));
+
+  assert.deepEqual(al.GetRenderTargetSize(0), { result: ALResult.S_OK, width: 800, height: 600 });
+  assert.equal(al.IsRenderTargetValid(null), false);
+  assert.equal(al.IsRenderTargetValid({}), true);
 });

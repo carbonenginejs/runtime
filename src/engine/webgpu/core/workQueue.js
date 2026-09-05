@@ -68,6 +68,12 @@ export class CjsWebgpuWorkQueue
   /** Whether BeginFrame has run without a matching EndFrame. */
   #inFrame = false;
 
+  /** m_currentRenderPassDescriptor.colorAttachments */
+  #colorAttachments = [];
+
+  /** m_currentRenderPassDescriptor.depthAttachment */
+  #depthAttachment = null;
+
   /**
    * The encoder currently open.
    *
@@ -216,6 +222,74 @@ export class CjsWebgpuWorkQueue
     this.#events.push({ type: "open", encoderType });
 
     return this.#Drain();
+  }
+
+  /**
+   * Attaches a colour target at one slot.
+   *
+   * THREE BEHAVIOURS, ALL CARBON'S (`MetalWorkQueue.mm:2000-2030`), and none of
+   * them guessable:
+   *
+   * 1. **Attaching the texture already there is a no-op.** A redundant target
+   *    set is common - a step that re-binds what it inherited - and cutting a
+   *    pass for it would double the pass count for nothing.
+   * 2. **A real change flushes outstanding work**, because the attachments of
+   *    an open pass are fixed and the next work needs a new encoder. Carbon's
+   *    comment says exactly this.
+   * 3. **A newly attached texture defaults to LOAD and STORE**, not clear. The
+   *    caller has not said the previous contents are worthless, so discarding
+   *    them would lose whatever is already there.
+   *
+   * @param {object|null} texture The target, or null to detach.
+   * @param {number} [index] The slot.
+   * @param {number} [slice] The array slice or cube face.
+   * @returns {object[]} The transitions this required.
+   */
+  SetRenderAttachments(texture, index = 0, slice = 0)
+  {
+    if (!Number.isInteger(index) || index < 0) fail("a render attachment needs a slot index");
+
+    const current = this.#colorAttachments[index] ?? null;
+
+    if (current?.texture === (texture ?? null)) return this.#Drain();
+
+    this.#ReleaseEncoder();
+
+    this.#colorAttachments[index] = texture
+      ? { texture, slice, loadOp: "load", storeOp: "store" }
+      : null;
+
+    return this.#Drain();
+  }
+
+  /**
+   * Attaches the depth-stencil target, with the same three behaviours.
+   *
+   * @param {object|null} texture The depth target, or null to detach.
+   * @returns {object[]} The transitions this required.
+   */
+  SetDepthAttachment(texture)
+  {
+    if (this.#depthAttachment?.texture === (texture ?? null)) return this.#Drain();
+
+    this.#ReleaseEncoder();
+
+    this.#depthAttachment = texture ? { texture, loadOp: "load", storeOp: "store" } : null;
+
+    return this.#Drain();
+  }
+
+  /**
+   * What is currently attached, for a caller building a pass descriptor.
+   *
+   * @returns {object} `{ colors, depth }`.
+   */
+  GetAttachments()
+  {
+    return {
+      colors: this.#colorAttachments.map(attachment => (attachment ? { ...attachment } : null)),
+      depth: this.#depthAttachment ? { ...this.#depthAttachment } : null
+    };
   }
 
   /**
