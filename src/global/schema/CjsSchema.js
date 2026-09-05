@@ -1,4 +1,5 @@
 import { defaultValueForCarbonField } from "./types/carbonTypes.js";
+import { composeNotifyDecorator } from "./notify.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -542,6 +543,13 @@ export class CjsSchema
         // (typically driven from Update / per-frame passes).
         rebuild: (...tokens) => fieldDecorator("io", { rebuild: tokens.flat().map(String) }),
         write: fieldDecorator("io", { write: true })
+    });
+
+    // Composition decorators: type/io/carbon/impl/jessica DESCRIBE, compose
+    // INSTALLS (design record, direction item 11). compose.interface(X) and
+    // compose.values join here as the facade migration lands them.
+    static compose = Object.freeze({
+        notify: composeNotifyDecorator
     });
 
     static jessica = Object.freeze({

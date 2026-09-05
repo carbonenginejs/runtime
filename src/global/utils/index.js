@@ -12,3 +12,4 @@ export * from "./resFile.js";
 export * from "./hash.js";
 export * from "./text.js";
 export * from "./validation.js";
+export * from "./runtimeState.js";

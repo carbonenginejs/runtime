@@ -1,8 +1,12 @@
-import { CjsEventEmitter } from "#model";
+import { compose } from "#schema";
 import { CjsCharacterDiagnostics } from "./CjsCharacterDiagnostics.js";
 
 /** Owns one selected paper doll and its current resolved appearance state. */
-export class CjsCharacter extends CjsEventEmitter
+// The first composed emitter (the @compose.notify spike, design record items
+// 9/11): the notify surface arrives by decorator, and the inheritance slot
+// stays free - this class never needed a base for anything else.
+@compose.notify
+export class CjsCharacter
 {
     #appearanceManager;
 
@@ -28,8 +32,6 @@ export class CjsCharacter extends CjsEventEmitter
         appearanceManager = null
     } = {})
     {
-        super();
-
         if (!libraryManager
             || typeof libraryManager.GetLibrary !== "function"
             || typeof libraryManager.Get !== "function")

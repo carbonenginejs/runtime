@@ -1,4 +1,4 @@
-import { ensureRuntimeState, getRuntimeState } from "../runtime/CjsRuntimeState.js";
+import { ensureRuntimeState, getRuntimeState } from "../../utils/runtimeState.js";
 
 export const CJS_LIFECYCLE = Object.freeze({
     ALIVE: "alive",
