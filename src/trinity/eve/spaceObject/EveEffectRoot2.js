@@ -210,7 +210,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     this.#secondaryLightingSphereRadiusWorld = this.secondaryLightingSphereRadius *
       (this.scaling[0] + this.scaling[1] + this.scaling[2]) / 3;
 
-    for (const observer of this.observers) observer?.Update?.(this.#lastUpdateMatrix);
+    for (const observer of this.observers) observer?.Update(this.#lastUpdateMatrix);
     if (this.effectChildren.length)
     {
       const params = this.#CreateChildUpdateParams();
@@ -981,7 +981,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   {
     this.mute = !!isMute;
     for (const child of this.effectChildren) child?.SetMute?.(this.mute);
-    for (const observer of this.observers) observer?.SetMute?.(this.mute);
+    for (const observer of this.observers) observer?.SetMute(this.mute);
   }
 
   /** Freezes every child at Carbon's high-detail LOD. */

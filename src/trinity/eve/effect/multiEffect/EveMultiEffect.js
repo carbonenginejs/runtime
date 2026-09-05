@@ -81,8 +81,8 @@ export class EveMultiEffect extends CjsModel
   {
     for (const binding of this.bindings)
     {
-      binding?.Link?.();
-      binding?.Update?.(0);
+      binding?.Link();
+      binding?.Update(0);
     }
     if (!onlyUpdateBindings)
     {
@@ -100,7 +100,7 @@ export class EveMultiEffect extends CjsModel
   Initialize()
   {
     for (const parameter of this.parameters) parameter?.SetOwner?.(this);
-    for (const binding of this.bindings) binding?.SetOwner?.(this);
+    for (const binding of this.bindings) binding?.SetOwner(this);
     this.Rebind();
     return true;
   }
@@ -302,7 +302,7 @@ export class EveMultiEffect extends CjsModel
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? updateContext?.time ?? 0);
     for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
     for (const controller of this.controllers) controller?.Update(0.5);
-    for (const binding of this.bindings) binding?.Update?.(time);
+    for (const binding of this.bindings) binding?.Update(time);
   }
 
   /**

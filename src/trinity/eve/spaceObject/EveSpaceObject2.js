@@ -987,7 +987,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     const observerTransform = this.GetObserverTransform();
     for (const observer of this.observers)
     {
-      observer?.Update?.(observerTransform);
+      observer?.Update(observerTransform);
     }
 
     // LOD-gated curve/overlay stamp (Carbon EveSpaceObject2::UpdateSyncronous:
@@ -1216,7 +1216,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
     for (const observer of this.observers)
     {
-      const target = observer?.GetObserver?.() ?? observer?.observer;
+      const target = observer?.GetObserver() ?? observer?.observer;
       target?.SetVisibility?.(this.isVisible);
     }
     for (const child of this.effectChildren)
@@ -1956,7 +1956,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     for (const observer of this.observers)
     {
-      observer?.SetMute?.(this.mute);
+      observer?.SetMute(this.mute);
     }
   }
 

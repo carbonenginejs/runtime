@@ -172,13 +172,36 @@ export class Tr2Light extends CjsModel
    * +1 - moot in JS (the profile rides the record by reference) but
    * recorded. The record is scratch; the manager must copy. */
   @carbon.method
+  /**
+   * Refreshes whatever this light derives from its own state each frame.
+   *
+   * EMPTY IN CARBON (`Tr2Light.cpp:201-203`), and ported anyway. It was
+   * missing entirely, so `AddLight` below called `this.Update?.()` - hedging a
+   * call to its own class's method. Behaviour is identical either way, since
+   * both do nothing; what the declaration buys is a subclass having something
+   * to override, which is the whole point of the virtual.
+   *
+   * ONE SUBCLASS OVERRIDE IS STILL MISSING, and it is not empty:
+   * `Tr2TexturedPointLight::Update` (`cpp:51-58`) sets the light colour to the
+   * projected texture's average colour, saturated. Our Tr2TexturedPointLight
+   * has no Update at all, and its own comment records the symptom - the
+   * saturation it stores "is not read anywhere else in the port yet". It
+   * cannot be ported until `TriTextureRes.GetAverageColor` is, which Carbon
+   * declares and we do not. Registered rather than guessed at.
+   */
+  @carbon.method
+  @impl.noop
+  Update()
+  {
+  }
+
   @impl.adapted
   @impl.reason("The profile-index flag packing and half-float narrowing are renderer-backend concerns (record carries the profile by reference); the Perlin brightness flicker awaits the frame-clock seam (see lightConversion.js).")
   AddLight(lightManager, transform, scale, bones = null, boneCount = 0)
   {
     if (this.isDynamic)
     {
-      this.Update?.();
+      this.Update();
     }
     if (!AreLightFlagsValid(this.lightData.flags ?? 0))
     {

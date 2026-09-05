@@ -605,7 +605,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
       this.target?.StopFireAtLocator?.();
       this.firingEffect?.StopFiring?.();
       this.#playAll("", "Active", 1);
-      this.turretMovementObserver?.GetObserver?.()?.SendEvent?.(this.targetingToIdleMovementAudioEvent);
+      this.turretMovementObserver?.GetObserver()?.SendEvent?.(this.targetingToIdleMovementAudioEvent);
     }
     else this.#playAll("", "Active", 0);
     this.state = EveTurretSet.State.STATE_IDLE;
@@ -796,7 +796,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     {
       if ((this.state === EveTurretSet.State.STATE_IDLE || previous !== object) && this.playMovementSound && this.idleToTargetingMovementAudioEvent)
       {
-        this.turretMovementObserver?.GetObserver?.()?.SendEvent?.(this.idleToTargetingMovementAudioEvent);
+        this.turretMovementObserver?.GetObserver()?.SendEvent?.(this.idleToTargetingMovementAudioEvent);
       }
       this.SetTargetScale();
     }
@@ -977,7 +977,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     this.firingEffect?.GetStartPosition?.(EveTurretSet.#sourcePosition);
     this.target?.Update?.(deltaTime, EveTurretSet.#sourcePosition);
     this.#ambientEffect()?.UpdateSyncronous?.(context, { isVisible: this.display, localToWorldTransform: this.#parentTransform });
-    if (this.#turrets.length) this.turretMovementObserver?.Update?.(this.#turrets[0].worldMatrix);
+    if (this.#turrets.length) this.turretMovementObserver?.Update(this.#turrets[0].worldMatrix);
     return true;
   }
 

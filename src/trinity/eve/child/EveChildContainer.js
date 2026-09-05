@@ -317,7 +317,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     }
     for (const observer of this.observers)
     {
-      observer?.SetMute?.(this.mute);
+      observer?.SetMute(this.mute);
     }
   }
 
@@ -591,7 +591,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     }
     for (const observer of this.observers)
     {
-      observer?.Update?.(this.worldTransform);
+      observer?.Update(this.worldTransform);
     }
   }
 

@@ -202,8 +202,8 @@ export class EveStretch2 extends withITr2Renderable(IEveFiringEffectElement)
       this.#effectData[0][index] = Number(sets[index]?.GetScaledTime?.() ?? sets[index]?.scaledTime ?? 0);
     }
     makeEndpointTransforms(this.#source, this.#destination, this.#sourceTransform, this.#destinationTransform);
-    this.sourceObserver?.Update?.(this.#sourceTransform);
-    this.destinationObserver?.Update?.(this.#destinationTransform);
+    this.sourceObserver?.Update(this.#sourceTransform);
+    this.destinationObserver?.Update(this.#destinationTransform);
     const gpuParticleSystem = context?.GetGpuParticleSystem?.() ?? context?.gpuParticleSystem ?? null;
     const originShift = getOriginShift(context);
     if (this.sourceEmitter)

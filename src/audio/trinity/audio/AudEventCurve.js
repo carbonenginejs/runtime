@@ -214,7 +214,7 @@ export class AudEventCurve extends CjsModel
     {
       return null;
     }
-    const existing = this.sourceTriObserver.GetObserver?.() ?? this.sourceTriObserver.observer ?? null;
+    const existing = this.sourceTriObserver.GetObserver() ?? this.sourceTriObserver.observer ?? null;
     if (existing instanceof AudEmitter)
     {
       this.audioEmitter = existing;
@@ -222,7 +222,7 @@ export class AudEventCurve extends CjsModel
     }
     const emitter = new AudEmitter();
     emitter.Initialize(this.name);
-    this.sourceTriObserver.SetObserver?.(emitter);
+    this.sourceTriObserver.SetObserver(emitter);
     if (!this.sourceTriObserver.SetObserver)
     {
       this.sourceTriObserver.observer = emitter;

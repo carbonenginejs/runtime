@@ -132,8 +132,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     for (const binding of this.dynamicBindings)
     {
-      binding?.Link?.();
-      binding?.Update?.(0);
+      binding?.Link();
+      binding?.Update(0);
     }
     if (!onlyUpdateBindings)
     {
@@ -250,7 +250,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     }
 
     const time = getTime(context);
-    for (const binding of this.dynamicBindings) binding?.Update?.(time);
+    for (const binding of this.dynamicBindings) binding?.Update(time);
     for (const controller of this.controllers) controller?.Update(0.5);
     if (this.source) sampleVector(this.source, time, this.sourcePosition);
     if (this.dest) sampleVector(this.dest, time, this.destinationPosition);
@@ -697,8 +697,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     for (const binding of this.dynamicBindings)
     {
-      binding?.SetOwner?.(this);
-      binding?.Link?.();
+      binding?.SetOwner(this);
+      binding?.Link();
     }
   }
 

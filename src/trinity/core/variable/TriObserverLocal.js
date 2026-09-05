@@ -173,7 +173,7 @@ export class TriObserverLocal extends CjsModel
  */
 export function SendEventToAudEmitter(observer, audioEvent)
 {
-  const emitter = observer?.GetObserver?.();
+  const emitter = observer?.GetObserver();
   if (typeof emitter?.SendEvent === "function")
   {
     emitter.SendEvent(audioEvent);

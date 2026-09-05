@@ -291,7 +291,7 @@ export class EveTurretFiringFX extends EveEntity
       if (!stretch) continue;
       stretch.SetDestObjectScale(scale);
     }
-    this.destinationObserver?.GetObserver?.()?.SetAttenuationScalingFactor?.(Number(radius));
+    this.destinationObserver?.GetObserver()?.SetAttenuationScalingFactor?.(Number(radius));
   }
 
   /**
@@ -513,8 +513,8 @@ export class EveTurretFiringFX extends EveEntity
     const curveSet = this.isFiring ? this.startCurveSet : this.stopCurveSet;
     const time = getTime(context);
     if (curveSet) curveSet.Update(time, time, context.renderContext);
-    this.sourceObserver?.Update?.(this.#perMuzzleData[0]?.muzzleTransform ?? EveTurretFiringFX.#identity);
-    this.destinationObserver?.Update?.(translationMatrix(this.endPosition, EveTurretFiringFX.#destinationTransform));
+    this.sourceObserver?.Update(this.#perMuzzleData[0]?.muzzleTransform ?? EveTurretFiringFX.#identity);
+    this.destinationObserver?.Update(translationMatrix(this.endPosition, EveTurretFiringFX.#destinationTransform));
     return justFired;
   }
 
@@ -758,7 +758,7 @@ export class EveTurretFiringFX extends EveEntity
   {
     if (configuration !== this.#impactConfiguration)
     {
-      const emitter = this.destinationObserver?.GetObserver?.();
+      const emitter = this.destinationObserver?.GetObserver();
       const value = configuration === EveTurretFiringFX.ImpactConfiguration.IMPACT_ARMOR
         ? "Armor"
         : configuration === EveTurretFiringFX.ImpactConfiguration.IMPACT_HULL ? "Hull" : "Shield";
