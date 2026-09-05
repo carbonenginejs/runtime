@@ -800,6 +800,69 @@ export class Tr2RenderContext extends CjsModel
     return this.#requireAL("SetIndices").SetIndices(buffer, stride);
   }
 
+  // Carbon's four immediate draws (Tr2RenderContext.h). Trinity calls these
+  // directly - Tr2Blitter ends DrawHelper with SetTopology + DrawPrimitive, and
+  // TriStepRenderDebug draws its line vertices with DrawPrimitiveUP - so the
+  // context needs them even though the AL is what does the work. They were
+  // missing for the usual reason: the batch path never reaches them, and the
+  // batch path was all that had been driven.
+
+  /**
+   * Draws non-indexed from the bound stream source.
+   *
+   * @param {number} startVertex First vertex to read.
+   * @param {number} primitiveCount Primitives to draw.
+   * @returns {boolean} Whether the AL accepted the draw.
+   */
+  DrawPrimitive(startVertex, primitiveCount)
+  {
+    return this.#requireAL("DrawPrimitive").DrawPrimitive(startVertex, primitiveCount);
+  }
+
+  /**
+   * Draws indexed from the bound stream source and index buffer.
+   *
+   * @param {number} numVertices Vertices the index range spans.
+   * @param {number} startIndex First index to read.
+   * @param {number} primitiveCount Primitives to draw.
+   * @param {number} [minimumIndex] Smallest index value in the range.
+   * @returns {boolean} Whether the AL accepted the draw.
+   */
+  DrawIndexedPrimitive(numVertices, startIndex, primitiveCount, minimumIndex = 0)
+  {
+    return this.#requireAL("DrawIndexedPrimitive").DrawIndexedPrimitive(numVertices, startIndex, primitiveCount, minimumIndex);
+  }
+
+  /**
+   * Draws non-indexed straight from caller memory, with no buffer bound.
+   *
+   * @param {number} primitiveCount Primitives to draw.
+   * @param {ArrayBufferView} vertexStreamZeroData The vertices.
+   * @param {number} vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} Whether the AL accepted the draw.
+   */
+  DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride)
+  {
+    return this.#requireAL("DrawPrimitiveUP").DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride);
+  }
+
+  /**
+   * Draws indexed straight from caller memory. The index width is carried by
+   * the array's own type rather than Carbon's two separate overloads.
+   *
+   * @param {number} numVertices Vertices the index data spans.
+   * @param {number} primitiveCount Primitives to draw.
+   * @param {ArrayBufferView} indexData The indices.
+   * @param {ArrayBufferView} vertexStreamZeroData The vertices.
+   * @param {number} vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} Whether the AL accepted the draw.
+   */
+  DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride)
+  {
+    return this.#requireAL("DrawIndexedPrimitiveUP")
+      .DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride);
+  }
+
   /**
    * Binds the vertex declaration. Reached through `ApplyVertexDeclaration`.
    *
@@ -868,6 +931,14 @@ export class Tr2RenderContext extends CjsModel
     if (!this.#al)
     {
       throw new Error(`Tr2RenderContext has no render-context AL installed; ${verb} binds on a device.`);
+    }
+
+    // Name the gap. A backend that has not implemented a verb otherwise fails
+    // as "this.#al.Foo is not a function" from inside a pass-through, which
+    // reads like a typo in Trinity rather than a missing backend method.
+    if (typeof this.#al[verb] !== "function")
+    {
+      throw new Error(`${this.#al.constructor.name} does not implement ${verb}.`);
     }
 
     return this.#al;

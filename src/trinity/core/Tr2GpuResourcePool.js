@@ -419,7 +419,11 @@ export class Tr2GpuResourcePool
 
     const buffer = new Tr2BufferALStub();
 
-    buffer.Create(description, this.#renderContext);
+    // THREE arguments. The context went into `initialData` here, leaving
+    // `renderContext` undefined, so the first line of Create that touched it
+    // threw a TypeError - which is why neither buffer accessor had ever run.
+    // The texture path two methods up passes all three correctly.
+    buffer.Create(description, null, this.#renderContext);
 
     return buffer;
   }

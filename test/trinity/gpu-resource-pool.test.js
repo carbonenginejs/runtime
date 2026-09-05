@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { GpuResourceHandle, TextureSize2D, Tr2GpuResourcePool, Tr2RenderContextALStub } from "../../npm/dist/trinity/core/index.js";
-import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
+import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
+import { Tr2BufferDescriptionAL } from "../../npm/dist/trinity/core/index.js";
 
 const pooled = () =>
 {
@@ -134,4 +135,32 @@ test("an empty handle holds nothing", () =>
 
   assert.equal(handle.IsValid(), false);
   assert.equal(handle.GetName(), "");
+});
+
+// The buffer accessors had no coverage at all, which is how a two-argument call
+// to a three-argument Create survived: the render context landed in initialData,
+// renderContext was undefined, and the first line to touch it threw. Every test
+// above borrows a TEXTURE.
+test("a borrowed buffer is created against the bound context", () =>
+{
+  const pool = pooled();
+  const description = Tr2BufferDescriptionAL.FromStride(24, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN);
+
+  const handle = pool.GetTempBuffer("blit-quad", description);
+
+  assert.equal(handle.Get().IsValid(), true);
+  assert.equal(handle.Get().GetDesc().GetSizeInBytes(), 24 * 4);
+});
+
+test("a persistent buffer is initialized once and kept", () =>
+{
+  const pool = pooled();
+  const description = Tr2BufferDescriptionAL.FromStride(16, 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN);
+  let initialized = 0;
+
+  const first = pool.GetPersistentBuffer("shared", description, () => initialized++);
+  const second = pool.GetPersistentBuffer("shared", description, () => initialized++);
+
+  assert.equal(initialized, 1);
+  assert.equal(first.Get(), second.Get());
 });
