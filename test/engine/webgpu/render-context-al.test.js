@@ -376,7 +376,7 @@ test("the frame ends asynchronously, and that is where preparation happens", asy
   assert.equal(log.includes("prepare"), false, "but nothing is prepared yet");
   assert.equal(log.includes("beginRenderPass"), false, "and no pass is opened for nothing");
 
-  const ended = al.EndSceneAsync();
+  const ended = al.EndScene();
 
   FinishPreparing({ batches: [ {}, {} ] });
   await ended;
@@ -400,7 +400,7 @@ test("an accumulator that prepares to nothing opens no pass", async () =>
   al.BeginScene();
   al.RenderBatches({ id: "empty" }, "Main");
 
-  const ended = al.EndSceneAsync();
+  const ended = al.EndScene();
 
   // Carbon submits an empty accumulator too, so this is not an error - but a
   // pass opened for no draws is a pass that clears the target for nothing.

@@ -425,7 +425,7 @@ export async function RunDemo(canvas)
 
   al.BeginScene();
   driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
-  await al.EndSceneAsync();
+  await al.EndScene();
 
   drawn = al.GetDrawnBatchCount();
 

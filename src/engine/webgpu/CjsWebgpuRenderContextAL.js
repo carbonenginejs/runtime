@@ -273,49 +273,29 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Closes any encoder and commits.
+   * Prepares and encodes this frame's submissions, then closes and submits.
    *
-   * @returns {boolean} True.
-   */
-  EndScene()
-  {
-    this.#Record(this.#workQueue.EndFrame());
-
-    if (this.#commandEncoder)
-    {
-      // EndFrame has already closed the last pass, so finishing here is safe.
-      this.#webgpu.Submit([ this.#commandEncoder.finish() ]);
-      this.#workQueue.SetCommandEncoder(null);
-      this.#commandEncoder = null;
-      this.#frame = null;
-    }
-
-    return true;
-  }
-
-  /**
-   * Prepares and encodes this frame's submissions, then ends the scene.
+   * RETURNS A PROMISE, AND THAT IS THIS BACKEND'S PROBLEM RATHER THAN THE
+   * RUNTIME'S. Carbon's `EndScene` is synchronous and `RenderBatches` draws in
+   * the same call, because building a pipeline is a function call in C++.
+   * **WebGL is the same** - `createProgram`, `linkProgram` and `bufferData`
+   * all return immediately - so a WebGL backend can and should draw inside
+   * `RenderBatches` exactly as Carbon does, and its `EndScene` needs no
+   * promise at all.
    *
-   * THE ASYNC SEAM HAS TO BE HERE, AND FINDING OUT WHY IS THE POINT. Trinity
-   * calls `RenderBatches` synchronously - Carbon's does the draw right there -
-   * but a browser builds pipelines and resolves bindings through promises.
-   * Worse, the batches themselves are rebuilt every frame: `CjsBatchManager`
-   * clears its accumulators and refills them, so a prepared handle kept from
-   * last frame describes batch objects that no longer exist. Preparation is
-   * therefore per frame and unavoidably asynchronous.
+   * WebGPU is the odd one: pipeline creation and binding resolution are
+   * promises, and `CjsBatchManager` clears and refills its accumulators every
+   * frame, so nothing can be prepared ahead of the frame that uses it. The
+   * boundary therefore has to exist somewhere, and here - inside the one
+   * backend that needs it - is the smallest place it can be.
    *
-   * That is what the intent queue was really for. Not recording for its own
-   * sake - it put the async boundary OUTSIDE Trinity's synchronous call graph,
-   * where a caller could await between producing the frame and drawing it.
-   *
-   * So the boundary stays, and moves in here where a backend's deferral
-   * belongs. `RenderBatches` collects what Trinity asked for; this prepares and
-   * encodes it. That list is one frame's submissions - what a command buffer
-   * is - not a replayable stream of every verb, and no planner reads it.
+   * A caller awaits `EndScene` unconditionally. Awaiting a non-promise costs
+   * nothing, so the synchronous backends pay no tax for this one's
+   * constraint, and no caller has to ask which kind it is holding.
    *
    * @returns {Promise<boolean>} Whether the scene ended cleanly.
    */
-  async EndSceneAsync()
+  async EndScene()
   {
     const submissions = this.#submissions;
 
@@ -342,7 +322,18 @@ export class CjsWebgpuRenderContextAL
       this.#drawnBatchCount += drawn;
     }
 
-    return this.EndScene();
+    this.#Record(this.#workQueue.EndFrame());
+
+    if (this.#commandEncoder)
+    {
+      // EndFrame has already closed the last pass, so finishing here is safe.
+      this.#webgpu.Submit([ this.#commandEncoder.finish() ]);
+      this.#workQueue.SetCommandEncoder(null);
+      this.#commandEncoder = null;
+      this.#frame = null;
+    }
+
+    return true;
   }
 
   /**
@@ -636,9 +627,14 @@ export class CjsWebgpuRenderContextAL
    * into its current texture, so there is nothing to do beyond ending the
    * frame's work.
    *
-   * @returns {boolean} True.
+   * AWAITS, because `EndScene` on this backend does. Returning its promise
+   * unawaited would hand a caller expecting a boolean something truthy that is
+   * not a result - the frame would still be encoding when presentation was
+   * reported complete.
+   *
+   * @returns {Promise<boolean>} True once the frame is submitted.
    */
-  PresentSwapChain()
+  async PresentSwapChain()
   {
     return this.EndScene();
   }
