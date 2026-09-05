@@ -122,16 +122,37 @@ export class Tr2Blitter
   }
 
   /**
-   * Interns the vertex declaration and creates the vertex buffer.
+   * Brings the blitter's device resources up.
    *
-   * Carbon `OnPrepareResources` (`Tr2Blitter.cpp:161-179`), called from the
-   * constructor there and folded into first use here. Both halves are
-   * idempotent, exactly as Carbon's are.
+   * Carbon's `Tr2DeviceResource::PrepareResources` is the public entry and
+   * `OnPrepareResources` the virtual a subclass implements; the blitter's
+   * constructor calls the former (`Tr2Blitter.cpp:28`). The split is kept
+   * because the base's half is where a device-resource registry would hook in,
+   * and collapsing it would hide that seam.
    *
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the blitter is ready to draw.
    */
   PrepareResources(renderContext)
+  {
+    this.OnPrepareResources(renderContext);
+
+    return this.IsPrepared();
+  }
+
+  /**
+   * Interns the vertex declaration and creates the vertex buffer.
+   *
+   * Carbon `OnPrepareResources` (`Tr2Blitter.cpp:161-179`). Both halves test
+   * before building, so it is idempotent exactly as Carbon's is - which is what
+   * lets it be called from first use here rather than from the constructor.
+   * Carbon can call it at construction because it has a device by then; we may
+   * not.
+   *
+   * @param {object} renderContext The context to create against.
+   * @returns {boolean} Carbon returns true unconditionally, and so does this.
+   */
+  OnPrepareResources(renderContext)
   {
     if (this.#screenVertexDecl === -1)
     {
@@ -156,7 +177,7 @@ export class Tr2Blitter
       ));
     }
 
-    return this.IsPrepared();
+    return true;
   }
 
   /** Drops the declaration handle and the buffer, as `ReleaseResources` does. */
