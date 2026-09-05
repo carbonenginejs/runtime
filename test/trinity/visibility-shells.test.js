@@ -161,7 +161,13 @@ test("EveSceneStaticParticles renderable surface: batches, shadow no-op, per-obj
   assert.equal(particles.Initialize(), true);
   particles.estimatedSize = 123;
   const calls = [];
-  particles.mesh = { GetBatches: (...args) => (calls.push(args), true) };
+  // The mesh fake needs GetAreas as well as GetBatches: EveSceneStaticParticles
+  // resolves the areas from the batch type before delegating (cpp:137-140), and
+  // it no longer hedges that call because Tr2MeshBase declares the method.
+  particles.mesh = {
+    GetAreas: () => null,
+    GetBatches: (...args) => (calls.push(args), true)
+  };
   assert.equal(particles.GetBatches({}, 0, null, 0), true, "delegates to the mesh");
   assertClose(calls[0][3], 123, "estimatedSize is the LOD screen size (cpp:139)");
 

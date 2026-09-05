@@ -188,7 +188,7 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
     if (this.mesh)
     {
       const valid = this.GetBoundingSphere(EveTransform.#sphere);
-      const visible = !valid || this.visibilityThreshold < 0 || frustum?.IsSphereVisible?.(EveTransform.#sphere) !== false;
+      const visible = !valid || this.visibilityThreshold < 0 || frustum?.IsSphereVisible(EveTransform.#sphere) !== false;
       if (visible)
       {
         const size = Number(frustum?.GetPixelSizeAccross?.(EveTransform.#sphere) ?? Infinity);

@@ -224,7 +224,7 @@ export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
   @impl.reason("The estimatedSize LOD select is engine-resolved at realization; the delegation structure is ported.")
   GetBatches(batches, batchType, perObjectData, _reason)
   {
-    const areas = this.mesh?.GetAreas?.(batchType) ?? batchType;
+    const areas = this.mesh?.GetAreas(batchType) ?? batchType;
     return this.mesh?.GetBatches?.(batches, areas, perObjectData, this.estimatedSize) === true;
   }
 

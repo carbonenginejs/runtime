@@ -14,7 +14,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
  */
 export function EveCollectAreas(type, mesh, areaPool)
 {
-  const areas = mesh?.GetAreas?.(type);
+  const areas = mesh?.GetAreas(type);
   if (!areas) return;
   for (const area of areas)
   {

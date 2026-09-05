@@ -294,7 +294,7 @@ export class EveChildQuad extends withITr2Renderable(EveChildTransform)
     vec4.set(sphere, 0, 0, 0, Math.SQRT2);
     sph3.transformMat4(sphere, sphere, this.worldTransform);
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    if (frustum?.IsSphereVisible?.(sphere) !== false)
+    if (frustum?.IsSphereVisible(sphere) !== false)
     {
       this.currentScreenSize = Number(frustum?.GetPixelSizeAccross?.(sphere) ?? Infinity);
       const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;

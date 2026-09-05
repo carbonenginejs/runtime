@@ -594,7 +594,7 @@ export class BehaviorGroup extends EveEntity
     {
       vec3.transformMat4(AGENT_SPHERE, agent.position, worldTransform);
       AGENT_SPHERE[3] = boundingRadius;
-      if (frustum?.IsSphereVisible?.(AGENT_SPHERE) !== false)
+      if (frustum?.IsSphereVisible(AGENT_SPHERE) !== false)
       {
         const pixelSize = Number(frustum?.GetPixelSizeAccross?.(AGENT_SPHERE) ?? Infinity);
         agent.screenSize = pixelSize;

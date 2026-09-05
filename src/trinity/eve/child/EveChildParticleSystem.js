@@ -170,7 +170,7 @@ export class EveChildParticleSystem extends withITr2Renderable(EveChildTransform
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    this.#isVisible = this.display && this.#hasUpdated && frustum?.IsSphereVisible?.(this.#boundingSphere) !== false;
+    this.#isVisible = this.display && this.#hasUpdated && frustum?.IsSphereVisible(this.#boundingSphere) !== false;
     if (this.#isVisible)
     {
       this.currentScreenSize = Number(frustum?.GetPixelSizeAccrossEst?.(this.#lodSphere) ?? Infinity);
@@ -201,7 +201,7 @@ export class EveChildParticleSystem extends withITr2Renderable(EveChildTransform
   {
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
     const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
-    return frustum?.IsSphereVisible?.(this.#boundingSphere) !== false &&
+    return frustum?.IsSphereVisible(this.#boundingSphere) !== false &&
       Number(frustum?.GetPixelSizeAccrossEst?.(this.#lodSphere) ?? Infinity) >= this.minScreenSize * lodFactor;
   }
 
@@ -247,7 +247,7 @@ export class EveChildParticleSystem extends withITr2Renderable(EveChildTransform
   {
     if (this.display && this.mesh)
     {
-      return (this.mesh.GetAreas?.(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0;
+      return (this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0;
     }
     return false;
   }

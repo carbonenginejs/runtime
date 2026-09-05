@@ -195,7 +195,7 @@ export class EveLensflare extends withITr2Renderable(CjsModel)
   {
     if (this.mesh)
     {
-      this.mesh.GetBatches?.(batches, this.mesh.GetAreas?.(batchType), perObjectData);
+      this.mesh.GetBatches?.(batches, this.mesh.GetAreas(batchType), perObjectData);
     }
   }
 

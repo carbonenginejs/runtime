@@ -1077,7 +1077,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
       if (this.#instancesVisible)
       {
         out.push(this);
-        if (this.decals.length && this.mesh.GetGeometryResource?.())
+        if (this.decals.length && this.mesh.GetGeometryResource())
         {
           for (const decal of this.decals)
           {
@@ -1089,7 +1089,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
     else
     {
       out.push(this);
-      const geometryResource = this.mesh?.GetGeometryResource?.();
+      const geometryResource = this.mesh?.GetGeometryResource();
       if (this.decals.length && geometryResource)
       {
         for (const decal of this.decals)
@@ -1146,7 +1146,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
     if (this.#worldBoundingSphere[3] > 0)
     {
       const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-      if (frustum?.IsSphereVisible?.(this.#worldBoundingSphere) !== false)
+      if (frustum?.IsSphereVisible(this.#worldBoundingSphere) !== false)
       {
         const method = frustum?.GetPixelSizeAccrossEst ?? frustum?.GetPixelSizeAccross;
         const size = Number(typeof method === "function" ? method.call(frustum, this.#worldBoundingSphere) : 0) || 0;
@@ -1690,7 +1690,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
 
       for (const batchType of [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ])
       {
-        const areas = this.mesh.GetAreas?.(batchType);
+        const areas = this.mesh.GetAreas(batchType);
 
         if (areas)
         {

@@ -186,6 +186,25 @@ export class Tr2MeshBase extends CjsModel
   }
 
   /**
+   * The geometry this mesh draws from.
+   *
+   * PURE VIRTUAL IN CARBON (`Tr2MeshBase.h:69`), and missing from this base
+   * until 2026-09-05 - only `Tr2Mesh` declared it. Every caller therefore
+   * wrote `mesh?.GetGeometryResource()`, hedging against a base that had the
+   * method in Carbon and not here. A mesh with no geometry to name is not a
+   * mesh, so this throws rather than returning null: returning null would let
+   * a subclass that forgot it draw nothing, silently.
+   *
+   * @returns {object} The geometry resource.
+   */
+  @carbon.method
+  @impl.abstract
+  GetGeometryResource()
+  {
+    throw new Error("Tr2MeshBase.GetGeometryResource must be implemented by a mesh.");
+  }
+
+  /**
    * The live area list for a TriBatchType, or null for a non-integer or unmapped
    * type.
    */
@@ -237,7 +256,7 @@ export class Tr2MeshBase extends CjsModel
   @impl.implemented
   UseWithScreenSize(screenSize, worldRadius)
   {
-    const geometry = this.GetGeometryResource?.() ?? null;
+    const geometry = this.GetGeometryResource() ?? null;
     if (!geometry) return false;
 
     const lod = geometry.GetMeshLod?.(this.meshIndex, screenSize) ?? null;
@@ -341,7 +360,7 @@ export class Tr2MeshBase extends CjsModel
     if (!areaList) return false;
 
     let committed = false;
-    const geometry = this.GetGeometryResource?.() ?? null;
+    const geometry = this.GetGeometryResource() ?? null;
 
     // Carbon resolves the LOD once for the whole area list from the caller's
     // screen size (Tr2MeshBase.cpp:381) and passes it to every area. A resource

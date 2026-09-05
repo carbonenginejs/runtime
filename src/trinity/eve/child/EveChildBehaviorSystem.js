@@ -486,7 +486,7 @@ export class EveChildBehaviorSystem extends withITr2Renderable(EveChildTransform
       const mesh = group?.GetMesh?.() ?? group?.mesh;
       if (this.display && mesh)
       {
-        if ((mesh.GetAreas?.(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0)
+        if ((mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0)
         {
           return true;
         }

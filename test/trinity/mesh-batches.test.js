@@ -10,6 +10,20 @@ import {
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 
+// Tr2MeshBase IS ABSTRACT. Carbon makes GetGeometryResource pure virtual
+// (Tr2MeshBase.h:69), so the base cannot be instantiated there and should not
+// be here either. These tests exercise the base's batching, not its geometry,
+// so the subclass says exactly that: no geometry. It used to be a bare
+// `new GeometrylessMesh()`, which only worked while the base hedged the call to its
+// own missing method.
+class GeometrylessMesh extends Tr2MeshBase
+{
+  GetGeometryResource()
+  {
+    return null;
+  }
+}
+
 function area(effect, { index = 0, count = 1, reversed = false, display = true } = {})
 {
   const meshArea = new Tr2MeshArea();
@@ -23,7 +37,7 @@ function area(effect, { index = 0, count = 1, reversed = false, display = true }
 
 test("GetBatches emits one descriptor batch per displayed, materialled area", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   mesh.meshIndex = 3;
   const effect = { id: "fx" };
 
@@ -58,7 +72,7 @@ test("GetBatches emits one descriptor batch per displayed, materialled area", ()
 
 test("GetBatches routes by TriBatchType through GetAreas", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const effect = {};
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_TRANSPARENT, area(effect));
 
@@ -73,7 +87,7 @@ test("GetBatches routes by TriBatchType through GetAreas", () =>
 
 test("GetBatches accepts an already-resolved area list", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const effect = {};
   const accumulator = new TriRenderBatchAccumulator();
   mesh.GetBatches(accumulator, [ area(effect), area(effect) ], null);
@@ -82,7 +96,7 @@ test("GetBatches accepts an already-resolved area list", () =>
 
 test("a hidden mesh emits nothing", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   mesh.display = false;
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area({}));
 
@@ -114,7 +128,7 @@ function pooledGeometry({ reversedIndicesValid = true } = {})
 
 test("CreateGeometryBatch fills Carbon's draw arguments from a realized LOD", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const geometry = pooledGeometry();
   const effect = { id: "fx" };
 
@@ -131,7 +145,7 @@ test("CreateGeometryBatch fills Carbon's draw arguments from a realized LOD", ()
 
 test("reversed draws read the reversed allocation and count back from the end", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const geometry = pooledGeometry();
 
   // Carbon: startIndex = reversedStart + lodPrimitiveCount*3 - firstIndex - primCount*3
@@ -146,7 +160,7 @@ test("reversed draws read the reversed allocation and count back from the end", 
 
 test("reverseWinding XORs the area's authored winding, it does not replace it", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const geometry = pooledGeometry();
   const forward = area({ id: "fx" }, { index: 0, count: 1 });
   const authoredReverse = area({ id: "fx" }, { index: 0, count: 1, reversed: true });
@@ -161,7 +175,7 @@ test("reverseWinding XORs the area's authored winding, it does not replace it", 
 
 test("a reversed draw with no reversed indices leaves draw arguments unfilled", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const geometry = pooledGeometry({ reversedIndicesValid: false });
 
   const batch = mesh.CreateGeometryBatch(
@@ -173,7 +187,7 @@ test("a reversed draw with no reversed indices leaves draw arguments unfilled", 
 
 test("an unrealized mesh keeps zero bases, which is correct for a non-pooling engine", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const lod = {
     primitiveCount: 10,
     areas: [ { firstIndex: 0, primitiveCount: 10 } ],
@@ -190,7 +204,7 @@ test("an unrealized mesh keeps zero bases, which is correct for a non-pooling en
 
 test("GetBatches resolves the LOD once from the caller's screen size", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   mesh.meshIndex = 2;
   const effect = { id: "fx" };
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area(effect, { index: 0, count: 1 }));
@@ -217,7 +231,7 @@ test("GetBatches resolves the LOD once from the caller's screen size", () =>
 
 test("a mesh batch carries its vertex-declaration handle, so binning can tell meshes apart", () =>
 {
-  const mesh = new Tr2MeshBase();
+  const mesh = new GeometrylessMesh();
   const effect = { id: "fx" };
   const lod = { primitiveCount: 4, areas: [ { firstIndex: 0, primitiveCount: 4 } ] };
 

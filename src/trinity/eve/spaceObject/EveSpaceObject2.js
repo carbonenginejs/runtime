@@ -1165,7 +1165,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
         this.modelWorldPosition,
         this.#boundingSphereWorldRadius
       );
-      if (frustum?.IsSphereVisible?.(EveSpaceObject2.#worldSphere) !== false)
+      if (frustum?.IsSphereVisible(EveSpaceObject2.#worldSphere) !== false)
       {
         this.EstimatePixelDiameter(frustum);
         this.#isMeshVisible = true;
@@ -1196,7 +1196,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
     if (this.GetBoundingSphere(EveSpaceObject2.#worldSphere, 1))
     {
-      this.#isInFrustum = frustum?.IsSphereVisible?.(EveSpaceObject2.#worldSphere) !== false;
+      this.#isInFrustum = frustum?.IsSphereVisible(EveSpaceObject2.#worldSphere) !== false;
       this.estimatedPixelDiameterWithChildren = EveSpaceObject2.#GetPixelSize(frustum, EveSpaceObject2.#worldSphere);
       if (this.#isInFrustum && this.estimatedPixelDiameterWithChildren >= visibilityThreshold)
       {
@@ -1306,7 +1306,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
     this.impactOverlay?.GetBatches?.(batches, batchType, perObjectData, this.#meshScreenSize);
 
-    const areas = this.mesh.GetAreas?.(batchType);
+    const areas = this.mesh.GetAreas(batchType);
     if (areas)
     {
       if (batchType !== TriBatchType.TRIBATCHTYPE_TRANSPARENT)
@@ -1343,7 +1343,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
    */
   #GetSortedTransparentBatches(areas, batches, perObjectData, renderContext)
   {
-    const geometry = this.mesh.GetGeometryResource?.() ?? null;
+    const geometry = this.mesh.GetGeometryResource() ?? null;
     const viewPosition = renderContext?.GetViewPosition();
     const meshIndex = this.mesh.meshIndex ?? 0;
 
@@ -1482,7 +1482,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
       for (const batchType of [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ])
       {
-        const areas = this.mesh.GetAreas?.(batchType);
+        const areas = this.mesh.GetAreas(batchType);
 
         if (areas)
         {
@@ -1520,7 +1520,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     if (!this.mesh || this.mesh.display === false) return false;
     this.#EnsureCachedAreaBlocks();
 
-    const geometry = this.mesh.GetGeometryResource?.() ?? null;
+    const geometry = this.mesh.GetGeometryResource() ?? null;
     const meshIndex = this.mesh.meshIndex ?? 0;
 
     let committed = false;
@@ -1558,7 +1558,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
 
     const committedBefore = batches.GetBatchCount?.() ?? 0;
 
-    const geometry = mesh.GetGeometryResource?.() ?? null;
+    const geometry = mesh.GetGeometryResource() ?? null;
     if (!geometry || geometry.IsGood() === false) return false;
     const meshIndex = mesh.meshIndex ?? 0;
 
@@ -1656,7 +1656,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   HasTransparentBatches()
   {
     if (!this.mesh) return false;
-    if ((this.mesh.GetAreas?.(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0) return true;
+    if ((this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT)?.length ?? 0) > 0) return true;
 
     for (const overlay of this.overlayEffects)
     {
@@ -1983,7 +1983,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   {
     const min = vec3.fromValues(Infinity, Infinity, Infinity);
     const max = vec3.fromValues(-Infinity, -Infinity, -Infinity);
-    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource?.()?.IsUsingCMF?.())
+    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF?.())
     {
       const { min: localMin, max: localMax } = this.GetLocalBoundingBox();
       const corner = vec3.create();
@@ -2012,7 +2012,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   @impl.adapted
   CalculateSkinnedBoundingSphere(out = vec4.create())
   {
-    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource?.()?.IsUsingCMF?.())
+    if (this.dynamicBoundingSphereEnabled && this.mesh?.GetGeometryResource()?.IsUsingCMF?.())
     {
       const center = this.GetBoundingSphereCenter();
       return vec4.set(out, center[0], center[1], center[2], this.GetBoundingSphereRadius());
@@ -2935,7 +2935,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     {
       return false;
     }
-    const geometryRes = mesh.GetGeometryResource?.();
+    const geometryRes = mesh.GetGeometryResource();
     if (!geometryRes || !geometryRes.IsGood?.())
     {
       return false;
@@ -2984,7 +2984,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
   @impl.reason("Geometry resources without multi-LOD support expose their sole browser LOD as index zero.")
   GetLastUsedMeshLod()
   {
-    const geometryResource = this.mesh?.GetGeometryResource?.();
+    const geometryResource = this.mesh?.GetGeometryResource();
     if (!geometryResource) return -1;
     if (!this.#allowLodSelection) return 0;
     return geometryResource.GetLodIndexForScreenSize?.(this.mesh?.GetMeshIndex?.() ?? 0, this.#meshScreenSize) ?? 0;

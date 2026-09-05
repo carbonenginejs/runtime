@@ -583,7 +583,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
     }
     const sphere = this.boundingSphere;
     const isVisible = this.display && this.hasUpdated &&
-      frustum?.IsSphereVisible?.(sphere.center, sphere.radius) === true;
+      frustum?.IsSphereVisible(sphere.center, sphere.radius) === true;
     if (!isVisible)
     {
       return false;

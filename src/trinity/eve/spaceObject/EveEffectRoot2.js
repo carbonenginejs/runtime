@@ -263,7 +263,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
       this.GetBoundingSphere(EveEffectRoot2.#localSphere);
       sph3.transformMat4(EveEffectRoot2.#worldSphere, EveEffectRoot2.#localSphere, this.#worldTransform);
       const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-      if (frustum?.IsSphereVisible?.(EveEffectRoot2.#worldSphere) !== false)
+      if (frustum?.IsSphereVisible(EveEffectRoot2.#worldSphere) !== false)
       {
         this.estimatedSize = Number(frustum?.GetPixelSizeAccross?.(EveEffectRoot2.#worldSphere) ?? this.estimatedSize) || 0;
       }
