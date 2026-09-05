@@ -26,6 +26,7 @@ export { CjsSqliteFormat } from "./sqlite/index.js";
 export { CjsStaticFormat, CJS_STATIC_FAMILIES } from "./static/index.js";
 export { CjsStlFormat } from "./stl/index.js";
 export { CjsTgaFormat } from "./tga/index.js";
+export { CjsVtaFormat } from "./vta/index.js";
 export { CjsWavFormat } from "./wav/index.js";
 export { CjsWebmFormat } from "./webm/index.js";
 export { CjsWebpFormat } from "./webp/index.js";
