@@ -218,6 +218,73 @@ export class CjsWebgpuWorkQueue
     return this.#Drain();
   }
 
+  /**
+   * Records an indexed draw, opening a render encoder if none is current.
+   *
+   * THE DRAW OPENS THE ENCODER, which is why this lives here rather than the
+   * caller reaching for `SetCurrentEncoder` first. Carbon's
+   * `MetalWorkQueue::DrawIndexedPrimitives` (`mm:2922-2945`) begins with
+   * `GetRenderEncoder()` for exactly this reason: the abstraction layer's job
+   * is to validate arguments and convert primitive counts, and the work
+   * queue's job is to have somewhere to put the result.
+   *
+   * @param {number} indexCount Indices this draw reads.
+   * @param {number} instanceCount Instances to draw.
+   * @param {number} startIndex First index.
+   * @param {number} baseVertex Value added to every index.
+   * @param {number} startInstance First instance id.
+   * @returns {object[]} The transitions this required, in order.
+   */
+  DrawIndexedPrimitives(indexCount, instanceCount, startIndex, baseVertex, startInstance)
+  {
+    this.#RequireRenderEncoder();
+    this.#events.push({
+      type: "draw",
+      indexed: true,
+      indexCount,
+      instanceCount,
+      startIndex,
+      baseVertex,
+      startInstance
+    });
+
+    return this.#Drain();
+  }
+
+  /**
+   * Records a non-indexed draw, opening a render encoder if none is current.
+   *
+   * @param {number} vertexCount Vertices this draw reads.
+   * @param {number} instanceCount Instances to draw.
+   * @param {number} startVertex First vertex.
+   * @param {number} startInstance First instance id.
+   * @returns {object[]} The transitions this required, in order.
+   */
+  DrawPrimitives(vertexCount, instanceCount, startVertex, startInstance)
+  {
+    this.#RequireRenderEncoder();
+    this.#events.push({
+      type: "draw",
+      indexed: false,
+      vertexCount,
+      instanceCount,
+      startVertex,
+      startInstance
+    });
+
+    return this.#Drain();
+  }
+
+  /** Carbon's `GetRenderEncoder`: the current one, or a new one. */
+  #RequireRenderEncoder()
+  {
+    if (!this.#inFrame) fail("a draw outside a frame");
+
+    if (this.#currentEncoderType === EncoderType.RENDER && !this.#pendingRenderPassHint) return;
+
+    this.#GetRenderEncoder();
+  }
+
   /** Opens a render encoder, folding any pending hint into its descriptor. */
   #GetRenderEncoder()
   {

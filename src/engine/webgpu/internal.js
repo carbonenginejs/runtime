@@ -14,3 +14,4 @@ export { CjsWebgpuSamplerSource } from "./core/samplerSource.js";
 export { CjsWebgpuPerFrameSource } from "./core/perFrameSource.js";
 
 export { CjsWebgpuWorkQueue, EncoderType, ApplyRenderPassHint } from "./core/workQueue.js";
+export { CjsWebgpuRenderContextAL } from "./CjsWebgpuRenderContextAL.js";
