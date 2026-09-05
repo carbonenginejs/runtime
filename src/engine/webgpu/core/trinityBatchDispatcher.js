@@ -1,3 +1,4 @@
+import { Topology } from "#consts/render-context";
 import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
 import { CjsTrinityBatchDispatcher } from "#trinity/core/batch/CjsTrinityBatchDispatcher";
 import { CjsTrinityBatchResolver } from "#trinity/core/batch/CjsTrinityBatchResolver";
@@ -8,12 +9,19 @@ import { CjsWebgpuEncodeState, DeriveBatchGroups } from "./batchGroups.js";
 
 const MAX_GPU_SIZE_32 = 0xffffffff;
 
+// Keyed by `Topology`, the abstraction layer's vocabulary, which is what a
+// batch carries as of 2026-09-05. It was keyed by `D3dPrimitiveTopology`
+// before, and the two numberings COLLIDE - D3D's 4 is TRIANGLELIST, the AL's 4
+// is TOP_LINES - so this table and Tr2RenderBatch have to move together.
+//
+// TOP_TRIANGLE_FAN is absent because WebGPU has no fan primitive. Carbon's own
+// header already says the value is invalid on DX11.
 const TOPOLOGIES = Object.freeze({
-  1: "point-list",
-  2: "line-list",
-  3: "line-strip",
-  4: "triangle-list",
-  5: "triangle-strip"
+  [Topology.TOP_TRIANGLES]: "triangle-list",
+  [Topology.TOP_TRIANGLE_STRIP]: "triangle-strip",
+  [Topology.TOP_LINES]: "line-list",
+  [Topology.TOP_LINE_STRIP]: "line-strip",
+  [Topology.TOP_POINTS]: "point-list"
 });
 
 const PREPARED_BATCHES = new WeakMap();

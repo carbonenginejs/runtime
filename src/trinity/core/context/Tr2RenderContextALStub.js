@@ -509,9 +509,10 @@ export class Tr2RenderContextALStub
    * Sets the primitive topology for following draws.
    *
    * THE ONE ARGUMENT CARBON'S STUB ACTUALLY VALIDATES (`cpp:112-119`), and the
-   * value is a `Topology`, not a D3D topology. Our own batches currently carry
-   * `D3dPrimitiveTopology`, so a caller reaching this from a batch has a
-   * translation to do; Carbon's batch holds the AL value directly
+   * value is a `Topology`, not a D3D topology. `Tr2RenderBatch` carries this
+   * vocabulary too as of 2026-09-05, so a caller reaching this from a batch
+   * has nothing to translate - which is the point, since Carbon's
+   * `SubmitGeometry` hands `m_topology` straight through
    * (`Tr2RenderContext.cpp:86`).
    *
    * @param {number} topology A `Topology` value.

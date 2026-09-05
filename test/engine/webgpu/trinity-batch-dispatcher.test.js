@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
 import { CjsWebgpuTrinityBatchDispatcher } from "../../../npm/dist/engine/webgpu/internal.js";
+import { Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
 import {
   CjsTrinityBatchResolver,
   ITriRenderBatchAccumulator,
@@ -156,7 +157,7 @@ function indexedBatch(overrides = {})
     material: { id: "material" },
     geometrySource: { id: "geometry" },
     objectData: { id: "object-data" },
-    topology: 4,
+    topology: Topology.TOP_TRIANGLES,
     indexCountPerInstance: 36,
     instanceCount: 2,
     startIndexLocation: 3,

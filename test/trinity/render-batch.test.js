@@ -13,7 +13,7 @@ import {
 } from "../../npm/dist/trinity/core/index.js";
 
 import { RenderingMode } from "../../npm/dist/global/consts/graphics/index.js";
-import { D3dPrimitiveTopology } from "../../npm/dist/global/consts/d3d/index.js";
+import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 
 // A synthetic material: SetMaterial derives the shader from GetShaderStateInterface.
 function makeMaterial(shader, gdrCompatible = false)
@@ -49,7 +49,7 @@ test("a fresh batch is invalid; SetMaterial with a shader makes it valid", () =>
   const batch = new Tr2RenderBatch();
   assert.equal(batch.IsValid(), false);
   assert.equal(batch.renderingMode, RenderingMode.RM_ANY);
-  assert.equal(batch.topology, D3dPrimitiveTopology.TRIANGLELIST);
+  assert.equal(batch.topology, Topology.TOP_TRIANGLES);
   assert.equal(batch.groupCount, 1);
 
   // GPU-free: a material without a realized shader still yields a valid batch,

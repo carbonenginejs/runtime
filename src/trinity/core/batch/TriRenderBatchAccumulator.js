@@ -6,7 +6,7 @@
 // engine adapter reads GetGdprBatches()/GetBatches()/IsChainedByEffect() from a
 // finalized accumulator and issues the actual draws.
 import { RenderingMode } from "#consts/graphics";
-import { D3dPrimitiveTopology } from "#consts/d3d";
+import { Topology } from "#consts/render-context";
 import { RenderBatchSortType } from "../../generated/trinityCore/enums.js";
 import { ITriRenderBatchAccumulator } from "./ITriRenderBatchAccumulator.js";
 import { CanBeBinned, OrderOf, Tr2GdprBatchFullPartition } from "./Tr2RenderBatch.js";
@@ -99,7 +99,7 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
 
     if (this.keyGenerator.ALLOW_GDPR
       && batch.material?.CompatibleWithGdr?.()
-      && batch.topology === D3dPrimitiveTopology.TRIANGLELIST
+      && batch.topology === Topology.TOP_TRIANGLES
       && batch.indexBuffer)
     {
       this.gdprBatches.push(batch);

@@ -7,7 +7,7 @@
 // batches and issues the actual draws (Carbon's Tr2RenderContextBase::RenderBatches*
 // dispatch family stays engine-side and is intentionally NOT ported here).
 import { RenderingMode } from "#consts/graphics";
-import { D3dPrimitiveTopology } from "#consts/d3d";
+import { Topology } from "#consts/render-context";
 import { TriGeometryRes } from "#resource/geometry";
 
 
@@ -158,7 +158,14 @@ export class Tr2RenderBatch
 
     this.objectData = null;
     this.renderingMode = RenderingMode.RM_ANY;
-    this.topology = D3dPrimitiveTopology.TRIANGLELIST;
+    // THE VOCABULARY IS THE ABSTRACTION LAYER'S, NOT D3D'S. This field held a
+    // `D3dPrimitiveTopology` until 2026-09-05, and everything drew correctly
+    // because the WebGPU engine translated on the way out. Carbon does not
+    // translate: `SubmitGeometry` hands `batch.m_topology` straight to
+    // `SetTopology` (`Tr2RenderContext.cpp:86`), so the two numberings have to
+    // BE the same one, and the AL owns it. The old numbering collided rather
+    // than merely disagreed - D3D's 4 is TRIANGLELIST, the AL's 4 is TOP_LINES.
+    this.topology = Topology.TOP_TRIANGLES;
 
     this.indexCountPerInstance = 0;
     this.instanceCount = 0;
