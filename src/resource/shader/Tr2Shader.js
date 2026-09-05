@@ -114,6 +114,45 @@ export class Tr2Shader extends CjsModel
   }
 
   /**
+   * Binds one pass's shader program and render states.
+   *
+   * Carbon `Tr2Shader::ApplyAllStateForPass` (`Shader/Tr2Shader.cpp`), which is
+   * these same two state-manager calls and nothing else.
+   *
+   * THIS DOES NOT MAKE THE CLASS GPU-BOUND, and that is worth stating because
+   * the rule it looks like it breaks is a real one
+   * (`/docs/architecture/effect-read-path.md`: "Tr2Shader is GPU-free; device
+   * objects belong to engine prepare"). Both arguments handed over are
+   * INTEGER HANDLES the reflected effect already carries, the context arrives
+   * as a parameter rather than an import, and no device object is created,
+   * held or touched here.
+   *
+   * A dead second copy of this method used to sit on `HlslShader` reaching
+   * `renderContext?.m_esm?.ApplyShaderProgram?.()`. There is no `m_esm`
+   * property - the manager is private behind `GetEffectStateManager()` - so
+   * every call short-circuited to nothing while the method still returned
+   * true. The optional chain is what hid it.
+   *
+   * @param {number} techniqueIndex Technique index.
+   * @param {number} passIndex Pass index within the technique.
+   * @param {object} renderContext The context whose state manager to bind on.
+   * @returns {boolean} Whether the pass existed and was applied.
+   */
+  ApplyAllStateForPass(techniqueIndex, passIndex, renderContext)
+  {
+    const pass = this.effect?.techniques?.[techniqueIndex]?.passes?.[passIndex];
+
+    if (!pass) return false;
+
+    const esm = renderContext.GetEffectStateManager();
+
+    esm.ApplyShaderProgram(pass.shaderProgram);
+    esm.ApplyRenderStates(pass.renderStates);
+
+    return true;
+  }
+
+  /**
    * Pack the first technique/pass's renderer handles into Carbon's sort key.
    * Retains 0 while the stage handles are still 0xffffffff, which is the case
    * until shader registration assigns them; that is a missing table, not a

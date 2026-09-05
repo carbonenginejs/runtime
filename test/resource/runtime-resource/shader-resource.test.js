@@ -375,3 +375,42 @@ test("stage input never reports a buffer smaller than its authored defaults", ()
   assert.equal(stage.GetConstantBufferSize(), 64);
   assert.equal(Tr2EffectStageInput.createEmpty(1).GetConstantBufferSize(), 0);
 });
+
+test("ApplyAllStateForPass hands the pass's two handles to the state manager", () =>
+{
+  // The dead HlslShader copy of this method reached
+  // `renderContext?.m_esm?.ApplyShaderProgram?.()` and short-circuited to
+  // nothing while still returning true, so the assertion that matters is that
+  // the manager was ACTUALLY CALLED - not that the method returned.
+  const calls = [];
+  const renderContext = {
+    GetEffectStateManager()
+    {
+      return {
+        ApplyShaderProgram(handle)
+        {
+          calls.push([ "program", handle ]);
+          return true;
+        },
+        ApplyRenderStates(handle)
+        {
+          calls.push([ "states", handle ]);
+          return true;
+        }
+      };
+    }
+  };
+
+  const shader = new Tr2Shader();
+
+  shader.effect = {
+    techniques: [ { passes: [ { shaderProgram: 11, renderStates: 3 }, { shaderProgram: 12, renderStates: 4 } ] } ]
+  };
+
+  assert.equal(shader.ApplyAllStateForPass(0, 1, renderContext), true);
+  assert.deepEqual(calls, [ [ "program", 12 ], [ "states", 4 ] ], "Carbon's order: program, then states");
+
+  calls.length = 0;
+  assert.equal(shader.ApplyAllStateForPass(0, 9, renderContext), false, "a pass that is not there applies nothing");
+  assert.deepEqual(calls, [], "and reaches no state manager at all");
+});
