@@ -19,12 +19,8 @@
   ],
   "AudGameObjResource": [
     "Orientation",
-    "Orthonormalize",
     "PrepareEvent",
     "PropagateWwiseCallback"
-  ],
-  "AudGeometry": [
-    "ClearAllGeometry"
   ],
   "AudManager": [
     "AkPlatformProfilerPopTimer",
@@ -113,7 +109,6 @@
     "CreateFlatBannerGeometry",
     "CreateHorizontalCurvedBannerGeometry",
     "CreateVerticalCurvedBannerGeometry",
-    "GetBannerAspectRatio",
     "OnPrepareResources",
     "OnStructureListModified",
     "ReleaseResources"
@@ -143,11 +138,7 @@
     "void"
   ],
   "EveCamera": [
-    "AddCenterOffset",
-    "CalculateFovFromProjection",
-    "CalculateProjectionMatrix",
-    "CapPitchAndYaw",
-    "ModifyClipPlanes"
+    "CapPitchAndYaw"
   ],
   "EveChildAudio": [
     "GetDebugOptions",
@@ -359,9 +350,6 @@
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
-  "EveChildQuad": [
-    "GetQuadDefinition"
-  ],
   "EveChildRef": [
     "AddToEffectChildrenList",
     "FindSoundEmitter",
@@ -445,9 +433,6 @@
     "AnimateSegment",
     "CalculateSideAndFront"
   ],
-  "EveCustomMask": [
-    "ZeroPerObjectData"
-  ],
   "EveDamageOverlay": [
     "bool"
   ],
@@ -512,10 +497,6 @@
     "SearchThroughTreeHelperFunction",
     "SortByAxis",
     "SplitSort"
-  ],
-  "EveLODHelper": [
-    "MergeLOD",
-    "ShouldUpdate"
   ],
   "EveLensflare": [
     "GetCurveSetDuration",
@@ -964,9 +945,6 @@
     "UpdateTriggerState",
     "UpdateWorldTransform"
   ],
-  "EveTurretAiming": [
-    "GetSystemBoneName"
-  ],
   "EveTurretFiringFX": [
     "AddQuadsToQuadRenderer",
     "GetDebugOptions",
@@ -1190,7 +1168,6 @@
     "RenderDebugInfo"
   ],
   "Tr2BaseDeviceResourceAL": [
-    "EnumerateResources",
     "GetResourceMemoryClass",
     "IsResourceValid"
   ],
@@ -1231,10 +1208,6 @@
     "WriteParticleVerticesToBuffer",
     "addLineData",
     "isValidLineID"
-  ],
-  "Tr2CurveScalar": [
-    "GetSegmentTangent",
-    "GetSegmentValue"
   ],
   "Tr2CurveVector3Expression": [
     "GetExpression",
@@ -1322,12 +1295,9 @@
     "GetShaderLibraryCode",
     "GetShaderProgram",
     "GetVertexDeclarationElements",
-    "GetVertexDeclarationHandle",
     "Initialize",
     "RegisterShaderLibrary",
-    "RegisterShaderProgram",
     "RegisterShaderProgramOverride",
-    "ReleaseDeviceResources",
     "Reset",
     "SetRenderStateOverride",
     "SetWireframeRendering",
@@ -1336,11 +1306,6 @@
   ],
   "Tr2EffectTechniqueInputs": [
     "swap"
-  ],
-  "Tr2ExpressionTermInfo": [
-    "Function",
-    "StringFunction",
-    "Variable"
   ],
   "Tr2FactionLight": [
     "RenderDebugInfo"
@@ -1657,10 +1622,6 @@
     "ReleaseResources",
     "RenderDebugInfo"
   ],
-  "Tr2IntKeyGenerator": [
-    "GetSortType",
-    "Less"
-  ],
   "Tr2IntSkinnedObject": [
     "AddReflectionMap",
     "AddToApexScene",
@@ -1765,6 +1726,28 @@
   ],
   "Tr2Light": [
     "RenderDebugInfo"
+  ],
+  "Tr2LightManager": [
+    "ClearLightIndices",
+    "CreateShadowMapAtlas",
+    "DeleteInstance",
+    "DoUpdateLists",
+    "GetInstance",
+    "GetLightProfileArray",
+    "GetOrCreateInstance",
+    "GetRaytracingPipelineManager",
+    "GetRaytracingShaderTableDesc",
+    "GetShadowMapAtlas",
+    "GetShadowMapAtlasEntry",
+    "GetShadowMapAtlasSettings",
+    "GetUnpackedShadowMapData",
+    "InsertAtlasNode",
+    "OnPrepareResources",
+    "ReleaseResources",
+    "ResetVariableStore",
+    "SetVariableStore",
+    "UpdateLightBuffer",
+    "UpdateLists"
   ],
   "Tr2LightProfileRes": [
     "BakeLightProfile",
@@ -1992,9 +1975,6 @@
   "Tr2PointLight": [
     "RenderDebugInfo"
   ],
-  "Tr2PostProcessAttributes": [
-    "MergeInto"
-  ],
   "Tr2PostProcessRenderer": [
     "Blur",
     "DownSampleDepth",
@@ -2054,7 +2034,6 @@
   ],
   "Tr2QuadRenderer": [
     "GetInstanceBufferSize",
-    "Instance",
     "OnPrepareResources",
     "RecreateQuadBuffers",
     "ReleaseResources",
@@ -2252,7 +2231,6 @@
     "UnregisterEffect"
   ],
   "Tr2ResourceSetDescriptionAL": [
-    "ClearResources",
     "ComputeHash",
     "Is",
     "Resource",
@@ -2263,7 +2241,6 @@
     "UpdateHash"
   ],
   "Tr2RingBuffer": [
-    "GetInstance",
     "ReleaseResources"
   ],
   "Tr2RotationTool": [
@@ -2327,7 +2304,6 @@
     "SetDataFromScript"
   ],
   "Tr2ShadowMap": [
-    "CalculateAABB",
     "SetStaticShadowSplits"
   ],
   "Tr2SharedConstantBuffers": [
@@ -2796,8 +2772,6 @@
   ],
   "Tr2VolumetricsRenderer": [
     "FogViewDependentResources",
-    "GetEmptyFogTexture",
-    "GetEmptyVolumetricTexture",
     "UpdatePerObjectData"
   ],
   "TriColorSequencer": [
@@ -3002,9 +2976,6 @@
     "push_back",
     "sort",
     "stable_sort"
-  ],
-  "TriRenderBatchAreaBlock": [
-    "Optimize"
   ],
   "TriRenderJob": [
     "OnPrepareResources",

@@ -182,9 +182,17 @@ async function ReadJavaScriptClasses(directory)
       const methods = new Set();
       for (const member of declaration.body.body)
       {
-        if (member.type !== "ClassMethod" || member.static || member.kind === "constructor") continue;
+        if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = MemberName(member);
         if (!name) continue;
+        if (member.static)
+        {
+          // Statics are camelCase by the library casing rule; credit them
+          // against Carbon's PascalCase static declaration.
+          methods.add(name);
+          methods.add(name.charAt(0).toUpperCase() + name.slice(1));
+          continue;
+        }
         methods.add(name);
         const renamed = RenamedOriginal(member);
         if (renamed) methods.add(renamed);
