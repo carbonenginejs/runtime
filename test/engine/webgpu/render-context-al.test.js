@@ -294,3 +294,116 @@ test("the target size is refused when nothing is bound", () =>
   assert.equal(al.IsRenderTargetValid(null), false);
   assert.equal(al.IsRenderTargetValid({}), true);
 });
+
+// A composed backend: the device half, faked at the seams the AL actually
+// touches. The point of these is that RenderBatches reaches a real pass and a
+// real dispatcher, which is what the intent queue existed to stand in for.
+function composed()
+{
+  const log = [];
+  const pass = { end: () => log.push("pass.end") };
+  const commandEncoder = {
+    beginRenderPass()
+    {
+      log.push("beginRenderPass");
+      return pass;
+    },
+    finish()
+    {
+      log.push("finish");
+      return "command-buffer";
+    }
+  };
+
+  let resolvePrepare = null;
+
+  const al = new CjsWebgpuRenderContextAL({
+    webgpu: {
+      GetDevice: () => ({ createCommandEncoder: () => commandEncoder }),
+      Submit(buffers)
+      {
+        log.push(`submit:${buffers.join(",")}`);
+      }
+    },
+    dispatcher: {
+      PrepareAccumulator()
+      {
+        log.push("prepare");
+        return new Promise(resolve => { resolvePrepare = resolve; });
+      },
+      EncodeAccumulator(encodedPass, handle)
+      {
+        log.push(`encode:${handle}:${encodedPass === pass}`);
+      }
+    },
+    renderTarget: {
+      AcquireFrame: () => ({ id: "frame" }),
+      CreateRenderPassDescriptor: () => ({ label: "descriptor" })
+    }
+  });
+
+  return { al, log, pass, FinishPreparing: handle => resolvePrepare(handle) };
+}
+
+test("an uncomposed backend is the stub it always was", () =>
+{
+  const al = ready();
+
+  assert.equal(al.IsComposed(), false);
+  assert.equal(al.RenderBatches({}, "Main"), false, "no dispatcher, nothing drawn");
+});
+
+test("a composed backend needs its whole device half or none of it", () =>
+{
+  assert.throws(
+    () => new CjsWebgpuRenderContextAL({ webgpu: {} }),
+    /needs a dispatcher and a render target/u
+  );
+});
+
+test("RenderBatches draws nothing while preparing, then encodes into a real pass", async () =>
+{
+  const { al, log, pass, FinishPreparing } = composed();
+  const accumulator = { id: "accumulator" };
+
+  al.CreateDevice();
+  al.BeginScene();
+
+  // A browser builds pipelines asynchronously and Carbon does not. So the first
+  // call starts the work and draws nothing, rather than blocking a frame.
+  assert.equal(al.RenderBatches(accumulator, "Main"), false, "nothing drawn while preparing");
+  assert.equal(al.RenderBatches(accumulator, "Main"), false, "a second call joins the work in flight");
+  assert.equal(log.filter(entry => entry === "prepare").length, 1, "preparation is not started twice");
+  assert.equal(log.includes("beginRenderPass"), false, "and no pass is opened for nothing");
+
+  FinishPreparing("prepared");
+  await Promise.resolve();
+
+  assert.equal(al.RenderBatches(accumulator, "Main"), true, "the next frame draws");
+  assert.ok(log.includes("beginRenderPass"), "a pass was opened on demand");
+  assert.ok(log.includes("encode:prepared:true"), "the dispatcher got the live pass");
+
+  al.EndScene();
+
+  assert.deepEqual(
+    log.slice(log.indexOf("encode:prepared:true")),
+    [ "encode:prepared:true", "pass.end", "finish", "submit:command-buffer" ],
+    "the pass ends before the buffer is finished and submitted"
+  );
+  assert.equal(al.GetWorkQueue().GetRenderPass(), null, "and nothing is left open");
+});
+
+test("the same batches under two techniques prepare separately", () =>
+{
+  const { al, log } = composed();
+  const accumulator = { id: "accumulator" };
+
+  al.CreateDevice();
+  al.BeginScene();
+  al.RenderBatches(accumulator, "Main");
+  al.RenderBatches(accumulator, "Depth");
+
+  // Depth and colour are two different sets of pipelines for the same geometry,
+  // so one prepared handle cannot serve both.
+  assert.equal(log.filter(entry => entry === "prepare").length, 2);
+});

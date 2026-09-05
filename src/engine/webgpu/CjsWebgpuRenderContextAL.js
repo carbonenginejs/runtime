@@ -113,6 +113,58 @@ export class CjsWebgpuRenderContextAL
   /** Everything the work queue reported, for a caller that encodes it. */
   #transitions = [];
 
+  // THE DEVICE HALF, AND WHY IT IS OPTIONAL. Composed, this backend draws:
+  // `BeginScene` opens a command encoder, the work queue turns it into real
+  // render passes, `RenderBatches` hands each pass to the dispatcher, and
+  // `EndScene` submits. Uncomposed it behaves exactly as it did before -
+  // validating verbs and recording transitions - which is the stub backend
+  // Carbon ships and the thing every test here relies on.
+  //
+  // IT DELEGATES RATHER THAN DRAWS. `CjsWebgpuDevice.EncodeDraw` already IS
+  // Carbon's `SubmitGeometry` sequence - pipeline, bind groups, vertex and
+  // index buffers, then the draw - and the dispatcher already groups batches
+  // and filters redundant state. A second implementation here would be the
+  // mistake this whole exercise is undoing, one layer further down.
+
+  #webgpu = null;
+
+  #dispatcher = null;
+
+  #renderTarget = null;
+
+  /** The frame's command encoder, between BeginScene and EndScene. */
+  #commandEncoder = null;
+
+  /** The acquired swap-chain frame, valid only within one scene. */
+  #frame = null;
+
+  /** Prepared accumulators, keyed by the accumulator they were prepared from. */
+  #prepared = new WeakMap();
+
+  /**
+   * @param {object} [composition] The device half; omit for the stub backend.
+   * @param {object} [composition.webgpu] A `CjsWebgpuDevice`.
+   * @param {object} [composition.dispatcher] A `CjsWebgpuTrinityBatchDispatcher`.
+   * @param {object} [composition.renderTarget] A `CjsWebgpuRenderTarget`.
+   */
+  constructor({ webgpu = null, dispatcher = null, renderTarget = null } = {})
+  {
+    if (webgpu && !(dispatcher && renderTarget))
+    {
+      fail("a composed backend needs a dispatcher and a render target as well as a device");
+    }
+
+    this.#webgpu = webgpu;
+    this.#dispatcher = dispatcher;
+    this.#renderTarget = renderTarget;
+  }
+
+  /** Whether this backend can actually draw. @returns {boolean} */
+  IsComposed()
+  {
+    return this.#webgpu !== null;
+  }
+
   /**
    * The work queue this backend records through.
    *
@@ -164,9 +216,36 @@ export class CjsWebgpuRenderContextAL
   {
     if (!this.#isValid) fail("BeginScene before CreateDevice");
 
+    if (this.#webgpu)
+    {
+      // The canvas texture is valid for THIS frame only, so it is acquired per
+      // scene and every pass opened during it shares the one view.
+      this.#frame = this.#renderTarget.AcquireFrame();
+      this.#commandEncoder = this.#webgpu.GetDevice().createCommandEncoder({ label: "CjsWebgpuRenderContextAL" });
+      this.#workQueue.SetCommandEncoder(this.#commandEncoder, attachments => this.#Descriptor(attachments));
+    }
+
     this.#Record(this.#workQueue.BeginFrame());
 
     return true;
+  }
+
+  /**
+   * The render-pass descriptor for a set of folded attachments.
+   *
+   * `attachments` IS NULL FOR AN UNHINTED PASS, which is most of them: Carbon
+   * applies load and store actions only when a hint is pending and otherwise
+   * leaves the backend's own defaults alone. Ours are the render target's.
+   */
+  #Descriptor(attachments)
+  {
+    const clear = attachments?.colors?.[0];
+
+    return this.#renderTarget.CreateRenderPassDescriptor(this.#frame, {
+      label: `pass ${this.#workQueue.GetPassCount()}`,
+      clearColor: clear?.loadOp === "clear" ? clear.clearValue : undefined,
+      clearDepth: attachments?.depth?.loadOp === "clear" ? attachments.depth.clearValue : undefined
+    });
   }
 
   /**
@@ -178,7 +257,89 @@ export class CjsWebgpuRenderContextAL
   {
     this.#Record(this.#workQueue.EndFrame());
 
+    if (this.#commandEncoder)
+    {
+      // EndFrame has already closed the last pass, so finishing here is safe.
+      this.#webgpu.Submit([ this.#commandEncoder.finish() ]);
+      this.#workQueue.SetCommandEncoder(null);
+      this.#commandEncoder = null;
+      this.#frame = null;
+    }
+
     return true;
+  }
+
+  /**
+   * Draws a finalized batch accumulator.
+   *
+   * This is the verb the whole intent queue existed to stand in for. Carbon's
+   * `Tr2RenderContextBase::RenderBatches` walks the accumulator and issues
+   * draws immediately; ours opens a render pass on demand and hands it to the
+   * dispatcher, which already groups the batches and filters redundant state.
+   *
+   * PREPARATION IS ASYNCHRONOUS AND THAT IS FORCED, not a shortcut. Building a
+   * pipeline and resolving a material's textures are promises in a browser and
+   * synchronous in Carbon. So a batch set that has not finished preparing draws
+   * NOTHING this frame and is drawn the next one - which is how every other
+   * resource on this path already behaves, and is why a ship fades in rather
+   * than blocking the first frame.
+   *
+   * @param {object} accumulator A finalized `ITriRenderBatchAccumulator`.
+   * @param {string} techniqueName The technique to draw.
+   * @returns {boolean} Whether anything was encoded this call.
+   */
+  RenderBatches(accumulator, techniqueName)
+  {
+    if (!this.#dispatcher) return false;
+
+    const handle = this.#PreparedFor(accumulator, techniqueName);
+
+    if (!handle) return false;
+
+    const pass = this.#workQueue.RequireRenderPass();
+
+    if (!pass) return false;
+
+    this.#dispatcher.EncodeAccumulator(pass, handle);
+
+    return true;
+  }
+
+  /**
+   * The prepared handle for an accumulator, starting preparation on a miss.
+   *
+   * Keyed on the accumulator AND the technique, because the same batches drawn
+   * for depth and for colour are two different sets of pipelines.
+   */
+  #PreparedFor(accumulator, techniqueName)
+  {
+    let byTechnique = this.#prepared.get(accumulator);
+
+    if (!byTechnique)
+    {
+      byTechnique = new Map();
+      this.#prepared.set(accumulator, byTechnique);
+    }
+
+    const entry = byTechnique.get(techniqueName);
+
+    if (entry) return entry.handle;
+
+    // Recorded before awaiting, so a second call in the same frame joins the
+    // work in flight instead of starting it again.
+    const pending = { handle: null };
+
+    byTechnique.set(techniqueName, pending);
+
+    this.#dispatcher.PrepareAccumulator(accumulator, { techniqueName })
+      .then(handle => { pending.handle = handle; })
+      .catch(error =>
+      {
+        byTechnique.delete(techniqueName);
+        throw error;
+      });
+
+    return null;
   }
 
   /**
