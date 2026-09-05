@@ -50,13 +50,18 @@ export const EFFECT_CONSTANTS = 0;
 /**
  * Renderer-wide state: the register map now, the frame clock and camera later.
  *
- * NOT A `CjsModel`, and deliberately. `CjsModel` carries the HYDRATION
- * machinery, and it is for objects that arrive from a `.red`/`.black` values
- * graph. This one is composed at runtime by the library, has no `@io` field,
- * and is referenced as a type by nothing - it can never be deserialized, so
- * the base was pure weight. (Operator, 2026-09-05: the abstraction layer, and
- * the resource and GPU classes, are not models either. The AL family already
- * complies.)
+ * NOT A `CjsModel`, and the reason is CATEGORY RATHER THAN COST. Operator,
+ * 2026-09-05: "CjsModel is only for things that actually need to hydrate", and
+ * "there should be little cost in making something a CjsModel". Both are true
+ * at once, and the second is why the first has to be stated as a rule - if the
+ * base were expensive, nobody would need telling.
+ *
+ * A model is an object that arrives from a `.red`/`.black` values graph. This
+ * one is composed at runtime by the library, carries no `@io` field, and is
+ * named as a type by nothing, so a hydration identity describes something that
+ * can never happen. The same goes for the abstraction layer and the resource
+ * and GPU classes - none of them is ever part of a serialized object. The AL
+ * family already complies.
  *
  * IT IS STILL DECORATED, and that is the point worth keeping straight:
  * decorators are not only hydration. `@type.define` gives the class an
