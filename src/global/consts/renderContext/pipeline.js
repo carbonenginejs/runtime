@@ -60,3 +60,17 @@ export const Tr2ColorSpace = Object.freeze({
     COLOR_SPACE_LINEAR: 0,
     COLOR_SPACE_SRGB: 1
 });
+
+/**
+ * The per-object constant buffers a render context owns
+ * (`Tr2RenderContextEnum`, `trinityal/Tr2RenderContextEnum.h:45-50`).
+ *
+ * One per shader stage, plus a GUI buffer that continues the numbering. Carbon
+ * calls them "special case constant buffers added to handle trinity", and the
+ * comment on `CBUFFER_COUNT` says what the array is for: "total number of
+ * cbuffers passed to SetPerObjectToDevice".
+ */
+export const ConstantBufferSlot = Object.freeze({
+    CBUFFER_GUI: ShaderType.SHADER_TYPE_COUNT,
+    CBUFFER_COUNT: ShaderType.SHADER_TYPE_COUNT + 1
+});

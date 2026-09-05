@@ -10,15 +10,17 @@
 //    GetInverseViewTransform/GetViewPosition) relocates Carbon's Tr2Renderer
 //    STATICS onto this context so frame consumers read it via the threaded
 //    updateContext.renderContext instead of a global.
-// 3. Carbon's actual Tr2RenderContext.h surface - RenderBatches family,
-//    GetConstantBuffer/GetBackBuffer, and Fork/Join parallel encoding - is NOT
-//    ported: batch rendering awaits the material/batch runtime; parallel
-//    encoding is intentionally omitted in single-threaded JS.
+// 3. Carbon's actual Tr2RenderContext.h surface. GetConstantBuffer is ported
+//    (2026-09-06) and the RenderBatches family is next; GetBackBuffer is not.
+//    Fork/Join parallel encoding is deliberately omitted - it exists to spread
+//    batch encoding across threads, and there is one.
 import { type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../al/ALResult.js";
+import { ConstantBufferSlot } from "#consts/render-context";
+import { Tr2ConstantBufferALStub } from "../al/Tr2ConstantBufferALStub.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
@@ -695,6 +697,52 @@ export class Tr2RenderContext extends CjsModel
   {
     return this.#requireAL("SetTopology").SetTopology(topology);
   }
+
+  /**
+   * The per-object constant buffer for one slot, created on first use.
+   *
+   * Carbon `Tr2RenderContext::GetConstantBuffer` (`Tr2RenderContext.h:56-59`),
+   * which returns a pointer into `m_perObjectConstantBuffers` - an array of
+   * `CBUFFER_COUNT` value members, one per shader stage plus a GUI slot.
+   *
+   * THE CONTEXT OWNING THESE IS THE POINT, not an implementation detail.
+   * `RenderBatchGroup` collects them once and hands the same array to every
+   * batch in a group, so a group of two hundred objects refills one buffer per
+   * stage rather than allocating two hundred. A per-draw allocation would be
+   * correct and unusably slow.
+   *
+   * Carbon default-constructs them eagerly and they are invalid until
+   * `FillAndSetConstants` creates one at the size it needs; ours are made on
+   * first ask, which reaches the same state without holding seven objects a
+   * headless context never uses.
+   *
+   * @param {number} slot A `ShaderType`, or `CBUFFER_GUI`.
+   * @returns {object|null} A `Tr2ConstantBufferAL`, or null for a bad slot.
+   */
+  GetConstantBuffer(slot)
+  {
+    if (!Number.isInteger(slot) || slot < 0 || slot >= ConstantBufferSlot.CBUFFER_COUNT) return null;
+
+    this.#perObjectConstantBuffers[slot] ??= new Tr2ConstantBufferALStub();
+
+    return this.#perObjectConstantBuffers[slot];
+  }
+
+  /**
+   * Every per-object constant buffer, in slot order, for handing to a batch
+   * group. Carbon builds this array on the stack in `RenderBatchGroup`.
+   *
+   * @returns {Array<object>} One `Tr2ConstantBufferAL` per slot.
+   */
+  GetConstantBuffers()
+  {
+    return Array.from(
+      { length: ConstantBufferSlot.CBUFFER_COUNT },
+      (unused, slot) => this.GetConstantBuffer(slot)
+    );
+  }
+
+  #perObjectConstantBuffers = new Array(ConstantBufferSlot.CBUFFER_COUNT).fill(null);
 
   /**
    * Binds a realized resource set for following draws.
