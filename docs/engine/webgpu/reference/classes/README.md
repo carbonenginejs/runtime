@@ -5,6 +5,26 @@ Scope: `@carbonenginejs/runtime/engine/webgpu` maintained classes
 Audience: Users, maintainers, and automated readers
 Summary: Provides one-sentence purpose descriptors for every maintained class in the WebGPU engine package.
 
+<!-- class:CjsWebgpuRenderContextAL -->
+## `CjsWebgpuRenderContextAL`
+
+WebGPU behind Carbon's abstraction layer: holds the bound geometry and program state, validates it, and delegates the draw to a work queue.
+
+- Export: Not exported
+- Source: `src/engine/webgpu/CjsWebgpuRenderContextAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuWorkQueue -->
+## `CjsWebgpuWorkQueue`
+
+Owns the encoder lifetime for one frame, opening a render pass lazily on the work that needs one and folding the declared pass hint into its attachments.
+
+- Export: Not exported
+- Source: `src/engine/webgpu/core/workQueue.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:CjsWebgpuPackage -->
 ## `CjsWebgpuPackage`
 

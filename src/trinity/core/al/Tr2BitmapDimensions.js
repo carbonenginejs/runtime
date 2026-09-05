@@ -30,29 +30,42 @@ import {
 
 /**
  * The dimensions, format and mip layout of a texture.
+ *
+ * STATE IS PRIVATE, BEHIND THE ACCESSORS CARBON ALREADY HAS. Its members were
+ * public here and are not in Carbon: `TriTextureRes` DERIVES from this type and
+ * reaches its size through `Tr2BitmapDimensions::GetWidth()`
+ * (`TriTextureRes.h:33,48-52`), which only works because the members are not
+ * the interface. The accessors below already existed, so the public fields were
+ * a second way to read the same state.
+ *
+ * The abstraction layer is engine machinery, not authored parameters (operator,
+ * 2026-09-05), so nothing here is a knob a human sets. The value TYPES it passes
+ * around are a different matter: `Tr2MsaaDesc`, the texture box and subresource,
+ * and the pass attachments are `struct`s in Carbon with public members, and stay
+ * that way.
  */
 export class Tr2BitmapDimensions
 {
   /** Width of mip zero. */
-  width = 0;
+  #width = 0;
 
   /** Height of mip zero. */
-  height = 0;
+  #height = 0;
 
   /** Carbon's `m_volumeDepth`; 1 for anything that is not a volume texture. */
-  depth = 0;
+  #depth = 0;
 
   /** Declared mip count. Zero means "a full chain" - see `GetTrueMipCount`. */
-  mipCount = 0;
+  #mipCount = 0;
 
   /** Slices. Six for a cube. */
-  arraySize = 1;
+  #arraySize = 1;
 
   /** A `TextureType` value. */
-  type = TextureType.TEX_TYPE_INVALID;
+  #type = TextureType.TEX_TYPE_INVALID;
 
   /** A `PixelFormat` value. */
-  format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
+  #format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
 
   /**
    * @param {object} [description] Texture description.
@@ -76,13 +89,13 @@ export class Tr2BitmapDimensions
       arraySize = type === TextureType.TEX_TYPE_CUBE ? 6 : 1
     } = description;
 
-    this.type = type;
-    this.format = format;
-    this.width = width;
-    this.height = height;
-    this.depth = depth;
-    this.mipCount = mipCount;
-    this.arraySize = arraySize;
+    this.#type = type;
+    this.#format = format;
+    this.#width = width;
+    this.#height = height;
+    this.#depth = depth;
+    this.#mipCount = mipCount;
+    this.#arraySize = arraySize;
   }
 
   /**
@@ -113,7 +126,7 @@ export class Tr2BitmapDimensions
    */
   GetWidth()
   {
-    return this.width;
+    return this.#width;
   }
 
   /**
@@ -123,7 +136,7 @@ export class Tr2BitmapDimensions
    */
   GetHeight()
   {
-    return this.height;
+    return this.#height;
   }
 
   /**
@@ -133,7 +146,7 @@ export class Tr2BitmapDimensions
    */
   GetDepth()
   {
-    return this.depth;
+    return this.#depth;
   }
 
   /**
@@ -143,7 +156,7 @@ export class Tr2BitmapDimensions
    */
   GetFormat()
   {
-    return this.format;
+    return this.#format;
   }
 
   /**
@@ -153,7 +166,7 @@ export class Tr2BitmapDimensions
    */
   GetType()
   {
-    return this.type;
+    return this.#type;
   }
 
   /**
@@ -163,7 +176,7 @@ export class Tr2BitmapDimensions
    */
   GetArraySize()
   {
-    return this.arraySize;
+    return this.#arraySize;
   }
 
   /**
@@ -173,7 +186,7 @@ export class Tr2BitmapDimensions
    */
   GetMipCount()
   {
-    return this.mipCount;
+    return this.#mipCount;
   }
 
   /**
@@ -186,9 +199,9 @@ export class Tr2BitmapDimensions
    */
   GetTrueMipCount()
   {
-    if (this.mipCount > 0) return this.mipCount;
+    if (this.#mipCount > 0) return this.#mipCount;
 
-    let size = Math.max(this.width, this.height);
+    let size = Math.max(this.#width, this.#height);
     let count = 0;
 
     while (size)
@@ -207,7 +220,7 @@ export class Tr2BitmapDimensions
    */
   IsCompressed()
   {
-    return IsCompressedFormat(this.format);
+    return IsCompressedFormat(this.#format);
   }
 
   /**
@@ -217,7 +230,7 @@ export class Tr2BitmapDimensions
    */
   HasMipmap()
   {
-    return this.mipCount !== 1;
+    return this.#mipCount !== 1;
   }
 
   /**
@@ -232,9 +245,9 @@ export class Tr2BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return Math.max(((this.width >> level) + 3) & ~3, 4);
+    if (this.IsCompressed()) return Math.max(((this.#width >> level) + 3) & ~3, 4);
 
-    return Math.max(this.width >> level, 1);
+    return Math.max(this.#width >> level, 1);
   }
 
   /**
@@ -247,9 +260,9 @@ export class Tr2BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return Math.max(((this.height >> level) + 3) & ~3, 4);
+    if (this.IsCompressed()) return Math.max(((this.#height >> level) + 3) & ~3, 4);
 
-    return Math.max(this.height >> level, 1);
+    return Math.max(this.#height >> level, 1);
   }
 
   /**
@@ -260,11 +273,11 @@ export class Tr2BitmapDimensions
    */
   GetMipDepth(level)
   {
-    if (this.type !== TextureType.TEX_TYPE_3D) return 1;
+    if (this.#type !== TextureType.TEX_TYPE_3D) return 1;
 
     if (level >= this.GetTrueMipCount()) return 0;
 
-    return Math.max(this.depth >> level, 1);
+    return Math.max(this.#depth >> level, 1);
   }
 
   /**
@@ -280,9 +293,9 @@ export class Tr2BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return this.GetMipWidth(level) / 4 * GetBlockByteSize(this.format);
+    if (this.IsCompressed()) return this.GetMipWidth(level) / 4 * GetBlockByteSize(this.#format);
 
-    return this.GetMipWidth(level) * GetBytesPerPixel(this.format);
+    return this.GetMipWidth(level) * GetBytesPerPixel(this.#format);
   }
 
   /**
@@ -295,9 +308,9 @@ export class Tr2BitmapDimensions
   {
     const pixels = this.GetMipWidth(level) * this.GetMipHeight(level) * this.GetMipDepth(level);
 
-    if (this.IsCompressed()) return pixels / 16 * GetBlockByteSize(this.format);
+    if (this.IsCompressed()) return pixels / 16 * GetBlockByteSize(this.#format);
 
-    return pixels * GetBytesPerPixel(this.format);
+    return pixels * GetBytesPerPixel(this.#format);
   }
 
   /**
@@ -319,12 +332,12 @@ export class Tr2BitmapDimensions
    */
   Equals(other)
   {
-    return this.width === other.width &&
-      this.height === other.height &&
-      this.depth === other.depth &&
-      this.mipCount === other.mipCount &&
-      this.arraySize === other.arraySize &&
-      this.type === other.type &&
-      this.format === other.format;
+    return this.#width === other.width &&
+      this.#height === other.height &&
+      this.#depth === other.depth &&
+      this.#mipCount === other.mipCount &&
+      this.#arraySize === other.arraySize &&
+      this.#type === other.type &&
+      this.#format === other.format;
   }
 }

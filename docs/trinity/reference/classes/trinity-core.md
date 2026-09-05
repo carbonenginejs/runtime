@@ -1233,6 +1233,86 @@ The range of faces, mip levels and pixels a map, update or copy applies to; unse
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2RegisterMapAL -->
+## `Tr2RegisterMapAL`
+
+Which shader-resource, unordered-access and sampler registers a program reads, kept per shader stage so the same register number in two stages stays two bindings.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2ResourceSetAL.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ResourceSetDescriptionAL -->
+## `Tr2ResourceSetDescriptionAL`
+
+What a resource set binds at each shader stage and register: shader resources with their colour space, unordered-access resources with their mip, samplers, and constant buffers.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2ResourceSetAL.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ResourceSetALStub -->
+## `Tr2ResourceSetALStub`
+
+GPU-free resource set that keeps the description and program it was created from, so a headless caller can read back what it asked to bind.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2ResourceSetAL.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2FenceALStub -->
+## `Tr2FenceALStub`
+
+GPU-free fence that tracks whether a marker is outstanding, answering as a device that finishes instantly and refusing a doubled marker or an unpaired wait.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2FenceALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2OcclusionQueryALStub -->
+## `Tr2OcclusionQueryALStub`
+
+GPU-free occlusion query that reports zero passing pixels and catches a mispaired Begin and End.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2QueryALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2GpuTimerALStub -->
+## `Tr2GpuTimerALStub`
+
+GPU-free timer reporting Carbon's tiny fixed span, and minus one when no timer exists so a caller can tell that from no elapsed time.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2QueryALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2PipelineStatsQueryALStub -->
+## `Tr2PipelineStatsQueryALStub`
+
+GPU-free pipeline-statistics query that always succeeds and reports an empty statistics set.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2QueryALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2VideoAdapterInfoStub -->
+## `Tr2VideoAdapterInfoStub`
+
+Adapter and display-mode enumeration answering with Carbon's single fictional adapter, whose available mode deliberately differs from its current mode.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/al/Tr2VideoAdapterInfoALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2DepthAttachment -->
 ## `Tr2DepthAttachment`
 
