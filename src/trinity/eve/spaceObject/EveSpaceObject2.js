@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { withITr2BoundingBox } from "#contracts";
 import { EveEntity } from "../EveEntity.js";
@@ -51,7 +52,7 @@ const OVERLAY_TYPE_ALL = 1;
  * and batch submission that drive them each frame.
  */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
-export class EveSpaceObject2 extends withIEveSpaceObject2(withITr2Renderable(withITr2BoundingBox(EveEntity)))
+export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpaceObject2(withITr2Renderable(withITr2BoundingBox(EveEntity))))
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
@@ -603,11 +604,11 @@ export class EveSpaceObject2 extends withIEveSpaceObject2(withITr2Renderable(wit
     const properties = this.inheritProperties.GetProperties();
     for (const child of this.effectChildren)
     {
-      child?.SetInheritProperties?.(properties);
+      if (child instanceof IEveInheritPropertiesOwner) child.SetInheritProperties(properties);
     }
     for (const light of this.lights)
     {
-      light?.SetInheritProperties?.(properties);
+      if (light instanceof IEveInheritPropertiesOwner) light.SetInheritProperties(properties);
     }
   }
 
@@ -641,7 +642,7 @@ export class EveSpaceObject2 extends withIEveSpaceObject2(withITr2Renderable(wit
   {
     if (this.inheritProperties)
     {
-      child?.SetInheritProperties?.(this.inheritProperties.GetProperties());
+      if (child instanceof IEveInheritPropertiesOwner) child.SetInheritProperties(this.inheritProperties.GetProperties());
     }
     child.SetOwner(this);
     this.effectChildren.push(child);
@@ -657,7 +658,7 @@ export class EveSpaceObject2 extends withIEveSpaceObject2(withITr2Renderable(wit
   {
     if (this.inheritProperties)
     {
-      light?.SetInheritProperties?.(this.inheritProperties.GetProperties());
+      if (light instanceof IEveInheritPropertiesOwner) light.SetInheritProperties(this.inheritProperties.GetProperties());
     }
     this.lights.push(light);
   }

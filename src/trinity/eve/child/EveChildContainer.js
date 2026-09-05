@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
 import { mat4 } from "#math/mat4";
+import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
@@ -34,7 +35,7 @@ const ZERO_VEC3 = vec3.create();
  * modifiers, and gating them on a display-quality filter.
  */
 @type.define({ className: "EveChildContainer", family: "eve/child" })
-export class EveChildContainer extends withITr2Renderable(EveChildTransform)
+export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Renderable(EveChildTransform))
 {
   @io.notify
   @io.persist
@@ -1301,11 +1302,11 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
 
     for (const child of this.objects)
     {
-      child?.SetInheritProperties?.(colorSet);
+      if (child instanceof IEveInheritPropertiesOwner) child.SetInheritProperties(colorSet);
     }
     for (const light of this.lights)
     {
-      light?.SetInheritProperties?.(colorSet);
+      if (light instanceof IEveInheritPropertiesOwner) light.SetInheritProperties(colorSet);
     }
   }
 

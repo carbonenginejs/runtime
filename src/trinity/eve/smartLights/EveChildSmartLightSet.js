@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
+import { withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
 import { EveEntity } from "../EveEntity.js";
@@ -15,7 +16,7 @@ import {
 
 /** A child that drives a placement distribution and fans its per-frame update, visibility, rendering and registration across a set of smart-light groups. */
 @type.define({ className: "EveChildSmartLightSet", family: "eve/smartLights" })
-export class EveChildSmartLightSet extends EveChildTransform
+export class EveChildSmartLightSet extends withIEveInheritPropertiesOwner(EveChildTransform)
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */

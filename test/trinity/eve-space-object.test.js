@@ -19,6 +19,7 @@ import {
 } from "../../npm/dist/trinity/index.js";
 import { EveChildInheritProperties } from "../../npm/dist/trinity/eve/child/EveChildInheritProperties.js";
 import { withITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller.js";
+import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../../npm/dist/trinity/eve/IEveInheritPropertiesOwner.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 
 
@@ -366,18 +367,20 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
   const existingChildCalls = [];
   const existingLightCalls = [];
   const ordinaryChildCalls = [];
-  object.effectChildren.push({
+  object.effectChildren.push(new (class extends IEveInheritPropertiesOwner
+  {
     SetInheritProperties(properties)
     {
       existingChildCalls.push(properties);
     }
-  });
-  object.lights.push({
+  })());
+  object.lights.push(new (class extends IEveInheritPropertiesOwner
+  {
     SetInheritProperties(properties)
     {
       existingLightCalls.push(properties);
     }
-  });
+  })());
   object.children.push({
     SetInheritProperties(properties)
     {
@@ -396,7 +399,7 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
 
   let childWasInserted = null;
   const futureChildCalls = [];
-  const futureChild = Object.assign(new EveSpaceObjectChild(), {
+  const futureChild = Object.assign(new (withIEveInheritPropertiesOwner(EveSpaceObjectChild))(), {
     SetInheritProperties(properties)
     {
       childWasInserted = object.effectChildren.includes(futureChild);
@@ -410,13 +413,14 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
 
   let lightWasInserted = null;
   const futureLightCalls = [];
-  const futureLight = {
+  const futureLight = new (class extends IEveInheritPropertiesOwner
+  {
     SetInheritProperties(properties)
     {
       lightWasInserted = object.lights.includes(futureLight);
       futureLightCalls.push(properties);
     }
-  };
+  })();
   object.AddLight(futureLight);
   assert.equal(lightWasInserted, false);
   assert.equal(object.lights.at(-1), futureLight);
@@ -438,7 +442,13 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
 
   const nullObject = new EveSpaceObject2();
   const nullCalls = [];
-  nullObject.effectChildren.push({ SetInheritProperties: properties => nullCalls.push(properties) });
+  nullObject.effectChildren.push(new (class extends IEveInheritPropertiesOwner
+  {
+    SetInheritProperties(properties)
+    {
+      nullCalls.push(properties);
+    }
+  })());
   nullObject.SetInheritProperties(null);
   const zeroStorage = nullObject.inheritProperties.GetProperties();
   assert.equal(zeroStorage.length, 44);

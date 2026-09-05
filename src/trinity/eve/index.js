@@ -14,6 +14,7 @@ export * from "./FormationData.js";
 export * from "./InertiaData.js";
 export * from "./IEveBallpark.js";
 export * from "./IEveFiringEffectElement.js";
+export * from "./IEveInheritPropertiesOwner.js";
 export * from "./IEveSpaceObject2.js";
 export * from "./IEveTransform.js";
 export * from "./IEveReferencePoint.js";
