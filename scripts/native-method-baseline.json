@@ -1088,9 +1088,6 @@
     "GetResourceMemoryClass",
     "IsResourceValid"
   ],
-  "Tr2Blitter": [
-    "OnPrepareResources"
-  ],
   "Tr2BoneMatrixCurve": [
     "AddKey_",
     "Interpolate"
@@ -1219,9 +1216,6 @@
   ],
   "Tr2EffectTechniqueInputs": [
     "swap"
-  ],
-  "Tr2FactionLight": [
-    "RenderDebugInfo"
   ],
   "Tr2FontManager": [
     "FaceRequester",
@@ -1637,9 +1631,6 @@
     "GetWhiteBalance",
     "Initialize"
   ],
-  "Tr2Light": [
-    "RenderDebugInfo"
-  ],
   "Tr2LightManager": [
     "ClearLightIndices",
     "CreateShadowMapAtlas",
@@ -1876,9 +1867,6 @@
     "GetPlatformID",
     "GetPlatformName",
     "IsLowPerformance"
-  ],
-  "Tr2PointLight": [
-    "RenderDebugInfo"
   ],
   "Tr2PostProcessRenderer": [
     "Blur",
@@ -2249,9 +2237,6 @@
     "GetDescription",
     "OnPrepareResources",
     "ReleaseResources"
-  ],
-  "Tr2SpotLight": [
-    "RenderDebugInfo"
   ],
   "Tr2Sprite2d": [
     "GetVertexCount"

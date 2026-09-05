@@ -276,6 +276,18 @@ export class Tr2Light extends CjsModel
     return true;
   }
 
+  /**
+   * Carbon Tr2Light::RenderDebugInfo (Tr2Light.cpp:205-207) is an EMPTY
+   * base implementation - subclasses draw their own markers. Ported as the
+   * same deliberate no-op so the debug-renderer traversal can call it
+   * unconditionally.
+   */
+  @carbon.method
+  @impl.implemented
+  RenderDebugInfo(_renderer = null)
+  {
+  }
+
   static LIGHT_TYPE = Tr2Light.LightType;
 
   static PerLightShadowSetting = PerLightShadowSetting;
