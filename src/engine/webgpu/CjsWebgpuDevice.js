@@ -11,6 +11,7 @@ const TEXTURES = new WeakMap();
 const SAMPLERS = new WeakMap();
 const RESOURCE_BUNDLES = new WeakMap();
 const DRAWS = new WeakMap();
+const DEVICE_BUFFERS = new WeakMap();
 const MAX_GPU_SIZE_32 = 0xFFFFFFFF;
 const MIN_GPU_SIGNED_OFFSET_32 = -0x80000000;
 const MAX_GPU_SIGNED_OFFSET_32 = 0x7FFFFFFF;
@@ -1162,6 +1163,19 @@ export class CjsWebgpuDevice
   }
 
   /**
+   * The `GPUBufferUsage` table this device builds masks from.
+   *
+   * It is injectable (`options.bufferUsage`) so a test can drive buffer
+   * creation without a real WebGPU global.
+   *
+   * @returns {object} The usage flags.
+   */
+  GetBufferUsage()
+  {
+    return this._bufferUsage;
+  }
+
+  /**
    * Returns the generation used to reject objects from earlier device
    * lifecycles.
    */
@@ -2157,6 +2171,90 @@ export class CjsWebgpuDevice
       }
       throw error;
     }
+  }
+
+  // A buffer Trinity owns and rewrites, as opposed to the geometry buffers
+  // above, which this device uploads once and caches. Carbon's `Tr2BufferAL`
+  // is the caller; see `CjsWebgpuBufferAL`.
+  //
+  // The handle is opaque and the `GPUBuffer` stays in DEVICE_BUFFERS, matching
+  // how geometries and binding sets are held here.
+
+  /**
+   * Creates a buffer whose contents the caller rewrites.
+   *
+   * @param {object} options `{ label, size, usage }` - usage is a raw
+   *   `GPUBufferUsage` mask; COPY_DST is added because writes arrive through
+   *   `WriteDeviceBuffer`.
+   * @returns {object} An opaque handle carrying `size` and `Destroy`.
+   */
+  CreateDeviceBuffer({ label = "device-buffer", size, usage })
+  {
+    const device = this.GetDevice();
+
+    if (!Number.isInteger(size) || size <= 0) fail("a device buffer needs a positive integer size");
+    if (!Number.isInteger(usage) || usage <= 0) fail("a device buffer needs a usage mask");
+
+    // WebGPU requires a multiple of 4, and writeBuffer requires the same of
+    // every write. Rounding up here means the shadow copy and the GPU buffer
+    // always agree on length.
+    const aligned = alignedBufferSize(size);
+    const buffer = device.createBuffer({ label, size: aligned, usage: usage | this._bufferUsage.COPY_DST });
+
+    const handle = {
+      size: aligned,
+      requestedSize: size,
+      Destroy: () =>
+      {
+        const record = DEVICE_BUFFERS.get(handle);
+        if (!record) return false;
+        DEVICE_BUFFERS.delete(handle);
+        record.buffer.destroy();
+        return true;
+      }
+    };
+
+    DEVICE_BUFFERS.set(handle, { buffer, size: aligned, generation: this.GetGeneration() });
+
+    return handle;
+  }
+
+  /**
+   * Uploads bytes into a device buffer.
+   *
+   * @param {object} handle A `CreateDeviceBuffer` handle.
+   * @param {ArrayBufferView} bytes The bytes to write.
+   * @param {number} [offset] Byte offset into the buffer.
+   * @returns {object} The handle.
+   */
+  WriteDeviceBuffer(handle, bytes, offset = 0)
+  {
+    const record = DEVICE_BUFFERS.get(handle);
+
+    if (!record) fail("that is not a live device buffer");
+    if (!ArrayBuffer.isView(bytes)) fail("device buffer data must be an ArrayBufferView");
+    if (offset % 4 !== 0) fail("a device buffer write must start on a four-byte boundary");
+    if (bytes.byteLength % 4 !== 0) fail("a device buffer write must be a whole number of four-byte words");
+    if (offset + bytes.byteLength > record.size) fail("that write runs past the end of the device buffer");
+
+    this.GetDevice().queue.writeBuffer(record.buffer, offset, bytes);
+
+    return handle;
+  }
+
+  /**
+   * The `GPUBuffer` behind a handle, for binding it to a draw.
+   *
+   * @param {object} handle A `CreateDeviceBuffer` handle.
+   * @returns {GPUBuffer} The buffer.
+   */
+  GetDeviceBuffer(handle)
+  {
+    const record = DEVICE_BUFFERS.get(handle);
+
+    if (!record) fail("that is not a live device buffer");
+
+    return record.buffer;
   }
 
   /**

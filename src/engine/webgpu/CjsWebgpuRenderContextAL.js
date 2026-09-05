@@ -166,6 +166,20 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
+   * The device this context draws through.
+   *
+   * Carbon's buffer and texture AL types take a `Tr2PrimaryRenderContextAL&` in
+   * `Create` and reach the device through it (`Tr2BufferAL.h:47`), so the
+   * context being the way to the device is Carbon's shape, not a shortcut.
+   *
+   * @returns {object|null} The `CjsWebgpuDevice`, or null before composition.
+   */
+  GetWebgpu()
+  {
+    return this.#webgpu;
+  }
+
+  /**
    * How many batches this backend has encoded since it was created.
    *
    * A HARNESS NEEDS THIS AND A FRAME DOES NOT, which is why it counts batches
