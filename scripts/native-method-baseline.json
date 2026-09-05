@@ -74,8 +74,7 @@
     "RebuildCachedData",
     "ReleaseCachedData",
     "RenderDebugInfo",
-    "SetupRenderables",
-    "void"
+    "SetupRenderables"
   ],
   "BehaviorGroupBooster": [
     "AdjustFlareLists",
@@ -118,8 +117,7 @@
     "RenderDebugInfo"
   ],
   "EveBoxVolume": [
-    "Setup",
-    "void"
+    "Setup"
   ],
   "EveChildAudio": [
     "GetDebugOptions",
@@ -431,8 +429,7 @@
     "py__init__"
   ],
   "EveEllipsoidVolume": [
-    "Setup",
-    "void"
+    "Setup"
   ],
   "EveHazeSet": [
     "CreateBoundingBox",
@@ -768,9 +765,6 @@
     "ReleaseResources",
     "Update"
   ],
-  "EveSphereVolume": [
-    "void"
-  ],
   "EveSpotlightSet": [
     "GetDefinition",
     "RegisterQuadRendererCone",
@@ -989,8 +983,7 @@
     "GridToggleReset"
   ],
   "SplineTunnelGroup": [
-    "CreateSplineTunnels",
-    "void"
+    "CreateSplineTunnels"
   ],
   "StretchAudio": [
     "GetDebugOptions",
@@ -1648,8 +1641,7 @@
     "IsReached",
     "Put",
     "StaticResourceLoadFinished",
-    "StaticResourcePrepFinished",
-    "void"
+    "StaticResourcePrepFinished"
   ],
   "Tr2MainWindow": [
     "AdjustWindow",
