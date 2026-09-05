@@ -124,10 +124,18 @@ test("portable generated render steps initialize and emit backend-neutral work",
   renderPass.__init__(scene, TriStepRenderPass.PassType.RP_DEPTH_PASS);
   assertEquals(renderPass.Execute(0, 0, context), TriRenderStep.RS_TERMINATE);
 
+  // TriStepRenderObject does its own work now (Carbon cpp:42-70): it owns four
+  // accumulators, collects the renderable into them and submits one per enabled
+  // type. The stub records which types it was asked for.
+  const collectedTypes = [];
   const renderObject = new TriStepRenderObject();
-  renderObject.__init__({ name: "renderable" });
+  renderObject.__init__({
+    GetPerObjectData: () => ({ name: "per-object" }),
+    GetBatches: (_accumulator, batchType) => collectedTypes.push(batchType)
+  });
   assertEquals(renderObject.renderOpaque, true);
   renderObject.Execute(0, 0, context);
+  assertEquals(collectedTypes.join(","), "0,1,2,4");
 
   const renderEffect = new TriStepRenderEffect();
   renderEffect.__init__({ name: "effect" }, { name: "constants" });
@@ -150,7 +158,7 @@ test("portable generated render steps initialize and emit backend-neutral work",
   // set-upscaling-context-id no longer records: the context already holds it
   // and the planner classified it STATE, which forces no boundary and is
   // excluded from the has-work test. Recorded and ignored.
-  assertEquals(intents.map(intent => intent.type).join(","), "render-object,draw-effect,run-compute-shader");
+  assertEquals(intents.map(intent => intent.type).join(","), "render-batches,render-batches,render-batches,render-batches,draw-effect,run-compute-shader");
   assertEquals(events[0][0], "scene");
   assertEquals(events.at(-1).join(","), "update,5,6");
 });

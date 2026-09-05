@@ -89,7 +89,7 @@ function segment(...intents)
 
 function draw(name)
 {
-  return { type: "render-object", renderable: name };
+  return { type: "render-texture", source: name };
 }
 
 function compute()

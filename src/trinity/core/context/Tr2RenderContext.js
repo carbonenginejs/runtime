@@ -925,10 +925,6 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Records a render-object intent naming a renderable, with any extra options
-   * merged into the intent.
-   */
-  /**
    * Records a submission of one finalized batch accumulator.
    *
    * Carbon's RenderBatches (Tr2RenderContext.h:37-52) walks the accumulator and
@@ -1005,12 +1001,6 @@ export class Tr2RenderContext extends CjsModel
     if (this.#al) return this.#al.RenderBatches(batches, techniqueName, { picking: true });
 
     this.#intents.push({ type: "render-batches", batches, techniqueName, picking: true });
-    return true;
-  }
-
-  RenderObject(renderable, options = {})
-  {
-    this.#intents.push({ type: "render-object", renderable, ...options });
     return true;
   }
 

@@ -48,7 +48,7 @@ const MAX_RENDER_TARGET = 8;
  * A render context that keeps real state and draws nothing.
  *
  * Implements the AL verbs only. The Trinity-level verbs a render step also
- * reaches for - projection, view transform, wireframe, the render-object and
+ * reaches for - projection, view transform, wireframe and the
  * render-texture helpers - are NOT here, because Carbon does not put them on
  * the AL either: they belong to `Tr2Renderer`, `Tr2EffectStateManager` and the
  * `TriStep*` types themselves.

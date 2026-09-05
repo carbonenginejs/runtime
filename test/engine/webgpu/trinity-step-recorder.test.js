@@ -52,7 +52,7 @@ test("Trinity step recorder captures immutable begin, execute, and end segments"
     execute(realTime, simTime, received)
     {
       assert.deepEqual([ realTime, simTime, received ], [ 1, 2, renderContext ]);
-      received.RenderObject({ id: "draw" }, { count: 3 });
+      received.RenderTexture({ id: "draw" }, { count: 3 });
       return 0;
     },
     end(received)
@@ -70,7 +70,7 @@ test("Trinity step recorder captures immutable begin, execute, and end segments"
 
   const segments = recorder.GetSegments();
   assert.deepEqual(segments.map((entry) => entry.phase), [ "begin", "execute", "end" ]);
-  assert.deepEqual(segments.map((entry) => entry.intents[0].type), [ "clear", "render-object", "present-swap-chain" ]);
+  assert.deepEqual(segments.map((entry) => entry.intents[0].type), [ "clear", "render-texture", "present-swap-chain" ]);
   assert.deepEqual(segments[0].intents[0].color, [ 0.25, 0.5, 0.75, 1 ]);
   assert.equal(segments[2].intents[0].swapChain, swapChain);
   assert.equal(Object.isFrozen(swapChain), false);
@@ -86,7 +86,7 @@ test("Trinity step recorder preserves nested intent order and exactly-once takes
     id: "child",
     execute(_realTime, _simTime, received)
     {
-      received.RenderObject({ id: "child" });
+      received.RenderTexture({ id: "child" });
       return 0;
     }
   });
@@ -94,23 +94,23 @@ test("Trinity step recorder preserves nested intent order and exactly-once takes
     id: "parent",
     execute(_realTime, _simTime, received)
     {
-      received.RenderObject({ id: "parent-before" });
+      received.RenderTexture({ id: "parent-before" });
       recorder.BeginStep(child, 3, 4, childJob, received);
       recorder.ExecuteStep(child, 3, 4, childJob, received);
       recorder.EndStep(child, 3, 4, childJob, received);
-      received.RenderObject({ id: "parent-after" });
+      received.RenderTexture({ id: "parent-after" });
       return 0;
     }
   });
 
-  renderContext.RenderObject({ id: "frame-setup" });
+  renderContext.RenderTexture({ id: "frame-setup" });
   recorder.BeginStep(parent, 1, 2, parentJob, renderContext);
   recorder.ExecuteStep(parent, 1, 2, parentJob, renderContext);
   recorder.EndStep(parent, 1, 2, parentJob, renderContext);
 
   const segments = recorder.TakeSegments();
   assert.deepEqual(
-    segments.flatMap((entry) => entry.intents.map((intent) => intent.renderable.id)),
+    segments.flatMap((entry) => entry.intents.map((intent) => intent.source.id)),
     [ "frame-setup", "parent-before", "child", "parent-after" ]
   );
   assert.deepEqual(
@@ -137,7 +137,7 @@ test("Trinity step recorder closes failed setup and enforces balanced ownership"
   const broken = new TestStep({
     begin(received)
     {
-      received.RenderObject({ id: "before-error" });
+      received.RenderTexture({ id: "before-error" });
       throw new Error("setup failed");
     }
   });
@@ -146,7 +146,7 @@ test("Trinity step recorder closes failed setup and enforces balanced ownership"
     () => recorder.BeginStep(broken, 0, 0, job, renderContext),
     /setup failed/u
   );
-  assert.equal(recorder.GetSegments()[0].intents[0].renderable.id, "before-error");
+  assert.equal(recorder.GetSegments()[0].intents[0].source.id, "before-error");
 
   const next = new TestStep();
   recorder.BeginStep(next, 0, 0, job, renderContext);
