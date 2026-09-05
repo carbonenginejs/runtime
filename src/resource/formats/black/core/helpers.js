@@ -31,9 +31,7 @@ export const DEFAULT_VALUES = Object.freeze({
     payloadIdField: "_id",
     payloadReferenceField: "_reference",
     pathHandler: null,
-    adapter: null,
-    adapters: null,
-    classes: Object.freeze({})
+    adapter: null,    classes: Object.freeze({})
 });
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
@@ -92,9 +90,7 @@ function cloneValues(values)
         payloadIdField: values.payloadIdField,
         payloadReferenceField: values.payloadReferenceField,
         pathHandler: values.pathHandler ?? null,
-        adapter: values.adapter ?? null,
-        adapters: values.adapters ?? null,
-        classes: { ...classMap(values) }
+        adapter: values.adapter ?? null,        classes: { ...classMap(values) }
     };
 }
 
@@ -178,9 +174,7 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (Object.hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
     if (Object.hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
     if (Object.hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
-    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
-    if (Object.hasOwn(options, "adapters")) values.adapters = options.adapters ?? null;
-    if (Object.hasOwn(options, "pathHandler"))
+    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;    if (Object.hasOwn(options, "pathHandler"))
     {
         if (options.pathHandler !== null && options.pathHandler !== undefined && typeof options.pathHandler !== "function")
         {

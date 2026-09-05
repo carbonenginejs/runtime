@@ -115,14 +115,21 @@ export class CjsDocumentHydrator
             values[key] = CjsDocumentHydrator.hydrateFieldValue(item, field, instanceById, options);
         }
 
+        // node.raw is enumerable NON-SCHEMA state, and its preservation is this
+        // deprecated path's documented contract (model-values-interchange.md).
+        // It is applied by direct assignment AFTER the adapter: a validated
+        // setter rightly ignores undeclared keys, so raw state is the
+        // hydrator's own job, exactly as it is for plain fallback carriers.
+        const rawValues = {};
         for (const [key, item] of Object.entries(node.raw || {}))
         {
             if (CjsSchema.isFieldHidden(target?.constructor, key)) continue;
-            values[key] = CjsDocumentHydrator.resolveDocumentValue(item, instanceById, options);
+            rawValues[key] = CjsDocumentHydrator.resolveDocumentValue(item, instanceById, options);
         }
 
         const apply = adapter || resolveHydrationAdapter(options);
         apply.applyValues(target, values, { kind: node.kind, shape, node, options });
+        Object.assign(target, rawValues);
         return target;
     }
 

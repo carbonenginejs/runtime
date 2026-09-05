@@ -9,9 +9,7 @@ export const DEFAULT_VALUES = Object.freeze({
     registry: null,
     firstId: 1,
     parse: null,
-    adapter: null,
-    adapters: null,
-    payloadTypeField: "_type",
+    adapter: null,    payloadTypeField: "_type",
     payloadIdField: "_id",
     payloadReferenceField: "_reference",
     payloadValuesField: "_values",
@@ -54,9 +52,7 @@ function cloneValues(values)
         registry: values.registry ?? null,
         firstId: values.firstId ?? 1,
         parse: values.parse ?? null,
-        adapter: values.adapter ?? null,
-        adapters: values.adapters ?? null,
-        payloadTypeField: values.payloadTypeField,
+        adapter: values.adapter ?? null,        payloadTypeField: values.payloadTypeField,
         payloadIdField: values.payloadIdField,
         payloadReferenceField: values.payloadReferenceField,
         payloadValuesField: values.payloadValuesField,
@@ -128,9 +124,7 @@ export function normalizeValues(base, options, classKeys, readerName)
         }
         values.parse = options.parse ?? null;
     }
-    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
-    if (Object.hasOwn(options, "adapters")) values.adapters = options.adapters ?? null;
-    if (Object.hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
+    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;    if (Object.hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
     if (Object.hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
     if (Object.hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
     if (Object.hasOwn(options, "payloadValuesField")) values.payloadValuesField = options.payloadValuesField;

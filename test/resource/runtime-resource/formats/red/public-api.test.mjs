@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import CjsRedFormat, { CjsRedFormat as NamedCjsRedFormat } from "../../../../../npm/dist/resource/formats/red/index.js";
-import { createLifecycleAdapter } from "#model/hydration";
 
 // A shared node referenced by identity models a YAML anchor/alias: the same
 // object appears in two places in the graph.
@@ -262,7 +261,7 @@ test("readRuntime constructs caller classes and shares instances", () =>
     assert.equal(runtime.root.curveSets[0].bindings[0].destinationObject, light);
 });
 
-test("createLifecycleAdapter drives SetValues and Initialize", () =>
+test("the DEFAULT adapter drives SetValues and Initialize", () =>
 {
     const seen = [];
     class LiveContainer
@@ -295,8 +294,7 @@ test("createLifecycleAdapter drives SetValues and Initialize", () =>
             Tr2CurveScalar: LiveNode,
             TriValueBinding: LiveNode,
             Tr2Effect: LiveNode
-        },
-        adapter: createLifecycleAdapter()
+        }
     });
 
     assert.equal(runtime.root instanceof LiveContainer, true);

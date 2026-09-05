@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/resource/formats/black/index.js";
-import { createLifecycleAdapter } from "#model/hydration";
 
 class Root {}
 class ObjectNode {}
@@ -342,7 +341,7 @@ test("readRuntime routes construction, values, and finalize through a caller ada
     assert.equal(finalizeOrder[finalizeOrder.length - 1], "TestRoot");
 });
 
-test("createLifecycleAdapter drives SetValues and Initialize", () =>
+test("the DEFAULT adapter drives SetValues and Initialize", () =>
 {
     const input = createRootFixture();
     class LiveRoot
@@ -358,8 +357,7 @@ test("createLifecycleAdapter drives SetValues and Initialize", () =>
 
     const runtime = CjsBlackFormat.readRuntime(input, {
         schema: sampleSchema,
-        classes: { TestRoot: LiveRoot, TestChild: LiveChild },
-        adapter: createLifecycleAdapter()
+        classes: { TestRoot: LiveRoot, TestChild: LiveChild }
     });
 
     assert.equal(runtime.root instanceof LiveRoot, true);

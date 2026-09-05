@@ -1,11 +1,6 @@
-import { CjsSchema } from "./CjsSchema.js";
-
 /**
- * Hydration adapter seam.
- *
- * The global model foundation deliberately does NOT impose a runtime lifecycle
- * (SetValues / OnValueChanged / Initialize / etc. are one project's rules,
- * not a contract). The only thing the library guarantees is ORDERING:
+ * Hydration adapter seam - the population contract for readers that build
+ * runtime objects incrementally (black/red). The ordering guarantee:
  *
  *   1. construct   - build every instance (register refs before values, so
  *                    cycles/back-references resolve)
@@ -13,117 +8,60 @@ import { CjsSchema } from "./CjsSchema.js";
  *   3. finalize    - run once per instance AFTER the whole graph is built,
  *                    so references are already resolved
  *
- * Callers inject HOW their own classes are constructed, populated, and
- * finalized. Every hook is optional; when absent the built-in default is used
- * so plain objects / `class {}` need zero configuration.
+ * DEFAULTS (operator ruling, 2026-09-05; resource-population.md owns the
+ * decision): a resolved class is populated through its own validated setter -
+ * "if someone is using Object.assign, they probably should be using
+ * SetValues" - and a class-owned Initialize runs once post-graph, which is
+ * the incremental-reader counterpart of the reader+IInitialize handshake
+ * Blue performs and CjsModel.from performs for whole-bag JSON. Plain
+ * fallback carriers (unresolved kinds) keep raw assignment: that IS their
+ * contract, not a bypass.
  *
- * Adapter shape (all methods optional):
- *   construct(kind, ctx)             -> instance | undefined
- *        Return an instance, or `undefined` to fall back to the caller's
- *        built-in default construction (registry/class lookup).
- *   applyValues(instance, values, ctx) -> instance
- *        Apply `values` ({ fieldName: value }) to the instance. MUST mutate
- *        the given instance in place (returning a replacement would strip
- *        already-resolved references in cyclic graphs). Default: Object.assign.
- *   finalize(instance, ctx)          -> void
- *        Post-graph initialization. Default: no-op.
+ * The single escape hatch is `options.adapter`, per-hook optional. The
+ * per-kind adapters map and the hydrationAdapter alias are gone - they had
+ * zero consumers. Callers wanting raw assignment pass their own adapter.
  *
- * ctx: { kind, shape?, node?, options }
- *
- * Options consumed:
- *   options.adapter  / options.hydrationAdapter : a single adapter object
- *   options.adapters : { [kind]: adapter } | Map  per-kind override (wins over
- *                      the single adapter)
+ * SetValues is called directly rather than through CjsSchema.setValues so a
+ * reader works with only the schema layer loaded; the two are the same path
+ * for every class that has the method.
  */
-
-function adapterOwning(perKind, global, kind, name)
-{
-    if (perKind)
-    {
-        const specific = perKind instanceof Map ? perKind.get(kind) : perKind[kind];
-        if (specific && typeof specific[name] === "function") return specific;
-    }
-    if (global && typeof global[name] === "function") return global;
-    return null;
-}
 
 /**
  * Resolves a normalized adapter from hydration options. The returned object
  * always exposes construct/applyValues/finalize with the documented defaults.
+ *
  * @param {Object} [options]
+ * @param {Object} [options.adapter] Per-hook overrides: construct/applyValues/finalize.
  * @returns {{ construct: Function, applyValues: Function, finalize: Function }}
  */
 export function resolveHydrationAdapter(options = {})
 {
-    const global = options.adapter || options.hydrationAdapter || null;
-    const perKind = options.adapters || null;
+    const custom = options.adapter || null;
 
     return {
         construct(kind, ctx)
         {
-            const owner = adapterOwning(perKind, global, kind, "construct");
-            return owner ? owner.construct(kind, ctx) : undefined;
+            if (custom && typeof custom.construct === "function") return custom.construct(kind, ctx);
+            return undefined;
         },
         applyValues(instance, values, ctx)
         {
-            const owner = adapterOwning(perKind, global, ctx?.kind, "applyValues");
-            if (owner) return owner.applyValues(instance, values, ctx);
-            return Object.assign(instance, values);
-        },
-        finalize(instance, ctx)
-        {
-            const owner = adapterOwning(perKind, global, ctx?.kind, "finalize");
-            if (owner) owner.finalize(instance, ctx);
-        }
-    };
-}
-
-/**
- * Optional convenience adapter for callers whose classes follow a
- * "SetValues + Initialize" convention (Carbon / ccpwgl / CjsModel style).
- *
- * This is NOT a default - opt in by passing it as `options.adapter`. Method
- * names are configurable; pass `false`/`null` to disable a phase. When
- * SetValues is enabled, applyValues throws if the populated instance does not
- * implement it; this keeps class population from silently bypassing runtime
- * validation. Finalize is skipped when the named initialize method is missing.
- *
- * @param {Object} [config]
- * @param {String|false|null} [config.setValues="SetValues"]
- * @param {String|false|null} [config.initialize="Initialize"]
- * @param {Function} [config.construct] optional construct hook
- * @returns {{ construct?: Function, applyValues: Function, finalize: Function }}
- */
-export function createLifecycleAdapter(config = {})
-{
-    const setValuesName = config.setValues === undefined ? "SetValues" : config.setValues;
-    const initializeName = config.initialize === undefined ? "Initialize" : config.initialize;
-    const construct = typeof config.construct === "function" ? config.construct : null;
-
-    const adapter = {
-        applyValues(instance, values, ctx)
-        {
-            if (setValuesName && instance && typeof instance[setValuesName] === "function")
+            if (custom && typeof custom.applyValues === "function") return custom.applyValues(instance, values, ctx);
+            if (instance && typeof instance.SetValues === "function")
             {
-                instance[setValuesName](values, ctx?.options);
+                instance.SetValues(values, ctx?.options);
                 return instance;
             }
-            if (setValuesName && instance && typeof instance === "object")
-            {
-                const kind = ctx?.kind ?? CjsSchema.getClassName(instance.constructor) ?? "unknown";
-                throw new TypeError(`${kind} cannot be populated by createLifecycleAdapter: missing ${setValuesName}().`);
-            }
             return Object.assign(instance, values);
         },
         finalize(instance, ctx)
         {
-            if (initializeName && instance && typeof instance[initializeName] === "function")
+            if (custom && typeof custom.finalize === "function")
             {
-                instance[initializeName](ctx?.options);
+                custom.finalize(instance, ctx);
+                return;
             }
+            if (instance && typeof instance.Initialize === "function") instance.Initialize();
         }
     };
-
-    if (construct) adapter.construct = construct;
-    return adapter;
 }
