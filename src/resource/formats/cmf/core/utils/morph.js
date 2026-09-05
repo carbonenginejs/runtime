@@ -1,3 +1,10 @@
+/** Resolve a mesh morph name to its animation channel name using Carbon's Shape suffix convention. */
+export function morphAnimationTargetName(name)
+{
+    // AddMorphWeightChannels strips one suffix only when a non-empty name remains.
+    return name.length > 5 && name.endsWith("Shape") ? name.slice(0, -5) : name;
+}
+
 function vertexCountOf(vertex)
 {
     for (const [ name, width ] of [

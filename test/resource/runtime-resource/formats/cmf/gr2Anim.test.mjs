@@ -594,10 +594,11 @@ test("maps scalar root vector tracks to CMF morph animation channels", () =>
     }), /unsupported dimension 3/u);
 });
 
-test("root conversion keeps only vector tracks resolving to real morph targets", () =>
+for (const meshTarget of [ "Smile", "SmileShape" ])
+test(`root conversion keeps only vector tracks resolving to ${meshTarget}`, () =>
 {
     const converted = convertGr2SkeletonsAndAnimations({
-        meshes: [ { morphTargets: [ { name: "Smile" } ] } ],
+        meshes: [ { morphTargets: [ { name: meshTarget } ] } ],
         animations: [ {
             name: "face",
             duration: 1,

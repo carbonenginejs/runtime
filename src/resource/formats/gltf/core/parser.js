@@ -1,5 +1,6 @@
 import { asUint8Array } from "#utils/bytes";
 import { mat4 } from "#math/mat4";
+import { morphAnimationTargetName } from "../../cmf/core/utils/morph.js";
 
 /**
  * glTF/GLB parser that emits the shared CarbonEngineJS geometry JSON shape.
@@ -1215,7 +1216,7 @@ function weightCurves(gltf, buffers, animation, channel, targetNames)
     {
         const values = sampled.knots.map((_, knotIndex) => sampled.controls[knotIndex * targetCount + targetIndex]);
         return {
-            name: name.endsWith("Shape") ? name.slice(0, -5) : name,
+            name: morphAnimationTargetName(name),
             dimension: 1,
             valueCurve: makeCurve("value", 1, sampled.knots, values, curveInterpolation)
         };

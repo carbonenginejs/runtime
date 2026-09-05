@@ -20,6 +20,7 @@ import {
 } from "../../gr2/core/curves.js";
 import { composeCmfTransform, invertMatrix4, multiplyMatrix4 } from "./utils/matrix.js";
 import { normalizeQuaternionSeries } from "./utils/quaternion.js";
+import { morphAnimationTargetName } from "./utils/morph.js";
 
 function convertError(message)
 {
@@ -801,8 +802,10 @@ export function convertGr2SkeletonsAndAnimations(root, options = {})
 
     const skeletons = sourceSkeletons.map((skeleton) =>
         (isGr2Skeleton(skeleton) ? convertGr2Skeleton(skeleton) : skeleton));
+    // Compare channel names, not mesh names: Carbon resolves SmileShape to
+    // the Smile channel. Filtering the raw names drops valid morph-only clips.
     const morphTargetNames = new Set(sourceMeshes.flatMap(mesh =>
-        (mesh?.morphTargets ?? []).map(target => target?.name ?? "")));
+        (mesh?.morphTargets ?? []).map(target => morphAnimationTargetName(target?.name ?? ""))));
     // Carbon's Granny-to-CMF publishing path writes one P/R/S channel for
     // every authored transform track, including constant identity components.
     const animationOptions = {

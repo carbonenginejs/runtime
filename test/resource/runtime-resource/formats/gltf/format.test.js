@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import CjsGltfFormat, { CjsGltfFormat as NamedFormat } from "../../../../../src/resource/formats/gltf/index.js";
+import CjsCmfFormat from "../../../../../src/resource/formats/cmf/index.js";
 
 function align4(value)
 {
@@ -495,19 +496,26 @@ test("preserves authored identity animation channels and adaptively bakes cubic 
     );
 });
 
-test("splits glTF weight animation into CMF scalar morph channels", () =>
+for (const [ meshTarget, channelTarget ] of [
+    [ "SmileShape", "Smile" ],
+    [ "Smile", "Smile" ],
+    [ "Shape", "Shape" ],
+    [ "SmileShapeShape", "SmileShape" ],
+    [ "Smileshape", "Smileshape" ]
+])
+test(`preserves glTF morph animation for ${meshTarget} through CMF binary output`, () =>
 {
     const { gltf, buffer } = buildFixture({ skin: true });
     const primitive = gltf.meshes[0].primitives[0];
     primitive.targets = [ { POSITION: primitive.attributes.POSITION } ];
-    gltf.meshes[0].extras = { targetNames: [ "SmileShape" ] };
+    gltf.meshes[0].extras = { targetNames: [ meshTarget ] };
     const animation = gltf.animations[0];
     animation.channels[0] = { sampler: 0, target: { node: 2, path: "weights" } };
     animation.samplers[0].output = animation.samplers[0].input;
 
     const shared = CjsGltfFormat.read(gltf, { buffers: [ buffer ] });
     assert.equal(shared.animations[0].trackGroups[0].name, "MorphTargets");
-    assert.deepEqual(shared.animations[0].trackGroups[0].vectorTracks.map(track => track.name), [ "Smile" ]);
+    assert.deepEqual(shared.animations[0].trackGroups[0].vectorTracks.map(track => track.name), [ channelTarget ]);
     assert.deepEqual(shared.animations[0].trackGroups[0].vectorTracks[0].valueCurve.controls, [ 0, 1 ]);
 
     const Root = makeValueClass();
@@ -516,9 +524,18 @@ test("splits glTF weight animation into CMF scalar morph channels", () =>
         buffers: [ buffer ],
         classes: { Root }
     });
-    assert.deepEqual(cmf.animations[0].channels.map(({ target, targetType }) => ({ target, targetType })), [
-        { target: "Smile", targetType: "MorphTarget" }
-    ]);
+    const roundTrip = CjsCmfFormat.read(CjsCmfFormat.writeShared(shared), { emit: "raw" });
+    for (const result of [ cmf, roundTrip ])
+    {
+        assert.equal(result.animations.length, 1);
+        assert.equal(result.meshes[0].morphTargets.targets[0].name, meshTarget);
+        assert.deepEqual(result.animations[0].channels.map(({ target, targetType }) => ({ target, targetType })), [
+            { target: channelTarget, targetType: "MorphTarget" }
+        ]);
+        const curve = result.animations[0].curves[0];
+        assert.deepEqual(Array.from(new Float32Array(new Uint8Array(curve.knots).buffer)), [ 0, 1 ]);
+        assert.deepEqual(Array.from(new Float32Array(new Uint8Array(curve.values).buffer)), [ 0, 1 ]);
+    }
 });
 
 test("imports dynamic UV/color channels and rejects unsupported extra influence sets", () =>
