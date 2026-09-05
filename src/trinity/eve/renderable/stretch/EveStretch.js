@@ -386,14 +386,14 @@ export class EveStretch extends IEveFiringEffectElement
   {
     for (const curveSet of this.curveSets)
     {
-      const name = curveSet?.GetName?.() ?? curveSet?.name;
+      const name = curveSet?.GetName() ?? curveSet?.name;
       if (name === "play_start")
       {
         curveSet.PlayFrom?.(-delay);
         this.StartMoving();
       }
       else if (name === "play_loop") curveSet.PlayFrom?.(-delay);
-      else if (name === "play_end") curveSet.Stop?.();
+      else if (name === "play_end") curveSet.Stop();
     }
     if (this.stretchAudio)
     {
@@ -413,14 +413,14 @@ export class EveStretch extends IEveFiringEffectElement
   {
     for (const curveSet of this.curveSets)
     {
-      const name = curveSet?.GetName?.() ?? curveSet?.name;
+      const name = curveSet?.GetName() ?? curveSet?.name;
       if (name === "play_start")
       {
-        curveSet.Stop?.();
+        curveSet.Stop();
         this.StartMoving();
       }
-      else if (name === "play_loop") curveSet.Stop?.();
-      else if (name === "play_end") curveSet.Play?.();
+      else if (name === "play_loop") curveSet.Stop();
+      else if (name === "play_end") curveSet.Play();
     }
     if (this.stretchAudio)
     {

@@ -1055,7 +1055,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) !== target)
+      if ((curveSet?.GetName() ?? curveSet?.name) !== target)
       {
         continue;
       }
@@ -1065,8 +1065,8 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
       }
       else
       {
-        curveSet.ResetTimeRange?.();
-        curveSet.Play?.();
+        curveSet.ResetTimeRange();
+        curveSet.Play();
       }
     }
 
@@ -1089,9 +1089,9 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) === target)
+      if ((curveSet?.GetName() ?? curveSet?.name) === target)
       {
-        curveSet.Stop?.();
+        curveSet.Stop();
       }
     }
 
@@ -1134,7 +1134,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     }
     for (const curveSet of this.curveSets)
     {
-      curveSet?.Play?.();
+      curveSet?.Play();
     }
   }
 
@@ -1149,7 +1149,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     }
     for (const curveSet of this.curveSets)
     {
-      curveSet?.Stop?.();
+      curveSet?.Stop();
     }
   }
 
@@ -1168,7 +1168,7 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) === target)
+      if ((curveSet?.GetName() ?? curveSet?.name) === target)
       {
         duration = Math.max(duration, Number(curveSet.GetMaxCurveDuration?.() ?? 0));
       }
@@ -1196,9 +1196,9 @@ export class EveChildContainer extends withITr2Renderable(EveChildTransform)
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) === target)
+      if ((curveSet?.GetName() ?? curveSet?.name) === target)
       {
-        duration = Math.max(duration, Number(curveSet.GetRangeDuration?.(rangeName) ?? 0));
+        duration = Math.max(duration, Number(curveSet.GetRangeDuration(rangeName) ?? 0));
       }
     }
 

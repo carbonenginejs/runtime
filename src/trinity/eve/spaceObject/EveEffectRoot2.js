@@ -581,7 +581,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   @impl.implemented
   Start()
   {
-    for (const curveSet of this.curveSets) curveSet?.Play?.();
+    for (const curveSet of this.curveSets) curveSet?.Play();
     for (const child of this.effectChildren)
     {
       if (child?.PlayAllCurveSets) child.PlayAllCurveSets();
@@ -594,7 +594,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
   @impl.implemented
   Stop()
   {
-    for (const curveSet of this.curveSets) curveSet?.Stop?.();
+    for (const curveSet of this.curveSets) curveSet?.Stop();
     for (const child of this.effectChildren)
     {
       if (child?.StopAllCurveSets) child.StopAllCurveSets();
@@ -757,12 +757,12 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) !== target) continue;
+      if ((curveSet?.GetName() ?? curveSet?.name) !== target) continue;
       if (rangeName) curveSet?.PlayTimeRange?.(rangeName);
       else
       {
-        curveSet?.ResetTimeRange?.();
-        curveSet?.Play?.();
+        curveSet?.ResetTimeRange();
+        curveSet?.Play();
       }
     }
     for (const child of this.effectChildren) child?.PlayCurveSet?.(target, rangeName);
@@ -776,7 +776,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) === target) curveSet?.Stop?.();
+      if ((curveSet?.GetName() ?? curveSet?.name) === target) curveSet?.Stop();
     }
     for (const child of this.effectChildren) child?.StopCurveSet?.(target);
   }
@@ -803,7 +803,7 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) === target)
+      if ((curveSet?.GetName() ?? curveSet?.name) === target)
       {
         duration = Math.max(duration, Number(curveSet?.GetMaxCurveDuration?.() ?? 0));
       }
@@ -824,9 +824,9 @@ export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) === target)
+      if ((curveSet?.GetName() ?? curveSet?.name) === target)
       {
-        duration = Math.max(duration, Number(curveSet?.GetRangeDuration?.(rangeName) ?? 0));
+        duration = Math.max(duration, Number(curveSet?.GetRangeDuration(rangeName) ?? 0));
       }
     }
     for (const child of this.effectChildren)

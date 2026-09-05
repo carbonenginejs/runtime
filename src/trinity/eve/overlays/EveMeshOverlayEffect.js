@@ -197,8 +197,8 @@ export class EveMeshOverlayEffect extends CjsModel
     if (rangeName) curveSet.PlayTimeRange?.(rangeName);
     else
     {
-      curveSet.ResetTimeRange?.();
-      curveSet.Play?.();
+      curveSet.ResetTimeRange();
+      curveSet.Play();
     }
   }
 
@@ -271,7 +271,7 @@ export class EveMeshOverlayEffect extends CjsModel
   #matchingCurveSet(name)
   {
     const curveSet = this.curveSet;
-    return curveSet?.GetName?.() === name ? curveSet : null;
+    return curveSet?.GetName() === name ? curveSet : null;
   }
 
   static OverlayType = Object.freeze({

@@ -222,8 +222,8 @@ export class EveMultiEffect extends CjsModel
       if (rangeName) curveSet?.PlayTimeRange?.(rangeName);
       else
       {
-        curveSet?.ResetTimeRange?.();
-        curveSet?.Play?.();
+        curveSet?.ResetTimeRange();
+        curveSet?.Play();
       }
     }
   }
@@ -235,7 +235,7 @@ export class EveMultiEffect extends CjsModel
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect.#GetName(curveSet) === name) curveSet?.Stop?.();
+      if (EveMultiEffect.#GetName(curveSet) === name) curveSet?.Stop();
     }
   }
 
@@ -285,7 +285,7 @@ export class EveMultiEffect extends CjsModel
     {
       if (EveMultiEffect.#GetName(curveSet) === name)
       {
-        duration = Math.max(duration, Number(curveSet?.GetRangeDuration?.(rangeName) ?? 0));
+        duration = Math.max(duration, Number(curveSet?.GetRangeDuration(rangeName) ?? 0));
       }
     }
     return duration;

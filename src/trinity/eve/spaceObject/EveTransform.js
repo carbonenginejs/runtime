@@ -437,7 +437,7 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
   @impl.implemented
   PlayCurveSets()
   {
-    for (const curveSet of this.curveSets) curveSet?.Play?.();
+    for (const curveSet of this.curveSets) curveSet?.Play();
   }
 
   /**
@@ -450,15 +450,15 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
   {
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) !== name) continue;
+      if ((curveSet?.GetName() ?? curveSet?.name) !== name) continue;
       if (rangeName)
       {
         curveSet.PlayTimeRange?.(rangeName);
       }
       else
       {
-        curveSet.ResetTimeRange?.();
-        curveSet.Play?.();
+        curveSet.ResetTimeRange();
+        curveSet.Play();
       }
     }
   }
@@ -468,7 +468,7 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
   @impl.implemented
   StopCurveSet(name)
   {
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) curveSet.Stop?.();
+    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) curveSet.Stop();
   }
 
   /**
@@ -480,7 +480,7 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
   GetCurveSetDuration(name)
   {
     let duration = 0;
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetMaxCurveDuration?.() ?? 0));
+    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetMaxCurveDuration?.() ?? 0));
     return duration;
   }
 
@@ -493,7 +493,7 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetRangeDuration?.(rangeName) ?? 0));
+    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet.GetRangeDuration(rangeName) ?? 0));
     return duration;
   }
 

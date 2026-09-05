@@ -154,7 +154,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     const out = Object.create(null);
     for (const curveSet of this.curveSets)
     {
-      const name = String(curveSet?.GetName?.() ?? curveSet?.name ?? "");
+      const name = String(curveSet?.GetName() ?? curveSet?.name ?? "");
       out[name] = curveSet?.GetRawRoot?.() ?? curveSet;
     }
     out.Owner = this;
@@ -573,9 +573,9 @@ export class EveStretch3 extends IEveFiringEffectElement
     if (!this.display) return;
     for (const curveSet of this.curveSets)
     {
-      if ((curveSet?.GetName?.() ?? curveSet?.name) !== name) continue;
+      if ((curveSet?.GetName() ?? curveSet?.name) !== name) continue;
       if (rangeName) curveSet.PlayTimeRange?.(rangeName);
-      else { curveSet.ResetTimeRange?.(); curveSet.Play?.(); }
+      else { curveSet.ResetTimeRange(); curveSet.Play(); }
     }
     for (const component of this.#components()) component?.PlayCurveSet?.(name, rangeName);
   }
@@ -587,7 +587,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   StopCurveSet(name)
   {
     if (!this.display) return;
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) curveSet.Stop?.();
+    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) curveSet.Stop();
     for (const component of this.#components()) component?.StopCurveSet?.(name);
   }
 
@@ -616,7 +616,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     if (!this.display) return 0;
     let duration = 0;
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) duration = Math.max(duration, getCurveDuration(curveSet));
+    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, getCurveDuration(curveSet));
     for (const component of this.#components()) duration = Math.max(duration, Number(component?.GetCurveSetDuration?.(name) ?? 0));
     return duration;
   }
@@ -629,7 +629,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     if (!this.display) return 0;
     let duration = 0;
-    for (const curveSet of this.curveSets) if ((curveSet?.GetName?.() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet?.GetRangeDuration?.(rangeName) ?? 0));
+    for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet?.GetRangeDuration(rangeName) ?? 0));
     for (const component of this.#components()) duration = Math.max(duration, Number(component?.GetRangeDuration?.(name, rangeName) ?? 0));
     return duration;
   }
