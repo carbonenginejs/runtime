@@ -17,6 +17,7 @@ import {
   Tr2RenderReason
 } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 
 const EPSILON = 1e-5;
@@ -113,7 +114,7 @@ test("EveTurretSet.GetShadowBatches: instanced batch, ignored shadowPixelSize (c
   set.geometryResource = { name: "turretGeometry" };
   assert.equal(set.GetShadowBatches(batches, null, 0), false, "null material batch is invalid");
 
-  set.turretEffect = { name: "turretEffect" };
+  set.turretEffect = FixtureEffect({ name: "turretEffect" });
   const perObjectData = { object: set };
   assert.equal(set.GetShadowBatches(batches, perObjectData, -12345), true, "committed (pixel size ignored)");
   const batch = committed[0];
@@ -130,7 +131,7 @@ test("EveTurretSet.GetBatches: opaque instanced batch and fixed sort contracts (
   const batches = { Commit: batch => (committed.push(batch), true) };
   set.SetTurrets([{}, {}]);
   set.geometryResource = { name: "turretGeometry" };
-  set.turretEffect = { name: "turretEffect" };
+  set.turretEffect = FixtureEffect({ name: "turretEffect" });
   const perObjectData = { object: set };
 
   assert.equal(set.GetBatches(batches, TriBatchType.TRIBATCHTYPE_ADDITIVE, perObjectData, 0), false);

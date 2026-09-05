@@ -33,6 +33,7 @@ import {
   Tr2MeshArea
 } from "../../npm/dist/trinity/index.js";
 import { Tr2Lod } from "../../npm/dist/global/consts/trinity.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 
 const EPSILON = 1e-5;
@@ -239,8 +240,8 @@ test("child meshes emit own overlays before inherited parent overlays", () =>
   mesh.opaqueAreas.push(area);
   mesh.SetGeometryRes(geometry);
 
-  const ownMaterial = { name: "part-damage" };
-  const parentMaterial = { name: "cloak" };
+  const ownMaterial = FixtureEffect({ name: "part-damage" });
+  const parentMaterial = FixtureEffect({ name: "cloak" });
   const child = new EveChildMesh();
   child.SetMesh(mesh);
   child.AddOverlayEffect(createOverlay(ownMaterial));
@@ -294,8 +295,8 @@ test("instanced child overlays use full inverse-local clip transforms", () =>
   } ], [ local ]);
   provider.SetGeometryResource(0, geometry);
 
-  const ownMaterial = { name: "part-overlay" };
-  const parentMaterial = { name: "cloak" };
+  const ownMaterial = FixtureEffect({ name: "part-overlay" });
+  const parentMaterial = FixtureEffect({ name: "cloak" });
   const ownOverlay = createOverlay(ownMaterial);
   provider.AddMeshOverlayEffect(0, ownOverlay);
   assert.equal(provider.GetMeshOverlayEffectCount(0), 1);

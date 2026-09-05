@@ -17,6 +17,7 @@ import {
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { makePerObjectStore, makeRenderContextWithStore } from "./helpers/perObjectStore.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 // An accumulator wired with a test per-object-data store.
 function makeAccumulator()
@@ -30,7 +31,7 @@ const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
 function areaWithEffect(effect = {}, { index = 0, count = 1 } = {})
 {
   const area = new Tr2MeshArea();
-  area.SetMaterial(effect);
+  area.SetMaterial(FixtureEffect(effect));
   area.SetIndex(index);
   area.SetCount(count);
   return area;
@@ -163,8 +164,8 @@ test("EveSpaceScene.GetRenderables aggregates objects and the camera attachment 
 
 test("manager transparent pass draws renderables back-to-front in insertion order", () =>
 {
-  const nearFx = { id: "near" };
-  const farFx = { id: "far" };
+  const nearFx = FixtureEffect({ id: "near" });
+  const farFx = FixtureEffect({ id: "far" });
 
   const makeTransparent = (effect, z) =>
   {
@@ -231,8 +232,8 @@ test("EveSpaceObject2.GetBatches recurses activated attachments and delegates th
 
 test("EveSpaceObject2 transparent areas are sorted back-to-front by world-space bbox distance", () =>
 {
-  const nearFx = { id: "near" };
-  const farFx = { id: "far" };
+  const nearFx = FixtureEffect({ id: "near" });
+  const farFx = FixtureEffect({ id: "far" });
   const object = new EveSpaceObject2();
   object.mesh = new Tr2Mesh();
   object.mesh.AddArea(TRANSPARENT, areaWithEffect(nearFx, { index: 0 }));
@@ -299,7 +300,7 @@ test("EveMissileWarhead.GetPerObjectData Allocs a RawData record from the store"
 
 test("end-to-end: real EveTransform through CjsBatchManager produces finalized batches", () =>
 {
-  const effect = { id: "fx" };
+  const effect = FixtureEffect({ id: "fx" });
   const transform = new EveTransform();
   transform.mesh = meshWithOpaqueArea(effect);
 

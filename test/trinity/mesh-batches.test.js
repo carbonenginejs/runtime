@@ -9,6 +9,7 @@ import {
 } from "../../npm/dist/trinity/core/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 // Tr2MeshBase IS ABSTRACT. Carbon makes GetGeometryResource pure virtual
 // (Tr2MeshBase.h:69), so the base cannot be instantiated there and should not
@@ -27,7 +28,7 @@ class GeometrylessMesh extends Tr2MeshBase
 function area(effect, { index = 0, count = 1, reversed = false, display = true } = {})
 {
   const meshArea = new Tr2MeshArea();
-  meshArea.SetMaterial(effect);
+  meshArea.SetMaterial(FixtureEffect(effect));
   meshArea.SetIndex(index);
   meshArea.SetCount(count);
   meshArea.SetReversed(reversed);
@@ -39,7 +40,7 @@ test("GetBatches emits one descriptor batch per displayed, materialled area", ()
 {
   const mesh = new GeometrylessMesh();
   mesh.meshIndex = 3;
-  const effect = { id: "fx" };
+  const effect = FixtureEffect({ id: "fx" });
 
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area(effect, { index: 2, count: 4 }));
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area(effect, { index: 6, count: 2 }));
@@ -73,7 +74,7 @@ test("GetBatches emits one descriptor batch per displayed, materialled area", ()
 test("GetBatches routes by TriBatchType through GetAreas", () =>
 {
   const mesh = new GeometrylessMesh();
-  const effect = {};
+  const effect = FixtureEffect({});
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_TRANSPARENT, area(effect));
 
   const opaque = new TriRenderBatchAccumulator();
@@ -88,7 +89,7 @@ test("GetBatches routes by TriBatchType through GetAreas", () =>
 test("GetBatches accepts an already-resolved area list", () =>
 {
   const mesh = new GeometrylessMesh();
-  const effect = {};
+  const effect = FixtureEffect({});
   const accumulator = new TriRenderBatchAccumulator();
   mesh.GetBatches(accumulator, [ area(effect), area(effect) ], null);
   assert.equal(accumulator.GetBatchCount(), 2);
@@ -130,7 +131,7 @@ test("CreateGeometryBatch fills Carbon's draw arguments from a realized LOD", ()
 {
   const mesh = new GeometrylessMesh();
   const geometry = pooledGeometry();
-  const effect = { id: "fx" };
+  const effect = FixtureEffect({ id: "fx" });
 
   // Areas 1..2: 12 + 8 = 20 primitives, starting at area 1's firstIndex.
   const batch = mesh.CreateGeometryBatch(
@@ -206,7 +207,7 @@ test("GetBatches resolves the LOD once from the caller's screen size", () =>
 {
   const mesh = new GeometrylessMesh();
   mesh.meshIndex = 2;
-  const effect = { id: "fx" };
+  const effect = FixtureEffect({ id: "fx" });
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area(effect, { index: 0, count: 1 }));
   mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area(effect, { index: 1, count: 1 }));
 
@@ -232,7 +233,7 @@ test("GetBatches resolves the LOD once from the caller's screen size", () =>
 test("a mesh batch carries its vertex-declaration handle, so binning can tell meshes apart", () =>
 {
   const mesh = new GeometrylessMesh();
-  const effect = { id: "fx" };
+  const effect = FixtureEffect({ id: "fx" });
   const lod = { primitiveCount: 4, areas: [ { firstIndex: 0, primitiveCount: 4 } ] };
 
   const declA = [ { usage: 0, usageIndex: 0, type: "FLOAT3", offset: 0, stream: 0 } ];

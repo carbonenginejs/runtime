@@ -92,7 +92,12 @@ const DEFAULT_TECHNIQUE = "Main";
  */
 function passCountOf(material, techniqueName)
 {
-  const shader = material.GetShaderStateInterface?.();
+  // EXPLICIT PROBES, not hedges, and the line below already asked this way.
+  // The boundary deliberately accepts a caller's own material - see the
+  // paragraph above - so "does this object answer" is the real question here.
+  const shader = typeof material.GetShaderStateInterface === "function"
+    ? material.GetShaderStateInterface()
+    : null;
 
   if (!shader || typeof shader.GetTechniqueIndex !== "function") return 1;
 
@@ -100,7 +105,7 @@ function passCountOf(material, techniqueName)
 
   if (!Number.isInteger(techniqueIndex) || techniqueIndex < 0) return 0;
 
-  return shader.GetPassCount?.(techniqueIndex) ?? 0;
+  return typeof shader.GetPassCount === "function" ? shader.GetPassCount(techniqueIndex) : 0;
 }
 
 function geometryDraw(value, indexed)

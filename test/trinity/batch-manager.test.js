@@ -9,6 +9,7 @@ import {
 } from "../../npm/dist/trinity/core/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 const OPAQUE = TriBatchType.TRIBATCHTYPE_OPAQUE;
 const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
@@ -43,7 +44,7 @@ function makeRenderable(values = {})
 function validBatch(perObjectData = null)
 {
   const batch = new Tr2RenderBatch();
-  batch.SetMaterial({ id: "fx" });
+  batch.SetMaterial(FixtureEffect({ id: "fx" }));
   batch.SetPerObjectData(perObjectData);
   return batch;
 }

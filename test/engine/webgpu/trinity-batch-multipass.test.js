@@ -12,6 +12,7 @@ import {
 } from "../../../npm/dist/trinity/index.js";
 import { CjsWebgpuDevice } from "../../../npm/dist/engine/webgpu/index.js";
 import { CjsWebgpuTrinityBatchDispatcher } from "../../../npm/dist/engine/webgpu/internal.js";
+import { FixtureEffect } from "../../support/fixtureEffect.js";
 
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
 
@@ -30,7 +31,7 @@ function materialWithPasses(passCount, techniqueName = "Main")
 function batchWith(material)
 {
   const batch = new Tr2RenderBatch();
-  batch.SetMaterial(material);
+  batch.SetMaterial(FixtureEffect(material));
   batch.SetGeometrySource({ id: "geometry" }, 0, 0, 1, false);
   batch.SetPerObjectData(new Tr2PerObjectData());
   batch.SetDrawIndexedInstanced(6, 1, 0, 0, 0);

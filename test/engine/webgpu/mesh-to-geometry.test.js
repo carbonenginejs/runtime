@@ -18,6 +18,7 @@ import {
 } from "../../../npm/dist/trinity/core/index.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 import { WebgpuGeometryOptions } from "../../../npm/dist/engine/webgpu/index.js";
+import { FixtureEffect } from "../../support/fixtureEffect.js";
 
 /** A hull's declaration, in the producer's vocabulary. */
 const DECL = [
@@ -63,7 +64,7 @@ function meshWithAreas()
   for (const [ index, count ] of [ [ 0, 1 ], [ 1, 1 ] ])
   {
     const area = new Tr2MeshArea();
-    area.SetMaterial({ id: `fx${index}` });
+    area.SetMaterial(FixtureEffect({ id: `fx${index}` }));
     area.SetIndex(index);
     area.SetCount(count);
     mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area);

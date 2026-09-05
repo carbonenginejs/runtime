@@ -180,7 +180,7 @@ export class CjsBatchManager
     // Bind the per-object-data store from the render context (built once from
     // the engine at scene setup). GetPerObjectData Allocs pooled records from
     // it; without a store, an eager-fill renderable throws (setup error).
-    const store = renderContext?.GetTriPoolAllocator?.();
+    const store = renderContext?.GetTriPoolAllocator();
     if (store) batchMap.SetTriPoolAllocator(store);
 
     const collectsTransparent = this.#batchTypes.includes(TRANSPARENT);
@@ -274,7 +274,14 @@ export class CjsBatchManager
    */
   #ProducerFor(renderable)
   {
-    const type = renderable.GetBatchProducerType?.() ?? renderable.batchProducerType ?? null;
+    // An EXPLICIT PROBE, not a hedge: no class in this runtime declares
+    // `GetBatchProducerType`. It is a shape a CALLER's renderable may offer,
+    // so asking whether it is there is the actual question - where `?.()` would
+    // have read as "one of ours might be missing it".
+    const declared = typeof renderable.GetBatchProducerType === "function"
+      ? renderable.GetBatchProducerType()
+      : null;
+    const type = declared ?? renderable.batchProducerType ?? null;
     return type ? this.#producers.get(type) ?? null : null;
   }
 

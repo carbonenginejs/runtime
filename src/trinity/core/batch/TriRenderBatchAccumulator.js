@@ -98,7 +98,7 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
     if (!batch.IsValid()) return false;
 
     if (this.keyGenerator.ALLOW_GDPR
-      && batch.material?.CompatibleWithGdr?.()
+      && batch.material?.CompatibleWithGdr()
       && batch.topology === Topology.TOP_TRIANGLES
       && batch.indexBuffer)
     {

@@ -499,7 +499,7 @@ export class Tr2EffectStateManager extends CjsModel
    */
   static registerShaderHandles(shader)
   {
-    const techniques = shader?.GetEffect?.()?.techniques ?? [];
+    const techniques = shader?.GetEffect()?.techniques ?? [];
 
     for (const technique of techniques)
     {
@@ -534,7 +534,7 @@ export class Tr2EffectStateManager extends CjsModel
 
     // Carbon packs the sort key from the handles it has just assigned
     // (Tr2Shader.cpp:235-240); until they exist the key is unavoidably zero.
-    shader?.ProcessEffect?.();
+    shader?.ProcessEffect();
 
     return shader;
   }

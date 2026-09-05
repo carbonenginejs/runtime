@@ -340,7 +340,12 @@ export class Tr2RenderContext extends CjsModel
    */
   EndFrame()
   {
-    this.#debugRenderer?.Clear?.();
+    // `SetDebugRenderer` takes whatever a render job hands it, and Carbon's
+    // own type (`Tr2DebugTextRenderer`) is not ported, so this is a foreign
+    // object. Asked explicitly rather than hedged, because the question really
+    // is "does this thing clear" and not "is one of our classes incomplete".
+    if (typeof this.#debugRenderer?.Clear === "function") this.#debugRenderer.Clear();
+
     return this;
   }
 

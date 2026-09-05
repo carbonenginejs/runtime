@@ -8,6 +8,7 @@ import {
   INVALID_RING_OFFSET
 } from "../../npm/dist/trinity/eve/child/EveChildBoosterSet.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 const assertNear = (actual, expected, epsilon = 1e-5) =>
 {
@@ -93,7 +94,7 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
     GetPreviousFrameOffset() { return 0xffffffff; }
   };
   set.SetRingBuffer(ring, offsets);
-  set.effect = { name: "booster-effect" };
+  set.effect = FixtureEffect({ name: "booster-effect" });
   set.UpdateAsyncronous(null, updateParams());
   set.UpdateVisibility({
     GetFrustum: () => ({

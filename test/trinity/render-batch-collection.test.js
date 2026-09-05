@@ -10,16 +10,17 @@ import {
 } from "../../npm/dist/trinity/core/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 function validBatch()
 {
   const batch = new Tr2RenderBatch();
-  batch.SetMaterial({
+  batch.SetMaterial(FixtureEffect({
     GetShaderStateInterface()
     {
       return {};
     }
-  });
+  }));
   return batch;
 }
 

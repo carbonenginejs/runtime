@@ -18,6 +18,7 @@ import {
   EveTurretSet,
   EveTurretTarget
 } from "../../npm/dist/trinity/index.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 
 test("stretch and turret classes are maintained in their Carbon families", () =>
@@ -121,7 +122,7 @@ test("EveStretch2 retains Carbon curve timing and portable render data", () =>
 
   const committed = [];
   const batches = { Commit(batch) { committed.push(batch); return true; } };
-  stretch.effect = { name: "stretchEffect" };
+  stretch.effect = FixtureEffect({ name: "stretchEffect" });
   assert.equal(stretch.GetBatches(batches, TriBatchType.TRIBATCHTYPE_TRANSPARENT, data, 0), false);
   assert.equal(stretch.GetBatches(batches, TriBatchType.TRIBATCHTYPE_ADDITIVE, data, 0), true);
   assert.equal(stretch.HasTransparentBatches(), false);

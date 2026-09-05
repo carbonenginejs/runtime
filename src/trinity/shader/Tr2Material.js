@@ -146,7 +146,9 @@ export class Tr2Material extends CjsModel
   {
     for (const value of this.lodTextureParameters)
     {
-      value?.UsedWithScreenSize?.(screenSize, worldRadius, uvDensities);
+      // Unhedged: the list is FILTERED ON ENTRY by exactly this method
+      // (`Tr2Effect.js:725`), so every member has it by construction.
+      value.UsedWithScreenSize(screenSize, worldRadius, uvDensities);
     }
   }
 

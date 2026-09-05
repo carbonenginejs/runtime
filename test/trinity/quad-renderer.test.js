@@ -11,6 +11,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { toHalfFloat } from "../../npm/dist/global/math/num.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 const OPAQUE = Tr2QuadRenderer.TriBatchType.TRIBATCHTYPE_OPAQUE;
 const ADDITIVE = Tr2QuadRenderer.TriBatchType.TRIBATCHTYPE_ADDITIVE;
@@ -18,7 +19,7 @@ const ADDITIVE = Tr2QuadRenderer.TriBatchType.TRIBATCHTYPE_ADDITIVE;
 test("Tr2QuadRenderer merges per-effect instances and emits instanced batches", () =>
 {
   const renderer = new Tr2QuadRenderer();
-  const effect = { GetShaderStateInterface: () => ({ GetSortValue: () => 1 }) };
+  const effect = FixtureEffect({ GetShaderStateInterface: () => ({ GetSortValue: () => 1 }) });
 
   // Two effects: 8-byte (2 floats) opaque instances and 16-byte additive.
   renderer.RegisterEffect("a", OPAQUE, 8, 1, null, effect);

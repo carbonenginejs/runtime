@@ -22,7 +22,6 @@
   "src/character/trinity/trinityCore/Tr2SkinnedObject.js": 5,
   "src/character/webgl2/CjsCharacterWebgl2EffectRouter.js": 4,
   "src/engine/webgpu/core/textureSource.js": 3,
-  "src/engine/webgpu/core/trinityBatchDispatcher.js": 2,
   "src/engine/webgpu/core/trinityBatchResolver.js": 14,
   "src/resource/CjsMotherLode.js": 5,
   "src/resource/CjsResMan.js": 32,
@@ -48,13 +47,9 @@
   "src/trinity/controllers/timeline/Tr2TimelineController.js": 1,
   "src/trinity/core/animation/Tr2GrannyAnimation.js": 9,
   "src/trinity/core/animation/Tr2TextureAnimation.js": 1,
-  "src/trinity/core/batch/CjsBatchManager.js": 2,
-  "src/trinity/core/batch/Tr2RenderBatch.js": 9,
-  "src/trinity/core/batch/TriRenderBatchAccumulator.js": 1,
   "src/trinity/core/binding/Tr2DynamicBinding.js": 4,
   "src/trinity/core/binding/Tr2ExternalParameter.js": 1,
   "src/trinity/core/binding/TriValueBinding.js": 6,
-  "src/trinity/core/context/Tr2RenderContext.js": 1,
   "src/trinity/core/mesh/Tr2InstancedMesh.js": 2,
   "src/trinity/core/mesh/Tr2Mesh.js": 3,
   "src/trinity/core/mesh/Tr2MeshBase.js": 4,
@@ -169,7 +164,5 @@
   "src/trinity/shader/parameter/TriTextureParameter.js": 5,
   "src/trinity/shader/parameter/TriTransformParameter.js": 1,
   "src/trinity/shader/parameter/TriVariableParameter.js": 3,
-  "src/trinity/shader/Tr2Effect.js": 26,
-  "src/trinity/shader/Tr2EffectStateManager.js": 2,
-  "src/trinity/shader/Tr2Material.js": 1
+  "src/trinity/shader/Tr2Effect.js": 26
 }

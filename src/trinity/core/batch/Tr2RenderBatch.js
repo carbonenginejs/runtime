@@ -122,6 +122,39 @@ export class TriRenderBatchAreaBlocksWithSharedMaterial extends TriRenderBatchAr
   }
 }
 
+// THE ALLOCATION TYPE IS A PORT GAP, AND THESE TWO HELPERS ARE WHERE IT SHOWS.
+//
+// Carbon's `SetGeometryFromAllocations` takes a `Tr2SuballocatedBuffer::Allocation`
+// (`Tr2SuballocatedBuffer.h:23-66`) and simply calls `GetBuffer()`, `GetOffset()`,
+// `GetStride()` and `GetStartIndex()` on it - no probing, because the type is the
+// argument. We have no such class: it needs `Tr2VirtualAllocator`, which in
+// Carbon is a thin wrapper over VMA's virtual-block suballocator, so porting it
+// means writing a real suballocator rather than translating one.
+//
+// Until then a caller passes either a shaped allocation or a bare buffer, and
+// these ask WHICH rather than hedging on a method one of our own classes might
+// be missing. When the class lands, both helpers delete and the call sites go
+// back to Carbon's four direct accessor calls.
+
+/** The buffer an allocation lends, or the argument itself when it IS a buffer. */
+function AllocationBuffer(allocation)
+{
+  if (!allocation) return null;
+
+  return typeof allocation.GetBuffer === "function" ? allocation.GetBuffer() : allocation;
+}
+
+/** An allocation's element stride, however the caller's shape spells it. */
+function AllocationStride(allocation)
+{
+  if (!allocation) return 0;
+
+  if (typeof allocation.GetStride === "function") return allocation.GetStride();
+
+  return allocation.stride ?? 0;
+}
+
+
 // A single draw's worth of CPU descriptor state. Faithful to Carbon's
 // Tr2RenderBatch struct; the vertex/index "buffer" slots hold whatever the
 // producer supplies (in the GPU-free runtime these are geometry-resource-backed
@@ -198,7 +231,7 @@ export class Tr2RenderBatch
   SetMaterial(material)
   {
     this.material = material ?? null;
-    this.shader = material?.GetShaderStateInterface?.() ?? material ?? null;
+    this.shader = material?.GetShaderStateInterface() ?? material ?? null;
   }
 
   /** Sets the outermost sort key; lower priorities sort first. */
@@ -233,10 +266,10 @@ export class Tr2RenderBatch
   {
     this.SetGeometry(
       vertexDeclaration,
-      vertexAllocation?.GetBuffer?.() ?? vertexAllocation ?? null,
-      vertexAllocation?.GetStride?.() ?? 0,
-      indexAllocation?.GetBuffer?.() ?? indexAllocation ?? null,
-      indexAllocation?.GetStride?.() ?? 0
+      AllocationBuffer(vertexAllocation),
+      AllocationStride(vertexAllocation),
+      AllocationBuffer(indexAllocation),
+      AllocationStride(indexAllocation)
     );
   }
 
@@ -249,8 +282,8 @@ export class Tr2RenderBatch
   SetGeometryFromAllocations2(vertexDeclaration, vertexAllocation1, vertexAllocation2, indexAllocation)
   {
     this.SetGeometryFromAllocations(vertexDeclaration, vertexAllocation1, indexAllocation);
-    this.vertexStreams[1] = vertexAllocation2?.GetBuffer?.() ?? vertexAllocation2 ?? null;
-    this.stride[1] = vertexAllocation2?.GetStride?.() ?? 0;
+    this.vertexStreams[1] = AllocationBuffer(vertexAllocation2);
+    this.stride[1] = AllocationStride(vertexAllocation2);
   }
 
   // GPU-free geometry binding: records the resource + mesh/area range for the
@@ -474,11 +507,13 @@ export class Tr2RenderBatch
 
     // GetStartIndex() IS offset / stride; Carbon hand-inlines exactly this for
     // the base vertex (Tr2MeshBase.cpp:391).
-    const stride = allocation.GetStride?.() ?? allocation.stride ?? 0;
+    const stride = AllocationStride(allocation);
 
     if (!stride) return 0;
 
-    const offset = allocation.GetOffset?.() ?? allocation.offset ?? 0;
+    const offset = typeof allocation.GetOffset === "function"
+      ? allocation.GetOffset()
+      : allocation.offset ?? 0;
 
     return (offset / stride) >>> 0;
   }

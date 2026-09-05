@@ -13,6 +13,7 @@ import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 import { Tr2VertexDefinition, CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 const OPAQUE = TriBatchType.TRIBATCHTYPE_OPAQUE;
 const DECAL = TriBatchType.TRIBATCHTYPE_DECAL;
@@ -21,7 +22,7 @@ const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
 function area(effect, { index = 0, count = 1, castsShadows = true } = {})
 {
   const meshArea = new Tr2MeshArea();
-  meshArea.SetMaterial(effect);
+  meshArea.SetMaterial(FixtureEffect(effect));
   meshArea.SetIndex(index);
   meshArea.SetCount(count);
   meshArea.SetCastsShadows(castsShadows);
@@ -63,8 +64,8 @@ test("CollectAreaBlocks skips non-shadow-casting OPAQUE areas only", () =>
 
 test("CollectAreaBlocksWithSharedMaterials groups by material and skips DECAL non-casters", () =>
 {
-  const fxA = { id: "A" };
-  const fxB = { id: "B" };
+  const fxA = FixtureEffect({ id: "A" });
+  const fxB = FixtureEffect({ id: "B" });
   const mesh = new Tr2Mesh();
   mesh.AddArea(OPAQUE, area(fxA, { index: 0 }));
   mesh.AddArea(OPAQUE, area(fxB, { index: 1 }));
@@ -83,7 +84,7 @@ test("CollectAreaBlocksWithSharedMaterials groups by material and skips DECAL no
 
 test("GetShadowBatches emits one batch per coalesced shared-material block", () =>
 {
-  const fx = { id: "shared" };
+  const fx = FixtureEffect({ id: "shared" });
   const object = new EveSpaceObject2();
   object.mesh = new Tr2Mesh();
   object.mesh.AddArea(OPAQUE, area(fx, { index: 0 }));
@@ -104,9 +105,9 @@ test("GetShadowBatches emits one batch per coalesced shared-material block", () 
 
 test("overlay effects route per batch type with the display gate; DECAL damage draws last-priority", () =>
 {
-  const hullFx = { id: "hull" };
-  const overlayFx = { id: "overlay" };
-  const damageFx = { id: "damage" };
+  const hullFx = FixtureEffect({ id: "hull" });
+  const overlayFx = FixtureEffect({ id: "overlay" });
+  const damageFx = FixtureEffect({ id: "damage" });
 
   const object = new EveSpaceObject2();
   object.mesh = new Tr2Mesh();
@@ -150,7 +151,7 @@ test("HasTransparentBatches includes the overlay transparent contribution", () =
   assert.equal(object.HasTransparentBatches(), false);
 
   const overlay = new EveMeshOverlayEffect();
-  overlay.transparentEffects.push({ id: "t" });
+  overlay.transparentEffects.push(FixtureEffect({ id: "t" }));
   object.overlayEffects.push(overlay);
   assert.equal(object.HasTransparentBatches(), true, "overlay with transparent effects counts");
 });
@@ -162,7 +163,7 @@ test("overlay blocks with no realized primitives do not commit a batch", () =>
   object.mesh.geometry = geometry(0);
   object.mesh.AddArea(OPAQUE, area({ id: "hull" }, { index: 1 }));
   const overlay = new EveMeshOverlayEffect();
-  overlay.opaqueEffects.push({ id: "overlay" });
+  overlay.opaqueEffects.push(FixtureEffect({ id: "overlay" }));
   object.overlayEffects.push(overlay);
 
   const accumulator = new TriRenderBatchAccumulator();
@@ -172,7 +173,7 @@ test("overlay blocks with no realized primitives do not commit a batch", () =>
 
 test("RebuildCachedData refreshes the cached blocks after mesh edits", () =>
 {
-  const fx = { id: "fx" };
+  const fx = FixtureEffect({ id: "fx" });
   const object = new EveSpaceObject2();
   object.mesh = new Tr2Mesh();
   object.mesh.AddArea(OPAQUE, area(fx, { index: 0 }));
@@ -211,7 +212,7 @@ test("an overlay block batch carries the mesh's vertex declaration", () =>
   object.mesh.AddArea(OPAQUE, area({ id: "hull" }, { index: 0 }));
 
   const overlay = new EveMeshOverlayEffect();
-  overlay.opaqueEffects.push({ id: "overlay" });
+  overlay.opaqueEffects.push(FixtureEffect({ id: "overlay" }));
   object.overlayEffects.push(overlay);
 
   const accumulator = new TriRenderBatchAccumulator();
@@ -242,7 +243,7 @@ test("an overlay walk with no resolvable LOD commits nothing", () =>
   object.mesh.AddArea(OPAQUE, area({ id: "hull" }, { index: 0 }));
 
   const overlay = new EveMeshOverlayEffect();
-  overlay.opaqueEffects.push({ id: "overlay" });
+  overlay.opaqueEffects.push(FixtureEffect({ id: "overlay" }));
   object.overlayEffects.push(overlay);
 
   const accumulator = new TriRenderBatchAccumulator();

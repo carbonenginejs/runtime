@@ -18,6 +18,7 @@ import {
   Tr2PointLight,
   Tr2RenderReason
 } from "../../npm/dist/trinity/index.js";
+import { FixtureEffect } from "../support/fixtureEffect.js";
 
 
 const EPSILON = 1e-5;
@@ -155,7 +156,7 @@ test("GetVolumetricBatches: gate order, one batch, renderedLastFrame stamp (cpp:
   // Effect gate (cpp:271-274).
   assert.equal(cloud.GetVolumetricBatches(frustum, MakeAccumulator()), false, "effect-gated");
 
-  cloud.effect = { name: "cloudEffect" };
+  cloud.effect = FixtureEffect({ name: "cloudEffect" });
   cloud.renderedLastFrame = false;
   const accumulator = MakeAccumulator();
   assert.equal(cloud.GetVolumetricBatches(frustum, accumulator), true, "committed");
@@ -179,7 +180,7 @@ test("UpdateVolumetricLightmap: budget contract and slice arithmetic (cpp:319-38
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
   cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
-  cloud.effect = {};
+  cloud.effect = FixtureEffect();
   cloud.lightmapSizeScale = 0.25;
 
   // lightmapWidth 0 fail-closes (cpp:325).
@@ -329,7 +330,7 @@ test("GetVolumetricShadowBatches: gates and the declaration-less alpha triangle 
   assert.equal(cloud.GetVolumetricShadowBatches(MakeAccumulator()), false, "display gate");
 
   cloud.display = true;
-  cloud.effect = {};
+  cloud.effect = FixtureEffect();
   assert.equal(cloud.GetVolumetricShadowBatches(MakeAccumulator()), false, "castShadows gate");
 
   cloud.castShadows = true;
@@ -347,7 +348,7 @@ test("GetBatches: reflection-transparent only, screenSize 10000, no renderedLast
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
   cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
-  cloud.reflectionEffect = { name: "reflection" };
+  cloud.reflectionEffect = FixtureEffect({ name: "reflection" });
   cloud.renderedLastFrame = false;
 
   const reflection = Tr2RenderReason.TR2RENDERREASON_REFLECTION;
