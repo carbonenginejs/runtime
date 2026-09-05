@@ -1498,3 +1498,86 @@ test("EveLineChildContainer composes local before a rotating scaled parent", () 
   assert.ok(Math.abs(container.worldTransform[14] - 42) < 1e-5);
   assert.deepEqual(generated[0], Array.from(container.worldTransform));
 });
+
+test("EveLensflare.Update ports Carbon's position, sun size, and fan-out", () =>
+{
+  const lensflare = new EveLensflare();
+
+  // update === false: nothing moves.
+  lensflare.update = false;
+  lensflare.translationCurve = { Update() { throw new Error("must not run"); } };
+  lensflare.Update(1, 2);
+
+  // No curve: sunSize is 1 (cpp:161), not the constructed 0.
+  lensflare.update = true;
+  lensflare.translationCurve = null;
+  lensflare.Update(1, 2);
+  assert.equal(lensflare.sunSize, 1);
+
+  // Curve at exactly 1 AU: 1.5 / ln(1 + 2.71), and the call is out-LAST.
+  const curveArgs = [];
+  lensflare.translationCurve = {
+    Update(time, out)
+    {
+      curveArgs.push([time, out]);
+      out.set([0.1495978707e12, 0, 0]);
+    }
+  };
+  const curveSetCalls = [];
+  const controllerCalls = [];
+  lensflare.curveSets.push({ Update(realTime, simTime) { curveSetCalls.push([realTime, simTime]); } });
+  lensflare.controllers.push({ Update(frequency) { controllerCalls.push(frequency); } });
+  lensflare.Update(7, 3);
+  assert.equal(curveArgs.length, 1);
+  assert.equal(curveArgs[0][0], 3, "curve samples SIM time");
+  assert.equal(curveArgs[0][1], lensflare.position, "curve writes the position out-param");
+  assert.ok(Math.abs(lensflare.sunSize - 1.5 / Math.log(1 + 2.71)) < 1e-6);
+  assert.deepEqual(curveSetCalls, [[7, 3]], "curve sets get realTime AND simTime");
+  assert.deepEqual(controllerCalls, [0.5], "controllers get Carbon's 0.5 literal");
+});
+
+test("EveChildInstanceContainer runs Carbon's instance fan-out and gates", () =>
+{
+  const makeChild = log => Object.assign(new EveSpaceObjectChild(), {
+    UpdateSyncronous(context, params) { log.push(["sync", params.childParent, Array.from(params.localToWorldTransform)]); },
+    UpdateAsyncronous(context, params) { log.push(["async", params.isVisible]); },
+    UpdateVisibility(context, parentTransform, parentLod) { log.push(["visibility", parentTransform, parentLod]); },
+    GetRenderables(out) { out.push("child"); }
+  });
+
+  // Source fallback: no instances and edit mode on means the source stands in.
+  const sourceLog = [];
+  const container = new EveChildInstanceContainer();
+  container.source = makeChild(sourceLog);
+  container.UpdateSyncronous({}, {});
+  assert.equal(sourceLog.length, 1);
+  assert.equal(sourceLog[0][1], container, "childParent rebased onto the container");
+
+  // Instances win over the source once present.
+  const instanceLog = [];
+  container.instances.push(makeChild(instanceLog));
+  container.UpdateSyncronous({}, {});
+  assert.equal(sourceLog.length, 1, "source no longer called");
+  assert.equal(instanceLog.length, 1);
+
+  // GetRenderables is armed only by a completed async update (m_hasUpdated).
+  assert.deepEqual(container.GetRenderables([]), [], "not armed before async");
+  const parent = mat4.fromTranslation(mat4.create(), [ 3, 4, 5 ]);
+  container.UpdateAsyncronous({}, { localToWorldTransform: parent, isVisible: true });
+  assert.equal(instanceLog.at(-1)[0], "async");
+  assert.ok(Math.abs(container.worldTransform[12] - 3) < 1e-6, "async rebuilt the world transform");
+  assert.deepEqual(container.GetRenderables([]), ["child"], "armed after async");
+
+  // Visibility passes the parent transform and LOD through UNCHANGED.
+  container.UpdateVisibility({}, parent, 2);
+  assert.equal(instanceLog.at(-1)[0], "visibility");
+  assert.equal(instanceLog.at(-1)[1], parent, "parent transform NOT rebased");
+  assert.equal(instanceLog.at(-1)[2], 2);
+
+  // The display gate closes everything.
+  container.display = false;
+  container.UpdateSyncronous({}, {});
+  container.UpdateVisibility({}, parent, 2);
+  assert.deepEqual(container.GetRenderables([]), []);
+  assert.equal(instanceLog.filter(entry => entry[0] === "sync").length, 1);
+});

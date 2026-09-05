@@ -624,7 +624,7 @@ export class EveSpaceScene extends CjsModel
 
     for (const lensflare of this.lensflares)
     {
-      lensflare?.Update?.(realTime, simTime);
+      lensflare?.Update(realTime, simTime);
     }
 
     this.virtualCameraSystem?.Update(realTime);

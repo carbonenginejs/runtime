@@ -84,7 +84,7 @@ export class EveChildAudio extends EveChildTransform
   {
     if (value === "mute" || value === this.mute)
     {
-      this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]?.();
+      this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]();
     }
     if (value === "name" || value === this.name)
     {
@@ -110,7 +110,7 @@ export class EveChildAudio extends EveChildTransform
       const rotation = mat4.getRotation(quat.create(), this.worldTransform);
       const front = vec3.transformQuat(vec3.create(), EveChildAudio.FRONT, rotation);
       const top = vec3.transformQuat(vec3.create(), EveChildAudio.TOP, rotation);
-      this.audioEmitter.SetPosition?.(front, top, position);
+      this.audioEmitter.SetPosition(front, top, position);
     }
   }
 

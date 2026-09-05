@@ -68,10 +68,10 @@ export class Tr2AudioStretchBase extends CjsModel
   Update(sourcePosition, destPosition)
   {
     StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this.#front, this.#top);
-    this.sourceEmitter?.SetPosition?.(this.#front, this.#top, sourcePosition);
-    this.destinationEmitter?.SetPosition?.(this.#front, this.#top, destPosition);
+    this.sourceEmitter?.SetPosition(this.#front, this.#top, sourcePosition);
+    this.destinationEmitter?.SetPosition(this.#front, this.#top, destPosition);
     const listenerPosition = AudGameObjResource.manager?.GetListener?.()?.GetPosition?.() ?? sourcePosition;
-    this.stretchEmitter?.SetPosition?.(
+    this.stretchEmitter?.SetPosition(
       this.#front,
       this.#top,
       Tr2AudioStretchBase.#ProjectOntoSegment(listenerPosition, sourcePosition, destPosition));
@@ -84,7 +84,7 @@ export class Tr2AudioStretchBase extends CjsModel
   {
     for (const emitter of [ this.sourceEmitter, this.destinationEmitter, this.stretchEmitter ])
     {
-      if (emitter?.GetName?.() === name)
+      if (emitter?.GetName() === name)
       {
         return emitter;
       }

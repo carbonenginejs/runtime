@@ -129,6 +129,44 @@ export class EveLensflare extends withITr2Renderable(CjsModel)
    * PrepareRender, forwarded to the flare children as their parent. */
   transform = mat4.create();
 
+  /** Carbon EveLensflare::Update (EveLensflare.cpp:145-182): position from the
+   * translation curve, the sun-size curve of very old magic numbers
+   * (1.5 / ln(d_AU + 2.71), 0.1495978707e12 metres per AU; no curve means
+   * sunSize 1, not the constructed 0), then curve sets and controllers.
+   * Carbon's occlusion upload (cpp:169-171, the uint32 offsets bit-cast into
+   * m_occScaleVar) is NOT re-derived here: the engine stamps
+   * occlusionOffset/backgroundOcclusionOffset (see the field comment above)
+   * and GetPerObjectData already ships them through the per-object indices,
+   * so repeating it in Update would double-write the same seam. The curve is
+   * called out-last (Update(simTime, position)) per the org convention -
+   * Carbon's is out-first. */
+  @carbon.method
+  @impl.implemented
+  Update(realTime, simTime)
+  {
+    if (!this.update) return;
+
+    if (this.translationCurve)
+    {
+      this.translationCurve.Update(simTime, this.position);
+      const distanceToCenter = vec3.length(this.position) / 0.1495978707e12;
+      this.sunSize = 1.5 / Math.log(distanceToCenter + 2.71);
+    }
+    else
+    {
+      this.sunSize = 1;
+    }
+
+    for (const curveSet of this.curveSets)
+    {
+      curveSet?.Update(realTime, simTime);
+    }
+    for (const controller of this.controllers)
+    {
+      controller?.Update(0.5);
+    }
+  }
+
   /** Carbon EveLensflare::UpdateVisibility (EveLensflare.cpp:298-311): the
    * viewDir dot test - visible iff dot(frustum.viewDir, direction) >= 0
    * (a sun exactly perpendicular to the view IS visible), then every flare

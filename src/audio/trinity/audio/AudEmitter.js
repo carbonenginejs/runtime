@@ -5,10 +5,11 @@ import { carbon, impl, io, type } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
+import { withITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 
 /** AudEmitter (audio) - the concrete content-facing emitter (ITr2AudEmitter). */
 @type.define({ className: "AudEmitter", family: "audio" })
-export class AudEmitter extends AudGameObjResource
+export class AudEmitter extends withITr2AudEmitter(AudGameObjResource)
 {
 
   /** m_authoredRotation (Quaternion) [READWRITE, PERSIST, NOTIFY] */

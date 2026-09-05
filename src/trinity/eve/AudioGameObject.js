@@ -118,7 +118,7 @@ export class AudioGameObject extends withIEveSpaceObject2(CjsModel)
   {
     if (value === "mute" || value === this.mute)
     {
-      this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]?.();
+      this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]();
     }
     if (value === "name" || value === this.name)
     {
@@ -246,7 +246,7 @@ export class AudioGameObject extends withIEveSpaceObject2(CjsModel)
     const rotation = this.GetWorldRotation(quat.create());
     const front = vec3.transformQuat(vec3.create(), AudioGameObject.FRONT, rotation);
     const top = vec3.transformQuat(vec3.create(), AudioGameObject.TOP, rotation);
-    this.audioEmitter?.SetPosition?.(front, top, position);
+    this.audioEmitter?.SetPosition(front, top, position);
   }
 
   static FRONT = Object.freeze([0, 1, 0]);
