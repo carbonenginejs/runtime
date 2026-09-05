@@ -20,6 +20,7 @@ export * from "./material/Tr2EffectPassParameters.js";
 export * from "./material/Tr2EffectTechniqueInputs.js";
 export * from "./material/Tr2MaterialStageInput.js";
 export * from "./material/Tr2SharedConstantBuffers.js";
+export * from "./parameter/ITr2EffectValue.js";
 export * from "./parameter/Tr2ConstantEffectParameter.js";
 export * from "./parameter/Tr2FloatParameter.js";
 export * from "./parameter/Tr2GeometryBufferParameter.js";

@@ -1,7 +1,9 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
+import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
+import { ResourceFlags } from "./ITr2EffectValue.js";
 
 /** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
 @type.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
@@ -76,17 +78,47 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   }
 
   /**
-   * Always false - populating a resource set is device work this package does
-   * not do.
+   * Binds the animation's current channel texture.
+   *
+   * Carbon `Tr2TextureAnimationParameter::CopyToResourceSet`.
+   *
+   * ONE DIVERGENCE, AND IT IS THE FALLBACK. With no animation attached Carbon
+   * binds `Tr2Renderer::GetFallbackTexture( m_resourceType, m_name )` — a
+   * magenta stand-in picked by texture dimensionality, so a missing texture
+   * draws visibly wrong rather than invisibly. We bind nothing, because
+   * `GetFallbackTexture` is a `Tr2Renderer` STATIC reaching process-global
+   * fallback textures, and ours is an instance the composition root creates
+   * (see the head comment on `Tr2Renderer`) that a parameter holds no
+   * reference to. Reaching it would mean widening Carbon's signature.
+   *
+   * Binding an empty srv is what Carbon itself does in the equivalent
+   * no-provider case in `TriVariable::CopyToResourceSet`, so this is a
+   * degraded diagnostic rather than a behavioural difference in what draws.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
+   * @returns {boolean} Whether the slot took the binding.
    */
   @carbon.method
   @impl.adapted
-  CopyToResourceSet()
+  @impl.reason("Carbon's fallback texture comes from a Tr2Renderer static; ours is an instance a parameter cannot reach without widening Carbon's signature.")
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
   {
-    return false;
+    const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
+      ? Tr2ColorSpace.COLOR_SPACE_SRGB
+      : Tr2ColorSpace.COLOR_SPACE_LINEAR;
+
+    return resourceDesc.SetSrv(stage, registerIndex, this.GetTexture(), colorSpace);
   }
 
-  /** Always false - UAV binding is left to the engine adapter. */
+  /**
+   * Always false, and Carbon's is too: an animated texture is sampled, never
+   * written, so it has no unordered-access binding.
+   *
+   * @returns {boolean} False, always.
+   */
   @carbon.method
   @impl.implemented
   ApplyUav()

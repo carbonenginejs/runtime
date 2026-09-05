@@ -2,6 +2,8 @@
 // Source: trinity/trinity/TriVariable.cpp
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
+import { Tr2ColorSpace } from "#consts/render-context";
+import { ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 
@@ -111,6 +113,89 @@ export class TriVariable extends CjsModel
     {
       this.value = null;
     }
+  }
+
+  /**
+   * Binds this variable's resource into a resource-set description.
+   *
+   * Carbon `TriVariable::CopyToResourceSet` (`TriVariable.cpp:25-67`), which
+   * switches on the content type and answers false for everything that is not
+   * a resource — a float or a matrix is a CONSTANT and reaches a shader
+   * through `CopyValueToEffect`, not through a resource set.
+   *
+   * A PROVIDER THAT HAS NOT RESOLVED STILL BINDS, as an empty slot rather than
+   * a skipped one. That is Carbon's, and it matters: leaving the register
+   * untouched would let a draw read whatever the previous one bound there.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
+   * @returns {boolean} Whether the slot took the binding.
+   */
+  @carbon.method
+  @impl.implemented
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
+  {
+    if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
+    {
+      const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
+        ? Tr2ColorSpace.COLOR_SPACE_SRGB
+        : Tr2ColorSpace.COLOR_SPACE_LINEAR;
+
+      return resourceDesc.SetSrv(stage, registerIndex, this.#Texture(), colorSpace);
+    }
+
+    if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
+    {
+      return resourceDesc.SetSrv(stage, registerIndex, this.#GpuBuffer());
+    }
+
+    return false;
+  }
+
+  /**
+   * Binds this variable's resource as an unordered-access view.
+   *
+   * Carbon `TriVariable::ApplyUav` (`TriVariable.cpp:69+`). Same switch, no
+   * colour space — a UAV is written rather than sampled.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @returns {boolean} Whether the slot took the binding.
+   */
+  @carbon.method
+  @impl.implemented
+  ApplyUav(resourceDesc, stage, registerIndex)
+  {
+    if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
+    {
+      return resourceDesc.SetUav(stage, registerIndex, this.#Texture());
+    }
+
+    if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
+    {
+      return resourceDesc.SetUav(stage, registerIndex, this.#GpuBuffer());
+    }
+
+    return false;
+  }
+
+  /** The provider's texture, or null when it has not resolved one. */
+  #Texture()
+  {
+    const provider = this.value;
+
+    return typeof provider?.GetTexture === "function" ? provider.GetTexture() : null;
+  }
+
+  /** The provider's first buffer, which is the index Carbon passes. */
+  #GpuBuffer()
+  {
+    const provider = this.value;
+
+    return typeof provider?.GetGpuBuffer === "function" ? provider.GetGpuBuffer(0) : null;
   }
 
   /**

@@ -134,22 +134,40 @@ export class TriVariableParameter extends CjsParameter
   }
 
   /**
-   * Always false - populating a resource set is device work this package does
-   * not do.
+   * Delegates to the bound variable, so the store owns the binding.
+   *
+   * Carbon's `TriVariableParameter` forwards to `TriVariable::CopyToResourceSet`
+   * (`TriVariable.cpp:25-67`) for the same reason `CopyValueToEffect` above
+   * forwards: the parameter names a variable, and the variable holds the
+   * value. An unbound parameter binds nothing, which is the one case Carbon's
+   * switch answers false for too.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
+   * @returns {boolean} Whether the slot took the binding.
    */
   @carbon.method
   @impl.adapted
-  CopyToResourceSet()
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
   {
-    return false;
+    return this.variable?.CopyToResourceSet(resourceDesc, stage, registerIndex, flags) ?? false;
   }
 
-  /** Always false - UAV binding is left to the engine adapter. */
+  /**
+   * Delegates the unordered-access binding to the bound variable.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @returns {boolean} Whether the slot took the binding.
+   */
   @carbon.method
   @impl.adapted
-  ApplyUav()
+  ApplyUav(resourceDesc, stage, registerIndex)
   {
-    return false;
+    return this.variable?.ApplyUav(resourceDesc, stage, registerIndex) ?? false;
   }
 
   /**

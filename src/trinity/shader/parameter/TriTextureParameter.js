@@ -2,7 +2,9 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
+import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
+import { ResourceFlags } from "./ITr2EffectValue.js";
 
 
 /**
@@ -153,6 +155,55 @@ export class TriTextureParameter extends CjsParameter
   GetResource()
   {
     return this.#lowResResource ?? this.resource;
+  }
+
+  /**
+   * Binds this parameter's texture into a resource-set description.
+   *
+   * Carbon `TriTextureParameter::CopyToResourceSet`
+   * (`Shader/Parameter/TriTextureParameter.cpp`), which is this and nothing
+   * else. THE CLASS HAD NO SUCH METHOD AT ALL until 2026-09-05 — the three
+   * lesser texture parameters at least carried a `return false` stub, while
+   * the main texture-bearing one carried nothing, so nothing bound.
+   *
+   * `flags` is Carbon's `ResourceFlags`, which a mapped resource stores in
+   * `registerCount` — for a resource that field is a flag word, not a count.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
+   * @returns {boolean} Whether the slot took the binding.
+   */
+  @carbon.method
+  @impl.implemented
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
+  {
+    const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
+      ? Tr2ColorSpace.COLOR_SPACE_SRGB
+      : Tr2ColorSpace.COLOR_SPACE_LINEAR;
+
+    // Carbon binds `m_cachedTexture`, which is the low-res stand-in while one
+    // is active. `GetResource` already answers that question here.
+    return resourceDesc.SetSrv(stage, registerIndex, this.GetResource(), colorSpace);
+  }
+
+  /**
+   * Binds this parameter's texture as an unordered-access view at its mip.
+   *
+   * Carbon `TriTextureParameter::ApplyUav` (same file). No colour space: a UAV
+   * is written, not sampled, so there is no transfer function to apply.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @returns {boolean} Whether the slot took the binding.
+   */
+  @carbon.method
+  @impl.implemented
+  ApplyUav(resourceDesc, stage, registerIndex)
+  {
+    return resourceDesc.SetUav(stage, registerIndex, this.GetResource(), this.uavMipLevel);
   }
 
   /** Always true - a texture swap must dirty the owning materials' resource sets. */

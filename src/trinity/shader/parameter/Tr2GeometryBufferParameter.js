@@ -101,22 +101,50 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   }
 
   /**
-   * Always false - populating a resource set is device work this package does
-   * not do.
+   * Binds this parameter's geometry buffer as a shader resource.
+   *
+   * Carbon `Tr2GeometryBufferParameter::CopyToResourceSet`. No colour space —
+   * a buffer has no transfer function — so `flags` is accepted for the shared
+   * signature and unread, exactly as Carbon's is.
+   *
+   * A MISSING BUFFER BINDS NOTHING HERE and binds an EMPTY UAV below. That
+   * asymmetry is Carbon's: an unbound srv register keeps whatever the previous
+   * draw left, which a shader may legitimately still be reading, while an
+   * unbound uav must be cleared or the next dispatch writes into a stale one.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @param {number} [_flags] A `ResourceFlags` word; unread for a buffer.
+   * @returns {boolean} Whether the slot took the binding.
    */
   @carbon.method
-  @impl.adapted
-  CopyToResourceSet()
+  @impl.implemented
+  CopyToResourceSet(resourceDesc, stage, registerIndex, _flags = 0)
   {
-    return false;
+    const buffer = this.gpuBuffer?.GetGpuBuffer(this.meshIndex);
+
+    if (!buffer) return false;
+
+    return resourceDesc.SetSrv(stage, registerIndex, buffer);
   }
 
-  /** Always false - UAV binding is left to the engine adapter. */
+  /**
+   * Binds this parameter's geometry buffer as an unordered-access view, or an
+   * empty one when nothing is attached — see the note above on why.
+   *
+   * Carbon `Tr2GeometryBufferParameter::ApplyUav`.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @returns {boolean} Whether the slot took the binding.
+   */
   @carbon.method
-  @impl.adapted
-  ApplyUav()
+  @impl.implemented
+  ApplyUav(resourceDesc, stage, registerIndex)
   {
-    return false;
+    return resourceDesc.SetUav(stage, registerIndex, this.gpuBuffer?.GetGpuBuffer(this.meshIndex) ?? null);
   }
 
   /**

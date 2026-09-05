@@ -8,6 +8,8 @@ import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
 import { Tr2ResourceSetDescriptionAL } from "../../npm/dist/trinity/core/index.js";
+import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
+import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -421,18 +423,38 @@ test("promoted shader resource parameters stay graph-only", () =>
   geometry.RebuildEffectHandles(shader);
   assert(geometry.usedByCurrentEffect);
   assert(geometry.IsValid());
+  // THESE TWO USED TO ASSERT THAT BINDING NEVER HAPPENED, with descriptions
+  // whose setters threw ("runtime-trinity shader graph must not bind
+  // resources"). Carbon's Tr2GeometryBufferParameter binds; see the retired
+  // assertion note further down this file and
+  // /docs/research/graphics-path-review-2026-09-05.md.
+  const srvCalls = [];
   assertEquals(geometry.CopyToResourceSet({
-    SetSrv()
+    SetSrv(stage, registerIndex, buffer)
     {
-      throw new Error("runtime-trinity shader graph must not bind resources");
+      srvCalls.push([ stage, registerIndex, buffer ]);
+      return true;
     }
-  }, 1, 2), false);
+  }, 1, 2), true);
+  assertEquals(srvCalls.length, 1);
+  assertEquals(srvCalls[0][2], "buffer:3", "the buffer comes from the parameter's own meshIndex");
+
+  const uavCalls = [];
   assertEquals(geometry.ApplyUav({
-    SetUav()
+    SetUav(stage, registerIndex, buffer)
     {
-      throw new Error("runtime-trinity shader graph must not bind UAVs");
+      uavCalls.push([ stage, registerIndex, buffer ]);
+      return true;
     }
-  }, 1, 2), false);
+  }, 1, 2), true);
+  assertEquals(uavCalls[0][2], "buffer:3");
+
+  // A missing buffer binds NOTHING as an srv and an EMPTY uav, which is
+  // Carbon's asymmetry: an untouched srv register keeps whatever the last draw
+  // left there, while a stale uav would be written into.
+  const unbound = new Tr2GeometryBufferParameter();
+  assertEquals(unbound.CopyToResourceSet({ SetSrv: () => true }, 1, 2), false);
+  assertEquals(unbound.ApplyUav({ SetUav: (s, r, buffer) => buffer === null }, 1, 2), true);
   const textureAnimation = new Tr2TextureAnimationParameter();
   textureAnimation.animation = {
     GetTexture(channel)
@@ -442,12 +464,27 @@ test("promoted shader resource parameters stay graph-only", () =>
   };
   textureAnimation.channel = "Main";
   assertEquals(textureAnimation.GetTexture(), "texture:Main");
+  // The sRGB flag is Carbon's ResourceFlags bit 0, and a mapped resource
+  // stores it in registerCount - which for a resource is a flag word rather
+  // than a count.
+  const bound = [];
   assertEquals(textureAnimation.CopyToResourceSet({
-    SetSrv()
+    SetSrv(stage, registerIndex, texture, colorSpace)
     {
-      throw new Error("runtime-trinity shader graph must not bind textures");
+      bound.push({ stage, registerIndex, texture, colorSpace });
+      return true;
     }
-  }, 1, 2), false);
+  }, 1, 2, ResourceFlags.RESOURCE_FLAG_SRGB), true);
+  assertEquals(bound[0].texture, "texture:Main");
+  assertEquals(bound[0].colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB, "the flag selects sRGB");
+
+  bound.length = 0;
+  textureAnimation.CopyToResourceSet({ SetSrv: (s, r, t, c) => (bound.push(c), true) }, 1, 2);
+  assertEquals(bound[0], Tr2ColorSpace.COLOR_SPACE_LINEAR, "and linear without it");
+
+  // An animated texture is sampled, never written, so Carbon's ApplyUav is
+  // false unconditionally - not a stub.
+  assertEquals(textureAnimation.ApplyUav({ SetUav: () => true }, 1, 2), false);
   const invalidations = [];
   textureAnimation.OnAddedToMaterial({
     InvalidateResourceSets()
@@ -746,8 +783,24 @@ test("promoted shader graph files do not import backend APIs", async () =>
   for (const file of files)
   {
     const source = await readFile(file, "utf8");
+    // THE FIRST ASSERTION IS THE REAL RULE and it stays: no backend API, no
+    // device object, in Trinity.
     assert(!/(WebGPU|WebGL|GPUDevice|GPUTexture|GPUBuffer|navigator\.gpu)/.test(source), `${file} should remain runtime graph code, not engine backend code`);
-    assert(!/\.(SetSrv|SetUav|SetShaderBuffer|SetConstants|ApplyShaderProgram|SetResourceSet)\b/.test(source), `${file} should not perform shader or resource bindings`);
+
+    // A SECOND ASSERTION USED TO SIT HERE AND IT WAS WRONG. It forbade any
+    // call to SetSrv, SetUav, SetConstants, ApplyShaderProgram or
+    // SetResourceSet anywhere under src/trinity/shader, on the reading that
+    // binding is "engine" work. "Engine" meant the ABSTRACTION LAYER
+    // (operator, 2026-09-05), and Carbon's Trinity does exactly these calls:
+    // Tr2Material::ApplyMaterialDataForPass fills a resource-set description
+    // and calls SetResourceSet; Tr2Shader::ApplyAllStateForPass calls
+    // ApplyShaderProgram. Filling a DESCRIPTION with integers and handles is
+    // not touching a device.
+    //
+    // It was also load-bearing in the wrong direction: it would have failed
+    // the ApplyMaterialDataForPass port outright, which is the next step of
+    // /docs/research/graphics-path-review-2026-09-05.md. Retired deliberately;
+    // do not restore it as a regression fix.
   }
 });
 async function collectJsFiles(dir)

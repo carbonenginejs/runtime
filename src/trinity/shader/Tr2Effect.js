@@ -24,18 +24,9 @@ import { TriTextureParameter } from "./parameter/TriTextureParameter.js";
 import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
+import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 
-
-/**
- * Carbon's sRGB resource flag (`ITr2EffectValue.h:18`).
- *
- * A mapped resource stores this in `registerCount`, which for resources is a
- * flag word rather than a count. The field name is Carbon's and it means
- * something different here than it does for a constant, where it is a byte
- * size.
- */
-const RESOURCE_FLAG_SRGB = 1;
 
 function requireShader(shader)
 {
@@ -563,7 +554,7 @@ export class Tr2Effect extends Tr2Material
       stored.sourceName = name;
       stored.sourceValue = value;
       stored.registerIndex = Number(register);
-      stored.registerCount = resource.isSRGB ? RESOURCE_FLAG_SRGB : 0;
+      stored.registerCount = resource.isSRGB ? ResourceFlags.RESOURCE_FLAG_SRGB : 0;
       into.push(stored);
     }
   }
