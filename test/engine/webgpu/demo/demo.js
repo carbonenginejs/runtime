@@ -34,6 +34,8 @@ import {
   TriRenderBatchAccumulator
 } from "../../../../npm/dist/trinity/core/index.js";
 import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
+import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../../npm/dist/trinity/core/index.js";
+import { Tr2LoadAction, Tr2StoreAction } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2MeshBase } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
@@ -151,9 +153,27 @@ function hullMesh(bytes)
       const y = position[i + 1] * scale;
       const z = position[i + 2] * scale;
 
+      // ROTATE, DO NOT SWAP. Exchanging two axes is a REFLECTION - its
+      // determinant is -1 - so every triangle's winding reverses. The effect
+      // authors cullMode back with frontFace cw, so a reflected hull is
+      // entirely back-facing and every triangle is culled: the blank canvas,
+      // for the second time in this file and the same cause as the fan above.
+      // Negating one of the swapped axes makes it a 90-degree rotation about
+      // Y instead, determinant +1, winding intact.
       position[i] = z;
       position[i + 1] = y;
-      position[i + 2] = x;
+
+      // DEPTH IS [0, 1] IN WEBGPU, not [-1, 1]. OpenGL's clip volume is
+      // symmetric about zero and every other API's is not - D3D, Metal and
+      // WebGPU all put the near plane at 0 - so a model centred on the origin
+      // has half its geometry BEHIND the near plane and clipped away before
+      // any raster state gets a say. The shader writes clip space directly,
+      // so the remap belongs here.
+      //
+      // Not a rotation any more, and that is fine: the winding-preserving
+      // rotation above is what matters, and a positive scale along one axis
+      // does not reverse it.
+      position[i + 2] = -x * 0.4 + 0.5;
     }
   }
 
@@ -412,6 +432,25 @@ export async function RunDemo(canvas)
     extraUsage: GPUTextureUsage.COPY_SRC
   }).Configure({ width: canvas.width, height: canvas.height });
 
+  // DIAGNOSTIC. Three hypotheses for the blank canvas were wrong in a row;
+  // this reports what the resolver actually built instead of guessing again.
+  const resolved = [];
+  const innerResolveMaterial = resolver.ResolveMaterial.bind(resolver);
+
+  resolver.ResolveMaterial = async (...args) =>
+  {
+    const recipe = await innerResolveMaterial(...args);
+
+    resolved.push({
+      primitive: recipe?.recipe?.primitive ?? null,
+      depthStencil: recipe?.recipe?.depthStencil ?? null,
+      targets: (recipe?.recipe?.fragment?.targets ?? []).map(target => target?.format ?? null),
+      vertexBuffers: (recipe?.recipe?.vertex?.buffers ?? []).length
+    });
+
+    return recipe;
+  };
+
   const al = new CjsWebgpuRenderContextAL({ webgpu, dispatcher, renderTarget });
 
   al.CreateDevice();
@@ -424,10 +463,24 @@ export async function RunDemo(canvas)
   let drawn = 0;
 
   al.BeginScene();
+
+  // BIND THE TARGETS SO `Clear` HAS SOMETHING TO CLEAR. The driver calls
+  // Clear during the frame, and Clear builds its load actions from the
+  // attachments bound on the work queue - so with none bound it produced a
+  // hint naming nothing, the pass LOADED an uninitialised depth buffer, and
+  // every fragment failed the depth test while the draw reported success.
+  //
+  // Declaring a hint here instead was worse than useless: Carbon flushes a
+  // pending hint when a second arrives, so the demo's clear went into an
+  // empty first pass and the drawing pass got the driver's empty one.
+  al.SetRenderTarget(0, renderTarget);
+  al.SetDepthStencil(renderTarget);
   driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
   await al.EndScene();
 
   drawn = al.GetDrawnBatchCount();
+
+  const events = al.DrainTransitions();
 
   const pass = material.GetShaderStateInterface().GetEffect().techniques[0].passes[0];
   const declared = (translatedPipeline?.bindGroups ?? [])
@@ -451,6 +504,9 @@ export async function RunDemo(canvas)
       .map(input => `usage${input.usage}.${input.usageIndex}@${input.registerIndex}`),
     renderStateHandle: pass.renderStates,
     drawn,
+    resolved,
+    events: events.map(event => event.type + (event.encoderType ? ":" + event.encoderType : "")),
+    targetFormat: renderTarget.GetFormat(),
     triangles: lod.areas.reduce((total, area) => total + (area.elementCount ?? 0), 0)
   };
 }
