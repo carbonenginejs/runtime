@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { DestinationType, PlayAction, StopAction } from "../enums.js";
-import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 
 
@@ -16,7 +16,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
   className: "Tr2ActionPlayMeshAnimation",
   family: "controllers"
 })
-export class Tr2ActionPlayMeshAnimation extends CjsModel
+export class Tr2ActionPlayMeshAnimation extends withITr2ControllerAction(CjsModel)
 {
   @io.notify
   @io.persist

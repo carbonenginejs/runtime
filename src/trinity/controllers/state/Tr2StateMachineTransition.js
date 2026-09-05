@@ -109,7 +109,7 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     const stateMachine = this.#source?.GetStateMachine?.() ?? null;
     const controller = stateMachine?.GetController?.() ?? null;
-    const owner = controller?.GetOwner?.() ?? null;
+    const owner = controller?.GetOwner() ?? null;
     const program = this.Compile();
     if (!program.IsValid())
     {
@@ -217,7 +217,7 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     const stateMachine = this.#source?.GetStateMachine?.() ?? null;
     const controller = stateMachine?.GetController?.() ?? null;
-    const owner = controller?.GetOwner?.() ?? null;
+    const owner = controller?.GetOwner() ?? null;
     const program = CjsControllerExpressionProgram.Compile(expression, {
       emptyValue: 0
     });

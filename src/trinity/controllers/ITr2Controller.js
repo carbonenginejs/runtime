@@ -250,7 +250,19 @@ const ACTION_ABSTRACTS = [
   "EnsureTempArenaSize", "GetTempArena"
 ];
 
-function Brand(target, symbol, noops, abstracts)
+/**
+ * Marks a class as carrying a contract, and records each method's provenance.
+ *
+ * Shared by every ported Carbon interface in this folder - `ITr2Controller`,
+ * `ITr2ControllerAction`, `ITr2StateMachineStateFinalizer` - so the brand and
+ * the noop/abstract bookkeeping are written once.
+ *
+ * @param {Function} target The contract or adopted class.
+ * @param {symbol} symbol The contract's brand symbol.
+ * @param {string[]} noops Methods Carbon gives an empty body.
+ * @param {string[]} abstracts Methods Carbon makes pure virtual.
+ */
+export function Brand(target, symbol, noops, abstracts)
 {
   Object.defineProperty(target.prototype, symbol, { value: true });
 
@@ -320,7 +332,7 @@ export function withITr2ActionController(Base)
  * @param {string[]} names The contract's method names.
  * @returns {Function} The subclass.
  */
-function Adopt(Base, Contract, names)
+export function Adopt(Base, Contract, names)
 {
   const Adopted = class extends Base
   {

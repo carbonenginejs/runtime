@@ -107,7 +107,7 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
     }
     for (const action of this.actions)
     {
-      action.Link?.(this);
+      action.Link(this);
     }
     for (const handler of this.eventHandlers)
     {
@@ -137,7 +137,7 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
     }
     for (const action of this.actions)
     {
-      action.Unlink?.();
+      action.Unlink();
     }
     for (const handler of this.eventHandlers)
     {
@@ -175,7 +175,7 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
       const entry = this.#entryAt(i);
       if (entry && this.IsActionEnabled(i) && Tr2TimelineController.#inRange(this.#time, entry))
       {
-        this.actions[i].Start?.(this);
+        this.actions[i].Start(this);
       }
     }
   }
@@ -196,7 +196,7 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
       const entry = this.#entryAt(i);
       if (entry && this.IsActionEnabled(i) && Tr2TimelineController.#inRange(this.#time, entry))
       {
-        this.actions[i].Stop?.(this);
+        this.actions[i].Stop(this);
       }
     }
     this.isPlaying = false;
@@ -228,7 +228,7 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
     }
     for (const updateable of this.#updateables)
     {
-      updateable.Update?.(actualTime, frameTime);
+      updateable.Update(actualTime, frameTime);
     }
   }
 
@@ -502,11 +502,11 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
       });
       if (wasActive && !isActive)
       {
-        this.actions[index].Stop?.(this);
+        this.actions[index].Stop(this);
       }
       else if (!wasActive && isActive)
       {
-        this.actions[index].Start?.(this);
+        this.actions[index].Start(this);
       }
     }
     entry.startTime = startTime;
@@ -540,11 +540,11 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
       });
       if (wasActive && !isActive)
       {
-        this.actions[index].Stop?.(this);
+        this.actions[index].Stop(this);
       }
       else if (!wasActive && isActive)
       {
-        this.actions[index].Start?.(this);
+        this.actions[index].Start(this);
       }
     }
     entry.endTime = endTime;
@@ -576,11 +576,11 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
     {
       if (isEnabled)
       {
-        this.actions[index].Start?.(this);
+        this.actions[index].Start(this);
       }
       else
       {
-        this.actions[index].Stop?.(this);
+        this.actions[index].Stop(this);
       }
     }
     return true;
@@ -605,11 +605,11 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
     this.entries.push(entry);
     if (this.#owner)
     {
-      action.Link?.(this);
+      action.Link(this);
     }
     if (this.isPlaying && this.IsActionEnabled(this.actions.length - 1) && Tr2TimelineController.#inRange(this.#time, entry))
     {
-      action.Start?.(this);
+      action.Start(this);
     }
   }
 
@@ -628,11 +628,11 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
     const entry = this.#entryAt(index);
     if (entry && this.isPlaying && this.IsActionEnabled(index) && Tr2TimelineController.#inRange(this.#time, entry))
     {
-      action.Stop?.(this);
+      action.Stop(this);
     }
     if (this.#owner)
     {
-      action.Unlink?.();
+      action.Unlink();
     }
     this.actions.splice(index, 1);
     this.entries.splice(index, 1);
@@ -685,11 +685,11 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
         {
           if (enable)
           {
-            this.actions[i].Start?.(this);
+            this.actions[i].Start(this);
           }
           else
           {
-            this.actions[i].Stop?.(this);
+            this.actions[i].Stop(this);
           }
         }
       }
@@ -776,16 +776,16 @@ export class Tr2TimelineController extends withITr2ActionController(EveThrottlea
       const isActive = Tr2TimelineController.#inRange(this.#time, entry);
       if (wasActive && !isActive)
       {
-        this.actions[i].Stop?.(this);
+        this.actions[i].Stop(this);
       }
       else if (!wasActive && isActive)
       {
-        this.actions[i].Start?.(this);
+        this.actions[i].Start(this);
       }
       else if (includePassedActions && Tr2TimelineController.#crossedRange(oldTime, this.#time, entry))
       {
-        this.actions[i].Start?.(this);
-        this.actions[i].Stop?.(this);
+        this.actions[i].Start(this);
+        this.actions[i].Stop(this);
       }
     }
   }

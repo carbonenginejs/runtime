@@ -42,11 +42,11 @@ export class Tr2ControllerEventHandler extends CjsModel
       case BELIST_INSERTED:
         if (this.#controller && action)
         {
-          action.Link?.(this.#controller);
+          action.Link(this.#controller);
         }
         break;
       case BELIST_REMOVED:
-        action?.Unlink?.();
+        action?.Unlink();
         break;
     }
   }
@@ -62,7 +62,7 @@ export class Tr2ControllerEventHandler extends CjsModel
     this.#controller = controller;
     for (const action of this.actions)
     {
-      action.Link?.(controller);
+      action.Link(controller);
     }
   }
 
@@ -79,7 +79,7 @@ export class Tr2ControllerEventHandler extends CjsModel
     }
     for (const action of this.actions)
     {
-      action.Unlink?.();
+      action.Unlink();
     }
   }
 
@@ -102,11 +102,11 @@ export class Tr2ControllerEventHandler extends CjsModel
   {
     for (const action of this.actions)
     {
-      action.Start?.(controller);
+      action.Start(controller);
     }
     for (const action of this.actions)
     {
-      action.Stop?.(controller);
+      action.Stop(controller);
     }
   }
 

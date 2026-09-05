@@ -5,7 +5,7 @@ import { isArrayLike } from "#utils/is";
 import { carbon, impl, io, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ResetBehavior } from "../enums.js";
-import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
 /**
@@ -17,7 +17,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   className: "Tr2ActionResetClipSphereCenter",
   family: "controllers"
 })
-export class Tr2ActionResetClipSphereCenter extends CjsModel
+export class Tr2ActionResetClipSphereCenter extends withITr2ControllerAction(CjsModel)
 {
   @io.persist
   @type.int32

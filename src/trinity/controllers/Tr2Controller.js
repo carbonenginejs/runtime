@@ -136,7 +136,7 @@ export class Tr2Controller extends withITr2ActionController(EveThrottleable)
     this.#owner = owner;
     for (const stateMachine of this.stateMachines)
     {
-      stateMachine.Link?.(this);
+      stateMachine.Link(this);
     }
     for (const handler of this.eventHandlers)
     {
@@ -166,7 +166,7 @@ export class Tr2Controller extends withITr2ActionController(EveThrottleable)
     }
     for (const stateMachine of this.stateMachines)
     {
-      stateMachine.Unlink?.(reason);
+      stateMachine.Unlink(reason);
     }
     for (const handler of this.eventHandlers)
     {
@@ -215,7 +215,7 @@ export class Tr2Controller extends withITr2ActionController(EveThrottleable)
     this.#currentFrameTime = GetControllerFrameTimeSeconds();
     for (const stateMachine of this.stateMachines)
     {
-      stateMachine.Start?.();
+      stateMachine.Start();
     }
     this.isPlaying = true;
   }
@@ -233,7 +233,7 @@ export class Tr2Controller extends withITr2ActionController(EveThrottleable)
     }
     for (const stateMachine of this.stateMachines)
     {
-      stateMachine.Stop?.();
+      stateMachine.Stop();
     }
     this.isPlaying = false;
   }
@@ -260,13 +260,13 @@ export class Tr2Controller extends withITr2ActionController(EveThrottleable)
     this.#dirtyVariables.value = 0n;
     for (const stateMachine of this.stateMachines)
     {
-      stateMachine.Update?.(dirtyVariables);
+      stateMachine.Update(dirtyVariables);
     }
     if (this.#updateables.size)
     {
       for (const updateable of this.#updateables)
       {
-        updateable.Update?.(actualTime, this.#currentFrameTime);
+        updateable.Update(actualTime, this.#currentFrameTime);
       }
     }
   }
@@ -560,10 +560,10 @@ export class Tr2Controller extends withITr2ActionController(EveThrottleable)
       case BELIST_INSERTED:
         if (this.#owner && stateMachine)
         {
-          stateMachine.Link?.(this);
+          stateMachine.Link(this);
           if (this.isPlaying)
           {
-            stateMachine.Start?.();
+            stateMachine.Start();
           }
         }
         break;
@@ -572,9 +572,9 @@ export class Tr2Controller extends withITr2ActionController(EveThrottleable)
         {
           if (this.isPlaying)
           {
-            stateMachine.Stop?.();
+            stateMachine.Stop();
           }
-          stateMachine.Unlink?.();
+          stateMachine.Unlink();
         }
         break;
     }

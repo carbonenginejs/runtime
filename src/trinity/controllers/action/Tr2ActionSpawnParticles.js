@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
 import { CjsModel } from "#model";
+import { withITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, io, type } from "#schema";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter.js";
 
@@ -13,7 +14,7 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
   className: "Tr2ActionSpawnParticles",
   family: "controllers"
 })
-export class Tr2ActionSpawnParticles extends CjsModel
+export class Tr2ActionSpawnParticles extends withITr2ControllerAction(CjsModel)
 {
   @io.persist
   @type.objectRef("Tr2DynamicEmitter")

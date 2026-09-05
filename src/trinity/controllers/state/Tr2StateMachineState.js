@@ -54,7 +54,7 @@ export class Tr2StateMachineState extends CjsModel
     const controller = this.#stateMachine?.GetController?.() ?? null;
     if (this.finalizer && controller)
     {
-      this.finalizer.Link?.(controller);
+      this.finalizer.Link(controller);
     }
     return true;
   }
@@ -88,7 +88,7 @@ export class Tr2StateMachineState extends CjsModel
     this.UpdateVariableMask();
     for (const transition of this.transitions)
     {
-      transition.Link?.(this);
+      transition.Link(this);
     }
     this.UpdateVariableMask();
     const controller = this.#getController();
@@ -96,9 +96,9 @@ export class Tr2StateMachineState extends CjsModel
     {
       for (const action of this.actions)
       {
-        action.Link?.(controller);
+        action.Link(controller);
       }
-      this.finalizer?.Link?.(controller);
+      this.finalizer?.Link(controller);
     }
   }
 
@@ -147,13 +147,13 @@ export class Tr2StateMachineState extends CjsModel
     this.#stateMachine = null;
     for (const transition of this.transitions)
     {
-      transition.Unlink?.();
+      transition.Unlink();
     }
     for (const action of this.actions)
     {
-      action.Unlink?.();
+      action.Unlink();
     }
-    this.finalizer?.Unlink?.();
+    this.finalizer?.Unlink();
   }
 
   /**
@@ -173,7 +173,7 @@ export class Tr2StateMachineState extends CjsModel
     }
     for (const action of this.actions)
     {
-      action.Start?.(controller);
+      action.Start(controller);
     }
     this.#isActive = true;
     this.#isFinalizing = false;
@@ -195,7 +195,7 @@ export class Tr2StateMachineState extends CjsModel
     {
       for (const action of this.actions)
       {
-        action.Stop?.(controller);
+        action.Stop(controller);
       }
     }
     if (this.finalizer && controller && !this.finalizer.CanTransition(controller))
@@ -357,10 +357,10 @@ export class Tr2StateMachineState extends CjsModel
       case BELIST_INSERTED:
         if (controller && action)
         {
-          action.Link?.(controller);
+          action.Link(controller);
           if (this.#isActive)
           {
-            action.Start?.(controller);
+            action.Start(controller);
           }
         }
         break;
@@ -369,9 +369,9 @@ export class Tr2StateMachineState extends CjsModel
         {
           if (controller && this.#isActive)
           {
-            action.Stop?.(controller);
+            action.Stop(controller);
           }
-          action.Unlink?.();
+          action.Unlink();
         }
         break;
     }
@@ -390,14 +390,14 @@ export class Tr2StateMachineState extends CjsModel
       case BELIST_INSERTED:
         if (this.#stateMachine && transition)
         {
-          transition.Link?.(this);
+          transition.Link(this);
           this.UpdateVariableMask();
         }
         break;
       case BELIST_REMOVED:
         if (transition)
         {
-          transition.Unlink?.();
+          transition.Unlink();
           this.UpdateVariableMask();
         }
         break;

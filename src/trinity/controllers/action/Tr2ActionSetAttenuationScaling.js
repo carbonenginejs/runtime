@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
 /**
@@ -13,7 +13,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   className: "Tr2ActionSetAttenuationScaling",
   family: "controllers"
 })
-export class Tr2ActionSetAttenuationScaling extends CjsModel
+export class Tr2ActionSetAttenuationScaling extends withITr2ControllerAction(CjsModel)
 {
   @io.persist
   @type.string

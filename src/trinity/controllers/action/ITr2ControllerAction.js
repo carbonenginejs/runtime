@@ -1,13 +1,97 @@
-/** Shared JavaScript adapters for Carbon's ITr2ControllerAction contract. */
+// Source: trinity/trinity/Controllers/Actions/ITr2ControllerAction.h
+//
+// The contract a controller ACTION answers to - the other half of the pair
+// whose controller side is ITr2Controller.js. Carbon gives every lifecycle
+// verb here an EMPTY BODY: an action that does not care about Link, Unlink,
+// Start, Stop or RebaseSimTime inherits a harmless nothing, and only
+// CanTransition has an opinionated default (true). Before this contract was
+// ported, 10 of our 18 concrete actions lacked Stop, 10 lacked Unlink and 8
+// lacked Link, so every owner of an `actions` list hedged each call with
+// `action.Stop?.()` - emulating the empty body one call site at a time.
+//
+// The statics below predate the contract: they are shared JavaScript adapters
+// the concrete actions use to duck-type their OWNERS (which have no common
+// contract yet). They are unrelated to the instance surface.
+
+import { CjsSchema, impl } from "#schema";
+import { Adopt, Brand } from "../ITr2Controller.js";
+
+
+const ITR2_CONTROLLER_ACTION = Symbol.for("carbonenginejs.contract.ITr2ControllerAction");
+
+const ACTION_NOOPS = [ "Link", "Unlink", "Start", "Stop", "RebaseSimTime" ];
+const ACTION_DEFAULTS = [ "CanTransition" ];
+
+
+/** Contract for an action a controller drives between Start and Stop. */
 export class ITr2ControllerAction
 {
+  static [Symbol.hasInstance](value)
+  {
+    return value !== null && value !== undefined && value[ITR2_CONTROLLER_ACTION] === true;
+  }
+
+  /**
+   * Attaches this action to the controller that will drive it.
+   *
+   * @param {object} _controller The driving action controller.
+   */
+  Link(_controller)
+  {
+  }
+
+  /** Detaches this action, dropping every reference to the controller. */
+  Unlink()
+  {
+  }
+
+  /**
+   * Begins the action.
+   *
+   * @param {object} _controller The driving action controller.
+   */
+  Start(_controller)
+  {
+  }
+
+  /**
+   * Stops the action.
+   *
+   * @param {object} _controller The driving action controller.
+   */
+  Stop(_controller)
+  {
+  }
+
+  /**
+   * Shifts any absolute sim-clock times this action holds.
+   *
+   * @param {number} _diff Seconds added to the sim clock.
+   */
+  RebaseSimTime(_diff)
+  {
+  }
+
+  /**
+   * Whether the owning state may transition away while this action runs.
+   *
+   * THE ONE METHOD CARBON GIVES A CONCRETE DEFAULT: an action does not hold
+   * its state hostage unless it says so.
+   *
+   * @returns {boolean} True unless the action needs to finish first.
+   */
+  CanTransition()
+  {
+    return true;
+  }
+
   /**
    * Resolves the object an action operates on, preferring an explicitly supplied
    * owner over the controller's own owner.
    */
   static getOwner(controller, owner = null)
   {
-    return owner ?? controller?.GetOwner?.() ?? null;
+    return owner ?? controller?.GetOwner() ?? null;
   }
 
   /**
@@ -120,4 +204,31 @@ export class ITr2ControllerAction
   {
     return this.callTarget(owner, "GetAnimationController") ?? this.getProperty(owner, "animationController") ?? null;
   }
+}
+
+
+Brand(ITr2ControllerAction, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
+for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, impl.implemented);
+CjsSchema.define(ITr2ControllerAction, { className: "ITr2ControllerAction" });
+
+
+/**
+ * Adds the ITr2ControllerAction contract without replacing an existing model
+ * base.
+ *
+ * Every concrete action extends CjsModel, so the contract arrives as a mixin:
+ * the action overrides the verbs it cares about and inherits Carbon's empty
+ * body for the rest, and the owner of an `actions` list no longer has to ask.
+ *
+ * @param {Function} Base The class to extend.
+ * @returns {Function} A subclass carrying the contract.
+ */
+export function withITr2ControllerAction(Base)
+{
+  const Action = Adopt(Base, ITr2ControllerAction, [ ...ACTION_NOOPS, ...ACTION_DEFAULTS ]);
+
+  Brand(Action, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
+  for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(Action, name, impl.implemented);
+
+  return Action;
 }

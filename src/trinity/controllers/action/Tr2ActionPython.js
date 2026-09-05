@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.cpp
 import { CjsModel } from "#model";
+import { withITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, io, type } from "#schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
 
@@ -14,7 +15,7 @@ import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from ".
   className: "Tr2ActionPython",
   family: "controllers"
 })
-export class Tr2ActionPython extends CjsModel
+export class Tr2ActionPython extends withITr2ControllerAction(CjsModel)
 {
   static #factory = null;
 
@@ -147,7 +148,7 @@ export class Tr2ActionPython extends CjsModel
   {
     this.#controller = controller;
     const instance = this.#ensureInstance();
-    instance?.OnLink?.(controller.GetOwner?.() ?? null, controller);
+    instance?.OnLink?.(controller.GetOwner() ?? null, controller);
   }
 
   /**
@@ -179,7 +180,7 @@ export class Tr2ActionPython extends CjsModel
     {
       controller.RegisterUpdateable?.(this);
     }
-    instance?.OnStart?.(controller.GetOwner?.() ?? null, controller);
+    instance?.OnStart?.(controller.GetOwner() ?? null, controller);
     this.#prevRealTime = GetControllerActualTimeSeconds();
     this.#prevSimTime = GetControllerFrameTimeSeconds();
   }
@@ -197,7 +198,7 @@ export class Tr2ActionPython extends CjsModel
     }
     this.#isPlaying = false;
     controller.UnRegisterUpdateable?.(this);
-    this.#instance?.OnStop?.(controller.GetOwner?.() ?? null, controller);
+    this.#instance?.OnStop?.(controller.GetOwner() ?? null, controller);
   }
 
   /**
@@ -215,7 +216,7 @@ export class Tr2ActionPython extends CjsModel
     }
     const realDt = realTime - this.#prevRealTime;
     const simDt = simTime - this.#prevSimTime;
-    instance.OnUpdate(controller.GetOwner?.() ?? null, controller, realDt, simDt);
+    instance.OnUpdate(controller.GetOwner() ?? null, controller, realDt, simDt);
     this.#prevRealTime = realTime;
     this.#prevSimTime = simTime;
   }

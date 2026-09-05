@@ -57,7 +57,7 @@ export class Tr2StateMachine extends CjsModel
       case BELIST_INSERTED:
         if (this.#controller && state)
         {
-          state.Link?.(this);
+          state.Link(this);
         }
         break;
       case BELIST_REMOVED:
@@ -65,12 +65,12 @@ export class Tr2StateMachine extends CjsModel
         {
           if (state === this.currentState)
           {
-            state.Stop?.();
+            state.Stop();
           }
           this.currentState = this.startState;
           this.#stateStartTime = GetControllerTimeSeconds();
-          this.currentState?.Start?.(this.#controller);
-          state.Unlink?.();
+          this.currentState?.Start(this.#controller);
+          state.Unlink();
         }
         break;
     }
@@ -85,7 +85,7 @@ export class Tr2StateMachine extends CjsModel
   {
     if (this.startState && this.#controller)
     {
-      this.startState.Link?.(this);
+      this.startState.Link(this);
     }
     return true;
   }
@@ -117,7 +117,7 @@ export class Tr2StateMachine extends CjsModel
     this.#controller = controller;
     for (const state of this.states)
     {
-      state.Link?.(this);
+      state.Link(this);
     }
   }
 
@@ -138,7 +138,7 @@ export class Tr2StateMachine extends CjsModel
     }
     for (const state of this.states)
     {
-      state.Unlink?.(reason);
+      state.Unlink(reason);
     }
     this.#controller = null;
   }
@@ -162,7 +162,7 @@ export class Tr2StateMachine extends CjsModel
     {
       return;
     }
-    this.currentState.Start?.(this.#controller);
+    this.currentState.Start(this.#controller);
     this.#followTransitions(TR2_DIRTY_ALL);
   }
 
@@ -175,7 +175,7 @@ export class Tr2StateMachine extends CjsModel
   {
     if (this.currentState)
     {
-      this.currentState.Stop?.(this.#controller);
+      this.currentState.Stop(this.#controller);
       this.currentState = null;
     }
     this.#machineStartTime = 0;
@@ -266,7 +266,7 @@ export class Tr2StateMachine extends CjsModel
    */
   #followTransitions(dirtyVariables)
   {
-    let next = this.currentState?.Update?.(dirtyVariables) ?? null;
+    let next = this.currentState?.Update(dirtyVariables) ?? null;
     if (!next)
     {
       return;
@@ -284,9 +284,9 @@ export class Tr2StateMachine extends CjsModel
         seen.set(next, count);
       }
       this.currentState = next;
-      this.currentState.Start?.(this.#controller);
+      this.currentState.Start(this.#controller);
       this.#stateStartTime = GetControllerTimeSeconds();
-      next = this.currentState.Update?.(TR2_DIRTY_ALL) ?? null;
+      next = this.currentState.Update(TR2_DIRTY_ALL) ?? null;
     }
   }
 

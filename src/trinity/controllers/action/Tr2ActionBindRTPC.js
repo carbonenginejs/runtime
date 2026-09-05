@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
-import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
 /**
@@ -15,7 +15,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   className: "Tr2ActionBindRTPC",
   family: "controllers"
 })
-export class Tr2ActionBindRTPC extends CjsModel
+export class Tr2ActionBindRTPC extends withITr2ControllerAction(CjsModel)
 {
   @io.notify
   @io.persist

@@ -69,7 +69,7 @@ export class Tr2ControllerExpression extends CjsModel
     }
     try
     {
-      const owner = this.controller.GetOwner?.() ?? null;
+      const owner = this.controller.GetOwner() ?? null;
       const runtime = this.controller;
       const context = runtime.GetExpressionContext ? runtime.GetExpressionContext(owner, this.stateMachine, extra ?? {}) : {
         ...(extra ?? {}),

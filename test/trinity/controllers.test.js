@@ -1,5 +1,5 @@
 import test from "node:test";
-import { BELIST_INSERTED, BELIST_REMOVED, CjsControllerExpressionProgram, EveChildUpdateParams, ITr2GenericEmitterUpdateArguments, TR2_DIRTY_ALL, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
+import { BELIST_INSERTED, BELIST_REMOVED, CjsControllerExpressionProgram, EveChildUpdateParams, ITr2ControllerAction, ITr2GenericEmitterUpdateArguments, ITr2StateMachineStateFinalizer, TR2_DIRTY_ALL, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsModel } from "../../npm/dist/global/model/index.js";
 
@@ -207,6 +207,10 @@ test("registered controller actions update with sim time", () =>
   const updateables = [];
   const appliedTimes = [];
   const controller = {
+    GetOwner()
+    {
+      return null;
+    },
     GetTime()
     {
       return 10;
@@ -400,17 +404,18 @@ test("Tr2Controller applies Carbon EveThrottleable update gating", () =>
 {
   let updateCount = 0;
   const controller = new Tr2Controller();
-  const stateMachine = {
+  const stateMachine = new (class extends Tr2StateMachine
+  {
     Start()
-    {},
+    {}
     Update()
     {
       updateCount++;
-    },
+    }
     Stop()
     {
     }
-  };
+  })();
   controller.stateMachines = [stateMachine];
   controller.Link({});
   controller.Start();
@@ -616,30 +621,28 @@ test("Tr2StateMachineState finalizer gates after actions stop", () =>
   const destination = new Tr2StateMachineState();
   destination.name = "destination";
   destination.actions = [makeAction("destination", events, controller)];
-  source.transitions = [{
-    Link()
-    {},
-    Unlink()
-    {},
+  source.transitions = [new (class extends Tr2StateMachineTransition
+  {
     CanActivate()
     {
       return transitionActive;
-    },
+    }
     GetDestination()
     {
       return destination;
-    },
+    }
     GetVariableMask()
     {
       return 0n;
     }
-  }];
-  source.finalizer = {
+  })()];
+  source.finalizer = new (class extends ITr2StateMachineStateFinalizer
+  {
     CanTransition()
     {
       return canFinalize;
     }
-  };
+  })();
   const machine = new Tr2StateMachine();
   machine.startState = source;
   machine.states = [source, destination];
@@ -670,38 +673,40 @@ test("Tr2StateMachineState ignores timeline-style disabled action flags", () =>
   let canTransition = false;
   const source = new Tr2StateMachineState();
   source.name = "source";
-  source.actions = [{
-    isDisabled: true,
+  source.actions = [new (class extends ITr2ControllerAction
+  {
+    isDisabled = true;
     Start()
     {
       startCount++;
-    },
+    }
     Stop()
     {
       stopCount++;
-    },
+    }
     CanTransition()
     {
       transitionChecks++;
       return canTransition;
     }
-  }];
+  })()];
   const destination = new Tr2StateMachineState();
   destination.name = "destination";
-  source.transitions = [{
+  source.transitions = [new (class extends Tr2StateMachineTransition
+  {
     CanActivate()
     {
       return true;
-    },
+    }
     GetDestination()
     {
       return destination;
-    },
+    }
     GetVariableMask()
     {
       return 0n;
     }
-  }];
+  })()];
   const machine = new Tr2StateMachine();
   machine.startState = source;
   machine.states = [source, destination];
@@ -726,27 +731,28 @@ test("Tr2TimelineController follows Carbon active range edits", () =>
   const events = [];
   const rebaseDiffs = [];
   const timeline = new Tr2TimelineController();
-  const action = {
+  const action = new (class extends ITr2ControllerAction
+  {
     Link(controller)
     {
       assertEquals(controller, timeline);
       events.push("link");
-    },
+    }
     Start(controller)
     {
       assertEquals(controller, timeline);
       events.push("start");
-    },
+    }
     Stop(controller)
     {
       assertEquals(controller, timeline);
       events.push("stop");
-    },
+    }
     RebaseSimTime(diff)
     {
       rebaseDiffs.push(diff);
     }
-  };
+  })();
   timeline.AddAction(action, 5, 10, 1);
   timeline.Link({});
   assertEquals(events.join(","), "link");
@@ -783,12 +789,13 @@ test("Tr2TimelineController keeps Carbon action bounds and owner gates", () =>
   timeline.AddAction(null, 1, 2);
   assertEquals(timeline.GetActionCount(), 0);
   const events = [];
-  const action = {
+  const action = new (class extends ITr2ControllerAction
+  {
     Unlink()
     {
       events.push("unlink");
     }
-  };
+  })();
   timeline.AddAction(action, 1, 2);
   assert(timeline.RemoveAction(0));
   assertEquals(events.join(","), "");
@@ -1355,7 +1362,7 @@ test("Tr2ActionBindRTPC caches Carbon emitter and expression state", () =>
   updateables[0].Update?.(20, 14);
   assertEquals(events.join(","), "find:main,set:thrust:4");
   assertEquals(action.EvaluateExpression("StateTime()"), 4);
-  assert(!("RebaseSimTime" in action));
+  assert(action.RebaseSimTime === ITr2ControllerAction.prototype.RebaseSimTime, "BindRTPC must inherit the contract's no-op RebaseSimTime, not override it");
   assertThrows(() => action.StopWithController(null), "StopWithController expects a Tr2Controller");
   action.Stop(controller);
   assertEquals(updateables.length, 0);
