@@ -334,8 +334,8 @@ export class EveStretch2 extends withITr2Renderable(IEveFiringEffectElement)
   GetLights(lightManager)
   {
     if (!(this.#visible && this.#intensity > 0)) return;
-    this.sourceLight?.AddLight?.(lightManager, this.#sourceTransform, 1);
-    this.destinationLight?.AddLight?.(lightManager, this.#destinationTransform, this.#currentDestinationScale);
+    this.sourceLight?.AddLight(lightManager, this.#sourceTransform, 1);
+    this.destinationLight?.AddLight(lightManager, this.#destinationTransform, this.#currentDestinationScale);
   }
 
   /** Carbon EveStretch2::RegisterComponents (cpp:389-398): LightOwner leaf

@@ -515,8 +515,8 @@ export class EveStretch extends withIEveTransform(withIEveSpaceObject2(IEveFirin
     if (!this.display) return;
     const source = translationMatrix(this.#sourcePosition, EveStretch.#lightSource, this.#sourceScale);
     const destination = translationMatrix(this.#destinationPosition, EveStretch.#lightDestination, this.#destinationScale);
-    if (this.#displaySource) for (const light of this.sourceLights) light?.AddLight?.(lightManager, source, this.#sourceScale);
-    if (this.#displayDestination) for (const light of this.destLights) light?.AddLight?.(lightManager, destination, this.#destinationScale);
+    if (this.#displaySource) for (const light of this.sourceLights) light?.AddLight(lightManager, source, this.#sourceScale);
+    if (this.#displayDestination) for (const light of this.destLights) light?.AddLight(lightManager, destination, this.#destinationScale);
   }
 
   /** Carbon EveStretch::RegisterComponents (cpp:606-613): LightOwner leaf

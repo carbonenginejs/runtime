@@ -876,7 +876,7 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
 
     for (const light of this.lights)
     {
-      light?.AddLight?.(lightManager, m, scaling);
+      light?.AddLight(lightManager, m, scaling);
     }
   }
 

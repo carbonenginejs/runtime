@@ -807,7 +807,7 @@ export class BehaviorGroup extends EveEntity
     {
       for (const [agentIndex, info] of this.#lightInfo)
       {
-        this.boosters.AddLight?.(lightManager, info, info[3], agentIndex, this.#parentTransform);
+        this.boosters.AddLight(lightManager, info, info[3], agentIndex, this.#parentTransform);
       }
     }
   }

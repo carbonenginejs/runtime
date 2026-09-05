@@ -615,7 +615,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
     if (!this.#hasUpdated) return;
     if (this.lightRadius <= 0 && this.lightWarpRadius <= 0) return;
     if (this.thrust <= 0) return;
-    if (typeof lightManager?.AddPointLight !== "function") return;
+    if (!lightManager) return;
 
     const params = {
       lightWarpRadius: this.lightWarpRadius * this.#parentScale,
@@ -625,7 +625,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
       lightFlickerAmplitude: this.lightFlickerAmplitude,
       lightFlickerFrequency: this.lightFlickerFrequency
     };
-    const time = lightManager.GetAnimationTime?.() ?? 0;
+    const time = lightManager.GetAnimationTime() ?? 0;
     AddBoosterLights(
       lightManager, this.#singleBoosters, this.#parentTransform,
       this.thrust, this.warpIntensity, params, time);

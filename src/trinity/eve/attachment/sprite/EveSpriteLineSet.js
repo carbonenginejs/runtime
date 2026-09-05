@@ -222,8 +222,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     const features = EveSpriteLineSet.#features;
     features.parentBrightness = this.#activationStrength;
     features.parentScale = 1;
-    const time = lightManager?.GetAnimationTime?.() ?? 0;
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0;
+    const time = lightManager?.GetAnimationTime() ?? 0;
+    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EveSpriteLineSet.#lightRecord;
 
     for (const light of this.lights)
@@ -236,7 +236,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight?.(record);
+      lightManager?.AddLight(record);
     }
   }
 

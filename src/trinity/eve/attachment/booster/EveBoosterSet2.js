@@ -820,12 +820,12 @@ export class EveBoosterSet2 extends EveEntity
     {
       return;
     }
-    if (typeof lightManager?.AddPointLight !== "function")
+    if (!lightManager)
     {
       return;
     }
 
-    const time = lightManager.GetAnimationTime?.() ?? 0;
+    const time = lightManager.GetAnimationTime() ?? 0;
     // Carbon EveBoosterSet2.cpp:1186: radii deliberately UNSCALED here (the
     // child booster set pre-multiplies by its parent scale; this class does
     // not - do not unify).

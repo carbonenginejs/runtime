@@ -15,6 +15,7 @@ import {
   EveEntity,
   EveSpaceObject2,
   EveSpaceScene,
+  Tr2LightManager,
   Tr2PostProcess2,
   Tr2PostProcessAttributes,
   Tr2PPBloomEffect,
@@ -503,13 +504,29 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
   scene.StampFrameContext({ frustum, lodFactor: 2 });
 
   const calls = [];
-  const manager = {
-    SetShadowQuality: quality => calls.push(["SetShadowQuality", quality]),
-    Clear: () => calls.push(["Clear"]),
-    SetFrustum: frustumArg => calls.push(["SetFrustum", frustumArg]),
-    AdjustLightCutoff: lodFactor => calls.push(["AdjustLightCutoff", lodFactor]),
-    ResolveLightData: () => calls.push(["ResolveLightData"])
-  };
+  const manager = new (class extends Tr2LightManager
+  {
+    SetShadowQuality(quality)
+    {
+      calls.push(["SetShadowQuality", quality]);
+    }
+    Clear()
+    {
+      calls.push(["Clear"]);
+    }
+    SetFrustum(frustumArg)
+    {
+      calls.push(["SetFrustum", frustumArg]);
+    }
+    AdjustLightCutoff(lodFactor)
+    {
+      calls.push(["AdjustLightCutoff", lodFactor]);
+    }
+    ResolveLightData()
+    {
+      calls.push(["ResolveLightData"]);
+    }
+  })();
   const MakeLightOwner = name =>
   {
     const owner = new EveEntity();
@@ -545,11 +562,11 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
 
   // Null manager: dynamic lighting off - a silent no-op.
   assert.doesNotThrow(() => scene.GatherLights(null));
-  // A partial duck (no manager methods at all) still gets the owner loop.
-  calls.length = 0;
-  const partialDuck = {};
-  scene.GatherLights(partialDuck);
-  assert.deepEqual(calls, [["owner0", partialDuck], ["owner1", partialDuck]], "partial duck: owners still visited");
+  // RETIRED with the Tr2LightManager port (2026-09-05): the partial-duck
+  // assertion existed to keep the seven optional-call hedges alive. The
+  // manager is a real class now; a non-manager object throwing loudly is
+  // the contract (own code is called directly - a throw is the diagnostic).
+  assert.throws(() => scene.GatherLights({}), TypeError);
 });
 
 // --- Fixture 7: ClearComponentRegistry + one-shot trigger model -------------

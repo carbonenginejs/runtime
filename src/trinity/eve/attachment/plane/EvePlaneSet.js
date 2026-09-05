@@ -362,8 +362,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     {
       this.GetAverageColor(averageColor);
     }
-    const time = lightManager?.GetAnimationTime?.() ?? 0;
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0;
+    const time = lightManager?.GetAnimationTime() ?? 0;
+    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EvePlaneSet.#lightRecord;
     const dataCopy = EvePlaneSet.#lightDataScratch;
 
@@ -381,7 +381,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight?.(record);
+      lightManager?.AddLight(record);
     }
   }
 

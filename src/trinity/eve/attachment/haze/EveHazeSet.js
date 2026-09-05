@@ -208,7 +208,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   {
     const features = EveHazeSet.#features;
     features.parentScale = 1;
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0;
+    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EveHazeSet.#lightRecord;
 
     for (const light of this.lights)
@@ -223,7 +223,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight?.(record);
+      lightManager?.AddLight(record);
     }
   }
 

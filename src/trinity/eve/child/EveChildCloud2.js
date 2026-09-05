@@ -539,7 +539,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
     ) / 3;
     for (const light of this.lights)
     {
-      light?.AddLight?.(lightManager, m, scaling);
+      light?.AddLight(lightManager, m, scaling);
     }
   }
 

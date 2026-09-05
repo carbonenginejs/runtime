@@ -999,17 +999,17 @@ export class EveSpaceScene extends CjsModel
       return;
     }
 
-    lightManager.SetShadowQuality?.(this.shadowQualitySetting);
-    lightManager.Clear?.(this.updateContext.renderContext);
-    lightManager.SetFrustum?.(this.updateContext.GetFrustum());
-    lightManager.AdjustLightCutoff?.(this.updateContext.GetLodFactor());
+    lightManager.SetShadowQuality(this.shadowQualitySetting);
+    lightManager.Clear(this.updateContext.renderContext);
+    lightManager.SetFrustum(this.updateContext.GetFrustum());
+    lightManager.AdjustLightCutoff(this.updateContext.GetLodFactor());
 
     for (const owner of this.componentRegistry?.GetComponents(EveComponentType.LightOwner) ?? [])
     {
       owner?.GetLights?.(lightManager);
     }
 
-    lightManager.ResolveLightData?.();
+    lightManager.ResolveLightData();
   }
 
   /**

@@ -220,12 +220,12 @@ export class Tr2Light extends CjsModel
     if (this.type === Tr2Light.POINT_LIGHT)
     {
       AsPerPointLightData(record, this.lightData, Tr2Light.#lightTransformScratch, features,
-        lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0);
+        lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0);
     }
     else if (this.type === Tr2Light.SPOT_LIGHT)
     {
       AsPerSpotLightData(record, this.lightData, Tr2Light.#lightTransformScratch, features,
-        lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0);
+        lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0);
     }
     else
     {
@@ -235,7 +235,7 @@ export class Tr2Light extends CjsModel
     record.lightData = this.lightData;
     record.lightProfile = this.lightProfile;
     record.owner = this;
-    lightManager?.AddLight?.(record);
+    lightManager?.AddLight(record);
   }
 
   /** Carbon Tr2Light::GetLight (Tr2Light.cpp:152-163): position and radius

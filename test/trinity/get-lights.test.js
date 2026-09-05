@@ -22,6 +22,7 @@ import {
   EvePlaneSet,
   EveSpaceObject2,
   EveSpotlightSet,
+  Tr2LightManager,
   EveSpriteSet,
   Fade,
   FadeType,
@@ -50,20 +51,24 @@ function assertVecClose(actual, expected, message, epsilon = EPSILON)
   }
 }
 
-/** A copying light-manager duck (Carbon's AddLight copies by value; the JS
- * records are scratch). */
+// A recording double extending the real class: these tests exercise the
+// PRODUCERS' GetLights output, so the overrides capture the raw records
+// before the real AddLight would premultiply and cull them.
 function MakeLightManager({ shadowQuality = 0, animationTime = 0 } = {})
 {
-  const added = [];
-  const points = [];
-  return {
-    added,
-    points,
-    GetCurrentSpaceSceneShadowQuality: () => shadowQuality,
-    GetAnimationTime: () => animationTime,
+  const manager = new (class extends Tr2LightManager
+  {
+    GetCurrentSpaceSceneShadowQuality()
+    {
+      return shadowQuality;
+    }
+    GetAnimationTime()
+    {
+      return animationTime;
+    }
     AddLight(record)
     {
-      added.push({
+      this.added.push({
         position: Array.from(record.position),
         direction: Array.from(record.direction),
         color: Array.from(record.color),
@@ -76,12 +81,15 @@ function MakeLightManager({ shadowQuality = 0, animationTime = 0 } = {})
         lightType: record.lightType,
         owner: record.owner
       });
-    },
+    }
     AddPointLight(position, radius, color)
     {
-      points.push({ position: Array.from(position), radius, color: Array.from(color) });
+      this.points.push({ position: Array.from(position), radius, color: Array.from(color) });
     }
-  };
+  })();
+  manager.added = [];
+  manager.points = [];
+  return manager;
 }
 
 function MakeLightData(overrides = {})

@@ -515,7 +515,7 @@ export class EveEffectRoot2 extends withIEveSpaceObject2(withITr2BoundingBox(Eve
       Math.hypot(transform[4], transform[5], transform[6]) +
       Math.hypot(transform[8], transform[9], transform[10])
     ) / 3;
-    for (const light of this.lights) light?.AddLight?.(lightManager, transform, scale);
+    for (const light of this.lights) light?.AddLight(lightManager, transform, scale);
   }
 
   /** Adds an authored light. */

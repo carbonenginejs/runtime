@@ -564,7 +564,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     const features = EveBannerSet.#features;
     features.parentBrightness = this.#activationStrength;
     features.parentScale = 1;
-    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality?.() ?? 0;
+    const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EveBannerSet.#lightRecord;
     const dataCopy = EveBannerSet.#lightDataScratch;
 
@@ -577,7 +577,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
       record.owner = this;
-      lightManager?.AddLight?.(record);
+      lightManager?.AddLight(record);
     }
   }
 

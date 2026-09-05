@@ -1506,7 +1506,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
 
     for (const light of this.lights)
     {
-      light?.AddLight?.(lightManager, this.worldTransform, 1, bones, boneCount);
+      light?.AddLight(lightManager, this.worldTransform, 1, bones, boneCount);
       light?.SetBrightnessMultiplier?.(this.#activationStrength);
     }
   }

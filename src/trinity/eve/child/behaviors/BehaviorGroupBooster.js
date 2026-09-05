@@ -274,7 +274,7 @@ export class BehaviorGroupBooster extends CjsModel
       vec4.scale(LIGHT_COLOR, LIGHT_COLOR, ((noise + 1) / 2) * this.ambientFlareNoiseAmplitude);
     }
 
-    lightManager?.AddPointLight?.(position, radiusModifier * this.lightRadius, LIGHT_COLOR);
+    lightManager?.AddPointLight(position, radiusModifier * this.lightRadius, LIGHT_COLOR);
   }
 
   /** Carbon method Initialize (cpp:119-147) - flare quad setup and the
