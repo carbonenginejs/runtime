@@ -322,15 +322,15 @@ export class CjsSchema
      */
     static registerValuesService(service)
     {
-        if (!service || typeof service.getValues !== "function" || typeof service.setValues !== "function" || typeof service.From !== "function")
+        if (!service || typeof service.getValues !== "function" || typeof service.setValues !== "function" || typeof service.from !== "function")
         {
-            throw new TypeError("CjsSchema.registerValuesService requires getValues, setValues and From functions.");
+            throw new TypeError("CjsSchema.registerValuesService requires getValues, setValues and from functions.");
         }
         CjsSchema.#valuesService = service;
         return this;
     }
 
-    static #RequireValuesService(method)
+    static #requireValuesService(method)
     {
         if (!CjsSchema.#valuesService)
         {
@@ -349,7 +349,7 @@ export class CjsSchema
      */
     static getValues(target, out = {}, options = {})
     {
-        return CjsSchema.#RequireValuesService("getValues").getValues(target, out, options);
+        return CjsSchema.#requireValuesService("getValues").getValues(target, out, options);
     }
 
     /**
@@ -362,7 +362,7 @@ export class CjsSchema
      */
     static setValues(target, values = {}, options = {})
     {
-        return CjsSchema.#RequireValuesService("setValues").setValues(target, values, options);
+        return CjsSchema.#requireValuesService("setValues").setValues(target, values, options);
     }
 
     /**
@@ -376,9 +376,9 @@ export class CjsSchema
      * @param {object} [options={}] Population options.
      * @returns {object} The constructed instance.
      */
-    static From(className, values = {}, options = {})
+    static from(className, values = {}, options = {})
     {
-        return CjsSchema.#RequireValuesService("From").From(className, values, options);
+        return CjsSchema.#requireValuesService("from").from(className, values, options);
     }
 
     /** Returns the stable registered name for an enum object. */

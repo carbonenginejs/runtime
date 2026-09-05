@@ -20,9 +20,9 @@ test("CjsSchema.setValues and getValues are the model transport, called through 
   assert.deepEqual(CjsSchema.getValues(twin), values);
 });
 
-test("CjsSchema.From resolves the class, applies values, and calls a class-owned Initialize", () =>
+test("CjsSchema.from resolves the class, applies values, and calls a class-owned Initialize", () =>
 {
-  const built = CjsSchema.From("Tr2ControllerFloatVariable", { name: "built" });
+  const built = CjsSchema.from("Tr2ControllerFloatVariable", { name: "built" });
   assert.ok(built instanceof Tr2ControllerFloatVariable);
   assert.equal(built.name, "built");
 
@@ -42,11 +42,11 @@ test("CjsSchema.From resolves the class, applies values, and calls a class-owned
     }
   }
   CjsSchema.SetConstructor("ProbeFromTarget", ProbeFromTarget);
-  const probe = CjsSchema.From("ProbeFromTarget", { name: "p" });
+  const probe = CjsSchema.from("ProbeFromTarget", { name: "p" });
   assert.equal(probe.name, "p");
   assert.deepEqual(order, [ "SetValues", "Initialize" ], "populate first, Initialize once at the end");
 
-  assert.throws(() => CjsSchema.From("NoSuchRegisteredClass", {}), /no class registered/);
+  assert.throws(() => CjsSchema.from("NoSuchRegisteredClass", {}), /no class registered/);
 });
 
 test("a plain decorated class without a setter says what it is waiting for", () =>

@@ -1949,7 +1949,7 @@ function assertTargetTypeMatches(out, typeName, options = {})
 //   population goes through SetValues;
 // - a plain decorated class without either waits for the facade migration's
 //   state-free transport, and says so rather than guessing.
-// CjsSchema.From is the whole-bag deserializer: resolve, build, apply, then
+// CjsSchema.from is the whole-bag deserializer: resolve, build, apply, then
 // call the class-owned Initialize when it exists (ruled 2026-09-05).
 CjsSchema.registerValuesService({
     getValues(target, out = {}, options = {})
@@ -1964,13 +1964,13 @@ CjsSchema.registerValuesService({
         if (target && typeof target.SetValues === "function") return target.SetValues(values, options);
         throw new TypeError("CjsSchema.setValues on a plain decorated class awaits the facade migration's state-free transport.");
     },
-    From(className, values = {}, options = {})
+    from(className, values = {}, options = {})
     {
         const name = typeof className === "string" ? className.trim() : "";
         const Constructor = CjsSchema.GetConstructor(name);
         if (!Constructor)
         {
-            throw new TypeError(`CjsSchema.From has no class registered for "${String(className)}".`);
+            throw new TypeError(`CjsSchema.from has no class registered for "${String(className)}".`);
         }
         if (typeof Constructor.from === "function") return Constructor.from(values, options);
 
