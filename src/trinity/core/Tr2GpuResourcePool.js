@@ -107,20 +107,28 @@ export class TextureSize2D
  * which is a leak, not a crash, and therefore worth being loud about. The pool
  * reports held resources so a caller can assert.
  *
- * `Release` AND `Destroy` ARE DIFFERENT VERBS AND THE SPLIT IS CARBON'S.
- * `Destroy` means gone now - it is the pure virtual on
- * `Tr2BaseDeviceResourceAL` (`trinityal/Tr2DeviceResourceAL.h:30`) and the
- * abstraction layer uses it 216 times. `Release` is reserved for the qualified
- * meanings: deferred (`ReleaseLater`), bulk or device-lost
- * (`ReleaseDeviceResources`), and handing something back to its owner. This is
- * the third: the resource returns to the pool and is handed out again.
- * `ClearUnusedResources` below is where `Destroy` is correct, and where it is
- * used.
+ * THE VERB IS `Free`, AND THE POOL OWNS IT. Settled 2026-09-05 with
+ * `cjs-carbon-verbs`, after two wrong turns worth recording:
  *
- * Carbon's own handle has NO named method - the work happens in
- * `~GpuResourceHandle`. That absence is not a prohibition on the name; it is
- * C++ not needing one. Reading it as a prohibition is how this comment briefly
- * became a coined `ReleaseToPool` before being put back.
+ * - `Destroy` is wrong. It means GONE NOW - the pure virtual on
+ *   `Tr2BaseDeviceResourceAL` (`trinityal/Tr2DeviceResourceAL.h:30`), used on
+ *   35 Carbon classes. A pooled resource is not destroyed; it goes back and is
+ *   handed out again. `ClearUnusedResources` below is where `Destroy` is
+ *   right, and where it is used.
+ * - `Release` is not engine vocabulary. Bare `Release` appears ONLY in
+ *   Carbon's mesh viewer and video player, as Vulkan idiom. Trinity uses only
+ *   the qualified forms - `ReleaseLater`, `ReleaseDeviceResources`.
+ *
+ * `Free` is shared engine vocabulary on six Carbon classes - `FreeList`,
+ * `Tr2VirtualAllocator`, `Tr2SuballocatedBuffer` and three descriptor-heap
+ * allocators - and EVERY ONE IS AN ALLOCATOR OR POOL. The direction is theirs
+ * too: `Tr2VirtualAllocator::Free( allocation )` and
+ * `Tr2SuballocatedBuffer::Free( allocation& )` put the verb on the allocator,
+ * not on the thing lent. So `pool.Free(handle)`, not `handle.Release()`.
+ *
+ * Carbon's handle has no named method at all - the work is in
+ * `~GpuResourceHandle`. That absence is C++ not needing a name, and reading it
+ * as a prohibition is how this briefly became a coined `ReleaseToPool`.
  */
 export class GpuResourceHandle
 {
@@ -159,17 +167,21 @@ export class GpuResourceHandle
   }
 
   /**
-   * Returns the resource to the pool.
+   * Drops this handle's claim. Called by `Tr2GpuResourcePool.Free`.
    *
-   * Releasing twice is a caller error rather than a silent no-op: it means the
+   * Freeing twice is a caller error rather than a silent no-op: it means the
    * lock count no longer describes who is holding what.
+   *
+   * @returns {boolean} Whether a claim was dropped.
    */
-  Release()
+  Detach()
   {
-    if (!this.#record) fail("a handle released twice");
+    if (!this.#record) fail("a handle freed twice");
 
     this.#record.lockCount -= 1;
     this.#record = null;
+
+    return true;
   }
 }
 
@@ -305,6 +317,19 @@ export class Tr2GpuResourcePool
     if (initialize) initialize(buffer);
 
     return new GpuResourceHandle(this.#Add(this.#persistentBuffers, name, description, buffer));
+  }
+
+  /**
+   * Returns a borrowed resource, as Carbon's allocators do.
+   *
+   * @param {GpuResourceHandle} handle The handle to give back.
+   * @returns {boolean} Whether a claim was dropped.
+   */
+  Free(handle)
+  {
+    if (!handle) fail("Free needs a handle");
+
+    return handle.Detach();
   }
 
   /**

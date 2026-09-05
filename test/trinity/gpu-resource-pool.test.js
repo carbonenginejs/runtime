@@ -36,7 +36,7 @@ test("two passes in flight get different surfaces; one after the other reuses", 
   assert.notEqual(first.Get(), second.Get(), "both held, so both are distinct");
   assert.equal(pool.GetHeldCount(), 2);
 
-  first.Release();
+  pool.Free(first);
 
   const third = pool.GetTempTexture("shadow", square());
 
@@ -50,7 +50,7 @@ test("a different shape is a different resource", () =>
 
   const small = pool.GetTempTexture("depth", square(256));
 
-  small.Release();
+  pool.Free(small);
 
   pool.GetTempTexture("depth", square(1024));
 
@@ -77,11 +77,11 @@ test("a handle released twice is a caller error", () =>
   const pool = pooled();
   const handle = pool.GetTempTexture("scratch", square());
 
-  handle.Release();
+  pool.Free(handle);
 
   assert.equal(handle.IsValid(), false);
   assert.equal(handle.Get(), null);
-  assert.throws(() => handle.Release(), /released twice/);
+  assert.throws(() => pool.Free(handle), /freed twice/);
 });
 
 test("only unheld, untouched temp resources are cleared", () =>
@@ -90,7 +90,7 @@ test("only unheld, untouched temp resources are cleared", () =>
   const held = pool.GetTempTexture("held", square());
   const freed = pool.GetTempTexture("freed", square(128));
 
-  freed.Release();
+  pool.Free(freed);
   pool.SetFrame(10);
 
   assert.equal(pool.ClearUnusedResources(3), 1, "the freed one goes");
@@ -103,7 +103,7 @@ test("a recently used resource survives a clear", () =>
   const pool = pooled();
   const handle = pool.GetTempTexture("recent", square());
 
-  handle.Release();
+  pool.Free(handle);
   pool.SetFrame(1);
 
   assert.equal(pool.ClearUnusedResources(3), 0, "one frame is not three");
