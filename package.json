@@ -78,6 +78,7 @@
         "./resource/formats/bnk": "./src/resource/formats/bnk/index.js",
         "./resource/formats/cmf": "./src/resource/formats/cmf/index.js",
         "./resource/formats/dds": "./src/resource/formats/dds/index.js",
+        "./resource/formats/ies": "./src/resource/formats/ies/index.js",
         "./resource/formats/dxbc": "./src/resource/formats/dxbc/index.js",
         "./resource/formats/hlsl": "./src/resource/formats/hlsl/index.js",
         "./resource/formats/webgl": "./src/resource/formats/webgl/index.js",
@@ -271,7 +272,8 @@
     ],
     "scripts": {
         "build:npm": "node scripts/build-npm.js && rollup -c",
-        "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:trinity",
+        "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:trinity",
+        "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
         "lint:optional-calls": "node scripts/lint-optional-calls.js",
         "lint:layers": "node scripts/lint-layering.js",
         "lint:source": "node scripts/lint-source.js",
