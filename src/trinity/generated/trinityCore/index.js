@@ -10,7 +10,6 @@ export * from "./Tr2PrimitiveText.js";
 export * from "./Tr2ReflectionProbe.js";
 export * from "./Tr2SSSSS.js";
 export * from "./Tr2StreamingBitmapSaver.js";
-export * from "./Tr2TextureArray.js";
 export * from "./Tr2TextureAtlas.js";
 export * from "./Tr2TextureAtlasMan.js";
 export * from "./Tr2TextureReference.js";

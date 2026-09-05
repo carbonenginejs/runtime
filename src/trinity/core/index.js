@@ -25,3 +25,4 @@ export * from "./variable/index.js";
 export * from "./vertex/index.js";
 export * from "./view/index.js";
 export * from "./volumetrics/index.js";
+export * from "./Tr2TextureArray.js";
