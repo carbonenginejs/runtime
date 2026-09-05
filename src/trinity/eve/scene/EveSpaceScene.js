@@ -595,17 +595,17 @@ export class EveSpaceScene extends CjsModel
 
     for (const object of this.backgroundObjects)
     {
-      object?.UpdateSyncronous?.(context);
+      object?.UpdateSyncronous(context);
     }
     for (const object of this.backgroundObjects)
     {
-      object?.UpdateAsyncronous?.(context);
+      object?.UpdateAsyncronous(context);
     }
 
     if (this.warpTunnel)
     {
-      this.warpTunnel.UpdateSyncronous?.(context);
-      this.warpTunnel.UpdateAsyncronous?.(context);
+      this.warpTunnel.UpdateSyncronous(context);
+      this.warpTunnel.UpdateAsyncronous(context);
     }
 
     this.starfield?.Update?.(simTime);
@@ -636,20 +636,20 @@ export class EveSpaceScene extends CjsModel
 
     for (const object of this.objects)
     {
-      object?.UpdateSyncronous?.(context);
+      object?.UpdateSyncronous(context);
     }
     for (const object of this.uiObjects)
     {
-      object?.UpdateSyncronous?.(context);
+      object?.UpdateSyncronous(context);
     }
 
     for (const object of this.objects)
     {
-      object?.UpdateAsyncronous?.(context);
+      object?.UpdateAsyncronous(context);
     }
     for (const object of this.uiObjects)
     {
-      object?.UpdateAsyncronous?.(context);
+      object?.UpdateAsyncronous(context);
     }
 
     // Combine the post-process attributes (Carbon cpp:584, after the async
@@ -745,7 +745,7 @@ export class EveSpaceScene extends CjsModel
 
     for (const object of this.objects)
     {
-      object?.UpdateVisibility?.(this.updateContext, IDENTITY);
+      object?.UpdateVisibility(this.updateContext, IDENTITY);
     }
 
     this.cameraAttachmentParent?.SetTransform?.(inverseView);
@@ -790,7 +790,7 @@ export class EveSpaceScene extends CjsModel
       return out;
     }
 
-    for (const object of this.objects) object?.GetRenderables?.(out);
+    for (const object of this.objects) object?.GetRenderables(out);
     this.cameraAttachmentParent?.GetRenderables(out);
     for (const staticParticles of this.staticParticles)
     {

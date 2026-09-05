@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
 import { mat4 } from "#math/mat4";
+import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
@@ -37,7 +38,7 @@ import {
  * its own controllers, dynamic bindings and curve sets.
  */
 @type.define({ className: "EveStretch3", family: "eve/renderable/stretch" })
-export class EveStretch3 extends IEveFiringEffectElement
+export class EveStretch3 extends withIEveSpaceObject2(IEveFiringEffectElement)
 {
   @io.read @type.vec3 sourcePosition = vec3.create();
   @io.read @type.vec3 destinationPosition = vec3.create();

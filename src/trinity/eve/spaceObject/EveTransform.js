@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/EveTransform.h
 // Source: trinity/trinity/Eve/EveTransform.cpp
 import { mat4 } from "#math/mat4";
+import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { withIEveTransform } from "../IEveTransform.js";
 import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
@@ -24,7 +26,7 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * with its own frustum and LOD visibility pass.
  */
 @type.define({ className: "EveTransform", family: "eve/spaceObject" })
-export class EveTransform extends withITr2BoundingBox(Tr2Transform)
+export class EveTransform extends withIEveTransform(withIEveSpaceObject2(withITr2BoundingBox(Tr2Transform)))
 {
 
   /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */
@@ -207,7 +209,7 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
     if (this.particleSystems.length) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
     for (const child of this.children)
     {
-      child?.UpdateVisibility?.(context, this.worldTransform);
+      child?.UpdateVisibility(context, this.worldTransform);
       this.lodLevel = EveLODHelper.MergeLOD(this.lodLevel, child?.GetLODLevel?.() ?? Tr2Lod.TR2_LOD_UNSPECIFIED);
     }
     return this.#isVisible;
@@ -225,7 +227,7 @@ export class EveTransform extends withITr2BoundingBox(Tr2Transform)
     if (!this.display) return out;
     for (const system of this.particleSystems) system?.SortParticles?.();
     if (this.#isVisible && this.mesh) out.push(this);
-    for (const child of this.children) child?.GetRenderables?.(out);
+    for (const child of this.children) child?.GetRenderables(out);
     return out;
   }
 

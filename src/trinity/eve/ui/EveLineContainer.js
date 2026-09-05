@@ -3,12 +3,13 @@
 // Source: trinity/trinity/Eve/UI/EveLineContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
 import { carbon, impl, io, type } from "#schema";
+import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
 
 
 /** Owns and updates a connector-built EveCurveLineSet. */
 @type.define({ className: "EveLineContainer", family: "eve/ui" })
-export class EveLineContainer extends CjsModel
+export class EveLineContainer extends withIEveSpaceObject2(CjsModel)
 {
 
   /** m_connectors (PEveConnectorVector) [READ, PERSIST] */

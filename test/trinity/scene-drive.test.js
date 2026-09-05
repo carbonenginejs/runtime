@@ -73,6 +73,12 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
 
   const log = [];
   const MakeObjectStub = name => ({
+    UpdateSyncronous(_updateContext)
+    {
+    },
+    UpdateAsyncronous(_updateContext)
+    {
+    },
     UpdateVisibility(updateContext, parentTransform)
     {
       log.push({ name, method: "UpdateVisibility", updateContext, parentTransform });

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveFiringEffectElementContainer.cpp
 import { mat4 } from "#math/mat4";
+import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
@@ -11,7 +12,7 @@ import { EveEntity } from "../../EveEntity.js";
  * the endpoint state that is pushed into that element every update.
  */
 @type.define({ className: "EveFiringEffectElementContainer", family: "eve/renderable/stretch" })
-export class EveFiringEffectElementContainer extends EveEntity
+export class EveFiringEffectElementContainer extends withIEveSpaceObject2(EveEntity)
 {
   @io.persistOnly @type.model("IEveFiringEffectElement") element = null;
   @io.readwrite @type.vec3 source = vec3.create();

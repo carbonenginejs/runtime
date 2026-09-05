@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
 import { carbon, impl, io, type } from "#schema";
+import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
 import {
   BELIST_EVENTMASK,
@@ -17,7 +18,7 @@ import {
  * itself.
  */
 @type.define({ className: "EveMultiEffect", family: "eve/effect" })
-export class EveMultiEffect extends CjsModel
+export class EveMultiEffect extends withIEveSpaceObject2(CjsModel)
 {
 
   /** m_bindings (PTr2DynamicBindingVector) [READ, PERSIST] */

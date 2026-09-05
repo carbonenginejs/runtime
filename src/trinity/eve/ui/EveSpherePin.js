@@ -2,6 +2,8 @@
 // Source: trinity/trinity/Eve/UI/EveSpherePin.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, io, type } from "#schema";
+import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { withIEveTransform } from "../IEveTransform.js";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -11,7 +13,7 @@ import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @type.define({ className: "EveSpherePin", family: "eve/ui" })
-export class EveSpherePin extends withITr2Renderable(CjsModel)
+export class EveSpherePin extends withIEveTransform(withIEveSpaceObject2(withITr2Renderable(CjsModel)))
 {
 
   /** m_primitiveCount (int) [READ] */

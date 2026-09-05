@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.cpp
 import { Tr2Lod } from "#consts/trinity";
+import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
+import { withIEveTransform } from "../../IEveTransform.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -31,7 +33,7 @@ import {
  * travelling from one end to the other.
  */
 @type.define({ className: "EveStretch", family: "eve/renderable/stretch" })
-export class EveStretch extends IEveFiringEffectElement
+export class EveStretch extends withIEveTransform(withIEveSpaceObject2(IEveFiringEffectElement))
 {
   @io.persist @type.string name = "";
   @io.persist @type.model("ITriVectorFunction") source = null;

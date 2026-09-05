@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/UI/EveCurveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveCurveLineSet.cpp
 import { mat4 } from "#math/mat4";
+import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
+import { withIEveTransform } from "../../IEveTransform.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, type } from "#schema";
@@ -15,7 +17,7 @@ const WORLD_SPHERE = vec4.create();
 
 /** An Eve-owned, transformed and visibility-culled Carbon curve-line set. */
 @type.define({ className: "EveCurveLineSet", family: "eve/ui" })
-export class EveCurveLineSet extends Tr2CurveLineSet
+export class EveCurveLineSet extends withIEveTransform(withIEveSpaceObject2(Tr2CurveLineSet))
 {
 
   /** Creates the default line and picking effects. */

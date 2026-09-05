@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { withITr2BoundingBox } from "#contracts";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -50,7 +51,7 @@ const OVERLAY_TYPE_ALL = 1;
  * and batch submission that drive them each frame.
  */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
-export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveEntity))
+export class EveSpaceObject2 extends withIEveSpaceObject2(withITr2Renderable(withITr2BoundingBox(EveEntity)))
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
@@ -1190,7 +1191,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     {
       for (const child of this.children)
       {
-        child?.UpdateVisibility?.(updateContext, this.worldTransform);
+        child?.UpdateVisibility(updateContext, this.worldTransform);
       }
     }
 
@@ -1255,7 +1256,7 @@ export class EveSpaceObject2 extends withITr2Renderable(withITr2BoundingBox(EveE
     }
     if (this.DisplayChildren())
     {
-      for (const child of this.children) child?.GetRenderables?.(out);
+      for (const child of this.children) child?.GetRenderables(out);
     }
     for (const child of this.effectChildren)
     {

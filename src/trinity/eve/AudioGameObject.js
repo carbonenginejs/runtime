@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/AudioGameObject.h
 // Source: trinity/trinity/Eve/AudioGameObject.cpp
 import { mat4 } from "#math/mat4";
+import { withIEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -14,7 +15,7 @@ import { carbon, CjsSchema, impl, io, type } from "#schema";
  * asset.
  */
 @type.define({ className: "AudioGameObject", family: "eve" })
-export class AudioGameObject extends CjsModel
+export class AudioGameObject extends withIEveSpaceObject2(CjsModel)
 {
   #worldTransform = mat4.create();
 

@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
 import { mat4 } from "#math/mat4";
+import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
@@ -22,7 +23,7 @@ import { EveComponentType } from "../EveComponentTypes.js";
  * attached to a hull.
  */
 @type.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
-export class EveEffectRoot2 extends withITr2BoundingBox(EveEntity)
+export class EveEffectRoot2 extends withIEveSpaceObject2(withITr2BoundingBox(EveEntity))
 {
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
