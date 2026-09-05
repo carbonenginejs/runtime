@@ -298,6 +298,89 @@ export class CjsSchema
         return CONSTRUCTOR_BY_NAME.get(name.trim()) || null;
     }
 
+    /**
+     * The installed values-transport implementation.
+     *
+     * The transport API lives HERE - everything is called through the schema
+     * (operator direction, 2026-09-05) - while the implementation currently
+     * still lives in the model layer, which registers itself at load. Layering
+     * forbids the reverse import (schema never imports model), so this is a
+     * composition seam: the physical relocation of the transport bodies is the
+     * facade migration's work, and changes nothing for callers of these
+     * statics.
+     */
+    static #valuesService = null;
+
+    /**
+     * Installs the values-transport implementation.
+     *
+     * Called once by the model layer at module load. A second registration
+     * replaces the first, which only module duplication could cause.
+     *
+     * @param {{getValues: Function, setValues: Function, From: Function}} service
+     * @returns {typeof CjsSchema}
+     */
+    static registerValuesService(service)
+    {
+        if (!service || typeof service.getValues !== "function" || typeof service.setValues !== "function" || typeof service.From !== "function")
+        {
+            throw new TypeError("CjsSchema.registerValuesService requires getValues, setValues and From functions.");
+        }
+        CjsSchema.#valuesService = service;
+        return this;
+    }
+
+    static #RequireValuesService(method)
+    {
+        if (!CjsSchema.#valuesService)
+        {
+            throw new Error(`CjsSchema.${method} requires the values service; import the model layer before calling it.`);
+        }
+        return CjsSchema.#valuesService;
+    }
+
+    /**
+     * Exports a target's schema fields to a plain object.
+     *
+     * @param {object} target A schema-backed instance.
+     * @param {object} [out={}] Caller-owned output object.
+     * @param {object} [options={}] Export options (refs, typeTags, ...).
+     * @returns {object} The exported values.
+     */
+    static getValues(target, out = {}, options = {})
+    {
+        return CjsSchema.#RequireValuesService("getValues").getValues(target, out, options);
+    }
+
+    /**
+     * Applies a plain value bag to a target through its validated setter.
+     *
+     * @param {object} target A schema-backed instance.
+     * @param {object} [values={}] Incoming values.
+     * @param {object} [options={}] Population options.
+     * @returns {Set<string>|boolean} Changed fields, or a boolean result.
+     */
+    static setValues(target, values = {}, options = {})
+    {
+        return CjsSchema.#RequireValuesService("setValues").setValues(target, values, options);
+    }
+
+    /**
+     * Constructs a registered class from a plain values bag.
+     *
+     * The deserializer: resolves the class by name, builds it, applies the
+     * values, and calls the class-owned Initialize when one exists.
+     *
+     * @param {string} className The registered class name.
+     * @param {object} [values={}] Values to apply.
+     * @param {object} [options={}] Population options.
+     * @returns {object} The constructed instance.
+     */
+    static From(className, values = {}, options = {})
+    {
+        return CjsSchema.#RequireValuesService("From").From(className, values, options);
+    }
+
     /** Returns the stable registered name for an enum object. */
     static getEnumName(values)
     {
