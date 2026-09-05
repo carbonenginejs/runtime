@@ -9,5 +9,6 @@ export * from "./lookup.js";
 export * from "./object.js";
 export * from "./path.js";
 export * from "./resFile.js";
+export * from "./hash.js";
 export * from "./text.js";
 export * from "./validation.js";

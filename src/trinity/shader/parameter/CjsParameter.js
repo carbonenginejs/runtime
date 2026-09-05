@@ -1,3 +1,4 @@
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1Identity, hashFnv1String } from "../../../global/utils/hash.js";
 import { CjsModel } from "#model";
 import { Tr2Shader } from "#resource/shader";
 
@@ -205,66 +206,31 @@ export class CjsParameter extends CjsModel
   // (equal content -> equal hash within a session) is preserved; the numeric
   // hashes intentionally differ from Carbon's, which are address-dependent.
 
-  static FNV1_INITIAL = 2166136261;
+  // THESE FOUR NOW DELEGATE. The implementation moved to
+  // `#utils/hashFnv1` when the abstraction layer became a second caller -
+  // `Tr2ResourceSetDescriptionAL.ComputeHash` - because an AL class reaching
+  // up into a shader class to borrow a hash inverts the layering. The statics
+  // stay because callers and tests name them.
 
-  /** FNV1 over a string's UTF-16 code units, two bytes each, little-endian. */
-  static hashFnv1String(text, hash = CjsParameter.FNV1_INITIAL)
+  static FNV1_INITIAL = FNV1_INITIAL;
+
+  /** @see hashFnv1String */
+  static hashFnv1String(text, hash = FNV1_INITIAL)
   {
-    const value = String(text ?? "");
-    for (let index = 0; index < value.length; index++)
-    {
-      const code = value.charCodeAt(index);
-      hash = (Math.imul(hash, 16777619) ^ (code & 0xff)) >>> 0;
-      hash = (Math.imul(hash, 16777619) ^ (code >>> 8)) >>> 0;
-    }
-    return hash >>> 0;
+    return hashFnv1String(text, hash);
   }
 
-  /** FNV1 over numbers encoded as little-endian float32 bytes. */
-  static hashFnv1Floats(values, hash = CjsParameter.FNV1_INITIAL)
+  /** @see hashFnv1Floats */
+  static hashFnv1Floats(values, hash = FNV1_INITIAL)
   {
-    const view = CjsParameter.#hashScratch;
-    for (const value of values)
-    {
-      view.setFloat32(0, Number(value) || 0, true);
-      for (let byte = 0; byte < 4; byte++)
-      {
-        hash = (Math.imul(hash, 16777619) ^ view.getUint8(byte)) >>> 0;
-      }
-    }
-    return hash >>> 0;
+    return hashFnv1Floats(values, hash);
   }
 
-  /**
-   * FNV1 over a stable per-object identity - the JS stand-in for Carbon
-   * hashing a smart-pointer address. Null hashes as identity 0.
-   */
-  static hashFnv1Identity(object, hash = CjsParameter.FNV1_INITIAL)
+  /** @see hashFnv1Identity */
+  static hashFnv1Identity(object, hash = FNV1_INITIAL)
   {
-    let id = 0;
-    if (object !== null && object !== undefined)
-    {
-      id = CjsParameter.#identities.get(object);
-      if (id === undefined)
-      {
-        id = CjsParameter.#nextIdentity++;
-        CjsParameter.#identities.set(object, id);
-      }
-    }
-    const view = CjsParameter.#hashScratch;
-    view.setUint32(0, id >>> 0, true);
-    for (let byte = 0; byte < 4; byte++)
-    {
-      hash = (Math.imul(hash, 16777619) ^ view.getUint8(byte)) >>> 0;
-    }
-    return hash >>> 0;
+    return hashFnv1Identity(object, hash);
   }
-
-  static #hashScratch = new DataView(new ArrayBuffer(4));
-
-  static #identities = new WeakMap();
-
-  static #nextIdentity = 1;
 
   /**
    * Whether a value is an object with a numeric `value` property - the

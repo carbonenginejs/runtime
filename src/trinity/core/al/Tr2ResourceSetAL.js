@@ -32,6 +32,7 @@
 import { ShaderType } from "../../../global/consts/renderContext/index.js";
 import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "./Tr2DeviceResourceAL.js";
 import { ALResult } from "./ALResult.js";
+import { FNV1_INITIAL, hashFnv1Floats, hashFnv1Identity } from "../../../global/utils/hash.js";
 
 
 /** Carbon's `MAX_RESOURCES_IN_STAGE`. */
@@ -187,11 +188,15 @@ export class Tr2ResourceSetDescriptionAL
    * @param {number} registerIndex The register.
    * @param {object} resource A `Tr2TextureAL` or `Tr2BufferAL`.
    * @param {number} [colorSpace] A colour space; linear when omitted.
-   * @returns {boolean} Whether the slot is addressable.
+   * @returns {boolean} Whether this CHANGED the description - see the note above.
    */
   SetSrv(stage, registerIndex, resource, colorSpace = 0)
   {
     if (!ValidSlot(stage, registerIndex)) return false;
+
+    const current = this.#srvs[stage][registerIndex];
+
+    if (current && current.resource === resource && current.colorSpace === colorSpace) return false;
 
     this.#srvs[stage][registerIndex] = { resource, colorSpace };
 
@@ -205,11 +210,15 @@ export class Tr2ResourceSetDescriptionAL
    * @param {number} registerIndex The register.
    * @param {object} resource A `Tr2TextureAL` or `Tr2BufferAL`.
    * @param {number} [mip] The mip level, for a texture.
-   * @returns {boolean} Whether the slot is addressable.
+   * @returns {boolean} Whether this CHANGED the description.
    */
   SetUav(stage, registerIndex, resource, mip = 0)
   {
     if (!ValidSlot(stage, registerIndex)) return false;
+
+    const current = this.#uavs[stage][registerIndex];
+
+    if (current && current.resource === resource && current.mip === mip) return false;
 
     this.#uavs[stage][registerIndex] = { resource, mip };
 
@@ -222,11 +231,15 @@ export class Tr2ResourceSetDescriptionAL
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @param {object} sampler A `Tr2SamplerStateAL`.
-   * @returns {boolean} Whether the slot is addressable.
+   * @returns {boolean} Whether this CHANGED the description.
    */
   SetSampler(stage, registerIndex, sampler)
   {
     if (!ValidSlot(stage, registerIndex)) return false;
+
+    const current = this.#samplers[stage][registerIndex];
+
+    if (current && current.sampler === sampler) return false;
 
     this.#samplers[stage][registerIndex] = { sampler };
 
@@ -242,11 +255,15 @@ export class Tr2ResourceSetDescriptionAL
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @param {object} buffer A `Tr2ConstantBufferAL`.
-   * @returns {boolean} Whether the slot is addressable.
+   * @returns {boolean} Whether this CHANGED the description.
    */
   SetConstantBuffer(stage, registerIndex, buffer)
   {
     if (!ValidSlot(stage, registerIndex)) return false;
+
+    const current = this.#constantBuffers[stage][registerIndex];
+
+    if (current && current.buffer === buffer) return false;
 
     this.#constantBuffers[stage][registerIndex] = { buffer };
 
@@ -291,6 +308,52 @@ export class Tr2ResourceSetDescriptionAL
     {
       for (const stage of slots) stage.fill(null);
     }
+  }
+
+  /**
+   * A content hash over every bound slot, for deciding whether a realized set
+   * still matches the description it was built from.
+   *
+   * Carbon `Tr2ResourceSetDescriptionAL::ComputeHash`
+   * (`trinityal/src/Tr2ResourceSetAL.cpp:457+`), which folds each srv, uav and
+   * sampler entry in register order.
+   *
+   * ONE UNAVOIDABLE DIVERGENCE. Carbon hashes the resource POINTER; JavaScript
+   * has no address, so a bound object is folded in by IDENTITY through the
+   * same interning `hashFnv1Identity` already uses for the same
+   * reason. It answers the question the hash exists to answer — "is this the
+   * same object in the same slot" — and, like Carbon's, it is a same-process
+   * value that must never be persisted or compared across libraries.
+   *
+   * @returns {number} An unsigned 32-bit hash.
+   */
+  ComputeHash()
+  {
+    let hash = FNV1_INITIAL;
+
+    for (const [ kind, slots ] of [ [ 1, this.#srvs ], [ 2, this.#uavs ], [ 3, this.#samplers ] ])
+    {
+      for (let stage = 0; stage < slots.length; stage += 1)
+      {
+        for (let registerIndex = 0; registerIndex < slots[stage].length; registerIndex += 1)
+        {
+          const binding = slots[stage][registerIndex];
+
+          if (!binding) continue;
+
+          // The SLOT is part of the identity: the same texture at two
+          // registers is two different descriptions.
+          hash = hashFnv1Floats([ kind, stage, registerIndex ], hash);
+          hash = hashFnv1Identity(binding.resource ?? binding.sampler ?? null, hash);
+
+          // A texture bound sRGB and bound linear is two bindings, and a uav
+          // at two mips likewise, so the qualifier is folded in as well.
+          hash = hashFnv1Floats([ binding.colorSpace ?? binding.mip ?? 0 ], hash);
+        }
+      }
+    }
+
+    return hash >>> 0;
   }
 
   /**

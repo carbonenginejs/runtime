@@ -1,6 +1,6 @@
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
-import { Tr2VariableStore, Tr2Effect, Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectLibraryParameters, Tr2EffectParameterAnnotation, Tr2EffectPassParameters, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2FloatParameter, Tr2GeometryBufferParameter, Tr2Material, Tr2MaterialStageInput, Tr2Matrix4Parameter, Tr2Pass, Tr2RuntimeTextureParameter, Tr2SamplerOverride, Tr2SamplerSetup, Tr2Shader, Tr2ShaderBuffer, Tr2TextureAnimationParameter, Tr2Vector2Parameter, Tr2Vector3Parameter, Tr2Vector4Parameter, TriFloatArrayParameter, TriTextureParameter, TriTransformParameter, TriVariableParameter, TriVector4 } from "../../npm/dist/trinity/index.js";
+import { Tr2VariableStore, Tr2Effect, Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectLibraryParameters, Tr2EffectParameterAnnotation, Tr2EffectParam, Tr2EffectPassParameters, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2FloatParameter, Tr2GeometryBufferParameter, Tr2Material, Tr2MaterialStageInput, Tr2Matrix4Parameter, Tr2Pass, Tr2RuntimeTextureParameter, Tr2SamplerOverride, Tr2SamplerSetup, Tr2Shader, Tr2ShaderBuffer, Tr2TextureAnimationParameter, Tr2Vector2Parameter, Tr2Vector3Parameter, Tr2Vector4Parameter, TriFloatArrayParameter, TriTextureParameter, TriTransformParameter, TriVariableParameter, TriVector4 } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
@@ -9,6 +9,7 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
 import { Tr2ResourceSetDescriptionAL } from "../../npm/dist/trinity/core/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
+import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
 
 
@@ -1016,4 +1017,94 @@ test("ClearResources drops resources and keeps samplers, as Carbon's does", () =
   assertEquals(desc.Get("srv", 0, 3), null, "srv cleared");
   assertEquals(desc.Get("uav", 1, 4), null, "uav cleared");
   assertEquals(desc.Get("sampler", 0, 2)?.sampler, sampler, "sampler kept");
+});
+
+test("ApplyMaterialDataForPass binds only the stages the technique declares", () =>
+{
+  // Carbon walks the shader type mask and clears each bit as it goes
+  // (Shader/Tr2Material.cpp:209-253), so a technique with no geometry stage
+  // never binds one's constants. The mask here declares vertex (0) and pixel
+  // (1) only.
+  const VERTEX = 0;
+  const PIXEL = 1;
+  const setConstants = [];
+  const boundSets = [];
+
+  const renderContext = {
+    // Tr2ResourceSetALStub.Create checks the context is live, as Carbon's does.
+    IsValid()
+    {
+      return true;
+    },
+    SetConstants(buffer, stage)
+    {
+      setConstants.push(stage);
+      return true;
+    },
+    SetResourceSet(resourceSet)
+    {
+      boundSets.push(resourceSet);
+      return true;
+    }
+  };
+
+  const material = new Tr2Material();
+  const pass = new Tr2EffectPassParameters();
+
+  material.shader = shaderReflection();
+  material.shader.effect.techniques[0].shaderTypeMask = (1 << VERTEX) | (1 << PIXEL);
+  // The program handle has to be REGISTERED, not merely numbered. Carbon
+  // returns early when GetShaderProgram misses, and so does ours - an
+  // unregistered handle binds nothing rather than binding an empty set.
+  material.shader.effect.techniques[0].passes[0].shaderProgram =
+    Tr2EffectStateManager.registerShaderProgram([ Tr2EffectStateManager.registerShader(0, new Uint8Array([ 1 ])) ]);
+  material.parametersForPasses = [ { passes: [ pass ], libraries: [] } ];
+
+  // Every stage gets a constant buffer; only the two the mask names may bind.
+  for (const stage of [ VERTEX, PIXEL, 2, 3 ])
+  {
+    pass.stageInput[stage].constantBuffer = { id: `cb${stage}` };
+    pass.AllocateConstantMirror(stage, 16);
+  }
+
+  const texture = new TriTextureParameter();
+  texture.resource = { id: "diffuse" };
+  pass.stageInput[PIXEL].textures.push(
+    Object.assign(new Tr2EffectParam(), { sourceValue: texture, registerIndex: 3, registerCount: ResourceFlags.RESOURCE_FLAG_SRGB })
+  );
+
+  assertEquals(material.ApplyMaterialDataForPass(0, 0, renderContext), true);
+  assertEquals(setConstants.join(","), "0,1", "only the declared stages bound constants");
+
+  const srv = pass.resourceSetDesc.Get("srv", PIXEL, 3);
+  assertEquals(srv?.resource?.id, "diffuse", "the parameter bound itself into the description");
+  assertEquals(srv?.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB, "registerCount carried the sRGB flag");
+
+  assert(boundSets[0], "a resource set was realized and bound");
+  assertEquals(pass.resourceSetDirty, false, "and the pass is no longer dirty");
+  assert(pass.resourceSetHash !== 0, "the pass hash is the description's content hash");
+  assert(material.resourceSetHash !== 0, "and the material folds every pass hash in");
+
+  // A second apply with nothing changed must not rebuild the set.
+  const realized = pass.resourceSet;
+  assertEquals(material.ApplyMaterialDataForPass(0, 0, renderContext), true);
+  assertEquals(pass.resourceSet, realized, "an unchanged pass reuses its realized set");
+
+  // Invalidation drops it, so the next apply rebuilds.
+  material.InvalidateResourceSets();
+  assertEquals(pass.resourceSet, null);
+  material.ApplyMaterialDataForPass(0, 0, renderContext);
+  assert(pass.resourceSet && pass.resourceSet !== realized, "invalidation forces a rebuild");
+});
+
+test("a material with no shader applies nothing", () =>
+{
+  const material = new Tr2Material();
+
+  assertEquals(material.ApplyMaterialDataForPass(0, 0, {
+    SetConstants()
+    {
+      throw new Error("must not reach the context without a shader");
+    }
+  }), false);
 });

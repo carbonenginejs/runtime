@@ -697,6 +697,35 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Binds a realized resource set for following draws.
+   *
+   * Carbon's `Tr2Material::ApplyMaterialDataForPass` ends in exactly this call.
+   * Trinity fills a `Tr2ResourceSetDescriptionAL`, the abstraction layer turns
+   * it into whatever its API calls a bind group, and this binds the result.
+   *
+   * @param {object} resourceSet A `Tr2ResourceSetAL`.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  SetResourceSet(resourceSet)
+  {
+    return this.#requireAL("SetResourceSet").SetResourceSet(resourceSet);
+  }
+
+  /**
+   * Binds a constant buffer to one shader stage at one register.
+   *
+   * @param {object} buffer A `Tr2ConstantBufferAL`.
+   * @param {number} constantType A `ShaderType`.
+   * @param {number} registerIndex The constant-buffer register.
+   * @param {number} [maxRegisterCount] Carbon's optional bound.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  SetConstants(buffer, constantType, registerIndex, maxRegisterCount = 0)
+  {
+    return this.#requireAL("SetConstants").SetConstants(buffer, constantType, registerIndex, maxRegisterCount);
+  }
+
+  /**
    * Binds one vertex stream. Reached through `ApplyStreamSource`, which filters
    * a redundant bind out first.
    *
