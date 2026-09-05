@@ -7,6 +7,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
+import { Tr2ResourceSetDescriptionAL } from "../../npm/dist/trinity/core/index.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -344,12 +345,20 @@ test("promoted shader graph containers track dirty resources", () =>
   const pass = new Tr2EffectPassParameters();
   const library = new Tr2EffectLibraryParameters();
   material.parametersForPasses = [{ passes: [pass], libraries: [library] }];
-  const backendResourceSet = {};
-  pass.resourceSet = backendResourceSet;
+  // THIS TEST USED TO ASSERT THE OPPOSITE, and the assertion was the bug.
+  // It installed a description whose ClearResources threw, under the message
+  // "runtime-trinity must not clear backend resource sets", and asserted the
+  // realized set SURVIVED InvalidateResourceSets. Carbon drops both. Clearing
+  // a description is not touching a backend object - Trinity owns the
+  // description, the abstraction layer owns the set built from it - and the
+  // old assertion was the engine-means-`engine/webgpu` misreading written down
+  // as a guarantee. See /docs/research/graphics-path-review-2026-09-05.md.
+  let cleared = 0;
+  pass.resourceSet = {};
   pass.resourceSetDesc = {
     ClearResources()
     {
-      throw new Error("runtime-trinity must not clear backend resource sets");
+      cleared += 1;
     }
   };
   pass.stageInput[0].shaderParametersWithNotification.push({});
@@ -358,8 +367,13 @@ test("promoted shader graph containers track dirty resources", () =>
   assert(pass.stageInput[0].constantBufferDirty);
   assert(library.globalInput.constantBufferDirty);
   material.InvalidateResourceSets();
-  assertEquals(pass.resourceSet, backendResourceSet);
+  assertEquals(pass.resourceSet, null, "the realized set is dropped, as Carbon drops it");
+  assertEquals(cleared, 1, "and the description it was built from is cleared");
+
+  // ResourceChanged is the WEAKER of the pair on purpose: the bound resources
+  // changed, the set layout did not, so it invalidates without clearing.
   material.ResourceChanged();
+  assertEquals(cleared, 1, "ResourceChanged does not clear the description");
   assert(pass.resourceSetDirty);
   assert(pass.usedTexturesDirty);
   assert(library.usedTexturesDirty);
@@ -926,4 +940,27 @@ test("a vector parameter still refreshes from its reroute destination on read", 
 
   assertEquals(parameter.GetValue()[1], 42, "GetValue refreshes from the reroute");
   assertEquals(parameter.y, 42, "and so does a component getter");
+});
+
+test("ClearResources drops resources and keeps samplers, as Carbon's does", () =>
+{
+  // Carbon walks the srv and uav slots and touches nothing else
+  // (trinityal/src/Tr2ResourceSetAL.cpp:439-455). The asymmetry matters: a
+  // sampler is authored static state arriving with the effect, so clearing it
+  // would throw away a binding nothing puts back.
+  const desc = new Tr2ResourceSetDescriptionAL();
+  const texture = { id: "texture" };
+  const buffer = { id: "buffer" };
+  const sampler = { id: "sampler" };
+
+  assert(desc.SetSrv(0, 3, texture));
+  assert(desc.SetUav(1, 4, buffer));
+  assert(desc.SetSampler(0, 2, sampler));
+  assert(desc.SetConstantBuffer(0, 1, buffer));
+
+  desc.ClearResources();
+
+  assertEquals(desc.Get("srv", 0, 3), null, "srv cleared");
+  assertEquals(desc.Get("uav", 1, 4), null, "uav cleared");
+  assertEquals(desc.Get("sampler", 0, 2)?.sampler, sampler, "sampler kept");
 });

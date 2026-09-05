@@ -365,9 +365,16 @@ export class Tr2Effect extends Tr2Material
       {
         const passParameters = new Tr2EffectPassParameters();
 
-        // Carbon copies the reflection's description because sampler overrides
-        // then mutate the copy; the pass reflection itself is never written.
-        passParameters.resourceSetDesc = pass?.resourceSetDesc ?? null;
+        // THE READER'S DESCRIPTION IS NOT THIS DESCRIPTION, and assigning it
+        // here was the bug. `pass.resourceSetDesc` off the reflection is an
+        // `HlslResourceSetDescription` - samplers and D3D12 heap views, no
+        // `SetSrv`, no `ClearResources` - while this field is Carbon's
+        // `Tr2ResourceSetDescriptionAL`, which the pass parameters construct
+        // for themselves and `UpdateResourceSetDesc` fills at bind time.
+        //
+        // Carbon copies a description here because ITS reflection carries the
+        // same type; ours does not, so there is nothing to copy. Removed
+        // 2026-09-05; see /docs/research/graphics-path-review-2026-09-05.md.
         passParameters.resourceSetHash = 0;
         passParameters.resourceSetDirty = true;
         passParameters.compatibleWithGdr = true;

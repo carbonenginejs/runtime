@@ -271,6 +271,29 @@ export class Tr2ResourceSetDescriptionAL
   }
 
   /**
+   * Drops every bound resource, keeping samplers and constant buffers.
+   *
+   * Carbon `Tr2ResourceSetDescriptionAL::ClearResources`
+   * (`trinityal/src/Tr2ResourceSetAL.cpp:439-455`), and the ASYMMETRY IS THE
+   * POINT: it walks the srv and uav slots and touches nothing else. A sampler
+   * is authored static state that arrives with the effect, so clearing it
+   * would throw away a binding nothing is going to put back. Resources are the
+   * things that change when a material's textures change, which is why
+   * `Tr2Material.InvalidateResourceSets` calls this and not a full reset.
+   *
+   * MISSED BY THE FIRST PORT of this class, and the omission was live:
+   * `InvalidateResourceSets` marked the set dirty while leaving the stale
+   * bindings in place, so a material could rebind textures it no longer used.
+   */
+  ClearResources()
+  {
+    for (const slots of [ this.#srvs, this.#uavs ])
+    {
+      for (const stage of slots) stage.fill(null);
+    }
+  }
+
+  /**
    * The register map this description fills.
    *
    * Carbon constructs a description FROM a register map or a shader program;

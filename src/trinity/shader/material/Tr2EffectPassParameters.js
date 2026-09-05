@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type } from "#schema";
 import { CjsModel } from "#model";
+import { Tr2ResourceSetDescriptionAL } from "../../core/al/Tr2ResourceSetAL.js";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
 /** Collects one effect pass's per-stage inputs, rerouted parameters, used resources, and resource-set state. */
@@ -17,9 +18,22 @@ export class Tr2EffectPassParameters extends CjsModel
   @type.list("ITriReroutable")
   reroutedParameters = [];
 
+  // TWO DIFFERENT OBJECTS USED TO SHARE THIS NAME, and the field held the
+  // wrong one until 2026-09-05. `Tr2Effect` assigned the READER's
+  // `HlslResourceSetDescription` straight in - a class with `SetSampler` and
+  // the D3D12 heap-view setters, but no `SetSrv`, `SetUav` or
+  // `ClearResources`. Carbon's `m_resourceSetDesc` is a member of the pass
+  // parameters, constructed here and filled at bind time by
+  // `UpdateResourceSetDesc`; it is not something a format reader hands over.
+  //
+  // The reader's object is not junk - its heap views are a fidelity artifact
+  // of the binding-manifest round trip and its own test asserts them - so the
+  // two are separated rather than one deleted. See
+  // /docs/research/graphics-path-review-2026-09-05.md.
+
   /** m_resourceSetDesc (Tr2ResourceSetDescriptionAL) */
   @type.rawStruct("Tr2ResourceSetDescriptionAL")
-  resourceSetDesc = null;
+  resourceSetDesc = new Tr2ResourceSetDescriptionAL();
 
   /** m_resourceSet (Tr2ResourceSetAL) */
   @type.rawStruct("Tr2ResourceSetAL")

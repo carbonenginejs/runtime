@@ -70,6 +70,22 @@ export class Tr2Material extends CjsModel
     {
       for (const pass of technique?.passes ?? [])
       {
+        // THESE TWO LINES WERE MISSING AND THE OMISSION WAS LIVE. Carbon drops
+        // the realized set and clears the description
+        // (`Shader/Tr2Material.cpp`, InvalidateResourceSets); without them
+        // this marked the set dirty while leaving the stale bindings in place,
+        // so a material whose textures changed could rebind the old ones. It is
+        // also what separates this method from `ResourceChanged` below, which
+        // deliberately only invalidates - the two were identical, which should
+        // have been the tell.
+        //
+        // Clearing a DESCRIPTION is not touching a backend object. A test used
+        // to assert the opposite - "runtime-trinity must not clear backend
+        // resource sets" - which was the engine-means-`engine/webgpu`
+        // misreading written down as a guarantee. Trinity owns the
+        // description; the abstraction layer owns the set built from it.
+        pass.resourceSet = null;
+        pass.resourceSetDesc?.ClearResources();
         pass.resourceSetHash = 0;
         pass.resourceSetDirty = true;
         pass.usedTexturesDirty = true;
