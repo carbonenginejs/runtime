@@ -137,9 +137,17 @@ test("portable generated render steps initialize and emit backend-neutral work",
   renderObject.Execute(0, 0, context);
   assertEquals(collectedTypes.join(","), "0,1,2,4");
 
+  // TriStepRenderEffect blits through Tr2Blitter now. The shader buffer must be
+  // applied BEFORE the draw (Carbon cpp:34-38), because the draw runs every pass
+  // and each one reads whatever the buffer bound.
+  const effectOrder = [];
   const renderEffect = new TriStepRenderEffect();
-  renderEffect.__init__({ name: "effect" }, { name: "constants" });
+  renderEffect.__init__(
+    { name: "effect", GetShaderStateInterface: () => { effectOrder.push("draw"); return null; } },
+    { ApplyBuffer: () => effectOrder.push("buffer") }
+  );
   renderEffect.Execute(0, 0, context);
+  assertEquals(effectOrder.join(","), "buffer,draw");
 
   const compute = new TriStepRunComputeShader();
   compute.__init__({ name: "compute" }, 2, 3, 4);
@@ -158,7 +166,7 @@ test("portable generated render steps initialize and emit backend-neutral work",
   // set-upscaling-context-id no longer records: the context already holds it
   // and the planner classified it STATE, which forces no boundary and is
   // excluded from the has-work test. Recorded and ignored.
-  assertEquals(intents.map(intent => intent.type).join(","), "render-batches,render-batches,render-batches,render-batches,draw-effect,run-compute-shader");
+  assertEquals(intents.map(intent => intent.type).join(","), "render-batches,render-batches,render-batches,render-batches,run-compute-shader");
   assertEquals(events[0][0], "scene");
   assertEquals(events.at(-1).join(","), "update,5,6");
 });

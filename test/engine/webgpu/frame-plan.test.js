@@ -10,7 +10,7 @@ function segment(...intents)
 
 function draw(name = "object")
 {
-  return { type: "draw-effect", effect: name };
+  return { type: "render-atlas", step: name };
 }
 
 function kinds(plan)
@@ -30,7 +30,7 @@ test("PlanFrame folds a leading clear into the region's load operations", () =>
   // No explicit clear operation and no fullscreen clear draw: the clear became
   // the attachment's load op, which is what the divergence decision asks for.
   assert.deepEqual(plan.regions[0].clear, { color: [ 0, 0, 0, 1 ], depth: 1 });
-  assert.deepEqual(plan.regions[0].intents.map(intent => intent.effect), [ "a", "b" ]);
+  assert.deepEqual(plan.regions[0].intents.map(intent => intent.step), [ "a", "b" ]);
   assert.equal(plan.intentCount, 3);
 });
 
@@ -46,9 +46,9 @@ test("PlanFrame cuts a region when a clear arrives after work", () =>
 
   assert.deepEqual(kinds(plan), [ IntentClass.RENDER, IntentClass.RENDER ]);
   assert.equal(plan.regions[0].clear, null);
-  assert.deepEqual(plan.regions[0].intents.map(intent => intent.effect), [ "a" ]);
+  assert.deepEqual(plan.regions[0].intents.map(intent => intent.step), [ "a" ]);
   assert.deepEqual(plan.regions[1].clear, { color: [ 1, 0, 0, 1 ] });
-  assert.deepEqual(plan.regions[1].intents.map(intent => intent.effect), [ "b" ]);
+  assert.deepEqual(plan.regions[1].intents.map(intent => intent.step), [ "b" ]);
 });
 
 test("PlanFrame cuts a region for work that cannot happen inside a pass", () =>
@@ -105,7 +105,7 @@ test("PlanFrame snapshots the live viewport shape for the render region", () =>
   ) ]);
 
   assert.deepEqual(kinds(plan), [ IntentClass.RENDER ]);
-  assert.deepEqual(plan.regions[0].intents.map(intent => intent.type), [ "draw-effect" ]);
+  assert.deepEqual(plan.regions[0].intents.map(intent => intent.type), [ "render-atlas" ]);
   assert.deepEqual(plan.regions[0].dynamicState, {
     viewport: {
       x: 10,
@@ -138,7 +138,7 @@ test("PlanFrame cuts a render region when the viewport changes after a draw", ()
     minDepth: 0,
     maxDepth: 1
   });
-  assert.deepEqual(plan.regions.map(region => region.intents.map(intent => intent.effect)), [ [ "a" ], [ "b" ] ]);
+  assert.deepEqual(plan.regions.map(region => region.intents.map(intent => intent.step)), [ [ "a" ], [ "b" ] ]);
 });
 
 test("PlanFrame preserves a viewport across compute and later render regions", () =>
@@ -208,7 +208,7 @@ test("PlanFrame preserves order across segments and never merges over a boundary
   // b and c are adjacent render work in different segments, so they share one
   // pass; a is separated from them by compute and cannot join, even though
   // merging would be cheaper. Trinity's observable ordering outranks that.
-  assert.deepEqual(plan.regions[2].intents.map(intent => intent.effect), [ "b", "c" ]);
+  assert.deepEqual(plan.regions[2].intents.map(intent => intent.step), [ "b", "c" ]);
 });
 
 test("PlanFrame treats presentation as the end of encodable work", () =>
@@ -223,7 +223,7 @@ test("PlanFrame treats presentation as the end of encodable work", () =>
   // Nothing is encoded for presentation on this backend, but it still closes
   // the frame so later work cannot silently join the presented pass.
   assert.deepEqual(kinds(plan), [ IntentClass.RENDER, IntentClass.RENDER ]);
-  assert.deepEqual(plan.regions[0].intents.map(intent => intent.effect), [ "a" ]);
+  assert.deepEqual(plan.regions[0].intents.map(intent => intent.step), [ "a" ]);
 });
 
 test("PlanFrame refuses an intent it has no rule for", () =>

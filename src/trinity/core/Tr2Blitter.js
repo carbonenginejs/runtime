@@ -4,7 +4,7 @@
 // The fullscreen-quad draw. Carbon routes every screen-space blit through this
 // one class: `Tr2Renderer::DrawTexture` and `DrawFullScreenWithShader` are
 // three-line wrappers around `s_blitter->Draw` (`Tr2Renderer.cpp:750-834`), and
-// `TriStepRenderTexture`, `TriStepRenderAtlas` and the draw-effect path all
+// `TriStepRenderTexture`, `TriStepRenderEffect` and `TriStepRenderAtlas` all
 // reach it that way. It is why those render steps could not be ported.
 //
 // THE WHOLE CLASS IS ONE METHOD. `DrawHelper` fills a four-vertex quad, binds
@@ -14,11 +14,12 @@
 //
 // WHAT IS DELIBERATELY NOT PORTED:
 //
-// - The `Tr2DeviceResource` base and `ReleaseResources`/`OnPrepareResources`.
-//   Carbon needs them because a DX device can be lost and every resource
-//   rebuilt; WebGPU surfaces device loss as a promise on the device itself and
-//   nothing in this runtime rebuilds resources on it yet. `PrepareResources`
-//   is folded into first use instead.
+// - The `Tr2DeviceResource` BASE. Carbon needs it because a DX device can be
+//   lost and every registered resource rebuilt; WebGPU surfaces device loss as
+//   a promise on the device itself and nothing here rebuilds on it yet. The
+//   `PrepareResources`/`OnPrepareResources` split IS kept - that is where such
+//   a registry would hook in - but it is called from first use rather than from
+//   the constructor, because Carbon has a device by construction and we may not.
 // - `BLITCUBE_EFFECT_PATH`. Carbon declares the constant and never uses it
 //   (`Tr2Blitter.cpp:13`); transcribing dead code would imply a cube blit
 //   exists.

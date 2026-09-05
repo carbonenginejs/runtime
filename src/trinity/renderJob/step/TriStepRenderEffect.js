@@ -3,6 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
+import { AdjustTextureCoordsToViewport } from "../../core/Tr2RenderUtils.js";
 
 /** A render step that draws a full-screen effect with an optional shader buffer. */
 @type.define({ className: "TriStepRenderEffect", family: "renderJob" })
@@ -39,16 +40,30 @@ export class TriStepRenderEffect extends TriRenderStep
   }
 
   /**
-   * Draws the bound effect, passing its shader buffer and texture coordinates to the render context.
+   * Applies the shader buffer, then draws the effect over a screen quad.
+   *
+   * Carbon `Execute` (`TriStepRenderEffect.cpp:27-40`): apply the buffer if
+   * there is one, then `Tr2Renderer::DrawTexture( renderContext, m_effect,
+   * m_tlTexCoord, m_brTexCoord )`. That overload adjusts the texture
+   * coordinates to the viewport and hands them to `Tr2Blitter::Draw`
+   * (`Tr2Renderer.cpp:803-814`), which is what these two lines are.
+   *
+   * THE ORDER IS CARBON'S AND IT MATTERS: the buffer is applied BEFORE the
+   * draw, because the draw runs every pass of the effect and each pass reads
+   * whatever the buffer bound.
    */
   @carbon.method
   @impl.adapted
   Execute(_realTime, _simTime, renderContext)
   {
-    if (this.effect)
-    {
-      renderContext.DrawEffect(this.effect, this.shaderBuffer, this.tlTexCoord, this.brTexCoord);
-    }
+    if (!this.effect) return TriRenderStep.Result.RS_OK;
+
+    if (this.shaderBuffer) this.shaderBuffer.ApplyBuffer(renderContext);
+
+    const adjusted = AdjustTextureCoordsToViewport(renderContext, this.tlTexCoord, this.brTexCoord);
+
+    renderContext.GetBlitter().Draw(renderContext, this.effect, null, adjusted);
+
     return TriRenderStep.Result.RS_OK;
   }
 

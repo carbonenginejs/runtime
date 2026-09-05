@@ -1121,22 +1121,6 @@ export class Tr2RenderContext extends CjsModel
     return true;
   }
 
-  /**
-   * Records a full-screen draw-effect intent; the two texture-coordinate corners
-   * are copied by value so caller buffers can be reused.
-   */
-  DrawEffect(effect, shaderBuffer = null, tlTexCoord = null, brTexCoord = null)
-  {
-    this.#intents.push({
-      type: "draw-effect",
-      effect,
-      shaderBuffer,
-      tlTexCoord: tlTexCoord ? Array.from(tlTexCoord) : null,
-      brTexCoord: brTexCoord ? Array.from(brTexCoord) : null
-    });
-    return true;
-  }
-
   /** Records a draw-line-set intent referencing the line set. */
   DrawLineSet(lineSet)
   {

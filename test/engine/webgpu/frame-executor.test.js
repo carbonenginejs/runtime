@@ -89,7 +89,7 @@ function segment(...intents)
 
 function draw(name)
 {
-  return { type: "draw-effect", effect: name };
+  return { type: "render-atlas", step: name };
 }
 
 function compute()

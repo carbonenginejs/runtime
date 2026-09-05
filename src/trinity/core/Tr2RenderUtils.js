@@ -18,7 +18,7 @@
 // `SetupScreenQuad` and `SetupScreenQuadInCameraSpace` are here too. They feed
 // `Tr2Blitter`'s fullscreen-quad path, which is the single gate in front of
 // every remaining render step: TriStepRenderTexture, TriStepRenderAtlas and
-// the DrawEffect path all bottom out in `Tr2Renderer::DrawTexture` ->
+// `TriStepRenderEffect` all bottom out in `Tr2Renderer::DrawTexture` ->
 // `Tr2Blitter::Draw`.
 import { ShaderType } from "#consts/render-context";
 import { mat4 } from "#math/mat4";
@@ -224,4 +224,59 @@ export function SetupScreenQuadInCameraSpace(quad, renderContext)
   writeScreenVertex(quad, 3, br[0], br[1], tl[2], 1, 1, 1);
 
   return quad;
+}
+
+
+/**
+ * Corrects texture coordinates when the device viewport differs from the
+ * authored one.
+ *
+ * Carbon `AdjustTextureCoordsToViewport` (`Tr2Renderer.cpp:267-290`), a
+ * file-scope free function there and a free function here for the same reason:
+ * it needs nothing but the two viewports.
+ *
+ * WHY IT EXISTS. The authored viewport is what the scene asked for; the device
+ * viewport is that clipped to the render target. When they differ - a
+ * sub-rectangle render, a target smaller than the request - a blit sampling
+ * [0,1] would read the whole source rather than the part actually covered. The
+ * correction shifts and scales the coordinates by the difference.
+ *
+ * ONLY THE `DrawTexture` FAMILY APPLIES THIS. Carbon's `DrawScreenQuad` calls
+ * the blitter with unadjusted coordinates (`Tr2Renderer.cpp:1014-1020`), so
+ * folding the correction into `Tr2Blitter` itself would silently change every
+ * screen-quad draw.
+ *
+ * @param {object} renderContext The context whose ESM holds both viewports.
+ * @param {Array<number>} tlTexCoord Top-left texture coordinate.
+ * @param {Array<number>} brTexCoord Bottom-right texture coordinate.
+ * @returns {{tlTexCoord: Array<number>, brTexCoord: Array<number>}} Corrected
+ *   coordinates; the inputs are not modified, unlike Carbon's in-out reference
+ *   parameters.
+ */
+export function AdjustTextureCoordsToViewport(renderContext, tlTexCoord, brTexCoord)
+{
+  const esm = renderContext.GetEffectStateManager();
+  const viewport = esm.GetViewport();
+  const deviceViewport = esm.GetDeviceViewport();
+
+  // Carbon dereferences both unconditionally. Before either is set there is no
+  // correction to make, and guessing one would move a blit that was correct.
+  if (!viewport || !deviceViewport) return { tlTexCoord, brTexCoord };
+
+  const deltaX = Math.trunc(deviceViewport.x) - viewport.x;
+  const deltaY = Math.trunc(deviceViewport.y) - viewport.y;
+
+  const xOffset = deltaX / viewport.width;
+  const yOffset = deltaY / viewport.height;
+
+  return {
+    tlTexCoord: [
+      tlTexCoord[0] + xOffset * brTexCoord[0],
+      tlTexCoord[1] + yOffset * brTexCoord[1]
+    ],
+    brTexCoord: [
+      brTexCoord[0] * ((deviceViewport.width + deltaX) / viewport.width),
+      brTexCoord[1] * ((deviceViewport.height + deltaY) / viewport.height)
+    ]
+  };
 }
