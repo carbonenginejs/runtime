@@ -100,7 +100,7 @@ export class EveMultiEffect extends withIEveSpaceObject2(CjsModel)
   @impl.reason("Assigns portable owner references before linking because JavaScript arrays do not provide Carbon IList parent locks.")
   Initialize()
   {
-    for (const parameter of this.parameters) parameter?.SetOwner?.(this);
+    for (const parameter of this.parameters) parameter?.SetOwner(this);
     for (const binding of this.bindings) binding?.SetOwner(this);
     this.Rebind();
     return true;
@@ -119,13 +119,13 @@ export class EveMultiEffect extends withIEveSpaceObject2(CjsModel)
     const maskedEvent = event & BELIST_EVENTMASK;
     if (list === this.parameters)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.SetOwner?.(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.SetOwner?.(null);
+      if (maskedEvent === BELIST_INSERTED) value?.SetOwner(this);
+      else if (maskedEvent === BELIST_REMOVED) value?.SetOwner(null);
     }
     else if (list === this.bindings)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.SetOwner?.(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.SetOwner?.(null);
+      if (maskedEvent === BELIST_INSERTED) value?.SetOwner(this);
+      else if (maskedEvent === BELIST_REMOVED) value?.SetOwner(null);
     }
     else if (list === this.controllers && (event & BELIST_LOADING) === 0)
     {

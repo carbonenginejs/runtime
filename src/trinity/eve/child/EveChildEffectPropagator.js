@@ -320,7 +320,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return;
     }
 
-    let currentRadSqr = Number(this.triggerSphereRadiusCurve.GetValueAt?.(this.playTime) ?? 0) * this.triggerSphereScalarMulti;
+    let currentRadSqr = Number(this.triggerSphereRadiusCurve.GetValueAt(this.playTime) ?? 0) * this.triggerSphereScalarMulti;
     currentRadSqr = currentRadSqr * currentRadSqr;
 
     const records = this.#processedTransforms;

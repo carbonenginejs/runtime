@@ -63,8 +63,8 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
   SetName(name)
   {
     super.SetName(name);
-    this.distanceScalarCurve?.SetName?.(`${this.name} - Distance Scalar Curve`);
-    this.orbitCurve?.SetName?.(`${this.name} - Orbit Curve`);
+    this.distanceScalarCurve?.SetName(`${this.name} - Distance Scalar Curve`);
+    this.orbitCurve?.SetName(`${this.name} - Orbit Curve`);
   }
 
   /**
@@ -96,7 +96,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
         vec3.normalize(out, out);
       }
     }
-    const amount = Number(this.orbitCurve?.GetValue?.(time) ?? time);
+    const amount = Number(this.orbitCurve?.GetValue(time) ?? time);
     const angle = (this.start + (this.end - this.start) * amount) * Math.PI / 180;
     vec3.transformQuat(out, out, quat.setAxisAngle(quat.create(), vec3.fromValues(0, 1, 0), angle));
     let range = this.distance;
@@ -104,7 +104,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
     {
       range *= anchorRadius;
     }
-    range *= Number(this.distanceScalarCurve?.GetValue?.(time) ?? 1);
+    range *= Number(this.distanceScalarCurve?.GetValue(time) ?? 1);
     return vec3.scale(out, out, range);
   }
 }

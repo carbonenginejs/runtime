@@ -224,7 +224,7 @@ export class EveChildBulletStorm extends withITr2Renderable(EveSpaceObjectChild)
     if (this.sourceObject)
     {
       const sphere = vec4.create();
-      if (this.sourceObject.GetBoundingSphere?.(sphere)) this.sourceRadius = sphere[3];
+      if (this.sourceObject.GetBoundingSphere(sphere)) this.sourceRadius = sphere[3];
     }
     if (this.#changingClipSphere)
     {

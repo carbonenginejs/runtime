@@ -29,7 +29,7 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   @impl.implemented
   TriggerOutburstEvent()
   {
-    return this.sourceEmitter?.SendEvent?.(this.outburstEvent) ?? 0;
+    return this.sourceEmitter?.SendEvent(this.outburstEvent) ?? 0;
   }
 
   /** Carbon method TriggerImpactEvent. */
@@ -37,7 +37,7 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   @impl.implemented
   TriggerImpactEvent()
   {
-    return this.destinationEmitter?.SendEvent?.(this.impactEvent) ?? 0;
+    return this.destinationEmitter?.SendEvent(this.impactEvent) ?? 0;
   }
 
   /** Carbon method TriggerStretchEvent. */
@@ -45,7 +45,7 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   @impl.implemented
   TriggerStretchEvent()
   {
-    return this.stretchEmitter?.SendEvent?.(this.stretchEvent) ?? 0;
+    return this.stretchEmitter?.SendEvent(this.stretchEvent) ?? 0;
   }
 
 }

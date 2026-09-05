@@ -38,7 +38,7 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
   SetName(name)
   {
     super.SetName(name);
-    this.scaleCurve?.SetName?.(`${this.name} - Scale Curve`);
+    this.scaleCurve?.SetName(`${this.name} - Scale Curve`);
   }
 
   /**
@@ -55,6 +55,6 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
     }
     const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
     const time = duration !== 0 ? localElapsedTime / duration : 0;
-    return this.value * Number(this.scaleCurve.GetValue?.(time) ?? 1);
+    return this.value * Number(this.scaleCurve.GetValue(time) ?? 1);
   }
 }

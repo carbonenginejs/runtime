@@ -270,7 +270,7 @@ export class EveShip2 extends EveMobile
   RebuildBoosterSet()
   {
     if (!this.boosters) return false;
-    this.boosters.Clear?.();
+    this.boosters.Clear();
     for (const locator of this.locators)
     {
       const name = locator?.GetName?.() ?? locator?.name ?? "";
@@ -290,7 +290,7 @@ export class EveShip2 extends EveMobile
   @impl.implemented
   Initialize()
   {
-    return super.Initialize?.() ?? true;
+    return super.Initialize() ?? true;
   }
 
   /**

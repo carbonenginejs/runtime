@@ -108,7 +108,7 @@ export class Tr2StateMachineTransition extends CjsModel
   CanActivate(variableDirtyMask = 0)
   {
     const stateMachine = this.#source?.GetStateMachine?.() ?? null;
-    const controller = stateMachine?.GetController?.() ?? null;
+    const controller = stateMachine?.GetController() ?? null;
     const owner = controller?.GetOwner() ?? null;
     const program = this.Compile();
     if (!program.IsValid())
@@ -169,7 +169,7 @@ export class Tr2StateMachineTransition extends CjsModel
       return 0n;
     }
     const stateMachine = this.#source?.GetStateMachine?.() ?? null;
-    const controller = stateMachine?.GetController?.() ?? null;
+    const controller = stateMachine?.GetController() ?? null;
     const variableView = controller?.GetVariableView?.();
     if (!Array.isArray(variableView))
     {
@@ -216,7 +216,7 @@ export class Tr2StateMachineTransition extends CjsModel
   EvaluateExpression(expression)
   {
     const stateMachine = this.#source?.GetStateMachine?.() ?? null;
-    const controller = stateMachine?.GetController?.() ?? null;
+    const controller = stateMachine?.GetController() ?? null;
     const owner = controller?.GetOwner() ?? null;
     const program = CjsControllerExpressionProgram.Compile(expression, {
       emptyValue: 0
@@ -237,7 +237,7 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result);
-    const controller = this.#source?.GetStateMachine?.()?.GetController?.();
+    const controller = this.#source?.GetStateMachine?.()?.GetController();
     controller?.GetExpressionTermInfo?.(result);
     return result;
   }

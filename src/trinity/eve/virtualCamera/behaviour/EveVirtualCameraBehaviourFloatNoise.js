@@ -54,7 +54,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
   SetName(name)
   {
     super.SetName(name);
-    this.magnitudeCurve?.SetName?.(`${this.name} - Magnitude Curve`);
+    this.magnitudeCurve?.SetName(`${this.name} - Magnitude Curve`);
   }
 
   /**
@@ -76,7 +76,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     {
       const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
       const time = duration !== 0 ? localElapsedTime / duration : 0;
-      offset *= Number(this.magnitudeCurve.GetValue?.(time) ?? 1);
+      offset *= Number(this.magnitudeCurve.GetValue(time) ?? 1);
     }
     return offset;
   }

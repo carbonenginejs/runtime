@@ -317,7 +317,8 @@ test("EveMultiEffect owns dynamic graphs, preserves map precedence, and updates 
     object: { id: "parameter" },
     GetName() { return this.name; },
     GetParameterObject() { return this.object; },
-    SetParameterObject(object) { this.object = object; }
+    SetParameterObject(object) { this.object = object; },
+    SetOwner(_owner) {}
   };
   const curveSet = {
     name: "Duplicate",

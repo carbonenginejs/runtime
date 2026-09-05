@@ -44,7 +44,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
   SetName(name)
   {
     super.SetName(name);
-    this.scaleCurve?.SetName?.(`${this.name} - Scale Curve`);
+    this.scaleCurve?.SetName(`${this.name} - Scale Curve`);
   }
 
   /** Returns the camera's forward direction scaled by the current distance. */
@@ -64,7 +64,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
   {
     const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
     const time = duration !== 0 ? localElapsedTime / duration : 0;
-    let value = this.value * Number(this.scaleCurve?.GetValue?.(time) ?? 1);
+    let value = this.value * Number(this.scaleCurve?.GetValue(time) ?? 1);
     if (this.proportional)
     {
       value *= anchorRadius;

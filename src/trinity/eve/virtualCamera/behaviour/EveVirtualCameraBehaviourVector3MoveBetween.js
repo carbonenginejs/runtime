@@ -52,7 +52,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
   SetName(name)
   {
     super.SetName(name);
-    this.interpolationCurve?.SetName?.(`${this.name} - Interpolation Curve`);
+    this.interpolationCurve?.SetName(`${this.name} - Interpolation Curve`);
   }
 
   /**
@@ -84,7 +84,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
       EveVirtualCameraBehaviourVector3Base.rotateVectorWithAnchor(end, end, anchorForwardDirection);
     }
     const time = localElapsedTime / duration;
-    const amount = Number(this.interpolationCurve?.GetValue?.(time) ?? time);
+    const amount = Number(this.interpolationCurve?.GetValue(time) ?? time);
     return vec3.lerp(out, start, end, amount);
   }
 }

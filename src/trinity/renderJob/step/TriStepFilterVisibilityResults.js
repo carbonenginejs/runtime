@@ -55,7 +55,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   {
     if (this.inputResults && this.outputResults)
     {
-      this.outputResults.Clear?.();
+      this.outputResults.Clear();
       for (const event of this.inputResults.GetEvents?.() ?? [])
       {
         const eventType = Number(event?.eventType ?? event?.m_eventType ?? 0) >>> 0;

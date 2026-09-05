@@ -41,7 +41,7 @@ export class Tr2ControllerExpression extends CjsModel
     if (Tr2ControllerExpression.#isStateMachine(source))
     {
       this.stateMachine = source;
-      this.controller = source.GetController?.() ?? null;
+      this.controller = source.GetController() ?? null;
     }
     else
     {

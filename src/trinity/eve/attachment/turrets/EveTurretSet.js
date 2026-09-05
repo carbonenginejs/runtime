@@ -378,7 +378,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
     const resource = this.geometryResource;
     if (!resource) return false;
     resource.RecalculateBoundingSphere?.();
-    const value = resource.GetBoundingSphere?.(0, this.boundingSphere);
+    const value = resource.GetBoundingSphere(0, this.boundingSphere);
     if (value?.length >= 4 && value !== this.boundingSphere) vec4.copy(this.boundingSphere, value);
     return value !== false;
   }
@@ -764,8 +764,8 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   {
     this.target ??= new EveTurretTarget();
     this.target.SetBehaviour?.(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
-    this.firingEffect?.Initialize?.();
-    this.#ambientEffect()?.Initialize?.();
+    this.firingEffect?.Initialize();
+    this.#ambientEffect()?.Initialize();
     return true;
   }
 
@@ -775,7 +775,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   SetFiringEffect(effect)
   {
     this.firingEffect = effect ?? null;
-    this.firingEffect?.Initialize?.();
+    this.firingEffect?.Initialize();
   }
 
   /**

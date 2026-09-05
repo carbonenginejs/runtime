@@ -51,7 +51,7 @@ export class Tr2StateMachineState extends CjsModel
   @impl.implemented
   OnModified(_options = {})
   {
-    const controller = this.#stateMachine?.GetController?.() ?? null;
+    const controller = this.#stateMachine?.GetController() ?? null;
     if (this.finalizer && controller)
     {
       this.finalizer.Link(controller);
@@ -341,7 +341,7 @@ export class Tr2StateMachineState extends CjsModel
    */
   #getController()
   {
-    return this.#stateMachine?.GetController?.() ?? null;
+    return this.#stateMachine?.GetController() ?? null;
   }
 
   /**

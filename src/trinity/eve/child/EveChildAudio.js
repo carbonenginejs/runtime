@@ -40,7 +40,7 @@ export class EveChildAudio extends EveChildTransform
     if (!Emitter) return false;
     this.audioEmitter = new Emitter();
     const position = mat4.getTranslation(vec3.create(), this.worldTransform);
-    return this.audioEmitter.Initialize?.(this.name || "audio_object", "", position) !== false;
+    return this.audioEmitter.Initialize(this.name || "audio_object", "", position) !== false;
   }
 
   /** Construction hook; forwards to Initialize. */
@@ -56,7 +56,7 @@ export class EveChildAudio extends EveChildTransform
   @impl.implemented
   SetEmitterName(name)
   {
-    this.audioEmitter?.SetName?.(String(name));
+    this.audioEmitter?.SetName(String(name));
   }
 
   /** Returns the authored child name, which is also the emitter's default name. */

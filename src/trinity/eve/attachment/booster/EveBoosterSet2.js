@@ -326,7 +326,7 @@ export class EveBoosterSet2 extends EveEntity
     }
     if (flags.delete("flares") && this.glows)
     {
-      this.glows.Clear?.();
+      this.glows.Clear();
       for (const booster of this.#singleBoosters)
       {
         CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2.#GetFlareParams(this));
@@ -477,8 +477,8 @@ export class EveBoosterSet2 extends EveEntity
   static #ClearRuntimeItems(owner)
   {
     owner.#singleBoosters.length = 0;
-    owner.glows?.Clear?.();
-    owner.trails?.Clear?.();
+    owner.glows?.Clear();
+    owner.trails?.Clear();
     vec3.set(owner.boosterBoundingSphereCenter, 0, 0, 0);
     owner.boosterBoundingSphereRadius = 0;
     owner.maxSize = 0;

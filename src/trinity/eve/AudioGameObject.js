@@ -69,7 +69,7 @@ export class AudioGameObject extends withIEveSpaceObject2(CjsModel)
     this.audioEmitter = new Emitter();
     this.UpdateWorldTransform(0);
     const position = this.GetWorldPosition(vec3.create());
-    const initialized = this.audioEmitter.Initialize?.(this.name || "audio_object", "", position);
+    const initialized = this.audioEmitter.Initialize(this.name || "audio_object", "", position);
     this.#SetEmitterPosition(position);
     return initialized !== false;
   }
@@ -98,7 +98,7 @@ export class AudioGameObject extends withIEveSpaceObject2(CjsModel)
   @impl.implemented
   SetEmitterName(name)
   {
-    this.audioEmitter?.SetName?.(String(name));
+    this.audioEmitter?.SetName(String(name));
   }
 
   /**
@@ -110,7 +110,7 @@ export class AudioGameObject extends withIEveSpaceObject2(CjsModel)
   PlayAudioEvent(eventName)
   {
     if (!this.audioEmitter || !eventName) return 0;
-    return this.audioEmitter.SendEvent?.(String(eventName)) ?? 0;
+    return this.audioEmitter.SendEvent(String(eventName)) ?? 0;
   }
 
   /** Applies a changed mute flag or name to the emitter after a model update. */

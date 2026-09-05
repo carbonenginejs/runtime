@@ -2943,7 +2943,7 @@ export class EveSpaceObject2 extends withIEveSpaceObject2(withITr2Renderable(wit
     }
     geometryRes.RecalculateBoundingSphere?.();
     const sphere = vec4.create();
-    geometryRes.GetBoundingSphere?.(mesh.GetMeshIndex?.() ?? 0, sphere);
+    geometryRes.GetBoundingSphere(mesh.GetMeshIndex?.() ?? 0, sphere);
     vec3.set(this.boundingSphereCenter, sphere[0], sphere[1], sphere[2]);
     this.boundingSphereRadius = sphere[3];
     return true;

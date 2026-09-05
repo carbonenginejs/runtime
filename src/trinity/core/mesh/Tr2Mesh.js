@@ -117,7 +117,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @impl.adapted
   GetGeometryResPath()
   {
-    return this.geometry?.GetPath?.() ?? this.geometryResPath;
+    return this.geometry?.GetPath() ?? this.geometryResPath;
   }
 
   /** The fixed number of mesh-area lists a mesh carries (14). */

@@ -59,7 +59,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
   SetName(name)
   {
     super.SetName(name);
-    this.magnitudeCurve?.SetName?.(`${this.name} - Magnitude Curve`);
+    this.magnitudeCurve?.SetName(`${this.name} - Magnitude Curve`);
   }
 
   /**
@@ -82,7 +82,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
     {
       const duration = Number(camera?.GetAnimationTimelineLength?.() ?? 0);
       const time = duration !== 0 ? localElapsedTime / duration : 0;
-      vec3.scale(offset, offset, Number(this.magnitudeCurve.GetValue?.(time) ?? 1));
+      vec3.scale(offset, offset, Number(this.magnitudeCurve.GetValue(time) ?? 1));
     }
     if (this.scaleByView)
     {
