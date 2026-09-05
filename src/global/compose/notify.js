@@ -12,13 +12,13 @@
 // State is lazy on first listener and DELETED when the last listener leaves
 // (the emitter costs nothing while unobserved - the operator's GC concern is
 // the design constraint here). The state slot is the shared __state expando
-// (utils/runtimeState.js), which is why this module can live in the schema
-// layer: the engine has no model dependency at all.
+// (./runtimeState.js) - both live in global/compose, the home of what
+// @compose.* installs and the state those installations share.
 //
 // CjsEventEmitter remains as the inheritance packaging over this same map -
 // one implementation, two deliveries.
 
-import { ensureRuntimeState, getRuntimeState } from "../utils/runtimeState.js";
+import { ensureRuntimeState, getRuntimeState } from "./runtimeState.js";
 
 const ANY_SOURCE = Symbol("CjsNotify.AnySource");
 

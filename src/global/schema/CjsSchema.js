@@ -1,5 +1,5 @@
 import { defaultValueForCarbonField } from "./types/carbonTypes.js";
-import { composeNotifyDecorator } from "./notify.js";
+import { composeNotifyDecorator } from "../compose/notify.js";
 
 
 const CLASS_SCHEMA = new WeakMap();

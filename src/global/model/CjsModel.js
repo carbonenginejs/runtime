@@ -1,6 +1,6 @@
 import { coerceCarbonMathInto, exportCarbonValue, normalizeCarbonValue } from "../schema/types/index.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
-import { getRuntimeState } from "../utils/runtimeState.js";
+import { getRuntimeState } from "../compose/runtimeState.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 

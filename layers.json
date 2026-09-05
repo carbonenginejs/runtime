@@ -62,8 +62,12 @@
         "global/consts": {
             "mayImport": []
         },
+        "global/compose": {
+            "mayImport": []
+        },
         "global/schema": {
             "mayImport": [
+                "global/compose",
                 "global/utils",
                 "global/math",
                 "global/consts"
@@ -71,6 +75,7 @@
         },
         "global/model": {
             "mayImport": [
+                "global/compose",
                 "global/utils",
                 "global/math",
                 "global/consts",

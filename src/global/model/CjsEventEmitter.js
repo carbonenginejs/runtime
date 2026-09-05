@@ -1,9 +1,9 @@
-import { installNotify } from "../schema/notify.js";
+import { installNotify } from "../compose/notify.js";
 
 /**
  * Minimal event emitter with lowercase exact-name dispatch.
  *
- * The IMPLEMENTATION lives in schema/notify.js as the notify method map -
+ * The IMPLEMENTATION lives in compose/notify.js as the notify method map -
  * one implementation, two deliveries: classes may inherit this base, or
  * compose the same surface with `@compose.notify` and keep their own
  * inheritance slot (design record, docs/research/
