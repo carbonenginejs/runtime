@@ -1,3 +1,11 @@
+// DEPRECATED carbon.document boundary. The collapse into plain CjsModel
+// values is decided and partially executed - the envelope was
+// over-engineered, and a _type-tagged values graph carries everything it
+// did. Kept only until the interchange retirement completes its inventory
+// (docs/contracts/model-values-interchange.md owns the rule: no document
+// producer or consumer retires without inventory and replacement proof;
+// docs/research/schema-hydration-consolidation-plan-2026-09-05.md holds
+// the enumerated remaining surfaces). Do not add new consumers.
 import { exportCarbonValue } from "../../schema/types/index.js";
 import { CjsSchema } from "../../schema/index.js";
 import { CjsCarbonDocument } from "./CjsCarbonDocument.js";
