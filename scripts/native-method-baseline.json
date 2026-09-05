@@ -14,9 +14,6 @@
     "RenderDebugInfo",
     "RenderDebugName"
   ],
-  "AudEventCurve": [
-    "Sort"
-  ],
   "AudGameObjResource": [
     "Orientation",
     "PrepareEvent",
@@ -365,9 +362,6 @@
     "StopCurveSet",
     "UpdateCurveSet"
   ],
-  "EveChildTransform": [
-    "ComputeLocalTransform"
-  ],
   "EveChildTurret": [
     "GetDebugOptions",
     "RenderDebugInfo"
@@ -473,9 +467,6 @@
     "OnPrepareResources",
     "ReleaseResources",
     "UpdateViewDependentData"
-  ],
-  "EveLocalPositionCurve": [
-    "UpdateValue"
   ],
   "EveMissile": [
     "GetDebugOptions",
@@ -1005,15 +996,6 @@
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
-  "Tr2ActionAnimateCurveSet": [
-    "IsAttrExpressionValid"
-  ],
-  "Tr2ActionAnimateValue": [
-    "IsAttrExpressionValid"
-  ],
-  "Tr2ActionBindRTPC": [
-    "IsAttrExpressionValid"
-  ],
   "Tr2ActionOverlay": [
     "LoadOverlay"
   ],
@@ -1028,9 +1010,6 @@
   ],
   "Tr2ActionSetExternalControllerVariable": [
     "LinkToDestinationOwner"
-  ],
-  "Tr2ActionSetValue": [
-    "IsAttrExpressionValid"
   ],
   "Tr2AsyncSave": [
     "CleanupAsyncSave",
@@ -1210,7 +1189,6 @@
     "RegisterShaderProgramOverride",
     "Reset",
     "SetRenderStateOverride",
-    "SetWireframeRendering",
     "SetupContextResources",
     "Shutdown"
   ],

@@ -183,6 +183,20 @@ export class Tr2ActionAnimateValue extends withITr2ControllerAction(CjsModel)
   }
 
   /**
+   * Carbon's Blue arity adapter (Tr2ActionAnimateValue.cpp:150-153): the
+   * scripting layer exposes the PROPERTY isExpressionValid AND the METHOD
+   * IsExpressionValid(attrName), which cannot share one C++ function, so
+   * this forward takes and discards the attribute name. Same forward here
+   * for nominal parity.
+   */
+  @carbon.method
+  @impl.implemented
+  IsAttrExpressionValid(_attributeName)
+  {
+    return this.IsExpressionValid();
+  }
+
+  /**
    * Gets a curve value for the expression helper.
    */
   @carbon.method

@@ -171,6 +171,24 @@ export class AudEventCurve extends CjsModel
     return true;
   }
 
+  /**
+   * Carbon declares Sort() (AudEventCurve.h:42) but NEVER DEFINES it - no
+   * body exists anywhere in the donor and it is not Blue-mapped. The
+   * semantics are unambiguous regardless: all four key-mutating call sites
+   * (Initialize, InsertKey, SetKeyTime, RemoveKey) run the same
+   * CompareKeys time sort (cpp:96-99), which is SortKeys here. Public so an
+   * externally tweaked key list can restore the invariant, which is what
+   * the declaration was evidently for.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Declared but never defined in Carbon; the body is the shared key sort every mutating call site runs.")
+  Sort()
+  {
+    SortKeys(this.keys);
+    return this;
+  }
+
   /** Carbon method Length (ITriCurveLength): returns the cached final key time. */
   @carbon.method
   @impl.implemented

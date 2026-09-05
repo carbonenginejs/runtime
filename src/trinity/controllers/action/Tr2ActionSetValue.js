@@ -145,6 +145,18 @@ export class Tr2ActionSetValue extends withITr2ControllerAction(CjsModel)
   }
 
   /**
+   * Carbon's Blue arity adapter (the same property/method name-collision
+   * forward all four action classes carry): takes and discards the
+   * attribute name. Same forward here for nominal parity.
+   */
+  @carbon.method
+  @impl.implemented
+  IsAttrExpressionValid(_attributeName)
+  {
+    return this.IsExpressionValid();
+  }
+
+  /**
    * Gets the bound destination object.
    */
   @carbon.method

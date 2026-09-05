@@ -97,6 +97,21 @@ export class EveLocalPositionCurve extends CjsModel
   }
 
   /**
+   * Carbon UpdateValue (h:43-47) calls the DOUBLE Update overload - which
+   * is a NO-OP returning its input (cpp:302-305); only the Be::Time
+   * overload dispatches behaviours. This port collapsed the overloads into
+   * the dispatching Update above, so forwarding here would evaluate a
+   * behaviour (and could latch damage-locator state) where the donor call
+   * evaluates nothing. Ported as the no-op Carbon's overload resolution
+   * actually produces.
+   */
+  @carbon.method @impl.adapted
+  @impl.reason("Resolves to Carbon's no-op double Update overload; forwarding to the collapsed dispatching Update would be MORE active than the donor.")
+  UpdateValue(_time)
+  {
+  }
+
+  /**
    * The first derivative is undefined for a locator-driven curve; out is
    * returned untouched.
    */

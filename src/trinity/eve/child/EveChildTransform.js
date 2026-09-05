@@ -71,6 +71,25 @@ export class EveChildTransform extends EveSpaceObjectChild
    * translation; a child with useSRT off keeps its authored localTransform
    * untouched.
    */
+  /**
+   * Carbon ComputeLocalTransform (cpp:101-104): a CONST query - a static or
+   * non-SRT child answers its stored local transform; otherwise the SRT
+   * triple composes WITHOUT writing localTransform. Contrast
+   * RebuildLocalTransform below, which mutates and does not consult
+   * staticTransform. Carbon returns Matrix by value; the org out-last
+   * convention receives it.
+   */
+  @carbon.method
+  @impl.implemented
+  ComputeLocalTransform(out = mat4.create())
+  {
+    if (this.staticTransform || !this.useSRT)
+    {
+      return mat4.copy(out, this.localTransform);
+    }
+    return EveChildTransform.#compose(out, this.scaling, this.rotation, this.translation);
+  }
+
   @carbon.method
   @impl.implemented
   RebuildLocalTransform()
