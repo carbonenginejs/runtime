@@ -510,11 +510,12 @@ export function buildResourcePixelDxbc(register = 6, dimension = 8)
  * required because emitter tests inspect/compile the generated source only.
  *
  * @param {number} [dimension=3] DXBC resource dimension (3=2D, 6=cube, 8=2D array).
- * @param {"sample_c"|"sample_c_lz"} [opcodeName="sample_c_lz"] Comparison opcode.
+ * @param {"sample_c"|"sample_c_lz"|"sample_l"} [opcodeName="sample_c_lz"] Comparison opcode.
  * @param {number} [destinationMask=1] Destination write mask bits.
+ * @param {number} [resourceSwizzle=0xE4] Encoded resource component swizzle.
  * @returns {Uint8Array} Complete synthetic pixel-shader DXBC container.
  */
-export function buildComparisonSamplePixelDxbc(dimension = 3, opcodeName = "sample_c_lz", destinationMask = 1)
+export function buildComparisonSamplePixelDxbc(dimension = 3, opcodeName = "sample_c_lz", destinationMask = 1, resourceSwizzle = 0xE4)
 {
     const DCL_RESOURCE = 88;
     const DCL_SAMPLER = 90;
@@ -522,12 +523,12 @@ export function buildComparisonSamplePixelDxbc(dimension = 3, opcodeName = "samp
     const RET = 62;
     const SAMPLE_C = 70;
     const SAMPLE_C_LZ = 71;
-    const sampleOpcode = opcodeName === "sample_c" ? SAMPLE_C : SAMPLE_C_LZ;
+    const sampleOpcode = opcodeName === "sample_l" ? 72 : opcodeName === "sample_c" ? SAMPLE_C : SAMPLE_C_LZ;
 
     const tempDestination = 2 | (0 << 2) | (destinationMask << 4) | (0 << 12) | (1 << 20);
     const tempSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (0 << 12) | (1 << 20);
     const tempSelectW = 2 | (2 << 2) | (3 << 4) | (0 << 12) | (1 << 20);
-    const resourceSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (7 << 12) | (1 << 20);
+    const resourceSwizzleXyzw = 2 | (1 << 2) | (resourceSwizzle << 4) | (7 << 12) | (1 << 20);
     const samplerSwizzleXyzw = 2 | (1 << 2) | (0xE4 << 4) | (6 << 12) | (1 << 20);
 
     const tokens = new Uint32Array([
@@ -541,7 +542,7 @@ export function buildComparisonSamplePixelDxbc(dimension = 3, opcodeName = "samp
         tempSwizzleXyzw, 0,
         resourceSwizzleXyzw, 1,
         samplerSwizzleXyzw, 2,
-        tempSelectW, 0,
+        opcodeName === "sample_l" ? (1 | (4 << 12)) : tempSelectW, 0,
         opcodeToken(RET, 1)
     ]);
 
@@ -881,4 +882,44 @@ export function buildAliasedStructuredLoadShex(register = 0, stride = 48)
 export function buildAliasedStructuredLoadDxbc(register = 0, stride = 48)
 {
     return buildContainer([ { fourCC: "SHEX", payload: buildAliasedStructuredLoadShex(register, stride) } ]);
+}
+
+/**
+ * Packed uint load, half decoding, profile shift and an aliased conditional
+ * move. Synthetic values come from the GPU test; no game bytes are embedded.
+ * @returns {Uint8Array} Pixel DXBC exercising integer temporary preservation.
+ */
+export function buildPackedLightDecodeDxbc()
+{
+    const dst = (r, mask, type = 0) => [2 | (mask << 4) | (type << 12) | (1 << 20), r];
+    const src = (r, swizzle = 0xE4) => [2 | (1 << 2) | (swizzle << 4) | (1 << 20), r];
+    const imm = value => [1 | (4 << 12), value];
+    const resource = [2 | (1 << 2) | (0xE4 << 4) | (7 << 12) | (1 << 20), 14];
+    const words = [versionToken(0, 5, 0), 0];
+    const emit = (op, ...operands) => { const args = operands.flat(); words.push(opcodeToken(op, args.length + 1), ...args); };
+    emit(104, [3]); // dcl_temps
+    emit(162, dst(14, 15, 7), [16]); // dcl_resource_structured
+    emit(101, dst(0, 15, 2)); // dcl_output
+    emit(167, dst(0, 15), imm(0), imm(0), resource); // ld_structured
+    emit(1, dst(1, 1), src(0, 0), imm(65535)); // and low half
+    emit(85, dst(1, 2), src(0, 0x55), imm(16)); // ushr high half
+    emit(85, dst(1, 4), src(0, 0), imm(20)); // ushr profile index
+    emit(131, dst(1, 3), src(1)); // f16tof32
+    emit(55, dst(1, 3), src(1, 0xAA), src(1, 0xE1), src(1)); // movc r1.xy, r1.zzzz, r1.yxzw, r1.xyzw
+    emit(54, dst(2, 7), src(1)); // raw move, including profile index
+    emit(86, dst(2, 4), src(2)); // utof
+    emit(56, dst(2, 4), src(2), imm(0x3E800000)); // mul by .25
+    emit(54, dst(0, 7, 2), src(2));
+    emit(54, dst(0, 8, 2), imm(0x3F800000));
+    emit(62);
+    words[1] = words.length;
+    const signature = new ByteWriter();
+    signature.u32(1); signature.u32(8);
+    signature.u32(32); signature.u32(0); signature.u32(64); signature.u32(3); signature.u32(0);
+    signature.u8(15); signature.u8(15); signature.u16(0);
+    signature.raw(textEncoder.encode("SV_Target\0"));
+    return buildContainer([
+        { fourCC: "OSGN", payload: signature.toBytes() },
+        { fourCC: "SHEX", payload: new Uint8Array(new Uint32Array(words).buffer) }
+    ]);
 }

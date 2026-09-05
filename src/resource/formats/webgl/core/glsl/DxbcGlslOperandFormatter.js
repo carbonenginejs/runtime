@@ -22,7 +22,9 @@ const SPECIAL_OPERAND_NAMES = {
 /**
  * Formats decoded DXBC operands as GLSL ES 3.00 expressions and assignments.
  *
- * Type policy: every register file is stored as float `vec4`s. Integer and
+ * Type policy: register files use float `vec4`s. Packed-light shaders also
+ * retain uint companions for temporary registers; integer reads use those
+ * companions to avoid losing packed bits through float storage. Other integer and
  * unsigned reads/writes bitcast at the use site (`floatBitsToInt` family),
  * mirroring HLSLcc's lowering when reflection-driven type analysis is
  * unavailable — which is always true for this stripped-DXBC corpus.
@@ -35,10 +37,12 @@ export class DxbcGlslOperandFormatter
     /**
    * @param {object} [options] Naming overrides.
    * @param {object} [options.names] Partial override of the register-name builders.
+   * @param {boolean} [options.integerTemps] Read temporary integer lanes from uint companions.
    */
     constructor(options = {})
     {
         this.componentMap = options.componentMap || null;
+        this.integerTemps = options.integerTemps === true;
         // Map of vertex-input register index -> "int"|"uint" for inputs whose
         // ISGN component type is integer but whose GLSL declaration was
         // float-lowered. Integer reads of these VALUE-convert (int(attr)), not
@@ -99,7 +103,13 @@ export class DxbcGlslOperandFormatter
                 ? this.integerInputs.get(operand.registerIndex)
                 : undefined;
 
-            if (integerInputKind)
+            if (operand.type === 0 && this.integerTemps)
+            {
+                const raw = `cjsBitsR${operand.registerIndex}${suffix}`;
+                const width = suffix ? suffix.length - 1 : 4;
+                expression = as === "uint" ? raw : `${VEC_TYPE_BY_KIND.int[width - 1]}(${raw})`;
+            }
+            else if (integerInputKind)
             {
                 // Float-lowered integer vertex attribute (e.g. BLENDINDICES):
                 // the register holds the value (3.0), not the bit pattern of 3,

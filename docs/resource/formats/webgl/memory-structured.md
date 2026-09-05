@@ -7,14 +7,26 @@ Summary: Defines bounded WebGL2 adaptations for DXBC structured-memory operation
 
 Family key: `memory-structured`
 Target: GLSL ES 3.00 (WebGL2), vertex + pixel stages only (no compute, no SSBOs).
-Register model: every DXBC register is stored by the emitter as a `float` `vec4`; all
-integer/unsigned reads and writes go through `floatBitsToInt` / `floatBitsToUint` /
-`intBitsToFloat` / `uintBitsToFloat` at the use site, mirroring HLSLcc's own
-`GetBitcastOp` (`vendor/HLSLcc/src/toGLSLOperand.cpp:327-353`) and
-`AddOpAssignToDestWithMask` (`vendor/HLSLcc/src/toGLSLInstruction.cpp:28-153`)
-machinery, which HLSLcc itself falls back to whenever static data-type analysis is
-unavailable (exactly the reflection-stripped situation this fork runs in per
-`vendor/HLSLcc/CARBONENGINEJS-FORK.md:34-52`).
+Register model: the default path uses float `vec4` registers with integer
+bitcasts at use sites. With `lightPackedTexture`, temporary registers also
+have `uvec4` companions. Integer loads and operations write these directly;
+floating operations update their companions from the computed float bits.
+Integer operands, half decoding and branch conditions read the companions.
+Bitwise moves and aliased conditional moves preserve them across assignments.
+
+This prevents packed inner radii, directions, cone angles and profile indices
+from depending on tiny float bit patterns surviving temporary storage. The
+float-only route lost these values on ANGLE/D3D11 while passing on SwiftShader.
+The change is confined to shaders using the packed-light option; input/output
+interfaces and the CPU buffer ABI are unchanged.
+
+The synthetic GPU regression is
+`test/resource/runtime-resource/formats/webgl/glsl-emitter-packed-integers.test.js`.
+Set `WEBGL_TEST_ANGLE=d3d11` or `swiftshader` to enable pixel checks, and optionally
+`WEBGL_TEST_BROWSER` to select an installed Chromium executable. The test loads
+packed words, decodes half values, shifts a profile index, executes an aliased
+conditional move and checks the resulting pixels. Source-shape and disassembly
+checks run without a browser. This is not a whole-shader-corpus qualification.
 
 Corpus counts (450k-instruction sweep, 1611 EVE Online DX11 effects):
 

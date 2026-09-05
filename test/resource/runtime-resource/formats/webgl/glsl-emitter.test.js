@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import CjsDxbcFormat from "../../../../../src/resource/formats/dxbc/index.js";
 import CjsWebglFormat from "../../../../../src/resource/formats/webgl/index.js";
 import {
     buildComparisonSamplePixelDxbc,
@@ -356,3 +357,27 @@ test(
         assert.equal(occurrences(forward, REVERSED_FIXUP), 0);
     }
 );
+
+
+test("packed profiles preserve sample_l red-channel swizzles without a second sampler", () =>
+{
+    // Same destination/source swizzle as quadV5.sm_depth's profile lookup:
+    // sample_l r6.w, r8.xyzx, t13.yzwx, s1, l(0).
+    const bytes = buildComparisonSamplePixelDxbc(8, "sample_l", 8, 0x39);
+    const options = { lightPackedTexture: { indexRegister: 11, dataRegister: 12, profileRegister: 1 } };
+    const neutral = CjsWebglFormat.emitGlsl(bytes, options);
+    assert.match(neutral.source, /vec4\(1.0\).x/);
+    const sampled = CjsWebglFormat.emitGlsl(bytes, { ...options, packedLightProfiles: true });
+    assert.match(CjsDxbcFormat.disassemble(bytes), /sample_l[^\n]+l\(0\.0\)/);
+    assert.match(sampled.source, /r0\.w = cjsProfileSample\(r0\.x, r0\.z, 0\.0\)\.x;/);
+    const oneDimensional = CjsWebglFormat.emitGlsl(buildComparisonSamplePixelDxbc(7, "sample_l", 8, 0x39), { ...options, packedLightProfiles: true });
+    assert.match(oneDimensional.source, /cjsProfileSample\(r0\.x, r0\.y, 0\.0\)\.x;/);
+    assert.match(sampled.source, /return vec4\(1\.0\)/);
+    assert.match(sampled.source, /cjsProfileTexel\(layer, 2047\) != 1\.0/);
+    assert.match(sampled.source, /texel & 2047, texel >> 11/);
+    assert.throws(() => CjsWebglFormat.emitGlsl(bytes, { ...options, packedLightProfiles: 1 }), /must be a boolean/);
+    assert.throws(() => CjsWebglFormat.emitGlsl(buildComparisonSamplePixelDxbc(8), { ...options, packedLightProfiles: true }), /comparison sampling/);
+    assert.match(sampled.source, /unpackHalf2x16/);
+    assert.doesNotMatch(sampled.source, /sampler2DArray/);
+    assert.equal(sampled.bindings.filter(binding => binding.kind === "structuredTexture").length, 1);
+});

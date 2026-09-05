@@ -71,7 +71,8 @@ export function normalizeValues(base, options = {}, readerName = "CjsWebglFormat
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {Uint8Array} The payload bytes.
- *//**
+ */
+/**
  * Reports whether a payload has the Carbon effect container shape.
  *
  * A shape check, not an identity check: our files are stock Carbon containers,
@@ -104,6 +105,7 @@ const EMIT_GLSL_OPTION_KEYS = new Set([
     "detailMapArrayRegisters",
     "lightConstantBuffer",
     "lightPackedTexture",
+    "packedLightProfiles",
     "emulatedAddressing",
     "depthRange",
     "pairVaryings",
@@ -121,6 +123,7 @@ const EMIT_GLSL_PROFILE_KEYS = new Set([
     "detailMapArrayRegisters",
     "lightConstantBuffer",
     "lightPackedTexture",
+    "packedLightProfiles",
     "emulatedAddressing",
     "depthRange"
 ]);

@@ -133,6 +133,7 @@ export class DxbcGlslEmitter
             neutralResourceRegisters: [],
             lightConstantBuffer: null,
             lightPackedTexture: null,
+            packedLightProfiles: false,
             // Resource (t#) registers to merge into one `sampler2DArray`, in
             // layer order. Empty by default; the packager fills it from the
             // backend-neutral detail-map recogniser. Merging three 2D textures
@@ -163,6 +164,11 @@ export class DxbcGlslEmitter
             depthRange: "reversed",
             ...options.profile
         };
+
+        if (typeof this.profile.packedLightProfiles !== "boolean")
+        {
+            throw new TypeError("packedLightProfiles must be a boolean");
+        }
 
         if (this.profile.depthRange !== "reversed" && this.profile.depthRange !== "forward")
         {
@@ -475,6 +481,7 @@ export class DxbcGlslEmitter
             // first operand is formatted). Integer reads of these registers
             // value-convert instead of bitcast - see _declareVertexInput.
             integerInputs: state.integerVertexInputs,
+            integerTemps: !!state.lightPackedTexture,
             componentMap: (operand) =>
             {
                 if (operand.type === 1) return state.inputMasks.get(operand.registerIndex) || null;
@@ -997,6 +1004,50 @@ export class DxbcGlslEmitter
     }
 
     /**
+     * Emits our packed profile helpers only when a sample uses them.
+     * @param {object} state Emit state.
+     */
+    _ensureLightProfileHelpers(state)
+    {
+        if (state.lightProfileHelpersDeclared) return;
+        state.lightProfileHelpersDeclared = true;
+        const profile = state.lightPackedTexture;
+        {
+            // Our optional transport requires the matching ccpwgl producer.
+            // It is not Carbon storage: base 196608 reserves a padding gap.
+            // All addresses use dataTextureWidth, as do packed Buffers A/B.
+            // The final half-word of each slot is a producer validity marker.
+            state.declarationLines.push(
+                "float cjsProfileTexel(int layer, int sampleIndex) {",
+                "    int word = sampleIndex >> 1;",
+                "    int texel = 196608 + layer * 256 + (word >> 2);",
+                `    uvec4 profileWords = texelFetch(${profile.name}, ivec2(texel & ${this.profile.dataTextureWidth - 1}, texel >> ${Math.log2(this.profile.dataTextureWidth)}), 0);`,
+                "    return unpackHalf2x16(profileWords[word & 3])[sampleIndex & 1];",
+                "}",
+                "float cjsProfileMip(float u, int layer, int mip) {",
+                "    int width = 1024 >> mip;",
+                "    int base = 2048 - (2048 >> mip);",
+                "    float x = clamp(u, 0.0, 1.0) * float(width) - 0.5;",
+                "    int left = int(floor(x));",
+                "    return mix(cjsProfileTexel(layer, base + clamp(left, 0, width - 1)),",
+                "        cjsProfileTexel(layer, base + clamp(left + 1, 0, width - 1)), fract(x));",
+                "}",
+                "vec4 cjsProfileSample(float u, float layerValue, float lod) {",
+                "    int layer = int(floor(layerValue + 0.5));",
+                `    ivec2 size = textureSize(${profile.name}, 0);`,
+                `    if (size.x != ${this.profile.dataTextureWidth} || layer < 0 || layer >= (size.x * size.y - 196608) / 256) return vec4(1.0);`,
+                "    if (cjsProfileTexel(layer, 2047) != 1.0) return vec4(1.0);",
+                "    float level = clamp(lod, 0.0, 10.0);",
+                "    int mip = int(floor(level));",
+                "    float value = cjsProfileMip(u, layer, mip);",
+                "    if (fract(level) > 0.0) value = mix(value, cjsProfileMip(u, layer, min(mip + 1, 10)), fract(level));",
+                "    return vec4(value, 0.0, 0.0, 1.0);",
+                "}"
+            );
+        }
+    }
+
+    /**
    * Declares the local-light constant-buffer ABI used to replace the two
    * tiled-light structured buffers without consuming sampler units.
    *
@@ -1295,6 +1346,7 @@ export class DxbcGlslEmitter
                 for (let index = 0; index < declaration.tempCount; index += 1)
                 {
                     state.declarationLines.push(`vec4 r${index};`);
+                    if (state.lightPackedTexture) state.declarationLines.push(`uvec4 cjsBitsR${index};`);
                 }
                 break;
             case "dcl_indexable_temp":
@@ -2000,6 +2052,55 @@ export class DxbcGlslEmitter
      */
     _line(state, text)
     {
+        // Packed uint words (and small integer results) must survive float
+        // temporary storage on ANGLE/D3D11. Keep a raw companion for each
+        // temporary; ordinary floating operations still use the existing vec4.
+        // Centralize writes here because several lowerings emit lane writes
+        // directly rather than going through _assign. This is per assignment,
+        // not a shader/register-number pattern or a control-flow dataflow guess.
+        const assignment = state.lightPackedTexture && /^(r(\d+)(?:\.[xyzw]+)?) = ([\s\S]+);$/.exec(text);
+        if (assignment)
+        {
+            const [, target, index, value] = assignment;
+            const suffix = target.slice(`r${index}`.length);
+            const rawTarget = `cjsBitsR${index}${suffix}`;
+            let rawValue = null;
+            const cast = /^(uint|int)BitsToFloat\(/.exec(value);
+            if (cast)
+            {
+                // Only remove a cast that encloses the entire RHS, never one
+                // operand of a larger floating expression.
+                let depth = 1, end = cast[0].length;
+                for (; end < value.length && depth; end++)
+                {
+                    if (value[end] === "(") depth++;
+                    else if (value[end] === ")") depth--;
+                }
+                if (depth === 0 && end === value.length)
+                {
+                    rawValue = value.slice(cast[0].length, -1);
+                    if (cast[1] === "int")
+                    {
+                        const width = suffix ? suffix.length - 1 : 4;
+                        rawValue = `${width === 1 ? "uint" : `uvec${width}`}(${rawValue})`;
+                    }
+                }
+            }
+            const move = /^r(\d+)(\.[xyzw]+)?$/.exec(value);
+            if (move) rawValue = `cjsBitsR${move[1]}${move[2] || ""}`;
+            const indent = "    ".repeat(state.indent);
+            if (rawValue !== null)
+            {
+                state.bodyLines.push(`${indent}${rawTarget} = ${rawValue};`);
+                state.bodyLines.push(`${indent}${target} = uintBitsToFloat(${rawTarget});`);
+            }
+            else
+            {
+                state.bodyLines.push(`${indent}${text}`);
+                state.bodyLines.push(`${indent}${rawTarget} = floatBitsToUint(${target});`);
+            }
+            return;
+        }
         state.bodyLines.push(`${"    ".repeat(state.indent)}${text}`);
     }
 
@@ -2298,9 +2399,9 @@ export class DxbcGlslEmitter
      */
     _condition(state, instruction)
     {
-        const scalar = state.formatter.sourceExpression(instruction.operands[0], { destMask: "x" });
+        const scalar = state.formatter.sourceExpression(instruction.operands[0], { destMask: "x", as: "uint" });
         const test = instruction.testBoolean === "nonzero" ? "!=" : "==";
-        return `floatBitsToUint(${scalar}) ${test} 0u`;
+        return `${scalar} ${test} 0u`;
     }
 
     /**
@@ -2318,25 +2419,30 @@ export class DxbcGlslEmitter
         const aliases = instruction.operands.slice(1).some((operand) =>
             operand.type === destOperand.type && operand.registerIndex === destOperand.registerIndex);
 
+        const rawMove = !!state.lightPackedTexture && destOperand.type === 0;
         if (aliases)
         {
             this._line(state, "{");
             state.indent += 1;
-            this._line(state, `vec4 hlslcc_movcTemp = ${target.ref};`);
+            this._line(state, rawMove
+                ? `uvec4 hlslcc_movcTemp = cjsBitsR${destOperand.registerIndex};`
+                : `vec4 hlslcc_movcTemp = ${target.ref};`);
         }
         for (const component of mask)
         {
             const condition = state.formatter.sourceExpression(instruction.operands[1], { destMask: component, as: "int" });
-            const ifTrue = state.formatter.sourceExpression(instruction.operands[2], { destMask: component });
-            const ifFalse = state.formatter.sourceExpression(instruction.operands[3], { destMask: component });
+            const as = rawMove ? "uint" : "float";
+            const ifTrue = state.formatter.sourceExpression(instruction.operands[2], { destMask: component, as });
+            const ifFalse = state.formatter.sourceExpression(instruction.operands[3], { destMask: component, as });
             const lvalue = aliases
                 ? `hlslcc_movcTemp.${component}`
                 : this._destComponentRef(state, destOperand, target, component);
-            this._line(state, `${lvalue} = (${condition} != 0) ? ${ifTrue} : ${ifFalse};`);
+            const value = `(${condition} != 0) ? ${ifTrue} : ${ifFalse}`;
+            this._line(state, `${lvalue} = ${rawMove && !aliases ? `uintBitsToFloat(${value})` : value};`);
         }
         if (aliases)
         {
-            this._line(state, `${target.ref} = hlslcc_movcTemp;`);
+            this._line(state, `${target.ref} = ${rawMove ? "uintBitsToFloat(hlslcc_movcTemp)" : "hlslcc_movcTemp"};`);
             state.indent -= 1;
             this._line(state, "}");
         }
@@ -2540,6 +2646,31 @@ export class DxbcGlslEmitter
             const oneSwizzle = [ ...mask ]
                 .map((component) => texOperand.swizzle ? texOperand.swizzle["xyzw".indexOf(component)] : component)
                 .join("");
+            if (this.profile.packedLightProfiles)
+            {
+                if (comparisonRefOperandIndex !== null)
+                {
+                    throw new WebglReadError("Packed light profiles do not support comparison sampling");
+                }
+                this._ensureLightProfileHelpers(state);
+                const u = this._vecArg(state, coordOperand, "x");
+                const dimension = this._resourceDimension(state, instruction, texOperand);
+                const layer = this._vecArg(state, coordOperand, dimension === 7 ? "y" : "z");
+                let lod = "0.0";
+                if (lodOperandIndex !== null)
+                {
+                    lod = this._vecArg(state, instruction.operands[lodOperandIndex], "x");
+                }
+                else if (!forceLodZero)
+                {
+                    const dx = gradOperandIndexes ? this._vecArg(state, instruction.operands[gradOperandIndexes[0]], "x") : `dFdx(${u})`;
+                    const dy = gradOperandIndexes ? this._vecArg(state, instruction.operands[gradOperandIndexes[1]], "x") : `dFdy(${u})`;
+                    lod = `log2(max(max(abs(${dx}), abs(${dy})) * 1024.0, 0.000001))`;
+                    if (biasOperandIndex !== null) lod = `(${lod} + ${this._vecArg(state, instruction.operands[biasOperandIndex], "x")})`;
+                }
+                this._assign(state, instruction, `cjsProfileSample(${u}, ${layer}, ${lod}).${oneSwizzle}`, { saturate: instruction.saturate });
+                return;
+            }
             this._assign(state, instruction, `vec4(1.0).${oneSwizzle}`, { saturate: instruction.saturate });
             return;
         }
@@ -2706,6 +2837,13 @@ DxbcGlslEmitter.LOWERINGS = {
     mov(state, instruction)
     {
         const { mask } = this._destMask(state, instruction);
+        if (state.lightPackedTexture && instruction.operands[0].type === 0
+            && !instruction.saturate && ![ "neg", "abs", "absneg" ].includes(instruction.operands[1].modifierName))
+        {
+            const raw = this._vecArg(state, instruction.operands[1], mask, "uint");
+            this._assign(state, instruction, `uintBitsToFloat(${raw})`);
+            return;
+        }
         const src = state.formatter.sourceExpression(instruction.operands[1], { destMask: mask });
         this._assignWidened(state, instruction, mask, src,
             state.formatter.expressionWidth(instruction.operands[1], mask) === 1);
@@ -2947,9 +3085,9 @@ DxbcGlslEmitter.LOWERINGS = {
         if (!target) return;
         for (const component of mask)
         {
-            const src = state.formatter.sourceExpression(instruction.operands[1], { destMask: component });
+            const src = state.formatter.sourceExpression(instruction.operands[1], { destMask: component, as: "uint" });
             const lvalue = this._destComponentRef(state, instruction.operands[0], target, component);
-            this._line(state, `${lvalue} = unpackHalf2x16(floatBitsToUint(${src}) & 0xffffu).x;`);
+            this._line(state, `${lvalue} = unpackHalf2x16(${src} & 0xffffu).x;`);
         }
     },
     f32tof16(state, instruction)
