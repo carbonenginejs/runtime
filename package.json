@@ -108,6 +108,7 @@
         "./resource/formats/sqlite": "./src/resource/formats/sqlite/index.js",
         "./resource/formats/stl": "./src/resource/formats/stl/index.js",
         "./resource/formats/tga": "./src/resource/formats/tga/index.js",
+        "./resource/formats/vta": "./src/resource/formats/vta/index.js",
         "./resource/formats/wav": "./src/resource/formats/wav/index.js",
         "./resource/formats/webm": "./src/resource/formats/webm/index.js",
         "./resource/formats/webp": "./src/resource/formats/webp/index.js",
