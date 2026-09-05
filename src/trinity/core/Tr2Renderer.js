@@ -28,7 +28,6 @@
 // could not have reached them without copying them.
 
 import { carbon, impl, type } from "#schema";
-import { CjsModel } from "#model";
 
 
 /** perFrameVS, owned by the scene. */
@@ -50,9 +49,22 @@ export const EFFECT_CONSTANTS = 0;
 
 /**
  * Renderer-wide state: the register map now, the frame clock and camera later.
+ *
+ * NOT A `CjsModel`, and deliberately. `CjsModel` carries the HYDRATION
+ * machinery, and it is for objects that arrive from a `.red`/`.black` values
+ * graph. This one is composed at runtime by the library, has no `@io` field,
+ * and is referenced as a type by nothing - it can never be deserialized, so
+ * the base was pure weight. (Operator, 2026-09-05: the abstraction layer, and
+ * the resource and GPU classes, are not models either. The AL family already
+ * complies.)
+ *
+ * IT IS STILL DECORATED, and that is the point worth keeping straight:
+ * decorators are not only hydration. `@type.define` gives the class an
+ * identity that tooling and the UI read, and `@carbon.method` is how the
+ * parity audit sees a method at all. Dropping `CjsModel` costs neither.
  */
 @type.define({ className: "Tr2Renderer", family: "trinityCore" })
-export class Tr2Renderer extends CjsModel
+export class Tr2Renderer
 {
   // Carbon's header calls these the defaults "for the currently set shader
   // model" and they are mutable statics, but nothing ever reassigns them, so
