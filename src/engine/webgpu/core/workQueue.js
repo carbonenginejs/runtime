@@ -349,6 +349,82 @@ export class CjsWebgpuWorkQueue
     return this.#Drain();
   }
 
+  // THE DEVICE IS OPTIONAL AND THAT IS THE WHOLE DESIGN. Everything above is
+  // the RULES - when an encoder opens, what a hint folds into it, when it has
+  // to close - and those need no GPU, which is why they are testable and why
+  // Carbon ships a stub backend at all. What follows lets a real command
+  // encoder ride along with the rules rather than reimplement them.
+  //
+  // Without one this queue reports transitions and draws nothing, exactly as
+  // before. With one, opening an encoder also calls `beginRenderPass` and
+  // closing it calls `end`, so a caller can hand the live pass to the batch
+  // dispatcher. That is what stops the queue being a second recording layer.
+
+  /** The live command encoder, when a frame is being encoded for real. */
+  #commandEncoder = null;
+
+  /** Turns folded attachments into a `GPURenderPassDescriptor`. */
+  #describePass = null;
+
+  /** The open `GPURenderPassEncoder`, or null. */
+  #renderPass = null;
+
+  /**
+   * Attaches a real command encoder for this frame.
+   *
+   * @param {object|null} commandEncoder A `GPUCommandEncoder`, or null to detach.
+   * @param {Function} [describePass] Maps folded attachments to a pass
+   *   descriptor. IT IS CALLED WITH NULL WHEN NO HINT WAS DECLARED, which is
+   *   not the same as DONT_CARE - Carbon applies load and store actions only
+   *   when a hint is pending, and leaves the backend's own defaults alone
+   *   otherwise. A describePass that assumes an object will crash on the
+   *   first unhinted pass, which is most of them.
+   * @returns {CjsWebgpuWorkQueue} This queue.
+   */
+  SetCommandEncoder(commandEncoder, describePass = null)
+  {
+    if (commandEncoder && typeof commandEncoder.beginRenderPass !== "function")
+    {
+      fail("a command encoder must be a GPUCommandEncoder");
+    }
+
+    if (commandEncoder && typeof describePass !== "function")
+    {
+      fail("a command encoder needs a describePass that returns a render-pass descriptor");
+    }
+
+    this.#commandEncoder = commandEncoder ?? null;
+    this.#describePass = commandEncoder ? describePass : null;
+
+    return this;
+  }
+
+  /**
+   * The open render pass, if one is open and a device is attached.
+   *
+   * @returns {object|null} A `GPURenderPassEncoder`, or null.
+   */
+  GetRenderPass()
+  {
+    return this.#renderPass;
+  }
+
+  /**
+   * Opens a render pass if one is not already open, and returns it.
+   *
+   * This is the verb a draw path calls: Carbon's Metal backend asks for an
+   * encoder at the moment it needs one and never before, so a frame that draws
+   * nothing opens nothing.
+   *
+   * @returns {object|null} A `GPURenderPassEncoder`, or null with no device.
+   */
+  RequireRenderPass()
+  {
+    this.#RequireRenderEncoder();
+
+    return this.#renderPass;
+  }
+
   /** Carbon's `GetRenderEncoder`: the current one, or a new one. */
   #RequireRenderEncoder()
   {
@@ -365,17 +441,31 @@ export class CjsWebgpuWorkQueue
     this.#ReleaseEncoder();
 
     const hint = this.#pendingRenderPassHint;
+    const attachments = ApplyRenderPassHint(hint);
 
     this.#pendingRenderPassHint = null;
     this.#passCount += 1;
     this.#currentEncoderType = EncoderType.RENDER;
-    this.#events.push({ type: "open", encoderType: EncoderType.RENDER, attachments: ApplyRenderPassHint(hint) });
+    this.#events.push({ type: "open", encoderType: EncoderType.RENDER, attachments });
+
+    if (this.#commandEncoder)
+    {
+      this.#renderPass = this.#commandEncoder.beginRenderPass(this.#describePass(attachments));
+    }
   }
 
   /** Carbon's `ReleaseEncoder( true )`. */
   #ReleaseEncoder()
   {
     if (this.#currentEncoderType === EncoderType.NONE) return;
+
+    // The pass ends BEFORE the close event, so a caller draining events after
+    // a close can rely on the pass already being finished rather than racing it.
+    if (this.#renderPass)
+    {
+      this.#renderPass.end();
+      this.#renderPass = null;
+    }
 
     this.#events.push({ type: "close", encoderType: this.#currentEncoderType });
     this.#currentEncoderType = EncoderType.NONE;

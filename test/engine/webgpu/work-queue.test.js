@@ -146,3 +146,83 @@ test("the frame boundary is enforced", () =>
 
   assert.throws(() => queue.BeginFrame(), /without EndFrame/);
 });
+
+test("with a command encoder attached, opening an encoder opens a real pass", () =>
+{
+  // The device is optional on purpose: the RULES above need no GPU, which is
+  // what makes them testable and is why Carbon ships a stub backend. This
+  // asserts the rules are unchanged when a device rides along.
+  const calls = [];
+  const pass = { end: () => calls.push("end") };
+  const commandEncoder = {
+    beginRenderPass(descriptor)
+    {
+      calls.push(`begin:${descriptor.label}`);
+      return pass;
+    }
+  };
+
+  const queue = new CjsWebgpuWorkQueue();
+
+    // describePass is handed NULL when no hint was declared - Carbon only
+  // applies load/store actions for a pending hint.
+  queue.SetCommandEncoder(commandEncoder, attachments => ({ label: attachments ? `rt${attachments.colors.length}` : "default" }));
+  queue.BeginFrame();
+
+  assert.equal(queue.GetRenderPass(), null, "nothing is open before work asks for one");
+
+  const opened = queue.RequireRenderPass();
+
+  assert.equal(opened, pass, "the live pass is handed back for the dispatcher to encode into");
+  assert.equal(queue.RequireRenderPass(), pass, "asking twice does not open a second pass");
+
+  queue.EndFrame();
+
+  assert.deepEqual(calls, [ "begin:default", "end" ], "one pass, ended by EndFrame");
+  assert.equal(queue.GetRenderPass(), null);
+});
+
+test("a pass hint closes the open pass and opens the next one", () =>
+{
+  const ended = [];
+  let opened = 0;
+  const commandEncoder = {
+    beginRenderPass()
+    {
+      opened += 1;
+      const id = opened;
+      return { end: () => ended.push(id) };
+    }
+  };
+
+  const queue = new CjsWebgpuWorkQueue();
+
+  queue.SetCommandEncoder(commandEncoder, () => ({}));
+  queue.BeginFrame();
+  queue.RequireRenderPass();
+
+  // A hint is Carbon's declaration that the NEXT pass differs, so the open one
+  // has to end - lazily, at the moment work needs an encoder again.
+  queue.RenderPassHint([], null);
+  assert.equal(opened, 1, "the hint alone opens nothing");
+
+  queue.RequireRenderPass();
+  assert.equal(opened, 2, "the next draw opens the second pass");
+  assert.deepEqual(ended, [ 1 ], "and the first was ended first");
+
+  queue.EndFrame();
+  assert.deepEqual(ended, [ 1, 2 ]);
+});
+
+test("with no command encoder the queue still reports transitions and draws nothing", () =>
+{
+  const queue = new CjsWebgpuWorkQueue();
+
+  queue.BeginFrame();
+
+  assert.equal(queue.RequireRenderPass(), null, "no device, no pass");
+
+  const events = queue.EndFrame();
+
+  assert.ok(events.some(event => event.type === "open"), "the rules still ran");
+});
