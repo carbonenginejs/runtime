@@ -1,5 +1,6 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { readIes } from "./core/readIes.js";
+import { bakeLightProfile } from "./core/bakeLightProfile.js";
 
 /**
  * Reads IES photometric bytes into authored CPU data.
@@ -38,6 +39,15 @@ export class CjsIESFormat extends CjsFormat
      */
     static read(input, options = {})
     {
+        if (options && options.emit === "lightProfile")
+        {
+            // Carbon's light-profile bake (Tr2LightProfileRes::ParseIes's
+            // texture half): first horizontal slice, peak-normalized,
+            // 1024-texel cosine-uniform R16F strip with an 11-level
+            // half-quantized box mip chain, laid out mip-major.
+            const { emit, ...rest } = options;
+            return bakeLightProfile(readIes(input, rest));
+        }
         return readIes(input, options);
     }
 
@@ -56,7 +66,10 @@ export class CjsIESFormat extends CjsFormat
     static id = "ies";
     static extensions = Object.freeze([ ".ies" ]);
     static mediaTypes = Object.freeze([ "data" ]);
-    static outputs = Object.freeze(CjsFormat.defineOutputs({ payload: { default: true, decoded: true } }));
+    static outputs = Object.freeze(CjsFormat.defineOutputs({
+        payload: { default: true, decoded: true },
+        lightProfile: { decoded: true }
+    }));
 }
 
 export default CjsIESFormat;

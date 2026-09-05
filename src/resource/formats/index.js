@@ -10,6 +10,7 @@ export { CjsFbxFormat } from "./fbx/index.js";
 export { CjsFlacFormat } from "./flac/index.js";
 export { CjsFsdFormat } from "./fsd/index.js";
 export { CjsGifFormat } from "./gif/index.js";
+export { CjsIESFormat } from "./ies/index.js";
 export { CjsGltfFormat } from "./gltf/index.js";
 export { CjsGr2Format } from "./gr2/index.js";
 export { CjsJpegFormat } from "./jpeg/index.js";
