@@ -39,6 +39,12 @@ export const PER_FRAME_PS = 2;
 /** The effect's own constants. */
 export const EFFECT_CONSTANTS = 0;
 
+/** perObjectVS, owned by the object being drawn. */
+export const PER_OBJECT_VS = 3;
+
+/** perObjectPS, owned by the object being drawn. */
+export const PER_OBJECT_PS = 4;
+
 // THERE WAS A REVERSE MAP HERE AND IT IS GONE. A register-number-to-name table
 // looked necessary because a caller reading a pipeline's DECLARED bindings has a
 // number and wants to know what it means. It is not: the numbers are fixed and
@@ -83,10 +89,10 @@ export class Tr2Renderer
   #perFramePSStartRegister = PER_FRAME_PS;
 
   /** s_perObjectVSStartRegister */
-  #perObjectVSStartRegister = 3;
+  #perObjectVSStartRegister = PER_OBJECT_VS;
 
   /** s_perObjectPSStartRegister */
-  #perObjectPSStartRegister = 4;
+  #perObjectPSStartRegister = PER_OBJECT_PS;
 
   /** s_perObjectRTVertexBufferDataRegister */
   #perObjectRTVertexBufferDataRegister = 5;

@@ -1,17 +1,27 @@
 // Source: trinity/Tr2PerObjectData.h (Tr2PerObjectData base)
 //
-// GPU-free base for per-object render data. Carries the object id (Carbon's
-// m_userData, used as the picking / object id) and is the value a renderable's
-// GetPerObjectData returns and a batch references via SetPerObjectData. The
-// concrete GPU upload path (Carbon SetPerObjectDataToDevice / ApplyConstantBuffers,
-// which write Tr2ConstantBufferAL) is engine-owned and intentionally not modelled
-// here; the engine reads the canonical CjsConstantPayload at dispatch.
+// Per-object render data. Carries the object id (Carbon's m_userData, used as
+// the picking / object id) and is the value a renderable's GetPerObjectData
+// returns and a batch references via SetPerObjectData.
+//
+// THIS HEAD COMMENT USED TO SAY the upload path was "engine-owned and
+// intentionally not modelled here; the engine reads the canonical
+// CjsConstantPayload at dispatch". That was the engine-means-`engine/webgpu`
+// misreading: Carbon's SetPerObjectDataToDevice calls FillAndSetConstants,
+// which lives in Tr2RenderUtils.h - Trinity. The upload is here now and it
+// writes a Tr2ConstantBufferAL through the abstraction layer.
+//
+// ApplyConstantBuffers, the indirect-draw sibling, is still unported: it takes
+// a Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
 
 import { CjsConstantPayload } from "#contracts";
+import { ShaderType } from "#consts/render-context";
+import { FillAndSetConstants } from "../Tr2RenderUtils.js";
+import { PER_OBJECT_PS, PER_OBJECT_VS } from "../Tr2Renderer.js";
 
 /**
- * GPU-free base for per-object render data, carrying the object id a batch is
- * picked and identified by; the GPU upload path is engine-owned.
+ * Per-object render data: the object id a batch is picked and identified by,
+ * and the upload of its constant payloads through the abstraction layer.
  */
 export class Tr2PerObjectData
 {
@@ -70,9 +80,10 @@ export class Tr2PerObjectData
     | Tr2PerObjectData.StageBits.ds;
 
   // Carbon SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
-  // (Tr2PerObjectData.cpp:47-67 Standard, :75-96 Skinned). This is the CPU half:
-  // it answers WHICH payload binds to WHICH stages for a given technique, and
-  // the engine does the uploading. It is the join Carbon makes per batch, where
+  // (Tr2PerObjectData.cpp:47-67 Standard, :75-96 Skinned). getConstantRecords
+  // answers WHICH payload binds to WHICH stages for a given technique;
+  // SetPerObjectDataToDevice above then uploads them. It is the join Carbon
+  // makes per batch, where
   // RenderBatchGroup hoists currentShader->GetShaderTypeMask(technique) once per
   // group and passes it to every batch in that group.
   //
@@ -87,6 +98,69 @@ export class Tr2PerObjectData
   // no pixel stage - while Tr2PerObjectDataSkinned gates the same payload on
   // (constantTypeMask & (1 << PIXEL_SHADER)). This port takes the gated form
   // for every struct. See docs/research/carbon-known-defects.md CE-19.
+
+  /**
+   * Uploads this object's per-object constants and binds them.
+   *
+   * Carbon `Tr2PerObjectDataStandard::SetPerObjectDataToDevice`
+   * (`Tr2PerObjectData.cpp:47-67`), which is two `FillAndSetConstants` calls
+   * and nothing else.
+   *
+   * THE CPU HALF WAS ALREADY HERE - `getConstantRecords` below answers which
+   * payload binds to which stages, gated on the technique's mask. What was
+   * missing was this last hop, because it was believed to be work for the
+   * `engine/webgpu` package rather than for Trinity calling the abstraction
+   * layer. `FillAndSetConstants` is in `Tr2RenderUtils.h`, which is Trinity.
+   *
+   * ONE BUFFER PER STAGE, SUPPLIED BY THE CALLER, as Carbon does: the context
+   * owns a small array of per-object constant buffers and hands the same ones
+   * to every batch in a group, so the buffer is created once and refilled per
+   * object rather than allocated per draw.
+   *
+   * STATIC, TAKING THE DATA, WHERE CARBON'S IS A VIRTUAL ON IT - and this is
+   * forced rather than chosen. Carbon dispatches on the subclass
+   * (`Tr2PerObjectDataStandard` / `Tr2PerObjectDataSkinned`), but almost
+   * nothing here is a `Tr2PerObjectData` instance: every renderable's
+   * `GetPerObjectData` returns a plain `{ vs, ps }` pair of `RawData` records,
+   * and only `EveChildCloud2` constructs the class at all. Written as an
+   * instance method it would answer for `this` - which has no payloads - and
+   * silently upload nothing. `getConstantRecords` beside it is static for the
+   * same reason and takes the same argument.
+   *
+   * @param {object} objectData A `{ vs, ps }` pair, a single payload, or null.
+   * @param {Array<object>} buffers A `Tr2ConstantBufferAL` per `ShaderType`.
+   * @param {number} constantTypeMask The technique's shader-type mask.
+   * @param {object} renderContext The context to upload and bind against.
+   * @returns {number} How many payloads were uploaded.
+   */
+  static setPerObjectDataToDevice(objectData, buffers, constantTypeMask, renderContext)
+  {
+    let uploaded = 0;
+
+    for (const record of Tr2PerObjectData.getConstantRecords(objectData, constantTypeMask))
+    {
+      // The register is the payload's own: a pixel payload binds at the
+      // per-object PS register, everything else at the VS one. Carbon picks
+      // between exactly these two the same way.
+      const isPixel = record.stageMask === Tr2PerObjectData.StageBits.ps;
+      const buffer = buffers[isPixel ? ShaderType.PIXEL_SHADER : ShaderType.VERTEX_SHADER];
+
+      if (!buffer) continue;
+
+      const bound = FillAndSetConstants(
+        buffer,
+        record.data,
+        record.data.byteLength,
+        record.stageMask,
+        isPixel ? PER_OBJECT_PS : PER_OBJECT_VS,
+        renderContext
+      );
+
+      if (bound) uploaded += 1;
+    }
+
+    return uploaded;
+  }
 
   /**
    * The per-object constant records to bind for a technique's shader-type mask:

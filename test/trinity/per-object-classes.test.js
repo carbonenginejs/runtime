@@ -76,3 +76,64 @@ test("stage bits follow Carbon's ShaderType order, not the stage-list order", ()
   assert.equal(GS, 1 << 3, "geometry is bit 3");
   assert.deepEqual(TriPoolAllocator.Stages, [ "vs", "ps", "cs", "gs", "hs", "ds" ]);
 });
+
+test("setPerObjectDataToDevice uploads each payload at its own register", () =>
+{
+  // Carbon's Tr2PerObjectDataStandard::SetPerObjectDataToDevice is two
+  // FillAndSetConstants calls - vs at the per-object VS register, ps at the PS
+  // one. The vs payload binds to the whole non-pixel family.
+  const VERTEX = 0;
+  const PIXEL = 1;
+  const calls = [];
+
+  const buffer = (id) => ({
+    id,
+    IsValid: () => false,
+    GetSize: () => 0,
+    Create()
+    {
+      return 0;
+    },
+    Lock: () => ({ result: 0, data: new Uint8Array(256) }),
+    Unlock: () => 0
+  });
+
+  const buffers = [ buffer("vs"), buffer("ps") ];
+  const renderContext = {
+    IsValid: () => true,
+    SetConstants(cb, stage, registerIndex)
+    {
+      calls.push({ buffer: cb.id, stage, registerIndex });
+      return true;
+    }
+  };
+
+  const payload = (stages) => ({
+    GetLayout: () => ({ stages }),
+    GetData: () => new Float32Array(4),
+    GetStruct: () => ({})
+  });
+
+  const uploaded = Tr2PerObjectData.setPerObjectDataToDevice(
+    { vs: payload([ "vs" ]), ps: payload([ "ps" ]) },
+    buffers,
+    (1 << VERTEX) | (1 << PIXEL),
+    renderContext
+  );
+
+  assert.equal(uploaded, 2);
+  assert.deepEqual(
+    calls.map(c => `${c.buffer}@b${c.registerIndex}`).sort(),
+    [ "ps@b4", "vs@b3" ],
+    "vs at the per-object VS register, ps at the PS register"
+  );
+
+  // A mask naming no stage the payloads declare uploads nothing, which is
+  // FillAndSetConstants' zero-mask early return doing the skipping.
+  calls.length = 0;
+  assert.equal(
+    Tr2PerObjectData.setPerObjectDataToDevice({ vs: payload([ "vs" ]) }, buffers, 1 << PIXEL, renderContext),
+    0
+  );
+  assert.deepEqual(calls, []);
+});
