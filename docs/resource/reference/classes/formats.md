@@ -1639,3 +1639,15 @@ Construction-bound reader that parses one YAML source with the `yaml` library an
 - Source: `src/resource/formats/yaml/core/CjsYamlReader.js`
 - Visibility: Internal
 - Kind: Internal implementation class
+
+### ies
+
+<!-- class:CjsIESFormat -->
+## `CjsIESFormat`
+
+Reads IES photometric bytes into authored CPU data.
+
+- Export: `@carbonenginejs/runtime/resource/formats/ies`
+- Source: `src/resource/formats/ies/CjsIESFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class

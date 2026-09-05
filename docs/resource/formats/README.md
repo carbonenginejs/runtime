@@ -73,6 +73,7 @@ metadata. Worker eligibility never changes the format's direct API; see
 | GIF (`.gif`) | `CjsGifFormat` | `@carbonenginejs/runtime/resource/formats/gif` |
 | glTF (`.gltf`/`.glb`) | `CjsGltfFormat` | `@carbonenginejs/runtime/resource/formats/gltf` |
 | Granny GR2/GSF (`.gr2`/`.gsf`) | `CjsGr2Format` | `@carbonenginejs/runtime/resource/formats/gr2` |
+| [IES photometry](ies/README.md) (`.ies`, TILT=NONE) | `CjsIESFormat` | `@carbonenginejs/runtime/resource/formats/ies` |
 | JPEG (`.jpg`/`.jpeg`) | `CjsJpegFormat` | `@carbonenginejs/runtime/resource/formats/jpeg` |
 | JSON Lines (`.jsonl`) | `CjsJsonlFormat` | `@carbonenginejs/runtime/resource/formats/jsonl` |
 | MP3 (`.mp3`) | `CjsMp3Format` | `@carbonenginejs/runtime/resource/formats/mp3` |
