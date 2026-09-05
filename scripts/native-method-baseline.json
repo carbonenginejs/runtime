@@ -1629,7 +1629,6 @@
   ],
   "Tr2LightManager": [
     "ClearLightIndices",
-    "CreateShadowMapAtlas",
     "DeleteInstance",
     "DoUpdateLists",
     "GetInstance",
@@ -1637,10 +1636,6 @@
     "GetRaytracingPipelineManager",
     "GetRaytracingShaderTableDesc",
     "GetShadowMapAtlas",
-    "GetShadowMapAtlasEntry",
-    "GetShadowMapAtlasSettings",
-    "GetUnpackedShadowMapData",
-    "InsertAtlasNode",
     "OnPrepareResources",
     "ReleaseResources",
     "ResetVariableStore",

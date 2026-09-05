@@ -9,12 +9,15 @@
 // tiling compute dispatch, the shadow atlas textures and the raytraced
 // path are the AL's, and all of those are deferred below.
 //
-// SHIPPING BEHAVIOUR PIN: Carbon builds with g_useDynamicLightsShadows =
-// false (cpp:21-22). With it false, ResolveLightData returns after the
-// volumetric pass (cpp:568-571), AddLight always strips FLAG_CASTS_SHADOWS
-// (cpp:359-365), and the whole atlas/raytracing surface is dead. This port
-// pins the same value, which is why the atlas half is absent rather than
-// stubbed.
+// SHIPPING BEHAVIOUR PIN: Carbon ships with g_useDynamicLightsShadows =
+// false (cpp:21-22, a TRI_REGISTER_SETTING - runtime-mutable, hence the
+// static below rather than a constant). With it false, ResolveLightData
+// returns after the volumetric pass (cpp:568-571) and AddLight always
+// strips FLAG_CASTS_SHADOWS (cpp:359-365). The caster/atlas CPU half IS
+// ported (settings derivation, guillotine packer, five-pass fit, packed
+// 10-bit offsets) and sits behind the same setting; only its GPU
+// realization (the pooled D32 atlas texture, cpp:703-706) stays the
+// abstraction layer's.
 //
 // Carbon's thread-local gather vectors (safe under Tr2ParallelFor,
 // EveSpaceScene.cpp:1410) collapse to one array: the JS gather is
@@ -38,8 +41,65 @@ const LIGHT_BUFFER_SIZE = 1024;
 const CUTOFF_PIXEL_SIZE = 7;
 const FADE_SIZE = 5;
 const MAX_NUM_VOLUMETRIC_LIGHTS = 16;
-const INFINITE_SIZE_CLAMP = 1 << 14;
+const MAX_NUM_SHADOWCASTING_LIGHTS = 16;
+const HIGH_QUALITY_ATLAS_SIZE_LOG2 = 14;
+const HIGH_QUALITY_ATLAS_ENTRY_MAX_SIZE = 1 << 13;
+const INFINITE_SIZE_CLAMP = 1 << 14; // 1 << HIGH_QUALITY_ATLAS_SIZE_LOG2
 const FLOATS_PER_LIGHT = 12; // 48 bytes / 3 RGBA32 texels
+
+/** CCP_ALIGN: round up to a power-of-two alignment. */
+function align(value, alignment)
+{
+  return (value + alignment - 1) & ~(alignment - 1);
+}
+
+/**
+ * Carbon's anonymous-namespace CalculateShadowMapAtlasSettings (cpp:92-122).
+ *
+ * Ported branch for branch, including the SHADOW_RAYTRACED quirk: it zeroes
+ * with SHADOW_DISABLED but then re-enters the != DISABLED block, so
+ * `entryMinSizeLog2 = 0 - 10` wraps unsigned (4294967286) and
+ * `1 << entryMinSizeLog2` shifts by that count. MSVC x86 masks the shift
+ * count by 31 and SO DOES JavaScript's << - writing the arithmetic plainly
+ * reproduces Carbon's shipping behaviour exactly (entryMinSize 1<<22,
+ * entryMaxSize 8192 >> 14 = 0).
+ *
+ * @param {number} shadowQuality ShadowQuality ordinal.
+ * @returns {object} ShadowMapAtlasSettings (actualTextureSize starts 0).
+ */
+function calculateShadowMapAtlasSettings(shadowQuality)
+{
+  const settings = {
+    actualTextureSize: 0,
+    sizeLog2: 0,
+    size: 0,
+    entryMinSizeLog2: 0,
+    entryMinSize: 0,
+    entryInverseScaleFactorLog2: 0,
+    entryMaxSize: 0
+  };
+  switch (shadowQuality)
+  {
+    case ShadowQuality.SHADOW_DISABLED:
+    case ShadowQuality.SHADOW_RAYTRACED:
+      break;
+    case ShadowQuality.SHADOW_LOW:
+      settings.sizeLog2 = HIGH_QUALITY_ATLAS_SIZE_LOG2 - 2;
+      break;
+    case ShadowQuality.SHADOW_HIGH:
+      settings.sizeLog2 = HIGH_QUALITY_ATLAS_SIZE_LOG2;
+      break;
+  }
+  if (shadowQuality !== ShadowQuality.SHADOW_DISABLED)
+  {
+    settings.size = 1 << settings.sizeLog2;
+    settings.entryMinSizeLog2 = (settings.sizeLog2 - 10) >>> 0;
+    settings.entryMinSize = 1 << settings.entryMinSizeLog2;
+    settings.entryInverseScaleFactorLog2 = HIGH_QUALITY_ATLAS_SIZE_LOG2 - settings.sizeLog2;
+    settings.entryMaxSize = HIGH_QUALITY_ATLAS_ENTRY_MAX_SIZE >> settings.entryInverseScaleFactorLog2;
+  }
+  return settings;
+}
 
 /** Encodes one float as IEEE binary16 bits (no Float16Array in this runtime). */
 function toHalf(value)
@@ -89,6 +149,21 @@ export class Tr2LightManager extends CjsModel
   // Carbon m_currentSpaceSceneShadowQuality (h:197).
   #currentSpaceSceneShadowQuality = ShadowQuality.SHADOW_DISABLED;
 
+  // Carbon nextFrameShadowQuality (h:196) - a bitmask collecting every
+  // scene's requested quality during the current frame.
+  #nextFrameShadowQuality = 0;
+
+  // Carbon m_currentFrameCounter (h:198; ctor sets -1, cpp:164).
+  #currentFrameCounter = -1;
+
+  // Carbon's anonymous m_ShadowMap block (h:200-205): the atlas settings,
+  // the guillotine node tree, and the quality the atlas was last sized for.
+  #shadowMap = {
+    atlasSettings: calculateShadowMapAtlasSettings(ShadowQuality.SHADOW_DISABLED),
+    atlasNodes: [],
+    qualityUsedByAtlas: ShadowQuality.SHADOW_DISABLED
+  };
+
   // Non-Carbon: the frame clock the packed sets read for curve sampling.
   #animationTime = 0;
 
@@ -125,6 +200,18 @@ export class Tr2LightManager extends CjsModel
   static LIGHT_INDEX_BUFFER_NAME = "LightIndexBuffer";
 
   /**
+   * Carbon g_useDynamicLightsShadows (cpp:21-22) - a TRI_REGISTER_SETTING,
+   * i.e. a runtime-mutable setting rather than a compile constant, shipped
+   * FALSE. The whole shadow-caster/atlas half sits behind it; flipping it
+   * exercises the ported path (the tests do), and shipping behaviour is
+   * unchanged while it stays false.
+   */
+  static useDynamicLightsShadows = false;
+
+  /** The atlas-settings derivation, exposed for tests (Carbon cpp:92-122). */
+  static calculateShadowMapAtlasSettings = calculateShadowMapAtlasSettings;
+
+  /**
    * Carbon Tr2LightManager::AreLightFlagsValid (cpp:677-680): a light must
    * affect surfaces or particles to exist at all.
    */
@@ -136,17 +223,77 @@ export class Tr2LightManager extends CjsModel
   }
 
   /**
-   * Carbon SetShadowQuality (cpp:262-295) records the scene's quality; the
-   * frame-mask collapse and atlas-settings recompute exist only to size the
-   * shadow atlas, which is dead under the pinned
-   * g_useDynamicLightsShadows=false, so only the observable half is kept.
+   * Carbon SetShadowQuality (cpp:262-295), the full body: record the
+   * scene's quality, collapse the previous frame's quality bitmask into
+   * qualityUsedByAtlas on a frame change (HIGH beats LOW beats DISABLED),
+   * and recompute the atlas settings for min(requested, atlas quality)
+   * with actualTextureSize taken from the atlas quality - multiple scenes
+   * may request different qualities in one frame and the texture must fit
+   * the largest.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The nextFrameShadowQuality mask collapse and atlas-settings recompute size the shadow atlas, which is dead under Carbon's shipping g_useDynamicLightsShadows=false pin; the observable per-scene quality is kept.")
-  SetShadowQuality(quality, _frameCounter = 0)
+  @impl.implemented
+  SetShadowQuality(quality, frameCounter = 0)
   {
-    this.#currentSpaceSceneShadowQuality = Number(quality) || 0;
+    const shadowQuality = Number(quality) || 0;
+    this.#currentSpaceSceneShadowQuality = shadowQuality;
+
+    if (this.#currentFrameCounter !== frameCounter)
+    {
+      if (!Tr2LightManager.useDynamicLightsShadows)
+      {
+        this.#nextFrameShadowQuality = 0;
+      }
+
+      if (this.#nextFrameShadowQuality & (1 << ShadowQuality.SHADOW_HIGH))
+      {
+        this.#shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_HIGH;
+      }
+      else if (this.#nextFrameShadowQuality & (1 << ShadowQuality.SHADOW_LOW))
+      {
+        this.#shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_LOW;
+      }
+      else
+      {
+        this.#shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_DISABLED;
+      }
+      this.#nextFrameShadowQuality = 1 << shadowQuality;
+      this.#currentFrameCounter = frameCounter;
+    }
+
+    this.#nextFrameShadowQuality |= 1 << shadowQuality;
+
+    const clamped = Math.min(shadowQuality, this.#shadowMap.qualityUsedByAtlas);
+    this.#shadowMap.atlasSettings = calculateShadowMapAtlasSettings(clamped);
+    this.#shadowMap.atlasSettings.actualTextureSize =
+      calculateShadowMapAtlasSettings(this.#shadowMap.qualityUsedByAtlas).size;
+  }
+
+  /** Carbon GetShadowMapAtlasSettings (cpp:708-711). */
+  @carbon.method
+  @impl.implemented
+  GetShadowMapAtlasSettings()
+  {
+    return this.#shadowMap.atlasSettings;
+  }
+
+  /**
+   * Carbon GetUnpackedShadowMapData (cpp:810-815): the packed 10-bit
+   * offsets/scale back into texels via the entry-min-size shift.
+   *
+   * @param {object} record A light record carrying the packed fields.
+   * @param {object} [out] Receives scale/offsetX/offsetY.
+   * @returns {object} out
+   */
+  @carbon.method
+  @impl.implemented
+  GetUnpackedShadowMapData(record, out = {})
+  {
+    const shift = this.#shadowMap.atlasSettings.entryMinSizeLog2;
+    out.shadowMapScale = (record.shadowMapScale ?? 0) << shift;
+    out.shadowMapOffsetX = (record.shadowMapOffsetX ?? 0) << shift;
+    out.shadowMapOffsetY = (record.shadowMapOffsetY ?? 0) << shift;
+    return out;
   }
 
   /**
@@ -238,7 +385,18 @@ export class Tr2LightManager extends CjsModel
     const dimming = this.#CullAndDim(record.position, record.radius);
     if (dimming <= 0) return;
 
-    record.flags &= ~Tr2LightManager.Flags.CASTS_SHADOWS;
+    // Carbon's conditional strip (cpp:359-365): shadows survive only when
+    // the setting is on, the scene quality is not DISABLED, and a shadow-map
+    // quality has an atlas actually sized for it (qualityUsedByAtlas lags a
+    // frame behind). Always taken under the shipping default.
+    const usingShadowMap = this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_LOW
+      || this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_HIGH;
+    if (this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_DISABLED
+      || (usingShadowMap && this.#shadowMap.qualityUsedByAtlas === ShadowQuality.SHADOW_DISABLED)
+      || !Tr2LightManager.useDynamicLightsShadows)
+    {
+      record.flags &= ~Tr2LightManager.Flags.CASTS_SHADOWS;
+    }
 
     const scale = record.radius * dimming;
     this.#records.push({
@@ -262,14 +420,13 @@ export class Tr2LightManager extends CjsModel
    * Carbon ResolveLightData (cpp:520-620): the TLS flatten is a no-op here
    * (one array), the volumetric top-16 selection runs exactly as Carbon's -
    * including clearing IS_VOLUMETRIC on the losers so shader and CPU agree -
-   * and the shadow-caster/atlas half is dead under the shipping pin
-   * (cpp:568-571 early-outs before it). The packed buffer is then built:
-   * byte layout per the contract, profile slots biased by one into flag bits
-   * 4-15.
+   * then the shadow-caster half (ported in full, gated by the same
+   * useDynamicLightsShadows setting Carbon ships false), then the packed
+   * buffer: byte layout per the contract, profile slots biased by one into
+   * flag bits 4-15, the shadow union in word 11.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Shadow-caster selection and atlas packing sit past Carbon's own g_useDynamicLightsShadows=false early-out and are deferred with it; the volumetric selection and the packed-buffer build are ported.")
+  @impl.implemented
   ResolveLightData()
   {
     const volumetric = [];
@@ -290,8 +447,232 @@ export class Tr2LightManager extends CjsModel
       else this.#records[volumetric[i][0]].flags &= ~Tr2LightManager.Flags.IS_VOLUMETRIC;
     }
 
+    this.#ResolveShadowCasters();
+
     this.#Pack();
     this.#revision += 1;
+  }
+
+  /**
+   * Carbon's shadow-caster half of ResolveLightData (cpp:568-620): the
+   * useDynamicLightsShadows/DISABLED early-out (Carbon ships with the
+   * setting FALSE - it is a TRI_REGISTER_SETTING, hence a mutable static
+   * here rather than a constant), then filter casters by flag, estimate
+   * screen size (Carbon's FLT_MAX inside-the-sphere sentinel clamps to the
+   * high-quality atlas size), sort descending, keep the largest sixteen,
+   * strip FLAG_CASTS_SHADOWS from the losers, assign raytracing masks by
+   * rank under SHADOW_RAYTRACED, and pack the atlas for LOW/HIGH.
+   */
+  #ResolveShadowCasters()
+  {
+    this.#shadowCastingLights.length = 0;
+    if (!Tr2LightManager.useDynamicLightsShadows
+      || this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_DISABLED)
+    {
+      return;
+    }
+
+    const lightTuples = [];
+    for (let i = 0; i < this.#records.length; i++)
+    {
+      if ((this.#records[i].flags & Tr2LightManager.Flags.CASTS_SHADOWS) !== 0)
+      {
+        let sizeAcross = this.#frustum
+          ? this.#frustum.GetPixelSizeAccrossEst(this.#records[i].position, this.#records[i].radius)
+          : 0;
+        if (!Number.isFinite(sizeAcross)) sizeAcross = 1 << HIGH_QUALITY_ATLAS_SIZE_LOG2;
+        lightTuples.push({ lightIndex: i, sizeAcross });
+      }
+    }
+
+    lightTuples.sort((a, b) => b.sizeAcross - a.sizeAcross);
+
+    const raytraced = this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_RAYTRACED;
+    const numShadowCastingLights = Math.min(MAX_NUM_SHADOWCASTING_LIGHTS, lightTuples.length);
+    let i = 0;
+    for (; i < numShadowCastingLights; i++)
+    {
+      this.#shadowCastingLights.push(lightTuples[i].lightIndex);
+      if (raytraced)
+      {
+        this.#records[lightTuples[i].lightIndex].raytracingShadowMask = 1 << i;
+      }
+    }
+    for (; i < lightTuples.length; i++)
+    {
+      const record = this.#records[lightTuples[i].lightIndex];
+      record.flags &= ~Tr2LightManager.Flags.CASTS_SHADOWS;
+      if (raytraced)
+      {
+        record.raytracingShadowMask = 0;
+      }
+    }
+
+    if (this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_LOW
+      || this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_HIGH)
+    {
+      this.#CreateShadowMapAtlas(numShadowCastingLights, lightTuples);
+    }
+  }
+
+  /**
+   * Carbon CreateShadowMapAtlas (cpp:442-508): five fitting passes, each
+   * halving entryMaxSize and incrementing the inverse-scale shift; entry
+   * MIN size never scales. A failing pass still inserts every remaining
+   * light before retrying. Point lights (innerAngle <= 0) take a 3x2
+   * cube-cross, spots a square. Successful entries pack their offsets and
+   * scale in entry-min-size units into the record's 10-bit fields; failures
+   * zero them.
+   */
+  #CreateShadowMapAtlas(numShadowCastingLights, lightTuples)
+  {
+    const settings = this.#shadowMap.atlasSettings;
+    const entry = { x: 0, y: 0 };
+    let everythingFit = false;
+    for (let j = 0; j < 5 && !everythingFit; j++)
+    {
+      everythingFit = true;
+      const entryInverseScaleFactorLog2 = settings.entryInverseScaleFactorLog2 + j;
+      const entryMaxSize = settings.entryMaxSize >> j;
+
+      this.#shadowMap.atlasNodes.length = 0;
+      this.#shadowMap.atlasNodes.push({
+        children: [ -1, -1 ],
+        lightIndex: -1,
+        x: 0,
+        y: 0,
+        width: settings.size,
+        height: settings.size
+      });
+
+      for (let i = 0; i < numShadowCastingLights; i++)
+      {
+        const lightIndex = lightTuples[i].lightIndex;
+        const record = this.#records[lightIndex];
+
+        let size = (lightTuples[i].sizeAcross >>> 0) >>> entryInverseScaleFactorLog2;
+        size = Math.min(Math.max(size, settings.entryMinSize), entryMaxSize);
+        size = align(size, settings.entryMinSize);
+
+        let width, height;
+        if (record.innerAngle <= 0)
+        {
+          // pointlight: a 3x2 cube-face cross
+          width = 3 * size;
+          height = 2 * size;
+        }
+        else
+        {
+          // spotlight
+          width = size;
+          height = size;
+        }
+
+        if (this.#GetShadowMapAtlasEntry(lightIndex, width, height, entry))
+        {
+          record.shadowMapOffsetX = entry.x >>> settings.entryMinSizeLog2;
+          record.shadowMapOffsetY = entry.y >>> settings.entryMinSizeLog2;
+          record.shadowMapScale = size >>> settings.entryMinSizeLog2;
+        }
+        else
+        {
+          record.shadowMapOffsetX = 0;
+          record.shadowMapOffsetY = 0;
+          record.shadowMapScale = 0;
+          everythingFit = false;
+        }
+      }
+    }
+  }
+
+  /**
+   * Carbon GetShadowMapAtlasEntry (cpp:790-808): align the request to the
+   * entry min size, insert from the root, and report position ONLY on
+   * success - the out object is untouched on failure, exactly as Carbon
+   * leaves its out-references.
+   */
+  #GetShadowMapAtlasEntry(lightIndex, width, height, out)
+  {
+    const settings = this.#shadowMap.atlasSettings;
+    width = align(width, settings.entryMinSize);
+    height = align(height, settings.entryMinSize);
+
+    const nodeId = this.#InsertAtlasNode(this.#shadowMap.atlasNodes, 0, lightIndex, width, height);
+    if (nodeId !== -1)
+    {
+      out.x = this.#shadowMap.atlasNodes[nodeId].x;
+      out.y = this.#shadowMap.atlasNodes[nodeId].y;
+    }
+    return nodeId !== -1;
+  }
+
+  /**
+   * Carbon InsertAtlasNode (cpp:718-788) - the blackpawn.com guillotine
+   * packer, ported branch for branch: descend into split nodes (first
+   * child, then second), reject occupied or too-small leaves, claim exact
+   * fits, otherwise split along the larger remainder axis and recurse into
+   * the first child.
+   */
+  #InsertAtlasNode(atlasNodes, nodeId, lightIndex, width, height)
+  {
+    const node = atlasNodes[nodeId];
+    if (node.children[0] !== -1 || node.children[1] !== -1)
+    {
+      const newNode = this.#InsertAtlasNode(atlasNodes, node.children[0], lightIndex, width, height);
+      if (newNode !== -1)
+      {
+        return newNode;
+      }
+      return this.#InsertAtlasNode(atlasNodes, node.children[1], lightIndex, width, height);
+    }
+
+    if (node.lightIndex !== -1)
+    {
+      return -1;
+    }
+    if (node.width < width || node.height < height)
+    {
+      return -1;
+    }
+    if (node.width === width && node.height === height)
+    {
+      node.lightIndex = lightIndex;
+      return nodeId;
+    }
+
+    const child0 = { children: [ -1, -1 ], lightIndex: -1, x: 0, y: 0, width: 0, height: 0 };
+    const child1 = { children: [ -1, -1 ], lightIndex: -1, x: 0, y: 0, width: 0, height: 0 };
+    atlasNodes.push(child0, child1);
+    node.children[0] = atlasNodes.length - 2;
+    node.children[1] = atlasNodes.length - 1;
+
+    const deltaWidth = node.width - width;
+    const deltaHeight = node.height - height;
+
+    if (deltaWidth > deltaHeight)
+    {
+      child0.x = node.x;
+      child0.y = node.y;
+      child0.width = width;
+      child0.height = node.height;
+      child1.x = node.x + width;
+      child1.y = node.y;
+      child1.width = node.width - width;
+      child1.height = node.height;
+    }
+    else
+    {
+      child0.x = node.x;
+      child0.y = node.y;
+      child0.width = node.width;
+      child0.height = height;
+      child1.x = node.x;
+      child1.y = node.y + height;
+      child1.width = node.width;
+      child1.height = node.height - height;
+    }
+
+    return this.#InsertAtlasNode(atlasNodes, node.children[0], lightIndex, width, height);
   }
 
   /** Carbon GetCurrentSpaceSceneShadowQuality (cpp:713-716): a bare field read; every record producer asks it before building. */
@@ -484,11 +865,18 @@ export class Tr2LightManager extends CjsModel
       this.#packedBits[f + 7] = toHalf(record.innerRadius) | ((flagsWord & 0xFFFF) << 16);
 
       // Texel 2: direction as three f16, projectionPlaneDistance, the two
-      // angles, then the shadow union (zeroed - dead under the shipping pin).
+      // angles, then the shadow union (h:70-84, MSVC low-bit-first layout:
+      // bits 0-1 padding, 2-11 scale, 12-21 offsetX, 22-31 offsetY; the
+      // raytraced mask shares the word - the paths are exclusive by
+      // quality). All zeros under the shipping pin, exactly as before.
       this.#packedBits[f + 8] = toHalf(record.direction[0]) | (toHalf(record.direction[1]) << 16);
       this.#packedBits[f + 9] = toHalf(record.direction[2]) | (toHalf(record.projectionPlaneDistance) << 16);
       this.#packedBits[f + 10] = toHalf(record.outerAngle) | (toHalf(record.innerAngle) << 16);
-      this.#packedBits[f + 11] = 0;
+      this.#packedBits[f + 11] = this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_RAYTRACED
+        ? (record.raytracingShadowMask ?? 0) & 0xFFFF
+        : (((record.shadowMapScale ?? 0) & 0x3FF) << 2)
+          | (((record.shadowMapOffsetX ?? 0) & 0x3FF) << 12)
+          | (((record.shadowMapOffsetY ?? 0) & 0x3FF) << 22);
     }
     this.#packedCount = count;
   }
