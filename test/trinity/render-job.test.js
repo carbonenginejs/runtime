@@ -209,6 +209,11 @@ test("portable generated resource steps initialize and emit render intents", () 
   assertEquals(renderGraphs.scale, 0.05);
   assertEquals(scaleChanges, 1);
 
+  // TriStepRenderTexture blits through Tr2Blitter now. This context has no
+  // backend installed, so the blitter cannot make its vertex buffer and reports
+  // failure - and Carbon's ClearIfFail then clears to failClearColor rather
+  // than leaving whatever was underneath (cpp:41-48). The clear is the evidence
+  // the step ran the real path.
   const texture = { width: 64, height: 32 };
   const renderTexture = new TriStepRenderTexture();
   renderTexture.__init__(texture);
@@ -216,7 +221,7 @@ test("portable generated resource steps initialize and emit render intents", () 
   assertEquals(renderTexture.textureSize[0], 64);
   assertEquals(renderTexture.textureSize[1], 32);
 
-  assertEquals(context.GetIntents().map(intent => intent.type).join(","), "clear-uav,render-atlas,render-line-graphs,render-texture");
+  assertEquals(context.GetIntents().map(intent => intent.type).join(","), "clear-uav,render-atlas,render-line-graphs,clear");
 });
 
 test("TriStepFilterVisibilityResults applies Carbon event and object masks", () =>

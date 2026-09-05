@@ -30,6 +30,7 @@ import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
 import { Tr2RenderBatch } from "../batch/Tr2RenderBatch.js";
 import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { Tr2Blitter } from "../Tr2Blitter.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 
@@ -76,6 +77,9 @@ export class Tr2RenderContext extends CjsModel
 
   /** m_esm */
   #esm = new Tr2EffectStateManager().SetRenderContext(this);
+
+  /** Carbon's s_blitter, per context rather than per process; see GetBlitter. */
+  #blitter = null;
 
   #intents = [];
 
@@ -800,6 +804,48 @@ export class Tr2RenderContext extends CjsModel
     return this.#requireAL("SetIndices").SetIndices(buffer, stride);
   }
 
+  /**
+   * Creates a buffer of the running backend's kind.
+   *
+   * Carbon's `Tr2BufferAL` is a compile-time platform typedef, so a Trinity
+   * class declares one and the build picks the implementation. Here the context
+   * picks it, which is the same authority: Carbon's `Create` already takes a
+   * `Tr2PrimaryRenderContextAL&`. A Trinity class that imports a concrete
+   * buffer instead picks a backend at authoring time.
+   *
+   * @param {object} description A `Tr2BufferDescriptionAL`.
+   * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
+   * @returns {object|null} The buffer, or null when the backend refused.
+   */
+  CreateBuffer(description, initialData = null)
+  {
+    return this.#requireAL("CreateBuffer").CreateBuffer(description, initialData);
+  }
+
+  /**
+   * The fullscreen-quad blitter, created on first use.
+   *
+   * WHERE CARBON PUTS IT, AND WHY WE DO NOT. Carbon holds one in a file-scope
+   * `s_blitter` in `Tr2Renderer.cpp:25`, immediately under its own comment:
+   * "The whole s_blitter thing needs to be rethough anyway." Its
+   * `DrawTexture`/`DrawFullScreenWithShader` statics are three-line wrappers
+   * that null-check it.
+   *
+   * Ours is per-context because `Tr2Renderer` here is deliberately NOT a
+   * process-wide singleton - see that file's head comment, which explains that
+   * two libraries with two resource managers would silently share one. The
+   * blitter owns a vertex buffer created against a context, so a context is
+   * exactly the lifetime it wants, and every render step already has one.
+   *
+   * @returns {Tr2Blitter} The blitter.
+   */
+  GetBlitter()
+  {
+    this.#blitter ??= new Tr2Blitter();
+
+    return this.#blitter;
+  }
+
   // Carbon's four immediate draws (Tr2RenderContext.h). Trinity calls these
   // directly - Tr2Blitter ends DrawHelper with SetTopology + DrawPrimitive, and
   // TriStepRenderDebug draws its line vertices with DrawPrimitiveUP - so the
@@ -1121,16 +1167,6 @@ export class Tr2RenderContext extends CjsModel
   RenderLineGraphs(step)
   {
     this.#intents.push({ type: "render-line-graphs", step });
-    return true;
-  }
-
-  /**
-   * Records a render-texture intent for a source texture, with any extra options
-   * merged into the intent.
-   */
-  RenderTexture(source, options = {})
-  {
-    this.#intents.push({ type: "render-texture", source, ...options });
     return true;
   }
 

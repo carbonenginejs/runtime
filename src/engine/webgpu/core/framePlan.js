@@ -63,7 +63,6 @@ const INTENT_CLASSES = Object.freeze({
   "render-batches": IntentClass.RENDER,
   "draw-effect": IntentClass.RENDER,
   "draw-line-set": IntentClass.RENDER,
-  "render-texture": IntentClass.RENDER,
   "render-atlas": IntentClass.RENDER,
   "render-line-graphs": IntentClass.RENDER,
   "render-debug": IntentClass.RENDER,

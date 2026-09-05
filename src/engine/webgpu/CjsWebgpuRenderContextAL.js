@@ -32,12 +32,14 @@
 // requires, because the context prefers the AL per verb and a missing one is a
 // crash rather than a fallback.
 //
-// NOT HERE YET: texture and buffer creation, copies, mip generation and
-// upscaling. Absent rather than faked.
+// NOT HERE YET: texture creation, copies, mip generation and upscaling. Absent
+// rather than faked. Buffer creation IS here (`CreateBuffer`), because a
+// Trinity class that fills a buffer per frame cannot pick its own backend.
 
 import { Topology, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
-import { ALResult, Tr2ColorAttachment, Tr2DepthAttachment } from "#trinity/core";
+import { ALResult, Failed, Tr2ColorAttachment, Tr2DepthAttachment } from "#trinity/core";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
+import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 
 
 function fail(message)
@@ -177,6 +179,26 @@ export class CjsWebgpuRenderContextAL
   GetWebgpu()
   {
     return this.#webgpu;
+  }
+
+  /**
+   * Creates a device-backed buffer, this backend's kind of `Tr2BufferAL`.
+   *
+   * The stub context answers the same call with a `Tr2BufferALStub`, which is
+   * how a Trinity class gets the right buffer for the running backend without
+   * importing either - see the note on the stub's `CreateBuffer`.
+   *
+   * @param {object} description A `Tr2BufferDescriptionAL`.
+   * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
+   * @returns {object|null} The created buffer, or null when Create refused.
+   */
+  CreateBuffer(description, initialData = null)
+  {
+    const buffer = new CjsWebgpuBufferAL();
+
+    if (Failed(buffer.Create(description, initialData, this))) return null;
+
+    return buffer;
   }
 
   /**

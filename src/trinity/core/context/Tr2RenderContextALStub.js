@@ -28,7 +28,7 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2CapsALStub, Tr2TextureALStub } from "../al/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2TextureALStub } from "../al/index.js";
 import { PixelFormat, Topology, Tr2GpuUsage } from "../../../global/consts/renderContext/index.js";
 
 
@@ -114,6 +114,32 @@ export class Tr2RenderContextALStub
     if (presentParameters) this.SetPresentParameters(presentParameters);
 
     return true;
+  }
+
+  /**
+   * Creates a buffer of this backend's own kind.
+   *
+   * WHY THE CONTEXT IS THE FACTORY. In Carbon, `Tr2BufferAL` is a compile-time
+   * platform typedef, so Trinity writes `Tr2BufferAL m_vertexBuffer` and the
+   * dx11/dx12/metal/stub class is selected by the build. JavaScript has no such
+   * seam, and a Trinity class that imports a concrete buffer picks a backend at
+   * authoring time - which is exactly how `Tr2RingBuffer` ended up hard-wired
+   * to the stub and reaching no device.
+   *
+   * Carbon's `Create` already takes a `Tr2PrimaryRenderContextAL&`
+   * (`Tr2BufferAL.h:47`), so the context is where the platform is known.
+   *
+   * @param {object} description A `Tr2BufferDescriptionAL`.
+   * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
+   * @returns {object|null} The created buffer, or null when Create refused.
+   */
+  CreateBuffer(description, initialData = null)
+  {
+    const buffer = new Tr2BufferALStub();
+
+    if (Failed(buffer.Create(description, initialData, this))) return null;
+
+    return buffer;
   }
 
   /**
