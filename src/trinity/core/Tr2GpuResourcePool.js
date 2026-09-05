@@ -106,6 +106,21 @@ export class TextureSize2D
  * explicit and a handle that is never released pins its resource forever -
  * which is a leak, not a crash, and therefore worth being loud about. The pool
  * reports held resources so a caller can assert.
+ *
+ * `Release` AND `Destroy` ARE DIFFERENT VERBS AND THE SPLIT IS CARBON'S.
+ * `Destroy` means gone now - it is the pure virtual on
+ * `Tr2BaseDeviceResourceAL` (`trinityal/Tr2DeviceResourceAL.h:30`) and the
+ * abstraction layer uses it 216 times. `Release` is reserved for the qualified
+ * meanings: deferred (`ReleaseLater`), bulk or device-lost
+ * (`ReleaseDeviceResources`), and handing something back to its owner. This is
+ * the third: the resource returns to the pool and is handed out again.
+ * `ClearUnusedResources` below is where `Destroy` is correct, and where it is
+ * used.
+ *
+ * Carbon's own handle has NO named method - the work happens in
+ * `~GpuResourceHandle`. That absence is not a prohibition on the name; it is
+ * C++ not needing one. Reading it as a prohibition is how this comment briefly
+ * became a coined `ReleaseToPool` before being put back.
  */
 export class GpuResourceHandle
 {
