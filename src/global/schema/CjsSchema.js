@@ -415,17 +415,17 @@ export class CjsSchema
      * @param {Function} Constructor
      * @param {object} [options={}]
      * @param {string|Array<string>} [options.namespaces] Restricts exported metadata namespaces.
-     * @returns {object} Shared schema export.
+     * @returns {CjsClassInfo} Shared per-class record.
      */
     static getSchema(Constructor, options = {})
     {
         const namespaces = normalizeNamespaces(options.namespaces);
-        if (namespaces) return buildSchema(Constructor, namespaces);
+        if (namespaces) return buildClassInfo(Constructor, namespaces);
 
         const memo = SCHEMA_EXPORTS.get(Constructor);
         if (memo && memo.generation === SCHEMA_GENERATION) return memo.schema;
 
-        const schema = buildSchema(Constructor, null);
+        const schema = buildClassInfo(Constructor, null);
         SCHEMA_EXPORTS.set(Constructor, { generation: SCHEMA_GENERATION, schema });
         return schema;
     }
@@ -1354,7 +1354,19 @@ function mergeMemberMetadata(target, source)
     return target;
 }
 
-function buildSchema(Constructor, namespaces)
+/**
+ * The per-class record `getSchema()` returns - the `Be::ClassInfo` analog,
+ * named CjsClassInfo (audit ruling 8, 2026-09-05). A typedef rather than an
+ * exported class: the record is shared read-only data consumed by tooling as
+ * plain JSON; promote to a real class only if facade-era accessors earn it.
+ *
+ * @typedef {object} CjsClassInfo
+ * @property {string|null} className Registered serialized class name.
+ * @property {Array<object>} fields Resolved field metadata, declaration order.
+ * @property {Array<object>} [methods] Method provenance metadata.
+ * @property {string} [family] Registered schema family.
+ */
+function buildClassInfo(Constructor, namespaces)
 {
     const schema = CLASS_SCHEMA.get(Constructor);
     const fields = [];

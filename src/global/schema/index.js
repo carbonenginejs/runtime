@@ -19,3 +19,4 @@ export {
 };
 
 export * from "./types/carbonTypes.js";
+export * from "./hydration.js";

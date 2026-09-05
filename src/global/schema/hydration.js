@@ -1,4 +1,4 @@
-import { CjsSchema } from "../../schema/index.js";
+import { CjsSchema } from "./CjsSchema.js";
 
 /**
  * Hydration adapter seam.

@@ -1,4 +1,4 @@
-import { resolveHydrationAdapter } from "#model/hydration";
+import { resolveHydrationAdapter } from "#schema/hydration";
 import {
     CARBON_TYPE,
     normalizeCarbonTypeDescriptor,

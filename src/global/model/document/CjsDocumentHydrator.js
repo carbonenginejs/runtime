@@ -1,7 +1,7 @@
 import { normalizeCarbonValue } from "../../schema/types/index.js";
 import { CjsSchema } from "../../schema/index.js";
 import { CjsCarbonDocument } from "./CjsCarbonDocument.js";
-import { resolveHydrationAdapter } from "./hydrationAdapter.js";
+import { resolveHydrationAdapter } from "../../schema/hydration.js";
 
 /** Constructs runtime object graphs from neutral Carbon documents. */
 export class CjsDocumentHydrator
