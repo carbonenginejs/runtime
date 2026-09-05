@@ -166,6 +166,23 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
+   * How many batches this backend has encoded since it was created.
+   *
+   * A HARNESS NEEDS THIS AND A FRAME DOES NOT, which is why it counts batches
+   * rather than reporting them: "did anything draw" is the question a test asks
+   * when the alternative is trusting an empty canvas. Carbon answers it with
+   * `CCP_STATS_INC( batchCount )` for the same reason.
+   *
+   * @returns {number} Batches encoded.
+   */
+  GetDrawnBatchCount()
+  {
+    return this.#drawnBatchCount;
+  }
+
+  #drawnBatchCount = 0;
+
+  /**
    * The work queue this backend records through.
    *
    * @returns {CjsWebgpuWorkQueue} The queue.
@@ -218,9 +235,13 @@ export class CjsWebgpuRenderContextAL
 
     if (this.#webgpu)
     {
-      // The canvas texture is valid for THIS frame only, so it is acquired per
-      // scene and every pass opened during it shares the one view.
-      this.#frame = this.#renderTarget.AcquireFrame();
+      // THE FRAME IS ACQUIRED LAZILY, AT THE FIRST PASS, AND NOT HERE. A canvas
+      // texture is valid only within one synchronous turn: awaiting anything -
+      // and preparation awaits - lets the browser swap the surface and destroy
+      // it underneath. Acquiring in BeginScene therefore encoded into a dead
+      // texture, and the only symptom was a submit warning and a blank canvas
+      // while the draw itself reported success.
+      this.#frame = null;
       this.#commandEncoder = this.#webgpu.GetDevice().createCommandEncoder({ label: "CjsWebgpuRenderContextAL" });
       this.#workQueue.SetCommandEncoder(this.#commandEncoder, attachments => this.#Descriptor(attachments));
     }
@@ -239,6 +260,9 @@ export class CjsWebgpuRenderContextAL
    */
   #Descriptor(attachments)
   {
+    // First pass of the scene acquires; later passes share the one view.
+    this.#frame ??= this.#renderTarget.AcquireFrame();
+
     const clear = attachments?.colors?.[0];
 
     return this.#renderTarget.CreateRenderPassDescriptor(this.#frame, {
@@ -267,6 +291,58 @@ export class CjsWebgpuRenderContextAL
     }
 
     return true;
+  }
+
+  /**
+   * Prepares and encodes this frame's submissions, then ends the scene.
+   *
+   * THE ASYNC SEAM HAS TO BE HERE, AND FINDING OUT WHY IS THE POINT. Trinity
+   * calls `RenderBatches` synchronously - Carbon's does the draw right there -
+   * but a browser builds pipelines and resolves bindings through promises.
+   * Worse, the batches themselves are rebuilt every frame: `CjsBatchManager`
+   * clears its accumulators and refills them, so a prepared handle kept from
+   * last frame describes batch objects that no longer exist. Preparation is
+   * therefore per frame and unavoidably asynchronous.
+   *
+   * That is what the intent queue was really for. Not recording for its own
+   * sake - it put the async boundary OUTSIDE Trinity's synchronous call graph,
+   * where a caller could await between producing the frame and drawing it.
+   *
+   * So the boundary stays, and moves in here where a backend's deferral
+   * belongs. `RenderBatches` collects what Trinity asked for; this prepares and
+   * encodes it. That list is one frame's submissions - what a command buffer
+   * is - not a replayable stream of every verb, and no planner reads it.
+   *
+   * @returns {Promise<boolean>} Whether the scene ended cleanly.
+   */
+  async EndSceneAsync()
+  {
+    const submissions = this.#submissions;
+
+    this.#submissions = [];
+
+    for (const submission of submissions)
+    {
+      const handle = await this.#dispatcher.PrepareAccumulator(
+        submission.accumulator,
+        { techniqueName: submission.techniqueName }
+      );
+
+      const drawn = (handle?.batches?.length ?? 0) + (handle?.gdprBatches?.length ?? 0);
+
+      // An accumulator that prepared to nothing is not an error - Carbon
+      // submits an empty one too - but it must not open a pass for nothing.
+      if (!drawn) continue;
+
+      const pass = this.#workQueue.RequireRenderPass();
+
+      if (!pass) continue;
+
+      this.#dispatcher.EncodeAccumulator(pass, handle);
+      this.#drawnBatchCount += drawn;
+    }
+
+    return this.EndScene();
   }
 
   /**
@@ -304,55 +380,13 @@ export class CjsWebgpuRenderContextAL
 
     if (!this.#dispatcher) return false;
 
-    const handle = this.#PreparedFor(accumulator, techniqueName);
-
-    if (!handle) return false;
-
-    const pass = this.#workQueue.RequireRenderPass();
-
-    if (!pass) return false;
-
-    this.#dispatcher.EncodeAccumulator(pass, handle);
+    this.#submissions.push({ accumulator, techniqueName });
 
     return true;
   }
 
-  /**
-   * The prepared handle for an accumulator, starting preparation on a miss.
-   *
-   * Keyed on the accumulator AND the technique, because the same batches drawn
-   * for depth and for colour are two different sets of pipelines.
-   */
-  #PreparedFor(accumulator, techniqueName)
-  {
-    let byTechnique = this.#prepared.get(accumulator);
-
-    if (!byTechnique)
-    {
-      byTechnique = new Map();
-      this.#prepared.set(accumulator, byTechnique);
-    }
-
-    const entry = byTechnique.get(techniqueName);
-
-    if (entry) return entry.handle;
-
-    // Recorded before awaiting, so a second call in the same frame joins the
-    // work in flight instead of starting it again.
-    const pending = { handle: null };
-
-    byTechnique.set(techniqueName, pending);
-
-    this.#dispatcher.PrepareAccumulator(accumulator, { techniqueName })
-      .then(handle => { pending.handle = handle; })
-      .catch(error =>
-      {
-        byTechnique.delete(techniqueName);
-        throw error;
-      });
-
-    return null;
-  }
+  /** This frame's submissions, in the order Trinity made them. */
+  #submissions = [];
 
   /**
    * Declares what the next render pass does with its attachments.

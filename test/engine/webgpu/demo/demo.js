@@ -21,6 +21,8 @@
 // from a declaration, the draw arguments resolved from a LOD's areas - is real.
 import { CjsWebgpuDevice } from "../../../../npm/dist/engine/webgpu/index.js";
 import {
+  CjsWebgpuRenderContextAL,
+  CjsWebgpuRenderTarget,
   CjsWebgpuTrinityBatchDispatcher,
   CjsWebgpuTrinityBatchResolver
 } from "../../../../npm/dist/engine/webgpu/internal.js";
@@ -193,7 +195,13 @@ function containerMaterial(bytes, path)
     id: path,
     GetEffectRes: () => resource,
     GetValues: () => ({}),
-    GetShaderStateInterface: () => shader
+    GetShaderStateInterface: () => shader,
+
+    // The accumulator asks every committed batch whether it can be merged into
+    // a grouped draw. It is asked directly rather than through a `?.` hedge, so
+    // a stand-in material has to answer - and false is the honest answer here,
+    // because this demo has one batch and nothing to merge it with.
+    CompatibleWithGdr: () => false
   };
 }
 
@@ -289,14 +297,10 @@ export async function RunDemo(canvas)
   const context = canvas.getContext("webgpu");
   const format = navigator.gpu.getPreferredCanvasFormat();
 
-  // COPY_SRC so the frame can be read back and counted; a demo that cannot
-  // prove it drew is a demo that will one day quietly stop drawing.
-  context.configure({
-    device,
-    format,
-    alphaMode: "opaque",
-    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
-  });
+  // THE CONTEXT IS CONFIGURED ONCE, BY THE RENDER TARGET, further down.
+  // Configuring it here as well destroyed the canvas texture the target had
+  // already acquired, and the only symptom was a submit warning and a blank
+  // canvas - the draw itself was correct and encoded a batch.
 
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
   // A real hull, fetched through the same proxy as the effect.
@@ -374,7 +378,16 @@ export async function RunDemo(canvas)
   const renderContext = new Tr2RenderContext();
   const driver = new EveSpaceSceneRenderDriver().SetBatchManager(batchManager);
 
+  // THE SCENE THE DRIVER ACTUALLY ASKS FOR. Under the intent path only
+  // GetRenderables was ever reached, because the verbs recorded and returned;
+  // driving the abstraction layer runs the real sequence, so the update and
+  // per-frame hooks have to answer too. They are no-ops here on purpose - this
+  // demo proves the DRAW path, and a fog or lighting blend it does not use
+  // would be scenery pretending to be a test.
   driver.scene = {
+    Update: () => {},
+    BlendLightingOverrides: () => {},
+    UpdateFogSettings: () => {},
     GetRenderables: out => { out.push(blobRenderable(material, geometry)); return out; }
   };
   // The WGSL emits clip-space positions directly, so identity is honest here:
@@ -385,42 +398,36 @@ export async function RunDemo(canvas)
   driver.view = IDENTITY;
   driver.projection = IDENTITY;
 
-  // THE FRAME. Everything from here is the shipped sequence.
-  driver.Execute([ context.getCurrentTexture() ], null, 0, 0, null, renderContext);
+  // THE FRAME, THROUGH THE ABSTRACTION LAYER. This block used to drain an
+  // intent queue and hand-roll a pass; the AL does all of it now, which is the
+  // whole point of the exercise - if the canvas still lights up, the recording
+  // layer was redundant.
+  const renderTarget = new CjsWebgpuRenderTarget(webgpu, {
+    canvas,
+    context,
+    format,
+    depthFormat,
+    // The frame is counted back, so the surface must be copyable. Without
+    // this the demo draws and then cannot prove it.
+    extraUsage: GPUTextureUsage.COPY_SRC
+  }).Configure({ width: canvas.width, height: canvas.height });
 
-  const intents = renderContext.TakeIntents();
-  const submissions = intents.filter(intent => intent.type === "render-batches");
+  const al = new CjsWebgpuRenderContextAL({ webgpu, dispatcher, renderTarget });
 
+  al.CreateDevice();
+  renderContext.SetRenderContextAL(al);
+
+  // ONE FRAME, ENDED ASYNCHRONOUSLY. Trinity produces the frame synchronously
+  // and the backend prepares its pipelines through promises, so the await sits
+  // at the end of the scene - which is where the intent queue used to put it,
+  // and the real reason that queue existed.
   let drawn = 0;
 
-  for (const submission of submissions)
-  {
-    const prepared = await dispatcher.PrepareAccumulator(submission.batches, { batchType: 0 });
+  al.BeginScene();
+  driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
+  await al.EndSceneAsync();
 
-    if (!prepared?.batches?.length) continue;
-
-    const encoder = device.createCommandEncoder();
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [ {
-        view: context.getCurrentTexture().createView(),
-        clearValue: { r: 0.02, g: 0.02, b: 0.05, a: 1 },
-        loadOp: "clear",
-        storeOp: "store"
-      } ],
-      depthStencilAttachment: {
-        view: depth.createView(),
-        depthClearValue: 1,
-        depthLoadOp: "clear",
-        depthStoreOp: "store"
-      }
-    });
-
-    dispatcher.EncodeAccumulator(pass, prepared);
-    pass.end();
-    device.queue.submit([ encoder.finish() ]);
-
-    drawn += prepared.batches.length;
-  }
+  drawn = al.GetDrawnBatchCount();
 
   const pass = material.GetShaderStateInterface().GetEffect().techniques[0].passes[0];
   const declared = (translatedPipeline?.bindGroups ?? [])
@@ -443,8 +450,6 @@ export async function RunDemo(canvas)
     inputs: (pass.stageInputs[0]?.signature?.pipelineInputs ?? [])
       .map(input => `usage${input.usage}.${input.usageIndex}@${input.registerIndex}`),
     renderStateHandle: pass.renderStates,
-    intents: intents.map(intent => intent.type),
-    submissions: submissions.length,
     drawn,
     triangles: lod.areas.reduce((total, area) => total + (area.elementCount ?? 0), 0)
   };

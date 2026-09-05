@@ -66,6 +66,8 @@ export class CjsWebgpuRenderTarget
 
   #alphaMode = "opaque";
 
+  #extraUsage = 0;
+
   #sampleCount = 1;
 
   #depthFormat = null;
@@ -98,6 +100,8 @@ export class CjsWebgpuRenderTarget
    * @param {object} [options.textureUsage] GPUTextureUsage constants.
    * @param {object} [options.gpu] `navigator.gpu`-like object, for the
    *   preferred canvas format.
+   * @param {number} [options.extraUsage] Extra `GPUTextureUsage` bits for the
+   *   surface - `COPY_SRC` when the frame has to be read back and counted.
    */
   constructor(webgpu, options = {})
   {
@@ -117,6 +121,7 @@ export class CjsWebgpuRenderTarget
     this.#sampleCount = options.sampleCount ?? 1;
     this.#depthFormat = options.depthFormat ?? null;
     this.#format = options.format ?? null;
+    this.#extraUsage = options.extraUsage ?? 0;
   }
 
   /** The presentation format the canvas is configured with. */
@@ -129,6 +134,26 @@ export class CjsWebgpuRenderTarget
   GetSize()
   {
     return { width: this.#width, height: this.#height };
+  }
+
+  // CARBON'S TEXTURE ACCESSORS, so this can BE a bound render target rather
+  // than needing an adapter to become one. `Tr2TextureAL` answers `GetWidth`
+  // and `GetHeight`, and the abstraction layer resets the viewport from
+  // whatever is bound at slot zero by asking exactly those two questions
+  // (`Tr2RenderContextMetal.mm:762-766`). Without them a target has to be
+  // wrapped at every call site, and the first one that forgets gets a viewport
+  // left at the previous pass's size - the 2048 shadow-map defect.
+
+  /** The bound width, as `Tr2TextureAL::GetWidth` answers it. @returns {number} */
+  GetWidth()
+  {
+    return this.#width;
+  }
+
+  /** The bound height, as `Tr2TextureAL::GetHeight` answers it. @returns {number} */
+  GetHeight()
+  {
+    return this.#height;
   }
 
   /** The multisample count every attachment is created with. */
@@ -182,11 +207,17 @@ export class CjsWebgpuRenderTarget
     }
 
     const usage = this.#RequireUsage();
+
+    // EXTRA USAGE IS THE CALLER'S TO ASK FOR, because the surface is theirs to
+    // read. A frame that has to be counted back needs COPY_SRC, and hardcoding
+    // RENDER_ATTACHMENT alone silently makes that impossible - the readback
+    // fails at copy time, long after the configure that caused it. Defaults to
+    // nothing extra, so nobody pays for a capability they did not ask for.
     this.#context.configure({
       device,
       format: this.#format,
       alphaMode: this.#alphaMode,
-      usage: usage.RENDER_ATTACHMENT
+      usage: usage.RENDER_ATTACHMENT | (this.#extraUsage ?? 0)
     });
 
     this.#width = width;

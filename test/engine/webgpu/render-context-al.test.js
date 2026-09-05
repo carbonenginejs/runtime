@@ -361,7 +361,7 @@ test("a composed backend needs its whole device half or none of it", () =>
   );
 });
 
-test("RenderBatches draws nothing while preparing, then encodes into a real pass", async () =>
+test("the frame ends asynchronously, and that is where preparation happens", async () =>
 {
   const { al, log, pass, FinishPreparing } = composed();
   const accumulator = { id: "accumulator" };
@@ -369,43 +369,46 @@ test("RenderBatches draws nothing while preparing, then encodes into a real pass
   al.CreateDevice();
   al.BeginScene();
 
-  // A browser builds pipelines asynchronously and Carbon does not. So the first
-  // call starts the work and draws nothing, rather than blocking a frame.
-  assert.equal(al.RenderBatches(accumulator, "Main"), false, "nothing drawn while preparing");
-  assert.equal(al.RenderBatches(accumulator, "Main"), false, "a second call joins the work in flight");
-  assert.equal(log.filter(entry => entry === "prepare").length, 1, "preparation is not started twice");
+  // Trinity calls this synchronously and Carbon draws right there. A browser
+  // cannot: building a pipeline is a promise. So the call collects and the
+  // scene's end prepares - which is what the intent queue was really for.
+  assert.equal(al.RenderBatches(accumulator, "Main"), true, "the submission is taken");
+  assert.equal(log.includes("prepare"), false, "but nothing is prepared yet");
   assert.equal(log.includes("beginRenderPass"), false, "and no pass is opened for nothing");
 
-  FinishPreparing("prepared");
-  await Promise.resolve();
+  const ended = al.EndSceneAsync();
 
-  assert.equal(al.RenderBatches(accumulator, "Main"), true, "the next frame draws");
-  assert.ok(log.includes("beginRenderPass"), "a pass was opened on demand");
-  assert.ok(log.includes("encode:prepared:true"), "the dispatcher got the live pass");
+  FinishPreparing({ batches: [ {}, {} ] });
+  await ended;
 
-  al.EndScene();
+  assert.ok(log.includes("encode:[object Object]:true") || log.some(entry => entry.startsWith("encode:")), "the dispatcher got the live pass");
+  assert.equal(al.GetDrawnBatchCount(), 2, "both batches counted");
 
   assert.deepEqual(
-    log.slice(log.indexOf("encode:prepared:true")),
-    [ "encode:prepared:true", "pass.end", "finish", "submit:command-buffer" ],
-    "the pass ends before the buffer is finished and submitted"
+    log.slice(log.indexOf("prepare")),
+    [ "prepare", "beginRenderPass", log.find(entry => entry.startsWith("encode:")), "pass.end", "finish", "submit:command-buffer" ],
+    "prepare, open, encode, end, finish, submit - in that order"
   );
   assert.equal(al.GetWorkQueue().GetRenderPass(), null, "and nothing is left open");
 });
 
-test("the same batches under two techniques prepare separately", () =>
+test("an accumulator that prepares to nothing opens no pass", async () =>
 {
-  const { al, log } = composed();
-  const accumulator = { id: "accumulator" };
+  const { al, log, FinishPreparing } = composed();
 
   al.CreateDevice();
   al.BeginScene();
-  al.RenderBatches(accumulator, "Main");
-  al.RenderBatches(accumulator, "Depth");
+  al.RenderBatches({ id: "empty" }, "Main");
 
-  // Depth and colour are two different sets of pipelines for the same geometry,
-  // so one prepared handle cannot serve both.
-  assert.equal(log.filter(entry => entry === "prepare").length, 2);
+  const ended = al.EndSceneAsync();
+
+  // Carbon submits an empty accumulator too, so this is not an error - but a
+  // pass opened for no draws is a pass that clears the target for nothing.
+  FinishPreparing({ batches: [] });
+  await ended;
+
+  assert.equal(log.includes("beginRenderPass"), false);
+  assert.equal(al.GetDrawnBatchCount(), 0);
 });
 
 test("the variants this backend cannot honour refuse instead of drawing", () =>
