@@ -169,7 +169,6 @@ test("PlanFrame refuses pipeline state until a WebGPU translator exists", () =>
 {
   const intents = [
     { type: "set-render-state", state: 7, value: 1 },
-    { type: "apply-standard-states", renderingMode: 1 },
     { type: "set-wireframe-rendering", enabled: true }
   ];
 

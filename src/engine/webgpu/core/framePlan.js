@@ -87,13 +87,7 @@ const INTENT_CLASSES = Object.freeze({
   "set-viewport": IntentClass.DYNAMIC_STATE,
   "set-fullscreen-viewport": IntentClass.DYNAMIC_STATE,
   "set-render-state": IntentClass.PIPELINE_STATE,
-  "apply-standard-states": IntentClass.PIPELINE_STATE,
-  "set-view": IntentClass.STATE,
-  "set-projection": IntentClass.STATE,
-  "set-view-transform": IntentClass.STATE,
   "set-wireframe-rendering": IntentClass.PIPELINE_STATE,
-  "set-upscaling-context-id": IntentClass.STATE,
-  "set-debug-renderer": IntentClass.STATE,
 
   "present-swap-chain": IntentClass.PRESENT
 });

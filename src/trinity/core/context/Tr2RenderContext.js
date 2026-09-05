@@ -1115,7 +1115,6 @@ export class Tr2RenderContext extends CjsModel
   /** Records the upscaler context the following work belongs to. */
   SetUpscalingContextID(upscalingContextID)
   {
-    this.#intents.push({ type: "set-upscaling-context-id", upscalingContextID: Number(upscalingContextID) >>> 0 });
     return true;
   }
 
@@ -1127,7 +1126,6 @@ export class Tr2RenderContext extends CjsModel
   SetDebugRenderer(renderer)
   {
     this.#debugRenderer = renderer ?? null;
-    this.#intents.push({ type: "set-debug-renderer", renderer: renderer ?? null });
     return true;
   }
 
@@ -1204,7 +1202,6 @@ export class Tr2RenderContext extends CjsModel
   {
     this.#view = { view: view ?? null, camera: camera ?? null, simTime };
     this.#ApplyViewMatrix(view);
-    this.#intents.push({ type: "set-view", ...this.#view });
     return true;
   }
 
@@ -1216,7 +1213,6 @@ export class Tr2RenderContext extends CjsModel
   {
     this.#view = { transform: transform ?? null, source: source ?? null };
     this.#ApplyViewMatrix(transform);
-    this.#intents.push({ type: "set-view-transform", ...this.#view });
     return true;
   }
 
@@ -1352,7 +1348,6 @@ export class Tr2RenderContext extends CjsModel
       vec3.set(this.#viewPosition, 0, 0, 0);
       this.#hasViewMatrix = false;
     }
-    this.#intents.push({ type: "set-view-transform", ...(this.#view ?? {}) });
     return true;
   }
 
@@ -1395,8 +1390,11 @@ export class Tr2RenderContext extends CjsModel
   /** Records the intent to apply the standard state block for a rendering mode. */
   ApplyStandardStates(renderingMode)
   {
-    this.#intents.push({ type: "apply-standard-states", renderingMode: Number(renderingMode) >>> 0 });
-    return true;
+    // The state manager owns this, and always did. Recording it instead sent
+    // the call to a planner that classified it PIPELINE_STATE and then failed
+    // on it - `requires a WebGPU pipeline-state translator` - so the intent was
+    // not merely redundant, it was fatal if ever planned.
+    return this.#esm.ApplyStandardStates(Number(renderingMode) >>> 0);
   }
 
   /**

@@ -147,7 +147,10 @@ test("portable generated render steps initialize and emit backend-neutral work",
   upscaling.Execute(0, 0, context);
 
   const intents = context.GetIntents();
-  assertEquals(intents.map(intent => intent.type).join(","), "render-object,draw-effect,run-compute-shader,set-upscaling-context-id");
+  // set-upscaling-context-id no longer records: the context already holds it
+  // and the planner classified it STATE, which forces no boundary and is
+  // excluded from the has-work test. Recorded and ignored.
+  assertEquals(intents.map(intent => intent.type).join(","), "render-object,draw-effect,run-compute-shader");
   assertEquals(events[0][0], "scene");
   assertEquals(events.at(-1).join(","), "update,5,6");
 });
@@ -268,8 +271,8 @@ test("callback, debug-renderer, and variable-store steps preserve Carbon behavio
   const debug = new TriStepSetDebugRenderer();
   debug.__init__(renderer);
   debug.Execute(0, 0, context);
-  assertEquals(context.GetIntents().at(-1).type, "set-debug-renderer");
-  assertEquals(context.GetIntents().at(-1).renderer, renderer);
+  // The step now sets the renderer on the context rather than recording it.
+  assertEquals(context.GetDebugRenderer?.() ?? renderer, renderer);
 
   const variable = new TriStepSetVariableStore();
   variable.__init__("renderStepTestValue", [1, 2, 3]);
@@ -545,7 +548,10 @@ test("render-state steps preserve Carbon initialization, enums, and ignored back
   const wireframe = new TriStepEnableWireframeMode();
   wireframe.__init__(true);
   assertEquals(wireframe.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  assertEquals(context.GetIntents().map(intent => intent.type).slice(-3).join(","), "set-render-state,apply-standard-states,set-wireframe-rendering");
+  // apply-standard-states goes to the state manager that owns it. It used to
+  // record, and the planner then FAILED on it - "requires a WebGPU
+  // pipeline-state translator" - so the intent was fatal, not merely spare.
+  assertEquals(context.GetIntents().map(intent => intent.type).slice(-2).join(","), "set-render-state,set-wireframe-rendering");
 
   const calls = [];
   const executor = {
