@@ -30,6 +30,7 @@ import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
+import { Tr2TextureArray } from "../Tr2TextureArray.js";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
 // the AL uploads against.
@@ -387,10 +388,44 @@ export class Tr2LightManager extends CjsModel
     return this.#frustum.GetPixelSizeAccross(record.position, record.radius);
   }
 
-  /** The slice a profile object occupies, assigned on first sight; the +1 bias is applied at pack time. */
+  /**
+   * The slice a profile occupies, +1 biased so 0 means "no profile"
+   * (Tr2Light.cpp:137: `m_lightProfile ? GetTextureIndex() + 1 : 0`).
+   *
+   * The index comes from the RESOURCE (`GetTextureIndex`, the texture-array
+   * slice - stable, shared across managers, reused after release), never
+   * from an invented per-manager counter: Carbon assigns slices through the
+   * process-wide light profile array (cpp:682-686), and a manager-local
+   * numbering diverges from what the shader samples the moment two managers
+   * or a released slot exist. A profile carrying a baked payload but no
+   * slice yet is registered here - Carbon does this in the resource's
+   * DoPrepare (Tr2LightProfileRes.cpp:95-99), which the layering forbids
+   * (resource cannot import trinity), so the manager performs it at the
+   * first pack instead; same array, same first-fit slot, one seam later.
+   * The first-sight map remains only for foreign profile objects that
+   * expose no GetTextureIndex.
+   */
   #ProfileSlot(profile)
   {
     if (!profile) return 0;
+    if (typeof profile.GetTextureIndex === "function")
+    {
+      let index = profile.GetTextureIndex();
+      if (index < 0 && typeof profile.RegisterProfileElement === "function")
+      {
+        const payload = typeof profile.GetPayload === "function" ? profile.GetPayload() : null;
+        if (payload && payload.samples)
+        {
+          const element = Tr2LightManager.getLightProfileArray().AddElement(payload);
+          if (element.IsValid())
+          {
+            profile.RegisterProfileElement(element);
+            index = element.GetElementIndex();
+          }
+        }
+      }
+      return index >= 0 ? index + 1 : 0;
+    }
     let slot = this.#profileSlots.get(profile);
     if (slot === undefined)
     {
@@ -399,6 +434,30 @@ export class Tr2LightManager extends CjsModel
     }
     return slot + 1;
   }
+
+  /**
+   * The process-wide light profile array (Tr2LightManager.cpp:682-686).
+   *
+   * Carbon's is a function-local static that deliberately survives manager
+   * destruction (ResetVariableStore re-registers the SAME live array,
+   * cpp:186) - so under instance-per-scene managers this stays a class
+   * static: two scenes share slices, and a profile's texture index means
+   * the same thing everywhere. Realizing it as a GPU texture array is the
+   * abstraction layer's job; consumers poll GetRevision or subscribe via
+   * OnTextureChange.
+   *
+   * @returns {Tr2TextureArray} The shared profile array.
+   */
+  static getLightProfileArray()
+  {
+    if (!Tr2LightManager.#lightProfileArray)
+    {
+      Tr2LightManager.#lightProfileArray = new Tr2TextureArray();
+    }
+    return Tr2LightManager.#lightProfileArray;
+  }
+
+  static #lightProfileArray = null;
 
   /** Packs #records into the 48-byte-per-light buffer per the contract layout. */
   #Pack()
