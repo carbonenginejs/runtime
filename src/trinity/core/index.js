@@ -3,6 +3,7 @@ export * from "./ITr2Renderable.js";
 export * from "./ITr2Updateable.js";
 export * from "./Tr2QuadRenderer.js";
 export * from "./Tr2Transform.js";
+export * from "./Tr2GpuResourcePool.js";
 export * from "./Tr2ShadowMap.js";
 export * from "./PriorityBlend.js";
 export * from "./TriSettings.js";

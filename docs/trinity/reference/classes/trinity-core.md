@@ -1233,6 +1233,36 @@ The range of faces, mip levels and pixels a map, update or copy applies to; unse
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2GpuResourcePool -->
+## `Tr2GpuResourcePool`
+
+Pooled scratch textures and buffers, recycled once nothing holds them; the class the shadow and volumetrics paths need to do their own work rather than delegating it.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2GpuResourcePool.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:GpuResourceHandle -->
+## `GpuResourceHandle`
+
+A borrowed pool resource, holding its record until explicitly released because JavaScript has no destructor to release on.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2GpuResourcePool.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TextureSize2D -->
+## `TextureSize2D`
+
+A width and height with Carbon's scaling, which clamps to one pixel rather than to zero.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2GpuResourcePool.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2RegisterMapAL -->
 ## `Tr2RegisterMapAL`
 
