@@ -5,6 +5,8 @@
 // flat fields inherited from Tr2PointLight, verified against
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
 import { carbon, impl, io, type } from "#schema";
+import { CjsResMan, ResourceRequirement } from "#resource";
+import { carbon as carbonMath } from "#math";
 import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";
 
@@ -40,14 +42,78 @@ export class Tr2TexturedPointLight extends Tr2PointLight
 
   #saturation = 1;
 
-  /**
-   * Records the saturation for the projected texture; the stored value is not
-   * read anywhere else in the port yet.
-   */
+  /** Carbon SetSaturation (cpp:37-40); consumed by Update below. */
   @carbon.method
   @impl.implemented
   SetSaturation(saturation)
   {
     this.#saturation = Number(saturation);
+  }
+
+  /**
+   * Carbon Initialize (cpp:16-23): fetch the texture when a path is
+   * authored, then the point-light base. The reach is the process-wide
+   * manager read at call time (the BeResMan pattern, CjsResMan.GetGlobal);
+   * with none installed a hand-composing caller assigns `texture` itself.
+   */
+  @carbon.method
+  @impl.implemented
+  Initialize()
+  {
+    if (this.texturePath)
+    {
+      this.SetTexturePath(this.texturePath);
+    }
+    return super.Initialize();
+  }
+
+  /**
+   * Carbon OnModified (cpp:42-49): a texturePath change refetches; the
+   * settled-state notification compares against the resolved resource's
+   * identity rather than Be::Var pointers.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("CjsModel notifications expose settled state rather than Be::Var identity; the path is refetched whenever notified, which is idempotent for an unchanged path via the manager cache.")
+  OnModified()
+  {
+    this.SetTexturePath(this.texturePath);
+  }
+
+  /**
+   * Carbon SetTexturePath (cpp:31-35): null the resource, then refetch.
+   *
+   * @param {string} path Texture resource path.
+   */
+  @carbon.method
+  @impl.implemented
+  SetTexturePath(path)
+  {
+    this.texture = null;
+    const resourceManager = CjsResMan.GetGlobal();
+    if (!resourceManager || !path) return;
+    this.texture = resourceManager.GetResource(path, {
+      requirement: ResourceRequirement.TEXTURE
+    });
+  }
+
+  /**
+   * Carbon Update (cpp:51-56): the light colour becomes the texture's
+   * average colour run through Carbon's Saturate - the grey-to-colour lerp
+   * (Color_inline.h:161), not a clamp. The average is a resource
+   * capability, read as a GetAverageColor duck exactly as EveBannerSet
+   * does; a resource without it (or not yet loaded) leaves the colour
+   * untouched, matching Carbon's null-texture early-out.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("TriTextureRes precomputes m_averageColor at bitmap load; the runtime resource exposes it as a GetAverageColor capability where an adapter provides one, so absence leaves the colour untouched exactly like Carbon's null texture.")
+  Update()
+  {
+    const texture = this.texture;
+    if (!texture || typeof texture.GetAverageColor !== "function") return;
+    const average = texture.GetAverageColor();
+    if (!average) return;
+    carbonMath.color.saturate(this.color, average, this.#saturation);
   }
 }

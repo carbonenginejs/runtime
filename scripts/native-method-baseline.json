@@ -1549,11 +1549,7 @@
   ],
   "Tr2InteriorLightSource": [
     "GetDebugOptions",
-    "Initialize",
-    "IsInFrustum",
-    "PopulateLightData",
-    "RenderDebugInfo",
-    "Update"
+    "RenderDebugInfo"
   ],
   "Tr2InteriorPlaceable": [
     "AddReflectionMap",
@@ -2575,9 +2571,6 @@
     "GetType",
     "GetWidth",
     "OnTextureChange"
-  ],
-  "Tr2TexturedPointLight": [
-    "SetTexturePath"
   ],
   "Tr2TexturedSpriteObject": [
     "GetTexturePrimary",
