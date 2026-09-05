@@ -471,10 +471,18 @@ function emitVertexAnnotationTarget(set, vertexCount, classes = {})
  * @param {Gr2NodeClasses} [classes] Opt-in node class map.
  * @returns {object} Emitted mesh record.
  */
-function emitMesh(mesh, classes = {})
+function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
 {
     const o = {};
     o.name = mesh.Name ?? "";
+    // Granny files carry no mesh-level AABB (only per-bone OBBs), so these
+    // stay zeros unless the caller opts into `rebuildMissingBounds` -
+    // then real bounds are computed from the position channel below, per
+    // group and for the mesh. Zeros starved every consumer that treats
+    // bounds as load-bearing: ccpwgl's logical LOD size-culled every
+    // gr2-sourced mesh to nothing the day its visibility gate armed. The
+    // old gr2_json path always regenerated from vertices; here it is an
+    // option because it walks every referenced vertex once per group.
     o.minBounds = [ 0, 0, 0 ];
     o.maxBounds = [ 0, 0, 0 ];
 
@@ -499,7 +507,7 @@ function emitMesh(mesh, classes = {})
         i16arr = scalarArray(topo.Indices16),
         groups = topo.Groups || [];
     o.indices = [];
-    let indices = null, bpi = 0;
+    let indices = null, bpi = 0, meshBounds = null;
     if (i32arr.length) { indices = i32arr; bpi = 4; }
     else if (i16arr.length) { indices = i16arr.map(x => x & 0xffff); bpi = 2; }
     if (indices)
@@ -513,15 +521,69 @@ function emitMesh(mesh, classes = {})
             {
                 faces[i] = indices[start + i] >>> 0;
             }
-            o.indices.push(build(classes, "IndexGroup", {
+            const group = {
                 name: `area_${g.MaterialIndex}`,
                 bytesPerIndex: bpi,
                 faces
-            }));
+            };
+            if (rebuildMissingBounds)
+            {
+                const bounds = boundsFromFaces(o.vertex.position, faces);
+                if (bounds)
+                {
+                    group.minBounds = bounds.min;
+                    group.maxBounds = bounds.max;
+                    if (!meshBounds)
+                    {
+                        meshBounds = { min: [ ...bounds.min ], max: [ ...bounds.max ] };
+                    }
+                    else
+                    {
+                        for (let k = 0; k < 3; k++)
+                        {
+                            if (bounds.min[k] < meshBounds.min[k]) meshBounds.min[k] = bounds.min[k];
+                            if (bounds.max[k] > meshBounds.max[k]) meshBounds.max[k] = bounds.max[k];
+                        }
+                    }
+                }
+            }
+            o.indices.push(build(classes, "IndexGroup", group));
         }
+    }
+    if (meshBounds)
+    {
+        o.minBounds = meshBounds.min;
+        o.maxBounds = meshBounds.max;
     }
     return build(classes, "Mesh", o);
 }
+
+/**
+ * Axis-aligned bounds of the positions a face list references.
+ *
+ * @param {number[]} positions Flat xyz position channel.
+ * @param {number[]} faces Vertex indices.
+ * @returns {{min: number[], max: number[]}|null} Bounds, or null without data.
+ */
+function boundsFromFaces(positions, faces)
+{
+    if (!positions || !positions.length || !faces.length) return null;
+    const
+        min = [ Infinity, Infinity, Infinity ],
+        max = [ -Infinity, -Infinity, -Infinity ];
+    for (let i = 0; i < faces.length; i++)
+    {
+        const base = faces[i] * 3;
+        for (let k = 0; k < 3; k++)
+        {
+            const v = positions[base + k];
+            if (v < min[k]) min[k] = v;
+            if (v > max[k]) max[k] = v;
+        }
+    }
+    return Number.isFinite(min[0]) ? { min, max } : null;
+}
+
 
 /**
  * Project a reflected Granny skeleton bone.
@@ -689,12 +751,12 @@ function emitAnimation(anim, classes = {})
  */
 export function projectShared(fileInfo, version, options = {})
 {
-    const { classes = {}, ...hydrationOptions } = options;
+    const { classes = {}, rebuildMissingBounds = false, ...hydrationOptions } = options;
     const skeletonCache = new WeakMap();
     return build(classes, "Root", {
         grannyFileFormatRevision: version | 0,
         grannyFileSource: fileInfo.FromFileName ?? "",
-        meshes: (fileInfo.Meshes || []).filter(m => m).map(m => emitMesh(m, classes)),
+        meshes: (fileInfo.Meshes || []).filter(m => m).map(m => emitMesh(m, classes, rebuildMissingBounds)),
         models: (fileInfo.Models || []).filter(m => m).map(m => emitModel(m, fileInfo, classes, skeletonCache)),
         animations: (fileInfo.Animations || []).filter(a => a).map(a => emitAnimation(a, classes))
     }, hydrationOptions);

@@ -24,6 +24,7 @@ export const DEFAULT_VALUES = Object.freeze({
     rebuildMissingNormals: false,
     rebuildMissingTangents: false,
     rebuildMissingBiNormals: false,
+    rebuildMissingBounds: false,
     classes: Object.freeze({})
 });
 
@@ -34,6 +35,7 @@ const OPTION_KEYS = new Set([
     "rebuildMissingNormals",
     "rebuildMissingTangents",
     "rebuildMissingBiNormals",
+    "rebuildMissingBounds",
     "classes"
 ]);
 
@@ -61,6 +63,7 @@ function cloneValues(values)
         rebuildMissingNormals: values.rebuildMissingNormals,
         rebuildMissingTangents: values.rebuildMissingTangents,
         rebuildMissingBiNormals: values.rebuildMissingBiNormals,
+        rebuildMissingBounds: values.rebuildMissingBounds,
         classes: { ...classMap(values) }
     };
 }
@@ -178,6 +181,16 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {})
     if (rebuildMissingBiNormals !== undefined)
     {
         values.rebuildMissingBiNormals = validateRule("rebuildMissingBiNormals", rebuildMissingBiNormals);
+    }
+
+    const rebuildMissingBounds = optionValue(options, [ "rebuildMissingBounds" ]);
+    if (rebuildMissingBounds !== undefined)
+    {
+        if (typeof rebuildMissingBounds !== "boolean")
+        {
+            throw new TypeError("CjsGr2Format rebuildMissingBounds option must be true or false");
+        }
+        values.rebuildMissingBounds = rebuildMissingBounds;
     }
 
     if (Object.hasOwn(options, "classes"))
@@ -397,7 +410,8 @@ function buildJson(reader, raw, values)
     return finishProjection(reader, emitJson(raw.fileInfo, raw.version, {
         classes: values.emit === OUTPUT_GR2 || ((values.emit === OUTPUT_JSON || values.emit === OUTPUT_GR2_JSON) && hasClasses(values.classes))
             ? values.classes
-            : {}
+            : {},
+        rebuildMissingBounds: values.rebuildMissingBounds
     }), raw, values);
 }
 
@@ -405,7 +419,7 @@ function buildCmf(reader, raw, values)
 {
     const shared = finishProjection(
         reader,
-        projectShared(raw.fileInfo, raw.version),
+        projectShared(raw.fileInfo, raw.version, { rebuildMissingBounds: values.rebuildMissingBounds }),
         raw,
         values
     );
