@@ -15,6 +15,7 @@ import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { TriBatchType } from "#consts/graphics";
 import { float16 } from "#math/carbon/float16";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition.js";
 
 // Carbon PoolVertex (EveSpriteSet.h:56-70): 32 bytes -
 // position float3 @0; TEXCOORD0 half4 @12 = activation, blinkPhase,
@@ -22,19 +23,16 @@ import { float16 } from "#math/carbon/float16";
 // COLOR0 @24; COLOR1 (warp) @28.
 const POOL_VERTEX_SIZE = 32;
 
-// Carbon PoolVertex::GetDefinition (EveSpriteSet.cpp:18-33): one float quad
-// corner on stream 0, then the instance layout above on stream 1, step 1.
-const QUAD_CORNER_ELEMENT = Object.freeze({
-  usage: "TEXCOORD", usageIndex: 5, type: "FLOAT32_1", offset: 0, stream: 0
-});
-const POOL_VERTEX_DEFINITION = Object.freeze([
-  QUAD_CORNER_ELEMENT,
-  Object.freeze({ usage: "POSITION", usageIndex: 0, type: "FLOAT32_3", offset: 0, stream: 1, instanceStepRate: 1 }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 0, type: "FLOAT16_4", offset: 12, stream: 1, instanceStepRate: 1 }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 1, type: "FLOAT16_2", offset: 20, stream: 1, instanceStepRate: 1 }),
-  Object.freeze({ usage: "COLOR", usageIndex: 0, type: "UBYTE_4_NORM", offset: 24, stream: 1, instanceStepRate: 1 }),
-  Object.freeze({ usage: "COLOR", usageIndex: 1, type: "UBYTE_4_NORM", offset: 28, stream: 1, instanceStepRate: 1 })
-]);
+// Carbon PoolVertex::GetDefinition (EveSpriteSet.cpp:18-33), built the way
+// Carbon builds it - through Tr2VertexDefinition.Add with its automatic
+// per-stream offsets, which land exactly on the struct layout above.
+const POOL_VERTEX_DEFINITION = new Tr2VertexDefinition();
+POOL_VERTEX_DEFINITION.Add("FLOAT32_1", "TEXCOORD", 5);
+POOL_VERTEX_DEFINITION.Add("FLOAT32_3", "POSITION", 0, 1, 1);
+POOL_VERTEX_DEFINITION.Add("FLOAT16_4", "TEXCOORD", 0, 1, 1);
+POOL_VERTEX_DEFINITION.Add("FLOAT16_2", "TEXCOORD", 1, 1, 1);
+POOL_VERTEX_DEFINITION.Add("UBYTE_4_NORM", "COLOR", 0, 1, 1);
+POOL_VERTEX_DEFINITION.Add("UBYTE_4_NORM", "COLOR", 1, 1, 1);
 
 /** One float colour channel as the byte Carbon's uint32 Color carries. */
 function colorByte(value)

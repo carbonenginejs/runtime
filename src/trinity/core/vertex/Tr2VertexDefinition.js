@@ -42,9 +42,121 @@ const interned = [];
 const handles = new WeakMap();
 
 
+/**
+ * One vertex element (Carbon Tr2VertexDefinition::Item, h:123-141).
+ *
+ * Carbon's usage and data type are bit-coded enums; the runtime's element
+ * vocabulary is the string names throughout (payload readers, the quad
+ * renderer, the binding-plan matcher below), so the item carries the names
+ * and the byte arithmetic derives from them.
+ */
+export class Tr2VertexDefinitionItem
+{
+    usage = "POSITION";
+
+    usageIndex = 0;
+
+    type = "FLOAT32_1";
+
+    offset = 0;
+
+    stream = 0;
+
+    instanceStepRate = 0;
+}
+
+const USAGE_NAMES = Object.keys(Tr2VertexUsageCode);
+
+const DATA_TYPE_BASE_BYTES = {
+    BYTE: 1, UBYTE: 1,
+    SHORT: 2, USHORT: 2,
+    INT32: 4, UINT32: 4,
+    FLOAT16: 2, UFLOAT16: 2,
+    FLOAT32: 4, UFLOAT32: 4
+};
+
 /** A mesh's vertex element list, and the matching of it to a shader's inputs. */
 export class Tr2VertexDefinition
 {
+  // ---------------------------------------------------------------------
+  // The AUTHORING half - the actual Tr2VertexDefinition (trinityal/
+  // Tr2VertexDefinition.h): m_items, the per-stream m_nextOffset ledger,
+  // Add with automatic offsets, Find, empty. This is what a hand-built
+  // instance layout is (Carbon builds every one of them through Add -
+  // EveSpriteSet.cpp:18-33, EveTacticalOverlay.cpp:31-66); a literal
+  // element table is not a Carbon shape.
+  // ---------------------------------------------------------------------
+
+  /** Carbon m_items. */
+  items = [];
+
+  /** Carbon m_nextOffset[OFFSET_COUNT] (h:153-159): per-stream offset ledger. */
+  nextOffset = [ 0, 0, 0, 0 ];
+
+  /** Carbon empty() (h:145-148). */
+  empty()
+  {
+    return this.items.length === 0;
+  }
+
+  /**
+   * Carbon Add (h:174-181): append an item at the stream's current offset
+   * and advance the ledger by the type's byte size. `stepRate` is "almost
+   * always a bool that indicates if the added item is coming from instanced
+   * data" - Carbon's own words.
+   *
+   * @param {string} type Data type name, e.g. "FLOAT32_3", "UBYTE_4_NORM".
+   * @param {string|number} usage Usage name or Tr2VertexUsageCode ordinal.
+   * @param {number} [usageIndex]
+   * @param {number} [stream]
+   * @param {number} [stepRate]
+   * @returns {Tr2VertexDefinitionItem} The item just added.
+   */
+  Add(type, usage, usageIndex = 0, stream = 0, stepRate = 0)
+  {
+    const item = new Tr2VertexDefinitionItem();
+    item.usage = typeof usage === "number" ? USAGE_NAMES[usage] : String(usage);
+    item.usageIndex = usageIndex;
+    item.type = String(type);
+    item.offset = this.nextOffset[stream] ?? 0;
+    item.stream = stream;
+    item.instanceStepRate = stepRate;
+    this.nextOffset[stream] = item.offset + Tr2VertexDefinition.dataTypeSizeInBytes(item.type);
+    this.items.push(item);
+    return item;
+  }
+
+  /**
+   * Carbon Find (h:169-172): the first item with the usage, and optionally
+   * the usage index; null when absent.
+   */
+  Find(usage, usageIndex = null)
+  {
+    const name = typeof usage === "number" ? USAGE_NAMES[usage] : String(usage);
+    for (const item of this.items)
+    {
+      if (item.usage === name && (usageIndex === null || item.usageIndex === usageIndex))
+      {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  /** Carbon GetDataTypeSizeInMembers (h:183-186), from the type NAME. */
+  static dataTypeSizeInMembers(type)
+  {
+    const match = /_([1-4])(?:_NORM)?$/.exec(String(type));
+    return match ? Number(match[1]) : 0;
+  }
+
+  /** Carbon GetDataTypeSizeInBytes (h:188-205), from the type NAME. */
+  static dataTypeSizeInBytes(type)
+  {
+    const base = DATA_TYPE_BASE_BYTES[String(type).split("_")[0]];
+    return base ? base * Tr2VertexDefinition.dataTypeSizeInMembers(type) : 0;
+  }
+
   // Carbon Tr2VertexDefinition::UsageCode (Tr2VertexDefinition.h:17-30). Note
   // BLENDINDICES=6 before BLENDWEIGHTS=7; ccpwgl's GLES-v8 lineage has them
   // transposed and translates at its reader boundary.
@@ -57,9 +169,21 @@ export class Tr2VertexDefinition
   // different input layouts. This is the INTERN key, and it is deliberately
   // stricter than the match key below.
 
+  // ---------------------------------------------------------------------
+  // The MATCHER half. NAMING DEBT, recorded 2026-09-06: everything below is
+  // Carbon-cited behaviour that belongs to OTHER owners - the intern table
+  // is Tr2EffectStateManager's (s_vertexLayoutMap), the element match and
+  // binding plan are the vertex-layout AL's (Tr2VertexLayoutALDx11). It was
+  // parked under this class's name before the class had its real surface.
+  // Relocation is pending; every static below accepts either a plain
+  // element array or a Tr2VertexDefinition instance.
+  // ---------------------------------------------------------------------
+
   /** Whether two element lists are the same declaration, field for field. */
-  static isSameDefinition(first, second)
+  static isSameDefinition(firstDefinition, secondDefinition)
   {
+    const first = firstDefinition?.items ?? firstDefinition;
+    const second = secondDefinition?.items ?? secondDefinition;
     if (first === second) return true;
     if (!first || !second || first.length !== second.length) return false;
 
@@ -94,7 +218,7 @@ export class Tr2VertexDefinition
    */
   static getHandle(elements)
   {
-    const items = elements ?? [];
+    const items = elements?.items ?? elements ?? [];
     const memoised = handles.get(items);
 
     if (memoised !== undefined) return memoised;
@@ -127,8 +251,9 @@ export class Tr2VertexDefinition
   // compare the same two fields and no others.
 
   /** The mesh element serving a shader input, or null when the mesh has none. */
-  static findElement(elements, input)
+  static findElement(elementsOrDefinition, input)
   {
+    const elements = elementsOrDefinition?.items ?? elementsOrDefinition;
     if (!elements) return null;
 
     for (const element of elements)

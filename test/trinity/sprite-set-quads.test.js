@@ -79,7 +79,11 @@ test("registration carries the additive batch, stride 32 and the hash key", () =
     assert.equal(instanceSize, 32);
     assert.equal(quadCount, 1);
     assert.equal(definition, EveSpriteSet.getDefinition());
-    assert.equal(definition.length, 6);
+    // A real Tr2VertexDefinition built through Add - Carbon's automatic
+    // per-stream offsets land exactly on the 32-byte PoolVertex layout.
+    assert.equal(definition.items.length, 6);
+    assert.deepEqual(definition.items.map(item => item.offset), [ 0, 0, 12, 20, 24, 28 ]);
+    assert.deepEqual(definition.nextOffset.slice(0, 2), [ 4, 32 ]);
     assert.equal(effect, set.effect);
     assert.equal(typeof batchType, "number");
 });

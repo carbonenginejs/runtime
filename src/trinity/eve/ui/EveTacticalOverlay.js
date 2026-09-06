@@ -10,60 +10,32 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
+import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition.js";
 
 
 const effectIdentities = new WeakMap();
 let nextEffectIdentity = 1;
 
-const QUAD_CORNER_ELEMENT = Object.freeze({
-  usage: "TEXCOORD",
-  usageIndex: 5,
-  type: "FLOAT32_1",
-  offset: 0,
-  stream: 0,
-  instanceStepRate: 0
-});
-const INSTANCE_DATA_ELEMENT = Object.freeze({
-  usage: "TEXCOORD",
-  usageIndex: 0,
-  type: "FLOAT32_4",
-  offset: 0,
-  stream: 1,
-  instanceStepRate: 1
-});
-// These three tables ARE Carbon's AnchorVertex/SphereConnectorVertex/
+// These three ARE Carbon's AnchorVertex/SphereConnectorVertex/
 // VelocityConnectorVertex::GetDefinition statics (EveTacticalOverlay.cpp:
 // 31-66) - three nested-struct methods the schema scrape collapses to the
 // single name "GetDefinition", which is why the parity baseline carries a
 // GetDefinition entry for this class despite all three being ported here.
-const ANCHOR_DEFINITION = Object.freeze([
-  QUAD_CORNER_ELEMENT,
-  INSTANCE_DATA_ELEMENT
-]);
-const CONNECTOR_DEFINITION = Object.freeze([
-  QUAD_CORNER_ELEMENT,
-  INSTANCE_DATA_ELEMENT,
-  Object.freeze({
-    usage: "TEXCOORD",
-    usageIndex: 1,
-    type: "FLOAT32_1",
-    offset: 16,
-    stream: 1,
-    instanceStepRate: 1
-  })
-]);
-const VELOCITY_DEFINITION = Object.freeze([
-  QUAD_CORNER_ELEMENT,
-  INSTANCE_DATA_ELEMENT,
-  Object.freeze({
-    usage: "TEXCOORD",
-    usageIndex: 1,
-    type: "FLOAT32_4",
-    offset: 16,
-    stream: 1,
-    instanceStepRate: 1
-  })
-]);
+// Built the way Carbon builds every definition: Tr2VertexDefinition.Add
+// with its automatic per-stream offsets.
+const ANCHOR_DEFINITION = new Tr2VertexDefinition();
+ANCHOR_DEFINITION.Add("FLOAT32_1", "TEXCOORD", 5);
+ANCHOR_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 0, 1, 1);
+
+const CONNECTOR_DEFINITION = new Tr2VertexDefinition();
+CONNECTOR_DEFINITION.Add("FLOAT32_1", "TEXCOORD", 5);
+CONNECTOR_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 0, 1, 1);
+CONNECTOR_DEFINITION.Add("FLOAT32_1", "TEXCOORD", 1, 1, 1);
+
+const VELOCITY_DEFINITION = new Tr2VertexDefinition();
+VELOCITY_DEFINITION.Add("FLOAT32_1", "TEXCOORD", 5);
+VELOCITY_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 0, 1, 1);
+VELOCITY_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 1, 1, 1);
 
 
 function getEffectKey(effect)
