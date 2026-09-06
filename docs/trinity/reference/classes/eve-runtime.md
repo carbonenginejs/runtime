@@ -710,6 +710,16 @@ EveChildEffectPropagator (eve/child) - generated from schema shapeHash 0f2a96e8.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:EveCloudVolumeTextureParameter -->
+## `EveCloudVolumeTextureParameter`
+
+Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it.
+
+- Export: @carbonenginejs/runtime/trinity/eve
+- Source: src/trinity/eve/child/EveCloudVolumeTextureParameter.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:EveChildExplosion -->
 ## `EveChildExplosion`
 

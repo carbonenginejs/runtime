@@ -1493,6 +1493,16 @@ One consumer's cursor into a ring buffer, holding where its rows landed this fra
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2StreamingBitmapSaver -->
+## `Tr2StreamingBitmapSaver`
+
+Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2StreamingBitmapSaver.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2Renderer -->
 ## `Tr2Renderer`
 

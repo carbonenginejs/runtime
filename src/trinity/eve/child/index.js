@@ -5,6 +5,7 @@ export * from "./EveChildBehaviorSystem.js";
 export * from "./EveChildBulletStorm.js";
 export * from "./EveChildCloud.js";
 export * from "./EveChildContainer.js";
+export * from "./EveCloudVolumeTextureParameter.js";
 export * from "./EveChildEffectPropagator.js";
 export * from "./EveChildFogVolume.js";
 export * from "./EveChildInheritProperties.js";

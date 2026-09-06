@@ -366,11 +366,6 @@
     "ThreadProcAnimated",
     "Update"
   ],
-  "EveCloudVolumeTextureParameter": [
-    "GetHashValue",
-    "GetParameterName",
-    "RebuildEffectHandles"
-  ],
   "EveConnector": [
     "AddCircle",
     "AddCurvedLine",
@@ -2195,11 +2190,6 @@
     "PyAppendVertices",
     "PySetVertices"
   ],
-  "Tr2Sprite2dPickingMask": [
-    "GetMaskPath",
-    "SampleMask",
-    "SetMaskPath"
-  ],
   "Tr2Sprite2dPolygon": [
     "GetColor",
     "PyAppendTriangles",
@@ -2362,11 +2352,6 @@
   ],
   "Tr2StaticEmitter": [
     "DoSpawn"
-  ],
-  "Tr2StreamingBitmapSaver": [
-    "HasStartedBatch",
-    "IsSaving",
-    "StartSaving"
   ],
   "Tr2SwapChain": [
     "GetHeight",

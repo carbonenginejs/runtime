@@ -20,16 +20,6 @@ Holds the editable voxel dimensions, bitmap and texture backing, control balls, 
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:EveCloudVolumeTextureParameter -->
-## `EveCloudVolumeTextureParameter`
-
-Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/eve/child/EveCloudVolumeTextureParameter.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:EveOccluder -->
 ## `EveOccluder`
 
@@ -220,15 +210,6 @@ Defines a textured 2D line segment with endpoint positions, colors, widths, and 
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2Sprite2dPickingMask -->
-## `Tr2Sprite2dPickingMask`
-
-Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/sprite2d/Tr2Sprite2dPickingMask.js`
-- Visibility: Public
-- Kind: Carbon generated
 
 <!-- class:Tr2Sprite2dStretch -->
 ## `Tr2Sprite2dStretch`
@@ -397,16 +378,6 @@ Configures screen-space subsurface scattering width, front-scatter color, scene 
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/trinityCore/Tr2SSSSS.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:Tr2StreamingBitmapSaver -->
-## `Tr2StreamingBitmapSaver`
-
-Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2StreamingBitmapSaver.js`
 - Visibility: Public
 - Kind: Carbon generated
 

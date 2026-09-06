@@ -3,6 +3,7 @@ export * from "./Tr2Sprite2dContainerBase.js";
 export * from "./Tr2Sprite2dD3DVertex.js";
 export * from "./Tr2Sprite2dLineTrace.js";
 export * from "./Tr2Sprite2dLineTraceVertex.js";
+export * from "./Tr2Sprite2dPickingMask.js";
 export * from "./Tr2Sprite2dPolygon.js";
 export * from "./Tr2Sprite2dRenderJob.js";
 export * from "./Tr2Sprite2dScene.js";

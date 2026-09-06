@@ -25,6 +25,16 @@ Stores editable Sprite2D line-strip vertices and validates wrapped append input.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:Tr2Sprite2dPickingMask -->
+## `Tr2Sprite2dPickingMask`
+
+Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite.
+
+- Export: `@carbonenginejs/runtime/trinity`
+- Source: `src/trinity/sprite2d/Tr2Sprite2dPickingMask.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Tr2Sprite2dPolygon -->
 ## `Tr2Sprite2dPolygon`
 
