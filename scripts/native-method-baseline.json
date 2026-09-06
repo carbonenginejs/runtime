@@ -923,8 +923,7 @@
   ],
   "Formation": [
     "GetDebugOptions",
-    "RenderDebugInfo",
-    "calculateFormationInertia"
+    "RenderDebugInfo"
   ],
   "IEveTransform": [
     "Update"

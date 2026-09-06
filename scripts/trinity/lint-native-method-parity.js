@@ -193,7 +193,15 @@ async function ReadJavaScriptClasses(directory)
         if (member.type === "ClassPrivateMethod" && member.kind !== "constructor")
         {
           const privateName = member.key?.id?.name;
-          if (privateName) methods.add(privateName);
+          if (privateName)
+          {
+            methods.add(privateName);
+            // Carbon itself sometimes declares a private camelCase (Formation::
+            // calculateFormationInertia) while the library casing rule makes
+            // the port PascalCase (#CalculateFormationInertia); credit the
+            // first-char-lowered spelling too.
+            methods.add(privateName.charAt(0).toLowerCase() + privateName.slice(1));
+          }
           continue;
         }
         if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
