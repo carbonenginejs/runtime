@@ -163,7 +163,15 @@ async function ReadJavaScriptClasses(directory)
   {
     const relativeFile = path.relative(root, file).split(path.sep).join("/");
     if (relativeFile.startsWith("src/trinity/dropped/")) continue;
-    if (relativeFile.startsWith("src/trinityal/")) continue;
+    // ONLY THE BACKEND IS UNGATED. CjsWebgpu* are ours - a WebGPU backend has
+    // no Carbon counterpart to be measured against. The AL types beside it do:
+    // src/trinityal/*.js and src/trinityal/stub/** are ports of Carbon's Tr2*AL
+    // family and were gated at their old paths under src/trinity/core/al.
+    //
+    // The 2026-09-06 rename briefly widened this from "src/engine/" to all of
+    // src/trinityal, which silently dropped ~20 ported classes out of the
+    // ratchet. That was a mechanical path rewrite, not a decision.
+    if (relativeFile.startsWith("src/trinityal/webgpu/")) continue;
     const source = await fs.readFile(file, "utf8");
     let ast;
     try
