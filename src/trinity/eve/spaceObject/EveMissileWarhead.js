@@ -7,6 +7,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
+import { ShaderType } from "#consts/render-context";
 import { EveTransform } from "./EveTransform.js";
 import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.js";
 
@@ -435,11 +436,52 @@ export class EveMissileWarhead extends EveTransform
     return data;
   }
 
+  /**
+   * Carbon GetPerObjectDataSize (EveMissileWarhead.cpp:617-628): zero for the
+   * pixel stage, else the 64-byte world matrix plus the 16-byte missile-size
+   * vector. A pure size contract that must match UpdatePerObjectBuffer's
+   * layout below.
+   */
+  @carbon.method
+  @impl.implemented
+  GetPerObjectDataSize(shaderType)
+  {
+    return shaderType === ShaderType.PIXEL_SHADER ? 0 : 64 + 16;
+  }
+
+  /**
+   * Carbon UpdatePerObjectBuffer (cpp:630-641): packs Transpose(world) then
+   * Vector4(warheadRadius, warheadLength, 0, 0) into caller-owned CPU staging
+   * bytes for every non-pixel stage. No AL object is touched here; the upload
+   * happens on the engine side of the boundary.
+   *
+   * @param {number} shaderType A ShaderType value.
+   * @param {number} _size Caller's byte budget (Carbon ignores it too).
+   * @param {DataView} data Caller-owned staging view, little-endian.
+   */
+  @carbon.method
+  @impl.implemented
+  UpdatePerObjectBuffer(shaderType, _size, data)
+  {
+    if (shaderType === ShaderType.PIXEL_SHADER) return;
+
+    mat4.transpose(EveMissileWarhead.#transposedWorld, this.worldTransform);
+    for (let i = 0; i < 16; i++)
+    {
+      data.setFloat32(i * 4, EveMissileWarhead.#transposedWorld[i], true);
+    }
+    data.setFloat32(64, this.warheadRadius, true);
+    data.setFloat32(68, this.warheadLength, true);
+    data.setFloat32(72, 0, true);
+    data.setFloat32(76, 0, true);
+  }
+
   static State = State;
 
   static StateChangeEvent = StateChangeEvent;
 
   static #nextNoisePhase = 1;
+  static #transposedWorld = mat4.create();
   static #zero = vec3.create();
   static #localSphere = vec4.create();
   static #positionNow = vec3.create();

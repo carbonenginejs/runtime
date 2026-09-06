@@ -1096,6 +1096,19 @@ export class AudGameObjResource extends CjsModel
     return result;
   }
 
+  /**
+   * Carbon PrepareEvent (AudGameObjResource.cpp:610-620): trim the event name
+   * and, unless bypassed, prepend this emitter's prefix. The module helper
+   * below carries the logic so the two internal call sites (cpp:184, cpp:311
+   * equivalents) can use it without an instance.
+   */
+  @carbon.method
+  @impl.implemented
+  PrepareEvent(event, bypassPrefix = false)
+  {
+    return PrepareEvent(this.eventPrefix, event, bypassPrefix);
+  }
+
   // Realization seams (Carbon globals g_audioManager / g_staticDataRepository
   // and the AK:: call surface). Headless default null.
   static manager = null;

@@ -227,6 +227,17 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   }
 
   /**
+   * Carbon UpdateTransformFromParent (EveChildFogVolume.cpp:124-129): the fog
+   * volume ignores its own local offset chain and adopts the parent's world
+   * matrix verbatim - the override that makes fog volumes track parents.
+   */
+  @impl.implemented
+  UpdateTransformFromParent(params)
+  {
+    this.UpdateTransform(params.localToWorldTransform);
+  }
+
+  /**
    * Rebuilds the world transform and bounding sphere, then resolves the fog
    * intensity for the frame: with no volumes the authored intensity applies
    * directly; otherwise the camera is moved into local space and, only while it

@@ -9,6 +9,40 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { AsPerSpotLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition.js";
+import { TriBatchType } from "#consts/graphics";
+
+
+// Carbon's two nested pool-vertex layouts, BUILT as Carbon builds them
+// (GlowPoolVertex::GetDefinition, EveSpotlightSet.cpp:16-32;
+// ConePoolVertex::GetDefinition, cpp:34-49). Stream 0 is the per-corner
+// TEXCOORD4 float; stream 1 is the instance data. The ledger lands exactly on
+// each struct's size: glow 3xVector4 + 12 halves = 72, cone 3xVector4 +
+// 6 halves = 60 (EveSpotlightSet.h:110-137).
+const GLOW_POOL_VERTEX_DEFINITION = new Tr2VertexDefinition();
+GLOW_POOL_VERTEX_DEFINITION.Add("FLOAT32_1", "TEXCOORD", 4);
+GLOW_POOL_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 0, 1, 1);
+GLOW_POOL_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 1, 1, 1);
+GLOW_POOL_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 2, 1, 1);
+GLOW_POOL_VERTEX_DEFINITION.Add("FLOAT16_4", "COLOR", 0, 1, 1);
+GLOW_POOL_VERTEX_DEFINITION.Add("FLOAT16_4", "COLOR", 1, 1, 1);
+GLOW_POOL_VERTEX_DEFINITION.Add("FLOAT16_4", "TEXCOORD", 3, 1, 1);
+
+const CONE_POOL_VERTEX_DEFINITION = new Tr2VertexDefinition();
+CONE_POOL_VERTEX_DEFINITION.Add("FLOAT32_1", "TEXCOORD", 4);
+CONE_POOL_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 0, 1, 1);
+CONE_POOL_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 1, 1, 1);
+CONE_POOL_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 2, 1, 1);
+CONE_POOL_VERTEX_DEFINITION.Add("FLOAT16_4", "COLOR", 0, 1, 1);
+CONE_POOL_VERTEX_DEFINITION.Add("FLOAT16_2", "TEXCOORD", 3, 1, 1);
+
+/** sizeof(GlowPoolVertex) / sizeof(ConePoolVertex): the stream-1 ledger. */
+const GLOW_POOL_VERTEX_SIZE = GLOW_POOL_VERTEX_DEFINITION.nextOffset[1];
+const CONE_POOL_VERTEX_SIZE = CONE_POOL_VERTEX_DEFINITION.nextOffset[1];
+
+// Carbon's anonymous-namespace quad counts (EveSpotlightSet.cpp:53-54).
+const CONE_QUAD_COUNT = 4;
+const SPRITE_QUAD_COUNT = 2;
 
 
 /**
@@ -126,6 +160,58 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   SetGlowEffect(effect)
   {
     this.glowEffect = effect ?? null;
+  }
+
+  /**
+   * Carbon RegisterQuadRendererCone (EveSpotlightSet.cpp:124-127): one
+   * additive-batch registration keyed by the cone effect's hash. Carbon
+   * registers through its cached m_coneEffectHash; the key is read from the
+   * effect here, exactly as EveSpriteSet's registration seam does.
+   */
+  @carbon.method
+  @impl.implemented
+  RegisterQuadRendererCone(quadRenderer)
+  {
+    if (!this.coneEffect) return;
+    quadRenderer.RegisterEffect(
+      Number(this.coneEffect.GetHashValue()) >>> 0,
+      TriBatchType.TRIBATCHTYPE_ADDITIVE,
+      CONE_POOL_VERTEX_SIZE,
+      CONE_QUAD_COUNT,
+      CONE_POOL_VERTEX_DEFINITION,
+      this.coneEffect
+    );
+  }
+
+  /**
+   * Carbon RegisterQuadRendererGlow (cpp:129-132): the glow twin, two quads
+   * per sprite.
+   */
+  @carbon.method
+  @impl.implemented
+  RegisterQuadRendererGlow(quadRenderer)
+  {
+    if (!this.glowEffect) return;
+    quadRenderer.RegisterEffect(
+      Number(this.glowEffect.GetHashValue()) >>> 0,
+      TriBatchType.TRIBATCHTYPE_ADDITIVE,
+      GLOW_POOL_VERTEX_SIZE,
+      SPRITE_QUAD_COUNT,
+      GLOW_POOL_VERTEX_DEFINITION,
+      this.glowEffect
+    );
+  }
+
+  /** The built ConePoolVertex declaration (nested-struct static in Carbon). */
+  static getConeDefinition()
+  {
+    return CONE_POOL_VERTEX_DEFINITION;
+  }
+
+  /** The built GlowPoolVertex declaration (nested-struct static in Carbon). */
+  static getGlowDefinition()
+  {
+    return GLOW_POOL_VERTEX_DEFINITION;
   }
 
   /** Carbon EveSpotlightSet::GetAabb (cpp:176-179): the item-set bounds, with the bone

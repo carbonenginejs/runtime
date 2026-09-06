@@ -47,6 +47,18 @@ export class TriRenderJob extends CjsModel
   #currentStep = 0;
 
   /**
+   * Carbon Steps (TriRenderJob.h:34-37): the step list by mutable reference.
+   * Run snapshots the list precisely BECAUSE a step may mutate it mid-run
+   * through this accessor ("lists can change when executed").
+   */
+  @carbon.method
+  @impl.implemented
+  Steps()
+  {
+    return this.steps;
+  }
+
+  /**
    * Carbon TriRenderJob::Run (cpp:18-125): runs the steps in order against a snapshot of the list, resuming at the persisted cursor when the previous run left the job RJ_IN_PROGRESS, and stopping at the first step that does not return RS_OK or that disables the job.
    * Each step is bracketed by begin/end so the end hook runs even when execution throws. When stackGuard is set, the executor's render-target and depth-stencil depths are compared against the depths recorded on entry: shortfalls are reported as diagnostics and surplus pushes are popped back to the baseline.
    * @param {number} realTime wall-clock time passed through to each step

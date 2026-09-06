@@ -91,6 +91,17 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     // Carbon rebuilds the item-set bounds here too (cpp:247), passing
     // skinned=TRUE unconditionally: a haze set has no skinned flag, so every
     // bone-indexed haze gets its own box.
+    this.CreateBoundingBox();
+  }
+
+  /**
+   * Carbon CreateBoundingBox (EveHazeSet.cpp:245-248): one delegation to the
+   * shared item-set helper, always skinned.
+   */
+  @carbon.method
+  @impl.implemented
+  CreateBoundingBox()
+  {
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, true, this.hazes);
   }
 

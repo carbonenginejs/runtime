@@ -263,6 +263,49 @@ export class EveComponentRegistry extends CjsModel
     return this.GetComponentCollection(componentName)?.Size() ?? 0;
   }
 
+  /**
+   * Carbon ProcessComponents (EveComponentRegistry.h:250-267, template
+   * header-inline): runs the processor over every entity in the named
+   * collection, and no-ops when the collection is absent. Carbon resolves the
+   * name from the template type and holds a shared_lock; single-threaded JS
+   * takes the name directly and needs no lock.
+   */
+  @impl.implemented
+  ProcessComponents(componentName, processor)
+  {
+    const collection = this.GetComponentCollection(componentName);
+    if (!collection) return;
+    for (const component of collection.collection)
+    {
+      processor(component);
+    }
+  }
+
+  /**
+   * Carbon ProcessComponentsUntil (h:270-290): identical to ProcessComponents
+   * except it stops at the first processor call that returns true.
+   */
+  @impl.implemented
+  ProcessComponentsUntil(componentName, processor)
+  {
+    const collection = this.GetComponentCollection(componentName);
+    if (!collection) return;
+    for (const component of collection.collection)
+    {
+      if (processor(component)) return;
+    }
+  }
+
+  /**
+   * Carbon RemoveCollectionFromEntityState (EveComponentRegistry.cpp:147-150):
+   * clears the collection's bit from the entity's component mask.
+   */
+  @impl.implemented
+  RemoveCollectionFromEntityState(collection, entity)
+  {
+    entity.RemoveComponentState(collection.GetBit());
+  }
+
   /** Carbon method GetComponentInfo (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted

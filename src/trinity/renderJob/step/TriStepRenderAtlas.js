@@ -55,13 +55,30 @@ export class TriStepRenderAtlas extends TriRenderStep
   @type.vec2
   tlTexCoord = vec2.create();
 
-  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
+  /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS);
+   *  the donor body is exactly the two setter calls (TriStepRenderAtlas.cpp:29). */
   @carbon.method
   @impl.implemented
   __init__(atlas = null, focus = null)
   {
+    this.SetAtlas(atlas);
+    this.SetFocus(focus);
+  }
+
+  /** Carbon SetAtlas (TriStepRenderAtlas.cpp:104): selects the atlas the step draws. */
+  @carbon.method
+  @impl.implemented
+  SetAtlas(atlas)
+  {
     this.atlas = atlas;
-    this.focus = focus;
+  }
+
+  /** Carbon SetFocus (TriStepRenderAtlas.cpp:109): the highlighted atlas entry. */
+  @carbon.method
+  @impl.implemented
+  SetFocus(texture)
+  {
+    this.focus = texture;
   }
 
   /**

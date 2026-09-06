@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriSettings.h
 //   trinity/trinity/TriSettings_Blue.cpp
 import { CjsModel } from "#model";
-import { carbon, type } from "#schema";
+import { carbon, impl, type } from "#schema";
 
 
 /**
@@ -17,17 +17,31 @@ export class TriSettings extends CjsModel
    * Registers a setting and latches its value type from the initial value; only
    * boolean, number and string are supported, and re-registering replaces the
    * entry. Returns this for chaining.
+   *
+   * Carbon's RegisterSetting<T> (TriSettings.h:14-19) derives the Be::VARTYPE
+   * from the template type and delegates to the private helper; here typeof
+   * is the derivation.
    */
   RegisterSetting(name, value)
   {
-    const key = TriSettings.#GetKey(name);
-    const valueType = typeof value;
+    this.#RegisterSettingHelper(TriSettings.#GetKey(name), value, typeof value);
+    return this;
+  }
+
+  /**
+   * Carbon RegisterSettingHelper (TriSettings.h:62-76, private): reject an
+   * unsupported type, else record name -> (type, value). Carbon logs and
+   * returns on Be::INVALID; the JS registry throws, because a setting that
+   * silently fails to register turns every later GetValue into a RangeError
+   * far from the cause.
+   */
+  #RegisterSettingHelper(key, value, valueType)
+  {
     if (valueType !== "boolean" && valueType !== "number" && valueType !== "string")
     {
       throw new TypeError(`Unsupported setting type for '${key}'`);
     }
     this.#settings.set(key, { value, valueType });
-    return this;
   }
 
   /**
@@ -83,9 +97,23 @@ export class TriSettings extends CjsModel
     const entries = [...this.#settings.entries()].sort(([a], [b]) => a.localeCompare(b));
     for (const [name, setting] of entries)
     {
-      result += `'${name}':${TriSettings.#ReprValue(setting.value)}, `;
+      result += `'${name}':${this.GetSettingReprString(setting)}, `;
     }
     return `${result}}`;
+  }
+
+  /**
+   * Carbon GetSettingReprString (TriSettings_Blue.cpp:8-44): formats one
+   * setting's value as a python literal by its registered type. Carbon
+   * switches over six Be::VARTYPEs (%d, True/False, %f, quoted string); the
+   * JS registry latches only boolean/number/string, so the number arm covers
+   * Carbon's integer and float arms in JS's own number formatting.
+   */
+  @impl.adapted
+  @impl.reason("Carbon formats per Be::VARTYPE (%d vs %f); JS has one number type, so numeric formatting follows JS.")
+  GetSettingReprString(setting)
+  {
+    return TriSettings.#ReprValue(setting.value);
   }
 
   /** Python repr hook, delegating to GetReprString. */

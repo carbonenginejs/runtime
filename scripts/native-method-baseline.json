@@ -16,7 +16,6 @@
   ],
   "AudGameObjResource": [
     "Orientation",
-    "PrepareEvent",
     "PropagateWwiseCallback"
   ],
   "AudManager": [
@@ -178,8 +177,7 @@
   ],
   "EveChildFogVolume": [
     "GetDebugOptions",
-    "RenderDebugInfo",
-    "UpdateTransformFromParent"
+    "RenderDebugInfo"
   ],
   "EveChildInstanceContainer": [
     "AddInstanceTransform",
@@ -378,11 +376,6 @@
     "GetParameterName",
     "RebuildEffectHandles"
   ],
-  "EveComponentRegistry": [
-    "ProcessComponents",
-    "ProcessComponentsUntil",
-    "RemoveCollectionFromEntityState"
-  ],
   "EveConnector": [
     "AddCircle",
     "AddCurvedLine",
@@ -425,7 +418,6 @@
     "py__init__"
   ],
   "EveHazeSet": [
-    "CreateBoundingBox",
     "OnPrepareResources",
     "ReleaseResources"
   ],
@@ -459,9 +451,7 @@
     "RenderDebugInfo"
   ],
   "EveMissileWarhead": [
-    "GetPerObjectDataSize",
-    "RenderDebugInfoFromParent",
-    "UpdatePerObjectBuffer"
+    "RenderDebugInfoFromParent"
   ],
   "EveMobile": [
     "GetDebugOptions",
@@ -755,9 +745,7 @@
     "Update"
   ],
   "EveSpotlightSet": [
-    "GetDefinition",
-    "RegisterQuadRendererCone",
-    "RegisterQuadRendererGlow"
+    "GetDefinition"
   ],
   "EveSprite2dBracketRenderer": [
     "OnPrepareResources",
@@ -919,8 +907,7 @@
   ],
   "EveVirtualCameraSystem": [
     "GetDebugOptions",
-    "RenderDebugInfo",
-    "SetMainCamera"
+    "RenderDebugInfo"
   ],
   "EveVirtualCameraTransitionBase": [
     "IsComplete"
@@ -1872,9 +1859,7 @@
     "UpdateInstanceBuffer"
   ],
   "Tr2RaycastGeometryRes": [
-    "DoPrepare",
-    "GetBVH",
-    "SetLodIndices"
+    "DoPrepare"
   ],
   "Tr2RaytracingGeometry": [
     "AddBindlessResources",
@@ -2774,8 +2759,7 @@
   ],
   "TriRenderJob": [
     "OnPrepareResources",
-    "ReleaseResources",
-    "Steps"
+    "ReleaseResources"
   ],
   "TriRenderStep": [
     "CpuTime",
@@ -2791,9 +2775,7 @@
     "UpdateValue"
   ],
   "TriSettings": [
-    "CCP_LOGERR",
-    "GetSettingReprString",
-    "RegisterSettingHelper"
+    "CCP_LOGERR"
   ],
   "TriStepClear": [
     "py__init__"
@@ -2836,8 +2818,6 @@
     "SetData"
   ],
   "TriStepRenderAtlas": [
-    "SetAtlas",
-    "SetFocus",
     "py__init__"
   ],
   "TriStepRenderDebug": [

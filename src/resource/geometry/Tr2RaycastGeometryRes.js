@@ -13,6 +13,27 @@ export class Tr2RaycastGeometryRes extends CjsResource
 
   #source = null;
 
+  /**
+   * Carbon SetLodIndices (TriGeometryRes.cpp:78-81): one assignment, but
+   * load-bearing - DoLoad validates the count against the CMF's mesh count
+   * and each index against that mesh's LOD count, failing the load otherwise
+   * (cpp:110-124), so the indices must be set before the load runs.
+   */
+  SetLodIndices(lodIndices)
+  {
+    this.lodIndices = lodIndices;
+  }
+
+  /**
+   * Carbon GetBVH (TriGeometryRes.cpp:83-86): the CPU bounding-volume
+   * hierarchy DoLoad built, by mutable reference. Null until this runtime
+   * grows the BVH type; the accessor is the contract callers hold.
+   */
+  GetBVH()
+  {
+    return this.bvh;
+  }
+
   /** Attaches the resident geometry that answers this raycast session. */
   SetSource(source)
   {
