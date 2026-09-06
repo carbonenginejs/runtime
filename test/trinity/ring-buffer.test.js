@@ -1,12 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  Tr2RenderContext,
-  Tr2RenderContextALStub,
-  Tr2RingBuffer,
-  Tr2RingBufferOffsets
-} from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext, Tr2RingBuffer, Tr2RingBufferOffsets } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 const STRIDE = 16;
 

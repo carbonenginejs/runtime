@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { Tr2RenderContext, Tr2RenderContextALStub, TriProjection } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext, TriProjection } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { TriStepSetProjection } from "../../npm/dist/trinity/renderJob/index.js";
 
 /**

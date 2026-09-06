@@ -1,13 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  ALResult,
-  Tr2RenderContextALStub,
-  Tr2SamplerStateALStub,
-  Tr2ShaderALStub,
-  Tr2ShaderProgramALStub
-} from "../../npm/dist/trinity/core/index.js";
+import { ALResult, Tr2RenderContextALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub } from "../../npm/dist/trinityal/index.js";
 import { ShaderStageType } from "../../npm/dist/resource/index.js";
 
 const context = () =>

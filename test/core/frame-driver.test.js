@@ -4,7 +4,8 @@ import { test } from "node:test";
 import { CjsFrameLifecycle } from "../../npm/dist/global/contracts/index.js";
 import { CjsFrameDriver } from "../../npm/dist/core/index.js";
 import * as trinityCore from "../../npm/dist/trinity/core/index.js";
-import { Tr2RenderContext, Tr2RenderContextALStub, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2RenderJobs, TriRenderJob } from "../../npm/dist/trinity/renderJob/index.js";
 
 

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
-import { Tr2RenderContext, Tr2RenderContextALStub } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { CullMode, Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const { Unknown, RenderingMode } = Tr2EffectStateManager;

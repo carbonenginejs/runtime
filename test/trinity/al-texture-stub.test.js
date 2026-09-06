@@ -1,14 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  ALResult,
-  Tr2BitmapDimensions,
-  Tr2MsaaDesc,
-  Tr2RenderContextALStub,
-  Tr2TextureALStub,
-  Tr2TextureSubresource
-} from "../../npm/dist/trinity/core/index.js";
+import { Tr2MsaaDesc, Tr2TextureSubresource } from "../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2BitmapDimensions, Tr2RenderContextALStub, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
 import {
   PixelFormat,
   TextureType,

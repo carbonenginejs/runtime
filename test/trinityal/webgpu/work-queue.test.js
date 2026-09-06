@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CjsWebgpuWorkQueue, EncoderType } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../npm/dist/trinity/core/index.js";
+import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../npm/dist/trinityal/index.js";
 import { Tr2LoadAction, Tr2StoreAction } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 const clear = () => new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0);

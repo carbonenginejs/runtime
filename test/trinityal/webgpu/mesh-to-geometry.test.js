@@ -9,13 +9,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  Tr2MeshBase,
-  Tr2MeshArea,
-  TriRenderBatchAccumulator,
-  Tr2PerObjectData,
-  resolveBindingPlan
-} from "../../../npm/dist/trinity/core/index.js";
+import { Tr2MeshBase, Tr2MeshArea, TriRenderBatchAccumulator, Tr2PerObjectData } from "../../../npm/dist/trinity/core/index.js";
+import { resolveBindingPlan } from "../../../npm/dist/trinityal/index.js";
 import { Tr2EffectStateManager } from "../../../npm/dist/trinity/shader/index.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 import { WebgpuGeometryOptions } from "../../../npm/dist/trinityal/webgpu/index.js";

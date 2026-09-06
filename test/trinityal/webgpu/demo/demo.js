@@ -34,7 +34,7 @@ import {
   TriRenderBatchAccumulator
 } from "../../../../npm/dist/trinity/core/index.js";
 import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
-import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../../npm/dist/trinity/core/index.js";
+import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../../npm/dist/trinityal/index.js";
 import { Tr2LoadAction, Tr2StoreAction } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2MeshBase } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../../../npm/dist/trinity/shader/index.js";

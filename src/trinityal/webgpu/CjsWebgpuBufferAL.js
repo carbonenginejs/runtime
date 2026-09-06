@@ -31,7 +31,7 @@
 // NOT IMPLEMENTED: MapForReading. Reading a buffer back needs MAP_READ, a
 // separate staging buffer and an await, and nothing asks for it yet. It
 // refuses by name rather than returning empty bytes.
-import { ALResult } from "#trinity/core";
+import { ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
 
 

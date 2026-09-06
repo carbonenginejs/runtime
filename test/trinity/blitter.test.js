@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { Tr2Blitter, Tr2RenderContext, Tr2RenderContextALStub, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
+import { Tr2Blitter, Tr2RenderContext, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { SCREEN_VERTEX_BYTES } from "../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";

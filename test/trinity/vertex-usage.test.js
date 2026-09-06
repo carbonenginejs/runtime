@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CarbonUsageFromChannel, CarbonUsageFromCmf, CarbonVertexElements, Tr2VertexDefinition, resolveBindingPlan } from "../../npm/dist/trinity/core/index.js";
+import { CarbonUsageFromChannel, CarbonUsageFromCmf, CarbonVertexElements, Tr2VertexDefinition } from "../../npm/dist/trinity/core/index.js";
+import { resolveBindingPlan } from "../../npm/dist/trinityal/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 const { POSITION, COLOR, NORMAL, TANGENT, BITANGENT, TEXCOORD, BLENDINDICES, BLENDWEIGHTS } =

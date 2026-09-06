@@ -18,7 +18,7 @@
 // is UTF-8 source. The AL contract does not care - it stores bytes and a
 // signature - and the divergence is here rather than in Trinity, which is where
 // Carbon puts every other API difference too.
-import { ALResult } from "#trinity/core";
+import { ALResult } from "#trinityal";
 
 
 /** Decodes a shader's bytecode as WGSL source. */

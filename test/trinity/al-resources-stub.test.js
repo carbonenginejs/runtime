@@ -1,18 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  ALResult,
-  Tr2BufferALStub,
-  Tr2BufferDescriptionAL,
-  Tr2CapsALStub,
-  Tr2ConstantBufferALStub,
-  Tr2ConstantUsageAL,
-  Tr2RenderContextALStub,
-  Tr2StubPlatformCaps,
-  Tr2SwapChainALStub,
-  Tr2VertexLayoutALStub
-} from "../../npm/dist/trinity/core/index.js";
+import { Tr2ConstantUsageAL, Tr2StubPlatformCaps } from "../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2BufferALStub, Tr2BufferDescriptionAL, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2RenderContextALStub, Tr2SwapChainALStub, Tr2VertexLayoutALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const context = () =>

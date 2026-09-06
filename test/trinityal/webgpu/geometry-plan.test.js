@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { WebgpuGeometryOptions } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { PackLodGeometry } from "../../../npm/dist/resource/geometry/index.js";
-import { resolveBindingPlan } from "../../../npm/dist/trinity/core/index.js";
+import { resolveBindingPlan } from "../../../npm/dist/trinityal/index.js";
 import { CarbonVertexElements } from "../../../npm/dist/trinity/core/index.js";
 
 /**

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { GpuResourceHandle, TextureSize2D, Tr2GpuResourcePool, Tr2RenderContextALStub } from "../../npm/dist/trinity/core/index.js";
+import { GpuResourceHandle, TextureSize2D, Tr2GpuResourcePool } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
-import { Tr2BufferDescriptionAL } from "../../npm/dist/trinity/core/index.js";
+import { Tr2BufferDescriptionAL } from "../../npm/dist/trinityal/index.js";
 
 const pooled = () =>
 {

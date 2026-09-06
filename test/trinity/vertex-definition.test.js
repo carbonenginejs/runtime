@@ -1,7 +1,8 @@
 ﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2VertexDefinition, findInputElement, resolveBindingPlan } from "../../npm/dist/trinity/core/index.js";
+import { Tr2VertexDefinition } from "../../npm/dist/trinity/core/index.js";
+import { findInputElement, resolveBindingPlan } from "../../npm/dist/trinityal/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 const Usage = Tr2VertexDefinition.UsageCode;

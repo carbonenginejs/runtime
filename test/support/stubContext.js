@@ -1,4 +1,5 @@
-import { Tr2RenderContext, Tr2RenderContextALStub } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 // WHY THIS EXISTS. `Tr2RenderContext` used to record every abstraction-layer
 // verb into an intent list when no backend was installed, so a bare

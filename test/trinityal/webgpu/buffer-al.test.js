@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuBufferAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { ALResult, Tr2BufferDescriptionAL } from "../../../npm/dist/trinity/core/index.js";
+import { ALResult, Tr2BufferDescriptionAL } from "../../../npm/dist/trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });

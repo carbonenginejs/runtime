@@ -1,18 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  Tr2FenceALStub,
-  Tr2GpuTimerALStub,
-  Tr2OcclusionQueryALStub,
-  Tr2PipelineStatsQueryALStub,
-  Tr2RegisterMapAL,
-  Tr2RenderContextALStub,
-  Tr2ResourceSetALStub,
-  Tr2ResourceSetDescriptionAL,
-  Tr2VideoAdapterInfoStub,
-  ALResult
-} from "../../npm/dist/trinity/core/index.js";
+import { Tr2GpuTimerALStub, Tr2OcclusionQueryALStub, Tr2PipelineStatsQueryALStub, Tr2RegisterMapAL, Tr2ResourceSetALStub, Tr2VideoAdapterInfoStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2FenceALStub, Tr2RenderContextALStub, Tr2ResourceSetDescriptionAL, ALResult } from "../../npm/dist/trinityal/index.js";
 import { ShaderType } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const device = () =>

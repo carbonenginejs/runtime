@@ -36,7 +36,8 @@
 // Trinity class that fills a buffer per frame cannot pick its own backend.
 
 import { Topology, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
-import { ALResult, Failed, Tr2ColorAttachment, Tr2DepthAttachment } from "#trinity/core";
+import { Tr2ColorAttachment, Tr2DepthAttachment } from "#trinityal";
+import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 

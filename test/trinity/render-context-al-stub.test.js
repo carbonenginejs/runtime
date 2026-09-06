@@ -1,14 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  Tr2BitmapDimensions,
-  Tr2ColorAttachment,
-  Tr2DepthAttachment,
-  Tr2RenderContext,
-  Tr2RenderContextALStub,
-  Tr2TextureALStub
-} from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
+import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../npm/dist/trinityal/index.js";
+import { Tr2BitmapDimensions, Tr2RenderContextALStub, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
 import {
   PixelFormat,
   ShaderType,

@@ -163,6 +163,8 @@
         "./character/generated/*": "./src/character/generated/*/index.js",
         "./character/library-builder": "./src/character/library-builder/index.js",
         "./input": "./src/input/index.js",
+        "./trinityal": "./src/trinityal/index.js",
+        "./trinityal/stub": "./src/trinityal/stub/index.js",
         "./trinityal/webgpu": "./src/trinityal/webgpu/index.js",
         "./core": "./src/core/index.js",
         "./core/platform": "./src/core/platform/index.js",
