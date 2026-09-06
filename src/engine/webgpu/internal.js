@@ -14,3 +14,4 @@ export { CjsWebgpuPerFrameSource } from "./core/perFrameSource.js";
 export { CjsWebgpuWorkQueue, EncoderType, ApplyRenderPassHint } from "./core/workQueue.js";
 export { CjsWebgpuRenderContextAL } from "./CjsWebgpuRenderContextAL.js";
 export { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
+export { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderAL.js";
