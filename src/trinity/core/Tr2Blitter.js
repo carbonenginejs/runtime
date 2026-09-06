@@ -48,13 +48,31 @@ export const Filtering = Object.freeze({
 });
 
 
-// Carbon's `OnPrepareResources` builds this declaration once
-// (`Tr2Blitter.cpp:163-171`): a float4 position and a float2 texture
-// coordinate, which is `Tr2ScreenVertex`.
-const SCREEN_VERTEX_ELEMENTS = Object.freeze([
-  Object.freeze({ usage: "POSITION", usageIndex: 0, type: "FLOAT32_4", offset: 0, stream: 0 }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 0, type: "FLOAT32_2", offset: 16, stream: 0 })
-]);
+/**
+ * The screen-quad declaration, BUILT as Carbon builds it
+ * (`Tr2Blitter.cpp:167-172`):
+ *
+ *     Tr2VertexDefinition vd;
+ *     vd.Add( vd.FLOAT32_4, vd.POSITION );
+ *     vd.Add( vd.FLOAT32_2, vd.TEXCOORD );
+ *
+ * A definition is BUILT, not declared. An earlier version of this file wrote
+ * the two items as a frozen literal with the offsets computed by hand - 0 and
+ * 16 - which is the same shape Carbon spells with two `Add` calls, minus the
+ * ledger that guarantees the offsets. Hand arithmetic that happens to agree
+ * today is a defect waiting for the third element.
+ *
+ * @returns {Tr2VertexDefinition} A fresh definition; `getHandle` interns it.
+ */
+function screenVertexDefinition()
+{
+  const definition = new Tr2VertexDefinition();
+
+  definition.Add("FLOAT32_4", "POSITION");
+  definition.Add("FLOAT32_2", "TEXCOORD");
+
+  return definition;
+}
 
 
 /** The four vertices of a screen quad, as Carbon's buffer holds them. */
@@ -116,6 +134,17 @@ export class Tr2Blitter
     return this;
   }
 
+  /**
+   * The interned handle for the screen-vertex declaration, or -1 before it is
+   * prepared. Carbon's `m_screenVertexDecl`.
+   *
+   * @returns {number} The handle.
+   */
+  GetScreenVertexDeclaration()
+  {
+    return this.#screenVertexDecl;
+  }
+
   /** Whether the blitter has what it needs to draw an untextured material. */
   IsPrepared()
   {
@@ -157,7 +186,7 @@ export class Tr2Blitter
   {
     if (this.#screenVertexDecl === -1)
     {
-      this.#screenVertexDecl = Tr2VertexDefinition.getHandle(SCREEN_VERTEX_ELEMENTS);
+      this.#screenVertexDecl = Tr2VertexDefinition.getHandle(screenVertexDefinition());
     }
 
     // Carbon's DrawHelper returns false when the buffer is invalid

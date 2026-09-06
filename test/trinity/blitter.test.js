@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { Tr2Blitter, Tr2RenderContext, Tr2RenderContextALStub, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
+import { SCREEN_VERTEX_BYTES, Tr2VertexDefinition } from "../../npm/dist/trinity/core/index.js";
 
 /** A Tr2RenderContext with the stub backend installed, which is what Carbon ships. */
 function stubContext()
@@ -35,6 +36,31 @@ function material(passCount = 1, log = [])
     ApplyMaterialDataForPass: (technique, pass) => log.push(`data:${technique}:${pass}`)
   };
 }
+
+test("the screen-vertex declaration is built, and its ledger matches the stride", () =>
+{
+  const context = stubContext();
+  const blitter = new Tr2Blitter();
+
+  blitter.PrepareResources(context);
+
+  // Carbon builds this with two Add calls and sizes the buffer with
+  // sizeof(Tr2ScreenVertex) - two sources of truth that must agree. The
+  // declaration is interned by handle, so reach it back through the intern
+  // table rather than re-deriving it here.
+  const items = Tr2VertexDefinition.getElements(blitter.GetScreenVertexDeclaration());
+
+  assert.equal(items.length, 2);
+  assert.deepEqual(items.map(item => item.usage), [ "POSITION", "TEXCOORD" ]);
+  assert.deepEqual(items.map(item => item.type), [ "FLOAT32_4", "FLOAT32_2" ]);
+
+  // The offsets come from the ledger, not from arithmetic in this file.
+  assert.deepEqual(items.map(item => item.offset), [ 0, 16 ]);
+
+  // And the ledger's end is the stride the buffer and stream source use.
+  const end = items[1].offset + 8;
+  assert.equal(end, SCREEN_VERTEX_BYTES, "declaration and stride agree");
+});
 
 test("the blitter runs every pass of its shader over one quad", () =>
 {
