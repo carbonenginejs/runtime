@@ -2567,8 +2567,6 @@
     "UpdateValue"
   ],
   "Tr2VertexDefinition": [
-    "GetDataTypeSizeInBytes",
-    "GetDataTypeSizeInMembers",
     "Item"
   ],
   "Tr2VolumetricsRenderer": [

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2VertexDefinition, findInputElement, resolveBindingPlan } from "../../npm/dist/trinity/core/index.js";
@@ -137,11 +137,11 @@ test("the authoring half builds items with Carbon's automatic per-stream offsets
   assert.equal(definition.Find("NORMAL"), null);
 
   // The byte arithmetic (h:183-205), from the type NAME.
-  assert.equal(Tr2VertexDefinition.dataTypeSizeInMembers("FLOAT16_4"), 4);
-  assert.equal(Tr2VertexDefinition.dataTypeSizeInBytes("FLOAT16_4"), 8);
-  assert.equal(Tr2VertexDefinition.dataTypeSizeInBytes("UBYTE_4_NORM"), 4);
-  assert.equal(Tr2VertexDefinition.dataTypeSizeInBytes("USHORT_2_NORM"), 4);
-  assert.equal(Tr2VertexDefinition.dataTypeSizeInBytes("UINT32_3"), 12);
+  assert.equal(Tr2VertexDefinition.getDataTypeSizeInMembers("FLOAT16_4"), 4);
+  assert.equal(Tr2VertexDefinition.getDataTypeSizeInBytes("FLOAT16_4"), 8);
+  assert.equal(Tr2VertexDefinition.getDataTypeSizeInBytes("UBYTE_4_NORM"), 4);
+  assert.equal(Tr2VertexDefinition.getDataTypeSizeInBytes("USHORT_2_NORM"), 4);
+  assert.equal(Tr2VertexDefinition.getDataTypeSizeInBytes("UINT32_3"), 12);
 
   // The relocated owners accept an instance wherever they took an array.
   const twin = new Tr2VertexDefinition();

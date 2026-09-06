@@ -1,4 +1,4 @@
-// Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
+﻿// Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
 //   trinity/trinityal/Tr2VertexDefinition.cpp:25-42 (item and definition equality)
 //
 // This class is the definition and NOTHING ELSE: items, the per-stream offset
@@ -80,7 +80,7 @@ export class Tr2VertexDefinition
     item.offset = this.nextOffset[stream] ?? 0;
     item.stream = stream;
     item.instanceStepRate = stepRate;
-    this.nextOffset[stream] = item.offset + Tr2VertexDefinition.dataTypeSizeInBytes(item.type);
+    this.nextOffset[stream] = item.offset + Tr2VertexDefinition.getDataTypeSizeInBytes(item.type);
     this.items.push(item);
     return item;
   }
@@ -103,17 +103,17 @@ export class Tr2VertexDefinition
   }
 
   /** Carbon GetDataTypeSizeInMembers (h:183-186), from the type NAME. */
-  static dataTypeSizeInMembers(type)
+  static getDataTypeSizeInMembers(type)
   {
     const match = /_([1-4])(?:_NORM)?$/.exec(String(type));
     return match ? Number(match[1]) : 0;
   }
 
   /** Carbon GetDataTypeSizeInBytes (h:188-205), from the type NAME. */
-  static dataTypeSizeInBytes(type)
+  static getDataTypeSizeInBytes(type)
   {
     const base = DATA_TYPE_BASE_BYTES[String(type).split("_")[0]];
-    return base ? base * Tr2VertexDefinition.dataTypeSizeInMembers(type) : 0;
+    return base ? base * Tr2VertexDefinition.getDataTypeSizeInMembers(type) : 0;
   }
 
   // Carbon Tr2VertexDefinition::UsageCode (Tr2VertexDefinition.h:17-30). Note
@@ -122,6 +122,11 @@ export class Tr2VertexDefinition
 
   /** Carbon's vertex-usage vocabulary, in its declared order. */
   static UsageCode = Tr2VertexUsageCode;
+
+  /** Carbon's nested Item class (h:123-141), reachable as Carbon spells it:
+   *  Tr2VertexDefinition::Item. JS cannot nest the declaration, so the class
+   *  is declared at module scope and aliased here. */
+  static Item = Tr2VertexDefinitionItem;
 
   // Carbon's definition equality is the definition's OWN operator==
   // (Tr2VertexDefinition.cpp:35-42): all four ledger slots AND every item,
