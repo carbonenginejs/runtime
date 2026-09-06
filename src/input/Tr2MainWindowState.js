@@ -85,6 +85,13 @@ export class Tr2MainWindowState
     {
         return this.__str__();
     }
+
+    /** Carbon ToString (Tr2MainWindow.cpp:161/:191) - the same description
+     *  under Carbon's own method name; __str__ and toString ride it. */
+    ToString()
+    {
+        return this.__str__();
+    }
 }
 
 function windowModeName(value)

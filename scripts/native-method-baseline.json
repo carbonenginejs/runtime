@@ -49,8 +49,6 @@
   ],
   "AudStaticDataRepository": [
     "GenerateVectorFromPythonList",
-    "GetAttribute",
-    "GetData",
     "autoMutex"
   ],
   "AudUIPlayer": [
@@ -63,8 +61,6 @@
   ],
   "BackAndForth": [
     "GetDebugOptions",
-    "GetParentLocatorPosition",
-    "GetTargetLocatorPosition",
     "RenderDebugInfo"
   ],
   "BehaviorGroup": [
@@ -387,12 +383,6 @@
   "EveDistributionPlacementGeneratorParentLocators": [
     "BuildInitialLocatorsFromParent"
   ],
-  "EveDistributionPlacementGeneratorVolume": [
-    "AddVolumeCallbacks",
-    "GetVolume",
-    "RemoveVolumeCallbacks",
-    "SetVolume"
-  ],
   "EveEffectRoot2": [
     "ShouldReflect"
   ],
@@ -414,8 +404,7 @@
   "EveKDdroneManagementTree": [
     "DrawDebugTree",
     "DrawSquareInnerLines",
-    "RenderDebugInfo",
-    "SearchThroughTree"
+    "RenderDebugInfo"
   ],
   "EveLensflare": [
     "GetCurveSetDuration",
@@ -431,7 +420,6 @@
     "UpdateCurveSet"
   ],
   "EveLineSet": [
-    "Initialize",
     "OnPrepareResources",
     "ReleaseResources",
     "UpdateViewDependentData"
@@ -501,12 +489,6 @@
   ],
   "EveSOFDNA": [
     "SetupCustomData"
-  ],
-  "EveSOFDataDecalIndexBuffer": [
-    "AllocateReadBuffer",
-    "GetWriteBufferAndSize",
-    "ReleaseWriteBuffer",
-    "SetBufferAndSize"
   ],
   "EveSOFDataMgr": [
     "AsLightData",
@@ -905,9 +887,7 @@
   ],
   "FollowASpline": [
     "GetDebugOptions",
-    "OnListModified",
-    "RenderDebugInfo",
-    "UpdateTunnelRegistry"
+    "RenderDebugInfo"
   ],
   "Formation": [
     "GetDebugOptions",
@@ -1417,10 +1397,7 @@
     "SharedCopyFaceFromRenderTarget"
   ],
   "Tr2ImageRes": [
-    "DoPrepare",
-    "GetBitmap",
-    "GetMemoryUsage",
-    "IsMemoryUsageKnown"
+    "DoPrepare"
   ],
   "Tr2ImpostorManager": [
     "Add",
@@ -1654,7 +1631,6 @@
   "Tr2MainWindowState": [
     "PopulatePresentParameters",
     "State",
-    "ToString",
     "WrapCopy"
   ],
   "Tr2ManipulationTool": [
@@ -2069,7 +2045,6 @@
   "Tr2SSAO": [
     "ApplyConstBuffer",
     "ComputeCORTAO",
-    "Hash",
     "PerformPass"
   ],
   "Tr2SSSSS": [
@@ -2492,12 +2467,6 @@
     "RegisterVariableInternal",
     "SetValue"
   ],
-  "Tr2Vector2Parameter": [
-    "GetX",
-    "GetY",
-    "SetX",
-    "SetY"
-  ],
   "Tr2Vector3Parameter": [
     "GetX",
     "GetY",
@@ -2753,12 +2722,6 @@
   "TriStepEnableWireframeMode": [
     "py__init__"
   ],
-  "TriStepFilterVisibilityResults": [
-    "SetEventFilter",
-    "SetFilterType",
-    "SetInputResults",
-    "SetOutputResults"
-  ],
   "TriStepGenerateMipMaps": [
     "py__init__"
   ],
@@ -2899,9 +2862,6 @@
     "sizeof"
   ],
   "TriVectorSequencer": [
-    "GetValueAtAdd",
-    "GetValueAtAverage",
-    "GetValueAtMult",
     "PyGetValueDoubleDotAt"
   ],
   "TriViewport": [

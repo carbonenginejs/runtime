@@ -80,6 +80,58 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     this.#isRequestingRegeneration = false;
   }
 
+  /** Carbon GetVolume (EveDistributionPlacementGeneratorVolume.cpp:21). */
+  @carbon.method
+  @impl.implemented
+  GetVolume()
+  {
+    return this.volume;
+  }
+
+  /**
+   * Carbon SetVolume (cpp:26): the ORDERED swap - the old volume is
+   * unsubscribed before the new one subscribes.
+   */
+  @carbon.method
+  @impl.implemented
+  SetVolume(volume)
+  {
+    this.RemoveVolumeCallbacks();
+    this.#volumeCallbackID = 0;
+    this.volume = volume ?? null;
+    this.AddVolumeCallbacks();
+  }
+
+  /**
+   * Carbon AddVolumeCallbacks (cpp:76): subscribe RequestRegeneration to the
+   * assigned volume and keep the token. Also runs from Initialize (cpp:98).
+   */
+  @carbon.method
+  @impl.implemented
+  AddVolumeCallbacks()
+  {
+    this.#subscribedVolume = this.volume;
+    if (this.volume)
+    {
+      this.#volumeCallbackID = this.volume.RegisterForChanges(() => this.RequestRegeneration());
+    }
+  }
+
+  /**
+   * Carbon RemoveVolumeCallbacks (cpp:85): unsubscribe when a token is held.
+   * The donor does NOT zero the token afterwards; callers that need a fresh
+   * token zero it themselves, exactly as SetVolume above does.
+   */
+  @carbon.method
+  @impl.implemented
+  RemoveVolumeCallbacks()
+  {
+    if (this.#subscribedVolume && this.#volumeCallbackID !== 0)
+    {
+      this.#subscribedVolume.UnregisterForChanges(this.#volumeCallbackID);
+    }
+  }
+
   /** Marks the placement pool as stale so the owning distribution rebuilds it. */
   @carbon.method
   @impl.implemented
@@ -134,7 +186,9 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
 
   /**
    * Moves the change subscription onto the currently assigned volume when it
-   * differs from the subscribed one, then requests regeneration.
+   * differs from the subscribed one, then requests regeneration. Carbon does
+   * this eagerly in SetVolume; hydration assigns `volume` directly, so this
+   * detects the swap on use and runs the same Remove/Add pair.
    */
   #syncVolumeCallbacks()
   {
@@ -143,17 +197,9 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
       return;
     }
 
-    if (this.#subscribedVolume && this.#volumeCallbackID !== 0)
-    {
-      this.#subscribedVolume.UnregisterForChanges(this.#volumeCallbackID);
-    }
-
-    this.#subscribedVolume = this.volume;
+    this.RemoveVolumeCallbacks();
     this.#volumeCallbackID = 0;
-    if (this.#subscribedVolume)
-    {
-      this.#volumeCallbackID = this.#subscribedVolume.RegisterForChanges(() => this.RequestRegeneration());
-    }
+    this.AddVolumeCallbacks();
     this.RequestRegeneration();
   }
 

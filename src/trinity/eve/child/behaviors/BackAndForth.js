@@ -334,18 +334,43 @@ export class BackAndForth extends CjsModel
     return null;
   }
 
-  // Carbon GetParentLocatorPosition/GetTargetLocatorPosition (cpp:356-372):
-  // world-space locator position and +Y direction from the owner's named set.
+  /**
+   * Carbon GetParentLocatorPosition (BackAndForth.cpp:356-363): null-guard
+   * the parent, then the world position and direction of its indexed locator
+   * from the behaviour's named set, into the caller's two out-vectors.
+   */
+  @carbon.method
+  @impl.implemented
+  GetParentLocatorPosition(locatorIndex, outPosition, outDirection)
+  {
+    this.#ReadOwnerLocator(this.parent, locatorIndex, outPosition, outDirection);
+  }
+
+  /** Carbon GetTargetLocatorPosition (cpp:365-372): the target twin. */
+  @carbon.method
+  @impl.implemented
+  GetTargetLocatorPosition(locatorIndex, outPosition, outDirection)
+  {
+    this.#ReadOwnerLocator(this.target, locatorIndex, outPosition, outDirection);
+  }
+
+  /** The shared body of the pair above; the owner duck is the runtime's
+   *  locator-set surface (GetLocatorPositionFromSet/GetLocatorRotationFromSet). */
+  #ReadOwnerLocator(owner, locatorIndex, outPosition, outDirection)
+  {
+    if (owner)
+    {
+      owner.GetLocatorPositionFromSet?.(locatorIndex, true, this.locatorSetName, outPosition);
+      owner.GetLocatorRotationFromSet?.(locatorIndex, true, this.locatorSetName, outDirection);
+    }
+  }
+
   /**
    * Reads the world position and forward direction of an owner's currently indexed locator into the agent's scratch record.
    */
   #GetOwnerLocatorPosition(owner, data)
   {
-    if (owner)
-    {
-      owner.GetLocatorPositionFromSet?.(data.locatorIndex, true, this.locatorSetName, data.locatorTarget);
-      owner.GetLocatorRotationFromSet?.(data.locatorIndex, true, this.locatorSetName, data.locatorDirection);
-    }
+    this.#ReadOwnerLocator(owner, data.locatorIndex, data.locatorTarget, data.locatorDirection);
   }
 
   static LocatorType = LocatorType;

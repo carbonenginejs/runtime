@@ -1,4 +1,4 @@
-// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
+﻿// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudStaticDataRepository.json.
 import { carbon, impl, type } from "#schema";
@@ -78,12 +78,30 @@ export class AudStaticDataRepository extends CjsModel
     return this.#initialized;
   }
 
+  // Carbon's templated core (AudStaticDataRepository.h:68-91): every typed
+  // accessor below is GetAttribute over GetData. The mutex is single-threaded
+  // JS's no-op, and C++ pointer-to-member projection is a keyed read.
+
+  /** Carbon GetData<DataType> (h:68-78): the named record, or null. */
+  #GetData(map, name)
+  {
+    return map.get(String(name)) ?? null;
+  }
+
+  /** Carbon GetAttribute<DataType, AttrType> (h:82-91): one field of the
+   *  named record, or the default when the record is absent. */
+  #GetAttribute(map, name, attribute, defaultValue)
+  {
+    const data = this.#GetData(map, name);
+    return data ? data[attribute] : defaultValue;
+  }
+
   /** Carbon method GetEventID: 32-bit Wwise id, AK_INVALID_UNIQUE_ID (0) when unknown. */
   @carbon.method
   @impl.implemented
   GetEventID(eventName)
   {
-    return this.#events.get(String(eventName))?.eventID ?? INVALID_UNIQUE_ID;
+    return this.#GetAttribute(this.#events, eventName, "eventID", INVALID_UNIQUE_ID);
   }
 
   /** Carbon method GetEventRadiusSq: squared max attenuation radius, 0 when unknown. */
@@ -91,7 +109,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   GetEventRadiusSq(eventName)
   {
-    const eventData = this.#events.get(String(eventName));
+    const eventData = this.#GetData(this.#events, eventName);
     if (!eventData)
     {
       return 0;
@@ -104,7 +122,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIsLoop(eventName)
   {
-    return this.#events.get(String(eventName))?.isLoop ?? false;
+    return this.#GetAttribute(this.#events, eventName, "isLoop", false);
   }
 
   /** Carbon method EventIs2D. */
@@ -112,7 +130,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIs2D(eventName)
   {
-    return this.#events.get(String(eventName))?.is2D ?? false;
+    return this.#GetAttribute(this.#events, eventName, "is2D", false);
   }
 
   /** Carbon method EventIsVital. */
@@ -120,7 +138,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIsVital(eventName)
   {
-    return this.#events.get(String(eventName))?.isVital ?? false;
+    return this.#GetAttribute(this.#events, eventName, "isVital", false);
   }
 
   /** Carbon method EventIsStopped: whether the second event stops the first. */
@@ -128,7 +146,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIsStopped(eventPotentiallyStopped, eventPotentiallyStopping)
   {
-    const eventData = this.#events.get(String(eventPotentiallyStopped));
+    const eventData = this.#GetData(this.#events, eventPotentiallyStopped);
     return !!eventData && eventData.eventsStoppedBy.includes(String(eventPotentiallyStopping));
   }
 
@@ -137,7 +155,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   SourceIsEssential(sourceID)
   {
-    return this.#sources.get(String(sourceID))?.isEssential ?? false;
+    return this.#GetAttribute(this.#sources, sourceID, "isEssential", false);
   }
 
   /** Carbon method SoundBankIsEssential. */
@@ -145,7 +163,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   SoundBankIsEssential(soundBankName)
   {
-    return this.#soundBanks.get(String(soundBankName))?.isEssentialSoundBank ?? false;
+    return this.#GetAttribute(this.#soundBanks, soundBankName, "isEssentialSoundBank", false);
   }
 
   /** Carbon method SoundBanksRequiredForEvent: banks the event needs; empty when unknown. Treat as read-only. */
@@ -153,7 +171,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   SoundBanksRequiredForEvent(eventName)
   {
-    return this.#events.get(String(eventName))?.soundbanks ?? EMPTY_SOUNDBANKS;
+    return this.#GetAttribute(this.#events, eventName, "soundbanks", EMPTY_SOUNDBANKS);
   }
 
 }

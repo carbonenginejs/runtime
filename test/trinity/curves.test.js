@@ -72,7 +72,9 @@ test("TriVectorSequencer ports Carbon combination and derivative behavior", () =
 
   assertEquals(CjsSchema.GetConstructor("TriVectorSequencer"), TriVectorSequencer);
   assertCarbonMethod(TriVectorSequencer, "UpdateValue", "implemented");
-  assertCarbonMethod(TriVectorSequencer, "GetValueAt", "adapted");
+  // GetValueAt became Carbon's own dispatch over the three named combiners
+  // (four-method tier, 2026-09-06), so it is implemented, not adapted.
+  assertCarbonMethod(TriVectorSequencer, "GetValueAt", "implemented");
 });
 test("TriColorSequencer preserves Carbon's double-time additive quirk", () =>
 {

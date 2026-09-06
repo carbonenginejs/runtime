@@ -118,6 +118,18 @@ export class Tr2SSAO extends CjsModel
     throw new Error("Tr2SSAO.Filter requires an engine-owned SSAO realization contract");
   }
 
+  /**
+   * Carbon Hash (Tr2SSAO.cpp:535): `n * (n ^ (n >> 15))` - the integer
+   * bit-mix that decorrelates per-frame/per-pixel sampling. Static in
+   * Carbon (a file-local-style helper on the class), uint32 wrap preserved
+   * with imul.
+   */
+  static hash(n)
+  {
+    const value = n >>> 0;
+    return Math.imul(value, value ^ (value >>> 15)) >>> 0;
+  }
+
   static SSAOQuality = SSAOQuality;
 
 }

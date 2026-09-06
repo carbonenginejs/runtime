@@ -40,10 +40,42 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   @impl.implemented
   __init__(input = null, output = null, eventFilter = undefined, filter = undefined)
   {
-    this.inputResults = input;
-    this.outputResults = output;
-    if (eventFilter !== undefined) this.eventFilter = Number(eventFilter) >>> 0;
-    if (filter !== undefined) this.filterType = Number(filter) | 0;
+    this.SetInputResults(input);
+    this.SetOutputResults(output);
+    if (eventFilter !== undefined) this.SetEventFilter(eventFilter);
+    if (filter !== undefined) this.SetFilterType(filter);
+  }
+
+  /** Carbon SetEventFilter (cpp:98): the event-type bitfield Execute masks by. */
+  @carbon.method
+  @impl.implemented
+  SetEventFilter(eventFilter)
+  {
+    this.eventFilter = Number(eventFilter) >>> 0;
+  }
+
+  /** Carbon SetFilterType (cpp:112): ONLY_ vs EXCLUDE_OBJECTS_IN_LIST. */
+  @carbon.method
+  @impl.implemented
+  SetFilterType(filterType)
+  {
+    this.filterType = Number(filterType) | 0;
+  }
+
+  /** Carbon SetInputResults (h:49-52): the non-owning source result set. */
+  @carbon.method
+  @impl.implemented
+  SetInputResults(results)
+  {
+    this.inputResults = results ?? null;
+  }
+
+  /** Carbon SetOutputResults (h:53-56): the non-owning destination set. */
+  @carbon.method
+  @impl.implemented
+  SetOutputResults(results)
+  {
+    this.outputResults = results ?? null;
   }
 
   /**

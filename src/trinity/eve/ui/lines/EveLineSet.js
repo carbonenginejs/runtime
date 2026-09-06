@@ -148,6 +148,21 @@ export class EveLineSet extends withIEveTransform(withIEveSpaceObject2(withITr2R
     return true;
   }
 
+  /**
+   * Carbon Initialize (EveLineSet.cpp:35-42): seed the line capacity at 100
+   * and bring resources up. JS arrays need no reserve, so the seed IS the
+   * capacity watermark; the PrepareResources hop is the AL half and stays
+   * with the device lane (OnPrepareResources is classified there).
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon reserves vector capacity and calls PrepareResources; JS arrays need no reserve and the device half belongs to the AL lane.")
+  Initialize()
+  {
+    this.maxCurrentLineCount = Math.max(this.maxCurrentLineCount, 100);
+    return true;
+  }
+
   /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented

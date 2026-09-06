@@ -99,6 +99,42 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
     this.y = component;
   }
 
+  // Carbon's component utility methods (Tr2Vector2Parameter.cpp:265-334) are
+  // what the Blue x/y properties above are built FROM; each is the same
+  // refresh-from-reroute read or write-through-reroute-and-linear write.
+
+  /** Carbon GetX (cpp:265-273): refresh from the reroute, then component 0. */
+  @carbon.method
+  @impl.implemented
+  GetX()
+  {
+    return this.x;
+  }
+
+  /** Carbon GetY (cpp:283-291). */
+  @carbon.method
+  @impl.implemented
+  GetY()
+  {
+    return this.y;
+  }
+
+  /** Carbon SetX (cpp:301-313): write, refresh the linear mirror, write through the reroute. */
+  @carbon.method
+  @impl.implemented
+  SetX(x)
+  {
+    this.x = x;
+  }
+
+  /** Carbon SetY (cpp:323-334). */
+  @carbon.method
+  @impl.implemented
+  SetY(y)
+  {
+    this.y = y;
+  }
+
   /** The shader constant name this value binds to; empty until authored. */
   @carbon.method
   @impl.implemented

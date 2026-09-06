@@ -5,6 +5,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { TunnelGroupType } from "./enums.js";
+import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_LOADFINISHED, BELIST_REMOVED } from "../../../controllers/contracts.js";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
 const DIST = vec3.create();
@@ -95,8 +96,30 @@ export class FollowASpline extends CjsModel
   @impl.implemented
   OnModified(_value = null)
   {
-    this.remapTunnels();
+    this.UpdateTunnelRegistry();
     return true;
+  }
+
+  /**
+   * Carbon OnListModified (FollowASpline.cpp:37-67): only the spline-tunnels
+   * list is watched, and the donor's INSERTED, REMOVED and LOADFINISHED
+   * branches are textually identical - each hands the group a bound
+   * UpdateTunnelRegistry callback with debug colour 0xff5555aa. One body
+   * here; the duplication is the donor's, not three behaviours.
+   */
+  @carbon.method
+  @impl.implemented
+  OnListModified(event, _key, _key2, value, theList)
+  {
+    if (theList !== this.splineTunnels) return;
+
+    const kind = event & BELIST_EVENTMASK;
+    if (kind !== BELIST_INSERTED && kind !== BELIST_REMOVED && kind !== BELIST_LOADFINISHED) return;
+
+    if (typeof value?.SetSystemTunnelFunctionReferenceAndColor === "function")
+    {
+      value.SetSystemTunnelFunctionReferenceAndColor(() => this.UpdateTunnelRegistry(), 0xFF5555AA);
+    }
   }
 
   /** Per-agent scratch record count (Carbon sizeof(FollowASplineData)). */
@@ -257,10 +280,14 @@ export class FollowASpline extends CjsModel
     return forceVectors;
   }
 
-  /** Carbon method remapTunnels -> UpdateTunnelRegistry (cpp:319-335). */
+  /**
+   * Carbon UpdateTunnelRegistry (cpp:319-335): clear the private list,
+   * flatten every group's tunnels into it, and raise the reassign flag so
+   * ReassignTunnelIDsAndAddSystemTunnels renumbers on the next tick.
+   */
   @carbon.method
-  @impl.adapted
-  remapTunnels()
+  @impl.implemented
+  UpdateTunnelRegistry()
   {
     this.privateTunnels.length = 0;
     for (const group of this.splineTunnels)
@@ -272,6 +299,14 @@ export class FollowASpline extends CjsModel
       }
     }
     this.shouldReassignTunnelIDs = true;
+  }
+
+  /** Blue exposure "remapTunnels" of UpdateTunnelRegistry (FollowASpline_Blue.cpp:37). */
+  @carbon.method
+  @impl.adapted
+  remapTunnels()
+  {
+    this.UpdateTunnelRegistry();
     return this.privateTunnels;
   }
 

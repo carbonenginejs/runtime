@@ -105,6 +105,41 @@ export class Tr2ImageRes extends CjsResource
     return color.length < 4 || color[3] > 0;
   }
 
+  /**
+   * Carbon GetBitmap (Tr2ImageRes.cpp:138): the host bitmap DoLoad decoded.
+   * The canonical RGBA payload IS that bitmap here.
+   *
+   * @returns {object|null}
+   */
+  GetBitmap()
+  {
+    return this.GetPayload();
+  }
+
+  /**
+   * Carbon IsMemoryUsageKnown (cpp:14): usage is only trustworthy once the
+   * async load has settled.
+   *
+   * @returns {boolean}
+   */
+  IsMemoryUsageKnown()
+  {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Carbon GetMemoryUsage (cpp:19): the bitmap's raw byte size, or a
+   * 1024-byte placeholder so an unloaded resource still has nonzero
+   * accounted cost.
+   *
+   * @returns {number}
+   */
+  GetMemoryUsage()
+  {
+    const payload = this.GetPayload();
+    return payload?.data?.byteLength ? payload.data.byteLength : 1024;
+  }
+
   static payload = ResourceRequirement.IMAGE;
 }
 
@@ -122,6 +157,9 @@ CjsSchema.define(Tr2ImageRes, {
     GetWidth: [ carbon.method, impl.adapted ],
     GetHeight: [ carbon.method, impl.adapted ],
     GetPixelColor: [ carbon.method, impl.adapted ],
-    IsPixelOpaque: [ carbon.method, impl.adapted ]
+    IsPixelOpaque: [ carbon.method, impl.adapted ],
+    GetBitmap: [ carbon.method, impl.adapted ],
+    IsMemoryUsageKnown: [ carbon.method, impl.implemented ],
+    GetMemoryUsage: [ carbon.method, impl.adapted ]
   }
 });

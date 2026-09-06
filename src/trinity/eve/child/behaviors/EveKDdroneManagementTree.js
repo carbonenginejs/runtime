@@ -211,13 +211,23 @@ export class EveKDdroneManagementTree extends CjsModel
       return infoBlock;
     }
 
+    this.#SearchThroughTree(infoBlock, this.tree, agents, searchRanges);
+
+    return infoBlock;
+  }
+
+  /**
+   * Carbon SearchThroughTree (cpp:432-441): the per-agent driver - reset the
+   * active range for each agent and run the recursive helper with the
+   * agent's running index into the neighbour buckets.
+   */
+  #SearchThroughTree(infoBlock, node, agents, searchRanges)
+  {
     for (let c = 0; c < agents.length; c++)
     {
       this.#activeRange = 0;
-      this.#SearchThroughTreeHelperFunction(infoBlock, this.tree, agents[c], searchRanges, c);
+      this.#SearchThroughTreeHelperFunction(infoBlock, node, agents[c], searchRanges, c);
     }
-
-    return infoBlock;
   }
 
   // Rebuilds the AgentRef shells over the live agents (Carbon
