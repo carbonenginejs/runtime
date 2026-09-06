@@ -23,7 +23,7 @@ import { sha256Utf8 } from "../../../../format/effect/sha256.js";
  * `carbon-analysis-adapter-corpus.test.mjs` diffs the two over every shipped
  * permutation and finds zero differences.
  *
- * These views exist for `runtime/src/engine/webgpu`, which reads format-layer JSON for
+ * These views exist for `runtime/src/trinityal/webgpu`, which reads format-layer JSON for
  * Carbon reflection instead of reading `Tr2Shader`. That is a recorded layering
  * defect and is not this port's to fix; the views keep it working unchanged
  * while the wire format moves underneath it. They go away with that cleanup.

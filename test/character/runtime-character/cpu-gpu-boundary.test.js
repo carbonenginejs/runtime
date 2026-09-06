@@ -77,7 +77,7 @@ test("the character layer contract excludes upper and sibling runtime layers", a
         "audio",
         "sof",
         "input",
-        "engine/webgpu",
+        "trinityal/webgpu",
         "core",
         "tools"
     ].includes(name));

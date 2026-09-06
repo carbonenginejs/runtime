@@ -163,7 +163,7 @@ async function ReadJavaScriptClasses(directory)
   {
     const relativeFile = path.relative(root, file).split(path.sep).join("/");
     if (relativeFile.startsWith("src/trinity/dropped/")) continue;
-    if (relativeFile.startsWith("src/engine/")) continue;
+    if (relativeFile.startsWith("src/trinityal/")) continue;
     const source = await fs.readFile(file, "utf8");
     let ast;
     try

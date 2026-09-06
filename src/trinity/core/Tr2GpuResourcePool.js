@@ -26,7 +26,7 @@
 // walks outward. That is how a scene-local pool shares the global one's
 // resources without owning them.
 
-import { Tr2BitmapDimensions, Tr2BufferALStub, Tr2TextureALStub } from "./al/index.js";
+import { Tr2BitmapDimensions, Tr2BufferALStub, Tr2TextureALStub } from "../../trinityal/index.js";
 
 
 function fail(message)

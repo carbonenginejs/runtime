@@ -10,7 +10,13 @@ export * from "./TriSettings.js";
 export * from "./animation/index.js";
 export * from "./batch/index.js";
 export * from "./binding/index.js";
-export * from "./al/index.js";
+// COMPATIBILITY SEAM, NOT A LAYERING STATEMENT. The abstraction layer moved to
+// src/trinityal (2026-09-06) so it sits beside trinity as Carbon has it, and
+// Trinity USES the AL rather than owning it - Carbon includes its headers and
+// re-exports nothing. This line keeps the ~29 existing consumers that import
+// AL types through this barrel working; each should move to #trinityal, and
+// this line should go with the last of them.
+export * from "../../trinityal/index.js";
 export * from "./Tr2Renderer.js";
 export * from "./Tr2RenderUtils.js";
 export * from "./Tr2Blitter.js";

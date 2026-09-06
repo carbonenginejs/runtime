@@ -29,7 +29,7 @@ import {
 } from "#consts/render-context";
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition.js";
 import { Tr2RenderStateSetup } from "#resource/shader";
-import { Failed } from "../core/al/ALResult.js";
+import { Failed } from "../../trinityal/ALResult.js";
 
 // Carbon's tables are file-scope statics shared across every state manager
 // (Tr2EffectStateManager.cpp:17-27, "These are shared across managers."). Ours

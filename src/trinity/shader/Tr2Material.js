@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { Tr2Shader } from "#resource/shader";
 import { ShaderType } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
-import { Tr2ResourceSetALStub } from "../core/al/Tr2ResourceSetAL.js";
+import { Tr2ResourceSetALStub } from "../../trinityal/Tr2ResourceSetAL.js";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { EFFECT_CONSTANTS } from "../core/Tr2Renderer.js";
 
@@ -289,7 +289,7 @@ export class Tr2Material extends CjsModel
         //
         // Clearing a DESCRIPTION is not touching a backend object. A test used
         // to assert the opposite - "runtime-trinity must not clear backend
-        // resource sets" - which was the engine-means-`engine/webgpu`
+        // resource sets" - which was the engine-means-`trinityal/webgpu`
         // misreading written down as a guarantee. Trinity owns the
         // description; the abstraction layer owns the set built from it.
         pass.resourceSet = null;

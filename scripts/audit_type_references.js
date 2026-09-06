@@ -18,7 +18,7 @@ const MODULES = [
   [ "character", "character/index.js" ],
   [ "input", "input/index.js" ],
   [ "core", "core/index.js" ],
-  [ "engine/webgpu", "engine/webgpu/index.js" ],
+  [ "trinityal/webgpu", "trinityal/webgpu/index.js" ],
   [ "tools", "tools/index.js" ]
 ];
 

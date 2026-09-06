@@ -42,7 +42,7 @@
 
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
-import { Tr2BufferALStub, Tr2BufferDescriptionAL } from "../al/index.js";
+import { Tr2BufferALStub, Tr2BufferDescriptionAL } from "../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
 

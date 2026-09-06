@@ -47,7 +47,7 @@ src/resource Tr2EffectRes -> canonical Tr2Shader graph
 src/trinity Tr2Effect / Tr2Material / options / parameters
     |
     v
-src/engine/webgl or src/engine/webgpu GPU realization
+src/engine/webgl or src/trinityal/webgpu GPU realization
 ```
 
 ## Construction boundary

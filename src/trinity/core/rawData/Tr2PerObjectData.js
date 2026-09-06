@@ -6,7 +6,7 @@
 //
 // THIS HEAD COMMENT USED TO SAY the upload path was "engine-owned and
 // intentionally not modelled here; the engine reads the canonical
-// CjsConstantPayload at dispatch". That was the engine-means-`engine/webgpu`
+// CjsConstantPayload at dispatch". That was the engine-means-`trinityal/webgpu`
 // misreading: Carbon's SetPerObjectDataToDevice calls FillAndSetConstants,
 // which lives in Tr2RenderUtils.h - Trinity. The upload is here now and it
 // writes a Tr2ConstantBufferAL through the abstraction layer.
@@ -109,7 +109,7 @@ export class Tr2PerObjectData
    * THE CPU HALF WAS ALREADY HERE - `getConstantRecords` below answers which
    * payload binds to which stages, gated on the technique's mask. What was
    * missing was this last hop, because it was believed to be work for the
-   * `engine/webgpu` package rather than for Trinity calling the abstraction
+   * `trinityal/webgpu` package rather than for Trinity calling the abstraction
    * layer. `FillAndSetConstants` is in `Tr2RenderUtils.h`, which is Trinity.
    *
    * ONE BUFFER PER STAGE, SUPPLIED BY THE CALLER, as Carbon does: the context

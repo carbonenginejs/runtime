@@ -30,7 +30,7 @@
 // device. See `Tr2RenderContext.CreateBuffer`.
 
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
-import { Tr2BufferDescriptionAL } from "./al/Tr2BufferALStub.js";
+import { Tr2BufferDescriptionAL } from "../../trinityal/stub/Tr2BufferALStub.js";
 import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";

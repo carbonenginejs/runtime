@@ -10,19 +10,19 @@ const BASE_LAYERS = {
     "global/utils": { mayImport: [] },
     resource: { mayImport: [ "global/contracts", "global/utils" ] },
     trinity: { mayImport: [ "global/contracts", "global/utils", "resource" ] },
-    "engine/webgpu": { mayImport: [ "global/contracts", "global/utils", "resource", "trinity" ] },
-    "engine/webgl": { mayImport: [ "global/contracts", "global/utils", "resource", "trinity" ] },
-    core: { mayImport: [ "global/contracts", "global/utils", "resource", "trinity", "engine/webgpu", "engine/webgl" ] },
-    tools: { mayImport: [ "global/contracts", "global/utils", "resource", "trinity", "engine/webgpu", "engine/webgl", "core" ] }
+    "trinityal/webgpu": { mayImport: [ "global/contracts", "global/utils", "resource", "trinity" ] },
+    "trinityal/webgl": { mayImport: [ "global/contracts", "global/utils", "resource", "trinity" ] },
+    core: { mayImport: [ "global/contracts", "global/utils", "resource", "trinity", "trinityal/webgpu", "trinityal/webgl" ] },
+    tools: { mayImport: [ "global/contracts", "global/utils", "resource", "trinity", "trinityal/webgpu", "trinityal/webgl", "core" ] }
 };
 
 const BASE_IMPORTS = {
     "#contracts": "./src/global/contracts/index.js",
     "#contracts/*": "./src/global/contracts/*.js",
     "#trinity": "./src/trinity/index.js",
-    "#engine/webgpu/*": "./src/engine/webgpu/*.js",
-    "#engine/webgl/*": "./src/engine/webgl/*.js",
-    "#engine/*": "./src/engine/*/index.js"
+    "#trinityal/webgpu/*": "./src/trinityal/webgpu/*.js",
+    "#trinityal/webgl/*": "./src/trinityal/webgl/*.js",
+    "#trinityal/*": "./src/trinityal/*/index.js"
 };
 
 async function put(root, path, contents = "")
@@ -66,15 +66,15 @@ test("the checked-in runtime graph is valid", async () =>
     assert.deepEqual(result.problems, []);
 });
 
-test("nested engine layers use the longest configured prefix and alias", async t =>
+test("nested backend layers use the longest configured prefix and alias", async t =>
 {
     const root = await fixture(t, {
         files: {
-            "engine/webgpu/helper.js": "export const helper = true;",
-            "engine/webgpu/index.js": `
+            "trinityal/webgpu/helper.js": "export const helper = true;",
+            "trinityal/webgpu/index.js": `
                 import "../../trinity/index.js";
                 export * from "#contracts";
-                export { helper } from "#engine/webgpu/helper";
+                export { helper } from "#trinityal/webgpu/helper";
                 await import("#trinity");
             `
         }
@@ -83,12 +83,12 @@ test("nested engine layers use the longest configured prefix and alias", async t
     assert.deepEqual((await validateLayering({ root })).problems, []);
 });
 
-test("sibling engines, core, and tools remain forbidden engine dependencies", async t =>
+test("sibling backends, core, and tools remain forbidden backend dependencies", async t =>
 {
     const root = await fixture(t, {
         files: {
-            "engine/webgpu/index.js": `
-                import "#engine/webgl/index";
+            "trinityal/webgpu/index.js": `
+                import "#trinityal/webgl/index";
                 export * from "../../core/index.js";
                 import "../../tools/index.js";
             `
@@ -96,9 +96,9 @@ test("sibling engines, core, and tools remain forbidden engine dependencies", as
     });
     const problems = (await validateLayering({ root })).problems.join("\n");
 
-    assert.match(problems, /"engine\/webgpu" may not import "engine\/webgl"/u);
-    assert.match(problems, /"engine\/webgpu" may not import "core"/u);
-    assert.match(problems, /"engine\/webgpu" may not import "tools"/u);
+    assert.match(problems, /"trinityal\/webgpu" may not import "trinityal\/webgl"/u);
+    assert.match(problems, /"trinityal\/webgpu" may not import "core"/u);
+    assert.match(problems, /"trinityal\/webgpu" may not import "tools"/u);
 });
 
 test("relative imports must resolve exactly inside src", async t =>
@@ -121,7 +121,7 @@ test("all static module forms are scanned and nonliteral dynamic imports fail", 
 {
     const root = await fixture(t, {
         files: {
-            "engine/webgpu/index.js": `
+            "trinityal/webgpu/index.js": `
                 import {
                     value
                 } from "../../core/index.js";
@@ -168,7 +168,7 @@ test("every conditional import-map branch is enforced", async t =>
             }
         },
         files: {
-            "engine/webgpu/index.js": "import '#conditional';"
+            "trinityal/webgpu/index.js": "import '#conditional';"
         }
     });
     const problems = (await validateLayering({ root })).problems.join("\n");

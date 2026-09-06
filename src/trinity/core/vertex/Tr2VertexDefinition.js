@@ -4,7 +4,7 @@
 // This class is the definition and NOTHING ELSE: items, the per-stream offset
 // ledger, Add/Find/empty, and its own equality. The intern table lives on
 // Tr2EffectStateManager (Carbon s_vertexLayoutMap) and the shader-input match
-// lives in the vertex-layout AL (core/al/vertexLayoutMatch.js) - both were
+// lives in the vertex-layout AL (trinityal/vertexLayoutMatch.js) - both were
 // parked under this class's name until 2026-09-06, before it had its real
 // Carbon surface.
 import { Tr2VertexUsageCode } from "./usageCode.js";

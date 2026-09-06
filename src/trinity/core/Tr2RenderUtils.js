@@ -11,7 +11,7 @@
 // per-object upload - `Tr2PerObjectDataStandard::SetPerObjectDataToDevice`
 // calls it twice and does nothing else - and it lives in a Trinity header. It
 // went unported because "the engine does device work" was read as the
-// `engine/webgpu` package rather than the abstraction layer, so the upload was
+// `trinityal/webgpu` package rather than the abstraction layer, so the upload was
 // reimplemented engine-side and this file never got written. See
 // /docs/research/graphics-path-review-2026-09-05.md.
 //
@@ -23,8 +23,8 @@
 import { ShaderType } from "#consts/render-context";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { Tr2ConstantUsageAL } from "./al/Tr2ConstantBufferALStub.js";
-import { Failed } from "./al/ALResult.js";
+import { Tr2ConstantUsageAL } from "../../trinityal/stub/Tr2ConstantBufferALStub.js";
+import { Failed } from "../../trinityal/ALResult.js";
 
 
 /**

@@ -59,9 +59,9 @@ const shared = {
 
 export default [ {
     ...shared,
-    input: path.join(root, "test/engine/webgpu/harness/runtimeBoundary.js"),
+    input: path.join(root, "test/trinityal/webgpu/harness/runtimeBoundary.js"),
     output: {
-        file: path.join(root, ".cache/engine/webgpu/harness-runtime.js"),
+        file: path.join(root, ".cache/trinityal/webgpu/harness-runtime.js"),
         format: "esm",
         inlineDynamicImports: true
     },
@@ -69,9 +69,9 @@ export default [ {
     // The composed-frame demo. Bundled for the same reason the harness is: dist
     // keeps subpath imports, which no browser resolves.
     ...shared,
-    input: path.join(root, "test/engine/webgpu/demo/demo.js"),
+    input: path.join(root, "test/trinityal/webgpu/demo/demo.js"),
     output: {
-        file: path.join(root, "test/engine/webgpu/demo/demo.bundle.js"),
+        file: path.join(root, "test/trinityal/webgpu/demo/demo.bundle.js"),
         format: "esm",
         inlineDynamicImports: true
     }

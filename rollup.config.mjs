@@ -11,7 +11,7 @@ const unpublishedInputs = new Set([
     "src/trinity/generated/eve/EveDamageOverlay.js",
     "src/trinity/generated/eve/EveModularObjectModifier.js"
 ]);
-const privateInputs = [ "src/engine/webgpu/internal.js" ];
+const privateInputs = [ "src/trinityal/webgpu/internal.js" ];
 
 function collectTargets(value, out = [])
 {

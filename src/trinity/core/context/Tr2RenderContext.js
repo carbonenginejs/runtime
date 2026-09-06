@@ -8,7 +8,7 @@
 //
 //    IT USED TO RECORD INTENTS, and that mechanism is gone (2026-09-06). The
 //    recording existed because "the engine does device work" was read as the
-//    engine/webgpu PACKAGE rather than the abstraction layer, so a queue was
+//    trinityal/webgpu PACKAGE rather than the abstraction layer, so a queue was
 //    invented to carry work across a boundary Carbon does not have.
 //
 //    THE BACKEND IS NEVER ABSENT. Carbon's context INHERITS Tr2RenderContextAL,
@@ -30,9 +30,9 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { ALResult, Failed } from "../al/ALResult.js";
+import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { ConstantBufferSlot } from "#consts/render-context";
-import { Tr2ConstantBufferALStub } from "../al/Tr2ConstantBufferALStub.js";
+import { Tr2ConstantBufferALStub } from "../../../trinityal/stub/Tr2ConstantBufferALStub.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
@@ -42,7 +42,7 @@ import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
 import { Tr2RenderBatch } from "../batch/Tr2RenderBatch.js";
 import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
-import { Tr2RenderContextALStub } from "./Tr2RenderContextALStub.js";
+import { Tr2RenderContextALStub } from "../../../trinityal/stub/Tr2RenderContextALStub.js";
 import { Tr2Blitter } from "../Tr2Blitter.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());

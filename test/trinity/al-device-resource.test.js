@@ -6,7 +6,7 @@ import {
   DestroyDeviceResources,
   Tr2ALMemoryType,
   Tr2BaseDeviceResourceAL
-} from "../../src/trinity/core/al/Tr2DeviceResourceAL.js";
+} from "../../src/trinityal/Tr2DeviceResourceAL.js";
 
 /** A minimal resource: valid until destroyed, in the class it was given. */
 class TestResource extends Tr2BaseDeviceResourceAL

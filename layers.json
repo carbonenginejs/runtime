@@ -101,6 +101,22 @@
                 "global/model"
             ]
         },
+        "trinityal": {
+            "mayImport": [
+                "global/utils",
+                "global/math",
+                "global/consts",
+                "global/contracts",
+                "global/schema",
+                "global/model"
+            ],
+            "why": [
+                "Carbon's abstraction layer, a sibling of trinity rather than a part of it",
+                "(namespace TrinityALImpl, target TrinityAL_stub). It is the resource and",
+                "context family a backend implements, so it sits BELOW trinity and imports",
+                "no trinity, resource, core or tools."
+            ]
+        },
         "trinity": {
             "mayImport": [
                 "global/utils",
@@ -109,7 +125,8 @@
                 "global/contracts",
                 "global/schema",
                 "global/model",
-                "resource"
+                "resource",
+                "trinityal"
             ]
         },
         "sof": {
@@ -163,7 +180,7 @@
                 "global/model"
             ]
         },
-        "engine/webgpu": {
+        "trinityal/webgpu": {
             "mayImport": [
                 "global/utils",
                 "global/math",
@@ -172,11 +189,12 @@
                 "global/schema",
                 "global/model",
                 "resource",
-                "trinity"
+                "trinity",
+                "trinityal"
             ],
             "why": [
-                "The implemented backend extends canonical dependency-floor, resource,",
-                "and Trinity contracts. It never imports core, tools, or another engine."
+                "The implemented abstraction-layer backend extends canonical dependency-floor,",
+                "and Trinity contracts. It never imports core, tools, or another backend."
             ]
         },
         "core": {
@@ -193,7 +211,7 @@
                 "audio",
                 "character",
                 "input",
-                "engine/webgpu"
+                "trinityal/webgpu"
             ],
             "why": [
                 "Composition. It is allowed to know about everything below it, which is",

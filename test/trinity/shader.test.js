@@ -354,7 +354,7 @@ test("promoted shader graph containers track dirty resources", () =>
   // realized set SURVIVED InvalidateResourceSets. Carbon drops both. Clearing
   // a description is not touching a backend object - Trinity owns the
   // description, the abstraction layer owns the set built from it - and the
-  // old assertion was the engine-means-`engine/webgpu` misreading written down
+  // old assertion was the engine-means-`trinityal/webgpu` misreading written down
   // as a guarantee. See /docs/research/graphics-path-review-2026-09-05.md.
   let cleared = 0;
   pass.resourceSet = {};
