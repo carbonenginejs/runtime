@@ -4,12 +4,11 @@
 //
 // The WebGPU backend behind Carbon's abstraction layer.
 //
-// WHAT THIS REPLACES. `Tr2RenderContext` currently RECORDS what Trinity asked
-// for into an intent list, which `framePlan.js` partitions and
-// `frameExecutor.js` encodes. That mechanism has no Carbon counterpart: Carbon
-// gives the same job to the abstraction layer, and a backend is simply called.
-// The intent path is still present and still the live one - this backend
-// replaces it, and it is deleted once it does.
+// WHAT THIS REPLACED. `Tr2RenderContext` used to RECORD what Trinity asked for
+// into an intent list, which `framePlan.js` partitioned and `frameExecutor.js`
+// encoded. That mechanism had no Carbon counterpart - Carbon gives the same job
+// to the abstraction layer, and a backend is simply called - and it is now
+// deleted, along with all three of those files (runtime `1e881dec`).
 //
 // THE DIVISION OF LABOUR IS CARBON'S. `Tr2RenderContextAL` (metal) holds the
 // bound state and validates; `MetalWorkQueue` owns the command buffer and the
@@ -99,6 +98,19 @@ export class CjsWebgpuRenderContextAL
 
   /** m_resourceSet */
   #resourceSet = null;
+
+  // Carbon's m_psoDescription half that exists so far: the authored setup and
+  // the overrides it must be projected through, plus m_dirtyPso. The rest of
+  // the description - shader program, vertex layout, topology, target formats -
+  // is already held by the fields above and around; assembling and caching it
+  // is the next piece of the immediate-draw route.
+
+  #renderStateSetup = null;
+
+  #renderStateOverrides = null;
+
+  /** m_dirtyPso */
+  #pipelineDirty = true;
 
   /** m_boundRenderTarget[MAX_RENDER_TARGET] */
   #boundRenderTargets = new Array(MAX_RENDER_TARGET).fill(null);
@@ -745,6 +757,52 @@ export class CjsWebgpuRenderContextAL
     this.#shaderProgram = shaderProgram;
 
     return true;
+  }
+
+  /**
+   * Takes the render-state setup a pass authored, with the state manager's
+   * overrides applied.
+   *
+   * Carbon's backends receive a resolved state-PAIR list here and set each pair
+   * on the device (`Tr2EffectStateManager.cpp:753`). WebGPU has no per-state
+   * setter - state is folded into a pipeline at creation - so the setup is held
+   * and projected when a pipeline is resolved, which is also why the projection
+   * needs the depth format only this backend knows.
+   *
+   * THE PROJECTION IS NOT DONE HERE. `Tr2RenderStateSetup.GetWebgpuRecipe`
+   * already does it and the batch resolver already uses it; a second translator
+   * would be the mistake this whole lane exists to undo. This stores the inputs
+   * and marks the pipeline dirty, as Carbon's setters do.
+   *
+   * @param {object} setup A `Tr2RenderStateSetup`.
+   * @param {object} [overrides] The state manager's render-state overrides.
+   * @returns {boolean} Whether a setup was supplied.
+   */
+  SetRenderStates(setup, overrides = null)
+  {
+    if (!setup) return false;
+
+    // Carbon's setters compare before dirtying, so a redundant apply costs
+    // nothing (Tr2RenderContextDx12.cpp:315-338).
+    if (this.#renderStateSetup === setup && this.#renderStateOverrides === overrides) return true;
+
+    this.#renderStateSetup = setup;
+    this.#renderStateOverrides = overrides;
+    this.#pipelineDirty = true;
+
+    return true;
+  }
+
+  /** The setup and overrides a pipeline should be resolved from. */
+  GetRenderStateInputs()
+  {
+    return { setup: this.#renderStateSetup, overrides: this.#renderStateOverrides };
+  }
+
+  /** Whether the pipeline description changed since it was last resolved. */
+  IsPipelineDirty()
+  {
+    return this.#pipelineDirty;
   }
 
   /**

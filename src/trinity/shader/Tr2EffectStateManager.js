@@ -1195,7 +1195,13 @@ export class Tr2EffectStateManager extends CjsModel
   }
 
   /**
-   * Whether this render-state handle needs applying, recording it either way.
+   * Applies a render-state setup to the backend.
+   *
+   * Carbon (`cpp:703-720`) filters a redundant handle inside a managed span,
+   * then does TWO things: re-applies the current rendering mode's standard
+   * states, and only then the pass's own. Reading a pass's states alone yields a
+   * pipeline missing most of its state, which is why the order is transcribed
+   * rather than simplified.
    *
    * @param {number} handle Render-state handle.
    * @returns {boolean} False when the handle is already current in a managed span.
@@ -1204,9 +1210,58 @@ export class Tr2EffectStateManager extends CjsModel
   {
     if (this.#isManagedRendering && handle === this.#currentValues.renderStateSetup) return false;
 
+    if (handle < Tr2EffectStateManager.getRenderStateSetupCount())
+    {
+      this.ApplyStandardStates(this.#currentValues.renderingMode);
+      this.DoApplyRenderStates(handle);
+
+      this.#currentValues.renderStateSetup = handle;
+
+      return true;
+    }
+
     this.#currentValues.renderStateSetup = handle;
 
-    return handle < Tr2EffectStateManager.getRenderStateSetupCount();
+    return false;
+  }
+
+  /**
+   * Resolves a setup against the current overrides and hands it to the backend.
+   *
+   * Carbon `DoApplyRenderStates` (`cpp:722-755`) walks the registered
+   * state-PAIR list substituting `m_renderStateOverrides[state][value]`, caches
+   * the resolved list per setup behind a dirty flag, and calls
+   * `m_renderContext.SetRenderStates( &kv[0], kv.size() / 2 )`.
+   *
+   * OURS RESOLVES A PROJECTION RATHER THAN A PAIR LIST, for the reason the class
+   * head gives: a registered setup is interpreted ONCE at registration, so there
+   * are no raw pairs left to index. The override tables live in interpreted
+   * space on `Tr2RenderStateSetup`, whose `GetWebgpuRecipe` already accepts
+   * `invertedDepthTest` and `invertedCullMode`. Same substitution, one layer up.
+   *
+   * CARBON'S PER-SETUP CACHE HAS NO COUNTERPART HERE, and adding one would be
+   * cargo. Carbon caches because it performs the substitution itself and the
+   * result is a list it would otherwise rebuild every draw. We substitute
+   * nothing - the setup and the overrides go to the backend, which projects
+   * them - and the projection's result is already cached by the pipeline cache,
+   * keyed on the recipe the overrides changed. Two caches for one derivation is
+   * how they fall out of step.
+   *
+   * WIREFRAME REFUSES HERE, and that is the answer to this class's own note
+   * about the toggle. `GetWebgpuRecipe` throws for any fill mode but solid,
+   * because WebGPU has no `glPolygonMode` - so the flag reaches a backend that
+   * says it cannot honour it, rather than being quietly dropped.
+   *
+   * @param {number} handle Render-state handle.
+   * @returns {boolean} Whether a setup reached the backend.
+   */
+  DoApplyRenderStates(handle)
+  {
+    const setup = Tr2EffectStateManager.getRenderStateSetup(handle);
+
+    if (!setup || !this.#renderContext) return false;
+
+    return this.#renderContext.SetRenderStates(setup, this.GetRenderStateOverrides());
   }
 
   /**

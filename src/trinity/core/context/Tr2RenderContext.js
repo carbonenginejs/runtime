@@ -1386,6 +1386,25 @@ export class Tr2RenderContext extends CjsModel
     return this.#requireAL("SetRenderState").SetRenderState(Number(state) >>> 0, Number(value) >>> 0);
   }
 
+  /**
+   * Applies a whole render-state setup, with the state manager's overrides.
+   *
+   * Carbon's `DoApplyRenderStates` ends with
+   * `m_renderContext.SetRenderStates( &kv[0], kv.size() / 2 )`
+   * (`Tr2EffectStateManager.cpp:753`), where its context IS the backend. Ours
+   * composes, so this forwards - and carries the interpreted setup rather than
+   * a resolved pair list, because a registered setup is interpreted once at
+   * registration here and the backend projects it.
+   *
+   * @param {object} setup A `Tr2RenderStateSetup`.
+   * @param {object} [overrides] The state manager's render-state overrides.
+   * @returns {boolean} Whether the backend accepted it.
+   */
+  SetRenderStates(setup, overrides = null)
+  {
+    return this.#requireAL("SetRenderStates").SetRenderStates(setup, overrides);
+  }
+
   /** Records the intent to apply the standard state block for a rendering mode. */
   ApplyStandardStates(renderingMode)
   {

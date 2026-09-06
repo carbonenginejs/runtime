@@ -1156,7 +1156,6 @@
   ],
   "Tr2EffectStateManager": [
     "AssignFrom",
-    "DoApplyRenderStates",
     "GetRenderTargetHeight",
     "GetRenderTargetWidth",
     "GetShaderLibraryCode",

@@ -786,7 +786,14 @@ test("promoted shader graph files do not import backend APIs", async () =>
     const source = await readFile(file, "utf8");
     // THE FIRST ASSERTION IS THE REAL RULE and it stays: no backend API, no
     // device object, in Trinity.
-    assert(!/(WebGPU|WebGL|GPUDevice|GPUTexture|GPUBuffer|navigator\.gpu)/.test(source), `${file} should remain runtime graph code, not engine backend code`);
+    //
+    // IT SCANS CODE, NOT PROSE. It used to scan the raw file, so a COMMENT
+    // naming a backend failed it - a false positive with a bad incentive
+    // attached, because the comments most likely to name one are those
+    // explaining where a layering boundary falls and why the work happens on
+    // the other side of it. Stripping comments can only reduce what matches,
+    // so the rule over code is exactly as strict as it was.
+    assert(!/(WebGPU|WebGL|GPUDevice|GPUTexture|GPUBuffer|navigator\.gpu)/.test(withoutComments(source)), `${file} should remain runtime graph code, not engine backend code`);
 
     // A SECOND ASSERTION USED TO SIT HERE AND IT WAS WRONG. It forbade any
     // call to SetSrv, SetUav, SetConstants, ApplyShaderProgram or
@@ -804,6 +811,12 @@ test("promoted shader graph files do not import backend APIs", async () =>
     // do not restore it as a regression fix.
   }
 });
+/** Source with block and line comments removed, so a rule scans code only. */
+function withoutComments(source)
+{
+  return source.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+}
+
 async function collectJsFiles(dir)
 {
   const entries = await readdir(dir, { withFileTypes: true });

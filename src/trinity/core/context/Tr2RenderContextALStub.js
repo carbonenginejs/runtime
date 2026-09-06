@@ -83,6 +83,11 @@ export class Tr2RenderContextALStub
   /** Clears the context asked for; the bookkeeping IS the feature here. */
   #clearCount = 0;
 
+  /** The render-state setup last applied, and the overrides it carried. */
+  #renderStateSetup = null;
+
+  #renderStateOverrides = null;
+
   // m_frameNumber. THIS IS NOT THE TRINITY FRAME COUNTER. Trinity's counts
   // frames the render path has begun (`Tr2Renderer::GetCurrentFrameCounter`);
   // this one counts frames the DEVICE has finished, and the gap between them is
@@ -738,6 +743,33 @@ export class Tr2RenderContextALStub
   SetRenderState()
   {
     return true;
+  }
+
+  /**
+   * Accepts a render-state setup with the state manager's overrides.
+   *
+   * Carbon's backends set each resolved pair on the device; the stub has no
+   * device, so it holds the last setup and reports it - the bookkeeping being
+   * the feature, as everywhere else here.
+   *
+   * @param {object} setup A `Tr2RenderStateSetup`.
+   * @param {object} [overrides] The render-state overrides applied to it.
+   * @returns {boolean} Whether a setup was supplied.
+   */
+  SetRenderStates(setup, overrides = null)
+  {
+    if (!setup) return false;
+
+    this.#renderStateSetup = setup;
+    this.#renderStateOverrides = overrides;
+
+    return true;
+  }
+
+  /** The setup last applied, with the overrides it carried. */
+  GetRenderStates()
+  {
+    return { setup: this.#renderStateSetup, overrides: this.#renderStateOverrides };
   }
 
   /**
