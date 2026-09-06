@@ -59,7 +59,7 @@ export class EveBoxVolume extends IEveVolume
   @impl.implemented
   Initialize()
   {
-    this.#setup();
+    this.Setup();
     return true;
   }
 
@@ -221,7 +221,7 @@ export class EveBoxVolume extends IEveVolume
   @impl.adapted
   OnModified()
   {
-    this.#setup();
+    this.Setup();
     for (const callback of this.#callbacks.values())
     {
       callback?.();
@@ -237,10 +237,18 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /**
-   * Clamps the scaling to non-negative values, keeps the inner scaling inside
-   * it, and caches the inverse of the box rotation.
+   * Carbon Setup (EveBoxVolume.cpp:99-112): clamp the scalings, keep the
+   * inner scaling inside the outer, refresh the cached derived state.
+   * Carbon caches four full matrices plus the bounding sphere; this port
+   * computes transforms and the sphere on demand, so the cached state is
+   * the inverse rotation the intensity test reads. Box's Setup does NOT
+   * fire change callbacks - OnModified does (cpp:194-215), unlike the
+   * ellipsoid, whose Setup fires them itself.
    */
-  #setup()
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon caches boxTransform/innerBoxTransform/inverses and the bounding sphere; this port derives them on demand, so Setup refreshes the clamps and the cached inverse rotation.")
+  Setup()
   {
     for (let i = 0; i < 3; i++)
     {

@@ -31,6 +31,11 @@ const INSTANCE_DATA_ELEMENT = Object.freeze({
   stream: 1,
   instanceStepRate: 1
 });
+// These three tables ARE Carbon's AnchorVertex/SphereConnectorVertex/
+// VelocityConnectorVertex::GetDefinition statics (EveTacticalOverlay.cpp:
+// 31-66) - three nested-struct methods the schema scrape collapses to the
+// single name "GetDefinition", which is why the parity baseline carries a
+// GetDefinition entry for this class despite all three being ported here.
 const ANCHOR_DEFINITION = Object.freeze([
   QUAD_CORNER_ELEMENT,
   INSTANCE_DATA_ELEMENT

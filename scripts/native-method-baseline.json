@@ -116,9 +116,6 @@
     "ReleaseResources",
     "RenderDebugInfo"
   ],
-  "EveBoxVolume": [
-    "Setup"
-  ],
   "EveChildAudio": [
     "GetDebugOptions",
     "RenderDebugInfo",
@@ -414,7 +411,6 @@
     "SetVolume"
   ],
   "EveEffectRoot2": [
-    "OnListModified",
     "ShouldReflect"
   ],
   "EveEllipseSet": [
@@ -428,17 +424,10 @@
     "ReleaseResources",
     "py__init__"
   ],
-  "EveEllipsoidVolume": [
-    "Setup"
-  ],
   "EveHazeSet": [
     "CreateBoundingBox",
     "OnPrepareResources",
     "ReleaseResources"
-  ],
-  "EveImpactOverlay": [
-    "CreateShieldImpact",
-    "GetShieldImpactPosition"
   ],
   "EveKDdroneManagementTree": [
     "DrawDebugTree",

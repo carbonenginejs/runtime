@@ -445,6 +445,29 @@ export class EveImpactOverlay extends CjsModel
     const configuration = this.GetImpactConfiguration();
     if (configuration === ImpactConfiguration.IMPACT_SHIELD && lod !== Tr2Lod.TR2_LOD_LOW)
     {
+      return this.#CreateShieldImpact(damageLocatorIndex, direction, lifeTime, size, intensity, parent);
+    }
+
+    if (configuration === ImpactConfiguration.IMPACT_ARMOR ||
+      configuration === ImpactConfiguration.IMPACT_HULL)
+    {
+      return this.damageOverlay.CreateImpact(
+        damageLocatorIndex, size, lod !== Tr2Lod.TR2_LOD_LOW);
+    }
+
+    return -1;
+  }
+
+  /**
+   * Carbon CreateShieldImpact (EveImpactOverlay.cpp:596-673, private):
+   * reuse a close-enough existing impact at the same locator (dot > 0.95),
+   * else - at the cap - reuse the closest impact anywhere, else intersect
+   * the shield ellipsoid and allocate a new record. Extracted from
+   * CreateImpact so the surface matches Carbon's; behaviour unchanged.
+   */
+  #CreateShieldImpact(damageLocatorIndex, direction, lifeTime, size, intensity, parent)
+  {
+    {
       const normalizedDirection = vec3.normalize(vec3.create(), direction);
       let closestAtLocatorIndex = -1;
       let closestAtAnyIndex = -1;
@@ -498,9 +521,9 @@ export class EveImpactOverlay extends CjsModel
       parent.GetShapeEllipsoid(ellipsoidCenter, ellipsoidRadii);
       const locatorPositionWorld = vec3.create();
       parent.GetDamageLocatorPosition(damageLocatorIndex, true, locatorPositionWorld);
-      const interceptPosition = getShieldImpactPosition(
-        vec3.create(), this.shieldIsEllipsoid, parentInverseWorldTransform,
-        locatorPositionWorld, normalizedDirection, ellipsoidCenter, ellipsoidRadii);
+      const interceptPosition = this.#GetShieldImpactPosition(
+        parentInverseWorldTransform, locatorPositionWorld,
+        normalizedDirection, ellipsoidCenter, ellipsoidRadii);
       vec3.transformMat4(interceptPosition, interceptPosition, parentWorldTransform);
 
       const index = this.damageOverlay.AllocateImpactIndex();
@@ -516,15 +539,20 @@ export class EveImpactOverlay extends CjsModel
       });
       return index;
     }
+  }
 
-    if (configuration === ImpactConfiguration.IMPACT_ARMOR ||
-      configuration === ImpactConfiguration.IMPACT_HULL)
-    {
-      return this.damageOverlay.CreateImpact(
-        damageLocatorIndex, size, lod !== Tr2Lod.TR2_LOD_LOW);
-    }
-
-    return -1;
+  /**
+   * Carbon GetShieldImpactPosition (EveImpactOverlay.cpp:247-266, private):
+   * ellipsoid shields intersect the impact ray with the shield ellipsoid in
+   * object space; non-ellipsoid shields answer the locator position in
+   * object space. Reads shieldIsEllipsoid off the instance exactly as
+   * Carbon does; the module-level helper carries the math.
+   */
+  #GetShieldImpactPosition(parentInverseWorldTransform, damageLocatorPositionWorld, impactDirection, ellipsoidCenter, ellipsoidRadii, out = vec3.create())
+  {
+    return getShieldImpactPosition(
+      out, this.shieldIsEllipsoid, parentInverseWorldTransform,
+      damageLocatorPositionWorld, impactDirection, ellipsoidCenter, ellipsoidRadii);
   }
 
   /** Resolves a live impact's current position and direction. */

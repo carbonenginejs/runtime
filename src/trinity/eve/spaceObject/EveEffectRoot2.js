@@ -15,6 +15,13 @@ import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { EveComponentType } from "../EveComponentTypes.js";
+import {
+  BELIST_EVENTMASK,
+  BELIST_INSERTED,
+  BELIST_LOADING,
+  BELIST_REMOVED,
+  BELIST_UNLOADSTART
+} from "../../controllers/contracts.js";
 
 
 /**
@@ -498,6 +505,98 @@ export class EveEffectRoot2 extends withIEveSpaceObject2(withITr2BoundingBox(Eve
       for (const child of this.effectChildren)
       {
         child?.UnRegister(registry);
+      }
+    }
+  }
+
+  /**
+   * Carbon OnListModified (EveEffectRoot2.cpp:88-193), branch for branch,
+   * dispatched by list identity. Controllers: insert links and replays the
+   * recorded controller variables, remove unlinks, unload-start unlinks
+   * everything. Effect children: insert takes ownership, replays variables,
+   * starts controllers and registers the entity when this root is in a
+   * registry; remove unregisters and clears ownership; unload-start does
+   * both for every child (Carbon's UNLOADSTART case falls through into an
+   * empty default - no break, cpp:168 - which changes nothing and is not
+   * reproduced as a bug, just noted). Lights: the FIRST insert registers
+   * this root as a LightOwner component and the LAST removal (or
+   * unload-start) unregisters it - the same size-edge rule
+   * RegisterComponents applies at registration time.
+   */
+  @carbon.method
+  @impl.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    const masked = event & BELIST_EVENTMASK;
+
+    if (list === this.controllers && (event & BELIST_LOADING) === 0)
+    {
+      switch (masked)
+      {
+        case BELIST_INSERTED:
+          if (value)
+          {
+            value.Link(this);
+            EveEffectRoot2.#ApplyControllerVariables(value, this.#controllerVariables, "SetVariable");
+          }
+          break;
+        case BELIST_REMOVED:
+          if (value) value.Unlink();
+          break;
+        case BELIST_UNLOADSTART:
+          for (const controller of this.controllers) controller?.Unlink();
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+
+    if (list === this.effectChildren && (event & BELIST_LOADING) === 0)
+    {
+      const registry = this.IsInRegistry() ? this.GetComponentRegistry() : null;
+      switch (masked)
+      {
+        case BELIST_INSERTED:
+          if (value)
+          {
+            value.SetOwner(this);
+            EveEffectRoot2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
+            value.StartControllers();
+            if (registry) value.Register(registry);
+          }
+          break;
+        case BELIST_REMOVED:
+          if (value)
+          {
+            if (registry) value.UnRegister(registry);
+            value.SetOwner(null);
+          }
+          break;
+        case BELIST_UNLOADSTART:
+          for (const child of this.effectChildren)
+          {
+            if (registry) child?.UnRegister(registry);
+            child?.SetOwner(null);
+          }
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+
+    if (list === this.lights)
+    {
+      const registry = this.GetComponentRegistry();
+      if (!registry) return;
+      if (masked === BELIST_UNLOADSTART || (masked === BELIST_REMOVED && this.lights.length === 0))
+      {
+        registry.UnRegisterComponent(EveComponentType.LightOwner, this);
+      }
+      else if (masked === BELIST_INSERTED && this.lights.length === 1)
+      {
+        registry.RegisterComponent(EveComponentType.LightOwner, this);
       }
     }
   }

@@ -59,7 +59,7 @@ export class EveEllipsoidVolume extends IEveVolume
   @impl.implemented
   Initialize()
   {
-    this.#setup(true);
+    this.Setup();
     return true;
   }
 
@@ -189,7 +189,7 @@ export class EveEllipsoidVolume extends IEveVolume
   @impl.adapted
   OnModified()
   {
-    this.#setup(true);
+    this.Setup();
     return true;
   }
 
@@ -201,10 +201,17 @@ export class EveEllipsoidVolume extends IEveVolume
   }
 
   /**
-   * Clamps the shape to non-negative radii, keeps the inner shape inside it,
-   * caches the inverse rotation and optionally fires the change callbacks.
+   * Carbon Setup (EveEllipsoidVolume.cpp:35-55): clamp the shape to
+   * non-negative radii, fit the inner shape inside it, refresh the cached
+   * inverse rotation, and fire EVERY change callback - the ellipsoid's
+   * callback fan-out lives INSIDE Setup, opposite to the box's, whose
+   * OnModified fires them. Carbon also caches the rotation matrix pair and
+   * the bounding sphere; this port derives those on demand.
    */
-  #setup(notify)
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon caches the rotation matrix pair and bounding sphere; this port derives them on demand, so Setup refreshes the clamps and cached inverse rotation. The callback fan-out matches Carbon's placement inside Setup.")
+  Setup()
   {
     for (let i = 0; i < 3; i++)
     {
@@ -212,12 +219,9 @@ export class EveEllipsoidVolume extends IEveVolume
       this.innerShape[i] = Math.min(Math.max(0, this.innerShape[i]), this.shape[i]);
     }
     quat.invert(this.#inverseRotation, this.rotation);
-    if (notify)
+    for (const callback of this.#callbacks.values())
     {
-      for (const callback of this.#callbacks.values())
-      {
-        callback?.();
-      }
+      callback?.();
     }
   }
 
