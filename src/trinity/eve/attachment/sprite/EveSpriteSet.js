@@ -13,6 +13,34 @@ import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { TriBatchType } from "#consts/graphics";
+import { float16 } from "#math/carbon/float16";
+
+// Carbon PoolVertex (EveSpriteSet.h:56-70): 32 bytes -
+// position float3 @0; TEXCOORD0 half4 @12 = activation, blinkPhase,
+// blinkRate, minScale; TEXCOORD1 half2 @20 = maxScale, falloff;
+// COLOR0 @24; COLOR1 (warp) @28.
+const POOL_VERTEX_SIZE = 32;
+
+// Carbon PoolVertex::GetDefinition (EveSpriteSet.cpp:18-33): one float quad
+// corner on stream 0, then the instance layout above on stream 1, step 1.
+const QUAD_CORNER_ELEMENT = Object.freeze({
+  usage: "TEXCOORD", usageIndex: 5, type: "FLOAT32_1", offset: 0, stream: 0
+});
+const POOL_VERTEX_DEFINITION = Object.freeze([
+  QUAD_CORNER_ELEMENT,
+  Object.freeze({ usage: "POSITION", usageIndex: 0, type: "FLOAT32_3", offset: 0, stream: 1, instanceStepRate: 1 }),
+  Object.freeze({ usage: "TEXCOORD", usageIndex: 0, type: "FLOAT16_4", offset: 12, stream: 1, instanceStepRate: 1 }),
+  Object.freeze({ usage: "TEXCOORD", usageIndex: 1, type: "FLOAT16_2", offset: 20, stream: 1, instanceStepRate: 1 }),
+  Object.freeze({ usage: "COLOR", usageIndex: 0, type: "UBYTE_4_NORM", offset: 24, stream: 1, instanceStepRate: 1 }),
+  Object.freeze({ usage: "COLOR", usageIndex: 1, type: "UBYTE_4_NORM", offset: 28, stream: 1, instanceStepRate: 1 })
+]);
+
+/** One float colour channel as the byte Carbon's uint32 Color carries. */
+function colorByte(value)
+{
+  return Math.min(255, Math.max(0, Math.round(Number(value) * 255))) | 0;
+}
 
 
 /**
@@ -67,6 +95,21 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * 1: packed-set lights are BLACK until the owner's update calls
    * UpdateLights). */
   #activationStrength = 0;
+
+  // Carbon m_effectHash / m_buffer / m_spriteData (h:126-134): the quad
+  // renderer key and the persistent instance buffer Rebuild packs and the
+  // submission paths mutate in place.
+  #effectKey = 0;
+
+  #poolBuffer = new Uint8Array(0);
+
+  #poolView = null;
+
+  #spriteData = [];
+
+  static #positionScratch = vec3.create();
+
+  static #boneScratch = mat4.create();
 
   /**
    * Drops every sprite and every light; the bounds only follow on the next
@@ -212,14 +255,196 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * marks the packed geometry stale.
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Rebuild()
   {
     this.#rebuildRevision++;
     this.__state.rebuild.add("packedGeometry");
+
+    // Carbon Rebuild (cpp:300-343): refresh the effect key, pack every
+    // authored sprite into the persistent PoolVertex buffer, mirror the
+    // positions and bone indices, then the bounds. Carbon's colour packing
+    // is a B/R byte swap of the uint32 ARGB Color (cpp:319-327) - which in
+    // little-endian byte terms is simply r,g,b,a written in order.
+    // `activation` (@12) stays zero: the submission paths stamp it per
+    // frame (cpp:214-218 / cpp:109-121).
+    if (this.effect)
+    {
+      this.#effectKey = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
+    }
+
+    const n = this.sprites.length;
+    if (this.#poolBuffer.length !== n * POOL_VERTEX_SIZE)
+    {
+      this.#poolBuffer = new Uint8Array(n * POOL_VERTEX_SIZE);
+      this.#poolView = new DataView(this.#poolBuffer.buffer);
+    }
+    this.#spriteData.length = n;
+    for (let i = 0; i < n; i++)
+    {
+      const sprite = this.sprites[i];
+      const base = i * POOL_VERTEX_SIZE;
+      const view = this.#poolView;
+      view.setFloat32(base, sprite.position[0], true);
+      view.setFloat32(base + 4, sprite.position[1], true);
+      view.setFloat32(base + 8, sprite.position[2], true);
+      view.setUint16(base + 12, 0, true); // activation - per frame
+      view.setUint16(base + 14, float16.float32To16(sprite.blinkPhase), true);
+      view.setUint16(base + 16, float16.float32To16(sprite.blinkRate), true);
+      view.setUint16(base + 18, float16.float32To16(sprite.minScale), true);
+      view.setUint16(base + 20, float16.float32To16(sprite.maxScale), true);
+      view.setUint16(base + 22, float16.float32To16(sprite.falloff), true);
+      for (let c = 0; c < 4; c++)
+      {
+        this.#poolBuffer[base + 24 + c] = colorByte(sprite.color[c]);
+        this.#poolBuffer[base + 28 + c] = colorByte(sprite.warpColor[c]);
+      }
+      this.#spriteData[i] = {
+        position: sprite.position,
+        boneIndex: sprite.boneIndex | 0
+      };
+    }
+
     // Carbon rebuilds the item-set bounds at the tail of the same pack
-    // (cpp:342); the packing itself is engine-side, the bounds are not.
+    // (cpp:342).
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.sprites);
+  }
+
+  /**
+   * Carbon RegisterWithQuadRenderer (cpp:168-171): one additive-batch
+   * registration keyed by the effect hash. RegisterEffect is
+   * idempotent-by-key, so an effect-option change needs the key refreshed
+   * (Rebuild does) and this called again - exactly Carbon's SetShaderOption
+   * flow (cpp:430-438), whose singleton reach is engine-owned here.
+   */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    if (!this.effect) return;
+    this.#effectKey = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
+    quadRenderer.RegisterEffect(
+      this.#effectKey,
+      TriBatchType.TRIBATCHTYPE_ADDITIVE,
+      POOL_VERTEX_SIZE,
+      1,
+      POOL_VERTEX_DEFINITION,
+      this.effect
+    );
+  }
+
+  /**
+   * Carbon AddToQuadRenderer (cpp:173-219): move every sprite position into
+   * world space (through its bone when skinned and the bone exists, else
+   * directly), stamp activation * intensity as a half into every instance,
+   * and hand the exact bytes to the quad renderer. boosterGain is accepted
+   * and unused, as in Carbon.
+   *
+   * @param {object} quadRenderer Tr2QuadRenderer.
+   * @param {Float32Array} parentTransform World matrix.
+   * @param {number} activation Activation strength.
+   * @param {number} _boosterGain Accepted for signature parity (cpp:174).
+   * @param {Float32Array} [bones] Flat Float4x3 list, stride 12.
+   * @param {number} [boneCount] Bones available.
+   */
+  @carbon.method
+  @impl.implemented
+  AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain = 0, bones = null, boneCount = 0)
+  {
+    if (!this.display || this.#spriteData.length === 0) return;
+
+    const n = this.#spriteData.length;
+    if (!this.skinned || !bones)
+    {
+      this.#TransformPositions(parentTransform);
+    }
+    else
+    {
+      const position = EveSpriteSet.#positionScratch;
+      const bone = EveSpriteSet.#boneScratch;
+      for (let i = 0; i < n; i++)
+      {
+        const data = this.#spriteData[i];
+        if (data.boneIndex < boneCount)
+        {
+          MatrixCopyFrom3x4(bone, bones, data.boneIndex);
+          vec3.transformMat4(position, data.position, bone);
+          vec3.transformMat4(position, position, parentTransform);
+        }
+        else
+        {
+          vec3.transformMat4(position, data.position, parentTransform);
+        }
+        this.#WritePosition(i, position);
+      }
+    }
+
+    const activation16 = float16.float32To16(Math.fround(activation * this.intensity));
+    for (let i = 0; i < n; i++)
+    {
+      this.#poolView.setUint16(i * POOL_VERTEX_SIZE + 12, activation16, true);
+    }
+    quadRenderer.AddQuads(this.#effectKey, this.#poolBuffer, this.sprites.length);
+  }
+
+  /**
+   * Carbon AddBoosterGlowToQuadRenderer (cpp:83-124): world-transform the
+   * positions, then repurpose the instance halves - activation/blinkRate/
+   * falloff carry the world Z axis (transform[8..10], Carbon GetZ) - and
+   * overwrite both colours' alpha bytes with the gains. The overwrites are
+   * DESTRUCTIVE in the shared persistent buffer, exactly as Carbon's: a set
+   * serves either path each frame, and whichever runs repacks it.
+   */
+  @carbon.method
+  @impl.implemented
+  AddBoosterGlowToQuadRenderer(quadRenderer, world, boosterGain, warpIntensity)
+  {
+    if (!this.display || this.#spriteData.length === 0) return;
+
+    this.#TransformPositions(world);
+
+    const
+      zDirX = float16.float32To16(world[8]),
+      zDirY = float16.float32To16(world[9]),
+      zDirZ = float16.float32To16(world[10]),
+      gain = Math.min(Math.trunc(boosterGain * 255), 255),
+      warp = Math.min(Math.trunc(warpIntensity * 255), 255);
+
+    for (let i = 0; i < this.#spriteData.length; i++)
+    {
+      const base = i * POOL_VERTEX_SIZE;
+      this.#poolView.setUint16(base + 12, zDirX, true); // activation slot
+      this.#poolView.setUint16(base + 16, zDirY, true); // blinkRate slot
+      this.#poolView.setUint16(base + 22, zDirZ, true); // falloff slot
+      this.#poolBuffer[base + 27] = gain;
+      this.#poolBuffer[base + 31] = warp;
+    }
+    quadRenderer.AddQuads(this.#effectKey, this.#poolBuffer, this.sprites.length);
+  }
+
+  /** Carbon PoolVertex::GetDefinition (cpp:18-33), the instance layout. */
+  static getDefinition()
+  {
+    return POOL_VERTEX_DEFINITION;
+  }
+
+  /** The unskinned XMVector3TransformCoordStream (cpp:184-191 / cpp:101-107). */
+  #TransformPositions(transform)
+  {
+    const position = EveSpriteSet.#positionScratch;
+    for (let i = 0; i < this.#spriteData.length; i++)
+    {
+      vec3.transformMat4(position, this.#spriteData[i].position, transform);
+      this.#WritePosition(i, position);
+    }
+  }
+
+  #WritePosition(index, position)
+  {
+    const base = index * POOL_VERTEX_SIZE;
+    this.#poolView.setFloat32(base, position[0], true);
+    this.#poolView.setFloat32(base + 4, position[1], true);
+    this.#poolView.setFloat32(base + 8, position[2], true);
   }
 
   /** Carbon EveSpriteSet::GetAabb (cpp:163-166): the item-set bounds, with the
