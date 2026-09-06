@@ -16,7 +16,7 @@ const MAX_GPU_SIZE_32 = 0xffffffff;
 //
 // TOP_TRIANGLE_FAN is absent because WebGPU has no fan primitive. Carbon's own
 // header already says the value is invalid on DX11.
-const TOPOLOGIES = Object.freeze({
+export const TOPOLOGIES = Object.freeze({
   [Topology.TOP_TRIANGLES]: "triangle-list",
   [Topology.TOP_TRIANGLE_STRIP]: "triangle-strip",
   [Topology.TOP_LINES]: "line-list",

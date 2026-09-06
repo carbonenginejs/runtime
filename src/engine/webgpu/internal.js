@@ -15,3 +15,4 @@ export { CjsWebgpuWorkQueue, EncoderType, ApplyRenderPassHint } from "./core/wor
 export { CjsWebgpuRenderContextAL } from "./CjsWebgpuRenderContextAL.js";
 export { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 export { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderAL.js";
+export { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
