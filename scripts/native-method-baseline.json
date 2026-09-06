@@ -1161,7 +1161,6 @@
     "GetRenderTargetWidth",
     "GetShaderLibraryCode",
     "GetShaderProgram",
-    "GetVertexDeclarationElements",
     "Initialize",
     "RegisterShaderLibrary",
     "RegisterShaderProgramOverride",
@@ -2568,12 +2567,9 @@
     "UpdateValue"
   ],
   "Tr2VertexDefinition": [
-    "Add",
-    "Find",
     "GetDataTypeSizeInBytes",
     "GetDataTypeSizeInMembers",
-    "Item",
-    "empty"
+    "Item"
   ],
   "Tr2VolumetricsRenderer": [
     "FogViewDependentResources",
