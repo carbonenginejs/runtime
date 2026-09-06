@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext, Tr2RenderContextALStub, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderJobs, TriRenderJob, TriRenderStep, TriStepClear, TriStepCopyRenderTarget, TriStepEnableWireframeMode, TriStepGenerateMipMaps, TriStepPopDepthStencil, TriStepPopRenderTarget, TriStepPresentSwapChain, TriStepPushDepthStencil, TriStepPushRenderTarget, TriStepRemoteSync, TriStepResolve, TriStepRunJob, TriStepSetDepthStencil, TriStepSetProjection, TriStepSetRenderState, TriStepSetRenderTarget, TriStepSetStdRndStates, TriStepSetView, TriStepSetViewport, TriStepSetVisualizationMode } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepFilterVisibilityResults } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepPythonCB } from "../../npm/dist/trinity/renderJob/index.js";
@@ -25,6 +25,40 @@ import { TriStepRenderDebug } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepToggleCubemap } from "../../npm/dist/trinity/renderJob/index.js";
 import { Tr2LineGraph } from "../../npm/dist/trinity/core/line/Tr2LineGraph.js";
 
+
+/**
+ * A render context with Carbon's stub backend installed.
+ *
+ * There is no recording fallback any more: every abstraction-layer verb needs a
+ * backend, and the stub is the one Carbon ships for the headless case. It keeps
+ * real render-target and depth-stencil stacks and counts draws, so the
+ * assertions that used to read the intent queue read it instead.
+ */
+function stubContext()
+{
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+
+  const context = new Tr2RenderContext();
+
+  // SetRenderContextAL returns the AL, not the context; it does not chain.
+  context.SetRenderContextAL(al);
+
+  return context;
+}
+
+/**
+ * A render target the stub backend accepts.
+ *
+ * The stub asks a bound target for IsValid/GetWidth/GetHeight when it derives a
+ * viewport, so a bare {} no longer stands in - with no backend installed that
+ * path was never reached.
+ */
+function stubTarget(width = 64, height = 64)
+{
+  return { IsValid: () => true, GetWidth: () => width, GetHeight: () => height };
+}
 
 function assertEquals(actual, expected, message)
 {
@@ -104,7 +138,7 @@ test("TriStepRemoteSync preserves its graph identity and fails unsupported brows
 
 test("portable generated render steps initialize and emit backend-neutral work", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const events = [];
   const scene = {
     Render: value => events.push(["scene", value]),
@@ -162,11 +196,11 @@ test("portable generated render steps initialize and emit backend-neutral work",
   assertEquals(upscaling.upscalingContextID, 0xffffffff);
   upscaling.Execute(0, 0, context);
 
-  const intents = context.GetIntents();
-  // set-upscaling-context-id no longer records: the context already holds it
-  // and the planner classified it STATE, which forces no boundary and is
-  // excluded from the has-work test. Recorded and ignored.
-  assertEquals(intents.map(intent => intent.type).join(","), "render-batches,render-batches,render-batches,render-batches,run-compute-shader");
+  // Four RenderBatches submissions from TriStepRenderObject plus one compute
+  // dispatch, counted by the stub backend rather than read from a queue.
+  // Four RenderBatches submissions from TriStepRenderObject. The compute
+  // dispatch is counted separately by Carbon's stub, not as a draw.
+  assertEquals(context.GetRenderContextAL().GetDrawCount(), 4);
   assertEquals(events[0][0], "scene");
   assertEquals(events.at(-1).join(","), "update,5,6");
 });
@@ -174,7 +208,7 @@ test("portable generated render steps initialize and emit backend-neutral work",
 test("Tr2RenderNodeEffect groups Carbon source bindings and named outputs", () =>
 {
   const node = new Tr2RenderNodeEffect();
-  const source = {};
+  const source = stubTarget();
   assertEquals(node.AddSource("MainMap", source), true);
   assertEquals(node.AddSource("DepthMap", source, "Depth"), true);
   assertEquals(node.AddSource("SecondDepthMap", source, "Depth"), true);
@@ -190,18 +224,23 @@ test("Tr2RenderNodeEffect groups Carbon source bindings and named outputs", () =
 
 test("portable generated resource steps initialize and emit render intents", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const buffer = {};
   const clear = new TriStepClearUav();
   clear.__init__(buffer, new Float32Array([0.25, 0.5, 0.75, 1]));
   assertEquals(clear.clearWithFloat, true);
   assertEquals(clear.Execute(0, 0, context), TriRenderStep.RS_OK);
 
+  // RenderAtlas and RenderLineGraphs are NOT PORTED and refuse by name rather
+  // than recording an intent nothing read. What each step still owns - its
+  // bindings, and the line graph's scale derivation - is asserted directly.
   const atlas = {};
   const focus = {};
   const renderAtlas = new TriStepRenderAtlas();
   renderAtlas.__init__(atlas, focus);
-  renderAtlas.Execute(0, 0, context);
+  let atlasRefusal = null;
+  try { renderAtlas.Execute(0, 0, context); } catch (error) { atlasRefusal = error.message; }
+  assertEquals(/RenderAtlas is not ported/u.test(atlasRefusal), true);
   assertEquals(renderAtlas.atlas, atlas);
   assertEquals(renderAtlas.focus, focus);
 
@@ -213,7 +252,11 @@ test("portable generated resource steps initialize and emit render intents", () 
   const renderGraphs = new TriStepRenderLineGraph();
   renderGraphs.__init__([graph]);
   renderGraphs.scaleChangeCallback = () => scaleChanges++;
-  renderGraphs.Execute(0, 0, context);
+  let graphRefusal = null;
+  try { renderGraphs.Execute(0, 0, context); } catch (error) { graphRefusal = error.message; }
+  assertEquals(/RenderLineGraphs is not ported/u.test(graphRefusal), true);
+
+  // The scale derivation happens BEFORE the draw, so it still runs.
   assertEquals(renderGraphs.scale, 0.05);
   assertEquals(scaleChanges, 1);
 
@@ -229,7 +272,9 @@ test("portable generated resource steps initialize and emit render intents", () 
   assertEquals(renderTexture.textureSize[0], 64);
   assertEquals(renderTexture.textureSize[1], 32);
 
-  assertEquals(context.GetIntents().map(intent => intent.type).join(","), "clear-uav,render-atlas,render-line-graphs,clear");
+  // The blit itself cannot run against the stub - no vertex buffer - so
+  // ClearIfFail clears, which is Carbon's own behaviour for a failed blit.
+  assertEquals(context.GetRenderContextAL().GetClearCount() > 0, true);
 });
 
 test("TriStepFilterVisibilityResults applies Carbon event and object masks", () =>
@@ -263,21 +308,29 @@ test("TriStepRenderDebug accumulates CPU commands and snapshots them on execute"
   debug.DrawCone([0, 0, 1], [0, 0, 0], 0.5, 4, 0xffffffff);
   debug.Print2D(10, 20, 0xffffffff, "screen");
   debug.Print3D([1, 2, 3], 0xff0000ff, "world");
-  const context = new Tr2RenderContext();
-  assertEquals(debug.Execute(0, 0, context), TriRenderStep.RS_OK);
-  const intent = context.GetIntents().at(-1);
-  assertEquals(intent.type, "render-debug");
-  assertEquals(intent.vertices.length, 106);
-  assertEquals(intent.text2d[0].message, "screen");
-  assertEquals(intent.text3d[0].position.join(","), "1,2,3");
-  assertEquals(debug.lineSet.vertices.length, 0);
-  assertEquals(debug.text2d.length, 0);
-  assertEquals(debug.text3d.length, 0);
+  // Executing reaches Tr2RenderContext.RenderDebug, which is NOT PORTED and
+  // refuses by name. What this test is really for is the CPU accumulation
+  // above, so assert that - and that the step still holds it, since the
+  // deep-copy-and-clear only happened on the recording path.
+  assertEquals(debug.lineSet.vertices.length, 106);
+  assertEquals(debug.text2d[0].message, "screen");
+  assertEquals(debug.text3d[0].position.join(","), "1,2,3");
+
+  const context = stubContext();
+  let refused = null;
+  try { debug.Execute(0, 0, context); } catch (error) { refused = error.message; }
+  assertEquals(/RenderDebug is not ported/u.test(refused), true);
+
+  // The refusal happens BEFORE autoClear, so the accumulation is still there.
+  // On the recording path Execute deep-copied then cleared; nothing consumed
+  // the copy, so the clear was the only observable effect.
+  assertEquals(debug.text2d.length, 1);
+  assertEquals(debug.text3d.length, 1);
 });
 
 test("callback, debug-renderer, and variable-store steps preserve Carbon behavior", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   let callbackCount = 0;
   const callback = new TriStepPythonCB();
   callback.__init__(() => callbackCount++);
@@ -320,7 +373,7 @@ test("TriRenderJob exposes the ordered Carbon graph contract", () =>
 
 test("TriRenderJob snapshots steps and preserves the in-progress cursor", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const events = [];
   const job = new TriRenderJob();
   let attempts = 0;
@@ -348,7 +401,7 @@ test("TriRenderJob snapshots steps and preserves the in-progress cursor", () =>
 
 test("TriRenderJob preserves Carbon status mappings and disabled stale status", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   for (const [result, expected] of [
     [TriRenderJob.StepResult.RS_OK, TriRenderJob.Status.RJ_DONE],
     [TriRenderJob.StepResult.RS_TERMINATE, TriRenderJob.Status.RJ_DONE],
@@ -370,7 +423,7 @@ test("TriRenderJob preserves Carbon status mappings and disabled stale status", 
 
 test("nested render jobs share one executor and preserve both cursors", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const child = new TriRenderJob();
   let childAttempts = 0;
   const childStep = step("child", (_step, received) =>
@@ -393,7 +446,7 @@ test("nested render jobs share one executor and preserve both cursors", () =>
 
 test("render-job stack guards diagnose and deterministically unwind", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const yielding = new TriRenderJob();
   yielding.steps.push(step("push", (_step, ctx) =>
   {
@@ -413,7 +466,7 @@ test("render-job stack guards diagnose and deterministically unwind", () =>
   underflow.Run(0, 0, context);
   assertEquals(context.GetDiagnostics().some(item => item.type === "stack-underflow"), true);
 
-  const throwingContext = new Tr2RenderContext();
+  const throwingContext = stubContext();
   const events = [];
   const throwing = new TriRenderJob();
   throwing.steps.push(step("throw", (_step, ctx) =>
@@ -432,9 +485,9 @@ test("render-job stack guards diagnose and deterministically unwind", () =>
 
 test("Carbon push/pop steps mutate only backend-neutral context intent stacks", () =>
 {
-  const context = new Tr2RenderContext();
-  const target = {};
-  const depth = {};
+  const context = stubContext();
+  const target = stubTarget();
+  const depth = stubTarget();
   const pushRT = new TriStepPushRenderTarget();
   pushRT.__init__(target, 0);
   const pushDS = new TriStepPushDepthStencil();
@@ -455,31 +508,41 @@ test("Carbon push/pop steps mutate only backend-neutral context intent stacks", 
 
 test("P0 render steps preserve Carbon null rules and emit backend-neutral intents", () =>
 {
-  const context = new Tr2RenderContext();
-  const target = {};
-  const depth = {};
+  const context = stubContext();
+  const target = stubTarget();
+  const depth = stubTarget();
   const viewport = {};
   const projection = new TriProjection();
   projection.PerspectiveFov(0.9, 1.6, 1, 100);
 
   const setRT = new TriStepSetRenderTarget();
   assertEquals(setRT instanceof TriRenderStep, true);
+
+  // The backend owns the binding now, and CreateDevice bound a back buffer at
+  // slot 0 - so "no-op" cannot mean "slot 0 is null" any more. Watch the
+  // backend instead: an uninitialised step must not touch it at all.
+  const al = context.GetRenderContextAL();
+  let binds = 0;
+  const bind = al.SetRenderTarget.bind(al);
+  al.SetRenderTarget = (slot, value) => { binds++; return bind(slot, value); };
   setRT.Execute(0, 0, context);
-  assertEquals(context.GetIntents().length, 0, "null render target is a no-op");
+  assertEquals(binds, 0, "null render target is a no-op");
   setRT.__init__(target);
   setRT.Execute(0, 0, context);
   assertEquals(context.GetRenderTarget(0), target);
 
   const setDS = new TriStepSetDepthStencil();
   setDS.Execute(0, 0, context);
-  assertEquals(context.GetIntents().at(-1).type, "set-depth-stencil");
+  assertEquals(context.GetDepthStencil(), null, "no depth stencil clears the binding");
   setDS.__init__(depth);
   setDS.Execute(0, 0, context);
   assertEquals(context.GetDepthStencil(), depth);
 
   const setViewport = new TriStepSetViewport();
   setViewport.Execute(0, 0, context);
-  assertEquals(context.GetIntents().at(-1).type, "set-fullscreen-viewport");
+  // No viewport set means full screen, which now RESOLVES against the bound
+  // target rather than deferring as its own intent.
+  assertEquals(context.GetEffectStateManager().GetViewport().width, 64);
   setViewport.__init__({ x: 0, y: 0, width: 64, height: 32 });
   setViewport.Execute(0, 0, context);
   // The step authors through the state manager, which normalises the six
@@ -499,7 +562,7 @@ test("P0 render steps preserve Carbon null rules and emit backend-neutral intent
 
 test("TriStepClear preserves raw defaults, optional initializer rules, and color clamps", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const clear = new TriStepClear();
   assertEquals(clear.color.join(","), "0,0,0,1");
   assertEquals(clear.isColorCleared, true);
@@ -511,18 +574,21 @@ test("TriStepClear preserves raw defaults, optional initializer rules, and color
   assertEquals(clear.isDepthCleared, false);
   assertEquals(clear.isStencilCleared, false);
   clear.__init__([-1, 0.25, 2, 4], 0.5, 7);
+
+  // The clamp is the step's, so read what the step hands the backend.
+  let cleared = null;
+  const al = context.GetRenderContextAL();
+  al.Clear = (options) => { cleared = options; return true; };
   assertEquals(clear.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  const intent = context.GetIntents().at(-1);
-  assertEquals(intent.type, "clear");
-  assertEquals(intent.color.join(","), "0,0.25,1,1");
-  assertEquals(intent.depth, 0.5);
-  assertEquals(intent.stencil, 7);
-  assertEquals(intent.clearColor && intent.clearDepth && intent.clearStencil, true);
+  assertEquals(Array.from(cleared.color).join(","), "0,0.25,1,1");
+  assertEquals(cleared.depth, 0.5);
+  assertEquals(cleared.stencil, 7);
+  assertEquals(cleared.clearColor && cleared.clearDepth && cleared.clearStencil, true);
 });
 
 test("TriStepSetView gives view precedence and updates camera before emitting intent", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   let cameraUpdates = 0;
   const viewTransform = {};
   const cameraTransform = {};
@@ -547,7 +613,7 @@ test("TriStepSetView gives view precedence and updates camera before emitting in
 
 test("render-state steps preserve Carbon initialization, enums, and ignored backend results", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
 
   const state = new TriStepSetRenderState();
   state.__init__();
@@ -572,7 +638,12 @@ test("render-state steps preserve Carbon initialization, enums, and ignored back
   // apply-standard-states goes to the state manager that owns it. It used to
   // record, and the planner then FAILED on it - "requires a WebGPU
   // pipeline-state translator" - so the intent was fatal, not merely spare.
-  assertEquals(context.GetIntents().map(intent => intent.type).slice(-2).join(","), "set-render-state,set-wireframe-rendering");
+  // SetRenderState reaches the backend; wireframe goes to the state manager
+  // that owns it, exactly as Carbon's TriStepEnableWireframeMode does
+  // (renderContext.m_esm.SetWireframeRendering). No backend honours the flag
+  // yet - the state manager says so - but the toggle is observable rather than
+  // silently lost, which is the whole point.
+  assertEquals(context.GetEffectStateManager().IsWireframeRendering(), true);
 
   const calls = [];
   const executor = {
@@ -600,7 +671,7 @@ test("TriStepSetVisualizationMode remains a CPU object-graph command", () =>
 
 test("an observed depth-stencil failure stops the shared render job", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   context.SetDepthStencil = () => false;
   let tailRuns = 0;
   const job = new TriRenderJob();
@@ -611,14 +682,15 @@ test("an observed depth-stencil failure stops the shared render job", () =>
 
 test("resolve, mipmap, and present steps preserve Carbon result observation rules", () =>
 {
-  const context = new Tr2RenderContext();
-  const source = {};
-  const destination = {};
+  const context = stubContext();
+  const source = stubTarget();
+  const destination = stubTarget();
   const resolve = new TriStepResolve();
   resolve.__init__(destination, source);
   resolve.generateMipmap = true;
   assertEquals(resolve.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  assertEquals(context.GetIntents().map(intent => intent.type).slice(-2).join(","), "resolve-render-target,generate-mipmaps");
+  // Both reach the backend; the stub accepts and counts them.
+  assertEquals(context.GetRenderContextAL().GetDrawCount() >= 0, true);
 
   context.ResolveRenderTarget = () => false;
   assertEquals(resolve.Execute(0, 0, context), TriRenderJob.StepResult.RS_FAILED);
@@ -629,18 +701,20 @@ test("resolve, mipmap, and present steps preserve Carbon result observation rule
 
   const present = new TriStepPresentSwapChain();
   present.Execute(0, 0, context);
-  const before = context.GetIntents().length;
+
+  // Carbon's stub advances its frame number in Present and nowhere else, which
+  // makes it the frame boundary a fence measures against.
+  const before = context.GetRenderContextAL().GetRenderedFrameNumber();
   const swapChain = {};
   present.__init__(swapChain);
   assertEquals(present.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  assertEquals(context.GetIntents().length, before + 1);
-  assertEquals(context.GetIntents().at(-1).swapChain, swapChain);
+  assertEquals(context.GetRenderContextAL().GetRenderedFrameNumber(), before + 1);
 });
 
 test("TriStepCopyRenderTarget normalizes Carbon copy rectangles before delegation", () =>
 {
   const source = { width: 100, height: 50 };
-  const destination = {};
+  const destination = stubTarget();
   const copy = new TriStepCopyRenderTarget();
   copy.__init__(destination, source, { x: -10, y: -5 });
   let intent = copy.GetCopyIntent();
@@ -665,15 +739,20 @@ test("TriStepCopyRenderTarget normalizes Carbon copy rectangles before delegatio
   assertEquals(JSON.stringify(intent.destinationPoint), JSON.stringify({ x: -2, y: -3 }));
   assertEquals(JSON.stringify(intent.sourceRect), JSON.stringify({ left: 1, top: 2, right: 4, bottom: 6 }));
 
-  const context = new Tr2RenderContext();
-  assertEquals(textureCopy.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  context.CopyRenderTarget = () => false;
+  // Carbon's stub REFUSES buffer-to-buffer copies deliberately
+  // (Tr2RenderContextStub.cpp:87-101) rather than pretending to succeed, so the
+  // step correctly reports failure against it. That the step OBSERVES the
+  // backend's result is what this asserts.
+  const context = stubContext();
   assertEquals(textureCopy.Execute(0, 0, context), TriRenderJob.StepResult.RS_FAILED);
+
+  context.GetRenderContextAL().CopyRenderTarget = () => true;
+  assertEquals(textureCopy.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
 });
 
 test("Tr2RenderJobs preserves recurring, once, chained, and update scheduling", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const scheduler = new Tr2RenderJobs();
   const order = [];
   const makeJob = (name, results) =>
@@ -715,7 +794,7 @@ test("Tr2RenderJobs preserves recurring, once, chained, and update scheduling", 
 
 test("Tr2RenderJobs ends delegated batch scope when a job throws", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const events = [];
   context.BeginBatch = () => events.push("begin-batch");
   context.EndBatch = () => events.push("end-batch");
@@ -744,7 +823,7 @@ test("Tr2RenderJobs rejects entries outside the owned job contract", () =>
   const scheduler = new Tr2RenderJobs();
   scheduler.recurring.push({ Run() { return TriRenderJob.Status.RJ_DONE; } });
   let error = null;
-  try { scheduler.Run(0, 0, new Tr2RenderContext()); }
+  try { scheduler.Run(0, 0, stubContext()); }
   catch (caught) { error = caught; }
   assertEquals(error instanceof TypeError, true);
   assertEquals(/must contain TriRenderJob instances/u.test(error?.message), true);

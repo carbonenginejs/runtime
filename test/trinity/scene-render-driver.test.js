@@ -9,6 +9,32 @@ import {
   Tr2RenderContext
 } from "../../npm/dist/trinity/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { StubContext, StubTarget } from "../support/stubContext.js";
+
+/**
+ * A stub-backed context whose backend calls are recorded in order.
+ *
+ * These assertions used to read the intent queue. The queue is gone, so they
+ * read what the backend was actually asked to do - the same claims, one layer
+ * closer to the truth.
+ */
+function recordingContext()
+{
+  const context = StubContext();
+  const al = context.GetRenderContextAL();
+  const calls = [];
+  const clear = al.Clear.bind(al);
+  const renderBatches = al.RenderBatches.bind(al);
+
+  al.Clear = (options) => { calls.push({ type: "clear" }); return clear(options); };
+  al.RenderBatches = (batches, technique, options) =>
+  {
+    calls.push({ type: "render-batches", batches });
+    return renderBatches(batches, technique, options);
+  };
+
+  return { context, calls };
+}
 
 const OPAQUE = TriBatchType.TRIBATCHTYPE_OPAQUE;
 const DECAL = TriBatchType.TRIBATCHTYPE_DECAL;
@@ -80,7 +106,7 @@ test("the frame runs Carbon's order", () =>
   const calls = [];
   const driver = driverOver(calls);
 
-  assert.equal(driver.Execute([ { id: "target" } ], null, 1, 2, null, new Tr2RenderContext()), true);
+  assert.equal(driver.Execute([ { id: "target" } ], null, 1, 2, null, StubContext()), true);
 
   assert.deepEqual(calls.map(([ name ]) => name), [
     "StampFrameContext",
@@ -103,7 +129,7 @@ test("the camera reaches the renderer before the scene updates", () =>
   // frame's view rather than the previous one's.
   const calls = [];
 
-  driverOver(calls).Execute(null, null, 0, 0, null, new Tr2RenderContext());
+  driverOver(calls).Execute(null, null, 0, 0, null, StubContext());
 
   assert.ok(
     calls.findIndex(([ name ]) => name === "StampFrameContext")
@@ -113,23 +139,23 @@ test("the camera reaches the renderer before the scene updates", () =>
 
 test("opaque and decal are submitted, in that order", () =>
 {
-  const context = new Tr2RenderContext();
+  const { context, calls } = recordingContext();
 
   driverOver([]).Execute(null, null, 0, 0, null, context);
 
-  const submissions = context.TakeIntents().filter(intent => intent.type === "render-batches");
+  const submissions = calls.filter(call => call.type === "render-batches");
 
-  assert.deepEqual(submissions.map(intent => intent.batches.id), [ "opaque", "decal" ]);
+  assert.deepEqual(submissions.map(call => call.batches.id), [ "opaque", "decal" ]);
 });
 
 test("the target and a clear are recorded before anything is submitted", () =>
 {
-  const context = new Tr2RenderContext();
-  const target = { id: "backbuffer" };
+  const { context, calls } = recordingContext();
+  const target = StubTarget();
 
   driverOver([]).Execute([ target ], null, 0, 0, null, context);
 
-  const types = context.TakeIntents().map(intent => intent.type);
+  const types = calls.map(call => call.type);
 
   assert.ok(types.indexOf("clear") < types.indexOf("render-batches"));
 });
@@ -139,7 +165,7 @@ test("rendering disabled still updates the scene", () =>
   // Not a no-op in Carbon either (cpp:408-419): simulation keeps running while
   // nothing is drawn, so a paused view does not freeze the world.
   const calls = [];
-  const context = new Tr2RenderContext();
+  const { context, calls: backend } = recordingContext();
 
   assert.equal(
     driverOver(calls, { enableRendering: false }).Execute(null, null, 0, 0, null, context),
@@ -148,24 +174,24 @@ test("rendering disabled still updates the scene", () =>
 
   assert.ok(calls.some(([ name ]) => name === "Update"), "the scene still updated");
   assert.equal(calls.some(([ name ]) => name === "Collect"), false, "but nothing gathered");
-  assert.equal(context.TakeIntents().filter(i => i.type === "render-batches").length, 0);
+  assert.equal(backend.filter(call => call.type === "render-batches").length, 0);
 });
 
 test("no batch manager means nothing is submitted, not a throw", () =>
 {
-  const context = new Tr2RenderContext();
+  const { context, calls } = recordingContext();
   const driver = driverOver([]);
 
   driver.SetBatchManager(null);
 
   assert.equal(driver.Execute(null, null, 0, 0, null, context), false);
-  assert.equal(context.TakeIntents().filter(i => i.type === "render-batches").length, 0);
+  assert.equal(calls.filter(call => call.type === "render-batches").length, 0);
 });
 
 test("the collect sees the render context it will be submitted through", () =>
 {
   const calls = [];
-  const context = new Tr2RenderContext();
+  const context = StubContext();
 
   driverOver(calls).Execute(null, null, 0, 0, null, context);
 

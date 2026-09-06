@@ -193,10 +193,12 @@ test("TriLineSet builds Carbon debug geometry and records render intent", () =>
   assertEquals(lines.vertices.length, 28);
   lines.AddSphere([0, 0, 0], 1, 3);
   assertEquals(lines.vertices.length, 156);
+  // Render reaches Tr2RenderContext.DrawLineSet, which is NOT PORTED and now
+  // refuses by name rather than recording an intent nothing read. What is still
+  // asserted is the part TriLineSet owns: it offers a non-empty set and
+  // declines an empty one.
   const context = new Tr2RenderContext();
-  assertEquals(lines.Render(context), true);
-  assertEquals(context.GetIntents().at(-1).type, "draw-line-set");
-  assertEquals(context.GetIntents().at(-1).lineSet, lines);
+  assert.throws(() => lines.Render(context), /DrawLineSet is not ported/u);
   lines.Clear();
   assertEquals(lines.Render(context), false);
 });

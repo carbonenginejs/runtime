@@ -77,6 +77,12 @@ export class Tr2RenderContextALStub
   /** Every draw the context was asked for, so a headless caller can assert. */
   #drawCount = 0;
 
+  /** Batches accepted through RenderBatches, so a headless caller can assert. */
+  #batchCount = 0;
+
+  /** Clears the context asked for; the bookkeeping IS the feature here. */
+  #clearCount = 0;
+
   // m_frameNumber. THIS IS NOT THE TRINITY FRAME COUNTER. Trinity's counts
   // frames the render path has begun (`Tr2Renderer::GetCurrentFrameCounter`);
   // this one counts frames the DEVICE has finished, and the gap between them is
@@ -324,10 +330,11 @@ export class Tr2RenderContextALStub
 
     const stack = this.#renderTargetStacks[slot];
 
-    // Carbon reports the stack depth rather than guarding, but an unbalanced
-    // pop is a caller bug and silence here would leave the wrong target bound
-    // for the rest of the frame.
-    if (!stack.length) fail(`render target stack is empty, popping slot ${slot}`);
+    // CARBON GUARDS AND REPORTS, it does not crash: it asserts in debug and
+    // returns E_FAIL in a shipping build (Tr2RenderContextStub.cpp:349-352).
+    // Throwing here was invented, under a comment that claimed Carbon did not
+    // guard at all - it does, on the very next line after the assert.
+    if (!stack.length) return false;
 
     this.#boundRenderTargets[slot] = stack.pop();
 
@@ -376,10 +383,15 @@ export class Tr2RenderContextALStub
     return true;
   }
 
-  /** Restores the depth-stencil beneath the top of the stack. */
+  /**
+   * Restores the depth-stencil beneath the top of the stack.
+   *
+   * Reports an empty stack rather than throwing, as Carbon does
+   * (`Tr2RenderContextStub.cpp:365-374`).
+   */
   PopDepthStencil()
   {
-    if (!this.#depthStencilStack.length) fail("depth stencil stack is empty");
+    if (!this.#depthStencilStack.length) return false;
 
     this.#depthStencil = this.#depthStencilStack.pop();
 
@@ -419,7 +431,15 @@ export class Tr2RenderContextALStub
    */
   Clear(_options)
   {
+    this.#clearCount += 1;
+
     return true;
+  }
+
+  /** How many clears the context asked for. @returns {number} */
+  GetClearCount()
+  {
+    return this.#clearCount;
   }
 
   /**
@@ -718,6 +738,41 @@ export class Tr2RenderContextALStub
   SetRenderState()
   {
     return true;
+  }
+
+  /**
+   * Accepts a finalized batch accumulator and counts its batches without
+   * drawing them.
+   *
+   * NOT A CARBON AL VERB. Carbon's `RenderBatches` is Trinity-level, on
+   * `Tr2RenderContextBase`, walking the accumulator and calling
+   * `SubmitGeometry` per batch. Ours routes it to the backend so a backend can
+   * group and encode a whole accumulator at once, which is what the WebGPU one
+   * does. The stub therefore needs it too - otherwise the only headless backend
+   * cannot accept the single most common draw call in the engine.
+   *
+   * Counting rather than ignoring is the point: the bookkeeping is what makes a
+   * headless backend worth having.
+   *
+   * @param {object} batches A finalized accumulator.
+   * @param {string} [_techniqueName] Carbon's DEFAULT_TECHNIQUE.
+   * @param {object} [_options] Override or picking selectors.
+   * @returns {boolean} Whether an accumulator was supplied.
+   */
+  RenderBatches(batches, _techniqueName, _options)
+  {
+    if (!batches) return false;
+
+    this.#batchCount += typeof batches.GetBatchCount === "function" ? batches.GetBatchCount() : 0;
+    this.#drawCount += 1;
+
+    return true;
+  }
+
+  /** How many batches every accepted accumulator held. @returns {number} */
+  GetBatchCount()
+  {
+    return this.#batchCount;
   }
 
   /**

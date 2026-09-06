@@ -1,11 +1,23 @@
 // Source: trinity/trinity/Tr2RenderContext.h (name/role)
-//   trinity/trinityal/*/Tr2RenderContext*.h (command surface, recorded as intents)
+//   trinity/trinityal/*/Tr2RenderContext*.h (command surface)
 //   trinity/trinity/Tr2Renderer.cpp (view-state statics, relocated here)
 // Hand-maintained amalgam of three Carbon surfaces (audited 2026-07-18):
 // 1. The command surface (PushRenderTarget/Clear/SetViewport/PresentSwapChain/
-//    SetRenderState/...) mirrors the backend AL context classes and RECORDS
-//    INTENTS instead of executing - a deliberate stand-in until the
-//    WebGL/WebGPU engine exists.
+//    SetRenderState/...) mirrors the backend AL context classes and CALLS the
+//    installed backend, as Carbon does.
+//
+//    IT USED TO RECORD INTENTS, and that mechanism is gone (2026-09-06). The
+//    recording existed because "the engine does device work" was read as the
+//    engine/webgpu PACKAGE rather than the abstraction layer, so a queue was
+//    invented to carry work across a boundary Carbon does not have.
+//
+//    THE BACKEND IS NEVER ABSENT. Carbon's context INHERITS Tr2RenderContextAL,
+//    a compile-time platform typedef, so it cannot be missing one; ours
+//    defaults the field to the stub for the same guarantee. A bare context is
+//    therefore headless, not broken - see the field's own comment.
+//
+//    Four verbs refuse outright rather than pretend: DrawLineSet, RenderAtlas,
+//    RenderLineGraphs and RenderDebug are unported and name what they need.
 // 2. The cached view state (SetViewTransform -> GetViewTransform/
 //    GetInverseViewTransform/GetViewPosition) relocates Carbon's Tr2Renderer
 //    STATICS onto this context so frame consumers read it via the threaded
@@ -30,6 +42,7 @@ import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
 import { Tr2RenderBatch } from "../batch/Tr2RenderBatch.js";
 import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { Tr2RenderContextALStub } from "./Tr2RenderContextALStub.js";
 import { Tr2Blitter } from "../Tr2Blitter.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
@@ -41,10 +54,6 @@ const DEFAULT_TECHNIQUE = "Main";
 @type.define({ className: "Tr2RenderContext", family: "trinityCore" })
 export class Tr2RenderContext extends CjsModel
 {
-  #renderTargetStacks = new Map();
-
-  #depthStencilStack = [];
-
   #diagnostics = [];
 
   #stepExecutor = DIRECT_STEP_EXECUTOR;
@@ -54,20 +63,31 @@ export class Tr2RenderContext extends CjsModel
   #volumetricsExecutor = null;
 
   /**
-   * The abstraction-layer backend, when one is installed.
+   * The abstraction-layer backend. THERE IS ALWAYS ONE.
    *
-   * Carbon's Tr2RenderContext IS Tr2RenderContextBase + Tr2RenderContextAL: the
-   * base adds the RenderBatches family and the AL supplies every other verb.
-   * This field is that AL half. With a backend installed the verbs CALL it, as
-   * Carbon does; with none they fall back to recording, which is what this
-   * class did for every caller before the AL existed.
+   * Carbon's context does not hold a backend, it IS one:
    *
-   * The recording is on its way out - see
-   * /docs/research/carbon-fidelity-audit-2026-09-04.md section 1b, which found
-   * that all 28 intent types are AL verbs, RenderBatches, or TriStep/
-   * Tr2EffectStateManager methods, and none is a feature worth keeping.
+   *     BLUE_CLASS( Tr2RenderContext ) :
+   *         public Tr2RenderContextBase,
+   *         public Tr2RenderContextAL      // Tr2RenderContext.h:85-87
+   *
+   * `Tr2RenderContextAL` is a compile-time platform typedef - dx11, dx12, metal
+   * or stub - so a context without a backend is structurally impossible there.
+   * Carbon therefore has no fallback for the case AND no error for it either.
+   *
+   * We compose rather than inherit, so the field could be empty; defaulting it
+   * to the stub is how the state stays impossible. A bare `new
+   * Tr2RenderContext()` then behaves exactly as Carbon compiled against its
+   * stub backend does: real render-target and depth-stencil stacks, real sizes,
+   * draws counted, nothing drawn, and `IsValid()` false until `CreateDevice`.
+   *
+   * TWO EARLIER ANSWERS HERE WERE BOTH INVENTED. The first was to RECORD every
+   * verb into an intent queue when no backend was installed; the second, while
+   * removing that, was to THROW. Carbon does neither, because Carbon never
+   * reaches the state. Deleting a behaviour still means choosing what stands in
+   * its place, and that choice needs a citation like any other.
    */
-  #al = null;
+  #al = new Tr2RenderContextALStub();
 
   // Carbon's context OWNS its state manager as a public member
   // (`Tr2RenderContext.h:35`), and its render steps reach the Trinity-level
@@ -80,10 +100,6 @@ export class Tr2RenderContext extends CjsModel
 
   /** Carbon's s_blitter, per context rather than per process; see GetBlitter. */
   #blitter = null;
-
-  #intents = [];
-
-  #renderTargets = new Map();
 
   #depthStencil = null;
 
@@ -115,8 +131,6 @@ export class Tr2RenderContext extends CjsModel
   #projectionStack = [];
 
   #viewTransformStack = [];
-
-  #intentCursor = 0;
 
   // Carbon keeps ONE pool allocator as a Tr2Renderer static, created in
   // Initialize (Tr2Renderer.cpp:345), read through GetPoolAllocator
@@ -242,12 +256,14 @@ export class Tr2RenderContext extends CjsModel
    */
   SetRenderContextAL(al = null)
   {
-    this.#al = al ?? null;
+    // Null RESTORES THE STUB rather than emptying the field: Carbon cannot
+    // detach a backend, so neither can this.
+    this.#al = al ?? new Tr2RenderContextALStub();
 
     return this.#al;
   }
 
-  /** The installed backend, or null while recording. */
+  /** The installed backend; never null. */
   GetRenderContextAL()
   {
     return this.#al;
@@ -440,19 +456,7 @@ export class Tr2RenderContext extends CjsModel
   {
     const index = Number(slot) >>> 0;
 
-    if (this.#al) return this.#al.PushRenderTarget(index);
-
-    let stack = this.#renderTargetStacks.get(index);
-
-    if (!stack)
-    {
-      stack = [];
-      this.#renderTargetStacks.set(index, stack);
-    }
-
-    stack.push(this.#renderTargets.get(index) ?? null);
-
-    return true;
+    return this.#requireAL("PushRenderTarget").PushRenderTarget(index);
   }
 
   /**
@@ -466,23 +470,13 @@ export class Tr2RenderContext extends CjsModel
    */
   PopRenderTarget(slot = 0)
   {
-    if (this.#al) return this.#al.PopRenderTarget(slot);
-
-    const stack = this.#renderTargetStacks.get(Number(slot) >>> 0);
-
-    if (!stack?.length) return false;
-
-    this.SetRenderTarget(slot, stack.pop());
-
-    return true;
+    return this.#requireAL("PopRenderTarget").PopRenderTarget(slot);
   }
 
   /** Depth of one slot's render-target stack; zero for a slot never pushed to. */
   GetStackSizeRT(slot = 0)
   {
-    if (this.#al) return this.#al.GetStackSizeRT(slot);
-
-    return this.#renderTargetStacks.get(Number(slot) >>> 0)?.length ?? 0;
+    return this.#requireAL("GetStackSizeRT").GetStackSizeRT(slot);
   }
 
   /**
@@ -494,11 +488,7 @@ export class Tr2RenderContext extends CjsModel
    */
   PushDepthStencil()
   {
-    if (this.#al) return this.#al.PushDepthStencil();
-
-    this.#depthStencilStack.push(this.#depthStencil);
-
-    return true;
+    return this.#requireAL("PushDepthStencil").PushDepthStencil();
   }
 
   /**
@@ -508,21 +498,13 @@ export class Tr2RenderContext extends CjsModel
    */
   PopDepthStencil()
   {
-    if (this.#al) return this.#al.PopDepthStencil();
-
-    if (!this.#depthStencilStack.length) return false;
-
-    this.SetDepthStencil(this.#depthStencilStack.pop());
-
-    return true;
+    return this.#requireAL("PopDepthStencil").PopDepthStencil();
   }
 
   /** Depth of the depth-stencil stack. */
   GetStackSizeDS()
   {
-    if (this.#al) return this.#al.GetStackSizeDS();
-
-    return this.#depthStencilStack.length;
+    return this.#requireAL("GetStackSizeDS").GetStackSizeDS();
   }
 
   /**
@@ -531,13 +513,11 @@ export class Tr2RenderContext extends CjsModel
    */
   SetRenderTarget(slot, renderTarget)
   {
-    const index = Number(slot) >>> 0;
-
-    if (this.#al) return this.#al.SetRenderTarget(index, renderTarget);
-
-    this.#renderTargets.set(index, renderTarget ?? null);
-    this.#intents.push({ type: "set-render-target", slot: index, renderTarget: renderTarget ?? null });
-    return true;
+    // THE BACKEND OWNS THE BINDING, as Carbon's do (m_boundRenderTarget), and
+    // GetRenderTarget below reads it back from there. The context kept a
+    // duplicate map while it was also a recorder; two copies of one binding is
+    // one too many, and the local one was the stale half.
+    return this.#requireAL("SetRenderTarget").SetRenderTarget(Number(slot) >>> 0, renderTarget);
   }
 
   // THE BACKEND'S FRAME CLOCK, WHICH IS NOT THE ONE ABOVE. `AdvanceFrame` and
@@ -596,11 +576,7 @@ export class Tr2RenderContext extends CjsModel
    */
   GetRenderTargetSize(slot = 0)
   {
-    if (this.#al) return this.#al.GetRenderTargetSize(slot);
-
-    // Nothing knows a bound target's extent on the recording path; that is
-    // why SetFullScreenViewport defers there rather than answering.
-    return { result: ALResult.E_FAIL, width: 0, height: 0 };
+    return this.#requireAL("GetRenderTargetSize").GetRenderTargetSize(slot);
   }
 
   /**
@@ -615,49 +591,34 @@ export class Tr2RenderContext extends CjsModel
    */
   GetRenderTarget(slot = 0)
   {
-    if (this.#al) return this.#al.GetRenderTarget(slot);
-
-    return this.#renderTargets.get(Number(slot) >>> 0) ?? null;
+    return this.#requireAL("GetRenderTarget").GetRenderTarget(slot);
   }
 
   /** Binds the depth-stencil surface and records a set-depth-stencil intent. */
   SetDepthStencil(depthStencil)
   {
-    if (this.#al) return this.#al.SetDepthStencil(depthStencil);
-
     this.#depthStencil = depthStencil ?? null;
-    this.#intents.push({ type: "set-depth-stencil", depthStencil: this.#depthStencil });
-    return true;
+
+    return this.#requireAL("SetDepthStencil").SetDepthStencil(this.#depthStencil);
   }
 
   /** The currently bound depth-stencil surface, or null. */
   GetDepthStencil()
   {
-    if (this.#al) return this.#al.GetDepthStencil();
-
-    return this.#depthStencil;
+    return this.#requireAL("GetDepthStencil").GetDepthStencil();
   }
 
   /**
-   * Records a clear intent with separate colour, depth and stencil enables; the
-   * colour is snapshotted by value so a caller's reusable buffer cannot mutate
-   * the queued intent.
+   * Clears the bound attachments, with separate colour, depth and stencil
+   * enables.
+   *
+   * @param {object} options `{ color, depth, stencil, clearColor, clearDepth,
+   *   clearStencil }`.
+   * @returns {boolean} Whether the backend accepted the clear.
    */
   Clear(options)
   {
-    if (this.#al) return this.#al.Clear(options);
-
-    const intent = {
-      type: "clear",
-      color: options?.color ? Array.from(options.color) : null,
-      depth: options?.depth ?? null,
-      stencil: options?.stencil ?? null,
-      clearColor: !!options?.clearColor,
-      clearDepth: !!options?.clearDepth,
-      clearStencil: !!options?.clearStencil
-    };
-    this.#intents.push(intent);
-    return true;
+    return this.#requireAL("Clear").Clear(options);
   }
 
   /**
@@ -972,16 +933,14 @@ export class Tr2RenderContext extends CjsModel
    * @param {string} verb The verb being forwarded.
    * @returns {object} The render-context AL.
    */
+  // There is no "no backend" case to guard - the field defaults to the stub and
+  // a null assignment restores it. What remains worth checking is whether the
+  // installed backend implements the verb: without this, a backend that has not
+  // yet ported one fails as "this.#al.Foo is not a function" from inside a
+  // pass-through, which reads like a typo in Trinity rather than a gap in the
+  // backend.
   #requireAL(verb)
   {
-    if (!this.#al)
-    {
-      throw new Error(`Tr2RenderContext has no render-context AL installed; ${verb} binds on a device.`);
-    }
-
-    // Name the gap. A backend that has not implemented a verb otherwise fails
-    // as "this.#al.Foo is not a function" from inside a pass-through, which
-    // reads like a typo in Trinity rather than a missing backend method.
     if (typeof this.#al[verb] !== "function")
     {
       throw new Error(`${this.#al.constructor.name} does not implement ${verb}.`);
@@ -1003,9 +962,7 @@ export class Tr2RenderContext extends CjsModel
   /** GPU-free validity check: any non-null render target counts as valid. */
   IsRenderTargetValid(renderTarget)
   {
-    if (this.#al) return this.#al.IsRenderTargetValid(renderTarget);
-
-    return renderTarget != null;
+    return this.#requireAL("IsRenderTargetValid").IsRenderTargetValid(renderTarget);
   }
 
   /**
@@ -1014,10 +971,7 @@ export class Tr2RenderContext extends CjsModel
    */
   ResolveRenderTarget(source, destination)
   {
-    if (this.#al) return this.#al.ResolveRenderTarget(source, destination);
-
-    this.#intents.push({ type: "resolve-render-target", source, destination });
-    return true;
+    return this.#requireAL("ResolveRenderTarget").ResolveRenderTarget(source, destination);
   }
 
   /**
@@ -1026,19 +980,13 @@ export class Tr2RenderContext extends CjsModel
    */
   CopyRenderTarget(intent)
   {
-    if (this.#al) return this.#al.CopyRenderTarget(intent);
-
-    this.#intents.push({ type: "copy-render-target", ...intent });
-    return true;
+    return this.#requireAL("CopyRenderTarget").CopyRenderTarget(intent);
   }
 
   /** Records a generate-mipmaps intent for a render target. */
   GenerateMipMaps(renderTarget)
   {
-    if (this.#al) return this.#al.GenerateMipMaps(renderTarget);
-
-    this.#intents.push({ type: "generate-mipmaps", renderTarget });
-    return true;
+    return this.#requireAL("GenerateMipMaps").GenerateMipMaps(renderTarget);
   }
 
   /**
@@ -1066,10 +1014,7 @@ export class Tr2RenderContext extends CjsModel
   {
     if (!batches) return false;
 
-    if (this.#al) return this.#al.RenderBatches(batches, techniqueName);
-
-    this.#intents.push({ type: "render-batches", batches, techniqueName });
-    return true;
+    return this.#requireAL("RenderBatches").RenderBatches(batches, techniqueName);
   }
 
   /**
@@ -1091,15 +1036,7 @@ export class Tr2RenderContext extends CjsModel
     if (!batches) return false;
     if (!overrideMaterial) return this.RenderBatches(batches, techniqueName);
 
-    if (this.#al) return this.#al.RenderBatches(batches, techniqueName, { overrideMaterial });
-
-    this.#intents.push({
-      type: "render-batches",
-      batches,
-      techniqueName,
-      overrideMaterial
-    });
-    return true;
+    return this.#requireAL("RenderBatches").RenderBatches(batches, techniqueName, { overrideMaterial });
   }
 
   /**
@@ -1115,17 +1052,27 @@ export class Tr2RenderContext extends CjsModel
   {
     if (!batches) return false;
 
-    if (this.#al) return this.#al.RenderBatches(batches, techniqueName, { picking: true });
-
-    this.#intents.push({ type: "render-batches", batches, techniqueName, picking: true });
-    return true;
+    return this.#requireAL("RenderBatches").RenderBatches(batches, techniqueName, { picking: true });
   }
 
-  /** Records a draw-line-set intent referencing the line set. */
-  DrawLineSet(lineSet)
+  // THE FOUR BELOW ARE NOT PORTED, AND THEY REFUSE RATHER THAN RECORD.
+  //
+  // Each used to push an intent nothing ever read - the queue's whole failure
+  // mode: a call that reports success and moves nothing. Refusing by name costs
+  // a caller one clear error instead of a silent absence they debug elsewhere.
+  //
+  // What each actually needs:
+  //   DrawLineSet      - line rendering; Carbon has no TriStepDrawLineSet, this
+  //                      verb is ours (see the non-Carbon extension register).
+  //   RenderAtlas      - Tr2TextureAtlas, an unported shell with no
+  //                      GetFreeAreas/GetUsedAreas/GetMargin. Debug visualiser.
+  //   RenderLineGraphs - Tr2Renderer::PrintfImmediate, so fonts.
+  //   RenderDebug      - DrawPrimitiveUP plus fonts.
+
+  /** NOT PORTED: line rendering. @returns {never} Always throws. */
+  DrawLineSet(_lineSet)
   {
-    this.#intents.push({ type: "draw-line-set", lineSet });
-    return true;
+    throw new Error("Tr2RenderContext.DrawLineSet is not ported; it needs the line-rendering path.");
   }
 
   /**
@@ -1134,39 +1081,25 @@ export class Tr2RenderContext extends CjsModel
    */
   ClearUav(buffer, value, clearWithFloat = false)
   {
-    if (this.#al) return this.#al.ClearUav(buffer, value, clearWithFloat);
-
-    this.#intents.push({ type: "clear-uav", buffer, value: Array.from(value), clearWithFloat: !!clearWithFloat });
-    return true;
+    return this.#requireAL("ClearUav").ClearUav(buffer, value, clearWithFloat);
   }
 
-  /** Records a render-atlas intent for an atlas step. */
-  RenderAtlas(step)
+  /** NOT PORTED: needs Tr2TextureAtlas. @returns {never} Always throws. */
+  RenderAtlas(_step)
   {
-    this.#intents.push({ type: "render-atlas", step });
-    return true;
+    throw new Error("Tr2RenderContext.RenderAtlas is not ported; Tr2TextureAtlas is an unported shell.");
   }
 
-  /** Records a render-line-graphs intent for a line-graph step. */
-  RenderLineGraphs(step)
+  /** NOT PORTED: needs the font path. @returns {never} Always throws. */
+  RenderLineGraphs(_step)
   {
-    this.#intents.push({ type: "render-line-graphs", step });
-    return true;
+    throw new Error("Tr2RenderContext.RenderLineGraphs is not ported; it needs Tr2Renderer::PrintfImmediate.");
   }
 
-  /**
-   * Records a render-debug intent, deep-copying the step's line vertices and its
-   * 2D and 3D text entries so the debug step can be refilled immediately.
-   */
-  RenderDebug(debugStep)
+  /** NOT PORTED: needs DrawPrimitiveUP and fonts. @returns {never} Always throws. */
+  RenderDebug(_debugStep)
   {
-    this.#intents.push({
-      type: "render-debug",
-      vertices: debugStep.lineSet.vertices.map(vertex => ({ position: Array.from(vertex.position), color: vertex.color })),
-      text2d: debugStep.text2d.map(entry => ({ ...entry })),
-      text3d: debugStep.text3d.map(entry => ({ ...entry, position: Array.from(entry.position) }))
-    });
-    return true;
+    throw new Error("Tr2RenderContext.RenderDebug is not ported; it needs DrawPrimitiveUP and the font path.");
   }
 
   /**
@@ -1175,10 +1108,7 @@ export class Tr2RenderContext extends CjsModel
    */
   RunComputeShader(effect, groupDimX = 1, groupDimY = 1, groupDimZ = 1)
   {
-    if (this.#al) return this.#al.RunComputeShader(effect, groupDimX, groupDimY, groupDimZ);
-
-    this.#intents.push({ type: "run-compute-shader", effect, groupDimX, groupDimY, groupDimZ });
-    return true;
+    return this.#requireAL("RunComputeShader").RunComputeShader(effect, groupDimX, groupDimY, groupDimZ);
   }
 
   /**
@@ -1187,10 +1117,7 @@ export class Tr2RenderContext extends CjsModel
    */
   RunComputeShaderIndirect(effect, indirectionBuffer, offsetForArgs = 0)
   {
-    if (this.#al) return this.#al.RunComputeShaderIndirect(effect, indirectionBuffer, offsetForArgs);
-
-    this.#intents.push({ type: "run-compute-shader-indirect", effect, indirectionBuffer, offsetForArgs });
-    return true;
+    return this.#requireAL("RunComputeShaderIndirect").RunComputeShaderIndirect(effect, indirectionBuffer, offsetForArgs);
   }
 
   /** Records the upscaler context the following work belongs to. */
@@ -1213,23 +1140,20 @@ export class Tr2RenderContext extends CjsModel
   /** Records the end-of-frame present intent for a swap chain. */
   PresentSwapChain(swapChain)
   {
-    if (this.#al) return this.#al.PresentSwapChain(swapChain);
-
-    this.#intents.push({ type: "present-swap-chain", swapChain });
-    return true;
+    return this.#requireAL("PresentSwapChain").PresentSwapChain(swapChain);
   }
 
   /**
-   * Caches the viewport and records a set-viewport intent; the viewport object
-   * is held by reference, not copied.
+   * Sets the viewport. The viewport object is held by reference, not copied.
+   *
+   * @param {object} viewport `{ x, y, width, height, minZ, maxZ }`.
+   * @returns {boolean} Whether the backend accepted it.
    */
   SetViewport(viewport)
   {
-    if (this.#al) return this.#al.SetViewport(viewport);
-
     this.#viewport = viewport ?? null;
-    this.#intents.push({ type: "set-viewport", viewport: this.#viewport });
-    return true;
+
+    return this.#requireAL("SetViewport").SetViewport(viewport);
   }
 
   /**
@@ -1238,24 +1162,17 @@ export class Tr2RenderContext extends CjsModel
    */
   SetFullScreenViewport()
   {
-    // With a backend installed there is nothing to defer: it knows the bound
-    // target's extent, so "full screen" resolves here. Without one the extent
-    // is not known until realization, which is why the recording path defers it
-    // as its own intent.
-    if (this.#al)
-    {
-      const size = this.#al.GetRenderTargetSize(0);
+    // Nothing to defer: the backend knows the bound target's extent, so "full
+    // screen" resolves here and now. The old recording path deferred it as its
+    // own intent because without a backend the extent was unknown until
+    // realization - which is exactly the deferral the queue existed to provide.
+    const size = this.#requireAL("GetRenderTargetSize").GetRenderTargetSize(0);
 
-      if (Failed(size.result)) return false;
+    if (Failed(size.result)) return false;
 
-      this.#esm.UpdateRenderTargetViewport(size.width, size.height);
-      this.#esm.SetupViewport();
+    this.#esm.UpdateRenderTargetViewport(size.width, size.height);
+    this.#esm.SetupViewport();
 
-      return true;
-    }
-
-    this.#viewport = null;
-    this.#intents.push({ type: "set-fullscreen-viewport" });
     return true;
   }
 
@@ -1265,9 +1182,7 @@ export class Tr2RenderContext extends CjsModel
    */
   GetViewport()
   {
-    if (this.#al) return this.#al.GetViewport();
-
-    return this.#viewport;
+    return this.#requireAL("GetViewport").GetViewport();
   }
 
   // The viewport save stack is the effect state manager's, not this context's
@@ -1454,18 +1369,21 @@ export class Tr2RenderContext extends CjsModel
     this.#fieldOfView = fieldOfView === undefined
       ? (projection[5] ? 2 * Math.atan(1 / projection[5]) : 0)
       : Number(fieldOfView);
-    this.#intents.push({ type: "set-projection", projection: mat4.clone(this.#projection) });
     return true;
   }
 
   /**
-   * Records a single render-state assignment; both state and value are coerced
-   * to unsigned integers.
+   * Sets a single render state, as `TriStepSetRenderState` does
+   * (`TriStepSetRenderState.cpp:10-14`). Both arguments are coerced to
+   * unsigned integers.
+   *
+   * @param {number} state A `RenderState` value.
+   * @param {number} value The value to set.
+   * @returns {boolean} Whether the backend accepted it.
    */
   SetRenderState(state, value)
   {
-    this.#intents.push({ type: "set-render-state", state: Number(state) >>> 0, value: Number(value) >>> 0 });
-    return true;
+    return this.#requireAL("SetRenderState").SetRenderState(Number(state) >>> 0, Number(value) >>> 0);
   }
 
   /** Records the intent to apply the standard state block for a rendering mode. */
@@ -1479,13 +1397,20 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Records the wireframe toggle for the engine to read at realization; the
-   * context itself draws nothing.
+   * Toggles wireframe rendering.
+   *
+   * THE STATE MANAGER OWNS THIS, as it owns the cull-mode and depth-test
+   * overrides beside it. Carbon's own step goes straight there -
+   * `renderContext.m_esm.SetWireframeRendering( m_enableWireframe )`
+   * (`TriStepEnableWireframeMode.cpp:...`) - and never through the context at
+   * all. This forwards for callers that already hold a context.
+   *
+   * @param {boolean} enabled Whether to draw wireframe.
+   * @returns {boolean} Whether the override was applied.
    */
   SetWireframeRendering(enabled)
   {
-    this.#intents.push({ type: "set-wireframe-rendering", enabled: !!enabled });
-    return true;
+    return this.#esm.SetWireframeRendering(!!enabled);
   }
 
   /**
@@ -1536,10 +1461,6 @@ export class Tr2RenderContext extends CjsModel
       this.#projection = null;
     }
     this.#fieldOfView = saved.fieldOfView;
-    this.#intents.push({
-      type: "set-projection",
-      projection: this.#projection ? mat4.clone(this.#projection) : null
-    });
     return true;
   }
 
@@ -1550,55 +1471,7 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * A full copy of every intent recorded since the last ClearIntents; it does
-   * not move the take-cursor, so intents can be returned again.
-   */
-  GetIntents()
-  {
-    return this.#intents.slice();
-  }
-
-  // Incremental exactly-once consumption for a per-step/per-batch executor:
-  // returns the intents recorded since the previous TakeIntents/ClearIntents and
-  // advances the cursor. Unlike GetIntents (a full copy), the same intent is
-  // never returned twice, so nested jobs cannot realize an intent more than once.
-
-  /**
-   * Exactly-once consumption for a per-step executor: returns the intents
-   * recorded since the previous take and advances the cursor, so no intent can
-   * be realized twice.
-   */
-  TakeIntents()
-  {
-    const taken = this.#intents.slice(this.#intentCursor);
-    this.#intentCursor = this.#intents.length;
-    return taken;
-  }
-
-  // Peek at the intents since the cursor without advancing it.
-
-  /** The intents recorded since the cursor, without advancing it. */
-  PeekIntents()
-  {
-    return this.#intents.slice(this.#intentCursor);
-  }
-
-  /** Index of the first intent not yet consumed by TakeIntents. */
-  GetIntentCursor()
-  {
-    return this.#intentCursor;
-  }
-
-  /** Drops all recorded intents and rewinds the take-cursor to zero. */
-  ClearIntents()
-  {
-    this.#intents.length = 0;
-    this.#intentCursor = 0;
-  }
-
-  /**
-   * Appends a diagnostic record for the frame; diagnostics are independent of
-   * the intent stream and cleared separately.
+   * Appends a diagnostic record for the frame.
    */
   AddDiagnostic(diagnostic)
   {

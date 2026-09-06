@@ -94,7 +94,7 @@ test("the overrides are handed over as flags, not applied here", () =>
 
   assert.deepEqual(
     manager.GetRenderStateOverrides(),
-    { invertedDepthTest: true, invertedCullMode: false }
+    { invertedDepthTest: true, invertedCullMode: false, wireframe: false }
   );
   assert.equal(manager.IsDepthTestInverted(), true);
 });
@@ -190,16 +190,27 @@ test("an index bind is filtered the same way, and a one-byte stride fails", () =
   assert.throws(() => states.ApplyIndexBuffer(indices, 1), /one-byte index stride/);
 });
 
-test("the binding verbs fail without a backend rather than recording", () =>
+test("the binding verbs reach a backend even on a bare context", () =>
 {
-  // Every other verb on the context has a recording fallback because the intent
-  // stream has a vocabulary for it. These have none, and inventing one would be
-  // building what the WebGPU AL is about to replace.
+  // THIS TEST USED TO ASSERT THE OPPOSITE, and both of its earlier premises
+  // were wrong. First these verbs were said to have no recording fallback while
+  // every other verb did; then, when the recording went, they were said to
+  // throw for want of a backend.
+  //
+  // Carbon has neither behaviour, because it cannot reach the state: its
+  // context INHERITS Tr2RenderContextAL, a compile-time platform typedef
+  // (Tr2RenderContext.h:85-87). Ours defaults the field to the stub for the
+  // same guarantee, so a bare context is headless rather than broken.
   const context = new Tr2RenderContext();
 
-  assert.throws(() => context.SetTopology(1), /no render-context AL installed/);
-  assert.throws(() => context.SetStreamSource(0, {}, 0, 32), /no render-context AL installed/);
-  assert.throws(() => context.DrawIndexedInstanced(3, 1, 0, 0, 0), /no render-context AL installed/);
+  assert.equal(context.SetTopology(1), true);
+  assert.equal(context.SetStreamSource(0, {}, 0, 32), true);
+  // The stub accepts the draw and counts it. It does NOT check for a bound
+  // index buffer - Carbon's stub validates only the user-pointer draws, where a
+  // null pointer is a caller error catchable without a GPU.
+  const drawsBefore = context.GetRenderContextAL().GetDrawCount();
+  assert.equal(context.DrawIndexedInstanced(3, 1, 0, 0, 0), true);
+  assert.equal(context.GetRenderContextAL().GetDrawCount(), drawsBefore + 1);
 });
 
 test("the batch-to-draw sequence reaches the device", () =>

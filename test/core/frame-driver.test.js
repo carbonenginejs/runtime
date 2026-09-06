@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { CjsFrameLifecycle } from "../../npm/dist/global/contracts/index.js";
 import { CjsFrameDriver } from "../../npm/dist/core/index.js";
 import * as trinityCore from "../../npm/dist/trinity/core/index.js";
-import { Tr2RenderContext, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext, Tr2RenderContextALStub, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderJobs, TriRenderJob } from "../../npm/dist/trinity/renderJob/index.js";
 
 
@@ -115,6 +115,16 @@ function makeDriver()
 {
     const order = [];
     const renderContext = new RecordingRenderContext(order);
+
+    // The context has no recording fallback any more: every AL verb requires a
+    // backend, which is what Carbon's stub is FOR. Count presents on it, since
+    // that is the claim these tests make.
+    const al = new Tr2RenderContextALStub();
+    al.CreateDevice({ mode: { width: 64, height: 64 } });
+    al.presentCount = 0;
+    const present = al.PresentSwapChain.bind(al);
+    al.PresentSwapChain = (swapChain) => { al.presentCount++; return present(swapChain); };
+    renderContext.SetRenderContextAL(al);
     const renderJobs = new RecordingRenderJobs(order);
     const frameLifecycle = new RecordingLifecycle(order);
     const driver = new CjsFrameDriver({ renderContext, renderJobs, frameLifecycle });
@@ -167,6 +177,9 @@ test("Tr2RenderJobs receives the exact bracketed context", () =>
 {
     const order = [];
     const renderContext = new RecordingRenderContext(order);
+    const contextAl = new Tr2RenderContextALStub();
+    contextAl.CreateDevice({ mode: { width: 64, height: 64 } });
+    renderContext.SetRenderContextAL(contextAl);
     const frameLifecycle = new RecordingLifecycle(order);
     let receivedContext = null;
     class ContextJob extends TriRenderJob
@@ -192,8 +205,9 @@ test("Present remains outside the requested frame", () =>
     driver.Tick(0.1);
     driver.Render();
 
-    const intents = renderContext.GetIntents().map(intent => intent.type);
-    assert.equal(intents.includes("present-swap-chain"), false);
+    // There is no intent queue any more; the claim is that the driver did not
+    // present, which the stub backend counts directly.
+    assert.equal(renderContext.GetRenderContextAL().presentCount, 0);
 });
 
 test("BeginFrame publishes Carbon's Time vector, including the previous frame", () =>

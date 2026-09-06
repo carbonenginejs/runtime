@@ -2,8 +2,27 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { Tr2RenderContext, TriProjection } from "../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext, Tr2RenderContextALStub, TriProjection } from "../../npm/dist/trinity/core/index.js";
 import { TriStepSetProjection } from "../../npm/dist/trinity/renderJob/index.js";
+
+/**
+ * A context with the stub backend installed.
+ *
+ * Every AL verb requires a backend now - there is no recording fallback - and
+ * Carbon ships a stub precisely for the headless case.
+ */
+function stubContext()
+{
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+
+  const context = new Tr2RenderContext();
+
+  context.SetRenderContextAL(al);
+
+  return context;
+}
 
 function viewWithTranslationX(tx)
 {
@@ -18,8 +37,12 @@ test("PushViewport/PopViewport save and restore the current viewport", () =>
   // The stack belongs to the effect state manager, as Carbon's steps assume
   // (TriStepPushViewport.cpp:9). The context's own SetViewport is the
   // abstraction layer's and takes an already-clipped device viewport.
-  const context = new Tr2RenderContext();
+  const context = stubContext();
   const states = context.GetEffectStateManager();
+  const al = context.GetRenderContextAL();
+  const viewports = [];
+  const setViewport = al.SetViewport.bind(al);
+  al.SetViewport = (viewport) => { viewports.push(viewport); return setViewport(viewport); };
 
   states.SetViewport({ x: 0, y: 0, width: 64, height: 64 });
   assert.equal(states.GetStackSizeViewport(), 0);
@@ -30,14 +53,14 @@ test("PushViewport/PopViewport save and restore the current viewport", () =>
   states.SetViewport({ x: 0, y: 0, width: 32, height: 32 });
   assert.equal(states.GetViewport().width, 32);
 
-  context.ClearIntents();
+  viewports.length = 0;
   assert.equal(states.PopViewport(), true);
   assert.equal(states.GetStackSizeViewport(), 0);
   assert.equal(states.GetViewport().width, 64, "viewport restored");
 
-  const intents = context.GetIntents();
-  assert.equal(intents.at(-1).type, "set-viewport", "restore is exposed to realization");
-  assert.equal(intents.at(-1).viewport.width, 64);
+  // The restore must reach the BACKEND, not merely the manager's own cache -
+  // that is what the deleted intent assertion here stood for.
+  assert.equal(viewports.at(-1).width, 64, "restore reaches the backend");
 });
 
 
@@ -107,37 +130,3 @@ test("PushViewTransform/PopViewTransform save and restore the cached view matrix
   assert.equal(context.GetStackSizeViewTransform(), 0);
 });
 
-test("TakeIntents consumes incrementally and exactly once", () =>
-{
-  const context = new Tr2RenderContext();
-  context.SetViewport({ id: "a" });
-  context.SetProjection(mat4.create());
-
-  const first = context.TakeIntents();
-  assert.equal(first.length, 2);
-  assert.equal(context.TakeIntents().length, 0, "already-taken intents are not returned again");
-
-  context.SetRenderState(1, 2);
-  assert.deepEqual(context.PeekIntents().map((i) => i.type), [ "set-render-state" ]);
-  assert.equal(context.PeekIntents().length, 1, "peek does not advance the cursor");
-
-  const second = context.TakeIntents();
-  assert.equal(second.length, 1);
-  assert.equal(second[0].type, "set-render-state");
-
-  // GetIntents still returns the full history.
-  assert.equal(context.GetIntents().length, 3);
-});
-
-test("ClearIntents resets the incremental cursor", () =>
-{
-  const context = new Tr2RenderContext();
-  context.SetViewport({ id: "a" });
-  context.TakeIntents();
-  context.ClearIntents();
-
-  context.SetViewport({ id: "b" });
-  const taken = context.TakeIntents();
-  assert.equal(taken.length, 1, "cursor reset so the new intent is taken");
-  assert.equal(context.GetIntentCursor(), 1);
-});

@@ -17,6 +17,7 @@ import {
   Tr2LoadAction,
   Tr2StoreAction
 } from "../../npm/dist/global/consts/renderContext/index.js";
+import { StubContext, StubTarget } from "../support/stubContext.js";
 
 const ready = () =>
 {
@@ -91,14 +92,21 @@ test("the depth stencil stack behaves the same way", () =>
   assert.equal(al.GetStackSizeDS(), 0);
 });
 
-test("an unbalanced pop is refused rather than silently rebinding", () =>
+test("an unbalanced pop reports failure rather than throwing", () =>
 {
-  // Carbon reports stack depth instead of guarding, but a stray pop here would
-  // leave the wrong target bound for the rest of the frame.
+  // THIS TEST ASSERTED AN INVENTED BEHAVIOUR, under a comment claiming Carbon
+  // "reports stack depth instead of guarding". Carbon does guard: it asserts in
+  // debug and returns E_FAIL in a shipping build, on the line straight after
+  // the assert (Tr2RenderContextStub.cpp:349-352 for the target stack,
+  // :365-374 for the depth stencil). A stray pop is reported, not fatal.
   const al = ready();
 
-  assert.throws(() => al.PopRenderTarget(0), /stack is empty/);
-  assert.throws(() => al.PopDepthStencil(), /stack is empty/);
+  assert.equal(al.PopRenderTarget(0), false);
+  assert.equal(al.PopDepthStencil(), false);
+
+  // And nothing was rebound by the refusal.
+  assert.equal(al.GetStackSizeRT(0), 0);
+  assert.equal(al.GetStackSizeDS(), 0);
 });
 
 test("a slot outside the fixed array is refused", () =>
@@ -165,7 +173,7 @@ test("a context driven by the stub keeps real state and records no intents", () 
 {
   // The point of the port: with a backend installed the context CALLS it, as
   // Carbon's does, instead of writing the call down for someone to replay.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
@@ -188,18 +196,26 @@ test("a context driven by the stub keeps real state and records no intents", () 
 
   assert.equal(al.GetRenderTarget(0), target, "the backend holds the state");
   assert.equal(al.GetViewport().width, 128, "and the restored target's viewport with it");
-  assert.equal(context.GetIntents().length, 0, "nothing was recorded");
 });
 
-test("with no backend the context still records, so nothing broke on the way", () =>
+test("a bare context is headless, not backendless", () =>
 {
-  // The fallback is what every existing caller uses until a backend exists;
-  // removing it before the WebGPU backend lands would stop the engine drawing.
+  // THIS TEST ONCE ASSERTED THE OPPOSITE - that a context with no backend
+  // recorded into an intent queue, and that removing the fallback would stop
+  // the engine drawing. Both halves were wrong: nothing ever consumed the
+  // queue, and Carbon cannot reach the state at all, because its context
+  // INHERITS Tr2RenderContextAL (Tr2RenderContext.h:85-87), a compile-time
+  // platform typedef. Ours defaults the field to the stub for the same
+  // guarantee.
   const context = new Tr2RenderContext();
+  const al = context.GetRenderContextAL();
 
-  context.Clear({ clearColor: true });
+  assert.ok(al instanceof Tr2RenderContextALStub, "a backend is always installed");
+  assert.equal(al.IsValid(), false, "and it is invalid until CreateDevice, as Carbon's is");
 
-  assert.ok(context.GetIntents().length > 0);
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+  assert.equal(context.Clear({ clearColor: true }), true);
+  assert.equal(al.GetClearCount(), 1, "the clear reached a real backend");
 });
 
 test("with a backend installed the context's getters report the backend", () =>
@@ -208,7 +224,7 @@ test("with a backend installed the context's getters report the backend", () =>
   // the AL, so there is one piece of state. Ours composes them, and a getter
   // answering from the recording path while the backend holds the real binding
   // would name a target nothing is drawing to.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice({ mode: { width: 800, height: 600 } });
@@ -230,7 +246,7 @@ test("a full-screen viewport resolves through the backend rather than deferring"
 {
   // With a backend there is nothing to defer - it knows the bound target's
   // extent - so "full screen" becomes an ordinary viewport here.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice({ mode: { width: 1280, height: 720 } });
@@ -245,7 +261,7 @@ test("a full-screen viewport resolves through the backend rather than deferring"
 
 test("a full-screen viewport with nothing bound fails rather than guessing", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
@@ -259,7 +275,7 @@ test("the viewport stack lives on the state manager, and restores through it", (
   // Carbon's steps push and pop through renderContext.m_esm
   // (TriStepPushViewport.cpp:9), because the manager owns the AUTHORED viewport
   // while the context's own SetViewport takes an already-clipped device one.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice({ mode: { width: 256, height: 256 } });
@@ -276,23 +292,27 @@ test("the viewport stack lives on the state manager, and restores through it", (
   assert.equal(al.GetViewport().width, 64, "and reached the backend");
 });
 
-test("with no backend the recording path still defers a full-screen viewport", () =>
+test("a full-screen viewport resolves against the bound target, not later", () =>
 {
-  const context = new Tr2RenderContext();
+  // The recording path deferred this as its own intent because without a
+  // backend the target extent was unknown until realization - which is the one
+  // job the queue actually did. A backend knows the extent now, so it resolves
+  // here.
+  const context = StubContext({ width: 800, height: 600 });
 
   assert.equal(context.SetFullScreenViewport(), true);
-  assert.equal(context.GetViewport(), null);
-  assert.ok(context.GetIntents().some(intent => intent.type === "set-fullscreen-viewport"));
+  assert.equal(context.GetEffectStateManager().GetViewport().width, 800);
+  assert.equal(context.GetEffectStateManager().GetViewport().height, 600);
 });
 
 test("capabilities are reached through the context, and only with a backend", () =>
 {
   // Carbon reads renderContext.GetCaps().SupportsX() and never touches a caps
   // object directly (TriDevice.cpp:1295-1300, 1399-1403), so the context is the
-  // only door. Without a backend there is nothing behind it.
+  // only door. There is always something behind it: the stub owns real caps.
   const context = new Tr2RenderContext();
 
-  assert.throws(() => context.GetCaps(), /no render-context AL installed/);
+  assert.equal(context.GetCaps(), context.GetRenderContextAL().GetCaps());
 
   const al = new Tr2RenderContextALStub();
 
@@ -312,9 +332,9 @@ test("pushing a target BINDS it, and popping restores the one beneath", () =>
   // nothing, so a render job that pushed an offscreen target went on drawing
   // into the previous one. Carbon's state manager pushes then sets
   // (Tr2EffectStateManager.cpp:1048-1052), and its pop rebinds.
-  const context = new Tr2RenderContext();
-  const main = { id: "main" };
-  const offscreen = { id: "offscreen" };
+  const context = StubContext();
+  const main = StubTarget();
+  const offscreen = StubTarget(256, 256);
 
   context.GetEffectStateManager().SetRenderTarget(0, main);
   context.GetEffectStateManager().PushRenderTarget(offscreen, 0);
@@ -332,8 +352,8 @@ test("pushing with no target saves the bound one and changes nothing", () =>
 {
   // Carbon's one-argument state-manager form, and the batch bracket's own use:
   // CjsDirectTrinityStepExecutor.BeginBatch pushes null purely as a guard.
-  const context = new Tr2RenderContext();
-  const main = { id: "main" };
+  const context = StubContext();
+  const main = StubTarget();
 
   context.GetEffectStateManager().SetRenderTarget(0, main);
   context.GetEffectStateManager().PushRenderTarget(null, 0);
@@ -348,9 +368,9 @@ test("pushing with no target saves the bound one and changes nothing", () =>
 
 test("the depth stencil pushes and pops the same way", () =>
 {
-  const context = new Tr2RenderContext();
-  const main = { id: "main" };
-  const shadow = { id: "shadow" };
+  const context = StubContext();
+  const main = StubTarget();
+  const shadow = StubTarget();
 
   context.GetEffectStateManager().SetDepthStencilBuffer(main);
   context.GetEffectStateManager().PushDepthStencilBuffer(shadow);
@@ -400,7 +420,7 @@ test("stack depth is reported by the backend when one is installed", () =>
   // The same seam bug the getters had: the context's own stacks stay empty
   // while the backend holds the real ones, so an unbalance guard reading zero
   // would never fire.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
@@ -440,7 +460,7 @@ test("binding a target to slot zero resets the viewport to its size", () =>
   // CARBON DOES THIS ON EVERY BIND (Tr2EffectStateManager.cpp:1133-1149), and
   // forgetting it is the bug where a pass renders into a corner: a 2048-wide
   // shadow pass would leave the viewport at 2048 for the frame that follows.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
@@ -461,7 +481,7 @@ test("binding a target to slot zero resets the viewport to its size", () =>
 
 test("only slot zero moves the viewport, and a caller can decline", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
@@ -483,7 +503,7 @@ test("an authored viewport is clipped to the render target, never to nothing", (
   // each edge at one, because a zero edge is refused. Ours adds one refusal of
   // its own: with no extent recorded it does NOT clip, since clipping to zero
   // would floor a real viewport to a single pixel and draw silently.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice({ mode: { width: 256, height: 256 } });
@@ -506,7 +526,7 @@ test("an authored viewport is clipped to the render target, never to nothing", (
 
 test("a viewport starting outside the target still has a legal extent", () =>
 {
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice({ mode: { width: 256, height: 256 } });
@@ -525,7 +545,7 @@ test("the manager reports the viewport and target sizes shaders read", () =>
 {
   // Carbon sets m_viewportSizeVar to (viewport, renderTarget) on every setup
   // (cpp:1242), so a pass reading it sees both.
-  const context = new Tr2RenderContext();
+  const context = StubContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice({ mode: { width: 256, height: 128 } });

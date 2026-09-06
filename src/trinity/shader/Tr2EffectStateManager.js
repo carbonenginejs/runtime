@@ -316,7 +316,7 @@ export class Tr2EffectStateManager extends CjsModel
    * So the blocker is a decision about which route to take, not a missing
    * capability. What must NOT happen is the toggle silently doing nothing.
    */
-  #overrides = { invertedDepthTest: false, invertedCullMode: false };
+  #overrides = { invertedDepthTest: false, invertedCullMode: false, wireframe: false };
 
   /** m_renderTargetWidth (int) */
   @type.int32
@@ -1051,6 +1051,43 @@ export class Tr2EffectStateManager extends CjsModel
   IsCullModeInverted()
   {
     return this.#overrides.invertedCullMode;
+  }
+
+  /**
+   * Draws this span as wireframe (cpp:800-812).
+   *
+   * Carbon sets an `RS_FILLMODE` override of
+   * `{ 0, FM_POINT, FM_WIREFRAME, FM_WIREFRAME }` and clears it to turn the
+   * mode off, using the same override machinery as the cull mode above. Ours
+   * keeps the named flag rather than the raw table, for the reason the class
+   * head gives: a registered setup is interpreted once, so there are no raw
+   * pairs left to index.
+   *
+   * THE FLAG IS RECORDED HERE; NO BACKEND HONOURS IT YET. Neither browser API
+   * has an equivalent of `glPolygonMode`, so Carbon's fill-mode route cannot be
+   * projected - but wireframe does not need one (line topology, or barycentric
+   * edges in the fragment shader). The blocker is which route to take.
+   *
+   * Until one is taken, `IsWireframeRendering` is the flag a backend must read,
+   * and a backend that cannot honour it must REFUSE rather than draw solid.
+   * A toggle that silently does nothing is the thing this must not become.
+   *
+   * @param {boolean} enabled Whether to draw wireframe.
+   * @returns {boolean} The flag as stored.
+   */
+  SetWireframeRendering(enabled)
+  {
+    this.#overrides.wireframe = !!enabled;
+
+    return this.#overrides.wireframe;
+  }
+
+  /**
+   * @returns {boolean} Whether this span is set to draw wireframe.
+   */
+  IsWireframeRendering()
+  {
+    return this.#overrides.wireframe;
   }
 
   /**
