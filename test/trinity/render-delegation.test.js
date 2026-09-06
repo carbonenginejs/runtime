@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
@@ -335,7 +335,7 @@ test("end-to-end: a real Tr2RenderContext supplies the pool with no engine setup
 
   const world = batch.objectData.GetTransposed("world");
   renderContext.EndRenderContext();
-  const reused = store.Alloc("EveBasicPerObjectData");
+  const reused = store.Allocate("EveBasicPerObjectData");
   assert.equal(reused.GetData().byteOffset, batch.objectData.GetData().byteOffset,
     "EndRenderContext rewinds the arena, so the next frame re-leases the same slot");
   assert.equal(world.length, 16);

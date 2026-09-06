@@ -43,7 +43,7 @@ import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
 // VS struct + PS struct uploaded as TWO constant buffers (turret, decal,
 // booster, the Tr2PerObjectDataWithPersistentBuffers family). That is TWO
 // Allocs here, returned from GetPerObjectData as a plain record:
-//   { vs: store.Alloc("DecalVSPerObjectData"), ps: store.Alloc("DecalPSPerObjectData") }
+//   { vs: store.Allocate("DecalVSPerObjectData"), ps: store.Allocate("DecalPSPerObjectData") }
 // The batch pipeline threads the record through untouched. A payload bound to
 // more than one stage from the SAME bytes (sphere pin, lensflare) stays ONE
 // RawData whose struct is registered with stages: ["vs", "ps"] - the engine

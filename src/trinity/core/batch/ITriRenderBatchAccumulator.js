@@ -66,7 +66,7 @@ export class ITriRenderBatchAccumulator
       throw new Error(`ITriRenderBatchAccumulator: no per-object-data store bound (set it from the render context before Alloc "${name}")`);
     }
 
-    return this.rawDataStore.Alloc(name);
+    return this.rawDataStore.Allocate(name);
   }
 
   // Carbon pool-allocates per-object data from the accumulator; in JS the GC

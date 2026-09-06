@@ -103,7 +103,9 @@ test("EveCurveLineSet composes parent and local SRT before visibility and packin
   assert.deepEqual(lines.GetRenderables([]), [ lines ]);
 
   const store = makePerObjectStore();
-  const data = lines.GetPerObjectData(store);
+  // GetPerObjectData takes the ACCUMULATOR contract (Alloc), which delegates
+  // to the store's Carbon-named Allocate.
+  const data = lines.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   const packed = new Float32Array(16);
   data.vs.Copy("WorldMat", packed);
   assert.equal(packed[1], expectedWorld[4], "RawData applies the sole terminal transpose");

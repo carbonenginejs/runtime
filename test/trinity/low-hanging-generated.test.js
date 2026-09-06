@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -82,7 +82,7 @@ class TestEveChildResourceLoader extends CjsEveChildResourceLoader
 function makeAccumulatorWithStore()
 {
   const store = makePerObjectStore();
-  return { Alloc: name => store.Alloc(name) };
+  return { Alloc: name => store.Allocate(name) };
 }
 
 test("EveTurretFiringFX reports Carbon's per-muzzle effect count", () =>

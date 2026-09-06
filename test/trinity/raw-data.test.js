@@ -1,4 +1,4 @@
-// RawData / TriPoolAllocator: the GPU-free constant-data system. The store owns
+﻿// RawData / TriPoolAllocator: the GPU-free constant-data system. The store owns
 // reflected offsets; engines only realize and bind its terminal byte ranges.
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -68,7 +68,7 @@ test("an ad-hoc struct lays out tight: fields in order, no padding", () =>
 
 test("SetAndTranspose stores the TRANSPOSE (translation moves to [3],[7],[11])", () =>
 {
-  const vs = MakeStore("VS", [{ name: "world", size: 16, encoding: Type.MATRIX }]).Alloc("VS");
+  const vs = MakeStore("VS", [{ name: "world", size: 16, encoding: Type.MATRIX }]).Allocate("VS");
   const world = MakeWorld();
 
   vs.SetAndTranspose("world", world);
@@ -98,7 +98,7 @@ test("the worldInverse idiom needs no raw write: Inverse(Mt) == Inverse(M)t", ()
   const vs = MakeStore("VS", [
     { name: "world",        size: 16, encoding: Type.MATRIX },
     { name: "worldInverse", size: 16, encoding: Type.MATRIX }
-  ]).Alloc("VS");
+  ]).Allocate("VS");
   const world = MakeWorld();
 
   vs.SetAndTranspose("world", world);
@@ -119,7 +119,7 @@ test("Set(UINT) bit-casts into the uint lanes; Set(VECTOR) copies", () =>
   const vs = MakeStore("VS", [
     { name: "shipData",    size: 4, encoding: Type.VECTOR },
     { name: "boneOffsets", size: 4, encoding: Type.UINT }
-  ]).Alloc("VS");
+  ]).Allocate("VS");
 
   vs.Set("shipData", [0.5, 1.5, 2.5, 3.5]);
   vs.Set("boneOffsets", [7, 0xdeadbeef, 0, 42]);
@@ -136,7 +136,7 @@ test("Set(UINT) bit-casts into the uint lanes; Set(VECTOR) copies", () =>
 
 test("Set(MATRIX_3X4) packs a mat4 column-stride into 12 floats (gotcha 7)", () =>
 {
-  const vs = MakeStore("VS", [{ name: "bone", size: 12, encoding: Type.MATRIX_3X4 }]).Alloc("VS");
+  const vs = MakeStore("VS", [{ name: "bone", size: 12, encoding: Type.MATRIX_3X4 }]).Allocate("VS");
   const m = Float32Array.from({ length: 16 }, (_, i) => i);
 
   vs.Set("bone", m);
@@ -146,7 +146,7 @@ test("Set(MATRIX_3X4) packs a mat4 column-stride into 12 floats (gotcha 7)", () 
 
 test("Copy writes OUT into a caller buffer and is NOT a live reference", () =>
 {
-  const vs = MakeStore("VS", [{ name: "shipData", size: 4, encoding: Type.VECTOR }]).Alloc("VS");
+  const vs = MakeStore("VS", [{ name: "shipData", size: 4, encoding: Type.VECTOR }]).Allocate("VS");
   vs.Set("shipData", [1, 2, 3, 4]);
 
   const out = new Float32Array(4);
@@ -157,48 +157,74 @@ test("Copy writes OUT into a caller buffer and is NOT a live reference", () =>
   assertClose(vs.GetData()[0], 1, "mutating the copy does not touch the payload");
 });
 
-test("defaults are applied on Alloc; unwritten non-default fields are arena garbage", () =>
+test("defaults are applied on Allocate; unwritten non-default fields are arena garbage", () =>
 {
+  // chunkFloats matches the frame's usage so Clear takes Carbon's KEEP arm
+  // (cpp:85-92) - the only arm that preserves the backing buffer and its
+  // stale bytes. A resize arm hands out fresh zeroed memory, which is equally
+  // valid "garbage" under the write-what-you-rely-on contract.
   const store = MakeStore("VS", [
     { name: "shipData", size: [0, 1, 0, 1], encoding: Type.VECTOR }, // size-as-defaults
     { name: "extra",    size: 4, encoding: Type.VECTOR }
-  ]);
+  ], { chunkFloats: 8 });
 
-  const a = store.Alloc("VS");
+  const a = store.Allocate("VS");
   assert.deepEqual(Array.from(a.GetData().subarray(0, 4)), [0, 1, 0, 1], "defaults applied");
   a.Set("extra", [5, 6, 7, 8]);
 
-  store.Reset();
-  const b = store.Alloc("VS");
+  store.Clear();
+  const b = store.Allocate("VS");
   assert.deepEqual(Array.from(b.GetData().subarray(0, 4)), [0, 1, 0, 1], "defaults re-applied on realloc");
   assert.deepEqual(Array.from(b.GetData().subarray(4, 8)), [5, 6, 7, 8], "unwritten field keeps stale bytes");
 });
 
-test("arena: consecutive Allocs get non-overlapping slots; Reset rewinds and reuses", () =>
+test("arena: consecutive Allocates get non-overlapping slots; Clear's keep arm rewinds and reuses", () =>
 {
-  const store = MakeStore("VS", [{ name: "v", size: 4, encoding: Type.VECTOR }]);
+  const store = MakeStore("VS", [{ name: "v", size: 4, encoding: Type.VECTOR }], { chunkFloats: 8 });
 
-  const a = store.Alloc("VS");
-  const b = store.Alloc("VS");
+  const a = store.Allocate("VS");
+  const b = store.Allocate("VS");
   a.Set("v", [1, 1, 1, 1]);
   b.Set("v", [2, 2, 2, 2]);
   assertClose(a.GetData()[0], 1, "a untouched by b");
   assertClose(b.GetData()[0], 2, "b distinct from a");
 
-  store.Reset();
-  const c = store.Alloc("VS");
-  assert.equal(c.GetData().buffer, a.GetData().buffer, "same backing ArrayBuffer after reset");
+  store.Clear();
+  const c = store.Allocate("VS");
+  assert.equal(c.GetData().buffer, a.GetData().buffer, "same backing ArrayBuffer after a keep-arm Clear");
   assert.equal(c.GetData().byteOffset, a.GetData().byteOffset, "c reuses a's slot");
+});
+
+test("Clear adapts the pool: an oversized pool shrinks, an outgrown chunk grows (cpp:63-84)", () =>
+{
+  // Frame uses 4 of 8192 floats: the shrink arm frees the pool and halves the
+  // chunk, rounding up past the next 256-byte multiple.
+  const shrink = MakeStore("VS", [{ name: "v", size: 4, encoding: Type.VECTOR }]);
+  const before = shrink.Allocate("VS");
+  shrink.Clear();
+  const after = shrink.Allocate("VS");
+  assert.notEqual(after.GetData().buffer, before.GetData().buffer, "shrink arm reallocates");
+
+  // Frame overflows the chunk: the grow arm resizes to the frame's total, so
+  // the next frame fits in ONE pool.
+  const grow = MakeStore("VS", [{ name: "v", size: 4, encoding: Type.VECTOR }], { chunkFloats: 4 });
+  const first = grow.Allocate("VS");
+  const spilled = grow.Allocate("VS");
+  assert.notEqual(first.GetData().buffer, spilled.GetData().buffer, "second alloc overflowed into a new pool");
+  grow.Clear();
+  const a = grow.Allocate("VS");
+  const b = grow.Allocate("VS");
+  assert.equal(a.GetData().buffer, b.GetData().buffer, "after the grow arm one pool holds the frame");
 });
 
 test("arena grows into new chunks without invalidating earlier views", () =>
 {
   const store = MakeStore("Big", [{ name: "v", size: 4, encoding: Type.VECTOR }], { chunkFloats: 8 });
 
-  const a = store.Alloc("Big");
+  const a = store.Allocate("Big");
   a.Set("v", [1, 2, 3, 4]);
-  store.Alloc("Big");           // fills chunk 0
-  const c = store.Alloc("Big"); // spills into chunk 1
+  store.Allocate("Big");           // fills chunk 0
+  const c = store.Allocate("Big"); // spills into chunk 1
   c.Set("v", [9, 9, 9, 9]);
 
   assert.notEqual(a.GetData().buffer, c.GetData().buffer, "c is in a new chunk");
@@ -209,11 +235,11 @@ test("Alloc throws for an unregistered struct; Has reflects registration", () =>
 {
   const store = new TriPoolAllocator();
   assert.equal(store.Has("VS"), false);
-  assert.throws(() => store.Alloc("VS"), /not registered/);
+  assert.throws(() => store.Allocate("VS"), /not registered/);
 
   store.RegisterStruct("VS", [{ name: "world", size: 16, encoding: Type.MATRIX }]);
   assert.equal(store.Has("VS"), true);
-  const vs = store.Alloc("VS");
+  const vs = store.Allocate("VS");
   assert.throws(() => vs.Set("missing", [0]), /unknown field/);
 });
 
@@ -227,7 +253,7 @@ test("a Carbon struct resolves from the catalog, def and stages included", () =>
   const store = new TriPoolAllocator();
   store.RegisterStruct("EveSpaceObjectVSData");
 
-  const data = store.Alloc("EveSpaceObjectVSData");
+  const data = store.Allocate("EveSpaceObjectVSData");
   assert.equal(data.GetLayout().stride, 116, "EveSpaceObject2.h:99");
   assert.deepEqual(data.GetLayout().stages, ["vs"]);
 
@@ -241,7 +267,7 @@ test("catalog defaults are applied on Alloc, including per element", () =>
   const store = new TriPoolAllocator();
   store.RegisterStruct("EveSpaceObjectVSData");
 
-  const data = store.Alloc("EveSpaceObjectVSData");
+  const data = store.Allocate("EveSpaceObjectVSData");
 
   // EveSpaceObject2.cpp:195 - the constructor's shipData.
   assert.deepEqual(Array.from(data.Get("shipData")), [1, 1, 0, 1]);
@@ -267,7 +293,7 @@ test("an ad-hoc struct tight-packs; a def-less unknown one fails loud", () =>
     { name: "b", size: 4, encoding: Type.VECTOR }
   ]);
   assert.equal(store.Has("AdHoc"), true);
-  assert.equal(store.Alloc("AdHoc").GetLayout().stride, 8, "no padding");
+  assert.equal(store.Allocate("AdHoc").GetLayout().stride, 8, "no padding");
 
   // No def and no catalog entry: nothing to guess from, so it fails naming it.
   assert.throws(
@@ -288,7 +314,7 @@ test("Register bulk-registers a struct map, resolving each by name", () =>
   assert.equal(store.Has("VS"), true);
   assert.equal(store.Has("PS"), true);
 
-  const vs = store.Alloc("VS");
+  const vs = store.Allocate("VS");
   vs.Set("a", [1, 1, 1, 1]);
   vs.Set("b", [2, 2, 2, 2]);
   assertClose(vs.GetData()[4], 2, "b follows a with no padding");
@@ -297,7 +323,7 @@ test("Register bulk-registers a struct map, resolving each by name", () =>
   // The name is what selects Carbon's declared layout over tight packing.
   const carbon = new TriPoolAllocator();
   carbon.RegisterStruct("EveSpaceObjectVSData");
-  assert.equal(carbon.Alloc("EveSpaceObjectVSData").GetLayout().stride, 116);
+  assert.equal(carbon.Allocate("EveSpaceObjectVSData").GetLayout().stride, 116);
 });
 
 test("direct construction: a persistent (self-owned) payload bypasses the arena", () =>
@@ -329,7 +355,7 @@ test("Set(INT) stores signed two's complement (reflection can type i32 vs u32)",
     { name: "lightCount", size: 1, encoding: Type.INT },
     { name: "padding",    size: 3, encoding: Type.INT }
   ]);
-  const data = store.Alloc("Interior");
+  const data = store.Allocate("Interior");
 
   data.Set("lightCount", [-1]);
   data.Set("padding", [7, -8, 9]);
@@ -346,17 +372,19 @@ test("per-element Set writes ONE slot; the unwritten tail keeps its arena bytes"
 {
   // Carbon fills m_turretTranslation[turretIndex] for VISIBLE turrets only
   // (EveTurretSet.cpp:2323-2341); slots past the visible count stay garbage.
+  // chunkFloats matches the frame so Clear keeps the buffer (the KEEP arm is
+  // the one that preserves previous-tenant bytes).
   const store = MakeStore("TurretVS", [
     { name: "turretTranslation", size: 4, elements: 4, encoding: Type.VECTOR },
     { name: "turretRotation",    size: 4, elements: 4, encoding: Type.VECTOR }
-  ]);
+  ], { chunkFloats: 32 });
 
   // First tenant dirties the arena so the tail is detectably non-zero.
-  const first = store.Alloc("TurretVS");
+  const first = store.Allocate("TurretVS");
   first.Set("turretTranslation", [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]);
-  store.Reset();
+  store.Clear();
 
-  const data = store.Alloc("TurretVS");
+  const data = store.Allocate("TurretVS");
   data.SetIndex("turretTranslation", 0, [1, 2, 3, 4]);
   data.SetIndex("turretTranslation", 1, [5, 6, 7, 8]);
 
@@ -381,7 +409,7 @@ test("stages: defs declare their binding slots; the engine reads GetLayout().sta
 
   // Default: a single vertex-stage payload (EveBasicPerObjectData).
   store.RegisterStruct("BasicVS", [{ name: "world", size: 16, encoding: Type.MATRIX }]);
-  assert.deepEqual([...store.Alloc("BasicVS").GetLayout().stages], ["vs"], "stages default to [vs]");
+  assert.deepEqual([...store.Allocate("BasicVS").GetLayout().stages], ["vs"], "stages default to [vs]");
 
   // Same bytes bound to BOTH slots (sphere pin, lensflare): one struct, two stages.
   store.RegisterStruct(
@@ -389,7 +417,7 @@ test("stages: defs declare their binding slots; the engine reads GetLayout().sta
     [{ name: "worldMatrix", size: 16, encoding: Type.MATRIX }],
     { stages: ["vs", "ps"] }
   );
-  assert.deepEqual([...store.Alloc("SpherePin").GetLayout().stages], ["vs", "ps"], "dual-bound payload declares both");
+  assert.deepEqual([...store.Allocate("SpherePin").GetLayout().stages], ["vs", "ps"], "dual-bound payload declares both");
 
   assert.throws(
     () => store.RegisterStruct("Bad", [{ name: "a", size: 4, encoding: Type.VECTOR }], { stages: ["fragment"] }),
@@ -417,7 +445,7 @@ test("a distinct VS+PS pair is TWO Allocs returned as a { vs, ps } record", () =
     DecalPS: { def: [{ name: "displayData", size: 4, encoding: Type.VECTOR }], stages: ["ps"] }
   });
 
-  const perObjectData = { vs: store.Alloc("DecalVS"), ps: store.Alloc("DecalPS") };
+  const perObjectData = { vs: store.Allocate("DecalVS"), ps: store.Allocate("DecalPS") };
   perObjectData.vs.SetAndTranspose("worldMatrix", MakeWorld());
   perObjectData.ps.Set("displayData", [1, 2, 3, 4]);
 

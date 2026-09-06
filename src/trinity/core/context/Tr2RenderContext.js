@@ -421,15 +421,16 @@ export class Tr2RenderContext extends CjsModel
   // required final operation even when resetting the transient pool throws.
 
   /**
-   * Rewinds the per-object pool arena at the end of a frame, freeing every
-   * transient payload leased during it; a context that never leased one does
+   * Clears the per-object pool arena at the end of a frame, freeing every
+   * transient payload leased during it (Carbon calls TriPoolAllocator::Clear
+   * here, Tr2Renderer.cpp:1072-1081); a context that never leased one does
    * nothing.
    */
   EndRenderContext()
   {
     try
     {
-      this.#poolAllocator?.Reset();
+      this.#poolAllocator?.Clear();
     }
     finally
     {

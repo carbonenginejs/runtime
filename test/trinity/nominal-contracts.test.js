@@ -168,10 +168,10 @@ test("Tr2RenderContext installs one nominal executor and restores direct executi
   context.BeginRenderContext();
   context.BeginBatch({});
   context.EndBatch({});
-  context.SetTriPoolAllocator({ Reset: () => events.push([ "Reset" ]) });
+  context.SetTriPoolAllocator({ Clear: () => events.push([ "Clear" ]) });
   context.EndRenderContext();
   assert.deepEqual(events.map(([ name ]) => name), [
-    "BeginStep", "ExecuteStep", "EndStep", "BeginScene", "BeginBatch", "EndBatch", "Reset", "EndScene"
+    "BeginStep", "ExecuteStep", "EndStep", "BeginScene", "BeginBatch", "EndBatch", "Clear", "EndScene"
   ]);
 
   context.SetStepExecutor(null);

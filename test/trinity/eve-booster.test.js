@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -209,7 +209,7 @@ test("EveBoosterSet2Renderable maintains Carbon trail spline CPU data", () =>
   // two constant buffers (cpp:1325-1329). shipMatrix stored TRANSPOSED; both
   // 5-slot trail arrays fully written from the spline state above.
   const store = makePerObjectStore();
-  const pod = boosters.instances[0].GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const pod = boosters.instances[0].GetPerObjectData({ Alloc: name => store.Allocate(name) });
 
   assert.deepEqual([...pod.vs.GetLayout().stages], ["vs"], "vs half binds the vertex slot");
   assert.deepEqual([...pod.ps.GetLayout().stages], ["ps"], "ps half binds the pixel slot");

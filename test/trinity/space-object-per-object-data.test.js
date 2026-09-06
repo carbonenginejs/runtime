@@ -1,4 +1,4 @@
-// EveSpaceObject2's PERSISTENT per-object records.
+﻿// EveSpaceObject2's PERSISTENT per-object records.
 //
 // Carbon fills m_vsData/m_psData during update and reads them back afterwards,
 // so the records are owner-held rather than pool leases. Every matrix in them is
@@ -220,7 +220,7 @@ test("EveTurretSet fills the VS/PS pair from its turrets and parent data", () =>
   // case is marked afterwards - that is the state Carbon's fill branches on.
   set.GetTurrets()[1].valid = false;
 
-  const { vs, ps } = set.GetPerObjectData({ Alloc: (name) => store.Alloc(name) });
+  const { vs, ps } = set.GetPerObjectData({ Alloc: (name) => store.Allocate(name) });
 
   assertClose(vs.GetTransposed("shipMatrix")[1], parentTransform[4], "the ship matrix is stored transposed");
   assertClose(vs.Get("baseCutoffData")[0], 1.5, "base cutoff height");

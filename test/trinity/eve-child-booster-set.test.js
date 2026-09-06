@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
@@ -113,7 +113,7 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
   assert.equal(committed.length, 1, "additive-only");
 
   const store = makePerObjectStore();
-  const records = set.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const records = set.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   assert.ok(records?.vs);
   // UINT lanes bit-cast into the float buffer; read back through a u32 view.
   const offsetLane = records.vs.Get("instanceOffset");
@@ -123,7 +123,7 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
 
   // Clearing the ring pair returns the set to the undrawable state.
   set.SetRingBuffer(null);
-  set.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  set.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   assert.equal(set.GetInstanceBufferData().count, 1);
   committed.length = 0;
   set.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_ADDITIVE, null);

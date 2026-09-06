@@ -2727,11 +2727,6 @@
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
-  "TriPoolAllocator": [
-    "Allocate",
-    "Clear",
-    "GetMoreSystemMemory"
-  ],
   "TriProjection": [
     "SetProjection"
   ],

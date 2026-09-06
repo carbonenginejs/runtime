@@ -1,4 +1,4 @@
-// The orientation-enforcing accessor pair.
+﻿// The orientation-enforcing accessor pair.
 //
 // A GPU-form record holds matrices that are transposed but indistinguishable
 // from logical ones, so the API refuses the ambiguous call rather than
@@ -50,7 +50,7 @@ function assertThrows(fn, pattern, message = "")
 
 function decal()
 {
-  return makePerObjectStore().Alloc("DecalVSPerObjectData");
+  return makePerObjectStore().Allocate("DecalVSPerObjectData");
 }
 
 
@@ -85,7 +85,7 @@ test("Set and Get refuse a matrix field, naming the method to use", () =>
 
 test("the transposed pair refuses a non-matrix field", () =>
 {
-  const data = makePerObjectStore().Alloc("DecalPSPerObjectData");
+  const data = makePerObjectStore().Allocate("DecalPSPerObjectData");
 
   assertThrows(() => data.SetAndTranspose("shipData", [ 1, 2, 3, 4 ]), /not a matrix/u, "SetAndTranspose on a vector");
   assertThrows(() => data.GetTransposed("shipData"), /not a matrix/u, "GetTransposed on a vector");
@@ -96,7 +96,7 @@ test("Get returns a live reference, so writing through it is zero-copy", () =>
 {
   // Carbon hands out a raw pointer into m_psData for exactly this
   // (GetParentData, EveSpaceObject2.cpp:1877-1883).
-  const data = makePerObjectStore().Alloc("DecalPSPerObjectData");
+  const data = makePerObjectStore().Allocate("DecalPSPerObjectData");
 
   data.Set("shipData", [ 1, 2, 3, 4 ]);
 
@@ -135,7 +135,7 @@ test("GetTransposed hands back the stored, transposed matrix", () =>
 test("the indexed pair addresses one element and leaves the rest alone", () =>
 {
   const store = makePerObjectStore();
-  const vs = store.Alloc("EveBoosterSetVSData");
+  const vs = store.Allocate("EveBoosterSetVSData");
 
   // Carbon fills these rings partially - trails for the control points that
   // exist, turrets for the visible ones - so an indexed write must not disturb
@@ -156,7 +156,7 @@ test("the indexed pair addresses one element and leaves the rest alone", () =>
 
 test("an out-of-range element is rejected rather than silently clamped", () =>
 {
-  const vs = makePerObjectStore().Alloc("EveBoosterSetVSData");
+  const vs = makePerObjectStore().Allocate("EveBoosterSetVSData");
 
   assertThrows(() => vs.SetIndex("trailsControlPositions", 5, [ 0, 0, 0, 0 ]), /out of range/u, "past the end");
   assertThrows(() => vs.GetIndex("trailsControlPositions", -1), /out of range/u, "negative");
@@ -165,7 +165,7 @@ test("an out-of-range element is rejected rather than silently clamped", () =>
 
 test("CopyIndex copies one element out", () =>
 {
-  const vs = makePerObjectStore().Alloc("EveBoosterSetVSData");
+  const vs = makePerObjectStore().Allocate("EveBoosterSetVSData");
   vs.SetIndex("trailsControlNormals", 2, [ 9, 8, 7, 6 ]);
 
   const out = new Float32Array(4);

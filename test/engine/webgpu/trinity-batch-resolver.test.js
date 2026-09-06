@@ -1,4 +1,4 @@
-// The concrete resolver, against real Trinity objects rather than fixtures
+﻿// The concrete resolver, against real Trinity objects rather than fixtures
 // returning pre-built answers. This is the class that did not exist: every
 // subclass of CjsTrinityBatchResolver lived under test/ and assumed away the
 // problem it was meant to solve.
@@ -442,7 +442,7 @@ function perObjectPair()
     ObjVS: { def: [ { name: "world", size: 16, encoding: TriPoolAllocator.Type.MATRIX } ], stages: [ "vs" ] },
     ObjPS: { def: [ { name: "world", size: 16, encoding: TriPoolAllocator.Type.MATRIX } ], stages: [ "ps" ] }
   });
-  const pair = { vs: store.Alloc("ObjVS"), ps: store.Alloc("ObjPS") };
+  const pair = { vs: store.Allocate("ObjVS"), ps: store.Allocate("ObjPS") };
 
   pair.vs.GetData()[0] = 11;
   pair.ps.GetData()[0] = 22;

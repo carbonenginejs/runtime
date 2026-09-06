@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsFrameLifecycle } from "../../npm/dist/global/contracts/index.js";
@@ -231,11 +231,11 @@ test("the frame pool is rewound inside every completed render-context bracket", 
     const store = renderContext.GetTriPoolAllocator();
 
     driver.Tick(0.1);
-    const first = store.Alloc("EveBasicPerObjectData");
+    const first = store.Allocate("EveBasicPerObjectData");
     driver.Render();
 
     driver.Tick(0.1);
-    const second = store.Alloc("EveBasicPerObjectData");
+    const second = store.Allocate("EveBasicPerObjectData");
     assert.equal(second.GetData().byteOffset, first.GetData().byteOffset);
 });
 
@@ -244,11 +244,11 @@ test("a throwing render job still closes profiler, context, and frame", () =>
     const { driver, renderContext, renderJobs, order } = makeDriver();
     const store = renderContext.GetTriPoolAllocator();
     renderJobs.runError = new Error("job exploded");
-    store.Alloc("EveBasicPerObjectData");
+    store.Allocate("EveBasicPerObjectData");
 
     assert.throws(() => driver.Render(), /job exploded/u);
     assert.deepEqual(order.slice(-3), [ "profile-end", "context-end", "frame-end" ]);
-    assert.equal(store.Alloc("EveBasicPerObjectData").GetData().byteOffset, 0);
+    assert.equal(store.Allocate("EveBasicPerObjectData").GetData().byteOffset, 0);
 });
 
 test("a cleanup failure does not strand later required cleanup", () =>

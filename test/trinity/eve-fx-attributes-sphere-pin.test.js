@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -293,7 +293,7 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
 
   // Transient RawData payload (cpp:40-62), dual-bound (cpp:68-75).
   const store = makePerObjectStore();
-  const data = pin.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const data = pin.GetPerObjectData({ Alloc: name => store.Allocate(name) });
 
   assert.deepEqual([...data.GetLayout().stages], ["vs", "ps"], "same bytes bound to both slots");
 
@@ -337,7 +337,7 @@ test("EveSpherePin composes its world under the parent and fills the Carbon per-
 
   // Transient RawData payload (cpp:336-357), dual-bound (cpp:415-425).
   const store = makePerObjectStore();
-  const data = pin.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const data = pin.GetPerObjectData({ Alloc: name => store.Allocate(name) });
 
   assert.deepEqual([...data.GetLayout().stages], ["vs", "ps"], "same bytes bound to both slots");
 

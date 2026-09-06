@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import { CjsPerObjectLayouts } from "../../src/trinity/core/rawData/CjsPerObjectLayouts.js";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
@@ -114,7 +114,7 @@ test("EveStretch2 retains Carbon curve timing and portable render data", () =>
   // Transient RawData payload (cpp:327-337): the m_source..m_effectData member
   // run as 4 vec4s, same bytes bound to VS and PS (cpp:23-39).
   const store = makePerObjectStore();
-  const data = stretch.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const data = stretch.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   assert.deepEqual([...data.GetLayout().stages], ["vs", "ps"]);
   assert.deepEqual(Array.from(data.Copy("sourceData", new Float32Array(4)).slice(0, 3)), [1, 2, 3]);
   assert.deepEqual(Array.from(data.Copy("destinationData", new Float32Array(4)).slice(0, 3)), [1, 2, 13]);

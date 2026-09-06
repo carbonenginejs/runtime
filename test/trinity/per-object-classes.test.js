@@ -1,4 +1,4 @@
-
+﻿
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -19,7 +19,7 @@ function poolWith(structs)
 test("getConstantRecords binds a vs payload to the whole non-pixel family", () =>
 {
   const store = poolWith({ Only: { def: [ { name: "world", size: 16, encoding: TriPoolAllocator.Type.MATRIX } ], stages: [ "vs" ] } });
-  const payload = store.Alloc("Only");
+  const payload = store.Allocate("Only");
 
   // A technique with only a geometry shader still takes the vs payload,
   // because Carbon's perFrameVsMask covers vs/cs/gs/hs/ds.
@@ -40,7 +40,7 @@ test("getConstantRecords splits a { vs, ps } pair by the technique's stages", ()
     Pair: { def: [ { name: "world", size: 16, encoding: TriPoolAllocator.Type.MATRIX } ], stages: [ "vs" ] },
     PairPS: { def: [ { name: "world", size: 16, encoding: TriPoolAllocator.Type.MATRIX } ], stages: [ "ps" ] }
   });
-  const record = { vs: store.Alloc("Pair"), ps: store.Alloc("PairPS") };
+  const record = { vs: store.Allocate("Pair"), ps: store.Allocate("PairPS") };
 
   assert.deepEqual(
     Tr2PerObjectData.getConstantRecords(record, VS | PS).map(entry => entry.stageMask),
@@ -54,7 +54,7 @@ test("getConstantRecords splits a { vs, ps } pair by the technique's stages", ()
 test("one payload bound to several stages stays one record", () =>
 {
   const store = poolWith({ Shared: { def: [ { name: "data", size: 4, encoding: TriPoolAllocator.Type.VECTOR } ], stages: [ "vs", "ps" ] } });
-  const records = Tr2PerObjectData.getConstantRecords(store.Alloc("Shared"), VS | PS);
+  const records = Tr2PerObjectData.getConstantRecords(store.Allocate("Shared"), VS | PS);
 
   assert.equal(records.length, 1, "the sphere-pin/lensflare shape uploads once");
   assert.equal(records[0].stageMask, VS | PS);
@@ -64,7 +64,7 @@ test("an empty mask binds nothing, matching FillAndSetConstants' early return", 
 {
   const store = poolWith({ Only: { def: [ { name: "data", size: 4, encoding: TriPoolAllocator.Type.VECTOR } ], stages: [ "vs" ] } });
 
-  assert.deepEqual(Tr2PerObjectData.getConstantRecords(store.Alloc("Only"), 0), []);
+  assert.deepEqual(Tr2PerObjectData.getConstantRecords(store.Allocate("Only"), 0), []);
   assert.deepEqual(Tr2PerObjectData.getConstantRecords(null, VS | PS), []);
 });
 

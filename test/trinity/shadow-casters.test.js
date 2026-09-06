@@ -1,4 +1,4 @@
-// ShadowCaster nominal implementations: EveTurretSet (EveTurretSet.cpp:2022-2051,
+﻿// ShadowCaster nominal implementations: EveTurretSet (EveTurretSet.cpp:2022-2051,
 // 2221-2254, 2275-2290, 2520-2523) and EveSwarmRenderable (EveSwarm.cpp:
 // 242-267, 269-298, 61-71, 300-303) plus the EveSwarm.GetBoundingSphere
 // companion (EveSwarm.cpp:801-808; BoundingSphereFromBox
@@ -154,7 +154,7 @@ test("EveTurretSet.GetPerObjectData: null without geometry (legal on batches), f
   assert.equal(set.GetShadowPerObjectData(), null, "null without an accumulator");
 
   const store = makePerObjectStore();
-  const data = set.GetShadowPerObjectData({ Alloc: (name) => store.Alloc(name) });
+  const data = set.GetShadowPerObjectData({ Alloc: (name) => store.Allocate(name) });
   assert.equal(data.vs.GetStruct(), "EveTurretSetVSData", "the shadow variant forwards to the same fill");
   assert.equal(data.ps.GetStruct(), "EveTurretSetPSData", "and carries the PS half");
 });

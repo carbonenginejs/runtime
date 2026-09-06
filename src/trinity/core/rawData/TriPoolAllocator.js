@@ -1,10 +1,11 @@
 // Factory + arena for RawData constant-data payloads.
 //
-// Named for Carbon TriPoolAllocator (TriPoolAllocator.h/.cpp): the same job,
+// Carbon TriPoolAllocator (TriPoolAllocator.h/.cpp): the same names, job,
 // lifetime and per-frame Clear. Carbon bump-allocates with placement new and
-// wholesale Clear()s at EndRenderContext (Tr2Renderer.cpp:1072-1081), which is
-// exactly what Alloc/Reset do here. It also carries the struct-layout registry,
-// which C++ gets free from the type system via Allocate<T>().
+// wholesale Clear()s at EndRenderContext (Tr2Renderer.cpp:1072-1081) - Clear
+// carries the adaptive halve/grow footprint policy, ported exactly. The
+// struct-layout registry stands in for what C++ gets free from the type
+// system via Allocate<T>().
 //
 // A pool is PER-ENGINE (one CjsLibrary = one live backend). Structs are
 // REGISTERED on the instance - registration resolves each struct's layout right
@@ -34,19 +35,17 @@
 // indexes the Float32 and Uint32 views).
 //
 // Allocation is an ARENA (bump), not a free-list:
-//   - Alloc(name) bumps a cursor and returns a view ("snip off what you need")
-//     into a RETAINED backing buffer - the buffer is NOT recreated per frame.
-//   - Reset() rewinds the cursor; every slot is freed at once, O(1); the
-//     chunks are kept and reused next frame.
+//   - Allocate(name) bumps a cursor and returns a view ("snip off what you
+//     need") into the active pool, growing through GetMoreSystemMemory.
+//   - Clear() frees every slot at once, O(1), and adapts the pool's footprint
+//     to the frame that just ended (Carbon cpp:49-95).
 //   - There is no Unalloc: transient slots live until their batch dispatches,
-//     so Reset is the only free. Permanent per-object data is not Alloc'd - a
-//     static placeable constructs its own RawData and owns it across frames.
+//     so Clear is the only free. Permanent per-object data is not Allocate'd -
+//     a static placeable constructs its own RawData and owns it across frames.
 //
-// Maps to Carbon: Alloc == accumulator.Allocate (Tr2Renderer::GetPoolAllocator,
-// reset per frame). No clear-on-Alloc, so an unwritten field shows the previous
-// tenant's bytes - that reproduces Carbon's "unwritten slots = allocator
-// garbage" (declared defaults are re-applied on Alloc; everything else is
-// write-what-you-rely-on).
+// No clear-on-Allocate, so an unwritten field can show the previous tenant's
+// bytes - Carbon's "unwritten slots = allocator garbage" (declared defaults
+// are re-applied on Allocate; everything else is write-what-you-rely-on).
 //
 // Design: PER-OBJECT-DATA-DESIGN-2026-07-24.md
 import { RawData, RawDataType } from "./RawData.js";
@@ -155,21 +154,30 @@ export class TriPoolAllocator
   /** Registered layouts: name -> { fields, stride, defaults }. */
   #layouts = new Map();
 
-  /** Retained arena chunks (Float32) and their Uint32 aliases. */
-  #chunks = [];
+  // Carbon's pool shape (TriPoolAllocator.h:38-49): ONE active pool, a list of
+  // overflow pools from mid-frame growth, and an adaptive chunk size. Ours in
+  // floats rather than bytes; the Uint32 alias view rides the same buffer so
+  // payload fields can be written as floats or raw bits.
 
-  #chunkAliases = [];
+  /** m_pool - the active arena (null until first use, and after a resize). */
+  #pool = null;
 
-  /** Floats per chunk; also the largest struct a single Alloc may request. */
+  #poolUints = null;
+
+  /** m_previousPools - overflow pools; retained so leased views stay alive. */
+  #previousPools = [];
+
+  /** m_chunkSize (ctor 256KB, cpp:12) - adaptive; ours defaults smaller. */
   #chunkFloats = 8192;
-
-  #chunkIndex = 0;
 
   #cursor = 0;
 
+  /** m_totalBytesAllocated, in floats; drives Clear's resize policy. */
+  #totalFloatsAllocated = 0;
+
   /**
    * @param {object} [options]
-   * @param {number} [options.chunkFloats] - arena chunk size in floats.
+   * @param {number} [options.chunkFloats] - initial arena chunk size in floats.
    */
   constructor(options = {})
   {
@@ -177,8 +185,6 @@ export class TriPoolAllocator
     {
       this.#chunkFloats = options.chunkFloats;
     }
-
-    this.#AddChunk();
   }
 
   // C++ needs no registration step: Allocate<T>() resolves the layout from the
@@ -266,12 +272,9 @@ export class TriPoolAllocator
 
     // Carbon's declared offsets win: its members sit on float4 boundaries, so
     // tight-packing them would drift the moment a struct carries a FLOAT.
+    // No size gate here: a struct larger than the chunk is served by
+    // GetMoreSystemMemory requesting whole chunk multiples (cpp:102-107).
     const resolved = catalogLayout(name) ?? tightLayout(normalized);
-
-    if (resolved.stride > this.#chunkFloats)
-    {
-      throw new Error(`TriPoolAllocator: struct "${name}" (${resolved.stride} floats) exceeds the chunk size (${this.#chunkFloats})`);
-    }
 
     const defaults = [];
 
@@ -300,11 +303,15 @@ export class TriPoolAllocator
   }
 
   /**
-   * Lease a TRANSIENT payload for a registered struct. Bumps the arena and
-   * returns a RawData view over the next slot, with declared defaults applied.
-   * Valid until the next Reset().
+   * Lease a TRANSIENT payload for a registered struct - Carbon Allocate
+   * (TriPoolAllocator.cpp:26-47, plus the typed Allocate<T> wrapper at
+   * h:19-30; the layout registry stands in for the C++ type system). Aligns
+   * the slot to 16 bytes exactly as Carbon aligns every size, bumps the
+   * cursor, grows through GetMoreSystemMemory on overflow, and accrues
+   * m_totalBytesAllocated for Clear's resize policy. The returned RawData
+   * view has declared defaults applied and is valid until the next Clear().
    */
-  Alloc(name)
+  Allocate(name)
   {
     const layout = this.#layouts.get(name);
 
@@ -313,24 +320,21 @@ export class TriPoolAllocator
       throw new Error(`TriPoolAllocator: struct "${name}" is not registered on this store (call Register/RegisterStruct first)`);
     }
 
-    const stride = layout.stride;
+    // CCP_ALIGN(size, 16) (cpp:30): 16 bytes is 4 floats, and an aligned base
+    // plus aligned sizes keeps every slot aligned.
+    const stride = (layout.stride + 3) & ~3;
 
-    if (this.#cursor + stride > this.#chunkFloats)
+    if (!this.#pool || this.#cursor + stride > this.#pool.length)
     {
-      this.#chunkIndex++;
-      this.#cursor = 0;
-
-      if (this.#chunkIndex >= this.#chunks.length)
-      {
-        this.#AddChunk();
-      }
+      this.#GetMoreSystemMemory(stride);
     }
 
     const start = this.#cursor;
     this.#cursor += stride;
+    this.#totalFloatsAllocated += stride;
 
-    const floats = this.#chunks[this.#chunkIndex].subarray(start, start + stride);
-    const uints = this.#chunkAliases[this.#chunkIndex].subarray(start, start + stride);
+    const floats = this.#pool.subarray(start, start + layout.stride);
+    const uints = this.#poolUints.subarray(start, start + layout.stride);
 
     for (const preset of layout.defaults)
     {
@@ -346,24 +350,80 @@ export class TriPoolAllocator
   }
 
   /**
-   * Free every transient slot at once (frame end). Rewinds the arena cursor;
-   * the backing chunks are RETAINED and reused - nothing is reallocated.
+   * Frame-end clear - Carbon Clear (TriPoolAllocator.cpp:49-95), the
+   * load-bearing half of the allocator: free the overflow pools, then ADAPT.
+   * A frame that used less than half the active pool frees it and halves the
+   * chunk size; one that outgrew the chunk frees it and grows the chunk to
+   * the frame's total; a right-sized pool is kept and merely rewound. Both
+   * resize arms round the new chunk size up past the next 256-byte multiple
+   * with Carbon's exact >>=8; +=1; <<=8 arithmetic.
+   *
+   * Consequence callers rely on: only the KEEP arm preserves the backing
+   * buffer (and therefore last frame's stale bytes); after a resize the next
+   * Allocate sees fresh zeroed memory. Both are "allocator garbage" under
+   * the write-what-you-rely-on contract - Carbon behaves identically.
    */
-  Reset()
+  Clear()
   {
-    this.#chunkIndex = 0;
+    this.#previousPools.length = 0;
+
+    const currentChunkFloats = this.#pool ? this.#pool.length : 0;
+
+    if (this.#totalFloatsAllocated < currentChunkFloats / 2)
+    {
+      // Pool is too large - free it and shrink the chunk size (cpp:63-73).
+      this.#pool = this.#poolUints = null;
+      this.#chunkFloats = TriPoolAllocator.#RoundChunkFloats(currentChunkFloats / 2);
+    }
+    else if (this.#totalFloatsAllocated > this.#chunkFloats)
+    {
+      // Pool is too small - free it and grow the chunk size (cpp:74-84).
+      this.#pool = this.#poolUints = null;
+      this.#chunkFloats = TriPoolAllocator.#RoundChunkFloats(this.#totalFloatsAllocated);
+    }
+    else
+    {
+      // Right-sized: rewind and reuse (cpp:85-92).
+      this.#cursor = 0;
+    }
+
+    this.#totalFloatsAllocated = 0;
+  }
+
+  /**
+   * Carbon GetMoreSystemMemory (TriPoolAllocator.cpp:97-127): retire the
+   * active pool to the overflow list and allocate whole chunk-size multiples
+   * until the request fits. JS allocation does not fail, so Carbon's
+   * null-pool arm has nothing to port.
+   */
+  #GetMoreSystemMemory(strideFloats)
+  {
+    if (this.#pool)
+    {
+      this.#previousPools.push(this.#pool);
+    }
+
+    let request = this.#chunkFloats;
+    while (request < strideFloats)
+    {
+      request += this.#chunkFloats;
+    }
+
+    this.#pool = new Float32Array(request);
+    this.#poolUints = new Uint32Array(this.#pool.buffer);
     this.#cursor = 0;
   }
 
   /**
-   * Appends a fresh arena chunk of chunkFloats floats plus a Uint32 alias view
-   * over the same bytes, so payload fields can be written as floats or raw bits.
+   * Carbon's chunk-size rounding (cpp:68-71): in bytes, shift out the low
+   * eight bits, add one, shift back - always rounding UP past the next
+   * 256-byte boundary. Floored at one 256-byte step.
    */
-  #AddChunk()
+  static #RoundChunkFloats(floats)
   {
-    const chunk = new Float32Array(this.#chunkFloats);
-    this.#chunks.push(chunk);
-    this.#chunkAliases.push(new Uint32Array(chunk.buffer));
+    let bytes = Math.max(0, Math.floor(floats)) * 4;
+    bytes = ((bytes >> 8) + 1) << 8;
+    return bytes / 4;
   }
 
   /** The field encoding kinds (packing directives). */

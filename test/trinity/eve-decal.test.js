@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { EveSpaceObjectDecal, IEveSpaceObject2ParentData } from "../../npm/dist/trinity/index.js";
@@ -25,7 +25,7 @@ test("EveSpaceObjectDecal fills the Carbon { vs, ps } per-object composite (cpp:
   assert.equal(decal.UpdateVisibility({}, parent), true);
 
   const store = makePerObjectStore();
-  const pod = decal.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const pod = decal.GetPerObjectData({ Alloc: name => store.Allocate(name) });
 
   assert.deepEqual([...pod.vs.GetLayout().stages], ["vs"], "vs half binds the vertex slot");
   assert.deepEqual([...pod.ps.GetLayout().stages], ["ps"], "ps half binds the pixel slot");
@@ -58,16 +58,16 @@ test("EveSpaceObjectDecal zeroes the SH block when the parent supplies none (cpp
   const store = makePerObjectStore();
 
   // Dirty the arena so the zero-fill is provably the decal's own work.
-  const first = store.Alloc("DecalPSPerObjectData");
+  const first = store.Allocate("DecalPSPerObjectData");
   first.Set("shLightingCoefficients", new Float32Array(28).fill(7));
-  store.Reset();
+  store.Clear();
 
   const parent = new IEveSpaceObject2ParentData();
   parent.shLighting = null;
   decal.decalEffect = {};
   decal.UpdateVisibility({}, parent);
 
-  const pod = decal.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const pod = decal.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   const coefficients = pod.ps.Copy("shLightingCoefficients", new Float32Array(28));
   assert.ok(coefficients.every(value => value === 0), "null shLighting zeroes the whole block");
 });
@@ -91,7 +91,7 @@ test("EveSpaceObjectDecal expands the parent bone and reports its Carbon render 
   const store = makePerObjectStore();
   decal.decalEffect = {};
   decal.UpdateVisibility({}, new IEveSpaceObject2ParentData());
-  const pod = decal.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const pod = decal.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   const bone = pod.vs.Copy("parentBoneMatrix", new Float32Array(16));
   assert.deepEqual([bone[3], bone[7], bone[11]], [5, 6, 7], "bone translation expanded then transposed");
 
@@ -192,7 +192,7 @@ test("EveSpaceObjectDecal.UpdateVisibility leaves parent data stale on a cull (c
 
   // The fill still carries the ACCEPTED parent's killCount, not the rejected one.
   const store = makePerObjectStore();
-  const pod = decal.GetPerObjectData({ Alloc: name => store.Alloc(name) });
+  const pod = decal.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   const displayData = pod.ps.Copy("displayData", new Float32Array(4));
   assert.equal(displayData[0], 7, "stale parent data is retained across a cull");
   assert.equal(displayData[1], 0, "visibility is cleared");
