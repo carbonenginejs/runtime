@@ -231,10 +231,12 @@ test("EveTacticalOverlay emits exact anchor, connector and velocity instance rec
   assert.equal(connector.count, 5);
   assert.equal(velocity.count, 6);
   assert.equal(anchor.batchType, Tr2QuadRenderer.TriBatchType.TRIBATCHTYPE_ADDITIVE);
-  assert.deepEqual(anchor.definition.map(({ usage, usageIndex, stream }) =>
+  // A definition is a Tr2VertexDefinition now, not a bare array: its elements
+  // are the Carbon m_items ledger, built by Add rather than declared.
+  assert.deepEqual(anchor.definition.items.map(({ usage, usageIndex, stream }) =>
     [ usage, usageIndex, stream ]), [ [ "TEXCOORD", 5, 0 ], [ "TEXCOORD", 0, 1 ] ]);
-  assert.equal(connector.definition[2].offset, 16);
-  assert.equal(velocity.definition[2].type, "FLOAT32_4");
+  assert.equal(connector.definition.items[2].offset, 16);
+  assert.equal(velocity.definition.items[2].type, "FLOAT32_4");
 
   assertArrayClose(getRecordData(renderer, anchor), [ 0, 4, 3, 0.65 ]);
   const connectorData = getRecordData(renderer, connector);
