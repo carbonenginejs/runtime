@@ -85,6 +85,27 @@ export class Tr2ManipulationTool extends CjsModel
     mat4.copy(this.localTransform, initialTransform);
   }
 
+  /**
+   * Carbon GetBaseVectors (Tr2ManipulationTool.cpp): the tool's local basis,
+   * each row of the local transform normalised. Row r maps to gl-matrix
+   * indices [(r-1)*4 .. (r-1)*4+2].
+   *
+   * @param {Float32Array} [outX] Caller-owned; allocated when omitted.
+   * @param {Float32Array} [outY]
+   * @param {Float32Array} [outZ]
+   * @returns {[Float32Array, Float32Array, Float32Array]} The three axes.
+   */
+  @carbon.method
+  @impl.implemented
+  GetBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
+  {
+    const local = this.localTransform;
+    vec3.normalize(outX, vec3.set(outX, local[0], local[1], local[2]));
+    vec3.normalize(outY, vec3.set(outY, local[4], local[5], local[6]));
+    vec3.normalize(outZ, vec3.set(outZ, local[8], local[9], local[10]));
+    return [ outX, outY, outZ ];
+  }
+
   /** Required per-frame manipulator update contract (Tr2ManipulationTool.h:37). */
   @impl.abstract
   Update(..._args)

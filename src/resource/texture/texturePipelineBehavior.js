@@ -35,10 +35,19 @@ export function getTexturePipelineDependencies(steps)
     }
     else if (name === STEP_PACK)
     {
-      addDependency(dependencies, step.r?.path);
-      addDependency(dependencies, step.g?.path);
-      addDependency(dependencies, step.b?.path);
-      addDependency(dependencies, step.a?.path);
+      // Carbon calls the step's own virtual (ITr2TexturePipelineStep); a raw
+      // values object without the class still contributes its paths.
+      if (typeof step.GetResourceDependencies === "function")
+      {
+        step.GetResourceDependencies(dependencies);
+      }
+      else
+      {
+        addDependency(dependencies, step.r?.path);
+        addDependency(dependencies, step.g?.path);
+        addDependency(dependencies, step.b?.path);
+        addDependency(dependencies, step.a?.path);
+      }
     }
   }
   return [ ...dependencies ].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
@@ -295,7 +304,12 @@ function downsample2x2(bitmap)
   return { ...bitmap, width, height, data };
 }
 
-function packBitmap(step, inputs)
+/**
+ * Carbon Tr2TexturePipelineStepPack::Execute + Pack (cpp:60-179, 182-215),
+ * in this package's canonical single-mip RGBA form. Exported so the step
+ * class's own Execute is the same body the pipeline dispatcher runs.
+ */
+export function packBitmap(step, inputs)
 {
   // The generated schema records the enum's zero value, while Carbon's
   // constructor initializes this step to B8G8R8A8_UNORM.

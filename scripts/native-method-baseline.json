@@ -170,11 +170,6 @@
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
-  "EveChildExplosion": [
-    "CopyElement",
-    "FindSharedObjects",
-    "UpdateEmitter"
-  ],
   "EveChildFogVolume": [
     "GetDebugOptions",
     "RenderDebugInfo"
@@ -817,9 +812,7 @@
     "GetDefinition"
   ],
   "EveTacticalTrails": [
-    "OnPrepareResources",
-    "ReleaseResources",
-    "UpdateGraphicsState"
+    "OnPrepareResources"
   ],
   "EveTrailsSet": [
     "Cleanup",
@@ -1026,10 +1019,6 @@
   "Tr2AudioStretchBase": [
     "GetDebugOptions",
     "RenderDebugInfo"
-  ],
-  "Tr2BaseDeviceResourceAL": [
-    "GetResourceMemoryClass",
-    "IsResourceValid"
   ],
   "Tr2BoneMatrixCurve": [
     "AddKey_",
@@ -1670,7 +1659,6 @@
     "WrapCopy"
   ],
   "Tr2ManipulationTool": [
-    "GetBaseVectors",
     "GetBoxTriangles",
     "GetCirclePoints",
     "GetCircleTriangles",
@@ -2045,22 +2033,8 @@
     "Shutdown",
     "UnregisterEffect"
   ],
-  "Tr2ResourceSetDescriptionAL": [
-    "Is",
-    "Resource",
-    "Sampler",
-    "SetSamplerHeapView",
-    "SetSrvHeapView",
-    "SetUavHeapView",
-    "UpdateHash"
-  ],
   "Tr2RingBuffer": [
     "ReleaseResources"
-  ],
-  "Tr2RotationTool": [
-    "GetDesiredPlaneNormal",
-    "GetUnTransformedBaseVectors",
-    "Hemisphere"
   ],
   "Tr2RuntimeGpuBuffer": [
     "GetGpuBuffer",
@@ -2488,8 +2462,6 @@
     "GetResourceDependencies"
   ],
   "Tr2TexturePipelineStepPack": [
-    "Execute",
-    "GetResourceDependencies",
     "Pack"
   ],
   "Tr2TextureReference": [

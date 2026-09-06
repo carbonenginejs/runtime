@@ -21,8 +21,6 @@
   "src/character/gles/CjsCharacterGlesFoundationTranslator.js": 2,
   "src/character/trinity/trinityCore/Tr2SkinnedObject.js": 5,
   "src/character/webgl2/CjsCharacterWebgl2EffectRouter.js": 4,
-  "src/trinityal/webgpu/core/textureSource.js": 3,
-  "src/trinityal/webgpu/core/trinityBatchResolver.js": 14,
   "src/resource/CjsMotherLode.js": 5,
   "src/resource/CjsResMan.js": 32,
   "src/resource/CjsResource.js": 3,
@@ -92,7 +90,7 @@
   "src/trinity/eve/child/EveChildCloud2.js": 23,
   "src/trinity/eve/child/EveChildContainer.js": 23,
   "src/trinity/eve/child/EveChildEffectPropagator.js": 11,
-  "src/trinity/eve/child/EveChildExplosion.js": 5,
+  "src/trinity/eve/child/EveChildExplosion.js": 4,
   "src/trinity/eve/child/EveChildLink.js": 8,
   "src/trinity/eve/child/EveChildMesh.js": 26,
   "src/trinity/eve/child/EveChildParticleSystem.js": 16,
@@ -162,5 +160,7 @@
   "src/trinity/shader/parameter/TriTextureParameter.js": 5,
   "src/trinity/shader/parameter/TriTransformParameter.js": 1,
   "src/trinity/shader/parameter/TriVariableParameter.js": 3,
-  "src/trinity/shader/Tr2Effect.js": 26
+  "src/trinity/shader/Tr2Effect.js": 26,
+  "src/trinityal/webgpu/core/textureSource.js": 3,
+  "src/trinityal/webgpu/core/trinityBatchResolver.js": 14
 }
