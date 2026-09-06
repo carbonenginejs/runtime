@@ -1,9 +1,9 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { WebgpuGeometryOptions } from "../../../npm/dist/engine/webgpu/index.js";
 import { PackLodGeometry } from "../../../npm/dist/resource/geometry/index.js";
-import { Tr2VertexDefinition } from "../../../npm/dist/trinity/core/index.js";
+import { resolveBindingPlan } from "../../../npm/dist/trinity/core/index.js";
 import { CarbonVertexElements } from "../../../npm/dist/trinity/core/index.js";
 
 /**
@@ -44,7 +44,7 @@ const HULL_INPUTS = [
 /** A binding plan over the translated declaration. */
 function planFor(elements, inputs = HULL_INPUTS)
 {
-  return Tr2VertexDefinition.resolveBindingPlan(CarbonVertexElements(elements), inputs).entries;
+  return resolveBindingPlan(CarbonVertexElements(elements), inputs).entries;
 }
 
 test("a real hull declaration packs to the stride its layout already used", () =>
@@ -119,7 +119,7 @@ test("an untranslated declaration is refused with the reason", () =>
 {
   // The failure this message exists for: string usages match no numeric input,
   // every plan entry arrives empty, and the layout would be attribute-free.
-  const entries = Tr2VertexDefinition.resolveBindingPlan(HULL_DECL, HULL_INPUTS).entries;
+  const entries = resolveBindingPlan(HULL_DECL, HULL_INPUTS).entries;
 
   assert.throws(
     () => WebgpuGeometryOptions(MESH, entries),

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2VertexDefinition } from "../../npm/dist/trinity/core/index.js";
+import { Tr2VertexDefinition, findInputElement, resolveBindingPlan } from "../../npm/dist/trinity/core/index.js";
+import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 const Usage = Tr2VertexDefinition.UsageCode;
 
@@ -27,17 +28,17 @@ test("matching is by semantic and index only, never type or offset", () =>
   const elements = meshElements();
 
   // A float3 POSITION0 in the mesh satisfies a float4 POSITION0 in the shader.
-  const matched = Tr2VertexDefinition.findElement(elements, input(Usage.POSITION, 0));
+  const matched = findInputElement(elements, input(Usage.POSITION, 0));
   assert.equal(matched.type, "FLOAT3", "the mesh element wins; the hardware converts");
 
-  assert.equal(Tr2VertexDefinition.findElement(elements, input(Usage.TEXCOORD, 1)).offset, 32,
+  assert.equal(findInputElement(elements, input(Usage.TEXCOORD, 1)).offset, 32,
     "the usage INDEX distinguishes TEXCOORD0 from TEXCOORD1");
-  assert.equal(Tr2VertexDefinition.findElement(elements, input(Usage.TEXCOORD, 5)), null);
+  assert.equal(findInputElement(elements, input(Usage.TEXCOORD, 5)), null);
 });
 
 test("the plan follows the shader's inputs, not the mesh's elements", () =>
 {
-  const plan = Tr2VertexDefinition.resolveBindingPlan(meshElements(), [
+  const plan = resolveBindingPlan(meshElements(), [
     input(Usage.POSITION, 0),
     input(Usage.TEXCOORD, 0)
   ]);
@@ -50,7 +51,7 @@ test("the plan follows the shader's inputs, not the mesh's elements", () =>
 
 test("an input the mesh cannot supply is reported, not resolved", () =>
 {
-  const plan = Tr2VertexDefinition.resolveBindingPlan(meshElements(), [
+  const plan = resolveBindingPlan(meshElements(), [
     input(Usage.POSITION, 0),
     input(Usage.BLENDWEIGHTS, 0, { type: "FLOAT4" }),
     input(Usage.BLENDINDICES, 0, { type: "UINT" })
@@ -74,33 +75,35 @@ test("BLENDINDICES precedes BLENDWEIGHTS, as Carbon declares them", () =>
 
 test("interning is by the full element list, not by semantics alone", () =>
 {
-  const first = Tr2VertexDefinition.getHandle(meshElements());
+  // The intern table is Tr2EffectStateManager's, as in Carbon
+  // (s_vertexLayoutMap, Tr2EffectStateManager.cpp:863-877).
+  const first = Tr2EffectStateManager.getVertexDeclarationHandle(meshElements());
 
-  assert.equal(Tr2VertexDefinition.getHandle(meshElements()), first,
+  assert.equal(Tr2EffectStateManager.getVertexDeclarationHandle(meshElements()), first,
     "an equal declaration interns to the same handle");
 
   // Same semantics, different packing: a different input layout, so a different
   // handle. This is why the intern key is stricter than the match key.
   const repacked = meshElements();
   repacked[1].offset = 16;
-  assert.notEqual(Tr2VertexDefinition.getHandle(repacked), first);
+  assert.notEqual(Tr2EffectStateManager.getVertexDeclarationHandle(repacked), first);
 
   const restreamed = meshElements();
   restreamed[0].stream = 1;
-  assert.notEqual(Tr2VertexDefinition.getHandle(restreamed), first);
+  assert.notEqual(Tr2EffectStateManager.getVertexDeclarationHandle(restreamed), first);
 
-  assert.deepEqual(Tr2VertexDefinition.getElements(first), meshElements(),
+  assert.deepEqual(Tr2EffectStateManager.getVertexDeclarationElements(first), meshElements(),
     "a handle resolves back to what it was interned from");
-  assert.equal(Tr2VertexDefinition.getElements(9999), null);
+  assert.equal(Tr2EffectStateManager.getVertexDeclarationElements(9999), null);
 });
 
 test("a mesh with no declaration still yields a plan of unmatched inputs", () =>
 {
-  const plan = Tr2VertexDefinition.resolveBindingPlan(null, [ input(Usage.POSITION, 0) ]);
+  const plan = resolveBindingPlan(null, [ input(Usage.POSITION, 0) ]);
 
   assert.equal(plan.unmatched, 1);
   assert.equal(plan.entries[0].element, null);
-  assert.deepEqual(Tr2VertexDefinition.resolveBindingPlan(meshElements(), null).entries, [],
+  assert.deepEqual(resolveBindingPlan(meshElements(), null).entries, [],
     "a shader with no declared inputs needs nothing bound");
 });
 
@@ -140,10 +143,32 @@ test("the authoring half builds items with Carbon's automatic per-stream offsets
   assert.equal(Tr2VertexDefinition.dataTypeSizeInBytes("USHORT_2_NORM"), 4);
   assert.equal(Tr2VertexDefinition.dataTypeSizeInBytes("UINT32_3"), 12);
 
-  // The matcher statics accept an instance wherever they took an array.
+  // The relocated owners accept an instance wherever they took an array.
   const twin = new Tr2VertexDefinition();
   for (const item of definition.items) twin.Add(item.type, item.usage, item.usageIndex, item.stream, item.instanceStepRate);
   assert.equal(Tr2VertexDefinition.isSameDefinition(definition, twin), true);
-  assert.equal(Tr2VertexDefinition.getHandle(definition), Tr2VertexDefinition.getHandle(twin));
-  assert.equal(Tr2VertexDefinition.findElement(definition, { usage: "COLOR", usageIndex: 1 }).offset, 28);
+  assert.equal(
+    Tr2EffectStateManager.getVertexDeclarationHandle(definition),
+    Tr2EffectStateManager.getVertexDeclarationHandle(twin));
+  assert.equal(findInputElement(definition, { usage: "COLOR", usageIndex: 1 }).offset, 28);
+});
+
+test("definition equality compares the ledger as well as the items", () =>
+{
+  // Carbon's operator== (Tr2VertexDefinition.cpp:35-42) compares all four
+  // m_nextOffset slots AND m_items. Two definitions with identical items but
+  // different ledgers are genuinely different declarations - interning them
+  // as one would hand a batch the wrong stride.
+  const definition = new Tr2VertexDefinition();
+  definition.Add("FLOAT32_4", "POSITION");
+
+  const twin = new Tr2VertexDefinition();
+  twin.Add("FLOAT32_4", "POSITION");
+  assert.equal(Tr2VertexDefinition.isSameDefinition(definition, twin), true);
+
+  twin.nextOffset[3] = 96;
+  assert.equal(Tr2VertexDefinition.isSameDefinition(definition, twin), false);
+  assert.notEqual(
+    Tr2EffectStateManager.getVertexDeclarationHandle(definition),
+    Tr2EffectStateManager.getVertexDeclarationHandle(twin));
 });

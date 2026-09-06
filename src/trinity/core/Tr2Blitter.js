@@ -32,6 +32,7 @@
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2BufferDescriptionAL } from "./al/Tr2BufferALStub.js";
 import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition.js";
+import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_BYTES, SetupScreenQuad, SetupScreenQuadInCameraSpace } from "./Tr2RenderUtils.js";
 
@@ -62,7 +63,7 @@ export const Filtering = Object.freeze({
  * ledger that guarantees the offsets. Hand arithmetic that happens to agree
  * today is a defect waiting for the third element.
  *
- * @returns {Tr2VertexDefinition} A fresh definition; `getHandle` interns it.
+ * @returns {Tr2VertexDefinition} A fresh definition; the state manager interns it.
  */
 function screenVertexDefinition()
 {
@@ -186,7 +187,9 @@ export class Tr2Blitter
   {
     if (this.#screenVertexDecl === -1)
     {
-      this.#screenVertexDecl = Tr2VertexDefinition.getHandle(screenVertexDefinition());
+      // Carbon's exact spelling: m_screenVertexDecl =
+      // Tr2EffectStateManager::GetVertexDeclarationHandle( vd ) (cpp:172).
+      this.#screenVertexDecl = Tr2EffectStateManager.getVertexDeclarationHandle(screenVertexDefinition());
     }
 
     // Carbon's DrawHelper returns false when the buffer is invalid

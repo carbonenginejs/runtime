@@ -35,7 +35,7 @@ import { WebgpuVertexBufferLayout } from "./vertexFormat.js";
  * while the GPU already holds the only copy that gets drawn.
  *
  * @param {object} mesh Decoded mesh carrying a declaration and channels.
- * @param {Array<object>} bindingPlan Entries from `Tr2VertexDefinition.resolveBindingPlan`.
+ * @param {Array<object>} bindingPlan Entries from the AL's `resolveBindingPlan` (trinity/core/al/vertexLayoutMatch.js).
  * @param {object} [options]
  * @param {number} [options.lodIndex] Which LOD to realize.
  * @param {string} [options.label] Device label for the buffers.

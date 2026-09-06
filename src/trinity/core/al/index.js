@@ -22,3 +22,4 @@ export * from "./Tr2ShaderProgramALStub.js";
 export * from "./Tr2SwapChainALStub.js";
 export * from "./Tr2TextureALStub.js";
 export * from "./Tr2VertexLayoutALStub.js";
+export * from "./vertexLayoutMatch.js";

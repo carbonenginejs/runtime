@@ -1,4 +1,4 @@
-// The chain this exercises did not connect at all before 2026-09-02: a mesh
+﻿// The chain this exercises did not connect at all before 2026-09-02: a mesh
 // area produced a batch whose declaration no shader could match and whose draw
 // arguments were null, and no code turned a decoded mesh into device geometry.
 //
@@ -14,8 +14,9 @@ import {
   Tr2MeshArea,
   TriRenderBatchAccumulator,
   Tr2PerObjectData,
-  Tr2VertexDefinition
+  resolveBindingPlan
 } from "../../../npm/dist/trinity/core/index.js";
+import { Tr2EffectStateManager } from "../../../npm/dist/trinity/shader/index.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 import { WebgpuGeometryOptions } from "../../../npm/dist/engine/webgpu/index.js";
 import { FixtureEffect } from "../../support/fixtureEffect.js";
@@ -98,8 +99,8 @@ test("a mesh area produces draw arguments, where it produced none", () =>
 test("the interned declaration matches the shader that will draw it", () =>
 {
   const [ hull ] = batchesOf(meshWithAreas());
-  const elements = Tr2VertexDefinition.getElements(hull.vertexDeclaration);
-  const plan = Tr2VertexDefinition.resolveBindingPlan(elements, INPUTS);
+  const elements = Tr2EffectStateManager.getVertexDeclarationElements(hull.vertexDeclaration);
+  const plan = resolveBindingPlan(elements, INPUTS);
 
   assert.equal(plan.complete, true, "every shader input is supplied by the mesh");
   assert.equal(plan.unmatched, 0);
@@ -108,8 +109,8 @@ test("the interned declaration matches the shader that will draw it", () =>
 test("that same declaration realizes into a device geometry request", () =>
 {
   const [ hull ] = batchesOf(meshWithAreas());
-  const elements = Tr2VertexDefinition.getElements(hull.vertexDeclaration);
-  const plan = Tr2VertexDefinition.resolveBindingPlan(elements, INPUTS).entries;
+  const elements = Tr2EffectStateManager.getVertexDeclarationElements(hull.vertexDeclaration);
+  const plan = resolveBindingPlan(elements, INPUTS).entries;
 
   const request = WebgpuGeometryOptions(MESH, plan, { label: "hull" });
   const [ buffer ] = request.vertexBuffers;
@@ -128,8 +129,8 @@ test("that same declaration realizes into a device geometry request", () =>
 test("the draw arguments address the index buffer that is actually built", () =>
 {
   const [ hull, decalStrip ] = batchesOf(meshWithAreas());
-  const elements = Tr2VertexDefinition.getElements(hull.vertexDeclaration);
-  const plan = Tr2VertexDefinition.resolveBindingPlan(elements, INPUTS).entries;
+  const elements = Tr2EffectStateManager.getVertexDeclarationElements(hull.vertexDeclaration);
+  const plan = resolveBindingPlan(elements, INPUTS).entries;
   const request = WebgpuGeometryOptions(MESH, plan);
 
   const indexCount = request.indexBuffer.data.byteLength / 2;

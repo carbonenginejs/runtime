@@ -95,7 +95,7 @@ export function WebgpuVertexFormat(element)
  * does not read is omitted rather than given an invented location.
  *
  * @param {number} arrayStride Byte stride the buffer was packed at.
- * @param {Array<object>} bindingPlan Entries from `Tr2VertexDefinition.resolveBindingPlan`.
+ * @param {Array<object>} bindingPlan Entries from the AL's `resolveBindingPlan` (trinity/core/al/vertexLayoutMatch.js).
  * @returns {{arrayStride: number, stepMode: string, attributes: Array<object>}}
  */
 export function WebgpuVertexBufferLayout(arrayStride, bindingPlan)

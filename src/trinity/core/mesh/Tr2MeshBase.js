@@ -6,7 +6,7 @@ import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/Tr2RenderBatch.js";
-import { Tr2VertexDefinition } from "../vertex/Tr2VertexDefinition.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 
 
@@ -418,12 +418,13 @@ export class Tr2MeshBase extends CjsModel
     // its usages - and a shader input carries Carbon's numeric UsageCode. The
     // two numberings collide rather than merely differ, so this translates
     // before interning: an untranslated decl interns to a handle that no shader
-    // input can ever match, and `findElement` fails silently for every mesh.
+    // input can ever match, and the AL's `findInputElement` fails silently for
+    // every mesh.
     const carbonElements = CarbonVertexElements(elements);
 
     if (carbonElements.length)
     {
-      batch.SetVertexDeclaration(Tr2VertexDefinition.getHandle(carbonElements));
+      batch.SetVertexDeclaration(Tr2EffectStateManager.getVertexDeclarationHandle(carbonElements));
     }
 
     // Carbon computes the draw arguments here, from the resolved LOD. Without a

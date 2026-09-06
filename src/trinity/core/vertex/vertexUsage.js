@@ -6,7 +6,7 @@
 // CMF stores a usage as a byte and its reader turns that into a NAME, so a decl
 // element carries `usage: "Position"`. A shader's pipeline input carries a
 // NUMBER - Carbon's UsageCode - because that is what the effect container
-// stores. `Tr2VertexDefinition.findElement` compares the two with `===`, so a
+// stores. The AL's `findInputElement` compares the two with `===`, so a
 // CMF element cannot match any shader input until one is translated.
 //
 // Passing the CMF byte through untranslated would be worse than not matching,
@@ -96,7 +96,7 @@ export function CarbonUsageFromCmf(usage)
 
 // THE RESULT MUST HAVE A STABLE IDENTITY, not merely stable contents.
 //
-// Tr2VertexDefinition.getHandle interns by linear scan and memoises on the
+// Tr2EffectStateManager.getVertexDeclarationHandle interns by linear scan and memoises on the
 // element array's IDENTITY, which is what makes its own comment true: "the scan
 // is amortised because a declaration is interned once per distinct mesh layout,
 // not per draw". A translation that allocated a fresh array per call would

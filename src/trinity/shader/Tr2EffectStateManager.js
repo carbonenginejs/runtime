@@ -81,6 +81,23 @@ const shaders = [];
 /** Registered shader programs; the index is the handle. */
 const shaderPrograms = [];
 
+// Carbon s_vertexLayoutMap (Tr2EffectStateManager.cpp:863-877): file-scope,
+// mutex-guarded pairs of (Tr2VertexDefinition, Tr2VertexLayoutAL*), appended on
+// first sight, linear-scanned by the definition's own operator==. Ours holds
+// the definition identity only - the layout half of Carbon's pair is a device
+// object, and per the layering note above the engine keeps its own
+// handle-to-object map (ApplyVertexDeclaration's lazy hvl.Create at cpp:895-903
+// happens on that side of the boundary). Single-threaded JS needs no mutex.
+
+/** Interned vertex declarations; the index is the handle. */
+const vertexLayouts = [];
+
+// Carbon interns once at asset load and stores the handle on the mesh, so its
+// linear scan never runs per draw. This runtime has no load hook, so the handle
+// is memoised against the element list or definition a payload already owns -
+// same cost profile, no payload mutation, and it lapses with the payload.
+const vertexLayoutHandles = new WeakMap();
+
 // Carbon's built-in rendering-mode state lists, ported pair for pair from
 // Tr2EffectStateManager.cpp:29-393. A mode's list occupies the render-state
 // handle equal to its own enum value, which is why the table below is indexed
@@ -540,18 +557,60 @@ export class Tr2EffectStateManager extends CjsModel
   }
 
   /**
-   * The handle for a mesh's vertex declaration.
+   * The stable handle for a vertex declaration, interning it on first sight.
    *
-   * Carbon `GetVertexDeclarationHandle` (Tr2EffectStateManager.cpp:863-877).
-   * `Tr2VertexDefinition` already owns this table, so this delegates rather
-   * than interning a second one.
+   * Carbon `GetVertexDeclarationHandle` (Tr2EffectStateManager.cpp:863-877):
+   * linear-scan the intern table for an equal definition, return its index, or
+   * append and return the new index. The handle is what a batch carries and
+   * what binning and sorting compare.
    *
-   * @param {Array} elements Mesh vertex elements.
+   * WHY THE TABLE HOLDS A UNION and does not normalise at the door: Carbon's
+   * signature admits only Tr2VertexDefinition, so its map is uniform. Ours
+   * also interns payload element lists, which speak the PRODUCER's type
+   * vocabulary ("Float32" + elementCount, not "FLOAT32_3") and carry no
+   * ledger. Wrapping one into a definition would either fabricate ledger
+   * values the byte arithmetic cannot derive from those type names, or
+   * zero-fill them - and a zero ledger then fails Carbon's own equality
+   * (which compares all four slots) against an authored definition with the
+   * same items. Storing what arrived keeps interning correct across both
+   * producers; isSameDefinition compares the ledger only when both sides
+   * carry one. Revisit if CarbonVertexElements ever normalises type names.
+   *
+   * @param {Array|Tr2VertexDefinition} elements A definition or plain element list.
    * @returns {number} Stable handle.
    */
   static getVertexDeclarationHandle(elements)
   {
-    return Tr2VertexDefinition.getHandle(elements);
+    const key = elements?.items ?? elements ?? [];
+    const memoised = vertexLayoutHandles.get(key);
+
+    if (memoised !== undefined) return memoised;
+
+    let handle = vertexLayouts.findIndex(candidate => Tr2VertexDefinition.isSameDefinition(candidate, elements));
+
+    if (handle < 0)
+    {
+      handle = vertexLayouts.push(elements) - 1;
+    }
+
+    if (typeof key === "object") vertexLayoutHandles.set(key, handle);
+
+    return handle;
+  }
+
+  /**
+   * The declaration a handle was interned from, or null for an unknown handle.
+   *
+   * Carbon `GetVertexDeclarationElements` (Tr2EffectStateManager.cpp:912-923)
+   * copies the definition into an out parameter and returns a bool; returning
+   * the interned identity or null is the same contract without the copy.
+   *
+   * @param {number} handle Vertex-declaration handle.
+   * @returns {Array|Tr2VertexDefinition|null} The interned declaration.
+   */
+  static getVertexDeclarationElements(handle)
+  {
+    return vertexLayouts[handle] ?? null;
   }
 
   /**

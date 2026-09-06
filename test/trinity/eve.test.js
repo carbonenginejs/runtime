@@ -368,7 +368,10 @@ test("EveSpriteSet builds the authored SOF sprite graph without renderer buffers
   assertEquals(full.falloff, 0.75);
   assertEquals(set.GetSprites().length, 3);
 
-  const effect = {};
+  // A Tr2Effect stand-in: Rebuild reads the hash key directly, because a set
+  // with an effect always has a real one (the optional-call lint holds the
+  // class to that).
+  const effect = { GetHashValue: () => 0 };
   set.SetName("Engine Glow");
   set.SetEffect(effect);
   set.SetSkinned(true);

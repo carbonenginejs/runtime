@@ -25,7 +25,7 @@
 import { CjsTrinityBatchResolver } from "#trinity/core/batch/CjsTrinityBatchResolver";
 import { Tr2EffectStateManager } from "#trinity/shader";
 import { Tr2PerObjectData } from "#trinity/core/rawData/Tr2PerObjectData";
-import { Tr2VertexDefinition } from "#trinity/core/vertex/Tr2VertexDefinition";
+import { resolveBindingPlan } from "#trinity/core/al/vertexLayoutMatch";
 import { CarbonVertexElements } from "#trinity/core/vertex/vertexUsage";
 
 import { CjsWebgpuPackage } from "../CjsWebgpuPackage.js";
@@ -214,7 +214,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     if (!mesh) fail(`geometry has no mesh ${meshIndex} to realize`);
 
     const elements = CarbonVertexElements(geometry.GetMeshVertexElements?.(meshIndex));
-    const plan = Tr2VertexDefinition.resolveBindingPlan(elements, inputs);
+    const plan = resolveBindingPlan(elements, inputs);
     const request = WebgpuGeometryOptions(mesh, plan.entries, {
       label: `${geometry.GetPath?.() ?? "geometry"}#${meshIndex}`
     });

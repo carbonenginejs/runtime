@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CarbonUsageFromChannel, CarbonUsageFromCmf, CarbonVertexElements, Tr2VertexDefinition } from "../../npm/dist/trinity/core/index.js";
+import { CarbonUsageFromChannel, CarbonUsageFromCmf, CarbonVertexElements, Tr2VertexDefinition, resolveBindingPlan } from "../../npm/dist/trinity/core/index.js";
+import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 const { POSITION, COLOR, NORMAL, TANGENT, BITANGENT, TEXCOORD, BLENDINDICES, BLENDWEIGHTS } =
   Tr2VertexDefinition.UsageCode;
@@ -111,8 +112,8 @@ test("a translated declaration matches a shader input; an untranslated one does 
   const cmfElements = [ { usage: "Normal", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ];
   const pipelineInputs = [ { usage: NORMAL, usageIndex: 0, registerIndex: 3, type: 0, dimension: 3 } ];
 
-  const untranslated = Tr2VertexDefinition.resolveBindingPlan(cmfElements, pipelineInputs);
-  const translated = Tr2VertexDefinition.resolveBindingPlan(CarbonVertexElements(cmfElements), pipelineInputs);
+  const untranslated = resolveBindingPlan(cmfElements, pipelineInputs);
+  const translated = resolveBindingPlan(CarbonVertexElements(cmfElements), pipelineInputs);
 
   assert.equal(untranslated.entries[0].element, null);
   assert.equal(untranslated.complete, false);
@@ -153,7 +154,7 @@ test("a packed tangent channel is a tangent channel", () =>
 test("translating the same declaration twice returns the SAME array", () =>
 {
   // Not an optimisation detail - a correctness-adjacent invariant.
-  // Tr2VertexDefinition.getHandle memoises on the element array's IDENTITY, and
+  // Tr2EffectStateManager.getVertexDeclarationHandle memoises on the element array's IDENTITY, and
   // its linear intern scan is only affordable because of that memo. A fresh
   // array per call defeats it, and every batch of every mesh rescans the whole
   // intern table element by element. Invisible at a few meshes; quadratic per
@@ -176,8 +177,8 @@ test("interning a translated declaration twice yields one handle and one entry",
 {
   const decl = [ { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 4242 } ];
 
-  const first = Tr2VertexDefinition.getHandle(CarbonVertexElements(decl));
-  const second = Tr2VertexDefinition.getHandle(CarbonVertexElements(decl));
+  const first = Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(decl));
+  const second = Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(decl));
 
   assert.equal(first, second);
 });

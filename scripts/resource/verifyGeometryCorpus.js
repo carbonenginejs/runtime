@@ -25,7 +25,7 @@
 import { CjsGr2Format } from "../../src/resource/formats/gr2/index.js";
 import { buildCmfFromRaw } from "../../src/resource/formats/gr2/core/targets.js";
 import { CarbonVertexElements } from "../../src/trinity/core/vertex/vertexUsage.js";
-import { Tr2VertexDefinition } from "../../src/trinity/core/vertex/Tr2VertexDefinition.js";
+import { Tr2EffectStateManager } from "../../src/trinity/shader/Tr2EffectStateManager.js";
 import { WebgpuVertexFormat } from "../../src/engine/webgpu/core/vertexFormat.js";
 import { PackLodGeometry } from "../../src/resource/geometry/packGeometry.js";
 import {
@@ -123,7 +123,7 @@ function inspectMesh(mesh, path)
         bump("problems", `${path}: translation identity is unstable`);
     }
 
-    try { Tr2VertexDefinition.getHandle(elements); }
+    try { Tr2EffectStateManager.getVertexDeclarationHandle(elements); }
     catch (error)
     {
         totals.problems++;

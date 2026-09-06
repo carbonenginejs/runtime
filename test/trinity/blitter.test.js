@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 
 import { Tr2Blitter, Tr2RenderContext, Tr2RenderContextALStub, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
-import { SCREEN_VERTEX_BYTES, Tr2VertexDefinition } from "../../npm/dist/trinity/core/index.js";
+import { SCREEN_VERTEX_BYTES } from "../../npm/dist/trinity/core/index.js";
+import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 /** A Tr2RenderContext with the stub backend installed, which is what Carbon ships. */
 function stubContext()
@@ -48,7 +49,8 @@ test("the screen-vertex declaration is built, and its ledger matches the stride"
   // sizeof(Tr2ScreenVertex) - two sources of truth that must agree. The
   // declaration is interned by handle, so reach it back through the intern
   // table rather than re-deriving it here.
-  const items = Tr2VertexDefinition.getElements(blitter.GetScreenVertexDeclaration());
+  const definition = Tr2EffectStateManager.getVertexDeclarationElements(blitter.GetScreenVertexDeclaration());
+  const items = definition.items;
 
   assert.equal(items.length, 2);
   assert.deepEqual(items.map(item => item.usage), [ "POSITION", "TEXCOORD" ]);
@@ -58,8 +60,7 @@ test("the screen-vertex declaration is built, and its ledger matches the stride"
   assert.deepEqual(items.map(item => item.offset), [ 0, 16 ]);
 
   // And the ledger's end is the stride the buffer and stream source use.
-  const end = items[1].offset + 8;
-  assert.equal(end, SCREEN_VERTEX_BYTES, "declaration and stride agree");
+  assert.equal(definition.nextOffset[0], SCREEN_VERTEX_BYTES, "declaration and stride agree");
 });
 
 test("the blitter runs every pass of its shader over one quad", () =>

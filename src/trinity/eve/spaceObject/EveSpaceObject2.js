@@ -22,7 +22,7 @@ import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/Tr2RenderBatch.js";
-import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
@@ -1578,7 +1578,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
     // sorting compare - so blocks of different layouts would share a bin.
     const overlayElements = CarbonVertexElements(geometry.GetMeshVertexElements?.(meshIndex));
     const overlayDeclaration = overlayElements.length
-      ? Tr2VertexDefinition.getHandle(overlayElements)
+      ? Tr2EffectStateManager.getVertexDeclarationHandle(overlayElements)
       : 0;
 
     if (impactEffect)

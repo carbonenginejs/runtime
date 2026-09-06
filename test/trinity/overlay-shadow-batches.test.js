@@ -10,7 +10,8 @@ import {
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
-import { Tr2VertexDefinition, CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
+import { CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
+import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
@@ -201,7 +202,7 @@ test("an overlay block batch carries the mesh's vertex declaration", () =>
   // wrong bin still draws.
   // Intern something else FIRST, so the declaration under test cannot land on
   // handle 0 and let an unset handle pass by coincidence.
-  Tr2VertexDefinition.getHandle([ { usage: 0, usageIndex: 7, type: "Float32", elementCount: 1, offset: 0 } ]);
+  Tr2EffectStateManager.getVertexDeclarationHandle([ { usage: 0, usageIndex: 7, type: "Float32", elementCount: 1, offset: 0 } ]);
 
   const object = new EveSpaceObject2();
   object.mesh = new Tr2Mesh();
@@ -224,7 +225,7 @@ test("an overlay block batch carries the mesh's vertex declaration", () =>
   // Not "not zero": zero is a LEGITIMATE handle, the first declaration ever
   // interned. The claim is that the batch carries the handle this declaration
   // actually interns to, so compare against it.
-  const expected = Tr2VertexDefinition.getHandle(CarbonVertexElements([
+  const expected = Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements([
     { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 99 }
   ]));
 

@@ -268,7 +268,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     // frame (cpp:214-218 / cpp:109-121).
     if (this.effect)
     {
-      this.#effectKey = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
+      this.#effectKey = Number(this.effect.GetHashValue()) >>> 0;
     }
 
     const n = this.sprites.length;
@@ -320,7 +320,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (!this.effect) return;
-    this.#effectKey = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
+    this.#effectKey = Number(this.effect.GetHashValue()) >>> 0;
     quadRenderer.RegisterEffect(
       this.#effectKey,
       TriBatchType.TRIBATCHTYPE_ADDITIVE,

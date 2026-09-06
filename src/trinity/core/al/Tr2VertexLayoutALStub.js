@@ -7,10 +7,11 @@
 // it has elements. An empty definition is a layout that matches no shader
 // input, so it fails rather than binding nothing.
 //
-// ONE PORT NOTE. Carbon's `Tr2VertexDefinition` is a class holding `m_items`;
-// this runtime already has `Tr2VertexDefinition` as the static intern table
-// over plain element arrays (`../vertex/Tr2VertexDefinition.js`), so the
-// definition passed here IS that element array. Nothing new is introduced.
+// ONE PORT NOTE. Since 2026-09-06 the runtime's `Tr2VertexDefinition` is the
+// real Carbon class (m_items plus the per-stream offset ledger), and the
+// intern table lives where Carbon keeps it, on `Tr2EffectStateManager`
+// (s_vertexLayoutMap). What reaches this stub may still be a plain element
+// array where a payload owns one; `Create` accepts either.
 //
 // AND ONE CARBON ODDITY, transcribed: the definition is stored BEFORE the empty
 // check, so a stub layout that failed still reports itself valid. Left as it
@@ -40,7 +41,7 @@ export class Tr2VertexLayoutALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext.IsValid()) return ALResult.E_FAIL;
 
-    this.#definition = definition.slice();
+    this.#definition = (definition?.items ?? definition).slice();
 
     if (this.#definition.length === 0) return ALResult.E_FAIL;
 
