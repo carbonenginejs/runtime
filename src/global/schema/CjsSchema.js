@@ -1,5 +1,6 @@
 import { defaultValueForCarbonField } from "./types/carbonTypes.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
+import { composeInterfaceDecorator } from "../compose/interface.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -546,10 +547,13 @@ export class CjsSchema
     });
 
     // Composition decorators: type/io/carbon/impl/jessica DESCRIBE, compose
-    // INSTALLS (design record, direction item 11). compose.interface(X) and
-    // compose.values join here as the facade migration lands them.
+    // INSTALLS (design record, direction item 11). compose.values joins here
+    // as the facade migration lands it.
     static compose = Object.freeze({
-        notify: composeNotifyDecorator
+        notify: composeNotifyDecorator,
+        interface: Contract => composeInterfaceDecorator(
+            Contract,
+            (Constructor, name) => CjsSchema.decorateMethod(Constructor, name, CjsSchema.impl.abstract))
     });
 
     static jessica = Object.freeze({
