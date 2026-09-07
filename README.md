@@ -56,7 +56,7 @@ library building and reviewed generated source are also exposed through
 `/character/library-builder` and `/character/generated`.
 Input consumers use `@carbonenginejs/runtime/input` for host-window state,
 keyboard and pointer normalization, and browser cursor adapters.
-WebGPU consumers use `@carbonenginejs/runtime/engine/webgpu`; the default
+WebGPU consumers use `@carbonenginejs/runtime/trinityal/webgpu`; the default
 runtime import does not acquire a GPU or load the engine.
 Composition consumers use `@carbonenginejs/runtime/core`; browser platform and
 adapter snapshots are also available through `/core/platform`.
@@ -83,7 +83,7 @@ documented under [docs/character](docs/character/README.md).
 Input ownership and browser capability boundaries are documented under
 [docs/input](docs/input/README.md).
 WebGPU ownership, API, and verification are documented under
-[docs/engine/webgpu](docs/engine/webgpu/README.md).
+[docs/trinityal/webgpu](docs/trinityal/webgpu/README.md).
 Core composition, platform snapshots, and request policy are documented under
 [docs/core](docs/core/README.md).
 

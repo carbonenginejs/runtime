@@ -1,7 +1,7 @@
 # Public API reference
 
 Status: Experimental
-Scope: `@carbonenginejs/runtime/engine/webgpu`
+Scope: `@carbonenginejs/runtime/trinityal/webgpu`
 Audience: Users and renderer integrators
 Summary: Lists the current public exports and their supported responsibilities.
 
@@ -73,7 +73,7 @@ The bounded Eve space-object Main serializer is **no longer part of this
 package**. It was harness scaffolding that duplicated an ABI Trinity
 already owns in `CjsPerObjectLayouts`/`CjsPerFrameLayouts`, and it carried the
 format-record material read described under *Material constants*. It now lives
-beside the fixtures that use it, at `test/engine/webgpu/harness/spaceObjectMainUniforms.js`,
+beside the fixtures that use it, at `test/trinityal/webgpu/harness/spaceObjectMainUniforms.js`,
 and ships in no artifact.
 
 A composed caller needs no replacement: per-object bytes come from `RawData`
@@ -160,7 +160,7 @@ its native resources are no longer needed.
 import {
   CjsWebgpuDevice,
   CjsWebgpuPackage
-} from "@carbonenginejs/runtime/engine/webgpu";
+} from "@carbonenginejs/runtime/trinityal/webgpu";
 
 const pkg = CjsWebgpuPackage.from(packageJson);
 const selectedPipeline = pkg.GetPipeline("Main", 0);

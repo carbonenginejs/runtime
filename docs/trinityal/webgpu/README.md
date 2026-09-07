@@ -1,13 +1,13 @@
-# @carbonenginejs/runtime/engine/webgpu documentation
+# @carbonenginejs/runtime/trinityal/webgpu documentation
 
 Status: Experimental
-Scope: `@carbonenginejs/runtime/engine/webgpu`
+Scope: `@carbonenginejs/runtime/trinityal/webgpu`
 Audience: Users and renderer integrators
 Summary: Maps the supported Carbon WebGPU package, WebGPU device, and standalone harness contracts.
 
 ## Purpose
 
-`@carbonenginejs/runtime/engine/webgpu` consumes already-selected Carbon WebGPU package data
+`@carbonenginejs/runtime/trinityal/webgpu` consumes already-selected Carbon WebGPU package data
 and realizes explicit WebGPU pipeline, resource, binding, and draw requests.
 
 ## Use this package when

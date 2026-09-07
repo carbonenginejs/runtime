@@ -80,7 +80,7 @@ combined suite.
 - [Audio graph and Web Audio realization](audio/README.md)
 - [Character documents and native graph](character/README.md)
 - [Input and browser host adapters](input/README.md)
-- [WebGPU engine](engine/webgpu/README.md)
+- [WebGPU abstraction layer](trinityal/webgpu/README.md)
 - [Core composition and platform capabilities](core/README.md)
 - [Browser-safe tools and demos](tools/README.md)
 - [Repository migration procedure](../migration/README.md)

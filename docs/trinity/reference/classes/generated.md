@@ -381,16 +381,6 @@ Configures screen-space subsurface scattering width, front-scatter color, scene 
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2TextureArray -->
-## `Tr2TextureArray`
-
-Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2TextureArray.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2TextureAtlas -->
 ## `Tr2TextureAtlas`
 

@@ -1,7 +1,7 @@
 # Architecture and boundaries
 
 Status: Experimental
-Scope: `@carbonenginejs/runtime/engine/webgpu`
+Scope: `@carbonenginejs/runtime/trinityal/webgpu`
 Audience: Renderer and resource-system integrators
 Summary: Defines what the WebGPU engine package owns and what callers must supply.
 
@@ -51,7 +51,7 @@ So Trinity carries Carbon's layout directly, in
 required. There is no packer injection seam, and none is planned: an engine
 that genuinely needed a different physical layout would have to introduce one
 first, and no backend has produced that need. This
-harness serializer at `test/engine/webgpu/harness/spaceObjectMainUniforms.js` packs tight
+harness serializer at `test/trinityal/webgpu/harness/spaceObjectMainUniforms.js` packs tight
 C++ layout rather than std140 — `Sun.DirWorld` is a vec3 at byte 640 followed
 immediately by `unused_pad0` at 652 — which is the same conclusion reached
 independently, and its four buffer sizes (736/1888/464/464) are exactly what
@@ -78,7 +78,7 @@ is the wrong direction.
 **That layering defect is closed.** The serializer that read those constants out
 of the format package has left `src/` entirely: it was harness scaffolding
 duplicating an ABI Trinity owns, so it moved to
-`test/engine/webgpu/harness/spaceObjectMainUniforms.js`, and its analysis-chunk fallback was
+`test/trinityal/webgpu/harness/spaceObjectMainUniforms.js`, and its analysis-chunk fallback was
 deleted rather than moved — a material layout is now a required argument with no
 default. Engines consume the resource-owned `Tr2Shader` reflection graph through
 `MaterialLayoutFromShader`; a second engine package has no format-record path to

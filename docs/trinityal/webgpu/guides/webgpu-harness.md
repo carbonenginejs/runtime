@@ -1,7 +1,7 @@
 # WebGPU harness
 
 Status: Experimental
-Scope: `@carbonenginejs/runtime/engine/webgpu` browser qualification
+Scope: `@carbonenginejs/runtime/trinityal/webgpu` browser qualification
 Audience: Maintainers and shader integrators
 Summary: Runs the built WebGPU runtime in Chromium and qualifies shader, resource, Trinity-batch, and pixel contracts.
 
@@ -28,7 +28,7 @@ The required command fails rather than skipping. Ordinary `npm.cmd test` remains
 GPU-free apart from explicitly invoked browser scripts.
 
 The browser boundary is generated at
-`.cache/engine/webgpu/harness-runtime.js`. Rollup starts from the compiled npm
+`.cache/trinityal/webgpu/harness-runtime.js`. Rollup starts from the compiled npm
 artifact, bundles package imports and `gl-matrix`, and emits one ESM file with no
 raw source routes. This ensures the browser exercises the same translated
 classes and nominal identities that consumers receive.
@@ -108,7 +108,7 @@ families include:
 - decal, cylindric, hole, counter, glow, and glow-cylindric variants.
 
 The exact flag names are the `--draw-*` options in
-`scripts/engine/webgpu/run-webgpu-harness.js`. `--capture-quadv5` optionally
+`scripts/trinityal/webgpu/run-webgpu-harness.js`. `--capture-quadv5` optionally
 writes the QuadV5 comparison image when a QuadV5 draw flag is active.
 
 These are synthetic conformance gates. They use explicit fixture geometry,
