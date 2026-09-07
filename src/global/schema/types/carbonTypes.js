@@ -470,6 +470,8 @@ export function normalizeCarbonValue(value, type)
         case CARBON_TYPE.MATRIX3:
         case CARBON_TYPE.MATRIX4:
             return createCarbonMathValue(descriptor, value);
+        case CARBON_TYPE.TYPED_ARRAY:
+            return createCarbonTypedArrayValue(descriptor, value);
         case CARBON_TYPE.ARRAY:
             return Array.isArray(value) ? value.map(cloneCarbonValue) : [cloneCarbonValue(value)];
         case CARBON_TYPE.MAP:
@@ -572,6 +574,93 @@ export function carbonValueToJsExpression(value)
 export function typedArrayConstructor(name)
 {
     return TYPED_ARRAY_CTORS[name] || null;
+}
+
+
+/** Per-declared-name storage for the length-free `typedArray` kind. */
+const TYPED_ARRAY_STORAGE = Object.freeze(Object.fromEntries(
+    Object.keys(TYPED_ARRAY_CTORS).map(name => [ name, Object.freeze({
+        Ctor: TYPED_ARRAY_CTORS[name],
+        tag: `[object ${name}]`
+    }) ])));
+
+
+/**
+ * The storage a `@type.typedArray("Uint32Array")` field declares.
+ *
+ * @param {object} descriptor
+ * @returns {{Ctor: Function, tag: String}|null} Null when nothing is declared,
+ *     which keeps an undeclared field on its previous pass-through behaviour.
+ */
+function typedArrayStorageFor(descriptor)
+{
+    return TYPED_ARRAY_STORAGE[descriptor?.arrayType] ?? null;
+}
+
+
+/**
+ * Builds a `typedArray` field's value as its DECLARED type.
+ *
+ * Unlike a math kind this declares no length - the incoming data decides it -
+ * so there is nothing to require, only a type to honour. Before 2026-09-08
+ * `arrayType` was written by the decorator and read by nothing, so these fields
+ * kept whatever type the caller happened to send: a plain Array stayed an
+ * Array, and a Float32Array stayed one where Uint32Array was declared.
+ *
+ * @param {object} descriptor
+ * @param {*} value
+ * @returns {*}
+ */
+function createCarbonTypedArrayValue(descriptor, value)
+{
+    // `null`/`undefined` never arrive: normalizeCarbonValue answers both before
+    // the switch, and the declared default for these fields IS null - both
+    // production declarations are `@io.persistOnly ... = null`, absent until
+    // data arrives. Nothing here should invent an empty array over that.
+    const storage = typedArrayStorageFor(descriptor);
+    if (!storage) return cloneCarbonValue(value);
+
+    return isTag(value, storage.tag) ? new storage.Ctor(value) : storage.Ctor.from(value);
+}
+
+
+/**
+ * Coerce a `typedArray` value INTO an existing target, in place, when it fits.
+ *
+ * The kind declares no length, so a size change is legitimate rather than a
+ * caller error - the opposite of the math kinds, where a declared length is a
+ * requirement. Reuse therefore turns on the target already being the declared
+ * type AND already the incoming length; anything else allocates.
+ *
+ * These are the BIG arrays - decal index buffers, Python blobs - so reusing
+ * them matters more than reusing a vec3, and until now they always allocated.
+ *
+ * @param {*} target
+ * @param {*} value
+ * @param {*} type
+ * @returns {Boolean|null} Whether any element changed, or null to allocate.
+ */
+export function coerceCarbonTypedArrayInto(target, value, type)
+{
+    const descriptor = normalizeCarbonTypeDescriptor(type);
+    if (descriptor.kind !== CARBON_TYPE.TYPED_ARRAY) return null;
+
+    const storage = typedArrayStorageFor(descriptor);
+    if (!storage || !isTag(target, storage.tag)) return null;
+
+    const source = ArrayBuffer.isView(value) || Array.isArray(value) ? value : null;
+    if (!source || source.length !== target.length) return null;
+
+    let changed = false;
+    for (let i = 0; i < target.length; i++)
+    {
+        if (target[i] !== source[i])
+        {
+            target[i] = source[i];
+            changed = true;
+        }
+    }
+    return changed;
 }
 
 function carbonTypeDefinitionForKind(kind)

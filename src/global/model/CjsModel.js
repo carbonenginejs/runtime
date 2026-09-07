@@ -1,4 +1,4 @@
-import { coerceCarbonMathInto, exportCarbonValue, normalizeCarbonValue } from "../schema/types/index.js";
+import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, exportCarbonValue, normalizeCarbonValue } from "../schema/types/index.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../compose/runtimeState.js";
 import { CjsModelState } from "./CjsModelState.js";
@@ -696,7 +696,11 @@ export class CjsModel extends CjsEventEmitter
                     {
                         // Fast path: a math field with an existing compatible typed array
                         // is coerced IN PLACE (no allocation, buffer reference preserved).
-                        const mathChanged = coerceCarbonMathInto(oldValue, incoming, field);
+                        // A declared typedArray field reuses its target the same way when
+                        // the type and the incoming length already match - those are the
+                        // big buffers, and they allocated on every write until 2026-09-08.
+                        const mathChanged = coerceCarbonMathInto(oldValue, incoming, field)
+                            ?? coerceCarbonTypedArrayInto(oldValue, incoming, field);
 
                         if (mathChanged !== null)
                         {
