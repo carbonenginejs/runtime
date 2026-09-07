@@ -145,6 +145,68 @@ before committing to a route can call `verifySupport()` explicitly; ordinary
 reads route synchronously and let the read itself provide the authoritative
 failure. WEM's `raw`, `ogg`, and `pcm` outputs remain explicit caller choices.
 
+## Align the format values pair
+
+`SetValues`/`GetValues` are the one part of the format facade that the
+2026-08-22 capability-surface alignment did not cover. That work gave every
+format one canonical frozen contract for identification, inspection, support
+advice and verification; this is the same job for the remaining pair, on the
+same classes.
+
+Three shapes are in the tree today:
+
+| | `SetValues` | `GetValues` |
+|---|---|---|
+| `CjsFormat` base | `(values)` -> `this`, merges into `this.options` | `()` - **no parameter** |
+| concrete formats | `(options)` -> `this`, writes private fields | `(options = {})` -> merge-into-copy |
+| `CjsModel` (for reference) | `(values, options)` -> changed set | `(options)` -> declared-field export |
+
+The concrete formats agree with each other and are already documented as public
+API in each format's own reference page. The base is the outlier.
+
+### Known defect, independent of the shape decision
+
+`CjsFormat.GetValues()` declares no parameter, while the base's own `Inspect`,
+`GetSupport` and `VerifySupport` all call `this.GetValues(options || {})`. Any
+format that does not override it silently drops the caller's per-call options.
+It works only because most subclasses do override. Fix this regardless of what
+is decided about the wider shape.
+
+### The guard for this area is blind
+
+`tools/validate-format-facades.mjs` enforces the constraints below - no
+`extends CjsModel`, no model import, no `@type`/`@io`/`@carbon`/`@impl`
+decorator - but it scans for `format-*` directories at the package root. Those
+were the standalone packages, retired into `src/resource/formats/` by the
+consolidation, so it finds nothing, checks nothing, and prints
+"Format facade validation passed". Point it at `src/resource/formats/` as part
+of this work; the constraints it encodes are still correct.
+
+### Constraints
+
+- **Formats stay decorator-free.** The base's own header gives the reason: the
+  format subpaths must remain directly importable from authored source, so it
+  deliberately does not import the decorated model. A decorator would pull the
+  schema layer into every subpath.
+- **Formats need no schema data.** They report data about a resource and are
+  never hand-edited by a person, so the pair stays hand-maintained. If one ever
+  did need schema, `CjsSchema.define` and `CjsSchema.defineField` are the
+  decorator-free function form.
+- **Do not convert formats to schema-driven transport.** The values service
+  delegates to a format's own methods by design; that arm is a contract.
+
+### The open call
+
+Either make the hand-written pair match the model's SHAPE - signature and
+return - or give the option-profile behaviour a different name, since it IS a
+distinct operation (a constructor-time profile fill) that happens to share a
+name with the model's setter. Both leave the implementation hand-maintained.
+Note `CjsHlslFormat` chains on the `this` return in two places, and the shape
+is documented public API per format, so either direction is a documented
+surface change. Scale, measured 2026-09-08: `SetValues` has 121 call sites
+across 78 files and `GetValues` 109 — most of that is this family, so a rename
+is mechanical but wide.
+
 ## Open design questions
 
 - Should `Unload()` drop only adapter payloads by default, or CPU payloads
