@@ -1,6 +1,13 @@
-import { defaultValueForCarbonField } from "./types/carbonTypes.js";
+import {
+    coerceCarbonMathInto,
+    coerceCarbonTypedArrayInto,
+    defaultValueForCarbonField,
+    exportCarbonValue,
+    normalizeCarbonValue
+} from "./types/carbonTypes.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { cast, composeInterfaceDecorator } from "../compose/interface.js";
+import { composeValuesDecorator, createValuesTransport } from "../compose/values.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -365,7 +372,14 @@ export class CjsSchema
      */
     static getValues(target, out = {}, options = {})
     {
-        return CjsSchema.#requireValuesService("getValues").getValues(target, out, options);
+        // Without the model layer the state-free transport still answers for a
+        // decorated class, which is what lets a reader work with only the
+        // schema layer loaded - hydration.js states that as its whole reason
+        // for calling SetValues directly rather than through here.
+        const service = CjsSchema.#valuesService;
+        return service
+            ? service.getValues(target, out, options)
+            : CjsSchema.getValuesFromSchema(target, out, options);
     }
 
     /**
@@ -378,7 +392,42 @@ export class CjsSchema
      */
     static setValues(target, values = {}, options = {})
     {
-        return CjsSchema.#requireValuesService("setValues").setValues(target, values, options);
+        const service = CjsSchema.#valuesService;
+        return service
+            ? service.setValues(target, values, options)
+            : CjsSchema.setValuesFromSchema(target, values, options);
+    }
+
+    /**
+     * The state-free transport, for a decorated class carrying no SetValues.
+     *
+     * Coercion, the writability gate and a changed set - the reader's half.
+     * The dirty flag, the settle loop, the modified event and child mutation
+     * are the EDITING contract and stay with the model path.
+     *
+     * Registered as the values service's third arm, which threw by name until
+     * this existed. Also what `@compose.values` installs.
+     */
+    static #statelessTransport = createValuesTransport({
+        GetFields: Constructor => getEffectiveFields(Constructor),
+        Export: (value, field, options) => exportCarbonValue(value, field.type, options),
+        Import: (value, field) => normalizeCarbonValue(value, field.type),
+        CoerceInto: (current, incoming, field) =>
+            coerceCarbonMathInto(current, incoming, field.type)
+            ?? coerceCarbonTypedArrayInto(current, incoming, field.type),
+        IsEquivalent: (a, b) => a === b
+    });
+
+    /** Reads declared fields off any decorated class, without a model base. */
+    static getValuesFromSchema(target, out = {}, options = {})
+    {
+        return CjsSchema.#statelessTransport.getValues(target, out, options);
+    }
+
+    /** Writes declared fields onto any decorated class, without a model base. */
+    static setValuesFromSchema(target, values = {}, options = {})
+    {
+        return CjsSchema.#statelessTransport.setValues(target, values, options);
     }
 
     /**
@@ -567,7 +616,8 @@ export class CjsSchema
         notify: composeNotifyDecorator,
         interface: Contract => composeInterfaceDecorator(
             Contract,
-            (Constructor, name) => CjsSchema.decorateMethod(Constructor, name, CjsSchema.impl.abstract))
+            (Constructor, name) => CjsSchema.decorateMethod(Constructor, name, CjsSchema.impl.abstract)),
+        values: composeValuesDecorator(CjsSchema.#statelessTransport)
     });
 
     static jessica = Object.freeze({

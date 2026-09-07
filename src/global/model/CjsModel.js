@@ -1951,8 +1951,10 @@ function assertTargetTypeMatches(out, typeName, options = {})
 // - a non-model class carrying its own SetValues/GetValues convention (the
 //   CjsFormat family) is delegated to it, per the reader ruling that
 //   population goes through SetValues;
-// - a plain decorated class without either waits for the facade migration's
-//   state-free transport, and says so rather than guessing.
+// - a plain decorated class without either goes through the schema layer's
+//   state-free transport (landed 2026-09-08), which is coercion, the
+//   writability gate and a changed set - the reader's half, with the editing
+//   contract left to the model path.
 // CjsSchema.from is the whole-bag deserializer: resolve, build, apply, then
 // call the class-owned Initialize when it exists (ruled 2026-09-05).
 CjsSchema.registerValuesService({
@@ -1960,13 +1962,13 @@ CjsSchema.registerValuesService({
     {
         if (CjsSchema.isModelInstance(target)) return CjsModel.get(target, out, options);
         if (target && typeof target.GetValues === "function") return target.GetValues(options);
-        throw new TypeError("CjsSchema.getValues on a plain decorated class awaits the facade migration's state-free transport.");
+        return CjsSchema.getValuesFromSchema(target, out, options);
     },
     setValues(target, values = {}, options = {})
     {
         if (CjsSchema.isModelInstance(target)) return CjsModel.set(target, values, options);
         if (target && typeof target.SetValues === "function") return target.SetValues(values, options);
-        throw new TypeError("CjsSchema.setValues on a plain decorated class awaits the facade migration's state-free transport.");
+        return CjsSchema.setValuesFromSchema(target, values, options);
     },
     from(className, values = {}, options = {})
     {

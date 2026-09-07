@@ -49,8 +49,21 @@ test("CjsSchema.from resolves the class, applies values, and calls a class-owned
   assert.throws(() => CjsSchema.from("NoSuchRegisteredClass", {}), /no class registered/);
 });
 
-test("a plain decorated class without a setter says what it is waiting for", () =>
+test("a plain decorated class without a setter goes through the state-free transport", () =>
 {
-  assert.throws(() => CjsSchema.setValues({}, { a: 1 }), /facade migration/);
-  assert.throws(() => CjsSchema.getValues({}), /facade migration/);
+  // This used to assert a placeholder throw naming the facade migration. The
+  // transport landed 2026-09-08, so the third arm answers instead.
+  class Plain { n = 0; }
+  CjsSchema.define(Plain, { className: "PlainStateFreeProbe" });
+  CjsSchema.defineField(Plain, "n", "type", { kind: "int32" });
+
+  const plain = new Plain();
+  assert.equal(typeof plain.SetValues, "undefined", "the class carries neither method");
+  assert.deepEqual([ ...CjsSchema.setValues(plain, { n: 7 }) ], [ "n" ]);
+  assert.equal(plain.n, 7);
+  assert.deepEqual(CjsSchema.getValues(plain), { n: 7 });
+
+  // An undeclared object has no fields, so it exports empty and changes nothing
+  // rather than throwing - there is nothing to refuse.
+  assert.deepEqual(CjsSchema.getValues({}), {});
 });
