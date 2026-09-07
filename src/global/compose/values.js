@@ -18,17 +18,33 @@
 // statics. Nothing here touches CjsModel, so a class taking @compose.values
 // pays for none of the base.
 //
-// STATE-FREE, exactly as the seam's own name says. The dirty flag, the settle
-// loop, the modified event and the child-mutation surface are the EDITING
-// contract and stay with the authoring path; this is coercion, the writability
-// gate, and a changed set. A reader wants precisely this much - CjsBlueReader
-// already pins {markDirty:false, skipUpdate:true, skipEvents:true} on every
-// hydration, which is the editing half switched off.
+// STATE IS LAZY, NOT ABSENT, and the distinction is the whole contract.
+// `setValues` does coercion, then the changed set, then dirty, then the settle
+// WITH the changed field names. The settle is one of the three benefits the
+// CjsModel audit found real - 95 classes override OnModified, and
+// TriValueBinding drives it per frame - so a transport that skipped it would
+// silently stop running every one of those bodies for any class that moved off
+// the base. The error message this module replaced said "state-free
+// transport"; that phrasing was a previous session's and contradicts the
+// decision page, which rules edit state LAZY: materialising on first write,
+// zero footprint until then.
 //
-// This module imports nothing from the schema layer, for the reason
+// The mechanism is `ensureRuntimeState`, which creates the non-enumerable
+// `__state` slot only when it is not already there - the same slot
+// @compose.notify puts its listener map in, and the same one CjsModel fills
+// with a CjsModelState. An unedited object carries nothing.
+//
+// This module imports nothing from the SCHEMA layer, for the reason
 // compose/notify.js and compose/interface.js import nothing: CjsSchema installs
 // these onto its own namespace, so a schema import here is a cycle that fails
-// at load. Everything it needs arrives through `services`.
+// at load. Everything schema-shaped arrives through `services`. compose/
+// siblings are fine - they import nothing themselves.
+
+import { ensureRuntimeState, getRuntimeState } from "./runtimeState.js";
+
+
+/** Carbon's own guard against a settle that will not converge. */
+const MAX_UPDATE_PASSES = 32;
 
 /**
  * Whether a declared field accepts an incoming value.
@@ -127,10 +143,100 @@ export function createValuesTransport(services)
             }
         }
 
+        // Nothing moved, so nothing is dirty and no state is created. This is
+        // what makes the slot free for an object that is only ever read.
+        if (changed.size && options.markDirty !== false)
+        {
+            ensureRuntimeState(target).dirty = true;
+
+            if (options.skipUpdate !== true) updateValues(target, options, changed);
+        }
+
         return options.returnBoolean === true ? changed.size > 0 : changed;
     }
 
-    return { getValues, setValues };
+    /**
+     * Carbon's INotify settle: run OnModified until nothing re-dirties.
+     *
+     * The changed field names ride through on the options bag. That is
+     * ADDITIVE and verified safe: all 34 overrides carrying a positional
+     * parameter receive the options OBJECT today, so gates comparing it to a
+     * field name are false now and stay false. Passing a name POSITIONALLY
+     * would instead flip the three `!propertyName || ...` arms from never
+     * firing to always firing, which is why it is not done that way.
+     *
+     * @param {object} target
+     * @param {object} options
+     * @param {Set<String>} changedFields
+     * @returns {Boolean} False when a hook refused, leaving the target dirty.
+     */
+    function updateValues(target, options, changedFields)
+    {
+        const state = ensureRuntimeState(target);
+        if (state.updating) return true;
+
+        // INotify is OPTIONAL, in Carbon as here: an object that does not
+        // implement the hook is simply never notified. The statics serve any
+        // decorated class, including ones that never took @compose.values and
+        // so have no OnModified - those settle trivially rather than throwing.
+        const hook = target.OnModified;
+        if (typeof hook !== "function")
+        {
+            state.dirty = false;
+            return true;
+        }
+
+        const source = options.source ?? target;
+        state.updating = true;
+
+        try
+        {
+            for (let pass = 0; ; pass++)
+            {
+                if (pass >= MAX_UPDATE_PASSES)
+                {
+                    throw new Error(
+                        `${target.constructor?.name ?? "value"} exceeded ${MAX_UPDATE_PASSES} settle passes.`);
+                }
+
+                state.dirty = false;
+
+                if (hook.call(target, { ...options, source, changedFields }) === false)
+                {
+                    state.dirty = true;
+                    return false;
+                }
+
+                if (!state.dirty) break;
+            }
+        }
+        catch (error)
+        {
+            state.dirty = true;
+            throw error;
+        }
+        finally
+        {
+            state.updating = false;
+        }
+
+        // `HasListener` lives on the state slot itself, so it exists whatever
+        // decorators the class took, and answers false when no emitter was
+        // ever attached - which is also what keeps EmitEvent from being called
+        // on a class that does not have it.
+        //
+        // The emitter no-ops without listeners anyway, so the guard is really
+        // about the PAYLOAD: it stops one being built per settle for nobody,
+        // the waste the audit measured on the per-frame binding path.
+        if (options.skipEvents !== true && !state.suppressEvents && state.HasListener())
+        {
+            target.EmitEvent("modified", target, { source, changedFields });
+        }
+
+        return true;
+    }
+
+    return { getValues, setValues, updateValues };
 }
 
 
@@ -149,7 +255,18 @@ export function composeValuesDecorator(transport)
 {
     const METHODS = {
         GetValues(options = {}) { return transport.getValues(this, {}, options); },
-        SetValues(values = {}, options = {}) { return transport.setValues(this, values, options); }
+        SetValues(values = {}, options = {}) { return transport.setValues(this, values, options); },
+        UpdateValues(options = {}) { return transport.updateValues(this, options, options.changedFields ?? null); },
+
+        /**
+         * Carbon's INotify hook. The default accepts, exactly as the model
+         * base's does; a class overrides it to react to its own changes.
+         */
+        OnModified() { return true; },
+
+        IsDirty() { return getRuntimeState(this)?.dirty === true; },
+        MarkDirty() { ensureRuntimeState(this).dirty = true; return this; },
+        ClearDirty() { const state = getRuntimeState(this); if (state) state.dirty = false; return this; }
     };
 
     return function (value, context)

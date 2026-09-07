@@ -135,8 +135,13 @@ function EmitEvent(eventName, ...args)
  * @param {*} source Optional callback source to match.
  * @returns {boolean}
  */
-function HasEvent(eventName = "*", listener = null, source = ANY_SOURCE)
+function HasListener(eventName = "*", listener = null, source = ANY_SOURCE)
 {
+    // The state answers the cheap question - is ANYTHING listening - before a
+    // record search runs. "HasEvent" was the old name and claimed more than is
+    // knowable: any caller may emit any name at any time, so what can be known
+    // is whether something is LISTENING to one.
+    if (!getRuntimeState(this)?.HasListener(eventName)) return false;
     return FindEventRecords(this, eventName, listener, source).length > 0;
 }
 
@@ -180,7 +185,7 @@ export const NOTIFY_METHODS = Object.freeze({
     OnceEvent,
     OffEvent,
     EmitEvent,
-    HasEvent,
+    HasListener,
     ClearEvent,
     GetEventNames,
     GetEventListenerCount
@@ -267,7 +272,13 @@ function RemoveEventRecord(record)
     {
         records.delete(record);
         if (!records.size) events.delete(record.eventName);
-        if (!events.size) delete getRuntimeState(record.emitter).events;
+        if (!events.size)
+        {
+            const state = getRuntimeState(record.emitter);
+            delete state.events;
+            // The override goes with the map, so the stub answers false again.
+            delete state.HasListener;
+        }
     }
 }
 
@@ -328,6 +339,21 @@ function NormalizeEventEntry(key, value)
     return { eventName, listener, source, once };
 }
 
+/**
+ * The HasListener an object carries WHILE it has listeners, hijacking the
+ * runtime-state prototype's always-false stub.
+ *
+ * @param {string} [eventName]
+ * @returns {Boolean}
+ */
+function HasListenerWithEvents(eventName = "*")
+{
+    if (eventName === "*") return true;
+
+    const records = this.events?.get(NormalizeEventName(eventName));
+    return records ? records.size > 0 : false;
+}
+
 function GetEventMap(emitter, create = false)
 {
     const state = create ? ensureRuntimeState(emitter) : getRuntimeState(emitter);
@@ -337,6 +363,14 @@ function GetEventMap(emitter, create = false)
     {
         if (!create) return null;
         state.events = new Map();
+        // Installed the way the decorators install anything - defineProperty,
+        // non-enumerable, configurable so it can be removed again. A shared
+        // function reference: one property slot, no closure.
+        Object.defineProperty(state, "HasListener", {
+            value: HasListenerWithEvents,
+            writable: true,
+            configurable: true
+        });
     }
     else if (!(state.events instanceof Map))
     {

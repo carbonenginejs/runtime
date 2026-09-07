@@ -538,7 +538,7 @@ test("CjsEventEmitter normalizes names and supports external method sources", ()
     assert.deepEqual(Object.getOwnPropertyNames(target), ["__state"]);
     assert.equal(Object.keys(target).includes("__state"), false);
     assert.equal(target.__state.events instanceof Map, true);
-    assert.equal(target.HasEvent("loaded", onLoaded, source), true);
+    assert.equal(target.HasListener("loaded", onLoaded, source), true);
     assert.deepEqual(target.GetEventNames(), ["loaded"]);
 
     target.EmitEvent("LOADED", 3);
@@ -551,7 +551,7 @@ test("CjsEventEmitter normalizes names and supports external method sources", ()
     target.EmitEvent("loaded", 4);
 
     assert.deepEqual(values, [[source, 3]]);
-    assert.equal(target.HasEvent("loaded"), false);
+    assert.equal(target.HasListener("loaded"), false);
     assert.equal(Object.hasOwn(target.__state, "events"), false);
 });
 
@@ -569,7 +569,7 @@ test("CjsEventEmitter removes once listeners before callback completion", () => 
 
     assert.equal(count, 1);
     assert.equal(emitter.GetEventListenerCount(), 0);
-    assert.equal(emitter.HasEvent("loaded"), false);
+    assert.equal(emitter.HasListener("loaded"), false);
     assert.equal(Object.hasOwn(emitter.__state, "events"), false);
 });
 
@@ -591,9 +591,9 @@ test("CjsEventEmitter removes one source across every event name", () => {
 
     emitter.OffEvent("*", null, firstSource);
 
-    assert.equal(emitter.HasEvent("loaded", listener, firstSource), false);
-    assert.equal(emitter.HasEvent("changed", listener, firstSource), false);
-    assert.equal(emitter.HasEvent("loaded", listener, secondSource), true);
+    assert.equal(emitter.HasListener("loaded", listener, firstSource), false);
+    assert.equal(emitter.HasListener("changed", listener, firstSource), false);
+    assert.equal(emitter.HasListener("loaded", listener, secondSource), true);
 
     emitter.EmitEvent("loaded", 1);
     emitter.EmitEvent("changed", 2);

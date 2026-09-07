@@ -1,3 +1,5 @@
+import { RUNTIME_STATE_PROTOTYPE } from "../compose/runtimeState.js";
+
 /**
  * Per-model runtime state. One instance per model at `__state`.
  *
@@ -70,3 +72,10 @@ export class CjsModelState
     }
 
 }
+
+
+// Models put a CjsModelState in the same __state slot a composed class fills
+// with a plain state object, so it answers the same questions - HasListener
+// first among them. Linking the prototypes rather than copying the method
+// means anything added to the shared state surface reaches models too.
+Object.setPrototypeOf(CjsModelState.prototype, RUNTIME_STATE_PROTOTYPE);

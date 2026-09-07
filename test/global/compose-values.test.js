@@ -165,3 +165,141 @@ test("the decorator refuses a non-class", () =>
   assert.throws(() => CjsSchema.compose.values({}, { kind: "class" }), TypeError);
   assert.throws(() => CjsSchema.compose.values(() => {}, { kind: "method" }), TypeError);
 });
+
+// --- lazy state, the settle, and the listener door ---------------------------
+
+test("an unedited object carries no state at all", () =>
+{
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  const thing = new Fixture();
+
+  assert.equal(Object.hasOwn(thing, "__state"), false);
+  thing.GetValues();
+  thing.SetValues({});
+  assert.equal(Object.hasOwn(thing, "__state"), false, "reads and no-op writes create nothing");
+});
+
+test("a write marks dirty and the settle clears it", () =>
+{
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  const thing = new Fixture();
+
+  thing.SetValues({ n: 1 });
+  assert.equal(thing.IsDirty(), false, "the settle ran and converged");
+
+  thing.SetValues({ n: 2 }, { skipUpdate: true });
+  assert.equal(thing.IsDirty(), true, "skipUpdate leaves it dirty for a later settle");
+});
+
+test("OnModified receives the changed field names, additively", () =>
+{
+  const seen = [];
+  const Fixture = declare({
+    n: { type: { kind: "int32" }, initial: 0 },
+    name: { type: { kind: "string" }, initial: "" }
+  });
+  Fixture.prototype.OnModified = function (options)
+  {
+    seen.push({ fields: [ ...options.changedFields ], source: options.source === this });
+    return true;
+  };
+
+  new Fixture().SetValues({ n: 1, name: "x" });
+  assert.deepEqual(seen, [ { fields: [ "n", "name" ], source: true } ]);
+});
+
+test("a positional OnModified override still sees the options object", () =>
+{
+  // The 34 overrides carrying a positional parameter get the bag, so gates
+  // comparing it to a field name are false now and stay false.
+  let received;
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  Fixture.prototype.OnModified = function (value) { received = value; return true; };
+
+  new Fixture().SetValues({ n: 1 });
+  assert.equal(typeof received, "object");
+  assert.equal(received === "n", false, "a field-name gate does not fire");
+});
+
+test("OnModified returning false leaves the target dirty", () =>
+{
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  Fixture.prototype.OnModified = function () { return false; };
+
+  const thing = new Fixture();
+  thing.SetValues({ n: 1 });
+  assert.equal(thing.IsDirty(), true);
+});
+
+test("a settle that never converges throws rather than spinning", () =>
+{
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  Fixture.prototype.OnModified = function () { this.MarkDirty(); return true; };
+
+  assert.throws(() => new Fixture().SetValues({ n: 1 }), /settle passes/);
+});
+
+test("the settle is re-entrant-safe", () =>
+{
+  let depth = 0;
+  let max = 0;
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  Fixture.prototype.OnModified = function ()
+  {
+    depth += 1;
+    max = Math.max(max, depth);
+    if (depth < 3) this.UpdateValues({});
+    depth -= 1;
+    return true;
+  };
+
+  new Fixture().SetValues({ n: 1 });
+  assert.equal(max, 1, "a nested UpdateValues returns instead of recursing");
+});
+
+test("nothing is emitted without a listener, and the payload carries the fields", () =>
+{
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  CjsSchema.compose.notify(Fixture, { kind: "class" });
+
+  const thing = new Fixture();
+  const heard = [];
+
+  thing.SetValues({ n: 1 });
+  assert.deepEqual(heard, [], "no listener, no emit");
+
+  const listener = (obj, detail) => heard.push({ same: obj === thing, fields: [ ...detail.changedFields ] });
+  thing.OnEvent("modified", listener);
+  thing.SetValues({ n: 2 });
+  assert.deepEqual(heard, [ { same: true, fields: [ "n" ] } ]);
+
+  thing.OffEvent("modified", listener);
+  heard.length = 0;
+  thing.SetValues({ n: 3 });
+  assert.deepEqual(heard, [], "the last listener leaving stops the emit again");
+});
+
+test("values without notify never calls EmitEvent", () =>
+{
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  const thing = new Fixture();
+
+  assert.equal(typeof thing.EmitEvent, "undefined");
+  assert.doesNotThrow(() => thing.SetValues({ n: 1 }));
+});
+
+test("skipEvents suppresses the emit but not the settle", () =>
+{
+  const settled = [];
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  CjsSchema.compose.notify(Fixture, { kind: "class" });
+  Fixture.prototype.OnModified = function () { settled.push(1); return true; };
+
+  const thing = new Fixture();
+  const heard = [];
+  thing.OnEvent("modified", () => heard.push(1));
+  thing.SetValues({ n: 1 }, { skipEvents: true });
+
+  assert.equal(settled.length, 1, "the settle still ran");
+  assert.deepEqual(heard, [], "the event did not");
+});

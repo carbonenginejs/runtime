@@ -66,7 +66,7 @@ test("CjsEventEmitter supports direct source subscriptions", () => {
   assert.equal(emitter.OnEvent("Loaded", listener, source), emitter);
 
   assert.equal(emitter.__state.events instanceof Map, true);
-  assert.equal(emitter.HasEvent("loaded", listener, source), true);
+  assert.equal(emitter.HasListener("loaded", listener, source), true);
   assert.deepEqual(emitter.GetEventNames(), ["loaded"]);
 
   emitter.EmitEvent("LOADED", 2);
@@ -79,7 +79,7 @@ test("CjsEventEmitter supports direct source subscriptions", () => {
   emitter.EmitEvent("loaded", 2);
 
   assert.deepEqual(seen, [2]);
-  assert.equal(emitter.HasEvent("loaded"), false);
+  assert.equal(emitter.HasListener("loaded"), false);
 });
 
 test("CjsEventEmitter once listeners are removed before callback completion", () => {
@@ -93,7 +93,7 @@ test("CjsEventEmitter once listeners are removed before callback completion", ()
 
   assert.throws(() => emitter.EmitEvent("fail"), /boom/u);
   assert.equal(count, 1);
-  assert.equal(emitter.HasEvent("fail"), false);
+  assert.equal(emitter.HasListener("fail"), false);
 
   emitter.EmitEvent("fail");
 
@@ -118,11 +118,11 @@ test("CjsEventEmitter clears event groups and supports AddEvents once suffix", (
   emitter.EmitEvent("changed", 5);
 
   assert.deepEqual(values, [4, 7, 5]);
-  assert.equal(emitter.HasEvent("changed"), true);
+  assert.equal(emitter.HasListener("changed"), true);
 
   emitter.ClearEvent("*");
 
-  assert.equal(emitter.HasEvent("*"), false);
+  assert.equal(emitter.HasListener("*"), false);
 });
 
 test("CjsEventEmitter independently removes external listener sources", () => {
@@ -161,7 +161,7 @@ test("CjsEventEmitter independently removes external listener sources", () => {
   resource.EmitEvent("loaded", 11);
 
   assert.deepEqual(sceneValues, [7, 9]);
-  assert.equal(resource.HasEvent("loaded"), false);
+  assert.equal(resource.HasListener("loaded"), false);
 });
 
 test("resource path helpers normalize Carbon-style paths", () => {
