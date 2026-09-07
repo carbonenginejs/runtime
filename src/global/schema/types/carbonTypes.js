@@ -1,3 +1,5 @@
+import { isTag } from "#utils/is";
+
 export const CARBON_META = Symbol.for("carbonenginejs.type");
 export const CARBON_RAW_STRUCT_TYPE = Symbol.for("carbonenginejs.rawStructType");
 
@@ -99,6 +101,18 @@ const TYPED_ARRAY_CTORS = Object.freeze({
     BigUint64Array
 });
 
+/** The typed array each declared scalar stores into. */
+const TYPED_ARRAY_FOR_SCALAR = Object.freeze({
+    [CARBON_TYPE.INT8]: "Int8Array",
+    [CARBON_TYPE.UINT8]: "Uint8Array",
+    [CARBON_TYPE.INT16]: "Int16Array",
+    [CARBON_TYPE.UINT16]: "Uint16Array",
+    [CARBON_TYPE.INT32]: "Int32Array",
+    [CARBON_TYPE.UINT32]: "Uint32Array",
+    [CARBON_TYPE.FLOAT32]: "Float32Array",
+    [CARBON_TYPE.FLOAT64]: "Float64Array"
+});
+
 const num = Object.freeze({
     int8,
     uint8,
@@ -114,40 +128,107 @@ const num = Object.freeze({
 
 const CARBON_MATH_KINDS = new Set(Object.keys(FLOAT32_VECTOR_DEFINITIONS));
 
-/** Creates a Float32Array using the declared Carbon math shape and defaults. */
+/**
+ * The typed array and rounding function a math kind's declared scalar wants.
+ *
+ * Every math descriptor carries a `scalar`, and the whole point of declaring
+ * one is to know the storage type rather than assume it. Before 2026-09-08 both
+ * this file's math paths hardcoded Float32Array and num.float32 and ignored
+ * `scalar` entirely - harmless while every declared math kind happened to be
+ * float32, and a SILENT TRUNCATION the moment one is not. Carbon has
+ * `Vector3d`/`Vector4d` in 331 places, so that moment is a port away.
+ *
+ * @param {object} descriptor A normalized Carbon type descriptor.
+ * @returns {{Ctor: Function, round: Function}|null} Null when the scalar has no
+ *     typed-array storage, so the caller falls back to a plain array.
+ */
+function mathStorageFor(descriptor)
+{
+    return MATH_STORAGE[descriptor.scalar] ?? null;
+}
+
+
+/**
+ * Per-scalar storage, resolved once rather than per value.
+ *
+ * The `tag` is what `isTag` compares against - the exact-type check, which
+ * unlike `instanceof` also answers correctly for a typed array that arrived
+ * from a worker or another realm, where the constructor is a different object.
+ */
+const MATH_STORAGE = Object.freeze(Object.fromEntries(
+    Object.entries(TYPED_ARRAY_FOR_SCALAR)
+        .map(([ scalar, name ]) => [ scalar, Object.freeze({
+            Ctor: TYPED_ARRAY_CTORS[name],
+            round: num[scalar],
+            tag: `[object ${name}]`
+        }) ])
+        .filter(([ , storage ]) => storage.Ctor && storage.round)));
+
+
+/** Creates the declared typed array for a Carbon math shape, with its defaults. */
 export function createCarbonMathValue(type, value = undefined)
 {
     const descriptor = normalizeCarbonTypeDescriptor(type);
-    const values = normalizeMathValues(value, descriptor.length, descriptor.default);
+    const storage = CARBON_MATH_KINDS.has(descriptor.kind) ? mathStorageFor(descriptor) : null;
 
-    // Carbon math values are plain Float32Arrays. Their descriptors remain
-    // independent of the gl-matrix-backed math helpers. Defaults already
-    // encode identity/zero, matching gl-matrix's create() output.
-    return CARBON_MATH_KINDS.has(descriptor.kind) ? Float32Array.from(values) : values;
+    // Both internal callers are math-kind switch arms, so `storage` is resolved
+    // in every real call. The identity fallback covers a non-math descriptor
+    // reaching here without quietly re-asserting float32 over it.
+    const values = normalizeMathValues(
+        value, descriptor.length, descriptor.default, storage?.round ?? (n => n), descriptor.kind);
+
+    // Carbon math values are plain typed arrays of their DECLARED scalar. Their
+    // descriptors remain independent of the gl-matrix-backed math helpers, whose
+    // own ARRAY_TYPE stays float32; a field declaring a wider scalar keeps its
+    // precision in storage, and only borrows gl-matrix for float32 work.
+    // Defaults already encode identity/zero, matching gl-matrix's create().
+    return storage ? storage.Ctor.from(values) : values;
 }
 
 /**
- * Coerce a math value INTO an existing Float32Array target, in place, with no
+ * Coerce a math value INTO an existing typed-array target, in place, with no
  * allocation. Returns `true`/`false` (whether any element changed) when the fast
- * path applies — a math kind, `target` a compatible Float32Array, and `value`
- * array-like. Returns `null` when it does not apply (non-math kind, incompatible
- * or absent target, or a null/undefined value) so the caller falls back to a
+ * path applies — a math kind whose declared scalar has typed-array storage, a
+ * `target` of exactly that type and the declared length, and an array-like
+ * `value`. Returns `null` when it does not apply, so the caller falls back to a
  * normal allocating assignment.
+ *
+ * THROWS when `value` has a length other than the declared one: a declared
+ * length is a requirement, and padding or truncating it hands back a plausible
+ * wrong answer with no signal.
  */
 export function coerceCarbonMathInto(target, value, type)
 {
     const descriptor = normalizeCarbonTypeDescriptor(type);
     if (!CARBON_MATH_KINDS.has(descriptor.kind)) return null;
-    if (!(target instanceof Float32Array) || target.length !== descriptor.length) return null;
+
+    const storage = mathStorageFor(descriptor);
+    if (!storage) return null;
+
+    // Against the DECLARED type rather than a hardcoded Float32Array, through
+    // the existing `isTag` util: the exact-type check, and correct for a typed
+    // array that arrived from a worker or another realm, where `instanceof`
+    // fails because the constructor is a different object.
+    if (!isTag(target, storage.tag) || target.length !== descriptor.length) return null;
 
     const source = ArrayBuffer.isView(value) || Array.isArray(value) ? value : null;
     if (!source) return null;
 
-    const defaults = descriptor.default;
+    // A declared length is a requirement, so a mismatch is the caller's bug
+    // rather than something to pad or truncate into silence.
+    if (source.length !== descriptor.length)
+    {
+        const error = new RangeError(
+            `${descriptor.kind} declares ${descriptor.length} elements and received ${source.length}.`);
+        error.code = "CJS_MATH_LENGTH_MISMATCH";
+        throw error;
+    }
+
+    const round = storage.round;
     let changed = false;
     for (let i = 0; i < descriptor.length; i++)
     {
-        const next = num.float32(i < source.length ? source[i] : defaults[i]);
+        const next = round(source[i]);
         if (target[i] !== next)
         {
             target[i] = next;
@@ -636,14 +717,40 @@ function isExpressionLike(name)
     return /(?:^|[^A-Za-z0-9])expression(?:$|[^A-Za-z0-9])|expression/i.test(String(name || ""));
 }
 
-function normalizeMathValues(value, length, defaults)
+/**
+ * Builds a math value's element list from its defaults and an optional source.
+ *
+ * A DECLARED LENGTH IS A REQUIREMENT, not a maximum. Until 2026-09-08 a short
+ * source was silently padded from the defaults and a long one silently
+ * truncated, so `[1, 2]` into a vec3 became `[1, 2, 0]` and `[1, 2, 3, 4]`
+ * became `[1, 2, 3]` - a caller passing the wrong shape got a plausible wrong
+ * answer and no signal. Absent a source the defaults stand, which is ordinary
+ * construction rather than a mismatch.
+ *
+ * @param {*} value Optional source elements.
+ * @param {number} length The declared element count.
+ * @param {number[]} defaults The declared defaults.
+ * @param {Function} round The declared scalar's rounding function.
+ * @param {string} kind The kind name, for the error.
+ * @returns {number[]}
+ */
+function normalizeMathValues(value, length, defaults, round, kind)
 {
     const result = Array.isArray(defaults) ? defaults.slice() : new Array(length).fill(0);
-    const source = ArrayBuffer.isView(value) || Array.isArray(value) ? value : [];
-    for (let i = 0; i < result.length && i < source.length; i++)
+    if (value === null || value === undefined) return result;
+
+    const source = ArrayBuffer.isView(value) || Array.isArray(value) ? value : null;
+    if (!source) return result;
+
+    if (source.length !== result.length)
     {
-        result[i] = num.float32(source[i]);
+        const error = new RangeError(
+            `${kind} declares ${result.length} elements and received ${source.length}.`);
+        error.code = "CJS_MATH_LENGTH_MISMATCH";
+        throw error;
     }
+
+    for (let i = 0; i < result.length; i++) result[i] = round(source[i]);
     return result;
 }
 
