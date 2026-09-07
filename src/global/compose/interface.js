@@ -37,6 +37,49 @@ const OBJECT_MEMBERS = new Set(Object.getOwnPropertyNames(Object.prototype));
 
 
 /**
+ * The composed-contract record, held on the CONSTRUCTOR.
+ *
+ * Class statics inherit, so a subclass that is never itself decorated still
+ * finds its parent's record in one lookup - no constructor-chain walk. A
+ * subclass that IS decorated copies the inherited set before adding to it, so
+ * declaring a contract on a subclass never reaches back into its parent.
+ */
+const COMPOSED = Symbol.for("carbonenginejs.compose.contracts");
+
+
+/**
+ * Every contract composed onto a class, including those it inherits.
+ *
+ * @param {Function} Constructor
+ * @returns {Set<Function>} Empty when nothing was composed. Do not mutate.
+ */
+export function composedContracts(Constructor)
+{
+    return (typeof Constructor === "function" && Constructor[COMPOSED]) || new Set();
+}
+
+
+/**
+ * Records a contract against a class, copying an inherited record first.
+ *
+ * @param {Function} Constructor
+ * @param {Function} Contract
+ */
+function RecordContract(Constructor, Contract)
+{
+    if (!Object.hasOwn(Constructor, COMPOSED))
+    {
+        Object.defineProperty(Constructor, COMPOSED, {
+            value: new Set(Constructor[COMPOSED] ?? []),
+            configurable: true
+        });
+    }
+
+    Constructor[COMPOSED].add(Contract);
+}
+
+
+/**
  * Collects a contract's instance members, nearest declaration winning.
  *
  * Walks the prototype chain so a contract that itself extends another contract
@@ -112,12 +155,67 @@ export function installInterface(Constructor, Contract, onInstalled = null)
         if (typeof descriptor.value === "function") installed.push(name);
     }
 
+    RecordContract(Constructor, Contract);
+
     if (typeof onInstalled === "function")
     {
         for (const name of installed) onInstalled(Constructor, name);
     }
 
     return Constructor;
+}
+
+
+/**
+ * Carbon's `dynamic_cast` / `BlueCastPtr`, as far as JavaScript can carry it.
+ *
+ * Carbon branches on runtime type constantly - 143 `dynamic_cast` sites in
+ * trinity, of which ~116 target an INTERFACE and ask "does this object
+ * implement this optional contract?". That is contract semantics, and it is
+ * the one legitimate reason to test an object's type. This is that operation:
+ *
+ *     const owner = cast( child, IEveInheritPropertiesOwner );
+ *     if( owner ) owner.SetInheritProperties( colorSet );
+ *
+ * against Carbon's
+ *
+ *     if( auto tmp = dynamic_cast<ITr2DebugRenderable*>( m_sourceEmitter.p ) )
+ *
+ * C++ gets a retyped pointer the compiler then enforces; JavaScript has no
+ * type to change, so this does the checking half only and returns the same
+ * object. The value is that HOW the question is answered lives in one place:
+ * today a composed record with an `instanceof` fallback for contracts still
+ * carrying a hand-written brand, tomorrow whatever replaces both, with no
+ * call site touched.
+ *
+ * This is an INVENTION - Carbon needs no predicate because the cast doubles as
+ * one. Registered in `docs/architecture/non-carbon-extensions.md`.
+ *
+ * @param {*} value The object to test.
+ * @param {Function} Contract The contract to test against.
+ * @returns {*} `value` when it implements the contract, otherwise `null`.
+ */
+export function cast(value, Contract)
+{
+    if (value === null || value === undefined) return null;
+
+    if (typeof Contract !== "function" || !Contract.prototype)
+    {
+        throw new TypeError("CjsSchema.cast requires a contract class.");
+    }
+
+    const Constructor = value.constructor;
+
+    if (typeof Constructor === "function" && Constructor[COMPOSED]?.has(Contract))
+    {
+        return value;
+    }
+
+    // Contracts still carrying a hand-written `Symbol.hasInstance` brand, and
+    // ordinary `extends` lineage, both answer here. Removing a brand therefore
+    // never changes an answer, which is what makes the 16 of them migratable
+    // one at a time.
+    return value instanceof Contract ? value : null;
 }
 
 

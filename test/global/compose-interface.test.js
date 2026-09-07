@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsSchema } from "#schema";
-import { installInterface } from "../../src/global/compose/interface.js";
+import { composedContracts, installInterface } from "../../src/global/compose/interface.js";
 
 // Carbon declares additional bases with MAP_INTERFACE; JS has one `extends`
 // slot. These pin the behaviour the mixin towers had, so the 33 sites that
@@ -164,4 +164,91 @@ test("through the namespace, installed members carry impl.abstract", () =>
 
   const schema = CjsSchema.getSchema(Thing);
   assert.ok(schema, "the class has a schema record after decoration");
+});
+
+// --- the composed record and CjsSchema.cast ---------------------------------
+
+test("cast returns the value when the contract was composed", () =>
+{
+  class Thing extends Base {}
+  installInterface(Thing, Contract);
+
+  const thing = new Thing();
+  assert.equal(CjsSchema.cast(thing, Contract), thing);
+});
+
+test("cast returns null when the contract was not composed", () =>
+{
+  class Other { Nope() {} }
+  class Thing extends Base {}
+  installInterface(Thing, Contract);
+
+  assert.equal(CjsSchema.cast(new Thing(), Other), null);
+});
+
+test("cast answers for a subclass that was never itself decorated", () =>
+{
+  class Thing extends Base {}
+  installInterface(Thing, Contract);
+  class Sub extends Thing {}
+
+  const sub = new Sub();
+  assert.equal(CjsSchema.cast(sub, Contract), sub, "statics inherit, so one lookup finds it");
+});
+
+test("declaring a contract on a subclass does not reach back into the parent", () =>
+{
+  class Other { Only() { return "other-only"; } }
+
+  class Parent extends Base {}
+  installInterface(Parent, Contract);
+
+  class Child extends Parent {}
+  installInterface(Child, Other);
+
+  assert.ok(CjsSchema.cast(new Child(), Other), "the child has both");
+  assert.ok(CjsSchema.cast(new Child(), Contract), "including the inherited one");
+  assert.equal(CjsSchema.cast(new Parent(), Other), null, "the parent is unchanged");
+});
+
+test("cast falls back to instanceof, so brand contracts still answer", () =>
+{
+  const BRAND = Symbol("brand");
+
+  class Branded
+  {
+    static [Symbol.hasInstance](value) { return value?.[BRAND] === true; }
+  }
+
+  const branded = { [BRAND]: true };
+  assert.equal(CjsSchema.cast(branded, Branded), branded);
+});
+
+test("cast falls back to ordinary extends lineage", () =>
+{
+  class Thing extends Base {}
+  const thing = new Thing();
+
+  assert.equal(CjsSchema.cast(thing, Base), thing);
+});
+
+test("cast is null-safe and refuses a non-contract", () =>
+{
+  assert.equal(CjsSchema.cast(null, Contract), null);
+  assert.equal(CjsSchema.cast(undefined, Contract), null);
+  assert.throws(() => CjsSchema.cast({}, null), TypeError);
+});
+
+test("composedContracts reports what was declared, inherited included", () =>
+{
+  class Other { Only() {} }
+
+  class Parent extends Base {}
+  installInterface(Parent, Contract);
+  class Child extends Parent {}
+  installInterface(Child, Other);
+
+  assert.deepEqual([ ...composedContracts(Parent) ], [ Contract ]);
+  assert.deepEqual([ ...composedContracts(Child) ], [ Contract, Other ]);
+  assert.deepEqual([ ...composedContracts(Base) ], []);
 });

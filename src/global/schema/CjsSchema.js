@@ -1,6 +1,6 @@
 import { defaultValueForCarbonField } from "./types/carbonTypes.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
-import { composeInterfaceDecorator } from "../compose/interface.js";
+import { cast, composeInterfaceDecorator } from "../compose/interface.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -106,6 +106,20 @@ export class CjsSchema
     }
 
     /** Applies method provenance metadata without requiring decorator syntax. */
+    /**
+     * Carbon's `dynamic_cast`: returns the value when it implements the
+     * contract, otherwise null. See `compose/interface.js` for why this exists
+     * and what it deliberately does not do.
+     *
+     * @param {*} value
+     * @param {Function} Contract
+     * @returns {*} `value` or `null`.
+     */
+    static cast(value, Contract)
+    {
+        return cast(value, Contract);
+    }
+
     static decorateMethod(Constructor, methodName, ...decorators)
     {
         for (const decorator of decorators)
