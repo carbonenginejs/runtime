@@ -610,8 +610,8 @@ export class CjsSchema
     });
 
     // Composition decorators: type/io/carbon/impl/jessica DESCRIBE, compose
-    // INSTALLS (design record, direction item 11). compose.values joins here
-    // as the facade migration lands it.
+    // INSTALLS (design record, direction item 11). All three are live; the
+    // migration of existing classes onto them is separate work.
     static compose = Object.freeze({
         notify: composeNotifyDecorator,
         interface: Contract => composeInterfaceDecorator(
