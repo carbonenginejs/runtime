@@ -11,14 +11,14 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
   /** indexBuffer (typedArray) [PERSISTONLY] */
   @io.persistOnly
   @type.typedArray("Uint32Array")
-  indexBuffer = null;
+  indexBuffer = new Uint32Array(0);
 
   /** Carbon method AddIndex (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented
   AddIndex(index)
   {
-    const source = this.indexBuffer ?? [];
+    const source = this.indexBuffer;
     const next = new Uint32Array(source.length + 1);
     next.set(source);
     next[source.length] = Number(index) >>> 0;

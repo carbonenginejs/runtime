@@ -417,6 +417,17 @@ export function defaultCarbonValue(type)
         case CARBON_TYPE.SET:
             return new Set();
         case CARBON_TYPE.ENUM:
+        case CARBON_TYPE.TYPED_ARRAY:
+        {
+            // A declared typed array is ALWAYS a typed array. Defaulting it to
+            // null would make every reader test for it first, which is the
+            // hedge this type system exists to remove: the declaration says
+            // what the field holds, so an absent value is an EMPTY one of that
+            // type, not a different type. An undeclared arrayType has nothing
+            // to build and keeps the null.
+            const storage = typedArrayStorageFor(descriptor);
+            return storage ? new storage.Ctor(0) : null;
+        }
         case CARBON_TYPE.MODEL:
         case CARBON_TYPE.OBJECT_REF:
         case CARBON_TYPE.STRUCT:

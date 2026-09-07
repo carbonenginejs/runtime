@@ -83,7 +83,7 @@ export class Tr2ActionPython extends withITr2ControllerAction(CjsModel)
 
   @io.persistOnly
   @type.typedArray("Uint8Array")
-  state = null;
+  state = new Uint8Array(0);
 
   #controller = null;
 
@@ -287,7 +287,7 @@ export class Tr2ActionPython extends withITr2ControllerAction(CjsModel)
     {
       this.#instance = Tr2ActionPython.createInstance(this.module, this.className, this);
     }
-    if (this.#instance && this.state && this.state !== this.#loadedState)
+    if (this.#instance && this.state.length && this.state !== this.#loadedState)
     {
       this.#instance.OnLoad?.(this.state);
       this.#loadedState = this.state;
