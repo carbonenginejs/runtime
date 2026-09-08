@@ -1,8 +1,6 @@
 {
   "recorded": "2026-09-08",
   "problems": [
-    "src/trinityal/stub/Tr2RenderContextALStub.js Tr2RenderContextALStub does not port Tr2RenderContextAL::GetDefaultBackBuffer.",
-    "src/trinityal/stub/Tr2RenderContextALStub.js Tr2RenderContextALStub does not port Tr2RenderContextAL::Present.",
     "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::CreateStagingBuffer.",
     "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::Describe.",
     "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::GetGpuResource.",
@@ -49,7 +47,6 @@
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::GetUpscalingSetup.",
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::MarkFrameEvent.",
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::PopGpuMarker.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::Present.",
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::PushGpuMarker.",
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::ReleaseDeviceResources.",
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::ReleaseLater.",

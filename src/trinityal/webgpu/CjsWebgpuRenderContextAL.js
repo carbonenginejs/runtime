@@ -683,7 +683,7 @@ export class CjsWebgpuRenderContextAL
    *
    * @returns {Promise<boolean>} True once the frame is submitted.
    */
-  async PresentSwapChain()
+  async Present()
   {
     return this.EndScene();
   }

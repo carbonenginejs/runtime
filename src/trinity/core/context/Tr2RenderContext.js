@@ -1141,7 +1141,7 @@ export class Tr2RenderContext extends CjsModel
   /** Records the end-of-frame present intent for a swap chain. */
   PresentSwapChain(swapChain)
   {
-    return this.#requireAL("PresentSwapChain").PresentSwapChain(swapChain);
+    return this.#requireAL("Present").Present();
   }
 
   /**

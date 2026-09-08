@@ -164,7 +164,7 @@ test("a new ring seeds its fence from the context rather than assuming frame zer
   al.CreateDevice({ mode: { width: 64, height: 64 } });
   context.SetRenderContextAL(al);
 
-  for (let frame = 0; frame < 5; frame += 1) al.PresentSwapChain();
+  for (let frame = 0; frame < 5; frame += 1) al.Present();
 
   assert.equal(context.GetRenderedFrameNumber(), 5, "the device finished five frames");
   assert.equal(context.GetRecordingFrameNumber(), 6, "and is recording the sixth");
@@ -179,8 +179,8 @@ test("a new ring seeds its fence from the context rather than assuming frame zer
 
   assert.equal(buffer.tail, buffer.size, "nothing reclaimed yet");
 
-  al.PresentSwapChain();
-  al.PresentSwapChain();
+  al.Present();
+  al.Present();
   buffer.SetFrameNumbers(context.GetRecordingFrameNumber(), context.GetRenderedFrameNumber());
 
   assert.equal(buffer.tail, 2, "and then the rows are released");
@@ -202,7 +202,7 @@ test("the device's frame clock is not Trinity's", () =>
   assert.equal(context.GetCurrentFrameCounter(), 2, "Trinity began two frames");
   assert.equal(context.GetRenderedFrameNumber(), 0, "the device has finished none of them");
 
-  al.PresentSwapChain();
+  al.Present();
 
   assert.equal(context.GetRenderedFrameNumber(), 1);
   assert.equal(context.GetCurrentFrameCounter(), 2, "and Trinity's clock did not move");

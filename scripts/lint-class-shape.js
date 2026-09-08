@@ -69,7 +69,7 @@ const BASELINE = new Set([
     // primary-context statics and the upscaling family. A line number is a
     // poor key for a baseline; the entry is kept because the FIX is a design
     // decision, and re-pinning it is cheaper than inventing a stabler key.
-    "src/trinityal/stub/Tr2RenderContextALStub.js:852"
+    "src/trinityal/stub/Tr2RenderContextALStub.js:857"
 ]);
 
 const problems = [];

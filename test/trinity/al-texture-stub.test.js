@@ -450,8 +450,8 @@ test("the context creates a real back buffer and reports its size", () =>
   al.CreateDevice({ mode: { width: 1024, height: 768 } });
 
   assert.equal(al.GetBackBufferFormat(), PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
-  assert.equal(al.GetBackBuffer().IsValid(), true);
-  assert.equal(al.GetRenderTarget(0), al.GetBackBuffer(), "the back buffer is bound to slot zero");
+  assert.equal(al.GetDefaultBackBuffer().IsValid(), true);
+  assert.equal(al.GetRenderTarget(0), al.GetDefaultBackBuffer(), "the back buffer is bound to slot zero");
 
   const size = al.GetRenderTargetSize(0);
 
@@ -484,5 +484,5 @@ test("releasing device resources unbinds everything", () =>
   al.ReleaseDeviceResources();
 
   assert.equal(al.GetRenderTarget(0), null);
-  assert.equal(al.GetBackBuffer().IsValid(), false);
+  assert.equal(al.GetDefaultBackBuffer().IsValid(), false);
 });

@@ -303,9 +303,14 @@ export class Tr2RenderContextALStub
   /**
    * The default back buffer.
    *
+   * Carbon's name, and the distinction is real: `GetBackBuffer` belongs to
+   * `Tr2SwapChainAL`, a different class with a different back buffer. This one
+   * is the render context's own (`Tr2RenderContextStub.h:245-248`), and was
+   * called `GetBackBuffer` here until 2026-09-09.
+   *
    * @returns {Tr2TextureALStub} The back buffer, created or not.
    */
-  GetBackBuffer()
+  GetDefaultBackBuffer()
   {
     return this.#defaultBackBuffer;
   }
@@ -1042,9 +1047,14 @@ export class Tr2RenderContextALStub
    * (`Tr2RenderContextStub.cpp:277-281`), which makes Present the frame
    * boundary a fence can be measured against.
    *
+   * NOT `PresentSwapChain`, which it was called here until 2026-09-09. That
+   * name belongs to the render STEP (`TriStepPresentSwapChain`); presenting a
+   * particular swap chain is `Tr2SwapChainAL::Present(renderContext)`, a
+   * different call on a different class. This one takes no argument.
+   *
    * @returns {boolean} True.
    */
-  PresentSwapChain()
+  Present()
   {
     this.#frameNumber += 1;
 

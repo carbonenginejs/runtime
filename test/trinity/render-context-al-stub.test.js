@@ -511,7 +511,7 @@ test("an authored viewport is clipped to the render target, never to nothing", (
   assert.equal(states.GetViewport().width, 1024, "the authored viewport is kept as authored");
   assert.equal(states.GetDeviceViewport().width, 1024, "and unclipped while no extent is known");
 
-  context.GetEffectStateManager().SetRenderTarget(0, al.GetBackBuffer());
+  context.GetEffectStateManager().SetRenderTarget(0, al.GetDefaultBackBuffer());
   states.SetViewport({ x: 0, y: 0, width: 1024, height: 1024 });
 
   assert.equal(states.GetViewport().width, 1024);
@@ -526,7 +526,7 @@ test("a viewport starting outside the target still has a legal extent", () =>
 
   al.CreateDevice({ mode: { width: 256, height: 256 } });
   context.SetRenderContextAL(al);
-  context.GetEffectStateManager().SetRenderTarget(0, al.GetBackBuffer());
+  context.GetEffectStateManager().SetRenderTarget(0, al.GetDefaultBackBuffer());
 
   const states = context.GetEffectStateManager();
 
@@ -545,7 +545,7 @@ test("the manager reports the viewport and target sizes shaders read", () =>
 
   al.CreateDevice({ mode: { width: 256, height: 128 } });
   context.SetRenderContextAL(al);
-  context.GetEffectStateManager().SetRenderTarget(0, al.GetBackBuffer());
+  context.GetEffectStateManager().SetRenderTarget(0, al.GetDefaultBackBuffer());
 
   const states = context.GetEffectStateManager();
 

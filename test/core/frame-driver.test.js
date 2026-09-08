@@ -123,8 +123,8 @@ function makeDriver()
     const al = new Tr2RenderContextALStub();
     al.CreateDevice({ mode: { width: 64, height: 64 } });
     al.presentCount = 0;
-    const present = al.PresentSwapChain.bind(al);
-    al.PresentSwapChain = (swapChain) => { al.presentCount++; return present(swapChain); };
+    const present = al.Present.bind(al);
+    al.Present = (swapChain) => { al.presentCount++; return present(swapChain); };
     renderContext.SetRenderContextAL(al);
     const renderJobs = new RecordingRenderJobs(order);
     const frameLifecycle = new RecordingLifecycle(order);
