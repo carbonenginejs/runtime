@@ -181,6 +181,38 @@ vec4.fromRGB = function(out, rgb, linearAlpha = 1)
 };
 
 /**
+ * Adjusts a color's saturation - Carbon Color::Saturate (Color_inline.h:161):
+ * lerp from perceived-intensity grey toward the color by max(0, saturation),
+ * alpha untouched. A grey-to-color blend, NOT the HLSL clamp; saturation 1 is
+ * a plain copy. The intensity weights are Carbon's own eye-response constants
+ * and the arithmetic keeps Carbon's float32 rounding.
+ * @param {vec4} out
+ * @param {vec4} a
+ * @param {Number} saturation
+ * @returns {vec4} out
+ */
+vec4.saturateColor = function(out, a, saturation)
+{
+    const f32 = Math.fround;
+    const s = f32(saturation);
+    const r = a[0], g = a[1], b = a[2], alpha = a[3];
+
+    if (s === 1)
+    {
+        out[0] = r; out[1] = g; out[2] = b; out[3] = alpha;
+        return out;
+    }
+
+    const i = f32(f32(f32(r * f32(0.299)) + f32(g * f32(0.587))) + f32(b * f32(0.114)));
+    const t = Math.max(0, s);
+    out[0] = i + f32(f32(r - i) * t);
+    out[1] = i + f32(f32(g - i) * t);
+    out[2] = i + f32(f32(b - i) * t);
+    out[3] = alpha;
+    return out;
+};
+
+/**
  * Gets hex value with alpha from linear color
  * @param {vec4} linear
  * @returns {string} hex value
@@ -335,6 +367,7 @@ export const {
     multiplyScalar,
     setScalar,
     subtractScalar,
+    saturateColor,
     toRGBA,
     fromRGBA,
     fromRGB,
