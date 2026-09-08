@@ -111,9 +111,10 @@ export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
   /**
    * Names the program for a debugger.
    *
+   * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */
-  SetName()
+  SetName(_name)
   {
     return ALResult.S_OK;
   }

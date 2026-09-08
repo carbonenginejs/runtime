@@ -600,9 +600,10 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
   /**
    * Names the texture for a debugger.
    *
+   * @param {string} _name The name Carbon would attach; the stub discards it.
    * @returns {number} An `ALResult` value; the stub keeps no name.
    */
-  SetName()
+  SetName(_name)
   {
     return ALResult.S_OK;
   }
