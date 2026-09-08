@@ -15,6 +15,7 @@
         "./math/vec3": "./src/global/math/vec3.js",
         "./math/vec4": "./src/global/math/vec4.js",
         "./math/quat": "./src/global/math/quat.js",
+        "./math/color": "./src/global/math/color.js",
         "./math/mat3": "./src/global/math/mat3.js",
         "./math/mat4": "./src/global/math/mat4.js",
         "./math/box3": "./src/global/math/box3.js",

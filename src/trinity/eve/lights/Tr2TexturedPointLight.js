@@ -6,7 +6,7 @@
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
 import { carbon, impl, io, type } from "#schema";
 import { CjsResMan, ResourceRequirement } from "#resource";
-import { vec4 } from "#math/vec4";
+import { color } from "#math/color";
 import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";
 
@@ -114,7 +114,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
     if (!texture || typeof texture.GetAverageColor !== "function") return;
     const average = texture.GetAverageColor();
     if (!average) return;
-    // Carbon Color::Saturate (Color_inline.h:161), the grey-to-color lerp.
-    vec4.saturateColor(this.color, average, this.#saturation);
+    color.saturate(this.color, average, this.#saturation);
   }
 }
