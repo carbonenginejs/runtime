@@ -1,11 +1,14 @@
 // Read-only consumer of tools-core's carbon-class CLI. This does not import or
 // execute runtime classes, emit stubs, refresh schemas, or rebuild npm output.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import zlib from "node:zlib";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { SNAPSHOT } from "./pack.js";
 
 export const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const slash = value => value.replaceAll("\\", "/");
@@ -109,19 +112,116 @@ export function inspectSchemaTree(schemaRoot)
     return { index, classes, coverage: coverage.sort() };
 }
 
+/** How stale a packed schema may be before the gate refuses it. */
+const MAX_SNAPSHOT_AGE_DAYS = 7;
+
+
+/**
+ * Unpacks `scripts/carbon_schema_latest.gzip` and returns the tree root.
+ *
+ * MISSING FAILS AND OLD FAILS - neither skips. The file is committed, so its
+ * absence means something removed it, and a stale schema means the gate is
+ * checking against a Carbon that has moved on. A skip in either case is a green
+ * build that proved nothing, which is the failure this gate was landed to end.
+ *
+ * Age comes from the recorded `packedAt`, not the file's mtime: a checkout
+ * stamps every file with the checkout time, so mtime would report a year-old
+ * snapshot as fresh.
+ *
+ * @returns {string} Directory holding the unpacked tree.
+ */
+function unpackSnapshot()
+{
+    if (!fs.existsSync(SNAPSHOT))
+    {
+        throw new Error(`Schema snapshot missing: ${SNAPSHOT}. `
+            + "Regenerate the tree in tools-core and run scripts/schema/pack.js <tree>.");
+    }
+
+    const payload = JSON.parse(zlib.gunzipSync(fs.readFileSync(SNAPSHOT)).toString("utf8"));
+    const ageDays = (Date.now() - Date.parse(payload.packedAt)) / 86400000;
+
+    if (!(ageDays <= MAX_SNAPSHOT_AGE_DAYS))
+    {
+        throw new Error(`Schema snapshot is ${ageDays.toFixed(1)} days old `
+            + `(limit ${MAX_SNAPSHOT_AGE_DAYS}, packed ${payload.packedAt}). `
+            + "Regenerate the tree in tools-core and run scripts/schema/pack.js <tree>.");
+    }
+
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "cjs-schema-"));
+    for (const [ relative, document ] of Object.entries(payload.documents))
+    {
+        const file = path.join(root, relative);
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, JSON.stringify(document));
+    }
+
+    return root;
+}
+
+
+/**
+ * Where the checker lives, WITHOUT reaching into a sibling directory.
+ *
+ * An installed dependency, found through node's own resolution. Nothing else.
+ * If it is not installed the caller skips - it does not guess a relative path
+ * and quietly succeed on one machine.
+ *
+ * @param {object} options Caller overrides.
+ * @param {string} runtimeRoot This package's root.
+ * @returns {string|null} The tools root, or null when unresolvable.
+ */
+function resolveToolsRoot(options, runtimeRoot)
+{
+    // `options.toolsRoot` is for TESTS, which pass a fixture inside their own
+    // temporary directory. There is deliberately no environment variable: an
+    // env var pointing at a sibling checkout is the same reach with extra
+    // steps, and it is the reach that made this gate work on one machine and
+    // silently skip everywhere else.
+    if (options.toolsRoot) return path.resolve(options.toolsRoot);
+
+    try
+    {
+        const require_ = createRequire(path.join(runtimeRoot, "package.json"));
+        return path.dirname(require_.resolve("@carbonenginejs/tools-core/package.json"));
+    }
+    catch
+    {
+        return null;
+    }
+}
+
+
 /** Run strict class checks and return raw findings with independent AST inventory. */
 export async function collectReport(options = {})
 {
     const runtimeRoot = path.resolve(options.runtimeRoot || process.env.CARBON_SCHEMA_RUNTIME_ROOT || packageRoot);
-    const toolsRoot = path.resolve(options.toolsRoot || process.env.CARBON_SCHEMA_TOOLS_ROOT || path.join(runtimeRoot, "../tools-core"));
-    const schemaRoot = path.resolve(options.schemaRoot || process.env.CARBON_SCHEMA_ROOT || path.join(toolsRoot, ".scratch/schema-build"));
-    const carbonRoot = path.resolve(options.carbonRoot || process.env.CARBON_ROOT || process.env.CARBONENGINE_ROOT || path.join(runtimeRoot, "../../carbonengine"));
+    // NO CROSS-DIRECTORY DEFAULTS. A package must not reach into a sibling by
+    // relative path. The landed version defaulted to `../tools-core` and
+    // `../../carbonengine`, which works only on a machine with the whole
+    // organization checked out side by side and silently does nothing
+    // everywhere else. The checker is resolved as a DEPENDENCY, or configured
+    // explicitly, or this skips and says which.
+    const toolsRoot = resolveToolsRoot(options, runtimeRoot);
+    // The schema comes from ONE FILE IN THIS DIRECTORY - no sibling reach, no
+    // environment variable, no configuration. `options.schemaRoot` remains for
+    // tests, which point at a fixture inside their own temporary directory.
+    const configuredSchema = options.schemaRoot;
+    const schemaRoot = configuredSchema ? path.resolve(configuredSchema) : unpackSnapshot();
+    const carbonRoot = options.carbonRoot || process.env.CARBON_ROOT || process.env.CARBONENGINE_ROOT || null;
     const startedAt = new Date().toISOString();
+    // ORDER MATTERS. The schema tree is validated BEFORE the checker is
+    // required, because "the tree is corrupt" must fail even on a machine that
+    // would otherwise skip for want of the checker. Checking for the checker
+    // first turned a corrupt tree into a silent skip, which is exactly the
+    // "does not silently accept a broken existing tree" rule this gate carries.
+    if (!schemaRoot) return { status: "SKIP", reason: "No schema tree configured: set CARBON_SCHEMA_ROOT" };
     if (absentDirectory(schemaRoot)) return { status: "SKIP", reason: `Entire schema tree absent: ${schemaRoot}` };
     const schemaFiles = walk(schemaRoot, ".json");
     const schemaHash = digest(schemaRoot, schemaFiles);
     const schema = inspectSchemaTree(schemaRoot);
-    if (absentDirectory(carbonRoot)) return { status: "SKIP", reason: `Carbon checkout absent: ${carbonRoot}` };
+    if (!toolsRoot) return { status: "SKIP", reason: "Checker unresolvable: add @carbonenginejs/tools-core as a dependency" };
+    if (carbonRoot && absentDirectory(path.resolve(carbonRoot))) return { status: "SKIP", reason: `Carbon checkout absent: ${carbonRoot}` };
     const checker = path.join(toolsRoot, "bin/cjs-carbon-class.js");
     fs.accessSync(checker, fs.constants.R_OK);
     // Resolve the declared development dependency only after optional prerequisites.
