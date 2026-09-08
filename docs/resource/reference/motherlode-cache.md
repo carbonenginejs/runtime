@@ -49,9 +49,9 @@ byte pressure.
 `PURGED` is not terminal for the handle. Purge deletes the payload, but the
 handle revives itself: `IsGood()` renews activity through `KeepAlive()`, and
 `KeepAlive()` reloads a purged resource along the ordinary first-load path. A
-consumer therefore never learns that a purge happened and never manages
-retention itself - it asks whether the resource is good, and that question is
-what keeps it, or brings it back.
+consumer can recover through ordinary liveness checks: asking whether the
+resource is good keeps it or brings it back. Purge remains observable through
+`IsPurged()` and resource events; callers may also manage retention explicitly.
 
 Liveness follows visibility. Something being drawn is asked about every frame
 and stays live; something that stops being drawn stops being renewed, ages out,

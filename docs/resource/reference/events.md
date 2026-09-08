@@ -88,8 +88,7 @@ scene/resource graphs alive. The contract is therefore:
   entry; `target.OffEvent("*", null, source)` removes all of a source's
   records. An external party that no longer observes a target must call
   `OffEvent()`.
-- `Unload()` and `Purge()` are resource state/cache operations, not an
-  implied listener-destruction lifecycle.
+- Payload release and manager-owned purge do not imply listener destruction.
 - `OnEvent()` returns the emitter; it does not return unsubscribe closures,
   because those closures create another reference path.
 - Deterministic cleanup is the contract; `WeakRef`/`FinalizationRegistry` may
@@ -103,8 +102,7 @@ remaining listeners.
 
 ## Relationship to model dirty state
 
-`CjsModel`'s `MarkDirty`, `ClearDirty`, `ConsumeDirty` and
-`GetDirtyNotifications` concern model invalidation. `SetValues()` marks dirty
+`CjsModel`'s `MarkDirty` and `ClearDirty` concern model invalidation. `SetValues()` marks dirty
 only when field values change. Plain `MarkDirty()` requests broad invalidation,
 not rebuilding; deferred rebuild reasons use the independent
 `model.__state.rebuild` set. Resource lifecycle events remain separate,

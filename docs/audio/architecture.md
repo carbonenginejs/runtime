@@ -63,7 +63,7 @@ The package owns:
 - optional authored SFX random, step-sequence, continuous scheduling and
   crossfades, switch/state, parallel/blend, per-leaf spatial routing, gain,
   and live RTPC-curve behavior;
-- immutable schema-v2 document validation and installation;
+- schema-v2 document validation and detached installation;
 - deterministic document construction from decoded inputs, raw indexed
   resources through fetch, or one injected byte source;
 - language/media representation selection;

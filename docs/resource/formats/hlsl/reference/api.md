@@ -7,7 +7,7 @@ Summary: Documents the reader class, options, output modes, and Node adapters.
 
 ## Imports
 
-The package root exports `CjsHlslFormat` as both the default and a named
+The HLSL format subpath exports `CjsHlslFormat` as both the default and a named
 export:
 
 ```js
@@ -69,17 +69,17 @@ The extensions are `.sm_hi`, `.sm_lo`, and `.sm_depth`.
 
 The `json` and `metadata` modes are the supported data contracts described in
 [json-graph.md](json-graph.md). `raw` returns internal parser-DTO
-`Tr2EffectRes` objects, not the canonical runtime resource class, and may
+`HlslEffectRes` objects, not the canonical runtime resource class, and may
 change without a major version bump.
 
 ## Repository metadata adapter
 
 The repository provides a development script that writes metadata JSON. It is
-not installed as a package `bin`:
+not installed as a package `bin`. From the runtime repository root:
 
 ```sh
-npm run metadata:hlsl -- effect.sm_hi
-npm run metadata:hlsl -- effect.sm_hi effect.json
+node scripts/resource/formats/hlsl/metadata.js metadata effect.sm_hi
+node scripts/resource/formats/hlsl/metadata.js metadata effect.sm_hi effect.json
 ```
 
 When the output path is omitted, the CLI writes `<input-name>.json` in the

@@ -46,8 +46,8 @@ owned callback shapes.
 - `Tr2MainWindowState` owns window mode, size, position, adapter, visibility,
   and presentation interval values.
 - `UIScancode` maps `KeyboardEvent.code` values to the package's maintained,
-  bounded Carbon-compatible virtual-key vocabulary. Canonical records are
-  frozen because lookup maps share their identities.
+  bounded Carbon-compatible virtual-key vocabulary. Lookup maps share canonical
+  record identities; only the outer `SCANCODES` list is frozen.
 - `Tr2MouseCursor` converts supported cursor inputs into CSS cursor values and
   manages object-URL cleanup.
 

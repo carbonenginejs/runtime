@@ -21,7 +21,7 @@ compiled Carbon container directly.
   selection, `Ready()`/`GetObject()`) without choosing a GPU backend;
 - you need one of the non-shader format readers as a tree-shakeable subpath
   (`@carbonenginejs/runtime/resource/formats/<name>`);
-- you need canonical effect permutation selection or immutable shader
+- you need canonical effect permutation selection or model-backed shader
   reflection records from `@carbonenginejs/runtime/resource/shader`;
 - you need canonical raw audio resources for complete files or byte windows
   over shared physical sources;

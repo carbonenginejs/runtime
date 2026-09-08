@@ -8,16 +8,16 @@ Summary: Separates synchronous routing facts from advisory output support and ex
 ## One format contract
 
 Accepted and implemented 2026-08-22: every concrete format inherits the same
-canonical frozen contract.
+canonical capability contract.
 
 Every concrete format extends the decorator-free `CjsFormat` base and declares:
 
 - `id`: stable format identity;
 - `mediaTypes`: canonical runtime media categories;
 - `extensions`: lowercase dotted file suffixes used for routing;
-- `outputs`: a frozen map of exact output selectors and their capabilities;
+- `outputs`: a map of exact output selectors and their capabilities;
 - `requestResponseType`: source acquisition response type; and
-- `worker`: `null` or a frozen browser-worker execution descriptor.
+- `worker`: `null` or a browser-worker execution descriptor.
 
 An output descriptor records `output`, `payloadType`, `role`, `readMode`,
 `decoded`, `passthrough`, `default`, `probes`, and `requires`. It declares a
@@ -40,8 +40,8 @@ metadata. It describes what the bytes contain without making runtime support
 or verification claims.
 
 `Format.getSupport(input, options)` is synchronous advice. It combines the
-format's structural probe with its declared output map and returns a plain,
-frozen report. `options.emit` selects one exact output; omitting it selects the
+format's structural probe with its declared output map and returns a plain
+report. `options.emit` selects one exact output; omitting it selects the
 declared default. Every returned capability has `verified: false` because no
 decode has been executed.
 

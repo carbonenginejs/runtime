@@ -29,7 +29,7 @@ detail2.textureRes === textureArray; // true
 Proxy setters only update their source path and invalidate the parent. The
 parent is scheduled once even if several proxies change in the same frame.
 The next-frame consumer calls `Update()` or `ConsumeUpdateRequest()` to
-obtain one immutable ordered snapshot. The resource layer does not know which
+obtain one ordered snapshot. The resource layer does not know which
 shader metadata caused the aggregate request; shader packages and engine
 adapters map public parameter names to layer indices.
 
@@ -52,7 +52,7 @@ proxy/source change
     -> guarded adapter + prepared-revision publication
 ```
 
-`ConsumeUpdateRequest()` produces an immutable snapshot and marks that
+`ConsumeUpdateRequest()` produces a snapshot and marks that
 revision in flight. A current consumed revision may be completed through
 `CommitPreparedAdapterRevision()`, failed through `FailUpdateRequest()`, or
 returned to the queue through `RetryUpdateRequest()`. Commit-before-consume

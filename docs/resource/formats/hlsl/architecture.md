@@ -30,7 +30,7 @@ caller bytes
 `src/resource/formats/hlsl/CjsHlslFormat.js` is the supported reader boundary. Binary
 utilities and format-shaped compatibility models live below
 `src/resource/formats/hlsl/core` and `src/resource/formats/hlsl/core/tr2`.
-Their same-named `Tr2*` classes are internal parser DTOs, not canonical runtime
+Their `Hlsl*` classes are internal parser DTOs, not canonical runtime
 model identity, and are not independent package entry points.
 
 ## Output modes

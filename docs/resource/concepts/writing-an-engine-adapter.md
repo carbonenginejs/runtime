@@ -1,7 +1,7 @@
 # Writing an engine adapter
 
 Status: Stable
-Scope: `@carbonenginejs/runtime/resource`, `@carbonenginejs/runtime/trinity`, and `@carbonenginejs/runtime/engine/*`
+Scope: `@carbonenginejs/runtime/resource`, `@carbonenginejs/runtime/trinity`, and `@carbonenginejs/runtime/trinityal/*`
 Audience: Anyone adding or extending a renderer engine
 Summary: Defines dependency direction, nominal runtime contracts, resource realization, and reflection ownership for renderer engines.
 

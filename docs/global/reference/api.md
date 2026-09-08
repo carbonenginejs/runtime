@@ -87,8 +87,7 @@ throw new CjsError(
 ```
 
 The optional `cause` retains its original identity. Optional `details` must be
-a plain record containing JSON-safe values; the constructor clones and deeply
-freezes it. It does not redact details, so callers must exclude credentials,
+a plain record containing JSON-safe values; the constructor clones it. It does not redact details, so callers must exclude credentials,
 private payloads, and other sensitive values.
 
 Use native `TypeError`, `RangeError`, and `SyntaxError` for programmer-contract

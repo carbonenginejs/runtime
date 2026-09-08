@@ -149,7 +149,7 @@ declaration-only modules that must load without a decorator transform.
 plain-values template for one registered class. Stage-3 field decorators retain
 their initializer value before the constructor body can replace it with
 instance state. If no instance has exposed those initializers yet, the schema
-constructs the class once with zero arguments, caches an immutable template,
+constructs the class once with zero arguments, caches a private template,
 and returns a copy. JavaScript still runs that constructor body; the operation
 does not call `CjsModel.from`, `SetValues`, `Initialize`, `UpdateValues`, or any
 other model lifecycle hook.

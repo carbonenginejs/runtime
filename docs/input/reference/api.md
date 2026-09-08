@@ -65,7 +65,8 @@ to `target.style.cursor`, and `Destroy()` releases any object URL.
 `UIScancode.fromKeyboardEvent(event)` returns a known mapping or a fallback
 record.
 
-`SCANCODES` is a deeply immutable, maintained browser-code mapping list. It is
+`SCANCODES` is a frozen, maintained browser-code mapping list whose shared
+`UIScancode` records are mutable. It is
 a bounded browser vocabulary, not a claim of complete native Carbon scancode
 table parity.
 `GetUIScancode(value)` looks up a `UIScancode`, numeric value, browser code,

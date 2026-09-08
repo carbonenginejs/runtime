@@ -74,7 +74,7 @@ types can also include readable or typed fields such as `name`, `valueName`,
 
 ## Raw graph
 
-`emit: "raw"` returns the internal parser-DTO `Tr2EffectRes` graph. It is not
+`emit: "raw"` returns the internal parser-DTO `HlslEffectRes` graph. It is not
 the canonical runtime resource class. It allows advanced callers to resolve
 multiple permutations after one parse, but it is not a stable or
 serialization-safe schema.

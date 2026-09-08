@@ -61,8 +61,9 @@ import { readFile } from "node:fs/promises";
 const effect = CjsHlslFormat.read(await readFile("effect.sm_hi"), { source: "effect.sm_hi" });
 ```
 
-The CLI provides the same metadata workflow:
+The repository script provides the same metadata workflow from the runtime
+repository root; it is not an installed package command:
 
 ```sh
-format-hlsl metadata effect.sm_hi effect.json
+node scripts/resource/formats/hlsl/metadata.js metadata effect.sm_hi effect.json
 ```

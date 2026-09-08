@@ -7,9 +7,9 @@ Summary: Installs a complete document and attaches a caller-owned browser provid
 
 ## Example
 
-This example supplies an `AudioBuffer` directly. A real provider may return
-prepared Ogg/WAV bytes, original WEM bytes, a complete BNK, or an exact BNK
-range.
+This example supplies fetched bytes and their media type. A provider may also
+return an `AudioBuffer` directly, prepared Ogg/WAV bytes, original WEM bytes, a
+complete BNK, or an exact BNK range.
 
 ```js
 import {

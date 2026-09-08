@@ -15,7 +15,7 @@ create an audio context, fetch data, or touch the DOM.
 | `@carbonenginejs/runtime/audio` | Complete graph, `CjsAudioMan`, lower-level system, backend, SFX interpreter, metadata adapter, authored music scheduler, and neutral jukebox. |
 | `@carbonenginejs/runtime/audio/trinity` | Carbon audio graph and portable behavior without backend evaluation. |
 | `@carbonenginejs/runtime/audio/audioMetadata` | `audioMetadataFromSoundbanksInfo()`. |
-| `@carbonenginejs/runtime/audio/library` | Audio-library hydration/loading plus audio and neutral music-library validation and immutable installation. |
+| `@carbonenginejs/runtime/audio/library` | Audio-library hydration/loading plus audio and neutral music-library validation and detached installation. |
 | `@carbonenginejs/runtime/audio/library-builder` | Construction from decoded values or explicit raw resources. |
 
 ## Principal exports
@@ -28,11 +28,11 @@ create an audio context, fetch data, or touch the DOM.
 | `CjsSfxEngine` | Browser-safe authored random, step-sequence, continuous transition, switch/state, blend, and RTPC-gain interpretation. |
 | `CjsMusicEngine` | Authored interactive-music scheduling. |
 | `CjsJukebox` | Neutral browser playlist playback over caller-supplied catalog, acquisition, and availability functions. |
-| `CjsAudioLibrary` | Hydrated immutable library; `from(values)`, `load(pathOrBytes, options)`, and `GetValues()` bridge prepared JSON/gzip and runtime use. |
+| `CjsAudioLibrary` | Hydrated library; `from(values)`, `load(pathOrBytes, options)`, and `GetValues()` bridge prepared JSON/gzip and runtime use. |
 | `CjsAudioLibraryBuilder` | Deterministic construction from supplied values, fetch, or an injected byte source. |
-| `installAudioLibraryDocument(value)` | Validates, detaches, and deeply freezes one document. |
+| `installAudioLibraryDocument(value)` | Validates and detaches one document. |
 | `validateAudioLibraryDocument(value)` | Validates the current schema-v2 contract. |
-| `installMusicLibrary(value)` | Validates, detaches, and deeply freezes one optional jukebox catalog. |
+| `installMusicLibrary(value)` | Validates and detaches one optional jukebox catalog. |
 | `validateMusicLibrary(value)` | Validates the current neutral music-library schema. |
 | `validateSfxGraph(value, media, embeddedMedia)` | Validates one optional authored SFX program and its media references. |
 | `normalizeSfxGraph(value, media, embeddedMedia)` | Produces deterministic builder output for one validated SFX program. |

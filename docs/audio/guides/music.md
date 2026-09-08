@@ -108,12 +108,12 @@ an audible effect with Voice Volume, State filter/pitch, ducking, or action
 controls remain blocked.
 
 A source-proven v150 Wwise Meter may coexist in that sequence by default only
-when it writes no Game Parameter, does not apply downstream volume, and has no
-dynamic controls or media. The mixer omits this audio-transparent telemetry
+when it writes no Game Parameter and has no dynamic controls or media. The mixer omits this audio-transparent telemetry
 stage. Explicit `wwiseMeterFeedback: "omit-telemetry"` also admits the static
 signal-transparent subset with a Game Parameter target, but produces no Meter
 value and therefore omits any authored audio feedback through that parameter.
-Downstream-volume Meter remains blocked.
+`Apply Downstream Volume` does not independently block this static Meter
+omission.
 
 Dynamic Audio Bus `MaxNumInstances` RTPC paths remain blocked by default.
 `wwiseVoiceLimits: "ignore"` may admit an otherwise qualified music route, but

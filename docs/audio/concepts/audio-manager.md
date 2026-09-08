@@ -9,7 +9,7 @@ Summary: Defines whole-library installation, construction, and media-acquisition
 
 `CjsAudioMan` installs one complete schema-v2 audio-library document and owns:
 
-- immutable document installation;
+- validated, detached document installation;
 - event, bank, loose-media, embedded-member, and prepared-variant resolution;
 - optional authored SFX selection, parallel voice ownership, and live RTPC
   gain evaluation;

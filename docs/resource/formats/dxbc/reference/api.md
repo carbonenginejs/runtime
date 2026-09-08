@@ -7,7 +7,7 @@ Summary: Defines the public `CjsDxbcFormat` profile, one-shot helpers, options, 
 
 ## Export
 
-The package root exports `CjsDxbcFormat` as both a named and default export:
+The DXBC format subpath exports `CjsDxbcFormat` as both a named and default export:
 
 ```js
 import CjsDxbcFormat, {
