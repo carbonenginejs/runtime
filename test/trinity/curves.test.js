@@ -1,4 +1,4 @@
-import test from "node:test";
+﻿import test from "node:test";
 import { TriExtrapolation } from "../../npm/dist/global/consts/graphics/index.js";
 import { CjsGrannyCurves, Tr2BoneMatrixCurve, Tr2CameraFollowCurveKey, Tr2CurveColor, Tr2CurveColorMixer, Tr2CurveCombiner, Tr2CurveConstant, Tr2CurveEulerRotation, Tr2CurveEulerRotationExpression, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveQuaternion, Tr2CurveQuaternionKey, Tr2CurveRandomAxisRotation, Tr2CurveScalar, Tr2CurveScalarExpression, Tr2CurveScalarKey, Tr2CurveSetRange, Tr2CurveVector2, Tr2CurveVector3, Tr2CurveVector3Expression, Tr2CurveVector3Lerp, Tr2CurveVector3LerpKeyInterpolation, Tr2DistanceTracker, Tr2FollowCurve, Tr2FollowCurveKeyInterpolation, Tr2GrannyEventTrack, Tr2GrannyTrack, Tr2GrannyTransformTrack, Tr2GrannyVectorTrack, Tr2MatrixKey, Tr2ObjectFollowCurveKey, Tr2ObjectFollowCurveKeyRotationSetting, Tr2QuaternionLerpCurve, Tr2RotationAdapter, Tr2ScalarExprKey, Tr2ScalarExprKeyCurve, Tr2ScalarFader, Tr2TranslationAdapter, TriColorSequencer, TriCurveSet, TriEventCurve, TriPerlinCurve, TriVectorSequencer } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -7,6 +7,7 @@ import { num } from "../../npm/dist/global/math/num.js";
 import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
+import { color } from "../../npm/dist/global/math/color.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 
 
@@ -568,7 +569,7 @@ test("expression curves expose Carbon term metadata and current-time inputs", ()
   vector.Update(0, vectorOut);
   assertAlmostEquals(vector.currentValue[0], 2);
   assertAlmostEquals(vectorOut[2], 4);
-  const colorOut = vec4.createLinear();
+  const colorOut = color.createLinear();
   vector.GetValueAt(0, colorOut);
   assertAlmostEquals(colorOut[0], 2);
   assertAlmostEquals(colorOut[1], 3);
@@ -883,7 +884,7 @@ test("Tr2CurveColor composes scalar component curves and gamma output", () =>
   const negative = new Tr2CurveColor();
   negative.srgbOutput = true;
   negative.AddKey(0, vec4.fromValues(-0.25, -0.5, -0.75, -1), Tr2CurveInterpolation.LINEAR);
-  const negativeOut = vec4.createLinear();
+  const negativeOut = color.createLinear();
   negative.Update(0, negativeOut);
   assertAlmostEquals(negativeOut[0], 0);
   assertAlmostEquals(negativeOut[1], 0);

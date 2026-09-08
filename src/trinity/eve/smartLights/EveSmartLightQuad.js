@@ -5,6 +5,7 @@ import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildQuad } from "../../eve/child/EveChildQuad.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
+import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -82,13 +83,13 @@ export class EveSmartLightQuad extends EveChildTransform
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
   @io.persist
   @type.color
-  customColor = vec4.createLinear();
+  customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = vec4.createLinear();
+  #resolvedGroupColor = color.createLinear();
 
   /** m_effectKey (unsigned) - cached Tr2Effect hash used as the quad-renderer bucket key (EveSmartLightQuad.h:59). */
   #effectKey = 0;

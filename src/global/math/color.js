@@ -10,6 +10,7 @@
 // column-vector operand-order hazards of matrix work apply; bodies port from
 // the donor in source order.
 import * as glVec4 from "gl-matrix/esm/vec4.js";
+import { num } from "./num.js";
 
 const f32 = Math.fround;
 
@@ -18,7 +19,7 @@ export const color = {};
 /**
  * Creates a color, zeroed INCLUDING alpha - Carbon's default constructor is
  * transparent black (Color_inline.h:6-12), not the opaque black that
- * `vec4.createLinear` gives.
+ * `color.createLinear` gives.
  * @returns {color}
  */
 color.create = function()
@@ -35,6 +36,20 @@ color.create = function()
  * @returns {color}
  */
 color.fromValues = glVec4.fromValues;
+
+/**
+ * Creates an opaque-black linear color (0, 0, 0, 1) - the schema default for
+ * color-kind fields. Not a Carbon constructor (Carbon defaults transparent,
+ * see `create`); this is the runtime's field-initializer helper, formerly
+ * `vec4.createLinear`.
+ * @returns {color}
+ */
+color.createLinear = function()
+{
+    const out = new Float32Array(4);
+    out[3] = 1;
+    return out;
+};
 
 /**
  * Copies a color.
@@ -174,8 +189,227 @@ color.saturate = function(out, a, saturation)
     return out;
 };
 
+/**
+ * Converts from linear color to rgba
+ * @param {color} out
+ * @param {color} linear
+ * @param {boolean} [denormalizeAlpha]
+ * @returns {color} out
+ */
+color.toRGBA = function(out, linear, denormalizeAlpha)
+{
+    out[0] = num.colorFromLinear(linear[0]);
+    out[1] = num.colorFromLinear(linear[1]);
+    out[2] = num.colorFromLinear(linear[2]);
+    out[3] = denormalizeAlpha ? num.colorFromLinear(linear[3]) : linear[3];
+    return out;
+};
+
+/**
+ * Converts to linear color from rgba
+ * @param {color} out
+ * @param {color} rgba
+ * @param {boolean} [denormalizedAlpha]
+ * @returns {color} out
+ */
+color.fromRGBA = function(out, rgba, denormalizedAlpha)
+{
+    out[0] = num.linearFromColor(rgba[0]);
+    out[1] = num.linearFromColor(rgba[1]);
+    out[2] = num.linearFromColor(rgba[2]);
+    out[3] = denormalizedAlpha ? num.linearFromColor(rgba[3]) : rgba[3];
+    return out;
+};
+
+/**
+ * Converts to linear color from rgb - the edge converter for 3-component
+ * data; Carbon has no rgb color type, so rgb converts here and stays rgba.
+ * @param {color} out
+ * @param {vec3|Array} rgb
+ * @param {Number} [linearAlpha=1]
+ * @returns {color} out
+ */
+color.fromRGB = function(out, rgb, linearAlpha = 1)
+{
+    out[0] = num.linearFromColor(rgb[0]);
+    out[1] = num.linearFromColor(rgb[1]);
+    out[2] = num.linearFromColor(rgb[2]);
+    out[3] = linearAlpha;
+    return out;
+};
+
+/**
+ * Gets hex value with alpha from linear color
+ * @param {color} linear
+ * @returns {String} hex value
+ */
+color.toHexA = function(linear)
+{
+    return "#" +
+        num.hexFromLinear(linear[0]) +
+        num.hexFromLinear(linear[1]) +
+        num.hexFromLinear(linear[2]) +
+        num.hexFromLinear(linear[3]);
+};
+
+/**
+ * Gets hex value from linear color
+ * @param {color} linear
+ * @returns {String} hex value
+ */
+color.toHex = function(linear)
+{
+    return "#" +
+        num.hexFromLinear(linear[0]) +
+        num.hexFromLinear(linear[1]) +
+        num.hexFromLinear(linear[2]);
+};
+
+/**
+ * Gets linear color from hex or hex with alpha
+ * @param {color} out
+ * @param {String} hex
+ * @param {Number} [defaultAlpha=1]
+ * @returns {color} out
+ */
+color.fromHex = function(out, hex, defaultAlpha = 1)
+{
+    // Set empty color in case of error
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+    out[3] = defaultAlpha;
+
+    if (typeof hex !== "string" || !/^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i.test(hex))
+    {
+        throw new TypeError("Invalid hex");
+    }
+
+    // Short rgb/rgba hex
+    if (hex.length === 4 || hex.length === 5)
+    {
+        out[0] = ("0x" + hex[1] + hex[1]) / 255;
+        out[1] = ("0x" + hex[2] + hex[2]) / 255;
+        out[2] = ("0x" + hex[3] + hex[3]) / 255;
+        if (hex.length === 5) out[3] = ("0x" + hex[4] + hex[4]) / 255;
+    }
+    // Full rgb/rgba hex
+    else if (hex.length === 7 || hex.length === 9)
+    {
+        out[0] = ("0x" + hex[1] + hex[2]) / 255;
+        out[1] = ("0x" + hex[3] + hex[4]) / 255;
+        out[2] = ("0x" + hex[5] + hex[6]) / 255;
+        if (hex.length === 9) out[3] = ("0x" + hex[7] + hex[8]) / 255;
+    }
+    return out;
+};
+
+/**
+ * Converts srgb rgb channels to linear - writes ONLY [0..2], leaving alpha
+ * untouched, so it works in place on a color or on bare rgb data.
+ * @param {color|vec3} out
+ * @param {color|vec3} srgb
+ * @returns {color|vec3} out
+ */
+color.linearFromSRGB = function(out, srgb)
+{
+    out[0] = num.linearFromSRGB(srgb[0]);
+    out[1] = num.linearFromSRGB(srgb[1]);
+    out[2] = num.linearFromSRGB(srgb[2]);
+    return out;
+};
+
+/**
+ * Converts linear rgb channels to srgb - writes ONLY [0..2], leaving alpha
+ * untouched.
+ * @param {color|vec3} out
+ * @param {color|vec3} linear
+ * @returns {color|vec3} out
+ */
+color.srgbFromLinear = function(out, linear)
+{
+    out[0] = num.srgbFromLinear(linear[0]);
+    out[1] = num.srgbFromLinear(linear[1]);
+    out[2] = num.srgbFromLinear(linear[2]);
+    return out;
+};
+
+/**
+ * Converts rgb channels from linear to Carbon gamma 2.2 - writes ONLY
+ * [0..2], leaving alpha untouched.
+ * @param {color|vec3} out
+ * @param {color|vec3} linear
+ * @returns {color|vec3} out
+ */
+color.linearToGamma = function(out, linear)
+{
+    out[0] = num.linearToGamma(linear[0]);
+    out[1] = num.linearToGamma(linear[1]);
+    out[2] = num.linearToGamma(linear[2]);
+    return out;
+};
+
+/**
+ * Converts rgb channels from Carbon gamma 2.2 to linear - writes ONLY
+ * [0..2], leaving alpha untouched.
+ * @param {color|vec3} out
+ * @param {color|vec3} gamma
+ * @returns {color|vec3} out
+ */
+color.gammaToLinear = function(out, gamma)
+{
+    out[0] = num.gammaToLinear(gamma[0]);
+    out[1] = num.gammaToLinear(gamma[1]);
+    out[2] = num.gammaToLinear(gamma[2]);
+    return out;
+};
+
+/**
+ * Converts linear rgb channels to HSV - out is 3-component: hue in degrees
+ * (rounded), saturation and value as rounded percentages. UI helper, not a
+ * Carbon function.
+ * @param {vec3} out
+ * @param {color|vec3} linear
+ * @returns {vec3} out
+ */
+color.toHSV = function(out, linear)
+{
+    const rabs = linear[0], gabs = linear[1], babs = linear[2];
+
+    const v = Math.max(rabs, gabs, babs);
+    const diff = v - Math.min(rabs, gabs, babs);
+    const diffc = c => (v - c) / 6 / diff + 1 / 2;
+    const percentRound = value => Math.round(value * 100) / 100;
+
+    let h, s;
+    if (diff === 0)
+    {
+        h = s = 0;
+    }
+    else
+    {
+        s = diff / v;
+        const rr = diffc(rabs);
+        const gg = diffc(gabs);
+        const bb = diffc(babs);
+
+        if (rabs === v) h = bb - gg;
+        else if (gabs === v) h = (1 / 3) + rr - bb;
+        else h = (2 / 3) + gg - rr;
+
+        if (h < 0) h += 1;
+        else if (h > 1) h -= 1;
+    }
+
+    out[0] = Math.round(h * 360);
+    out[1] = percentRound(s * 100);
+    out[2] = percentRound(v * 100);
+    return out;
+};
+
 export const {
     create,
+    createLinear,
     fromValues,
     copy,
     set,
@@ -187,5 +421,16 @@ export const {
     negate,
     exactEquals,
     lerp,
-    saturate
+    saturate,
+    toRGBA,
+    fromRGBA,
+    fromRGB,
+    toHexA,
+    toHex,
+    fromHex,
+    linearFromSRGB,
+    srgbFromLinear,
+    linearToGamma,
+    gammaToLinear,
+    toHSV
 } = color;

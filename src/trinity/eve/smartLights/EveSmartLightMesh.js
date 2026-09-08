@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.h
 //   trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh.cpp
 //   trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh_Blue.cpp
+import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -54,7 +55,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 
   @io.persist
   @type.color
-  customColor = vec4.createLinear();
+  customColor = color.createLinear();
 
   /** Carbon m_castShadow is exposed under the canonical derived key. */
   get castShadows()
@@ -72,10 +73,10 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   #parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = vec4.createLinear();
+  #resolvedGroupColor = color.createLinear();
 
   /** Carbon m_lastAreaColor = (0,0,0,1). */
-  #lastAreaColor = vec4.createLinear();
+  #lastAreaColor = color.createLinear();
 
   /** A count/refresh skipped by the upload gate remains armed. */
   #geometryDirty = false;

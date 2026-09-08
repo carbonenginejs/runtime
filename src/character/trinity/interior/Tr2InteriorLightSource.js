@@ -2,6 +2,7 @@
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
+import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -153,7 +154,7 @@ export class Tr2InteriorLightSource extends CjsModel
     {
       vec3.set(lightData.color, this.color[0], this.color[1], this.color[2]);
     }
-    vec3.gammaToLinear(lightData.color, lightData.color);
+    color.gammaToLinear(lightData.color, lightData.color);
 
     lightData.pointLightFalloff = this.falloff;
     lightData.shadow0Influence = 0;

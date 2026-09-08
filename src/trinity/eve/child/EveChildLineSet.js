@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
+import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 
@@ -53,7 +54,7 @@ export class EveChildLineSet extends withITr2Renderable(EveChildTransform)
   @io.notify
   @io.persist
   @type.color
-  animColor = vec4.createLinear();
+  animColor = color.createLinear();
 
   /** m_additiveBatch (bool) [READWRITE, PERSIST, NOTIFY] */
   @io.notify

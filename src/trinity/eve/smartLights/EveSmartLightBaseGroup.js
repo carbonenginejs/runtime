@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
+import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../resolveFactionColor.js";
 import { BELIST_INSERTED } from "../../controllers/contracts.js";
@@ -20,7 +21,7 @@ import { BELIST_INSERTED } from "../../controllers/contracts.js";
  * @param {Float32Array} out
  * @returns {Float32Array}
  */
-export function resolveGroupColor(customColor, useFactionColor, factionColor, parentColorSet, out = vec4.createLinear())
+export function resolveGroupColor(customColor, useFactionColor, factionColor, parentColorSet, out = color.createLinear())
 {
   return resolveFactionColor(out, customColor, useFactionColor, factionColor, parentColorSet);
 }
@@ -49,13 +50,13 @@ export class EveSmartLightBaseGroup extends CjsModel
   /** m_color (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  customColor = vec4.createLinear();
+  customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = vec4.createLinear();
+  #resolvedGroupColor = color.createLinear();
 
   /** IEveSmartLightGroup default: no asynchronous work. */
   @carbon.method

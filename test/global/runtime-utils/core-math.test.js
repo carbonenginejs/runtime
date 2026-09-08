@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { mesh, num, quat, tangent, vec3 as rootVec3, vec4 as rootVec4, vertex } from "../../../npm/dist/index.js";
+import { color as rootColor, mesh, num, quat, tangent, vec3 as rootVec3, vec4 as rootVec4, vertex } from "../../../npm/dist/index.js";
 import { isArrayLike } from "../../../npm/dist/global/utils/is.js";
 import { mesh as subMesh } from "../../../npm/dist/global/math/mesh.js";
 import { carbonPerlin1D, createPerlinNoise1D, perlin1, perlin1D } from "../../../npm/dist/global/math/noise.js";
@@ -9,6 +9,7 @@ import { cubicHermite, cubicHermiteDerivative } from "../../../npm/dist/global/m
 import { tangent as subTangent } from "../../../npm/dist/global/math/tangent.js";
 import { copyArrayLike, fillArrayLike } from "../../../npm/dist/global/math/utils.js";
 import { cross, normalize, vec3 as vec3Container } from "../../../npm/dist/global/math/vec3.js";
+import * as color from "../../../npm/dist/global/math/color.js";
 import * as vec3 from "../../../npm/dist/global/math/vec3.js";
 import * as vec4 from "../../../npm/dist/global/math/vec4.js";
 
@@ -42,7 +43,8 @@ test("root and subpath imports expose individual methods and containers", () =>
     assert.equal(vec3.normalize, normalize);
     assert.equal(vec3.vec3, vec3Container);
     assert.equal(vec3Container.cross, cross);
-    assert.equal(rootVec4.createLinear, vec4.createLinear);
+    assert.equal(rootVec4.addScalar, vec4.addScalar);
+    assert.equal(rootColor.createLinear, color.createLinear);
     assert.equal(mesh.generateNormals, subMesh.generateNormals);
     assert.equal(tangent.packTangentFrames, subTangent.packTangentFrames);
     assert.equal(num.clamp(2, 0, 1), 1);
@@ -140,34 +142,34 @@ test("one-dimensional Perlin noise matches Carbon's seeded implementation", () =
     assert.equal(first.fractalSum(3, -1), 0);
 });
 
-test("vec3 exposes reusable color-space transforms", () =>
+test("color exposes reusable color-space transforms", () =>
 {
     const
         srgb = [ 0.25, 0.5, 0.75 ],
         out = [ 9, 9, 9 ];
 
-    assert.equal(vec3.linearFromSRGB(out, srgb), out);
+    assert.equal(color.linearFromSRGB(out, srgb), out);
     almostEqualArray(out, [
         num.linearFromSRGB(0.25),
         num.linearFromSRGB(0.5),
         num.linearFromSRGB(0.75)
     ]);
 
-    assert.equal(vec3.linearToGamma(out, srgb), out);
+    assert.equal(color.linearToGamma(out, srgb), out);
     almostEqualArray(out, [
         num.linearToGamma(0.25),
         num.linearToGamma(0.5),
         num.linearToGamma(0.75)
     ]);
 
-    assert.equal(vec3.gammaToLinear(out, srgb), out);
+    assert.equal(color.gammaToLinear(out, srgb), out);
     almostEqualArray(out, [
         num.gammaToLinear(0.25),
         num.gammaToLinear(0.5),
         num.gammaToLinear(0.75)
     ]);
 
-    assert.equal(vec3.srgbFromLinear(out, srgb), out);
+    assert.equal(color.srgbFromLinear(out, srgb), out);
     almostEqualArray(out, [
         num.srgbFromLinear(0.25),
         num.srgbFromLinear(0.5),
@@ -175,9 +177,9 @@ test("vec3 exposes reusable color-space transforms", () =>
     ]);
 });
 
-test("vec4 creates opaque linear colors", () =>
+test("color creates opaque linear colors", () =>
 {
-    almostEqualArray(vec4.createLinear(), [ 0, 0, 0, 1 ]);
+    almostEqualArray(color.createLinear(), [ 0, 0, 0, 1 ]);
 });
 
 test("tangent packs and decodes a GR2-style tangent frame", () =>

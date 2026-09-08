@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2CurveColorMixer.h
 // Source: trinity/trinity/Curves/Tr2CurveColorMixer.cpp
-import { vec3 } from "#math/vec3";
+import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
@@ -23,19 +23,19 @@ export class Tr2CurveColorMixer extends CjsModel
 
   @io.read
   @type.color
-  convertedLinearValue = vec4.createLinear();
+  convertedLinearValue = color.createLinear();
 
   @io.persist
   @type.color
-  color1 = vec4.createLinear();
+  color1 = color.createLinear();
 
   @io.persist
   @type.color
-  color2 = vec4.createLinear();
+  color2 = color.createLinear();
 
   @io.read
   @type.color
-  currentValue = vec4.createLinear();
+  currentValue = color.createLinear();
 
   @io.persist
   @type.float32
@@ -59,7 +59,7 @@ export class Tr2CurveColorMixer extends CjsModel
   UpdateValue(time)
   {
     this.GetValueAt(time, this.currentValue);
-    vec3.linearFromSRGB(this.convertedLinearValue, this.currentValue);
+    color.linearFromSRGB(this.convertedLinearValue, this.currentValue);
   }
 
   /**

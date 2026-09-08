@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
+import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 
 /** EveSOFDataFactionColorSet (eve) - generated from schema shapeHash 715e3a12.... */
@@ -12,27 +13,27 @@ export class EveSOFDataFactionColorSet extends CjsModel
   /** m_colors[SOFDataFactionColorChooser::TYPE_KILLMARK] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Killmark = vec4.createLinear();
+  Killmark = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_FORCEFIELD] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  PrimaryForcefield = vec4.createLinear();
+  PrimaryForcefield = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_FORCEFIELD] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  SecondaryForcefield = vec4.createLinear();
+  SecondaryForcefield = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_FX] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  PrimaryFx = vec4.createLinear();
+  PrimaryFx = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_FX] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  SecondaryFx = vec4.createLinear();
+  SecondaryFx = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_WARP_FX] (Color) [READWRITE, PERSIST] */
   @io.persist
@@ -57,127 +58,127 @@ export class EveSOFDataFactionColorSet extends CjsModel
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Primary = vec4.createLinear();
+  Primary = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Secondary = vec4.createLinear();
+  Secondary = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Tertiary = vec4.createLinear();
+  Tertiary = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_BLACK] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Black = vec4.createLinear();
+  Black = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_WHITE] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  White = vec4.createLinear();
+  White = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_YELLOW] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Yellow = vec4.createLinear();
+  Yellow = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_ORANGE] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Orange = vec4.createLinear();
+  Orange = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_RED] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Red = vec4.createLinear();
+  Red = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_BLUE] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Blue = vec4.createLinear();
+  Blue = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_GREEN] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Green = vec4.createLinear();
+  Green = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_CYAN] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Cyan = vec4.createLinear();
+  Cyan = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_FIRE] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Fire = vec4.createLinear();
+  Fire = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  PrimaryHologram = vec4.createLinear();
+  PrimaryHologram = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  SecondaryHologram = vec4.createLinear();
+  SecondaryHologram = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  TertiaryHologram = vec4.createLinear();
+  TertiaryHologram = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_LIGHT] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  PrimaryLight = vec4.createLinear();
+  PrimaryLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_LIGHT] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  SecondaryLight = vec4.createLinear();
+  SecondaryLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_LIGHT] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  TertiaryLight = vec4.createLinear();
+  TertiaryLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_WHITE_LIGHT] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  WhiteLight = vec4.createLinear();
+  WhiteLight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_HULL] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Hull = vec4.createLinear();
+  Hull = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_GLASS] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Glass = vec4.createLinear();
+  Glass = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_REACTOR] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Reactor = vec4.createLinear();
+  Reactor = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_DARKHULL] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Darkhull = vec4.createLinear();
+  Darkhull = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_BOOSTER] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  Booster = vec4.createLinear();
+  Booster = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_BANNER] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  PrimaryBanner = vec4.createLinear();
+  PrimaryBanner = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_BILLBOARD] (Color) [READWRITE, PERSIST] */
   @io.persist
@@ -187,47 +188,47 @@ export class EveSOFDataFactionColorSet extends CjsModel
   /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  PrimarySpotlight = vec4.createLinear();
+  PrimarySpotlight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  SecondarySpotlight = vec4.createLinear();
+  SecondarySpotlight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  TertiarySpotlight = vec4.createLinear();
+  TertiarySpotlight = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_0] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  State0 = vec4.createLinear();
+  State0 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_1] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  State1 = vec4.createLinear();
+  State1 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_2] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  State2 = vec4.createLinear();
+  State2 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_3] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  State3 = vec4.createLinear();
+  State3 = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_VULNERABLE] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  StateVulnerable = vec4.createLinear();
+  StateVulnerable = color.createLinear();
 
   /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_INVULNERABLE] (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  StateInvulnerable = vec4.createLinear();
+  StateInvulnerable = color.createLinear();
 
 
   /**

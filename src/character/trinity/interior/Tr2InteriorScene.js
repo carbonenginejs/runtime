@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
+import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -115,7 +116,7 @@ export class Tr2InteriorScene extends CjsModel
   /** m_sunDiffuseColor (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  sunDiffuseColor = vec4.createLinear();
+  sunDiffuseColor = color.createLinear();
 
   /** m_sunDirection (Vector3) [READWRITE, PERSIST] */
   @io.persist

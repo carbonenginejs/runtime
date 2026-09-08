@@ -3,6 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
+import { color } from "#math/color";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -93,7 +94,7 @@ export class EveSmartLightPointLight extends EveEntity
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
   @io.persist
   @type.color
-  customColor = vec4.createLinear();
+  customColor = color.createLinear();
 
   /** m_lightType (Tr2Light::LIGHT_TYPE) - POINT_LIGHT here, SPOT_LIGHT on the subclass (EveSmartLightPointLight.cpp:15). */
   lightType = Tr2Light.POINT_LIGHT;
@@ -102,7 +103,7 @@ export class EveSmartLightPointLight extends EveEntity
   #parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = vec4.createLinear();
+  #resolvedGroupColor = color.createLinear();
 
   /** m_activationStrength (float) - captured from the update params (EveSmartLightPointLight.h:49). */
   #activationStrength = 1;

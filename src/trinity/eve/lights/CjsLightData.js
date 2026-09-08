@@ -1,9 +1,9 @@
 // Source: trinity/trinity/Lights/Tr2Light.h
 // Source: trinity/trinity/Lights/Tr2Light.cpp
 import { CjsModel } from "#model";
+import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { vec4 } from "#math/vec4";
 import { type } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 
@@ -33,7 +33,7 @@ export class CjsLightData extends CjsModel
   position = vec3.create();
 
   @type.color
-  color = vec4.createLinear();
+  color = color.createLinear();
 
   @type.float32
   brightness = 1;

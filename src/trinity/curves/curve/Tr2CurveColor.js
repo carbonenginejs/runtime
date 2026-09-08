@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2CurveColor.h
 // Source: trinity/trinity/Curves/Tr2CurveColor.cpp
-import { vec3 } from "#math/vec3";
+import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
@@ -51,7 +51,7 @@ export class Tr2CurveColor extends CjsModel
 
   @io.read
   @type.color
-  currentValue = vec4.createLinear();
+  currentValue = color.createLinear();
 
   /**
    * Updates the cached color value by updating each scalar component curve.
@@ -67,7 +67,7 @@ export class Tr2CurveColor extends CjsModel
     this.currentValue[3] = this.a.IsEmpty() ? 1 : this.a.Update(t);
     if (this.srgbOutput)
     {
-      vec3.linearToGamma(this.currentValue, this.currentValue);
+      color.linearToGamma(this.currentValue, this.currentValue);
     }
   }
 
@@ -98,7 +98,7 @@ export class Tr2CurveColor extends CjsModel
     {
       vec4.zero(CLAMP_MIN);
       vec4.max(out, out, CLAMP_MIN);
-      vec3.linearToGamma(out, out);
+      color.linearToGamma(out, out);
     }
     return out;
   }

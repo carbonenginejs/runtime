@@ -4,6 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
+import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import {
@@ -59,13 +60,13 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
   @io.persist
   @type.color
-  customColor = vec4.createLinear();
+  customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
   #parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = vec4.createLinear();
+  #resolvedGroupColor = color.createLinear();
 
   /** Last `display` value the settle hook applied (JS-only change detection). */
   #lastAppliedDisplay = true;

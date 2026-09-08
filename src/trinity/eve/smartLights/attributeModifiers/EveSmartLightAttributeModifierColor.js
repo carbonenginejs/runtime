@@ -2,7 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
-import { vec4 } from "#math/vec4";
+import { color } from "#math/color";
 import { resolveFactionColor } from "../../resolveFactionColor.js";
 
 /** EveSmartLightAttributeModifierColor (eve/smartLights/attributeModifiers) - generated from schema shapeHash 1d22dfd5.... */
@@ -29,7 +29,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   /** m_blendColor (Color) [READWRITE, PERSIST] */
   @io.persist
   @type.color
-  blendColor = vec4.createLinear();
+  blendColor = color.createLinear();
 
   /** m_brightnessMultiplier (float) [READWRITE, PERSIST] */
   @io.persist
@@ -45,7 +45,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   #parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = vec4.createLinear();
+  #resolvedGroupColor = color.createLinear();
 
   /** Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24). */
   @carbon.method

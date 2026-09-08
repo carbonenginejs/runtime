@@ -5,9 +5,9 @@
 // lights/Tr2FactionLight.json (tools-core schema build).
 import { impl, io, type } from "#schema";
 import { withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
+import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { vec4 } from "#math/vec4";
 import { Tr2Light } from "./Tr2Light.js";
 import { hasFactionColor, resolveFactionColor } from "../resolveFactionColor.js";
 
@@ -19,7 +19,7 @@ export class Tr2FactionLight extends withIEveInheritPropertiesOwner(Tr2Light)
   #parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #selectedFactionColor = vec4.createLinear();
+  #selectedFactionColor = color.createLinear();
 
   /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @io.notify
@@ -73,7 +73,7 @@ export class Tr2FactionLight extends withIEveInheritPropertiesOwner(Tr2Light)
   @io.notify
   @io.persist
   @type.color
-  color = vec4.createLinear();
+  color = color.createLinear();
 
   /** m_lightData.brightness (float) [READWRITE, PERSIST, NOTIFY] */
   @io.notify

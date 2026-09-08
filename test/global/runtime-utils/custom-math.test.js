@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 
 import * as box3 from "@carbonenginejs/runtime/math/box3";
+import * as color from "@carbonenginejs/runtime/math/color";
 import * as curve from "@carbonenginejs/runtime/math/curve";
 import * as geometry from "@carbonenginejs/runtime/math/geometry";
 import * as is from "@carbonenginejs/runtime/utils/is";
@@ -224,8 +225,8 @@ test("vec4 array helpers back the plane and sphere public exports", () =>
 
 test("invalid hexadecimal colors are rejected", () =>
 {
-    assert.throws(() => vec3.fromHex(vec3.create(), "#gggggg"), TypeError);
-    assert.throws(() => vec4.fromHex(vec4.create(), "#12xz"), TypeError);
+    assert.throws(() => color.fromHex(color.create(), "#gggggg"), TypeError);
+    assert.throws(() => color.fromHex(color.create(), "#12xz"), TypeError);
 });
 
 test("box emptiness, transforms, plane intersection, and corners are correct", () =>

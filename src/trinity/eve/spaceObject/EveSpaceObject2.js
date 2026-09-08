@@ -8,6 +8,7 @@ import { withITr2BoundingBox } from "#contracts";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
+import { color } from "#math/color";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -262,7 +263,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   /** m_albedoColor (Color) [READWRITE] */
   @io.readwrite
   @type.color
-  albedoColor = vec4.createLinear();
+  albedoColor = color.createLinear();
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @io.notify

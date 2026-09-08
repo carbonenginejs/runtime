@@ -38,6 +38,7 @@ export * as vec2 from "./math/vec2.js";
 export * as vec3 from "./math/vec3.js";
 export * as vec4 from "./math/vec4.js";
 export * as quat from "./math/quat.js";
+export * as color from "./math/color.js";
 export * as mat3 from "./math/mat3.js";
 export * as mat4 from "./math/mat4.js";
 

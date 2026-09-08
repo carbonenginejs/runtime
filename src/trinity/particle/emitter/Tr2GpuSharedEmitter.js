@@ -2,8 +2,8 @@
 // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter.cpp
 // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter_Blue.cpp
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.h
+import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
-import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { withITr2GenericEmitter } from "../ITr2GenericEmitter.js";
@@ -96,22 +96,22 @@ export class Tr2GpuSharedEmitter extends withITr2GenericEmitter(CjsModel)
   @io.notify
   @io.persist
   @type.color
-  color0 = vec4.createLinear();
+  color0 = color.createLinear();
 
   @io.notify
   @io.persist
   @type.color
-  color1 = vec4.createLinear();
+  color1 = color.createLinear();
 
   @io.notify
   @io.persist
   @type.color
-  color2 = vec4.createLinear();
+  color2 = color.createLinear();
 
   @io.notify
   @io.persist
   @type.color
-  color3 = vec4.createLinear();
+  color3 = color.createLinear();
 
   @io.notify
   @io.persist

@@ -1,5 +1,4 @@
 import * as glVec4 from "gl-matrix/esm/vec4.js";
-import { num } from "./num.js";
 import { pool } from "./pool.js";
 
 const vec4 = { ...glVec4 };
@@ -29,17 +28,6 @@ vec4.unalloc = function(a)
 };
 
 vec4.ZERO = vec4.fromValues(0, 0, 0, 0);
-
-/**
- * Creates a linear color vec4 with opaque alpha
- * @returns {vec4}
- */
-vec4.createLinear = function()
-{
-    const out = vec4.create();
-    out[3] = 1;
-    return out;
-};
 
 /**
  * Adds a scalar to a vec4
@@ -133,120 +121,6 @@ vec4.subtractScalar = function(out, a, s)
 };
 
 /**
- * Converts from linear color to rgba
- * @param {vec4} out
- * @param {vec4} linear
- * @param {boolean} [denormalizeAlpha]
- * @returns {vec4}
- */
-vec4.toRGBA = function(out, linear, denormalizeAlpha)
-{
-    out[0] = num.colorFromLinear(linear[0]);
-    out[1] = num.colorFromLinear(linear[1]);
-    out[2] = num.colorFromLinear(linear[2]);
-    out[3] = denormalizeAlpha ? num.colorFromLinear(linear[3]) : linear[3];
-    return out;
-};
-
-/**
- * Converts to linear color from rgba
- * @param {vec4} out
- * @param {vec4} rgba
- * @param {boolean} [denormalizedAlpha]
- * @returns {vec4} out
- */
-vec4.fromRGBA = function(out, rgba, denormalizedAlpha)
-{
-    out[0] = num.linearFromColor(rgba[0]);
-    out[1] = num.linearFromColor(rgba[1]);
-    out[2] = num.linearFromColor(rgba[2]);
-    out[3] = denormalizedAlpha ? num.linearFromColor(rgba[3]) : rgba[3];
-    return out;
-};
-
-/**
- * Converts to linear color from rgb
- * @param {vec4} out
- * @param {vec3} rgb
- * @param {Number} [linearAlpha=1]
- * @returns {vec4} out
- */
-vec4.fromRGB = function(out, rgb, linearAlpha = 1)
-{
-    out[0] = num.linearFromColor(rgb[0]);
-    out[1] = num.linearFromColor(rgb[1]);
-    out[2] = num.linearFromColor(rgb[2]);
-    out[3] = linearAlpha;
-    return out;
-};
-
-/**
- * Gets hex value with alpha from linear color
- * @param {vec4} linear
- * @returns {string} hex value
- */
-vec4.toHexA = function(linear)
-{
-    return "#" +
-        num.hexFromLinear(linear[0]) +
-        num.hexFromLinear(linear[1]) +
-        num.hexFromLinear(linear[2]) +
-        num.hexFromLinear(linear[3]);
-};
-
-/**
- * Gets hex value from linear color
- * @param {vec4} linear
- * @returns {string} hex value
- */
-vec4.toHex = function(linear)
-{
-    return "#" +
-        num.hexFromLinear(linear[0]) +
-        num.hexFromLinear(linear[1]) +
-        num.hexFromLinear(linear[2]);
-};
-
-/**
- * Gets linear color from hex or hex with alpha
- * @param {vec4} out
- * @param {String} hex
- * @param {Number} [defaultAlpha=1]
- * @return {vec4}
- */
-vec4.fromHex = function(out, hex, defaultAlpha = 1)
-{
-    // Set empty color in case of error
-    out[0] = 0;
-    out[1] = 0;
-    out[2] = 0;
-    out[3] = defaultAlpha;
-
-    if (typeof hex !== "string" || !/^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i.test(hex))
-    {
-        throw new TypeError("Invalid hex");
-    }
-
-    // RGB hex
-    if (hex.length === 4 || hex.length === 5)
-    {
-        out[0] = ("0x" + hex[1] + hex[1]) / 255;
-        out[1] = ("0x" + hex[2] + hex[2]) / 255;
-        out[2] = ("0x" + hex[3] + hex[3]) / 255;
-        if (hex.length === 5) out[3] = ("0x" + hex[4] + hex[4]) / 255;
-    }
-    // RGB hex
-    else if (hex.length === 7 || hex.length === 9)
-    {
-        out[0] = ("0x" + hex[1] + hex[2]) / 255;
-        out[1] = ("0x" + hex[3] + hex[4]) / 255;
-        out[2] = ("0x" + hex[5] + hex[6]) / 255;
-        if (hex.length === 9) out[3] = ("0x" + hex[7] + hex[8]) / 255;
-    }
-    return out;
-};
-
-/**
  * Sets a vec4 from an array with an optional offset
  * @param {vec3} out
  * @param {TypedArray|Array} array
@@ -325,7 +199,6 @@ export const {
     transformMat4,
     transformQuat,
     zero,
-    createLinear,
     alloc,
     unalloc,
     ZERO,
@@ -335,12 +208,6 @@ export const {
     multiplyScalar,
     setScalar,
     subtractScalar,
-    toRGBA,
-    fromRGBA,
-    fromRGB,
-    toHexA,
-    toHex,
-    fromHex,
     fromArray,
     setArray,
     toArray
