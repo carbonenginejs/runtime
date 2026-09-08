@@ -1,8 +1,6 @@
 {
   "recorded": "2026-09-08",
   "problems": [
-    "src/trinityal/Tr2HalHelperStructures.js Tr2MsaaDesc does not port Tr2MsaaDesc::quality.",
-    "src/trinityal/Tr2HalHelperStructures.js Tr2MsaaDesc does not port Tr2MsaaDesc::samples.",
     "src/trinityal/stub/Tr2RenderContextALStub.js Tr2RenderContextALStub does not port Tr2RenderContextAL::GetDefaultBackBuffer.",
     "src/trinityal/stub/Tr2RenderContextALStub.js Tr2RenderContextALStub does not port Tr2RenderContextAL::Present.",
     "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::CreateStagingBuffer.",

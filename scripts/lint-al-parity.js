@@ -233,7 +233,18 @@ function carbonMethods(code)
         // ends the signature line with `:` and continues on the next - so the
         // previous line's ending decides whether we are still inside one.
         const inInitialiser = continuesInitialiser || line.startsWith(":") || line.startsWith(",");
-        continuesInitialiser = inInitialiser && !line.includes("{");
+
+        // A list also OPENS at the end of the signature line - Carbon writes
+        // `Tr2MsaaDesc( uint32_t samples_ = 1 ) :` and continues below - so the
+        // opening has to be detected on a line that is not itself part of it.
+        // Without this, `samples( ... )` on the next line reads as a method and
+        // the data member is reported as an unported one.
+        //
+        // The `)` is required, and is not decoration: `private:` also ends in a
+        // colon, and treating THAT as an opener swallowed the next declaration.
+        // It hid two nested structs and attributed their members to the parent.
+        const opensInitialiser = line.endsWith(":") && line.includes(")");
+        continuesInitialiser = (inInitialiser || opensInitialiser) && !line.includes("{");
         if (inInitialiser) continue;
 
         // A forward declaration ends in `;` and opens no body.
