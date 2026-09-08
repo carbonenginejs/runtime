@@ -143,7 +143,7 @@ qualify each plug-in's DSP behavior before interpreting them.
 ## Two facts about the pin and the container
 
 **The version-150 pin has a horizon.** The typed decoding above is deliberately
-bound to bank generator version 150, which is what current EVE builds ship. The
+bound to bank generator version 150, observed in the inspected EVE corpus. The
 Wwise SDK that CarbonEngine itself pins is `2025.1.5.9095`, a generation whose
 authoring tools emit a substantially later bank version. So the pin is expected
 to be broken by a toolchain upgrade on the producing side rather than by

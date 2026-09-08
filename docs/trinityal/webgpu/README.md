@@ -17,8 +17,8 @@ packed geometry, texture data, sampler state, and uniform values.
 
 ## Where it fits
 
-The package owns the WebGPU device boundary and immutable Carbon WebGPU-facing
-descriptors. It imports canonical resource and Trinity identities at the seams
+The package owns the WebGPU device boundary and normalized Carbon WebGPU-facing
+descriptors. Those descriptors are mutable. It imports canonical resource and Trinity identities at the seams
 it consumes, validates them once, and calls their required methods directly.
 Format readers may be injected by callers. Resource acquisition, effect
 selection, renderer scheduling, and scene extraction remain outside the engine.

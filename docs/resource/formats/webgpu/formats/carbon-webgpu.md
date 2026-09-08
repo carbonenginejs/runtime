@@ -208,7 +208,7 @@ The set builder fails closed unless every recipe:
 - matches the binding's identity, view dimension, and layer count; and
 - removes only the later input scopes from that recipe's owning pass.
 
-The `engine/webgpu` layer accepts WGSL-set versions 1, 2, and 3 and realizes the
+The `trinityal/webgpu` layer accepts WGSL-set versions 1, 2, and 3 and realizes the
 version-1 `texture-2d-array` recipe. Unsupported recipe kinds or versions fail
 closed.
 
@@ -219,9 +219,9 @@ container switchover without a second artifact. New code should treat the
 Carbon record tree as the wire authority and should not rebuild assumptions
 around the retired chunk names.
 
-The raw container's current reflection-to-`Tr2Shader` adapter and the engine's
-body-program view remain integration boundaries under active repair. Their
-existence does not change the wire contract described here.
+The retired raw emit is not a current integration surface. Consumers read the
+derived document and its backend body set; broader resource and execution
+completeness gates remain separate from the wire contract described here.
 
 ## Related documentation
 

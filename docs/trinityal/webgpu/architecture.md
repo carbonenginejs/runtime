@@ -12,7 +12,7 @@ caller data into generation-bound WebGPU objects and encoded draws.
 
 ## Current ownership
 
-`CjsWebgpuPackage` normalizes decoded package data into immutable shader,
+`CjsWebgpuPackage` normalizes decoded package data into mutable shader,
 pipeline, layout, and resource descriptors. `CjsWebgpuDevice` owns native
 device interaction: shader preparation, pipeline creation, buffer and 2D
 and 2D-array texture upload, sampler realization, binding sets, draw encoding,
@@ -316,7 +316,7 @@ pass selection remain outside the dispatcher: `EncodeBatchType(...)` requires
 the caller to supply the compatible pass for the requested type. This avoids
 turning opaque, decal, transparent, or depth policy into shared device code.
 Every injected material, geometry, and binding resolver receives the same
-immutable preparation context. The batch-map path supplies its numeric
+preparation context; supplied contexts are shallow-copied but are not frozen. The batch-map path supplies its numeric
 `batchType`, allowing application composition to select the matching effect
 technique without the dispatcher importing or interpreting `TriBatchType`.
 

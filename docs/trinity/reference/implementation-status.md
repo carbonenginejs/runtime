@@ -247,7 +247,7 @@ parity gate rather than incidental test behavior.
   `Tr2VolumetricsRenderer` now owns per-attribute fog blending, quality and
   planet state, and the terminal froxel per-frame RawData writes. The scene
   owns one renderer by default and calls its per-frame fill directly; the
-  future scene driver still needs to schedule the fog blend. Physical
+  maintained scene driver now calls `UpdateFogSettings` after lighting overrides. Physical
   fog/volumetric resources and passes delegate through a nominal throwing
   `CjsVolumetricsExecutor`. The remaining generated methods are explicit
   throwing obligations; the generated tree no longer owns manual behavior.
@@ -286,10 +286,9 @@ parity gate rather than incidental test behavior.
   the skeleton tag changes.
 - Calculated whole-object bounds remain planned as a separate lazy cache and
   are not inferred through generic graph traversal.
-- The generated `EveSpaceSceneRenderDriver` is a data shell. Production
-  composition still needs a host or engine to order scene update, visibility,
-  batch collection, per-frame fills, render-job intent consumption, backend
-  realization, and dispatch.
+- The maintained `EveSpaceSceneRenderDriver` implements a partial frame spine:
+  scene update, lighting/fog updates, visibility/gather, batch submission and
+  per-frame fills. It does not yet implement the complete rendering sequence.
 
 ## Planned completion gates
 

@@ -7,11 +7,11 @@ Summary: Lists the current public exports and their supported responsibilities.
 
 ## Package descriptors
 
-- `CjsWebgpuPackage` consumes decoded Carbon WebGPU data and exposes immutable package
-  and pipeline records.
+- `CjsWebgpuPackage` consumes decoded Carbon WebGPU data and exposes normalized package
+  and pipeline records; those records are mutable.
 - `CjsWebgpuPipeline`, `CjsWebgpuShaderModule`, `CjsWebgpuBindGroup`,
   `CjsWebgpuResource`, `CjsWebgpuBuffer`, `CjsWebgpuTexture`, and
-  `CjsWebgpuSampler` represent immutable normalized descriptors.
+  `CjsWebgpuSampler` represent normalized descriptors, not an immutable boundary.
 
 Use `CjsWebgpuPackage.from(packageJson)` for decoded plain data or
 `CjsWebgpuPackage.fromBytes(bytes, { read, readOptions })` with an explicitly
@@ -38,7 +38,7 @@ The resource helpers accept complete caller-owned data. They do not select
 effects, resolve paths, infer vertex layouts, or create production uniform
 values.
 
-`CjsWebgpuPipeline.resourceTransforms` exposes validated immutable transform
+`CjsWebgpuPipeline.resourceTransforms` exposes validated, mutable transform
 records, and `GetResourceTransform(scopeIdentity)` resolves the record carried
 by one merged binding. The current supported shape merges ordered 2D inputs
 into one 2D-array binding. The package validates the recipe and rewritten
@@ -49,8 +49,8 @@ The source tree also contains an internal
 `CjsWebgpuTrinityBatchDispatcher` conformance prototype. It is intentionally
 not exported from the package root and is not part of the supported public API.
 Its batch, accumulator, and batch-map paths keep material/resource resolution
-and render-pass selection injected. Batch-map preparation supplies an
-immutable `{ batchType }` context to each injected material, geometry, and
+and render-pass selection injected. Batch-map preparation supplies a
+mutable `{ batchType }` context to each injected material, geometry, and
 binding resolver. Accumulator preparation retains separate GDPR and ordinary
 vectors, encoding GDPR first and grouping each vector into runs that share one
 pipeline and one set of buffer bindings.

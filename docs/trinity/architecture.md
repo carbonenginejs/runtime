@@ -257,9 +257,9 @@ a silently skipped shadow pass.
 quality/state, planet inputs, and writes the inline `FroxelPerFrameData` fields
 through the scene's canonical `RawData`. `EveChildFogVolume` returns one stable
 settings record that includes movement and log-thickness attributes. The
-promoted scene driver must call `EveSpaceScene.UpdateFogSettings()` after
-lighting overrides and before visibility/gather; that orchestration caller has
-not landed yet. The renderer is scene-owned and its per-frame fill is already
+maintained scene driver calls `EveSpaceScene.UpdateFogSettings()` after
+lighting overrides and before visibility/gather. This caller has landed; the
+driver's broader frame remains deliberately partial. The renderer is scene-owned and its per-frame fill is already
 called directly, so a missing owned method fails visibly.
 
 Physical froxel and volumetric textures, fog passes, environment-map updates,

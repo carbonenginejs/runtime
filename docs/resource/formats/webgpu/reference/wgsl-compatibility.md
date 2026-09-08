@@ -1441,7 +1441,7 @@ extra.
 
 ## Consumer boundary: resource transforms
 
-The `engine/webgpu` layer accepts `CJS_WGSL_SET` versions 1, 2 and 3, and realizes
+The `trinityal/webgpu` layer accepts `CJS_WGSL_SET` versions 1, 2 and 3, and realizes
 `texture-2d-array` resource transforms. The discriminator is the **feature**,
 never the document version and never `texture.viewDimension`:
 
@@ -1525,7 +1525,7 @@ identically and the bit-exact comparison would have stayed green.
 ## Verification contract
 
 Every shader-emission, layout, or transform compatibility change requires the
-package suite and a representative `engine/webgpu` browser gate on a real
+package suite and a representative `trinityal/webgpu` browser gate on a real
 WebGPU device with zero WGSL warnings. Format-level qualification cannot detect
 every WGSL scoping or validator failure, so browser validation remains part of
 the compiler contract. A reviewed record-layout or derived-view-only change

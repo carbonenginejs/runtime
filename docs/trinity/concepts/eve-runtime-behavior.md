@@ -89,12 +89,11 @@ order, with the current transform passed from one modifier to the next.
 `EveSpaceScene.Update` owns and stamps the context rather than consuming one,
 so it is not contextual.
 
-`EveSpaceSceneRenderDriver` remains generated schema intake, not a production
-frame driver. Applications and engines still compose update, visibility,
-renderable collection, lights, batches, per-frame fills, intent consumption,
-and dispatch.
+`EveSpaceSceneRenderDriver` is maintained and implements a partial frame spine:
+scene update, lighting/fog updates, visibility/gather, batch submission and
+per-frame fills. It does not yet implement the complete rendering sequence.
 
-The generated `EveChildParticleSystem` already folds transform modifiers and
+The maintained `EveChildParticleSystem` already folds transform modifiers and
 drives its portable emitter and particle-system updates. One narrower
 animation seam remains open: `EveChildContainer.UpdateAsyncronous` uses the
 palette threaded in its parent parameters instead of replacing it from the

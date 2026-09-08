@@ -30,8 +30,8 @@ requested reflected local float constants from `effect.parameters` and
 
 Dynamic parameters use `CopyValueToEffect`, preserving rerouted values and
 sRGB-to-linear conversion. Constant parameters supply the requested prefix of
-their stored numeric value. The result and each returned number array are
-frozen.
+their stored numeric value. Returned number arrays are detached but mutable;
+the result's named properties are nonwritable, but the result is not frozen.
 
 The helper fails closed when:
 
@@ -56,7 +56,7 @@ import {
 } from "@carbonenginejs/runtime/trinity/eve";
 ```
 
-`createEveSpaceObjectMainPerObjectValues(options)` returns frozen
+`createEveSpaceObjectMainPerObjectValues(options)` returns detached, mutable
 `perObjectVS` and `perObjectPS` objects. It requires:
 
 - an object with 16-value current, previous, and inverse world transforms; and
