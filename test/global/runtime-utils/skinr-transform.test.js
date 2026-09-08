@@ -138,6 +138,12 @@ test("the orbit alone puts the projector where its longitude and latitude say", 
     // With no offsets, the projector sits at `depth` along the direction the two
     // orbital angles name - longitude about the vertical, latitude up from the
     // horizontal - and nowhere else.
+    //
+    // Longitude is measured from the PANEL's front, which is a quarter turn on
+    // from hull +X: longitude 0 is front, 90 right, 180 back, 270 left
+    // (operator, 2026-09-08). So the direction below carries the same origin
+    // the library applies, and a test written without it is testing the old
+    // convention rather than the geometry.
     const depth = 100;
     const m = mat4.fromSkinr(new Float32Array(16), placement({
         longitude: 90, latitude: 30, offsetU: 0, offsetV: 0, depth
@@ -145,7 +151,7 @@ test("the orbit alone puts the projector where its longitude and latitude say", 
 
     const [ x, y, z ] = translation(m);
     const lat = 30 * Math.PI / 180;
-    const lon = 90 * Math.PI / 180;
+    const lon = (90 + 90) * Math.PI / 180;
 
     assertClose(x, depth * Math.cos(lat) * Math.cos(lon), "x");
     assertClose(y, depth * Math.sin(lat), "y");

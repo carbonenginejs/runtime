@@ -9,6 +9,7 @@ import {
 } from "gl-matrix/esm/vec3.js";
 import {
     conjugate as conjugateQuat,
+    fromMat3 as fromMat3Quat,
     multiply as multiplyQuat,
     normalize as normalizeQuat
 } from "gl-matrix/esm/quat.js";
@@ -17,6 +18,74 @@ import { pool } from "./pool.js";
 const mat4 = { ...glMat4 };
 
 export { mat4 };
+
+/**
+ * Reads the rotational component out of a transform.
+ *
+ * ## This OVERRIDES gl-matrix, which is the only override in this module
+ *
+ * Every other name here is an addition. This one deliberately shadows the stock
+ * function, because the stock one is wrong for a non-uniform scale: it divides
+ * the three inverse scales by ELEMENT INDEX rather than by basis column.
+ *
+ *     var sm11 = mat[0] * is1;   // X column, correct
+ *     var sm12 = mat[1] * is2;   // still the X column, over the Y scale
+ *     var sm13 = mat[2] * is3;   // still the X column, over the Z scale
+ *
+ * Exact when the three scales are equal, which is why it survived. Measured on
+ * a known rotation under scale (1, 4, 0.25) it returns a quaternion 78.974
+ * degrees out - and nothing throws, because every value stays finite. The
+ * failure presents as a child, emitter or turret facing the wrong way on a
+ * stretched or non-uniformly scaled parent, which is a long way from the
+ * arithmetic that caused it.
+ *
+ * It also allocated its scale scratch as `glMatrix.ARRAY_TYPE`, which defaults
+ * to Float32Array whatever the caller passed, so the stock version rounded
+ * through float32 even for a double-precision caller. This one does not.
+ *
+ * Overridden rather than added beside as `getRotationPrecise`, because a second
+ * name leaves every one of the ~28 existing call sites on the broken one and
+ * every future one free to pick it again. Nothing can be depending on an 80
+ * degree error.
+ *
+ * A zero-length column has no direction in it, so a matrix with one is reported
+ * as unrotated rather than as NaN - the stock version divides by zero there.
+ * `mat4.decompose` repairs such a matrix before it gets here.
+ *
+ * @param {quat} out
+ * @param {mat4} m
+ * @returns {quat} out
+ */
+mat4.getRotation = function (out, m)
+{
+    const
+        scaleX = Math.hypot(m[0], m[1], m[2]),
+        scaleY = Math.hypot(m[4], m[5], m[6]),
+        scaleZ = Math.hypot(m[8], m[9], m[10]);
+
+    if (scaleX === 0 || scaleY === 0 || scaleZ === 0)
+    {
+        out[0] = 0;
+        out[1] = 0;
+        out[2] = 0;
+        out[3] = 1;
+        return out;
+    }
+
+    const
+        ix = 1 / scaleX,
+        iy = 1 / scaleY,
+        iz = 1 / scaleZ;
+
+    // Each column over its OWN length. That is the whole fix.
+    fromMat3Quat(out, [
+        m[0] * ix, m[1] * ix, m[2] * ix,
+        m[4] * iy, m[5] * iy, m[6] * iy,
+        m[8] * iz, m[9] * iz, m[10] * iz
+    ]);
+
+    return normalizeQuat(out, out);
+};
 
 /**
  *
@@ -688,6 +757,39 @@ const DEGREES = 180 / Math.PI;
 const RADIANS = Math.PI / 180;
 
 /**
+ * Where longitude zero points, in degrees, added to a placement's longitude
+ * before it becomes a direction.
+ *
+ * The geometry puts longitude 0 on hull +X. Measured against the client
+ * (operator, 2026-09-08) that is the hull's LEFT side, so an unshifted angle
+ * runs a quarter turn ahead of the panel's own horizontal axis the whole way
+ * round:
+ *
+ *   unshifted 0 = left     panel 0 = front
+ *   unshifted 90 = front   panel 90 = right
+ *   unshifted 180 = right  panel 180 = back
+ *   unshifted 270 = back   panel 270 = left
+ *
+ * The direction of travel is the same, so this is an offset rather than a
+ * flipped sign - one constant, not a rewritten pair of formulas. `getSkinr`
+ * takes it off and `orbitQuat` puts it back, which keeps the two exact
+ * inverses. Nothing stored changes meaning: a design stores the transform, and
+ * the longitude is a number these two derive from it.
+ * @type {Number}
+ */
+const LONGITUDE_ORIGIN = 90;
+
+/**
+ * An angle folded into -180..180.
+ * @param {Number} degrees
+ * @returns {Number}
+ */
+function wrapDegrees(degrees)
+{
+    return degrees - 360 * Math.floor((degrees + 180) / 360);
+}
+
+/**
  * The orbit alone: the rotation carrying the projector's -X onto the direction a
  * longitude and a latitude name, with no roll of its own.
  *
@@ -695,9 +797,9 @@ const RADIANS = Math.PI / 180;
  * built from the angles directly. Built rather than solved as a shortest arc
  * from -X, which is the same rotation everywhere except in conditioning: a
  * shortest arc is singular where the two directions are opposite, and for this
- * axis that is longitude 0, latitude 0 - the default placement, where designs
- * actually cluster. Measured against the corpus, the arc form lost three digits
- * there. This way the only singularity is at the poles, where a longitude has no
+ * axis that is hull +X - the default placement, where designs actually cluster,
+ * and longitude -90 now that the angle is measured from the panel's front.
+ * Measured against the corpus, the arc form lost three digits there. This way the only singularity is at the poles, where a longitude has no
  * meaning anyway.
  *
  * @param {quat} out
@@ -707,7 +809,7 @@ const RADIANS = Math.PI / 180;
  */
 function orbitQuat(out, longitude, latitude)
 {
-    const y = (Math.PI - longitude * RADIANS) / 2;
+    const y = (Math.PI - (longitude + LONGITUDE_ORIGIN) * RADIANS) / 2;
     const z = -latitude * RADIANS / 2;
     const sy = Math.sin(y), cy = Math.cos(y);
     const sz = Math.sin(z), cz = Math.cos(z);
@@ -729,10 +831,10 @@ function orbitQuat(out, longitude, latitude)
  */
 mat4.fromSkinr = function (out, skinr)
 {
-    const rotation = pool.allocF32(4);
-    const translation = pool.allocF32(3);
-    const scaling = pool.allocF32(3);
-    const roll = pool.allocF32(4);
+    const rotation = new Array(4).fill(0);
+    const translation = new Array(3).fill(0);
+    const scaling = new Array(3).fill(0);
+    const roll = new Array(4).fill(0);
 
     const half = skinr.roll * RADIANS / 2;
 
@@ -742,22 +844,24 @@ mat4.fromSkinr = function (out, skinr)
     roll[2] = 0;
     roll[3] = Math.cos(half);
 
-    orbitQuat(rotation, skinr.longitude, skinr.latitude);
-    multiplyQuat(rotation, rotation, roll);
+    const orbit = new Array(4).fill(0);
 
+    orbitQuat(orbit, skinr.longitude, skinr.latitude);
+    multiplyQuat(rotation, orbit, roll);
+
+    // The projector is placed in its ORBITAL frame, before the roll. Rotating
+    // the offset by the full rotation instead makes ROTATE turn the offset too,
+    // carrying the whole projector circle around the hull as a user drags a
+    // slider that should only spin the pattern in place.
     translation[0] = -skinr.depth;
     translation[1] = skinr.offsetU;
     translation[2] = skinr.offsetV;
-    transformQuatVec3(translation, translation, rotation);
+    transformQuatVec3(translation, translation, orbit);
 
     scaling[0] = scaling[1] = scaling[2] = skinr.scale;
 
     mat4.fromRotationTranslationScale(out, rotation, translation, scaling);
 
-    pool.freeType(rotation);
-    pool.freeType(translation);
-    pool.freeType(scaling);
-    pool.freeType(roll);
 
     return out;
 };
@@ -774,18 +878,16 @@ mat4.fromSkinr = function (out, skinr)
  */
 mat4.getSkinr = function (out, m)
 {
-    const rotation = pool.allocF32(4);
-    const translation = pool.allocF32(3);
-    const scaling = pool.allocF32(3);
-    const local = pool.allocF32(3);
-    const inverse = pool.allocF32(4);
+    const rotation = new Array(4).fill(0);
+    const translation = new Array(3).fill(0);
+    const scaling = new Array(3).fill(0);
+    const local = new Array(3).fill(0);
+    const inverse = new Array(4).fill(0);
 
     mat4.decompose(m, rotation, translation, scaling);
     normalizeQuat(rotation, rotation);
 
-    // Where the projector sits in its own frame.
-    conjugateQuat(inverse, rotation);
-    transformQuatVec3(local, translation, inverse);
+    // (the offsets are read below, once the orbit they belong to is known)
 
     // Where its -X points in hull space. That direction IS the orbital position:
     // the projector looks back down it at the hull.
@@ -793,12 +895,21 @@ mat4.getSkinr = function (out, m)
     const axisY = -(2 * (rotation[0] * rotation[1] + rotation[3] * rotation[2]));
     const axisZ = -(2 * (rotation[0] * rotation[2] - rotation[3] * rotation[1]));
 
-    out.longitude = Math.atan2(axisZ, axisX) * DEGREES;
+    out.longitude = wrapDegrees(Math.atan2(axisZ, axisX) * DEGREES - LONGITUDE_ORIGIN);
     out.latitude = Math.asin(Math.min(1, Math.max(-1, axisY))) * DEGREES;
 
+    // The orbit those two name, rebuilt rather than solved as a shortest arc.
+    const orbit = new Array(4).fill(0);
+
+    orbitQuat(orbit, out.longitude, out.latitude);
+    conjugateQuat(inverse, orbit);
+
+    // The offsets belong to the ORBITAL plane, before the pattern is spun within
+    // it. Reading them through the total rotation makes ROTATE appear to move
+    // the projector, which is the same defect as placing them through it.
+    transformQuatVec3(local, translation, inverse);
+
     // Whatever spin is left once the orbit is taken back off.
-    orbitQuat(inverse, out.longitude, out.latitude);
-    conjugateQuat(inverse, inverse);
     multiplyQuat(inverse, inverse, rotation);
 
     out.roll = 2 * Math.atan2(inverse[0], inverse[3]) * DEGREES;
@@ -811,11 +922,6 @@ mat4.getSkinr = function (out, m)
     // case to carry - and a caller still gets the scale it asked for.
     out.scale = Math.abs(scaling[0]);
 
-    pool.freeType(rotation);
-    pool.freeType(translation);
-    pool.freeType(scaling);
-    pool.freeType(local);
-    pool.freeType(inverse);
 
     return out;
 };
