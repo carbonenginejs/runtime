@@ -1,4 +1,4 @@
-// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
+﻿// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
@@ -14,7 +14,7 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { TriBatchType } from "#consts/graphics";
-import { float16 } from "#math/carbon/float16";
+import { num } from "#math/num";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition.js";
 
 // Carbon PoolVertex (EveSpriteSet.h:56-70): 32 bytes -
@@ -287,11 +287,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
       view.setFloat32(base + 4, sprite.position[1], true);
       view.setFloat32(base + 8, sprite.position[2], true);
       view.setUint16(base + 12, 0, true); // activation - per frame
-      view.setUint16(base + 14, float16.float32To16(sprite.blinkPhase), true);
-      view.setUint16(base + 16, float16.float32To16(sprite.blinkRate), true);
-      view.setUint16(base + 18, float16.float32To16(sprite.minScale), true);
-      view.setUint16(base + 20, float16.float32To16(sprite.maxScale), true);
-      view.setUint16(base + 22, float16.float32To16(sprite.falloff), true);
+      view.setUint16(base + 14, num.toHalfFloat(sprite.blinkPhase), true);
+      view.setUint16(base + 16, num.toHalfFloat(sprite.blinkRate), true);
+      view.setUint16(base + 18, num.toHalfFloat(sprite.minScale), true);
+      view.setUint16(base + 20, num.toHalfFloat(sprite.maxScale), true);
+      view.setUint16(base + 22, num.toHalfFloat(sprite.falloff), true);
       for (let c = 0; c < 4; c++)
       {
         this.#poolBuffer[base + 24 + c] = colorByte(sprite.color[c]);
@@ -377,7 +377,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
       }
     }
 
-    const activation16 = float16.float32To16(Math.fround(activation * this.intensity));
+    const activation16 = num.toHalfFloat(Math.fround(activation * this.intensity));
     for (let i = 0; i < n; i++)
     {
       this.#poolView.setUint16(i * POOL_VERTEX_SIZE + 12, activation16, true);
@@ -402,9 +402,9 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     this.#TransformPositions(world);
 
     const
-      zDirX = float16.float32To16(world[8]),
-      zDirY = float16.float32To16(world[9]),
-      zDirZ = float16.float32To16(world[10]),
+      zDirX = num.toHalfFloat(world[8]),
+      zDirY = num.toHalfFloat(world[9]),
+      zDirZ = num.toHalfFloat(world[10]),
       gain = Math.min(Math.trunc(boosterGain * 255), 255),
       warp = Math.min(Math.trunc(warpIntensity * 255), 255);
 

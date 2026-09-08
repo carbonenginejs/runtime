@@ -1,10 +1,10 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsIESFormat } from "../../../../../src/resource/formats/ies/index.js";
 import { bakeLightProfile } from "../../../../../src/resource/formats/ies/core/bakeLightProfile.js";
-import { carbon } from "#math";
+import { num } from "#math/num";
 
-const { float16 } = carbon;
+const float16 = { float32To16: num.toHalfFloat, float16To32: num.fromHalfFloat };
 
 /**
  * Golden tests for the light-profile bake - the texture half of Carbon's

@@ -1,10 +1,10 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import { EveSpriteSet, EveSpriteSetItem } from "../../npm/dist/trinity/index.js";
-import { carbon } from "../../npm/dist/global/math/index.js";
+import { num } from "../../npm/dist/global/math/num.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
-const { float16 } = carbon;
+const float16 = { float32To16: num.toHalfFloat, float16To32: num.fromHalfFloat };
 
 /**
  * EveSpriteSet's quad-renderer surface (Carbon EveSpriteSet.cpp:18-33,

@@ -1,4 +1,4 @@
-import { float16 } from "#math/carbon/float16";
+﻿import { num } from "#math/num";
 
 /**
  * Bakes photometry into Carbon's light-profile strip.
@@ -18,7 +18,7 @@ import { float16 } from "#math/carbon/float16";
  *
  * Byte parity notes: samples are laid out mip-major (1024 + 512 + ... + 1 =
  * 2047 halfwords), exactly Carbon's bitmap raw data. Arithmetic follows
- * float32 (Math.fround) where Carbon computes in float; acos/π differences
+ * float32 (Math.fround) where Carbon computes in float; acos/Ï€ differences
  * from C's float intrinsics sit below half-float quantization.
  *
  * @param {object} photometry `readIes` output (horizontal-major candela table).
@@ -71,7 +71,7 @@ export function bakeLightProfile(photometry)
                 break;
             }
         }
-        samples[i] = float16.float32To16(intensity);
+        samples[i] = num.toHalfFloat(intensity);
     }
 
     let previous = 0, offset = WIDTH;
@@ -79,9 +79,9 @@ export function bakeLightProfile(photometry)
     {
         for (let i = 0; i < width; i++)
         {
-            samples[offset + i] = float16.float32To16(f32(
-                (float16.float16To32(samples[previous + i * 2])
-                    + float16.float16To32(samples[previous + i * 2 + 1])) * 0.5
+            samples[offset + i] = num.toHalfFloat(f32(
+                (num.fromHalfFloat(samples[previous + i * 2])
+                    + num.fromHalfFloat(samples[previous + i * 2 + 1])) * 0.5
             ));
         }
         previous = offset;

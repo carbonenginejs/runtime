@@ -31,6 +31,7 @@
 
 import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
+import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureArray } from "../Tr2TextureArray.js";
@@ -101,27 +102,12 @@ function calculateShadowMapAtlasSettings(shadowQuality)
   return settings;
 }
 
-/** Encodes one float as IEEE binary16 bits (no Float16Array in this runtime). */
-function toHalf(value)
-{
-  const f32 = toHalf.f32 ?? (toHalf.f32 = new Float32Array(1));
-  const u32 = toHalf.u32 ?? (toHalf.u32 = new Uint32Array(f32.buffer));
-  f32[0] = value;
-  const bits = u32[0];
-  const sign = (bits >>> 16) & 0x8000;
-  let exponent = (bits >>> 23) & 0xFF;
-  let mantissa = bits & 0x7FFFFF;
-  if (exponent === 0xFF) return sign | 0x7C00 | (mantissa ? 0x200 : 0);
-  exponent = exponent - 127 + 15;
-  if (exponent >= 0x1F) return sign | 0x7C00;
-  if (exponent <= 0)
-  {
-    if (exponent < -10) return sign;
-    mantissa |= 0x800000;
-    return sign | (mantissa >> (14 - exponent));
-  }
-  return sign | (exponent << 10) | (mantissa >> 13);
-}
+// Carbon packs these halves through Float_16(...) (Tr2LightManager.cpp:297,
+// :328-329), which rounds to nearest. num.toHalfFloat is the runtime's one
+// half codec and rounds identically for every in-range value; an earlier
+// file-local encoder here TRUNCATED, a 1-ulp divergence from Carbon,
+// removed 2026-09-08.
+const toHalf = num.toHalfFloat;
 
 /** Owns the frame's local-light records, their selection, and the packed light-buffer bytes the abstraction layer uploads. */
 @type.define({ className: "Tr2LightManager", family: "trinityCore" })
