@@ -9,13 +9,24 @@
 // parameter on every `SetName`. All of it was found by hand, with agents, one
 // class at a time.
 //
-// It was never covered because of WHERE the schema pipeline gets its input:
-// `tools-core` builds schemas from a Carbon BLUE scan report, and Blue is the
-// reflection surface. The AL is internal C++ with no Blue exposure, so it has
-// no class records - 1,224 classes in the scan, zero ending in `AL`, no
-// `trinityal` family. Pointing the existing scanner at the AL cannot work, and
-// waiting for it is why nothing ever fired. The AL needs a checker rather than
-// a generator, because its value is ported BEHAVIOUR, which no emitter writes.
+// WHY A SEPARATE CHECKER, CORRECTED 2026-09-09. The first version of this
+// comment said the AL is outside the schema pipeline entirely - "no class
+// records, zero ending in AL, no trinityal family". That was read off the
+// ARCHIVED 2026-07-16 scan. The LIVE scan has 48 classes ending in `AL`, and
+// the staged schema tree has a `trinityal` family of 198 class docs.
+//
+// The real reason is narrower and still holds: an AL schema doc carries
+// `fields` and `nativeMethods` but ZERO Blue `methods`, because the AL is not
+// Blue-exposed. So `carbon-class --check`, which compares Blue methods, has
+// nothing to compare on an AL class - it would compare C++ member fields
+// against our private JS fields and report noise.
+//
+// THIS SCRIPT IS THEREFORE A STOPGAP, and should say so. `nativeMethods`
+// carries the same method surface this parses out of headers by hand, already
+// resolved, with `declaredOn` for base classes, return types and virtual
+// flags. Driving AL parity from that is strictly better than a hand-rolled C++
+// parser, and the schema-pipeline lane has already built a native dictionary
+// over it. Prefer that route when it lands; keep this until it does.
 //
 // THE DONOR IS DECLARED BY THE FILE ITSELF. Every maintained AL file opens
 // with `// Source:` lines naming its Carbon header. This reads those rather
