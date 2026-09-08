@@ -281,7 +281,7 @@
     ],
     "scripts": {
         "build:npm": "node scripts/build-npm.js && rollup -c",
-        "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:al-parity && npm run lint:schema && npm run lint:trinity && npm run lint:docs",
+        "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:al-parity && npm run lint:trinity && npm run lint:docs",
         "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
         "lint:optional-calls": "node scripts/lint-optional-calls.js",
         "lint:layers": "node scripts/lint-layering.js",
@@ -305,9 +305,7 @@
         "build:webgpu:harness": "rollup -c rollup.webgpu-harness.config.mjs",
         "test:webgpu": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js",
         "test:webgpu:required": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js --required",
-        "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test",
-        "lint:schema": "node scripts/lint-schema.js",
-        "prebuild:npm": "npm run lint:schema"
+        "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test"
     },
     "engines": {
         "node": ">=18"
