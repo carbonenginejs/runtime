@@ -8,9 +8,13 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { SNAPSHOT } from "./pack.js";
 
 export const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+// The committed schema archive. tools-core generates it and copies it here
+// (`npm run schema:pack -- --out <dir>`), and it is COMMITTED, so nobody needs
+// a Carbon checkout or the generator to run this gate - only to refresh it.
+const SNAPSHOT = path.join(packageRoot, "scripts", "carbon_schema_latest.gzip");
 const slash = value => value.replaceAll("\\", "/");
 
 function readJson(file)
