@@ -196,6 +196,21 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
     return this.#desc;
   }
 
+
+  /**
+   * The buffer's size in bytes.
+   *
+   * Carbon derives it rather than storing it: `GetDesc().count *
+   * GetDesc().stride` (`src/Tr2BufferAL.cpp:112-115`). Derived here too, so a
+   * description change cannot leave a stale size behind.
+   *
+   * @returns {number} Bytes.
+   */
+  GetSize()
+  {
+    return this.#desc.GetSizeInBytes();
+  }
+
   /**
    * Maps the whole buffer, or a range of it, for reading.
    *

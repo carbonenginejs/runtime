@@ -97,8 +97,10 @@ export class Tr2BaseDeviceResourceAL
   /**
    * Describes this resource for a device inventory.
    *
-   * Carbon fills a `map<string,string>`; every stub leaves it empty, so an
-   * unoverridden description is faithful rather than lazy.
+   * Carbon fills a `map<string,string>`. Every stub resource leaves it empty
+   * EXCEPT `Tr2PipelineStatsQueryAL`, which writes its own type name
+   * (`Tr2PipelineStatsQueryALStub.cpp:65-68`) - so an unoverridden description
+   * is faithful rather than lazy, and that one override is faithful too.
    *
    * @param {object} _description Accumulator, keyed by name.
    */

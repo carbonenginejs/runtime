@@ -117,4 +117,17 @@ export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
   }
+
+
+  /**
+   * Names the fence for a debugger.
+   *
+   * @param {string} _name The name Carbon would attach; the stub discards it.
+   * @returns {number} An `ALResult` value; the stub keeps no name
+   *   (`Tr2FenceALStub.cpp:85-88`).
+   */
+  SetName(_name)
+  {
+    return ALResult.S_OK;
+  }
 }

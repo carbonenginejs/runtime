@@ -122,6 +122,19 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
   }
+
+
+  /**
+   * Names the query for a debugger.
+   *
+   * @param {string} _name The name Carbon would attach; the stub discards it.
+   * @returns {number} An `ALResult` value; the stub keeps no name
+   *   (`Tr2OcclusionQueryALStub.cpp:81-84`).
+   */
+  SetName(_name)
+  {
+    return ALResult.S_OK;
+  }
 }
 
 
@@ -197,6 +210,19 @@ export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
+  }
+
+
+  /**
+   * Names the timer for a debugger.
+   *
+   * @param {string} _name The name Carbon would attach; the stub discards it.
+   * @returns {number} An `ALResult` value; the stub keeps no name
+   *   (`Tr2GpuTimerALStub.cpp:55-58`).
+   */
+  SetName(_name)
+  {
+    return ALResult.S_OK;
   }
 }
 
@@ -305,5 +331,34 @@ export class Tr2PipelineStatsQueryALStub extends Tr2BaseDeviceResourceAL
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;
+  }
+
+
+  /**
+   * Names the query for a debugger.
+   *
+   * @param {string} _name The name Carbon would attach; the stub discards it.
+   * @returns {number} An `ALResult` value; the stub keeps no name
+   *   (`Tr2PipelineStatsQueryALStub.cpp:70-73`).
+   */
+  SetName(_name)
+  {
+    return ALResult.S_OK;
+  }
+
+
+  /**
+   * Describes this query for a device inventory.
+   *
+   * THE ONE NON-EMPTY `Describe` IN CARBON'S STUB TREE. Every other stub
+   * resource leaves the map untouched; this one writes its own type name
+   * (`Tr2PipelineStatsQueryALStub.cpp:65-68`). Overridden here for that reason
+   * alone - the base class no-op would otherwise be silently wrong.
+   *
+   * @param {object} description Accumulator, keyed by name.
+   */
+  Describe(description)
+  {
+    description.type = "Tr2PipelineStatsQueryAL";
   }
 }

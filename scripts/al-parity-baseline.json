@@ -3,12 +3,6 @@
   "problems": [
     "src/trinityal/Tr2HalHelperStructures.js Tr2MsaaDesc does not port Tr2MsaaDesc::quality.",
     "src/trinityal/Tr2HalHelperStructures.js Tr2MsaaDesc does not port Tr2MsaaDesc::samples.",
-    "src/trinityal/Tr2ResourceSetAL.js Tr2ResourceSetALStub does not port Tr2ResourceSetAL::SetName.",
-    "src/trinityal/stub/Tr2BufferALStub.js Tr2BufferALStub does not port Tr2BufferAL::GetSize.",
-    "src/trinityal/stub/Tr2FenceALStub.js Tr2FenceALStub does not port Tr2FenceAL::SetName.",
-    "src/trinityal/stub/Tr2QueryALStub.js Tr2GpuTimerALStub does not port Tr2GpuTimerAL::SetName.",
-    "src/trinityal/stub/Tr2QueryALStub.js Tr2OcclusionQueryALStub does not port Tr2OcclusionQueryAL::SetName.",
-    "src/trinityal/stub/Tr2QueryALStub.js Tr2PipelineStatsQueryALStub does not port Tr2PipelineStatsQueryAL::SetName.",
     "src/trinityal/stub/Tr2RenderContextALStub.js Tr2RenderContextALStub does not port Tr2RenderContextAL::GetDefaultBackBuffer.",
     "src/trinityal/stub/Tr2RenderContextALStub.js Tr2RenderContextALStub does not port Tr2RenderContextAL::Present.",
     "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::CreateStagingBuffer.",
