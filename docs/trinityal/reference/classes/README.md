@@ -255,6 +255,16 @@ A vertex definition the backend has accepted, copied so a caller's later edit ca
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2BindlessResourcesAL -->
+## `Tr2BindlessResourcesAL`
+
+A list of resources handed to `UseResources` so a backend can make them resident together. Every member is empty in the stub, as in Carbon: residency is a device concern.
+
+- Export: `@carbonenginejs/runtime/trinityal/stub`
+- Source: `src/trinityal/stub/Tr2RenderContextALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2RenderContextALStub -->
 ## `Tr2RenderContextALStub`
 

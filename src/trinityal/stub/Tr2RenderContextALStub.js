@@ -29,7 +29,7 @@
 
 
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2TextureALStub } from "../../trinityal/index.js";
-import { PixelFormat, Topology, Tr2GpuUsage } from "../../global/consts/renderContext/index.js";
+import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
 
 
 function fail(message)
@@ -42,6 +42,49 @@ function fail(message)
 
 /** Carbon's `MAX_RENDER_TARGET`; the bound-target array is fixed width. */
 const MAX_RENDER_TARGET = 8;
+
+/**
+ * The process-wide primary render context.
+ *
+ * Carbon keeps this in a function-local static reached through a free function
+ * (`Tr2RenderContextStub.cpp:21-30`), and the three static accessors below all
+ * delegate to it. A module-level binding is the same thing in JavaScript: one
+ * slot, private to this module, reachable only through those accessors.
+ *
+ * The constructor claims it - Carbon's does the same
+ * (`Tr2RenderContextStub.cpp:34-40`) - so the FIRST context constructed becomes
+ * primary until something sets another.
+ */
+let primaryRenderContext = null;
+
+
+/**
+ * Carbon's `Tr2BindlessResourcesAL` (`Tr2RenderContextStub.h:32-47`).
+ *
+ * A list of resources handed to `UseResources` so a backend can make them
+ * resident together. Every method is empty in the stub, exactly as in Carbon:
+ * residency is a device concern and there is no device here.
+ *
+ * Carbon overloads `Add` for a texture, a buffer and another resource list;
+ * JavaScript dispatches on one method, which is the ordinary shape of an
+ * overload set here and not a divergence in behaviour.
+ */
+export class Tr2BindlessResourcesAL
+{
+  /**
+   * Adds a texture, a buffer, or the contents of another list.
+   *
+   * @param {object} _resource The resource to make resident.
+   */
+  Add(_resource)
+  {
+  }
+
+  /** Empties the list. */
+  Clear()
+  {
+  }
+}
 
 
 /**
@@ -104,6 +147,69 @@ export class Tr2RenderContextALStub
 
   /** m_defaultBackBuffer - a real texture, so size and format read back. */
   #defaultBackBuffer = new Tr2TextureALStub();
+
+  /**
+   * The shader stages this context binds constants for.
+   *
+   * `SHADER_TYPE_MASK` (`Tr2RenderContextStub.h:228-230`), a bit per stage.
+   * The stub supports the two raster stages and no compute.
+   */
+  static SHADER_TYPE_MASK = (1 << ShaderType.VERTEX_SHADER) | (1 << ShaderType.PIXEL_SHADER);
+
+  /**
+   * Claims the primary slot, as Carbon's constructor does.
+   *
+   * `Tr2RenderContextStub.cpp:34-40` assigns `this` to the primary pointer
+   * unconditionally, so the most recently constructed context is primary until
+   * `SetPrimaryRenderContext` says otherwise.
+   */
+  constructor()
+  {
+    primaryRenderContext = this;
+  }
+
+
+  /**
+   * Installs the primary render context.
+   *
+   * @param {Tr2RenderContextALStub|null} renderContext The context to install.
+   */
+  static SetPrimaryRenderContext(renderContext)
+  {
+    primaryRenderContext = renderContext;
+  }
+
+
+  /**
+   * The primary render context, which must exist.
+   *
+   * Carbon asserts before dereferencing (`Tr2RenderContextStub.cpp:51-55`);
+   * asking for the primary context when there is none is a caller defect, so
+   * this throws rather than handing back a null nobody checks.
+   *
+   * @returns {Tr2RenderContextALStub} The primary render context.
+   */
+  static GetPrimaryRenderContext()
+  {
+    if (primaryRenderContext === null) fail("there is no primary render context");
+
+    return primaryRenderContext;
+  }
+
+
+  /**
+   * The primary render context, or null when none is installed.
+   *
+   * The pointer form Carbon offers beside the reference form, for callers that
+   * are asking WHETHER there is one.
+   *
+   * @returns {Tr2RenderContextALStub|null} The primary render context.
+   */
+  static GetPrimaryRenderContextPointer()
+  {
+    return primaryRenderContext;
+  }
+
 
   /**
    * Brings the context up. Carbon's `CreateDevice` sets validity and installs
@@ -722,19 +828,6 @@ export class Tr2RenderContextALStub
   }
 
   /**
-   * Declares that a bindless resource collection is about to be read.
-   *
-   * Carbon's stub accepts it (`cpp:436-439`) even though it has no bindless
-   * path, because the declaration is a residency hint rather than a bind.
-   *
-   * @returns {boolean} True.
-   */
-  UseResources()
-  {
-    return true;
-  }
-
-  /**
    * Accepts a render state. Carbon's stub validates the topology enum and
    * accepts the rest (`cpp:112-119`); state values are not interpreted.
    *
@@ -976,5 +1069,220 @@ export class Tr2RenderContextALStub
   GetRenderedFrameNumber()
   {
     return this.#frameNumber;
+  }
+
+
+  /**
+   * Video memory the adapter reports.
+   *
+   * Carbon's stub returns 0 (`Tr2RenderContextStub.cpp:325-328`) - not
+   * "unknown", but a device with no memory, which is what a stub has.
+   *
+   * @returns {number} Zero.
+   */
+  GetTotalVideoMemory()
+  {
+    return 0;
+  }
+
+
+  /**
+   * Makes a resource list resident for a draw.
+   *
+   * @param {number} _destination Carbon's `Tr2UseResourceDestination`.
+   * @param {number} _usage Carbon's `Tr2GpuUsage::Type`.
+   * @param {Tr2BindlessResourcesAL} _resources The list to make resident.
+   * @returns {boolean} True. Carbon accepts it (`cpp:438-441`) despite having
+   *   no bindless path here, because the declaration is a residency hint
+   *   rather than a bind.
+   */
+  UseResources(_destination, _usage, _resources)
+  {
+    return true;
+  }
+
+
+  /**
+   * Binds a top-level acceleration structure for raytracing.
+   *
+   * @param {object} _tlas The acceleration structure.
+   * @returns {boolean} True (`Tr2RenderContextStub.cpp:443-446`).
+   */
+  UseAccelerationStructure(_tlas)
+  {
+    return true;
+  }
+
+
+  /**
+   * Dispatches a raytracing pipeline.
+   *
+   * @param {object} _pipeline The raytracing pipeline state.
+   * @param {object} _shaderTable The shader table.
+   * @param {string} _rayGenShader The ray generation shader name.
+   * @param {number} _width Dispatch width.
+   * @param {number} _height Dispatch height.
+   * @param {number} _depth Dispatch depth.
+   * @returns {boolean} False; the stub refuses (`Tr2RenderContextStub.h:180-183`).
+   */
+  DispatchRays(_pipeline, _shaderTable, _rayGenShader, _width, _height, _depth)
+  {
+    return false;
+  }
+
+
+  /**
+   * The GPU's last known state, for a crash report.
+   *
+   * @returns {boolean} False; the stub has no state to report (`cpp:413-416`).
+   */
+  GetGpuStateMarker()
+  {
+    return false;
+  }
+
+
+  /**
+   * The resource a GPU page fault touched, for a crash report.
+   *
+   * @returns {boolean} False; the stub cannot fault (`cpp:419-428`).
+   */
+  GetGpuPageFaultResource()
+  {
+    return false;
+  }
+
+
+  /**
+   * Marks a point in the frame for a profiler.
+   *
+   * @param {number} _frameEvent Carbon's `Tr2RenderContextEnum::FrameEvent`.
+   */
+  MarkFrameEvent(_frameEvent)
+  {
+  }
+
+
+  /**
+   * Turns upscaling on.
+   *
+   * Carbon's stub answers `OK` (`Tr2RenderContextStub.cpp:459-462`) without
+   * creating anything, so a caller that only enables upscaling sees success
+   * and a caller that then asks for a context gets null. That pairing is
+   * Carbon's, and both halves are ported as they are.
+   *
+   * @param {number} _technique A `Technique` value.
+   * @param {number} _setting A `Setting` value.
+   * @param {boolean} _frameGeneration Whether frame generation is wanted.
+   * @param {number} _adapter The adapter index.
+   * @returns {number} `Result.OK`.
+   */
+  EnableUpscaling(_technique, _setting, _frameGeneration, _adapter)
+  {
+    return UpscalingResult.OK;
+  }
+
+
+  /**
+   * An existing upscaling context.
+   *
+   * @param {number} _contextId The context id.
+   * @returns {null} Null; the stub keeps none (`cpp:464-467`).
+   */
+  GetUpscalingContext(_contextId)
+  {
+    return null;
+  }
+
+
+  /**
+   * Creates an upscaling context, or reuses one.
+   *
+   * @param {object} _params Carbon's `UpscalingContextParams`.
+   * @param {number} _existingContext A context id, or `INVALID_UPSCALING_CONTEXT_ID`.
+   * @returns {null} Null; the stub creates none (`cpp:469-472`).
+   */
+  CreateUpscalingContext(_params, _existingContext = INVALID_UPSCALING_CONTEXT_ID)
+  {
+    return null;
+  }
+
+
+  /**
+   * Destroys an upscaling context.
+   *
+   * @param {number} _contextId The context id.
+   */
+  DeleteUpscalingContext(_contextId)
+  {
+  }
+
+
+  /**
+   * What an upscaling context is doing.
+   *
+   * @param {number} _contextId The context id.
+   * @returns {object} A default-constructed `UpscalingInfo` (`cpp:478-481`).
+   */
+  GetUpscalingInfo(_contextId)
+  {
+    // Every value is the one `UpscalingInfo::UpscalingInfo()` sets
+    // (`src/upscaling/Tr2UpscalingAL.cpp:72-87`). Two are not zero.
+    return {
+      displayWidth: 0,
+      displayHeight: 0,
+      renderWidth: 0,
+      renderHeight: 0,
+      technique: UpscalingTechnique.NONE,
+      setting: UpscalingSetting.NATIVE,
+      frameGeneration: false,
+      temporal: false,
+      hasSharpening: false,
+      upscalingAmount: 1,
+      jitterX: 0,
+      jitterY: 0,
+      mipLevelBias: 0
+    };
+  }
+
+
+  /**
+   * The techniques an adapter supports.
+   *
+   * @param {number} _adapter The adapter index.
+   * @returns {Array} Empty; the stub supports none (`cpp:491-494`).
+   */
+  GetSupportedUpscalingTechniques(_adapter)
+  {
+    return [];
+  }
+
+
+  /**
+   * The upscaling currently set up.
+   *
+   * Carbon fills four out-parameters with "no upscaling": technique `NONE`,
+   * setting `NATIVE`, neither frame generation nor temporal. JavaScript returns
+   * the record instead of writing through references.
+   *
+   * A DONOR ANOMALY, REPRODUCED RATHER THAN TIDIED. The stub header declares
+   * this on `Tr2RenderContextAL` (`Tr2RenderContextStub.h:277`) but the body is
+   * defined on `Tr2PrimaryRenderContextAL` (`Tr2RenderContextStub.cpp:483-489`),
+   * a class no non-DX backend declares - metal does the same thing with
+   * `DeleteUpscalingContext` (`Tr2RenderContextMetal.mm:1464`). The upscaling
+   * family appears to be live only in the DX backends. The values below are the
+   * ones that body assigns; a port never silently fixes Carbon, so the quirk is
+   * recorded here rather than resolved.
+   *
+   * @returns {object} The current upscaling setup.
+   */
+  GetUpscalingSetup()
+  {
+    return {
+      technique: UpscalingTechnique.NONE,
+      setting: UpscalingSetting.NATIVE,
+      frameGeneration: false,
+      temporal: false
+    };
   }
 }

@@ -64,7 +64,12 @@ const UNREGISTERING_BASES = new Set([ "Tr2BaseDeviceResourceAL", "Tr2DeviceResou
  * `docs/research/gpu-pipeline-divergence-2026-09-08.md` finding 3.
  */
 const BASELINE = new Set([
-    "src/trinityal/stub/Tr2RenderContextALStub.js:759"
+    // NOTE: line-keyed, so it moves whenever anything is inserted above it.
+    // It was :759 until the render-context port on 2026-09-09 added the
+    // primary-context statics and the upscaling family. A line number is a
+    // poor key for a baseline; the entry is kept because the FIX is a design
+    // decision, and re-pinning it is cheaper than inventing a stabler key.
+    "src/trinityal/stub/Tr2RenderContextALStub.js:852"
 ]);
 
 const problems = [];
