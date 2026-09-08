@@ -69,6 +69,7 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
   Destroy()
   {
     this.#isValid = false;
+    super.Destroy();
   }
 
   /**
@@ -153,6 +154,7 @@ export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
   Destroy()
   {
     this.#isValid = false;
+    super.Destroy();
   }
 
   /** @returns {boolean} Whether the timer was created. */
@@ -227,6 +229,7 @@ export class Tr2PipelineStatsQueryALStub extends Tr2BaseDeviceResourceAL
   /** Releases the query. */
   Destroy()
   {
+    super.Destroy();
   }
 
   /** @returns {number} An `ALResult`. */

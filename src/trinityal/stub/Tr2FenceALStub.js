@@ -49,6 +49,7 @@ export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
   {
     this.#isValid = false;
     this.#hasFence = false;
+    super.Destroy();
   }
 
   /** @returns {boolean} Whether the fence was created. */

@@ -443,6 +443,7 @@ export class Tr2ResourceSetALStub extends Tr2BaseDeviceResourceAL
     this.#isValid = false;
     this.#description = null;
     this.#program = null;
+    super.Destroy();
   }
 
   /** @returns {Tr2ResourceSetDescriptionAL|null} What this set binds. */
