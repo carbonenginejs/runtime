@@ -7,7 +7,7 @@ Summary: Defines DXBC decoding ownership, strictness, dependency direction, and 
 
 ## Purpose
 
-`format-dxbc` turns caller-supplied DXBC bytes into validated container,
+The DXBC format subpath turns caller-supplied DXBC bytes into validated container,
 signature, program, operand, declaration, and instruction records. It stops
 before target-language code generation.
 
@@ -24,9 +24,8 @@ caller or format-hlsl
 format-webgl  format-webgpu
 ```
 
-The package has no runtime dependency and its public source works in browsers
-and Node. Lowering packages depend on its decoded records; it does not import
-them.
+The DXBC subpath works in browsers and Node. Lowering formats depend on its
+decoded records; it does not import them.
 
 ## Owned responsibilities
 

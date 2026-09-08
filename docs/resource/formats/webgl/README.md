@@ -14,7 +14,7 @@ shader or GPU objects.
 
 ## Use this package when
 
-Use `format-webgl` to inspect or build package bytes, translate supported DXBC
+Use the WebGL format subpath to inspect or build package bytes, translate supported DXBC
 stages, or convert one compiled effect while preserving all source
 permutations. Use runtime and engine packages for live shader objects, resource
 selection, bindings, and draws.
@@ -47,7 +47,7 @@ it is a **derived view** (`CJS_EFFECT_PERMUTATION_GRAPH`, built by
 
 ## Completeness
 
-The build result reports four flags plus a separate qualification:
+The build result reports three flags plus a separate qualification:
 
 - `sourceComplete` is true only for version-15 effects.
 - `backendComplete` remains false. Successful translation does not yet prove
@@ -55,8 +55,8 @@ The build result reports four flags plus a separate qualification:
 - `runtimeComplete` remains false. Live shader objects and GPU handles are
   outside the format package.
 - `qualification.ok` separately reports whether the selected WebGL programs
-  translated and formed the required raster/compute families. It is returned
-  frozen.
+  translated and formed the required raster/compute families. The qualification
+  record is mutable.
 
 Selected-only or technique/pass/stage-filtered packages still carry complete
 version-15 source coverage, but only their selected backend programs.

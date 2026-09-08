@@ -18,7 +18,7 @@ malformed operand lengths.
 
 ## Use this package when
 
-Use `format-dxbc` when you need:
+Use the DXBC format subpath when you need:
 
 - cheap DXBC identification and container inspection;
 - plain JSON-compatible signatures and instruction records;

@@ -9,7 +9,7 @@ Summary: The v15 binary layout of Carbon's compiled effect files, the shared byt
 ## What this is
 
 Carbon's shader compiler emits one file per effect containing **every permutation**,
-selected at read time through an offset table. The format has three parts: a header,
+selected at read time through an offset table. The format contains a header,
 a deduplicated blob arena ("string table"), one dense offset-table row per
 permutation, and one stored description blob per distinct encoded body.
 
@@ -483,28 +483,28 @@ tag; program interpretation remains a backend/path responsibility.
 
 `node --test` in this package. Two gates.
 
-**Always green.** `test/format/byte-primitives.test.js` and
-`test/format/carbon-effect.test.js` build a synthetic four-permutation v15
+**Synthetic tests.** `test/resource/runtime-resource/format/byte-primitives.test.js` and
+`test/resource/runtime-resource/format/carbon-effect.test.js` build a synthetic four-permutation v15
 container exercising every record type — static samplers, UAVs, annotations of
 every value type, render states, a raytracing library with both stage-data blocks
 — and assert a byte-exact write → read → write round trip, the arena sort order,
 the caps, the structural checks and, until the switchover, the legacy envelope's
 disjointness.
 
-**Env-gated real-file proof.** `test/format/carbon-effect-corpus.test.js`, enabled
+**Env-gated real-file proof.** `test/resource/runtime-resource/format/carbon-effect-corpus.test.js`, enabled
 with `CARBON_EFFECT_CORPUS_DIR`. Game bytes are never committed. Supply a
 separately acquired corpus at pinned build 3444265.
 
 `CARBON_EFFECT_CORPUS_DIR` must point at a **materialised tree of source
 effects** — real `.sm_hi` / `.sm_lo` / `.sm_depth` filenames under
-`effect.dx11`, `effect.dx12`, or `effect.gles2`, which is what the walker
-filters on. Two nearby directories look like corpora and are not:
+`effect.dx11`, `effect.dx12`, or `effect.metal`. The walker filters by those
+file extensions, not by backend directory name. Two nearby directories look like corpora and are not:
 
 - a content-addressed resource store (hash-named files, no extensions) matches
   nothing and fails as `no compiled effect files found` — the walker is
   extension-driven, so an unextracted cache silently yields zero files;
-- a directory of **our own translated output** keeps the `.sm_*` names but
-  holds `Carbon WebGL`/`Carbon WebGPU` containers, and fails with
+- a directory of **retired flat-chunk translated output** keeps the `.sm_*` names but
+  holds the former `Carbon WebGL`/`Carbon WebGPU` containers, and fails with
   `Unsupported Carbon effect version 1196901699` — that number is the ASCII
   `Carbon WebGL` magic read as a version dword.
 
@@ -531,7 +531,7 @@ arena blob, so the sorted-offset policy reproduces CCP's arena exactly.
 Supply a separately acquired corpus and set `CARBON_EFFECT_CORPUS_DIR`; no
 corpus data ships with the package.
 
-**The same proof, one level up.** `test/resource/effect-res-corpus.test.js`
+**The same proof, one level up.** `test/resource/runtime-resource/resource/effect-res-corpus.test.js`
 closes the loop through the resource classes rather than the records: bytes →
 `Tr2EffectRes.DoLoad` → `Tr2Shader.fromCarbonBinary` → the device-free graph →
 `toCarbonBinary()` → records → bytes. Running the record-level round trip on the
@@ -550,11 +550,12 @@ region is backend-invariant as a measured fact rather than an argument from the
 writer. Backend selection therefore belongs at the resource-path boundary, not
 in an envelope or per-stage record.
 
-`effect.gles2` is deliberately not a validation target for **this package**: those
-shaders are v8, and nothing in the container port reads or writes them.
+`effect.gles2` is not part of the v15 corpus validation above: those shaders
+are v8. The shared reader accepts versions 8 through 15; the writer emits only 15.
 
-**Do not read that as "obsolete".** `effect.gles2` is the shader tree ccpwgl
-actually renders with today — it is the only one that currently works end to end.
+**Do not read that as "obsolete".** At the original comparison checkpoint,
+`effect.gles2` was the only shader tree recorded as working end to end in ccpwgl;
+that historical observation is not a current consumer-support inventory.
 
 The two statements coexist because **v15-only constrains what we write and
 validate against, not what a reader may accept.** Version-branching is the

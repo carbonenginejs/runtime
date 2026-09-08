@@ -53,7 +53,7 @@ render-state records needed for inspection and pipeline planning.
 
 ## Read a file in Node
 
-The package itself is browser-only; Node callers supply the bytes:
+Node callers supply the bytes; the format layer does not open files:
 
 ```js
 import { readFile } from "node:fs/promises";

@@ -7,7 +7,7 @@ Summary: Defines the package's compiler, container, runtime, and engine boundari
 
 ## Purpose
 
-`format-webgl` is the transformation and package layer between compiled
+The WebGL format subpath is the transformation and package layer between compiled
 Carbon-style effects and WebGL engine realization. It emits Carbon container
 bytes and GLSL ES 3.00 without constructing mutable runtime shader classes or
 WebGL objects.

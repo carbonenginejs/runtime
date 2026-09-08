@@ -53,9 +53,8 @@ The graph shapes are documented in
 ## Platform boundary
 
 `read`, `inspect`, and `toJSON` operate on caller-provided bytes and work
-without filesystem access; the published package is browser-only and never
-imports Node modules. Node callers read bytes themselves (`node:fs`) and pass
-them to `read`. The package has no runtime dependencies.
+without filesystem access. Node callers read bytes themselves (`node:fs`) and
+pass them to `read`; browser callers supply bytes the same way.
 
 ## Error boundary
 
