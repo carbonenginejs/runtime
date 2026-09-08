@@ -19,6 +19,28 @@
 // signature - and the divergence is here rather than in Trinity, which is where
 // Carbon puts every other API difference too.
 import { ALResult } from "#trinityal";
+import { ShaderType } from "#consts/render-context";
+
+
+/**
+ * Carbon's ShaderType to the stage name WebGPU's pipeline descriptor wants.
+ *
+ * The stage is carried as Carbon's INTEGER ENUM everywhere, and becomes a
+ * string only here, at the one boundary that genuinely demands one.
+ *
+ * It used to be a string throughout, which was an unforced divergence: an
+ * integer enum is perfectly expressible in JavaScript, Carbon's
+ * `Tr2RenderContextEnum::ShaderType` is ALREADY ported in `global/consts`
+ * (`renderContext/pipeline.js`) from that same header, and `layers.json`
+ * explicitly permits `trinityal` to import `global/consts`. Carrying strings
+ * also silently broke the duplicate-stage check, which Carbon writes as
+ * `1 << GetType()` - shifting by a string puts every stage on bit 0.
+ */
+export const WEBGPU_STAGE_NAME = Object.freeze({
+    [ShaderType.VERTEX_SHADER]: "vertex",
+    [ShaderType.PIXEL_SHADER]: "fragment",
+    [ShaderType.COMPUTE_SHADER]: "compute"
+});
 
 
 /** Decodes a shader's bytecode as WGSL source. */
@@ -44,8 +66,8 @@ function wgslFrom(bytecode)
  */
 export class CjsWebgpuShaderAL
 {
-  /** m_type - the stage, opaque to the AL: stored and compared, never read. */
-  #type = null;
+  /** m_type - a Carbon `ShaderType`; `INVALID_SHADER` until Create succeeds. */
+  #type = ShaderType.INVALID_SHADER;
 
   /** m_signature */
   #signature = null;
@@ -61,7 +83,7 @@ export class CjsWebgpuShaderAL
   /**
    * Compiles the shader.
    *
-   * @param {*} type The stage; `null` is Carbon's `INVALID_SHADER`.
+   * @param {number} type A Carbon `ShaderType` value.
    * @param {ArrayBufferView|string} bytecode WGSL source.
    * @param {object|null} signature The reflected signature.
    * @param {string} shaderPath A debug label.
@@ -95,10 +117,17 @@ export class CjsWebgpuShaderAL
     return ALResult.S_OK;
   }
 
-  /** Whether the shader compiled. */
+  /**
+   * Whether the shader compiled AND carries a stage.
+   *
+   * Carbon is `m_type != INVALID_SHADER && !m_bytecode.empty()`
+   * (`Tr2ShaderALStub.cpp:48-51`) - both halves, on every backend. Testing the
+   * module alone accepted a shader with no stage, which a program would then
+   * link and resolve `GetModuleFor` against.
+   */
   IsValid()
   {
-    return this.#module !== null;
+    return this.#module !== null && this.#type !== ShaderType.INVALID_SHADER;
   }
 
   /** The stage this shader was created for. */
@@ -132,7 +161,7 @@ export class CjsWebgpuShaderAL
     // references it. Dropping the reference is the whole of it.
     this.#module = null;
     this.#webgpu = null;
-    this.#type = null;
+    this.#type = ShaderType.INVALID_SHADER;
     this.#signature = null;
     this.#source = "";
   }
@@ -168,9 +197,21 @@ export class CjsWebgpuShaderProgramAL
 
     // A program with an uncompiled stage would fail at pipeline creation with a
     // message about the pipeline, not the shader. Refuse where the cause is.
+    //
+    // Two shaders of the SAME stage are refused for the same reason, and every
+    // Carbon backend does it: the stub and Metal by bitmask
+    // (`Tr2ShaderProgramALStub.cpp:35-48`, `Tr2ShaderProgramALMetal.mm:40-53`),
+    // DX11 per slot. Without it a duplicate linked silently and `GetModuleFor`
+    // returned whichever `find` reached first - unpredictable, and invisible
+    // until a pipeline drew with the wrong stage.
+    let stages = 0;
     for (const shader of shaders)
     {
       if (!shader || !shader.IsValid()) return ALResult.E_INVALIDARG;
+
+      const bit = 1 << shader.GetType();
+      if ((stages & bit) !== 0) return ALResult.E_INVALIDARG;
+      stages |= bit;
     }
 
     this.#shaders = shaders.slice();

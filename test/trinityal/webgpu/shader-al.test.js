@@ -4,8 +4,13 @@ import { test } from "node:test";
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { ALResult } from "../../../npm/dist/trinityal/index.js";
+import { ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
 
+
+// WebGPU's own GPUShaderStage bitflags, for the fake device - unrelated to
+// Carbon's ShaderType, which is what the AL carries.
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
+
 const VERTEX_WGSL = "@vertex fn main() -> @builtin(position) vec4f { return vec4f(0); }";
 
 /** A GPUDevice stand-in that records every module it is asked to compile. */
@@ -46,11 +51,11 @@ function shaderFor(stage, source = VERTEX_WGSL, label = "test.wgsl")
 
 test("a shader compiles its bytecode as WGSL and keeps the source", () =>
 {
-  const { shader, result, fake } = shaderFor("vertex");
+  const { shader, result, fake } = shaderFor(ShaderType.VERTEX_SHADER);
 
   assert.equal(result, ALResult.S_OK);
   assert.equal(shader.IsValid(), true);
-  assert.equal(shader.GetType(), "vertex");
+  assert.equal(shader.GetType(), ShaderType.VERTEX_SHADER);
   assert.notEqual(shader.GetModule(), null);
 
   // BYTECODE IS WGSL TEXT HERE, NOT DXBC - Carbon compiles offline for one API,
@@ -71,7 +76,7 @@ test("empty bytecode reports OUT_OF_MEMORY, which is Carbon's own odd choice", (
 
   // Transcribed rather than tidied to E_INVALIDARG: a caller testing for
   // Carbon's code would not recognise a different one.
-  assert.equal(shader.Create("vertex", new Uint8Array(0), null, "empty", context), ALResult.E_OUTOFMEMORY);
+  assert.equal(shader.Create(ShaderType.VERTEX_SHADER, new Uint8Array(0), null, "empty", context), ALResult.E_OUTOFMEMORY);
   assert.equal(shader.IsValid(), false);
 });
 
@@ -80,22 +85,22 @@ test("an invalid context is refused before anything is compiled", () =>
   const { fake, context } = deviceAndContext(false);
   const shader = new CjsWebgpuShaderAL();
 
-  assert.equal(shader.Create("vertex", new TextEncoder().encode(VERTEX_WGSL), null, "x", context), ALResult.E_INVALIDCALL);
+  assert.equal(shader.Create(ShaderType.VERTEX_SHADER, new TextEncoder().encode(VERTEX_WGSL), null, "x", context), ALResult.E_INVALIDCALL);
   assert.equal(fake.modules.length, 0, "nothing reached the device");
 });
 
 test("Destroy drops the module and the shader is reusable", () =>
 {
-  const { shader, context } = shaderFor("vertex");
+  const { shader, context } = shaderFor(ShaderType.VERTEX_SHADER);
 
   shader.Destroy();
 
   assert.equal(shader.IsValid(), false);
   assert.equal(shader.GetModule(), null);
-  assert.equal(shader.GetType(), null);
+  assert.equal(shader.GetType(), ShaderType.INVALID_SHADER, "Carbon's sentinel, not null");
 
   assert.equal(
-    shader.Create("vertex", new TextEncoder().encode(VERTEX_WGSL), null, "again", context),
+    shader.Create(ShaderType.VERTEX_SHADER, new TextEncoder().encode(VERTEX_WGSL), null, "again", context),
     ALResult.S_OK
   );
 });
@@ -106,8 +111,8 @@ test("a program links compiled stages and answers for each", () =>
   const vertex = new CjsWebgpuShaderAL();
   const fragment = new CjsWebgpuShaderAL();
 
-  vertex.Create("vertex", new TextEncoder().encode(VERTEX_WGSL), null, "v.wgsl", context);
-  fragment.Create("fragment", new TextEncoder().encode("@fragment fn main() {}"), null, "f.wgsl", context);
+  vertex.Create(ShaderType.VERTEX_SHADER, new TextEncoder().encode(VERTEX_WGSL), null, "v.wgsl", context);
+  fragment.Create(ShaderType.PIXEL_SHADER, new TextEncoder().encode("@fragment fn main() {}"), null, "f.wgsl", context);
 
   const program = new CjsWebgpuShaderProgramAL();
 
@@ -117,9 +122,9 @@ test("a program links compiled stages and answers for each", () =>
 
   // A pipeline description asks for a stage by name; WebGPU has no link step,
   // so the program's job is to answer that.
-  assert.equal(program.GetModuleFor("vertex"), vertex.GetModule());
-  assert.equal(program.GetModuleFor("fragment"), fragment.GetModule());
-  assert.equal(program.GetModuleFor("compute"), null, "a stage it does not have");
+  assert.equal(program.GetModuleFor(ShaderType.VERTEX_SHADER), vertex.GetModule());
+  assert.equal(program.GetModuleFor(ShaderType.PIXEL_SHADER), fragment.GetModule());
+  assert.equal(program.GetModuleFor(ShaderType.COMPUTE_SHADER), null, "a stage it does not have");
   assert.equal(fake.modules.length, 2);
 });
 

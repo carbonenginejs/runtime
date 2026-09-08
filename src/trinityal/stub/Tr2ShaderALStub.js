@@ -13,10 +13,13 @@
 // TWO NOTES ON FIDELITY.
 //
 // - Carbon's "no stage" is the `INVALID_SHADER` sentinel at the end of its
-//   ShaderType enum. Here that is `null`, because JavaScript has a real
-//   nothing, and because the ported enum (`ShaderStageType`) lives in the
-//   resource layer - trinity does not reach into it for a constant, and a
-//   second copy of an enum is how two spellings of the same thing start.
+//   ShaderType enum, and that is what this uses. It said `null` until
+//   2026-09-08, on an argument that was wrong twice: the enum it named,
+//   `ShaderStageType`, is the RESOURCE layer's, while Carbon's
+//   `Tr2RenderContextEnum::ShaderType` is ported in `global/consts` - which
+//   `layers.json` permits trinityal to import, and which exists precisely to
+//   be reached into for shared constants. Substituting `null` for a sentinel
+//   the enum already carries is itself the second spelling it warned about.
 //   The stage is otherwise opaque to the AL: it is stored and compared, and
 //   the program's duplicate check shifts it, nothing more.
 // - The signature IS STORED. Carbon's stub takes one and drops it on the floor
@@ -26,6 +29,7 @@
 
 import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
 import { ALResult } from "../ALResult.js";
+import { ShaderType } from "#consts/render-context";
 
 
 /**
@@ -33,8 +37,8 @@ import { ALResult } from "../ALResult.js";
  */
 export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
 {
-  /** m_type; null is Carbon's INVALID_SHADER. */
-  #type = null;
+  /** m_type - a Carbon `ShaderType`. */
+  #type = ShaderType.INVALID_SHADER;
 
   /** m_bytecode - a copy, not a view of the caller's buffer. */
   #bytecode = new Uint8Array(0);
@@ -67,7 +71,7 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
   /** Releases the bytecode and leaves the device-resource registry. */
   Destroy()
   {
-    this.#type = null;
+    this.#type = ShaderType.INVALID_SHADER;
     this.#bytecode = new Uint8Array(0);
     this.#signature = null;
     super.Destroy();
@@ -80,13 +84,13 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#type !== null && this.#bytecode.length !== 0;
+    return this.#type !== ShaderType.INVALID_SHADER && this.#bytecode.length !== 0;
   }
 
   /**
    * The pipeline stage.
    *
-   * @returns {number|null} A Carbon `ShaderType` value, or null when unset.
+   * @returns {number} A Carbon `ShaderType` value; INVALID_SHADER when unset.
    */
   GetType()
   {

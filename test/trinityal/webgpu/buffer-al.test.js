@@ -196,9 +196,14 @@ test("UpdateBuffer refuses a WRITE_OFTEN buffer and writes a plain WRITE one", (
   const before = writes(fake.calls).length;
   assert.equal(plain.UpdateBuffer(8, 4, new Uint8Array([ 1, 2, 3, 4 ]), context), ALResult.S_OK);
 
+  // The RANGE goes up, not the whole shadow - as every Carbon backend does for
+  // plain WRITE (DX11's D3D11_BOX, Metal's size-byte staging copy, DX12's
+  // CopyBufferRegion of size at offset). This asserted the whole buffer until
+  // 2026-09-08, which is why the divergence survived.
   const uploaded = writes(fake.calls);
   assert.equal(uploaded.length, before + 1);
-  assert.deepEqual(Array.from(uploaded.at(-1)[3].slice(8, 12)), [ 1, 2, 3, 4 ]);
+  assert.equal(uploaded.at(-1)[2], 8, "written at the offset, not from zero");
+  assert.deepEqual(Array.from(uploaded.at(-1)[3]), [ 1, 2, 3, 4 ], "only the range");
 
   // Out of range.
   assert.equal(plain.UpdateBuffer(30, 8, new Uint8Array(8), context), ALResult.E_INVALIDARG);

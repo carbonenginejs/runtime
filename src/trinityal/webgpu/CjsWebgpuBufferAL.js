@@ -23,10 +23,22 @@
 // before any subsequently submitted draw reads it - which gives the guarantee
 // the renaming backends buy with renaming, without needing to rename.
 //
-// The shadow is RETAINED, not reallocated per map. Carbon's `UpdateBuffer`
-// maps, memcpys at an offset, and unmaps, expecting the bytes outside that
-// range to survive (dx11:419-429, metal:293-302). A freshly zeroed scratch
-// would silently blank them.
+// The shadow is RETAINED, not reallocated per map - which is DX11's behaviour
+// specifically, not the family's. DX11 allocates `m_writeLockMemory` once and
+// only if empty (`Tr2BufferALDx11.cpp:357-363`), so it survives across maps.
+// DX12 STATIC calls CreateScratch on every map (`Tr2ResourceHelper.cpp:192`)
+// and Metal plain WRITE makes a fresh MTLBuffer (`Tr2BufferALMetal.mm:233-237`)
+// - both hand back UNINITIALISED scratch, which is only safe because on those
+// backends plain-WRITE UpdateBuffer never goes through map/unmap at all.
+// Retaining is what makes a partial update correct here, since our shadow is
+// the authoritative copy between maps.
+//
+// CORRECTED 2026-09-08: this note previously cited dx11:419-429 and
+// metal:293-302 as showing bytes outside a memcpy range surviving. Those lines
+// are the WRITE_OFTEN arm, not the plain-WRITE arm this class imitates, and
+// under WRITE_DISCARD DX11 does not preserve them either. The plain-WRITE arms
+// are dx11:431-433 and metal:302-306. The decision was right; the citation
+// pointed at a branch that did not demonstrate it.
 //
 // NOT IMPLEMENTED: MapForReading. Reading a buffer back needs MAP_READ, a
 // separate staging buffer and an await, and nothing asks for it yet. It
@@ -217,7 +229,22 @@ export class CjsWebgpuBufferAL
     const bytes = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
 
     this.#shadow.set(bytes.subarray(0, size), offset);
-    this.#webgpu.WriteDeviceBuffer(this.#handle, this.#shadow);
+
+    // Upload the RANGE, as every Carbon backend does for plain WRITE - DX11 a
+    // D3D11_BOX (`Tr2BufferALDx11.cpp:431-433`), Metal a size-byte staging copy
+    // (`Tr2BufferALMetal.mm:302-306`), DX12 a CopyBufferRegion of size at offset
+    // (`Tr2ResourceHelper.cpp:258-266`). This used to write the whole shadow,
+    // which was correct but paid the full buffer on every partial update.
+    //
+    // Widened outward to four-byte bounds because `queue.writeBuffer` requires
+    // that alignment and D3D11_BOX does not. Widening is safe here and only
+    // here: the shadow is RETAINED and authoritative, so the extra bytes on
+    // each side are the same ones already on the device. The buffer size is
+    // aligned at creation, so the widened end never runs past it.
+    const start = offset & ~3;
+    const end = Math.min((offset + size + 3) & ~3, this.#shadow.length);
+
+    this.#webgpu.WriteDeviceBuffer(this.#handle, this.#shadow.subarray(start, end), start);
 
     return ALResult.S_OK;
   }
