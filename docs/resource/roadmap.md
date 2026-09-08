@@ -132,11 +132,9 @@ built from explicit tokens, not an implicit default on every loaded resource.
 
 ## Explicit capability verification
 
-**Current:** [Format capabilities](concepts/format-capabilities.md) separates
-synchronous routing and advisory reporting from asynchronous proof. `is()` is
-the only routing predicate, `getSupport()` reports declared or cheaply observed
-capability, and `verifySupport()` attempts the exact requested output through
-the real asynchronous read path.
+**Current:** [Format capabilities](concepts/format-capabilities.md) defines
+`is()` as the only routing predicate, advisory `getSupport()`, and asynchronous
+`verifySupport()` through the real read path for the exact requested output.
 
 The ordinary resource read path deliberately does not preflight every read.
 Doing so would decode twice or impose an asynchronous content check on formats

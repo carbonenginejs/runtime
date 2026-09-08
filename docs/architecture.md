@@ -14,13 +14,11 @@ entry points have separately constrained surfaces.
 
 ## Current structure
 
-The repository currently contains the maintained global foundation, resource
-capability, Trinity/EVE object graph, standalone SOF builder, complete audio
-domain, CPU/data character domain with isolated backend appearance-AL subpaths,
-browser input domain, WebGPU engine, and GPU-free composition core; browser-safe
-tools and root demos; the layer checker;
-and a donor manifest. The package is private, and both WebGPU and tools remain
-explicit subpaths outside the aggregate surface.
+The private package maintains global, resource, Trinity/EVE, standalone SOF,
+audio, CPU/data character with isolated backend appearance-AL subpaths, browser
+input, WebGPU, GPU-free core, and file-index tools, plus the layer checker and
+donor manifest. WebGPU and tools remain explicit subpaths outside the aggregate
+surface; the demo suite belongs to `@carbonenginejs/demos`.
 
 ## Dependency direction
 
@@ -31,7 +29,7 @@ global/{utils,math,consts,contracts,schema,model}
                     /    |    \
               trinity   sof   audio   character   input
                     \     |     /        /          /
-                         engine/webgpu
+                       trinityal/webgpu
                               |
                              core
                               |
@@ -57,9 +55,8 @@ WebGL-shaped device or RHI. An engine may extend canonical contracts and import
 resource and Trinity identities. It never imports `core`, browser tools, or a
 sibling engine, and live GPU objects remain engine-owned.
 
-The maintained WebGPU implementation is exposed only through
-`@carbonenginejs/runtime/engine/webgpu`. No WebGL export or placeholder is
-added before a maintained WebGL implementation exists.
+WebGPU is exposed through `@carbonenginejs/runtime/trinityal/webgpu`.
+No WebGL export or placeholder is added before a maintained implementation exists.
 
 The composition layer is exposed through `@carbonenginejs/runtime/core`.
 Browser platform and adapter snapshots are also available through
@@ -68,18 +65,15 @@ headless and does not probe browser globals.
 
 ## Tools, demos, and generated source
 
-Browser-safe reusable helpers live in `src/tools` and stay off the default
-export surface. Standalone non-engine examples live
-under the repository-root `demo/` directory. Engine-specific GPU harnesses stay
-with their engine layer.
+Browser-safe file-index helpers live in `src/tools`, off the default surface.
+The demo suite lives in `@carbonenginejs/demos`; engine-specific GPU harnesses
+stay with their engine layer. See [Tools](tools/README.md) for the migration.
 
-Source-code generators, acquisition-aware artifact builders, schemas,
-catalogs, caches, and Node.js or native dependencies remain in
-`@carbonenginejs/tools-core`. Browser-safe deterministic value builders may
-remain with the runtime format or domain they implement; audio's optional
-library builder is one such case. Reviewed generated source required at
-runtime lives beneath its owning layer under `src/**/generated`; build inputs
-do not become runtime dependencies.
+`@carbonenginejs/tools-core` owns source generators, acquisition-aware artifact
+builders, schemas, catalogs, caches, and Node.js/native dependencies.
+Browser-safe deterministic value builders may stay with their runtime format
+or domain, as audio's optional library builder does. Reviewed runtime-generated
+source lives under its owning `src/**/generated`; build inputs are not runtime dependencies.
 
 ## History-preservation record
 

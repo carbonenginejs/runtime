@@ -7,17 +7,14 @@ Summary: Describes optional portable SFX selection, ordered actions, layering, a
 
 ## Purpose
 
-The schema-v2 library may contain an optional `sfx` program. The program
-describes what an event does after it is posted; it does not describe where
-bytes come from. Each resolved sound leaf refers to a media ID in the same
-library, so `CjsAudioMan` can still deliver that ID as an individual file, a
-slice of a complete original bank, or an exact original-bank range.
+The optional schema-v2 `sfx` program describes posted-event behavior, not byte
+locations. Sound leaves name library media IDs, delivered by `CjsAudioMan` as
+individual files, local whole-bank slices, or exact bank ranges.
 
-Without `sfx`, a caller may still supply `eventMedia` as a flat
-event-to-media fallback. Bank construction with `includeSfx: true` instead
-derives `eventMedia` from the same validated typed graph. Events that cannot
-be lowered are absent from both tables; heuristic container-byte reachability
-is never used as an audible fallback.
+Without `sfx`, `eventMedia` may supply flat fallback playback. With
+`includeSfx: true`, bank construction derives both tables from the validated
+typed graph: unlowerable events appear in neither, and heuristic container-byte
+reachability never becomes audible fallback.
 
 ## Shape
 
@@ -1351,13 +1348,10 @@ single-child infinite amplitude-Crossfade and trackless finite Layer shape,
 and one independent finite codec Sound. An infinite or modified sibling and
 all other Crossfade-to-Blend forms remain fail-closed.
 
-For events that do lower, the builder walks every possible typed graph branch
-and emits the exact set of reachable media IDs into `eventMedia`. This keeps
-the flat catalog useful to tools without allowing a value that merely
-resembled a WEM ID inside an undecoded payload to become audible.
-
-The caller may instead obtain a complete built library from an API and skip
-the builder. The audio layer performs no SFX metadata download or discovery.
+For lowered events, `eventMedia` contains the exact media IDs reachable across
+all typed branches, never guessed WEM IDs from undecoded payloads. Callers may
+instead obtain a complete API-built library; the audio layer does no SFX
+metadata download or discovery.
 
 ## Related documentation
 

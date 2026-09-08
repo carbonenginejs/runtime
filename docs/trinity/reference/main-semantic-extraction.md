@@ -97,10 +97,9 @@ and fill lighting, fog, shadow-quality, volumetric, and upscaling values. The
 JavaScript scene does not yet advance history or compute jitter; the host must
 provision those fields or they retain identity/zero defaults.
 
-The active driver supplies the current render context plus renderer/device
-inputs such as dimensions, frame time and index, gamma, mip and upscaling
-settings, atlas settings, and an optional shadow map. It populates the pixel
-record before the vertex record, then the engine serializes or uploads both.
+See [Per-frame and per-object data](../architecture.md#per-frame-and-per-object-data)
+for driver-supplied inputs and pixel-before-vertex fill order. The engine
+serializes or uploads both records.
 
 ## Related documentation
 

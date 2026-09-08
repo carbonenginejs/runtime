@@ -1,6 +1,7 @@
 # Character library document contract
 
 Status: Evolving
+Reviewed: 2026-09-08
 Scope: `@carbonenginejs/runtime/character` schema-v10 input and lookup
 Audience: Library producers and runtime consumers
 Summary: Defines the model-shaped JSON document accepted by the character-library builder and runtime model.
@@ -41,34 +42,29 @@ derived profile catalogs into JSON whose fields match `CjsCharacterLibrary`:
 }
 ```
 
-The complete value contains these document arrays:
+The twelve required source-document arrays map to these record classes:
 
-- `ancestries`;
-- `archetypes`;
-- `bloodlines`;
-- `characterAvatarBehaviors`;
-- `characterColorLocations`;
-- `characterColorNames`;
-- `characterModifierLocations`;
-- `characterPortraitResources`;
-- `characterResources`;
-- `characterSculptingLocations`;
-- `paperdolls`;
-- `races`;
-- `characterDefinitions`;
-- `characterPartTypes`;
-- `characterPartSources`;
-- `characterPartMetadata`;
-- `characterMaterialProfiles`;
-- `characterProjectionProfiles`; and
-- `characterRecipeProfiles`;
-- `characterTextureMetadata`.
+| Decoded document | Character record target |
+| --- | --- |
+| `ancestries` | `CjsCharacterAncestry` |
+| `archetypes` | `CjsCharacterArchetype` |
+| `bloodlines` | `CjsCharacterBloodline` |
+| `characterAvatarBehaviors` | `CjsCharacterAvatarBehavior` |
+| `characterColorLocations` | `CjsCharacterColorLocation` |
+| `characterColorNames` | `CjsCharacterColorName` |
+| `characterModifierLocations` | `CjsCharacterModifierLocation` |
+| `characterPortraitResources` | `CjsCharacterPortraitResource` |
+| `characterResources` | `CjsCharacterResource` |
+| `characterSculptingLocations` | `CjsCharacterSculptingLocation` |
+| `paperdolls` | `CjsCharacterPaperdoll` |
+| `races` | `CjsCharacterRace` |
 
-The first twelve arrays are required source-document inputs. The final eight
-are optional and default to empty arrays. `characterDefinitions` retains each
-supplied decoded authoring definition. The other seven arrays are additive typed
-projections and exact external resource inventories; they never replace the
-retained definition records.
+
+Eight optional arrays default to empty: `characterDefinitions` and the seven
+typed catalogs listed below. Definitions remain lossless JSON; projections and
+external resource inventories are additive, never replacements. Nested colours,
+sculpts and modifiers hydrate as `CjsCharacterColorSelection`,
+`CjsCharacterSculptSelection` and `CjsCharacterModifierSelection`.
 
 `characterTextureMetadata` stores raw PNG ancillary facts plus additive,
 explicitly experimental normalized character-atlas values. Its `recordID` is
@@ -107,43 +103,16 @@ A zero source identity becomes `null`. A positive missing target remains its
 named identifier value, making the dangling source fact visible without
 creating an unresolved `_ref` or placeholder object.
 
-## Hydration
+## Hydration and serialization
 
-The JSON and model layouts are the same:
+`CjsCharacterLibrary.from(values)` and instance `SetValues(values)` hydrate
+the same public shape and direct object relationships. `Get(document, recordID)`
+and `GetDocument(document)` query those records. There is no alternate retained
+JSON document or identity-conversion wrapper.
 
-```js
-const from = CjsCharacterLibrary.from(values);
-
-const assigned = new CjsCharacterLibrary();
-assigned.SetValues(values);
-```
-
-Both produce equivalent graphs. `library.documents.races` contains hydrated
-`CjsCharacterRace` instances; relationship fields point directly at their
-target models.
-
-Convenience lookup uses `recordID`:
-
-```js
-const race = library.Get("races", raceID);
-const races = library.GetDocument("races");
-```
-
-There is no document-only wrapper, retained alternate JSON value, or private
-identity conversion convention.
-
-## Serialization
-
-The inherited model export preserves shared relationships when requested:
-
-```js
-const values = library.GetValues({ refs: true });
-const json = JSON.stringify(values);
-const roundTrip = CjsCharacterLibrary.from(JSON.parse(json));
-```
-
-The emitted graph tokens can differ from the input tokens. Only the graph
-relationships must remain equivalent.
+`GetValues({ refs: true })` serializes shared relationships. Tokens may change
+on export; equivalent relationships, not stable token numbers, define the
+round-trip contract. See [runtime usage](../guides/runtime-usage.md) for examples.
 
 ## Builder boundary
 
@@ -160,33 +129,18 @@ resolution, or rendering. cFSD decoding is delegated to @carbonenginejs/runtime/
 Successful builder output therefore hydrates without silently
 discarding input fields.
 
-The prepared catalogs contain only source-backed values:
+The combined catalog retains every supplied decoded definition or fails;
+it cannot silently omit an unfamiliar definition or collapse records sharing
+a domain identity. Exact joins are required for resource relationships.
+Configurations, geometry, images, animations and effects remain canonical
+resource paths, not embedded objects. Downloaded bytes, live handles, cache
+locations, acquisition settings, enrichment datasets and producer index storage
+paths are excluded.
 
-- `characterDefinitions`: exact indexed source path, source extension, and the
-  decoder's losslessly retained JSON value;
-
-- `characterPartTypes`: exact definition paths, logical part path, optional
-  resource version and color variant, retained bloodline identities, and exact
-  source relationships;
-- `characterPartSources`: logical source identity, every exact authored source
-  folder, and ordinary version records containing exact configuration,
-  geometry, and texture candidate paths;
-- `characterPartMetadata`: authored dependency, occlusion, replacement, swap,
-  loose-top, boot-shin, sound, and color-area fields;
-- `characterMaterialProfiles`: authored colors, pattern values, transforms,
-  rotations, and specular colors;
-- `characterProjectionProfiles`: authored projection values and external
-  texture/mask paths; and
-- `characterRecipeProfiles`: authored sex and unlinked selection/material
-  entries.
-
-These three profile catalogs are supported schema surfaces, not a claim about
-the current producer output. In the currently reviewed schema-v10 build,
-`characterMaterialProfiles`, `characterProjectionProfiles`, and
-`characterRecipeProfiles` are empty. Material, projection, and recipe values
-remain available in `characterDefinitions`, but no typed profile link yet joins
-them to a selected part. Consumers must diagnose that missing join rather than
-assuming the optional catalogs were populated.
+Material, projection and recipe profile catalogs are supported schema surfaces,
+not a guarantee about producer output. They may be empty while decoded values
+remain in `characterDefinitions`. Consumers must diagnose a missing typed
+profile-to-part join rather than assuming an optional catalog is populated.
 
 Every catalog record also contains its source-map key as `recordID`. Their
 exact model-shaped fields are:
@@ -216,8 +170,18 @@ retained unchanged; only the additive typed record maps the authored
 no selectable `.type` remain available as metadata-only part sources with
 their exact indexed candidates. An ordered modifier reference sits beside each
 unchanged raw dependency or occlusion value. The producer resolves only a safe
-unsuffixed path with an exact source/index or modifier-location join. Optional
-suffixes remain opaque; neither hydration nor the runtime resolver parses them.
+unsuffixed path with an exact source/index or modifier-location join. Hydration preserves suffixes unchanged. The appearance resolver separately
+supports bounded typed weighted dependencies and utility-shape syntax; see
+[appearance resolution](character-appearance-plans.md#runtime-boundary). Other
+unresolved values remain diagnostics, not guessed resource relationships.
+
+Generic YAML decoding does not select a character class. Its lossless envelope
+is `CjsCharacterDefinition`; only a qualified producer adds typed projections.
+Similarly, `CjsCharacterTextureMetadata.fromPngInspection(...)` bridges generic
+PNG inspection to character placement: chunk parsing belongs to the format,
+while interpreting retained `oFFs`/`pHYs` millionths is character policy.
+Black/Red object graphs target registered native/historical classes separately;
+they are not replacements for this combined library or the appearance plan.
 
 Candidate arrays do not assert semantic selection. The combined library does
 not contain unlabelled model families, filename-derived texture roles, compiled

@@ -75,21 +75,18 @@ asked. Nothing outside this format's own tests ever called `read()`.
 The schema is encoded differently; the payload behind it is identical.
 
 **The pickle behind that prefix is a SCHEMA, not a record.** Protocol 0's `c`
-(`GLOBAL`) names a module and an attribute for the unpickler to import, and
-`R` then calls it — the remote-execution vector — so `CjsPickleFormat` refuses
-globals by design. These files need exactly one: `collections.OrderedDict`,
-because a schema's attribute order is its field order. That one name is rebuilt
-as a plain object and every other global is still refused. See
+(`GLOBAL`) and `R` form an import-and-call execution path. These files require
+only `collections.OrderedDict` to preserve schema field order; the reader
+rebuilds it as a plain object and refuses every other global. See
 [the pickle format](pickle.md).
 
-**The sibling-schema family states its layout in YAML.** The `.schema` file is
-YAML and states the whole binary layout — sizes, types, optional flags, list item
-sizes, vector precision and a key-to-offset footer — so **nothing needs
-deriving**, unlike a container whose layout is defined outside the file and has
-to be worked out and pinned. `CjsSchemaBoundFormat` reads it:
-[schema-bound containers](schemabound.md). All six datasets decode — the map
-skeleton of regions, constellations and systems. The celestial detail (moons,
-planets, belts, stars, gates) is in the embedded-schema family, not this one.
+**The sibling-schema family states its layout in YAML:** sizes, types, optional
+flags, list item sizes, vector precision and a key-to-offset footer.
+**Nothing needs deriving** or pinning from an externally defined layout;
+[`CjsSchemaBoundFormat`](schemabound.md) reads the supplied schema. All six
+datasets decode the map skeleton of regions, constellations and systems.
+Celestial detail (moons, planets, belts, stars, gates) belongs to the
+embedded-schema family.
 
 ## Use
 
@@ -117,8 +114,10 @@ a decoder capability.
 
 `describe()` returns the underlying
 `{ family, byteLength, payloadOffset, prefix, decodable, requires, reason }` without
-building a probe. `payload()` returns the bytes past any wrapper, which is what a
-caller hands to the format that owns the family.
+building a probe. `payload()` slices at `payloadOffset`: for embedded-schema
+input this removes only the four-byte length prefix, leaving the pickled schema
+and binary payload together. Use the explicit split above or
+`ReadEmbeddedSchemaContainer` to decode that family.
 
 ## Reading a container, rather than identifying one
 
@@ -138,14 +137,12 @@ const skins = await ReadStaticContainer(bytes, "res:/staticdata/skins.static");
 
 The `path` argument only ever names the file in an error.
 
-These import the pickle, schema-bound and SQLite formats, because reading a
-`.static` genuinely needs them - a container format that wraps other containers
-has to reach the formats it wraps. What a format must not do is pull the rest of
-the library in behind it, and nothing here reaches outside `formats/`.
+The routing helpers import the wrapped pickle, schema-bound and SQLite formats;
+they reach nothing outside `formats/`.
 
-`CjsStaticFormat` itself still imports nothing and decodes nothing. Routing is a
-sibling module so that identification is not also the routing table, which is the
-arrangement `read()` was cut back to on 2026-08-15.
+`CjsStaticFormat` imports the shared `CjsFormat` base, but no concrete decoding
+formats, and decodes nothing. Routing remains in a sibling module, separate from
+the identification role established on 2026-08-15.
 
 ### Errors
 

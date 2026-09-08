@@ -8,11 +8,8 @@ Summary: Defines how schema intake becomes reviewed `src/trinity` source.
 ## Purpose
 
 Generated classes establish Carbon-compatible identity, inheritance, fields,
-decorators, and exposed method obligations. They are review input rather than
-the permanent home of manually maintained runtime behavior.
-
-The lifecycle keeps generated output reproducible while giving every manually
-edited class a stable, human-readable source tree.
+decorators, and exposed method obligations as reproducible review input.
+Manually maintained behavior belongs in a stable, human-readable source tree.
 
 ## Current lifecycle
 
@@ -76,10 +73,9 @@ markers preserve known obligations and allow the implementation-gap audit to
 report them. Generated code must not silently invent device, resource,
 filesystem, or native behavior.
 
-Generated output is deterministic and should not be hand-edited as a
-substitute for changing its owning schema, reviewed purpose registry, or
-emitter. Runtime-specific
-implementations belong in the maintained tree before the manual edit is made.
+Deterministic generated output changes through its owning schema, reviewed
+purpose registry, or emitter, not by hand. Promote runtime-specific
+implementations before editing them.
 
 `src/trinity/generated/summary.json` is the receipt from an earlier whole-tree install,
 not a live work queue or an authoritative count of the current generated tree.

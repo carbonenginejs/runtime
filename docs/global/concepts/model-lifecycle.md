@@ -12,11 +12,11 @@ Every `CjsModel` owns one non-enumerable `__state` value. Its ordinary
 
 - `dirty`, the one generic “a settle is owed” marker;
 - `flags`, lazy invalidations cleared by the consumer that recomputes them;
-- `rebuild`, work requirements cleared by the work method that succeeds;
+- `rebuild`, a `Set` of work requirements cleared by the work method that succeeds;
 - `updating`, the settle re-entrancy guard; and
 - `suppressEvents`, the counted construction/teardown event gate.
 
-The event emitter adds event storage only while listeners exist. Flags and
+The event emitter adds `__state.events` only while listeners exist. Flags and
 rebuild requirements are deliberately separate from `dirty`: neither makes
 `IsDirty()` true, and a successful settle does not clear either set.
 
@@ -126,7 +126,7 @@ does not prune descendants.
 ## Optional lifecycle state
 
 The `./lifecycle` subpath can install `CjsLifecycleState` into
-`__state.lifecycle`. Its current statuses are `alive`, `destroyPending`,
+`__state.lifecycle` with `initializeLifecycleState()`. Its current statuses are `alive`, `destroyPending`,
 `destroying`, and `destroyed`.
 
 Installing this state is optional. An object without it is ordinarily alive
@@ -137,12 +137,9 @@ automatic transitions between these statuses.
 
 Use `CjsSchema.isModelInstance(value)`, not `value instanceof CjsModel`.
 
-`instanceof` asks a narrower question than it appears to: whether the value came
-from *this* copy of the runtime package. Applications can install or bundle
-multiple copies, so a model handed over by another copy fails the test while
-being a perfectly good model. Nothing throws when
-that happens — the value is silently copied into a plain object instead of
-aliased, or rejected as "not a model", or exported without its `_type`.
+`instanceof` compares against one package copy, so a model from another copy
+can be silently treated as a plain object, rejected, or exported without its
+`_type`.
 
 `CjsModel` stamps every instance with a brand under `Symbol.for`, whose registry
 is per realm rather than per copy, so the brand is readable from any copy.

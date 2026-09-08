@@ -7,6 +7,9 @@ Summary: Separates synchronous routing facts from advisory output support and ex
 
 ## One format contract
 
+Accepted and implemented 2026-08-22: every concrete format inherits the same
+canonical frozen contract.
+
 Every concrete format extends the decorator-free `CjsFormat` base and declares:
 
 - `id`: stable format identity;
@@ -66,7 +69,8 @@ if (!report.supported)
 ```
 
 That result says nothing about DDS `texture`, `image`, or `raw`; support is
-always output-specific.
+always output-specific. An undeclared output fails without running a decoder;
+a declared output is verified only through its normal asynchronous read path.
 
 ## Decorator boundary
 
@@ -82,6 +86,18 @@ consumer that needs persistence or model metadata calls
 an extension tie. Support reports do not select routes: a truthy report object
 must never become an accidental match, and a decoder limitation must not make
 the system forget which format the bytes are.
+
+A single candidate may reject through its reader so the caller receives the
+format's useful error. The resource package root does not auto-register
+concrete formats. `CjsResourceProbe` preserves the requested output,
+verification state, requirements and error at the resource boundary.
+
+## Contract evidence
+
+The ungated resource tests cover shared inheritance, the canonical output map
+and extension rules, boolean-only routing, advice that never fabricates
+verification, real-reader asynchronous success, output-specific decoder errors,
+and undeclared-output rejection without decoder execution.
 
 ## Related documentation
 

@@ -15,25 +15,20 @@ or unknown opcode fails at its exact byte offset.
 
 ## One global is rebuilt, and it is a closed set
 
-`GLOBAL` is the opcode that makes a pickle dangerous: it names a module and an
-attribute for the unpickler to import, and `REDUCE` then calls it. That is the
-remote-execution vector, and the general form stays refused — `os.system` fails
-at the `GLOBAL`, before its argument is read and long before `REDUCE` could do
-anything with it.
+`GLOBAL` names a module and attribute to import; `REDUCE` calls it. This
+remote-execution path is refused: `os.system` fails at `GLOBAL`, before its
+argument is read.
 
-**`collections.OrderedDict` is the single exception**, because it is not a
-behaviour. It is a dictionary that remembers insertion order, which a JavaScript
-object already is, so the reader builds that object directly. Nothing is
-imported, resolved or invoked, and `REDUCE` applied to anything else is refused
-in its own right so it cannot be used to step around the `GLOBAL` check.
+**`collections.OrderedDict` is the single exception**: the reader directly
+builds a plain JavaScript object preserving insertion order. Nothing is imported,
+resolved or invoked. `REDUCE` independently refuses every other target, so it
+cannot bypass the `GLOBAL` check.
 
-An integer-like key is rejected rather than accepted, because those sort ahead
-of every other key in a JavaScript object and order is the whole point of the
-type.
+Integer-like keys are rejected because JavaScript objects sort them ahead of
+other keys, breaking insertion order.
 
-Adding a second name to that set is not a small change. A name qualifies only if
-reconstructing it is pure data with no behaviour of its own, and the entry has to
-build that data directly rather than defer to anything callable.
+Any additional allowed name must represent pure data without behavior and be
+rebuilt directly, never through a callable.
 
 Why it matters: every one of the 25 embedded-schema static-data containers in one
 client build was scanned for the `GLOBAL` opcode's module and attribute lines,

@@ -97,10 +97,9 @@ historical mapping.
 - The `engine/webgpu` layer and any future WebGL engine layer consume loaded resources and own
   all backend allocations, preparation, replacement, and destruction.
 
-Concrete formats are not imported or registered by the package root; see
-[formats/README.md](formats/README.md) for the import rule and map.
-Worker-safe formats provide their own exact module declaration and remain
-explicit registrations; see [browser worker execution](reference/workers.md).
+Concrete formats require [explicit imports and registration](formats/README.md).
+[Worker-safe formats](reference/workers.md) also declare their exact module;
+the package root imports and registers neither.
 
 Extension routes are manager-local configuration. They bind an extension to a
 handler plus one format or an ordered format chain. The handler's

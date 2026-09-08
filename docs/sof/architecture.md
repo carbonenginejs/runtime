@@ -7,9 +7,9 @@ Summary: Defines the SOF layer's data, dependency, output, and realization bound
 
 ## Purpose
 
-The SOF layer provides deterministic CPU-side interpretation of the Space Object
-Factory catalog without acquiring resources, constructing renderer classes, or
-touching a GPU or audio device.
+SOF deterministically interprets Space Object Factory catalogs on the CPU.
+It may request inputs through injected sources, but does not construct renderer
+classes or touch GPU/audio devices.
 
 ## Dependency direction
 
@@ -112,32 +112,26 @@ device-free graph construction.
 
 ## Nominal collaborator boundaries
 
-SOF-owned models and the combined runtime's model lifecycle are nominal
-contracts. When an authored child is present, SOF calls its required method
-directly; a wrong class is an error rather than a silently ignored optional
-feature. Structural checks remain appropriate only for serialized values and
-caller-supplied callback functions.
+SOF models and the runtime model lifecycle are nominal contracts. SOF calls
+present authored children's required methods directly; a wrong class is an
+error. Structural checks apply only to serialized values and caller-supplied
+callback functions.
 
-The canonical resource-existence input is a plain file-name list or predicate.
-Browser tooling that owns a richer file index adapts it to that narrow input at
-the composition boundary; SOF does not import the tools layer. Likewise, live
-Trinity effect and texture-parameter adaptation belongs to Trinity or core and
-must not introduce a Trinity dependency into SOF.
+Resource existence accepts a plain file-name list or predicate. Browser tooling
+adapts richer indexes at composition; SOF does not import tools. Trinity/core
+owns live effect and texture-parameter adaptation, without adding a Trinity
+dependency to SOF.
 
 ## Partial catalog libraries
 
-`CjsSofLibraryBuilder` provides the dependency-closure boundary in front of
-`EveSOFDataMgr`. It boots the minimum library from `generic.black`, then fetches
-only the named hull, faction, race, material, pattern, and layout records needed
-by requested DNA. It also closes faction default-pattern/material dependencies
-and recursively follows nested layout descriptors. Complete `data.black`
-remains supported through `EveSOF.LoadDataAsync`; it is not a mandatory runtime
-download.
+`CjsSofLibraryBuilder` fronts `EveSOFDataMgr`: boot `generic.black`, then fetch
+only the hull, faction, race, material, pattern, and layout records required by
+DNA, including faction default-pattern/material dependencies and nested layout
+closure. Complete `data.black` remains optional through `EveSOF.LoadDataAsync`.
 
-Each successful fetch updates both a partial `EveSOFData` source catalog and the
-manager through Carbon's individual `Update*` methods. The source catalog is
-serializable through `GetValues()`, so a caller may import prepared JSON, fetch
-a prepared gzip artifact, or build the same value from raw resources.
+Successful fetches update the partial `EveSOFData` catalog and manager through
+Carbon's individual `Update*` methods. `GetValues()` serializes the catalog for
+prepared JSON, gzip artifacts, or equivalent values built from raw resources.
 Concurrent named requests share one in-flight operation; `{ force: true }`
 explicitly replaces a record.
 

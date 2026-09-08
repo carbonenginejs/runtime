@@ -125,17 +125,14 @@ shader should name the option explicitly and record the index it resolved to.
 
 ## Reading the model without inventing gaps
 
-Three recurring mistakes explain most false conclusions in this area:
+Before treating an apparent absence as a design gap, check:
 
-1. **Searching only one layer.** `Tr2EffectRes` is in `resource` while
+1. **The owning layer.** `Tr2EffectRes` is in `resource` while
    `Tr2Effect` is in `trinity`.
-2. **Searching only the derived class.** The effect's shader pointer is
-   declared on its `Tr2Material` base.
-3. **Confusing permutation rows with stored bodies.** Several rows may alias
-   one description body while remaining distinct option selections.
-
-When an expected mechanism appears absent, check the owner package, base
-classes, and record indirection before treating the absence as a design gap.
+2. **The base class.** The effect's shader pointer is declared on
+   `Tr2Material`.
+3. **Record indirection.** Several permutation rows may alias one description
+   body while remaining distinct option selections.
 
 ## Related documentation
 

@@ -1,6 +1,7 @@
 # Runtime character usage
 
 Status: Evolving
+Reviewed: 2026-09-08
 Scope: `@carbonenginejs/runtime/character`
 Audience: Runtime and application integrators
 Summary: Builds model-shaped character JSON and hydrates its source-backed record graph.
@@ -102,6 +103,8 @@ plain values:
 import { CjsCharacterLibraryManager } from "@carbonenginejs/runtime/character";
 
 const manager = new CjsCharacterLibraryManager(library);
+// Or install a replacement explicitly:
+manager.InstallLibrary(CjsCharacterLibrary.from(values));
 ```
 
 An outer runtime can supply a structural loader for the combined document:
@@ -135,20 +138,6 @@ Collections are also available through the JSON-shaped `documents` model:
 const races = library.documents.races;
 const sameRaces = library.GetDocument("races");
 ```
-
-## Equivalent model hydration
-
-`from` and `SetValues` consume the same shape:
-
-```js
-const from = CjsCharacterLibrary.from(values);
-
-const assigned = new CjsCharacterLibrary();
-assigned.SetValues(values);
-```
-
-The two instances contain equivalent model graphs. There is no retained
-alternate document or identity conversion layer.
 
 ## Serialize a model graph
 
@@ -193,15 +182,17 @@ const resolved = CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperd
 ```
 
 This stage preserves modifier selections and emits a plan contribution for
-every strict source-version match. It fills configuration and geometry only
-when that version contains exactly one candidate of each. Its
+every strict source-version match. It selects unique candidates or qualified
+retained atomic bundles. For requested LOD, family selection and fallback
+behavior, see [appearance plans](../reference/character-appearance-plans.md#runtime-boundary). Its
 `layers` collection records owner/contributor relationships, not atlas order.
 Effective version metadata contributes the five verified modifier-order flags,
 but this policy normalization does not reorder `plan.layers`. Raw dependency
 and occlusion strings remain untouched. A producer-supplied typed dependency
 may add an exact requester-owned contribution when its target resolves
 uniquely; unresolved raw or typed values produce precise diagnostics and do
-not create, remove, or redirect parts. Unknown modifier categories are retained
+not fabricate a target. Exact typed location occlusions and clothing-removal
+relationships can suppress their targeted active selections. Unknown modifier categories are retained
 and diagnosed rather than dropped.
 
 Until later stages supply decoded resource facts or explicit policy, textures,
@@ -210,7 +201,9 @@ the unresolved work.
 
 ## Runtime boundary
 
-The library and appearance plan are GPU-free. They may contain resource paths,
-but resource discovery, byte fetching, decoding, caching, and render
-realization remain outside `@carbonenginejs/runtime/character`. The library manager only
-orchestrates a caller-provided object loader for the one combined document.
+Library and plan data remain GPU-free. The builder orchestrates static-data
+fetch/decoding through resource readers; metadata inspection can call an
+injected resource manager. The manager's combined-document loader returns
+decoded objects, not bytes. Selected-asset caching/lifecycle and rendering stay
+with resource and graphics hosts; there is no Node/local-file fallback in
+character. See [architecture](../architecture.md).

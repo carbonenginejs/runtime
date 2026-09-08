@@ -5,30 +5,22 @@ Scope: `@carbonenginejs/runtime`
 Audience: Runtime authors, engine authors, integrators, and maintainers
 Summary: Explains the consolidated private runtime and routes readers to its current structural contract.
 
-> **This tree is the package's PUBLIC documentation. It ships inside the npm
-> artifact**, so it carries nothing private — no machine paths, no credentials,
-> no internal-only material — and it describes what the shipped package does:
-> its concepts, references, guides and published roadmap.
->
-> Internal decisions, direction and research are kept separately and are not in
-> this tree. The two are split by audience, not by topic, which means **a
-> question can be owned here and be invisible from there, and the reverse**. If
-> you are looking for what this package does or refuses to do, this tree is
-> authoritative — check it before concluding a page does not exist.
+> **This PUBLIC documentation ships inside the npm artifact:** no machine
+> paths, credentials, or internal-only material. It owns the shipped package's
+> concepts, references, guides, roadmap, and supported or refused behavior.
+> Internal decisions, direction, and research live separately. The split is by
+> audience, not topic: check both trees before concluding a question has no owner.
 
 ## Purpose
 
-`@carbonenginejs/runtime` is the consolidated source package for the
-browser-safe CarbonEngineJS runtime family, renderer engines, and browser-safe
-tools. The repository owns the executable dependency-layer contract, migration
-metadata, the maintained global foundation, the resource/format capability,
-the Trinity/EVE object graph, the standalone SOF builder and data model, the
-complete headless-by-default audio domain, and the GPU-free character domain.
-The browser host-window and input adaptation layer is also maintained here.
-The WebGPU renderer is maintained as an explicit, opt-in engine subpath.
-The GPU-free composition core and its browser platform snapshots are maintained
-here as well. Browser-safe clients, inspectors, UI, and demo composition are
-maintained under the explicit `/tools` surface.
+`@carbonenginejs/runtime` consolidates the browser-safe runtime, its executable
+layer contract, and migration metadata. Maintained domains include the global
+foundation, resource/formats, Trinity/EVE graphs, standalone SOF,
+headless-by-default audio, CPU/data character with isolated appearance backends,
+GPU-free composition, browser platform snapshots, and host-window/input adapters.
+WebGPU is an explicit opt-in subpath. The residual `/tools` surface owns
+browser-safe file-index helpers; demo UI and the realtime client moved to
+`@carbonenginejs/demos` (see [Tools](tools/README.md)).
 
 ## Use this package when
 
@@ -62,13 +54,9 @@ Run the current structural checks from the repository root:
 npm test
 ```
 
-The global foundation, resource capability, Trinity graph, SOF layer, audio
-domain, character domain, input layer, WebGPU engine, composition core, and
-browser tools are
-now maintained source in this repository.
-Foundation, lifecycle, format, FSD, shader-translation, resource, Trinity, SOF,
-audio, character, input, WebGPU, core, and tools tests run as part of the
-combined suite.
+The combined suite covers foundation, lifecycle, format, FSD,
+shader-translation, resource, Trinity, SOF, audio, character, input, WebGPU,
+core, and tools.
 
 ## Documentation map
 
@@ -82,7 +70,7 @@ combined suite.
 - [Input and browser host adapters](input/README.md)
 - [WebGPU abstraction layer](trinityal/webgpu/README.md)
 - [Core composition and platform capabilities](core/README.md)
-- [Browser-safe tools and demos](tools/README.md)
+- [Browser-safe file-index tools and migration routes](tools/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

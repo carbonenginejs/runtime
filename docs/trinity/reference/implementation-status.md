@@ -293,11 +293,9 @@ parity gate rather than incidental test behavior.
 
 ## Planned completion gates
 
-Promotion occurs before the first substantive manual source change. Portable
-behavior, decorators, exports, enum ownership, and focused tests are then
-reviewed in the maintained home. When later schema improvements reveal an
-inherited or interface obligation, the maintained class remains promoted and
-the parity audit keeps that new gap explicit. Backend-only methods remain
+See [Generated-class lifecycle](../concepts/generated-class-lifecycle.md) for
+promotion and maintained-home review. Later schema/interface obligations remain
+explicit parity-audit gaps without undoing promotion. Backend-only methods remain
 explicit until an owning engine exposes a proven capability.
 
 The public class-purpose catalog is current for documented classes. Promotion

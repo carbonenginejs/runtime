@@ -3,9 +3,7 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime/tools`
 Audience: Users, maintainers, and automated readers
-Summary: Names the two tooling surfaces the runtime still owns and says where the rest went.
-
-Two things live here, and neither is a demo.
+Summary: Names the remaining file-index surface and where the other tools moved.
 
 ## File index
 

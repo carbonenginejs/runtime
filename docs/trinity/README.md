@@ -13,12 +13,9 @@ hydrate, inspect, update, and collect renderer-neutral work from those graphs
 without creating a canvas, graphics context, or GPU device.
 
 The source contains generated schema intake and maintained implementations.
-Classes leave `src/trinity/generated` before their first substantive manual source
-change and move into readable source-area directories. A promoted class may
-remain explicitly incomplete while its bounded portable behavior is reviewed.
-The parity audit can expose additional inherited or interface obligations
-after promotion; current exceptions remain explicit in the
-implementation-status reference.
+See [Generated-class lifecycle](concepts/generated-class-lifecycle.md) for
+promotion and [Implementation status](reference/implementation-status.md) for
+explicit gaps, including obligations exposed after promotion.
 
 ## Use this package when
 

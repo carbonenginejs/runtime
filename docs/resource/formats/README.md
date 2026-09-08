@@ -7,13 +7,10 @@ Summary: Maps every owned format subpath and records cross-format output convent
 
 ## Formats are decorator free
 
-A format may not use a decorator, and may not import a module that does. This
-is enforced by the package linter, not left to review.
-
-A decorated module only parses after the build transform, so a format that
-touches one stops being loadable from source. Every consumer reading `src/`
-directly then fails with a bare syntax error pointing at the decorator rather
-than at the import that reached it, which is a long way from the mistake.
+The package linter forbids formats from using decorators or importing modules
+that do. Decorated modules require the build transform; importing one breaks
+direct `src/` loading with a syntax error at the decorator, not the offending
+import.
 
 The practical consequence is that `inspect()`, `getSupport()`, and
 `verifySupport()` return plain objects rather than constructing a decorated

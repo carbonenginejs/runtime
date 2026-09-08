@@ -55,9 +55,7 @@ Code belongs in the global foundation only when all of these are true:
 5. Owning it here reduces duplicated foundation behavior rather than merely
    shortening an import.
 
-With foundation consolidation complete, new responsibilities should be
-uncommon. Additions require a demonstrated cross-package need and a clear
-subpath owner.
+After consolidation, additions should be uncommon and have a clear subpath owner.
 
 ## Current ownership
 
@@ -94,13 +92,13 @@ engine.
 
 ## Ownership elsewhere
 
-- Browser-facing reusable helpers belong in `src/tools`; non-engine examples
-  belong in the root `demo` tree.
+- Browser demos and reusable UI live in `@carbonenginejs/demos`;
+  [runtime tools](../tools/README.md) retains file-index support.
 - Node filesystems, caches, credentials, servers, command-line interfaces, and
   build orchestration belong in `@carbonenginejs/tools-core`.
 - Runtime graph objects and domain readers belong in their owning runtime
   domain layer.
-- Backend objects and realization policy belong in `src/engine/*` layers.
+- Backend objects and realization policy belong in `src/trinityal/*` layers.
 - Generated schemas, enums, and domain libraries remain generated artifacts
   owned by their producer and consuming domain.
 
@@ -109,7 +107,47 @@ engine.
 The former math, constant, and Carbon type-system foundations now live under
 coherent runtime subpaths: `/math/*`, `/consts/*`, `/schema`, and `/model`.
 
-The root intentionally excludes type/model/document barrels so importing a
-neutral utility does not initialize registry and model families. See
-[Foundation consolidation](./concepts/foundation-consolidation.md) for the
-layout and migration status.
+The `/global` barrel keeps schema/model/document families on direct subpaths,
+but includes nominal contracts. The package root also aggregates runtime
+domains; use focused subpaths when a narrow import is required.
+
+## Foundation consolidation
+
+Runtime is the sole maintained source owner for the former utility, math,
+constant and Carbon type-system implementations. Their inherited suites run
+together; predecessor package names are not compatibility packages.
+
+| Moved family | Runtime subpaths |
+| --- | --- |
+| Math | `./math` and focused `./math/*` subpaths |
+| Constants | `./consts` and focused `./consts/*` subpaths |
+| Carbon types/models | `./schema`, `./schema/types`, `./model`, and transitional nested `./model/*` hydration subpaths |
+
+The foundation export must not introduce ambiguous duplicate names or require
+eager evaluation of every math, constant, schema, model and document family.
+
+### Shared predicates
+
+There is one curated `@carbonenginejs/runtime/utils/is` surface:
+
+- predicates return literal booleans;
+- generally useful structural checks belong here;
+- vector and matrix checks join only with explicit math semantics;
+- domain checks remain with their domain package;
+- browser-tool-specific checks remain in the separate `src/tools` layer;
+- established core predicate behavior wins wherever old names overlap.
+
+### Migration map
+
+| Former import | Current import |
+| --- | --- |
+| `@carbonenginejs/core-math` | `@carbonenginejs/runtime/math` |
+| `@carbonenginejs/core-math/<subpath>` | `@carbonenginejs/runtime/math/<subpath>` |
+| `@carbonenginejs/core-types/<subpath>` | The matching `@carbonenginejs/runtime/schema`, `/model`, or nested transitional model subpath |
+| `@carbonenginejs/core-types` | The direct runtime schema/model subpaths used by the consumer |
+
+The former package names are predecessor identities, not compatibility
+packages; maintained source lives here. The one deliberate API correction is
+scalar Hermite interpolation:
+use `cubicHermite` or `cubicHermiteDerivative` with argument order
+`(startValue, startTangent, endValue, endTangent, amount)`.

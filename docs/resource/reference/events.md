@@ -103,14 +103,12 @@ remaining listeners.
 
 ## Relationship to model dirty state
 
-`CjsModel` has dirty-state helpers (`MarkDirty`, `ClearDirty`, `ConsumeDirty`,
-`GetDirtyNotifications`) for model invalidation. `SetValues()` compares
-incoming values with the current field values and only marks dirty when a
-value actually changes. A plain `MarkDirty()` means broad dirty invalidation;
-it does not request a rebuild, and deferred rebuild reasons belong to the
-independent `model.__state.rebuild` set. That model machinery is not a
-resource lifecycle event system; resource lifecycle events remain a
-resource/resman concern.
+`CjsModel`'s `MarkDirty`, `ClearDirty`, `ConsumeDirty` and
+`GetDirtyNotifications` concern model invalidation. `SetValues()` marks dirty
+only when field values change. Plain `MarkDirty()` requests broad invalidation,
+not rebuilding; deferred rebuild reasons use the independent
+`model.__state.rebuild` set. Resource lifecycle events remain separate,
+owned by resources and ResMan.
 
 ## Related documentation
 

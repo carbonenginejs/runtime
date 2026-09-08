@@ -45,11 +45,8 @@ compiled Carbon container directly.
 
 ## Start here
 
-- [Architecture and boundaries](architecture.md)
-- [Resource lifecycle concepts](concepts/resource-lifecycle.md)
-- [Shader resource model](concepts/shader-resource-model.md)
-- [Format subpaths](formats/README.md)
-- [Carbon compiled-effect container](formats/carbon-effect-container.md)
+The [documentation map](#documentation-map) below routes architecture,
+lifecycle, shader, format and container work.
 
 ## Documentation map
 

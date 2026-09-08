@@ -444,25 +444,20 @@ both alone and together with hypothetical Compressor and Peak Limiter support,
 because all three routes still require the general audible auxiliary-return
 topology and its complete wet-side gain/State placement.
 
-The shared-runtime seam resolves immutable route handles. One controller belongs
-to each enabled audio-system generation and is shared by SFX and music;
-install-time checks require every playable routed Sound/track to agree with its
-catalog dry projection. Exact leaf and track IDs survive scheduling, while
-library disposal invalidates the controller before the backend nodes are
-disconnected.
+Each enabled audio-system generation owns one SFX/music controller with
+immutable route handles. Installation checks every playable routed Sound/track
+against its catalog dry projection; scheduling retains exact leaf/track IDs.
+Library disposal invalidates the controller before disconnecting backend nodes.
 
-SFX realization now keeps one lazy branch per exact route handle and spatial
-mode inside each emitter generation. Same-route 3D voices share a synchronized
-panner, different authored routes use different panners, and 2D signals remain
-on a distinct flat branch. Branches retain the old generation's placement,
-scaling, and object-RTPC snapshot across unregister/re-register and disconnect
-only after that generation drains. A branch enters shared Bus topology only
-when the strict mixer qualifies its complete path; every other branch retains
-the legacy SFX destination.
-Qualified music tracks now attach through separate per-segment transition
-lanes and per-instance exact-route lanes. Those stages mirror authored
-crossfades and Play/Stop fades before the shared music category input, while
-blocked tracks retain the legacy music path.
+Each emitter generation lazily creates a branch per exact route handle and
+spatial mode: same-route 3D voices share a synchronized panner, different routes
+have different panners, and 2D uses a separate flat branch. Across
+unregister/re-register, old branches retain placement, scaling, and the
+object-RTPC snapshot, disconnecting only when their generation drains. Only
+fully qualified paths enter shared Bus topology; others retain the legacy SFX
+destination. Qualified music preserves crossfades and Play/Stop fades through
+per-segment transition and per-instance exact-route lanes before its shared
+category input; blocked tracks retain the legacy path.
 
 The system owns a fail-closed shared mixer contract. It allocates stable
 SFX/music category entries and one shared input node per common ancestor only

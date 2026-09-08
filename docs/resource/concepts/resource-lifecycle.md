@@ -212,10 +212,9 @@ device memory are different budgets. Retention therefore distinguishes:
   typed arrays;
 - adapter payload: WebGL/WebGPU textures, buffers, shader modules, pipelines.
 
-Identity and lightweight metadata stay resident while CPU payloads and adapter
-payloads release independently. Engine adapters own adapter-resource
-destruction; the resource layer provides lifecycle hooks and opaque adapter
-slots so cleanup has a consistent place to run. The exact contracts live in
+Identity and lightweight metadata remain resident while CPU and adapter
+payloads release independently. Engine adapters own adapter-resource destruction;
+the resource layer supplies lifecycle hooks and opaque adapter slots. See
 [reference/motherlode-cache.md](../reference/motherlode-cache.md).
 
 ## Related documentation

@@ -7,11 +7,10 @@ Summary: Defines audio graph, document, builder, provider, and realization owner
 
 ## Purpose
 
-The `audio` layer keeps Carbon audio state and portable behavior usable without a
-device while allowing a browser application to attach playback explicitly.
-The graph and realization share one package because event, bank, emitter,
-culling, source-selection, decode, and music lifecycles form one audio-domain
-contract.
+Carbon audio state and portable behavior work without a device; browser
+playback attaches explicitly. Graph and realization share one package because
+event, bank, emitter, culling, source-selection, decode, and music lifecycles
+form one domain contract.
 
 ## Dependency direction
 
@@ -128,16 +127,15 @@ media provider   CjsAudioSystem
     prepare/decode -> CjsAudioBackend
 ```
 
-The host may use a packaged artifact, a complete API result, the optional
-builder, or another source. The audio layer does not care how the document was
-obtained. Provider calls receive exact document records and request either an
-individual file, a complete original file, or one exact byte range.
+Documents may come from an artifact, API, optional builder, or another source.
+Providers receive exact document records for individual-file, whole-original,
+or exact-range reads; see the [manager contract](concepts/audio-manager.md).
 
-The optional neutral music library is a second input to `CjsAudioMan`, not a
-Wwise graph section. `CjsJukebox` passes its selected song record to the
-injected loader and decodes returned bytes with the realized browser context.
-It does not synthesize events or replace `CjsMusicEngine`. A separate injected
-probe lets the host hide or disable URLs that are not currently reachable.
+The optional neutral music library is a separate `CjsAudioMan` input, not a
+Wwise graph section. `CjsJukebox` sends selected song records to an injected
+loader, decodes bytes with the browser context, and uses an injected
+availability probe. It neither synthesizes Wwise events nor replaces
+`CjsMusicEngine`; see [Optional jukebox](guides/jukebox.md).
 
 ## Related documentation
 

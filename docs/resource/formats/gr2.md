@@ -7,19 +7,16 @@ Summary: Defines the pure-JavaScript GR2/GSF reader, CMF-first GR2 writer, outpu
 
 ## Purpose
 
-`CjsGr2Format` reads Granny 3D `.gr2` geometry, skeleton, animation, and
-morph-target data, plus Granny State `.gsf` profiles. It runs in Node and the
-browser without `granny2.dll`, native addons, a GPU, or private assets.
+`CjsGr2Format` reads Granny 3D `.gr2` geometry, skeleton, animation and
+morph-target data, plus Granny State `.gsf` profiles. It writes geometry and
+animation GR2 from native CMF or shared geometry, using CMF as the interchange
+boundary. Cameras and lights are excluded. Both paths run in pure JavaScript
+in Node and browsers without `granny2.dll`, native addons, a GPU or private assets.
 
-It also writes geometry and animation GR2 files from native CMF or shared
-geometry. Writing is pure JavaScript and uses CMF as the interchange boundary;
-cameras and lights are outside this geometry-format contract.
-
-The reader owns Granny container parsing, reflected type-tree walking, section
-decompression, shared graph projection, JSON output, optional curve and
-vertex-channel conversion, GSF projection, and caller-class hydration. Resource
-caching and publication remain with `CjsResMan`; GPU realization remains with
-engine packages.
+The reader owns container parsing, reflected type-tree walking, section
+decompression, shared graph and GSF projection, JSON output, optional curve and
+vertex-channel conversion, and caller-class hydration. `CjsResMan` owns resource
+caching and publication; engine packages own GPU realization.
 
 Supported section compression is None, Oodle1, and the in-project clean-room
 BitKnit2 decoder. Licensing and migration history are recorded in

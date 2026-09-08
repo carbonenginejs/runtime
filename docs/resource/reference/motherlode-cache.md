@@ -99,13 +99,11 @@ remaining over-budget state. Trimming never reads, prepares, or reloads data.
 
 ## Payload retention
 
-Reader and converter outputs are plain transient payload objects, not resource
-classes or DTO models. A payload may contain more decoded data than a
-particular resource or engine adapter needs. Each concrete resource validates
-the fields it requires before publishing the payload and retains the scalars
-and references it needs. An adapter may retain additional references in
-adapter-owned state. Referencing payload-owned typed arrays is valid and
-preferable to copying them merely to change ownership.
+Readers and converters return plain transient payloads, not resource classes
+or DTO models. Payloads may exceed a consumer's needs: each resource validates
+required fields before publication and retains needed scalars and references;
+adapters may retain additional references in adapter-owned state. Prefer referencing payload-owned
+typed arrays to copying them merely to change ownership.
 
 The lifecycle treats resource residency and payload residency independently:
 

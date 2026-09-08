@@ -7,36 +7,30 @@ Summary: Explains the package boundary for SOF catalogs, DNA selection, determin
 
 ## Purpose
 
-The SOF layer turns a decoded SOF catalog and a DNA selection into a deterministic,
-GPU-free model-values graph. It owns the SOF data models, catalog lookups, DNA
-parsing and validation, layout planning, and the declared values emitted for the
-selected space object.
+SOF turns a decoded catalog and DNA selection into a deterministic, GPU-free
+model-values graph. It owns data models, catalog lookups, DNA parsing and
+validation, layout planning, and the selected object's declared values.
 
 ## Use this package when
 
-Use `@carbonenginejs/runtime/sof` when a caller already has SOF `data.black` bytes or decoded
-catalog data and needs JSON-compatible values for a ship, station, mobile,
-swarm, or extension selection. Use the asynchronous values methods when selected
-child, controller, curve, or resource-existence inputs must be resolved through
-caller-provided adapters.
+Use `@carbonenginejs/runtime/sof` for JSON-compatible ship, station, mobile,
+swarm, or extension values from SOF `data.black` bytes or decoded catalogs.
+Asynchronous methods resolve selected child, controller, curve, and
+resource-existence inputs through caller adapters; lazy catalogs likewise use
+an injected source.
 
-Do not use this layer to fetch game data, realize GPU resources, construct an
-audio backend, or choose a renderer. Consumers that need typed runtime objects
-may construct them from the returned values after loading the required class
-families.
+SOF does not own resource providers, GPU realization, audio backends, or renderer
+selection. Callers may construct typed objects from its values after loading
+the required class families.
 
 ## Where it fits
 
-SOF consumes the combined runtime's model/schema foundation and Black data reader. Resource
-acquisition remains with a resource or tooling layer.
+SOF uses the model/schema foundation and Black reader; callers supply resource
+acquisition. Its supported output is plain model values for headless graphs,
+inspection tools, or later rendering/audio realization.
 
-The supported output is plain model values. Optional consumers include
-headless runtime graph classes, tools that inspect values, and applications
-that later realize rendering or audio behavior.
-
-The implementation still uses a deprecated `carbon.document` compatibility
-intermediate for graph assembly and fragment import. That node-table form is not
-a supported external output contract for new consumers.
+The deprecated `carbon.document` intermediate supports assembly and fragment
+import, not a new consumer-facing node-table output contract.
 
 ## Start here
 

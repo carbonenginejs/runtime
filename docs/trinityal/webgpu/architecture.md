@@ -75,10 +75,8 @@ the WGSL minimum. A package's own records expose only register identity,
 visibility and an active-prefix minimum binding size, and asking them for more
 is the wrong direction.
 
-**That layering defect is closed.** The serializer that read those constants out
-of the format package has left `src/` entirely: it was harness scaffolding
-duplicating an ABI Trinity owns, so it moved to
-`test/trinityal/webgpu/harness/spaceObjectMainUniforms.js`, and its analysis-chunk fallback was
+**That layering defect is closed.** The harness serializer moved from `src/` to
+`test/trinityal/webgpu/harness/spaceObjectMainUniforms.js`; its analysis-chunk fallback was
 deleted rather than moved — a material layout is now a required argument with no
 default. Engines consume the resource-owned `Tr2Shader` reflection graph through
 `MaterialLayoutFromShader`; a second engine package has no format-record path to

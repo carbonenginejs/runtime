@@ -51,10 +51,8 @@ import {
 Runtime classes use `@type.define` for Carbon class identity and field
 decorators from `@carbonenginejs/runtime/schema`. Enum-backed integer
 fields use `@schema.enum` so metadata consumers can present the maintained enum
-vocabulary. Class-associated enums normally live as named frozen statics on
-their canonical class. Ownerless single-package vocabulary remains with its
-family; only genuinely shared cross-package vocabulary belongs in
-`@carbonenginejs/runtime/global`.
+vocabulary. See [Enum ownership](../concepts/generated-class-lifecycle.md#enum-ownership)
+for class, family, and shared vocabulary placement.
 
 Public methods that implement Carbon exposure use `@carbon.method`. The parity
 audit checks promoted classes for omitted and present-but-unexposed methods.

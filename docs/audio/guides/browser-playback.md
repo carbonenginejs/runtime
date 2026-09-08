@@ -158,15 +158,12 @@ does not exactly match Wwise's linear playback-range scaling for factors other
 than `1`; a factor above `1` can cull a voice before its scaled playback curve
 ends.
 
-Older or hand-authored graphs without a retained curve stay audible through
-the historical `distanceScale` inverse-gain fallback. This also covers a Wwise
-`Use Project` attenuation curve whose project default is unavailable in the
-portable document. It is deliberately a compatibility fallback, not a claim
-of Wwise equivalence. Simultaneous movement and an active Voice Volume, State,
-or RTPC gain transition are smoothly rescheduled on their shared Web Audio
-gain parameter; their continuously varying product is approximate. Cone,
-distance-filter and spread/focus curves, diffraction, and transmission are not
-currently rendered.
+Old/custom graphs without a retained curve—including `Use Project` without
+its project default—use the non-Wwise-equivalent `distanceScale` inverse-gain
+fallback. Movement smoothly reschedules active Voice Volume, State, or RTPC
+transitions on their shared gain parameter; the varying product is approximate.
+Cone, distance-filter, spread/focus, diffraction, and transmission remain
+unrendered. See [Carbon compatibility](../reference/carbon-compatibility.md#adaptations).
 
 Carbon's newer line-of-sight subsystem does not ray cast either: the host
 supplies a normalized blockage value per emitter and `AudManager` fades the
@@ -191,14 +188,13 @@ in [Optional jukebox](jukebox.md).
 
 ## Cleanup
 
-Use `ReleaseMedia()` for one retained media identity, `ClearMedia()` for all
-decoded buffers, `ClearSourceData()` for retained whole-bank bytes,
-`ReleaseEmitter()` for one graph object, and `Dispose()` for the complete
-owner. The three cache-release methods prevent future reuse but do not cancel
-active callers; callers cancel their own `LoadMedia()` lease with a signal.
-`Dispose()`, library replacement, and provider replacement invalidate all
-leases and abort pending provider work. Effective provider, delivery, and
-language changes also clear the built-in music engine's retained media cache.
+Release one media identity with `ReleaseMedia()`, all decoded buffers with
+`ClearMedia()`, whole-bank bytes with `ClearSourceData()`, an emitter with
+`ReleaseEmitter()`, or the owner with `Dispose()`. The three cache-release
+methods prevent reuse without canceling callers; a signal cancels a caller's
+`LoadMedia()` lease. Disposal or library/provider replacement invalidates all
+leases and aborts pending provider work. Effective provider, delivery, and
+language changes also clear retained built-in music media.
 
 ## Related documentation
 

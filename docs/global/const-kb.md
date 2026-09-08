@@ -10,14 +10,8 @@ CarbonEngineJS.
 
 ## Purpose
 
-This package provides stable constants that can be shared by:
-
-- `@carbonenginejs/runtime/resource/formats/*` readers when emitting GPU-free semantic
-  payloads, including the DXBC, HLSL, WebGL, and WebGPU subpaths.
-- the `resource` layer when interpreting payloads and resource intent.
-- `src/engine/*` layers when mapping payloads to backend APIs.
-- tools and tests that need canonical media, graphics, audio, shader, D3D, or
-  backend names.
+Resource format readers (including DXBC, HLSL, WebGL and WebGPU), semantic
+resources, backend mappings, tools and tests share this vocabulary.
 
 ## Boundaries
 
@@ -47,7 +41,7 @@ Preferred direction:
 ```text
 resource/formats/*  may emit matching strings and import global constants
 resource            may import/re-export global constants
-engine/*            imports global constants for backend mapping
+trinityal/*         imports global constants for backend mapping
 global/consts       imports no resource or engine layer
 ```
 

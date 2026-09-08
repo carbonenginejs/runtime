@@ -7,16 +7,9 @@ Summary: Explains service ownership, capability registration, lifecycle state, a
 
 ## Composition boundary
 
-`CjsLibrary` holds exact package-owned service identities, capability values,
-resource defaults, and named resource behaviors. It forwards operations to the
-configured service rather than constructing a concrete engine.
-
-```text
-application configuration
-    -> CjsLibrary services and capabilities
-    -> resource request selection
-    -> caller-owned resource or SOF service
-```
+`CjsLibrary` holds caller-owned services, capabilities, resource defaults and
+named request behaviors. It selects requests and forwards operations to the
+configured resource or SOF service rather than constructing an engine.
 
 The dedicated slots require `CjsResMan`, `EveSOF`, and `CjsAudioMan` instances.
 The general string-keyed registry also carries opaque device and input values
@@ -38,14 +31,11 @@ the corresponding configured service's `Register()` method.
 
 ## Library lifecycle
 
-`Initialize(options)` applies library values and marks the library initialized.
-`InitializeAsync({ dataPath, ...options })` additionally asks the configured
-SOF service to load the supplied data path. Without `dataPath`, it calls the
-SOF initialization boundary so an installed partial-catalog builder can boot
-`generic.black`. `Shutdown()` disables and detaches
-the configured `CjsAudioMan` through its required methods, then clears the
-initialized flag. It does not dispose caller-owned services or invent a general
-shutdown protocol for them.
+`Initialize(options)` applies values and sets the initialized flag.
+`InitializeAsync` additionally loads the SOF `dataPath`, or calls SOF
+initialization so an installed partial-catalog builder can boot `generic.black`.
+`Shutdown()` disables and detaches `CjsAudioMan`, then clears the flag.
+Caller-owned services are not disposed; there is no general shutdown protocol.
 
 ## Frame boundary
 
@@ -61,14 +51,12 @@ Presentation, update jobs, and the outer tick remain engine-owned.
 
 ## Request-policy boundary
 
-Resource request resolution is synchronous so `GetResource()` can return an
-immediate handle. Defaults, named behaviors, caller overrides, and diagnostic
-output suffixes are resolved before the resource manager is called. See
-[reference/resource-request-policy.md](reference/resource-request-policy.md).
+Synchronous resolution lets `GetResource()` return an immediate handle.
+The [request-policy reference](reference/resource-request-policy.md) owns
+defaults, behaviors, caller overrides and output-suffix precedence.
 
 ## Platform boundary
 
-The browser platform helpers can request a WebGPU adapter and snapshot
-privacy-filtered adapter information, limits, features, and current screen
-dimensions. They never request a `GPUDevice` or create backend objects. See
-[reference/platform.md](reference/platform.md).
+The [platform reference](reference/platform.md) owns privacy-filtered browser
+adapter, limit, feature and screen snapshots. Probing never requests a
+`GPUDevice` or creates backend objects.

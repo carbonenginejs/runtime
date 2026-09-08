@@ -7,20 +7,14 @@ Summary: Reads a binary record container against the separate schema document th
 
 ## Why this exists
 
-Some client containers carry no layout at all. They pair a binary payload with a
-sibling schema document — YAML — that states every attribute's offset, width and
-type, which fields are optional, how lists are strided, and how the container
-indexes its own records.
+These binary payloads pair with a sibling YAML schema declaring attribute
+offsets, widths, types and optionality, list strides, and record indexing.
+Unlike hash-identified containers whose layouts must be derived and pinned per
+dataset, **nothing needs deriving here**.
 
-That makes them the opposite of a hash-identified container, where the header
-names a layout it does not describe and the layout has to be derived and pinned
-per dataset. **Nothing needs deriving here.** Supply the schema and the payload
-decodes.
-
-It also makes them unusually easy to read wrongly. The bytes carry no signature,
-no version and no field names, so given the wrong schema they decode into
-plausible nonsense rather than failing — there is nothing in them to disagree
-with. Pair each payload with the schema that shipped beside it.
+The bytes carry no signature, version or field names: a wrong schema can decode
+plausible nonsense rather than fail. Always pair the payload with the schema
+that shipped beside it.
 
 ## Use
 
@@ -31,10 +25,9 @@ import { CjsSchemaBoundFormat } from
 const records = CjsSchemaBoundFormat.read(payloadBytes, { schema: schemaBytes });
 ```
 
-`schema` accepts the schema document in any form it arrives in: YAML bytes, YAML
-text, or an already-parsed object. YAML is parsed with `CjsYamlFormat`, and
-anchors and aliases are rejoined — these schemas share repeated declarations that
-way, and left unresolved an anchor reads as one more field.
+`schema` accepts YAML bytes, YAML text or a parsed object. `CjsYamlFormat`
+parses YAML and rejoins anchors and aliases used for shared declarations;
+unresolved anchors would be misread as fields.
 
 **The schema does not always ship as a separate file.** Some containers embed it:
 a `uint32` schema length, then the schema as a protocol-0 pickle, then the

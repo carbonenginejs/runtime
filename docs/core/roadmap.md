@@ -7,24 +7,11 @@ Summary: Separates the available composition root from approved browser-runtime 
 
 ## Current baseline
 
-The current package provides:
-
-- a GPU-free `CjsLibrary` composition root;
-- nominal `CjsResMan`, `EveSOF`, and `CjsAudioMan` service slots plus opaque
-  device and input registry values;
-- a synchronous capability registry;
-- resource defaults and named request behaviors;
-- immediate and promise-facing resource and SOF facades;
-- basic initialization plus optional SOF data loading;
-- audio-manager disable/detach during shutdown without service disposal;
-- one explicitly requested backend-neutral frame through exact lifecycle,
-  context, and render-job identities; and
-- privacy-filtered browser screen and WebGPU adapter snapshots that do not
-  create a `GPUDevice`.
-
-See [architecture](architecture.md), the
-[API reference](reference/api.md), and
-[platform reference](reference/platform.md) for the available surface.
+Current composition, service ownership and frame boundaries are documented in
+[architecture](architecture.md). The [API reference](reference/api.md) owns
+registries, lifecycle and resource/SOF facades; the
+[platform reference](reference/platform.md) owns capability snapshots and
+backend selection.
 
 The package does not currently export a service installer graph, immutable
 application configuration, preference store, preload groups, retention
@@ -104,27 +91,13 @@ manager; the core layer must not infer private cache or lock internals.
 
 ## Capability proof and selection
 
-This flow is implemented; see [platform](reference/platform.md) § *Backend
-selection*. `SelectBackend` is a standalone function and `CjsLibrary` is its
-default caller, so a composition without this package reaches the same decision.
-
-The selection flow separates:
-
-1. cheap support reports;
-2. an engine-owned asynchronous proof of the required device or context;
-3. application policy that ranks proven candidates; and
-4. commitment of one selected backend.
-
-The core layer records and applies the result. It does not create a GPU device,
-test format-specific bytes, or implement WebGL/WebGPU realization itself.
-Format and resource reports remain CPU-side evidence; the selected engine owns
-device-route proof.
-
-WebGL capability reporting and required-limit resolution are now current APIs:
-`CjsWebGLProbe` reports WebGL2 under its own capability keys, `Tr2PlatformInfo`
-names which backend its static caps describe, and `ResolveDeviceRequirements`
-produces the `deviceDescriptor` an engine passes to `requestDevice`. See
-[platform](reference/platform.md).
+Backend selection, separate WebGL2 capability reporting and device-demand
+resolution are implemented; [platform](reference/platform.md) owns their
+contracts. Standalone `SelectBackend` separates support reports, engine-owned
+proof, application ranking and commitment; `CjsLibrary` is its default caller.
+Core records the result without creating a device, testing format bytes or
+implementing backend realization. Resource/format reports remain CPU evidence;
+the selected engine owns device-route proof.
 
 Device-loss refresh and long-lived capability refresh remain design gates
 rather than current APIs.

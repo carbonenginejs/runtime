@@ -70,11 +70,10 @@ encoder. It does not choose pass order, techniques, attachments, or submission.
 ## Space-object uniform serialization
 
 The bounded Eve space-object Main serializer is **no longer part of this
-package**. It was harness scaffolding that duplicated an ABI Trinity
-already owns in `CjsPerObjectLayouts`/`CjsPerFrameLayouts`, and it carried the
-format-record material read described under *Material constants*. It now lives
-beside the fixtures that use it, at `test/trinityal/webgpu/harness/spaceObjectMainUniforms.js`,
-and ships in no artifact.
+package**. This harness duplicate of Trinity's
+`CjsPerObjectLayouts`/`CjsPerFrameLayouts` lives at
+`test/trinityal/webgpu/harness/spaceObjectMainUniforms.js` and ships in no artifact.
+Its former format-record material read is described under *Material constants*.
 
 A composed caller needs no replacement: per-object bytes come from `RawData`
 and reach the GPU through `CollectPerObjectUploads`, and the material layout

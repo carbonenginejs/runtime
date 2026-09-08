@@ -242,17 +242,10 @@ They return the same changed-set, boolean, or `false` result as `SetValues`.
 `Copy`/`copy` instead require an instantiated
 `CjsModel` source and forward the supplied `SetValues` options.
 
-Schema-backed containers expose domain-named child methods and delegate their
-ordinary `array` or `list` mutations to the programmatic static
-`CjsModel.createChild(owner, ...)`, `addChild`, `removeChild`, `deleteChild`, and
-`clearChildren` helpers. Instances expose only child methods explicitly defined
-by their domain class. The static helpers hydrate declared item types, preserve
-Carbon `OnListModified` notifications, and apply the collection field's normal
-flag/rebuild tokens. They do not manage typed arrays or interpret tokens owned
-by a child; the active domain context remains responsible for consuming child
-work requests.
-See [Model lifecycle](../concepts/model-lifecycle.md#schema-backed-child-collections)
-for removal, deletion, event, and nested-context rules.
+For named child methods and the static collection helpers, see
+[Schema-backed child collections](../concepts/model-lifecycle.md#schema-backed-child-collections):
+the lifecycle owner defines hydration, list notifications, tokens, events,
+removal/deletion and nested-context responsibilities.
 
 ### Enum-backed fields
 
@@ -306,18 +299,8 @@ Hides pass to descendants and may be extended by another
 Naming a field that the parent schema does not expose throws during class
 registration.
 
-Each model owns one non-enumerable `__state` object. Model-owned
-`__state.dirty` is the generic settle marker; `__state.flags` contains
-consumer-cleared lazy invalidations; `__state.rebuild` is a separate
-consumer-cleared `Set` of deferred work; and
-`__state.updating` plus `__state.suppressEvents` coordinate update processing.
-The event emitter adds `__state.events` only while listeners exist. A lifecycle
-manager may install `__state.lifecycle` with `initializeLifecycleState()`;
-without it, the object remains ordinarily alive and unmanaged. Dirty
-consumption and clearing do not modify rebuild or lifecycle state.
-
-See [Model lifecycle](../concepts/model-lifecycle.md) for settlement,
-initialization, traversal, resource, and optional lifecycle-state details.
+See [Model lifecycle](../concepts/model-lifecycle.md) for `__state`,
+settlement, initialization, traversal, resources and optional lifecycle state.
 
 ## Subpaths
 

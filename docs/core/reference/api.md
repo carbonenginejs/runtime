@@ -29,16 +29,9 @@ present or own an outer loop.
 
 ## `CjsServiceKey`
 
-The frozen key map contains:
-
-- `RESOURCE_MANAGER`
-- `SPACE_OBJECT_FACTORY`
-- `DEVICE`
-- `AUDIO_MANAGER`
-- `INPUT_MANAGER`
-
-Keys resolve to string names and do not construct their corresponding
-services.
+The frozen map provides string keys `RESOURCE_MANAGER`,
+`SPACE_OBJECT_FACTORY`, `DEVICE`, `AUDIO_MANAGER` and `INPUT_MANAGER`.
+It does not construct services.
 
 ## Construction and values
 
@@ -48,8 +41,8 @@ services.
 
 - `SetValues(options)` applies those fields.
 - `GetValues()` returns the current composition snapshot.
-- `Register(options)` additionally accepts `resMan` and `sof` forwarding
-  topics.
+- `Register(options)` additionally accepts `resMan`, `sof` and `audio`
+  forwarding topics.
 
 Unknown option and topic names throw.
 
@@ -61,6 +54,9 @@ Unknown option and topic names throw.
 - `Shutdown()` disables and detaches the audio manager, then clears the
   initialized flag without disposing the externally owned manager.
 - `IsInitialized()` reports that flag.
+
+For `SelectBackendAsync`, `GetBackendSelection` and
+`InitializeAsync({ backend })`, see [backend selection](platform.md#backend-selection).
 
 ## Service registry
 
@@ -86,7 +82,7 @@ to the audio manager.
 - `RegisterCapabilities(object)` adds capability values.
 - `SetCapability(key, value)`, `GetCapability(key)`, `HasCapability(key)`, and
   `RemoveCapability(key)` manage individual values.
-- `GetCapabilities()` returns a frozen plain snapshot.
+- `GetCapabilities()` returns a mutable plain snapshot.
 
 ## Resource policy
 

@@ -204,16 +204,15 @@ replacement invalidate all pending acquisitions.
 3. Create/adopt emitters and drive `Process(updateContext)`.
 4. Release emitters/media or call `Dispose()`.
 
-A document can also be obtained through the manager itself, matching the
-character library manager's shape. Constructor option `resourceLoader` (or
-`SetResourceLoader(loader)`) supplies a structural loader from a normalized
-path to parsed document values; `LoadLibrary(path)` installs through a
-synchronous loader and `LoadLibraryAsync(path)` deduplicates equivalent
-in-flight paths, resolving `false` when a later install supersedes the load.
-`BuildLibraryFromResources(options)` builds a document through the domain
-builder's raw-resource path and installs it, defaulting the builder's byte
-source to the installed media provider's `Read`; raw builds decode metadata
-and banks on the client, so a prepared document remains the fast path.
+The manager also follows the character library manager's loading shape.
+Constructor option `resourceLoader` or `SetResourceLoader(loader)` supplies
+structural
+normalized-path to parsed-values loading. `LoadLibrary(path)` installs
+synchronously; `LoadLibraryAsync(path)` deduplicates equivalent in-flight paths
+and resolves `false` if a later install supersedes it.
+`BuildLibraryFromResources(options)` builds and installs through the domain
+builder, defaulting its byte source to the media provider's `Read`. Prepared
+documents remain faster than client-side metadata/bank decoding.
 
 The update context is optional. It may expose Carbon-style getters or
 equivalent `time`, `realTime`, `deltaTime`, and `frame` properties. When it is
@@ -396,15 +395,13 @@ playing ID:
 The mutation methods return `true` when the playing ID accepted the requested
 operation and `false` when it had no applicable live authored item.
 
-This is a CarbonEngineJS browser extension for applications and the package
-demo, not an authored Wwise action contract. Web Audio buffer sources cannot
-resume after stopping, so pause and item selection use a short fade and replay
-the selected item from its entry cue. Exact decoded-media position is not
-retained. Layered selectable tracks use a bounded coordinated traversal instead
-of enumerating their Cartesian product. Normal automatic playlist traversal
-and independent Wwise track selection remain authored, but manual selection
-starts a fresh playlist traversal and therefore resets playlist random/shuffle
-history. A selected Sequence Music Track continues at its following subtrack.
+This application/demo transport is a CarbonEngineJS extension, not a Wwise
+action. Stopped Web Audio sources cannot resume: pause/item selection uses a
+short fade and replays from the entry cue, without retaining exact media
+position. Layered tracks use bounded coordinated traversal, not a Cartesian
+product. Automatic playlist/track choices remain authored; manual selection
+resets playlist random/shuffle history, while a selected Sequence Music Track
+continues at its following subtrack. See [Music](../guides/music.md#demo-examples).
 
 ## Builder
 

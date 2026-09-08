@@ -7,26 +7,15 @@ Summary: Explains the consolidated shared runtime foundation and its public fami
 
 ## Purpose
 
-`@carbonenginejs/runtime` is the bottom shared layer of the
-CarbonEngineJS runtime dependency graph. It owns browser-safe primitives that
-are useful across runtime libraries and do not depend on another
-CarbonEngineJS package.
-
-The package is deliberately strict about what enters this layer so it can
-remain stable and low-changing after the Carbon-to-JavaScript conversion.
+The global foundation supplies browser-safe primitives shared by runtime
+domains without a dependency on another CarbonEngineJS package.
 
 ## Use this package when
 
-Use the runtime global foundation when code:
-
-- is a general runtime primitive used by more than one package;
-- has stable behavior that can be described without domain policy;
-- is safe in browsers and does not import Node built-ins;
-- can remain independent of every other CarbonEngineJS package.
-
-Do not use it merely as a convenient home for code without an owner.
-Browser-facing demos, clients, inspectors, and reusable browser helpers belong
-to this repository's `demo` and `src/tools` layers, respectively.
+Use it for stable, policy-free primitives with a demonstrated shared need;
+[architecture](./architecture.md#admission-rules) owns the admission rules.
+Browser demos, clients and inspectors live in `@carbonenginejs/demos`;
+[runtime tools](../tools/README.md) owns the residual file-index surface.
 
 ## Where it fits
 
@@ -48,24 +37,9 @@ The `/contracts` family supplies narrow nominal identities whose required base
 methods throw until a concrete owner overrides them, including the engine
 lifecycle required by core's frame driver.
 
-```text
-runtime domains          browser tools
-        \                   /
-         \                 /
-          v               v
-            global foundation
-                  |
-                  v
-      Web-standard platform APIs
-```
-
-Runtime domains, engines, and browser tools consume this foundation directly.
-Math, constant, contract, type, schema, model, document, hydration, and
-lifecycle ownership is consolidated here.
-
 ## Start here
 
-Use the root export when a library consumes several utility families:
+The aggregate package root includes these utilities and runtime domains:
 
 ```js
 import {
@@ -89,7 +63,7 @@ import { asUint8Array } from "@carbonenginejs/runtime/utils/bytes";
   exports.
 - [Class reference](./reference/classes/README.md) catalogs maintained Carbon
   foundation classes.
-- [Foundation consolidation](./concepts/foundation-consolidation.md) records the
+- [Foundation consolidation](./architecture.md#foundation-consolidation) records the
   implemented ownership move and consumer migration map.
 - [Model lifecycle](./concepts/model-lifecycle.md) defines dirty settlement,
   initialization, traversal, resources, and optional lifecycle state.

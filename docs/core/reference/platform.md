@@ -57,36 +57,26 @@ answers describe that one backend rather than blending two. WebGPU wins when
 both are present; a library may still compose the WebGL engine, and both
 capability families are reported either way.
 
-`platformName` is the **resource-path discriminator**, not a description of the
-host: it is the segment that turns `res:/.../effect/` into
-`res:/.../effect.webgpu/`, exactly as Carbon's `dx11` produces `effect.dx11/`.
-It defaults to the backend name, or `null` when there is no backend, and a
-`platformName` detection option overrides it: pointing a backend at a different
-compiled-effect tree is a configuration choice, not a different backend.
-`platformID` remains zero; Carbon's value is a per-backend build constant naming
-targets that do not exist here.
+`platformName` selects the compiled-effect path: for example,
+`res:/.../effect/` becomes `res:/.../effect.webgpu/`, as Carbon's `dx11`
+selects `effect.dx11/`. It defaults to the backend name or `null`; the
+`platformName` detection option overrides the tree without changing backend
+identity. `platformID` remains zero because Carbon's per-backend build targets
+do not exist here.
 
-It applies to **unqualified paths only**. Substitution touches `/effect/` alone,
-so a path already naming a tree passes through untouched. How many trees may
-then coexist is the backend's answer, not this field's. WebGL can mix: CCP's
-v8-format `gles2` tree carries GLSL that a WebGL context compiles, so it loads
-side by side with a Carbon-derived WebGL tree. WebGPU cannot: it accepts WGSL
-only, so a GLSL tree is unloadable there at any path.
-
-The override exists for that asymmetry and for nothing else. CCP's own trees are
-a testing convenience — useful for comparing our output against theirs — not a
-shipping path, so no mixing mechanism is provided beyond one overridable
-default. Do not read this name to decide whether an already-qualified resource
-is loadable.
+Only unqualified `/effect/` paths are substituted. Qualified-tree compatibility
+belongs to the backend: WebGL can compile both CCP's v8 `gles2` GLSL and a
+Carbon-derived WebGL tree; WebGPU accepts WGSL, not GLSL. The override serves
+that asymmetry. CCP trees are comparison inputs, not a shipping path; one
+overridable default supplies no additional mixing mechanism and does not prove
+that an already-qualified resource is loadable.
 
 Temporal anti-aliasing deviates deliberately. Carbon declares the cap but never
 handles it, so it always answers false; ours honours the caller's `taa` option
 because the choice is genuinely an application one.
 
-The capability record carries `webgpu` and `webgl2` as **separate** keys.
-`webgpu === false` states only that WebGPU is absent, which is not evidence
-that WebGL2 is present, so a consumer selecting an engine reads the positive
-key rather than negating the other.
+Read the separate positive `webgpu` and `webgl2` capability keys.
+`webgpu === false` does not establish WebGL2 support.
 
 ### WebGL2 probing
 
@@ -148,12 +138,10 @@ resolving against an adapter it holds directly.
 
 ## Effect paths
 
-`ResolveEffectPath(path, { platformName, shaderModel })` turns an authored
-`/effect/*.fx` path into the compiled path a backend loads. Engines do not
-resolve paths — an engine that owns a path policy is an engine deciding its own
-configuration — so this is where the substitution lives, as Carbon puts it in
-`Tr2Effect` rather than in a backend. `Tr2PlatformInfo.ResolveEffectPath(path)`
-resolves against a report's own platform name.
+`ResolveEffectPath(path, { platformName, shaderModel })` converts authored
+`/effect/*.fx` paths to compiled paths. This configuration policy stays outside
+engines, as Carbon places it in `Tr2Effect`. The report's
+`Tr2PlatformInfo.ResolveEffectPath(path)` uses its own platform name.
 
 ```js
 ResolveEffectPath("res:/graphics/effect/space/quadv5.fx", { platformName: "webgpu" });
@@ -165,19 +153,15 @@ ResolveEffectPath("res:/graphics/effect/space/quadv5.fx", { platformName: "webgp
 the top tier and the variant carrying the local lights, **not** a depth-only
 shader.
 
-Substitution touches `/effect/` only, so an already-qualified path passes
-through with just its suffix applied. Resolution fails loudly: an authored path
-with no platform name to substitute throws rather than returning something no
-backend can load, which would otherwise surface much later as a missing
-resource.
+Only `/effect/` is substituted; qualified paths receive just the suffix.
+An authored path needing substitution throws when no platform name is supplied.
 
 ## Backend selection
 
-`SelectBackend(options)` commits to exactly one backend and reports why every
-other candidate lost. It is a plain function over injected values — it
-constructs nothing, imports no engine, and holds no state — so a caller
-composing without `CjsLibrary` reaches the identical decision.
-`CjsLibrary.SelectBackendAsync` is its default caller, not its owner.
+`SelectBackend(options)` selects one backend and reports other candidates'
+outcomes. It holds no state, constructs nothing and imports no engine.
+`CjsLibrary.SelectBackendAsync` is its default caller; callers without the
+library use the same function.
 
 ```js
 const selection = await SelectBackend({

@@ -66,16 +66,13 @@ bus also contributes its separate Output Bus Volume; values on descendants
 without an output-bus override do not apply. The
 application music slider remains an independent downstream control.
 
-When the installed `busGraph` route passes the strict shared-mixer
-qualification, music keeps two route-local envelope stages before entering its
-stable music category input. Each exact route in a scheduled segment owns its
-own transition lane, while overlapping segments on the same route share only an
-instance lane for Play/Stop fades. This preserves switch, playlist, and
-transition-segment crossfades without merging different Bus routes. A blocked
-track stays on the legacy segment, instance, and music-output gains; both paths
-receive the application music volume exactly once. Route lanes are established
-before asynchronous clip loading, so a late decoded buffer cannot bypass an
-already scheduled fade.
+Qualified `busGraph` music routes keep two envelope stages before the stable
+music-category input: a transition lane per scheduled-segment route and a
+Play/Stop instance lane shared by overlapping segments on that exact route.
+Switch, playlist, and transition-segment crossfades never merge different Bus
+routes. Blocked tracks keep legacy segment/instance/output gains; both paths
+apply application music volume exactly once. Lanes precede asynchronous loading,
+so late buffers cannot bypass scheduled fades.
 
 If that shared route contains qualified static Parametric EQ and Wwise Delay
 slots, its instance lane enters one ordered effect chain per physical Bus after
@@ -269,15 +266,12 @@ application-owned event names do not require synthetic Wwise metadata.
 
 ## Cache and cleanup
 
-The built-in engine caches decoded buffers by source ID. Use
-`ReleaseMusicMedia(sourceID)` or `ClearMusicMedia()` to release inactive
-entries. `SetGraph()` and `Dispose()` cancel stale scheduling and clear
-graph-owned cache state. When the engine is owned by `CjsAudioMan`, effective
-provider, delivery-mode, and language changes also clear its retained music
-media so a later post resolves against the new configuration.
-
-Active `AudioBufferSourceNode` objects retain their buffers until playback
-finishes. Cache release changes future reuse, not an already playing source.
+Decoded buffers are cached by source ID. `ReleaseMusicMedia(sourceID)` and
+`ClearMusicMedia()` release inactive entries; active `AudioBufferSourceNode`s
+retain buffers until playback finishes. `SetGraph()` and `Dispose()` cancel
+stale scheduling and clear graph-owned caches. Under `CjsAudioMan`, effective
+provider, delivery-mode, or language changes also clear retained music media
+so later posts use the new configuration.
 
 ## Related documentation
 

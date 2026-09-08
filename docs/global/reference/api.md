@@ -1,15 +1,15 @@
 # Runtime global foundation API
 
 Status: Evolving
-Scope: `@carbonenginejs/runtime` version 0.1
+Scope: `@carbonenginejs/runtime` global foundation
 Audience: Library users and runtime authors
 Summary: Lists the consolidated public API families and utility primitives.
 
 ## Import contract
 
-The package root re-exports neutral utilities, math namespaces, and
-non-conflicting constants. Contracts, type, schema, model, document, hydration,
-and lifecycle APIs remain direct-subpath only.
+The package root aggregates runtime domains as well as the global foundation.
+The `/global` surface exports utilities, math namespaces, non-conflicting
+constants and contracts; schema/model/document families have focused subpaths.
 
 ```js
 import {
@@ -20,8 +20,7 @@ import {
 } from "@carbonenginejs/runtime";
 ```
 
-Every documented subpath can also be imported independently. Subpath imports
-make a narrow dependency explicit:
+Use a focused subpath for a narrow dependency:
 
 ```js
 import { encodeUtf8 } from "@carbonenginejs/runtime/utils/text";
@@ -34,7 +33,7 @@ package remains private until the atomic consumer and registry cutover.
 
 | Subpath | Purpose | Exports |
 | --- | --- | --- |
-| `.` | Neutral utilities, math namespaces/scalars, and non-conflicting constants. | Common root surface. |
+| `.` | Global foundation and runtime domains. | Aggregate package surface. |
 | [`./utils/arrays`](../../../src/global/utils/arrays.js) | Normalizes nullable values and mutates writable array-like targets. | `toArray`, `copyArrayLike`, `fillArrayLike` |
 | [`./utils/bytes`](../../../src/global/utils/bytes.js) | Creates byte views, owned copies, exact buffers, and prefix checks. | `asUint8Array`, `copyBytes`, `toArrayBuffer`, `hasBytePrefix` |
 | [`./utils/compression`](../../../src/global/utils/compression.js) | Detects and decompresses gzip through Web-standard streams. | `isGzip`, `decompressBytes`, `decompressGzip`, `decompressGzipIfNeeded` |

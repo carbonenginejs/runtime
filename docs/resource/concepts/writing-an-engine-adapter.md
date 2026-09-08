@@ -21,11 +21,10 @@ Use the identities we own:
 - injected material and geometry resolution extends the Trinity resolver base;
 - backend selection candidates extend `CjsBackendCandidate`.
 
-Validate those identities once when composing or accepting a public operation,
-then call required methods directly. A required base method throws until a
-concrete engine implements it. Repeated `typeof value.Method === "function"`
-checks and optional calls are not compatibility features for contracts owned by
-this runtime; they hide incomplete composition and add work to hot paths.
+Validate identities once at composition or public-operation entry, then call
+required methods directly. Required base methods throw until implemented.
+Repeated `typeof value.Method === "function"` checks and optional calls hide
+incomplete owned contracts and add hot-path work.
 
 Structural checks remain correct at boundaries we do not own, such as WebGPU
 browser objects, host callbacks, decoded plain records, and caller-authored

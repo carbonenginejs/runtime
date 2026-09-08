@@ -1,27 +1,14 @@
 # Character appearance plans
 
 Status: Evolving
+Reviewed: 2026-09-08
 Scope: `@carbonenginejs/runtime/character`
 Audience: Character-runtime and renderer maintainers
 Summary: Defines a standalone JSON and hydrated model boundary for explicit backend-neutral character planning.
 
-## Evidence boundary
-
-Prototype character rendering provides behavioral evidence for this design.
-
-The prototype mixes three different kinds of information:
-
-- decoded or authored facts, such as resource identities, paths, explicit
-  cover/remove category fields, material parameters, sampler bindings, and image
-  placement metadata;
-- derived facts, such as a selected same-LOD configuration/geometry bundle or
-  a material binding recovered from a resource; and
-- application policy, such as the native modifier-order table, inferred default
-  lipstick, filename-derived texture roles, footwear exceptions, and custom
-  decal ordering.
-
-Any resolver must preserve that distinction instead of turning all
-three into unlabelled library fields.
+Authored, decoded, derived and policy inputs retain explicit provenance.
+The plan must not promote prototype filename rules or fallbacks into authored
+source facts.
 
 ## Runtime boundary
 
@@ -69,12 +56,12 @@ configuration's own mesh relationship. A producer may label a bundle with a
 derived LOD only when both retained paths carry the same terminal `_lod<number>`
 identity; `lodOrigin` keeps that derivation explicit. A matching normalized
 paired resource stem is retained separately as `modelFamily`, with its own
-origin. When `options.requestedLod` is a non-negative integer, the resolver
-selects one exact matching labelled bundle and records the requested LOD,
-resolved LOD, and model family on the plan part. If more than one bundle has
-that LOD, exactly one model family must match the retained part-path leaf. It
-does not parse filenames, choose a nearest LOD, or guess between multiple
-family matches. Every
+origin. With a non-negative integer `options.requestedLod`, one exact labelled LOD
+match wins; multiple matches require one normalized part-family match. If none
+matches, the current resolver can still select a sole retained bundle, or
+individually unique configuration/geometry candidates. Requested and resolved
+LOD are separate fields. It does not search for a nearest LOD or guess between
+multiple family matches. Every
 candidate inventory remains lossless and every exact texture candidate remains
 in `texturePaths`. It also does not infer candidate or metadata inheritance from
 an unversioned inventory: schema v10 version records are self-contained, so any
@@ -91,9 +78,10 @@ exact part source, the resolver first selects the unique dependency version
 matching the requesting source version. If no such peer exists, it selects the
 unique unversioned dependency as the authored family default. Ambiguous or
 missing results remain diagnostics. The selected source becomes a
-requester-owned contribution. A terminal `###<finite-number>` on a non-utility dependency is
-also decoded when its sex-relative part-source identity exists exactly; its
-weight is retained on the resulting appearance layer. Configuration/geometry
+requester-owned contribution. A terminal numeric `###` on a non-utility dependency is also decoded when an
+adjacent typed relation and an exact sex-relative part source qualify it. The
+finite effective weight (`relation.weight` when supplied, otherwise the suffix)
+is retained on the resulting appearance layer. Configuration/geometry
 support and texture-only masks therefore remain distinct contributors.
 Unmatched suffixed values remain diagnostics. Recursive
 dependency policy remains unresolved, but an active selection is now suppressed
@@ -281,47 +269,31 @@ An engine therefore needs an explicit typed consumer relationship before it
 rebinds a reconstructed channel; unqualified surfaces retain their authored
 bindings. This rule does not claim complete renderer or visual parity.
 
-## Waist and tuck evidence status
+## Dependency ownership and garment coverage
 
-The reviewed standard tuck case closes the distinction between dependency
-ownership and visible contribution. It does not prove every waist seam, mask,
-or channel registration result.
-
-| Relationship | Evidence status | Appearance-plan meaning |
-| --- | --- | --- |
-| A lower-body selection that authors a standard tuck requests waist coordination, tuck support, tuck-mask, and fitting-shape dependencies. | **Proven authored relationship.** Decoded modifier metadata names the dependency and occlusion edges. | The requesting lower-body selection is the dependency owner. |
-| Waist-coordination records suppress or orient tuck, drape, mask, and fitting-shape behavior without supplying visible material. | **Proven for the reviewed decoded records.** Their retained metadata carries coordination and occlusion meaning without a renderable contribution. | Represent coordination separately from a visible layer. |
-| A tuck dependency supplies support configuration and geometry, while an authored mask dependency may resolve to texture candidates. | **Proven decoded resource relationship; general cut realization remains open.** | The support mesh is a decoded contributor. Retain the mask candidate with its requesting owner and label any cut realization as bounded policy. |
-| A selected upper-body part may supply visible material to a tuck-support contribution. | **Derived policy, not an authored source-document relationship or general alpha contract.** | Record owner and contributor separately with a `policy` origin until stronger evidence exists. |
-| Standard and alternate coordination across selection states, garment combinations, cut coverage, and independent texture channels produce correct pixels. | **Not yet proven.** | Keep the complete realization and visual qualification matrix open without reopening the ownership split. |
-
-The schema-v10 resolver preserves every dependency and occlusion string and
-follows only an adjacent exact typed `partSource` relationship. It selects one
-dependency source version by exact requesting-version identity, then by a
-unique unversioned default; all of that version's texture paths remain on its
-requester-owned contributor. Ambiguous sources, suffixed strings,
-selected-top material transfer, and
-mask-cut realization remain diagnosed or deferred. Exact typed
-modifier-location occlusions and exact typed clothing-removal relationships
-suppress only their targeted active selection. `clothingAlsoCoversCategory`
-and `clothingRuleException` remain unresolved coverage policy. A bounded
-renderer adapter may apply a reviewed tuck combination after resource
-readiness; the resolver does not infer or serialize that adapter policy and
-does not recover roles by parsing a resource name.
+Layers retain separate requesting owners and visible contributors. A dependency
+may coordinate other parts without supplying visible material. Tuck-support
+geometry, mask candidates and selected-top material transfer are distinct
+relationships; bounded resolution does not imply complete cut-mask or visual
+qualification. `clothingAlsoCoversCategory` and `clothingRuleException` do not
+yet supply general coverage policy.
 
 ## Utility-shape weights and garment fit
 
 Utility-shape dependencies are interpreted only where the retained corpus
 proves their syntax. An unsuffixed `utilityshapes/<target>` dependency requests
 weight `1`. A terminal `###<finite-number>` requests that numeric weight,
-including zero and values greater than one. The resolver preserves the exact
+including zero and values greater than one. An adjacent typed relation must
+match the authored string; its supplied finite weight takes precedence.
+The resolver preserves the exact
 authored string, normalizes the modifier path for identity, and retains the
 authored target leaf for renderer matching.
 
 Exact active utility-shape occlusions suppress the same normalized utility
 path. Conflicting active weights for one path produce a diagnostic and no
-target request. Single-`#`, bare-`#`, malformed, and non-utility suffixes remain
-opaque because their semantics are not proved. No weight is clamped.
+target request. Single-`#`, bare-`#` and malformed utility suffixes remain
+unresolved. Non-utility weighted dependencies use the separate bounded rule
+above. No weight is clamped.
 
 The output is programmatic: `plan.morphTargets` contains the exact target and
 weight requests for any garment combination. A renderer may match those names
@@ -335,48 +307,12 @@ Removing one category does not imply removal of every lower-body contribution.
 A renderer may apply exact requested utility targets to retained geometry, but
 must report missing targets rather than inventing a hide rule.
 
-## Decisions that are closed
+## Qualification limits
 
-- Full normal/specular texture coverage does not establish garment ownership;
-  ownership must come from diffuse/cut semantics.
-- A material mismatch cannot be inferred from a visual mismatch alone.
-- Fragmentary coverage cannot be attributed to a retained selection without a
-  typed ownership or contribution relationship.
-- Global PNG placement is not a substitute for a feature-specific placement
-  rule.
-- A blank optional value does not imply a conventional sibling default.
-  Presentation fallbacks must remain explicitly labelled and outside runtime
-  library semantics.
-- A dependency is not necessarily another renderable part. Some records may
-  express category replacement or compatibility instead.
-- Dependency ownership and contribution are different relationships. In the
-  reviewed standard tuck case, the lower-body selection owns the dependency,
-  the tuck configuration/geometry is a decoded support contribution, the mask
-  is a policy-labelled coverage candidate, and the selected top is the derived
-  visible-material contributor.
-- Source byte offsets end at JSON decoding. They are not runtime atlas offsets.
-- Paperdoll background identity is an exact portrait-resource relationship;
-  light and light-color identities are separate opaque identifiers.
-- A present zero relationship identity is a `null` sentinel, while a positive
-  missing source-library identity remains its named domain value.
-
-## Questions that remain open
-
-- whether plain `n` and masked `mn` have fully distinct authored roles;
-- the complete standard/middle-only, male/female, selection-state, cut-mask,
-  and texture-channel realization matrix for the closed waist/tuck ownership
-  split;
-- complete category-coverage and `clothingRuleException` behavior beyond the
-  implemented exact typed selection-removal paths;
-- whether authored inputs can override the native category priority rather
-  than merely contributing metadata-controlled swaps;
-- whether native PaperDoll always applies both replacement and additive normal
-  inputs when both exist; and
-- several remaining diffuse/normal/specular registration failures.
-
-Until those questions are answered, the resolver should emit diagnostics or an
-explicit `policy` origin. It must not silently recover an answer from a
-filename.
+Complete material/texture-role resolution, normal-input combination, category
+coverage, accessory packing and waist/tuck pixel qualification are not implied
+by this data contract. Missing evidence produces diagnostics or an explicit
+`policy` origin, never an unlabelled filename inference.
 
 ## Current contract tests
 

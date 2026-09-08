@@ -7,13 +7,10 @@ Summary: Defines the maintained Carbon audio surface, adaptations, and intention
 
 ## Contract
 
-The `./trinity` entry owns the portable JavaScript form of Carbon audio schema
-families `audio`, `trinityAudio`, and `trinityAudioApi`. Classes retain Carbon
-field names, schema families, persistence metadata, and method provenance.
-
-Portable behavior is implemented where it can be expressed without Wwise,
-Python, an operating-system device manager, or a renderer. Browser realization
-is supplied by the root package.
+`./trinity` ports the `audio`, `trinityAudio`, and `trinityAudioApi` families,
+retaining Carbon fields, schema families, persistence metadata, and method
+provenance. Portable behavior needs no Wwise, Python, OS device manager, or
+renderer; the root package supplies browser realization.
 
 ## Compatibility ledger
 
@@ -384,17 +381,11 @@ The shape, verified against the shipping audio metadata:
 - each carries a `0..1` range, an initial value, and a localization key for its
   label. The music level's initial value is `0.75`.
 
-Two consequences for a host. A settings UI can be generated from that metadata
-— tier for grouping, localization key for the label, range and initial value
-for the control — instead of hard-coding a list that drifts from the banks. And
-stored values are applied through the ordinary global RTPC path, so they must
-be pushed once audio is enabled rather than at construction: before a backend
-exists there is nothing to apply them to.
-
-This package interprets the parameters and applies them. It does not own the
-storage, validation, or persistence of a user's chosen values; that is a host
-concern, and the future `core` composition layer owns the planned preferences
-service for it.
+Hosts can generate controls from each parameter's tier, localization key,
+range, and initial value. Apply stored values through global RTPCs after audio
+is enabled, not during construction before a backend exists. Audio interprets
+and applies them; hosts own storage, validation, and persistence, with a
+preferences service planned for `core`.
 
 ## Schema refresh and generation safety
 
