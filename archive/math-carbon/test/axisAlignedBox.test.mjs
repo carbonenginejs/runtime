@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
+﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { axisAlignedBox } from "../../../../npm/dist/global/math/carbon/axisAlignedBox.js";
+import { axisAlignedBox } from "../src/axisAlignedBox.js";
 
 function closeTo(expected, actual, tolerance, message)
 {

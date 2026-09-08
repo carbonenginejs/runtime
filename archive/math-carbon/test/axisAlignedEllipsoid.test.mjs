@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
+﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { axisAlignedEllipsoid } from "../../../../npm/dist/global/math/carbon/axisAlignedEllipsoid.js";
+import { axisAlignedEllipsoid } from "../src/axisAlignedEllipsoid.js";
 
 function closeTo(expected, actual, tolerance, message)
 {

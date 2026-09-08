@@ -1,10 +1,10 @@
-// Ported from e:\carbonengine\math\tests\Vector2.cpp (gtest). Same test names.
+﻿// Ported from e:\carbonengine\math\tests\Vector2.cpp (gtest). Same test names.
 // EXPECT_EQ on floats -> strict equality (float expressions on the expectation side
 // are wrapped in Math.fround, matching the C++ float computation).
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { vector2 } from "../../../../npm/dist/global/math/carbon/vector2.js";
+import { vector2 } from "../src/vector2.js";
 
 const f32 = Math.fround;
 

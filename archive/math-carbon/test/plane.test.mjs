@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
+﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { plane } from "../../../../npm/dist/global/math/carbon/plane.js";
+import { plane } from "../src/plane.js";
 
 // EXPECT_FLOAT_EQ stand-in
 function closeTo(expected, actual, message)

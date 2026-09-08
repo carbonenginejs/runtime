@@ -13,7 +13,6 @@ export * as pln from "./pln.js";
 export * as ray3 from "./ray3.js";
 export * as sph3 from "./sph3.js";
 
-export * as carbon from "./carbon/index.js";
 
 export * as pool from "./pool.js";
 export * as noise from "./noise.js";

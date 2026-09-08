@@ -1,6 +1,6 @@
-import { describe, test } from "node:test";
+﻿import { describe, test } from "node:test";
 import assert from "node:assert";
-import { matrix, quaternion } from "../../../../npm/dist/global/math/carbon/index.js";
+import { matrix, quaternion } from "../src/index.js";
 
 // gtest EXPECT_FLOAT_EQ equivalent: 1e-6 relative tolerance
 function closeTo(actual, expected, message)

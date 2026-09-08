@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import test from "node:test";
 
 // The carbon-math-conventions translation table, executed. Each case builds
@@ -6,8 +6,8 @@ import test from "node:test";
 // documented gl-matrix equivalent, on rotating + non-uniformly scaled
 // fixtures - the composition class that identity-parent fixtures cannot
 // distinguish (skill gotcha 2). Tolerance 1e-5 per the skill.
-import { mat4, quat, vec3, vec4 } from "../../../../npm/dist/global/math/index.js";
-import { matrix, quaternion } from "../../../../npm/dist/global/math/carbon/index.js";
+import { mat4, quat, vec3, vec4 } from "../../../npm/dist/global/math/index.js";
+import { matrix, quaternion } from "../src/index.js";
 
 const ROT_A = quat.normalize(quat.create(), quat.fromValues(0.3, -0.5, 0.2, 0.79));
 const ROT_B = quat.normalize(quat.create(), quat.fromValues(-0.1, 0.6, -0.4, 0.68));

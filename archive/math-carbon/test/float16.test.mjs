@@ -1,4 +1,4 @@
-// Ported from e:\carbonengine\math\tests\Float16.cpp (gtest). Same test names for
+﻿// Ported from e:\carbonengine\math\tests\Float16.cpp (gtest). Same test names for
 // the three ported suites; the remaining tests are JS-added and prove the conversion
 // matches Carbon's src\Float16.cpp branch conversion across the special values:
 // zeros, subnormals, infinities, NaN, rounding at mantissa boundaries, and Carbon's
@@ -7,7 +7,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { float16, vector2_16, vector3_16, vector4_16 } from "../../../../npm/dist/global/math/carbon/float16.js";
+import { float16, vector2_16, vector3_16, vector4_16 } from "../src/float16.js";
 
 const f32 = Math.fround;
 const to16 = float16.float32To16;

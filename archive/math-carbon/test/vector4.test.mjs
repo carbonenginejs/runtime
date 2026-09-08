@@ -1,12 +1,12 @@
-// Ported from e:\carbonengine\math\tests\Vector4.cpp (gtest). Same test names.
+﻿// Ported from e:\carbonengine\math\tests\Vector4.cpp (gtest). Same test names.
 // Deliberately not ported: Vec4Transform and MultiplyByMatrix - they exercise
 // Matrix's Transform / operator*(Vector4, Matrix), which belong to the matrix
 // module being ported separately.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { vector4 } from "../../../../npm/dist/global/math/carbon/vector4.js";
-import { vector3 } from "../../../../npm/dist/global/math/carbon/vector3.js";
+import { vector4 } from "../src/vector4.js";
+import { vector3 } from "../src/vector3.js";
 
 test("Vector4Test.Constructors", () =>
 {

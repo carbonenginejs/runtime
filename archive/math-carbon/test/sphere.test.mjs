@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
+﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { sphere } from "../../../../npm/dist/global/math/carbon/sphere.js";
+import { sphere } from "../src/sphere.js";
 
 function closeTo(expected, actual, message)
 {

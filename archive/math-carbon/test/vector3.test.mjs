@@ -1,4 +1,4 @@
-// Ported from e:\carbonengine\math\tests\Vector3.cpp (gtest). Same test names.
+﻿// Ported from e:\carbonengine\math\tests\Vector3.cpp (gtest). Same test names.
 // EXPECT_FLOAT_EQ -> expectFloatEq (1e-6 relative); EXPECT_EQ on floats -> strict
 // equality (float expectation expressions wrapped in Math.fround).
 // Deliberately not ported: Vec3Transform, Vec3TransformCoord, Vec3TransformNormal -
@@ -7,7 +7,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { vector3 } from "../../../../npm/dist/global/math/carbon/vector3.js";
+import { vector3 } from "../src/vector3.js";
 
 const f32 = Math.fround;
 

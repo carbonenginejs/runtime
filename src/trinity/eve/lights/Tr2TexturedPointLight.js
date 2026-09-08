@@ -6,7 +6,34 @@
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
 import { carbon, impl, io, type } from "#schema";
 import { CjsResMan, ResourceRequirement } from "#resource";
-import { carbon as carbonMath } from "#math";
+const f32 = Math.fround;
+
+/**
+ * Carbon Color::Saturate (Color_inline.h:161): lerp from perceived-intensity
+ * grey toward the colour by max(0, saturation) - a grey-to-colour blend, not
+ * a clamp; saturation 1 is a plain copy. Lived in the archived literal math
+ * port until 2026-09-08; this is its one consumer, so the body lives here.
+ */
+function saturateColor(out, a, saturation)
+{
+  const s = f32(saturation);
+  if (s === 1)
+  {
+    out[0] = a[0]; out[1] = a[1]; out[2] = a[2]; out[3] = a[3];
+    return out;
+  }
+
+  const r = a[0], g = a[1], b = a[2], alpha = a[3];
+  // Perceived intensity; the weights are Carbon's own eye-response constants.
+  const i = f32(f32(f32(r * f32(0.299)) + f32(g * f32(0.587))) + f32(b * f32(0.114)));
+
+  const t = Math.max(0, s);
+  out[0] = i + f32(f32(r - i) * t);
+  out[1] = i + f32(f32(g - i) * t);
+  out[2] = i + f32(f32(b - i) * t);
+  out[3] = alpha;
+  return out;
+}
 import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";
 
@@ -114,6 +141,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
     if (!texture || typeof texture.GetAverageColor !== "function") return;
     const average = texture.GetAverageColor();
     if (!average) return;
-    carbonMath.color.saturate(this.color, average, this.#saturation);
+    saturateColor(this.color, average, this.#saturation);
   }
 }

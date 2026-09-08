@@ -1,11 +1,11 @@
-// Carbon's gtest file e:\carbonengine\math\tests\Color.cpp contains NO TEST cases
+﻿// Carbon's gtest file e:\carbonengine\math\tests\Color.cpp contains NO TEST cases
 // (it only pulls in the headers), so there is nothing to port one-to-one. These are
 // JS-added tests locking in Color_inline.h behavior: the ARGB uint32 pack/unpack with
 // Carbon's exact clamp and +0.5 rounding, the operators, Lerp, and Saturate.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { color } from "../../../../npm/dist/global/math/carbon/color.js";
+import { color } from "../src/color.js";
 
 const f32 = Math.fround;
 

@@ -1,7 +1,7 @@
-import { describe, it } from "node:test";
+﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { ray } from "../../../../npm/dist/global/math/carbon/ray.js";
-import { axisAlignedBox } from "../../../../npm/dist/global/math/carbon/axisAlignedBox.js";
+import { ray } from "../src/ray.js";
+import { axisAlignedBox } from "../src/axisAlignedBox.js";
 
 // Contract tests for the literal Ray port (Carbon's Ray is a plain aggregate; no gtest exists)
 describe("Ray", () =>
