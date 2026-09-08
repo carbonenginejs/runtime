@@ -78,13 +78,11 @@ Equivalent read surfaces are derived from the one Carbon record tree:
 documents and carry no cross-document digests. There is no `chunks` array and no
 generic `Build(chunks)` API.
 
-There is exactly one emit, as there is for WebGL, and the document it returns is
-complete: alongside the views above it carries `permutationGraph` and
-`backendBodySet`, the latter being every translated body joined to its shared
-translation units. A second `raw` emit used to hand back the internal
+Like WebGL, the sole emit returns a complete document, including
+`permutationGraph` and `backendBodySet` (every translated body joined to its
+shared translation units). The retired `raw` emit exposed the internal
 `CarbonWebgpuContainer` because the former chunk package could not express the
-body set in JSON. It is removed. The container is internal, and consumers read
-the document rather than binding to a reader object.
+body set in JSON. Consumers now read the document, not the internal reader.
 
 ## Building
 

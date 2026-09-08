@@ -78,9 +78,8 @@ anything outside it is rejected outright.
 The reader was briefly constant-folded to 15, and the branches were restored on
 2026-08-02.
 
-Reading a version does not imply emitting it. The two ranges are independent and
-deliberately so: reading a version needs a branch that interprets bytes, while
-emitting one needs a branch that produces them.
+Read and write ranges are independent: reading a version requires branches that
+interpret its bytes; emitting it requires branches that produce them.
 
 **The emitted version is a parameter, not a constant.** `CjsCarbonEffectWriter`,
 `writeCarbonEffectFile`, the shared container builder and both backend packagers
@@ -90,10 +89,9 @@ today `[15]`, because the v15 shape is the only one we have writer branches for.
 A version outside that set is **refused**, never emitted as v15 bytes under
 another number, which would produce a file that lies about itself.
 
-This is the shape that lets a future version land: add the branches, add the
-entry, and every caller already passes the parameter. The source effect's
-version never selects the emitted one — a package built from a v8 file is still
-emitted at the version you asked for.
+Supporting a future version requires its branches and set entry; callers already
+pass the parameter. The source version never selects the emitted version: even
+a package built from a v8 file uses the requested output version.
 
 Rejecting outside the range is the correct failure mode rather than a limitation
 to route around. Applying v15 rules to a version below 8 can misalign fields —
