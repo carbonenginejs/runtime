@@ -154,14 +154,17 @@ only. The builder keeps raw graph values because Wwise interpolates them
 before converting `-1` to `-96.3 dB` and other values with
 `20 * log10(value + 1)`. Keeping these contributions distinct preserves their
 future placement when real bus and effect stages replace the collapsed gain.
-Static v150 Parametric EQ and Wwise Delay are the implemented DSP adapters.
+Static v150 Parametric EQ and Wwise Delay are implemented DSP adapters;
+they are not the complete current support inventory. The bounded dynamics,
+modulation, distortion, and reverb adapters described below add explicit
+opt-in support without claiming native Wwise DSP equivalence.
 One bounded source-local EVE-v150 Parametric EQ Game Parameter form is also
 implemented; it does not make general dynamic effect controls admissible. Feedback-free
 v150 Meter records have a qualified audio-transparent omission contract, but
 Meter telemetry is not implemented. One qualified SFX-only static user send is
 implemented when its neutral-filter Auxiliary return rejoins the dry ancestry;
-all other audible auxiliary sends and complete ordered effect chaining, dynamic
-effect controls, nonlinear effects, general wet-path duck placement,
+other audible auxiliary sends, unqualified ordered effect chains, general dynamic
+effect controls, unqualified nonlinear effects, general wet-path duck placement,
 effect-tail bus activity, Meter telemetry,
 virtual-voice behavior, and spatial diffraction remain separate runtime
 slices. Those

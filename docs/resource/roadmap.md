@@ -172,13 +172,16 @@ is decided about the wider shape.
 
 ### The guard for this area is blind
 
-`tools/validate-format-facades.mjs` enforces the constraints below - no
-`extends CjsModel`, no model import, no `@type`/`@io`/`@carbon`/`@impl`
-decorator - but it scans for `format-*` directories at the package root. Those
-were the standalone packages, retired into `src/resource/formats/` by the
-consolidation, so it finds nothing, checks nothing, and prints
-"Format facade validation passed". Point it at `src/resource/formats/` as part
-of this work; the constraints it encodes are still correct.
+The previously cited organization-level `tools/validate-format-facades.mjs`
+is not a runtime-package command. It scans organization-root `format-*`
+directories, then only `CjsFormat*.js` filenames, and checks `extends CjsModel`,
+the former `@carbonenginejs/core-types/model` import, and
+`@type`/`@io`/`@carbon`/`@impl` decorators. With no matching directories it still
+prints "Format facade validation passed".
+
+The guard must target the consolidated `src/resource/formats/` tree, current
+facade names and current model-import forms before it can enforce the
+constraints below; changing only the scan root is insufficient.
 
 ### Constraints
 

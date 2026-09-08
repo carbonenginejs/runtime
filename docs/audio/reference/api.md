@@ -119,15 +119,18 @@ RTPC, then the retained default; converts the curve output with `10 ** value`;
 and schedules the bound biquad over known transition boundaries. This
 corpus-derived numeric mapping is not a general Wwise plug-in enum. Other
 dynamic EQ properties and Wwise Modulator controls remain unsupported.
-The bounded Tremolo form carries paired `modulationDepthPercent` and
+The common bounded Tremolo form carries paired `modulationDepthPercent` and
 `modulationFrequencyHz` targets plus one shared `controlTransition`. The
 current EVE shape requires `booster_intensity`, additive scaling-0 `ParamID 1`,
 exclusive scaling-3 `ParamID 2`, and two-second STMG Filtering Over Time in
 both directions. Playback approximates that filter independently per voice
 before evaluating both curves and schedules the oscillator and unipolar gain
 terms. A newly posted voice starts from the current readable control; it does
-not inherit another voice's earlier filter history. Other dynamic Tremolo
-forms remain unsupported.
+not inherit another voice's earlier filter history. One separate exact
+single-Depth EVE-v150 preset is also supported, retaining static `0.24 Hz`
+Frequency; its fingerprint and approximation limits are recorded under
+[routing support](wwise-resource-routing.md#remaining-work).
+Other dynamic Tremolo forms remain unsupported.
 This filtering is carried by the qualified Tremolo curves, not yet by the
 generic Game Parameter store. Existing live EQ and Guitar Distortion bindings
 therefore retain their documented explicit-action/boundary scheduling unless
