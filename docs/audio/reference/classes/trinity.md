@@ -314,3 +314,12 @@ Stores vertices, indices, and bounds for Carbon audio geometry data.
 - Source: `src/audio/generated/trinityAudioApi/Tr2AudGeometryData.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
+<!-- class:ITr2AudEmitter -->
+## `ITr2AudEmitter`
+
+Contract audio2 uses to drive an audio emitter: initialisation, placement, naming and prefixing, event posting, switches, RTPCs, attenuation scaling, visibility, muting and forced culling state.
+
+- Export: `@carbonenginejs/runtime/audio/trinity`
+- Source: `src/audio/trinity/trinityAudioApi/ITr2AudEmitter.js`
+- Visibility: Public
+- Kind: Faithful Carbon port

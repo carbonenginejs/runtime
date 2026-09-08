@@ -2814,3 +2814,32 @@ Drives one EVE space-scene frame: camera, quality, pass toggles, overlay, backgr
 - Source: `src/trinity/eve/scene/EveSpaceSceneRenderDriver.js`
 - Visibility: Public
 - Kind: Carbon
+<!-- class:IEveInheritPropertiesOwner -->
+## `IEveInheritPropertiesOwner`
+
+Contract a space-object child or light carries to opt in to receiving a parent's inherited faction colour set, so distribution loops can gate on the type instead of probing for a method name.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/IEveInheritPropertiesOwner.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:IEveSpaceObject2 -->
+## `IEveSpaceObject2`
+
+Contract for a top-level scene object an EveSpaceScene drives each frame - the nine frame-pass verbs an implementor must supply, plus nine defaulted hooks for quad-renderer registration, per-object constants, pickability, audio occlusion, parent data and locator invalidation.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/IEveSpaceObject2.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:IEveTransform -->
+## `IEveTransform`
+
+Contract for an entry in a space object's or transform's `children` list, requiring the four per-frame verbs a parent calls on it: visibility, renderable collection, bounding sphere and LOD level.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/IEveTransform.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept

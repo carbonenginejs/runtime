@@ -280,11 +280,12 @@
     ],
     "scripts": {
         "build:npm": "node scripts/build-npm.js && rollup -c",
-        "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:trinity",
+        "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:trinity && npm run lint:docs",
         "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
         "lint:optional-calls": "node scripts/lint-optional-calls.js",
         "lint:layers": "node scripts/lint-layering.js",
         "lint:source": "node scripts/lint-source.js",
+        "lint:docs": "node scripts/lint-docs.js",
         "lint:trinity": "node scripts/trinity/lint_source_style.js",
         "audit:jsdoc": "node ../docs/tooling/bin/cjs-jsdoc.js audit .",
         "audit:gaps": "node scripts/audit_implementation_gaps.js",

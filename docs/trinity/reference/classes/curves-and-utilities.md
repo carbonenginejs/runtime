@@ -854,3 +854,12 @@ State finalizer that holds a state machine in its current state until the animat
 - Source: `src/trinity/controllers/Tr2SyncToAnimation.js`
 - Visibility: Public
 - Kind: Carbon
+<!-- class:ITr2StateMachineStateFinalizer -->
+## `ITr2StateMachineStateFinalizer`
+
+Contract for an object that gates a state machine's exit from its current state; `Link` and `Unlink` inherit Carbon's empty bodies and only `CanTransition` has no default.
+
+- Export: `@carbonenginejs/runtime/trinity/controllers`
+- Source: `src/trinity/controllers/state/ITr2StateMachineStateFinalizer.js`
+- Visibility: Public
+- Kind: Carbon

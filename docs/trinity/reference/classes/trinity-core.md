@@ -1253,3 +1253,62 @@ Renderer-wide state: the constant-buffer register map that is the contract betwe
 - Source: `src/trinity/core/Tr2Renderer.js`
 - Visibility: Public
 - Kind: Carbon
+<!-- class:ITr2Updateable -->
+## `ITr2Updateable`
+
+Contract for an object updated once per controller or render-job tick, with `Update(realTime, simTime)` as its single method and no default.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/ITr2Updateable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Blitter -->
+## `Tr2Blitter`
+
+Draws a four-vertex screen quad with a given material, optionally publishing a source texture as `BlitSource`, for fullscreen shader passes and sub-rectangle blits.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2Blitter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureArray -->
+## `Tr2TextureArray`
+
+Holds a set of identically-dimensioned bitmap slices behind one array description, gating incompatible elements, reusing released slots, and rounding the array size up to its upload increment.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2TextureArray.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureArrayElement -->
+## `Tr2TextureArrayElement`
+
+Handle to one slice of a Tr2TextureArray, reporting the slice index and the owning array's realized texture until `Release()` frees the slot.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2TextureArray.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2LightManager -->
+## `Tr2LightManager`
+
+Collects the frame's local-light records, culls and premultiplies them, selects the volumetric and shadow-casting sets, packs the shadow-map atlas, and owns the packed light-buffer bytes the abstraction layer uploads.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/lighting/Tr2LightManager.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2VertexDefinitionItem -->
+## `Tr2VertexDefinitionItem`
+
+One element of a vertex definition: its usage name and index, data type, byte offset, stream, and instance step rate.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/vertex/Tr2VertexDefinition.js`
+- Visibility: Public
+- Kind: Carbon

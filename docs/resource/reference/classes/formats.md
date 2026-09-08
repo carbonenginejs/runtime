@@ -1651,3 +1651,12 @@ Reads IES photometric bytes into authored CPU data.
 - Source: `src/resource/formats/ies/CjsIESFormat.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
+<!-- class:CjsVtaFormat -->
+## `CjsVtaFormat`
+
+VTA format profile that inspects the volume-texture-animation header, grid table and frame offsets and reads `.vta` bytes into raw or debug JSON synchronously, with zlib-inflated R8 volume payloads on the asynchronous read path.
+
+- Export: `@carbonenginejs/runtime/resource/formats/vta`
+- Source: `src/resource/formats/vta/CjsVtaFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class

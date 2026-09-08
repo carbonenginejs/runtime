@@ -214,3 +214,43 @@ Supplies the packed per-frame constant bytes for a frame slot, which the scene o
 - Source: `src/trinityal/webgpu/core/perFrameSource.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
+
+<!-- class:CjsWebgpuBufferAL -->
+## `CjsWebgpuBufferAL`
+
+A `Tr2BufferAL` backed by a real `GPUBuffer`, writing through a retained CPU shadow that is uploaded whole on unmap.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuBufferAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuShaderAL -->
+## `CjsWebgpuShaderAL`
+
+A `Tr2ShaderAL` that compiles its bytecode, which here is WGSL text, into a `GPUShaderModule` and keeps the source for the pipeline and for error reporting.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuShaderAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuShaderProgramAL -->
+## `CjsWebgpuShaderProgramAL`
+
+A `Tr2ShaderProgramAL` holding validated stages and answering for their modules, since WebGPU has no link step.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuShaderAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuPsoDescription -->
+## `CjsWebgpuPsoDescription`
+
+DX12's `PSODescription` for WebGPU: the pipeline state the abstraction layer's setters describe incrementally, resolved to one cached pipeline by a canonical key.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/core/psoDescription.js`
+- Visibility: Internal
+- Kind: Carbon
