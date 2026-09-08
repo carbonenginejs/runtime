@@ -129,9 +129,10 @@ The JSON read derives `info`, `metadata`, `permutationGraph`, `analysis`,
 `wgsl`, and `backendBodySet` views from the one record tree. It also exposes
 convenience `stages`, `shaders`, and `layouts` arrays.
 
-Raw reads return the internal container reader. That surface is useful for
-current package integration but is not a second artifact and should not be
-persisted as a replacement wire format.
+The `raw` emit was retired (closure recorded 2026-08-13). Reads return the
+derived document; the only emit name is `"json"`, and unsupported values throw
+`TypeError`. The container reader remains internal. See
+[read options](../reference/api.md#profile-options).
 
 ## Binding scope
 

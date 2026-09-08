@@ -5,6 +5,10 @@ Scope: `@carbonenginejs/runtime/resource/formats/webgl` structured-memory loweri
 Audience: Shader translator maintainers and reviewers
 Summary: Defines bounded WebGL2 adaptations for DXBC structured-memory operations.
 
+Historical lowering study: the package-time `cb3` rewrite was superseded
+2026-08-02. Remaining confidence/qualification questions are not current
+support certification.
+
 Family key: `memory-structured`
 Target: GLSL ES 3.00 (WebGL2), vertex + pixel stages only (no compute, no SSBOs).
 Register model: the default path uses float `vec4` registers with integer
@@ -53,9 +57,10 @@ image load/store types** (`image2D`/`imageLoad`/`imageStore` require ES 3.10+), 
 etc. and `barrier()`/`memoryBarrier()` are ES 3.10 compute-shader built-ins, not part
 of the ES 3.00 vertex/fragment built-in set). Every HLSLcc GLSL template shown below
 is therefore **reference material for what desktop/Vulkan/Metal HLSLcc emits**, not
-directly compilable WebGL2 output. The one opcode with a proven, shipping WebGL2
-lowering is `ld_structured` restricted to the `BoneTransforms` skinning case, via the
-package-time `cb3` rewrite described in its section below.
+directly compilable WebGL2 output. The package-time `cb3` rewrite below was
+superseded 2026-08-02. The current emitter uses dedicated `std140` UBOs for
+vertex-stage structured buffers; the packed-light path is recorded separately.
+Historical rewrite requirements do not define current support.
 
 ---
 
@@ -145,10 +150,13 @@ own `SVT_INT`/`SVT_INT16`/`SVT_INT12` type forces `TO_FLAG_INTEGER`
 (`toGLSLInstruction.cpp:1618-1621`); when unsigned, both the `>> 2` and the `+
 <swz>` component addend get a trailing `u` suffix (`toGLSLInstruction.cpp:1669-1675`).
 
-### GLSL lowering — B. WebGL2 `cb3` joint-matrix rewrite contract (the shipping path)
-This is the **only** `ld_structured` lowering this emitter must actually produce
-runnable WebGL2 GLSL for, restricted to the `BoneTransforms` skinning case
-(vertex stage). It is a two-stage pipeline:
+<a id="glsl-lowering--b-webgl2-cb3-joint-matrix-rewrite-contract-the-shipping-path"></a>
+
+### GLSL lowering — B. Historical WebGL2 `cb3` joint-matrix rewrite contract
+
+**Superseded 2026-08-02.** The original two-stage `BoneTransforms` vertex-skinning
+pipeline follows. Its steps, citations, failures and proposed diagnostics are
+historical evidence, not open requirements. Step 2 records its replacement:
 
 1. Emit HLSLcc's reference SSBO GLSL exactly as in section A (this project's
    HLSLcc fork already tolerates missing `RDEF` bindings for
@@ -851,10 +859,12 @@ shader.
 
 ## Helpers summary
 
-Helpers the memory-structured family needs the emitter to provide (grouped by
-whether they produce runnable WebGL2 output or are reference/detection-only):
+Historical helper inventory, not a current support matrix. The `cb3` rewrite
+helpers were superseded 2026-08-02; the original reference/refusal entries remain
+below. Non-skinning structured loads are not generally refused: see the
+pixel-stage lowering and packed-light closure above.
 
-**Shipping (WebGL2-runnable) helpers:**
+**Retired WebGL2 text-rewrite helpers:**
 1. `lowerBoneTransformsToCb3` — package-time text-rewrite pass that removes the
    HLSLcc `t0` SSBO declaration, grows `cb3.data[]` to at least 200 `vec4`s,
    strips the native bone-ring-buffer offset add, and rewrites each 4-component

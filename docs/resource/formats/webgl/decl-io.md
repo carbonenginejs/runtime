@@ -5,6 +5,10 @@ Scope: `@carbonenginejs/runtime/resource/formats/webgl` declaration and stage-I/
 Audience: Shader translator maintainers and reviewers
 Summary: Defines the DXBC declaration and I/O rules used by the GLSL emitter.
 
+Historical lowering study: the package-time `cb3` rewrite was superseded
+2026-08-02. Remaining confidence/qualification questions are not current
+support certification.
+
 Target: GLSL ES 3.00 (WebGL2), vertex + pixel stages only. No SSBOs, no compute, no
 tessellation/geometry stages (facts for those stages are cited where they explain
 *why* a code path in the authority source is skipped, never as things this emitter
@@ -378,9 +382,12 @@ at the read site (out of this family's scope — instruction family territory).
 **Edge cases / WebGL2 notes (hard blocker, not a lowering detail)**: **GLSL ES 3.00
 has no shader storage buffers** — `buffer` blocks require GLSL ES 3.10+ or desktop
 `GL_ARB_shader_storage_buffer_object`. This emitter **must not** emit the SSBO form
-above for a WebGL2 target; it will not compile. The proven working path for this
-project is a **package-time ABI rewrite**, not a change to this opcode's GLSL
-lowering:
+above for a WebGL2 target; it will not compile. The following **historical
+package-time ABI rewrite was superseded 2026-08-02**. The current emitter uses
+dedicated `std140` UBOs for vertex-stage structured buffers; see the
+[recorded closure](memory-structured.md#glsl-lowering--b-webgl2-cb3-joint-matrix-rewrite-contract-the-shipping-path).
+The old path's citations and proposed follow-up work below are historical,
+not pending implementation requirements:
 - `CARBONENGINEJS-FORK.md` / `016-carbonwebgl-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`
   / `TRANSPILING-GAPS.md`: drop the `t0` SSBO declaration entirely, grow the
   paired `ConstantBuffer3` (`cb3`) to at least `vec4 data[200]`, and rewrite every
@@ -1199,7 +1206,7 @@ provide, in one place:
 | Integer-vertex-attribute float lowering | declaration-shape convention, not a function | `dcl_input` for any `INOUT_COMPONENT_UINT32`/`SINT32` vertex attribute (proven for `BLENDINDICES`; generalize cautiously) | declare `vec4`/`vecN` instead of `uvecN`/`ivecN`; bitcast at every use site |
 | `in_BINORMALn -> in_BITANGENTn` rename | package-time post-process, not a GLSL-emission-time helper | `dcl_input` split-tangent-space vertex shaders | applied by `scripts/packageTr2WebglEffect.js`-equivalent tooling **after** this family's GLSL text is emitted, keyed off the stage's Carbon metadata contract — do not bake into the opcode lowering itself |
 | Cross-stage `cbN` size normalization | package/link-time policy, not a per-shader GLSL-emission helper | `dcl_constant_buffer` | emit the **max** `data[]` slot count observed for a given `cb#` across every stage sharing that binding point in one linked program |
-| `BoneTransforms` SSBO→`cb3` splice | package-time ABI rewrite, not a GLSL-emission-time helper | `dcl_resource_structured` (skinned space-object shaders specifically) | drop the `t0` SSBO decl; grow `cb3` to `vec4 data[200]`; rewrite `ld_structured` row reads to `cb3.data[26 + blendIndex*3 + row]` |
+| `BoneTransforms` SSBO→`cb3` splice | historical package-time rewrite; superseded 2026-08-02, not a current helper requirement | `dcl_resource_structured` (skinned space-object shaders specifically) | drop the `t0` SSBO decl; grow `cb3` to `vec4 data[200]`; rewrite `ld_structured` row reads to `cb3.data[26 + blendIndex*3 + row]` |
 | `layout(early_fragment_tests) in;` suppression | emission-time language gate (not present in stock HLSLcc) | `dcl_global_flags` (`FORCE_EARLY_DEPTH_STENCIL`) | drop the qualifier entirely when targeting GLSL ES 3.00 |
 
 ---
