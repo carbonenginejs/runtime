@@ -23,13 +23,14 @@ The gap audit inventories `@impl.notImplemented` methods and `@type.unknown`
 properties in generated and maintained source. It excludes the deliberate
 `src/trinity/dropped` quarantine by default.
 
-The current source contains:
+The recorded gap-audit snapshot contains (not a fresh current-source count):
 
 - 142 explicit methods across 44 classes; and
 - zero unknown properties.
 
-The remaining methods are concentrated in native, GPU, font, bitmap/atlas,
-particle, scene-picking, smart-light, and related backend-facing families.
+In that snapshot, the remaining methods were concentrated in native, GPU,
+font, bitmap/atlas, particle, scene-picking, smart-light, and related
+backend-facing families.
 Markers are intentional: the runtime does not fabricate behavior before a
 portable contract or engine seam is established.
 
@@ -70,8 +71,8 @@ The `CARBON_SCHEMA_ROOT` environment variable may provide the same location.
 The audit resolves JavaScript inheritance, checks `@carbon.method` exposure,
 and excludes deliberately quarantined classes.
 
-Against the isolated 2026-08-22 Carbon schema refresh, the current audit checks
-344 promoted classes and excludes 32 quarantined classes. It reports no
+Against the isolated 2026-08-22 Carbon schema refresh, the recorded audit checked
+344 promoted classes and excluded 32 quarantined classes. It reported no
 omitted or present-but-unexposed Carbon methods, missing JavaScript classes,
 missing or ambiguous schemas, or unresolved non-`CjsModel` base classes.
 
@@ -146,7 +147,7 @@ The type audit distinguishes concrete model omissions, nominal contract gaps,
 and deliberately opaque native structs. It does not treat an `I*` identity as
 an acceptable duck type merely because JavaScript could call it structurally.
 
-The refreshed `npm/dist` snapshot reports 31 references across 21 missing
+The recorded `npm/dist` snapshot reported 31 references across 21 missing
 concrete model identities and 274 references across 41 nominal contract
 identities. The source contract surfaces now include `ITr2BoundingBox` and
 `ITr2RenderNode` globally,
