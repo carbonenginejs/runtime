@@ -322,7 +322,96 @@ export class CjsWebgpuWorkQueue
       startInstance
     });
 
+    if (this.#renderPass)
+    {
+      this.#EmitRenderEncoderState(true);
+      this.#renderPass.drawIndexed(indexCount, instanceCount, startIndex, baseVertex, startInstance);
+    }
+
     return this.#Drain();
+  }
+
+  // THE BINDINGS A DRAW NEEDS, HELD UNTIL THE DRAW. Metal's setters write
+  // shadow state and a dirty bit (`MetalWorkQueue.mm:2570-2598`) and the
+  // encoder is touched only from `EmitRenderEncoderState` inside the draw
+  // (`:1750-1890`). These three do the same, and the live half below compares
+  // against what the CURRENT encoder has already been told, which resets when
+  // an encoder opens - a new pass starts with nothing bound.
+
+  /** What the next draw must have bound. */
+  #pending = { pipeline: null, vertexBuffers: [], indexBuffer: null };
+
+  /** What the open encoder has been told, reset per encoder. */
+  #encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null };
+
+  /**
+   * Names the pipeline the next draw runs.
+   *
+   * @param {object} pipeline A `GPURenderPipeline`.
+   */
+  SetRenderPipeline(pipeline)
+  {
+    this.#pending.pipeline = pipeline;
+  }
+
+  /**
+   * Names a vertex buffer for one slot.
+   *
+   * @param {number} slot The vertex buffer slot.
+   * @param {object} buffer A `GPUBuffer`.
+   * @param {number} [offset] Byte offset into it.
+   */
+  SetVertexBuffer(slot, buffer, offset = 0)
+  {
+    this.#pending.vertexBuffers[slot] = { buffer, offset };
+  }
+
+  /**
+   * Names the index buffer.
+   *
+   * @param {object} buffer A `GPUBuffer`.
+   * @param {string} format `"uint16"` or `"uint32"`.
+   * @param {number} [offset] Byte offset into it.
+   */
+  SetIndexBuffer(buffer, format, offset = 0)
+  {
+    this.#pending.indexBuffer = { buffer, format, offset };
+  }
+
+  /** Metal's `EmitRenderEncoderState`: bind what differs from the encoder's. */
+  #EmitRenderEncoderState(indexed)
+  {
+    const pass = this.#renderPass;
+    const live = this.#encoderState;
+    const want = this.#pending;
+
+    if (want.pipeline && live.pipeline !== want.pipeline)
+    {
+      pass.setPipeline(want.pipeline);
+      live.pipeline = want.pipeline;
+    }
+
+    want.vertexBuffers.forEach((entry, slot) =>
+    {
+      if (!entry) return;
+
+      const bound = live.vertexBuffers[slot];
+
+      if (bound && bound.buffer === entry.buffer && bound.offset === entry.offset) return;
+
+      pass.setVertexBuffer(slot, entry.buffer, entry.offset);
+      live.vertexBuffers[slot] = entry;
+    });
+
+    if (!indexed || !want.indexBuffer) return;
+
+    const bound = live.indexBuffer;
+    const entry = want.indexBuffer;
+
+    if (bound && bound.buffer === entry.buffer && bound.format === entry.format && bound.offset === entry.offset) return;
+
+    pass.setIndexBuffer(entry.buffer, entry.format, entry.offset);
+    live.indexBuffer = entry;
   }
 
   /**
@@ -345,6 +434,12 @@ export class CjsWebgpuWorkQueue
       startVertex,
       startInstance
     });
+
+    if (this.#renderPass)
+    {
+      this.#EmitRenderEncoderState(false);
+      this.#renderPass.draw(vertexCount, instanceCount, startVertex, startInstance);
+    }
 
     return this.#Drain();
   }
@@ -418,9 +513,29 @@ export class CjsWebgpuWorkQueue
    *
    * @returns {object|null} A `GPURenderPassEncoder`, or null with no device.
    */
+  /**
+   * Carbon's `GetRenderEncoder` (`MetalWorkQueue.mm:2922`): opens a render
+   * encoder if none is current, BEFORE the draw verb asks whether it can draw.
+   * Metal opens first and then tests `EmitRenderEncoderState()`, so a draw that
+   * is then refused has still opened its pass - which is why a marker pushed
+   * after a refused draw lands on a pass encoder.
+   *
+   * @returns {object[]} The transitions this required, in order.
+   */
+  GetRenderEncoder()
+  {
+    this.#RequireRenderEncoder();
+
+    return this.#Drain();
+  }
+
   RequireRenderPass()
   {
     this.#RequireRenderEncoder();
+
+    // A caller that encodes on the pass directly binds what it likes, so what
+    // this queue believes the encoder holds is no longer true.
+    this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null };
 
     return this.#renderPass;
   }
@@ -451,6 +566,7 @@ export class CjsWebgpuWorkQueue
     if (this.#commandEncoder)
     {
       this.#renderPass = this.#commandEncoder.beginRenderPass(this.#describePass(attachments));
+      this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null };
     }
   }
 

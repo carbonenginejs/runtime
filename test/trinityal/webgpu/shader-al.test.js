@@ -26,6 +26,10 @@ function fakeDevice()
       return value;
     },
     createBuffer(descriptor) { return { kind: "buffer", descriptor, destroy() {} }; },
+    // A program builds its pipeline layout at Create, as DX12 builds its root
+    // signature there; a program with no bindings still creates an empty one.
+    createBindGroupLayout(descriptor) { return { kind: "bind-group-layout", descriptor }; },
+    createPipelineLayout(descriptor) { return { kind: "pipeline-layout", descriptor }; },
     queue: { writeBuffer() {} },
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }

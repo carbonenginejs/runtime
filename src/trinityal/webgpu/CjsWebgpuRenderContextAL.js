@@ -68,13 +68,28 @@
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2VertexLayoutALStub } from "#trinityal";
+import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan } from "#trinityal";
 import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
-import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderAL.js";
+import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
+import { WebgpuVertexBufferLayout } from "./core/vertexFormat.js";
+
+/** WebGPU's index format for a Carbon index stride, or null for one it lacks. */
+const INDEX_FORMAT = Object.freeze({ 2: "uint16", 4: "uint32" });
+
+/**
+ * The `GPUBuffer` behind a bound stream, or null.
+ *
+ * A stream is whatever Trinity bound: a `Tr2BufferAL` answers; a geometry
+ * descriptor - what a mesh batch carries today - does not, and the draw refuses.
+ */
+function DeviceBufferOf(bound)
+{
+  return bound && typeof bound.GetDeviceBuffer === "function" ? bound.GetDeviceBuffer() : null;
+}
 
 
 function fail(message)
@@ -972,7 +987,16 @@ export class CjsWebgpuRenderContextAL
    */
   SetVertexLayout(layout)
   {
+    if (this.#vertexLayout === layout) return true;
+
+    // DIRTIES THE PIPELINE, AS DX12'S DOES (`Tr2RenderContextDx12.cpp:321`).
+    // The descriptor itself is built at the draw, not here: Metal's
+    // SetVertexLayout only stores the layout (`Tr2RenderContextMetal.mm:894`)
+    // and CheckDrawResources matches it against the BOUND PROGRAM's inputs at
+    // draw time (`:524-541`), because the same declaration yields a different
+    // descriptor under a shader that reads a different subset of it.
     this.#vertexLayout = layout;
+    this.#pipelineDirty = true;
 
     return true;
   }
@@ -988,6 +1012,12 @@ export class CjsWebgpuRenderContextAL
    */
   SetStreamSource(stream, buffer, offset, stride)
   {
+    // The stride is part of the pipeline on WebGPU - `arrayStride` lives in the
+    // vertex buffer layout - exactly as it is on Metal, where each active
+    // stream's stride feeds the vertex-descriptor hash
+    // (`MetalWorkQueue.mm:1512-1531`). The buffer itself is not.
+    if (this.#streams[stream]?.stride !== stride) this.#pipelineDirty = true;
+
     this.#streams[stream] = { buffer, offset, stride };
 
     return true;
@@ -1133,6 +1163,251 @@ export class CjsWebgpuRenderContextAL
     return this.#psoDescription;
   }
 
+  /** The pipeline the last resolve produced, or null. */
+  #pipeline = null;
+
+  /**
+   * Resolved pipelines by description key.
+   *
+   * Carbon keeps this on the DEVICE (`m_ownerDevice->m_pipelineStates`,
+   * `Tr2PrimaryRenderContextDx12.h:319`; Metal's `GetCachedRenderPipelineState`)
+   * so every context shares one. It lives here until `CjsWebgpuDevice` offers a
+   * synchronous cache - its `CjsWebgpuPipelineCache` resolves asynchronously,
+   * and a draw verb cannot await. Cleared with the device resources.
+   */
+  #pipelines = new Map();
+
+  /**
+   * Why the last `EmitRenderEncoderState` refused, or null when it did not.
+   *
+   * Carbon asserts at these points; a JS frame must not die at a draw, so the
+   * reason is kept where a harness can read it instead.
+   */
+  m_pipelineFailure = null;
+
+  /**
+   * Resolves and binds the pipeline the bound state describes.
+   *
+   * METAL'S `EmitRenderPipelineState` (`MetalWorkQueue.mm:1595-1747`) AND
+   * DX12'S `SetAllState` (`Tr2RenderContextDx12.cpp:810-878`): called from
+   * inside every draw verb, keyed on the description's hash, creating on a miss
+   * and otherwise reusing, and clearing the dirty flag once resolved
+   * (`:870`). Pipeline creation is SYNCHRONOUS here as it is there -
+   * `createRenderPipeline` returns immediately, and the first-use stall it can
+   * carry is the same one `newRenderPipelineStateWithDescriptor` carries.
+   *
+   * The vertex half of the description is built here rather than by
+   * `SetVertexLayout`, because it depends on three bound things at once: the
+   * declaration, the program whose inputs select from it, and the stream
+   * strides (`Tr2RenderContextMetal.mm:524-541`, `MetalWorkQueue.mm:1842-1863`).
+   *
+   * Uncomposed, there is no device and nothing to resolve; the verbs record as
+   * the stub's do.
+   *
+   * @returns {boolean} Whether a pipeline is bound for the next draw.
+   */
+  EmitRenderPipelineState()
+  {
+    if (!this.#webgpu) return true;
+
+    if (!this.#pipelineDirty && this.#pipeline)
+    {
+      this.#workQueue.SetRenderPipeline(this.#pipeline);
+
+      return true;
+    }
+
+    const description = this.GetPsoDescription();
+    const program = description.shaderProgram;
+
+    if (!program || typeof program.GetPipelineLayout !== "function")
+    {
+      return this.#RefusePipeline("a program this backend linked");
+    }
+
+    const vertexBufferLayouts = this.BuildVertexBufferLayouts();
+
+    if (typeof vertexBufferLayouts === "string") return this.#RefusePipeline(vertexBufferLayouts);
+
+    description.vertexBufferLayouts = vertexBufferLayouts;
+
+    const missing = description.GetMissing();
+
+    if (missing) return this.#RefusePipeline(missing);
+
+    if (!program.GetModuleFor(ShaderType.VERTEX_SHADER)) return this.#RefusePipeline("a vertex stage");
+
+    const key = description.GetKey();
+    let pipeline = this.#pipelines.get(key) ?? null;
+    const created = pipeline === null;
+
+    if (created)
+    {
+      pipeline = this.#CreateRenderPipeline(program, description.BuildRecipe());
+      this.#pipelines.set(key, pipeline);
+    }
+
+    this.#pipeline = pipeline;
+    this.#pipelineDirty = false;
+    this.m_pipelineFailure = null;
+    this.#Record([ { type: "pipeline", key, created } ]);
+    this.#workQueue.SetRenderPipeline(pipeline);
+
+    return true;
+  }
+
+  /**
+   * Binds everything a draw needs on the encoder: pipeline, then buffers.
+   *
+   * Metal's `EmitRenderEncoderState` (`MetalWorkQueue.mm:1750-1890`), which
+   * the draw verbs call first and skip the draw when it fails. Bindings are
+   * deferred to here rather than set in `SetStreamSource`, as Metal defers
+   * them (`:2570-2598` stores, `:2613-2690` binds).
+   *
+   * WHAT IT CANNOT YET HONOUR, IT REFUSES. A program whose layout declares
+   * bind groups needs a resource set realised into `GPUBindGroup`s, and that
+   * half is not ported; drawing without them is a validation error on the GPU,
+   * so the draw is refused here and says why. A stream whose buffer is not a
+   * device buffer - a mesh batch carries a geometry descriptor today - is
+   * refused the same way.
+   *
+   * @param {boolean} indexed Whether the draw reads the bound index buffer.
+   * @returns {boolean} Whether the encoder is ready to draw.
+   */
+  EmitRenderEncoderState(indexed)
+  {
+    if (!this.#webgpu) return true;
+    if (!this.EmitRenderPipelineState()) return false;
+
+    const program = this.#shaderProgram;
+    const groups = program.GetBindGroupLayouts().length;
+
+    if (groups > 0)
+    {
+      return this.#RefusePipeline(`bind groups for the program's ${groups} group(s); the resource-set half is not ported`);
+    }
+
+    const layouts = this.#psoDescription.vertexBufferLayouts;
+
+    for (let slot = 0; slot < layouts.length; slot += 1)
+    {
+      if (!layouts[slot]) continue;
+
+      const stream = this.#streams[slot];
+      const buffer = DeviceBufferOf(stream?.buffer);
+
+      if (!buffer) return this.#RefusePipeline(`a device buffer on vertex stream ${slot}`);
+
+      this.#workQueue.SetVertexBuffer(slot, buffer, stream.offset ?? 0);
+    }
+
+    if (indexed)
+    {
+      const format = INDEX_FORMAT[this.#indexStride] ?? null;
+      const buffer = DeviceBufferOf(this.#indexBuffer);
+
+      if (!format) return this.#RefusePipeline(`an index format for a ${this.#indexStride}-byte stride`);
+      if (!buffer) return this.#RefusePipeline("a device buffer for the indices");
+
+      this.#workQueue.SetIndexBuffer(buffer, format, 0);
+    }
+
+    return true;
+  }
+
+  /**
+   * The vertex buffer layouts the bound declaration, program and strides
+   * describe, one per stream slot.
+   *
+   * Metal's `Tr2VertexLayoutAL::SetVertexLayout` (`Tr2VertexLayoutALMetal.mm:205-245`):
+   * match the program's pipeline inputs against the declaration's items, and
+   * stamp each active stream's stride. An input the declaration lacks gets no
+   * attribute - Metal points it at a dummy stream - and a stream no input
+   * reads gets no layout.
+   *
+   * @returns {Array<object|null>|string} The layouts by slot, or what is
+   *   missing when they cannot be built.
+   */
+  BuildVertexBufferLayouts()
+  {
+    const layout = this.#vertexLayout;
+
+    if (!layout) return [];
+
+    const elements = layout.GetDefinition() ?? [];
+    const inputs = this.#shaderProgram.GetInputs();
+    const plan = resolveBindingPlan(elements, inputs);
+    const byStream = new Map();
+
+    for (const entry of plan.entries)
+    {
+      if (!entry.element) continue;
+
+      const stream = entry.element.stream ?? 0;
+
+      if (!byStream.has(stream)) byStream.set(stream, []);
+      byStream.get(stream).push(entry);
+    }
+
+    if (!byStream.size) return [];
+
+    const layouts = new Array(Math.max(...byStream.keys()) + 1).fill(null);
+
+    for (const [ stream, entries ] of byStream)
+    {
+      const stride = this.#streams[stream]?.stride;
+
+      if (!stride) return `a stride for vertex stream ${stream}`;
+
+      try
+      {
+        layouts[stream] = WebgpuVertexBufferLayout(stride, entries);
+      }
+      catch (error)
+      {
+        return `a vertex format for stream ${stream}: ${error.message}`;
+      }
+    }
+
+    return layouts;
+  }
+
+  /** Records why a draw cannot proceed and says no. */
+  #RefusePipeline(reason)
+  {
+    this.m_pipelineFailure = reason;
+
+    return false;
+  }
+
+  /**
+   * Creates the `GPURenderPipeline` a program and recipe describe.
+   *
+   * A program without a pixel stage is a depth-only pipeline, which WebGPU
+   * spells by omitting `fragment` - Carbon's shadow passes are exactly this.
+   */
+  #CreateRenderPipeline(program, recipe)
+  {
+    const fragmentModule = program.GetModuleFor(ShaderType.PIXEL_SHADER);
+    const descriptor = {
+      label: `Tr2RenderContextAL ${program.GetIdentity()}`,
+      layout: program.GetPipelineLayout(),
+      vertex: {
+        module: program.GetModuleFor(ShaderType.VERTEX_SHADER),
+        entryPoint: WEBGPU_ENTRY_POINT,
+        buffers: recipe.vertex.buffers
+      },
+      primitive: recipe.primitive,
+      ...(recipe.depthStencil ? { depthStencil: recipe.depthStencil } : {}),
+      ...(recipe.multisample ? { multisample: recipe.multisample } : {}),
+      ...(fragmentModule
+        ? { fragment: { module: fragmentModule, entryPoint: WEBGPU_ENTRY_POINT, targets: recipe.fragment.targets } }
+        : {})
+    };
+
+    return this.#webgpu.GetDevice().createRenderPipeline(descriptor);
+  }
+
   /**
    * Copies the bound attachments' formats onto the description.
    *
@@ -1155,11 +1430,19 @@ export class CjsWebgpuRenderContextAL
       ? [ primary.GetFormat() ]
       : [];
 
-    this.#psoDescription.depthFormat = this.#renderTarget && this.#depthStencil
-      ? this.#renderTarget.GetDepthFormat()
-      : null;
+    // DEPTH FOLLOWS THE PASS DESCRIPTOR, NOT THE BOUND DEPTH STENCIL. The work
+    // queue's pass is built by the render target, which attaches its own depth
+    // whenever it has one (`core/renderTarget.js:311-320`) and never consults
+    // `SetDepthStencil`. A description that read the bound depth stencil said
+    // "no depth" for every pass after BeginScene's reset, the recipe refused,
+    // and nothing drew. The description must describe the pass the queue will
+    // actually open; the bound depth stencil not reaching that pass is the
+    // open defect, recorded in the handover, and it is fixed THERE, not by
+    // letting the two halves disagree here.
+    const renderTargetBound = this.#renderTarget !== null && primary === this.#renderTarget;
 
-    this.#psoDescription.sampleCount = this.#renderTarget ? this.#renderTarget.GetSampleCount() : 1;
+    this.#psoDescription.depthFormat = renderTargetBound ? this.#renderTarget.GetDepthFormat() : null;
+    this.#psoDescription.sampleCount = renderTargetBound ? this.#renderTarget.GetSampleCount() : 1;
   }
 
   /**
@@ -1308,6 +1591,7 @@ export class CjsWebgpuRenderContextAL
     this.#markerStack.length = 0;
     this.#commandEncoder = null;
     this.#frame = null;
+    this.#ReleasePipelines();
     this.#isValid = false;
 
     return true;
@@ -1376,8 +1660,17 @@ export class CjsWebgpuRenderContextAL
   {
     this.#boundRenderTargets.fill(null);
     this.#frame = null;
+    this.#ReleasePipelines();
 
     return true;
+  }
+
+  /** Drops every resolved pipeline; the next draw resolves afresh. */
+  #ReleasePipelines()
+  {
+    this.#pipelines.clear();
+    this.#pipeline = null;
+    this.#pipelineDirty = true;
   }
 
   /**
@@ -1744,6 +2037,14 @@ export class CjsWebgpuRenderContextAL
     if (!this.#indexBuffer) return false;
     if (!this.#shaderProgram) return false;
 
+    // Metal (`MetalWorkQueue.mm:2922-2944`): `GetRenderEncoder()` FIRST, then
+    // `if( EmitRenderEncoderState() ) { [renderEncoder drawIndexed...] }`. The
+    // pass opens whether or not the draw can proceed. DX12 is
+    // `CR_RETURN_HR( SetAllState() )` at the top of the verb.
+    this.#Record(this.#workQueue.GetRenderEncoder());
+
+    if (!this.EmitRenderEncoderState(true)) return false;
+
     this.#Record(this.#workQueue.DrawIndexedPrimitives(
       indexCountPerInstance,
       instanceCount,
@@ -1767,6 +2068,10 @@ export class CjsWebgpuRenderContextAL
   DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation = 0, startInstanceLocation = 0)
   {
     if (!this.#shaderProgram) return false;
+
+    this.#Record(this.#workQueue.GetRenderEncoder());
+
+    if (!this.EmitRenderEncoderState(false)) return false;
 
     this.#Record(this.#workQueue.DrawPrimitives(
       vertexCountPerInstance,

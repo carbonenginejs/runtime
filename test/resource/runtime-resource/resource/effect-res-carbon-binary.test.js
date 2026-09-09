@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { CjsCarbonEffectWriter } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectWriter.js";
 import {
+    blob,
     buildSyntheticDescription,
     SYNTHETIC_PERMUTATIONS
 } from "../format/carbonEffectSynthetic.js";
@@ -301,6 +302,45 @@ test("a stock Carbon body has no backend block", () =>
 {
     const pass = prepared().GetShaderByIndex(0).effect.techniques[0].passes[0];
     assert.equal(pass.backendBlock, null);
+
+    for (const stage of pass.stageInputs)
+    {
+        if (stage.exists) assert.equal(stage.signature.backendBlock, undefined);
+    }
+});
+
+test("a pass's backend block rides every stage's signature, uninterpreted", () =>
+{
+    // Carbon's signature is what Trinity hands a backend at CreateShader
+    // (Tr2EffectDescription.cpp:589-593), so a per-pass block that a backend
+    // must read travels on it. The resource does not look inside.
+    const writer = new CjsCarbonEffectWriter({
+        backend: true,
+        compilerVersion: COMPILER_VERSION,
+        sourceHash: SOURCE_HASH
+    });
+    for (const axis of SYNTHETIC_PERMUTATIONS) writer.addPermutation(axis);
+    for (let index = 0; index < 4; index += 1)
+    {
+        const description = buildSyntheticDescription();
+        for (const technique of description.techniques)
+        {
+            technique.libraries = [];
+            for (const pass of technique.passes) pass.backendBlock = blob([ 1, 0, 0 ]);
+        }
+        writer.addBody(index, description);
+    }
+
+    const pass = new Tr2EffectRes().DoLoad(writer.toBytes()).GetShaderByIndex(0)
+        .effect.techniques[0].passes[0];
+    const stages = pass.stageInputs.filter(stage => stage.exists);
+
+    assert.equal(pass.backendBlock.size, 3);
+    assert.ok(stages.length > 0);
+    for (const stage of stages)
+    {
+        assert.equal(stage.signature.backendBlock, pass.backendBlock, "the same reference, not a copy");
+    }
 });
 
 test("render states are retained as authored pairs", () =>

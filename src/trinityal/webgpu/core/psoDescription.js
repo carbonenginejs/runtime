@@ -138,7 +138,14 @@ export class CjsWebgpuPsoDescription
   {
     if (this.GetMissing()) return null;
 
-    return RenderPipelineKey(this.shaderProgram, this.BuildRecipe());
+    // A real program names itself; a stand-in keys on its own fields. Metal
+    // hashes the function pointers for this (`MetalWorkQueue.mm:1610-1611`),
+    // and canonicalising a program's modules would serialise device objects.
+    const identity = typeof this.shaderProgram.GetIdentity === "function"
+      ? this.shaderProgram.GetIdentity()
+      : this.shaderProgram;
+
+    return RenderPipelineKey(identity, this.BuildRecipe());
   }
 
   /**

@@ -108,6 +108,22 @@ export class Tr2Pass extends CjsModel
       ? { bytes: recordBytes(record.backendBlock), size: record.backendBlock.size }
       : null;
 
+    // THE BLOCK RIDES THE SIGNATURE, STILL UNINTERPRETED. Carbon's signature is
+    // the one thing Trinity hands a backend at CreateShader besides the
+    // bytecode (Tr2EffectDescription.cpp:589-593), and backends consume it
+    // without adding to it - Metal even refuses a field it cannot honour
+    // (Tr2ShaderALMetal.mm:24-27). Our per-pass block is backend information
+    // of exactly that kind, so it travels the same road: stamped on every stage
+    // of the pass, read by the backend whose block it is, ignored by the rest.
+    // The pass keeps its own copy for the format libraries that read it today.
+    if (pass.backendBlock)
+    {
+      for (const stage of pass.stageInputs)
+      {
+        if (stage?.exists && stage.signature) stage.signature.backendBlock = pass.backendBlock;
+      }
+    }
+
     return pass;
   }
 
