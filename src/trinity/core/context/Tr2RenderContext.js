@@ -44,6 +44,7 @@ import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContextALStub } from "../../../trinityal/stub/Tr2RenderContextALStub.js";
 import { Tr2Blitter } from "../Tr2Blitter.js";
+import { RealizeBatchGeometry } from "../mesh/TriGeometryResAllocations.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 
@@ -1177,6 +1178,16 @@ export class Tr2RenderContext extends CjsModel
    */
   SubmitGeometry(batch)
   {
+    // A MESH BATCH ARRIVES WITH A DESCRIPTOR, NOT BUFFERS. Carbon's
+    // TriGeometryRes suballocates a LOD's vertex and index data into the shared
+    // geometry buffer at LOAD, through the main-thread context
+    // (TriGeometryRes.cpp:2019-2140), and the batch carries the allocations'
+    // buffers. Our geometry resource cannot reach a context, so the LOD's
+    // allocations are made here, at the first submit through THIS context, and
+    // the batch's streams and draw arguments are set from them exactly as
+    // CreateGeometryBatch sets them in Carbon (Tr2MeshBase.cpp:372-392).
+    if (batch.geometrySource && !batch.vertexStreams[0]) RealizeBatchGeometry(batch, this);
+
     this.SetTopology(batch.topology);
     this.#esm.ApplyVertexDeclaration(batch.vertexDeclaration);
 

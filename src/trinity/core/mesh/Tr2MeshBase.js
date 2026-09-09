@@ -407,7 +407,7 @@ export class Tr2MeshBase extends CjsModel
     // reflection reason pass a live value.
     const reversed = area.GetReversed() !== reverseWinding;
 
-    batch.SetGeometrySource(geometry, this.meshIndex, area.GetIndex(), area.GetCount(), reversed);
+    batch.SetGeometrySource(geometry, this.meshIndex, area.GetIndex(), area.GetCount(), reversed, lod);
 
     // Carbon binds lod->m_mesh->m_vertexDeclarationHandle onto the batch
     // (Tr2MeshBase.cpp:371). The handle is what binning and sorting compare, so

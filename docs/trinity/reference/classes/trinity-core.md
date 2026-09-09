@@ -1224,6 +1224,26 @@ One upload arena per data type, fenced by frame, so many objects share one buffe
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2SuballocatedBuffer -->
+## `Tr2SuballocatedBuffer`
+
+Carbon's shared geometry buffer: one device buffer per block that many allocations share, so a mesh's vertices are a buffer, an offset and a stride rather than a buffer of their own.
+
+- Export: Not exported
+- Source: `src/trinity/core/device/Tr2SuballocatedBuffer.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:Tr2SuballocatedBufferAllocation -->
+## `Tr2SuballocatedBufferAllocation`
+
+One region of a suballocated buffer: which block, at what offset and stride, with the start index the draw arguments add.
+
+- Export: Not exported
+- Source: `src/trinity/core/device/Tr2SuballocatedBuffer.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:Tr2RingBufferOffsets -->
 ## `Tr2RingBufferOffsets`
 

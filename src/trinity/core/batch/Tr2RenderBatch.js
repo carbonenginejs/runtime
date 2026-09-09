@@ -294,14 +294,17 @@ export class Tr2RenderBatch
    * area range for the engine to resolve into realized buffers and draw
    * arguments at dispatch.
    */
-  SetGeometrySource(geometry, meshIndex, areaIndex, count, reversed)
+  SetGeometrySource(geometry, meshIndex, areaIndex, count, reversed, lod = null)
   {
     this.geometrySource = {
       geometry: geometry ?? null,
       meshIndex: meshIndex >>> 0,
       areaIndex: areaIndex | 0,
       count: count | 0,
-      reversed: !!reversed
+      reversed: !!reversed,
+      // The LOD the area belongs to, so the render context can realize its
+      // allocations at submit and recompute the draw arguments against them.
+      lod: lod ?? null
     };
   }
 
