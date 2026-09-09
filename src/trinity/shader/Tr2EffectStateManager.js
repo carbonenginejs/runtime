@@ -92,6 +92,16 @@ const shaderPrograms = [];
 /** Interned vertex declarations; the index is the handle. */
 const vertexLayouts = [];
 
+/**
+ * Realized layouts per context, per handle.
+ *
+ * Carbon stores the created Tr2VertexLayoutAL beside the definition in its own
+ * intern table, because one backend is compiled. Ours must key by CONTEXT too:
+ * the table is module-level and shared, and a layout made by one backend must
+ * never be handed to another. A WeakMap so a dead context takes its layouts.
+ */
+const vertexLayoutObjects = new WeakMap();
+
 // Carbon interns once at asset load and stores the handle on the mesh, so its
 // linear scan never runs per draw. This runtime has no load hook, so the handle
 // is memoised against the element list or definition a payload already owns -
@@ -1314,7 +1324,53 @@ export class Tr2EffectStateManager extends CjsModel
 
     this.#currentValues.vertexDeclaration = handle;
 
-    return handle !== Tr2EffectStateManager.Unknown;
+    // IT BINDS. This recorded the handle and reached no backend until
+    // 2026-09-09, so a draw ran with whatever layout the abstraction layer
+    // last held. Carbon `cpp:879-910`: NULL_DECLARATION unbinds with a default
+    // layout, otherwise the interned layout is created ON FIRST USE and set.
+    //
+    // Carbon can hold a `Tr2VertexLayoutAL` in its own table because it
+    // compiles one backend. We ship every backend at once, so the layout is
+    // created by the context - the same reason `CreateBuffer` lives there -
+    // and cached per handle so a second apply reuses it, as `hvl.IsValid()`
+    // does for Carbon.
+    // A manager with no context records and reaches nothing, exactly as
+    // DoApplyRenderStates does. Carbon's manager always has one; ours is
+    // constructed before it is bound.
+    if (!this.#renderContext) return handle !== Tr2EffectStateManager.Unknown;
+
+    if (handle === Tr2EffectStateManager.Unknown)
+    {
+      this.#renderContext.SetVertexLayout(null);
+
+      return false;
+    }
+
+    const elements = Tr2EffectStateManager.getVertexDeclarationElements(handle);
+
+    // A HANDLE THAT WAS NEVER INTERNED NAMES NOTHING. Carbon cannot reach this:
+    // every declaration handle it holds came out of `getVertexDeclarationHandle`
+    // and indexes its own table. Ours can be handed a bare number, and creating
+    // a layout from null would make an empty definition look like a real one -
+    // which the stub layout then reports as valid, because Carbon stores the
+    // definition before checking it.
+    if (!elements) return false;
+
+    const realized = vertexLayoutObjects.get(this.#renderContext) ?? new Map();
+
+    let layout = realized.get(handle) ?? null;
+
+    if (!layout)
+    {
+      layout = this.#renderContext.CreateVertexLayout(elements);
+
+      realized.set(handle, layout);
+      vertexLayoutObjects.set(this.#renderContext, realized);
+    }
+
+    this.#renderContext.SetVertexLayout(layout);
+
+    return true;
   }
 
   /**

@@ -230,7 +230,14 @@ test("the batch-to-draw sequence reaches the device", () =>
   states.BeginManagedRendering();
 
   assert.equal(context.SetTopology(Topology.TOP_TRIANGLES), true);
-  assert.equal(states.ApplyVertexDeclaration(0), true);
+
+  // An INTERNED declaration, not a bare 0. Since 2026-09-09 applying one
+  // creates the backend layout and binds it, so a handle that names nothing
+  // reaches no backend - which is right, and means a stand-in number no longer
+  // stands in.
+  const declaration = Tr2EffectStateManager.getVertexDeclarationHandle([ { usage: 0, usageIndex: 0, registerIndex: 0 } ]);
+
+  assert.equal(states.ApplyVertexDeclaration(declaration), true);
   assert.equal(states.ApplyStreamSource(0, { id: "vertices" }, 0, 32), true);
   assert.equal(states.ApplyIndexBuffer({ id: "indices" }, 2), true);
   assert.equal(context.DrawIndexedInstanced(36, 1, 0, 0, 0), true);

@@ -786,6 +786,23 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Creates the running backend's vertex layout from a vertex definition.
+   *
+   * The same reason `CreateBuffer` is here. Carbon's effect state manager holds
+   * a `Tr2VertexLayoutAL` in its own intern table and calls `hvl.Create` on
+   * first use (`Tr2EffectStateManager.cpp:899-906`), which it can do because
+   * one backend is compiled. The manager here cannot name a layout class, so it
+   * asks the context, which knows which backend it holds.
+   *
+   * @param {object[]|object} definition The vertex element list or definition.
+   * @returns {object|null} A `Tr2VertexLayoutAL`, or null when Create refused.
+   */
+  CreateVertexLayout(definition)
+  {
+    return this.#requireAL("CreateVertexLayout").CreateVertexLayout(definition);
+  }
+
+  /**
    * The fullscreen-quad blitter, created on first use.
    *
    * WHERE CARBON PUTS IT, AND WHY WE DO NOT. Carbon holds one in a file-scope

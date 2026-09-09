@@ -65,7 +65,7 @@
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2DepthAttachment } from "#trinityal";
+import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2VertexLayoutALStub } from "#trinityal";
 import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
@@ -297,6 +297,28 @@ export class CjsWebgpuRenderContextAL
     if (Failed(buffer.Create(description, initialData, this))) return null;
 
     return buffer;
+  }
+
+  /**
+   * Creates a vertex layout, this backend's kind of `Tr2VertexLayoutAL`.
+   *
+   * IT HOLDS THE DEFINITION AND NOTHING DEVICE-SIDE, and that is not a stub
+   * standing in for real work. WebGPU has no input-layout object: the vertex
+   * buffer layouts are part of the render pipeline descriptor and are fixed at
+   * pipeline creation, so a layout here can only be the definition a pipeline
+   * will later be built from. That is why `Tr2VertexLayoutALStub` is the right
+   * shape for this backend too rather than a placeholder for a WebGPU one.
+   *
+   * @param {object[]|object} definition The vertex element list or definition.
+   * @returns {object|null} The created layout, or null when Create refused.
+   */
+  CreateVertexLayout(definition)
+  {
+    const layout = new Tr2VertexLayoutALStub();
+
+    if (Failed(layout.Create(definition, this))) return null;
+
+    return layout;
   }
 
   /**

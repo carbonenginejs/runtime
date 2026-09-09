@@ -28,7 +28,7 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2TextureALStub } from "../../trinityal/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
 
 
@@ -257,6 +257,28 @@ export class Tr2RenderContextALStub
     if (Failed(buffer.Create(description, initialData, this))) return null;
 
     return buffer;
+  }
+
+  /**
+   * Creates a vertex layout, this backend's kind of `Tr2VertexLayoutAL`.
+   *
+   * The same reason `CreateBuffer` exists. Carbon compiles ONE backend, so its
+   * `Tr2VertexLayoutAL` is unambiguous and the effect state manager holds one
+   * directly, calling `hvl.Create( definition, renderContext )` the first time
+   * a declaration is applied (`Tr2EffectStateManager.cpp:899-906`). We ship
+   * every backend at once, so the manager cannot name a layout class and has to
+   * ask the context that knows which one it is.
+   *
+   * @param {object[]|object} definition The vertex element list or definition.
+   * @returns {object|null} The created layout, or null when Create refused.
+   */
+  CreateVertexLayout(definition)
+  {
+    const layout = new Tr2VertexLayoutALStub();
+
+    if (Failed(layout.Create(definition, this))) return null;
+
+    return layout;
   }
 
   /**
@@ -728,17 +750,16 @@ export class Tr2RenderContextALStub
     return true;
   }
 
-  /**
-   * Sets several render states from packed id/value pairs.
-   *
-   * @param {number[]} _stateValuePairs Alternating state id and value.
-   * @param {number} [_count] How many pairs to read.
-   * @returns {boolean} True.
-   */
-  SetRenderStates(_stateValuePairs, _count = 0)
-  {
-    return true;
-  }
+  // A SECOND `SetRenderStates` STOOD HERE and was dead: JavaScript lets the
+  // later declaration win silently, so this one - Carbon's packed id/value pair
+  // signature - was shadowed by the interpreted-setup version further down and
+  // could never be called. Removed 2026-09-09.
+  //
+  // The surviving one takes a `Tr2RenderStateSetup` and the manager's overrides
+  // rather than Carbon's `(pairs, count)`, and that divergence is argued where
+  // it is made, in `Tr2EffectStateManager.DoApplyRenderStates`: a registered
+  // setup here is interpreted ONCE at registration, so there are no raw pairs
+  // left to hand over.
 
   /**
    * REFUSED, as Carbon refuses it (`cpp:97-101`). A buffer-to-buffer copy needs
