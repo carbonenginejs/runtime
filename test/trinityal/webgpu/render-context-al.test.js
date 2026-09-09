@@ -344,7 +344,9 @@ function composed()
       // slot zero, which BeginScene now binds as Metal's does.
       GetWidth: () => 1280,
       GetHeight: () => 720,
-      GetFormat: () => "bgra8unorm"
+      GetFormat: () => "bgra8unorm",
+      GetDepthFormat: () => "depth24plus",
+      GetSampleCount: () => 1
     }
   });
 
@@ -757,4 +759,54 @@ test("SetAsPrimary registers this context, and present parameters read back", ()
   const parameters = { mode: { width: 640, height: 480 } };
   al.SetPresentParameters(parameters);
   assert.equal(al.GetPresentParamaters(), parameters);
+});
+
+test("the setters accumulate a pipeline description, as Carbon's do", () =>
+{
+  const al = ready();
+  const description = al.GetPsoDescription();
+
+  // Carbon's setters write into m_psoDescription and mark it dirty; every draw
+  // entry then calls SetAllState, which resolves a pipeline from a cache keyed
+  // on the description's hash (Tr2RenderContextDx12.cpp:763-806, :810-880).
+  // The class existed and was wired to nothing until 2026-09-09.
+  assert.equal(description.topology, Topology.TOP_TRIANGLES, "BeginScene left the default bound");
+
+  al.SetTopology(Topology.TOP_LINES);
+  al.SetShaderProgram({ id: "program", IsValid: () => true });
+  al.SetRenderStates({ id: "setup" }, { invertedCullMode: true });
+
+  const filled = al.GetPsoDescription();
+
+  assert.equal(filled.topology, Topology.TOP_LINES);
+  assert.equal(filled.shaderProgram.id, "program");
+  assert.equal(filled.renderStateSetup.id, "setup");
+  assert.equal(filled.renderStateOverrides.invertedCullMode, true);
+
+  // The same object each time - Carbon's is a member, not a fresh struct.
+  assert.equal(al.GetPsoDescription(), description);
+});
+
+test("an incomplete description says what is missing rather than building on a guess", () =>
+{
+  const al = ready();
+
+  // Uncomposed there is no render target, so no attachment formats. Carbon
+  // returns null from GetPipelineState and fails SetAllState rather than
+  // creating a partial pipeline (cpp:847-851).
+  assert.notEqual(al.GetPsoDescription().GetMissing(), null);
+
+  const { al: composedAl } = composed();
+
+  composedAl.CreateDevice();
+  composedAl.BeginScene();
+  composedAl.SetShaderProgram({ id: "program", IsValid: () => true });
+  composedAl.SetRenderStates({ id: "setup" });
+
+  // BeginScene binds the render target at slot zero, and only the render target
+  // answers GetFormat - a colour target in any other slot is a Tr2TextureAL
+  // this backend does not have yet, so its format is unknown rather than
+  // assumed.
+  assert.deepEqual(composedAl.GetPsoDescription().colorFormats, [ "bgra8unorm" ]);
+  assert.equal(composedAl.GetPsoDescription().GetMissing(), null);
 });

@@ -143,9 +143,16 @@ const problems = [];
 const files = await jsFiles(alRoot);
 
 // RULE 1: a Trinity type named in an AL file, outside a comment.
+//
+// KEYED BY FILE AND TYPE, NOT BY LINE. A baseline that carries line numbers
+// goes stale on any edit above the finding - deleting an import moved thirteen
+// of these and turned a frozen list into thirteen "new" problems - and then the
+// only cheap fix is to re-record, which is how a ratchet quietly stops
+// ratcheting. `lint:class-shape` has the same weakness and should follow.
 for (const file of files)
 {
     const source = await readFile(file, "utf8");
+    const found = new Map();
 
     for (const [ index, line ] of source.split(/\r?\n/u).entries())
     {
@@ -156,12 +163,20 @@ for (const file of files)
         for (const type of TRINITY_TYPES)
         {
             if (!new RegExp(`\\b${type}\\b`, "u").test(code)) continue;
+            if (!found.has(type)) found.set(type, []);
 
-            problems.push(
-                `${relative(file)}:${index + 1} names the Trinity type ${type}. `
-                + "The abstraction layer knows nothing above it: it takes verbs, not graph objects."
-            );
+            found.get(type).push(index + 1);
         }
+    }
+
+    // The COUNT is not in the key either: removing one of five uses must not
+    // read as a new problem. A new type, or a new file, is what matters.
+    for (const type of found.keys())
+    {
+        problems.push(
+            `${relative(file)} names the Trinity type ${type}. `
+            + "The abstraction layer knows nothing above it: it takes verbs, not graph objects."
+        );
     }
 }
 

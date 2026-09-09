@@ -1,4 +1,3 @@
-import { Topology } from "#consts/render-context";
 import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
 import { CjsTrinityBatchDispatcher } from "#trinity/core/batch/CjsTrinityBatchDispatcher";
 import { CjsTrinityBatchResolver } from "#trinity/core/batch/CjsTrinityBatchResolver";
@@ -6,23 +5,14 @@ import { ITriRenderBatchAccumulator } from "#trinity/core/batch/ITriRenderBatchA
 import { Tr2RenderBatch } from "#trinity/core/batch/Tr2RenderBatch";
 import { TriRenderBatchMap } from "#trinity/core/batch/TriRenderBatchMap";
 import { CjsWebgpuEncodeState, DeriveBatchGroups } from "./batchGroups.js";
+// Re-exported so existing importers keep working while this file lives; the
+// table itself moved to topology.js, which is not going away.
+import { TOPOLOGIES } from "./topology.js";
+
+export { TOPOLOGIES };
 
 const MAX_GPU_SIZE_32 = 0xffffffff;
 
-// Keyed by `Topology`, the abstraction layer's vocabulary, which is what a
-// batch carries as of 2026-09-05. It was keyed by `D3dPrimitiveTopology`
-// before, and the two numberings COLLIDE - D3D's 4 is TRIANGLELIST, the AL's 4
-// is TOP_LINES - so this table and Tr2RenderBatch have to move together.
-//
-// TOP_TRIANGLE_FAN is absent because WebGPU has no fan primitive. Carbon's own
-// header already says the value is invalid on DX11.
-export const TOPOLOGIES = Object.freeze({
-  [Topology.TOP_TRIANGLES]: "triangle-list",
-  [Topology.TOP_TRIANGLE_STRIP]: "triangle-strip",
-  [Topology.TOP_LINES]: "line-list",
-  [Topology.TOP_LINE_STRIP]: "line-strip",
-  [Topology.TOP_POINTS]: "point-list"
-});
 
 const PREPARED_BATCHES = new WeakMap();
 const PREPARED_ACCUMULATORS = new WeakMap();

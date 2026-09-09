@@ -130,6 +130,22 @@ export class CjsWebgpuRenderTarget
     return this.#format;
   }
 
+  /**
+   * The depth attachment's format, or null when there is no depth.
+   *
+   * The field existed from the start and nothing could read it, so the value
+   * reached a pipeline only by being passed separately into the batch
+   * resolver's constructor. A pipeline description assembled from bound state
+   * has no constructor to receive it, and asking the target that owns it is
+   * both shorter and impossible to disagree with.
+   *
+   * @returns {string|null} A `GPUTextureFormat`, or null.
+   */
+  GetDepthFormat()
+  {
+    return this.#depthFormat;
+  }
+
   /** The current attachment size. */
   GetSize()
   {

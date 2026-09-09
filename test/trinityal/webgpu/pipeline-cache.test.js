@@ -39,6 +39,34 @@ test("RenderPipelineKey declines to key an unnamed program", () =>
   );
 });
 
+test("a program whose state is entirely private is not an identity", () =>
+{
+  // Object.keys does not see private fields, so an instance like
+  // CjsWebgpuShaderProgramAL canonicalises to `{}` and passes the null guard.
+  // Every such program would then key IDENTICALLY - which is the collision
+  // this function exists to prevent, arriving through the door it left open.
+  class ProgramWithOnlyPrivateState
+  {
+    #shaders = [ "vertex", "fragment" ];
+
+    IsValid() { return this.#shaders.length > 0; }
+  }
+
+  const first = new ProgramWithOnlyPrivateState();
+  const second = new ProgramWithOnlyPrivateState();
+
+  assert.equal(CanonicalKey(first), "{}", "the shape that caused it");
+  assert.equal(RenderPipelineKey(first, { topology: "triangle-list" }), null);
+  assert.equal(RenderPipelineKey(second, { topology: "triangle-list" }), null);
+
+  // An empty object literal declines for the same reason, and that is right:
+  // it carries no identity either.
+  assert.equal(RenderPipelineKey({}, { topology: "triangle-list" }), null);
+
+  // One readable field is enough to be an identity again.
+  assert.notEqual(RenderPipelineKey({ id: "program" }, { topology: "triangle-list" }), null);
+});
+
 test("CjsWebgpuPipelineCache builds once per key and generation", async () =>
 {
   const cache = new CjsWebgpuPipelineCache();

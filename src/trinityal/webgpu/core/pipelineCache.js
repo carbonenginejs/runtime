@@ -151,5 +151,20 @@ export class CjsWebgpuPipelineCache
 export function RenderPipelineKey(programIdentity, recipe)
 {
   if (programIdentity === null || programIdentity === undefined) return null;
-  return `${CanonicalKey(programIdentity)}|${CanonicalKey(recipe ?? null)}`;
+
+  const identity = CanonicalKey(programIdentity);
+
+  // AN OBJECT THAT CANONICALISES TO NOTHING IS NOT AN IDENTITY. `Object.keys`
+  // does not see private fields, so a class instance whose state is entirely
+  // private - `CjsWebgpuShaderProgramAL` is exactly that - yields `{}` and
+  // passes the null guard above. Every such program would then key
+  // IDENTICALLY, which is the collision the comment above says must not
+  // happen: two different programs share a recipe constantly.
+  //
+  // Declining the cache is the documented behaviour for a program with no
+  // identity, so that is what this does rather than inventing one. A backend
+  // that wants its pipelines cached gives its programs a real identity.
+  if (identity === "{}") return null;
+
+  return `${identity}|${CanonicalKey(recipe ?? null)}`;
 }

@@ -70,6 +70,7 @@ import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
+import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
 
 
 function fail(message)
@@ -179,6 +180,18 @@ export class CjsWebgpuRenderContextAL
   /** m_dirtyPso */
   #pipelineDirty = true;
 
+  /**
+   * m_psoDescription. Carbon's setters accumulate into one of these and mark it
+   * dirty; every draw entry then calls `SetAllState`, which resolves a pipeline
+   * from a cache keyed on the description's hash and binds it
+   * (`Tr2RenderContextDx12.cpp:763-806`, `:810-880`).
+   *
+   * The class was written for this and wired to nothing until 2026-09-09. It is
+   * filled here so the description is always current; RESOLVING it is the next
+   * step, and needs the bound program to carry its effect package.
+   */
+  #psoDescription = new CjsWebgpuPsoDescription();
+
   /** m_boundRenderTarget[MAX_RENDER_TARGET] */
   #boundRenderTargets = new Array(MAX_RENDER_TARGET).fill(null);
 
@@ -238,6 +251,12 @@ export class CjsWebgpuRenderContextAL
     this.#webgpu = webgpu;
     this.#dispatcher = dispatcher;
     this.#renderTarget = renderTarget;
+
+    // The description starts in step with the state it describes. Carbon's
+    // struct is constructed with the same defaults its context has, so a
+    // description read before any setter runs describes what is actually bound
+    // rather than an empty pipeline.
+    this.#psoDescription.topology = this.#topology;
   }
 
   /** Whether this backend can actually draw. @returns {boolean} */
@@ -870,6 +889,8 @@ export class CjsWebgpuRenderContextAL
     if (topology >= Topology.TOP_MAX_TOPOLOGY || !VERTICES_PER_PRIMITIVE[topology]) return false;
 
     this.#topology = topology;
+    this.#psoDescription.topology = topology;
+    this.#pipelineDirty = true;
 
     return true;
   }
@@ -926,7 +947,11 @@ export class CjsWebgpuRenderContextAL
    */
   SetShaderProgram(shaderProgram)
   {
+    if (this.#shaderProgram === shaderProgram) return true;
+
     this.#shaderProgram = shaderProgram;
+    this.#psoDescription.shaderProgram = shaderProgram;
+    this.#pipelineDirty = true;
 
     return true;
   }
@@ -960,6 +985,8 @@ export class CjsWebgpuRenderContextAL
 
     this.#renderStateSetup = setup;
     this.#renderStateOverrides = overrides;
+    this.#psoDescription.renderStateSetup = setup;
+    this.#psoDescription.renderStateOverrides = overrides;
     this.#pipelineDirty = true;
 
     return true;
@@ -1019,6 +1046,51 @@ export class CjsWebgpuRenderContextAL
   IsPipelineDirty()
   {
     return this.#pipelineDirty;
+  }
+
+  /**
+   * The pipeline description the setters have accumulated.
+   *
+   * Carbon's `m_psoDescription`, and `GetMissing()` on it answers the question
+   * `GetPipelineState` answers by returning null: what this state does not yet
+   * name. Reading it does not resolve anything.
+   *
+   * @returns {CjsWebgpuPsoDescription} The live description.
+   */
+  GetPsoDescription()
+  {
+    this.#RefreshAttachmentFormats();
+
+    return this.#psoDescription;
+  }
+
+  /**
+   * Copies the bound attachments' formats onto the description.
+   *
+   * Deferred to the read rather than done in `SetRenderTarget`, because the
+   * canvas format is only known once the target is configured and a target can
+   * be bound before that. Carbon has no equivalent hop: a DX12 render-target
+   * format is written straight into the description by `SetRenderState`
+   * (`Tr2RenderContextDx12.cpp:453`), because a D3D texture knows its format
+   * from creation.
+   */
+  #RefreshAttachmentFormats()
+  {
+    const primary = this.#boundRenderTargets[0];
+
+    // Only the render target answers GetFormat today. A bound colour target in
+    // any other slot is a Tr2TextureAL this backend does not have yet, so its
+    // format is unknown rather than assumed - and GetMissing reports an
+    // incomplete description instead of a pipeline built on a guess.
+    this.#psoDescription.colorFormats = primary && typeof primary.GetFormat === "function"
+      ? [ primary.GetFormat() ]
+      : [];
+
+    this.#psoDescription.depthFormat = this.#renderTarget && this.#depthStencil
+      ? this.#renderTarget.GetDepthFormat()
+      : null;
+
+    this.#psoDescription.sampleCount = this.#renderTarget ? this.#renderTarget.GetSampleCount() : 1;
   }
 
   /**
