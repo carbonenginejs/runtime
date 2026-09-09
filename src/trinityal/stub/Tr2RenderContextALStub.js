@@ -290,6 +290,22 @@ export class Tr2RenderContextALStub
    * @param {object} program A `Tr2ShaderProgramAL`.
    * @returns {object|null} The set, or null when Create refused.
    */
+  /**
+   * Creates a texture, this backend's kind of `Tr2TextureAL`.
+   *
+   * @param {object} desc A `Tr2BitmapDimensions`.
+   * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
+   * @returns {object|null} The texture, or null when Create refused.
+   */
+  CreateTexture(desc, options)
+  {
+    const texture = new Tr2TextureALStub();
+
+    if (Failed(texture.Create(desc, options ?? {}, this))) return null;
+
+    return texture;
+  }
+
   CreateResourceSet(description, program)
   {
     const resourceSet = new Tr2ResourceSetALStub();

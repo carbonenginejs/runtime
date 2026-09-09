@@ -850,6 +850,22 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Creates a texture of the running backend's kind.
+   *
+   * Carbon's `Tr2TextureAL::Create( desc, usage, cpuUsage, initialData, ctx )`
+   * on a default-constructed member (`Tr2ImageIOHelpers.cpp:126`); the context
+   * makes it here for the reason `CreateBuffer` is here.
+   *
+   * @param {object} desc A `Tr2BitmapDimensions`.
+   * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
+   * @returns {object|null} A `Tr2TextureAL`, or null when Create refused.
+   */
+  CreateTexture(desc, options)
+  {
+    return this.#requireAL("CreateTexture").CreateTexture(desc, options);
+  }
+
+  /**
    * Creates the running backend's vertex layout from a vertex definition.
    *
    * The same reason `CreateBuffer` is here. Carbon's effect state manager holds

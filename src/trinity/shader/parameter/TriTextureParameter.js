@@ -5,6 +5,7 @@ import { CjsModel } from "#model";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
+import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 
 
 /**
@@ -177,15 +178,45 @@ export class TriTextureParameter extends CjsParameter
    */
   @carbon.method
   @impl.implemented
-  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
       ? Tr2ColorSpace.COLOR_SPACE_SRGB
       : Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-    // Carbon binds `m_cachedTexture`, which is the low-res stand-in while one
-    // is active. `GetResource` already answers that question here.
-    return resourceDesc.SetSrv(stage, registerIndex, this.GetResource(), colorSpace);
+    // Carbon binds `m_cachedTexture`: the resource's `Tr2TextureAL`, or the
+    // renderer's fallback while the resource is not loaded
+    // (`TriTextureParameter.cpp:372-381`). The low-res stand-in wins while one
+    // is active; `GetResource` already answers that question here.
+    //
+    // THE CONTEXT IS AN ADDED ARGUMENT. Carbon's resource makes its texture in
+    // `DoPrepare` through a process-wide context; ours is made here, at first
+    // bind, through the binding context (see `Tr2ImageIOHelpers`). Until the
+    // resource is prepared the RESOURCE is bound in the texture's place: a
+    // backend treats a bound object that is not its texture as Carbon's
+    // fallback, and this parameter re-dirties its materials when the resource
+    // completes, so the real texture replaces it on the next apply.
+    const resource = this.GetResource();
+    const texture = RealizeTexture(resource, renderContext);
+
+    if (!texture) this.#ArmCompletion(resource);
+
+    return resourceDesc.SetSrv(stage, registerIndex, texture ?? resource, colorSpace);
+  }
+
+  /** Resources whose completion already re-dirties this parameter's materials. */
+  #armed = new WeakSet();
+
+  /**
+   * Carbon's `m_onTextureChange` route: when the resource finishes, the
+   * materials binding it rebuild their resource sets.
+   */
+  #ArmCompletion(resource)
+  {
+    if (!resource || typeof resource.OnCompleted !== "function" || this.#armed.has(resource)) return;
+
+    this.#armed.add(resource);
+    resource.OnCompleted(() => this.OnTextureChanged(), this);
   }
 
   /**

@@ -22,7 +22,9 @@ import {
  * texture, RGBA, or video payload facts with mirrored dimension/format
  * metadata, while engine packages decide what those facts become on a device.
  *
- * The resource never creates or retains a backend texture.
+ * The resource never CREATES a backend texture - it cannot reach a render
+ * context - but it RETAINS the one Trinity makes for it, as Carbon's does
+ * (`m_texture`), so every parameter sharing the resource binds one texture.
  */
 export class TriTextureRes extends CjsResource
 {
@@ -57,6 +59,39 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
+   * m_texture: the live `Tr2TextureAL`, or null until an engine makes one.
+   *
+   * Carbon creates it in `DoPrepare` through the main-thread context and
+   * stores it here (`TriTextureRes.cpp:690-704`). This layer cannot reach a
+   * render context, so Trinity creates it at first bind and stores it here,
+   * where every parameter sharing the resource finds the one texture.
+   */
+  texture = null;
+
+  /**
+   * The live texture, or null while there is none - Carbon returns nullptr
+   * until the load finishes and the parameter substitutes the fallback
+   * (`TriTextureRes.cpp:394-405`).
+   *
+   * @returns {object|null} A `Tr2TextureAL`.
+   */
+  GetTexture() {
+    return this.texture && this.texture.IsValid() ? this.texture : null;
+  }
+
+  /**
+   * Adopts a texture as this resource's (`TriTextureRes.cpp:1159-1195`).
+   *
+   * @param {object|null} texture A `Tr2TextureAL`, or null to drop it.
+   * @returns {TriTextureRes} This resource.
+   */
+  SetTexture(texture) {
+    if (this.texture && this.texture !== texture) this.texture.Destroy();
+    this.texture = texture ?? null;
+    return this;
+  }
+
+  /**
    * Attach a plain texture, RGBA, or video payload and mirror Carbon-exposed
    * metadata. Invalid payloads are rejected before replacing the current one.
    *
@@ -66,6 +101,8 @@ export class TriTextureRes extends CjsResource
    */
   SetPayload(payload = null, options = null) {
     if (payload === null) {
+      // The bytes are gone; so is the texture made from them.
+      this.SetTexture(null);
       super.SetPayload(null);
       return this;
     }
@@ -394,6 +431,8 @@ CjsSchema.define(TriTextureRes, {
     GetMsaaQuality: [ carbon.method, impl.adapted ],
     HadLodRequests: [ carbon.method, impl.adapted ],
     GetSrvIndexInHeap: [ carbon.method, impl.notSupported ],
+    GetTexture: [ carbon.method, impl.implemented ],
+    SetTexture: [ carbon.method, impl.adapted, impl.reason("Carbon also copies the texture's dimensions onto the resource and fires m_onTextureChange; the payload already carries the dimensions here, and the binding parameter arms the resource's completion instead.") ],
     SaveAsync: [ carbon.method, impl.notSupported ],
     Save: [ carbon.method, impl.notSupported ],
     IsSaving: [ carbon.method, impl.noop ],

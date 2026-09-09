@@ -321,3 +321,39 @@ export function GetBytesPerPixel(format)
 
     return bytes === undefined ? 0 : bytes;
 }
+
+
+/**
+ * The canonical pixel-format STRING a texture payload carries
+ * (`graphics/pixelFormats.js`, what the DDS and image readers emit) to Carbon's
+ * numeric enum, which `Tr2BitmapDimensions` and every `Tr2TextureAL` speak.
+ * Typeless, depth and packed formats have no string and are absent.
+ */
+export const PixelFormatFromCanonical = Object.freeze({
+    "r8unorm": PixelFormat.PIXEL_FORMAT_R8_UNORM,
+    "rg8unorm": PixelFormat.PIXEL_FORMAT_R8G8_UNORM,
+    "rgba8unorm": PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+    "rgba8unorm-srgb": PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB,
+    "bgra8unorm": PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM,
+    "bgra8unorm-srgb": PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM_SRGB,
+    "r16float": PixelFormat.PIXEL_FORMAT_R16_FLOAT,
+    "rg16float": PixelFormat.PIXEL_FORMAT_R16G16_FLOAT,
+    "rgba16float": PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
+    "r32float": PixelFormat.PIXEL_FORMAT_R32_FLOAT,
+    "rg32float": PixelFormat.PIXEL_FORMAT_R32G32_FLOAT,
+    "rgba32float": PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT,
+    "bc1-rgba-unorm": PixelFormat.PIXEL_FORMAT_BC1_UNORM,
+    "bc1-rgba-unorm-srgb": PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB,
+    "bc2-rgba-unorm": PixelFormat.PIXEL_FORMAT_BC2_UNORM,
+    "bc2-rgba-unorm-srgb": PixelFormat.PIXEL_FORMAT_BC2_UNORM_SRGB,
+    "bc3-rgba-unorm": PixelFormat.PIXEL_FORMAT_BC3_UNORM,
+    "bc3-rgba-unorm-srgb": PixelFormat.PIXEL_FORMAT_BC3_UNORM_SRGB,
+    "bc4-r-unorm": PixelFormat.PIXEL_FORMAT_BC4_UNORM,
+    "bc4-r-snorm": PixelFormat.PIXEL_FORMAT_BC4_SNORM,
+    "bc5-rg-unorm": PixelFormat.PIXEL_FORMAT_BC5_UNORM,
+    "bc5-rg-snorm": PixelFormat.PIXEL_FORMAT_BC5_SNORM,
+    "bc6h-rgb-ufloat": PixelFormat.PIXEL_FORMAT_BC6H_UF16,
+    "bc6h-rgb-float": PixelFormat.PIXEL_FORMAT_BC6H_SF16,
+    "bc7-rgba-unorm": PixelFormat.PIXEL_FORMAT_BC7_UNORM,
+    "bc7-rgba-unorm-srgb": PixelFormat.PIXEL_FORMAT_BC7_UNORM_SRGB
+});

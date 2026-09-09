@@ -75,6 +75,7 @@ import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
 import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
+import { CjsWebgpuTextureAL } from "./CjsWebgpuTextureAL.js";
 import { CjsWebgpuConstantArena } from "./core/constantArena.js";
 import { CanonicalKey } from "./core/pipelineCache.js";
 import { TOPOLOGIES } from "./core/topology.js";
@@ -1709,6 +1710,22 @@ export class CjsWebgpuRenderContextAL
     this.#dummies.buffers.set(key, buffer);
 
     return buffer;
+  }
+
+  /**
+   * Creates a texture, this backend's kind of `Tr2TextureAL`.
+   *
+   * @param {object} desc A `Tr2BitmapDimensions`.
+   * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
+   * @returns {object|null} The texture, or null when Create refused.
+   */
+  CreateTexture(desc, options)
+  {
+    const texture = new CjsWebgpuTextureAL();
+
+    if (Failed(texture.Create(desc, options ?? {}, this))) return null;
+
+    return texture;
   }
 
   /**

@@ -202,7 +202,7 @@ export class Tr2Material extends CjsModel
 
     this.ApplyConstants(shaderType, input, pass.reroutedParameters.length > 0, renderContext);
 
-    return this.UpdateResourceSetDesc(shaderType, input, pass.resourceSetDesc);
+    return this.UpdateResourceSetDesc(shaderType, input, pass.resourceSetDesc, renderContext);
   }
 
   /**
@@ -220,17 +220,21 @@ export class Tr2Material extends CjsModel
    * @param {object} desc A `Tr2ResourceSetDescriptionAL`.
    * @returns {boolean} Whether any binding changed the description.
    */
-  UpdateResourceSetDesc(shaderType, input, desc)
+  UpdateResourceSetDesc(shaderType, input, desc, renderContext = null)
   {
     let descChanged = false;
 
     for (const texture of input.textures)
     {
+      // The context is an added trailing argument: a texture parameter makes
+      // the resource's texture at first bind through it (Carbon makes it at
+      // load through a process-wide context; see Tr2ImageIOHelpers).
       descChanged = texture.sourceValue?.CopyToResourceSet(
         desc,
         shaderType,
         texture.registerIndex,
-        texture.registerCount
+        texture.registerCount,
+        renderContext
       ) || descChanged;
     }
 

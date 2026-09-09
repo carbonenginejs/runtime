@@ -1,4 +1,5 @@
 import { PixelFormat } from "../graphics/pixelFormats.js";
+import { PixelFormat as CarbonPixelFormat } from "../renderContext/formats.js";
 import { DxgiFormat } from "../d3d/dxgiFormats.js";
 
 /**
@@ -118,4 +119,63 @@ export function toWebGpuTextureFormat(format)
 export function dxgiToPixelFormat(format)
 {
     return DxgiFormatToPixelFormat[format] || PixelFormat.UNKNOWN;
+}
+
+
+/**
+ * Carbon's NUMERIC pixel format to the `GPUTextureFormat` a WebGPU texture is
+ * created with - the table a `Tr2TextureAL` needs, since its description is
+ * `Tr2BitmapDimensions` and speaks Carbon's enum. Only the formats the EVE
+ * corpus and the render targets use; an absent entry is a refused texture.
+ */
+export const CarbonPixelFormatToWebGpu = Object.freeze({
+    [CarbonPixelFormat.PIXEL_FORMAT_R8_UNORM]: GpuTextureFormat.R8_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_R8G8_UNORM]: GpuTextureFormat.RG8_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM]: GpuTextureFormat.RGBA8_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB]: GpuTextureFormat.RGBA8_UNORM_SRGB,
+    [CarbonPixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM]: GpuTextureFormat.BGRA8_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM_SRGB]: GpuTextureFormat.BGRA8_UNORM_SRGB,
+    [CarbonPixelFormat.PIXEL_FORMAT_R16_FLOAT]: GpuTextureFormat.R16_FLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_R16G16_FLOAT]: GpuTextureFormat.RG16_FLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT]: GpuTextureFormat.RGBA16_FLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_R32_FLOAT]: GpuTextureFormat.R32_FLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_R32G32_FLOAT]: GpuTextureFormat.RG32_FLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT]: GpuTextureFormat.RGBA32_FLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_R10G10B10A2_UNORM]: "rgb10a2unorm",
+    [CarbonPixelFormat.PIXEL_FORMAT_BC1_UNORM]: GpuTextureFormat.BC1_RGBA_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB]: GpuTextureFormat.BC1_RGBA_UNORM_SRGB,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC2_UNORM]: GpuTextureFormat.BC2_RGBA_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC2_UNORM_SRGB]: GpuTextureFormat.BC2_RGBA_UNORM_SRGB,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC3_UNORM]: GpuTextureFormat.BC3_RGBA_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC3_UNORM_SRGB]: GpuTextureFormat.BC3_RGBA_UNORM_SRGB,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC4_UNORM]: GpuTextureFormat.BC4_R_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC4_SNORM]: GpuTextureFormat.BC4_R_SNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC5_UNORM]: GpuTextureFormat.BC5_RG_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC5_SNORM]: GpuTextureFormat.BC5_RG_SNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC6H_UF16]: GpuTextureFormat.BC6H_RGB_UFLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC6H_SF16]: GpuTextureFormat.BC6H_RGB_FLOAT,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC7_UNORM]: GpuTextureFormat.BC7_RGBA_UNORM,
+    [CarbonPixelFormat.PIXEL_FORMAT_BC7_UNORM_SRGB]: GpuTextureFormat.BC7_RGBA_UNORM_SRGB
+});
+
+/** The formats Metal makes an sRGB view of (`MetalContext.mm:342-357`): format + 1 there, the sibling name here. */
+const SRGB_SIBLINGS = Object.freeze({
+    [GpuTextureFormat.RGBA8_UNORM]: GpuTextureFormat.RGBA8_UNORM_SRGB,
+    [GpuTextureFormat.BGRA8_UNORM]: GpuTextureFormat.BGRA8_UNORM_SRGB,
+    [GpuTextureFormat.BC1_RGBA_UNORM]: GpuTextureFormat.BC1_RGBA_UNORM_SRGB,
+    [GpuTextureFormat.BC2_RGBA_UNORM]: GpuTextureFormat.BC2_RGBA_UNORM_SRGB,
+    [GpuTextureFormat.BC3_RGBA_UNORM]: GpuTextureFormat.BC3_RGBA_UNORM_SRGB,
+    [GpuTextureFormat.BC7_RGBA_UNORM]: GpuTextureFormat.BC7_RGBA_UNORM_SRGB
+});
+
+/**
+ * The sRGB view format for a linear `GPUTextureFormat`, or null when the format
+ * has none (or already is sRGB).
+ *
+ * @param {string} format A `GPUTextureFormat`.
+ * @returns {string|null} The sibling.
+ */
+export function SrgbSiblingOf(format)
+{
+    return SRGB_SIBLINGS[format] ?? null;
 }
