@@ -1188,10 +1188,26 @@ export class Tr2EffectStateManager extends CjsModel
    */
   ApplyStandardStates(renderingMode)
   {
+    // THE PREDICATE IS CARBON'S, AND SO IS ACTING ON IT. This returned the
+    // condition and applied nothing until 2026-09-09, so the base depth, cull
+    // and colour-write block for every rendering mode was never set - and all
+    // four callers discard the boolean, so nothing noticed. Carbon
+    // (`cpp:790-799`):
+    //
+    //     if( rm > RM_ANY && rm < RM_COUNT ) { DoApplyRenderStates( uint32_t( rm ) ); }
+    //
+    // The mode IS the handle: the first RM_COUNT setup slots are the standard
+    // states, which is why interned registration begins after RM_COUNT.
+    const carriesStates = renderingMode > RenderingMode.RM_ANY && renderingMode < RenderingMode.RM_COUNT;
+
+    if (carriesStates) this.DoApplyRenderStates(renderingMode);
+
     this.#currentValues.renderingMode = renderingMode;
     this.#currentValues.renderStateSetup = Tr2EffectStateManager.Unknown;
 
-    return renderingMode > RenderingMode.RM_ANY && renderingMode < RenderingMode.RM_COUNT;
+    // Carbon returns void; the boolean is kept because callers already take it,
+    // and it now reports what was applied rather than what could have been.
+    return carriesStates;
   }
 
   /**

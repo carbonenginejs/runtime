@@ -35,7 +35,13 @@ test("applying a setup reaches the backend with the manager's overrides", () =>
   states.ApplyStandardStates(RenderingMode.RM_OPAQUE);
   assert.equal(states.ApplyRenderStates(RenderingMode.RM_OPAQUE), true);
 
-  assert.equal(applied.length, 1);
+  // THREE, and every one is Carbon's. ApplyStandardStates applies the mode's
+  // base block (cpp:790-799) - it returned its own predicate and applied
+  // nothing until 2026-09-09 - and ApplyRenderStates then applies the base
+  // block AGAIN before the setup (cpp:717-718), because it re-applies the
+  // current rendering mode by design. This expected 1 while the first call was
+  // inert.
+  assert.equal(applied.length, 3);
   assert.notEqual(applied[0].setup, null, "the interpreted setup, not a handle");
 
   // The overrides travel WITH the setup because ours substitutes nothing here:
