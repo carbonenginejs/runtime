@@ -28,7 +28,7 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../Tr2SamplerDescription.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
 
@@ -281,6 +281,22 @@ export class Tr2RenderContextALStub
     if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
 
     return buffer;
+  }
+
+  /**
+   * Creates a resource set, this backend's kind of `Tr2ResourceSetAL`.
+   *
+   * @param {object} description A `Tr2ResourceSetDescriptionAL`.
+   * @param {object} program A `Tr2ShaderProgramAL`.
+   * @returns {object|null} The set, or null when Create refused.
+   */
+  CreateResourceSet(description, program)
+  {
+    const resourceSet = new Tr2ResourceSetALStub();
+
+    if (Failed(resourceSet.Create(description, program, this))) return null;
+
+    return resourceSet;
   }
 
   /** Carbon's `Tr2SamplerStateALFactory`, keyed on the description. */

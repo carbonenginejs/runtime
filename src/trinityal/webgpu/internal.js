@@ -16,6 +16,7 @@ export { CjsWebgpuRenderContextAL } from "./CjsWebgpuRenderContextAL.js";
 export { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 export { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
 export { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
+export { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
 export { CjsWebgpuCapsAL, CjsWebgpuPlatformCaps } from "./CjsWebgpuCapsAL.js";
 export { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderAL.js";
 export { CjsWebgpuPsoDescription } from "./core/psoDescription.js";

@@ -5,7 +5,6 @@ import { CjsModel } from "#model";
 import { Tr2Shader } from "#resource/shader";
 import { ShaderType } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
-import { Tr2ResourceSetALStub } from "../../trinityal/Tr2ResourceSetAL.js";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2ConstantUsageAL } from "../../trinityal/stub/Tr2ConstantBufferALStub.js";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
@@ -112,13 +111,20 @@ export class Tr2Material extends CjsModel
     if (descChanged || !pass.resourceSet)
     {
       const handle = this.shader.GetEffect()?.techniques?.[techniqueIndex]?.passes?.[passIndex]?.shaderProgram;
-      const program = Tr2EffectStateManager.getShaderProgramRecord(handle);
 
-      if (!program) return false;
+      // Carbon: `renderContext.m_esm.GetShaderProgram( handle )`, then
+      // `pp.m_resourceSet.Create( desc, *sp, renderContext )`
+      // (Tr2Material.cpp:232-234). The program is the REALIZED AL program -
+      // the resource set lays its entries out against the program's bindings -
+      // and the set is the backend's kind, made by the context. Until
+      // 2026-09-10 this constructed the stub directly with the interned ROW,
+      // so no backend ever saw a resource set it could bind.
+      if (Tr2EffectStateManager.getShaderProgramRecord(handle) === null) return false;
 
-      const resourceSet = new Tr2ResourceSetALStub();
+      const program = renderContext.GetEffectStateManager().GetShaderProgram(handle);
+      const resourceSet = renderContext.CreateResourceSet(pass.resourceSetDesc, program);
 
-      resourceSet.Create(pass.resourceSetDesc, program, renderContext);
+      if (!resourceSet) return false;
 
       pass.resourceSet = resourceSet;
       pass.resourceSetHash = pass.resourceSetDesc.ComputeHash();

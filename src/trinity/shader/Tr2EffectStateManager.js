@@ -1326,7 +1326,7 @@ export class Tr2EffectStateManager extends CjsModel
     if (!this.#renderContext) return true;
 
     const program = handle >= 0 && handle < shaderPrograms.length
-      ? this.#RealizeShaderProgram(handle)
+      ? this.GetShaderProgram(handle)
       : null;
 
     this.#renderContext.SetShaderProgram(program);
@@ -1343,11 +1343,19 @@ export class Tr2EffectStateManager extends CjsModel
    * signature each stage registered, and the backend builds from those - the
    * same reason `CreateVertexLayout` and `CreateBuffer` live on the context.
    *
+   * Carbon's `GetShaderProgram` (`Tr2EffectStateManager.cpp`), which
+   * `Tr2Material::ApplyMaterialDataForPass` calls to hand the program to
+   * `Tr2ResourceSetAL::Create` (`Tr2Material.cpp:232-234`). Public for the
+   * same caller here.
+   *
    * @param {number} handle A shader-program handle.
    * @returns {object|null} The realized program, or null when a stage refused.
    */
-  #RealizeShaderProgram(handle)
+  GetShaderProgram(handle)
   {
+    if (!this.#renderContext) return null;
+    if (!(handle >= 0 && handle < shaderPrograms.length)) return null;
+
     const realized = shaderProgramObjects.get(this.#renderContext) ?? new Map();
     const cached = realized.get(handle);
 

@@ -6,6 +6,7 @@ import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { Tr2RenderStateSetup } from "../../../npm/dist/resource/shader/index.js";
 import { ShaderType, Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
+import { Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
 
 // A draw verb resolves its pipeline from BOUND STATE, inside the verb, the way
 // Metal's EmitRenderPipelineState (MetalWorkQueue.mm:1595-1747) and DX12's
@@ -13,6 +14,8 @@ import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
 // backend a batch, a material or a package: it binds verbs and draws.
 
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
+const BUFFER_USAGE = Object.freeze({ UNIFORM: 16, COPY_DST: 32, VERTEX: 64, INDEX: 128, STORAGE: 256 });
+const TEXTURE_USAGE = Object.freeze({ TEXTURE_BINDING: 4, COPY_DST: 2 });
 const VERTEX_WGSL = "@vertex fn main() -> @builtin(position) vec4f { return vec4f(0); }";
 const FRAGMENT_WGSL = "@fragment fn main() -> @location(0) vec4f { return vec4f(1); }";
 
@@ -23,16 +26,48 @@ function composed()
   const pipelines = [];
   const pass = {
     setPipeline: pipeline => log.push(`setPipeline:${pipeline.id}`),
+    setBindGroup: (index, group) => log.push(`setBindGroup:${index}:${group.id}`),
     setVertexBuffer: (slot, buffer, offset) => log.push(`setVertexBuffer:${slot}:${buffer}:${offset}`),
     setIndexBuffer: (buffer, format, offset) => log.push(`setIndexBuffer:${buffer}:${format}:${offset}`),
     drawIndexed: (...args) => log.push(`drawIndexed:${args.join(",")}`),
     draw: (...args) => log.push(`draw:${args.join(",")}`),
     end: () => log.push("pass.end")
   };
+  const bindGroups = [];
+  const created = { buffers: [], textures: [], samplers: [] };
   const device = {
     createShaderModule: descriptor => ({ kind: "module", label: descriptor.label }),
     createBindGroupLayout: descriptor => ({ kind: "bind-group-layout", descriptor }),
     createPipelineLayout: descriptor => ({ kind: "pipeline-layout", descriptor }),
+    createBindGroup(descriptor)
+    {
+      const group = { id: bindGroups.length + 1, descriptor };
+
+      bindGroups.push(group);
+
+      return group;
+    },
+    createBuffer(descriptor)
+    {
+      const buffer = { kind: "buffer", descriptor, destroy() {} };
+
+      created.buffers.push(descriptor);
+
+      return buffer;
+    },
+    createTexture(descriptor)
+    {
+      created.textures.push(descriptor);
+
+      return { kind: "texture", descriptor, createView: view => ({ kind: "view", dimension: view.dimension }) };
+    },
+    createSampler(descriptor)
+    {
+      created.samplers.push(descriptor);
+
+      return { kind: "sampler", descriptor };
+    },
+    queue: { writeBuffer() {} },
     createRenderPipeline(descriptor)
     {
       const pipeline = { id: pipelines.length + 1, descriptor };
@@ -45,7 +80,7 @@ function composed()
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }
   };
-  const webgpu = new CjsWebgpuDevice({ device, shaderStage: SHADER_STAGE });
+  const webgpu = new CjsWebgpuDevice({ device, shaderStage: SHADER_STAGE, bufferUsage: BUFFER_USAGE, textureUsage: TEXTURE_USAGE });
   const al = new CjsWebgpuRenderContextAL({
     webgpu,
     dispatcher: { PrepareAccumulator: () => null, EncodeAccumulator() {} },
@@ -64,7 +99,7 @@ function composed()
   al.BeginScene();
   al.DrainTransitions();
 
-  return { al, log, pipelines };
+  return { al, log, pipelines, bindGroups, created };
 }
 
 /** A linked program; `block` puts bind-group declarations on both stages. */
@@ -180,27 +215,97 @@ test("a program without a pixel stage resolves a depth-only pipeline", () =>
   assert.equal("fragment" in pipelines[0].descriptor, false, "WebGPU spells depth-only by omitting the fragment stage");
 });
 
-test("a program that declares bind groups refuses to draw and says why", () =>
-{
-  const { al, log, pipelines } = composed();
-  const block = writeBackendBlock({
-    bindGroups: [ { group: 0, bindings: [ {
+const GROUPED_BLOCK = () => writeBackendBlock({
+  bindGroups: [ { group: 0, bindings: [
+    {
       group: 0, binding: 0, resourceKind: "uniform-buffer", registerSpace: 0, registerIndex: 0,
       visibility: [ "vertex", "fragment" ], type: "array<vec4<f32>, 4>", generatedSymbol: "cb0"
-    } ] } ],
-    transforms: []
-  });
+    },
+    {
+      group: 0, binding: 1, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 3,
+      visibility: [ "fragment" ], type: "texture_2d<f32>", generatedSymbol: "t3"
+    },
+    {
+      group: 0, binding: 2, resourceKind: "sampler", registerSpace: 0, registerIndex: 3,
+      visibility: [ "fragment" ], type: "sampler", generatedSymbol: "s3"
+    }
+  ] } ],
+  transforms: []
+});
 
-  bindGeometry(al, programFor(al, { block }));
+test("a program that declares bind groups draws with the bound constant buffer and the set's entries", () =>
+{
+  const { al, log, pipelines, bindGroups, created } = composed();
+  const program = programFor(al, { block: GROUPED_BLOCK() });
 
-  // The pipeline resolves - the layout is the program's own - but nothing can
-  // fill its group yet, and a draw with an unfilled group is a GPU validation
-  // error. Refusing here, with the reason, is the honest answer until the
-  // resource-set half lands.
-  assert.equal(al.DrawIndexedInstanced(36, 1), false);
-  assert.equal(pipelines.length, 1, "the pipeline itself resolved");
-  assert.match(al.m_pipelineFailure, /bind groups for the program's 1 group/);
-  assert.equal(log.some(entry => entry.startsWith("draw")), false, "nothing was drawn");
+  // b0 travels SetConstants, as Carbon's constant buffers do; the texture and
+  // sampler travel the resource set.
+  const constants = al.CreateConstantBuffer(64);
+  const sampler = al.CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1 });
+  const description = new Tr2ResourceSetDescriptionAL();
+
+  description.SetSampler(ShaderType.PIXEL_SHADER, 3, sampler);
+  description.SetSrv(ShaderType.PIXEL_SHADER, 3, { GetDeviceTextureView: dimension => ({ kind: "view", dimension, id: "diffuse" }) });
+
+  const set = al.CreateResourceSet(description, program);
+
+  bindGeometry(al, program);
+  constants.Lock(al).data.set([ 1, 2, 3 ]);
+  constants.Unlock(al);
+  al.SetConstants(constants, ShaderType.VERTEX_SHADER, 0);
+  al.SetResourceSet(set);
+
+  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(pipelines.length, 1);
+  assert.equal(bindGroups.length, 1, "one bind group for two draws of the same state");
+  assert.equal(created.buffers.length, 1, "only the constant buffer; no null buffer was needed");
+
+  const entries = bindGroups[0].descriptor.entries;
+
+  assert.equal(entries.length, 3);
+  assert.equal(entries[0].resource.buffer, constants.GetDeviceBuffer());
+  assert.equal(entries[1].resource.id, "diffuse");
+  assert.equal(entries[2].resource, sampler.GetSampler());
+  assert.equal(log.filter(entry => entry === "setBindGroup:0:1").length, 1, "bound once for the encoder");
+  assert.equal(log.filter(entry => entry.startsWith("drawIndexed")).length, 2);
+  assert.equal(constants.m_dirty, false, "the bind consumed the upload token");
+
+  // A new constant buffer at the same register is a different bind group.
+  const other = al.CreateConstantBuffer(64);
+
+  al.SetConstants(other, ShaderType.VERTEX_SHADER, 0);
+  al.DrawIndexedInstanced(36, 1);
+  assert.equal(bindGroups.length, 2);
+});
+
+test("slots nothing filled take dummies, as Metal's Create fills them", () =>
+{
+  const { al, bindGroups, created } = composed();
+  const program = programFor(al, { block: GROUPED_BLOCK() });
+
+  // No constant buffer bound, no resource set bound: DX12's null CB and
+  // Metal's dummy texture and sampler.
+  bindGeometry(al, program);
+  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+
+  const entries = bindGroups[0].descriptor.entries;
+
+  assert.equal(created.buffers.length, 1, "a null uniform buffer");
+  assert.equal(created.buffers[0].size, 64, "sized to the layout's minBindingSize");
+  assert.equal(entries[0].resource.buffer.kind, "buffer");
+  assert.equal(created.textures.length, 1, "a 1x1 dummy texture");
+  assert.equal(entries[1].resource.dimension, "2d");
+  assert.equal(created.samplers.length, 1, "a default sampler");
+
+  // A set made against ANOTHER program does not answer for this one.
+  const foreign = programFor(al, { block: GROUPED_BLOCK() });
+  const set = al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), foreign);
+
+  al.SetResourceSet(set);
+  al.DrawIndexedInstanced(36, 1);
+  assert.equal(created.textures.length, 1, "the dummies are shared, created once");
+  assert.equal(bindGroups.length, 1, "and the same group is reused - the set did not apply");
 });
 
 test("what the vertex half cannot say refuses the draw and names the gap", () =>

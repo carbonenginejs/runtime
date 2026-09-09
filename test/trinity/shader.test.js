@@ -7,7 +7,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
-import { Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -1048,6 +1048,21 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
     IsValid()
     {
       return true;
+    },
+    // Carbon: `renderContext.m_esm.GetShaderProgram( handle )` hands the
+    // REALIZED program to the set (Tr2Material.cpp:232-234); the context makes
+    // the set of its backend's kind.
+    GetEffectStateManager()
+    {
+      return { GetShaderProgram: () => ({ id: "program" }) };
+    },
+    CreateResourceSet(description, program)
+    {
+      const set = new Tr2ResourceSetALStub();
+
+      set.Create(description, program, renderContext);
+
+      return set;
     },
     SetConstants(buffer, stage)
     {

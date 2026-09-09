@@ -74,6 +74,7 @@ import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
+import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
 import { SamplerDescriptionKey } from "../Tr2SamplerDescription.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
@@ -1339,13 +1340,7 @@ export class CjsWebgpuRenderContextAL
     if (!this.#webgpu) return true;
     if (!this.EmitRenderPipelineState()) return false;
 
-    const program = this.#shaderProgram;
-    const groups = program.GetBindGroupLayouts().length;
-
-    if (groups > 0)
-    {
-      return this.#RefusePipeline(`bind groups for the program's ${groups} group(s); the resource-set half is not ported`);
-    }
+    if (!this.#EmitBindGroups()) return false;
 
     const layouts = this.#psoDescription.vertexBufferLayouts;
 
@@ -1430,6 +1425,213 @@ export class CjsWebgpuRenderContextAL
     }
 
     return layouts;
+  }
+
+  /**
+   * Bind groups by `program | group | resource set | constant buffers`.
+   *
+   * DX12's descriptor tables live on the CONTEXT, per back buffer
+   * (`Tr2RenderContextDx12.h:269`), and are committed at `SetAllState`
+   * (`:875`); Metal binds per stage inside `EmitRenderEncoderState`
+   * (`MetalWorkQueue.mm:2613-2690`). A WebGPU bind group is an immutable object
+   * made of both the set's entries and the bound constant buffers, so it is
+   * made here, at the draw, and kept by the identities that produced it.
+   */
+  #bindGroups = new Map();
+
+  /**
+   * Builds or reuses one bind group per program group and names them for the
+   * draw.
+   *
+   * The program's uniform slots read the constant buffers `SetConstants` bound
+   * at that stage and register - Carbon's parallel road for CBs - uploading
+   * each buffer's shadow if it changed, which is where Carbon's token is
+   * consumed. Every other slot reads the resource set; with no set bound, or a
+   * set made for another program, the slots take dummies, which is Metal's
+   * `SetDummyResources` (`Tr2RenderContextMetal.mm:527-530`).
+   *
+   * @returns {boolean} Whether every group could be built.
+   */
+  #EmitBindGroups()
+  {
+    const program = this.#shaderProgram;
+    const layouts = program.GetBindGroupLayouts();
+
+    if (!layouts.length) return true;
+
+    const set = this.#resourceSet;
+    const entries = set && typeof set.GetEntries === "function" && set.GetProgram() === program ? set.GetEntries() : null;
+    const setId = entries ? set.m_id : 0;
+    const bindings = program.GetBindings();
+    const device = this.#webgpu.GetDevice();
+
+    for (let group = 0; group < layouts.length; group += 1)
+    {
+      const keyParts = [ program.GetIdentity(), group, setId ];
+      const resolved = [];
+
+      for (const binding of bindings)
+      {
+        if (binding.group !== group) continue;
+
+        let resource;
+
+        if (binding.buffer && binding.buffer.type === "uniform")
+        {
+          const constantBuffer = this.#ConstantBufferFor(binding);
+
+          if (constantBuffer)
+          {
+            constantBuffer.Upload();
+            resource = { buffer: constantBuffer.GetDeviceBuffer() };
+            keyParts.push(`cb${constantBuffer.m_id}`);
+          }
+          else
+          {
+            // DX12 substitutes a null CB for an unbound root CBV
+            // (`DescriptorStateCacheDx12.cpp:234-242`).
+            resource = { buffer: this.GetNullBuffer(binding.buffer.minBindingSize ?? 16, "UNIFORM") };
+            keyParts.push("cb0");
+          }
+        }
+        else
+        {
+          resource = entries ? entries.get(`${group}:${binding.binding}`) ?? null : null;
+          resource ??= this.#DummyFor(binding);
+        }
+
+        resolved.push({ binding: binding.binding, resource });
+      }
+
+      const key = keyParts.join("|");
+      let bindGroup = this.#bindGroups.get(key) ?? null;
+
+      if (!bindGroup)
+      {
+        bindGroup = device.createBindGroup({
+          label: `Tr2RenderContextAL ${program.GetIdentity()} group${group}`,
+          layout: layouts[group],
+          entries: resolved
+        });
+        this.#bindGroups.set(key, bindGroup);
+      }
+
+      this.#workQueue.SetBindGroup(group, bindGroup);
+    }
+
+    return true;
+  }
+
+  /** The constant buffer `SetConstants` bound for a uniform binding, by any visible stage. */
+  #ConstantBufferFor(binding)
+  {
+    for (const [ bit, stage ] of [ [ 1, ShaderType.VERTEX_SHADER ], [ 2, ShaderType.PIXEL_SHADER ], [ 4, ShaderType.COMPUTE_SHADER ] ])
+    {
+      if ((binding.visibility & bit) === 0) continue;
+
+      const buffer = this.#constantBuffers.get(stage * CONSTANT_BUFFER_REGISTERS + binding.registerIndex) ?? null;
+
+      if (buffer && typeof buffer.Upload === "function" && buffer.IsValid()) return buffer;
+    }
+
+    return null;
+  }
+
+  /** Metal's dummy for a slot no set filled. */
+  #DummyFor(binding)
+  {
+    if (binding.sampler) return this.GetDummySampler();
+    if (binding.texture) return this.GetDummyTexture(binding.texture.viewDimension ?? "2d");
+
+    return { buffer: this.GetNullBuffer(binding.buffer?.minBindingSize ?? 16, "STORAGE") };
+  }
+
+  /** The dummies, created once each: `MetalContext::m_dummyTexture[]`, `m_dummySampler`. */
+  #dummies = { textures: new Map(), sampler: null, buffers: new Map() };
+
+  /**
+   * A 1x1 texture view of the given dimension, for a slot nothing filled.
+   *
+   * `MetalContext::GetDummyTexture( MTLTextureType )` (`MetalContext.mm:306-320`):
+   * one per texture type, because a sampler of the wrong dimension is a
+   * validation error rather than a black texel.
+   *
+   * @param {string} [viewDimension] A `GPUTextureViewDimension`.
+   * @returns {object} A `GPUTextureView`.
+   */
+  GetDummyTexture(viewDimension = "2d")
+  {
+    const existing = this.#dummies.textures.get(viewDimension);
+
+    if (existing) return existing;
+
+    const usage = this.#webgpu.GetTextureUsage();
+    const layers = viewDimension === "cube" ? 6 : 1;
+    const texture = this.#webgpu.GetDevice().createTexture({
+      label: `Tr2RenderContextAL dummy ${viewDimension}`,
+      size: { width: 1, height: 1, depthOrArrayLayers: layers },
+      dimension: viewDimension === "3d" ? "3d" : "2d",
+      format: "rgba8unorm",
+      usage: usage.TEXTURE_BINDING | usage.COPY_DST
+    });
+    const view = texture.createView({ dimension: viewDimension });
+
+    this.#dummies.textures.set(viewDimension, view);
+
+    return view;
+  }
+
+  /** `MetalContext::GetDummySampler()`: a default sampler for a slot nothing filled. */
+  GetDummySampler()
+  {
+    this.#dummies.sampler ??= this.#webgpu.GetDevice().createSampler({ label: "Tr2RenderContextAL dummy sampler" });
+
+    return this.#dummies.sampler;
+  }
+
+  /**
+   * A zeroed buffer of at least `size` bytes for a slot nothing filled.
+   *
+   * DX12's null CB / null SRV substitution, one per size and usage.
+   *
+   * @param {number} size Bytes the layout demands.
+   * @param {"UNIFORM"|"STORAGE"} usageName The usage flag's name.
+   * @returns {object} A `GPUBuffer`.
+   */
+  GetNullBuffer(size, usageName)
+  {
+    const aligned = Math.max(16, Math.ceil(size / 16) * 16);
+    const key = `${usageName}:${aligned}`;
+    const existing = this.#dummies.buffers.get(key);
+
+    if (existing) return existing;
+
+    const usage = this.#webgpu.GetBufferUsage();
+    const buffer = this.#webgpu.GetDevice().createBuffer({
+      label: `Tr2RenderContextAL null ${usageName.toLowerCase()} ${aligned}`,
+      size: aligned,
+      usage: usage[usageName] | usage.COPY_DST
+    });
+
+    this.#dummies.buffers.set(key, buffer);
+
+    return buffer;
+  }
+
+  /**
+   * Creates a resource set, this backend's kind of `Tr2ResourceSetAL`.
+   *
+   * @param {object} description A `Tr2ResourceSetDescriptionAL`.
+   * @param {object} program The `CjsWebgpuShaderProgramAL` it binds against.
+   * @returns {object|null} The set, or null when Create refused.
+   */
+  CreateResourceSet(description, program)
+  {
+    const resourceSet = new CjsWebgpuResourceSetAL();
+
+    if (Failed(resourceSet.Create(description, program, this))) return null;
+
+    return resourceSet;
   }
 
   /** Records why a draw cannot proceed and says no. */
@@ -1732,6 +1934,8 @@ export class CjsWebgpuRenderContextAL
     this.#pipeline = null;
     this.#pipelineDirty = true;
     this.#samplerStates.clear();
+    this.#bindGroups.clear();
+    this.#dummies = { textures: new Map(), sampler: null, buffers: new Map() };
   }
 
   /**

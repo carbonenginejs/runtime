@@ -1176,6 +1176,17 @@ export class CjsWebgpuDevice
   }
 
   /**
+   * The `GPUTextureUsage` flags this device creates textures with; injectable
+   * for the same reason as the buffer usage.
+   *
+   * @returns {object|null} The usage flags.
+   */
+  GetTextureUsage()
+  {
+    return this._textureUsage;
+  }
+
+  /**
    * Returns the generation used to reject objects from earlier device
    * lifecycles.
    */

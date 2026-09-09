@@ -823,6 +823,23 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Creates a resource set of the running backend's kind from a filled
+   * description and the realized program it binds against.
+   *
+   * Carbon's `Tr2ResourceSetAL::Create( description, program, context )` is a
+   * member call on a default-constructed set (`Tr2Material.cpp:234`); the
+   * context makes it here for the reason `CreateBuffer` is here.
+   *
+   * @param {object} description A `Tr2ResourceSetDescriptionAL`.
+   * @param {object} program A `Tr2ShaderProgramAL`.
+   * @returns {object|null} A `Tr2ResourceSetAL`, or null when Create refused.
+   */
+  CreateResourceSet(description, program)
+  {
+    return this.#requireAL("CreateResourceSet").CreateResourceSet(description, program);
+  }
+
+  /**
    * Creates the running backend's vertex layout from a vertex definition.
    *
    * The same reason `CreateBuffer` is here. Carbon's effect state manager holds

@@ -339,10 +339,21 @@ export class CjsWebgpuWorkQueue
   // an encoder opens - a new pass starts with nothing bound.
 
   /** What the next draw must have bound. */
-  #pending = { pipeline: null, vertexBuffers: [], indexBuffer: null };
+  #pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
 
   /** What the open encoder has been told, reset per encoder. */
-  #encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null };
+  #encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+
+  /**
+   * Names the bind group for one group index.
+   *
+   * @param {number} index The group index.
+   * @param {object} bindGroup A `GPUBindGroup`.
+   */
+  SetBindGroup(index, bindGroup)
+  {
+    this.#pending.bindGroups[index] = bindGroup;
+  }
 
   /**
    * Names the pipeline the next draw runs.
@@ -390,6 +401,14 @@ export class CjsWebgpuWorkQueue
       pass.setPipeline(want.pipeline);
       live.pipeline = want.pipeline;
     }
+
+    want.bindGroups.forEach((bindGroup, index) =>
+    {
+      if (!bindGroup || live.bindGroups[index] === bindGroup) return;
+
+      pass.setBindGroup(index, bindGroup);
+      live.bindGroups[index] = bindGroup;
+    });
 
     want.vertexBuffers.forEach((entry, slot) =>
     {
@@ -535,7 +554,7 @@ export class CjsWebgpuWorkQueue
 
     // A caller that encodes on the pass directly binds what it likes, so what
     // this queue believes the encoder holds is no longer true.
-    this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null };
+    this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
 
     return this.#renderPass;
   }
@@ -566,7 +585,7 @@ export class CjsWebgpuWorkQueue
     if (this.#commandEncoder)
     {
       this.#renderPass = this.#commandEncoder.beginRenderPass(this.#describePass(attachments));
-      this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null };
+      this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
     }
   }
 

@@ -31,6 +31,8 @@ import { ALResult, Tr2ALMemoryType, Tr2ConstantUsageAL } from "#trinityal";
  */
 const ALIGNMENT = 16;
 
+let nextConstantBufferId = 1;
+
 
 export class CjsWebgpuConstantBufferAL
 {
@@ -50,6 +52,9 @@ export class CjsWebgpuConstantBufferAL
 
   /** m_token, as a flag: whether the shadow has bytes the device lacks. */
   m_dirty = false;
+
+  /** A process-unique identity, for the context's bind-group cache. Zero until Create. */
+  m_id = 0;
 
   /**
    * Creates the buffer.
@@ -81,6 +86,8 @@ export class CjsWebgpuConstantBufferAL
     this.m_shadowCopy = new Uint8Array(this.m_handle.size);
     this.m_size = size;
     this.m_usage = usage;
+    this.m_id = nextConstantBufferId;
+    nextConstantBufferId += 1;
 
     if (initialData)
     {
@@ -164,6 +171,7 @@ export class CjsWebgpuConstantBufferAL
     this.m_shadowCopy = new Uint8Array(0);
     this.m_size = 0;
     this.m_dirty = false;
+    this.m_id = 0;
   }
 
   /**
