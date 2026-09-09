@@ -18,6 +18,18 @@
 // is UTF-8 source. The AL contract does not care - it stores bytes and a
 // signature - and the divergence is here rather than in Trinity, which is where
 // Carbon puts every other API difference too.
+//
+// FIELDS ARE PUBLIC AND CARBON-NAMED, not private. Carbon's AL facade holds
+// exactly one private member - the `shared_ptr` to its impl - and the impl
+// class behind it carries public state, which is why Metal reads
+// `buffer.m_buffer->GetMetalBuffer()` and the stub swap chain declares
+// `m_backBuffer` public. We merge facade and impl into one class, so the merged
+// class carries the impl's fields.
+//
+// The whole layer is internal, so hiding inside it buys nothing - and it cost
+// something real: a program whose state was entirely private has no own
+// enumerable keys, canonicalised to an empty object, and would have collided
+// with every other program in the pipeline cache.
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 
@@ -67,18 +79,18 @@ function wgslFrom(bytecode)
 export class CjsWebgpuShaderAL
 {
   /** m_type - a Carbon `ShaderType`; `INVALID_SHADER` until Create succeeds. */
-  #type = ShaderType.INVALID_SHADER;
+  m_type = ShaderType.INVALID_SHADER;
 
   /** m_signature */
-  #signature = null;
+  m_signature = null;
 
   /** The WGSL this module was compiled from. */
-  #source = "";
+  m_source = "";
 
   /** The compiled module, or null before Create. */
-  #module = null;
+  m_module = null;
 
-  #webgpu = null;
+  m_webgpu = null;
 
   /**
    * Compiles the shader.
@@ -105,14 +117,14 @@ export class CjsWebgpuShaderAL
     const webgpu = renderContext.GetWebgpu();
     if (!webgpu) return ALResult.E_INVALIDCALL;
 
-    this.#source = wgslFrom(bytecode);
-    this.#module = webgpu.GetDevice().createShaderModule({
+    this.m_source = wgslFrom(bytecode);
+    this.m_module = webgpu.GetDevice().createShaderModule({
       label: shaderPath || "Tr2ShaderAL",
-      code: this.#source
+      code: this.m_source
     });
-    this.#webgpu = webgpu;
-    this.#type = type;
-    this.#signature = signature;
+    this.m_webgpu = webgpu;
+    this.m_type = type;
+    this.m_signature = signature;
 
     return ALResult.S_OK;
   }
@@ -127,31 +139,31 @@ export class CjsWebgpuShaderAL
    */
   IsValid()
   {
-    return this.#module !== null && this.#type !== ShaderType.INVALID_SHADER;
+    return this.m_module !== null && this.m_type !== ShaderType.INVALID_SHADER;
   }
 
   /** The stage this shader was created for. */
   GetType()
   {
-    return this.#type;
+    return this.m_type;
   }
 
   /** The WGSL this was compiled from, as bytes, matching the stub's contract. */
   GetBytecode()
   {
-    return new TextEncoder().encode(this.#source);
+    return new TextEncoder().encode(this.m_source);
   }
 
   /** The reflected signature. */
   GetSignature()
   {
-    return this.#signature;
+    return this.m_signature;
   }
 
   /** The `GPUShaderModule`, for a pipeline to reference. */
   GetModule()
   {
-    return this.#module;
+    return this.m_module;
   }
 
   /** Releases the module. */
@@ -159,11 +171,11 @@ export class CjsWebgpuShaderAL
   {
     // A GPUShaderModule has no destroy(); it is released when nothing
     // references it. Dropping the reference is the whole of it.
-    this.#module = null;
-    this.#webgpu = null;
-    this.#type = ShaderType.INVALID_SHADER;
-    this.#signature = null;
-    this.#source = "";
+    this.m_module = null;
+    this.m_webgpu = null;
+    this.m_type = ShaderType.INVALID_SHADER;
+    this.m_signature = null;
+    this.m_source = "";
   }
 
   /**
@@ -176,7 +188,7 @@ export class CjsWebgpuShaderAL
    */
   SetNullShaderType(type)
   {
-    this.#type = type;
+    this.m_type = type;
   }
 
   /**
@@ -215,7 +227,7 @@ export class CjsWebgpuShaderAL
    */
   SetName(name)
   {
-    if (this.#module) this.#module.label = String(name);
+    if (this.m_module) this.m_module.label = String(name);
 
     return ALResult.S_OK;
   }
@@ -248,7 +260,7 @@ export class CjsWebgpuShaderAL
 export class CjsWebgpuShaderProgramAL
 {
   /** m_shaders, in the order given. */
-  #shaders = [];
+  m_shaders = [];
 
   /**
    * Links the shaders into a program.
@@ -283,7 +295,7 @@ export class CjsWebgpuShaderProgramAL
       stages |= bit;
     }
 
-    this.#shaders = shaders.slice();
+    this.m_shaders = shaders.slice();
 
     return ALResult.S_OK;
   }
@@ -291,13 +303,13 @@ export class CjsWebgpuShaderProgramAL
   /** Whether the program linked. */
   IsValid()
   {
-    return this.#shaders.length > 0;
+    return this.m_shaders.length > 0;
   }
 
   /** The linked shaders, in the order they were given. */
   GetShaders()
   {
-    return this.#shaders;
+    return this.m_shaders;
   }
 
   /**
@@ -308,7 +320,7 @@ export class CjsWebgpuShaderProgramAL
    */
   GetModuleFor(type)
   {
-    const shader = this.#shaders.find(candidate => candidate.GetType() === type);
+    const shader = this.m_shaders.find(candidate => candidate.GetType() === type);
 
     return shader ? shader.GetModule() : null;
   }
@@ -316,7 +328,7 @@ export class CjsWebgpuShaderProgramAL
   /** Releases the linked shaders. */
   Destroy()
   {
-    this.#shaders = [];
+    this.m_shaders = [];
   }
 
   /**
@@ -355,7 +367,7 @@ export class CjsWebgpuShaderProgramAL
    */
   SetName(name)
   {
-    for (const shader of this.#shaders) shader.SetName(name);
+    for (const shader of this.m_shaders) shader.SetName(name);
 
     return ALResult.S_OK;
   }
