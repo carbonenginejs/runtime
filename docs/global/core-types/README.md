@@ -38,20 +38,19 @@ runtime packages, not in this foundational package.
 
 ## Hydration contract
 
-The global model foundation does not impose a runtime lifecycle on callers. The hydrator only
-guarantees ordering:
+Hydration runs `construct`, `applyValues`, then post-graph `finalize`.
+`CjsDocumentHydrator` constructs through the supplied registry or
+`CjsSchema.GetConstructor(name)` unless a custom construction hook supplies
+the target.
 
-1. `construct`
-2. `applyValues`
-3. `finalize`
+By default, population calls `SetValues(values, options)` when available,
+otherwise `Object.assign`. Finalization calls `Initialize()` with no arguments
+when available, after every node has been populated.
 
-The default behavior is intentionally minimal: construction through
-`CjsSchema.GetConstructor(name)`, `Object.assign` for values, and no finalize
-step. Callers opt into stricter population rules by supplying an adapter.
-
-Use `createLifecycleAdapter()` when your runtime classes follow a
-`SetValues`-style contract. `Initialize` is optional; disable it explicitly
-when a project only wants `SetValues`.
+Override individual hooks through `options.adapter`. To suppress initialization,
+provide a no-op `finalize` hook. `createLifecycleAdapter` has been removed;
+`resolveHydrationAdapter` is exported from `@carbonenginejs/runtime/schema/hydration`,
+with `@carbonenginejs/runtime/model/hydration` retained as a compatibility subpath.
 
 ## Usage
 
@@ -63,7 +62,6 @@ import {
   CjsClassRegistry,
   CjsDocumentHydrator
 } from "@carbonenginejs/runtime/model/document";
-import { createLifecycleAdapter } from "@carbonenginejs/runtime/model/hydration";
 import { CjsModel } from "@carbonenginejs/runtime/model";
 import { CjsSchema } from "@carbonenginejs/runtime/schema";
 
@@ -101,7 +99,12 @@ const registry = CjsClassRegistry.fromMaps({
   constructors: { DemoNode }
 });
 
-const adapter = createLifecycleAdapter({ initialize: false });
+const adapter = {
+  finalize()
+  {
+    // This example deliberately skips initialization.
+  }
+};
 const { root } = CjsDocumentHydrator.hydrate(document, { registry, adapter });
 ```
 
@@ -306,7 +309,7 @@ settlement, initialization, traversal, resources and optional lifecycle state.
 
 ```js
 import { CjsCarbonDocument, CjsDocumentHydrator } from "@carbonenginejs/runtime/model/document";
-import { createLifecycleAdapter } from "@carbonenginejs/runtime/model/hydration";
+import { resolveHydrationAdapter } from "@carbonenginejs/runtime/schema/hydration";
 import { CjsLifecycleState } from "@carbonenginejs/runtime/model/lifecycle";
 import { CjsSchema, type, io, jessica, carbon, components } from "@carbonenginejs/runtime/schema";
 import { CjsModel, CjsEventEmitter, CjsModelState } from "@carbonenginejs/runtime/model";
