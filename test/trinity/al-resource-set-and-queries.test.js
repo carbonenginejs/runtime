@@ -60,6 +60,16 @@ test("two descriptions with the same registers have the same map", () =>
 
   assert.equal(first.GetRegisterMap().Equals(second.GetRegisterMap()), false, "an extra register is a different shape");
   assert.equal(new Tr2RegisterMapAL().Equals(null), false);
+
+  // The guard is a PRIVATE-BRAND check, so a look-alike is rejected before
+  // anything reaches the private slots it would otherwise throw on. A duck
+  // carrying the same accessors is not one of these.
+  const lookAlike = { GetSrvs: () => [], GetUavs: () => [], GetSamplers: () => [], Count: () => 0 };
+
+  assert.equal(new Tr2RegisterMapAL().Equals(lookAlike), false);
+  assert.equal(new Tr2RegisterMapAL().Equals(undefined), false);
+  assert.equal(new Tr2RegisterMapAL().Equals("not a map"), false);
+  assert.equal(new Tr2RegisterMapAL().Equals(new Tr2RegisterMapAL()), true);
 });
 
 test("a resource set keeps what it was asked to bind", () =>

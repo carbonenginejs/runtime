@@ -129,12 +129,21 @@ export class Tr2RegisterMapAL
    * Carbon's `operator==`, and the reason it exists: two programs with the same
    * register map can share a resource set.
    *
+   * A PRIVATE-BRAND CHECK, not `CjsSchema.cast` and not `instanceof`. The line
+   * below reaches `other.#Slots(...)`, which throws for anything that is not
+   * genuinely one of these - so the guard has to answer exactly the question
+   * "will that access work", and `#srvs in other` is that question. `cast` is
+   * for the other kind of type test: it asks whether an object implements an
+   * optional CONTRACT (`compose/interface.js:169-190`), and falls back to
+   * `instanceof` itself, so using it here would be both the wrong question and
+   * the same answer.
+   *
    * @param {Tr2RegisterMapAL} other The map to compare with.
    * @returns {boolean} True when they match.
    */
   Equals(other)
   {
-    if (!(other instanceof Tr2RegisterMapAL)) return false;
+    if (other === null || typeof other !== "object" || !(#srvs in other)) return false;
 
     for (const kind of [ "srv", "uav", "sampler" ])
     {

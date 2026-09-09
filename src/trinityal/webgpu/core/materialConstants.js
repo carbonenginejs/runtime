@@ -19,6 +19,7 @@
 // module names the correct source rather than quietly wrapping the wrong one.
 
 import { Tr2EffectStageInput, Tr2Shader } from "#resource/shader";
+import { CjsSchema } from "#schema";
 
 function fail(message)
 {
@@ -58,7 +59,13 @@ export function MaterialLayoutFromShader(shader, options = {})
   const passIndex = options.pass ?? 0;
   const stageType = options.stage ?? PIXEL_STAGE;
 
-  if (!(shader instanceof Tr2Shader)) fail("a Tr2Shader reflection object is required");
+  // CjsSchema.cast, not a bare instanceof. The question is whether this object
+  // implements the Tr2Shader contract, which is the one type test the entry
+  // skill sanctions, and routing it through cast means the answer lives in one
+  // place - a bare instanceof here would also be the one thing that silently
+  // fails when a consumer ends up with two copies of this package and a shader
+  // made by one reaches the backend of the other.
+  if (!CjsSchema.cast(shader, Tr2Shader)) fail("a Tr2Shader reflection object is required");
 
   const effect = shader.GetEffect();
   if (!effect) fail("the shader exposes no effect description");
