@@ -424,3 +424,104 @@ test("the variants this backend cannot honour refuse instead of drawing", () =>
   assert.throws(() => al.RenderBatches({}, "Main", { overrideMaterial: {} }), /RenderBatchesWithOverride/u);
   assert.throws(() => al.RenderBatches({}, "Main", { picking: true }), /RenderBatchesForPicking/u);
 });
+
+// The verbs Trinity calls on a render context that this backend did not have
+// until 2026-09-09. Every one of them was a TypeError at the call site rather
+// than a refusal, because the backend simply lacked the method.
+
+test("the backend answers every render-context verb Trinity calls", () =>
+{
+  const al = ready();
+
+  // Nine methods, each a live break before they existed: Tr2Material and
+  // Tr2RenderUtils reach SetConstants, Tr2RingBuffer both frame numbers,
+  // TriStepClearUav / TriStepRunComputeShader / TriStepSetRenderState the
+  // next three, and Tr2RenderContext the two UP draws and GetCaps.
+  for (const name of [
+    "GetCaps", "SetConstants", "GetRecordingFrameNumber", "GetRenderedFrameNumber",
+    "ClearUav", "RunComputeShaderIndirect", "SetRenderState", "DrawPrimitiveUP",
+    "DrawIndexedPrimitiveUP"
+  ])
+  {
+    assert.equal(typeof al[name], "function", `${name} is missing`);
+  }
+});
+
+test("caps answer for WebGPU rather than for the stub", () =>
+{
+  const caps = ready().GetCaps();
+
+  // The three the stub denies and WebGPU has, and the one WebGPU cannot claim:
+  // presentation is the browser's, so there is no chain to create.
+  assert.equal(caps.SupportsGpuBuffer(), true);
+  assert.equal(caps.SupportsVertexShaderTextures(), true);
+  assert.equal(caps.SupportsStandaloneSwapChain(), false);
+
+  // shader-f16 is optional in WebGPU, so an uncomposed backend must not promise it.
+  assert.equal(caps.SupportsFloat16(), false);
+
+  // The same object each call, as Carbon returns a reference to a member.
+  const al = ready();
+  assert.equal(al.GetCaps(), al.GetCaps());
+});
+
+test("the frame number counts submitted frames and recording is one ahead", async () =>
+{
+  const al = ready();
+
+  assert.equal(al.GetRenderedFrameNumber(), 0);
+  assert.equal(al.GetRecordingFrameNumber(), 1);
+
+  await al.EndScene();
+
+  assert.equal(al.GetRenderedFrameNumber(), 1);
+  assert.equal(al.GetRecordingFrameNumber(), 2);
+});
+
+test("SetConstants binds per stage and register, and rejects what Carbon rejects", () =>
+{
+  const al = ready();
+  const buffer = { id: "constants" };
+
+  assert.equal(al.SetConstants(buffer, 1, 3), true);
+  assert.equal(al.GetConstants(1, 3), buffer);
+
+  // A different stage at the same register is a different slot.
+  assert.equal(al.GetConstants(0, 3), null);
+
+  // Carbon returns E_INVALIDARG past its constant-buffer count
+  // (Tr2RenderContextMetal.mm:664-672).
+  assert.equal(al.SetConstants(buffer, 1, 20), false);
+  assert.equal(al.SetConstants(buffer, 6, 0), false);
+});
+
+test("a single render state is stored and dirties the pipeline, and a redundant one does not", () =>
+{
+  const al = ready();
+
+  al.SetRenderStates({ id: "setup" });
+  assert.equal(al.IsPipelineDirty(), true);
+
+  assert.equal(al.SetRenderState(7, 1), true);
+  assert.equal(al.GetRenderStateInputs().states.get(7), 1);
+
+  // Carbon's setters compare before dirtying, so a redundant apply costs nothing.
+  const inputs = al.GetRenderStateInputs();
+  assert.equal(al.SetRenderState(7, 1), true);
+  assert.equal(inputs.states.size, 1);
+});
+
+test("the verbs this backend cannot encode refuse rather than report success", () =>
+{
+  const al = ready();
+
+  // Reporting success here would leave a caller reading stale contents it
+  // believes are zero, or missing geometry it believes it drew.
+  assert.equal(al.ClearUav({ IsValid: () => true }, [ 0, 0, 0, 0 ]), false);
+  assert.equal(al.DrawPrimitiveUP(2, new Float32Array(12), 16), false);
+  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, new Uint16Array(6), new Float32Array(12), 16), false);
+
+  // Indirect compute IS recorded; only its group counts come from a buffer.
+  assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => true }, 0), true);
+  assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => false }, 0), false);
+});

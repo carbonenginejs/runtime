@@ -35,11 +35,12 @@
 // rather than faked. Buffer creation IS here (`CreateBuffer`), because a
 // Trinity class that fills a buffer per frame cannot pick its own backend.
 
-import { Topology, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { ShaderType, Topology, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment } from "#trinityal";
 import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
+import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 
 
 function fail(message)
@@ -69,6 +70,17 @@ const VERTICES_PER_PRIMITIVE = Object.freeze({
 
 /** Carbon's `MAX_RENDER_TARGET`; the bound-target array is fixed width. */
 const MAX_RENDER_TARGET = 8;
+
+
+/**
+ * How many constant-buffer registers a stage has.
+ *
+ * Carbon's Metal backend fixes this at 20 (`METAL_CONST_BUFFER_COUNT`,
+ * `MetalWorkQueue.h:39`) and rejects anything past it. Kept at Carbon's number
+ * rather than a WebGPU limit: this bounds the REGISTER INDEX an effect declares,
+ * which the shader compiler already fixed, not the bind-group slot count.
+ */
+const CONSTANT_BUFFER_REGISTERS = 20;
 
 
 /** WebGPU behind the abstraction layer, holding a work queue as Metal does. */
@@ -241,6 +253,59 @@ export class CjsWebgpuRenderContextAL
     return this.#workQueue;
   }
 
+  /** m_caps, built once against whatever device this backend was composed with. */
+  #caps = null;
+
+  /**
+   * What this backend can do.
+   *
+   * Carbon returns a reference to a member (`Tr2RenderContextMetal.mm:855-858`),
+   * so the object is stable across calls; built lazily here because the device
+   * is a constructor argument and the caps read its limits.
+   *
+   * @returns {CjsWebgpuCapsAL} The capabilities.
+   */
+  GetCaps()
+  {
+    this.#caps ??= new CjsWebgpuCapsAL(this.#webgpu);
+
+    return this.#caps;
+  }
+
+  /**
+   * m_frameNumber. Carbon's Metal backend keeps this on the context behind it
+   * (`Tr2RenderContextMetal.mm:1686-1694`); there is no such object here, so it
+   * lives on the backend, exactly as the stub keeps it.
+   */
+  #frameNumber = 0;
+
+  /**
+   * The frame being recorded now.
+   *
+   * @returns {number} One past the last frame submitted.
+   */
+  GetRecordingFrameNumber()
+  {
+    return this.#frameNumber + 1;
+  }
+
+  /**
+   * The last frame handed to the device.
+   *
+   * SUBMISSION, NOT COMPLETION. `GPUQueue.submit` returns without waiting, and
+   * the only handle on actual completion is `onSubmittedWorkDone`, a promise -
+   * so a truthful "rendered" count would lag by an unbounded amount and could
+   * not be read synchronously. This counts submitted frames, and a ring buffer
+   * fencing against it is therefore protected by submission order rather than
+   * by GPU completion.
+   *
+   * @returns {number} Frames submitted.
+   */
+  GetRenderedFrameNumber()
+  {
+    return this.#frameNumber;
+  }
+
   /**
    * Everything the work queue has reported since the last drain.
    *
@@ -372,6 +437,8 @@ export class CjsWebgpuRenderContextAL
     }
 
     this.#Record(this.#workQueue.EndFrame());
+
+    this.#frameNumber += 1;
 
     if (this.#commandEncoder)
     {
@@ -670,6 +737,51 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
+   * Runs a compute dispatch whose group counts are read from a buffer.
+   *
+   * Carbon validates the buffer and hands it to the work queue's indirect
+   * dispatch (`Tr2RenderContextMetal.mm:625-636`). The validation is the same
+   * here; the dispatch is the ordinary compute encoder, because the work queue
+   * has no indirect verb yet and `dispatchWorkgroupsIndirect` is the WebGPU call
+   * that would go behind one.
+   *
+   * @param {object} _effect The compute effect to run.
+   * @param {object} indirectionBuffer A buffer holding the group counts.
+   * @param {number} [_offsetForArgs] Byte offset to them.
+   * @returns {boolean} Whether the dispatch was recorded.
+   */
+  RunComputeShaderIndirect(_effect, indirectionBuffer, _offsetForArgs = 0)
+  {
+    if (!indirectionBuffer || !indirectionBuffer.IsValid()) return false;
+
+    this.#Record(this.#workQueue.SetCurrentEncoder(EncoderType.COMPUTE));
+
+    return true;
+  }
+
+  /**
+   * Clears an unordered-access resource.
+   *
+   * REFUSES RATHER THAN PRETENDS. Carbon's Metal backend clears through
+   * `MetalWorkQueue::ClearBuffer`/`ClearTexture`
+   * (`Tr2RenderContextMetal.mm:237-280`); this work queue has neither, and
+   * WebGPU's own equivalents - `clearBuffer` on the command encoder, a
+   * clear-load render pass for a texture - are not wired to it. Reporting
+   * success would leave a caller reading stale contents it believes are zero,
+   * which is exactly the failure a compute pass cannot detect. Carbon's stub
+   * refuses the same way (`Tr2RenderContextALStub.ClearUav`).
+   *
+   * @param {object} _resource The buffer or texture to clear.
+   * @param {number[]} _value The clear value, four components.
+   * @param {boolean} [_clearWithFloat] Whether the value is float or integer.
+   * @returns {boolean} False; the clear is not encoded.
+   */
+  ClearUav(_resource, _value, _clearWithFloat = false)
+  {
+    return false;
+  }
+
+  /**
    * Presents the frame.
    *
    * The browser presents a configured canvas after the submission that drew
@@ -794,10 +906,54 @@ export class CjsWebgpuRenderContextAL
     return true;
   }
 
-  /** The setup and overrides a pipeline should be resolved from. */
+  /**
+   * m_renderStates - single states set by name rather than through a setup.
+   *
+   * A DIFFERENT AXIS FROM `overrides`, which is a flags object the PSO
+   * description reads (`core/psoDescription.js:113-114`). These are Carbon's
+   * raw `RenderState` values, which `TriStepSetRenderState` sets one at a time.
+   */
+  #renderStates = new Map();
+
+  /**
+   * Sets one render state.
+   *
+   * Carbon's Metal backend stores the value and applies it when the pipeline is
+   * assembled, and says so in a comment above the method: "we'll remove the
+   * actual setting here and just store the values in some state and we'll do a
+   * wholesale setting of state in some combined function just before we draw"
+   * (`Tr2RenderContextMetal.mm:925-928`). This stores.
+   *
+   * THE PSO RESOLVER DOES NOT READ THESE YET. `GetWebgpuRecipe` projects the
+   * setup and the flags, and nothing consumes the single-state map, so a state
+   * set this way is recorded and not yet honoured. Recorded rather than dropped,
+   * because the resolver is where the projection belongs and adding a second
+   * translator here is the mistake this file already carries a warning about.
+   *
+   * @param {number} state A `RenderState` value.
+   * @param {number} value The value to set.
+   * @returns {boolean} True.
+   */
+  SetRenderState(state, value)
+  {
+    const key = state >>> 0;
+
+    if (this.#renderStates.get(key) === (value >>> 0)) return true;
+
+    this.#renderStates.set(key, value >>> 0);
+    this.#pipelineDirty = true;
+
+    return true;
+  }
+
+  /** The setup, overrides and single states a pipeline should be resolved from. */
   GetRenderStateInputs()
   {
-    return { setup: this.#renderStateSetup, overrides: this.#renderStateOverrides };
+    return {
+      setup: this.#renderStateSetup,
+      overrides: this.#renderStateOverrides,
+      states: this.#renderStates
+    };
   }
 
   /** Whether the pipeline description changed since it was last resolved. */
@@ -817,6 +973,51 @@ export class CjsWebgpuRenderContextAL
     this.#resourceSet = resourceSet;
 
     return true;
+  }
+
+  /**
+   * m_constantBuffers[stage][register], as Metal keeps them.
+   *
+   * A Map keyed by `stage * CONSTANT_BUFFER_REGISTERS + register` rather than a
+   * fixed two-dimensional array, because the register count is a device limit
+   * here and not a compile-time constant.
+   */
+  #constantBuffers = new Map();
+
+  /**
+   * Binds a constant buffer to one shader stage at one register.
+   *
+   * Carbon rejects a register past the backend's constant-buffer count and
+   * otherwise hands the buffer to itself to bind
+   * (`Tr2RenderContextMetal.mm:664-677`). The bound state is what the resolver
+   * reads when it assembles a draw.
+   *
+   * @param {object} buffer A `Tr2ConstantBufferAL`.
+   * @param {number} constantType A `ShaderType`.
+   * @param {number} registerIndex The constant-buffer register.
+   * @param {number} [_maxRegisterCount] Carbon's optional bound.
+   * @returns {boolean} Whether the AL accepted it.
+   */
+  SetConstants(buffer, constantType, registerIndex, _maxRegisterCount = 0)
+  {
+    if (registerIndex < 0 || registerIndex >= CONSTANT_BUFFER_REGISTERS) return false;
+    if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT) return false;
+
+    this.#constantBuffers.set(constantType * CONSTANT_BUFFER_REGISTERS + registerIndex, buffer ?? null);
+
+    return true;
+  }
+
+  /**
+   * The constant buffer bound to one stage and register.
+   *
+   * @param {number} constantType A `ShaderType`.
+   * @param {number} registerIndex The constant-buffer register.
+   * @returns {object|null} The buffer, or null when nothing is bound.
+   */
+  GetConstants(constantType, registerIndex)
+  {
+    return this.#constantBuffers.get(constantType * CONSTANT_BUFFER_REGISTERS + registerIndex) ?? null;
   }
 
   /**
@@ -902,6 +1103,44 @@ export class CjsWebgpuRenderContextAL
   DrawPrimitive(startVertex, primitiveCount)
   {
     return this.DrawInstanced(this.ComputeVertexCount(primitiveCount), 1, startVertex, 0);
+  }
+
+  /**
+   * Draws non-indexed straight from caller memory, with no buffer bound.
+   *
+   * Carbon does NOT draw this itself either: Metal hands it to
+   * `m_drawUPHelper` (`Tr2RenderContextMetal.mm:558-571`), a helper that copies
+   * the caller's vertices into a scratch buffer and issues an ordinary draw.
+   * There is no such helper here, so this validates and refuses. WebGPU cannot
+   * read caller memory - every vertex must reach a `GPUBuffer` first - which
+   * makes the helper the whole implementation rather than a detail of it.
+   *
+   * @param {number} _primitiveCount Primitives to draw.
+   * @param {ArrayBufferView} _vertexStreamZeroData The vertices.
+   * @param {number} _vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} False; the draw is not encoded.
+   */
+  DrawPrimitiveUP(_primitiveCount, _vertexStreamZeroData, _vertexStreamZeroStride)
+  {
+    return false;
+  }
+
+  /**
+   * Draws indexed straight from caller memory.
+   *
+   * The same as `DrawPrimitiveUP`: Carbon's helper stages both the indices and
+   * the vertices, and this backend has no stager.
+   *
+   * @param {number} _numVertices Vertices the index data spans.
+   * @param {number} _primitiveCount Primitives to draw.
+   * @param {ArrayBufferView} _indexData The indices.
+   * @param {ArrayBufferView} _vertexStreamZeroData The vertices.
+   * @param {number} _vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} False; the draw is not encoded.
+   */
+  DrawIndexedPrimitiveUP(_numVertices, _primitiveCount, _indexData, _vertexStreamZeroData, _vertexStreamZeroStride)
+  {
+    return false;
   }
 
   /**

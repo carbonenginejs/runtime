@@ -43,8 +43,12 @@
 // NOT IMPLEMENTED: MapForReading. Reading a buffer back needs MAP_READ, a
 // separate staging buffer and an await, and nothing asks for it yet. It
 // refuses by name rather than returning empty bytes.
-import { ALResult } from "#trinityal";
+import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
+
+
+/** Carbon's "no descriptor heap index", as the stub buffer spells it. */
+const NO_HEAP_INDEX = 0xffffffff;
 
 
 /** Carbon's usage flags mapped onto `GPUBufferUsage`. */
@@ -270,5 +274,97 @@ export class CjsWebgpuBufferAL
   /** @see MapForReading */
   UnmapForReading()
   {
+  }
+
+  /**
+   * The buffer's size in bytes, under Carbon's name for the question.
+   *
+   * `GetSizeInBytes` above is this backend's own spelling and predates the
+   * parity check. Both stay: the stub answers to `GetSize`
+   * (`stub/Tr2BufferALStub.js`), so a caller written against one backend must
+   * not fail against the other.
+   *
+   * @returns {number} Size in bytes.
+   */
+  GetSize()
+  {
+    return this.GetSizeInBytes();
+  }
+
+  /**
+   * Which memory class this buffer occupies.
+   *
+   * MANAGED, as the stub buffer reports: WebGPU gives no placement control and
+   * no residency signal, so the honest answer is the device-heap default rather
+   * than a claim about video memory.
+   *
+   * @returns {number} A `Tr2ALMemoryType` value.
+   */
+  GetMemoryClass()
+  {
+    return Tr2ALMemoryType.AL_MEMORY_MANAGED;
+  }
+
+  /**
+   * Fills in a device-resource description.
+   *
+   * Carbon's backends report size and memory class into the struct the resource
+   * sweep walks; the base class's own version is empty
+   * (`Tr2DeviceResourceAL.js`), and so is the stub's.
+   *
+   * @param {object} description The description to fill.
+   * @returns {object} The description, filled.
+   */
+  Describe(description)
+  {
+    if (!description) return description;
+
+    description.sizeInBytes = this.GetSize();
+    description.memoryClass = this.GetMemoryClass();
+
+    return description;
+  }
+
+  /**
+   * Names the buffer for a debugger.
+   *
+   * `GPUObjectBase.label` is writable after creation, so unlike the stub this
+   * one keeps the name where the browser's own error messages will quote it.
+   *
+   * @param {string} name The name to attach.
+   * @returns {number} An `ALResult` value.
+   */
+  SetName(name)
+  {
+    const buffer = this.GetDeviceBuffer();
+
+    if (buffer) buffer.label = String(name);
+
+    return ALResult.S_OK;
+  }
+
+  /**
+   * The buffer's index in a shader-resource descriptor heap.
+   *
+   * WebGPU HAS NO DESCRIPTOR HEAP - a resource is reached through a bind group,
+   * not by index into a global table - so this reports Carbon's "not in a heap"
+   * sentinel, as the stub does. It is not a gap to be filled later; there is
+   * nothing for it to number.
+   *
+   * @returns {number} `NO_HEAP_INDEX`.
+   */
+  GetSrvIndexInHeap()
+  {
+    return NO_HEAP_INDEX;
+  }
+
+  /**
+   * The buffer's index in an unordered-access descriptor heap.
+   *
+   * @returns {number} `NO_HEAP_INDEX`; see `GetSrvIndexInHeap`.
+   */
+  GetUavIndexInHeap()
+  {
+    return NO_HEAP_INDEX;
   }
 }

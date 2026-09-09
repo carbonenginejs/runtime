@@ -18,7 +18,7 @@
 // is UTF-8 source. The AL contract does not care - it stores bytes and a
 // signature - and the divergence is here rather than in Trinity, which is where
 // Carbon puts every other API difference too.
-import { ALResult } from "#trinityal";
+import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 
 
@@ -165,6 +165,60 @@ export class CjsWebgpuShaderAL
     this.#signature = null;
     this.#source = "";
   }
+
+  /**
+   * Claims a stage without bytecode, for a deliberately empty shader.
+   *
+   * The shader stays INVALID, which is the point: the pipeline must name the
+   * stage, and nothing must try to reference a module for it.
+   *
+   * @param {number} type The pipeline stage.
+   */
+  SetNullShaderType(type)
+  {
+    this.#type = type;
+  }
+
+  /**
+   * Which memory class this shader occupies.
+   *
+   * @returns {number} A `Tr2ALMemoryType` value.
+   */
+  GetMemoryClass()
+  {
+    return Tr2ALMemoryType.AL_MEMORY_MANAGED;
+  }
+
+  /**
+   * Fills in a device-resource description.
+   *
+   * @param {object} description The description to fill.
+   * @returns {object} The description, filled.
+   */
+  Describe(description)
+  {
+    if (!description) return description;
+
+    description.memoryClass = this.GetMemoryClass();
+
+    return description;
+  }
+
+  /**
+   * Names the shader for a debugger.
+   *
+   * `GPUShaderModule` carries a writable `label`, and it is what a WebGPU
+   * compilation error quotes - so unlike the stub this keeps the name.
+   *
+   * @param {string} name The name to attach.
+   * @returns {number} An `ALResult` value.
+   */
+  SetName(name)
+  {
+    if (this.#module) this.#module.label = String(name);
+
+    return ALResult.S_OK;
+  }
 }
 
 
@@ -248,5 +302,46 @@ export class CjsWebgpuShaderProgramAL
   Destroy()
   {
     this.#shaders = [];
+  }
+
+  /**
+   * Which memory class this program occupies.
+   *
+   * @returns {number} A `Tr2ALMemoryType` value.
+   */
+  GetMemoryClass()
+  {
+    return Tr2ALMemoryType.AL_MEMORY_MANAGED;
+  }
+
+  /**
+   * Fills in a device-resource description.
+   *
+   * @param {object} description The description to fill.
+   * @returns {object} The description, filled.
+   */
+  Describe(description)
+  {
+    if (!description) return description;
+
+    description.memoryClass = this.GetMemoryClass();
+
+    return description;
+  }
+
+  /**
+   * Names the program for a debugger, and every stage under it.
+   *
+   * WebGPU has no program object to label - there is no link step - so the name
+   * reaches the modules, which is where it can actually appear in an error.
+   *
+   * @param {string} name The name to attach.
+   * @returns {number} An `ALResult` value.
+   */
+  SetName(name)
+  {
+    for (const shader of this.#shaders) shader.SetName(name);
+
+    return ALResult.S_OK;
   }
 }

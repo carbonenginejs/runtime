@@ -2328,13 +2328,6 @@
   "Tr2StaticEmitter": [
     "DoSpawn"
   ],
-  "Tr2SwapChain": [
-    "GetHeight",
-    "GetWidth",
-    "OnPrepareResources",
-    "Present",
-    "ReleaseResources"
-  ],
   "Tr2TextureAnimation": [
     "AdvanceTime",
     "DecodeFirstFrame",

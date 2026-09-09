@@ -225,6 +225,16 @@ A `Tr2BufferAL` backed by a real `GPUBuffer`, writing through a retained CPU sha
 - Visibility: Internal
 - Kind: Carbon
 
+<!-- class:CjsWebgpuCapsAL -->
+## `CjsWebgpuCapsAL`
+
+The capabilities this backend reports, answering Carbon's caps questions from WebGPU's guaranteed baseline and, for `shader-f16` alone, from the composed device.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuCapsAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:CjsWebgpuShaderAL -->
 ## `CjsWebgpuShaderAL`
 

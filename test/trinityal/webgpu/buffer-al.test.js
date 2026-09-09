@@ -233,3 +233,36 @@ test("reading back is refused by name rather than returning empty bytes", () =>
   assert.equal(buffer.MapForReading().result, ALResult.E_INVALIDCALL);
   assert.equal(buffer.MapForReading().data, null);
 });
+
+test("the device-resource surface Carbon's backends share is answered", () =>
+{
+  const { fake, context } = deviceAndContext();
+  const buffer = new CjsWebgpuBufferAL();
+
+  buffer.Create(quadDescription(), null, context);
+
+  // GetSize is the stub's name for the question GetSizeInBytes already
+  // answered. Both must work, or a caller written against one backend fails
+  // against the other.
+  assert.equal(buffer.GetSize(), buffer.GetSizeInBytes());
+  assert.equal(buffer.GetSize(), 96);
+
+  // WebGPU gives no placement control, so the honest answer is the device-heap
+  // default rather than a claim about video memory.
+  assert.equal(buffer.GetMemoryClass(), 2);
+
+  const description = buffer.Describe({});
+  assert.equal(description.sizeInBytes, 96);
+  assert.equal(description.memoryClass, buffer.GetMemoryClass());
+
+  // WebGPU has no descriptor heap: a resource is reached through a bind group,
+  // not by index into a global table. Carbon's "not in a heap" sentinel.
+  assert.equal(buffer.GetSrvIndexInHeap(), 0xffffffff);
+  assert.equal(buffer.GetUavIndexInHeap(), 0xffffffff);
+
+  // Unlike the stub, the name is kept - GPUObjectBase.label is writable, and
+  // it is what the browser's own error messages quote.
+  assert.equal(buffer.SetName("quad"), ALResult.S_OK);
+  const [ , , created ] = fake.calls.find(call => call[0] === "createBuffer");
+  assert.equal(created.label, "quad");
+});

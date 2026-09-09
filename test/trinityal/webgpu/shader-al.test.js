@@ -140,3 +140,47 @@ test("a program refuses an empty list and an uncompiled stage", () =>
   assert.equal(program.Create([ new CjsWebgpuShaderAL() ], context), ALResult.E_INVALIDARG);
   assert.equal(program.IsValid(), false);
 });
+
+test("the device-resource surface Carbon's backends share is answered", () =>
+{
+  const { shader } = shaderFor(ShaderType.VERTEX_SHADER);
+
+  assert.equal(shader.GetMemoryClass(), 2);
+  assert.equal(shader.Describe({}).memoryClass, shader.GetMemoryClass());
+
+  // Unlike the stub, the name is kept: GPUShaderModule carries a writable
+  // label, and it is what a WebGPU compilation error quotes.
+  assert.equal(shader.SetName("hull.vs"), ALResult.S_OK);
+  assert.equal(shader.GetModule().label, "hull.vs");
+});
+
+test("a null shader claims its stage without becoming valid", () =>
+{
+  const shader = new CjsWebgpuShaderAL();
+
+  shader.SetNullShaderType(ShaderType.PIXEL_SHADER);
+
+  // Carbon uses this for a stage the pipeline must name that does no work.
+  // Staying invalid is the point - nothing must reference a module for it.
+  assert.equal(shader.GetType(), ShaderType.PIXEL_SHADER);
+  assert.equal(shader.IsValid(), false);
+});
+
+test("a program answers the device-resource surface and names every stage under it", () =>
+{
+  const { fake, context } = deviceAndContext();
+  const vertex = new CjsWebgpuShaderAL();
+  vertex.Create(ShaderType.VERTEX_SHADER, new TextEncoder().encode(VERTEX_WGSL), { inputs: [] }, "v.wgsl", context);
+
+  const program = new CjsWebgpuShaderProgramAL();
+  program.Create([ vertex ], context);
+
+  assert.equal(program.GetMemoryClass(), 2);
+  assert.equal(program.Describe({}).memoryClass, program.GetMemoryClass());
+
+  // WebGPU has no program object to label - there is no link step - so the
+  // name reaches the modules, which is where it can appear in an error.
+  assert.equal(program.SetName("hull"), ALResult.S_OK);
+  assert.equal(vertex.GetModule().label, "hull");
+  assert.equal(fake.modules.length, 1);
+});
