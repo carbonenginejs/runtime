@@ -75,6 +75,9 @@ import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
 import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
+import { CjsWebgpuConstantArena } from "./core/constantArena.js";
+import { CanonicalKey } from "./core/pipelineCache.js";
+import { TOPOLOGIES } from "./core/topology.js";
 import { SamplerDescriptionKey } from "../Tr2SamplerDescription.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
@@ -83,6 +86,9 @@ import { WebgpuVertexBufferLayout } from "./core/vertexFormat.js";
 
 /** WebGPU's index format for a Carbon index stride, or null for one it lacks. */
 const INDEX_FORMAT = Object.freeze({ 2: "uint16", 4: "uint32" });
+
+/** Bind groups kept before the cache is dropped and rebuilt. */
+const MAX_CACHED_BIND_GROUPS = 1024;
 
 /**
  * The `GPUBuffer` behind a bound stream, or null.
@@ -576,6 +582,10 @@ export class CjsWebgpuRenderContextAL
 
     this.#Record(this.#workQueue.BeginFrame());
 
+    // The constant arena starts the frame empty (`MetalContext.mm:473`); the
+    // previous frame's regions were consumed at its submit.
+    this.#constantArena?.Reset();
+
     // Carbon's BeginScene is exactly these two calls
     // (`Tr2RenderContextMetal.mm:860-864`). The reset is what stops a frame
     // inheriting the previous frame's bound targets.
@@ -755,6 +765,11 @@ export class CjsWebgpuRenderContextAL
     if (slot >= MAX_RENDER_TARGET) return false;
 
     this.#Record(this.#workQueue.SetRenderAttachments(renderTarget ?? null, slot, slice));
+
+    // The attachment formats are part of the pipeline; DX12 dirties its PSO
+    // here too (`Tr2RenderContextDx12.cpp:456`).
+    if (this.#boundRenderTargets[slot] !== (renderTarget ?? null)) this.#pipelineDirty = true;
+
     this.#boundRenderTargets[slot] = renderTarget ?? null;
 
     const primary = this.#boundRenderTargets[0];
@@ -834,6 +849,9 @@ export class CjsWebgpuRenderContextAL
   SetDepthStencil(depthStencil)
   {
     this.#Record(this.#workQueue.SetDepthAttachment(depthStencil ?? null));
+
+    if (this.#depthStencil !== (depthStencil ?? null)) this.#pipelineDirty = true;
+
     this.#depthStencil = depthStencil ?? null;
 
     return true;
@@ -1140,8 +1158,10 @@ export class CjsWebgpuRenderContextAL
     if (!setup) return false;
 
     // Carbon's setters compare before dirtying, so a redundant apply costs
-    // nothing (Tr2RenderContextDx12.cpp:315-338).
-    if (this.#renderStateSetup === setup && this.#renderStateOverrides === overrides) return true;
+    // nothing (Tr2RenderContextDx12.cpp:315-338). The overrides are compared BY
+    // VALUE: the state manager hands a fresh copy each apply, and comparing
+    // references made every apply dirty the pipeline.
+    if (this.#renderStateSetup === setup && CanonicalKey(this.#renderStateOverrides) === CanonicalKey(overrides)) return true;
 
     this.#renderStateSetup = setup;
     this.#renderStateOverrides = overrides;
@@ -1298,13 +1318,35 @@ export class CjsWebgpuRenderContextAL
 
     if (!program.GetModuleFor(ShaderType.VERTEX_SHADER)) return this.#RefusePipeline("a vertex stage");
 
-    const key = description.GetKey();
+    // An indexed strip needs its index format baked into the pipeline
+    // (`primitive.stripIndexFormat`), so the bound index stride is part of the
+    // identity for strips and nothing else.
+    const topology = TOPOLOGIES[this.#topology];
+    const stripIndexFormat = topology && topology.endsWith("-strip") ? INDEX_FORMAT[this.#indexStride] ?? null : null;
+    let key;
+    let recipe;
+
+    // `GetWebgpuRecipe` refuses a state it cannot project - a non-solid fill,
+    // depth state against no depth attachment - by THROWING. A draw verb is not
+    // where a frame may die, so the refusal becomes this verb's reason.
+    try
+    {
+      key = `${description.GetKey()}|strip:${stripIndexFormat ?? "-"}`;
+      recipe = description.BuildRecipe();
+    }
+    catch (error)
+    {
+      return this.#RefusePipeline(`a projectable state: ${error.message}`);
+    }
+
+    if (stripIndexFormat) recipe.primitive = { ...recipe.primitive, stripIndexFormat };
+
     let pipeline = this.#pipelines.get(key) ?? null;
     const created = pipeline === null;
 
     if (created)
     {
-      pipeline = this.#CreateRenderPipeline(program, description.BuildRecipe());
+      pipeline = this.#CreateRenderPipeline(program, recipe);
       this.#pipelines.set(key, pipeline);
     }
 
@@ -1338,6 +1380,11 @@ export class CjsWebgpuRenderContextAL
   EmitRenderEncoderState(indexed)
   {
     if (!this.#webgpu) return true;
+
+    // A reason describes THIS attempt; one left from an earlier refusal would
+    // outlive the draw that succeeded after it.
+    this.m_pipelineFailure = null;
+
     if (!this.EmitRenderPipelineState()) return false;
 
     if (!this.#EmitBindGroups()) return false;
@@ -1393,6 +1440,19 @@ export class CjsWebgpuRenderContextAL
     const inputs = this.#shaderProgram.GetInputs();
     const plan = resolveBindingPlan(elements, inputs);
     const byStream = new Map();
+
+    // AN INPUT THE DECLARATION LACKS IS A REFUSAL, NOT A HOLE. WebGPU requires
+    // every vertex-stage `@location` to be fed, and `createRenderPipeline`
+    // with a missing one yields an invalid pipeline WITHOUT throwing - which
+    // would then be cached. Metal feeds such an input from a constant-step
+    // dummy stream (`Tr2VertexLayoutALMetal.mm:155-159`); until that is
+    // ported, the draw says which input it cannot feed.
+    const missing = plan.entries.filter(entry => !entry.element);
+
+    if (missing.length)
+    {
+      return `a vertex element for input ${missing.map(entry => `${entry.usage}:${entry.usageIndex}`).join(", ")}`;
+    }
 
     for (const entry of plan.entries)
     {
@@ -1469,6 +1529,7 @@ export class CjsWebgpuRenderContextAL
     {
       const keyParts = [ program.GetIdentity(), group, setId ];
       const resolved = [];
+      const dynamicOffsets = [];
 
       for (const binding of bindings)
       {
@@ -1478,20 +1539,31 @@ export class CjsWebgpuRenderContextAL
 
         if (binding.buffer && binding.buffer.type === "uniform")
         {
+          // METAL'S `SetConstants` + `UploadConstants` (`MetalWorkQueue.mm:2396-2439`):
+          // the shadow is copied into the frame's arena if its token is stale,
+          // and the bind is the PAGE with the region's offset as a dynamic
+          // offset - `setVertexBufferOffset:` (`:2656-2659`). The bind group
+          // therefore keys on the page and not on the buffer: two objects
+          // drawn through one program share one bind group and differ only in
+          // their offsets, which is the whole economy of the arena.
+          const size = binding.buffer.minBindingSize ?? 16;
           const constantBuffer = this.#ConstantBufferFor(binding);
 
           if (constantBuffer)
           {
-            constantBuffer.Upload();
-            resource = { buffer: constantBuffer.GetDeviceBuffer() };
-            keyParts.push(`cb${constantBuffer.m_id}`);
+            const region = constantBuffer.UploadConstants(this.#Arena(), this.GetRecordingFrameNumber(), size);
+
+            resource = { buffer: this.#Arena().GetPage(region.page), offset: 0, size };
+            dynamicOffsets.push(region.offset);
+            keyParts.push(`p${region.page}`);
           }
           else
           {
             // DX12 substitutes a null CB for an unbound root CBV
             // (`DescriptorStateCacheDx12.cpp:234-242`).
-            resource = { buffer: this.GetNullBuffer(binding.buffer.minBindingSize ?? 16, "UNIFORM") };
-            keyParts.push("cb0");
+            resource = { buffer: this.GetNullBuffer(size, "UNIFORM"), offset: 0, size };
+            dynamicOffsets.push(0);
+            keyParts.push("null");
           }
         }
         else
@@ -1508,6 +1580,13 @@ export class CjsWebgpuRenderContextAL
 
       if (!bindGroup)
       {
+        // Identities are monotonic, so a key never comes back once its set or
+        // buffer is gone; without a bound the map grows with every rebuild.
+        // DX12's descriptor cache is per back buffer and rebuilt each frame
+        // (`Tr2RenderContextDx12.h:269`); dropping everything and rebuilding
+        // what the next draws need is the same cost profile.
+        if (this.#bindGroups.size >= MAX_CACHED_BIND_GROUPS) this.#bindGroups.clear();
+
         bindGroup = device.createBindGroup({
           label: `Tr2RenderContextAL ${program.GetIdentity()} group${group}`,
           layout: layouts[group],
@@ -1516,10 +1595,21 @@ export class CjsWebgpuRenderContextAL
         this.#bindGroups.set(key, bindGroup);
       }
 
-      this.#workQueue.SetBindGroup(group, bindGroup);
+      this.#workQueue.SetBindGroup(group, bindGroup, dynamicOffsets);
     }
 
     return true;
+  }
+
+  /** Carbon's `ConstantBufferAllocator`, owned by the context (`MetalContext.h:104`). */
+  #constantArena = null;
+
+  /** The frame's constant arena, made on first use. */
+  #Arena()
+  {
+    this.#constantArena ??= new CjsWebgpuConstantArena(this.#webgpu);
+
+    return this.#constantArena;
   }
 
   /** The constant buffer `SetConstants` bound for a uniform binding, by any visible stage. */
@@ -1531,7 +1621,10 @@ export class CjsWebgpuRenderContextAL
 
       const buffer = this.#constantBuffers.get(stage * CONSTANT_BUFFER_REGISTERS + binding.registerIndex) ?? null;
 
-      if (buffer && typeof buffer.Upload === "function" && buffer.IsValid()) return buffer;
+      // A buffer of another backend's kind - a stub made before this backend
+      // was installed - cannot reach the arena; it is skipped and the slot
+      // takes the null buffer, which is DX12's answer to an unbound CBV.
+      if (buffer && typeof buffer.UploadConstants === "function" && buffer.IsValid()) return buffer;
     }
 
     return null;
@@ -1854,6 +1947,17 @@ export class CjsWebgpuRenderContextAL
     this.#commandEncoder = null;
     this.#frame = null;
     this.#ReleasePipelines();
+    this.#samplerStates.clear();
+    this.#constantArena?.Destroy();
+    this.#constantArena = null;
+    // Bound state goes too; the description describes nothing bound.
+    this.#streams = [];
+    this.#vertexLayout = null;
+    this.#shaderProgram = null;
+    this.#psoDescription.shaderProgram = null;
+    this.#resourceSet = null;
+    this.#indexBuffer = null;
+    this.#indexStride = 0;
     this.#isValid = false;
 
     return true;
@@ -1933,9 +2037,12 @@ export class CjsWebgpuRenderContextAL
     this.#pipelines.clear();
     this.#pipeline = null;
     this.#pipelineDirty = true;
-    this.#samplerStates.clear();
     this.#bindGroups.clear();
     this.#dummies = { textures: new Map(), sampler: null, buffers: new Map() };
+    // The sampler factory is NOT cleared here: Carbon's lives for the primary
+    // context's lifetime, and every seeded pass description still holds the
+    // states it handed out - clearing it made an equal description create a
+    // second state and report a change it had not made.
   }
 
   /**

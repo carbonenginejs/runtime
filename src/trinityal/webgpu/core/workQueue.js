@@ -110,6 +110,8 @@ export class CjsWebgpuWorkQueue
 
     this.#inFrame = true;
     this.#passCount = 0;
+    // Nothing named last frame is wanted this frame until a verb names it.
+    this.#pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
     this.#events.push({ type: "begin-frame" });
 
     return this.#Drain();
@@ -350,9 +352,9 @@ export class CjsWebgpuWorkQueue
    * @param {number} index The group index.
    * @param {object} bindGroup A `GPUBindGroup`.
    */
-  SetBindGroup(index, bindGroup)
+  SetBindGroup(index, bindGroup, dynamicOffsets = null)
   {
-    this.#pending.bindGroups[index] = bindGroup;
+    this.#pending.bindGroups[index] = { bindGroup, dynamicOffsets: dynamicOffsets?.length ? dynamicOffsets.slice() : null };
   }
 
   /**
@@ -402,12 +404,21 @@ export class CjsWebgpuWorkQueue
       live.pipeline = want.pipeline;
     }
 
-    want.bindGroups.forEach((bindGroup, index) =>
+    want.bindGroups.forEach((entry, index) =>
     {
-      if (!bindGroup || live.bindGroups[index] === bindGroup) return;
+      if (!entry) return;
 
-      pass.setBindGroup(index, bindGroup);
-      live.bindGroups[index] = bindGroup;
+      const bound = live.bindGroups[index];
+
+      // Metal re-sets only the OFFSET when the page is unchanged
+      // (`setVertexBufferOffset:`); WebGPU has no such call, so a changed
+      // offset re-sets the group with its offsets.
+      if (bound && bound.bindGroup === entry.bindGroup && sameOffsets(bound.dynamicOffsets, entry.dynamicOffsets)) return;
+
+      if (entry.dynamicOffsets) pass.setBindGroup(index, entry.bindGroup, entry.dynamicOffsets);
+      else pass.setBindGroup(index, entry.bindGroup);
+
+      live.bindGroups[index] = entry;
     });
 
     want.vertexBuffers.forEach((entry, slot) =>
@@ -629,6 +640,21 @@ export class CjsWebgpuWorkQueue
  * @param {object} [hint] A pending hint.
  * @returns {object|null} `{ colors, depth }` with `load`/`store` per attachment.
  */
+/** Whether two dynamic-offset lists bind the same regions. */
+function sameOffsets(first, second)
+{
+  if (first === second) return true;
+  if (!first || !second || first.length !== second.length) return false;
+
+  for (let index = 0; index < first.length; index += 1)
+  {
+    if (first[index] !== second[index]) return false;
+  }
+
+  return true;
+}
+
+
 export function ApplyRenderPassHint(hint)
 {
   if (!hint) return null;

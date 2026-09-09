@@ -260,6 +260,16 @@ export class Tr2RenderContext extends CjsModel
     // detach a backend, so neither can this.
     this.#al = al ?? new Tr2RenderContextALStub();
 
+    // EVERYTHING THE OLD BACKEND MADE IS THE OLD BACKEND'S. A device is
+    // acquired asynchronously, so "context constructed, effects loaded, AL
+    // installed later" is the ordinary order - and the per-object constant
+    // buffers and the realized programs and layouts the state manager keeps per
+    // context were all created through the stub. Left in place, WebGPU met a
+    // stub buffer at a uniform slot and a stub program at the resource set.
+    for (const buffer of this.#perObjectConstantBuffers) buffer?.Destroy();
+    this.#perObjectConstantBuffers.fill(null);
+    this.#esm.ReleaseRealizedObjects();
+
     return this.#al;
   }
 

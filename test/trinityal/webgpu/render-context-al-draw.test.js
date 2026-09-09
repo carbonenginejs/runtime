@@ -26,7 +26,7 @@ function composed()
   const pipelines = [];
   const pass = {
     setPipeline: pipeline => log.push(`setPipeline:${pipeline.id}`),
-    setBindGroup: (index, group) => log.push(`setBindGroup:${index}:${group.id}`),
+    setBindGroup: (index, group, offsets) => log.push(`setBindGroup:${index}:${group.id}:${(offsets ?? []).join("/")}`),
     setVertexBuffer: (slot, buffer, offset) => log.push(`setVertexBuffer:${slot}:${buffer}:${offset}`),
     setIndexBuffer: (buffer, format, offset) => log.push(`setIndexBuffer:${buffer}:${format}:${offset}`),
     drawIndexed: (...args) => log.push(`drawIndexed:${args.join(",")}`),
@@ -34,7 +34,7 @@ function composed()
     end: () => log.push("pass.end")
   };
   const bindGroups = [];
-  const created = { buffers: [], textures: [], samplers: [] };
+  const created = { buffers: [], textures: [], samplers: [], writes: [] };
   const device = {
     createShaderModule: descriptor => ({ kind: "module", label: descriptor.label }),
     createBindGroupLayout: descriptor => ({ kind: "bind-group-layout", descriptor }),
@@ -67,7 +67,7 @@ function composed()
 
       return { kind: "sampler", descriptor };
     },
-    queue: { writeBuffer() {} },
+    queue: { writeBuffer(buffer, offset) { created.writes.push([ buffer.descriptor.label, offset ]); }, submit() {} },
     createRenderPipeline(descriptor)
     {
       const pipeline = { id: pipelines.length + 1, descriptor };
@@ -233,7 +233,7 @@ const GROUPED_BLOCK = () => writeBackendBlock({
   transforms: []
 });
 
-test("a program that declares bind groups draws with the bound constant buffer and the set's entries", () =>
+test("a program that declares bind groups draws with the bound constant buffer and the set's entries", async () =>
 {
   const { al, log, pipelines, bindGroups, created } = composed();
   const program = programFor(al, { block: GROUPED_BLOCK() });
@@ -259,24 +259,48 @@ test("a program that declares bind groups draws with the bound constant buffer a
   assert.equal(al.DrawIndexedInstanced(36, 1), true);
   assert.equal(pipelines.length, 1);
   assert.equal(bindGroups.length, 1, "one bind group for two draws of the same state");
-  assert.equal(created.buffers.length, 1, "only the constant buffer; no null buffer was needed");
+  assert.equal(created.buffers.length, 1, "the arena's one page; no null buffer was needed");
+  assert.equal(created.buffers[0].label, "Constant buffer page 0");
 
+  // Metal's arena: the bind is the PAGE, the region is a dynamic offset.
   const entries = bindGroups[0].descriptor.entries;
 
   assert.equal(entries.length, 3);
-  assert.equal(entries[0].resource.buffer, constants.GetDeviceBuffer());
+  assert.equal(entries[0].resource.buffer.descriptor.label, "Constant buffer page 0");
+  assert.deepEqual([ entries[0].resource.offset, entries[0].resource.size ], [ 0, 64 ]);
+  assert.equal(entries[0].resource.buffer.descriptor.usage & 16, 16, "UNIFORM");
   assert.equal(entries[1].resource.id, "diffuse");
   assert.equal(entries[2].resource, sampler.GetSampler());
-  assert.equal(log.filter(entry => entry === "setBindGroup:0:1").length, 1, "bound once for the encoder");
+  assert.equal(log.filter(entry => entry === "setBindGroup:0:1:0").length, 1, "bound once for the encoder, at offset 0");
   assert.equal(log.filter(entry => entry.startsWith("drawIndexed")).length, 2);
-  assert.equal(constants.m_dirty, false, "the bind consumed the upload token");
+  assert.equal(created.writes.length, 1, "locked once, drawn twice: one upload");
+  assert.equal(constants.m_token.frame, al.GetRecordingFrameNumber(), "the bind consumed the token");
 
-  // A new constant buffer at the same register is a different bind group.
+  // THE PER-OBJECT CASE: lock again and draw again in the same frame. The
+  // bytes land in a NEW region, the bind group is the same object, and the
+  // encoder is told the new offset - so both draws read their own snapshot.
+  constants.Lock(al).data.set([ 4, 5, 6 ]);
+  constants.Unlock(al);
+  al.DrawIndexedInstanced(36, 1);
+  assert.equal(bindGroups.length, 1, "same page, same group");
+  assert.equal(created.writes.length, 2);
+  assert.deepEqual(created.writes.map(write => write[1]), [ 0, 256 ], "two regions, 256 apart");
+  assert.equal(log.filter(entry => entry === "setBindGroup:0:1:256").length, 1);
+
+  // A different constant buffer at the same register: still the page, a
+  // third region.
   const other = al.CreateConstantBuffer(64);
 
   al.SetConstants(other, ShaderType.VERTEX_SHADER, 0);
   al.DrawIndexedInstanced(36, 1);
-  assert.equal(bindGroups.length, 2);
+  assert.equal(bindGroups.length, 1);
+  assert.equal(created.writes.at(-1)[1], 512);
+
+  // A new scene resets the arena.
+  await al.EndScene();
+  al.BeginScene();
+  al.DrawIndexedInstanced(36, 1);
+  assert.equal(created.writes.at(-1)[1], 0, "frame two starts at offset zero");
 });
 
 test("slots nothing filled take dummies, as Metal's Create fills them", () =>
@@ -291,9 +315,10 @@ test("slots nothing filled take dummies, as Metal's Create fills them", () =>
 
   const entries = bindGroups[0].descriptor.entries;
 
-  assert.equal(created.buffers.length, 1, "a null uniform buffer");
+  assert.equal(created.buffers.length, 1, "a null uniform buffer, and no arena page was needed");
   assert.equal(created.buffers[0].size, 64, "sized to the layout's minBindingSize");
   assert.equal(entries[0].resource.buffer.kind, "buffer");
+  assert.deepEqual([ entries[0].resource.offset, entries[0].resource.size ], [ 0, 64 ]);
   assert.equal(created.textures.length, 1, "a 1x1 dummy texture");
   assert.equal(entries[1].resource.dimension, "2d");
   assert.equal(created.samplers.length, 1, "a default sampler");

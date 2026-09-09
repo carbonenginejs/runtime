@@ -53,6 +53,7 @@
 // contract, and neither dx12, metal nor the stub has it.
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
+import { RenderContextALOf } from "../renderContextAL.js";
 
 
 /** Carbon's "no descriptor heap index", as the stub buffer spells it. */
@@ -125,9 +126,13 @@ export class CjsWebgpuBufferAL
     // no read path at all, so refusing is both faithful and honest.
     if (HasFlag(desc.cpuUsage, Tr2CpuUsage.READ)) return ALResult.E_INVALIDARG;
 
-    if (!renderContext || !renderContext.IsValid()) return ALResult.E_INVALIDCALL;
+    // Trinity hands its own context, as Carbon's upcast lets it (`Tr2RingBuffer`,
+    // `Tr2GpuResourcePool`); the AL behind it is what creates.
+    const al = RenderContextALOf(renderContext);
 
-    const webgpu = renderContext.GetWebgpu();
+    if (!al || !al.IsValid()) return ALResult.E_INVALIDCALL;
+
+    const webgpu = al.GetWebgpu();
     if (!webgpu) return ALResult.E_INVALIDCALL;
 
     const size = desc.GetSizeInBytes();

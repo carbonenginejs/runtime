@@ -23,7 +23,7 @@
 import { ShaderType } from "#consts/render-context";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { Tr2ConstantUsageAL } from "../../trinityal/stub/Tr2ConstantBufferALStub.js";
+import { Tr2ConstantUsageAL } from "../../trinityal/index.js";
 import { Failed } from "../../trinityal/ALResult.js";
 
 

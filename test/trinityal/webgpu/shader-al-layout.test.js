@@ -130,7 +130,10 @@ test("a program merges its stages into one pipeline layout, as DX12 merges a roo
     [ 1, SHADER_STAGE.FRAGMENT ],
     [ 2, SHADER_STAGE.FRAGMENT ]
   ]);
-  assert.deepEqual(entries[0].buffer, { type: "uniform", hasDynamicOffset: false, minBindingSize: 64 });
+  // The LAYOUT entry is dynamic by the backend's decision - constants bind
+  // out of a per-frame arena at (page, offset) - while the stage's own
+  // binding keeps the container's word.
+  assert.deepEqual(entries[0].buffer, { type: "uniform", hasDynamicOffset: true, minBindingSize: 64 });
   assert.deepEqual(Object.keys(entries[2]).sort(), [ "binding", "sampler", "visibility" ]);
 
   assert.equal(device.calls.pipelineLayouts.length, 1);

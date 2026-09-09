@@ -6,9 +6,40 @@ import { Tr2Shader } from "#resource/shader";
 import { ShaderType } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
 import { Failed } from "../../trinityal/ALResult.js";
-import { Tr2ConstantUsageAL } from "../../trinityal/stub/Tr2ConstantBufferALStub.js";
+import { Tr2ConstantUsageAL } from "../../trinityal/index.js";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { EFFECT_CONSTANTS } from "../core/Tr2Renderer.js";
+import { CompareFunc } from "#consts/render-context";
+import { SAMPLER_LOD_UNBOUNDED } from "../../trinityal/Tr2SamplerDescription.js";
+
+
+/**
+ * Carbon's `CreateSamplerDescription( const Tr2SamplerOverride& )`
+ * (`Tr2Effect.cpp:595-612`), field for field: the override's one filter serves
+ * min and mag, no comparison, a transparent black border, `maxMipLevel` as the
+ * minimum LOD and an unbounded maximum.
+ *
+ * @param {object} override A `Tr2SamplerOverride`.
+ * @returns {object} A `Tr2SamplerDescription`.
+ */
+function SamplerDescriptionFromOverride(override)
+{
+  return {
+    minFilter: override.filter,
+    magFilter: override.filter,
+    mipFilter: override.mipFilter,
+    comparison: false,
+    addressU: override.addressU,
+    addressV: override.addressV,
+    addressW: override.addressW,
+    mipLODBias: override.lodBias,
+    maxAnisotropy: override.maxAnisotropy,
+    comparisonFunc: CompareFunc.CMP_NEVER,
+    borderColor: [ 0, 0, 0, 0 ],
+    minLOD: override.maxMipLevel,
+    maxLOD: SAMPLER_LOD_UNBOUNDED
+  };
+}
 
 /** Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state. */
 @type.define({ className: "Tr2Material", family: "shader" })
@@ -93,6 +124,17 @@ export class Tr2Material extends CjsModel
 
     if (!pass) return false;
 
+    // SEEDED ON FIRST APPLY, THROUGH THE CONTEXT THAT APPLIES. Carbon seeds the
+    // pass description with sampler states at effect load through the
+    // main-thread context (Tr2EffectDescription.cpp:436, :639-650) and applies
+    // overrides per rebuild (Tr2Effect.cpp:623-662). Ours has no process-wide
+    // device context - `Tr2RenderContext.GetDefault()` exists, but nothing
+    // installs a backend on it - so seeding there made every sampler state the
+    // stub's, which a WebGPU resource set cannot bind and replaced with its
+    // dummy. A fresh pass (no set yet) is seeded here, by the context that will
+    // build its resource set, of that backend's kind.
+    if (pass.resourceSet === null) this.SeedSamplers(techniqueIndex, passIndex, pass, renderContext);
+
     let mask = this.shader.GetShaderTypeMask(techniqueIndex);
     let descChanged = pass.resourceSetDirty;
 
@@ -122,6 +164,11 @@ export class Tr2Material extends CjsModel
       if (Tr2EffectStateManager.getShaderProgramRecord(handle) === null) return false;
 
       const program = renderContext.GetEffectStateManager().GetShaderProgram(handle);
+
+      // Carbon tests the program itself and binds nothing without one
+      // (Tr2Material.cpp:232-236); a stage that refused to compile is such a case.
+      if (!program) return false;
+
       const resourceSet = renderContext.CreateResourceSet(pass.resourceSetDesc, program);
 
       if (!resourceSet) return false;
@@ -293,6 +340,68 @@ export class Tr2Material extends CjsModel
    * method here because it is a whole-material walk hiding inside a per-pass
    * call, and naming it is the only way that reads as deliberate.
    */
+  /**
+   * Puts the pass's sampler states into its resource-set description, authored
+   * first and overrides on top.
+   *
+   * Carbon does this in two places that both run at effect load: the
+   * description reader creates each authored sampler's state and seeds the
+   * pass description (`Tr2EffectDescription.cpp:436`, `:639-650`), and
+   * `RebuildCachedDataInternal` creates a state per override and
+   * `UpdateSamplers` writes it over the authored one by NAME
+   * (`Tr2Effect.cpp:623-662`, `:688-691`), first match only
+   * (`FindSamplerByName`, `:627`). A name is matched only on a DYNAMIC sampler:
+   * Carbon nulls the name of a non-dynamic one at read (`Tr2EffectDescription.cpp:425-433`),
+   * so an override can never reach it.
+   *
+   * Until 2026-09-10 neither happened: the description held no samplers at all,
+   * so a resource set could never bind one. A description the factory refuses -
+   * a mode Carbon's enum lacks - leaves the register unset rather than binding a
+   * wrong sampler.
+   *
+   * @param {number} techniqueIndex The technique.
+   * @param {number} passIndex The pass.
+   * @param {object} pass The pass parameters owning the description.
+   * @param {object} renderContext The context whose sampler factory answers.
+   * @returns {void}
+   */
+  SeedSamplers(techniqueIndex, passIndex, pass, renderContext)
+  {
+    const reflected = this.shader.GetEffect()?.techniques?.[techniqueIndex]?.passes?.[passIndex];
+    const description = pass.resourceSetDesc;
+    const overrides = this.samplerOverrides ?? [];
+
+    for (let stageType = 0; stageType < (reflected?.stageInputs?.length ?? 0); stageType += 1)
+    {
+      const stage = reflected.stageInputs[stageType];
+
+      if (!stage?.exists) continue;
+
+      for (const [ registerIndex, setup ] of stage.samplers ?? [])
+      {
+        const state = renderContext.CreateSamplerState(setup?.sampler);
+
+        if (state) description.SetSampler(stageType, registerIndex, state);
+      }
+
+      for (const override of overrides)
+      {
+        for (const [ registerIndex, setup ] of stage.samplers ?? [])
+        {
+          if (!setup?.isDynamic || setup.name !== override.name) continue;
+
+          const state = renderContext.CreateSamplerState(SamplerDescriptionFromOverride(override));
+
+          // Carbon: an override that CHANGED the description makes the pass
+          // incompatible with the GDR path (Tr2Effect.cpp:653-657).
+          if (state && description.SetSampler(stageType, registerIndex, state)) pass.compatibleWithGdr = false;
+
+          break;
+        }
+      }
+    }
+  }
+
   #RebuildResourceSetHash()
   {
     let hash = FNV1_INITIAL;

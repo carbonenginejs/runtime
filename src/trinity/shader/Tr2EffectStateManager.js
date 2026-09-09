@@ -265,6 +265,31 @@ function isSameBytecode(first, second)
  * @param {Map|null} samplers Sampler setup map keyed by register index.
  * @returns {string} Canonical identity.
  */
+/**
+ * A canonical key for the backend block riding a stage's signature: FNV-1a over
+ * its bytes, so two passes with the same bytecode and different blocks intern
+ * as two shaders.
+ *
+ * @param {object|null} block `{ bytes, size }`, or nothing.
+ * @returns {string} The key; empty for no block.
+ */
+function backendBlockKey(block)
+{
+  const bytes = block?.bytes;
+
+  if (!bytes || !bytes.length) return "";
+
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < bytes.length; index += 1)
+  {
+    hash ^= bytes[index];
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+
+  return `${bytes.length}:${hash.toString(16)}`;
+}
+
 function samplerSignatureKey(samplers)
 {
   if (!samplers || typeof samplers.entries !== "function") return "[]";
@@ -415,7 +440,13 @@ export class Tr2EffectStateManager extends CjsModel
     if (!bytecode || bytecode.length === 0) return Tr2EffectStateManager.Unknown;
 
     const type = Number(stageType);
-    const samplerKey = samplerSignatureKey(signature?.samplers);
+    // THE BACKEND BLOCK IS PART OF THE KEY. Carbon dedupes on bytecode and
+    // samplers because the signature is derived from the bytecode; ours also
+    // carries the pass's per-backend block on the signature, and two passes
+    // can share a stage's bytecode while laying its bindings out differently.
+    // Keyed on bytecode alone, the second pass compiled against the first
+    // pass's block.
+    const samplerKey = `${samplerSignatureKey(signature?.samplers)}|${backendBlockKey(signature?.backendBlock)}`;
 
     for (let handle = 0; handle < shaders.length; handle += 1)
     {
@@ -761,6 +792,25 @@ export class Tr2EffectStateManager extends CjsModel
     this.#renderContext = renderContext;
 
     return this;
+  }
+
+  /**
+   * Forgets every program and vertex layout realized for this manager's
+   * context, so the next apply creates them through whatever backend the
+   * context holds now.
+   *
+   * Called when the context's backend changes: the realized objects belong to
+   * the backend that made them, and a WebGPU draw handed a stub program
+   * refuses the resource set built against it.
+   *
+   * @returns {void}
+   */
+  ReleaseRealizedObjects()
+  {
+    if (!this.#renderContext) return;
+
+    shaderProgramObjects.delete(this.#renderContext);
+    vertexLayoutObjects.delete(this.#renderContext);
   }
 
   /**

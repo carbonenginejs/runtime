@@ -2,32 +2,30 @@
 //   trinity/trinityal/metal/Tr2ConstantBufferALMetal.mm
 //   trinity/trinityal/dx12/Tr2ConstantBufferALDx12.cpp
 //
-// A device-backed `Tr2ConstantBufferAL` for WebGPU - the type behind b0 and the
-// per-object blocks, which until now only ever landed in `Tr2ConstantBufferALStub`'s
+// A `Tr2ConstantBufferAL` for WebGPU - the type behind b0 and the per-object
+// blocks, which until 2026-09-10 only ever landed in `Tr2ConstantBufferALStub`'s
 // shadow copy and reached no device.
 //
-// CARBON'S LOCK IS NOT A MAP. Metal's `Lock` returns a CPU allocation and
-// invalidates an upload token (`Tr2ConstantBufferALMetal.mm:60-69`); `Unlock` is
-// a no-op; the bytes are uploaded when the buffer is BOUND
-// (`SetConstants` → `workQueue->SetConstants(..., m_token, ...)`, `:79-89`).
-// DX12 is the same shape with `m_data` and a frame-number token
-// (`Tr2ConstantBufferALDx12.cpp:49-84`). So this keeps a retained shadow, marks
-// it dirty on Lock, and uploads on `Upload()`, which the render context calls
-// when it binds the buffer for a draw. A buffer locked three times and drawn
-// once uploads once.
+// IT OWNS NO DEVICE BUFFER, AND NEITHER DOES METAL'S. Metal's constant buffer
+// is a CPU allocation and a token (`Tr2ConstantBufferALMetal.mm:42`, `:60-69`):
+// `Lock` hands back the allocation and invalidates the token, `Unlock` is a
+// no-op, and `SetConstants` copies the bytes into the context's per-frame
+// constant ARENA and binds `(page, offset)` (`MetalWorkQueue.mm:2396-2440`).
+// A buffer locked three times and drawn three times therefore lands in three
+// regions, and each draw reads its own. The first version of this class owned
+// one `GPUBuffer` and `writeBuffer`'d into it, which is correct for a single
+// draw and wrong for a frame: every draw read the LAST write.
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
 import { ALResult, Tr2ALMemoryType, Tr2ConstantUsageAL } from "#trinityal";
+import { RenderContextALOf } from "../renderContextAL.js";
 
 
 /**
- * WebGPU's uniform-buffer size granularity.
- *
- * `minBindingSize` in every layout this backend reads is a multiple of 16
- * (`carbonEffectBackendBlock.js` derives it from `array<vec4<f32>, N>`), so a
- * buffer bound to it must be at least that long. Carbon's stub rounds its
- * mirror the same way.
+ * The shadow's size granularity. Every uniform layout this backend reads has a
+ * `minBindingSize` that is a multiple of 16 (`array<vec4<f32>, N>`), and
+ * Carbon's stub rounds its mirror the same way.
  */
 const ALIGNMENT = 16;
 
@@ -39,21 +37,20 @@ export class CjsWebgpuConstantBufferAL
   /** m_shadowCopy */
   m_shadowCopy = new Uint8Array(0);
 
-  /** m_size, the REQUESTED size; the shadow and device buffer are aligned up. */
+  /** m_size, the REQUESTED size; the shadow is aligned up. */
   m_size = 0;
 
   /** m_usage */
   m_usage = Tr2ConstantUsageAL.REUSABLE;
 
-  /** The device-buffer handle from `CjsWebgpuDevice.CreateDeviceBuffer`, or null. */
-  m_handle = null;
+  /**
+   * m_token: the arena region the shadow was last uploaded to, and for which
+   * frame. `frame` is -1 after a Lock (Carbon's `Invalidate`), so the next bind
+   * uploads again - to a NEW region.
+   */
+  m_token = { frame: -1, page: 0, offset: 0, size: 0 };
 
-  m_webgpu = null;
-
-  /** m_token, as a flag: whether the shadow has bytes the device lacks. */
-  m_dirty = false;
-
-  /** A process-unique identity, for the context's bind-group cache. Zero until Create. */
+  /** A process-unique identity, for caches and diagnostics. Zero until Create. */
   m_id = 0;
 
   /**
@@ -62,28 +59,20 @@ export class CjsWebgpuConstantBufferAL
    * @param {number} size Bytes requested.
    * @param {number} usage A `Tr2ConstantUsageAL`.
    * @param {ArrayBufferView|null} initialData Initial contents, if any.
-   * @param {object} renderContext The WebGPU render context AL.
+   * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {number} An `ALResult` value.
    */
   Create(size, usage, initialData, renderContext)
   {
     this.Destroy();
 
-    if (!renderContext || !renderContext.IsValid()) return ALResult.E_INVALIDARG;
+    const al = RenderContextALOf(renderContext);
+
+    if (!al || !al.IsValid()) return ALResult.E_INVALIDARG;
     if (!Number.isInteger(size) || size <= 0) return ALResult.E_INVALIDARG;
     if (usage === Tr2ConstantUsageAL.IMMUTABLE && !initialData) return ALResult.E_INVALIDARG;
 
-    const webgpu = renderContext.GetWebgpu();
-    if (!webgpu) return ALResult.E_INVALIDCALL;
-
-    const aligned = Math.ceil(size / ALIGNMENT) * ALIGNMENT;
-    const usageFlags = webgpu.GetBufferUsage();
-
-    if (!usageFlags || !Number.isInteger(usageFlags.UNIFORM)) return ALResult.E_INVALIDCALL;
-
-    this.m_handle = webgpu.CreateDeviceBuffer({ label: "Tr2ConstantBufferAL", size: aligned, usage: usageFlags.UNIFORM });
-    this.m_webgpu = webgpu;
-    this.m_shadowCopy = new Uint8Array(this.m_handle.size);
+    this.m_shadowCopy = new Uint8Array(Math.ceil(size / ALIGNMENT) * ALIGNMENT);
     this.m_size = size;
     this.m_usage = usage;
     this.m_id = nextConstantBufferId;
@@ -94,24 +83,22 @@ export class CjsWebgpuConstantBufferAL
       const bytes = new Uint8Array(initialData.buffer, initialData.byteOffset, initialData.byteLength);
 
       this.m_shadowCopy.set(bytes.subarray(0, Math.min(bytes.length, this.m_shadowCopy.length)));
-      this.m_dirty = true;
-      this.Upload();
     }
 
     return ALResult.S_OK;
   }
 
   /**
-   * Hands back the shadow to write into, and marks it for upload.
+   * Hands back the shadow to write into, and invalidates the token.
    *
-   * @param {object} [_renderContext] Unused; the device came from Create.
+   * @param {object} [_renderContext] Unused.
    * @returns {{result: number, data: Uint8Array|null}} The shadow.
    */
   Lock(_renderContext)
   {
     if (!this.IsValid()) return { result: ALResult.E_FAIL, data: null };
 
-    this.m_dirty = true;
+    this.m_token.frame = -1;
 
     return { result: ALResult.S_OK, data: this.m_shadowCopy };
   }
@@ -128,32 +115,56 @@ export class CjsWebgpuConstantBufferAL
   }
 
   /**
-   * Uploads the shadow if anything changed since the last upload.
+   * Metal's `UploadConstants` (`MetalWorkQueue.mm:2429-2439`): if the token is
+   * not this frame's, copy the shadow into a fresh arena region and remember
+   * where. Called by the render context when it binds the buffer for a draw.
    *
-   * The render context calls this when it binds the buffer for a draw, which
-   * is where Carbon's token is consumed.
-   *
-   * @returns {boolean} Whether bytes were written.
+   * @param {object} arena The context's `CjsWebgpuConstantArena`.
+   * @param {number} frame The recording frame number.
+   * @param {number} [minimumSize] Bytes the binding layout demands at least.
+   * @returns {{page: number, offset: number, size: number}} The bound region.
    */
-  Upload()
+  UploadConstants(arena, frame, minimumSize = 0)
   {
-    if (!this.IsValid() || !this.m_dirty) return false;
+    const token = this.m_token;
 
-    this.m_webgpu.WriteDeviceBuffer(this.m_handle, this.m_shadowCopy);
-    this.m_dirty = false;
+    if (token.frame !== frame || token.size < minimumSize)
+    {
+      const region = arena.Allocate(this.m_shadowCopy, Math.max(this.m_shadowCopy.length, minimumSize));
 
-    return true;
+      token.frame = frame;
+      token.page = region.page;
+      token.offset = region.offset;
+      token.size = region.size;
+    }
+
+    return token;
   }
 
-  /** The `GPUBuffer`, for a bind group. @returns {object|null} */
-  GetDeviceBuffer()
+  /**
+   * Binds this buffer at one stage and register.
+   *
+   * Metal's context delegates to the buffer for this
+   * (`Tr2RenderContextMetal.mm:664-677` → `Tr2ConstantBufferALMetal.mm:79-89`);
+   * the upload itself happens when the draw emits its bindings.
+   *
+   * @param {number} shaderType A `ShaderType`.
+   * @param {number} constantIndex The constant-buffer register.
+   * @param {object} renderContext The render context to bind on.
+   * @returns {number} An `ALResult` value.
+   */
+  SetConstants(shaderType, constantIndex, renderContext)
   {
-    return this.m_handle ? this.m_webgpu.GetDeviceBuffer(this.m_handle) : null;
+    if (!this.IsValid()) return ALResult.E_INVALIDCALL;
+
+    const al = RenderContextALOf(renderContext);
+
+    return al && al.SetConstants(this, shaderType, constantIndex) ? ALResult.S_OK : ALResult.E_INVALIDARG;
   }
 
   IsValid()
   {
-    return this.m_handle !== null;
+    return this.m_shadowCopy.length !== 0;
   }
 
   /** The requested size, as Carbon's `GetSize` reports it. */
@@ -164,37 +175,10 @@ export class CjsWebgpuConstantBufferAL
 
   Destroy()
   {
-    if (this.m_handle) this.m_handle.Destroy();
-
-    this.m_handle = null;
-    this.m_webgpu = null;
     this.m_shadowCopy = new Uint8Array(0);
     this.m_size = 0;
-    this.m_dirty = false;
+    this.m_token = { frame: -1, page: 0, offset: 0, size: 0 };
     this.m_id = 0;
-  }
-
-  /**
-   * Binds this buffer at one stage and register, uploading first.
-   *
-   * Metal's context delegates to the buffer for this
-   * (`Tr2RenderContextMetal.mm:664-677` → `Tr2ConstantBufferALMetal.mm:79-89`),
-   * which hands the work queue the bytes and the token. Here the token is
-   * consumed - the shadow is uploaded if it changed - and the context records
-   * the binding for the draw.
-   *
-   * @param {number} shaderType A `ShaderType`.
-   * @param {number} constantIndex The constant-buffer register.
-   * @param {object} renderContext The render context AL to bind on.
-   * @returns {number} An `ALResult` value.
-   */
-  SetConstants(shaderType, constantIndex, renderContext)
-  {
-    if (!this.IsValid()) return ALResult.E_INVALIDCALL;
-
-    this.Upload();
-
-    return renderContext.SetConstants(this, shaderType, constantIndex) ? ALResult.S_OK : ALResult.E_INVALIDARG;
   }
 
   GetMemoryClass()
@@ -219,15 +203,12 @@ export class CjsWebgpuConstantBufferAL
   }
 
   /**
-   * @param {string} name The label.
+   * Nothing device-side carries a label; the arena pages are shared.
+   *
    * @returns {number} `S_OK`.
    */
-  SetName(name)
+  SetName(_name)
   {
-    const buffer = this.GetDeviceBuffer();
-
-    if (buffer) buffer.label = String(name);
-
     return ALResult.S_OK;
   }
 }

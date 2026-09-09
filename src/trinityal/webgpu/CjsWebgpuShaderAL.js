@@ -504,7 +504,15 @@ export class CjsWebgpuShaderProgramAL
           .map(binding => ({
             binding: binding.binding,
             visibility: binding.visibility,
-            ...(binding.buffer ? { buffer: binding.buffer } : {}),
+            // A UNIFORM SLOT IS DYNAMIC, by the backend's decision and not the
+            // container's. Constant buffers are bound out of a per-frame arena
+            // at (page, offset), as Metal's are (`MetalWorkQueue.mm:2656-2659`,
+            // `setVertexBufferOffset:`), and WebGPU spells a per-draw offset as
+            // a dynamic offset on the layout. The container's `hasDynamicOffset`
+            // is not consulted: it describes nothing the AL does not decide.
+            ...(binding.buffer
+              ? { buffer: binding.buffer.type === "uniform" ? { ...binding.buffer, hasDynamicOffset: true } : binding.buffer }
+              : {}),
             ...(binding.texture ? { texture: binding.texture } : {}),
             ...(binding.sampler ? { sampler: binding.sampler } : {})
           }))

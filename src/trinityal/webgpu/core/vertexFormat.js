@@ -115,5 +115,9 @@ export function WebgpuVertexBufferLayout(arrayStride, bindingPlan)
 
   attributes.sort((a, b) => a.shaderLocation - b.shaderLocation);
 
-  return { arrayStride, stepMode: "vertex", attributes };
+  // Carbon derives the step function from the element's instance step rate
+  // (`Tr2VertexLayoutALMetal.mm:43-66`); a stream with a rate is per-instance.
+  const instanced = (bindingPlan ?? []).some(entry => (entry?.element?.instanceStepRate ?? 0) > 0);
+
+  return { arrayStride, stepMode: instanced ? "instance" : "vertex", attributes };
 }
