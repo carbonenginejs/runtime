@@ -264,3 +264,53 @@ DX12's `PSODescription` for WebGPU: the pipeline state the abstraction layer's s
 - Source: `src/trinityal/webgpu/core/psoDescription.js`
 - Visibility: Internal
 - Kind: Carbon
+
+<!-- class:CjsWebgpuConstantBufferAL -->
+## `CjsWebgpuConstantBufferAL`
+
+A `Tr2ConstantBufferAL` that owns a CPU shadow and an upload token, as Metal's does: a Lock invalidates the token and the draw copies the shadow into the frame's constant arena and binds the region by page and dynamic offset.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuConstantBufferAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuConstantArena -->
+## `CjsWebgpuConstantArena`
+
+Carbon's `ConstantBufferAllocator`: the per-frame constant arena of 2 MiB pages, reset at the start of every frame, that gives each draw its own snapshot of every constant buffer bound for it.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/core/constantArena.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuSamplerStateAL -->
+## `CjsWebgpuSamplerStateAL`
+
+A `Tr2SamplerStateAL` holding a `GPUSampler`, created once per distinct description through the context's factory and keeping the authored description beside the device object.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuSamplerStateAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuResourceSetAL -->
+## `CjsWebgpuResourceSetAL`
+
+A `Tr2ResourceSetAL` that resolves the description's textures, samplers and storage buffers against the program's bindings at creation, with dummies for what the description leaves empty, for the draw to assemble into bind groups.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuResourceSetAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
+<!-- class:CjsWebgpuTextureAL -->
+## `CjsWebgpuTextureAL`
+
+A `Tr2TextureAL` holding a `GPUTexture` created with all its subresources, with linear and sRGB views per dimension on request.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/CjsWebgpuTextureAL.js`
+- Visibility: Internal
+- Kind: Carbon
