@@ -191,6 +191,8 @@ instance has RTPC, State, property-value, or media controls. Eleven EQ
 definitions outside the qualified Audio Bus slots do have controls and are not
 silently promoted; their SFX NodeBase effect slots remain unsupported.
 
+### Source-local effects and Parametric EQ
+
 The later EVE build 3453885 source-local path resolves the first effective
 NodeBase effect override for every retained Sound. A descendant override
 replaces its parent list, an explicit empty override clears it, and a root list
@@ -220,12 +222,16 @@ reachable EQ follows an active Compressor in Wwise slot order, so its chain
 remains blocked rather than stacking a nonlinear stage per voice.
 
 The source-local exception accepts only the empirically evidenced v150
-combination `ParamID 2`, control type Game Parameter, exclusive accumulation,
-and log-frequency scaling. It maps the curve to Band 1 Frequency and preserves
+combination plug-in `0x00690003`, `ParamID 2`, control type Game Parameter,
+exclusive accumulation, and scaling 3. It maps Band 1 Frequency as
+`10 ** output` and preserves
 object RTPC, global RTPC, then STMG default precedence. All current EVE records
 use `ship_Roll` over `0..360`, producing approximately `160..3650 Hz`.
 Scheduling samples the existing Wwise interpolation over known control
-transition boundaries. The `ParamID 2` mapping is an exact corpus adaptation,
+transition boundaries, clamping frequency to the context Nyquist limit. A
+custom descriptor supplying `rtpcCurves` without a live source-effect RTPC
+reader keeps the complete chain dry instead of applying a stale static base.
+The `ParamID 2` mapping is an exact corpus adaptation,
 not a published universal Wwise plug-in enum. These records also author
 `processLfe:false`; they are realized only for decoded mono/stereo voices,
 where no independent LFE channel exists. Multichannel playback keeps the whole
@@ -246,6 +252,8 @@ so this otherwise realizable Oscillator-to-biquad-gain adapter remains blocked
 until a typed LFO record is exposed. Exact scope sharing, phase/lifecycle,
 smoothing, and pause behavior must then be qualified before the 27 leaves can
 leave complete-chain dry fallback.
+
+### Delay
 
 Pinned wwiser proves the v150 Wwise Delay's 18-byte layout: float32 Delay Time,
 Feedback, Wet/Dry Mix, and Output Level followed by one-byte Enable Feedback
@@ -271,6 +279,8 @@ unsupported root Peak Limiter, and ten also cross audible auxiliary routing,
 Compressor, and Parametric EQ stages. Delay support therefore unlocks no EVE
 route by itself: the strict mixer retains all 14 barriers until the complete
 ordered chain is qualified.
+
+### Bus controls and route qualification
 
 EVE build 3444265 authors 60 Bus Volume RTPC curves on 56 buses, driven by 18
 Game Parameters. Every one of the 16,263 serialized SFX leaves and 2,484 music
@@ -556,6 +566,8 @@ adds the full 328 when combined with Meter telemetry omission. Together the
 two explicit policies add 1,186 SFX references in the audited qualification
 simulation. These are route-admission gains, not newly audible media voices.
 
+### Compressor and Peak Limiter
+
 EVE's reachable ordered graph contains five active 22-byte Wwise Compressors
 and one active 22-byte Wwise Peak Limiter. All are static, channel-linked, and
 configured to process LFE. The root limiter is ShareSet `3134687450` on bus
@@ -593,6 +605,8 @@ source population uses the same explicitly empirical v150 field order and
 makes no golden-vector DSP equivalence claim; the Peak Limiter layout is
 source-proven.
 
+### Flanger
+
 Pinned wwiser also proves Wwise Flanger `0x007D0003` as an exact 59-byte v150
 record. The builder admits a source-local override only when the whole active
 slot list is otherwise supported, the Flanger has no media/State controls,
@@ -620,7 +634,11 @@ ShareSets use ordinary Game Parameter control `3712448215`, named
 `ship_Distance`, while STMG binds that parameter to built-in Distance `1`.
 Their additive scaling-0 `ParamID 1` and matching property ID `1` drive the
 decoded Wet/Dry Mix base. The audio layer admits only that complete shape and
-evaluates it per voice from emitter/listener distance. Control type `4`, other
+evaluates it per voice as `worldDistance / scalingFactor`, with zero STMG
+default and no ramp. It clamps the combined Wet/Dry mix to `0..100` and
+automates independent dry/wet gains when emitter, listener, or scaling factor
+moves. This single-listener adaptation does not reproduce native
+multi-listener reduction/update cadence. Control type `4`, other
 bindings, ramps, names, targets, accumulations, scalings, and versions remain
 barriers.
 
@@ -635,6 +653,8 @@ ten idle Tremolo chains, sixteen engine-on EQ chains (ten also with live
 Tremolo), and two XXL warp-blast leaves. Two M-afterburner leaves still fail
 closed on companion EQ `1738007123`. The total is 49 Flanger leaves across 27
 events.
+
+### Tremolo
 
 Wwise Tremolo `0x00830003` uses a separate evidence boundary. Pinned wwiser
 identifies the plug-in and shows the corresponding depth/frequency/waveform,
@@ -655,7 +675,8 @@ records associated with any other bank version or waveform shape are rejected
 before projection.
 
 The `wwiseModulation: "approximate-web-audio"` adapter maps that subset to a
-voice-owned Gain/Oscillator stage with
+voice-owned Gain/Oscillator stage following the unipolar carrier described in
+[Audiokinetic's Wwise Tremolo reference](https://www.audiokinetic.com/en/library/2024.1.1_8691/?id=wwise_tremolo_plug_in_effect&source=Help):
 `gain(t) = 1 - depth/2 + (depth/2) * sin(2*pi*f*t + phase)`, followed by
 authored output gain. Nonzero Sine global phase uses a custom `PeriodicWave`;
 qualified Square and Triangle normally use Web Audio's band-limited native
@@ -664,7 +685,9 @@ Fourier pulse instead. The
 record retains phase mode and spread, but the browser applies one carrier to
 all channels and omits Wwise's per-channel Left-Right, Front-Rear, Circular,
 or Random distribution. It starts and disposes the oscillator with the
-physical voice. This preserves the unipolar `[1-depth, 1]` range, global phase,
+physical voice; pause/source recreation retains its phase as with Flanger.
+Missing `PeriodicWave` when a global phase requires it keeps the complete
+chain dry. This preserves the unipolar `[1-depth, 1]` range, global phase,
 and slot order, but does not claim Wwise's native oscillator/channel law or
 sample behavior. Smoothing and PWM are normally shape-validated but not
 retained or applied; Square is admitted only when they are exactly zero and
@@ -720,8 +743,11 @@ engine events. Admitting bounded
 phase fields raises qualified source-effect leaves from 2,666 to 2,740 without
 changing media or event reachability.
 
+### Guitar Distortion
+
 Wwise Guitar Distortion `0x007e0003` is source-proven separately. Pinned
-wwiser decodes six 17-byte EQ records followed by distortion type, Drive,
+wwiser decodes the v150 126-byte layout: three pre-EQ and three post-EQ
+bands (six 17-byte records), followed by distortion type, Drive,
 Tone, Rectification, output gain, and Wet/Dry mix. EVE build 3453885 has 69
 retained Sound leaves across 23 events using 18 static effect identities and
 12 exact raw records (11 audible decoded parameter sets). All are v150,
@@ -732,16 +758,25 @@ object Game Parameter, additive accumulation, scaling 0, property and RTPC
 `ship_health_hull` (111 leaves), `ship_warp_direction` (one), and
 `booster_intensity` (24). ParamID 61 is pinned empirically to Drive only for
 this EVE-v150 corpus; pinned wwiser does not publish a plug-in RTPC enum.
+Wwise interpolation/default precedence is preserved.
+The 25 `ship_warp_direction`/`booster_intensity` leaves retain two-second STMG
+Filtering Over Time; the voice-local lane filters raw controls before Drive
+evaluation. The 111 `ship_health_hull` leaves author no filtering and remain
+immediate. Admitted dynamic records have no enabled pre-EQ stages.
 
 `wwiseDistortion: "approximate-web-audio"` maps enabled pre/post bands to
 authored-order biquads around a 4x-oversampled WaveShaper. Dynamic Drive uses
 scheduled pre/post Gain nodes around a fixed maximum-Drive curve. For
 normalized WaveShaper inputs this preserves the existing static approximation
-family without rebuilding the curve. Its normalized tanh curve and
-Rectification blend are deliberate CarbonEngineJS approximations;
+family without rebuilding the curve. Its deterministic normalized tanh curve
+uses different drive scales for Overdrive and Heavy; Rectification blends
+toward a full-wave curve. These are deliberate CarbonEngineJS approximations;
 wwiser establishes no native transfer, Drive scaling, Tone law, oversampling,
-or channel behavior. Tone is retained but currently inert. Strict mode,
-missing primitives, non-v150/non-fully-wet records, unsupported distortion
+or channel behavior. Tone is retained but currently inert. The
+[Wwise effects reference](https://www.audiokinetic.com/library/edge/?id=effects&source=Help)
+and [Web Audio WaveShaperNode](https://webaudio.github.io/web-audio-api/#waveshapernode)
+describe the separate authored/browser surfaces. Strict mode,
+missing WaveShaper/biquad/gain primitives, non-v150/non-fully-wet records, unsupported distortion
 types, other dynamic shapes, a missing live RTPC reader, and shared-Bus Guitar
 Distortion keep the complete chain audible and dry. Static admission raised
 qualified source-effect leaves from 2,506 to 2,575. Live Drive raised the
@@ -750,6 +785,8 @@ records without changing media or event reachability; the later modulation
 and skyhook-EQ slices set the prior totals to 3,196 and 3,358; built-in-Distance
 Flanger and the single-Depth Tremolo now set the current totals to 3,225 leaves
 and 3,423 records.
+
+### Harmonizer
 
 Wwise Harmonizer `0x008a0003` remains a measured DSP barrier rather than an
 unclassified plug-in. Pinned wwiser proves the v150 layout for two pitch
@@ -763,7 +800,8 @@ The 100 sun leaves enable one zero-cent voice, disable voice two, mix dry and
 wet at `0 dB`, and synchronize dry latency. Zero pitch does not make this a
 transparent effect: the processed windowed branch and latency-aligned dry
 branch still define the sound, while Web Audio exposes no duration-preserving
-pitch-shift node. The 90 dynamic leaves also use Envelope Modulator
+pitch-shift node. Substituting source `playbackRate` would change voice
+duration and downstream scheduling. The 90 dynamic leaves also use Envelope Modulator
 `53388567`: object scope, 1.674-second attack, curve 49, 1-second decay,
 100-percent sustain, and 0.268-second release. It drives additive dB plug-in
 `ParamID 3`, but pinned wwiser supplies no Harmonizer RTPC enum and the corpus
@@ -775,9 +813,11 @@ Effect `100527105` is the narrow exception: its wet level is `-96 dB`, so its
 safe. It reaches only the single warp Sound. Since existing dry fallback
 already produces that audible result, projecting a one-record no-op would add
 metadata rather than fidelity. Harmonizer therefore remains fully unprojected
-until a controlled Wwise parameter pair and custom voice-owned pitch-shift DSP
-exist; all affected media remains audible through the complete-chain dry
-fallback.
+until a controlled Wwise parameter pair, custom voice-owned pitch-shift DSP,
+and qualified modulator lifecycle exist; all affected media remains audible
+through the complete-chain dry fallback.
+
+### Matrix Reverb
 
 Pinned wwiser proves Matrix Reverb `0x00730003` and its v150 default-delay
 record: float32 Reverb Time and HF Ratio, uint32 delay count, float32 Dry and
@@ -787,11 +827,13 @@ unsupported. The builder admits only control/media-free default-mode records,
 Process LFE, and standard 4/8/12/16 delay counts.
 
 `wwiseReverb: "approximate-web-audio"` realizes that source-local record as a
-bounded four-line cyclic feedback-delay network. It preserves Dry/Wet and
+bounded four-line cyclic feedback-delay network using four spaced delays
+from Wwise's default table. It preserves Dry/Wet and
 Pre-Delay, estimates nominal T60 from Reverb Time, and maps HF Ratio to a fixed
 logarithmic low-pass curve. The authored delay count stays in metadata because
 the reduced browser topology does not reproduce Wwise's proprietary matrix,
-mixing, damping, channel, or LFE laws. Strict mode, missing primitives,
+mixing, damping, channel, or LFE laws. Pause/seek reuse browser state.
+Strict mode, missing Gain/Delay/Biquad primitives,
 dynamic/custom-delay records, and shared-Bus placement retain complete-chain
 dry playback. Natural source completion disposes the network and cuts its
 remaining tail.
@@ -807,6 +849,8 @@ raised qualified source-effect leaves from 2,575 to 2,617; the later Tremolo
 phase admission completed the remaining chains without changing media or
 event reachability.
 
+### RoomVerb
+
 Pinned wwiser proves RoomVerb `0x00760003` and its exact 186-byte v150 record.
 It contains Decay Time, HF Damping, Diffusion, Stereo Width, three tone-filter
 records and insert positions, input/output channel levels, Dry/Early/Late
@@ -817,16 +861,19 @@ audited EVE tuning fingerprint and mono/stereo-compatible channel levels.
 
 `wwiseRoomVerb: "approximate-web-audio"` realizes those source-local records
 with two deterministic cached procedural convolution branches rather than the
-Matrix feedback network. The early branch approximates the reflection pattern,
+Matrix feedback network. Cache identity includes AudioContext, sample rate,
+channel count, and authored parameter set. The early branch approximates the reflection pattern,
 room-size timing, and stereo width. The late branch preserves
 Pre-Delay and approximates nominal T60, time-varying HF damping, diffusion,
 density, room shape, and quality. Authored Dry/Early/Late levels are preserved,
 and enabled tone filters map to Web Audio biquads at their retained branch
-positions. This is not Audiokinetic's proprietary reflection table, reverb-unit
+positions. The [Wwise RoomVerb reference](https://www.audiokinetic.com/library/2025.1.3_9037/?id=wwise_roomverb_effect_plug_in&source=Help)
+describes the authored controls. This is not Audiokinetic's proprietary reflection table, reverb-unit
 algorithm, early-reflection front/back timing, surround/LFE/center routing, or
-channel law. Strict mode, missing
+channel law. Strict mode, missing Gain/Convolver/Buffer/Delay/Biquad
 primitives, a decoded source above two channels, dynamic records, and shared-Bus
-RoomVerb keep the complete chain audible and dry. Voice disposal cuts the
+RoomVerb keep the complete chain audible and dry. Pause/seek reuse browser
+convolution state. Voice disposal at decoded dry-source completion cuts the
 remaining convolution tail.
 
 EVE build 3453885 projects 52 RoomVerb Sound leaves across 34 retained events.
@@ -839,6 +886,8 @@ the qualified source-effect population from 2,740 to 2,792 Sound leaves and
 the retained record count from 2,781 to 2,857; the later live-EQ block raises
 the totals to 2,962 leaves and 3,039 records without changing media or
 event reachability.
+
+### Source-local Meter
 
 The same source-local projection retains pinned wwiser's exact 28-byte v150
 Wwise Meter record when it is static and control-free. A Meter without a Game
@@ -866,6 +915,8 @@ dynamics approximation. The omitted `sovhub_upgrades_meter` Game Parameter
 feeds a cross-bank Voice Volume RTPC on Structures actor-mixer `572768013`, so
 the structure subtree loses up to about `0.94 dB` of authored ducking. This is
 an audible opt-in approximation, not an exact omission.
+
+### Shared dynamics qualification
 
 A fail-closed qualification simulation that treats only these dynamics stages
 as supported, while leaving every other route gate intact, bounds their EVE
