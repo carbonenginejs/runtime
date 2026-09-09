@@ -525,3 +525,191 @@ test("the verbs this backend cannot encode refuse rather than report success", (
   assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => true }, 0), true);
   assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => false }, 0), false);
 });
+
+// The rest of Carbon's render-context surface, added 2026-09-09. Trinity does
+// not call these yet, but a backend is only interchangeable if the whole
+// surface answers - "swap the backend; nothing in Trinity changes".
+
+test("debug markers pop on the encoder that pushed them", () =>
+{
+  const marks = [];
+  const { al, pass, log } = composed();
+
+  pass.pushDebugGroup = label => marks.push(`pass.push:${label}`);
+  pass.popDebugGroup = () => marks.push("pass.pop");
+  pass.insertDebugMarker = label => marks.push(`pass.mark:${label}`);
+
+  al.CreateDevice();
+  al.BeginScene();
+
+  // Outside a pass the frame's command encoder takes them.
+  const frameEncoder = al.GetWorkQueue();
+  assert.equal(frameEncoder.GetRenderPass(), null);
+
+  al.SetShaderProgram({ id: "program" });
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  // Now a pass is open, so markers reach it.
+  al.PushGpuMarker("hull");
+  al.AddGpuMarker("pass0");
+  al.PopGpuMarker();
+
+  assert.deepEqual(marks, [ "pass.push:hull", "pass.mark:pass0", "pass.pop" ]);
+  assert.equal(log.includes("beginRenderPass"), true);
+});
+
+test("a marker pushed with no encoder still balances", () =>
+{
+  const al = ready();
+
+  // Uncomposed there is nothing to record onto, and the pair must still not
+  // throw or leave the stack unbalanced.
+  al.PushGpuMarker("a");
+  al.AddGpuMarker("b");
+  al.PopGpuMarker();
+  al.PopGpuMarker();
+});
+
+test("the back buffer is the render target, and its format is Carbon's", () =>
+{
+  const al = ready();
+
+  // Uncomposed there is no surface, and UNKNOWN is the honest answer.
+  assert.equal(al.GetDefaultBackBuffer(), null);
+  assert.equal(al.GetBackBufferFormat(), 0);
+
+  const composedAl = new CjsWebgpuRenderContextAL({
+    webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
+    dispatcher: {},
+    renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {} }
+  });
+
+  // PIXEL_FORMAT_B8G8R8A8_UNORM. A canvas can only be one of four formats, so
+  // the table is the whole domain rather than a partial one.
+  assert.equal(composedAl.GetBackBufferFormat(), 87);
+});
+
+test("present parameters reconfigure the canvas rather than allocating a buffer", () =>
+{
+  const sizes = [];
+  const al = new CjsWebgpuRenderContextAL({
+    webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
+    dispatcher: {},
+    renderTarget: { GetFormat: () => "bgra8unorm", Configure: options => sizes.push(options) }
+  });
+
+  assert.equal(al.SetPresentParameters({ mode: { width: 1280, height: 720 } }), ALResult.S_OK);
+  assert.deepEqual(sizes, [ { width: 1280, height: 720 } ]);
+
+  assert.equal(al.SetPresentParameters({}), ALResult.E_INVALIDARG);
+  assert.equal(ready().SetPresentParameters({ mode: { width: 1, height: 1 } }), ALResult.E_INVALIDCALL);
+});
+
+test("CopySubBuffer encodes a real copy, and refuses outside a frame", () =>
+{
+  const copies = [];
+  const commandEncoder = {
+    copyBufferToBuffer(...args) { copies.push(args); },
+    beginRenderPass: () => ({ end() {} }),
+    finish: () => "command-buffer"
+  };
+  const al = new CjsWebgpuRenderContextAL({
+    webgpu: { GetDevice: () => ({ createCommandEncoder: () => commandEncoder }), Submit() {} },
+    dispatcher: {},
+    renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {} }
+  });
+  const buffer = handle => ({ IsValid: () => true, GetDeviceBuffer: () => handle });
+
+  // copyBufferToBuffer is a command-encoder verb, so it needs the encoder
+  // BeginScene creates and nothing else.
+  assert.equal(al.CopySubBuffer(buffer("dst"), 0, buffer("src"), 0, 64), false);
+
+  al.CreateDevice();
+  al.BeginScene();
+
+  assert.equal(al.CopySubBuffer(buffer("dst"), 16, buffer("src"), 4, 64), true);
+  assert.deepEqual(copies, [ [ "src", 4, "dst", 16, 64 ] ]);
+
+  // An invalid buffer or an empty range is a caller error a backend catches.
+  assert.equal(al.CopySubBuffer(buffer("dst"), 0, { IsValid: () => false }, 0, 64), false);
+  assert.equal(al.CopySubBuffer(buffer("dst"), 0, buffer("src"), 0, 0), false);
+  assert.equal(copies.length, 1);
+});
+
+test("Destroy drops every piece of bound state", () =>
+{
+  const al = ready();
+
+  al.SetConstants({ id: "cb" }, 1, 0);
+  al.SetRenderState(7, 1);
+  al.SetReadOnlyDepth(true);
+
+  assert.equal(al.Destroy(), true);
+  assert.equal(al.IsValid(), false);
+  assert.equal(al.GetConstants(1, 0), null);
+  assert.equal(al.GetRenderStateInputs().states.size, 0);
+
+  // ReleaseDeviceResources is the softer half: the context survives a reset.
+  assert.equal(al.ReleaseDeviceResources(), true);
+});
+
+test("the primary render context is one per process, as Carbon's static is", () =>
+{
+  const al = ready();
+
+  CjsWebgpuRenderContextAL.SetPrimaryRenderContext(null);
+  assert.equal(CjsWebgpuRenderContextAL.GetPrimaryRenderContextPointer(), null);
+  assert.throws(() => CjsWebgpuRenderContextAL.GetPrimaryRenderContext(), /no primary render context/u);
+
+  CjsWebgpuRenderContextAL.SetPrimaryRenderContext(al);
+  assert.equal(CjsWebgpuRenderContextAL.GetPrimaryRenderContext(), al);
+
+  CjsWebgpuRenderContextAL.SetPrimaryRenderContext(null);
+});
+
+test("read-only depth is stored, and the rest report what WebGPU can honestly say", () =>
+{
+  const al = ready();
+
+  assert.equal(al.GetReadOnlyDepth(), false);
+  al.SetReadOnlyDepth(true);
+  assert.equal(al.GetReadOnlyDepth(), true);
+
+  // WebGPU has no bindless path, exposes no memory size (it is a fingerprinting
+  // surface), has no ray-tracing pipeline, and reports device loss as a promise
+  // rather than a breadcrumb. None of these is a gap a later browser fills.
+  assert.equal(al.SupportsBindlessTextures(), false);
+  assert.equal(al.GetTotalVideoMemory(), 0);
+  assert.equal(al.DispatchRays(), false);
+  assert.equal(al.GetGpuStateMarker(), false);
+  assert.equal(al.GetGpuPageFaultResource(), false);
+
+  // Residency and barriers are the browser's job, so honouring these is
+  // nothing rather than unimplemented.
+  assert.equal(al.UseResources(null, 0, []), true);
+  assert.equal(al.UseAccelerationStructure(null), true);
+
+  // The indirect draws refuse: the work queue owns every draw and has no
+  // indirect verb, and a second draw path here would break that split.
+  assert.equal(al.DrawInstancedIndirect(), false);
+  assert.equal(al.DrawIndexedInstancedIndirect(), false);
+});
+
+test("the upscaling family answers exactly as Carbon's stub does", () =>
+{
+  const al = ready();
+
+  // Carbon SUCCEEDS at enabling and then hands back no context. Both halves
+  // are Carbon's, and a port does not tidy the pairing.
+  assert.equal(al.EnableUpscaling(), 0);
+  assert.equal(al.GetUpscalingContext(), null);
+  assert.equal(al.CreateUpscalingContext(), null);
+  assert.deepEqual(al.GetSupportedUpscalingTechniques(), []);
+
+  const info = al.GetUpscalingInfo();
+  assert.equal(info.upscalingAmount, 1, "not zero, and neither is setting");
+  assert.equal(info.frameGeneration, false);
+
+  assert.equal(al.GetUpscalingSetup().frameGeneration, false);
+});

@@ -35,7 +35,7 @@
 // rather than faked. Buffer creation IS here (`CreateBuffer`), because a
 // Trinity class that fills a buffer per frame cannot pick its own backend.
 
-import { ShaderType, Topology, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment } from "#trinityal";
 import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
@@ -70,6 +70,31 @@ const VERTICES_PER_PRIMITIVE = Object.freeze({
 
 /** Carbon's `MAX_RENDER_TARGET`; the bound-target array is fixed width. */
 const MAX_RENDER_TARGET = 8;
+
+
+/**
+ * The Carbon pixel format behind each format a canvas can be configured with.
+ *
+ * SHORT ON PURPOSE. `GPUCanvasContext.configure` accepts only `bgra8unorm`,
+ * `rgba8unorm` and their sRGB view formats, so this is the whole domain rather
+ * than a partial table someone should extend later.
+ */
+const CANVAS_PIXEL_FORMAT = Object.freeze({
+  "bgra8unorm": PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM,
+  "bgra8unorm-srgb": PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM_SRGB,
+  "rgba8unorm": PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+  "rgba8unorm-srgb": PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB
+});
+
+
+/**
+ * The primary render context, Carbon's process-wide one.
+ *
+ * A MODULE-LEVEL BINDING, matching the stub, because Carbon's is a static on
+ * the class and a JavaScript static field would be per-subclass. There is one
+ * primary context per process in Carbon and there is one here.
+ */
+let primaryRenderContext = null;
 
 
 /**
@@ -1018,6 +1043,450 @@ export class CjsWebgpuRenderContextAL
   GetConstants(constantType, registerIndex)
   {
     return this.#constantBuffers.get(constantType * CONSTANT_BUFFER_REGISTERS + registerIndex) ?? null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // THE REST OF CARBON'S RENDER-CONTEXT SURFACE.
+  //
+  // Nothing in Trinity calls these yet - the nine it does call are above - but a
+  // backend is only interchangeable if the whole surface answers, and the
+  // governing test for this layer is "swap the backend; nothing in Trinity
+  // changes". Each one either does what WebGPU can do or reports what the stub
+  // reports, and says which.
+
+  /**
+   * Where a debug group was pushed, so its pop reaches the same encoder.
+   *
+   * WEBGPU REQUIRES THE PAIR TO BALANCE WITHIN ONE ENCODER. A group pushed on
+   * the command encoder and popped after a render pass opened would be a
+   * validation error, not a mislabelled capture - so the push records its
+   * target and the pop uses it rather than asking again.
+   */
+  #markerStack = [];
+
+  /** The encoder debug markers should go to: the open pass, else the frame. */
+  #MarkerTarget()
+  {
+    return this.#workQueue.GetRenderPass() ?? this.#commandEncoder;
+  }
+
+  /**
+   * Inserts a one-off marker into the capture.
+   *
+   * Real, unlike the stub's empty body: `insertDebugMarker` is what a WebGPU
+   * capture tool shows, and this is the only reason Carbon's markers exist.
+   *
+   * @param {string} marker The label.
+   */
+  AddGpuMarker(marker)
+  {
+    const target = this.#MarkerTarget();
+
+    if (target) target.insertDebugMarker(String(marker));
+  }
+
+  /**
+   * Opens a named debug group.
+   *
+   * @param {string} marker The label.
+   */
+  PushGpuMarker(marker)
+  {
+    const target = this.#MarkerTarget();
+
+    this.#markerStack.push(target);
+
+    if (target) target.pushDebugGroup(String(marker));
+  }
+
+  /** Closes the innermost debug group, on the encoder that opened it. */
+  PopGpuMarker()
+  {
+    const target = this.#markerStack.pop();
+
+    if (target) target.popDebugGroup();
+  }
+
+  /**
+   * Marks a point in the frame for a profiler.
+   *
+   * @param {string} frameEvent The event name.
+   */
+  MarkFrameEvent(frameEvent)
+  {
+    this.AddGpuMarker(frameEvent);
+  }
+
+  /**
+   * Tears the device down, dropping every piece of bound state.
+   *
+   * @returns {boolean} True.
+   */
+  Destroy()
+  {
+    this.#boundRenderTargets.fill(null);
+    this.#depthStencil = null;
+    for (const stack of this.#renderTargetStacks) stack.length = 0;
+    this.#depthStencilStack.length = 0;
+    this.#constantBuffers.clear();
+    this.#renderStates.clear();
+    this.#markerStack.length = 0;
+    this.#commandEncoder = null;
+    this.#frame = null;
+    this.#isValid = false;
+
+    return true;
+  }
+
+  /**
+   * Releases what a device reset would invalidate, keeping the context alive.
+   *
+   * @returns {boolean} True.
+   */
+  ReleaseDeviceResources()
+  {
+    this.#boundRenderTargets.fill(null);
+    this.#frame = null;
+
+    return true;
+  }
+
+  /**
+   * The back buffer this context presents into.
+   *
+   * The render target IS this backend's back buffer: it answers `GetWidth` and
+   * `GetHeight` exactly as a `Tr2TextureAL` does, which is why it can be bound
+   * at slot zero without an adapter.
+   *
+   * @returns {object|null} The render target, or null before composition.
+   */
+  GetDefaultBackBuffer()
+  {
+    return this.#renderTarget;
+  }
+
+  /**
+   * The back buffer's pixel format, as a Carbon `PixelFormat`.
+   *
+   * @returns {number} The format, or `PIXEL_FORMAT_UNKNOWN` before composition
+   *   or for a canvas format outside the four the spec allows.
+   */
+  GetBackBufferFormat()
+  {
+    if (!this.#renderTarget) return PixelFormat.PIXEL_FORMAT_UNKNOWN;
+
+    return CANVAS_PIXEL_FORMAT[this.#renderTarget.GetFormat()] ?? PixelFormat.PIXEL_FORMAT_UNKNOWN;
+  }
+
+  /**
+   * Applies present parameters by resizing the presentation surface.
+   *
+   * The stub CREATES a back buffer at the requested size; here the canvas
+   * already exists and is reconfigured instead, which is the same act against a
+   * surface the page owns rather than one the backend allocates.
+   *
+   * @param {object} presentParameters Carbon's `Tr2PresentParametersAL`.
+   * @returns {number} An `ALResult` value.
+   */
+  SetPresentParameters(presentParameters)
+  {
+    if (!presentParameters || !presentParameters.mode) return ALResult.E_INVALIDARG;
+    if (!this.#renderTarget) return ALResult.E_INVALIDCALL;
+
+    const { width, height } = presentParameters.mode;
+
+    this.#renderTarget.Configure({ width, height });
+
+    return ALResult.S_OK;
+  }
+
+  /**
+   * Whether textures can be reached without a binding.
+   *
+   * @returns {boolean} False. WebGPU has no bindless path at all: every
+   *   resource is reached through a bind group.
+   */
+  SupportsBindlessTextures()
+  {
+    return false;
+  }
+
+  /**
+   * How much video memory the adapter has.
+   *
+   * @returns {number} Zero, as the stub reports. WebGPU deliberately exposes no
+   *   memory size - it is a fingerprinting surface - so this is not a gap that
+   *   a later browser fills in.
+   */
+  GetTotalVideoMemory()
+  {
+    return 0;
+  }
+
+  /** m_readOnlyDepth - Metal keeps this and folds it into ZWRITEENABLE. */
+  #readOnlyDepth = false;
+
+  /**
+   * Whether depth is bound read-only.
+   *
+   * @returns {boolean} The flag.
+   */
+  GetReadOnlyDepth()
+  {
+    return this.#readOnlyDepth;
+  }
+
+  /**
+   * Binds depth read-only, so it can be sampled while still testing.
+   *
+   * STORED, NOT YET APPLIED. WebGPU expresses this as `depthReadOnly` on the
+   * render-pass descriptor, which `#Descriptor` builds; wiring it there is a
+   * pass-descriptor change rather than a state one, and the flag has to exist
+   * before it can be read.
+   *
+   * @param {boolean} enable Whether depth is read-only.
+   */
+  SetReadOnlyDepth(enable)
+  {
+    this.#readOnlyDepth = !!enable;
+  }
+
+  /**
+   * Copies a byte range between two buffers.
+   *
+   * Real when a frame is open: `copyBufferToBuffer` is a command-encoder verb,
+   * so it needs the encoder `BeginScene` created and nothing else.
+   *
+   * @param {object} destination The destination `Tr2BufferAL`.
+   * @param {number} destinationOffset Byte offset into it.
+   * @param {object} source The source `Tr2BufferAL`.
+   * @param {number} sourceOffset Byte offset into it.
+   * @param {number} size Bytes to copy.
+   * @returns {boolean} Whether the copy was encoded.
+   */
+  CopySubBuffer(destination, destinationOffset, source, sourceOffset, size)
+  {
+    if (!this.#commandEncoder) return false;
+    if (!destination || !source || !destination.IsValid() || !source.IsValid()) return false;
+    if (size <= 0) return false;
+
+    this.#commandEncoder.copyBufferToBuffer(
+      source.GetDeviceBuffer(),
+      sourceOffset,
+      destination.GetDeviceBuffer(),
+      destinationOffset,
+      size
+    );
+
+    return true;
+  }
+
+  /**
+   * Draws indirectly, reading the draw arguments from a buffer.
+   *
+   * REFUSES, as the stub does. WebGPU has `drawIndirect`, but the work queue
+   * owns every draw and has no indirect verb; adding one here would put a
+   * second draw path beside the queue's, which is the split this backend is
+   * built around.
+   *
+   * @returns {boolean} False.
+   */
+  DrawInstancedIndirect()
+  {
+    return false;
+  }
+
+  /**
+   * Draws indexed indirectly.
+   *
+   * @returns {boolean} False; see `DrawInstancedIndirect`.
+   */
+  DrawIndexedInstancedIndirect()
+  {
+    return false;
+  }
+
+  /**
+   * Declares that a batch of resources is about to be used.
+   *
+   * @param {object} _destination Where they are used.
+   * @param {number} _usage How they are used.
+   * @param {object[]} _resources The resources.
+   * @returns {boolean} True. This is a residency and barrier hint for backends
+   *   that place their own memory; WebGPU tracks both itself, so honouring it
+   *   is nothing rather than unimplemented.
+   */
+  UseResources(_destination, _usage, _resources)
+  {
+    return true;
+  }
+
+  /**
+   * Declares a ray-tracing acceleration structure in use.
+   *
+   * @param {object} _tlas The top-level structure.
+   * @returns {boolean} True, as the stub reports.
+   */
+  UseAccelerationStructure(_tlas)
+  {
+    return true;
+  }
+
+  /**
+   * Dispatches rays.
+   *
+   * @returns {boolean} False; WebGPU has no ray-tracing pipeline.
+   */
+  DispatchRays()
+  {
+    return false;
+  }
+
+  /**
+   * Whether the device recorded a GPU state marker after a fault.
+   *
+   * @returns {boolean} False; WebGPU surfaces device loss as a promise and a
+   *   reason string, with no marker or breadcrumb to read.
+   */
+  GetGpuStateMarker()
+  {
+    return false;
+  }
+
+  /**
+   * The resource a GPU page fault named.
+   *
+   * @returns {boolean} False; see `GetGpuStateMarker`.
+   */
+  GetGpuPageFaultResource()
+  {
+    return false;
+  }
+
+  // THE UPSCALING FAMILY. Every answer is the stub's, and the stub's are
+  // Carbon's: the family is live only in the DX backends. WebGPU has no
+  // upscaler to reach, so these are complete rather than pending.
+
+  /**
+   * Enables upscaling.
+   *
+   * @returns {number} `UpscalingResult.OK` - Carbon's stub succeeds WITHOUT
+   *   creating anything, so a caller that then asks for a context gets null.
+   *   That pairing is Carbon's and both halves are kept.
+   */
+  EnableUpscaling()
+  {
+    return UpscalingResult.OK;
+  }
+
+  /**
+   * An existing upscaling context.
+   *
+   * @returns {null} Null; none is kept.
+   */
+  GetUpscalingContext()
+  {
+    return null;
+  }
+
+  /**
+   * Creates an upscaling context.
+   *
+   * @returns {null} Null; none is created.
+   */
+  CreateUpscalingContext()
+  {
+    return null;
+  }
+
+  /** Destroys an upscaling context; there are none. */
+  DeleteUpscalingContext()
+  {
+  }
+
+  /**
+   * What an upscaling context is doing.
+   *
+   * @returns {object} A default `UpscalingInfo`; two of its values are not zero.
+   */
+  GetUpscalingInfo()
+  {
+    return {
+      displayWidth: 0,
+      displayHeight: 0,
+      renderWidth: 0,
+      renderHeight: 0,
+      technique: UpscalingTechnique.NONE,
+      setting: UpscalingSetting.NATIVE,
+      frameGeneration: false,
+      temporal: false,
+      hasSharpening: false,
+      upscalingAmount: 1,
+      jitterX: 0,
+      jitterY: 0,
+      mipLevelBias: 0
+    };
+  }
+
+  /**
+   * The techniques an adapter supports.
+   *
+   * @returns {Array} Empty.
+   */
+  GetSupportedUpscalingTechniques()
+  {
+    return [];
+  }
+
+  /**
+   * The upscaling currently set up.
+   *
+   * @returns {object} "No upscaling", in the four fields Carbon fills.
+   */
+  GetUpscalingSetup()
+  {
+    return {
+      technique: UpscalingTechnique.NONE,
+      setting: UpscalingSetting.NATIVE,
+      frameGeneration: false,
+      temporal: false
+    };
+  }
+
+  // THE PRIMARY RENDER CONTEXT. Carbon keeps one per process as a static and
+  // reaches it from resource creation; these are the same three accessors the
+  // stub carries, over the same module-level binding.
+
+  /**
+   * Records the primary render context.
+   *
+   * @param {object} renderContext The context to make primary.
+   */
+  static SetPrimaryRenderContext(renderContext)
+  {
+    primaryRenderContext = renderContext;
+  }
+
+  /**
+   * The primary render context, which must exist.
+   *
+   * @returns {object} The primary context.
+   */
+  static GetPrimaryRenderContext()
+  {
+    if (primaryRenderContext === null) fail("there is no primary render context");
+
+    return primaryRenderContext;
+  }
+
+  /**
+   * The primary render context, or null.
+   *
+   * @returns {object|null} The primary context.
+   */
+  static GetPrimaryRenderContextPointer()
+  {
+    return primaryRenderContext;
   }
 
   /**
