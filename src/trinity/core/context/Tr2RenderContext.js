@@ -32,6 +32,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { ConstantBufferSlot } from "#consts/render-context";
+import { RenderingMode } from "#consts/graphics";
 import { Tr2ConstantBufferALStub } from "../../../trinityal/stub/Tr2ConstantBufferALStub.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
@@ -1016,6 +1017,138 @@ export class Tr2RenderContext extends CjsModel
     if (!batches) return false;
 
     return this.#requireAL("RenderBatches").RenderBatches(batches, techniqueName);
+  }
+
+  /**
+   * Binds one batch's geometry and draws it.
+   *
+   * Carbon's free function `SubmitGeometry` (`Tr2RenderContext.cpp:83-103`),
+   * verbatim in order: topology, declaration, both streams, then either the
+   * index buffer and an indexed draw or a non-indexed one.
+   *
+   * A STREAM HERE MAY BE A DESCRIPTOR RATHER THAN A BUFFER. Carbon's batches
+   * carry realized allocations because `Tr2MeshBase::CreateGeometryBatch` bakes
+   * them in during collection; ours carry a geometry-resource descriptor that
+   * something realizes later (`Tr2RenderBatch.geometrySource`). This passes
+   * whatever the batch holds, exactly as Carbon does, and it is the backend's
+   * business what it receives - which is the point of the boundary.
+   *
+   * @param {object} batch A `Tr2RenderBatch`.
+   * @returns {boolean} Whether the draw was accepted.
+   */
+  SubmitGeometry(batch)
+  {
+    this.SetTopology(batch.topology);
+    this.#esm.ApplyVertexDeclaration(batch.vertexDeclaration);
+
+    if (batch.vertexStreams[0]) this.#esm.ApplyStreamSource(0, batch.vertexStreams[0], 0, batch.stride[0]);
+    if (batch.vertexStreams[1]) this.#esm.ApplyStreamSource(1, batch.vertexStreams[1], 0, batch.stride[1]);
+
+    if (batch.indexBuffer)
+    {
+      this.#esm.ApplyIndexBuffer(batch.indexBuffer, batch.indexStride);
+
+      return this.DrawIndexedInstanced(
+        batch.indexCountPerInstance,
+        batch.instanceCount,
+        batch.startIndexLocation,
+        batch.baseVertexLocation,
+        batch.startInstanceLocation
+      );
+    }
+
+    return this.DrawInstanced(
+      batch.indexCountPerInstance,
+      batch.instanceCount,
+      batch.startIndexLocation,
+      batch.startInstanceLocation
+    );
+  }
+
+  /**
+   * Draws every batch in the accumulator's own order.
+   *
+   * Carbon `Tr2RenderContextBase::RenderBatchesInOrder`
+   * (`Tr2RenderContext.cpp:357-430`). THE WALK IS TRINITY'S, and that is the
+   * whole point of it being here: Carbon declares this on `Tr2RenderContext.h`,
+   * not on any abstraction-layer header, and a grep of `trinity/trinityal/`
+   * finds no `RenderBatches` at all. The backend is handed verbs - topology,
+   * resource set, constants, draw - and never a batch, a material or an
+   * accumulator.
+   *
+   * Carbon's three `Tr2RingBuffer::PrepareBuffer` calls at the top are not
+   * ported: the ring buffer's device half is the AL's, and preparing it from
+   * here would reach past the boundary this method exists to restore.
+   *
+   * @param {object} batches A finalized accumulator.
+   * @param {string} [techniqueName] The technique to draw.
+   * @returns {number} How many batches were drawn.
+   */
+  RenderBatchesInOrder(batches, techniqueName = DEFAULT_TECHNIQUE)
+  {
+    if (!batches) return 0;
+
+    let lastShader = null;
+    let currentObjectData = null;
+    let technique = 0;
+    let passCount = 0;
+    let shaderMask = 0;
+    let drawn = 0;
+
+    for (const batch of batches.GetBatches())
+    {
+      // RM_ANY means "whatever is already set", so Carbon skips the apply
+      // rather than applying a mode called any.
+      if (batch.renderingMode !== RenderingMode.RM_ANY)
+      {
+        this.#esm.ApplyStandardStates(batch.renderingMode);
+      }
+
+      if (batch.shader !== lastShader)
+      {
+        // Direct, as Carbon is: a batch with no shader is not valid, and
+        // Tr2RenderBatch.IsValid uses the shader as its key.
+        technique = batch.shader.GetTechniqueIndex(techniqueName);
+
+        // Carbon `continue`s on both of these, which SKIPS THE BATCH and
+        // leaves lastShader unchanged, so the next batch re-tests. Reproduced
+        // rather than tidied into a cached failure.
+        if (technique < 0) continue;
+
+        passCount = batch.shader.GetPassCount(technique);
+
+        if (passCount === 0) continue;
+
+        shaderMask = batch.shader.GetShaderTypeMask(technique);
+        lastShader = batch.shader;
+      }
+
+      if (batch.objectData && batch.objectData !== currentObjectData)
+      {
+        // Carbon fills an array of POINTERS into m_perObjectConstantBuffers
+        // before the loop, so every slot exists. Ours are created on demand by
+        // GetConstantBuffer, so the array is materialised the same way.
+        const buffers = Array.from(
+          { length: ConstantBufferSlot.CBUFFER_COUNT },
+          (_unused, slot) => this.GetConstantBuffer(slot)
+        );
+
+        batch.objectData.SetPerObjectDataToDevice(buffers, shaderMask, this);
+        currentObjectData = batch.objectData;
+      }
+
+      for (let passIndex = 0; passIndex < passCount; passIndex += 1)
+      {
+        batch.shader.ApplyAllStateForPass(technique, passIndex, this);
+        batch.material.ApplyMaterialDataForPass(technique, passIndex, this);
+
+        this.SubmitGeometry(batch);
+      }
+
+      drawn += 1;
+    }
+
+    return drawn;
   }
 
   /**
