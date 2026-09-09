@@ -68,10 +68,11 @@
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan } from "#trinityal";
+import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan } from "#trinityal";
 import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
+import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
 import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
@@ -338,6 +339,26 @@ export class CjsWebgpuRenderContextAL
     if (Failed(layout.Create(definition, this))) return null;
 
     return layout;
+  }
+
+  /**
+   * Creates a constant buffer, this backend's kind of `Tr2ConstantBufferAL`.
+   *
+   * See the stub's note: with no size this returns an empty buffer for a
+   * Trinity caller to `Create` later, as Carbon default-constructs its member.
+   *
+   * @param {number} [size] Bytes; zero returns an empty, invalid buffer.
+   * @param {number} [usage] A `Tr2ConstantUsageAL`.
+   * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
+   * @returns {object|null} The buffer, or null when a sized Create refused.
+   */
+  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null)
+  {
+    const buffer = new CjsWebgpuConstantBufferAL();
+
+    if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
+
+    return buffer;
   }
 
   /**

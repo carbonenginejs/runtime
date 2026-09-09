@@ -28,7 +28,7 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
 
 
@@ -255,6 +255,29 @@ export class Tr2RenderContextALStub
     const buffer = new Tr2BufferALStub();
 
     if (Failed(buffer.Create(description, initialData, this))) return null;
+
+    return buffer;
+  }
+
+  /**
+   * Creates a constant buffer, this backend's kind of `Tr2ConstantBufferAL`.
+   *
+   * WITH NO SIZE, AN EMPTY ONE. Carbon default-constructs `Tr2ConstantBufferAL`
+   * as a member and calls `Create` later, when the size is known
+   * (`Tr2RenderUtils.h:35-67` `FillAndSetConstants` creates on first fill). A
+   * Trinity class here cannot name the backend's class, so it asks the context
+   * for the empty object and fills it exactly as Carbon does.
+   *
+   * @param {number} [size] Bytes; zero returns an empty, invalid buffer.
+   * @param {number} [usage] A `Tr2ConstantUsageAL`.
+   * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
+   * @returns {object|null} The buffer, or null when a sized Create refused.
+   */
+  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null)
+  {
+    const buffer = new Tr2ConstantBufferALStub();
+
+    if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
 
     return buffer;
   }

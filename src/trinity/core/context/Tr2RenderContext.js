@@ -33,7 +33,6 @@ import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { ConstantBufferSlot } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
-import { Tr2ConstantBufferALStub } from "../../../trinityal/stub/Tr2ConstantBufferALStub.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
@@ -690,7 +689,10 @@ export class Tr2RenderContext extends CjsModel
   {
     if (!Number.isInteger(slot) || slot < 0 || slot >= ConstantBufferSlot.CBUFFER_COUNT) return null;
 
-    this.#perObjectConstantBuffers[slot] ??= new Tr2ConstantBufferALStub();
+    // The backend's kind, not the stub's. This constructed `Tr2ConstantBufferALStub`
+    // directly, so per-object constants landed in a CPU shadow on every
+    // backend - the same hard-wiring `Tr2RingBuffer` had, fixed the same way.
+    this.#perObjectConstantBuffers[slot] ??= this.CreateConstantBuffer();
 
     return this.#perObjectConstantBuffers[slot];
   }
@@ -783,6 +785,24 @@ export class Tr2RenderContext extends CjsModel
   CreateBuffer(description, initialData = null)
   {
     return this.#requireAL("CreateBuffer").CreateBuffer(description, initialData);
+  }
+
+  /**
+   * Creates a constant buffer of the running backend's kind.
+   *
+   * The same reason `CreateBuffer` is here. Carbon default-constructs a
+   * `Tr2ConstantBufferAL` member and sizes it later (`FillAndSetConstants`,
+   * `Tr2MaterialStageInput::AllocateConstants`); a caller here asks for the
+   * empty object with no size and fills it the same way.
+   *
+   * @param {number} [size] Bytes; zero returns an empty, invalid buffer.
+   * @param {number} [usage] A `Tr2ConstantUsageAL`.
+   * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
+   * @returns {object|null} A `Tr2ConstantBufferAL`, or null when a sized Create refused.
+   */
+  CreateConstantBuffer(size = 0, usage = undefined, initialData = null)
+  {
+    return this.#requireAL("CreateConstantBuffer").CreateConstantBuffer(size, usage, initialData);
   }
 
   /**

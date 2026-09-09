@@ -64,6 +64,15 @@ export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
     // buffer, and that was already refused above.
     if (this.#shadowCopy.length === 0) return ALResult.E_OUTOFMEMORY;
 
+    // The initial contents land in the shadow, so a buffer created from a
+    // static mirror reads back as that mirror without ever being locked.
+    if (initialData)
+    {
+      const bytes = new Uint8Array(initialData.buffer, initialData.byteOffset, initialData.byteLength);
+
+      this.#shadowCopy.set(bytes.subarray(0, Math.min(bytes.length, size)));
+    }
+
     return ALResult.S_OK;
   }
 

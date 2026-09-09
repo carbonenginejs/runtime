@@ -6,6 +6,8 @@ import { Tr2Shader } from "#resource/shader";
 import { ShaderType } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
 import { Tr2ResourceSetALStub } from "../../trinityal/Tr2ResourceSetAL.js";
+import { Failed } from "../../trinityal/ALResult.js";
+import { Tr2ConstantUsageAL } from "../../trinityal/stub/Tr2ConstantBufferALStub.js";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { EFFECT_CONSTANTS } from "../core/Tr2Renderer.js";
 
@@ -201,7 +203,26 @@ export class Tr2Material extends CjsModel
    */
   ApplyConstants(shaderType, input, hasReroutables, renderContext)
   {
-    if (!input.constantBuffer) return false;
+    const mirror = input.constantMirror;
+
+    // Carbon's test is `cb.GetSize()` (`Tr2Material.cpp:309`): a stage with no
+    // constants binds nothing.
+    if (!mirror) return false;
+
+    // CREATED ON FIRST APPLY, NOT AT ALLOCATION. Carbon's
+    // `AllocateConstants` creates the buffer through a process-wide
+    // main-thread context (`USE_MAIN_THREAD_RENDER_CONTEXT`, `:170-176`);
+    // ours has no global context, so the buffer is made by the context that
+    // first applies it, of that backend's kind. The mirror's bytes seed it so
+    // a fully static stage - Carbon's shared immutable buffer - is correct
+    // without ever being locked. Until 2026-09-10 nothing created this buffer
+    // at all, so b0 never reached any backend from this path.
+    if (!input.constantBuffer)
+    {
+      input.constantBuffer = renderContext.CreateConstantBuffer(mirror.byteLength, Tr2ConstantUsageAL.ONE_SHOT, mirror);
+
+      if (!input.constantBuffer) return false;
+    }
 
     this.UpdateConstants(shaderType, input, hasReroutables, renderContext);
 
@@ -242,6 +263,16 @@ export class Tr2Material extends CjsModel
         parameter.registerCount,
         renderContext
       );
+    }
+
+    // Carbon (`cpp:341-346`): lock, copy the mirror, unlock. The upload itself
+    // is the backend's business and happens when the buffer is bound.
+    const { result, data } = input.constantBuffer.Lock(renderContext);
+
+    if (!Failed(result) && data)
+    {
+      data.set(mirror.subarray(0, Math.min(mirror.length, data.length)));
+      input.constantBuffer.Unlock(renderContext);
     }
 
     input.constantBufferDirty = false;

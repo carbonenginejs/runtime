@@ -1074,9 +1074,17 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   material.parametersForPasses = [ { passes: [ pass ], libraries: [] } ];
 
   // Every stage gets a constant buffer; only the two the mask names may bind.
+  // The buffers answer Carbon's Lock/Unlock, because UpdateConstants copies
+  // the mirror into the buffer that way (Tr2Material.cpp:341-346).
+  const locked = [];
+
   for (const stage of [ VERTEX, PIXEL, 2, 3 ])
   {
-    pass.stageInput[stage].constantBuffer = { id: `cb${stage}` };
+    pass.stageInput[stage].constantBuffer = {
+      id: `cb${stage}`,
+      Lock: () => (locked.push(stage), { result: 0, data: new Uint8Array(16) }),
+      Unlock: () => 0
+    };
     pass.AllocateConstantMirror(stage, 16);
   }
 
@@ -1088,6 +1096,7 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
 
   assertEquals(material.ApplyMaterialDataForPass(0, 0, renderContext), true);
   assertEquals(setConstants.join(","), "0,1", "only the declared stages bound constants");
+  assertEquals(locked.join(","), "0,1", "and only those had their mirror copied into the buffer");
 
   const srv = pass.resourceSetDesc.Get("srv", PIXEL, 3);
   assertEquals(srv?.resource?.id, "diffuse", "the parameter bound itself into the description");
