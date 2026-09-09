@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2RenderContext.cpp:462-537 (Tr2RenderContextBase::RenderBatchGroup)
-// Source: trinity/trinity/Tr2RenderBatch.cpp (CanBeBinned)
+// Source: trinity/trinity/TriRenderBatch.cpp (CanBeBinned)
 //
 // Carbon hoists per GROUP what does not change across a run of batches -
 // standard states for the rendering mode, the shader state interface taken from

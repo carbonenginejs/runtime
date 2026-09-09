@@ -49,7 +49,6 @@
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::UseConstantBuffer.",
     "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::UseResources.",
     "src/trinityal/webgpu/CjsWebgpuShaderAL.js CjsWebgpuShaderProgramAL does not port Tr2ShaderProgramAL::CreateCommandSignatures.",
-    "src/trinityal/webgpu/CjsWebgpuShaderAL.js CjsWebgpuShaderProgramAL does not port Tr2ShaderProgramAL::GetRegisterMap.",
-    "src/trinityal/webgpu/core/batchGroups.js cites trinity/trinity/Tr2RenderBatch.cpp, which no longer resolves under E:\\carbonengine."
+    "src/trinityal/webgpu/CjsWebgpuShaderAL.js CjsWebgpuShaderProgramAL does not port Tr2ShaderProgramAL::GetRegisterMap."
   ]
 }
