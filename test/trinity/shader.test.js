@@ -7,7 +7,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
-import { Tr2ResourceSetDescriptionAL } from "../../npm/dist/trinityal/index.js";
+import { Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -1129,4 +1129,49 @@ test("a material with no shader applies nothing", () =>
       throw new Error("must not reach the context without a shader");
     }
   }), false);
+});
+
+test("an effect seeds its pass description with sampler states, overrides by name on top", () =>
+{
+  // Carbon creates each authored sampler's state at effect load and seeds the
+  // pass description (Tr2EffectDescription.cpp:436, :639-650); overrides are
+  // created per rebuild and written over the authored one by name
+  // (Tr2Effect.cpp:688-691, :623-662). Both go through the main-thread
+  // context's sampler factory, which dedupes on the description.
+  const PIXEL = 1;
+  const shader = shaderReflection();
+  const stage = new Tr2EffectStageInput();
+
+  stage.stageType = PIXEL;
+  stage.exists = true;
+  stage.samplers = new Map([
+    [ 2, Tr2SamplerSetup.from({ name: "DiffuseSampler", sampler: { minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1, maxAnisotropy: 1 } }) ],
+    [ 5, Tr2SamplerSetup.from({ name: "PatternSampler", sampler: { minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1, maxAnisotropy: 1 } }) ]
+  ]);
+  shader.effect.techniques[0].passes[0].stageInputs[PIXEL] = stage;
+  shader.effect.techniques[0].passes[0].stageInputs[0].exists = true;
+
+  const effect = new Tr2Effect();
+
+  effect.shader = shader;
+  effect.RebuildCachedDataInternal();
+
+  const description = effect.parametersForPasses[0].passes[0].resourceSetDesc;
+  const diffuse = description.Get("sampler", PIXEL, 2)?.sampler;
+  const pattern = description.Get("sampler", PIXEL, 5)?.sampler;
+
+  assert(diffuse instanceof Tr2SamplerStateALStub, "the default context's kind of sampler state");
+  assertEquals(diffuse.GetDescription().addressU, 1);
+  assertEquals(pattern, diffuse, "equal descriptions are ONE state - Carbon's factory");
+
+  // A pattern layer switched to clamp-to-border by name, as EveSOF does.
+  effect.AddSamplerOverride("PatternSampler", 4, 4);
+
+  const after = effect.parametersForPasses[0].passes[0].resourceSetDesc;
+  const overridden = after.Get("sampler", PIXEL, 5)?.sampler;
+
+  assertEquals(overridden.GetDescription().addressU, 4);
+  assertEquals(overridden.GetDescription().addressV, 4);
+  assertEquals(after.Get("sampler", PIXEL, 2)?.sampler, diffuse, "the other register keeps the authored state");
+  assertEquals(effect.parametersForPasses[0].passes[0].compatibleWithGdr, false, "an override that changed the description leaves the GDR path");
 });

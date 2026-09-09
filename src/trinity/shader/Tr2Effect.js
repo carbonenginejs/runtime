@@ -26,6 +26,38 @@ import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
+import { Tr2RenderContext } from "../core/context/Tr2RenderContext.js";
+import { CompareFunc } from "#consts/render-context";
+import { SAMPLER_LOD_UNBOUNDED } from "../../trinityal/Tr2SamplerDescription.js";
+
+
+/**
+ * Carbon's `CreateSamplerDescription( const Tr2SamplerOverride& )`
+ * (`Tr2Effect.cpp:595-612`), field for field: the override's one filter serves
+ * min and mag, no comparison, a transparent black border, `maxMipLevel` as the
+ * minimum LOD and an unbounded maximum.
+ *
+ * @param {object} override A `Tr2SamplerOverride`.
+ * @returns {object} A `Tr2SamplerDescription`.
+ */
+function SamplerDescriptionFromOverride(override)
+{
+  return {
+    minFilter: override.filter,
+    magFilter: override.filter,
+    mipFilter: override.mipFilter,
+    comparison: false,
+    addressU: override.addressU,
+    addressV: override.addressV,
+    addressW: override.addressW,
+    mipLODBias: override.lodBias,
+    maxAnisotropy: override.maxAnisotropy,
+    comparisonFunc: CompareFunc.CMP_NEVER,
+    borderColor: [ 0, 0, 0, 0 ],
+    minLOD: override.maxMipLevel,
+    maxLOD: SAMPLER_LOD_UNBOUNDED
+  };
+}
 
 
 function requireShader(shader)
@@ -390,6 +422,7 @@ export class Tr2Effect extends Tr2Material
           this.#MapPassParameters(stage, passParameters.stageInput[stageType], passParameters);
           this.#MapPassResources(stage.resources, passParameters.stageInput[stageType].textures, passParameters);
           this.#MapPassResources(stage.uavs, passParameters.stageInput[stageType].uavs, passParameters);
+          this.#SeedSamplers(stageType, stage, passParameters);
         }
 
         if (!passParameters.compatibleWithGdr) this.compatibleWithGdr = false;
@@ -398,6 +431,59 @@ export class Tr2Effect extends Tr2Material
       }
 
       this.parametersForPasses.push(inputs);
+    }
+  }
+
+  /**
+   * Puts the stage's sampler states into the pass's resource-set description,
+   * authored first and overrides on top.
+   *
+   * Carbon does this in two places that both run at effect load: the
+   * description reader creates each authored sampler's state and seeds the
+   * pass description (`Tr2EffectDescription.cpp:436`, `:639-650`), and
+   * `RebuildCachedDataInternal` creates a state per override and
+   * `UpdateSamplers` writes it over the authored one by NAME
+   * (`Tr2Effect.cpp:623-662`, `:688-691`). Both go through the main-thread
+   * context's sampler factory; ours is `Tr2RenderContext.GetDefault()`.
+   *
+   * Until 2026-09-10 neither happened: the description held no samplers at all,
+   * so a resource set could never bind one.
+   *
+   * A description the factory refuses - a mode Carbon's enum lacks - leaves the
+   * register unset rather than binding a wrong sampler.
+   *
+   * @param {number} stageType The stage.
+   * @param {object} stage The reflected stage input.
+   * @param {object} passParameters The pass parameters owning the description.
+   * @returns {void}
+   */
+  #SeedSamplers(stageType, stage, passParameters)
+  {
+    const context = Tr2RenderContext.GetDefault();
+    const description = passParameters.resourceSetDesc;
+
+    for (const [ registerIndex, setup ] of stage.samplers ?? [])
+    {
+      const state = context.CreateSamplerState(setup?.sampler);
+
+      if (state) description.SetSampler(stageType, registerIndex, state);
+    }
+
+    for (const override of this.samplerOverrides)
+    {
+      for (const [ registerIndex, setup ] of stage.samplers ?? [])
+      {
+        if (!setup?.hasName || setup.name !== override.name) continue;
+
+        const state = context.CreateSamplerState(SamplerDescriptionFromOverride(override));
+
+        // Carbon: an override that CHANGED the description makes the pass
+        // incompatible with the GDR path (Tr2Effect.cpp:653-657).
+        if (state && description.SetSampler(stageType, registerIndex, state))
+        {
+          passParameters.compatibleWithGdr = false;
+        }
+      }
     }
   }
 

@@ -28,7 +28,8 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
+import { SamplerDescriptionKey } from "../Tr2SamplerDescription.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
 
 
@@ -280,6 +281,39 @@ export class Tr2RenderContextALStub
     if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
 
     return buffer;
+  }
+
+  /** Carbon's `Tr2SamplerStateALFactory`, keyed on the description. */
+  #samplerStates = new Map();
+
+  /**
+   * The sampler state for a description, created once per distinct description.
+   *
+   * Carbon's `Tr2SamplerStateAL::Create` is a factory lookup on the primary
+   * context (`Tr2SamplerStateAL.cpp:25-28`); the factory is in the SHARED
+   * facade, so the stub dedupes too, and a headless resource set compares
+   * states by identity exactly as a device one does.
+   *
+   * @param {object} description A `Tr2SamplerDescription`.
+   * @returns {object|null} The shared state, or null for no description.
+   */
+  CreateSamplerState(description)
+  {
+    const key = SamplerDescriptionKey(description);
+
+    if (key === null) return null;
+
+    const existing = this.#samplerStates.get(key);
+
+    if (existing) return existing;
+
+    const state = new Tr2SamplerStateALStub();
+
+    if (Failed(state.Create(description, this))) return null;
+
+    this.#samplerStates.set(key, state);
+
+    return state;
   }
 
   /**

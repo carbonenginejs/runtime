@@ -84,6 +84,8 @@ const ACCEPTED = new Map([
         "The DX name for the native buffer accessor; ours is GetDeviceBuffer. Recorded in CjsWebgpuBufferAL.js." ],
     [ "CjsWebgpuBufferAL.GetMetalBuffer",
         "The Metal name for the native buffer accessor; ours is GetDeviceBuffer. Recorded in CjsWebgpuBufferAL.js." ],
+    [ "CjsWebgpuSamplerStateAL.GetMetalSamplerState",
+        "The Metal name for the native sampler accessor; ours is GetSampler. Recorded in CjsWebgpuSamplerStateAL.js." ],
     [ "CjsWebgpuBufferAL.CreateStagingBuffer",
         "DX11-only and private there; not on the contract. Recorded in CjsWebgpuBufferAL.js." ],
     [ "CjsWebgpuRenderContextAL.GetMetalContext",

@@ -73,6 +73,8 @@ import { ALResult, Failed } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
+import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
+import { SamplerDescriptionKey } from "../Tr2SamplerDescription.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
 import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
@@ -359,6 +361,43 @@ export class CjsWebgpuRenderContextAL
     if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
 
     return buffer;
+  }
+
+  /**
+   * Carbon's `Tr2SamplerStateALFactory` (`Tr2SamplerStateAL.h:41-43`), keyed on
+   * the description: equal descriptions are one state.
+   */
+  #samplerStates = new Map();
+
+  /**
+   * The sampler state for a description, this backend's kind of
+   * `Tr2SamplerStateAL`, created once per distinct description.
+   *
+   * Carbon's `Tr2SamplerStateAL::Create` IS this lookup
+   * (`Tr2SamplerStateAL.cpp:25-28`): the primary context owns the factory and
+   * hands back the shared object, which is why a resource set can compare
+   * sampler states by identity.
+   *
+   * @param {object} description A `Tr2SamplerDescription`, either spelling.
+   * @returns {object|null} The shared state, or null when Create refused.
+   */
+  CreateSamplerState(description)
+  {
+    const key = SamplerDescriptionKey(description);
+
+    if (key === null) return null;
+
+    const existing = this.#samplerStates.get(key);
+
+    if (existing) return existing;
+
+    const state = new CjsWebgpuSamplerStateAL();
+
+    if (Failed(state.Create(description, this))) return null;
+
+    this.#samplerStates.set(key, state);
+
+    return state;
   }
 
   /**
@@ -1692,6 +1731,7 @@ export class CjsWebgpuRenderContextAL
     this.#pipelines.clear();
     this.#pipeline = null;
     this.#pipelineDirty = true;
+    this.#samplerStates.clear();
   }
 
   /**

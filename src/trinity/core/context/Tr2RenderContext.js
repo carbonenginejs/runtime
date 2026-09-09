@@ -806,6 +806,23 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * The running backend's sampler state for a description.
+   *
+   * Carbon's `Tr2SamplerStateAL::Create` is a factory lookup on the primary
+   * context; equal descriptions are one state. Created at effect load
+   * (`Tr2EffectDescription.cpp:436`) and for sampler overrides
+   * (`Tr2Effect.cpp:690`), both through the main-thread context, which is
+   * `GetDefault()` here.
+   *
+   * @param {object} description A `Tr2SamplerDescription`.
+   * @returns {object|null} A `Tr2SamplerStateAL`, shared, or null.
+   */
+  CreateSamplerState(description)
+  {
+    return this.#requireAL("CreateSamplerState").CreateSamplerState(description);
+  }
+
+  /**
    * Creates the running backend's vertex layout from a vertex definition.
    *
    * The same reason `CreateBuffer` is here. Carbon's effect state manager holds

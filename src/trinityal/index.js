@@ -19,5 +19,6 @@ export * from "./Tr2DeviceResourceAL.js";
 export * from "./Tr2HalHelperStructures.js";
 export * from "./Tr2RenderPassAL.js";
 export * from "./Tr2ResourceSetAL.js";
+export * from "./Tr2SamplerDescription.js";
 export * from "./vertexLayoutMatch.js";
 export * from "./stub/index.js";
