@@ -38,18 +38,10 @@ scheduler without creating a device during import.
 The optional `./library-builder` entry is separate so builder-only BNK/HIRC
 construction code is absent from ordinary runtime bundles. Playback keeps its
 WEM format import lazy until original WEM bytes actually need preparation.
-When asked to construct authored SFX from banks, the builder resolves raw
-version-150 NodeBase and Actor-Mixer inheritance supplied by
-the `resource` layer and projects qualified per-leaf positioning, dry-volume
-distance curves, event culling metadata, and complete effective admitted
-Sound-local Parametric EQ/Wwise Delay/Matrix Reverb/RoomVerb overrides into the final
-document. It
-retains exact EVE-v150 Game Parameter-controlled Parametric EQ frequency and
-built-in-Distance Flanger Wet/Dry forms; general dynamic effect controls and
-Wwise Modulators remain barriers. It also follows
-qualified static Wwise Silence sources to their referenced effect parameters;
-the browser realizes their finite lifecycle with one constant-memory silent
-carrier rather than treating them as media or empty graph branches.
+The builder resolves supplied version-150 NodeBase and Actor-Mixer inheritance;
+its [document contract](reference/api.md#complete-document) and
+[compatibility ledger](reference/carbon-compatibility.md#compatibility-ledger)
+define qualified SFX projections and browser realization limits.
 
 ## Owned responsibilities
 
@@ -76,8 +68,11 @@ The package owns:
   approximation.
 
 `CjsAudioMan` is the public composition root. It receives one complete
-document and one structural media provider. `CjsAudioSystem` remains available
-as the lower-level graph/backend composition used by the manager.
+document and one structural media provider. It composes `CjsAudioSystem`, which
+owns `AudManager`, `AudStaticDataRepository`, `CjsAudioBackend`, and optional
+`CjsMusicEngine`. Specialized integrations may use `CjsAudioSystem` directly
+or supply a compatible music engine. A general resource manager need not
+interpret audio events or banks.
 
 ## Ownership elsewhere
 
@@ -100,36 +95,12 @@ runtime contains the reviewed outputs and never imports generator inputs.
 ## Environment contract
 
 All public runtime entries are browser-safe. Import and ordinary construction
-perform no DOM, fetch, Node, or device work. An explicit `buildFromResources()`
-or `CjsAudioLibrary.load(path)` call may use fetch. A resource build with
-`inspectBanks: false` only decodes catalog inputs and does not acquire bank
-bytes. `Enable()` is the first point at which the
-supplied/default browser context factory may create an `AudioContext`.
+perform no DOM, fetch, Node, or device work. Explicit
+[builder/loading calls](reference/api.md#builder) may fetch caller-selected
+resources; browser playback requires no Node service. `Enable()` is the first
+point at which the supplied/default context factory may create an `AudioContext`.
 Without a usable context, enablement fails safely and graph events retain
 Carbon's null-manager behavior.
-
-## Data flow
-
-```text
-complete schema-v2 document
-             |
-             v
-        CjsAudioMan
-      /              \
-     v                v
-selection       SFX/event/music graph
-     |                |
-     v                v
-media provider   CjsAudioSystem
-     \                /
-      \              /
-       v            v
-    prepare/decode -> CjsAudioBackend
-```
-
-Documents may come from an artifact, API, optional builder, or another source.
-Providers receive exact document records for individual-file, whole-original,
-or exact-range reads; see the [manager contract](concepts/audio-manager.md).
 
 The optional neutral music library is a separate `CjsAudioMan` input, not a
 Wwise graph section. `CjsJukebox` sends selected song records to an injected
@@ -139,7 +110,6 @@ availability probe. It neither synthesizes Wwise events nor replaces
 
 ## Related documentation
 
-- [Audio manager contract](concepts/audio-manager.md)
 - [Browser playback guide](guides/browser-playback.md)
 - [Authored SFX programs](guides/sfx.md)
 - [Optional jukebox](guides/jukebox.md)

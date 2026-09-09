@@ -34,15 +34,15 @@ bus processing omitted.
 | Authored music Pause/Resume events | Exact musical scheduler with browser carrier adaptation | The music graph retains and executes EVE build 3453885's seven qualified actions in order: five postable-root element/game-object controls and two cross-domain all/game-object controls. Pause prequeues and arms audio-clock stops through authored fade completion; Resume preserves layered media offsets and future delays, shifts the scheduled timeline, retains the live playlist iterator, selection history, and pinned pending preparation, and resumes Wwise curve progress. The all controls also remain in the SFX program. Web Audio sources are necessarily recreated, and shared-Bus/native plug-in DSP state cannot be frozen per music instance, so effect tails and internal phase remain subject to their existing browser adaptations. Descendant-only element targets and ordered mixtures with music Play/Stop/setter actions remain fail-closed. The unrelated UI transport still replays from an entry cue. |
 | Parametric EQ and Wwise Delay | Browser adaptation | Source-proven parameters, slot order, qualified shared-Bus placement, and complete effective static source overrides are retained. The exact EVE-v150 Game Parameter shape `ParamID 2`, exclusive accumulation, log-frequency scaling drives Band 1 Frequency live with object/global/default precedence. This numeric mapping is corpus-proven, not a universal Wwise plug-in enum. Source inheritance follows first-override replacement and explicit empty clears. Web Audio biquad/delay DSP is not bit-equivalent to Wwise; `processLfe:false` EQ is admitted only for mono/stereo decoded voices, source Delay feedback is cut at decoded dry-source completion, and pause/seek do not preserve native plug-in state. Other dynamic EQ controls, including Wwise Modulators, remain fail-closed. |
 | Wwise Compressor and Peak Limiter | Opt-in approximation | `wwiseDynamics: "approximate-web-audio"` admits only static, linked, all-channel records. Qualified source-local Compressor and Peak Limiter overrides use one voice-owned browser stage; the default `"strict"` policy omits that complete source chain and keeps the voice audible/dry. A bounded SFX ordering proof also admits an ancestor Peak Limiter only when every route-local control belongs to a strict descendant and there is no incoming duck target. Other shared routes retain the legacy audible fallback. Missing browser dynamics or limiter-lookahead primitives also retain dry SFX playback. |
-| Wwise Flanger | Opt-in approximation | `wwiseModulation: "approximate-web-audio"` admits the static sine/zero-phase source-local subset and one exact EVE-v150 dynamic form: Game Parameter `ship_Distance`, STMG built-in Distance binding 1, additive scaling-0 `ParamID`/property ID 1, and Wet/Dry Mix. Gain/Delay/Oscillator nodes approximate the unified comb; pose and attenuation-scaling changes automate independent dry/wet gains with 5 ms de-zippering. Strict mode or missing primitives plays the complete chain dry. Web Audio processes all decoded channels despite authored Center/LFE bypass, clamps unity feedback, retains phase through pause, and cuts effect state at dry-source completion. The numeric target, single-listener update, and `worldDistance / scalingFactor` law are bounded EVE/browser adaptations; control-type-4 Wwise Modulators, other dynamic forms, and shared-Bus Flanger remain unsupported. |
-| Wwise Tremolo | Opt-in approximation | `wwiseModulation: "approximate-web-audio"` admits static Sine plus unsmoothed zero-phase Square (50%-duty) and Triangle source-local EVE-v150 records. One exact OSSE Square preset additionally uses a bounded 15%-duty Fourier pulse; its retained 9% smoothing is approximate, and its Circular 180-degree channel spread is inert for the two mono leaves. The adapter also admits the exact paired `booster_intensity` Sine form: corpus-proven `ParamID 1` Depth and `ParamID 2` Frequency curves share authored two-second STMG Filtering Over Time, which the runtime approximates per voice before automating both unipolar gain terms and oscillator frequency. The numeric targets are EVE evidence, not universal Wwise enums. The 38-byte layout remains empirical: pinned wwiser identifies `0x00830003` and shows a corresponding modulation/phase sequence in Flanger, while the official authoring order and EVE corpus pin waveform IDs. Gain/Oscillator nodes map depth to `[1-depth, 1]`; a custom `PeriodicWave` retains nonzero Sine global phase. Phase mode and spread remain portable metadata, but one all-channel browser carrier omits Wwise's per-channel distribution. Triangle PWM is ignored because Wwise applies it only to Square. Native oscillator/channel law, exact smoothing, Center/LFE bypass, other dynamic controls, other variable-duty carriers, other waveforms, and shared-Bus Tremolo remain unsupported; strict mode, missing metadata/readers, or missing primitives keeps the whole chain audible and dry. |
+| Wwise Flanger | Opt-in approximation | `wwiseModulation: "approximate-web-audio"` admits the static sine/zero-phase source-local subset and one exact EVE-v150 dynamic form: Game Parameter `ship_Distance`, STMG built-in Distance binding 1 with exact zero default/ramp, additive scaling-0 `ParamID`/property ID 1, and Wet/Dry Mix. Gain/Delay/Oscillator nodes approximate the unified comb; pose and attenuation-scaling changes automate independent dry/wet gains with 5 ms de-zippering. Strict mode or missing primitives plays the complete chain dry. Web Audio processes all decoded channels despite authored Center/LFE bypass, clamps unity feedback, retains phase through pause, and cuts effect state at dry-source completion. The numeric target, single-listener update, and `worldDistance / scalingFactor` law are bounded EVE/browser adaptations; control-type-4 Wwise Modulators, other dynamic forms, and shared-Bus Flanger remain unsupported. |
+| Wwise Tremolo | Opt-in approximation | `wwiseModulation: "approximate-web-audio"` admits static Sine plus unsmoothed zero-phase Square (50%-duty) and Triangle source-local EVE-v150 records. One exact OSSE Square preset additionally uses a bounded 15%-duty Fourier pulse; its retained 9% smoothing is approximate, and its Circular 180-degree channel spread is inert for the two mono leaves. The adapter also admits the exact paired `booster_intensity` Sine form: corpus-proven `ParamID 1` Depth and `ParamID 2` Frequency curves share authored two-second STMG Filtering Over Time, which the runtime approximates per voice before automating both unipolar gain terms and oscillator frequency. The numeric targets are EVE evidence, not universal Wwise enums. The 38-byte layout remains empirical: pinned wwiser identifies `0x00830003` but does not decode its parameters, and shows a corresponding modulation/phase sequence in Flanger, while the official authoring order and EVE corpus pin waveform IDs. Gain/Oscillator nodes map depth to `[1-depth, 1]`; a custom `PeriodicWave` retains nonzero Sine global phase. Phase mode and spread remain portable metadata, but one all-channel browser carrier omits Wwise's per-channel distribution. Triangle PWM is ignored because Wwise applies it only to Square. Native oscillator/channel law, exact smoothing, Center/LFE bypass, other dynamic controls, other variable-duty carriers, other waveforms, and shared-Bus Tremolo remain unsupported; strict mode, missing metadata/readers, or missing primitives keeps the whole chain audible and dry. |
 | Wwise Harmonizer | Unsupported DSP barrier | Pinned wwiser proves the v150 `0x008a0003` layout, but Web Audio has no duration-preserving pitch shifter and `playbackRate` would alter source duration. EVE's reachable sun records use a zero-cent processed voice mixed with latency-aligned dry audio, so they are not transparent pass-throughs. Their additive dB `ParamID 3` is controlled by an Envelope Modulator, but neither wwiser nor a controlled Wwise pair identifies whether it targets Voice 1 Gain or another gain-like property. The runtime therefore keeps the complete source chain audible and dry rather than inventing DSP or control semantics. One `warp_ship_init_play` record has `-96 dB` wet level and is a proven transparent-omission candidate, but admitting it alone would not improve audible playback. |
-| Wwise Matrix Reverb | Opt-in approximation | `wwiseReverb: "approximate-web-audio"` admits static, control-free, source-local v150 default-delay records whose 29-byte layout is source-proven by pinned wwiser. A bounded four-line cyclic feedback-delay network preserves authored dry/wet levels and Pre-Delay and approximates Reverb Time and HF Ratio. The authored 4/8/12/16 delay count remains metadata rather than browser topology. Wwise's proprietary matrix, mixing, damping, channel, and LFE laws are not reproduced; pause/seek reuse browser state, and voice disposal cuts the tail at decoded dry-source completion. Shared-Bus Matrix Reverb, custom delay tables, dynamic controls, missing primitives, and strict mode keep the complete chain audible and dry. |
-| Wwise RoomVerb | Opt-in approximation | `wwiseRoomVerb: "approximate-web-audio"` admits the static, control-free, source-local EVE-v150 subset decoded from pinned wwiser's exact 186-byte layout. Deterministic cached procedural impulse responses split early reflections from the late tail. The browser preserves Dry/Early/Late levels and Reverb Pre-Delay and approximates ER pattern/room size, decay/HF damping, diffusion/density/shape/quality, stereo width, and tone filtering. Wwise's proprietary reflection tables, reverb algorithm, early-reflection front/back timing, surround/LFE/center routing, and tail completion are not reproduced. Strict mode, missing convolution primitives, more than two decoded channels, dynamic controls, and shared-Bus RoomVerb keep the complete chain audible and dry. |
-| Wwise Guitar Distortion | Opt-in approximation | `wwiseDistortion: "approximate-web-audio"` admits fully-wet Overdrive/Heavy source records from the source-proven v150 layout. In addition to static records, the exact EVE `ParamID 61`, object Game Parameter, additive, scaling-0 Drive shape follows `ship_health_hull`, `ship_warp_direction`, or `booster_intensity` live. The 24 `booster_intensity` leaves and one `ship_warp_direction` leaf retain their authored two-second STMG Filtering Over Time; the 111 `ship_health_hull` leaves author no filter and remain immediate. Voice-owned pre/post biquads surround a 4x-oversampled WaveShaper; two Gain nodes vary the existing normalized-tanh/full-wave approximation without replacing its curve. The mapping is EVE-v150 corpus evidence, not a universal plug-in enum, and the browser law is not Wwise's proprietary transfer/Drive/Rectification law. Authored Tone is retained but not applied. Exact oversampling, channel behavior, other dynamic controls/types, and shared-Bus placement remain unsupported. Strict mode, missing primitives, or a missing live RTPC reader keeps the complete chain audible and dry. |
-| Wwise Meter | Proven omission or opt-in approximation | [Wwise Meter](https://www.audiokinetic.com/library/2024.1.0_8669/?id=wwise_meter_plug_in_effect&source=Help) measures without modifying the signal. Feedback-free telemetry therefore allocates no node on a shared Bus or in a complete source-local chain. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output; strict source playback omits that complete effect chain and remains audible/dry. `Apply Downstream Volume` changes the omitted measurement basis, not signal flow. |
+| Wwise Matrix Reverb | Opt-in approximation | `wwiseReverb: "approximate-web-audio"` admits static, control-free, source-local v150 default-delay records whose 29-byte layout is source-proven by pinned wwiser. Voice-owned Gain, Delay, and Biquad nodes form four spaced default delays with cyclic feedback and a fixed HF damping curve. This preserves authored dry/wet levels and Pre-Delay and approximates Reverb Time and HF Ratio. The authored 4/8/12/16 delay count remains metadata rather than browser topology. Wwise's proprietary matrix, mixing, damping, channel, and LFE laws are not reproduced; pause/seek reuse browser state, and voice disposal cuts the tail at decoded dry-source completion. Shared-Bus Matrix Reverb, custom delay tables, dynamic controls, missing primitives, and strict mode keep the complete chain audible and dry. |
+| Wwise RoomVerb | Opt-in approximation | `wwiseRoomVerb: "approximate-web-audio"` admits the static, control-free, source-local EVE-v150 subset decoded from pinned wwiser's exact 186-byte layout. Deterministic cached procedural convolution buffers plus Gain, optional Delay, and Biquad nodes split early reflections from the late tail. The browser preserves Dry/Early/Late levels and Reverb Pre-Delay and approximates ER pattern/room size, decay/HF damping, diffusion/density/shape/quality, stereo width, and tone filtering. Wwise's proprietary reflection tables, reverb algorithm, surround/LFE/center routing and tail completion are not reproduced; early-reflection front/back timing remains retained metadata, not realized behavior. Strict mode, missing convolution primitives, more than two decoded channels, dynamic controls, and shared-Bus RoomVerb keep the complete chain audible and dry. |
+| Wwise Guitar Distortion | Opt-in approximation | `wwiseDistortion: "approximate-web-audio"` admits fully-wet Overdrive/Heavy source records from the source-proven v150 layout. In addition to static records, the exact EVE `ParamID 61`, object Game Parameter, additive, scaling-0 Drive shape follows `ship_health_hull`, `ship_warp_direction`, or `booster_intensity` live. The 24 `booster_intensity` leaves and one `ship_warp_direction` leaf retain their authored two-second STMG Filtering Over Time; the 111 `ship_health_hull` leaves author no filter and remain immediate. Voice-owned pre/post biquads surround a 4x-oversampled WaveShaper; two scheduled Gain nodes vary the existing normalized-tanh/full-wave approximation without replacing its curve, followed by output gain. This gain transformation reproduces the fixed static curve family for normalized WaveShaper inputs; it does not add Wwise's native Drive or clipping behavior. The mapping is EVE-v150 corpus evidence, not a universal plug-in enum, and the browser law is not Wwise's proprietary transfer/Drive/Rectification law. Authored Tone is retained but not applied. Exact oversampling, channel behavior, other dynamic controls/types, and shared-Bus placement remain unsupported. Strict mode, missing primitives, or a missing live RTPC reader keeps the complete chain audible and dry. |
+| Wwise Meter | Proven omission or opt-in approximation | [Wwise Meter](https://www.audiokinetic.com/library/2024.1.0_8669/?id=wwise_meter_plug_in_effect&source=Help) measures without modifying the signal. Feedback-free telemetry therefore allocates no node on a shared Bus or in a complete source-local chain. `wwiseMeterFeedback: "omit-telemetry"` may also pass static Meter signal flow while omitting a Game Parameter output and its authored feedback; audible source siblings still run. Strict source playback omits that complete effect chain and remains audible/dry. `Apply Downstream Volume` changes which inherited gains contribute to that omitted measurement, not signal flow. |
 | Qualified Sound `MaxNumInstances` | Corroborated browser adaptation | A v150 local-scope cap-one, reject-newest Sound subset reserves at an immediate Play boundary before media acquisition and releases at physical completion. Qualification requires effective Continue virtual behavior and excludes dynamic/random Priority, capped bus routes, delayed admission, and Crossfade prefetch. The packed local/global scope bit is corpus-corroborated pending a controlled golden pair; general Wwise arbitration remains unsupported. |
-| Dynamic Audio Bus `MaxNumInstances` RTPC | Unsupported behavior with opt-in route admission | Static and dynamic bus limits, priority stealing, and virtual-voice policy are not enforced. `wwiseVoiceLimits: "ignore"` additionally admits separately classified dynamic RTPC paths without enforcing their changing count or eviction behavior; the default `"strict"` keeps those paths outside shared routing. |
+| Dynamic Audio Bus `MaxNumInstances` RTPC | Unsupported behavior with opt-in route admission | Static and dynamic bus limits, priority stealing, and virtual-voice policy are not enforced. `wwiseVoiceLimits: "ignore"` additionally admits routes whose only separately classified scheduling barrier is a dynamic Audio Bus `MaxNumInstances` RTPC without enforcing their changing count or eviction behavior; the default `"strict"` keeps those paths outside shared routing. |
 | Proven-silent Aux return | Proven omission | A complete return at or below `-96 dB` is omitted; a narrowly qualified static SFX Aux shape is exact topology, and other wet paths remain barriers. |
 | Rejected shared route | Fallback | SFX remains on its existing emitter/SFX destination and music remains on its legacy segment/instance/output path; authored blocked bus stages are omitted. |
 | Master safety compressor | Browser workaround | A separate fixed Web Audio compressor (`-6 dB`, knee `6 dB`, `12:1`, `3 ms`, `250 ms`) limits all output when supported. It is not an authored Wwise effect; without the node capability output connects directly. |
@@ -55,7 +55,7 @@ bus processing omitted.
 
 ### Approximate Wwise dynamics
 
-The opt-in policy preserves the authored bus, effect slot, threshold, release,
+The opt-in `DynamicsCompressorNode` policy preserves the authored bus, effect slot, threshold, release,
 and output-gain placement, but it is intentionally not Wwise-equivalent.
 Eligible Compressors also preserve authored attack; eligible Peak Limiters use
 zero Web Audio attack and add output delay only when needed to bring total
@@ -75,85 +75,46 @@ through both stages.
 
 ## Implemented behavior
 
-The maintained graph includes:
+Beyond the qualified forms in the ledger, the maintained surface covers:
 
-- audio manager lifecycle, bank status, deferred events, global RTPC and state;
-- per-object events, prefixes, RTPC values, switches, placement, culling, mute,
-  and wake behavior;
-- root-runtime interpretation of supplied authored SFX random, step-sequence,
-  Continuous Disabled, Delay, Trigger Rate, and amplitude/power Crossfade
-  transitions, Step Switch/State, the qualified Continuous Switch/State subset
-  with per-child fades and nested switch sessions, parallel/blend, per-leaf
-  spatial routing, gain, and linear RTPC-curve data;
-- bounded silent graph preservation for stripped non-continuous Switch
-  Containers with zero group/default IDs and empty Children and Switch
-  assignment lists,
-  including inert stale switch parameters and delayed actions with audible
-  siblings;
-- bounded partial recovery of one mixed Play shape whose invalid
-  Crossfade-to-Blend action has one independent finite codec-Sound sibling;
-- static v150 Wwise Silence sources as finite constant-memory voices whose
-  authored duration participates in Stop, pause/resume, seek, Continuous
-  completion, routing, and qualified instance admission;
-- immediate Play-boundary per-game-object admission for the qualified v150
-  Sound cap-one/reject-newest subset, including pending media, immediate
-  Continuous completion, and Continuous Switch reroutes, with deterministic
-  cancellation and lifetime release;
-- ordered object/global Set and Reset Game Parameter actions with absolute or
-  relative values, randomized delays, Wwise transition curves, persistent
-  timelines, capture-time ordering, and live gain, pitch, and filter updates;
-- ordered SetSwitch and SetState actions with exact deterministic fixed delays;
-  delayed setters use the audio action clock, do not alter later same-post Play
-  selection early, and update live Continuous decisions when due, while
-  randomized/probabilistic or transition-bearing setters remain unsupported;
-- ordered Voice LPF/HPF Set and Reset actions with signed randomizers,
-  interruptible Wwise curves, hierarchy accumulation, action-aware filter
-  provisioning, persistent global templates, and qualified Reset All/Except
-  modes;
-- ordered Bus Volume Set and Reset actions across the complete v150 alias
-  family, with exact output-bus identities, persistent object/global state,
-  interruptible linear-gain curves, and isolated live/future SFX routing;
-- typed v150 Bus Volume RTPC catalogs with STMG defaults, raw Wwise
-  interpolation-before-scaling behavior, and live dry-route realization across
-  SFX and built-in music bus ancestry;
-- typed v150 multi-property Audio Bus State catalogs with named Volume, Pitch,
-  LPF, and HPF values, self-contained STMG transitions, qualified additive
-  filter behavior, route-qualified synchronization, and interruptible live
-  realization across SFX and built-in music bus ancestry;
-- typed v150 Audio Bus auto-ducking catalogs with activity-based SFX/music
-  coordination, source overlap union, Recovery Time, linear-gain Wwise fades,
-  Voice/Bus target retention, and dry-route realization;
-- typed v150 static Wwise Parametric EQ catalogs with ordered slots and bands,
-  Web Audio dry-route realization for SFX and built-in music, and fail-closed
-  dynamic-control and independent-LFE qualification;
-- source-proven static v150 Wwise Delay decoding with one shared Web Audio
-  dry/wet split, optional feedback loop, output gain, ordered Bus placement,
-  and fail-closed dynamic-control and independent-LFE qualification;
-- source-proven v150 Wwise Meter decoding with exact audio-transparent omission
-  when no Game Parameter is written, regardless of its downstream-volume
-  measurement flag; Meter telemetry itself remains unsupported;
-- fail-closed omission of static user-aux returns only when their complete
-  inactive-effect path and maximum installed gain remain at or below Wwise's
-  `-96 dB` silence threshold;
-- exact STMG State Group defaults and directed overrides, with immediate
-  logical routing plus interruptible live Volume, Pitch, low-pass, and
-  high-pass property interpolation;
-- listener and emitter placement;
-- caller-supplied obstruction/occlusion state, linear fading, cull/wake retry,
-  acoustics suppression, and optional backend delivery;
-- event metadata and sound prioritization;
-- event curves, direct emitter event handling, and RTPC-driven curve-set time;
-- post-render refresh of monitored RTPC values and action-log records for
-  object parameter changes;
-- UI and music emitters;
-- three-emitter stretch audio;
-- action-log records and callback flushing;
-- spatial-audio settings and manager delegates;
-- placement observers; and
-- audio geometry data plus optional backend geometry lifecycle calls.
+- manager lifecycle, bank status/deferred events, global RTPC/State; per-object
+  events, prefixes, RTPCs, switches, placement, culling, mute and wake;
+- supplied SFX random/step-sequence, Continuous Disabled/Delay/Trigger Rate,
+  amplitude/power Crossfade, Step Switch/State, qualified Continuous
+  Switch/State with per-child fades and nested sessions, parallel/blend,
+  per-leaf spatial routing, gain and linear RTPC curves;
+- ordered object/global Game Parameter Set/Reset: absolute/relative values,
+  randomized delays, Wwise transition curves, persistent timelines,
+  capture-time ordering and live gain/pitch/filter updates;
+- ordered Switch/State setters with deterministic fixed delays on the audio
+  action clock: later same-post Play selection is not changed early, and live
+  Continuous decisions update when due. Randomized/probabilistic or
+  transition-bearing setters remain unsupported;
+- Voice LPF/HPF Set/Reset with signed randomizers, interruptible curves,
+  hierarchy accumulation, action-aware filter provisioning, persistent global
+  templates and qualified Reset All/Except modes;
+- Bus Volume Set/Reset across the complete v150 alias family: exact output-bus
+  identities, persistent object/global state, interruptible linear-gain curves
+  and isolated live/future SFX routing;
+- typed Bus RTPCs with STMG defaults and interpolation before scaling; named
+  multi-property Bus States with self-contained transitions, additive filters
+  and qualified synchronization; auto-ducking with SFX/music activity,
+  source-overlap union, Recovery Time, linear-gain fades and Voice/Bus targets;
+- exact STMG State Group defaults/directed overrides, immediate logical routing
+  and interruptible Volume/Pitch/LPF/HPF interpolation;
+- event metadata/prioritization, event curves, direct emitter handling,
+  RTPC-driven curve-set time, post-render monitored-RTPC refresh and object
+  parameter action logs/callback flushing;
+- UI/music emitters, three-emitter stretch audio, placement observers,
+  spatial settings/manager delegates, geometry data and optional backend
+  geometry lifecycle calls.
 
-The exact class inventory is in the
-[class-purpose catalog](classes/README.md).
+Qualified Silence duration also participates in Stop, pause/resume, seek,
+Continuous completion, routing and instance admission. Sound cap-one admission
+covers pending media, immediate Continuous completion and Continuous Switch
+reroutes, with deterministic cancellation and lifetime release.
+
+The exact class inventory is in the [class-purpose catalog](classes/README.md).
 
 ## Adaptations
 
@@ -218,9 +179,11 @@ occlusion)`. A void return counts as acceptance; explicit `false` is retried on
 the next `Process()`. The built-in backend acknowledges those values without
 allocating DSP in default `"strict"` mode. The explicit
 `wwiseObstructionOcclusion: "approximate-web-audio"` policy combines the two
-values monotonically, maps them to a logarithmic low-pass from the lower of
+values as `1 - (1 - obstruction) * (1 - occlusion)`, maps them to a logarithmic low-pass from the lower of
 20 kHz or the context Nyquist frequency down to 600 Hz plus 0-to--18 dB
-attenuation, and smooths browser parameters over 5 ms. That fixed law is
+attenuation, and smooths browser parameters over 5 ms. Later-created routes inherit
+the current values; missing `BiquadFilterNode` capability retains strict dry
+playback. The stage applies to legacy, flat, and qualified emitter routes. That fixed law is
 CarbonEngineJS behavior: Carbon delegates the audible response to Wwise and
 supplies no portable curve to reproduce.
 
@@ -278,6 +241,50 @@ outer Delay. Random step `211583824` inherits Wwise Delay ShareSet
 adaptation. Completion still follows decoded dry voices and cuts the residual
 feedback tail. Other nested non-Switch Continuous clocks remain unsupported.
 
+### Bus and source routing
+
+Dry Bus Volume combines complete output ancestry, authored base volume,
+Make-Up Gain, effective NodeBase Output Bus Volume, global RTPC/State and
+shared SFX/music auto-duck activity. Duck gain is exact for the realized
+collapsed dry route. SFX Bus Pitch is transport-aware; Wwise excludes music.
+Both engines distribute dry-route LPF/HPF.
+
+Qualified Parametric EQ uses one ordered shared chain per Bus; rejected or
+missing graph routes retain distributed source-route fallback. Shared Wwise
+Delay has no distributed per-source fallback. A physical Bus's post-effect
+fader owns static Bus Volume, global Bus Volume RTPC and Immediate State gain.
+Dry-route stages retain Make-Up Gain, NodeBase Output Bus Volume, Bus actions,
+Voice Volume, State pitch and whole-ancestry additive LPF/HPF. These route-/voice-local
+controls block audible shared effects; gain-only Bus RTPC/State may cross
+qualified static effects. Bus ancestries targeted by retained Set/Reset Bus
+Volume remain blocked: instance/object scope cannot drive unrelated signals'
+shared fader. See the [complete document](api.md#complete-document) for catalog
+and source-override contracts. Mono/stereo `processLfe:false` EQ admission
+includes the skyhook population EQ-to-Tremolo chain; mixed unsupported plug-ins,
+other dynamic or independent-LFE source effects remain dry. Wwise Modulators
+await their HIRC objects and voice-local lifecycle from the resource layer.
+
+A silent static Aux return requires its complete inactive-effect path and
+maximum installed gain to remain at or below `-96 dB`. The exact audible SFX
+Aux shape is one static neutral-filter user send rejoining dry ancestry, with
+no asymmetric Pitch, gain placement, actions or audible effects. It splits
+after spatialization, evaluates a complete additive-State filter pair then
+Bus-target duck gain per dry/wet leg, and merges once at the common Bus.
+Mixed Voice/Bus rules from one duck source, wet-only duck sources, Voice
+targets, absolute/positive-relative action risk, unsupported filters, dynamic
+sends, reflections and wet-path escapes remain barriers.
+
+Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
+paths. A bounded first/output-Bus Voice Volume Set uses a second voice-owned
+gain; it persists on the posting emitter generation, affects future posts and
+uses authored AudioContext delay/transition timing. EVE build 3453885's
+cinematic begin/climax pair retains its `-30 dB` to `0 dB` envelope through
+legacy fallback, omitting rejected shared Delay/Peak Limiter processing.
+
+Other RTPC bindings, audible Aux/effects/tails, feedback-capable meters,
+general priority/instance arbitration, project/bus voice limits and virtual
+voices remain deferred; see [Wwise routing requirements](wwise-resource-routing.md).
+
 ## Unsupported native behavior
 
 The package does not emulate:
@@ -291,77 +298,6 @@ The package does not emulate:
   `in_game_video_stream_play` Wwise Audio Input source;
 - operating-system device selection; or
 - Wwise middleware rendering.
-
-Bus Volume is an audible routed adaptation with complete dry-output ancestry,
-authored base Bus Volume, bus Make-Up Gain, effective NodeBase Output Bus
-Volume, global RTPC and State contributions, and shared SFX/music auto-ducking
-activity. The current ducking gain is exact for the realized collapsed dry
-route. Bus Pitch is transport-aware on SFX and follows Wwise's exclusion for
-music; Bus LPF/HPF are distributed dry-route filters for both engines. Static
-Parametric EQ uses source-proven v150 field decoding and one ordered shared
-Web Audio chain per Bus when the complete graph route qualifies. Blocked or
-missing graph routes retain the distributed source-route fallback. Neither
-path claims native Wwise DSP equivalence. A complete effective Sound-local,
-control-free Parametric EQ/Wwise Delay override is also adapted into
-one voice-owned Web Audio chain before Voice filters and spatial/auxiliary
-splitting. The first NodeBase override replaces inherited effects, including
-an explicit empty clear. Static source EQ may retain `processLfe:false` because
-decoded mono/stereo audio has no independent LFE channel; above two channels
-the complete chain stays dry. This admits the skyhook population EQ-to-Tremolo
-chain. One bounded EVE-v150 dynamic EQ form is also retained:
-Game Parameter `ParamID 2`, exclusive accumulation, and log-frequency scaling
-drive Band 1 Frequency through the existing object/global/default RTPC lane.
-Its `processLfe:false` routing is equivalent for decoded mono/stereo sources;
-more than two channels keep the complete chain dry. Mixed unsupported-plug-in,
-other dynamic, and other independent-LFE Sound effects remain documented
-dry-playback approximations. Wwise Modulator controls stay unsupported until
-their HIRC objects and voice-local lifecycle are available from the resource
-layer.
-Source Delay lifecycle follows the decoded dry voice and cuts residual
-feedback; pause/seek reuse browser state rather than matching native plug-in
-state. Static Wwise Delay likewise uses
-source-proven v150 fields and one shared Web Audio delay/feedback stage. For
-Audio Bus routes it has no distributed per-source fallback. Bus ancestries
-targeted by retained Set or Reset Bus Volume actions stay blocked across audible effects because their
-instance/object scope cannot drive a fader shared by unrelated signals. Each
-qualified physical Bus now owns an exact post-effect fader for static Bus
-Volume, global Bus Volume RTPC, and Immediate State gain. The existing
-dry-route stages retain Make-Up Gain, effective NodeBase Output Bus Volume,
-Bus Volume actions, Voice Volume, State pitch, and the additive whole-ancestry
-LPF/HPF fallback. The exact audible SFX Aux shape instead evaluates one
-complete dry-path and one complete wet-path filter pair before their respective
-Bus-target duck gains.
-Those route-/voice-local controls still block audible shared effects, while
-gain-only Bus RTPC/State paths may cross a qualified static effect sequence.
-A static user-aux send may also be omitted when the complete return is provably
-silent. SFX additionally realizes one static, neutral-filter user send when its
-qualified Auxiliary return rejoins the dry ancestry without branch-asymmetric
-Pitch, gain placement, actions, or audible effects. The route entry fans out
-after spatialization, applies additive State filtering and Bus-target ducking
-per whole leg, and merges once at the common Bus. Mixed Voice/Bus rules from
-one duck source and wet-only duck sources or Voice targets remain barriers.
-Absolute or positive-relative action risk, unsupported filters, dynamic sends,
-reflections, and wet-path escapes all retain the barrier. A static,
-control-free source Meter is retained as portable metadata.
-It allocates no node when it has no Game Parameter target; an explicit
-`wwiseMeterFeedback: "omit-telemetry"` also admits a target-bearing Meter while
-omitting its telemetry. Strict mode leaves that complete source chain dry.
-`Apply Downstream Volume` affects the omitted reported level, not the passed
-audio signal.
-Voice Volume RTPCs use a distinct pre-bus SFX gain on qualified transparent
-paths. A bounded Bus-target Voice Volume Set uses a second voice-owned pre-Bus
-gain only when its target is the route's first/output Bus. It persists on the
-posting emitter generation and affects future posts; fixed delay and
-transition timing use the authored AudioContext clock. The EVE 3453885
-cinematic begin/climax pair is audible through the legacy fallback, so its
-`-30 dB` to `0 dB` envelope is retained while its rejected shared Delay and
-Peak Limiter processing is omitted. Unsupported RTPC bindings, route-local
-controls crossing an audible shared effect,
-other audible auxiliary sends, other effect processing
-and tails, feedback-capable meters, general priority/instance arbitration,
-project and bus voice limits, and virtual-voice behavior remain deferred
-as described in the
-[Wwise routing requirements](wwise-resource-routing.md).
 
 Unsupported Carbon methods remain visible with explicit implementation
 metadata where their schema surface is maintained.

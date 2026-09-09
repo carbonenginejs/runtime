@@ -110,33 +110,19 @@ audio.ReleaseEmitter(emitter);
 audio.Dispose();
 ```
 
-Unsupported shared-bus processing does not normally suppress the decoded
-voice. With the default strict policy, playback uses the legacy SFX/music route
-and omits the blocked bus stages. Opting into approximate dynamics or
-modulation replaces that omission only for the corresponding qualified static
-subset; it does not enable
-Convolution Reverb, Meter feedback, dynamic plug-in controls, or general Aux
-routing.
+The example's opt-ins admit only qualified browser approximations, not general
+Wwise DSP. Rejected shared-bus processing normally leaves the voice audible on
+its legacy route. See the [policy table](../reference/api.md#effect-policies)
+and [compatibility ledger](../reference/carbon-compatibility.md#compatibility-ledger)
+before enabling a policy.
 
 ## Provider routes
 
-An embedded media record can be delivered in two ways:
-
-- `Read(bankRecord)` returns the complete original BNK and the manager slices
-  `offset..offset+byteLength` locally; or
-- `ReadRange(bankRecord, { offset, byteLength })` returns exactly that window.
-
-Individual source records always use `Read(sourceRecord)`. The provider owns
-URLs, credentials, fetch policy, and cancellation. The audio layer owns media
-choice, validation, preparation, decoding, and caches.
-
-Both provider routes receive an `AbortSignal`. The audio layer deduplicates
-concurrent media and complete-bank reads without sharing caller
-cancellation: one stopped event releases only its own lease, and the
-provider signal aborts when no active event still needs the pending read.
-An authored `break` keeps a pending one-shot acquisition alive so it can
-finish naturally; `stop`, emitter release, `StopAllPlayingSounds()`, and
-disposal cancel pending SFX work.
+Implement `Read` for individual files or whole banks, or `ReadRange` for exact
+embedded-media windows. The provider owns URLs, credentials, fetch policy, and
+cancellation; the audio layer owns selection, validation, preparation,
+decoding, and caches. Follow the [provider and cancellation contract](../reference/api.md#delivery)
+when forwarding abort signals: one stopped event must not cancel another's read.
 
 For authored random, sequence, switch, layered, or RTPC-controlled behavior,
 include the optional `sfx` program described in
@@ -145,42 +131,16 @@ provider routes.
 
 ## Spatial attenuation
 
-Builder-produced spatial Sound leaves may carry a Wwise `dryVolumeCurve`.
-The browser keeps Web Audio's HRTF panning but disables `PannerNode` distance
-rolloff, then evaluates each leaf's authored curve from the raw distance
-between listener and emitter. `SetAttenuationScalingFactor()` changes its
-range: `0.5` evaluates the curve at twice the physical distance, while `2`
-evaluates it at half the physical distance.
+Use `SetAttenuationScalingFactor()` to change playback range, but note that
+Carbon's culling radius scales differently. The exact curve, culling quirk,
+missing-curve fallback, and unrendered spatial features are documented under
+[adaptations](../reference/carbon-compatibility.md#adaptations).
 
-Emitter culling remains Carbon-compatible and is a separate calculation:
-its effective radius is `authoredRadius * sqrt(scalingFactor)`. It therefore
-does not exactly match Wwise's linear playback-range scaling for factors other
-than `1`; a factor above `1` can cull a voice before its scaled playback curve
-ends.
-
-Old/custom graphs without a retained curve—including `Use Project` without
-its project default—use the non-Wwise-equivalent `distanceScale` inverse-gain
-fallback. Movement smoothly reschedules active Voice Volume, State, or RTPC
-transitions on their shared gain parameter; the varying product is approximate.
-Cone, distance-filter, spread/focus, diffraction, and transmission remain
-unrendered. See [Carbon compatibility](../reference/carbon-compatibility.md#adaptations).
-
-Carbon's newer line-of-sight subsystem does not ray cast either: the host
-supplies a normalized blockage value per emitter and `AudManager` fades the
-result before handing it to Wwise. The audio layer now preserves that manager
-API and fade lifecycle. Call `SetEmitterLineOfSightBlockage(emitterID, value)`
-after registering the emitter; `GetEmitterOcclusion()` observes the live
-mid-fade value. An injected backend may accept
-`SetObjectObstructionAndOcclusion(emitterID, 4, obstruction, occlusion)`.
-The built-in backend acknowledges the state but allocates no DSP by default.
-Opt into `wwiseObstructionOcclusion: "approximate-web-audio"` to apply the
-same smooth low-pass and attenuation stage to legacy, flat, and qualified
-routes for that emitter. The browser combines obstruction and occlusion as
-`1 - (1 - obstruction) * (1 - occlusion)`, moves the cutoff logarithmically
-from the lower of 20 kHz or the context Nyquist frequency to 600 Hz, and
-attenuates from 0 to -18 dB. Carbon supplies only the normalized values and
-delegates their sound to Wwise, so this curve is an explicit CarbonEngineJS
-approximation rather than an authored Wwise law.
+For host-computed blockage, register the emitter before calling
+`SetEmitterLineOfSightBlockage(emitterID, value)`. No ray casting is performed.
+The [manager API](../reference/api.md#caller-supplied-obstruction-and-occlusion)
+describes fading and backend delivery; audible filtering requires the explicit
+`wwiseObstructionOcclusion` opt-in.
 
 For named soundtrack playback independent of authored Wwise music events,
 pass an optional neutral catalog, loader, and availability probe as described
@@ -188,18 +148,13 @@ in [Optional jukebox](jukebox.md).
 
 ## Cleanup
 
-Release one media identity with `ReleaseMedia()`, all decoded buffers with
-`ClearMedia()`, whole-bank bytes with `ClearSourceData()`, an emitter with
-`ReleaseEmitter()`, or the owner with `Dispose()`. The three cache-release
-methods prevent reuse without canceling callers; a signal cancels a caller's
-`LoadMedia()` lease. Disposal or library/provider replacement invalidates all
-leases and aborts pending provider work. Effective provider, delivery, and
-language changes also clear retained built-in music media.
+Release emitters with `ReleaseEmitter()` and the owner with `Dispose()`.
+For cache release without caller cancellation, use the methods listed in
+[Delivery](../reference/api.md#delivery).
 
 ## Related documentation
 
 - [Architecture and boundaries](../architecture.md)
-- [Audio manager contract](../concepts/audio-manager.md)
 - [Authored SFX programs](sfx.md)
 - [Optional jukebox](jukebox.md)
 - [API reference](../reference/api.md)

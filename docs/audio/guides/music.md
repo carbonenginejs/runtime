@@ -277,4 +277,4 @@ so later posts use the new configuration.
 
 - [Browser playback guide](browser-playback.md)
 - [Architecture and boundaries](../architecture.md)
-- [Audio manager direction](../concepts/audio-manager.md)
+- [Audio manager API](../reference/api.md)

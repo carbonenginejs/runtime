@@ -191,14 +191,37 @@ other auxiliary, dynamic, or nonlinear effect path audible.
 - `delivery: "range"` for an exact original-bank byte window; or
 - `delivery: "auto"` to choose from provider capabilities.
 
-The manager also accepts language and media-type preferences. Concurrent
-loads of one selected representation share work. A caller may pass
-`signal`; cancellation releases only that caller's lease, and the provider
-read is aborted once its final pending lease ends. Whole-bank reads share
-the same lease model across embedded members. `ReleaseMedia()`,
-`ClearMedia()`, and `ClearSourceData()` release retained state explicitly
-without canceling active callers. Manager disposal and library/provider
-replacement invalidate all pending acquisitions.
+The structural provider receives exact document records, not filenames or
+URLs as canonical Wwise media identities:
+
+```js
+{
+    Read(sourceRecord, { signal, kind, mediaID, ...context }),
+    ReadRange?(bankRecord, { offset, byteLength, signal }),
+    CanRead?(sourceRecord, context),
+    CanReadRange?(bankRecord, context)
+}
+```
+
+`Read` accepts individual records or a whole original bank for local
+`offset..offset+byteLength` slicing. It may return bytes,
+`{ bytes, mediaType }`, an `AudioBuffer`, or PCM channel data.
+`ReadRange` returns exact HTTP-206 bytes, or a complete original file marked
+`complete: true` for local slicing. Buffer playback is not long-form streaming.
+
+Language and media-type preferences select representations. Concurrent
+`LoadMedia(mediaID, { signal })` callers share acquisition but hold independently
+abortable leases: the provider receives a runtime-owned signal, aborted only
+when its final pending lease ends. The orphaned operation is evicted for
+immediate retry. Whole-bank reads use the same rule across embedded members.
+An authored `break` keeps pending one-shot acquisition alive to finish naturally;
+`stop`, emitter release, `StopAllPlayingSounds()`, and disposal cancel pending SFX.
+
+`ReleaseMedia()` releases one media identity, `ClearMedia()` all decoded buffers,
+and `ClearSourceData()` whole-bank bytes, without canceling active callers.
+Disposal or library/provider replacement invalidates and aborts all old
+pending acquisitions. Effective provider, delivery-mode, and language changes
+clear both decoded-media and built-in music retained-media caches.
 
 ## Lifecycle
 
@@ -227,152 +250,35 @@ Constructor option `defaultSoundBanks` protects banks that should be present
 whenever audio is enabled. Calls to `LoadSoundBank()` while disabled are
 retained for the next successful `Enable()`. `Disable()` preserves the current
 loaded/in-flight set, and `SwapSoundBanks()` reconciles non-default bank
-intent without acquiring bytes. `SetGlobalRTPC()`, `SetState()`, and
-`StopAllPlayingSounds()` keep a thin browser integration on `CjsAudioMan`.
+intent without acquiring bytes. The bank-intent facade includes
+`LoadSoundBank(s)`, `UnloadSoundBank(s)`, `SwapSoundBanks()`,
+`ReloadSoundBanks()`, and protected default-bank helpers, with race-safe async
+bank callbacks. These methods change runtime intent only, never acquire library
+or media data. `SetGlobalRTPC()`, `SetState()`, and `StopAllPlayingSounds()`
+keep a thin integration on `CjsAudioMan`.
 
-Constructor option `wwiseDynamics` controls authored Wwise Compressor and Peak
-Limiter admission to the shared-bus mixer and qualified source-local dynamics
-chains:
+### Effect policies
 
-- `"strict"` (default) rejects those effects from shared routing and omits a
-  complete qualified source chain containing either effect. The voice remains
-  audible through the legacy/dry route with the authored dynamics omitted.
-- `"approximate-web-audio"` admits the documented static, linked subset through
-  `DynamicsCompressorNode` plus compensation gain and optional limiter latency
-  padding. Qualified source dynamics receive an equivalent browser stage per
-  physical voice. This preserves topology, not Wwise DSP
-  equivalence; missing browser dynamics primitives retain dry SFX playback.
+These independent constructor options are accepted by `CjsAudioMan` and
+passed through by `CjsAudioSystem`. Each defaults to `"strict"`; any value
+other than that default or the listed opt-in throws synchronously. Admission
+is bounded by the [compatibility ledger](carbon-compatibility.md#compatibility-ledger),
+not a claim of Wwise DSP equivalence.
 
-Any other value throws synchronously. `CjsAudioSystem` accepts the same option
-for lower-level composition. The mode is host runtime policy and is not stored
-in the portable audio-library document.
+| Option | Opt-in value | Admission scope | Strict outcome |
+| --- | --- | --- | --- |
+| `wwiseDynamics` | `"approximate-web-audio"` | Qualified static linked Compressor/Peak Limiter, shared-bus and source-local. | Shared routing blocked; complete source chain omitted, voice audible/dry. |
+| `wwiseModulation` | `"approximate-web-audio"` | Qualified source-local Flanger/Tremolo static and bounded dynamic forms. | Complete source chain audible/dry. |
+| `wwiseReverb` | `"approximate-web-audio"` | Qualified source-local Matrix Reverb default-delay subset. | Complete source chain audible/dry. |
+| `wwiseRoomVerb` | `"approximate-web-audio"` | Qualified source-local static EVE-v150 RoomVerb. | Complete source chain audible/dry. |
+| `wwiseDistortion` | `"approximate-web-audio"` | Qualified fully-wet EVE-v150 Guitar Distortion, including its exact Drive RTPC form. | Complete source chain audible/dry. |
+| `wwiseObstructionOcclusion` | `"approximate-web-audio"` | Fixed browser blockage response on emitter routes. | Backend accepts updates without DSP; manager clamp/fade/cull/wake/retry/clear/geometry-suppression behavior remains active. |
+| `wwiseMeterFeedback` | `"omit-telemetry"` | Static v150 target-bearing Meter on a shared Bus or complete source chain; no Game Parameter feedback produced. | Shared route blocked or complete source chain audible/dry. |
+| `wwiseVoiceLimits` | `"ignore"` | Route whose only separately classified scheduling barrier is a dynamic Audio Bus `MaxNumInstances` RTPC; count/eviction remains unenforced. | Route remains outside shared routing. |
 
-Constructor option `wwiseModulation` independently controls qualified
-source-local Wwise Flanger and Tremolo records:
-
-- `"strict"` (default) omits the complete source chain and keeps the voice
-  audible/dry.
-- `"approximate-web-audio"` realizes the documented static Sine subsets, the
-  exact EVE-v150 built-in-Distance Flanger Wet/Dry form, the
-  bounded filtered `booster_intensity` Sine form, and the narrow unsmoothed
-  zero-phase Tremolo Square (50%-duty) and Triangle subsets with voice-owned
-  Gain, optional Delay, and optional Oscillator nodes. One exact OSSE Square
-  preset uses a bounded custom 15%-duty Fourier pulse; its retained 9%
-  smoothing is approximate. Tremolo Sine global phase uses `PeriodicWave`
-  when nonzero. Missing required primitives keep the complete chain dry.
-
-The portable records retain authored Flanger/Tremolo parameters and channel
-flags. Tremolo additionally retains waveform, phase mode, and spread, but the
-browser applies one all-channel carrier and omits Wwise's per-channel phase
-distribution. The browser graphs are modulation approximations, not Wwise
-DSP. The Tremolo record is an explicitly empirical EVE-v150 38-byte layout;
-pinned wwiser identifies its plug-in but does not decode those parameters.
-Dynamic Flanger is admitted only when STMG binds named `ship_Distance` to
-built-in Distance with the exact zero default/ramp and additive Wet/Dry target.
-Emitter/listener pose and attenuation scaling refresh its independent dry and
-wet gains; control-type-4 Modulators and other dynamic forms remain rejected.
-Any other value throws synchronously, and `CjsAudioSystem` accepts the same
-option.
-
-Constructor option `wwiseReverb` independently controls qualified source-local
-Wwise Matrix Reverb records:
-
-- `"strict"` (default) omits the complete source chain and keeps the voice
-  audible/dry.
-- `"approximate-web-audio"` realizes the documented static v150 default-delay
-  subset with voice-owned Gain, Delay, and Biquad nodes. Missing required
-  primitives keep the complete chain dry.
-
-Pinned wwiser proves the 29-byte portable record layout. The browser uses four
-spaced default delays regardless of the retained authored delay count, a
-cyclic feedback topology, and a fixed HF damping curve. It is not Wwise's
-matrix, mixing, damping, channel, or LFE implementation. Source completion
-cuts the remaining tail. Any other value throws synchronously, and
-`CjsAudioSystem` accepts the same option; shared-Bus Matrix Reverb remains a
-barrier.
-
-Constructor option `wwiseRoomVerb` independently controls qualified
-source-local Wwise RoomVerb records:
-
-- `"strict"` (default) omits the complete source chain and keeps the voice
-  audible/dry.
-- `"approximate-web-audio"` realizes the documented static EVE-v150 subset
-  with deterministic cached early-reflection and late-reverb convolution
-  buffers plus Gain, optional Delay, and Biquad nodes. Missing required
-  primitives or a decoded source with more than two channels keep the complete
-  chain dry.
-
-Pinned wwiser proves the exact 186-byte portable record layout. The browser
-preserves Dry/Early/Late levels and Reverb Pre-Delay, and approximates the
-authored ER pattern, room size, decay, HF damping, diffusion, density, room
-shape, quality, stereo width, and tone filters. Wwise's proprietary reflection
-tables, reverb algorithm, surround/LFE/center treatment, and tail-completion
-lifecycle are not reproduced; early-reflection front/back timing also remains
-retained metadata. Any other value throws synchronously, and
-`CjsAudioSystem` accepts the same option; shared-Bus RoomVerb remains a
-barrier.
-
-Constructor option `wwiseDistortion` independently controls qualified
-source-local Wwise Guitar Distortion records:
-
-- `"strict"` (default) omits the complete source chain and keeps the voice
-  audible/dry.
-- `"approximate-web-audio"` realizes the documented fully-wet EVE-v150
-  subset with authored pre/post biquads, a 4x-oversampled WaveShaper, and
-  output gain. The exact EVE `ParamID 61` object/additive/scaling-0 Drive
-  shape also follows its live Game Parameter through two scheduled Gain
-  nodes. Missing required primitives or a live RTPC reader keep the complete
-  dynamic chain dry.
-
-Pinned wwiser proves the portable record layout, but not Wwise's transfer,
-Drive, Tone, Rectification, oversampling, or channel laws. The browser uses a
-documented deterministic curve, does not apply Tone, and is not DSP-equivalent.
-`ParamID 61` is pinned only to the EVE-v150 corpus rather than claimed as an
-Audiokinetic enum. The gain transformation reproduces the fixed static curve
-family for normalized WaveShaper inputs; it does not add Wwise's native Drive
-or clipping behavior.
-Any other value throws synchronously, and `CjsAudioSystem` accepts the same
-option.
-
-Constructor option `wwiseObstructionOcclusion` controls audible realization
-of Carbon's caller-supplied obstruction/occlusion state:
-
-- `"strict"` (default) accepts backend updates without allocating DSP. The
-  exact manager-side clamp, fade, cull/wake, retry, clear, and geometry
-  suppression behavior remains active.
-- `"approximate-web-audio"` inserts one low-pass plus attenuation stage for
-  each active legacy or qualified emitter route. Combined blockage is
-  `1 - (1 - obstruction) * (1 - occlusion)`; its cutoff moves logarithmically
-  from the lower of 20 kHz or the context Nyquist frequency to 600 Hz and its
-  gain from 0 to -18 dB with a 5 ms browser smoothing constant. A route created
-  later inherits the current values.
-
-Carbon delegates the audible response to Wwise, so these fixed curves are
-CarbonEngineJS policy rather than Wwise DSP or bank-authored attenuation.
-Missing `BiquadFilterNode` capability retains strict dry playback. Any other
-option value throws synchronously, and `CjsAudioSystem` accepts the same
-option.
-
-Two further host policies control shared-route admission through explicit
-omissions:
-
-- `wwiseMeterFeedback: "omit-telemetry"` admits a static v150 Meter with a
-  Game Parameter target on a shared Bus or in a complete source-local effect
-  chain. The signal path is transparent and audible source siblings still run,
-  but the Meter value is not produced and any authored feedback through that
-  Game Parameter is absent. `Apply Downstream Volume` changes which inherited
-  gains contribute to that omitted measurement; it does not modify the audio.
-  The default `"strict"` keeps the shared route blocked or the complete source
-  chain audible and dry.
-- `wwiseVoiceLimits: "ignore"` admits a route whose only separately classified
-  scheduling barrier is a dynamic Audio Bus `MaxNumInstances` RTPC. The browser
-  does not enforce its changing voice-count limit or eviction behavior. The
-  default is `"strict"`.
-
-These policies are independent of `wwiseDynamics`, `wwiseDistortion`, and
-`wwiseModulation`, are validated
-synchronously, and are passed through by both `CjsAudioMan` and
-`CjsAudioSystem`.
+The `wwiseDynamics` mode is host runtime policy, not stored in the portable
+audio-library document. Missing browser primitives retain the documented dry
+fallbacks; enabling one policy does not enable the others.
 
 Constructor options `musicLibrary`, `loadMusicTrack`, and
 `isMusicTrackAvailable` opt into `audio.jukebox`. The audio layer never fetches
@@ -407,6 +313,13 @@ resets playlist random/shuffle history, while a selected Sequence Music Track
 continues at its following subtrack. See [Music](../guides/music.md#demo-examples).
 
 ## Builder
+
+The caller may import/download a complete artifact, receive it from an API,
+load plain or gzip JSON with `CjsAudioLibrary.load()`, or build it below.
+The manager never discovers builder inputs; an optional `sfx` program is
+consumed after installation regardless of document origin. Tools-core can
+supply validated local/cache bytes through the same source seam and persist
+`library.GetValues()`.
 
 `CjsAudioLibraryBuilder.build()` accepts caller-supplied `indexEntries`,
 `soundbanksInfo` or metadata, optional `enrichment`, and optional `sfx`.
