@@ -357,7 +357,7 @@ every blob's bytes including this one, so a block referencing the arena could no
 built before it was interned. Strings inside it are inline and length-prefixed.
 
 ```
-u8  blobVersion = 1
+u8  backendEngineId = 2             WebGPU; not a version
 u8  bindGroupCount
   u8 group | u8 bindingCount
     u8  resourceKind | u8 registerSpace | u8 binding | u8 visibilityMask
@@ -377,14 +377,17 @@ derivable without pinning the format to one recognizer. `id` and each input's
 `parameter` because it keeps layer identity cross-checkable rather than asserted by
 position.
 
-Backend-block version 1 stores visibility but not the original
+The backend block stores visibility but not the original
 `scopeIdentity`. The reader reconstructs `${identity}@${visibility[0]}`. A
 multi-stage shared binding therefore rereads as stage-qualified rather than
 recovering its original bare scope. Callers must not infer that original
 sharing decision from the wire view.
 
-An unknown `blobVersion` reports the pass as having no backend data rather than
-misparsing it; the enclosing size makes it skippable.
+The leading byte identifies the backend: `1` is WebGL2 and `2` is WebGPU;
+`0` is invalid, while `3` and `4` reserve WebGL1 and OpenGL. No block-version
+byte follows. `CarbonWebgpuContainer` treats absent or foreign-backend blocks
+as no WebGPU backend data. Once the WebGPU block parser is selected, a
+mismatched engine ID or unread trailing bytes is an error, not a silent skip.
 
 ### Count caps
 
@@ -469,10 +472,10 @@ boundary left between them and the runtime: `Tr2EffectRes.DoLoad` retains a
 `CjsCarbonEffectReader` over the same bytes and `Tr2Shader.fromCarbonBinary`
 builds the device-free graph from one description record.
 
-Versioning remains local to what it versions: Carbon's version dword governs
-the Carbon region, while `blobVersion` governs the optional backend block. An
-unknown block version is skipped rather than misparsed. The package does not
-claim a version in CCP's namespace.
+Carbon's version dword is the only version. The optional block's leading byte
+is its backend engine ID, not `blobVersion`; its parser requires an exact end
+with no unread tail. See [the block layout](#the-optional-trailing-block).
+The package does not claim a version in CCP's namespace.
 
 Loose program bytes without a resource path can be identified from their
 payload: DXBC opens with `"DXBC"`, AIR is bitcode (`BC 0xC0DE`), and WGSL and
@@ -575,5 +578,5 @@ size in the offset table, and [Rule 1](#two-rules-for-anything-added-later)
 already requires it to parse to exactly that end. A reader parses a blob without
 blocks and re-parses with them if the cursor misses the declared end, so the
 presence of the block is **self-describing** with no new field, no container
-version and no out-of-band flag. `blobVersion` inside the block versions the
-extension itself.
+version and no out-of-band flag. Inside the block, the backend engine ID
+selects its meaning; it does not introduce another versioning axis.
