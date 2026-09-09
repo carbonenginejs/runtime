@@ -1,23 +1,4 @@
 {
   "recorded": "2026-09-09",
-  "problems": [
-    "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::CreateStagingBuffer.",
-    "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::GetGpuResource.",
-    "src/trinityal/webgpu/CjsWebgpuBufferAL.js CjsWebgpuBufferAL does not port Tr2BufferAL::GetMetalBuffer.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::BeginParallelEncoding.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::BufferRewritten.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::CheckDrawResources.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::EndParallelEncoding.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::ForkContext.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::GetMetalContext.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::GetMetalWorkQueue.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::GetPresentParamaters.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::ReleaseLater.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::ResetRenderTargets.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::SetAsPrimary.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::UploadConstants.",
-    "src/trinityal/webgpu/CjsWebgpuRenderContextAL.js CjsWebgpuRenderContextAL does not port Tr2RenderContextAL::UseConstantBuffer.",
-    "src/trinityal/webgpu/CjsWebgpuShaderAL.js CjsWebgpuShaderProgramAL does not port Tr2ShaderProgramAL::CreateCommandSignatures.",
-    "src/trinityal/webgpu/CjsWebgpuShaderAL.js CjsWebgpuShaderProgramAL does not port Tr2ShaderProgramAL::GetRegisterMap."
-  ]
+  "problems": []
 }

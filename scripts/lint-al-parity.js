@@ -75,7 +75,41 @@ const ACCEPTED = new Map([
     [ "Tr2ResourceSetDescriptionAL.SetUavHeapView",
         "Heap-view setters are not ported; recorded in Tr2ResourceSetAL.js." ],
     [ "Tr2ResourceSetDescriptionAL.SetSamplerHeapView",
-        "Heap-view setters are not ported; recorded in Tr2ResourceSetAL.js." ]
+        "Heap-view setters are not ported; recorded in Tr2ResourceSetAL.js." ],
+
+    // The WebGPU backend, 2026-09-09. Each reason is argued in the head comment
+    // of the file named beside it; these are the entries that were sitting in
+    // the frozen baseline looking like debt when they are decisions.
+    [ "CjsWebgpuBufferAL.GetGpuResource",
+        "The DX name for the native buffer accessor; ours is GetDeviceBuffer. Recorded in CjsWebgpuBufferAL.js." ],
+    [ "CjsWebgpuBufferAL.GetMetalBuffer",
+        "The Metal name for the native buffer accessor; ours is GetDeviceBuffer. Recorded in CjsWebgpuBufferAL.js." ],
+    [ "CjsWebgpuBufferAL.CreateStagingBuffer",
+        "DX11-only and private there; not on the contract. Recorded in CjsWebgpuBufferAL.js." ],
+    [ "CjsWebgpuRenderContextAL.GetMetalContext",
+        "Metal's native escape hatch; ours is GetWebgpu. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.GetMetalWorkQueue",
+        "Metal's native escape hatch; ours is GetWorkQueue. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.BeginParallelEncoding",
+        "Multi-threaded encoding; there is one thread. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.EndParallelEncoding",
+        "Multi-threaded encoding; there is one thread. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.ForkContext",
+        "Multi-threaded encoding; there is one thread. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.BufferRewritten",
+        "WebGPU cannot rename an allocation; queue ordering gives the same guarantee. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.CheckDrawResources",
+        "WebGPU validates every draw itself. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.ReleaseLater",
+        "A GPUBuffer outlives any submission referencing it, so there is nothing to defer. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.UseConstantBuffer",
+        "Constants reach the device through the bind group; there is no constant arena. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuRenderContextAL.UploadConstants",
+        "Constants reach the device through the bind group; there is no arena offset to return. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuShaderProgramAL.CreateCommandSignatures",
+        "D3D12 indirect-command signatures, DX12-only. Recorded in CjsWebgpuShaderAL.js." ],
+    [ "CjsWebgpuShaderProgramAL.GetRegisterMap",
+        "The register map is on the effect package's bind-group declarations, not the program; our stub omits it too. Recorded in CjsWebgpuShaderAL.js." ]
 ]);
 
 /** C++ names that are never ported as methods. */

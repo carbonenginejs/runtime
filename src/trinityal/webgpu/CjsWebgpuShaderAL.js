@@ -229,6 +229,21 @@ export class CjsWebgpuShaderAL
  * stages were supplied as a mask. WebGPU has no link step - a render pipeline
  * takes the vertex and fragment modules directly - so this holds the stages and
  * answers for them, which is the part the pipeline description needs.
+ *
+ * TWO OF CARBON'S PROGRAM METHODS ARE NOT HERE.
+ *
+ * `CreateCommandSignatures` builds D3D12 indirect-command signatures. It is
+ * declared on the shared header but implemented only by DX12
+ * (`dx12/Tr2ShaderProgramALDx12.cpp:357`); metal and the stub both omit it, and
+ * so does our stub.
+ *
+ * `GetRegisterMap` answers which registers the program reads, per stage. THAT
+ * INFORMATION EXISTS HERE, but not on this object: it is baked into the effect
+ * container as the pass's bind-group declarations, which the package and
+ * pipeline hold, not the program. Deriving it would mean this class reaching
+ * back into the package that built it. Our stub omits the method deliberately
+ * too, for its own reason recorded at `stub/Tr2ShaderProgramALStub.js:12-16`,
+ * and closing both is part of the resource-set lane rather than a local fix.
  */
 export class CjsWebgpuShaderProgramAL
 {

@@ -31,9 +31,38 @@
 // requires, because the context prefers the AL per verb and a missing one is a
 // crash rather than a fallback.
 //
-// NOT HERE YET: texture creation, copies, mip generation and upscaling. Absent
-// rather than faked. Buffer creation IS here (`CreateBuffer`), because a
-// Trinity class that fills a buffer per frame cannot pick its own backend.
+// NOT HERE YET: texture creation, copies and mip generation. Absent rather than
+// faked. Buffer creation IS here (`CreateBuffer`), because a Trinity class that
+// fills a buffer per frame cannot pick its own backend.
+//
+// WHAT CARBON'S METAL BACKEND HAS THAT THIS DOES NOT, AND WHY.
+//
+// The parity check compares this file against the donors it cites, which
+// includes all of metal - so Metal-only members are reported against a backend
+// that has no reason to carry them. These are decisions, not a queue:
+//
+// - `BeginParallelEncoding`/`EndParallelEncoding`/`ForkContext` spread batch
+//   encoding across threads. There is one thread here, and `Tr2RenderContext`
+//   already records the same omission for the same reason.
+// - `BufferRewritten` notifies the context that a buffer allocation was RENAMED
+//   under it. WebGPU cannot rename: `queue.writeBuffer` is ordered on the queue,
+//   which gives the guarantee renaming buys without renaming, and
+//   `CjsWebgpuBufferAL`'s head comment argues that at length.
+// - `CheckDrawResources` validates that every bound resource is present before
+//   a draw. WebGPU validates every draw itself and reports through an error
+//   scope, so a second check here would duplicate the browser's and disagree
+//   with it first.
+// - `ReleaseLater` defers destruction until the GPU has finished reading. A
+//   `GPUBuffer` stays alive as long as a submitted command references it, so
+//   the deferral has nothing to defer.
+// - `UseConstantBuffer` and `UploadConstants` are Metal's and DX12's constant
+//   ARENA: a ring the backend suballocates from and hands back an offset into.
+//   Constants reach the device through the bind group here, so there is no
+//   arena and no offset to return. This is the seam the resource-set lane
+//   touches; see `Tr2ResourceSetAL.js`.
+// - `GetMetalContext` and `GetMetalWorkQueue` are Metal's native escape
+//   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
+//   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment } from "#trinityal";
@@ -386,6 +415,11 @@ export class CjsWebgpuRenderContextAL
     }
 
     this.#Record(this.#workQueue.BeginFrame());
+
+    // Carbon's BeginScene is exactly these two calls
+    // (`Tr2RenderContextMetal.mm:860-864`). The reset is what stops a frame
+    // inheriting the previous frame's bound targets.
+    this.ResetRenderTargets();
 
     return true;
   }
@@ -1139,6 +1173,60 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
+   * Binds the default back buffer at slot zero and clears every other slot.
+   *
+   * Carbon calls this from `BeginScene` (`Tr2RenderContextMetal.mm:860-864`),
+   * which is why a frame there never inherits the previous frame's targets.
+   * This backend did not, so bound targets survived across frames and the first
+   * pass of a frame drew into whatever the last pass of the previous one had
+   * left bound - the same shape as the 2048 shadow-map defect one layer up.
+   *
+   * @returns {boolean} True.
+   */
+  ResetRenderTargets()
+  {
+    this.SetDepthStencil(null);
+    this.SetRenderTarget(0, this.#renderTarget);
+
+    for (let slot = 1; slot < MAX_RENDER_TARGET; slot++) this.SetRenderTarget(slot, null);
+
+    return true;
+  }
+
+  /**
+   * Marks this context as the process-wide primary one.
+   *
+   * Carbon's Metal version also constructs the device-side context and the
+   * default back buffer (`Tr2RenderContextMetal.mm:114-124`); ours receive both
+   * through the constructor, so what remains is the registration.
+   *
+   * @returns {boolean} True.
+   */
+  SetAsPrimary()
+  {
+    CjsWebgpuRenderContextAL.SetPrimaryRenderContext(this);
+
+    return true;
+  }
+
+  /**
+   * The present parameters last applied.
+   *
+   * CARBON'S MISSPELLING IS KEPT (`Tr2RenderContextMetal.h:230`). It is the
+   * name on the abstraction-layer contract, and a backend that spells it
+   * correctly is a backend the contract cannot reach.
+   *
+   * @returns {object|null} The parameters, or null before any were set.
+   */
+  GetPresentParamaters()
+  {
+    return this.#presentParameters;
+  }
+
+  /** m_presentParameters */
+  #presentParameters = null;
+
+  /**
    * Releases what a device reset would invalidate, keeping the context alive.
    *
    * @returns {boolean} True.
@@ -1196,6 +1284,7 @@ export class CjsWebgpuRenderContextAL
     const { width, height } = presentParameters.mode;
 
     this.#renderTarget.Configure({ width, height });
+    this.#presentParameters = presentParameters;
 
     return ALResult.S_OK;
   }

@@ -339,7 +339,12 @@ function composed()
     },
     renderTarget: {
       AcquireFrame: () => ({ id: "frame" }),
-      CreateRenderPassDescriptor: () => ({ label: "descriptor" })
+      CreateRenderPassDescriptor: () => ({ label: "descriptor" }),
+      // Carbon's texture accessors: the render target IS the bound target at
+      // slot zero, which BeginScene now binds as Metal's does.
+      GetWidth: () => 1280,
+      GetHeight: () => 720,
+      GetFormat: () => "bgra8unorm"
     }
   });
 
@@ -582,7 +587,7 @@ test("the back buffer is the render target, and its format is Carbon's", () =>
   const composedAl = new CjsWebgpuRenderContextAL({
     webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
     dispatcher: {},
-    renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {} }
+    renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
 
   // PIXEL_FORMAT_B8G8R8A8_UNORM. A canvas can only be one of four formats, so
@@ -617,7 +622,7 @@ test("CopySubBuffer encodes a real copy, and refuses outside a frame", () =>
   const al = new CjsWebgpuRenderContextAL({
     webgpu: { GetDevice: () => ({ createCommandEncoder: () => commandEncoder }), Submit() {} },
     dispatcher: {},
-    renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {} }
+    renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
   const buffer = handle => ({ IsValid: () => true, GetDeviceBuffer: () => handle });
 
@@ -712,4 +717,44 @@ test("the upscaling family answers exactly as Carbon's stub does", () =>
   assert.equal(info.frameGeneration, false);
 
   assert.equal(al.GetUpscalingSetup().frameGeneration, false);
+});
+
+test("BeginScene resets the render targets, as Carbon's does", () =>
+{
+  const { al } = composed();
+
+  al.CreateDevice();
+  al.SetRenderTarget(3, { GetWidth: () => 64, GetHeight: () => 64 });
+  assert.notEqual(al.GetRenderTarget(3), null);
+
+  // Carbon's BeginScene is BeginFrame + ResetRenderTargets
+  // (Tr2RenderContextMetal.mm:860-864). Without the reset a frame inherits
+  // whatever the last pass of the previous frame left bound.
+  al.BeginScene();
+
+  assert.equal(al.GetRenderTarget(3), null);
+  assert.equal(al.GetDepthStencil(), null);
+
+  // Slot zero is the default back buffer, which is the render target itself.
+  assert.equal(al.GetRenderTarget(0), al.GetDefaultBackBuffer());
+});
+
+test("SetAsPrimary registers this context, and present parameters read back", () =>
+{
+  const al = new CjsWebgpuRenderContextAL({
+    webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
+    dispatcher: {},
+    renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
+  });
+
+  al.SetAsPrimary();
+  assert.equal(CjsWebgpuRenderContextAL.GetPrimaryRenderContext(), al);
+  CjsWebgpuRenderContextAL.SetPrimaryRenderContext(null);
+
+  // Carbon's misspelling is the contract's name, so it is kept.
+  assert.equal(al.GetPresentParamaters(), null);
+
+  const parameters = { mode: { width: 640, height: 480 } };
+  al.SetPresentParameters(parameters);
+  assert.equal(al.GetPresentParamaters(), parameters);
 });

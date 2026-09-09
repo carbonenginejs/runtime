@@ -43,6 +43,14 @@
 // NOT IMPLEMENTED: MapForReading. Reading a buffer back needs MAP_READ, a
 // separate staging buffer and an await, and nothing asks for it yet. It
 // refuses by name rather than returning empty bytes.
+//
+// THREE OF CARBON'S BUFFER METHODS ARE NOT HERE, AND SHOULD NOT BE.
+// `GetGpuResource` (DX) and `GetMetalBuffer` (Metal) are the SAME accessor
+// under each backend's own name for its native object; ours is
+// `GetDeviceBuffer`, which is that name for WebGPU. `CreateStagingBuffer` is
+// declared only by DX11, and PRIVATE there (`Tr2BufferALDx11.h:43`) - it is an
+// implementation detail of that backend's upload path, not part of the
+// contract, and neither dx12, metal nor the stub has it.
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
 
