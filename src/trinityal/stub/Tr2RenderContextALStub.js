@@ -28,7 +28,7 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
 
 
@@ -279,6 +279,39 @@ export class Tr2RenderContextALStub
     if (Failed(layout.Create(definition, this))) return null;
 
     return layout;
+  }
+
+  /**
+   * Creates one shader stage, this backend's kind of `Tr2ShaderAL`.
+   *
+   * @param {number} stageType A Carbon `ShaderType`.
+   * @param {ArrayBufferView|string} bytecode The stage's bytecode.
+   * @param {object|null} signature The reflected signature.
+   * @param {string} [shaderPath] A debug label.
+   * @returns {object|null} The created shader, or null when Create refused.
+   */
+  CreateShader(stageType, bytecode, signature, shaderPath = "")
+  {
+    const shader = new Tr2ShaderALStub();
+
+    if (Failed(shader.Create(stageType, bytecode, signature, shaderPath, this))) return null;
+
+    return shader;
+  }
+
+  /**
+   * Links created stages into this backend's kind of `Tr2ShaderProgramAL`.
+   *
+   * @param {object[]} shaders The stages to link.
+   * @returns {object|null} The created program, or null when Create refused.
+   */
+  CreateShaderProgram(shaders)
+  {
+    const program = new Tr2ShaderProgramALStub();
+
+    if (Failed(program.Create(shaders, this))) return null;
+
+    return program;
   }
 
   /**
