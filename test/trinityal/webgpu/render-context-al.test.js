@@ -267,7 +267,7 @@ test("a clear becomes the next pass's load operation", () =>
   assert.equal(open.attachments.depth.loadOp, "clear");
 });
 
-test("compute may not run inside a render pass", () =>
+test("compute refuses, because nothing dispatches", () =>
 {
   const al = ready();
 
@@ -275,12 +275,16 @@ test("compute may not run inside a render pass", () =>
   al.DrawIndexedInstanced(3, 1);
   al.DrainTransitions();
 
-  al.RunComputeShader(1, 1, 1);
+  // THIS USED TO SWITCH THE ENCODER AND RETURN TRUE. Switching an encoder is
+  // not a dispatch: there is no dispatchWorkgroups anywhere in this backend, so
+  // a caller running a cull pass was told it had happened and then read a buffer
+  // the GPU never touched - with no validation error, because no command
+  // existed to be rejected. Carbon's stub refuses too
+  // (stub/Tr2RenderContextStub.h:171-178).
+  assert.equal(al.RunComputeShader(1, 1, 1), false);
 
-  const events = al.DrainTransitions();
-
-  assert.deepEqual(events.map(event => event.type), [ "close", "open" ]);
-  assert.equal(events[1].encoderType, "compute");
+  // And nothing is recorded, so the render pass it was in stays open.
+  assert.deepEqual(al.DrainTransitions(), []);
 });
 
 test("the target size is refused when nothing is bound", () =>
@@ -528,9 +532,9 @@ test("the verbs this backend cannot encode refuse rather than report success", (
   assert.equal(al.DrawPrimitiveUP(2, new Float32Array(12), 16), false);
   assert.equal(al.DrawIndexedPrimitiveUP(4, 2, new Uint16Array(6), new Float32Array(12), 16), false);
 
-  // Indirect compute IS recorded; only its group counts come from a buffer.
-  assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => true }, 0), true);
-  assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => false }, 0), false);
+  // Indirect compute refuses for the same reason as direct: the group counts
+  // coming from a buffer changes nothing about there being no dispatch.
+  assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => true }, 0), false);
 });
 
 // The rest of Carbon's render-context surface, added 2026-09-09. Trinity does

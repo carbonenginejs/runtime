@@ -63,7 +63,9 @@ test("the walk applies the shader and material per pass, then draws", () =>
 
   const drawn = context.RenderBatchesInOrder(accumulatorOf([ batchOf({ shader, material }) ]), "Main");
 
-  assert.equal(drawn, 1);
+  // TWO, because the count is per PASS as Carbon counts (cpp:424-425), and this
+  // shader has two. It expected 1 while the count sat outside the pass loop.
+  assert.equal(drawn, 2);
 
   // Carbon applies BOTH per pass, in this order, then submits the geometry.
   assert.deepEqual(shader.applied, [ "0:0", "0:1" ]);
@@ -137,4 +139,41 @@ test("SubmitGeometry binds topology, declaration and streams before drawing", ()
 
   assert.equal(context.SubmitGeometry(batch), true);
   assert.equal(context.GetRenderContextAL().GetDrawCount(), 1);
+});
+
+test("a failed technique lookup does not poison the next batch on the same shader", () =>
+{
+  // THE THREE-BATCH CASE. Carbon's GetTechniqueIndex is an out-parameter it
+  // does NOT write on failure (Tr2Shader.cpp:28-46), so `technique` keeps the
+  // previous batch's value. Assigning -1 was wrong in a way only this sequence
+  // shows: the third batch takes the `shader === lastShader` fast path and
+  // would draw with technique -1.
+  const context = new Tr2RenderContext();
+  const first = shaderStub(1, 2);
+  const missing = { ...shaderStub(), GetTechniqueIndex: () => -1 };
+
+  const batches = [
+    batchOf({ shader: first, material: materialStub() }),
+    batchOf({ shader: missing, material: materialStub() }),
+    batchOf({ shader: first, material: materialStub() })
+  ];
+
+  context.RenderBatchesInOrder(accumulatorOf(batches), "Main");
+
+  // Both of the first shader's batches applied technique 2, not -1.
+  assert.deepEqual(first.applied, [ "2:0", "2:0" ]);
+});
+
+test("passes are counted, not batches", () =>
+{
+  const context = new Tr2RenderContext();
+
+  // Carbon counts inside the pass loop (cpp:424-425). A two-pass batch is two.
+  assert.equal(
+    context.RenderBatchesInOrder(
+      accumulatorOf([ batchOf({ shader: shaderStub(2), material: materialStub() }) ]),
+      "Main"
+    ),
+    2
+  );
 });

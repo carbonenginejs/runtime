@@ -63,14 +63,26 @@ const UNREGISTERING_BASES = new Set([ "Tr2BaseDeviceResourceAL", "Tr2DeviceResou
  * a test. Recorded rather than rushed. See
  * `docs/research/gpu-pipeline-divergence-2026-09-08.md` finding 3.
  */
-const BASELINE = new Set([
-    // NOTE: line-keyed, so it moves whenever anything is inserted above it.
-    // It was :759 until the render-context port on 2026-09-09 added the
-    // primary-context statics and the upscaling family. A line number is a
-    // poor key for a baseline; the entry is kept because the FIX is a design
-    // decision, and re-pinning it is cheaper than inventing a stabler key.
-    "src/trinityal/stub/Tr2RenderContextALStub.js:857"
-]);
+/**
+ * Accepted duplicates, keyed by `file#Class.member`.
+ *
+ * IT WAS KEYED BY LINE NUMBER, AND THAT HID A REAL DEFECT. The single entry
+ * here was `Tr2RenderContextALStub.js:857`, and the note beside it argued that
+ * re-pinning was cheaper than inventing a stabler key. That judgement was
+ * wrong, and the way it failed is the argument against it: on 2026-09-09
+ * inserting a method above the entry moved the finding out from under its pin,
+ * the check reported it, and the duplicate turned out to be Carbon's packed
+ * `(pairs, count)` `SetRenderStates` sitting dead beneath the interpreted-setup
+ * one. It had been shadowed and unreachable the whole time.
+ *
+ * So a line number does not merely make a baseline annoying to maintain - it
+ * silences the finding while the code is stable and reveals it by accident, and
+ * "re-pin it" is the cheap repair that puts the silence back. Keyed by identity
+ * now: it moves with the member, and only a genuinely new duplicate is new.
+ *
+ * The set is EMPTY because that duplicate was removed rather than re-pinned.
+ */
+const BASELINE = new Set([]);
 
 const problems = [];
 
@@ -169,7 +181,7 @@ function checkClass(node, relativeFile)
         const kind = member.kind === "get" || member.kind === "set" ? member.kind : "value";
         const slot = `${member.static ? "static " : ""}${name}:${kind}`;
 
-        const site = `${relativeFile}:${member.loc.start.line}`;
+        const site = `${relativeFile}#${className}.${slot}`;
 
         if (seen.has(slot) && !BASELINE.has(site))
         {

@@ -69,7 +69,7 @@ const BACKEND_SUFFIXES = [ "Stub", "Webgpu", "WebGPU" ];
  */
 const ACCEPTED = new Map([
     [ "Tr2ShaderProgramALStub.GetRegisterMap",
-        "Deliberately omitted so a caller fails loudly; recorded in the file head comment." ],
+        "OPEN GAP, not a decision: Carbon's stub HAS it (stub/Tr2ShaderProgramALStub.cpp:72) and shared code reads it from the program (src/Tr2ResourceSetAL.cpp:180). Kept here only until the resource-set lane closes it." ],
     [ "Tr2ResourceSetDescriptionAL.SetSrvHeapView",
         "Heap-view setters are not ported; recorded in Tr2ResourceSetAL.js." ],
     [ "Tr2ResourceSetDescriptionAL.SetUavHeapView",
@@ -99,17 +99,13 @@ const ACCEPTED = new Map([
     [ "CjsWebgpuRenderContextAL.BufferRewritten",
         "WebGPU cannot rename an allocation; queue ordering gives the same guarantee. Recorded in CjsWebgpuRenderContextAL.js." ],
     [ "CjsWebgpuRenderContextAL.CheckDrawResources",
-        "WebGPU validates every draw itself. Recorded in CjsWebgpuRenderContextAL.js." ],
+        "Carbon BINDS dummy resources and the vertex descriptor here rather than validating; our dispatcher fills bindings elsewhere. Recorded in CjsWebgpuRenderContextAL.js." ],
     [ "CjsWebgpuRenderContextAL.ReleaseLater",
         "A GPUBuffer outlives any submission referencing it, so there is nothing to defer. Recorded in CjsWebgpuRenderContextAL.js." ],
     [ "CjsWebgpuRenderContextAL.UseConstantBuffer",
         "Constants reach the device through the bind group; there is no constant arena. Recorded in CjsWebgpuRenderContextAL.js." ],
     [ "CjsWebgpuRenderContextAL.UploadConstants",
         "Constants reach the device through the bind group; there is no arena offset to return. Recorded in CjsWebgpuRenderContextAL.js." ],
-    [ "CjsWebgpuShaderProgramAL.CreateCommandSignatures",
-        "D3D12 indirect-command signatures, DX12-only. Recorded in CjsWebgpuShaderAL.js." ],
-    [ "CjsWebgpuShaderProgramAL.GetRegisterMap",
-        "The register map is on the effect package's bind-group declarations, not the program; our stub omits it too. Recorded in CjsWebgpuShaderAL.js." ]
 ]);
 
 /** C++ names that are never ported as methods. */

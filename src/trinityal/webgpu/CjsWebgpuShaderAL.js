@@ -332,6 +332,28 @@ export class CjsWebgpuShaderProgramAL
   }
 
   /**
+   * Builds D3D12 indirect-command signatures.
+   *
+   * REFUSES, WHICH IS CARBON'S OWN NON-DX12 ANSWER rather than an omission.
+   * The shared facade defines it for every other backend as `return E_FAIL`
+   * (`src/Tr2ShaderProgramAL.cpp:34-42`), so the method is on the contract
+   * everywhere and only its implementation is DX12's.
+   *
+   * It was recorded as an accepted divergence on the grounds that it is
+   * "DX12-only". That was a misreading: leaving it out produces a TypeError at
+   * the call site, which is the defect class this backend's surface work was
+   * written to remove.
+   *
+   * @param {object} _bufferLayout A `Tr2IndirectBufferLayoutAL`.
+   * @param {object} _renderContext The primary render context.
+   * @returns {boolean} False.
+   */
+  CreateCommandSignatures(_bufferLayout, _renderContext)
+  {
+    return false;
+  }
+
+  /**
    * Which memory class this program occupies.
    *
    * @returns {number} A `Tr2ALMemoryType` value.

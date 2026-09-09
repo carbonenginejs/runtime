@@ -803,6 +803,48 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Creates one shader stage on the running backend.
+   *
+   * @param {number} stageType A `ShaderType`.
+   * @param {ArrayBufferView|string} bytecode The stage's bytecode.
+   * @param {object|null} signature The reflected signature.
+   * @param {string} [shaderPath] A debug label.
+   * @returns {object|null} A `Tr2ShaderAL`, or null when Create refused.
+   */
+  CreateShader(stageType, bytecode, signature, shaderPath = "")
+  {
+    return this.#requireAL("CreateShader").CreateShader(stageType, bytecode, signature, shaderPath);
+  }
+
+  /**
+   * Links created stages into a program on the running backend.
+   *
+   * @param {object[]} shaders The stages to link.
+   * @returns {object|null} A `Tr2ShaderProgramAL`, or null when Create refused.
+   */
+  CreateShaderProgram(shaders)
+  {
+    return this.#requireAL("CreateShaderProgram").CreateShaderProgram(shaders);
+  }
+
+  /**
+   * Binds the shader program following draws use.
+   *
+   * Carbon's effect state manager calls this from `ApplyShaderProgram`
+   * (`Tr2EffectStateManager.cpp:770-776`), and a NULL program is the unbind its
+   * else branch performs with a default-constructed one. This context had no
+   * such method at all until 2026-09-09, which is why the manager recorded a
+   * handle and bound nothing.
+   *
+   * @param {object|null} shaderProgram A `Tr2ShaderProgramAL`, or null to unbind.
+   * @returns {boolean} Whether the backend accepted it.
+   */
+  SetShaderProgram(shaderProgram)
+  {
+    return this.#requireAL("SetShaderProgram").SetShaderProgram(shaderProgram);
+  }
+
+  /**
    * The fullscreen-quad blitter, created on first use.
    *
    * WHERE CARBON PUTS IT, AND WHY WE DO NOT. Carbon holds one in a file-scope
@@ -1099,7 +1141,7 @@ export class Tr2RenderContext extends CjsModel
    *
    * @param {object} batches A finalized accumulator.
    * @param {string} [techniqueName] The technique to draw.
-   * @returns {number} How many batches were drawn.
+   * @returns {number} How many passes were submitted.
    */
   RenderBatchesInOrder(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
@@ -1125,12 +1167,22 @@ export class Tr2RenderContext extends CjsModel
       {
         // Direct, as Carbon is: a batch with no shader is not valid, and
         // Tr2RenderBatch.IsValid uses the shader as its key.
-        technique = batch.shader.GetTechniqueIndex(techniqueName);
+        const found = batch.shader.GetTechniqueIndex(techniqueName);
 
         // Carbon `continue`s on both of these, which SKIPS THE BATCH and
         // leaves lastShader unchanged, so the next batch re-tests. Reproduced
         // rather than tidied into a cached failure.
-        if (technique < 0) continue;
+        //
+        // AND `technique` MUST NOT BE CLOBBERED ON THE WAY OUT. Carbon's
+        // GetTechniqueIndex is an out-parameter that it does NOT write when it
+        // returns false (`Tr2Shader.cpp:28-46`), so the variable keeps the
+        // previous batch's value. Assigning -1 here was wrong in a way only a
+        // three-batch sequence shows: S1, S2, S1 - the middle one fails and
+        // leaves -1 behind, and the third takes the `shader === lastShader`
+        // fast path and draws with technique -1.
+        if (found < 0) continue;
+
+        technique = found;
 
         passCount = batch.shader.GetPassCount(technique);
 
@@ -1160,9 +1212,14 @@ export class Tr2RenderContext extends CjsModel
         batch.material.ApplyMaterialDataForPass(technique, passIndex, this);
 
         this.SubmitGeometry(batch);
-      }
 
-      drawn += 1;
+        // COUNTED PER PASS, INSIDE THE LOOP, which is where Carbon counts
+        // (`Tr2RenderContext.cpp:424-425`, batchCount and batchNormalDraws).
+        // Counting after the loop counted a batch whose passCount was zero -
+        // reachable through a stale passCount left by a previous batch on the
+        // same shader - as a batch that drew.
+        drawn += 1;
+      }
     }
 
     return drawn;

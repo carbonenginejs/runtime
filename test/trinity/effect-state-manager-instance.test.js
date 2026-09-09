@@ -244,3 +244,29 @@ test("the batch-to-draw sequence reaches the device", () =>
 
   assert.equal(al.GetDrawCount(), 1);
 });
+
+test("NullDeclaration unbinds and Unknown does not, because they are different sentinels", () =>
+{
+  // Carbon has two: UNINITIALIZED_DECLARATION (~0u), which it ASSERTS against,
+  // and NULL_DECLARATION (~0u - 1), which is the unbind (h:81-82, cpp:886-893).
+  // Collapsing them meant a batch carrying NullDeclaration fell past the unbind,
+  // found no elements for 0xFFFFFFFE, and bound nothing at all - while the
+  // redundancy cache, already written, suppressed every retry.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+  const bound = [];
+
+  al.CreateDevice();
+  al.SetVertexLayout = layout => { bound.push(layout); return true; };
+  context.SetRenderContextAL(al);
+
+  const states = context.GetEffectStateManager();
+
+  assert.equal(states.ApplyVertexDeclaration(Tr2EffectStateManager.NullDeclaration), true);
+  assert.deepEqual(bound, [ null ], "NullDeclaration binds an empty layout");
+
+  // Uninitialized is a caller defect. Carbon asserts; we refuse rather than
+  // report a success that bound nothing, which is what hid the bug.
+  assert.equal(states.ApplyVertexDeclaration(Tr2EffectStateManager.Unknown), false);
+  assert.equal(bound.length, 1, "and reaches the backend with nothing");
+});

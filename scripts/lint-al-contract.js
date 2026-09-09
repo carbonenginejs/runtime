@@ -20,10 +20,14 @@
 // got nothing. So this exists to make that shape unrepresentable rather than
 // merely discouraged.
 //
-// TWO RULES.
+// THREE RULES.
 //
-// 1. No Trinity type may appear in an abstraction-layer file. That one rule
-//    catches `RenderBatches(accumulator)`.
+// 1. Nothing in the abstraction layer reaches Trinity - not a named type, and
+//    not an import path into `trinity/`. The path half matters more: a name
+//    list is enumerable and the first version was enumerated past.
+// 1b. No AL class declares a verb Carbon puts only on `Tr2RenderContext`.
+//    Rule 1 does NOT catch `RenderBatches(accumulator)` - the parameters are
+//    duck-typed, so no type name appears - and this file used to claim it did.
 // 2. A backend class answers everything its stub counterpart answers, so the
 //    two cannot drift apart. The stub is the reference because it is the
 //    complete, donor-faithful port; a backend answering less is one Trinity
@@ -160,6 +164,24 @@ for (const file of files)
 
         const code = line.replace(/\/\/.*$/u, "");
 
+        // THE IMPORT PATH, NOT A NAME LIST. A hardcoded set of type names is
+        // enumerable, and it was: the first version missed
+        // `Tr2EffectStateManager`, `Tr2PerObjectData`, `Tr2Renderer`,
+        // `CarbonVertexElements`, `EFFECT_CONSTANTS` and the per-frame layouts,
+        // all of them already imported into the abstraction layer. Anything
+        // reached through `#trinity/` or a relative path into `trinity/` is a
+        // Trinity type by construction, and that cannot be enumerated past.
+        const importPath = code.match(/from\s+["'](#trinity\/[^"']*|[^"']*\/trinity\/[^"']*)["']/u);
+
+        if (importPath)
+        {
+            const key = `import ${importPath[1]}`;
+
+            if (!found.has(key)) found.set(key, []);
+
+            found.get(key).push(index + 1);
+        }
+
         for (const type of TRINITY_TYPES)
         {
             if (!new RegExp(`\\b${type}\\b`, "u").test(code)) continue;
@@ -174,9 +196,46 @@ for (const file of files)
     for (const type of found.keys())
     {
         problems.push(
-            `${relative(file)} names the Trinity type ${type}. `
+            `${relative(file)} reaches Trinity: ${type}. `
             + "The abstraction layer knows nothing above it: it takes verbs, not graph objects."
         );
+    }
+}
+
+// RULE 1b: a verb Carbon declares only on Trinity, declared on the AL.
+//
+// THE HEADER ABOVE CLAIMS RULE 1 CATCHES `RenderBatches(accumulator)`. IT DOES
+// NOT, and an audit found that out: the parameters are duck-typed, so no type
+// NAME appears and a name list sees nothing. `Tr2RenderContextALStub` still
+// declares `RenderBatches` - with a docstring conceding "NOT A CARBON AL VERB"
+// - and Trinity still calls it. A rule that misses its own motivating example
+// is a rule that reads as enforcement while enforcing nothing.
+//
+// These names are declared on `Tr2RenderContext.h` and appear nowhere under
+// `trinity/trinityal/`. That is the whole test.
+const TRINITY_ONLY_VERBS = new Set([
+    "RenderBatches",
+    "RenderBatchesWithOverride",
+    "RenderBatchesForPicking",
+    "RenderBatchesInOrder",
+    "RenderBatchesSortedByEffect",
+    "RenderBatchGroup",
+    "SubmitGeometry"
+]);
+
+for (const file of files)
+{
+    for (const [ className, methods ] of await surfaceOf([ file ]))
+    {
+        for (const method of methods)
+        {
+            if (!TRINITY_ONLY_VERBS.has(method)) continue;
+
+            problems.push(
+                `${relative(file)} ${className} declares ${method}, which Carbon declares on `
+                + "Tr2RenderContext and nowhere in trinityal. A backend is handed verbs, not batches."
+            );
+        }
     }
 }
 
@@ -195,18 +254,24 @@ for (const backend of backends)
 {
     const backendFiles = files.filter(file => path.relative(alRoot, file).split(path.sep)[0] === backend);
     const surface = await surfaceOf(backendFiles);
-    const byContract = new Map([ ...surface ].map(([ name, methods ]) => [ contractName(name), { name, methods } ]));
+    // AL CLASSES ONLY, AND BEFORE THE MAP IS BUILT. This was last-write-wins
+    // over every exported class, and `contractName` collapses a DESCRIPTOR onto
+    // the same key as the device object - `CjsWebgpuTexture` and
+    // `Tr2TextureALStub` both reduce to `Texture`. Whichever the directory walk
+    // reached last won the slot, and a later `endsWith("AL")` guard then SKIPPED
+    // THE WHOLE CONTRACT when a descriptor had won it. So WebGPU's texture
+    // surface went unchecked, and the fact that it has no texture AL at all was
+    // masked rather than reported. `Buffer` was correct only by alphabetical
+    // luck: `CjsWebgpuBuffer.js` sorts before `CjsWebgpuBufferAL.js`.
+    const byContract = new Map(
+        [ ...surface ]
+            .filter(([ name ]) => name.endsWith("AL"))
+            .map(([ name, methods ]) => [ contractName(name), { name, methods } ])
+    );
 
     for (const [ stubClass, stubMethods ] of stubSurface)
     {
         const theirs = byContract.get(contractName(stubClass));
-
-        // ONLY AL CLASSES PAIR. A backend also carries descriptor classes -
-        // `CjsWebgpuTexture` is a frozen descriptor, not `Tr2TextureAL` - and
-        // stripping the prefix collapses both onto the same contract name.
-        // Requiring the `AL` suffix is what keeps a descriptor from being asked
-        // to answer a device object's surface.
-        if (theirs && !theirs.name.endsWith("AL")) continue;
 
         // A backend need not implement every AL class - WebGPU has no fence or
         // query yet - and an absent class is a gap the parity check already

@@ -48,10 +48,13 @@
 //   under it. WebGPU cannot rename: `queue.writeBuffer` is ordered on the queue,
 //   which gives the guarantee renaming buys without renaming, and
 //   `CjsWebgpuBufferAL`'s head comment argues that at length.
-// - `CheckDrawResources` validates that every bound resource is present before
-//   a draw. WebGPU validates every draw itself and reports through an error
-//   scope, so a second check here would duplicate the browser's and disagree
-//   with it first.
+// - `CheckDrawResources` does not validate, which the first version of this
+//   note claimed. Carbon BINDS dummy resources into unfilled slots and installs
+//   the vertex descriptor, on every draw (`Tr2RenderContextMetal.mm:524-541`).
+//   WebGPU has the same requirement and will reject a draw with an unfilled
+//   binding, so the browser is not doing this for us - it is the thing that
+//   rejects us. The divergence holds because the dispatcher fills bindings
+//   before the draw reaches here, not because the check is redundant.
 // - `ReleaseLater` defers destruction until the GPU has finished reading. A
 //   `GPUBuffer` stays alive as long as a submitted command references it, so
 //   the deferral has nothing to defer.
@@ -71,6 +74,7 @@ import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
+import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderAL.js";
 
 
 function fail(message)
@@ -319,6 +323,45 @@ export class CjsWebgpuRenderContextAL
     if (Failed(layout.Create(definition, this))) return null;
 
     return layout;
+  }
+
+  /**
+   * Compiles one shader stage into a `GPUShaderModule`.
+   *
+   * THE FIRST CONSTRUCTION OF THESE CLASSES. `CjsWebgpuShaderAL` and
+   * `CjsWebgpuShaderProgramAL` were written for the immediate-draw route and
+   * nothing built one, because the state manager had no way to ask a backend
+   * for a shader. This is that way.
+   *
+   * @param {number} stageType A Carbon `ShaderType`.
+   * @param {ArrayBufferView|string} bytecode WGSL source, as this backend's
+   *   bytecode; see the head comment on `CjsWebgpuShaderAL`.
+   * @param {object|null} signature The reflected signature.
+   * @param {string} [shaderPath] A debug label.
+   * @returns {object|null} The created shader, or null when Create refused.
+   */
+  CreateShader(stageType, bytecode, signature, shaderPath = "")
+  {
+    const shader = new CjsWebgpuShaderAL();
+
+    if (Failed(shader.Create(stageType, bytecode, signature, shaderPath, this))) return null;
+
+    return shader;
+  }
+
+  /**
+   * Links compiled stages into a program.
+   *
+   * @param {object[]} shaders The stages to link.
+   * @returns {object|null} The created program, or null when Create refused.
+   */
+  CreateShaderProgram(shaders)
+  {
+    const program = new CjsWebgpuShaderProgramAL();
+
+    if (Failed(program.Create(shaders, this))) return null;
+
+    return program;
   }
 
   /**
@@ -824,39 +867,43 @@ export class CjsWebgpuRenderContextAL
   /**
    * Runs a compute dispatch, which may not happen inside a render pass.
    *
+   * REFUSES, BECAUSE NOTHING DISPATCHES. This reported success and encoded no
+   * command: it set the encoder type and returned true, and there is no
+   * `dispatchWorkgroups` anywhere in this backend. A caller running a cull or
+   * simulate pass was told it had happened, then read a buffer the GPU never
+   * touched - with no validation error, because no command existed to be
+   * rejected. That is the failure `ClearUav` below refuses to allow, one method
+   * over, and it was allowed here for a day.
+   *
+   * Carbon's stub refuses too (`stub/Tr2RenderContextStub.h:171-174`, `E_FAIL`).
+   *
    * @param {number} [_x] Workgroups.
    * @param {number} [_y] Workgroups.
    * @param {number} [_z] Workgroups.
-   * @returns {boolean} True.
+   * @returns {boolean} False; nothing is dispatched.
    */
   RunComputeShader(_x = 1, _y = 1, _z = 1)
   {
-    this.#Record(this.#workQueue.SetCurrentEncoder(EncoderType.COMPUTE));
-
-    return true;
+    return false;
   }
 
   /**
    * Runs a compute dispatch whose group counts are read from a buffer.
    *
-   * Carbon validates the buffer and hands it to the work queue's indirect
-   * dispatch (`Tr2RenderContextMetal.mm:625-636`). The validation is the same
-   * here; the dispatch is the ordinary compute encoder, because the work queue
-   * has no indirect verb yet and `dispatchWorkgroupsIndirect` is the WebGPU call
-   * that would go behind one.
+   * REFUSES; see `RunComputeShader`. This validated the buffer and then set the
+   * compute encoder type, which is not a dispatch - the same false success, with
+   * an argument check in front of it that made it look like more.
+   *
+   * Carbon's stub refuses too (`stub/Tr2RenderContextStub.h:175-178`).
    *
    * @param {object} _effect The compute effect to run.
-   * @param {object} indirectionBuffer A buffer holding the group counts.
+   * @param {object} _indirectionBuffer A buffer holding the group counts.
    * @param {number} [_offsetForArgs] Byte offset to them.
-   * @returns {boolean} Whether the dispatch was recorded.
+   * @returns {boolean} False; nothing is dispatched.
    */
-  RunComputeShaderIndirect(_effect, indirectionBuffer, _offsetForArgs = 0)
+  RunComputeShaderIndirect(_effect, _indirectionBuffer, _offsetForArgs = 0)
   {
-    if (!indirectionBuffer || !indirectionBuffer.IsValid()) return false;
-
-    this.#Record(this.#workQueue.SetCurrentEncoder(EncoderType.COMPUTE));
-
-    return true;
+    return false;
   }
 
   /**

@@ -5,7 +5,7 @@
 //
 // Carbon's caps object is six questions a caller BRANCHES on, so answering them
 // wrongly sends Trinity down a path this device never takes - which is why the
-// stub answers "yes" to five of its ten platform constants rather than denying
+// stub answers "yes" to four of its ten platform constants rather than denying
 // everything. These are WebGPU's answers, each one decided against the spec's
 // baseline guarantees rather than against a particular adapter, EXCEPT
 // `SupportsFloat16`, which is an optional feature and is therefore asked of the
@@ -14,28 +14,60 @@
 /**
  * The platform capability constants, WebGPU's answers.
  *
- * The stub's equivalent is `Tr2StubPlatformCaps`; the differences are the
- * interesting part:
+ * The stub's equivalent is `Tr2StubPlatformCaps`, and this table said yes to
+ * three things the stub says no to. Two of them were wrong, and the reason is
+ * worth keeping because it is easy to make again:
  *
- * - buffer shader resources and unordered access are TRUE here and false there,
- *   because storage buffers and storage textures are core WebGPU;
- * - render-pass hints are TRUE, because a WebGPU render pass takes its load and
- *   store actions at pass creation and cannot change them afterwards - the hint
- *   is not an optimisation here, it is the only way to express a clear;
- * - the platform is not declared low-performance, because the caller uses that
- *   to pick reduced paths and a GPU is doing this work.
+ * **A CAP DESCRIBES THIS BACKEND, NOT THE API IT IS BUILT ON.** "Storage
+ * buffers are core WebGPU" is true and answers a different question than
+ * "can this backend honour a caller that takes the unordered-access branch".
+ * A caller reads a cap to decide, and a cap is the LAST place that can say no -
+ * after it, the caller is committed and the refusals it meets have no branch to
+ * take. Both corrected entries are commented where they sit.
+ *
+ * What still differs from the stub, and holds: buffer shader resources, and the
+ * platform not being declared low-performance, because a caller uses that to
+ * pick reduced paths and a GPU is doing this work.
  */
 export const CjsWebgpuPlatformCaps = Object.freeze({
   SUPPORTS_BUFFER_SHADER_RESOURCES: true,
+
   SUPPORTS_BUFFER_COUNTERS: false,
-  SUPPORTS_UNORDERED_ACCESS: true,
+
+  // FALSE, AND IT SAID TRUE FOR A DAY. The argument was "storage buffers and
+  // storage textures are core WebGPU" - true of the API, and the wrong question.
+  // A cap describes WHAT THIS BACKEND CAN DO, and today `ClearUav` refuses,
+  // nothing dispatches compute, and `CjsWebgpuDevice` fails any binding
+  // visibility that is not vertex or fragment. Carbon's own stub denies this one
+  // (`stub/Tr2CapsALStub.h:10`) while claiming compute, and a caller taking the
+  // UAV branch would meet three refusals in a row - with the cap being the last
+  // place that could have said no.
+  SUPPORTS_UNORDERED_ACCESS: false,
+
+  // Carbon's stub claims compute too. The dispatch verbs refuse here exactly as
+  // they do there, so this promises no more than the stub does.
   SUPPORTS_COMPUTE: true,
+
   SUPPORTS_TEXTURE_ARRAYS: true,
+
+  // Real: the render target creates the multisample attachment and sets a
+  // resolve target (`core/renderTarget.js:388-407`, `:303`).
   SUPPORTS_MSAA_SAMPLE: true,
-  SUPPORTS_RENDER_PASS_HINTS: true,
+
+  // FALSE for the same reason as unordered access. Carbon's callers DELETE
+  // their explicit clears under this cap (`Tr2ReflectionProbe.cpp:128-138`,
+  // `EveSpaceScene.cpp:2312`), and this backend honours only the first colour
+  // slot's load action and the depth load action: every store action is dropped,
+  // colour slots 1-7 are ignored, and the pass descriptor is always built from
+  // the canvas rather than from what `SetRenderTarget` bound. A caller that
+  // trusted this and dropped its clear would get no clear on anything else.
+  SUPPORTS_RENDER_PASS_HINTS: false,
+
   IS_LOW_PERFORMANCE: false,
+
   /** WebGPU's guaranteed `maxUniformBufferBindingSize`, 64 KiB. */
   MAX_CONSTANT_BUFFER_SIZE: 64 * 1024,
+
   SUPPORTS_RAY_TRACING: false
 });
 
@@ -128,16 +160,4 @@ export class CjsWebgpuCapsAL
     return false;
   }
 
-  /**
-   * The largest constant buffer that can be bound.
-   *
-   * @returns {number} The device's `maxUniformBufferBindingSize`, or WebGPU's
-   *   guaranteed minimum when no device is composed.
-   */
-  GetMaxConstantBufferSize()
-  {
-    if (!this.#webgpu) return CjsWebgpuPlatformCaps.MAX_CONSTANT_BUFFER_SIZE;
-
-    return this.#webgpu.GetDevice().limits.maxUniformBufferBindingSize;
-  }
 }

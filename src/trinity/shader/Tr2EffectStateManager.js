@@ -102,6 +102,9 @@ const vertexLayouts = [];
  */
 const vertexLayoutObjects = new WeakMap();
 
+/** Realized shader programs per context, per handle; see vertexLayoutObjects. */
+const shaderProgramObjects = new WeakMap();
+
 // Carbon interns once at asset load and stores the handle on the mesh, so its
 // linear scan never runs per draw. This runtime has no load hook, so the handle
 // is memoised against the element list or definition a payload already owns -
@@ -423,7 +426,13 @@ export class Tr2EffectStateManager extends CjsModel
       return handle;
     }
 
-    return shaders.push({ stageType: type, bytecode, samplerKey }) - 1;
+    // THE SIGNATURE IS KEPT, not just its sampler key. The key is the identity
+    // half - two shaders with the same bytecode and different sampler bindings
+    // are different shaders - but the signature itself is what a backend needs
+    // to create a shader object, and dropping it here made the row unable to
+    // produce one. Carbon does not face this: its row holds the created
+    // Tr2ShaderAL, which carries the signature already.
+    return shaders.push({ stageType: type, bytecode, samplerKey, signature }) - 1;
   }
 
   /**
@@ -1309,7 +1318,64 @@ export class Tr2EffectStateManager extends CjsModel
       this.#currentValues.shaderProgram = handle;
     }
 
+    // IT BINDS. This recorded the handle and reached no backend until
+    // 2026-09-09. Carbon `cpp:758-778`: an in-range handle sets the interned
+    // program, and an out-of-range one sets a DEFAULT-CONSTRUCTED program -
+    // which unbinds. Both halves are here, because the else branch is what
+    // stops a span inheriting the previous span's program.
+    if (!this.#renderContext) return true;
+
+    const program = handle >= 0 && handle < shaderPrograms.length
+      ? this.#RealizeShaderProgram(handle)
+      : null;
+
+    this.#renderContext.SetShaderProgram(program);
+
     return true;
+  }
+
+  /**
+   * Creates the backend's program for an interned handle, once.
+   *
+   * Carbon's row already HOLDS the created `Tr2ShaderProgramAL`
+   * (`s_shaderPrograms[ix].first`), because it compiles one backend and can put
+   * a device object in its own table. Ours holds identity plus the bytecode and
+   * signature each stage registered, and the backend builds from those - the
+   * same reason `CreateVertexLayout` and `CreateBuffer` live on the context.
+   *
+   * @param {number} handle A shader-program handle.
+   * @returns {object|null} The realized program, or null when a stage refused.
+   */
+  #RealizeShaderProgram(handle)
+  {
+    const realized = shaderProgramObjects.get(this.#renderContext) ?? new Map();
+    const cached = realized.get(handle);
+
+    // A cached NULL is a remembered refusal. Without this a program whose stage
+    // failed to compile is rebuilt on every apply, which turns one bad shader
+    // into per-draw work.
+    if (cached !== undefined) return cached;
+
+    const stages = [];
+
+    for (const shaderHandle of shaderPrograms[handle].shaderHandles)
+    {
+      const row = shaders[shaderHandle];
+      const stage = row
+        ? this.#renderContext.CreateShader(row.stageType, row.bytecode, row.signature ?? null, "")
+        : null;
+
+      if (!stage) { stages.length = 0; break; }
+
+      stages.push(stage);
+    }
+
+    const program = stages.length > 0 ? this.#renderContext.CreateShaderProgram(stages) : null;
+
+    realized.set(handle, program);
+    shaderProgramObjects.set(this.#renderContext, realized);
+
+    return program;
   }
 
   /**
@@ -1339,12 +1405,26 @@ export class Tr2EffectStateManager extends CjsModel
     // constructed before it is bound.
     if (!this.#renderContext) return handle !== Tr2EffectStateManager.Unknown;
 
-    if (handle === Tr2EffectStateManager.Unknown)
+    // TWO SENTINELS, AND THEY ARE NOT THE SAME ONE. Carbon asserts against
+    // UNINITIALIZED_DECLARATION and unbinds on NULL_DECLARATION
+    // (`cpp:886-893`); they are `~0u` and `~0u - 1`. This tested `Unknown` -
+    // the UNINITIALIZED one - which meant a batch carrying NullDeclaration fell
+    // past the unbind, found no elements for 0xFFFFFFFE, and bound nothing at
+    // all. And because the redundancy cache was already written above, the
+    // filter suppressed every retry, so the previous layout stuck. The field's
+    // own docstring says "do not collapse the two"; collapsing them is exactly
+    // what this did between two commits on 2026-09-09.
+    if (handle === Tr2EffectStateManager.NullDeclaration)
     {
       this.#renderContext.SetVertexLayout(null);
 
-      return false;
+      return true;
     }
+
+    // Carbon ASSERTS here rather than handling it: applying an uninitialized
+    // declaration is a caller defect. We have no assert, and binding nothing
+    // while reporting success is what hid the bug above, so it reports failure.
+    if (handle === Tr2EffectStateManager.Unknown) return false;
 
     const elements = Tr2EffectStateManager.getVertexDeclarationElements(handle);
 
