@@ -89,9 +89,12 @@ export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
   /**
    * Presents the back buffer. There is nothing to show, but the frame ended.
    *
+   * @param {object} _renderContext The context presenting the frame; Carbon
+   *   takes it (`Tr2SwapChainALStub.cpp:41`) and names no parameter, because
+   *   the stub has nothing to present into.
    * @returns {number} An `ALResult` value.
    */
-  Present()
+  Present(_renderContext)
   {
     return ALResult.S_OK;
   }

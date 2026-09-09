@@ -703,12 +703,19 @@ test("resolve, mipmap, and present steps preserve Carbon result observation rule
   const present = new TriStepPresentSwapChain();
   present.Execute(0, 0, context);
 
-  // Carbon's stub advances its frame number in Present and nowhere else, which
-  // makes it the frame boundary a fence measures against.
-  const before = context.GetRenderContextAL().GetRenderedFrameNumber();
-  const swapChain = {};
+  // Carbon's step calls the SWAP CHAIN's Present, which publishes the surface
+  // (TriStepPresentSwapChain.cpp:12-15).
+  let presented = null;
+  const swapChain = { Present: ctx => { presented = ctx; return true; } };
   present.__init__(swapChain);
   assertEquals(present.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
+  assertEquals(presented, context);
+
+  // The frame number is the DEVICE's boundary, not the step's: Carbon's stub
+  // advances it in Tr2RenderContextAL::Present and nowhere else, and
+  // TriDevice::HandleRenderTick is what calls that (TriDeviceStub.cpp:25).
+  const before = context.GetRenderContextAL().GetRenderedFrameNumber();
+  context.Present();
   assertEquals(context.GetRenderContextAL().GetRenderedFrameNumber(), before + 1);
 });
 

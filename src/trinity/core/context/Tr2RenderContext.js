@@ -2,7 +2,7 @@
 //   trinity/trinityal/*/Tr2RenderContext*.h (command surface)
 //   trinity/trinity/Tr2Renderer.cpp (view-state statics, relocated here)
 // Hand-maintained amalgam of three Carbon surfaces (audited 2026-07-18):
-// 1. The command surface (PushRenderTarget/Clear/SetViewport/PresentSwapChain/
+// 1. The command surface (PushRenderTarget/Clear/SetViewport/Present/
 //    SetRenderState/...) mirrors the backend AL context classes and CALLS the
 //    installed backend, as Carbon does.
 //
@@ -1138,8 +1138,23 @@ export class Tr2RenderContext extends CjsModel
     return true;
   }
 
-  /** Records the end-of-frame present intent for a swap chain. */
-  PresentSwapChain(swapChain)
+  /**
+   * Ends the frame at the device level.
+   *
+   * THIS IS NOT THE SWAP CHAIN'S PRESENT. Carbon has two, and they are reached
+   * from different places: `TriDevice::HandleRenderTick` calls
+   * `renderContext.Present()` (`TriDeviceStub.cpp:25`), which is the AL
+   * context's frame boundary and what advances the frame number; publishing the
+   * surface is `Tr2SwapChain::Present`, reached from `TriStepPresentSwapChain`.
+   *
+   * Carbon's `Tr2RenderContext` INHERITS `Tr2RenderContextAL`, so its `Present`
+   * is the AL's. We compose, so this forwards. It was called `PresentSwapChain`
+   * and took a swap chain it ignored until 2026-09-09; that name belongs to the
+   * render STEP and Carbon has no such method on either context.
+   *
+   * @returns {number} An `ALResult` value.
+   */
+  Present()
   {
     return this.#requireAL("Present").Present();
   }
