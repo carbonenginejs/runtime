@@ -301,8 +301,7 @@ test("the target size is refused when nothing is bound", () =>
 });
 
 // A composed backend: the device half, faked at the seams the AL actually
-// touches. The point of these is that RenderBatches reaches a real pass and a
-// real dispatcher, which is what the intent queue existed to stand in for.
+// touches.
 function composed()
 {
   const log = [];
@@ -320,25 +319,12 @@ function composed()
     }
   };
 
-  let resolvePrepare = null;
-
   const al = new CjsWebgpuRenderContextAL({
     webgpu: {
       GetDevice: () => ({ createCommandEncoder: () => commandEncoder }),
       Submit(buffers)
       {
         log.push(`submit:${buffers.join(",")}`);
-      }
-    },
-    dispatcher: {
-      PrepareAccumulator()
-      {
-        log.push("prepare");
-        return new Promise(resolve => { resolvePrepare = resolve; });
-      },
-      EncodeAccumulator(encodedPass, handle)
-      {
-        log.push(`encode:${handle}:${encodedPass === pass}`);
       }
     },
     renderTarget: {
@@ -354,7 +340,7 @@ function composed()
     }
   });
 
-  return { al, log, pass, FinishPreparing: handle => resolvePrepare(handle) };
+  return { al, log, pass };
 }
 
 test("an uncomposed backend is the stub it always was", () =>
@@ -362,78 +348,40 @@ test("an uncomposed backend is the stub it always was", () =>
   const al = ready();
 
   assert.equal(al.IsComposed(), false);
-  assert.equal(al.RenderBatches({}, "Main"), false, "no dispatcher, nothing drawn");
+  assert.equal(typeof al.RenderBatches, "undefined", "a backend is handed verbs, never a batch");
 });
 
 test("a composed backend needs its whole device half or none of it", () =>
 {
   assert.throws(
     () => new CjsWebgpuRenderContextAL({ webgpu: {} }),
-    /needs a dispatcher and a render target/u
+    /needs a render target/u
   );
 });
 
-test("the frame ends asynchronously, and that is where preparation happens", async () =>
+test("the frame ends synchronously: end the pass, finish, submit", () =>
 {
-  const { al, log, pass, FinishPreparing } = composed();
-  const accumulator = { id: "accumulator" };
+  const { al, log } = composed();
 
   al.CreateDevice();
   al.BeginScene();
+  al.SetShaderProgram({ id: "program" });
+  al.SetIndices({ id: "indices" }, 2);
 
-  // Trinity calls this synchronously and Carbon draws right there. A browser
-  // cannot: building a pipeline is a promise. So the call collects and the
-  // scene's end prepares - which is what the intent queue was really for.
-  assert.equal(al.RenderBatches(accumulator, "Main"), true, "the submission is taken");
-  assert.equal(log.includes("prepare"), false, "but nothing is prepared yet");
-  assert.equal(log.includes("beginRenderPass"), false, "and no pass is opened for nothing");
+  // A stand-in program cannot resolve a pipeline, so the draw is refused with
+  // a reason - but Metal opens the encoder BEFORE it asks whether it can draw
+  // (MetalWorkQueue.mm:2922-2944), and so does this.
+  assert.equal(al.DrawIndexedInstanced(3, 1, 0, 0, 0), false);
+  assert.match(al.m_pipelineFailure, /a program this backend linked/);
+  assert.equal(al.GetDrawnBatchCount(), 0, "a refused draw is not counted");
 
+  // Carbon's EndScene is a function call; so is this one now that every draw
+  // resolves inside its own verb. Nothing is prepared at the end of the frame.
   const ended = al.EndScene();
 
-  FinishPreparing({ batches: [ {}, {} ] });
-  await ended;
-
-  assert.ok(log.includes("encode:[object Object]:true") || log.some(entry => entry.startsWith("encode:")), "the dispatcher got the live pass");
-  assert.equal(al.GetDrawnBatchCount(), 2, "both batches counted");
-
-  assert.deepEqual(
-    log.slice(log.indexOf("prepare")),
-    [ "prepare", "beginRenderPass", log.find(entry => entry.startsWith("encode:")), "pass.end", "finish", "submit:command-buffer" ],
-    "prepare, open, encode, end, finish, submit - in that order"
-  );
-  assert.equal(al.GetWorkQueue().GetRenderPass(), null, "and nothing is left open");
-});
-
-test("an accumulator that prepares to nothing opens no pass", async () =>
-{
-  const { al, log, FinishPreparing } = composed();
-
-  al.CreateDevice();
-  al.BeginScene();
-  al.RenderBatches({ id: "empty" }, "Main");
-
-  const ended = al.EndScene();
-
-  // Carbon submits an empty accumulator too, so this is not an error - but a
-  // pass opened for no draws is a pass that clears the target for nothing.
-  FinishPreparing({ batches: [] });
-  await ended;
-
-  assert.equal(log.includes("beginRenderPass"), false);
-  assert.equal(al.GetDrawnBatchCount(), 0);
-});
-
-test("the variants this backend cannot honour refuse instead of drawing", () =>
-{
-  const { al } = composed();
-
-  al.CreateDevice();
-  al.BeginScene();
-
-  // Both would otherwise fall through to an ordinary colour pass - a depth
-  // prepass rendered as colour, or a picking read that returns pixels.
-  assert.throws(() => al.RenderBatches({}, "Main", { overrideMaterial: {} }), /RenderBatchesWithOverride/u);
-  assert.throws(() => al.RenderBatches({}, "Main", { picking: true }), /RenderBatchesForPicking/u);
+  assert.equal(ended, true);
+  assert.deepEqual(log, [ "beginRenderPass", "pass.end", "finish", "submit:command-buffer" ]);
+  assert.equal(al.GetWorkQueue().GetRenderPass(), null, "nothing is left open");
 });
 
 // The verbs Trinity calls on a render context that this backend did not have
@@ -592,7 +540,6 @@ test("the back buffer is the render target, and its format is Carbon's", () =>
 
   const composedAl = new CjsWebgpuRenderContextAL({
     webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
-    dispatcher: {},
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
 
@@ -606,7 +553,6 @@ test("present parameters reconfigure the canvas rather than allocating a buffer"
   const sizes = [];
   const al = new CjsWebgpuRenderContextAL({
     webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
-    dispatcher: {},
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: options => sizes.push(options) }
   });
 
@@ -627,7 +573,6 @@ test("CopySubBuffer encodes a real copy, and refuses outside a frame", () =>
   };
   const al = new CjsWebgpuRenderContextAL({
     webgpu: { GetDevice: () => ({ createCommandEncoder: () => commandEncoder }), Submit() {} },
-    dispatcher: {},
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
   const buffer = handle => ({ IsValid: () => true, GetDeviceBuffer: () => handle });
@@ -749,7 +694,6 @@ test("SetAsPrimary registers this context, and present parameters read back", ()
 {
   const al = new CjsWebgpuRenderContextAL({
     webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
-    dispatcher: {},
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
 

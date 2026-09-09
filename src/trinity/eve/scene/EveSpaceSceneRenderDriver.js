@@ -27,6 +27,7 @@ import { ShadowQuality, Tr2VolumerticQuality } from "../../generated/trinityCore
 import { Quality } from "../../generated/postProcess/enums.js";
 import { TriBatchType } from "#consts/graphics";
 import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
+import { BindPerFramePSData, BindPerFrameVSData } from "../../core/rawData/Tr2ConstantBufferFormats.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
@@ -308,30 +309,52 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     this.scene.UpdateFogSettings();
     this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
-    const submitted = this.#Submit(this.scene.GetRenderables?.([]) ?? [], renderContext);
+    const map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
 
     // Carbon populates per-frame data AFTER the gather, because the blended sun
-    // colour is only current once lights have been gathered (cpp:1396-1426).
+    // colour is only current once lights have been gathered (cpp:1396-1426),
+    // and BEFORE the render job's steps draw the batches. RenderBatches draws
+    // immediately now - Carbon's shape - so the blocks must be populated AND
+    // BOUND here, between the gather and the submission. They are bound the
+    // way Carbon binds them (Tr2ConstantBufferFormats.cpp:54-66); until
+    // 2026-09-10 nothing bound them at all on this path.
     this.scene.PopulatePerFramePSData?.(renderContext, null, null);
     this.scene.PopulatePerFrameVSData?.(renderContext, null);
+    const scene = this.scene;
 
-    return submitted;
+    BindPerFrameVSData(typeof scene.GetPerFrameVSData === "function" ? scene.GetPerFrameVSData() : null, renderContext);
+    BindPerFramePSData(typeof scene.GetPerFramePSData === "function" ? scene.GetPerFramePSData() : null, renderContext);
+
+    return this.#Submit(map, renderContext);
   }
 
   /**
-   * Collects one frame's batches and submits them.
+   * Collects one frame's batches.
    *
    * @param {Array<object>} renderables Pre-culled renderables.
    * @param {object} renderContext Recording render context.
-   * @returns {boolean} Whether anything was submitted.
+   * @returns {object|null} The batch map, or null without a manager.
    */
-  #Submit(renderables, renderContext)
+  #Collect(renderables, renderContext)
   {
-    if (!this.#batchManager) return false;
+    if (!this.#batchManager) return null;
 
     this.#batchManager.Collect(renderables, undefined, renderContext);
 
-    const map = this.#batchManager.GetBatchMap();
+    return this.#batchManager.GetBatchMap();
+  }
+
+  /**
+   * Submits one frame's collected batches.
+   *
+   * @param {object|null} map The batch map `#Collect` produced.
+   * @param {object} renderContext Recording render context.
+   * @returns {boolean} Whether anything was submitted.
+   */
+  #Submit(map, renderContext)
+  {
+    if (!map) return false;
+
     let submitted = false;
 
     for (const batchType of EveSpaceSceneRenderDriver.SubmittedBatchTypes)

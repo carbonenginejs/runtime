@@ -197,11 +197,11 @@ test("portable generated render steps initialize and emit backend-neutral work",
   assertEquals(upscaling.upscalingContextID, 0xffffffff);
   upscaling.Execute(0, 0, context);
 
-  // Four RenderBatches submissions from TriStepRenderObject plus one compute
-  // dispatch, counted by the stub backend rather than read from a queue.
-  // Four RenderBatches submissions from TriStepRenderObject. The compute
-  // dispatch is counted separately by Carbon's stub, not as a draw.
-  assertEquals(context.GetRenderContextAL().GetDrawCount(), 4);
+  // Four RenderBatches submissions from TriStepRenderObject, each walked by
+  // Trinity over an accumulator the stand-in renderable left EMPTY - so the
+  // backend, which is handed draws and never a batch, drew nothing. (This
+  // used to read 4, when the stub counted accumulators it was wrongly handed.)
+  assertEquals(context.GetRenderContextAL().GetDrawCount(), 0);
   assertEquals(events[0][0], "scene");
   assertEquals(events.at(-1).join(","), "update,5,6");
 });

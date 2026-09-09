@@ -65,14 +65,4 @@ export default [ {
         format: "esm",
         inlineDynamicImports: true
     },
-}, {
-    // The composed-frame demo. Bundled for the same reason the harness is: dist
-    // keeps subpath imports, which no browser resolves.
-    ...shared,
-    input: path.join(root, "test/trinityal/webgpu/demo/demo.js"),
-    output: {
-        file: path.join(root, "test/trinityal/webgpu/demo/demo.bundle.js"),
-        format: "esm",
-        inlineDynamicImports: true
-    }
 } ];

@@ -121,8 +121,6 @@ export class Tr2RenderContextALStub
   /** Every draw the context was asked for, so a headless caller can assert. */
   #drawCount = 0;
 
-  /** Batches accepted through RenderBatches, so a headless caller can assert. */
-  #batchCount = 0;
 
   /** Clears the context asked for; the bookkeeping IS the feature here. */
   #clearCount = 0;
@@ -1013,40 +1011,6 @@ export class Tr2RenderContextALStub
     return { setup: this.#renderStateSetup, overrides: this.#renderStateOverrides };
   }
 
-  /**
-   * Accepts a finalized batch accumulator and counts its batches without
-   * drawing them.
-   *
-   * NOT A CARBON AL VERB. Carbon's `RenderBatches` is Trinity-level, on
-   * `Tr2RenderContextBase`, walking the accumulator and calling
-   * `SubmitGeometry` per batch. Ours routes it to the backend so a backend can
-   * group and encode a whole accumulator at once, which is what the WebGPU one
-   * does. The stub therefore needs it too - otherwise the only headless backend
-   * cannot accept the single most common draw call in the engine.
-   *
-   * Counting rather than ignoring is the point: the bookkeeping is what makes a
-   * headless backend worth having.
-   *
-   * @param {object} batches A finalized accumulator.
-   * @param {string} [_techniqueName] Carbon's DEFAULT_TECHNIQUE.
-   * @param {object} [_options] Override or picking selectors.
-   * @returns {boolean} Whether an accumulator was supplied.
-   */
-  RenderBatches(batches, _techniqueName, _options)
-  {
-    if (!batches) return false;
-
-    this.#batchCount += typeof batches.GetBatchCount === "function" ? batches.GetBatchCount() : 0;
-    this.#drawCount += 1;
-
-    return true;
-  }
-
-  /** How many batches every accepted accumulator held. @returns {number} */
-  GetBatchCount()
-  {
-    return this.#batchCount;
-  }
 
   /**
    * Counts a compute dispatch without running one.

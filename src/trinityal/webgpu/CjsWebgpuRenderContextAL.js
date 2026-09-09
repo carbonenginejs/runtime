@@ -239,20 +239,18 @@ export class CjsWebgpuRenderContextAL
 
   // THE DEVICE HALF, AND WHY IT IS OPTIONAL. Composed, this backend draws:
   // `BeginScene` opens a command encoder, the work queue turns it into real
-  // render passes, `RenderBatches` hands each pass to the dispatcher, and
-  // `EndScene` submits. Uncomposed it behaves exactly as it did before -
-  // validating verbs and recording transitions - which is the stub backend
-  // Carbon ships and the thing every test here relies on.
+  // render passes, the draw verbs resolve a pipeline and bind groups from the
+  // bound state and record into the live pass, and `EndScene` submits.
+  // Uncomposed it validates verbs and records transitions - the stub backend
+  // Carbon ships, and the thing every headless test relies on.
   //
-  // IT DELEGATES RATHER THAN DRAWS. `CjsWebgpuDevice.EncodeDraw` already IS
-  // Carbon's `SubmitGeometry` sequence - pipeline, bind groups, vertex and
-  // index buffers, then the draw - and the dispatcher already groups batches
-  // and filters redundant state. A second implementation here would be the
-  // mistake this whole exercise is undoing, one layer further down.
+  // IT IS HANDED VERBS, NEVER A BATCH. Until 2026-09-10 it also declared
+  // `RenderBatches`, a Trinity method, and needed a resolver and a dispatcher
+  // to turn the batches it was handed into bindings - the inversion this lane
+  // was opened to undo. Trinity's own walk (`Tr2RenderContext.RenderBatchesInOrder`)
+  // now calls the same verbs Carbon's does.
 
   #webgpu = null;
-
-  #dispatcher = null;
 
   #renderTarget = null;
 
@@ -262,24 +260,19 @@ export class CjsWebgpuRenderContextAL
   /** The acquired swap-chain frame, valid only within one scene. */
   #frame = null;
 
-  /** Prepared accumulators, keyed by the accumulator they were prepared from. */
-  #prepared = new WeakMap();
-
   /**
    * @param {object} [composition] The device half; omit for the stub backend.
    * @param {object} [composition.webgpu] A `CjsWebgpuDevice`.
-   * @param {object} [composition.dispatcher] A `CjsWebgpuTrinityBatchDispatcher`.
    * @param {object} [composition.renderTarget] A `CjsWebgpuRenderTarget`.
    */
-  constructor({ webgpu = null, dispatcher = null, renderTarget = null } = {})
+  constructor({ webgpu = null, renderTarget = null } = {})
   {
-    if (webgpu && !(dispatcher && renderTarget))
+    if (webgpu && !renderTarget)
     {
-      fail("a composed backend needs a dispatcher and a render target as well as a device");
+      fail("a composed backend needs a render target as well as a device");
     }
 
     this.#webgpu = webgpu;
-    this.#dispatcher = dispatcher;
     this.#renderTarget = renderTarget;
 
     // The description starts in step with the state it describes. Carbon's
@@ -617,55 +610,19 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Prepares and encodes this frame's submissions, then closes and submits.
+   * Closes the frame's last pass and submits the command buffer.
    *
-   * RETURNS A PROMISE, AND THAT IS THIS BACKEND'S PROBLEM RATHER THAN THE
-   * RUNTIME'S. Carbon's `EndScene` is synchronous and `RenderBatches` draws in
-   * the same call, because building a pipeline is a function call in C++.
-   * **WebGL is the same** - `createProgram`, `linkProgram` and `bufferData`
-   * all return immediately - so a WebGL backend can and should draw inside
-   * `RenderBatches` exactly as Carbon does, and its `EndScene` needs no
-   * promise at all.
+   * SYNCHRONOUS, AS CARBON'S IS. The first version awaited the dispatcher's
+   * preparation here, because the backend had been handed batches it still had
+   * to turn into pipelines. It is handed verbs now, every draw resolved inside
+   * the verb that issued it, and there is nothing left to wait for: `finish()`
+   * and `queue.submit()` are synchronous calls. A caller that awaits this
+   * still may; awaiting a non-promise costs nothing.
    *
-   * WebGPU is the odd one: pipeline creation and binding resolution are
-   * promises, and `CjsBatchManager` clears and refills its accumulators every
-   * frame, so nothing can be prepared ahead of the frame that uses it. The
-   * boundary therefore has to exist somewhere, and here - inside the one
-   * backend that needs it - is the smallest place it can be.
-   *
-   * A caller awaits `EndScene` unconditionally. Awaiting a non-promise costs
-   * nothing, so the synchronous backends pay no tax for this one's
-   * constraint, and no caller has to ask which kind it is holding.
-   *
-   * @returns {Promise<boolean>} Whether the scene ended cleanly.
+   * @returns {boolean} Whether the scene ended cleanly.
    */
-  async EndScene()
+  EndScene()
   {
-    const submissions = this.#submissions;
-
-    this.#submissions = [];
-
-    for (const submission of submissions)
-    {
-      const handle = await this.#dispatcher.PrepareAccumulator(
-        submission.accumulator,
-        { techniqueName: submission.techniqueName }
-      );
-
-      const drawn = (handle?.batches?.length ?? 0) + (handle?.gdprBatches?.length ?? 0);
-
-      // An accumulator that prepared to nothing is not an error - Carbon
-      // submits an empty one too - but it must not open a pass for nothing.
-      if (!drawn) continue;
-
-      const pass = this.#workQueue.RequireRenderPass();
-
-      if (!pass) continue;
-
-      this.#dispatcher.EncodeAccumulator(pass, handle);
-      this.#drawnBatchCount += drawn;
-    }
-
     this.#Record(this.#workQueue.EndFrame());
 
     this.#frameNumber += 1;
@@ -682,48 +639,6 @@ export class CjsWebgpuRenderContextAL
     return true;
   }
 
-  /**
-   * Draws a finalized batch accumulator.
-   *
-   * This is the verb the whole intent queue existed to stand in for. Carbon's
-   * `Tr2RenderContextBase::RenderBatches` walks the accumulator and issues
-   * draws immediately; ours opens a render pass on demand and hands it to the
-   * dispatcher, which already groups the batches and filters redundant state.
-   *
-   * PREPARATION IS ASYNCHRONOUS AND THAT IS FORCED, not a shortcut. Building a
-   * pipeline and resolving a material's textures are promises in a browser and
-   * synchronous in Carbon. So a batch set that has not finished preparing draws
-   * NOTHING this frame and is drawn the next one - which is how every other
-   * resource on this path already behaves, and is why a ship fades in rather
-   * than blocking the first frame.
-   *
-   * WHAT IS NOT IMPLEMENTED REFUSES RATHER THAN DRAWS. Carbon has two
-   * variants this backend cannot honour yet - a substituted override material
-   * (`RenderBatchesWithOverride`) and picking, which reads the batch's user
-   * data as an object id instead of shading it. Both would otherwise fall
-   * through and draw an ordinary colour pass: a depth prepass rendered as
-   * colour, or a picking read that returns pixels. Silently wrong is worse
-   * than absent, so they throw and name themselves.
-   *
-   * @param {object} accumulator A finalized `ITriRenderBatchAccumulator`.
-   * @param {string} techniqueName The technique to draw.
-   * @param {object} [options] Carbon's variants: `overrideMaterial`, `picking`.
-   * @returns {boolean} Whether anything was encoded this call.
-   */
-  RenderBatches(accumulator, techniqueName, options = {})
-  {
-    if (options.overrideMaterial) fail("RenderBatchesWithOverride is not implemented by this backend");
-    if (options.picking) fail("RenderBatchesForPicking is not implemented by this backend");
-
-    if (!this.#dispatcher) return false;
-
-    this.#submissions.push({ accumulator, techniqueName });
-
-    return true;
-  }
-
-  /** This frame's submissions, in the order Trinity made them. */
-  #submissions = [];
 
   /**
    * Declares what the next render pass does with its attachments.
@@ -2441,6 +2356,7 @@ export class CjsWebgpuRenderContextAL
       baseVertexLocation,
       startInstanceLocation
     ));
+    this.#drawnBatchCount += 1;
 
     return true;
   }
@@ -2468,6 +2384,7 @@ export class CjsWebgpuRenderContextAL
       startVertexLocation,
       startInstanceLocation
     ));
+    this.#drawnBatchCount += 1;
 
     return true;
   }

@@ -1132,17 +1132,16 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Records a submission of one finalized batch accumulator.
+   * Draws one finalized batch accumulator.
    *
    * Carbon's RenderBatches (Tr2RenderContext.h:37-52) walks the accumulator and
-   * issues draws immediately, and so does ours once a backend is installed.
-   *
-   * THE OLD REASON FOR RECORDING WAS WRONG. It said a WebGPU pass has a fixed
-   * attachment set, so the submission point must be decided when the frame is
-   * PLANNED rather than when Trinity asks. Metal has exactly the same
-   * constraint and Carbon does not plan: its work queue opens a pass lazily, at
-   * the moment work needs one. Ours does the same, so there is nothing to
-   * decide ahead of time.
+   * issues draws immediately, through `RenderBatchesInOrder`, and so does this.
+   * THE BACKEND IS NEVER HANDED A BATCH: Carbon declares this family on
+   * `Tr2RenderContext.h` and a grep of `trinity/trinityal/` finds none of it.
+   * Until 2026-09-10 this forwarded to an AL method of the same name, which is
+   * the inversion the whole lane was opened to undo - the backend then needed
+   * a resolver and a dispatcher to turn batches into bindings, and the
+   * material's own apply was never reached.
    *
    * The accumulator is passed by reference, not copied. It is finalized by the
    * time it arrives - sorting and grouping are Trinity's - and copying it would
@@ -1150,13 +1149,15 @@ export class Tr2RenderContext extends CjsModel
    *
    * @param {object} batches Finalized accumulator.
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
-   * @returns {boolean} Whether the submission was recorded.
+   * @returns {boolean} Whether an accumulator was walked.
    */
   RenderBatches(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     if (!batches) return false;
 
-    return this.#requireAL("RenderBatches").RenderBatches(batches, techniqueName);
+    this.RenderBatchesInOrder(batches, techniqueName);
+
+    return true;
   }
 
   /**
@@ -1234,9 +1235,15 @@ export class Tr2RenderContext extends CjsModel
    * @param {string} [techniqueName] The technique to draw.
    * @returns {number} How many passes were submitted.
    */
-  RenderBatchesInOrder(batches, techniqueName = DEFAULT_TECHNIQUE)
+  RenderBatchesInOrder(batches, techniqueName = DEFAULT_TECHNIQUE, overrideMaterial = null)
   {
     if (!batches) return 0;
+
+    // Carbon's override walk substitutes the override material - and its
+    // shader - for every batch's (`RenderBatchesWithOverride`, cpp:810-814);
+    // the geometry and per-object data stay the batch's own.
+    const shaderOf = batch => (overrideMaterial ? overrideMaterial.GetShaderStateInterface() : batch.shader);
+    const materialOf = batch => overrideMaterial ?? batch.material;
 
     let lastShader = null;
     let currentObjectData = null;
@@ -1254,11 +1261,13 @@ export class Tr2RenderContext extends CjsModel
         this.#esm.ApplyStandardStates(batch.renderingMode);
       }
 
-      if (batch.shader !== lastShader)
+      const shader = shaderOf(batch);
+
+      if (shader !== lastShader)
       {
         // Direct, as Carbon is: a batch with no shader is not valid, and
         // Tr2RenderBatch.IsValid uses the shader as its key.
-        const found = batch.shader.GetTechniqueIndex(techniqueName);
+        const found = shader.GetTechniqueIndex(techniqueName);
 
         // Carbon `continue`s on both of these, which SKIPS THE BATCH and
         // leaves lastShader unchanged, so the next batch re-tests. Reproduced
@@ -1275,12 +1284,12 @@ export class Tr2RenderContext extends CjsModel
 
         technique = found;
 
-        passCount = batch.shader.GetPassCount(technique);
+        passCount = shader.GetPassCount(technique);
 
         if (passCount === 0) continue;
 
-        shaderMask = batch.shader.GetShaderTypeMask(technique);
-        lastShader = batch.shader;
+        shaderMask = shader.GetShaderTypeMask(technique);
+        lastShader = shader;
       }
 
       if (batch.objectData && batch.objectData !== currentObjectData)
@@ -1299,8 +1308,8 @@ export class Tr2RenderContext extends CjsModel
 
       for (let passIndex = 0; passIndex < passCount; passIndex += 1)
       {
-        batch.shader.ApplyAllStateForPass(technique, passIndex, this);
-        batch.material.ApplyMaterialDataForPass(technique, passIndex, this);
+        shader.ApplyAllStateForPass(technique, passIndex, this);
+        materialOf(batch).ApplyMaterialDataForPass(technique, passIndex, this);
 
         this.SubmitGeometry(batch);
 
@@ -1335,7 +1344,9 @@ export class Tr2RenderContext extends CjsModel
     if (!batches) return false;
     if (!overrideMaterial) return this.RenderBatches(batches, techniqueName);
 
-    return this.#requireAL("RenderBatches").RenderBatches(batches, techniqueName, { overrideMaterial });
+    this.RenderBatchesInOrder(batches, techniqueName, overrideMaterial);
+
+    return true;
   }
 
   /**
@@ -1347,11 +1358,13 @@ export class Tr2RenderContext extends CjsModel
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
    * @returns {boolean} Whether the submission was recorded.
    */
-  RenderBatchesForPicking(batches, techniqueName = DEFAULT_TECHNIQUE)
+  RenderBatchesForPicking(_batches, _techniqueName = DEFAULT_TECHNIQUE)
   {
-    if (!batches) return false;
-
-    return this.#requireAL("RenderBatches").RenderBatches(batches, techniqueName, { picking: true });
+    // NOT PORTED. Carbon's picking walk stamps each batch's user data into the
+    // global "objectId" variable and draws the picking technique; the 32-bit
+    // target and the readback are not here yet (docs: "Why no Carbon picker").
+    // Refuses by name rather than drawing a colour pass that returns pixels.
+    throw new Error("Tr2RenderContext.RenderBatchesForPicking is not ported.");
   }
 
   // THE FOUR BELOW ARE NOT PORTED, AND THEY REFUSE RATHER THAN RECORD.

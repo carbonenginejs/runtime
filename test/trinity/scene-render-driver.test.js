@@ -24,13 +24,16 @@ function recordingContext()
   const al = context.GetRenderContextAL();
   const calls = [];
   const clear = al.Clear.bind(al);
-  const renderBatches = al.RenderBatches.bind(al);
 
   al.Clear = (options) => { calls.push({ type: "clear" }); return clear(options); };
-  al.RenderBatches = (batches, technique, options) =>
+
+  // The walk is Trinity's (Carbon declares RenderBatches on Tr2RenderContext,
+  // not on the AL), so the submission is recorded where it happens: the
+  // context's own walk, which these stand-in accumulators need not satisfy.
+  context.RenderBatchesInOrder = (batches) =>
   {
     calls.push({ type: "render-batches", batches });
-    return renderBatches(batches, technique, options);
+    return 0;
   };
 
   return { context, calls };
@@ -58,7 +61,11 @@ function sceneRecording(calls)
 /** A batch manager whose map hands back a distinct accumulator per type. */
 function batchManager(calls)
 {
-  const accumulators = new Map([ [ OPAQUE, { id: "opaque" } ], [ DECAL, { id: "decal" } ] ]);
+  // Real enough for Trinity's own walk to run over them and draw nothing.
+  const accumulators = new Map([
+    [ OPAQUE, { id: "opaque", GetBatches: () => [] } ],
+    [ DECAL, { id: "decal", GetBatches: () => [] } ]
+  ]);
 
   return {
     Collect(renderables, reason, renderContext)
