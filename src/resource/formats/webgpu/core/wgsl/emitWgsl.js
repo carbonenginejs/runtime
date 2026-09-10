@@ -56,6 +56,59 @@ function access(base, field, components)
     return `${base}.${field.name}${suffix}`;
 }
 
+/**
+ * Assigns into an interface field, one statement per component when the write is
+ * a partial swizzle.
+ *
+ * WGSL HAS NO SWIZZLE ASSIGNMENT, and this is the whole reason the function
+ * exists. `output.output1.xy = vec2<f32>(...)` is a compile error - Tint rejects
+ * it with "cannot assign to value of type 'swizzle<...>'" - while reading a
+ * swizzle is fine and a WHOLE-field assignment is fine. HLSL and GLSL both allow
+ * the write, so a mask that came straight across from DXBC produces one.
+ *
+ * IT COMPILED IN ONE CHROME AND NOT ANOTHER, which is why this survived a
+ * headless run with a real adapter: the stricter Tint refused the same module
+ * the looser one had accepted. The spec has never allowed it, so the strict
+ * reading is the right one and the emitter must not rely on either.
+ *
+ * The source is bound to a `let` first rather than swizzled in place, so an
+ * expression with a function call in it is evaluated ONCE however many
+ * components it feeds. The `let` takes no type annotation because WGSL infers
+ * it, and the emitter does not always have the source type to hand.
+ *
+ * The temporary is numbered by the CALLER, from a counter that restarts for each
+ * function emitted, so the same program always produces the same text. A
+ * module-level counter would have made emission depend on what was emitted
+ * before it in the process, and the container tests compare bytes.
+ *
+ * @param {string} indent Leading whitespace for the statement.
+ * @param {object} field The interface field being written.
+ * @param {string[]} components The target components, in write order.
+ * @param {string} source The right-hand side, already emitted.
+ * @param {number} ordinal Index of this partial write within the function.
+ * @returns {string[]} One or more WGSL statements.
+ */
+function assignComponents(indent, field, components, source, ordinal)
+{
+    const natural = COMPONENTS.slice(0, field.components.length);
+    const whole = components.length === natural.length
+        && components.every((component, index) => component === natural[index]);
+
+    // A whole-field write, or a single component, is already legal as written.
+    if (whole || components.length === 1)
+    {
+        return [ `${indent}${access("output", field, components)} = ${source};` ];
+    }
+
+    const temporary = `swizzleWrite${ordinal}`;
+
+    return [
+        `${indent}let ${temporary} = ${source};`,
+        ...components.map((component, index) =>
+            `${indent}output.${field.name}.${component} = ${temporary}.${COMPONENTS[index]};`)
+    ];
+}
+
 function f32Literal(value)
 {
     const number = value.float32;
@@ -354,6 +407,10 @@ export function buildWgsl(input, options = {})
     const inputById = new Map(interfaceInputs.map((field) => [ field.id, field ]));
     const outputById = new Map(interfaceOutputs.map((field) => [ field.id, field ]));
 
+    // Numbers the temporaries a partial interface write needs. Local to this
+    // function so the same program always emits the same text.
+    let swizzleWrites = 0;
+
     function emitStatement(statement, depth)
     {
         const indent = "    ".repeat(depth);
@@ -362,15 +419,13 @@ export function buildWgsl(input, options = {})
         {
             if (compute) throw new Error("WGSL compute lowering cannot emit a render-interface assignment");
             const targetField = outputById.get(statement.target.fieldId);
-            if (statement.expression.fieldId)
-            {
-                const sourceField = inputById.get(statement.expression.fieldId);
-                lines.push(`${indent}${access("output", targetField, statement.target.components)} = ${access("input", sourceField, statement.expression.components)};`);
-            }
-            else
-            {
-                lines.push(`${indent}${access("output", targetField, statement.target.components)} = ${statement.expression.code};`);
-            }
+            const source = statement.expression.fieldId
+                ? access("input", inputById.get(statement.expression.fieldId), statement.expression.components)
+                : statement.expression.code;
+
+            lines.push(...assignComponents(indent, targetField, statement.target.components, source, swizzleWrites));
+
+            if (statement.target.components.length > 1) swizzleWrites += 1;
         }
         else if (statement.kind === "let")
         {

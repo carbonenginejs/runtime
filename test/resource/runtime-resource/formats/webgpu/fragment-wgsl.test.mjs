@@ -612,7 +612,12 @@ test("fragment lowering accepts declaration-backed fixed indexable-temp locals",
     const ir = CjsWebgpuFormat.buildShaderIr(program, { source: "synthetic-fragment-fixed-indexable" });
     const shader = CjsWebgpuFormat.buildWgsl(ir);
     assert.doesNotMatch(shader.code, /\bxt0\b/u);
-    assert.match(shader.code, /output\.output0\.xy = vec2<f32>\(value\d+, value\d+\.y\);/u);
+    // WGSL HAS NO SWIZZLE ASSIGNMENT, so a two-component write is a temporary
+    // plus one statement per component. This asserted the illegal form until
+    // 2026-09-10, when a stricter Tint refused a shader this suite had passed.
+    assert.match(shader.code, /let swizzleWrite0 = vec2<f32>\(value\d+, value\d+\.y\);/u);
+    assert.match(shader.code, /output\.output0\.x = swizzleWrite0\.x;/u);
+    assert.match(shader.code, /output\.output0\.y = swizzleWrite0\.y;/u);
 
     const sourceMismatch = structuredClone(ir);
     sourceMismatch.instructions.find((entry) => entry.opcodeName === "add").operands[1].selected = "y";
@@ -690,12 +695,20 @@ test("fragment lowering maps DXBC frc and round_ni to component-wise WGSL roundi
     const dx12 = CjsWebgpuFormat.buildWgsl(roundingFragmentFixture(1));
 
     assert.equal(dx12.code, dx11.code);
-    assert.match(dx11.code, /output\.output0\.xy = fract\(vec2<f32>\(/);
-    assert.match(dx11.code, /output\.output0\.zw = floor\(vec2<f32>\(/);
+    // Decomposed, because a swizzle cannot be assigned - see the note above.
+    assert.match(dx11.code, /let swizzleWrite0 = fract\(vec2<f32>\(/);
+    assert.match(dx11.code, /output\.output0\.x = swizzleWrite0\.x;/);
+    assert.match(dx11.code, /output\.output0\.y = swizzleWrite0\.y;/);
+    assert.match(dx11.code, /let swizzleWrite1 = floor\(vec2<f32>\(/);
+    assert.match(dx11.code, /output\.output0\.z = swizzleWrite1\.x;/);
+    assert.match(dx11.code, /output\.output0\.w = swizzleWrite1\.y;/);
+    // THREE LINES PER WRITE, so the mapped lines step by three rather than one.
+    // Each entry anchors on the `let` that evaluates the instruction, which is
+    // where its work happens; the component stores after it carry no arithmetic.
     assert.deepEqual(dx11.sourceMap.map(({ line, dxbcOffset }) => ({ line, dxbcOffset })), [
         { line: 10, dxbcOffset: 2 },
-        { line: 11, dxbcOffset: 6 },
-        { line: 12, dxbcOffset: 10 }
+        { line: 13, dxbcOffset: 6 },
+        { line: 16, dxbcOffset: 10 }
     ]);
 });
 

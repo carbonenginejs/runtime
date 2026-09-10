@@ -1238,7 +1238,11 @@ test("vertex lowering scalarizes declared fixed indexable-temp slots through mas
     const shader = CjsWebgpuFormat.buildWgsl(ir);
     assert.doesNotMatch(shader.code, /\bxt0\b/u);
     assert.match(shader.code, /var value\d+: f32 = 0\.0;/u);
-    assert.match(shader.code, /output\.position\.xy = vec2<f32>\(value\d+, value\d+\.y\);/u);
+    // Decomposed: WGSL has no swizzle assignment, so a two-component write is a
+    // temporary plus one store per component.
+    assert.match(shader.code, /let swizzleWrite0 = vec2<f32>\(value\d+, value\d+\.y\);/u);
+    assert.match(shader.code, /output\.position\.x = swizzleWrite0\.x;/u);
+    assert.match(shader.code, /output\.position\.y = swizzleWrite0\.y;/u);
 });
 
 test("fixed indexable temps fail closed on undeclared, out-of-range, narrow, and inconsistent identities", () =>
