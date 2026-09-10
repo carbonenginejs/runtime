@@ -103,7 +103,7 @@ import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, RawData, T
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
 import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
-import { Tr2Effect, Tr2EffectStateManager } from "../../../../npm/dist/trinity/shader/index.js";
+import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsDdsFormat } from "../../../../npm/dist/resource/formats/dds/index.js";
@@ -413,6 +413,65 @@ function Material(bytes, path, values = null)
  * @param {boolean} compressed Whether the device accepts BC textures.
  * @returns {Promise<{loaded: number, failed: string[]}>} What arrived.
  */
+/**
+ * The scene-owned textures `quadv5` declares, and what "nothing" means for each.
+ *
+ * ZERO IS THE WRONG NOTHING FOR MOST OF THESE, which is why the hull came out
+ * near-black once it stopped being white. The pixel stage declares nine
+ * textures: six are the material's own maps, and these three belong to the
+ * SCENE. Nothing supplies them here, so the backend substitutes its zero-filled
+ * 1x1 dummy - and a zero ambient-occlusion map means FULLY OCCLUDED, a zero
+ * shadow map means FULLY SHADOWED. The ship is then lit by almost nothing, and
+ * the frame is not wrong so much as unanswered.
+ *
+ * Carbon's scene owns these: `EveSpaceScene` binds its environment cube, its
+ * shadow map and the SSAO target. A stand-in scene has none, so the neutral
+ * value each one carries when the feature is off is supplied instead - which is
+ * what the backend's dummy should arguably be doing per texture rather than
+ * handing every slot the same zeros.
+ *
+ * THE ENVIRONMENT CUBE IS NOT NEUTRAL-ABLE THE SAME WAY. A flat grey cube gives
+ * flat reflections rather than none, so it is left dark deliberately and named
+ * here: a real scene environment map is the next thing this demo needs.
+ */
+const SCENE_TEXTURES = Object.freeze([
+  // 1.0 is "not occluded". Zero darkened every surface uniformly.
+  { name: "SSAOMap", colour: [ 255, 255, 255, 255 ] },
+  // A depth map read as "nothing is closer than this", so nothing is shadowed.
+  { name: "EveSpaceSceneShadowMap", colour: [ 255, 255, 255, 255 ] }
+]);
+
+
+/**
+ * A one-pixel texture resource of a single colour.
+ *
+ * @param {number[]} colour Four bytes, RGBA.
+ * @returns {object} A prepared `TriTextureRes`.
+ */
+function FlatTexture(colour)
+{
+  const texture = new TriTextureRes();
+
+  texture.DoLoad({
+    payloadType: "rgba",
+    pixelFormat: "rgba8unorm",
+    width: 1,
+    height: 1,
+    strideBytes: 4,
+    sliceBytes: 4,
+    origin: "top-left",
+    colorSpace: "linear",
+    alphaMode: "straight",
+    data: Uint8Array.from(colour)
+  });
+
+  texture.MarkLoaded();
+  texture.MarkPrepared();
+
+  return texture;
+}
+
+
 async function LoadTextures(effect, compressed)
 {
   const failed = [];
@@ -733,7 +792,7 @@ export async function RunDemo(canvas)
       label: buffer.label ?? null,
       offset,
       bytes: view.byteLength,
-      floats: Array.from(view.slice(0, 40))
+      floats: Array.from(view.slice(0, 128))
     });
 
     return writeBuffer(buffer, offset, data, ...rest);
@@ -830,6 +889,20 @@ export async function RunDemo(canvas)
   const bounds = Bounds(mesh);
   const geometry = GeometryResource(mesh, `res:/${HULL}`);
   const material = Material(effectBytes, `res:/${effectPath}`, area);
+
+  // The scene's share of the texture slots, before the material is applied and
+  // its resource set laid out. Added as ordinary named parameters, because that
+  // is how the material finds a texture: by the name the shader declares.
+  for (const scene of SCENE_TEXTURES)
+  {
+    const parameter = new TriTextureParameter();
+
+    parameter.name = scene.name;
+    parameter.resource = FlatTexture(scene.colour);
+    material.resources.push(parameter);
+  }
+
+  material.RebuildCachedData();
   const textures = await LoadTextures(material, compressed);
   const frame = PerFrameData(bounds, canvas.width / canvas.height);
 
@@ -880,6 +953,27 @@ export async function RunDemo(canvas)
     binds.push(`s${stage}b${register}`);
 
     return setConstants(buffer, stage, register, ...rest);
+  };
+
+  // WHICH SLOTS THE BACKEND HAD TO FAKE. Every unfilled texture register gets a
+  // zero-filled 1x1 dummy, and "zero" is not the right nothing for every map -
+  // a normal map wants a flat normal, a mask wants black, a reflection wants the
+  // scene environment. This names the slots so that argument can be had against
+  // facts.
+  const srvs = [];
+  const dummies = [];
+  const createResourceSet = al.CreateResourceSet.bind(al);
+  const getDummyTexture = al.GetDummyTexture.bind(al);
+
+  al.GetDummyTexture = dimension => { dummies.push(dimension); return getDummyTexture(dimension); };
+  al.CreateResourceSet = (description, program) =>
+  {
+    for (const [ key, entry ] of Object.entries(description?.Describe?.() ?? {}))
+    {
+      if (key.startsWith("srv")) srvs.push(`${key}=${entry?.constructor?.name ?? entry}`);
+    }
+
+    return createResourceSet(description, program);
   };
 
   const renderContext = new Tr2RenderContext();
@@ -1059,7 +1153,15 @@ export async function RunDemo(canvas)
     pipelines,
     bindGroups,
     constantBinds: [ ...new Set(binds) ],
+    dummyTextureSlots: dummies,
+    resourceSetSrvs: srvs,
     uploads: uploads.map(u => `${u.label ?? "?"}@${u.offset}+${u.bytes}`),
+    sceneRows: (() => {
+      const block = uploads.find(u => u.bytes === 1888);
+      if (!block) return null;
+      const row = i => block.floats.slice(i * 4, i * 4 + 4).map(v => Number(v.toFixed(3)));
+      return { sunDir: row(12), sunDiffuse: row(13), ambient: row(14), fog: row(15), gamma: row(21) };
+    })(),
     uploadCount: uploads.length,
     draws,
     expectedViewProjectionTransposed: Array.from(mat4.transpose(mat4.create(), frame.viewProjection)).map(v => Number(v.toFixed(3)))
