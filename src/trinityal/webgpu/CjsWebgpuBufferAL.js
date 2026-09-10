@@ -86,19 +86,19 @@ function gpuBufferUsage(gpuUsage, usage)
 export class CjsWebgpuBufferAL
 {
   /** m_desc */
-  #desc = null;
+  _desc = null;
 
   /** The device that owns the buffer, for writes and destruction. */
-  #webgpu = null;
+  _webgpu = null;
 
   /** The opaque `CreateDeviceBuffer` handle. */
-  #handle = null;
+  _handle = null;
 
   /** The retained CPU shadow; see the head comment on why it is retained. */
-  #shadow = null;
+  _shadow = null;
 
   /** Whether a map is open, so a double map is caught rather than silently nested. */
-  #mapped = false;
+  _mapped = false;
 
   /**
    * Creates the buffer against a device.
@@ -141,16 +141,16 @@ export class CjsWebgpuBufferAL
     const mask = gpuBufferUsage(desc.gpuUsage, webgpu.GetBufferUsage());
     if (mask === 0) return ALResult.E_INVALIDARG;
 
-    this.#handle = webgpu.CreateDeviceBuffer({ label: desc.label ?? "Tr2BufferAL", size, usage: mask });
-    this.#webgpu = webgpu;
-    this.#desc = desc;
-    this.#shadow = new Uint8Array(this.#handle.size);
+    this._handle = webgpu.CreateDeviceBuffer({ label: desc.label ?? "Tr2BufferAL", size, usage: mask });
+    this._webgpu = webgpu;
+    this._desc = desc;
+    this._shadow = new Uint8Array(this._handle.size);
 
     if (initialData)
     {
       const bytes = new Uint8Array(initialData.buffer, initialData.byteOffset, initialData.byteLength);
-      this.#shadow.set(bytes.subarray(0, Math.min(bytes.length, this.#shadow.length)));
-      webgpu.WriteDeviceBuffer(this.#handle, this.#shadow);
+      this._shadow.set(bytes.subarray(0, Math.min(bytes.length, this._shadow.length)));
+      webgpu.WriteDeviceBuffer(this._handle, this._shadow);
     }
 
     return ALResult.S_OK;
@@ -159,25 +159,25 @@ export class CjsWebgpuBufferAL
   /** Whether the buffer holds anything. */
   IsValid()
   {
-    return this.#handle !== null;
+    return this._handle !== null;
   }
 
   /** The description this buffer was created from, or null. */
   GetDesc()
   {
-    return this.#desc;
+    return this._desc;
   }
 
   /** The buffer's size in bytes, as the description gives it. */
   GetSizeInBytes()
   {
-    return this.#desc ? this.#desc.GetSizeInBytes() : 0;
+    return this._desc ? this._desc.GetSizeInBytes() : 0;
   }
 
   /** The `GPUBuffer`, for binding it to a draw. */
   GetDeviceBuffer()
   {
-    return this.#handle ? this.#webgpu.GetDeviceBuffer(this.#handle) : null;
+    return this._handle ? this._webgpu.GetDeviceBuffer(this._handle) : null;
   }
 
   /**
@@ -192,15 +192,15 @@ export class CjsWebgpuBufferAL
   MapForWriting(_renderContext)
   {
     if (!this.IsValid()) return { result: ALResult.E_INVALIDCALL, data: null };
-    if (!HasFlag(this.#desc.cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null };
+    if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null };
 
     // Every backend permits a second map; none permits a NESTED one, and a
     // nested map here would upload twice and hide which write won.
-    if (this.#mapped) return { result: ALResult.E_INVALIDCALL, data: null };
+    if (this._mapped) return { result: ALResult.E_INVALIDCALL, data: null };
 
-    this.#mapped = true;
+    this._mapped = true;
 
-    return { result: ALResult.S_OK, data: this.#shadow };
+    return { result: ALResult.S_OK, data: this._shadow };
   }
 
   /**
@@ -213,10 +213,10 @@ export class CjsWebgpuBufferAL
    */
   UnmapForWriting()
   {
-    if (!this.#mapped) return;
+    if (!this._mapped) return;
 
-    this.#mapped = false;
-    this.#webgpu.WriteDeviceBuffer(this.#handle, this.#shadow);
+    this._mapped = false;
+    this._webgpu.WriteDeviceBuffer(this._handle, this._shadow);
   }
 
   /**
@@ -238,14 +238,14 @@ export class CjsWebgpuBufferAL
   UpdateBuffer(offset, size, data, _renderContext)
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
-    if (!HasFlag(this.#desc.cpuUsage, Tr2CpuUsage.WRITE)) return ALResult.E_INVALIDCALL;
-    if (HasFlag(this.#desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) return ALResult.E_INVALIDCALL;
+    if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE)) return ALResult.E_INVALIDCALL;
+    if (HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) return ALResult.E_INVALIDCALL;
     if (!data) return ALResult.E_INVALIDARG;
-    if (offset < 0 || size < 0 || offset + size > this.#shadow.length) return ALResult.E_INVALIDARG;
+    if (offset < 0 || size < 0 || offset + size > this._shadow.length) return ALResult.E_INVALIDARG;
 
     const bytes = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
 
-    this.#shadow.set(bytes.subarray(0, size), offset);
+    this._shadow.set(bytes.subarray(0, size), offset);
 
     // Upload the RANGE, as every Carbon backend does for plain WRITE - DX11 a
     // D3D11_BOX (`Tr2BufferALDx11.cpp:431-433`), Metal a size-byte staging copy
@@ -259,9 +259,9 @@ export class CjsWebgpuBufferAL
     // each side are the same ones already on the device. The buffer size is
     // aligned at creation, so the widened end never runs past it.
     const start = offset & ~3;
-    const end = Math.min((offset + size + 3) & ~3, this.#shadow.length);
+    const end = Math.min((offset + size + 3) & ~3, this._shadow.length);
 
-    this.#webgpu.WriteDeviceBuffer(this.#handle, this.#shadow.subarray(start, end), start);
+    this._webgpu.WriteDeviceBuffer(this._handle, this._shadow.subarray(start, end), start);
 
     return ALResult.S_OK;
   }
@@ -269,13 +269,13 @@ export class CjsWebgpuBufferAL
   /** Releases the GPU buffer and the shadow. */
   Destroy()
   {
-    if (this.#handle) this.#handle.Destroy();
+    if (this._handle) this._handle.Destroy();
 
-    this.#handle = null;
-    this.#webgpu = null;
-    this.#desc = null;
-    this.#shadow = null;
-    this.#mapped = false;
+    this._handle = null;
+    this._webgpu = null;
+    this._desc = null;
+    this._shadow = null;
+    this._mapped = false;
   }
 
   /** REFUSED: reading back needs MAP_READ, a staging buffer and an await. */

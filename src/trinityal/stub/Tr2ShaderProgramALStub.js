@@ -25,10 +25,10 @@ import { ALResult } from "../ALResult.js";
 export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_isValid */
-  #isValid = false;
+  _isValid = false;
 
   /** The shaders the program linked, in the order they were given. */
-  #shaders = [];
+  _shaders = [];
 
   /**
    * Links the shaders into a program.
@@ -39,7 +39,7 @@ export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
    */
   Create(shaders, renderContext)
   {
-    this.#Reset();
+    this._Reset();
 
     if (!renderContext.IsValid()) return ALResult.E_INVALIDCALL;
 
@@ -58,23 +58,23 @@ export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
       mask |= bit;
     }
 
-    this.#shaders = shaders.slice();
-    this.#isValid = true;
+    this._shaders = shaders.slice();
+    this._isValid = true;
 
     return ALResult.S_OK;
   }
 
   /** Carbon's impl `Destroy`: drops validity without unregistering. */
-  #Reset()
+  _Reset()
   {
-    this.#isValid = false;
-    this.#shaders = [];
+    this._isValid = false;
+    this._shaders = [];
   }
 
   /** Releases the program and leaves the device-resource registry. */
   Destroy()
   {
-    this.#Reset();
+    this._Reset();
     super.Destroy();
   }
 
@@ -85,7 +85,7 @@ export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#isValid;
+    return this._isValid;
   }
 
   /**
@@ -95,7 +95,7 @@ export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
    */
   GetShaders()
   {
-    return this.#shaders;
+    return this._shaders;
   }
 
   /**

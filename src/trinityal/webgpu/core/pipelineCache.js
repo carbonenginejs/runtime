@@ -77,12 +77,12 @@ export function CanonicalKey(value)
  */
 export class CjsWebgpuPipelineCache
 {
-  #entries = new Map();
+  _entries = new Map();
 
   /** How many entries are held, for diagnostics and tests. */
   get size()
   {
-    return this.#entries.size;
+    return this._entries.size;
   }
 
   /**
@@ -98,17 +98,17 @@ export class CjsWebgpuPipelineCache
     if (typeof build !== "function") fail("a build function is required");
     if (key === null || key === undefined) return build();
 
-    const entry = this.#entries.get(key);
+    const entry = this._entries.get(key);
     if (entry)
     {
       if (entry.generation === generation) return entry.value;
       // A pipeline built for a device that is gone is not repairable, and
       // handing it back would use a dead GPU object.
-      this.#entries.delete(key);
+      this._entries.delete(key);
     }
 
     const value = build();
-    this.#entries.set(key, { generation, value });
+    this._entries.set(key, { generation, value });
 
     try
     {
@@ -116,7 +116,7 @@ export class CjsWebgpuPipelineCache
     }
     catch (error)
     {
-      if (this.#entries.get(key)?.value === value) this.#entries.delete(key);
+      if (this._entries.get(key)?.value === value) this._entries.delete(key);
       throw error;
     }
   }
@@ -124,9 +124,9 @@ export class CjsWebgpuPipelineCache
   /** Drops entries not built for the given generation. */
   Prune(generation)
   {
-    for (const [ key, entry ] of this.#entries)
+    for (const [ key, entry ] of this._entries)
     {
-      if (entry.generation !== generation) this.#entries.delete(key);
+      if (entry.generation !== generation) this._entries.delete(key);
     }
     return this;
   }
@@ -134,7 +134,7 @@ export class CjsWebgpuPipelineCache
   /** Drops every entry, as a device reset requires. */
   Clear()
   {
-    this.#entries.clear();
+    this._entries.clear();
     return this;
   }
 }

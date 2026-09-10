@@ -52,6 +52,20 @@ function context()
   return { ...fake, webgpu, renderContext: { IsValid: () => true, GetWebgpu: () => webgpu } };
 }
 
+/** A real render context AL over the fake device: it owns the arena. */
+function composedContext()
+{
+  const { calls, webgpu } = context();
+  const al = new CjsWebgpuRenderContextAL({
+    webgpu,
+    renderTarget: { GetWidth: () => 1, GetHeight: () => 1, GetFormat: () => "bgra8unorm", GetDepthFormat: () => null, GetSampleCount: () => 1 }
+  });
+
+  al.CreateDevice();
+
+  return { calls, webgpu, al };
+}
+
 test("Create makes a shadow and no device buffer; the arena is where bytes go", () =>
 {
   const { calls, renderContext } = context();
@@ -67,29 +81,28 @@ test("Create makes a shadow and no device buffer; the arena is where bytes go", 
 
 test("Lock invalidates the token; each bind after a Lock lands in a fresh region", () =>
 {
-  const { calls, webgpu, renderContext } = context();
-  const arena = new CjsWebgpuConstantArena(webgpu);
-  const buffer = new CjsWebgpuConstantBufferAL();
-
-  buffer.Create(16, Tr2ConstantUsageAL.REUSABLE, null, renderContext);
-
-  const first = buffer.Lock(renderContext);
+  // Through the CONTEXT, which is where Carbon puts UploadConstants
+  // (Tr2RenderContextMetal.mm:679-697). The buffer keeps the shadow and the
+  // token; the context owns the arena and writes the token.
+  const { calls, al } = composedContext();
+  const buffer = al.CreateConstantBuffer(16);
+  const first = buffer.Lock(al);
 
   assert.equal(first.result, ALResult.S_OK);
   first.data.set([ 1, 2, 3, 4 ]);
-  assert.equal(buffer.Unlock(renderContext), ALResult.S_OK);
+  assert.equal(buffer.Unlock(al), ALResult.S_OK);
   assert.equal(calls.filter(call => call[0] === "writeBuffer").length, 0, "nothing uploaded yet");
 
-  const regionA = buffer.UploadConstants(arena, 7, 64);
+  const regionA = al.UploadConstants(buffer, 64);
 
   assert.deepEqual([ regionA.page, regionA.offset, regionA.size ], [ 0, 0, 256 ], "aligned to the device's 256");
-  assert.equal(buffer.UploadConstants(arena, 7, 64), regionA, "bound twice in one frame without a Lock: one region");
+  assert.equal(al.UploadConstants(buffer, 64), regionA, "bound twice in one frame without a Lock: one region");
 
   // The per-object case: lock again, draw again, same frame.
-  buffer.Lock(renderContext).data.set([ 9 ]);
-  buffer.Unlock(renderContext);
+  buffer.Lock(al).data.set([ 9 ]);
+  buffer.Unlock(al);
 
-  const regionB = buffer.UploadConstants(arena, 7, 64);
+  const regionB = al.UploadConstants(buffer, 64);
 
   assert.equal(regionB.offset, 256, "a NEW region; the first draw's bytes are untouched");
 
@@ -101,9 +114,16 @@ test("Lock invalidates the token; each bind after a Lock lands in a fresh region
   assert.equal(calls.filter(call => call[0] === "createBuffer").length, 1, "one two-megabyte page");
   assert.equal(calls.find(call => call[0] === "createBuffer")[1].size, CONST_PAGE_SIZE);
 
-  // A new frame: the token is stale by frame number even without a Lock.
-  arena.Reset();
-  assert.equal(buffer.UploadConstants(arena, 8, 64).offset, 0);
+  // Carbon's OTHER overload: bytes, not a buffer, get a fresh region every
+  // call because the token it constructs is zeroed each time (:679-686).
+  const bytes = al.UploadConstants(new Uint8Array(16), 16);
+
+  assert.equal(bytes.offset, 512);
+  assert.notEqual(al.UploadConstants(new Uint8Array(16), 16).offset, bytes.offset);
+
+  // Nothing to upload is Carbon's `return 0`.
+  assert.equal(al.UploadConstants(null), null);
+  assert.equal(al.UploadConstants(new CjsWebgpuConstantBufferAL()), null, "an uncreated buffer");
 });
 
 test("the arena turns a page when one is full, and a buffer too big for a page is refused", () =>

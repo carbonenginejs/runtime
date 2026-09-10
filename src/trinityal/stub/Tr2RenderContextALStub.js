@@ -100,35 +100,35 @@ export class Tr2BindlessResourcesAL
 export class Tr2RenderContextALStub
 {
   /** m_isValid - set by CreateDevice, and required by every resource create. */
-  #isValid = false;
+  _isValid = false;
 
   /** m_boundRenderTarget[MAX_RENDER_TARGET] */
-  #boundRenderTargets = new Array(MAX_RENDER_TARGET).fill(null);
+  _boundRenderTargets = new Array(MAX_RENDER_TARGET).fill(null);
 
-  #depthStencil = null;
+  _depthStencil = null;
 
   // ONE STACK PER SLOT, as Carbon has (`m_stackRT[MAX_RENDER_TARGET]`). A single
   // shared stack pops the most recent push regardless of slot, so pushing slot 0
   // then slot 1 and popping slot 0 restores the wrong surface.
 
   /** Carbon keeps real stacks and reports their depth (GetStackSizeRT/DS). */
-  #renderTargetStacks = Array.from({ length: MAX_RENDER_TARGET }, () => []);
+  _renderTargetStacks = Array.from({ length: MAX_RENDER_TARGET }, () => []);
 
-  #depthStencilStack = [];
+  _depthStencilStack = [];
 
-  #viewport = null;
+  _viewport = null;
 
   /** Every draw the context was asked for, so a headless caller can assert. */
-  #drawCount = 0;
+  _drawCount = 0;
 
 
   /** Clears the context asked for; the bookkeeping IS the feature here. */
-  #clearCount = 0;
+  _clearCount = 0;
 
   /** The render-state setup last applied, and the overrides it carried. */
-  #renderStateSetup = null;
+  _renderStateSetup = null;
 
-  #renderStateOverrides = null;
+  _renderStateOverrides = null;
 
   // m_frameNumber. THIS IS NOT THE TRINITY FRAME COUNTER. Trinity's counts
   // frames the render path has begun (`Tr2Renderer::GetCurrentFrameCounter`);
@@ -139,13 +139,13 @@ export class Tr2RenderContextALStub
   // the stub always finishes a frame before the next begins.
 
   /** m_frameNumber - frames the device has finished. */
-  #frameNumber = 0;
+  _frameNumber = 0;
 
   /** m_caps - the context owns its capabilities, as Carbon's does. */
-  #caps = new Tr2CapsALStub();
+  _caps = new Tr2CapsALStub();
 
   /** m_defaultBackBuffer - a real texture, so size and format read back. */
-  #defaultBackBuffer = new Tr2TextureALStub();
+  _defaultBackBuffer = new Tr2TextureALStub();
 
   /**
    * The shader stages this context binds constants for.
@@ -225,7 +225,7 @@ export class Tr2RenderContextALStub
    */
   CreateDevice(presentParameters = null)
   {
-    this.#isValid = true;
+    this._isValid = true;
 
     if (presentParameters) this.SetPresentParameters(presentParameters);
 
@@ -314,7 +314,7 @@ export class Tr2RenderContextALStub
   }
 
   /** Carbon's `Tr2SamplerStateALFactory`, keyed on the description. */
-  #samplerStates = new Map();
+  _samplerStates = new Map();
 
   /**
    * The sampler state for a description, created once per distinct description.
@@ -333,7 +333,7 @@ export class Tr2RenderContextALStub
 
     if (key === null) return null;
 
-    const existing = this.#samplerStates.get(key);
+    const existing = this._samplerStates.get(key);
 
     if (existing) return existing;
 
@@ -341,7 +341,7 @@ export class Tr2RenderContextALStub
 
     if (Failed(state.Create(description, this))) return null;
 
-    this.#samplerStates.set(key, state);
+    this._samplerStates.set(key, state);
 
     return state;
   }
@@ -415,7 +415,7 @@ export class Tr2RenderContextALStub
   {
     const { mode } = presentParameters;
 
-    const result = this.#defaultBackBuffer.Create(
+    const result = this._defaultBackBuffer.Create(
       Tr2BitmapDimensions.Texture2D(mode.width, mode.height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
       { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
       this
@@ -423,7 +423,7 @@ export class Tr2RenderContextALStub
 
     if (Failed(result)) return result;
 
-    this.SetRenderTarget(0, this.#defaultBackBuffer);
+    this.SetRenderTarget(0, this._defaultBackBuffer);
 
     return ALResult.S_OK;
   }
@@ -439,7 +439,7 @@ export class Tr2RenderContextALStub
    */
   GetCaps()
   {
-    return this.#caps;
+    return this._caps;
   }
 
   /**
@@ -454,7 +454,7 @@ export class Tr2RenderContextALStub
    */
   GetDefaultBackBuffer()
   {
-    return this.#defaultBackBuffer;
+    return this._defaultBackBuffer;
   }
 
   /**
@@ -464,7 +464,7 @@ export class Tr2RenderContextALStub
    */
   GetBackBufferFormat()
   {
-    return this.#defaultBackBuffer.GetFormat();
+    return this._defaultBackBuffer.GetFormat();
   }
 
   /**
@@ -481,7 +481,7 @@ export class Tr2RenderContextALStub
   {
     if (slot >= MAX_RENDER_TARGET) return { result: ALResult.E_FAIL, width: 0, height: 0 };
 
-    const target = this.#boundRenderTargets[slot];
+    const target = this._boundRenderTargets[slot];
 
     if (!target || !target.IsValid()) return { result: ALResult.E_INVALIDCALL, width: 0, height: 0 };
 
@@ -495,9 +495,9 @@ export class Tr2RenderContextALStub
    */
   ReleaseDeviceResources()
   {
-    this.#boundRenderTargets.fill(null);
-    this.#defaultBackBuffer.Destroy();
-    this.#defaultBackBuffer = new Tr2TextureALStub();
+    this._boundRenderTargets.fill(null);
+    this._defaultBackBuffer.Destroy();
+    this._defaultBackBuffer = new Tr2TextureALStub();
 
     return true;
   }
@@ -505,11 +505,11 @@ export class Tr2RenderContextALStub
   /** Carbon's Destroy clears the bound targets and drops validity (cpp:62-69). */
   Destroy()
   {
-    this.#boundRenderTargets.fill(null);
-    this.#depthStencil = null;
-    for (const stack of this.#renderTargetStacks) stack.length = 0;
-    this.#depthStencilStack.length = 0;
-    this.#isValid = false;
+    this._boundRenderTargets.fill(null);
+    this._depthStencil = null;
+    for (const stack of this._renderTargetStacks) stack.length = 0;
+    this._depthStencilStack.length = 0;
+    this._isValid = false;
 
     return true;
   }
@@ -517,7 +517,7 @@ export class Tr2RenderContextALStub
   /** Whether a device was created. Resource creation depends on this. */
   IsValid()
   {
-    return this.#isValid;
+    return this._isValid;
   }
 
   /**
@@ -534,7 +534,7 @@ export class Tr2RenderContextALStub
       fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
     }
 
-    this.#boundRenderTargets[slot] = renderTarget ?? null;
+    this._boundRenderTargets[slot] = renderTarget ?? null;
 
     return true;
   }
@@ -547,7 +547,7 @@ export class Tr2RenderContextALStub
    */
   GetRenderTarget(slot = 0)
   {
-    return this.#boundRenderTargets[slot] ?? null;
+    return this._boundRenderTargets[slot] ?? null;
   }
 
   /**
@@ -568,7 +568,7 @@ export class Tr2RenderContextALStub
       fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
     }
 
-    this.#renderTargetStacks[slot].push(this.#boundRenderTargets[slot] ?? null);
+    this._renderTargetStacks[slot].push(this._boundRenderTargets[slot] ?? null);
 
     return true;
   }
@@ -586,7 +586,7 @@ export class Tr2RenderContextALStub
       fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
     }
 
-    const stack = this.#renderTargetStacks[slot];
+    const stack = this._renderTargetStacks[slot];
 
     // CARBON GUARDS AND REPORTS, it does not crash: it asserts in debug and
     // returns E_FAIL in a shipping build (Tr2RenderContextStub.cpp:349-352).
@@ -594,7 +594,7 @@ export class Tr2RenderContextALStub
     // guard at all - it does, on the very next line after the assert.
     if (!stack.length) return false;
 
-    this.#boundRenderTargets[slot] = stack.pop();
+    this._boundRenderTargets[slot] = stack.pop();
 
     return true;
   }
@@ -607,7 +607,7 @@ export class Tr2RenderContextALStub
    */
   GetStackSizeRT(slot = 0)
   {
-    return this.#renderTargetStacks[slot]?.length ?? 0;
+    return this._renderTargetStacks[slot]?.length ?? 0;
   }
 
   /**
@@ -618,7 +618,7 @@ export class Tr2RenderContextALStub
    */
   SetDepthStencil(depthStencil)
   {
-    this.#depthStencil = depthStencil ?? null;
+    this._depthStencil = depthStencil ?? null;
 
     return true;
   }
@@ -626,7 +626,7 @@ export class Tr2RenderContextALStub
   /** The bound depth-stencil surface. */
   GetDepthStencil()
   {
-    return this.#depthStencil;
+    return this._depthStencil;
   }
 
   /**
@@ -636,7 +636,7 @@ export class Tr2RenderContextALStub
    */
   PushDepthStencil()
   {
-    this.#depthStencilStack.push(this.#depthStencil);
+    this._depthStencilStack.push(this._depthStencil);
 
     return true;
   }
@@ -649,9 +649,9 @@ export class Tr2RenderContextALStub
    */
   PopDepthStencil()
   {
-    if (!this.#depthStencilStack.length) return false;
+    if (!this._depthStencilStack.length) return false;
 
-    this.#depthStencil = this.#depthStencilStack.pop();
+    this._depthStencil = this._depthStencilStack.pop();
 
     return true;
   }
@@ -659,7 +659,7 @@ export class Tr2RenderContextALStub
   /** Carbon's GetStackSizeDS. */
   GetStackSizeDS()
   {
-    return this.#depthStencilStack.length;
+    return this._depthStencilStack.length;
   }
 
   /**
@@ -670,7 +670,7 @@ export class Tr2RenderContextALStub
    */
   SetViewport(viewport)
   {
-    this.#viewport = viewport ?? null;
+    this._viewport = viewport ?? null;
 
     return true;
   }
@@ -678,7 +678,7 @@ export class Tr2RenderContextALStub
   /** The current viewport. */
   GetViewport()
   {
-    return this.#viewport;
+    return this._viewport;
   }
 
   /**
@@ -689,7 +689,7 @@ export class Tr2RenderContextALStub
    */
   Clear(_options)
   {
-    this.#clearCount += 1;
+    this._clearCount += 1;
 
     return true;
   }
@@ -697,7 +697,7 @@ export class Tr2RenderContextALStub
   /** How many clears the context asked for. @returns {number} */
   GetClearCount()
   {
-    return this.#clearCount;
+    return this._clearCount;
   }
 
   /**
@@ -728,7 +728,7 @@ export class Tr2RenderContextALStub
    */
   IsRenderTargetValid(renderTarget)
   {
-    return this.#isValid && !!renderTarget;
+    return this._isValid && !!renderTarget;
   }
 
   /**
@@ -999,8 +999,8 @@ export class Tr2RenderContextALStub
   {
     if (!setup) return false;
 
-    this.#renderStateSetup = setup;
-    this.#renderStateOverrides = overrides;
+    this._renderStateSetup = setup;
+    this._renderStateOverrides = overrides;
 
     return true;
   }
@@ -1008,7 +1008,7 @@ export class Tr2RenderContextALStub
   /** The setup last applied, with the overrides it carried. */
   GetRenderStates()
   {
-    return { setup: this.#renderStateSetup, overrides: this.#renderStateOverrides };
+    return { setup: this._renderStateSetup, overrides: this._renderStateOverrides };
   }
 
 
@@ -1037,7 +1037,7 @@ export class Tr2RenderContextALStub
    */
   DrawIndexedInstanced(_indexCountPerInstance, _instanceCount, _startIndexLocation, _baseVertexLocation, _startInstanceLocation)
   {
-    this.#drawCount += 1;
+    this._drawCount += 1;
 
     return true;
   }
@@ -1045,7 +1045,7 @@ export class Tr2RenderContextALStub
   /** @see DrawIndexedInstanced */
   DrawInstanced(_vertexCountPerInstance, _instanceCount, _startVertexLocation, _startInstanceLocation)
   {
-    this.#drawCount += 1;
+    this._drawCount += 1;
 
     return true;
   }
@@ -1061,7 +1061,7 @@ export class Tr2RenderContextALStub
    */
   DrawIndexedPrimitive(_numVertices, _startIndex, _primitiveCount, _minimumIndex = 0)
   {
-    this.#drawCount += 1;
+    this._drawCount += 1;
 
     return true;
   }
@@ -1075,7 +1075,7 @@ export class Tr2RenderContextALStub
    */
   DrawPrimitive(_startVertex, _primitiveCount)
   {
-    this.#drawCount += 1;
+    this._drawCount += 1;
 
     return true;
   }
@@ -1101,7 +1101,7 @@ export class Tr2RenderContextALStub
   {
     if (!indexData || !vertexStreamZeroData) return false;
 
-    this.#drawCount += 1;
+    this._drawCount += 1;
 
     return true;
   }
@@ -1119,7 +1119,7 @@ export class Tr2RenderContextALStub
    */
   DrawPrimitiveUP(_primitiveCount, _vertexStreamZeroData, _vertexStreamZeroStride)
   {
-    this.#drawCount += 1;
+    this._drawCount += 1;
 
     return true;
   }
@@ -1144,7 +1144,7 @@ export class Tr2RenderContextALStub
   /** How many draws this context was asked for. */
   GetDrawCount()
   {
-    return this.#drawCount;
+    return this._drawCount;
   }
 
   /**
@@ -1163,7 +1163,7 @@ export class Tr2RenderContextALStub
    */
   Present()
   {
-    this.#frameNumber += 1;
+    this._frameNumber += 1;
 
     return true;
   }
@@ -1175,7 +1175,7 @@ export class Tr2RenderContextALStub
    */
   GetRecordingFrameNumber()
   {
-    return this.#frameNumber + 1;
+    return this._frameNumber + 1;
   }
 
   /**
@@ -1185,7 +1185,7 @@ export class Tr2RenderContextALStub
    */
   GetRenderedFrameNumber()
   {
-    return this.#frameNumber;
+    return this._frameNumber;
   }
 
 

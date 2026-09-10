@@ -121,10 +121,10 @@ export class Tr2BufferDescriptionAL
 export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_desc */
-  #desc = new Tr2BufferDescriptionAL();
+  _desc = new Tr2BufferDescriptionAL();
 
   /** m_buffer */
-  #buffer = new Uint8Array(0);
+  _buffer = new Uint8Array(0);
 
   /**
    * Creates the buffer.
@@ -136,7 +136,7 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
    */
   Create(desc, initialData, renderContext)
   {
-    this.#Reset();
+    this._Reset();
 
     if (desc.count === 0) return ALResult.E_INVALIDARG;
 
@@ -146,23 +146,23 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
 
     if (!renderContext.IsValid()) return ALResult.E_INVALIDCALL;
 
-    this.#desc = desc;
-    this.#buffer = new Uint8Array(desc.GetSizeInBytes());
+    this._desc = desc;
+    this._buffer = new Uint8Array(desc.GetSizeInBytes());
 
     return ALResult.S_OK;
   }
 
   /** Carbon's impl `Destroy`: empties without unregistering. */
-  #Reset()
+  _Reset()
   {
-    this.#desc.count = 0;
-    this.#buffer = new Uint8Array(0);
+    this._desc.count = 0;
+    this._buffer = new Uint8Array(0);
   }
 
   /** Releases the buffer and leaves the device-resource registry. */
   Destroy()
   {
-    this.#Reset();
+    this._Reset();
     super.Destroy();
   }
 
@@ -173,7 +173,7 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#buffer.length > 0;
+    return this._buffer.length > 0;
   }
 
   /**
@@ -193,7 +193,7 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
    */
   GetDesc()
   {
-    return this.#desc;
+    return this._desc;
   }
 
 
@@ -208,7 +208,7 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
    */
   GetSize()
   {
-    return this.#desc.GetSizeInBytes();
+    return this._desc.GetSizeInBytes();
   }
 
   /**
@@ -225,15 +225,15 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
 
     const ranged = size !== 0 || offset !== 0;
 
-    if (ranged && (size === 0 || offset + size > this.#desc.GetSizeInBytes()))
+    if (ranged && (size === 0 || offset + size > this._desc.GetSizeInBytes()))
     {
       return { result: ALResult.E_INVALIDARG, data: null };
     }
 
-    if (!HasFlag(this.#desc.cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null };
+    if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null };
 
     // See the head comment: a range returns its own bytes, not the base.
-    const data = ranged ? this.#buffer.subarray(offset, offset + size) : this.#buffer;
+    const data = ranged ? this._buffer.subarray(offset, offset + size) : this._buffer;
 
     return { result: ALResult.S_OK, data };
   }
@@ -253,9 +253,9 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext.IsValid() || !this.IsValid()) return { result: ALResult.E_INVALIDCALL, data: null };
 
-    if (!HasFlag(this.#desc.cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null };
+    if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null };
 
-    return { result: ALResult.S_OK, data: this.#buffer };
+    return { result: ALResult.S_OK, data: this._buffer };
   }
 
   /** @see UnmapForReading */
@@ -279,9 +279,9 @@ export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext.IsValid() || !this.IsValid()) return ALResult.E_INVALIDCALL;
 
-    if (offset + size > this.#desc.GetSizeInBytes()) return ALResult.E_INVALIDARG;
+    if (offset + size > this._desc.GetSizeInBytes()) return ALResult.E_INVALIDARG;
 
-    if (!HasFlag(this.#desc.cpuUsage, Tr2CpuUsage.WRITE) || HasFlag(this.#desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN))
+    if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE) || HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN))
     {
       return ALResult.E_INVALIDCALL;
     }

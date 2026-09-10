@@ -35,7 +35,7 @@ export const Tr2ConstantUsageAL = Object.freeze({
 export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_shadowCopy */
-  #shadowCopy = new Uint8Array(0);
+  _shadowCopy = new Uint8Array(0);
 
   /**
    * Creates the buffer.
@@ -58,11 +58,11 @@ export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
 
     if (usage === Tr2ConstantUsageAL.IMMUTABLE && !initialData) return ALResult.E_INVALIDARG;
 
-    this.#shadowCopy = new Uint8Array(size);
+    this._shadowCopy = new Uint8Array(size);
 
     // Carbon's allocation can fail; here only a zero size produces an empty
     // buffer, and that was already refused above.
-    if (this.#shadowCopy.length === 0) return ALResult.E_OUTOFMEMORY;
+    if (this._shadowCopy.length === 0) return ALResult.E_OUTOFMEMORY;
 
     // The initial contents land in the shadow, so a buffer created from a
     // static mirror reads back as that mirror without ever being locked.
@@ -70,7 +70,7 @@ export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
     {
       const bytes = new Uint8Array(initialData.buffer, initialData.byteOffset, initialData.byteLength);
 
-      this.#shadowCopy.set(bytes.subarray(0, Math.min(bytes.length, size)));
+      this._shadowCopy.set(bytes.subarray(0, Math.min(bytes.length, size)));
     }
 
     return ALResult.S_OK;
@@ -83,9 +83,9 @@ export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
    */
   Lock()
   {
-    if (this.#shadowCopy.length === 0) return { result: ALResult.E_FAIL, data: null };
+    if (this._shadowCopy.length === 0) return { result: ALResult.E_FAIL, data: null };
 
-    return { result: ALResult.S_OK, data: this.#shadowCopy };
+    return { result: ALResult.S_OK, data: this._shadowCopy };
   }
 
   /**
@@ -101,7 +101,7 @@ export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
   /** Releases the shadow copy and leaves the device-resource registry. */
   Destroy()
   {
-    this.#shadowCopy = new Uint8Array(0);
+    this._shadowCopy = new Uint8Array(0);
     super.Destroy();
   }
 
@@ -112,7 +112,7 @@ export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#shadowCopy.length !== 0;
+    return this._shadowCopy.length !== 0;
   }
 
   /**
@@ -122,7 +122,7 @@ export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
    */
   GetSize()
   {
-    return this.#shadowCopy.length;
+    return this._shadowCopy.length;
   }
 
   /**

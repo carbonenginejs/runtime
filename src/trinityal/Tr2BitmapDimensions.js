@@ -1,4 +1,4 @@
-// Source: imageio/include/BitmapDimensions.h
+// Source: imageio/include/BitmapDimensions.h (class BitmapDimensions)
 //
 // `Tr2BitmapDimensions` is the abstraction layer's own alias for
 // `ImageIO::BitmapDimensions` (`Tr2RenderContextEnum.h:435`), and it is the
@@ -47,25 +47,25 @@ import {
 export class Tr2BitmapDimensions
 {
   /** Width of mip zero. */
-  #width = 0;
+  _width = 0;
 
   /** Height of mip zero. */
-  #height = 0;
+  _height = 0;
 
   /** Carbon's `m_volumeDepth`; 1 for anything that is not a volume texture. */
-  #depth = 0;
+  _depth = 0;
 
   /** Declared mip count. Zero means "a full chain" - see `GetTrueMipCount`. */
-  #mipCount = 0;
+  _mipCount = 0;
 
   /** Slices. Six for a cube. */
-  #arraySize = 1;
+  _arraySize = 1;
 
   /** A `TextureType` value. */
-  #type = TextureType.TEX_TYPE_INVALID;
+  _type = TextureType.TEX_TYPE_INVALID;
 
   /** A `PixelFormat` value. */
-  #format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
+  _format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
 
   /**
    * @param {object} [description] Texture description.
@@ -89,13 +89,13 @@ export class Tr2BitmapDimensions
       arraySize = type === TextureType.TEX_TYPE_CUBE ? 6 : 1
     } = description;
 
-    this.#type = type;
-    this.#format = format;
-    this.#width = width;
-    this.#height = height;
-    this.#depth = depth;
-    this.#mipCount = mipCount;
-    this.#arraySize = arraySize;
+    this._type = type;
+    this._format = format;
+    this._width = width;
+    this._height = height;
+    this._depth = depth;
+    this._mipCount = mipCount;
+    this._arraySize = arraySize;
   }
 
   /**
@@ -126,7 +126,7 @@ export class Tr2BitmapDimensions
    */
   GetWidth()
   {
-    return this.#width;
+    return this._width;
   }
 
   /**
@@ -136,7 +136,7 @@ export class Tr2BitmapDimensions
    */
   GetHeight()
   {
-    return this.#height;
+    return this._height;
   }
 
   /**
@@ -146,7 +146,7 @@ export class Tr2BitmapDimensions
    */
   GetDepth()
   {
-    return this.#depth;
+    return this._depth;
   }
 
   /**
@@ -156,7 +156,7 @@ export class Tr2BitmapDimensions
    */
   GetFormat()
   {
-    return this.#format;
+    return this._format;
   }
 
   /**
@@ -166,7 +166,7 @@ export class Tr2BitmapDimensions
    */
   GetType()
   {
-    return this.#type;
+    return this._type;
   }
 
   /**
@@ -176,7 +176,7 @@ export class Tr2BitmapDimensions
    */
   GetArraySize()
   {
-    return this.#arraySize;
+    return this._arraySize;
   }
 
   /**
@@ -186,7 +186,7 @@ export class Tr2BitmapDimensions
    */
   GetMipCount()
   {
-    return this.#mipCount;
+    return this._mipCount;
   }
 
   /**
@@ -199,9 +199,9 @@ export class Tr2BitmapDimensions
    */
   GetTrueMipCount()
   {
-    if (this.#mipCount > 0) return this.#mipCount;
+    if (this._mipCount > 0) return this._mipCount;
 
-    let size = Math.max(this.#width, this.#height);
+    let size = Math.max(this._width, this._height);
     let count = 0;
 
     while (size)
@@ -220,7 +220,7 @@ export class Tr2BitmapDimensions
    */
   IsCompressed()
   {
-    return IsCompressedFormat(this.#format);
+    return IsCompressedFormat(this._format);
   }
 
   /**
@@ -230,7 +230,7 @@ export class Tr2BitmapDimensions
    */
   HasMipmap()
   {
-    return this.#mipCount !== 1;
+    return this._mipCount !== 1;
   }
 
   /**
@@ -245,9 +245,9 @@ export class Tr2BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return Math.max(((this.#width >> level) + 3) & ~3, 4);
+    if (this.IsCompressed()) return Math.max(((this._width >> level) + 3) & ~3, 4);
 
-    return Math.max(this.#width >> level, 1);
+    return Math.max(this._width >> level, 1);
   }
 
   /**
@@ -260,9 +260,9 @@ export class Tr2BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return Math.max(((this.#height >> level) + 3) & ~3, 4);
+    if (this.IsCompressed()) return Math.max(((this._height >> level) + 3) & ~3, 4);
 
-    return Math.max(this.#height >> level, 1);
+    return Math.max(this._height >> level, 1);
   }
 
   /**
@@ -273,11 +273,11 @@ export class Tr2BitmapDimensions
    */
   GetMipDepth(level)
   {
-    if (this.#type !== TextureType.TEX_TYPE_3D) return 1;
+    if (this._type !== TextureType.TEX_TYPE_3D) return 1;
 
     if (level >= this.GetTrueMipCount()) return 0;
 
-    return Math.max(this.#depth >> level, 1);
+    return Math.max(this._depth >> level, 1);
   }
 
   /**
@@ -293,9 +293,9 @@ export class Tr2BitmapDimensions
   {
     if (level >= this.GetTrueMipCount()) return 0;
 
-    if (this.IsCompressed()) return this.GetMipWidth(level) / 4 * GetBlockByteSize(this.#format);
+    if (this.IsCompressed()) return this.GetMipWidth(level) / 4 * GetBlockByteSize(this._format);
 
-    return this.GetMipWidth(level) * GetBytesPerPixel(this.#format);
+    return this.GetMipWidth(level) * GetBytesPerPixel(this._format);
   }
 
   /**
@@ -308,9 +308,9 @@ export class Tr2BitmapDimensions
   {
     const pixels = this.GetMipWidth(level) * this.GetMipHeight(level) * this.GetMipDepth(level);
 
-    if (this.IsCompressed()) return pixels / 16 * GetBlockByteSize(this.#format);
+    if (this.IsCompressed()) return pixels / 16 * GetBlockByteSize(this._format);
 
-    return pixels * GetBytesPerPixel(this.#format);
+    return pixels * GetBytesPerPixel(this._format);
   }
 
   /**
@@ -325,6 +325,25 @@ export class Tr2BitmapDimensions
   }
 
   /**
+   * Clears the description to "no texture".
+   *
+   * `BitmapDimensions::Destroy` (`imageio/include/BitmapDimensions.h:77-81`),
+   * and the ODD PART IS CARBON'S: the line zeroing width, height, depth and mip
+   * count is commented out there, so only the type and format are cleared and
+   * the dimensions survive. `TriTextureRes::SetTexture` calls this when a
+   * texture goes invalid (`TriTextureRes.cpp:1163`), where the surviving
+   * dimensions are what a caller still reads back. Transcribed rather than
+   * tidied - a port that also zeroed them would answer differently.
+   *
+   * @returns {void}
+   */
+  Destroy()
+  {
+    this._type = TextureType.TEX_TYPE_INVALID;
+    this._format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
+  }
+
+  /**
    * Whether two descriptions name the same texture layout.
    *
    * @param {Tr2BitmapDimensions} other The description to compare with.
@@ -332,12 +351,12 @@ export class Tr2BitmapDimensions
    */
   Equals(other)
   {
-    return this.#width === other.width &&
-      this.#height === other.height &&
-      this.#depth === other.depth &&
-      this.#mipCount === other.mipCount &&
-      this.#arraySize === other.arraySize &&
-      this.#type === other.type &&
-      this.#format === other.format;
+    return this._width === other.width &&
+      this._height === other.height &&
+      this._depth === other.depth &&
+      this._mipCount === other.mipCount &&
+      this._arraySize === other.arraySize &&
+      this._type === other.type &&
+      this._format === other.format;
   }
 }

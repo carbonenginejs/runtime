@@ -39,10 +39,10 @@ export const OcclusionWaitMode = Object.freeze({
 export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_isValid */
-  #isValid = false;
+  _isValid = false;
 
   /** m_isRunning */
-  #isRunning = false;
+  _isRunning = false;
 
   /**
    * Creates the query.
@@ -54,7 +54,7 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext?.IsValid()) return ALResult.E_INVALIDARG;
 
-    this.#isValid = true;
+    this._isValid = true;
 
     return ALResult.S_OK;
   }
@@ -62,13 +62,13 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
   /** @returns {boolean} Whether the query was created. */
   IsValid()
   {
-    return this.#isValid;
+    return this._isValid;
   }
 
   /** Releases the query. */
   Destroy()
   {
-    this.#isValid = false;
+    this._isValid = false;
     super.Destroy();
   }
 
@@ -79,9 +79,9 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
    */
   Begin()
   {
-    if (!this.#isValid) return ALResult.E_INVALIDCALL;
+    if (!this._isValid) return ALResult.E_INVALIDCALL;
 
-    this.#isRunning = true;
+    this._isRunning = true;
 
     return ALResult.S_OK;
   }
@@ -96,10 +96,10 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
    */
   End()
   {
-    if (!this.#isValid) return ALResult.E_INVALIDCALL;
-    if (!this.#isRunning) return ALResult.E_INVALIDCALL;
+    if (!this._isValid) return ALResult.E_INVALIDCALL;
+    if (!this._isRunning) return ALResult.E_INVALIDCALL;
 
-    this.#isRunning = false;
+    this._isRunning = false;
 
     return ALResult.S_OK;
   }
@@ -112,7 +112,7 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
    */
   GetPixelCount(_waitMode = OcclusionWaitMode.DO_NOT_WAIT)
   {
-    if (!this.#isValid) return { result: ALResult.E_INVALIDCALL, count: 0 };
+    if (!this._isValid) return { result: ALResult.E_INVALIDCALL, count: 0 };
 
     return { result: ALResult.S_OK, count: 0 };
   }
@@ -144,7 +144,7 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
 export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_isValid */
-  #isValid = false;
+  _isValid = false;
 
   /**
    * Creates the timer, releasing any previous one first as Carbon does.
@@ -158,7 +158,7 @@ export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
 
     if (!renderContext?.IsValid()) return ALResult.E_INVALIDARG;
 
-    this.#isValid = true;
+    this._isValid = true;
 
     return ALResult.S_OK;
   }
@@ -166,14 +166,14 @@ export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
   /** Releases the timer. */
   Destroy()
   {
-    this.#isValid = false;
+    this._isValid = false;
     super.Destroy();
   }
 
   /** @returns {boolean} Whether the timer was created. */
   IsValid()
   {
-    return this.#isValid;
+    return this._isValid;
   }
 
   /**
@@ -203,7 +203,7 @@ export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
    */
   GetTime()
   {
-    return this.#isValid ? 0.0001 : -1;
+    return this._isValid ? 0.0001 : -1;
   }
 
   /** @returns {number} A `Tr2ALMemoryType`. */

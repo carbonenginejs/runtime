@@ -46,32 +46,32 @@ function fail(message)
 /** Resolves Trinity batches against one WebGPU device. */
 export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 {
-  #webgpu;
+  _webgpu;
 
-  #createPackage;
+  _createPackage;
 
-  #techniqueName;
+  _techniqueName;
 
-  #targets;
+  _targets;
 
-  #depthFormat;
+  _depthFormat;
 
-  #resolvePerFrame;
+  _resolvePerFrame;
 
-  #resolveTexture;
+  _resolveTexture;
 
-  #resolveSampler;
+  _resolveSampler;
 
-  #resolveStorageBuffer;
+  _resolveStorageBuffer;
 
   /** The renderer whose register map says which constant buffer is which. */
-  #renderer;
+  _renderer;
 
   /** Effect resource to the package read from its own container bytes. */
-  #packages = new WeakMap();
+  _packages = new WeakMap();
 
   /** Geometry source identity to realized device geometry. */
-  #geometry = new Map();
+  _geometry = new Map();
 
   /**
    * @param {object} webgpu Canonical WebGPU device.
@@ -117,20 +117,20 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       fail("options.targets must name the pass's colour attachment formats");
     }
 
-    this.#webgpu = webgpu;
-    this.#createPackage = createPackage;
-    this.#targets = options.targets;
-    this.#depthFormat = options.depthFormat === undefined ? "depth24plus" : options.depthFormat;
-    this.#techniqueName = options.techniqueName ?? "Main";
-    this.#resolvePerFrame = options.ResolvePerFrame ?? null;
-    this.#resolveTexture = options.ResolveTexture ?? null;
-    this.#resolveSampler = options.ResolveSampler ?? null;
-    this.#resolveStorageBuffer = options.ResolveStorageBuffer ?? null;
+    this._webgpu = webgpu;
+    this._createPackage = createPackage;
+    this._targets = options.targets;
+    this._depthFormat = options.depthFormat === undefined ? "depth24plus" : options.depthFormat;
+    this._techniqueName = options.techniqueName ?? "Main";
+    this._resolvePerFrame = options.ResolvePerFrame ?? null;
+    this._resolveTexture = options.ResolveTexture ?? null;
+    this._resolveSampler = options.ResolveSampler ?? null;
+    this._resolveStorageBuffer = options.ResolveStorageBuffer ?? null;
 
     // Defaulted rather than required: the register map is fixed, so a caller
     // with no renderer to hand gets the same answers. A composed one arrives
     // when the library owns the renderer.
-    this.#renderer = options.renderer ?? new Tr2Renderer();
+    this._renderer = options.renderer ?? new Tr2Renderer();
   }
 
   /**
@@ -140,10 +140,10 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    * @param {number} passIndex Pass within the technique.
    * @returns {object|null} Reflected pass.
    */
-  #PassOf(material, passIndex)
+  _PassOf(material, passIndex)
   {
     const shader = material.GetShaderStateInterface?.();
-    const techniqueIndex = shader?.GetTechniqueIndex?.(this.#techniqueName) ?? -1;
+    const techniqueIndex = shader?.GetTechniqueIndex?.(this._techniqueName) ?? -1;
 
     if (techniqueIndex < 0) return null;
 
@@ -157,13 +157,13 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    * @param {object} material Trinity material.
    * @returns {object} Package.
    */
-  #PackageFor(material)
+  _PackageFor(material)
   {
     const resource = material.GetEffectRes?.();
 
     if (!resource) fail("material has no effect resource to read a package from");
 
-    const cached = this.#packages.get(resource);
+    const cached = this._packages.get(resource);
 
     if (cached) return cached;
 
@@ -171,9 +171,9 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 
     if (!bytes) fail("effect resource is not holding container bytes to read");
 
-    const built = this.#createPackage(bytes);
+    const built = this._createPackage(bytes);
 
-    this.#packages.set(resource, built);
+    this._packages.set(resource, built);
 
     return built;
   }
@@ -189,7 +189,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    * @param {object} pass Reflected pass supplying the vertex inputs.
    * @returns {Promise<object>} Device geometry.
    */
-  async #GeometryFor(source, pass)
+  async _GeometryFor(source, pass)
   {
     // Under `signature`, not on the stage input itself: the reflection groups a
     // stage's declared inputs with the rest of its signature. Reading the wrong
@@ -205,7 +205,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     const key = `${geometry.GetPath?.() ?? geometry.id ?? "geometry"}|${meshIndex}|`
       + inputs.map(input => `${input.usage}:${input.usageIndex}:${input.registerIndex}`).join(",");
 
-    const cached = this.#geometry.get(key);
+    const cached = this._geometry.get(key);
 
     if (cached) return cached;
 
@@ -219,9 +219,9 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       label: `${geometry.GetPath?.() ?? "geometry"}#${meshIndex}`
     });
 
-    const realized = await this.#webgpu.CreateGeometry(request);
+    const realized = await this._webgpu.CreateGeometry(request);
 
-    this.#geometry.set(key, realized);
+    this._geometry.set(key, realized);
 
     return realized;
   }
@@ -230,27 +230,27 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
   async ResolveMaterial(material, batch, context)
   {
     const passIndex = context?.passIndex ?? 0;
-    const pass = this.#PassOf(material, passIndex);
+    const pass = this._PassOf(material, passIndex);
 
-    if (!pass) fail(`material declares no pass ${passIndex} of technique ${this.#techniqueName}`);
+    if (!pass) fail(`material declares no pass ${passIndex} of technique ${this._techniqueName}`);
 
     const setup = Tr2EffectStateManager.resolveRenderStates(batch.renderingMode, pass.renderStates);
 
     if (!setup) fail("pass resolves to no render state");
 
-    const projected = setup.GetWebgpuRecipe({ depthFormat: this.#depthFormat });
+    const projected = setup.GetWebgpuRecipe({ depthFormat: this._depthFormat });
 
     // The geometry decides the vertex layout, and CreateDraw requires the
     // pipeline's layout to equal the geometry's exactly, so it is realized here
     // rather than left to ResolveGeometry - which reuses the same cache entry.
-    const geometry = await this.#GeometryFor(batch.geometrySource, pass);
+    const geometry = await this._GeometryFor(batch.geometrySource, pass);
 
     return {
-      pipeline: this.#PackageFor(material).GetPipeline(this.#techniqueName, passIndex),
+      pipeline: this._PackageFor(material).GetPipeline(this._techniqueName, passIndex),
       recipe: {
         ...projected,
         vertex: { buffers: geometry.vertexBufferLayouts },
-        fragment: { targets: this.#targets.map(target => ({ ...target, blend: projected.blend ?? undefined })) }
+        fragment: { targets: this._targets.map(target => ({ ...target, blend: projected.blend ?? undefined })) }
       }
     };
   }
@@ -258,8 +258,8 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
   /** @inheritdoc */
   async ResolveGeometry(source, batch, context)
   {
-    const pass = this.#PassOf(batch.material, context?.passIndex ?? 0);
-    const geometry = await this.#GeometryFor(source, pass);
+    const pass = this._PassOf(batch.material, context?.passIndex ?? 0);
+    const geometry = await this._GeometryFor(source, pass);
 
     // The draw arguments are omitted deliberately: Tr2MeshBase already resolved
     // them onto the batch from the LOD's areas, and the dispatcher reads them
@@ -273,7 +273,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
   {
     const passIndex = context?.passIndex ?? 0;
     const material = batch.material;
-    const pipeline = this.#PackageFor(material).GetPipeline(this.#techniqueName, passIndex);
+    const pipeline = this._PackageFor(material).GetPipeline(this._techniqueName, passIndex);
 
     // BIND WHAT THE PIPELINE DECLARES. Inventing keys and hoping they match is
     // how this first failed against a real container: the device wanted
@@ -291,7 +291,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 
         if (binding.bindingKind === "constantBuffer" || binding.resourceKind === "uniform-buffer")
         {
-          const value = await this.#ConstantsFor(binding, material, objectData, passIndex);
+          const value = await this._ConstantsFor(binding, material, objectData, passIndex);
 
           if (value) uniformData.set(identity, value);
 
@@ -302,7 +302,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
         // buffers and samplers alongside its textures, and routing all three
         // to a texture source would hand a sampler request to something that
         // resolves texture paths.
-        const source = this.#SourceFor(binding);
+        const source = this._SourceFor(binding);
 
         if (!source)
         {
@@ -339,14 +339,14 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    * @param {object} binding Declared binding record.
    * @returns {Function|null} Source for this kind, or null when none was given.
    */
-  #SourceFor(binding)
+  _SourceFor(binding)
   {
     const layout = binding.layout;
 
-    if (layout?.sampler) return this.#resolveSampler;
-    if (layout?.texture) return this.#resolveTexture;
+    if (layout?.sampler) return this._resolveSampler;
+    if (layout?.texture) return this._resolveTexture;
 
-    return this.#resolveStorageBuffer;
+    return this._resolveStorageBuffer;
   }
 
   /**
@@ -363,10 +363,10 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    * @param {number} passIndex Pass within the technique.
    * @returns {Promise<ArrayBufferView|null>} Bytes, or null when nothing supplies it.
    */
-  async #ConstantsFor(binding, material, objectData, passIndex)
+  async _ConstantsFor(binding, material, objectData, passIndex)
   {
     const shader = material.GetShaderStateInterface?.();
-    const pass = this.#PassOf(material, passIndex);
+    const pass = this._PassOf(material, passIndex);
 
     if (binding.registerIndex === EFFECT_CONSTANTS)
     {
@@ -376,7 +376,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       if (!pass?.stageInputs?.[1]?.exists) return null;
 
       const layout = MaterialLayoutFromShader(shader, {
-        technique: this.#techniqueName,
+        technique: this._techniqueName,
         pass: passIndex
       });
 
@@ -388,12 +388,12 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
     // this. b1 and b2 are PER FRAME, not per object, and letting anything past
     // b0 fall through to the per-object path filled the two frame slots with
     // object bytes - a wrong picture rather than a failure.
-    const renderer = this.#renderer;
+    const renderer = this._renderer;
     const register = binding.registerIndex;
 
     if (register === renderer.GetPerFrameVSStartRegister() || register === renderer.GetPerFramePSStartRegister())
     {
-      if (!this.#resolvePerFrame)
+      if (!this._resolvePerFrame)
       {
         fail(
           `pass binds b${binding.registerIndex}, which is per-frame data owned by the`
@@ -402,7 +402,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
         );
       }
 
-      return this.#resolvePerFrame(binding.registerIndex, binding);
+      return this._resolvePerFrame(binding.registerIndex, binding);
     }
 
     // Everything else Carbon assigns - b5 ray-traced vertex data, b6 the GUI's
@@ -422,7 +422,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 
     // b3 and b4, gated on the technique's stage mask the way Carbon gates
     // SetPerObjectDataToDevice.
-    const techniqueIndex = shader?.GetTechniqueIndex?.(this.#techniqueName) ?? -1;
+    const techniqueIndex = shader?.GetTechniqueIndex?.(this._techniqueName) ?? -1;
     const mask = techniqueIndex < 0 ? 0 : (shader.GetShaderTypeMask?.(techniqueIndex) ?? 0);
     const records = Tr2PerObjectData.getConstantRecords(objectData, mask);
 
@@ -454,8 +454,8 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
   /** Releases every geometry this resolver realized. */
   Destroy()
   {
-    for (const geometry of this.#geometry.values()) geometry.Destroy?.();
+    for (const geometry of this._geometry.values()) geometry.Destroy?.();
 
-    this.#geometry.clear();
+    this._geometry.clear();
   }
 }

@@ -64,13 +64,13 @@ let resourcesMutated = false;
  */
 export class Tr2BaseDeviceResourceAL
 {
-  #registered = false;
+  _registered = false;
 
   /** Registers the resource, as Carbon's constructor does. */
   constructor()
   {
     ALL_RESOURCES.add(this);
-    this.#registered = true;
+    this._registered = true;
     resourcesMutated = true;
   }
 
@@ -116,17 +116,17 @@ export class Tr2BaseDeviceResourceAL
    */
   Destroy()
   {
-    if (!this.#registered) return;
+    if (!this._registered) return;
 
     ALL_RESOURCES.delete(this);
-    this.#registered = false;
+    this._registered = false;
     resourcesMutated = true;
   }
 
   /** Whether this resource is still in the registry. */
   IsRegistered()
   {
-    return this.#registered;
+    return this._registered;
   }
 
   /**

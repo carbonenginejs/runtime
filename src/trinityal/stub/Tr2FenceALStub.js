@@ -24,10 +24,10 @@ import { ALResult } from "../ALResult.js";
 export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_isValid */
-  #isValid = false;
+  _isValid = false;
 
   /** m_hasFence - whether a marker is outstanding. */
-  #hasFence = false;
+  _hasFence = false;
 
   /**
    * Creates the fence.
@@ -39,7 +39,7 @@ export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext?.IsValid()) return ALResult.E_INVALIDARG;
 
-    this.#isValid = true;
+    this._isValid = true;
 
     return ALResult.S_OK;
   }
@@ -47,15 +47,15 @@ export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
   /** Releases the fence and drops any outstanding marker. */
   Destroy()
   {
-    this.#isValid = false;
-    this.#hasFence = false;
+    this._isValid = false;
+    this._hasFence = false;
     super.Destroy();
   }
 
   /** @returns {boolean} Whether the fence was created. */
   IsValid()
   {
-    return this.#isValid;
+    return this._isValid;
   }
 
   /**
@@ -70,10 +70,10 @@ export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
    */
   PutFence()
   {
-    if (!this.#isValid) return ALResult.E_FAIL;
-    if (this.#hasFence) return ALResult.E_INVALIDCALL;
+    if (!this._isValid) return ALResult.E_FAIL;
+    if (this._hasFence) return ALResult.E_INVALIDCALL;
 
-    this.#hasFence = true;
+    this._hasFence = true;
 
     return ALResult.S_OK;
   }
@@ -88,9 +88,9 @@ export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
    */
   IsReached()
   {
-    if (!this.#isValid) return { result: ALResult.E_FAIL, isReached: false };
+    if (!this._isValid) return { result: ALResult.E_FAIL, isReached: false };
 
-    return { result: ALResult.S_OK, isReached: !this.#hasFence };
+    return { result: ALResult.S_OK, isReached: !this._hasFence };
   }
 
   /**
@@ -104,10 +104,10 @@ export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
    */
   Wait()
   {
-    if (!this.#isValid) return ALResult.E_FAIL;
-    if (!this.#hasFence) return ALResult.E_INVALIDCALL;
+    if (!this._isValid) return ALResult.E_FAIL;
+    if (!this._hasFence) return ALResult.E_INVALIDCALL;
 
-    this.#hasFence = false;
+    this._hasFence = false;
 
     return ALResult.S_OK;
   }

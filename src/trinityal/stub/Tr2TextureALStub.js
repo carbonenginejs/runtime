@@ -59,19 +59,19 @@ const NO_HEAP_INDEX = 0xffffffff;
 export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_desc */
-  #desc = new Tr2BitmapDimensions();
+  _desc = new Tr2BitmapDimensions();
 
   /** m_msaa */
-  #msaa = new Tr2MsaaDesc();
+  _msaa = new Tr2MsaaDesc();
 
   /** m_gpuUsage */
-  #gpuUsage = Tr2GpuUsage.NONE;
+  _gpuUsage = Tr2GpuUsage.NONE;
 
   /** m_cpuUsage */
-  #cpuUsage = Tr2CpuUsage.NONE;
+  _cpuUsage = Tr2CpuUsage.NONE;
 
   /** m_data - allocated on first map, released on unmap unless kept "often". */
-  #data = null;
+  _data = null;
 
   /**
    * Creates the texture.
@@ -90,7 +90,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   Create(desc, options, renderContext)
   {
-    this.#Reset();
+    this._Reset();
 
     const {
       gpuUsage = Tr2GpuUsage.NONE,
@@ -165,10 +165,10 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
       return ALResult.E_INVALIDARG;
     }
 
-    this.#desc = desc;
-    this.#gpuUsage = gpuUsage;
-    this.#cpuUsage = cpuUsage;
-    this.#msaa = msaa;
+    this._desc = desc;
+    this._gpuUsage = gpuUsage;
+    this._cpuUsage = cpuUsage;
+    this._msaa = msaa;
 
     return ALResult.S_OK;
   }
@@ -186,19 +186,19 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
   }
 
   /** Carbon's impl `Destroy`: clears the description without unregistering. */
-  #Reset()
+  _Reset()
   {
-    this.#desc = new Tr2BitmapDimensions();
-    this.#msaa = new Tr2MsaaDesc();
-    this.#gpuUsage = Tr2GpuUsage.NONE;
-    this.#cpuUsage = Tr2CpuUsage.NONE;
-    this.#data = null;
+    this._desc = new Tr2BitmapDimensions();
+    this._msaa = new Tr2MsaaDesc();
+    this._gpuUsage = Tr2GpuUsage.NONE;
+    this._cpuUsage = Tr2CpuUsage.NONE;
+    this._data = null;
   }
 
   /** Releases the texture and leaves the device-resource registry. */
   Destroy()
   {
-    this.#Reset();
+    this._Reset();
     super.Destroy();
   }
 
@@ -211,7 +211,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#desc.GetWidth() !== 0;
+    return this._desc.GetWidth() !== 0;
   }
 
   /**
@@ -231,7 +231,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetDesc()
   {
-    return this.#desc;
+    return this._desc;
   }
 
   /**
@@ -241,7 +241,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetMsaaDesc()
   {
-    return this.#msaa;
+    return this._msaa;
   }
 
   /**
@@ -251,7 +251,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetGpuUsage()
   {
-    return this.#gpuUsage;
+    return this._gpuUsage;
   }
 
   /**
@@ -261,7 +261,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetCpuUsage()
   {
-    return this.#cpuUsage;
+    return this._cpuUsage;
   }
 
   /**
@@ -271,7 +271,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetWidth()
   {
-    return this.#desc.GetWidth();
+    return this._desc.GetWidth();
   }
 
   /**
@@ -281,7 +281,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetHeight()
   {
-    return this.#desc.GetHeight();
+    return this._desc.GetHeight();
   }
 
   /**
@@ -291,7 +291,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetDepth()
   {
-    return this.#desc.GetDepth();
+    return this._desc.GetDepth();
   }
 
   /**
@@ -301,7 +301,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetMipCount()
   {
-    return this.#desc.GetMipCount();
+    return this._desc.GetMipCount();
   }
 
   /**
@@ -311,7 +311,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetTrueMipCount()
   {
-    return this.#desc.GetTrueMipCount();
+    return this._desc.GetTrueMipCount();
   }
 
   /**
@@ -321,7 +321,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetFormat()
   {
-    return this.#desc.GetFormat();
+    return this._desc.GetFormat();
   }
 
   /**
@@ -331,7 +331,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetType()
   {
-    return this.#desc.GetType();
+    return this._desc.GetType();
   }
 
   /**
@@ -341,7 +341,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetArraySize()
   {
-    return this.#desc.GetArraySize();
+    return this._desc.GetArraySize();
   }
 
   /**
@@ -352,7 +352,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GetMipSize(mip)
   {
-    return this.#desc.GetMipSize(mip);
+    return this._desc.GetMipSize(mip);
   }
 
   /**
@@ -369,21 +369,21 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   MapForReading(region, synchronize, renderContext)
   {
-    if (!HasFlag(this.#cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
 
     if (!this.IsValid() || !renderContext.IsValid()) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
 
-    if (!region.IsValidForBitmap(this.#desc)) return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
+    if (!region.IsValidForBitmap(this._desc)) return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
 
     if (!region.IsSingleSubresource()) return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
 
-    return this.#Allocate(region);
+    return this._Allocate(region);
   }
 
   /** Releases a read mapping, keeping the buffer only for an "often" usage. */
   UnmapForReading()
   {
-    this.#ReleaseUnlessKept();
+    this._ReleaseUnlessKept();
   }
 
   /**
@@ -395,51 +395,51 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   MapForWriting(region, renderContext)
   {
-    if (!HasFlag(this.#cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
 
     if (!this.IsValid() || !renderContext.IsValid()) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
 
-    if (!region.IsValidForBitmap(this.#desc)) return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
+    if (!region.IsValidForBitmap(this._desc)) return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
 
     if (!region.IsSingleSubresource()) return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
 
     // A partial write into a block format would land mid-block, so Carbon
     // refuses a box on a compressed texture rather than rounding it.
-    if (region.HasBox() && IsCompressedFormat(this.#desc.GetFormat()))
+    if (region.HasBox() && IsCompressedFormat(this._desc.GetFormat()))
     {
       return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
     }
 
-    return this.#Allocate(region);
+    return this._Allocate(region);
   }
 
   /** Releases a write mapping, keeping the buffer only for an "often" usage. */
   UnmapForWriting()
   {
-    this.#ReleaseUnlessKept();
+    this._ReleaseUnlessKept();
   }
 
   /** Sizes the CPU buffer to one mip of the region and hands it back. */
-  #Allocate(region)
+  _Allocate(region)
   {
-    const pitch = this.#desc.GetMipPitch(region.m_startMipLevel);
-    const size = pitch * this.#desc.GetMipHeight(region.m_startMipLevel);
+    const pitch = this._desc.GetMipPitch(region.m_startMipLevel);
+    const size = pitch * this._desc.GetMipHeight(region.m_startMipLevel);
 
-    if (this.#data === null || this.#data.length !== size) this.#data = new Uint8Array(size);
+    if (this._data === null || this._data.length !== size) this._data = new Uint8Array(size);
 
     // Carbon fails an allocation that came back empty; here that means a mip
     // whose pitch or height is zero, which is a region past the chain.
-    if (this.#data.length === 0) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
+    if (this._data.length === 0) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
 
-    return { result: ALResult.S_OK, data: this.#data, pitch };
+    return { result: ALResult.S_OK, data: this._data, pitch };
   }
 
   /** Carbon keeps the buffer only when the usage says mapping is frequent. */
-  #ReleaseUnlessKept()
+  _ReleaseUnlessKept()
   {
-    if (!HasFlag(this.#cpuUsage, Tr2CpuUsage.READ_OFTEN) && !HasFlag(this.#cpuUsage, Tr2CpuUsage.WRITE_OFTEN))
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.READ_OFTEN) && !HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE_OFTEN))
     {
-      this.#data = null;
+      this._data = null;
     }
   }
 
@@ -458,13 +458,13 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   UpdateSubresource(region, source, pitch, slicePitch, renderContext)
   {
-    if (HasFlag(this.#cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) return ALResult.E_INVALIDCALL;
+    if (HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) return ALResult.E_INVALIDCALL;
 
-    if (!HasFlag(this.#cpuUsage, Tr2CpuUsage.WRITE) && !IsWritable(this.#gpuUsage)) return ALResult.E_INVALIDCALL;
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE) && !IsWritable(this._gpuUsage)) return ALResult.E_INVALIDCALL;
 
     if (!this.IsValid() || !renderContext.IsValid()) return ALResult.E_INVALIDCALL;
 
-    if (!region.IsValidForBitmap(this.#desc)) return ALResult.E_INVALIDARG;
+    if (!region.IsValidForBitmap(this._desc)) return ALResult.E_INVALIDARG;
 
     if (!region.IsSingleSubresource()) return ALResult.E_INVALIDARG;
 
@@ -489,9 +489,9 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
 
     if (!source.IsValid()) return ALResult.E_INVALIDARG;
 
-    if (!HasFlag(this.#cpuUsage, Tr2CpuUsage.WRITE) && !IsWritable(this.#gpuUsage)) return ALResult.E_INVALIDCALL;
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE) && !IsWritable(this._gpuUsage)) return ALResult.E_INVALIDCALL;
 
-    if (destSubresource.IsSubresourceFull(this.#desc) && sourceSubresource.IsSubresourceFull(source.GetDesc()))
+    if (destSubresource.IsSubresourceFull(this._desc) && sourceSubresource.IsSubresourceFull(source.GetDesc()))
     {
       return ALResult.S_OK;
     }
@@ -501,7 +501,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
     const src = CopyRegion(sourceSubresource);
     const dst = CopyRegion(destSubresource);
 
-    if (!Crop(src, source.GetDesc(), dst, this.#desc)) return ALResult.E_FAIL;
+    if (!Crop(src, source.GetDesc(), dst, this._desc)) return ALResult.E_FAIL;
 
     return ALResult.S_OK;
   }
@@ -516,7 +516,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   GenerateMipMaps()
   {
-    if (!HasFlag(this.#gpuUsage, Tr2GpuUsage.RENDER_TARGET) || !HasFlag(this.#gpuUsage, Tr2GpuUsage.SHADER_RESOURCE))
+    if (!HasFlag(this._gpuUsage, Tr2GpuUsage.RENDER_TARGET) || !HasFlag(this._gpuUsage, Tr2GpuUsage.SHADER_RESOURCE))
     {
       return ALResult.E_INVALIDCALL;
     }
@@ -536,7 +536,7 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
    */
   Resolve(destination, renderContext)
   {
-    if (this.#msaa.samples <= 1)
+    if (this._msaa.samples <= 1)
     {
       return destination.CopySubresourceRegion(
         new Tr2TextureSubresource(),
@@ -555,12 +555,12 @@ export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
       return ALResult.E_INVALIDARG;
     }
 
-    if (this.#desc.GetWidth() !== destination.GetWidth() || this.#desc.GetHeight() !== destination.GetHeight())
+    if (this._desc.GetWidth() !== destination.GetWidth() || this._desc.GetHeight() !== destination.GetHeight())
     {
       return ALResult.E_INVALIDARG;
     }
 
-    if (this.#desc.GetFormat() !== destination.GetFormat()) return ALResult.E_INVALIDARG;
+    if (this._desc.GetFormat() !== destination.GetFormat()) return ALResult.E_INVALIDARG;
 
     if (destination.GetMsaaDesc().samples > 1) return ALResult.E_INVALIDARG;
 

@@ -62,28 +62,28 @@ function ValidSlot(stage, registerIndex)
  */
 export class Tr2RegisterMapAL
 {
-  #srvs = EmptyStages();
+  _srvs = EmptyStages();
 
-  #uavs = EmptyStages();
+  _uavs = EmptyStages();
 
-  #samplers = EmptyStages();
+  _samplers = EmptyStages();
 
   /** Shader-resource slots per stage. @returns {Array} */
   GetSrvs()
   {
-    return this.#srvs;
+    return this._srvs;
   }
 
   /** Unordered-access slots per stage. @returns {Array} */
   GetUavs()
   {
-    return this.#uavs;
+    return this._uavs;
   }
 
   /** Sampler slots per stage. @returns {Array} */
   GetSamplers()
   {
-    return this.#samplers;
+    return this._samplers;
   }
 
   /**
@@ -96,7 +96,7 @@ export class Tr2RegisterMapAL
    */
   Use(kind, stage, registerIndex)
   {
-    const slots = this.#Slots(kind);
+    const slots = this._Slots(kind);
 
     if (!slots || !ValidSlot(stage, registerIndex)) return false;
 
@@ -116,7 +116,7 @@ export class Tr2RegisterMapAL
    */
   Count(kind)
   {
-    const slots = this.#Slots(kind);
+    const slots = this._Slots(kind);
 
     if (!slots) return 0;
 
@@ -129,26 +129,27 @@ export class Tr2RegisterMapAL
    * Carbon's `operator==`, and the reason it exists: two programs with the same
    * register map can share a resource set.
    *
-   * A PRIVATE-BRAND CHECK, not `CjsSchema.cast` and not `instanceof`. The line
-   * below reaches `other.#Slots(...)`, which throws for anything that is not
-   * genuinely one of these - so the guard has to answer exactly the question
-   * "will that access work", and `#srvs in other` is that question. `cast` is
-   * for the other kind of type test: it asks whether an object implements an
-   * optional CONTRACT (`compose/interface.js:169-190`), and falls back to
-   * `instanceof` itself, so using it here would be both the wrong question and
-   * the same answer.
+   * `instanceof`, NOT A PRIVATE-BRAND CHECK. It used to be `_srvs in other`,
+   * which answers "will `other._Slots(...)` work" exactly - the right question
+   * while the members were `#`-private. They are `_`-prefixed now, for the
+   * reason recorded on `Tr2DeviceResourceAL`, so the brand no longer exists and
+   * `instanceof` is the question that remains: is this one of these maps.
+   *
+   * Not `CjsSchema.cast`, which asks whether an object implements an optional
+   * CONTRACT (`compose/interface.js:169-190`) and falls back to `instanceof`
+   * itself - the wrong question and the same answer.
    *
    * @param {Tr2RegisterMapAL} other The map to compare with.
    * @returns {boolean} True when they match.
    */
   Equals(other)
   {
-    if (other === null || typeof other !== "object" || !(#srvs in other)) return false;
+    if (!(other instanceof Tr2RegisterMapAL)) return false;
 
     for (const kind of [ "srv", "uav", "sampler" ])
     {
-      const mine = this.#Slots(kind);
-      const theirs = other.#Slots(kind);
+      const mine = this._Slots(kind);
+      const theirs = other._Slots(kind);
 
       for (let stage = 0; stage < STAGE_COUNT; stage += 1)
       {
@@ -162,11 +163,11 @@ export class Tr2RegisterMapAL
     return true;
   }
 
-  #Slots(kind)
+  _Slots(kind)
   {
-    if (kind === "srv") return this.#srvs;
-    if (kind === "uav") return this.#uavs;
-    if (kind === "sampler") return this.#samplers;
+    if (kind === "srv") return this._srvs;
+    if (kind === "uav") return this._uavs;
+    if (kind === "sampler") return this._samplers;
 
     return null;
   }
@@ -178,13 +179,13 @@ export class Tr2RegisterMapAL
  */
 export class Tr2ResourceSetDescriptionAL
 {
-  #srvs = EmptyStages();
+  _srvs = EmptyStages();
 
-  #uavs = EmptyStages();
+  _uavs = EmptyStages();
 
-  #samplers = EmptyStages();
+  _samplers = EmptyStages();
 
-  #constantBuffers = EmptyStages();
+  _constantBuffers = EmptyStages();
 
   /**
    * Binds a shader resource - a texture or a buffer - at one register.
@@ -203,11 +204,11 @@ export class Tr2ResourceSetDescriptionAL
   {
     if (!ValidSlot(stage, registerIndex)) return false;
 
-    const current = this.#srvs[stage][registerIndex];
+    const current = this._srvs[stage][registerIndex];
 
     if (current && current.resource === resource && current.colorSpace === colorSpace) return false;
 
-    this.#srvs[stage][registerIndex] = { resource, colorSpace };
+    this._srvs[stage][registerIndex] = { resource, colorSpace };
 
     return true;
   }
@@ -225,11 +226,11 @@ export class Tr2ResourceSetDescriptionAL
   {
     if (!ValidSlot(stage, registerIndex)) return false;
 
-    const current = this.#uavs[stage][registerIndex];
+    const current = this._uavs[stage][registerIndex];
 
     if (current && current.resource === resource && current.mip === mip) return false;
 
-    this.#uavs[stage][registerIndex] = { resource, mip };
+    this._uavs[stage][registerIndex] = { resource, mip };
 
     return true;
   }
@@ -246,11 +247,11 @@ export class Tr2ResourceSetDescriptionAL
   {
     if (!ValidSlot(stage, registerIndex)) return false;
 
-    const current = this.#samplers[stage][registerIndex];
+    const current = this._samplers[stage][registerIndex];
 
     if (current && current.sampler === sampler) return false;
 
-    this.#samplers[stage][registerIndex] = { sampler };
+    this._samplers[stage][registerIndex] = { sampler };
 
     return true;
   }
@@ -270,11 +271,11 @@ export class Tr2ResourceSetDescriptionAL
   {
     if (!ValidSlot(stage, registerIndex)) return false;
 
-    const current = this.#constantBuffers[stage][registerIndex];
+    const current = this._constantBuffers[stage][registerIndex];
 
     if (current && current.buffer === buffer) return false;
 
-    this.#constantBuffers[stage][registerIndex] = { buffer };
+    this._constantBuffers[stage][registerIndex] = { buffer };
 
     return true;
   }
@@ -289,7 +290,7 @@ export class Tr2ResourceSetDescriptionAL
    */
   Get(kind, stage, registerIndex)
   {
-    const slots = this.#Slots(kind);
+    const slots = this._Slots(kind);
 
     if (!slots || !ValidSlot(stage, registerIndex)) return null;
 
@@ -313,7 +314,7 @@ export class Tr2ResourceSetDescriptionAL
    */
   ClearResources()
   {
-    for (const slots of [ this.#srvs, this.#uavs ])
+    for (const slots of [ this._srvs, this._uavs ])
     {
       for (const stage of slots) stage.fill(null);
     }
@@ -340,7 +341,7 @@ export class Tr2ResourceSetDescriptionAL
   {
     let hash = FNV1_INITIAL;
 
-    for (const [ kind, slots ] of [ [ 1, this.#srvs ], [ 2, this.#uavs ], [ 3, this.#samplers ] ])
+    for (const [ kind, slots ] of [ [ 1, this._srvs ], [ 2, this._uavs ], [ 3, this._samplers ] ])
     {
       for (let stage = 0; stage < slots.length; stage += 1)
       {
@@ -378,7 +379,7 @@ export class Tr2ResourceSetDescriptionAL
   {
     const map = new Tr2RegisterMapAL();
 
-    for (const [ kind, slots ] of [ [ "srv", this.#srvs ], [ "uav", this.#uavs ], [ "sampler", this.#samplers ] ])
+    for (const [ kind, slots ] of [ [ "srv", this._srvs ], [ "uav", this._uavs ], [ "sampler", this._samplers ] ])
     {
       slots.forEach((stage, stageIndex) =>
       {
@@ -392,12 +393,12 @@ export class Tr2ResourceSetDescriptionAL
     return map;
   }
 
-  #Slots(kind)
+  _Slots(kind)
   {
-    if (kind === "srv") return this.#srvs;
-    if (kind === "uav") return this.#uavs;
-    if (kind === "sampler") return this.#samplers;
-    if (kind === "constantBuffer") return this.#constantBuffers;
+    if (kind === "srv") return this._srvs;
+    if (kind === "uav") return this._uavs;
+    if (kind === "sampler") return this._samplers;
+    if (kind === "constantBuffer") return this._constantBuffers;
 
     return null;
   }
@@ -415,11 +416,11 @@ export class Tr2ResourceSetDescriptionAL
 export class Tr2ResourceSetALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_isValid */
-  #isValid = false;
+  _isValid = false;
 
-  #description = null;
+  _description = null;
 
-  #program = null;
+  _program = null;
 
   /**
    * Creates the resource set against a shader program.
@@ -433,9 +434,9 @@ export class Tr2ResourceSetALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext?.IsValid()) return ALResult.E_INVALIDARG;
 
-    this.#description = description ?? null;
-    this.#program = program ?? null;
-    this.#isValid = true;
+    this._description = description ?? null;
+    this._program = program ?? null;
+    this._isValid = true;
 
     return ALResult.S_OK;
   }
@@ -443,28 +444,28 @@ export class Tr2ResourceSetALStub extends Tr2BaseDeviceResourceAL
   /** @returns {boolean} Whether the set was created. */
   IsValid()
   {
-    return this.#isValid;
+    return this._isValid;
   }
 
   /** Releases the set. */
   Destroy()
   {
-    this.#isValid = false;
-    this.#description = null;
-    this.#program = null;
+    this._isValid = false;
+    this._description = null;
+    this._program = null;
     super.Destroy();
   }
 
   /** @returns {Tr2ResourceSetDescriptionAL|null} What this set binds. */
   GetDescription()
   {
-    return this.#description;
+    return this._description;
   }
 
   /** @returns {object|null} The program this set was created against. */
   GetProgram()
   {
-    return this.#program;
+    return this._program;
   }
 
   /** @returns {number} A `Tr2ALMemoryType`. */

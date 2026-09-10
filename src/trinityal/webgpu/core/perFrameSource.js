@@ -28,7 +28,7 @@ function fail(message)
 /** Supplies the per-frame constant registers from one scene. */
 export class CjsWebgpuPerFrameSource
 {
-  #scene;
+  _scene;
 
   /**
    * @param {object} scene Scene owning the per-frame records.
@@ -37,7 +37,7 @@ export class CjsWebgpuPerFrameSource
   {
     if (!scene) fail("a scene is required; nothing else owns per-frame data");
 
-    this.#scene = scene;
+    this._scene = scene;
   }
 
   /**
@@ -50,8 +50,8 @@ export class CjsWebgpuPerFrameSource
   {
     // A scene HAS both accessors; only the slot number is in question.
     const record = slot === PER_FRAME_VS
-      ? this.#scene.GetPerFrameVSData()
-      : (slot === PER_FRAME_PS ? this.#scene.GetPerFramePSData() : null);
+      ? this._scene.GetPerFrameVSData()
+      : (slot === PER_FRAME_PS ? this._scene.GetPerFramePSData() : null);
 
     if (!record)
     {

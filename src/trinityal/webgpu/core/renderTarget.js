@@ -56,35 +56,35 @@ function positiveSize(value, name)
 /** Owns a WebGPU presentation surface and its per-frame attachments. */
 export class CjsWebgpuRenderTarget
 {
-  #webgpu;
+  _webgpu;
 
-  #canvas = null;
+  _canvas = null;
 
-  #context = null;
+  _context = null;
 
-  #format = null;
+  _format = null;
 
-  #alphaMode = "opaque";
+  _alphaMode = "opaque";
 
-  #extraUsage = 0;
+  _extraUsage = 0;
 
-  #sampleCount = 1;
+  _sampleCount = 1;
 
-  #depthFormat = null;
+  _depthFormat = null;
 
-  #width = 0;
+  _width = 0;
 
-  #height = 0;
+  _height = 0;
 
-  #generation = 0;
+  _generation = 0;
 
-  #depth = null;
+  _depth = null;
 
-  #multisample = null;
+  _multisample = null;
 
-  #frame = null;
+  _frame = null;
 
-  #destroyed = false;
+  _destroyed = false;
 
   /**
    * @param {CjsWebgpuDevice} webgpu Canonical WebGPU device.
@@ -109,25 +109,25 @@ export class CjsWebgpuRenderTarget
     {
       fail("webgpu boundary must be a CjsWebgpuDevice");
     }
-    this.#webgpu = webgpu;
-    this.#canvas = options.canvas ?? null;
-    this.#context = options.context ?? null;
+    this._webgpu = webgpu;
+    this._canvas = options.canvas ?? null;
+    this._context = options.context ?? null;
 
-    if (!this.#context && !this.#canvas) fail("a canvas or a context is required");
+    if (!this._context && !this._canvas) fail("a canvas or a context is required");
 
     this._textureUsage = options.textureUsage || globalThis.GPUTextureUsage || null;
     this._gpu = options.gpu ?? globalThis.navigator?.gpu ?? null;
-    this.#alphaMode = options.alphaMode ?? "opaque";
-    this.#sampleCount = options.sampleCount ?? 1;
-    this.#depthFormat = options.depthFormat ?? null;
-    this.#format = options.format ?? null;
-    this.#extraUsage = options.extraUsage ?? 0;
+    this._alphaMode = options.alphaMode ?? "opaque";
+    this._sampleCount = options.sampleCount ?? 1;
+    this._depthFormat = options.depthFormat ?? null;
+    this._format = options.format ?? null;
+    this._extraUsage = options.extraUsage ?? 0;
   }
 
   /** The presentation format the canvas is configured with. */
   GetFormat()
   {
-    return this.#format;
+    return this._format;
   }
 
   /**
@@ -143,13 +143,13 @@ export class CjsWebgpuRenderTarget
    */
   GetDepthFormat()
   {
-    return this.#depthFormat;
+    return this._depthFormat;
   }
 
   /** The current attachment size. */
   GetSize()
   {
-    return { width: this.#width, height: this.#height };
+    return { width: this._width, height: this._height };
   }
 
   // CARBON'S TEXTURE ACCESSORS, so this can BE a bound render target rather
@@ -163,19 +163,19 @@ export class CjsWebgpuRenderTarget
   /** The bound width, as `Tr2TextureAL::GetWidth` answers it. @returns {number} */
   GetWidth()
   {
-    return this.#width;
+    return this._width;
   }
 
   /** The bound height, as `Tr2TextureAL::GetHeight` answers it. @returns {number} */
   GetHeight()
   {
-    return this.#height;
+    return this._height;
   }
 
   /** The multisample count every attachment is created with. */
   GetSampleCount()
   {
-    return this.#sampleCount;
+    return this._sampleCount;
   }
 
   /**
@@ -188,60 +188,60 @@ export class CjsWebgpuRenderTarget
    */
   Configure(options = {})
   {
-    this.#AssertLive();
+    this._AssertLive();
 
-    const width = positiveSize(options.width ?? this.#width, "width");
-    const height = positiveSize(options.height ?? this.#height, "height");
-    const generation = this.#webgpu.GetGeneration();
-    const device = this.#webgpu.GetDevice();
+    const width = positiveSize(options.width ?? this._width, "width");
+    const height = positiveSize(options.height ?? this._height, "height");
+    const generation = this._webgpu.GetGeneration();
+    const device = this._webgpu.GetDevice();
 
-    if (!this.#context)
+    if (!this._context)
     {
-      this.#context = this.#canvas?.getContext?.("webgpu") ?? null;
-      if (!this.#context) fail("the canvas does not provide a webgpu context");
+      this._context = this._canvas?.getContext?.("webgpu") ?? null;
+      if (!this._context) fail("the canvas does not provide a webgpu context");
     }
 
-    if (!this.#format)
+    if (!this._format)
     {
-      this.#format = options.format
+      this._format = options.format
         ?? this._gpu?.getPreferredCanvasFormat?.()
         ?? fail("a presentation format is required when the browser reports no preferred one");
     }
 
-    const changed = generation !== this.#generation
-      || width !== this.#width
-      || height !== this.#height;
+    const changed = generation !== this._generation
+      || width !== this._width
+      || height !== this._height;
 
     if (!changed) return this;
 
     // The canvas backing store drives the surface size, so it is set before the
     // context is configured rather than after.
-    if (this.#canvas)
+    if (this._canvas)
     {
-      this.#canvas.width = width;
-      this.#canvas.height = height;
+      this._canvas.width = width;
+      this._canvas.height = height;
     }
 
-    const usage = this.#RequireUsage();
+    const usage = this._RequireUsage();
 
     // EXTRA USAGE IS THE CALLER'S TO ASK FOR, because the surface is theirs to
     // read. A frame that has to be counted back needs COPY_SRC, and hardcoding
     // RENDER_ATTACHMENT alone silently makes that impossible - the readback
     // fails at copy time, long after the configure that caused it. Defaults to
     // nothing extra, so nobody pays for a capability they did not ask for.
-    this.#context.configure({
+    this._context.configure({
       device,
-      format: this.#format,
-      alphaMode: this.#alphaMode,
-      usage: usage.RENDER_ATTACHMENT | (this.#extraUsage ?? 0)
+      format: this._format,
+      alphaMode: this._alphaMode,
+      usage: usage.RENDER_ATTACHMENT | (this._extraUsage ?? 0)
     });
 
-    this.#width = width;
-    this.#height = height;
-    this.#generation = generation;
-    this.#ReleaseAttachments();
-    this.#CreateAttachments(device, usage);
-    this.#frame = null;
+    this._width = width;
+    this._height = height;
+    this._generation = generation;
+    this._ReleaseAttachments();
+    this._CreateAttachments(device, usage);
+    this._frame = null;
 
     return this;
   }
@@ -254,30 +254,30 @@ export class CjsWebgpuRenderTarget
    */
   AcquireFrame()
   {
-    this.#AssertLive();
-    if (!this.#context || !this.#width) fail("Configure must run before a frame is acquired");
-    if (this.#generation !== this.#webgpu.GetGeneration())
+    this._AssertLive();
+    if (!this._context || !this._width) fail("Configure must run before a frame is acquired");
+    if (this._generation !== this._webgpu.GetGeneration())
     {
       fail("the device generation changed; Configure must run again before acquiring a frame");
     }
 
-    const texture = this.#context.getCurrentTexture();
+    const texture = this._context.getCurrentTexture();
     if (!texture) fail("the canvas context returned no current texture");
 
-    if (this.#frame) this.#frame.valid = false;
+    if (this._frame) this._frame.valid = false;
 
     const view = texture.createView();
-    this.#frame = {
+    this._frame = {
       valid: true,
-      generation: this.#generation,
+      generation: this._generation,
       // With multisampling the pass renders into the multisample attachment and
       // resolves into the canvas; without it the canvas is the render target.
-      colorView: this.#multisample ? this.#multisample.view : view,
-      resolveView: this.#multisample ? view : null,
-      depthView: this.#depth ? this.#depth.view : null
+      colorView: this._multisample ? this._multisample.view : view,
+      resolveView: this._multisample ? view : null,
+      depthView: this._depth ? this._depth.view : null
     };
 
-    return { ...this.#frame };
+    return { ...this._frame };
   }
 
   /**
@@ -290,8 +290,8 @@ export class CjsWebgpuRenderTarget
    */
   CreateRenderPassDescriptor(frame, options = {})
   {
-    this.#AssertLive();
-    this.#AssertFrame(frame);
+    this._AssertLive();
+    this._AssertFrame(frame);
 
     const clearColor = options.clearColor ?? null;
     const colorAttachment = {
@@ -334,7 +334,7 @@ export class CjsWebgpuRenderTarget
    */
   ApplyViewport(pass, options = {})
   {
-    this.#AssertLive();
+    this._AssertLive();
     if (typeof pass?.setViewport !== "function") fail("a GPURenderPassEncoder is required");
 
     const viewport = options.viewport ?? null;
@@ -342,7 +342,7 @@ export class CjsWebgpuRenderTarget
 
     if (viewport)
     {
-      this.#AssertInside(viewport, "viewport");
+      this._AssertInside(viewport, "viewport");
       pass.setViewport(
         viewport.x, viewport.y, viewport.width, viewport.height,
         viewport.minDepth ?? 0, viewport.maxDepth ?? 1
@@ -350,19 +350,19 @@ export class CjsWebgpuRenderTarget
     }
     else
     {
-      pass.setViewport(0, 0, this.#width, this.#height, 0, 1);
+      pass.setViewport(0, 0, this._width, this._height, 0, 1);
     }
 
     if (typeof pass.setScissorRect !== "function") return this;
 
     if (scissor)
     {
-      this.#AssertInside(scissor, "scissor");
+      this._AssertInside(scissor, "scissor");
       pass.setScissorRect(scissor.x, scissor.y, scissor.width, scissor.height);
     }
     else
     {
-      pass.setScissorRect(0, 0, this.#width, this.#height);
+      pass.setScissorRect(0, 0, this._width, this._height);
     }
 
     return this;
@@ -371,58 +371,58 @@ export class CjsWebgpuRenderTarget
   /** Releases every attachment this target created. The canvas is the caller's. */
   Destroy()
   {
-    if (this.#destroyed) return this;
-    this.#destroyed = true;
-    if (this.#frame) this.#frame.valid = false;
-    this.#frame = null;
-    this.#ReleaseAttachments();
+    if (this._destroyed) return this;
+    this._destroyed = true;
+    if (this._frame) this._frame.valid = false;
+    this._frame = null;
+    this._ReleaseAttachments();
     // Unconfiguring returns the surface; the canvas element itself is not ours
     // to remove, and a caller may configure a new target against it.
-    this.#context?.unconfigure?.();
+    this._context?.unconfigure?.();
     return this;
   }
 
   /** Creates owned multisample and depth attachments for the current size. */
-  #CreateAttachments(device, usage)
+  _CreateAttachments(device, usage)
   {
-    if (this.#sampleCount > 1)
+    if (this._sampleCount > 1)
     {
       const texture = device.createTexture({
         label: "CjsWebgpuRenderTarget.multisample",
-        size: { width: this.#width, height: this.#height, depthOrArrayLayers: 1 },
-        sampleCount: this.#sampleCount,
-        format: this.#format,
+        size: { width: this._width, height: this._height, depthOrArrayLayers: 1 },
+        sampleCount: this._sampleCount,
+        format: this._format,
         usage: usage.RENDER_ATTACHMENT
       });
-      this.#multisample = { texture, view: texture.createView() };
+      this._multisample = { texture, view: texture.createView() };
     }
 
-    if (this.#depthFormat)
+    if (this._depthFormat)
     {
       // Same size and sample count as the colour attachment, which is what
       // beginRenderPass validates and what a stale depth texture violates.
       const texture = device.createTexture({
         label: "CjsWebgpuRenderTarget.depth",
-        size: { width: this.#width, height: this.#height, depthOrArrayLayers: 1 },
-        sampleCount: this.#sampleCount,
-        format: this.#depthFormat,
+        size: { width: this._width, height: this._height, depthOrArrayLayers: 1 },
+        sampleCount: this._sampleCount,
+        format: this._depthFormat,
         usage: usage.RENDER_ATTACHMENT
       });
-      this.#depth = { texture, view: texture.createView() };
+      this._depth = { texture, view: texture.createView() };
     }
   }
 
   /** Destroys and forgets every owned attachment. */
-  #ReleaseAttachments()
+  _ReleaseAttachments()
   {
-    this.#depth?.texture?.destroy?.();
-    this.#multisample?.texture?.destroy?.();
-    this.#depth = null;
-    this.#multisample = null;
+    this._depth?.texture?.destroy?.();
+    this._multisample?.texture?.destroy?.();
+    this._depth = null;
+    this._multisample = null;
   }
 
   /** Gets the validated texture-usage vocabulary supplied by the host. */
-  #RequireUsage()
+  _RequireUsage()
   {
     const usage = this._textureUsage;
     if (!usage || !Number.isInteger(usage.RENDER_ATTACHMENT))
@@ -433,37 +433,37 @@ export class CjsWebgpuRenderTarget
   }
 
   /** Throws when this target has already been destroyed. */
-  #AssertLive()
+  _AssertLive()
   {
-    if (this.#destroyed) fail("the render target is destroyed");
+    if (this._destroyed) fail("the render target is destroyed");
   }
 
   // Ordered so the message names the actual problem. A frame invalidated by a
   // later acquire, a resize or a device loss is STALE, and saying "no frame" of
   // one the caller is holding sends them looking in the wrong place.
   /** Validates that a frame belongs to the target's current generation. */
-  #AssertFrame(frame)
+  _AssertFrame(frame)
   {
     if (!frame || typeof frame !== "object") fail("a frame acquired from this target is required");
-    if (!this.#frame || !this.#frame.valid
-      || frame.generation !== this.#generation
-      || frame.colorView !== this.#frame.colorView)
+    if (!this._frame || !this._frame.valid
+      || frame.generation !== this._generation
+      || frame.colorView !== this._frame.colorView)
     {
       fail("the frame is stale; a canvas texture view is valid for one frame only");
     }
   }
 
   /** Validates that one viewport or scissor rectangle lies inside the target. */
-  #AssertInside(rect, name)
+  _AssertInside(rect, name)
   {
     const values = [ rect.x, rect.y, rect.width, rect.height ];
     if (values.some((value) => !Number.isFinite(value) || value < 0))
     {
       fail(`${name} must have non-negative finite bounds`);
     }
-    if (rect.x + rect.width > this.#width || rect.y + rect.height > this.#height)
+    if (rect.x + rect.width > this._width || rect.y + rect.height > this._height)
     {
-      fail(`${name} exceeds the ${this.#width}x${this.#height} target`);
+      fail(`${name} exceeds the ${this._width}x${this._height} target`);
     }
   }
 }

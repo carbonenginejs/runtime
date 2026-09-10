@@ -179,9 +179,9 @@ function pipelineRecipe(recipe, topology)
  */
 export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
 {
-  #webgpu;
+  _webgpu;
 
-  #resolver;
+  _resolver;
 
   /**
    * @param {CjsWebgpuDevice} webgpu Canonical WebGPU device.
@@ -208,8 +208,8 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
     {
       fail("composition resolver requires a CjsTrinityBatchResolver");
     }
-    this.#webgpu = webgpu;
-    this.#resolver = resolver;
+    this._webgpu = webgpu;
+    this._resolver = resolver;
   }
 
   /**
@@ -235,7 +235,7 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
 
     if (!passCount) return null;
 
-    const material = await this.#resolver.ResolveMaterial(
+    const material = await this._resolver.ResolveMaterial(
       batch.material,
       batch,
       { ...preparedContext, passIndex: 0 }
@@ -244,7 +244,7 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
     {
       fail("ResolveMaterial must return a pipeline and recipe");
     }
-    const geometry = await this.#resolver.ResolveGeometry(
+    const geometry = await this._resolver.ResolveGeometry(
       batch.geometrySource,
       batch,
       preparedContext
@@ -272,22 +272,22 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
 
         const perPass = passIndex === 0
           ? material
-          : await this.#resolver.ResolveMaterial(batch.material, batch, passContext);
+          : await this._resolver.ResolveMaterial(batch.material, batch, passContext);
 
         if (!perPass || typeof perPass !== "object" || perPass.pipeline == null)
         {
           fail(`ResolveMaterial must return a pipeline and recipe for pass ${passIndex}`);
         }
 
-        const prepared = await this.#webgpu.PreparePipeline(
+        const prepared = await this._webgpu.PreparePipeline(
           perPass.pipeline,
           perPass.prepareOptions ?? { warningsAsErrors: true }
         );
-        const livePipeline = await this.#webgpu.CreateRenderPipeline(
+        const livePipeline = await this._webgpu.CreateRenderPipeline(
           prepared,
           pipelineRecipe(perPass.recipe, topology)
         );
-        const bindings = await this.#resolver.ResolveBindings(batch, batch.objectData, passContext);
+        const bindings = await this._resolver.ResolveBindings(batch, batch.objectData, passContext);
 
         if (!bindings || typeof bindings !== "object")
         {
@@ -300,7 +300,7 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
           passIndex,
           prepared,
           livePipeline,
-          bindingSet: this.#webgpu.CreateBindingSet(livePipeline, {
+          bindingSet: this._webgpu.CreateBindingSet(livePipeline, {
             uniformData: bindings.uniformData,
             resources: bindings.resources
           }),
@@ -309,7 +309,7 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
 
         passes.push(entry);
 
-        entry.draw = this.#webgpu.CreateDraw(livePipeline, {
+        entry.draw = this._webgpu.CreateDraw(livePipeline, {
           bindingSet: entry.bindingSet,
           geometry: geometry.geometry,
           draw: drawArguments
@@ -352,15 +352,15 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
     const state = PREPARED_BATCHES.get(handle);
     if (!state || state.owner !== this) fail("prepared batch belongs to another dispatcher");
     if (state.destroyed) fail("prepared batch is destroyed");
-    for (const entry of handle.passes) this.#webgpu.EncodeDraw(pass, entry.draw, encodeState);
+    for (const entry of handle.passes) this._webgpu.EncodeDraw(pass, entry.draw, encodeState);
   }
 
   /** Encodes one pass of a prepared batch, for the grouped pass-major walk. */
-  #EncodePass(pass, handle, passIndex, encodeState)
+  _EncodePass(pass, handle, passIndex, encodeState)
   {
     const entry = handle.passes[passIndex];
 
-    if (entry) this.#webgpu.EncodeDraw(pass, entry.draw, encodeState);
+    if (entry) this._webgpu.EncodeDraw(pass, entry.draw, encodeState);
   }
 
   /**
@@ -372,7 +372,7 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
    * already agree; nothing is reordered, because sorting is Trinity's and a
    * reorder here would break golden-image comparison between backends.
    */
-  #EncodeGrouped(pass, batches, encodeState)
+  _EncodeGrouped(pass, batches, encodeState)
   {
     for (const group of DeriveBatchGroups(batches, handle => handle?.draw))
     {
@@ -391,7 +391,7 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
       {
         for (let index = group.start; index < group.end; index += 1)
         {
-          this.#EncodePass(pass, batches[index], passIndex, encodeState);
+          this._EncodePass(pass, batches[index], passIndex, encodeState);
         }
       }
     }
@@ -483,8 +483,8 @@ export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
     if (!state || state.owner !== this) fail("prepared accumulator belongs to another dispatcher");
     if (state.destroyed) fail("prepared accumulator is destroyed");
     const encodeState = new CjsWebgpuEncodeState();
-    this.#EncodeGrouped(pass, handle.gdprBatches, encodeState);
-    this.#EncodeGrouped(pass, handle.batches, encodeState);
+    this._EncodeGrouped(pass, handle.gdprBatches, encodeState);
+    this._EncodeGrouped(pass, handle.batches, encodeState);
   }
 
   /** Releases every binding set owned by a prepared accumulator. */

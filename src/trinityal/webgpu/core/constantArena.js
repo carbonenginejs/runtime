@@ -114,18 +114,31 @@ export class CjsWebgpuConstantArena
    */
   GetPage(page)
   {
-    if (!this.m_pages[page])
-    {
-      const usage = this.m_webgpu.GetBufferUsage();
-
-      this.m_pages[page] = this.m_webgpu.GetDevice().createBuffer({
-        label: `Constant buffer page ${page}`,
-        size: CONST_PAGE_SIZE,
-        usage: usage.UNIFORM | usage.COPY_DST
-      });
-    }
+    if (!this.m_pages[page]) this._CreatePage(page);
 
     return this.m_pages[page];
+  }
+
+  /**
+   * Allocates one page's `GPUBuffer`, Carbon's `CreatePage`
+   * (`MetalUtils.mm:432-439`).
+   *
+   * Carbon calls it from `Allocate` when the offset runs past the page and the
+   * next page has never been made; ours is reached through `GetPage`, which is
+   * the same "make it if it is not there" with one caller instead of two.
+   *
+   * @param {number} index The page index.
+   * @returns {void}
+   */
+  _CreatePage(index)
+  {
+    const usage = this.m_webgpu.GetBufferUsage();
+
+    this.m_pages[index] = this.m_webgpu.GetDevice().createBuffer({
+      label: `Constant buffer page ${index}`,
+      size: CONST_PAGE_SIZE,
+      usage: usage.UNIFORM | usage.COPY_DST
+    });
   }
 
   /** Bytes allocated this frame so far. */

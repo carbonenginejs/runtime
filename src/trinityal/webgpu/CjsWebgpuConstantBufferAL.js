@@ -47,6 +47,11 @@ export class CjsWebgpuConstantBufferAL
    * m_token: the arena region the shadow was last uploaded to, and for which
    * frame. `frame` is -1 after a Lock (Carbon's `Invalidate`), so the next bind
    * uploads again - to a NEW region.
+   *
+   * PUBLIC BECAUSE THE CONTEXT WRITES IT, as Carbon's does: the upload lives on
+   * the render context (`Tr2RenderContextAL::UploadConstants`) and reaches
+   * straight into the buffer's impl - `buffer.m_buffer->m_token`
+   * (`Tr2RenderContextMetal.mm:688-697`).
    */
   m_token = { frame: -1, page: 0, offset: 0, size: 0 };
 
@@ -112,33 +117,6 @@ export class CjsWebgpuConstantBufferAL
   Unlock(_renderContext)
   {
     return ALResult.S_OK;
-  }
-
-  /**
-   * Metal's `UploadConstants` (`MetalWorkQueue.mm:2429-2439`): if the token is
-   * not this frame's, copy the shadow into a fresh arena region and remember
-   * where. Called by the render context when it binds the buffer for a draw.
-   *
-   * @param {object} arena The context's `CjsWebgpuConstantArena`.
-   * @param {number} frame The recording frame number.
-   * @param {number} [minimumSize] Bytes the binding layout demands at least.
-   * @returns {{page: number, offset: number, size: number}} The bound region.
-   */
-  UploadConstants(arena, frame, minimumSize = 0)
-  {
-    const token = this.m_token;
-
-    if (token.frame !== frame || token.size < minimumSize)
-    {
-      const region = arena.Allocate(this.m_shadowCopy, Math.max(this.m_shadowCopy.length, minimumSize));
-
-      token.frame = frame;
-      token.page = region.page;
-      token.offset = region.offset;
-      token.size = region.size;
-    }
-
-    return token;
   }
 
   /**

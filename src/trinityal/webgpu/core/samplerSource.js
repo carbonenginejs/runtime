@@ -25,10 +25,10 @@ function fail(message)
 /** Resolves an effect's declared samplers against one device. */
 export class CjsWebgpuSamplerSource
 {
-  #webgpu;
+  _webgpu;
 
   /** Descriptor cache key to the in-flight or settled sampler. */
-  #created = new Map();
+  _created = new Map();
 
   /**
    * @param {object} webgpu Canonical WebGPU device.
@@ -37,7 +37,7 @@ export class CjsWebgpuSamplerSource
   {
     if (!webgpu) fail("a WebGPU device is required");
 
-    this.#webgpu = webgpu;
+    this._webgpu = webgpu;
   }
 
   /**
@@ -67,13 +67,13 @@ export class CjsWebgpuSamplerSource
     // which is the sharing this cache exists to do.
     const descriptor = CarbonSamplerDescriptor(authored);
     const key = JSON.stringify(descriptor);
-    const existing = this.#created.get(key);
+    const existing = this._created.get(key);
 
     if (existing) return existing;
 
-    const created = this.#webgpu.CreateSampler({ ...descriptor, label: `effect sampler ${name}` });
+    const created = this._webgpu.CreateSampler({ ...descriptor, label: `effect sampler ${name}` });
 
-    this.#created.set(key, created);
+    this._created.set(key, created);
 
     return created;
   }
@@ -91,6 +91,6 @@ export class CjsWebgpuSamplerSource
   /** Forgets every sampler, so a device loss can rebuild them. */
   Clear()
   {
-    this.#created.clear();
+    this._created.clear();
   }
 }

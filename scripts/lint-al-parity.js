@@ -109,13 +109,17 @@ const ACCEPTED = new Map([
     [ "CjsWebgpuRenderContextAL.BufferRewritten",
         "WebGPU cannot rename an allocation; queue ordering gives the same guarantee. Recorded in CjsWebgpuRenderContextAL.js." ],
     [ "CjsWebgpuRenderContextAL.CheckDrawResources",
-        "Carbon BINDS dummy resources and the vertex descriptor here rather than validating; our dispatcher fills bindings elsewhere. Recorded in CjsWebgpuRenderContextAL.js." ],
+        "Metal's name for what EmitRenderEncoderState does here - resolve, fill unbound slots with dummies, bind the layout, inside the draw verb. Recorded in CjsWebgpuRenderContextAL.js." ],
     [ "CjsWebgpuRenderContextAL.ReleaseLater",
         "A GPUBuffer outlives any submission referencing it, so there is nothing to defer. Recorded in CjsWebgpuRenderContextAL.js." ],
+    [ "CjsWebgpuPsoDescription.CreatePipelineState",
+        "Carbon's description builds the D3D12 pipeline itself; ours produces the recipe (BuildRecipe) and the context creates from it, so both paths reach one pipeline factory. Recorded in core/psoDescription.js." ],
+    [ "CjsWebgpuPsoDescription.UpdateHash",
+        "Carbon hashes into m_hash and compares with operator==; GetKey is both at once, which is what its head comment says. Recorded in core/psoDescription.js." ],
+    [ "CjsWebgpuConstantArena.Initialize",
+        "Carbon initializes a default-constructed allocator with its device; ours takes the device in the constructor, which is the same moment. Recorded in core/constantArena.js." ],
     [ "CjsWebgpuRenderContextAL.UseConstantBuffer",
-        "Constants reach the device through the bind group; there is no constant arena. Recorded in CjsWebgpuRenderContextAL.js." ],
-    [ "CjsWebgpuRenderContextAL.UploadConstants",
-        "Constants reach the device through the bind group; there is no arena offset to return. Recorded in CjsWebgpuRenderContextAL.js." ],
+        "Metal-only compute-encoder residency for the ray-tracing shader table; this backend dispatches no compute and has no ray tracing. Recorded in CjsWebgpuRenderContextAL.js." ],
 ]);
 
 /** C++ names that are never ported as methods. */
@@ -167,7 +171,22 @@ function withInherited(className)
 
     while (current && methodsOf.has(current))
     {
-        for (const method of methodsOf.get(current)) all.add(method);
+        for (const method of methodsOf.get(current))
+        {
+            all.add(method);
+
+            // `_Foo` IS `Foo`, MARKED INTERNAL. The AL used `#` privates until
+            // 2026-09-10, which made every privately-ported method invisible to
+            // this check and read as a gap - our work queue "did not port"
+            // `ReleaseEncoder`, `GetRenderEncoder` and `EmitRenderEncoderState`,
+            // all three present. The layer is internal already, so Carbon's own
+            // shape applies: its AL facade holds ONE private member and the impl
+            // behind it is public. The members are `_`-prefixed now, and the
+            // prefix is a convention this normalises away, exactly as the
+            // backend suffix and the `CjsWebgpu` prefix are normalised.
+            if (method.startsWith("_")) all.add(method.slice(1));
+        }
+
         current = baseOf.get(current);
     }
 
@@ -220,6 +239,45 @@ function citedSources(code)
     }
 
     return cited;
+}
+
+
+/**
+ * The donor CLASS names a file declares for itself, from `(class X)` on a
+ * `// Source:` line.
+ *
+ * WHY THIS EXISTS. `donorNames` derives a donor name from ours by convention -
+ * strip the backend suffix, or turn `CjsWebgpu<Name>` into `Tr2<Name>`. That
+ * covers every class on Carbon's AL contract, because Carbon names those
+ * `Tr2*AL` without exception. It covers nothing else, and the WebGPU backend
+ * ports four classes that are backend-INTERNAL in Carbon and named freely:
+ * `MetalWorkQueue`, `PSODescription`, `ConstantBufferAllocator`, and
+ * `ImageIO::BitmapDimensions` reached through a typedef. Those four sat in the
+ * notes as "matches no class in its cited donors" - unchecked, and reading
+ * like a porting gap when the port was fine and only the NAME could not be
+ * guessed.
+ *
+ * The shape is the one that had already emerged by hand in `constantArena.js`
+ * before anything read it. `(class none)` declares that the file ports no
+ * Carbon class at all - a free function's behaviour, say - so the note is a
+ * decision rather than an omission.
+ *
+ * @param {string} code File contents.
+ * @returns {string[]} Declared donor class names, in citation order.
+ */
+function citedDonorClasses(code)
+{
+    const declared = [];
+
+    for (const line of code.split("\n"))
+    {
+        if (!line.startsWith("//")) break;
+
+        const match = line.match(/^\/\/\s*Source:.*\(class\s+([A-Za-z0-9_:]+)\s*\)/);
+        if (match) declared.push(match[1].split("::").pop());
+    }
+
+    return declared;
 }
 
 
@@ -371,6 +429,18 @@ function jsMethods(code)
 
         if (!current) continue;
 
+        // A `#` MEMBER IS NOT MATCHED, DELIBERATELY. The first fix for "our
+        // work queue does not port ReleaseEncoder" was to accept `#` here, and
+        // that treated the symptom: Carbon's AL facade holds exactly ONE
+        // private member, the pointer to its impl, and the impl class behind it
+        // carries PUBLIC state - which is why Metal reads
+        // `buffer.m_buffer->GetMetalBuffer()` and the stub swap chain declares
+        // `m_backBuffer` public. We merge facade and impl into one class, so
+        // the merged class carries the impl's members, in the open. Hiding
+        // inside a layer that is already internal buys nothing and has cost
+        // something real: a program whose state was entirely private
+        // canonicalised to `{}` and collided with every other program in the
+        // pipeline cache. So a `#` member reported as a gap IS the finding.
         const method = line.match(/^\s{2}(?:static\s+|async\s+|get\s+|set\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*\(/);
         if (method && !JS_NON_METHODS.has(method[1])) byClass.get(current).add(method[1]);
     }
@@ -468,13 +538,31 @@ for (const { relative, code, ours } of parsed)
         }
     }
 
+    const declaredDonors = citedDonorClasses(code);
+
     for (const [ jsClass ] of ours)
     {
-        const candidates = donorNames(jsClass);
+        // Declared names come LAST, so a class the convention already resolves
+        // is never diverted by a declaration meant for a sibling in the same
+        // file. A declaration is a fallback for a name that cannot be derived,
+        // not an override.
+        const candidates = [ ...donorNames(jsClass), ...declaredDonors ];
         const donor = candidates.find(name => theirs.has(name));
 
         if (donor === undefined)
         {
+            // `(class none)` is a DECISION, and says so out loud rather than
+            // dropping the file silently: a class whose donor is a subset of a
+            // Carbon class, or a free function's behaviour, cannot be compared
+            // by a per-class name diff, and the reason lives in its head
+            // comment where a reader meets it.
+            if (declaredDonors.includes("none"))
+            {
+                notes.push(`${relative} ${jsClass} declares no comparable donor class; `
+                    + `see its head comment for what it ports and what it does not.`);
+                continue;
+            }
+
             notes.push(`${relative} ${jsClass} matches no class in its cited donors `
                 + `(tried ${candidates.join(", ")}).`);
             continue;

@@ -77,14 +77,14 @@ export const CjsWebgpuPlatformCaps = Object.freeze({
  */
 export class CjsWebgpuCapsAL
 {
-  #webgpu = null;
+  _webgpu = null;
 
   /**
    * @param {object} [webgpu] The `CjsWebgpuDevice`, when one is composed.
    */
   constructor(webgpu = null)
   {
-    this.#webgpu = webgpu ?? null;
+    this._webgpu = webgpu ?? null;
   }
 
   /**
@@ -99,9 +99,9 @@ export class CjsWebgpuCapsAL
    */
   SupportsFloat16()
   {
-    if (!this.#webgpu) return false;
+    if (!this._webgpu) return false;
 
-    return this.#webgpu.GetDevice().features.has("shader-f16");
+    return this._webgpu.GetDevice().features.has("shader-f16");
   }
 
   /**

@@ -1,5 +1,30 @@
-// Source: trinity/trinityal/metal/MetalWorkQueue.h
+// Source: trinity/trinityal/metal/MetalWorkQueue.h (class none)
 // Source: trinity/trinityal/metal/MetalWorkQueue.mm
+//
+// A SUBSET OF ITS DONOR, DECLARED. The parity check compares class to class by
+// method name, and `MetalWorkQueue` declares 113 methods to this file's 27.
+// Comparing them reports 101 "gaps" that are not gaps: Metal's work queue is
+// the whole command recorder, and in this backend that surface lives in three
+// other places. So the citation names the donor for provenance and `(class
+// none)` declares the comparison meaningless, rather than freezing 101 entries
+// into a baseline that would read as debt.
+//
+// What this file took, and where the rest of Metal's work queue went:
+//
+//   ENCODER LIFETIME              -> here. BeginFrame/EndFrame, SetCurrentEncoder,
+//                                    GetRenderEncoder/ReleaseEncoder, the pass
+//                                    hint and its attachments, the pending
+//                                    bindings a draw needs.
+//   Blend, depth, stencil, cull,  -> the PIPELINE. WebGPU has no per-state
+//   fill, sample state               setter; `Tr2RenderStateSetup.GetWebgpuRecipe`
+//                                    projects the authored setup and
+//                                    `CjsWebgpuPsoDescription` resolves it once.
+//   SetTextures/SetSamplers/      -> `CjsWebgpuResourceSetAL` and the bind
+//   SetBuffers/SetConstants          groups the render context assembles.
+//   Draw*/Dispatch*               -> `CjsWebgpuRenderContextAL`'s draw verbs.
+//   Blit, mipmaps, MSAA resolve,  -> not ported, each recorded where it refuses.
+//   visibility queries, parallel
+//   encoding, the drawable blit
 //
 // The encoder the backend is currently writing into, and when it has to change.
 //
@@ -54,25 +79,25 @@ export const EncoderType = Object.freeze({
 export class CjsWebgpuWorkQueue
 {
   /** m_currentEncoderType */
-  #currentEncoderType = EncoderType.NONE;
+  _currentEncoderType = EncoderType.NONE;
 
   /** m_pendingRenderPassHint / m_hasPendingRenderPassHint */
-  #pendingRenderPassHint = null;
+  _pendingRenderPassHint = null;
 
   /** Transitions since the last drain, in order. */
-  #events = [];
+  _events = [];
 
   /** Render passes begun this frame. */
-  #passCount = 0;
+  _passCount = 0;
 
   /** Whether BeginFrame has run without a matching EndFrame. */
-  #inFrame = false;
+  _inFrame = false;
 
   /** m_currentRenderPassDescriptor.colorAttachments */
-  #colorAttachments = [];
+  _colorAttachments = [];
 
   /** m_currentRenderPassDescriptor.depthAttachment */
-  #depthAttachment = null;
+  _depthAttachment = null;
 
   /**
    * The encoder currently open.
@@ -81,19 +106,19 @@ export class CjsWebgpuWorkQueue
    */
   GetCurrentEncoderType()
   {
-    return this.#currentEncoderType;
+    return this._currentEncoderType;
   }
 
   /** Render passes begun this frame. @returns {number} */
   GetPassCount()
   {
-    return this.#passCount;
+    return this._passCount;
   }
 
   /** Whether a hint is waiting to be folded in. @returns {boolean} */
   HasPendingRenderPassHint()
   {
-    return this.#pendingRenderPassHint !== null;
+    return this._pendingRenderPassHint !== null;
   }
 
   /**
@@ -106,15 +131,15 @@ export class CjsWebgpuWorkQueue
    */
   BeginFrame()
   {
-    if (this.#inFrame) fail("BeginFrame without EndFrame");
+    if (this._inFrame) fail("BeginFrame without EndFrame");
 
-    this.#inFrame = true;
-    this.#passCount = 0;
+    this._inFrame = true;
+    this._passCount = 0;
     // Nothing named last frame is wanted this frame until a verb names it.
-    this.#pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
-    this.#events.push({ type: "begin-frame" });
+    this._pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+    this._events.push({ type: "begin-frame" });
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   /**
@@ -125,15 +150,15 @@ export class CjsWebgpuWorkQueue
    */
   EndFrame()
   {
-    if (!this.#inFrame) fail("EndFrame without BeginFrame");
+    if (!this._inFrame) fail("EndFrame without BeginFrame");
 
-    if (this.#pendingRenderPassHint) this.#GetRenderEncoder();
+    if (this._pendingRenderPassHint) this._GetRenderEncoder();
 
-    this.#ReleaseEncoder();
-    this.#inFrame = false;
-    this.#events.push({ type: "commit" });
+    this._ReleaseEncoder();
+    this._inFrame = false;
+    this._events.push({ type: "commit" });
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   /**
@@ -151,13 +176,13 @@ export class CjsWebgpuWorkQueue
   {
     if (!Array.isArray(colors)) fail("RenderPassHint takes an array of colour attachments");
 
-    if (this.#pendingRenderPassHint)
+    if (this._pendingRenderPassHint)
     {
-      this.#GetRenderEncoder();
-      this.#ReleaseEncoder();
+      this._GetRenderEncoder();
+      this._ReleaseEncoder();
     }
 
-    this.#pendingRenderPassHint = { colors, depth };
+    this._pendingRenderPassHint = { colors, depth };
   }
 
   /**
@@ -170,19 +195,19 @@ export class CjsWebgpuWorkQueue
    */
   EndRenderPassHint()
   {
-    if (this.#pendingRenderPassHint) this.#GetRenderEncoder();
+    if (this._pendingRenderPassHint) this._GetRenderEncoder();
 
-    this.#ReleaseEncoder();
+    this._ReleaseEncoder();
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   /** Carbon's `EndCurrentRenderPass`. @returns {object[]} The transitions. */
   EndCurrentRenderPass()
   {
-    if (this.#currentEncoderType === EncoderType.RENDER) this.#ReleaseEncoder();
+    if (this._currentEncoderType === EncoderType.RENDER) this._ReleaseEncoder();
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   /**
@@ -193,37 +218,37 @@ export class CjsWebgpuWorkQueue
    */
   SetCurrentEncoder(encoderType)
   {
-    if (!this.#inFrame) fail("SetCurrentEncoder outside a frame");
+    if (!this._inFrame) fail("SetCurrentEncoder outside a frame");
     if (encoderType === EncoderType.NONE) fail("SetCurrentEncoder needs a real encoder type");
 
     // Carbon flushes a pending hint before any NON-render encoder, because the
     // declared pass must happen before the work that follows it
     // (`MetalWorkQueue.mm:851-855`).
-    if (encoderType !== EncoderType.RENDER && this.#pendingRenderPassHint)
+    if (encoderType !== EncoderType.RENDER && this._pendingRenderPassHint)
     {
-      this.#GetRenderEncoder();
-      this.#ReleaseEncoder();
+      this._GetRenderEncoder();
+      this._ReleaseEncoder();
     }
 
-    if (this.#currentEncoderType === encoderType)
+    if (this._currentEncoderType === encoderType)
     {
       // A pending hint describes the NEXT pass, so an open render encoder is
       // still the wrong one to keep drawing into.
-      if (encoderType !== EncoderType.RENDER || !this.#pendingRenderPassHint) return this.#Drain();
+      if (encoderType !== EncoderType.RENDER || !this._pendingRenderPassHint) return this._Drain();
     }
 
     if (encoderType === EncoderType.RENDER)
     {
-      this.#GetRenderEncoder();
+      this._GetRenderEncoder();
 
-      return this.#Drain();
+      return this._Drain();
     }
 
-    this.#ReleaseEncoder();
-    this.#currentEncoderType = encoderType;
-    this.#events.push({ type: "open", encoderType });
+    this._ReleaseEncoder();
+    this._currentEncoderType = encoderType;
+    this._events.push({ type: "open", encoderType });
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   /**
@@ -251,17 +276,17 @@ export class CjsWebgpuWorkQueue
   {
     if (!Number.isInteger(index) || index < 0) fail("a render attachment needs a slot index");
 
-    const current = this.#colorAttachments[index] ?? null;
+    const current = this._colorAttachments[index] ?? null;
 
-    if (current?.texture === (texture ?? null)) return this.#Drain();
+    if (current?.texture === (texture ?? null)) return this._Drain();
 
-    this.#ReleaseEncoder();
+    this._ReleaseEncoder();
 
-    this.#colorAttachments[index] = texture
+    this._colorAttachments[index] = texture
       ? { texture, slice, loadOp: "load", storeOp: "store" }
       : null;
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   /**
@@ -272,13 +297,13 @@ export class CjsWebgpuWorkQueue
    */
   SetDepthAttachment(texture)
   {
-    if (this.#depthAttachment?.texture === (texture ?? null)) return this.#Drain();
+    if (this._depthAttachment?.texture === (texture ?? null)) return this._Drain();
 
-    this.#ReleaseEncoder();
+    this._ReleaseEncoder();
 
-    this.#depthAttachment = texture ? { texture, loadOp: "load", storeOp: "store" } : null;
+    this._depthAttachment = texture ? { texture, loadOp: "load", storeOp: "store" } : null;
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   /**
@@ -289,8 +314,8 @@ export class CjsWebgpuWorkQueue
   GetAttachments()
   {
     return {
-      colors: this.#colorAttachments.map(attachment => (attachment ? { ...attachment } : null)),
-      depth: this.#depthAttachment ? { ...this.#depthAttachment } : null
+      colors: this._colorAttachments.map(attachment => (attachment ? { ...attachment } : null)),
+      depth: this._depthAttachment ? { ...this._depthAttachment } : null
     };
   }
 
@@ -313,8 +338,8 @@ export class CjsWebgpuWorkQueue
    */
   DrawIndexedPrimitives(indexCount, instanceCount, startIndex, baseVertex, startInstance)
   {
-    this.#RequireRenderEncoder();
-    this.#events.push({
+    this._RequireRenderEncoder();
+    this._events.push({
       type: "draw",
       indexed: true,
       indexCount,
@@ -324,13 +349,13 @@ export class CjsWebgpuWorkQueue
       startInstance
     });
 
-    if (this.#renderPass)
+    if (this._renderPass)
     {
-      this.#EmitRenderEncoderState(true);
-      this.#renderPass.drawIndexed(indexCount, instanceCount, startIndex, baseVertex, startInstance);
+      this._EmitRenderEncoderState(true);
+      this._renderPass.drawIndexed(indexCount, instanceCount, startIndex, baseVertex, startInstance);
     }
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   // THE BINDINGS A DRAW NEEDS, HELD UNTIL THE DRAW. Metal's setters write
@@ -341,10 +366,10 @@ export class CjsWebgpuWorkQueue
   // an encoder opens - a new pass starts with nothing bound.
 
   /** What the next draw must have bound. */
-  #pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+  _pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
 
   /** What the open encoder has been told, reset per encoder. */
-  #encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+  _encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
 
   /**
    * Names the bind group for one group index.
@@ -354,7 +379,7 @@ export class CjsWebgpuWorkQueue
    */
   SetBindGroup(index, bindGroup, dynamicOffsets = null)
   {
-    this.#pending.bindGroups[index] = { bindGroup, dynamicOffsets: dynamicOffsets?.length ? dynamicOffsets.slice() : null };
+    this._pending.bindGroups[index] = { bindGroup, dynamicOffsets: dynamicOffsets?.length ? dynamicOffsets.slice() : null };
   }
 
   /**
@@ -364,7 +389,7 @@ export class CjsWebgpuWorkQueue
    */
   SetRenderPipeline(pipeline)
   {
-    this.#pending.pipeline = pipeline;
+    this._pending.pipeline = pipeline;
   }
 
   /**
@@ -376,7 +401,7 @@ export class CjsWebgpuWorkQueue
    */
   SetVertexBuffer(slot, buffer, offset = 0)
   {
-    this.#pending.vertexBuffers[slot] = { buffer, offset };
+    this._pending.vertexBuffers[slot] = { buffer, offset };
   }
 
   /**
@@ -388,15 +413,15 @@ export class CjsWebgpuWorkQueue
    */
   SetIndexBuffer(buffer, format, offset = 0)
   {
-    this.#pending.indexBuffer = { buffer, format, offset };
+    this._pending.indexBuffer = { buffer, format, offset };
   }
 
   /** Metal's `EmitRenderEncoderState`: bind what differs from the encoder's. */
-  #EmitRenderEncoderState(indexed)
+  _EmitRenderEncoderState(indexed)
   {
-    const pass = this.#renderPass;
-    const live = this.#encoderState;
-    const want = this.#pending;
+    const pass = this._renderPass;
+    const live = this._encoderState;
+    const want = this._pending;
 
     if (want.pipeline && live.pipeline !== want.pipeline)
     {
@@ -455,8 +480,8 @@ export class CjsWebgpuWorkQueue
    */
   DrawPrimitives(vertexCount, instanceCount, startVertex, startInstance)
   {
-    this.#RequireRenderEncoder();
-    this.#events.push({
+    this._RequireRenderEncoder();
+    this._events.push({
       type: "draw",
       indexed: false,
       vertexCount,
@@ -465,13 +490,13 @@ export class CjsWebgpuWorkQueue
       startInstance
     });
 
-    if (this.#renderPass)
+    if (this._renderPass)
     {
-      this.#EmitRenderEncoderState(false);
-      this.#renderPass.draw(vertexCount, instanceCount, startVertex, startInstance);
+      this._EmitRenderEncoderState(false);
+      this._renderPass.draw(vertexCount, instanceCount, startVertex, startInstance);
     }
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   // THE DEVICE IS OPTIONAL AND THAT IS THE WHOLE DESIGN. Everything above is
@@ -486,13 +511,13 @@ export class CjsWebgpuWorkQueue
   // dispatcher. That is what stops the queue being a second recording layer.
 
   /** The live command encoder, when a frame is being encoded for real. */
-  #commandEncoder = null;
+  _commandEncoder = null;
 
   /** Turns folded attachments into a `GPURenderPassDescriptor`. */
-  #describePass = null;
+  _describePass = null;
 
   /** The open `GPURenderPassEncoder`, or null. */
-  #renderPass = null;
+  _renderPass = null;
 
   /**
    * Attaches a real command encoder for this frame.
@@ -518,8 +543,8 @@ export class CjsWebgpuWorkQueue
       fail("a command encoder needs a describePass that returns a render-pass descriptor");
     }
 
-    this.#commandEncoder = commandEncoder ?? null;
-    this.#describePass = commandEncoder ? describePass : null;
+    this._commandEncoder = commandEncoder ?? null;
+    this._describePass = commandEncoder ? describePass : null;
 
     return this;
   }
@@ -531,7 +556,7 @@ export class CjsWebgpuWorkQueue
    */
   GetRenderPass()
   {
-    return this.#renderPass;
+    return this._renderPass;
   }
 
   /**
@@ -554,74 +579,74 @@ export class CjsWebgpuWorkQueue
    */
   GetRenderEncoder()
   {
-    this.#RequireRenderEncoder();
+    this._RequireRenderEncoder();
 
-    return this.#Drain();
+    return this._Drain();
   }
 
   RequireRenderPass()
   {
-    this.#RequireRenderEncoder();
+    this._RequireRenderEncoder();
 
     // A caller that encodes on the pass directly binds what it likes, so what
     // this queue believes the encoder holds is no longer true.
-    this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+    this._encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
 
-    return this.#renderPass;
+    return this._renderPass;
   }
 
   /** Carbon's `GetRenderEncoder`: the current one, or a new one. */
-  #RequireRenderEncoder()
+  _RequireRenderEncoder()
   {
-    if (!this.#inFrame) fail("a draw outside a frame");
+    if (!this._inFrame) fail("a draw outside a frame");
 
-    if (this.#currentEncoderType === EncoderType.RENDER && !this.#pendingRenderPassHint) return;
+    if (this._currentEncoderType === EncoderType.RENDER && !this._pendingRenderPassHint) return;
 
-    this.#GetRenderEncoder();
+    this._GetRenderEncoder();
   }
 
   /** Opens a render encoder, folding any pending hint into its descriptor. */
-  #GetRenderEncoder()
+  _GetRenderEncoder()
   {
-    this.#ReleaseEncoder();
+    this._ReleaseEncoder();
 
-    const hint = this.#pendingRenderPassHint;
+    const hint = this._pendingRenderPassHint;
     const attachments = ApplyRenderPassHint(hint);
 
-    this.#pendingRenderPassHint = null;
-    this.#passCount += 1;
-    this.#currentEncoderType = EncoderType.RENDER;
-    this.#events.push({ type: "open", encoderType: EncoderType.RENDER, attachments });
+    this._pendingRenderPassHint = null;
+    this._passCount += 1;
+    this._currentEncoderType = EncoderType.RENDER;
+    this._events.push({ type: "open", encoderType: EncoderType.RENDER, attachments });
 
-    if (this.#commandEncoder)
+    if (this._commandEncoder)
     {
-      this.#renderPass = this.#commandEncoder.beginRenderPass(this.#describePass(attachments));
-      this.#encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+      this._renderPass = this._commandEncoder.beginRenderPass(this._describePass(attachments));
+      this._encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
     }
   }
 
   /** Carbon's `ReleaseEncoder( true )`. */
-  #ReleaseEncoder()
+  _ReleaseEncoder()
   {
-    if (this.#currentEncoderType === EncoderType.NONE) return;
+    if (this._currentEncoderType === EncoderType.NONE) return;
 
     // The pass ends BEFORE the close event, so a caller draining events after
     // a close can rely on the pass already being finished rather than racing it.
-    if (this.#renderPass)
+    if (this._renderPass)
     {
-      this.#renderPass.end();
-      this.#renderPass = null;
+      this._renderPass.end();
+      this._renderPass = null;
     }
 
-    this.#events.push({ type: "close", encoderType: this.#currentEncoderType });
-    this.#currentEncoderType = EncoderType.NONE;
+    this._events.push({ type: "close", encoderType: this._currentEncoderType });
+    this._currentEncoderType = EncoderType.NONE;
   }
 
-  #Drain()
+  _Drain()
   {
-    const events = this.#events;
+    const events = this._events;
 
-    this.#events = [];
+    this._events = [];
 
     return events;
   }

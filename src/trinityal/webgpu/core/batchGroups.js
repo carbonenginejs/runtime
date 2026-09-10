@@ -1,4 +1,7 @@
-// Source: trinity/trinity/Tr2RenderContext.cpp:462-537 (Tr2RenderContextBase::RenderBatchGroup)
+// Source: trinity/trinity/Tr2RenderContext.cpp:462-537 (class none)
+//   Tr2RenderContextBase::RenderBatchGroup is a METHOD, not a class: this file
+//   ports the state it keeps across one group - what the encoder already has
+//   bound - so there is no class to compare against.
 // Source: trinity/trinity/TriRenderBatch.cpp (CanBeBinned)
 //
 // Carbon hoists per GROUP what does not change across a run of batches -
@@ -103,21 +106,21 @@ export function DeriveBatchGroups(batches, resolveDraw = handle => handle?.draw)
  */
 export class CjsWebgpuEncodeState
 {
-  #pass = null;
+  _pass = null;
 
-  #pipeline = null;
+  _pipeline = null;
 
-  #vertexBuffers = null;
+  _vertexBuffers = null;
 
-  #indexBuffer = null;
+  _indexBuffer = null;
 
-  #bindGroups = [];
+  _bindGroups = [];
 
   /** Binds this state to a pass, rejecting a second one. */
   Require(pass)
   {
-    if (this.#pass === null) this.#pass = pass;
-    else if (this.#pass !== pass)
+    if (this._pass === null) this._pass = pass;
+    else if (this._pass !== pass)
     {
       const error = new Error("CjsWebgpuEncodeState: encode state belongs to another render pass");
       error.code = "CJS_WEBGPU_ENCODE_STATE_INVALID";
@@ -129,32 +132,32 @@ export class CjsWebgpuEncodeState
   /** Whether the pipeline needs setting, recording it when it does. */
   NeedsPipeline(pipeline)
   {
-    if (this.#pipeline === pipeline) return false;
-    this.#pipeline = pipeline;
+    if (this._pipeline === pipeline) return false;
+    this._pipeline = pipeline;
     return true;
   }
 
   /** Whether the vertex buffers need setting, recording them when they do. */
   NeedsVertexBuffers(entries)
   {
-    if (sameVertexBuffers(this.#vertexBuffers, entries)) return false;
-    this.#vertexBuffers = entries;
+    if (sameVertexBuffers(this._vertexBuffers, entries)) return false;
+    this._vertexBuffers = entries;
     return true;
   }
 
   /** Whether the index buffer needs setting, recording it when it does. */
   NeedsIndexBuffer(entry)
   {
-    if (sameIndexBuffer(true, this.#indexBuffer, entry)) return false;
-    this.#indexBuffer = entry;
+    if (sameIndexBuffer(true, this._indexBuffer, entry)) return false;
+    this._indexBuffer = entry;
     return true;
   }
 
   /** Whether one bind group needs setting, recording it when it does. */
   NeedsBindGroup(index, bindGroup)
   {
-    if (this.#bindGroups[index] === bindGroup) return false;
-    this.#bindGroups[index] = bindGroup;
+    if (this._bindGroups[index] === bindGroup) return false;
+    this._bindGroups[index] = bindGroup;
     return true;
   }
 }

@@ -65,7 +65,7 @@ function normalizePass(entry, index)
  */
 export class CjsWebgpuTrinityPassEncoder
 {
-  #dispatcher;
+  _dispatcher;
 
   /**
    * Creates an encoder over a CjsWebgpuTrinityBatchDispatcher-compatible
@@ -77,7 +77,7 @@ export class CjsWebgpuTrinityPassEncoder
     {
       fail("dispatcher must be a CjsWebgpuTrinityBatchDispatcher");
     }
-    this.#dispatcher = dispatcher;
+    this._dispatcher = dispatcher;
   }
 
   /**
@@ -117,7 +117,7 @@ export class CjsWebgpuTrinityPassEncoder
         }
         for (const selection of entry.selections)
         {
-          this.#dispatcher.EncodeBatchType(
+          this._dispatcher.EncodeBatchType(
             pass,
             selection.preparedBatchMap,
             selection.batchType

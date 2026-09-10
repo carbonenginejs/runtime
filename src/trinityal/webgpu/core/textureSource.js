@@ -36,14 +36,14 @@ function fail(message)
 /** Resolves an effect's named textures against one device and resource manager. */
 export class CjsWebgpuTextureSource
 {
-  #webgpu;
+  _webgpu;
 
-  #resourceManager;
+  _resourceManager;
 
-  #adapterKey;
+  _adapterKey;
 
   /** Resource path to the in-flight or settled realization. */
-  #realized = new Map();
+  _realized = new Map();
 
   /**
    * @param {object} webgpu Canonical WebGPU device.
@@ -56,9 +56,9 @@ export class CjsWebgpuTextureSource
     if (!webgpu) fail("a WebGPU device is required");
     if (!options.resourceManager) fail("a resource manager is required to load textures by path");
 
-    this.#webgpu = webgpu;
-    this.#resourceManager = options.resourceManager;
-    this.#adapterKey = options.adapterKey ?? "webgpu";
+    this._webgpu = webgpu;
+    this._resourceManager = options.resourceManager;
+    this._adapterKey = options.adapterKey ?? "webgpu";
   }
 
   /**
@@ -88,15 +88,15 @@ export class CjsWebgpuTextureSource
       fail(`effect resource "${name}" names no path; an unset texture cannot be bound`);
     }
 
-    const existing = this.#realized.get(path);
+    const existing = this._realized.get(path);
 
     // Shared rather than re-entered: two batches binding the same texture in one
     // frame is the ordinary case, and realizing it twice would allocate twice.
     if (existing) return existing;
 
-    const realization = this.#Realize(path, name);
+    const realization = this._Realize(path, name);
 
-    this.#realized.set(path, realization);
+    this._realized.set(path, realization);
 
     return realization;
   }
@@ -108,9 +108,9 @@ export class CjsWebgpuTextureSource
    * @param {string} name Effect resource name, for diagnostics.
    * @returns {Promise<object>} Realized bundle.
    */
-  async #Realize(path, name)
+  async _Realize(path, name)
   {
-    const resource = this.#resourceManager.GetResource(path, {
+    const resource = this._resourceManager.GetResource(path, {
       requirement: ResourceRequirement.TEXTURE
     });
 
@@ -121,10 +121,10 @@ export class CjsWebgpuTextureSource
     // frame.
     await resource.Ready?.();
 
-    return this.#webgpu.RealizeRgba8Texture(resource, {
+    return this._webgpu.RealizeRgba8Texture(resource, {
       textureKey: name,
       bundleLabel: `effect texture ${name}`,
-      adapterKey: this.#adapterKey
+      adapterKey: this._adapterKey
     });
   }
 
@@ -141,6 +141,6 @@ export class CjsWebgpuTextureSource
   /** Forgets every realization, so a device loss can rebuild them. */
   Clear()
   {
-    this.#realized.clear();
+    this._realized.clear();
   }
 }

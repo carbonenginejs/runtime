@@ -100,7 +100,7 @@ export class CjsWebgpuResourceSetAL
       // Constant buffers are not the set's; see the head note.
       if (binding.buffer && binding.buffer.type === "uniform") continue;
 
-      entries.set(`${binding.group}:${binding.binding}`, this.#Resolve(description, binding, renderContext));
+      entries.set(`${binding.group}:${binding.binding}`, this._Resolve(description, binding, renderContext));
     }
 
     this.m_entries = entries;
@@ -113,7 +113,7 @@ export class CjsWebgpuResourceSetAL
   }
 
   /** One slot's resource, or the dummy Metal would put there. */
-  #Resolve(description, binding, renderContext)
+  _Resolve(description, binding, renderContext)
   {
     if (binding.sampler)
     {

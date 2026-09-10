@@ -30,7 +30,7 @@ const STUB_BACK_BUFFER_SIZE = 4;
 export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_backBuffer */
-  #backBuffer = new Tr2TextureALStub();
+  _backBuffer = new Tr2TextureALStub();
 
   /**
    * Creates the swap chain and its back buffer.
@@ -43,10 +43,10 @@ export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext.IsValid()) return ALResult.E_INVALIDARG;
 
-    this.#backBuffer.Destroy();
-    this.#backBuffer = new Tr2TextureALStub();
+    this._backBuffer.Destroy();
+    this._backBuffer = new Tr2TextureALStub();
 
-    return this.#backBuffer.Create(
+    return this._backBuffer.Create(
       Tr2BitmapDimensions.Texture2D(
         STUB_BACK_BUFFER_SIZE,
         STUB_BACK_BUFFER_SIZE,
@@ -61,8 +61,8 @@ export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
   /** Releases the back buffer and leaves the device-resource registry. */
   Destroy()
   {
-    this.#backBuffer.Destroy();
-    this.#backBuffer = new Tr2TextureALStub();
+    this._backBuffer.Destroy();
+    this._backBuffer = new Tr2TextureALStub();
     super.Destroy();
   }
 
@@ -73,7 +73,7 @@ export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#backBuffer.IsValid();
+    return this._backBuffer.IsValid();
   }
 
   /**
@@ -83,7 +83,7 @@ export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
    */
   GetBackBuffer()
   {
-    return this.#backBuffer;
+    return this._backBuffer;
   }
 
   /**
@@ -106,7 +106,7 @@ export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
    */
   GetWidth()
   {
-    return this.#backBuffer.GetWidth();
+    return this._backBuffer.GetWidth();
   }
 
   /**
@@ -116,7 +116,7 @@ export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
    */
   GetHeight()
   {
-    return this.#backBuffer.GetHeight();
+    return this._backBuffer.GetHeight();
   }
 
   /**

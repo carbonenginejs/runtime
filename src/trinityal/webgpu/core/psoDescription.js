@@ -1,4 +1,4 @@
-// Source: trinity/trinityal/dx12/util/PsoDescription.h
+// Source: trinity/trinityal/dx12/util/PsoDescription.h (class PSODescription)
 //   trinity/trinityal/dx12/util/PsoDescription.cpp
 //   trinity/trinityal/dx12/Tr2RenderContextDx12.cpp (the setters and SetAllState)
 //

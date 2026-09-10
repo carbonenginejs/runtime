@@ -38,13 +38,13 @@ import { ShaderType } from "#consts/render-context";
 export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_type - a Carbon `ShaderType`. */
-  #type = ShaderType.INVALID_SHADER;
+  _type = ShaderType.INVALID_SHADER;
 
   /** m_bytecode - a copy, not a view of the caller's buffer. */
-  #bytecode = new Uint8Array(0);
+  _bytecode = new Uint8Array(0);
 
   /** m_signature */
-  #signature = null;
+  _signature = null;
 
   /**
    * Creates the shader.
@@ -60,10 +60,10 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
   {
     if (bytecode.byteLength === 0) return ALResult.E_OUTOFMEMORY;
 
-    this.#bytecode = new Uint8Array(bytecode.byteLength);
-    this.#bytecode.set(new Uint8Array(bytecode.buffer, bytecode.byteOffset, bytecode.byteLength));
-    this.#type = type;
-    this.#signature = signature;
+    this._bytecode = new Uint8Array(bytecode.byteLength);
+    this._bytecode.set(new Uint8Array(bytecode.buffer, bytecode.byteOffset, bytecode.byteLength));
+    this._type = type;
+    this._signature = signature;
 
     return ALResult.S_OK;
   }
@@ -71,9 +71,9 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
   /** Releases the bytecode and leaves the device-resource registry. */
   Destroy()
   {
-    this.#type = ShaderType.INVALID_SHADER;
-    this.#bytecode = new Uint8Array(0);
-    this.#signature = null;
+    this._type = ShaderType.INVALID_SHADER;
+    this._bytecode = new Uint8Array(0);
+    this._signature = null;
     super.Destroy();
   }
 
@@ -84,7 +84,7 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#type !== ShaderType.INVALID_SHADER && this.#bytecode.length !== 0;
+    return this._type !== ShaderType.INVALID_SHADER && this._bytecode.length !== 0;
   }
 
   /**
@@ -94,7 +94,7 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
    */
   GetType()
   {
-    return this.#type;
+    return this._type;
   }
 
   /**
@@ -104,9 +104,9 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
    */
   GetBytecode()
   {
-    if (this.#bytecode.length === 0) return { result: ALResult.E_INVALIDCALL, bytecode: null };
+    if (this._bytecode.length === 0) return { result: ALResult.E_INVALIDCALL, bytecode: null };
 
-    return { result: ALResult.S_OK, bytecode: this.#bytecode };
+    return { result: ALResult.S_OK, bytecode: this._bytecode };
   }
 
   /**
@@ -116,7 +116,7 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
    */
   GetSignature()
   {
-    return this.#signature;
+    return this._signature;
   }
 
   /**
@@ -129,7 +129,7 @@ export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
    */
   SetNullShaderType(type)
   {
-    this.#type = type;
+    this._type = type;
   }
 
   /**

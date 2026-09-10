@@ -280,7 +280,14 @@ for (const backend of backends)
 
         for (const method of stubMethods)
         {
-            if (method.startsWith("#") || theirs.methods.has(method)) continue;
+            // `#` AND `_` ARE BOTH "NOT THE CONTRACT". The layer used `#` until
+            // 2026-09-10, when the AL dropped JavaScript privates for an `_`
+            // prefix - Carbon's AL facade holds one private member and its impl
+            // is public, so hiding inside a layer that is already internal buys
+            // nothing. The prefix still says "internal", and one backend's
+            // internal helper is not a verb the other owes: the stub's `_Reset`
+            // is its own bookkeeping, not something Trinity can call.
+            if (method.startsWith("#") || method.startsWith("_") || theirs.methods.has(method)) continue;
 
             problems.push(
                 `${backend}: ${theirs.name} does not answer ${method}, which ${stubClass} does. `

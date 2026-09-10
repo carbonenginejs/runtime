@@ -28,7 +28,7 @@ import { ALResult } from "../ALResult.js";
 export class Tr2VertexLayoutALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_definition */
-  #definition = null;
+  _definition = null;
 
   /**
    * Creates the layout.
@@ -41,9 +41,9 @@ export class Tr2VertexLayoutALStub extends Tr2BaseDeviceResourceAL
   {
     if (!renderContext.IsValid()) return ALResult.E_FAIL;
 
-    this.#definition = (definition?.items ?? definition).slice();
+    this._definition = (definition?.items ?? definition).slice();
 
-    if (this.#definition.length === 0) return ALResult.E_FAIL;
+    if (this._definition.length === 0) return ALResult.E_FAIL;
 
     return ALResult.S_OK;
   }
@@ -51,7 +51,7 @@ export class Tr2VertexLayoutALStub extends Tr2BaseDeviceResourceAL
   /** Releases the definition and leaves the device-resource registry. */
   Destroy()
   {
-    this.#definition = null;
+    this._definition = null;
     super.Destroy();
   }
 
@@ -62,7 +62,7 @@ export class Tr2VertexLayoutALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#definition !== null;
+    return this._definition !== null;
   }
 
   /**
@@ -72,7 +72,7 @@ export class Tr2VertexLayoutALStub extends Tr2BaseDeviceResourceAL
    */
   GetDefinition()
   {
-    return this.#definition;
+    return this._definition;
   }
 
   /**

@@ -33,10 +33,10 @@ const NO_HEAP_INDEX = 0xffffffff;
 export class Tr2SamplerStateALStub extends Tr2BaseDeviceResourceAL
 {
   /** m_isValid */
-  #isValid = false;
+  _isValid = false;
 
   /** The description this state was created from. */
-  #description = null;
+  _description = null;
 
   /**
    * Creates the sampler state.
@@ -47,8 +47,8 @@ export class Tr2SamplerStateALStub extends Tr2BaseDeviceResourceAL
    */
   Create(description, renderContext)
   {
-    this.#description = description;
-    this.#isValid = true;
+    this._description = description;
+    this._isValid = true;
 
     return ALResult.S_OK;
   }
@@ -56,8 +56,8 @@ export class Tr2SamplerStateALStub extends Tr2BaseDeviceResourceAL
   /** Releases the state and leaves the device-resource registry. */
   Destroy()
   {
-    this.#isValid = false;
-    this.#description = null;
+    this._isValid = false;
+    this._description = null;
     super.Destroy();
   }
 
@@ -68,7 +68,7 @@ export class Tr2SamplerStateALStub extends Tr2BaseDeviceResourceAL
    */
   IsValid()
   {
-    return this.#isValid;
+    return this._isValid;
   }
 
   /**
@@ -78,7 +78,7 @@ export class Tr2SamplerStateALStub extends Tr2BaseDeviceResourceAL
    */
   GetDescription()
   {
-    return this.#description;
+    return this._description;
   }
 
   /**

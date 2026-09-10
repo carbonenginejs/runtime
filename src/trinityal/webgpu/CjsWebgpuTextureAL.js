@@ -131,13 +131,13 @@ export class CjsWebgpuTextureAL
     this.m_cpuUsage = cpuUsage;
     this.m_webgpu = webgpu;
 
-    if (initialData) this.#Upload(initialData, mipCount, type);
+    if (initialData) this._Upload(initialData, mipCount, type);
 
     return ALResult.S_OK;
   }
 
   /** One `writeTexture` per subresource, Carbon's `mip + layer * mipCount` order. */
-  #Upload(initialData, mipCount, type)
+  _Upload(initialData, mipCount, type)
   {
     const desc = this.m_desc;
     const queue = this.m_webgpu.GetDevice().queue;

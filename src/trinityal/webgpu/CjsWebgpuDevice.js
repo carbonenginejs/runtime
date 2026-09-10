@@ -1864,7 +1864,7 @@ export class CjsWebgpuDevice
   /**
    * Realize the already-published RGBA8 CPU payload attached to one resource.
    * Mapping remains synchronous and GPU-free; allocation and guarded adapter
-   * publication are delegated to {@link CjsWebgpuDevice#RealizeResource}.
+   * publication are delegated to {@link CjsWebgpuDevice#_RealizeResource}.
    * Concurrent calls for the same resource and adapter key share one operation.
    *
    * @param {CjsResource} resource Current loaded resource exposing `GetPayload()`.
