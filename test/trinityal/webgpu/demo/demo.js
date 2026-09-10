@@ -1,9 +1,21 @@
 // A real EVE hull drawn with its own shader, through the shipped path.
 //
-// IT DOES NOT PUT PIXELS ON THE CANVAS YET, and the report says so rather than
-// passing. What it does do is run the whole path for real and measure every
-// stage, which is why the remaining gap is now a short list instead of a
-// shrug. Verified correct, on a real adapter, as of 2026-09-10:
+// IT DRAWS. The operator saw the af1 hull's silhouette in Chrome on 2026-09-10 -
+// white and unshaded, because nothing fills the material's textures or constants
+// yet, but the right shape in the right place. af1 has been loaded in a browser
+// before; it had not been drawn THROUGH TRINITY, and that is what is new.
+//
+// IT DREW FOR A SPLIT SECOND, AND THAT WAS THIS FILE'S FAULT. The pixel count
+// asked the canvas context for its current texture instead of the one the frame
+// had rendered into, and after a submit that can be a different swap-chain
+// image, so it read an empty one and reported zero. A zero then triggered the
+// cull-inverted diagnostic frame, which drew nothing over the hull. Both halves
+// are fixed: the count takes the presented texture, and the winding check is
+// opt-in behind `?cull=invert`. A headless run still counts zero where a windowed
+// Chrome draws, so the readback is not yet trustworthy on its own - the canvas
+// is. Do not read a zero here as proof of nothing.
+//
+// Measured correct, on a real adapter, as of 2026-09-10:
 //
 //   - the pipeline: cull back / front-face cw / depth less-equal with write,
 //     one bgra8unorm target, no blending - the states `quadv5` authors;
@@ -19,18 +31,19 @@
 //     byte-for-byte the transposed view-projection this file computed;
 //   - the geometry bytes: position followed by a unit-length normal at the
 //     declared offsets, so the interleave is right;
-//   - winding: the frame is run a second time with the cull mode inverted
-//     through the state manager's own override, and neither direction draws;
+//   - winding: checkable by running the frame again with the cull mode inverted
+//     through the state manager's own override - `?cull=invert`;
 //   - the fragment shader: no `discard` anywhere and alpha hard-coded to 1, so
 //     it cannot be silently throwing fragments away;
 //   - no WebGPU validation error, with an error scope around the frame.
 //
-// So clip positions are correct, the raster state is correct, and the draw is
-// correct, and the canvas is still the clear colour. The untested links left are
-// the two bindings that receive NO upload (b2 and the b0/b4 pair alias one
-// region) and the material's own textures and constants, which nothing fills -
-// that is the production data path the WebGPU work has always had left, rather
-// than anything this frame does.
+// What is left is the SHADING, not the frame: two of the five uniform bindings
+// receive no upload at all, and the material's textures and constants are
+// unfilled, so the hull comes out white. The SOF document for
+// `dna:/af1_t1:amarrbase:amarr` names exactly what they should be - its
+// `mesh.opaqueAreas[0].effect` carries the parameters and a `TriTextureParameter`
+// per map, AlbedoMap through PaintMaskMap - so the next step is to hydrate the
+// material from it and load those textures rather than to invent values.
 //
 // Nothing here hands the backend a pipeline. The frame runs the way Carbon's
 // does: `EveSpaceSceneRenderDriver` sequences it, `CjsBatchManager` collects,
@@ -309,13 +322,22 @@ function HullRenderable(material, geometry, mesh, perObject)
  * Read back off the GPU rather than inferred from a screenshot: both cheaper
  * proxies have given a wrong answer here before, in both directions.
  *
+ * THE TEXTURE IS THE ONE THE PASS RENDERED INTO, passed in, and that is the
+ * whole correction. This called `context.getCurrentTexture()` itself, which
+ * after a submit can hand back a DIFFERENT swap-chain image than the frame was
+ * drawn into - so it counted zero while the hull was on screen, and the demo
+ * then ran its cull-inverted second frame and wiped the hull away. The operator
+ * saw the silhouette for a split second; the instruments reported nothing.
+ *
  * @param {GPUDevice} device Live device.
- * @param {GPUCanvasContext} context Configured canvas context.
+ * @param {GPUTexture} texture The texture the frame rendered into.
  * @param {HTMLCanvasElement} canvas The canvas drawn into.
  * @returns {Promise<number>} Count of non-clear pixels.
  */
-async function CountDrawnPixels(device, context, canvas)
+async function CountDrawnPixels(device, texture, canvas)
 {
+  if (!texture) return 0;
+
   const bytesPerRow = Math.ceil(canvas.width * 4 / 256) * 256;
   const buffer = device.createBuffer({
     size: bytesPerRow * canvas.height,
@@ -324,7 +346,7 @@ async function CountDrawnPixels(device, context, canvas)
   const encoder = device.createCommandEncoder();
 
   encoder.copyTextureToBuffer(
-    { texture: context.getCurrentTexture() },
+    { texture },
     { buffer, bytesPerRow },
     { width: canvas.width, height: canvas.height }
   );
@@ -421,6 +443,19 @@ export async function RunDemo(canvas)
 
   const device = await adapter.requestDevice();
   const context = canvas.getContext("webgpu");
+
+  // REMEMBERS WHICH SWAP-CHAIN IMAGE THE FRAME WENT INTO, because asking the
+  // context again after a submit can hand back a different one, and the readback
+  // then measures a blank image while the drawn one is on screen.
+  let presented = null;
+  const getCurrentTexture = context.getCurrentTexture.bind(context);
+
+  context.getCurrentTexture = () =>
+  {
+    presented = getCurrentTexture();
+
+    return presented;
+  };
   const format = navigator.gpu.getPreferredCanvasFormat();
 
   // THE CONTEXT IS CONFIGURED ONCE, BY THE RENDER TARGET, below. Configuring it
@@ -634,24 +669,32 @@ export async function RunDemo(canvas)
 
     return {
       validation: (await device.popErrorScope())?.message ?? null,
-      litPixels: await CountDrawnPixels(device, context, canvas)
+      litPixels: await CountDrawnPixels(device, presented, canvas)
     };
   }
 
   const asAuthored = await Frame();
 
-  // THE WINDING TEST, THROUGH THE ENGINE'S OWN KNOB. `quadv5` authors cullMode
-  // back with frontFace cw, so a hull whose triangles wind the other way is
-  // entirely back-facing and the canvas stays empty with every other thing
-  // correct - which is exactly the state this demo reached, and the same trap
-  // the previous version fell into twice. `SetInvertedCullMode` is Carbon's
-  // override (`BeginManagedRendering` uses it to mirror), so running the frame
-  // again with it on says whether winding is the answer without editing a state.
-  renderContext.GetEffectStateManager().SetInvertedCullMode(true);
+  // THE WINDING TEST IS OPT-IN, `?cull=invert`, AND THAT IS NOT TIDINESS.
+  // `quadv5` authors cullMode back with frontFace cw, so a hull wound the other
+  // way is entirely back-facing and the canvas stays empty - worth being able to
+  // check. But it ran automatically whenever the pixel count came back zero, and
+  // the count was reading the wrong swap-chain image, so it fired on a frame that
+  // HAD drawn and overwrote the hull with an empty one. The operator saw the
+  // silhouette for a split second and the report said nothing was drawn. A
+  // diagnostic that destroys the thing it measures is worse than no diagnostic.
+  //
+  // `SetInvertedCullMode` is Carbon's own override, the one
+  // `BeginManagedRendering` uses to mirror, so the check costs no edited state.
+  const wantsInverted = new URLSearchParams(globalThis.location?.search ?? "").get("cull") === "invert";
+  let inverted = null;
 
-  const inverted = asAuthored.litPixels ? null : await Frame();
-
-  renderContext.GetEffectStateManager().SetInvertedCullMode(false);
+  if (wantsInverted)
+  {
+    renderContext.GetEffectStateManager().SetInvertedCullMode(true);
+    inverted = await Frame();
+    renderContext.GetEffectStateManager().SetInvertedCullMode(false);
+  }
 
   const validation = asAuthored.validation ?? inverted?.validation ?? null;
   const events = al.DrainTransitions();
