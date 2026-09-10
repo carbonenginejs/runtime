@@ -1,6 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+// The two triangle-versus-box tests a decal needs, both ported from Carbon:
+// `IntersectTriangleAABB` (BoundingBox.cpp:569-588) as the broad phase and
+// `IntersectTriangleOrientedBox` (:626-732) behind it. They exist for
+// `decalIndices.js`, which selects the hull triangles a decal covers the way
+// `EveSpaceObjectDecal.cpp:592-809` does.
+//
+// `tri3` ITSELF IS NOT A CARBON TYPE - it is this package's own triangle,
+// shared in shape with ccpwgl's, which is why the file looks foreign next to
+// the `Tr2*` tree. The Carbon-derived functions inside it carry their citations
+// on the function rather than in a file header, because most of the module is
+// not a port.
 import { mat4, tri3, vec3 } from "../../../npm/dist/global/math/index.js";
 
 /** The unit box Carbon's oriented test works in, as an explicit transform. */
@@ -100,12 +111,26 @@ test("neither test allocates per call", () =>
 {
   // A decal runs these over every triangle of a hull, so a per-call allocation
   // here is thousands of objects a frame.
+  //
+  // THE WARM-UP RUN IS THE TEST, and this flaked without it. Sampling the heap
+  // before the FIRST call counts what V8 spends compiling and setting up inline
+  // caches on the way in: measured at 1912 KiB on the first sample and 0 KiB on
+  // every one after, against a 2 MB threshold it sat just under. So the
+  // assertion turned on how expensive the first call happened to be that run,
+  // and any noise from a neighbouring test tipped it. Discarding a run first
+  // measures the steady state, which is what "does not allocate per call"
+  // actually means - and it is a flat zero.
   const triangle = triangleOf([ 0, 0, 0 ], [ 0.5, 0, 0 ], [ 0, 0.5, 0 ]);
+
+  for (let i = 0; i < 20000; i++) tri3.intersectsOrientedBox(triangle, UNIT);
+
   const before = process.memoryUsage().heapUsed;
 
   for (let i = 0; i < 20000; i++) tri3.intersectsOrientedBox(triangle, UNIT);
 
   const grew = process.memoryUsage().heapUsed - before;
 
-  assert.ok(grew < 2_000_000, `heap grew ${grew} bytes across 20000 calls`);
+  // Room for a stray sample, and still two orders of magnitude under what one
+  // vec3 per call would cost across this loop.
+  assert.ok(grew < 200_000, `heap grew ${grew} bytes across 20000 warm calls`);
 });
