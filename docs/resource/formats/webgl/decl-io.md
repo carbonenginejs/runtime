@@ -7,7 +7,8 @@ Summary: Defines the DXBC declaration and I/O rules used by the GLSL emitter.
 
 Historical lowering study: the package-time `cb3` rewrite was superseded
 2026-08-02. Remaining confidence/qualification questions are not current
-support certification.
+support certification. The [full study and retired receipts](https://github.com/carbonenginejs/runtime/blob/917c644807fa7d4802dbba572af50cb98fff0bef/docs/resource/formats/webgl/decl-io.md)
+remain in pinned history; condensation does not re-qualify their claims.
 
 Target: GLSL ES 3.00 (WebGL2), vertex + pixel stages only. No SSBOs, no compute, no
 tessellation/geometry stages (facts for those stages are cited where they explain
@@ -56,43 +57,24 @@ unless another file is named.
 
 Authority: `vendor/HLSLcc/src/toGLSL.cpp`.
 
-HLSLcc builds the final GLSL text as two bstrings that get concatenated at the very
-end (`toGLSL.cpp:1039` region: `// Concat extensions and glsl for the final shader
-code.`):
+HLSLcc concatenates `extensions` then `glsl` (`1039`). Preserve this order:
 
-1. `extensions` — seeded with the version string (`toGLSL.cpp:617`,
-   `GetVersionString(LANG_ES_300)` returns `"#version 300 es\n"` at `toGLSL.cpp:387`),
-   then every `#extension ... : require|enable` line added by `RequireExtension` /
-   `EnableExtension` calls made while walking declarations and instructions.
-2. `glsl` — populated in this order:
-   a. `AddVersionDependentCode` (`toGLSL.cpp:93`, called at `toGLSL.cpp:647`) emits,
-      for pixel shaders on an ES target (`toGLSL.cpp:307-328`):
-      ```
-      precision highp float;
-      precision highp int;
-      ```
-      (int precision is forced to `highp` "to avoid issues on platforms that
-      actually implement mediump" — comment at `toGLSL.cpp:326`). Vertex shaders get
-      no default-precision block from this path.
-   b. If the shader has any constant buffers or textures, two `#define` blocks for
-      `UNITY_LOCATION`/`UNITY_BINDING`/`HLSLCC_ENABLE_UNIFORM_BUFFERS` macros
-      (`toGLSL.cpp:667-691`). These are Unity-build plumbing; a from-scratch JS
-      emitter does not need the macro indirection, only the concrete
-      `layout(std140) uniform ... { vec4 data[N]; } cbN;` text it expands to when the
-      macros are defined to `1` (the emitter should hardcode the "enabled" expansion,
-      not restate the `#if`/`#else` machinery, since WebGL2 has no runtime toggle for
-      it).
-   c. `TranslateDeclaration` for every `Declaration` in bytecode order — this is the
-      entire `decl-io` family plus every other declaration opcode.
-   d. `void main() { ... }` with early-main redirect code, then translated
-      instructions.
+1. `#version 300 es` (`GetVersionString`, `387`, seeded at `617`), followed
+   by required/enabled extensions.
+2. `AddVersionDependentCode` (`93`, called at `647`): for ES pixel shaders,
+   `precision highp float;` and `precision highp int;` (`307-328`). High integer
+   precision avoids real mediump implementations (`326`). This path emits no
+   default-precision block for vertex shaders.
+3. Constant-buffer/texture macros (`667-691`): the JS emitter uses their enabled
+   concrete expansion, such as `layout(std140) uniform ... { vec4 data[N]; } cbN;`,
+   without Unity `UNITY_LOCATION`/`UNITY_BINDING`/`HLSLCC_ENABLE_UNIFORM_BUFFERS`
+   indirection or runtime toggles.
+4. `TranslateDeclaration` in bytecode order, then `main` with early-main
+   redirects before translated instructions.
 
-**WebGL2 note**: emit exactly `#version 300 es` as line 1, nothing before it (WebGL2
-rejects any non-comment/non-whitespace token before `#version`). Do not emit the
-`GL_FRAGMENT_PRECISION_HIGH` `#ifdef` dance used for `LANG_ES_100`
-(`toGLSL.cpp:311-320`) — that branch is ES 2.0-only; ES 3.00 always has `highp`
-fragment-shader float support and HLSLcc itself only takes the unconditional
-`precision highp float;` branch for `LANG_ES_300` (`toGLSL.cpp:321-324`).
+**WebGL2 note**: emit `#version 300 es` as line 1, nothing before it. Do not copy the ES100-only
+`GL_FRAGMENT_PRECISION_HIGH` conditional (`311-320`); ES300 takes the
+unconditional highp float branch (`321-324`).
 
 **Confidence: high** — this is a straight read of the concatenation order in
 `toGLSL.cpp`, not a translated instruction whose semantics could be ambiguous.
@@ -149,46 +131,20 @@ against the corpus in this pass.
 **Semantics**: declares the count of general-purpose temporary registers (`r0..r{N-1}`)
 used by the current shader phase (`D3D10_SB_OPCODE_DCL_TEMPS`, one dword: `ui32NumTemps`).
 
-**GLSL lowering (stock HLSLcc)**: `toGLSLDeclaration.cpp:2425-2523`. For each temp
-index `i`, HLSLcc's `DataTypeAnalysis` pass has already recorded which *native* GLSL
-types that register was ever read/written as (`psFloatTempSizes[i]`,
-`psIntTempSizes[i]`, `psUIntTempSizes[i]`, `psBoolTempSizes[i]`, plus 16/12/10-bit
-minimum-precision and `fp64` variants), and HLSLcc declares one shadow variable per
-type actually used, e.g.:
-```
-vec4 u_xlat0;
-int u_xlati0;    // only if r0 was ever read/written as int
-uint u_xlatu0;   // only if r0 was ever read/written as uint
-```
-(prefix macro `HLSLCC_TEMP_PREFIX` = `"u_xlat"`, `vendor/HLSLcc/include/hlslcc.h:127`).
-On Switch targets only, each gets a `= <ctor>(0)` default initializer
-(`2436-2498`) to dodge a false-positive uninitialized-variable compiler warning;
-non-Switch targets declare with no initializer (`2501-2521`).
+**GLSL lowering (stock HLSLcc)**: `toGLSLDeclaration.cpp:2425-2523` declares
+one native-typed shadow per used type after `DataTypeAnalysis`: `u_xlatN`
+(float), `u_xlatiN` (int), `u_xlatuN` (uint), with bool, minimum-precision
+16/12/10-bit and fp64 variants. `HLSLCC_TEMP_PREFIX` is `u_xlat`
+(`vendor/HLSLcc/include/hlslcc.h:127`). Switch alone initializes them to zero
+(`2436-2498`); other targets leave them uninitialized (`2501-2521`).
 
-**GLSL lowering (this emitter's float-only register file — required deviation)**:
-because this project does not run `DataTypeAnalysis` (that pass requires full
-def/use dataflow over the instruction stream, ref: project brief), declare exactly
-one `vec4` per temp index, unconditionally:
-```
-vec4 r0;
-vec4 r1;
-...
-vec4 r{N-1};
-```
-Every instruction that consumes `rN` as int/uint wraps the read in
-`floatBitsToInt(rN)` / `floatBitsToUint(rN)`; every instruction that produces an
-int/uint result destined for `rN` wraps the write in `intBitsToFloat(...)` /
-`uintBitsToFloat(...)` before assigning. This is the single largest structural
-deviation from the stock HLSLcc temp-register model in this whole family — flag it
-prominently to the instruction-family authors, since every arithmetic/logic opcode's
-lowering depends on this convention holding for `dcl_temps`-declared registers.
-
-**Type rules**: declared type is always `vec4` (float). Actual read/write type is
-determined per-instruction by the consuming/producing opcode, not by this
-declaration.
-
-**Helpers needed**: none beyond the four bitcast builtins (already core GLSL ES 3.00,
-not user-defined helpers).
+**This study's required deviation**: without the stock def/use type analysis,
+declare one `vec4 rN;` per temporary, not typed shadows. Use the opening
+float-register convention: int/uint reads use `floatBitsToInt`/`floatBitsToUint`;
+writes use `intBitsToFloat`/`uintBitsToFloat`. These are core ES300 builtins,
+not custom helpers. The consuming/producing opcode determines the actual type.
+Every instruction family must honor this convention; one missed bitcast can
+silently corrupt values without a compilation failure.
 
 **Edge cases**: initializing temps to zero (as HLSLcc does only for Switch) is *not*
 required for GLSL ES 3.00/WebGL2 correctness in general, but this project's
@@ -255,35 +211,22 @@ authoritative for ... per-frame and per-object constant buffer layout"); this fo
 job is only to keep the register-stable `cb#` GLSL symbol emitting correctly when that
 reflection metadata is present *or stripped*.
 
-**GLSL lowering — stripped-RDEF fallback (the path this project actually depends on)**:
-`toGLSLDeclaration.cpp:2530-2559`. When `GetConstantBufferFromBindingPoint` returns
-`nullptr` (no RDEF, or RDEF present but missing this specific buffer — the CarbonEngineJS
-fork's stripped-reflection case, `CARBONENGINEJS-FORK.md` "Constant-buffer operands
-emit fallback register access such as `cb3.data[0]`"), HLSLcc emits:
-```cpp
-bformata(glsl, "layout(std140) uniform %s {\n\tvec4 data[%d];\n} cb%d;\n",
-    name, psOperand->aui32ArraySizes[1], ui32BindingPoint);
-```
-i.e. exactly:
+**GLSL lowering — stripped-RDEF fallback**: `toGLSLDeclaration.cpp:2530-2559`
+handles a missing buffer from `GetConstantBufferFromBindingPoint`, whether RDEF
+is absent or merely omits that binding. It emits:
+
 ```glsl
-layout(std140) uniform ConstantBuffer3 {
-    vec4 data[200];
-} cb3;
+layout(std140) uniform ConstantBuffer3 { vec4 data[200]; } cb3;
 ```
-where `ConstantBuffer{N}` is a synthesized block-type name (`name` built at
-`2541-2542`, `sprintf(name, "ConstantBuffer%d", ui32BindingPoint)`), the instance
-name is always `cb{N}` (`ui32BindingPoint`), and the array size is
-`psOperand->aui32ArraySizes[1]` — the DXBC declaration's own encoded slot count, read
-directly off the `dcl_constant_buffer` instruction, independent of any reflection
-data. This `cbN.data[i]` register-stable access convention is the ABI this whole
-project is built to preserve (`CARBONENGINEJS-FORK.md` "Runtime Contract";
-`TRANSPILING-GAPS.md` records the cross-stage `ConstantBuffer0` size-mismatch bug
-this produces when VS/PS declare different slot counts for the same `cb#` — normalize
-to the maximum observed size across stages sharing a binding point before emitting).
-If `UNITY_LOCATION`/binding macros are relevant (`2550-2555`) they add a
-`UNITY_LOCATION(%d)` prefix, which this emitter should expand directly to
-`layout(location = N)` text (WebGL2 has no runtime macro toggle, so skip the
-`#if`/`#else` indirection described above).
+
+`ConstantBuffer{N}` is synthesized at `2541-2542`; the instance is `cb{N}`.
+The slot count is the declaration's `psOperand->aui32ArraySizes[1]`, not a
+reflection-derived size. Preserve the register-stable `cbN.data[i]` ABI
+(`CARBONENGINEJS-FORK.md`, “Runtime Contract” and stripped-reflection fallback).
+For linked stages sharing a binding, normalize to the maximum declared slot
+count; see the cross-stage link failure and qualification below.
+If the `UNITY_LOCATION` macros apply (`2550-2555`), this study calls for their
+concrete `layout(location = N)` expansion rather than macro indirection.
 
 **GLSL lowering — named/reflected path**: when RDEF metadata for the named cbuffer
 *is* present, HLSLcc instead calls `DeclareUBOConstants`
@@ -310,19 +253,13 @@ mirroring how the fallback path above has no member-type information at all).
   and `planeglow` failed WebGL2 *linking* because of this, not compilation). Emit the
   **max** slot count seen for a given `cb#` across the linked program's stages.
 - Vulkan-subpass-input (`2561-2636`) and `OVR_multiview` (`2638-2664`) special cases
-  are Vulkan/Unity-specific and out of scope for this project's DX11→WebGL2 EVE
-  corpus. **Correction**: these two are the only special cases actually in the
-  `2561-2670` range; the `"$Globals"` name check is a *different* piece of code, not
-  located there. There are two distinct `$Globals`-related checks elsewhere in this
-  file: (1) `psCBuf->name[0] == '$'` at `2674`, inside the *named/reflected* path
-  (`2672-2687`), which chooses `DeclareStructConstants` over `DeclareUBOConstants`
-  when `HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO` is also set; and (2) the `"$Globals"`
-  string checks inside `DeclareUBOConstants`/`DeclareStructConstants` themselves
-  (`883`, `888`, `1105`, `1142`). None of this is reached by the stripped-RDEF
-  fallback path this project depends on (that path returns at `2558` before any of
-  `2561` onward runs) — so the conclusion ("$Globals is out of scope, handled
-  generically by the synthesized `ConstantBufferN` name") still holds, just not for
-  the reason/line-range originally cited.
+  are Vulkan/Unity-specific and outside this study's DX11→WebGL2 scope.
+  Keep `$Globals` separate: `psCBuf->name[0] == '$'` at `2674` in the named
+  path (`2672-2687`) selects `DeclareStructConstants` over `DeclareUBOConstants`
+  when `HLSLCC_FLAG_GLOBAL_CONSTS_NEVER_IN_UBO` is set. The helper-internal
+  `$Globals` checks are at `883`, `888`, `1105`, `1142`, not `2561-2670`.
+  None runs in the stripped-RDEF fallback: it returns at `2558`, using the
+  synthesized `ConstantBufferN` name.
 
 **WebGL2 notes**: `layout(std140) uniform` blocks are core GLSL ES 3.00 — no
 extension required. `std140` layout rules (16-byte vec4 alignment, `vec4 data[]`
@@ -386,21 +323,13 @@ above for a WebGL2 target; it will not compile. The following **historical
 package-time ABI rewrite was superseded 2026-08-02**. The current emitter uses
 dedicated `std140` UBOs for vertex-stage structured buffers; see the
 [recorded closure](memory-structured.md#glsl-lowering--b-webgl2-cb3-joint-matrix-rewrite-contract-the-shipping-path).
-The old path's citations and proposed follow-up work below are historical,
-not pending implementation requirements:
-- `CARBONENGINEJS-FORK.md` / `016-carbonwebgl-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`
-  / `TRANSPILING-GAPS.md`: drop the `t0` SSBO declaration entirely, grow the
-  paired `ConstantBuffer3` (`cb3`) to at least `vec4 data[200]`, and rewrite every
-  `ld_structured` row load against `t0` into `cb3.data[26 + blendIndex * 3 + row]`
-  (the ccpwgl `EveShip2` `JointMat` uniform-block projection, `58` joints × `12`
-  floats/joint = `696` floats appended at `cb3[26..199]`).
-- This rewrite is package/runtime-ABI policy for the current ccpwgl compatibility
-  target, **not** a native CarbonEngineJS/Trinity representation
-  (`016-...md`, "Boundary" section) — a future non-ccpwgl consumer may want a real
-  buffer-texture or uniform-array representation of `BoneTransforms` instead of this
-  specific `cb3` splice.
-- Validated: `skinned_quadv5.sm_converted_hi` 75/75 shaders translate, 336/336
-  WebGL2 programs link after the rewrite; `skinned_quadheatv5` 63/63 / 240/240.
+The [retired splice instructions and link receipts](https://github.com/carbonenginejs/runtime/blob/917c644807fa7d4802dbba572af50cb98fff0bef/docs/resource/formats/webgl/decl-io.md#dcl_resource_structured-684)
+are history, not pending work. The splice was ccpwgl compatibility policy,
+not native Carbon/Trinity representation. Keep that distinction:
+[per-object layout comparison](carbon-constant-layouts.md#4c-per-object-vs-drift-carbon-2a-vs-ccpwgl-vs-b3)
+records native `BoneTransforms` separately from ccpwgl's inline joints.
+The historical formula and its qualification below apply only to the observed
+`BoneTransforms` case, never to arbitrary structured resources.
 
 **Confidence: high** on both "stock HLSLcc emits an SSBO" and "WebGL2 cannot use
 SSBOs" (directly cited, unambiguous); **medium** on the exact `cb3.data[26 + ...]`
@@ -435,17 +364,15 @@ instructions.
    binding (`1668-1686`) — this second declaration is **unconditional** on
    `ui32IsShadowTex`/`samplerCanDoShadowCmp` and fires regardless of whether
    `HLSLCC_FLAG_COMBINE_TEXTURE_SAMPLERS` is set (that flag is not tested anywhere in
-   this code path). What the combine flag actually gates is a *separate*, earlier
-   block (`1632-1657`, inside `TranslateResourceTexture`): when
-   `HLSLCC_FLAG_COMBINE_TEXTURE_SAMPLERS` is set, HLSLcc emits one *additional*
-   `uniform <samplerType> <name>;` per (texture, sampler) pair actually used together
-   (name from `TextureSamplerName`, iterating `psDecl->samplersUsed`) — on top of, not
-   instead of, the plain `t{N}` declaration at `1659-1666`. Since this project's
-   `dcl_sampler` section concludes the combine flag is required for any GLSL-ES
-   target, expect these extra per-combo uniforms to be emitted too, and confirm which
-   name (`t{N}` vs. the combo name) the consuming `sample`/`sample_c` instruction
-   family actually references before assuming plain `t{N}` is the only symbol that
-   matters.
+   this code path). The separate combine-flag branch (`1632-1657`) emits one
+   additional uniform per used `(texture, sampler)` pair from `psDecl->samplersUsed`;
+   it does not replace the plain declaration (`1659-1666`). See
+   [register-stable naming](texture-sample.md#0-register-stable-abi-how-ts-become-glsl-names)
+   for `TextureSamplerName`, duplicate declarations and the stock instruction
+   consumer. This study still requires confirming which name (`t{N}` vs. the
+   combo name) the consuming `sample`/`sample_c` instruction family references
+   before assuming plain `t{N}` is the only symbol that matters.
+
 4. `TEXTURE2DMS`/`TEXTURE3D`/`TEXTURE2DMSARRAY` → `TranslateResourceTexture(..., 0)`
    (same emission, `samplerCanDoShadowCmp=0`, i.e. never a comparison sampler).
 
@@ -512,50 +439,37 @@ cited); **medium** for MS/cube-array/buffer dimensions (low corpus incidence, GL
 
 ## `dcl_sampler` (3277)
 
-**Semantics**: declares a sampler-state binding (`s#`) — filter mode, address mode,
-comparison mode, LOD clamp/bias — consumed by `sample`/`sample_c`/`sample_l`
-instructions when combined with a `t#` resource via `dcl_resource`'s
-`samplersUsed` set.
+**Semantics**: declares sampler-state binding `s#`—filter/address mode,
+comparison mode and LOD clamp/bias—paired with a `t#` resource through
+`samplersUsed` for `sample`/`sample_c`/`sample_l`.
 
-**GLSL lowering**: `toGLSLDeclaration.cpp:3348-3365`. For **non-Vulkan** targets (this
-project's WebGL2 target), the entire case body is gated behind
-`if (psContext->IsVulkan()) { ...; break; }` — falling through to `break;` with **no
-GLSL text emitted at all** for OpenGL/GLSL/GLSL-ES targets. The separate sampler
-object is *not* represented as its own GLSL declaration on this target; it is folded
-into the combined `uniform sampler2D t{N};` declaration emitted by `dcl_resource`
-above (`HLSLCC_FLAG_COMBINE_TEXTURE_SAMPLERS`-style combined texture+sampler model,
-the only model GLSL ES 3.00 supports). The one piece of state this instruction does
-carry into codegen is whether the sampler is a comparison sampler
-(`D3D10_SB_SAMPLER_MODE_COMPARISON`) — that fact reaches
-`TranslateResourceTexture`'s shadow-texture branch (`ui32IsShadowTex`, decided
-upstream at declaration-plan time from which `s#`/`t#` pairs get used together in
-`sample_c`-family instructions, not from this opcode's own GLSL emission path).
+**GLSL lowering**: `toGLSLDeclaration.cpp:3348-3365` emits text only inside
+`if (psContext->IsVulkan()) { ...; break; }`. Non-Vulkan targets emit no
+declaration, GLSL variable or helper for this opcode. Resource declarations
+provide combined texture/sampler uniforms; see
+[register-stable naming](texture-sample.md#0-register-stable-abi-how-ts-become-glsl-names)
+and the consumer-name qualification in `dcl_resource`.
 
-**Type rules**: n/a — no GLSL variable is produced for this opcode on WebGL2/GLSL
-targets.
+`D3D10_SB_SAMPLER_MODE_COMPARISON` still affects codegen: declaration planning
+uses the `s#`/`t#` pairs in `sample_c`-family instructions to set
+`ui32IsShadowTex` for `TranslateResourceTexture`. This is not GLSL emitted
+by `dcl_sampler` itself.
 
-**Helpers needed**: none.
+**Runtime boundary**: address/filter mode, LOD bias/clamp, anisotropy and
+border color are binding-state policy, not shader text. These must be applied
+at draw time via `gl.texParameteri`/`gl.samplerParameteri` from Carbon/Trinity
+sampler metadata, outside this translator (`TRANSPILING-GAPS.md`, “Exporter and runtime policy”,
+“WebGL sampler-state application”: deferred/out-of-scope for the DXBC reader
+and draft transpiler).
 
-**Edge cases**: DX11 sampler-state fields that have no WebGL2 shader-side
-representation at all (address mode, filter mode, LOD bias/clamp, anisotropy,
-border color) are **runtime binding-state policy**, not shader text — they must be
-applied via `gl.texParameteri`/`gl.samplerParameteri` from Carbon/Trinity sampler
-metadata at draw time, entirely outside this translator
-(`TRANSPILING-GAPS.md`, "Exporter and runtime policy": "WebGL sampler-state
-application" is explicitly listed as deferred/out-of-scope for the DXBC reader and
-draft transpiler).
+Do not look for a separately declared `s0` GLSL variable. Its register identity
+belongs to Carbon binding-manifest metadata (`CARBONENGINEJS-FORK.md`,
+`HlslEffectBindingManifest`).
 
-**WebGL2 notes**: this is the single opcode in the family whose stock-HLSLcc-for-our-
-target lowering is "emit nothing" — worth flagging clearly to the implementing
-engineer so they don't go looking for a `s0` GLSL symbol; the register-stable name
-`s0` only shows up in Carbon binding-manifest metadata (`CARBONENGINEJS-FORK.md`:
-"`s0`" is one of the register-stable symbols this fork preserves for
-`HlslEffectBindingManifest`), not in the GLSL source text itself.
-
-**Confidence: high** — the Vulkan/non-Vulkan branch is unconditional and
-unambiguous; the only judgment call is confirming this project always wants
-`HLSLCC_FLAG_COMBINE_TEXTURE_SAMPLERS`-style combined sampling (yes — required for
-any WebGL2/GLSL-ES target, since GLSL ES 3.00 has no separate sampler-object type).
+**Confidence: high** for the source's Vulkan/non-Vulkan branch. The study
+requires the combined texture/sampler model for WebGL2/GLSL ES 3.00, which
+has no separate shader-language sampler-object type; this does not close
+the consumer-name qualification above.
 
 ---
 
@@ -1192,22 +1106,17 @@ treating it as final.
 
 ## Helpers summary
 
-Every helper function/macro/convention this family requires the JS emitter to
-provide, in one place:
+Definitions and qualifications live with their opcode, not in a second table:
 
-| Helper | Kind | Used by | Definition |
-|---|---|---|---|
-| `floatBitsToInt` | core GLSL ES 3.00 builtin | any int-typed read of a float-register-file value (`dcl_temps`, `dcl_indexable_temp`, `dcl_constant_buffer` fallback slots, `customdata`, integer-lowered `dcl_input`) | built-in, no definition needed |
-| `floatBitsToUint` | core GLSL ES 3.00 builtin | same as above, uint-typed reads (also the `SV_IsFrontFace` mask materialization, `dcl_input_ps_sgv`/`dcl_input_sgv`) | built-in |
-| `intBitsToFloat` | core GLSL ES 3.00 builtin | writing an int-typed result into a float register (`gl_VertexID`/`gl_InstanceID`/`gl_PrimitiveID`/`gl_SampleID` materialization into the float register file) | built-in |
-| `uintBitsToFloat` | core GLSL ES 3.00 builtin | writing a uint-typed result into a float register; ICB literal decoding (`customdata`); `SV_IsFrontFace` mask materialization | built-in |
-| `hlslcc_FragCoord` early-main redirect | fixed substitution statement, not a function | `dcl_input_ps_siv` (`NAME_POSITION`) | `vec4 hlslcc_FragCoord = vec4(gl_FragCoord.xyz, 1.0/gl_FragCoord.w);` — every `SV_Position`-as-PS-input read must use this name, not raw `gl_FragCoord` |
-| `SV_IsFrontFace` mask expression | fixed substitution expression, not a function | `dcl_input_ps_sgv`/`dcl_input_sgv` (`NAME_IS_FRONT_FACE`) | `uintBitsToFloat(gl_FrontFacing ? 0xffffffffu : 0u)` materialized wherever the DXBC 0/0xFFFFFFFF mask value is read |
-| Integer-vertex-attribute float lowering | declaration-shape convention, not a function | `dcl_input` for any `INOUT_COMPONENT_UINT32`/`SINT32` vertex attribute (proven for `BLENDINDICES`; generalize cautiously) | declare `vec4`/`vecN` instead of `uvecN`/`ivecN`; bitcast at every use site |
-| `in_BINORMALn -> in_BITANGENTn` rename | package-time post-process, not a GLSL-emission-time helper | `dcl_input` split-tangent-space vertex shaders | applied by `scripts/packageTr2WebglEffect.js`-equivalent tooling **after** this family's GLSL text is emitted, keyed off the stage's Carbon metadata contract — do not bake into the opcode lowering itself |
-| Cross-stage `cbN` size normalization | package/link-time policy, not a per-shader GLSL-emission helper | `dcl_constant_buffer` | emit the **max** `data[]` slot count observed for a given `cb#` across every stage sharing that binding point in one linked program |
-| `BoneTransforms` SSBO→`cb3` splice | historical package-time rewrite; superseded 2026-08-02, not a current helper requirement | `dcl_resource_structured` (skinned space-object shaders specifically) | drop the `t0` SSBO decl; grow `cb3` to `vec4 data[200]`; rewrite `ld_structured` row reads to `cb3.data[26 + blendIndex*3 + row]` |
-| `layout(early_fragment_tests) in;` suppression | emission-time language gate (not present in stock HLSLcc) | `dcl_global_flags` (`FORCE_EARLY_DEPTH_STENCIL`) | drop the qualifier entirely when targeting GLSL ES 3.00 |
+- Float-register bitcasts: opening register model and [temps](#dcl_temps-5035).
+- Fixed early-main `hlslcc_FragCoord` redirect: [PS position](#dcl_input_ps_siv-538).
+- Inline all-ones front-face mask and signed builtin casts:
+  [system-generated inputs](#dcl_input_ps_sgv-42--dcl_input_sgv-18).
+- Integer-attribute lowering and metadata-keyed post-emission BINORMAL alias:
+  [vertex inputs](#dcl_input-11726).
+- Cross-stage maximum cbuffer size: [constant buffers](#dcl_constant_buffer-10160).
+- Retired bone splice: [structured resources](#dcl_resource_structured-684).
+- Early-fragment qualifier gate: [global flags](#dcl_global_flags-5848).
 
 ---
 
