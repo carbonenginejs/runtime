@@ -1,0 +1,9 @@
+{
+  "private": false,
+  "description": "Browser-safe CarbonEngineJS runtime: resource and format readers, the Trinity/EVE object graph, SOF, audio, character, and the WebGPU renderer.",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  }
+}
