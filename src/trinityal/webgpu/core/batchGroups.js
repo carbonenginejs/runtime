@@ -1,7 +1,8 @@
-// Source: trinity/trinity/Tr2RenderContext.cpp:462-537 (class none)
-//   Tr2RenderContextBase::RenderBatchGroup is a METHOD, not a class: this file
-//   ports the state it keeps across one group - what the encoder already has
-//   bound - so there is no class to compare against.
+// Source: trinity/trinity/Tr2RenderContext.cpp:462-537
+//   `RenderBatchGroup` is a METHOD, so this file is MODELLED ON the class that
+//   declares it rather than replicating one: what it ports is the state that
+//   method keeps across a group - what the encoder already has bound - and
+//   there is no class surface to compare against.
 // Source: trinity/trinity/TriRenderBatch.cpp (CanBeBinned)
 //
 // Carbon hoists per GROUP what does not change across a run of batches -
@@ -42,6 +43,8 @@
 // the index buffer are compared explicitly. Bind groups stay per batch: they
 // are where per-object data lives, and that is exactly what varies within a
 // group.
+
+import { CjsSchema } from "#schema";
 
 /**
  * Whether two prepared draws may share one hoisted binding run.
@@ -191,3 +194,12 @@ function sameIndexBuffer(indexed, first, second)
     && (first.offset ?? 0) === (second.offset ?? 0)
     && first.size === second.size;
 }
+
+
+// DECLARED AS A CALL, NOT A DECORATOR. The abstraction layer is imported
+// straight from source by its tests - `#trinityal/...` resolves to `src/` - and
+// raw Node cannot parse decorator syntax, so a decorator here breaks every test
+// that reaches this file without a build first. `CjsSchema.define` is the same
+// metadata through the door the schema already provides for exactly this, and
+// it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.define(CjsWebgpuEncodeState, { className: "CjsWebgpuEncodeState", modelledOn: "Tr2RenderContextBase" });

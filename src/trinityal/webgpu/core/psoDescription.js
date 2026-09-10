@@ -1,4 +1,4 @@
-// Source: trinity/trinityal/dx12/util/PsoDescription.h (class PSODescription)
+// Source: trinity/trinityal/dx12/util/PsoDescription.h
 //   trinity/trinityal/dx12/util/PsoDescription.cpp
 //   trinity/trinityal/dx12/Tr2RenderContextDx12.cpp (the setters and SetAllState)
 //
@@ -40,6 +40,7 @@
 // already turns an interpreted setup into WebGPU state, applies the render-state
 // overrides while doing it, and refuses a fill mode WebGPU cannot rasterize. A
 // second translator is the mistake this whole lane exists to undo.
+import { CjsSchema } from "#schema";
 import { RenderPipelineKey } from "./pipelineCache.js";
 import { TOPOLOGIES } from "./topology.js";
 
@@ -163,3 +164,12 @@ export class CjsWebgpuPsoDescription
     return key !== null && key === other.GetKey();
   }
 }
+
+
+// DECLARED AS A CALL, NOT A DECORATOR. The abstraction layer is imported
+// straight from source by its tests - `#trinityal/...` resolves to `src/` - and
+// raw Node cannot parse decorator syntax, so a decorator here breaks every test
+// that reaches this file without a build first. `CjsSchema.define` is the same
+// metadata through the door the schema already provides for exactly this, and
+// it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.define(CjsWebgpuPsoDescription, { className: "CjsWebgpuPsoDescription", carbon: "PSODescription" });

@@ -1,4 +1,4 @@
-// Source: trinity/trinityal/metal/MetalUtils.h (class ConstantBufferAllocator)
+// Source: trinity/trinityal/metal/MetalUtils.h
 //   trinity/trinityal/metal/MetalUtils.mm:375-440
 //
 // Carbon's per-frame constant arena. Metal's `SetConstants` does not write into
@@ -21,6 +21,7 @@
 // dynamic offset must be a multiple of.
 
 
+import { CjsSchema } from "#schema";
 function fail(message)
 {
   const error = new Error(`CjsWebgpuConstantArena: ${message}`);
@@ -156,3 +157,12 @@ export class CjsWebgpuConstantArena
     this.Reset();
   }
 }
+
+
+// DECLARED AS A CALL, NOT A DECORATOR. The abstraction layer is imported
+// straight from source by its tests - `#trinityal/...` resolves to `src/` - and
+// raw Node cannot parse decorator syntax, so a decorator here breaks every test
+// that reaches this file without a build first. `CjsSchema.define` is the same
+// metadata through the door the schema already provides for exactly this, and
+// it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena", carbon: "ConstantBufferAllocator" });

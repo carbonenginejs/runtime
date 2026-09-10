@@ -243,38 +243,59 @@ function citedSources(code)
 
 
 /**
- * The donor CLASS names a file declares for itself, from `(class X)` on a
- * `// Source:` line.
+ * What each class in a file declares about its Carbon donor, from the schema:
+ * `@type.define({ className, carbon })` or `({ className, modelledOn })`.
  *
- * WHY THIS EXISTS. `donorNames` derives a donor name from ours by convention -
- * strip the backend suffix, or turn `CjsWebgpu<Name>` into `Tr2<Name>`. That
- * covers every class on Carbon's AL contract, because Carbon names those
- * `Tr2*AL` without exception. It covers nothing else, and the WebGPU backend
- * ports four classes that are backend-INTERNAL in Carbon and named freely:
+ * WHY A DECLARATION EXISTS AT ALL. `donorNames` derives a donor name from ours
+ * by convention - strip the backend suffix, or turn `CjsWebgpu<Name>` into
+ * `Tr2<Name>`. That covers every class on Carbon's AL contract, because Carbon
+ * names those `Tr2*AL` without exception, and it covers nothing else. Four of
+ * our files port classes that are backend-INTERNAL in Carbon and named freely:
  * `MetalWorkQueue`, `PSODescription`, `ConstantBufferAllocator`, and
- * `ImageIO::BitmapDimensions` reached through a typedef. Those four sat in the
- * notes as "matches no class in its cited donors" - unchecked, and reading
- * like a porting gap when the port was fine and only the NAME could not be
- * guessed.
+ * `ImageIO::BitmapDimensions` reached through a typedef. Those sat in the notes
+ * as "matches no class in its cited donors" - unchecked, and reading like a
+ * porting gap when the port was fine and only the NAME could not be guessed.
  *
- * The shape is the one that had already emerged by hand in `constantArena.js`
- * before anything read it. `(class none)` declares that the file ports no
- * Carbon class at all - a free function's behaviour, say - so the note is a
- * decision rather than an omission.
+ * WHY TWO KEYS. A class that REPLICATES its donor can be held to that donor's
+ * whole surface; a class MODELLED ON one cannot. `CjsWebgpuWorkQueue` takes
+ * Metal's encoder lifetime and leaves the other 101 methods of its command
+ * recorder to the pipeline, the resource set and the render context. Comparing
+ * it as a replica reports those as debt; comparing it not at all loses the
+ * provenance. `modelledOn` records the second without claiming the first.
+ *
+ * BOTH SPELLINGS. `@type.define({...})` is the decorator every schema'd Trinity
+ * class uses; `CjsSchema.define(Class, {...})` is the same metadata as a call,
+ * which is what the AL uses because its tests import it straight from `src/`
+ * and raw Node cannot parse a decorator.
+ *
+ * PARSED, NOT IMPORTED. This script reads source text and never loads the
+ * runtime, so the declaration is read the same way its `// Source:` header is.
  *
  * @param {string} code File contents.
- * @returns {string[]} Declared donor class names, in citation order.
+ * @returns {Map<string, {carbon: string|null, modelledOn: string|null}>} By class name.
  */
-function citedDonorClasses(code)
+function declaredDonors(code)
 {
-    const declared = [];
+    const declared = new Map();
+    const blocks = [
+        ...code.matchAll(/@type\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
+        ...code.matchAll(/CjsSchema\.define\(\s*[A-Za-z0-9_]+\s*,\s*\{([\s\S]*?)\}\s*\)/g)
+    ];
 
-    for (const line of code.split("\n"))
+    for (const block of blocks)
     {
-        if (!line.startsWith("//")) break;
+        const body = block[1];
+        const className = body.match(/className:\s*"([^"]+)"/);
 
-        const match = line.match(/^\/\/\s*Source:.*\(class\s+([A-Za-z0-9_:]+)\s*\)/);
-        if (match) declared.push(match[1].split("::").pop());
+        if (!className) continue;
+
+        const carbon = body.match(/\bcarbon:\s*"([^"]+)"/);
+        const modelledOn = body.match(/\bmodelledOn:\s*"([^"]+)"/);
+
+        declared.set(className[1], {
+            carbon: carbon ? carbon[1].split("::").pop() : null,
+            modelledOn: modelledOn ? modelledOn[1].split("::").pop() : null
+        });
     }
 
     return declared;
@@ -538,31 +559,29 @@ for (const { relative, code, ours } of parsed)
         }
     }
 
-    const declaredDonors = citedDonorClasses(code);
+    const declared = declaredDonors(code);
 
     for (const [ jsClass ] of ours)
     {
-        // Declared names come LAST, so a class the convention already resolves
-        // is never diverted by a declaration meant for a sibling in the same
-        // file. A declaration is a fallback for a name that cannot be derived,
-        // not an override.
-        const candidates = [ ...donorNames(jsClass), ...declaredDonors ];
+        const declaration = declared.get(jsClass);
+
+        // MODELLED ON IS NOT REPLICATES, and says so out loud rather than
+        // dropping the class silently: the donor is named, and the head comment
+        // beside the declaration says what was taken and what was left.
+        if (declaration?.modelledOn)
+        {
+            notes.push(`${relative} ${jsClass} is modelled on ${declaration.modelledOn} rather than `
+                + "replicating it, so its surface is not compared; see its head comment.");
+            continue;
+        }
+
+        // A DECLARED donor wins: it is the author naming what the convention
+        // cannot derive. The derived names follow for everything else.
+        const candidates = [ ...(declaration?.carbon ? [ declaration.carbon ] : []), ...donorNames(jsClass) ];
         const donor = candidates.find(name => theirs.has(name));
 
         if (donor === undefined)
         {
-            // `(class none)` is a DECISION, and says so out loud rather than
-            // dropping the file silently: a class whose donor is a subset of a
-            // Carbon class, or a free function's behaviour, cannot be compared
-            // by a per-class name diff, and the reason lives in its head
-            // comment where a reader meets it.
-            if (declaredDonors.includes("none"))
-            {
-                notes.push(`${relative} ${jsClass} declares no comparable donor class; `
-                    + `see its head comment for what it ports and what it does not.`);
-                continue;
-            }
-
             notes.push(`${relative} ${jsClass} matches no class in its cited donors `
                 + `(tried ${candidates.join(", ")}).`);
             continue;

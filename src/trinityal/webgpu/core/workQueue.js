@@ -1,13 +1,12 @@
-// Source: trinity/trinityal/metal/MetalWorkQueue.h (class none)
+// Source: trinity/trinityal/metal/MetalWorkQueue.h
 // Source: trinity/trinityal/metal/MetalWorkQueue.mm
 //
-// A SUBSET OF ITS DONOR, DECLARED. The parity check compares class to class by
-// method name, and `MetalWorkQueue` declares 113 methods to this file's 27.
-// Comparing them reports 101 "gaps" that are not gaps: Metal's work queue is
-// the whole command recorder, and in this backend that surface lives in three
-// other places. So the citation names the donor for provenance and `(class
-// none)` declares the comparison meaningless, rather than freezing 101 entries
-// into a baseline that would read as debt.
+// MODELLED ON `MetalWorkQueue`, NOT A REPLICA OF IT - which is what the
+// `modelledOn` declaration below says, and why the parity check does not hold
+// this class to that class's surface. Metal's work queue declares 113 methods
+// to this file's 27, because it is the whole command recorder; comparing them
+// would report 101 absences as debt when the surface simply lives elsewhere
+// here.
 //
 // What this file took, and where the rest of Metal's work queue went:
 //
@@ -50,6 +49,7 @@
 // Carbon's stub. `MTLENCODERTYPE_BLIT` therefore has no counterpart here and
 // transfers are recorded against the command encoder itself.
 
+import { CjsSchema } from "#schema";
 import { Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 
 
@@ -710,3 +710,12 @@ function LoadOp(action)
   // exactly the tile-based hardware the hint exists for.
   return "clear";
 }
+
+
+// DECLARED AS A CALL, NOT A DECORATOR. The abstraction layer is imported
+// straight from source by its tests - `#trinityal/...` resolves to `src/` - and
+// raw Node cannot parse decorator syntax, so a decorator here breaks every test
+// that reaches this file without a build first. `CjsSchema.define` is the same
+// metadata through the door the schema already provides for exactly this, and
+// it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.define(CjsWebgpuWorkQueue, { className: "CjsWebgpuWorkQueue", modelledOn: "MetalWorkQueue" });

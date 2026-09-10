@@ -1286,6 +1286,8 @@ function defineClassMetadata(Constructor, definition)
     if (definition.family) schema.family = definition.family;
     if (definition.purpose) schema.purpose = definition.purpose;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
+    if (definition.carbon) schema.carbon = definition.carbon;
+    if (definition.modelledOn) schema.modelledOn = definition.modelledOn;
     if (definition.aliases) schema.aliases = [...definition.aliases];
 
     for (const field of definition.fields || [])
@@ -1496,6 +1498,16 @@ function buildClassInfo(Constructor, namespaces)
         result.sourceClass = schema.sourceClass;
     }
 
+    if (schema?.carbon)
+    {
+        result.carbon = schema.carbon;
+    }
+
+    if (schema?.modelledOn)
+    {
+        result.modelledOn = schema.modelledOn;
+    }
+
     if (schema?.aliases?.length)
     {
         result.aliases = [ ...schema.aliases ];
@@ -1591,6 +1603,8 @@ function getOrCreateClassSchema(Constructor)
             family: null,
             purpose: null,
             sourceClass: null,
+            carbon: null,
+            modelledOn: null,
             aliases: null,
             fields: [],
             fieldsByName: new Map(),
@@ -1693,6 +1707,42 @@ function normalizeClassDefinition(Constructor, definition)
             throw new TypeError("CjsSchema.define purpose cannot close a JSDoc comment.");
         }
     }
+    // REPLICATES AND MODELLED ON ARE DIFFERENT CLAIMS, and only the first can
+    // be checked. `carbon` names a class this one REPLICATES: same contract,
+    // method for method, so a parity check may hold us to its whole surface.
+    // `modelledOn` names a class this one TOOK ITS SHAPE FROM and does not
+    // replicate - `CjsWebgpuWorkQueue` is modelled on `MetalWorkQueue`, whose
+    // 113 methods are the entire command recorder against our 27, because the
+    // rest of that surface lives on the pipeline, the resource set and the
+    // render context here. Declaring the second as the first would report 101
+    // absences as debt; declaring nothing leaves the class unchecked and its
+    // provenance unrecorded.
+    //
+    // NEITHER IS `sourceClass`, which is SERIALIZATION identity - the name a
+    // document calls this class on the wire (`CjsLightData`'s `"LightData"`).
+    // A donor is not a wire name: writing `MetalWorkQueue` there would tell
+    // dehydration the class serializes under that name.
+    for (const [ key, what ] of [ [ "carbon", "replicates" ], [ "modelledOn", "is modelled on" ] ])
+    {
+        if (result[key] === undefined || result[key] === null) continue;
+
+        if (typeof result[key] !== "string" || !result[key].trim())
+        {
+            throw new TypeError(`CjsSchema.define ${key} must be a non-empty Carbon class name when provided.`);
+        }
+
+        result[key] = result[key].trim();
+        void what;
+    }
+
+    if (result.carbon && result.modelledOn)
+    {
+        throw new TypeError(
+            "CjsSchema.define takes carbon or modelledOn, not both: a class either replicates its "
+            + "donor's contract or is modelled on it, and the two are different claims."
+        );
+    }
+
     if (!result.sourceClass && result.className) result.sourceClass = result.className;
     const aliases = [
         ...(result.aliases === undefined ? [] : Array.isArray(result.aliases) ? result.aliases : [result.aliases]),

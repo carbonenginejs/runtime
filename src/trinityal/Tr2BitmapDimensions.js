@@ -1,4 +1,4 @@
-// Source: imageio/include/BitmapDimensions.h (class BitmapDimensions)
+// Source: imageio/include/BitmapDimensions.h
 //
 // `Tr2BitmapDimensions` is the abstraction layer's own alias for
 // `ImageIO::BitmapDimensions` (`Tr2RenderContextEnum.h:435`), and it is the
@@ -19,6 +19,7 @@
 // the default constructor's values, and `Texture2D` names the four-argument
 // overload the render context uses.
 
+import { CjsSchema } from "#schema";
 import {
   PixelFormat,
   TextureType,
@@ -360,3 +361,12 @@ export class Tr2BitmapDimensions
       this._format === other.format;
   }
 }
+
+
+// DECLARED AS A CALL, NOT A DECORATOR. The abstraction layer is imported
+// straight from source by its tests - `#trinityal/...` resolves to `src/` - and
+// raw Node cannot parse decorator syntax, so a decorator here breaks every test
+// that reaches this file without a build first. `CjsSchema.define` is the same
+// metadata through the door the schema already provides for exactly this, and
+// it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.define(Tr2BitmapDimensions, { className: "Tr2BitmapDimensions", carbon: "BitmapDimensions" });
