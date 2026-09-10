@@ -33,6 +33,9 @@ const VIEW_DIMENSION_OF_TYPE = Object.freeze({
 });
 
 
+/**
+ * A `Tr2TextureAL` backed by a WebGPU `GPUTexture`, created with all of its data.
+ */
 export class CjsWebgpuTextureAL
 {
   /** m_desc, a `Tr2BitmapDimensions`. */
@@ -204,76 +207,96 @@ export class CjsWebgpuTextureAL
     return this.m_texture;
   }
 
+  /** Whether the texture holds a `GPUTexture`. */
   IsValid()
   {
     return this.m_texture !== null;
   }
 
+  /** Shared textures need a native handle WebGPU does not expose; always fails. */
   OpenShared()
   {
     return ALResult.E_FAIL;
   }
 
+  /** The `Tr2BitmapDimensions` this texture was created from, or null. */
   GetDesc()
   {
     return this.m_desc;
   }
 
+  /** The multisample description; this backend creates single-sampled textures. */
   GetMsaaDesc()
   {
     return this.m_msaa;
   }
 
+  /** The `Tr2GpuUsage` flags it was created with. */
   GetGpuUsage()
   {
     return this.m_gpuUsage;
   }
 
+  /** The `Tr2CpuUsage` flags it was created with. */
   GetCpuUsage()
   {
     return this.m_cpuUsage;
   }
 
+  /** Width in texels of mip zero, or zero before Create. */
   GetWidth()
   {
     return this.m_desc ? this.m_desc.GetWidth() : 0;
   }
 
+  /** Height in texels of mip zero, or zero before Create. */
   GetHeight()
   {
     return this.m_desc ? this.m_desc.GetHeight() : 0;
   }
 
+  /** Depth in texels of mip zero, which is one unless the texture is 3D. */
   GetDepth()
   {
     return this.m_desc ? this.m_desc.GetDepth() : 0;
   }
 
+  /** The mip count requested at creation, which may be zero for a full chain. */
   GetMipCount()
   {
     return this.m_desc ? this.m_desc.GetMipCount() : 0;
   }
 
+  /** The mip count actually created, with a requested zero resolved. */
   GetTrueMipCount()
   {
     return this.m_desc ? this.m_desc.GetTrueMipCount() : 0;
   }
 
+  /** The Carbon `PixelFormat`, or `PIXEL_FORMAT_UNKNOWN` before Create. */
   GetFormat()
   {
     return this.m_desc ? this.m_desc.GetFormat() : PixelFormat.PIXEL_FORMAT_UNKNOWN;
   }
 
+  /** The Carbon `TextureType`, or `TEX_TYPE_INVALID` before Create. */
   GetType()
   {
     return this.m_desc ? this.m_desc.GetType() : TextureType.TEX_TYPE_INVALID;
   }
 
+  /** The layer count, which for a cube counts its six faces. */
   GetArraySize()
   {
     return this.m_desc ? this.m_desc.GetArraySize() : 0;
   }
 
+  /**
+   * The byte size of one mip across all layers.
+   *
+   * @param {number} level The mip level.
+   * @returns {number} Its size in bytes, or zero before Create.
+   */
   GetMipSize(level)
   {
     return this.m_desc ? this.m_desc.GetMipSize(level) : 0;
@@ -285,6 +308,7 @@ export class CjsWebgpuTextureAL
     return { result: ALResult.E_FAIL, data: null, pitch: 0 };
   }
 
+  /** Paired with `MapForReading`, which this backend refuses. */
   UnmapForReading(_renderContext)
   {
     return ALResult.E_FAIL;
@@ -296,6 +320,7 @@ export class CjsWebgpuTextureAL
     return { result: ALResult.E_FAIL, data: null, pitch: 0 };
   }
 
+  /** Paired with `MapForWriting`, which this backend refuses. */
   UnmapForWriting(_renderContext)
   {
     return ALResult.E_FAIL;
@@ -328,36 +353,43 @@ export class CjsWebgpuTextureAL
     return ALResult.S_OK;
   }
 
+  /** Needs a command encoder the AL is not handed here; refused by name. */
   CopySubresourceRegion()
   {
     return ALResult.E_FAIL;
   }
 
+  /** WebGPU has no mip generator; a full chain is uploaded at creation instead. */
   GenerateMipMaps()
   {
     return ALResult.E_FAIL;
   }
 
+  /** Multisample resolve, which this backend has no multisampled textures for. */
   Resolve()
   {
     return ALResult.E_FAIL;
   }
 
+  /** The native shared handle, which WebGPU does not expose. */
   GetSharedHandle()
   {
     return null;
   }
 
+  /** The descriptor-heap slot, which only the D3D12 backend has. */
   GetSrvIndexInHeap()
   {
     return NO_HEAP_INDEX;
   }
 
+  /** The descriptor-heap slot, which only the D3D12 backend has. */
   GetUavIndexInHeap()
   {
     return NO_HEAP_INDEX;
   }
 
+  /** Releases the `GPUTexture` and its views, leaving the AL invalid. */
   Destroy()
   {
     this.m_texture?.destroy?.();
@@ -371,11 +403,18 @@ export class CjsWebgpuTextureAL
     this.m_cpuUsage = Tr2CpuUsage.NONE;
   }
 
+  /** Where the texture lives, which for this backend is always video memory. */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_VIDEO;
   }
 
+  /**
+   * Fills in what this AL knows for a memory report.
+   *
+   * @param {object} description The description to fill in.
+   * @returns {object} The same description.
+   */
   Describe(description)
   {
     if (!description) return description;
@@ -385,6 +424,12 @@ export class CjsWebgpuTextureAL
     return description;
   }
 
+  /**
+   * Names the texture, which reaches the `GPUTexture` label for debugging.
+   *
+   * @param {string} name The name.
+   * @returns {number} An `ALResult` value.
+   */
   SetName(name)
   {
     this.m_name = String(name ?? "");
@@ -394,6 +439,7 @@ export class CjsWebgpuTextureAL
     return ALResult.S_OK;
   }
 
+  /** The name given by `SetName`. */
   GetName()
   {
     return this.m_name;

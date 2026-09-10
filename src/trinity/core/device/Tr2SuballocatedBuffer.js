@@ -47,21 +47,25 @@ export class Tr2SuballocatedBufferAllocation
 
   m_parent = null;
 
+  /** The block's `Tr2BufferAL`. */
   GetBuffer()
   {
     return this.m_buffer;
   }
 
+  /** The allocation's first byte within that block. */
   GetOffset()
   {
     return this.m_offset;
   }
 
+  /** The allocation's size in bytes. */
   GetSize()
   {
     return this.m_size;
   }
 
+  /** Bytes per element, which `GetStartIndex` divides by. */
   GetStride()
   {
     return this.m_stride;
@@ -73,6 +77,7 @@ export class Tr2SuballocatedBufferAllocation
     return this.m_stride ? Math.floor(this.m_offset / this.m_stride) : 0;
   }
 
+  /** Whether the allocation names a block and has any size. */
   IsValid()
   {
     return this.m_buffer !== null && this.m_size > 0;
@@ -94,6 +99,10 @@ export class Tr2SuballocatedBufferAllocation
 }
 
 
+/**
+ * Carbon's `Tr2SuballocatedBuffer`: one growable pool of device buffer blocks
+ * that hands out `Tr2SuballocatedBufferAllocation` slices.
+ */
 export class Tr2SuballocatedBuffer
 {
   m_name = "";

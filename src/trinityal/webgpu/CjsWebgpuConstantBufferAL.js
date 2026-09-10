@@ -32,6 +32,10 @@ const ALIGNMENT = 16;
 let nextConstantBufferId = 1;
 
 
+/**
+ * A `Tr2ConstantBufferAL` whose contents live in a CPU shadow copy, suballocated
+ * into the frame's constant arena when they are bound.
+ */
 export class CjsWebgpuConstantBufferAL
 {
   /** m_shadowCopy */
@@ -140,6 +144,7 @@ export class CjsWebgpuConstantBufferAL
     return al && al.SetConstants(this, shaderType, constantIndex) ? ALResult.S_OK : ALResult.E_INVALIDARG;
   }
 
+  /** Whether the buffer has a shadow copy, which `Create` gives it. */
   IsValid()
   {
     return this.m_shadowCopy.length !== 0;
@@ -151,6 +156,7 @@ export class CjsWebgpuConstantBufferAL
     return this.m_size;
   }
 
+  /** Releases the shadow copy and its arena token, leaving the buffer invalid. */
   Destroy()
   {
     this.m_shadowCopy = new Uint8Array(0);
@@ -159,6 +165,7 @@ export class CjsWebgpuConstantBufferAL
     this.m_id = 0;
   }
 
+  /** Where the buffer lives, which is managed memory, not the device. */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;

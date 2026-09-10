@@ -281,6 +281,15 @@ export class Tr2RenderContext extends CjsModel
     return this.#al;
   }
 
+  /**
+   * Delegates step execution to the installed nominal executor.
+   *
+   * @param {object} step The step to run.
+   * @param {number} realTime Wall-clock time.
+   * @param {number} simTime Simulation time.
+   * @param {object} job The render job the step belongs to.
+   * @returns {*} Whatever the executor reports.
+   */
   ExecuteStep(step, realTime, simTime, job)
   {
     return this.#stepExecutor.ExecuteStep(step, realTime, simTime, job, this);

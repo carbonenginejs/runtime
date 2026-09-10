@@ -127,6 +127,14 @@ export class CjsSchema
         return cast(value, Contract);
     }
 
+    /**
+     * Applies method decorators imperatively, for code built without decorator syntax.
+     *
+     * @param {Function} Constructor The class owning the method.
+     * @param {string} methodName The method's name.
+     * @param {...Function} decorators The decorators, applied in order.
+     * @returns {Function} `Constructor`.
+     */
     static decorateMethod(Constructor, methodName, ...decorators)
     {
         for (const decorator of decorators)
@@ -353,6 +361,12 @@ export class CjsSchema
         return this;
     }
 
+    /**
+     * The registered values service, or a thrown explanation of what to import.
+     *
+     * @param {string} method The calling method's name, for the message.
+     * @returns {object} The values service.
+     */
     static #requireValuesService(method)
     {
         if (!CjsSchema.#valuesService)

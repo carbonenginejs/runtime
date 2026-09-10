@@ -61,6 +61,10 @@ function SlotFor(description, kind, binding)
 }
 
 
+/**
+ * A `Tr2ResourceSetAL` holding the resolved bindings a draw's bind groups are
+ * assembled from.
+ */
 export class CjsWebgpuResourceSetAL
 {
   /** A process-unique identity, for the context's bind-group cache. Zero until Create. */
@@ -151,21 +155,25 @@ export class CjsWebgpuResourceSetAL
     return this.m_entries;
   }
 
+  /** The `Tr2ResourceSetDescriptionAL` it was created from, or null. */
   GetDescription()
   {
     return this.m_description;
   }
 
+  /** The shader program whose bindings were resolved, or null. */
   GetProgram()
   {
     return this.m_program;
   }
 
+  /** Whether the set has been created and carries an identity. */
   IsValid()
   {
     return this.m_id !== 0;
   }
 
+  /** Drops the resolved entries, leaving the set invalid. */
   Destroy()
   {
     this.m_entries = new Map();
@@ -174,6 +182,7 @@ export class CjsWebgpuResourceSetAL
     this.m_id = 0;
   }
 
+  /** Where the set lives, which is managed memory rather than the device. */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;

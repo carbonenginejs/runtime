@@ -406,6 +406,7 @@ export class Tr2Material extends CjsModel
     }
   }
 
+  /** Rehashes every pass's resource-set hash into one, so a changed binding is seen. */
   #RebuildResourceSetHash()
   {
     let hash = FNV1_INITIAL;

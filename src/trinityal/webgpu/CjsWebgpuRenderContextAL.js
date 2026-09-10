@@ -2595,6 +2595,11 @@ export class CjsWebgpuRenderContextAL
     };
   }
 
+  /**
+   * Keeps the work queue's reported encoder transitions for the tests to read.
+   *
+   * @param {object[]} [events] The events, if any were reported.
+   */
   _Record(events)
   {
     if (events?.length) this._transitions.push(...events);

@@ -222,6 +222,12 @@ export class Tr2EffectRes extends CjsResource
     return this.#carriesBackendBlock;
   }
 
+  /**
+   * One of the effect's shaders by position.
+   *
+   * @param {number} index A non-negative index into the shader list.
+   * @returns {object|null} The shader, or null when the index is past the end.
+   */
   GetShaderByIndex(index)
   {
     if (!Number.isSafeInteger(index) || index < 0)

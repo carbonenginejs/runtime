@@ -26,6 +26,10 @@ import { CarbonSamplerDescriptor } from "./core/samplerDescriptor.js";
 const NO_HEAP_INDEX = 0xffffffff;
 
 
+/**
+ * A `Tr2SamplerStateAL` backed by a `GPUSampler` created from Carbon's
+ * authored sampler description.
+ */
 export class CjsWebgpuSamplerStateAL
 {
   /** The `GPUSampler`, or null before Create. */
@@ -95,6 +99,7 @@ export class CjsWebgpuSamplerStateAL
     return this.m_description;
   }
 
+  /** Whether the state holds a `GPUSampler`. */
   IsValid()
   {
     return this.m_sampler !== null;
@@ -106,6 +111,7 @@ export class CjsWebgpuSamplerStateAL
     return NO_HEAP_INDEX;
   }
 
+  /** Drops the sampler, leaving the state invalid. */
   Destroy()
   {
     // A GPUSampler has no destroy(); dropping the reference releases it.
@@ -114,6 +120,7 @@ export class CjsWebgpuSamplerStateAL
     this.m_descriptor = null;
   }
 
+  /** Where the sampler lives, which is managed memory rather than the device. */
   GetMemoryClass()
   {
     return Tr2ALMemoryType.AL_MEMORY_MANAGED;

@@ -37,6 +37,10 @@ export const CONST_PAGE_SIZE = 2 * 1024 * 1024;
 export const CONST_ALIGNMENT = 256;
 
 
+/**
+ * A per-frame arena of `GPUBuffer` pages that constant buffers are suballocated
+ * into when they are bound.
+ */
 export class CjsWebgpuConstantArena
 {
   /** m_pages: one `GPUBuffer` per page, created on first use. */

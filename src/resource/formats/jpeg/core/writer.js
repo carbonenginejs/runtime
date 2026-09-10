@@ -111,6 +111,7 @@ const SUBSAMPLINGS = Object.freeze({ "4:2:0": [ 2, 2 ], "4:4:4": [ 1, 1 ] });
 class BitWriter
 {
 
+    /** An empty writer, with nothing accumulated. */
     constructor()
     {
         this.bytes = [];
@@ -118,11 +119,21 @@ class BitWriter
         this.count = 0;
     }
 
+    /**
+     * Appends one byte.
+     *
+     * @param {number} value The byte; only its low eight bits are kept.
+     */
     u8(value)
     {
         this.bytes.push(value & 0xff);
     }
 
+    /**
+     * Appends one big-endian 16-bit value, as every JPEG segment length is.
+     *
+     * @param {number} value The value.
+     */
     u16(value)
     {
         this.u8(value >>> 8);

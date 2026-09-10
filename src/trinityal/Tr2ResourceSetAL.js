@@ -163,6 +163,7 @@ export class Tr2RegisterMapAL
     return true;
   }
 
+  /** The slot array for one binding kind, or null when the kind is unknown. */
   _Slots(kind)
   {
     if (kind === "srv") return this._srvs;
@@ -393,6 +394,7 @@ export class Tr2ResourceSetDescriptionAL
     return map;
   }
 
+  /** The slot array for one binding kind, or null when the kind is unknown. */
   _Slots(kind)
   {
     if (kind === "srv") return this._srvs;

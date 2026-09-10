@@ -584,6 +584,11 @@ export class CjsWebgpuWorkQueue
     return this._Drain();
   }
 
+  /**
+   * The open `GPURenderPassEncoder` for a caller that encodes on it directly.
+   *
+   * @returns {object|null} The pass, after forgetting what this queue had bound.
+   */
   RequireRenderPass()
   {
     this._RequireRenderEncoder();
@@ -642,6 +647,7 @@ export class CjsWebgpuWorkQueue
     this._currentEncoderType = EncoderType.NONE;
   }
 
+  /** Takes the recorded events, leaving the queue's list empty. */
   _Drain()
   {
     const events = this._events;
@@ -653,18 +659,6 @@ export class CjsWebgpuWorkQueue
 }
 
 
-/**
- * Turns a declared hint into load and store operations, as Carbon's
- * `ApplyRenderPassHint` writes them into its pass descriptor
- * (`MetalWorkQueue.mm:773-809`).
- *
- * NO HINT IS NOT DONT_CARE. Carbon only applies actions when a hint is pending
- * and otherwise leaves the descriptor as it was, so an absent hint returns null
- * and the caller keeps its own defaults rather than being told to discard.
- *
- * @param {object} [hint] A pending hint.
- * @returns {object|null} `{ colors, depth }` with `load`/`store` per attachment.
- */
 /** Whether two dynamic-offset lists bind the same regions. */
 function sameOffsets(first, second)
 {
@@ -680,6 +674,18 @@ function sameOffsets(first, second)
 }
 
 
+/**
+ * Turns a declared hint into load and store operations, as Carbon's
+ * `ApplyRenderPassHint` writes them into its pass descriptor
+ * (`MetalWorkQueue.mm:773-809`).
+ *
+ * NO HINT IS NOT DONT_CARE. Carbon only applies actions when a hint is pending
+ * and otherwise leaves the descriptor as it was, so an absent hint returns null
+ * and the caller keeps its own defaults rather than being told to discard.
+ *
+ * @param {object} [hint] A pending hint.
+ * @returns {object|null} `{ colors, depth }` with `load`/`store` per attachment.
+ */
 export function ApplyRenderPassHint(hint)
 {
   if (!hint) return null;

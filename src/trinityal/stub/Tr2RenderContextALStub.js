@@ -304,6 +304,13 @@ export class Tr2RenderContextALStub
     return texture;
   }
 
+  /**
+   * Creates a resource set for a program.
+   *
+   * @param {object} description A `Tr2ResourceSetDescriptionAL`.
+   * @param {object} program The shader program the bindings belong to.
+   * @returns {object|null} The set, or null when it could not be created.
+   */
   CreateResourceSet(description, program)
   {
     const resourceSet = new Tr2ResourceSetALStub();
