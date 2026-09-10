@@ -35,6 +35,7 @@ import { ConstantBufferSlot } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
+import { Tr2PerObjectData } from "../rawData/Tr2PerObjectData.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
 import { CjsShadowMapExecutor } from "./CjsShadowMapExecutor.js";
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
@@ -1302,7 +1303,16 @@ export class Tr2RenderContext extends CjsModel
           (_unused, slot) => this.GetConstantBuffer(slot)
         );
 
-        batch.objectData.SetPerObjectDataToDevice(buffers, shaderMask, this);
+        // STATIC, TAKING THE DATA. Carbon dispatches this on the per-object
+        // data's subclass, so the port was written as a method call on
+        // `batch.objectData` - but almost nothing here IS a `Tr2PerObjectData`:
+        // every renderable's `GetPerObjectData` returns a plain `{ vs, ps }`
+        // pair of `RawData` records, which is why the method beside the data is
+        // static and takes it. Calling it on the data threw `TypeError` for
+        // every batch that carried any, so NO REAL RENDERABLE COULD DRAW - the
+        // existing tests walk batches with no per-object data at all, and a
+        // real hull found it in one frame.
+        Tr2PerObjectData.setPerObjectDataToDevice(batch.objectData, buffers, shaderMask, this);
         currentObjectData = batch.objectData;
       }
 

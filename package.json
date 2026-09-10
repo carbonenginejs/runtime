@@ -303,6 +303,8 @@
     "proof:character:decorators": "node scripts/character/proof_decorator_transform.js",
     "catalog:character": "node scripts/character/generate_class_catalog.js",
     "build:webgpu:harness": "rollup -c rollup.webgpu-harness.config.mjs",
+    "build:webgpu:demo": "rollup -c rollup.webgpu-demo.config.mjs",
+    "demo:webgpu": "npm run build:npm && npm run build:webgpu:demo && node scripts/trinityal/webgpu/run-webgpu-demo.js",
     "test:webgpu": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js",
     "test:webgpu:required": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js --required",
     "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test",

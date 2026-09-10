@@ -9,7 +9,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Tr2RenderBatch, Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
+import { RawData, Tr2PerObjectData, Tr2RenderBatch, Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { RenderingMode } from "../../npm/dist/global/consts/graphics/index.js";
 
@@ -95,26 +95,68 @@ test("a shader with no technique or no passes skips its batch, and does not cach
 
 test("per-object data is set once per distinct object, not once per batch", () =>
 {
+  // THE PAYLOAD IS A PLAIN `{ vs, ps }` PAIR, which is what every renderable's
+  // `GetPerObjectData` actually returns, and the upload method beside it is
+  // STATIC and takes it. This test used to hand the walk an object carrying a
+  // `SetPerObjectDataToDevice` method of its own and count calls on it, which
+  // no renderable produces - so it passed while the walk called that method on
+  // the data and threw `TypeError` for every real hull. Spying on the static is
+  // the same assertion against the real receiver.
   const context = new Tr2RenderContext();
   const shader = shaderStub();
   const calls = [];
-  const objectData = { SetPerObjectDataToDevice: (buffers, mask) => calls.push({ slots: buffers.length, mask }) };
+  const real = Tr2PerObjectData.setPerObjectDataToDevice;
 
-  const batches = [
-    batchOf({ shader, material: materialStub(), objectData }),
-    batchOf({ shader, material: materialStub(), objectData }),
-    batchOf({ shader, material: materialStub(), objectData: { SetPerObjectDataToDevice: () => calls.push({ other: true }) } })
-  ];
+  Tr2PerObjectData.setPerObjectDataToDevice = (data, buffers, mask) =>
+  {
+    calls.push({ data, slots: buffers.length, mask });
 
-  context.RenderBatchesInOrder(accumulatorOf(batches), "Main");
+    return 0;
+  };
 
-  // Two distinct object-data objects, so two calls - Carbon compares against
-  // the previous one rather than setting per batch.
-  assert.equal(calls.length, 2);
-  assert.equal(calls[0].mask, 0b11, "the shader type mask is passed through");
+  try
+  {
+    const objectData = { vs: RawData.create("EveBasicPerObjectData") };
+    const other = { vs: RawData.create("EveBasicPerObjectData") };
 
-  // Every constant-buffer slot exists, as Carbon's array of pointers does.
-  assert.ok(calls[0].slots >= 6);
+    context.RenderBatchesInOrder(accumulatorOf([
+      batchOf({ shader, material: materialStub(), objectData }),
+      batchOf({ shader, material: materialStub(), objectData }),
+      batchOf({ shader, material: materialStub(), objectData: other })
+    ]), "Main");
+
+    // Two distinct payloads, so two calls - Carbon compares against the
+    // previous one rather than setting per batch.
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].data, objectData, "the payload itself is what is uploaded");
+    assert.equal(calls[1].data, other);
+    assert.equal(calls[0].mask, 0b11, "the shader type mask is passed through");
+
+    // Every constant-buffer slot exists, as Carbon's array of pointers does.
+    assert.ok(calls[0].slots >= 6);
+  }
+  finally
+  {
+    Tr2PerObjectData.setPerObjectDataToDevice = real;
+  }
+});
+
+test("a real per-object payload uploads without the walk throwing", () =>
+{
+  // The regression this file missed: the walk called the static as a method on
+  // the payload, so any batch carrying per-object data threw and no renderable
+  // could draw. No spy here - the real upload runs against the stub backend.
+  const context = new Tr2RenderContext();
+  const vs = RawData.create("EveBasicPerObjectData");
+
+  vs.SetAndTranspose("world", [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 5, 6, 1 ]);
+
+  context.RenderBatchesInOrder(
+    accumulatorOf([ batchOf({ shader: shaderStub(), material: materialStub(), objectData: { vs } }) ]),
+    "Main"
+  );
+
+  assert.equal(context.GetRenderContextAL().GetDrawCount(), 1);
 });
 
 test("a batch with no index buffer takes the non-indexed draw", () =>
