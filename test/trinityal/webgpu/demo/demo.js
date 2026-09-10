@@ -604,6 +604,26 @@ function PerFrameData(bounds, aspect)
   ps.Set("ViewportSize", [ 768, 576 ]);
   ps.Set("TargetResolution", [ 768, 576 ]);
 
+  // GAMMABRIGHTNESS IS WHY THE HULL WAS WHITE, and it is worth spelling out
+  // because a zero here is not a dim picture, it is a saturated one. `quadv5`
+  // ends with the sRGB encode, and the encode's exponent IS this field:
+  //
+  //     value187 = log2(colour) * cb2[21].w
+  //     value189 = exp2(value187)          // colour raised to that power
+  //
+  // At zero the multiply annihilates the logarithm, `exp2(0)` is one whatever
+  // the colour was, and every channel leaves at 1.0. Lighting, textures and
+  // material constants can all be perfect and the frame is still pure white -
+  // which is exactly what it was, and why chasing the textures first found
+  // nothing wrong with them.
+  //
+  // `SceneMipLodBias` sits beside it and reaches every `textureSampleBias` in
+  // the shader; zero is the honest default, but it is set explicitly so the
+  // next reader knows it was considered rather than missed.
+  ps.Set("GammaBrightness", 1);
+  ps.Set("SceneMipLodBias", 0);
+  ps.Set("Upscaling", 1);
+
   return { vs, ps, viewProjection };
 }
 
