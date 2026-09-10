@@ -521,13 +521,24 @@ async function LoadTextures(effect, compressed)
  * @param {object} perObject The per-object payload pair.
  * @returns {object} The renderable.
  */
-function HullRenderable(material, geometry, mesh, perObject)
+function HullRenderable(areas, geometry, perObject)
 {
-  const area = new Tr2MeshArea();
+  // ONE MESH AREA PER DOCUMENT AREA, EACH WITH ITS OWN SHADER. This built a
+  // single area spanning every geometry range and gave the whole mesh the FIRST
+  // area's material - so `area_booster` was drawn with `quadv5` instead of the
+  // `quadheatv5` the document names for it. That is why the booster showed
+  // texture but no heat: it was not running the heat shader at all. The index
+  // and count come from the document too, rather than being assumed.
+  const meshAreas = areas.map(({ material, index, count }) =>
+  {
+    const area = new Tr2MeshArea();
 
-  area.SetMaterial(material);
-  area.SetIndex(0);
-  area.SetCount(mesh.lods[0].areas.length);
+    area.SetMaterial(material);
+    area.SetIndex(index);
+    area.SetCount(count);
+
+    return area;
+  });
 
   return {
     GetPerObjectData: () => perObject,
@@ -543,7 +554,7 @@ function HullRenderable(material, geometry, mesh, perObject)
       base.meshIndex = 0;
       base.GetGeometryResource = () => geometry;
 
-      return base.GetBatches(accumulator, [ area ], perObjectData);
+      return base.GetBatches(accumulator, meshAreas, perObjectData);
     }
   };
 }
@@ -882,28 +893,57 @@ export async function RunDemo(canvas)
 
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
   const sof = await SofDocument(DNA);
-  const area = sof?.mesh?.opaqueAreas?.[0]?.effect ?? null;
-  const effectPath = area?.effectFilePath ? EffectPath(area.effectFilePath) : EFFECT;
-  const [ effectBytes, hullBytes ] = await Promise.all([ ResourceBytes(effectPath), ResourceBytes(HULL) ]);
+  const documentAreas = sof?.mesh?.opaqueAreas ?? [];
+  const hullBytes = await ResourceBytes(HULL);
   const mesh = Unpack(HullMesh(hullBytes));
   const bounds = Bounds(mesh);
   const geometry = GeometryResource(mesh, `res:/${HULL}`);
-  const material = Material(effectBytes, `res:/${effectPath}`, area);
+  const textures = { loaded: 0, failed: [] };
 
-  // The scene's share of the texture slots, before the material is applied and
-  // its resource set laid out. Added as ordinary named parameters, because that
-  // is how the material finds a texture: by the name the shader declares.
-  for (const scene of SCENE_TEXTURES)
+  // EACH AREA GETS ITS OWN SHADER. `area_hull` names `quadv5` and `area_booster`
+  // names `quadheatv5`; one material for both meant the booster ran the hull's
+  // shader, which is why it showed texture and no heat.
+  const areas = [];
+
+  for (const declared of documentAreas)
   {
-    const parameter = new TriTextureParameter();
+    const effect = declared.effect ?? null;
+    const path = effect?.effectFilePath ? EffectPath(effect.effectFilePath) : EFFECT;
+    const material = Material(await ResourceBytes(path), `res:/${path}`, effect);
 
-    parameter.name = scene.name;
-    parameter.resource = FlatTexture(scene.colour);
-    material.resources.push(parameter);
+    // The scene's share of the texture slots, before the material is applied
+    // and its resource set laid out. Added as ordinary named parameters,
+    // because that is how a material finds a texture: by the name the shader
+    // declares. Every area needs its own - a resource set is per material.
+    for (const scene of SCENE_TEXTURES)
+    {
+      const parameter = new TriTextureParameter();
+
+      parameter.name = scene.name;
+      parameter.resource = FlatTexture(scene.colour);
+      material.resources.push(parameter);
+    }
+
+    material.RebuildCachedData();
+
+    const loaded = await LoadTextures(material, compressed);
+
+    textures.loaded += loaded.loaded;
+    textures.failed.push(...loaded.failed);
+
+    areas.push({
+      material,
+      path,
+      name: declared.name,
+      index: declared.index ?? 0,
+      count: declared.count ?? 1
+    });
   }
 
-  material.RebuildCachedData();
-  const textures = await LoadTextures(material, compressed);
+  if (!areas.length) throw new Error("the SOF document declares no opaque areas");
+
+  const material = areas[0].material;
+  const effectPath = areas[0].path;
   const frame = PerFrameData(bounds, canvas.width / canvas.height);
 
   // The hull sits at the origin, so the camera does the framing and the world
@@ -920,7 +960,7 @@ export async function RunDemo(canvas)
     vs: RawData.create("EveSpaceObjectVSData"),
     ps: RawData.create("EveSpaceObjectPSData")
   };
-  const renderable = HullRenderable(material, geometry, mesh, perObject);
+  const renderable = HullRenderable(areas, geometry, perObject);
   const depthFormat = "depth24plus";
   const renderTarget = new CjsWebgpuRenderTarget(webgpu, {
     canvas,
@@ -1128,9 +1168,9 @@ export async function RunDemo(canvas)
     litPixelsCullInverted: inverted?.litPixels ?? null,
     validation,
     effect: effectPath,
-    effectOptions: (area?.options ?? []).map(option => `${option.name}=${option.value}`),
+    areas: areas.map(a => `${a.name}[${a.index}+${a.count}] -> ${a.path.split("/").pop()}`),
     hull: HULL,
-    effectBytes: effectBytes.length,
+    effectAreas: areas.length,
     hullBytes: hullBytes.length,
     wgsl: stages,
     techniques: shader.GetEffect().techniques.map(technique => technique.name),
