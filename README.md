@@ -15,7 +15,8 @@ using today:
 
 The pipelines that translate EVE's DX11 shaders to **WebGPU** and **WebGL** work,
 and are how the renderer draws. The renderer around them is still being
-assembled: post-processing, dynamic lights and shadows are not done.
+assembled: post-processing, lights and shadows are ported as classes but the
+renderer does not drive them yet, so expect unlit-looking output.
 
 ## Install
 

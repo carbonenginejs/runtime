@@ -13,7 +13,7 @@ reference-only.
 
 ---
 
-## Oodle1 / Oodle0 decompressor - `src/core/oodle1.js`
+## Oodle1 / Oodle0 decompressor - `src/resource/formats/gr2/core/oodle1.js`
 
 **Boost Software License 1.0.** Ported from the Granny `gr2_decompress` implementation
 shipped in [Arbos/nwn2mdk](https://github.com/Arbos/nwn2mdk) (the decompressor is
@@ -49,7 +49,7 @@ DEALINGS IN THE SOFTWARE.
 
 ---
 
-## BitKnit / BitKnit2 decompressor - `src/core/bitknit2.js`
+## BitKnit / BitKnit2 decompressor - `src/resource/formats/gr2/core/bitknit2.js`
 
 **Original CarbonEngineJS code (MIT).** On 2026-07-24 the previous
 EUPL-derived port (transcribed from
@@ -57,7 +57,7 @@ EUPL-derived port (transcribed from
 `GrannyBitKnitCompression.cs`, EUPL-1.2) was replaced by a clean-room
 implementation produced through a documented two-party process: one party
 analyzed the format and published a facts-only decoding specification
-(`docs/formats/bitknit2.md`); a second, isolated party implemented the
+(`docs/resource/formats/bitknit2.md`); a second, isolated party implemented the
 decoder solely from that specification with no access to Knit, pybg3, ooz,
 or any other BitKnit implementation. The result was validated byte-exact
 against 539 BitKnit2 streams extracted from the EVE `.gr2` corpus (section
@@ -68,13 +68,13 @@ format facts only.
 
 ---
 
-## Granny animation-curve decompression - `src/core/curves.js`
+## Granny animation-curve decompression - `src/resource/formats/gr2/core/curves.js`
 
 Authored by **cppctamber** as part of ccpwgl2 (`src/core/reader/granny/curves`), the
 same author/owner as this library; included here under this project's MIT
 license.
 
-## Tangent-frame shader math - `src/core/tangents.js`
+## Tangent-frame shader math - `src/global/math/tangent.js`
 
 The packed tangent-frame decode/encode math is derived from Fenris Creations
 (formerly CCP / CCP Games) EVE/Carbon shader behavior for packed tangent frames.

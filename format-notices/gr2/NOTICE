@@ -1,7 +1,8 @@
-carbonenginejs/format-gr2
-=========================
+GR2 / Granny reader - @carbonenginejs/runtime
+=============================================
 
-A pure-JavaScript reader for RAD Game Tools' Granny 3D (.gr2) file format.
+A pure-JavaScript reader for RAD Game Tools' Granny 3D (.gr2) file format,
+under `src/resource/formats/gr2`.
 Contains no RAD/Granny code and does not link granny2.dll. Section decompression
 is reimplemented from clean-room / open reverse-engineering efforts, listed below.
 
@@ -13,9 +14,14 @@ and EVE-related data remain copyright their original holders.
 
 Current repository license: MIT. See LICENSE.
 
+This reader was migrated from the former `carbonenginejs/format-gr2` package
+into `@carbonenginejs/runtime`; that repository now only forwards here. Paths
+below are the reader's CURRENT locations, so every claim can be checked against
+the file it names.
+
 The former EUPL-derived BitKnit implementation was replaced on 2026-07-24 by
-an original clean-room implementation written solely from this package's
-published format specification (docs/formats/bitknit2.md); no EUPL-derived
+an original clean-room implementation written solely from the published
+format specification (docs/resource/formats/bitknit2.md); no EUPL-derived
 code remains.
 
 Provenance and legal requirements
@@ -35,24 +41,24 @@ Games.
 Third-party algorithm provenance
 --------------------------------
 
-Oodle1 / Oodle0 section decompressor (src/codecs/oodle1.js)
+Oodle1 / Oodle0 section decompressor (src/resource/formats/gr2/core/oodle1.js)
   Ported from the open Granny2 decompressors:
     - nwn2mdk  "gr2_decompress"        (Boost Software License 1.0)
     - arves100/opengr2  "oodle1.c"     (MPL-2.0)   https://github.com/arves100/opengr2
   This is Granny's own legacy codec, not RAD's modern Oodle (Kraken/BitKnit families).
 
-BitKnit / BitKnit2 section decompressor (src/core/bitknit2.js)
+BitKnit / BitKnit2 section decompressor (src/resource/formats/gr2/core/bitknit2.js)
   Original CarbonEngineJS clean-room implementation (2026-07-24), written
-  solely from this package's published format specification
-  (docs/formats/bitknit2.md) by an isolated implementer, and validated
+  solely from the published format specification
+  (docs/resource/formats/bitknit2.md) by an isolated implementer, and validated
   byte-exact against the EVE .gr2 corpus. It replaced a prior port of
   neptuwunium/Knit (EUPL-1.2); no code from Knit, pybg3, ooz, or any other
   BitKnit implementation remains. See THIRD-PARTY-NOTICES.md.
 
-Granny curve decompression (src/curves/**, optional; enabled via decompressCurves)
+Granny curve decompression (src/resource/formats/gr2/core/curves.js, optional; enabled via decompressCurves)
   Adapted from cppctamber's granny extension for ccpwgl2 (src/core/reader/granny/curves).
 
-Container / relocation / type-tree reflection (src/container.js, src/reader.js)
+Container / relocation / type-tree reflection (src/resource/formats/gr2/core/container.js, src/resource/formats/gr2/core/reader.js)
   Original to this project, derived from the on-disk Granny GRN format layout
   (cross-referenced with the Granny SDK headers and the above projects' docs).
 
