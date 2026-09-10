@@ -248,6 +248,80 @@ export class CjsFormat
       entry.output.toLowerCase() === normalized) || null;
   }
 
+  /**
+   * Whether this format can be written, optionally from one named input.
+   *
+   * @param {string} [input] Payload name, or omitted for "at all".
+   * @returns {boolean} True when a matching input is declared.
+   */
+  static canWrite(input = null)
+  {
+    return this.getInputCapability(input) !== null;
+  }
+
+  /** Look up one declared write input, or the default when none is named. */
+  static getInputCapability(input = null)
+  {
+    if (!input)
+    {
+      return Object.values(this.inputs).find(entry => entry.default) || null;
+    }
+    const normalized = String(input).toLowerCase();
+    return Object.values(this.inputs).find(entry =>
+      entry.input.toLowerCase() === normalized) || null;
+  }
+
+  /**
+   * Freeze and validate one format's authoritative input map.
+   *
+   * Mirrors `defineOutputs`, including the one-default rule: a format that can
+   * be written from several payloads still has one obvious answer to "write
+   * this", and leaving that to argument order is how a caller ends up writing
+   * the wrong thing silently.
+   *
+   * `lossy` is declared rather than inferred. It is the fact a caller most
+   * needs before choosing a writer - a converter that reaches for JPEG to save
+   * space and destroys an alpha channel it needed has made a mistake nothing
+   * downstream can detect.
+   */
+  static defineInputs(definitions = {})
+  {
+    if (!definitions || typeof definitions !== "object" || Array.isArray(definitions))
+    {
+      throw new TypeError("CjsFormat.defineInputs requires an object map.");
+    }
+
+    const inputs = {};
+    let defaults = 0;
+    for (const [ input, definition ] of Object.entries(definitions))
+    {
+      if (!input || !definition || typeof definition !== "object" || Array.isArray(definition))
+      {
+        throw new TypeError("Each format input requires a non-empty name and descriptor.");
+      }
+      const writeMode = definition.writeMode || READ_MODE_SYNC;
+      if (![ READ_MODE_SYNC, READ_MODE_ASYNC ].includes(writeMode))
+      {
+        throw new TypeError(`Format input ${input} has invalid writeMode ${JSON.stringify(writeMode)}.`);
+      }
+      if (definition.default === true) defaults++;
+      inputs[input] = {
+        input,
+        payloadType: definition.payloadType || input,
+        writeMode,
+        lossy: definition.lossy === true,
+        default: definition.default === true,
+        options: [ ...(definition.options || []) ]
+      };
+    }
+    if (defaults > 1) throw new TypeError("A format may declare only one default input.");
+    if (Object.keys(inputs).length > 0 && defaults !== 1)
+    {
+      throw new TypeError("A format with inputs must declare exactly one default input.");
+    }
+    return Object.freeze(inputs);
+  }
+
   /** Freeze and validate one format's authoritative output map. */
   static defineOutputs(definitions = {})
   {
@@ -405,6 +479,17 @@ export class CjsFormat
   static mediaTypes = Object.freeze([]);
   static extensions = Object.freeze([]);
   static outputs = Object.freeze({});
+  /**
+   * What this format can be written FROM, empty when it cannot be written.
+   *
+   * The counterpart of `outputs`, and empty by default so that declaring a
+   * writer is a deliberate act and every existing format keeps saying "read
+   * only" without being touched. A caller asks `canWrite()` rather than
+   * probing for a `write` method, because the presence of a function is not a
+   * contract - it says nothing about what payload it takes or whether the
+   * result is lossy.
+   */
+  static inputs = Object.freeze({});
   static requestResponseType = "arraybuffer";
   static worker = null;
 }

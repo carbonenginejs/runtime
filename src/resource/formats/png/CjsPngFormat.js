@@ -14,6 +14,7 @@ import {
     readWithValuesAsync,
     toJsonValue
 } from "./core/helpers.js";
+import { encodePng, encodePngAsync } from "./core/writer.js";
 
 const FORMAT_NAME = "CjsPngFormat";
 
@@ -25,6 +26,50 @@ const FORMAT_NAME = "CjsPngFormat";
 export class CjsPngFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
+
+    /**
+     * One-shot PNG write from a normalized RGBA payload, without compressing.
+     *
+     * @param {object} payload As emitted for `rgba`.
+     * @returns {Uint8Array} PNG bytes.
+     */
+    static write(payload, options = {})
+    {
+        return encodePng(payload, options);
+    }
+
+    /**
+     * One-shot compressed PNG write from a normalized RGBA payload.
+     *
+     * @param {object} payload As emitted for `rgba`.
+     * @returns {Promise<Uint8Array>} PNG bytes.
+     */
+    static async writeAsync(payload, options = {})
+    {
+        return encodePngAsync(payload, options);
+    }
+
+    /**
+     * Write a normalized RGBA payload as PNG bytes, without compressing.
+     *
+     * @param {object} payload As emitted for `rgba`.
+     * @returns {Uint8Array} PNG bytes.
+     */
+    Write(payload, options = {})
+    {
+        return encodePng(payload, options);
+    }
+
+    /**
+     * Write a normalized RGBA payload as compressed PNG bytes.
+     *
+     * @param {object} payload As emitted for `rgba`.
+     * @returns {Promise<Uint8Array>} PNG bytes.
+     */
+    async WriteAsync(payload, options = {})
+    {
+        return encodePngAsync(payload, options);
+    }
 
     /**
      * Create a reusable PNG format profile.
@@ -196,6 +241,12 @@ export class CjsPngFormat extends CjsFormat
     static OUTPUT_PNG_JSON = "pngJson";
     static id = "png";
     static mediaTypes = Object.freeze([ "image" ]);
+    static inputs = CjsFormat.defineInputs({
+        // async because the compressing path is the real one; the sync writer
+        // emits stored blocks and is the fallback, not the intent.
+        rgba: { default: true, writeMode: "async", options: [ "compression" ] }
+    });
+
     static outputs = CjsFormat.defineOutputs({
         image: { readMode: "async", decoded: true, probes: [ "image", "rgba" ] },
         rgba: { readMode: "async", decoded: true },

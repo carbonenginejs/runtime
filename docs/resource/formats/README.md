@@ -52,6 +52,52 @@ Clone-safe formats may additionally declare browser-worker execution
 metadata. Worker eligibility never changes the format's direct API; see
 [browser worker execution](../reference/workers.md).
 
+## Images can be written as well as read
+
+`CjsJpegFormat`, `CjsPngFormat` and `CjsTgaFormat` accept the same normalized
+RGBA payload every image format decodes *to* — `{ width, height, data }`, with
+`strideBytes` and `origin` honoured when present — so any image reader here
+pairs with any of these writers without an adapter:
+
+```js
+const rgba = await CjsPngFormat.readAsync(bytes, { emit: "rgba" });
+const jpeg = CjsJpegFormat.write(rgba, { quality: 0.9 });
+```
+
+`write` is one-shot and static; `Write` is the instance form, as with every
+other format that writes.
+
+**Ask whether a format writes; do not probe for the method.** `inputs` is the
+counterpart of `outputs`, and it is empty on every format that only reads:
+
+```js
+CjsPngFormat.canWrite();            // true
+CjsGifFormat.canWrite();            // false — reads only
+CjsJpegFormat.getInputCapability(); // { input: "rgba", lossy: true, ... }
+```
+
+`lossy` is declared rather than inferred, because it is the fact a caller needs
+*before* choosing: a converter reaching for JPEG to save space and silently
+dropping an alpha channel it needed has made a mistake nothing downstream can
+detect. The presence of a `write` function tells you none of that.
+
+| Writer | Lossless | Notes |
+|---|---|---|
+| `CjsJpegFormat.write` | no | `quality` 0..1 (default 0.9), `subsampling` `4:2:0` or `4:4:4`. No alpha — the format has none. |
+| `CjsPngFormat.write` | yes | Emits stored deflate blocks, so the output is about the size of the raw pixels. |
+| `CjsPngFormat.writeAsync` | yes | Compresses through `CompressionStream`, the counterpart of the reader's `DecompressionStream`. |
+
+PNG's `compression` option names the format's compression *method*, which is `0`
+and can be nothing else — any other value throws rather than being accepted and
+ignored. Writing `0` regardless of what was asked would leave the file correct
+and the caller's belief about it wrong.
+| `CjsTgaFormat.write` | yes | `compress` runs run-length encoding. No deflate, so it works where `CompressionStream` does not. |
+
+Which one to reach for is not a matter of taste. JPEG is far smaller on
+photographs and renders and destroys flat colour, sharp edges and alpha;
+converting 128×128 pattern art to JPEG measurably made some of it *larger*. PNG
+and TGA are exact.
+
 ## Format map
 
 | Format | Class | Import |

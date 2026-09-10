@@ -14,6 +14,7 @@ import {
     readWithValues,
     toJsonValue
 } from "./core/helpers.js";
+import { encodeJpeg } from "./core/writer.js";
 
 const FORMAT_NAME = "CjsJpegFormat";
 
@@ -85,6 +86,23 @@ export class CjsJpegFormat extends CjsFormat
     }
 
     /**
+     * Write a normalized RGBA payload as baseline JPEG bytes.
+     *
+     * The counterpart of the `rgba` emit target, and it takes exactly what that
+     * produces - so any image format in this package converts to JPEG through
+     * its own reader and this writer, with no canvas and no second library.
+     *
+     * @param {object} payload `{ width, height, data }`, as the image formats
+     *   emit for `rgba`; `strideBytes` and `origin` are honoured when present.
+     * @param {object} [options] `quality` 0..1 and `subsampling`.
+     * @returns {Uint8Array} JPEG bytes.
+     */
+    Write(payload, options = {})
+    {
+        return encodeJpeg(payload, options);
+    }
+
+    /**
      * Inspect JPEG bytes without decoding image data.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input JPEG bytes.
@@ -129,6 +147,18 @@ export class CjsJpegFormat extends CjsFormat
     static async readAsync(input, options = {})
     {
         return CjsJpegFormat.read(input, options);
+    }
+
+    /**
+     * One-shot JPEG write from a normalized RGBA payload.
+     *
+     * @param {object} payload `{ width, height, data }` as emitted for `rgba`.
+     * @param {object} [options] `quality` 0..1 and `subsampling`.
+     * @returns {Uint8Array} JPEG bytes.
+     */
+    static write(payload, options = {})
+    {
+        return encodeJpeg(payload, options);
     }
 
     /**
@@ -214,6 +244,10 @@ export class CjsJpegFormat extends CjsFormat
     static OUTPUT_JPEG_JSON = "jpegJson";
     static id = "jpeg";
     static mediaTypes = Object.freeze([ "image" ]);
+    static inputs = CjsFormat.defineInputs({
+        rgba: { default: true, lossy: true, options: [ "quality", "subsampling" ] }
+    });
+
     static outputs = CjsFormat.defineOutputs({
         image: { decoded: true, probes: [ "image", "rgba" ] },
         rgba: { decoded: true },

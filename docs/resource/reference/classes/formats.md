@@ -1241,6 +1241,16 @@ JPEG format profile that inspects marker and header metadata and reads baseline 
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+<!-- class:BitWriter -->
+## `BitWriter`
+
+Writer-side helper that packs Huffman codes into a JPEG entropy stream, stuffing the zero byte after every 0xFF so entropy data cannot be mistaken for a marker.
+
+- Export: `None`
+- Source: `src/resource/formats/jpeg/core/writer.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+
 <!-- class:BaselineJpegDecoder -->
 ## `BaselineJpegDecoder`
 

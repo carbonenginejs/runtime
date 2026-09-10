@@ -13,6 +13,7 @@ import {
     readWithValues,
     toJsonValue
 } from "./core/helpers.js";
+import { encodeTga } from "./core/writer.js";
 
 const FORMAT_NAME = "CjsTgaFormat";
 
@@ -23,6 +24,30 @@ const FORMAT_NAME = "CjsTgaFormat";
 export class CjsTgaFormat extends CjsFormat
 {
     #values = DEFAULT_VALUES;
+
+    /**
+     * One-shot TGA write from a normalized RGBA payload.
+     *
+     * @param {object} payload As emitted for `rgba`.
+     * @param {object} [options] `compress` for run-length encoding.
+     * @returns {Uint8Array} TGA bytes.
+     */
+    static write(payload, options = {})
+    {
+        return encodeTga(payload, options);
+    }
+
+    /**
+     * Write a normalized RGBA payload as TGA bytes.
+     *
+     * @param {object} payload As emitted for `rgba`.
+     * @param {object} [options] `compress` for run-length encoding.
+     * @returns {Uint8Array} TGA bytes.
+     */
+    Write(payload, options = {})
+    {
+        return encodeTga(payload, options);
+    }
 
     /**
      * Create a reusable TGA format profile.
@@ -197,6 +222,10 @@ export class CjsTgaFormat extends CjsFormat
     static id = "tga";
 
     static mediaTypes = Object.freeze([ "image" ]);
+
+    static inputs = CjsFormat.defineInputs({
+        rgba: { default: true, options: [ "compress" ] }
+    });
 
     static outputs = CjsFormat.defineOutputs({
 
