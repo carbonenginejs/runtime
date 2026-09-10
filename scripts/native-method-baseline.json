@@ -1113,7 +1113,6 @@
     "GetRenderTargetHeight",
     "GetRenderTargetWidth",
     "GetShaderLibraryCode",
-    "GetShaderProgram",
     "Initialize",
     "RegisterShaderLibrary",
     "RegisterShaderProgramOverride",
@@ -2328,6 +2327,21 @@
   "Tr2StaticEmitter": [
     "DoSpawn"
   ],
+  "Tr2SuballocatedBuffer": [
+    "Allocation",
+    "Expand",
+    "Free",
+    "GetOffset",
+    "GetSize",
+    "GetStartIndex",
+    "GetStride",
+    "IsValid",
+    "MapForReading",
+    "OnPrepareResources",
+    "ReadBuffer",
+    "UnmapForReading",
+    "Update"
+  ],
   "Tr2TextureAnimation": [
     "AdvanceTime",
     "DecodeFirstFrame",
@@ -2815,7 +2829,6 @@
     "GetName",
     "GetOriginalResolution",
     "GetOriginalResolutionAsFloat",
-    "GetTexture",
     "GetType",
     "GetWidth",
     "IsMemoryUsageKnown",
@@ -2831,7 +2844,6 @@
     "RequestResolution",
     "ResourcePrepFinished",
     "SetName",
-    "SetTexture",
     "SetTextureFromRT",
     "TrimLods",
     "UpdateLodRequest"

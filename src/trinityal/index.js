@@ -16,6 +16,7 @@
 export * from "./ALResult.js";
 export * from "./Tr2BitmapDimensions.js";
 export * from "./Tr2DeviceResourceAL.js";
+export * from "./Tr2DrawUPHelper.js";
 export * from "./Tr2HalHelperStructures.js";
 export * from "./Tr2RenderPassAL.js";
 export * from "./Tr2ResourceSetAL.js";

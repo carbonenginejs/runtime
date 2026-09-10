@@ -296,9 +296,16 @@ test("a program that declares bind groups draws with the bound constant buffer a
   assert.equal(bindGroups.length, 1);
   assert.equal(created.writes.at(-1)[1], 512);
 
-  // A new scene resets the arena.
+  // A new scene resets the arena. IT ALSO UNBINDS THE GEOMETRY, as Carbon's
+  // EndScene does (`Tr2RenderContextMetal.mm:869-873`), so frame two rebinds
+  // before it can draw - a draw straight after BeginScene has no program.
   await al.EndScene();
   al.BeginScene();
+  assert.equal(al.DrawIndexedInstanced(36, 1), false, "nothing is bound yet");
+
+  bindGeometry(al, program);
+  al.SetConstants(other, ShaderType.VERTEX_SHADER, 0);
+  al.SetResourceSet(set);
   al.DrawIndexedInstanced(36, 1);
   assert.equal(created.writes.at(-1)[1], 0, "frame two starts at offset zero");
 });

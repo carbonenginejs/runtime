@@ -73,7 +73,7 @@
 
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan } from "#trinityal";
-import { ALResult, Failed } from "#trinityal";
+import { ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/workQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
@@ -213,6 +213,14 @@ export class CjsWebgpuRenderContextAL
 
   /** m_dirtyPso */
   _pipelineDirty = true;
+
+  /**
+   * m_drawUPHelper, DX12's name for it; DX11 calls the same thing m_drawUP.
+   *
+   * Owned rather than shared, as every backend owns its own: the ring's slots
+   * are only safe because one context advances one cursor.
+   */
+  _drawUP = new Tr2DrawUPHelper();
 
   /**
    * m_psoDescription. Carbon's setters accumulate into one of these and mark it
@@ -1968,6 +1976,10 @@ export class CjsWebgpuRenderContextAL
     this._samplerStates.clear();
     this._constantArena?.Destroy();
     this._constantArena = null;
+    // Carbon's backends destroy the helper with the context too (DX12's
+    // destructor runs `Tr2DrawUPHelper::Destroy`), and its scratch buffers are
+    // real device buffers that must not outlive the device they came from.
+    this._drawUP.Destroy();
     // Bound state goes too; the description describes nothing bound.
     this._streams = [];
     this._vertexLayout = null;
@@ -2504,39 +2516,54 @@ export class CjsWebgpuRenderContextAL
   /**
    * Draws non-indexed straight from caller memory, with no buffer bound.
    *
-   * Carbon does NOT draw this itself either: Metal hands it to
-   * `m_drawUPHelper` (`Tr2RenderContextMetal.mm:558-571`), a helper that copies
-   * the caller's vertices into a scratch buffer and issues an ordinary draw.
-   * There is no such helper here, so this validates and refuses. WebGPU cannot
-   * read caller memory - every vertex must reach a `GPUBuffer` first - which
-   * makes the helper the whole implementation rather than a detail of it.
+   * Carbon does not draw this itself either: every backend hands it to
+   * `Tr2DrawUPHelper` (Metal at `Tr2RenderContextMetal.mm:558-571`, DX12 at
+   * `Tr2RenderContextDx12.cpp:1219-1224`), which stages the caller's vertices
+   * into a ring of scratch buffers and issues an ordinary draw. WebGPU cannot
+   * read caller memory either - every vertex must reach a `GPUBuffer` first -
+   * so the helper IS the implementation rather than a detail of it, and the
+   * port is shared rather than written again here.
    *
-   * @param {number} _primitiveCount Primitives to draw.
-   * @param {ArrayBufferView} _vertexStreamZeroData The vertices.
-   * @param {number} _vertexStreamZeroStride Bytes per vertex.
-   * @returns {boolean} False; the draw is not encoded.
+   * @param {number} primitiveCount Primitives to draw.
+   * @param {ArrayBufferView} vertexStreamZeroData The vertices.
+   * @param {number} vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} Whether the draw was encoded.
    */
-  DrawPrimitiveUP(_primitiveCount, _vertexStreamZeroData, _vertexStreamZeroStride)
+  DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride)
   {
-    return false;
+    return !Failed(this._drawUP.DrawPrimitiveUP(
+      this._topology,
+      primitiveCount,
+      vertexStreamZeroData,
+      vertexStreamZeroStride,
+      this
+    ));
   }
 
   /**
    * Draws indexed straight from caller memory.
    *
-   * The same as `DrawPrimitiveUP`: Carbon's helper stages both the indices and
-   * the vertices, and this backend has no stager.
+   * The same helper, staging indices as well as vertices. Carbon has an
+   * overload per index width; the width is read off the array here instead.
    *
-   * @param {number} _numVertices Vertices the index data spans.
-   * @param {number} _primitiveCount Primitives to draw.
-   * @param {ArrayBufferView} _indexData The indices.
-   * @param {ArrayBufferView} _vertexStreamZeroData The vertices.
-   * @param {number} _vertexStreamZeroStride Bytes per vertex.
-   * @returns {boolean} False; the draw is not encoded.
+   * @param {number} numVertices Vertices the index data spans.
+   * @param {number} primitiveCount Primitives to draw.
+   * @param {Uint16Array|Uint32Array} indexData The indices.
+   * @param {ArrayBufferView} vertexStreamZeroData The vertices.
+   * @param {number} vertexStreamZeroStride Bytes per vertex.
+   * @returns {boolean} Whether the draw was encoded.
    */
-  DrawIndexedPrimitiveUP(_numVertices, _primitiveCount, _indexData, _vertexStreamZeroData, _vertexStreamZeroStride)
+  DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride)
   {
-    return false;
+    return !Failed(this._drawUP.DrawIndexedPrimitiveUP(
+      this._topology,
+      numVertices,
+      primitiveCount,
+      indexData,
+      vertexStreamZeroData,
+      vertexStreamZeroStride,
+      this
+    ));
   }
 
   /**

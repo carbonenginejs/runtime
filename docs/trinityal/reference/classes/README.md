@@ -25,6 +25,16 @@ Texture type, format, size and mip layout, with the mip arithmetic every create,
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2DrawUPHelper -->
+## `Tr2DrawUPHelper`
+
+Emulates the user-pointer draws every backend delegates to it, staging a caller's vertices and indices into a ring of scratch buffers and issuing an ordinary draw.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2DrawUPHelper.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2MsaaDesc -->
 ## `Tr2MsaaDesc`
 
