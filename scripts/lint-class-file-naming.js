@@ -42,12 +42,24 @@
 // primitive already belongs. `CjsByteReader` is byte-level only, so the missing
 // sibling is a `CjsBitReader`, not a duplicate of it.
 //
-// A FROZEN BASELINE, BECAUSE 45 OF THE 51 ARE REAL DEBT. Six files are accepted
-// permanently: each mirrors ONE Carbon header that declares several small types
-// together, which is Carbon's shape and not a naming accident. The rest are
-// recorded so this fails on anything NEW while the existing list is worked down.
-// The list may only shrink. Nothing may be added to the accepted set without the
-// same justification the six carry.
+// THE SECOND RULE: ONE CLASS PER FILE. Six files were first accepted permanently
+// on the grounds that each mirrored one Carbon header declaring several small
+// types together - the HAL structures, the render-pass attachments, the
+// resource-set trio, the query stubs, the audio action records, the error pair.
+// The operator overruled that: we do not put multiple classes in one file, and
+// mirroring a donor header is not a reason to. So there are NO permanent
+// exemptions here, and those six now carry two faults rather than a licence.
+//
+// 50 files declare more than one class. The heaviest cases are not the big ones -
+// they are families of tiny types, like `EveSOFDataParameter.js` with a base and
+// six twelve-line subclasses, and the `ErrSOF*` errors declared beside the class
+// that throws them. Splitting those buys a reader one predictable place to look
+// for a name, which is the whole point of both rules.
+//
+// TWO FROZEN BASELINES, BECAUSE 95 SITES CANNOT BE FIXED IN ONE PASS. Each list
+// records what already exists so this fails on anything NEW. Both may only
+// shrink: a file that gets fixed and left in a list FAILS, so neither can rot
+// back upwards.
 
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -120,9 +132,10 @@ function declarations(source)
 }
 
 const baseline = JSON.parse(await readFile(baselinePath, "utf8"));
-const accepted = new Set(Object.keys(baseline.carbonGroupings ?? {}));
-const recorded = new Set(Object.keys(baseline.misplaced ?? {}));
-const found = new Map();
+const knownMisnamed = new Set(Object.keys(baseline.misnamed ?? {}));
+const knownMultiple = new Set(Object.keys(baseline.multipleClasses ?? {}));
+const misnamed = new Map();
+const multiple = new Map();
 
 for (const file of await sourceFiles(sourceRoot))
 {
@@ -132,73 +145,84 @@ for (const file of await sourceFiles(sourceRoot))
     if (!classes.length) continue;
 
     const base = path.basename(file, ".js");
+    const names = classes.map(entry => entry.name);
 
-    if (classes.some(entry => entry.name === base)) continue;
+    if (classes.length > 1) multiple.set(relative, names);
 
-    found.set(relative, {
-        classes: classes.map(entry => entry.name),
-        functions: functions.length,
-        // A filename differing from its class only by case is the sharpest form
-        // of this fault: every reader believes the file is named correctly, and
-        // on a case-insensitive filesystem nothing ever contradicts them.
-        caseOnly: classes.some(entry => entry.name.toLowerCase() === base.toLowerCase())
-    });
+    if (!names.includes(base))
+    {
+        misnamed.set(relative, {
+            classes: names,
+            functions: functions.length,
+            // A filename differing from its class only by case is the sharpest
+            // form of this fault: every reader believes the file is named
+            // correctly, and a case-insensitive filesystem never contradicts
+            // them.
+            caseOnly: names.some(name => name.toLowerCase() === base.toLowerCase())
+        });
+    }
 }
 
 if (write)
 {
-    const misplaced = {};
-
-    for (const [ file, detail ] of [ ...found ].sort((a, b) => a[0].localeCompare(b[0])))
-    {
-        if (accepted.has(file)) continue;
-
-        misplaced[file] = detail.classes;
-    }
+    const record = entries => Object.fromEntries(
+        [ ...entries ].sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([ file, detail ]) => [ file, Array.isArray(detail) ? detail : detail.classes ])
+    );
 
     await writeFile(
         baselinePath,
-        `${JSON.stringify({ carbonGroupings: baseline.carbonGroupings ?? {}, misplaced: misplaced }, null, 2)}\n`,
+        `${JSON.stringify({ misnamed: record(misnamed), multipleClasses: record(multiple) }, null, 2)}\n`,
         "utf8"
     );
-    console.log(`Recorded ${Object.keys(misplaced).length} misplaced file(s) to ${slash(path.relative(packageRoot, baselinePath))}.`);
+    console.log(`Recorded ${misnamed.size} misnamed and ${multiple.size} multi-class file(s).`);
     process.exit(0);
 }
 
 const problems = [];
 
-for (const [ file, detail ] of [ ...found ].sort((a, b) => a[0].localeCompare(b[0])))
+for (const [ file, detail ] of [ ...misnamed ].sort((a, b) => a[0].localeCompare(b[0])))
 {
-    if (accepted.has(file) || recorded.has(file)) continue;
+    if (knownMisnamed.has(file)) continue;
 
-    const classes = detail.classes.join(", ");
     const hint = detail.caseOnly
         ? "The names differ only by CASE, which no reader will see."
         : detail.functions > 0
             ? `${detail.functions} free function(s) sit beside it; shared ones belong on the class as statics.`
             : "Rename the file after the class, or move the class to the file that owns its name.";
 
-    problems.push(`${file}: declares ${classes} and is named after none of them. ${hint}`);
+    problems.push(`${file}: declares ${detail.classes.join(", ")} and is named after none of them. ${hint}`);
+}
+
+for (const [ file, names ] of [ ...multiple ].sort((a, b) => a[0].localeCompare(b[0])))
+{
+    if (knownMultiple.has(file)) continue;
+
+    problems.push(
+        `${file}: declares ${names.length} classes (${names.join(", ")}). `
+        + "One class per file, so each is findable by its own name."
+    );
 }
 
 if (problems.length)
 {
     console.error(problems.join("\n"));
-    console.error(`\n${problems.length} new file(s) declare a class no reader can find by name.`);
+    console.error(`\n${problems.length} new violation(s). Neither list is an exception to grant.`);
     process.exit(1);
 }
 
-// A file that was fixed and left in the baseline is how the list rots back
-// upwards, so it is named rather than quietly tolerated.
-const stale = [ ...recorded, ...accepted ].filter(file => !found.has(file));
+// A file that was fixed and left in a list is how a baseline rots back upwards,
+// so it is named rather than quietly tolerated.
+const stale = [
+    ...[ ...knownMisnamed ].filter(file => !misnamed.has(file)),
+    ...[ ...knownMultiple ].filter(file => !multiple.has(file))
+];
 
 if (stale.length)
 {
-    console.error(`These files no longer violate and must be removed from the baseline:\n  ${stale.join("\n  ")}`);
+    console.error(`These files no longer violate and must be removed from the baseline:\n  ${[ ...new Set(stale) ].join("\n  ")}`);
     console.error("\nRun with --write to re-record, which locks the gain in.");
     process.exit(1);
 }
 
-const debt = [ ...found ].filter(([ file ]) => !accepted.has(file)).length;
-
-console.log(`Class/file naming: ${found.size} file(s) declare a class they are not named after - ${accepted.size} accepted Carbon groupings, ${debt} recorded, none new.`);
+console.log(`Class/file naming: ${misnamed.size} misnamed and ${multiple.size} multi-class file(s) recorded, none new.`);

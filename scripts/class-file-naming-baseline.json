@@ -1,57 +1,414 @@
 {
-  "carbonGroupings": {
-    "src/trinityal/Tr2HalHelperStructures.js": "Carbon's Tr2HalHelperStructures.h declares exactly these small HAL structures together; the file mirrors one donor header, so no single class owns its name.",
-    "src/trinityal/Tr2RenderPassAL.js": "Carbon declares the colour and depth attachment structures with the render pass they belong to; splitting them would invent a file Carbon does not have.",
-    "src/trinityal/Tr2ResourceSetAL.js": "Carbon's Tr2ResourceSetAL.h groups the register map, the set description and the stub together.",
-    "src/trinityal/stub/Tr2QueryALStub.js": "Carbon's query stub header declares the occlusion, GPU-timer and pipeline-statistics stubs as one family.",
-    "src/audio/trinity/audio/AudActionLog.js": "Carbon's AudActionLog declares the action-record variants beside the log that writes them; seven small types, one donor header.",
-    "src/resource/format/CjsFormatError.js": "A deliberate read/write error pair, matching how every consumer imports them - one of the two would otherwise own a file naming the other."
+  "misnamed": {
+    "src/audio/internal/busDucking.js": [
+      "CjsBusDuckingController"
+    ],
+    "src/audio/internal/busGraphMixer.js": [
+      "CjsSharedBusMixer"
+    ],
+    "src/audio/internal/busGraphRuntime.js": [
+      "CjsBusGraphRuntime"
+    ],
+    "src/audio/internal/sourceEffectRtpc.js": [
+      "CjsWwiseSourceEffectRtpcLane",
+      "CjsWwiseFilteredControl"
+    ],
+    "src/audio/internal/wwiseRoomVerb.js": [
+      "WwiseRoomVerbReader"
+    ],
+    "src/audio/trinity/audio/AudActionLog.js": [
+      "AudActionRecord",
+      "AudActionRecordPostEvent",
+      "AudActionRecordExecuteActionOnPlayingID",
+      "AudActionRecordSetSwitch",
+      "AudActionRecordSetState",
+      "AudActionRecordSetRTPC",
+      "AudActionLogCB"
+    ],
+    "src/resource/format/CjsFormatError.js": [
+      "CjsFormatReadError",
+      "CjsFormatWriteError"
+    ],
+    "src/resource/formats/bnk/core/eventAction.js": [
+      "ActionCursor"
+    ],
+    "src/resource/formats/bnk/core/globalSettings.js": [
+      "GlobalSettingsCursor"
+    ],
+    "src/resource/formats/bnk/core/musicNodes.js": [
+      "MusicCursor"
+    ],
+    "src/resource/formats/bnk/core/nodeBase.js": [
+      "WwiseCursor"
+    ],
+    "src/resource/formats/cmf/core/binary.js": [
+      "BinaryReader"
+    ],
+    "src/resource/formats/cmf/core/writer.js": [
+      "Flattener"
+    ],
+    "src/resource/formats/dds/core/bc7.js": [
+      "Bc7BitReader"
+    ],
+    "src/resource/formats/dxbc/core/container.js": [
+      "DxbcContainer"
+    ],
+    "src/resource/formats/dxbc/core/decoder.js": [
+      "DxbcInstructionDecoder"
+    ],
+    "src/resource/formats/dxbc/core/errors.js": [
+      "DxbcReadError"
+    ],
+    "src/resource/formats/dxbc/core/program.js": [
+      "DxbcShaderProgram"
+    ],
+    "src/resource/formats/dxbc/core/signature.js": [
+      "DxbcSignatureChunk"
+    ],
+    "src/resource/formats/fbx/core/helpers.js": [
+      "DeflateBitReader",
+      "DeflateHuffmanTable"
+    ],
+    "src/resource/formats/gr2/core/bitknit2.js": [
+      "FrequencyModel"
+    ],
+    "src/resource/formats/gr2/core/container.js": [
+      "SectionSerializer"
+    ],
+    "src/resource/formats/gr2/core/oodle1.js": [
+      "Decoder",
+      "WeighWindow",
+      "Dictionary"
+    ],
+    "src/resource/formats/jpeg/core/jpeg.js": [
+      "BaselineJpegDecoder",
+      "EntropyReader"
+    ],
+    "src/resource/formats/jpeg/core/writer.js": [
+      "BitWriter"
+    ],
+    "src/resource/formats/ogg/core/vorbis.js": [
+      "PacketReader",
+      "Codebook"
+    ],
+    "src/resource/formats/stl/core/stl.js": [
+      "DisjointSet"
+    ],
+    "src/resource/formats/webgl/core/errors.js": [
+      "WebglReadError"
+    ],
+    "src/resource/formats/webgl/core/glsl/DxbcGlslHelpers.js": [
+      "DxbcGlslHelperRegistry"
+    ],
+    "src/resource/formats/webgpu/core/errors.js": [
+      "WebgpuReadError"
+    ],
+    "src/resource/formats/wem/core/bitStream.js": [
+      "BitReader",
+      "OggPageWriter"
+    ],
+    "src/sof/layoutPlanner.js": [
+      "SofLayoutRandom"
+    ],
+    "src/sof/shared/EveSOFDataSpotlightAttachment.js": [
+      "EveSOFDataSpotLightAttachment"
+    ],
+    "src/trinityal/stub/Tr2QueryALStub.js": [
+      "Tr2OcclusionQueryALStub",
+      "Tr2GpuTimerALStub",
+      "Tr2PipelineStatsQueryALStub"
+    ],
+    "src/trinityal/stub/Tr2VideoAdapterInfoALStub.js": [
+      "Tr2VideoAdapterInfoStub"
+    ],
+    "src/trinityal/Tr2DeviceResourceAL.js": [
+      "Tr2BaseDeviceResourceAL"
+    ],
+    "src/trinityal/Tr2HalHelperStructures.js": [
+      "Tr2MsaaDesc",
+      "Tr2TextureCoordBox",
+      "Tr2TextureSubresource"
+    ],
+    "src/trinityal/Tr2RenderPassAL.js": [
+      "Tr2DepthAttachment",
+      "Tr2ColorAttachment"
+    ],
+    "src/trinityal/Tr2ResourceSetAL.js": [
+      "Tr2RegisterMapAL",
+      "Tr2ResourceSetDescriptionAL",
+      "Tr2ResourceSetALStub"
+    ],
+    "src/trinityal/webgpu/core/batchGroups.js": [
+      "CjsWebgpuEncodeState"
+    ],
+    "src/trinityal/webgpu/core/constantArena.js": [
+      "CjsWebgpuConstantArena"
+    ],
+    "src/trinityal/webgpu/core/perFrameSource.js": [
+      "CjsWebgpuPerFrameSource"
+    ],
+    "src/trinityal/webgpu/core/pipelineCache.js": [
+      "CjsWebgpuPipelineCache"
+    ],
+    "src/trinityal/webgpu/core/psoDescription.js": [
+      "CjsWebgpuPsoDescription"
+    ],
+    "src/trinityal/webgpu/core/renderTarget.js": [
+      "CjsWebgpuRenderTarget"
+    ],
+    "src/trinityal/webgpu/core/samplerSource.js": [
+      "CjsWebgpuSamplerSource"
+    ],
+    "src/trinityal/webgpu/core/textureSource.js": [
+      "CjsWebgpuTextureSource"
+    ],
+    "src/trinityal/webgpu/core/trinityBatchDispatcher.js": [
+      "CjsWebgpuTrinityBatchDispatcher"
+    ],
+    "src/trinityal/webgpu/core/trinityBatchResolver.js": [
+      "CjsWebgpuTrinityBatchResolver"
+    ],
+    "src/trinityal/webgpu/core/trinityPassEncoder.js": [
+      "CjsWebgpuTrinityPassEncoder"
+    ],
+    "src/trinityal/webgpu/core/workQueue.js": [
+      "CjsWebgpuWorkQueue"
+    ]
   },
-  "misplaced": {
-    "src/audio/internal/busDucking.js": [ "CjsBusDuckingController" ],
-    "src/audio/internal/busGraphMixer.js": [ "CjsSharedBusMixer" ],
-    "src/audio/internal/busGraphRuntime.js": [ "CjsBusGraphRuntime" ],
-    "src/audio/internal/sourceEffectRtpc.js": [ "CjsWwiseSourceEffectRtpcLane", "CjsWwiseFilteredControl" ],
-    "src/audio/internal/wwiseRoomVerb.js": [ "WwiseRoomVerbReader" ],
-    "src/resource/formats/bnk/core/eventAction.js": [ "ActionCursor" ],
-    "src/resource/formats/bnk/core/globalSettings.js": [ "GlobalSettingsCursor" ],
-    "src/resource/formats/bnk/core/musicNodes.js": [ "MusicCursor" ],
-    "src/resource/formats/bnk/core/nodeBase.js": [ "WwiseCursor" ],
-    "src/resource/formats/cmf/core/binary.js": [ "BinaryReader" ],
-    "src/resource/formats/cmf/core/writer.js": [ "Flattener" ],
-    "src/resource/formats/dds/core/bc7.js": [ "Bc7BitReader" ],
-    "src/resource/formats/dxbc/core/container.js": [ "DxbcContainer" ],
-    "src/resource/formats/dxbc/core/decoder.js": [ "DxbcInstructionDecoder" ],
-    "src/resource/formats/dxbc/core/errors.js": [ "DxbcReadError" ],
-    "src/resource/formats/dxbc/core/program.js": [ "DxbcShaderProgram" ],
-    "src/resource/formats/dxbc/core/signature.js": [ "DxbcSignatureChunk" ],
-    "src/resource/formats/fbx/core/helpers.js": [ "DeflateBitReader", "DeflateHuffmanTable" ],
-    "src/resource/formats/gr2/core/bitknit2.js": [ "FrequencyModel" ],
-    "src/resource/formats/gr2/core/container.js": [ "SectionSerializer" ],
-    "src/resource/formats/gr2/core/oodle1.js": [ "Decoder", "WeighWindow", "Dictionary" ],
-    "src/resource/formats/jpeg/core/jpeg.js": [ "BaselineJpegDecoder", "EntropyReader" ],
-    "src/resource/formats/jpeg/core/writer.js": [ "BitWriter" ],
-    "src/resource/formats/ogg/core/vorbis.js": [ "PacketReader", "Codebook" ],
-    "src/resource/formats/stl/core/stl.js": [ "DisjointSet" ],
-    "src/resource/formats/webgl/core/errors.js": [ "WebglReadError" ],
-    "src/resource/formats/webgl/core/glsl/DxbcGlslHelpers.js": [ "DxbcGlslHelperRegistry" ],
-    "src/resource/formats/webgpu/core/errors.js": [ "WebgpuReadError" ],
-    "src/resource/formats/wem/core/bitStream.js": [ "BitReader", "OggPageWriter" ],
-    "src/sof/layoutPlanner.js": [ "SofLayoutRandom" ],
-    "src/sof/shared/EveSOFDataSpotlightAttachment.js": [ "EveSOFDataSpotLightAttachment" ],
-    "src/trinityal/Tr2DeviceResourceAL.js": [ "Tr2BaseDeviceResourceAL" ],
-    "src/trinityal/stub/Tr2VideoAdapterInfoALStub.js": [ "Tr2VideoAdapterInfoStub" ],
-    "src/trinityal/webgpu/core/batchGroups.js": [ "CjsWebgpuEncodeState" ],
-    "src/trinityal/webgpu/core/constantArena.js": [ "CjsWebgpuConstantArena" ],
-    "src/trinityal/webgpu/core/perFrameSource.js": [ "CjsWebgpuPerFrameSource" ],
-    "src/trinityal/webgpu/core/pipelineCache.js": [ "CjsWebgpuPipelineCache" ],
-    "src/trinityal/webgpu/core/psoDescription.js": [ "CjsWebgpuPsoDescription" ],
-    "src/trinityal/webgpu/core/renderTarget.js": [ "CjsWebgpuRenderTarget" ],
-    "src/trinityal/webgpu/core/samplerSource.js": [ "CjsWebgpuSamplerSource" ],
-    "src/trinityal/webgpu/core/textureSource.js": [ "CjsWebgpuTextureSource" ],
-    "src/trinityal/webgpu/core/trinityBatchDispatcher.js": [ "CjsWebgpuTrinityBatchDispatcher" ],
-    "src/trinityal/webgpu/core/trinityBatchResolver.js": [ "CjsWebgpuTrinityBatchResolver" ],
-    "src/trinityal/webgpu/core/trinityPassEncoder.js": [ "CjsWebgpuTrinityPassEncoder" ],
-    "src/trinityal/webgpu/core/workQueue.js": [ "CjsWebgpuWorkQueue" ]
+  "multipleClasses": {
+    "src/audio/CjsMusicEngine.js": [
+      "CjsMusicEngineScheduledClip",
+      "CjsMusicEngineScheduledSegment",
+      "MusicInstance",
+      "CjsMusicEngine"
+    ],
+    "src/audio/CjsSfxEngine.js": [
+      "CjsSfxEngineSelectionTransactionLedger",
+      "CjsSfxEngine"
+    ],
+    "src/audio/internal/CjsAudioBackendSfxProgramSlot.js": [
+      "CjsAudioBackendSfxProgramSlot",
+      "CjsAudioBackendSfxProgramBatch"
+    ],
+    "src/audio/internal/sourceEffectRtpc.js": [
+      "CjsWwiseSourceEffectRtpcLane",
+      "CjsWwiseFilteredControl"
+    ],
+    "src/audio/library-builder/CjsAudioLibraryBuilder.js": [
+      "CjsAudioLibraryBuilder",
+      "CjsAudioLibraryBuilderBankInspectionSession",
+      "CjsAudioLibraryBuilderWwiseNodeBaseAncestry",
+      "CjsAudioLibraryBuilderSfxNodeLoweringSession",
+      "CjsAudioLibraryBuilderSfxEventLoweringSession",
+      "CjsAudioLibraryBuilderBusGraphConstructionSession",
+      "CjsAudioLibraryBuilderSfxNameCatalogAccumulator"
+    ],
+    "src/audio/trinity/audio/AudActionLog.js": [
+      "AudActionRecord",
+      "AudActionRecordPostEvent",
+      "AudActionRecordExecuteActionOnPlayingID",
+      "AudActionRecordSetSwitch",
+      "AudActionRecordSetState",
+      "AudActionRecordSetRTPC",
+      "AudActionLogCB"
+    ],
+    "src/audio/trinity/audio/AudObstructionOcclusion.js": [
+      "FadingValue",
+      "EmitterState",
+      "AudObstructionOcclusion"
+    ],
+    "src/global/contracts/CjsScriptCallback.js": [
+      "CjsScriptCallback",
+      "CjsFunctionScriptCallback",
+      "CjsExternalScriptCallback"
+    ],
+    "src/global/model/CjsModel.js": [
+      "CjsModel",
+      "CjsPendingReference"
+    ],
+    "src/global/utils/errors/CjsError.js": [
+      "CjsError",
+      "CjsCancellationError"
+    ],
+    "src/resource/format/carbonEffect/CjsCarbonEffectReader.js": [
+      "CjsCarbonEffectBodyReader",
+      "CjsCarbonEffectReader"
+    ],
+    "src/resource/format/CjsFormatError.js": [
+      "CjsFormatReadError",
+      "CjsFormatWriteError"
+    ],
+    "src/resource/format/CjsFormatStore.js": [
+      "CjsFormatRoute",
+      "CjsFormatStore"
+    ],
+    "src/resource/formats/fbx/core/helpers.js": [
+      "DeflateBitReader",
+      "DeflateHuffmanTable"
+    ],
+    "src/resource/formats/gr2/core/oodle1.js": [
+      "Decoder",
+      "WeighWindow",
+      "Dictionary"
+    ],
+    "src/resource/formats/jpeg/core/jpeg.js": [
+      "BaselineJpegDecoder",
+      "EntropyReader"
+    ],
+    "src/resource/formats/ogg/core/vorbis.js": [
+      "PacketReader",
+      "Codebook"
+    ],
+    "src/resource/formats/wem/core/bitStream.js": [
+      "BitReader",
+      "OggPageWriter"
+    ],
+    "src/sof/EveSOF.js": [
+      "EveSOF",
+      "SofDocumentBuilder"
+    ],
+    "src/sof/faction/EveSOFDataFactionColorSet.js": [
+      "EveSOFDataFactionColorSet",
+      "ErrSOFFactionColorSetTypeUnknown",
+      "ErrSOFFactionColorSetTypeNotFound"
+    ],
+    "src/sof/generic/EveSOFDataGeneric.js": [
+      "EveSOFDataGeneric",
+      "ErrSOFAreaShaderNotFound",
+      "ErrSOFDecalShaderNotFound",
+      "ErrSOFMaterialPrefixNotFound",
+      "ErrSOFPatternMaterialPrefixNotFound"
+    ],
+    "src/sof/pattern/EveSOFDataPattern.js": [
+      "EveSOFDataPattern",
+      "ErrSOFProjectionNotFound"
+    ],
+    "src/sof/shared/EveSOFDataArea.js": [
+      "EveSOFDataArea",
+      "ErrSOFAreaTypeNotFound"
+    ],
+    "src/sof/shared/EveSOFDataLogoSet.js": [
+      "EveSOFDataLogoSet",
+      "ErrSOFLogoSetTypeUnknown",
+      "ErrSOFLogoSetTypeNotFound"
+    ],
+    "src/sof/shared/EveSOFDataParameter.js": [
+      "EveSOFDataParameter",
+      "EveSOFDataParameterBool",
+      "EveSOFDataParameterInt",
+      "EveSOFDataParameterFloat",
+      "EveSOFDataParameterVector2",
+      "EveSOFDataParameterVector3",
+      "EveSOFDataParameterColor"
+    ],
+    "src/trinity/controllers/expression/CjsControllerExpressionProgram.js": [
+      "CjsControllerExpressionProgram",
+      "CjsControllerExpressionParser",
+      "CjsControllerExpressionCompileError",
+      "CjsControllerExpressionEvaluateError"
+    ],
+    "src/trinity/controllers/ITr2Controller.js": [
+      "ITr2Controller",
+      "ITr2ActionController"
+    ],
+    "src/trinity/core/batch/Tr2RenderBatch.js": [
+      "TriRenderBatchAreaBlock",
+      "TriRenderBatchAreaBlocksWithSharedMaterial",
+      "Tr2RenderBatch"
+    ],
+    "src/trinity/core/context/Tr2VisibilityResults.js": [
+      "Tr2VisibilityEvent",
+      "Tr2VisibilityResults"
+    ],
+    "src/trinity/core/device/Tr2RingBuffer.js": [
+      "Tr2RingBufferOffsets",
+      "Tr2RingBuffer"
+    ],
+    "src/trinity/core/device/Tr2SuballocatedBuffer.js": [
+      "Tr2SuballocatedBufferAllocation",
+      "Tr2SuballocatedBuffer"
+    ],
+    "src/trinity/core/mesh/ITr2ImpostorSource.js": [
+      "ITr2ImpostorSourceImpostorHash",
+      "ITr2ImpostorSource"
+    ],
+    "src/trinity/core/mesh/ITr2InstanceData.js": [
+      "ITr2InstanceDataInstanceData",
+      "ITr2InstanceData"
+    ],
+    "src/trinity/core/Tr2GpuResourcePool.js": [
+      "TextureSize2D",
+      "GpuResourceHandle",
+      "Tr2GpuResourcePool"
+    ],
+    "src/trinity/core/Tr2QuadRenderer.js": [
+      "Tr2QuadRendererEffectRecord",
+      "Tr2QuadRenderer"
+    ],
+    "src/trinity/core/Tr2TextureArray.js": [
+      "Tr2TextureArrayElement",
+      "Tr2TextureArray"
+    ],
+    "src/trinity/core/vertex/Tr2VertexDefinition.js": [
+      "Tr2VertexDefinitionItem",
+      "Tr2VertexDefinition"
+    ],
+    "src/trinity/curves/curve/Tr2CurveRandomAxisRotation.js": [
+      "Tr2CurveRandomAxisRotation",
+      "CjsMt19937"
+    ],
+    "src/trinity/eve/attachment/booster/EveBoosterSet2.js": [
+      "EveBoosterSet2Item",
+      "EveBoosterSet2"
+    ],
+    "src/trinity/eve/attachment/decal/DecalMeshCache.js": [
+      "DecalMeshCacheMeshBuffers",
+      "DecalMeshCache"
+    ],
+    "src/trinity/eve/child/EveChildInstancedMeshes.js": [
+      "EveChildInstancedMeshArea",
+      "EveChildInstancedMeshInstance",
+      "EveChildInstancedMesh",
+      "EveChildInstancedMeshes"
+    ],
+    "src/trinity/eve/child/EveChildPartData.js": [
+      "EveChildPartDataPartData",
+      "EveChildPartData"
+    ],
+    "src/trinity/particle/ITr2GenericEmitter.js": [
+      "ITr2GenericEmitterUpdateArguments",
+      "ITr2GenericEmitter"
+    ],
+    "src/trinityal/stub/Tr2BufferALStub.js": [
+      "Tr2BufferDescriptionAL",
+      "Tr2BufferALStub"
+    ],
+    "src/trinityal/stub/Tr2QueryALStub.js": [
+      "Tr2OcclusionQueryALStub",
+      "Tr2GpuTimerALStub",
+      "Tr2PipelineStatsQueryALStub"
+    ],
+    "src/trinityal/stub/Tr2RenderContextALStub.js": [
+      "Tr2BindlessResourcesAL",
+      "Tr2RenderContextALStub"
+    ],
+    "src/trinityal/Tr2HalHelperStructures.js": [
+      "Tr2MsaaDesc",
+      "Tr2TextureCoordBox",
+      "Tr2TextureSubresource"
+    ],
+    "src/trinityal/Tr2RenderPassAL.js": [
+      "Tr2DepthAttachment",
+      "Tr2ColorAttachment"
+    ],
+    "src/trinityal/Tr2ResourceSetAL.js": [
+      "Tr2RegisterMapAL",
+      "Tr2ResourceSetDescriptionAL",
+      "Tr2ResourceSetALStub"
+    ],
+    "src/trinityal/webgpu/CjsWebgpuShaderAL.js": [
+      "CjsWebgpuShaderAL",
+      "CjsWebgpuShaderProgramAL"
+    ]
   }
 }
