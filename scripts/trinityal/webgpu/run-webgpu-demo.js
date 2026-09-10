@@ -8,6 +8,14 @@
 //   node scripts/trinityal/webgpu/run-webgpu-demo.js            headless, exits non-zero on failure
 //   node scripts/trinityal/webgpu/run-webgpu-demo.js --headed   watch it draw
 //   node scripts/trinityal/webgpu/run-webgpu-demo.js --shot out.png
+//
+// And the mode for a person rather than a gate - stays up on a fixed port, starts
+// no browser, prints the link:
+//
+//   node scripts/trinityal/webgpu/run-webgpu-demo.js --serve [--port 5503]
+//
+// It needs tools-core serving on 5510 for the client bytes (`npm run service`
+// in the tools-core checkout).
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize, resolve } from "node:path";
@@ -83,10 +91,6 @@ const server = createServer(async (request, response) =>
 });
 
 /**
- * How many distinct byte values a PNG carries, as a cheap "is it uniform" test.
- * A cleared canvas compresses to very few; anything drawn carries many.
- */
-/**
  * Whether a canvas screenshot shows anything but the clear colour.
  *
  * By ENCODED SIZE, not by reading pixels. Two cheaper checks were tried and
@@ -96,6 +100,29 @@ const server = createServer(async (request, response) =>
  * compresses to a fraction of a drawn one - measured, 1.9 KB against 27 KB.
  */
 const DRAWN_PNG_BYTES = 8000;
+
+void DRAWN_PNG_BYTES;
+
+// SERVE MODE STAYS UP, AND NEVER STARTS A BROWSER. The run above binds port zero
+// and closes the server when Chrome exits, which is right for a gate and useless
+// for a person: there is no URL left to open. `--serve` binds a FIXED port so the
+// link is stable across restarts, and leaves the process running.
+if (process.argv.includes("--serve"))
+{
+  const PORT_INDEX = process.argv.indexOf("--port");
+  const servePort = PORT_INDEX >= 0 ? Number(process.argv[PORT_INDEX + 1]) : 5503;
+
+  await new Promise(done => server.listen(servePort, "127.0.0.1", done));
+
+  // 5510 is tools-core's fixed port, proxied through /resource/ - so a browser
+  // that can reach this page can reach the client bytes without its own CORS
+  // arrangement.
+  console.log(`WebGPU demo: http://127.0.0.1:${servePort}${PAGE}`);
+  console.log("Resources proxied from " + TOOLS_CORE);
+  console.log("Ctrl+C to stop.");
+}
+else
+{
 
 await new Promise(done => server.listen(0, "127.0.0.1", done));
 
@@ -163,4 +190,5 @@ else if (!outcome.report?.litPixels)
   // which is the failure this demo exists to catch.
   console.error("\nDemo ran but every pixel is the clear colour: nothing was drawn.");
   process.exitCode = 1;
+}
 }
