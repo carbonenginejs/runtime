@@ -41,9 +41,36 @@ const TYPES = new Map([
 // the moment a build moved.
 const TOOLS_CORE = process.env.CJS_TOOLS_CORE ?? "http://127.0.0.1:5510/eve/3498825/resources/";
 
+/** The target root behind the resource route, for the other tools-core paths. */
+const TOOLS_CORE_ROOT = TOOLS_CORE.replace(/resources\/?$/u, "");
+
 const server = createServer(async (request, response) =>
 {
   const requested = new URL(request.url, "http://localhost");
+
+  // The built SOF document for one DNA, which is where a hull's textures and
+  // material constants are named. Proxied like the resources beside it, and for
+  // the same reason: it is not ours to commit and it moves with the build.
+  if (requested.pathname.startsWith("/sof/"))
+  {
+    const dna = requested.pathname.slice("/sof/".length);
+
+    try
+    {
+      const upstream = await fetch(`${TOOLS_CORE_ROOT}sof/dna/${dna}`);
+
+      if (!upstream.ok) throw new Error(`upstream ${upstream.status}`);
+
+      response.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      response.end(Buffer.from(await upstream.arrayBuffer()));
+    }
+    catch (error)
+    {
+      response.writeHead(502).end(`sof proxy: ${error.message}`);
+    }
+
+    return;
+  }
 
   if (requested.pathname.startsWith("/resource/"))
   {

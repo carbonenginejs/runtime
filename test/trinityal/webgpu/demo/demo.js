@@ -47,13 +47,22 @@
 //     it cannot be silently throwing fragments away;
 //   - no WebGPU validation error, with an error scope around the frame.
 //
-// What is left is the SHADING, not the frame: two of the five uniform bindings
-// receive no upload at all, and the material's textures and constants are
-// unfilled, so the hull comes out white. The SOF document for
-// `dna:/af1_t1:amarrbase:amarr` names exactly what they should be - its
-// `mesh.opaqueAreas[0].effect` carries the parameters and a `TriTextureParameter`
-// per map, AlbedoMap through PaintMaskMap - so the next step is to hydrate the
-// material from it and load those textures rather than to invent values.
+// THE MATERIAL IS THE SHIP'S OWN NOW. The built SOF document for
+// `dna:/af1_t1:amarrbase:amarr` carries the area's whole effect, so
+// `Tr2Effect.from` produces the real material - its constant parameters, and a
+// `TriTextureParameter` per map named as the shader declares it - and each of
+// those loads its DDS from the client. Only the effect RESOURCE is substituted,
+// because the document names the dx11 `.fx` and this backend needs the WebGPU
+// container of the same effect. Ten maps load; six 1024x1024 BC textures reach
+// the device, plus the two 1x1 dummies the backend still fills unbound slots
+// with.
+//
+// TWO THINGS HAD TO BE DONE BY HAND, and both are honest gaps rather than
+// shortcuts. The device asks for `texture-compression-bc` so EVE's BC7 and BC5
+// maps can be uploaded as they are; without it the reader decodes to RGBA8. And
+// each resource is marked LOADED then PREPARED explicitly, because no resource
+// manager is running here and `RealizeTexture` refuses anything not prepared -
+// the first attempt loaded all ten maps and bound none of them.
 //
 // Nothing here hands the backend a pipeline. The frame runs the way Carbon's
 // does: `EveSpaceSceneRenderDriver` sequences it, `CjsBatchManager` collects,
@@ -97,6 +106,8 @@ import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js
 import { Tr2Effect, Tr2EffectStateManager } from "../../../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
+import { CjsDdsFormat } from "../../../../npm/dist/resource/formats/dds/index.js";
+import { TriTextureRes } from "../../../../npm/dist/resource/texture/index.js";
 import { CjsCmfFormat } from "../../../../npm/dist/resource/formats/cmf/index.js";
 import { TriBatchType } from "../../../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
@@ -109,6 +120,34 @@ const EFFECT = "graphics/effect.webgpu/managed/space/spaceobject/v5/quad/unpacke
 
 /** An Amarr frigate. Real geometry, real declaration, real packed tangents. */
 const HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
+
+/** The DNA whose built SOF document names this hull's maps and constants. */
+const DNA = "af1_t1:amarrbase:amarr";
+
+
+/**
+ * Fetches the built SOF document for one DNA through the runner's proxy.
+ *
+ * @param {string} dna The DNA string.
+ * @returns {Promise<object|null>} The document, or null when it cannot be had.
+ */
+async function SofDocument(dna)
+{
+  try
+  {
+    const response = await fetch(`/sof/${dna}`);
+
+    // Not fatal: without it the material is empty and the hull draws white,
+    // which is exactly where this demo was before and still worth seeing.
+    if (!response.ok) return null;
+
+    return await response.json();
+  }
+  catch
+  {
+    return null;
+  }
+}
 
 
 /**
@@ -306,13 +345,20 @@ function GeometryResource(mesh, path)
  * @param {string} path Resource path.
  * @returns {object} The effect, used as the area's material.
  */
-function Material(bytes, path)
+function Material(bytes, path, values = null)
 {
   const resource = new Tr2EffectRes().Initialize(path);
 
   resource.DoLoad(bytes);
 
-  const effect = new Tr2Effect();
+  // HYDRATED FROM THE SOF DOCUMENT WHEN THERE IS ONE. The built document for a
+  // DNA carries the area's whole effect - its constant parameters and a
+  // `TriTextureParameter` per map, named as the shader declares them - so
+  // `Tr2Effect.from` produces the real material rather than an empty one whose
+  // textures a demo would have to invent. Only the effect RESOURCE is
+  // substituted: the document names the dx11 `.fx`, and this backend needs the
+  // WebGPU container of the same effect.
+  const effect = values ? Tr2Effect.from(values) : new Tr2Effect();
 
   effect.effectResource = resource;
   effect.RebuildCachedData();
@@ -320,6 +366,63 @@ function Material(bytes, path)
   Tr2EffectStateManager.registerShaderHandles(effect.shader);
 
   return effect;
+}
+
+
+/**
+ * Loads each of a material's texture parameters from the client.
+ *
+ * A `TriTextureParameter` binds `GetResource()`, and until that resource is
+ * PREPARED the backend gets Carbon's fallback rather than a texture - which is
+ * why an unloaded material draws white rather than failing. This gives each
+ * parameter a real `TriTextureRes` carrying the decoded DDS.
+ *
+ * COMPRESSED WHEN THE DEVICE HAS BC, DECODED WHEN IT DOES NOT. The hull's maps
+ * are BC7, which WebGPU exposes only behind the `texture-compression-bc`
+ * feature; without it the reader decodes to RGBA8 instead, which costs memory
+ * and time but needs nothing of the device.
+ *
+ * @param {object} effect The hydrated effect.
+ * @param {boolean} compressed Whether the device accepts BC textures.
+ * @returns {Promise<{loaded: number, failed: string[]}>} What arrived.
+ */
+async function LoadTextures(effect, compressed)
+{
+  const failed = [];
+  let loaded = 0;
+
+  await Promise.all((effect.resources ?? []).map(async parameter =>
+  {
+    const path = parameter.resourcePath?.replace(/^res:\//u, "");
+
+    if (!path) return;
+
+    try
+    {
+      const texture = new TriTextureRes();
+
+      texture.DoLoad(CjsDdsFormat.read(await ResourceBytes(path), { emit: compressed ? "texture" : "rgba" }));
+
+      // MARKED BY HAND, BECAUSE NO RESOURCE MANAGER IS RUNNING. A resource
+      // carries a state machine that the manager drives, and `RealizeTexture`
+      // refuses anything not PREPARED - so a texture loaded but left in the
+      // default state binds nothing and the backend substitutes its dummy. That
+      // is exactly what happened first: ten maps read, and the only textures the
+      // device ever saw were the depth buffer and two 1x1 stand-ins.
+      texture.MarkLoaded();
+      texture.MarkPrepared();
+
+      parameter.resource = texture;
+      loaded += 1;
+    }
+    catch (error)
+    {
+      // Named rather than swallowed: a hull missing one map should say which.
+      failed.push(`${parameter.name}: ${error.message}`);
+    }
+  }));
+
+  return { loaded, failed };
 }
 
 
@@ -485,7 +588,13 @@ export async function RunDemo(canvas)
 
   if (!adapter) throw new Error("no WebGPU adapter");
 
-  const device = await adapter.requestDevice();
+  // ASKS FOR BC, TAKES WHAT IT GETS. EVE's maps are BC7 and WebGPU exposes the
+  // family only behind this feature; a device without it decodes to RGBA8
+  // instead, so the demo runs either way and reports which happened.
+  const compressed = adapter.features.has("texture-compression-bc");
+  const device = await adapter.requestDevice(
+    compressed ? { requiredFeatures: [ "texture-compression-bc" ] } : {}
+  );
   const context = canvas.getContext("webgpu");
 
   // REMEMBERS WHICH SWAP-CHAIN IMAGE THE FRAME WENT INTO, because asking the
@@ -627,12 +736,29 @@ export async function RunDemo(canvas)
     return encoder;
   };
 
+  // Counts the textures that actually reach the device, which is the only proof
+  // that a loaded map became a bound one rather than a dummy.
+  const madeTextures = [];
+  const createTexture = device.createTexture.bind(device);
+
+  device.createTexture = descriptor =>
+  {
+    madeTextures.push(`${descriptor.size?.[0] ?? descriptor.size?.width}x${descriptor.size?.[1] ?? descriptor.size?.height}:${descriptor.format}`);
+
+    return createTexture(descriptor);
+  };
+
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
-  const [ effectBytes, hullBytes ] = await Promise.all([ ResourceBytes(EFFECT), ResourceBytes(HULL) ]);
+  const [ effectBytes, hullBytes, sof ] = await Promise.all([
+    ResourceBytes(EFFECT),
+    ResourceBytes(HULL),
+    SofDocument(DNA)
+  ]);
   const mesh = Unpack(HullMesh(hullBytes));
   const bounds = Bounds(mesh);
   const geometry = GeometryResource(mesh, `res:/${HULL}`);
-  const material = Material(effectBytes, `res:/${EFFECT}`);
+  const material = Material(effectBytes, `res:/${EFFECT}`, sof?.mesh?.opaqueAreas?.[0]?.effect ?? null);
+  const textures = await LoadTextures(material, compressed);
   const frame = PerFrameData(bounds, canvas.width / canvas.height);
 
   // The hull sits at the origin, so the camera does the framing and the world
@@ -831,6 +957,12 @@ export async function RunDemo(canvas)
     pipelineFailure: al.m_pipelineFailure ?? null,
     events: events.map(event => event.type + (event.encoderType ? `:${event.encoderType}` : "")),
     targetFormat: renderTarget.GetFormat(),
+    sof: sof ? "loaded" : "unavailable",
+    textureCompression: compressed ? "bc" : "decoded to rgba8",
+    texturesLoaded: textures.loaded,
+    deviceTextures: madeTextures,
+    textureFailures: textures.failed,
+    materialResources: (material.resources ?? []).map(r => r.name),
     pipelines,
     bindGroups,
     uploads: uploads.filter(u => u.bytes <= 1024).map(u => ({ label: u.label, offset: u.offset, bytes: u.bytes, head: u.floats.slice(0, 4).map(v => Number(v.toFixed(3))), row4to7: u.floats.slice(16, 32).map(v => Number(v.toFixed(3))) })),
