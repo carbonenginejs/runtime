@@ -43,8 +43,12 @@ function HearingRadius(item, authored)
 {
     const scaling = Math.max(1e-4, item.scaling ?? 1);
 
+    // A 2D event is audible everywhere, so it HAS no hearing radius. Zero tells
+    // the caller to draw none rather than invent one.
+    if (item.is2D) return 0;
+
     // Authored: the curve is read at `distance / factor`, so range scales linearly.
-    if (authored && item.radius > 0) return item.radius * scaling;
+    if (authored && item.authoredRadius > 0) return item.authoredRadius * scaling;
 
     // Fallback: where inverse-distance gain reaches the audible floor.
     return (scaling / AUDIBLE_GAIN_FLOOR) / ACOUSTIC_SCALE;
@@ -1475,6 +1479,9 @@ class Scene
         item.eventName = eventName;
         item.effectStem = effectStem;
         item.isLoop = !!record.isLoop;
+        // AS AUTHORED, not as floored for culling: a 2D event carries 0 here.
+        item.is2D = record.is2D === 1;
+        item.authoredRadius = record.maxRadiusAttenuation ?? 0;
         item.emitter.SendEvent(eventName);
         this.emitters.push(item);
         return item;
@@ -1497,6 +1504,8 @@ class Scene
         item.eventName = eventName;
         item.persistent = true;
         item.authoredSfx = true;
+        item.is2D = record.is2D === 1;
+        item.authoredRadius = record.maxRadiusAttenuation ?? 0;
         this.emitters.push(item);
         return item;
     }
@@ -1853,7 +1862,7 @@ class Stage
             title,
             `${item.removing ? "ending" : emitter.IsCulled() ? "culled" : IsEmitterBusy(emitter) ? "active" : "idle"} · playing ${emitter.GetPlayingEvents().size} · level ${level.toFixed(2)}`,
             flags,
-            `distance ${Math.round(distance)} / hearing ~${Math.round(HearingRadius(item, !!this.#app.library.sfx))} / cull ${Math.round(item.radius)}${scalingText}`,
+            `distance ${Math.round(distance)} / ${item.is2D ? "2D: no distance falloff" : `hearing ~${Math.round(HearingRadius(item, !!this.#app.library.sfx))}`} / cull ${Math.round(item.radius)}${scalingText}`,
             `front ${Array.from(emitter.front, value => Math.abs(value) < 1e-3 ? 0 : value).map(value => value.toFixed(2)).join(", ")}${item.authoredYaw ? ` · authored yaw ${Math.round(item.authoredYaw * 180 / Math.PI)}°` : ""}`,
             `banks ${(record.soundbanks ?? []).join(", ") || "?"} · id ${record.eventID ?? "?"}`
         ].join("\n");
@@ -1903,14 +1912,29 @@ class Stage
             const hearingRadius = HearingRadius(item, !!this.#app.library.sfx);
             // Filled hearing disc (~10% at default opacity) with a slightly
             // stronger border (~15%), both riding the ring-opacity slider.
-            context2d.fillStyle = `rgba(148,163,184,${ringAlpha * 0.67})`;
-            context2d.beginPath();
-            context2d.arc(x, y, hearingRadius * scale, 0, 7);
-            context2d.fill();
-            context2d.strokeStyle = `rgba(255,255,255,${ringAlpha * 0.6})`;
-            context2d.beginPath();
-            context2d.arc(x, y, hearingRadius * scale, 0, 7);
-            context2d.stroke();
+            if (hearingRadius > 0)
+            {
+                context2d.fillStyle = `rgba(148,163,184,${ringAlpha * 0.67})`;
+                context2d.beginPath();
+                context2d.arc(x, y, hearingRadius * scale, 0, 7);
+                context2d.fill();
+                context2d.strokeStyle = `rgba(255,255,255,${ringAlpha * 0.6})`;
+                context2d.beginPath();
+                context2d.arc(x, y, hearingRadius * scale, 0, 7);
+                context2d.stroke();
+            }
+            else
+            {
+                // 2D: no falloff to draw. A dashed halo says "heard everywhere,
+                // position ignored" instead of leaving a bare dot that looks
+                // like a 3D emitter whose ring is too small to see.
+                context2d.setLineDash([ 4, 4 ]);
+                context2d.strokeStyle = `rgba(251,191,36,${Math.min(1, ringAlpha * 2)})`;
+                context2d.beginPath();
+                context2d.arc(x, y, 16, 0, 7);
+                context2d.stroke();
+                context2d.setLineDash([]);
+            }
             // The authored culling radius (often tens of km) - engine range, opt-in.
             if (showCullRings)
             {
@@ -1929,7 +1953,7 @@ class Stage
             {
                 context2d.fillStyle = `rgba(52,211,153,${Math.min(1, ringAlpha * 1.2)})`;
                 context2d.beginPath();
-                context2d.arc(x, y, Math.max(6, hearingRadius * scale * item.meter), 0, 7);
+                context2d.arc(x, y, Math.max(6, (hearingRadius > 0 ? hearingRadius * scale : 16) * item.meter), 0, 7);
                 context2d.fill();
             }
             const front = item.emitter.front;
