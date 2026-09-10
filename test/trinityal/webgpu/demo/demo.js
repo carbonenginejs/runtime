@@ -434,6 +434,31 @@ function Material(bytes, path, values = null)
  * flat reflections rather than none, so it is left dark deliberately and named
  * here: a real scene environment map is the next thing this demo needs.
  */
+/**
+ * What the shader's `Sun.DirWorld` holds, which is NOT the scene's own value.
+ *
+ * A SCENE STORES THE DIRECTION THE LIGHT TRAVELS and the shader wants the
+ * direction TOWARD the sun, so the per-frame block carries the NEGATED vector.
+ * ccpwgl does exactly this in `EveSpaceScene.GetPerFrameSunDirection`
+ * (`EveSpaceScene.js:2775-2785`): copy, negate, normalise.
+ *
+ * Writing the un-negated direction inverts every sun term at once. It does not
+ * look like darkness, it looks like the lighting is inside out - shadow where
+ * the reflection should be, and a dull disc where the sun should be mirrored,
+ * which is what the operator saw and named before I did.
+ *
+ * The scene direction is straight down, (0, -1, 0), through that same
+ * negate-and-normalise - a top-down sun, which is the easiest one to read a
+ * hull under. ccpwgl's own default is (1, -1, 1).
+ */
+const SUN_DIRECTION = (() =>
+{
+  const direction = vec3.negate(vec3.create(), vec3.fromValues(0, -1, 0));
+
+  return Array.from(vec3.normalize(direction, direction));
+})();
+
+
 const SCENE_TEXTURES = Object.freeze([
   // 1.0 is "not occluded". Zero darkened every surface uniformly.
   { name: "SSAOMap", colour: [ 255, 255, 255, 255 ] },
@@ -674,7 +699,9 @@ async function CountDrawnPixels(device, texture, canvas)
  */
 function PerFrameData(bounds, aspect)
 {
-  const distance = bounds.radius * 3;
+  // Close enough to read the surface. Three radii framed the whole hull with
+  // room to spare, which is tidy and useless for judging shading.
+  const distance = bounds.radius * 1.7;
   const eye = vec3.fromValues(
     bounds.centre[0] + distance * 0.8,
     bounds.centre[1] + distance * 0.35,
@@ -700,14 +727,14 @@ function PerFrameData(bounds, aspect)
   vs.SetAndTranspose("ProjectionMat", projection);
   vs.SetAndTranspose("ViewProjectionMat", viewProjection);
   vs.SetAndTranspose("ViewInverseTransposeMat", viewInverse);
-  vs.Set("Sun.DirWorld", [ 0.57, 0.57, 0.57 ]);
+  vs.Set("Sun.DirWorld", SUN_DIRECTION);
   vs.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
   vs.Set("TargetResolution", [ 768, 576 ]);
   vs.Set("ViewportSize", [ 768, 576 ]);
 
   ps.SetAndTranspose("ViewInverseTransposeMat", viewInverse);
   ps.SetAndTranspose("ViewMat", view);
-  ps.Set("Sun.DirWorld", [ 0.57, 0.57, 0.57 ]);
+  ps.Set("Sun.DirWorld", SUN_DIRECTION);
   ps.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
   ps.Set("AmbientColor", [ 0.3, 0.33, 0.4 ]);
   ps.Set("ReflectionIntensity", 0.2);
