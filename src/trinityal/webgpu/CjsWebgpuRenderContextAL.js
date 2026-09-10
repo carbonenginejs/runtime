@@ -629,6 +629,26 @@ export class CjsWebgpuRenderContextAL
   {
     this._Record(this._workQueue.EndFrame());
 
+    // UNBINDS WHAT THE FRAME BOUND, AS CARBON DOES
+    // (`Tr2RenderContextMetal.mm:869-873`): vertex layout, resource set and
+    // shader program go back to empty and the draw check is forced on. Without
+    // it the next frame inherits the last frame's program and declaration, and
+    // the early-return in `SetShaderProgram` then SKIPS the rebind because the
+    // incoming program compares equal to the stale one - so the first draw of a
+    // frame runs against state nobody in that frame asked for. Same shape as
+    // the render-target inheritance `ResetRenderTargets` fixes at BeginScene.
+    //
+    // The pipeline description's program reference goes with it, because the
+    // description and the field are two halves of one binding: leaving it set
+    // while the field is null would resolve a pipeline for a program the
+    // context does not consider bound. `_pipelineDirty` is this backend's
+    // `m_needsDrawResourceCheck` - nothing is assumed resolved across frames.
+    this._vertexLayout = null;
+    this._resourceSet = null;
+    this._shaderProgram = null;
+    this._psoDescription.shaderProgram = null;
+    this._pipelineDirty = true;
+
     this._frameNumber += 1;
 
     if (this._commandEncoder)
