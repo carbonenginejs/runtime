@@ -124,14 +124,19 @@ object serializations, `fsd` for static data, `gr2`/`cmf`/`fbx`/`gltf`/`obj`/
 `webp` for images. The full list is the `./resource/formats/*` block of
 `package.json`.
 
-### What does not work standalone yet
+### Running from this checkout, rather than from a package
 
-The package ships `src` directly, and roughly 860 of those modules use
-decorator syntax (`@type.define`, `@io.persist`) that Node cannot parse. So
-importing SOF, Trinity, or the character domain straight into Node fails at
-parse time rather than at runtime. Those surfaces currently need a build step
-that transforms decorators; the format readers above are unaffected because
-they do not use them.
+The examples above work against this repository's `src` as well as against a
+built package, because the format readers are plain JavaScript. Most of the rest
+is not: roughly 860 modules under `src` use decorator syntax (`@type.define`,
+`@io.persist`) that Node cannot parse, so importing SOF, Trinity, or the
+character domain straight from `src` fails at PARSE time.
+
+That is a property of the sources, not of the package. `npm run build:npm`
+transforms the decorators away and writes `npm/dist`, which is what a published
+package exposes through these same subpaths, so every surface imports normally
+from a build. If you are working in this checkout and want one of those
+surfaces, import it from `npm/dist` after building rather than from `src`.
 
 ## Documentation
 
