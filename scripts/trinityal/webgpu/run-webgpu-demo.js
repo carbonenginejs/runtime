@@ -148,7 +148,10 @@ let outcome = null;
 
 try
 {
-  await page.goto(`http://127.0.0.1:${port}${PAGE}`, { waitUntil: "load" });
+  // `still=1` holds the page at ONE frame. A person opening the demo gets a
+  // continuous loop, because a single presented frame does not reliably stay on
+  // a WebGPU canvas; a gate wants one deterministic frame and a stable report.
+  await page.goto(`http://127.0.0.1:${port}${PAGE}?still=1`, { waitUntil: "load" });
   try { await page.waitForFunction(() => window.__demo !== undefined, null, { timeout: 30000 }); }
   catch (error) { outcome = { ok: false, error: "page never reported: " + error.message }; }
 

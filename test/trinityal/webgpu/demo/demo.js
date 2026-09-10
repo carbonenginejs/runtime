@@ -704,6 +704,48 @@ export async function RunDemo(canvas)
     .filter(stage => stage?.sourceProgram?.bytes?.length)
     .map(stage => `stage${stage.stageType}:${stage.sourceProgram.bytes.length}B`);
 
+  // KEEPS DRAWING, because one frame does not stay on screen. A WebGPU canvas
+  // shows the image that was last PRESENTED, and the next `getCurrentTexture`
+  // hands out a fresh uninitialised one - so a demo that draws once and stops
+  // can end up compositing a blank image over the frame it just drew. Drawing
+  // every tick removes the question entirely, and it is what a demo should do.
+  //
+  // THE ROTATION IS NOT DECORATION. It writes a new world matrix per frame, so
+  // the per-object constant upload and the arena's per-frame reset are exercised
+  // continuously rather than once - and a still hull cannot tell you whether the
+  // second frame still works, which is exactly the class of defect this lane
+  // keeps finding.
+  //
+  // `?still=1` holds it at one frame, for when a report must be deterministic.
+  const parameters = new URLSearchParams(globalThis.location?.search ?? "");
+
+  if (parameters.get("still") !== "1")
+  {
+    const spin = mat4.create();
+    const start = performance.now();
+
+    const tick = () =>
+    {
+      mat4.fromYRotation(spin, (performance.now() - start) / 4000);
+      perObject.vs.SetAndTranspose("world", spin);
+      perObject.vs.SetAndTranspose("worldLast", spin);
+      perObject.vs.SetAndTranspose("worldInverse", mat4.invert(mat4.create(), spin));
+
+      // Synchronous: the pixel readback in `Frame` is the only asynchronous part
+      // and a live loop does not need it.
+      al.BeginScene();
+      al.SetRenderTarget(0, renderTarget);
+      al.SetDepthStencil(renderTarget);
+      driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
+      al.EndScene();
+      al.DrainTransitions();
+
+      globalThis.requestAnimationFrame(tick);
+    };
+
+    globalThis.requestAnimationFrame(tick);
+  }
+
   return {
     litPixels: inverted?.litPixels ?? asAuthored.litPixels,
     litPixelsAsAuthored: asAuthored.litPixels,
