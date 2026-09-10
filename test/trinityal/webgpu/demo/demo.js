@@ -109,7 +109,7 @@ import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js
 import { CjsDdsFormat } from "../../../../npm/dist/resource/formats/dds/index.js";
 import { TriTextureRes } from "../../../../npm/dist/resource/texture/index.js";
 import { CjsCmfFormat } from "../../../../npm/dist/resource/formats/cmf/index.js";
-import { TriBatchType } from "../../../../npm/dist/global/consts/graphics/index.js";
+import { RenderingMode, TriBatchType } from "../../../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../../../npm/dist/global/math/vec3.js";
 import { decodeTangentFrame } from "../../../../npm/dist/global/math/tangent.js";
@@ -974,7 +974,43 @@ export async function RunDemo(canvas)
 
   const batchManager = new CjsBatchManager({
     batchTypes: [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL ],
-    createAccumulator: () => new TriRenderBatchAccumulator()
+    // THE ACCUMULATOR CARRIES THE RENDERING MODE, and nothing was setting it.
+    // `TriRenderBatchAccumulator.Commit` stamps its mode onto every batch, and
+    // the walk skips `ApplyStandardStates` for RM_ANY - so with the default no
+    // rendering mode block was EVER applied. Every mesh drew with the
+    // interpreted defaults: cull CCW where RM_OPAQUE asks for CULLMODE_CW, so
+    // the back faces survived and every hull showed its interior.
+    //
+    // Carbon sets it per batch list on the SCENE (`Tr2InteriorScene.cpp:1120`,
+    // `batches->SetRenderingMode(...)`) and ccpwgl passes a mode into
+    // `GetAreaBatches` (`Tw2Mesh.js:512-522`). A scene stand-in has to do the
+    // same, and the batch-type to mode mapping belongs in the driver.
+    createAccumulator: batchType =>
+    {
+      const accumulator = new TriRenderBatchAccumulator();
+
+      const mode = batchType === TriBatchType.TRIBATCHTYPE_DECAL
+        ? RenderingMode.RM_DECAL
+        : RenderingMode.RM_OPAQUE;
+
+      // `Clear` resets the mode back to RM_ANY every frame, so it has to be
+      // re-applied every frame - Carbon sets it at collection time for the same
+      // reason. Restoring it here keeps that in one place.
+      const clear = accumulator.Clear.bind(accumulator);
+
+      accumulator.Clear = (...rest) =>
+      {
+        const out = clear(...rest);
+
+        accumulator.renderingMode = mode;
+
+        return out;
+      };
+
+      accumulator.renderingMode = mode;
+
+      return accumulator;
+    }
   });
 
   batchManager.Initialize();
@@ -1016,9 +1052,20 @@ export async function RunDemo(canvas)
     return createResourceSet(description, program);
   };
 
+  // What rendering mode each batch asks for. RM_ANY means the walk skips
+  // ApplyStandardStates entirely, so no mode block is ever laid down.
+  const renderModes = [];
+
   const renderContext = new Tr2RenderContext();
 
   renderContext.SetRenderContextAL(al);
+
+  {
+    const esm = renderContext.GetEffectStateManager();
+    const applyStandardStates = esm.ApplyStandardStates.bind(esm);
+
+    esm.ApplyStandardStates = mode => { renderModes.push(mode); return applyStandardStates(mode); };
+  }
 
   const driver = new EveSpaceSceneRenderDriver().SetBatchManager(batchManager);
 
@@ -1193,6 +1240,7 @@ export async function RunDemo(canvas)
     pipelines,
     bindGroups,
     constantBinds: [ ...new Set(binds) ],
+    renderingModes: [ ...new Set(renderModes) ],
     dummyTextureSlots: dummies,
     resourceSetSrvs: srvs,
     uploads: uploads.map(u => `${u.label ?? "?"}@${u.offset}+${u.bytes}`),

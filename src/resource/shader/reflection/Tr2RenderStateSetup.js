@@ -333,6 +333,26 @@ function webgpuBlendComponent(component)
 export class Tr2RenderStateSetup
 {
 
+  /**
+   * The raw `[state, value]` pairs this setup actually AUTHORED.
+   *
+   * RETAINED BECAUSE UNAUTHORED IS NOT THE SAME AS DEFAULT, and losing that
+   * distinction cost a hull. Every field below resolves to a default when the
+   * pass is silent about it, which reads correctly for one setup and is wrong
+   * the moment two are applied in sequence. Carbon sets render states one at a
+   * time through D3D, where they are STICKY: `ApplyStandardStates` puts the
+   * rendering mode's block down - for RM_OPAQUE that includes `CULLMODE_CW` -
+   * and a pass setup that never mentions cull leaves it standing.
+   *
+   * Ours replaced the whole block, so the pass's silence became the default
+   * `CULLMODE_CCW`, which culls the BACK faces where the mode asked to cull the
+   * FRONT ones. Every EVE hull then drew its interior: the silhouette is right
+   * and the surfaces are the wrong ones, which is a hard thing to see.
+   * `Overlay` below is what lets a setup be applied without erasing what it did
+   * not speak about.
+   */
+  authoredStates = [];
+
   /** Depth test, write, comparison, and the two bias terms. */
   depth = {
     test: true,
@@ -515,7 +535,42 @@ export class Tr2RenderStateSetup
     }
     setup.unhandled.sort((left, right) => left.state - right.state);
 
+    setup.authoredStates = [ ...authored ].sort((left, right) => left[0] - right[0]);
+
     return setup;
+  }
+
+
+  /**
+   * A setup carrying `base`'s states with `over`'s authored ones on top.
+   *
+   * This is what makes a sequence of applies behave the way D3D's do, where a
+   * state nobody set this draw keeps the value the last one gave it. Carbon
+   * relies on that: `ApplyStandardStates` lays down the rendering mode's block
+   * and a pass setup then speaks only for what it changes.
+   *
+   * Returns `over` unchanged when it authors everything `base` did, so the
+   * common case allocates nothing and the interned setup is preserved.
+   *
+   * @param {Tr2RenderStateSetup|null} base The states already in effect.
+   * @param {Tr2RenderStateSetup|null} over The setup being applied.
+   * @returns {Tr2RenderStateSetup|null} The combined setup.
+   */
+  static Overlay(base, over)
+  {
+    if (!base) return over;
+    if (!over) return base;
+
+    const combined = new Map(base.authoredStates);
+
+    for (const [ state, value ] of over.authoredStates) combined.set(state, value);
+
+    // Nothing of the base survived, so the applied setup already says it all.
+    if (combined.size === over.authoredStates.length) return over;
+
+    return Tr2RenderStateSetup.fromPass({
+      renderStateValues: [ ...combined ].map(([ state, value ]) => ({ state, value }))
+    });
   }
 
   /**

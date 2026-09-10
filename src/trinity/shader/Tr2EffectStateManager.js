@@ -1346,8 +1346,63 @@ export class Tr2EffectStateManager extends CjsModel
 
     if (!setup || !this.#renderContext) return false;
 
-    return this.#renderContext.SetRenderStates(setup, this.GetRenderStateOverrides());
+    return this.#renderContext.SetRenderStates(this.#OverMode(handle, setup), this.GetRenderStateOverrides());
   }
+
+  /**
+   * A pass setup carrying the current rendering mode's states underneath it.
+   *
+   * RENDER STATES ARE STICKY IN CARBON, and reproducing that is the whole point
+   * of this method. Carbon sets them one at a time through D3D, so
+   * `ApplyStandardStates` lays down the rendering mode's block and a pass setup
+   * then speaks only for what it changes. Ours interprets a setup ONCE into a
+   * complete projection, so handing the backend a pass setup REPLACED the mode's
+   * block and turned the pass's silence into interpreted defaults.
+   *
+   * It cost a hull. RM_OPAQUE asks for `CULLMODE_CW` - cull the FRONT faces,
+   * D3D's clockwise-is-front convention - and every `quadv5` pass authors no
+   * cull at all, so the default `CULLMODE_CCW` culled the back ones instead.
+   * Every EVE ship drew its own interior: right silhouette, wrong surfaces,
+   * which is a genuinely hard thing to see. ccpwgl sets `CULL_CW` to
+   * `gl.cullFace(gl.FRONT)` against `frontFace(CW)` and agrees exactly
+   * (`Tw2Device.js:272,1343-1346,1604`).
+   *
+   * A MODE HANDLE IS NOT OVERLAID ON ITSELF: the first `RM_COUNT` slots ARE the
+   * standard states, so those apply as they are.
+   *
+   * Merged setups are cached per mode and handle, so the backend keeps seeing
+   * one stable object and its redundant-apply check still bites.
+   *
+   * @param {number} handle The setup being applied.
+   * @param {object} setup The interpreted setup for that handle.
+   * @returns {object} The setup to hand the backend.
+   */
+  #OverMode(handle, setup)
+  {
+    const mode = this.#currentValues.renderingMode;
+    const carriesStates = mode > RenderingMode.RM_ANY && mode < RenderingMode.RM_COUNT;
+
+    // Only a mode applying ITS OWN block is left alone. An earlier version
+    // excluded every handle below RM_COUNT, which caught the reserved RM_ANY
+    // slot - and a pass that registers no states gets exactly that handle, whose
+    // interpreted setup is a full projection of DEFAULTS. Applying it over the
+    // mode erased the mode.
+    if (!carriesStates || handle === mode) return setup;
+
+    const key = `${mode}:${handle}`;
+    const cached = this.#overMode.get(key);
+
+    if (cached) return cached;
+
+    const merged = Tr2RenderStateSetup.Overlay(Tr2EffectStateManager.getRenderStateSetup(mode), setup);
+
+    this.#overMode.set(key, merged);
+
+    return merged;
+  }
+
+  /** Merged mode-plus-pass setups, keyed by both handles. */
+  #overMode = new Map();
 
   /**
    * Whether this shader program needs binding.
