@@ -736,8 +736,11 @@ function PerFrameData(bounds, aspect)
   ps.SetAndTranspose("ViewMat", view);
   ps.Set("Sun.DirWorld", SUN_DIRECTION);
   ps.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
-  ps.Set("AmbientColor", [ 0.3, 0.33, 0.4 ]);
-  ps.Set("ReflectionIntensity", 0.2);
+  // ccpwgl's own scene defaults rather than invented numbers: ambient and fog
+  // both 0.25 grey, sun diffuse white (`EveSpaceScene.js:187,225,286`).
+  ps.Set("AmbientColor", [ 0.25, 0.25, 0.25 ]);
+  ps.Set("FogColor", [ 0.25, 0.25, 0.25, 1 ]);
+  ps.Set("ReflectionIntensity", 1);
   ps.Set("ViewportSize", [ 768, 576 ]);
   ps.Set("TargetResolution", [ 768, 576 ]);
 
