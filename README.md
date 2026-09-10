@@ -66,6 +66,73 @@ from the aggregate runtime export. The WebGPU engine likewise
 has no root re-export, and no WebGL placeholder is advertised before a
 maintained implementation exists.
 
+## Reading EVE formats on their own
+
+Every format reader is its own subpath under
+`@carbonenginejs/runtime/resource/formats/*`, and importing one pulls in that
+format plus the shared foundation it needs - not the renderer, not a GPU, and
+not the object graph. For most people the geometry readers are the whole
+reason to be here, so they are worth showing directly.
+
+GR2 is EVE's mesh container. Its default read gives you the Granny graph as
+plain objects:
+
+```js
+import { readFile } from "node:fs/promises";
+import { CjsGr2Format } from "@carbonenginejs/runtime/resource/formats/gr2";
+
+const bytes = new Uint8Array(await readFile("af1_t1.gr2"));
+const granny = CjsGr2Format.read(bytes);
+
+// { grannyFileFormatRevision, grannyFileSource, meshes, models, animations }
+console.log(granny.meshes.length);
+```
+
+That shape follows the file. For geometry you can actually draw, project it
+into the shared mesh form, which is the one the engine itself consumes:
+
+```js
+import { CjsCmfFormat } from "@carbonenginejs/runtime/resource/formats/cmf";
+
+const shared = CjsCmfFormat.loadShared(granny);
+
+for (const mesh of shared.meshes)
+{
+  // name, decl, lods, areas, boneBindings, morphTargets, bounds, topology,
+  // vertex, indices, skeleton
+  console.log(mesh.name, mesh.lods.length, mesh.areas.length);
+}
+```
+
+CMF is this organization's own container for the same geometry, and it reads
+the same way - `CjsCmfFormat.read` for the native graph, `readShared` for the
+shared form, `readRaw` for sections and offsets without interpretation. It also
+writes, so CMF is the format to use when you want geometry back out.
+
+Two things that will otherwise cost you an afternoon:
+
+- **`emit: "cmf"` is not the standalone path.** It hydrates engine class
+  instances, so it requires you to pass those classes in `options.classes` and
+  throws without them. Use the default emit and `loadShared` instead.
+- **`write` wants the native graph, not a shared projection.** A shared
+  projection has no section table, so writing one back out fails on its buffer
+  references.
+
+Other readers worth knowing: `dds` for textures, `black` and `red` for EVE's
+object serializations, `fsd` for static data, `gr2`/`cmf`/`fbx`/`gltf`/`obj`/
+`stl` for geometry, `bnk`/`wem` for Wwise audio, and `png`/`jpeg`/`tga`/`gif`/
+`webp` for images. The full list is the `./resource/formats/*` block of
+`package.json`.
+
+### What does not work standalone yet
+
+The package ships `src` directly, and roughly 860 of those modules use
+decorator syntax (`@type.define`, `@io.persist`) that Node cannot parse. So
+importing SOF, Trinity, or the character domain straight into Node fails at
+parse time rather than at runtime. Those surfaces currently need a build step
+that transforms decorators; the format readers above are unaffected because
+they do not use them.
+
 ## Documentation
 
 Start with the [package documentation](docs/README.md) and the
