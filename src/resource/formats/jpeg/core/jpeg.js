@@ -1,12 +1,28 @@
+/**
+ * Scan position to natural coefficient index.
+ *
+ * This direction, and not its inverse. Both use sites read a value at scan
+ * position `i` and need to know where in the 8x8 block it belongs -
+ * `table[ZIGZAG[i]]` for the quantisation table, `coefficients[ZIGZAG[i]]` for
+ * an AC coefficient - which is what a position-to-natural table answers.
+ *
+ * It was the inverse table until 2026-09-10, which permuted every block's
+ * coefficients into the wrong frequencies. It survived because the permutation
+ * fixes index 0, so flat colour decoded exactly and only detail was scrambled,
+ * and because `raw` is this format's default output: the browser decodes in
+ * production and nothing compared these pixels against a reference. Measured on
+ * a 512x512 render, mean neighbouring-pixel difference over lit pixels fell
+ * from 8.25 to 2.91 when this was corrected.
+ */
 const ZIGZAG = [
-    0, 1, 5, 6, 14, 15, 27, 28,
-    2, 4, 7, 13, 16, 26, 29, 42,
-    3, 8, 12, 17, 25, 30, 41, 43,
-    9, 11, 18, 24, 31, 40, 44, 53,
-    10, 19, 23, 32, 39, 45, 52, 54,
-    20, 22, 33, 38, 46, 51, 55, 60,
-    21, 34, 37, 47, 50, 56, 59, 61,
-    35, 36, 48, 49, 57, 58, 62, 63
+    0, 1, 8, 16, 9, 2, 3, 10,
+    17, 24, 32, 25, 18, 11, 4, 5,
+    12, 19, 26, 33, 40, 48, 41, 34,
+    27, 20, 13, 6, 7, 14, 21, 28,
+    35, 42, 49, 56, 57, 50, 43, 36,
+    29, 22, 15, 23, 30, 37, 44, 51,
+    58, 59, 52, 45, 38, 31, 39, 46,
+    53, 60, 61, 54, 47, 55, 62, 63
 ];
 
 const COSINE = Array.from({ length: 8 }, (_, x) =>
