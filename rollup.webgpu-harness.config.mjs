@@ -19,8 +19,25 @@ function resolveBrowserModule(source)
     const packageName = source.startsWith("@")
         ? source.split("/").slice(0, 2).join("/")
         : source.split("/")[0];
-    const manifestPath = packageRequire.resolve(`${packageName}/package.json`);
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    // A PACKAGE NEED NOT EXPORT ITS OWN MANIFEST, and several modern ones do
+    // not: `meshoptimizer` has an `exports` map without a "./package.json"
+    // entry, so resolving it throws and took the whole bundle down. The manifest
+    // is only consulted to prefer an ESM `module` entry over what `resolve`
+    // picked, which is an optimisation - when it cannot be read, what `resolve`
+    // returned is already a working answer.
+    let manifestPath = null;
+    let manifest = null;
+
+    try
+    {
+        manifestPath = packageRequire.resolve(`${packageName}/package.json`);
+        manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    }
+    catch
+    {
+        return resolved;
+    }
+
     if (source === packageName && manifest.module)
     {
         return path.resolve(path.dirname(manifestPath), manifest.module);

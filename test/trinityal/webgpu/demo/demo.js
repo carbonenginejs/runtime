@@ -5,15 +5,25 @@
 // yet, but the right shape in the right place. af1 has been loaded in a browser
 // before; it had not been drawn THROUGH TRINITY, and that is what is new.
 //
-// IT DREW FOR A SPLIT SECOND, AND THAT WAS THIS FILE'S FAULT. The pixel count
-// asked the canvas context for its current texture instead of the one the frame
-// had rendered into, and after a submit that can be a different swap-chain
-// image, so it read an empty one and reported zero. A zero then triggered the
-// cull-inverted diagnostic frame, which drew nothing over the hull. Both halves
-// are fixed: the count takes the presented texture, and the winding check is
-// opt-in behind `?cull=invert`. A headless run still counts zero where a windowed
-// Chrome draws, so the readback is not yet trustworthy on its own - the canvas
-// is. Do not read a zero here as proof of nothing.
+// IT KEEPS DRAWING NOW, and getting there took three separate faults in this
+// file, each of which looked like the engine failing:
+//
+//   1. The pixel count asked the canvas context for its CURRENT texture rather
+//      than the one the frame rendered into, read an empty image, and reported
+//      zero while the hull was on screen.
+//   2. That zero triggered the cull-inverted diagnostic frame automatically,
+//      which drew nothing over the hull. It is opt-in now, `?cull=invert`.
+//   3. One presented frame does not stay on a WebGPU canvas, so the page draws
+//      every animation tick. When THAT stopped after a dozen frames it was
+//      because `Unpack` threw - see its note - and one throw ended the loop
+//      silently. The loop now survives a failed frame and records why.
+//
+// THE LIT-PIXEL COUNT IS STILL NOT EVIDENCE. Chrome warns "Destroyed texture
+// used in a submit" when the readback copies the presented image, because the
+// swap-chain texture is gone by then, so the count reads zero even in a window
+// where the hull is plainly visible. Headless is worse: its screenshot is pure
+// black, not even the clear colour. THE CANVAS IS THE ORACLE. Do not read a zero
+// here as proof of nothing; a correct count needs an offscreen target.
 //
 // Measured correct, on a real adapter, as of 2026-09-10:
 //
@@ -91,6 +101,7 @@ import { CjsCmfFormat } from "../../../../npm/dist/resource/formats/cmf/index.js
 import { TriBatchType } from "../../../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../../../npm/dist/global/math/vec3.js";
+import { decodeTangentFrame } from "../../../../npm/dist/global/math/tangent.js";
 
 
 /** The hull's own shader, from tools-core's WebGPU effect tree. */
@@ -158,13 +169,20 @@ const UNPACKED_DECLARATION = Object.freeze([
  * the draw and names what it could not supply, which is how this demo found out:
  * `a vertex element for input 6:0, 2:0, 4:0, 5:1`.
  *
- * NOTHING IS DECODED HERE. The GR2 reader's own post-processing already expands
- * the frame - the mesh arrives carrying `normal`, `tangent`, `binormal`,
- * `texcoord1`, `blendIndice` and `blendWeight` channels beside the packed one -
- * and only the DECLARATION prefers the packed form. So this rewrites the
- * declaration over channels that are already there, which is the whole of the
- * difference between the two shader families for this hull. Choosing the form
- * per shader belongs in the mesh path rather than in a demo.
+ * THE DECODE IS REAL WORK, and a previous version of this comment claimed it was
+ * not. The mesh does arrive with `normal`, `tangent`, `binormal`, `texcoord1`
+ * and `blendIndice` KEYS - but they are EMPTY. Reading the key list and not the
+ * lengths is what produced the wrong claim, and deleting the decode on the
+ * strength of it broke the hull. Only `position`, `texcoord0` and
+ * `packedTangentLegacy` carry data.
+ *
+ * THE CHANNELS THAT MATTER ARE THE LOD'S. `PackLodGeometry` reads
+ * `lod.vertex ?? mesh.vertex`, so the LOD is what the draw is built from and
+ * what has to be filled. They are the same object for this hull, and writing to
+ * the mesh alone would have been silently ignored for one that differed.
+ *
+ * Choosing the tangent form per shader belongs in the mesh path rather than in a
+ * demo; this is the smallest thing that lets one hull meet one shader.
  *
  * Carbon's DX11 path FABRICATES a missing element so the layout still builds
  * (`Tr2VertexLayoutALDx11.cpp:179-207`) and ccpwgl disables the attribute; this
@@ -175,9 +193,37 @@ const UNPACKED_DECLARATION = Object.freeze([
  */
 function Unpack(mesh)
 {
-  for (const channel of [ "normal", "tangent", "binormal", "texcoord1", "blendIndice" ])
+  for (const channels of new Set([ mesh.vertex, ...(mesh.lods ?? []).map(lod => lod.vertex) ]))
   {
-    if (!mesh.vertex[channel]?.length) throw new Error(`hull carries no ${channel} channel`);
+    if (!channels) continue;
+
+    const packed = channels.packedTangentLegacy;
+    const count = (channels.position?.length ?? 0) / 3;
+
+    if (!count || !packed?.length) continue;
+
+    const normal = new Array(count * 3);
+    const tangent = new Array(count * 3);
+    const binormal = new Array(count * 3);
+
+    for (let i = 0; i < count; i += 1)
+    {
+      const frame = decodeTangentFrame(packed.slice(i * 4, i * 4 + 4));
+      const at = i * 3;
+
+      for (let axis = 0; axis < 3; axis += 1)
+      {
+        normal[at + axis] = frame.N[axis];
+        tangent[at + axis] = frame.T[axis];
+        binormal[at + axis] = frame.B[axis];
+      }
+    }
+
+    channels.normal = normal;
+    channels.tangent = tangent;
+    channels.binormal = binormal;
+    channels.texcoord1 = Array.from(channels.texcoord0 ?? new Array(count * 2).fill(0));
+    channels.blendIndice = new Array(count * 4).fill(0);
   }
 
   let offset = 0;
@@ -192,11 +238,9 @@ function Unpack(mesh)
     return placed;
   });
 
-  // PackLodGeometry reads the LOD's own channels when it has them, so the LOD
-  // the batch draws has to carry the expanded ones too, not just the mesh.
-  for (const lod of mesh.lods ?? [])
+  if (!mesh.lods?.[0]?.vertex?.normal?.length && !mesh.vertex.normal?.length)
   {
-    if (lod.vertex) lod.vertex = mesh.vertex;
+    throw new Error("hull carries no packed tangent frame to expand");
   }
 
   return mesh;
@@ -724,21 +768,41 @@ export async function RunDemo(canvas)
     const spin = mat4.create();
     const start = performance.now();
 
+    // The loop stopped dead after about a dozen frames with nothing in the
+    // console, so it reports its own state rather than being guessed at again.
+    const loop = { ticks: 0, drawn: 0, error: null, deviceLost: null };
+
+    globalThis.__demoLoop = loop;
+    device.lost.then(info => { loop.deviceLost = `${info.reason}: ${info.message}`; });
+
     const tick = () =>
     {
-      mat4.fromYRotation(spin, (performance.now() - start) / 4000);
-      perObject.vs.SetAndTranspose("world", spin);
-      perObject.vs.SetAndTranspose("worldLast", spin);
-      perObject.vs.SetAndTranspose("worldInverse", mat4.invert(mat4.create(), spin));
+      try
+      {
+        mat4.fromYRotation(spin, (performance.now() - start) / 4000);
+        perObject.vs.SetAndTranspose("world", spin);
+        perObject.vs.SetAndTranspose("worldLast", spin);
+        perObject.vs.SetAndTranspose("worldInverse", mat4.invert(mat4.create(), spin));
 
-      // Synchronous: the pixel readback in `Frame` is the only asynchronous part
-      // and a live loop does not need it.
-      al.BeginScene();
-      al.SetRenderTarget(0, renderTarget);
-      al.SetDepthStencil(renderTarget);
-      driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
-      al.EndScene();
-      al.DrainTransitions();
+        // Synchronous: the pixel readback in `Frame` is the only asynchronous
+        // part and a live loop does not need it.
+        al.BeginScene();
+        al.SetRenderTarget(0, renderTarget);
+        al.SetDepthStencil(renderTarget);
+        driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
+        al.EndScene();
+        al.DrainTransitions();
+
+        loop.ticks += 1;
+        loop.drawn = al.GetDrawnBatchCount();
+      }
+      catch (error)
+      {
+        // KEEPS TICKING AFTER A THROW. A frame that fails should not silently
+        // end the animation - that is what made this look like the browser
+        // losing interest rather than the engine failing.
+        loop.error = `${error.message}\n${error.stack ?? ""}`;
+      }
 
       globalThis.requestAnimationFrame(tick);
     };
