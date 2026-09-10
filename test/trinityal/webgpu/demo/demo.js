@@ -115,8 +115,35 @@ import { vec3 } from "../../../../npm/dist/global/math/vec3.js";
 import { decodeTangentFrame } from "../../../../npm/dist/global/math/tangent.js";
 
 
-/** The hull's own shader, from tools-core's WebGPU effect tree. */
-const EFFECT = "graphics/effect.webgpu/managed/space/spaceobject/v5/quad/unpacked_quadv5.sm_hi";
+/** Used only when the SOF document cannot be had; see `EffectPath`. */
+const EFFECT = "graphics/effect.webgpu/managed/space/spaceobject/v5/quad/quadv5.sm_hi";
+
+
+/**
+ * Turns a SOF effect path into the container this backend loads.
+ *
+ * A SOF DOCUMENT NAMES NO BACKEND. It carries
+ * `res:/graphics/effect/.../quadv5.fx` - the neutral path - and a loader
+ * substitutes the backend tree and the quality tier: `/effect/` becomes
+ * `/effect.webgpu/` and `.fx` becomes `.sm_hi` (`.sm_depth` is the higher tier,
+ * and is not built into the overlay this demo reads).
+ *
+ * AND THE NAME DOES NOT CHANGE. Every variant of a shader shares one name; the
+ * VARIANT is chosen by the effect's `options`, which the document also carries,
+ * and `Tr2Effect.RebuildCachedData` passes them to `GetShader`. An earlier
+ * version of this demo hardcoded `unpacked_quadv5`, treating a permutation as
+ * if it were a separate shader, which is not how the loader works.
+ *
+ * @param {string} effectFilePath The document's `effectFilePath`.
+ * @returns {string} A resource path, without the `res:/` prefix.
+ */
+function EffectPath(effectFilePath)
+{
+  return effectFilePath
+    .replace(/^res:\//u, "")
+    .replace("/effect/", "/effect.webgpu/")
+    .replace(/\.fx$/u, ".sm_hi");
+}
 
 /** An Amarr frigate. Real geometry, real declaration, real packed tangents. */
 const HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
@@ -581,6 +608,32 @@ function PerFrameData(bounds, aspect)
 }
 
 
+/**
+ * Writes one world transform into both halves of a per-object payload.
+ *
+ * The vertex and pixel blocks carry the SAME three matrices under the same
+ * names, and Carbon fills both - a pixel stage that reconstructs world position
+ * needs them as much as the vertex stage does.
+ *
+ * @param {object} perObject A `{ vs, ps }` pair of `RawData`.
+ * @param {Float32Array} world The world transform.
+ * @returns {void}
+ */
+function SetWorld(perObject, world)
+{
+  const inverse = mat4.invert(mat4.create(), world);
+
+  for (const block of [ perObject.vs, perObject.ps ])
+  {
+    if (!block) continue;
+
+    block.SetAndTranspose("worldTransform", world);
+    block.SetAndTranspose("worldTransformLast", world);
+    block.SetAndTranspose("invWorldTransform", inverse);
+  }
+}
+
+
 /** Composes and runs one frame. Returns a short report for the page. */
 export async function RunDemo(canvas)
 {
@@ -749,22 +802,31 @@ export async function RunDemo(canvas)
   };
 
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
-  const [ effectBytes, hullBytes, sof ] = await Promise.all([
-    ResourceBytes(EFFECT),
-    ResourceBytes(HULL),
-    SofDocument(DNA)
-  ]);
+  const sof = await SofDocument(DNA);
+  const area = sof?.mesh?.opaqueAreas?.[0]?.effect ?? null;
+  const effectPath = area?.effectFilePath ? EffectPath(area.effectFilePath) : EFFECT;
+  const [ effectBytes, hullBytes ] = await Promise.all([ ResourceBytes(effectPath), ResourceBytes(HULL) ]);
   const mesh = Unpack(HullMesh(hullBytes));
   const bounds = Bounds(mesh);
   const geometry = GeometryResource(mesh, `res:/${HULL}`);
-  const material = Material(effectBytes, `res:/${EFFECT}`, sof?.mesh?.opaqueAreas?.[0]?.effect ?? null);
+  const material = Material(effectBytes, `res:/${effectPath}`, area);
   const textures = await LoadTextures(material, compressed);
   const frame = PerFrameData(bounds, canvas.width / canvas.height);
 
   // The hull sits at the origin, so the camera does the framing and the world
   // matrix is identity. EveTransform's payload is the simplest placeable one
   // and carries the three matrices a ship's vertex stage reads.
-  const perObject = { vs: RawData.create("EveBasicPerObjectData") };
+  // THE SHIP'S OWN PER-OBJECT PAIR, not EveTransform's. The pixel stage
+  // declares b4 and reads exactly ROW 12 of it, which is `shipData` in
+  // `EveSpaceObjectPSData` - booster glow, activation, DIRT LEVEL and bounding
+  // radius. With no PS payload supplied, b4 was handed the same arena region as
+  // b0, so the shader read the MATERIAL's colours as ship data and the hull
+  // blew out white. EveTransform's payload has no pixel half at all, which is
+  // why it could never have filled that register.
+  const perObject = {
+    vs: RawData.create("EveSpaceObjectVSData"),
+    ps: RawData.create("EveSpaceObjectPSData")
+  };
   const renderable = HullRenderable(material, geometry, mesh, perObject);
   const depthFormat = "depth24plus";
   const renderTarget = new CjsWebgpuRenderTarget(webgpu, {
@@ -787,6 +849,18 @@ export async function RunDemo(canvas)
   const al = new CjsWebgpuRenderContextAL({ webgpu, renderTarget });
 
   al.CreateDevice();
+
+  // Records every constant bind, by stage and register, so an unfilled uniform
+  // block can be told from a block bound to the wrong place.
+  const binds = [];
+  const setConstants = al.SetConstants.bind(al);
+
+  al.SetConstants = (buffer, stage, register, ...rest) =>
+  {
+    binds.push(`s${stage}b${register}`);
+
+    return setConstants(buffer, stage, register, ...rest);
+  };
 
   const renderContext = new Tr2RenderContext();
 
@@ -906,9 +980,7 @@ export async function RunDemo(canvas)
       try
       {
         mat4.fromYRotation(spin, (performance.now() - start) / 4000);
-        perObject.vs.SetAndTranspose("world", spin);
-        perObject.vs.SetAndTranspose("worldLast", spin);
-        perObject.vs.SetAndTranspose("worldInverse", mat4.invert(mat4.create(), spin));
+        SetWorld(perObject, spin);
 
         // Synchronous: the pixel readback in `Frame` is the only asynchronous
         // part and a live loop does not need it.
@@ -941,7 +1013,8 @@ export async function RunDemo(canvas)
     litPixelsAsAuthored: asAuthored.litPixels,
     litPixelsCullInverted: inverted?.litPixels ?? null,
     validation,
-    effect: EFFECT,
+    effect: effectPath,
+    effectOptions: (area?.options ?? []).map(option => `${option.name}=${option.value}`),
     hull: HULL,
     effectBytes: effectBytes.length,
     hullBytes: hullBytes.length,
@@ -965,7 +1038,8 @@ export async function RunDemo(canvas)
     materialResources: (material.resources ?? []).map(r => r.name),
     pipelines,
     bindGroups,
-    uploads: uploads.filter(u => u.bytes <= 1024).map(u => ({ label: u.label, offset: u.offset, bytes: u.bytes, head: u.floats.slice(0, 4).map(v => Number(v.toFixed(3))), row4to7: u.floats.slice(16, 32).map(v => Number(v.toFixed(3))) })),
+    constantBinds: [ ...new Set(binds) ],
+    uploads: uploads.map(u => `${u.label ?? "?"}@${u.offset}+${u.bytes}`),
     uploadCount: uploads.length,
     draws,
     expectedViewProjectionTransposed: Array.from(mat4.transpose(mat4.create(), frame.viewProjection)).map(v => Number(v.toFixed(3)))

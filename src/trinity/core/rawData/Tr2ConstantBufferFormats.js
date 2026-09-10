@@ -10,12 +10,27 @@
 // the resolver read them, so a frame drawn through the abstraction layer's own
 // verbs had b1 and b2 unbound.
 //
-// The buffers are the context's per-slot ones rather than file statics, for the
-// reason `Tr2RenderContext.GetConstantBuffer` gives: a buffer is of the
-// backend's kind, and a context knows which backend it holds.
+// THE PER-FRAME BLOCKS NEED BUFFERS OF THEIR OWN, and taking them from
+// `GetConstantBuffer` was a defect that cost a hull. Carbon holds two file
+// statics here, `s_perFrameVSData` and `s_perFramePSData`
+// (`Tr2ConstantBufferFormats.cpp:54-66`), while `GetConstantBuffer` reaches into
+// `m_perObjectConstantBuffers` - a DIFFERENT array, for per-object data only.
+// Borrowing it indexed the per-object array by REGISTER, so the per-frame vertex
+// block (register 1) took the buffer the per-object PIXEL payload uses (shader
+// type 1). One buffer, two registers, one frame: the second bind reused the
+// first's arena region, and b4 handed the shader the frame's matrices where it
+// expected `shipData`. The hull rendered blown-out white.
+//
+// Kept per CONTEXT rather than per module, which is the one deliberate
+// difference from Carbon's statics: a buffer is of the backend's kind, and two
+// contexts on different backends must not share one.
 import { ShaderType } from "#consts/render-context";
 import { FillAndSetConstants } from "../Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS } from "../Tr2Renderer.js";
+
+
+/** Carbon's `s_perFrameVSData` / `s_perFramePSData`, one pair per context. */
+const perFrameBuffers = new WeakMap();
 
 
 /**
@@ -50,9 +65,27 @@ function BindPerFrame(data, renderContext, stage, register)
 
   if (!bytes || !bytes.byteLength) return false;
 
-  const buffer = renderContext.GetConstantBuffer(register);
+  const buffer = PerFrameBuffer(renderContext, stage);
 
   if (!buffer) return false;
 
   return FillAndSetConstants(buffer, bytes, bytes.byteLength, 1 << stage, register, renderContext);
+}
+
+
+/**
+ * The per-frame constant buffer for one stage, made once per context.
+ *
+ * @param {object} renderContext The `Tr2RenderContext` to create through.
+ * @param {number} stage A `ShaderType`; only the two per-frame stages are used.
+ * @returns {object|null} A `Tr2ConstantBufferAL`, or null when none can be made.
+ */
+function PerFrameBuffer(renderContext, stage)
+{
+  const held = perFrameBuffers.get(renderContext) ?? {};
+
+  held[stage] ??= renderContext.CreateConstantBuffer();
+  perFrameBuffers.set(renderContext, held);
+
+  return held[stage] ?? null;
 }
