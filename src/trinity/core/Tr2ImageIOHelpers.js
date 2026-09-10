@@ -67,7 +67,16 @@ export function DescribeTexturePayload(payload)
   if (format === undefined || type === undefined) return null;
 
   const mipCount = Math.max(1, payload.mipCount | 0);
-  const arraySize = payload.dimension === "3d" ? 1 : Math.max(1, payload.arraySize | 0);
+
+  // A CUBE'S LAYERS ARE ITS FACES TIMES ITS ARRAY SIZE, and reading `arraySize`
+  // alone loses the six. An image reader reports a cube as `faces: 6` with
+  // `arraySize: 1` - six faces of a single cube - so this described a cube one
+  // layer deep, and the backend refused it: `Tr2TextureAL` checks
+  // `arraySize % 6` and returns E_INVALIDARG. The slot then took the dummy, so
+  // every reflection sampled a black 1x1 cube. A ship's sun came back as a dark
+  // grey disc on a polished hull, which is a long way from an array count.
+  const faces = payload.dimension === "cube" ? Math.max(1, payload.faces | 0) : 1;
+  const arraySize = payload.dimension === "3d" ? 1 : Math.max(1, payload.arraySize | 0) * faces;
   const desc = new Tr2BitmapDimensions({
     type,
     format,

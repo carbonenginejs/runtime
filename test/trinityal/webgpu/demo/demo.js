@@ -438,9 +438,49 @@ const SCENE_TEXTURES = Object.freeze([
   // 1.0 is "not occluded". Zero darkened every surface uniformly.
   { name: "SSAOMap", colour: [ 255, 255, 255, 255 ] },
   // A depth map read as "nothing is closer than this", so nothing is shadowed.
-  { name: "EveSpaceSceneShadowMap", colour: [ 255, 255, 255, 255 ] }
+  { name: "EveSpaceSceneShadowMap", colour: [ 255, 255, 255, 255 ] },
+  // THE ENVIRONMENT CUBE HAS NO NEUTRAL, so a real one is loaded instead.
+  // A black cube is not "no reflection", it is a reflection OF BLACK: the hull
+  // came out with a dark grey disc where the sun should have been mirrored, and
+  // every polished surface reflected nothing. A flat grey cube is no better, it
+  // just reflects flat grey, which is why ccpwgl leaves this parameter empty
+  // rather than defaulting it.
+  //
+  // A SCENE OWNS THIS ONE. EVE's scenes carry their reflection cube beside the
+  // backdrop, as `<scene>_cube_refl.dds`, and a stand-in scene has none - so
+  // this borrows the Amarr ship-icon background's, which is a real EVE cube of
+  // the right kind for an Amarr hull. It is a STAND-IN for scene data, not a
+  // default: a real scene supplies its own and this line goes away.
+  { name: "EveSpaceSceneEnvMap", path: "dx9/scene/iconbackground/ship_amarr_cube_refl.dds" }
 ]);
 
+
+/**
+ * A texture resource read from the client.
+ *
+ * @param {string} path Resource path, without the `res:/` prefix.
+ * @param {boolean} compressed Whether the device accepts BC textures.
+ * @returns {Promise<object|null>} A prepared resource, or null when it cannot be had.
+ */
+async function ClientTexture(path, compressed)
+{
+  try
+  {
+    const texture = new TriTextureRes();
+
+    texture.DoLoad(CjsDdsFormat.read(await ResourceBytes(path), { emit: compressed ? "texture" : "rgba" }));
+    texture.MarkLoaded();
+    texture.MarkPrepared();
+
+    return texture;
+  }
+  catch
+  {
+    // Not fatal: the slot falls back to the backend's dummy, which is what it
+    // had before this existed.
+    return null;
+  }
+}
 
 /**
  * A one-pixel texture resource of a single colour.
@@ -920,8 +960,11 @@ export async function RunDemo(canvas)
       const parameter = new TriTextureParameter();
 
       parameter.name = scene.name;
-      parameter.resource = FlatTexture(scene.colour);
-      material.resources.push(parameter);
+      parameter.resource = scene.path
+        ? await ClientTexture(scene.path, compressed)
+        : FlatTexture(scene.colour);
+
+      if (parameter.resource) material.resources.push(parameter);
     }
 
     material.RebuildCachedData();
