@@ -12,6 +12,8 @@ using today:
 - **The Space Object Factory (SOF)**, which turns a DNA string such as
   `af1_t1:amarrbase:amarr` into a described ship — hull, faction, materials and
   their parameters.
+- **The audio domain**, which is headless by default and realizes through Web
+  Audio when a host attaches one.
 
 The pipelines that translate EVE's DX11 shaders to **WebGPU** and **WebGL** work,
 and are how the renderer draws. The renderer around them is still being
@@ -67,22 +69,28 @@ serializations, `fsd` for static data, `fbx`/`gltf`/`obj`/`stl` for geometry,
 full set is the `./resource/formats/*` block of `package.json`.
 
 Working from a clone rather than the package? Roughly 860 modules under `src` use
-decorator syntax Node cannot parse, so import SOF, Trinity and character from
-`npm/dist` after `npm run build:npm`. The published package is already built, so
-this affects only this repository; the format readers above are plain JavaScript
-and work either way.
+decorator syntax Node cannot parse, so anything outside the format readers has to
+be imported from `npm/dist` after `npm run build:npm`. The published package is
+already built, so this affects only this repository; the readers above are plain
+JavaScript and work either way.
 
 ## Documentation
 
 Start with the [package documentation](docs/README.md) and the
-[runtime architecture](docs/architecture.md). Ownership and class catalogs are
-documented per domain: [resource](docs/resource/README.md),
-[SOF](docs/sof/README.md), [Trinity](docs/trinity/README.md),
-[WebGPU](docs/trinityal/webgpu/README.md), [audio](docs/audio/README.md),
-[character](docs/character/README.md), [input](docs/input/README.md) and
-[core](docs/core/README.md). The tracked
-[migration manifest](migration/sources.json) records donor revisions, import
-order, and pre-migration test evidence.
+[runtime architecture](docs/architecture.md).
+
+The parts described above are documented in
+[resource](docs/resource/README.md), [SOF](docs/sof/README.md) and
+[audio](docs/audio/README.md), each with its ownership boundary and class
+catalog.
+
+**Work in progress, documented but not ready to build against:** the Trinity/EVE
+object graph, the renderer and its WebGPU backend, and the character and input
+domains. Their pages are under [docs/](docs/README.md) and describe what exists
+rather than what is finished — read them as a port in flight, not as an API.
+
+The tracked [migration manifest](migration/sources.json) records donor revisions,
+import order, and pre-migration test evidence.
 
 ## License
 

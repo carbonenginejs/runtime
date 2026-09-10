@@ -305,6 +305,8 @@
     "catalog:character": "node scripts/character/generate_class_catalog.js",
     "build:webgpu:harness": "rollup -c rollup.webgpu-harness.config.mjs",
     "build:webgpu:demo": "rollup -c rollup.webgpu-demo.config.mjs",
+    "build:audio:demo": "rollup -c rollup.audio-demo.config.mjs",
+    "demo:audio": "npm run build:npm && npm run build:audio:demo && node scripts/audio/serve-audio-demo.js",
     "demo:webgpu": "npm run build:npm && npm run build:webgpu:demo && node scripts/trinityal/webgpu/run-webgpu-demo.js",
     "test:webgpu": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js",
     "test:webgpu:required": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js --required",
