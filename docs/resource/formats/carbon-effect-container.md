@@ -32,17 +32,13 @@ per-pass backend block. Neither carries a private magic or chunk layout.
 
 ### Carbon validates the version, then threads it through parsing
 
-Carbon reads the version dword once, in `Tr2EffectRes`, and rejects anything
-outside 2..15 (`Tr2EffectRes.cpp:209`). Inside that range it never branches to
-accept or refuse again — the version becomes a *parsing input*. It is first used
-by the container reader itself, then **passed as a parameter** into the effect
-description's read call (`Tr2EffectRes.cpp:128`), alongside the buffer, its
-size, and the string table.
-
-From there it is threaded through every record reader in
-`Tr2EffectDescription.cpp` — `ReadConstant`, `ReadResource`,
-`ReadPipelineInputs`, `ReadRegisters`, `ReadInput`, and the pass/technique loop
-— which branch on it at 22 conditional sites using 16 distinct comparisons:
+Carbon validates the version once in `Tr2EffectRes`: 2..15 are accepted
+(`Tr2EffectRes.cpp:209`). Within that range, version is a parsing input,
+passed with buffer, size and string table to the description reader
+(`Tr2EffectRes.cpp:128`). `Tr2EffectDescription.cpp` threads it through
+`ReadConstant`, `ReadResource`, `ReadPipelineInputs`, `ReadRegisters`,
+`ReadInput` and the pass/technique loop: 22 conditional sites use 16 distinct
+comparisons.
 
 | Threshold | What it decides |
 | --- | --- |
@@ -54,67 +50,40 @@ From there it is threaded through every record reader in
 | `> 6`, `> 9`, `> 10`, `> 12`, `>= 8` | Per-record field presence |
 | `> 13`, `>= 14` | Library and pipeline-input placement |
 
-The consequence worth internalising: **the version determines the byte layout at
-nearly every level of the reflection graph**, not just the header. A v8 file and
-a v15 file are not the same records with a different preamble.
-
-Note where the version does *not* reach: `Tr2Shader` itself has no version field
-and no version-dependent branch. Container/header parsing and description
-parsing between them absorb every version difference before the graph reaches
-`Tr2Shader` — the container reader has its own branches (`Tr2EffectRes.cpp`
-handles `< 5` for the legacy header size, `>= 15` for the compiler version and
-source hash, and `> 5` for the permutation type), and the description reader
-handles the rest. What emerges carries no version, so consumers above that
-boundary are version-free. A port that preserves the same separation stays
-consistent with Carbon.
+These thresholds change reflection layout or meaning, not merely the header.
+`Tr2EffectRes.cpp` separately handles header size (`< 5`), compiler version
+and source hash (`>= 15`), and permutation type (`> 5`). Together, container
+and description parsing absorb the differences; `Tr2Shader` has no version
+field or version-dependent branch. Consumers above that boundary stay version-free.
 
 ### What this reader does: reads 8 through 15, writes 15
 
-`readEffectDescription` takes the version as an option and branches on it, the
-way Carbon's own reader always did. The accepted range is
-`CARBON_EFFECT_MIN_DATA_VERSION` = 8 through `CARBON_EFFECT_DATA_VERSION` = 15;
-anything outside it is rejected outright.
+`readEffectDescription` takes a version option and branches on it. Accepted
+versions are `CARBON_EFFECT_MIN_DATA_VERSION` = 8 through
+`CARBON_EFFECT_DATA_VERSION` = 15. The briefly constant-folded v15 reader's
+branches were restored on 2026-08-02.
 
-The reader was briefly constant-folded to 15, and the branches were restored on
-2026-08-02.
+Read and write support are independent. `CjsCarbonEffectWriter`,
+`writeCarbonEffectFile`, the shared container builder and both backend
+packagers accept an output `version`, defaulting to current; source version
+never selects it, even for v8 input. `CARBON_EFFECT_WRITE_VERSIONS` is
+currently `[15]`: unsupported outputs are refused, never v15 bytes mislabeled
+with another number. A future output version needs writer branches and a set entry.
 
-Read and write ranges are independent: reading a version requires branches that
-interpret its bytes; emitting it requires branches that produce them.
-
-**The emitted version is a parameter, not a constant.** `CjsCarbonEffectWriter`,
-`writeCarbonEffectFile`, the shared container builder and both backend packagers
-all take a `version` option, defaulting to the current version.
-`CARBON_EFFECT_WRITE_VERSIONS` declares what the writer can actually produce —
-today `[15]`, because the v15 shape is the only one we have writer branches for.
-A version outside that set is **refused**, never emitted as v15 bytes under
-another number, which would produce a file that lies about itself.
-
-Supporting a future version requires its branches and set entry; callers already
-pass the parameter. The source version never selects the emitted version: even
-a package built from a v8 file uses the requested output version.
-
-Rejecting outside the range is the correct failure mode rather than a limitation
-to route around. Applying v15 rules to a version below 8 can misalign fields —
-the comparisons above change which fields are present and how their bytes are
-interpreted — and must not be attempted.
-
-The reader rejects with the version it read, and does not classify it further.
-A leading dword below 8 is a *recognized legacy version number*, not evidence
-that the bytes are an effect container: arbitrary data can begin with a small
-integer, and the version dword alone carries no magic or checksum to confirm it.
-Anything that reaches this rejection needs identifying by other means before it
-is treated as a porting question rather than a wrong file.
+Inputs outside 8..15 are rejected with the version read; do not apply v15
+rules to older layouts. A dword below 8 is a recognized legacy number, not
+proof of an effect container: arbitrary bytes can begin with that integer,
+and this field has no identifying magic or checksum. Identify rejected inputs
+independently before treating them as a version-porting problem.
 
 ### Why 15 is the version that got implemented
 
-Version 15 is the one with an authoritative writer to check against, and the
-entire audited shipped corpus at build 3444265 is v15 — 3222 files across
-`effect.dx11` and `effect.dx12`, plus the same 537 shaders again under
-`effect.metal`. Nothing older appears in that audited corpus. Carbon's own
-v13/v14 branches additionally mark their field-order boundaries as uncertain.
-
-The v15 body is byte-identical to v14. Version 15 differs from 14 only by the 36
-extra header bytes: the compiler version and the source hash.
+Version 15 has an authoritative writer and covers the entire audited build
+3444265 corpus: 3222 files across `effect.dx11`/`effect.dx12`, plus the
+same 537 shaders under `effect.metal`; no older version appeared. Carbon's
+v13/v14 branches mark field-order boundaries uncertain. The v15 body is
+byte-identical to v14; only 36 header bytes were added (compiler version and
+source hash).
 
 ## Layout
 
@@ -188,83 +157,54 @@ than shifting every body.
 
 ## Two rules for anything added later
 
-Neither is visible from Carbon's own code, and both were found by implementing
-rather than by reading. They constrain every future addition to this format.
+These rules were found through implementation rather than Carbon's code and
+apply to every future format addition.
 
 **Rule 1: every sized record must parse to exactly its declared end.** Trailing
-bytes mean one of two things and both are fatal — the writer knew fields this reader
-does not, or the writer miscounted. Enforced for the description blob
-(`readEffectDescription`), for the per-pass backend block (`readBackendBlock`), and
-for the header, whose end must equal where the body region begins.
+bytes indicate unknown fields or a writer miscount; both are fatal. Enforce
+this for descriptions (`readEffectDescription`), backend blocks
+(`readBackendBlock`) and the header/body boundary. The former chunk container
+spent roughly 600 lines cross-checking projections, catching malformed writer
+trees as well as files. Record containment replaces most of those checks;
+exact-end parsing catches remaining writer/reader disagreement and must cover
+every sized record.
 
-This rule carries weight that used to live elsewhere. The chunk container it replaces
-spent roughly 600 lines asserting that its several projections of one effect still
-agreed with each other, and those checks caught a malformed *tree* — our writer
-emitting something structurally wrong — not only a malformed file. A record layout
-makes most of that question unaskable, because containment replaces reference and
-position replaces key. What remains is this: a writer bug either fails to parse,
-which announces itself, or it parses and leaves the cursor somewhere other than the
-declared end. Applying the rule to some sized records and not others is a gap that
-stays invisible until a writer bug hides in one of the others.
-
-**Rule 2: anything placed in the arena must be arena-independent.** An arena entry
-cannot contain an arena offset. Offsets are assigned by the content sort, the sort
-depends on every entry's bytes, so an entry that referred to the arena would have to
-be interned before its own contents could be computed — a circular dependency with
-no fixed point. This is invisible in Carbon's own code because no Carbon arena blob
-refers to the arena: strings, bytecode and default constant values are all leaves.
-Our per-pass backend block is the first non-leaf candidate, and it is why that block
-carries inline length-prefixed strings instead of references. A test pins the
-property directly — the block's bytes must be identical whichever arena it is
-interned into. Any future arena entry must satisfy the same rule.
+**Rule 2: anything placed in the arena must be arena-independent.** Arena
+offsets depend on sorting every entry's bytes, so embedding an arena offset
+inside an entry makes its content depend circularly on the sort. Carbon's
+strings, bytecode and default-value blobs are leaves; our backend block is a
+non-leaf and therefore uses inline length-prefixed strings. Its invariant test
+requires identical block bytes regardless of which arena receives it.
 
 ### The non-dynamic sampler name is kept, though Carbon's runtime drops it
 
-Carbon's *runtime* nulls a non-dynamic sampler's name while reading, precisely
-because such a sampler is never looked up by name — `FindSamplerByName` only
-matters for the dynamic case. **The file carries the string regardless, and this
-reader keeps it**: `readSampler` and `writeSampler` handle `name` unconditionally,
-whatever `isDynamic` says.
+`FindSamplerByName` only needs dynamic samplers, so Carbon's runtime nulls
+other names. The file still carries them: `readSampler` and `writeSampler`
+preserve `name` regardless of `isDynamic`. **Re-emission preserves the file,
+not the runtime's narrower view.** This section's former claim that the name
+was unrecoverable was wrong. The three closed class-layer losses and their
+byte-equality proof are recorded once under [Verification](#verification).
 
-That is the rule, and it generalises: we re-emit the *file*, not Carbon's
-in-memory view of it. Discarding what the runtime happens not to need is how a
-byte-exact round trip stops being byte-exact. This field was one of **three**
-such losses found together — the others being the authored stage order (21
-files) and the offset word behind a zero-size blob (150 files) — and it was the
-widest, affecting 1,631 files. All three are closed.
+The stage-type byte preserves Carbon's `InputStageType` numbering: vertex,
+pixel, compute, geometry, hull and domain. The container admits all six, with
+`stages` capped at `SHADER_TYPE_COUNT` = 6.
+A backend supporting only three rejects the others in its own layer; it does
+not narrow the backend-invariant Carbon region.
 
-Each was invisible to a record-level comparison, because a record rebuilt from a
-lossy class matches the lossy class it came from. Byte equality is the assertion
-for that reason.
+`0xffffffff` is the null reference, legal at exactly one offset position: a stage's
+default-constant-value offset with size zero, consumed without dereferencing.
+Every other occurrence as an offset fails loading.
 
-This section previously said the opposite, describing the name as unrecoverable.
-It was wrong, and it is the kind of wrong that gets rediscovered as a bug in the
-other direction, so it is corrected here rather than deleted.
+Two deliberate departures preserve byte-identical output:
 
-**Corollary: the container admits all six of Carbon's stage types.** `stages` is
-capped at `SHADER_TYPE_COUNT` = 6, and the stage-type byte uses Carbon's
-`InputStageType` numbering: vertex, pixel, compute, geometry, hull, domain. A
-backend that can only express three of those rejects the rest in its own layer;
-the container does not narrow on its behalf. The Carbon region is
-backend-invariant, and restrictions belong to the backend.
-
-`0xffffffff` is the null reference. It is legal at **exactly one wire
-position**: a stage's default-constant-value offset when the accompanying size
-is zero, which the optional-value reader consumes without dereferencing.
-Everywhere else a `0xffffffff` offset fails the load.
-
-Two deliberate departures from Carbon, both of which make byte-identical output
-more likely rather than less:
-
-- **`m_size` is initialised.** Carbon's constructor leaves it indeterminate and
-  gets away with it only because the one instance is a zero-initialised global.
-- **Adding after an offset has been handed out is an error.** In Carbon,
-  `GetOffset` re-sorts a dirty table, which reassigns *every* offset — including
-  offsets already baked into packed bodies. Carbon avoids the corruption by
-  interning all late strings before the packing pass. `CjsCarbonEffectWriter`
-  reproduces that discipline structurally: it runs the record walk twice, once
-  with `collectArena` to intern and once with `internArena` to emit. Because both
-  passes drive the same `writeEffectDescription`, they cannot drift apart.
+- **Initialize `m_size`.** Carbon leaves it indeterminate, relying on its
+  single instance being a zero-initialized global.
+- **Reject additions after handing out offsets.** Carbon's `GetOffset`
+  re-sorts dirty tables, reassigning even offsets already packed into bodies;
+  Carbon avoids this by interning late strings before packing.
+  `CjsCarbonEffectWriter` enforces two walks through the same
+  `writeEffectDescription`: `collectArena` interns, then `internArena`
+  emits. Sharing that walk prevents collection/emission drift.
 
 ### Description blob, v15 field order
 
@@ -484,99 +424,74 @@ tag; program interpretation remains a backend/path responsibility.
 
 ## Verification
 
-`node --test` in this package. Two gates.
+`node --test` in this package runs synthetic tests and an environment-gated
+real-file proof. These are the recorded gates, not a new qualification run.
 
-**Synthetic tests.** `test/resource/runtime-resource/format/byte-primitives.test.js` and
-`test/resource/runtime-resource/format/carbon-effect.test.js` build a synthetic four-permutation v15
-container exercising every record type — static samplers, UAVs, annotations of
-every value type, render states, a raytracing library with both stage-data blocks
-— and assert a byte-exact write → read → write round trip, the arena sort order,
-the caps, the structural checks and, until the switchover, the legacy envelope's
-disjointness.
+**Synthetic:** `test/resource/runtime-resource/format/byte-primitives.test.js`
+and `test/resource/runtime-resource/format/carbon-effect.test.js` construct a
+four-permutation v15 container covering every record type: static samplers,
+UAVs, all annotation value types, render states and a raytracing library with
+both stage-data blocks. They check byte-exact write/read/write, arena sorting,
+caps, structural checks and, until switchover, legacy-envelope disjointness.
 
-**Env-gated real-file proof.** `test/resource/runtime-resource/format/carbon-effect-corpus.test.js`, enabled
-with `CARBON_EFFECT_CORPUS_DIR`. Game bytes are never committed. Supply a
-separately acquired corpus at pinned build 3444265.
+**Real files:** `test/resource/runtime-resource/format/carbon-effect-corpus.test.js`
+uses `CARBON_EFFECT_CORPUS_DIR`. Supply separately acquired build 3444265
+source effects; no game corpus ships. The directory must be a materialised
+tree of `.sm_hi`/`.sm_lo`/`.sm_depth` files under `effect.dx11`,
+`effect.dx12` or `effect.metal`. Filtering uses extensions, not backend
+directory names. Two wrong inputs fail loudly, by design:
 
-`CARBON_EFFECT_CORPUS_DIR` must point at a **materialised tree of source
-effects** — real `.sm_hi` / `.sm_lo` / `.sm_depth` filenames under
-`effect.dx11`, `effect.dx12`, or `effect.metal`. The walker filters by those
-file extensions, not by backend directory name. Two nearby directories look like corpora and are not:
+- Hash-named content-addressed stores match no extensions:
+  `no compiled effect files found`.
+- Retired flat-chunk translated output keeps `.sm_*` names but contains
+  former `Carbon WebGL`/`Carbon WebGPU` envelopes:
+  `Unsupported Carbon effect version 1196901699`, the ASCII `Carbon WebGL`
+  magic interpreted as a version dword.
 
-- a content-addressed resource store (hash-named files, no extensions) matches
-  nothing and fails as `no compiled effect files found` — the walker is
-  extension-driven, so an unextracted cache silently yields zero files;
-- a directory of **retired flat-chunk translated output** keeps the `.sm_*` names but
-  holds the former `Carbon WebGL`/`Carbon WebGPU` containers, and fails with
-  `Unsupported Carbon effect version 1196901699` — that number is the ASCII
-  `Carbon WebGL` magic read as a version dword.
+Each source is re-emitted three ways:
 
-Both failures are loud, which is the intended behaviour; neither is a defect.
-The test re-emits each file three ways:
+1. Description blobs through the source arena: field order.
+2. Whole container from raw bodies/source arena: header order, base arithmetic
+   and aliases.
+3. Whole container with a reference-rebuilt arena: sorted-offset policy.
 
-1. every description blob through the file's own arena — proves the field order;
-2. the whole container from raw bodies and the source arena — proves the header
-   order, the base arithmetic and the alias path;
-3. the whole container with the arena rebuilt from the references found — proves
-   the sorted-offset policy.
+Only mode 3 may legitimately differ, for retained unreferenced blobs. Report
+and assert that exact cause; never weaken comparison to “same strings, any order.”
 
-Only the third can legitimately differ, because an arena may retain blobs the file
-no longer references. When it does differ the divergence is reported exactly and
-asserted to be unreferenced-blob retention; it is never downgraded to a weaker
-comparison such as "same strings, any order", which would look green and prove
-nothing.
+**Measured corpus:** 4833 files (537 shaders × 3 variants × 3 backends),
+78,498 offset-table rows and 40,645 distinct description bodies. All three modes were
+byte-exact: zero arena-rebuild divergences, sparse tables or misordered tables.
+No shipped arena retained an unreferenced blob. DXBC in two dialects and AIR
+passed the same reader/writer without a language field, measuring the Carbon
+metadata region's backend invariance. Backend selection belongs at the
+resource-path boundary, not in an envelope or stage record.
 
-Measured result over the complete corpus — 4833 files (537 shaders × 3 variants ×
-3 backends), 78,498 offset-table rows, 40,645 distinct description bodies:
-**all three modes byte-exact, with zero arena-rebuild divergences, zero sparse
-tables and zero misordered tables.** Not one shipped file retains an unreferenced
-arena blob, so the sorted-offset policy reproduces CCP's arena exactly.
-Supply a separately acquired corpus and set `CARBON_EFFECT_CORPUS_DIR`; no
-corpus data ships with the package.
+**Class-layer control:** `test/resource/runtime-resource/resource/effect-res-corpus.test.js`
+round-trips bytes → `Tr2EffectRes.DoLoad` → `Tr2Shader.fromCarbonBinary` →
+device-free graph → `toCarbonBinary()` → records → bytes. The record-only
+round trip on the same files is its negative control: disagreement isolates
+class-layer loss. Three losses were found and closed:
 
-**The same proof, one level up.** `test/resource/runtime-resource/resource/effect-res-corpus.test.js`
-closes the loop through the resource classes rather than the records: bytes →
-`Tr2EffectRes.DoLoad` → `Tr2Shader.fromCarbonBinary` → the device-free graph →
-`toCarbonBinary()` → records → bytes. Running the record-level round trip on the
-same files with no classes involved is the negative control; when the two
-disagree, the difference is the class layer's, and that is how the three
-fidelity losses it once had were found and closed — non-dynamic sampler names
-(1,631 files), authored pass-stage order (21 files), and the offset word of a
-zero-size blob (150 files), which is not always the `0xffffffff` sentinel.
-Carbon's *runtime* discards the first two; the file does not, so re-emitting the
-file it came from means keeping them.
+- Non-dynamic sampler names: 1,631 files.
+- Authored pass-stage order: 21 files.
+- Zero-size blob offset words: 150 files; not always `0xffffffff`.
 
-That result is the container port's central evidence. The same reader and the same
-writer reproduce, byte for byte, files whose program payloads are DXBC in two
-dialects and AIR — with no language field anywhere in the format. The metadata
-region is backend-invariant as a measured fact rather than an argument from the
-writer. Backend selection therefore belongs at the resource-path boundary, not
-in an envelope or per-stage record.
+Carbon's runtime discards the first two, not the file. Record-level equality
+alone missed them because a record rebuilt from a lossy class agreed with that
+same class; byte equality exposes the loss.
 
-`effect.gles2` is not part of the v15 corpus validation above: those shaders
-are v8. The shared reader accepts versions 8 through 15; the writer emits only 15.
+`effect.gles2` is v8, outside this v15 corpus validation—not obsolete. It
+was the only tree recorded working end to end in ccpwgl at the original
+comparison checkpoint; that is historical evidence, not current consumer
+support. Reading 8..15 and writing/validating 15 are separate claims. Carbon's
+version branches cover v2..8 legacy GLES2 and v15 current files; the same
+mechanism handles generations without bespoke format readers.
 
-**Do not read that as "obsolete".** At the original comparison checkpoint,
-`effect.gles2` was the only shader tree recorded as working end to end in ccpwgl;
-that historical observation is not a current consumer-support inventory.
-
-The two statements coexist because **v15-only constrains what we write and
-validate against, not what a reader may accept.** Version-branching is the
-format's own mechanism. A reader that wants all supported generations branches
-on the version dword — v2..8 legacy gles2, v15 everything current — which is one
-reader, not a bespoke path per format.
-
-**Our containers are v15, not a version of our own.** A "v16" was considered for
-the variant carrying the per-pass backend block and **rejected**: CCP owns that
-number space, so claiming 16 would collide with any real v16 they ship, in the one
-field whose entire job is telling a reader how to parse. It also failed the rule
-the rest of this format is held to — invent something only because it *has to*
-exist, never because we think it should.
-
-The container needs no new version. Each description blob carries a declared
-size in the offset table, and [Rule 1](#two-rules-for-anything-added-later)
-already requires it to parse to exactly that end. A reader parses a blob without
-blocks and re-parses with them if the cursor misses the declared end, so the
-presence of the block is **self-describing** with no new field, no container
-version and no out-of-band flag. Inside the block, the backend engine ID
-selects its meaning; it does not introduce another versioning axis.
+**Our containers remain v15.** A proposed v16 for backend blocks was rejected:
+CCP owns that number space, and a new field/version was unnecessary. Add format
+machinery only because it has to exist, not merely because it seems desirable.
+[Rule 1](#two-rules-for-anything-added-later) provides detection: parse a sized
+description without blocks, then reparse with blocks if the cursor misses its
+declared end. Block presence is self-describing—no new field, container
+version or out-of-band flag. The block's engine ID selects backend meaning,
+not a second version axis.
