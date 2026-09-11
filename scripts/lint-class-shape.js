@@ -20,7 +20,7 @@
 //    fields without calling `super.Destroy()`, so they stayed in the device
 //    registry forever and every device-lost sweep walked them. Carbon
 //    unregisters in the destructor; JS has none, which is exactly why
-//    `Tr2DeviceResourceAL`'s own head comment names `Destroy()` as the
+//    `Tr2BaseDeviceResourceAL`'s own head comment names `Destroy()` as the
 //    deterministic unregister point. Eight sibling stubs do it correctly, so
 //    the convention was established and simply missed.
 //

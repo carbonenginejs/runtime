@@ -2,7 +2,7 @@
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:547-607
 import { impl } from "#schema";
 import { ALResult, Failed } from "../ALResult.js";
-import { Tr2ALMemoryType } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType } from "../Tr2DeviceResourceAL/index.js";
 
 // A shared ownership record substitutes for shared_ptr's control block.
 // Finalization follows GC, not C++ scope exit. Device-resource teardown can

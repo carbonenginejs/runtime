@@ -20,7 +20,7 @@
 // because a caller asking "how many pixels passed" on a device that draws
 // nothing has a correct answer available, and it is zero.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 
 
@@ -36,7 +36,7 @@ export const OcclusionWaitMode = Object.freeze({
 /**
  * Counts the pixels a bracketed draw passed.
  */
-export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
+export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
 {
   /** m_isValid */
   _isValid = false;
@@ -141,7 +141,7 @@ export class Tr2OcclusionQueryALStub extends Tr2BaseDeviceResourceAL
 /**
  * Times a bracketed span of GPU work.
  */
-export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
+export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
 {
   /** m_isValid */
   _isValid = false;
@@ -234,7 +234,7 @@ export class Tr2GpuTimerALStub extends Tr2BaseDeviceResourceAL
  * every call succeeds, because there is nothing to allocate and no state worth
  * mispairing.
  */
-export class Tr2PipelineStatsQueryALStub extends Tr2BaseDeviceResourceAL
+export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
 {
   /**
    * Creates the query.

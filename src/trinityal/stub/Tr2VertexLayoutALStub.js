@@ -18,14 +18,14 @@
 // stands rather than quietly reordered - a caller that ignores the result gets
 // Carbon's behaviour, not a different one.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 
 
 /**
  * An accepted vertex definition.
  */
-export class Tr2VertexLayoutALStub extends Tr2BaseDeviceResourceAL
+export class Tr2VertexLayoutALStub extends Tr2DeviceResourceAL
 {
   /** m_definition */
   _definition = null;

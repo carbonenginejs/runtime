@@ -1,6 +1,8 @@
 // Source: trinity/trinityal/Tr2DeviceResourceAL.h
 // Source: trinity/trinityal/Tr2DeviceResourceAL.cpp
 //
+import { impl } from "#schema";
+
 // The base every abstraction-layer resource extends, and the registry that
 // makes them enumerable.
 //
@@ -10,18 +12,13 @@
 // resource and asks it to describe itself; `DestroyDeviceResources` releases
 // everything in a memory class, which is what a device-lost path needs.
 //
-// ONE DELIBERATE DIFFERENCE, AND IT IS FORCED. Carbon registers in the
-// constructor and unregisters in the DESTRUCTOR, so a resource leaves the
-// registry when it goes out of scope. JavaScript has no destructor, and a
-// FinalizationRegistry runs at the garbage collector's convenience - which is
-// no use to a "release everything now" path. So `Destroy()` unregisters, and a
-// resource that is never destroyed stays registered. That is the same shape
-// Carbon has before its destructor runs, and it makes Destroy the single
-// deterministic release point rather than a hint.
-//
-// The registry therefore holds STRONG references on purpose. A WeakRef set
-// would let a resource vanish between "enumerate" and "destroy", which is
-// exactly the case this exists to handle.
+// Existing lifetime adaptation: Carbon registers in the constructor and
+// unregisters in the destructor (Tr2DeviceResourceAL.cpp:32-44). JavaScript has
+// no deterministic destructor. This implementation keeps strong registry
+// references and unregisters at explicit Destroy. A resource never destroyed
+// stays registered; destroying and recreating the same object does not register
+// it again. Restoring the forwarding class does not change that lifetime policy.
+
 
 
 function fail(message)
@@ -58,9 +55,8 @@ let resourcesMutated = false;
 /**
  * The base of every AL resource.
  *
- * Subclasses supply `IsValid()`, `GetMemoryClass()` and the work of `Destroy()`;
- * Carbon's CRTP `Tr2DeviceResourceAL<T>` forwards the first two, which in
- * JavaScript is just ordinary dispatch.
+ * The abstract registry interface is implemented by Tr2DeviceResourceAL's
+ * forwarding methods and the concrete backend's Destroy and Describe methods.
  */
 export class Tr2BaseDeviceResourceAL
 {
@@ -79,9 +75,11 @@ export class Tr2BaseDeviceResourceAL
    *
    * @returns {boolean} True when live.
    */
-  IsValid()
+  @impl.adapted
+  @impl.reason("JavaScript has no pure virtual declarations; calling the missing obligation throws.")
+  IsResourceValid()
   {
-    fail(`${this.constructor.name} must implement IsValid`);
+    fail(`${this.constructor.name} must implement IsResourceValid`);
   }
 
   /**
@@ -89,9 +87,11 @@ export class Tr2BaseDeviceResourceAL
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  GetMemoryClass()
+  @impl.adapted
+  @impl.reason("JavaScript has no pure virtual declarations; calling the missing obligation throws.")
+  GetResourceMemoryClass()
   {
-    return Tr2ALMemoryType.AL_MEMORY_MANAGED;
+    fail(`${this.constructor.name} must implement GetResourceMemoryClass`);
   }
 
   /**
@@ -104,6 +104,8 @@ export class Tr2BaseDeviceResourceAL
    *
    * @param {object} _description Accumulator, keyed by name.
    */
+  @impl.adapted
+  @impl.reason("The empty concrete stub descriptions share this inherited implementation instead of repeating it on each backend class.")
   Describe(_description)
   {
   }
@@ -114,6 +116,8 @@ export class Tr2BaseDeviceResourceAL
    * Unregistering here rather than in a finaliser is what makes the release
    * path deterministic; see the head comment.
    */
+  @impl.adapted
+  @impl.reason("JavaScript has no deterministic destructor; the existing registry unregisters at explicit Destroy. Recreating that object does not re-register it.")
   Destroy()
   {
     if (!this._registered) return;
@@ -166,12 +170,12 @@ export function DescribeDeviceResources(operation)
 
   for (const resource of [ ...ALL_RESOURCES ])
   {
-    if (!resource.IsValid()) continue;
+    if (!resource.IsResourceValid()) continue;
 
     const description = {};
 
     resource.Describe(description);
-    operation(resource.GetMemoryClass(), description);
+    operation(resource.GetResourceMemoryClass(), description);
   }
 }
 
@@ -193,7 +197,7 @@ export function DestroyDeviceResources(memoryTypes)
 
     for (const resource of [ ...ALL_RESOURCES ])
     {
-      if (resource.IsValid() && (resource.GetMemoryClass() & memoryTypes) !== 0)
+      if (resource.IsResourceValid() && (resource.GetResourceMemoryClass() & memoryTypes) !== 0)
       {
         resource.Destroy();
       }

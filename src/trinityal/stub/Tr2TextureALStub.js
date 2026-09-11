@@ -27,14 +27,14 @@
 // - Carbon's impl-level `Destroy` only resets the fields, because the registry
 //   entry goes when the C++ destructor runs. Ours must also unregister, so the
 //   reset lives in a private helper that `Create` calls and `Destroy` calls the
-//   base as well. See the head comment on `Tr2DeviceResourceAL.js`.
+//   base as well. See the head comment on `Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js`.
 //
 // TWO FAITHFUL EMPTINESSES, worth knowing before relying on them: Carbon's stub
 // implements `Describe` as a no-op and returns null from `GetName`, so a stub
 // texture contributes nothing to a device inventory. That is transcribed, not
 // overlooked - a backend that reports real names is a real backend.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2BitmapDimensions } from "../Tr2BitmapDimensions.js";
 import { Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures/index.js";
@@ -56,7 +56,7 @@ const NO_HEAP_INDEX = 0xffffffff;
 /**
  * A texture that validates like a real one and holds its pixels on the CPU.
  */
-export class Tr2TextureALStub extends Tr2BaseDeviceResourceAL
+export class Tr2TextureALStub extends Tr2DeviceResourceAL
 {
   /** m_desc */
   _desc = new Tr2BitmapDimensions();

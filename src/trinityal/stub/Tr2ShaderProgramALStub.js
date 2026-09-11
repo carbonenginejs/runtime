@@ -10,7 +10,7 @@
 // and draw with whichever the backend happened to keep.
 //
 // Carbon quirk: Create leaves the stub map empty (stub cpp:23-49; CE-26).
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2RegisterMapAL } from "../Tr2ResourceSetAL/Tr2RegisterMapAL.js";
 
@@ -18,7 +18,7 @@ import { Tr2RegisterMapAL } from "../Tr2ResourceSetAL/Tr2RegisterMapAL.js";
 /**
  * A linked program over one shader per stage.
  */
-export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
+export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 {
   /** m_isValid */
   _isValid = false;

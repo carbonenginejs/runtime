@@ -123,13 +123,7 @@ const CPP_NON_METHODS = new Set([ "if", "for", "while", "switch", "return", "siz
     "uint8_t", "uint16_t", "uint32_t", "uint64_t", "int8_t", "int16_t", "int32_t", "int64_t",
     // Carbon's PIMPL accessor. Every AL facade declares it to reach its impl
     // object; JavaScript has no such split, so there is nothing to port.
-    "TrinityALImpl_GetObject",
-    // Carbon's CRTP bridge: `Tr2DeviceResourceAL` declares these pure virtual
-    // and the template implements them by forwarding to the derived class's
-    // `IsValid`/`GetMemoryClass`. JavaScript dispatches to the derived class
-    // directly, so the bridge has no counterpart - the methods it forwards TO
-    // are the ones this check should be looking for, and it does.
-    "IsResourceValid", "GetResourceMemoryClass" ]);
+    "TrinityALImpl_GetObject" ]);
 
 /** JS names that are never a ported Carbon method. */
 const JS_NON_METHODS = new Set([ "constructor", "if", "for", "while", "switch", "catch", "return",

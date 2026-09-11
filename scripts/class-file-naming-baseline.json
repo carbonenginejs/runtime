@@ -109,9 +109,6 @@
     "src/trinityal/stub/Tr2VideoAdapterInfoALStub.js": [
       "Tr2VideoAdapterInfoStub"
     ],
-    "src/trinityal/Tr2DeviceResourceAL.js": [
-      "Tr2BaseDeviceResourceAL"
-    ],
     "src/trinityal/webgpu/core/batchGroups.js": [
       "CjsWebgpuEncodeState"
     ],

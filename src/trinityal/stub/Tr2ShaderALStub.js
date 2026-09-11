@@ -27,7 +27,7 @@
 //   empty one; its real backends keep it. Dropping caller data is a shortcut
 //   that is harmless only while nothing reads it, and the register map will.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { ShaderType } from "#consts/render-context";
 
@@ -35,7 +35,7 @@ import { ShaderType } from "#consts/render-context";
 /**
  * A compiled shader for one pipeline stage.
  */
-export class Tr2ShaderALStub extends Tr2BaseDeviceResourceAL
+export class Tr2ShaderALStub extends Tr2DeviceResourceAL
 {
   /** m_type - a Carbon `ShaderType`. */
   _type = ShaderType.INVALID_SHADER;

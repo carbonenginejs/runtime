@@ -16,12 +16,12 @@
 // one, and the two are not interchangeable: a frame number says "everything up
 // to here is done", a fence says "this particular point is done".
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 
 
 /** A fence the backend has accepted. */
-export class Tr2FenceALStub extends Tr2BaseDeviceResourceAL
+export class Tr2FenceALStub extends Tr2DeviceResourceAL
 {
   /** m_isValid */
   _isValid = false;

@@ -12,7 +12,7 @@
 // on a real backend - the CPU-side mirror the driver uploads from. Here there
 // is nothing to upload to, so the mirror is the whole resource.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 
 
@@ -32,7 +32,7 @@ export const Tr2ConstantUsageAL = Object.freeze({
 /**
  * A constant buffer holding its shadow copy on the CPU.
  */
-export class Tr2ConstantBufferALStub extends Tr2BaseDeviceResourceAL
+export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
 {
   /** m_shadowCopy */
   _shadowCopy = new Uint8Array(0);

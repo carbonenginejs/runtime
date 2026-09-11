@@ -5,11 +5,12 @@ import {
   DescribeDeviceResources,
   DestroyDeviceResources,
   Tr2ALMemoryType,
-  Tr2BaseDeviceResourceAL
-} from "../../src/trinityal/Tr2DeviceResourceAL.js";
+  Tr2BaseDeviceResourceAL,
+  Tr2DeviceResourceAL
+} from "../../npm/dist/trinityal/index.js";
 
 /** A minimal resource: valid until destroyed, in the class it was given. */
-class TestResource extends Tr2BaseDeviceResourceAL
+class TestResource extends Tr2DeviceResourceAL
 {
   #valid = true;
 
@@ -163,34 +164,30 @@ test("enumeration tolerates an operation that destroys what it sees", () =>
   assert.ok(resources.every(resource => !resource.IsValid()));
 });
 
-test("a subclass that forgets IsValid says so", () =>
+test("the abstract registry obligations require an implementation", () =>
 {
   clean();
-
-  class Incomplete extends Tr2BaseDeviceResourceAL {}
-
-  const resource = new Incomplete();
-
-  assert.throws(() => resource.IsValid(), /must implement IsValid/);
-
+  const resource = new Tr2BaseDeviceResourceAL();
+  assert.throws(() => resource.IsResourceValid(), /must implement IsResourceValid/);
+  assert.throws(() => resource.GetResourceMemoryClass(), /must implement GetResourceMemoryClass/);
   resource.Destroy();
 });
 
-test("the default memory class is managed, as every Carbon stub reports", () =>
+test("the registry calls its base interface, independently of concrete resource names", () =>
 {
   clean();
-
-  class Defaulted extends Tr2BaseDeviceResourceAL
+  class DirectResource extends Tr2BaseDeviceResourceAL
   {
-    IsValid()
-    {
-      return true;
-    }
+    IsResourceValid() { return true; }
+    GetResourceMemoryClass() { return Tr2ALMemoryType.AL_MEMORY_VIDEO; }
+    Describe(description) { description.name = "direct"; }
   }
-
-  const resource = new Defaulted();
-
-  assert.equal(resource.GetMemoryClass(), Tr2ALMemoryType.AL_MEMORY_MANAGED);
-
-  resource.Destroy();
+  const resource = new DirectResource();
+  const seen = [];
+  DescribeDeviceResources((memoryClass, description) => seen.push([memoryClass, description.name]));
+  assert.deepEqual(seen, [[Tr2ALMemoryType.AL_MEMORY_VIDEO, "direct"]]);
+  DestroyDeviceResources(Tr2ALMemoryType.AL_MEMORY_MANAGED);
+  assert.equal(resource.IsRegistered(), true);
+  DestroyDeviceResources(Tr2ALMemoryType.AL_MEMORY_VIDEO);
+  assert.equal(resource.IsRegistered(), false);
 });

@@ -13,7 +13,7 @@
 // from the present parameters. Transcribed as it stands, because inventing a
 // size would make a headless test agree with a number nothing chose.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2BitmapDimensions } from "../Tr2BitmapDimensions.js";
 import { Tr2TextureALStub } from "./Tr2TextureALStub.js";
@@ -27,7 +27,7 @@ const STUB_BACK_BUFFER_SIZE = 4;
 /**
  * A swap chain whose presents complete immediately.
  */
-export class Tr2SwapChainALStub extends Tr2BaseDeviceResourceAL
+export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
 {
   /** m_backBuffer */
   _backBuffer = new Tr2TextureALStub();

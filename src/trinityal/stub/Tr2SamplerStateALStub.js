@@ -19,7 +19,7 @@
 // for authored overrides and `Tr2RenderContext.TextureAddressMode` for the
 // address vocabulary - so the AL takes the description as given.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 
 
@@ -30,7 +30,7 @@ const NO_HEAP_INDEX = 0xffffffff;
 /**
  * A sampler state the backend has accepted.
  */
-export class Tr2SamplerStateALStub extends Tr2BaseDeviceResourceAL
+export class Tr2SamplerStateALStub extends Tr2DeviceResourceAL
 {
   /** m_isValid */
   _isValid = false;

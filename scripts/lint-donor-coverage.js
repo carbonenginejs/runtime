@@ -20,8 +20,13 @@ else
             total++;
             // This is a verified backend identity, not a global suffix heuristic:
             // stub/Tr2ResourceSetALStub.h declares TrinityALImpl::Tr2ResourceSetAL.
+            // The two registry classes in Tr2DeviceResourceAL.h also retain their
+            // exact class names in JS, without the native namespace.
             const identity = type.qualifiedName === "TrinityALImpl::Tr2ResourceSetAL"
-                ? "Tr2ResourceSetALStub" : type.qualifiedName;
+                ? "Tr2ResourceSetALStub"
+                : header === "trinity/trinityal/Tr2DeviceResourceAL.h"
+                    && ["TrinityALImpl::Tr2BaseDeviceResourceAL", "TrinityALImpl::Tr2DeviceResourceAL"].includes(type.qualifiedName)
+                    ? type.name : type.qualifiedName;
             if (!classes.has(identity)) problems.set(`${header}#${type.qualifiedName}`, `No exact live class declaration for ${type.kind} ${type.qualifiedName} (${header}:${type.line}); review missing port or explicit JS equivalent.`);
         }
     }

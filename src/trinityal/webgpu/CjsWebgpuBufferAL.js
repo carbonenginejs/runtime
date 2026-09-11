@@ -323,7 +323,7 @@ export class CjsWebgpuBufferAL
    *
    * Carbon's backends report size and memory class into the struct the resource
    * sweep walks; the base class's own version is empty
-   * (`Tr2DeviceResourceAL.js`), and so is the stub's.
+   * (`Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js`), and so is the stub's.
    *
    * @param {object} description The description to fill.
    * @returns {object} The description, filled.

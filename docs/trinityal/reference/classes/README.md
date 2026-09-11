@@ -8,10 +8,10 @@ Summary: Catalogs the device-facing descriptions and the GPU-free stub backend t
 <!-- class:Tr2BaseDeviceResourceAL -->
 ## `Tr2BaseDeviceResourceAL`
 
-Base of every abstraction-layer resource, with the registry that makes live resources enumerable and releasable by memory class.
+The base of every AL resource.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2DeviceResourceAL.js`
+- Source: `src/trinityal/Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -322,5 +322,15 @@ GPU-free render context keeping real render-target and depth-stencil state, and 
 
 - Export: `@carbonenginejs/runtime/trinityal/stub`
 - Source: `src/trinityal/stub/Tr2RenderContextALStub.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2DeviceResourceAL -->
+## `Tr2DeviceResourceAL`
+
+Forwards the resource registry interface to concrete backend resource methods.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2DeviceResourceAL/Tr2DeviceResourceAL.js`
 - Visibility: Public
 - Kind: Carbon

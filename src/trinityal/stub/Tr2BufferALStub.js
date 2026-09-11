@@ -21,7 +21,7 @@
 //   The stub is not a memory model: the map path is what carries data. A caller
 //   that needs the write to land must map for writing.
 
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import {
   GetBytesPerPixel,
@@ -118,7 +118,7 @@ export class Tr2BufferDescriptionAL
 /**
  * A buffer that holds its bytes on the CPU.
  */
-export class Tr2BufferALStub extends Tr2BaseDeviceResourceAL
+export class Tr2BufferALStub extends Tr2DeviceResourceAL
 {
   /** m_desc */
   _desc = new Tr2BufferDescriptionAL();

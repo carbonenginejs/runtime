@@ -995,10 +995,6 @@
     "GetDebugOptions",
     "RenderDebugInfo"
   ],
-  "Tr2BaseDeviceResourceAL": [
-    "GetResourceMemoryClass",
-    "IsResourceValid"
-  ],
   "Tr2BoneMatrixCurve": [
     "AddKey_",
     "Interpolate"

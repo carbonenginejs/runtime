@@ -1,7 +1,7 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.cpp
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.h
-import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
+import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { impl } from "#schema";
 import { ALResult } from "../ALResult.js";
 
@@ -13,7 +13,7 @@ import { ALResult } from "../ALResult.js";
  * The description is kept, which is the departure every stub in this family
  * makes: a headless caller can read back what it asked to bind.
  */
-export class Tr2ResourceSetALStub extends Tr2BaseDeviceResourceAL
+export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
 {
   /** m_isValid */
   _isValid = false;
