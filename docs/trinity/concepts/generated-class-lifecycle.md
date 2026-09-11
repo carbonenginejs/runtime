@@ -83,15 +83,10 @@ The current `tools-core` emitter operates per class; promotion removes installed
 files without rewriting that historical receipt. Ownership and release checks
 therefore use the current source tree, barrels, parity audit, and gap audit.
 
-`EveDamageOverlay`, `EveModularObjectModifier`, and `EveChildCloud` have left
-generated intake. Their maintained implementations live under `src/trinity/eve`,
-their generated copies are deleted, and exact package-export tombstones block
-the former generated deep paths. The damage overlay now owns the shared CPU
-data rows, the modular modifier consumes an injected SOF builder without a
-Trinity-to-SOF dependency and reacquires graph records after values hydration,
-and the legacy cloud inherits the maintained `EveSpaceObjectChild` ownership
-contract while implementing its portable transform, bounds, and visibility
-behavior.
+The [2026-08-25 closure](../reference/implementation-status.md#2026-08-25-carbon-closure)
+records the maintained damage-overlay, modular-modifier and legacy-cloud
+behavior in `src/trinity/eve`. Their generated copies are deleted; exact package-export tombstones
+block the former generated deep paths.
 
 Generation runs into a tooling-owned scratch corpus or another staging
 directory. Reviewed output is then copied only into generator-owned paths.

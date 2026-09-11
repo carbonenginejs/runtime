@@ -90,16 +90,12 @@ explicit overrides provide them.
 
 ## Per-frame ownership
 
-These extraction helpers do not build per-frame state. `EveSpaceScene` owns
-the persistent per-frame records. `PopulatePerFramePSData` and
-`PopulatePerFrameVSData` consume the scene's stored history and jitter fields
-and fill lighting, fog, shadow-quality, volumetric, and upscaling values. The
-JavaScript scene does not yet advance history or compute jitter; the host must
-provision those fields or they retain identity/zero defaults.
-
-See [Per-frame and per-object data](../architecture.md#per-frame-and-per-object-data)
-for driver-supplied inputs and pixel-before-vertex fill order. The engine
-serializes or uploads both records.
+These helpers do not build per-frame state. `EveSpaceScene` owns the persistent
+records filled by `PopulatePerFramePSData` and `PopulatePerFrameVSData`;
+engines serialize or upload them. See
+[Per-frame and per-object data](../architecture.md#per-frame-and-per-object-data)
+for host-provisioned history/jitter and identity/zero defaults, driver inputs,
+filled scene values, and required pixel-before-vertex order.
 
 ## Related documentation
 

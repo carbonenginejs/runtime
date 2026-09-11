@@ -187,20 +187,14 @@ parity gate rather than incidental test behavior.
 
 ## Current runtime limits
 
+The architecture owns [mesh draw arguments](../architecture.md#render-batch-contract),
+[frame/tick ordering](../architecture.md#frame-contract), and
+[vertex-declaration matching](../architecture.md#vertex-declaration-matching).
+`CjsFrameDriver` requires exact lifecycle, render-context, and render-job identities.
+Catalog completeness and promotion gates are below.
+
 - Device creation, GPU resources, draw submission, presentation, and
   device-loss recovery require an engine package.
-- Mesh batches leave collection with complete draw arguments. The two
-  suballocation bases are read from the geometry resource's allocations and are
-  zero until an engine writes them, which is the correct answer for a backend
-  that gives each mesh its own buffers rather than pooling.
-- The frame body is ordered by core's `CjsFrameDriver`, which requires exact
-  lifecycle, render-context, and render-job identities. Presentation is not
-  part of the frame: the previous frame is presented at the top of the next
-  tick, and the tick is engine-owned.
-- Vertex-declaration matching is resolved once, by semantic and index, into a
-  binding plan engines consume. A shader input the mesh cannot supply is
-  reported rather than resolved, because the two references legitimately differ
-  on the substitute.
 - Per-object constant records join the layout's declared stages to a
   technique's shader-type mask. Carbon's `Standard` and `Skinned` per-object
   classes disagree on gating the pixel payload; this package takes the gated
@@ -225,55 +219,34 @@ parity gate rather than incidental test behavior.
   keep their defaults until an engine supplies them, and `Tr2PerObjectVSData`,
   whose only Carbon filler is an interior placeable that is not a
   Trinity-layer class.
-- Generated classes may expose explicit obligations, but manual behavior
-  belongs in maintained source from the first substantive edit. The five
-  legacy Sprite2D files that carried implementations, their portable
-  `Tr2Sprite2dContainerBase`, the corrected `EveSmartLightSpotLight`, and
-  implemented `Obb` were promoted on 2026-08-22. The rewritten portable
-  `Tr2ProjectBoundingBoxBracket` projection and its active-context curve path
-  were promoted in the same tranche. `Tr2Sprite2dRenderJob` now owns its
-  portable render-job traversal and picking behavior, while the common
-  Sprite2D base starts with Carbon's picking state enabled and throws for
-  unimplemented concrete traversal contracts. `Tr2Transform` now owns the
-  common curve, SRT, mesh, sorting, motion-history, distance-scale, and all ten
-  camera-modifier paths inherited by `EveTransform`; the active render context
-  supplies Carbon's view position, matrices, and cached field of view. The
-  particle system now accepts that inherited view-update call and derives its
-  portable bounds/visibility scheduling without owning a GPU buffer.
-  `Tr2ShadowMap` now owns its exact static and dynamic splits, light-space
-  bounds, shimmer-stable orthographic frusta, and fixed per-split shader data.
-  Its matrices remain logical until the scene's terminal RawData write. A
-  nominal `CjsShadowMapExecutor` throws until an engine realizes atlas targets,
-  passes, result drawing, and optional denoising.
-  `Tr2VolumetricsRenderer` now owns per-attribute fog blending, quality and
-  planet state, and the terminal froxel per-frame RawData writes. The scene
-  owns one renderer by default and calls its per-frame fill directly; the
-  maintained scene driver now calls `UpdateFogSettings` after lighting overrides. Physical
-  fog/volumetric resources and passes delegate through a nominal throwing
-  `CjsVolumetricsExecutor`. The remaining generated methods are explicit
-  throwing obligations; the generated tree no longer owns manual behavior.
-  `Tr2SSAO` and `Tr2PostProcessRenderer` are also maintained now: their
-  quality/settings methods are portable and implemented, while physical
-  `Filter` and `Execute` remain exact-signature throwing engine obligations.
-  `ITr2FroxelFogSettings` is now the maintained nominal provider contract
-  consumed by the registry. `EveCurveLineSet` is also maintained and owns Eve
-  transform, visibility, and per-object policy; its `Tr2CurveLineSet` base now
-  rebuilds Carbon's CPU bounds, while physical line-stream batches remain one
-  visible engine obligation. `EveConnector` now owns the portable connector
-  geometry and animation policy and emits directly into that maintained line
-  set. `EveLineContainer` owns the ordered clear/update/append/submit cycle and
-  delegates visibility and bounds directly. `EveProjectBracket` now consumes
-  the active frame context to project, dock, offset, round, and publish a
-  tracked world position with Carbon's visibility-callback latch.
-  `EveTacticalOverlay` now owns Carbon's effect-local variables, LOD and
-  prior-frame segment budget, culling, and exact flat quad-instance records.
-  `EveChildInstanceMeshRenderer` now owns distribution updates, visibility,
-  bounds, Carbon-exact billboard transforms, and canonical CPU instance rows;
-  `EveSmartLightMesh` adds the smart-light group, colour-modifier, and material
-  parameter policy over that nominal base. Their instance declaration uses the
-  shader-compatible `TEXCOORD8` through `TEXCOORD14` range, while engines remain
-  responsible for physical buffer realization.
-  Their generated classes and the standalone connector enum have been retired.
+- The five legacy Sprite2D implementations, `Tr2Sprite2dContainerBase`,
+  corrected `EveSmartLightSpotLight`, `Obb`, and the rewritten
+  `Tr2ProjectBoundingBoxBracket` projection/active-context curve path were
+  promoted on 2026-08-22. `Tr2Sprite2dRenderJob` owns portable render-job traversal and
+  picking; the common Sprite2D base enables Carbon's picking state and throws
+  for unimplemented concrete traversal contracts.
+  `Tr2Transform` owns curve, SRT, mesh, sorting, motion-history, distance-scale,
+  and all ten camera-modifier paths inherited by `EveTransform`; the active
+  context supplies view position, matrices, and cached field of view. The
+  particle system accepts the inherited view-update call and derives portable
+  bounds/visibility scheduling without a GPU buffer.
+  `Tr2ShadowMap` owns exact static and dynamic splits; the
+  [shadow](../architecture.md#cascaded-shadow-contract),
+  [fog](../architecture.md#froxel-fog-contract),
+  [post-process](../architecture.md#post-process-renderer-boundary), and
+  [curve-line](../architecture.md#curve-line-boundary) contracts own the
+  maintained CPU behavior and explicit throwing engine obligations.
+  The scene owns one `Tr2VolumetricsRenderer` by default.
+  `EveProjectBracket` retains the visibility-callback latch, and
+  `EveTacticalOverlay` retains LOD and the prior-frame segment budget.
+  `EveChildInstanceMeshRenderer` owns distribution updates, visibility, bounds, and Carbon-exact
+  billboard transforms; `EveSmartLightMesh` adds smart-light group,
+  colour-modifier, and material-parameter policy. Their canonical CPU rows and
+  shader-compatible declaration belong to the
+  [instance-stream contract](../architecture.md#instance-stream-contract).
+  These generated classes and the standalone connector enum are retired;
+  remaining generated methods are explicit throwing obligations, not manual
+  behavior. [Promotion starts with the first substantive edit](../concepts/generated-class-lifecycle.md#current-lifecycle).
 - The child reference and socket resource seam is synchronous and injected.
 - Socket parameter auto-creation currently covers the emitted string
   parameter type; additional types require corresponding schema emission.
