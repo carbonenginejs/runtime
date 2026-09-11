@@ -24,25 +24,24 @@ family that cannot be read without its companion.
 
 ## Boundary
 
-`CjsStaticFormat` identifies. It decodes nothing.
+`CjsStaticFormat` identifies the family, payload offset and missing inputs by
+signature, never by filename. It decodes and executes nothing.
 
-- **SQLite** containers hold `cache(key, value, time)` and
-  `indexes(key, value)`, with a JSON document per record.
-- **Embedded-schema** containers put a schema, not a record, behind that prefix.
-  The prefix is the schema's LENGTH: read `[4, 4 + length)` with
-  `CjsPickleFormat` and hand the rest to `CjsSchemaBoundFormat`.
-- **Sibling-schema** containers report `unknown` with `requires: "schema"`, and
-  are decoded by `CjsSchemaBoundFormat` once the caller has that companion.
-
-Detection is signature-based. It never trusts a file name and never executes
-anything.
+- **SQLite** holds `cache(key, value, time)` and `indexes(key, value)`,
+  with a JSON document per record.
+- **Embedded schema** has a four-byte schema length, then a pickled schema
+  and binary payload; split them as shown below.
+- **Sibling schema** reports `unknown` with `requires: "schema"`;
+  `CjsSchemaBoundFormat` decodes it with the supplied companion.
 
 ## This format identifies; it does not decode
 
-It reports the family, where the payload starts, and what is still missing. The
-caller takes that to the format that owns the family:
+Route the inspected family to its decoder:
 
 ```js
+import { CjsStaticFormat, CJS_STATIC_FAMILIES } from
+    "@carbonenginejs/runtime/resource/formats/static";
+
 const metadata = CjsStaticFormat.inspect(bytes);
 
 if (metadata.family === CJS_STATIC_FAMILIES.SQLITE)
@@ -63,47 +62,26 @@ if (metadata.family === CJS_STATIC_FAMILIES.PICKLE)
 }
 ```
 
-**This changed on 2026-08-15.** A `read()` here dispatched to those two formats
-itself, and the SQLite family additionally required a driver injected through
-`options.sqlite`. Both are gone. An identification format should not be the
-routing table for two others, and deciding what to decode belongs to whoever
-asked. Nothing outside this format's own tests ever called `read()`.
-
+**Changed 2026-08-15:** the former dispatching `read()` and its injected
+`options.sqlite` driver were removed; only this format's own tests called it.
+Callers choose decoders, or use the separate routing helpers below.
 
 ## Both of the remaining families are the same container
 
-The schema is encoded differently; the payload behind it is identical.
-
-**The pickle behind that prefix is a SCHEMA, not a record.** Protocol 0's `c`
-(`GLOBAL`) and `R` form an import-and-call execution path. These files require
-only `collections.OrderedDict` to preserve schema field order; the reader
-rebuilds it as a plain object and refuses every other global. See
-[the pickle format](pickle.md).
-
-**The sibling-schema family states its layout in YAML:** sizes, types, optional
-flags, list item sizes, vector precision and a key-to-offset footer.
-**Nothing needs deriving** or pinning from an externally defined layout;
-[`CjsSchemaBoundFormat`](schemabound.md) reads the supplied schema. All six
-datasets decode the map skeleton of regions, constellations and systems.
-Celestial detail (moons, planets, belts, stars, gates) belongs to the
-embedded-schema family.
+Both share the binary payload layout; only schema encoding differs.
+Embedded schemas use the pickle reader's
+[closed OrderedDict exception](pickle.md#one-global-is-rebuilt-and-it-is-a-closed-set),
+not executable Python reconstruction. Sibling YAML declares sizes, types,
+optional flags, list item sizes, vector precision and a key-to-offset footer;
+[schema-bound decoding](schemabound.md) needs no externally derived layout.
+The six sibling-schema datasets decode the regions/constellations/systems map
+skeleton; embedded-schema datasets hold celestial detail (moons, planets,
+belts, stars and gates).
 
 ## Use
 
-Identification uses the shared synchronous inspection seam; see
-[format capabilities](../concepts/format-capabilities.md).
-
-```js
-import { CjsStaticFormat, CJS_STATIC_FAMILIES } from
-    "@carbonenginejs/runtime/resource/formats/static";
-
-const metadata = CjsStaticFormat.inspect(bytes);
-
-if (metadata.family === CJS_STATIC_FAMILIES.PICKLE)
-{
-    // See the routing example above: the prefix is a schema length.
-}
-```
+See [format capabilities](../concepts/format-capabilities.md) for the shared
+synchronous inspection seam.
 
 `is()` is the boolean routing predicate and `inspect()` returns the identified
 family. `getSupport()` reports `recognized: true` for SQLite and prefixed
@@ -121,9 +99,7 @@ and binary payload together. Use the explicit split above or
 
 ## Reading a container, rather than identifying one
 
-Identifying a family and then routing it to the format that owns it is the same
-twenty lines in every caller, so they are written once here and exported from the
-same subpath:
+Separate routing helpers share the identification subpath:
 
 ```js
 import {
@@ -135,14 +111,11 @@ import {
 const skins = await ReadStaticContainer(bytes, "res:/staticdata/skins.static");
 ```
 
-The `path` argument only ever names the file in an error.
-
-The routing helpers import the wrapped pickle, schema-bound and SQLite formats;
-they reach nothing outside `formats/`.
-
-`CjsStaticFormat` imports the shared `CjsFormat` base, but no concrete decoding
-formats, and decodes nothing. Routing remains in a sibling module, separate from
-the identification role established on 2026-08-15.
+The `path` argument only names the file in errors. Helpers in a sibling
+module import the wrapped pickle, schema-bound and SQLite formats, reaching
+nothing outside `formats/`. `CjsStaticFormat` imports the shared
+`CjsFormat` base, not concrete decoders: the 2026-08-15 identification
+boundary remains intact.
 
 ### Errors
 

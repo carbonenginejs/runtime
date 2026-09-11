@@ -29,13 +29,10 @@ const records = CjsSchemaBoundFormat.read(payloadBytes, { schema: schemaBytes })
 parses YAML and rejoins anchors and aliases used for shared declarations;
 unresolved anchors would be misread as fields.
 
-**The schema does not always ship as a separate file.** Some containers embed it:
-a `uint32` schema length, then the schema as a protocol-0 pickle, then the
-payload. Read the pickle with [`CjsPickleFormat`](pickle.md) and hand the result
-in as `schema`, with the payload being everything past `4 + length`. It is the
-same format either way — only the schema's own encoding differs, and the type
-vocabulary is a little richer because those schemas name what a number means
-rather than only how wide it is.
+Embedded schemas use the same payload format but a richer type vocabulary
+that names semantic meaning, not just width. The
+[static-container routing example](static.md#this-format-identifies-it-does-not-decode)
+shows how to split the length-prefixed pickle and supply it as `schema`.
 
 - `read` / `readJSON` — plain JSON-compatible values; a wide integer becomes a
   decimal string.
@@ -56,36 +53,19 @@ list decodes to an array.
 
 ## The format
 
-Four properties are worth knowing before writing anything that consumes the
-result. Each of them is a way to get a plausible wrong answer.
-
-**A keyed container's index is at the end, and nothing points at it.** The last
-four bytes of the block are the index's own size; the index starts that far back,
-and begins with its entry count. Reading forward from the header will not find
-it.
-
-**Record offsets are relative to the four-byte length header, not to the file.**
-Decoding from the file start reads one field early, and produces zeroes that look
-like a wrong layout rather than a wrong base.
-
-**The per-record offset table varies in length.** After the fixed attributes come
-a presence bitfield and then one offset per attribute *actually present* — an
-optional attribute whose bit is clear takes no slot. Consecutive records
-therefore hold their variable data at different distances from their own start,
-so a reader written around a constant stride decodes the first record correctly
-and then drifts.
-
-**A list has two framings and the schema says which.** `fixedItemSize` means the
-items are packed at that stride. Its absence means they are variable, so the
-count is followed by one offset per item, measured from the start of the list.
-
-Two smaller rules:
-
-- The presence bitfield is written whenever a record has a variable section at
-  all, including where nothing in it is optional and the field is always zero.
-  It is the offset table that shrinks, never the bitfield.
-- An absent optional takes the default its schema declares. Where no default is
-  declared the attribute is left off the record entirely.
+- **Keyed index:** the block's last four bytes hold the index size; count
+  backward by that size to find its entry count. No header pointer identifies it.
+- **Record offsets:** relative to the four-byte length header, not the file.
+  Using the file start reads one field early and can produce misleading zeroes.
+- **Variable record section:** after fixed attributes come a presence bitfield
+  and one offset per attribute actually present. An absent optional takes no
+  offset slot, so variable data starts at different distances in consecutive
+  records; a fixed-stride reader drifts after the first record.
+- **List framing:** `fixedItemSize` selects packed, fixed-stride items.
+  Otherwise the count is followed by one offset per item, relative to list start.
+- A variable section always has a presence bitfield, even with no optional
+  attributes and an all-zero field. Only the offset table shrinks.
+- An absent optional uses its declared default; without one, omit the attribute.
 
 ## Types
 
