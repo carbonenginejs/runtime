@@ -1,5 +1,5 @@
-// Source: trinity/trinity/Tr2SkinnedObjectLOD.h
-// Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
+// Source: trinity/trinity/Tr2SkinnedObjectLod.h
+// Source: trinity/trinity/Tr2SkinnedObjectLod.cpp
 import { carbon, impl } from "#schema";
 
 const LOW_DETAIL_THRESHOLD = 150;
@@ -15,7 +15,7 @@ const RESOURCE_UNLOAD_TIME = 10;
  * This is a real Trinity class, but not a Blue-declared/persisted object. The
  * owner exposes its three proxy values and delegates selection to this helper.
  */
-export class Tr2SkinnedObjectLOD
+export class Tr2SkinnedObjectLod
 {
   highDetailProxy = null;
   lowDetailProxy = null;

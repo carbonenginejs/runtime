@@ -15,7 +15,7 @@ import {
   Tr2Model,
   Tr2SkinnedModel,
   Tr2SkinnedObject,
-  Tr2SkinnedObjectLOD,
+  Tr2SkinnedObjectLod,
   WodBakingScene
 } from "../../../npm/dist/character/index.js";
 
@@ -152,14 +152,14 @@ test("character interior classes retain their source-backed inheritance and scal
 
 test("native skinned-object LOD helper selects whole models at exact thresholds", () =>
 {
-  new Tr2SkinnedObjectLOD();
-  assert.equal(CjsSchema.GetConstructor("Tr2SkinnedObjectLOD"), null);
-  assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLOD, "SetLOD")?.carbon?.method, true);
-  assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLOD, "SetLOD")?.impl?.status, "implemented");
+  new Tr2SkinnedObjectLod();
+  assert.equal(CjsSchema.GetConstructor("Tr2SkinnedObjectLod"), null);
+  assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.carbon?.method, true);
+  assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.impl?.status, "implemented");
 
   const select = diameter =>
   {
-    const lod = new Tr2SkinnedObjectLOD();
+    const lod = new Tr2SkinnedObjectLod();
     const high = new FakeLodProxy("high");
     const medium = new FakeLodProxy("medium");
     const low = new FakeLodProxy("low");
@@ -186,7 +186,7 @@ test("native skinned-object LOD helper selects whole models at exact thresholds"
 
 test("native skinned-object LOD helper preserves proxy fallback and lifecycle rules", () =>
 {
-  const lod = new Tr2SkinnedObjectLOD();
+  const lod = new Tr2SkinnedObjectLod();
   assert.equal(lod.HaveLodSetup(), false);
   assert.equal(lod.GetCurrentLod(), -1);
   assert.equal(lod.SetLOD(null, 1000), null);
