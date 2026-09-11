@@ -1,19 +1,9 @@
-// Per-object constant-data layout, one file per donor header.
-//
-// Declares the layouts for `EveSpaceObjectVSData` and `EveSpaceObjectPSData`.
-//
-// SEVERAL DECLARATIONS IN ONE FILE, which the one-class-per-file rule does not
-// cover and deliberately so: these are not classes. A Carbon header declares
-// every struct a producer uploads, and they are read and changed together, so
-// the file follows the header rather than the declaration.
-//
-// Field ORDER and field SIZE are the whole binding contract - Carbon memcpys the
-// C++ struct straight into the constant buffer, so its declaration order IS the
-// byte layout the shader reads. Renaming a field is safe; reordering or resizing
-// one silently shifts every field after it. Every matrix here is TRANSPOSED,
-// matching Carbon's `= Transpose(m)` staging fill.
+// Per-object constant-buffer layouts for `EveSpaceObjectVSData` and `EveSpaceObjectPSData`. See README.md.
 
-import { IDENTITY, Types, ZERO4 } from "../constantLayout.js";
+import { CjsConstantLayout } from "../CjsConstantLayout.js";
+
+
+const { Identity: IDENTITY, Types, Zero4: ZERO4 } = CjsConstantLayout;
 
 
 /**
@@ -25,7 +15,9 @@ import { IDENTITY, Types, ZERO4 } from "../constantLayout.js";
  * The HLSL counterpart names are from shadercompiler/tests/RayTracingTest.cpp:654-666,
  * which declares this block field-for-field.
  */
-export const EveSpaceObject = Object.freeze({
+export class CjsEveSpaceObjectLayout
+{
+  static structConfig = Object.freeze({
     vs: {
         struct: "EveSpaceObjectVSData",
         fields: {
@@ -34,7 +26,8 @@ export const EveSpaceObject = Object.freeze({
             invWorldTransform: { type: Types.MATRIX4, default: IDENTITY },
             // Four independent floats, not a bitfield: .x booster glow
             // intensity, .y activation strength, .z dirt level, .w bounding
-            // sphere radius. Constructor value at cpp:195.
+            // sphere radius. Constructor value at cpp:195, and the same
+            // m_spaceObjectShipData reaches both halves (cpp:666, :669).
             shipData: { type: Types.VECTOR4, default: Object.freeze([1, 1, 0, 1]) },
             clipData: { type: Types.VECTOR4 },
             // Carbon's spelling (sic) - "ellpsoid" matches the source struct.
@@ -60,6 +53,11 @@ export const EveSpaceObject = Object.freeze({
             worldTransform: { type: Types.MATRIX4, default: IDENTITY },
             worldTransformLast: { type: Types.MATRIX4, default: IDENTITY },
             invWorldTransform: { type: Types.MATRIX4, default: IDENTITY },
+            // Four unrelated values sharing one register, named only where Carbon
+            // writes them: x boosterGlowIntensity (EveShip2.cpp:285), y
+            // activationStrength (EveSpaceObject2.cpp:769), z dirtLevel (:197,
+            // EVE_SPACEOBJECT_DIRT_LEVEL_DEFAULT), w boundingSphereRadius (:772).
+            // Both halves get the same m_spaceObjectShipData (:666, :669).
             shipData: { type: Types.VECTOR4, default: Object.freeze([1, 1, 0, 1]) },
             // Clipdata1.xyz / .w - a SIGNED squared radius; the sign carries
             // the inside/outside test (RayTracingTest.cpp:678-679).
@@ -82,4 +80,5 @@ export const EveSpaceObject = Object.freeze({
             customData: { type: Types.VECTOR4, default: Object.freeze([0, 0, 0, 0]) }
         }
     }
-});
+  });
+}

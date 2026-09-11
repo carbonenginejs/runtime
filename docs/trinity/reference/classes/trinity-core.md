@@ -580,6 +580,157 @@ A stretch's endpoint and effect payload, bound to both registers.
 - Source: src/trinity/core/rawData/perObjectData/StretchPerObjectData.js
 - Visibility: Public
 - Kind: CarbonEngineJS
+<!-- class:CjsConstantLayout -->
+## `CjsConstantLayout`
+
+The declaration vocabulary and resolver shared by the per-object and per-frame constant-data catalogs: declared member types, stage sets, neutral defaults, and the layout builder.
+
+- Source: src/trinity/core/rawData/CjsConstantLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+<!-- class:CjsEveBasicLayout -->
+## `CjsEveBasicLayout`
+
+Per-object constant-buffer layout for `EveBasicPerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveBasicLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveBoosterSetLayout -->
+## `CjsEveBoosterSetLayout`
+
+Per-object constant-buffer layouts for `EveBoosterSetVSData` and `EveBoosterSetPSData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveBoosterSetLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveChildBoosterSetLayout -->
+## `CjsEveChildBoosterSetLayout`
+
+Per-object constant-buffer layouts for `EveChildBoosterSetVSData` and `EveChildBoosterSetPSData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveChildBoosterSetLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveChildBulletStormLayout -->
+## `CjsEveChildBulletStormLayout`
+
+Per-object constant-buffer layout for `EveChildBulletStormPerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveChildBulletStormLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveChildSpherePinLayout -->
+## `CjsEveChildSpherePinLayout`
+
+Per-object constant-buffer layout for `EveChildSpherePinPerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveChildSpherePinLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveLensflareLayout -->
+## `CjsEveLensflareLayout`
+
+Per-object constant-buffer layout for `EveLensflarePerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveLensflareLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveMissileWarheadLayout -->
+## `CjsEveMissileWarheadLayout`
+
+Per-object constant-buffer layout for `EveMissileWarheadPerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveMissileWarheadLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEvePerObjectLayout -->
+## `CjsEvePerObjectLayout`
+
+Per-object constant-buffer layouts for `EvePerObjectVSData` and `EvePerObjectPSData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEvePerObjectLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveSceneStaticParticlesLayout -->
+## `CjsEveSceneStaticParticlesLayout`
+
+Per-object constant-buffer layout for `EveSceneStaticParticlesPerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveSceneStaticParticlesLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveSpaceObjectDecalLayout -->
+## `CjsEveSpaceObjectDecalLayout`
+
+Per-object constant-buffer layouts for `DecalVSPerObjectData` and `DecalPSPerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveSpaceObjectDecalLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveSpaceObjectLayout -->
+## `CjsEveSpaceObjectLayout`
+
+Per-object constant-buffer layouts for `EveSpaceObjectVSData` and `EveSpaceObjectPSData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveSpaceObjectLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveSpacePerObjectLayout -->
+## `CjsEveSpacePerObjectLayout`
+
+Per-object constant-buffer layout for `EveSpacePerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveSpacePerObjectLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveSpherePinLayout -->
+## `CjsEveSpherePinLayout`
+
+Per-object constant-buffer layout for `EveSpherePinPerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveSpherePinLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveStretch2Layout -->
+## `CjsEveStretch2Layout`
+
+Per-object constant-buffer layout for `EveStretch2PerObjectData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveStretch2Layout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsEveTurretSetLayout -->
+## `CjsEveTurretSetLayout`
+
+Per-object constant-buffer layouts for `EveTurretSetVSData` and `EveTurretSetPSData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsEveTurretSetLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsTr2PerObjectLayout -->
+## `CjsTr2PerObjectLayout`
+
+Per-object constant-buffer layout for `Tr2PerObjectVSData`.
+
+- Source: src/trinity/core/rawData/layouts/CjsTr2PerObjectLayout.js
+- Visibility: Internal
+- Kind: CarbonEngineJS
 <!-- class:Tr2PrimaryRenderContext -->
 ## `Tr2PrimaryRenderContext`
 

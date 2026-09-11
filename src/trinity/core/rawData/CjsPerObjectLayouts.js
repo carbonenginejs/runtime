@@ -35,42 +35,46 @@
 // that declares it. This file composes them and resolves a struct name to the
 // layout RawData consumes.
 
-import { Types, buildLayouts, toRawLayout } from "./constantLayout.js";
-import { EveBasic } from "./layouts/EveBasic.js";
-import { EveMissileWarhead } from "./layouts/EveMissileWarhead.js";
-import { EveSceneStaticParticles } from "./layouts/EveSceneStaticParticles.js";
-import { EvePerObject } from "./layouts/EvePerObject.js";
-import { EveLensflare } from "./layouts/EveLensflare.js";
-import { EveSpherePin } from "./layouts/EveSpherePin.js";
-import { EveChildSpherePin } from "./layouts/EveChildSpherePin.js";
-import { EveSpaceObjectDecal } from "./layouts/EveSpaceObjectDecal.js";
-import { EveBoosterSet } from "./layouts/EveBoosterSet.js";
-import { EveChildBoosterSet } from "./layouts/EveChildBoosterSet.js";
-import { EveChildBulletStorm } from "./layouts/EveChildBulletStorm.js";
-import { EveStretch2 } from "./layouts/EveStretch2.js";
-import { EveSpaceObject } from "./layouts/EveSpaceObject.js";
-import { EveTurretSet } from "./layouts/EveTurretSet.js";
-import { EveSpacePerObject } from "./layouts/EveSpacePerObject.js";
-import { Tr2PerObject } from "./layouts/Tr2PerObject.js";
+import { CjsConstantLayout } from "./CjsConstantLayout.js";
 
 
+const { Types } = CjsConstantLayout;
+import { CjsEveBasicLayout } from "./layouts/CjsEveBasicLayout.js";
+import { CjsEveMissileWarheadLayout } from "./layouts/CjsEveMissileWarheadLayout.js";
+import { CjsEveSceneStaticParticlesLayout } from "./layouts/CjsEveSceneStaticParticlesLayout.js";
+import { CjsEvePerObjectLayout } from "./layouts/CjsEvePerObjectLayout.js";
+import { CjsEveLensflareLayout } from "./layouts/CjsEveLensflareLayout.js";
+import { CjsEveSpherePinLayout } from "./layouts/CjsEveSpherePinLayout.js";
+import { CjsEveChildSpherePinLayout } from "./layouts/CjsEveChildSpherePinLayout.js";
+import { CjsEveSpaceObjectDecalLayout } from "./layouts/CjsEveSpaceObjectDecalLayout.js";
+import { CjsEveBoosterSetLayout } from "./layouts/CjsEveBoosterSetLayout.js";
+import { CjsEveChildBoosterSetLayout } from "./layouts/CjsEveChildBoosterSetLayout.js";
+import { CjsEveChildBulletStormLayout } from "./layouts/CjsEveChildBulletStormLayout.js";
+import { CjsEveStretch2Layout } from "./layouts/CjsEveStretch2Layout.js";
+import { CjsEveSpaceObjectLayout } from "./layouts/CjsEveSpaceObjectLayout.js";
+import { CjsEveTurretSetLayout } from "./layouts/CjsEveTurretSetLayout.js";
+import { CjsEveSpacePerObjectLayout } from "./layouts/CjsEveSpacePerObjectLayout.js";
+import { CjsTr2PerObjectLayout } from "./layouts/CjsTr2PerObjectLayout.js";
+
+
+// Each layout class owns its donor header; the resolver wants the configuration.
 const GROUPS = Object.freeze({
-    EveBasic,
-    EveMissileWarhead,
-    EveSceneStaticParticles,
-    EvePerObject,
-    EveLensflare,
-    EveSpherePin,
-    EveChildSpherePin,
-    EveSpaceObjectDecal,
-    EveBoosterSet,
-    EveChildBoosterSet,
-    EveChildBulletStorm,
-    EveStretch2,
-    EveSpaceObject,
-    EveTurretSet,
-    EveSpacePerObject,
-    Tr2PerObject
+    EveBasic: CjsEveBasicLayout.structConfig,
+    EveMissileWarhead: CjsEveMissileWarheadLayout.structConfig,
+    EveSceneStaticParticles: CjsEveSceneStaticParticlesLayout.structConfig,
+    EvePerObject: CjsEvePerObjectLayout.structConfig,
+    EveLensflare: CjsEveLensflareLayout.structConfig,
+    EveSpherePin: CjsEveSpherePinLayout.structConfig,
+    EveChildSpherePin: CjsEveChildSpherePinLayout.structConfig,
+    EveSpaceObjectDecal: CjsEveSpaceObjectDecalLayout.structConfig,
+    EveBoosterSet: CjsEveBoosterSetLayout.structConfig,
+    EveChildBoosterSet: CjsEveChildBoosterSetLayout.structConfig,
+    EveChildBulletStorm: CjsEveChildBulletStormLayout.structConfig,
+    EveStretch2: CjsEveStretch2Layout.structConfig,
+    EveSpaceObject: CjsEveSpaceObjectLayout.structConfig,
+    EveTurretSet: CjsEveTurretSetLayout.structConfig,
+    EveSpacePerObject: CjsEveSpacePerObjectLayout.structConfig,
+    Tr2PerObject: CjsTr2PerObjectLayout.structConfig
 });
 
 
@@ -120,7 +124,7 @@ export class CjsPerObjectLayouts
     {
         const layout = CjsPerObjectLayouts.Get(struct);
 
-        return layout ? toRawLayout(layout) : null;
+        return layout ? CjsConstantLayout.ToRawLayout(layout) : null;
     }
 
     /** The group a struct belongs to, with its stage key, or null. */
@@ -148,7 +152,7 @@ export class CjsPerObjectLayouts
     {
         if (!CjsPerObjectLayouts.#layouts)
         {
-            CjsPerObjectLayouts.#layouts = buildLayouts(GROUPS, "CjsPerObjectLayouts");
+            CjsPerObjectLayouts.#layouts = CjsConstantLayout.BuildLayouts(GROUPS, "CjsPerObjectLayouts");
         }
 
         return CjsPerObjectLayouts.#layouts;

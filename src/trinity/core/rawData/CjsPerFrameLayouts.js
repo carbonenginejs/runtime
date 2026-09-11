@@ -28,7 +28,10 @@
 // A shader reads whichever its scene binds; both start at the same register
 // (Tr2Renderer::GetPerFrameVSStartRegister), which is why the names collide in
 // HLSL but the layouts do not.
-import { IDENTITY, Types, ZERO4, buildLayouts, toRawLayout } from "./constantLayout.js";
+import { CjsConstantLayout } from "./CjsConstantLayout.js";
+
+
+const { Identity: IDENTITY, Types, Zero4: ZERO4 } = CjsConstantLayout;
 
 
 /**
@@ -315,7 +318,7 @@ export class CjsPerFrameLayouts
     {
         const layout = CjsPerFrameLayouts.Get(struct);
 
-        return layout ? toRawLayout(layout) : null;
+        return layout ? CjsConstantLayout.ToRawLayout(layout) : null;
     }
 
     /** The group a struct belongs to, with its stage key, or null. */
@@ -343,7 +346,7 @@ export class CjsPerFrameLayouts
     {
         if (!CjsPerFrameLayouts.#layouts)
         {
-            CjsPerFrameLayouts.#layouts = buildLayouts(GROUPS, "CjsPerFrameLayouts");
+            CjsPerFrameLayouts.#layouts = CjsConstantLayout.BuildLayouts(GROUPS, "CjsPerFrameLayouts");
         }
 
         return CjsPerFrameLayouts.#layouts;
