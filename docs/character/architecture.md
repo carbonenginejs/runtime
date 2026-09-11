@@ -153,6 +153,57 @@ character/interior schemas reference it.
 The removed schema-v1/v2 character graph is not a compatibility surface.
 Consumers migrate to the schema-v10 direct source library and separate
 schema-v4 plan, not speculative legacy models.
+### Interior and WoD knowledge scattered through Trinity, collected 2026-09-11
+
+**Every item below is a comment in a Trinity source file, not in the character
+domain, so none of it was findable from here.** Swept by searching `src` for
+interior / WoD / Incarna outside `src/character`. Each line is quoted with its
+file so a thread can be picked up at the site; the Carbon cites are the donor
+lines those comments name, not claims verified in this sweep.
+
+**Portal visibility exists as a concept.** `Tr2VisibilityEvent.js:10` says the
+events are what "Tr2VisibilityResults and the interior/portal visibility consumers
+read", and `Tr2VisibilityResults.js:9` that results are collected "for the
+interior". Our `Tr2VisibilityResults` folder cites donor `Tr2InteriorScene.h`, so
+the interior scene's visibility machinery is partly present under a Trinity path.
+
+**The interior scene owns a background cubemap, toggled by a render step.**
+`TriStepToggleCubemap.js` holds a "Carbon-private `Tr2InteriorScene` pointer;
+runtime-only and not serialized" (:11) and "Enables or disables the interior
+scene's background cubemap" (:28).
+
+**Interiors and WoD baking share a per-frame block.** `CjsPerFrameLayouts.js:24`
+describes a "block used by interiors, WoD baking, and primitives", and :106 records
+that a reduced block "binds in place of the full VS one
+(`Tr2InteriorScene.cpp:856`)". That is the only WoD-baking reference anywhere
+outside the character domain.
+
+**Interior placeables have their own per-object filler.**
+`CjsPerObjectLayouts.js:415-416`: the layout's "only Carbon filler is
+`Tr2InteriorPlaceable::GetPerObjectData`
+(`Interior/Tr2InteriorPlaceable.cpp:555-585`), and interior placeables are not"
+in this package. An exact donor range for a class we do not have.
+
+**Interior additive animation was reverse-engineered in ccpwgl.**
+`Tr2GrannyAnimation.js:1338-1339` cites a "proven reverse-engineered
+`composeInteriorAdditivePose`" at
+`ccpwgl/src/interior/character/Tr2InteriorAdditiveAnimation.js`. Given how little
+exists for this engine, an already-proven reverse-engineering of an interior
+animation compose is worth reading before redoing it.
+
+**The interior light count is a signed bit-cast.** `RawData.js:68` names it as the
+example of a "SIGNED integer bit-cast (two's complement)", so a consumer reading it
+as unsigned will be wrong for negative values.
+
+#### Deliberately excluded from the list
+
+`Tr2RenderUtils.js` ("interior-edge flip", "interior vertices"),
+`Tr2Blitter.js:295`, `Tr2RenderStateSetup.js:349` and
+`Tr2EffectStateManager.js:1365` all say "interior" about GEOMETRY - quad
+triangulation edges, and hulls drawing their own inside faces when the cull mode
+inverted. Nothing to do with the interior engine, and worth knowing so the same
+sweep does not keep re-finding them.
+
 ### Undiscovered: three of Carbon's four interior interfaces
 
 **Found 2026-09-11 by comparing Carbon's declarations against ours. Not dropped,
