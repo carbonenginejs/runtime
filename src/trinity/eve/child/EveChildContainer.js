@@ -16,7 +16,7 @@ import { EveComponentType } from "../EveComponentTypes.js";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason, TR2SHADERMODEL } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
-import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
+import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import {
   createChildPerObjectRecords,
   inheritParentPerObjectData,

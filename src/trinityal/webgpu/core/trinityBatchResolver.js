@@ -24,7 +24,7 @@
 // alone would produce a pipeline missing most of its state.
 import { CjsTrinityBatchResolver } from "#trinity/core/batch/CjsTrinityBatchResolver";
 import { Tr2EffectStateManager } from "#trinity/shader";
-import { Tr2PerObjectData } from "#trinity/core/rawData/Tr2PerObjectData";
+import { Tr2PerObjectData } from "#trinity/core/rawData/perObjectData/Tr2PerObjectData";
 import { resolveBindingPlan } from "#trinityal/vertexLayoutMatch";
 import { CarbonVertexElements } from "#trinity/core/vertex/vertexUsage";
 

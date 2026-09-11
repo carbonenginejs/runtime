@@ -7,7 +7,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { ReflectionMode, RenderingMode, TriBatchType } from "#consts/graphics";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
-import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
+import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
 import { Tr2RenderReason, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";

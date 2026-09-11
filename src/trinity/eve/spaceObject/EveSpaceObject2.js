@@ -21,7 +21,7 @@ import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
-import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
+import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";

@@ -7,7 +7,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, type } from "#schema";
 import { Tr2CurveLineSet } from "../../../core/line/Tr2CurveLineSet.js";
-import { Tr2PerObjectDataStandard } from "../../../core/rawData/Tr2PerObjectDataStandard.js";
+import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
 import { Tr2Lod } from "../../EveLODHelper.js";
 

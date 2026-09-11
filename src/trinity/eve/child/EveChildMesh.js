@@ -14,7 +14,7 @@ import { Origin } from "../../generated/eve/child/enums.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
-import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
+import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import {
   createChildPerObjectRecords,

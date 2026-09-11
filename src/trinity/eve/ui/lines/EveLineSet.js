@@ -9,7 +9,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { Tr2PerObjectDataStandard } from "../../../core/rawData/Tr2PerObjectDataStandard.js";
+import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 
 /** Stores editable tactical line records before renderer submission. */
 @type.define({ className: "EveLineSet", family: "eve/ui" })

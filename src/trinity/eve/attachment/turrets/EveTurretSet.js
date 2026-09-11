@@ -12,7 +12,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
-import { Tr2PerObjectData } from "../../../core/rawData/Tr2PerObjectData.js";
+import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";

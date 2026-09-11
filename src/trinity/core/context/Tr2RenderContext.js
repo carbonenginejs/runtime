@@ -35,7 +35,7 @@ import { ConstantBufferSlot } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
-import { Tr2PerObjectData } from "../rawData/Tr2PerObjectData.js";
+import { Tr2PerObjectData } from "../rawData/perObjectData/Tr2PerObjectData.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
 import { CjsShadowMapExecutor } from "./CjsShadowMapExecutor.js";
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";

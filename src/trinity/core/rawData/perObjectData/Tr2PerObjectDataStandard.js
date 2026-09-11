@@ -42,6 +42,16 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * @param {string} psStruct A `CjsPerObjectLayouts` struct name for the pixel payload.
    * @returns {Tr2PerObjectDataStandard} The leased object.
    */
+  /**
+   * Vertex payload first, matching the order Carbon binds them in.
+   *
+   * @returns {object[]} Both payloads.
+   */
+  GetPayloads()
+  {
+    return [ this.vs, this.ps ];
+  }
+
   static alloc(accumulator, vsStruct, psStruct)
   {
     const data = super.alloc(accumulator, psStruct);

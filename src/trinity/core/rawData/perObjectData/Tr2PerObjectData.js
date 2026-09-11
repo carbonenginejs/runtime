@@ -15,10 +15,10 @@
 // a Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
 
 import { CjsConstantPayload } from "#contracts";
-import { carbon, impl } from "#schema";
+import { CjsSchema, carbon, impl } from "#schema";
 import { ShaderType } from "#consts/render-context";
-import { FillAndSetConstants } from "../Tr2RenderUtils.js";
-import { PER_OBJECT_PS, PER_OBJECT_VS } from "../Tr2Renderer.js";
+import { FillAndSetConstants } from "../../Tr2RenderUtils.js";
+import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
 
 /**
  * Per-object render data: the object id a batch is picked and identified by,
@@ -42,6 +42,26 @@ export class Tr2PerObjectData
   GetUserData()
   {
     return this.userData;
+  }
+
+  /**
+   * The payloads this object uploads, in binding order.
+   *
+   * DECLARED BY EACH SUBCLASS, because Carbon's differ in what they hold and
+   * there is no single member shape to read. EveDecalPerObjectData owns a
+   * vertex/pixel struct pair; EveChildSpherePinPerObjectData owns ONE payload
+   * and Carbon uploads the same bytes to both per-object registers;
+   * EveChildBehaviorSystemPerObjectData owns nothing and points at the payloads
+   * of the object it decorates. A getter covers all three without anything
+   * having to guess from properties.
+   *
+   * The base carries none, matching its empty upload.
+   *
+   * @returns {object[]} Leased `RawData` payloads.
+   */
+  GetPayloads()
+  {
+    return [];
   }
 
   /**
@@ -243,10 +263,22 @@ export class Tr2PerObjectData
     return records;
   }
 
-  /** The payloads carried by a single record or a { vs, ps } pair. */
+  /**
+   * The payloads carried by a family instance, a single payload, or a
+   * { vs, ps } pair.
+   *
+   * The pair form is what producers not yet moved onto a Carbon class return.
+   * `CjsSchema.cast` is the one sanctioned type test on a class we own and it
+   * answers on `extends` lineage, so it separates the two without probing for
+   * properties or methods.
+   */
   static #payloadsOf(objectData)
   {
     if (objectData instanceof CjsConstantPayload) return [ objectData ];
+
+    const owned = CjsSchema.cast(objectData, Tr2PerObjectData);
+
+    if (owned) return owned.GetPayloads();
 
     return [ objectData.vs, objectData.ps ].filter(Boolean);
   }

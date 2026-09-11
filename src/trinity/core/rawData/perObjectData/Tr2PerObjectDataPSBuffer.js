@@ -97,6 +97,12 @@ export class Tr2PerObjectDataPSBuffer extends Tr2PerObjectData
    * @param {string} psStruct A `CjsPerObjectLayouts` struct name.
    * @returns {Tr2PerObjectDataPSBuffer} The leased object.
    */
+  /** @returns {object[]} The pixel payload. */
+  GetPayloads()
+  {
+    return [ this.ps ];
+  }
+
   static alloc(accumulator, psStruct)
   {
     const data = new this();
