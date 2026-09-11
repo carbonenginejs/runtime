@@ -85,13 +85,38 @@ names rather than collapse anything:
 | **pair** | a vertex payload and a pixel payload | `Tr2PerObjectDataStandard`, `EveDecalPerObjectData`, `EveTurretSetPerObjectData`, `EveBoosterSetPerObjectData` |
 | **shared** | ONE payload, bound to both registers | `EveChildSpherePinPerObjectData`, `EveSpherePinPerObjectData`, `EveLensflarePerObjectData` |
 | **vertex only** | one vertex payload | `EveChildBulletStormPerObjectData`, `EveChildParticleSpherePerObjectData` |
-| **borrowed** | nothing; points at the payloads of the object it decorates | `EveChildBehaviorSystemPerObjectData`, `EveChildLineSetPerObjectData` |
-| **type-erased** | opaque bytes and a size (`void* m_data; size_t m_size`) | `StretchPerObjectData` |
+| **borrowed** | nothing; points at the payloads of the object it decorates | `EveChildBehaviorSystemPerObjectData`, `EveChildLineSetPerObjectData`, `StretchPerObjectData` |
 | **persistent** | buffers owned across frames rather than leased per frame | `Tr2PerObjectDataWithPersistentBuffers` |
 
 Because those shapes differ, each class declares what it uploads through
 `GetPayloads()` rather than anything reading its properties. The base returns
 none, matching its empty upload.
+
+### `StretchPerObjectData` borrows a window into its owner's members
+
+Its `void* m_data; size_t m_size` looks type-erased and is not: the producer sets
+`m_data = &m_source` and `m_size = 4 * sizeof( Vector4 )`, so the payload is a
+64-byte window starting at `EveStretch2::m_source` — **the class's own member
+block IS the constant buffer**. The packing is deliberate, not luck
+(`EveStretch2.h:105-109`):
+
+| float4 | fields |
+|---|---|
+| 0 | `m_source.xyz` + `m_currentDestinationScale` |
+| 1 | `m_destination.xyz` + `m_destinationScale` |
+| 2 | `m_effectData[0]` |
+| 3 | `m_effectData[1]` |
+
+A `float` sits between the two `Vector3`s precisely to fill each `w`. JavaScript
+cannot point into an object's fields, so the port names those four vectors as a
+layout and the producer writes them — which is what `CjsPerObjectLayouts.EveStretch2`
+already does, under a `shared` key because Carbon uploads the same window to both
+per-object registers.
+
+The catalog keys carry this classification for every producer already: `vs`,
+`ps` or `shared` per struct. That is the same information Carbon encodes by
+having a distinct class per producer, which is why restoring a class adds the
+donor's NAME to data that is already present and already correct.
 
 ## Leased or persistent
 
