@@ -34,24 +34,12 @@ that arbitrary version-15 bytes contain WGSL.
 
 ## Wire layout
 
-The shared Carbon container contract is documented in
-[Carbon compiled-effect container](../../carbon-effect-container.md). In
-outline, the file contains:
-
-- Carbon's version-15 header, compiler version, source-hash slot (zero-filled
-  by the current builder), string table, and permutation axes;
-- one dense offset-table row for every permutation;
-- one stored description tree for every distinct emitted body, with exact
-  emitted-description-byte aliases sharing that body; and
-- one optional backend block after each pass's render states.
-
-The Carbon region is backend-invariant. Carbon WebGPU substitutes:
-
-- UTF-8 WGSL in each translated stage's `shaderData`;
-- the fixed entry point `main`, which is omitted from the wire because every
-  current lowerer must emit it; and
-- a versioned backend block for bind-group layouts and resource transforms
-  that Carbon reflection cannot derive.
+The [shared Carbon container contract](../../carbon-effect-container.md)
+owns the header, arena, dense permutation rows, emitted-body aliases, and
+optional per-pass block placement. The current builder zero-fills the source hash.
+WebGPU substitutes UTF-8 WGSL in each translated stage's `shaderData` and adds
+backend layouts and resource transforms that Carbon reflection cannot derive.
+Every current lowerer emits entry point `main`, so it is omitted from the wire.
 
 A stage with zero program bytes is reflection-only. This is how selected-mode
 packages retain untranslated bodies and how unsupported Carbon stage types
@@ -130,26 +118,17 @@ not separately stored documents.
 
 ## Backend block
 
-Each translated pass may reference one version-1 backend block from the Carbon
-arena. The block carries:
+Each translated pass may reference one arena-backed WebGPU block. Its leading
+byte is backend engine ID `2`, not a version; no block-version byte follows.
+`CarbonWebgpuContainer` treats absent or foreign-backend blocks as no WebGPU
+backend data. Once the WebGPU block parser is selected, a mismatched engine ID
+or unparsed trailing bytes is an error, not a silent skip.
 
-- physical bind-group and binding slots;
-- resource kind, stage visibility, register identity, generated symbol, and
-  optional structured-buffer or array-layer metadata; and
-- resource-transform family, identifier, and ordered source inputs.
-
-Strings inside the block are inline and length-prefixed. The block contains no
-arena offsets, so its bytes remain independent of the arena's content sort and
-can deduplicate safely. An unknown backend-block version is skipped instead of
-being guessed.
-
-Fields such as `identity`, `layoutKey`, transform output, and fixed layer
-numbers are reconstructed from the block plus record position. Backend-block
-version 1 stores visibility but not the original `scopeIdentity`; the reader
-reconstructs `${identity}@${visibility[0]}`. A multi-stage shared binding
-therefore rereads as stage-qualified rather than recovering its original bare
-scope. Callers must not use the wire view to infer that original sharing
-decision.
+The shared [optional trailing block](../../carbon-effect-container.md#the-optional-trailing-block)
+owns the field layout, inline strings, arena-independent deduplication, and
+reconstructed fields. In particular, the wire does not retain the original
+`scopeIdentity`: a multi-stage shared binding rereads as stage-qualified.
+Do not infer its original sharing decision from this view.
 
 ## Structured WGSL set
 
