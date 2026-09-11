@@ -85,10 +85,6 @@ Callers establish identity through the resource path that supplied the bytes.
 Class registrations are validated and stored for forward compatibility.
 Current JSON reads return plain data rather than hydrated package classes.
 
-There is one emit. The document it returns carries every view a consumer needs,
-including `permutationGraph` and the complete `backendBodySet`, so there is no
-second read mode to choose and no reader object to hold.
-
 ## Read result
 
 JSON `Read` returns:
@@ -113,26 +109,20 @@ counts.
 analysis. It resolves exact permutation assertions and may include decoded
 DXBC instructions and compiler IR.
 
-`BuildEffect` is narrower: current packaging requires the version-15 record
-layout. The wire retains every permutation row and non-program description
-field that the mapping can represent, including non-dynamic sampler names and
-the file's authored pass-stage order. Source-stage DXBC and the caller's source
-hash are not retained in the wire. Compiler IR is transient and is neither
-stored in the wire nor returned by `BuildEffect`.
+`BuildEffect` requires version-15 input; the
+[wire contract](../formats/carbon-webgpu.md#building) owns preservation and
+translation modes. Compiler IR is transient: neither stored in the wire nor
+returned by `BuildEffect`.
 
 Unknown, duplicate, or unresolved permutation assertions fail closed.
 
 ## Effect-package options
 
-`mode: "selected"` is the default. It translates the resolved body's
-requested complete passes while keeping every permutation row and
-representable non-program description fields in the container.
-
-`mode: "all"` first lowers the resolved selection, so an unsupported resolved
-body aborts the build. After that gate succeeds, unsupported later bodies
-remain in the container with empty program slots and appear as unsupported in
-the in-memory body-set view. `allPermutations: true` is a compatibility
-spelling for all mode.
+`mode` is `"selected"` by default or `"all"`; see
+[selected mode](../formats/carbon-webgpu.md#selected-mode) and
+[all mode](../formats/carbon-webgpu.md#all-mode), including the initial
+resolved-body translation gate. `allPermutations: true` selects all mode;
+`false` uses the requested `mode` or selected default.
 
 `selection` can name a technique, pass index, and complete stage list.
 `bindingPolicy.sharedIdentities` may name compatible cross-stage resources
@@ -146,21 +136,25 @@ consumer's resource path.
 
 `BuildEffect` returns:
 
-- `bytes`;
-- build-time `info` and `metadata`;
-- `permutationGraph`;
-- selected `analysis` and `wgsl`;
-- `backendBodySet` for all mode;
-- an `inspection` obtained by rereading the emitted bytes; and
-- `qualification`.
+| Field | Purpose |
+| --- | --- |
+| `bytes` | Carbon v15 Carbon WebGPU bytes. |
+| `info` | Producer, source, translation-scope, and completeness evidence. |
+| `metadata` | Resolved selection and caller provenance. |
+| `permutationGraph` | Complete source permutation and body-alias view. |
+| `analysis` | Selected-body diagnostic analysis. |
+| `wgsl` | Emitted shaders, layouts, and transforms. |
+| `backendBodySet` | All-body translation result, or `null` in selected mode. |
+| `inspection` | Summary obtained by rereading the emitted bytes. |
+| `qualification` | Structural build outcome and translation counts. |
 
-The richer fields are caller evidence and are not separately stored in the
-container.
+These fields are caller evidence, not separately stored documents. No
+source-reflection document or compiler IR is returned.
 
-`qualification.packageValid` reports structural construction. It does not
-claim that every body translated, that a pipeline was prepared, or that a
-draw succeeded. `backendComplete` and `runtimeComplete` retain those broader
-boundaries.
+`qualification.packageValid` reports structural validation, not complete
+translation, pipeline preparation or a successful draw. `backendComplete`
+and `runtimeComplete` remain false until the broader compiler,
+resource-hydration, selection and execution gates are satisfied.
 
 ## Binding-plan and WGSL-set helpers
 
@@ -186,9 +180,12 @@ Reads fail closed on malformed Carbon records, sparse or misordered
 permutation tables, out-of-range arena references, trailing record bytes, or a
 program-bearing stage WebGPU cannot express.
 
-Builds additionally fail on unsupported source versions, invalid selection,
-unsupported compiler semantics, ambiguous binding plans, non-`main` entry
-points, and malformed backend blocks.
+Builds additionally reject unsupported source versions; unknown, duplicate or
+unresolved permutation assertions; missing techniques, passes or stages;
+duplicated or incomplete requested stage lists; unsupported selected-program
+semantics; ambiguous pass layouts; non-`main` entry points; and malformed
+emitted records or backend blocks. The [all-mode contract](../formats/carbon-webgpu.md#all-mode)
+distinguishes the initial selection failure from a later unsupported body.
 
 ## Related documentation
 

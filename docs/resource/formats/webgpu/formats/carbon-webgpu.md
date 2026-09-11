@@ -86,15 +86,11 @@ body set in JSON. Consumers now read the document, not the internal reader.
 
 ## Building
 
-`BuildEffect` accepts version-15 compiled-effect bytes only. It parses the
-complete input, resolves the requested permutation, lowers selected programs,
-and writes a new Carbon v15 container. Source-stage program bytes and the
-caller's source hash are not retained in the emitted wire.
-
-The returned build record is richer than the bytes. Its `info`, `metadata`,
-`permutationGraph`, `analysis`, `wgsl`, `backendBodySet`, `inspection`, and
-`qualification` fields are build-time evidence for callers. They must not be
-interpreted as separate records stored in the container.
+`BuildEffect` rebuilds version-15 input; source-stage program bytes and the
+caller's source hash are not retained in the wire. Its richer
+[build result](../reference/api.md#build-result-and-qualification) is caller
+evidence, not additional stored records. The modes below control translation,
+not which source permutation rows survive.
 
 ### Selected mode
 
@@ -128,15 +124,9 @@ distinct body and rejects any program-bearing stage outside vertex, pixel, and
 compute. Geometry, hull, and domain reflection may remain only when the
 corresponding program slot is empty.
 
-Inspection reports:
-
-- Carbon version and compiler-version bytes;
-- permutation and distinct-body counts; and
-- stage, shader, and layout counts for the resolved translation.
-
-The JSON read shape contains `info`, `metadata`, `permutationGraph`,
-`analysis`, `wgsl`, `backendBodySet`, and convenience `stages`, `shaders`, and
-`layouts` arrays. `analysis`, `wgsl`, and `backendBodySet` are derived views.
+See the API's [read result](../reference/api.md#read-result) for inspection
+counts and derived JSON fields. These views are computed from the record tree,
+not separately stored documents.
 
 ## Backend block
 

@@ -44,74 +44,31 @@ input bytes.
 
 ## What the bytes contain
 
-The emitted bytes are a stock Carbon v15 effect container:
-
-- every source permutation remains in the dense offset table;
-- each distinct emitted description body is stored once, based on exact emitted
-  bytes rather than the source alias partition;
-- representable non-program description/reflection fields remain in the Carbon
-  tree, non-dynamic sampler names and the authored stage order included;
-- translated stage program slots contain UTF-8 WGSL;
-- untranslated or unsupported stage program slots have zero length; and
-- translated passes may carry a WebGPU backend block with bind-group layouts
-  and resource transforms.
-
-Source-stage DXBC and the original source hash are not stored in Carbon WebGPU bytes.
-The build result no longer carries any source-reflection document; it was removed with the intermediate format. What remains in memory is
-`BuildEffect` result.
-
-There are no stored `INFO`, `META`, `PGRF`, `RFLX`, `ANLS`, `WGSL`, or `WGSB`
-chunks. The read API derives compatible JSON views from the Carbon records.
+The [wire layout](../formats/carbon-webgpu.md#wire-layout) preserves permutation
+topology and representable reflection, replaces source programs with WGSL or
+empty slots, and may carry per-pass backend data. It stores neither source DXBC nor
+the original source hash, and has no separate compatibility-view chunks.
 
 ## Translation modes
 
 ### Selected
 
-`mode: "selected"` is the default. It translates the resolved body's requested
-complete passes. Every permutation row and representable non-program
-description fields remain in the container, but untranslated program slots are
-empty.
-
-Selected mode does not discard permutations. It narrows backend translation.
+The default [selected mode](../formats/carbon-webgpu.md#selected-mode) translates
+requested complete passes without discarding permutations.
 
 ### All
 
-`mode: "all"` first lowers the resolved selection; an unsupported resolved body
-aborts the build. Once that precondition succeeds, later bodies that lower
-successfully carry WGSL and backend blocks. A later body outside the compiler's
-current boundary remains present with non-program description fields and empty
-program slots. The in-memory body-set view records its reason; a reread can
-report only that it carries no translated programs.
-
-Passes, rather than individual stages, are the translation unit because a pass
-owns one binding plan and resource-transform plan.
-
-The compatibility option `allPermutations: true` selects all mode.
-`allPermutations: false` selects the requested `mode` or the selected default.
+[All mode](../formats/carbon-webgpu.md#all-mode) first requires the resolved
+selection to translate, then attempts every distinct body. Passes own binding
+and transform plans; stages are not independent translation units. See the
+[API options](../reference/api.md#effect-package-options) for compatibility flags.
 
 ## Build result
 
-The returned record contains build-time evidence in addition to `bytes`:
-
-| Field | Purpose |
-| --- | --- |
-| `bytes` | Carbon v15 Carbon WebGPU bytes. |
-| `info` | Producer, source, translation-scope, and completeness evidence. |
-| `metadata` | Resolved selection and caller provenance. |
-| `permutationGraph` | Complete source permutation and body-alias view. |
-| `analysis` | Selected-body diagnostic analysis. |
-| `wgsl` | Emitted shaders, layouts, and transforms. |
-| `backendBodySet` | All-body translation result, or `null` in selected mode. |
-| `inspection` | Summary obtained by rereading the emitted bytes. |
-| `qualification` | Structural build outcome and translation counts. |
-
-These fields are returned data. They are not separate documents stored beside
-the Carbon records.
-
-`qualification.packageValid` means the emitted container passed structural
-validation. It is not prepared-pipeline or rendered evidence.
-`backendComplete` and `runtimeComplete` remain false until the broader compiler,
-resource-hydration, selection, and execution gates are satisfied.
+Use `result.bytes` as the artifact. The
+[API result table](../reference/api.md#build-result-and-qualification) owns the
+additional evidence fields and completeness gates: a structurally valid package
+does not prove executable or rendered output.
 
 ## Read the result
 
@@ -125,9 +82,8 @@ const data = CjsWebgpuFormat.read(packageBytes, {
 });
 ```
 
-The JSON read derives `info`, `metadata`, `permutationGraph`, `analysis`,
-`wgsl`, and `backendBodySet` views from the one record tree. It also exposes
-convenience `stages`, `shaders`, and `layouts` arrays.
+The [read result](../reference/api.md#read-result) is a derived JSON document,
+not another stored representation.
 
 The `raw` emit was retired (closure recorded 2026-08-13). Reads return the
 derived document; the only emit name is `"json"`, and unsupported values throw
@@ -153,33 +109,15 @@ scope with combined visibility.
 
 ## Resource transforms
 
-When semantic metadata proves that several logical textures may be represented
-by one physical array texture, the derived WGSL set uses version 3 and carries
-a `texture-2d-array` transform recipe.
-
-The consumer must assemble the named layers, match size/mips/sample
-type/format, and bind the resulting array through the transformed layout.
-Missing layers fail closed. A version-3 document is not executable evidence by
-itself.
+Follow the [version-3 resource-transform contract](../formats/carbon-webgpu.md#version-3-resource-transforms)
+to assemble and bind compatible array layers; missing layers fail closed.
+A version-3 document is not executable evidence by itself.
 
 ## Errors
 
-Conversion fails explicitly when:
-
-- the source is not a version-15 compiled effect;
-- a permutation assertion is unknown or unresolved;
-- the permutation table is sparse, misordered, out of bounds, or malformed;
-- the technique, pass, or requested stage does not exist;
-- the requested stage list is duplicated or incomplete;
-- the selected shader uses unsupported semantics;
-- resource declarations cannot form one unambiguous pass layout;
-- a lowerer emits an entry point other than `main`; or
-- the emitted Carbon records or backend block fail structural validation.
-
-Unsupported selected programs abort selected-mode packaging and also abort the
-initial selection gate in all mode. After that gate succeeds, an unsupported
-later body remains represented with empty program slots and an explicit
-in-memory derived status.
+See [API errors](../reference/api.md#errors) for rejected inputs and selections,
+and [all mode](../formats/carbon-webgpu.md#all-mode) for the distinction between
+an initial failure and a later unsupported body.
 
 ## Related documentation
 
