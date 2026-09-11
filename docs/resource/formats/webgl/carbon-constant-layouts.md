@@ -133,8 +133,8 @@ Total = **29 registers**.
 **Joints are NOT in this buffer on DX11.** `boneOffsets` (reg 26) index a
 separate `BoneTransforms` ring buffer/SSBO
 (`m_boneOffsets.UploadTransforms(... Float4x3 ...)`, `EveSpaceObject2.cpp:1441`).
-Bones are `Float4x3` (3 vec4 per joint). This is the structured-buffer path
-that `docs/dxbc-lowering/memory-structured.md:131-213` rewrites for WebGL2.
+Bones are `Float4x3` (3 vec4 per joint). See the
+[historical WebGL2 `cb3` rewrite and its recorded August 2 `std140` UBO replacement](memory-structured.md#glsl-lowering--b-webgl2-cb3-joint-matrix-rewrite-contract-the-shipping-path).
 
 ### 2b. `EveSpaceObjectPSData` -> b4
 
