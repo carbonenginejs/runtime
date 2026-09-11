@@ -153,6 +153,119 @@ character/interior schemas reference it.
 The removed schema-v1/v2 character graph is not a compatibility surface.
 Consumers migrate to the schema-v10 direct source library and separate
 schema-v4 plan, not speculative legacy models.
+### Skinned per-object data is character work, not Trinity work
+
+**Both skinned per-object classes live in a Trinity header and have no Trinity
+producer.** Every allocation site is a skinned or interior path, so they belong to
+this domain however their donor file is named. Verified against Carbon 2026-09-11.
+
+| class | donor | allocated by |
+|---|---|---|
+| `Tr2PerObjectDataSkinned` | `Tr2PerObjectData.h:100`, extends `Tr2PerObjectDataPSBuffer` | `Interior/Tr2IntSkinnedObject.cpp:322`; consumed at `:217` and `Tr2SkinnedModel.cpp:120,130` |
+| `Tr2PerAreaDataSkinned` | `Tr2PerObjectData.h:152`, extends `Tr2PerObjectData` | `Interior/Tr2IntSkinnedObject.cpp:255`, `Tr2SkinnedModel.cpp:59` |
+
+Neither exists here. A Trinity-side plan to "restore the four per-object classes"
+should therefore stop at `Tr2PerObjectDataPSBuffer` and
+`Tr2PerObjectDataStandard`; these two need the interior renderer, which is the
+part being reverse-engineered, so adding the classes alone completes nothing.
+
+#### The VS buffer layout, exactly
+
+`TR2_MAX_BONES_PER_MESHAREA` is **69**, and the allocation is
+`(69 * 3 + 5 + 4) * 16` = **3,456 bytes**, three registers per joint:
+
+| region | offset | size |
+|---|---|---|
+| joint palette | 0 | 3,312 bytes (69 x 3 registers) |
+| world matrix | 3,312 | 64 |
+| **unwritten** | 3,376 | 16 |
+| mirror matrix | 3,392 | 64 |
+
+Both skinned classes target the **per-object VS register, 3** (`Tr2Renderer.cpp:40`;
+per-object PS is 4 at `:41`). So this is the same binding `Tr2PerObjectDataStandard`
+uses with a 40-register buffer - same slot, far more in it.
+
+#### Two owners write one buffer, and that is the shape to preserve
+
+`Tr2PerAreaDataSkinned::SetPerObjectDataToDevice` creates the buffer, locks it,
+calls the OBJECT's `UpdateVertexShaderCBMirror` to place world and mirror, then
+memcpy's its own joints at offset 0 for `m_jointCount * 3 * 16` bytes. It then
+clears the VS family from the mask and delegates the remainder to the object:
+
+    constantTypeMask = constantTypeMask & ~perFrameVsMask;
+    if( constantTypeMask ) m_perObjectDataPtr->SetPerObjectDataToDevice( ... );
+
+So the per-AREA class owns the joint prefix, the per-OBJECT class owns the matrix
+tail, and the object also answers for the pixel half. A static helper over a plain
+`{ vs, ps }` record cannot express that; it needs the instance relationship
+(`m_perObjectDataPtr`). `CCP_ASSERT( m_jointCount <= TR2_MAX_BONES_PER_MESHAREA )`
+guards the prefix.
+
+The object-level upload copies **only** world and mirror - not the joint palette it
+borrows, and not `m_worldPos`, which it stores but never uploads.
+
+#### The transpose rule does NOT apply here, and that needs checking before use
+
+`EveSpaceObject2.cpp:667-668` writes `Transpose( m_worldTransform )` into the
+standard per-object VS data. The skinned path does a **raw byte copy** -
+`memcpy( VS + ..., &m_worldMat.m[0][0], 4 * 16 )` (`Tr2PerObjectData.cpp:102-103`,
+and again at `:117-118` for the indirect writer). No transpose.
+
+The only caller of `SetWorldMatrix` is `Tr2IntSkinnedObject.cpp:331`, passing a
+parameter its own comment calls "The world transform of the object", untouched;
+`:332` sets the mirror to `IdentityMatrix()`.
+
+So either the interior skinned shader reads the opposite orientation from the
+standard path, or the matrix is already transposed further upstream. **Read it off
+the shader.** Applying RawData's ordinary `SetAndTranspose` rule here would
+double-transpose, and per the math conventions skill this class of error passes
+every identity-matrix fixture. Test with rotation plus non-uniform scale.
+
+#### One constructor zeroes, the other does not
+
+`Tr2PerObjectDataPSBuffer()` explicitly `memset`s its 1,280-byte PS storage to
+zero. `Tr2PerObjectDataStandard()` sets only the active size and leaves its
+640-byte VS storage **uninitialised** - that is what its
+`cppcheck-suppress uninitMemberVar` is for.
+
+Since a short copy preserves the remaining storage, the PS tail is zeros in Carbon
+and zeros in JS, which is faithful and needs no note. The **VS tail is garbage in
+Carbon and zeros in JS**, which cannot be reproduced and is the only half that is a
+real divergence.
+
+#### Our current state: the fields exist, the mechanism does not
+
+`CjsPerObjectLayouts` declares `boneOffsets` (4 x UINT32) in one layout and
+`currentBoneOffset` / `prevBoneOffset` / `_unused x 2` in another, both annotated
+"GPU ring offsets - engine-owned". **Nothing live writes them**, and no bone buffer
+or ring exists: every other `boneOffsets` reference is under
+`src/trinity/dropped/perObjectData`, and `CjsSb` appears only inside the WebGL
+GLSL emitter as translated-shader naming. The only live skinning state is
+`Tr2MeshArea.m_jointCount`, "fed by `Tr2MeshBase.BindToRig`" - a count, with no
+matrices going anywhere.
+
+#### ccpwgl already solves this, and differently from Carbon
+
+ccpwgl's Carbon path does **not** use Carbon's inline joint region. Bones ride a
+dedicated UBO and the per-object VS block carries only addressing: register 26 holds
+`boneOffsets` as **uint bit patterns**, and the translated shader computes
+`boneIndex = blendIndex + floatBitsToInt(cb3[26].xy)`. Because its bone UBO is
+per-object and base-0, `cur = prev = 0`, and zero's float bit pattern is exactly
+uint 0. Its legacy GLES layout keeps an inline `JointMat` instead, which the Carbon
+path explicitly does not copy.
+
+That gives the first skinned bring-up a choice worth making deliberately:
+
+- **per-object base-0 buffer**, as ccpwgl does - the zeros already sitting in our
+  layout are then correct and nothing needs writing; or
+- **a shared ring**, which is what `prevBoneOffset` implies and what Carbon's
+  `Tr2DynamicRingBuffer` family exists for. It is the only option that can carry
+  last frame's bones for temporal effects, and it is also the path whose indexed
+  fetch produced the `ld_structured` self-clobber fixed in `68c147f`.
+
+`Tr2DynamicRingBuffer`, `Tr2RingVertexBuffer` and `Tr2RingIndexBuffer` are all
+absent from our tree, so the ring option starts with three unported classes.
+
 ### Interior and WoD knowledge scattered through Trinity, collected 2026-09-11
 
 **Every item below is a comment in a Trinity source file, not in the character
