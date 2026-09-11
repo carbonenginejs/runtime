@@ -148,30 +148,30 @@ GPU-free fence that tracks whether a marker is outstanding, answering as a devic
 <!-- class:Tr2OcclusionQueryALStub -->
 ## `Tr2OcclusionQueryALStub`
 
-GPU-free occlusion query that reports zero passing pixels and catches a mispaired Begin and End.
+Counts the pixels a bracketed draw passed.
 
 - Export: `@carbonenginejs/runtime/trinityal/stub`
-- Source: `src/trinityal/stub/Tr2QueryALStub.js`
+- Source: `src/trinityal/stub/Tr2OcclusionQueryALStub.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:Tr2GpuTimerALStub -->
 ## `Tr2GpuTimerALStub`
 
-GPU-free timer reporting Carbon's tiny fixed span, and minus one when no timer exists so a caller can tell that from no elapsed time.
+Times a bracketed span of GPU work.
 
 - Export: `@carbonenginejs/runtime/trinityal/stub`
-- Source: `src/trinityal/stub/Tr2QueryALStub.js`
+- Source: `src/trinityal/stub/Tr2GpuTimerALStub.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:Tr2PipelineStatsQueryALStub -->
 ## `Tr2PipelineStatsQueryALStub`
 
-GPU-free pipeline-statistics query that always succeeds and reports an empty statistics set.
+Collects pipeline statistics over a bracketed span.
 
 - Export: `@carbonenginejs/runtime/trinityal/stub`
-- Source: `src/trinityal/stub/Tr2QueryALStub.js`
+- Source: `src/trinityal/stub/Tr2PipelineStatsQueryALStub/Tr2PipelineStatsQueryALStub.js`
 - Visibility: Public
 - Kind: Carbon
 

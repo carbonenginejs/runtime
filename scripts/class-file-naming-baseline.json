@@ -101,11 +101,6 @@
     "src/sof/layoutPlanner.js": [
       "SofLayoutRandom"
     ],
-    "src/trinityal/stub/Tr2QueryALStub.js": [
-      "Tr2OcclusionQueryALStub",
-      "Tr2GpuTimerALStub",
-      "Tr2PipelineStatsQueryALStub"
-    ],
     "src/trinityal/stub/Tr2VideoAdapterInfoALStub.js": [
       "Tr2VideoAdapterInfoStub"
     ],
@@ -317,11 +312,6 @@
     "src/trinityal/stub/Tr2BufferALStub.js": [
       "Tr2BufferDescriptionAL",
       "Tr2BufferALStub"
-    ],
-    "src/trinityal/stub/Tr2QueryALStub.js": [
-      "Tr2OcclusionQueryALStub",
-      "Tr2GpuTimerALStub",
-      "Tr2PipelineStatsQueryALStub"
     ],
     "src/trinityal/stub/Tr2RenderContextALStub.js": [
       "Tr2BindlessResourcesAL",
