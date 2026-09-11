@@ -110,9 +110,6 @@
     "src/sof/layoutPlanner.js": [
       "SofLayoutRandom"
     ],
-    "src/sof/shared/EveSOFDataSpotlightAttachment.js": [
-      "EveSOFDataSpotLightAttachment"
-    ],
     "src/trinityal/stub/Tr2QueryALStub.js": [
       "Tr2OcclusionQueryALStub",
       "Tr2GpuTimerALStub",

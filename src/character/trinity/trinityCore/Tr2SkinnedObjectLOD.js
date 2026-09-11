@@ -15,7 +15,7 @@ const RESOURCE_UNLOAD_TIME = 10;
  * This is a real Trinity class, but not a Blue-declared/persisted object. The
  * owner exposes its three proxy values and delegates selection to this helper.
  */
-export class Tr2SkinnedObjectLod
+export class Tr2SkinnedObjectLOD
 {
   highDetailProxy = null;
   lowDetailProxy = null;

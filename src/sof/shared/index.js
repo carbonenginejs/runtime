@@ -25,7 +25,7 @@ export {
   EveSOFDataParameterVector3
 } from "./EveSOFDataParameter.js";
 export { EveSOFDataPointLightAttachment } from "./EveSOFDataPointLightAttachment.js";
-export { EveSOFDataSpotLightAttachment } from "./EveSOFDataSpotlightAttachment.js";
+export { EveSOFDataSpotLightAttachment } from "./EveSOFDataSpotLightAttachment.js";
 export { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 export { EveSOFDataTransform } from "./EveSOFDataTransform.js";
 export { EveSofDataMeshInstance } from "./EveSofDataMeshInstance.js";

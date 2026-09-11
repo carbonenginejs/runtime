@@ -940,13 +940,13 @@ Skinned character object managing whole-model LOD selection and an immediate CPU
 - Visibility: Public
 - Kind: Adapted Carbon class
 
-<!-- class:Tr2SkinnedObjectLod -->
-## `Tr2SkinnedObjectLod`
+<!-- class:Tr2SkinnedObjectLOD -->
+## `Tr2SkinnedObjectLOD`
 
 Native helper owned by Tr2SkinnedObject.
 
 - Export: `@carbonenginejs/runtime/character`
-- Source: `src/character/trinity/trinityCore/Tr2SkinnedObjectLod.js`
+- Source: `src/character/trinity/trinityCore/Tr2SkinnedObjectLOD.js`
 - Visibility: Public
 - Kind: Adapted Carbon class
 

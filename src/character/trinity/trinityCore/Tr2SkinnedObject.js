@@ -4,7 +4,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsCharacterRigBinding } from "../../controls/CjsCharacterRigBinding.js";
-import { Tr2SkinnedObjectLod } from "./Tr2SkinnedObjectLod.js";
+import { Tr2SkinnedObjectLOD } from "./Tr2SkinnedObjectLOD.js";
 import { withITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /**
@@ -15,7 +15,7 @@ import { withITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 export class Tr2SkinnedObject extends withITr2Renderable(CjsModel)
 {
 
-  #lod = new Tr2SkinnedObjectLod();
+  #lod = new Tr2SkinnedObjectLOD();
   #highDetailProxy = undefined;
   #mediumDetailProxy = undefined;
   #lowDetailProxy = undefined;
@@ -83,19 +83,19 @@ export class Tr2SkinnedObject extends withITr2Renderable(CjsModel)
   @type.model("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
-  /** m_lod.m_highDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
+  /** m_lod.m_highDetailProxy (Tr2SkinnedObjectLOD) [READWRITE, PERSIST, NOTIFY] */
   @io.notify
   @io.persist
   @type.unknown
   highDetailModel = null;
 
-  /** m_lod.m_lowDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
+  /** m_lod.m_lowDetailProxy (Tr2SkinnedObjectLOD) [READWRITE, PERSIST, NOTIFY] */
   @io.notify
   @io.persist
   @type.unknown
   lowDetailModel = null;
 
-  /** m_lod.m_mediumDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
+  /** m_lod.m_mediumDetailProxy (Tr2SkinnedObjectLOD) [READWRITE, PERSIST, NOTIFY] */
   @io.notify
   @io.persist
   @type.unknown

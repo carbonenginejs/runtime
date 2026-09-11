@@ -261,7 +261,7 @@ Defines point-light placement, rotation, intensity, saturation, scale, noise, an
 Defines spotlight placement, intensity, saturation, cone angles, scales, noise, and profile data for an attachment.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataSpotlightAttachment.js`
+- Source: `src/sof/shared/EveSOFDataSpotLightAttachment.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
