@@ -11,6 +11,8 @@ import {
     normalize
 } from "gl-matrix/esm/vec3.js";
 
+import { vec3 } from "./vec3.js";
+
 function validatePositions(positions)
 {
     if (!positions || positions.length % 3 !== 0)
@@ -203,6 +205,18 @@ export function generateNormals(positions, indices)
         vertexCount = positions.length / 3,
         normals = new Float32Array(positions.length);
 
+    // Pooled once for the whole mesh, not per triangle. The previous form cost
+    // FOUR array literals on every iteration: the face normal, both cross
+    // operands, and the offset list below.
+    //
+    // The pool hands back recycled, dirty memory, which is safe here because
+    // every component of all three is written before it is read - `cross` fills
+    // its whole destination and only reads its operands.
+    const
+        faceNormal = vec3.alloc(),
+        edgeB = vec3.alloc(),
+        edgeC = vec3.alloc();
+
     for (let t = 0; t < indices.length; t += 3)
     {
         const
@@ -211,22 +225,39 @@ export function generateNormals(positions, indices)
             ic = indices[t + 2] * 3,
             ax = positions[ia],
             ay = positions[ia + 1],
-            az = positions[ia + 2],
-            faceNormal = [ 0, 0, 0 ];
+            az = positions[ia + 2];
 
-        cross(
-            faceNormal,
-            [ positions[ib] - ax, positions[ib + 1] - ay, positions[ib + 2] - az ],
-            [ positions[ic] - ax, positions[ic + 1] - ay, positions[ic + 2] - az ]
-        );
+        edgeB[0] = positions[ib] - ax;
+        edgeB[1] = positions[ib + 1] - ay;
+        edgeB[2] = positions[ib + 2] - az;
 
-        for (const offset of [ ia, ib, ic ])
-        {
-            normals[offset] += faceNormal[0];
-            normals[offset + 1] += faceNormal[1];
-            normals[offset + 2] += faceNormal[2];
-        }
+        edgeC[0] = positions[ic] - ax;
+        edgeC[1] = positions[ic + 1] - ay;
+        edgeC[2] = positions[ic + 2] - az;
+
+        cross(faceNormal, edgeB, edgeC);
+
+        const
+            nx = faceNormal[0],
+            ny = faceNormal[1],
+            nz = faceNormal[2];
+
+        // Unrolled over the triangle's three vertices, which is what the
+        // `for (const offset of [ ia, ib, ic ])` form allocated for.
+        normals[ia] += nx;
+        normals[ia + 1] += ny;
+        normals[ia + 2] += nz;
+        normals[ib] += nx;
+        normals[ib + 1] += ny;
+        normals[ib + 2] += nz;
+        normals[ic] += nx;
+        normals[ic + 1] += ny;
+        normals[ic + 2] += nz;
     }
+
+    vec3.unalloc(faceNormal);
+    vec3.unalloc(edgeB);
+    vec3.unalloc(edgeC);
 
     for (let i = 0; i < vertexCount; i++)
     {
@@ -298,15 +329,27 @@ export function generateTangents(positions, normals, uvs, indices)
             ty = (s1 * y2 - s2 * y1) * scale,
             tz = (s1 * z2 - s2 * z1) * scale;
 
-        for (const offset of [ p0, p1, p2 ])
-        {
-            tan1[offset] += sx;
-            tan1[offset + 1] += sy;
-            tan1[offset + 2] += sz;
-            tan2[offset] += tx;
-            tan2[offset + 1] += ty;
-            tan2[offset + 2] += tz;
-        }
+        // Unrolled over the triangle's three vertices: the
+        // `for (const offset of [ p0, p1, p2 ])` form allocated an array literal
+        // and an iterator per triangle.
+        tan1[p0] += sx;
+        tan1[p0 + 1] += sy;
+        tan1[p0 + 2] += sz;
+        tan2[p0] += tx;
+        tan2[p0 + 1] += ty;
+        tan2[p0 + 2] += tz;
+        tan1[p1] += sx;
+        tan1[p1 + 1] += sy;
+        tan1[p1 + 2] += sz;
+        tan2[p1] += tx;
+        tan2[p1 + 1] += ty;
+        tan2[p1 + 2] += tz;
+        tan1[p2] += sx;
+        tan1[p2 + 1] += sy;
+        tan1[p2 + 2] += sz;
+        tan2[p2] += tx;
+        tan2[p2 + 1] += ty;
+        tan2[p2 + 2] += tz;
     }
 
     const

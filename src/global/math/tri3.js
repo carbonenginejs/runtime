@@ -221,6 +221,13 @@ tri3.intersectsOrientedBox = (function()
     // Nine edge-cross axes, with Carbon's own vertex pairs. Built once: the
     // vectors are stable across calls, and a decal tests every triangle of a
     // hull against this.
+    //
+    // Each row is read positionally in the loop below, which is what the old
+    // destructuring form used to name:
+    //
+    //     [ edge, ax, bx, ay, by, az, bz ]
+    //
+    // one vertex pair per box axis: x at [1],[2], y at [3],[4], z at [5],[6].
     const edgeAxes = [
         [ e[0], v[0], v[2], v[0], v[2], v[1], v[2] ],
         [ e[1], v[0], v[2], v[0], v[2], v[0], v[1] ],
@@ -286,15 +293,21 @@ tri3.intersectsOrientedBox = (function()
         if (vec3.dot(vmin, normal) > 0) return false;
         if (vec3.dot(vmax, normal) < 0) return false;
 
-        for (const [ edge, ax, bx, ay, by, az, bz ] of edgeAxes)
+        // An indexed loop, NOT `for...of` with destructuring. A decal runs this
+        // over every triangle of a hull, so this is the hottest loop in the file,
+        // and that form costs an array iterator plus a seven-way destructure on
+        // every call. The rows are read positionally below for the same reason.
+        for (let axis = 0; axis < edgeAxes.length; axis++)
         {
+            const row = edgeAxes[axis];
+            const edge = row[0];
             const fex = Math.abs(edge[0]);
             const fey = Math.abs(edge[1]);
             const fez = Math.abs(edge[2]);
 
-            if (!axisTest(edge[2], -edge[1], fez, fey, ax, bx, 1, 2)) return false;
-            if (!axisTest(-edge[2], edge[0], fez, fex, ay, by, 0, 2)) return false;
-            if (!axisTest(edge[1], -edge[0], fey, fex, az, bz, 0, 1)) return false;
+            if (!axisTest(edge[2], -edge[1], fez, fey, row[1], row[2], 1, 2)) return false;
+            if (!axisTest(-edge[2], edge[0], fez, fex, row[3], row[4], 0, 2)) return false;
+            if (!axisTest(edge[1], -edge[0], fey, fex, row[5], row[6], 0, 1)) return false;
         }
 
         return true;

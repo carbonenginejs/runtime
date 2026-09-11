@@ -8,6 +8,11 @@ import {
     GL_FLOAT
 } from "../consts/constants.js";
 
+// A LIVE ESM binding, deliberately. gl-matrix reassigns this when a consumer
+// calls `setMatrixArrayType`, and an ESM import reflects that reassignment,
+// so the pool keeps following it rather than capturing the type at load.
+import { ARRAY_TYPE } from "gl-matrix/esm/common.js";
+
 
 function loop(n, f)
 {
@@ -67,13 +72,29 @@ export function createPool()
     }
 
     /**
-     * Shortcut to allocating a float 32 array
+     * Shortcut to allocating an array of gl-matrix's own scalar type.
+     *
+     * The name says F32 and in every environment we ship it IS Float32Array,
+     * because that is what `glMatrix.ARRAY_TYPE` defaults to. But gl-matrix owns
+     * that choice and exposes `setMatrixArrayType` to change it, so hardcoding
+     * the type here is a real defect: `vec3.alloc()` would hand back a narrower
+     * array than `vec3.create()` the moment anything overrode it, and every
+     * pooled temporary in the math tree would silently round. Following
+     * `ARRAY_TYPE` is what makes a pooled vector interchangeable with a created
+     * one. Inherited from ccpwgl, where the same hardcoding is still present.
+     *
      * @param {Number} length
-     * @returns {Float32Array}
+     * @returns {Float32Array|Float64Array} gl-matrix's scalar type.
      */
     function allocF32(length)
     {
-        const result = new Float32Array(alloc(4 * length), 0, length);
+        // gl-matrix falls back to plain `Array` only where Float32Array does not
+        // exist, which cannot happen anywhere this runs; the pool hands out views
+        // over a shared ArrayBuffer, so it needs a real typed array either way.
+        const
+            ScalarArray = ARRAY_TYPE.BYTES_PER_ELEMENT ? ARRAY_TYPE : Float32Array,
+            result = new ScalarArray(alloc(ScalarArray.BYTES_PER_ELEMENT * length), 0, length);
+
         return result.length !== length ? result.subarray(0, length) : result;
     }
 
