@@ -35,11 +35,10 @@ Resource acquisition, decoded image bytes, GPU handles, render targets, cache
 leases, and live scene objects remain outside the plan. The plan may identify
 those inputs but must remain GPU-free and serializable.
 
-`CjsCharacterAppearancePlan` is an ordinary schema-backed model. Inherited
-`CjsModel.from(values)` and instance `SetValues(values)` consume the same
-`carbonenginejs.characterAppearancePlan` schema-v4 shape. Inherited
-`GetValues({ refs: true })` emits serializable `_id`/`_ref` graph metadata.
-There is no alternate wire format or retained document copy.
+`CjsCharacterAppearancePlan` uses inherited model hydration and serialization
+with the same `carbonenginejs.characterAppearancePlan` schema-v4 shape, not an
+alternate wire format or retained document copy. See
+[graph serialization](../guides/runtime-usage.md#serialize-a-model-graph).
 
 The complete resolver pipeline is responsible for selection, dependency, LOD,
 material, texture-role, placement, and bake-order decisions. Hydration applies
@@ -228,26 +227,11 @@ through extra static methods on the model.
 
 ## Offset and transform normalization
 
-Three different transforms must remain separate:
-
-- decoded PNG placement: image size, atlas offset, atlas extent, target size,
-  and whether placement metadata was present;
-- an authored sampler transform such as `TransformUV0`, which current evidence
-  treats as bounds rather than the PNG offset; and
-- projected-decal placement, whose spherical parameters and atlas placement
-  belong to the projection contract.
-
-An adapter may combine them into a final sampling transform, but the source
-records must not overwrite one with another. Cropped placement is applied once.
-The known double-application cause is closed at the policy and structural-test
-level and must remain a regression case; the complete visual fixture matrix is
-still open.
-
-Diffuse, normal, and specular inputs retain independent sample bounds. A
-material-global UV transform is insufficient because the three assets can have
-different placement metadata.
-
-The reviewed evidence establishes only renderer-neutral rules:
+Keep decoded PNG placement (size, offset, extent, target size and metadata
+presence), authored sampler bounds, and projected decals' spherical parameters
+and atlas placement distinct. An adapter may combine them for sampling without
+overwriting source values. The double-placement cause is structurally closed and must remain a
+regression case; the full visual matrix remains open.
 
 | Transform rule | Status |
 | --- | --- |
@@ -258,16 +242,14 @@ The reviewed evidence establishes only renderer-neutral rules:
 | Diffuse, normal, specular, and cut inputs retain independent placement and sampling bounds. | Proven contract requirement; complete consumer qualification remains open. |
 | Rebinding reconstructed textures requires an explicit consumer contract and atomic readiness. | Renderer-owned adoption gate. |
 
-The renderer must choose from the resource actually bound at that stage. It
-must not force identity globally, copy PNG placement into `TransformUV0`, bind
-a cropped channel as though it were a full atlas, or assume one transform
-covers every object and mask.
+Choose transforms from the resource actually bound at that stage: never force
+identity globally, copy PNG placement into `TransformUV0`, or treat a cropped
+channel as a full atlas. One transform cannot cover every object and mask.
 
-Decoded geometry may expose several materially distinct surfaces within one
-atlas region. Atlas bounds are placement evidence, not material ownership.
-An engine therefore needs an explicit typed consumer relationship before it
-rebinds a reconstructed channel; unqualified surfaces retain their authored
-bindings. This rule does not claim complete renderer or visual parity.
+Several materially distinct surfaces may share an atlas region; bounds prove
+placement, not ownership. Rebinding requires a typed consumer relationship;
+unqualified consumers retain authored bindings.
+These rules do not establish complete renderer or visual parity.
 
 ## Dependency ownership and garment coverage
 
@@ -316,35 +298,17 @@ by this data contract. Missing evidence produces diagnostics or an explicit
 
 ## Current contract tests
 
-The data-only contract and first-stage resolver tests prove:
+See the [plan fixtures](../../../test/character/runtime-character/character-appearance-plan.test.js),
+[resolver checks](../../../test/character/runtime-character/character-appearance-resolver.test.js)
+and [composition-policy checks](../../../test/character/runtime-character/character-composition-policy.test.js)
+for the contracts above. The fixtures retain:
 
-- equivalent hydration through inherited `from` and `SetValues`;
-- JSON graph round-trip through inherited `GetValues({ refs: true })`;
-- authoritative target pass-array order;
-- distinct owner and contributor references;
-- one diffuse-minus-cut coverage reused by normal clear/replacement/addition
-  and consumer alpha reconstruction;
-- replacement normal before independent additive normal detail;
-- independent diffuse, normal, and specular sample bounds;
-- native rejection of unresolved or duplicate graph identities; and
-- resolver-owned operation strings remaining ordinary model data;
-- exact paper-doll selection and source-record relationship traversal;
-- strict resource-version identity and unique configuration/geometry
-  resolution without filename parsing;
-- refusal to infer baseline candidate or metadata inheritance, or choose among
-  duplicate exact resource-version inventories;
-- explicit diagnostics for dangling effective version-metadata relationships;
-- exact preservation of raw dependency and occlusion strings beside typed
-  references, requester-owned projection of a unique exact dependency source,
-  and per-value diagnostics for unresolved references without fabricated
-  targets;
-- exact typed modifier-location and clothing-removal suppression without
-  deleting the retained selection, including explicit cyclic-conflict
-  diagnostics;
-- retention and diagnosis of categories absent from the native modifier order;
-- contribution relationships without inferred pass order;
-- deterministic diagnostics for dangling, ambiguous, and policy-dependent
-  inputs; and
-- source-library immutability and standalone plan graph round trips;
-- exact modifier sort keys, stable equal-key order, metadata endpoint swaps,
-  and caller-owned atlas-layout values.
+- shared diffuse-alpha-minus-cut-red coverage for normal clear, replacement,
+  addition and final consumer alpha;
+- replacement before additive normal detail, with independent diffuse, normal
+  and specular sample bounds; and
+- source-library immutability, standalone graph round trips and dangling or
+  ambiguous-input diagnostics.
+
+These tests import built output. The plan fixture still asserts schema v1;
+its policy-backed order is not fresh schema-v4 or visual qualification.

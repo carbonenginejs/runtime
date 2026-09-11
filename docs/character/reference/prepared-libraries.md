@@ -105,14 +105,11 @@ creating an unresolved `_ref` or placeholder object.
 
 ## Hydration and serialization
 
-`CjsCharacterLibrary.from(values)` and instance `SetValues(values)` hydrate
-the same public shape and direct object relationships. `Get(document, recordID)`
-and `GetDocument(document)` query those records. There is no alternate retained
-JSON document or identity-conversion wrapper.
-
-`GetValues({ refs: true })` serializes shared relationships. Tokens may change
-on export; equivalent relationships, not stable token numbers, define the
-round-trip contract. See [runtime usage](../guides/runtime-usage.md) for examples.
+Inherited hydration consumes the same public shape and direct relationships;
+there is no retained JSON document or identity-conversion wrapper.
+See [record lookup](../guides/runtime-usage.md#read-records-and-relationships)
+and [graph serialization](../guides/runtime-usage.md#serialize-a-model-graph)
+for methods and examples. Round trips preserve relationships, not token numbers.
 
 ## Builder boundary
 
@@ -183,14 +180,10 @@ while interpreting retained `oFFs`/`pHYs` millionths is character policy.
 Black/Red object graphs target registered native/historical classes separately;
 they are not replacements for this combined library or the appearance plan.
 
-Candidate arrays do not assert semantic selection. The combined library does
-not contain unlabelled model families, filename-derived texture roles, compiled
-recipe links, or material fallbacks. Optional model bundles retain decoded
-configuration/geometry relationships plus explicitly labelled terminal-LOD and
-paired-resource-family derivations; unpaired or ambiguous candidates remain
-unresolved.
-External configuration graphs, geometry data, images, animations, and effects
-remain resource-manager inputs rather than embedded library objects.
+Candidate inventories do not select semantic roles or supply unlabelled model
+families, filename-derived texture roles, compiled recipe links or material
+fallbacks. The table above defines qualified bundles and labelled derivations;
+unpaired or ambiguous candidates remain unresolved.
 
 One published character resource can use the same definition identity for
 more than one sex. The appearance resolver selects an exact source from
@@ -205,20 +198,11 @@ published definition files are producer inputs; their decoded values survive
 inside `characterDefinitions`, so a runtime frontend does not reconstruct the
 catalog from the publication files.
 
-An editor may hydrate and insert same-shaped values with
-`library.Create(documentName, values)`, or add an already-hydrated record with
-`library.Add(documentName, record)`. The latter preserves that exact instance.
-`Remove` detaches a record, `Delete` additionally runs an optional explicit
-domain teardown callback, and `Clear` empties one document without guessing
-record destruction.
-
-These operations apply the document property's normal flag/update contract.
-Each collection has a lazy private-index invalidation flag, consumed when that
-document is next queried. The library emits `recordadded`, `recordremoved`,
-`recorddeleted`, and `documentcleared` so an editor can react to incremental
-changes. Private indexes and flags are runtime state and are excluded from the
-JSON shape. Direct array mutation remains possible because the arrays are the
-model fields; call `Reindex()` after bypassing the named methods.
+Use the [editor mutation API](../guides/runtime-usage.md#mutate-editor-items)
+for insertion, removal, events and reindexing; `Clear` does not guess record
+destruction. Named methods apply the document property's normal flag/update
+contract. Lazy private-index flags are consumed on the next document query;
+indexes and flags are runtime state, excluded from JSON.
 
 `CjsCharacterLibraryManager` can install the combined model directly or obtain
 its decoded object through one injected loader. Plain schema-v10 values contain
