@@ -85,11 +85,13 @@ export class Tr2PerObjectDataPSBuffer extends Tr2PerObjectData
   /**
    * Leases a per-object data object and its pixel payload.
    *
-   * Allocation goes through the accumulator both times, which is Carbon's shape:
-   * `accumulator->Allocate<Tr2PerObjectDataStandard>()` leases the object and the
-   * buffers are members of it. `Allocate` records why it only calls the
-   * constructor - in JS the GC owns lifetime - so routing through it means these
-   * classes follow whatever that door decides later.
+   * Carbon leases the OBJECT from the accumulator too -
+   * `accumulator->Allocate<Tr2PerObjectDataStandard>()` - because its buffers are
+   * inline members and the whole thing lives in the frame arena. Constructed
+   * directly here instead, because `ITriRenderBatchAccumulator.Allocate` records
+   * that it only calls the constructor - in JS the GC owns the object's lifetime,
+   * and it is the BUFFERS that need the arena. If that door ever starts pooling,
+   * route this through it.
    *
    * @param {object} accumulator An `ITriRenderBatchAccumulator`.
    * @param {string} psStruct A `CjsPerObjectLayouts` struct name.
@@ -97,7 +99,7 @@ export class Tr2PerObjectDataPSBuffer extends Tr2PerObjectData
    */
   static alloc(accumulator, psStruct)
   {
-    const data = accumulator.Allocate(this);
+    const data = new this();
 
     data.ps = accumulator.Alloc(psStruct);
 

@@ -156,10 +156,9 @@ function accumulatorWith(structs)
 {
   const store = new TriPoolAllocator().Register(structs);
 
-  // The two doors ITriRenderBatchAccumulator provides, with its own semantics:
-  // Allocate only calls the constructor, Alloc leases from the bound store.
+  // The one door these classes use: Alloc leases a payload from the bound store.
+
   return {
-    Allocate: (Constructor) => new Constructor(),
     Alloc: (name) => store.Allocate(name)
   };
 }

@@ -7,6 +7,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, type } from "#schema";
 import { Tr2CurveLineSet } from "../../../core/line/Tr2CurveLineSet.js";
+import { Tr2PerObjectDataStandard } from "../../../core/rawData/Tr2PerObjectDataStandard.js";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
 import { Tr2Lod } from "../../EveLODHelper.js";
 
@@ -100,16 +101,20 @@ export class EveCurveLineSet extends withIEveTransform(withIEveSpaceObject2(Tr2C
     return true;
   }
 
-  /** Allocates and packs the line set's standard VS and PS object records. */
+  /**
+   * Carbon EveCurveLineSet::GetPerObjectData (cpp:106-125): the same standard
+   * pair as EveLineSet, each with a transposed WorldMat.
+   */
   @carbon.method
   @impl.implemented
   GetPerObjectData(accumulator)
   {
-    const vs = accumulator.Alloc("EvePerObjectVSData");
-    const ps = accumulator.Alloc("EvePerObjectPSData");
-    vs.SetAndTranspose("WorldMat", this.worldTransform);
-    ps.SetAndTranspose("WorldMat", this.worldTransform);
-    return { vs, ps };
+    const data = Tr2PerObjectDataStandard.alloc(accumulator, "EvePerObjectVSData", "EvePerObjectPSData");
+
+    data.vs.SetAndTranspose("WorldMat", this.worldTransform);
+    data.ps.SetAndTranspose("WorldMat", this.worldTransform);
+
+    return data;
   }
 
   /** Carbon always reports the high LOD for this UI renderable. */

@@ -9,6 +9,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { Tr2PerObjectDataStandard } from "../../../core/rawData/Tr2PerObjectDataStandard.js";
 
 /** Stores editable tactical line records before renderer submission. */
 @type.define({ className: "EveLineSet", family: "eve/ui" })
@@ -232,22 +233,26 @@ export class EveLineSet extends withIEveTransform(withIEveSpaceObject2(withITr2R
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }
 
-  /** Carbon EveLineSet::GetPerObjectData (cpp:210-231): a Tr2PerObjectDataStandard
-   * carrying EvePerObjectVSData + EvePerObjectPSData, each one transposed
-   * WorldMat, uploaded as two constant buffers. Here that is two Allocs
-   * returned as a { vs, ps } record; Set(MATRIX) performs Carbon's
-   * `Transpose(m_worldTransform)`. */
+  /**
+   * Carbon EveLineSet::GetPerObjectData (cpp:210-231): a Tr2PerObjectDataStandard
+   * carrying EvePerObjectVSData and EvePerObjectPSData, each with a transposed
+   * WorldMat, bound as two constant buffers.
+   *
+   * Carbon leases the object from the accumulator and copies a stack struct into
+   * each of its buffers; the lease here creates the buffers in those named
+   * layouts, so the writes below land where the copy would have put them.
+   * SetAndTranspose is Carbon's `Transpose( m_worldTransform )`.
+   */
   @carbon.method
   @impl.implemented
   GetPerObjectData(accumulator)
   {
-    const vs = accumulator.Alloc("EvePerObjectVSData");
-    const ps = accumulator.Alloc("EvePerObjectPSData");
+    const data = Tr2PerObjectDataStandard.alloc(accumulator, "EvePerObjectVSData", "EvePerObjectPSData");
 
-    vs.SetAndTranspose("WorldMat", this.worldTransform);
-    ps.SetAndTranspose("WorldMat", this.worldTransform);
+    data.vs.SetAndTranspose("WorldMat", this.worldTransform);
+    data.ps.SetAndTranspose("WorldMat", this.worldTransform);
 
-    return { vs, ps };
+    return data;
   }
 
 }
