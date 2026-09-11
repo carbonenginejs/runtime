@@ -154,98 +154,32 @@ own `SVT_INT`/`SVT_INT16`/`SVT_INT12` type forces `TO_FLAG_INTEGER`
 
 ### GLSL lowering — B. Historical WebGL2 `cb3` joint-matrix rewrite contract
 
-**Superseded 2026-08-02.** The original two-stage `BoneTransforms` vertex-skinning
-pipeline follows. Its steps, citations, failures and proposed diagnostics are
-historical evidence, not open requirements. Step 2 records its replacement:
+**Superseded 2026-08-02.** Vertex-stage structured buffers are emitted as
+`std140` UBOs with real bindings by `DxbcGlslEmitter.js`'s
+`dcl_resource_structured` vertex branch. The package-time regex pass was
+deleted from `scripts/packageTr2WebglEffect.js`.
 
-1. Emit HLSLcc's reference SSBO GLSL exactly as in section A (this project's
-   HLSLcc fork already tolerates missing `RDEF` bindings for
-   `dcl_resource_structured` by falling back to the DXBC declaration's encoded
-   stride — see `CARBONENGINEJS-FORK.md:41-44` and
-   `TRANSPILING-GAPS.md:51-54`), producing text of the exact shape:
-   ```glsl
-   struct t0_type { uint[1] value; };
-   layout(std430, binding = 0) readonly buffer t0 { t0_type t0_buf[]; };
-   ...
-   dest = vec4(uintBitsToFloat(t0_buf[idx].value[(0 >> 2) + 0]),
-               uintBitsToFloat(t0_buf[idx].value[(0 >> 2) + 1]),
-               uintBitsToFloat(t0_buf[idx].value[(0 >> 2) + 2]),
-               uintBitsToFloat(t0_buf[idx].value[(0 >> 2) + 3]));
-   ```
-   Verified against an actual generated fixture
-   (`../shaderdiscovery/artifacts/ab-shader-set/work/skinned_fxdirectionalv5/skinned_fxdirectionalv5.sm_hi.dxbc_29291f5662ed6781.vertex.es300.glsl:60-64`):
-   all four components of one row share the **same** byte offset (row 0 uses
-   `0`, row 1 uses `16`, row 2 uses `32` — i.e. the row's base byte offset, not
-   a per-component offset of `0/4/8/12`), differing only in the trailing
-   `+ 0/1/2/3` dword index, and **without** a `u` suffix on either the shift or
-   the addend. The missing `u` is not a formatting nit: in this corpus the
-   byte-offset operand is declared `SVT_INT` (not `SVT_UINT`), so
-   `srcOffFlag` resolves to `TO_FLAG_INTEGER`
-   (`toGLSLInstruction.cpp:1618-1621`), which suppresses the `u` suffix
-   entirely (see `printImmediate32`, `toGLSLOperand.cpp:371-387` vs. `388-395`).
-   This also matters functionally: `lowerStructuredBoneLoad`'s regex
-   (`packageTr2WebglEffect.js:875`) matches literal `(\d+)\s*>>\s*2\s*\)` with
-   no `u` tolerance, and its 4-component agreement check requires all four
-   loads to share one `byteOffset` — a per-component-varying offset of
-   `0/4/8/12` would both fail to match the regex *and* fail the "same
-   byteOffset" agreement check, silently no-opping the rewrite. The previous
-   worked example here was internally inconsistent with the very rewrite
-   contract it was illustrating.
-2. A package-time rewrite pass over the generated GLSL text, performing the
-   steps below **in this exact order**.
+The [pinned original recipe](https://github.com/carbonenginejs/runtime/blob/917c644807fa7d4802dbba572af50cb98fff0bef/docs/resource/formats/webgl/memory-structured.md#glsl-lowering--b-webgl2-cb3-joint-matrix-rewrite-contract-the-shipping-path)
+preserves all eight ordered rewrites, source/fixture citations, worked example,
+failure cases and proposed diagnostics. It preserves the historical document,
+not the missing cited source or artifacts. The legacy ccpwgl ABI constraints
+that motivated it remain useful:
 
-   > **Superseded (2026-08-02).** This pass no longer exists. The emitter now
-   > declares vertex-stage structured buffers as `std140` UBOs when it emits the
-   > shader, with real bindings, rather than rewriting text afterwards — see
-   > `DxbcGlslEmitter.js`, the `dcl_resource_structured` vertex branch. The
-   > regex functions it describes were deleted from
-   > `scripts/packageTr2WebglEffect.js`, so the line citations below point at
-   > nothing. The section is kept because it records *why* each rewrite was
-   > needed, which the ccpwgl runtime ABI still constrains; read it as history,
-   > not as a description of the code.
-   1. Strip the `#ifdef GL_ARB_shader_storage_buffer_object` /
-      `GL_ARB_shader_image_load_store` extension guard blocks (regexes at
-      `packageTr2WebglEffect.js:832-833`).
-   2. Strip the `struct t0_type { uint[1] value; };` declaration (regex at
-      `packageTr2WebglEffect.js:834`, matches only the 1-word/4-byte stride
-      shape).
-   3. Strip the `layout(std430, binding = 0) readonly buffer t0 { t0_type
-      t0_buf[]; };` declaration (regex at `packageTr2WebglEffect.js:835`).
-   4. Grow the vertex stage's `ConstantBuffer3` (`cb3`) declaration to
-      `vec4 data[max(existingSize, 200)]` (`packageTr2WebglEffect.js:836-839`) —
-      this is where `JointMat` lives at `cb3.data[26..199]` per the ccpwgl runtime
-      ABI (`cb3[26..199]`, 58 joints × 12 floats = 696 floats,
-      `AGENT-FINDINGS/decisions/016-carbonwebgl-skinning-abi-lowering-for-ccpwgl-2026-06-30.md`
-      and `015-joint-matrix-jointmat-findings-ccpwgl-runtime-truth.md`).
-   5. Convert `uvec4`/`ivec4` (or `uvec2/3`, `ivec2/3`) `in_BLENDINDICES<n>` vertex
-      inputs to plain `vec<N>` (regex at `packageTr2WebglEffect.js:840-843`) —
-      ccpwgl binds GR2 mesh blend indices as float attributes via
-      `vertexAttribPointer`, not `vertexAttribIPointer`
-      (`AGENT-FINDINGS/decisions/028-carbonwebgl-skinned-blend-index-abi-lowering.md`).
-   6. Strip the DX11 global bone-offset add HLSLcc emits when combining
-      `in_BLENDINDICES0` with a `cb3.data[26]` offset uniform (two regex forms at
-      `packageTr2WebglEffect.js:845-852`, covering both the scalar `int(...)  +
-      floatBitsToInt(cb3.data[26].x)` shape and the vector `(i)uvec/ivec(...) +
-      floatBitsToInt(cb3.data[26].<swz>)` shape) — ccpwgl's `cb3.data[26]` slot is
-      reused for `JointMat`, not the native bone-ring-buffer offset, so this add
-      must be removed entirely rather than merely rewired.
-   7. Rewrite each 4-component `t0_buf[...]` row-load expression
-      (`vec4(t0_buf[idx].value[(byteOff>>2)+0], ...)`, all 4 components required,
-      `lowerStructuredBoneLoad`) into:
-      ```glsl
-      cb3.data[26 + (<idx>) * 3 + <row>]
-      ```
-      where `<row> = floor(byteOff / 16)` and must be in `{0,1,2}` (a `Float4x3`
-      bone matrix is 3 `vec4` rows); if any of the 4 component sub-expressions
-      disagree on `idx`/`byteOff`, or `row` falls outside `0..2`, or the swizzle
-      is anything but the identity `xyzw`/`.xyzw` is stripped when default,
-      **the rewrite silently no-ops and leaves the un-lowered `t0_buf` text in
-      place** (`packageTr2WebglEffect.js:886,890,895,898` all `return match`) —
-      this is a silent-failure edge case the implementing engineer must guard
-      against (add a diagnostic) rather than trust to fail loudly.
-   8. If any rewrite happened, inject a `// Carbon WebGL: BoneTransforms lowered to cb3
-      JointMat rows.` marker comment after `#version 300 es`
-      (`packageTr2WebglEffect.js:859-861`).
+- `JointMat` occupied `cb3[26..199]`: 58 joints × 3 `vec4` rows
+  (696 floats), requiring at least 200 rows in the buffer declaration.
+- Blend-index inputs became float `vec<N>` attributes for
+  `vertexAttribPointer`, not `vertexAttribIPointer`.
+- The native bone-offset addition was stripped because `cb3[26]` held
+  `JointMat`, not that offset.
+- Four loads had to agree on index and base byte offset (`0/16/32`, not
+  per-component `0/4/8/12`), with rows `0..2` and identity swizzle.
+  Signed offsets explained the fixture's missing `u`; the regex did not
+  tolerate that suffix. Partial masks, mismatched indices/offsets/rows or
+  incompatible swizzles silently left the SSBO load unreplaced.
+
+Those failed matches and diagnostic proposals are historical, not renewed
+implementation requirements. The retained helper inventory below has the same
+historical scope.
 
 ### GLSL lowering — C. `ld_structured` in pixel stage / non-skinning resources
 The corpus also uses `ld_structured` on `t#` "packed tbuffer" resources unrelated
@@ -712,47 +646,35 @@ shaders, regardless of which D3D11 stage the source instruction came from.
 **Fully out of scope for the WebGL2 emitter.** Detect any `atomic_*`/
 `imm_atomic_*` opcode and refuse the stage.
 
-Do **not** rely on "these only occur in compute shaders" as the reason for
-skipping this check in the pixel-stage emitter: `dx11-instruction-coverage.json`
-(`initialCandidateOpcodeExamples`) records a concrete `atomic_iadd` instance in
+Do **not** skip the pixel-stage check by assuming compute-only use.
+`dx11-instruction-coverage.json` (`initialCandidateOpcodeExamples`) records
+`atomic_iadd` in
 `graphics\effect.dx11\managed\space\specialfx\lensflares\lensflareoccludert.sm_depth`
-tagged `stageIndex: 1` / `stageName: "pixel"` — an actual D3D11 pixel shader
-(D3D11.1 permits UAV access from pixel shaders; a lens-flare occlusion query
-written into a UAV counter from the pixel stage is a plausible, ordinary
-technique, not a mislabeled compute pass). The other four sampled corpus
-instances of this opcode group (`atomic_iadd` again in `createhistograms.sm_depth`,
-`imm_atomic_iadd` in `clear.sm_depth`, `imm_atomic_exch`/`atomic_umax`/
-`atomic_umin` in `computelightlists.sm_depth`) are all tagged `stageName:
-"geometry"` by the same tool, but those files' names (histogram building,
-particle-buffer clear, light-list culling) are classic GPGPU compute-shader
-workloads, and the coverage tool has no `"compute"` stage label at all in its
-vocabulary (only `vertex`/`pixel`/`geometry`/`hull`) — those four are much
-better explained as compute shaders whose slot the tool mislabels than as
-genuine geometry shaders (a real DX11 geometry shader cannot declare
-`dcl_thread_group`/`sync`, which the *sibling* `createhistograms.sm_depth`
-example for the `sync` opcode does, and DXBC does not permit that in a
-geometry stage). The `lensflareoccludert` pixel-stage instance is not
-explained away by that reasoning and must be treated as real: the emitter's
-**ps-stage translation path itself** needs the detect-and-refuse check, not
-just a pre-filter that assumes this opcode class never survives into a vs/ps
-compile.
+with `stageIndex: 1` / `stageName: "pixel"`. D3D11.1 permits pixel-shader
+UAV access; a lens-flare occlusion counter is a plausible use, not a mislabeled
+compute pass. The **ps-stage translator itself** must detect and refuse it.
 
-`TRANSPILING-GAPS.md:100-114` ("UAV and atomic path... blocked for current
-WebGL2 target... `atomic_iadd`: 6... Affects the `lensflareoccludert` path" —
-note that count was measured on a narrower earlier corpus slice than this
-family's 450k-instruction sweep, which shows 27) already names
-`lensflareoccludert` as the blocked case; it does not itself claim the
-instruction is compute-only, and the per-instruction corpus scan confirms it
-is not.
+The four other sampled cases are tagged `"geometry"`: `atomic_iadd` in
+`createhistograms.sm_depth`, `imm_atomic_iadd` in `clear.sm_depth`, and
+`imm_atomic_exch`/`atomic_umax`/`atomic_umin` in
+`computelightlists.sm_depth`. Their histogram, particle-clear and light-list
+workloads suggest compute. The tool's vocabulary is only
+`vertex`/`pixel`/`geometry`/`hull`, with no `"compute"` label;
+the sibling `sync` example in `createhistograms.sm_depth` also carries
+`dcl_thread_group`/`sync`, illegal in a real DX11 geometry stage. That
+mislabeling inference does not explain away the confirmed pixel example.
+
+`TRANSPILING-GAPS.md:100-114` already names `lensflareoccludert` as
+blocked ("UAV and atomic path... blocked for current WebGL2 target...
+`atomic_iadd`: 6... Affects the `lensflareoccludert` path"). Its count 6
+is from a narrower earlier slice than this 450k-instruction sweep's 27, and it
+does not claim compute-only use.
 
 ### Confidence
-**High** for the DXBC/GLSL semantics (read directly from source) and for the
-WebGL2-out-of-scope conclusion (ES 3.00 has no atomics in any stage, so the
-`lensflareoccludert` pixel-shader counterexample does not change the outcome).
-**Medium** on the blanket "compute-only" framing carried over from the
-project's decision log — confirmed false for at least the `lensflareoccludert`
-`atomic_iadd` instance, which is a pixel shader; the emitter must not assume
-this opcode family is filtered out before reaching ps-stage translation.
+**High** for the source-read DXBC/GLSL semantics and WebGL2 exclusion: ES 3.00
+has no atomics in any stage. **Medium** for the decision log's blanket
+compute-only framing, disproven by the pixel-stage example. Refusal must not
+depend on a pre-filter removing this family before ps translation.
 
 ---
 
