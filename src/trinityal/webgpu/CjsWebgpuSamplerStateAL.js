@@ -19,7 +19,7 @@
 // state keeps is the AUTHORED one, border included, so the material can read
 // the real modes back.
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
-import { NormalizeSamplerDescription } from "../Tr2SamplerDescription.js";
+import { NormalizeSamplerDescription } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { CarbonSamplerDescriptor } from "./core/samplerDescriptor.js";
 
 /** Carbon's "no descriptor heap index", as the stub spells it. */

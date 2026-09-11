@@ -34,6 +34,24 @@ export const CompareFunc = Object.freeze({
     CMP_ALWAYS: 8
 });
 
+export const TextureFilter = Object.freeze({
+    TF_NONE: 0,
+    TF_POINT: 1,
+    TF_LINEAR: 2,
+    TF_ANISOTROPIC: 3,
+
+    /** Or-ed into a filter to select the comparison sampler. */
+    TF_COMPARISON: 0x80
+});
+
+export const TextureAddressMode = Object.freeze({
+    TA_WRAP: 1,
+    TA_MIRROR: 2,
+    TA_CLAMP: 3,
+    TA_BORDER: 4,
+    TA_MIRROR_ONCE: 5
+});
+
 export const FillMode = Object.freeze({
     FM_POINT: 1,
     FM_WIREFRAME: 2,

@@ -83,7 +83,7 @@ import { CjsWebgpuTextureAL } from "./CjsWebgpuTextureAL.js";
 import { CjsWebgpuConstantArena } from "./core/constantArena.js";
 import { CanonicalKey } from "./core/pipelineCache.js";
 import { TOPOLOGIES } from "./core/topology.js";
-import { SamplerDescriptionKey } from "../Tr2SamplerDescription.js";
+import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/psoDescription.js";
 import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";

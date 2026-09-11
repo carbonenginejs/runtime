@@ -1,139 +1,19 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h
 // Source: trinity/trinityal/Tr2HalHelperStructures.cpp
 //
-// The small value types the abstraction layer passes around: a multisample
-// description, and the region of a texture that a map, an update or a copy
-// applies to.
-//
-// `Tr2TextureSubresource` LOOKS like a plain rectangle and is not. Its default
-// is "all of it", spelled as an all-ones box rather than as a flag, and
-// `HasBox` is what distinguishes "the caller named a region" from "the caller
-// named the whole texture". Half the validation in the texture stub turns on
-// that distinction, so it is transcribed here rather than simplified into a
-// nullable box.
-//
-// TWO LANGUAGE DIFFERENCES. Carbon's three constructor overloads become the
-// default constructor plus two named factories, and `operator==` becomes
-// `Equals`.
-//
-// Carbon's `AdvanceMip` is NOT ported: nothing in this runtime walks a copy
-// down a mip chain yet, and its depth branch shrinks the vertical box rather
-// than the depth one, which is a bug worth reading again before relying on.
+// ONE FOLDER PER DONOR HEADER. Carbon declares six types in this header, and a
+// C++ header is an include unit rather than a class container. Splitting them one
+// per file keeps every class findable by its own name without inventing anything:
+// the folder still names the donor, so each file has something to be diffed
+// against. It also makes an unported sibling visible as a missing FILE, which is
+// how two of these were found absent.
 
-import { TextureType } from "../global/consts/renderContext/index.js";
-
+import { TextureType } from "../../global/consts/renderContext/index.js";
+// Implicit while both lived in one file: Carbon's subresource HOLDS a coord box.
+import { Tr2TextureCoordBox } from "./Tr2TextureCoordBox.js";
 
 /** Carbon's "not set" for every box coordinate: `0xffffffff`. */
 const UNSET = 0xffffffff;
-
-
-/**
- * A multisample description.
- */
-export class Tr2MsaaDesc
-{
-  /** Samples per pixel; never below one. */
-  samples = 1;
-
-  /** Backend-defined quality level. */
-  quality = 0;
-
-  /**
-   * @param {number} [samples] Samples per pixel.
-   * @param {number} [quality] Quality level.
-   */
-  constructor(samples = 1, quality = 0)
-  {
-    this.samples = Math.max(samples, 1);
-    this.quality = quality;
-  }
-
-  /**
-   * Whether two descriptions match.
-   *
-   * Carbon clamps both sample counts to at least one before comparing, so a
-   * zero and a one are the same description.
-   *
-   * @param {Tr2MsaaDesc} other The description to compare with.
-   * @returns {boolean} True when they match.
-   */
-  Equals(other)
-  {
-    return Math.max(this.samples, 1) === Math.max(other.samples, 1) && this.quality === other.quality;
-  }
-}
-
-
-/**
- * A box within a texture, in pixels.
- */
-export class Tr2TextureCoordBox
-{
-  /** @type {number} */
-  left = UNSET;
-
-  /** @type {number} */
-  top = UNSET;
-
-  /** @type {number} */
-  front = UNSET;
-
-  /** @type {number} */
-  right = UNSET;
-
-  /** @type {number} */
-  bottom = UNSET;
-
-  /** @type {number} */
-  back = UNSET;
-
-  /**
-   * Width of the box.
-   *
-   * @returns {number} Right minus left.
-   */
-  GetWidth()
-  {
-    return this.right - this.left;
-  }
-
-  /**
-   * Height of the box.
-   *
-   * @returns {number} Bottom minus top.
-   */
-  GetHeight()
-  {
-    return this.bottom - this.top;
-  }
-
-  /**
-   * Depth of the box.
-   *
-   * @returns {number} Back minus front.
-   */
-  GetDepth()
-  {
-    return this.back - this.front;
-  }
-
-  /**
-   * Whether two boxes cover the same region.
-   *
-   * @param {Tr2TextureCoordBox} other The box to compare with.
-   * @returns {boolean} True when every coordinate matches.
-   */
-  Equals(other)
-  {
-    return this.left === other.left &&
-      this.top === other.top &&
-      this.front === other.front &&
-      this.right === other.right &&
-      this.bottom === other.bottom &&
-      this.back === other.back;
-  }
-}
-
 
 /**
  * A range of faces, mip levels and pixels within a texture.
@@ -443,7 +323,6 @@ export class Tr2TextureSubresource
       this.m_box.Equals(other.m_box);
   }
 }
-
 
 /**
  * Crops a source and destination region to their textures and to each other.

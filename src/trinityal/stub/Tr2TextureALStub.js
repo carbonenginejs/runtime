@@ -37,7 +37,7 @@
 import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2BitmapDimensions } from "../Tr2BitmapDimensions.js";
-import { Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures.js";
+import { Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures/index.js";
 import {
   IsCompressedFormat,
   HasBufferFlags,

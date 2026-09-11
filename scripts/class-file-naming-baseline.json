@@ -121,11 +121,6 @@
     "src/trinityal/Tr2DeviceResourceAL.js": [
       "Tr2BaseDeviceResourceAL"
     ],
-    "src/trinityal/Tr2HalHelperStructures.js": [
-      "Tr2MsaaDesc",
-      "Tr2TextureCoordBox",
-      "Tr2TextureSubresource"
-    ],
     "src/trinityal/Tr2RenderPassAL.js": [
       "Tr2DepthAttachment",
       "Tr2ColorAttachment"
@@ -388,11 +383,6 @@
     "src/trinityal/stub/Tr2RenderContextALStub.js": [
       "Tr2BindlessResourcesAL",
       "Tr2RenderContextALStub"
-    ],
-    "src/trinityal/Tr2HalHelperStructures.js": [
-      "Tr2MsaaDesc",
-      "Tr2TextureCoordBox",
-      "Tr2TextureSubresource"
     ],
     "src/trinityal/Tr2RenderPassAL.js": [
       "Tr2DepthAttachment",

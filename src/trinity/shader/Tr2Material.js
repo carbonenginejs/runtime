@@ -10,7 +10,7 @@ import { Tr2ConstantUsageAL } from "../../trinityal/index.js";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { EFFECT_CONSTANTS } from "../core/Tr2Renderer.js";
 import { CompareFunc } from "#consts/render-context";
-import { SAMPLER_LOD_UNBOUNDED } from "../../trinityal/Tr2SamplerDescription.js";
+import { SAMPLER_LOD_UNBOUNDED } from "../../trinityal/Tr2HalHelperStructures/Tr2SamplerDescription.js";
 
 
 /**

@@ -41,7 +41,37 @@ Emulates the user-pointer draws every backend delegates to it, staging a caller'
 Multisample sample count and quality level.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2HalHelperStructures.js`
+- Source: `src/trinityal/Tr2HalHelperStructures/Tr2MsaaDesc.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SubresourceData -->
+## `Tr2SubresourceData`
+
+One mip of one layer: where its pixels are, and how they are laid out.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2Viewport -->
+## `Tr2Viewport`
+
+The viewport a render context draws through.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2HalHelperStructures/Tr2Viewport.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SamplerDescription -->
+## `Tr2SamplerDescription`
+
+The authored sampler state a `Tr2SamplerStateAL` is created from, and the key its factory dedupes on.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2HalHelperStructures/Tr2SamplerDescription.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -51,7 +81,7 @@ Multisample sample count and quality level.
 A box within a texture, in pixels.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2HalHelperStructures.js`
+- Source: `src/trinityal/Tr2HalHelperStructures/Tr2TextureCoordBox.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -61,7 +91,7 @@ A box within a texture, in pixels.
 The range of faces, mip levels and pixels a map, update or copy applies to; unset means the whole resource.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2HalHelperStructures.js`
+- Source: `src/trinityal/Tr2HalHelperStructures/Tr2TextureSubresource.js`
 - Visibility: Public
 - Kind: Carbon
 
