@@ -354,28 +354,25 @@ dest = textureGather(<TextureSamplerName>, <coord>[, <refZ>][, <offsetVec>][, <c
 float) since GLSL's `ivec` offset parameters require true integer values, not a
 reinterpreted float register.
 
-**Helpers needed**: `hlslcc_textureGather4Emulated` (**mandatory for this target** — see
-WebGL2 notes below). **Correction**: an earlier draft of this spec claimed "zero hits for
-`HaveGather` outside `languages.h`" — that grep claim is false. `toGLSLInstruction.cpp`/
-`toGLSLDeclaration.cpp`/`toGLSLOperand.cpp` (the instruction/declaration/operand lowering
-proper) indeed never check `HaveGather`, but `toGLSL.cpp`'s `AddVersionDependentCode`
-(`:163-172`) does: `if (!HaveGather(eLang)) { if (any gather4* opcode used)
-EnableExtension("GL_ARB_texture_gather"); }`. `EnableExtension` (`HLSLCrossCompilerContext.cpp:157-167`)
-emits a guarded pragma — `#ifdef GL_ARB_texture_gather` / `#extension GL_ARB_texture_gather
-: enable` / `#endif` — so it never hard-fails on an unrecognized extension name; it is a
-best-effort "enable it if the compiler happens to advertise it" pattern. For `LANG_ES_300`
-this is a no-op in practice: `GL_ARB_texture_gather` is a **desktop**-only ARB extension
-token with no ES/WebGL2-side branch (contrast the image-atomics case a few lines above at
-`:154-160`, which does pick `GL_OES_shader_image_atomic` on `isES`) — no WebGL2 GLSL ES
-preprocessor predefines that macro, so the `#ifdef` never fires, no `#extension` line is
-emitted, and the instruction body's hardcoded `funcName = "textureGather"`
-(`toGLSLInstruction.cpp:1253-1254`, still unconditional) is unaffected either way. So the
-end conclusion is unchanged — this target still needs the emulation helper — but the
-"HLSLcc never gates this at all" framing is wrong: it does attempt a gate, the gate is just
-built for desktop GL and silently does nothing useful on `LANG_ES_300`. The JS emitter must
-supply its own 4-tap emulation (four `textureOffset`/`texture` calls at the four
-bilinear-neighbor texel centers, computed from `textureSize`) wherever the real
-`textureGather` builtin is unavailable.
+**Helpers needed**: `hlslcc_textureGather4Emulated` (**mandatory for this
+target**). The earlier claim of "zero hits for `HaveGather` outside
+`languages.h`" was false: instruction/declaration/operand lowering does not
+check it, but `toGLSL.cpp`'s `AddVersionDependentCode` (`:163-172`) checks
+`!HaveGather(eLang)` and, for any `gather4*`, calls
+`EnableExtension("GL_ARB_texture_gather")`.
+
+`EnableExtension` (`HLSLCrossCompilerContext.cpp:157-167`) emits a guarded
+`#ifdef GL_ARB_texture_gather` / `#extension GL_ARB_texture_gather : enable` /
+`#endif`, not a hard failure on an unknown extension. This desktop-only token
+is never predefined by an ES/WebGL2 preprocessor: the guard emits no extension
+and leaves the instruction's unconditional `funcName = "textureGather"`
+(`toGLSLInstruction.cpp:1253-1254`) unchanged. Unlike the image-atomics case
+at `:154-160`, it has no `isES` branch selecting
+`GL_OES_shader_image_atomic`.
+
+Thus HLSLcc attempts a gate, but it does nothing useful on `LANG_ES_300`.
+The JS emitter must supply four-tap emulation: four `textureOffset`/`texture`
+calls at the bilinear-neighbor texel centers, computed from `textureSize`.
 
 **Edge cases**: `textureGather` (where available) requires the four sampled texels to be
 selected by hardware bilinear-neighbor rules that are implementation-defined at exact
@@ -386,33 +383,23 @@ consumers (contact-hardening shadows, procedural blending). This emulation is
 **not sourced from HLSLcc** (HLSLcc assumes `textureGather` exists) and is the single
 highest-risk item in this spec.
 
-**WebGL2 notes — critical gap**: `languages.h:220-227` defines
-`HaveGather(eLang)` as true only for `eLang >= LANG_400` (desktop GL 4.0+) **or**
-`eLang == LANG_ES_310`. **`LANG_ES_300` (this project's actual target) is excluded.**
-`textureGather`/`textureGatherOffset` are GLSL ES 3.10 / desktop-GLSL-4.00 builtins; they
-do not exist in GLSL ES 3.00 core and WebGL2 (which is GLSL ES 3.00-based) exposes no
-extension that adds them. **Correction**: an earlier draft of this spec claimed "HLSLcc's
-GLSL backend never checks `HaveGather` before emitting `textureGather(...)`" — that is not
-quite right; see the "Helpers needed" correction above: `toGLSL.cpp` does check
-`!HaveGather(eLang)` and attempts to `EnableExtension("GL_ARB_texture_gather")`, it's just
-that the attempt is built for desktop GL and is a silent no-op on `LANG_ES_300`
-(the `#ifdef`-guarded extension macro is never predefined by an ES/WebGL2 preprocessor, and
-the instruction body's `funcName` is set unconditionally regardless of that check's
-outcome). Net effect is unchanged: it will happily produce GLSL that fails to compile under
-strict WebGL2/ES 3.00 validation. This spec's emitter must either (a) always emit the
+**WebGL2 notes — critical gap**: `languages.h:220-227` makes
+`HaveGather(eLang)` true only for `eLang >= LANG_400` or `LANG_ES_310`,
+excluding `LANG_ES_300`. `textureGather`/`textureGatherOffset` require
+GLSL ES 3.10 / desktop GLSL 4.00; WebGL2 exposes no extension adding them.
+The ineffective desktop extension attempt is described above, not "no gate".
+
+This spec's emitter must either (a) always emit the
 `hlslcc_textureGather4Emulated` helper instead of raw `textureGather` for this family, or
 (b) detect and reject `gather4*` shaders at translation time with an explicit diagnostic —
 but silently trusting HLSLcc's literal `textureGather(...)` output will break at WebGL2
-shader-compile time. This is the most important actionable finding in this spec for the
-`gather4` opcodes.
+shader-compile time.
 
-**Confidence**: low for WebGL2 compilability, high for what HLSLcc *literally emits*
-(fully read source, zero ambiguity in the C++, including the `toGLSL.cpp` extension-attempt
-correction above) — the risk is entirely in the target capability mismatch documented
-above, not in misreading HLSLcc's intent. An earlier draft cited `TRANSPILING-GAPS.md:188`
-as corroboration for this being a known pending item; that file does not exist anywhere in
-this repository (see the authority-order correction at the top of this document), so that
-citation is withdrawn and this section's confidence rests solely on the C++ reading above.
+**Confidence**: low for WebGL2 compilability, high for HLSLcc's literal output
+(fully read C++, including the global extension attempt). The risk is target
+capability mismatch. The earlier `TRANSPILING-GAPS.md:188` corroboration is
+withdrawn: that file is absent (see the authority-order correction), so this
+assessment rests solely on the cited C++ reading.
 
 ---
 
@@ -425,18 +412,14 @@ and returns the hardware's percentage-closer-filtered (PCF) result — a **float
 convention. D3D11 `SAMPLE_C`: `dest, address, resource, sampler, referenceValue`, implicit
 (derivative-based) LOD like `sample`.
 
-**Important — comparison-mask convention does NOT apply here**: DXBC's scalar/vector ALU
-comparison opcodes (`eq`/`ne`/`lt`/`ge`, `ieq`/`ige`/etc., handled by `AddComparison`,
-`toGLSLInstruction.cpp:173` and the `OPCODE_GE` comment "the result is a boolean but HLSL
-asm returns 0xFFFFFFFF/0x0 instead", `:2689-2694`) produce a full-lane
-`0xFFFFFFFF`/`0x00000000` integer mask per component. **`sample_c`/`sample_c_lz`/
-`gather4_c` are unrelated to that convention** — hardware depth comparison sampling
-returns a genuinely-filtered floating-point value (0.0, 1.0, or any PCF-blended value in
-between when the sampler uses linear filtering across multiple depth texels), matching
-standard D3D11 `SampleCmp`/`SampleCmpLevelZero` semantics that HLSLcc's GLSL backend
-forwards unchanged (it applies no extra masking logic to the depth-compare result — the
-value comes directly out of GLSL `texture(sampler2DShadow, ...)`, which itself returns a
-filtered float per the GLSL spec).
+**Important — comparison-mask convention does NOT apply here**: ALU
+`eq`/`ne`/`lt`/`ge`, `ieq`/`ige`, etc. return per-lane
+`0xFFFFFFFF`/`0x00000000` masks (`AddComparison`,
+`toGLSLInstruction.cpp:173`; `OPCODE_GE` comment, `:2689-2694`).
+`sample_c`/`sample_c_lz`/`gather4_c` instead return filtered floats,
+including intermediate PCF values under linear filtering. HLSLcc forwards the
+GLSL shadow-sample result without extra masking, matching D3D11
+`SampleCmp`/`SampleCmpLevelZero` semantics.
 
 **GLSL lowering**: `TranslateTextureSample(psInst, TEXSMP_FLAG_DEPTHCOMPARE)`
 (`toGLSLInstruction.cpp:3181-3190`). `psSrcRef = operands[4 + hasParamOffset]` (`:1143`).
@@ -606,23 +589,17 @@ non-multisample resources.
 
 - `hasOffset` (`psInst->bAddressOffset`) swaps in `texelFetchOffset(...)` with a trailing
   `ivec2`/`ivec3`/int offset literal (`:875,891-894,909-911,923-926,938-941`).
-- **Source bug — malformed offset literal for `TEXTURE2D`/`TEXTURE2DARRAY`**: the
-  `TEXTURE1D` (`:909-910`, plain `int`) and `TEXTURE3D` (`:923-924`, `ivec3(%d, %d, %d)`,
-  3 args) offset literals are well-formed, but the `TEXTURE2DARRAY` (`:925-926`) and
-  `TEXTURE2D` (`:940-941`) cases both emit the literal text `ivec3(%d, %d)` —
-  labeled `ivec3` but with only **two** `%d` substitutions
-  (`bformata(glsl, ", ivec3(%d, %d)", psInst->iUAddrOffset, psInst->iVAddrOffset)`).
-  `ivec3(3, 5)` is not a legal GLSL constructor call (an `ivec3` needs 3 components, or a
-  single scalar to splat, not 2), so this is invalid GLSL that will fail to compile — this
-  looks like a copy-paste typo in the vendor source (should read `ivec2`, matching the
-  correct 2-arg, 2D offset shape used elsewhere, e.g. `sample`'s own offset-building code at
-  `toGLSLInstruction.cpp:1398-1402` which correctly emits `ivec2(%d, %d)` for 2 offsets).
-  Any Carbon effect that uses an immediate texel offset (`sample_controls`) on a `ld`/`ld_ms`
-  against a `Texture2D` or `Texture2DArray` resource will hit this bug and get
-  non-compiling GLSL; `Texture1D`/`Texture3D`/`Texture1DArray` immediate-offset `ld` is
-  unaffected. This is a real upstream HLSLcc defect (ground truth wins per this review's
-  brief), not a misreading — the JS emitter must special-case these two dimensions to emit
-  `ivec2` instead of replicating the literal `ivec3` text.
+- **Source bug — malformed offset literal for `TEXTURE2D`/`TEXTURE2DARRAY`**:
+  `TEXTURE2DARRAY` (`:925-926`) and `TEXTURE2D` (`:940-941`) emit
+  `bformata(glsl, ", ivec3(%d, %d)", psInst->iUAddrOffset, psInst->iVAddrOffset)`.
+  Two components cannot construct an `ivec3`: `ivec3(3, 5)` fails GLSL
+  compilation. The JS emitter must emit `ivec2` for these dimensions, as the
+  filtered-sample offset builder does (`toGLSLInstruction.cpp:1398-1402`),
+  rather than copy this upstream typo. Immediate-offset `ld`/`ld_ms` on
+  `Texture2D`/`Texture2DArray` hits it; `Texture1D`/`Texture3D`/
+  `Texture1DArray` is unaffected. `TEXTURE1D` (`:909-910`, plain `int`)
+  and `TEXTURE3D` (`:923-924`, three-argument `ivec3(%d, %d, %d)`) are
+  well-formed. This is the recorded vendor-source defect, not a lowering to copy.
 - Coordinates are read `TO_FLAG_INTEGER | TO_AUTO_EXPAND_TO_VEC2/VEC3` (`:903,920,935,950,961`)
   — **integer**, not the `TO_AUTO_BITCAST_TO_FLOAT` used by filtered sampling; the mip/LOD
   (or sample index for MS) is separately read with plain `TO_FLAG_INTEGER` on the `.w`/`.a`
@@ -714,36 +691,30 @@ depth components (`textureSize` is fully core).
 3.00 spec (well-defined). Buffer/`BUFFEX` resources are excluded from the `dim==0` default
 path implicitly by never appearing in the `resinfo`-legal dimension set.
 
-**WebGL2 notes — gap on the mip-count component**: `languages.h:247-254` defines
-`HaveQueryLevels(eLang)` true only for `eLang >= LANG_430`. `LANG_ES_300` does **not**
-qualify, and `GetResInfoData`'s `index >= 3` branch (`:1112-1127`) itself calls
-`textureQueryLevels(...)` unconditionally, with no local `HaveQueryLevels` gate. **Correction**:
-an earlier draft of this spec said this was "no gate at all" and contrasted it with `lod`'s
-`HaveQueryLod` as the supposed sole gated case in the family — that contrast overstates the
-difference. `toGLSL.cpp`'s `AddVersionDependentCode` **does** check `HaveQueryLevels`
-(`:234-241`): `if (!HaveQueryLevels(eLang)) { if (OPCODE_RESINFO used)
-{ EnableExtension("GL_ARB_texture_query_levels"); EnableExtension("GL_ARB_shader_image_size"); } }`.
-As with `gather4`'s analogous `GL_ARB_texture_gather` attempt above, both are desktop-only
-ARB extension tokens behind an `EnableExtension` `#ifdef` guard that is never true under a
-GLSL ES/WebGL2 preprocessor, so on `LANG_ES_300` this is a no-op in practice: no
-`#extension` line is emitted and `GetResInfoData`'s call site is unaffected. The practical
-conclusion is therefore unchanged — `textureQueryLevels` does not exist in GLSL ES 3.00
-core, has no WebGL2-exposed extension equivalent, and any Carbon effect that reads
-`resinfo`'s 4th (`.w`, "total mip count") component on this target will receive GLSL that
-fails to compile. Given 247 corpus occurrences of `resinfo`, this is a second actionable,
-high-value gap for this spec (alongside `gather4`'s `textureGather` gap) — the emitter must
+**WebGL2 notes — gap on the mip-count component**:
+`HaveQueryLevels(eLang)` requires `eLang >= LANG_430`
+(`languages.h:247-254`), excluding `LANG_ES_300`.
+`GetResInfoData`'s `index >= 3` branch (`:1112-1127`) calls
+`textureQueryLevels` without a local gate. The earlier "no gate at all"
+claim was too broad: `toGLSL.cpp`'s `AddVersionDependentCode`
+(`:234-241`) checks `!HaveQueryLevels` plus `OPCODE_RESINFO`, then
+attempts `GL_ARB_texture_query_levels` and `GL_ARB_shader_image_size`.
+Like the gather gate, these desktop-only tokens sit behind `EnableExtension`
+`#ifdef` guards that do nothing under ES/WebGL2; the call site is unchanged.
+
+`textureQueryLevels` has neither an ES 3.00 builtin nor a WebGL2 extension
+equivalent. Reading `resinfo`'s fourth (`.w`, total-mip-count) component
+therefore produces non-compiling GLSL. The 247 corpus occurrences make this
+an actionable risk; the first three `textureSize` components have no such gap.
+The emitter must
 substitute `hlslcc_textureQueryLevels` (fallback strategy: accept the mip count as an
 out-of-band uniform per texture, since there is no in-shader WebGL2-legal way to query it;
-or hard-fail translation if this exact component is read). The first-3-components path
-(`textureSize`) has no such gap.
+or hard-fail translation if this exact component is read).
 
-**Confidence**: high on what HLSLcc emits (fully read, unambiguous, including the
-`toGLSL.cpp` extension-attempt correction above), but explicitly flagged as a real WebGL2
-compile-time risk for the mip-count component. The general opcode was previously described
-as "corroborated by `TRANSPILING-GAPS.md:186,337`" — that file does not exist in this
-repository (see the authority-order correction at the top of this document), so that
-corroboration claim is withdrawn; this section's confidence now rests solely on the C++
-reading above.
+**Confidence**: high on HLSLcc's literal output, including the global extension
+attempt; the mip-count path remains a WebGL2 compile risk. Corroboration by
+`TRANSPILING-GAPS.md:186,337` is withdrawn because that file is absent (see
+the authority-order correction). Confidence rests on the C++ reading alone.
 
 ---
 
