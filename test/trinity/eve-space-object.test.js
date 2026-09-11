@@ -18,7 +18,7 @@ import {
   TriObserverLocal
 } from "../../npm/dist/trinity/index.js";
 import { EveChildInheritProperties } from "../../npm/dist/trinity/eve/child/EveChildInheritProperties.js";
-import { withITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller.js";
+import { withITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller/ITr2Controller.js";
 import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../../npm/dist/trinity/eve/IEveInheritPropertiesOwner.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 

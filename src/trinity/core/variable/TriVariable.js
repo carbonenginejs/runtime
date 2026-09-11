@@ -148,7 +148,7 @@ export class TriVariable extends CjsModel
 
     if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
     {
-      return resourceDesc.SetSrv(stage, registerIndex, this.#GpuBuffer());
+      return resourceDesc.SetSrv(stage, registerIndex, this.#GpuBuffer(), 0, 1);
     }
 
     return false;
@@ -176,7 +176,7 @@ export class TriVariable extends CjsModel
 
     if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
     {
-      return resourceDesc.SetUav(stage, registerIndex, this.#GpuBuffer());
+      return resourceDesc.SetUav(stage, registerIndex, this.#GpuBuffer(), 0, 1);
     }
 
     return false;

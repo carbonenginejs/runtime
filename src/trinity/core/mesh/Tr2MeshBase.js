@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
-import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/Tr2RenderBatch.js";
+import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 

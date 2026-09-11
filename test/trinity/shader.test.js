@@ -7,7 +7,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
-import { Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2RegisterMapAL, Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -1016,7 +1016,7 @@ test("ClearResources drops resources and keeps samplers, as Carbon's does", () =
   // (trinityal/src/Tr2ResourceSetAL.cpp:439-455). The asymmetry matters: a
   // sampler is authored static state arriving with the effect, so clearing it
   // would throw away a binding nothing puts back.
-  const desc = new Tr2ResourceSetDescriptionAL();
+  const desc = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ stages: [0, 1], signatures: [ { registers: [{registerType:36, registerIndex:3}, {registerType:1, registerIndex:2}] }, { registers: [{registerType:64, registerIndex:4}] } ] }) });
   const texture = { id: "texture" };
   const buffer = { id: "buffer" };
   const sampler = { id: "sampler" };
@@ -1024,13 +1024,12 @@ test("ClearResources drops resources and keeps samplers, as Carbon's does", () =
   assert(desc.SetSrv(0, 3, texture));
   assert(desc.SetUav(1, 4, buffer));
   assert(desc.SetSampler(0, 2, sampler));
-  assert(desc.SetConstantBuffer(0, 1, buffer));
 
   desc.ClearResources();
 
-  assertEquals(desc.Get("srv", 0, 3), null, "srv cleared");
-  assertEquals(desc.Get("uav", 1, 4), null, "uav cleared");
-  assertEquals(desc.Get("sampler", 0, 2)?.sampler, sampler, "sampler kept");
+  assertEquals(desc.m_srv[0].type, 0, "srv cleared");
+  assertEquals(desc.m_uav[0].type, 0, "uav cleared");
+  assertEquals(desc.m_samplers[0].sampler, sampler, "sampler kept");
 });
 
 test("ApplyMaterialDataForPass binds only the stages the technique declares", () =>
@@ -1045,7 +1044,7 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   const boundSets = [];
 
   const renderContext = {
-    // Tr2ResourceSetALStub.Create checks the context is live, as Carbon's does.
+    // The material context's validity is independent of the stub set flag.
     IsValid()
     {
       return true;
@@ -1079,6 +1078,7 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
 
   const material = new Tr2Material();
   const pass = new Tr2EffectPassParameters();
+  pass.resourceSetDesc = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ stage: PIXEL, signature: { registers: [{registerType:36, registerIndex:3}] } }) });
 
   material.shader = shaderReflection();
   material.shader.effect.techniques[0].shaderTypeMask = (1 << VERTEX) | (1 << PIXEL);
@@ -1114,8 +1114,8 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   assertEquals(setConstants.join(","), "0,1", "only the declared stages bound constants");
   assertEquals(locked.join(","), "0,1", "and only those had their mirror copied into the buffer");
 
-  const srv = pass.resourceSetDesc.Get("srv", PIXEL, 3);
-  assertEquals(srv?.resource?.id, "diffuse", "the parameter bound itself into the description");
+  const srv = pass.resourceSetDesc.m_srv[0];
+  assertEquals(srv?.texture?.id, "diffuse", "the parameter bound itself into the description");
   assertEquals(srv?.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB, "registerCount carried the sRGB flag");
 
   assert(boundSets[0], "a resource set was realized and bound");
@@ -1161,6 +1161,7 @@ test("a material seeds its pass description with sampler states on first apply, 
   const shader = shaderReflection();
   const stage = new Tr2EffectStageInput();
 
+  stage.signature = { registers: [{registerType:1, registerIndex:2}, {registerType:1, registerIndex:5}] };
   stage.stageType = PIXEL;
   stage.exists = true;
   stage.samplers = new Map([
@@ -1178,11 +1179,11 @@ test("a material seeds its pass description with sampler states on first apply, 
 
   const description = effect.parametersForPasses[0].passes[0].resourceSetDesc;
 
-  assertEquals(description.Get("sampler", PIXEL, 2), null, "a rebuild seeds nothing; it has no context");
+  assertEquals(description.m_samplers[0].type, 0, "a rebuild seeds nothing; it has no context");
   effect.ApplyMaterialDataForPass(0, 0, context);
 
-  const diffuse = description.Get("sampler", PIXEL, 2)?.sampler;
-  const pattern = description.Get("sampler", PIXEL, 5)?.sampler;
+  const diffuse = description.m_samplers[0].sampler;
+  const pattern = description.m_samplers[1].sampler;
 
   assert(diffuse instanceof Tr2SamplerStateALStub, "the applying context's kind of sampler state");
   assertEquals(diffuse.GetDescription().addressU, 1);
@@ -1194,15 +1195,37 @@ test("a material seeds its pass description with sampler states on first apply, 
   effect.ApplyMaterialDataForPass(0, 0, context);
 
   const after = effect.parametersForPasses[0].passes[0].resourceSetDesc;
-  const overridden = after.Get("sampler", PIXEL, 5)?.sampler;
+  const overridden = after.m_samplers[1].sampler;
 
   assertEquals(overridden.GetDescription().addressU, 4);
   assertEquals(overridden.GetDescription().addressV, 4);
-  assertEquals(after.Get("sampler", PIXEL, 2)?.sampler, diffuse, "the other register keeps the authored state, from the same factory");
+  assertEquals(after.m_samplers[0].sampler, diffuse, "the other register keeps the authored state, from the same factory");
   assertEquals(effect.parametersForPasses[0].passes[0].compatibleWithGdr, false, "an override that changed the description leaves the GDR path");
 
   // A non-dynamic sampler's name is out of an override's reach, as in Carbon.
   effect.AddSamplerOverride("DiffuseSampler", 4, 4);
   effect.ApplyMaterialDataForPass(0, 0, context);
-  assertEquals(effect.parametersForPasses[0].passes[0].resourceSetDesc.Get("sampler", PIXEL, 2)?.sampler, diffuse);
+  assertEquals(effect.parametersForPasses[0].passes[0].resourceSetDesc.m_samplers[0].sampler, diffuse);
+});
+
+
+test("material maps retain authored stage order before assigning dense indexes", () =>
+{
+  const shader = shaderReflection();
+  const pass = shader.effect.techniques[0].passes[0];
+  pass.stageOrder = [1, 0];
+  for (const stage of [0, 1])
+  {
+    const input = new Tr2EffectStageInput();
+    input.exists = true;
+    input.stageType = stage;
+    input.signature = { registers: [{registerType:36, registerIndex:3}] };
+    pass.stageInputs[stage] = input;
+  }
+  const effect = new Tr2Effect();
+  effect.shader = shader;
+  effect.RebuildCachedDataInternal();
+  const map = effect.parametersForPasses[0].passes[0].resourceSetDesc.m_registerMap;
+  assertEquals(map.srvs[1][3], 0);
+  assertEquals(map.srvs[0][3], 1);
 });

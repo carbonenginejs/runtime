@@ -2,7 +2,8 @@
 // Headless behavior port. The host supplies blockage; this class performs no
 // ray casting and leaves the audible obstruction/occlusion law to the backend.
 
-import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
+import { LISTENER_GAME_OBJ_ID } from "../SoundPrioritization.js";
+import { EmitterState } from "./EmitterState.js";
 
 const DEFAULT_FADE_RATE = 1;
 
@@ -11,67 +12,6 @@ function NowSeconds()
   return (globalThis.performance?.now() ?? Date.now()) / 1000;
 }
 
-function ClampUnit(value)
-{
-  return Math.max(0, Math.min(1, Number(value)));
-}
-
-/** One obstruction or occlusion value fading towards an authored target. */
-class FadingValue
-{
-  currentValue = 0;
-
-  targetValue = 0;
-
-  /** Clamps and stores the next fade target. */
-  SetTarget(target)
-  {
-    this.targetValue = ClampUnit(target);
-  }
-
-  /** Advances linearly by one clock delta and reports a live-value change. */
-  Advance(deltaSeconds, fadeRate)
-  {
-    if (this.currentValue === this.targetValue)
-    {
-      return false;
-    }
-    if (fadeRate <= 0)
-    {
-      this.currentValue = this.targetValue;
-      return true;
-    }
-
-    const previous = this.currentValue;
-    const step = fadeRate * deltaSeconds;
-
-    if (previous > this.targetValue)
-    {
-      this.currentValue = Math.max(this.targetValue, previous - step);
-    }
-    else
-    {
-      this.currentValue = Math.min(this.targetValue, previous + step);
-    }
-    return this.currentValue !== previous;
-  }
-
-  /** Applies the target immediately for a newly tracked emitter. */
-  SnapToTarget()
-  {
-    this.currentValue = this.targetValue;
-  }
-}
-
-/** Obstruction/occlusion fade state retained for one registered emitter. */
-class EmitterState
-{
-  obstruction = new FadingValue();
-
-  occlusion = new FadingValue();
-
-  needsSend = true;
-}
 
 /**
  * Owns Carbon's caller-supplied line-of-sight state and backend delivery.

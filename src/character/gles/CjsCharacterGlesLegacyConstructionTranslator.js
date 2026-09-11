@@ -9,6 +9,10 @@ export class CjsCharacterGlesLegacyConstructionTranslator
 {
     _foundationTranslator;
 
+    /**
+     * Validates and retains the foundation translator used for legacy
+     * construction.
+     */
     constructor({ foundationTranslator = new CjsCharacterGlesFoundationTranslator() } = {})
     {
         if (!foundationTranslator || typeof foundationTranslator.Translate !== "function")

@@ -18,6 +18,10 @@ export class CjsCharacterGlesAppearanceAL
 
     _visualHost;
 
+    /**
+     * Validates and retains the resource, visual, operation, and foundation
+     * translation hosts.
+     */
     constructor({
         resourceHost,
         visualHost,
@@ -217,6 +221,10 @@ export class CjsCharacterGlesAppearanceAL
         };
     }
 
+    /**
+     * Prepares a construction operation on the stage, delegating unsupported
+     * operation kinds to the operation host.
+     */
     async _PrepareOperation(stage, operation, context)
     {
         if (!operation || typeof operation !== "object")
@@ -271,6 +279,7 @@ export class CjsCharacterGlesAppearanceAL
         }
     }
 
+    /** Executes an operation through the optional host or reports it as deferred. */
     async _ExecuteDelegatedOperation(stage, operation, context)
     {
         if (typeof this._operationHost?.Execute !== "function")
@@ -289,6 +298,10 @@ export class CjsCharacterGlesAppearanceAL
         };
     }
 
+    /**
+     * Fetches and prepares a resource once per stage, caching it by normalized
+     * path.
+     */
     async _FetchPrepared(stage, path, context)
     {
         const resourcePath = RequireResourcePath(path);

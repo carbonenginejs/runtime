@@ -21,7 +21,7 @@ Required stretch-audio component contract.
 Queues Carbon-shaped audio action records and flushes them to a registered JavaScript callback during manager processing.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
-- Source: `src/audio/trinity/audio/AudActionLog.js`
+- Source: `src/audio/trinity/audio/AudActionLog/AudActionLogCB.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -31,7 +31,7 @@ Queues Carbon-shaped audio action records and flushes them to a registered JavaS
 Provides the base value contract for one queued Carbon audio action.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
-- Source: `src/audio/trinity/audio/AudActionLog.js`
+- Source: `src/audio/trinity/audio/AudActionLog/AudActionRecord.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
 
@@ -41,7 +41,7 @@ Provides the base value contract for one queued Carbon audio action.
 Records one event post with time, emitter, playing, event, and name identities.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
-- Source: `src/audio/trinity/audio/AudActionLog.js`
+- Source: `src/audio/trinity/audio/AudActionLog/AudActionRecordPostEvent.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
 
@@ -51,7 +51,7 @@ Records one event post with time, emitter, playing, event, and name identities.
 Records one stop or break action applied to a playing identity.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
-- Source: `src/audio/trinity/audio/AudActionLog.js`
+- Source: `src/audio/trinity/audio/AudActionLog/AudActionRecordExecuteActionOnPlayingID.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
 
@@ -61,7 +61,7 @@ Records one stop or break action applied to a playing identity.
 Records one emitter-local switch group and state change.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
-- Source: `src/audio/trinity/audio/AudActionLog.js`
+- Source: `src/audio/trinity/audio/AudActionLog/AudActionRecordSetSwitch.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
 
@@ -71,7 +71,7 @@ Records one emitter-local switch group and state change.
 Records one global audio state-group change.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
-- Source: `src/audio/trinity/audio/AudActionLog.js`
+- Source: `src/audio/trinity/audio/AudActionLog/AudActionRecordSetState.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
 
@@ -81,7 +81,7 @@ Records one global audio state-group change.
 Records one global or emitter-local real-time parameter change.
 
 - Export: `@carbonenginejs/runtime/audio/trinity`
-- Source: `src/audio/trinity/audio/AudActionLog.js`
+- Source: `src/audio/trinity/audio/AudActionLog/AudActionRecordSetRTPC.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
 
@@ -168,10 +168,10 @@ Provides the fixed high-priority Carbon emitter dedicated to music events.
 <!-- class:AudObstructionOcclusion -->
 ## `AudObstructionOcclusion`
 
-Owns Carbon's caller-supplied per-emitter obstruction/occlusion fade and backend-delivery lifecycle.
+Owns Carbon's caller-supplied line-of-sight state and backend delivery.
 
 - Export: None
-- Source: `src/audio/trinity/audio/AudObstructionOcclusion.js`
+- Source: `src/audio/trinity/audio/AudObstructionOcclusion/AudObstructionOcclusion.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -238,20 +238,20 @@ Drives a curve set's time from a monitored real-time parameter with a fallback c
 <!-- class:EmitterState -->
 ## `EmitterState`
 
-Retains obstruction, occlusion, and retry state for one registered emitter.
+Obstruction/occlusion fade state retained for one registered emitter.
 
 - Export: None
-- Source: `src/audio/trinity/audio/AudObstructionOcclusion.js`
+- Source: `src/audio/trinity/audio/AudObstructionOcclusion/EmitterState.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
 <!-- class:FadingValue -->
 ## `FadingValue`
 
-Advances one normalized obstruction or occlusion value towards its target.
+One obstruction or occlusion value fading towards an authored target.
 
 - Export: None
-- Source: `src/audio/trinity/audio/AudObstructionOcclusion.js`
+- Source: `src/audio/trinity/audio/AudObstructionOcclusion/FadingValue.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -323,3 +323,13 @@ Contract audio2 uses to drive an audio emitter: initialisation, placement, namin
 - Source: `src/audio/trinity/trinityAudioApi/ITr2AudEmitter.js`
 - Visibility: Public
 - Kind: Faithful Carbon port
+
+<!-- class:IAudActionLog -->
+## `IAudActionLog`
+
+Required logging contract consumed by AudManager.
+
+- Export: `@carbonenginejs/runtime/audio/trinity`
+- Source: `src/audio/trinity/audio/AudActionLog/IAudActionLog.js`
+- Visibility: Public
+- Kind: Carbon

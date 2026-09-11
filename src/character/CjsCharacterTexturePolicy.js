@@ -42,6 +42,10 @@ export class CjsCharacterTexturePolicy
         );
     }
 
+    /**
+     * Configures modifier ordering, texture quality, garment groups, and texture
+     * target resolution.
+     */
     constructor({
         modifierOrder = null,
         textureQuality = "4k",

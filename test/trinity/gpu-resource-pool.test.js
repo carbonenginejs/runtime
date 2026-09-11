@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { GpuResourceHandle, TextureSize2D, Tr2GpuResourcePool } from "../../npm/dist/trinity/core/index.js";
+import { GpuResourceHandle, TextureSize2D, Tr2GpuResourcePool, GetGlobalGpuResourcePool } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2BufferDescriptionAL } from "../../npm/dist/trinityal/index.js";
@@ -14,6 +14,11 @@ const pooled = () =>
 
   return new Tr2GpuResourcePool().SetRenderContext(al);
 };
+
+test("the core entry point retains the shared global pool accessor", () =>
+{
+  assert.equal(GetGlobalGpuResourcePool(), GetGlobalGpuResourcePool());
+});
 
 const square = (size = 512) => ({
   type: TextureType.TEX_TYPE_2D,

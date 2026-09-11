@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.cpp
 import { TriBatchType } from "#consts/graphics";
-import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/Tr2RenderBatch.js";
+import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { EveMeshOverlayEffect } from "./EveMeshOverlayEffect.js";
 
 

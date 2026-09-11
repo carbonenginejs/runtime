@@ -101,6 +101,10 @@ export class CjsCharacterFoundationConstruction
 
     _textureQuality;
 
+    /**
+     * Validates the female foundation layout and normalizes the requested
+     * texture quality.
+     */
     constructor({ femaleFoundationLayout = null, textureQuality = "4k" } = {})
     {
         if (femaleFoundationLayout !== null

@@ -98,30 +98,40 @@ The range of faces, mip levels and pixels a map, update or copy applies to; unse
 <!-- class:Tr2RegisterMapAL -->
 ## `Tr2RegisterMapAL`
 
-Which shader-resource, unordered-access and sampler registers a program reads, kept per shader stage so the same register number in two stages stays two bindings.
+Stage/register to dense resource index, with counts spanning all stages.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2ResourceSetAL.js`
+- Source: `src/trinityal/Tr2ResourceSetAL/Tr2RegisterMapAL.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:Tr2ResourceSetDescriptionAL -->
 ## `Tr2ResourceSetDescriptionAL`
 
-What a resource set binds at each shader stage and register: shader resources with their colour space, unordered-access resources with their mip, samplers, and constant buffers.
+A program's mapped resources. Constant buffers bind separately through SetConstants.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2ResourceSetAL.js`
+- Source: `src/trinityal/Tr2ResourceSetAL/Tr2ResourceSetDescriptionAL.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ResourceSetAL -->
+## `Tr2ResourceSetAL`
+
+Public handle; implementation selection belongs to the creating context. The creating context selects the implementation; copied handles and context bindings retain shared ownership. Backend release follows garbage collection or explicit device-resource teardown.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2ResourceSetAL/Tr2ResourceSetAL.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:Tr2ResourceSetALStub -->
 ## `Tr2ResourceSetALStub`
 
-GPU-free resource set that keeps the description and program it was created from, so a headless caller can read back what it asked to bind.
+A resource set the backend has accepted.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2ResourceSetAL.js`
+- Source: `src/trinityal/Tr2ResourceSetAL/Tr2ResourceSetALStub.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -178,20 +188,20 @@ Adapter and display-mode enumeration answering with Carbon's single fictional ad
 <!-- class:Tr2DepthAttachment -->
 ## `Tr2DepthAttachment`
 
-What a render pass does with its depth attachment at both edges: the load action, the store action, and the depth a clear starts from.
+How a pass treats its depth attachment.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2RenderPassAL.js`
+- Source: `src/trinityal/Tr2RenderPassAL/Tr2DepthAttachment.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:Tr2ColorAttachment -->
 ## `Tr2ColorAttachment`
 
-What a render pass does with one colour attachment at both edges: the load action, the store action, and the packed colour a clear starts from.
+How a pass treats one colour attachment.
 
 - Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2RenderPassAL.js`
+- Source: `src/trinityal/Tr2RenderPassAL/Tr2ColorAttachment.js`
 - Visibility: Public
 - Kind: Carbon
 

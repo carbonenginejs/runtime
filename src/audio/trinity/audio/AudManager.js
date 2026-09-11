@@ -10,7 +10,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
-import { AudObstructionOcclusion } from "./AudObstructionOcclusion.js";
+import { AudObstructionOcclusion } from "./AudObstructionOcclusion/index.js";
 import { IsReservedGameObjectID, LISTENER_GAME_OBJ_ID, SoundPrioritization } from "./SoundPrioritization.js";
 import { SpatialAudioSettings } from "./SpatialAudioSettings.js";
 

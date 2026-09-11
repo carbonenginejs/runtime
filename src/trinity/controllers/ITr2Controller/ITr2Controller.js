@@ -29,12 +29,9 @@
 // object root, which a garbage-collected runtime has no use for.
 
 import { CjsSchema, impl } from "#schema";
-import { UnlinkReason } from "./enums.js";
+import { UnlinkReason } from "../enums.js";
 
-
-const ITR2_CONTROLLER = Symbol.for("carbonenginejs.contract.ITr2Controller");
-const ITR2_ACTION_CONTROLLER = Symbol.for("carbonenginejs.contract.ITr2ActionController");
-
+export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.contract.ITr2Controller");
 
 /** Contract for an object that controls another between Start and Stop. */
 export class ITr2Controller
@@ -118,137 +115,7 @@ export class ITr2Controller
   }
 }
 
-
-/** Contract for a controller that also drives controller actions. */
-export class ITr2ActionController extends ITr2Controller
-{
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_ACTION_CONTROLLER] === true;
-  }
-
-  /**
-   * The object this controller was linked to.
-   *
-   * @returns {object} The owner.
-   */
-  GetOwner()
-  {
-    throw new Error("ITr2ActionController.GetOwner must be implemented by an action controller.");
-  }
-
-  /**
-   * Delivers a named callback to the controller.
-   *
-   * @param {string} _callbackName The callback's name.
-   */
-  Callback(_callbackName)
-  {
-    throw new Error("ITr2ActionController.Callback must be implemented by an action controller.");
-  }
-
-  /**
-   * Registers an object to be updated whenever this controller updates.
-   *
-   * @param {object} _updateable The object to update.
-   */
-  RegisterUpdateable(_updateable)
-  {
-    throw new Error("ITr2ActionController.RegisterUpdateable must be implemented by an action controller.");
-  }
-
-  /**
-   * Stops updating a previously registered object.
-   *
-   * @param {object} _updateable The object to stop updating.
-   */
-  UnRegisterUpdateable(_updateable)
-  {
-    throw new Error("ITr2ActionController.UnRegisterUpdateable must be implemented by an action controller.");
-  }
-
-  /**
-   * The named root objects a dynamic binding path may start from.
-   *
-   * @returns {Array} Name and root pairs.
-   */
-  GetBindingPathRoots()
-  {
-    throw new Error("ITr2ActionController.GetBindingPathRoots must be implemented by an action controller.");
-  }
-
-  /**
-   * One float variable by name.
-   *
-   * Carbon returns an optional, so a missing name is ABSENT rather than zero -
-   * a distinction an expression needs, since zero is a legitimate value.
-   *
-   * @param {string} _name The variable's name.
-   * @returns {number|null} Its value, or null when there is no such variable.
-   */
-  GetFloatVariableByName(_name)
-  {
-    throw new Error("ITr2ActionController.GetFloatVariableByName must be implemented by an action controller.");
-  }
-
-  /**
-   * Adds the functions and variables this controller offers to expressions.
-   *
-   * @param {Array} _out Term info collected from every contributor.
-   */
-  GetExpressionTermInfo(_out)
-  {
-    throw new Error("ITr2ActionController.GetExpressionTermInfo must be implemented by an action controller.");
-  }
-
-  /**
-   * The layout of this controller's variable buffer.
-   *
-   * @returns {Array} The variable view.
-   */
-  GetVariableView()
-  {
-    throw new Error("ITr2ActionController.GetVariableView must be implemented by an action controller.");
-  }
-
-  /**
-   * The buffer the variable view describes.
-   *
-   * @returns {object} The variable buffer.
-   */
-  GetVariableBuffer()
-  {
-    throw new Error("ITr2ActionController.GetVariableBuffer must be implemented by an action controller.");
-  }
-
-  /**
-   * Grows the scratch arena expressions evaluate into.
-   *
-   * @param {number} _size Bytes required.
-   */
-  EnsureTempArenaSize(_size)
-  {
-    throw new Error("ITr2ActionController.EnsureTempArenaSize must be implemented by an action controller.");
-  }
-
-  /**
-   * The scratch arena expressions evaluate into.
-   *
-   * @returns {object} The arena.
-   */
-  GetTempArena()
-  {
-    throw new Error("ITr2ActionController.GetTempArena must be implemented by an action controller.");
-  }
-}
-
-
-const CONTROLLER_NOOPS = [ "Link", "Unlink", "Start", "Stop", "Update", "SetVariable", "HandleEvent" ];
-const ACTION_ABSTRACTS = [
-  "GetOwner", "Callback", "RegisterUpdateable", "UnRegisterUpdateable", "GetBindingPathRoots",
-  "GetFloatVariableByName", "GetExpressionTermInfo", "GetVariableView", "GetVariableBuffer",
-  "EnsureTempArenaSize", "GetTempArena"
-];
+export const CONTROLLER_NOOPS = [ "Link", "Unlink", "Start", "Stop", "Update", "SetVariable", "HandleEvent" ];
 
 /**
  * Marks a class as carrying a contract, and records each method's provenance.
@@ -271,11 +138,8 @@ export function Brand(target, symbol, noops, abstracts)
 }
 
 Brand(ITr2Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
-Brand(ITr2ActionController, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
-Object.defineProperty(ITr2ActionController.prototype, ITR2_CONTROLLER, { value: true });
-CjsSchema.define(ITr2Controller, { className: "ITr2Controller" });
-CjsSchema.define(ITr2ActionController, { className: "ITr2ActionController" });
 
+CjsSchema.define(ITr2Controller, { className: "ITr2Controller" });
 
 /**
  * Adds the ITr2Controller contract without replacing an existing model base.
@@ -296,28 +160,6 @@ export function withITr2Controller(Base)
 
   return Controller;
 }
-
-
-/**
- * Adds the ITr2ActionController contract, and ITr2Controller with it.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying both contracts.
- */
-export function withITr2ActionController(Base)
-{
-  const Controller = Adopt(
-    Adopt(Base, ITr2Controller, [ ...CONTROLLER_NOOPS, "IsLinked" ]),
-    ITr2ActionController,
-    ACTION_ABSTRACTS
-  );
-
-  Brand(Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
-  Brand(Controller, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
-
-  return Controller;
-}
-
 
 /**
  * Subclasses `Base`, filling in only the contract methods it does not already

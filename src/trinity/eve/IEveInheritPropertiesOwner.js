@@ -13,7 +13,7 @@
 // exactly as BehaviorGroup.SetPlayFXBehavior ports its dynamic_cast.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller.js";
+import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
 
 
 const IEVE_INHERIT_PROPERTIES_OWNER = Symbol.for("carbonenginejs.contract.IEveInheritPropertiesOwner");

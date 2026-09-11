@@ -71,6 +71,8 @@
 //   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
+import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
+import { impl } from "#schema";
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan } from "#trinityal";
 import { ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
@@ -1467,8 +1469,8 @@ export class CjsWebgpuRenderContextAL
 
     if (!layouts.length) return true;
 
-    const set = this._resourceSet;
-    const entries = set && typeof set.GetEntries === "function" && set.GetProgram() === program ? set.GetEntries() : null;
+    const set = this._resourceSet?.m_resourceSet.implementation;
+    const entries = set && set.IsValid() && set.GetProgram() === program ? set.GetEntries() : null;
     const setId = entries ? set.m_id : 0;
     const bindings = program.GetBindings();
     const device = this._webgpu.GetDevice();
@@ -1744,12 +1746,21 @@ export class CjsWebgpuRenderContextAL
    * @param {object} program The `CjsWebgpuShaderProgramAL` it binds against.
    * @returns {object|null} The set, or null when Create refused.
    */
-  CreateResourceSet(description, program)
+  @impl.custom
+  @impl.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
+  CreateResourceSet(description, program, implementationOnly = false)
   {
-    const resourceSet = new CjsWebgpuResourceSetAL();
-
+    // JS platform selection for the public facade; the allocation branch
+    // returns the native status code without collapsing it to null.
+    if (implementationOnly)
+    {
+      const implementation = new CjsWebgpuResourceSetAL();
+      const result = implementation.Create(description, program, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const resourceSet = new Tr2ResourceSetAL();
     if (Failed(resourceSet.Create(description, program, this))) return null;
-
     return resourceSet;
   }
 
@@ -1832,9 +1843,11 @@ export class CjsWebgpuRenderContextAL
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
    * @returns {boolean} True.
    */
+  @impl.adapted
+  @impl.reason("A copied public wrapper retains the shared ownership record while this context binds the WebGPU implementation.")
   SetResourceSet(resourceSet)
   {
-    this._resourceSet = resourceSet;
+    this._resourceSet = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;
 
     return true;
   }

@@ -90,6 +90,10 @@ export class EveChildTransform extends EveSpaceObjectChild
     return EveChildTransform.#compose(out, this.scaling, this.rotation, this.translation);
   }
 
+  /**
+   * Rebuilds the local matrix from scale, rotation, and translation when useSRT
+   * is enabled, then returns it.
+   */
   @carbon.method
   @impl.implemented
   RebuildLocalTransform()

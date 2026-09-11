@@ -14,7 +14,7 @@
 // contract yet). They are unrelated to the instance surface.
 
 import { CjsSchema, impl } from "#schema";
-import { Adopt, Brand } from "../ITr2Controller.js";
+import { Adopt, Brand } from "../ITr2Controller/index.js";
 
 
 const ITR2_CONTROLLER_ACTION = Symbol.for("carbonenginejs.contract.ITr2ControllerAction");

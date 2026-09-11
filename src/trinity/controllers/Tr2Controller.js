@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "./contracts.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
-import { withITr2ActionController } from "./ITr2Controller.js";
+import { withITr2ActionController } from "./ITr2Controller/index.js";
 import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 
 

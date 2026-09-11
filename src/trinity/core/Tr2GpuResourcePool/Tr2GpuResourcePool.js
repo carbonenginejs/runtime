@@ -26,165 +26,16 @@
 // walks outward. That is how a scene-local pool shares the global one's
 // resources without owning them.
 
-import { Tr2BitmapDimensions, Tr2BufferALStub, Tr2TextureALStub } from "../../trinityal/index.js";
+import { Tr2BitmapDimensions, Tr2BufferALStub, Tr2TextureALStub } from "../../../trinityal/index.js";
+import { GpuResourceHandle } from "./GpuResourceHandle.js";
 
-
-function fail(message)
+/** Throws a resource-pool error with the supplied diagnostic. */
+export function fail(message)
 {
   const error = new Error(`Tr2GpuResourcePool: ${message}`);
   error.code = "CJS_GPU_POOL_INVALID";
   throw error;
 }
-
-
-/**
- * A width and height, with Carbon's scaling and comparison.
- */
-export class TextureSize2D
-{
-  /** Width in pixels. */
-  width = 0;
-
-  /** Height in pixels. */
-  height = 0;
-
-  /**
-   * @param {number|object} [widthOrDimensions] A width, or a `Tr2BitmapDimensions`.
-   * @param {number} [height] The height, when a width was given.
-   */
-  constructor(widthOrDimensions = 0, height = 0)
-  {
-    if (widthOrDimensions && typeof widthOrDimensions === "object")
-    {
-      this.width = widthOrDimensions.GetWidth();
-      this.height = widthOrDimensions.GetHeight();
-
-      return;
-    }
-
-    this.width = widthOrDimensions;
-    this.height = height;
-  }
-
-  /**
-   * Whether two sizes match.
-   *
-   * @param {TextureSize2D} other The size to compare with.
-   * @returns {boolean} True when they match.
-   */
-  Equals(other)
-  {
-    return !!other && this.width === other.width && this.height === other.height;
-  }
-
-  /**
-   * This size scaled, never below one pixel in either direction.
-   *
-   * Carbon clamps to one (`h:TextureSize2D::operator*`), because a half-size
-   * chain reaches zero before it reaches one and a zero-sized target is not a
-   * target.
-   *
-   * @param {number} scale The factor.
-   * @returns {TextureSize2D} The scaled size.
-   */
-  Scaled(scale)
-  {
-    return new TextureSize2D(
-      Math.max(1, Math.trunc(this.width * scale)),
-      Math.max(1, Math.trunc(this.height * scale))
-    );
-  }
-}
-
-
-/**
- * A borrowed pool resource.
- *
- * CARBON RELEASES ON DESTRUCTION AND JAVASCRIPT CANNOT. Its handle decrements a
- * lock count in its destructor, so a resource returns to the pool when the last
- * holder goes out of scope. There is no such moment here, so `Release` is
- * explicit and a handle that is never released pins its resource forever -
- * which is a leak, not a crash, and therefore worth being loud about. The pool
- * reports held resources so a caller can assert.
- *
- * THE VERB IS `Free`, AND THE POOL OWNS IT. Settled 2026-09-05 with
- * `cjs-carbon-verbs`, after two wrong turns worth recording:
- *
- * - `Destroy` is wrong. It means GONE NOW - the pure virtual on
- *   `Tr2BaseDeviceResourceAL` (`trinityal/Tr2DeviceResourceAL.h:30`), used on
- *   35 Carbon classes. A pooled resource is not destroyed; it goes back and is
- *   handed out again. `ClearUnusedResources` below is where `Destroy` is
- *   right, and where it is used.
- * - `Release` is not engine vocabulary. Bare `Release` appears ONLY in
- *   Carbon's mesh viewer and video player, as Vulkan idiom. Trinity uses only
- *   the qualified forms - `ReleaseLater`, `ReleaseDeviceResources`.
- *
- * `Free` is shared engine vocabulary on six Carbon classes - `FreeList`,
- * `Tr2VirtualAllocator`, `Tr2SuballocatedBuffer` and three descriptor-heap
- * allocators - and EVERY ONE IS AN ALLOCATOR OR POOL. The direction is theirs
- * too: `Tr2VirtualAllocator::Free( allocation )` and
- * `Tr2SuballocatedBuffer::Free( allocation& )` put the verb on the allocator,
- * not on the thing lent. So `pool.Free(handle)`, not `handle.Release()`.
- *
- * Carbon's handle has no named method at all - the work is in
- * `~GpuResourceHandle`. That absence is C++ not needing a name, and reading it
- * as a prohibition is how this briefly became a coined `ReleaseToPool`.
- */
-export class GpuResourceHandle
-{
-  #record = null;
-
-  /**
-   * @param {object} [record] The pool record this handle locks.
-   */
-  constructor(record = null)
-  {
-    this.#record = record;
-
-    if (record) record.lockCount += 1;
-  }
-
-  /**
-   * The resource itself.
-   *
-   * @returns {object|null} The resource, or null once released.
-   */
-  Get()
-  {
-    return this.#record?.resource ?? null;
-  }
-
-  /** @returns {boolean} Whether this handle still holds a resource. */
-  IsValid()
-  {
-    return this.#record !== null;
-  }
-
-  /** @returns {string} The resource's debug name. */
-  GetName()
-  {
-    return this.#record?.name ?? "";
-  }
-
-  /**
-   * Drops this handle's claim. Called by `Tr2GpuResourcePool.Free`.
-   *
-   * Freeing twice is a caller error rather than a silent no-op: it means the
-   * lock count no longer describes who is holding what.
-   *
-   * @returns {boolean} Whether a claim was dropped.
-   */
-  Detach()
-  {
-    if (!this.#record) fail("a handle freed twice");
-
-    this.#record.lockCount -= 1;
-    this.#record = null;
-
-    return true;
-  }
-}
-
 
 /**
  * Pooled scratch textures and buffers.
@@ -413,6 +264,10 @@ export class Tr2GpuResourcePool
     return texture;
   }
 
+  /**
+   * Creates a stub buffer from the description against the pool's render
+   * context.
+   */
   #CreateBuffer(description)
   {
     if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
@@ -428,6 +283,10 @@ export class Tr2GpuResourcePool
     return buffer;
   }
 
+  /**
+   * Borrows a matching free resource from this pool or its outer pool,
+   * allocating when necessary.
+   */
   #Borrow(list, name, description, create)
   {
     const free = this.#Find(list, name, description, true);
@@ -441,6 +300,7 @@ export class Tr2GpuResourcePool
     return new GpuResourceHandle(this.#Add(list, name, description, create()));
   }
 
+  /** Finds a matching pool record and updates its last-access frame. */
   #Find(list, name, description, freeOnly)
   {
     const match = list.find(record =>
@@ -453,6 +313,7 @@ export class Tr2GpuResourcePool
     return match ?? null;
   }
 
+  /** Adds an unlocked resource record stamped with the current frame. */
   #Add(list, name, description, resource)
   {
     const record = { resource, name, description, lockCount: 0, lastAccessFrame: this.#frame };
@@ -462,7 +323,6 @@ export class Tr2GpuResourcePool
     return record;
   }
 }
-
 
 function SameDescription(left, right)
 {
@@ -478,7 +338,6 @@ function SameDescription(left, right)
 
   return true;
 }
-
 
 let globalPool = null;
 

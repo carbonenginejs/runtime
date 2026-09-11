@@ -437,6 +437,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     }
   }
 
+  /** Writes one sprite position as three little-endian floats in the vertex pool. */
   #WritePosition(index, position)
   {
     const base = index * POOL_VERTEX_SIZE;

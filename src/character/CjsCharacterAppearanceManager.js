@@ -237,6 +237,10 @@ export class CjsCharacterAppearanceManager
         return result;
     }
 
+    /**
+     * Applies the current appearance revision, reusing compatible state and
+     * releasing superseded or failed preparations.
+     */
     async #Apply(construction, requestRevision, options)
     {
         if (requestRevision !== this.#requestedRevision)
@@ -374,6 +378,10 @@ export class CjsCharacterAppearanceManager
         return result;
     }
 
+    /**
+     * Releases an appearance through the configured adapter and counts completed
+     * releases.
+     */
     async #Release(value, context)
     {
         if (value && typeof this.#adapter?.Release === "function")
@@ -383,6 +391,7 @@ export class CjsCharacterAppearanceManager
         }
     }
 
+    /** Adds adapter diagnostics to the result when the adapter provides them. */
     #AppendDiagnostics(result, appearance)
     {
         if (typeof this.#adapter?.GetDiagnostics === "function")
@@ -391,6 +400,7 @@ export class CjsCharacterAppearanceManager
         }
     }
 
+    /** Refreshes diagnostics on the last committed result. */
     #RefreshCommittedDiagnostics()
     {
         if (this.#lastResult?.status === "committed")

@@ -18,6 +18,7 @@ export class CjsCharacterGlesMorphDeformation
 {
     _geometryHost;
 
+    /** Validates and retains the geometry host used to apply morph deformation. */
     constructor({ geometryHost } = {})
     {
         this._geometryHost = RequireGeometryHost(geometryHost);

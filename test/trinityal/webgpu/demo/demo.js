@@ -1115,14 +1115,27 @@ export async function RunDemo(canvas)
   const getDummyTexture = al.GetDummyTexture.bind(al);
 
   al.GetDummyTexture = dimension => { dummies.push(dimension); return getDummyTexture(dimension); };
-  al.CreateResourceSet = (description, program) =>
+  al.CreateResourceSet = (description, program, implementationOnly = false) =>
   {
-    for (const [ key, entry ] of Object.entries(description?.Describe?.() ?? {}))
+    // Preserve the facade's internal allocation branch, and inspect once per
+    // public Create. Dropping the third argument recurses into the facade.
+    if (!implementationOnly)
     {
-      if (key.startsWith("srv")) srvs.push(`${key}=${entry?.constructor?.name ?? entry}`);
+      const map = description.m_registerMap;
+      for (let stage = 0; stage < map.srvs.length; stage += 1)
+      {
+        for (let register = 0; register < map.srvs[stage].length; register += 1)
+        {
+          const index = map.srvs[stage][register];
+          if (index >= map.srvCount) continue;
+          const record = description.m_srv[index];
+          if (record.type === 0) continue;
+          const resource = record.type === 1 ? record.buffer : record.texture;
+          srvs.push(`srv${stage}:${register}=${resource?.constructor?.name ?? "invalid"}`);
+        }
+      }
     }
-
-    return createResourceSet(description, program);
+    return createResourceSet(description, program, implementationOnly);
   };
 
   // What rendering mode each batch asks for. RM_ANY means the walk skips

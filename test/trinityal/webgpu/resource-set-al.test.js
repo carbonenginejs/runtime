@@ -52,7 +52,7 @@ function composed()
 function programWith(al, bindings)
 {
   const block = writeBackendBlock({ bindGroups: [ { group: 0, bindings } ], transforms: [] });
-  const signature = { pipelineInputs: [], backendBlock: { bytes: block, size: block.byteLength } };
+  const signature = { registers: bindings.map(binding => ({ registerType: binding.resourceKind === "sampler" ? 1 : binding.resourceKind === "uniform-buffer" ? 0 : binding.resourceKind === "storage-resource" ? 64 : 32, registerIndex: binding.registerIndex })), pipelineInputs: [], backendBlock: { bytes: block, size: block.byteLength } };
 
   return al.CreateShaderProgram([
     al.CreateShader(ShaderType.VERTEX_SHADER, VERTEX_WGSL, signature, "v.wgsl"),
@@ -71,13 +71,13 @@ test("Create resolves every non-uniform slot against the program, by the stage t
 {
   const { al, created } = composed();
   const program = programWith(al, BINDINGS);
-  const description = new Tr2ResourceSetDescriptionAL();
+  const description = new Tr2ResourceSetDescriptionAL({ program });
   const sampler = al.CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 3, addressV: 3, addressW: 3 });
   const bones = { GetDeviceBuffer: () => ({ kind: "buffer", id: "bones" }) };
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 2, sampler);
   description.SetSrv(ShaderType.PIXEL_SHADER, 2, { GetDeviceTextureView: (dimension, colorSpace) => ({ kind: "view", dimension, colorSpace }) }, 1);
-  description.SetSrv(ShaderType.VERTEX_SHADER, 5, bones);
+  description.SetSrv(ShaderType.VERTEX_SHADER, 5, bones, 0, 1);
 
   const set = new CjsWebgpuResourceSetAL();
 
@@ -103,13 +103,13 @@ test("what the description leaves empty takes a dummy of the slot's kind, and a 
 {
   const { al, created } = composed();
   const program = programWith(al, BINDINGS);
-  const description = new Tr2ResourceSetDescriptionAL();
+  const description = new Tr2ResourceSetDescriptionAL({ program });
 
   // A TriTextureRes, not yet a Tr2TextureAL: Carbon's fallback texture.
   description.SetSrv(ShaderType.PIXEL_SHADER, 2, { id: "still-loading" });
 
   const set = al.CreateResourceSet(description, program);
-  const entries = set.GetEntries();
+  const entries = set.m_resourceSet.implementation.GetEntries();
 
   assert.equal(entries.get("0:1").dimension, "cube", "the dummy matches the layout's dimension");
   assert.equal(entries.get("0:2").kind, "sampler");
@@ -119,7 +119,7 @@ test("what the description leaves empty takes a dummy of the slot's kind, and a 
   assert.equal(created.buffers, 1, "a null storage buffer");
 
   // Dummies are the context's and shared: a second set creates none.
-  al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), program);
+  al.CreateResourceSet(new Tr2ResourceSetDescriptionAL({ program }), program);
   assert.equal(created.textures + created.samplers + created.buffers, 3);
 });
 
@@ -131,5 +131,36 @@ test("a program this backend did not link, or no description, is refused", () =>
   assert.equal(set.Create(new Tr2ResourceSetDescriptionAL(), { IsValid: () => true, id: "row" }, al), ALResult.E_INVALIDARG);
   assert.equal(set.Create(null, programWith(al, BINDINGS), al), ALResult.E_INVALIDARG);
   assert.equal(al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), null), null);
+  assert.equal(set.IsValid(), false);
+});
+
+
+test("context binding keeps the old implementation when its public handle is recreated", () =>
+{
+  const { al } = composed();
+  const program = programWith(al, BINDINGS);
+  const description = new Tr2ResourceSetDescriptionAL({ program });
+  const set = al.CreateResourceSet(description, program);
+  al.SetResourceSet(set);
+  const bound = al.GetBoundState().resourceSet;
+  const previous = bound.m_resourceSet.implementation;
+  assert.notEqual(bound, set);
+  assert.equal(set.Create(description, program, al), ALResult.S_OK);
+  assert.notEqual(set.m_resourceSet.implementation, previous);
+  assert.equal(bound.m_resourceSet.implementation, previous);
+  assert.equal(bound.IsValid(), true);
+  assert.equal(set.Create(new Tr2ResourceSetDescriptionAL(), program, al), ALResult.E_INVALIDARG);
+  assert.equal(set.IsValid(), false, "failed Create resets the public handle");
+  assert.equal(bound.IsValid(), true, "the captured implementation survives failure too");
+});
+
+test("WebGPU refuses unsupported heap views with the original status code", () =>
+{
+  const { al } = composed();
+  const program = programWith(al, BINDINGS);
+  const description = new Tr2ResourceSetDescriptionAL({ program });
+  const set = al.CreateResourceSet(description, program);
+  assert.equal(description.SetSrvHeapView(ShaderType.PIXEL_SHADER, 2), true);
+  assert.equal(set.Create(description, program, al), ALResult.E_FAIL);
   assert.equal(set.IsValid(), false);
 });

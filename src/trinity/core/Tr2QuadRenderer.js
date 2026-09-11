@@ -8,7 +8,7 @@
 // handles) is engine-owned and reads the merged CPU state emitted here.
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
-import { Tr2RenderBatch } from "./batch/Tr2RenderBatch.js";
+import { Tr2RenderBatch } from "./batch/TriRenderBatch/index.js";
 import { TriBatchType } from "#consts/graphics";
 
 /** One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord). */

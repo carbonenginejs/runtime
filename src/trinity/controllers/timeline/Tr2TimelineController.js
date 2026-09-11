@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
-import { withITr2ActionController } from "../ITr2Controller.js";
+import { withITr2ActionController } from "../ITr2Controller/index.js";
 import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
 import { UnlinkReason } from "../enums.js";
 

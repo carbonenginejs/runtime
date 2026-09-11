@@ -12,7 +12,7 @@
 // until the implementors' own Update surfaces are reconciled.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller.js";
+import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
 
 
 const IEVE_TRANSFORM = Symbol.for("carbonenginejs.contract.IEveTransform");

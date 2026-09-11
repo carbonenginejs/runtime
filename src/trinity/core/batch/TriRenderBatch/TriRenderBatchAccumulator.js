@@ -1,5 +1,6 @@
-// Source: trinity/TriRenderBatch.h (TriRenderBatchAccumulator<KeyGenerator>,
-//                             DefaultKeyGenerator, EffectKeyGenerator)
+// Source: trinity/trinity/TriRenderBatch.h
+import { DefaultKeyGenerator } from "./DefaultKeyGenerator.js";
+import { RenderBatchSortType } from "../../../generated/trinityCore/enums.js";
 //
 // GPU-free render-batch accumulator: collects committed batches into two vectors
 // (GDPR-eligible and plain), then sorts / group-counts them on Finalize. The
@@ -7,44 +8,10 @@
 // finalized accumulator and issues the actual draws.
 import { RenderingMode } from "#consts/graphics";
 import { Topology } from "#consts/render-context";
-import { RenderBatchSortType } from "../../generated/trinityCore/enums.js";
+
 import { ITriRenderBatchAccumulator } from "./ITriRenderBatchAccumulator.js";
 import { CanBeBinned, OrderOf, Tr2GdprBatchFullPartition } from "./Tr2RenderBatch.js";
 
-
-// Unsorted, order-preserving, single vector, no GDPR. Used for transparent /
-// order-dependent passes (which are pre-sorted by object distance CPU-side).
-export const DefaultKeyGenerator = {
-  ALLOW_GDPR: false,
-
-  Less(_batch1, _batch2)
-  {
-    return false;
-  },
-
-  GetSortType()
-  {
-    return RenderBatchSortType.RENDERBATCHSORTTYPE_NONE;
-  }
-};
-
-// Effect-sorted (shader, then vertex declaration); GDPR-enabled. Used for
-// opaque / decal / depth / additive / shadow passes.
-export const EffectKeyGenerator = {
-  ALLOW_GDPR: true,
-
-  Less(batch1, batch2)
-  {
-    const shaderOrder = OrderOf(batch1.shader) - OrderOf(batch2.shader);
-    if (shaderOrder !== 0) return shaderOrder < 0;
-    return batch1.vertexDeclaration < batch2.vertexDeclaration;
-  },
-
-  GetSortType()
-  {
-    return RenderBatchSortType.RENDERBATCHSORTTYPE_SORT;
-  }
-};
 
 /**
  * Concrete GPU-free batch accumulator: collects committed batches into a
@@ -55,9 +22,9 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
 {
   /**
    * Creates an empty accumulator whose key generator decides sorting and GDPR
-   * eligibility, defaulting to the effect-sorted one.
+   * eligibility, defaulting to Carbon's unsorted policy.
    */
-  constructor(keyGenerator = EffectKeyGenerator)
+  constructor(keyGenerator = DefaultKeyGenerator)
   {
     super();
     this.keyGenerator = keyGenerator;

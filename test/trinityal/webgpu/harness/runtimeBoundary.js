@@ -12,8 +12,8 @@ export {
 } from "../../../../npm/dist/trinity/core/batch/CjsTrinityBatchResolver.js";
 export {
     ITriRenderBatchAccumulator
-} from "../../../../npm/dist/trinity/core/batch/ITriRenderBatchAccumulator.js";
-export { Tr2RenderBatch } from "../../../../npm/dist/trinity/core/batch/Tr2RenderBatch.js";
+} from "../../../../npm/dist/trinity/core/batch/TriRenderBatch/ITriRenderBatchAccumulator.js";
+export { Tr2RenderBatch } from "../../../../npm/dist/trinity/core/batch/TriRenderBatch/Tr2RenderBatch.js";
 export { TriRenderBatchMap } from "../../../../npm/dist/trinity/core/batch/TriRenderBatchMap.js";
 export { buildCopyblitDrawDescriptor } from "./support/packageDraw.js";
 export {

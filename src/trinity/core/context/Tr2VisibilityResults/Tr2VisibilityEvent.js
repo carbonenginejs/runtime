@@ -1,11 +1,9 @@
 // Source: trinity/trinity/Tr2VisibilityResults.h
 //   trinity/trinity/Tr2VisibilityResults.cpp
 //   trinity/trinity/Tr2VisibilityResults_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, type } from "#schema";
+
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
-
 
 /**
  * Carbon's Tr2VisibilityEvent struct - the shared shape producers push into
@@ -68,51 +66,5 @@ export class Tr2VisibilityEvent
     TILE_END: 1 << 28,
     FLUSH_GPU_COMMAND_BUFFER: 1 << 29
   });
-
-}
-
-
-/**
- * Collects the visibility events a visibility executor emits, for the interior
- * and portal consumers to read back.
- */
-@type.define({ className: "Tr2VisibilityResults", family: "trinityCore" })
-export class Tr2VisibilityResults extends CjsModel
-{
-
-  // Carbon's m_events is private transient execution state, not Blue data.
-  #events = [];
-
-  /** Adds the value-like visibility event emitted by a visibility executor. */
-  @carbon.method
-  @impl.adapted
-  AddVisibilityEvent(event)
-  {
-    this.#events.push(event);
-  }
-
-  /** Returns a detached container view of the current visibility events. */
-  @carbon.method
-  @impl.adapted
-  GetEvents()
-  {
-    return this.#events.slice();
-  }
-
-  /** Clears the result set. */
-  @carbon.method
-  @impl.implemented
-  Clear()
-  {
-    this.#events.length = 0;
-  }
-
-  /** Gets the number of visibility events in the result set. */
-  @carbon.method
-  @impl.implemented
-  GetNumVisibilityEvents()
-  {
-    return this.#events.length;
-  }
 
 }

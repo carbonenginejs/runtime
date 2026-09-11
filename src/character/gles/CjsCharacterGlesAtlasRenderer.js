@@ -9,6 +9,7 @@ export class CjsCharacterGlesAtlasRenderer
 {
     _atlasHost;
 
+    /** Validates and retains the host used to compose atlas targets. */
     constructor({ atlasHost } = {})
     {
         this._atlasHost = RequireAtlasHost(atlasHost);

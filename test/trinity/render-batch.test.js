@@ -169,9 +169,10 @@ test("Finalize sorts by effect and stamps groupCount per bin-run", () =>
   assert.equal(accumulator.IsChainedByEffect(), true);
 });
 
-test("the default key generator preserves order and does not chain by effect", () =>
+test("the zero-argument accumulator uses Carbon's default policy and preserves order", () =>
 {
-  const accumulator = new TriRenderBatchAccumulator(DefaultKeyGenerator);
+  const accumulator = new TriRenderBatchAccumulator();
+  assert.equal(accumulator.keyGenerator, DefaultKeyGenerator);
   const first = makeBatch({ shader: { id: "z" }, indexBuffer: {}, gdr: true });
   const second = makeBatch({ shader: { id: "a" }, indexBuffer: {}, gdr: true });
   accumulator.Commit(first);

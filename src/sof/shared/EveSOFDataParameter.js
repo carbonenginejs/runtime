@@ -86,6 +86,10 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
   @type.boolean
   value = false;
 
+  /**
+   * Returns a new vector containing the boolean value as four identical
+   * zero-or-one components.
+   */
   GetValue()
   {
     const scalar = this.value ? 1 : 0;
@@ -101,6 +105,7 @@ export class EveSOFDataParameterInt extends EveSOFDataParameter
   @type.int32
   value = 0;
 
+  /** Returns a new vector containing the numeric value in all four components. */
   GetValue()
   {
     const scalar = Number(this.value);
@@ -116,6 +121,7 @@ export class EveSOFDataParameterFloat extends EveSOFDataParameter
   @type.float32
   value = 0;
 
+  /** Returns a new vector containing the numeric value in all four components. */
   GetValue()
   {
     const scalar = Number(this.value);
@@ -131,6 +137,7 @@ export class EveSOFDataParameterVector2 extends EveSOFDataParameter
   @type.vec2
   value = vec2.create();
 
+  /** Returns a new four-component vector with zero-filled z and w components. */
   GetValue()
   {
     return vec4.fromValues(this.value[0], this.value[1], 0, 0);
@@ -145,6 +152,7 @@ export class EveSOFDataParameterVector3 extends EveSOFDataParameter
   @type.vec3
   value = vec3.create();
 
+  /** Returns a new four-component vector with a zero-filled w component. */
   GetValue()
   {
     return vec4.fromValues(this.value[0], this.value[1], this.value[2], 0);
@@ -159,6 +167,7 @@ export class EveSOFDataParameterColor extends EveSOFDataParameter
   @type.vec4
   value = vec4.create();
 
+  /** Returns a copy of the four-component color value. */
   GetValue()
   {
     return vec4.clone(this.value);

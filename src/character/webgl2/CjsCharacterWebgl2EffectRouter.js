@@ -57,6 +57,10 @@ const TEXTURE_PARAMETERS = Object.freeze([
  */
 export class CjsCharacterWebgl2EffectRouter
 {
+    /**
+     * Routes each distinct effect and reports applied, deferred, and retained
+     * effects with their watch requirements.
+     */
     static Route(effects)
     {
         const report = {
@@ -80,6 +84,10 @@ export class CjsCharacterWebgl2EffectRouter
         return report;
     }
 
+    /**
+     * Restores saved state on each distinct routed effect and reports restored
+     * or deferred results.
+     */
     static RestoreAfterWatch(effects)
     {
         const report = { status: "unchanged", restored: [], deferred: [] };

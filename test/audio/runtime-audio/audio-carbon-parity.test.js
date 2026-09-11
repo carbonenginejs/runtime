@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   AudActionLogCB,
+  IAudActionLog,
   AudEmitter,
   AudGameObjResource,
   AudGeometry,
@@ -12,7 +13,17 @@ import {
   SpatialAudioSettings,
   Tr2AudGeometryData
 } from "../../../npm/dist/audio/index.js";
-import { AudObstructionOcclusion } from "../../../npm/dist/audio/trinity/audio/AudObstructionOcclusion.js";
+import { AudObstructionOcclusion } from "../../../npm/dist/audio/trinity/audio/AudObstructionOcclusion/AudObstructionOcclusion.js";
+
+test("audio action logging exposes the required Carbon interface", () =>
+{
+  assert.equal(Object.getPrototypeOf(AudActionLogCB), IAudActionLog);
+  const contract = new IAudActionLog();
+  for (const method of [ "LogPostEvent", "LogExecuteActionOnPlayingID", "LogSetSwitch", "LogSetState", "LogSetRTPC", "Flush" ])
+  {
+    assert.throws(() => contract[method](), /must be implemented/);
+  }
+});
 
 function ResetAudioSeams()
 {

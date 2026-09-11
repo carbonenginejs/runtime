@@ -66,6 +66,13 @@ for (const [ className, records ] of schema)
     const name = method?.cppName ?? method?.target;
     if (typeof name !== "string" || !name) continue;
     if (NON_METHOD.test(name) || name === className) continue;
+    // Schema currently merges the public facade and TrinityALImpl backends.
+    // Public include/Tr2ResourceSetAL.h:129-146 has none of these methods:
+    // Describe/Destroy belong to backends; StageInput is a nested DX11
+    // constructor (dx11/Tr2ResourceSetALDx11.h:21,27-29).
+    if (className === "Tr2ResourceSetAL"
+      && Object.values(record.sourceRefs ?? {}).includes("trinity/trinityal/include/Tr2ResourceSetAL.h")
+      && [ "Describe", "StageInput", "Destroy" ].includes(name)) continue;
     declared.add(name);
   }
   if (!declared.size) continue;

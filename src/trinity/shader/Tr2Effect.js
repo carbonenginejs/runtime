@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
 import { Tr2ConstantEffectParameter } from "./parameter/Tr2ConstantEffectParameter.js";
@@ -342,6 +343,8 @@ export class Tr2Effect extends Tr2Material
    *
    * @returns {void}
    */
+  @impl.adapted
+  @impl.reason("Device-free JS reflection supplies stage signatures in authored order; pass descriptions allocate their map here and sampler states are seeded by the applying context.")
   #BuildParametersForPasses()
   {
     // Carbon's `m_parametersForPasses.clear()` (Tr2Effect.cpp:693) tears down
@@ -370,16 +373,22 @@ export class Tr2Effect extends Tr2Material
       {
         const passParameters = new Tr2EffectPassParameters();
 
-        // THE READER'S DESCRIPTION IS NOT THIS DESCRIPTION, and assigning it
-        // here was the bug. `pass.resourceSetDesc` off the reflection is an
-        // `HlslResourceSetDescription` - samplers and D3D12 heap views, no
-        // `SetSrv`, no `ClearResources` - while this field is Carbon's
-        // `Tr2ResourceSetDescriptionAL`, which the pass parameters construct
-        // for themselves and `UpdateResourceSetDesc` fills at bind time.
-        //
-        // Carbon copies a description here because ITS reflection carries the
-        // same type; ours does not, so there is nothing to copy. Removed
-        // 2026-09-05; see /docs/research/graphics-path-review-2026-09-05.md.
+        // Carbon builds the map from stage signatures before material writes
+        // (Tr2EffectDescription.cpp:617-646; Tr2Effect.cpp:708). Our device-free
+        // reflection keeps sampler metadata; states are seeded by the applying
+        // context, as documented on Tr2Material.SeedSamplers.
+        const stages = [];
+        const signatures = [];
+        const ordered = pass.stageOrder?.length ? pass.stageOrder : pass.stageInputs.map((_, stage) => stage);
+        for (const stage of ordered)
+        {
+          if (!pass.stageInputs[stage]?.exists) continue;
+          stages.push(stage);
+          signatures.push(pass.stageInputs[stage].signature);
+        }
+        passParameters.resourceSetDesc = new Tr2ResourceSetDescriptionAL({
+          registers: new Tr2RegisterMapAL({ stages, signatures })
+        });
         passParameters.resourceSetHash = 0;
         passParameters.resourceSetDirty = true;
         passParameters.compatibleWithGdr = true;

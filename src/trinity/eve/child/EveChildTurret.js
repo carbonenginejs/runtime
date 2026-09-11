@@ -214,6 +214,7 @@ export class EveChildTurret extends EveChildMesh
   // from the update params each async pass.
   #parentTranslation = vec3.create();
 
+  /** Enables target fading when the turret's locator changes. */
   constructor()
   {
     super();
@@ -290,6 +291,10 @@ export class EveChildTurret extends EveChildMesh
     return super.OnModified(value);
   }
 
+  /**
+   * Loads the configured firing-effect child and installs it when loading
+   * returns an object.
+   */
   #LoadFiringEffectFromPath()
   {
     if (!this.resourceLoader) return;

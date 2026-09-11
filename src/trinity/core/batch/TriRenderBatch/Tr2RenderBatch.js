@@ -1,4 +1,4 @@
-// Source: trinity/TriRenderBatch.h
+// Source: trinity/trinity/TriRenderBatch.h
 //   trinity/TriRenderBatch.cpp
 //
 // GPU-free CPU render-batch descriptor plus the binning/sort helpers. A batch
@@ -6,16 +6,17 @@
 // it never touches a device. The engine adapter reads a finalized accumulator's
 // batches and issues the actual draws (Carbon's Tr2RenderContextBase::RenderBatches*
 // dispatch family stays engine-side and is intentionally NOT ported here).
+
 import { RenderingMode } from "#consts/graphics";
 import { Topology } from "#consts/render-context";
 import { TriGeometryRes } from "#resource/geometry";
-
 
 // Carbon sorts batches on raw pointer identity of shader/vertex-stream objects.
 // JS has no pointer order, so we assign each distinct reference a stable id on
 // first encounter. Only contiguity of equal references matters for binning, so
 // the ordinal itself is irrelevant as long as it is consistent within a run.
 let nextOrderId = 1;
+
 const orderIds = new WeakMap();
 
 /**
@@ -34,92 +35,6 @@ export function OrderOf(ref)
     orderIds.set(ref, id);
   }
   return id;
-}
-
-// A contiguous (startIndex, count) block of mesh groups. Mirrors Carbon
-// TriRenderBatchAreaBlock; used by the shadow/overlay area-block paths.
-
-/**
- * A contiguous (startIndex, count) run of mesh groups, as consumed by the shadow
- * and overlay area-block paths.
- */
-export class TriRenderBatchAreaBlock
-{
-  /**
-   * Creates a block covering count groups from startIndex; both are coerced to
-   * unsigned integers.
-   */
-  constructor(startIndex = 0, count = 0)
-  {
-    this.startIndex = startIndex >>> 0;
-    this.count = count >>> 0;
-  }
-
-  // Compacts a set of possibly overlapping/adjacent blocks into the minimal set
-  // of contiguous runs, in place. Mirrors TriRenderBatchAreaBlock::Optimize.
-
-  /**
-   * Compacts a vector of possibly overlapping or adjacent blocks into the
-   * minimal set of contiguous runs, rewriting the caller's array in place and
-   * returning it.
-   */
-  static Optimize(areaBlockVector)
-  {
-    const indices = new Set();
-    for (const block of areaBlockVector)
-    {
-      for (let i = 0; i < block.count; i++) indices.add(block.startIndex + i);
-    }
-
-    const sorted = Array.from(indices).sort((a, b) => a - b);
-    areaBlockVector.length = 0;
-
-    let start = -1;
-    let run = -1;
-    for (const value of sorted)
-    {
-      if (run >= 0 && value === run + 1)
-      {
-        run = value;
-        continue;
-      }
-      if (run >= 0) areaBlockVector.push(new TriRenderBatchAreaBlock(start, run - start + 1));
-      start = value;
-      run = value;
-    }
-    if (run >= 0) areaBlockVector.push(new TriRenderBatchAreaBlock(start, run - start + 1));
-    return areaBlockVector;
-  }
-}
-
-// A shared-material list of area blocks (shadow/overlay path). Mirrors
-// TriRenderBatchAreaBlocksWithSharedMaterial.
-
-/**
- * Groups the area blocks that draw with one shared shader material on the shadow
- * and overlay path.
- */
-export class TriRenderBatchAreaBlocksWithSharedMaterial extends TriRenderBatchAreaBlock
-{
-  /** Starts with no shared material and an empty block vector. */
-  constructor()
-  {
-    super();
-    this.shaderMaterial = null;
-    this.areaBlockVector = [];
-  }
-
-  /** Compacts the owned block vector into minimal contiguous runs. */
-  Optimize()
-  {
-    TriRenderBatchAreaBlock.Optimize(this.areaBlockVector);
-  }
-
-  /** Empties the block vector while keeping the shared material bound. */
-  Clear()
-  {
-    this.areaBlockVector.length = 0;
-  }
 }
 
 // THE ALLOCATION TYPE IS A PORT GAP, AND THESE TWO HELPERS ARE WHERE IT SHOWS.
@@ -153,7 +68,6 @@ function AllocationStride(allocation)
 
   return allocation.stride ?? 0;
 }
-
 
 // A single draw's worth of CPU descriptor state. Faithful to Carbon's
 // Tr2RenderBatch struct; the vertex/index "buffer" slots hold whatever the

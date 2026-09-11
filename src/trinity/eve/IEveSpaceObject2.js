@@ -17,7 +17,7 @@
 //   forwarding surface, probed with `typeof`, and a stub would flip the probe.
 
 import { CjsSchema, impl } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller.js";
+import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
 import { vec3 } from "#math/vec3";
 
 

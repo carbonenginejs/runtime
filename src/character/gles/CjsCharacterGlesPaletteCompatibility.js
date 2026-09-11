@@ -10,6 +10,10 @@ export class CjsCharacterGlesPaletteCompatibility
 {
     _geometryHost;
 
+    /**
+     * Validates and retains the geometry host used to apply palette-capacity
+     * policies.
+     */
     constructor({ geometryHost } = {})
     {
         this._geometryHost = RequireGeometryHost(geometryHost);

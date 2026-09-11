@@ -6,7 +6,7 @@ import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { TriTextureRes } from "../../npm/dist/resource/texture/TriTextureRes.js";
-import { Tr2ResourceSetDescriptionAL, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
 
 // Carbon's TriTextureRes creates its Tr2TextureAL in DoPrepare from the decoded
@@ -109,7 +109,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
   context.GetRenderContextAL().CreateDevice();
   const resource = new TriTextureRes();
   const parameter = new TriTextureParameter();
-  const description = new Tr2ResourceSetDescriptionAL();
+  const description = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ stage: 1, signature: { registers: [ { registerType: 36, registerIndex: 3 } ] } }) });
   const dirtied = [];
 
   parameter.resource = resource;
@@ -117,7 +117,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
 
   // Not ready: the RESOURCE stands in, which a backend reads as the fallback.
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, 0, context), true);
-  assert.equal(description.Get("srv", 1, 3).resource, resource);
+  assert.equal(description.m_srv[0].texture, resource);
 
   resource.SetPayload(bc1Payload());
   resource.SetState(TriTextureRes.State.PREPARED);
@@ -125,8 +125,8 @@ test("a texture parameter binds the realized texture, or the resource until it i
   assert.ok(dirtied.length >= 1, "completion re-dirtied the material, as Carbon's m_onTextureChange does");
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true, "the slot changed: texture replaces resource");
 
-  const bound = description.Get("srv", 1, 3);
+  const bound = description.m_srv[0];
 
-  assert.ok(bound.resource instanceof Tr2TextureALStub);
+  assert.ok(bound.texture instanceof Tr2TextureALStub);
   assert.equal(bound.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
 });

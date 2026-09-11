@@ -10,7 +10,7 @@
   "src/audio/trinity/audio/AudGeometry.js": 6,
   "src/audio/trinity/audio/AudioCurveSetDriver.js": 5,
   "src/audio/trinity/audio/AudManager.js": 19,
-  "src/audio/trinity/audio/AudObstructionOcclusion.js": 6,
+  "src/audio/trinity/audio/AudObstructionOcclusion/AudObstructionOcclusion.js": 6,
   "src/audio/trinity/audio/AudParameter.js": 2,
   "src/audio/trinity/audio/AudUIPlayer.js": 2,
   "src/audio/trinity/audio/SoundPrioritization.js": 2,

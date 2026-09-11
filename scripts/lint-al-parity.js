@@ -68,15 +68,6 @@ const BACKEND_SUFFIXES = [ "Stub", "Webgpu", "WebGPU" ];
  * is not a list of things to get round to; it is a list of decisions.
  */
 const ACCEPTED = new Map([
-    [ "Tr2ShaderProgramALStub.GetRegisterMap",
-        "OPEN GAP, not a decision: Carbon's stub HAS it (stub/Tr2ShaderProgramALStub.cpp:72) and shared code reads it from the program (src/Tr2ResourceSetAL.cpp:180). Kept here only until the resource-set lane closes it." ],
-    [ "Tr2ResourceSetDescriptionAL.SetSrvHeapView",
-        "Heap-view setters are not ported; recorded in Tr2ResourceSetAL.js." ],
-    [ "Tr2ResourceSetDescriptionAL.SetUavHeapView",
-        "Heap-view setters are not ported; recorded in Tr2ResourceSetAL.js." ],
-    [ "Tr2ResourceSetDescriptionAL.SetSamplerHeapView",
-        "Heap-view setters are not ported; recorded in Tr2ResourceSetAL.js." ],
-
     // The WebGPU backend, 2026-09-09. Each reason is argued in the head comment
     // of the file named beside it; these are the entries that were sitting in
     // the frozen baseline looking like debt when they are decisions.

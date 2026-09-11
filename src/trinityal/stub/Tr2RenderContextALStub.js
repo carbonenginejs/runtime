@@ -28,6 +28,8 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
+import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
+import { impl } from "#schema";
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
@@ -311,12 +313,21 @@ export class Tr2RenderContextALStub
    * @param {object} program The shader program the bindings belong to.
    * @returns {object|null} The set, or null when it could not be created.
    */
-  CreateResourceSet(description, program)
+  @impl.custom
+  @impl.reason("JavaScript chooses the AL implementation through this context factory instead of a compile-time platform include. The private allocation branch preserves the native Create result.")
+  CreateResourceSet(description, program, implementationOnly = false)
   {
-    const resourceSet = new Tr2ResourceSetALStub();
-
+    // JS platform selection for the public facade; the allocation branch
+    // returns the native status code without collapsing it to null.
+    if (implementationOnly)
+    {
+      const implementation = new Tr2ResourceSetALStub();
+      const result = implementation.Create(description, program, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const resourceSet = new Tr2ResourceSetAL();
     if (Failed(resourceSet.Create(description, program, this))) return null;
-
     return resourceSet;
   }
 

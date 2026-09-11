@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { withITr2Controller } from "./ITr2Controller.js";
+import { withITr2Controller } from "./ITr2Controller/index.js";
 
 
 /**

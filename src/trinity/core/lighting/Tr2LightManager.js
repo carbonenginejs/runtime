@@ -34,7 +34,7 @@ import { carbon, impl, type } from "#schema";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
-import { Tr2TextureArray } from "../Tr2TextureArray.js";
+import { Tr2TextureArray } from "../Tr2TextureArray/index.js";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
 // the AL uploads against.
@@ -749,6 +749,10 @@ export class Tr2LightManager extends CjsModel
     return Math.min((size - this.#adjustedCutoff) / FADE_SIZE, 1);
   }
 
+  /**
+   * Returns the light's projected pixel size, or its radius when no frustum is
+   * set.
+   */
   #ScreenSize(record)
   {
     if (!this.#frustum) return record.radius;

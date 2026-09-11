@@ -31,6 +31,10 @@ export class CjsCharacterGlesFoundationTranslator
 
     _shaderPath;
 
+    /**
+     * Validates the shader and neutral-normal paths and stores the proof-texture
+     * profile.
+     */
     constructor({
         shaderPath = DEFAULT_SHADER_PATH,
         neutralNormalPath = DEFAULT_NEUTRAL_NORMAL_PATH,

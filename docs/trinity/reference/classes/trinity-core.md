@@ -234,7 +234,7 @@ Per-bone rotation and translation offsets layered on top of an animated rig, key
 Abstract base for render-batch accumulators: holds the shared rendering mode, user data and per-object-data store, and declares the collect and sort contract concrete accumulators implement.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/batch/ITriRenderBatchAccumulator.js
+- Source: src/trinity/core/batch/TriRenderBatch/ITriRenderBatchAccumulator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -492,7 +492,7 @@ One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord).
 One draw's worth of CPU descriptor state - material and shader key, geometry binding, draw arguments and sort keys - holding no device resources.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/batch/Tr2RenderBatch.js
+- Source: src/trinity/core/batch/TriRenderBatch/Tr2RenderBatch.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -502,7 +502,7 @@ One draw's worth of CPU descriptor state - material and shader key, geometry bin
 A contiguous (startIndex, count) run of mesh groups, as consumed by the shadow and overlay area-block paths.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/batch/Tr2RenderBatch.js
+- Source: src/trinity/core/batch/TriRenderBatch/TriRenderBatchAreaBlock.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -512,7 +512,7 @@ A contiguous (startIndex, count) run of mesh groups, as consumed by the shadow a
 Groups the area blocks that draw with one shared shader material on the shadow and overlay path.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/batch/Tr2RenderBatch.js
+- Source: src/trinity/core/batch/TriRenderBatch/TriRenderBatchAreaBlocksWithSharedMaterial.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -642,7 +642,7 @@ Named-variable collection used by the shader system for binding.
 Carbon's Tr2VisibilityEvent struct - the shared shape producers push into Tr2VisibilityResults and the interior/portal visibility consumers read.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/context/Tr2VisibilityResults.js
+- Source: src/trinity/core/context/Tr2VisibilityResults/Tr2VisibilityEvent.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -652,7 +652,7 @@ Carbon's Tr2VisibilityEvent struct - the shared shape producers push into Tr2Vis
 Collects the visibility events a visibility executor emits, for the interior and portal consumers to read back.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/context/Tr2VisibilityResults.js
+- Source: src/trinity/core/context/Tr2VisibilityResults/Tr2VisibilityResults.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -742,7 +742,7 @@ An integer screen rectangle given by its left, top, right and bottom edges.
 Concrete GPU-free batch accumulator: collects committed batches into a GDPR-eligible and a plain vector, then sorts and group-counts them on Finalize.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/batch/TriRenderBatchAccumulator.js
+- Source: src/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -1187,30 +1187,30 @@ Carries the software-device, back-buffer size, and windowed-mode values used whe
 <!-- class:Tr2GpuResourcePool -->
 ## `Tr2GpuResourcePool`
 
-Pooled scratch textures and buffers, recycled once nothing holds them; the class the shadow and volumetrics paths need to do their own work rather than delegating it.
+Pooled scratch textures and buffers.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/Tr2GpuResourcePool.js`
+- Source: `src/trinity/core/Tr2GpuResourcePool/Tr2GpuResourcePool.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:GpuResourceHandle -->
 ## `GpuResourceHandle`
 
-A borrowed pool resource, holding its record until explicitly released because JavaScript has no destructor to release on.
+A borrowed pool resource.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/Tr2GpuResourcePool.js`
+- Source: `src/trinity/core/Tr2GpuResourcePool/GpuResourceHandle.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:TextureSize2D -->
 ## `TextureSize2D`
 
-A width and height with Carbon's scaling, which clamps to one pixel rather than to zero.
+A width and height, with Carbon's scaling and comparison.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/Tr2GpuResourcePool.js`
+- Source: `src/trinity/core/Tr2GpuResourcePool/TextureSize2D.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -1296,20 +1296,20 @@ Draws a four-vertex screen quad with a given material, optionally publishing a s
 <!-- class:Tr2TextureArray -->
 ## `Tr2TextureArray`
 
-Holds a set of identically-dimensioned bitmap slices behind one array description, gating incompatible elements, reusing released slots, and rounding the array size up to its upload increment.
+Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/Tr2TextureArray.js`
+- Source: `src/trinity/core/Tr2TextureArray/Tr2TextureArray.js`
 - Visibility: Public
 - Kind: Carbon
 
 <!-- class:Tr2TextureArrayElement -->
 ## `Tr2TextureArrayElement`
 
-Handle to one slice of a Tr2TextureArray, reporting the slice index and the owning array's realized texture until `Release()` frees the slot.
+Element handle returned by {@link Tr2TextureArray.AddElement}.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/Tr2TextureArray.js`
+- Source: `src/trinity/core/Tr2TextureArray/Tr2TextureArrayElement.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -1330,5 +1330,25 @@ One element of a vertex definition: its usage name and index, data type, byte of
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/vertex/Tr2VertexDefinition.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:DefaultKeyGenerator -->
+## `DefaultKeyGenerator`
+
+Carbon's DefaultKeyGenerator batch sorting policy.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/batch/TriRenderBatch/DefaultKeyGenerator.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:EffectKeyGenerator -->
+## `EffectKeyGenerator`
+
+Carbon's EffectKeyGenerator batch sorting policy.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/batch/TriRenderBatch/EffectKeyGenerator.js`
 - Visibility: Public
 - Kind: Carbon

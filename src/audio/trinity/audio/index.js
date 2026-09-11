@@ -1,4 +1,4 @@
-export * from "./AudActionLog.js";
+export * from "./AudActionLog/index.js";
 export * from "./AudEmitter.js";
 export * from "./AudEventCurve.js";
 export * from "../../generated/audio/index.js";

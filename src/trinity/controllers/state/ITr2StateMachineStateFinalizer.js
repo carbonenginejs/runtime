@@ -8,7 +8,7 @@
 // hedged: the hedge was emulating the empty bodies one call site at a time.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../ITr2Controller.js";
+import { Adopt, Brand } from "../ITr2Controller/index.js";
 
 
 const ITR2_STATE_MACHINE_STATE_FINALIZER = Symbol.for("carbonenginejs.contract.ITr2StateMachineStateFinalizer");

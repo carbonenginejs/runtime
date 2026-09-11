@@ -106,6 +106,7 @@ function composed()
 function programFor(al, { block = null, fragment = true } = {})
 {
   const signature = {
+    registers: block ? [{registerType:36, registerIndex:3}, {registerType:1, registerIndex:3}] : [],
     pipelineInputs: [ { usage: 0, usageIndex: 0, registerIndex: 0 } ],
     backendBlock: block ? { bytes: block, size: block.byteLength } : null
   };
@@ -242,7 +243,7 @@ test("a program that declares bind groups draws with the bound constant buffer a
   // sampler travel the resource set.
   const constants = al.CreateConstantBuffer(64);
   const sampler = al.CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1 });
-  const description = new Tr2ResourceSetDescriptionAL();
+  const description = new Tr2ResourceSetDescriptionAL({ program });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 3, sampler);
   description.SetSrv(ShaderType.PIXEL_SHADER, 3, { GetDeviceTextureView: dimension => ({ kind: "view", dimension, id: "diffuse" }) });
@@ -332,7 +333,7 @@ test("slots nothing filled take dummies, as Metal's Create fills them", () =>
 
   // A set made against ANOTHER program does not answer for this one.
   const foreign = programFor(al, { block: GROUPED_BLOCK() });
-  const set = al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), foreign);
+  const set = al.CreateResourceSet(new Tr2ResourceSetDescriptionAL({ program: foreign }), foreign);
 
   al.SetResourceSet(set);
   al.DrawIndexedInstanced(36, 1);

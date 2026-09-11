@@ -2011,9 +2011,6 @@
     "Is",
     "Resource",
     "Sampler",
-    "SetSamplerHeapView",
-    "SetSrvHeapView",
-    "SetUavHeapView",
     "UpdateHash"
   ],
   "Tr2RingBuffer": [
@@ -2110,11 +2107,6 @@
     "SetScaling",
     "SetSkinningMatrixFrameDelay",
     "UpdatePerObjectData"
-  ],
-  "Tr2SkinnedObjectLod": [
-    "GetHighDetailModel",
-    "GetLowDetailModel",
-    "GetMediumDetailModel"
   ],
   "Tr2SolidSet": [
     "GetBatchesImpl",

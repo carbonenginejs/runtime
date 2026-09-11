@@ -195,6 +195,10 @@ export class Tr2Light extends CjsModel
   {
   }
 
+  /**
+   * Updates dynamic light data and submits a transformed point or spot light
+   * when its flags are valid.
+   */
   @impl.adapted
   @impl.reason("The profile-index flag packing and half-float narrowing are renderer-backend concerns (record carries the profile by reference); the Perlin brightness flicker awaits the frame-clock seam (see lightConversion.js).")
   AddLight(lightManager, transform, scale, bones = null, boneCount = 0)

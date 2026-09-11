@@ -30,7 +30,7 @@
 // something real: a program whose state was entirely private has no own
 // enumerable keys, canonicalised to an empty object, and would have collided
 // with every other program in the pipeline cache.
-import { ALResult, Tr2ALMemoryType } from "#trinityal";
+import { ALResult, Tr2ALMemoryType, Tr2RegisterMapAL } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 import { readBackendBlock } from "#resource/format";
 
@@ -393,13 +393,20 @@ export class CjsWebgpuShaderAL
  * program was read from. Before this the program held modules and nothing else,
  * and the layout lived only in a package the abstraction layer had no route to.
  *
- * `GetRegisterMap` is still not here; it belongs to the resource-set lane, and
- * the parity baseline records it.
+ * Register maps retain signature order before physical WebGPU bindings merge.
  */
 export class CjsWebgpuShaderProgramAL
 {
   /** m_shaders, in the order given. */
   m_shaders = [];
+
+  m_registerMap = new Tr2RegisterMapAL();
+
+  /** Returns the dense register map built from the linked shader signatures. */
+  GetRegisterMap()
+  {
+    return this.m_registerMap;
+  }
 
   /**
    * A process-unique identity, which is what the pipeline cache keys on.
@@ -526,6 +533,7 @@ export class CjsWebgpuShaderProgramAL
     this.m_bindGroupLayouts = bindGroupLayouts;
     this.m_bindings = bindings;
     this.m_shaders = shaders.slice();
+    this.m_registerMap = new Tr2RegisterMapAL({ shaders });
     this.m_inputs = shaders
       .find(shader => shader.GetType() === ShaderType.VERTEX_SHADER)
       ?.GetInputs() ?? [];
@@ -599,6 +607,7 @@ export class CjsWebgpuShaderProgramAL
   {
     // Layout objects have no destroy(); dropping the references releases them.
     this.m_shaders = [];
+    this.m_registerMap = new Tr2RegisterMapAL();
     this.m_bindings = [];
     this.m_bindGroupLayouts = [];
     this.m_pipelineLayout = null;

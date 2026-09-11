@@ -12,7 +12,7 @@ import { carbon, impl, io, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { withITr2Renderable } from "../../core/ITr2Renderable.js";
-import { Tr2RenderBatch } from "../../core/batch/Tr2RenderBatch.js";
+import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import {
   AddBoosterLights,
   CHILD_BOOSTER_BOX_BUFFER_NAME,
@@ -250,6 +250,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
     return true;
   }
 
+  /** Collects this booster's glow and halo settings for flare creation. */
   #GetFlareParams()
   {
     return {
@@ -403,6 +404,10 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
     this.#AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale);
   }
 
+  /**
+   * Stores one booster transform and its light data, creates flares and extends
+   * the bounds.
+   */
   #AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale)
   {
     const transform = mat4.clone(localMatrix);

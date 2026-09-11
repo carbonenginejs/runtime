@@ -16,6 +16,10 @@ export class CjsCharacterAppearanceConstruction
 
     _texturePolicy;
 
+    /**
+     * Configures the foundation resolver, coverage and texture policies, and
+     * contribution deferral predicate.
+     */
     constructor({
         foundationResolver,
         foundationCoveragePolicy = new CjsCharacterFoundationCoveragePolicy(),

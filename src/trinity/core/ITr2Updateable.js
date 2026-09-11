@@ -7,7 +7,7 @@
 // write `updateable.Update?.()` never needed the hedge.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller.js";
+import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
 
 
 const ITR2_UPDATEABLE = Symbol.for("carbonenginejs.contract.ITr2Updateable");

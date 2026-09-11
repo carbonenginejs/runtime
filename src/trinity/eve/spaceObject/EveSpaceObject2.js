@@ -22,7 +22,7 @@ import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../core/rawData/Tr2PerObjectData.js";
-import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/Tr2RenderBatch.js";
+import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
 import { RawData } from "../../core/rawData/RawData.js";

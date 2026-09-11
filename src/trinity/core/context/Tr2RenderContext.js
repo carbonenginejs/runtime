@@ -26,7 +26,7 @@
 //    (2026-09-06) and the RenderBatches family is next; GetBackBuffer is not.
 //    Fork/Join parallel encoding is deliberately omitted - it exists to spread
 //    batch encoding across threads, and there is one.
-import { type } from "#schema";
+import { impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -40,7 +40,7 @@ import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js"
 import { CjsShadowMapExecutor } from "./CjsShadowMapExecutor.js";
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
 import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
-import { Tr2RenderBatch } from "../batch/Tr2RenderBatch.js";
+import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContextALStub } from "../../../trinityal/stub/Tr2RenderContextALStub.js";
@@ -855,9 +855,11 @@ export class Tr2RenderContext extends CjsModel
    * @param {object} program A `Tr2ShaderProgramAL`.
    * @returns {object|null} A `Tr2ResourceSetAL`, or null when Create refused.
    */
-  CreateResourceSet(description, program)
+  @impl.custom
+  @impl.reason("Forwards JS platform selection and its internal allocation mode to the installed abstraction-layer context.")
+  CreateResourceSet(description, program, implementationOnly = false)
   {
-    return this.#requireAL("CreateResourceSet").CreateResourceSet(description, program);
+    return this.#requireAL("CreateResourceSet").CreateResourceSet(description, program, implementationOnly);
   }
 
   /**

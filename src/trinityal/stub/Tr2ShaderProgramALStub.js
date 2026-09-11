@@ -9,14 +9,10 @@
 // caller that assembled a pass wrongly, and without this it would link, bind,
 // and draw with whichever the backend happened to keep.
 //
-// Carbon's program also exposes a register map, and this does NOT, deliberately.
-// `Tr2RegisterMapAL` belongs to `Tr2ResourceSetAL`, which is the next thing in
-// the port order and the piece that actually reads it. A method returning an
-// empty map would be a promise nothing keeps; a missing one fails loudly at the
-// call that needs it.
-
+// Carbon quirk: Create leaves the stub map empty (stub cpp:23-49; CE-26).
 import { Tr2ALMemoryType, Tr2BaseDeviceResourceAL } from "../Tr2DeviceResourceAL.js";
 import { ALResult } from "../ALResult.js";
+import { Tr2RegisterMapAL } from "../Tr2ResourceSetAL/Tr2RegisterMapAL.js";
 
 
 /**
@@ -29,6 +25,14 @@ export class Tr2ShaderProgramALStub extends Tr2BaseDeviceResourceAL
 
   /** The shaders the program linked, in the order they were given. */
   _shaders = [];
+
+  m_registerMap = new Tr2RegisterMapAL();
+
+  /** Returns the register map that Carbon's stub deliberately leaves empty. */
+  GetRegisterMap()
+  {
+    return this.m_registerMap;
+  }
 
   /**
    * Links the shaders into a program.

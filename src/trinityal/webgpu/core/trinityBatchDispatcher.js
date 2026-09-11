@@ -1,8 +1,8 @@
 import { CjsWebgpuDevice } from "../CjsWebgpuDevice.js";
 import { CjsTrinityBatchDispatcher } from "#trinity/core/batch/CjsTrinityBatchDispatcher";
 import { CjsTrinityBatchResolver } from "#trinity/core/batch/CjsTrinityBatchResolver";
-import { ITriRenderBatchAccumulator } from "#trinity/core/batch/ITriRenderBatchAccumulator";
-import { Tr2RenderBatch } from "#trinity/core/batch/Tr2RenderBatch";
+import { ITriRenderBatchAccumulator } from "#trinity/core/batch/TriRenderBatch/ITriRenderBatchAccumulator";
+import { Tr2RenderBatch } from "#trinity/core/batch/TriRenderBatch/Tr2RenderBatch";
 import { TriRenderBatchMap } from "#trinity/core/batch/TriRenderBatchMap";
 import { CjsWebgpuEncodeState, DeriveBatchGroups } from "./batchGroups.js";
 // Re-exported so existing importers keep working while this file lives; the

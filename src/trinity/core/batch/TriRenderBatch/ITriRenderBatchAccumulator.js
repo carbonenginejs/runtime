@@ -1,4 +1,4 @@
-// Source: trinity/TriRenderBatch.h (ITriRenderBatchAccumulator)
+// Source: trinity/trinity/TriRenderBatch.h (ITriRenderBatchAccumulator)
 //
 // Abstract base for render-batch accumulators: shared render-mode / user-data
 // state plus the collect/sort contract. Concrete accumulators

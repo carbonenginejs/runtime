@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Tr2GpuTimerALStub, Tr2OcclusionQueryALStub, Tr2PipelineStatsQueryALStub, Tr2RegisterMapAL, Tr2ResourceSetALStub, Tr2VideoAdapterInfoStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2GpuTimerALStub, Tr2OcclusionQueryALStub, Tr2PipelineStatsQueryALStub, Tr2RegisterMapAL, Tr2ResourceSetAL, Tr2ResourceSetALStub, Tr2VideoAdapterInfoStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2FenceALStub, Tr2RenderContextALStub, Tr2ResourceSetDescriptionAL, ALResult } from "../../npm/dist/trinityal/index.js";
 import { ShaderType } from "../../npm/dist/global/consts/renderContext/index.js";
 
@@ -14,82 +14,123 @@ const device = () =>
   return context;
 };
 
-test("a register is per shader stage, not global", () =>
-{
-  // The part a flat binding model loses: t3 in a vertex shader and t3 in a
-  // pixel shader are different bindings, which is why Carbon's register map is
-  // indexed by stage first.
-  const description = new Tr2ResourceSetDescriptionAL();
-  const vertexTexture = { id: "vs" };
-  const pixelTexture = { id: "ps" };
-
-  assert.equal(description.SetSrv(ShaderType.VERTEX_SHADER, 3, vertexTexture), true);
-  assert.equal(description.SetSrv(ShaderType.PIXEL_SHADER, 3, pixelTexture), true);
-
-  assert.equal(description.Get("srv", ShaderType.VERTEX_SHADER, 3).resource, vertexTexture);
-  assert.equal(description.Get("srv", ShaderType.PIXEL_SHADER, 3).resource, pixelTexture);
-  assert.equal(description.GetRegisterMap().Count("srv"), 2, "two bindings, not one");
+const signature = (...registers) => ({ registers: registers.map(([ registerType, registerIndex ]) => ({ registerType, registerIndex })) });
+const mapFor = () => new Tr2RegisterMapAL({
+  stages: [ 1, 0 ],
+  signatures: [ signature([36, 3], [64, 4], [1, 2]), signature([36, 3]) ]
 });
 
-test("a slot outside the stage or register range is refused", () =>
+test("register maps retain input traversal, counts and 255 sentinels", () =>
 {
-  const description = new Tr2ResourceSetDescriptionAL();
-
-  assert.equal(description.SetSrv(ShaderType.VERTEX_SHADER, 32, {}), false, "32 registers per stage");
-  assert.equal(description.SetSrv(ShaderType.VERTEX_SHADER, -1, {}), false);
-  assert.equal(description.SetSampler(99, 0, {}), false, "no such stage");
-  assert.equal(description.Get("srv", ShaderType.VERTEX_SHADER, 32), null);
+  const map = mapFor();
+  assert.equal(map.srvCount, 2);
+  assert.equal(map.srvs[1][3], 0);
+  assert.equal(map.srvs[0][3], 1);
+  assert.equal(map.srvs[0][0], 255);
+  assert.equal(map.uavCount, 1);
+  assert.equal(map.samplerCount, 1);
+  const copy = new Tr2RegisterMapAL({ copy: map });
+  assert.equal(map.equals(copy), true);
+  copy.srvs[0][0] = 4;
+  assert.equal(map.equals(copy), false, "compares the whole populated category");
+  const empty = new Tr2RegisterMapAL();
+  const other = new Tr2RegisterMapAL();
+  other.srvs[0][0] = 9;
+  assert.equal(empty.equals(other), true, "zero-count arrays are ignored");
+  const duplicate = new Tr2RegisterMapAL({ stage: 1, signature: signature([36, 7], [36, 7], [0, 2]) });
+  assert.equal(duplicate.srvCount, 2);
+  assert.equal(duplicate.srvs[1][7], 1, "duplicates increment and overwrite; constants are ignored");
 });
 
-test("two descriptions with the same registers have the same map", () =>
+test("descriptions allocate from maps and retain inactive fields and qualifiers", () =>
 {
-  // Carbon compares whole register maps, and that comparison is how it decides
-  // two draws can share a resource set.
-  const first = new Tr2ResourceSetDescriptionAL();
-  const second = new Tr2ResourceSetDescriptionAL();
-
-  first.SetSrv(ShaderType.PIXEL_SHADER, 0, { id: "a" });
-  first.SetSampler(ShaderType.PIXEL_SHADER, 0, { id: "s" });
-
-  second.SetSrv(ShaderType.PIXEL_SHADER, 0, { id: "b" });
-  second.SetSampler(ShaderType.PIXEL_SHADER, 0, { id: "t" });
-
-  assert.equal(first.GetRegisterMap().Equals(second.GetRegisterMap()), true, "same shape, different resources");
-
-  second.SetSrv(ShaderType.PIXEL_SHADER, 1, { id: "c" });
-
-  assert.equal(first.GetRegisterMap().Equals(second.GetRegisterMap()), false, "an extra register is a different shape");
-  assert.equal(new Tr2RegisterMapAL().Equals(null), false);
-
-  // The guard is a PRIVATE-BRAND check, so a look-alike is rejected before
-  // anything reaches the private slots it would otherwise throw on. A duck
-  // carrying the same accessors is not one of these.
-  const lookAlike = { GetSrvs: () => [], GetUavs: () => [], GetSamplers: () => [], Count: () => 0 };
-
-  assert.equal(new Tr2RegisterMapAL().Equals(lookAlike), false);
-  assert.equal(new Tr2RegisterMapAL().Equals(undefined), false);
-  assert.equal(new Tr2RegisterMapAL().Equals("not a map"), false);
-  assert.equal(new Tr2RegisterMapAL().Equals(new Tr2RegisterMapAL()), true);
+  const desc = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
+  const texture = {}, buffer = {}, sampler = {};
+  assert.equal(new Tr2ResourceSetDescriptionAL().SetSrv(1, 3, texture), false);
+  assert.equal(desc.SetSrv(1, 31, texture), false);
+  assert.equal(desc.SetSrv(99, 3, texture), false);
+  assert.equal(desc.SetSrv(1, -1, texture), false);
+  assert.equal(desc.SetSrv(1, 3, texture), true);
+  assert.equal(desc.SetSrv(1, 3, texture), false);
+  assert.equal(desc.SetSrv(1, 3, texture, 1), true);
+  const hash = desc.ComputeHash();
+  assert.equal(desc.SetSrv(1, 3, texture, 0), true);
+  assert.equal(desc.ComputeHash(), hash, "Carbon quirk: qualifiers are absent from the hash");
+  assert.equal(desc.SetSrv(1, 3, buffer, 0, 1), true);
+  assert.equal(desc.m_srv[0].texture, texture, "inactive texture is retained");
+  assert.equal(desc.SetUav(1, 4, texture, 7), true);
+  assert.equal(desc.SetUav(1, 4, buffer, 0, 1), true);
+  assert.equal(desc.m_uav[0].colorSpace, 7, "union qualifier survives the buffer overload");
+  assert.equal(desc.SetSampler(1, 2, sampler), true);
+  desc.ClearResources();
+  assert.equal(desc.m_srv[0].type, 0);
+  assert.equal(desc.m_srv[0].buffer, null);
+  assert.equal(desc.m_uav[0].colorSpace, 7);
+  assert.equal(desc.m_samplers[0].sampler, sampler);
+  assert.equal(desc.m_registerMap.srvCount, 2);
 });
 
-test("a resource set keeps what it was asked to bind", () =>
+test("copy and move preserve Carbon's array-identity equality quirk", () =>
+{
+  const first = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
+  const resource = {};
+  first.SetSrv(1, 3, resource);
+  const copy = new Tr2ResourceSetDescriptionAL({ copy: first });
+  assert.equal(copy.Equals(first), false);
+  assert.equal(copy.m_srv[0].texture, resource);
+  assert.notEqual(copy.m_srv[0], first.m_srv[0]);
+  assert.equal(copy.ComputeHash(), first.ComputeHash());
+  copy.ClearResources();
+  assert.equal(first.m_srv[0].texture, resource);
+  const allocation = first.m_srv;
+  const moved = new Tr2ResourceSetDescriptionAL({ move: first });
+  assert.equal(moved.m_srv, allocation);
+  assert.equal(first.m_srv, null);
+  assert.equal(first.m_registerMap.srvCount, 2, "native moved-from map is not reset");
+  assert.equal(new Tr2ResourceSetDescriptionAL().Equals(new Tr2ResourceSetDescriptionAL()), true);
+});
+
+test("heap views are shared description operations, with native enum-byte hashes", () =>
+{
+  const desc = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
+  assert.equal(desc.ComputeHash(), 0);
+  assert.equal(desc.SetSrvHeapView(1, 3), true);
+  assert.equal(desc.SetSrvHeapView(1, 3), false);
+  assert.equal(desc.ComputeHash(), 0xBCB419E1, "FNV1 from seed zero over int32 enum 3");
+  assert.equal(desc.SetUavHeapView(1, 4), true);
+  assert.equal(desc.SetSamplerHeapView(1, 2), true);
+  assert.equal(desc.SetSamplerHeapView(1, 2), false);
+});
+
+test("the stub Create succeeds even without a context, as the donor does", () =>
 {
   const set = new Tr2ResourceSetALStub();
   const description = new Tr2ResourceSetDescriptionAL();
-  const program = { id: "program" };
-
-  assert.equal(set.Create(description, program, null), ALResult.E_INVALIDARG, "no context");
-  assert.equal(set.IsValid(), false);
-
-  assert.equal(set.Create(description, program, device()), ALResult.S_OK);
+  const program = {};
+  assert.equal(set.Create(description, program, null), ALResult.S_OK);
   assert.equal(set.IsValid(), true);
   assert.equal(set.GetDescription(), description);
-  assert.equal(set.GetProgram(), program);
-
   set.Destroy();
-
   assert.equal(set.IsValid(), false);
-  assert.equal(set.GetDescription(), null);
+});
+
+test("public resource-set copies retain implementations across recreate and reset", () =>
+{
+  const context = device();
+  const description = new Tr2ResourceSetDescriptionAL();
+  const original = context.CreateResourceSet(description, {});
+  const copy = new Tr2ResourceSetAL({ copy: original });
+  const old = copy.m_resourceSet.implementation;
+  assert.equal(original.SetName(null), ALResult.E_INVALIDARG);
+  assert.equal(original.SetName(""), ALResult.S_OK);
+  assert.equal(original.Create(description, {}, context), ALResult.S_OK);
+  assert.notEqual(original.m_resourceSet.implementation, old);
+  original.Destroy();
+  assert.equal(original.SetName("x"), ALResult.E_INVALIDCALL);
+  assert.equal(copy.IsValid(), true);
+  assert.equal(copy.Create(description, {}, context, true), ALResult.E_FAIL);
+  assert.equal(copy.IsValid(), false);
+  old.Destroy();
 });
 
 test("a fence marks one point, and a second is an error", () =>
@@ -178,4 +219,34 @@ test("the adapter's available mode is not its current mode", () =>
   assert.equal(Tr2VideoAdapterInfoStub.GetAdapterMaxTextureWidth().maxWidth, 16384);
   assert.equal(Tr2VideoAdapterInfoStub.AreAdaptersDifferent(0, 1), true);
   assert.equal(Tr2VideoAdapterInfoStub.AreAdaptersDifferent(0, 0), false);
+});
+
+
+test("stub program maps remain empty while signature-built descriptions have resources", () =>
+{
+  const context = device();
+  const input = signature([36, 3]);
+  const shader = context.CreateShader(ShaderType.PIXEL_SHADER, new Uint8Array([1]), input);
+  const program = context.CreateShaderProgram([shader]);
+  assert.equal(program.IsValid(), true);
+  assert.equal(program.GetRegisterMap().srvCount, 0, "Carbon stub quirk");
+  const desc = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ shaders: [shader] }) });
+  assert.equal(desc.m_registerMap.srvCount, 1);
+  assert.equal(desc.SetSrv(ShaderType.PIXEL_SHADER, 3, {}), true);
+  shader.Destroy();
+  program.Destroy();
+});
+
+
+test("explicit invalid buffer, texture and sampler bindings retain distinct hash identities", () =>
+{
+  const desc = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
+  desc.SetSrv(1, 3, null, 0, 1);
+  const bufferHash = desc.ComputeHash();
+  desc.SetSrv(1, 3, null);
+  const textureHash = desc.ComputeHash();
+  desc.ClearResources();
+  desc.SetSampler(1, 2, null);
+  const samplerHash = desc.ComputeHash();
+  assert.equal(new Set([0, bufferHash, textureHash, samplerHash]).size, 4);
 });

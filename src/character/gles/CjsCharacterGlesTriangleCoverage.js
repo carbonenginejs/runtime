@@ -11,6 +11,10 @@ export class CjsCharacterGlesTriangleCoverage
 {
     _geometryHost;
 
+    /**
+     * Validates and retains the geometry host used to apply triangle-coverage
+     * masks.
+     */
     constructor({ geometryHost } = {})
     {
         this._geometryHost = RequireGeometryHost(geometryHost);

@@ -22,11 +22,7 @@
 // views (`Tr2ResourceSetALDx12.cpp:145-146`). A WebGPU bind group with a hole
 // is a validation error, so the same substitution happens here.
 //
-// A TEXTURE THAT IS NOT YET A DEVICE TEXTURE GETS THE DUMMY TOO. The
-// description's SRV is whatever `TriTextureParameter` bound - today a
-// `TriTextureRes`, not a `Tr2TextureAL` (Carbon's `TriTextureRes::GetTexture()`
-// returns one). Until that port lands, a texture without `GetDeviceTextureView`
-// is treated as Carbon treats a resource still loading: the fallback texture.
+import { impl } from "#schema";
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 
@@ -52,9 +48,11 @@ function SlotFor(description, kind, binding)
   {
     if ((binding.visibility & bit) === 0) continue;
 
-    const slot = description.Get(kind, stage, binding.registerIndex);
-
-    if (slot) return slot;
+    const map = description.m_registerMap;
+    const slots = kind === "srv" ? map.srvs : kind === "uav" ? map.uavs : map.samplers;
+    const records = kind === "srv" ? description.m_srv : kind === "uav" ? description.m_uav : description.m_samplers;
+    const slot = records?.[slots[stage][binding.registerIndex]];
+    if (slot && slot.type !== 0) return slot;
   }
 
   return null;
@@ -85,17 +83,25 @@ export class CjsWebgpuResourceSetAL
    * @param {object} renderContext The WebGPU render context AL.
    * @returns {number} An `ALResult` value.
    */
+  @impl.adapted
+  @impl.reason("WebGPU resolves native dense records into bind-group entries, validates the program map and fills missing resources with dummies. Descriptor heap views have no WebGPU representation and return E_FAIL.")
   Create(description, program, renderContext)
   {
     this.Destroy();
 
     if (!renderContext || !renderContext.IsValid()) return ALResult.E_INVALIDARG;
-    if (!description || typeof description.Get !== "function") return ALResult.E_INVALIDARG;
+    if (!description) return ALResult.E_INVALIDARG;
 
     // DX12 refuses a description whose register map is not the program's
     // (`Tr2ResourceSetALDx12.cpp:78-81`); a program this backend did not link
     // has no bindings to lay out against, which is the same refusal.
     if (!program || typeof program.GetBindings !== "function" || !program.IsValid()) return ALResult.E_INVALIDARG;
+
+    if (!description.m_registerMap.equals(program.GetRegisterMap())) return ALResult.E_INVALIDARG;
+
+    if (description.m_srv?.some(record => record.type === 3)
+      || description.m_uav?.some(record => record.type === 3)
+      || description.m_samplers?.some(record => record.type === 2)) return ALResult.E_FAIL;
 
     const entries = new Map();
 
@@ -117,12 +123,14 @@ export class CjsWebgpuResourceSetAL
   }
 
   /** One slot's resource, or the dummy Metal would put there. */
+  @impl.adapted
+  @impl.reason("Resolves dense native records to WebGPU views and buffers; a pending resource or empty slot uses the context dummy, following Metal.")
   _Resolve(description, binding, renderContext)
   {
     if (binding.sampler)
     {
       const slot = SlotFor(description, "sampler", binding);
-      const state = slot ? slot.sampler : null;
+      const state = slot?.type === 1 ? slot.sampler : null;
       const sampler = state && typeof state.GetSampler === "function" ? state.GetSampler() : null;
 
       return sampler ?? renderContext.GetDummySampler();
@@ -131,7 +139,7 @@ export class CjsWebgpuResourceSetAL
     if (binding.texture)
     {
       const slot = SlotFor(description, "srv", binding);
-      const texture = slot ? slot.resource : null;
+      const texture = slot?.type === 2 ? slot.texture : null;
       const dimension = binding.texture.viewDimension ?? "2d";
       const view = texture && typeof texture.GetDeviceTextureView === "function"
         ? texture.GetDeviceTextureView(dimension, slot.colorSpace)
@@ -143,7 +151,7 @@ export class CjsWebgpuResourceSetAL
     // A storage buffer: read-only ones are SRVs, writable ones UAVs.
     const kind = binding.buffer && binding.buffer.type === "storage" ? "uav" : "srv";
     const slot = SlotFor(description, kind, binding);
-    const resource = slot ? slot.resource : null;
+    const resource = slot?.type === 1 ? slot.buffer : null;
     const buffer = resource && typeof resource.GetDeviceBuffer === "function" ? resource.GetDeviceBuffer() : null;
 
     return { buffer: buffer ?? renderContext.GetNullBuffer(binding.buffer?.minBindingSize ?? 16, "STORAGE") };

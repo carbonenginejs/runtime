@@ -7,7 +7,7 @@
 // engine adapter reads the finalized per-type accumulators and issues draws.
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
-import { TriRenderBatchAccumulator, DefaultKeyGenerator, EffectKeyGenerator } from "./TriRenderBatchAccumulator.js";
+import { TriRenderBatchAccumulator, DefaultKeyGenerator, EffectKeyGenerator } from "./TriRenderBatch/index.js";
 
 
 /**

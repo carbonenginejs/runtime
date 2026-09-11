@@ -1,4 +1,8 @@
 // A file that declares a class must be NAMED after one of them.
+// A PascalCase file with no class is also a violation. Multi-type donor headers
+// become folders, with one class per file and declaration-order barrel exports.
+// The three ratcheted categories below enforce findability, not donor coverage;
+// lint-donor-coverage.js owns the latter. The history below explains the scope.
 //
 // WHY THIS SCRIPT EXISTS. The operator opened `trinityal/webgpu/core/workQueue.js`
 // and said a standalone lowercase file was the wrong shape for what was inside
@@ -28,9 +32,9 @@
 //    ACCIDENT OF PLACEMENT, which is the fault, not the excuse.
 //
 // So the rule is the one thing both cases share and no legitimate file breaks:
-// if a file declares classes, the filename is one of their names. A function
-// module with no class is untouched, which is what keeps `math/vec3.js` and the
-// format helper modules out of it.
+// if a file declares classes, the filename is one of their names. Lower-camel
+// function modules remain outside the filename promise, which keeps math/vec3.js
+// and ordinary format helper modules out of it.
 //
 // WHAT THE FIX USUALLY IS. Rename the file after its class, or move the class to
 // the file that owns its name. Where free functions are shared and not genuinely
@@ -48,7 +52,8 @@
 // resource-set trio, the query stubs, the audio action records, the error pair.
 // The operator overruled that: we do not put multiple classes in one file, and
 // mirroring a donor header is not a reason to. So there are NO permanent
-// exemptions here, and those six now carry two faults rather than a licence.
+// exemptions here. The 2026-09-11 clarification preserves those donor headers as
+// folders; their grouping was valid, their multi-class files needed splitting.
 //
 // 50 files declare more than one class. The heaviest cases are not the big ones -
 // they are families of tiny types, like `EveSOFDataParameter.js` with a base and
@@ -56,8 +61,8 @@
 // that throws them. Splitting those buys a reader one predictable place to look
 // for a name, which is the whole point of both rules.
 //
-// TWO FROZEN BASELINES, BECAUSE 95 SITES CANNOT BE FIXED IN ONE PASS. Each list
-// records what already exists so this fails on anything NEW. Both may only
+// THREE FROZEN BASELINES. Each list records what already exists so this fails
+// on anything NEW. Once introduced, lists may only
 // shrink: a file that gets fixed and left in a list FAILS, so neither can rot
 // back upwards.
 
@@ -84,7 +89,10 @@ async function sourceFiles(directory)
     {
         const target = path.join(directory, entry.name);
 
-        if (entry.isDirectory()) files.push(...await sourceFiles(target));
+        if (entry.isDirectory())
+        {
+            for (const file of await sourceFiles(target)) files.push(file);
+        }
         else if (entry.isFile() && entry.name.endsWith(".js")) files.push(target);
     }
 
@@ -134,18 +142,24 @@ function declarations(source)
 const baseline = JSON.parse(await readFile(baselinePath, "utf8"));
 const knownMisnamed = new Set(Object.keys(baseline.misnamed ?? {}));
 const knownMultiple = new Set(Object.keys(baseline.multipleClasses ?? {}));
+const knownMissing = new Set(Object.keys(baseline.missingClass ?? {}));
 const misnamed = new Map();
 const multiple = new Map();
+const missing = new Map();
 
 for (const file of await sourceFiles(sourceRoot))
 {
     const relative = slash(path.relative(packageRoot, file));
     const { classes, functions } = declarations(await readFile(file, "utf8"));
 
-    if (!classes.length) continue;
-
     const base = path.basename(file, ".js");
     const names = classes.map(entry => entry.name);
+
+    // A PascalCase module promises a class even when it declares none. Use
+    // parsed declarations so comments, strings and nested classes cannot pass.
+    if (!classes.length && /^[A-Z]/.test(base)) missing.set(relative, [ base ]);
+
+    if (!classes.length) continue;
 
     if (classes.length > 1) multiple.set(relative, names);
 
@@ -172,14 +186,19 @@ if (write)
 
     await writeFile(
         baselinePath,
-        `${JSON.stringify({ misnamed: record(misnamed), multipleClasses: record(multiple) }, null, 2)}\n`,
+        `${JSON.stringify({ misnamed: record(misnamed), multipleClasses: record(multiple), missingClass: record(missing) }, null, 2)}\n`,
         "utf8"
     );
-    console.log(`Recorded ${misnamed.size} misnamed and ${multiple.size} multi-class file(s).`);
+    console.log(`Recorded ${misnamed.size} misnamed, ${multiple.size} multi-class and ${missing.size} PascalCase modules without a class.`);
     process.exit(0);
 }
 
 const problems = [];
+
+for (const [ file, names ] of missing)
+{
+    if (!knownMissing.has(file)) problems.push(`${file}: promises ${names[0]} but declares no top-level class.`);
+}
 
 for (const [ file, detail ] of [ ...misnamed ].sort((a, b) => a[0].localeCompare(b[0])))
 {
@@ -215,7 +234,8 @@ if (problems.length)
 // so it is named rather than quietly tolerated.
 const stale = [
     ...[ ...knownMisnamed ].filter(file => !misnamed.has(file)),
-    ...[ ...knownMultiple ].filter(file => !multiple.has(file))
+    ...[ ...knownMultiple ].filter(file => !multiple.has(file)),
+    ...[ ...knownMissing ].filter(file => !missing.has(file))
 ];
 
 if (stale.length)
@@ -225,4 +245,4 @@ if (stale.length)
     process.exit(1);
 }
 
-console.log(`Class/file naming: ${misnamed.size} misnamed and ${multiple.size} multi-class file(s) recorded, none new.`);
+console.log(`Class/file naming: ${misnamed.size} misnamed, ${multiple.size} multi-class and ${missing.size} PascalCase modules without a class, none new.`);

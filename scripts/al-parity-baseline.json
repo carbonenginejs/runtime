@@ -1,6 +1,4 @@
 {
-  "recorded": "2026-09-09",
-  "problems": [
-    "src/trinityal/webgpu/CjsWebgpuShaderAL.js CjsWebgpuShaderProgramAL does not port Tr2ShaderProgramAL::GetRegisterMap."
-  ]
+  "recorded": "2026-09-11",
+  "problems": []
 }

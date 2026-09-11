@@ -16,15 +16,6 @@
     "src/audio/internal/wwiseRoomVerb.js": [
       "WwiseRoomVerbReader"
     ],
-    "src/audio/trinity/audio/AudActionLog.js": [
-      "AudActionRecord",
-      "AudActionRecordPostEvent",
-      "AudActionRecordExecuteActionOnPlayingID",
-      "AudActionRecordSetSwitch",
-      "AudActionRecordSetState",
-      "AudActionRecordSetRTPC",
-      "AudActionLogCB"
-    ],
     "src/resource/format/CjsFormatError.js": [
       "CjsFormatReadError",
       "CjsFormatWriteError"
@@ -121,15 +112,6 @@
     "src/trinityal/Tr2DeviceResourceAL.js": [
       "Tr2BaseDeviceResourceAL"
     ],
-    "src/trinityal/Tr2RenderPassAL.js": [
-      "Tr2DepthAttachment",
-      "Tr2ColorAttachment"
-    ],
-    "src/trinityal/Tr2ResourceSetAL.js": [
-      "Tr2RegisterMapAL",
-      "Tr2ResourceSetDescriptionAL",
-      "Tr2ResourceSetALStub"
-    ],
     "src/trinityal/webgpu/core/batchGroups.js": [
       "CjsWebgpuEncodeState"
     ],
@@ -194,20 +176,6 @@
       "CjsAudioLibraryBuilderSfxEventLoweringSession",
       "CjsAudioLibraryBuilderBusGraphConstructionSession",
       "CjsAudioLibraryBuilderSfxNameCatalogAccumulator"
-    ],
-    "src/audio/trinity/audio/AudActionLog.js": [
-      "AudActionRecord",
-      "AudActionRecordPostEvent",
-      "AudActionRecordExecuteActionOnPlayingID",
-      "AudActionRecordSetSwitch",
-      "AudActionRecordSetState",
-      "AudActionRecordSetRTPC",
-      "AudActionLogCB"
-    ],
-    "src/audio/trinity/audio/AudObstructionOcclusion.js": [
-      "FadingValue",
-      "EmitterState",
-      "AudObstructionOcclusion"
     ],
     "src/global/contracts/CjsScriptCallback.js": [
       "CjsScriptCallback",
@@ -299,19 +267,6 @@
       "CjsControllerExpressionCompileError",
       "CjsControllerExpressionEvaluateError"
     ],
-    "src/trinity/controllers/ITr2Controller.js": [
-      "ITr2Controller",
-      "ITr2ActionController"
-    ],
-    "src/trinity/core/batch/Tr2RenderBatch.js": [
-      "TriRenderBatchAreaBlock",
-      "TriRenderBatchAreaBlocksWithSharedMaterial",
-      "Tr2RenderBatch"
-    ],
-    "src/trinity/core/context/Tr2VisibilityResults.js": [
-      "Tr2VisibilityEvent",
-      "Tr2VisibilityResults"
-    ],
     "src/trinity/core/device/Tr2RingBuffer.js": [
       "Tr2RingBufferOffsets",
       "Tr2RingBuffer"
@@ -328,18 +283,9 @@
       "ITr2InstanceDataInstanceData",
       "ITr2InstanceData"
     ],
-    "src/trinity/core/Tr2GpuResourcePool.js": [
-      "TextureSize2D",
-      "GpuResourceHandle",
-      "Tr2GpuResourcePool"
-    ],
     "src/trinity/core/Tr2QuadRenderer.js": [
       "Tr2QuadRendererEffectRecord",
       "Tr2QuadRenderer"
-    ],
-    "src/trinity/core/Tr2TextureArray.js": [
-      "Tr2TextureArrayElement",
-      "Tr2TextureArray"
     ],
     "src/trinity/core/vertex/Tr2VertexDefinition.js": [
       "Tr2VertexDefinitionItem",
@@ -384,18 +330,77 @@
       "Tr2BindlessResourcesAL",
       "Tr2RenderContextALStub"
     ],
-    "src/trinityal/Tr2RenderPassAL.js": [
-      "Tr2DepthAttachment",
-      "Tr2ColorAttachment"
-    ],
-    "src/trinityal/Tr2ResourceSetAL.js": [
-      "Tr2RegisterMapAL",
-      "Tr2ResourceSetDescriptionAL",
-      "Tr2ResourceSetALStub"
-    ],
     "src/trinityal/webgpu/CjsWebgpuShaderAL.js": [
       "CjsWebgpuShaderAL",
       "CjsWebgpuShaderProgramAL"
+    ]
+  },
+  "missingClass": {
+    "src/audio/CjsAudioUpdateContext.js": [
+      "CjsAudioUpdateContext"
+    ],
+    "src/character/trinity/interior/ITr2InteriorLight.js": [
+      "ITr2InteriorLight"
+    ],
+    "src/character/trinity/trinityCore/ITr2AnimationUpdater.js": [
+      "ITr2AnimationUpdater"
+    ],
+    "src/character/trinity/trinityCore/ITr2SkinnedObject.js": [
+      "ITr2SkinnedObject"
+    ],
+    "src/resource/formats/hlsl/core/HlslBinaryUtils.js": [
+      "HlslBinaryUtils"
+    ],
+    "src/resource/formats/hlsl/core/tr2/HlslRenderContextEnum.js": [
+      "HlslRenderContextEnum"
+    ],
+    "src/resource/generated/resources/GrannyDeprecationLevel.js": [
+      "GrannyDeprecationLevel"
+    ],
+    "src/resource/ResourceHandlerMode.js": [
+      "ResourceHandlerMode"
+    ],
+    "src/resource/ResourceRequirement.js": [
+      "ResourceRequirement"
+    ],
+    "src/trinity/core/mesh/TriGeometryResAllocations.js": [
+      "TriGeometryResAllocations"
+    ],
+    "src/trinity/core/PriorityBlend.js": [
+      "PriorityBlend"
+    ],
+    "src/trinity/core/rawData/Tr2ConstantBufferFormats.js": [
+      "Tr2ConstantBufferFormats"
+    ],
+    "src/trinity/core/Tr2ImageIOHelpers.js": [
+      "Tr2ImageIOHelpers"
+    ],
+    "src/trinity/core/Tr2RenderUtils.js": [
+      "Tr2RenderUtils"
+    ],
+    "src/trinity/core/view/Tr2PickType.js": [
+      "Tr2PickType"
+    ],
+    "src/trinity/eve/attachment/EveSpaceObjectAttachmentUtils.js": [
+      "EveSpaceObjectAttachmentUtils"
+    ],
+    "src/trinity/eve/child/modifiers/EveChildModifierTransformCommon.js": [
+      "EveChildModifierTransformCommon"
+    ],
+    "src/trinity/eve/CjsDistributionRandom.js": [
+      "CjsDistributionRandom"
+    ],
+    "src/trinity/eve/EveComponentTypes.js": [
+      "EveComponentTypes"
+    ],
+    "src/trinity/eve/renderable/stretch/CjsStretchRuntime.js": [
+      "CjsStretchRuntime"
+    ],
+    "src/trinity/shader/parameter/ITr2EffectValue.js": [
+      "ITr2EffectValue"
+    ],
+    "src/trinityal/ALResult.js": [
+      "ALResult"
     ]
   }
 }
