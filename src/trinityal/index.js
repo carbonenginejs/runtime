@@ -15,6 +15,7 @@
 // all since removed. The directory is named after the thing now.
 export * from "./ALResult.js";
 export * from "./Tr2BitmapDimensions.js";
+export * from "./Tr2BufferAL/index.js";
 export * from "./Tr2DeviceResourceAL/index.js";
 export * from "./Tr2DrawUPHelper.js";
 export * from "./Tr2HalHelperStructures/index.js";

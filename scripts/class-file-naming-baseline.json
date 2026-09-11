@@ -101,9 +101,6 @@
     "src/sof/layoutPlanner.js": [
       "SofLayoutRandom"
     ],
-    "src/trinityal/stub/Tr2VideoAdapterInfoALStub.js": [
-      "Tr2VideoAdapterInfoStub"
-    ],
     "src/trinityal/webgpu/core/batchGroups.js": [
       "CjsWebgpuEncodeState"
     ],
@@ -308,10 +305,6 @@
     "src/trinity/particle/ITr2GenericEmitter.js": [
       "ITr2GenericEmitterUpdateArguments",
       "ITr2GenericEmitter"
-    ],
-    "src/trinityal/stub/Tr2BufferALStub.js": [
-      "Tr2BufferDescriptionAL",
-      "Tr2BufferALStub"
     ],
     "src/trinityal/stub/Tr2RenderContextALStub.js": [
       "Tr2BindlessResourcesAL",

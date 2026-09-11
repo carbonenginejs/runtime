@@ -178,10 +178,10 @@ Collects pipeline statistics over a bracketed span.
 <!-- class:Tr2VideoAdapterInfoStub -->
 ## `Tr2VideoAdapterInfoStub`
 
-Adapter and display-mode enumeration answering with Carbon's single fictional adapter, whose available mode deliberately differs from its current mode.
+Adapter and display-mode enumeration.
 
 - Export: `@carbonenginejs/runtime/trinityal/stub`
-- Source: `src/trinityal/stub/Tr2VideoAdapterInfoALStub.js`
+- Source: `src/trinityal/stub/Tr2VideoAdapterInfoStub.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -208,10 +208,10 @@ How a pass treats one colour attachment.
 <!-- class:Tr2BufferDescriptionAL -->
 ## `Tr2BufferDescriptionAL`
 
-How a buffer is laid out and what may touch it: format or stride, element count, and the GPU and CPU usage flags.
+How a buffer is laid out and what may touch it.
 
 - Export: `@carbonenginejs/runtime/trinityal/stub`
-- Source: `src/trinityal/stub/Tr2BufferALStub.js`
+- Source: `src/trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js`
 - Visibility: Public
 - Kind: Carbon
 

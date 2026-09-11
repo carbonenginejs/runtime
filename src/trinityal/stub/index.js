@@ -27,4 +27,4 @@ export * from "./Tr2ShaderProgramALStub.js";
 export * from "./Tr2SwapChainALStub.js";
 export * from "./Tr2TextureALStub.js";
 export * from "./Tr2VertexLayoutALStub.js";
-export * from "./Tr2VideoAdapterInfoALStub.js";
+export * from "./Tr2VideoAdapterInfoStub.js";
