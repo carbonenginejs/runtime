@@ -1,5 +1,5 @@
-// Source: trinity/trinity/Tr2SkinnedObjectLod.h
-// Source: trinity/trinity/Tr2SkinnedObjectLod.cpp
+// Source: trinity/trinity/Tr2SkinnedObjectLOD.h
+// Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
 import { carbon, impl } from "#schema";
 
 const LOW_DETAIL_THRESHOLD = 150;

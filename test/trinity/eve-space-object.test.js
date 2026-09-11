@@ -987,6 +987,9 @@ test("EveSpaceObject2 restores Carbon world bounds, visibility, renderables, and
   };
   object.SetBoundingSphereInformation(new Float32Array([1, 2, 3, 5]));
   object.UpdateWorldTransform(1);
+  // Carbon refreshes the world sphere from PrepareShaderData and nowhere else,
+  // so a test reading bounds has to ask for it.
+  object.UpdateWorldBounds();
 
   const sphere = new Float32Array(4);
   assert.equal(object.GetBoundingSphere(sphere), true);

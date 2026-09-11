@@ -395,7 +395,8 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   #dynamicBoundingSphere = sph3.set(sph3.create(), 0, 0, 0, -1);
 
   // Carbon keeps the realized world sphere separate from the authored local
-  // sphere. It is refreshed by UpdateWorldBounds after transform changes.
+  // sphere. UpdateWorldBounds refreshes it from PrepareShaderData, which is
+  // Carbon's only refresh point - so a reader sees one value for a whole frame.
   #boundingSphereWorldRadius = -1;
 
   // Carbon visibility and mesh LOD state are runtime-only renderer results.
@@ -804,7 +805,6 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
     {
       mat4.identity(this.inverseWorldTransform);
     }
-    this.UpdateWorldBounds();
     return true;
   }
 
@@ -813,8 +813,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
    * sphere when available, otherwise from the authored local sphere.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The browser runtime refreshes the cache with world-transform updates instead of Carbon's renderer-side PrepareShaderData pass.")
+  @impl.implemented
   UpdateWorldBounds()
   {
     const updater = this.animationUpdater;
@@ -826,16 +825,15 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
       {
         vec3.transformMat4(this.modelWorldPosition, this.#dynamicBoundingSphere, this.worldTransform);
         this.#boundingSphereWorldRadius = this.modelScale * this.#dynamicBoundingSphere[3];
-        return true;
+
+        return;
       }
     }
     if (this.boundingSphereRadius > 0)
     {
       vec3.transformMat4(this.modelWorldPosition, this.boundingSphereCenter, this.worldTransform);
       this.#boundingSphereWorldRadius = this.modelScale * this.boundingSphereRadius;
-      return true;
     }
-    return false;
   }
 
   /**
@@ -1150,7 +1148,6 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
       return false;
     }
 
-    this.UpdateWorldBounds();
     this.lodLevel = Tr2Lod.TR2_LOD_LOW;
     this.#lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
     this.#impostorMode = false;
@@ -2966,7 +2963,6 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
     {
       this.boundingSphereRadius = sph3.extract(sphere, this.boundingSphereCenter);
     }
-    this.UpdateWorldBounds();
     return this;
   }
 
@@ -3092,10 +3088,10 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
    * and effect children when query is EVE_BOUNDS_WITH_CHILDREN.
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   GetBoundingSphere(out = sph3.create(), query = 0)
   {
-    if (!this.UpdateWorldBounds()) return false;
+    if (this.boundingSphereRadius <= 0 && this.#dynamicBoundingSphere[3] <= 0) return false;
     EveSpaceObject2.#SetSphere(out, this.modelWorldPosition, this.#boundingSphereWorldRadius);
     if (!query || !this.DisplayChildren()) return true;
     for (const child of this.children)

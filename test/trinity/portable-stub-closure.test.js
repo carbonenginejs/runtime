@@ -32,6 +32,9 @@ test("EveSpaceObject2 evaluates its realized world sphere for shadows", () =>
 {
   const object = new EveSpaceObject2();
   object.boundingSphereRadius = 5;
+  // Carbon refreshes the world sphere from PrepareShaderData and nowhere else,
+  // so a test reading bounds has to ask for it.
+  object.UpdateWorldBounds();
   assert.equal(object.GetBoundingSphere(new Float32Array(4)), true);
 
   const sizes = [0];

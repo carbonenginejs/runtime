@@ -109,7 +109,6 @@
   "trinity/trinity/Tr2ShLightingManager.h#ITr2SecondaryLightSource": "No exact live class declaration for interface ITr2SecondaryLightSource (trinity/trinity/Tr2ShLightingManager.h:105); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2ShLightingManager.h#ITr2ShLightingReceiver": "No exact live class declaration for interface ITr2ShLightingReceiver (trinity/trinity/Tr2ShLightingManager.h:117); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2ShadowMap.h#ShadowMap::SplitSetup": "No exact live class declaration for struct ShadowMap::SplitSetup (trinity/trinity/Tr2ShadowMap.h:44); review missing port or explicit JS equivalent.",
-  "trinity/trinity/Tr2SkinnedObjectLOD.h#Tr2SkinnedObjectLod": "No exact live class declaration for class Tr2SkinnedObjectLod (trinity/trinity/Tr2SkinnedObjectLOD.h:15); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2SolidSet.h#TriangleData": "No exact live class declaration for struct TriangleData (trinity/trinity/Tr2SolidSet.h:10); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2SolidSet.h#TriangleVertex": "No exact live class declaration for struct TriangleVertex (trinity/trinity/Tr2SolidSet.h:22); review missing port or explicit JS equivalent.",
   "trinity/trinity/TriDevice.h#TriDeviceLock": "No exact live class declaration for class TriDeviceLock (trinity/trinity/TriDevice.h:355); review missing port or explicit JS equivalent.",

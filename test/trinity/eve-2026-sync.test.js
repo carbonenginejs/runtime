@@ -174,6 +174,9 @@ test("shield impacts reuse, age and publish Carbon-compatible data rows", () =>
   parent.estimatedPixelDiameter = 128;
   parent.IsInFrustum = () => true;
   parent.Initialize();
+  // Carbon refreshes the world sphere from PrepareShaderData and nowhere else,
+  // so a test reading bounds has to ask for it.
+  parent.UpdateWorldBounds();
 
   const overlay = new EveImpactOverlay();
   overlay.SetDamageState(0.5, 1, 1);

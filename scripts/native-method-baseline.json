@@ -2104,6 +2104,11 @@
     "SetSkinningMatrixFrameDelay",
     "UpdatePerObjectData"
   ],
+  "Tr2SkinnedObjectLod": [
+    "GetHighDetailModel",
+    "GetLowDetailModel",
+    "GetMediumDetailModel"
+  ],
   "Tr2SolidSet": [
     "GetBatchesImpl",
     "GetDescription",
