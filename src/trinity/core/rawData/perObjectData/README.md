@@ -41,13 +41,24 @@ The layout name is how we express Carbon's template parameter: there is no
 One, carried by the whole family and stated once here and on
 `Tr2PerObjectDataStandard`.
 
-**Carbon binds some per-object payloads without consulting the technique's shader
+**Carbon binds most per-object payloads without consulting the technique's shader
 mask; we always consult it.** Carbon distinguishes the two forms by C++ overload
 resolution on an argument type — `FillAndSetConstants` takes `unsigned` at
 `Tr2RenderUtils.h:35` and `ShaderType` at `:46`, the latter shifting `1 << t` —
-which JavaScript cannot express at all. `Tr2PerObjectDataStandard` masks its
-vertex half and not its pixel half; `Tr2PerObjectDataSkinned` masks both; most
-Eve classes mask neither.
+which JavaScript cannot express at all.
+
+**The donor does three different things**, which is why this is a choice rather
+than a defect to reproduce. Verified 2026-09-11 across every per-object bind:
+
+| behaviour | classes |
+|---|---|
+| masks the vertex family with `perFrameVsMask & constantTypeMask`; `Standard` leaves its pixel half unmasked, `Skinned` gates that half behind an explicit `if` | the two Trinity generics — and `Tr2PerObjectData.cpp` is the ONLY file in Carbon where the masked form appears |
+| unmasked, both halves | all fourteen Eve classes, at sixteen call sites |
+| gates EVERY stage explicitly, geometry included | `Tr2PerObjectDataWithPersistentBuffers` |
+
+So gating everything is not an invention: it is what Carbon's persistent class
+does, and that class carries the most careful comment of the family. What we add
+is generality — it gates per stage by hand, we gate per layout declaration.
 
 We gate every payload, for a reason Carbon does not have available: **our layouts
 declare which stages they serve.** The gate is therefore per layout rather than
