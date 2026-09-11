@@ -153,3 +153,39 @@ character/interior schemas reference it.
 The removed schema-v1/v2 character graph is not a compatibility surface.
 Consumers migrate to the schema-v10 direct source library and separate
 schema-v4 plan, not speculative legacy models.
+### Undiscovered: three of Carbon's four interior interfaces
+
+**Found 2026-09-11 by comparing Carbon's declarations against ours. Not dropped,
+not deferred - simply never noticed, and nothing records a decision about them.**
+
+`trinity/trinity/Include/ITr2Interior.h` declares four interfaces, all
+`BLUE_INTERFACE`:
+
+| Carbon | line | here |
+|---|---|---|
+| `ITr2InteriorCullable` | :27 | **nothing at all** |
+| `ITr2Interior` | :33 | **nothing at all** |
+| `ITr2InteriorDynamic` | :44 | **nothing at all** |
+| `ITr2InteriorLight` | :69 | `src/character/trinity/interior/ITr2InteriorLight.js` |
+
+The one that exists is a **typedef contract** - a JSDoc `@typedef` with
+`export {}` and no class - and its own comment gives the reason: a
+`BLUE_INTERFACE` is not a constructible Blue model, so it must not be registered
+with `type.define`. That treatment looks right and is the precedent the other
+three should follow if they are represented the same way.
+
+**Why they were invisible.** Every check we have looks for a declared class.
+`ITr2InteriorLight` declares none, so it does not appear in a class catalog, a
+parity audit, or the naming lint - and the three that are absent look identical
+to the one that is present. They surfaced only from a donor-side sweep: reading
+what Carbon's headers declare and subtracting what we declare, which is the
+opposite direction from every existing checker.
+
+**These belong to the character library**, being the interior scene's
+cullable/dynamic/light contracts rather than anything in Trinity proper.
+
+Interior work that touches culling, dynamic interiors or interior lighting should
+decide their disposition first. The adjacent `Tr2InteriorPerLightPSData` and
+`Tr2InteriorPerObjectPSData` DO exist here, so the data structures arrived
+without the contracts that describe who produces them.
+
