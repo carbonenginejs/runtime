@@ -51,23 +51,6 @@ const alRoot = path.join(packageRoot, "src", "trinityal");
 const carbonRoot = process.env.CARBON_ROOT ?? "E:\\carbonengine";
 
 /**
- * Carbon names every backend class identically - `TrinityALImpl::Tr2BufferAL`
- * in metal, dx12, dx11 and the stub alike - and carries the backend in the
- * FILE name, because only one backend compiles at a time. JavaScript has no
- * namespaces and ships every backend together, so the backend moves onto the
- * class name.
- *
- * THAT DIVERGENCE IS DECLARED, NOT DERIVED. This checker used to strip a list
- * of backend suffixes and rewrite a `CjsWebgpu` prefix to `Tr2` to find the
- * donor, which meant a class never had to say what it ports: the guess
- * silently succeeded, so a name that had drifted from Carbon still matched
- * something, and a class that matched nothing was a note rather than a defect.
- * Every diverging class now carries `carbon:` in its own `CjsSchema.define`,
- * and the only name this resolves on its own is one that is already identical
- * to Carbon's. See `Tr2TextureALStub.js` for the shape.
- */
-
-/**
  * Divergences already argued at their own site, with the reason recorded.
  *
  * Nothing may be added here without that reason existing in the source. This
@@ -173,8 +156,7 @@ function withInherited(className)
             // all three present. The layer is internal already, so Carbon's own
             // shape applies: its AL facade holds ONE private member and the impl
             // behind it is public. The members are `_`-prefixed now, and the
-            // prefix is a convention this normalises away, exactly as the
-            // backend suffix and the `CjsWebgpu` prefix are normalised.
+            // prefix is a convention this normalises away.
             if (method.startsWith("_")) all.add(method.slice(1));
         }
 
@@ -237,15 +219,13 @@ function citedSources(code)
  * What each class in a file declares about its Carbon donor, from the schema:
  * `@type.define({ className, carbon })` or `({ className, modelledOn })`.
  *
- * WHY A DECLARATION EXISTS AT ALL. `donorNames` derives a donor name from ours
- * by convention - strip the backend suffix, or turn `CjsWebgpu<Name>` into
- * `Tr2<Name>`. That covers every class on Carbon's AL contract, because Carbon
- * names those `Tr2*AL` without exception, and it covers nothing else. Four of
- * our files port classes that are backend-INTERNAL in Carbon and named freely:
- * `MetalWorkQueue`, `PSODescription`, `ConstantBufferAllocator`, and
- * `ImageIO::BitmapDimensions` reached through a typedef. Those sat in the notes
- * as "matches no class in its cited donors" - unchecked, and reading like a
- * porting gap when the port was fine and only the NAME could not be guessed.
+ * WHY A DECLARATION EXISTS AT ALL. Nothing here infers a donor from our class
+ * name, so every class whose name is not already Carbon's has to say what it
+ * ports. That is most of the layer, because each backend class carries its
+ * backend in the name. Four files go further and port classes that are
+ * backend-INTERNAL in Carbon and named freely - `MetalWorkQueue`,
+ * `PSODescription`, `ConstantBufferAllocator`, and `ImageIO::BitmapDimensions`
+ * reached through a typedef - which no convention could have reached at all.
  *
  * WHY TWO KEYS. A class that REPLICATES its donor can be held to that donor's
  * whole surface; a class MODELLED ON one cannot. `CjsWebgpuWorkQueue` takes
@@ -462,17 +442,22 @@ function jsMethods(code)
 
 
 /**
- * The Carbon class names a JS class might be porting, best first.
+ * The Carbon class name a JS class is porting, when its own name already is it.
  *
- * Two shapes exist in the tree. The correct one is Carbon's class name plus a
- * backend suffix (`Tr2BufferALStub`). The WebGPU backend instead uses a `Cjs`
- * prefix with the backend inside the name (`CjsWebgpuBufferAL`), which matches
- * no donor - so that form is translated here too. Without it the checker would
- * silently skip the most drifted files in the tree, which is the opposite of
- * what it is for. Translating is not endorsing: the rename is still owed.
+ * Carbon names every backend's class identically - `TrinityALImpl::Tr2BufferAL`
+ * in metal, dx12, dx11 and the stub alike - and carries the backend in the FILE
+ * name, because only one backend compiles at a time. JavaScript has no
+ * namespaces and ships every backend together, so the backend moves onto the
+ * class name: `Tr2BufferALStub`, `CjsWebgpuBufferAL`.
+ *
+ * THAT DIVERGENCE IS DECLARED, NOT DERIVED. Each such class names its donor
+ * with `carbon:` in its own `CjsSchema.define` (see `Tr2TextureALStub.js`), so
+ * nothing is inferred from spelling and a declaration that is wrong FAILS
+ * instead of quietly matching something. Identity is the one case needing no
+ * declaration, because there is then nothing to declare.
  *
  * @param {string} jsClass Our class name.
- * @returns {string[]} Candidate donor names.
+ * @returns {string[]} The single candidate: our own name.
  */
 function donorNames(jsClass)
 {
