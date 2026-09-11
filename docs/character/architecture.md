@@ -266,6 +266,34 @@ That gives the first skinned bring-up a choice worth making deliberately:
 `Tr2DynamicRingBuffer`, `Tr2RingVertexBuffer` and `Tr2RingIndexBuffer` are all
 absent from our tree, so the ring option starts with three unported classes.
 
+### `Tr2SkinnedObjectLod` is missing its three detail-model accessors
+
+Surfaced 2026-09-11 by a Trinity-side naming cleanup, and recorded here because
+the class is ours: anything skinned belongs to this domain regardless of which
+donor directory the header sits in.
+
+`Tr2SkinnedObjectLod` declares three accessors that our port does not have
+(`trinity/trinity/Tr2SkinnedObjectLOD.h:65-67`):
+
+    Tr2SkinnedModel* GetHighDetailModel();
+    Tr2SkinnedModel* GetMediumDetailModel();
+    Tr2SkinnedModel* GetLowDetailModel();
+
+Our class holds the state they return - `highDetailProxy`, `mediumDetailProxy`
+and `lowDetailProxy` - and reads all three internally, so this is three
+accessors over existing fields, not a feature.
+
+**How they were found is the transferable part.** They had been invisible because
+the JS class was renamed `Tr2SkinnedObjectLod` to `Tr2SkinnedObjectLOD`, on
+evidence that turned out to be an `#include "Tr2SkinnedObjectLOD.h"` line rather
+than a declaration. Carbon's FILE is `Tr2SkinnedObjectLOD.h`; Carbon's CLASS is
+`Tr2SkinnedObjectLod`. The method-parity lint matches on exact class name, so the
+rename silently unmatched the class and took its gap report with it. Reverting
+the name (`runtime` commit `86b674a5`) made all three appear at once.
+
+So a parity checker reporting nothing for a character class is not evidence of
+parity - confirm the class name matches Carbon's DECLARATION, not its filename.
+
 ### Interior and WoD knowledge scattered through Trinity, collected 2026-09-11
 
 **Every item below is a comment in a Trinity source file, not in the character
