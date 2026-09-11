@@ -13,6 +13,8 @@
 // to everything would drive Trinity down paths a real device never takes, which
 // is the opposite of what a headless engine carrying correct data is for.
 
+import { CjsSchema } from "#schema";
+
 /**
  * The platform capability constants (`Tr2CapsALStub.h:10-19`).
  *
@@ -98,3 +100,14 @@ export class Tr2CapsALStub
     return false;
   }
 }
+
+// DECLARED AS A CALL, NOT A DECORATOR, for the reason recorded in
+// Tr2BitmapDimensions.js: the layer is imported straight from source by its
+// tests and raw Node cannot parse decorator syntax.
+//
+// The donor is NAMED rather than left to be derived from this class's name.
+// Carbon calls every backend's class the same thing and carries the backend in
+// the FILE name, because only one backend compiles at a time; we ship them
+// together, so the backend moves onto the class name. That divergence is the
+// author's to declare, never a checker's to guess.
+CjsSchema.define(Tr2CapsALStub, { className: "Tr2CapsALStub", carbon: "Tr2CapsAL" });

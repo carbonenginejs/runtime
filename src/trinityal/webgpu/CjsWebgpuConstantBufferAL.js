@@ -18,6 +18,7 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
+import { CjsSchema } from "#schema";
 import { ALResult, Tr2ALMemoryType, Tr2ConstantUsageAL } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
 
@@ -197,3 +198,14 @@ export class CjsWebgpuConstantBufferAL
     return ALResult.S_OK;
   }
 }
+
+// DECLARED AS A CALL, NOT A DECORATOR, for the reason recorded in
+// Tr2BitmapDimensions.js: the layer is imported straight from source by its
+// tests and raw Node cannot parse decorator syntax.
+//
+// The donor is NAMED rather than left to be derived from this class's name.
+// Carbon calls every backend's class the same thing and carries the backend in
+// the FILE name, because only one backend compiles at a time; we ship them
+// together, so the backend moves onto the class name. That divergence is the
+// author's to declare, never a checker's to guess.
+CjsSchema.define(CjsWebgpuConstantBufferAL, { className: "CjsWebgpuConstantBufferAL", carbon: "Tr2ConstantBufferAL" });

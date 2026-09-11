@@ -51,6 +51,7 @@
 // declared only by DX11, and PRIVATE there (`Tr2BufferALDx11.h:43`) - it is an
 // implementation detail of that backend's upload path, not part of the
 // contract, and neither dx12, metal nor the stub has it.
+import { CjsSchema } from "#schema";
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -381,3 +382,14 @@ export class CjsWebgpuBufferAL
     return NO_HEAP_INDEX;
   }
 }
+
+// DECLARED AS A CALL, NOT A DECORATOR, for the reason recorded in
+// Tr2BitmapDimensions.js: the layer is imported straight from source by its
+// tests and raw Node cannot parse decorator syntax.
+//
+// The donor is NAMED rather than left to be derived from this class's name.
+// Carbon calls every backend's class the same thing and carries the backend in
+// the FILE name, because only one backend compiles at a time; we ship them
+// together, so the backend moves onto the class name. That divergence is the
+// author's to declare, never a checker's to guess.
+CjsSchema.define(CjsWebgpuBufferAL, { className: "CjsWebgpuBufferAL", carbon: "Tr2BufferAL" });

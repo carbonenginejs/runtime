@@ -51,15 +51,21 @@ const alRoot = path.join(packageRoot, "src", "trinityal");
 const carbonRoot = process.env.CARBON_ROOT ?? "E:\\carbonengine";
 
 /**
- * Backend suffixes our class names carry and Carbon's do not.
- *
  * Carbon names every backend class identically - `TrinityALImpl::Tr2BufferAL`
  * in metal, dx12, dx11 and the stub alike - and carries the backend in the
  * FILE name, because only one backend compiles at a time. JavaScript has no
- * namespaces and ships every backend together, so the suffix moves onto the
- * class. Stripping it is how a JS class finds its donor.
+ * namespaces and ships every backend together, so the backend moves onto the
+ * class name.
+ *
+ * THAT DIVERGENCE IS DECLARED, NOT DERIVED. This checker used to strip a list
+ * of backend suffixes and rewrite a `CjsWebgpu` prefix to `Tr2` to find the
+ * donor, which meant a class never had to say what it ports: the guess
+ * silently succeeded, so a name that had drifted from Carbon still matched
+ * something, and a class that matched nothing was a note rather than a defect.
+ * Every diverging class now carries `carbon:` in its own `CjsSchema.define`,
+ * and the only name this resolves on its own is one that is already identical
+ * to Carbon's. See `Tr2TextureALStub.js` for the shape.
  */
-const BACKEND_SUFFIXES = [ "Stub", "Webgpu", "WebGPU" ];
 
 /**
  * Divergences already argued at their own site, with the reason recorded.
@@ -470,22 +476,10 @@ function jsMethods(code)
  */
 function donorNames(jsClass)
 {
-    const candidates = [];
-
-    for (const suffix of BACKEND_SUFFIXES)
-    {
-        if (jsClass.endsWith(suffix)) candidates.push(jsClass.slice(0, -suffix.length));
-    }
-
-    const prefixed = jsClass.match(/^Cjs(?:Webgpu|WebGPU)(.+)$/);
-    if (prefixed)
-    {
-        candidates.push(`Tr2${prefixed[1]}`);
-        if (!prefixed[1].endsWith("AL")) candidates.push(`Tr2${prefixed[1]}AL`);
-    }
-
-    candidates.push(jsClass);
-    return candidates;
+    // Identity only. A class whose name already matches Carbon's needs no
+    // declaration, because there is nothing to declare; anything else must name
+    // its donor rather than have one inferred from its spelling.
+    return [ jsClass ];
 }
 
 
@@ -567,8 +561,10 @@ for (const { relative, code, ours } of parsed)
 
         if (donor === undefined)
         {
-            notes.push(`${relative} ${jsClass} matches no class in its cited donors `
-                + `(tried ${candidates.join(", ")}).`);
+            problems.push(`${relative} ${jsClass} matches no class in its cited donors `
+                + `(tried ${candidates.join(", ")}). Name the donor with `
+                + "`carbon:` in this class's CjsSchema.define, or `modelledOn:` if it "
+                + "deliberately does not replicate one.");
             continue;
         }
 

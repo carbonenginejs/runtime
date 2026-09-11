@@ -19,6 +19,7 @@
 //   The stub is not a memory model: the map path is what carries data. A caller
 //   that needs the write to land must map for writing.
 
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -242,3 +243,14 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 }
+
+// DECLARED AS A CALL, NOT A DECORATOR, for the reason recorded in
+// Tr2BitmapDimensions.js: the layer is imported straight from source by its
+// tests and raw Node cannot parse decorator syntax.
+//
+// The donor is NAMED rather than left to be derived from this class's name.
+// Carbon calls every backend's class the same thing and carries the backend in
+// the FILE name, because only one backend compiles at a time; we ship them
+// together, so the backend moves onto the class name. That divergence is the
+// author's to declare, never a checker's to guess.
+CjsSchema.define(Tr2BufferALStub, { className: "Tr2BufferALStub", carbon: "Tr2BufferAL" });

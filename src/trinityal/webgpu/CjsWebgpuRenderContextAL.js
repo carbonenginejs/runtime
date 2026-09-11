@@ -71,6 +71,7 @@
 //   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
+import { CjsSchema } from "#schema";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { impl } from "#schema";
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
@@ -2618,3 +2619,14 @@ export class CjsWebgpuRenderContextAL
     if (events?.length) this._transitions.push(...events);
   }
 }
+
+// DECLARED AS A CALL, NOT A DECORATOR, for the reason recorded in
+// Tr2BitmapDimensions.js: the layer is imported straight from source by its
+// tests and raw Node cannot parse decorator syntax.
+//
+// The donor is NAMED rather than left to be derived from this class's name.
+// Carbon calls every backend's class the same thing and carries the backend in
+// the FILE name, because only one backend compiles at a time; we ship them
+// together, so the backend moves onto the class name. That divergence is the
+// author's to declare, never a checker's to guess.
+CjsSchema.define(CjsWebgpuRenderContextAL, { className: "CjsWebgpuRenderContextAL", carbon: "Tr2RenderContextAL" });

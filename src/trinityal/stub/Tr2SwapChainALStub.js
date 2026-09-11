@@ -13,6 +13,7 @@
 // from the present parameters. Transcribed as it stands, because inventing a
 // size would make a headless test agree with a number nothing chose.
 
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2BitmapDimensions } from "../Tr2BitmapDimensions.js";
@@ -143,3 +144,14 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
     return ALResult.S_OK;
   }
 }
+
+// DECLARED AS A CALL, NOT A DECORATOR, for the reason recorded in
+// Tr2BitmapDimensions.js: the layer is imported straight from source by its
+// tests and raw Node cannot parse decorator syntax.
+//
+// The donor is NAMED rather than left to be derived from this class's name.
+// Carbon calls every backend's class the same thing and carries the backend in
+// the FILE name, because only one backend compiles at a time; we ship them
+// together, so the backend moves onto the class name. That divergence is the
+// author's to declare, never a checker's to guess.
+CjsSchema.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub", carbon: "Tr2SwapChainAL" });
