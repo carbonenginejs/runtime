@@ -10,6 +10,11 @@ Summary: Defines what the WebGPU engine package owns and what callers must suppl
 The package turns validated, already-selected Carbon WebGPU descriptors and explicit
 caller data into generation-bound WebGPU objects and encoded draws.
 
+The live Trinity integration uses an injected abstraction-layer context; see
+[Current AL draw path](#current-al-draw-path). The explicit-descriptor APIs and
+internal harness adapters described elsewhere on this page remain available,
+but are not the mechanism by which Trinity submits its batches.
+
 ## Current ownership
 
 `CjsWebgpuPackage` normalizes decoded package data into mutable shader,
@@ -98,9 +103,11 @@ the accessor pair.
 Carbon WebGPU bytes can be decoded by an injected reader. Offline corpus tooling can
 produce packages for qualification, but it is not an engine dependency.
 
-## Trinity batch boundary
+<a id="trinity-batch-boundary"></a>
 
-The internal `CjsWebgpuTrinityBatchDispatcher` extends the GPU-free Trinity
+## Harness batch adapter
+
+This adapter is not the live AL batch path. The internal `CjsWebgpuTrinityBatchDispatcher` extends the GPU-free Trinity
 dispatcher contract and consumes canonical `Tr2RenderBatch`,
 `ITriRenderBatchAccumulator`, and `TriRenderBatchMap` instances. Its injected
 resolver extends `CjsTrinityBatchResolver`. Composition validates those owned
@@ -200,7 +207,7 @@ and named before anything is created rather than left to fail inside
 
 ## Pipeline caching
 
-Effect realization splits in two. Stage A is program identity and dedup, which
+For the explicit-descriptor API, effect realization splits in two. Stage A is program identity and dedup, which
 is backend-independent and belongs upstream. Stage B is the pipeline object,
 which is backend-owned, and this package caches it.
 
@@ -221,73 +228,54 @@ destruction. Racing callers share one build rather than each creating a GPU
 object with one silently winning, and a failed build is not retained, so a
 transient device error does not make a key permanently unbuildable.
 
-## Planning a frame from recorded intents
+<a id="planning-a-frame-from-recorded-intents"></a>
+<a id="executing-a-planned-frame"></a>
 
-`PlanFrame` partitions the recorder's ordered intent stream into regions that
-WebGPU will accept. This is the look-ahead the divergence decision permits: the
-executor may plan far enough to form legal passes, provided observable Trinity
-ordering survives it.
+## Current AL draw path
 
-It is needed because a render pass has fixed attachments and several things
-Carbon does mid-pass are illegal inside one. Target/depth changes, compute,
-transfer work, and presentation cut regions. A viewport change after render
-work also cuts the current region: WebGPU could change it inside one open pass,
-but the current encoder configures each region once before its selections, so a
-conservative pass cut is the only way to preserve the recorded order.
+Trinity calls an injected AL through `Tr2RenderContext.SetRenderContextAL`;
+without one it uses the headless stub. The WebGPU implementation is
+`CjsWebgpuRenderContextAL`. It is internal, not a public package-root export;
+repository composition uses the private build entry. The public descriptor API
+above is a separate supported surface, not an AL installation recipe.
 
-Viewport state is normalized into a frozen `{ viewport, scissor }` snapshot on
-each render region and persists across target, compute, and transfer boundaries.
-`TriViewport.minZ/maxZ` become WebGPU's `minDepth/maxDepth`. Trinity currently
-has no scissor intent, so `scissor` remains `null` and means the full target.
-Raw render-state assignments, standard-state blocks, and wireframe changes are
-rejected until the engine has a translator that can include them in the actual
-pipeline recipe; retaining those intents while drawing with the previous
-pipeline would be a silent state error.
+1. Trinity's `RenderBatchesInOrder` walks the finalized accumulator, applies
+   standard states, per-object constants, shader pass state and material data,
+   then calls `SubmitGeometry`. The AL receives binding and draw calls, not
+   batches to resolve later. Geometry descriptors are realized at first submit
+   through the context's suballocated buffers.
+2. AL setters retain bound program, render state, declaration, streams and
+   resources. Each draw's `EmitRenderPipelineState` resolves the accumulated
+   description, reuses a cached pipeline or creates one synchronously through
+   `createRenderPipeline`. Unsupported state can still refuse a draw; this
+   path is not evidence that every Carbon rendering feature is implemented.
+3. `CjsWebgpuResourceSetAL` resolves stage/register bindings for the linked
+   program at draw time. Constant buffers retain CPU shadows; the frame's
+   constant arena supplies upload regions and dynamic offsets. Texture resources
+   are realized on first bind. These are AL-owned objects, not a second batch
+   resolver supplied by the application.
+4. `BeginScene` starts the work queue, resets the constant arena and render
+   targets. The queue opens passes lazily and consumes render-pass hints.
+   The canvas view is acquired at the first pass and reused within the frame.
+5. `EndScene` closes the last pass, clears bound program/resource-set/vertex-layout
+   state, finishes and submits the command encoder, and releases the frame view.
+   It is synchronous; no asynchronous batch-preparation phase follows Trinity's
+   render-job execution.
 
-Clears become attachment load operations. A clear at the head of a region folds
-into its load ops for free; a clear arriving after work in the same region cuts
-a new one and folds into that. No explicit clear operation and no fullscreen
-clear draw is ever required, because cutting a region is always legal.
-
-Order is preserved exactly. Intents are never moved between regions, reordered,
-or merged across a boundary — two render regions separated by compute stay
-separate even though merging them would be cheaper.
-
-An intent type with no planning rule throws. Treating an unknown intent as
-harmless state is how something illegal ends up inside a pass.
-
-The plan is pure: intents in, a plan out, no device and no encoder. That keeps
-the part carrying the rules testable without a browser and leaves encoding
-mechanical.
-
-## Executing a planned frame
-
-`CjsWebgpuFrameExecutor` walks a plan's regions in order, opens the right kind
-of encoder for each, and submits once. Every judgement about what may share a
-pass already happened during planning, so this owns only encoder lifetime and
-region order.
-
-Two things are injected because they are policy rather than mechanism. Which
-prepared batch types belong to a render region is Trinity's meaning, and an
-engine deciding it would be inventing scene structure. Compute and transfer
-regions need resources this module does not own. Both arrive as hooks.
-
-A planned compute or transfer region with no handler **throws**. Skipping it
-would render a frame that looks right and is subtly wrong. A render region that
-resolves to no selections is different — that is a legitimate answer, and
-opening a pass to draw nothing is waste, so it is skipped. A plan that encodes
-nothing submits nothing rather than an empty command buffer.
-
-The canvas texture is acquired once per frame and shared by every region
-resolving to the backbuffer. A region targeting something else needs attachments
-this module does not own, so its descriptor is the caller's to supply.
+`PlanFrame`, `CjsWebgpuFrameExecutor` and `CjsWebgpuTrinityStepRecorder`
+were removed with the render-intent queue. Do not restore them to integrate a
+backend. Source owners:
+[Trinity context](../../../src/trinity/core/context/Tr2RenderContext.js),
+[WebGPU AL context](../../../src/trinityal/webgpu/CjsWebgpuRenderContextAL.js),
+[resource sets](../../../src/trinityal/webgpu/CjsWebgpuResourceSetAL.js) and
+[work queue](../../../src/trinityal/webgpu/core/workQueue.js).
 
 ## Attachments and the presentation surface
 
 `CjsWebgpuRenderTarget` owns canvas configuration, the depth and multisample
 attachments, their size, render-pass descriptors, and viewport and scissor. It
 does not own when a frame happens or which passes exist; those belong to the
-executor and to Trinity's steps.
+AL work queue and to Trinity's steps.
 
 Carbon's render context owns a swap chain and a depth-stencil surface. WebGPU's
 model is a pass descriptor with attachments fixed before the pass opens, so this
@@ -304,13 +292,11 @@ surfaces belonging to a device that is gone.
 Clearing is a load operation on an attachment, never a draw, which is what lets
 a later pass over the same target composite by loading instead.
 
-**Presentation is not a call here.** Carbon presents the previous frame at the
-top of the next tick; WebGPU has no present, and the browser presents a
-configured canvas after the submission that drew into its current texture. The
-engine-side tick wrapper therefore has a real presentation step on WebGL and
-nothing to do on WebGPU. That asymmetry is expected, not a missing port.
+The browser presents a configured canvas after submission. This does not
+remove Trinity's presentation verbs; the AL submission lifecycle is described
+above.
 
-At the next level it snapshots `TriRenderBatchMap` batch types in insertion
+The separate harness batch adapter at the next level snapshots `TriRenderBatchMap` batch types in insertion
 order and prepares each accumulator. Batch-type meaning and render
 pass selection remain outside the dispatcher: `EncodeBatchType(...)` requires
 the caller to supply the compatible pass for the requested type. This avoids
@@ -329,17 +315,8 @@ selection, do not load production EVE assets, and make no claim about production
 frequency or scheduling policy. Detailed corpus provenance belongs in the
 private organization documentation rather than the shipped engine contract.
 
-The internal `CjsWebgpuTrinityStepRecorder` proves the synchronous
-`Tr2RenderContext.SetStepExecutor(...)` seam separately. It delegates the
-step's begin, execute, and end hooks back to the GPU-free context, consumes
-`TakeIntents()` exactly once, and records immutable segments in observable
-order. Nested jobs are re-entrant: a child step flushes any parent intents
-emitted before the child, then the parent resumes after the child. WebGPU
-pipeline preparation, pass creation, encoding, and submission remain a later
-asynchronous phase; none run inside Trinity's synchronous `Run(...)`.
-
-The internal `CjsWebgpuTrinityPassEncoder` proves the synchronous encoding end
-of that split. A caller supplies an existing command encoder plus ordered
+The internal `CjsWebgpuTrinityPassEncoder` provides synchronous encoding for
+the separate harness adapter. A caller supplies an existing command encoder plus ordered
 render-pass descriptors and prepared batch-map selections. Multiple batch
 types may share one pass, and separately prepared maps may be selected when a
 different technique is required. Optional synchronous pass configuration can
@@ -358,8 +335,8 @@ it consumes. It does not import `core`, which remains the composition root. The
 engine does not load GR2 or CMF geometry, resolve resource paths, extract scene
 state, choose production material or per-object values, translate complete
 Carbon render state, infer batch-type pass policy, or schedule a render loop.
-Render-job intents are recorded through the nominal Trinity executor contract
-and realized later by engine-owned planning and encoding.
+Trinity executes render jobs and calls the AL directly; the backend does not
+consume a retained Trinity intent stream.
 
 The public engine texture adapter uploads explicit pixel data as described under
 *Textures* above: uncompressed 8/16/32-bit and BC1–BC7 formats, mip chains, 2D,

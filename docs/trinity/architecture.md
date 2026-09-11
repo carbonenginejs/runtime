@@ -19,9 +19,9 @@ serialized in browsers, workers, Node.js tools, and test hosts.
 @carbonenginejs/runtime/trinity -- imports --> src/global + src/resource
 
 @carbonenginejs/runtime/resource -- decoded values --> application composition
-@carbonenginejs/runtime/trinity -- graph and intents --> application composition
-application composition --> host WebGL engine
-application composition --> @carbonenginejs/runtime/engine/webgpu
+application composition -- injects AL --> Tr2RenderContext
+Tr2RenderContext -- binding and draw calls --> selected AL
+selected AL = headless stub, or internal trinityal/webgpu implementation
 ```
 
 Runtime dependencies point from `@carbonenginejs/runtime/trinity` to
@@ -35,7 +35,7 @@ The current package owns:
 
 - Carbon-compatible class identity, schema fields, enums, and graph structure;
 - CPU-side curves, controllers, cameras, transforms, behaviors, and effects;
-- renderer-neutral render batches and ordered render-job intent;
+- renderer-neutral render batches and ordered render-job execution;
 - per-object semantic values that can be established from graph state;
 - portable lifecycle, distribution, post-process graph, and scene behavior;
 - generated schema intake and the maintained implementations promoted from it.
@@ -82,8 +82,8 @@ end still runs when execution throws. Nested jobs receive the same context.
 A render context owns one `CjsTrinityStepExecutor`. `SetStepExecutor` accepts
 only that nominal identity or null, with null restoring the shared
 `CjsDirectTrinityStepExecutor`. The context calls every required executor
-method directly and supplies itself as the fifth step argument. Concrete engine
-recorders extend the base; omitting a required method reaches the base method
+method directly and supplies itself as the fifth step argument. Omitting a
+required executor method reaches the base method
 and throws instead of silently falling back or skipping work.
 
 With `stackGuard` enabled, a job records render-target and depth-stencil stack
@@ -91,11 +91,14 @@ depths, diagnoses underflow, and unwinds surplus pushes to the entry depth on
 success, yield, or failure. `TriRenderJob` and `TriRenderStep` expose their
 status and result vocabularies as class statics.
 
-The default `Tr2RenderContext` is a GPU-free intent and diagnostic surface.
-`GetIntents()` returns a copy of the full retained history. An executor uses
-`TakeIntents()` for incremental, exactly-once consumption; it advances the
-take cursor so nested jobs cannot realize the same intent twice. The package
-keeps concrete backend recording and dispatch inside the selected engine.
+The default `Tr2RenderContext` holds a headless `Tr2RenderContextALStub`.
+`SetRenderContextAL` injects the backend; passing null restores the stub.
+Trinity walks batches, applies shader/material state and submits geometry through
+AL binding and draw calls. There is no `GetIntents`/`TakeIntents` history to
+replay. Real backend handles do not belong in persisted fields.
+
+The [WebGPU AL draw path](../trinityal/webgpu/architecture.md#current-al-draw-path)
+documents pipeline resolution, first-use resource realization and frame submission.
 
 ## Vertex-declaration matching
 

@@ -57,11 +57,11 @@ pipeline and one set of buffer bindings.
 Geometry resolution may additionally supply a validated `draw` override when
 the neutral batch carries an area range but no realized draw arguments.
 
-`CjsWebgpuTrinityStepRecorder` is another internal conformance component. It
-extends `CjsDirectTrinityStepExecutor`, is installed through
-`Tr2RenderContext.SetStepExecutor(...)`, preserves nested render-step intent
-order, and defers asynchronous WebGPU work until after the synchronous
-render-job run.
+The live Trinity integration instead uses the internal
+`CjsWebgpuRenderContextAL`; see the [AL draw path](../architecture.md#current-al-draw-path).
+Trinity applies batches and materials, then issues binding/draw calls to the AL.
+The former step recorder and render-intent replay path have been removed.
+The AL classes are not exported from this public package root.
 
 `CjsWebgpuTrinityPassEncoder` synchronously encodes caller-authored pass
 descriptors and prepared batch-map selections into an existing command

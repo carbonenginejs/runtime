@@ -25,7 +25,9 @@ selection, renderer scheduling, and scene extraction remain outside the engine.
 
 ## Start here
 
-Start with the [architecture](architecture.md), then use the
+For Trinity integration, start with the [current AL draw path](architecture.md#current-al-draw-path).
+The descriptor API below remains a separate surface; its harness adapters do
+not replace Trinity's batch walk. Then use the
 [API reference](reference/api.md). Maintainers qualifying generated shader
 packages should use the [WebGPU harness](guides/webgpu-harness.md).
 
