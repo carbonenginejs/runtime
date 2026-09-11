@@ -461,6 +461,125 @@ Per-object data for an ordinary renderable: a vertex payload and a pixel payload
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:EveBasicPerObjectData -->
+## `EveBasicPerObjectData`
+
+The world, previous-world and inverse-world matrices every plain Eve transform uploads.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveBasicPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveBoosterSetPerObjectData -->
+## `EveBoosterSetPerObjectData`
+
+A booster set's vertex and pixel payloads.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveBoosterSetPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveChildBoosterSetPerObjectData -->
+## `EveChildBoosterSetPerObjectData`
+
+The child booster set's vertex and pixel payloads.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveChildBoosterSetPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveChildBulletStormPerObjectData -->
+## `EveChildBulletStormPerObjectData`
+
+A bullet storm's transform, effect info and world-space target positions.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveChildBulletStormPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveChildSpherePinPerObjectData -->
+## `EveChildSpherePinPerObjectData`
+
+The child sphere pin's payload, bound to both per-object registers.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveChildSpherePinPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveDecalPerObjectData -->
+## `EveDecalPerObjectData`
+
+A decal's vertex and pixel payloads.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveDecalPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveLensflarePerObjectData -->
+## `EveLensflarePerObjectData`
+
+A lensflare's payload, bound to both per-object registers.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveLensflarePerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveMissileWarheadPerObjectData -->
+## `EveMissileWarheadPerObjectData`
+
+A missile warhead's transform payload.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveMissileWarheadPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveSceneStaticParticlesPerObjectData -->
+## `EveSceneStaticParticlesPerObjectData`
+
+The static-particle field's per-draw payload.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveSceneStaticParticlesPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveSpherePinPerObjectData -->
+## `EveSpherePinPerObjectData`
+
+A sphere pin's transform, position, rotation and colour, bound to both registers.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveSpherePinPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:EveTurretSetPerObjectData -->
+## `EveTurretSetPerObjectData`
+
+A turret set's vertex and pixel payloads.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/EveTurretSetPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:StretchPerObjectData -->
+## `StretchPerObjectData`
+
+A stretch's endpoint and effect payload, bound to both registers.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/perObjectData/StretchPerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
 <!-- class:Tr2PrimaryRenderContext -->
 ## `Tr2PrimaryRenderContext`
 

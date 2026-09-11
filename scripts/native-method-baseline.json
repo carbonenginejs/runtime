@@ -103,6 +103,9 @@
     "HandleDistributionEntityLifetimeEvent",
     "SwapInitialPlacements"
   ],
+  "EveBasicPerObjectData": [
+    "SetPerObjectData"
+  ],
   "EveBoosterSet2": [
     "AddToQuadRenderer",
     "OnPrepareResources",
@@ -523,6 +526,9 @@
   ],
   "EveSceneStaticParticles": [
     "GetInstanceDataObject"
+  ],
+  "EveSceneStaticParticlesPerObjectData": [
+    "SetPerObjectData"
   ],
   "EveShip2": [
     "GetAudioParameter",

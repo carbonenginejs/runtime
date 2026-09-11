@@ -7,3 +7,15 @@
 export { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 export { Tr2PerObjectDataPSBuffer } from "./Tr2PerObjectDataPSBuffer.js";
 export { Tr2PerObjectDataStandard } from "./Tr2PerObjectDataStandard.js";
+export { EveBasicPerObjectData } from "./EveBasicPerObjectData.js";
+export { EveBoosterSetPerObjectData } from "./EveBoosterSetPerObjectData.js";
+export { EveChildBoosterSetPerObjectData } from "./EveChildBoosterSetPerObjectData.js";
+export { EveChildBulletStormPerObjectData } from "./EveChildBulletStormPerObjectData.js";
+export { EveChildSpherePinPerObjectData } from "./EveChildSpherePinPerObjectData.js";
+export { EveDecalPerObjectData } from "./EveDecalPerObjectData.js";
+export { EveLensflarePerObjectData } from "./EveLensflarePerObjectData.js";
+export { EveMissileWarheadPerObjectData } from "./EveMissileWarheadPerObjectData.js";
+export { EveSceneStaticParticlesPerObjectData } from "./EveSceneStaticParticlesPerObjectData.js";
+export { EveSpherePinPerObjectData } from "./EveSpherePinPerObjectData.js";
+export { EveTurretSetPerObjectData } from "./EveTurretSetPerObjectData.js";
+export { StretchPerObjectData } from "./StretchPerObjectData.js";

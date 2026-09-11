@@ -36,39 +36,12 @@ Retains the quarantined native CAS sharpening constants that renderer code repla
 - Visibility: Internal
 - Kind: Carbon dropped
 
-<!-- class:EveBasicPerObjectData -->
-## `EveBasicPerObjectData`
-
-Represents the dropped object-data record formerly used to carry EveTransform world matrices.
-
-- Source: `src/trinity/dropped/EveBasicPerObjectData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
 <!-- class:EveInstancedMeshManager -->
 ## `EveInstancedMeshManager`
 
 Retains the quarantined native GPU-backed instancing manager whose realization belongs to an engine backend.
 
 - Source: `src/trinity/dropped/EveInstancedMeshManager.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
-<!-- class:EveMissileWarheadPerObjectData -->
-## `EveMissileWarheadPerObjectData`
-
-Represents the dropped object-data record formerly used to carry missile world and size values.
-
-- Source: `src/trinity/dropped/EveMissileWarheadPerObjectData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
-<!-- class:EveSceneStaticParticlesPerObjectData -->
-## `EveSceneStaticParticlesPerObjectData`
-
-Represents the retired static-particle payload for current and previous world matrices now written through RawData.
-
-- Source: `src/trinity/dropped/EveSceneStaticParticlesPerObjectData.js`
 - Visibility: Internal
 - Kind: Carbon dropped
 
@@ -162,15 +135,6 @@ Vertex-stage per-object matrices for a space-object decal - the hull world trans
 - Visibility: Internal
 - Kind: Carbon dropped
 
-<!-- class:EveBoosterSetPerObjectData -->
-## `EveBoosterSetPerObjectData`
-
-Carbon `EveBoosterSetPerObjectData` - a pure composite of the two stage structs, exactly as Carbon declares it (`VertexShaderData m_vsData; PixelShaderData m_psData;`, EveBoosterSet2.h:73-74).
-
-- Source: `src/trinity/dropped/perObjectData/EveBoosterSetPerObjectData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
 <!-- class:EveBoosterSetPSData -->
 ## `EveBoosterSetPSData`
 
@@ -186,33 +150,6 @@ Carbon `EveBoosterSetPerObjectData::PixelShaderData` - the trail intensities.
 Carbon `EveBoosterSetPerObjectData::VertexShaderData` - the booster set's ship matrix, its intensity/speed/size scalars, and the trail control ring.
 
 - Source: `src/trinity/dropped/perObjectData/EveBoosterSetVSData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
-<!-- class:EveChildBulletStormPerObjectData -->
-## `EveChildBulletStormPerObjectData`
-
-Represents the retired bullet-storm payload for its world transform, effect metadata, and ten target positions now written through RawData.
-
-- Source: `src/trinity/dropped/perObjectData/EveChildBulletStormPerObjectData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
-<!-- class:EveChildSpherePinPerObjectData -->
-## `EveChildSpherePinPerObjectData`
-
-Per-object values for a sphere pin attached as a space-object child - world matrix plus the pin's position, rotation, colour, threshold, precalculated radius and UV - as values a renderer packs into a constant buffer.
-
-- Source: `src/trinity/dropped/perObjectData/EveChildSpherePinPerObjectData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
-<!-- class:EveDecalPerObjectData -->
-## `EveDecalPerObjectData`
-
-Represents the retired decal wrapper that paired vertex- and pixel-stage payloads before producers returned RawData stage records.
-
-- Source: `src/trinity/dropped/perObjectData/EveDecalPerObjectData.js`
 - Visibility: Internal
 - Kind: Carbon dropped
 
@@ -258,24 +195,6 @@ Vertex-stage per-object values for a space object - world/inverse-world transfor
 Combined per-object record for a space object covering both stages - transforms, clip sphere, ellipsoid, custom masks, bone offsets and spherical-harmonic lighting coefficients - as values a renderer packs into a constant buffer, never as GPU resources.
 
 - Source: `src/trinity/dropped/perObjectData/EveSpacePerObjectData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
-<!-- class:EveSpherePinPerObjectData -->
-## `EveSpherePinPerObjectData`
-
-Per-object values for a standalone UI sphere pin - world matrix plus the pin's position, orientation, colour, threshold, precalculated radius and UV - as values a renderer packs into a constant buffer.
-
-- Source: `src/trinity/dropped/perObjectData/EveSpherePinPerObjectData.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
-<!-- class:EveTurretSetPerObjectData -->
-## `EveTurretSetPerObjectData`
-
-Represents the retired turret wrapper that paired vertex- and pixel-stage payloads before its producer returned RawData stage records.
-
-- Source: `src/trinity/dropped/perObjectData/EveTurretSetPerObjectData.js`
 - Visibility: Internal
 - Kind: Carbon dropped
 
