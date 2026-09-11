@@ -1748,8 +1748,11 @@
     "constraint",
     "globalSeed"
   ],
-  "Tr2PerObjectData": [
-    "ApplyConstantBuffers"
+  "Tr2PerObjectDataPSBuffer": [
+    "CopyToPSFloatBuffer"
+  ],
+  "Tr2PerObjectDataStandard": [
+    "CopyToVSFloatBuffer"
   ],
   "Tr2PlatformInfo": [
     "GetPlatformID",

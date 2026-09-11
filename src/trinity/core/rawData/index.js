@@ -11,3 +11,5 @@
 export { RawData, RawDataType, RawDataEncoders } from "./RawData.js";
 export { TriPoolAllocator } from "./TriPoolAllocator.js";
 export { Tr2PerObjectData } from "./Tr2PerObjectData.js";
+export { Tr2PerObjectDataPSBuffer } from "./Tr2PerObjectDataPSBuffer.js";
+export { Tr2PerObjectDataStandard } from "./Tr2PerObjectDataStandard.js";

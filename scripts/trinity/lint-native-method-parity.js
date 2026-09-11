@@ -39,6 +39,14 @@ const verbose = process.argv.includes("--verbose");
 // `void` is its artifact for template-heavy member declarations
 // (std::map<uint32_t, std::function<void()>> parses as a method named
 // "void" with returnType "std::map<uint32_t, std::function<").
+// The C memory family, which is NOT a method of anything. These reach the
+// schema because it lists names found in a class's inline bodies, and a header
+// that memcpys into a member buffer - Tr2PerObjectData.h:52-64 is the first one
+// ported - therefore looks like it declares `memcpy`. Reported as gaps they
+// would be unportable by construction, and baselining them would record a
+// nonsense debt that can never close.
+const C_MEMORY = /^(memcpy|memset|memmove|memcmp)$/;
+
 const NON_METHOD = /^(~|operator\b|EXPOSE_TO_BLUE$|TYPEDEF_|BLUE_|Py__|PyNew$|bool$|void$)/;
 
 const classes = await ReadJavaScriptClasses(sourceRoot);
@@ -65,7 +73,7 @@ for (const [ className, records ] of schema)
   {
     const name = method?.cppName ?? method?.target;
     if (typeof name !== "string" || !name) continue;
-    if (NON_METHOD.test(name) || name === className) continue;
+    if (NON_METHOD.test(name) || C_MEMORY.test(name) || name === className) continue;
     // Schema currently merges the public facade and TrinityALImpl backends.
     // Public include/Tr2ResourceSetAL.h:129-146 has none of these methods:
     // Describe/Destroy belong to backends; StageInput is a nested DX11

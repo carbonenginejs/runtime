@@ -2,7 +2,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2PerObjectData, TriPoolAllocator } from "../../npm/dist/trinity/core/index.js";
+import {
+  Tr2PerObjectData,
+  Tr2PerObjectDataPSBuffer,
+  Tr2PerObjectDataStandard,
+  TriPoolAllocator
+} from "../../npm/dist/trinity/core/index.js";
+import { mat4 } from "../../npm/dist/global/math/index.js";
 
 // The mask join: Carbon's RenderBatchGroup hoists GetShaderTypeMask(technique)
 // once per group and passes it to every batch's SetPerObjectDataToDevice.
@@ -136,4 +142,121 @@ test("setPerObjectDataToDevice uploads each payload at its own register", () =>
     0
   );
   assert.deepEqual(calls, []);
+});
+
+// ---------------------------------------------------------------------------
+// The restored Carbon classes. Tr2PerObjectDataPSBuffer owns a pixel payload
+// and uploads nothing; Tr2PerObjectDataStandard adds a vertex payload and the
+// virtual. Both lease through the accumulator, as Carbon's
+// accumulator->Allocate<T>() does.
+
+const MATRIX = TriPoolAllocator.Type.MATRIX;
+
+function accumulatorWith(structs)
+{
+  const store = new TriPoolAllocator().Register(structs);
+
+  // The two doors ITriRenderBatchAccumulator provides, with its own semantics:
+  // Allocate only calls the constructor, Alloc leases from the bound store.
+  return {
+    Allocate: (Constructor) => new Constructor(),
+    Alloc: (name) => store.Allocate(name)
+  };
+}
+
+const WORLD_ONLY = { def: [ { name: "WorldMat", size: 16, encoding: MATRIX } ], stages: [ "vs" ] };
+const WORLD_ONLY_PS = { def: [ { name: "WorldMat", size: 16, encoding: MATRIX } ], stages: [ "ps" ] };
+
+test("Tr2PerObjectDataStandard.alloc leases both payloads in their named shapes", () =>
+{
+  const accumulator = accumulatorWith({ VS: WORLD_ONLY, PS: WORLD_ONLY_PS });
+  const data = Tr2PerObjectDataStandard.alloc(accumulator, "VS", "PS");
+
+  assert.equal(data.vs.GetStruct(), "VS");
+  assert.equal(data.ps.GetStruct(), "PS");
+  assert.equal(data.GetUserData(), 0, "Carbon's m_userData starts at zero");
+
+  // The producer writes onto the leased payload directly - there is no copy
+  // step, because a RawData already is the uploadable buffer.
+  data.vs.SetAndTranspose("WorldMat", mat4.create());
+  assert.equal(data.vs.GetData().length, 16);
+});
+
+test("Tr2PerObjectDataPSBuffer carries only a pixel payload and uploads nothing", () =>
+{
+  // Carbon's PSBuffer does not override SetPerObjectDataToDevice and the base
+  // body is empty (Tr2PerObjectData.cpp:29-32), so this is shared storage.
+  const accumulator = accumulatorWith({ PS: WORLD_ONLY_PS });
+  const data = Tr2PerObjectDataPSBuffer.alloc(accumulator, "PS");
+
+  assert.equal(data.ps.GetStruct(), "PS");
+  assert.equal(data.vs, undefined, "no vertex payload at this level");
+  assert.equal(data.SetPerObjectDataToDevice(), 0, "the base virtual is a no-op");
+});
+
+test("a layout over Carbon's per-object register budget throws at lease time", () =>
+{
+  // Carbon's static_assert( sizeof(T) <= sizeof(buffer) ). 11 matrices is 176
+  // floats, over the 160-float vertex budget. FillAndSetConstants would
+  // otherwise clamp the copy and silently drop the tail.
+  const def = [];
+
+  for (let i = 0; i < 11; i++) def.push({ name: `m${i}`, size: 16, encoding: MATRIX });
+
+  const accumulator = accumulatorWith({ Big: { def, stages: [ "vs" ] }, PS: WORLD_ONLY_PS });
+
+  assert.throws(
+    () => Tr2PerObjectDataStandard.alloc(accumulator, "Big", "PS"),
+    /VS layout "Big" is 176 floats, over Carbon's 160-float/u
+  );
+});
+
+test("the instance upload binds exactly what the static does for a plain record", () =>
+{
+  // This is the proof that restoring the class is a refactor: the virtual
+  // delegates to the same static, so an instance and the { vs, ps } record it
+  // replaces produce identical binds.
+  const VERTEX = 0;
+  const PIXEL = 1;
+  const calls = [];
+
+  const buffer = (id) => ({
+    id,
+    IsValid: () => false,
+    GetSize: () => 0,
+    Create: () => 0,
+    Lock: () => ({ result: 0, data: new Uint8Array(256) }),
+    Unlock: () => 0
+  });
+
+  const buffers = [ buffer("vs"), buffer("ps") ];
+  const renderContext = {
+    IsValid: () => true,
+    SetConstants(cb, stage, registerIndex)
+    {
+      calls.push(`${cb.id}@b${registerIndex}`);
+      return true;
+    }
+  };
+
+  const accumulator = accumulatorWith({ VS: WORLD_ONLY, PS: WORLD_ONLY_PS });
+  const data = Tr2PerObjectDataStandard.alloc(accumulator, "VS", "PS");
+  const mask = (1 << VERTEX) | (1 << PIXEL);
+
+  assert.equal(data.SetPerObjectDataToDevice(buffers, mask, renderContext), 2);
+  assert.deepEqual(calls.sort(), [ "ps@b4", "vs@b3" ]);
+
+  // And the divergence this class records: a technique with no pixel stage
+  // takes no pixel payload. Carbon's Standard would bind it anyway.
+  calls.length = 0;
+  assert.equal(data.SetPerObjectDataToDevice(buffers, 1 << VERTEX, renderContext), 1);
+  assert.deepEqual(calls, [ "vs@b3" ]);
+});
+
+test("ApplyConstantBuffers refuses rather than looking successful", () =>
+{
+  const accumulator = accumulatorWith({ VS: WORLD_ONLY, PS: WORLD_ONLY_PS });
+  const data = Tr2PerObjectDataStandard.alloc(accumulator, "VS", "PS");
+
+  assert.throws(() => data.ApplyConstantBuffers(), /indirect draw is unported/u);
 });

@@ -434,10 +434,30 @@ Base mesh: owns one mesh-area list per batch type and turns the displayed areas 
 <!-- class:Tr2PerObjectData -->
 ## `Tr2PerObjectData`
 
-GPU-free base for per-object render data, carrying the object id a batch is picked and identified by; the GPU upload path is engine-owned.
+Base for per-object render data: the object id a batch is picked and identified by, the virtual that uploads a renderable's constants through the abstraction layer, and the shared mechanism its subclasses use.
 
 - Export: @carbonenginejs/runtime/trinity/core
 - Source: src/trinity/core/rawData/Tr2PerObjectData.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2PerObjectDataPSBuffer -->
+## `Tr2PerObjectDataPSBuffer`
+
+Per-object data carrying a pixel payload. Shared storage for the classes that hold one, and it uploads nothing itself, as Carbon's does not.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/Tr2PerObjectDataPSBuffer.js
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2PerObjectDataStandard -->
+## `Tr2PerObjectDataStandard`
+
+Per-object data for an ordinary renderable: a vertex payload and a pixel payload, each leased in a named layout and bound at its per-object register.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: src/trinity/core/rawData/Tr2PerObjectDataStandard.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 

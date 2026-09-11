@@ -15,6 +15,7 @@
 // a Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
 
 import { CjsConstantPayload } from "#contracts";
+import { carbon, impl } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { FillAndSetConstants } from "../Tr2RenderUtils.js";
 import { PER_OBJECT_PS, PER_OBJECT_VS } from "../Tr2Renderer.js";
@@ -41,6 +42,41 @@ export class Tr2PerObjectData
   GetUserData()
   {
     return this.userData;
+  }
+
+  /**
+   * Uploads this object's per-object constants and binds them.
+   *
+   * AN EMPTY BODY, BECAUSE CARBON'S IS (`Tr2PerObjectData.cpp:29-32`). The base
+   * declares the virtual and does nothing; `Tr2PerObjectDataStandard` and
+   * `Tr2PerObjectDataSkinned` override it, and `Tr2PerObjectDataPSBuffer`
+   * deliberately does not - allocating one of those uploads nothing, which is
+   * its donor's behaviour rather than an omission here.
+   *
+   * The static `setPerObjectDataToDevice` below is the shared mechanism these
+   * overrides call; this is the dispatch point Carbon's callers reach through.
+   *
+   * @returns {number} How many payloads were uploaded; none, at this level.
+   */
+  @carbon.method
+  @impl.implemented
+  SetPerObjectDataToDevice()
+  {
+    return 0;
+  }
+
+  /**
+   * The indirect-draw sibling.
+   *
+   * Carbon's base asserts rather than defaulting (`Tr2PerObjectData.cpp:34-37`),
+   * so a call that reached here is a porting mistake and must not look valid.
+   */
+  @carbon.method
+  @impl.notImplemented
+  @impl.reason("Tr2IndirectDrawBufferWriter is unported and nothing on this path draws indirectly; Carbon's base asserts here too.")
+  ApplyConstantBuffers()
+  {
+    throw new Error("Tr2PerObjectData.ApplyConstantBuffers: indirect draw is unported.");
   }
 
   // Carbon Tr2RenderContextEnum::ShaderType (trinityal/Tr2RenderContextEnum.h:31-43).
