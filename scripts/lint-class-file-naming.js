@@ -143,6 +143,23 @@ const baseline = JSON.parse(await readFile(baselinePath, "utf8"));
 const knownMisnamed = new Set(Object.keys(baseline.misnamed ?? {}));
 const knownMultiple = new Set(Object.keys(baseline.multipleClasses ?? {}));
 const knownMissing = new Set(Object.keys(baseline.missingClass ?? {}));
+
+/**
+ * Modules that are PascalCase and declare no class because they declare no class
+ * ANYWHERE - they export frozen configuration, not behaviour.
+ *
+ * `src/trinity/core/rawData/layouts` holds one file per Carbon donor header,
+ * exporting the constant-buffer layouts RawData is built from. A header declares
+ * every struct its producer uploads, and they are read and changed together, so
+ * the file follows the header. They are PascalCase because each is named for the
+ * export it owns, which is the same rule the class files follow.
+ *
+ * NOT A HOLE IN THE ONE-CLASS-PER-FILE RULE, which is about classes and still
+ * has no exemptions. These are data. The baseline would be the wrong home: it may
+ * only shrink, so sixteen entries that can never become classes would sit in it
+ * permanently as debt nobody can pay.
+ */
+const DECLARES_NO_CLASS_BY_DESIGN = /^src\/trinity\/core\/rawData\/layouts\//u;
 const misnamed = new Map();
 const multiple = new Map();
 const missing = new Map();
@@ -157,7 +174,10 @@ for (const file of await sourceFiles(sourceRoot))
 
     // A PascalCase module promises a class even when it declares none. Use
     // parsed declarations so comments, strings and nested classes cannot pass.
-    if (!classes.length && /^[A-Z]/.test(base)) missing.set(relative, [ base ]);
+    if (!classes.length && /^[A-Z]/.test(base) && !DECLARES_NO_CLASS_BY_DESIGN.test(relative))
+    {
+        missing.set(relative, [ base ]);
+    }
 
     if (!classes.length) continue;
 
