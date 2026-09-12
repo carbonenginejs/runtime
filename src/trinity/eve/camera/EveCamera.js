@@ -836,7 +836,7 @@ export class EveCamera extends CjsModel
     this.audio2Listener?.UpdatePlacement?.(this.viewVec, this.upVec, this.pos);
     if (failed && !this.#failedLastFrame)
     {
-      this.errorHandler?.HandleEvent?.(null);
+      this.errorHandler?.HandleEvent(null);
     }
     this.#failedLastFrame = failed;
     return !failed;

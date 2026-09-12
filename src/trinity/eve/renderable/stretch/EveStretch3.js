@@ -213,7 +213,7 @@ export class EveStretch3 extends withIEveSpaceObject2(IEveFiringEffectElement)
       if (maskedEvent === BELIST_INSERTED)
       {
         value?.SetOwner(this);
-        value?.Link?.();
+        value?.Link();
       }
       else if (maskedEvent === BELIST_REMOVED)
       {
