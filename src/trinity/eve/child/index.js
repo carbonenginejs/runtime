@@ -36,6 +36,6 @@ export * from "./EveChildLineSet.js";
 export * from "./EveChildInstanceContainer.js";
 export * from "./EveChildExplosion.js";
 export * from "./EveChildCloud2.js";
-export * from "./EveChildPartData.js";
+export * from "./EveChildPartData/index.js";
 export * from "./ITr2FroxelFogSettings.js";
 export * from "./IEveLightingOverride.js";

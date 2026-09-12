@@ -29,11 +29,11 @@
 
 
 import { CjsSchema } from "#schema";
-import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
+import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { impl } from "#schema";
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../trinityal/index.js";
-import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
-import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../global/consts/renderContext/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
+import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
+import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../../global/consts/renderContext/index.js";
 
 
 function fail(message)
@@ -60,35 +60,6 @@ const MAX_RENDER_TARGET = 8;
  * primary until something sets another.
  */
 let primaryRenderContext = null;
-
-
-/**
- * Carbon's `Tr2BindlessResourcesAL` (`Tr2RenderContextStub.h:32-47`).
- *
- * A list of resources handed to `UseResources` so a backend can make them
- * resident together. Every method is empty in the stub, exactly as in Carbon:
- * residency is a device concern and there is no device here.
- *
- * Carbon overloads `Add` for a texture, a buffer and another resource list;
- * JavaScript dispatches on one method, which is the ordinary shape of an
- * overload set here and not a divergence in behaviour.
- */
-export class Tr2BindlessResourcesAL
-{
-  /**
-   * Adds a texture, a buffer, or the contents of another list.
-   *
-   * @param {object} _resource The resource to make resident.
-   */
-  Add(_resource)
-  {
-  }
-
-  /** Empties the list. */
-  Clear()
-  {
-  }
-}
 
 
 /**

@@ -233,14 +233,6 @@
       "EveChildInstancedMesh",
       "EveChildInstancedMeshes"
     ],
-    "src/trinity/eve/child/EveChildPartData.js": [
-      "EveChildPartDataPartData",
-      "EveChildPartData"
-    ],
-    "src/trinityal/stub/Tr2RenderContextALStub.js": [
-      "Tr2BindlessResourcesAL",
-      "Tr2RenderContextALStub"
-    ],
     "src/trinityal/webgpu/CjsWebgpuShaderAL.js": [
       "CjsWebgpuShaderAL",
       "CjsWebgpuShaderProgramAL"

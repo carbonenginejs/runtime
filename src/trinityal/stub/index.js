@@ -20,7 +20,7 @@ export * from "./Tr2FenceALStub.js";
 export * from "./Tr2OcclusionQueryALStub.js";
 export * from "./Tr2GpuTimerALStub.js";
 export * from "./Tr2PipelineStatsQueryALStub/index.js";
-export * from "./Tr2RenderContextALStub.js";
+export * from "./Tr2RenderContextALStub/index.js";
 export * from "./Tr2SamplerStateALStub.js";
 export * from "./Tr2ShaderALStub.js";
 export * from "./Tr2ShaderProgramALStub.js";

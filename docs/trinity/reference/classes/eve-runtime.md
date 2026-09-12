@@ -303,7 +303,7 @@ It also carries the tracked object's radius, aggression, and velocity flags.
 Persistent modular-space-object state stored as an effect child.
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
-- Source: `src/trinity/eve/child/EveChildPartData.js`
+- Source: `src/trinity/eve/child/EveChildPartData/EveChildPartData.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -326,7 +326,7 @@ engines own physical instance-buffer realization.
 One modular-object part's logical transform and local-space bounds.
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
-- Source: `src/trinity/eve/child/EveChildPartData.js`
+- Source: `src/trinity/eve/child/EveChildPartData/EveChildPartDataPartData.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
