@@ -1,91 +1,96 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResLodData.json; maintained by the runtime resource layer.
-import { type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** TriGeometryResLodData (resources) - maintained from schema shapeHash 92d97df7.... */
-@type.define({ className: "TriGeometryResLodData", family: "resources" })
 export class TriGeometryResLodData extends CjsModel
 {
 
   /** m_mesh (TriGeometryResMeshData*) */
-  @type.objectRef("TriGeometryResMeshData")
   mesh = null;
 
   /** m_grannyMeshIndex (int32_t) */
-  @type.int32
   grannyMeshIndex = 0;
 
   /** m_name (std::string) */
-  @type.string
   name = "";
 
   /** m_originalLodIndex (int32_t) */
-  @type.int32
   originalLodIndex = 0;
 
   /** m_maxScreenSize (float) */
-  @type.float32
   maxScreenSize = 0;
 
   /** m_vertexCount (unsigned int) */
-  @type.uint32
   vertexCount = 0;
 
   /** m_primitiveCount (unsigned int) */
-  @type.uint32
   primitiveCount = 0;
 
   /** m_uvDensities (std::vector<float>) */
-  @type.list("float")
   uvDensities = [];
 
   /** m_areas (TrackableStdVector<TriGeometryResAreaData>) */
-  @type.unknown
   areas = null;
 
   /** m_allocationsValid (bool) */
-  @type.boolean
   allocationsValid = false;
 
   /** m_vertexAllocation (Tr2SuballocatedBuffer::Allocation) */
-  @type.rawStruct("Tr2SuballocatedBuffer::Allocation")
   vertexAllocation = null;
 
   /** m_indexAllocation (Tr2SuballocatedBuffer::Allocation) */
-  @type.rawStruct("Tr2SuballocatedBuffer::Allocation")
   indexAllocation = null;
 
   /** m_morphTargetAllocation (Tr2SuballocatedBuffer::Allocation) */
-  @type.rawStruct("Tr2SuballocatedBuffer::Allocation")
   morphTargetAllocation = null;
 
   /** m_morphTargetNames (std::vector<std::string>) */
-  @type.list("std::string")
   morphTargetNames = [];
 
   /** m_morphTargetDeformationAmounts (std::vector<float>) */
-  @type.list("float")
   morphTargetDeformationAmounts = [];
 
   /** m_isBakedMorphTarget (std::vector<bool>) */
-  @type.list("bool")
   isBakedMorphTarget = [];
 
   /** m_morphVertexDeclaration (unsigned int) */
-  @type.uint32
   morphVertexDeclaration = 0;
 
   /** m_bytesPerMorphTargetVertex (unsigned int) */
-  @type.uint32
   bytesPerMorphTargetVertex = 0;
 
   /** m_reversedIndicesValid (bool) */
-  @type.boolean
   reversedIndicesValid = false;
 
   /** m_reversedIndexAllocation (Tr2SuballocatedBuffer::Allocation) */
-  @type.rawStruct("Tr2SuballocatedBuffer::Allocation")
   reversedIndexAllocation = null;
 
 }
+
+CjsSchema.define(TriGeometryResLodData, {
+  className: "TriGeometryResLodData", family: "resources",
+  fields: {
+    mesh: type.objectRef("TriGeometryResMeshData"),
+    grannyMeshIndex: type.int32,
+    name: type.string,
+    originalLodIndex: type.int32,
+    maxScreenSize: type.float32,
+    vertexCount: type.uint32,
+    primitiveCount: type.uint32,
+    uvDensities: type.list("float"),
+    areas: type.unknown,
+    allocationsValid: type.boolean,
+    vertexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    indexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    morphTargetAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    morphTargetNames: type.list("std::string"),
+    morphTargetDeformationAmounts: type.list("float"),
+    isBakedMorphTarget: type.list("bool"),
+    morphVertexDeclaration: type.uint32,
+    bytesPerMorphTargetVertex: type.uint32,
+    reversedIndicesValid: type.boolean,
+    reversedIndexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation")
+  }
+});

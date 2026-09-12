@@ -1,5 +1,5 @@
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { CjsSchema, io, type } from "#schema";
 
 /**
  * Persistable resource-layer view of a format support report.
@@ -8,63 +8,34 @@ import { io, type } from "#schema";
  * subpaths stay importable without a build transform. Consumers that need a
  * model normalize those reports here with {@link CjsResourceProbe.from}.
  */
-@type.define({ className: "CjsResourceProbe", family: "resource" })
 export class CjsResourceProbe extends CjsModel
 {
-  @io.persist
-  @type.string
   format = "";
 
-  @io.persist
-  @type.string
   source = "";
 
-  @io.persist
-  @type.boolean
   recognized = false;
 
-  @io.persist
-  @type.string
   output = "";
 
-  @io.persist
-  @type.boolean
   supported = false;
 
-  @io.persist
-  @type.boolean
   verified = false;
 
-  @io.persist
-  @type.string
   preferredOutput = "";
 
-  @io.persist
-  @type.string
   reason = "";
 
-  @io.persist
-  @type.unknown
   metadata = null;
 
-  @io.persist
-  @type.unknown
   capability = null;
 
-  @io.persist
-  @type.list("unknown")
   outputs = [];
 
-  @io.persist
-  @type.list("string")
   warnings = [];
 
-  @io.persist
-  @type.list("string")
   errors = [];
 
-  @io.persist
-  @type.unknown
   error = null;
 
   /**
@@ -154,3 +125,23 @@ function normalizeCapability(input)
 }
 
 export default CjsResourceProbe;
+
+CjsSchema.define(CjsResourceProbe, {
+  className: "CjsResourceProbe", family: "resource",
+  fields: {
+    format: [ io.persist, type.string ],
+    source: [ io.persist, type.string ],
+    recognized: [ io.persist, type.boolean ],
+    output: [ io.persist, type.string ],
+    supported: [ io.persist, type.boolean ],
+    verified: [ io.persist, type.boolean ],
+    preferredOutput: [ io.persist, type.string ],
+    reason: [ io.persist, type.string ],
+    metadata: [ io.persist, type.unknown ],
+    capability: [ io.persist, type.unknown ],
+    outputs: [ io.persist, type.list("unknown") ],
+    warnings: [ io.persist, type.list("string") ],
+    errors: [ io.persist, type.list("string") ],
+    error: [ io.persist, type.unknown ]
+  }
+});
