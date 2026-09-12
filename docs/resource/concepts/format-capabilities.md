@@ -99,6 +99,27 @@ and extension rules, boolean-only routing, advice that never fabricates
 verification, real-reader asynchronous success, output-specific decoder errors,
 and undeclared-output rejection without decoder execution.
 
+`test/resource/runtime-resource/format-conformance.test.js` additionally asserts
+the contract across **every** exported format rather than one at a time, because
+a format can only drift out of a shared shape in a way its own suite does not
+run. It checks the canonical identity, dotted lowercase frozen extensions,
+unique ids, one default output, resolvable selectors, a uniform report on
+unrecognized and empty input, and undeclared-output refusal.
+
+Two of its rules are pairings rather than floors:
+
+- **outputs if and only if a reader.** Most formats read. `CjsStaticFormat`
+  declares no outputs on purpose — `.static` is three unrelated containers
+  behind one extension, so that class identifies the family and the sibling
+  router calls whichever format reads it. An identification surface with no
+  reader correctly claims no output.
+- **inputs if and only if a writer.** This is the rule that found a real
+  defect: `CjsCmfFormat`, `CjsFbxFormat`, `CjsGr2Format` and `CjsStlFormat` all
+  wrote while `canWrite()` answered `false`, because none declared `inputs`.
+  Since the documented instruction is to ask rather than probe for the method,
+  the answer was wrong for four of the seven formats that write. They now
+  declare their real input payloads.
+
 ## Related documentation
 
 - [Format subpaths](../formats/README.md)

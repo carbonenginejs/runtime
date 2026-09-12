@@ -517,6 +517,14 @@ export class CjsCmfFormat extends CjsFormat
     static CLASS_KEYS = CLASS_KEYS;
     static id = "cmf";
     static mediaTypes = Object.freeze([ "geometry" ]);
+    // The writer's own graph is the default: `write` takes a CMF-native graph,
+    // while `writeShared` converts a shared geometry root through it first.
+    // Both are lossless - CMF is the container this package writes for keeps.
+    static inputs = CjsFormat.defineInputs({
+        cmf: { default: true, payloadType: "geometry", options: [ "compress" ] },
+        shared: { payloadType: "geometry", options: [ "compress" ] }
+    });
+
     static outputs = CjsFormat.defineOutputs({
         cmf: { default: true, decoded: true },
         gr2: { decoded: true },

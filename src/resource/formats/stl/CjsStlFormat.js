@@ -344,6 +344,13 @@ export class CjsStlFormat extends CjsFormat
     static CLASS_KEYS = CLASS_KEYS;
     static id = "stl";
     static mediaTypes = Object.freeze([ "geometry" ]);
+    // STL takes the shared geometry root directly rather than going through
+    // CMF, because it carries triangles and nothing else worth preserving.
+    // Lossless for what STL can represent; everything else was never in scope.
+    static inputs = CjsFormat.defineInputs({
+        shared: { default: true, payloadType: "geometry", options: [ "binary", "solidName", "scale", "recalculateNormals", "weldVertices" ] }
+    });
+
     static outputs = CjsFormat.defineOutputs({
         shared: { decoded: true },
         gr2: { decoded: true },

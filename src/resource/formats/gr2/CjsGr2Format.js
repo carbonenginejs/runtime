@@ -346,6 +346,13 @@ export class CjsGr2Format extends CjsFormat
     static CLASS_KEYS = CLASS_KEYS;
     static id = "gr2";
     static mediaTypes = Object.freeze([ "geometry" ]);
+    // Same shape as the other geometry writers: a native CMF v1 graph is the
+    // default input, and `writeShared` adapts a shared or GR2-shaped root.
+    static inputs = CjsFormat.defineInputs({
+        cmf: { default: true, payloadType: "geometry", options: [ "tangents", "packCurves", "sectionStorage" ] },
+        shared: { payloadType: "geometry", options: [ "tangents", "packCurves", "sectionStorage" ] }
+    });
+
     static outputs = CjsFormat.defineOutputs({
         gr2: { decoded: true },
         cmf: { decoded: true },

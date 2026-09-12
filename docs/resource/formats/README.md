@@ -67,6 +67,12 @@ const jpeg = CjsJpegFormat.write(rgba, { quality: 0.9 });
 `write` is one-shot and static; `Write` is the instance form, as with every
 other format that writes.
 
+The geometry formats write too, and as of 2026-09-13 they declare it: `CjsCmfFormat`,
+`CjsFbxFormat` and `CjsGr2Format` take a native CMF graph by default — FBX and GR2
+are written *through* CMF — with a `shared` input for a shared geometry root, while
+`CjsStlFormat` takes the shared root directly. Until they declared `inputs`,
+`canWrite()` answered `false` for all four.
+
 **Ask whether a format writes; do not probe for the method.** `inputs` is the
 counterpart of `outputs`, and it is empty on every format that only reads:
 
