@@ -827,9 +827,13 @@ export class Tr2EffectStateManager extends CjsModel
    * @param {boolean} [updateViewport] Whether slot zero moves the viewport.
    * @returns {boolean} Whether the bind was accepted.
    */
-  SetRenderTarget(index, renderTarget, updateViewport = true)
+  SetRenderTarget(index, renderTarget, updateViewport = true, slice = 0)
   {
-    const bound = this.#renderContext.SetRenderTarget(index, renderTarget);
+    // SLICE IS CARBON'S FOURTH ARGUMENT (`Tr2EffectStateManager.h:147`) and it
+    // was being dropped here. The WebGPU backend already accepts one, so a
+    // caller rendering into a cascade or a cube face was silently writing
+    // slice 0 - a correct-looking image in the wrong place.
+    const bound = this.#renderContext.SetRenderTarget(index, renderTarget, slice);
 
     if (index === 0 && updateViewport) this.#RefreshRenderTargetViewport();
 

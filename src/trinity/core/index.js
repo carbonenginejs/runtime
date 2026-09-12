@@ -13,6 +13,7 @@ export * from "./binding/index.js";
 export * from "./Tr2Renderer.js";
 export * from "./Tr2RenderUtils.js";
 export * from "./Tr2Blitter.js";
+export * from "./Tr2Denoiser.js";
 export * from "./context/index.js";
 export * from "./device/index.js";
 export * from "./lighting/index.js";

@@ -482,13 +482,13 @@ export class Tr2RenderContext extends CjsModel
    * Binds a render target to a slot and records a set-render-target intent for
    * the engine to realize.
    */
-  SetRenderTarget(slot, renderTarget)
+  SetRenderTarget(slot, renderTarget, slice = 0)
   {
     // THE BACKEND OWNS THE BINDING, as Carbon's do (m_boundRenderTarget), and
     // GetRenderTarget below reads it back from there. The context kept a
     // duplicate map while it was also a recorder; two copies of one binding is
     // one too many, and the local one was the stale half.
-    return this.#requireAL("SetRenderTarget").SetRenderTarget(Number(slot) >>> 0, renderTarget);
+    return this.#requireAL("SetRenderTarget").SetRenderTarget(Number(slot) >>> 0, renderTarget, Number(slice) >>> 0);
   }
 
   // THE BACKEND'S FRAME CLOCK, WHICH IS NOT THE ONE ABOVE. `AdvanceFrame` and
@@ -604,6 +604,53 @@ export class Tr2RenderContext extends CjsModel
   SetReadOnlyDepth(enable)
   {
     return this.#requireAL("SetReadOnlyDepth").SetReadOnlyDepth(enable);
+  }
+
+  /**
+   * Declares what the next render pass does with its attachments.
+   *
+   * Carbon calls this on the render context (`Tr2Denoiser.cpp:106` and each
+   * pass after it). It is a BACKEND concept - Metal names the record
+   * `MetalRenderPassHint` and WebGPU spells the same thing as loadOp/storeOp on
+   * a pass descriptor - so this forwards, exactly as SetReadOnlyDepth does.
+   *
+   * Declaring DONT_CARE for a target about to be fully overwritten is the
+   * difference between the driver preserving its previous contents and
+   * discarding them; on a tiler that is the whole cost of the pass.
+   *
+   * @param {...object} attachments Colour attachments, then depth.
+   * @returns {*} Whatever the backend reports.
+   */
+  RenderPassHint(...attachments)
+  {
+    return this.#requireAL("RenderPassHint").RenderPassHint(...attachments);
+  }
+
+  /**
+   * The projection with its depth range reversed.
+   *
+   * Carbon `Tr2Renderer::GetReversedDepthProjectionTransform`
+   * (`Tr2Renderer.cpp:477-483`): the projection with `_33` negated and offset
+   * by one, and `_43` negated. It lives here because this runtime keeps the
+   * projection here - the same relocation as the other Tr2Renderer statics.
+   *
+   * WHO NEEDS IT: a pass reconstructing view-space position from a depth
+   * buffer written under reverse-Z, which is what Carbon renders with. The
+   * denoiser takes it to weight neighbouring samples by depth.
+   *
+   * @param {Array<number>} [out] A mat4 to receive it.
+   * @returns {Array<number>|null} The reversed projection, or null if unset.
+   */
+  GetReversedDepthProjectionTransform(out = mat4.create())
+  {
+    if (!this.#projection) return null;
+
+    mat4.copy(out, this.#projection);
+    // Carbon indexes _33 and _43 in row-major; column-major here puts them at
+    // 10 and 14.
+    out[10] = -out[10] - 1;
+    out[14] = -out[14];
+    return out;
   }
 
   /**

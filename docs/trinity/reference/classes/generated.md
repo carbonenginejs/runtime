@@ -281,16 +281,6 @@ Describes one named subtexture's resource path, pixel rectangle, and owning atla
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2Denoiser -->
-## `Tr2Denoiser`
-
-Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2Denoiser.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2GpuProfiler -->
 ## `Tr2GpuProfiler`
 

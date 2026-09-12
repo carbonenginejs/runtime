@@ -1,5 +1,4 @@
 ﻿export * from "./Tr2AtlasTexture.js";
-export * from "./Tr2Denoiser.js";
 export * from "./Tr2GpuProfiler.js";
 export * from "./Tr2GpuStructuredBuffer.js";
 export * from "./Tr2GrannyPrimitiveSet.js";

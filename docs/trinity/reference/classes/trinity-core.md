@@ -5,6 +5,16 @@ Scope: `@carbonenginejs/runtime/trinity/core`, `@carbonenginejs/runtime/trinity/
 Audience: Engine authors and integrators
 Summary: Catalogs GPU-free constant data, shader and material facades, and device-presentation records an engine realizes from the Trinity graph.
 
+<!-- class:Tr2Denoiser -->
+## `Tr2Denoiser`
+
+Runs Carbon's four-pass separable spatial denoiser over a noisy single-channel buffer, preserving edges by weighting neighbouring samples on depth, normal and plane agreement.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2Denoiser.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:RawData -->
 ## `RawData`
 

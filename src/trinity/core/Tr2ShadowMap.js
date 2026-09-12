@@ -8,7 +8,7 @@ import { vec4 } from "#math/vec4";
 import { PixelFormat } from "#consts/render-context";
 import { Tr2GpuUsage } from "#consts/render-context";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
-import { Tr2Denoiser } from "../generated/trinityCore/Tr2Denoiser.js";
+import { Tr2Denoiser } from "./Tr2Denoiser.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { TriFrustumOrtho } from "./view/TriFrustumOrtho.js";
 

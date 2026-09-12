@@ -79,6 +79,9 @@ export class Tr2RenderContextALStub
   /** m_boundRenderTarget[MAX_RENDER_TARGET] */
   _boundRenderTargets = new Array(MAX_RENDER_TARGET).fill(null);
 
+  /** The slice each bound target was last asked for; Carbon threads this as `slice`. */
+  _boundRenderTargetSlices = new Array(MAX_RENDER_TARGET).fill(0);
+
   _depthStencil = null;
 
   // ONE STACK PER SLOT, as Carbon has (`m_stackRT[MAX_RENDER_TARGET]`). A single
@@ -517,8 +520,11 @@ export class Tr2RenderContextALStub
    * @param {object|null} renderTarget The target.
    * @returns {boolean} True.
    */
-  SetRenderTarget(slot, renderTarget)
+  SetRenderTarget(slot, renderTarget, slice = 0)
   {
+    // Recorded rather than ignored: the stub draws nothing, but a test
+    // asserting which slice a pass asked for needs the answer to exist.
+    this._boundRenderTargetSlices[Number(slot) >>> 0] = Number(slice) >>> 0;
     if (!Number.isInteger(slot) || slot < 0 || slot >= MAX_RENDER_TARGET)
     {
       fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
