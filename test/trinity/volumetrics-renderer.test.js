@@ -50,7 +50,6 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
 {
   const renderer = new core.Tr2VolumetricsRenderer();
   assert.equal(trinity.Tr2VolumetricsRenderer, core.Tr2VolumetricsRenderer);
-  assert.equal(trinity.CjsVolumetricsExecutor, core.CjsVolumetricsExecutor);
   assert.equal(trinity.ITr2FroxelFogSettings, eve.ITr2FroxelFogSettings);
   assert.equal("ITr2FroxelFogSettings" in generatedCore, false);
   assert.ok(new eve.EveChildFogVolume() instanceof eve.ITr2FroxelFogSettings);
@@ -99,18 +98,18 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
   assertArrayNear(out.Copy("FroxelPlanets", new Float32Array(4), 1), [ 0, 0, 0, -1 ], "empty planet 1");
 
   const carbonMethods = new Map([
-    [ "RenderVolumetrics", "adapted" ],
-    [ "GetEmptyVolumetricTexture", "adapted" ],
+    [ "RenderVolumetrics", "notImplemented" ],
+    [ "GetEmptyVolumetricTexture", "notImplemented" ],
     [ "UpdateFogSettings", "adapted" ],
     [ "HasFog", "implemented" ],
-    [ "RenderFog", "adapted" ],
-    [ "RenderFogIntoReflectionMap", "adapted" ],
-    [ "GetEmptyFogTexture", "adapted" ],
-    [ "UpdateFogEnvironmentMap", "adapted" ],
-    [ "UpdateVariableStore", "adapted" ],
+    [ "RenderFog", "notImplemented" ],
+    [ "RenderFogIntoReflectionMap", "notImplemented" ],
+    [ "GetEmptyFogTexture", "notImplemented" ],
+    [ "UpdateFogEnvironmentMap", "notImplemented" ],
+    [ "UpdateVariableStore", "implemented" ],
     [ "SetPlanets", "adapted" ],
     [ "SetSunAngle", "implemented" ],
-    [ "RenderShadows", "adapted" ],
+    [ "RenderShadows", "notImplemented" ],
     [ "PopulatePerFrameData", "adapted" ],
     [ "SetQuality", "implemented" ]
   ]);
@@ -258,47 +257,42 @@ test("quality presets and per-frame fog values preserve Carbon behavior", () =>
 });
 
 
-test("physical volumetric methods delegate only through a nominal executor", () =>
+test("the unported volumetric passes refuse rather than returning nothing", () =>
 {
+  // Carbon declares all of these ON Tr2VolumetricsRenderer
+  // (Tr2VolumetricsRenderer.h:66-113) and implements them there. The port had
+  // routed each through an invented executor on the render context, which
+  // nothing implemented. The froxel and fog passes are genuinely unported, so
+  // they now say so at their own site - a silent no-result would render a scene
+  // with no fog and look plausible.
   const renderer = new core.Tr2VolumetricsRenderer();
-  const base = new core.CjsVolumetricsExecutor();
+
   for (const method of [
     "RenderVolumetrics",
     "RenderFog",
     "RenderFogIntoReflectionMap",
     "UpdateFogEnvironmentMap",
-    "UpdateVariableStore",
     "RenderShadows"
   ])
   {
-    assert.throws(() => base[method](), /must be implemented by an engine/u, method);
-  }
-  assert.throws(() => base.GetEmptyVolumetricTexture(), /must be implemented by an engine/u);
-  assert.throws(() => base.GetEmptyFogTexture(), /must be implemented by an engine/u);
-
-  class TestExecutor extends core.CjsVolumetricsExecutor
-  {
-    RenderShadows(...args)
-    {
-      return args;
-    }
-
-    GetEmptyFogTexture(pool)
-    {
-      return pool;
-    }
+    assert.throws(() => renderer[method](), /unported/u, method);
   }
 
-  const context = new core.Tr2RenderContext();
-  assert.throws(() => context.SetVolumetricsExecutor({}), /CjsVolumetricsExecutor/u);
-  const executor = new TestExecutor();
-  context.SetVolumetricsExecutor(executor);
-  assert.equal(context.GetVolumetricsExecutor(), executor);
-  const args = renderer.RenderShadows("registry", "shadow", context);
-  assert.deepEqual(args, [ renderer, "registry", "shadow", context ]);
-  assert.equal(core.Tr2VolumetricsRenderer.GetEmptyFogTexture("pool", executor), "pool");
-  assert.throws(
-    () => core.Tr2VolumetricsRenderer.GetEmptyVolumetricTexture("pool", {}),
-    /CjsVolumetricsExecutor/u
-  );
+  // Both empty-texture helpers are static and take the pool, as Carbon's are.
+  assert.throws(() => core.Tr2VolumetricsRenderer.GetEmptyVolumetricTexture({}), /pool description/u);
+  assert.throws(() => core.Tr2VolumetricsRenderer.GetEmptyFogTexture({}), /pool description/u);
+});
+
+test("UpdateVariableStore publishes the Mie map, taking no arguments", () =>
+{
+  // Carbon's is one line and takes nothing; the port had grown a renderContext
+  // parameter that existed only to reach the executor.
+  const renderer = new core.Tr2VolumetricsRenderer();
+
+  assert.equal(renderer.UpdateVariableStore.length, 0);
+  renderer.UpdateVariableStore();
+
+  const variable = core.Tr2VariableStore.GlobalStore().GetVariable("EveSceneMieEnvironmentMap");
+
+  assert.ok(variable, "registers under the name effects sample it by");
 });

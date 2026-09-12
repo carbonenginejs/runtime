@@ -45,16 +45,6 @@ Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406....
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsVolumetricsExecutor -->
-## `CjsVolumetricsExecutor`
-
-Nominal backend contract for realizing Trinity's volumetric and froxel-fog intents.
-
-- Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/context/CjsVolumetricsExecutor.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
 <!-- class:ITr2Renderable -->
 ## `ITr2Renderable`
 

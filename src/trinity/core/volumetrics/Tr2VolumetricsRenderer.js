@@ -8,7 +8,6 @@ import { vec4 } from "#math/vec4";
 import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureReference } from "../../generated/trinityCore/Tr2TextureReference.js";
 import { AccumulatePriorityAttribute } from "../PriorityBlend.js";
-import { CjsVolumetricsExecutor } from "../context/CjsVolumetricsExecutor.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 
 
@@ -295,159 +294,168 @@ export class Tr2VolumetricsRenderer extends CjsModel
     return vec4.copy(out, this.#planets[index]);
   }
 
-  /** Delegates physical volumetric rendering to the context's nominal engine. */
+  /**
+   * Renders the froxel volume for every volumetric component in the registry.
+   *
+   * UNPORTED. Carbon's body is the bulk of a 1,150-line file and drives the
+   * froxel volume: it sizes the target from the scene depth and a scale factor,
+   * counts `ITr2VolumetricRenderable` components off the registry, then runs the
+   * compute and raymarch passes. None of that has a JS counterpart yet.
+   *
+   * It throws rather than returning nothing: a caller that silently got no
+   * volumetric texture renders a scene with no fog and looks plausible.
+   *
+   * @returns {object} Never; see above.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Physical resource/pass realization is delegated to the nominal context executor while Trinity retains the graph identity and CPU state.")
-  RenderVolumetrics(
-    registry,
-    frustum,
-    sceneDepth,
-    froxelFog,
-    sunDirection,
-    depthSlices,
-    raytracingEnabled,
-    gpuResourcePool,
-    renderContext
-  )
+  @impl.notImplemented
+  @impl.reason("Carbon's froxel compute and raymarch passes (Tr2VolumetricsRenderer.cpp:152-493) have no JS counterpart.")
+  RenderVolumetrics()
   {
-    return renderContext.GetVolumetricsExecutor().RenderVolumetrics(
-      this,
-      registry,
-      frustum,
-      sceneDepth,
-      froxelFog,
-      sunDirection,
-      depthSlices,
-      raytracingEnabled,
-      gpuResourcePool,
-      renderContext
+    throw new Error("Tr2VolumetricsRenderer.RenderVolumetrics: the froxel passes are unported.");
+  }
+
+  /**
+   * The neutral volumetric texture, used when nothing volumetric is in view.
+   *
+   * UNPORTED, AND THE BLOCKER IS THE POOL'S DESCRIPTION. Carbon borrows a 1x1
+   * black texture seeded with `Tr2SubresourceData` and described by a
+   * `Tr2BitmapDimensions` carrying a texture TYPE and a slice count - a 2D array
+   * of four slices here, a 3D texture for fog. Our pool takes only
+   * `{ width, height, format, gpuUsage }`, which can express neither, and its
+   * `initialize` callback has no way to supply initial subresource bytes.
+   *
+   * Carbon's signature is restored (static, taking the pool) so the shape is
+   * right when the pool grows a full description.
+   *
+   * @param {object} _gpuResourcePool The pool to borrow from.
+   * @returns {object} Never; see above.
+   */
+  @carbon.method
+  @impl.notImplemented
+  @impl.reason("Tr2GpuResourcePool's description carries no texture type or slice count, and no initial subresource data, so a 2D array of four slices cannot be asked for.")
+  static GetEmptyVolumetricTexture(_gpuResourcePool)
+  {
+    throw new Error(
+      "Tr2VolumetricsRenderer.GetEmptyVolumetricTexture: needs a pool description "
+      + "carrying texture type, slice count and initial data."
     );
   }
 
-  /** Delegates empty-volumetric-texture selection to an explicit nominal engine. */
+  /**
+   * Renders the fog volume.
+   *
+   * UNPORTED. Carbon's body is the bulk of a 1,150-line file and drives the
+   * froxel volume: it sizes the target from the scene depth and a scale factor,
+   * counts `ITr2VolumetricRenderable` components off the registry, then runs the
+   * compute and raymarch passes. None of that has a JS counterpart yet.
+   *
+   * It throws rather than returning nothing: a caller that silently got no
+   * volumetric texture renders a scene with no fog and looks plausible.
+   *
+   * @returns {object} Never; see above.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reaches a process-global backend; JavaScript receives the composed executor explicitly because the resource pool has no backend-dispatch role.")
-  static GetEmptyVolumetricTexture(gpuResourcePool, executor)
+  @impl.notImplemented
+  @impl.reason("Carbon's fog passes (Tr2VolumetricsRenderer.cpp:494-554) have no JS counterpart.")
+  RenderFog()
   {
-    if (!(executor instanceof CjsVolumetricsExecutor))
-    {
-      throw new TypeError("Tr2VolumetricsRenderer.GetEmptyVolumetricTexture requires a CjsVolumetricsExecutor.");
-    }
-    return executor.GetEmptyVolumetricTexture(gpuResourcePool);
+    throw new Error("Tr2VolumetricsRenderer.RenderFog: the fog passes are unported.");
   }
 
-  /** Delegates primary-view froxel fog rendering to the nominal engine. */
+  /**
+   * Renders the fog volume into a reflection map.
+   *
+   * UNPORTED. Carbon's body is the bulk of a 1,150-line file and drives the
+   * froxel volume: it sizes the target from the scene depth and a scale factor,
+   * counts `ITr2VolumetricRenderable` components off the registry, then runs the
+   * compute and raymarch passes. None of that has a JS counterpart yet.
+   *
+   * It throws rather than returning nothing: a caller that silently got no
+   * volumetric texture renders a scene with no fog and looks plausible.
+   *
+   * @returns {object} Never; see above.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Trinity keeps Carbon's call contract and CPU state while the context executor realizes GPU resources and passes.")
-  RenderFog(
-    renderContext,
-    gpuResourcePool,
-    width,
-    height,
-    cascadedShadowMap,
-    raytracingGeometry,
-    shadowQuality,
-    sunDirection,
-    sunColor,
-    origin,
-    originShift,
-    view,
-    projection,
-    viewLast,
-    projectionLast
-  )
+  @impl.notImplemented
+  @impl.reason("Carbon's reflection-map fog pass (Tr2VolumetricsRenderer.cpp:519-554) has no JS counterpart.")
+  RenderFogIntoReflectionMap()
   {
-    return renderContext.GetVolumetricsExecutor().RenderFog(
-      this,
-      renderContext,
-      gpuResourcePool,
-      width,
-      height,
-      cascadedShadowMap,
-      raytracingGeometry,
-      shadowQuality,
-      sunDirection,
-      sunColor,
-      origin,
-      originShift,
-      view,
-      projection,
-      viewLast,
-      projectionLast
+    throw new Error("Tr2VolumetricsRenderer.RenderFogIntoReflectionMap: the fog passes are unported.");
+  }
+
+  /**
+   * The neutral froxel-fog texture, used when there is no fog.
+   *
+   * UNPORTED, AND THE BLOCKER IS THE POOL'S DESCRIPTION. Carbon borrows a 1x1
+   * black texture seeded with `Tr2SubresourceData` and described by a
+   * `Tr2BitmapDimensions` carrying a texture TYPE and a slice count - a 2D array
+   * of four slices here, a 3D texture for fog. Our pool takes only
+   * `{ width, height, format, gpuUsage }`, which can express neither, and its
+   * `initialize` callback has no way to supply initial subresource bytes.
+   *
+   * Carbon's signature is restored (static, taking the pool) so the shape is
+   * right when the pool grows a full description.
+   *
+   * @param {object} _gpuResourcePool The pool to borrow from.
+   * @returns {object} Never; see above.
+   */
+  @carbon.method
+  @impl.notImplemented
+  @impl.reason("Tr2GpuResourcePool's description carries no texture type or initial subresource data, so a 3D texture cannot be asked for.")
+  static GetEmptyFogTexture(_gpuResourcePool)
+  {
+    throw new Error(
+      "Tr2VolumetricsRenderer.GetEmptyFogTexture: needs a pool description "
+      + "carrying texture type and initial data."
     );
   }
 
-  /** Delegates reflection-view fog rendering to the nominal engine. */
+  /**
+   * Rebuilds the Mie environment map.
+   *
+   * UNPORTED. Carbon's 86-line body renders each cube face through the fog
+   * effect (`Tr2VolumetricsRenderer.cpp`), which needs the same unported pass
+   * machinery as the fog methods above.
+   *
+   * @returns {void} Never returns; see above.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Trinity preserves the portable call order; the context executor realizes physical reflection fog resources.")
-  RenderFogIntoReflectionMap(
-    renderContext,
-    gpuResourcePool,
-    width,
-    height,
-    sunDirection,
-    sunColor,
-    origin,
-    view,
-    projection
-  )
+  @impl.notImplemented
+  @impl.reason("Needs the fog pass machinery, which is unported.")
+  UpdateFogEnvironmentMap()
   {
-    return renderContext.GetVolumetricsExecutor().RenderFogIntoReflectionMap(
-      this,
-      renderContext,
-      gpuResourcePool,
-      width,
-      height,
-      sunDirection,
-      sunColor,
-      origin,
-      view,
-      projection
-    );
+    throw new Error("Tr2VolumetricsRenderer.UpdateFogEnvironmentMap: the fog passes are unported.");
   }
 
-  /** Delegates empty-fog-texture selection to an explicit nominal engine. */
+  /**
+   * Publishes the Mie environment map under the name effects sample it by.
+   *
+   * Carbon takes no arguments here and registers on the global store
+   * (`Tr2VolumetricsRenderer.cpp`, one line). The port had grown a
+   * `renderContext` parameter that existed only to reach an executor.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon reaches a process-global backend; JavaScript receives the composed executor explicitly because the resource pool has no backend-dispatch role.")
-  static GetEmptyFogTexture(gpuResourcePool, executor)
+  @impl.implemented
+  UpdateVariableStore()
   {
-    if (!(executor instanceof CjsVolumetricsExecutor))
-    {
-      throw new TypeError("Tr2VolumetricsRenderer.GetEmptyFogTexture requires a CjsVolumetricsExecutor.");
-    }
-    return executor.GetEmptyFogTexture(gpuResourcePool);
+    Tr2VariableStore.GlobalStore().RegisterVariable("EveSceneMieEnvironmentMap", this.mieEnvironmentMap);
   }
 
-  /** Delegates Mie environment-map realization to the nominal engine. */
+  /**
+   * Renders volumetric shadows for the registry's components.
+   *
+   * UNPORTED. Carbon's 31-line body walks the volumetric components and issues a
+   * shadow pass per one, which needs the same unported pass machinery.
+   *
+   * @returns {void} Never returns; see above.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon updates GPU state directly; JavaScript delegates only that physical work through the active render context.")
-  UpdateFogEnvironmentMap(renderContext)
+  @impl.notImplemented
+  @impl.reason("Needs the volumetric pass machinery, which is unported.")
+  RenderShadows()
   {
-    return renderContext.GetVolumetricsExecutor().UpdateFogEnvironmentMap(this, renderContext);
-  }
-
-  /** Delegates publication of realized fog textures to the nominal engine. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon uses a process-global render backend; JavaScript threads the active context so the installed engine publishes its own physical textures.")
-  UpdateVariableStore(renderContext)
-  {
-    return renderContext.GetVolumetricsExecutor().UpdateVariableStore(this, renderContext);
-  }
-
-  /** Delegates volumetric-shadow realization to the nominal engine. */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Trinity retains registry and renderer state; the active context's engine owns the physical shadow pass.")
-  RenderShadows(registry, shadowMap, renderContext)
-  {
-    return renderContext.GetVolumetricsExecutor().RenderShadows(this, registry, shadowMap, renderContext);
+    throw new Error("Tr2VolumetricsRenderer.RenderShadows: the volumetric passes are unported.");
   }
 
   static Tr2VolumerticQuality = Tr2VolumerticQuality;

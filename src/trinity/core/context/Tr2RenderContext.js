@@ -38,7 +38,6 @@ import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { Tr2PerObjectData } from "../rawData/perObjectData/Tr2PerObjectData.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
-import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -60,7 +59,6 @@ export class Tr2RenderContext extends CjsModel
   #stepExecutor = DIRECT_STEP_EXECUTOR;
 
 
-  #volumetricsExecutor = null;
 
   /**
    * The abstraction-layer backend. THERE IS ALWAYS ONE.
@@ -185,30 +183,6 @@ export class Tr2RenderContext extends CjsModel
   }
 
 
-  /**
-   * Installs the nominal engine implementation for volumetric realization.
-   * Passing null removes it; all physical volumetric operations then fail on
-   * use instead of being skipped.
-   */
-  SetVolumetricsExecutor(executor)
-  {
-    if (executor !== null && !(executor instanceof CjsVolumetricsExecutor))
-    {
-      throw new TypeError("Tr2RenderContext.SetVolumetricsExecutor expects a CjsVolumetricsExecutor or null.");
-    }
-    this.#volumetricsExecutor = executor;
-    return this;
-  }
-
-  /** Returns the installed volumetrics executor, rejecting incomplete composition. */
-  GetVolumetricsExecutor()
-  {
-    if (!this.#volumetricsExecutor)
-    {
-      throw new Error("Tr2RenderContext has no CjsVolumetricsExecutor installed.");
-    }
-    return this.#volumetricsExecutor;
-  }
 
   /**
    * Delegates step setup to the installed nominal executor.

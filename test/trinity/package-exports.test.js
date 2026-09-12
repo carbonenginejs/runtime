@@ -43,7 +43,6 @@ test("published package resolves root, family, and deep generated exports", () =
         packageRoot.Tr2ShadowMap !== core.Tr2ShadowMap || "Tr2ShadowMap" in generatedCore ||
         packageRoot.Tr2VolumetricsRenderer !== core.Tr2VolumetricsRenderer ||
         "Tr2VolumetricsRenderer" in generatedCore ||
-        packageRoot.CjsVolumetricsExecutor !== core.CjsVolumetricsExecutor ||
         packageRoot.ITr2FroxelFogSettings !== eveFamily.ITr2FroxelFogSettings ||
         packageRoot.EveProjectBracket !== eveFamily.EveProjectBracket ||
         "EveProjectBracket" in eve ||

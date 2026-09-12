@@ -6,7 +6,6 @@ import {
   CjsTrinityBatchDispatcher,
   CjsTrinityBatchResolver,
   CjsTrinityStepExecutor,
-  CjsVolumetricsExecutor,
   ITriRenderBatchAccumulator,
   Tr2Transform,
   Tr2RenderContext
@@ -91,7 +90,6 @@ test("required Trinity root methods carry abstract implementation metadata", () 
     [ CjsTrinityBatchResolver, [ "ResolveMaterial", "ResolveGeometry", "ResolveBindings" ] ],
     [ CjsTrinityBatchDispatcher, [ "PrepareBatchMap", "EncodeBatchType", "DestroyBatchMap" ] ],
     [ CjsTrinityStepExecutor, [ "BeginStep", "ExecuteStep", "EndStep", "BeginScene", "EndScene", "BeginBatch", "EndBatch" ] ],
-    [ CjsVolumetricsExecutor, [ "RenderVolumetrics", "GetEmptyVolumetricTexture", "RenderFog", "RenderFogIntoReflectionMap", "GetEmptyFogTexture", "UpdateFogEnvironmentMap", "UpdateVariableStore", "RenderShadows" ] ],
     [ ITriRenderBatchAccumulator, [ "Clear", "Commit", "GetGdprBatches", "GetBatches", "Finalize", "GetBatchCount", "IsChainedByEffect", "TransferFrom" ] ],
     [ TriRenderStep, [ "Execute" ] ],
     [ Tr2Transform, [ "GetPerObjectData" ] ],
