@@ -48,6 +48,9 @@ else
             if (type.kind !== "struct") continue;
             for (const declaration of classes.get(type.qualifiedName) ?? [])
             {
+                // Declaration aliases (`carbon:`/`modelledOn:`) name a donor but
+                // carry no AST node; there are no field initializers to compare.
+                if (!declaration.node) continue;
                 structs++;
                 const result = compareDefaults(type, declaration.node, cppConstants, jsConstants);
                 checked += result.checked.length;
