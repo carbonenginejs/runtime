@@ -21,7 +21,7 @@ WebGPU behind Carbon's abstraction layer: holds the bound geometry and program s
 Owns the encoder lifetime for one frame, opening a render pass lazily on the work that needs one and folding the declared pass hint into its attachments.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/workQueue.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuWorkQueue.js`
 - Visibility: Internal
 - Kind: Carbon
 
@@ -131,7 +131,7 @@ Immutable WebGPU-facing sampler binding descriptor.
 Per-render-pass record of bound pipeline and buffers, so a grouped run's later batches skip redundant sets.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/batchGroups.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuEncodeState.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -141,7 +141,7 @@ Per-render-pass record of bound pipeline and buffers, so a grouped run's later b
 Generation-bound cache of asynchronously built pipeline objects, keyed exactly rather than by hash.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/pipelineCache.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuPipelineCache.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -151,7 +151,7 @@ Generation-bound cache of asynchronously built pipeline objects, keyed exactly r
 Owns the presentation surface, depth and multisample attachments, pass descriptors, viewport and scissor.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/renderTarget.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuRenderTarget.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -161,7 +161,7 @@ Owns the presentation surface, depth and multisample attachments, pass descripto
 Engine-side adapter for canonical Trinity render batches.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/trinityBatchDispatcher.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuTrinityBatchDispatcher.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -171,7 +171,7 @@ Engine-side adapter for canonical Trinity render batches.
 Internal encoder for caller-owned WebGPU pass plans over prepared Trinity batch maps.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/trinityPassEncoder.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuTrinityPassEncoder.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -181,7 +181,7 @@ Internal encoder for caller-owned WebGPU pass plans over prepared Trinity batch 
 Resolves a Trinity batch to a WebGPU pipeline, device geometry and the bindings the pipeline declares.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/trinityBatchResolver.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuTrinityBatchResolver.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -191,7 +191,7 @@ Resolves a Trinity batch to a WebGPU pipeline, device geometry and the bindings 
 Realizes an authored texture path into a device texture, once per resource.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/textureSource.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuTextureSource.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -201,7 +201,7 @@ Realizes an authored texture path into a device texture, once per resource.
 Creates and shares device samplers, keyed on authored sampler state rather than on a binding name.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/samplerSource.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuSamplerSource.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -211,7 +211,7 @@ Creates and shares device samplers, keyed on authored sampler state rather than 
 Supplies the packed per-frame constant bytes for a frame slot, which the scene owns rather than the batch.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/perFrameSource.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuPerFrameSource.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -261,7 +261,7 @@ A `Tr2ShaderProgramAL` holding validated stages and answering for their modules,
 DX12's `PSODescription` for WebGPU: the pipeline state the abstraction layer's setters describe incrementally, resolved to one cached pipeline by a canonical key.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/psoDescription.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuPsoDescription.js`
 - Visibility: Internal
 - Kind: Carbon
 
@@ -281,7 +281,7 @@ A `Tr2ConstantBufferAL` that owns a CPU shadow and an upload token, as Metal's d
 Carbon's `ConstantBufferAllocator`: the per-frame constant arena of 2 MiB pages, reset at the start of every frame, that gives each draw its own snapshot of every constant buffer bound for it.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/core/constantArena.js`
+- Source: `src/trinityal/webgpu/core/CjsWebgpuConstantArena.js`
 - Visibility: Internal
 - Kind: Carbon
 

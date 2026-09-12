@@ -268,7 +268,7 @@ backend. Source owners:
 [Trinity context](../../../src/trinity/core/context/Tr2RenderContext.js),
 [WebGPU AL context](../../../src/trinityal/webgpu/CjsWebgpuRenderContextAL.js),
 [resource sets](../../../src/trinityal/webgpu/CjsWebgpuResourceSetAL.js) and
-[work queue](../../../src/trinityal/webgpu/core/workQueue.js).
+[work queue](../../../src/trinityal/webgpu/core/CjsWebgpuWorkQueue.js).
 
 ## Attachments and the presentation surface
 

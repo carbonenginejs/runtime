@@ -4,7 +4,7 @@ import { CjsTrinityBatchResolver } from "#trinity/core/batch/CjsTrinityBatchReso
 import { ITriRenderBatchAccumulator } from "#trinity/core/batch/TriRenderBatch/ITriRenderBatchAccumulator";
 import { Tr2RenderBatch } from "#trinity/core/batch/TriRenderBatch/Tr2RenderBatch";
 import { TriRenderBatchMap } from "#trinity/core/batch/TriRenderBatchMap";
-import { CjsWebgpuEncodeState, DeriveBatchGroups } from "./batchGroups.js";
+import { CjsWebgpuEncodeState, DeriveBatchGroups } from "./CjsWebgpuEncodeState.js";
 // Re-exported so existing importers keep working while this file lives; the
 // table itself moved to topology.js, which is not going away.
 import { TOPOLOGIES } from "./topology.js";

@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuConstantBufferAL, CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { CjsWebgpuConstantArena, CONST_PAGE_SIZE } from "../../../npm/dist/trinityal/webgpu/core/constantArena.js";
+import { CjsWebgpuConstantArena, CONST_PAGE_SIZE } from "../../../npm/dist/trinityal/webgpu/core/CjsWebgpuConstantArena.js";
 import { ALResult, Tr2ConstantUsageAL } from "../../../npm/dist/trinityal/index.js";
 
 // Carbon's constant buffer is a CPU shadow and a token; Lock invalidates the

@@ -18,16 +18,8 @@
     ],
     "src/resource/format/CjsFormatError.js": [
       "CjsFormatReadError",
+      "CjsFormatRangeError",
       "CjsFormatWriteError"
-    ],
-    "src/resource/formats/bnk/core/eventAction.js": [
-      "ActionCursor"
-    ],
-    "src/resource/formats/bnk/core/globalSettings.js": [
-      "GlobalSettingsCursor"
-    ],
-    "src/resource/formats/bnk/core/musicNodes.js": [
-      "MusicCursor"
     ],
     "src/resource/formats/bnk/core/nodeBase.js": [
       "WwiseCursor"
@@ -95,47 +87,12 @@
       "WebgpuReadError"
     ],
     "src/resource/formats/wem/core/bitStream.js": [
+      "WemBitstreamError",
       "BitReader",
       "OggPageWriter"
     ],
     "src/sof/layoutPlanner.js": [
       "SofLayoutRandom"
-    ],
-    "src/trinityal/webgpu/core/batchGroups.js": [
-      "CjsWebgpuEncodeState"
-    ],
-    "src/trinityal/webgpu/core/constantArena.js": [
-      "CjsWebgpuConstantArena"
-    ],
-    "src/trinityal/webgpu/core/perFrameSource.js": [
-      "CjsWebgpuPerFrameSource"
-    ],
-    "src/trinityal/webgpu/core/pipelineCache.js": [
-      "CjsWebgpuPipelineCache"
-    ],
-    "src/trinityal/webgpu/core/psoDescription.js": [
-      "CjsWebgpuPsoDescription"
-    ],
-    "src/trinityal/webgpu/core/renderTarget.js": [
-      "CjsWebgpuRenderTarget"
-    ],
-    "src/trinityal/webgpu/core/samplerSource.js": [
-      "CjsWebgpuSamplerSource"
-    ],
-    "src/trinityal/webgpu/core/textureSource.js": [
-      "CjsWebgpuTextureSource"
-    ],
-    "src/trinityal/webgpu/core/trinityBatchDispatcher.js": [
-      "CjsWebgpuTrinityBatchDispatcher"
-    ],
-    "src/trinityal/webgpu/core/trinityBatchResolver.js": [
-      "CjsWebgpuTrinityBatchResolver"
-    ],
-    "src/trinityal/webgpu/core/trinityPassEncoder.js": [
-      "CjsWebgpuTrinityPassEncoder"
-    ],
-    "src/trinityal/webgpu/core/workQueue.js": [
-      "CjsWebgpuWorkQueue"
     ]
   },
   "multipleClasses": {
@@ -185,6 +142,7 @@
     ],
     "src/resource/format/CjsFormatError.js": [
       "CjsFormatReadError",
+      "CjsFormatRangeError",
       "CjsFormatWriteError"
     ],
     "src/resource/format/CjsFormatStore.js": [
@@ -209,6 +167,7 @@
       "Codebook"
     ],
     "src/resource/formats/wem/core/bitStream.js": [
+      "WemBitstreamError",
       "BitReader",
       "OggPageWriter"
     ],

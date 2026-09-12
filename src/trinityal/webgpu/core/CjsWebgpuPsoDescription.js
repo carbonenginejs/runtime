@@ -41,7 +41,7 @@
 // overrides while doing it, and refuses a fill mode WebGPU cannot rasterize. A
 // second translator is the mistake this whole lane exists to undo.
 import { CjsSchema } from "#schema";
-import { RenderPipelineKey } from "./pipelineCache.js";
+import { RenderPipelineKey } from "./CjsWebgpuPipelineCache.js";
 import { TOPOLOGIES } from "./topology.js";
 
 

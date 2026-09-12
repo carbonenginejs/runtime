@@ -1,4 +1,4 @@
-import { CjsWebgpuTrinityBatchDispatcher } from "./trinityBatchDispatcher.js";
+import { CjsWebgpuTrinityBatchDispatcher } from "./CjsWebgpuTrinityBatchDispatcher.js";
 
 
 function fail(message)

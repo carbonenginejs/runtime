@@ -1,7 +1,7 @@
 import { CjsResource } from "#resource/CjsResource";
-import { CanonicalKey, CjsWebgpuPipelineCache, RenderPipelineKey } from "./core/pipelineCache.js";
+import { CanonicalKey, CjsWebgpuPipelineCache, RenderPipelineKey } from "./core/CjsWebgpuPipelineCache.js";
 import { AssertFormatFeature, PlanTextureUpload } from "./core/textureLayout.js";
-import { CjsWebgpuEncodeState } from "./core/batchGroups.js";
+import { CjsWebgpuEncodeState } from "./core/CjsWebgpuEncodeState.js";
 
 const PREPARED_PIPELINES = new WeakMap();
 const LIVE_PIPELINES = new WeakMap();

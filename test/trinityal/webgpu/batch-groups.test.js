@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CanShareBindings, CjsWebgpuEncodeState, DeriveBatchGroups } from "#trinityal/webgpu/core/batchGroups";
+import { CanShareBindings, CjsWebgpuEncodeState, DeriveBatchGroups } from "#trinityal/webgpu/core/CjsWebgpuEncodeState";
 
 function draw(overrides = {})
 {
