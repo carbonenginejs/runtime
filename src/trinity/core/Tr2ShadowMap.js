@@ -504,9 +504,13 @@ export class Tr2ShadowMap extends CjsModel
 
     const esm = renderContext.GetEffectStateManager();
 
-    // The depth stencil IS the shadow map, so the colour target is pushed empty.
+    // The depth stencil IS the shadow map, so the colour target is pushed EMPTY -
+    // Carbon passes a default-constructed Tr2TextureAL and comments it "empty
+    // texture" (`cpp:238`). Null is that argument here. Omitting it would only
+    // save the slot and leave the scene's colour target bound underneath the
+    // whole shadow pass, which is what this line used to do.
     esm.PushViewport();
-    esm.PushRenderTarget();
+    esm.PushRenderTarget(null);
     esm.PushDepthStencilBuffer(cascadedShadowDepth);
     esm.UpdateRenderTargetViewport(cascadedShadowDepth.Get().GetWidth(), cascadedShadowDepth.Get().GetHeight());
 

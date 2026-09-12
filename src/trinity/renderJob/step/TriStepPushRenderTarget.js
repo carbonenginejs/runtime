@@ -34,7 +34,15 @@ export class TriStepPushRenderTarget extends TriRenderStep
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    renderContext.GetEffectStateManager().PushRenderTarget(this.renderTarget, this.slot);
+    // CARBON BRANCHES BETWEEN TWO OVERLOADS HERE (`cpp:13-24`), and the
+    // difference is not cosmetic: with a target it binds one, without it calls
+    // the slot-only form that saves the slot and binds NOTHING. Passing a null
+    // target through would instead bind an empty texture and clear the slot,
+    // which is a third thing - the one Tr2ShadowMap actually wants.
+    const esm = renderContext.GetEffectStateManager();
+
+    if (this.renderTarget) esm.PushRenderTarget(this.renderTarget, this.slot);
+    else esm.PushRenderTarget(undefined, this.slot);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

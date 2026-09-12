@@ -345,13 +345,15 @@ test("pushing a target BINDS it, and popping restores the one beneath", () =>
 
 test("pushing with no target saves the bound one and changes nothing", () =>
 {
-  // Carbon's one-argument state-manager form, and the batch bracket's own use:
-  // CjsDirectTrinityStepExecutor.BeginBatch pushes null purely as a guard.
+  // Carbon's one-argument state-manager form: save the slot, bind nothing, and
+  // leave whatever was bound in place. That is `undefined` here - NULL is the
+  // other thing, Carbon's default-constructed Tr2TextureAL, which binds an
+  // empty texture and clears the slot.
   const context = StubContext();
   const main = StubTarget();
 
   context.GetEffectStateManager().SetRenderTarget(0, main);
-  context.GetEffectStateManager().PushRenderTarget(null, 0);
+  context.GetEffectStateManager().PushRenderTarget(undefined, 0);
 
   assert.equal(context.GetRenderTarget(0), main);
   assert.equal(context.GetStackSizeRT(), 1);
@@ -649,4 +651,25 @@ test("an attachment says nothing until it is told to", () =>
   assert.equal(colour.clearColor, 0);
   assert.equal(depth.load, Tr2LoadAction.DONT_CARE);
   assert.equal(depth.clearValue, 0);
+});
+
+test("an explicitly empty render target clears the slot, which is what a shadow pass needs", () =>
+{
+  // Carbon pushes a default-constructed Tr2TextureAL here and comments it
+  // "empty texture" (Tr2ShadowMap.cpp:238). It is a real argument that goes
+  // through SetRenderTarget and UNBINDS the slot, so the scene colour target
+  // does not stay bound underneath a depth-only pass. Null is that argument.
+  const context = StubContext();
+  const main = StubTarget();
+
+  context.GetEffectStateManager().SetRenderTarget(0, main);
+  context.GetEffectStateManager().PushRenderTarget(null, 0);
+
+  assert.equal(context.GetRenderTarget(0), null);
+  assert.equal(context.GetStackSizeRT(), 1);
+
+  // And the saved target comes back, so the pass is still bracketed.
+  context.GetEffectStateManager().PopRenderTarget(0);
+
+  assert.equal(context.GetRenderTarget(0), main);
 });

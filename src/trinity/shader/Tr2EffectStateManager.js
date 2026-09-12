@@ -846,11 +846,18 @@ export class Tr2EffectStateManager extends CjsModel
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
-  PushRenderTarget(renderTarget = null, slot = 0)
+  PushRenderTarget(renderTarget = undefined, slot = 0)
   {
     this.#renderContext.PushRenderTarget(slot);
 
-    if (renderTarget != null) this.SetRenderTarget(slot, renderTarget);
+    // UNDEFINED IS "SAVE ONLY"; NULL IS "SAVE AND UNBIND". Carbon draws that
+    // distinction with its two overloads plus a default-constructed
+    // Tr2TextureAL, which is a real argument that binds an EMPTY texture and so
+    // clears the slot (`Tr2ShadowMap.cpp:238`, commented "empty texture").
+    // Testing `!= null` instead made the unbind unreachable: a shadow pass asking
+    // for it silently kept the scene's colour target bound for the whole pass.
+    // PushDepthStencilBuffer below already uses this sentinel.
+    if (renderTarget !== undefined) this.SetRenderTarget(slot, renderTarget);
 
     return true;
   }
