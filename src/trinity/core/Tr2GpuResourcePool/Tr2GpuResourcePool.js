@@ -26,7 +26,7 @@
 // walks outward. That is how a scene-local pool shares the global one's
 // resources without owning them.
 
-import { Tr2BitmapDimensions, Tr2BufferALStub, Tr2TextureALStub } from "../../../trinityal/index.js";
+import { Tr2BitmapDimensions } from "../../../trinityal/index.js";
 import { GpuResourceHandle } from "./GpuResourceHandle.js";
 
 /** Throws a resource-pool error with the supplied diagnostic. */
@@ -108,7 +108,9 @@ export class Tr2GpuResourcePool
    * not.
    *
    * @param {string} name A debug name.
-   * @param {object} description `{ width, height, format, gpuUsage }`.
+   * @param {object} description A `Tr2BitmapDimensions` shape (`type`, `width`,
+   *   `height`, `depth`, `mipCount`, `format`) plus `gpuUsage`, `cpuUsage`,
+   *   `msaa` and `initialData`.
    * @returns {GpuResourceHandle} The borrowed texture.
    */
   GetTempTexture(name, description)
@@ -120,7 +122,7 @@ export class Tr2GpuResourcePool
    * Borrows a persistent texture, initializing it the first time only.
    *
    * @param {string} name A debug name.
-   * @param {object} description `{ width, height, format, gpuUsage }`.
+   * @param {object} description As `GetTempTexture`.
    * @param {Function} [initialize] Called once, with the new texture.
    * @returns {GpuResourceHandle} The texture.
    */
@@ -252,16 +254,20 @@ export class Tr2GpuResourcePool
   {
     if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
 
-    const texture = new Tr2TextureALStub();
     const { gpuUsage, cpuUsage, msaa, initialData, ...dimensions } = description;
 
-    texture.Create(
+    // THE CONTEXT IS THE FACTORY. This used to be `new Tr2TextureALStub()`,
+    // which named the backend at authoring time: every texture the pool handed
+    // out was a stub no matter which backend was bound, so a WebGPU pass would
+    // have been handed textures that reach no device and drawn nothing, with
+    // no error anywhere. Tr2Blitter's head comment names this exact defect.
+    //
+    // The dimensions spread carries type, depth and mipCount, so an array or a
+    // 3D texture is expressible here and always was.
+    return this.#renderContext.CreateTexture(
       new Tr2BitmapDimensions(dimensions),
-      { gpuUsage, cpuUsage, msaa, initialData },
-      this.#renderContext
+      { gpuUsage, cpuUsage, msaa, initialData }
     );
-
-    return texture;
   }
 
   /**
@@ -272,15 +278,12 @@ export class Tr2GpuResourcePool
   {
     if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
 
-    const buffer = new Tr2BufferALStub();
-
-    // THREE arguments. The context went into `initialData` here, leaving
-    // `renderContext` undefined, so the first line of Create that touched it
-    // threw a TypeError - which is why neither buffer accessor had ever run.
-    // The texture path two methods up passes all three correctly.
-    buffer.Create(description, null, this.#renderContext);
-
-    return buffer;
+    // Through the context for the same reason as the texture above. The
+    // previous form also passed the context as `initialData`, leaving
+    // renderContext undefined and throwing a TypeError on the first line of
+    // Create that touched it - which is why neither buffer accessor had ever
+    // run. Both faults go together.
+    return this.#renderContext.CreateBuffer(description, null);
   }
 
   /**

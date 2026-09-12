@@ -170,3 +170,36 @@ test("a persistent buffer is initialized once and kept", () =>
   assert.equal(initialized, 1);
   assert.equal(first.Get(), second.Get());
 });
+
+test("the pool creates through the bound backend rather than a named class", () =>
+{
+  // It used to do `new Tr2TextureALStub()` regardless of what was bound, so
+  // every texture it handed out was a stub whatever the backend - a WebGPU pass
+  // would have been given surfaces that reach no device, silently. Tr2Blitter
+  // carries a head comment about this exact trap.
+  const made = [];
+  const backend = {
+    IsValid: () => true,
+    CreateTexture: (desc, options) => { made.push([ desc, options ]); return { tag: "backend-texture", IsValid: () => true, Destroy() {} }; },
+    CreateBuffer: () => ({ tag: "backend-buffer", Destroy() {} })
+  };
+  const pool = new Tr2GpuResourcePool().SetRenderContext(backend);
+
+  assert.equal(pool.GetTempTexture("t", square()).Get().tag, "backend-texture");
+  assert.equal(made.length, 1);
+  // The usage half travels as options, not folded into the dimensions.
+  assert.equal(made[0][1].gpuUsage, Tr2GpuUsage.RENDER_TARGET);
+});
+
+test("a description can ask for an array, not just a flat 2D surface", () =>
+{
+  // Carbon has a GetTempTexture overload taking a whole Tr2BitmapDimensions
+  // (Tr2GpuResourcePool.h:89) precisely so a caller can ask for slices. Ours
+  // spreads the description into one, so depth and mipCount travel.
+  const pool = pooled();
+  const texture = pool.GetTempTexture("cascades", { ...square(512), depth: 4 }).Get();
+
+  assert.equal(texture.IsValid(), true);
+  assert.equal(texture.GetDepth(), 4);
+  assert.equal(texture.GetType(), TextureType.TEX_TYPE_2D);
+});
