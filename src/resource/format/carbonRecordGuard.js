@@ -1,7 +1,8 @@
 // One guard for the Carbon v15 description records.
 //
-// Ten reflection classes opened their `fromCarbonBinary` with the identical
-// four lines, differing only in the noun:
+// Nine call sites across eight reflection classes opened their
+// `fromCarbonBinary` with the identical four lines, differing only in the noun
+// (`Tr2EffectStageInput` has two, for its stage and stage-data records):
 //
 //     if (!isPlainObject(record))
 //     {

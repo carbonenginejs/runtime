@@ -120,8 +120,31 @@ Two of its rules are pairings rather than floors:
   the answer was wrong for four of the seven formats that write. They now
   declare their real input payloads.
 
+## Probe overrides: what a format should NOT restate
+
+A concrete format overrides `probeSupport` only to express a condition its
+declaration cannot. When a probe returns no `variants`, `normalizeSupportReport`
+already reports every declared output as supported if the input was recognised —
+so an override that hand-builds that same answer is a second, drifting copy of
+the declaration.
+
+Seven such overrides were removed in `207e0a57`. They were found by snapshotting
+the normalized `getSupport` report for all 35 formats across 8 input kinds, 280
+reports in all, removing every candidate override, and diffing. Of 18 removed,
+7 changed nothing and were deleted; the other 11 changed a report and stayed.
+**The snapshot alone was not sufficient** — the test suite then caught three more
+(`bnk`, `ogg`, `wem`) whose conditions synthetic inputs could not reach. If you
+repeat this exercise, run both.
+
+Eleven conditional overrides remain, and they still hand-build a 14-key report.
+The open proposal is a per-output `supports(metadata)` predicate on
+`defineOutputs`, which would put the condition beside the output it constrains
+instead of in a parallel table matched back by string through
+`findLegacyVariant`. That is a contract change and is NOT yet decided.
+
 ## Related documentation
 
+- [Shared format helpers](shared-format-helpers.md)
 - [Format subpaths](../formats/README.md)
 - [Resource lifecycle](resource-lifecycle.md)
 - [Browser worker execution](../reference/workers.md)

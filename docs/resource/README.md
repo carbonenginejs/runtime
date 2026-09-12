@@ -57,6 +57,10 @@ lifecycle, shader, format and container work.
 - [concepts/shader-resource-model.md](concepts/shader-resource-model.md): how
   `Tr2EffectRes`, `Tr2Shader` and `Tr2Effect` relate, verified against Carbon —
   one file, many permutations, many effects sharing them.
+- [concepts/shared-format-helpers.md](concepts/shared-format-helpers.md): the
+  helper modules shared across concrete formats, and the one case where
+  apparent duplication is deliberate — read before collapsing a repeated
+  format helper.
 - [concepts/writing-an-engine-adapter.md](concepts/writing-an-engine-adapter.md):
   the coupling rules and the reflection/topology seam for engine packages —
   read before writing a second engine.
