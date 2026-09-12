@@ -1,41 +1,47 @@
 // Source: trinity/trinityal/metal/MetalWorkQueue.h
 //
-// NOT A DELIBERATE DROP. THIS IS A GAP, AND IT IS WRITTEN DOWN HERE BECAUSE
-// NOTHING ELSE RECORDS IT.
+// DROPPED. Metal's work queue takes depth bias through SetDepthBias and needs a
+// record to hold the three floats together, because its API sets them together.
+// Nothing here needs that bundle: the values travel as authored render state
+// from end to end.
 //
-// Carbon's work queue takes depth bias as three floats through SetDepthBias,
-// and WebGPU accepts exactly those three on GPUDepthStencilState as depthBias,
-// depthBiasSlopeScale and depthBiasClamp. Our abstraction layer projects NONE of
-// them: at 2026-09-13 a search for depthBias, slopeScale or polygonOffset across
-// src/trinityal and src/trinity/core returns nothing at all, and
-// CjsWebgpuPsoDescription carries only a depth FORMAT.
+// WHERE THEY ACTUALLY LIVE, which is the point of writing this class down:
 //
-// WHY IT MATTERS: depth bias is the standard fix for shadow acne, and this
-// organization has already been bitten once by a bias that was being zeroed
-// before it reached the device. On the WebGPU backend it cannot reach the device
-// at all, because there is no path for it. Any shadow work on that backend needs
-// this before it needs anything else.
+//   RS_DEPTHBIAS (195) and RS_SLOPESCALEDEPTHBIAS (175) are Carbon's own render
+//   states (Tr2RenderContextEnum.h:309,328), ported in
+//   global/consts/renderContext/presentation.js - in consts precisely so a
+//   backend can reach the vocabulary without importing another backend's
+//   classes.
 //
-// Porting it means projecting the three values through
-// Tr2RenderStateSetup.GetWebgpuRecipe into the pipeline's depthStencil state,
-// the same route MetalBlendState's fields take.
+//   Tr2RenderStateSetup maps them to its depth.bias and depth.slopeScaledBias,
+//   and GetWebgpuRecipe projects all three onto the pipeline's depthStencil
+//   state as depthBias, depthBiasSlopeScale and depthBiasClamp. It also converts
+//   Carbon's FRACTIONAL bias into WebGPU's integer units using the depth
+//   format's UNORM bit count, and refuses formats it cannot convert for.
+//
+// depthBiasClamp is projected as 0 because Carbon's render-state vocabulary has
+// no clamp slot at all - Metal's struct carries one only because Metal's API
+// does. That is a faithful zero, not an unfinished one.
+//
+// WebGL has no equivalent projection yet. When it needs one it comes from the
+// same Tr2RenderStateSetup and the same consts, not from this struct.
 import { type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Carbon's three depth-bias floats; UNPORTED, and the WebGPU backend has no path for them at all. */
+/** Carbon's Metal depth-bias triple; dropped because the authored render states already carry these values through Tr2RenderStateSetup into the pipeline. */
 @type.define({ className: "MetalDepthBias", carbon: "MetalDepthBias", family: "trinityal" })
 export class MetalDepthBias extends CjsModel
 {
 
-  /** depthBias (float) -> WebGPU GPUDepthStencilState.depthBias */
+  /** depthBias (float) -> RS_DEPTHBIAS -> GPUDepthStencilState.depthBias */
   @type.float32
   depthBias = 0;
 
-  /** slopeScale (float) -> WebGPU GPUDepthStencilState.depthBiasSlopeScale */
+  /** slopeScale (float) -> RS_SLOPESCALEDEPTHBIAS -> depthBiasSlopeScale */
   @type.float32
   slopeScale = 0;
 
-  /** clamp (float) -> WebGPU GPUDepthStencilState.depthBiasClamp */
+  /** clamp (float) - Metal API only; Carbon has no render state for it. */
   @type.float32
   clamp = 0;
 

@@ -3,7 +3,7 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime/trinityal` classes under `src/trinityal/dropped`
 Audience: Backend authors, maintainers, and automated readers
-Summary: Provides one-sentence purpose descriptors for abstraction-layer donor classes that are written but deliberately not live, each carrying the reason, plus one that records an unported gap.
+Summary: Provides one-sentence purpose descriptors for abstraction-layer donor classes that are written but deliberately not live, each carrying the reason and, where the behaviour is ported under another name, where it went.
 
 Every class here comes from a backend Carbon compiles instead of ours. That is
 not on its own a reason to ignore one: `MetalWorkQueue` is the declared model
@@ -54,7 +54,7 @@ Retained-only reference shape mirroring Carbon's plain RGBA aggregate for Metal 
 <!-- class:MetalDepthBias -->
 ## `MetalDepthBias`
 
-Carbon's three depth-bias floats, which map one-to-one onto WebGPU's `depthBias`, `depthBiasSlopeScale` and `depthBiasClamp`; recorded as an UNPORTED GAP rather than a drop, because no path projects them and shadow work on that backend needs one.
+Retained-only reference shape mirroring Carbon's Metal depth-bias triple, superseded by the authored render states `RS_DEPTHBIAS` and `RS_SLOPESCALEDEPTHBIAS`, which `Tr2RenderStateSetup.GetWebgpuRecipe` already projects onto the pipeline's depth-stencil state.
 
 - Export: None
 - Source: `src/trinityal/dropped/MetalDepthBias.js`
