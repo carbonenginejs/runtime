@@ -14,15 +14,13 @@ export { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
 export { ErrSOFLogoSetTypeUnknown } from "./ErrSOFLogoSetTypeUnknown.js";
 export { EveSOFDataLogoSet } from "./EveSOFDataLogoSet.js";
 export { EveSOFDataMaterial } from "./EveSOFDataMaterial.js";
-export {
-  EveSOFDataParameter,
-  EveSOFDataParameterBool,
-  EveSOFDataParameterColor,
-  EveSOFDataParameterFloat,
-  EveSOFDataParameterInt,
-  EveSOFDataParameterVector2,
-  EveSOFDataParameterVector3
-} from "./EveSOFDataParameter.js";
+export { EveSOFDataParameter } from "./EveSOFDataParameter.js";
+export { EveSOFDataParameterBool } from "./EveSOFDataParameterBool.js";
+export { EveSOFDataParameterColor } from "./EveSOFDataParameterColor.js";
+export { EveSOFDataParameterFloat } from "./EveSOFDataParameterFloat.js";
+export { EveSOFDataParameterInt } from "./EveSOFDataParameterInt.js";
+export { EveSOFDataParameterVector2 } from "./EveSOFDataParameterVector2.js";
+export { EveSOFDataParameterVector3 } from "./EveSOFDataParameterVector3.js";
 export { EveSOFDataPointLightAttachment } from "./EveSOFDataPointLightAttachment.js";
 export { EveSOFDataSpotLightAttachment } from "./EveSOFDataSpotLightAttachment.js";
 export { EveSOFDataTexture } from "./EveSOFDataTexture.js";

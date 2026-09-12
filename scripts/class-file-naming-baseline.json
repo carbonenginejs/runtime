@@ -171,15 +171,6 @@
       "EveSOF",
       "SofDocumentBuilder"
     ],
-    "src/sof/shared/EveSOFDataParameter.js": [
-      "EveSOFDataParameter",
-      "EveSOFDataParameterBool",
-      "EveSOFDataParameterInt",
-      "EveSOFDataParameterFloat",
-      "EveSOFDataParameterVector2",
-      "EveSOFDataParameterVector3",
-      "EveSOFDataParameterColor"
-    ],
     "src/trinity/controllers/expression/CjsControllerExpressionProgram.js": [
       "CjsControllerExpressionProgram",
       "CjsControllerExpressionParser",

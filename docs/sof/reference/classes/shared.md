@@ -191,7 +191,7 @@ Stores a named vector parameter and supports assignment and composition; the typ
 Boolean shader parameter whose `GetValue()` broadcasts 1 or 0 to all four components; persists under the same `{name, value}` shape as the base parameter.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Source: `src/sof/shared/EveSOFDataParameterBool.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -201,7 +201,7 @@ Boolean shader parameter whose `GetValue()` broadcasts 1 or 0 to all four compon
 Integer shader parameter whose `GetValue()` broadcasts the value to all four components.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Source: `src/sof/shared/EveSOFDataParameterInt.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -211,7 +211,7 @@ Integer shader parameter whose `GetValue()` broadcasts the value to all four com
 Float shader parameter whose `GetValue()` broadcasts the value to all four components.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Source: `src/sof/shared/EveSOFDataParameterFloat.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -221,7 +221,7 @@ Float shader parameter whose `GetValue()` broadcasts the value to all four compo
 Two-component shader parameter whose `GetValue()` zero-pads z and w.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Source: `src/sof/shared/EveSOFDataParameterVector2.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -231,7 +231,7 @@ Two-component shader parameter whose `GetValue()` zero-pads z and w.
 Three-component shader parameter whose `GetValue()` zero-pads w with 0, not 1.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Source: `src/sof/shared/EveSOFDataParameterVector3.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -241,7 +241,7 @@ Three-component shader parameter whose `GetValue()` zero-pads w with 0, not 1.
 Color shader parameter whose `GetValue()` passes its four components through unchanged.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataParameter.js`
+- Source: `src/sof/shared/EveSOFDataParameterColor.js`
 - Visibility: Public
 - Kind: Carbon
 
