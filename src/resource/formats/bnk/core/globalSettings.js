@@ -2,6 +2,8 @@
 // the raw chunk entry and attaches this typed view only when the whole payload
 // is valid and consumed.
 
+import { WwiseCursor } from "./nodeBase.js";
+
 export const WWISE_GLOBAL_SETTINGS_VERSION = 150;
 
 const FILTER_BEHAVIORS = new Set([ 0, 1 ]);
@@ -35,7 +37,7 @@ export function parseGlobalSettings(
 
     try
     {
-        const cursor = new GlobalSettingsCursor(payload);
+        const cursor = new WwiseCursor(payload);
         const filterBehavior = ReadEnum(
             cursor.u16(),
             FILTER_BEHAVIORS,
@@ -66,14 +68,14 @@ export function parseGlobalSettings(
 
 function ReadStateGroups(cursor)
 {
-    const count = cursor.boundedCount(12);
+    const count = cursor.readBoundedCount(12);
     const groups = [];
 
     for (let index = 0; index < count; index++)
     {
         const id = cursor.u32();
         const defaultTransitionTimeMs = cursor.u32();
-        const transitionCount = cursor.boundedCount(12);
+        const transitionCount = cursor.readBoundedCount(12);
         const transitions = [];
 
         for (let transitionIndex = 0;
@@ -93,7 +95,7 @@ function ReadStateGroups(cursor)
 
 function ReadSwitchGroups(cursor)
 {
-    const count = cursor.boundedCount(13);
+    const count = cursor.readBoundedCount(13);
     const groups = [];
 
     for (let index = 0; index < count; index++)
@@ -105,7 +107,7 @@ function ReadSwitchGroups(cursor)
             SWITCH_CONTROL_TYPES,
             "switch control type",
         );
-        const pointCount = cursor.boundedCount(12);
+        const pointCount = cursor.readBoundedCount(12);
         const points = [];
 
         for (let pointIndex = 0; pointIndex < pointCount; pointIndex++)
@@ -127,7 +129,7 @@ function ReadSwitchGroups(cursor)
 
 function ReadRtpcParameters(cursor)
 {
-    const count = cursor.boundedCount(21);
+    const count = cursor.readBoundedCount(21);
     const parameters = [];
 
     for (let index = 0; index < count; index++)
@@ -154,7 +156,7 @@ function ReadRtpcParameters(cursor)
 
 function ReadAcousticTextures(cursor)
 {
-    const count = cursor.boundedCount(28);
+    const count = cursor.readBoundedCount(28);
     const textures = [];
 
     for (let index = 0; index < count; index++)
@@ -181,101 +183,3 @@ function ReadEnum(value, allowed, label)
     return value;
 }
 
-/** Bounds-aware little-endian cursor over one Wwise Global Settings payload. */
-class GlobalSettingsCursor
-{
-    /**
-     * Creates a cursor over the complete payload.
-     *
-     * @param {Uint8Array} bytes Global Settings payload bytes.
-     */
-    constructor(bytes)
-    {
-        this.bytes = bytes;
-        this.view = new DataView(
-            bytes.buffer,
-            bytes.byteOffset,
-            bytes.byteLength,
-        );
-        this.at = 0;
-    }
-
-    /** Gets the number of unread bytes. */
-    get remaining()
-    {
-        return this.bytes.byteLength - this.at;
-    }
-
-    /**
-     * Requires a bounded number of bytes to remain.
-     *
-     * @param {number} size Required byte count.
-     */
-    require(size)
-    {
-        if (!Number.isSafeInteger(size)
-            || size < 0
-            || this.at + size > this.bytes.byteLength)
-        {
-            throw new RangeError("Global Settings payload is truncated");
-        }
-    }
-
-    /**
-     * Reads a table count and validates its minimum encoded size.
-     *
-     * @param {number} minimumStride Minimum bytes required per record.
-     * @returns {number} Validated record count.
-     */
-    boundedCount(minimumStride)
-    {
-        const count = this.u32();
-
-        if (count > Math.floor(this.remaining / minimumStride))
-        {
-            throw new RangeError("Global Settings table count exceeds payload");
-        }
-        return count;
-    }
-
-    /** Reads an unsigned 8-bit integer. */
-    u8()
-    {
-        this.require(1);
-        return this.bytes[this.at++];
-    }
-
-    /** Reads a little-endian unsigned 16-bit integer. */
-    u16()
-    {
-        this.require(2);
-        const value = this.view.getUint16(this.at, true);
-
-        this.at += 2;
-        return value;
-    }
-
-    /** Reads a little-endian unsigned 32-bit integer. */
-    u32()
-    {
-        this.require(4);
-        const value = this.view.getUint32(this.at, true);
-
-        this.at += 4;
-        return value;
-    }
-
-    /** Reads a finite little-endian 32-bit floating-point value. */
-    finiteF32()
-    {
-        this.require(4);
-        const value = this.view.getFloat32(this.at, true);
-
-        this.at += 4;
-        if (!Number.isFinite(value))
-        {
-            throw new RangeError("Global Settings float must be finite");
-        }
-        return value;
-    }
-}

@@ -69,11 +69,6 @@ Reader for Audiokinetic Wwise soundbank (`.bnk`) containers that inspects the ba
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
-<!-- class:MusicCursor -->
-## `MusicCursor`
-
-Little-endian byte cursor over HIRC payload bytes used to decode Wwise interactive-music node payloads with exact-end validation.
-
 - Export: `None`
 - Source: `src/resource/formats/bnk/core/musicNodes.js`
 - Visibility: Internal
@@ -82,27 +77,28 @@ Little-endian byte cursor over HIRC payload bytes used to decode Wwise interacti
 <!-- class:WwiseCursor -->
 ## `WwiseCursor`
 
-Bounds-aware little-endian cursor used for exact Wwise v150 NodeBase, authored-SFX, and attenuation decoding.
+The single bounds-aware little-endian cursor for every exact Wwise v150 payload — NodeBase, authored SFX, attenuation, Event Action, Global Settings, and interactive music.
 
 - Export: `None`
 - Source: `src/resource/formats/bnk/core/nodeBase.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
-<!-- class:GlobalSettingsCursor -->
-## `GlobalSettingsCursor`
+<!-- class:WemBitstreamError -->
+## `WemBitstreamError`
 
-Bounds-aware little-endian cursor over one Wwise Global Settings payload.
+Error raised when a Wwise Vorbis bitstream runs out mid-read; carries the package truncation code.
+
+- Export: internal to `@carbonenginejs/runtime/resource/formats/wem`
+- Source: `src/resource/formats/wem/core/bitStream.js`
+- Visibility: Internal
+- Kind: Original CarbonEngineJS class
+
 
 - Export: `None`
 - Source: `src/resource/formats/bnk/core/globalSettings.js`
 - Visibility: Internal
 - Kind: Internal implementation class
-
-<!-- class:ActionCursor -->
-## `ActionCursor`
-
-Bounds-aware byte cursor used for exact Wwise v150 Event Action decoding.
 
 - Export: `None`
 - Source: `src/resource/formats/bnk/core/eventAction.js`

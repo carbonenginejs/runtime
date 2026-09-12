@@ -2,6 +2,8 @@
 // the raw payload; this module adds typed action data only when a recognized
 // layout consumes that payload exactly.
 
+import { WwiseCursor } from "./nodeBase.js";
+
 export const WWISE_EVENT_ACTION_VERSION = 150;
 
 const PROPERTY_NAMES = Object.freeze({
@@ -169,7 +171,7 @@ export function parseEventAction(
 
     try
     {
-        const cursor = new ActionCursor(payload);
+        const cursor = new WwiseCursor(payload);
         const actionType = cursor.u16();
         const actionName = ACTION_NAMES[actionType];
 
@@ -364,7 +366,7 @@ function HasExactTimingProperties(values)
 
 function ReadExceptions(cursor)
 {
-    const exceptionCount = cursor.varUint();
+    const exceptionCount = cursor.variable();
     const exceptions = [];
 
     if (exceptionCount > 65536)
@@ -525,112 +527,3 @@ function ActionScope(value)
     return "unknown";
 }
 
-/** Bounds-aware cursor over one Wwise Event Action payload. */
-class ActionCursor
-{
-    /**
-     * Creates a cursor at the start of an Event Action payload.
-     *
-     * @param {Uint8Array} bytes Event Action payload bytes.
-     */
-    constructor(bytes)
-    {
-        this.bytes = bytes;
-        this.view = new DataView(
-            bytes.buffer,
-            bytes.byteOffset,
-            bytes.byteLength,
-        );
-        this.at = 0;
-    }
-
-    /** Gets the number of unread payload bytes. */
-    get remaining()
-    {
-        return this.bytes.byteLength - this.at;
-    }
-
-    /**
-     * Verifies that a read fits within the payload.
-     *
-     * @param {number} size Number of bytes to read.
-     * @throws {RangeError} The payload is truncated.
-     */
-    require(size)
-    {
-        if (this.at + size > this.bytes.byteLength)
-        {
-            throw new RangeError("Event Action payload is truncated");
-        }
-    }
-
-    /** Reads an unsigned 8-bit integer. */
-    u8()
-    {
-        this.require(1);
-        return this.bytes[this.at++];
-    }
-
-    /** Reads a little-endian unsigned 16-bit integer. */
-    u16()
-    {
-        this.require(2);
-        const value = this.view.getUint16(this.at, true);
-
-        this.at += 2;
-        return value;
-    }
-
-    /** Reads a little-endian unsigned 32-bit integer. */
-    u32()
-    {
-        this.require(4);
-        const value = this.view.getUint32(this.at, true);
-
-        this.at += 4;
-        return value;
-    }
-
-    /** Reads a little-endian 32-bit floating-point number. */
-    f32()
-    {
-        this.require(4);
-        const value = this.view.getFloat32(this.at, true);
-
-        this.at += 4;
-        return value;
-    }
-
-    /** Reads a canonical Wwise variable-length unsigned integer. */
-    varUint()
-    {
-        let value = 0;
-
-        for (let count = 0; count < 5; count++)
-        {
-            const byte = this.u8();
-
-            if (count === 0 && byte === 0x80)
-            {
-                throw new RangeError(
-                    "Event Action exception count is non-canonical",
-                );
-            }
-            if (value > 0x01ffffff)
-            {
-                throw new RangeError(
-                    "Event Action exception count overflows u32",
-                );
-            }
-
-            value = value * 128 + (byte & 0x7f);
-
-            if ((byte & 0x80) === 0)
-            {
-                return value >>> 0;
-            }
-        }
-
-        throw new RangeError("Event Action exception count is truncated");
-    }
-}

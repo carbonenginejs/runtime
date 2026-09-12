@@ -155,6 +155,16 @@ Error raised when shared binary format bytes cannot be decoded safely.
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+<!-- class:CjsFormatRangeError -->
+## `CjsFormatRangeError`
+
+Error raised when a read would run past the end of its source, or resolve an out-of-range string-table offset.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsFormatError.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:CjsFormatWriteError -->
 ## `CjsFormatWriteError`
 
@@ -172,6 +182,16 @@ Little-endian cursor over resource bytes, with optional string-table arena resol
 
 - Export: `@carbonenginejs/runtime/resource/format`
 - Source: `src/resource/format/CjsByteReader.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsBitReader -->
+## `CjsBitReader`
+
+LSB-first bit cursor over a byte range, shared by the Wwise Vorbis, Ogg packet, FBX deflate, and BC7 block readers.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsBitReader.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
