@@ -1,3 +1,4 @@
+import { adler32 } from "#utils/checksum";
 import { asUint8Array } from "#utils/bytes";
 import {
     generateBiNormals,
@@ -75,7 +76,6 @@ const DEFLATE_LENGTH_BASE = Object.freeze([ 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15,
 const DEFLATE_LENGTH_EXTRA = Object.freeze([ 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0 ]);
 const DEFLATE_DISTANCE_BASE = Object.freeze([ 1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577 ]);
 const DEFLATE_DISTANCE_EXTRA = Object.freeze([ 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13 ]);
-const ADLER32_MOD = 65521;
 const TRIANGULATION_EPSILON = 1e-10;
 const IDENTITY_MATRIX4 = Object.freeze([
     1, 0, 0, 0,
@@ -220,7 +220,8 @@ export function normalizeEmit(emit, readerName)
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input Binary input.
  * @returns {Uint8Array} Byte view.
- *//**
+ */
+/**
  * Read FBX bytes with normalized values.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
@@ -1134,6 +1135,22 @@ function readUncompressedArray(bytes, offset, type, length, byteLength)
     return value;
 }
 
+// THE ONE HAND-ROLLED INFLATE IN THIS PACKAGE, AND WHY IT STAYS. Everywhere else
+// that meets a deflate stream uses the shared `decompressBytes` over the
+// platform's `DecompressionStream` — `formats/vta` and `formats/png` both do.
+// FBX cannot: `DecompressionStream` is asynchronous by specification and there is
+// no synchronous platform inflate, while a compressed FBX array is decoded INLINE
+// during a synchronous recursive node walk (`readBinaryArrayProperty` at :1037,
+// which calls this at :1063). Making this await would make the whole node walk
+// async and take `CjsFbxFormat.read` — the synchronous entry point — with it.
+//
+// So this is a platform constraint, not an oversight, and not a preference for
+// hand-rolled code. If a SECOND synchronous inflate is ever needed, this moves to
+// a shared home rather than being copied; one caller is not yet a shared module.
+//
+// Carbon offers no donor either way: `mesh` vendors ufbx
+// (`mesh/vendor/github.com/ufbx`), so Carbon's FBX decompression lives inside
+// third-party C rather than in code there is anything to port.
 function inflateZlib(source, expectedLength)
 {
     if (source.byteLength < 6)
@@ -1378,22 +1395,6 @@ function copyInflatedBytes(state, distance, length)
     }
 }
 
-function adler32(bytes)
-{
-    let
-        a = 1,
-        b = 0;
-
-    for (const byte of bytes)
-    {
-        a += byte;
-        b += a;
-        a %= ADLER32_MOD;
-        b %= ADLER32_MOD;
-    }
-
-    return (((b << 16) >>> 0) | a) >>> 0;
-}
 
 /**
  * Bit reader over a zlib/deflate stream used to inflate compressed FBX

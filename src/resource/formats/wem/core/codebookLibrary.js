@@ -79,25 +79,25 @@ export function rebuildCodebookById(library, id, writer)
  */
 export function rebuildCodebook(reader, size, writer)
 {
-    const dimensions = reader.readBits(4);
-    const entries = reader.readBits(14);
+    const dimensions = reader.ReadBits(4);
+    const entries = reader.ReadBits(14);
 
     writer.writeBits(0x564342, 24);
     writer.writeBits(dimensions, 16);
     writer.writeBits(entries, 24);
 
-    const ordered = reader.readBits(1);
+    const ordered = reader.ReadBits(1);
     writer.writeBits(ordered, 1);
     if (ordered)
     {
-        const initialLength = reader.readBits(5);
+        const initialLength = reader.ReadBits(5);
         writer.writeBits(initialLength, 5);
 
         let currentEntry = 0;
         while (currentEntry < entries)
         {
             const bits = ilog(entries - currentEntry);
-            const number = reader.readBits(bits);
+            const number = reader.ReadBits(bits);
             writer.writeBits(number, bits);
             currentEntry += number;
         }
@@ -105,8 +105,8 @@ export function rebuildCodebook(reader, size, writer)
     }
     else
     {
-        const codewordLengthLength = reader.readBits(3);
-        const sparse = reader.readBits(1);
+        const codewordLengthLength = reader.ReadBits(3);
+        const sparse = reader.ReadBits(1);
         if (codewordLengthLength === 0 || codewordLengthLength > 5)
         {
             throw parseError("nonsense codeword length");
@@ -118,26 +118,26 @@ export function rebuildCodebook(reader, size, writer)
             let present = true;
             if (sparse)
             {
-                const presentBit = reader.readBits(1);
+                const presentBit = reader.ReadBits(1);
                 writer.writeBits(presentBit, 1);
                 present = presentBit !== 0;
             }
             if (present)
             {
-                const codewordLength = reader.readBits(codewordLengthLength);
+                const codewordLength = reader.ReadBits(codewordLengthLength);
                 writer.writeBits(codewordLength, 5);
             }
         }
     }
 
-    const lookupType = reader.readBits(1);
+    const lookupType = reader.ReadBits(1);
     writer.writeBits(lookupType, 4);
     if (lookupType === 1)
     {
-        const min = reader.readBits(32);
-        const max = reader.readBits(32);
-        const valueLength = reader.readBits(4);
-        const sequenceFlag = reader.readBits(1);
+        const min = reader.ReadBits(32);
+        const max = reader.ReadBits(32);
+        const valueLength = reader.ReadBits(4);
+        const sequenceFlag = reader.ReadBits(1);
         writer.writeBits(min, 32);
         writer.writeBits(max, 32);
         writer.writeBits(valueLength, 4);
@@ -146,7 +146,7 @@ export function rebuildCodebook(reader, size, writer)
         const quantvals = bookMaptype1Quantvals(entries, dimensions);
         for (let i = 0; i < quantvals; i++)
         {
-            writer.writeBits(reader.readBits(valueLength + 1), valueLength + 1);
+            writer.writeBits(reader.ReadBits(valueLength + 1), valueLength + 1);
         }
     }
     else if (lookupType !== 0)

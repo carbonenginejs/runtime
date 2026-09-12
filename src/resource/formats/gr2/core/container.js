@@ -1,3 +1,4 @@
+import { crc32 } from "#utils/checksum";
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import { CjsFormatWriteError } from "../../../format/CjsFormatError.js";
 import { encodeBitKnit2Raw } from "./bitknit2.js";
@@ -29,19 +30,6 @@ function bytesWith(size, write)
     return bytes;
 }
 
-function crc32(bytes, start = 0)
-{
-    let crc = 0xffffffff;
-    for (let index = start; index < bytes.length; index++)
-    {
-        crc ^= bytes[index];
-        for (let bit = 0; bit < 8; bit++)
-        {
-            crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
-        }
-    }
-    return (crc ^ 0xffffffff) >>> 0;
-}
 
 function primitiveSize(type)
 {

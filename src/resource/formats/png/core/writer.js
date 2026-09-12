@@ -1,3 +1,5 @@
+import { adler32, crc32 } from "#utils/checksum";
+
 /**
  * PNG encoding, from the normalized RGBA payload every image format here
  * decodes TO.
@@ -24,51 +26,9 @@
 const SIGNATURE = [ 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a ];
 
 /** CRC-32, built once. PNG tags every chunk with one and decoders check it. */
-const CRC_TABLE = (() =>
-{
-    const table = new Uint32Array(256);
 
-    for (let index = 0; index < 256; index++)
-    {
-        let value = index;
-
-        for (let bit = 0; bit < 8; bit++)
-        {
-            value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
-        }
-
-        table[index] = value >>> 0;
-    }
-
-    return table;
-})();
-
-function crc32(bytes)
-{
-    let crc = 0xffffffff;
-
-    for (let index = 0; index < bytes.length; index++)
-    {
-        crc = CRC_TABLE[(crc ^ bytes[index]) & 0xff] ^ (crc >>> 8);
-    }
-
-    return (crc ^ 0xffffffff) >>> 0;
-}
 
 /** Adler-32 over the uncompressed data, which the zlib wrapper ends with. */
-function adler32(bytes)
-{
-    let a = 1;
-    let b = 0;
-
-    for (let index = 0; index < bytes.length; index++)
-    {
-        a = (a + bytes[index]) % 65521;
-        b = (b + a) % 65521;
-    }
-
-    return ((b << 16) | a) >>> 0;
-}
 
 function chunk(type, payload)
 {

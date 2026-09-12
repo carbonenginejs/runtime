@@ -180,10 +180,10 @@ test("bit reader and ogg writer round-trip LSB-first values", () =>
 
     const payloadStart = 27 + bytes[26];
     const reader = new BitReader(bytes, payloadStart);
-    assert.equal(reader.readBits(8), 0x2a);
-    assert.equal(reader.readBits(3), 5);
-    assert.equal(reader.readBits(16), 0x1234);
-    assert.equal(reader.readBits(1), 1);
+    assert.equal(reader.ReadBits(8), 0x2a);
+    assert.equal(reader.ReadBits(3), 5);
+    assert.equal(reader.ReadBits(16), 0x1234);
+    assert.equal(reader.ReadBits(1), 1);
     assert.equal(reader.totalBitsRead, 28);
 
     const stored = bytes[22] | (bytes[23] << 8) | (bytes[24] << 16) | (bytes[25] * 0x1000000);

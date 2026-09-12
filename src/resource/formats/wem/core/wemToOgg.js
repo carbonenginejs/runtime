@@ -222,13 +222,13 @@ function generateHeaders(bytes, layout, library, writer)
     if (setupHeader.granule !== 0) throw parseError("setup packet granule != 0");
     const reader = new BitReader(bytes, setupHeader.payloadOffset);
 
-    const codebookCountLess1 = reader.readBits(8);
+    const codebookCountLess1 = reader.ReadBits(8);
     const codebookCount = codebookCountLess1 + 1;
     writer.writeBits(codebookCountLess1, 8);
 
     for (let i = 0; i < codebookCount; i++)
     {
-        const codebookId = reader.readBits(10);
+        const codebookId = reader.ReadBits(10);
         rebuildCodebookById(library, codebookId, writer);
     }
 
@@ -237,21 +237,21 @@ function generateHeaders(bytes, layout, library, writer)
     writer.writeBits(0, 16);
 
     // floors
-    const floorCountLess1 = reader.readBits(6);
+    const floorCountLess1 = reader.ReadBits(6);
     const floorCount = floorCountLess1 + 1;
     writer.writeBits(floorCountLess1, 6);
     for (let i = 0; i < floorCount; i++)
     {
         writer.writeBits(1, 16);
 
-        const floor1Partitions = reader.readBits(5);
+        const floor1Partitions = reader.ReadBits(5);
         writer.writeBits(floor1Partitions, 5);
 
         const partitionClassList = new Array(floor1Partitions);
         let maximumClass = 0;
         for (let j = 0; j < floor1Partitions; j++)
         {
-            const partitionClass = reader.readBits(4);
+            const partitionClass = reader.ReadBits(4);
             writer.writeBits(partitionClass, 4);
             partitionClassList[j] = partitionClass;
             if (partitionClass > maximumClass) maximumClass = partitionClass;
@@ -260,23 +260,23 @@ function generateHeaders(bytes, layout, library, writer)
         const classDimensionsList = new Array(maximumClass + 1);
         for (let j = 0; j <= maximumClass; j++)
         {
-            const classDimensionsLess1 = reader.readBits(3);
+            const classDimensionsLess1 = reader.ReadBits(3);
             writer.writeBits(classDimensionsLess1, 3);
             classDimensionsList[j] = classDimensionsLess1 + 1;
 
-            const classSubclasses = reader.readBits(2);
+            const classSubclasses = reader.ReadBits(2);
             writer.writeBits(classSubclasses, 2);
 
             if (classSubclasses !== 0)
             {
-                const masterbook = reader.readBits(8);
+                const masterbook = reader.ReadBits(8);
                 writer.writeBits(masterbook, 8);
                 if (masterbook >= codebookCount) throw parseError("invalid floor1 masterbook");
             }
 
             for (let k = 0; k < (1 << classSubclasses); k++)
             {
-                const subclassBookPlus1 = reader.readBits(8);
+                const subclassBookPlus1 = reader.ReadBits(8);
                 writer.writeBits(subclassBookPlus1, 8);
                 if (subclassBookPlus1 - 1 >= 0 && subclassBookPlus1 - 1 >= codebookCount)
                 {
@@ -285,34 +285,34 @@ function generateHeaders(bytes, layout, library, writer)
             }
         }
 
-        writer.writeBits(reader.readBits(2), 2);
-        const rangebits = reader.readBits(4);
+        writer.writeBits(reader.ReadBits(2), 2);
+        const rangebits = reader.ReadBits(4);
         writer.writeBits(rangebits, 4);
 
         for (let j = 0; j < floor1Partitions; j++)
         {
             for (let k = 0; k < classDimensionsList[partitionClassList[j]]; k++)
             {
-                writer.writeBits(reader.readBits(rangebits), rangebits);
+                writer.writeBits(reader.ReadBits(rangebits), rangebits);
             }
         }
     }
 
     // residues
-    const residueCountLess1 = reader.readBits(6);
+    const residueCountLess1 = reader.ReadBits(6);
     const residueCount = residueCountLess1 + 1;
     writer.writeBits(residueCountLess1, 6);
     for (let i = 0; i < residueCount; i++)
     {
-        const residueType = reader.readBits(2);
+        const residueType = reader.ReadBits(2);
         writer.writeBits(residueType, 16);
         if (residueType > 2) throw parseError("invalid residue type");
 
-        const residueBegin = reader.readBits(24);
-        const residueEnd = reader.readBits(24);
-        const residuePartitionSizeLess1 = reader.readBits(24);
-        const residueClassificationsLess1 = reader.readBits(6);
-        const residueClassbook = reader.readBits(8);
+        const residueBegin = reader.ReadBits(24);
+        const residueEnd = reader.ReadBits(24);
+        const residuePartitionSizeLess1 = reader.ReadBits(24);
+        const residueClassificationsLess1 = reader.ReadBits(6);
+        const residueClassbook = reader.ReadBits(8);
         const residueClassifications = residueClassificationsLess1 + 1;
         writer.writeBits(residueBegin, 24);
         writer.writeBits(residueEnd, 24);
@@ -324,14 +324,14 @@ function generateHeaders(bytes, layout, library, writer)
         const residueCascade = new Array(residueClassifications);
         for (let j = 0; j < residueClassifications; j++)
         {
-            const lowBits = reader.readBits(3);
+            const lowBits = reader.ReadBits(3);
             writer.writeBits(lowBits, 3);
-            const bitflag = reader.readBits(1);
+            const bitflag = reader.ReadBits(1);
             writer.writeBits(bitflag, 1);
             let highBits = 0;
             if (bitflag)
             {
-                highBits = reader.readBits(5);
+                highBits = reader.ReadBits(5);
                 writer.writeBits(highBits, 5);
             }
             residueCascade[j] = highBits * 8 + lowBits;
@@ -343,7 +343,7 @@ function generateHeaders(bytes, layout, library, writer)
             {
                 if (residueCascade[j] & (1 << k))
                 {
-                    const residueBook = reader.readBits(8);
+                    const residueBook = reader.ReadBits(8);
                     writer.writeBits(residueBook, 8);
                     if (residueBook >= codebookCount) throw parseError("invalid residue book");
                 }
@@ -352,34 +352,34 @@ function generateHeaders(bytes, layout, library, writer)
     }
 
     // mappings
-    const mappingCountLess1 = reader.readBits(6);
+    const mappingCountLess1 = reader.ReadBits(6);
     const mappingCount = mappingCountLess1 + 1;
     writer.writeBits(mappingCountLess1, 6);
     for (let i = 0; i < mappingCount; i++)
     {
         writer.writeBits(0, 16);
 
-        const submapsFlag = reader.readBits(1);
+        const submapsFlag = reader.ReadBits(1);
         writer.writeBits(submapsFlag, 1);
         let submaps = 1;
         if (submapsFlag)
         {
-            const submapsLess1 = reader.readBits(4);
+            const submapsLess1 = reader.ReadBits(4);
             writer.writeBits(submapsLess1, 4);
             submaps = submapsLess1 + 1;
         }
 
-        const squarePolarFlag = reader.readBits(1);
+        const squarePolarFlag = reader.ReadBits(1);
         writer.writeBits(squarePolarFlag, 1);
         if (squarePolarFlag)
         {
-            const couplingStepsLess1 = reader.readBits(8);
+            const couplingStepsLess1 = reader.ReadBits(8);
             writer.writeBits(couplingStepsLess1, 8);
             const couplingBits = ilog(layout.channels - 1);
             for (let j = 0; j < couplingStepsLess1 + 1; j++)
             {
-                const magnitude = reader.readBits(couplingBits);
-                const angle = reader.readBits(couplingBits);
+                const magnitude = reader.ReadBits(couplingBits);
+                const angle = reader.ReadBits(couplingBits);
                 writer.writeBits(magnitude, couplingBits);
                 writer.writeBits(angle, couplingBits);
                 if (angle === magnitude || magnitude >= layout.channels || angle >= layout.channels)
@@ -389,7 +389,7 @@ function generateHeaders(bytes, layout, library, writer)
             }
         }
 
-        const mappingReserved = reader.readBits(2);
+        const mappingReserved = reader.ReadBits(2);
         writer.writeBits(mappingReserved, 2);
         if (mappingReserved !== 0) throw parseError("mapping reserved field nonzero");
 
@@ -397,7 +397,7 @@ function generateHeaders(bytes, layout, library, writer)
         {
             for (let j = 0; j < layout.channels; j++)
             {
-                const mappingMux = reader.readBits(4);
+                const mappingMux = reader.ReadBits(4);
                 writer.writeBits(mappingMux, 4);
                 if (mappingMux >= submaps) throw parseError("mapping_mux >= submaps");
             }
@@ -405,18 +405,18 @@ function generateHeaders(bytes, layout, library, writer)
 
         for (let j = 0; j < submaps; j++)
         {
-            writer.writeBits(reader.readBits(8), 8);
-            const floorNumber = reader.readBits(8);
+            writer.writeBits(reader.ReadBits(8), 8);
+            const floorNumber = reader.ReadBits(8);
             writer.writeBits(floorNumber, 8);
             if (floorNumber >= floorCount) throw parseError("invalid floor mapping");
-            const residueNumber = reader.readBits(8);
+            const residueNumber = reader.ReadBits(8);
             writer.writeBits(residueNumber, 8);
             if (residueNumber >= residueCount) throw parseError("invalid residue mapping");
         }
     }
 
     // modes
-    const modeCountLess1 = reader.readBits(6);
+    const modeCountLess1 = reader.ReadBits(6);
     const modeCount = modeCountLess1 + 1;
     writer.writeBits(modeCountLess1, 6);
 
@@ -424,13 +424,13 @@ function generateHeaders(bytes, layout, library, writer)
     const modeBits = ilog(modeCount - 1);
     for (let i = 0; i < modeCount; i++)
     {
-        const blockFlag = reader.readBits(1);
+        const blockFlag = reader.ReadBits(1);
         writer.writeBits(blockFlag, 1);
         modeBlockflag[i] = blockFlag !== 0;
 
         writer.writeBits(0, 16);
         writer.writeBits(0, 16);
-        const mapping = reader.readBits(8);
+        const mapping = reader.ReadBits(8);
         writer.writeBits(mapping, 8);
         if (mapping >= mappingCount) throw parseError("invalid mode mapping");
     }
@@ -493,9 +493,9 @@ export function convertWemToOgg(bytes, options = {})
             // rebuild the packet type and window bits Wwise strips
             writer.writeBits(0, 1);
 
-            modeNumber = payloadReader.readBits(modeBits);
+            modeNumber = payloadReader.ReadBits(modeBits);
             writer.writeBits(modeNumber, modeBits);
-            const remainder = payloadReader.readBits(8 - modeBits);
+            const remainder = payloadReader.ReadBits(8 - modeBits);
 
             if (modeBlockflag[modeNumber])
             {
@@ -506,7 +506,7 @@ export function convertWemToOgg(bytes, options = {})
                     if (nextPacket.size > 0)
                     {
                         const nextReader = new BitReader(bytes, nextPacket.payloadOffset);
-                        nextBlockflag = modeBlockflag[nextReader.readBits(modeBits)];
+                        nextBlockflag = modeBlockflag[nextReader.ReadBits(modeBits)];
                     }
                 }
                 writer.writeBits(prevBlockflag ? 1 : 0, 1);
@@ -523,8 +523,8 @@ export function convertWemToOgg(bytes, options = {})
         else
         {
             // standard packet: copy verbatim, peek the mode for granule math
-            const packetType = payloadReader.readBits(1);
-            modeNumber = payloadReader.readBits(modeBits);
+            const packetType = payloadReader.ReadBits(1);
+            modeNumber = payloadReader.ReadBits(modeBits);
             if (packetType !== 0) throw parseError("audio packet is not type 0");
 
             for (let i = 0; i < packet.size; i++)

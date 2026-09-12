@@ -1,6 +1,9 @@
 {
   "audio/src/AudManager.h#MonitoredParameterInfo": "No exact live class declaration for struct MonitoredParameterInfo (audio/src/AudManager.h:49); review missing port or explicit JS equivalent.", 
   "audio/src/AudManager.h#SoundBankInfo": "No exact live class declaration for struct SoundBankInfo (audio/src/AudManager.h:41); review missing port or explicit JS equivalent.", 
+  "blue/include/BitPacker.h#BitPacker": "No exact live class declaration for class BitPacker (blue/include/BitPacker.h:109); review missing port or explicit JS equivalent.", 
+  "blue/include/BitPacker.h#BitPackerCore": "No exact live class declaration for class BitPackerCore (blue/include/BitPacker.h:37); review missing port or explicit JS equivalent.", 
+  "blue/include/BitPacker.h#BitPackerManaged": "No exact live class declaration for class BitPackerManaged (blue/include/BitPacker.h:118); review missing port or explicit JS equivalent.", 
   "blueexposure/include/IList.h#IListNotify": "No exact live class declaration for interface IListNotify (blueexposure/include/IList.h:57); review missing port or explicit JS equivalent.", 
   "blueexposure/include/IList.h#ListInfo": "No exact live class declaration for struct ListInfo (blueexposure/include/IList.h:29); review missing port or explicit JS equivalent.", 
   "imageio/include/BitmapDimensions.h#ImageIO::BitmapDimensions": "No exact live class declaration for struct ImageIO::BitmapDimensions (imageio/include/BitmapDimensions.h:19); review missing port or explicit JS equivalent.", 

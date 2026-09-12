@@ -1,5 +1,5 @@
 import { CjsReader } from "./CjsReader.js";
-import { CjsFormatReadError } from "./CjsFormatError.js";
+import { CjsFormatRangeError } from "./CjsFormatError.js";
 import { asUint8Array } from "#utils/bytes";
 
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
@@ -27,8 +27,13 @@ const textDecoder = new TextDecoder("utf-8", { fatal: false });
  */
 export class CjsByteReader extends CjsReader
 {
-    /** Error class raised for out-of-bounds and arena failures. */
-    static ReadError = CjsFormatReadError;
+    /**
+     * Error class raised for out-of-bounds and arena failures.
+     *
+     * A `RangeError` lineage, because that is what running off the end of a
+     * buffer is. See `CjsFormatRangeError`.
+     */
+    static ReadError = CjsFormatRangeError;
 
     /** Message used when a read would run past the configured end. */
     static endOfDataMessage = "Unexpected end of data";
@@ -280,7 +285,7 @@ export class CjsByteReader extends CjsReader
      */
     _error(message, details = {})
     {
-        const ReadError = this.constructor.ReadError ?? CjsFormatReadError;
+        const ReadError = this.constructor.ReadError ?? CjsFormatRangeError;
         return new ReadError(message, { source: this.source, ...details });
     }
 

@@ -2,6 +2,8 @@
 // partition constants below are the fixed tables from the Khronos Data Format
 // Specification, section 20.1. The decoder itself is CarbonEngineJS code.
 
+import { CjsBitReader } from "../../../format/CjsBitReader.js";
+
 const MODE = Object.freeze([
     { subsets: 3, partitionBits: 4, rotationBits: 0, selectionBits: 0, colorBits: 4, alphaBits: 0, endpointPBits: 1, sharedPBits: 0, indexBits: 3, secondaryIndexBits: 0 },
     { subsets: 2, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 6, alphaBits: 0, endpointPBits: 0, sharedPBits: 1, indexBits: 3, secondaryIndexBits: 0 },
@@ -256,28 +258,28 @@ function copyBlock(block, output, width, height, blockX, blockY)
  * LSB-first bit reader over a single 128-bit BC7 block bitstream for the
  * software BC7 decoder.
  */
-class Bc7BitReader
+/**
+ * The shared LSB-first cursor, bounded to one 128-bit block.
+ *
+ * A BC7 block carries no length of its own, so running past 128 bits means the
+ * mode tables and the block disagree. `RangeError` is kept as the error class
+ * because that is what this decoder has always thrown.
+ */
+class Bc7BitReader extends CjsBitReader
 {
-    /** Creates a Bc7BitReader over caller-provided DDS bytes and reader options. */
+    static ReadError = RangeError;
+
+    static endOfDataMessage = "BC7 block bitstream exceeds 128 bits";
+
+    /** Creates a cursor over one 128-bit BC7 block. */
     constructor(bytes)
     {
-        this.bytes = bytes;
-        this.offset = 0;
+        super(bytes, { endBit: 128 });
     }
 
-    /**
-     * Reads the requested number of bits from one BC7 block for the DDS binary
-     * reader.
-     */
+    /** Reads `bitCount` bits, LSB-first, from this block. */
     read(bitCount)
     {
-        let value = 0;
-        for (let bit = 0; bit < bitCount; bit++)
-        {
-            if (this.offset >= 128) throw new RangeError("BC7 block bitstream exceeds 128 bits");
-            value |= ((this.bytes[this.offset >>> 3] >>> (this.offset & 7)) & 1) << bit;
-            this.offset++;
-        }
-        return value;
+        return this.ReadBits(bitCount);
     }
 }

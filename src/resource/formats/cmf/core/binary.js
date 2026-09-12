@@ -1,3 +1,5 @@
+import { crc32 as sharedCrc32 } from "#utils/checksum";
+
 const textDecoder = new TextDecoder();
 
 /** Returns a byte view over the supplied binary input for the CMF binary reader. */
@@ -206,35 +208,21 @@ export function readBounds(reader, offset)
  * Computes a CRC-32 checksum over the requested byte range for the CMF binary
  * reader.
  */
+/**
+ * CMF's container checksum.
+ *
+ * Re-exported under CMF's own name because the CMF byte layout is what makes it
+ * meaningful here, and a test imports this spelling. The algorithm is the shared
+ * standard CRC-32.
+ *
+ * @param {Uint8Array} bytes Source bytes.
+ * @param {number} [start] First byte offset, inclusive.
+ * @param {number} [end] Last byte offset, exclusive.
+ * @returns {number} Unsigned 32-bit checksum.
+ */
 export function crc32(bytes, start = 0, end = bytes.byteLength)
 {
-    let crc = 0xffffffff;
-    const table = crc32Table();
-    for (let i = start; i < end; i++)
-    {
-        crc = (crc >>> 8) ^ table[(crc ^ bytes[i]) & 0xff];
-    }
-    return (crc ^ 0xffffffff) >>> 0;
+    return sharedCrc32(bytes, start, end);
 }
 
-let cachedCrc32Table = null;
 
-function crc32Table()
-{
-    if (cachedCrc32Table)
-    {
-        return cachedCrc32Table;
-    }
-
-    cachedCrc32Table = new Uint32Array(256);
-    for (let i = 0; i < 256; i++)
-    {
-        let c = i;
-        for (let k = 0; k < 8; k++)
-        {
-            c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
-        }
-        cachedCrc32Table[i] = c >>> 0;
-    }
-    return cachedCrc32Table;
-}

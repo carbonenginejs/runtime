@@ -1,6 +1,12 @@
 // BC6H is a little-endian 128-bit block format. MODE_LAYOUTS describes the
 // fixed endpoint bit assignments from the Khronos Data Format Specification,
 // section 20.2. The decoder and its numeric pipeline are CarbonEngineJS code.
+//
+// The bit reads are the shared LSB-first primitives. A block codec addresses
+// bits by absolute index inside the block rather than walking a stream, so it
+// uses the stateless pair and allocates no cursor per block.
+
+import { readBitAt, readBitsAt } from "../../../format/CjsBitReader.js";
 
 const MODE_LAYOUTS = Object.freeze([
     "M0 M1 GY4 BY4 BZ4 RW0 RW1 RW2 RW3 RW4 RW5 RW6 RW7 RW8 RW9 GW0 GW1 GW2 GW3 GW4 GW5 GW6 GW7 GW8 GW9 BW0 BW1 BW2 BW3 BW4 BW5 BW6 BW7 BW8 BW9 RX0 RX1 RX2 RX3 RX4 GZ4 GY0 GY1 GY2 GY3 GX0 GX1 GX2 GX3 GX4 BZ0 GZ0 GZ1 GZ2 GZ3 BX0 BX1 BX2 BX3 BX4 BZ1 BY0 BY1 BY2 BY3 RY0 RY1 RY2 RY3 RY4 BZ2 RZ0 RZ1 RZ2 RZ3 RZ4 BZ3 D0 D1 D2 D3 D4",
@@ -103,8 +109,8 @@ export function decodeBc6hBlock(block, signed = false)
 {
     if (block.byteLength < 16) throw new RangeError("BC6H block must contain 16 bytes");
 
-    const lowMode = readBits(block, 0, 2);
-    const modeCode = lowMode < 2 ? lowMode : readBits(block, 0, 5);
+    const lowMode = readBitsAt(block, 0, 2);
+    const modeCode = lowMode < 2 ? lowMode : readBitsAt(block, 0, 5);
     const modeIndex = MODE_BY_CODE[modeCode];
     if (modeIndex < 0) return opaqueBlackBlock();
 
@@ -116,7 +122,7 @@ export function decodeBc6hBlock(block, signed = false)
 
     for (let sourceBit = 0; sourceBit < headerBits; sourceBit++)
     {
-        if (!readBit(block, sourceBit)) continue;
+        if (!readBitAt(block, sourceBit)) continue;
         const target = descriptor[sourceBit];
         if (!target) continue;
         if (target.shape)
@@ -141,7 +147,7 @@ export function decodeBc6hBlock(block, signed = false)
     {
         const isAnchor = pixel === 0 || pixel === anchor;
         const indexBits = mode.indexBits - (isAnchor ? 1 : 0);
-        const colorIndex = readBits(block, sourceBit, indexBits);
+        const colorIndex = readBitsAt(block, sourceBit, indexBits);
         sourceBit += indexBits;
 
         const subset = mode.subsets === 2 ? ((partition >>> pixel) & 1) : 0;
@@ -235,18 +241,6 @@ function finishHalf(component, signed)
 function signExtend(value, bits)
 {
     return (value << (32 - bits)) >> (32 - bits);
-}
-
-function readBit(source, bit)
-{
-    return (source[bit >>> 3] >>> (bit & 7)) & 1;
-}
-
-function readBits(source, start, count)
-{
-    let value = 0;
-    for (let bit = 0; bit < count; bit++) value |= readBit(source, start + bit) << bit;
-    return value;
 }
 
 function halfToFloat(value)

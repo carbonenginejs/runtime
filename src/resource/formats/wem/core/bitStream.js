@@ -7,6 +7,9 @@
  * packet), matching the ww2ogg reference behavior.
  */
 
+import { CjsBitReader } from "../../../format/CjsBitReader.js";
+import { CjsFormatRangeError } from "../../../format/CjsFormatError.js";
+
 const OGG_HEADER_BYTES = 27;
 const OGG_MAX_SEGMENTS = 255;
 const OGG_SEGMENT_SIZE = 255;
@@ -48,15 +51,35 @@ export function oggChecksum(bytes, length)
 }
 
 /**
- * LSB-first bit reader over a byte range.
+ * Error raised when a Wwise Vorbis bitstream runs out mid-read.
+ *
+ * The `code` is the package-wide truncation code, which `CjsFormatReadError`
+ * does not itself carry.
  */
-export class BitReader
+class WemBitstreamError extends CjsFormatRangeError
 {
-    #bytes;
-    #position;
-    #bitBuffer = 0;
-    #bitsLeft = 0;
-    #totalBitsRead = 0;
+    /** Creates a truncation error with the cursor state that produced it. */
+    constructor(message, details = {})
+    {
+        super(message, details);
+        this.name = "WemBitstreamError";
+        this.code = "CJS_FORMAT_TRUNCATED";
+    }
+}
+
+/**
+ * LSB-first bit reader over a byte range.
+ *
+ * The bit cursor itself is shared (`CjsBitReader`); Vorbis is LSB-first, which
+ * is the shared convention. Only the error identity is Wwise's own: a truncated
+ * bitstream here is a truncated FILE, so it throws rather than reporting a
+ * recoverable end-of-packet the way the Ogg packet reader does.
+ */
+export class BitReader extends CjsBitReader
+{
+    static ReadError = WemBitstreamError;
+
+    static endOfDataMessage = "wem: bitstream out of bits";
 
     /**
      * Create a reader over `bytes` starting at `offset`.
@@ -66,59 +89,7 @@ export class BitReader
      */
     constructor(bytes, offset = 0)
     {
-        this.#bytes = bytes;
-        this.#position = offset;
-    }
-
-    /**
-     * Read a single bit.
-     *
-     * @returns {number} 0 or 1.
-     */
-    readBit()
-    {
-        if (this.#bitsLeft === 0)
-        {
-            if (this.#position >= this.#bytes.length)
-            {
-                const error = new Error("wem: bitstream out of bits");
-                error.code = "CJS_FORMAT_TRUNCATED";
-                throw error;
-            }
-            this.#bitBuffer = this.#bytes[this.#position++];
-            this.#bitsLeft = 8;
-        }
-        const bit = this.#bitBuffer & 1;
-        this.#bitBuffer >>= 1;
-        this.#bitsLeft--;
-        this.#totalBitsRead++;
-        return bit;
-    }
-
-    /**
-     * Read `count` bits as an unsigned integer (LSB-first).
-     *
-     * @param {number} count Bit count (0..32).
-     * @returns {number} Unsigned value.
-     */
-    readBits(count)
-    {
-        let value = 0;
-        for (let i = 0; i < count; i++)
-        {
-            if (this.readBit()) value |= (1 << i);
-        }
-        return value >>> 0;
-    }
-
-    /**
-     * Total bits consumed so far.
-     *
-     * @returns {number} Bit count.
-     */
-    get totalBitsRead()
-    {
-        return this.#totalBitsRead;
+        super(bytes, { offset, source: "wem" });
     }
 }
 

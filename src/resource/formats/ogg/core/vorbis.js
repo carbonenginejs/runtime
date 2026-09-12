@@ -1,3 +1,4 @@
+import { CjsBitReader } from "../../../format/CjsBitReader.js";
 import { imdct, vorbisWindowSlope } from "./imdct.js";
 
 /**
@@ -139,39 +140,29 @@ function lookup1Values(entries, dimensions)
  * LSB-first bit reader over one Vorbis packet; reading past the end sets
  * `eop` instead of throwing (end-of-packet is a defined decode condition).
  */
-class PacketReader
+class PacketReader extends CjsBitReader
 {
-    /** Creates a PacketReader over caller-provided Ogg bytes and reader options. */
+    /** True once a read has run past the end of the packet. */
+    eop = false;
+
+    /** Creates a PacketReader over caller-provided Ogg bytes. */
     constructor(bytes)
     {
-        this.bytes = bytes;
-        this.position = 0;
-        this.bitBuffer = 0;
-        this.bitsLeft = 0;
-        this.eop = false;
+        super(bytes, { source: "ogg" });
     }
 
-    /** Reads bits from the current Ogg binary reader. */
-    readBits(count)
+    /**
+     * End of packet is a DEFINED decode condition in Vorbis, not a truncated
+     * file: a packet legitimately runs out mid-read and the decoder must see
+     * that rather than unwinding. So this overrides the shared cursor's throw
+     * with the sentinel every caller here already tests for.
+     *
+     * @returns {number} -1, the end-of-packet sentinel.
+     */
+    Exhausted()
     {
-        let value = 0;
-        for (let i = 0; i < count; i++)
-        {
-            if (this.bitsLeft === 0)
-            {
-                if (this.position >= this.bytes.length)
-                {
-                    this.eop = true;
-                    return -1;
-                }
-                this.bitBuffer = this.bytes[this.position++];
-                this.bitsLeft = 8;
-            }
-            value |= (this.bitBuffer & 1) << i;
-            this.bitBuffer >>= 1;
-            this.bitsLeft--;
-        }
-        return value >>> 0;
+        this.eop = true;
+        return -1;
     }
 }
 
@@ -284,19 +275,17 @@ class Codebook
         // fast path: peek up to FAST_BITS without consuming
         let peek = 0;
         let peekBits = 0;
-        const savedPosition = reader.position;
-        const savedBuffer = reader.bitBuffer;
-        const savedLeft = reader.bitsLeft;
+        // One cursor position is the whole of the saved state now; the previous
+        // three-field save/restore was the refill buffer leaking into callers.
+        const savedPosition = reader.bitPosition;
         while (peekBits < FAST_BITS)
         {
-            const bit = reader.readBits(1);
+            const bit = reader.ReadBits(1);
             if (bit < 0) break;
             peek |= bit << peekBits;
             peekBits++;
         }
-        reader.position = savedPosition;
-        reader.bitBuffer = savedBuffer;
-        reader.bitsLeft = savedLeft;
+        reader.bitPosition = savedPosition;
         reader.eop = false;
 
         if (peekBits === FAST_BITS)
@@ -304,7 +293,7 @@ class Codebook
             const hit = this.fastTable[peek];
             if (hit >= 0)
             {
-                reader.readBits(hit & 63);
+                reader.ReadBits(hit & 63);
                 return hit >> 6;
             }
         }
@@ -314,7 +303,7 @@ class Codebook
             const hit = this.fastTable[peek];
             if (hit >= 0 && (hit & 63) <= peekBits)
             {
-                reader.readBits(hit & 63);
+                reader.ReadBits(hit & 63);
                 return hit >> 6;
             }
         }
@@ -323,7 +312,7 @@ class Codebook
         let node = 0;
         for (let i = 0; i < this.maxLength; i++)
         {
-            const bit = reader.readBits(1);
+            const bit = reader.ReadBits(1);
             if (bit < 0) return -1;
             const value = this.treeNodes[node * 2 + bit];
             if (value < 0) return -value - 1;
@@ -348,22 +337,22 @@ class Codebook
 
 function parseCodebook(reader)
 {
-    const sync = reader.readBits(24);
+    const sync = reader.ReadBits(24);
     if (sync !== 0x564342) throw decodeError("invalid codebook sync pattern");
 
     const book = new Codebook();
-    book.dimensions = reader.readBits(16);
-    book.entries = reader.readBits(24);
+    book.dimensions = reader.ReadBits(16);
+    book.entries = reader.ReadBits(24);
 
     const lengths = new Uint8Array(book.entries);
-    const ordered = reader.readBits(1);
+    const ordered = reader.ReadBits(1);
     if (ordered)
     {
         let currentEntry = 0;
-        let currentLength = reader.readBits(5) + 1;
+        let currentLength = reader.ReadBits(5) + 1;
         while (currentEntry < book.entries)
         {
-            const number = reader.readBits(ilog(book.entries - currentEntry));
+            const number = reader.ReadBits(ilog(book.entries - currentEntry));
             if (reader.eop) throw decodeError("codebook lengths truncated");
             for (let i = 0; i < number; i++) lengths[currentEntry + i] = currentLength;
             currentEntry += number;
@@ -373,25 +362,25 @@ function parseCodebook(reader)
     }
     else
     {
-        const sparse = reader.readBits(1);
+        const sparse = reader.ReadBits(1);
         for (let i = 0; i < book.entries; i++)
         {
-            const present = sparse ? reader.readBits(1) : 1;
-            lengths[i] = present ? reader.readBits(5) + 1 : NO_CODE;
+            const present = sparse ? reader.ReadBits(1) : 1;
+            lengths[i] = present ? reader.ReadBits(5) + 1 : NO_CODE;
         }
     }
     if (reader.eop) throw decodeError("codebook lengths truncated");
 
     book.buildHuffman(lengths);
 
-    book.lookupType = reader.readBits(4);
+    book.lookupType = reader.ReadBits(4);
     if (book.lookupType > 2) throw decodeError(`invalid codebook lookup type ${book.lookupType}`);
     if (book.lookupType > 0)
     {
-        const minimum = float32Unpack(reader.readBits(32));
-        const delta = float32Unpack(reader.readBits(32));
-        const valueBits = reader.readBits(4) + 1;
-        book.sequenceP = reader.readBits(1) === 1;
+        const minimum = float32Unpack(reader.ReadBits(32));
+        const delta = float32Unpack(reader.ReadBits(32));
+        const valueBits = reader.ReadBits(4) + 1;
+        book.sequenceP = reader.ReadBits(1) === 1;
         const count = book.lookupType === 1
             ? lookup1Values(book.entries, book.dimensions)
             : book.entries * book.dimensions;
@@ -399,7 +388,7 @@ function parseCodebook(reader)
         book.values = new Float32Array(count);
         for (let i = 0; i < count; i++)
         {
-            book.values[i] = minimum + reader.readBits(valueBits) * delta;
+            book.values[i] = minimum + reader.ReadBits(valueBits) * delta;
         }
         if (reader.eop) throw decodeError("codebook lookup values truncated");
     }
@@ -408,14 +397,14 @@ function parseCodebook(reader)
 
 function parseFloor(reader, codebooks)
 {
-    const type = reader.readBits(16);
+    const type = reader.ReadBits(16);
     if (type !== 1)
     {
         throw decodeError(`floor type ${type} is not supported (only floor 1)`);
     }
 
     const floor = {
-        partitions: reader.readBits(5),
+        partitions: reader.ReadBits(5),
         partitionClassList: [],
         classDimensions: [],
         classSubclasses: [],
@@ -429,31 +418,31 @@ function parseFloor(reader, codebooks)
     let maximumClass = -1;
     for (let i = 0; i < floor.partitions; i++)
     {
-        const partitionClass = reader.readBits(4);
+        const partitionClass = reader.ReadBits(4);
         floor.partitionClassList.push(partitionClass);
         if (partitionClass > maximumClass) maximumClass = partitionClass;
     }
     for (let i = 0; i <= maximumClass; i++)
     {
-        floor.classDimensions.push(reader.readBits(3) + 1);
-        const subclasses = reader.readBits(2);
+        floor.classDimensions.push(reader.ReadBits(3) + 1);
+        const subclasses = reader.ReadBits(2);
         floor.classSubclasses.push(subclasses);
-        floor.classMasterbooks.push(subclasses ? reader.readBits(8) : -1);
+        floor.classMasterbooks.push(subclasses ? reader.ReadBits(8) : -1);
         const books = [];
         for (let j = 0; j < (1 << subclasses); j++)
         {
-            books.push(reader.readBits(8) - 1);
+            books.push(reader.ReadBits(8) - 1);
         }
         floor.subclassBooks.push(books);
     }
-    floor.multiplier = reader.readBits(2) + 1;
-    floor.rangebits = reader.readBits(4);
+    floor.multiplier = reader.ReadBits(2) + 1;
+    floor.rangebits = reader.ReadBits(4);
     floor.xList = [ 0, 1 << floor.rangebits ];
     for (let i = 0; i < floor.partitions; i++)
     {
         for (let j = 0; j < floor.classDimensions[floor.partitionClassList[i]]; j++)
         {
-            floor.xList.push(reader.readBits(floor.rangebits));
+            floor.xList.push(reader.ReadBits(floor.rangebits));
         }
     }
     if (reader.eop) throw decodeError("floor configuration truncated");
@@ -489,15 +478,15 @@ function parseFloor(reader, codebooks)
 
 function parseResidue(reader, codebooks)
 {
-    const type = reader.readBits(16);
+    const type = reader.ReadBits(16);
     if (type > 2) throw decodeError(`invalid residue type ${type}`);
     const residue = {
         type,
-        begin: reader.readBits(24),
-        end: reader.readBits(24),
-        partSize: reader.readBits(24) + 1,
-        classifications: reader.readBits(6) + 1,
-        classbook: reader.readBits(8),
+        begin: reader.ReadBits(24),
+        end: reader.ReadBits(24),
+        partSize: reader.ReadBits(24) + 1,
+        classifications: reader.ReadBits(6) + 1,
+        classbook: reader.ReadBits(8),
         books: []
     };
     if (residue.classbook >= codebooks.length) throw decodeError("residue classbook out of range");
@@ -505,9 +494,9 @@ function parseResidue(reader, codebooks)
     const cascades = [];
     for (let i = 0; i < residue.classifications; i++)
     {
-        const lowBits = reader.readBits(3);
-        const flag = reader.readBits(1);
-        const highBits = flag ? reader.readBits(5) : 0;
+        const lowBits = reader.ReadBits(3);
+        const flag = reader.ReadBits(1);
+        const highBits = flag ? reader.ReadBits(5) : 0;
         cascades.push(highBits * 8 + lowBits);
     }
     for (let i = 0; i < residue.classifications; i++)
@@ -517,7 +506,7 @@ function parseResidue(reader, codebooks)
         {
             if (cascades[i] & (1 << pass))
             {
-                const bookIndex = reader.readBits(8);
+                const bookIndex = reader.ReadBits(8);
                 if (bookIndex >= codebooks.length) throw decodeError("residue book out of range");
                 if (codebooks[bookIndex].lookupType === 0) throw decodeError("residue book has no lookup values");
                 passBooks.push(bookIndex);
@@ -535,19 +524,19 @@ function parseResidue(reader, codebooks)
 
 function parseMapping(reader, channels, floorCount, residueCount)
 {
-    const type = reader.readBits(16);
+    const type = reader.ReadBits(16);
     if (type !== 0) throw decodeError(`invalid mapping type ${type}`);
     const mapping = { submaps: 1, couplingSteps: [], mux: new Array(channels).fill(0), submapFloor: [], submapResidue: [] };
 
-    if (reader.readBits(1)) mapping.submaps = reader.readBits(4) + 1;
-    if (reader.readBits(1))
+    if (reader.ReadBits(1)) mapping.submaps = reader.ReadBits(4) + 1;
+    if (reader.ReadBits(1))
     {
-        const steps = reader.readBits(8) + 1;
+        const steps = reader.ReadBits(8) + 1;
         const bits = ilog(channels - 1);
         for (let i = 0; i < steps; i++)
         {
-            const magnitude = reader.readBits(bits);
-            const angle = reader.readBits(bits);
+            const magnitude = reader.ReadBits(bits);
+            const angle = reader.ReadBits(bits);
             if (magnitude === angle || magnitude >= channels || angle >= channels)
             {
                 throw decodeError("invalid channel coupling");
@@ -555,20 +544,20 @@ function parseMapping(reader, channels, floorCount, residueCount)
             mapping.couplingSteps.push({ magnitude, angle });
         }
     }
-    if (reader.readBits(2) !== 0) throw decodeError("mapping reserved bits nonzero");
+    if (reader.ReadBits(2) !== 0) throw decodeError("mapping reserved bits nonzero");
     if (mapping.submaps > 1)
     {
         for (let i = 0; i < channels; i++)
         {
-            mapping.mux[i] = reader.readBits(4);
+            mapping.mux[i] = reader.ReadBits(4);
             if (mapping.mux[i] >= mapping.submaps) throw decodeError("mapping mux out of range");
         }
     }
     for (let i = 0; i < mapping.submaps; i++)
     {
-        reader.readBits(8);
-        const floorIndex = reader.readBits(8);
-        const residueIndex = reader.readBits(8);
+        reader.ReadBits(8);
+        const floorIndex = reader.ReadBits(8);
+        const residueIndex = reader.ReadBits(8);
         if (floorIndex >= floorCount || residueIndex >= residueCount)
         {
             throw decodeError("mapping references invalid floor or residue");
@@ -591,13 +580,13 @@ function renderPoint(x0, y0, x1, y1, x)
 
 function decodeFloor1Posts(reader, floor, codebooks)
 {
-    if (reader.readBits(1) !== 1) return null;
+    if (reader.ReadBits(1) !== 1) return null;
 
     const range = FLOOR1_RANGES[floor.multiplier - 1];
     const posts = new Int32Array(floor.xList.length);
     const yBits = ilog(range - 1);
-    posts[0] = reader.readBits(yBits);
-    posts[1] = reader.readBits(yBits);
+    posts[0] = reader.ReadBits(yBits);
+    posts[1] = reader.ReadBits(yBits);
 
     let offset = 2;
     for (let i = 0; i < floor.partitions; i++)
@@ -982,25 +971,25 @@ function expectHeader(packet, type)
         throw decodeError(`missing vorbis header packet type ${type}`);
     }
     const reader = new PacketReader(packet);
-    reader.readBits(8);
-    for (let i = 0; i < 6; i++) reader.readBits(8);
+    reader.ReadBits(8);
+    for (let i = 0; i < 6; i++) reader.ReadBits(8);
     return reader;
 }
 
 function parseComments(packet)
 {
     const reader = new PacketReader(packet);
-    reader.readBits(8);
-    for (let i = 0; i < 6; i++) reader.readBits(8);
+    reader.ReadBits(8);
+    for (let i = 0; i < 6; i++) reader.ReadBits(8);
     const readString = () =>
     {
-        const length = reader.readBits(32);
+        const length = reader.ReadBits(32);
         let text = "";
-        for (let i = 0; i < length; i++) text += String.fromCharCode(reader.readBits(8));
+        for (let i = 0; i < length; i++) text += String.fromCharCode(reader.ReadBits(8));
         return text;
     };
     const vendor = readString();
-    const count = reader.readBits(32);
+    const count = reader.ReadBits(32);
     const comments = [];
     for (let i = 0; i < count && !reader.eop; i++) comments.push(readString());
 
@@ -1031,14 +1020,14 @@ export function decodeVorbis(bytes)
 
     // identification header
     const identReader = expectHeader(packets[0], 1);
-    if (identReader.readBits(32) !== 0) throw decodeError("unsupported vorbis version");
-    const channels = identReader.readBits(8);
-    const sampleRate = identReader.readBits(32);
-    identReader.readBits(32);
-    identReader.readBits(32);
-    identReader.readBits(32);
-    const blocksize0 = 1 << identReader.readBits(4);
-    const blocksize1 = 1 << identReader.readBits(4);
+    if (identReader.ReadBits(32) !== 0) throw decodeError("unsupported vorbis version");
+    const channels = identReader.ReadBits(8);
+    const sampleRate = identReader.ReadBits(32);
+    identReader.ReadBits(32);
+    identReader.ReadBits(32);
+    identReader.ReadBits(32);
+    const blocksize0 = 1 << identReader.ReadBits(4);
+    const blocksize1 = 1 << identReader.ReadBits(4);
     if (!channels || !sampleRate) throw decodeError("invalid identification header");
     if (blocksize0 > blocksize1 || blocksize0 < 64 || blocksize1 > 8192)
     {
@@ -1050,41 +1039,41 @@ export function decodeVorbis(bytes)
     // setup header
     const setup = expectHeader(packets[2], 5);
     const codebooks = [];
-    const codebookCount = setup.readBits(8) + 1;
+    const codebookCount = setup.ReadBits(8) + 1;
     for (let i = 0; i < codebookCount; i++) codebooks.push(parseCodebook(setup));
 
-    const timeCount = setup.readBits(6) + 1;
+    const timeCount = setup.ReadBits(6) + 1;
     for (let i = 0; i < timeCount; i++)
     {
-        if (setup.readBits(16) !== 0) throw decodeError("nonzero time-domain transform");
+        if (setup.ReadBits(16) !== 0) throw decodeError("nonzero time-domain transform");
     }
 
     const floors = [];
-    const floorCount = setup.readBits(6) + 1;
+    const floorCount = setup.ReadBits(6) + 1;
     for (let i = 0; i < floorCount; i++) floors.push(parseFloor(setup, codebooks));
 
     const residues = [];
-    const residueCount = setup.readBits(6) + 1;
+    const residueCount = setup.ReadBits(6) + 1;
     for (let i = 0; i < residueCount; i++) residues.push(parseResidue(setup, codebooks));
 
     const mappings = [];
-    const mappingCount = setup.readBits(6) + 1;
+    const mappingCount = setup.ReadBits(6) + 1;
     for (let i = 0; i < mappingCount; i++) mappings.push(parseMapping(setup, channels, floorCount, residueCount));
 
     const modes = [];
-    const modeCount = setup.readBits(6) + 1;
+    const modeCount = setup.ReadBits(6) + 1;
     for (let i = 0; i < modeCount; i++)
     {
-        const blockflag = setup.readBits(1) === 1;
-        if (setup.readBits(16) !== 0 || setup.readBits(16) !== 0)
+        const blockflag = setup.ReadBits(1) === 1;
+        if (setup.ReadBits(16) !== 0 || setup.ReadBits(16) !== 0)
         {
             throw decodeError("nonzero mode window/transform type");
         }
-        const mapping = setup.readBits(8);
+        const mapping = setup.ReadBits(8);
         if (mapping >= mappingCount) throw decodeError("mode references invalid mapping");
         modes.push({ blockflag, mapping });
     }
-    if (setup.readBits(1) !== 1) throw decodeError("missing setup framing bit");
+    if (setup.ReadBits(1) !== 1) throw decodeError("missing setup framing bit");
     const modeBits = ilog(modeCount - 1);
 
     // synthesis state
@@ -1111,8 +1100,8 @@ export function decodeVorbis(bytes)
     for (let p = 3; p < packets.length; p++)
     {
         const reader = new PacketReader(packets[p]);
-        if (reader.readBits(1) !== 0) continue;
-        const modeNumber = reader.readBits(modeBits);
+        if (reader.ReadBits(1) !== 0) continue;
+        const modeNumber = reader.ReadBits(modeBits);
         if (modeNumber < 0 || modeNumber >= modeCount) continue;
         const mode = modes[modeNumber];
         const mapping = mappings[mode.mapping];
@@ -1123,8 +1112,8 @@ export function decodeVorbis(bytes)
         let nextFlag = false;
         if (mode.blockflag)
         {
-            prevFlag = reader.readBits(1) === 1;
-            nextFlag = reader.readBits(1) === 1;
+            prevFlag = reader.ReadBits(1) === 1;
+            nextFlag = reader.ReadBits(1) === 1;
         }
 
         // floors
