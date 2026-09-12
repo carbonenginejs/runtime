@@ -21,9 +21,6 @@
       "CjsFormatRangeError",
       "CjsFormatWriteError"
     ],
-    "src/resource/formats/bnk/core/nodeBase.js": [
-      "WwiseCursor"
-    ],
     "src/resource/formats/cmf/core/binary.js": [
       "BinaryReader"
     ],

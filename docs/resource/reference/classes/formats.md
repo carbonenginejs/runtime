@@ -80,7 +80,7 @@ Reader for Audiokinetic Wwise soundbank (`.bnk`) containers that inspects the ba
 The single bounds-aware little-endian cursor for every exact Wwise v150 payload — NodeBase, authored SFX, attenuation, Event Action, Global Settings, and interactive music.
 
 - Export: `None`
-- Source: `src/resource/formats/bnk/core/nodeBase.js`
+- Source: `src/resource/formats/bnk/core/WwiseCursor.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 

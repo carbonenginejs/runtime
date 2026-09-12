@@ -1,3 +1,4 @@
+import { readWwiseVar } from "./WwiseCursor.js";
 import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array, readFourCc } from "#utils/bytes";
 import { parseEventAction } from "./eventAction.js";
@@ -348,49 +349,6 @@ function decodeHircFields(entry, bankVersion)
     }
 }
 
-/**
- * Reads Wwise's MSB-first base-128 unsigned integer.
- *
- * @returns {{value:number,nextOffset:number}|null} Decoded value and next
- * offset, or null for truncated, overflowed, or non-canonical input.
- */
-export function readWwiseVar(bytes, offset = 0)
-{
-    let at = Number(offset);
-    let value = 0;
-    let count = 0;
-
-    if (!Number.isSafeInteger(at) || at < 0)
-    {
-        return null;
-    }
-
-    while (at < bytes.byteLength && count < 5)
-    {
-        const byte = bytes[at++];
-
-        if (count === 0 && byte === 0x80)
-        {
-            return null;
-        }
-        if (value > 0x01ffffff)
-        {
-            return null;
-        }
-
-        value = value * 128 + (byte & 0x7f);
-        count++;
-
-        if ((byte & 0x80) === 0)
-        {
-            return value <= 0xffffffff
-                ? { value: value >>> 0, nextOffset: at }
-                : null;
-        }
-    }
-
-    return null;
-}
 
 function readNameTable(bytes, dataOffset, size)
 {
@@ -562,3 +520,4 @@ function readU32(bytes, offset)
     return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;
 }
 
+export { readWwiseVar };
