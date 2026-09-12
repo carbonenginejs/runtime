@@ -524,10 +524,12 @@ test("PrepareCloudShadowMap / SetCloudShadowMapHandle contract (cpp:792-835)", (
   const cloud = new EveChildCloud2();
   assert.equal(cloud.PrepareCloudShadowMap(null), false, "receiveShadows gate");
 
+  // Past the gate the work is unported, and it says so rather than reporting
+  // success. This used to no-op against a renderContext method nothing defines
+  // and return true, so the scene published a handle for a shadow map that was
+  // never rendered. The blocker is Tr2DepthStencil, a generated shell.
   cloud.receiveShadows = true;
-  const prepared = [];
-  assert.equal(cloud.PrepareCloudShadowMap({ PrepareCloudShadowMap: c => prepared.push(c) }), true, "prepared");
-  assert.deepEqual(prepared, [cloud], "engine duck receives the cloud");
+  assert.throws(() => cloud.PrepareCloudShadowMap(), /Tr2DepthStencil/u);
 
   const published = [];
   cloud.depthShadowMapHandle = { SetValue: value => published.push(value) };

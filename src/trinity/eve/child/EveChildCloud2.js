@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { carbon, impl, io, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -829,21 +829,49 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
     return shadowInfo;
   }
 
-  /** Carbon EveChildCloud2::PrepareCloudShadowMap (cpp:792-826): the CPU
-   * contract is the receiveShadows gate (cpp:796-799) and the bool return -
-   * the scene calls SetCloudShadowMapHandle ONLY after a true return
-   * (EveSpaceScene.cpp:2365-2368), which is what makes Carbon's unguarded
-   * m_shadowMapDS dereference there safe. */
-  @impl.adapted
-  @impl.reason("Depth-stencil creation and the viewport/render-target pushes (cpp:801-823) are engine-owned, delegated to a renderContext duck; the gate and return contract are ported.")
-  PrepareCloudShadowMap(renderContext)
+  /**
+   * Makes this cloud's depth-stencil the render target for its shadow pass.
+   *
+   * THE GATE IS PORTED AND THE WORK IS NOT, which is why this returns false in
+   * one case and throws in the other. Carbon's contract
+   * (`EveChildCloud2.cpp:774-808`) is that `receiveShadows` decides whether
+   * there is a shadow map at all, and the scene calls `SetCloudShadowMapHandle`
+   * ONLY after a true return (`EveSpaceScene.cpp:2365-2368`) - which is what
+   * makes Carbon's unguarded `m_shadowMapDS` dereference there safe.
+   *
+   * A cloud that does not receive shadows is therefore fully correct here.
+   *
+   * WHAT IS MISSING. Carbon creates the depth-stencil, pushes it as the target,
+   * clears depth and sets the viewport. Every push, the clear and
+   * `SetReadOnlyDepth` exist here; `Tr2DepthStencil` does not. Ours is a
+   * generated shell whose `Create` throws and which declares none of
+   * `GetTexture`, `IsValid`, `GetWidth` or `GetHeight` - the four Carbon uses
+   * (`Tr2DepthStencil.h:29,40,48,54-55`).
+   *
+   * THIS USED TO RETURN TRUE HAVING DONE NOTHING. The body was
+   * `renderContext?.PrepareCloudShadowMap?.(this)` against a method no render
+   * context defines - optional-chained, so it no-opped, and the scene then
+   * published a shadow-map handle for a shadow map that was never rendered.
+   * Failing here is the point: the gap is in `Tr2DepthStencil`, and it should
+   * be visible from the one place that needs it.
+   *
+   * @returns {boolean} False when this cloud receives no shadows; otherwise
+   *   never returns.
+   */
+  @carbon.method
+  @impl.notImplemented
+  @impl.reason("Needs Tr2DepthStencil, which is a generated shell: Create throws and GetTexture/IsValid/GetWidth/GetHeight are absent. The receiveShadows gate and the false return are ported.")
+  PrepareCloudShadowMap()
   {
     if (!this.receiveShadows)
     {
       return false;
     }
-    renderContext?.PrepareCloudShadowMap?.(this);
-    return true;
+
+    throw new Error(
+      "EveChildCloud2.PrepareCloudShadowMap: needs Tr2DepthStencil.Create and its "
+      + "GetTexture/IsValid/GetWidth/GetHeight accessors, which are unported."
+    );
   }
 
   /** Carbon EveChildCloud2::SetCloudShadowMapHandle (cpp:829-835): publish the
