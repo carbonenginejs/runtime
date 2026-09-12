@@ -153,6 +153,52 @@ character/interior schemas reference it.
 The removed schema-v1/v2 character graph is not a compatibility surface.
 Consumers migrate to the schema-v10 direct source library and separate
 schema-v4 plan, not speculative legacy models.
+### Incarna placeholders, and what a checker makes of them
+
+Found 2026-09-12 by running `carbon-class --check` across the runtime for the
+first time. Five classes under `src/character/incarna/` carry Carbon-shaped names
+that resolve to no Carbon declaration.
+
+THAT IS THE METHOD, NOT A DEFECT. No character class survives in Carbon, so this
+lane works by sniffing any smell of one - a comment, a reference, a stray name -
+and standing up a placeholder. A name with no declaration behind it is the
+EXPECTED shape here. What is worth recording is which smell each placeholder came
+from, and that the checkers cannot yet tell a placeholder from a port.
+
+#### `Tr2InteriorCell`: the smell it was built from
+
+`Tr2InteriorPlaceable.h:36` says placeables *"inhabit one or more
+Tr2InteriorCells, as determined by a ..."* - and that comment is the ONLY
+occurrence in the whole of Carbon. No header declares it, no source defines it.
+
+So the NAME is Carbon's and nothing else is. Our
+`src/character/incarna/interior/Tr2InteriorCell.js` is a placeholder built from
+that one line, which is correct practice for this lane - but its SHAPE is
+unevidenced, so nothing about its fields or methods should be trusted as ported.
+Cite the mention in the file so the next reader knows how thin the evidence is.
+
+#### The incarna curves invert Carbon's own naming
+
+`Tr2ColorCurve`, `Tr2ColorKey`, `Tr2ScalarCurve` and `Tr2ScalarKey` under
+`src/character/incarna/curves/` each say *"Adapted from CCPWGL Tw2ColorCurve2
+(MIT)"*. They are ccpwgl classes with a `Tr2` prefix swapped on.
+
+Two problems with that, neither about the code:
+
+- **Carbon has curve classes for both**, named the other way round:
+  `Tr2CurveColor.h` and `Tr2CurveScalar.h` (plus `Tr2CurveColorMixer`,
+  `Tr2CurveScalarExpression`, `Tr2ScalarExprKeyCurve`). Carbon puts the noun
+  first - `Tr2Curve` + kind - so `Tr2ColorCurve` reads as Carbon while using
+  ccpwgl's word order.
+- **A `Tr2` prefix asserts a Carbon donor.** These have a ccpwgl donor, which is
+  a different provenance with different rules: ccpwgl is a loose guide and is
+  polluted with concepts that came FROM us, so a ccpwgl adaptation needs its
+  origin established rather than assumed.
+
+Open question for this lane, not answered here: whether the incarna curves should
+BE `Tr2CurveColor`/`Tr2CurveScalar` - a real port of classes that exist - or
+whether Incarna genuinely needs its own curve types, in which case they should not
+wear a prefix that claims otherwise.
 ### Skinned per-object data is character work, not Trinity work
 
 **Both skinned per-object classes live in a Trinity header and have no Trinity
