@@ -166,12 +166,6 @@
       "WemBitstreamError",
       "BitReader",
       "OggPageWriter"
-    ],
-    "src/trinity/controllers/expression/CjsControllerExpressionProgram.js": [
-      "CjsControllerExpressionProgram",
-      "CjsControllerExpressionParser",
-      "CjsControllerExpressionCompileError",
-      "CjsControllerExpressionEvaluateError"
     ]
   },
   "missingClass": {

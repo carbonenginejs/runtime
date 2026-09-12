@@ -662,7 +662,7 @@ Controller action that emits a one-shot burst of particles from a dynamic emitte
 Error raised while tokenizing or parsing an expression, carrying the source text, the reason, and the character position at which parsing failed.
 
 - Export: `@carbonenginejs/runtime/trinity/controllers`
-- Source: `src/trinity/controllers/expression/CjsControllerExpressionProgram.js`
+- Source: `src/trinity/controllers/expression/CjsControllerExpressionCompileError.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -672,7 +672,7 @@ Error raised while tokenizing or parsing an expression, carrying the source text
 Error raised while evaluating a compiled expression, carrying the source text and the reason.
 
 - Export: `@carbonenginejs/runtime/trinity/controllers`
-- Source: `src/trinity/controllers/expression/CjsControllerExpressionProgram.js`
+- Source: `src/trinity/controllers/expression/CjsControllerExpressionEvaluateError.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -681,7 +681,7 @@ Error raised while evaluating a compiled expression, carrying the source text an
 
 Recursive-descent parser turning expression source into the AST evaluated by CjsControllerExpressionProgram, collecting referenced variable and function names and rejecting identifiers that could reach the JavaScript prototype chain.
 
-- Source: `src/trinity/controllers/expression/CjsControllerExpressionProgram.js`
+- Source: `src/trinity/controllers/expression/CjsControllerExpressionParser.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
