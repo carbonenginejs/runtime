@@ -167,10 +167,6 @@
       "BitReader",
       "OggPageWriter"
     ],
-    "src/sof/EveSOF.js": [
-      "EveSOF",
-      "SofDocumentBuilder"
-    ],
     "src/trinity/controllers/expression/CjsControllerExpressionProgram.js": [
       "CjsControllerExpressionProgram",
       "CjsControllerExpressionParser",
