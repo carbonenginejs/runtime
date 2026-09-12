@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.cpp
 // Source: trinity/trinity/Resources/Tr2TextureLodManager_Blue.cpp
-import { carbon, impl, type } from "#schema";
+import { carbon, CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
 /**
@@ -11,44 +11,34 @@ import { CjsModel } from "#model";
  * device allocation and budget policy in engine packages, so this runtime
  * class owns only deterministic resource membership.
  */
-@type.define({ className: "Tr2TextureLodManager", family: "resources" })
 export class Tr2TextureLodManager extends CjsModel
 {
 
   /** gpuMemoryUsed (size_t) */
-  @type.uint64
   gpuMemoryUsed = 0;
 
   /** gpuMemoryAllocated (size_t) */
-  @type.uint64
   gpuMemoryAllocated = 0;
 
   /** cpuMemoryUsed (size_t) */
-  @type.uint64
   cpuMemoryUsed = 0;
 
   /** cpuMemoryAllocated (size_t) */
-  @type.uint64
   cpuMemoryAllocated = 0;
 
   /** gpuUploadSize (size_t) */
-  @type.uint64
   gpuUploadSize = 0;
 
   /** m_gpuMemorySize (CcpAtomic<uint32_t>) */
-  @type.unknown
   gpuMemorySize = 0;
 
   /** m_cpuMemorySize (CcpAtomic<uint32_t>) */
-  @type.unknown
   cpuMemorySize = 0;
 
   /** m_currentStats (Stats) */
-  @type.rawStruct("Stats")
   currentStats = null;
 
   /** m_lowDetailVtaFiles (bool) */
-  @type.boolean
   lowDetailVtaFiles = false;
 
   #textures = [];
@@ -70,8 +60,6 @@ export class Tr2TextureLodManager extends CjsModel
    * @param {object} texture Texture resource.
    * @returns {Tr2TextureLodManager} This manager.
    */
-  @carbon.method
-  @impl.implemented
   RegisterTexture(texture)
   {
     if (!texture || (typeof texture !== "object" && typeof texture !== "function"))
@@ -88,8 +76,6 @@ export class Tr2TextureLodManager extends CjsModel
    * @param {object} texture Texture resource.
    * @returns {Tr2TextureLodManager} This manager.
    */
-  @carbon.method
-  @impl.implemented
   UnregisterTexture(texture)
   {
     this.#textures = this.#textures.filter(entry => entry !== texture);
@@ -101,11 +87,29 @@ export class Tr2TextureLodManager extends CjsModel
    *
    * @returns {object[]} Registered textures in Carbon registration order.
    */
-  @carbon.method
-  @impl.implemented
   GetManagedTextures()
   {
     return this.#textures.slice();
   }
 
 }
+
+CjsSchema.define(Tr2TextureLodManager, {
+  className: "Tr2TextureLodManager", family: "resources",
+  fields: {
+    gpuMemoryUsed: type.uint64,
+    gpuMemoryAllocated: type.uint64,
+    cpuMemoryUsed: type.uint64,
+    cpuMemoryAllocated: type.uint64,
+    gpuUploadSize: type.uint64,
+    gpuMemorySize: type.unknown,
+    cpuMemorySize: type.unknown,
+    currentStats: type.rawStruct("Stats"),
+    lowDetailVtaFiles: type.boolean
+  },
+  methods: {
+    RegisterTexture: [ carbon.method, impl.implemented ],
+    UnregisterTexture: [ carbon.method, impl.implemented ],
+    GetManagedTextures: [ carbon.method, impl.implemented ]
+  }
+});

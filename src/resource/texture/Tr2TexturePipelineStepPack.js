@@ -14,39 +14,27 @@
 // actually takes the four-source default - the JS form packs R8 correctly
 // and that divergence is deliberate; and the source byte offset clamps to
 // min(pixelStride-1, SwapRedBlue(channel)) (cpp:156).
-import { impl, io, type } from "#schema";
+import { CjsSchema, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { packBitmap } from "./texturePipelineBehavior.js";
 
 /** Tr2TexturePipelineStepPack (resources) - maintained from schema shapeHash 3efe48d4.... */
-@type.define({ className: "Tr2TexturePipelineStepPack", family: "resources" })
 export class Tr2TexturePipelineStepPack extends CjsModel
 {
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, PERSIST, ENUM] */
-  @io.persist
-  @type.int32
-  @type.enum("PixelFormat")
   format = 87;
 
   /** m_a (PTr2TexturePackChannel) [READ, PERSIST] */
-  @io.persist
-  @type.objectRef("Tr2TexturePackChannel")
   a = null;
 
   /** m_b (PTr2TexturePackChannel) [READ, PERSIST] */
-  @io.persist
-  @type.objectRef("Tr2TexturePackChannel")
   b = null;
 
   /** m_g (PTr2TexturePackChannel) [READ, PERSIST] */
-  @io.persist
-  @type.objectRef("Tr2TexturePackChannel")
   g = null;
 
   /** m_r (PTr2TexturePackChannel) [READ, PERSIST] */
-  @io.persist
-  @type.objectRef("Tr2TexturePackChannel")
   r = null;
 
   /**
@@ -56,7 +44,6 @@ export class Tr2TexturePipelineStepPack extends CjsModel
    * @param {Set<string>} [resources] Caller-owned; allocated when omitted.
    * @returns {Set<string>} The set, for the caller that omitted it.
    */
-  @impl.implemented
   GetResourceDependencies(resources = new Set())
   {
     for (const channel of [ this.r, this.g, this.b, this.a ])
@@ -76,11 +63,24 @@ export class Tr2TexturePipelineStepPack extends CjsModel
    * @param {Map<string, object>} inputs Resolved input bitmaps by path.
    * @returns {object} The packed bitmap.
    */
-  @impl.adapted
-  @impl.reason("Carbon fills an out-param BGRA HostBitmap per mip; the JS pipeline's canonical payload is a returned single-mip RGBA bitmap.")
   Execute(inputs)
   {
     return packBitmap(this, inputs);
   }
 
 }
+
+CjsSchema.define(Tr2TexturePipelineStepPack, {
+  className: "Tr2TexturePipelineStepPack", family: "resources",
+  fields: {
+    format: [ io.persist, type.int32, type.enum("PixelFormat") ],
+    a: [ io.persist, type.objectRef("Tr2TexturePackChannel") ],
+    b: [ io.persist, type.objectRef("Tr2TexturePackChannel") ],
+    g: [ io.persist, type.objectRef("Tr2TexturePackChannel") ],
+    r: [ io.persist, type.objectRef("Tr2TexturePackChannel") ]
+  },
+  methods: {
+    GetResourceDependencies: impl.implemented,
+    Execute: [ impl.adapted, impl.reason("Carbon fills an out-param BGRA HostBitmap per mip; the JS pipeline's canonical payload is a returned single-mip RGBA bitmap.") ]
+  }
+});
