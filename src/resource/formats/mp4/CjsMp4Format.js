@@ -148,10 +148,6 @@ export class CjsMp4Format extends CjsFormat
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static probeSupport(input, options = {})
-    {
-        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "mp4", ...options }, FORMAT_NAME), "mp4");
-    }
 
     /**
      * Convert format output into JSON-compatible debug data.

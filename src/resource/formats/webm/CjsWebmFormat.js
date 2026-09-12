@@ -148,10 +148,6 @@ export class CjsWebmFormat extends CjsFormat
      * @param {object} [options] Probe options.
      * @returns {object} Support/probe report.
      */
-    static probeSupport(input, options = {})
-    {
-        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "webm", ...options }, FORMAT_NAME), "webm");
-    }
 
     /**
      * Convert format output into JSON-compatible debug data.

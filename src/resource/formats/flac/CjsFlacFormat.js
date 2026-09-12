@@ -90,10 +90,6 @@ export class CjsFlacFormat extends CjsFormat
     }
 
     /** Checks one input against the FLAC decoder capability contract. */
-    static probeSupport(input, options = {})
-    {
-        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "flac", ...options }, FORMAT_NAME));
-    }
 
     /** Provides the one-shot FLAC JSON conversion entry point. */
     static toJSON(value) { return toJsonValue(value); }

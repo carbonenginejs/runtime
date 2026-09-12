@@ -196,36 +196,6 @@ export class CjsPickleFormat extends CjsFormat
   }
 
   /** Return synchronous advisory support from a bounded protocol-0 decode. */
-  static probeSupport(input, options = {})
-  {
-    try
-    {
-      return {
-        format: this.id,
-        recognized: true,
-        supported: true,
-        preferredOutput: OUTPUT_JSON,
-        metadata: this.inspect(input, options),
-        variants: [
-          { kind: OUTPUT_JSON, supported: true },
-          { kind: OUTPUT_PAYLOAD, supported: true },
-          { kind: OUTPUT_RAW, supported: true }
-        ],
-        reason: "The input is a supported inert protocol-0 pickle."
-      };
-    }
-    catch (error)
-    {
-      return {
-        format: this.id,
-        recognized: false,
-        supported: false,
-        metadata: null,
-        reason: error.message,
-        errors: [ error.message ]
-      };
-    }
-  }
 
   /**
    * Normalize a format profile and partial override into detached effective

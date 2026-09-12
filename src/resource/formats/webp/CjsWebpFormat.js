@@ -103,10 +103,6 @@ export class CjsWebpFormat extends CjsFormat
     }
 
     /** Checks one input against the WebP decoder capability contract. */
-    static probeSupport(input, options = {})
-    {
-        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "webp", ...options }, FORMAT_NAME));
-    }
 
     /** Provides the one-shot WebP JSON conversion entry point. */
     static toJSON(value)

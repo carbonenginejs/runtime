@@ -105,10 +105,6 @@ export class CjsGifFormat extends CjsFormat
     }
 
     /** Checks one input against the GIF decoder capability contract. */
-    static probeSupport(input, options = {})
-    {
-        return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "gif", ...options }, FORMAT_NAME));
-    }
 
     /** Provides the one-shot GIF JSON conversion entry point. */
     static toJSON(value)

@@ -529,8 +529,16 @@ function normalizeSupportReport(Format, rawReport, options)
   const selected = capability
     ? outputs.find(entry => entry.output === capability.output) || null
     : null;
+  // The declared default is consulted BEFORE falling back to declaration
+  // order. `default: true` is the format stating which output it wants asked
+  // for, so ignoring it here meant a probe had to repeat that choice by hand as
+  // `preferredOutput` — and a format whose outputs are all `role: "debug"`
+  // (webp, gif) otherwise resolved to whichever happened to be declared first.
+  // An explicit `raw.preferredOutput` still wins, because that is the probe
+  // reporting a per-input decision rather than a standing preference.
   const preferredOutput = resolvePreferredOutput(raw.preferredOutput, outputs)
     || outputs.find(entry => entry.supported && entry.role === OUTPUT_ROLE_RUNTIME)?.output
+    || outputs.find(entry => entry.supported && entry.default)?.output
     || outputs.find(entry => entry.supported)?.output
     || "";
 
