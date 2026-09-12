@@ -1,3 +1,4 @@
+import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array, readU16BE, readU24BE, readU32BE, readU32LE } from "#utils/bytes";
 
 export const OUTPUT_RAW = "raw";
@@ -27,7 +28,8 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the FLAC format reader. *//** Reports whether the current FLAC format reader satisfies FLAC. */
+/** Returns a byte view over the supplied binary input for the FLAC format reader. */
+/** Reports whether the current FLAC format reader satisfies FLAC. */
 export function isFLAC(bytes)
 {
     return bytes.byteLength >= 4 && bytes[0] === 0x66 && bytes[1] === 0x4c && bytes[2] === 0x61 && bytes[3] === 0x43;
@@ -115,18 +117,8 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
 }
 
 /** Converts a parsed payload into a JSON-safe value for the FLAC format reader. */
-export function toJsonValue(value)
-{
-    if (value instanceof Uint8Array) return { byteLength: value.byteLength };
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (value && typeof value === "object")
-    {
-        const output = {};
-        for (const [ key, entry ] of Object.entries(value)) output[key] = toJsonValue(entry);
-        return output;
-    }
-    return value;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };
 
 function inspectBytes(bytes)
 {

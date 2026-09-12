@@ -1,3 +1,4 @@
+import { toJsonWithCollections as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array } from "#utils/bytes";
 
 /**
@@ -142,7 +143,8 @@ export function normalizeValues(base, options = {}, readerName = "CjsHlslFormat"
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input Candidate payload.
  * @returns {Uint8Array} The payload bytes.
- *//**
+ */
+/**
  * The shared read path used by the instance Read, Inspect, and the static
  * one-shots: normalizes input bytes and loads a HlslEffectRes graph. This is
  * internal parsing machinery — the documented public contract is the plain
@@ -275,29 +277,8 @@ export function inspectWithValues(input, values)
  * @param {any} value Value to convert.
  * @returns {any} Plain data.
  */
-export function toJsonValue(value)
-{
-    if (value === null || value === undefined) return value ?? null;
-    if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") return value;
-    if (typeof value === "bigint") return value.toString();
-    if (ArrayBuffer.isView(value)) return Array.from(value);
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (value instanceof Map)
-    {
-        const out = {};
-        for (const [ key, entry ] of value) out[key] = toJsonValue(entry);
-        return out;
-    }
-    if (value instanceof Set) return Array.from(value, toJsonValue);
-    if (typeof value === "object")
-    {
-        if (typeof value.toJSON === "function") return toJsonValue(value.toJSON());
-        const out = {};
-        for (const key of Object.keys(value)) out[key] = toJsonValue(value[key]);
-        return out;
-    }
-    return null;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };
 
 export { HlslEffectReadError };
 export { CLASS_KEYS };

@@ -1,3 +1,4 @@
+import { toJsonAcyclic } from "../../../format/jsonPolicies.js";
 import { readGr2Raw } from "./reader.js";
 import { emitJson } from "./json.js";
 import { projectShared, CLASS_KEYS as GR2_CLASS_KEYS } from "./shared.js";
@@ -441,33 +442,15 @@ export function readWithValues(reader, input, values)
 }
 
 /** Converts a parsed payload into a JSON-safe value for the GR2 format reader. */
-export function toJsonValue(value, seen = new WeakSet())
+/**
+ * Convert to JSON, refusing a cycle, naming this reader in the error.
+ *
+ * @param {*} value Any decoded value.
+ * @returns {*} A JSON-safe value.
+ */
+export function toJsonValue(value)
 {
-    if (value === null || typeof value !== "object") return value;
-    if (ArrayBuffer.isView(value)) return Array.from(value, item => toJsonValue(item, seen));
-    if (Array.isArray(value)) return value.map(item => toJsonValue(item, seen));
-
-    if (seen.has(value))
-    {
-        throw new TypeError("CjsGr2Format.toJSON cannot convert circular data");
-    }
-
-    if (typeof value.toJSON === "function")
-    {
-        seen.add(value);
-        const json = toJsonValue(value.toJSON(), seen);
-        seen.delete(value);
-        return json;
-    }
-
-    seen.add(value);
-    const out = {};
-    for (const key of Object.keys(value))
-    {
-        out[key] = toJsonValue(value[key], seen);
-    }
-    seen.delete(value);
-    return out;
+    return toJsonAcyclic(value, "CjsGr2Format");
 }
 
 /**

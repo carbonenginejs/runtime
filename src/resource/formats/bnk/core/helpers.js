@@ -1,3 +1,4 @@
+import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array, readFourCc } from "#utils/bytes";
 import { parseEventAction } from "./eventAction.js";
 import { parseGlobalSettings } from "./globalSettings.js";
@@ -78,7 +79,8 @@ export function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the BNK format reader. *//**
+/** Returns a byte view over the supplied binary input for the BNK format reader. */
+/**
  * Test for a Wwise soundbank BKHD signature.
  *
  * @param {Uint8Array} bytes Candidate bytes.
@@ -544,18 +546,8 @@ export function readWithValues(input, values = DEFAULT_VALUES)
 }
 
 /** Converts a parsed payload into a JSON-safe value for the BNK format reader. */
-export function toJsonValue(value)
-{
-    if (value instanceof Uint8Array) return { byteLength: value.byteLength };
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (value && typeof value === "object")
-    {
-        const output = {};
-        for (const [ key, entry ] of Object.entries(value)) output[key] = toJsonValue(entry);
-        return output;
-    }
-    return value;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };
 
 function asciiString(bytes, offset, length)
 {

@@ -1,3 +1,4 @@
+import { toJsonAcyclic } from "../../../format/jsonPolicies.js";
 import blackDefinitions from "./blackSchema.js";
 
 export const OUTPUT_JSON = "json";
@@ -31,7 +32,8 @@ export const DEFAULT_VALUES = Object.freeze({
     payloadIdField: "_id",
     payloadReferenceField: "_reference",
     pathHandler: null,
-    adapter: null,    classes: Object.freeze({})
+    adapter: null,
+    classes: Object.freeze({})
 });
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
@@ -90,7 +92,8 @@ function cloneValues(values)
         payloadIdField: values.payloadIdField,
         payloadReferenceField: values.payloadReferenceField,
         pathHandler: values.pathHandler ?? null,
-        adapter: values.adapter ?? null,        classes: { ...classMap(values) }
+        adapter: values.adapter ?? null,
+        classes: { ...classMap(values) }
     };
 }
 
@@ -174,7 +177,8 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (Object.hasOwn(options, "payloadTypeField")) values.payloadTypeField = options.payloadTypeField;
     if (Object.hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
     if (Object.hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
-    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;    if (Object.hasOwn(options, "pathHandler"))
+    if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
+    if (Object.hasOwn(options, "pathHandler"))
     {
         if (options.pathHandler !== null && options.pathHandler !== undefined && typeof options.pathHandler !== "function")
         {
@@ -199,31 +203,13 @@ export function notImplemented(readerName, methodName)
  * Converts a parsed payload into a JSON-safe value for the Black object-graph
  * reader.
  */
-export function toJsonValue(value, seen = new WeakSet())
+/**
+ * Convert to JSON, refusing a cycle, naming this reader in the error.
+ *
+ * @param {*} value Any decoded value.
+ * @returns {*} A JSON-safe value.
+ */
+export function toJsonValue(value)
 {
-    if (value === null || typeof value !== "object") return value;
-    if (ArrayBuffer.isView(value)) return Array.from(value, item => toJsonValue(item, seen));
-    if (Array.isArray(value)) return value.map(item => toJsonValue(item, seen));
-
-    if (seen.has(value))
-    {
-        throw new TypeError("Reader.toJSON cannot convert circular data");
-    }
-
-    if (typeof value.toJSON === "function")
-    {
-        seen.add(value);
-        const json = toJsonValue(value.toJSON(), seen);
-        seen.delete(value);
-        return json;
-    }
-
-    seen.add(value);
-    const out = {};
-    for (const key of Object.keys(value))
-    {
-        out[key] = toJsonValue(value[key], seen);
-    }
-    seen.delete(value);
-    return out;
+    return toJsonAcyclic(value, "Reader");
 }

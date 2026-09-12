@@ -2,6 +2,7 @@
  * Internal pipeline glue for CjsStlFormat.
  */
 
+import { toJsonWithArrayValues as toJsonValue } from "../../../format/jsonPolicies.js";
 import { hydrateJson } from "./json.js";
 import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
 import { GR2_CLASS_KEYS } from "../../cmf/core/constants.js";
@@ -285,25 +286,6 @@ export function inspectWithValues(input, values)
  * @param {any} value Format output.
  * @returns {any} JSON-compatible value.
  */
-export function toJsonValue(value)
-{
-    if (value === null || value === undefined) return value;
-    if (typeof value !== "object") return value;
-
-    if (typeof value.toJSON === "function")
-    {
-        const next = value.toJSON();
-        if (next !== value) return toJsonValue(next);
-    }
-
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (ArrayBuffer.isView(value) && !(value instanceof DataView)) return Array.from(value);
-
-    const out = {};
-    for (const key of Object.keys(value))
-    {
-        out[key] = toJsonValue(value[key]);
-    }
-    return out;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };
 

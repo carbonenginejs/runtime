@@ -1,3 +1,4 @@
+import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array, readFourCc, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
 export const OUTPUT_AUDIO = "audio";
 export const OUTPUT_PCM = "pcm";
@@ -43,7 +44,8 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the MP3 format reader. *//** Inspects input using normalized format options for the MP3 format reader. */
+/** Returns a byte view over the supplied binary input for the MP3 format reader. */
+/** Inspects input using normalized format options for the MP3 format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Audio input");
@@ -142,18 +144,8 @@ function getAudioMimeType(metadata)
 }
 
 /** Converts a parsed payload into a JSON-safe value for the MP3 format reader. */
-export function toJsonValue(value)
-{
-    if (value instanceof Uint8Array) return { byteLength: value.byteLength };
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (value && typeof value === "object")
-    {
-        const output = {};
-        for (const [ key, entry ] of Object.entries(value)) output[key] = toJsonValue(entry);
-        return output;
-    }
-    return value;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };
 
 /**
  * Inspects the supplied bytes without decoding their payload for the MP3 format

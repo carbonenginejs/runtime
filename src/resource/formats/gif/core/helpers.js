@@ -1,3 +1,4 @@
+import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array, readU16LE } from "#utils/bytes";
 
 export const OUTPUT_IMAGE = "image";
@@ -34,7 +35,8 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the GIF format reader. *//** Reports whether the current GIF format reader satisfies GIF. */
+/** Returns a byte view over the supplied binary input for the GIF format reader. */
+/** Reports whether the current GIF format reader satisfies GIF. */
 export function isGIF(bytes)
 {
     return bytes.byteLength >= 13 && (ascii(bytes, 0, 6) === "GIF87a" || ascii(bytes, 0, 6) === "GIF89a");
@@ -122,18 +124,8 @@ export function readWithValues(input, values = DEFAULT_VALUES)
 }
 
 /** Converts a parsed payload into a JSON-safe value for the GIF format reader. */
-export function toJsonValue(value)
-{
-    if (value instanceof Uint8Array) return { byteLength: value.byteLength };
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (value && typeof value === "object")
-    {
-        const output = {};
-        for (const [ key, entry ] of Object.entries(value)) output[key] = toJsonValue(entry);
-        return output;
-    }
-    return value;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };
 
 function inspectGif(bytes)
 {

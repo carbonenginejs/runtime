@@ -1,3 +1,4 @@
+import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array } from "#utils/bytes";
 import { decompressBytes } from "#utils/compression";
 import { decodeRle7 } from "./rle7.js";
@@ -341,18 +342,5 @@ export async function readAsyncWithValues(input, values)
 }
 
 /** Convert format output into JSON-compatible debug data. */
-export function toJsonValue(value)
-{
-    if (value instanceof Uint8Array)
-    {
-        return { byteLength: value.byteLength };
-    }
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (value && typeof value === "object")
-    {
-        const output = {};
-        for (const [ key, entry ] of Object.entries(value)) output[key] = toJsonValue(entry);
-        return output;
-    }
-    return value;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };

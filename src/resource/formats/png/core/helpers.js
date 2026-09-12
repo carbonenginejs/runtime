@@ -1,5 +1,11 @@
-import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
+import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
+import { capitalizeFormatId, foreignImageRecord, identifyImageBytes, imageMimeType, isPNG, pngChannels, rawVariant } from "../../../format/imageSignatures.js";
 
+// The container sniffer is shared; re-exported because the format class
+// imports it from this module.
+export { isPNG };
+import { asUint8Array, readU16BE, readU16LE, readU32BE, readU32LE } from "#utils/bytes";
+import { decompressBytes } from "#utils/compression";
 export const OUTPUT_IMAGE = "image";
 export const OUTPUT_TEXTURE = "texture";
 export const OUTPUT_RGBA = "rgba";
@@ -20,13 +26,6 @@ const DEBUG_OUTPUTS = Object.freeze({
     dds: "ddsJson"
 });
 
-const IMAGE_MIME_TYPES = Object.freeze({
-    png: "image/png",
-    jpeg: "image/jpeg",
-    jpg: "image/jpeg",
-    tga: "image/x-tga",
-    dds: "image/vnd-ms.dds"
-});
 
 /**
  * Normalizes reader options against their supported defaults for the PNG format
@@ -58,7 +57,8 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the PNG format reader. *//** Inspects input using normalized format options for the PNG format reader. */
+/** Returns a byte view over the supplied binary input for the PNG format reader. */
+/** Inspects input using normalized format options for the PNG format reader. */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Image input");
@@ -67,7 +67,7 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 
     if (expectedType && detected.sourceFormat && detected.sourceFormat !== expectedType)
     {
-        throw new TypeError(`CjsFormat${capitalize(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat}`);
+        throw new TypeError(`CjsFormat${capitalizeFormatId(expectedType)}: expected ${expectedType}, got ${detected.sourceFormat}`);
     }
 
     return {
@@ -183,21 +183,8 @@ export async function readWithValuesAsync(input, values = DEFAULT_VALUES, expect
 }
 
 /** Converts a parsed payload into a JSON-safe value for the PNG format reader. */
-export function toJsonValue(value)
-{
-    if (value instanceof Uint8Array)
-    {
-        return { byteLength: value.byteLength };
-    }
-    if (Array.isArray(value)) return value.map(toJsonValue);
-    if (value && typeof value === "object")
-    {
-        const output = {};
-        for (const [ key, entry ] of Object.entries(value)) output[key] = toJsonValue(entry);
-        return output;
-    }
-    return value;
-}
+/** The shared JSON policy for this reader, under the name its callers use. */
+export { toJsonValue };
 
 /**
  * Inspects the supplied bytes without decoding their payload for the PNG format
@@ -205,52 +192,13 @@ export function toJsonValue(value)
  */
 export function inspectBytes(bytes)
 {
-    if (isPNG(bytes)) return inspectPNG(bytes);
-    if (isJPEG(bytes)) return inspectJPEG(bytes);
-    if (isDDS(bytes)) return inspectDDS(bytes);
-    if (isTGA(bytes)) return inspectTGA(bytes);
-    return { sourceFormat: "", width: 0, height: 0 };
+    const sourceFormat = identifyImageBytes(bytes);
+    return sourceFormat === "png" ? inspectPNG(bytes) : foreignImageRecord(sourceFormat);
 }
 
-/**
- * Reports whether the supplied bytes begin with a PNG signature for the PNG
- * format reader.
- */
-export function isPNG(bytes)
-{
-    return bytes.byteLength >= 24 &&
-        bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
-        bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
-}
 
-/**
- * Reports whether the supplied bytes begin with a JPEG signature for the PNG
- * format reader.
- */
-export function isJPEG(bytes)
-{
-    return bytes.byteLength >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8;
-}
 
-/**
- * Reports whether the supplied bytes begin with a DDS signature for the PNG
- * format reader.
- */
-export function isDDS(bytes)
-{
-    return bytes.byteLength >= 128 && bytes[0] === 0x44 && bytes[1] === 0x44 && bytes[2] === 0x53 && bytes[3] === 0x20;
-}
 
-/**
- * Reports whether the supplied bytes have a supported TGA header for the PNG
- * format reader.
- */
-export function isTGA(bytes)
-{
-    if (bytes.byteLength < 18) return false;
-    const imageType = bytes[2], width = readU16LE(bytes, 12), height = readU16LE(bytes, 14), bpp = bytes[16];
-    return width > 0 && height > 0 && [ 1, 2, 3, 9, 10, 11 ].includes(imageType) && [ 8, 16, 24, 32 ].includes(bpp);
-}
 
 function inspectPNG(bytes)
 {
@@ -290,9 +238,7 @@ async function decodePngToRgba(bytes, metadata)
             : chunks.trns[1];
     }
     const compressed = concatBytes(chunks.idat);
-    const inflated = new Uint8Array(await new Response(
-        new Blob([ compressed ]).stream().pipeThrough(new DecompressionStream("deflate"))
-    ).arrayBuffer());
+    const inflated = await decompressBytes(compressed, "deflate");
     const channels = pngChannels(metadata.colorType);
     const rgba = new Uint8Array(metadata.width * metadata.height * 4);
     if (metadata.interlaceMethod === 0)
@@ -333,21 +279,7 @@ async function decodePngToRgba(bytes, metadata)
     };
 }
 
-function rawVariant(metadata)
-{
-    return {
-        kind: "raw",
-        payloadType: "raw",
-        codec: metadata.sourceFormat,
-        mimeType: imageMimeType(metadata.sourceFormat),
-        supported: true,
-    };
-}
 
-function imageMimeType(sourceFormat)
-{
-    return IMAGE_MIME_TYPES[sourceFormat] || "application/octet-stream";
-}
 
 function pngRgbaSupport(metadata)
 {
@@ -378,7 +310,10 @@ function pngRgbaSupport(metadata)
     {
         return { supported: false, reason: "PNG compression/filter methods are unsupported by the RGBA decoder." };
     }
-    if (typeof DecompressionStream !== "function" || typeof Blob !== "function" || typeof Response !== "function")
+    // `Blob` is deliberately not required: the shared `decompressBytes` feeds the
+    // bytes straight to `Response`, so an environment with DecompressionStream and
+    // Response but no Blob can decode and used to be told it could not.
+    if (typeof DecompressionStream !== "function" || typeof Response !== "function")
     {
         return { supported: false, reason: "PNG async RGBA decode requires platform DecompressionStream support." };
     }
@@ -653,79 +588,13 @@ function throwPngUnsupported(metadata, message)
     throw error;
 }
 
-function inspectJPEG(bytes)
-{
-    let offset = 2;
-    while (offset + 9 < bytes.byteLength)
-    {
-        if (bytes[offset] !== 0xff)
-        {
-            offset++;
-            continue;
-        }
-        const marker = bytes[offset + 1], length = readU16BE(bytes, offset + 2);
-        if ([ 0xc0, 0xc1, 0xc2, 0xc3 ].includes(marker))
-        {
-            return {
-                sourceFormat: "jpeg",
-                width: readU16BE(bytes, offset + 7),
-                height: readU16BE(bytes, offset + 5),
-                channels: bytes[offset + 9],
-                marker,
-                pixelFormat: "jpeg-ycbcr",
-                isCompressed: true
-            };
-        }
-        offset += Math.max(length + 2, 2);
-    }
-    return { sourceFormat: "jpeg", width: 0, height: 0, channels: 0, pixelFormat: "jpeg", isCompressed: true };
-}
 
-function inspectDDS(bytes)
-{
-    const fourCc = String.fromCharCode(bytes[84], bytes[85], bytes[86], bytes[87]).replace(/\0+$/u, "");
-    return {
-        sourceFormat: "dds",
-        width: readU32LE(bytes, 16),
-        height: readU32LE(bytes, 12),
-        mipCount: Math.max(readU32LE(bytes, 28), 1),
-        fourCc,
-        textureFormat: fourCc || "dds-legacy",
-        isCompressed: !!fourCc,
-        hasMipMaps: readU32LE(bytes, 28) > 1
-    };
-}
 
-function inspectTGA(bytes)
-{
-    return {
-        sourceFormat: "tga",
-        width: readU16LE(bytes, 12),
-        height: readU16LE(bytes, 14),
-        channels: Math.max(bytes[16] / 8, 1),
-        imageType: bytes[2],
-        pixelFormat: `tga-${bytes[16]}`,
-        isCompressed: [ 9, 10, 11 ].includes(bytes[2])
-    };
-}
 
-function pngChannels(colorType)
-{
-    if (colorType === 0) return 1;
-    if (colorType === 2) return 3;
-    if (colorType === 3) return 1;
-    if (colorType === 4) return 2;
-    if (colorType === 6) return 4;
-    return 0;
-}
 
 function readI32BE(bytes, offset)
 {
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getInt32(0, false);
 }
 
-function capitalize(value)
-{
-    return value ? value[0].toUpperCase() + value.slice(1) : "Image";
-}
 
