@@ -111,8 +111,15 @@ dynamic identification run after any worker decode on the main thread.
 
 ## Source layout
 
-Authoring source is decorated JavaScript; published output is built ESM in
-`npm/dist`. Resource owners and their direct Carbon data records live under
+Resource source is directly importable ESM without decorator syntax. Classes
+that need schema metadata install it through `CjsSchema.define`; removing the
+syntax does not remove their identity, fields or model behavior. Source-focused
+resource tests import `src/resource` directly and need no rebuild;
+published-artifact checks still use `npm/dist`.
+This does not change other layers' decorator/build requirements. Published
+output remains built ESM in `npm/dist`.
+
+Resource owners and their direct Carbon data records live under
 `src/resource`, grouped as `audio`, `geometry`, `geometry/granny`, `shader`,
 and `texture`; worker execution and its message protocol live under `src/resource/worker`.
 Reviewed, unresolved active ports live under `src/resource/generated` and are exposed

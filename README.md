@@ -68,11 +68,11 @@ serializations, `fsd` for static data, `fbx`/`gltf`/`obj`/`stl` for geometry,
 `bnk`/`wem` for Wwise audio, and `png`/`jpeg`/`tga`/`gif`/`webp` for images. The
 full set is the `./resource/formats/*` block of `package.json`.
 
-Working from a clone rather than the package? Roughly 860 modules under `src` use
-decorator syntax Node cannot parse, so anything outside the format readers has to
-be imported from `npm/dist` after `npm run build:npm`. The published package is
-already built, so this affects only this repository; the readers above are plain
-JavaScript and work either way.
+Working from a clone rather than the package? The resource layer, including its
+format readers, is directly importable from authored source; see its
+[source layout](docs/resource/architecture.md#source-layout). Other layers still
+use decorator syntax that Node cannot parse and need the `npm/dist` build from
+`npm run build:npm`. The published package is already built.
 
 ## Documentation
 

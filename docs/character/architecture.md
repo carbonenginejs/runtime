@@ -159,11 +159,12 @@ Found 2026-09-12 by running `carbon-class --check` across the runtime for the
 first time. Five classes under `src/character/incarna/` carry Carbon-shaped names
 that resolve to no Carbon declaration.
 
-THAT IS THE METHOD, NOT A DEFECT. No character class survives in Carbon, so this
-lane works by sniffing any smell of one - a comment, a reference, a stray name -
-and standing up a placeholder. A name with no declaration behind it is the
-EXPECTED shape here. What is worth recording is which smell each placeholder came
-from, and that the checkers cannot yet tell a placeholder from a port.
+These historical Incarna placeholders lack current donor declarations; that
+does not apply to all character classes. `Tr2SkinnedObject`,
+`Tr2SkinnedObjectLod` and `Tr2InteriorPlaceable` have donor declarations.
+Record the evidence for each placeholder separately; a name inferred from a
+comment or reference does not establish its fields or behavior as a port.
+The checkers cannot yet distinguish that provisional status from a missing port.
 
 #### `Tr2InteriorCell`: the smell it was built from
 
@@ -281,14 +282,13 @@ real divergence.
 
 #### Our current state: the fields exist, the mechanism does not
 
-`CjsPerObjectLayouts` declares `boneOffsets` (4 x UINT32) in one layout and
-`currentBoneOffset` / `prevBoneOffset` / `_unused x 2` in another, both annotated
-"GPU ring offsets - engine-owned". **Nothing live writes them**, and no bone buffer
-or ring exists: every other `boneOffsets` reference is under
-`src/trinity/dropped/perObjectData`, and `CjsSb` appears only inside the WebGL
-GLSL emitter as translated-shader naming. The only live skinning state is
-`Tr2MeshArea.m_jointCount`, "fed by `Tr2MeshBase.BindToRig`" - a count, with no
-matrices going anywhere.
+`CjsPerObjectLayouts` now aggregates the split layout classes:
+`CjsEveSpaceObjectLayout` and `CjsEveSpacePerObjectLayout` declare `boneOffsets`
+(4 x UINT32); `CjsEveTurretSetLayout` declares `currentBoneOffset`,
+`prevBoneOffset` and two unused UINT32 lanes. These are live declarations under
+`src/trinity/core/rawData/layouts`, not only dropped references. The field
+declarations and the restored per-object wrapper classes do not implement a
+bone-buffer upload or ring; that realization remains separate work.
 
 #### ccpwgl already solves this, and differently from Carbon
 
@@ -366,10 +366,13 @@ that a reduced block "binds in place of the full VS one
 outside the character domain.
 
 **Interior placeables have their own per-object filler.**
-`CjsPerObjectLayouts.js:415-416`: the layout's "only Carbon filler is
-`Tr2InteriorPlaceable::GetPerObjectData`
-(`Interior/Tr2InteriorPlaceable.cpp:555-585`), and interior placeables are not"
-in this package. An exact donor range for a class we do not have.
+The former `CjsPerObjectLayouts.js:415-416` comment now lives in
+`src/trinity/core/rawData/layouts/CjsTr2PerObjectLayout.js:10-15`: its donor
+filler is `Tr2InteriorPlaceable::GetPerObjectData`
+(`Interior/Tr2InteriorPlaceable.cpp:555-585`). The class already exists at
+`src/character/trinity/interior/Tr2InteriorPlaceable.js`; its per-object filler
+is missing. Character consumes the shared Trinity layout rather than declaring
+a second one. "Not a Trinity-layer class" did not mean "absent from runtime".
 
 **Interior additive animation was reverse-engineered in ccpwgl.**
 `Tr2GrannyAnimation.js:1338-1339` cites a "proven reverse-engineered
@@ -426,4 +429,3 @@ Interior work that touches culling, dynamic interiors or interior lighting shoul
 decide their disposition first. The adjacent `Tr2InteriorPerLightPSData` and
 `Tr2InteriorPerObjectPSData` DO exist here, so the data structures arrived
 without the contracts that describe who produces them.
-

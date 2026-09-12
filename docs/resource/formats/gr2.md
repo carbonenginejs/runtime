@@ -220,7 +220,12 @@ Root
 ```
 
 Vertex channels include positions, normals, tangents, binormals, UVs, blend
-indices, and blend weights when available. `IndexGroup.faces` is a flat array
+indices, and blend weights when available. The shared projection preserves
+authored three- or four-component position and UV channels instead of truncating
+them to xyz/uv. Traffic meshes can carry path IDs in position.w and animation
+controls in four-component UVs. A non-xyz position stream carries an explicit
+`vertexCount`; do not infer its count by dividing the position length by three.
+`IndexGroup.faces` is a flat array
 of triangle indices. Sparse morph targets carry `vertexIndices`; native and
 annotation-set morph targets share the same projected shape. Morph tangent and
 binormal channels retain an authored three- or four-component width; a

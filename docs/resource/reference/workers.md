@@ -113,8 +113,10 @@ static worker = {
 };
 ```
 
-Format options containing functions, symbols, non-plain instances, cycles, or
-caller-supplied class constructors do not cross the worker boundary.
+Format options containing functions, symbols, unsupported non-plain instances,
+or caller-supplied class constructors do not cross the worker boundary.
+Shared references and cycles in otherwise clone-safe arrays or plain objects
+are accepted; revisiting an object does not force main-thread fallback.
 
 ## Queues and ownership
 

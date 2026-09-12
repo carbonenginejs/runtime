@@ -247,12 +247,14 @@ the scene composes them with inverse view and atlas transforms, then
 `RawData.SetAndTransposeIndex` performs the one terminal packing transpose.
 Engines must not transpose, rebuild, or reinterpret those matrices.
 
-Physical shadow work uses the nominal `CjsShadowMapExecutor` installed once on
-the active `Tr2RenderContext`. Engine implementations extend that base and
-realize atlas allocation, split-pass begin/end, screen-result drawing, and
-optional denoising. Every base method throws, and `Tr2ShadowMap` calls the
-installed executor directly, so a missing engine capability cannot degrade to
-a silently skipped shadow pass.
+`Tr2ShadowMap` also owns shadow-pass preparation, split viewport selection,
+state restoration and screen-space resolve, using the resource pool and render
+context's AL. Preparation unbinds the color target and binds the cascade depth
+surface. Resolve borrows an R8 target at scene-depth dimensions, draws through
+`Tr2Renderer.DrawScreenQuad`, clears the effect's runtime texture bindings, and
+optionally calls `Tr2Denoiser.Apply`. The former `CjsShadowMapExecutor` was removed;
+an application does not install a replacement executor. These implementations
+do not by themselves qualify a backend's rendered shadow output.
 
 ### Froxel-fog contract
 
@@ -265,13 +267,14 @@ lighting overrides and before visibility/gather. This caller has landed; the
 driver's broader frame remains deliberately partial. The renderer is scene-owned and its per-frame fill is already
 called directly, so a missing owned method fails visibly.
 
-Physical froxel and volumetric textures, fog passes, environment-map updates,
-variable-store texture publication, and volumetric shadow draws remain engine
-realization. `CjsVolumetricsExecutor` is the nominal throwing base installed on
-the active render context; the maintained graph class delegates the exact
-Carbon-shaped calls directly to that executor. Engines consume the blended
-values and terminal RawData bytes; they do not re-run the priority policy or
-repack constants.
+The former `CjsVolumetricsExecutor` was removed. Remaining fog, volumetric,
+reflection-map and volumetric-shadow passes are explicit throwing methods on
+`Tr2VolumetricsRenderer`, not instructions to implement an external executor.
+Its static empty-texture helpers take the resource pool and still throw.
+`UpdateVariableStore()` is implemented: it takes no arguments and publishes the
+Mie environment-map reference through the global variable store. Backend
+allocation and submission use the AL; the blended values and terminal RawData
+bytes are not recomputed or repacked there.
 
 Fog providers implement the maintained nominal `ITr2FroxelFogSettings`
 identity. Its base method throws; `EveChildFogVolume` supplies the concrete,
@@ -380,7 +383,12 @@ A transient arena record never clears its flag, which is correct rather than a
 leak: it is filled and consumed within one frame, so `ClearDirty` means "these
 bytes have been uploaded", never "this payload is now stable".
 
-A renderable returns whichever shape its constant data actually has:
+A renderable can return a `Tr2PerObjectData` family instance owning or borrowing
+its `RawData` payloads. `GetPayloads()` exposes those payloads. The classes
+provide instance upload methods, but the render context still calls the shared
+static `Tr2PerObjectData.setPerObjectDataToDevice`, which resolves family
+instances through `GetPayloads()`. Producer migration is partial; the same
+resolver still accepts:
 
 - one payload, when a single buffer is bound;
 - a `{ vs, ps }` record, when the vertex and pixel stages take DIFFERENT

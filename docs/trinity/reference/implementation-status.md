@@ -213,12 +213,12 @@ Catalog completeness and promotion gates are below.
   counters, dimensions, gamma/mip/upscaling settings, atlas settings, and an
   optional shadow map. Pixel fill precedes vertex fill because it resets the
   upscaling amount read by the vertex record.
-- Per-object constant data is complete on the CPU side: every catalogued struct
-  with a Carbon producer in this package is filled. The exceptions are values
-  that are literally GPU addresses - bone-ring and morph-ring offsets - which
-  keep their defaults until an engine supplies them, and `Tr2PerObjectVSData`,
-  whose only Carbon filler is an interior placeable that is not a
-  Trinity-layer class.
+- Per-object layouts and restored data classes do not prove producer
+  completeness. `EveLineSet` and `EveCurveLineSet` now allocate
+  `Tr2PerObjectDataStandard`, but `EveEllipseSet.GetPerObjectData` still reaches
+  the required throwing base. Bone-ring and morph-ring offsets retain defaults
+  until supplied, and `Tr2PerObjectVSData`'s interior-placeable filler belongs
+  to the character domain, not this Trinity layer.
 - The five legacy Sprite2D implementations, `Tr2Sprite2dContainerBase`,
   corrected `EveSmartLightSpotLight`, `Obb`, and the rewritten
   `Tr2ProjectBoundingBoxBracket` projection/active-context curve path were
@@ -235,7 +235,9 @@ Catalog completeness and promotion gates are below.
   [fog](../architecture.md#froxel-fog-contract),
   [post-process](../architecture.md#post-process-renderer-boundary), and
   [curve-line](../architecture.md#curve-line-boundary) contracts own the
-  maintained CPU behavior and explicit throwing engine obligations.
+  maintained behavior and remaining explicit implementation gaps. Shadow
+  preparation and resolve now run on `Tr2ShadowMap` through the AL; unported
+  fog passes throw on `Tr2VolumetricsRenderer`, not on an external executor.
   The scene owns one `Tr2VolumetricsRenderer` by default.
   `EveProjectBracket` retains the visibility-callback latch, and
   `EveTacticalOverlay` retains LOD and the prior-frame segment budget.
