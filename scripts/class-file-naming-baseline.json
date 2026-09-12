@@ -171,31 +171,6 @@
       "EveSOF",
       "SofDocumentBuilder"
     ],
-    "src/sof/faction/EveSOFDataFactionColorSet.js": [
-      "EveSOFDataFactionColorSet",
-      "ErrSOFFactionColorSetTypeUnknown",
-      "ErrSOFFactionColorSetTypeNotFound"
-    ],
-    "src/sof/generic/EveSOFDataGeneric.js": [
-      "EveSOFDataGeneric",
-      "ErrSOFAreaShaderNotFound",
-      "ErrSOFDecalShaderNotFound",
-      "ErrSOFMaterialPrefixNotFound",
-      "ErrSOFPatternMaterialPrefixNotFound"
-    ],
-    "src/sof/pattern/EveSOFDataPattern.js": [
-      "EveSOFDataPattern",
-      "ErrSOFProjectionNotFound"
-    ],
-    "src/sof/shared/EveSOFDataArea.js": [
-      "EveSOFDataArea",
-      "ErrSOFAreaTypeNotFound"
-    ],
-    "src/sof/shared/EveSOFDataLogoSet.js": [
-      "EveSOFDataLogoSet",
-      "ErrSOFLogoSetTypeUnknown",
-      "ErrSOFLogoSetTypeNotFound"
-    ],
     "src/sof/shared/EveSOFDataParameter.js": [
       "EveSOFDataParameter",
       "EveSOFDataParameterBool",

@@ -3,6 +3,8 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
+import { ErrSOFLogoSetTypeUnknown } from "./ErrSOFLogoSetTypeUnknown.js";
+import { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
 
 /** EveSOFDataLogoSet (eve) - generated from schema shapeHash 1a77225e.... */
 @type.define({ className: "EveSOFDataLogoSet", family: "eve" })
@@ -81,36 +83,4 @@ export class EveSOFDataLogoSet extends CjsModel
     return out;
   }
 
-}
-
-/** Reports that a logo lookup used an undefined logo-slot enum value. */
-export class ErrSOFLogoSetTypeUnknown extends RangeError
-{
-  /**
-   * Creates the range error for an undefined logo-slot enum value and records
-   * that value.
-   */
-  constructor(type)
-  {
-    super("SOF logo set type unknown (" + type + ")");
-    this.name = "ErrSOFLogoSetTypeUnknown";
-    this.code = "EVE_SOF_LOGO_TYPE_UNKNOWN";
-    this.type = type;
-  }
-}
-
-/** Reports that a defined logo slot has no logo assigned. */
-export class ErrSOFLogoSetTypeNotFound extends Error
-{
-  /**
-   * Creates the missing-logo error for an unpopulated defined slot and records
-   * the requested value.
-   */
-  constructor(type)
-  {
-    super("SOF logo set type not found (" + type + ")");
-    this.name = "ErrSOFLogoSetTypeNotFound";
-    this.code = "EVE_SOF_LOGO_TYPE_NOT_FOUND";
-    this.type = type;
-  }
 }

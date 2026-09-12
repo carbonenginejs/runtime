@@ -4,6 +4,7 @@ import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataPatternLayer } from "./EveSOFDataPatternLayer.js";
 import { EveSOFDataPatternPerHull } from "./EveSOFDataPatternPerHull.js";
+import { ErrSOFProjectionNotFound } from "./ErrSOFProjectionNotFound.js";
 
 /** EveSOFDataPattern (eve) - generated from schema shapeHash f8a30280.... */
 @type.define({ className: "EveSOFDataPattern", family: "eve" })
@@ -145,23 +146,6 @@ export class EveSOFDataPattern extends CjsModel
     return projection;
   }
 
-}
-
-/** Reports that a pattern has no projection for the requested hull. */
-export class ErrSOFProjectionNotFound extends Error
-{
-  /**
-   * Creates a projection lookup error carrying both the pattern and hull names
-   * with a stable error code.
-   */
-  constructor({ pattern = "", projection = "" } = {})
-  {
-    super("SOF pattern projection '" + projection + "' not found for pattern '" + pattern + "'");
-    this.name = "ErrSOFProjectionNotFound";
-    this.code = "EVE_SOF_PROJECTION_NOT_FOUND";
-    this.pattern = pattern;
-    this.projection = projection;
-  }
 }
 
 function setLayerFromCustomMask(layer, customMask, textureName)

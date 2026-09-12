@@ -4,6 +4,8 @@ import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
+import { ErrSOFFactionColorSetTypeUnknown } from "./ErrSOFFactionColorSetTypeUnknown.js";
+import { ErrSOFFactionColorSetTypeNotFound } from "./ErrSOFFactionColorSetTypeNotFound.js";
 
 /** EveSOFDataFactionColorSet (eve) - generated from schema shapeHash 715e3a12.... */
 @type.define({ className: "EveSOFDataFactionColorSet", family: "eve" })
@@ -349,36 +351,3 @@ export class EveSOFDataFactionColorSet extends CjsModel
   ]);
 
 }
-
-/** Reports that a faction-color lookup used an unknown color-slot enum value. */
-export class ErrSOFFactionColorSetTypeUnknown extends RangeError
-{
-  /**
-   * Creates the range error for an unknown faction-color enum value and records
-   * that value.
-   */
-  constructor(type)
-  {
-    super("SOF faction color set type unknown (" + type + ")");
-    this.name = "ErrSOFFactionColorSetTypeUnknown";
-    this.code = "EVE_SOF_FACTION_COLOR_TYPE_UNKNOWN";
-    this.type = type;
-  }
-}
-
-/** Reports that a known faction-color slot has no color assigned. */
-export class ErrSOFFactionColorSetTypeNotFound extends Error
-{
-  /**
-   * Creates the missing-color error for an unpopulated known slot and records
-   * the requested value.
-   */
-  constructor(type)
-  {
-    super("SOF faction color set type not found (" + type + ")");
-    this.name = "ErrSOFFactionColorSetTypeNotFound";
-    this.code = "EVE_SOF_FACTION_COLOR_TYPE_NOT_FOUND";
-    this.type = type;
-  }
-}
-

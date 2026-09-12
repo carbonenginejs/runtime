@@ -1,10 +1,8 @@
-export {
-  ErrSOFAreaShaderNotFound,
-  ErrSOFDecalShaderNotFound,
-  ErrSOFMaterialPrefixNotFound,
-  ErrSOFPatternMaterialPrefixNotFound,
-  EveSOFDataGeneric
-} from "./EveSOFDataGeneric.js";
+export { ErrSOFAreaShaderNotFound } from "./ErrSOFAreaShaderNotFound.js";
+export { ErrSOFDecalShaderNotFound } from "./ErrSOFDecalShaderNotFound.js";
+export { ErrSOFMaterialPrefixNotFound } from "./ErrSOFMaterialPrefixNotFound.js";
+export { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPrefixNotFound.js";
+export { EveSOFDataGeneric } from "./EveSOFDataGeneric.js";
 export { EveSOFDataGenericDamage } from "./EveSOFDataGenericDamage.js";
 export { EveSOFDataGenericDecalShader } from "./EveSOFDataGenericDecalShader.js";
 export { EveSOFDataGenericHullCategory } from "./EveSOFDataGenericHullCategory.js";

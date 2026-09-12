@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
+import { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
 
 /** Carbon area-material slots in canonical AreaType order. */
 @type.define({ className: "EveSOFDataArea", family: "eve" })
@@ -115,20 +116,4 @@ export class EveSOFDataArea extends CjsModel
     return value;
   }
 
-}
-
-/** Reports that a requested canonical area slot has no material assigned. */
-export class ErrSOFAreaTypeNotFound extends Error
-{
-  /**
-   * Creates the missing-area error for the requested canonical slot and records
-   * its enum value.
-   */
-  constructor(type)
-  {
-    super(`SOF area type not found (${type})`);
-    this.name = "ErrSOFAreaTypeNotFound";
-    this.code = "EVE_SOF_AREA_TYPE_NOT_FOUND";
-    this.type = type;
-  }
 }

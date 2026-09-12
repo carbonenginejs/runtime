@@ -3,6 +3,10 @@
 import { io, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataGenericShader } from "./EveSOFDataGenericShader.js";
+import { ErrSOFAreaShaderNotFound } from "./ErrSOFAreaShaderNotFound.js";
+import { ErrSOFDecalShaderNotFound } from "./ErrSOFDecalShaderNotFound.js";
+import { ErrSOFMaterialPrefixNotFound } from "./ErrSOFMaterialPrefixNotFound.js";
+import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPrefixNotFound.js";
 
 /** EveSOFDataGeneric (eve) - generated from schema shapeHash 5f2c6dc7.... */
 @type.define({ className: "EveSOFDataGeneric", family: "eve" })
@@ -292,76 +296,6 @@ export class EveSOFDataGeneric extends CjsModel
     return value.str;
   }
 
-}
-
-/** Reports that a requested area shader is absent from the generic SOF catalog. */
-export class ErrSOFAreaShaderNotFound extends Error
-{
-  /**
-   * Creates an area-shader lookup error carrying the requested shader name and
-   * stable error code.
-   */
-  constructor({ name = "" } = {})
-  {
-    super("SOF area shader not found: " + name);
-    this.name = "ErrSOFAreaShaderNotFound";
-    this.code = "EVE_SOF_AREA_SHADER_NOT_FOUND";
-    this.shader = name;
-  }
-}
-
-/** Reports that a requested decal shader is absent from the generic SOF catalog. */
-export class ErrSOFDecalShaderNotFound extends Error
-{
-  /**
-   * Creates a decal-shader lookup error carrying the requested shader name and
-   * stable error code.
-   */
-  constructor({ name = "" } = {})
-  {
-    super("SOF decal shader not found: " + name);
-    this.name = "ErrSOFDecalShaderNotFound";
-    this.code = "EVE_SOF_DECAL_SHADER_NOT_FOUND";
-    this.shader = name;
-  }
-}
-
-/**
- * Reports that a requested material prefix is absent from the generic SOF
- * catalog.
- */
-export class ErrSOFMaterialPrefixNotFound extends Error
-{
-  /**
-   * Creates a material-prefix lookup error carrying the requested one-based
-   * index and stable error code.
-   */
-  constructor({ index = -1 } = {})
-  {
-    super("SOF material prefix not found: " + index);
-    this.name = "ErrSOFMaterialPrefixNotFound";
-    this.code = "EVE_SOF_MATERIAL_PREFIX_NOT_FOUND";
-    this.index = index;
-  }
-}
-
-/**
- * Reports that a requested pattern-material prefix is absent from the generic
- * SOF catalog.
- */
-export class ErrSOFPatternMaterialPrefixNotFound extends Error
-{
-  /**
-   * Creates a pattern-material-prefix lookup error carrying the requested
-   * one-based index and stable error code.
-   */
-  constructor({ index = -1 } = {})
-  {
-    super("SOF pattern material prefix not found: " + index);
-    this.name = "ErrSOFPatternMaterialPrefixNotFound";
-    this.code = "EVE_SOF_PATTERN_MATERIAL_PREFIX_NOT_FOUND";
-    this.index = index;
-  }
 }
 
 function findShader(values, name)

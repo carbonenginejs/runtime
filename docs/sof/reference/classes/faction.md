@@ -41,7 +41,7 @@ Stores a faction's semantic color palette and resolves enum-selected colors into
 Reports that a faction-color lookup used an unknown color-slot enum value.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/faction/EveSOFDataFactionColorSet.js`
+- Source: `src/sof/faction/ErrSOFFactionColorSetTypeUnknown.js`
 - Visibility: Public
 - Kind: Public error class
 
@@ -51,7 +51,7 @@ Reports that a faction-color lookup used an unknown color-slot enum value.
 Reports that a known faction-color slot has no color assigned.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/faction/EveSOFDataFactionColorSet.js`
+- Source: `src/sof/faction/ErrSOFFactionColorSetTypeNotFound.js`
 - Visibility: Public
 - Kind: Public error class
 

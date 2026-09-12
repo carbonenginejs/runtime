@@ -1,5 +1,6 @@
 export { CjsExternalRef } from "./CjsExternalRef.js";
-export { ErrSOFAreaTypeNotFound, EveSOFDataArea } from "./EveSOFDataArea.js";
+export { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
+export { EveSOFDataArea } from "./EveSOFDataArea.js";
 export { EveSOFDataAreaMaterial } from "./EveSOFDataAreaMaterial.js";
 export { EveSOFDataBooster } from "./EveSOFDataBooster.js";
 export { EveSOFDataBoosterShape } from "./EveSOFDataBoosterShape.js";
@@ -9,11 +10,9 @@ export { EveSOFDataBlinkType } from "./EveSOFDataBlinkType.js";
 export { EveSOFDataInstancedMesh } from "./EveSOFDataInstancedMesh.js";
 export { EveSOFDNADescriptor } from "./EveSOFDNADescriptor.js";
 export { EveSOFDataLogo } from "./EveSOFDataLogo.js";
-export {
-  ErrSOFLogoSetTypeNotFound,
-  ErrSOFLogoSetTypeUnknown,
-  EveSOFDataLogoSet
-} from "./EveSOFDataLogoSet.js";
+export { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
+export { ErrSOFLogoSetTypeUnknown } from "./ErrSOFLogoSetTypeUnknown.js";
+export { EveSOFDataLogoSet } from "./EveSOFDataLogoSet.js";
 export { EveSOFDataMaterial } from "./EveSOFDataMaterial.js";
 export {
   EveSOFDataParameter,

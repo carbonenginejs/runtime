@@ -21,7 +21,7 @@ Defines a named two-layer pattern with application groups, per-hull lookup, flip
 Reports that a pattern has no projection for the requested hull.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/pattern/EveSOFDataPattern.js`
+- Source: `src/sof/pattern/ErrSOFProjectionNotFound.js`
 - Visibility: Public
 - Kind: Public error class
 

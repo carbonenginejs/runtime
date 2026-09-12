@@ -21,7 +21,7 @@ Provides the top-level generic SOF configuration for shaders, material prefixes,
 Reports that a requested area shader is absent from the generic SOF catalog.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/generic/EveSOFDataGeneric.js`
+- Source: `src/sof/generic/ErrSOFAreaShaderNotFound.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl error class
 
@@ -31,7 +31,7 @@ Reports that a requested area shader is absent from the generic SOF catalog.
 Reports that a requested decal shader is absent from the generic SOF catalog.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/generic/EveSOFDataGeneric.js`
+- Source: `src/sof/generic/ErrSOFDecalShaderNotFound.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl error class
 
@@ -41,7 +41,7 @@ Reports that a requested decal shader is absent from the generic SOF catalog.
 Reports that a requested material prefix is absent from the generic SOF catalog.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/generic/EveSOFDataGeneric.js`
+- Source: `src/sof/generic/ErrSOFMaterialPrefixNotFound.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl error class
 
@@ -51,7 +51,7 @@ Reports that a requested material prefix is absent from the generic SOF catalog.
 Reports that a requested pattern-material prefix is absent from the generic SOF catalog.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/generic/EveSOFDataGeneric.js`
+- Source: `src/sof/generic/ErrSOFPatternMaterialPrefixNotFound.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl error class
 

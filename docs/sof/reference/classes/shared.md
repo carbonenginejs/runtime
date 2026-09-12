@@ -41,7 +41,7 @@ Defines the canonical SOF area slots and provides enum-based lookup for them.
 Reports that a requested canonical area slot has no material assigned.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataArea.js`
+- Source: `src/sof/shared/ErrSOFAreaTypeNotFound.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl error class
 
@@ -141,7 +141,7 @@ Provides enum-based primary, secondary, tertiary, and marking-logo lookup plus l
 Reports that a logo lookup used an undefined logo-slot enum value.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataLogoSet.js`
+- Source: `src/sof/shared/ErrSOFLogoSetTypeUnknown.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl error class
 
@@ -151,7 +151,7 @@ Reports that a logo lookup used an undefined logo-slot enum value.
 Reports that a defined logo slot has no logo assigned.
 
 - Export: `@carbonenginejs/runtime/sof`
-- Source: `src/sof/shared/EveSOFDataLogoSet.js`
+- Source: `src/sof/shared/ErrSOFLogoSetTypeNotFound.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl error class
 
