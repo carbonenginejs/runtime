@@ -109,7 +109,7 @@ Represents one structured operational failure with a stable CarbonEngineJS code.
 Represents one cancelled operation using Web-compatible abort identity.
 
 - Export: `@carbonenginejs/runtime/utils/errors`
-- Source: `src/global/utils/errors/CjsError.js`
+- Source: `src/global/utils/errors/CjsCancellationError.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

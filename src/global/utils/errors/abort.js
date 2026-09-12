@@ -1,4 +1,4 @@
-import { CjsCancellationError } from "./CjsError.js";
+import { CjsCancellationError } from "./CjsCancellationError.js";
 
 /**
  * Throws when an abort signal has already been aborted.

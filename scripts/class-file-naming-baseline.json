@@ -132,10 +132,6 @@
       "CjsModel",
       "CjsPendingReference"
     ],
-    "src/global/utils/errors/CjsError.js": [
-      "CjsError",
-      "CjsCancellationError"
-    ],
     "src/resource/format/carbonEffect/CjsCarbonEffectReader.js": [
       "CjsCarbonEffectBodyReader",
       "CjsCarbonEffectReader"
