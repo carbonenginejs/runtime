@@ -142,7 +142,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
    */
   _PassOf(material, passIndex)
   {
-    const shader = material.GetShaderStateInterface?.();
+    const shader = material.GetShaderStateInterface();
     const techniqueIndex = shader?.GetTechniqueIndex?.(this._techniqueName) ?? -1;
 
     if (techniqueIndex < 0) return null;
@@ -380,7 +380,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
         pass: passIndex
       });
 
-      return layout?.size ? PackMaterialConstants(layout, material.GetValues?.() ?? {}) : null;
+      return layout?.size ? PackMaterialConstants(layout, material.GetValues()) : null;
     }
 
     // ASK THE RENDERER WHICH REGISTER IS WHICH. It owns the numbers
