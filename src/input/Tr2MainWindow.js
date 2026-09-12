@@ -14,20 +14,11 @@ const CALLBACK_FIELDS = Object.freeze([
     "onWindowStateChange"
 ]);
 
-const EMPTY_CALLBACK = new class extends CjsScriptCallback
-{
-
-    Call()
-    {
-        return undefined;
-    }
-
-    CallVoid()
-    {
-        // Intentionally empty: optional callback fields always have a nominal target.
-    }
-
-}();
+// An unset callback field still holds a nominal target. Carbon spells that as a
+// default-constructed BlueScriptCallback, which reports IsValid() false and
+// returns CALL_ERROR rather than failing when invoked, so nothing here has to
+// test for absence before calling.
+const EMPTY_CALLBACK = new CjsScriptCallback();
 
 /**
  * Browser adaptation of CarbonEngine's main-window state and input boundary.

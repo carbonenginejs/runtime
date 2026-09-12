@@ -17,8 +17,7 @@ test("required contract roots carry abstract implementation metadata", () =>
         [ CjsConstantPayload, [ "GetData", "IsDirty", "ClearDirty" ] ],
         [ CjsFrameLifecycle, [ "Throttle", "SyncToGpu", "GetViewport", "BeginProfileFrame", "EndProfileFrame", "ReserveQuadListIndexBuffer" ] ],
         [ CjsInstancedMeshManager, [ "AddPerObjectData", "AddBoundingSphereGroup", "AddMeshGroup", "SetSphereGroupBounds", "RemoveMeshGroup", "RemoveBoundingSphereGroup", "RemovePerObjectData" ] ],
-        [ ITr2BoundingBox, [ "GetWorldBoundingBox", "IsBoundingBoxReady" ] ],
-        [ CjsScriptCallback, [ "Call", "CallVoid" ] ]
+        [ ITr2BoundingBox, [ "GetWorldBoundingBox", "IsBoundingBoxReady" ] ]
     ])
     {
         for (const method of methods)
@@ -126,12 +125,29 @@ test("concrete constant payloads retain byte identity and clear dirty state", ()
     assert.equal(payload.IsDirty(), false);
 });
 
-test("script callbacks require direct Call and CallVoid implementations", () =>
+test("an unset script callback is invalid and safe to invoke", () =>
 {
+    // Carbon's default-constructed BlueScriptCallback holds no callable and
+    // returns CALL_ERROR rather than failing (BlueScriptCallback.cpp:282-287),
+    // so a caller never has to test for absence first.
     const callback = new CjsScriptCallback();
 
-    assert.throws(() => callback.Call(), /CjsScriptCallback\.Call/u);
-    assert.throws(() => callback.CallVoid(), /CjsScriptCallback\.CallVoid/u);
+    assert.equal(callback.IsValid(), false);
+    assert.equal(callback.Call(1, 2), undefined);
+    assert.equal(callback.CallVoid(1, 2), undefined);
+});
+
+test("Destroy releases the callback and leaves it invalid", () =>
+{
+    const callback = CjsScriptCallback.from(() => "result");
+
+    assert.equal(callback.IsValid(), true);
+    assert.equal(callback.Call(), "result");
+
+    callback.Destroy();
+
+    assert.equal(callback.IsValid(), false);
+    assert.equal(callback.Call(), undefined);
 });
 
 test("script callbacks adapt external values once to one nominal identity", () =>

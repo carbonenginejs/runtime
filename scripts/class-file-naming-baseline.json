@@ -123,11 +123,6 @@
       "CjsAudioLibraryBuilderBusGraphConstructionSession",
       "CjsAudioLibraryBuilderSfxNameCatalogAccumulator"
     ],
-    "src/global/contracts/CjsScriptCallback.js": [
-      "CjsScriptCallback",
-      "CjsFunctionScriptCallback",
-      "CjsExternalScriptCallback"
-    ],
     "src/global/model/CjsModel.js": [
       "CjsModel",
       "CjsPendingReference"

@@ -68,29 +68,11 @@ Dependency-free contract for one node in a Trinity render graph.
 <!-- class:CjsScriptCallback -->
 ## `CjsScriptCallback`
 
-Dependency-free callback identity for Carbon-style script invocation.
+A stored script callback that can be invoked later.
 
 - Export: `@carbonenginejs/runtime/contracts`
 - Source: `src/global/contracts/CjsScriptCallback.js`
 - Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsFunctionScriptCallback -->
-## `CjsFunctionScriptCallback`
-
-Adapts one ordinary JavaScript function to the nominal callback contract.
-
-- Source: `src/global/contracts/CjsScriptCallback.js`
-- Visibility: Internal
-- Kind: CarbonEngineJS
-
-<!-- class:CjsExternalScriptCallback -->
-## `CjsExternalScriptCallback`
-
-Adapts one externally supplied callback object after boundary validation.
-
-- Source: `src/global/contracts/CjsScriptCallback.js`
-- Visibility: Internal
 - Kind: CarbonEngineJS
 
 <!-- class:CjsError -->
