@@ -204,40 +204,93 @@ test("disableShimmer snaps each split to a texel-aligned cube", () =>
   assert.ok(Math.abs(centerY / texelSize - Math.round(centerY / texelSize)) <= 1e-4);
 });
 
-test("shadow realization uses one nominal executor and fails loudly when absent", () =>
+test("shadow rendering sets its own device state, as Carbon's does", () =>
 {
+  // Carbon puts these on Tr2ShadowMap itself (Tr2ShadowMap.cpp:226-276). The port
+  // had routed all four through an invented executor installed on the render
+  // context, so this asserts the state each one actually sets.
   const calls = [];
-  class RecordingExecutor extends core.CjsShadowMapExecutor
-  {
-    PrepareShadowRendering(...args) { calls.push([ "prepare", ...args ]); return "atlas"; }
-    BeginShadowRendering(...args) { calls.push([ "begin", ...args ]); }
-    EndShadowRendering(...args) { calls.push([ "end", ...args ]); }
-    DrawToShadowMapResult(...args) { calls.push([ "draw", ...args ]); return "result"; }
-  }
+  const texture = { GetWidth: () => 4096, GetHeight: () => 2048 };
+  const handle = { IsValid: () => true, Get: () => texture };
+
+  const esm = {
+    PushViewport() { calls.push("PushViewport"); },
+    PopViewport() { calls.push("PopViewport"); },
+    PushRenderTarget() { calls.push("PushRenderTarget"); },
+    PopRenderTarget() { calls.push("PopRenderTarget"); },
+    PushDepthStencilBuffer(value) { calls.push([ "PushDepthStencilBuffer", value ]); },
+    PopDepthStencilBuffer() { calls.push("PopDepthStencilBuffer"); },
+    UpdateRenderTargetViewport(w, h) { calls.push([ "UpdateRenderTargetViewport", w, h ]); },
+    SetViewport(viewport) { calls.push([ "SetViewport", viewport ]); }
+  };
+
+  const renderContext = {
+    GetEffectStateManager: () => esm,
+    Clear(options) { calls.push([ "Clear", options ]); return true; },
+    SetReadOnlyDepth(enable) { calls.push([ "SetReadOnlyDepth", enable ]); return true; }
+  };
+
+  const borrowed = [];
+  const gpuResourcePool = {
+    GetTempTexture(name, description) { borrowed.push([ name, description ]); return handle; }
+  };
 
   const shadowMap = new core.Tr2ShadowMap();
-  const context = new core.Tr2RenderContext();
-  assert.throws(() => context.SetShadowMapExecutor({}), /CjsShadowMapExecutor/u);
-  assert.throws(() => shadowMap.PrepareShadowRendering(context), /no CjsShadowMapExecutor/u);
 
-  const base = new core.CjsShadowMapExecutor();
-  assert.throws(() => base.PrepareShadowRendering(shadowMap, context), /must be implemented/u);
-  assert.throws(() => base.BeginShadowRendering(shadowMap, 0, context), /must be implemented/u);
-  assert.throws(() => base.EndShadowRendering(shadowMap, context), /must be implemented/u);
-  assert.throws(() => base.DrawToShadowMapResult(shadowMap, null, null, 1, context), /must be implemented/u);
+  assert.equal(shadowMap.PrepareShadowRendering(gpuResourcePool, renderContext), handle);
 
-  const executor = new RecordingExecutor();
-  context.SetShadowMapExecutor(executor);
-  assert.equal(shadowMap.PrepareShadowRendering(context), "atlas");
-  shadowMap.BeginShadowRendering(context, 3);
-  shadowMap.EndShadowRendering(context);
-  assert.equal(shadowMap.DrawToShadowMapResult(context, "depth", "atlas", 0.75), "result");
-  assert.deepEqual(calls.map(call => call[0]), [ "prepare", "begin", "end", "draw" ]);
-  assert.deepEqual(calls[0].slice(1), [ shadowMap, context ]);
-  assert.deepEqual(calls[1].slice(1), [ shadowMap, 3, context ]);
-  assert.deepEqual(calls[3].slice(1), [ shadowMap, "depth", "atlas", 0.75, context ]);
+  // The depth surface is the shadow map, so the colour target goes on empty and
+  // the viewport follows the borrowed texture rather than the atlas fields.
+  assert.equal(borrowed[0][0], "cascadedShadowDepth");
+  assert.deepEqual(
+    calls.map(call => (Array.isArray(call) ? call[0] : call)),
+    [ "PushViewport", "PushRenderTarget", "PushDepthStencilBuffer", "UpdateRenderTargetViewport", "Clear", "SetReadOnlyDepth" ]
+  );
+  assert.deepEqual(calls[3], [ "UpdateRenderTargetViewport", 4096, 2048 ]);
+
+  // Eight cells per row: split 8 wraps to x 0 and drops one cell down.
+  calls.length = 0;
+  shadowMap.BeginShadowRendering(renderContext, 3);
+  shadowMap.BeginShadowRendering(renderContext, 8);
+  assert.equal(calls[0][1].x, 3 * shadowMap.size);
+  assert.equal(calls[0][1].y, 0);
+  assert.equal(calls[1][1].x, 0);
+  assert.equal(calls[1][1].y, shadowMap.size);
+
+  // Teardown unwinds exactly what the prepare pushed, in reverse.
+  calls.length = 0;
+  shadowMap.EndShadowRendering(renderContext);
+  assert.deepEqual(
+    calls.map(call => (Array.isArray(call) ? call[0] : call)),
+    [ "SetReadOnlyDepth", "PopRenderTarget", "PopDepthStencilBuffer", "PopViewport" ]
+  );
 });
 
+test("a pool that cannot supply the depth surface stops the pass", () =>
+{
+  // Carbon returns an empty texture here and notes it happens on a lost device
+  // (Tr2ShadowMap.cpp:232-236). Nothing should be pushed if there is no surface.
+  const calls = [];
+  const renderContext = {
+    GetEffectStateManager: () => ({ PushViewport() { calls.push("push"); } }),
+    Clear() { calls.push("clear"); return true; },
+    SetReadOnlyDepth() { return true; }
+  };
+  const gpuResourcePool = { GetTempTexture: () => ({ IsValid: () => false }) };
+
+  assert.equal(new core.Tr2ShadowMap().PrepareShadowRendering(gpuResourcePool, renderContext), null);
+  assert.deepEqual(calls, []);
+});
+
+test("DrawToShadowMapResult refuses rather than returning no shadow", () =>
+{
+  // It needs Tr2Renderer.DrawScreenQuad, which is unported. A silent no-result
+  // would render an unshadowed scene and look plausible.
+  assert.throws(
+    () => new core.Tr2ShadowMap().DrawToShadowMapResult({}, {}, null, null, 1),
+    /DrawScreenQuad/u
+  );
+});
 test("debug getters preserve Carbon values", () =>
 {
   const shadowMap = new core.Tr2ShadowMap();

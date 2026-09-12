@@ -5,6 +5,8 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { PixelFormat } from "#consts/render-context";
+import { Tr2GpuUsage } from "#consts/render-context";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Denoiser } from "../generated/trinityCore/Tr2Denoiser.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
@@ -479,45 +481,119 @@ export class Tr2ShadowMap extends CjsModel
     return setup;
   }
 
-  /** Delegates physical atlas allocation and setup to the installed engine. */
+  /**
+   * Allocates the cascaded depth surface and makes it the render target.
+   *
+   * @param {object} gpuResourcePool The pool to borrow the surface from.
+   * @param {object} renderContext The context to set state on.
+   * @returns {object|null} The borrowed depth texture, or null when the pool
+   *   could not supply one - which Carbon notes happens on a lost device.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("GPU pool allocation is realized by the nominal shadow executor installed on the render context.")
-  PrepareShadowRendering(renderContext)
+  @impl.implemented
+  PrepareShadowRendering(gpuResourcePool, renderContext)
   {
-    return renderContext.GetShadowMapExecutor().PrepareShadowRendering(this, renderContext);
+    const cascadedShadowDepth = gpuResourcePool.GetTempTexture("cascadedShadowDepth", {
+      width: this.size * this.#width,
+      height: this.size * this.#height,
+      format: PixelFormat.PIXEL_FORMAT_D32_FLOAT,
+      gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE
+    });
+
+    if (!cascadedShadowDepth || !cascadedShadowDepth.IsValid()) return null;
+
+    const esm = renderContext.GetEffectStateManager();
+
+    // The depth stencil IS the shadow map, so the colour target is pushed empty.
+    esm.PushViewport();
+    esm.PushRenderTarget();
+    esm.PushDepthStencilBuffer(cascadedShadowDepth);
+    esm.UpdateRenderTargetViewport(cascadedShadowDepth.Get().GetWidth(), cascadedShadowDepth.Get().GetHeight());
+
+    // Carbon wants a clean depth buffer for this pass and says so.
+    renderContext.Clear({ depth: true, clearDepth: 1, clearStencil: 0 });
+    renderContext.SetReadOnlyDepth(false);
+
+    return cascadedShadowDepth;
   }
 
-  /** Delegates one atlas-cell render-pass begin to the installed engine. */
+  /**
+   * Points the viewport at one split's cell in the atlas.
+   *
+   * Eight cells per row: splits 0-7 fill the top row and 8 onward wrap to a
+   * second, which is why the row index is `splitIndex % 8` and the y offset is
+   * either zero or one cell down.
+   *
+   * @param {object} renderContext The context to set the viewport on.
+   * @param {number} splitIndex Which cascade split.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Viewport and physical depth-target state are engine realization details.")
+  @impl.implemented
   BeginShadowRendering(renderContext, splitIndex)
   {
-    return renderContext.GetShadowMapExecutor().BeginShadowRendering(this, splitIndex, renderContext);
+    const esm = renderContext.GetEffectStateManager();
+    const topRow = splitIndex < 8;
+
+    esm.SetViewport({
+      width: this.size,
+      height: this.size,
+      x: (topRow ? splitIndex : splitIndex % 8) * this.size,
+      y: topRow ? 0 : this.size,
+      minZ: 0,
+      maxZ: 1
+    });
   }
 
-  /** Delegates shadow rendering teardown to the installed engine. */
+  /**
+   * Unwinds everything `PrepareShadowRendering` pushed, in reverse.
+   *
+   * @param {object} renderContext The context to restore.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Physical render-state restoration is owned by the engine executor.")
+  @impl.implemented
   EndShadowRendering(renderContext)
   {
-    return renderContext.GetShadowMapExecutor().EndShadowRendering(this, renderContext);
+    renderContext.SetReadOnlyDepth(false);
+
+    const esm = renderContext.GetEffectStateManager();
+
+    esm.PopRenderTarget();
+    esm.PopDepthStencilBuffer();
+    esm.PopViewport();
   }
 
-  /** Delegates shadow-result realization and optional denoising to the engine. */
+  /**
+   * Resolves the cascaded depth into a screen-space shadow factor.
+   *
+   * UNPORTED, AND THE TWO REASONS ARE CONCRETE. Carbon borrows an R8 target,
+   * pushes it, sets `EveSpaceSceneCascadedShadowMap` and `DepthMap` on the shadow
+   * effect, draws a fullscreen quad, clears both parameters, then optionally runs
+   * the denoiser (`Tr2ShadowMap.cpp:278-300`). Two pieces of that do not exist
+   * here yet:
+   *
+   * - `Tr2Renderer::DrawScreenQuad` (`Tr2Renderer.h:226-227`) has no JS
+   *   counterpart, and it is the draw itself.
+   * - `Tr2Denoiser` is a generated shell under `trinity/generated`, so
+   *   `Apply` is not implemented.
+   *
+   * It throws rather than returning nothing, because a caller that silently got
+   * no shadow factor would render an unshadowed scene and look correct-ish.
+   *
+   * @param {object} _renderContext The context to draw against.
+   * @param {object} _gpuResourcePool The pool to borrow the result target from.
+   * @param {object} _depthMap The scene depth.
+   * @param {object} _cascadedShadowDepth The atlas produced by this pass.
+   * @param {number} _upscaling The denoiser's upscaling factor.
+   * @returns {object} Never; see above.
+   */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The engine owns temporary targets, fullscreen drawing and physical denoising.")
-  DrawToShadowMapResult(renderContext, depthMap, cascadedShadowDepth, upscaling)
+  @impl.notImplemented
+  @impl.reason("Needs Tr2Renderer.DrawScreenQuad, which is unported, and a real Tr2Denoiser.Apply rather than the generated shell.")
+  DrawToShadowMapResult(_renderContext, _gpuResourcePool, _depthMap, _cascadedShadowDepth, _upscaling)
   {
-    return renderContext.GetShadowMapExecutor().DrawToShadowMapResult(
-      this,
-      depthMap,
-      cascadedShadowDepth,
-      upscaling,
-      renderContext
+    throw new Error(
+      "Tr2ShadowMap.DrawToShadowMapResult: needs Tr2Renderer.DrawScreenQuad (unported) "
+      + "and Tr2Denoiser.Apply (generated shell)."
     );
   }
 

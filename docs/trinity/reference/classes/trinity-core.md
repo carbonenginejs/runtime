@@ -45,18 +45,6 @@ Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406....
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsShadowMapExecutor -->
-## `CjsShadowMapExecutor`
-
-Defines the nominal backend contract for realizing Trinity's cascaded-shadow intents.
-
-Its base methods throw until an engine supplies physical atlas and pass work.
-
-- Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/context/CjsShadowMapExecutor.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
 <!-- class:CjsVolumetricsExecutor -->
 ## `CjsVolumetricsExecutor`
 

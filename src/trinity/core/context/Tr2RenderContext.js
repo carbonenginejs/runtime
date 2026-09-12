@@ -37,7 +37,6 @@ import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { Tr2PerObjectData } from "../rawData/perObjectData/Tr2PerObjectData.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
-import { CjsShadowMapExecutor } from "./CjsShadowMapExecutor.js";
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
 import { CjsVolumetricsExecutor } from "./CjsVolumetricsExecutor.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
@@ -60,7 +59,6 @@ export class Tr2RenderContext extends CjsModel
 
   #stepExecutor = DIRECT_STEP_EXECUTOR;
 
-  #shadowMapExecutor = null;
 
   #volumetricsExecutor = null;
 
@@ -186,29 +184,6 @@ export class Tr2RenderContext extends CjsModel
     return this;
   }
 
-  /**
-   * Installs the nominal engine implementation for cascaded-shadow realization.
-   * Passing null removes it; all shadow operations then fail loudly on use.
-   */
-  SetShadowMapExecutor(executor)
-  {
-    if (executor !== null && !(executor instanceof CjsShadowMapExecutor))
-    {
-      throw new TypeError("Tr2RenderContext.SetShadowMapExecutor expects a CjsShadowMapExecutor or null.");
-    }
-    this.#shadowMapExecutor = executor;
-    return this;
-  }
-
-  /** Returns the installed shadow executor, rejecting incomplete composition. */
-  GetShadowMapExecutor()
-  {
-    if (!this.#shadowMapExecutor)
-    {
-      throw new Error("Tr2RenderContext has no CjsShadowMapExecutor installed.");
-    }
-    return this.#shadowMapExecutor;
-  }
 
   /**
    * Installs the nominal engine implementation for volumetric realization.
@@ -641,6 +616,20 @@ export class Tr2RenderContext extends CjsModel
   Clear(options)
   {
     return this.#requireAL("Clear").Clear(options);
+  }
+
+  /**
+   * Binds the depth buffer read-only, so it can be sampled while still tested.
+   *
+   * Carbon reaches this straight off the context because its Tr2RenderContext IS
+   * the backend context; ours forwards, like every other device verb here.
+   *
+   * @param {boolean} enable Whether depth is read-only.
+   * @returns {boolean} Whether the backend accepted it.
+   */
+  SetReadOnlyDepth(enable)
+  {
+    return this.#requireAL("SetReadOnlyDepth").SetReadOnlyDepth(enable);
   }
 
   /**

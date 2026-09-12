@@ -2,7 +2,6 @@ export * from "./Tr2RenderContext.js";
 export * from "./Tr2PrimaryRenderContext.js";
 export * from "./Tr2VisibilityResults/index.js";
 export * from "./CjsDirectTrinityStepExecutor.js";
-export * from "./CjsShadowMapExecutor.js";
 export * from "./CjsTrinityStepExecutor.js";
 export * from "./CjsVolumetricsExecutor.js";
 // The stub render context is a BACKEND and lives with the other backends now,
