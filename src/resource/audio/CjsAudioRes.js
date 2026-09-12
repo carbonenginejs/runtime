@@ -1,3 +1,4 @@
+import { coerceNonNegativeInteger } from "#utils/validation";
 import { CjsError } from "#utils/errors";
 import { CjsResource } from "../CjsResource.js";
 
@@ -275,14 +276,9 @@ export class CjsAudioRes extends CjsResource
     /** Normalizes one safe integer used by audio byte windows. */
     static normalizeNonNegativeInteger(value, label)
     {
-        const number = Number(value);
-
-        if (!Number.isSafeInteger(number) || number < 0)
-        {
-            throw new TypeError(`${label} must be a non-negative integer`);
-        }
-
-        return number;
+        // Byte-identical to the shared coercion, message included. Kept as a
+        // static because callers reach it through the class.
+        return coerceNonNegativeInteger(value, label);
     }
 
     /** Normalizes a requested range within one semantic audio file. */

@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
+import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import {
-  isPlainObject
 } from "#utils/is";
 import { copyBytes } from "#utils/bytes";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
@@ -99,10 +99,7 @@ export class Tr2EffectLibrary extends CjsModel
    */
   static fromCarbonBinary(record)
   {
-    if (!isPlainObject(record))
-    {
-      throw new TypeError("Carbon effect library record must be an object");
-    }
+    assertCarbonRecord(record, "library");
 
     const library = new this();
     library.payloadSize = record.payloadSize;

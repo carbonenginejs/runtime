@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
+import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema } from "#schema";
 import { CjsModel } from "#model";
 import {
-  isPlainObject
 } from "#utils/is";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
 
@@ -46,10 +46,7 @@ export class Tr2EffectConstant extends CjsModel
    */
   static fromCarbonBinary(record)
   {
-    if (!isPlainObject(record))
-    {
-      throw new TypeError("Carbon effect constant record must be an object");
-    }
+    assertCarbonRecord(record, "constant");
 
     const constant = new this();
     constant.name = recordText(record.name);

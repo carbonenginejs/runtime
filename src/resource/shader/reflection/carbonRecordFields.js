@@ -1,3 +1,5 @@
+import { float32FromBits, float32ToBits, readU32LE } from "#utils/bytes";
+
 // Shared field accessors for Carbon v15 description records.
 //
 // The record tree is what the one Carbon effect reader emits
@@ -16,8 +18,6 @@
 // apart by the round trip rather than by separation: records in, classes, records
 // out, compared byte for byte over the shipped corpus, so a mistake that
 // satisfied both sides would have to be an exact inverse of itself.
-
-const rawValueBuffer = new DataView(new ArrayBuffer(4));
 
 /**
  * Reads the text out of an arena string reference.
@@ -45,11 +45,7 @@ export function recordText(ref)
 export function recordRawValue(bytes)
 {
   if (!bytes || bytes.length < 4) return 0;
-  rawValueBuffer.setUint8(0, bytes[0]);
-  rawValueBuffer.setUint8(1, bytes[1]);
-  rawValueBuffer.setUint8(2, bytes[2]);
-  rawValueBuffer.setUint8(3, bytes[3]);
-  return rawValueBuffer.getUint32(0, true);
+  return readU32LE(bytes, 0);
 }
 
 /**
@@ -66,8 +62,9 @@ export function recordRawValue(bytes)
  */
 export function recordRawBits(value)
 {
-  rawValueBuffer.setFloat32(0, Number.isFinite(value) ? value : 0, true);
-  return rawValueBuffer.getUint32(0, true);
+  // The non-finite substitution is the RECORD's rule, not the conversion's: a
+  // sampler record has no encoding for NaN, so it stores zero.
+  return float32ToBits(Number.isFinite(value) ? value : 0);
 }
 
 /**
@@ -97,12 +94,14 @@ export function toRecordText(value)
  */
 export function toRecordRawValue(rawValue)
 {
-  const bytes = new Uint8Array(4);
-  rawValueBuffer.setUint32(0, rawValue >>> 0, true);
-  for (let index = 0; index < 4; index += 1)
-  {
-    bytes[index] = rawValueBuffer.getUint8(index);
-  }
+  const
+    value = rawValue >>> 0,
+    bytes = new Uint8Array(4);
+
+  bytes[0] = value & 0xff;
+  bytes[1] = (value >>> 8) & 0xff;
+  bytes[2] = (value >>> 16) & 0xff;
+  bytes[3] = (value >>> 24) & 0xff;
   return bytes;
 }
 
@@ -118,8 +117,7 @@ export function toRecordRawValue(rawValue)
  */
 export function toRecordFloat(bits)
 {
-  rawValueBuffer.setUint32(0, (bits ?? 0) >>> 0, true);
-  return rawValueBuffer.getFloat32(0, true);
+  return float32FromBits(bits ?? 0);
 }
 
 /**

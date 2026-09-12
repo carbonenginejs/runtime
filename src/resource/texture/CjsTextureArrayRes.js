@@ -1,3 +1,4 @@
+import { destroyAdapterValue } from "../CjsResource.js";
 import { CjsSchema } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsResource } from "../CjsResource.js";
@@ -532,12 +533,6 @@ export class CjsTextureArrayRes extends CjsResource
   static payload = ResourceRequirement.TEXTURE_ARRAY;
 }
 
-function destroyAdapterValue(value)
-{
-  if (!value || (typeof value !== "object" && typeof value !== "function")) return;
-  const destroy = value.Destroy || value.Dispose || value.destroy || value.dispose;
-  if (typeof destroy === "function") destroy.call(value);
-}
 
 CjsSchema.define(CjsTextureArrayRes, {
   className: "CjsTextureArrayRes",

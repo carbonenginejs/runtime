@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
+import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { copyBytes } from "#utils/bytes";
 import {
-  isPlainObject,
   isUint32
 } from "#utils/is";
 import { Tr2SamplerSetup } from "../sampler/Tr2SamplerSetup.js";
@@ -163,10 +163,7 @@ export class Tr2EffectStageInput extends CjsModel
    */
   static fromCarbonBinary(record)
   {
-    if (!isPlainObject(record))
-    {
-      throw new TypeError("Carbon effect stage record must be an object");
-    }
+    assertCarbonRecord(record, "stage");
 
     const input = this.fromCarbonBinaryInput(record, record.type);
     input.signature.pipelineInputCount = record.pipelineInputs.length;
@@ -214,10 +211,7 @@ export class Tr2EffectStageInput extends CjsModel
    */
   static fromCarbonBinaryInput(record, stageType = -1)
   {
-    if (!isPlainObject(record))
-    {
-      throw new TypeError("Carbon effect stage-data record must be an object");
-    }
+    assertCarbonRecord(record, "stage-data");
 
     const constantValues = copyBytes(recordBytes(record.defaultValues));
 

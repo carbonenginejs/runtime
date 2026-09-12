@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
+import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
-import { isPlainObject } from "#utils/is";
 import {
   recordRawBits,
   recordText,
@@ -65,10 +65,7 @@ export class Tr2SamplerSetup extends CjsModel
    */
   static fromCarbonBinary(record)
   {
-    if (!isPlainObject(record))
-    {
-      throw new TypeError("Carbon effect sampler record must be an object");
-    }
+    assertCarbonRecord(record, "sampler");
 
     const sampler = new this();
     sampler.isDynamic = !!record.isDynamic;

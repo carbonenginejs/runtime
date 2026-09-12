@@ -978,10 +978,25 @@ CjsSchema.define(CjsResource, {
   }
 });
 
-function destroyAdapterValue(value) {
-  if (!value || typeof value !== "object") return;
+/**
+ * Release one adapter value, whatever it calls its teardown.
+ *
+ * FOUR SPELLINGS, AND THEY ARE NOT A HEDGE. `Destroy` is this runtime's and
+ * Carbon's; `destroy` is the platform's — a `GPUTexture`, `GPUBuffer` and
+ * `AudioBufferSourceNode` all spell it lowercase — and `Dispose`/`dispose` cover
+ * the same split for anything that names it that way. An adapter slot holds a
+ * DEVICE object we did not define, so accepting the platform's spelling is a
+ * bridge, not defensive coding against ourselves.
+ *
+ * Functions are accepted as well as objects: the texture-array path stores a
+ * callable adapter value, and skipping it silently leaked whatever it held.
+ *
+ * @param {*} value Adapter slot contents.
+ */
+export function destroyAdapterValue(value)
+{
+  if (!value || (typeof value !== "object" && typeof value !== "function")) return;
+
   const destroy = value.Destroy || value.Dispose || value.destroy || value.dispose;
-  if (typeof destroy === "function") {
-    destroy.call(value);
-  }
+  if (typeof destroy === "function") destroy.call(value);
 }

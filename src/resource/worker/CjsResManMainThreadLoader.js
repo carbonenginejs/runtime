@@ -1,3 +1,5 @@
+import { assertResourceSource } from "./protocol.js";
+
 /**
  * Direct execution strategy that reads through a structural source and invokes registered format facades on the caller thread.
  *
@@ -99,12 +101,4 @@ function readFormatOnCurrentThread(
 
   throw new TypeError(`${Format.name} does not expose a read operation.`);
 }
-
-function assertResourceSource(source)
-{
-  if (!source || (typeof source !== "object" && typeof source !== "function")
-    || typeof source.Read !== "function")
-  {
-    throw new TypeError("Resource source must provide Read(path, options).");
-  }
-}
+

@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
+import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import {
-  isPlainObject
 } from "#utils/is";
 import { requireShaderStageType, SHADER_STAGE_COUNT } from "./shaderStage.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
@@ -64,10 +64,7 @@ export class Tr2Pass extends CjsModel
    */
   static fromCarbonBinary(record)
   {
-    if (!isPlainObject(record))
-    {
-      throw new TypeError("Carbon effect pass record must be an object");
-    }
+    assertCarbonRecord(record, "pass");
 
     const pass = new this();
     const renderStateIds = new Set();

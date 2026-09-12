@@ -1,9 +1,9 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
+import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
 import { CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { dwordToFloat } from "#math/num";
 import {
-  isPlainObject
 } from "#utils/is";
 import { recordRawValue, recordText, toRecordRawValue, toRecordText } from "./carbonRecordFields.js";
 
@@ -46,10 +46,7 @@ export class Tr2EffectParameterAnnotation extends CjsModel
    */
   static fromCarbonBinary(record)
   {
-    if (!isPlainObject(record))
-    {
-      throw new TypeError("Carbon effect annotation record must be an object");
-    }
+    assertCarbonRecord(record, "annotation");
 
     const annotation = new this();
     annotation.name = recordText(record.name);

@@ -1,4 +1,9 @@
 /** Returns a zero-copy Uint8Array view over supported byte input. */
+// One reused conversion view. `hash.js` keeps its own for the same reason:
+// these run per record, and allocating a 4-byte ArrayBuffer each time is
+// pure garbage for a value that is read immediately and never retained.
+const scratch = new DataView(new ArrayBuffer(4));
+
 export function asUint8Array(value, label = "value")
 {
     if (value instanceof Uint8Array)
@@ -133,7 +138,22 @@ export function readU32LE(bytes, offset)
  */
 export function float32FromBits(value)
 {
-    const view = new DataView(new ArrayBuffer(4));
-    view.setUint32(0, value >>> 0, true);
-    return view.getFloat32(0, true);
+    scratch.setUint32(0, value >>> 0, true);
+    return scratch.getFloat32(0, true);
+}
+
+/**
+ * The bit pattern of a 32-bit float.
+ *
+ * The inverse of `float32FromBits`, and the reason both live here: a caller that
+ * round-trips a float through its bits needs the two halves to agree about byte
+ * order, and two modules each owning one half is how they stop agreeing.
+ *
+ * @param {number} value Float value.
+ * @returns {number} Unsigned 32-bit pattern encoding that float.
+ */
+export function float32ToBits(value)
+{
+    scratch.setFloat32(0, value, true);
+    return scratch.getUint32(0, true);
 }

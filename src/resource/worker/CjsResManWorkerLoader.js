@@ -1,4 +1,4 @@
-import { Message, Operation } from "./protocol.js";
+import { Message, Operation, assertResourceSource } from "./protocol.js";
 import { CjsResManMainThreadLoader } from "./CjsResManMainThreadLoader.js";
 
 const DEFAULT_WORKER_OPTIONS = Object.freeze({
@@ -338,13 +338,6 @@ export class CjsResManWorkerLoader
   #OnError(event) {
     const reason = event?.error || event || new Error("Resource worker failed.");
     this.Disable(reason);
-  }
-}
-
-function assertResourceSource(source) {
-  if (!source || (typeof source !== "object" && typeof source !== "function")
-    || typeof source.Read !== "function") {
-    throw new TypeError("Resource source must provide Read(path, options).");
   }
 }
 
