@@ -189,6 +189,12 @@ export function computeBoundsFromTriangles(triangles)
     return { minBounds, maxBounds };
 }
 
+// Double-precision scratch for generateNormals. Plain Arrays deliberately: see
+// the note at their use for why the element type is not the math namespace's.
+const NORMAL_SCRATCH = [ 0, 0, 0 ];
+const EDGE_B_SCRATCH = [ 0, 0, 0 ];
+const EDGE_C_SCRATCH = [ 0, 0, 0 ];
+
 /**
  * Generate area-weighted vertex normals from positions and triangle indices.
  *
@@ -205,17 +211,23 @@ export function generateNormals(positions, indices)
         vertexCount = positions.length / 3,
         normals = new Float32Array(positions.length);
 
-    // Pooled once for the whole mesh, not per triangle. The previous form cost
-    // FOUR array literals on every iteration: the face normal, both cross
-    // operands, and the offset list below.
+    // Module scratch, not pooled, and the element type is the point. The
+    // previous form cost FOUR array literals per triangle; these cost none. But
+    // vec3.alloc() would hand back a Float32Array, and the literals it replaced
+    // were plain Arrays - float64. Rounding each edge vector and face normal to
+    // f32 BEFORE accumulating changes the result: ~1e-7 relative at world scale,
+    // and far worse wherever a cross product nearly cancels.
     //
-    // The pool hands back recycled, dirty memory, which is safe here because
-    // every component of all three is written before it is read - `cross` fills
-    // its whole destination and only reads its operands.
-    const
-        faceNormal = vec3.alloc(),
-        edgeB = vec3.alloc(),
-        edgeC = vec3.alloc();
+    // THE RULE: a scratch's element type follows its DESTINATION, not whatever
+    // the math namespace hands out. Here the arithmetic is double and only the
+    // final store is f32, so the scratch is double.
+    //
+    // Reused across calls, which is safe because this runs to completion without
+    // yielding and never re-enters. Every component is written before it is read:
+    // `cross` fills its whole destination and only reads its operands.
+    const faceNormal = NORMAL_SCRATCH,
+        edgeB = EDGE_B_SCRATCH,
+        edgeC = EDGE_C_SCRATCH;
 
     for (let t = 0; t < indices.length; t += 3)
     {
@@ -255,9 +267,6 @@ export function generateNormals(positions, indices)
         normals[ic + 2] += nz;
     }
 
-    vec3.unalloc(faceNormal);
-    vec3.unalloc(edgeB);
-    vec3.unalloc(edgeC);
 
     for (let i = 0; i < vertexCount; i++)
     {
