@@ -18,6 +18,7 @@
 // anything: no polymorphism dispatches on it, and a WebGL sibling returns a
 // different shape because WebGPU folds state into a pipeline at creation while
 // WebGL mutates it per draw.
+import { color } from "#math/color";
 import {
   BlendMode,
   BlendOperation,
@@ -291,15 +292,31 @@ function colorWriteMask(value)
  * @param {number} value Raw ARGB colour.
  * @returns {object} Normalised channels.
  */
+// One decode of the packed ARGB word, reused rather than restated. `color`
+// already owns the layout - Carbon's `Color(uint32_t)`, alpha in bits 24-31 then
+// r, g, b - and having the same four shifts written twice is how the two stop
+// agreeing. The scratch is module-scope because this runs per render state and
+// the result is copied out immediately.
+// A PLAIN array, deliberately, and NOT a math-library one.
+//
+// The render state carries doubles: 0x80 normalises to 0.5019607843137255, and
+// a single-precision round trip returns 0.501960813999176 instead. A test pins
+// the exact value, and it caught this.
+//
+// The rule is about the CONTRACT, not about today's element type. A math array's
+// element type is not ours to assume - gl-matrix exposes `setMatrixArrayType`,
+// and this repository declares array types deliberately through the schema's
+// per-type decorators rather than inferring them. So a value whose precision is
+// part of its meaning must not be routed through a math array at all, whatever
+// that array happens to be built from right now.
+const blendScratch = [ 0, 0, 0, 0 ];
+
 function blendConstant(value)
 {
-  const unsigned = value >>> 0;
-  return {
-    r: ((unsigned >>> 16) & 0xff) / 255,
-    g: ((unsigned >>> 8) & 0xff) / 255,
-    b: (unsigned & 0xff) / 255,
-    a: ((unsigned >>> 24) & 0xff) / 255
-  };
+  color.fromARGB(blendScratch, value >>> 0);
+
+  // The object shape is what the recipe consumes; only the bit layout is shared.
+  return { r: blendScratch[0], g: blendScratch[1], b: blendScratch[2], a: blendScratch[3] };
 }
 
 /**

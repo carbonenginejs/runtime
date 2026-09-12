@@ -426,7 +426,11 @@ function canCloneWorkerValue(value, seen = new Set()) {
   if (value instanceof ArrayBuffer || ArrayBuffer.isView(value) || value instanceof Date) {
     return true;
   }
-  if (seen.has(value)) return false;
+  // A REVISIT IS NOT A REFUSAL. `seen` is a visited set, never unwound, so it
+  // cannot tell a cycle from a shared subobject - and `structuredClone` handles
+  // BOTH. Returning false here rejected `{ a: shared, b: shared }`, an entirely
+  // ordinary options shape, and silently cost the worker dispatch for it.
+  if (seen.has(value)) return true;
   seen.add(value);
   if (Array.isArray(value)) {
     return value.every(entry => canCloneWorkerValue(entry, seen));

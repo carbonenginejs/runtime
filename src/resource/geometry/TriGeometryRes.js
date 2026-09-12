@@ -18,6 +18,11 @@ import {
   resourcePayloadError
 } from "../resourceBoundary.js";
 
+// Scratch edges for the picking cross product. Picking is synchronous and the
+// result is consumed before the next hit, so one pair is enough.
+const edgeAB = vec3.create();
+const edgeAC = vec3.create();
+
 /**
  * Resource record that owns geometry payload facts (meshes, optional
  * skeletons and animations) and LOD-force metadata, while engine packages
@@ -1113,15 +1118,12 @@ export class TriGeometryRes extends CjsResource
       }
       nearest.boneIndex = this.getMeshBoneIndex(mesh, vertexIndexA);
       vec3.copy(nearest.position, point);
-      nearest.unnormalizedNormal[0] =
-        (vertexB[1] - vertexA[1]) * (vertexC[2] - vertexA[2]) -
-        (vertexB[2] - vertexA[2]) * (vertexC[1] - vertexA[1]);
-      nearest.unnormalizedNormal[1] =
-        (vertexB[2] - vertexA[2]) * (vertexC[0] - vertexA[0]) -
-        (vertexB[0] - vertexA[0]) * (vertexC[2] - vertexA[2]);
-      nearest.unnormalizedNormal[2] =
-        (vertexB[0] - vertexA[0]) * (vertexC[1] - vertexA[1]) -
-        (vertexB[1] - vertexA[1]) * (vertexC[0] - vertexA[0]);
+      // (B - A) x (C - A). This was written out in full one line above a
+      // `triangleNormalTo` call that computes the NORMALISED version of the same
+      // vector, so the winding convention lived in two places at once.
+      vec3.subtract(edgeAB, vertexB, vertexA);
+      vec3.subtract(edgeAC, vertexC, vertexA);
+      vec3.cross(nearest.unnormalizedNormal, edgeAB, edgeAC);
       triangleNormalTo(normal, vertexA, vertexB, vertexC);
       vec3.copy(nearest.normal, normal);
       nearest.distance = distance;
