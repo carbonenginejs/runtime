@@ -8,7 +8,7 @@ import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, type } from "#schema";
 import { EveChildPartData, EveChildPartDataPartData } from "./child/EveChildPartData/index.js";
-import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes.js";
+import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes/index.js";
 import { EveStation2 } from "./spaceObject/EveStation2.js";
 import { Tr2Lod } from "./EveLODHelper.js";
 

@@ -5,9 +5,9 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
+import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import {
@@ -15,45 +15,6 @@ import {
   CreateBoosterFlares,
   GenerateBoosterLightPhase
 } from "./boosterUtilities.js";
-
-
-/**
- * One authored booster placement: its local transform, functionality inputs,
- * atlas slots, light scale and whether it emits a trail.
- */
-@type.define({ className: "EveBoosterSet2Item", family: "eve/attachment/boosters" })
-export class EveBoosterSet2Item extends CjsModel
-{
-  @io.rebuild("packedGeometry")
-  @io.persist
-  @type.mat4
-  transform = mat4.create();
-
-  @io.rebuild("packedGeometry")
-  @io.persist
-  @type.vec4
-  functionality = vec4.fromValues(0, 1, 1, 1);
-
-  @io.rebuild("packedGeometry")
-  @io.persist
-  @type.boolean
-  hasTrail = true;
-
-  @io.rebuild("packedGeometry")
-  @io.persist
-  @type.uint32
-  atlasIndex0 = 0;
-
-  @io.rebuild("packedGeometry")
-  @io.persist
-  @type.uint32
-  atlasIndex1 = 0;
-
-  @io.rebuild("packedGeometry")
-  @io.persist
-  @type.float32
-  lightScale = 1;
-}
 
 
 /**

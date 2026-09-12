@@ -11,7 +11,7 @@ export * from "./EveChildFogVolume.js";
 export * from "./EveChildInheritProperties.js";
 export * from "./EveChildInstanceMeshRenderer.js";
 export * from "./EveChildInstanceTransform.js";
-export * from "./EveChildInstancedMeshes.js";
+export * from "./EveChildInstancedMeshes/index.js";
 export * from "./EveChildLightingOverride.js";
 export * from "./EveChildLink.js";
 export * from "./EveChildMesh.js";

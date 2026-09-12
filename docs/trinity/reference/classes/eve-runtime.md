@@ -766,7 +766,7 @@ A child that instantiates a source template across a list of authored or locator
 One geometry-and-areas record inside an EveChildInstancedMeshes child, holding its instance placements, per-instance world cull spheres, instance flags and manager registration handles.
 
 - Export: @carbonenginejs/runtime/trinity/eve
-- Source: src/trinity/eve/child/EveChildInstancedMeshes.js
+- Source: src/trinity/eve/child/EveChildInstancedMeshes/EveChildInstancedMesh.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -776,7 +776,7 @@ One geometry-and-areas record inside an EveChildInstancedMeshes child, holding i
 One shader area of an instanced mesh: the effect, its batch type, the area range within the mesh, its cached effect hash and the mesh-group handle it is registered under.
 
 - Export: @carbonenginejs/runtime/trinity/eve
-- Source: src/trinity/eve/child/EveChildInstancedMeshes.js
+- Source: src/trinity/eve/child/EveChildInstancedMeshes/EveChildInstancedMeshArea.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -786,7 +786,7 @@ One shader area of an instanced mesh: the effect, its batch type, the area range
 Space-object child that hands batches of instanced meshes to the engine's instanced mesh manager, owning their registration handles, instance flags and world cull bounds.
 
 - Export: @carbonenginejs/runtime/trinity/eve
-- Source: src/trinity/eve/child/EveChildInstancedMeshes.js
+- Source: src/trinity/eve/child/EveChildInstancedMeshes/EveChildInstancedMeshes.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -796,7 +796,7 @@ Space-object child that hands batches of instanced meshes to the engine's instan
 A single placement of an instanced mesh: its transform and the index of its cull sphere in the owning mesh's instance sphere list.
 
 - Export: @carbonenginejs/runtime/trinity/eve
-- Source: src/trinity/eve/child/EveChildInstancedMeshes.js
+- Source: src/trinity/eve/child/EveChildInstancedMeshes/EveChildInstancedMeshInstance.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -1561,7 +1561,7 @@ Owns a hull's authored booster placements and derives from them the glow flares,
 One authored booster placement: its local transform, functionality inputs, atlas slots, light scale and whether it emits a trail.
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
-- Source: `src/trinity/eve/attachment/booster/EveBoosterSet2.js`
+- Source: `src/trinity/eve/attachment/booster/EveBoosterSet2Item.js`
 - Visibility: Public
 - Kind: Carbon
 
