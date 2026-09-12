@@ -70,8 +70,8 @@ Dependency-free contract for one node in a Trinity render graph.
 
 A stored script callback that can be invoked later.
 
-- Export: `@carbonenginejs/runtime/contracts`
-- Source: `src/global/contracts/CjsScriptCallback.js`
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CjsScriptCallback.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

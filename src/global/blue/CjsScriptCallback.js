@@ -138,3 +138,10 @@ CjsSchema.decorateMethod(CjsScriptCallback, "Call", impl.adapted);
 CjsSchema.decorateMethod(CjsScriptCallback, "Call", impl.reason("Carbon returns BlueScriptCallbackStatus so a C++ caller can see a Python exception; JavaScript shares one exception mechanism, so a throwing callback propagates and no status is returned."));
 CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", impl.adapted);
 CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", impl.reason("Carbon returns BlueScriptCallbackStatus so a C++ caller can see a Python exception; JavaScript shares one exception mechanism, so a throwing callback propagates and no status is returned."));
+
+// THE DONOR IS NAMED, not left to be derived from this class's name. The port
+// keeps its Cjs name - schema can call a class whatever we want - and this
+// declaration is the only thing tying it back to BlueScriptCallback. Without it
+// a deliberately renamed port is indistinguishable from an invention, which is
+// exactly how this class read before 2026-09-13.
+CjsSchema.define(CjsScriptCallback, { className: "CjsScriptCallback", carbon: "BlueScriptCallback" });

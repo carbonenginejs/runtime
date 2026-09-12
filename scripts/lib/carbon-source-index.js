@@ -41,6 +41,17 @@ export async function sourceIndex(packageRoot, carbonRoot)
             if (!classes.has(node.id.name)) classes.set(node.id.name, []);
             classes.get(node.id.name).push({ file: relative, node });
         }
+        // A class may declare the donor it ports under a different name, with
+        // `carbon:` in its type.define / CjsSchema.define. That declaration is
+        // the author's, and it is the only thing tying a deliberately renamed
+        // port back to its donor - CjsScriptCallback to BlueScriptCallback, or
+        // every Tr2*ALStub to the one Tr2*AL name Carbon gives all backends.
+        // Without it a renamed port reads here as a missing one.
+        for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"(\w+)"/g))
+        {
+            if (!classes.has(donor)) classes.set(donor, []);
+            classes.get(donor).push({ file: relative, node: null, declared: true });
+        }
         if (relative.split("/").includes("generated")) continue;
         const head = source.match(/^(?:\s*\/\/[^\n]*(?:\n|$))+/)?.[0] ?? "";
         if (!head.includes("Source:")) continue;

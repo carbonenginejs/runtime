@@ -24,7 +24,13 @@ export function headerTypes(source)
 {
     const masked = maskCpp(source);
     const result = [];
-    const pattern = /^(?:(class|struct)\s+(\w+)|BLUE_(CLASS|INTERFACE)\s*\(\s*(\w+)\s*\))/gm;
+    // The optional ALL-CAPS group is a DLL export or vtable macro - BLUEIMPORT,
+    // CARBON_CORE_API, BLUE_NOVTABLE, API - which sits between the keyword and
+    // the real name. Without it `class BLUEIMPORT BlueScriptCallback` indexes a
+    // class called BLUEIMPORT. It is optional and the name group is greedy, so
+    // an all-caps CLASS name like `class PDB` still resolves: there is no second
+    // word for the name group to take, and the macro group backtracks away.
+    const pattern = /^(?:(class|struct)\s+(?:[A-Z][A-Z0-9_]{2,}\s+)?(\w+)|BLUE_(CLASS|INTERFACE)\s*\(\s*(\w+)\s*\))/gm;
     const scopes = [];
     const braces = masked.matchAll(/\bnamespace(?:\s+\w+(?:::\w+)*)?\s*\{|[{}]/g);
     let token = braces.next();

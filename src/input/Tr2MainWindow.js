@@ -3,7 +3,7 @@
 // Source: trinity/trinity/UI/Tr2MainWindow_Windows.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
-import { CjsScriptCallback } from "#contracts";
+import { CjsScriptCallback } from "#blue";
 import { GetUIScancode, UIScancode } from "./UIScancode.js";
 import { Tr2MainWindowState } from "./Tr2MainWindowState.js";
 import { Tr2MouseCursor } from "./Tr2MouseCursor.js";
