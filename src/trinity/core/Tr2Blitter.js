@@ -19,7 +19,9 @@
 //   a promise on the device itself and nothing here rebuilds on it yet. The
 //   `PrepareResources`/`OnPrepareResources` split IS kept - that is where such
 //   a registry would hook in - but it is called from first use rather than from
-//   the constructor, because Carbon has a device by construction and we may not.
+//   the constructor, because the constructor takes no render context to prepare
+//   against. NOT because a device might be missing: there is always one by then,
+//   the stub backend included, which is what runs without webgpu or webgl.
 // - `BLITCUBE_EFFECT_PATH`. Carbon declares the constant and never uses it
 //   (`Tr2Blitter.cpp:13`); transcribing dead code would imply a cube blit
 //   exists.

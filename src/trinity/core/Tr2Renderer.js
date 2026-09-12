@@ -28,6 +28,8 @@
 // could not have reached them without copying them.
 
 import { carbon, impl, type } from "#schema";
+import { Tr2Blitter } from "./Tr2Blitter.js";
+import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
 
 
 /** perFrameVS, owned by the scene. */
@@ -189,6 +191,170 @@ export class Tr2Renderer
     return shaderType === Tr2Renderer.PIXEL_SHADER
       ? this.GetPerObjectPSStartRegister()
       : this.GetPerObjectVSStartRegister();
+  }
+
+  /**
+   * Carbon's `s_blitter`: the blitter every screen-space draw runs through.
+   *
+   * An INSTANCE field rather than Carbon's module global, for the reason this
+   * whole class is an instance - a second library instance must not silently
+   * share the first one's blitter. Created by `PrepareDeviceResources`, and
+   * null until then, which is why every draw below guards on it exactly as
+   * Carbon's `if( s_blitter )` does.
+   */
+  #blitter = null;
+
+  /**
+   * Creates the device-dependent resources, the blitter among them.
+   *
+   * Carbon `PrepareDeviceResources` (`Tr2Renderer.cpp:1273-1281`), which makes
+   * the blitter HERE rather than at startup and says why: it loads an effect,
+   * so the device has to exist and the shader model has to be settled first.
+   * That holds for us too - there is always a device by this point, the stub
+   * backend included, which is a real device and not an absence.
+   *
+   * Carbon also allocates its quad vertex and index buffers and its debug line
+   * set here. Those are not ported; this creates the blitter only.
+   *
+   * @param {object} [renderContext] The context to prepare the blitter against.
+   * @returns {Tr2Blitter} The renderer's blitter.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon also allocates the quad vertex and index buffers and the debug line set here; only the blitter is ported.")
+  PrepareDeviceResources(renderContext = null)
+  {
+    this.#blitter ??= new Tr2Blitter();
+    if (renderContext) this.#blitter.PrepareResources(renderContext);
+    return this.#blitter;
+  }
+
+  /**
+   * Returns the blitter, or null before `PrepareDeviceResources` has run.
+   *
+   * @returns {Tr2Blitter|null} The renderer's blitter.
+   */
+  GetBlitter()
+  {
+    return this.#blitter;
+  }
+
+  /**
+   * Draws a fullscreen quad with a material.
+   *
+   * Carbon `DrawScreenQuad( renderContext, Tr2Material* )`
+   * (`Tr2Renderer.cpp:1006-1012`).
+   *
+   * TEXTURE COORDINATES ARE NOT VIEWPORT-CORRECTED HERE, and that is Carbon's
+   * behaviour rather than an omission: only the `DrawTexture` family adjusts
+   * them. `AdjustTextureCoordsToViewport` records what the correction is and
+   * why folding it into the blitter would move every screen-quad draw.
+   *
+   * @param {object} renderContext The context to draw through.
+   * @param {object} material The material to draw with.
+   * @returns {boolean} Whether the quad was drawn.
+   */
+  @carbon.method
+  @impl.implemented
+  DrawScreenQuad(renderContext, material)
+  {
+    if (!this.#blitter) return false;
+    return this.#blitter.Draw(renderContext, material);
+  }
+
+  /**
+   * Draws a quad with an effect over an explicit screen rectangle.
+   *
+   * Carbon `DrawScreenQuad( renderContext, Tr2Effect*, topLeft, bottomRight )`
+   * (`Tr2Renderer.cpp:1014-1020`), which passes the full [0,1] TEXTURE range and
+   * the caller's corners as the VERTEX rectangle. Carbon distinguishes the two
+   * by overload; JavaScript has no overloads, so the rectangle form is named.
+   *
+   * @param {object} renderContext The context to draw through.
+   * @param {object} effect The effect to draw with.
+   * @param {Array<number>} topLeft Top-left vertex corner.
+   * @param {Array<number>} bottomRight Bottom-right vertex corner.
+   * @returns {boolean} Whether the quad was drawn.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon distinguishes this from the material form by overload; JavaScript has none, so the rectangle form carries its own name.")
+  DrawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
+  {
+    if (!this.#blitter) return false;
+    return this.#blitter.Draw(renderContext, effect, null, {
+      tlTexCoord: [ 0, 0 ],
+      brTexCoord: [ 1, 1 ],
+      tlVertexCoord: topLeft,
+      brVertexCoord: bottomRight
+    });
+  }
+
+  /**
+   * Draws the quad in camera space rather than screen space.
+   *
+   * Carbon `DrawCameraSpaceScreenQuad` (`Tr2Renderer.cpp:1022-1028`).
+   *
+   * @param {object} renderContext The context to draw through.
+   * @param {object} shader The shader state interface to run.
+   * @param {object} material The material supplying its parameters.
+   * @returns {boolean} Whether the quad was drawn.
+   */
+  @carbon.method
+  @impl.implemented
+  DrawCameraSpaceScreenQuad(renderContext, shader, material)
+  {
+    if (!this.#blitter) return false;
+    return this.#blitter.DrawInCameraSpace(renderContext, shader, material);
+  }
+
+  /**
+   * Draws a unit quad with the given material and no texture.
+   *
+   * Carbon `DrawFullScreenWithShader` (`Tr2Renderer.cpp:768-775`).
+   *
+   * @param {object} renderContext The context to draw through.
+   * @param {object} material The material to draw with.
+   * @returns {boolean} Whether the quad was drawn.
+   */
+  @carbon.method
+  @impl.implemented
+  DrawFullScreenWithShader(renderContext, material)
+  {
+    if (!this.#blitter) return false;
+    return this.#blitter.Draw(renderContext, material);
+  }
+
+  /**
+   * Blits a texture, correcting its coordinates for the device viewport.
+   *
+   * Carbon's four `DrawTexture` overloads (`Tr2Renderer.cpp:750-834`) collapse
+   * into one: the material is optional, and without one the filter selects a
+   * built-in blit effect. THIS family adjusts the texture coordinates where
+   * `DrawScreenQuad` does not - Carbon draws that distinction and it is load
+   * bearing.
+   *
+   * @param {object} renderContext The context to draw through.
+   * @param {object} texture The texture to blit.
+   * @param {object} [options] `material`, `tlTexCoord`, `brTexCoord`, `filter`.
+   * @returns {boolean} Whether the quad was drawn.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon's four overloads differ only in an optional material and optional coordinates, which are defaults here.")
+  DrawTexture(renderContext, texture, options = {})
+  {
+    if (!this.#blitter) return false;
+
+    const { tlTexCoord, brTexCoord } = AdjustTextureCoordsToViewport(
+      renderContext,
+      options.tlTexCoord ?? [ 0, 0 ],
+      options.brTexCoord ?? [ 1, 1 ]
+    );
+
+    return options.material
+      ? this.#blitter.Draw(renderContext, options.material, texture, { tlTexCoord, brTexCoord })
+      : this.#blitter.DrawTexture(renderContext, texture, { tlTexCoord, brTexCoord }, options.filter);
   }
 
   /** Carbon's `Tr2RenderContextEnum::PIXEL_SHADER`, the one stage that differs. */
