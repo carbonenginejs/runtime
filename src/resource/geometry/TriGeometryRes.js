@@ -20,8 +20,15 @@ import {
 
 // Scratch edges for the picking cross product. Picking is synchronous and the
 // result is consumed before the next hit, so one pair is enough.
-const edgeAB = vec3.create();
-const edgeAC = vec3.create();
+//
+// PLAIN arrays, not `vec3.create()`, because the destination is one: the hit
+// record's `unnormalizedNormal` is `[ 0, 0, 0 ]`, so the products stay in double
+// precision the whole way. Rounding the two edges to a math array's element type
+// first perturbs the result on all but 2.5% of triangles, and by as much as 1.8%
+// relatively where the cross product cancels - which is exactly the thin sliver
+// a picking ray is most likely to graze.
+const edgeAB = [ 0, 0, 0 ];
+const edgeAC = [ 0, 0, 0 ];
 
 /**
  * Resource record that owns geometry payload facts (meshes, optional

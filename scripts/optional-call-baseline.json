@@ -22,7 +22,7 @@
   "src/character/trinity/trinityCore/Tr2SkinnedObject.js": 5,
   "src/character/webgl2/CjsCharacterWebgl2EffectRouter.js": 4,
   "src/resource/CjsMotherLode.js": 5,
-  "src/resource/CjsResMan.js": 32,
+  "src/resource/CjsResMan.js": 25,
   "src/resource/CjsResource.js": 3,
   "src/resource/texture/CjsTextureArrayRes.js": 2,
   "src/trinity/controllers/action/ITr2ControllerAction.js": 1,

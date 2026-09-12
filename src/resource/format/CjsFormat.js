@@ -56,27 +56,21 @@ export class CjsFormat
   /** Inspect with the instance's normalized options when available. */
   Inspect(input, options = null)
   {
-    const values = typeof this.GetValues === "function"
-      ? this.GetValues(options || {})
-      : options || {};
+    const values = this.GetValues(options || {});
     return this.constructor.inspect(input, values);
   }
 
   /** Return the cheap, unverified support report for this instance profile. */
   GetSupport(input, options = null)
   {
-    const values = typeof this.GetValues === "function"
-      ? this.GetValues(options || {})
-      : options || {};
+    const values = this.GetValues(options || {});
     return this.constructor.getSupport(input, values);
   }
 
   /** Exercise one exact output through the real asynchronous read path. */
   VerifySupport(input, options = null)
   {
-    const values = typeof this.GetValues === "function"
-      ? this.GetValues(options || {})
-      : options || {};
+    const values = this.GetValues(options || {});
     return this.constructor.verifySupport(input, values);
   }
 

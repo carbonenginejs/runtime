@@ -1250,18 +1250,14 @@ export class CjsResMan
       };
       this.#reloadCandidates.set(resource, candidate);
       this.#reloadGenerations.set(cacheKey, generation);
-
-      if (typeof resource.SetObjectLoader === "function")
-      {
-        const reloadOptions = { ...loaderOptions, reload: true };
-        resource.SetObjectLoader(
-          loadOptions => this.#GetReloadCandidateObject(resource, {
-            ...mergeResourceLoaderOptions(reloadOptions, loadOptions),
-            reload: true
-          }),
-          reloadOptions
-        );
-      }
+      const reloadOptions = { ...loaderOptions, reload: true };
+      resource.SetObjectLoader(
+        loadOptions => this.#GetReloadCandidateObject(resource, {
+          ...mergeResourceLoaderOptions(reloadOptions, loadOptions),
+          reload: true
+        }),
+        reloadOptions
+      );
       return resource;
     }
 
@@ -1583,16 +1579,13 @@ export class CjsResMan
     const errors = [];
     try
     {
-      if (typeof candidate.resource.SetObjectLoader === "function")
-      {
-        candidate.resource.SetObjectLoader(
-          loadOptions => this.GetObject(
-            candidate.resource.GetPath(),
-            mergeResourceLoaderOptions(candidate.loaderOptions, loadOptions)
-          ),
-          candidate.loaderOptions
-        );
-      }
+      candidate.resource.SetObjectLoader(
+        loadOptions => this.GetObject(
+          candidate.resource.GetPath(),
+          mergeResourceLoaderOptions(candidate.loaderOptions, loadOptions)
+        ),
+        candidate.loaderOptions
+      );
     }
     catch (error)
     {
@@ -2833,17 +2826,14 @@ export class CjsResMan
       this.#resourceHandlerModes.set(resource, handlerMode);
     }
     resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
-    if (typeof resource.SetObjectLoader === "function")
-    {
-      const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
-      resource.SetObjectLoader(
-        loadOptions => this.GetObject(
-          path,
-          mergeResourceLoaderOptions(loaderOptions, loadOptions)
-        ),
-        loaderOptions
-      );
-    }
+    const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
+    resource.SetObjectLoader(
+      loadOptions => this.GetObject(
+        path,
+        mergeResourceLoaderOptions(loaderOptions, loadOptions)
+      ),
+      loaderOptions
+    );
     return resource;
   }
 
@@ -3269,33 +3259,32 @@ export class CjsResMan
 
     // Bound outside the lifecycle controller, which is detached when canonical
     // ownership ends - which is precisely when a handle needs to come back.
-    resource?.SetReloadHook?.(() => this.#ReloadPurgedResource(key, resource));
+    if (!resource) return resource;
+    resource.SetReloadHook(() => this.#ReloadPurgedResource(key, resource));
 
-    if (typeof resource?.SetLifecycleController !== "function") return resource;
+    // No hedging on the owner's methods: `owner` is a CjsMotherLode and
+    // `resource` a CjsResource, both of which declare every method called here
+    // on their base. The former `KeepPayloadAlive`-or-`KeepAlive` fallback was
+    // therefore unreachable, and it silently downgraded a payload keep-alive to
+    // a handle keep-alive for anything that ever did reach it.
     resource.SetLifecycleController({
       isCurrent: () => this.#IsResourceOwnershipCurrent(ownership),
       keepAlive: options => this.#IsResourceOwnershipCurrent(ownership)
-        ? owner.KeepAlive?.(key, options)
+        ? owner.KeepAlive(key, options)
         : null,
-      keepPayloadAlive: options =>
-      {
-        if (!this.#IsResourceOwnershipCurrent(ownership)) return null;
-        if (typeof owner.KeepPayloadAlive === "function")
-        {
-          return owner.KeepPayloadAlive(key, options);
-        }
-        return owner.KeepAlive?.(key, options);
-      },
+      keepPayloadAlive: options => this.#IsResourceOwnershipCurrent(ownership)
+        ? owner.KeepPayloadAlive(key, options)
+        : null,
       lock: () => this.#IsResourceOwnershipCurrent(ownership)
-        ? owner.Lock?.(key) || 0
+        ? owner.Lock(key) || 0
         : 0,
       unlock: () => this.#IsResourceOwnershipCurrent(ownership)
-        ? owner.Unlock?.(key) || 0
+        ? owner.Unlock(key) || 0
         : 0
     });
-    if (resource.HasPayload?.() && this.#IsResourceOwnershipCurrent(ownership))
+    if (resource.HasPayload() && this.#IsResourceOwnershipCurrent(ownership))
     {
-      owner.KeepPayloadAlive?.(key);
+      owner.KeepPayloadAlive(key);
     }
     return resource;
   }
