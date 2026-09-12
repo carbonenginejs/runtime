@@ -357,3 +357,58 @@ export const PixelFormatFromCanonical = Object.freeze({
     "bc7-rgba-unorm": PixelFormat.PIXEL_FORMAT_BC7_UNORM,
     "bc7-rgba-unorm-srgb": PixelFormat.PIXEL_FORMAT_BC7_UNORM_SRGB
 });
+
+/**
+ * Carbon's `ExFlag` (`Tr2RenderContextEnum.h:201-207`): extra creation options.
+ *
+ * A BITFIELD, and Carbon declares an `operator|` for it. Note the gap - there
+ * is no `1 << 2`, and transcribing these as 0,1,2,3 would silently make
+ * DRAW_INDIRECT collide with a flag Carbon does not have.
+ */
+export const ExFlag = Object.freeze({
+    EX_NONE: 0,
+    EX_CREATE_SHARED: 1,
+    EX_BIND_UNORDERED_ACCESS: 2,
+    EX_DRAW_INDIRECT: 8
+});
+
+/**
+ * Maps a depth-stencil format to the pixel format a texture is created with.
+ *
+ * Carbon `Tr2RenderContextEnum::ConvertDepthStencilFormat`
+ * (`Tr2RenderContextEnum.cpp:177-193`). It lives beside the two enums it maps
+ * between rather than on any one caller: `Tr2DepthStencil` needs it and so does
+ * Metal's upscaling path, and a second copy is how two tables drift.
+ *
+ * AUTO AND READABLE RESOLVE TO D24S8, which is Carbon's choice rather than an
+ * inference - they share a case with the explicit D24 formats. Anything else,
+ * including the lockable D15S1 and D24X4S4 that no backend here creates,
+ * resolves to UNKNOWN, and a texture create refuses it.
+ *
+ * @param {number} format A `DepthStencilFormat` value.
+ * @returns {number} A `PixelFormat` value.
+ */
+export function ConvertDepthStencilFormat(format)
+{
+    switch (format)
+    {
+        case DepthStencilFormat.DSFMT_D24S8:
+        case DepthStencilFormat.DSFMT_D24X8:
+        case DepthStencilFormat.DSFMT_AUTO:
+        case DepthStencilFormat.DSFMT_READABLE:
+        case DepthStencilFormat.DSFMT_D24FS8:
+            return PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT;
+
+        case DepthStencilFormat.DSFMT_D16:
+        case DepthStencilFormat.DSFMT_D16_LOCKABLE:
+            return PixelFormat.PIXEL_FORMAT_D16_UNORM;
+
+        case DepthStencilFormat.DSFMT_D32:
+        case DepthStencilFormat.DSFMT_D32F:
+        case DepthStencilFormat.DSFMT_D32F_LOCKABLE:
+            return PixelFormat.PIXEL_FORMAT_D32_FLOAT;
+
+        default:
+            return PixelFormat.PIXEL_FORMAT_UNKNOWN;
+    }
+}

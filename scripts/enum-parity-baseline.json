@@ -96,7 +96,6 @@
   "trinity/trinityal/Tr2RenderContextEnum.h#ColorSpace": "no JavaScript vocabulary for enum ColorSpace (trinity/trinityal/Tr2RenderContextEnum.h:216); port it to its owning class, its family module, or global/consts.",
   "trinity/trinityal/Tr2RenderContextEnum.h#ColorWriteEnable": "no JavaScript vocabulary for enum ColorWriteEnable (trinity/trinityal/Tr2RenderContextEnum.h:67); port it to its owning class, its family module, or global/consts.",
   "trinity/trinityal/Tr2RenderContextEnum.h#DisplayScaling": "no JavaScript vocabulary for enum DisplayScaling (trinity/trinityal/Tr2RenderContextEnum.h:378); port it to its owning class, its family module, or global/consts.",
-  "trinity/trinityal/Tr2RenderContextEnum.h#ExFlag": "no JavaScript vocabulary for enum ExFlag (trinity/trinityal/Tr2RenderContextEnum.h:201); port it to its owning class, its family module, or global/consts.",
   "trinity/trinityal/Tr2RenderContextEnum.h#FrameEvent": "no JavaScript vocabulary for enum FrameEvent (trinity/trinityal/Tr2RenderContextEnum.h:424); port it to its owning class, its family module, or global/consts.",
   "trinity/trinityal/Tr2RenderContextEnum.h#LockType": "no JavaScript vocabulary for enum LockType (trinity/trinityal/Tr2RenderContextEnum.h:99); port it to its owning class, its family module, or global/consts.",
   "trinity/trinityal/Tr2RenderContextEnum.h#ObjectType": "no JavaScript vocabulary for enum ObjectType (trinity/trinityal/Tr2RenderContextEnum.h:11); port it to its owning class, its family module, or global/consts.",
