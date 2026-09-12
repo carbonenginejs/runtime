@@ -29,11 +29,21 @@ export class Tr2ParticleElementData extends CjsModel
   @type.rawStruct("Tr2ParticleElementData")
   none = null;
 
+  /**
+   * Which of a particle system's two buffers an element lives in.
+   *
+   * Carbon indexes the buffer array with this directly - `particle[element
+   * .m_bufferType] + element.m_offset` (Tr2ParticleSystem.cpp:448,
+   * Tr2ConsecutiveIntegerAttributeGenerator.cpp:50) - so GPU and CPU are
+   * positions, and COUNT is the array's length rather than a state.
+   */
   static BufferType = Object.freeze({
-    Vertex: 0,
-    Index: 1,
-    Storage: 2,
-    Undefined: 3,
+    /** Buffer that is copied to the GPU vertex buffer. */
+    GPU: 0,
+    /** CPU-only buffer. */
+    CPU: 1,
+    /** Number of buffers. */
+    COUNT: 2
   });
 
 }

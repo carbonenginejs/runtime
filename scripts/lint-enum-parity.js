@@ -64,7 +64,15 @@ function jsVocabularies(source)
     return found;
 }
 
-/** Match a Carbon member to ours, allowing the prefix conventions we use. */
+/**
+ * Match a Carbon member to ours, tolerating the prefix conventions in the tree.
+ *
+ * Tolerated so the VALUE still gets checked - a renamed member would otherwise
+ * read as absent and its value would never be compared - but the caller reports
+ * the rename, because enum-placement.md requires the donor's member names
+ * exactly and a stripped prefix is how two vocabularies stop being
+ * interchangeable.
+ */
 function jsKeyFor(member, jsMembers)
 {
     if (jsMembers.has(member)) return member;
@@ -168,6 +176,12 @@ else
                             `${ours.file}: enum ${identity} is missing Carbon's ${member} = ${value}.`);
                         continue;
                     }
+                    if (key !== member)
+                    {
+                        problems.set(`${header}#${identity}.${member}~name`,
+                            `${ours.file}: enum ${identity} spells Carbon's ${member} as ${key}; the standard requires the donor's member names exactly.`);
+                    }
+
                     // Carbon spells a uint32 sentinel -1; the C++ evaluator resolves it
                     // to 4294967295. Compare unsigned so the two agree.
                     if ((ours.members.get(key) >>> 0) !== (value >>> 0))
