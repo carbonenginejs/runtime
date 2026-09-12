@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 // The two triangle-versus-box tests a decal needs, both ported from Carbon:
 // `IntersectTriangleAABB` (BoundingBox.cpp:569-588) as the broad phase and
@@ -111,26 +114,54 @@ test("neither test allocates per call", () =>
 {
   // A decal runs these over every triangle of a hull, so a per-call allocation
   // here is thousands of objects a frame.
+
+  // MEASURED IN A CHILD PROCESS, and that is the whole point of the test. Two
+  // earlier versions of this probe sampled process.memoryUsage().heapUsed in
+  // THIS process and both flaked, because that number is process-wide: the test
+  // runner and the eight tests above allocate on the same heap inside the
+  // measurement window. The failures were not noise either - a steady ~320 KB,
+  // reproduced independently at 325,976 and 328,704 bytes - so the probe was
+  // reporting the runner, not tri3. A warm-up run fixed the first-call compile
+  // cost and a forced collection fixed the stale-garbage baseline; neither
+  // touched the real confounder.
   //
-  // THE WARM-UP RUN IS THE TEST, and this flaked without it. Sampling the heap
-  // before the FIRST call counts what V8 spends compiling and setting up inline
-  // caches on the way in: measured at 1912 KiB on the first sample and 0 KiB on
-  // every one after, against a 2 MB threshold it sat just under. So the
-  // assertion turned on how expensive the first call happened to be that run,
-  // and any noise from a neighbouring test tipped it. Discarding a run first
-  // measures the steady state, which is what "does not allocate per call"
-  // actually means - and it is a flat zero.
-  const triangle = triangleOf([ 0, 0, 0 ], [ 0.5, 0, 0 ], [ 0, 0.5, 0 ]);
+  // A child with --expose-gc runs the loop with nothing else in it. Even there
+  // a single delta is not enough: heapUsed occasionally jumps by the SAME ~320
+  // KB in the child too, which is V8 growing its heap a page and not anything
+  // this loop did. So the child takes five collected samples and reports the
+  // MINIMUM - a one-off page growth lands in one sample, a per-call allocation
+  // lands in every one.
+  const source = [
+    `import { tri3 } from "${pathToFileURL(resolve("src/global/math/tri3.js")).href}";`,
+    `import { vec3 } from "${pathToFileURL(resolve("src/global/math/vec3.js")).href}";`,
+    "const UNIT = { center: vec3.fromValues(0, 0, 0), halfExtents: vec3.fromValues(1, 1, 1),",
+    "  axes: [ vec3.fromValues(1, 0, 0), vec3.fromValues(0, 1, 0), vec3.fromValues(0, 0, 1) ] };",
+    "const t = { a: vec3.fromValues(0, 0, 0), b: vec3.fromValues(0.5, 0, 0), c: vec3.fromValues(0, 0.5, 0) };",
+    "const run = n => { for (let i = 0; i < n; i++) { tri3.intersectsOrientedBox(t, UNIT); tri3.intersectsBounds(t, UNIT.center, UNIT.halfExtents); } };",
+    "run(20000);",
+    "const samples = [];",
+    "for (let s = 0; s < 5; s++) {",
+    "  gc();",
+    "  const before = process.memoryUsage().heapUsed;",
+    "  run(20000);",
+    "  samples.push(process.memoryUsage().heapUsed - before);",
+    "}",
+    "console.log(Math.min(...samples));"
+  ].join("\n");
 
-  for (let i = 0; i < 20000; i++) tri3.intersectsOrientedBox(triangle, UNIT);
+  const child = spawnSync(process.execPath,
+    [ "--expose-gc", "--input-type=module", "-e", source ],
+    { encoding: "utf8" });
 
-  const before = process.memoryUsage().heapUsed;
+  assert.equal(child.status, 0, `probe child failed: ${child.stderr}`);
 
-  for (let i = 0; i < 20000; i++) tri3.intersectsOrientedBox(triangle, UNIT);
+  const grew = Number(child.stdout.trim());
 
-  const grew = process.memoryUsage().heapUsed - before;
-
-  // Room for a stray sample, and still two orders of magnitude under what one
-  // vec3 per call would cost across this loop.
-  assert.ok(grew < 200_000, `heap grew ${grew} bytes across 20000 warm calls`);
+  // Calibrated against a negative control rather than guessed. Min of five, in
+  // the child: tri3 reads 3.3 KB, and a stand-in allocating one vec3 per call
+  // reads 202 KB - itself a FLOOR, since V8 collects mid-loop and the true
+  // figure would be nearer 2 MB. 100 KB sits thirty times under the regression
+  // and thirty times over the signal. The old 200 KB threshold was touching the
+  // regression, which is why it had to be measured rather than picked.
+  assert.ok(grew < 100_000, `heap grew ${grew} bytes across 40000 warm calls`);
 });
