@@ -16,9 +16,3 @@ export class ErrSOFPatternMaterialPrefixNotFound extends Error
     this.index = index;
   }
 }
-
-function findShader(values, name)
-{
-  if (!name || !Array.isArray(values)) return null;
-  return values.find(value => value?.shader === name) || null;
-}

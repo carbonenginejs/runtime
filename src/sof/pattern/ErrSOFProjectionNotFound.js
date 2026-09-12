@@ -14,9 +14,3 @@ export class ErrSOFProjectionNotFound extends Error
     this.projection = projection;
   }
 }
-
-function setLayerFromCustomMask(layer, customMask, textureName)
-{
-  if (!customMask) return null;
-  return (layer ?? new EveSOFDataPatternLayer(textureName)).SetFromCustomMask(customMask);
-}
