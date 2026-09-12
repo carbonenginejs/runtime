@@ -169,12 +169,12 @@ function copyChannel(vertices, memberName, destWidth, preserveWidth = false)
 }
 
 const VERTEX_CHANNELS = Object.freeze([
-    [ "position", "Position", 3 ],
+    [ "position", "Position", 3, true ],
     [ "blendIndice", "BoneIndices", 4 ],
     [ "tangent", "Tangent", 4, true ],
     [ "normal", "Normal", 3 ],
-    [ "texcoord0", "TextureCoordinates0", 2 ],
-    [ "texcoord1", "TextureCoordinates1", 2 ],
+    [ "texcoord0", "TextureCoordinates0", 2, true ],
+    [ "texcoord1", "TextureCoordinates1", 2, true ],
     [ "binormal", "Binormal", 4, true ],
     [ "blendWeight", "BoneWeights", 4 ]
 ]);
@@ -496,6 +496,10 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
         vd = mesh.PrimaryVertexData,
         verts = (vd && vd.Vertices) || [];
     o.vertex = emitVertexChannels(verts);
+    // Traffic instance meshes store path IDs in Position.w and animation
+    // controls in four-wide texture coordinates. Preserve the authored stream
+    // width; its vertex count cannot be inferred by dividing positions by three.
+    if (verts.length && o.vertex.position.length !== verts.length * 3) o.vertexCount = verts.length;
     o.morphTargets = (mesh.MorphTargets || []).map(mt => emitMorphTarget(mt, classes));
     o.morphTargets.push(...(vd?.VertexAnnotationSets || [])
         .map(set => emitVertexAnnotationTarget(set, verts.length, classes))
@@ -528,7 +532,7 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
             };
             if (rebuildMissingBounds)
             {
-                const bounds = boundsFromFaces(o.vertex.position, faces);
+                const bounds = boundsFromFaces(o.vertex.position, faces, o.vertex.position.length / verts.length);
                 if (bounds)
                 {
                     group.minBounds = bounds.min;
@@ -565,7 +569,7 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
  * @param {number[]} faces Vertex indices.
  * @returns {{min: number[], max: number[]}|null} Bounds, or null without data.
  */
-function boundsFromFaces(positions, faces)
+function boundsFromFaces(positions, faces, width = 3)
 {
     if (!positions || !positions.length || !faces.length) return null;
     const
@@ -573,7 +577,7 @@ function boundsFromFaces(positions, faces)
         max = [ -Infinity, -Infinity, -Infinity ];
     for (let i = 0; i < faces.length; i++)
     {
-        const base = faces[i] * 3;
+        const base = faces[i] * width;
         for (let k = 0; k < 3; k++)
         {
             const v = positions[base + k];
