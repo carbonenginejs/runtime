@@ -174,3 +174,119 @@ export function compareDefaults(type, jsClass, cppConstants = {}, jsConstants = 
     }
     return { checked, mismatches, unchecked };
 }
+
+/**
+ * Every named enum a header declares, with its members resolved to values.
+ *
+ * C++ enum semantics: the first member is 0, each unlabelled member is one more
+ * than the last, and an explicit assignment resets the run. Members whose value
+ * is an expression this does not evaluate are returned with a null value rather
+ * than a guess, so a caller can tell "unknown" from "zero".
+ *
+ * Nested enums carry the type that encloses them, because a bare name is not an
+ * identity: Carbon declares Status, Type, Result and Usage inside several
+ * unrelated classes.
+ */
+export function headerEnums(source)
+{
+    const masked = maskCpp(source);
+    const result = [];
+    // Skip a forward declaration (`enum class X : uint8_t;`) - no brace, no members.
+    const pattern = /\benum\s+(?:class\s+|struct\s+)?(\w+)\s*(?::\s*[\w:]+\s*)?\{/g;
+
+    for (const match of masked.matchAll(pattern))
+    {
+        const open = masked.indexOf("{", match.index);
+        const end = closing(masked, open);
+        if (end === -1) continue;
+
+        const line = masked.slice(0, match.index).split("\n").length;
+        result.push({
+            name: match[1],
+            owner: enclosingType(masked, match.index),
+            line,
+            members: enumMembers(masked.slice(open + 1, end))
+        });
+    }
+    return result;
+}
+
+/** The class or struct a declaration sits inside, or null at file scope. */
+function enclosingType(masked, index)
+{
+    const stack = [];
+    let last = 0;
+
+    for (const token of masked.matchAll(/[{}]/g))
+    {
+        if (token.index >= index) break;
+
+        if (token[0] === "}") { stack.pop(); last = token.index + 1; continue; }
+
+        // Carbon writes `class Foo\n{`, so the name is behind the brace, not beside
+        // it. An optional ALL-CAPS export macro may sit between the two.
+        const between = masked.slice(last, token.index);
+        const declared = between.match(/\b(?:class|struct)\s+(?:[A-Z][A-Z0-9_]{2,}\s+)?(\w+)[^;{]*$/)
+            ?? between.match(/\bBLUE_(?:CLASS|INTERFACE)\s*\(\s*(\w+)\s*\)[^;{]*$/);
+        stack.push(declared ? declared[1] : null);
+        last = token.index + 1;
+    }
+
+    for (let i = stack.length - 1; i >= 0; i--) if (stack[i]) return stack[i];
+    return null;
+}
+
+/** Resolve one enum body to an ordered name -> value map. */
+function enumMembers(body)
+{
+    const members = new Map();
+    let next = 0;
+
+    for (const entry of body.split(","))
+    {
+        const text = entry.trim();
+        if (!text) continue;
+
+        const parsed = text.match(/^(\w+)\s*(?:=\s*([\s\S]+))?$/);
+        if (!parsed) continue;
+
+        if (parsed[2] === undefined)
+        {
+            members.set(parsed[1], next);
+            if (next !== null) next += 1;
+            continue;
+        }
+
+        const value = enumValue(parsed[2].trim(), members);
+        members.set(parsed[1], value);
+        next = value === null ? null : value + 1;
+    }
+    return members;
+}
+
+/** Decimal, hex, a shift, a previous member, or an OR of any of those. */
+function enumValue(expression, members)
+{
+    const term = text =>
+    {
+        const value = text.trim();
+        if (/^-?\d+$/.test(value)) return Number(value);
+        if (/^0[xX][0-9a-fA-F]+$/.test(value)) return Number(value);
+        if (/^-?\d+\s*<<\s*\d+$/.test(value))
+        {
+            const [ a, b ] = value.split("<<").map(part => Number(part.trim()));
+            return a * (2 ** b);
+        }
+        if (members.has(value)) return members.get(value);
+        return null;
+    };
+
+    let total = 0;
+    for (const part of expression.split("|"))
+    {
+        const value = term(part);
+        if (value === null) return null;
+        total |= value;
+    }
+    return total < 0 ? total >>> 0 : total;
+}
