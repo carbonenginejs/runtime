@@ -1,32 +1,8 @@
 // Source: trinity/trinity/Particle/ITr2GenericEmitter.h
-import { mat4 } from "#math/mat4";
-import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
-import { CjsSchema, impl, type } from "#schema";
+import { CjsSchema, impl } from "#schema";
 
 
 const ITR2_GENERIC_EMITTER = Symbol.for("carbonenginejs.contract.ITr2GenericEmitter");
-
-
-/** Per-frame values passed to an ITr2GenericEmitter update or spawn call. */
-@type.define({ className: "ITr2GenericEmitterUpdateArguments", family: "particle" })
-export class ITr2GenericEmitterUpdateArguments extends CjsModel
-{
-  @type.float64
-  time = 0;
-
-  @type.objectRef("Tr2GpuParticleSystem")
-  system = null;
-
-  @type.mat4
-  parentTransform = mat4.create();
-
-  @type.vec3
-  originShift = vec3.create();
-
-  @type.float32
-  emitCountFactor = 1;
-}
 
 
 /** Contract shared by CPU and GPU particle emitters. */

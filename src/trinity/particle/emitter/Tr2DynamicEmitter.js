@@ -3,7 +3,7 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { hasUnboundParticleElements } from "../element/particleElementBinding.js";
-import { ITr2GenericEmitterUpdateArguments, withITr2GenericEmitter } from "../ITr2GenericEmitter.js";
+import { ITr2GenericEmitterUpdateArguments, withITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A continuous-rate particle emitter that binds attribute generators to a particle system and spawns particles over time from an accumulated emission rate. */
 @type.define({ className: "Tr2DynamicEmitter", family: "particle" })

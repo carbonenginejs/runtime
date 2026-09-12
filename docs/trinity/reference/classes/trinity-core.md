@@ -31,7 +31,7 @@ Registers constant-data struct shapes and leases packed payloads from a per-engi
 A mesh's vertex element list, and the matching of it to a shader's inputs.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/vertex/Tr2VertexDefinition.js`
+- Source: `src/trinity/core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -64,7 +64,7 @@ sorting, and per-object-data methods throw until a provider implements them.
 Contract for an object that can be captured into an impostor atlas.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/mesh/ITr2ImpostorSource.js`
+- Source: `src/trinity/core/mesh/ITr2ImpostorSource/ITr2ImpostorSource.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -74,7 +74,7 @@ Contract for an object that can be captured into an impostor atlas.
 Camera directions used to decide when an impostor must be recaptured.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/mesh/ITr2ImpostorSource.js`
+- Source: `src/trinity/core/mesh/ITr2ImpostorSource/ITr2ImpostorSourceImpostorHash.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -84,7 +84,7 @@ Camera directions used to decide when an impostor must be recaptured.
 Contract for a provider of instance-stream data and layout metadata.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/mesh/ITr2InstanceData.js`
+- Source: `src/trinity/core/mesh/ITr2InstanceData/ITr2InstanceData.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -94,7 +94,7 @@ Contract for a provider of instance-stream data and layout metadata.
 One realized instance-buffer slice returned by an ITr2InstanceData provider.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/mesh/ITr2InstanceData.js`
+- Source: `src/trinity/core/mesh/ITr2InstanceData/ITr2InstanceDataInstanceData.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -1488,7 +1488,7 @@ A width and height, with Carbon's scaling and comparison.
 One upload arena per data type, fenced by frame, so many objects share one buffer and are handed an offset each.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/device/Tr2RingBuffer.js`
+- Source: `src/trinity/core/device/Tr2RingBuffer/Tr2RingBuffer.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -1498,7 +1498,7 @@ One upload arena per data type, fenced by frame, so many objects share one buffe
 Carbon's shared geometry buffer: one device buffer per block that many allocations share, so a mesh's vertices are a buffer, an offset and a stride rather than a buffer of their own.
 
 - Export: Not exported
-- Source: `src/trinity/core/device/Tr2SuballocatedBuffer.js`
+- Source: `src/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js`
 - Visibility: Internal
 - Kind: Carbon
 
@@ -1508,7 +1508,7 @@ Carbon's shared geometry buffer: one device buffer per block that many allocatio
 One region of a suballocated buffer: which block, at what offset and stride, with the start index the draw arguments add.
 
 - Export: Not exported
-- Source: `src/trinity/core/device/Tr2SuballocatedBuffer.js`
+- Source: `src/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBufferAllocation.js`
 - Visibility: Internal
 - Kind: Carbon
 
@@ -1518,7 +1518,7 @@ One region of a suballocated buffer: which block, at what offset and stride, wit
 One consumer's cursor into a ring buffer, holding where its rows landed this frame and last.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/device/Tr2RingBuffer.js`
+- Source: `src/trinity/core/device/Tr2RingBuffer/Tr2RingBufferOffsets.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -1597,7 +1597,7 @@ Collects the frame's local-light records, culls and premultiplies them, selects 
 One element of a vertex definition: its usage name and index, data type, byte offset, stream, and instance step rate.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/vertex/Tr2VertexDefinition.js`
+- Source: `src/trinity/core/vertex/Tr2VertexDefinition/Tr2VertexDefinitionItem.js`
 - Visibility: Public
 - Kind: Carbon
 

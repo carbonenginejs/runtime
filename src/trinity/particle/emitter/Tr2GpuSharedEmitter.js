@@ -6,7 +6,7 @@ import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { withITr2GenericEmitter } from "../ITr2GenericEmitter.js";
+import { withITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 
 /**

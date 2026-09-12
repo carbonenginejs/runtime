@@ -41,7 +41,7 @@ Required particle-force contract.
 Contract shared by CPU and GPU particle emitters.
 
 - Export: `@carbonenginejs/runtime/trinity/particle`
-- Source: `src/trinity/particle/ITr2GenericEmitter.js`
+- Source: `src/trinity/particle/ITr2GenericEmitter/ITr2GenericEmitter.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -51,7 +51,7 @@ Contract shared by CPU and GPU particle emitters.
 Per-frame values passed to an ITr2GenericEmitter update or spawn call.
 
 - Export: `@carbonenginejs/runtime/trinity/particle`
-- Source: `src/trinity/particle/ITr2GenericEmitter.js`
+- Source: `src/trinity/particle/ITr2GenericEmitter/ITr2GenericEmitterUpdateArguments.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 

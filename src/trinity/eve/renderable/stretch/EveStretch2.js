@@ -11,7 +11,7 @@ import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter/index.js";
 
 
 /**

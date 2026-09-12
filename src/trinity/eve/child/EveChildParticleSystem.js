@@ -11,7 +11,7 @@ import { Tr2Lod } from "../EveLODHelper.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
-import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @type.define({ className: "EveChildParticleSystem", family: "eve/child" })

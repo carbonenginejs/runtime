@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { withITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, io, type } from "#schema";
-import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter.js";
+import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 
 /**

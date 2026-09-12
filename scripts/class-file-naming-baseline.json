@@ -237,10 +237,6 @@
       "EveChildPartDataPartData",
       "EveChildPartData"
     ],
-    "src/trinity/particle/ITr2GenericEmitter.js": [
-      "ITr2GenericEmitterUpdateArguments",
-      "ITr2GenericEmitter"
-    ],
     "src/trinityal/stub/Tr2RenderContextALStub.js": [
       "Tr2BindlessResourcesAL",
       "Tr2RenderContextALStub"

@@ -2,7 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
-import { withITr2GenericEmitter } from "../ITr2GenericEmitter.js";
+import { withITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A one-shot particle emitter that spawns particles from a geometry resource's baked emission points on first update. */
 @type.define({ className: "Tr2StaticEmitter", family: "particle" })
