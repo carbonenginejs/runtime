@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { PixelFormat } from "#consts/render-context";
+import { PixelFormat, TextureType } from "#consts/render-context";
 import { Tr2GpuUsage } from "#consts/render-context";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Denoiser } from "./Tr2Denoiser.js";
@@ -63,9 +63,16 @@ function createSplitSetup()
 function createShadowEffect()
 {
   const effect = new Tr2Effect();
+
   effect.SetEffectPathName("res:/graphics/effect/managed/space/system/ShadowDepth.fx");
-  effect.AddResourceTexture2D("EveSpaceSceneCascadedShadowMap");
-  effect.AddResourceTexture2D("DepthMap");
+
+  // DECLARED BY CLEARING, which is Carbon (`cpp:41-42`), not by
+  // AddResourceTexture2D. The difference is not cosmetic: a res-path slot and a
+  // runtime slot are different classes, so declaring the res-path kind here left
+  // SetParameter unable to find a runtime slot to update - it added a new one on
+  // every call, and a per-frame resolve grew the resource list without bound.
+  effect.SetParameter("EveSpaceSceneCascadedShadowMap", null);
+  effect.SetParameter("DepthMap", null);
   return effect;
 }
 
@@ -569,36 +576,82 @@ export class Tr2ShadowMap extends CjsModel
   /**
    * Resolves the cascaded depth into a screen-space shadow factor.
    *
-   * UNPORTED, AND THE TWO REASONS ARE CONCRETE. Carbon borrows an R8 target,
-   * pushes it, sets `EveSpaceSceneCascadedShadowMap` and `DepthMap` on the shadow
-   * effect, draws a fullscreen quad, clears both parameters, then optionally runs
-   * the denoiser (`Tr2ShadowMap.cpp:278-300`). Two pieces of that do not exist
-   * here yet:
+   * Carbon `DrawToShadowMapResult` (`cpp:278-305`). Borrow an R8 target the
+   * size of the scene depth, bind it, run the shadow effect over a fullscreen
+   * quad with the atlas and the depth map bound, then optionally denoise.
    *
-   * - `Tr2Renderer::DrawScreenQuad` (`Tr2Renderer.h:226-227`) has no JS
-   *   counterpart, and it is the draw itself.
-   * - `Tr2Denoiser` is a generated shell under `trinity/generated`, so
-   *   `Apply` is not implemented.
+   * THE DEPTH BUFFER IS PUSHED EMPTY, not merely saved. Carbon passes a
+   * default-constructed Tr2TextureAL (`cpp:285`), which unbinds it - this pass
+   * writes a full-screen factor and must not be depth-tested against the very
+   * buffer it is reading.
    *
-   * It throws rather than returning nothing, because a caller that silently got
-   * no shadow factor would render an unshadowed scene and look correct-ish.
+   * THE EFFECT'S TEXTURES ARE CLEARED IMMEDIATELY AFTER THE DRAW, as Carbon
+   * does (`cpp:290-291`), so a later pass cannot inherit the atlas or the
+   * scene depth from this one.
    *
-   * @param {object} _renderContext The context to draw against.
-   * @param {object} _gpuResourcePool The pool to borrow the result target from.
-   * @param {object} _depthMap The scene depth.
-   * @param {object} _cascadedShadowDepth The atlas produced by this pass.
-   * @param {number} _upscaling The denoiser's upscaling factor.
-   * @returns {object} Never; see above.
+   * `cascadeEffect` is Carbon's `m_shadowEffect` under our name - same
+   * ShadowDepth.fx path, same two parameters (`cpp:39-42`).
+   *
+   * @param {object} renderContext The context to draw against.
+   * @param {object} gpuResourcePool The pool to borrow the result target from.
+   * @param {object} depthMap The scene depth.
+   * @param {object} cascadedShadowDepth The atlas produced by this pass.
+   * @param {number} upscaling The denoiser's upscaling factor.
+   * @param {object} renderer The renderer owning the blitter.
+   * @returns {object|null} The shadow-factor target, or null without a pool.
    */
   @carbon.method
-  @impl.notImplemented
-  @impl.reason("Needs Tr2Renderer.DrawScreenQuad, which is unported, and a real Tr2Denoiser.Apply rather than the generated shell.")
-  DrawToShadowMapResult(_renderContext, _gpuResourcePool, _depthMap, _cascadedShadowDepth, _upscaling)
+  @impl.adapted
+  @impl.reason("Carbon reaches the blitter and the reversed-depth projection through static Tr2Renderer; ours are an instance and the render context, so the renderer is passed in.")
+  DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth, upscaling, renderer)
   {
-    throw new Error(
-      "Tr2ShadowMap.DrawToShadowMapResult: needs Tr2Renderer.DrawScreenQuad (unported) "
-      + "and Tr2Denoiser.Apply (generated shell)."
-    );
+    let shadowMapResult = gpuResourcePool.GetTempTexture("shadowMapResult", {
+      type: TextureType.TEX_TYPE_2D,
+      width: depthMap.GetWidth(),
+      height: depthMap.GetHeight(),
+      depth: 1,
+      mipCount: 1,
+      format: PixelFormat.PIXEL_FORMAT_R8_UNORM,
+      gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE
+    });
+
+    const esm = renderContext.GetEffectStateManager();
+
+    esm.PushRenderTarget(shadowMapResult.Get());
+    esm.PushDepthStencilBuffer(null);
+
+    try
+    {
+      this.cascadeEffect.SetParameter("EveSpaceSceneCascadedShadowMap", cascadedShadowDepth);
+      this.cascadeEffect.SetParameter("DepthMap", depthMap);
+      renderer.DrawScreenQuad(renderContext, this.cascadeEffect);
+      this.cascadeEffect.SetParameter("EveSpaceSceneCascadedShadowMap", null);
+      this.cascadeEffect.SetParameter("DepthMap", null);
+
+      // Carbon gates on all three (`cpp:296`). Setup() nulls the denoiser when
+      // it is disabled, so the useDenoiser flag and a present denoiser are not
+      // the same question.
+      if (this.denoiser && this.#useDenoiser && depthMap.IsValid())
+      {
+        shadowMapResult = this.denoiser.Apply(
+          shadowMapResult,
+          depthMap,
+          null,
+          renderContext.GetReversedDepthProjectionTransform(),
+          upscaling,
+          gpuResourcePool,
+          renderContext,
+          renderer
+        );
+      }
+
+      return shadowMapResult;
+    }
+    finally
+    {
+      esm.PopRenderTarget();
+      esm.PopDepthStencilBuffer();
+    }
   }
 
   @carbon.method

@@ -9,6 +9,8 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as core from "../../npm/dist/trinity/core/index.js";
 import * as generatedCore from "../../npm/dist/trinity/generated/trinityCore/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
+import * as alStub from "../../npm/dist/trinityal/index.js";
+import * as consts from "../../npm/dist/global/consts/renderContext/index.js";
 
 
 const EPSILON = 1e-5;
@@ -282,14 +284,75 @@ test("a pool that cannot supply the depth surface stops the pass", () =>
   assert.deepEqual(calls, []);
 });
 
-test("DrawToShadowMapResult refuses rather than returning no shadow", () =>
+test("DrawToShadowMapResult borrows an R8 target the size of the scene depth", () =>
 {
-  // It needs Tr2Renderer.DrawScreenQuad, which is unported. A silent no-result
-  // would render an unshadowed scene and look plausible.
-  assert.throws(
-    () => new core.Tr2ShadowMap().DrawToShadowMapResult({}, {}, null, null, 1),
-    /DrawScreenQuad/u
-  );
+  // Carbon sizes the shadow factor from the DEPTH MAP, not from the atlas
+  // (cpp:281) - the factor is screen-space, the atlas is not.
+  const context = stubShadowContext();
+  const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new core.Tr2Renderer();
+  const shadowMap = new core.Tr2ShadowMap();
+
+  renderer.PrepareDeviceResources(context);
+  shadowMap.Setup(512, 4, false);
+
+  const depthMap = poolSurface(pool, "depth", 128, 64);
+  const atlas = poolSurface(pool, "atlas", 2048, 2048);
+
+  const result = shadowMap.DrawToShadowMapResult(context, pool, depthMap, atlas, 1, renderer);
+
+  assert.notEqual(result, null);
+  assert.equal(result.GetName(), "shadowMapResult");
+  assert.equal(result.Get().GetWidth(), 128);
+  assert.equal(result.Get().GetHeight(), 64);
+});
+
+test("the shadow effect does not keep the atlas or the scene depth bound", () =>
+{
+  // Carbon clears both immediately after the draw (cpp:290-291), so a later
+  // pass cannot inherit them. A texture left bound is a wrong picture rather
+  // than a failure.
+  const context = stubShadowContext();
+  const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new core.Tr2Renderer();
+  const shadowMap = new core.Tr2ShadowMap();
+
+  renderer.PrepareDeviceResources(context);
+  shadowMap.Setup(512, 4, false);
+
+  shadowMap.DrawToShadowMapResult(context, pool, poolSurface(pool, "depth", 64, 64), poolSurface(pool, "atlas", 64, 64), 1, renderer);
+
+  // The effect already had a res-path TriTextureParameter of each name from its
+  // constructor, and Carbon does NOT replace that - it adds a runtime slot
+  // alongside (cpp:2085-2099). So the cleared value lives on the runtime one.
+  for (const name of [ "EveSpaceSceneCascadedShadowMap", "DepthMap" ])
+  {
+    const runtime = shadowMap.cascadeEffect.resources.filter(
+      resource => resource.GetParameterName?.() === name && typeof resource.GetTextureProvider === "function"
+    );
+
+    assert.equal(runtime.length, 1, `${name} should have exactly one runtime slot`);
+    assert.equal(runtime[0].GetTextureProvider(), null, `${name} should be cleared`);
+  }
+});
+
+test("the push bracket is balanced however the resolve leaves", () =>
+{
+  // Carbon pops through two ON_BLOCK_EXITs. A leaked push would leave the next
+  // pass drawing into the shadow factor.
+  const context = stubShadowContext();
+  const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new core.Tr2Renderer();
+  const shadowMap = new core.Tr2ShadowMap();
+
+  renderer.PrepareDeviceResources(context);
+  shadowMap.Setup(512, 4, false);
+
+  const before = [ context.GetStackSizeRT(), context.GetStackSizeDS() ];
+
+  shadowMap.DrawToShadowMapResult(context, pool, poolSurface(pool, "depth", 64, 64), poolSurface(pool, "atlas", 64, 64), 1, renderer);
+
+  assert.deepEqual([ context.GetStackSizeRT(), context.GetStackSizeDS() ], before);
 });
 test("debug getters preserve Carbon values", () =>
 {
@@ -306,4 +369,56 @@ test("debug getters preserve Carbon values", () =>
     ]
   );
   assert.equal(shadowMap.GetDebugColors(9), undefined);
+});
+
+/** A context with the stub backend, which is the device without webgpu or webgl. */
+function stubShadowContext()
+{
+  const al = new alStub.Tr2RenderContextALStub();
+
+  al.CreateDevice({ mode: { width: 256, height: 256 } });
+
+  const context = new core.Tr2RenderContext();
+
+  context.SetRenderContextAL(al);
+  return context;
+}
+
+/** A real R8 surface borrowed from a pool. */
+function poolSurface(pool, name, width, height)
+{
+  return pool.GetTempTexture(name, {
+    type: consts.TextureType.TEX_TYPE_2D,
+    width,
+    height,
+    depth: 1,
+    mipCount: 1,
+    format: consts.PixelFormat.PIXEL_FORMAT_R8_UNORM,
+    gpuUsage: consts.Tr2GpuUsage.RENDER_TARGET | consts.Tr2GpuUsage.SHADER_RESOURCE
+  }).Get();
+}
+
+test("resolving every frame does not grow the effect resource list", () =>
+{
+  // The regression this guards is silent and cumulative. SetParameter updates a
+  // RUNTIME texture slot and adds one when it finds none; declaring the slots as
+  // res-path parameters instead meant it never found one, so each resolve
+  // appended two more resources - unbounded, and invisible until memory.
+  const context = stubShadowContext();
+  const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new core.Tr2Renderer();
+  const shadowMap = new core.Tr2ShadowMap();
+
+  renderer.PrepareDeviceResources(context);
+  shadowMap.Setup(512, 4, false);
+
+  const counts = [];
+
+  for (let frame = 0; frame < 5; frame++)
+  {
+    shadowMap.DrawToShadowMapResult(context, pool, poolSurface(pool, "depth", 64, 64), poolSurface(pool, "atlas", 64, 64), 1, renderer);
+    counts.push(shadowMap.cascadeEffect.resources.length);
+  }
+
+  assert.deepEqual(counts, [ 2, 2, 2, 2, 2 ]);
 });

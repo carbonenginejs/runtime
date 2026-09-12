@@ -1065,10 +1065,10 @@ export class Tr2Effect extends Tr2Material
       return;
     }
 
-    // Clearing a slot that was never set is not an error - Carbon clears every
-    // texture parameter at the end of a pass whether or not it set one.
-    if (texture === null && !existing) return;
-
+    // A null texture still CREATES the slot, which is Carbon's else branch
+    // (cpp:2093-2099) and is load-bearing: Tr2ShadowMap's constructor declares
+    // its two texture slots by setting them to an empty texture (cpp:41-42).
+    // Skipping that would leave the effect without slots it expects to have.
     const parameter = new Tr2RuntimeTextureParameter();
 
     parameter.Create(parameterName, texture, uavMipLevel);
