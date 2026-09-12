@@ -27,6 +27,7 @@
     "./math/pool": "./src/global/math/pool.js",
     "./math/utils": "./src/global/math/utils.js",
     "./math/noise": "./src/global/math/noise.js",
+    "./math/random": "./src/global/math/random.js",
     "./math/curve": "./src/global/math/curve.js",
     "./math/vertex": "./src/global/math/vertex.js",
     "./math/mesh": "./src/global/math/mesh.js",

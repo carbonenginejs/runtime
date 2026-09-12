@@ -1,3 +1,4 @@
+import { random } from "./random.js";
 import { vec3 } from "./vec3.js";
 import { vec4 } from "./vec4.js";
 
@@ -137,34 +138,7 @@ noise.turbulence = (function()
  */
 noise.createPerlinNoise1D = function(seed = Math.floor(Math.random() * 0x100000000))
 {
-    const state = new Uint32Array(624);
-    state[0] = Number(seed) >>> 0;
-    for (let index = 1; index < state.length; index++)
-    {
-        const previous = state[index - 1] ^ (state[index - 1] >>> 30);
-        state[index] = (Math.imul(1812433253, previous) + index) >>> 0;
-    }
-
-    let cursor = state.length;
-    const twist = () =>
-    {
-        for (let index = 0; index < state.length; index++)
-        {
-            const bits = (state[index] & 0x80000000) | (state[(index + 1) % state.length] & 0x7fffffff);
-            state[index] = state[(index + 397) % state.length] ^ (bits >>> 1) ^ (bits & 1 ? 0x9908b0df : 0);
-        }
-        cursor = 0;
-    };
-    const next = () =>
-    {
-        if (cursor >= state.length) twist();
-        let value = state[cursor++];
-        value ^= value >>> 11;
-        value ^= (value << 7) & 0x9d2c5680;
-        value ^= (value << 15) & 0xefc60000;
-        value ^= value >>> 18;
-        return value >>> 0;
-    };
+    const next = random.mt19937(seed);
     const gradients = Float64Array.from(
         { length: 256 },
         () => ((next() % 512) - 256) / 256

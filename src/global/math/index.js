@@ -17,6 +17,7 @@ export * as sph3 from "./sph3.js";
 
 export * as pool from "./pool.js";
 export * as noise from "./noise.js";
+export * as random from "./random.js";
 export * as curve from "./curve.js";
 
 export * as geometry from "./geometry/index.js";

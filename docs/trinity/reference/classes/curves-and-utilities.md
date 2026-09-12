@@ -115,16 +115,6 @@ One key of a Tr2CurveQuaternion: a time in seconds, the quaternion value at that
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsMt19937 -->
-## `CjsMt19937`
-
-Deterministic MT19937 Mersenne Twister used to reproduce the C++ standard library's default random sequence from a persisted seed.
-
-- Export: @carbonenginejs/runtime/trinity/curves
-- Source: src/trinity/curves/curve/Tr2CurveRandomAxisRotation.js
-- Visibility: Internal
-- Kind: CarbonEngineJS
-
 <!-- class:Tr2CurveRandomAxisRotation -->
 ## `Tr2CurveRandomAxisRotation`
 

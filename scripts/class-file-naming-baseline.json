@@ -214,10 +214,6 @@
       "CjsControllerExpressionParser",
       "CjsControllerExpressionCompileError",
       "CjsControllerExpressionEvaluateError"
-    ],
-    "src/trinity/curves/curve/Tr2CurveRandomAxisRotation.js": [
-      "Tr2CurveRandomAxisRotation",
-      "CjsMt19937"
     ]
   },
   "missingClass": {

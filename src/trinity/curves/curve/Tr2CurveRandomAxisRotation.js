@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.h
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
+import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
@@ -170,9 +171,9 @@ export class Tr2CurveRandomAxisRotation extends CjsModel
   @impl.adapted
   SeedChanged()
   {
-    const random = this.seed !== 0 ? Tr2CurveRandomAxisRotation.#makeMsvcDefaultRandomEngine(this.seed) : Math.random;
-    Tr2CurveRandomAxisRotation.#buildCarbonRandomRotation(this.preRotation, random);
-    Tr2CurveRandomAxisRotation.#buildCarbonRandomRotation(this.postRotation, random);
+    const engine = this.seed !== 0 ? Tr2CurveRandomAxisRotation.#makeMsvcDefaultRandomEngine(this.seed) : Math.random;
+    Tr2CurveRandomAxisRotation.#buildCarbonRandomRotation(this.preRotation, engine);
+    Tr2CurveRandomAxisRotation.#buildCarbonRandomRotation(this.postRotation, engine);
   }
 
   /**
@@ -180,18 +181,18 @@ export class Tr2CurveRandomAxisRotation extends CjsModel
    * matching Carbon's draw order, which fixes the resulting rotation for a given
    * seed - and writes the quaternion into `out`.
    */
-  static #buildCarbonRandomRotation(out, random)
+  static #buildCarbonRandomRotation(out, engine)
   {
-    const roll = Tr2CurveRandomAxisRotation.#randomAngle(random);
-    const pitch = Tr2CurveRandomAxisRotation.#randomAngle(random);
-    const yaw = Tr2CurveRandomAxisRotation.#randomAngle(random);
+    const roll = Tr2CurveRandomAxisRotation.#randomAngle(engine);
+    const pitch = Tr2CurveRandomAxisRotation.#randomAngle(engine);
+    const yaw = Tr2CurveRandomAxisRotation.#randomAngle(engine);
     return fromYawPitchRoll(out, yaw, pitch, roll);
   }
 
   /** Draws one angle uniformly in [0, 2pi) radians from the supplied generator. */
-  static #randomAngle(random)
+  static #randomAngle(engine)
   {
-    return random() * Math.PI * 2;
+    return engine() * Math.PI * 2;
   }
 
   /**
@@ -200,64 +201,7 @@ export class Tr2CurveRandomAxisRotation extends CjsModel
    */
   static #makeMsvcDefaultRandomEngine(seed)
   {
-    const engine = new CjsMt19937(seed >>> 0);
-    return () => engine.Next() / 0xffffffff;
-  }
-}
-
-/**
- * Deterministic MT19937 Mersenne Twister used to reproduce the C++ standard
- * library's default random sequence from a persisted seed.
- */
-class CjsMt19937
-{
-  #state = new Uint32Array(624);
-
-  #index = 624;
-
-  /** Seeds the 624-word state with MT19937's standard initialisation recurrence. */
-  constructor(seed)
-  {
-    this.#state[0] = seed >>> 0;
-    for (let i = 1; i < this.#state.length; i++)
-    {
-      const previous = this.#state[i - 1];
-      this.#state[i] = Math.imul(1812433253, previous ^ previous >>> 30) + i >>> 0;
-    }
-  }
-
-  /**
-   * Returns the next 32-bit unsigned value, regenerating the state block when
-   * the previous 624 outputs are exhausted.
-   */
-  Next()
-  {
-    if (this.#index >= this.#state.length)
-    {
-      this.#twist();
-    }
-    let value = this.#state[this.#index++];
-    value ^= value >>> 11;
-    value ^= value << 7 & 0x9d2c5680;
-    value ^= value << 15 & 0xefc60000;
-    value ^= value >>> 18;
-    return value >>> 0;
-  }
-
-  /** Regenerates the whole 624-word state block and rewinds the output cursor. */
-  #twist()
-  {
-    for (let i = 0; i < this.#state.length; i++)
-    {
-      const next = (i + 1) % this.#state.length;
-      const mix = this.#state[i] & 0x80000000 | this.#state[next] & 0x7fffffff;
-      let value = this.#state[(i + 397) % this.#state.length] ^ mix >>> 1;
-      if (mix & 1)
-      {
-        value ^= 0x9908b0df;
-      }
-      this.#state[i] = value >>> 0;
-    }
-    this.#index = 0;
+    const engine = random.mt19937(seed >>> 0);
+    return () => engine() / 0xffffffff;
   }
 }
