@@ -1,11 +1,15 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/MeshDecalData.json; maintained by the runtime resource layer.
-import { type } from "#schema";
+//
+// Declared as data rather than with decorators, so the resource tree loads from
+// source without a transform. A decorated file anywhere under this folder forces
+// every test importing the geometry barrel onto `npm/dist`, which is built code
+// that can lag the source it is being used to check.
+import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math";
 
 /** MeshDecalData (resources) - maintained from schema shapeHash edd09cef.... */
-@type.define({ className: "MeshDecalData", family: "resources" })
 export class MeshDecalData extends CjsModel
 {
 
@@ -17,19 +21,26 @@ export class MeshDecalData extends CjsModel
    * (EveSpaceObjectDecal.cpp:620-631, 848-856). Without it the cache cannot be
    * consulted and every decal on a hull rebuilds - eleven times on a frigate.
    */
-  @type.mat4
   inverseDecalMatrix = mat4.create();
 
   /** m_indexBuffer (Tr2SuballocatedBuffer::Allocation) */
-  @type.rawStruct("Tr2SuballocatedBuffer::Allocation")
   indexBuffer = null;
 
   /** m_lodMask (uint32_t) */
-  @type.uint32
   lodMask = 0;
 
   /** m_lods (std::vector<MeshDecalLodData>) */
-  @type.list("MeshDecalLodData")
   lods = [];
 
 }
+
+CjsSchema.define(MeshDecalData, {
+  className: "MeshDecalData",
+  family: "resources",
+  fields: {
+    inverseDecalMatrix: type.mat4,
+    indexBuffer: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
+    lodMask: type.uint32,
+    lods: type.list("MeshDecalLodData")
+  }
+});
