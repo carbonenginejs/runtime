@@ -16,6 +16,26 @@ export async function filesUnder(directory, extensions)
     return files.sort();
 }
 
+
+/** Enumerate the dropped trees, which filesUnder deliberately skips. */
+async function droppedFiles(root)
+{
+    const found = [];
+    const walk = async (directory) =>
+    {
+        for (const entry of await readdir(directory, { withFileTypes: true }))
+        {
+            if ([ ".git", "node_modules", "npm", "dist" ].includes(entry.name)) continue;
+            const target = path.join(directory, entry.name);
+            if (!entry.isDirectory()) continue;
+            if (entry.name === "dropped") for (const file of await filesUnder(target, [ ".js" ])) found.push(file);
+            else await walk(target);
+        }
+    };
+    await walk(root);
+    return found.sort();
+}
+
 /** Index cited headers against the live donor; ambiguous paths remain findings. */
 export async function sourceIndex(packageRoot, carbonRoot)
 {
@@ -67,6 +87,21 @@ export async function sourceIndex(packageRoot, carbonRoot)
                 else problems.set(`citation:${citation}`, `${relative}: ${candidates.length ? "ambiguous" : "unresolved"} donor header ${citation}`);
             }
             if (target) cited.add(target);
+        }
+    }
+    // Dropped classes are WRITTEN, deliberately not live: each carries its
+    // `// Source:` line and the reason it was dropped. filesUnder skips the
+    // dropped trees, so without this pass a recorded decision is
+    // indistinguishable from a missing port. They are registered separately so
+    // a caller can tell the two apart.
+    for (const file of await droppedFiles(path.join(packageRoot, "src")))
+    {
+        const relative = path.relative(packageRoot, file).replaceAll("\\", "/");
+        const source = await readFile(file, "utf8");
+        for (const node of jsClasses(source))
+        {
+            if (!classes.has(node.id.name)) classes.set(node.id.name, []);
+            classes.get(node.id.name).push({ file: relative, node, dropped: true });
         }
     }
     for (const relative of cited)

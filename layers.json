@@ -104,6 +104,19 @@
         "single consumer, and cannot live in core, which nothing below may import."
       ]
     },
+    "global/dropped": {
+      "mayImport": [
+        "global/schema",
+        "global/model"
+      ],
+      "why": [
+        "Donor classes written but deliberately NOT live: every one carries its",
+        "`// Source:` line and the reason it was dropped. They exist so the decision",
+        "is recorded at a readable place instead of only as a lint baseline entry.",
+        "trinity and resource keep theirs under their own layer; global has no",
+        "layer of its own, so its dropped tree is declared here."
+      ]
+    },
     "resource": {
       "mayImport": [
         "global/utils",
