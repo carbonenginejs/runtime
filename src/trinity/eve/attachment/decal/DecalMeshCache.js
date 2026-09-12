@@ -2,22 +2,7 @@
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/attachment/decal/DecalMeshCache.json.).
 import { type } from "#schema";
 import { CjsModel } from "#model";
-
-/**
- * DecalMeshCache.MeshBuffers - one LOD's clipped decal buffers. The generator
- * had flattened these two members onto DecalMeshCache itself; corrected at
- * promotion to Carbon's nested struct shape.
- */
-export class DecalMeshCacheMeshBuffers
-{
-
-  /** vertexBuffer (std::unique_ptr<uint8_t[]>) */
-  vertexBuffer = null;
-
-  /** indexBuffer (std::unique_ptr<uint8_t[]>) */
-  indexBuffer = null;
-
-}
+import { DecalMeshCacheMeshBuffers } from "./DecalMeshCacheMeshBuffers.js";
 
 /** Stores the per-LOD clipped vertex and index buffers generated for one projected decal. */
 @type.define({ className: "DecalMeshCache", family: "eve/attachment/decal" })

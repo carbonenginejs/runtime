@@ -223,19 +223,11 @@
       "EveBoosterSet2Item",
       "EveBoosterSet2"
     ],
-    "src/trinity/eve/attachment/decal/DecalMeshCache.js": [
-      "DecalMeshCacheMeshBuffers",
-      "DecalMeshCache"
-    ],
     "src/trinity/eve/child/EveChildInstancedMeshes.js": [
       "EveChildInstancedMeshArea",
       "EveChildInstancedMeshInstance",
       "EveChildInstancedMesh",
       "EveChildInstancedMeshes"
-    ],
-    "src/trinityal/webgpu/CjsWebgpuShaderAL.js": [
-      "CjsWebgpuShaderAL",
-      "CjsWebgpuShaderProgramAL"
     ]
   },
   "missingClass": {

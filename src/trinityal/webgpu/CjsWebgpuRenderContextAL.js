@@ -89,7 +89,8 @@ import { TOPOLOGIES } from "./core/topology.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription } from "./core/CjsWebgpuPsoDescription.js";
-import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
+import { CjsWebgpuShaderAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
+import { CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderProgramAL.js";
 import { WebgpuVertexBufferLayout } from "./core/vertexFormat.js";
 
 /** WebGPU's index format for a Carbon index stride, or null for one it lacks. */

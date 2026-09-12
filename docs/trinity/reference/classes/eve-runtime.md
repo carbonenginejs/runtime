@@ -1601,7 +1601,7 @@ Stores the per-LOD clipped vertex and index buffers generated for one projected 
 DecalMeshCache.MeshBuffers - one LOD's clipped decal buffers.
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
-- Source: `src/trinity/eve/attachment/decal/DecalMeshCache.js`
+- Source: `src/trinity/eve/attachment/decal/DecalMeshCacheMeshBuffers.js`
 - Visibility: Public
 - Kind: Carbon
 

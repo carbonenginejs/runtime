@@ -251,7 +251,7 @@ A `Tr2ShaderAL` that compiles its bytecode, which here is WGSL text, into a `GPU
 A `Tr2ShaderProgramAL` holding validated stages and answering for their modules, since WebGPU has no link step.
 
 - Export: Not exported
-- Source: `src/trinityal/webgpu/CjsWebgpuShaderAL.js`
+- Source: `src/trinityal/webgpu/CjsWebgpuShaderProgramAL.js`
 - Visibility: Internal
 - Kind: Carbon
 
