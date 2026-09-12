@@ -179,7 +179,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
     box3.transformMat4(aabb, aabb, parentTransform);
 
-    const frustum = updateContext?.GetFrustum?.() ?? null;
+    const frustum = updateContext?.GetFrustum() ?? null;
     this.#isVisible = !!frustum?.IsBoxVisible(aabb);
 
     let isLoddedOut = true;
@@ -207,7 +207,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
         const element = sph3.fromPositionRadius(EveBannerSet.#elementScratch, closest, this.#maxBannerRadius);
         screenSize = frustum.GetPixelSizeAccrossEst(element);
-        if (screenSize > (updateContext.GetVisibilityThreshold?.() ?? 0) * 0.5)
+        if (screenSize > (updateContext.GetVisibilityThreshold() ?? 0) * 0.5)
         {
           isLoddedOut = false;
         }

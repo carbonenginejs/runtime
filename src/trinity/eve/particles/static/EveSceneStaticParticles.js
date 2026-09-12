@@ -134,7 +134,7 @@ export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
     }
 
     mat4.copy(this.lastWorldMatrix, this.worldMatrix);
-    const origin = updateContext?.GetOrigin?.();
+    const origin = updateContext?.GetOrigin();
     // Double-precision subtraction (Carbon Vector3d, cpp:100), narrowed per
     // component at the matrix boundary (cpp:102).
     vec3.set(
@@ -167,7 +167,7 @@ export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
     {
       return;
     }
-    const frustum = updateContext?.GetFrustum?.();
+    const frustum = updateContext?.GetFrustum();
     if (!frustum)
     {
       return;
@@ -175,7 +175,7 @@ export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
     this.estimatedSize = frustum.GetPixelSizeAccross(this.boundingSphere);
 
     const estimatedSizeWithinBounds =
-      this.estimatedSize > PARTICLE_CLUSTER_MIN_SIZE * (updateContext?.GetLodFactor?.() ?? 1);
+      this.estimatedSize > PARTICLE_CLUSTER_MIN_SIZE * (updateContext?.GetLodFactor() ?? 1);
     const viewPos = frustum.viewPos ?? frustum.m_viewPos;
     const dx = this.center[0] - (viewPos?.[0] ?? 0);
     const dy = this.center[1] - (viewPos?.[1] ?? 0);
@@ -193,7 +193,7 @@ export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
   @impl.implemented
   IsVisible(updateContext)
   {
-    const frustum = updateContext?.GetFrustum?.();
+    const frustum = updateContext?.GetFrustum();
     if (!frustum)
     {
       return false;

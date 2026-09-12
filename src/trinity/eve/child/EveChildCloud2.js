@@ -372,7 +372,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
     {
       if (!this.animation.UpdateOnlyWhenRendered?.() || this.renderedLastFrame)
       {
-        this.animation.AdvanceTime?.(updateContext?.GetDeltaT?.() ?? 0);
+        this.animation.AdvanceTime?.(updateContext?.GetDeltaT() ?? 0);
       }
     }
     this.renderedLastFrame = false;
@@ -415,7 +415,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
 
     // shift = -originShift + (new - previous world translation), then rotated
     // into local space with TransformNormal(shift, Inverse(world)) (cpp:697-698).
-    const originShift = updateContext?.GetOriginShift?.();
+    const originShift = updateContext?.GetOriginShift();
     SHIFT_SCRATCH[0] = (originShift ? -originShift[0] : 0) + w[12] - prevX;
     SHIFT_SCRATCH[1] = (originShift ? -originShift[1] : 0) + w[13] - prevY;
     SHIFT_SCRATCH[2] = (originShift ? -originShift[2] : 0) + w[14] - prevZ;
@@ -435,7 +435,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
       offset[2] = (offset[2] + SHIFT_SCRATCH[2] * tiling[1]) % 1;
     }
 
-    this.adjustedMinScreenSize = this.minScreenSize * (updateContext?.GetLodFactor?.() ?? 1);
+    this.adjustedMinScreenSize = this.minScreenSize * (updateContext?.GetLodFactor() ?? 1);
     this.hasUpdated = true;
   }
 
@@ -473,7 +473,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
   @impl.implemented
   IsVisible(updateContext)
   {
-    const frustum = updateContext?.GetFrustum?.();
+    const frustum = updateContext?.GetFrustum();
     if (!frustum)
     {
       return false;
@@ -484,7 +484,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
       return false;
     }
     const screenSize = frustum.GetPixelSizeAccross(sphere);
-    if (screenSize < this.minScreenSize * (updateContext?.GetLodFactor?.() ?? 1))
+    if (screenSize < this.minScreenSize * (updateContext?.GetLodFactor() ?? 1))
     {
       return false;
     }

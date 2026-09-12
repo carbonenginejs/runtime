@@ -15,6 +15,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import {
   EveChildCloud2,
+  EveUpdateContext,
   Tr2PointLight,
   Tr2RenderReason
 } from "../../npm/dist/trinity/index.js";
@@ -109,7 +110,13 @@ test("UpdateAsyncronous stamps adjustedMinScreenSize from the context lodFactor 
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
   cloud.minScreenSize = 40;
-  cloud.UpdateAsyncronous({ GetLodFactor: () => 2.5 }, { localToWorldTransform: mat4.create() });
+  // A REAL context, not a one-method literal. The production path also reads
+  // GetOriginShift, and a fake that omits it only worked while the call was
+  // hedged - which is the contract-hiding this rule exists to stop.
+  const context = new EveUpdateContext();
+
+  context.SetLodFactor(2.5);
+  cloud.UpdateAsyncronous(context, { localToWorldTransform: mat4.create() });
   assertClose(cloud.adjustedMinScreenSize, 100, "minScreenSize * lodFactor");
 });
 

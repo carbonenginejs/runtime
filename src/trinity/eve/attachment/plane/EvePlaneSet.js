@@ -178,7 +178,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     }
 
     box3.transformMat4(aabb, aabb, parentTransform);
-    return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
+    return !!updateContext?.GetFrustum()?.IsBoxVisible(aabb);
   }
 
   /**

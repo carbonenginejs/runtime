@@ -538,7 +538,7 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
     const center = EveSpaceObjectDecal.#pointScratch;
     const radius = box3.toPositionRadius(bounds, center);
     const pixelSize = frustum.GetPixelSizeAccrossEst(center, radius);
-    const modifiedMinScreen = this.minScreenSize * (updateContext?.GetLodFactor?.() ?? 1);
+    const modifiedMinScreen = this.minScreenSize * (updateContext?.GetLodFactor() ?? 1);
 
     if (pixelSize < modifiedMinScreen) return false;
 

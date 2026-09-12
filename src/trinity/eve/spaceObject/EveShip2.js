@@ -55,7 +55,7 @@ export class EveShip2 extends EveMobile
       return;
     }
     super.UpdateSyncronous(updateContext);
-    const time = updateContext?.GetTime?.() ?? 0;
+    const time = updateContext?.GetTime() ?? 0;
     if (this.translationCurve)
     {
       if (!this.speed)
@@ -100,8 +100,8 @@ export class EveShip2 extends EveMobile
     {
       return;
     }
-    const time = updateContext?.GetTime?.() ?? 0;
-    const deltaT = updateContext?.GetDeltaT?.() ?? 0;
+    const time = updateContext?.GetTime() ?? 0;
+    const deltaT = updateContext?.GetDeltaT() ?? 0;
     this.boosters.Update(
       deltaT,
       time,

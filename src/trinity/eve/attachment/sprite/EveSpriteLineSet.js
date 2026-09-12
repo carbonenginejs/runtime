@@ -118,7 +118,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     }
 
     box3.transformMat4(aabb, aabb, parentTransform);
-    return !!updateContext?.GetFrustum?.()?.IsBoxVisible(aabb);
+    return !!updateContext?.GetFrustum()?.IsBoxVisible(aabb);
   }
 
   /** Sets the drawing effect and the skinned flag in one call. */

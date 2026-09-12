@@ -375,7 +375,7 @@ export class EveBoosterSet2Renderable extends withITr2Renderable(CjsModel)
   @impl.implemented
   UpdateVisibility(updateContext)
   {
-    const frustum = updateContext?.GetFrustum?.();
+    const frustum = updateContext?.GetFrustum();
     if (!frustum || !this.#boosterSet)
     {
       return false;
