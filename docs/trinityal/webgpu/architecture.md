@@ -107,126 +107,76 @@ produce packages for qualification, but it is not an engine dependency.
 
 ## Harness batch adapter
 
-This adapter is not the live AL batch path. The internal `CjsWebgpuTrinityBatchDispatcher` extends the GPU-free Trinity
-dispatcher contract and consumes canonical `Tr2RenderBatch`,
-`ITriRenderBatchAccumulator`, and `TriRenderBatchMap` instances. Its injected
-resolver extends `CjsTrinityBatchResolver`. Composition validates those owned
-identities once; batch preparation and encoding then call the required methods
-directly. The resolver maps CPU material, geometry, and object-data references
-to an already-decoded pipeline recipe, WebGPU-owned geometry, and complete
-binding values.
+Separate from live AL submission, the internal
+[dispatcher](../../../src/trinityal/webgpu/core/CjsWebgpuTrinityBatchDispatcher.js)
+consumes nominal `Tr2RenderBatch`, `ITriRenderBatchAccumulator`,
+`TriRenderBatchMap` and an injected `CjsTrinityBatchResolver`. Composition
+validates identities once; subsequent calls are direct. These adapters are not
+public package-root exports.
 
-The dispatcher owns only the binding set it creates. Geometry, textures,
-samplers, decoded packages, and logical values remain owned by their
-resolvers. It maps indexed and non-indexed draw arguments, rejects unsupported
-topologies and incompatible pipeline recipes, and rolls back its binding set
-when draw creation fails.
+Resolvers own packages, geometry, textures, samplers and values. The dispatcher
+owns each batch's binding set and rolls it back if draw creation fails.
+Geometry-source batches may receive a complete indexed/non-indexed `draw`
+override; explicit batch arguments remain supported. Unsupported topology and
+incompatible recipes are rejected.
 
-Mesh batches may carry only a `geometrySource` area range and leave their draw
-arguments zero. `ResolveGeometry` may therefore return a complete indexed or
-non-indexed `draw` override derived from CPU geometry facts and the engine's
-realized buffer packing. Producers with explicit draw arguments continue to
-use the batch fields. The dispatcher validates either path before draw
-creation.
+Accumulator vectors retain order, GDPR first, using non-indirect fallback draws.
+Adjacent groups share pipeline/vertex/**index** bindings; bind groups remain
+per batch. Unlike Carbon's precomputed partition, runs are derived at encoding
+time and include index-buffer identity because these geometries need not share
+one global buffer. Sorting remains Trinity's responsibility. See
+[grouping implementation](../../../src/trinityal/webgpu/core/CjsWebgpuEncodeState.js).
 
-It also snapshots both vectors of a finalized nominal
-`ITriRenderBatchAccumulator`, preserves their internal order,
-encodes GDPR before ordinary batches, and owns the collected binding-set
-lifecycle as one unit. GDPR entries use the same non-indirect path as ordinary
-entries, matching Carbon's fallback semantics; the indirect-draw sink is a
-DirectX 12 and Metal capability that WebGPU has not been given here.
+Batch maps preserve insertion order. Resolvers receive the same shallow-copied,
+unfrozen preparation context, with numeric `batchType` for map preparation.
+Callers own batch-type meaning, technique/pass selection and compatible passes.
+The synchronous [pass encoder](../../../src/trinityal/webgpu/core/CjsWebgpuTrinityPassEncoder.js)
+accepts an existing caller-supplied command encoder, ordered descriptors and
+prepared-map selections; multiple types may
+share a pass or use separately prepared maps. Configuration must also be
+synchronous. It ends every begun pass, including on failure, but does not own
+attachments, command-buffer completion or submission.
 
-Encoding is **grouped**. Runs of adjacent batches that share a pipeline, vertex
-buffers and index buffer hoist those bindings to the run's first batch, as
-Carbon's `RenderBatchGroup` hoists them to a group. Two deliberate differences
-from Carbon: the index buffer is part of the predicate, because Carbon may omit
-it only while every geometry is suballocated from one process-global buffer and
-this engine gives each geometry its own; and runs are derived at encode time
-rather than read from a precomputed partition. Order is never changed — sorting
-belongs to Trinity, and reordering here would break golden-image comparison
-between backends.
-
-Bind groups stay per batch. Every prepared batch creates its own binding set
-even from identical values, which is where per-object data lives, and Carbon
-likewise applies per-object constants per batch.
+The [harness guide](guides/webgpu-harness.md#synthetic-eve-family-comparisons)
+owns synthetic-family gates. They do not load production EVE assets or establish
+production frequency/scheduling. Decoded-data boundaries remain unchanged when
+format readers move; only the injected reader/material resolver changes.
 
 ## Dynamic uniform offsets
 
-A dynamic binding is bound once and re-aimed per draw through the offsets given
-to `setBindGroup`, which is what lets many objects share one ring buffer instead
-of taking a buffer each. `CreateDraw` accepts `dynamicOffsets` keyed by binding
-identity.
+`CreateDraw` takes `dynamicOffsets` keyed by binding identity. Every dynamic
+binding requires a device-limit-aligned offset; missing offsets do not default to zero.
+Package/layout dynamic flags must agree. Bind resources specify the shader's
+**window**, not the whole buffer. The device orders offsets by binding number
+within each group and rebinds dynamic groups on every draw, even if their object
+identity is unchanged. See [offset validation and draw encoding](../../../src/trinityal/webgpu/CjsWebgpuDevice.js).
 
-Three rules are enforced because each fails quietly otherwise:
-
-- the bind group's own resource describes the **window** the shader sees, not
-  the whole buffer, since WebGPU adds the per-draw offset to it;
-- offsets are ordered by **binding number within the group**, derived from the
-  layout rather than from the order a caller lists them;
-- a group with dynamic offsets is re-set on **every** draw even when the bind
-  group object is unchanged, because the offsets are exactly what differs
-  between two objects sharing a buffer. Eliding that set would draw them all at
-  the same slot.
-
-A missing offset is an error rather than a defaulted zero, which would aim every
-object at the first slot and read as a scene bug. Offsets must respect the
-device's minimum alignment. A binding marked dynamic in the package but not in
-its layout, or the reverse, is rejected at preparation: WebGPU would otherwise
-reject the bind group much later with a message naming neither side.
-
-Storage buffers are caller-owned and bind through `resources` as a
-`GPUBufferBinding`; the engine creates and owns uniform buffers only.
+Storage `GPUBufferBinding` values supplied through `resources` remain caller-owned; this API creates and
+owns uniform buffers only.
 
 ## Textures
 
-The texture adapter accepts uncompressed 8/16/32-bit formats, the BC1–BC7
-block-compressed family, mip chains, 2D, 2D-array, cube and cube-array views.
-That range exists because real EVE textures arrive as DDS carrying
-block-compressed data with full mip chains, and environment probes are cubes.
-
-**Block compression is why the layout is computed rather than assumed.** For an
-uncompressed format a row is `width * bytesPerPixel` and a level is `height`
-rows. For a compressed one both are wrong: `bytesPerRow` counts *block* rows and
-`rowsPerImage` is `ceil(height / 4)`. Passing pixel rows for a BC texture does
-not fail loudly — it uploads a fraction of the data and reads garbage. An
-uncompressed format is expressed as a 1×1 block so there is one code path and
-the compressed case cannot drift from the plain one.
-
-The same rounding keeps a BC mip chain honest: a 1×1 level still occupies a
-whole block, so the tail levels of any chain are the same size, and computing a
-level's footprint from its pixel dimensions alone under-counts them.
-
-Mip chains are stored **layer-major** — each layer's complete chain, then the
-next — because that is how DDS stores an array or a cube. One level across
-layers is therefore not contiguous, so a chain is written per layer per level
-rather than in one call.
-
-BC formats require the `texture-compression-bc` device feature, which is checked
-and named before anything is created rather than left to fail inside
-`createTexture`.
+The adapter supports uncompressed 8/16/32-bit and BC1–BC7 formats, mip chains,
+and 2D, 2D-array, cube and cube-array views. BC requires
+`texture-compression-bc`, checked before creation. Inputs are **layer-major**:
+each layer's complete mip chain. Multi-level chains upload per layer/level;
+single-mip inputs may upload all layers together. Compressed footprints
+use block rows (`ceil(height / 4)`), including a complete block for tiny mip
+levels; uncompressed formats use the same calculation with 1×1 blocks.
+See [texture layout](../../../src/trinityal/webgpu/core/textureLayout.js) and
+[device upload](../../../src/trinityal/webgpu/CjsWebgpuDevice.js).
 
 ## Pipeline caching
 
-For the explicit-descriptor API, effect realization splits in two. Stage A is program identity and dedup, which
-is backend-independent and belongs upstream. Stage B is the pipeline object,
-which is backend-owned, and this package caches it.
+For the explicit-descriptor API, program identity/dedup belongs upstream;
+backend pipeline caching belongs here. `PreparePipeline` takes an explicit
+`identity`; omission means uncached preparation. A common descriptor name such
+as `Main.pass0` is not program identity.
 
-Both caches are keyed **exactly**, on the canonical serialization rather than a
-hash, so two different pipelines cannot collide and there is nothing to recheck.
-That is affordable because a recipe is a small POD block.
-
-Program identity is the **caller's to supply**, through a `PreparePipeline`
-`identity` option. Shader source is too large to serialize into a key on every
-call and this package has no dependency to hash it with. Without an identity a
-pipeline is prepared uncached, which is never wrong, only slower. Deriving one
-from the descriptor's `key` would be worse than no cache: `Main.pass0` is the
-most common pass name in the corpus and never dedupes across effects, so it
-would hand back another effect's pipeline.
-
-Everything is bound to a device generation and dropped on loss, recreation and
-destruction. Racing callers share one build rather than each creating a GPU
-object with one silently winning, and a failed build is not retained, so a
-transient device error does not make a key permanently unbuildable.
+The [cache](../../../src/trinityal/webgpu/core/CjsWebgpuPipelineCache.js) uses
+exact canonical keys, not hash-only keys. Entries are generation-bound and
+cleared on loss, recreation and destruction. Concurrent callers share one
+build; failed builds are evicted rather than poisoning the key.
 
 <a id="planning-a-frame-from-recorded-intents"></a>
 <a id="executing-a-planned-frame"></a>
@@ -296,38 +246,6 @@ The browser presents a configured canvas after submission. This does not
 remove Trinity's presentation verbs; the AL submission lifecycle is described
 above.
 
-The separate harness batch adapter at the next level snapshots `TriRenderBatchMap` batch types in insertion
-order and prepares each accumulator. Batch-type meaning and render
-pass selection remain outside the dispatcher: `EncodeBatchType(...)` requires
-the caller to supply the compatible pass for the requested type. This avoids
-turning opaque, decal, transparent, or depth policy into shared device code.
-Every injected material, geometry, and binding resolver receives the same
-preparation context; supplied contexts are shallow-copied but are not frozen. The batch-map path supplies its numeric
-`batchType`, allowing application composition to select the matching effect
-technique without the dispatcher importing or interpreting `TriBatchType`.
-
-The dispatcher is internal and is not exported from the engine subpath. The
-browser harness exercises it through canonical runtime identities while keeping
-fixture construction at an explicit test-only adapter. Static and skinned Quad,
-glass, heat, detail, sails, oil, and decal families provide synthetic package,
-binding, and pixel gates. They retain explicit caller-owned batch-type and pass
-selection, do not load production EVE assets, and make no claim about production
-frequency or scheduling policy. Detailed corpus provenance belongs in the
-private organization documentation rather than the shipped engine contract.
-
-The internal `CjsWebgpuTrinityPassEncoder` provides synchronous encoding for
-the separate harness adapter. A caller supplies an existing command encoder plus ordered
-render-pass descriptors and prepared batch-map selections. Multiple batch
-types may share one pass, and separately prepared maps may be selected when a
-different technique is required. Optional synchronous pass configuration can
-set viewport or other dynamic state. The encoder ends every pass it begins but
-does not own attachments, finish command buffers, submit work, or assign EVE
-meaning to a batch type.
-
-The contract consumes already-decoded pipeline data. Moving shader format
-readers between format and resource packages therefore does not change this
-boundary; only the injected reader or material resolver changes.
-
 ## Current non-goals
 
 The engine imports the GPU-free resource and Trinity classes whose identities
@@ -338,11 +256,9 @@ Carbon render state, infer batch-type pass policy, or schedule a render loop.
 Trinity executes render jobs and calls the AL directly; the backend does not
 consume a retained Trinity intent stream.
 
-The public engine texture adapter uploads explicit pixel data as described under
-*Textures* above: uncompressed 8/16/32-bit and BC1–BC7 formats, mip chains, 2D,
-2D-array, cube and cube-array views. The standalone harness may still create
-harness-owned native resources when a shader contract requires a shape outside
-that adapter.
+The public texture adapter accepts the explicit inputs listed under
+[Textures](#textures). Harness-owned native resources may cover shapes outside
+that adapter; they do not extend its public contract.
 
 ## Related documentation
 
