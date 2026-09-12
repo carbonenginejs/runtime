@@ -185,8 +185,17 @@ stride against its Carbon header cite, which is what the retired
 ## Mechanics
 
 - `tools-core` owns schema and class emission. Its output is reviewed before
-  being copied into this package; the copy review must exclude every basename
-  listed in this file and preserve its maintained or dropped owner.
+  being copied into this package; the copy review must exclude every file
+  listed in this document BY PATH, and preserve its maintained or dropped owner.
+- **Match the path, not the basename** (2026-09-13). A retired name can be
+  reused: nine of the fifty listed here are now LIVE classes under
+  `core/rawData/perObjectData/` - `EveBasicPerObjectData`,
+  `EveMissileWarheadPerObjectData`, `EveSceneStaticParticlesPerObjectData`,
+  `EveTurretSetPerObjectData`, `EveDecalPerObjectData`,
+  `EveBoosterSetPerObjectData`, `EveSpherePinPerObjectData`,
+  `EveChildSpherePinPerObjectData` and `EveChildBulletStormPerObjectData`.
+  Basename matching excludes those from review, which is the opposite of what
+  this file is for.
 - The Trinity layer deliberately has no generator dependency on `tools-core`
   and does not read a sibling workspace or scratch schema directory.
 - The files are kept verbatim as the generator last emitted them (provenance

@@ -53,8 +53,8 @@ than a defect to reproduce. Verified 2026-09-11 across every per-object bind:
 | behaviour | classes |
 |---|---|
 | masks the vertex family with `perFrameVsMask & constantTypeMask`; `Standard` leaves its pixel half unmasked, `Skinned` gates that half behind an explicit `if` | the two Trinity generics — and `Tr2PerObjectData.cpp` is the ONLY file in Carbon where the masked form appears |
-| unmasked, both halves | all fourteen Eve classes, at sixteen call sites |
-| gates EVERY stage explicitly, geometry included | `Tr2PerObjectDataWithPersistentBuffers` |
+| unmasked, both halves | the Eve classes EXCEPT `EveMissileWarheadPerObjectData` |
+| gates EVERY stage explicitly, geometry included | `Tr2PerObjectDataWithPersistentBuffers` - and `EveMissileWarheadPerObjectData`, which derives from it (`EveMissileWarhead.h:194`) and delegates its whole body to it (`cpp:687-690`) |
 
 So gating everything is not an invention: it is what Carbon's persistent class
 does, and that class carries the most careful comment of the family. What we add
