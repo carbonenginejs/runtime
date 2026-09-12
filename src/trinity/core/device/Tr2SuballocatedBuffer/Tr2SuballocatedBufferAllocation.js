@@ -18,9 +18,6 @@
 //
 // Not ported: `Free` (Carbon's virtual allocator reclaims; ours is append-only
 // until the resource that owns the buffer releases it), `MapForReading`.
-import { Tr2BufferDescriptionAL } from "../../../../trinityal/stub/Tr2BufferALStub.js";
-import { Tr2CpuUsage } from "#consts/render-context";
-import { Failed } from "../../../../trinityal/ALResult.js";
 
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */

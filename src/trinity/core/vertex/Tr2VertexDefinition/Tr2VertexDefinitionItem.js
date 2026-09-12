@@ -7,7 +7,6 @@
 // lives in the vertex-layout AL (trinityal/vertexLayoutMatch.js) - both were
 // parked under this class's name until 2026-09-06, before it had its real
 // Carbon surface.
-import { Tr2VertexUsageCode } from "../usageCode.js";
 
 
 /**

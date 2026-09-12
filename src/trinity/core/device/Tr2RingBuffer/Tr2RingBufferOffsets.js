@@ -40,26 +40,8 @@
 //   session and is not in a browser tab, so the consumed prefix is erased in
 //   both cases. The tail it computes is identical either way.
 
-import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
-import { Tr2BufferALStub, Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
-import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
-
-
-function failRing(message)
-{
-  const error = new Error(`Tr2RingBuffer: ${message}`);
-  error.code = "CJS_RING_BUFFER_INVALID";
-  throw error;
-}
-
-
-/** Carbon's `INITIAL_SIZE` (`Tr2RingBuffer.cpp:8`), in ELEMENTS rather than bytes. */
-const INITIAL_SIZE = 16 * 1024;
-
 /** Carbon's `Tr2RingBufferOffsets::INVALID_OFFSET`. */
 const INVALID_OFFSET = 0xffffffff;
-
 
 /**
  * Where one consumer's rows landed, this frame and last.

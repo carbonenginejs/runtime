@@ -1,10 +1,6 @@
 // Source: trinity/trinity/Include/ITr2InstanceData.h
 import { CjsModel } from "#model";
-import { CjsSchema, impl, type } from "#schema";
-
-
-const ITR2_INSTANCE_DATA = Symbol.for("carbonenginejs.contract.ITr2InstanceData");
-
+import { type } from "#schema";
 
 /** One realized instance-buffer slice returned by an ITr2InstanceData provider. */
 @type.define({ className: "ITr2InstanceDataInstanceData", family: "trinityCore" })
