@@ -31,7 +31,7 @@
 
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2BufferDescriptionAL } from "../../trinityal/stub/Tr2BufferALStub.js";
-import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition.js";
+import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_BYTES, SetupScreenQuad, SetupScreenQuadInCameraSpace } from "./Tr2RenderUtils.js";

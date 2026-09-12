@@ -4,7 +4,7 @@
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { withITr2InstanceData } from "./ITr2InstanceData.js";
+import { withITr2InstanceData } from "./ITr2InstanceData/index.js";
 
 
 /**

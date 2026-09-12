@@ -15,7 +15,7 @@ import { Tr2Light } from "../../lights/Tr2Light.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { TriBatchType } from "#consts/graphics";
 import { num } from "#math/num";
-import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 
 // Carbon PoolVertex (EveSpriteSet.h:56-70): 32 bytes -
 // position float3 @0; TEXCOORD0 half4 @12 = activation, blinkPhase,

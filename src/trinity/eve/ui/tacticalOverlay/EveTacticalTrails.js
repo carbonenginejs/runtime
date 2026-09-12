@@ -5,7 +5,7 @@ import { carbon, impl, io, type } from "#schema";
 import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/stub/Tr2BufferALStub.js";

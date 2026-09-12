@@ -740,7 +740,7 @@ float32 rows and float16 tails before submission. Numeric arrays remain a
 float32-compatible convenience for uniformly typed records.
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/Tr2QuadRenderer.js
+- Source: src/trinity/core/Tr2QuadRenderer/Tr2QuadRenderer.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -750,7 +750,7 @@ float32-compatible convenience for uniformly typed records.
 One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord).
 
 - Export: @carbonenginejs/runtime/trinity/core
-- Source: src/trinity/core/Tr2QuadRenderer.js
+- Source: src/trinity/core/Tr2QuadRenderer/Tr2QuadRendererEffectRecord.js
 - Visibility: Public
 - Kind: CarbonEngineJS
 

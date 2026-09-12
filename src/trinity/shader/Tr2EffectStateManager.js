@@ -27,7 +27,7 @@ import {
   FillMode,
   RenderState
 } from "#consts/render-context";
-import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition.js";
+import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2RenderStateSetup } from "#resource/shader";
 import { Failed } from "../../trinityal/ALResult.js";
 

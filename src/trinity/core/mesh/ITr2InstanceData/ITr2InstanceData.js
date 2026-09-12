@@ -6,24 +6,6 @@ import { CjsSchema, impl, type } from "#schema";
 const ITR2_INSTANCE_DATA = Symbol.for("carbonenginejs.contract.ITr2InstanceData");
 
 
-/** One realized instance-buffer slice returned by an ITr2InstanceData provider. */
-@type.define({ className: "ITr2InstanceDataInstanceData", family: "trinityCore" })
-export class ITr2InstanceDataInstanceData extends CjsModel
-{
-  @type.rawStruct("Tr2BufferAL")
-  buffer = null;
-
-  @type.uint32
-  offset = 0;
-
-  @type.uint32
-  stride = 0;
-
-  @type.uint32
-  count = 0;
-}
-
-
 /** Contract for a provider of instance-stream data and layout metadata. */
 export class ITr2InstanceData
 {

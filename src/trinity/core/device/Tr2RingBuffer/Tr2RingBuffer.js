@@ -42,7 +42,7 @@
 
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
-import { Tr2BufferALStub, Tr2BufferDescriptionAL } from "../../../trinityal/index.js";
+import { Tr2BufferALStub, Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
 
@@ -59,81 +59,6 @@ const INITIAL_SIZE = 16 * 1024;
 
 /** Carbon's `Tr2RingBufferOffsets::INVALID_OFFSET`. */
 const INVALID_OFFSET = 0xffffffff;
-
-
-/**
- * Where one consumer's rows landed, this frame and last.
- *
- * Held by value in Carbon, so each consumer owns one rather than sharing.
- */
-export class Tr2RingBufferOffsets
-{
-  /** Carbon's `INVALID_OFFSET`; the "nothing uploaded" state, and a no-draw. */
-  static INVALID_OFFSET = INVALID_OFFSET;
-
-  /** m_currentFrameOffset */
-  #currentFrameOffset = INVALID_OFFSET;
-
-  /** m_previousFrameOffset */
-  #previousFrameOffset = INVALID_OFFSET;
-
-  /**
-   * Where this frame's rows start, in elements.
-   *
-   * @returns {number} The offset, or `INVALID_OFFSET` before an upload.
-   */
-  GetCurrentFrameOffset()
-  {
-    return this.#currentFrameOffset;
-  }
-
-  /**
-   * Where last frame's rows start, in elements.
-   *
-   * @returns {number} The offset, or `INVALID_OFFSET` before a second frame.
-   */
-  GetPreviousFrameOffset()
-  {
-    return this.#previousFrameOffset;
-  }
-
-  /**
-   * Uploads this consumer's rows, ONCE per frame.
-   *
-   * The early return is the interesting line: a second upload in the same frame
-   * is ignored rather than appended, so an object updated twice does not eat
-   * the ring twice. `AdvanceFrame` is what re-arms it.
-   *
-   * @param {Tr2RingBuffer} buffer The arena for this data type.
-   * @param {ArrayBufferView} transforms The packed rows.
-   * @param {number} count How many rows.
-   * @returns {void}
-   */
-  UploadTransforms(buffer, transforms, count)
-  {
-    if (this.#currentFrameOffset !== INVALID_OFFSET) return;
-
-    this.#currentFrameOffset = buffer.UploadTransforms(transforms, count);
-
-    // First frame: last frame's rows are this frame's, so a shader reading the
-    // previous offset reads something valid rather than nothing.
-    if (this.#previousFrameOffset === INVALID_OFFSET)
-    {
-      this.#previousFrameOffset = this.#currentFrameOffset;
-    }
-  }
-
-  /**
-   * Rolls this frame's offset into last frame's and re-arms the upload.
-   *
-   * @returns {void}
-   */
-  AdvanceFrame()
-  {
-    this.#previousFrameOffset = this.#currentFrameOffset;
-    this.#currentFrameOffset = INVALID_OFFSET;
-  }
-}
 
 
 /**

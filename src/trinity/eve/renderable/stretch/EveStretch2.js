@@ -7,7 +7,7 @@ import { TriBatchType } from "#consts/graphics";
 import { carbon, impl, io, type } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
-import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer.js";
+import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";

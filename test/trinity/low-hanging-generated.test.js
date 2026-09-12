@@ -44,7 +44,7 @@ import { Tr2ParticleSystem } from "../../npm/dist/trinity/particle/Tr2ParticleSy
 import { Tr2DynamicEmitter } from "../../npm/dist/trinity/particle/emitter/Tr2DynamicEmitter.js";
 import { Tr2StaticEmitter } from "../../npm/dist/trinity/particle/emitter/Tr2StaticEmitter.js";
 import { Tr2RaytracingGeometry } from "../../npm/dist/trinity/generated/raytracing/Tr2RaytracingGeometry.js";
-import { Tr2QuadRenderer } from "../../npm/dist/trinity/core/Tr2QuadRenderer.js";
+import { Tr2QuadRenderer } from "../../npm/dist/trinity/core/Tr2QuadRenderer/Tr2QuadRenderer.js";
 import { BehaviorGroup } from "../../npm/dist/trinity/eve/child/behaviors/BehaviorGroup.js";
 import { Tr2ParticleElementDeclaration } from "../../npm/dist/trinity/particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2ParticleElementDeclarationName } from "../../npm/dist/trinity/particle/element/Tr2ParticleElementDeclarationName.js";

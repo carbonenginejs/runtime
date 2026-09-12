@@ -215,30 +215,6 @@
       "CjsControllerExpressionCompileError",
       "CjsControllerExpressionEvaluateError"
     ],
-    "src/trinity/core/device/Tr2RingBuffer.js": [
-      "Tr2RingBufferOffsets",
-      "Tr2RingBuffer"
-    ],
-    "src/trinity/core/device/Tr2SuballocatedBuffer.js": [
-      "Tr2SuballocatedBufferAllocation",
-      "Tr2SuballocatedBuffer"
-    ],
-    "src/trinity/core/mesh/ITr2ImpostorSource.js": [
-      "ITr2ImpostorSourceImpostorHash",
-      "ITr2ImpostorSource"
-    ],
-    "src/trinity/core/mesh/ITr2InstanceData.js": [
-      "ITr2InstanceDataInstanceData",
-      "ITr2InstanceData"
-    ],
-    "src/trinity/core/Tr2QuadRenderer.js": [
-      "Tr2QuadRendererEffectRecord",
-      "Tr2QuadRenderer"
-    ],
-    "src/trinity/core/vertex/Tr2VertexDefinition.js": [
-      "Tr2VertexDefinitionItem",
-      "Tr2VertexDefinition"
-    ],
     "src/trinity/curves/curve/Tr2CurveRandomAxisRotation.js": [
       "Tr2CurveRandomAxisRotation",
       "CjsMt19937"

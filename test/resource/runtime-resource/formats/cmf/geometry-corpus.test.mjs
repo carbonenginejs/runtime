@@ -14,7 +14,7 @@ import {
     runGeometryCorpusWorkers,
     selectGeometryPaths
 } from "../../../../../scripts/resource/geometryCorpus.js";
-import { Tr2VertexDefinition } from "../../../../../src/trinity/core/vertex/Tr2VertexDefinition.js";
+import { Tr2VertexDefinition } from "../../../../../src/trinity/core/vertex/Tr2VertexDefinition/index.js";
 import { CarbonUsageFromCmf } from "../../../../../src/trinity/core/vertex/vertexUsage.js";
 
 test("geometry corpus options reject incomplete and non-working gates", () =>

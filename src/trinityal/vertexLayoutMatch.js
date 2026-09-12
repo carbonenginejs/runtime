@@ -43,7 +43,7 @@ export const FALLBACK_INPUT_TYPE = "FLOAT";
 /**
  * The mesh element serving a shader input, or null when the mesh has none.
  *
- * @param {object[]|import("../vertex/Tr2VertexDefinition.js").Tr2VertexDefinition} elementsOrDefinition
+ * @param {object[]|import("../vertex/Tr2VertexDefinition/index.js").Tr2VertexDefinition} elementsOrDefinition
  * @param {object} input A shader pipeline input with `usage` and `usageIndex`.
  * @returns {object|null} The matching element.
  */
@@ -75,7 +75,7 @@ export function findInputElement(elementsOrDefinition, input)
  * Each entry carries the input, the mesh element serving it or null, and the
  * fallback scalar type an engine substitutes when there is none.
  *
- * @param {object[]|import("../vertex/Tr2VertexDefinition.js").Tr2VertexDefinition} elements
+ * @param {object[]|import("../vertex/Tr2VertexDefinition/index.js").Tr2VertexDefinition} elements
  * @param {object[]} pipelineInputs The vertex shader's declared inputs.
  * @returns {{ entries: object[], unmatched: number, complete: boolean }}
  */

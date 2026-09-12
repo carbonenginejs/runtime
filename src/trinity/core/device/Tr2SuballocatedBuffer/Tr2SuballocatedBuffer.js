@@ -18,9 +18,10 @@
 //
 // Not ported: `Free` (Carbon's virtual allocator reclaims; ours is append-only
 // until the resource that owns the buffer releases it), `MapForReading`.
-import { Tr2BufferDescriptionAL } from "../../../trinityal/stub/Tr2BufferALStub.js";
+import { Tr2SuballocatedBufferAllocation } from "./Tr2SuballocatedBufferAllocation.js";
+import { Tr2BufferDescriptionAL } from "../../../../trinityal/stub/Tr2BufferALStub.js";
 import { Tr2CpuUsage } from "#consts/render-context";
-import { Failed } from "../../../trinityal/ALResult.js";
+import { Failed } from "../../../../trinityal/ALResult.js";
 
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
@@ -28,75 +29,6 @@ export const SHARED_BUFFER_BLOCK_SIZE = 32 * 1024 * 1024;
 
 /** `SHARED_BUFFER_MAX_SIZE` (`TriGeometryRes.h:16`). */
 export const SHARED_BUFFER_MAX_SIZE = 2048 * 1024 * 1024;
-
-
-/**
- * Carbon's `Tr2SuballocatedBuffer::Allocation`: where in which buffer, at
- * what stride.
- */
-export class Tr2SuballocatedBufferAllocation
-{
-  /** The block's `Tr2BufferAL`. */
-  m_buffer = null;
-
-  m_offset = 0;
-
-  m_size = 0;
-
-  m_stride = 0;
-
-  m_parent = null;
-
-  /** The block's `Tr2BufferAL`. */
-  GetBuffer()
-  {
-    return this.m_buffer;
-  }
-
-  /** The allocation's first byte within that block. */
-  GetOffset()
-  {
-    return this.m_offset;
-  }
-
-  /** The allocation's size in bytes. */
-  GetSize()
-  {
-    return this.m_size;
-  }
-
-  /** Bytes per element, which `GetStartIndex` divides by. */
-  GetStride()
-  {
-    return this.m_stride;
-  }
-
-  /** `m_offset / m_stride`: the first element, which the draw arguments add. */
-  GetStartIndex()
-  {
-    return this.m_stride ? Math.floor(this.m_offset / this.m_stride) : 0;
-  }
-
-  /** Whether the allocation names a block and has any size. */
-  IsValid()
-  {
-    return this.m_buffer !== null && this.m_size > 0;
-  }
-
-  /**
-   * Rewrites the allocation, whole or in part.
-   *
-   * @param {ArrayBufferView} data The bytes.
-   * @param {object} renderContext The context to update through.
-   * @param {number} [offset] Byte offset within the allocation.
-   * @param {number} [size] Bytes to write.
-   * @returns {number} An `ALResult` value.
-   */
-  Update(data, renderContext, offset = 0, size = data.byteLength)
-  {
-    return this.m_buffer.UpdateBuffer(this.m_offset + offset, size, data, renderContext);
-  }
-}
 
 
 /**

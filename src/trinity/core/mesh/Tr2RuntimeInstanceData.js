@@ -6,7 +6,7 @@ import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
-import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "./ITr2InstanceData.js";
+import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "./ITr2InstanceData/index.js";
 
 
 /**

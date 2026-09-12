@@ -10,7 +10,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
-import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition.js";
+import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
 
 
 const effectIdentities = new WeakMap();

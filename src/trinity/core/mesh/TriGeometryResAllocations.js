@@ -22,7 +22,7 @@
 // reader) and re-strides to a multiple of four.
 import { PackLodGeometry } from "#resource/geometry/pack";
 import { Tr2GpuUsage } from "#consts/render-context";
-import { Tr2SuballocatedBuffer } from "../device/Tr2SuballocatedBuffer.js";
+import { Tr2SuballocatedBuffer } from "../device/Tr2SuballocatedBuffer/index.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 

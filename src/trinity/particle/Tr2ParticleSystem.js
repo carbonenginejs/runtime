@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "./element/Tr2ParticleElementDeclaration.js";
-import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "../core/mesh/ITr2InstanceData.js";
+import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "../core/mesh/ITr2InstanceData/index.js";
 import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter.js";
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */

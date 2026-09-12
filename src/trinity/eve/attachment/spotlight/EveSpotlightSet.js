@@ -9,7 +9,7 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { AsPerSpotLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
-import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { TriBatchType } from "#consts/graphics";
 
 

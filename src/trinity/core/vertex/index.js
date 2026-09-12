@@ -1,2 +1,2 @@
-export * from "./Tr2VertexDefinition.js";
+export * from "./Tr2VertexDefinition/index.js";
 export * from "./vertexUsage.js";
