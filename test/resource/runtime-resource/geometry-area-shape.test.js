@@ -3,13 +3,19 @@ import { test } from "node:test";
 
 import { TriGeometryRes } from "../../../src/resource/geometry/index.js";
 
-// Tr2RenderBatch is the ONE import here still taken from the built package, and
-// not by choice: `src/trinity` still has 648 decorated files, and decorators are
-// not JavaScript without a transform, so importing that barrel from source is a
-// SyntaxError. `src/resource` is decorator-free, so everything else above is
-// source-true and a change to it is visible here without a rebuild.
+// Tr2RenderBatch is the ONE import here still taken from the built package:
+// `src/trinity` has 648 decorated files, decorators are not JavaScript without a
+// transform, so importing that barrel from source is a SyntaxError.
 //
-// Flip this line too when the trinity tree is converted.
+// That is trinity's CORRECT state, not a pending task. Decorators are how a
+// ported class declares itself, and the recorded direction is more of them, not
+// fewer - `CjsModel` is being dissolved in favour of a `@compose` namespace
+// (docs/internal/decisions/cjsmodel-composition-decorators.md). Formats and
+// resources are the deliberate exception: they take schema data through
+// `CjsSchema.define` instead, which is plain JavaScript, so `src/resource`
+// imports from source and a change to it is visible here without a rebuild.
+//
+// So do not "fix" this line by converting trinity. Nobody has asked for that.
 import { Tr2RenderBatch } from "../../../npm/dist/trinity/core/index.js";
 
 test("a CMF first-triangle becomes an index, a Carbon first-index does not", () =>
