@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsFormatStore, ResourceRequirement, TriGrannyRes, TriTextureRes } from "../../../npm/dist/resource/index.js";
-import { CjsDdsFormat } from "../../../npm/dist/resource/formats/dds/index.js";
-import { CjsTgaFormat } from "../../../npm/dist/resource/formats/tga/index.js";
-import { CjsWebglFormat } from "../../../npm/dist/resource/formats/webgl/index.js";
+import { CjsFormatStore, ResourceRequirement, TriGrannyRes, TriTextureRes } from "../../../src/resource/index.js";
+import { CjsDdsFormat } from "../../../src/resource/formats/dds/index.js";
+import { CjsTgaFormat } from "../../../src/resource/formats/tga/index.js";
+import { CjsWebglFormat } from "../../../src/resource/formats/webgl/index.js";
 
 // The store is the link between a resource and the formats that populate it.
 // It exists so neither imports the other: formats stay tree-shakeable subpaths

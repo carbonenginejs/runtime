@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2RenderStateSetup } from "../../../npm/dist/resource/shader/index.js";
+import { Tr2RenderStateSetup } from "../../../src/resource/shader/index.js";
 
 // Carbon render-state ids, spelled here so a test failure names the state.
 const RS_ZENABLE = 7;

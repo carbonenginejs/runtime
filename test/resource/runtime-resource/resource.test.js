@@ -4,10 +4,10 @@ import {
   getResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import * as runtimeResource from "../../../npm/dist/resource/index.js";
-import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.js";
-import { CjsRedFormat } from "../../../npm/dist/resource/formats/red/index.js";
+import { CjsSchema } from "../../../src/global/schema/index.js";
+import * as runtimeResource from "../../../src/resource/index.js";
+import { CjsBlackFormat } from "../../../src/resource/formats/black/index.js";
+import { CjsRedFormat } from "../../../src/resource/formats/red/index.js";
 import {
   CjsEventEmitter,
   Tr2EffectRes,
@@ -32,7 +32,7 @@ import {
   CjsTextureArrayResParameterProxy,
   TriGrannyRes,
   getMotherLodeKey
-} from "../../../npm/dist/resource/index.js";
+} from "../../../src/resource/index.js";
 
 test("runtime-resource does not export an event scope layer", () => {
   assert.equal(runtimeResource.CjsEventEmitter, CjsEventEmitter);

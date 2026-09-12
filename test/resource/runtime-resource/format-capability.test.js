@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // Decorated classes require the build transform - test the consumer output.
-import { CjsFormat, CjsResourceProbe } from "../../../npm/dist/resource/index.js";
+import { CjsFormat, CjsResourceProbe } from "../../../src/resource/index.js";
 
 class TestFormat extends CjsFormat
 {

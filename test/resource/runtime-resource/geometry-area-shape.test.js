@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { TriGeometryRes } from "../../../npm/dist/resource/geometry/index.js";
+import { TriGeometryRes } from "../../../src/resource/geometry/index.js";
+
+// Tr2RenderBatch is the ONE import here still taken from the built package, and
+// not by choice: `src/trinity` still has 648 decorated files, and decorators are
+// not JavaScript without a transform, so importing that barrel from source is a
+// SyntaxError. `src/resource` is decorator-free, so everything else above is
+// source-true and a change to it is visible here without a rebuild.
+//
+// Flip this line too when the trinity tree is converted.
 import { Tr2RenderBatch } from "../../../npm/dist/trinity/core/index.js";
 
 test("a CMF first-triangle becomes an index, a Carbon first-index does not", () =>

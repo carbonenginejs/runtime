@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema } from "../../../src/global/schema/index.js";
 import { PixelFormat as PayloadPixelFormat } from "#consts/graphics";
 import { PixelFormat as CarbonPixelFormat } from "#consts/render-context";
 import {
@@ -11,7 +11,7 @@ import {
   Tr2TexturePipelineStepLoad,
   Tr2TexturePipelineStepPack,
   TriTextureRes
-} from "../../../npm/dist/resource/index.js";
+} from "../../../src/resource/index.js";
 
 test("Tr2TextureLodManager mirrors Carbon registration and removal order", () =>
 {

@@ -10,7 +10,7 @@ import {
   EffectPlatformFromPath,
   ResolveEffectPath,
   TranslatedEffectPlatforms
-} from "../../../npm/dist/global/utils/index.js";
+} from "../../../src/global/utils/index.js";
 
 test("the platform is read back out of a resolved path", () =>
 {

@@ -8,7 +8,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsResource } from "../../../npm/dist/resource/index.js";
+import { CjsResource } from "../../../src/resource/index.js";
 
 
 const { State } = CjsResource;
@@ -247,7 +247,7 @@ test("isResource is declared on the class, not just the instance", () =>
 // purged handle gets it back without ever learning it was gone.
 test("a purged handle reloads into itself when something asks for it again", async () =>
 {
-  const { CjsResMan } = await import("../../../npm/dist/resource/index.js");
+  const { CjsResMan } = await import("../../../src/resource/index.js");
 
   let reads = 0;
   const resMan = new CjsResMan({
@@ -280,7 +280,7 @@ test("a purged handle declines to reload when another has claimed its identity",
 {
   // Displacing the newcomer would kill whoever holds it - the exact failure
   // this contract exists to prevent - so the stale handle stays purged.
-  const { CjsResMan } = await import("../../../npm/dist/resource/index.js");
+  const { CjsResMan } = await import("../../../src/resource/index.js");
 
   const resMan = new CjsResMan({ source: { Read: () => "{}" } });
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
