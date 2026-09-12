@@ -339,9 +339,9 @@ export class CjsResMan
           }
           const previousMotherLode = this.motherLode;
           this.#InvalidateMotherLodeOwnership(previousMotherLode);
-          previousMotherLode?.Shutdown?.();
+          previousMotherLode?.Shutdown();
           this.motherLode = nextMotherLode;
-          this.motherLode.Startup?.();
+          this.motherLode.Startup();
           this.#BindMotherLodeResources();
           this.#reloadGenerations.clear();
           this.#lastAutoPurgeTime = null;
@@ -769,7 +769,7 @@ export class CjsResMan
       : options.cache;
     const cacheResult = options.cache === false
       ? null
-      : this.motherLode.TrimCache?.(cacheOptions);
+      : this.motherLode.TrimCache(cacheOptions);
     const trimmed = Boolean(cacheResult && cacheResult.evicted > 0);
     const purgeOptions = options.purge === true || options.purge === undefined
       ? {}
@@ -1211,7 +1211,7 @@ export class CjsResMan
     if (existing && options.reload !== true)
     {
       this.#BindResourceLifecycle(cacheKey, existing);
-      this.motherLode.KeepAlive?.(cacheKey);
+      this.motherLode.KeepAlive(cacheKey);
       return existing;
     }
     if (!existing && options.reload === true)
@@ -1231,7 +1231,7 @@ export class CjsResMan
     if (existing && options.reload === true)
     {
       this.#BindResourceLifecycle(cacheKey, existing);
-      this.motherLode.KeepAlive?.(cacheKey);
+      this.motherLode.KeepAlive(cacheKey);
       const expectedOwnership = this.#RequireResourceOwnership(existing, "reload-candidate:create");
       const generation = this.#nextResourceReloadGeneration++;
       const loaderOptions = getResourceLoaderOptions(
@@ -1273,7 +1273,7 @@ export class CjsResMan
       this.#InvalidateResourceOwnership(existing);
     }
     this.#BindResourceLifecycle(cacheKey, canonical);
-    this.motherLode.KeepAlive?.(cacheKey);
+    this.motherLode.KeepAlive(cacheKey);
     return canonical;
   }
 
@@ -1601,7 +1601,7 @@ export class CjsResMan
     }
     try
     {
-      candidate.owner.KeepAlive?.(candidate.key);
+      candidate.owner.KeepAlive(candidate.key);
     }
     catch (error)
     {
@@ -2314,7 +2314,7 @@ export class CjsResMan
     if (resource)
     {
       this.#BindResourceLifecycle(key, resource);
-      this.motherLode.KeepAlive?.(key);
+      this.motherLode.KeepAlive(key);
     }
     return resource;
   }
