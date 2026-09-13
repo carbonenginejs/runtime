@@ -376,6 +376,28 @@ test("an unknown depthRange is rejected rather than silently defaulted", () =>
 const depthCorpusDir = process.env.CARBON_EFFECT_CORPUS_DIR || "";
 
 test(
+    "depthRange none emits no depth fixup, for a consumer that maps clip z itself",
+    { skip: depthCorpusDir ? false : "set CARBON_EFFECT_CORPUS_DIR to run the depth-range guard" },
+    async () =>
+    {
+        const { readdir, readFile } = await import("node:fs/promises");
+        const nodePath = (await import("node:path")).default;
+        const names = (await readdir(depthCorpusDir)).filter(n => /.sm_(hi|lo|depth)$/u.test(n));
+        assert.ok(names.length, "corpus directory holds no compiled effects");
+        const bytes = new Uint8Array(await readFile(nodePath.join(depthCorpusDir, names[0])));
+        const opts = { source: names[0], localLights: "packed-texture", emitterOptions: { depthRange: "none", clipYFlip: true } };
+        const doc = CjsWebglFormat.read(CjsWebglFormat.buildEffect(bytes, opts).bytes, { source: names[0] });
+        const vertex = doc.shaders.find(shader => shader.stageName === "vertex" && shader.source);
+        assert.ok(vertex, "no translated vertex stage");
+        assert.ok(!vertex.source.includes(REVERSED_FIXUP), "none must not emit the reversed fixup");
+        assert.ok(!vertex.source.includes(FORWARD_FIXUP), "none must not emit the forward fixup");
+        // The wrapper and the clip Y flip tail are unaffected.
+        assert.ok(vertex.source.includes("dxbc_main();"));
+        assert.ok(vertex.source.includes("gl_Position.y *= ssyf.z;"));
+    }
+);
+
+test(
     "the vertex depth fixup follows depthRange, defaulting to reversed",
     { skip: depthCorpusDir ? false : "set CARBON_EFFECT_CORPUS_DIR to run the depth-range guard" },
     async () =>

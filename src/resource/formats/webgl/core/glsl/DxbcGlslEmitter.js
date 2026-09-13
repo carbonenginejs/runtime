@@ -145,6 +145,12 @@ export class DxbcGlslEmitter
             //
             //   "reversed" (default)  z_clip [w, 0]  ->  gl_Position.z = w - 2z
             //   "forward"             z_clip [0, w]  ->  gl_Position.z = 2z - w
+            //   "none"                no fixup: clip z passes through unchanged,
+            //                         for a consumer whose clip range already is
+            //                         the D3D [0, w] one (EXT_clip_control
+            //                         ZERO_TO_ONE), where z/w is the window depth
+            //                         and the float round trip through [-1, 1]
+            //                         that costs reversed-Z its precision is gone
             //
             // The default is "reversed" because that is what the shaders this
             // emitter translates were compiled against, and it is a property of
@@ -199,10 +205,10 @@ export class DxbcGlslEmitter
             throw new TypeError("packedLightProfiles must be a boolean");
         }
 
-        if (this.profile.depthRange !== "reversed" && this.profile.depthRange !== "forward")
+        if (!Object.hasOwn(DEPTH_RANGE_FIXUP, this.profile.depthRange))
         {
             throw new TypeError(
-                `DxbcGlslEmitter: depthRange must be "reversed" or "forward", got ${JSON.stringify(this.profile.depthRange)}`
+                `DxbcGlslEmitter: depthRange must be "reversed", "forward" or "none", got ${JSON.stringify(this.profile.depthRange)}`
             );
         }
     }
@@ -3529,7 +3535,9 @@ const CLIP_Y_FLIP_TAIL = Object.freeze([
 
 const DEPTH_RANGE_FIXUP = Object.freeze({
     reversed: "gl_Position.z = gl_Position.w - 2.0 * gl_Position.z;",
-    forward: "gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;"
+    forward: "gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;",
+    // No statement: the consumer's clip range already matches the source's.
+    none: null
 });
 
 DxbcGlslEmitter.prototype._assemble = function _assemble(state)
@@ -3586,7 +3594,7 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
             "void main() {",
             "    dxbc_main();",
             ...(this.profile.clipYFlip ? CLIP_Y_FLIP_TAIL.map(line => `    ${line}`) : []),
-            `    ${DEPTH_RANGE_FIXUP[this.profile.depthRange]}`,
+            ...(DEPTH_RANGE_FIXUP[this.profile.depthRange] ? [ `    ${DEPTH_RANGE_FIXUP[this.profile.depthRange]}` ] : []),
             "}"
         );
         return `${lines.join("\n")}\n`;
