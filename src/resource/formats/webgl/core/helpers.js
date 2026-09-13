@@ -109,6 +109,7 @@ const EMIT_GLSL_OPTION_KEYS = new Set([
     "packedLightProfiles",
     "emulatedAddressing",
     "depthRange",
+    "clipYFlip",
     "pairVaryings",
     "source"
 ]);
@@ -126,7 +127,8 @@ const EMIT_GLSL_PROFILE_KEYS = new Set([
     "lightPackedTexture",
     "packedLightProfiles",
     "emulatedAddressing",
-    "depthRange"
+    "depthRange",
+    "clipYFlip"
 ]);
 
 /**

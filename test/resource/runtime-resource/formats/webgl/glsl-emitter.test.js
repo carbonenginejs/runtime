@@ -296,6 +296,69 @@ test("constant buffers emit as a flat vec4 array in both declaration styles", ()
 const REVERSED_FIXUP = "gl_Position.z = gl_Position.w - 2.0 * gl_Position.z;";
 const FORWARD_FIXUP = "gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;";
 
+test("a non-boolean clipYFlip is rejected rather than silently defaulted", () =>
+{
+    assert.throws(
+        () => CjsWebglFormat.emitGlsl(buildMinimalVertexDxbc(), { source: "s", clipYFlip: "yes" }),
+        /clipYFlip must be a boolean/u
+    );
+});
+
+const CLIP_Y_FLIP_DECLARATION = "uniform vec3 ssyf;";
+const CLIP_Y_FLIP_LINES = [
+    "gl_Position.xy += ssyf.xy * gl_Position.w;",
+    "gl_Position.y *= ssyf.z;"
+];
+
+test(
+    "clipYFlip appends CCP's ssyf tail ahead of the depth fixup, and only when asked",
+    { skip: process.env.CARBON_EFFECT_CORPUS_DIR ? false : "set CARBON_EFFECT_CORPUS_DIR to run the clip Y flip guard" },
+    async () =>
+    {
+        const { readdir, readFile } = await import("node:fs/promises");
+        const path = await import("node:path");
+        const dir = process.env.CARBON_EFFECT_CORPUS_DIR;
+
+        const names = (await readdir(dir)).filter(n => /.sm_(hi|lo|depth)$/u.test(n));
+        assert.ok(names.length, "corpus directory holds no compiled effects");
+        const bytes = new Uint8Array(await readFile(path.join(dir, names[0])));
+
+        const vertexOf = (emitterOptions) =>
+        {
+            const opts = { source: names[0], localLights: "packed-texture" };
+            if (emitterOptions) opts.emitterOptions = emitterOptions;
+            const doc = CjsWebglFormat.read(CjsWebglFormat.buildEffect(bytes, opts).bytes, { source: names[0] });
+            const vertex = doc.shaders.find(shader => shader.stageName === "vertex" && shader.source);
+            assert.ok(vertex, "no translated vertex stage");
+            return vertex.source;
+        };
+        const count = (source, needle) => source.split(needle).length - 1;
+
+        // Off by default: existing output is byte-for-byte what it was.
+        const plain = vertexOf(null);
+        assert.equal(count(plain, CLIP_Y_FLIP_DECLARATION), 0);
+        for (const line of CLIP_Y_FLIP_LINES) assert.equal(count(plain, line), 0);
+        assert.equal(vertexOf({ clipYFlip: false }), plain, "clipYFlip false must not change the output");
+
+        const flipped = vertexOf({ clipYFlip: true });
+        assert.equal(count(flipped, CLIP_Y_FLIP_DECLARATION), 1, "exactly one ssyf declaration");
+        for (const line of CLIP_Y_FLIP_LINES) assert.equal(count(flipped, line), 1, `exactly one "${line}"`);
+
+        // Inside main, after dxbc_main, before the depth fixup - CCP's order.
+        const main = flipped.slice(flipped.lastIndexOf("void main() {"));
+        const call = main.indexOf("dxbc_main();");
+        const xy = main.indexOf(CLIP_Y_FLIP_LINES[0]);
+        const y = main.indexOf(CLIP_Y_FLIP_LINES[1]);
+        const depth = main.indexOf(REVERSED_FIXUP);
+        assert.ok(call >= 0 && xy > call && y > xy && depth > y, "tail order must be dxbc_main, xy offset, y flip, depth fixup");
+
+        // Independent of the depth range it sits beside.
+        const forward = vertexOf({ clipYFlip: true, depthRange: "forward" });
+        assert.equal(count(forward, CLIP_Y_FLIP_LINES[1]), 1);
+        assert.equal(count(forward, FORWARD_FIXUP), 1);
+    }
+);
+
 test("an unknown depthRange is rejected rather than silently defaulted", () =>
 {
     // Rejected at construction, so it fails whether or not the stage happens to

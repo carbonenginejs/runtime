@@ -162,8 +162,37 @@ export class DxbcGlslEmitter
             // whole observable difference, and it is what makes the wrong
             // choice so hard to see.
             depthRange: "reversed",
+            // WebGL platform adaptation, not a Carbon concept: D3D's framebuffer
+            // origin is top-left and GL's is bottom-left, so every shader that
+            // turns a projected position into a screen coordinate the D3D way
+            // (`* (0.5, -0.5) + 0.5`) or reads SV_Position.y samples the
+            // vertically mirrored texel of a render target in GL.
+            //
+            // `true` appends CCP's own gles2 tail to every vertex stage that
+            // writes a position, ahead of the depth fixup:
+            //
+            //   gl_Position.xy += ssyf.xy * gl_Position.w;
+            //   gl_Position.y  *= ssyf.z;
+            //
+            // with `uniform vec3 ssyf`. The CONSUMER owns the value per render
+            // target: `(0, 0, -1)` while drawing into an offscreen target (so it
+            // is stored top-down, as D3D stores it) and `(0, 0, 1)` otherwise,
+            // flipping once at present. Same name and form as CCP's shipped
+            // gles2 bodies, so one uniform serves both shader families.
+            //
+            // An unset uniform reads (0, 0, 0) and collapses every vertex onto
+            // y = 0. That is the contract failing loudly, and is not defended
+            // against here.
+            clipYFlip: false,
             ...options.profile
         };
+
+        if (typeof this.profile.clipYFlip !== "boolean")
+        {
+            throw new TypeError(
+                `DxbcGlslEmitter: clipYFlip must be a boolean, got ${JSON.stringify(this.profile.clipYFlip)}`
+            );
+        }
 
         if (typeof this.profile.packedLightProfiles !== "boolean")
         {
@@ -3484,6 +3513,20 @@ DxbcGlslEmitter.prototype._gather4Channel = function _gather4Channel(operand)
  * unchanged either way. See `profile.depthRange`.
  * @type {Object.<string,string>}
  */
+/**
+ * The clip-space Y flip uniform and tail emitted when `profile.clipYFlip` is set.
+ * Name and statements match CCP's shipped gles2 vertex bodies exactly, so a
+ * consumer drives translated and legacy stages through the one uniform.
+ * @type {string}
+ */
+const CLIP_Y_FLIP_UNIFORM = "ssyf";
+
+/** @type {ReadonlyArray<string>} */
+const CLIP_Y_FLIP_TAIL = Object.freeze([
+    `gl_Position.xy += ${CLIP_Y_FLIP_UNIFORM}.xy * gl_Position.w;`,
+    `gl_Position.y *= ${CLIP_Y_FLIP_UNIFORM}.z;`
+]);
+
 const DEPTH_RANGE_FIXUP = Object.freeze({
     reversed: "gl_Position.z = gl_Position.w - 2.0 * gl_Position.z;",
     forward: "gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;"
@@ -3526,6 +3569,12 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
     const writesPosition = [ ...state.outputNames.values() ].includes("gl_Position");
     if (!state.isPixel && !state.isCompute && writesPosition)
     {
+        // See `profile.clipYFlip`. The flip runs before the depth fixup, the
+        // order CCP's gles2 tail uses; the two touch different components.
+        if (this.profile.clipYFlip)
+        {
+            lines.push("", `uniform vec3 ${CLIP_Y_FLIP_UNIFORM};`);
+        }
         lines.push("", "void dxbc_main() {");
         for (const early of state.earlyMainLines)
         {
@@ -3536,6 +3585,7 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
             "",
             "void main() {",
             "    dxbc_main();",
+            ...(this.profile.clipYFlip ? CLIP_Y_FLIP_TAIL.map(line => `    ${line}`) : []),
             `    ${DEPTH_RANGE_FIXUP[this.profile.depthRange]}`,
             "}"
         );
