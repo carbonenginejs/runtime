@@ -25,6 +25,51 @@ particular, it does not require normalized skin-weight sums or finite mesh
 bounds and UV densities. Destination writers may impose stricter requirements
 when their target format needs them.
 
+## glTF import contract
+
+`CjsGltfFormat` defaults to `emit: "shared"`; `emit: "cmf"` uses the same
+canonical CMF builder. JSON and `gltfJson` are explicit projections, not the
+conversion boundary.
+
+- **Vertex channels:** glTF `TANGENT` is XYZ plus handedness, not an EVE packed
+  tangent frame. Import produces separate tangent and binormal vectors from
+  the matching normal and handedness; a tangent without a matching normal channel is
+  rejected. Invalid direction vectors use the exporter's fixed fallbacks.
+  Indexed UV/color channels retain their usage indices and three/four-component
+  color width. Optional tangent packing is applied independently to every LOD.
+- **Skinning:** `JOINTS_0` stays relative to the mesh's palette. Positive-weight
+  indices must address that palette; zero-weight indices become zero. Skins
+  sharing `skin.skeleton` share the full skeleton, including unused bones;
+  skins without it remain separate. `inverseBindMatrices` must be FLOAT MAT4,
+  one per joint, and map by joint-node identity without transpose. Conflicting
+  matrices for a shared bone reject; an absent accessor means identity.
+- **Morphs:** CMF buffers are absolute. Deltas are added to each LOD's own base;
+  omitted components copy that base, and authored absolute targets stay
+  absolute. Non-empty morph declarations include Position and are subsets of
+  the base declaration. Displacement is measured against the base and aggregated
+  across LODs. Weight animations become scalar MorphTarget channels:
+  `FooShape` maps to `Foo`. Carbon's exporter omits original target names, so
+  unnamed exported targets become `target_n`, not reconstructed original names.
+- **Animation:** missing TRS channels stay absent. Explicit one-key identity
+  channels retain `preserveIdentity`, since they may override a non-identity
+  rest pose. Track groups follow shared skeleton identity rather than duplicating
+  channels per mesh. Matrix decomposition is checked by recomposition; rotation
+  and reflected scale survive, but shear is rejected.
+- **Scene and LOD:** when scenes exist, import uses mesh nodes reachable from
+  the default scene and reconstructs lower LODs through `MSFT_lod.ids`.
+  Coverage `[c0, c1, ..., sentinel]` becomes thresholds
+  `[0xffffffff, round(c0 * 2048), round(c1 * 2048), ...]`, strictly descending;
+  the sentinel creates no LOD. Export-clamped thresholds above 2048 are not
+  recoverable. LODs must agree on topology, declaration, material-area count,
+  joint palette, and morph declarations/names.
+- **Topology:** non-indexed POINTS become PointList without an index buffer;
+  strips and fans are triangulated. CMF construction fills UV densities through
+  the highest TexCoord usage index, leaving missing usage indices zero.
+
+Carbon's exporter loses source declarations, packed-frame storage, bounds,
+metadata, morph names and some LOD information. Round trips are comparisons of
+representable geometry/animation semantics, not byte-exact recovery.
+
 ## FBX compatibility modes
 
 FBX reads accept `compatibility: "source" | "carbon"`. The default is
@@ -94,6 +139,11 @@ subdivision limit, not silent reinterpretation of cubic controls.
 
 The following inputs remain hard errors rather than lossy conversions:
 
+- glTF `JOINTS_n`/`WEIGHTS_n` above zero, pending an explicit influence-reduction
+  policy;
+- indexed glTF POINTS, pending coordinated unindexing of base and morph channels;
+- non-identity glTF mesh-node transforms, pending a complete bake through
+  geometry, morphs, bounds, directions and skinning;
 - multiple or weighted FBX animation layers and FBX cubic tangent semantics;
   Carbon delegates these to `ufbx_bake_anim`, and the runtime has no equivalent
   evaluator;
