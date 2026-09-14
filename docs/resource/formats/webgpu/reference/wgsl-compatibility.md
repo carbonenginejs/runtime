@@ -23,7 +23,7 @@ each entry says why it exists and what revisiting it would take. Categories:
 ## Adapted
 
 Completed per-profile corpus-count transitions remain in
-[pinned history](https://github.com/carbonenginejs/runtime/blob/1e7f6d83684d37d6f39615beb7ab18d8c9f072cb/docs/resource/formats/webgpu/reference/wgsl-compatibility.md#adapted).
+[pinned history](https://github.com/carbonenginejs/runtime/blob/ede6c17c372c6582fa2a70f72a508e589945537c/docs/resource/formats/webgpu/reference/wgsl-compatibility.md#adapted).
 The support limits, browser-gate scope and runtime premises below remain active;
 retiring those measurements does not widen qualification.
 
@@ -243,10 +243,7 @@ Relative/dynamic addressing and narrower mutable declarations remain
 fail-closed. Fixed reads of a register recognized as the immutable table shape
 below are routed through that table rather than through mutable SSA. The
 `cloud` and `cloudsimple` browser gates cover fixed-slot writes and reads with
-zero WGSL warnings. The full corpus transition moved from 502 qualified / 35
-unsupported / 0 failed to 504 / 33 / 0: exactly those two packages became
-qualified, and SHA-256 comparison confirmed all 502 previously qualified
-package bytes remained identical.
+zero WGSL warnings.
 
 ### Relative indexable temps → module `const` tables (immutable shape only)
 
@@ -692,14 +689,6 @@ element stride, D3D missing-channel values, format conversion, and
 token. The bounded compute profiles described above use separately validated
 scalar-word contracts and are not widened by this restriction.
 
-The corrective corpus transition moved from 513 qualified / 24 unsupported /
-0 failed to 506 / 31 / 0. Exactly `exposuredebug`, `highpassfilter`, `taa`,
-`taacopy`, `tonemapping`, `lensflare`, and `lensgrime` were retracted; direct
-comparison confirmed all 506 remaining qualified packages are byte-identical.
-The paired DX11/DX12 matrices retained matching axes and active topology with
-zero front-end failures while moving the affected 111 stage occurrences (72
-DX11 and 39 DX12) from emitted to unsupported.
-
 ## Not supported (fail closed)
 
 - **Globally non-refactorable shaders** (`dcl_global_flags` without
@@ -772,38 +761,23 @@ sample form and in both stages.
   incompatible metadata, incomplete names, missing samples, or ambiguous
   bindings reject the transform.
 
-  The source IR and semantic parameter names remain unchanged. Physical
-  lowering replaces the inputs with one `texture_2d_array<f32>`, reuses the
-  first input identity, removes the later bindings only from the owning pass,
-  and emits fixed layers 0/1 or 0/1/2. The WGSL set becomes version 3 and
-  carries the complete realization recipe. Every named layer is required; the
-  runtime may use a compatible native array representation or decode all
-  layers to RGBA8, but it may not silently supply a missing layer.
+  Source IR and semantic names are unchanged. Physical recipe encoding, ordered
+  layers, pass-scoped binding removal and missing-layer rejection belong to the
+  [version-3 wire contract](../formats/carbon-webgpu.md#version-3-resource-transforms);
+  the [device API](../../../../trinityal/webgpu/reference/api.md#device-boundary)
+  owns caller-supplied compatible layer assembly.
 
-  Exact high (`.sm_depth`) and medium (`.sm_hi`) exhaustive matrices qualify
-  all 160 DX11 bodies of `unpackedskinned_quaddetailv5` and all 32 DX11 bodies
-  of `unpackedskinned_quadheatdetailv5`, with zero failed bodies. Their DX12
-  matrices have the same axes/topology and zero failures; bindless bodies
-  retain the pre-existing comparison-only unbounded-range boundary. The
-  representative non-bindless, PPT-on, unclipped, opaque, debug-off body is
-  body 4 (overlay blend for Detail): Detail falls from 17 source textures to
-  15 physical textures through a three-layer recipe, while HeatDetail falls
-  from 17 to 16 through a two-layer recipe. All four DX11 and four DX12
-  representative fragment modules across high and medium compile in the
-  browser with zero WGSL warnings.
+  Recorded High (.sm_depth) and Medium (.sm_hi) exhaustive matrices cover
+  unpackedskinned_quaddetailv5 and unpackedskinned_quadheatdetailv5. The
+  representative body 4 is non-bindless, PPT-on, unclipped, opaque and debug-off
+  (overlay blend for Detail): three layers reduce 17 source textures to 15
+  physical textures; HeatDetail's two layers reduce 17 to 16. Paired DX12
+  bindless bodies remain comparison-only. The pinned history above retains
+  body counts and zero-warning module/corpus receipts.
 
-  The exact-build corpus remains 507 qualified, 30 unsupported, and 0 failed.
-  Twelve package hashes change, all within the static/skinned,
-  packed/unpacked Quad Detail, HeatDetail, and Environment families; the other
-  495 qualified packages are byte-identical. Every changed package carries
-  exactly one two- or three-layer Detail transform.
-
-  This closes the compiler-side sampled-texture binding limit. Raw module
-  compilation alone does not prove resource realization or rendering, but the
-  current engine accepts WGSL-set version 3 and realizes the documented
-  `texture-2d-array` transform recipe. The Detail and HeatDetail families have
-  exact draw evidence; the Environment family remains unverified. See
-  [Consumer boundary: resource transforms](#consumer-boundary-resource-transforms).
+  This resolves the compiler-side sampled-texture limit, not rendering in
+  general. [Consumer evidence](#consumer-boundary-resource-transforms) qualifies
+  particular Detail/HeatDetail draws; **Environment remains unverified**.
 - **Immediate 2D sample offsets** — `sample`, `sample_b`, `sample_d`, and
   `sample_l` lower their signed `_aoffimmi(u,v,w)` record to WGSL's final
   constant `vec2<i32>(u, v)` sampling argument. Both APIs apply that
@@ -812,10 +786,6 @@ sample form and in both stages.
   emitted. Fragment supports all four opcodes; vertex supports the
   explicit-gradient/LOD pair already legal there. Duplicate or malformed
   records, offsets on other opcodes, and non-2D resource shapes fail closed.
-  The completed corpus transition kept 497 shaders qualified and intentionally
-  changed exactly seven prior packages: `downsample`, `taa`, the tactical
-  overlay `anchor`, `connector`, `ubershader`, and `velocity` shaders, and
-  `ui/glowtransform`.
   *Confirmed against vkd3d-shader:* its IR preserves the signed immediate
   offset on sample instructions, and its SPIR-V, GLSL, and MSL backends pass
   those constants through as the target sampling operation's constant offset.
@@ -891,10 +861,7 @@ sample form and in both stages.
   evaluates both `select` alternatives. Both destinations may be written by
   one instruction when their masks match; mismatched live masks fail closed.
   A `null` destination does not contribute active source lanes. That shared
-  multi-destination rule also corrects partial-mask `sincos` source lanes:
-  the full-corpus rebuild intentionally changes only the affected WGSL lines
-  in `beaconfx`, `raymarcher`, and `scannerbackground`; the other 494
-  previously qualified packages remain byte-identical.
+  multi-destination rule also applies to partial-mask `sincos` source lanes.
   *Confirmed against vkd3d-shader:* its
   `vsir_program_lower_udiv` comments that "division by zero is well-defined for
   … UDIV, and returns UINT_MAX", and it emits a `MOVC` selecting `0xffffffff`
