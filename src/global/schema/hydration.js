@@ -24,7 +24,16 @@
  * SetValues is called directly rather than through CjsSchema.setValues so a
  * reader works with only the schema layer loaded; the two are the same path
  * for every class that has the method.
+ *
+ * A REGISTERED class without SetValues - one that no longer extends CjsModel -
+ * is still a resolved class, so it populates through CjsSchema.setValues, which
+ * answers without the model layer. Only an unregistered carrier (the reader's
+ * `{ _sourceClassName }` fallback) takes raw assignment. Without this middle
+ * arm, taking a class off the base would silently drop it to Object.assign:
+ * no coercion, no writability gate, no settle.
  */
+
+import { CjsSchema } from "./CjsSchema.js";
 
 /**
  * Resolves a normalized adapter from hydration options. The returned object
@@ -50,6 +59,11 @@ export function resolveHydrationAdapter(options = {})
             if (instance && typeof instance.SetValues === "function")
             {
                 instance.SetValues(values, ctx?.options);
+                return instance;
+            }
+            if (instance && CjsSchema.getClassName(instance.constructor))
+            {
+                CjsSchema.setValues(instance, values, ctx?.options);
                 return instance;
             }
             return Object.assign(instance, values);

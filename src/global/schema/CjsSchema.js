@@ -1,4 +1,5 @@
 import {
+    cloneCarbonValue,
     coerceCarbonMathInto,
     coerceCarbonTypedArrayInto,
     defaultValueForCarbonField,
@@ -425,7 +426,20 @@ export class CjsSchema
     static #statelessTransport = createValuesTransport({
         GetFields: Constructor => getEffectiveFields(Constructor),
         Export: (value, field, options) => exportCarbonValue(value, field.type, options),
-        Import: (value, field) => normalizeCarbonValue(value, field.type),
+        // A live instance of a registered class is ALIASED, never copied - the
+        // rule the model path applies through its brand (CjsModel.js, the
+        // isModelInstance early return). A class off the base carries no brand,
+        // so without this a reference field would receive a plain-object copy
+        // and shared identity across the graph would silently split.
+        Import: (value, field) =>
+        {
+            if (isLiveSchemaInstance(value)) return value;
+            if (Array.isArray(value) && value.some(isLiveSchemaInstance))
+            {
+                return value.map(item => isLiveSchemaInstance(item) ? item : cloneCarbonValue(item));
+            }
+            return normalizeCarbonValue(value, field.type);
+        },
         CoerceInto: (current, incoming, field) =>
             coerceCarbonMathInto(current, incoming, field.type)
             ?? coerceCarbonTypedArrayInto(current, incoming, field.type),
@@ -1376,6 +1390,15 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
     {
         schema.hiddenInherited.add(fieldName);
     }
+}
+
+// A live instance of a registered class, from this copy or a sibling one -
+// getClassName reads the cross-copy stamp. Plain bags, arrays, typed arrays
+// and the reader's `{ _sourceClassName }` carriers all answer false.
+function isLiveSchemaInstance(value)
+{
+    return !!value && typeof value === "object" && !Array.isArray(value) && !ArrayBuffer.isView(value)
+        && CjsSchema.getClassName(value.constructor) !== null;
 }
 
 function getEffectiveFields(Constructor)
