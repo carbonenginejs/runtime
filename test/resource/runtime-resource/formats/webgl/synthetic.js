@@ -923,3 +923,39 @@ export function buildPackedLightDecodeDxbc()
         { fourCC: "SHEX", payload: new Uint8Array(new Uint32Array(words).buffer) }
     ]);
 }
+
+/**
+ * Vertex stage decoding a quad corner from SV_VertexID the way the plane-set
+ * and sprite-pool shaders do: `and r0.x, v0.x, 3`, `utof r0.x, r0.x`, then
+ * write it to the position. Synthetic; no game bytes are embedded.
+ * @returns {Uint8Array} Vertex DXBC exercising a system-value integer through a temporary.
+ */
+export function buildVertexIdCornerDxbc()
+{
+    const operand = (type, r, selection, bits) => [2 | (selection << 2) | (bits << 4) | (type << 12) | (1 << 20), r];
+    const imm = value => [1 | (4 << 12), value];
+    const words = [versionToken(1, 5, 0), 0];
+    const emit = (op, ...operands) => { const args = operands.flat(); words.push(opcodeToken(op, args.length + 1), ...args); };
+    emit(96, operand(1, 0, 0, 1), [6]); // dcl_input_sgv v0.x, vertex_id
+    emit(103, operand(2, 0, 0, 15), [1]); // dcl_output_siv o0, position
+    emit(104, [1]); // dcl_temps
+    emit(1, operand(0, 0, 0, 1), operand(1, 0, 1, 0x00), imm(3)); // and r0.x, v0.xxxx, 3
+    emit(86, operand(0, 0, 0, 1), operand(0, 0, 1, 0x00)); // utof r0.x, r0.xxxx
+    emit(54, operand(2, 0, 0, 15), operand(0, 0, 1, 0x00)); // mov o0, r0.xxxx
+    emit(62);
+    words[1] = words.length;
+    const signature = (name, systemValue, componentType, mask) =>
+    {
+        const writer = new ByteWriter();
+        writer.u32(1); writer.u32(8);
+        writer.u32(32); writer.u32(0); writer.u32(systemValue); writer.u32(componentType); writer.u32(0);
+        writer.u8(mask); writer.u8(mask); writer.u16(0);
+        writer.raw(textEncoder.encode(`${name}\0`));
+        return writer.toBytes();
+    };
+    return buildContainer([
+        { fourCC: "ISGN", payload: signature("SV_VertexID", 6, 1, 1) },
+        { fourCC: "OSGN", payload: signature("SV_Position", 1, 3, 15) },
+        { fourCC: "SHEX", payload: new Uint8Array(new Uint32Array(words).buffer) }
+    ]);
+}

@@ -22,8 +22,9 @@ const SPECIAL_OPERAND_NAMES = {
 /**
  * Formats decoded DXBC operands as GLSL ES 3.00 expressions and assignments.
  *
- * Type policy: register files use float `vec4`s. Packed-light shaders also
- * retain uint companions for temporary registers; integer reads use those
+ * Type policy: register files use float `vec4`s. Packed-light shaders and
+ * shaders reading SV_VertexID/SV_InstanceID also retain uint companions for
+ * temporary registers; integer reads use those
  * companions to avoid losing packed bits through float storage. Other integer and
  * unsigned reads/writes bitcast at the use site (`floatBitsToInt` family),
  * mirroring HLSLcc's lowering when reflection-driven type analysis is
@@ -49,6 +50,10 @@ export class DxbcGlslOperandFormatter
         // bitcast (floatBitsToInt(attr)) - ccpwgl uploads them as plain float
         // values, not integer bit patterns (see DxbcGlslEmitter._declareVertexInput).
         this.integerInputs = options.integerInputs || null;
+        // Map of input register index -> GLSL integer built-in (`gl_VertexID`).
+        // Integer reads use the built-in directly instead of bitcasting its
+        // float bit-pattern register, which ANGLE/D3D11 does not preserve.
+        this.systemIntegerInputs = options.systemIntegerInputs || null;
         this.names = {
             temp: (index) => `r${index}`,
             indexableTemp: (index) => `x${index}`,
@@ -133,8 +138,16 @@ export class DxbcGlslOperandFormatter
             const integerInputKind = operand.type === 1 && this.integerInputs
                 ? this.integerInputs.get(operand.registerIndex)
                 : undefined;
+            const systemInteger = operand.type === 1 && this.systemIntegerInputs
+                ? this.systemIntegerInputs.get(operand.registerIndex)
+                : undefined;
 
-            if (operand.type === 0 && this.integerTemps && !floatSpaceModifier)
+            if (systemInteger && !floatSpaceModifier)
+            {
+                const width = suffix ? suffix.length - 1 : 4;
+                expression = `${VEC_TYPE_BY_KIND[as][width - 1]}(${systemInteger})`;
+            }
+            else if (operand.type === 0 && this.integerTemps && !floatSpaceModifier)
             {
                 // Raw integer companion. An integer `neg` applies to it
                 // directly below; a float-space abs forces the float register

@@ -509,6 +509,17 @@ export class DxbcGlslEmitter
         }
 
         state.integerVertexInputs = new Map();
+        // Register -> GLSL integer built-in (`gl_VertexID`/`gl_InstanceID`) for
+        // system-value inputs; filled by _declareSystemInput.
+        state.systemIntegerInputs = new Map();
+        // Integer companions for temporaries. Small integers held as float bit
+        // patterns are denormals, and ANGLE/D3D11 hardware does not preserve
+        // them in float storage: a vertex-id corner index `r0.x = uintBitsToFloat(id & 3u)`
+        // reads back 0 for ids 1..3, collapsing every quad (plane sets, the sprite
+        // pool). Packed-light shaders need the same companions for their words.
+        state.integerTemps = !!state.lightPackedTexture || state.decoder.instructions.some((instruction) =>
+            (instruction.opcodeName === "dcl_input_sgv" || instruction.opcodeName === "dcl_input_ps_sgv")
+            && (instruction.declaration?.systemValueName === "vertex_id" || instruction.declaration?.systemValueName === "instance_id"));
 
         state.formatter = new DxbcGlslOperandFormatter({
             // Populated during vertex-input declaration (the declaration loop
@@ -516,7 +527,8 @@ export class DxbcGlslEmitter
             // first operand is formatted). Integer reads of these registers
             // value-convert instead of bitcast - see _declareVertexInput.
             integerInputs: state.integerVertexInputs,
-            integerTemps: !!state.lightPackedTexture,
+            integerTemps: state.integerTemps,
+            systemIntegerInputs: state.systemIntegerInputs,
             componentMap: (operand) =>
             {
                 if (operand.type === 1) return state.inputMasks.get(operand.registerIndex) || null;
@@ -1381,7 +1393,7 @@ export class DxbcGlslEmitter
                 for (let index = 0; index < declaration.tempCount; index += 1)
                 {
                     state.declarationLines.push(`vec4 r${index};`);
-                    if (state.lightPackedTexture) state.declarationLines.push(`uvec4 cjsBitsR${index};`);
+                    if (state.integerTemps) state.declarationLines.push(`uvec4 cjsBitsR${index};`);
                 }
                 break;
             case "dcl_indexable_temp":
@@ -1816,9 +1828,11 @@ export class DxbcGlslEmitter
                 break;
             case "vertex_id":
                 state.inputNames.set(register, "vec4(intBitsToFloat(gl_VertexID))");
+                state.systemIntegerInputs.set(register, "gl_VertexID");
                 break;
             case "instance_id":
                 state.inputNames.set(register, "vec4(intBitsToFloat(gl_InstanceID))");
+                state.systemIntegerInputs.set(register, "gl_InstanceID");
                 break;
             default:
                 throw new WebglReadError("System-generated input is not supported by the WebGL2 emitter", {
@@ -2093,7 +2107,7 @@ export class DxbcGlslEmitter
         // Centralize writes here because several lowerings emit lane writes
         // directly rather than going through _assign. This is per assignment,
         // not a shader/register-number pattern or a control-flow dataflow guess.
-        const assignment = state.lightPackedTexture && /^(r(\d+)(?:\.[xyzw]+)?) = ([\s\S]+);$/.exec(text);
+        const assignment = state.integerTemps && /^(r(\d+)(?:\.[xyzw]+)?) = ([\s\S]+);$/.exec(text);
         if (assignment)
         {
             const [, target, index, value] = assignment;
@@ -2454,7 +2468,7 @@ export class DxbcGlslEmitter
         const aliases = instruction.operands.slice(1).some((operand) =>
             operand.type === destOperand.type && operand.registerIndex === destOperand.registerIndex);
 
-        const rawMove = !!state.lightPackedTexture && destOperand.type === 0;
+        const rawMove = state.integerTemps && destOperand.type === 0;
         if (aliases)
         {
             this._line(state, "{");
@@ -2872,7 +2886,7 @@ DxbcGlslEmitter.LOWERINGS = {
     mov(state, instruction)
     {
         const { mask } = this._destMask(state, instruction);
-        if (state.lightPackedTexture && instruction.operands[0].type === 0
+        if (state.integerTemps && instruction.operands[0].type === 0
             && !instruction.saturate && ![ "neg", "abs", "absneg" ].includes(instruction.operands[1].modifierName))
         {
             const raw = this._vecArg(state, instruction.operands[1], mask, "uint");
