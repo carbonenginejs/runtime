@@ -426,20 +426,7 @@ export class CjsSchema
     static #statelessTransport = createValuesTransport({
         GetFields: Constructor => getEffectiveFields(Constructor),
         Export: (value, field, options) => exportCarbonValue(value, field.type, options),
-        // A live instance of a registered class is ALIASED, never copied - the
-        // rule the model path applies through its brand (CjsModel.js, the
-        // isModelInstance early return). A class off the base carries no brand,
-        // so without this a reference field would receive a plain-object copy
-        // and shared identity across the graph would silently split.
-        Import: (value, field) =>
-        {
-            if (isLiveSchemaInstance(value)) return value;
-            if (Array.isArray(value) && value.some(isLiveSchemaInstance))
-            {
-                return value.map(item => isLiveSchemaInstance(item) ? item : cloneCarbonValue(item));
-            }
-            return normalizeCarbonValue(value, field.type);
-        },
+        Import: (value, field) => importDeclaredValue(value, field),
         CoerceInto: (current, incoming, field) =>
             coerceCarbonMathInto(current, incoming, field.type)
             ?? coerceCarbonTypedArrayInto(current, incoming, field.type),
@@ -1392,13 +1379,54 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
     }
 }
 
-// A live instance of a registered class, from this copy or a sibling one -
-// getClassName reads the cross-copy stamp. Plain bags, arrays, typed arrays
-// and the reader's `{ _sourceClassName }` carriers all answer false.
-function isLiveSchemaInstance(value)
+// The state-free transport's import. A declared REFERENCE field - model or
+// objectRef, or a list or Map of them - treats a non-plain object as the
+// reference itself and assigns it, Carbon's IRoot* member (operator ruling,
+// 2026-09-14). The DECLARED TYPE decides that the field holds references; the
+// value's class is never inspected. Plain bags, and every other field kind,
+// import by value exactly as before.
+function importDeclaredValue(value, field)
 {
-    return !!value && typeof value === "object" && !Array.isArray(value) && !ArrayBuffer.isView(value)
-        && CjsSchema.getClassName(value.constructor) !== null;
+    const type = field.type;
+    switch (type?.kind)
+    {
+        case "model":
+        case "objectRef":
+            if (isObjectReference(value)) return value;
+            break;
+        case "list":
+        case "array":
+            if (Array.isArray(value) && isReferenceType(type.itemType))
+            {
+                return value.map(item => isObjectReference(item) ? item : cloneCarbonValue(item));
+            }
+            break;
+        case "map":
+            if (value instanceof Map && isReferenceType(type.valueType))
+            {
+                return new Map(Array.from(value, ([ key, item ]) =>
+                    [ key, isObjectReference(item) ? item : cloneCarbonValue(item) ]));
+            }
+            break;
+    }
+    return normalizeCarbonValue(value, type);
+}
+
+// A declared item type that holds references: a model or objectRef
+// descriptor, or a bare name registered as a class. "string" and "unknown"
+// are not registered, so they stay values.
+function isReferenceType(type)
+{
+    if (typeof type === "string") return CjsSchema.GetConstructor(type) !== null;
+    return type?.kind === "model" || type?.kind === "objectRef";
+}
+
+// Not a values bag: an object that is neither plain, an array nor a typed
+// array. Asks only what the value is made of, never which class built it.
+function isObjectReference(value)
+{
+    return value !== null && typeof value === "object" && !isPlainObject(value)
+        && !Array.isArray(value) && !ArrayBuffer.isView(value);
 }
 
 function getEffectiveFields(Constructor)

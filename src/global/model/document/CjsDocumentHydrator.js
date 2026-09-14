@@ -136,7 +136,16 @@ export class CjsDocumentHydrator
         }
 
         const apply = adapter || resolveHydrationAdapter(options);
-        apply.applyValues(target, values, { kind: node.kind, shape, node, options });
+        apply.applyValues(target, values, {
+            kind: node.kind,
+            shape,
+            node,
+            options,
+            // The class this hydrator resolved for the kind, asked of the schema:
+            // does it declare fields to populate? A caller-supplied plain class
+            // does not, and keeps raw assignment.
+            declared: CjsSchema.getClassName(CjsDocumentHydrator.resolveClass(node.kind, options)) !== null
+        });
         Object.assign(target, rawValues);
         return target;
     }

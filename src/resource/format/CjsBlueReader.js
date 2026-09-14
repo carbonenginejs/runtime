@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema/CjsSchema";
 import { resolveHydrationAdapter } from "#schema/hydration";
 import {
     CARBON_TYPE,
@@ -98,11 +99,13 @@ export class CjsBlueReader extends CjsReader
     /** Applies runtime values to the current Blue graph reader. */
     ApplyRuntimeValues(target, values, kind, shape = null)
     {
-        this.adapter.applyValues(
-            target,
-            values,
-            this.CreateRuntimeContext(kind, shape, true, this.hydrationOptions)
-        );
+        const context = this.CreateRuntimeContext(kind, shape, true, this.hydrationOptions);
+        // The reader resolved the kind itself, so it asks the schema about THAT
+        // class - does it declare fields to populate? - rather than leaving the
+        // adapter to inspect the object. A fallback carrier (no class) and a
+        // caller-supplied plain class both answer no, and keep raw assignment.
+        context.declared = CjsSchema.getClassName(this.ResolveClass(kind)) !== null;
+        this.adapter.applyValues(target, values, context);
         this.runtimeInstances.push({ instance: target, kind, shape });
     }
 

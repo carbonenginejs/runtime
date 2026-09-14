@@ -25,12 +25,14 @@
  * reader works with only the schema layer loaded; the two are the same path
  * for every class that has the method.
  *
- * A REGISTERED class without SetValues - one that no longer extends CjsModel -
- * is still a resolved class, so it populates through CjsSchema.setValues, which
- * answers without the model layer. Only an unregistered carrier (the reader's
- * `{ _sourceClassName }` fallback) takes raw assignment. Without this middle
- * arm, taking a class off the base would silently drop it to Object.assign:
- * no coercion, no writability gate, no settle.
+ * A schema-declared class without SetValues - one that no longer extends
+ * CjsModel - populates through CjsSchema.setValues, which answers without the
+ * model layer. The READER says so, as `ctx.declared`: it resolved the kind to
+ * a constructor itself and asks CjsSchema whether that class declares fields,
+ * so the adapter never inspects the object. Raw assignment stays for what
+ * declares nothing - the reader's fallback carrier, and a caller-supplied
+ * plain class. Without this arm, taking a class off the base would silently
+ * drop it to Object.assign: no coercion, no writability gate, no settle.
  */
 
 import { CjsSchema } from "./CjsSchema.js";
@@ -61,9 +63,9 @@ export function resolveHydrationAdapter(options = {})
                 instance.SetValues(values, ctx?.options);
                 return instance;
             }
-            if (instance && CjsSchema.getClassName(instance.constructor))
+            if (ctx?.declared === true)
             {
-                CjsSchema.setValues(instance, values, ctx?.options);
+                CjsSchema.setValues(instance, values, ctx.options);
                 return instance;
             }
             return Object.assign(instance, values);
